@@ -10,6 +10,44 @@ function setup(kind = 'nas') {
   return { ...engine, app };
 }
 
+test('connection preflight requires existing grants without minting authenticated transport', () => {
+  const { authority, check, authorizeNasConnection, app } = setup();
+  const request = { app, peerIdentity, networkScope: 'lan', localNetworkId: 'home' };
+  assert.equal(authorizeNasConnection(request).reason, 'UNPINNED_PEER');
+  authority.pinNasPeer(app, { peerIdentity, localNetworkId: 'home' });
+  const permission = authorizeNasConnection(request);
+  assert.equal(permission.allowed, true);
+  assert.equal(check({ app, resource: 'nas', transport: permission }).reason, 'UNVERIFIED_TRANSPORT');
+  assert.equal(check({ app, resource: 'nas', transport: request }).reason, 'UNVERIFIED_TRANSPORT');
+  assert.equal(authorizeNasConnection({ ...request, networkScope: 'internet' }).reason, 'PEER_INTERNET_NOT_GRANTED');
+  authority.grantNasDirectInternet(app, peerIdentity);
+  assert.equal(authorizeNasConnection({ ...request, networkScope: 'internet' }).allowed, true);
+  authority.revokeInternet(app);
+  assert.equal(authorizeNasConnection({ ...request, networkScope: 'internet' }).allowed, false);
+  assert.equal(authorizeNasConnection(request).allowed, true);
+  authority.revokeNasPeer(app, peerIdentity);
+  assert.equal(authorizeNasConnection(request).allowed, false);
+});
+
+test('connection preflight rejects invalid routes, wrong identities, AI and stale app handles', () => {
+  const { authority, authorizeNasConnection, app } = setup();
+  authority.pinNasPeer(app, { peerIdentity, localNetworkId: 'home' });
+  authority.grantNasDirectInternet(app, peerIdentity);
+  const request = { app, peerIdentity, networkScope: 'lan', localNetworkId: 'home' };
+  for (const change of [
+    { peerIdentity: otherPeer }, { peerIdentity: '' }, { localNetworkId: 'public' },
+    { networkScope: 'unknown' }, { networkScope: undefined }, { route: 'relay' }, { route: 'redirect' },
+  ]) assert.equal(authorizeNasConnection({ ...request, ...change }).allowed, false);
+  for (const kind of ['ai', 'app', 'browser', 'model-downloader', 'update-downloader']) {
+    const other = authority.installApp({ appId: `preflight.${kind}`, kind });
+    assert.equal(authorizeNasConnection({ ...request, app: other }).allowed, false);
+  }
+  assert.equal(authorizeNasConnection().reason, 'UNKNOWN_APP');
+  assert.equal(authorizeNasConnection({ ...request, app: {} }).reason, 'UNKNOWN_APP');
+  authority.uninstallApp(app);
+  assert.equal(authorizeNasConnection(request).reason, 'UNKNOWN_APP');
+});
+
 test('installation grants no internet, LAN, documents, NAS or administrator rights', () => {
   for (const kind of ['app', 'browser', 'nas', 'ai', 'model-downloader', 'update-downloader']) {
     const { check, app } = setup(kind);

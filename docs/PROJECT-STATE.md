@@ -1,5 +1,13 @@
 # Actuele projectstatus
 
+## N02 — hybride PQC-transport: implementatiecheckpoint
+
+27 oktober 2026, basis `ece94a5cfebecaec763eb2855aa9f84e55dcdcbc` (PR #7), werkbranch `codex/pqc-transport-foundation`. De aangeleverde beveiligingsblauwdruk is getoetst aan de actuele bronnen en repository. ADR-028 en `implementation/VERIFIABLE-SECURITY-AND-PQC.md` leggen de gekozen standaard-TLS-proef, formele bewijsgrenzen en concrete native vervolgopdrachten vast.
+
+De policy heeft nu een afzonderlijke `authorizeNasConnection`-controle vóór een verbindingspoging. Die verleent geen nieuwe rechten en geldt nooit als transportauthenticatie. Gerichte policysuite: 16/16 geslaagd (14 bestaande + 2 nieuwe), exit 0. De echte loopback TLS-adapter en negatieve handshakeproeven zijn bij dit checkpoint nog in uitvoering; nog geen geslaagd transport- of totaaltestresultaat geclaimd.
+
+Geen native PQC-crate, entropy-syscall, boot-/blokcryptografie of Grover-uitbreiding toegevoegd. De native build heeft concrete ABI-/geheugen-/instructiegrenzen; Rust/Cargo en QEMU zijn in deze ontwikkelsessie niet beschikbaar. Dit verandert geen bestaande M1–M6a-bewijsstatus. N01 hieronder blijft als historische basis bewaard.
+
 ## N01 — internet en persoonlijke NAS-ruimte: hostproef getest
 
 27 oktober 2026, gebouwd vanaf ontwikkelbasis `a96ad45adb044177e18670cd38624ea2a671db3d` op `codex/nas-private-sharing`. De nieuwe gebruikersopdracht verruimt de eigen-LAN-beperking naar eigen of vrienden-/familie-NAS, met expliciet peergebonden internet, client-only inhoudssleutels en eenzijdig adminverwijderrecht. Privacycontract revisie 3 en ADR-027 zijn leidend.

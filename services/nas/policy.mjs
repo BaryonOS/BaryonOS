@@ -24,6 +24,27 @@ export function createPolicyEngine() {
     return value;
   }
   function networkGrantable(record) { if (record.kind === 'ai') fail('AI_NETWORK_DENIED'); }
+  function nasRouteDecision(record, { peerIdentity, networkScope, localNetworkId, route }) {
+    if (record.kind === 'ai') return deny('AI_NETWORK_DENIED');
+    if (record.kind !== 'nas') return deny('NAS_DENIED');
+    if (typeof peerIdentity !== 'string' || !NAMESPACE.test(peerIdentity)) return deny('INVALID_PEER');
+    if (!['lan', 'internet'].includes(networkScope)) return deny('INVALID_NETWORK_SCOPE');
+    if (route !== 'direct') return deny('RELAY_OR_REDIRECT_DENIED');
+    if (!record.peers.has(peerIdentity)) return deny('UNPINNED_PEER');
+    if (networkScope === 'lan') {
+      return record.peers.get(peerIdentity) === localNetworkId ? allow() : deny('LOCAL_NETWORK_CHANGED');
+    }
+    return record.internetPeers.has(peerIdentity) ? allow() : deny('PEER_INTERNET_NOT_GRANTED');
+  }
+
+  // Permission to ATTEMPT a connection, not evidence that a peer is authenticated.
+  // A trusted adapter calls this before opening a socket and must still validate TLS,
+  // mint a live transport fact, and call check() before every application write.
+  function authorizeNasConnection({ app, peerIdentity, networkScope, localNetworkId = null, route = 'direct' } = {}) {
+    let record;
+    try { record = appRecord(app); } catch { return deny('UNKNOWN_APP'); }
+    return nasRouteDecision(record, { peerIdentity, networkScope, localNetworkId, route });
+  }
 
   const authority = Object.freeze({
     installApp({ appId, kind = 'app' }) {
@@ -95,12 +116,7 @@ export function createPolicyEngine() {
       if (record.kind !== 'nas') return deny('NAS_DENIED');
       const fact = typeof transport === 'object' && transport !== null ? transportFacts.get(transport) : undefined;
       if (!fact) return deny('UNVERIFIED_TRANSPORT');
-      if (fact.route !== 'direct') return deny('RELAY_OR_REDIRECT_DENIED');
-      if (!record.peers.has(fact.peerIdentity)) return deny('UNPINNED_PEER');
-      if (fact.networkScope === 'lan') {
-        return record.peers.get(fact.peerIdentity) === fact.localNetworkId ? allow() : deny('LOCAL_NETWORK_CHANGED');
-      }
-      return record.internetPeers.has(fact.peerIdentity) ? allow() : deny('PEER_INTERNET_NOT_GRANTED');
+      return nasRouteDecision(record, fact);
     }
     // General LAN, admin and unknown rights have no implicit route through this API.
     return deny('DEFAULT_DENY');
@@ -133,5 +149,5 @@ export function createPolicyEngine() {
     }
     return directInternet ?? pauseRoute(internetNeedsPermission ? 'PEER_INTERNET_NOT_GRANTED' : 'NO_VERIFIED_ROUTE');
   }
-  return Object.freeze({ authority, check, planNasRoute });
+  return Object.freeze({ authority, check, planNasRoute, authorizeNasConnection });
 }
