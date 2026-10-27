@@ -1,10 +1,11 @@
-# virtio-core — zuiver M5-beleid
+# virtio-core — zuiver M5/M6-beleid
 
 Safe Rust `no_std`, nul dependencies en `forbid(unsafe_code)`. Deze crate krijgt
 alleen integers en vaste arrays: geen raw pointers, MMIO, PCI-I/O, klok of heap.
 Het profiel is modern virtio-blk, split queue8, één outstanding request,
-512-byte READ en een gebruikersslice van 1–128 bytes. WRITE en IOMMU-integratie
-worden niet aangeboden.
+512-byte READ en een gebruikersslice van 1–128 bytes in het M5-profiel. Het
+afzonderlijke M6-profiel hieronder voegt volledige sector-WRITE en FLUSH toe.
+IOMMU-integratie wordt niet aangeboden.
 
 ## API
 

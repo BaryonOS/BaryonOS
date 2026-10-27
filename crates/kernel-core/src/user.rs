@@ -184,10 +184,28 @@ pub fn copy_plan(
     length: u64,
     pid: u64,
     output: bool,
+    lookup: impl FnMut(u64) -> Option<PageAccess>,
+) -> Result<CopyPlan, Error> {
+    bounded_copy_plan(pointer, length, 320, pid, output, lookup)
+}
+/// Exact sector input. This does not widen the 320-byte IPC/output contract.
+pub fn sector_input_plan(
+    pointer: u64,
+    pid: u64,
+    lookup: impl FnMut(u64) -> Option<PageAccess>,
+) -> Result<CopyPlan, Error> {
+    bounded_copy_plan(pointer, 512, 512, pid, false, lookup)
+}
+fn bounded_copy_plan(
+    pointer: u64,
+    length: u64,
+    maximum: u64,
+    pid: u64,
+    output: bool,
     mut lookup: impl FnMut(u64) -> Option<PageAccess>,
 ) -> Result<CopyPlan, Error> {
     let end = pointer.checked_add(length).ok_or(Error::Range)?;
-    if length == 0 || length > 320 || pointer < 0x40000000 || end > 0x80000000 {
+    if length == 0 || length > maximum || pointer < 0x40000000 || end > 0x80000000 {
         return Err(Error::Range);
     }
     let mut plan = CopyPlan {
@@ -217,6 +235,35 @@ pub fn copy_plan(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn sector_input_validates_second_page_owner_and_preserves_ipc_limit() {
+        let ro = |va: u64| {
+            Some(PageAccess {
+                physical: va & !(PAGE - 1),
+                owner: 7,
+                user: true,
+                writable: false,
+            })
+        };
+        let plan = sector_input_plan(0x40013f01, 7, ro).unwrap();
+        assert_eq!(plan.count, 2);
+        assert_eq!(plan.chunks[0].length, 255);
+        assert_eq!(plan.chunks[1].length, 257);
+        assert!(copy_plan(0x40013000, 512, 7, false, ro).is_err());
+        assert!(sector_input_plan(u64::MAX - 255, 7, ro).is_err());
+        assert!(sector_input_plan(0x40013f01, 7, |va| if va >= 0x40014000 {
+            None
+        } else {
+            ro(va)
+        })
+        .is_err());
+        assert!(sector_input_plan(0x40013f01, 8, ro).is_err());
+        assert!(sector_input_plan(0x40013f01, 7, |va| ro(va).map(|mut p| {
+            p.user = va < 0x40014000;
+            p
+        }))
+        .is_err());
+    }
     #[test]
     fn copy_plan_checks_entire_range_before_any_copy() {
         let good = |_: u64| {

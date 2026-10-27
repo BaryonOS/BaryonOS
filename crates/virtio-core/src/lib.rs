@@ -1,6 +1,6 @@
 #![no_std]
 #![forbid(unsafe_code)]
-//! Pure M5 policy: integer PCI snapshots, fixed DMA plans and request lifecycle.
+//! Pure M5/M6 policy: integer PCI snapshots, fixed DMA plans and request lifecycle.
 //! Hardware ordering, DMA pinning, MMIO and actual reset acknowledgement are the
 //! caller's responsibility. No policy result proves hardware quiescence.
 
@@ -10,6 +10,7 @@ pub const MAX_SLICE: u64 = 128;
 pub const VERSION_1: u64 = 1 << 32;
 pub const ACCESS_PLATFORM: u64 = 1 << 33;
 pub const READ_ONLY: u64 = 1 << 5;
+pub const FLUSH: u64 = 1 << 9;
 pub const NEXT: u16 = 1;
 pub const WRITE: u16 = 2;
 pub const PHYSICAL_LIMIT: u64 = 1 << 52;
@@ -34,6 +35,33 @@ pub enum Completion {
     Success,
     Io,
     Unsupported,
+    /// Software outcome: a published mutation may have changed storage. Never
+    /// produced by the used-ring decoder, and never an authorization to replay.
+    Unknown,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Operation {
+    Read {
+        sector: u64,
+        offset: u64,
+        length: u64,
+    },
+    Write {
+        sector: u64,
+    },
+    Flush,
+}
+impl Operation {
+    pub const fn is_mutating(self) -> bool {
+        !matches!(self, Self::Read { .. })
+    }
+    pub const fn sector(self) -> u64 {
+        match self {
+            Self::Read { sector, .. } | Self::Write { sector } => sector,
+            Self::Flush => 0,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -245,6 +273,15 @@ pub fn negotiate_features(offered: u64) -> Result<u64, Error> {
     }
     Ok(VERSION_1 | READ_ONLY)
 }
+/// Separate opt-in profile: never silently weakens the readonly M5 contract.
+pub fn negotiate_writable_features(offered: u64) -> Result<u64, Error> {
+    if offered & (VERSION_1 | FLUSH) != (VERSION_1 | FLUSH)
+        || offered & (READ_ONLY | ACCESS_PLATFORM) != 0
+    {
+        return Err(Error::Unsupported);
+    }
+    Ok(VERSION_1 | FLUSH)
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Descriptor {
@@ -332,13 +369,90 @@ pub fn validate_descriptors(
     Ok(())
 }
 pub fn read_header(sector: u64) -> [u8; 16] {
+    header_for(Operation::Read {
+        sector,
+        offset: 0,
+        length: MAX_SLICE,
+    })
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct DescriptorChain {
+    pub entries: [Descriptor; 3],
+    pub count: u8,
+}
+pub fn descriptor_plan_for(
+    operation: Operation,
+    pool: DmaPool,
+    ram_end: u64,
+) -> Result<DescriptorChain, Error> {
+    let mut entries = descriptor_plan(pool, ram_end)?;
+    match operation {
+        Operation::Read { .. } => {}
+        Operation::Write { .. } => entries[1].flags = NEXT,
+        Operation::Flush => {
+            entries[1] = entries[2];
+            entries[2] = Descriptor {
+                address: 0,
+                length: 0,
+                flags: 0,
+                next: 0,
+            };
+        }
+    }
+    Ok(DescriptorChain {
+        entries,
+        count: if operation == Operation::Flush { 2 } else { 3 },
+    })
+}
+pub fn validate_descriptors_for(
+    chain: &DescriptorChain,
+    operation: Operation,
+    pool: DmaPool,
+    ram_end: u64,
+) -> Result<(), Error> {
+    if *chain != descriptor_plan_for(operation, pool, ram_end)? {
+        return Err(Error::Protocol);
+    }
+    Ok(())
+}
+pub fn header_for(operation: Operation) -> [u8; 16] {
     let mut b = [0; 16];
-    b[8..].copy_from_slice(&sector.to_le_bytes());
+    let kind: u32 = match operation {
+        Operation::Read { .. } => 0,
+        Operation::Write { .. } => 1,
+        Operation::Flush => 4,
+    };
+    b[..4].copy_from_slice(&kind.to_le_bytes());
+    b[8..].copy_from_slice(&operation.sector().to_le_bytes());
     b
 }
 /// A status failure never authorizes payload exposure. A short successful used
 /// length is rejected rather than assuming bytes beyond the reported length.
 pub fn validate_used(
+    expected_head: u16,
+    old_idx: u16,
+    new_idx: u16,
+    used_id: u32,
+    used_len: u32,
+    status: u8,
+) -> Result<Completion, Error> {
+    validate_used_for(
+        Operation::Read {
+            sector: 0,
+            offset: 0,
+            length: MAX_SLICE,
+        },
+        expected_head,
+        old_idx,
+        new_idx,
+        used_id,
+        used_len,
+        status,
+    )
+}
+#[allow(clippy::too_many_arguments)]
+pub fn validate_used_for(
+    operation: Operation,
     expected_head: u16,
     old_idx: u16,
     new_idx: u16,
@@ -353,12 +467,12 @@ pub fn validate_used(
     if delta != 1
         || expected_head >= QUEUE_SIZE
         || used_id != u32::from(expected_head)
-        || used_len > 513
+        || used_len > if operation.is_mutating() { 1 } else { 513 }
     {
         return Err(Error::Protocol);
     }
     match status {
-        0 if used_len == 513 => Ok(Completion::Success),
+        0 if used_len == if operation.is_mutating() { 1 } else { 513 } => Ok(Completion::Success),
         1 if used_len >= 1 => Ok(Completion::Io),
         2 if used_len >= 1 => Ok(Completion::Unsupported),
         _ => Err(Error::Protocol),
@@ -386,11 +500,15 @@ pub struct Request {
     pub length: u16,
     pub deadline: u64,
     pub completion: Option<Completion>,
+    pub operation: Operation,
+    pub published: bool,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Phase {
     Offline,
     Ready,
+    Prepared,
+    Published,
     Pending,
     Complete,
     Resetting,
@@ -440,9 +558,18 @@ impl Policy {
             self.phase = Phase::Quarantined;
             return Err(Error::Exhausted);
         };
-        self.pending = None;
+        // A reset is not a rollback. Keep a mutating terminal result, including
+        // Unknown, until its original owner consumes it or exits. Its ticket and
+        // original epoch remain unchanged while the transport epoch advances.
+        self.pending = self
+            .pending
+            .filter(|r| r.published && r.operation.is_mutating() && r.completion.is_some());
         self.epoch = epoch;
-        self.phase = Phase::Ready;
+        self.phase = if self.pending.is_some() {
+            Phase::Complete
+        } else {
+            Phase::Ready
+        };
         Ok(())
     }
     pub fn submit(
@@ -453,16 +580,52 @@ impl Policy {
         now: u64,
         timeout: u64,
     ) -> Result<Request, Error> {
-        let Read {
-            sector,
-            offset,
-            length,
-        } = read;
+        let mut request = self.prepare(
+            binding,
+            Operation::Read {
+                sector: read.sector,
+                offset: read.offset,
+                length: read.length,
+            },
+            capacity,
+            now,
+            timeout,
+        )?;
+        // Compatibility wrapper for the M5 caller, which already treats submit
+        // as exposed. New transports explicitly prepare then publish.
+        request.published = true;
+        self.pending = Some(request);
+        self.phase = Phase::Pending;
+        Ok(request)
+    }
+    pub fn prepare(
+        &mut self,
+        binding: Binding,
+        operation: Operation,
+        capacity: u64,
+        now: u64,
+        timeout: u64,
+    ) -> Result<Request, Error> {
+        let (sector, offset, length) = match operation {
+            Operation::Read {
+                sector,
+                offset,
+                length,
+            } => {
+                if length == 0
+                    || length > MAX_SLICE
+                    || offset.checked_add(length).ok_or(Error::Range)? > 512
+                {
+                    return Err(Error::Range);
+                }
+                (sector, offset, length)
+            }
+            Operation::Write { sector } => (sector, 0, 512),
+            Operation::Flush => (0, 0, 0),
+        };
         if binding.pid == 0
             || binding.object_key >> 32 == 0
-            || length == 0
-            || length > MAX_SLICE
-            || offset.checked_add(length).ok_or(Error::Range)? > 512
+            || capacity == 0
             || sector >= capacity
             || timeout == 0
         {
@@ -471,7 +634,10 @@ impl Policy {
         let deadline = now.checked_add(timeout).ok_or(Error::Range)?;
         if self.phase != Phase::Ready {
             return Err(
-                if self.phase == Phase::Pending || self.phase == Phase::Complete {
+                if matches!(
+                    self.phase,
+                    Phase::Prepared | Phase::Pending | Phase::Published | Phase::Complete
+                ) {
                     Error::Busy
                 } else {
                     Error::Offline
@@ -488,11 +654,44 @@ impl Policy {
             length: length as u16,
             deadline,
             completion: None,
+            operation,
+            published: false,
         };
         self.next_ticket = next;
         self.pending = Some(request);
-        self.phase = Phase::Pending;
+        self.phase = Phase::Prepared;
         Ok(request)
+    }
+    /// Call directly BEFORE writing avail.idx. A missing notify is not proof the
+    /// device cannot observe the available entry. This deliberately errs toward
+    /// Unknown if publication itself is interrupted.
+    pub fn publish(&mut self, epoch: u64, ticket: u64) -> Result<(), Error> {
+        if epoch != self.epoch {
+            return Err(Error::StaleEpoch);
+        }
+        let mut r = self.pending.ok_or(Error::WrongTicket)?;
+        if r.ticket != ticket {
+            return Err(Error::WrongTicket);
+        }
+        if self.phase != Phase::Prepared {
+            return Err(Error::Offline);
+        }
+        r.published = true;
+        self.pending = Some(r);
+        self.phase = Phase::Published;
+        Ok(())
+    }
+    pub fn reject_prepared(&mut self, binding: Binding, ticket: u64) -> Result<(), Error> {
+        let r = self.pending.ok_or(Error::WrongTicket)?;
+        if r.binding != binding || r.ticket != ticket {
+            return Err(Error::WrongTicket);
+        }
+        if self.phase != Phase::Prepared || r.published {
+            return Err(Error::Offline);
+        }
+        self.pending = None;
+        self.phase = Phase::Ready;
+        Ok(())
     }
     /// Epoch/ticket are software provenance from the caller, never fields from
     /// a virtio used entry. This cannot detect malicious device replay after a
@@ -505,10 +704,16 @@ impl Policy {
         if r.ticket != ticket {
             return Err(Error::WrongTicket);
         }
-        if self.phase != Phase::Pending {
+        if !matches!(self.phase, Phase::Pending | Phase::Published) {
             return Err(Error::Offline);
         }
-        r.completion = Some(outcome);
+        r.completion = Some(
+            if r.operation.is_mutating() && outcome != Completion::Success {
+                Completion::Unknown
+            } else {
+                outcome
+            },
+        );
         self.pending = Some(r);
         self.phase = Phase::Complete;
         Ok(())
@@ -518,12 +723,14 @@ impl Policy {
         if r.binding != binding || r.ticket != ticket {
             return Err(Error::WrongTicket);
         }
-        if r.epoch != self.epoch {
+        let retained_terminal = r.published && r.operation.is_mutating() && r.completion.is_some();
+        if r.epoch != self.epoch && !retained_terminal {
             return Err(Error::StaleEpoch);
         }
         match self.phase {
-            Phase::Pending => Err(Error::Pending),
+            Phase::Prepared | Phase::Pending | Phase::Published => Err(Error::Pending),
             Phase::Complete => Ok(r),
+            Phase::Resetting | Phase::Quarantined if retained_terminal => Ok(r),
             _ => Err(Error::Offline),
         }
     }
@@ -533,25 +740,52 @@ impl Policy {
         let r = self.peek(binding, ticket)?;
         let outcome = r.completion.ok_or(Error::Protocol)?;
         self.pending = None;
-        self.phase = Phase::Ready;
+        if !matches!(self.phase, Phase::Resetting | Phase::Quarantined) {
+            self.phase = Phase::Ready;
+        }
         Ok(outcome)
     }
     pub fn start_reset(&mut self) -> Result<(), Error> {
         if self.phase == Phase::Quarantined {
             return Err(Error::Offline);
         }
+        if let Some(r) = &mut self.pending {
+            if r.published && r.operation.is_mutating() && r.completion.is_none() {
+                r.completion = Some(Completion::Unknown);
+            }
+        }
         self.phase = Phase::Resetting;
         Ok(())
     }
     pub fn timeout(&mut self, now: u64) -> bool {
-        if matches!(self.phase, Phase::Pending | Phase::Complete)
+        if matches!(self.phase, Phase::Pending | Phase::Published)
             && self.pending.is_some_and(|r| now >= r.deadline)
         {
-            self.phase = Phase::Resetting;
+            // This transition cannot fail in Pending/Published, and preserves
+            // an unobserved mutation as Unknown before any reset acknowledgement.
+            self.start_reset()
+                .expect("active request cannot be quarantined");
             true
         } else {
             false
         }
+    }
+    /// Drop the owner's result; an exposed, uncompleted request still requires
+    /// transport reset. Neither owner exit nor consume clears quarantine.
+    pub fn exit(&mut self, pid: u64) -> Option<Request> {
+        let mut r = self.pending.filter(|r| r.binding.pid == pid)?;
+        self.pending = None;
+        if r.published && r.completion.is_none() {
+            if r.operation.is_mutating() {
+                r.completion = Some(Completion::Unknown);
+            }
+            if self.phase != Phase::Quarantined {
+                self.phase = Phase::Resetting;
+            }
+        } else if !matches!(self.phase, Phase::Resetting | Phase::Quarantined) {
+            self.phase = Phase::Ready;
+        }
+        Some(r)
     }
 }
 

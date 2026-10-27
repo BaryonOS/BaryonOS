@@ -2,7 +2,11 @@
 
 ## Actief: M6a
 
-Nieuwe opdracht 27 oktober 2026 vanaf `448974b`, branch `codex/m6a-write-recovery`. Bouwcontract vóór code: implementation/M6A-WRITE-RECOVERY.md. Gekozen: WRITE512/FLUSH met expliciete rechten, een vierrecords-journal, echte dienstcrashes en QEMU-proceskills plus koude recovery op uitsluitend harnasgegenereerde images. Geen fysieke stroomuitvalclaim. Drie builders werken in exclusieve gebieden; root beheert tools/config/evidence/Git. Preflight strict daadwerkelijk exit0; code en M6a-tests nog niet afgerond. M5-basis hieronder behouden; oorspronkelijke status ook in verification/m5/PROJECT-STATE.md.
+Nieuwe opdracht 27 oktober 2026 vanaf `448974b`, branch `codex/m6a-write-recovery`. Bouwcontract vóór code: implementation/M6A-WRITE-RECOVERY.md. Gekozen: WRITE512/FLUSH met expliciete rechten, een vierrecords-journal, echte dienstcrashes en QEMU-proceskills plus koude recovery op uitsluitend harnasgegenereerde images. Geen fysieke stroomuitvalclaim. M5-basis hieronder behouden; oorspronkelijke status ook in verification/m5/PROJECT-STATE.md.
+
+Eerste samenhangende bronversie: typed WRITE32/FLUSH64, Prepared/Published/Unknown, kernel-inputsnapshot512, modern transport, echte nieuwe M6-userdienst/client/supervisor en Python-volume-/crashharnas. Daadwerkelijk geslaagd: 30 capability- en 21 virtio-tests, 20 protocol/journaltests, 16 kernel-core-tests en 12 M6-ELF-artifacttests; core fmt/Clippy/no_std exit0. Eerste echte M6-crossbuild exit0; latere twee observercorrecties worden opnieuw gebouwd. Het root-harnas heeft 8 schijf-oracle- en 5 childprocescontroles geslaagd, geen guestbewijs. Logs/hashes onder verification/m6a/core/ en service/.
+
+Nog geen M6-QEMU-resultaat geclaimd. Nu: eerste bewaakte QEMU-run, gerichte transport-/harnasreviews en concrete integratiefouten herstellen. GitHub-e-mailprivacy blokkeerde de eerste push; alleen de ongepushte commitmetadata is naar het GitHub-noreplyadres hersteld. De branchpush en remote-ID-controle slaagden daarna, zonder privacy-/globale configwijziging.
 
 27 oktober 2026. M5 is geïmplementeerd en getest in het vaste QEMU-profiel.
 

@@ -1,0 +1,141 @@
+{
+  "task": "U06",
+  "baseline": "448974b1352493fba41158da08daf1ad1937d973",
+  "head_at_report": "5abf3543045919a95d3c0e3f8a4b86e6fd7c1657",
+  "build_log": {
+    "command": [
+      "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\rustc.EXE",
+      "+1.90.0",
+      "--edition=2021",
+      "--crate-type=bin",
+      "--crate-name=os_user_m6_probe",
+      "--target=x86_64-unknown-none",
+      "-C",
+      "panic=abort",
+      "-C",
+      "opt-level=2",
+      "-C",
+      "code-model=small",
+      "-C",
+      "relocation-model=static",
+      "-C",
+      "no-redzone=yes",
+      "-C",
+      "linker=rust-lld",
+      "-C",
+      "link-arg=-TC:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\m6_linker.ld",
+      "-C",
+      "link-arg=--no-pie",
+      "-C",
+      "link-arg=--build-id=none",
+      "-C",
+      "link-arg=-zmax-page-size=0x1000",
+      "--emit=link",
+      "-o",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\users\\m6_probe.elf",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\m6_probe.rs"
+    ],
+    "cwd": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System",
+    "started_unix": 1793122141.3824086,
+    "duration_s": 2.027155637741089,
+    "returncode": 0
+  },
+  "build_stderr_bytes": 0,
+  "artifact": {
+    "schema_version": 1,
+    "purpose": "synthetic ring-3 acceptance probe",
+    "binary_sha256": "f73e0d792f33ed5cb6058bae50b3532af25d7dc74ad03b7038589afbfb996629",
+    "source_sha256": "4a6ce0b8af6539f56041e73f536994ba48e8d97bc760c20dff697ebe597ce727",
+    "linker_sha256": "89e0501ac743133f216fa3264b3011566cfb1b69dc43f200289dc572b2985b52",
+    "entry": 1073741824,
+    "segments": [
+      {
+        "flags": 5,
+        "address": 1073741824,
+        "offset": 4096,
+        "filesz": 21561,
+        "memsz": 21561,
+        "page_start": 1073741824,
+        "page_end": 1073766400
+      },
+      {
+        "flags": 6,
+        "address": 1073807360,
+        "offset": 28672,
+        "filesz": 16384,
+        "memsz": 16384,
+        "page_start": 1073807360,
+        "page_end": 1073823744
+      },
+      {
+        "flags": 4,
+        "address": 1073823744,
+        "offset": 45056,
+        "filesz": 2074,
+        "memsz": 2074,
+        "page_start": 1073823744,
+        "page_end": 1073827840
+      }
+    ],
+    "module_sha256": {
+      "userspace/m6_probe.rs": "4a6ce0b8af6539f56041e73f536994ba48e8d97bc760c20dff697ebe597ce727",
+      "userspace/m6_runtime.rs": "de8a1daba7a953a80d1467e69189225205061dec7aa3e4e59571865c0d06d057",
+      "services/block/src/m6_wire.rs": "75a7dbee667474e672c51e1c96a6fdc67e0d466d6a29b476bfdb1d7d0e28e610",
+      "services/block/src/journal.rs": "cc9336e34631805af7dbd01034569639a152b9d4672f2055b4b64513428060e6",
+      "services/block/src/m6_user_service.rs": "16ef5602b09521bf38572264e4594976dde514c1ccb8bb9a4a5b14c915f4cf7b",
+      "services/block/src/wire.rs": "2c420405abe8efea36e15a98cf649317ab7364891d51c6b55d04b40bbbf7f6d1"
+    }
+  },
+  "files": {
+    "services/block/src/lib.rs": "4a57b2a92de17e37a931a6816859b853262a870623a09bdae5503e39e9163542",
+    "services/block/src/journal.rs": "cc9336e34631805af7dbd01034569639a152b9d4672f2055b4b64513428060e6",
+    "services/block/src/m6_wire.rs": "75a7dbee667474e672c51e1c96a6fdc67e0d466d6a29b476bfdb1d7d0e28e610",
+    "services/block/src/m6_user_service.rs": "16ef5602b09521bf38572264e4594976dde514c1ccb8bb9a4a5b14c915f4cf7b",
+    "userspace/m6_probe.rs": "4a6ce0b8af6539f56041e73f536994ba48e8d97bc760c20dff697ebe597ce727",
+    "userspace/m6_runtime.rs": "de8a1daba7a953a80d1467e69189225205061dec7aa3e4e59571865c0d06d057",
+    "userspace/m6_linker.ld": "89e0501ac743133f216fa3264b3011566cfb1b69dc43f200289dc572b2985b52",
+    "userspace/tests/test_m6_probe.py": "14e627612270a336ac6ff409e36949f76e7b6a9aa6a5b29d5ee43c63d23b0d73",
+    "userspace/M6-PROBE.md": "534c8890d0ed5e83dd918b71a057905fba33bbbc7bc86e30a7f315b3d3ed131b"
+  },
+  "host_tests": {
+    "argv": [
+      "cargo",
+      "+1.90.0",
+      "test",
+      "-p",
+      "block-protocol",
+      "--locked",
+      "--offline"
+    ],
+    "target": "build/m6-service-tests",
+    "exit": 0,
+    "passed": 20,
+    "failed": 0,
+    "log": "services/block/verification/m6-wire-journal-tests.txt"
+  },
+  "artifact_tests": {
+    "argv": [
+      "python",
+      "-B",
+      "-X",
+      "utf8",
+      "userspace/tests/test_m6_probe.py",
+      "--elf",
+      "build/users/m6_probe.elf"
+    ],
+    "exit": 0,
+    "passed": 12,
+    "failed": 0,
+    "log": "services/block/verification/m6-artifact-tests.txt"
+  },
+  "initial_tool_attempt": "ambient cargo resolution failed WinError2; no test ran; subsequent absolute project cargo executable succeeded",
+  "source_writepause": true,
+  "claims": "host codec/artifact and root direct no_std compile only; no guest/runtime/durability claim",
+  "open": [
+    "real kernel integration and all31cases",
+    "WRITE/FLUSH publication/ACK observer and zeroIO malformed/full/CAS observer",
+    "six true servicefault+rebind and six QEMU-abort/cold recovery cases",
+    "independent whole-image old/new/canary/512snapshot oracle",
+    "full M1-M5 regressions/final sourcehash gate/review"
+  ]
+}

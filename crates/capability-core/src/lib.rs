@@ -16,7 +16,11 @@ pub const MAX_NODES: usize = 1024;
 pub const MAX_ENDPOINTS: usize = 64;
 pub const MAX_BLOCK_DEVICES: usize = 4;
 pub const BLOCK_READ: u64 = 1;
-pub const BLOCK_RIGHTS: u64 = BLOCK_READ | DERIVE | TRANSFER | REVOKE;
+pub const BLOCK_WRITE: u64 = 32;
+pub const BLOCK_FLUSH: u64 = 64;
+pub const BLOCK_READ_RIGHTS: u64 = BLOCK_READ | DERIVE | TRANSFER | REVOKE;
+pub const BLOCK_RIGHTS: u64 = BLOCK_READ_RIGHTS | BLOCK_WRITE | BLOCK_FLUSH;
+pub const KNOWN_RIGHTS: u64 = ALL_RIGHTS | BLOCK_RIGHTS;
 pub const MAX_OWNED_ENDPOINTS: usize = 4;
 pub const QUEUE_CAPACITY: usize = 16;
 pub const MAX_DEPTH: u8 = 8;
@@ -418,8 +422,21 @@ impl Engine {
     }
     /// Boot-manifest constructor only; no user syscall grants object creation.
     pub fn create_block_device(&mut self, owner: u64, scope: BlockScope) -> Result<u64, Error> {
+        self.create_block_device_with_rights(owner, scope, BLOCK_READ_RIGHTS)
+    }
+    /// Manifest-only authority creation. The legacy constructor remains readonly.
+    /// FLUSH explicitly authorizes a device-wide cache effect, not a sector write.
+    pub fn create_block_device_with_rights(
+        &mut self,
+        owner: u64,
+        scope: BlockScope,
+        rights: u64,
+    ) -> Result<u64, Error> {
         let p = self.process(owner)?;
         scope.validate()?;
+        if rights & !BLOCK_RIGHTS != 0 {
+            return Err(Error::Invalid);
+        }
         let slot = self.slots(p, 1)?[0];
         let node = self.free_nodes(1)?[0];
         let object = self
@@ -444,7 +461,7 @@ impl Engine {
             },
             Id::NONE,
             owner,
-            BLOCK_RIGHTS,
+            rights,
             0,
         );
         Ok(self.attach(p, slot, self.node_id(node)))
@@ -479,7 +496,7 @@ impl Engine {
     pub fn derive(&mut self, pid: u64, handle: u64, rights: u64) -> Result<u64, Error> {
         let n = self.resolve(pid, handle)?;
         self.require(n, DERIVE)?;
-        if rights & !ALL_RIGHTS != 0 {
+        if rights & !KNOWN_RIGHTS != 0 {
             return Err(Error::Invalid);
         }
         self.subset(n, rights, false)?;
@@ -510,7 +527,7 @@ impl Engine {
     ) -> Result<u64, Error> {
         let n = self.resolve(from, handle)?;
         self.require(n, TRANSFER)?;
-        if rights & !ALL_RIGHTS != 0 {
+        if rights & !KNOWN_RIGHTS != 0 {
             return Err(Error::Invalid);
         }
         self.subset(n, rights, true)?;
@@ -556,7 +573,7 @@ impl Engine {
         for (i, parent) in parents.iter_mut().enumerate().take(count) {
             *parent = self.resolve(pid, message.caps[i].handle)?;
             self.require(*parent, TRANSFER)?;
-            if message.caps[i].rights & !ALL_RIGHTS != 0 {
+            if message.caps[i].rights & !KNOWN_RIGHTS != 0 {
                 return Err(Error::Invalid);
             }
             self.subset(*parent, message.caps[i].rights, true)?;

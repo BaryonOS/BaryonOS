@@ -170,8 +170,10 @@ fn dispatch(
                 }
                 let message = Message::decode(&snapshot)?;
                 engine().send(pid, args[0], &message)?;
-                #[cfg(feature = "milestone-m5")]
+                #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
                 super::m5::sent(state, slot, &message);
+                #[cfg(feature = "milestone-m6a")]
+                super::m5::sent(state, slot, args[0], &message);
                 Ok(0)
             } else {
                 // Full output validation precedes all node/slot/queue commits.
@@ -181,6 +183,8 @@ fn dispatch(
                 write_plan(&copy, &bytes);
                 assert_eq!(read_plan(&copy), bytes, "complete receive output mismatch");
                 assert!(bytes[64 + length as usize..].iter().all(|byte| *byte == 0));
+                #[cfg(feature = "milestone-m6a")]
+                super::m5::received(state, slot, args[0], &message);
                 Ok(length)
             }
         }
