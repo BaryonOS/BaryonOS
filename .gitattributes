@@ -10,4 +10,6 @@ docs/verification/m6c/**/*.txt -text
 docs/verification/m6c/*.txt -text
 docs/verification/m6c-review/**/*.txt -text
 docs/verification/m6c-review/*.txt -text
+docs/verification/m6c-ready/*.txt -text
+docs/verification/m6c-console/*.txt -text
 docs/verification/regression-m6c/**/*.txt -text

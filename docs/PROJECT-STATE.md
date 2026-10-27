@@ -2,7 +2,7 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
-## M6c — native documentnamen en catalogus: broncheckpoint
+## M6c — native documentnamen en catalogus gebouwd en getest
 
 28 oktober 2026. Basis `bb22fdbe15919edc23baa158a46236195ce314b2`, werkbranch
 `codex/m6c-named-catalog`. De afgeronde M6b-basis hieronder blijft behouden.
@@ -15,17 +15,43 @@ proefbudgetten. Nieuwe formaten zijn expliciet; bezet M6b-v1 wordt vóór READY
 geweigerd, zonder migratie of formattering. Bestaande M6b blijft afzonderlijk
 bouwbaar. Contract: `implementation/M6C-NAMED-CATALOG.md`; besluit ADR-030.
 
-Tot dit checkpoint uitgevoerd: 30 Rust-coretests, fmt/Clippy/no_std-controle,
-33 Python-harnastests en een eerste werkelijke native normalrun (raw QEMU 33,
-sequence 10, 10 ACKs, 10 catalogusantwoorden). Die diagnostic ging vooraf aan
-het versterken van twee negatieve fixtures en is geen finale bronacceptatie.
-Een afzonderlijke AI-review test de daadwerkelijke adapter via een host-ABI-shim;
-dat is geen native devicefoutinjectie of menselijke audit.
+Definitieve uitvoeringsbron: `bc4cd104e86e2c047b727ae96e07a03fbc810c3c`;
+fingerprint v3 `4468b3c18bd7fa57bf3631d634d52ee4c5fe9a76da9f125714d6db95e4407345`.
+Deze bron is vóór de lange controles op GitHub bewaard. De afsluitende wijzigingen
+betreffen documentatie en bewijs. [PR #10](https://github.com/simonvanieperen/nieuw-os/pull/10)
+staat boven de M6b-branch; geen merge naar main of release uitgevoerd.
 
-Open op dit broncheckpoint: volledige M6c-gate, koude recoveries, externe kills
-tijdens RENAME, corruptie/legacy en M6b-regressie op de gecombineerde eindbron.
-Geen niet-uitgevoerde controle als geslaagd aangemerkt. Exacte eindlogs en
-hashbinding volgen onder `verification/m6c/` en `verification/m6c-review/`.
+| Scope op deze bron | Resultaat | Bewijs |
+|---|---|---|
+| Volledige M6c-gate en capture | exit 0; 19 groepen / 15 VM-invocaties | `verification/m6c/` |
+| Volledige M6b-regressie en capture | exit 0; 18 groepen / 14 VM-invocaties | `verification/regression-m6c/` |
+| Catalog-core en harnas | 30 Rust- en 33 Python-tests; fmt/Clippy/no_std exit 0 | `verification/m6c/`, `verification/m6c-review/core-final/` |
+| Echte adapter via host-ABI-shim | 15 scenario's, exit 0; geen native devicefoutinjectie | `verification/m6c-review/adapter-result.json` |
+| Afsluitende M6c-build | exit 0; kernel en loader bytegelijk aan beide normale eindruns | `verification/m6c-ready/` |
+
+De 15 M6c-gate-invocaties zijn 14 M6c-VM's plus één gewone M1-boot. Ze omvatten
+twee normale images, domeingrenzen na populatie, volle journal, corruptie, geldig
+legacy-v1, zes koude recoveries en twee echte externe QEMU-kills tijdens RENAME.
+Vóór WRITE blijft `Café A` op revisie 1; na FLUSH vóór ACK verschijnt
+`Café hernoemd A` op revisie 2. De 128 inhoudsbytes blijven exact gelijk.
+Alle zes koude herstelruns veranderen geen schijfbytes. De M6b-regressie omvat
+eveneens een eigen gewone M1-boot; dit zijn geen nieuwe volledige M1–M6a-gates.
+
+Een afzonderlijke AI-audit controleerde 130 geregistreerde artifacthashes,
+176 runbestanden, acht werkelijke volumes en alle 141 bronbestanden tegen
+`bc4cd104`. De 67 niet-lege journal-sectoren en seeds zijn als tekst bewaard;
+daaruit zijn alle imagehashes opnieuw opgebouwd. Zes vroege runrecords noemen
+nog de toenmalige lokale HEAD `bb22fdb`; hun volledige broninhoud en fingerprint
+zijn bytegelijk aan `bc4cd104`. Dit metadataverschil blijft zichtbaar.
+De aparte statische integratiecontrole bindt het native gebruikers-ELF aan de
+geteste kernel en controleert budgetten en instructies. Reviews zijn AI-reviews,
+geen menselijke audit of formeel bewijs. Exacte commando's, afbakening en
+provenance: [M6C-ACCEPTANCE.md](verification/M6C-ACCEPTANCE.md).
+
+Vervolg: deze opslaginterface aan native productfuncties koppelen; grotere
+documenten, ruimtehergebruik, encryptie, sleutels en native NAS/netwerk vereisen
+eigen ontwerp en acceptatie. M6c heeft nog geen interactieve desktop. FNV blijft
+uitsluitend corruptiediagnose; QEMU-kills bewijzen geen fysieke stroomuitval.
 
 ## M6b — native documentopslag gebouwd en getest
 

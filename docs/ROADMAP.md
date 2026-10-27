@@ -1,9 +1,11 @@
 # Route van onderzoeksproject naar bruikbaar systeem
 
 Status 28 oktober 2026: M1–M6b zijn geïmplementeerd en hebben versiegebonden
-native bewijs in het vaste QEMU-profiel. M6c voegt nu namen, atomisch hernoemen
-en een domeingebonden documentcatalogus toe; de finale M6c-gate is bij het
-broncheckpoint nog open. Actuele uitvoering: PROJECT-STATE.md en WORK-QUEUE.md.
+native bewijs in het vaste QEMU-profiel. M6c voegt namen, atomisch hernoemen
+en een domeingebonden documentcatalogus toe. De finale M6c-gate slaagt met
+19 groepen / 15 VM-invocaties; M6b-regressie op dezelfde bron met 18 / 14.
+Dit voltooit de afgebakende catalogusproef; de bredere M6-opslag-/updatefase
+bevat nog vervolgwerk. Actuele uitvoering: PROJECT-STATE.md en WORK-QUEUE.md.
 Materiaal, NAS/TLS en qsim behouden hun afzonderlijke host-/prototypegrenzen.
 Verdere fasen zijn een ontwikkelroute, geen kalenderbelofte.
 

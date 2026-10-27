@@ -1,21 +1,29 @@
 # Nieuw OS — eigen kernel en native documentcatalogus
 
-## Actuele bouwstap: M6c — namen en documentcatalogus
+## Afgeronde bouwstap: M6c — namen en documentcatalogus
 
 De nieuwe native dienst bewaart documentnamen, inventariseert uitsluitend het
 eigen appdomein en hernoemt met behoud van inhoud en revisiecontrole. Dit is de
-opslaginterface voor de latere Materiaal-integratie. De eerste normalrun en
-hosttests slagen; de volledige finale gate en regressie staan op dit broncheckpoint
-nog open. [Contract](docs/implementation/M6C-NAMED-CATALOG.md) ·
-[Actuele bewijsstatus](docs/PROJECT-STATE.md).
+opslaginterface voor de latere Materiaal-integratie. De volledige native gate
+slaagt op broncommit `bc4cd104`: **19 controlegroepen / 15 echte VM-invocaties**,
+waaronder zes koude recoveries, twee externe onderbrekingen tijdens hernoemen
+en één normale M1-boot. De volledige M6b-regressie op dezelfde bron slaagt ook:
+**18 groepen / 14 VM-invocaties**. Daarnaast slagen 30 Rust-coretests,
+33 M6c-harnastests en 15 afzonderlijke hostproeven van de echte serviceadapter.
+[Contract](docs/implementation/M6C-NAMED-CATALOG.md) ·
+[Acceptatie en reproduceerroute](docs/verification/M6C-ACCEPTANCE.md) ·
+[Actuele projectstatus](docs/PROJECT-STATE.md).
 
 ```sh
 python3 -B tools/build.py --kernel-feature milestone-m6c
 python3 -B tools/run_m6c.py --case normal --smoke
 ```
 
-Werkbranch: `codex/m6c-named-catalog`, boven op de afgeronde M6b-branch.
-De proef gebruikt eigen wegwerpimages, zonder automatische v1-migratie.
+Werkbranch: `codex/m6c-named-catalog`, [PR #10](https://github.com/simonvanieperen/nieuw-os/pull/10),
+boven op de afgeronde M6b-branch. De proef gebruikt eigen wegwerpimages:
+vier objecten, maximaal 128 inhoudsbytes, 32 UTF-8-naambytes en 32 journalrecords.
+Bezet v1 wordt zonder schrijven geweigerd. Dit levert native opslaggedrag;
+de interactieve desktop, encryptie en native NAS-integratie blijven vervolgstappen.
 
 ## Afgeronde basis: M6b
 
@@ -29,9 +37,9 @@ De volledige M6b-gate op broncheckpoint `1e61a20` is geslaagd: **18 controlegroe
 en 14 echte VM-invocaties**, inclusief zes koude recoveries en twee externe
 QEMU-kills. Ook 22 Rust-tests en 26 M6b-harnastests slagen. Ruwe uitvoer, hashes en
 de onafhankelijke schijfcontrole staan in [verification/m6b](docs/verification/m6b/).
-Deze afgebakende proef gebruikt vier objecten van maximaal 128 bytes en een
-journal van 32 records. Namen, ruimtehergebruik, encryptie en native NAS/desktop
-volgen als aparte integratiestappen; dit is nog geen consumentensysteem.
+Deze afgebakende M6b-proef gebruikt vier objecten van maximaal 128 bytes en een
+journal van 32 records. M6c hierboven voegt namen toe; ruimtehergebruik,
+encryptie en native NAS/desktop volgen als aparte integratiestappen.
 
 ```sh
 python3 -B tools/build.py --kernel-feature milestone-m6b

@@ -2,8 +2,8 @@
 
 ## ADR-030 — Native labels en een catalogus per appdomein
 
-**Datum/status:** 28 oktober 2026; geïmplementeerd, finale native gate op het
-broncheckpoint nog open. Basis bb22fdb. Exact contract: implementation/M6C-NAMED-CATALOG.md.
+**Datum/status:** 28 oktober 2026; geïmplementeerd en native eindgate geslaagd
+op broncommit bc4cd104, basis bb22fdb. Exact contract: implementation/M6C-NAMED-CATALOG.md.
 
 **Context en besluit:** afgeronde M6b heeft anonieme objectslots. Materiaal heeft
 benoemde objecten en list/open nodig. Voeg een aparte dependencyvrije catalog-core
@@ -20,9 +20,14 @@ M6b-reader blijft behouden. Duplicaatlabels zijn toegestaan; geen directoryboom,
 normalisatie, encryptie of fysieke secure erase toegevoegd. Kleinere grenzen zijn
 proefbudgetten, geen vaste consumentenproductkeuze.
 
-**Bewijs en herziening:** hostcore-, native twee-app-, koude herstel-, volledige
-journal- en externe rename-killproeven hebben gescheiden bewijs. De nieuwe kernel-
-module bevat een expliciete fixtureobserver plus de bestaande blokbroker; het
+**Bewijs en herziening:** de finale M6c-gate/capture slaagt met 19 groepen en
+15 VM-invocaties: 14 M6c plus één gewone M1. M6b-regressie slaagt met 18 groepen
+en 14 VM-invocaties op dezelfde fingerprint. De 30 coretests, 33 harnastests en
+15 host-ABI-adapterproeven behouden hun eigen scope. Een afzonderlijke AI-audit
+controleert alle 141 bronbestanden, 130 geregistreerde artifacthashes en acht
+volumes, inclusief twee externe rename-kills en zes koude recoveries. Details:
+`verification/M6C-ACCEPTANCE.md`; geen menselijke audit of formeel bewijs.
+De nieuwe kernelmodule bevat een expliciete fixtureobserver plus de bestaande blokbroker; het
 catalogusbeleid draait in ring 3. Herzie formaat/migratie vóór echt gebruikersdata,
 meer slots, grotere documenten of compositorintegratie. Terugdraaien kan via de
 bestaande M6b-build en zijn eigen volumes; geen bestaande image overschrijven.

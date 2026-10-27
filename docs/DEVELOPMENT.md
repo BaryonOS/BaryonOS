@@ -2,7 +2,32 @@
 
 Vastgelegd op 27 oktober 2026. Deze handleiding beschrijft de daadwerkelijk ingerichte Windows-ontwikkelroute. De afzonderlijke build-, QEMU-, product- en quantumresultaten staan in [PROJECT-STATE.md](PROJECT-STATE.md) en hun ruwe rapporten. Beschikbare tools en deze commando's zijn op zichzelf geen geslaagde OS-test.
 
-## Native M6b op de Linux-ontwikkelvariant
+## Native M6c op de Linux-ontwikkelvariant
+
+De huidige M6c-branch gebruikt dezelfde hieronder beschreven toolchain.
+Vanuit de repositoryroot:
+
+```bash
+python3 -B tools/preflight.py --strict
+python3 -B tools/build.py --kernel-feature milestone-m6c
+python3 -B tools/run_m6c.py --case normal --smoke
+python3 -B -u tools/test_m6c.py
+python3 -B tools/capture_m6c.py
+python3 -B tools/build.py --kernel-feature milestone-m6c
+```
+
+De rooktest start twee geïsoleerde apps voor benoemde objecten, catalogus en
+hernoemen. De volledige gate omvat ook echte externe QEMU-kills en koude
+recoveries; succes vereist gastuitvoer, raw exit en het onafhankelijke
+schijforakel. Iedere nieuwe proef maakt eigen synthetische volumes. Bezet
+M6b-v1 wordt geweigerd en niet gemigreerd. Suites delen buildoutputs: voer ze
+achtereenvolgens uit. De laatste opdracht herstelt de M6c-build nadat de gate
+de gewone M1-boot heeft gecontroleerd; dit is geen extra VM-run.
+
+Exacte eindresultaten en afzonderlijke regressieopslag:
+[M6C-ACCEPTANCE.md](verification/M6C-ACCEPTANCE.md).
+
+## Toolchain en bestaande native M6b-route
 
 Op de M6b-werkbranch is ook een lokale Linux-toolchain ingericht: Rust 1.90.0,
 beide bestaande targets, QEMU 10.0.2 uit Debian bookworm-backports en OVMF
