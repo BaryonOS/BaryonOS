@@ -6,7 +6,7 @@ Repository: https://github.com/simonvanieperen/nieuw-os (privé). Werkbranch: `c
 
 ## Reviewfollow-up
 
-De bewijsarchiefcapture valideert een volledige nieuwe opname in een tijdelijke map en laat het bestaande archief bij validatie- of installatiefouten ongemoeid. Alleen stdoutlogs onder `build/logs/` kunnen als hostbewijs worden opgenomen; gastresultaten doorlopen hun eigen controles. `python -B -X utf8 tests/test_capture_gate.py` (4 tests) slaagt. De registratie van vijf `.png`-bestanden als JPEG gebruikt nu hun signatures: `python3 tools/update_evidence_files.py` en `python -B -X utf8 tests/test_evidence_files.py` (4 tests) slagen. Alle controles exit 0; dit is hosttool-/bewijsregistratie, geen nieuwe browser- of OS-test. De gedocumenteerde grote-probehostcontrole staat nog open.
+De bewijsarchiefcapture valideert een volledige nieuwe opname in een tijdelijke map en laat het bestaande archief bij validatie- of installatiefouten ongemoeid. Alleen stdoutlogs onder `build/logs/` kunnen als hostbewijs worden opgenomen; gastresultaten doorlopen hun eigen controles. `python -B -X utf8 tests/test_capture_gate.py` (4 tests) slaagt. De registratie van vijf `.png`-bestanden als JPEG gebruikt nu hun signatures: `python3 tools/update_evidence_files.py` en `python -B -X utf8 tests/test_evidence_files.py` (4 tests) slagen. Alle controles exit 0; dit is hosttool-/bewijsregistratie, geen nieuwe browser- of OS-test. De grote-probehostcontrole is lokaal geblokkeerd: Rust 1.90.0 en `x86_64-unknown-none` ontbreken; `tools/preflight.py` meldt ook geen QEMU/OVMF.
 
 ## Hoofdresultaat
 

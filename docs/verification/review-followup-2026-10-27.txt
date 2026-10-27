@@ -13,5 +13,7 @@ Result: refreshed 5 screenshot records from file bytes.
 PASS (exit 0): git diff --check
 PASS (exit 0): python -m json.tool docs/verification/evidence-files.json
 
-Not yet run: the documented normal/large user-probe build and artifact test.
+BLOCKED (exit 1): python tools/build_users.py --kind probe && python tools/build_users.py --kind large && python -B -X utf8 userspace/tests/test_large_probe.py --elf build/users/probe_large.elf
+The first command stopped because Rust 1.90.0 is not installed; the large build and artifact test did not run. `python3 tools/preflight.py` exited 0 and confirmed the missing Rust toolchain/target and QEMU/OVMF.
+
 These host checks do not constitute a kernel or guest test.
