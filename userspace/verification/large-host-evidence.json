@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-27",
+  "scope": "large-image host artifact only; actual QEMU run belongs to root",
+  "head_at_check": "d2ab03d555efa09c9fa9d1f4fe8fd00a2d99e431",
+  "build": {
+    "owner": "root",
+    "exit": 0,
+    "command": [
+      "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\rustc.EXE",
+      "+1.90.0",
+      "--edition=2021",
+      "--crate-type=bin",
+      "--crate-name=os_user_probe_large",
+      "--target=x86_64-unknown-none",
+      "-C",
+      "panic=abort",
+      "-C",
+      "opt-level=2",
+      "-C",
+      "code-model=small",
+      "-C",
+      "relocation-model=static",
+      "-C",
+      "no-redzone=yes",
+      "-C",
+      "linker=rust-lld",
+      "-C",
+      "link-arg=-TC:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\large_linker.ld",
+      "-C",
+      "link-arg=--no-pie",
+      "-C",
+      "link-arg=--build-id=none",
+      "-C",
+      "link-arg=-zmax-page-size=0x1000",
+      "--emit=link",
+      "-o",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\users\\probe_large.elf",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\probe.rs"
+    ],
+    "stderr_bytes": 0
+  },
+  "host_tests": {
+    "command": "python -B -X utf8 userspace/tests/test_large_probe.py --elf build/users/probe_large.elf",
+    "exit": 0,
+    "tests": 6,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "log": "userspace/verification/large-host-tests.txt"
+  },
+  "artifact": {
+    "schema_version": 1,
+    "purpose": "synthetic ring-3 acceptance probe",
+    "binary_sha256": "1259d11a557b27c875d2a6bf361a245db2aeb3d03dd6e0b916809538d4220dff",
+    "source_sha256": "094bda3e3937d2a698591ad50befd85d5e153b020e21e658de7ac72a0288856c",
+    "linker_sha256": "7883b64b2711eed8e7253ce87ba68e39659b4d70fab9fb965621e1715690c71e",
+    "entry": 1073741824,
+    "segments": [
+      {
+        "flags": 5,
+        "address": 1073741824,
+        "offset": 4096,
+        "filesz": 1070,
+        "memsz": 1070,
+        "page_start": 1073741824,
+        "page_end": 1073745920
+      },
+      {
+        "flags": 6,
+        "address": 1073807360,
+        "offset": 8192,
+        "filesz": 32,
+        "memsz": 139264,
+        "page_start": 1073807360,
+        "page_end": 1073946624
+      }
+    ]
+  },
+  "source_sha256": {
+    "userspace/probe.rs": "094bda3e3937d2a698591ad50befd85d5e153b020e21e658de7ac72a0288856c",
+    "userspace/large_linker.ld": "7883b64b2711eed8e7253ce87ba68e39659b4d70fab9fb965621e1715690c71e",
+    "userspace/tests/test_large_probe.py": "699eef20c9ef215cea70eb67bafb1fe328a6f40e8bf1d38a84315a07d03a5b31",
+    "userspace/LARGE-PROBE.md": "545d284d21ad4f09ea1245e7e17ce02c53e7bd3970e08449429e791b6d93fdef",
+    "tools/build_users.py": "5cc776230105c48d4cea38b00539214f8cd3d670f12333cde3eb16410cca6ad7"
+  },
+  "page_counts": {
+    "image": 35,
+    "heap": 16,
+    "stack": 16,
+    "user_total": 67,
+    "contract_max": 2048
+  },
+  "remaining": [
+    "real process start with all67 userpages",
+    "actual BSS RAM zeroing/audit",
+    "large variant M3 regression outcomes"
+  ]
+}

@@ -1,7 +1,11 @@
 # Afhankelijkheden en herkomst
 
 Actuele uitvoeringsstatus27 oktober2026: Rust1.90.0, r-efi7.1.0, serde1.0.229 en serde_json1.0.154 zijn daadwerkelijk opgehaald en gebouwd. De root- en quantumlockfiles zijn gegenereerd. De gebruikte emulator is de toegestane Windows-ontwikkelvariant QEMU11.1.0 met bijpassend packaged CODE/VARS-paar; exacte herkomst/hashes en bewijsgrenzen staan in DEVELOPMENT.md, third-party/README.md en ../experiments/quantum/THIRD-PARTY.md. De onderstaande oorspronkelijke selectietabel is historische context; PROJECT-STATE.md beschrijft de actuele verificatie.
-Revisie 5, 26 oktober 2026. Versies zijn nu geselecteerd; de gecombineerde toolchain is nog niet gebouwd en packages zijn hier niet geïnstalleerd. Details en primaire bronnen staan in de implementatiespecificaties. Geen fictieve lockfiles of firmwarehashes toevoegen.
+
+M2–M4 voegen uitsluitend eigen lokale crates toe: kernel-core0.1.0 (frames/ELF/copybeleid) en capability-core0.1.0 (vaste rechten-/IPC-transacties). Beide zijn dependencyvrij/no_std en verbieden unsafe in de library. De kernelarch-/kopieergrens bevat de gemotiveerde unsafe/assembly; de eigen crates hebben geen extern buildscript. Root-Cargo.lock behoudt r-efi exact7.1.0 met dezelfde checksum. Er is voor M2–M4 geen nieuwe externe runtimebibliotheek toegevoegd. Corebron/host-/targetchecks en actuele testcasegrenzen staan in verification/m2-m4/.
+M5 voegt uitsluitend eigen lokale crates `virtio-core 0.1.0`, `virtio-blk-driver 0.1.0` en `block-protocol 0.1.0` toe. De twee cores zijn dependencyvrij/no_std en verbieden unsafe; de driver hangt alleen van virtio-core af. De driver bevat de gemotiveerde PCI/MMIO/DMA-unsafe, geen extern buildscript. Er is geen externe package toegevoegd of gewijzigd in Cargo.lock. Protocolbasis: OASIS VIRTIO 1.2; de code is projectspecifiek en bevat geen gekopieerde bestaande OS-kernel. Licentiekeuze voor het eigen project blijft volgens LICENSE-PLAN.md open vóór publieke publicatie. M5-target-/reviewbewijs staat in verification/m5/; de volledige gate is geslaagd.
+
+Historische selectie, revisie 5 van 26 oktober 2026: de onderstaande tabel beschrijft de oorspronkelijke voorbereiding. Actuele builds en pins staan hierboven en in PROJECT-STATE.md. Geen fictieve lockfiles of firmwarehashes toevoegen.
 
 | Selectie | Rol | Status |
 |---|---|---|

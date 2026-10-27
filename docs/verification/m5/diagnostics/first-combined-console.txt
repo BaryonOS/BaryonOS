@@ -1,0 +1,1343 @@
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 0.78s
+Built and inspected m2: 3 ELF load segments
+
+running 6 tests
+test tests::explicit_wire_fixture_and_offsets ... ok
+test tests::invalid_header_and_received_pointer_are_rejected ... ok
+test tests::map_shape_and_stride_are_checked ... ok
+test tests::overlap_overflow_and_zero_pages_rejected_unknown_memory_reserved ... ok
+test tests::ranges_must_be_aligned_bounded_nonoverlapping ... ok
+test tests::unsorted_extended_stride_and_adjacent_descriptors_cover_allocations ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+test tests::arithmetic_and_file_bounds_fail_closed ... ok
+test tests::entry_must_be_in_rx_file_bytes_not_bss_or_metadata ... ok
+test tests::nonexecuting_metadata_allowed_executable_stack_denied ... ok
+test tests::permissions_alignment_addresses_and_page_overlap_fail ... ok
+test tests::valid_plan_keeps_bss_and_does_not_modify_input ... ok
+test tests::wrong_headers_and_program_types_fail ... ok
+test tests::every_truncation_before_required_file_end_fails ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 15 tests
+test tests::checked_ranges ... ok
+test tests::physical_page_width_and_overflow_fail_closed ... ok
+test tests::physical_alias_wx_and_mapped_free ... ok
+test tests::reserved_and_special_memory ... ok
+test tests::unique_exhaustion_ownership_and_zero_order ... ok
+test tests::ovmf_cache_capabilities_are_not_special_memory ... ok
+test tests::unmap_mismatched_alias_is_atomic_and_cannot_free_executable ... ok
+test user::tests::copy_plan_checks_entire_range_before_any_copy ... ok
+test user::tests::pids_survive_16bit_boundary_and_never_wrap ... ok
+test user::tests::legal_large_image_and_exact_user_mapping_budget ... ok
+test user::tests::overflow_offset_and_page_overlap ... ok
+test user::tests::return_flags_strip_authority ... ok
+test user::tests::user_return_layout_rejects_untrusted_stack_and_noncanonical_alias ... ok
+test user::tests::valid_and_wx_entry_checks ... ok
+test tests::quota_no_partial_allocation ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running unittests src\lib.rs (target\debug\deps\boot_protocol-ac93adc6975feb97.exe)
+     Running unittests src\lib.rs (target\debug\deps\elf_loader_core-83153a59523b233e.exe)
+     Running unittests src\lib.rs (target\debug\deps\kernel_core-47807490b0b9e789.exe)
+   Doc-tests boot_protocol
+   Doc-tests elf_loader_core
+   Doc-tests kernel_core
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\m2-841dfb71f4
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 0.71s
+Built and inspected test-m2-ro: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:FAULT:RO:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m2-ro-d6e731e283
+    Finished `release` profile [optimized] target(s) in 0.05s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 0.72s
+Built and inspected test-m2-nx: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:FAULT:NX:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m2-nx-f5dea9f4ac
+    Finished `release` profile [optimized] target(s) in 0.05s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 0.77s
+Built and inspected test-m2-absent: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:FAULT:ABSENT:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m2-absent-30e1e4ad09
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 0.74s
+Built and inspected m2-kernel-fault: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:FAULT:KERNEL_UD:PASS
+M2:FAIL:KERNEL_EXCEPTION
+QEMU raw=35; expected=35; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\m2-kernel-fault-47f4589d46
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 0.68s
+Built and inspected m2-double-fault: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:FAULT:DF_IST:PASS
+QEMU raw=35; expected=35; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\m2-double-fault-782238e2fa
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 0.39s
+Built and inspected normal: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\m1-after-m2-e9f652667a
+M2 gate passed: 8 groups; M3 may now be considered
+
+running 15 tests
+test tests::checked_ranges ... ok
+test tests::ovmf_cache_capabilities_are_not_special_memory ... ok
+test tests::physical_page_width_and_overflow_fail_closed ... ok
+test tests::physical_alias_wx_and_mapped_free ... ok
+test tests::unmap_mismatched_alias_is_atomic_and_cannot_free_executable ... ok
+test tests::reserved_and_special_memory ... ok
+test tests::unique_exhaustion_ownership_and_zero_order ... ok
+test user::tests::legal_large_image_and_exact_user_mapping_budget ... ok
+test user::tests::copy_plan_checks_entire_range_before_any_copy ... ok
+test user::tests::overflow_offset_and_page_overlap ... ok
+test user::tests::return_flags_strip_authority ... ok
+test user::tests::pids_survive_16bit_boundary_and_never_wrap ... ok
+test user::tests::user_return_layout_rejects_untrusted_stack_and_noncanonical_alias ... ok
+test user::tests::valid_and_wx_entry_checks ... ok
+test tests::quota_no_partial_allocation ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src\lib.rs (target\debug\deps\kernel_core-47807490b0b9e789.exe)
+   Doc-tests kernel_core
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.11s
+Built and inspected m3: 3 ELF load segments
+test_exact_entry_segments_and_private_data_layout (__main__.ProbeArtifact.test_exact_entry_segments_and_private_data_layout) ... ok
+test_exit_machine_code_clears_every_unused_argument_including_rdx (__main__.ProbeArtifact.test_exit_machine_code_clears_every_unused_argument_including_rdx) ... ok
+test_manifest_matches_actual_source_linker_and_binary (__main__.ProbeArtifact.test_manifest_matches_actual_source_linker_and_binary) ... ok
+test_negative_syscall_and_direction_flag_prelude_is_in_actual_binary (__main__.ProbeArtifact.test_negative_syscall_and_direction_flag_prelude_is_in_actual_binary) ... ok
+test_no_dynamic_relocations_tls_or_unexpected_allocatable_sections (__main__.ProbeArtifact.test_no_dynamic_relocations_tls_or_unexpected_allocatable_sections) ... ok
+test_rejects_entry_in_data_outside_image_or_rx_bss (__main__.ProbeArtifact.test_rejects_entry_in_data_outside_image_or_rx_bss) ... ok
+test_rejects_interpreter_dynamic_tls_and_unknown_program_types (__main__.ProbeArtifact.test_rejects_interpreter_dynamic_tls_and_unknown_program_types) ... ok
+test_rejects_out_of_range_unaligned_and_arithmetic_extremes (__main__.ProbeArtifact.test_rejects_out_of_range_unaligned_and_arithmetic_extremes) ... ok
+test_rejects_page_overlap_even_for_disjoint_byte_ranges (__main__.ProbeArtifact.test_rejects_page_overlap_even_for_disjoint_byte_ranges) ... ok
+test_rejects_truncated_required_bytes (__main__.ProbeArtifact.test_rejects_truncated_required_bytes) ... ok
+test_rejects_writable_executable_and_unknown_permission_bits (__main__.ProbeArtifact.test_rejects_writable_executable_and_unknown_permission_bits) ... ok
+test_rejects_wrong_class_endian_machine_and_dynamic_type (__main__.ProbeArtifact.test_rejects_wrong_class_endian_machine_and_dynamic_type) ... ok
+test_required_forbidden_instruction_encodings_are_in_rx_segment (__main__.ProbeArtifact.test_required_forbidden_instruction_encodings_are_in_rx_segment) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.063s
+
+OK
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+KS-04:PASS
+KS-07:PASS
+M3:EXIT:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:EXIT:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:EXIT:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:EXIT:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000144
+M3:SYSCALL_CALLS:00000000000000000124
+M3:MAX_SYSCALL_CYCLES:00000000000012022327
+M3:MAX_TIMER_GAP_CYCLES:00000000000628324299
+M3:CLEANUP:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\m3-dab09b211c
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.13s
+Built and inspected test-m3-peer-read: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:FAULT:PEER_READ:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000006
+M3:MAX_SYSCALL_CYCLES:00000000000000307708
+M3:MAX_TIMER_GAP_CYCLES:00000000000047434375
+M3:CLEANUP:PASS
+KS-05:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-peer-read-2c15e7e998
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.07s
+Built and inspected test-m3-peer-write: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:FAULT:PEER_WRITE:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000006
+M3:MAX_SYSCALL_CYCLES:00000000000000297904
+M3:MAX_TIMER_GAP_CYCLES:00000000000047263858
+M3:CLEANUP:PASS
+KS-05:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-peer-write-073308953a
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.07s
+Built and inspected test-m3-kernel-write: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:FAULT:KERNEL_WRITE:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000006
+M3:MAX_SYSCALL_CYCLES:00000000000000301000
+M3:MAX_TIMER_GAP_CYCLES:00000000000045181046
+M3:CLEANUP:PASS
+KS-05:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-kernel-write-21a2807d6a
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.12s
+Built and inspected test-m3-stack-exec: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:FAULT:STACK_EXEC:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000006
+M3:MAX_SYSCALL_CYCLES:00000000000000311191
+M3:MAX_TIMER_GAP_CYCLES:00000000000045981276
+M3:CLEANUP:PASS
+KS-06:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-stack-exec-5ce2e819da
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.11s
+Built and inspected test-m3-heap-exec: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:FAULT:HEAP_EXEC:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000006
+M3:MAX_SYSCALL_CYCLES:00000000000000306805
+M3:MAX_TIMER_GAP_CYCLES:00000000000047356783
+M3:CLEANUP:PASS
+KS-06:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-heap-exec-0cf3d97ff8
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.28s
+Built and inspected test-m3-guard-low: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:FAULT:GUARD_LOW:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000006
+M3:MAX_SYSCALL_CYCLES:00000000000000307321
+M3:MAX_TIMER_GAP_CYCLES:00000000000047440051
+M3:CLEANUP:PASS
+KS-06:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-guard-low-0c02f7646a
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.17s
+Built and inspected test-m3-guard-high: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:FAULT:GUARD_HIGH:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000006
+M3:MAX_SYSCALL_CYCLES:00000000000000214312
+M3:MAX_TIMER_GAP_CYCLES:00000000000092774780
+M3:CLEANUP:PASS
+KS-06:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-guard-high-c4fff6ca82
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.03s
+Built and inspected test-m3-cli: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:FAULT:CLI:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000006
+M3:MAX_SYSCALL_CYCLES:00000000000000322543
+M3:MAX_TIMER_GAP_CYCLES:00000000000047326853
+M3:CLEANUP:PASS
+KS-06:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-cli-620ecdfead
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.21s
+Built and inspected test-m3-x87: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:FAULT:X87:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000006
+M3:MAX_SYSCALL_CYCLES:00000000000000312223
+M3:MAX_TIMER_GAP_CYCLES:00000000000047326964
+M3:CLEANUP:PASS
+KS-06:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-x87-f06774da43
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.19s
+Built and inspected test-m3-xmm: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:FAULT:XMM:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000006
+M3:MAX_SYSCALL_CYCLES:00000000000000300828
+M3:MAX_TIMER_GAP_CYCLES:00000000000043000774
+M3:CLEANUP:PASS
+KS-06:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-xmm-b380507b75
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.15s
+Built and inspected test-m3-avx: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:FAULT:AVX:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000006
+M3:MAX_SYSCALL_CYCLES:00000000000000320436
+M3:MAX_TIMER_GAP_CYCLES:00000000000073484635
+M3:CLEANUP:PASS
+KS-06:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-avx-9ce56e36d2
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.14s
+Built and inspected test-m3-ud: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:FAULT:UD:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000006
+M3:MAX_SYSCALL_CYCLES:00000000000000348515
+M3:MAX_TIMER_GAP_CYCLES:00000000000079023034
+M3:CLEANUP:PASS
+KS-06:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-ud-17ab85f800
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.14s
+Built and inspected test-m3-exit: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:EXIT:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000007
+M3:MAX_SYSCALL_CYCLES:00000000000013657296
+M3:MAX_TIMER_GAP_CYCLES:00000000000078444533
+M3:CLEANUP:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-exit-969141968a
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.08s
+Built and inspected test-m3-b-exit: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:EXIT_NONZERO_B:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000007
+M3:MAX_SYSCALL_CYCLES:00000000000015815228
+M3:MAX_TIMER_GAP_CYCLES:00000000000079542346
+M3:CLEANUP:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-b-exit-f49dd17be8
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.08s
+Built and inspected test-m3-invalid-rsp: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:INVALID_RSP:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000004
+M3:SYSCALL_CALLS:00000000000000000007
+M3:MAX_SYSCALL_CYCLES:00000000000000302376
+M3:MAX_TIMER_GAP_CYCLES:00000000000070463111
+M3:CLEANUP:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-invalid-rsp-7b4a0dd343
+Built own probe ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.06s
+Built and inspected test-m3-idle: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:EXIT:PASS
+M3:EXIT:PASS
+M3:IDLE_TIMER_IRQS:00000000000000000008
+M3:IDLE:PASS
+M3:TIMER_IRQS:00000000000000000001
+M3:SYSCALL_CALLS:00000000000000000008
+M3:MAX_SYSCALL_CYCLES:00000000000014296683
+M3:MAX_TIMER_GAP_CYCLES:00000000000000000000
+M3:CLEANUP:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-idle-2cb68b291d
+Built own probe_large ELF: entry=0x40000000, 2 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.15s
+Built and inspected test-m3-large-image: 3 ELF load segments
+test_bss_is_noload_33_pages_and_inside_rw_segment (__main__.LargeArtifact.test_bss_is_noload_33_pages_and_inside_rw_segment) ... ok
+test_exact_memory_plan_exceeds_old_64_user_mapping_limit (__main__.LargeArtifact.test_exact_memory_plan_exceeds_old_64_user_mapping_limit) ... ok
+test_initial_four_words_match_normal_data_and_do_not_include_bss_bytes (__main__.LargeArtifact.test_initial_four_words_match_normal_data_and_do_not_include_bss_bytes) ... ok
+test_manifest_binds_existing_probe_source_new_linker_and_actual_binary (__main__.LargeArtifact.test_manifest_binds_existing_probe_source_new_linker_and_actual_binary) ... ok
+test_mutated_large_segment_cannot_escape_user_image_range_or_gain_wx (__main__.LargeArtifact.test_mutated_large_segment_cannot_escape_user_image_range_or_gain_wx) ... ok
+test_text_is_byte_identical_to_unchanged_normal_m3_probe (__main__.LargeArtifact.test_text_is_byte_identical_to_unchanged_normal_m3_probe) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.008s
+
+OK
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M3:LARGE_IMAGE:PASS
+KS-04:PASS
+M3:LARGE_IMAGE:PASS
+KS-07:PASS
+M3:LARGE_IMAGE:PASS
+M3:EXIT:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:LARGE_IMAGE:PASS
+M3:EXIT:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:LARGE_IMAGE:PASS
+M3:EXIT:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:LARGE_IMAGE:PASS
+M3:EXIT:PASS
+M3:SURVIVOR_PROGRESS:PASS
+M3:TIMER_IRQS:00000000000000000144
+M3:SYSCALL_CALLS:00000000000000000124
+M3:MAX_SYSCALL_CYCLES:00000000000010707516
+M3:MAX_TIMER_GAP_CYCLES:00000000001208782265
+M3:CLEANUP:PASS
+KS-08:PASS
+M3:SYSCALL_DF_ENTRY:PASS
+M3:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m3-large-image-d11c741503
+    Finished `release` profile [optimized] target(s) in 0.04s
+    Finished `release` profile [optimized] target(s) in 0.05s
+Built and inspected normal: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\m1-after-m3-775eabcaf8
+M3 gate passed: 22 groups; M4 may now be considered
+
+running 26 tests
+test tests::exact_public_error_numbers_match_the_syscall_contract ... ok
+test tests::ks10_wire_exact_offsets_canonical_fields_and_misaligned_byte_source ... ok
+test tests::closed_object_tombstones_hold_global_capacity_without_retargeting ... ok
+test tests::ks10_message_rejection_and_endpoint_priority_are_atomic ... ok
+test tests::ks11_snapshot_fifo_and_queue_quota ... ok
+test tests::ks13_all_transfer_authority_precedes_any_depth_resource_failure ... ok
+test tests::ks14_revocation_after_delivery_and_close_do_not_recall_bytes ... ok
+test tests::ks14_revoke_cancels_whole_queued_transfer_but_preserves_fifo ... ok
+test tests::ks15_receive_reserves_both_slots_before_commit ... ok
+test tests::m5_block_scope_invalid_masks_error_order_and_generation_retirement ... ok
+test tests::ks13_attenuation_transfer_and_zero_rights ... ok
+test tests::ks12_process_local_numeric_collision_and_stale_handles ... ok
+test tests::ks10_bounded_wire_bit_fuzz_never_panics_or_mutates_on_reject ... ok
+test tests::ks14_revoke_is_not_array_order_dependent_and_preserves_own_node ... ok
+test tests::monotone_process_identity_quota_and_process_row_reuse ... ok
+test tests::m5_block_transfer_revoke_and_owner_exit_use_common_lifetimes ... ok
+test tests::m5_block_type_scope_and_admin_close_are_enforced ... ok
+test tests::m5_block_quota_is_separate_from_all_64_endpoint_objects ... ok
+test tests::endpoint_owner_and_global_quotas_recover_after_close ... ok
+test tests::ks15_slot_node_object_max_generation_retire_without_aba ... ok
+test tests::ks16_last_receive_close_tombstone_and_revoked_before_closed ... ok
+test tests::ks15_depth_eight_parent_retention_and_reclamation ... ok
+test tests::m5_revoked_queued_block_cap_cancels_complete_mixed_type_message ... ok
+test tests::ks16_exit_revokes_received_and_issued_descendants_and_queued_caps ... ok
+test tests::ks15_two_cap_send_global_node_exhaustion_has_no_partial_node ... ok
+test tests::bounded_transaction_state_machine_fuzz_preserves_error_atomicity ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+
+running 15 tests
+test tests::checked_ranges ... ok
+test tests::ovmf_cache_capabilities_are_not_special_memory ... ok
+test tests::physical_alias_wx_and_mapped_free ... ok
+test tests::physical_page_width_and_overflow_fail_closed ... ok
+test tests::reserved_and_special_memory ... ok
+test user::tests::legal_large_image_and_exact_user_mapping_budget ... ok
+test tests::unmap_mismatched_alias_is_atomic_and_cannot_free_executable ... ok
+test user::tests::copy_plan_checks_entire_range_before_any_copy ... ok
+test tests::unique_exhaustion_ownership_and_zero_order ... ok
+test user::tests::overflow_offset_and_page_overlap ... ok
+test user::tests::pids_survive_16bit_boundary_and_never_wrap ... ok
+test user::tests::return_flags_strip_authority ... ok
+test user::tests::user_return_layout_rejects_untrusted_stack_and_noncanonical_alias ... ok
+test user::tests::valid_and_wx_entry_checks ... ok
+test tests::quota_no_partial_allocation ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling capability-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\crates\capability-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.17s
+     Running unittests src\lib.rs (target\debug\deps\capability_core-d85afd4192c7ae5a.exe)
+     Running unittests src\lib.rs (target\debug\deps\kernel_core-47807490b0b9e789.exe)
+   Doc-tests capability_core
+   Doc-tests kernel_core
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.40s
+Built and inspected m4: 3 ELF load segments
+test_actual_binary_contains_limits_before_script_execution (__main__.IpcArtifact.test_actual_binary_contains_limits_before_script_execution) ... ok
+test_actual_private_output_and_load_instructions_exist (__main__.IpcArtifact.test_actual_private_output_and_load_instructions_exist) ... ok
+test_actual_rx_rw_ro_segments_have_no_writable_executable_page (__main__.IpcArtifact.test_actual_rx_rw_ro_segments_have_no_writable_executable_page) ... ok
+test_actual_syscalls_generic_dispatch_and_failure_exit_use_int80 (__main__.IpcArtifact.test_actual_syscalls_generic_dispatch_and_failure_exit_use_int80) ... ok
+test_all_control_rows_results_and_message_bytes_start_zero (__main__.IpcArtifact.test_all_control_rows_results_and_message_bytes_start_zero) ... ok
+test_manifest_matches_actual_binary_source_and_linker (__main__.IpcArtifact.test_manifest_matches_actual_binary_source_and_linker) ... ok
+test_no_tls_dynamic_relocation_or_unexpected_allocatable_section (__main__.IpcArtifact.test_no_tls_dynamic_relocation_or_unexpected_allocatable_section) ... ok
+test_reject_bad_headers_and_dynamic_features (__main__.IpcArtifact.test_reject_bad_headers_and_dynamic_features) ... ok
+test_reject_entry_in_data_or_readonly_and_page_overlap (__main__.IpcArtifact.test_reject_entry_in_data_or_readonly_and_page_overlap) ... ok
+test_reject_permission_escalation_and_readonly_boundary_changes (__main__.IpcArtifact.test_reject_permission_escalation_and_readonly_boundary_changes) ... ok
+test_reject_size_overflow_alignment_and_control_shrink (__main__.IpcArtifact.test_reject_size_overflow_alignment_and_control_shrink) ... ok
+test_reject_truncation_of_required_load_bytes (__main__.IpcArtifact.test_reject_truncation_of_required_load_bytes) ... ok
+test_script_and_result_tables_fit_control_page_without_overlap (__main__.IpcArtifact.test_script_and_result_tables_fit_control_page_without_overlap) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.061s
+
+OK
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:EXCHANGE:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\m4-exchange-fff9ca0f11
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.38s
+Built and inspected test-m4-copy: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:COPY:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-09:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m4-copy-9ce347906f
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.34s
+Built and inspected test-m4-wire: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:WIRE:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-10:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m4-wire-bddda9325e
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.46s
+Built and inspected test-m4-snapshot: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:SNAPSHOT:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-11:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m4-snapshot-97408c88a4
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.36s
+Built and inspected test-m4-handles: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:HANDLES:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-12:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m4-handles-d2df167cbf
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.50s
+Built and inspected test-m4-rights: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:RIGHTS:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-13:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m4-rights-4067a3d4a6
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.60s
+Built and inspected test-m4-revoke: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:REVOKE:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-14:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m4-revoke-0cb1c080ee
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.46s
+Built and inspected test-m4-quotas: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:QUOTAS:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-15:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m4-quotas-e2b2b0a4c5
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.05s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.57s
+Built and inspected test-m4-lifecycle: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M4:CASE:LIFECYCLE:PASS
+M4:SURVIVOR_PROGRESS:PASS
+M4:CLEANUP:PASS
+KS-16:PASS
+M4:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m4-lifecycle-3e032c781f
+    Finished `release` profile [optimized] target(s) in 0.05s
+    Finished `release` profile [optimized] target(s) in 0.05s
+Built and inspected normal: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\m1-after-m4-cf8fbeb9d5
+M4 gate passed: 12 groups; final review/audit still required
+
+running 9 tests
+test wire::tests::bad_version_flags_status_reserved_and_request_data ... ok
+test wire::tests::four_slices_accumulate_same_diagnostic_checksum_as_one_sector ... ok
+test wire::tests::exact_header_offsets_and_valid_boundary ... ok
+test wire::tests::error_reply_is_empty_and_cannot_smuggle_old_data ... ok
+test wire::tests::reply_correlation_epoch_and_tail_are_checked ... ok
+test wire::tests::reply_uses_only_supplied_slice_and_zeroes_all_unused_bytes ... ok
+test wire::tests::stale_epoch_is_rejected_without_returning_a_valid_request ... ok
+test wire::tests::unsupported_write_and_unknown_opcode_have_no_read_request ... ok
+test wire::tests::zero_oversized_overflow_and_cross_scope_ranges ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 26 tests
+test tests::exact_public_error_numbers_match_the_syscall_contract ... ok
+test tests::ks10_wire_exact_offsets_canonical_fields_and_misaligned_byte_source ... ok
+test tests::closed_object_tombstones_hold_global_capacity_without_retargeting ... ok
+test tests::ks13_all_transfer_authority_precedes_any_depth_resource_failure ... ok
+test tests::ks14_revocation_after_delivery_and_close_do_not_recall_bytes ... ok
+test tests::ks11_snapshot_fifo_and_queue_quota ... ok
+test tests::ks12_process_local_numeric_collision_and_stale_handles ... ok
+test tests::ks15_receive_reserves_both_slots_before_commit ... ok
+test tests::ks10_message_rejection_and_endpoint_priority_are_atomic ... ok
+test tests::ks14_revoke_cancels_whole_queued_transfer_but_preserves_fifo ... ok
+test tests::m5_block_scope_invalid_masks_error_order_and_generation_retirement ... ok
+test tests::ks15_depth_eight_parent_retention_and_reclamation ... ok
+test tests::monotone_process_identity_quota_and_process_row_reuse ... ok
+test tests::ks13_attenuation_transfer_and_zero_rights ... ok
+test tests::ks14_revoke_is_not_array_order_dependent_and_preserves_own_node ... ok
+test tests::m5_block_transfer_revoke_and_owner_exit_use_common_lifetimes ... ok
+test tests::ks10_bounded_wire_bit_fuzz_never_panics_or_mutates_on_reject ... ok
+test tests::m5_block_quota_is_separate_from_all_64_endpoint_objects ... ok
+test tests::m5_revoked_queued_block_cap_cancels_complete_mixed_type_message ... ok
+test tests::m5_block_type_scope_and_admin_close_are_enforced ... ok
+test tests::ks16_last_receive_close_tombstone_and_revoked_before_closed ... ok
+test tests::endpoint_owner_and_global_quotas_recover_after_close ... ok
+test tests::ks15_slot_node_object_max_generation_retire_without_aba ... ok
+test tests::ks16_exit_revokes_received_and_issued_descendants_and_queued_caps ... ok
+test tests::ks15_two_cap_send_global_node_exhaustion_has_no_partial_node ... ok
+test tests::bounded_transaction_state_machine_fuzz_preserves_error_atomicity ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+
+running 15 tests
+test tests::checked_ranges ... ok
+test tests::ovmf_cache_capabilities_are_not_special_memory ... ok
+test tests::physical_alias_wx_and_mapped_free ... ok
+test tests::physical_page_width_and_overflow_fail_closed ... ok
+test user::tests::legal_large_image_and_exact_user_mapping_budget ... ok
+test user::tests::pids_survive_16bit_boundary_and_never_wrap ... ok
+test user::tests::return_flags_strip_authority ... ok
+test user::tests::copy_plan_checks_entire_range_before_any_copy ... ok
+test tests::reserved_and_special_memory ... ok
+test user::tests::overflow_offset_and_page_overlap ... ok
+test tests::unique_exhaustion_ownership_and_zero_order ... ok
+test tests::unmap_mismatched_alias_is_atomic_and_cannot_free_executable ... ok
+test user::tests::valid_and_wx_entry_checks ... ok
+test user::tests::user_return_layout_rejects_untrusted_stack_and_noncanonical_alias ... ok
+test tests::quota_no_partial_allocation ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 12 tests
+test tests::feature_negotiation_is_readonly_modern_without_platform_claim ... ok
+test tests::maximum_epoch_and_ticket_do_not_wrap ... ok
+test tests::pci_bar_io_wide_upper_half_and_absolute_overflow ... ok
+test tests::descriptor_chain_is_fixed_and_confined_to_distinct_pinned_page_plan ... ok
+test tests::pci_chain_cycle_alignment_length_and_bounds_fail_closed ... ok
+test tests::timeout_requires_reset_ack_and_never_frees_quarantine ... ok
+test tests::request_bounds_and_overflow_do_not_publish ... ok
+test tests::pending_bindings_and_consume_are_transactional ... ok
+test tests::software_epoch_separates_old_tickets_after_acknowledged_reset ... ok
+test tests::used_validation_delta_head_length_and_status ... ok
+test tests::pci_regions_and_checked_notify_address ... ok
+test tests::pci_bounded_single_byte_mutations_never_index_outside_snapshot ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling virtio-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\crates\virtio-core)
+   Compiling block-protocol v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\services\block)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.61s
+     Running unittests src\lib.rs (target\debug\deps\block_protocol-6769975ef888bca1.exe)
+     Running unittests src\lib.rs (target\debug\deps\capability_core-d85afd4192c7ae5a.exe)
+     Running unittests src\lib.rs (target\debug\deps\kernel_core-47807490b0b9e789.exe)
+     Running unittests src\lib.rs (target\debug\deps\virtio_core-31b160e9d4f04af1.exe)
+   Doc-tests block_protocol
+   Doc-tests capability_core
+   Doc-tests kernel_core
+   Doc-tests virtio_core
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.043s
+
+OK
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.05s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.34s
+Built and inspected m5: 3 ELF load segments
+test_fixed_rx_rw_ro_memory_and_mapping_budget (__main__.M5Artifact.test_fixed_rx_rw_ro_memory_and_mapping_budget) ... ok
+test_initial_startup_and_two_message_pages_are_zero (__main__.M5Artifact.test_initial_startup_and_two_message_pages_are_zero) ... ok
+test_manifest_binds_actual_main_linker_and_binary (__main__.M5Artifact.test_manifest_binds_actual_main_linker_and_binary) ... ok
+test_no_tls_dynamic_relocations_or_unexpected_allocatable_sections (__main__.M5Artifact.test_no_tls_dynamic_relocations_or_unexpected_allocatable_sections) ... ok
+test_reject_entry_in_nonexecutable_data_or_alias_outside_image (__main__.M5Artifact.test_reject_entry_in_nonexecutable_data_or_alias_outside_image) ... ok
+test_reject_segment_overflow_overlap_and_bad_alignment (__main__.M5Artifact.test_reject_segment_overflow_overlap_and_bad_alignment) ... ok
+test_reject_truncated_required_segment_bytes (__main__.M5Artifact.test_reject_truncated_required_segment_bytes) ... ok
+test_reject_write_execute_and_changed_buffer_or_ro_permissions (__main__.M5Artifact.test_reject_write_execute_and_changed_buffer_or_ro_permissions) ... ok
+test_reject_wrong_header_dynamic_image_and_tls (__main__.M5Artifact.test_reject_wrong_header_dynamic_image_and_tls) ... ok
+test_static_int80_boundary_is_in_actual_text (__main__.M5Artifact.test_static_int80_boundary_is_in_actual_text) ... ok
+test_symbols_bind_startup_message_output_and_entry_addresses (__main__.M5Artifact.test_symbols_bind_startup_message_output_and_entry_addresses) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.067s
+
+OK
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M5:SECTOR4_DIGEST:e44fe49b3e2529ae
+M5:SECTOR6_DIGEST:dead09b76b77d985
+M5:CASE:READ:PASS
+M5:SURVIVOR_PROGRESS:PASS
+M5:RESOURCES:PASS
+M5:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\m5-read-a-e165210a3c
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M5:SECTOR4_DIGEST:3875dbe23a73d526
+M5:SECTOR6_DIGEST:9753e82cef87acc5
+M5:CASE:READ:PASS
+M5:SURVIVOR_PROGRESS:PASS
+M5:RESOURCES:PASS
+M5:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\m5-read-b-ffb0480080
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.16s
+Built and inspected test-m5-service-errors: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M5:SECTOR4_DIGEST:e824a5f8ef66add8
+M5:SECTOR6_DIGEST:0c0c70428ddb30ac
+M5:CASE:SERVICE_ERRORS:PASS
+M5:SURVIVOR_PROGRESS:PASS
+M5:RESOURCES:PASS
+M5:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m5-service-errors-a5f06a73af
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.63s
+Built and inspected test-m5-device-rights: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M5:FAIL:USER_OR_PROTOCOL
+QEMU raw=35; expected=33; timeout=False; expectation_pass=False; C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\build\run\test-m5-device-rights-cbec36ef1b
+    Finished `release` profile [optimized] target(s) in 0.03s
+    Finished `release` profile [optimized] target(s) in 0.04s
+Built and inspected normal: 3 ELF load segments
+Traceback (most recent call last):
+  File "C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\tools\test_milestones.py", line 216, in <module>
+    test_m5()
+    ~~~~~~~^^
+  File "C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\tools\test_m5.py", line 62, in test_m5
+    record(feature, guest["passed"], guest["run_directory"], [f"M5-{marker}", "M5-RESOURCES"])
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\tools\test_m5.py", line 22, in record
+    raise RuntimeError(f"M5 gate failed: {name}")
+RuntimeError: M5 gate failed: test-m5-device-rights

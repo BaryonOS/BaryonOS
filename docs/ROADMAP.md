@@ -1,6 +1,6 @@
 # Route van onderzoeksproject naar bruikbaar systeem
 
-Status revisie 5: onderzoeksbesluiten voor de eerste bouwfase, P0/P1 en simulator-Q0 zijn uitgewerkt in [implementation/START-CODING.md](implementation/START-CODING.md). Er zijn nog geen OS-/UI-/Rust-simulatorimplementatiemijlpalen behaald. De overige fasen zijn de ontwikkelroute. Onderzoeksdatum: 26 oktober 2026. Dit is een ontwikkelroute, geen leveringsbelofte of planning op kalenderdatum.
+Status 27 oktober 2026: M1–M5 zijn geïmplementeerd en getest in het vaste QEMU-profiel. Definitieve suites: 77 groepen/64 VM plus een normale M5-eindstart. M5 is alleen-lezen; schrijven en persistentie volgen in M6a. P02 en Q01 blijven hostprototypes met expliciete open controles. Bron, bewijs en grenzen: PROJECT-STATE.md, WORK-QUEUE.md en verification/m5/. Verdere fasen zijn een ontwikkelroute, geen kalenderbelofte.
 
 ## Richting en grenzen
 
@@ -64,7 +64,7 @@ De voorbereidende onderzoeken hieronder niet opnieuw uitvoeren. De concrete opdr
 5. Verdeel exclusieve schrijfgebieden; laat de samengevoegde wijzigingen reviewen en passende tests uitvoeren.
 6. Leg werkelijk bewijs en concrete blokkades vast in PROJECT-STATE.md. Een ontbrekende QEMU-tool blokkeert geen onafhankelijk productwerk.
 
-De ontwikkelomgeving en eerste build zijn nog niet bewezen. Een code-review vervangt geen bootbewijs. Verhelp een concreet probleem gericht; begin niet opnieuw een brede onderzoeksronde.
+De ontwikkelomgeving, eerste build en M2 zijn nu in het vastgelegde Windows/QEMU-profiel getest; zie de actuele status voor bewijs en beperkingen. Een code-review vervangt geen bootbewijs. Verhelp concrete problemen gericht; begin niet opnieuw een brede onderzoeksronde.
 
 ## Meetplan voor ‘licht en snel’
 

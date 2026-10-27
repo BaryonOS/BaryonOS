@@ -1,0 +1,1076 @@
+//! Single-CPU ring-3 experiment. Each entry copies all GPR/iret state before
+//! switching to a permanent service stack and kernel CR3. No user reference
+//! survives a scheduling point. There are no locks: IF is clear in all mutations.
+use super::{
+    arch,
+    paging::{self, Paging},
+    text_start, FRAME_COUNT,
+};
+use crate::serial;
+use core::{
+    arch::asm,
+    mem::{replace, MaybeUninit},
+    ptr,
+};
+use kernel_core::{user, Frames, Kind, Owner, PAGE};
+#[cfg(feature = "milestone-m4")]
+mod m4;
+#[cfg(feature = "milestone-m5")]
+mod m5;
+#[cfg(not(feature = "milestone-m4"))]
+const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
+#[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
+#[cfg(feature = "milestone-m5")]
+const ELF: &[u8] = include_bytes!(env!("NOS_M5_ELF"));
+const DATA: u64 = 0x40010000;
+const HEAP: u64 = 0x60000000;
+const STACK: u64 = 0x7ffef000;
+const STACK_END: u64 = 0x7ffff000;
+const MAX: usize = 16;
+const MAPS: usize = 2048;
+const ADDRESS: u64 = 0x000f_ffff_ffff_f000;
+const NX: u64 = 1 << 63;
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Status {
+    Dead,
+    Ready,
+    Running,
+    Dying,
+}
+#[derive(Clone, Copy)]
+struct Mapping {
+    va: u64,
+    pa: u64,
+    kind: Kind,
+    writable: bool,
+    executable: bool,
+}
+const EMPTY_MAP: Mapping = Mapping {
+    va: 0,
+    pa: 0,
+    kind: Kind::Data,
+    writable: false,
+    executable: false,
+};
+static mut USER_MAPS: [[Mapping; MAPS]; MAX] = [[EMPTY_MAP; MAPS]; MAX];
+struct Process {
+    pid: u64,
+    status: Status,
+    paging: Option<Paging>,
+    map_slot: usize,
+    count: usize,
+    kernel_frames: [u64; 4],
+    kernel_top: u64,
+    context: [u64; 22],
+    selected: u64,
+    pattern: u64,
+}
+impl Process {
+    const fn new() -> Self {
+        Self {
+            pid: 0,
+            status: Status::Dead,
+            paging: None,
+            map_slot: MAX,
+            count: 0,
+            kernel_frames: [0; 4],
+            kernel_top: 0,
+            context: [0; 22],
+            selected: 0,
+            pattern: 0,
+        }
+    }
+    fn physical(&self, va: u64) -> u64 {
+        let page = va & !(PAGE - 1);
+        self.mappings()
+            .iter()
+            .find(|m| m.va == page)
+            .expect("user page")
+            .pa
+            + (va & (PAGE - 1))
+    }
+    fn mappings(&self) -> &[Mapping] {
+        assert!(self.map_slot < MAX && self.count <= MAPS);
+        // SAFETY: Each live Process uniquely owns one fixed arena slot. Moves
+        // preserve that slot; reload begins only after cleanup drops all borrows.
+        // The arena is initialized typed storage inside retained kernel memory.
+        unsafe {
+            core::slice::from_raw_parts(
+                ptr::addr_of!(USER_MAPS)
+                    .cast::<Mapping>()
+                    .add(self.map_slot * MAPS),
+                self.count,
+            )
+        }
+    }
+    fn append_mapping(&mut self, mapping: Mapping) {
+        assert!(self.map_slot < MAX && self.count < MAPS);
+        // SAFETY: Exclusive Process borrow, distinct owned arena index and no
+        // retained mapping slice across this mutation or any scheduling point.
+        unsafe {
+            ptr::addr_of_mut!(USER_MAPS)
+                .cast::<Mapping>()
+                .add(self.map_slot * MAPS + self.count)
+                .write(mapping);
+        }
+        self.count += 1;
+    }
+}
+struct State {
+    frames: &'static mut Frames<FRAME_COUNT>,
+    kernel: Paging,
+    processes: [Process; MAX],
+    current: usize,
+    amount: usize,
+    next_pid: u64,
+    round: u8,
+    ticks: u64,
+    selections: u64,
+    fault: bool,
+    exited: bool,
+    survivor_start: u64,
+    free_baseline: usize,
+    timer_interrupts: u64,
+    max_syscall_cycles: u64,
+    syscall_calls: u64,
+    survivor_slot: usize,
+    unexpected: bool,
+    last_event: EventRecord,
+    last_tick: u64,
+    max_tick_gap: u64,
+    had_syscall_df_entry: bool,
+}
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "milestone-m4", allow(dead_code))]
+struct EventRecord {
+    pid: u64,
+    code: u64,
+    vector: u64,
+    rip: u64,
+    cr2: u64,
+}
+static mut STATE: MaybeUninit<State> = MaybeUninit::uninit();
+#[no_mangle]
+static mut m3_service_stack: u64 = 0;
+#[no_mangle]
+static mut m3_idle_active: u8 = 0;
+#[no_mangle]
+static mut m3_idle_wakeups: u64 = 0;
+extern "C" {
+    fn m3_timer();
+    fn m3_syscall();
+    fn m3_restore();
+}
+
+pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! {
+    arch::reset_debug();
+    let image = user::parse(ELF).expect("embedded user ELF");
+    assert_eq!(image.entry, 0x40000000);
+    kernel.begin_scratch(frames);
+    #[cfg(feature = "milestone-m5")]
+    m5::prepare(frames, &mut kernel);
+    // SAFETY: One CPU, IF=0; permanent state constructed once. The service stack
+    // is the retained guarded MAIN stack; no interrupted frame is stored there.
+    unsafe {
+        ptr::addr_of_mut!(m3_service_stack).write(arch::service_stack());
+        // Initialize in place: the fixed process table is deliberately larger
+        // than a kernel stack and must never be materialized as a stack local.
+        let state = ptr::addr_of_mut!(STATE).cast::<State>();
+        ptr::addr_of_mut!((*state).frames).write(frames);
+        ptr::addr_of_mut!((*state).kernel).write(kernel);
+        for i in 0..MAX {
+            ptr::addr_of_mut!((*state).processes)
+                .cast::<Process>()
+                .add(i)
+                .write(Process::new());
+        }
+        ptr::addr_of_mut!((*state).current).write(MAX);
+        ptr::addr_of_mut!((*state).amount).write(0);
+        ptr::addr_of_mut!((*state).next_pid).write(1);
+        ptr::addr_of_mut!((*state).round).write(0);
+        ptr::addr_of_mut!((*state).ticks).write(0);
+        ptr::addr_of_mut!((*state).selections).write(0);
+        ptr::addr_of_mut!((*state).fault).write(false);
+        ptr::addr_of_mut!((*state).exited).write(false);
+        ptr::addr_of_mut!((*state).survivor_start).write(0);
+        ptr::addr_of_mut!((*state).free_baseline).write(0);
+        ptr::addr_of_mut!((*state).timer_interrupts).write(0);
+        ptr::addr_of_mut!((*state).max_syscall_cycles).write(0);
+        ptr::addr_of_mut!((*state).syscall_calls).write(0);
+        ptr::addr_of_mut!((*state).survivor_slot).write(1);
+        ptr::addr_of_mut!((*state).unexpected).write(false);
+        ptr::addr_of_mut!((*state).last_event).write(EventRecord {
+            pid: 0,
+            code: 0,
+            vector: 0,
+            rip: 0,
+            cr2: 0,
+        });
+        ptr::addr_of_mut!((*state).last_tick).write(0);
+        ptr::addr_of_mut!((*state).max_tick_gap).write(0);
+        ptr::addr_of_mut!((*state).had_syscall_df_entry).write(false);
+        arch::user_gate(32, m3_timer as *const () as u64, false);
+        arch::user_gate(128, m3_syscall as *const () as u64, true);
+        let state = (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut();
+        state.setup();
+        timer_init();
+        let next = state.select();
+        asm!("mov rax, {context}","jmp {restore}",context=in(reg) next,restore=sym m3_restore,options(noreturn));
+    }
+}
+
+impl State {
+    fn setup(&mut self) {
+        self.current = MAX;
+        self.ticks = 0;
+        self.selections = 0;
+        self.fault = false;
+        self.exited = false;
+        self.survivor_slot = 1;
+        self.unexpected = false;
+        self.amount = if cfg!(feature = "milestone-m5") && (14..=16).contains(&m5_case()) {
+            4
+        } else if cfg!(feature = "milestone-m4") {
+            3
+        } else if mode() != 0 || self.round >= 2 {
+            2
+        } else {
+            16
+        };
+        for slot in 0..self.amount {
+            self.spawn_process(slot);
+        }
+
+        let target = if cfg!(feature = "milestone-m5") {
+            0
+        } else if mode() == 5 {
+            text_start()
+        } else {
+            self.processes[1].physical(DATA + 16)
+        };
+        write_word(self.processes[0].physical(DATA + 24), target);
+        self.survivor_start = read_word(self.processes[1].physical(DATA + 8));
+        self.audit();
+        if cfg!(feature = "test-m3-large-image") {
+            serial::write(b"M3:LARGE_IMAGE:PASS\n");
+        }
+        #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+        m4::manifest(self);
+        #[cfg(feature = "milestone-m5")]
+        m5::manifest(self);
+    }
+    fn spawn_process(&mut self, slot: usize) {
+        assert!(self.processes[slot].status == Status::Dead);
+        let (pid, next) = user::issue_pid(self.next_pid).expect("PID exhaustion");
+        self.next_pid = next;
+        let mut p = Process::new();
+        p.map_slot = slot;
+        p.pid = pid;
+        p.pattern = 0x4141000000000000 | u64::from(pid);
+        p.paging = Some(Paging::new_user(
+            self.frames,
+            &self.kernel,
+            u16::try_from(slot + 1).unwrap(),
+        ));
+        let image = user::parse(ELF).unwrap();
+        for segment in &image.segments[..image.count] {
+            let start = segment.va & !(PAGE - 1);
+            let end = (segment.va + segment.memory_size + PAGE - 1) & !(PAGE - 1);
+            for va in (start..end).step_by(PAGE as usize) {
+                let kind = if segment.executable {
+                    Kind::Text
+                } else {
+                    Kind::Data
+                };
+                let pa = self.add_user(
+                    &mut p,
+                    va,
+                    kind,
+                    segment.writable,
+                    segment.executable,
+                    false,
+                );
+                let first = core::cmp::max(va, segment.va);
+                let last = core::cmp::min(va + PAGE, segment.va + segment.file_size);
+                if first < last {
+                    let offset = (segment.file_offset + first - segment.va) as usize;
+                    let length = (last - first) as usize;
+                    paging::physical(pa, |dest| {
+                        // SAFETY: Entire frame exclusively allocated and not executable yet;
+                        // validated ELF source/file range, nonoverlapping kernel input.
+                        unsafe {
+                            ptr::copy_nonoverlapping(
+                                ELF.as_ptr().add(offset),
+                                dest.add((first - va) as usize),
+                                length,
+                            );
+                        }
+                    });
+                }
+                let zero_start = core::cmp::max(va, segment.va + segment.file_size);
+                let zero_end = core::cmp::min(va + PAGE, segment.va + segment.memory_size);
+                if zero_start < zero_end {
+                    paging::physical(pa, |bytes| {
+                        for offset in zero_start - va..zero_end - va {
+                            // SAFETY: Exclusive newly allocated frame, not yet
+                            // executable. Observe actual ELF BSS zeroing bytes.
+                            assert_eq!(unsafe { bytes.add(offset as usize).read_volatile() }, 0);
+                        }
+                    });
+                }
+                if segment.executable {
+                    self.kernel.identity_readonly(self.frames, pa);
+                }
+                p.paging.as_mut().unwrap().map_user(
+                    self.frames,
+                    va,
+                    pa,
+                    segment.writable,
+                    segment.executable,
+                );
+            }
+        }
+        for va in (HEAP..HEAP + 65536).step_by(PAGE as usize) {
+            self.add_user(&mut p, va, Kind::Data, true, false, true);
+        }
+        for va in (STACK..STACK_END).step_by(PAGE as usize) {
+            self.add_user(&mut p, va, Kind::Stack, true, false, true);
+        }
+        let lower = 0x30000000 + slot as u64 * 0x6000;
+        assert_eq!(self.kernel.leaf(lower), 0);
+        assert_eq!(self.kernel.leaf(lower + 0x5000), 0);
+        for i in 0..4 {
+            let pa = self
+                .frames
+                .allocate(Owner::Kernel, paging::zero_dynamic)
+                .unwrap();
+            p.kernel_frames[i] = pa;
+            self.kernel.map(self.frames, pa, pa, true, false);
+            self.kernel
+                .map(self.frames, lower + PAGE * (i as u64 + 1), pa, true, false);
+        }
+        p.kernel_top = lower + 0x5000;
+        let own_mode = if cfg!(feature = "milestone-m4") {
+            0
+        } else if mode() == 17 {
+            2
+        } else if mode() == 15 {
+            if slot == 1 {
+                15
+            } else {
+                0
+            }
+        } else if slot == 0 {
+            if mode() == 0 && self.round >= 2 {
+                2
+            } else {
+                mode()
+            }
+        } else {
+            0
+        };
+        write_word(p.physical(DATA), own_mode);
+        write_word(p.physical(DATA + 8), 0);
+        write_word(p.physical(DATA + 16), p.pattern);
+        write_word(p.physical(DATA + 24), 0);
+        p.context[17] = image.entry;
+        p.context[18] = 0x23;
+        p.context[19] = 0x202;
+        p.context[20] = STACK_END - 8;
+        p.context[21] = 0x1b;
+        assert_eq!(read_word(p.physical(STACK_END - 8)), 0);
+        p.status = Status::Ready;
+        if cfg!(feature = "test-m3-large-image") {
+            assert_eq!(p.count, 67);
+        }
+        self.processes[slot] = p;
+    }
+    fn add_user(
+        &mut self,
+        p: &mut Process,
+        va: u64,
+        kind: Kind,
+        writable: bool,
+        executable: bool,
+        map_now: bool,
+    ) -> u64 {
+        assert!(p.count < MAPS);
+        let pa = self
+            .frames
+            .allocate(Owner::User(p.pid, kind), paging::zero_dynamic)
+            .unwrap();
+        self.kernel.map(self.frames, pa, pa, true, false);
+        p.append_mapping(Mapping {
+            va,
+            pa,
+            kind,
+            writable,
+            executable,
+        });
+        if map_now {
+            p.paging
+                .as_mut()
+                .unwrap()
+                .map_user(self.frames, va, pa, writable, executable);
+        }
+        pa
+    }
+    fn audit(&self) {
+        for (i, p) in self.processes[..self.amount].iter().enumerate() {
+            let tables = p.paging.as_ref().unwrap();
+            assert_ne!(tables.root, self.kernel.root);
+            assert!(!tables.permissions(text_start()).unwrap().3);
+            assert_eq!(tables.leaf(0), 0);
+            assert_eq!(tables.leaf(0x7ffee000), 0);
+            assert_eq!(tables.leaf(0x7ffff000), 0);
+            for m in p.mappings() {
+                assert_eq!(self.frames.owner(m.pa), Ok(Owner::User(p.pid, m.kind)));
+                let leaf = tables.leaf(m.va);
+                assert_eq!(leaf & ADDRESS, m.pa);
+                assert_ne!(leaf & 4, 0);
+                assert_eq!(leaf & 2 != 0, m.writable);
+                assert_eq!(leaf & NX == 0, m.executable);
+                assert_eq!(
+                    tables.permissions(m.va).unwrap(),
+                    (m.pa, m.writable, m.executable, true)
+                );
+                let alias = self.frames.alias(m.pa).unwrap();
+                assert!(alias.executable == 0 || alias.writable == 0);
+                let identity = self.kernel.leaf(m.pa);
+                assert_eq!(identity & 4, 0);
+                assert_ne!(identity & NX, 0);
+                assert_eq!(
+                    identity & 2 == 0,
+                    m.executable || !m.writable && m.executable
+                );
+                for other in &self.processes[..i] {
+                    assert!(other.mappings().iter().all(|x| x.pa != m.pa));
+                }
+            }
+            assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
+        }
+    }
+    fn select(&mut self) -> *const u64 {
+        let start = if self.current < self.amount {
+            (self.current + 1) % self.amount
+        } else {
+            0
+        };
+        for offset in 0..self.amount {
+            let slot = (start + offset) % self.amount;
+            if self.processes[slot].status == Status::Ready {
+                let p = &self.processes[slot];
+                let c = &p.context;
+                let valid = user::valid_return_layout(c[17], c[20], c[18], c[21])
+                    && p.paging
+                        .as_ref()
+                        .unwrap()
+                        .permissions(c[17])
+                        .is_some_and(|x| x.2 && x.3)
+                    && p.paging
+                        .as_ref()
+                        .unwrap()
+                        .permissions(c[20])
+                        .is_some_and(|x| x.1 && !x.2 && x.3);
+                if !valid {
+                    // Invalid saved user state is a process failure, never a
+                    // kernel assertion or an unchecked iretq to hostile state.
+                    let expected = mode() == 16
+                        && slot == 0
+                        && c[20] == 0
+                        && c[18] == 0x23
+                        && c[21] == 0x1b
+                        && (0x40000000..0x60000000).contains(&c[17])
+                        && p.paging
+                            .as_ref()
+                            .unwrap()
+                            .permissions(c[17])
+                            .is_some_and(|x| x.2 && x.3);
+                    self.last_event = EventRecord {
+                        pid: p.pid,
+                        code: 0,
+                        vector: 256,
+                        rip: c[17],
+                        cr2: 0,
+                    };
+                    self.unexpected |= !expected;
+                    if expected {
+                        serial::write(b"M3:INVALID_RSP:PASS\n");
+                    }
+                    self.observer_survivor(slot);
+                    self.fault = true;
+                    self.processes[slot].status = Status::Dying;
+                    self.cleanup(slot);
+                    continue;
+                }
+                self.current = slot;
+                self.selections += 1;
+                let p = &mut self.processes[slot];
+                p.status = Status::Running;
+                p.selected += 1;
+                if mode() == 0 && self.round < 2 && !self.fault && !self.exited {
+                    assert_eq!(slot, ((self.selections - 1) % 16) as usize);
+                }
+                let c = &mut p.context;
+                c[19] = user::return_flags(c[19]);
+                arch::process_stack(p.kernel_top);
+                arch::activate(p.paging.as_ref().unwrap().root);
+                return c.as_ptr();
+            }
+        }
+        self.idle()
+    }
+    fn idle(&mut self) -> ! {
+        arch::activate(self.kernel.root);
+        arch::process_stack(arch::service_stack());
+        self.current = MAX;
+        let free = self.free_count();
+        // SAFETY: IF=0, permanent service stack/root. The only admitted CPL0 IRQ
+        // while idle is IRQ0, whose assembly path touches only these two raw
+        // counters, sends EOI and restores the CPU frame. It never borrows STATE.
+        unsafe {
+            ptr::addr_of_mut!(m3_idle_wakeups).write(0);
+            ptr::addr_of_mut!(m3_idle_active).write(1);
+        }
+        loop {
+            // SAFETY: STI shadow makes HLT await a real IRQ atomically. IRQ0
+            // returns to CLI before Rust accesses its exclusively borrowed state.
+            unsafe {
+                asm!("sti", "hlt", "cli", options(nostack));
+            }
+            // SAFETY: IF=0; volatile observation of assembly-updated diagnostics.
+            let wakes = unsafe { ptr::addr_of!(m3_idle_wakeups).read_volatile() };
+            if mode() == 17 {
+                assert_eq!(self.free_count(), free);
+                assert!(self.processes[..self.amount]
+                    .iter()
+                    .all(|p| p.status == Status::Dead));
+                if wakes >= 8 {
+                    // SAFETY: IF=0; disable the special idle-only IRQ route before
+                    // leaving idle, with no live user process or active user root.
+                    unsafe {
+                        ptr::addr_of_mut!(m3_idle_active).write(0);
+                    }
+                    print_number(b"M3:IDLE_TIMER_IRQS:", wakes);
+                    serial::write(b"M3:IDLE:PASS\n");
+                    self.complete_round();
+                }
+            }
+        }
+    }
+    fn cleanup(&mut self, slot: usize) {
+        let mut p = replace(&mut self.processes[slot], Process::new());
+        assert!(p.status == Status::Dying || p.status == Status::Dead);
+        let mut address = p.paging.take().unwrap();
+        #[cfg(feature = "milestone-m5")]
+        m5::detach(p.pid);
+        #[cfg(feature = "milestone-m4")]
+        m4::process_exit(p.pid);
+        let free_before = self.free_count();
+        let released = p.count + p.kernel_frames.len() + address.owned_table_count();
+        for m in p.mappings() {
+            address.unmap(self.frames, m.va);
+            self.kernel.unmap(self.frames, m.pa);
+            self.frames
+                .free(m.pa, Owner::User(p.pid, m.kind), paging::zero_dynamic)
+                .unwrap();
+        }
+        let lower = p.kernel_top - 0x5000;
+        for (i, pa) in p.kernel_frames.into_iter().enumerate() {
+            self.kernel
+                .unmap(self.frames, lower + PAGE * (i as u64 + 1));
+            self.kernel.unmap(self.frames, pa);
+            self.frames
+                .free(pa, Owner::Kernel, paging::zero_dynamic)
+                .unwrap();
+        }
+        address.destroy(self.frames);
+        assert_eq!(self.free_count(), free_before + released);
+        for index in 0..FRAME_COUNT {
+            let owner = self.frames.owner(index as u64 * PAGE).unwrap();
+            assert!(!matches!(owner,Owner::User(pid,_) if pid==p.pid));
+            assert_ne!(owner, Owner::PageTable(u16::try_from(slot + 1).unwrap()));
+        }
+    }
+    fn complete_round(&mut self) -> ! {
+        for slot in 0..self.amount {
+            if self.processes[slot].status != Status::Dead {
+                self.processes[slot].status = Status::Dying;
+                self.cleanup(slot);
+            }
+        }
+        if self.unexpected {
+            serial::write(b"M3:FAIL:UNEXPECTED_USER_EVENT\n");
+            serial::exit(0x11);
+        }
+        if mode() == 0 {
+            if self.round == 0 {
+                serial::write(b"KS-04:PASS\n");
+                self.free_baseline = self.free_count();
+            } else {
+                assert_eq!(self.free_count(), self.free_baseline);
+            }
+            if self.round == 1 {
+                serial::write(b"KS-07:PASS\n");
+            }
+            self.round += 1;
+            if self.round < 6 {
+                self.setup();
+                let next = self.select();
+                // SAFETY: Full verified static user context; permanent kernel CR3
+                // and service stack remain retained through iretq.
+                unsafe {
+                    asm!("mov rax, {context}","jmp {restore}",context=in(reg) next,restore=sym m3_restore,options(noreturn));
+                }
+            }
+        }
+        print_number(b"M3:TIMER_IRQS:", self.timer_interrupts);
+        print_number(b"M3:SYSCALL_CALLS:", self.syscall_calls);
+        print_number(b"M3:MAX_SYSCALL_CYCLES:", self.max_syscall_cycles);
+        print_number(b"M3:MAX_TIMER_GAP_CYCLES:", self.max_tick_gap);
+        serial::write(b"M3:CLEANUP:PASS\n");
+        if (3..=14).contains(&mode()) {
+            serial::write(if mode() <= 5 {
+                b"KS-05:PASS\n"
+            } else {
+                b"KS-06:PASS\n"
+            });
+        }
+        assert!(self.had_syscall_df_entry);
+        serial::write(b"KS-08:PASS\nM3:SYSCALL_DF_ENTRY:PASS\nM3:PASS\nM1:PASS\n");
+        serial::exit(0x10)
+    }
+    fn free_count(&self) -> usize {
+        (0..FRAME_COUNT)
+            .filter(|i| self.frames.owner(*i as u64 * PAGE) == Ok(Owner::Free))
+            .count()
+    }
+    fn observer_exit(&mut self, slot: usize, counter: u64) {
+        #[cfg(feature = "milestone-m5")]
+        {
+            let _ = counter;
+            m5::observe_exit(self, slot);
+            return;
+        }
+        #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+        {
+            m4::observe_exit(self, slot, counter);
+            return;
+        }
+        #[cfg(not(feature = "milestone-m4"))]
+        {
+            let record = self.last_event;
+            let expected = if mode() == 17 {
+                record.code == 0 && counter >= 8
+            } else if mode() == 15 {
+                slot == 1 && record.code == 7 && counter == 1
+            } else {
+                (mode() == 2 || mode() == 0 && self.round >= 2)
+                    && slot == 0
+                    && record.code == 0
+                    && counter >= 8
+            };
+            self.unexpected |= !expected;
+            if expected {
+                serial::write(if mode() == 15 {
+                    b"M3:EXIT_NONZERO_B:PASS\n"
+                } else {
+                    b"M3:EXIT:PASS\n"
+                });
+            }
+            self.observer_survivor(slot);
+        }
+    }
+    fn observer_fault(&mut self, slot: usize, context: &[u64; 22], counter: u64) {
+        #[cfg(feature = "milestone-m5")]
+        {
+            let _ = counter;
+            m5::observe_fault(self, slot, context);
+            return;
+        }
+        #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+        {
+            m4::observe_fault(self, slot, context, counter);
+            return;
+        }
+        #[cfg(not(feature = "milestone-m4"))]
+        {
+            if slot != 0 || self.fault {
+                self.unexpected = true;
+                self.observer_survivor(slot);
+                return;
+            }
+            let record = self.last_event;
+            let expected = match mode() {
+                3 => Some((14, 5, read_word(self.processes[0].physical(DATA + 24)))),
+                4 | 5 => Some((14, 7, read_word(self.processes[0].physical(DATA + 24)))),
+                6 => Some((14, 21, STACK)),
+                7 => Some((14, 21, HEAP)),
+                8 => Some((14, 6, 0x7ffee000)),
+                9 => Some((14, 6, 0x7ffff000)),
+                10 => Some((13, 0, 0)),
+                11 => Some((7, 0, 0)),
+                12 | 13 | 14 => Some((6, 0, 0)),
+                _ => None,
+            };
+            let valid = slot == 0
+                && !self.fault
+                && counter > 0
+                && expected.is_some_and(|e| {
+                    record.vector == e.0
+                        && context[16] == e.1
+                        && (record.vector != 14 || record.cr2 == e.2)
+                        && (!(mode() == 6 || mode() == 7) || record.rip == e.2)
+                });
+            self.unexpected |= !valid;
+            if valid {
+                serial::write(fault_marker());
+            }
+            self.observer_survivor(slot);
+        }
+    }
+    fn observer_survivor(&mut self, departing: usize) {
+        self.survivor_slot = (0..self.amount)
+            .find(|i| {
+                *i != departing
+                    && matches!(self.processes[*i].status, Status::Ready | Status::Running)
+            })
+            .unwrap_or(MAX);
+        self.survivor_start = if self.survivor_slot < MAX {
+            read_word(self.processes[self.survivor_slot].physical(DATA + 8))
+        } else {
+            0
+        };
+    }
+}
+
+#[no_mangle]
+extern "C" fn m3_event(source: *const u64) -> *const u64 {
+    let begin = clock();
+    // SAFETY: Entry stub has moved to MAIN service stack with IF=0. Source is
+    // exclusively owned mapped per-process kernel stack, 22 initialized words.
+    // No scheduler can run concurrently; all source bytes are copied before free.
+    let state = unsafe { (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut() };
+    let current = state.current;
+    assert!(current < state.amount);
+    let mut context = [0u64; 22];
+    // SAFETY: Live normalized full ring-3 frame; kernel-origin faults stop before
+    // reading optional user RSP/SS fields. RSP frame source is on mapped stack.
+    unsafe {
+        if source.add(18).read() != 0x23 {
+            serial::write(b"M3:FAIL:KERNEL_EXCEPTION\n");
+            serial::exit(0x11);
+        }
+        ptr::copy_nonoverlapping(source, context.as_mut_ptr(), 22);
+    }
+    arch::activate(state.kernel.root);
+    state.processes[current].context = context;
+    let vector = context[15];
+    let mut terminate = false;
+    if vector == 32 {
+        out8(0x20, 0x20);
+        state.ticks += 1;
+        state.timer_interrupts += 1;
+        if state.last_tick != 0 {
+            state.max_tick_gap =
+                core::cmp::max(state.max_tick_gap, begin.saturating_sub(state.last_tick));
+        }
+        state.last_tick = begin;
+    } else if vector == 128 {
+        state.had_syscall_df_entry |= context[19] & (1 << 10) != 0;
+        let number = context[14];
+        let args = [
+            context[8],
+            context[9],
+            context[12],
+            context[5],
+            context[7],
+            context[6],
+        ];
+        #[cfg(feature = "milestone-m4")]
+        if number >= 0x10 && !(cfg!(feature = "milestone-m5") && matches!(number, 0x40 | 0x41)) {
+            let (rax, rdx) = m4::syscall(state, current, number, args);
+            state.processes[current].context[14] = rax as u64;
+            state.processes[current].context[12] = rdx;
+        }
+        #[cfg(feature = "milestone-m5")]
+        if matches!(number, 0x40 | 0x41) {
+            let (rax, rdx) = m5::syscall(state, current, number, args);
+            state.processes[current].context[14] = rax as u64;
+            state.processes[current].context[12] = rdx;
+        }
+        if number < 0x10 || !cfg!(feature = "milestone-m4") {
+            let p = &mut state.processes[current];
+            p.context[14] = 0;
+            p.context[12] = 0;
+            if (number <= 1 && args.iter().any(|x| *x != 0))
+                || (number == 2 && args[1..].iter().any(|x| *x != 0))
+            {
+                p.context[14] = (-1i64) as u64;
+            } else {
+                match number {
+                    0 => p.context[12] = (1 << 32) | u64::from(cfg!(feature = "milestone-m5")),
+                    1 => {}
+                    2 => {
+                        // Generic syscall semantics: every process may exit with any code.
+                        // The code is retained metadata; fixture expectations are separate.
+                        state.last_event = EventRecord {
+                            pid: p.pid,
+                            code: args[0],
+                            vector: 128,
+                            rip: context[17],
+                            cr2: 0,
+                        };
+                        terminate = true;
+                        state.exited = true;
+                    }
+                    _ => p.context[14] = (-2i64) as u64,
+                }
+            }
+            if terminate {
+                let counter = read_word(state.processes[current].physical(DATA + 8));
+                state.observer_exit(current, counter);
+            }
+        }
+        state.syscall_calls += 1;
+    } else {
+        let cr2: u64;
+        // SAFETY: CPL0 fault metadata, never dereference/log arbitrary contents.
+        unsafe {
+            asm!("mov {}, cr2",out(reg) cr2,options(nomem,nostack));
+        }
+        // Generic fault semantics likewise have no hard-coded process identity.
+        state.last_event = EventRecord {
+            pid: state.processes[current].pid,
+            code: context[16],
+            vector,
+            rip: context[17],
+            cr2,
+        };
+        let counter = read_word(state.processes[current].physical(DATA + 8));
+        state.observer_fault(current, &context, counter);
+        state.fault = true;
+        terminate = true;
+    }
+    if terminate {
+        assert_eq!(state.last_event.pid, state.processes[current].pid);
+    }
+    if terminate {
+        state.processes[current].status = Status::Dying;
+        state.cleanup(current);
+    } else {
+        state.processes[current].status = Status::Ready;
+    }
+    #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+    if let Some(next) = m4::poll(state) {
+        return next;
+    }
+    #[cfg(feature = "milestone-m5")]
+    if let Some(next) = m5::poll(state) {
+        return next;
+    }
+    #[cfg(not(feature = "milestone-m4"))]
+    if state.fault || state.exited {
+        if state.survivor_slot == MAX && mode() != 17 {
+            serial::write(b"M3:FAIL:NO_TEST_SURVIVOR\n");
+            serial::exit(0x11);
+        }
+        if state.survivor_slot == MAX {
+            if vector == 128 {
+                state.max_syscall_cycles =
+                    core::cmp::max(state.max_syscall_cycles, clock().saturating_sub(begin));
+            }
+            return state.select();
+        }
+        let survivor = &state.processes[state.survivor_slot];
+        assert_eq!(read_word(survivor.physical(DATA + 16)), survivor.pattern);
+        if state.ticks >= 4 && read_word(survivor.physical(DATA + 8)) > state.survivor_start + 8 {
+            if !state.unexpected {
+                serial::write(b"M3:SURVIVOR_PROGRESS:PASS\n");
+            }
+            state.complete_round();
+        }
+    } else if mode() == 0 && state.round < 2 {
+        for p in &state.processes[..state.amount] {
+            assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
+        }
+        if state.ticks >= 64 {
+            assert!(state.processes[..16]
+                .iter()
+                .all(|p| p.selected >= 4 && read_word(p.physical(DATA + 8)) > 0));
+            state.complete_round();
+        }
+    }
+    let next = state.select();
+    if vector == 128 {
+        state.max_syscall_cycles =
+            core::cmp::max(state.max_syscall_cycles, clock().saturating_sub(begin));
+    }
+    next
+}
+
+fn read_word(pa: u64) -> u64 {
+    let page = pa & !(PAGE - 1);
+    let offset = (pa & (PAGE - 1)) as usize;
+    assert!(offset <= PAGE as usize - 8);
+    paging::physical(page, |p| {
+        let mut bytes = [0; 8];
+        for (i, byte) in bytes.iter_mut().enumerate() {
+            // SAFETY: Validated owned in-page bytes; bytewise observation also
+            // supports the deliberately misaligned IPC output evidence.
+            *byte = unsafe { p.add(offset + i).read_volatile() };
+        }
+        u64::from_le_bytes(bytes)
+    })
+}
+fn write_word(pa: u64, value: u64) {
+    let page = pa & !(PAGE - 1);
+    let offset = (pa & (PAGE - 1)) as usize;
+    assert!(offset <= PAGE as usize - 8);
+    paging::physical(page, |p| {
+        for (i, byte) in value.to_le_bytes().into_iter().enumerate() {
+            // SAFETY: Exclusive validated in-page byte; no alignment or Rust
+            // representation assumption is made about the addressed field.
+            unsafe {
+                p.add(offset + i).write_volatile(byte);
+            }
+        }
+    });
+}
+fn out8(port: u16, value: u8) {
+    // SAFETY: Fixed QEMU PIC/PIT only, CPL0; no host device or firmware calls.
+    unsafe {
+        asm!("out dx,al",in("dx") port,in("al") value,options(nomem,nostack,preserves_flags));
+    }
+}
+fn timer_init() {
+    out8(0x20, 0x11);
+    out8(0xa0, 0x11);
+    out8(0x21, 0x20);
+    out8(0xa1, 0x28);
+    out8(0x21, 4);
+    out8(0xa1, 2);
+    out8(0x21, 1);
+    out8(0xa1, 1);
+    out8(0x21, 0xfe);
+    out8(0xa1, 0xff);
+    out8(0x43, 0x36);
+    out8(0x40, 11932u16 as u8);
+    out8(0x40, (11932u16 >> 8) as u8);
+}
+fn clock() -> u64 {
+    let (lo, hi): (u32, u32);
+    // SAFETY: Scalar timestamp observation. TCG guest cycles are diagnostic, not
+    // a host latency/realtime guarantee. No lost-tick count is inferred.
+    unsafe {
+        asm!("rdtsc",out("eax") lo,out("edx") hi,options(nomem,nostack));
+    }
+    (u64::from(hi) << 32) | u64::from(lo)
+}
+fn print_number(label: &[u8], mut value: u64) {
+    let mut bytes = [b'0'; 20];
+    for byte in bytes.iter_mut().rev() {
+        *byte = b'0' + (value % 10) as u8;
+        value /= 10;
+    }
+    serial::write(label);
+    serial::write(&bytes);
+    serial::write(b"\n");
+}
+fn mode() -> u64 {
+    if cfg!(feature = "milestone-m4") {
+        18
+    } else if cfg!(feature = "test-m3-peer-read") {
+        3
+    } else if cfg!(feature = "test-m3-peer-write") {
+        4
+    } else if cfg!(feature = "test-m3-kernel-write") {
+        5
+    } else if cfg!(feature = "test-m3-stack-exec") {
+        6
+    } else if cfg!(feature = "test-m3-heap-exec") {
+        7
+    } else if cfg!(feature = "test-m3-guard-low") {
+        8
+    } else if cfg!(feature = "test-m3-guard-high") {
+        9
+    } else if cfg!(feature = "test-m3-cli") {
+        10
+    } else if cfg!(feature = "test-m3-x87") {
+        11
+    } else if cfg!(feature = "test-m3-xmm") {
+        12
+    } else if cfg!(feature = "test-m3-avx") {
+        13
+    } else if cfg!(feature = "test-m3-ud") {
+        14
+    } else if cfg!(feature = "test-m3-exit") {
+        2
+    } else if cfg!(feature = "test-m3-b-exit") {
+        15
+    } else if cfg!(feature = "test-m3-invalid-rsp") {
+        16
+    } else if cfg!(feature = "test-m3-idle") {
+        17
+    } else {
+        0
+    }
+}
+fn m5_case() -> u8 {
+    if cfg!(feature = "test-m5-service-errors") {
+        1
+    } else if cfg!(feature = "test-m5-device-rights") {
+        2
+    } else if cfg!(feature = "test-m5-async") {
+        3
+    } else if cfg!(feature = "test-m5-bad-descriptor") {
+        4
+    } else if cfg!(feature = "test-m5-used-id") {
+        5
+    } else if cfg!(feature = "test-m5-used-index") {
+        6
+    } else if cfg!(feature = "test-m5-used-short") {
+        7
+    } else if cfg!(feature = "test-m5-used-long") {
+        8
+    } else if cfg!(feature = "test-m5-used-status") {
+        9
+    } else if cfg!(feature = "test-m5-io-error") {
+        10
+    } else if cfg!(feature = "test-m5-timeout") {
+        11
+    } else if cfg!(feature = "test-m5-reset-timeout") {
+        12
+    } else if cfg!(feature = "test-m5-restart") {
+        13
+    } else if cfg!(feature = "test-m5-cpu-mmio") {
+        14
+    } else if cfg!(feature = "test-m5-cpu-dma") {
+        15
+    } else if cfg!(feature = "test-m5-cpu-pci") {
+        16
+    } else if cfg!(feature = "test-m5-no-device") {
+        17
+    } else {
+        0
+    }
+}
+#[cfg(not(feature = "milestone-m4"))]
+fn fault_marker() -> &'static [u8] {
+    match mode() {
+        3 => b"M3:FAULT:PEER_READ:PASS\n",
+        4 => b"M3:FAULT:PEER_WRITE:PASS\n",
+        5 => b"M3:FAULT:KERNEL_WRITE:PASS\n",
+        6 => b"M3:FAULT:STACK_EXEC:PASS\n",
+        7 => b"M3:FAULT:HEAP_EXEC:PASS\n",
+        8 => b"M3:FAULT:GUARD_LOW:PASS\n",
+        9 => b"M3:FAULT:GUARD_HIGH:PASS\n",
+        10 => b"M3:FAULT:CLI:PASS\n",
+        11 => b"M3:FAULT:X87:PASS\n",
+        12 => b"M3:FAULT:XMM:PASS\n",
+        13 => b"M3:FAULT:AVX:PASS\n",
+        14 => b"M3:FAULT:UD:PASS\n",
+        _ => b"M3:FAIL:UNEXPECTED_FAULT\n",
+    }
+}

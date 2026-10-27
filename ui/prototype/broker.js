@@ -11,7 +11,7 @@ export function listObjects(state, { query = '', collection = 'Alles' } = {}) {
   const needle = String(query).trim().toLocaleLowerCase('nl');
   return ok(state.objects.filter((object) =>
     (collection === 'Alles' || object.collectionId === collection)
-    && (!needle || `${object.title} ${object.collectionId}`.toLocaleLowerCase('nl').includes(needle))));
+    && (!needle || `${object.title} ${object.collectionId} ${object.mediaType === 'image' ? 'Afbeelding SVG' : 'Tekstdocument tekst'}`.toLocaleLowerCase('nl').includes(needle))));
 }
 
 export function openObject(state, id) {
@@ -80,9 +80,10 @@ export function pairNas(state, { confirmed = false, identity = null } = {}) {
 
 export function setNasCondition(state, condition) {
   if (!['offline', 'networkChanged', 'identityMismatch', 'online', 'unpaired'].includes(condition)) return fail('DENIED');
-  if (condition === 'online' && ['identityMismatch', 'networkChanged'].includes(state.nas.state)) return fail('IDENTITY_MISMATCH');
   if (condition === 'online' && state.nas.identity !== NAS_IDENTITY) return fail('NAS_UNAVAILABLE');
-  return ok({ ...state.nas, state: condition, identity: ['unpaired', 'identityMismatch', 'networkChanged'].includes(condition) ? null : state.nas.identity });
+  if (condition === 'online' && ['identityMismatch', 'networkChanged'].includes(state.nas.state)) return fail('IDENTITY_MISMATCH');
+  const identity = ['unpaired', 'networkChanged', 'identityMismatch'].includes(condition) ? null : state.nas.identity;
+  return ok({ ...state.nas, state: condition, identity });
 }
 
 export function installFixture(state, toolId) {

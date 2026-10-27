@@ -54,16 +54,17 @@ Voer vanuit de projectroot uit:
 python experiments/quantum/verify.py
 ```
 
-Dit script vindt ook de projectlokale Windows-toolchain, installeert niets, gebruikt Cargo offline, controleert formatting, compileert tests, voert 23 Rust-tests uit, controleert Clippy zonder toegestane waarschuwingen en compileert de core met target `x86_64-unknown-none`. Daarna voert het de vijf losse fixtures uit, met 30 seconden per proces. Ruwe logs, uitvoer, bron-/binaryhashes en exacte opdrachten komen in `verification/`; die map is een lokaal gegenereerd artifact.
+Dit script vindt ook de projectlokale Windows-toolchain, installeert niets, gebruikt Cargo offline, controleert formatting, compileert tests, voert 25 Rust-tests uit, controleert Clippy zonder toegestane waarschuwingen en compileert de core met target `x86_64-unknown-none`. Daarna voert het de vijf losse fixtures uit, met 30 seconden per proces. Ruwe logs, uitvoer, bron-/binaryhashes en exacte opdrachten komen in `verification/`; die map is een lokaal gegenereerd artifact.
 
 Op 27 oktober 2026 zijn deze controles werkelijk geslaagd met Rust 1.90.0 en de Windows MSVC-hosttoolchain:
 
-- 23 Rust-tests geslaagd; de tests dekken Q1-01 t/m Q1-17 uit de specificatie, deels gegroepeerd.
+- 25 Rust-tests geslaagd; de tests dekken Q1-01 t/m Q1-17 uit de specificatie, deels gegroepeerd. Voor Q1-16 is uitvoering met technisch geblokkeerd netwerk niet getest; de beperktere offline-/dependencycontrole staat hieronder.
 - Bell8, seed 0: exact `00:5, 11:3`; Bell4096: exact `00:2082, 11:2014`.
 - Identiteit: uitsluitend `000`; X op qubit 1: uitsluitend `10`.
 - Maximale job: 12 qubits, 4.096 gates en 65.536 shots uitgevoerd; gemeten totale capaciteit van enginebuffers inclusief gatebuffer **212.992 bytes**. Dit is exclusief input, JSON-parser, allocatoroverhead, stack en hostruntime; geen meting van totaal procesgeheugen.
 - Vooraf, tijdens gates en tijdens sampling annuleren geeft een fout zonder gedeeltelijk voltooid resultaat. Deadline wordt deterministisch via `Control` getest.
 - Fase, norm, omkeerbare gates en foutieve/NaN/infinite interne amplitudes zijn rechtstreeks getoetst; histogramtests alleen zouden fasefouten missen.
+- De contractaudit Q01V herstelde een afrondingsrandgeval: het CDF-eindpunt wordt vanaf de laatste positieve kans op 1 gezet, zodat een trailing nulmassa geen afrondingsrest krijgt. Een vaste unit-test faalt met de vorige implementatie en slaagt na herstel. Een aanvullende test controleert maximaal 256 basisindices en maximaal 64 shots tussen controlepunten afzonderlijk.
 - Standalone fixture-uitvoering en offline builds slagen. De dependencyboom bevat geen netwerkclient. De host is hiervoor niet fysiek van het netwerk losgekoppeld en er is geen OS-netwerksandbox ingesteld.
 
 De engine reserveert jobbuffers fallible en geeft `ResourceExhausted` bij een mislukte reservering. De hostadapter en Serde gebruiken daarnaast begrensde reguliere Rust-/parserallocaties; wereldwijd uitgeput hostgeheugen is niet als herstelbaar procesfoutscenario getest. De 10-secondenkern-deadline onderbreekt geen geblokkeerde stdin/stdout. Er is nog geen IPC-cancelobject of eigen-OS floating-point/contextsave-ABI. Deze grenzen horen bij de volgende userspace-integratie, niet bij een kernelport van de simulator.

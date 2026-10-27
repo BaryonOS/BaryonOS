@@ -5,6 +5,15 @@ import argparse
 import shutil
 import struct
 from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
+from gate_contract import M3_CASES, M4_CASES
+M5_CASES = ("service-errors", "device-rights", "async", "bad-descriptor", "used-id",
+            "used-index", "used-short", "used-long", "used-status", "io-error", "timeout",
+            "reset-timeout", "restart", "cpu-mmio", "cpu-dma", "cpu-pci", "no-device")
+KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
+                   "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
+                   "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
+                   "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),
+                   "milestone-m5", *(f"test-m5-{case}" for case in M5_CASES)]
 
 
 def inspect_elf(path):
@@ -68,16 +77,24 @@ def inspect_pe(path):
 
 
 def build(loader_feature=None, kernel_feature=None, label="normal"):
+    extra_env = None
+    if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5")):
+        from build_users import build_users
+        extra_env = {"NOS_USER_ELF": str(build_users("large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
+        if "m4" in kernel_feature or "m5" in kernel_feature:
+            extra_env["NOS_IPC_ELF"] = str(build_users("ipc").resolve())
+        if "m5" in kernel_feature:
+            extra_env["NOS_M5_ELF"] = str(build_users("m5").resolve())
     if not (ROOT / "Cargo.lock").exists():
         run_logged(["cargo", "+1.90.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):
         args = ["cargo", "+1.90.0", "build", "--locked", "--release", "--target-dir", str(ROOT / "target"), "-p", package, "--target", target]
         if feature:
             args += ["--features", feature]
-        run_logged(args, f"build-{label}-{package}")
+        run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
     loader = ROOT / "target/x86_64-unknown-uefi/release/os-loader.efi"
     kernel = ROOT / "target/x86_64-unknown-none/release/os-kernel"
-    manifest = {"schema_version": 1, "profile": label, "source_sha256": source_hash(), "loader": {"sha256": sha256(loader), **inspect_pe(loader)}, "kernel": {"sha256": sha256(kernel), **inspect_elf(kernel)}}
+    manifest = {"schema_version": 1, "profile": label, "source_fingerprint_version": 3, "source_sha256": source_hash(), "loader": {"sha256": sha256(loader), **inspect_pe(loader)}, "kernel": {"sha256": sha256(kernel), **inspect_elf(kernel)}}
     esp = BUILD / "esp"
     (esp / "EFI/BOOT").mkdir(parents=True, exist_ok=True)
     shutil.copy2(loader, esp / "EFI/BOOT/BOOTX64.EFI")
@@ -91,6 +108,6 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--loader-feature", choices=["test-ebs-retry"])
-    parser.add_argument("--kernel-feature", choices=["test-panic", "test-hang"])
+    parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()
     build(args.loader_feature, args.kernel_feature, args.loader_feature or args.kernel_feature or "normal")

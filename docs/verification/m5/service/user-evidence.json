@@ -1,0 +1,213 @@
+{
+  "task": "M5-U",
+  "scope": "user source/build,wirehost/artifact checks,read-only runtime review; no full guestgate claim",
+  "head_at_report": "42608d799643cb0cfd4308ca1069deeb7490d298",
+  "build": {
+    "owner": "root",
+    "command": [
+      "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\rustc.EXE",
+      "+1.90.0",
+      "--edition=2021",
+      "--crate-type=bin",
+      "--crate-name=os_user_m5_probe",
+      "--target=x86_64-unknown-none",
+      "-C",
+      "panic=abort",
+      "-C",
+      "opt-level=2",
+      "-C",
+      "code-model=small",
+      "-C",
+      "relocation-model=static",
+      "-C",
+      "no-redzone=yes",
+      "-C",
+      "linker=rust-lld",
+      "-C",
+      "link-arg=-TC:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\m5_linker.ld",
+      "-C",
+      "link-arg=--no-pie",
+      "-C",
+      "link-arg=--build-id=none",
+      "-C",
+      "link-arg=-zmax-page-size=0x1000",
+      "--emit=link",
+      "-o",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\users\\m5_probe.elf",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\m5_probe.rs"
+    ],
+    "exit": 0,
+    "stderr_bytes": 0
+  },
+  "wire_tests": {
+    "argv": [
+      "cargo",
+      "+1.90.0",
+      "test",
+      "-p",
+      "block-protocol",
+      "--locked",
+      "--offline"
+    ],
+    "target": "build/m5-service-tests",
+    "exit": 0,
+    "passed": 9,
+    "failed": 0,
+    "log": "services/block/verification/wire-tests.txt"
+  },
+  "artifact_tests": {
+    "argv": [
+      "python",
+      "-B",
+      "-X",
+      "utf8",
+      "userspace/tests/test_m5_probe.py",
+      "--elf",
+      "build/users/m5_probe.elf"
+    ],
+    "exit": 0,
+    "passed": 11,
+    "failed": 0,
+    "log": "services/block/verification/artifact-tests.txt"
+  },
+  "artifact": {
+    "schema_version": 1,
+    "purpose": "synthetic ring-3 acceptance probe",
+    "binary_sha256": "933291ef6f097f68648696f129b58c257a951c2a7fdf6920b5892694aa92914e",
+    "source_sha256": "5da71bb42e801bfb754d3834e9ac60d8630d9e3a6a53b64fd38d516ffa2a3633",
+    "linker_sha256": "6f8cd2b385e603cd7cf6632f0dbe413e877b71ef94a610c3cb7f998996ae8911",
+    "entry": 1073741824,
+    "segments": [
+      {
+        "flags": 5,
+        "address": 1073741824,
+        "offset": 4096,
+        "filesz": 16199,
+        "memsz": 16199,
+        "page_start": 1073741824,
+        "page_end": 1073758208
+      },
+      {
+        "flags": 6,
+        "address": 1073807360,
+        "offset": 20480,
+        "filesz": 12288,
+        "memsz": 12288,
+        "page_start": 1073807360,
+        "page_end": 1073819648
+      },
+      {
+        "flags": 4,
+        "address": 1073819648,
+        "offset": 32768,
+        "filesz": 1118,
+        "memsz": 1118,
+        "page_start": 1073819648,
+        "page_end": 1073823744
+      }
+    ],
+    "module_sha256": {
+      "userspace/m5_probe.rs": "5da71bb42e801bfb754d3834e9ac60d8630d9e3a6a53b64fd38d516ffa2a3633",
+      "userspace/m5_runtime.rs": "dad9f8a94f5059c63d323d938b5f06be53b04a19c7126efa0b8728eb25d98d93",
+      "services/block/src/wire.rs": "2c420405abe8efea36e15a98cf649317ab7364891d51c6b55d04b40bbbf7f6d1",
+      "services/block/src/user_service.rs": "16c8c92851e28101eb543f9ba2810c671bf6a8d7be86543fd7a1381c6808028c"
+    }
+  },
+  "current_file_sha256": {
+    "userspace/m5_probe.rs": "5da71bb42e801bfb754d3834e9ac60d8630d9e3a6a53b64fd38d516ffa2a3633",
+    "userspace/m5_runtime.rs": "dad9f8a94f5059c63d323d938b5f06be53b04a19c7126efa0b8728eb25d98d93",
+    "userspace/m5_linker.ld": "6f8cd2b385e603cd7cf6632f0dbe413e877b71ef94a610c3cb7f998996ae8911",
+    "userspace/tests/test_m5_probe.py": "cd9fbe3b742b2b086972fdcd10339b458b3b259e900731b6b0dfb8c9ad2848a5",
+    "services/block/Cargo.toml": "0d9c74937b17dfdaff9188905da7a2f8535f34ea144464deb6836af6caf06d83",
+    "services/block/src/lib.rs": "b7ec4c775f67ffa25d1b13556ef68f4fa802943de5b3317ecee36dca9e4ec430",
+    "services/block/src/wire.rs": "2c420405abe8efea36e15a98cf649317ab7364891d51c6b55d04b40bbbf7f6d1",
+    "services/block/src/user_service.rs": "16c8c92851e28101eb543f9ba2810c671bf6a8d7be86543fd7a1381c6808028c",
+    "services/block/.gitignore": "1b63b580294531ed970325f452bf1b7537395022609235ec9e952bca0e9fe7d5",
+    "services/block/README.md": "bc70f1aa7943382aa239174ab11afa07d7d7ac1e977122a54f4f1d0e4c199d76",
+    "userspace/M5-PROBE.md": "83ff3b2a918c2b5302cb74102edcc58b95ad98cbaad14032eb8079c20c0792c7"
+  },
+  "open_review": [
+    "full frozen-source M5 gate incl same-binary two-image diskoracle",
+    "all M5 caseboots plus M1-M4 regressions"
+  ],
+  "source_freeze": "M5 runtime unchanged; READMEs and local verification ignore complete; no further source writes until concrete integration assignment",
+  "delta_review": {
+    "basis_commit": "0d4bad72e6570354d779ed49bdf475ba242d9b6e",
+    "closed": [
+      "13 exact malformed requests and zero-device-I/O/errorreply/resource observer",
+      "unnecessary client to supervisor SEND grant",
+      "focused three-pending-crash/four-epoch rebind evidence"
+    ],
+    "reviewed_records": [
+      {
+        "directory": "build\\run\\m5-service-errors-diagnostic-9f848293fa",
+        "raw_qemu_exit": 33,
+        "record_passed": true,
+        "timed_out": false,
+        "source_sha256": "e629a8fde149a29345b374f9f21ff2c391372d707adcd10a8b99a5c4fd7c7ead",
+        "kernel_sha256": "4471e7db75c59cec95a9dc5694b34db89e21a86a916c09e3f57f7f4fb2cb4134",
+        "result_sha256": "34b1ba7ec7deaa2a4c351a356739e7e51a65ac6e442ebd942b4b2ae16da70735",
+        "serial_sha256": "13b3f90fc5bd71e9f2ed7d9d9bca618263b9810e153ece568de394ed44c65306",
+        "disk_oracle": {
+          "scope": "synthetic readonly per-run raw image; no host disk",
+          "seed": 2178778050754045806,
+          "bytes": 65536,
+          "bdf": "00:05.0",
+          "readonly": true,
+          "sha256_before": "bcd0a2597976fa48e79da43de1163109e72c5f00b4ab7e6ceb5c5a260a1ed76e",
+          "expected_digests": {
+            "4": "e882454dcae5b997",
+            "6": "c6df68889e761c74"
+          },
+          "sha256_after": "bcd0a2597976fa48e79da43de1163109e72c5f00b4ab7e6ceb5c5a260a1ed76e",
+          "unchanged": true,
+          "data_required": true,
+          "observed_digests": {
+            "4": "e882454dcae5b997",
+            "6": "c6df68889e761c74"
+          },
+          "unique_digest_lines": true,
+          "oracle_passed": true,
+          "metadata_matches_image": true,
+          "passed": true
+        }
+      },
+      {
+        "directory": "build\\run\\m5-restart-diagnostic-f53e180603",
+        "raw_qemu_exit": 33,
+        "record_passed": true,
+        "timed_out": false,
+        "source_sha256": "b98826bc699f265fde265aac4a67835e114e52acf6c5df1ec15b2eb84b410300",
+        "kernel_sha256": "dd2ffbd4432483ef3ec871c3847ed00921ddb5e807eea1de8f776b2d44869e3c",
+        "result_sha256": "07a7216e4a47ce5ce8faac5318ad45f8f8e2a1c4fc8867f6f0d5e8627cd5510e",
+        "serial_sha256": "d1f3cc3c3b706404e7728e149d5243adf6fc925dfba633e1835598fe77eefe1c",
+        "disk_oracle": {
+          "scope": "synthetic readonly per-run raw image; no host disk",
+          "seed": 1493633608501150835,
+          "bytes": 65536,
+          "bdf": "00:05.0",
+          "readonly": true,
+          "sha256_before": "2871802914e306e4ff3c5662a895497a0c5caf5d3de0791ea72f3e9a279cb4d7",
+          "expected_digests": {
+            "4": "300671e05455247d",
+            "6": "b35eab2a6014df76"
+          },
+          "sha256_after": "2871802914e306e4ff3c5662a895497a0c5caf5d3de0791ea72f3e9a279cb4d7",
+          "unchanged": true,
+          "data_required": true,
+          "observed_digests": {
+            "4": "300671e05455247d",
+            "6": "b35eab2a6014df76"
+          },
+          "unique_digest_lines": true,
+          "oracle_passed": true,
+          "metadata_matches_image": true,
+          "passed": true
+        }
+      }
+    ],
+    "new_test_runs": 0,
+    "limits": "diagnostic runs have different kernel/source hashes; full frozen-source gate and same-binary two-image oracle remain separate",
+    "kernel_source_sha256": "b314866324e56930b68733f861f1e1f49e315f5be33203ea695d374dc8b1ce64"
+  }
+}

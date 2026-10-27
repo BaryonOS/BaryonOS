@@ -48,6 +48,58 @@ python tools/test.py
 
 Die opdracht omvat hosttests, drie koude VM-starts, ontbrekende/corrupte kernel, de test met een verouderde firmwaremapkey, kernelpanic en een echte guest-timeout. De hangproef mag bewust 60 seconden duren. Na de featureproeven wordt de normale build teruggezet. Alleen een actuele suite met `status: completed` en `passed: true` telt als geslaagde volledige run; `running` en `failed` zijn geen groen resultaat.
 
+De afzonderlijke M2-poort bouwt echte foutvarianten en herstelt daarna de gewone M1-image:
+
+```powershell
+python -u tools/test_milestones.py --through m2
+python tools/capture_gate.py m2
+```
+
+`capture_gate.py` controleert ruwe exit/markers, seriële output en artifacthashes voordat het compacte bewijs naar `docs/verification/m2-m4/m2/` kopieert. Het wijzigt geen testuitkomsten. Bestaande oudere runs verwijzen voor de onveranderde VARS-template nog naar de gehashte bron; nieuwe runs bewaren die template ook in hun eigen map.
+
+De volledige M2–M3-poort is uitgevoerd op `6802b17` en start met:
+
+```powershell
+python -u tools/test_milestones.py --through m3
+python tools/capture_gate.py m2
+python tools/capture_gate.py m3
+```
+
+Deze reeks voert acht M2- en twintig M3-groepen uit. Na de afzonderlijke foutvarianten herstelt zij de gewone M1-image. Voor de normale M3-ontwikkelproef met eigen gebruikersprocessen bouw je expliciet het M3-profiel en eis je de bijbehorende markers:
+
+```powershell
+python tools/build.py --kernel-feature milestone-m3
+python tools/run.py --smoke --milestone m3
+```
+
+De M3-CLI-poort verlangt daadwerkelijke KS-04/07/08- en M3-markers; een gewone M1-image kan daarmee niet als M3 slagen. De normale M3-proef voert de vaste synthetische programma's uit en sluit QEMU daarna af. Er is nog geen interactieve OS-shell of native Materiaal-desktop.
+
+`userspace/` bevat de eigen statische userprobe en dertien host-artifacttests. `tools/build_users.py` gebruikt directe rustc-argumenten met het userlinkerscript; de Cargo-kernellinkopties worden daarvoor niet hergebruikt. M4 voegt een afzonderlijke IPC-probe toe via `--kind ipc`; dat spoor is pas een behaald resultaat na de eigen M4-poort.
+
+De complete M1–M4-controle is uitgevoerd met deze opdrachten:
+
+```powershell
+python -u tools/test_milestones.py --through m4
+python -u tools/test.py
+python tools/capture_gate.py m1
+python tools/capture_gate.py m2
+python tools/capture_gate.py m3
+python tools/capture_gate.py m4
+```
+
+Dat zijn52 acceptatiegroepen en44 afzonderlijke VM-runs. De bewuste hang in de M1-regressie duurt60s; de negatieve ruwe guestuitkomsten worden bij het kopiëren van bewijs niet in succes veranderd. De actuele suites en expliciete host-/QEMU-grenzen staan in verification/m2-m4/.
+
+Start de normale M4-ontwikkelproef met:
+
+```powershell
+python tools/build.py --kernel-feature milestone-m4
+python tools/run.py --smoke --milestone m4
+```
+
+De kernel voert drie synthetische processen en een normale IPC-exchange uit en beëindigt QEMU na controle. Voor afzonderlijke negatieve cases gebruik je `test_milestones.py`; de normale M4-CLI-poort verlangt de exchange-/survivor-/cleanupmarkers en accepteert een gewone M1-image niet als M4.
+
+De latere bronvingerafdrukversie2 sluit gegenereerde `verification/`, `build/`, `target/` en caches uit en neemt gebruikersbron mee. Buildmanifesten en guestresultaten vermelden de versie expliciet. Oudere rapporten zonder dit veld behouden hun oorspronkelijke vingerafdruk; artifacthashes blijven rechtstreeks controleerbaar.
+
 Een losse ontwikkelopdracht in dezelfde omgeving:
 
 ```powershell
@@ -57,7 +109,36 @@ python tools/dev.py rustc +1.90.0 -vV
 
 Loader en kernel gebruiken afzonderlijke targets. Instellen van één globale workspace-target zou de hosttests verstoren en hoort niet bij deze inrichting.
 
-## QEMU-profiel en bewijs
+## M5-blokdienst starten en controleren
+
+Bouw expliciet het M5-profiel en start de eindige ontwikkelproef:
+
+```powershell
+python tools/build.py --kernel-feature milestone-m5
+python tools/run.py --smoke --milestone m5
+```
+
+De runner maakt per start een nieuwe synthetische 64KiB-image onder `build/run/`, koppelt die alleen-lezen aan modern virtio-blk op `00:05.0` en bewaart de hele commandoregel, serial, stderr, firmware-/binary-/imagehashes en het externe datacontrole-resultaat. De aparte boot-ESP blijft een ander device. Er is geen parameter voor een echte hostdisk. De dienst leest sector 4 en 6 via IPC, waarna QEMU na de assertions afsluit. Dit is nog geen interactieve OS-shell.
+
+De M5-poort voert hosttests, ELF-controles, dezelfde kernel op twee verschillende images, 17 foutvarianten en een M1-regressiestart uit:
+
+```powershell
+python -u tools/test_m5.py
+python tools/capture_gate.py m5
+```
+
+Voor de gecombineerde M2–M5-regressie en de volledige bootfoutreeks:
+
+```powershell
+python -u tools/test_milestones.py --through m5
+python -u tools/test.py
+```
+
+Deze suites herstellen aan het einde de gewone M1-build. Bouw daarna opnieuw `milestone-m5` voor een losse M5-start. Gebruik voor foutfeatures de gate met bijbehorende casemarkers; `run.py --milestone m5` verlangt bewust de normale READ-case. Alleen `status: completed` en `passed: true`, plus opnieuw gecontroleerde ruwe evidence, tellen als geslaagde gate. Actueel uitgevoerd bewijs staat in PROJECT-STATE.md.
+
+Het dienstprotocol en alle injectiegrenzen staan in [M5-BLOCK-SERVICE.md](implementation/M5-BLOCK-SERVICE.md). Het kerneltransport en het protocolconforme device zijn vertrouwd; M5 levert geen IOMMU-containment of fysieke-hardwarebewijs. Bij ontbrekende resetack blijft de vaste DMA-pool in quarantaine tot VM-stop.
+
+## Vast QEMU-profiel
 
 De lokale ontwikkelvariant gebruikt `pc-q35-10.0`, `qemu64`, TCG, één CPU, 256 MiB RAM, geen gastnetwerk en geen hostschijf. De test maakt een eigen ESP-kopie en een verse VARS-kopie in `build/run/`; CODE wordt read-only gebruikt. De concrete argumenten, ruwe exitstatus, hashes en seriële output staan per run in `result.json`, `serial.txt` en `stderr.txt`.
 

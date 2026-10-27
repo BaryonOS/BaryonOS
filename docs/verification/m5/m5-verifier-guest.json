@@ -1,0 +1,1216 @@
+{
+  "scope": "M5-V independent read-only audit; no test/build/QEMU rerun",
+  "audited_utc": "2026-10-27T14:07:03.180206+00:00",
+  "source_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+  "head": "8543fad3595ec36a624bcc871389f7472132ac41",
+  "source_fingerprint_version": 3,
+  "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+  "suite_sha256": "a464308059a583981dffc447e4bb42dba60ee930ace82a71947a60229a31989e",
+  "guest_runs_sha256": "17f1efa2b552052986b2f9164fe51a9b90ca340b94add82f4e8f344a14f3a2a6",
+  "counts": {
+    "suite_groups": 25,
+    "vm_runs": 20,
+    "case_variants": 17,
+    "artifact_hashes": 99,
+    "synthetic_images": 19,
+    "data_required_runs": 17,
+    "host_commands": 4
+  },
+  "runs": [
+    {
+      "label": "m5-read-a",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m5-read-a-cf0d8841ea",
+      "raw_result_sha256": "9da47128b3aa6d97c7bd327a5249dd68183a520ed970fad06063eddb8e043c9a",
+      "serial_sha256": "626e21ceb6072561319c867f63708208e1bbb5fbf4357d53f210eb64693f1149",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "6bd4458e3e05052384af14d6a8c405a3881e56db",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "74e6b1be591f3e5509746b4f849384198a2fbef4312350f31beb07ec6d605e81"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "3479a32a00f3fb97fd9f0a03466e1e18f54e99ea8540f3dd83a6fa2979fbbc91"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:READ:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "3479a32a00f3fb97fd9f0a03466e1e18f54e99ea8540f3dd83a6fa2979fbbc91",
+        "independently_recomputed_sector_digests": {
+          "4": "46a6477e683565cd",
+          "6": "8ca05dfeef95c40b"
+        },
+        "observed_sector_digests": {
+          "4": "46a6477e683565cd",
+          "6": "8ca05dfeef95c40b"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "m5-read-b",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m5-read-b-8caeea4205",
+      "raw_result_sha256": "c65cd0c77d77a6271d8bd10ddd703dd4abed1e0b6e2798c8f8bfb29c2269bbae",
+      "serial_sha256": "0136e4fd9c8c1d2c0a521c0738a6611260c1d9d623e5eb0a50ff794428065ae7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "6bd4458e3e05052384af14d6a8c405a3881e56db",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "74e6b1be591f3e5509746b4f849384198a2fbef4312350f31beb07ec6d605e81"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "81d92ba477fd9fddb1af130ff1fa73a08087ac73e512100a1ddebdf51f15addf"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:READ:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "81d92ba477fd9fddb1af130ff1fa73a08087ac73e512100a1ddebdf51f15addf",
+        "independently_recomputed_sector_digests": {
+          "4": "52efea0a9554b227",
+          "6": "bc7d2d33a1d1440a"
+        },
+        "observed_sector_digests": {
+          "4": "52efea0a9554b227",
+          "6": "bc7d2d33a1d1440a"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-service-errors",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-service-errors-34cb198d87",
+      "raw_result_sha256": "28f13f20e4f6a6f5f5cb072ed5541b72458acb3881521bd553818b5c6be38d21",
+      "serial_sha256": "a192ac68dc1b4bbfff966857569c950ab58d765af02ce70592eefc041237beb4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "6bd4458e3e05052384af14d6a8c405a3881e56db",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "20f153bcfe716967a1483f5b5f4e35ab5ae7f90231575f46a5b27c378d18b775"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "f3213666582b78ee921edc3ae151cb59f5eb431a2dd80deae55ddaf1f0c6fec3"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:SERVICE_ERRORS:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "f3213666582b78ee921edc3ae151cb59f5eb431a2dd80deae55ddaf1f0c6fec3",
+        "independently_recomputed_sector_digests": {
+          "4": "50d0fb793bcaa1d6",
+          "6": "f9589d59f0761cea"
+        },
+        "observed_sector_digests": {
+          "4": "50d0fb793bcaa1d6",
+          "6": "f9589d59f0761cea"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-device-rights",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-device-rights-81209ec1cb",
+      "raw_result_sha256": "bc355f610ee9e29b1e019173f8a74c979f7c427340da26753b7397c699136809",
+      "serial_sha256": "5231aa3cc2665d0e4d2b4063dd290ced81a40acef2405bf7c2e720d07ba6cc62",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "a973d909aac1b7b6a8ae281f4ff66665d53d30c3b87b1c372ffe5f93fb05a1a3"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "fa79b48e9af3ae272323b9490fbeaa0278b9a72de2d0496c99132e28a793049c"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:DEVICE_RIGHTS:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "fa79b48e9af3ae272323b9490fbeaa0278b9a72de2d0496c99132e28a793049c",
+        "independently_recomputed_sector_digests": {
+          "4": "6151bc5f639905ff",
+          "6": "e918424895e85e09"
+        },
+        "observed_sector_digests": {
+          "4": "6151bc5f639905ff",
+          "6": "e918424895e85e09"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-async",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-async-e523d28e20",
+      "raw_result_sha256": "747a1865ce523ccb9607812efba1e1dc9a17d8e1686267445a53ed5165473c02",
+      "serial_sha256": "908c0836c79092335e2bbb7283605ec39b03a0fda18c80e3dfd9152187c56907",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "10e3678fe47cd0aa16b786a9ddf6a56310ee9e91c6895322b28f2311c9e2ee3a"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "1292ebdf237930906dded2f75395f2fdc515d4cb81b2596cd07f7496282f7c39"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:ASYNC:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "1292ebdf237930906dded2f75395f2fdc515d4cb81b2596cd07f7496282f7c39",
+        "independently_recomputed_sector_digests": {
+          "4": "3b135209364848e1",
+          "6": "2d3a92d42dd4539c"
+        },
+        "observed_sector_digests": {
+          "4": "3b135209364848e1",
+          "6": "2d3a92d42dd4539c"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-bad-descriptor",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-bad-descriptor-8eee7a98cf",
+      "raw_result_sha256": "79a6a9abecfad714dfdcd7dd4be7209149864c8b4b22b4c1ee93d691e41dc29e",
+      "serial_sha256": "b5b93de705cdee7b9ba90dc0379c31ae50915cc7fb8c41d67186a21fa50efa51",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "4f9563b624eaf38dc645c26ca8b8dc9281e75ed032dbd09b04b8b5ac8a859b27"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "b403adc94aded92f137820a69be43ab707e81bf03e8df9cc7072d10767c1f241"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:BAD_DESCRIPTOR:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "b403adc94aded92f137820a69be43ab707e81bf03e8df9cc7072d10767c1f241",
+        "independently_recomputed_sector_digests": {
+          "4": "f60bf47dda24815b",
+          "6": "41f6c1ff9a334064"
+        },
+        "observed_sector_digests": {
+          "4": "f60bf47dda24815b",
+          "6": "41f6c1ff9a334064"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-used-id",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-used-id-995e4bd616",
+      "raw_result_sha256": "ed09c78ad765ebf65e5cb06630267424a33b67701f69cf73a4df198ed079fd2d",
+      "serial_sha256": "d605c58d0079d8d28e7c6bcb00294c1853ebd10f6f57f31f51b13dc256084d46",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "58dbc0ec179eca274e3e0996a29a285c39e6fea1562c1f71846976ad6f2bb19e"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "dbce57a762e3ed4c4ac32d3f1ea99fec1dfba99e550f21eceaaa7dd83704173f"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:USED_ID:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "dbce57a762e3ed4c4ac32d3f1ea99fec1dfba99e550f21eceaaa7dd83704173f",
+        "independently_recomputed_sector_digests": {
+          "4": "fbe10b0ad9c368f0",
+          "6": "14a0f72adaaacfc4"
+        },
+        "observed_sector_digests": {
+          "4": "fbe10b0ad9c368f0",
+          "6": "14a0f72adaaacfc4"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-used-index",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-used-index-b7a9b48d04",
+      "raw_result_sha256": "ecd000d0e6ea874f61cffa685c7d00443989fcba5298b7eeb83af480fcb60f68",
+      "serial_sha256": "ab7a18b34a0ec8c7f00a973abefe6a8d4cbd397e360c3a95e46969ee5f3ff4d0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "d411d7e883a23297ba3da496b4edfe107475bec2d2aa35d82ca6fe4e248e8e89"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "3c48c2a7e998a205ded6b4e3eb459c63cf14cf679b59f0612b5f18fbaca9e5a6"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:USED_INDEX:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "3c48c2a7e998a205ded6b4e3eb459c63cf14cf679b59f0612b5f18fbaca9e5a6",
+        "independently_recomputed_sector_digests": {
+          "4": "c9e49bfefc9a721b",
+          "6": "870f44b724e3e1de"
+        },
+        "observed_sector_digests": {
+          "4": "c9e49bfefc9a721b",
+          "6": "870f44b724e3e1de"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-used-short",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-used-short-f508ff218e",
+      "raw_result_sha256": "7e9c1e47dd336727c7521f8b546b4df00236b73af207ba32304a8c34395b51fc",
+      "serial_sha256": "51f62e83ae135c23cbb64d10ee55d1709adb8c6ef9277bca0b867a079ad19095",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "55e0bff757edf845e411c6195765ec5b533c6bd81d1ccd2a09c6ba70b787b808"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "eb6e5d4a7dcb5ab5c155e4d1b8e8c5c6fb55162383a6b54c7e93579eaa37a908"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:USED_SHORT:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "eb6e5d4a7dcb5ab5c155e4d1b8e8c5c6fb55162383a6b54c7e93579eaa37a908",
+        "independently_recomputed_sector_digests": {
+          "4": "00830866907909f7",
+          "6": "190a845370184475"
+        },
+        "observed_sector_digests": {
+          "4": "00830866907909f7",
+          "6": "190a845370184475"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-used-long",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-used-long-4045c6654a",
+      "raw_result_sha256": "5a010cb196aa1895b512b5a162c149840f5e0778e8fd76f0a79116e48134c529",
+      "serial_sha256": "fdc3ec12002afc002b03d47b0579d0fa093e79065390316500f852c9228b58fa",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "f59ac21511ba19b0030dea9d24ac13bda2a382c44bcc95b3d3f5658a2cc5ca19"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "14ce763d01db0a5c5305df49a050d7b88eebc1d1be80494b8083d42f28106a8c"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:USED_LONG:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "14ce763d01db0a5c5305df49a050d7b88eebc1d1be80494b8083d42f28106a8c",
+        "independently_recomputed_sector_digests": {
+          "4": "4fd8d611c5183229",
+          "6": "3a499d42ed69af66"
+        },
+        "observed_sector_digests": {
+          "4": "4fd8d611c5183229",
+          "6": "3a499d42ed69af66"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-used-status",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-used-status-7816afd2e5",
+      "raw_result_sha256": "7fd2ed2d905bff1ae1ae3fe57a4a1f578d96ac6a2f3f4f88b2f03462f642f421",
+      "serial_sha256": "0f28654a7c132c87e73c350a7afcf8206be2b2ea2bf01b30da0baf4c8859c99b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "8e8c15fbd3539994e1156e3de1afc20a609db4dcd40dc6188d5fa55a4f6b6920"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "b664745bafe2882e55e009c74535ed5b8cdae60b23ad8243541fe1bc8862fee7"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:USED_STATUS:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "b664745bafe2882e55e009c74535ed5b8cdae60b23ad8243541fe1bc8862fee7",
+        "independently_recomputed_sector_digests": {
+          "4": "1462705586cf48f4",
+          "6": "7b034ccde8d95ae7"
+        },
+        "observed_sector_digests": {
+          "4": "1462705586cf48f4",
+          "6": "7b034ccde8d95ae7"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-io-error",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-io-error-711a288f19",
+      "raw_result_sha256": "76aa1b87cd4ba27894dd65f65c93c5274647cfce685175c3f88e7b649efc1550",
+      "serial_sha256": "17381514559d9eafbae61cd182cc7870ef182bde556878b4cb7bbd7d875f5e4e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "5c1f8f71d3b628e77e417cde33c0c706a2278c33bc022ec918d18e6b83a95ebb"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "f5c0c8e4c2c8e68bbf6ceb3cad590b544f949c80b1084d8a29c09f4f7e4bea16"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:IO_ERROR:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "f5c0c8e4c2c8e68bbf6ceb3cad590b544f949c80b1084d8a29c09f4f7e4bea16",
+        "independently_recomputed_sector_digests": {
+          "4": "5b73aee80d2880e6",
+          "6": "81adf35a75e39a77"
+        },
+        "observed_sector_digests": {
+          "4": "5b73aee80d2880e6",
+          "6": "81adf35a75e39a77"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-timeout",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-timeout-fdbe65b022",
+      "raw_result_sha256": "44d54987954b0f1eb427c20ccb93e4147206db562d6509f634a45705aa72a87b",
+      "serial_sha256": "214e8faa2fc1d285f7d3fe85f64bdff25283572a4de0847a231a6fae383025be",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "7875e5a6ad92e7f7f2529352699772b62a1ca228ccf8f41506e3107734262557"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "450426043c8d829b6027227e35dbebe5b8c7d3999cc1356559e17549dd9fcecd"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:TIMEOUT:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "450426043c8d829b6027227e35dbebe5b8c7d3999cc1356559e17549dd9fcecd",
+        "independently_recomputed_sector_digests": {
+          "4": "4b6fa283e35cdb94",
+          "6": "7012ed89281c7bfc"
+        },
+        "observed_sector_digests": {
+          "4": "4b6fa283e35cdb94",
+          "6": "7012ed89281c7bfc"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-reset-timeout",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-reset-timeout-383a080f44",
+      "raw_result_sha256": "5b7ca0468b1306f865d31dad50ac5a7bb62cb1ed663e153f24d14693606375da",
+      "serial_sha256": "4288e9a5761ca77a7494483a9d87e4c0fe3aec72ee631cc24d5a8e88b27391be",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "7fcb8252279402e543db40c36eebb92cc1da99843da489b9463fe34412122167"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "07de96bd1529b71290a0cb4cda915e74d54ee4da51533b3bd0f170ad7db5edec"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:RESET_TIMEOUT:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "07de96bd1529b71290a0cb4cda915e74d54ee4da51533b3bd0f170ad7db5edec",
+        "independently_recomputed_sector_digests": {
+          "4": "39e6a9077e9fbd46",
+          "6": "967a03a2bda7c718"
+        },
+        "observed_sector_digests": {},
+        "data_required": false,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-restart",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-restart-3b3e5e9778",
+      "raw_result_sha256": "2b2543bfdbbd54e2bac061312cc0ae14efd9d0a111ee8eafd0b62065ce17c714",
+      "serial_sha256": "9316de545ed63efb8c2d3dd9c6997e581a4edfdcd29338d1dc5d83b11e9e42bb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "0891b59361e405020a48a13c9c9dbc085be74fcd0ebf293b5eaaa11edf751ae7"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "39e9a4e74baddbe3fd86d76054725d13a753803ba3c6dd5adde0f6d52c1dea57"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:RESTART:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "39e9a4e74baddbe3fd86d76054725d13a753803ba3c6dd5adde0f6d52c1dea57",
+        "independently_recomputed_sector_digests": {
+          "4": "e002f794cd00118d",
+          "6": "fc3740771b3e2f46"
+        },
+        "observed_sector_digests": {
+          "4": "e002f794cd00118d",
+          "6": "fc3740771b3e2f46"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-cpu-mmio",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-cpu-mmio-cf7b67283c",
+      "raw_result_sha256": "a08e18ea48805f5614361cf424bed0f63a412dcf1907ebfd8250fd8d734b4d52",
+      "serial_sha256": "6f233131126fd182a2315152ae5195d9b7d5ac69808dff80778bb6cca4e59b1c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "ca2f72305a1a85dc48a445f24cb4d2cad2639bb3fcc8e14fae728555ab6c6f06"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "710b871773ce382f4b89f4b9c72dbe75d520dea65667c397429744937f6c8147"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:CPU_MMIO:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "710b871773ce382f4b89f4b9c72dbe75d520dea65667c397429744937f6c8147",
+        "independently_recomputed_sector_digests": {
+          "4": "a2c9f02c2dae9c40",
+          "6": "9730f245dabdd00e"
+        },
+        "observed_sector_digests": {
+          "4": "a2c9f02c2dae9c40",
+          "6": "9730f245dabdd00e"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-cpu-dma",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-cpu-dma-3866f66d46",
+      "raw_result_sha256": "169d306e70d4b3d35d3a1a26eba287de60fd5bcae24b99ec651ff004ac22e41a",
+      "serial_sha256": "df8df049552fa281ca2bc56d0ca2424666525d4ea94d504b7752b6016d0ad88b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "da3811d866aa94701f6bf47ccb553b71a84efeef662d1b6ceba114f452d1e5dd"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "d7c276a12c7f0c9fd7856b59ea9e17f07be81e1c6b45fb99efc2cff3bfdfa6a8"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:CPU_DMA:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "d7c276a12c7f0c9fd7856b59ea9e17f07be81e1c6b45fb99efc2cff3bfdfa6a8",
+        "independently_recomputed_sector_digests": {
+          "4": "9add9d992376f0b5",
+          "6": "d8fdc54043a1f207"
+        },
+        "observed_sector_digests": {
+          "4": "9add9d992376f0b5",
+          "6": "d8fdc54043a1f207"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-cpu-pci",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-cpu-pci-34b4ecb98d",
+      "raw_result_sha256": "d6c832ed9d74f5efc5c8ffd1ee64439d367fc3e3956ade9c663eb8cb1941299e",
+      "serial_sha256": "f863ab4b5b6455543fce7ff31b4b1024336996961fc86806c47503a77717160e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "4c6a90d4f545d5b0ed86652a002bdc5b836930c51f33760350fda5216e5dc69f"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "81801f38983dda7d961c48dea4afc32f7e7204794f4882368e07a33e318470a4"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:CPU_PCI:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "81801f38983dda7d961c48dea4afc32f7e7204794f4882368e07a33e318470a4",
+        "independently_recomputed_sector_digests": {
+          "4": "1c568086b0f62c0b",
+          "6": "ced53fa6295e3aa5"
+        },
+        "observed_sector_digests": {
+          "4": "1c568086b0f62c0b",
+          "6": "ced53fa6295e3aa5"
+        },
+        "data_required": true,
+        "attached": true
+      }
+    },
+    {
+      "label": "test-m5-no-device",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-no-device-15241ac4eb",
+      "raw_result_sha256": "8ffc53a90440830a2a5254c00757672d60630cde6d2704b23cb81ae1a94ac0f6",
+      "serial_sha256": "b7cb940f12ae7a697dfaa9bd3c64ed08576ada8ee9823ed76c4c0968caf445b4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "cda19180726aa47af3c7fe11b9e5967fb8fb9b7dc5925239b5ff8e0dbed90a83"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "actual_sha256": "49ab4065c00ffba59560a95f9fbefcd78b492ce6a411c5e8d5d2896829817232"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M5:CASE:NO_DEVICE:PASS",
+        "M5:SURVIVOR_PROGRESS:PASS",
+        "M5:RESOURCES:PASS",
+        "M5:PASS",
+        "M1:PASS"
+      ],
+      "disk": {
+        "bytes": 65536,
+        "sha256": "49ab4065c00ffba59560a95f9fbefcd78b492ce6a411c5e8d5d2896829817232",
+        "independently_recomputed_sector_digests": {
+          "4": "e21571263df1ae62",
+          "6": "69e98aafc4133f99"
+        },
+        "observed_sector_digests": {},
+        "data_required": false,
+        "attached": false
+      }
+    },
+    {
+      "label": "m1-after-m5",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m1-after-m5-6035a5e730",
+      "raw_result_sha256": "f23b0932b537dcdaa93022efba84770942ac13abec3972044bce5e34d52dc4c9",
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "actual_sha256": "62d3e01c6708c7dfccaf94427ae091a21ef144944d190b07df341ed444dfd571"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "actual_sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "actual_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "actual_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ],
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M1:PASS"
+      ],
+      "disk": null
+    }
+  ],
+  "two_image_checks": {
+    "same_kernel": true,
+    "same_loader": true,
+    "different_images": true,
+    "different_received_digests": true
+  },
+  "host_commands": [
+    {
+      "name": "m5-host-tests",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "virtio-core",
+        "-p",
+        "capability-core",
+        "-p",
+        "block-protocol",
+        "-p",
+        "kernel-core"
+      ],
+      "returncode": 0,
+      "logs": [
+        {
+          "path": "build/logs/m5-host-tests.stdout.txt",
+          "sha256": "6593d17518f3680efadfbccb68150765aa72022e79af9362a38e5c6869a1983a"
+        },
+        {
+          "path": "build/logs/m5-host-tests.stderr.txt",
+          "sha256": "c3e26f071c1772a681059e0dc36c662d3cf8fdbfd040228d5409c440c9a0d564"
+        }
+      ]
+    },
+    {
+      "name": "m5-parser-tests",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_*harness.py"
+      ],
+      "returncode": 0,
+      "logs": [
+        {
+          "path": "build/logs/m5-parser-tests.stdout.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "build/logs/m5-parser-tests.stderr.txt",
+          "sha256": "1b6f69157102cc03f5264c937d138171570f1a3f06ab9ba2d8345507e1df7261"
+        }
+      ]
+    },
+    {
+      "name": "m5-disk-oracle-tests",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m5_disk.py"
+      ],
+      "returncode": 0,
+      "logs": [
+        {
+          "path": "build/logs/m5-disk-oracle-tests.stdout.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "build/logs/m5-disk-oracle-tests.stderr.txt",
+          "sha256": "308674055755704384a4952460c857d03ffabe96601eac1e4fe0c54dfc3ea2d8"
+        }
+      ]
+    },
+    {
+      "name": "m5-user-artifact-tests",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "userspace/tests/test_m5_probe.py",
+        "--elf",
+        "build/users/m5_probe.elf"
+      ],
+      "returncode": 0,
+      "logs": [
+        {
+          "path": "build/logs/m5-user-artifact-tests.stdout.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "build/logs/m5-user-artifact-tests.stderr.txt",
+          "sha256": "d6c1110893abc211a0d82798ad944354ad37e9d0e4805f00bb248d22288f1b5e"
+        }
+      ]
+    }
+  ],
+  "excluded_failed_diagnostics": [
+    {
+      "file": "docs/verification/m5/diagnostics/failed-device-rights-guest.json",
+      "passed": false,
+      "status": null
+    },
+    {
+      "file": "docs/verification/m5/diagnostics/failed-device-rights-suite.json",
+      "passed": false,
+      "status": "failed"
+    }
+  ],
+  "issues": [],
+  "passed": true
+}

@@ -58,10 +58,11 @@ def save_json(path: Path, value: object) -> None:
 def source_hash() -> str:
     """Fingerprint source inputs without traversing generated artifacts or caches."""
     digest = hashlib.sha256()
-    for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "tools", ROOT / ".cargo"):
+    digest.update(b"nieuw-os source inputs v3\n")
+    for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "drivers", ROOT / "services", ROOT / "userspace", ROOT / "tools", ROOT / ".cargo"):
         if folder.exists():
             for path in sorted(folder.rglob("*")):
-                if path.is_file() and "__pycache__" not in path.parts:
+                if path.is_file() and not {"__pycache__", "verification", "target", "build", ".git"}.intersection(path.relative_to(folder).parts):
                     digest.update(path.relative_to(ROOT).as_posix().encode())
                     digest.update(path.read_bytes())
     for name in ("Cargo.toml", "Cargo.lock", "rust-toolchain.toml"):
@@ -71,21 +72,31 @@ def source_hash() -> str:
     return digest.hexdigest()
 
 
-def run_logged(args: list[str], name: str, *, cwd: Path = ROOT, timeout: int = 180) -> subprocess.CompletedProcess:
+def run_logged(args: list[str], name: str, *, cwd: Path = ROOT, timeout: int = 180,
+               extra_env: dict[str, str] | None = None) -> subprocess.CompletedProcess:
     started = time.time()
     env = environment()
+    if extra_env:
+        env.update(extra_env)
     args = [shutil.which(args[0], path=env["PATH"]) or args[0], *args[1:]]
-    try:
-        result = subprocess.run(args, cwd=cwd, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
-    except subprocess.TimeoutExpired as exc:
-        log = BUILD / "logs" / name
-        log.parent.mkdir(parents=True, exist_ok=True)
-        log.with_suffix(".stdout.txt").write_bytes(exc.stdout or b"")
-        log.with_suffix(".stderr.txt").write_bytes(exc.stderr or b"")
-        save_json(log.with_suffix(".json"), {"command": args, "cwd": str(cwd), "started_unix": started, "duration_s": time.time()-started, "returncode": None, "timed_out": True, "timeout_s": timeout})
-        raise
     log = BUILD / "logs" / name
     log.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        result = subprocess.run(args, cwd=cwd, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
+    except subprocess.TimeoutExpired as error:
+        def partial_text(output):
+            if isinstance(output, bytes):
+                return output.decode("utf-8", "replace")
+            return output or ""
+
+        log.with_suffix(".stdout.txt").write_text(partial_text(error.stdout), encoding="utf-8")
+        log.with_suffix(".stderr.txt").write_text(partial_text(error.stderr), encoding="utf-8")
+        save_json(log.with_suffix(".json"), {
+            "command": args, "cwd": str(cwd), "started_unix": started,
+            "duration_s": time.time() - started, "returncode": None,
+            "timed_out": True, "timeout_seconds": timeout,
+        })
+        raise
     log.with_suffix(".stdout.txt").write_text(result.stdout, encoding="utf-8")
     log.with_suffix(".stderr.txt").write_text(result.stderr, encoding="utf-8")
     save_json(log.with_suffix(".json"), {"command": args, "cwd": str(cwd), "started_unix": started, "duration_s": time.time()-started, "returncode": result.returncode})

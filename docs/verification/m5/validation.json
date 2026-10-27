@@ -1,0 +1,127 @@
+{
+  "source_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+  "basis_commit": "c630c59aa2e3ad4ce025aa8ac059e58be7334601",
+  "source_fingerprint_version": 3,
+  "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+  "phases": {
+    "m1": {
+      "groups": 10,
+      "qemu_runs": 8,
+      "suite": "docs\\verification\\m5\\regression\\m1\\suite.json"
+    },
+    "m2": {
+      "groups": 8,
+      "qemu_runs": 7,
+      "suite": "docs\\verification\\m5\\regression\\m2\\suite.json"
+    },
+    "m3": {
+      "groups": 22,
+      "qemu_runs": 19,
+      "suite": "docs\\verification\\m5\\regression\\m3\\suite.json"
+    },
+    "m4": {
+      "groups": 12,
+      "qemu_runs": 10,
+      "suite": "docs\\verification\\m5\\regression\\m4\\suite.json"
+    },
+    "m5": {
+      "groups": 25,
+      "qemu_runs": 20,
+      "suite": "docs\\verification\\m5\\suite.json"
+    }
+  },
+  "groups": 77,
+  "qemu_runs": 64,
+  "extra_normal_m5_runs": 1,
+  "source_files_changed": [
+    "Cargo.lock",
+    "Cargo.toml",
+    "crates/capability-core/README.md",
+    "crates/capability-core/src/lib.rs",
+    "crates/capability-core/src/tests.rs",
+    "crates/kernel-core/src/lib.rs",
+    "crates/virtio-core/.gitignore",
+    "crates/virtio-core/Cargo.toml",
+    "crates/virtio-core/README.md",
+    "crates/virtio-core/src/lib.rs",
+    "crates/virtio-core/src/tests.rs",
+    "drivers/virtio-blk/Cargo.toml",
+    "drivers/virtio-blk/README.md",
+    "drivers/virtio-blk/src/lib.rs",
+    "kernel/Cargo.toml",
+    "kernel/build.rs",
+    "kernel/src/m2/m3.rs",
+    "kernel/src/m2/m3/m4.rs",
+    "kernel/src/m2/m3/m5.rs",
+    "kernel/src/m2/paging.rs",
+    "services/block/.gitignore",
+    "services/block/Cargo.toml",
+    "services/block/README.md",
+    "services/block/src/lib.rs",
+    "services/block/src/user_service.rs",
+    "services/block/src/wire.rs",
+    "tests/test_guest_harness.py",
+    "tests/test_m5_disk.py",
+    "tools/build.py",
+    "tools/build_users.py",
+    "tools/capture_gate.py",
+    "tools/common.py",
+    "tools/m5_disk.py",
+    "tools/run.py",
+    "tools/test_m5.py",
+    "tools/test_milestones.py",
+    "userspace/M5-PROBE.md",
+    "userspace/m5_linker.ld",
+    "userspace/m5_probe.rs",
+    "userspace/m5_runtime.rs",
+    "userspace/tests/test_m5_probe.py"
+  ],
+  "commands": [
+    {
+      "command": "python tools/preflight.py --strict",
+      "exit": 0
+    },
+    {
+      "command": "python -u tools/test_m5.py",
+      "exit": 0
+    },
+    {
+      "command": "python -u tools/test_milestones.py --through m4",
+      "exit": 0
+    },
+    {
+      "command": "python -u tools/test.py",
+      "exit": 0
+    },
+    {
+      "command": "python tools/capture_gate.py m5",
+      "exit": 0
+    },
+    {
+      "command": "python tools/capture_gate.py m1 --destination docs/verification/m5/regression/m1",
+      "exit": 0
+    },
+    {
+      "command": "python tools/capture_gate.py m2 --destination docs/verification/m5/regression/m2",
+      "exit": 0
+    },
+    {
+      "command": "python tools/capture_gate.py m3 --destination docs/verification/m5/regression/m3",
+      "exit": 0
+    },
+    {
+      "command": "python tools/capture_gate.py m4 --destination docs/verification/m5/regression/m4",
+      "exit": 0
+    },
+    {
+      "command": "python tools/build.py --kernel-feature milestone-m5",
+      "exit": 0
+    },
+    {
+      "command": "python tools/run.py --smoke --milestone m5",
+      "exit": 0
+    }
+  ],
+  "initial_combined_gate": "exit1 at device-rights; retained as failed; fixed before final successful gates",
+  "status": "passed; independent final verifier also exit0"
+}

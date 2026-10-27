@@ -1,0 +1,82 @@
+{
+  "phase": "M2",
+  "status": "completed",
+  "passed": true,
+  "started_utc": "2026-10-27T12:05:20.468777+00:00",
+  "results": [
+    {
+      "name": "frame-map-protocol-host-tests",
+      "passed": true,
+      "requirements": [
+        "KS-01",
+        "KS-02",
+        "KS-03"
+      ],
+      "evidence": "build/logs/m2-host-tests.stdout.txt"
+    },
+    {
+      "name": "own-cr3-frame-ownership-wx",
+      "passed": true,
+      "requirements": [
+        "KS-01",
+        "KS-02",
+        "KS-03",
+        "OWN_GDT_TSS_IDT_CR3"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m2-5f29c0a781"
+    },
+    {
+      "name": "test-m2-ro",
+      "passed": true,
+      "requirements": [
+        "KS-03",
+        "REAL_PAGE_FAULT"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m2-ro-7999a2eabf"
+    },
+    {
+      "name": "test-m2-nx",
+      "passed": true,
+      "requirements": [
+        "KS-03",
+        "REAL_PAGE_FAULT"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m2-nx-34125b78a7"
+    },
+    {
+      "name": "test-m2-absent",
+      "passed": true,
+      "requirements": [
+        "KS-03",
+        "REAL_PAGE_FAULT"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m2-absent-58387f9a0b"
+    },
+    {
+      "name": "kernel-fault-stops-controlled",
+      "passed": true,
+      "requirements": [
+        "KERNEL_FAULT_FAIL_CLOSED"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m2-kernel-fault-5683c0e5d0"
+    },
+    {
+      "name": "unusable-main-stack-double-fault-ist",
+      "passed": true,
+      "requirements": [
+        "DOUBLE_FAULT_IST1",
+        "KERNEL_STACK_GUARDS"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m2-double-fault-a3ec302f70"
+    },
+    {
+      "name": "m1-regression",
+      "passed": true,
+      "requirements": [
+        "M1"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m1-after-m2-974ffe3d71"
+    }
+  ],
+  "finished_utc": "2026-10-27T12:07:07.234339+00:00"
+}

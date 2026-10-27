@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-27",
+  "scope": "host artifact checks; no CPL3 execution by U04",
+  "head_at_check": "d2ab03d555efa09c9fa9d1f4fe8fd00a2d99e431",
+  "build": {
+    "owner": "root",
+    "exit": 0,
+    "command": [
+      "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\rustc.EXE",
+      "+1.90.0",
+      "--edition=2021",
+      "--crate-type=bin",
+      "--crate-name=os_user_ipc_probe",
+      "--target=x86_64-unknown-none",
+      "-C",
+      "panic=abort",
+      "-C",
+      "opt-level=2",
+      "-C",
+      "code-model=small",
+      "-C",
+      "relocation-model=static",
+      "-C",
+      "no-redzone=yes",
+      "-C",
+      "linker=rust-lld",
+      "-C",
+      "link-arg=-TC:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\ipc_linker.ld",
+      "-C",
+      "link-arg=--no-pie",
+      "-C",
+      "link-arg=--build-id=none",
+      "-C",
+      "link-arg=-zmax-page-size=0x1000",
+      "--emit=link",
+      "-o",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\users\\ipc_probe.elf",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\ipc_probe.rs"
+    ],
+    "stderr_bytes": 0
+  },
+  "host_tests": {
+    "command": "python -B -X utf8 userspace/tests/test_ipc_probe.py --elf build/users/ipc_probe.elf",
+    "exit": 0,
+    "tests": 13,
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0,
+    "log": "userspace/verification/ipc-host-tests.txt"
+  },
+  "artifact": {
+    "schema_version": 1,
+    "purpose": "synthetic ring-3 acceptance probe",
+    "binary_sha256": "12f4f4409c6ec12a6b94fbc31e10bd3e6753e41b619f7b8af2e519696d8e4300",
+    "source_sha256": "0cbdad021b1314cf81488e311b1f6055f073a674cdc13a96f4f4db81db98438c",
+    "linker_sha256": "2feaa1ce7bfd3b8f98140660d7de2cfebcc3bbb9f3bce8f58b7c245ee0bd68c3",
+    "entry": 1073741824,
+    "segments": [
+      {
+        "flags": 5,
+        "address": 1073741824,
+        "offset": 4096,
+        "filesz": 956,
+        "memsz": 956,
+        "page_start": 1073741824,
+        "page_end": 1073745920
+      },
+      {
+        "flags": 6,
+        "address": 1073807360,
+        "offset": 8192,
+        "filesz": 12288,
+        "memsz": 12288,
+        "page_start": 1073807360,
+        "page_end": 1073819648
+      },
+      {
+        "flags": 4,
+        "address": 1073819648,
+        "offset": 20480,
+        "filesz": 4096,
+        "memsz": 4096,
+        "page_start": 1073819648,
+        "page_end": 1073823744
+      }
+    ]
+  },
+  "source_sha256": {
+    "userspace/ipc_probe.rs": "0cbdad021b1314cf81488e311b1f6055f073a674cdc13a96f4f4db81db98438c",
+    "userspace/ipc_linker.ld": "2feaa1ce7bfd3b8f98140660d7de2cfebcc3bbb9f3bce8f58b7c245ee0bd68c3",
+    "userspace/tests/test_ipc_probe.py": "995289de4e476c756f951f7a3e8f42c771f734bbd7ead885189b258af95af1fe",
+    "userspace/IPC-PROBE.md": "1bb4b5acf8c63223e17f98aa7474edb60096df6aea8abaa1a69c6117df5bc72b",
+    "tools/build_users.py": "5cc776230105c48d4cea38b00539214f8cd3d670f12333cde3eb16410cca6ad7"
+  },
+  "remaining": [
+    "actual EXCHANGE and KS09-16 CPL3 caseboots",
+    "kernel observer call/queue/cap/node/output-before-after checks",
+    "actual snapshot-hook proof",
+    "M2/M3 regression gate",
+    "hostengine global-node/generation quota evidence"
+  ]
+}

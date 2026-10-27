@@ -3,7 +3,15 @@
 version = 4
 
 [[package]]
+name = "block-protocol"
+version = "0.1.0"
+
+[[package]]
 name = "boot-protocol"
+version = "0.1.0"
+
+[[package]]
+name = "capability-core"
 version = "0.1.0"
 
 [[package]]
@@ -14,10 +22,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "kernel-core"
+version = "0.1.0"
+
+[[package]]
 name = "os-kernel"
 version = "0.1.0"
 dependencies = [
+ "block-protocol",
  "boot-protocol",
+ "capability-core",
+ "kernel-core",
+ "virtio-blk-driver",
+ "virtio-core",
 ]
 
 [[package]]
@@ -34,3 +51,14 @@ name = "r-efi"
 version = "7.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0ff379dd174eec5b2cab797063a2e7592dfcf0bf0323a50eeee724ee3537f13"
+
+[[package]]
+name = "virtio-blk-driver"
+version = "0.1.0"
+dependencies = [
+ "virtio-core",
+]
+
+[[package]]
+name = "virtio-core"
+version = "0.1.0"

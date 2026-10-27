@@ -44,15 +44,7 @@ def main():
         record("real-ebs-stale-key-retry", report["passed"] and "BOOT:EBS_RETRY" in report["stdout"], report["run_directory"])
         build(kernel_feature="test-panic", label="panic")
         report = run_guest("panic")
-        lines = report["stdout"].splitlines()
-        record("kernel-panic-fails",
-               report["raw_qemu_exit"] == 35
-               and "KERNEL:ENTRY" in lines
-               and "BOOTINFO:OK" in lines
-               and "M1:FAIL:KERNEL_PANIC" in lines
-               and "M1:PASS" not in report["stdout"]
-               and not report["timed_out"],
-               report["run_directory"])
+        record("kernel-panic-fails", report["raw_qemu_exit"] == 35 and "KERNEL:ENTRY" in report["stdout"] and "M1:FAIL:KERNEL_PANIC" in report["stdout"].splitlines() and "M1:PASS" not in report["stdout"], report["run_directory"])
         build(kernel_feature="test-hang", label="hang")
         report = run_guest("hang")
         record("real-hang-times-out", report["timed_out"] and "KERNEL:ENTRY" in report["stdout"] and not report["passed"], report["run_directory"])

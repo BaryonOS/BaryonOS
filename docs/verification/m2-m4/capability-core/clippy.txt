@@ -1,0 +1,2 @@
+    Checking capability-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\crates\capability-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s

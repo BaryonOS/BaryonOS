@@ -1,0 +1,208 @@
+{
+  "phase": "M3",
+  "status": "completed",
+  "passed": true,
+  "started_utc": "2026-10-27T14:05:48.257803+00:00",
+  "results": [
+    {
+      "name": "user-elf-frame-abi-host-tests",
+      "passed": true,
+      "requirements": [
+        "KS-04",
+        "USER_ELF",
+        "RETURN_FLAGS"
+      ],
+      "evidence": "build/logs/m3-host-tests.stdout.txt"
+    },
+    {
+      "name": "user-artifact-negative-tests",
+      "passed": true,
+      "requirements": [
+        "USER_ELF",
+        "USER_SYSCALL_FIXTURE"
+      ],
+      "evidence": "build/logs/m3-user-artifact-tests.stdout.txt"
+    },
+    {
+      "name": "private-address-spaces-preemption-fairness-cleanup",
+      "passed": true,
+      "requirements": [
+        "KS-04",
+        "KS-07",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m3-dd3cd92311"
+    },
+    {
+      "name": "test-m3-peer-read",
+      "passed": true,
+      "requirements": [
+        "KS-05",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-peer-read-0b96fbf8af"
+    },
+    {
+      "name": "test-m3-peer-write",
+      "passed": true,
+      "requirements": [
+        "KS-05",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-peer-write-f77e91b053"
+    },
+    {
+      "name": "test-m3-kernel-write",
+      "passed": true,
+      "requirements": [
+        "KS-05",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-kernel-write-50c9cbc302"
+    },
+    {
+      "name": "test-m3-stack-exec",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-stack-exec-a9f73e1054"
+    },
+    {
+      "name": "test-m3-heap-exec",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-heap-exec-e7addaa56e"
+    },
+    {
+      "name": "test-m3-guard-low",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-guard-low-ff77b2800d"
+    },
+    {
+      "name": "test-m3-guard-high",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-guard-high-c41e5f96cd"
+    },
+    {
+      "name": "test-m3-cli",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-cli-a69e329561"
+    },
+    {
+      "name": "test-m3-x87",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-x87-92e79b4085"
+    },
+    {
+      "name": "test-m3-xmm",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-xmm-d026fcf7b8"
+    },
+    {
+      "name": "test-m3-avx",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-avx-926d031e46"
+    },
+    {
+      "name": "test-m3-ud",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-ud-743daf6fae"
+    },
+    {
+      "name": "test-m3-exit",
+      "passed": true,
+      "requirements": [
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-exit-ae4d9eb4f1"
+    },
+    {
+      "name": "test-m3-b-exit",
+      "passed": true,
+      "requirements": [
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-b-exit-46b02dd206"
+    },
+    {
+      "name": "test-m3-invalid-rsp",
+      "passed": true,
+      "requirements": [
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-invalid-rsp-47575a9424"
+    },
+    {
+      "name": "all-processes-exit-idle-timer-and-resources",
+      "passed": true,
+      "requirements": [
+        "KS-08",
+        "IDLE_CPL0_IRQ0",
+        "RESOURCE_RECLAIM"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-idle-53b21b2255"
+    },
+    {
+      "name": "large-bss-artifact-host-tests",
+      "passed": true,
+      "requirements": [
+        "MAPPING_CAPACITY",
+        "USER_ELF"
+      ],
+      "evidence": "build/logs/m3-large-artifact-tests.stdout.txt"
+    },
+    {
+      "name": "large-bss-image-exceeds-old-64-mapping-limit",
+      "passed": true,
+      "requirements": [
+        "KS-04",
+        "KS-07",
+        "KS-08",
+        "MAPPING_CAPACITY"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-large-image-fa0515ee55"
+    },
+    {
+      "name": "m1-regression-after-m3",
+      "passed": true,
+      "requirements": [
+        "M1"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m1-after-m3-f4f67e5852"
+    }
+  ],
+  "finished_utc": "2026-10-27T14:07:07.470943+00:00"
+}

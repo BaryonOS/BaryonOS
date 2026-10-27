@@ -1,0 +1,35 @@
+{
+  "algorithm": "SHA-256",
+  "date": "2026-10-27",
+  "head_at_manifest": "eef7827ce69144504185eb45df1ee6d5ddbfa5fe",
+  "scope": "P02V UI source only; uncommitted changes identified by content hash",
+  "files": {
+    "index.html": "dddf09829040c2e8940f0e475a31403ae8b12082a80a4977bea26495403fd3fe",
+    "tokens.css": "0c588509e0cb0f94bbda2c6969da8d79d463359bfc9684687a684210a54aadcf",
+    "components.css": "e7bf189229c0c309c739c1d5bdfe5b4e29f6375d71372041cf7cf127b7c07d4a",
+    "app.js": "4d510cfc5842d6961a6c3ec79173ef391b4046c461ee9a845bfba2d243fd57b2",
+    "state.js": "c13e8114cea8e0f3ad397eb0d4ac4abdb1755aff64688e66779f590915c0a995",
+    "fixtures.js": "c25fbdbda461cd59bcf229b5a7f901aa726d20af7400d338b606d6c3b63f9a8a",
+    "broker.js": "20b04c846a9d607a471389fd9e4f17b1b8387fb51237ee6853afb48d71179e00",
+    "tests/state.test.mjs": "1bd05c9857f77af357baa3d8e1b9e623ff1e9954090d769c9aca57c2a31dceec",
+    "README.md": "e82ded17da3e51464c9a2758c5e6e1ad796d07bac8fcbb8095ab5e2ee74a6a7d"
+  },
+  "commands": [
+    {
+      "command": "node --test ui/prototype/tests/state.test.mjs",
+      "exit": 0,
+      "tests": 23,
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node --check ui/prototype/app.js",
+      "exit": 0
+    },
+    {
+      "command": "git diff --check -- ui/prototype",
+      "exit": 0
+    }
+  ]
+}

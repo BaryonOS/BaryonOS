@@ -1,0 +1,8 @@
+[package]
+name = "virtio-blk-driver"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+virtio-core = { path = "../../crates/virtio-core" }

@@ -29,6 +29,13 @@ test('P2-01: search, collection and empty fixture results', () => {
   assert.equal(broker.listObjects(state, { query: 'bestaat niet' }).value.length, 0);
 });
 
+test('P2-01: search also finds the visible document type within its collection', () => {
+  const state = createFixtureState();
+  assert.deepEqual(broker.listObjects(state, { query: 'AfBeElDiNg' }).value.map((item) => item.id), ['obj-002']);
+  assert.deepEqual(broker.listObjects(state, { query: 'tekst' }).value.map((item) => item.id), ['obj-001', 'obj-003']);
+  assert.deepEqual(broker.listObjects(state, { query: 'afbeelding', collection: 'Vandaag' }).value, []);
+});
+
 test('P2-02: requesting and denying access never modifies content or grants', () => {
   let state = reducer(createFixtureState(), { type: 'openObject', id: 'obj-001' });
   const original = structuredClone(state.objects);
@@ -127,6 +134,25 @@ test('P2-02: Webvenster requests explicit destination but receives no write gran
   assert.equal(broker.authorize(state, state.activeGrantId, 'obj-001', 'write').code, 'DENIED');
 });
 
+test('P2-02: granting Webvenster preserves a valid editor grant', () => {
+  let state = editable();
+  state = reducer(state, { type: 'updateDraft', text: 'Eerste concept', cursor: 14 });
+  const editorGrantId = state.activeGrantId;
+  state = reducer(state, { type: 'requestEdit', toolId: 'webvenster' });
+  state = reducer(state, { type: 'grantSession' });
+
+  assert.equal(state.mode, 'edit');
+  assert.equal(state.activeGrantId, editorGrantId);
+  const webGrant = activeGrants(state).find((grant) => grant.toolId === 'webvenster');
+  assert.equal(broker.authorize(state, webGrant.id, 'obj-001', 'read').ok, true);
+  assert.equal(broker.authorize(state, webGrant.id, 'obj-001', 'write').code, 'DENIED');
+
+  state = reducer(state, { type: 'updateDraft', text: 'Bijgewerkt concept', cursor: 18 });
+  state = reducer(state, { type: 'saveDraft' });
+  assert.equal(selectedObject(state).revision, 4);
+  assert.equal(selectedObject(state).versions.at(-1).text, 'Bijgewerkt concept');
+});
+
 test('P2-03: all NAS failure states keep local save working without a sync claim', () => {
   for (const condition of ['offline', 'networkChanged', 'identityMismatch']) {
     let state = reducer(editable(), { type: 'nasCondition', condition });
@@ -143,11 +169,18 @@ test('P2-03: NAS identity cannot be trusted by a network-state toggle', () => {
   assert.equal(broker.pairNas(state, { confirmed: true, identity: 'attacker' }).code, 'IDENTITY_MISMATCH');
   state = reducer(state, { type: 'confirmNas', confirmed: true, identity: NAS_IDENTITY });
   assert.equal(state.nas.state, 'online');
-  state = reducer(state, { type: 'nasCondition', condition: 'identityMismatch' });
-  assert.equal(broker.setNasCondition(state, 'online').code, 'IDENTITY_MISMATCH');
-  state = reducer(state, { type: 'pairNas' });
-  state = reducer(state, { type: 'confirmNas', confirmed: true, identity: NAS_IDENTITY });
-  assert.equal(state.nas.state, 'online');
+  for (const condition of ['identityMismatch', 'networkChanged']) {
+    let failed = reducer(state, { type: 'nasCondition', condition });
+    assert.equal(failed.nas.identity, null);
+    failed = reducer(failed, { type: 'nasCondition', condition: 'offline' });
+    assert.equal(failed.nas.identity, null);
+    assert.equal(broker.setNasCondition(failed, 'online').ok, false);
+    failed = reducer(failed, { type: 'pairNas' });
+    assert.equal(failed.nas.state, 'verifying');
+    failed = reducer(failed, { type: 'confirmNas', confirmed: true, identity: NAS_IDENTITY });
+    assert.equal(failed.nas.state, 'online');
+    assert.equal(failed.nas.identity, NAS_IDENTITY);
+  }
 });
 
 test('P2-04: missing local model or memory never produces a summary', () => {

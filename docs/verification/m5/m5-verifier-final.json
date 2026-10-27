@@ -1,0 +1,1721 @@
+{
+  "scope": "Independent M5-V final regression and manual-start audit; no tests/builds/QEMU rerun",
+  "audited_utc": "2026-10-27T14:11:42.026096+00:00",
+  "head": "8543fad3595ec36a624bcc871389f7472132ac41",
+  "source_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+  "source_fingerprint_version": 3,
+  "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+  "phases": {
+    "m1": {
+      "groups": 10,
+      "vm_runs": 8,
+      "suite_sha256": "341924ffeabc99e535e3df4a54b71f55beb06977137105eafc017364184c8206",
+      "guest_runs_sha256": "0f1ad9b0121c02a3fdb47e7798cbd5ba169f046472229bde32b50501026082e0"
+    },
+    "m2": {
+      "groups": 8,
+      "vm_runs": 7,
+      "suite_sha256": "9a2d60733eeda8ac62cb31bafb24a4ea22ac58ce8a36adcc063865f832042061",
+      "guest_runs_sha256": "f95b87dd02e0aa5696acd2e73694dd38d3a42ed5e9027287a597179f0444ae60"
+    },
+    "m3": {
+      "groups": 22,
+      "vm_runs": 19,
+      "suite_sha256": "6ffe3afb878559df750ed6af8cbf310c85e15dc11d72e64176e534838018e8a9",
+      "guest_runs_sha256": "744288ab8d31a0b3f03a718b409b644afc2c2828ff3bcba1a37c5fabe2cec162"
+    },
+    "m4": {
+      "groups": 12,
+      "vm_runs": 10,
+      "suite_sha256": "ce04a5dce64808bf1e66e90aebbd177ce2c9a55d9429a2e788271377c3b07baa",
+      "guest_runs_sha256": "9a547a04ca14fe3ca0213df9807cced6bd6a2dd3803266214f227d281af78334"
+    }
+  },
+  "counts": {
+    "regression_groups": 52,
+    "regression_vm_runs": 44,
+    "manual_m5_vm_runs": 1,
+    "artifact_hashes": 180,
+    "host_commands": 7,
+    "m1_expected_raw_failures": 4
+  },
+  "runs": [
+    {
+      "phase": "m1",
+      "group": "cold-boot-1",
+      "label": "cold-1",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\cold-1-12c5198e7f",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "bf46c94e80be3c699efe223fb6f7afaf17893b3f09a44db68b4b94374c0cc595",
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "62d3e01c6708c7dfccaf94427ae091a21ef144944d190b07df341ed444dfd571"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m1",
+      "group": "cold-boot-2",
+      "label": "cold-2",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\cold-2-1af7d135e1",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "482dda1b7675e8f99b146f958bdb485e7bdc1cdf888072f4705d78603a52ecdd",
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "62d3e01c6708c7dfccaf94427ae091a21ef144944d190b07df341ed444dfd571"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m1",
+      "group": "cold-boot-3",
+      "label": "cold-3",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\cold-3-8402b56c32",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "73210b1b9d149f210c49fdb5d2dac5c6b32f624e4d0144e26b65e722ef06db95",
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "62d3e01c6708c7dfccaf94427ae091a21ef144944d190b07df341ed444dfd571"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m1",
+      "group": "reject-missing-kernel",
+      "label": "missing",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\missing-369e5b549f",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 35,
+      "timed_out": false,
+      "raw_passed": false,
+      "expected_negative": true,
+      "raw_result_sha256": "97c1232aad83b6b9d2b0a1666526dd3764a4de9707f6ebc13ce29434cd3dc915",
+      "serial_sha256": "6359174b40028da955646ec1081ae3e49e25c45758427b8f5c11670ce0957c59",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m1",
+      "group": "reject-corrupt-kernel",
+      "label": "corrupt",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\corrupt-c325b8cf74",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 35,
+      "timed_out": false,
+      "raw_passed": false,
+      "expected_negative": true,
+      "raw_result_sha256": "917d87bfbdb09613fc31cd5a92c80588f01bdd29954e883d7c90ffc338394a2f",
+      "serial_sha256": "4ba69d64573782d67b1e210e98e502b3d54190b835c1bfd7d769f4f3b34a217a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "589204133cf664ff4a7786e5667f752e8f37869744d2b3f16d86cbd96f0ba09a"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m1",
+      "group": "real-ebs-stale-key-retry",
+      "label": "ebs-retry",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\ebs-retry-066b01ac49",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "2cb0ed12b7d8dba9ffdaf3ff3ebad46729feadff140253980a5f6a1b01705856",
+      "serial_sha256": "ce1e6d9ecf49c4a849323fdc512970638eee19b0ed9f3d57fcf79ea7476e2725",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "62d3e01c6708c7dfccaf94427ae091a21ef144944d190b07df341ed444dfd571"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "fd8302fc6b30ed31d60357539d7b66ada42563481b6bb762bb516de9d42e4d67"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m1",
+      "group": "kernel-panic-fails",
+      "label": "panic",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\panic-dc46fcf869",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 35,
+      "timed_out": false,
+      "raw_passed": false,
+      "expected_negative": true,
+      "raw_result_sha256": "69485c557313b33cee57cd760b730c920272df00721694457eef6d1b9d34cd61",
+      "serial_sha256": "20679788fb595aaface6f35bfa9d19a900e65932ffb96d8385efbce7acf5d0c8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "bc4d75befea3788665d4f817075b367ee08e837e28a4f568acd34a3052a953e9"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m1",
+      "group": "real-hang-times-out",
+      "label": "hang",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\hang-786d9eec97",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": null,
+      "timed_out": true,
+      "raw_passed": false,
+      "expected_negative": true,
+      "raw_result_sha256": "25583ed922a98eeb92af585b3313930e1f59dc4b005f86308a4f5f41a35904cb",
+      "serial_sha256": "28ee276ea45af5739455b78ff5547e66bbb1cfa43a8d4d51e4ac94c61e935593",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "9dd06e75c0d85da4c14eba54ea0568155606b34f5949916ccace402450478e1b"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m2",
+      "group": "own-cr3-frame-ownership-wx",
+      "label": "m2",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m2-3392a3b808",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "4c94c67d721d31c014f76d2e66c7ce6440f05915086ce28649b37778bc150403",
+      "serial_sha256": "df4c64fd369cf0526f2f382a355eabea2dc6d89769c28b6cfef721c50793fdf5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "42d9003c165ec44e8e9e4c53780a9369ac3322f61d52586cddba4261922f4c9b"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m2",
+      "group": "test-m2-ro",
+      "label": "test-m2-ro",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m2-ro-5a75ce7dd9",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "762c2b1bd3b77cda851e83333cca7c6b63b6f806269d956dbff4a1f6c355ebb9",
+      "serial_sha256": "a362ed8c325c0ef6c136a246d03124e6a3b6e50b81feac287211e3d3126e5c78",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "a6ba73651565ea128476c245e635717546928666fdd86c04f5ef8adb0f2d89de"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m2",
+      "group": "test-m2-nx",
+      "label": "test-m2-nx",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m2-nx-ae54d102e6",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "70960e603bbf0dab0442b160ce9c03e8321a90f2c2867a1d3ce673108bccae30",
+      "serial_sha256": "ab3b5f311614f6b040ad7eabe13510d41e80c9b065b1861a4ed562c02d9d4475",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "ef4b2708387f5295ec0291dd2ce6a2f120f5ee11d6f1734b1acc7f539ad647c1"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m2",
+      "group": "test-m2-absent",
+      "label": "test-m2-absent",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m2-absent-7e55fd6a3e",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "d000a49709bf77e1b5427a510537f5d97bf81898dc46289232bf038050b2718d",
+      "serial_sha256": "becdf160976c014610eb92012298f89eddcc14162fc517de6983d5d02ea208cc",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "e2a092486251a84db5c65ccf77ccaad6551dc3a8215d9c6b6195d04817b5967a"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m2",
+      "group": "kernel-fault-stops-controlled",
+      "label": "m2-kernel-fault",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m2-kernel-fault-c899c9b963",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 35,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "16e918665b7077b91eb6ebff20aa9141922841f85555ad4734984a97667adc7c",
+      "serial_sha256": "1c6bf097d8a0d343651eb28562c0a5c35eb9b2ae5a2df494422a93f42419c7a2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "3c7a58a8cbb428b42bc2d6d76362494f108b5bb40389e5176f8b8cd63225a625"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m2",
+      "group": "unusable-main-stack-double-fault-ist",
+      "label": "m2-double-fault",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m2-double-fault-6f5c8c1b5b",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 35,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "771a3dadcb2f9049604e1153d575489d226083fedfa4ba90d9dff8d5bab051d4",
+      "serial_sha256": "9649cf78983fa0e41bbb1154bcde5f735f26177749a805e5a1861ff918d70df6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "33f4f88a8d04679e61a57a95db98f35f5c89c131467878ce6e272793bc1d9d8b"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m2",
+      "group": "m1-regression",
+      "label": "m1-after-m2",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m1-after-m2-0e212a7ba7",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "3533cff8010e553a5e17d51bbd9d3408a18a4cb8df026bb747ab28ae86bae37b",
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "62d3e01c6708c7dfccaf94427ae091a21ef144944d190b07df341ed444dfd571"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "private-address-spaces-preemption-fairness-cleanup",
+      "label": "m3",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m3-dd3cd92311",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "9aeacf024584a820df610ffc6695ddd75b4ad6e923112aa2b9a52cfb23710710",
+      "serial_sha256": "7865aa013a39cad939c11213263ba269b9c6a5d0406f66b843230e1b649785e7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "05dd2defadace6212582850ab36ac56f4c0e3a7daa2a3b7964ff638208117dc1"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-peer-read",
+      "label": "test-m3-peer-read",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-peer-read-0b96fbf8af",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "82b83ae6ded83b668c565b13f0489d9077e1c293c9dad1e9e0f37019c6c982db",
+      "serial_sha256": "b36c5fc56f0054f08eaa0d90a04c6bbdec48309bf7f1ae5a40194373bf03f91d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "cbcce553189b8242fde29efe38ed01ddd13cd9b16a4e7d7d63c5cafe8454bf42"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-peer-write",
+      "label": "test-m3-peer-write",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-peer-write-f77e91b053",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "afe4dbad78d7ce75bbb662948bcc9dec846652f5f266217ea9346a7c74b11cc7",
+      "serial_sha256": "a9161e8ea2abcf85f465928eb3002cccb3e7e83640cd9d259cbace2734ca199c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "6ca8a95787f09736994bba038ce38a38edef94353d8ef0b943f442cad22edb9c"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-kernel-write",
+      "label": "test-m3-kernel-write",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-kernel-write-50c9cbc302",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "86110aa2e3f3a5d236ce2dd14a2cbf43dc8cb624374973303ac910ffe9ab4949",
+      "serial_sha256": "7da4482bbb5c082398ec026752675e71052746442b5a2d4668663a87b901ced8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "7f35f19f2ab5836270d1886e2c13a053b5a2a10544048bd00826dd3010c734f2"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-stack-exec",
+      "label": "test-m3-stack-exec",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-stack-exec-a9f73e1054",
+      "recorded_base_commit": "7af544aa1b8d731ac27f384f0ba95aa44586a57d",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "d5d7a2cfc263e5eee87d9cc5ada887622bd7c047fc433d0614808f8e1b0d532b",
+      "serial_sha256": "32fa9d9230c859ca4455445313c263532ecf597987d20ba731134cf8bca7a384",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "fbadd51b166a242162e30f15914ee33b82d90c487279c4a2985eb569298e2b86"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-heap-exec",
+      "label": "test-m3-heap-exec",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-heap-exec-e7addaa56e",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "3329f9a04dd89518704353460263fd48529293bc5d05fe23d31a8fc3e8d1db6c",
+      "serial_sha256": "bfb2b091984014e5f5ee3474d9af4506aefe51b1b3a113b8e5eaa027ed048994",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "6e1fc2941b115069746ebb52d79b7b9822dd12a89b3539520e65b019d8140182"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-guard-low",
+      "label": "test-m3-guard-low",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-guard-low-ff77b2800d",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "364383fd2c72182da7709dcc26db396dac107a05654180cf337493760e85069a",
+      "serial_sha256": "c0add2356983141e6ad3fd67a6b27f6a29de1318364bae86aa49e51868d1bb80",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "ed06f1d0417011764a7b7d942e5da494445faf8322736ddcf0ed3449f58cc901"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-guard-high",
+      "label": "test-m3-guard-high",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-guard-high-c41e5f96cd",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "974f5b224a7e9bb783779594f0328f0e965914c380667cde501536bc1e9e13f7",
+      "serial_sha256": "a867d8596482efbc3d352989b38a7bf5a702e106e7231779a20ea0b554ade52e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "273473489159326475ddef07f6e7672c52c48dcce6c099f5da27922d3c314c10"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-cli",
+      "label": "test-m3-cli",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-cli-a69e329561",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "b2e1440a4ec54a7187ade47ffb464fdde4e2fed0d7c99d3e1a737cf4493820df",
+      "serial_sha256": "a4c67bd1dcb32c7e36b6cbd79cac0689b1184d3d3e303027f2ff4d6c7c68761e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "559d3dc167cd13ba42013a4ac484ef4f02b6e0095bccf0c6386ff1c9a5505c92"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-x87",
+      "label": "test-m3-x87",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-x87-92e79b4085",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "be76facc5b6545c4860dc20371bb58c75ffffe3a9f3b85c7e0e445c33aa70c0a",
+      "serial_sha256": "504096c5715af89f3cc40bbcdb7b71e3ac5523eccda8b6632b31a0d2dc8d77c1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "d136d68bf8859c0d4cefd2247f17d6ae381af8b3df08abc745f589f114785709"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-xmm",
+      "label": "test-m3-xmm",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-xmm-d026fcf7b8",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "9f47634401f82d77b21ba44c39d353de379aefbdd7478c4c356c8f0bf659c28d",
+      "serial_sha256": "8be33f72cc7049b5e76f6f61bc39dda87cf11d3253c995d70c1fa7389a88c851",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "77272d0dd01a2dd684adab94e368614f8ab6a3fbc2a0c520bf68747bec47f342"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-avx",
+      "label": "test-m3-avx",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-avx-926d031e46",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "61a9e18ef7615fd2babb040a5774df9e072ed647a1c951ae7743c540630b8dbd",
+      "serial_sha256": "bb012f683a2e598b064ff10abe34ab92847f47b44ccff311845374c3444177a4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "c15faf01b5350097cc71bc2d10f070ed796600e19fe23f2c32cd6f24c6714ba0"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-ud",
+      "label": "test-m3-ud",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-ud-743daf6fae",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "a9180efbebdad6275d7f06ad70b86ff9acfb4ee58a72eef89fe27673017d804b",
+      "serial_sha256": "0a8fbaf5e5eee0b022f8f0f7689b90b91e263948672113de7e9dd7c26ffdab77",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "e26ca2dac030b41e981b4361847c04a4ab4707750210e3369a2765108cbbc55a"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-exit",
+      "label": "test-m3-exit",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-exit-ae4d9eb4f1",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "4b93220b1c6621f946b21886d3a20145d61018fe5e5e9c43ddd431a645f331f4",
+      "serial_sha256": "4164a36ae11e024080288a76ef9d38b3b642a2fb8927522199dec40c6b830ae9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "8522621cd60de474de5282c1a44c8314de15300fa3c88dffa24c71cce86ed920"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-b-exit",
+      "label": "test-m3-b-exit",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-b-exit-46b02dd206",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "fecf7a3dfe72f4054e902455cce0c508e7e486b5c19a2e4d43f5d55514a04203",
+      "serial_sha256": "080319310b84f8a83654eb0cc1c085469fff44aa6d641e550dc4c661f8ee9de8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "a2bfa2b77d8e6c4dd4944a1f42e2d441e357e9afc51bb368e8fe276e7f9bdf12"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-invalid-rsp",
+      "label": "test-m3-invalid-rsp",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-invalid-rsp-47575a9424",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "f5c3295f64f3629d4c1f4388b1b830d5fa0d058fdb07bb2b67e92aacefba9c20",
+      "serial_sha256": "512c80329f59566c90e1785c2064b45bc0ccc73bddccea05f01d3fc2faec9b5f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "62a5cd07b1d27201d76ec601d51d1e62eb741a6161309c63e34d2f014dfa3851"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "all-processes-exit-idle-timer-and-resources",
+      "label": "test-m3-idle",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-idle-53b21b2255",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "8699a52676fc7a680fc4e6cbf817ea4d99d010bfca19d1ba1b49ab5d0e2766ca",
+      "serial_sha256": "8ba76ac8374023aee3e93fc0dbd6d29f92e9232b40166ff23666e0b642c0bc7b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "323e0afc9c9cdb22ef7a87565b8b609bab1dd0fc8c2a7c4ec644eacfe1568500"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "large-bss-image-exceeds-old-64-mapping-limit",
+      "label": "test-m3-large-image",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-large-image-fa0515ee55",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "56687cfe1fc24316bcf0181e44dd125f15f332f211b802302b167fab18bc3b88",
+      "serial_sha256": "c4ac05c3e35128bde159b08a8420778573c7f92d8fa83a3ffabd5f8abdd14d4d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "571a5c5a17f1d31d9851000d796c8200c1470edc472cdb158b870668b392afc7"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "group": "m1-regression-after-m3",
+      "label": "m1-after-m3",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m1-after-m3-f4f67e5852",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "14cc7d5e89eb4158ace1ba47f3356a44b33c9da7ebb1529377dff36f2a9325eb",
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "62d3e01c6708c7dfccaf94427ae091a21ef144944d190b07df341ed444dfd571"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m4",
+      "group": "real-ring3-message-exchange",
+      "label": "m4-exchange",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m4-exchange-e69fbf9f30",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "28c961aa8360076a356d2d0a1449880560b41d3d8bf5afd8c7246a6114c36938",
+      "serial_sha256": "92ae4f25dd3c828ae62a447ace9de438650078ef2dde696e2c9761603ec8d4e7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "73702d9bb3aa62014f73e5d17449758076799b8b01078b6feb2fd25f6555a6d1"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-copy",
+      "label": "test-m4-copy",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-copy-747b311629",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "4c36390614188b1763d112a0fe6a0847c7cc49c9d613feba9c63eb8ae681e68b",
+      "serial_sha256": "9aee99955ca5914d1eab496dbe28e96c4dd00eae41ebc44fb0a959c28043cdff",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "2aac842cc6a31290f4f4cef9966f3501e5fce7c156a39ebd0bf1a02d2c1d65de"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-wire",
+      "label": "test-m4-wire",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-wire-7054ca776b",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "86c6a84e3ef118724f9def12589f983270e8c16180e9d2f70ad36fd87d35e020",
+      "serial_sha256": "7cc889c3dabcabacd323d0b10a9584f2310064f031beb503305fe6867af581f7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "727062a53f7a2d0288bd8fcda158f1e57b450057944e12bff843d330a23168de"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-snapshot",
+      "label": "test-m4-snapshot",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-snapshot-94a4614a72",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "64e7111ec1e0fa588d29a5be392225c589b52e43a8bec9544e5ffccb9e816d83",
+      "serial_sha256": "209ba96ff123c8562c79a5d4216bdabd697aff2964c7041f0fbaeab2768564f0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "9121c8b17c65eb3c0d0ce4808093c5020ab03b7ef1ad022c2e77b1348a2adca9"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-handles",
+      "label": "test-m4-handles",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-handles-5552961bf4",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "cc012a6baadd988f583d79c1141d9f06d4380e91cc81d79c031ad1a5b066780b",
+      "serial_sha256": "27ad31a59d107e333e8d3e0c276221ae74ccab16a106a3be727f8ae3c49d2d70",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "3d3cc122303476f2a707c4e8b422371ed9b496344cc9d42bf6333d24181595a1"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-rights",
+      "label": "test-m4-rights",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-rights-8314125cfa",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "d2dd7c25bca36a3791e8d66eb3c8ffb1e764b085c57ea1a1f0ae82a04ab8a405",
+      "serial_sha256": "8c5508bf59d37439399f23c51a7abf87e87050b57ac0475cc0584743472419a1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "86726b10c379558c2868efa665b9d25d995c5cfd9a685a68a791eb31733b2aba"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-revoke",
+      "label": "test-m4-revoke",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-revoke-db3bdbdd6e",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "84747c7d2966a38a0ce5ee1ff5195b3e087b45385e3febbd2971a3dccc56a4e0",
+      "serial_sha256": "79aa3bd2d536b6099b0e9af2d356fea510a3c3c5b7bf7b8f3db03d8e83b00eee",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "b66a3b48643453c78ae4d651f8ff875a7ca3cc2f1ccb7e2a85d49123e05870c8"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-quotas",
+      "label": "test-m4-quotas",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-quotas-27940014c6",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "dc38d65f0aab777b261dd5ecae66562b1b2186bef9957a9995368549bfe3c016",
+      "serial_sha256": "c2377ecc5d36f3a0d9aa8aca10b4eced816313fbacb0b34a72dab5b674e95396",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "3b74fa55c7f4ea3b0d8cb1f26ae856445f08b17a53161bb60a026ed1cc011bbc"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-lifecycle",
+      "label": "test-m4-lifecycle",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-lifecycle-1e54d58394",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "6ea6d269ceb21a7644f96abed8bdc9ea9204509c9e3a0382b3b4130bc03ffc34",
+      "serial_sha256": "08b7cf3301d6449dfe3997f989b9e068835dc5c7050caa5c5c5960bc5ac8b278",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "42e363395764e8ea9ea8b9d3a187a73a4203c64353c09af801975604af54bdf9"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "m4",
+      "group": "m1-regression-after-m4",
+      "label": "m1-after-m4",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m1-after-m4-0b46b778a9",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "848ca5c3934a4e9c768d0266c38d62a6efbfa0b2bef3e00867b73b91dd17a8c6",
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "62d3e01c6708c7dfccaf94427ae091a21ef144944d190b07df341ed444dfd571"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        }
+      ]
+    },
+    {
+      "phase": "manual",
+      "group": "normal-m5-cli",
+      "label": "smoke",
+      "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\smoke-24a326869f",
+      "recorded_base_commit": "8543fad3595ec36a624bcc871389f7472132ac41",
+      "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "raw_passed": true,
+      "expected_negative": false,
+      "raw_result_sha256": "bc9d60874da9e0affc65efb444630fbd08a63a406eaa89c9e584c0bfb82964be",
+      "serial_sha256": "bdcde1219c9e79ef42094c54c0bc82f58b735aedaa11e8f819d58745f9a18e52",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifact_checks": [
+        {
+          "file": "esp/kernel.elf",
+          "sha256": "74e6b1be591f3e5509746b4f849384198a2fbef4312350f31beb07ec6d605e81"
+        },
+        {
+          "file": "esp/EFI/BOOT/BOOTX64.EFI",
+          "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+        },
+        {
+          "file": "OVMF_CODE.fd",
+          "sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a"
+        },
+        {
+          "file": "OVMF_VARS.template.fd",
+          "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        {
+          "file": "test-disk.img",
+          "sha256": "1354036a0a831ac64714341beafd671bbd5c72cc1b6f4bb3c8709a45848002ac"
+        }
+      ]
+    }
+  ],
+  "host_commands": [
+    {
+      "phase": "m1",
+      "name": "host-tests",
+      "returncode": 0,
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "boot-protocol",
+        "-p",
+        "elf-loader-core"
+      ],
+      "logs": [
+        {
+          "file": "build/logs/host-tests.stdout.txt",
+          "sha256": "eeeb5333d28b3185a5e2f012cc6fcbba6caed465fa762f4c876ce483c7910342"
+        },
+        {
+          "file": "build/logs/host-tests.stderr.txt",
+          "sha256": "9dc818585cff9f1ba3fd5ec3a2987b939ea30c3ac8d82e7754e6bd12dc149aec"
+        }
+      ]
+    },
+    {
+      "phase": "m2",
+      "name": "m2-host-tests",
+      "returncode": 0,
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "kernel-core",
+        "-p",
+        "boot-protocol",
+        "-p",
+        "elf-loader-core"
+      ],
+      "logs": [
+        {
+          "file": "build/logs/m2-host-tests.stdout.txt",
+          "sha256": "7e675a4db3e880da74c898d6edccea612128c4406c752ea3789db75a6f0350df"
+        },
+        {
+          "file": "build/logs/m2-host-tests.stderr.txt",
+          "sha256": "1fd55ce6971858f2901341f1208c395f6dd3af94e82276c80c07e5ae70d108a3"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "name": "m3-host-tests",
+      "returncode": 0,
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "kernel-core"
+      ],
+      "logs": [
+        {
+          "file": "build/logs/m3-host-tests.stdout.txt",
+          "sha256": "827d14e7d6ebe775f616478f6f764ed2e424c8824d08e2e11840d98476a1a343"
+        },
+        {
+          "file": "build/logs/m3-host-tests.stderr.txt",
+          "sha256": "fb7c9b49f7b3d9acbe5ef0c52068beb55a3a940642e18e1d871b0036eba8e006"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "name": "m3-user-artifact-tests",
+      "returncode": 0,
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "userspace/tests/test_probe.py",
+        "--elf",
+        "build/users/probe.elf"
+      ],
+      "logs": [
+        {
+          "file": "build/logs/m3-user-artifact-tests.stdout.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "file": "build/logs/m3-user-artifact-tests.stderr.txt",
+          "sha256": "390c292dc09292c8bb55098c59ed91d20e07dd206a33200470c318ca8404a943"
+        }
+      ]
+    },
+    {
+      "phase": "m3",
+      "name": "m3-large-artifact-tests",
+      "returncode": 0,
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "userspace/tests/test_large_probe.py",
+        "--elf",
+        "build/users/probe_large.elf"
+      ],
+      "logs": [
+        {
+          "file": "build/logs/m3-large-artifact-tests.stdout.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "file": "build/logs/m3-large-artifact-tests.stderr.txt",
+          "sha256": "e1c5df76617296d91b533ab55670c2580709d0149900f94b797687a2ca6b0ce3"
+        }
+      ]
+    },
+    {
+      "phase": "m4",
+      "name": "m4-host-tests",
+      "returncode": 0,
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "capability-core",
+        "-p",
+        "kernel-core"
+      ],
+      "logs": [
+        {
+          "file": "build/logs/m4-host-tests.stdout.txt",
+          "sha256": "083d1b8577614f927a50e5f00e9457592d763fad9263af5bd2864fb136f285a9"
+        },
+        {
+          "file": "build/logs/m4-host-tests.stderr.txt",
+          "sha256": "129a7e64f58197521889fe709b6f89510782e608d70c62cc137c4ba80eb7b0cc"
+        }
+      ]
+    },
+    {
+      "phase": "m4",
+      "name": "m4-user-artifact-tests",
+      "returncode": 0,
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "userspace/tests/test_ipc_probe.py",
+        "--elf",
+        "build/users/ipc_probe.elf"
+      ],
+      "logs": [
+        {
+          "file": "build/logs/m4-user-artifact-tests.stdout.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "file": "build/logs/m4-user-artifact-tests.stderr.txt",
+          "sha256": "fd8e690503f6996d8d678162a8fafe0aa290525af5f59654b200df38c2b3f33d"
+        }
+      ]
+    }
+  ],
+  "manual_disk": {
+    "sha256": "1354036a0a831ac64714341beafd671bbd5c72cc1b6f4bb3c8709a45848002ac",
+    "independent_sector_digests": {
+      "4": "7596dfc0bb2f26b6",
+      "6": "ff9abb1e73c179ff"
+    }
+  },
+  "final_build": {
+    "manifest_sha256": "75615fa1ab8ac0c5ba956232be0482fec0e0fb151a2fcb4abc6b83d79191954b",
+    "profile": "milestone-m5",
+    "artifact_sha256": {
+      "kernel": "74e6b1be591f3e5509746b4f849384198a2fbef4312350f31beb07ec6d605e81",
+      "loader": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8"
+    },
+    "matches_both_normal_gate_images": true
+  },
+  "issues": [],
+  "passed": true
+}

@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-27",
+  "scope": "host artifact checks only; no CPL3 execution by R03",
+  "build": {
+    "owner": "root",
+    "exit": 0,
+    "command": [
+      "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\rustc.EXE",
+      "+1.90.0",
+      "--edition=2021",
+      "--crate-type=bin",
+      "--crate-name=os_user_probe",
+      "--target=x86_64-unknown-none",
+      "-C",
+      "panic=abort",
+      "-C",
+      "opt-level=2",
+      "-C",
+      "code-model=small",
+      "-C",
+      "relocation-model=static",
+      "-C",
+      "no-redzone=yes",
+      "-C",
+      "linker=rust-lld",
+      "-C",
+      "link-arg=-TC:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\linker.ld",
+      "-C",
+      "link-arg=--no-pie",
+      "-C",
+      "link-arg=--build-id=none",
+      "-C",
+      "link-arg=-zmax-page-size=0x1000",
+      "--emit=link",
+      "-o",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\users\\probe.elf",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\probe.rs"
+    ],
+    "stderr_bytes": 0
+  },
+  "host_tests": {
+    "command": "python -B -X utf8 userspace/tests/test_probe.py --elf build/users/probe.elf",
+    "exit": 0,
+    "tests": 13,
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0,
+    "log": "userspace/verification/mode16-host-tests.txt",
+    "log_sha256": "c7fa8e749e04cfae99886805cb33af81d3fe0b512668f335a1ed64f7f1991db6"
+  },
+  "artifact": {
+    "schema_version": 1,
+    "purpose": "synthetic ring-3 acceptance probe",
+    "binary_sha256": "8571d691fbff8b2e218a0bbb0ab246865678cd066ed7d5322e818a6039371dbc",
+    "source_sha256": "094bda3e3937d2a698591ad50befd85d5e153b020e21e658de7ac72a0288856c",
+    "linker_sha256": "6e2575a606a8e1f7ce0743e9b6766db2c870369dc1aafca68277bd02b0e03bea",
+    "entry": 1073741824,
+    "segments": [
+      {
+        "flags": 5,
+        "address": 1073741824,
+        "offset": 4096,
+        "filesz": 1070,
+        "memsz": 1070,
+        "page_start": 1073741824,
+        "page_end": 1073745920
+      },
+      {
+        "flags": 6,
+        "address": 1073807360,
+        "offset": 8192,
+        "filesz": 32,
+        "memsz": 32,
+        "page_start": 1073807360,
+        "page_end": 1073811456
+      }
+    ]
+  },
+  "source_sha256": {
+    "userspace/probe.rs": "094bda3e3937d2a698591ad50befd85d5e153b020e21e658de7ac72a0288856c",
+    "userspace/linker.ld": "6e2575a606a8e1f7ce0743e9b6766db2c870369dc1aafca68277bd02b0e03bea",
+    "userspace/tests/test_probe.py": "029409e651205373de2caabc50de4b8c90924aa9b1f8e2d40b1ae3df87f3679c",
+    "tools/build_users.py": "9b0e87a679d9684d194ab9bc9f98956b67ce57b1df6766ba17fc0500daf62837"
+  },
+  "remaining": [
+    "actual privilege transition",
+    "PIT preemption and sixteen-worker fairness",
+    "per-process physical isolation and TLB",
+    "fault vector/address/error bits and B progress",
+    "safe frame/page-table reclaim",
+    "actual unknown-syscall/unused-argument error paths and DF/GPR preservation",
+    "actual B mode15 exit7/counter1 and A progress after cleanup",
+    "actual mode16 invalid return-RSP software rejection and other-process progress; no hardware-fault claim"
+  ],
+  "head_at_mode15_host_check": "93d6dbd56b3d4e503fa89925d00649be83461721",
+  "head_at_mode16_host_check": "93d6dbd56b3d4e503fa89925d00649be83461721"
+}

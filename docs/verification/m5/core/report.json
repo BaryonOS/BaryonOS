@@ -1,0 +1,117 @@
+{
+  "task": "M5-C",
+  "basis_commit": "65c1c24bbfef19681c310d597910522d60b5f2d6",
+  "scope": "pure host validation/policy and typed capability authority; no live hardware proof",
+  "target_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\m5-core-tests",
+  "commands": [
+    {
+      "name": "format",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.exe",
+        "+1.90.0",
+        "fmt",
+        "-p",
+        "capability-core",
+        "-p",
+        "virtio-core",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 6.41205
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.exe",
+        "+1.90.0",
+        "test",
+        "-p",
+        "capability-core",
+        "-p",
+        "virtio-core",
+        "--locked",
+        "--offline",
+        "--",
+        "--test-threads=3"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 5.91738
+    },
+    {
+      "name": "clippy",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.exe",
+        "+1.90.0",
+        "clippy",
+        "-p",
+        "capability-core",
+        "-p",
+        "virtio-core",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.456154
+    },
+    {
+      "name": "no-std",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.exe",
+        "+1.90.0",
+        "check",
+        "-p",
+        "capability-core",
+        "-p",
+        "virtio-core",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.403869
+    },
+    {
+      "name": "diff-check",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "crates/capability-core",
+        "crates/virtio-core"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.040833
+    }
+  ],
+  "source_sha256": {
+    "crates\\capability-core\\Cargo.toml": "7b24ddba37bca5b44a8b75b6cc229e2ae06c7a44533fe0d6a121783ad7552087",
+    "crates\\capability-core\\README.md": "d25dafb82a8af8a3cbbfed5a207817df26724766b5939d9af07f31e30847eddb",
+    "crates\\capability-core\\src\\lib.rs": "ff825d0bef61f42f0b0132381d403c0b49dccf21a77e4ee1f2c633785a247d47",
+    "crates\\capability-core\\src\\tests.rs": "904e72e2eb67bd9c042c5296f8328b03a01032fbd3ae244d2c8c72c7af15fb6b",
+    "crates\\virtio-core\\Cargo.toml": "466f4e1dcaa1a58a136e4bc0fc0a5df1cef607bc8ff0926adb326a9ff2ac17bf",
+    "crates\\virtio-core\\README.md": "416d0128a077bda71d82e698af273e12757ea75ab1462b684fd8ceba34d6cfb3",
+    "crates\\virtio-core\\src\\lib.rs": "ed98470e2c9e85efe2ede0b3b869b9253a989b290b860dd0aad1a69e218f1fda",
+    "crates\\virtio-core\\src\\tests.rs": "cbf067ccd840feb67001fb99fada4999ab46120dfdc9ba95439e96b5e54fad25",
+    "Cargo.lock": "64b3d0f76a7fd8e0aa3544f48e5692e9eb0ee758bcebe480cd3930035760c161"
+  },
+  "passed": true,
+  "capability_tests": 26,
+  "virtio_tests": 12,
+  "dependencies": "zero for both libraries",
+  "unsafe": "forbidden in both libraries",
+  "initial_diagnosis": "PCI linked-list test initially exposed acceptance of a zero capability ID at the list tail; parser now fails closed on zero/255 IDs, test was retained. Initial Clippy style errors corrected without suppressions.",
+  "limits": [
+    "No MMIO, PCI writes, actual DMA ownership/cache/pinning or reset acknowledgement is exercised by these host tests.",
+    "Policy.complete epoch/ticket arguments are software provenance, not fields carried in virtio used entries; no malicious-device replay detection is claimed.",
+    "Guest transport must enforce actual CPU physical width and RAM/MMIO ownership; core addresses are limited to 52-bit x86-64 PTE range.",
+    "READ-only QEMU profile trusts conforming emulator device; no VT-d/device-compromise containment or physical-hardware claim.",
+    "Status failure is a terminal non-payload Completion; caller must not expose bounce data for Io/Unsupported."
+  ]
+}

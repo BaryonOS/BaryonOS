@@ -1,0 +1,23 @@
+
+running 14 tests
+test tests::checked_ranges ... ok
+test tests::ovmf_cache_capabilities_are_not_special_memory ... ok
+test tests::physical_alias_wx_and_mapped_free ... ok
+test tests::unmap_mismatched_alias_is_atomic_and_cannot_free_executable ... ok
+test tests::unique_exhaustion_ownership_and_zero_order ... ok
+test user::tests::copy_plan_checks_entire_range_before_any_copy ... ok
+test tests::reserved_and_special_memory ... ok
+test user::tests::legal_large_image_and_exact_user_mapping_budget ... ok
+test user::tests::overflow_offset_and_page_overlap ... ok
+test user::tests::pids_survive_16bit_boundary_and_never_wrap ... ok
+test user::tests::return_flags_strip_authority ... ok
+test user::tests::user_return_layout_rejects_untrusted_stack_and_noncanonical_alias ... ok
+test user::tests::valid_and_wx_entry_checks ... ok
+test tests::quota_no_partial_allocation ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

@@ -1,0 +1,19 @@
+
+running 1 test
+test statevector::tests::rounding_remainder_cannot_create_trailing_zero_probability_mass ... FAILED
+
+failures:
+
+---- statevector::tests::rounding_remainder_cannot_create_trailing_zero_probability_mass stdout ----
+
+thread 'statevector::tests::rounding_remainder_cannot_create_trailing_zero_probability_mass' panicked at src\statevector.rs:257:9:
+assertion `left == right` failed
+  left: [0.9999999999999998, 0.9999999999999998, 0.9999999999999998, 0.9999999999999998, 1.0]
+ right: [1.0, 1.0, 1.0, 1.0, 1.0]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    statevector::tests::rounding_remainder_cannot_create_trailing_zero_probability_mass
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s

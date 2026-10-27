@@ -1,0 +1,286 @@
+{
+  "date": "2026-10-27",
+  "origin": "http://127.0.0.1:8776",
+  "skiplink": {
+    "focus": "main",
+    "href": "http://127.0.0.1:8776/#/gereedschap",
+    "title": "Gereedschap · Materiaal prototype"
+  },
+  "zoomBefore": {
+    "dpr": 1.5,
+    "height": 720,
+    "scale": 1,
+    "width": 1280
+  },
+  "zoomAfter": {
+    "dpr": 1.5,
+    "height": 720,
+    "scale": 1,
+    "width": 1280
+  },
+  "skiplinkEditing": {
+    "editor": "Synthetische regressiedraft P02V",
+    "focus": "main",
+    "href": "http://127.0.0.1:8776/#/object/obj-001",
+    "save": "Opslaan"
+  },
+  "mobileMenu": {
+    "expanded": "true",
+    "focus": "toggle-menu"
+  },
+  "inspector": {
+    "expanded": "true",
+    "focus": "toggle-inspector"
+  },
+  "console": [],
+  "pageIdentity": {
+    "url": "http://127.0.0.1:8776/#/toegang",
+    "title": "Tuinplan · Materiaal prototype"
+  },
+  "contrastSummary": [
+    {
+      "url": "http://127.0.0.1:8776/#/gereedschap",
+      "samples": 44,
+      "failures": []
+    },
+    {
+      "url": "http://127.0.0.1:8776/#/materiaal",
+      "samples": 44,
+      "failures": []
+    },
+    {
+      "url": "http://127.0.0.1:8776/#/toegang",
+      "samples": 54,
+      "failures": []
+    },
+    {
+      "url": "http://127.0.0.1:8776/#/object/obj-001",
+      "samples": 43,
+      "failures": []
+    },
+    {
+      "url": "http://127.0.0.1:8776/#/object/obj-001",
+      "samples": 34,
+      "failures": []
+    },
+    {
+      "url": "http://127.0.0.1:8776/#/apparaten",
+      "samples": 35,
+      "failures": []
+    },
+    {
+      "url": "http://127.0.0.1:8776/#/apparaten",
+      "samples": 36,
+      "failures": []
+    },
+    {
+      "url": "http://127.0.0.1:8776/#/assistent",
+      "samples": 35,
+      "failures": []
+    },
+    {
+      "url": "http://127.0.0.1:8776/#/assistent",
+      "samples": 35,
+      "failures": []
+    },
+    {
+      "url": "http://127.0.0.1:8776/#/gereedschap",
+      "samples": 45,
+      "failures": []
+    },
+    {
+      "url": "http://127.0.0.1:8776/#/toegang",
+      "samples": 55,
+      "failures": []
+    }
+  ],
+  "contrastPairs": [
+    {
+      "foreground": "rgb(10, 94, 85)",
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "ratio": 7.65,
+      "example": "Ga naar inhoud"
+    },
+    {
+      "foreground": "rgb(22, 43, 43)",
+      "background": [
+        237,
+        240,
+        233
+      ],
+      "ratio": 12.9,
+      "example": "Materiaal"
+    },
+    {
+      "foreground": "rgb(93, 106, 103)",
+      "background": [
+        237,
+        240,
+        233
+      ],
+      "ratio": 4.9,
+      "example": "Mijn materiaal"
+    },
+    {
+      "foreground": "rgb(10, 94, 85)",
+      "background": [
+        220,
+        231,
+        220
+      ],
+      "ratio": 6.01,
+      "example": "Gereedschap"
+    },
+    {
+      "foreground": "rgb(10, 94, 85)",
+      "background": [
+        237,
+        240,
+        233
+      ],
+      "ratio": 6.64,
+      "example": "L"
+    },
+    {
+      "foreground": "rgb(93, 106, 103)",
+      "background": [
+        244,
+        245,
+        241
+      ],
+      "ratio": 5.15,
+      "example": "Interactiemodel · simulatie"
+    },
+    {
+      "foreground": "rgb(22, 43, 43)",
+      "background": [
+        244,
+        245,
+        241
+      ],
+      "ratio": 13.56,
+      "example": "Demo opnieuw beginnen"
+    },
+    {
+      "foreground": "rgb(10, 94, 85)",
+      "background": [
+        244,
+        245,
+        241
+      ],
+      "ratio": 6.99,
+      "example": "Pakketdetails en rechten"
+    },
+    {
+      "foreground": "rgb(22, 43, 43)",
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "ratio": 14.85,
+      "example": "Open met materiaal"
+    },
+    {
+      "foreground": "rgb(255, 255, 255)",
+      "background": [
+        10,
+        94,
+        85
+      ],
+      "ratio": 7.65,
+      "example": "Installeer voorbeeld"
+    },
+    {
+      "foreground": "rgb(93, 106, 103)",
+      "background": [
+        231,
+        237,
+        227
+      ],
+      "ratio": 4.73,
+      "example": "Verder waar je was"
+    },
+    {
+      "foreground": "rgb(22, 43, 43)",
+      "background": [
+        231,
+        237,
+        227
+      ],
+      "ratio": 12.46,
+      "example": "Tuinplan"
+    },
+    {
+      "foreground": "rgb(93, 106, 103)",
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "ratio": 5.64,
+      "example": "Een tuin om in te blijven.\n\nEen bank in de ochtendzon, kruiden bij de "
+    },
+    {
+      "foreground": "rgb(22, 43, 43)",
+      "background": [
+        231,
+        238,
+        231
+      ],
+      "ratio": 12.57,
+      "example": "Notities · alleen dit document. Toegang stopt als je het sluit."
+    },
+    {
+      "foreground": "rgb(163, 54, 37)",
+      "background": [
+        255,
+        255,
+        255
+      ],
+      "ratio": 6.75,
+      "example": "Identiteit afwijkend"
+    },
+    {
+      "foreground": "rgb(138, 82, 0)",
+      "background": [
+        255,
+        243,
+        219
+      ],
+      "ratio": 5.81,
+      "example": "Er is geen lokaal model beschikbaar. De assistent kan deze taak niet u"
+    },
+    {
+      "foreground": "rgb(163, 54, 37)",
+      "background": [
+        252,
+        240,
+        237
+      ],
+      "ratio": 6.05,
+      "example": "De voorbeeldhandtekening klopt niet. Het pakket is niet geïnstalleerd."
+    }
+  ],
+  "typeSearch": {
+    "url": "http://127.0.0.1:8776/#/materiaal",
+    "results": [
+      "Plattegrond"
+    ]
+  },
+  "desktopInspector": {
+    "clientWidth": 1425,
+    "innerWidth": 1440,
+    "inspectorWidth": 288,
+    "scrollWidth": 1425
+  },
+  "finalReflow": {
+    "clientWidth": 305,
+    "innerWidth": 320,
+    "scrollWidth": 305
+  }
+}

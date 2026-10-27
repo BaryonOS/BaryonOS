@@ -1,0 +1,14 @@
+{
+  "ui/prototype": {
+    "matched_hashes": 9,
+    "evidence": "ui/prototype/verification/source-hashes.json",
+    "rerun": false,
+    "reason": "tested files unchanged"
+  },
+  "experiments/quantum": {
+    "matched_hashes": 15,
+    "evidence": "docs/verification/m2-m4/quantum/report.json",
+    "rerun": false,
+    "reason": "tested files unchanged"
+  }
+}

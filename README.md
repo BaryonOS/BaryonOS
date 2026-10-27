@@ -1,6 +1,6 @@
-# Nieuw OS — eerste bouwbatch
+# Nieuw OS — eigen kernel en eerste geïsoleerde blokdienst
 
-De eigen Rust-kernel start daadwerkelijk via de eigen UEFI-loader in QEMU. Daarnaast zijn het interactieve Materiaal-prototype en de lokale Rust-quantumsimulator geïmplementeerd. Dit is een experimentele ontwikkelversie, geen productie-OS.
+De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde gebruikersprocessen en verwerkt capabilities/IPC. M5 voegt een echte ring-3-blokdienst met alleen-lezen virtio-I/O toe. De definitieve M1–M5-suites slagen: **77 controlegroepen en 64 echte VM-runs**, plus een normale M5-eindstart. Materiaal en qsim blijven afzonderlijke hostprototypes. Dit is een experimentele ontwikkelversie met synthetische testprogramma's.
 
 - **Actuele voortgang en open controles:** [PROJECT-STATE.md](docs/PROJECT-STATE.md).
 - **Starten en reproduceren:** [DEVELOPMENT.md](docs/DEVELOPMENT.md).
@@ -8,7 +8,9 @@ De eigen Rust-kernel start daadwerkelijk via de eigen UEFI-loader in QEMU. Daarn
 - **Productprototype:** [handleiding](ui/prototype/README.md).
 - **Quantumsimulator:** [handleiding](experiments/quantum/README.md).
 
-De actuele code staat op `codex/first-build`; `main` bevat de oorspronkelijke startspecificaties totdat de concept-PR is beoordeeld. Voortgang wordt per afgebakende stap gecommit en gepusht, met uitgevoerde tests en open punten.
+De actuele code en het testbewijs staan op [codex/m5-block-service](https://github.com/simonvanieperen/nieuw-os/tree/codex/m5-block-service), met [concept-PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3). Selecteer die branch. `main` bevat de startspecificaties totdat de concept-PR's zijn beoordeeld. Checkpoints bewaren bron, echte testuitkomsten, review en open punten. De M5-testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
+
+Start vanuit de projectroot met `python tools/build.py --kernel-feature milestone-m5` en daarna `python tools/run.py --smoke --milestone m5`. De runner maakt zelf een synthetische alleen-lezen testimage; na de gecontroleerde leesproef sluit QEMU af. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
 
 ## Oorspronkelijk startpakket (historische context)
 

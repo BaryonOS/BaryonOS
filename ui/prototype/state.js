@@ -76,16 +76,19 @@ export function reducer(previous, event) {
       break;
     }
     case 'grantSession': {
+      const keepEditorGrant = broker.authorize(state, state.activeGrantId, state.selectedObjectId, 'write').ok;
       const result = broker.grant(state);
       if (!checked(state, result)) break;
       state.counter += 1;
       state.grants.push(result.value);
-      state.activeGrantId = result.value.id;
+      if (result.value.operations.includes('write') || !keepEditorGrant) state.activeGrantId = result.value.id;
       state.grantRequest = null; state.lastGrantState = 'allowed';
       const object = selectedObject(state);
       if (result.value.operations.includes('write')) {
         state.mode = 'edit';
         if (state.draft?.objectId !== object.id) state.draft = { objectId: object.id, text: currentVersion(object).text, baseRevision: object.revision, cursor: 0 };
+      } else if (!keepEditorGrant) {
+        state.mode = 'read';
       }
       notify(state, `${state.tools.find((tool) => tool.id === result.value.toolId).name} · alleen dit document. Toegang stopt als je het sluit.`);
       break;

@@ -93,6 +93,7 @@ pub(crate) fn distribution(
     cdf.try_reserve_exact(state.len())
         .map_err(|_| ExecuteError::ResourceExhausted)?;
     let mut sum = 0.0;
+    let mut last_nonzero = 0;
     for (index, &amplitude) in state.iter().enumerate() {
         if index % 256 == 0 {
             control.checkpoint(*work)?;
@@ -103,6 +104,9 @@ pub(crate) fn distribution(
             return Err(ExecuteError::NumericalError);
         }
         sum += probability;
+        if probability > 0.0 {
+            last_nonzero = index;
+        }
         cdf.push(probability);
     }
     if !sum.is_finite() || (sum - 1.0).abs() > 1e-9 {
@@ -115,11 +119,14 @@ pub(crate) fn distribution(
         }
         *work += 1;
         cumulative += *probability / sum;
-        // Bound cumulative rounding to keep trailing zero-mass bins monotone
-        // when the final CDF entry is set to exactly one.
-        *probability = cumulative.min(1.0);
+        // Assign the rounding remainder to the last occupied bin. Setting only
+        // the final entry to one could make a trailing zero-mass bin sampleable.
+        *probability = if index >= last_nonzero {
+            1.0
+        } else {
+            cumulative.min(1.0)
+        };
     }
-    *cdf.last_mut().ok_or(ExecuteError::NumericalError)? = 1.0;
     Ok(cdf)
 }
 
@@ -222,5 +229,37 @@ mod tests {
             distribution(&[], &mut Uninterrupted, &mut 0),
             Err(ExecuteError::NumericalError)
         );
+    }
+
+    #[test]
+    fn rounding_remainder_cannot_create_trailing_zero_probability_mass() {
+        // These normalized amplitudes make ordinary cumulative division end at
+        // 1 - 2^-52. The largest possible sampler value exceeds that boundary.
+        let state = [
+            Complex {
+                re: 0.2774424420766701,
+                im: 0.0,
+            },
+            Complex::ZERO,
+            Complex {
+                re: 0.6967611329594573,
+                im: 0.0,
+            },
+            Complex {
+                re: 0.6614753320658202,
+                im: 0.0,
+            },
+            Complex::ZERO,
+            Complex::ZERO,
+            Complex::ZERO,
+            Complex::ZERO,
+        ];
+        let cdf = distribution(&state, &mut Uninterrupted, &mut 0).unwrap();
+        let maximum_sample = (u64::MAX >> 11) as f64 / 9_007_199_254_740_992.0;
+        assert_eq!(cdf[0], cdf[1]);
+        assert_eq!(&cdf[3..], &[1.0; 5]);
+        assert_eq!(cdf.partition_point(|&p| p <= maximum_sample), 3);
+        // Exact boundary selection also skips the interior zero-mass bin.
+        assert_eq!(cdf.partition_point(|&p| p <= cdf[0]), 2);
     }
 }
