@@ -3,7 +3,10 @@
 from __future__ import annotations
 import argparse
 import json
+import os
 from pathlib import Path
+import shutil
+import tempfile
 from common import ROOT, BUILD, save_json, sha256
 from run import is_success, MARKERS
 
@@ -43,56 +46,73 @@ def capture(phase: str):
     if suite.get("status") != "completed" or suite.get("passed") is not True:
         raise ValueError("Only a completed, passed gate can be captured")
     destination = ROOT / "docs/verification/m2-m4" / phase
-    runs = []
-    for group in suite["results"]:
-        if group.get("passed") is not True:
-            raise ValueError(f"Failed group: {group['name']}")
-        if group["evidence"] is None and phase == "m1" and group["name"] == "harness-rejects-wrong-exit-markers-timeout":
-            # This synthetic parser assertion has no guest artifact. It remains
-            # labeled as such in the unmodified suite, never as an extra VM run.
-            continue
-        evidence = Path(group["evidence"])
-        if not evidence.is_absolute():
-            evidence = ROOT / evidence
-        if evidence.is_dir():
-            evidence.resolve().relative_to((BUILD / "run").resolve())
-            result = json.loads((evidence / "result.json").read_text(encoding="utf-8"))
-            if not guest_matches(phase, group["name"], result):
-                raise ValueError(f"Guest evidence failed: {evidence}")
-            if (evidence / "serial.txt").read_bytes().decode("utf-8") != result["stdout"]:
-                raise ValueError(f"Serial evidence changed: {evidence}")
-            if (evidence / "stderr.txt").read_bytes().decode("utf-8") != result["stderr"]:
-                raise ValueError(f"Stderr evidence changed: {evidence}")
-            for name, expected in result["artifact_sha256"].items():
-                artifact = evidence / name
-                artifact.resolve().relative_to(evidence.resolve())
-                # Older runs recorded the immutable package template's hash,
-                # but retained only the firmware-mutated working VARS file.
-                # Verify that original source explicitly; never hash working VARS.
-                if name == "OVMF_VARS.template.fd" and not artifact.exists():
-                    artifact = Path(result["firmware_source"][1])
-                if sha256(artifact) != expected:
-                    raise ValueError(f"Artifact changed: {artifact}")
-            runs.append(result)
-        elif evidence.is_file() and evidence.name.endswith(".stdout.txt"):
-            evidence.resolve().relative_to(BUILD.resolve())
-            destination.mkdir(parents=True, exist_ok=True)
-            # Preserve textual host output; never turn a log into a test result.
-            paths = [evidence]
-            if evidence.name.endswith(".stdout.txt"):
-                stem = evidence.name.removesuffix(".stdout.txt")
-                metadata = evidence.with_name(stem + ".json")
-                details = json.loads(metadata.read_text(encoding="utf-8"))
-                if details.get("returncode") != 0:
-                    raise ValueError(f"Failed host command: {metadata}")
-                paths += [metadata, evidence.with_name(stem + ".stderr.txt")]
-            for source in paths:
-                (destination / source.name).write_text(
-                    source.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
-        else:
-            raise ValueError(f"Missing evidence: {evidence}")
-    save_json(destination / "suite.json", suite)
-    save_json(destination / "guest-runs.json", runs)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=f".{phase}-capture-", dir=destination.parent) as temporary:
+        temporary = Path(temporary)
+        staged = temporary / "archive"
+        staged.mkdir()
+        if destination.exists():
+            shutil.copytree(destination, staged, dirs_exist_ok=True)
+
+        runs = []
+        for group in suite["results"]:
+            if group.get("passed") is not True:
+                raise ValueError(f"Failed group: {group['name']}")
+            if group["evidence"] is None and phase == "m1" and group["name"] == "harness-rejects-wrong-exit-markers-timeout":
+                # This synthetic parser assertion has no guest artifact. It remains
+                # labeled as such in the unmodified suite, never as an extra VM run.
+                continue
+            evidence = Path(group["evidence"])
+            if not evidence.is_absolute():
+                evidence = ROOT / evidence
+            if evidence.is_dir():
+                evidence.resolve().relative_to((BUILD / "run").resolve())
+                result = json.loads((evidence / "result.json").read_text(encoding="utf-8"))
+                if not guest_matches(phase, group["name"], result):
+                    raise ValueError(f"Guest evidence failed: {evidence}")
+                if (evidence / "serial.txt").read_bytes().decode("utf-8") != result["stdout"]:
+                    raise ValueError(f"Serial evidence changed: {evidence}")
+                if (evidence / "stderr.txt").read_bytes().decode("utf-8") != result["stderr"]:
+                    raise ValueError(f"Stderr evidence changed: {evidence}")
+                for name, expected in result["artifact_sha256"].items():
+                    artifact = evidence / name
+                    artifact.resolve().relative_to(evidence.resolve())
+                    # Older runs recorded the immutable package template's hash,
+                    # but retained only the firmware-mutated working VARS file.
+                    # Verify that original source explicitly; never hash working VARS.
+                    if name == "OVMF_VARS.template.fd" and not artifact.exists():
+                        artifact = Path(result["firmware_source"][1])
+                    if sha256(artifact) != expected:
+                        raise ValueError(f"Artifact changed: {artifact}")
+                runs.append(result)
+            elif evidence.is_file() and evidence.name.endswith(".stdout.txt"):
+                evidence.resolve().relative_to(BUILD.resolve())
+                # Preserve textual host output; never turn a log into a test result.
+                paths = [evidence]
+                if evidence.name.endswith(".stdout.txt"):
+                    stem = evidence.name.removesuffix(".stdout.txt")
+                    metadata = evidence.with_name(stem + ".json")
+                    details = json.loads(metadata.read_text(encoding="utf-8"))
+                    if details.get("returncode") != 0:
+                        raise ValueError(f"Failed host command: {metadata}")
+                    paths += [metadata, evidence.with_name(stem + ".stderr.txt")]
+                for source in paths:
+                    (staged / source.name).write_text(
+                        source.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
+            else:
+                raise ValueError(f"Missing evidence: {evidence}")
+        save_json(staged / "suite.json", suite)
+        save_json(staged / "guest-runs.json", runs)
+
+        backup = temporary / "previous"
+        if destination.exists():
+            os.replace(destination, backup)
+        try:
+            os.replace(staged, destination)
+        except BaseException:
+            if backup.exists():
+                os.replace(backup, destination)
+            raise
     print(f"Captured {phase}: {len(suite['results'])} groups, {len(runs)} verified guest runs")
 
 

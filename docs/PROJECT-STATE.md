@@ -4,6 +4,10 @@ Bijgewerkt: 27 oktober 2026. Eigen kernel, ontwikkelfase M1–M4.
 
 Repository: https://github.com/simonvanieperen/nieuw-os (privé). Werkbranch: `codex/m2-m4-isolation`. Kernel-/integratiebron: `ed09818e0f80b3a755237b813783b662f9153faf`. Concept-PR: https://github.com/simonvanieperen/nieuw-os/pull/2, basis `codex/first-build`. Main bevat nog de startspecificatie. De laatste bewijs-/documentatiecommit volgt bovenop de genoemde bronversie.
 
+## Reviewfollow-up
+
+De bewijsarchiefcapture valideert een volledige nieuwe opname in een tijdelijke kopie voordat zij het bestaande archief vervangt. De synthetische regressietests voor behoud bij een hashfout en vervanging na geldige validatie slagen: `python -B -X utf8 tests/test_capture_gate.py` (2 tests, exit 0). Dit is hosttoolbewijs, geen nieuwe kernel- of gasttest.
+
 ## Hoofdresultaat
 
 De ontwikkelfase M1–M4 is geïmplementeerd en getest. De samengestelde M2–M4-poort slaagt op deze bron: 42 controlegroepen en 36 echte QEMU-runs. De aanvullende volledige M1-bootfoutregressie op `622c2ee` slaagt met tien groepen en acht extra VM-runs, inclusief de bewuste60s-timeout. De eindmatrix en het onafhankelijke V04-bewijsoverzicht staan onder verification/m2-m4/. De laatste bewijs-/documentatiecommit is de commit die dit bestand bevat.
