@@ -1,5 +1,6 @@
 import { createFixtureState, COLLECTIONS, NAS_IDENTITY } from './fixtures.js';
 import * as broker from './broker.js';
+import { changeNasSharing, resumeNasSharing } from './nas-sharing.js';
 
 export const selectedObject = (state) => state.objects.find((object) => object.id === state.selectedObjectId);
 export const currentVersion = (object) => object?.versions.at(-1);
@@ -9,14 +10,23 @@ const errors = {
   DENIED: 'Geen toegang. Vraag opnieuw toestemming voor dit document.',
   NOT_FOUND: 'Dit voorbeeld is niet gevonden. Ga terug naar Mijn materiaal.',
   STALE_REVISION: 'Het document heeft een nieuwere versie. Je concept blijft bewaard; sluit het document en open het opnieuw.',
-  NAS_UNAVAILABLE: 'De eigen NAS is niet beschikbaar. Je kunt lokaal verder werken.',
+  NAS_UNAVAILABLE: 'De gekoppelde NAS of opslagruimte is niet beschikbaar. Je kunt lokaal verder werken.',
   IDENTITY_MISMATCH: 'De identiteit is niet bevestigd. Synchronisatie is gestopt; controleer de verbinding opnieuw.',
   MODEL_MISSING: 'Er is geen lokaal model beschikbaar. Je kunt zonder assistent verder werken.',
   RESOURCE_LIMIT: 'Onvoldoende lokale capaciteit. Je kunt zonder assistent verder werken.',
   INVALID_PACKAGE: 'De voorbeeldhandtekening klopt niet. Het pakket is niet geïnstalleerd.',
+  INVITE_EXPIRED: 'Deze voorbeelduitnodiging is verlopen of al gebruikt. Vraag een nieuwe uitnodiging.',
+  INVALID_ALLOCATION: 'Vul een naam en een geheel aantal GiB in binnen de beschikbare ruimte.',
+  REMOTE_NOT_ALLOWED: 'Internettoegang is voor deze NAS niet toegestaan. De lokale kopie blijft beschikbaar.',
+  NAS_QUOTA: 'Er is niet genoeg niet-toegewezen NAS-ruimte voor dit aanbod.',
+  LOCAL_ADMIN_REQUIRED: 'Activeer lokaal voorbeeldbeheer op je eigen NAS. Beheer via internet is nog niet beschikbaar.',
 };
 
 function notify(state, text, kind = 'success') { state.message = { text, kind }; }
+function pauseNasAdministration(state) {
+  state.nasSharing.hosting.adminRole = 'inactive';
+  state.nasSharing.pendingRemoval = null;
+}
 function checked(state, result) {
   if (!result.ok) notify(state, errors[result.code] || 'De handeling kon niet worden uitgevoerd.', 'error');
   return result.ok;
@@ -135,7 +145,7 @@ export function reducer(previous, event) {
       state.draft = null;
       break;
     }
-    case 'pairNas': { const result = broker.pairNas(state); if (checked(state, result)) state.nas = result.value; break; }
+    case 'pairNas': { const result = broker.pairNas(state); if (checked(state, result)) { state.nas = result.value; pauseNasAdministration(state); } break; }
     case 'confirmNas': {
       const result = broker.pairNas(state, { confirmed: event.confirmed, identity: event.identity });
       if (checked(state, result)) { state.nas = result.value; notify(state, 'Thuis-NAS gekoppeld in deze simulatie. Er zijn geen bestanden verstuurd.'); }
@@ -143,7 +153,40 @@ export function reducer(previous, event) {
     }
     case 'nasCondition': {
       const result = broker.setNasCondition(state, event.condition);
-      if (checked(state, result)) { state.nas = result.value; notify(state, event.condition === 'online' ? 'De voorbeeldverbinding is hersteld.' : 'NAS-status gewijzigd. Lokaal werken blijft mogelijk.', 'info'); }
+      if (checked(state, result)) {
+        state.nas = result.value;
+        if (state.nas.state !== 'online' || state.nas.network !== 'lan') pauseNasAdministration(state);
+        notify(state, event.condition === 'online' ? 'De voorbeeldverbinding is hersteld.' : 'NAS-status gewijzigd. Lokaal werken blijft mogelijk.', 'info');
+      }
+      break;
+    }
+    case 'nasInternet': {
+      const result = broker.setNasInternet(state, { identity: event.identity, allowed: event.allowed });
+      if (checked(state, result)) { state.nas = result.value; notify(state, event.allowed ? 'Internet is alleen voor deze bevestigde NAS toegestaan in de simulatie.' : 'Internettoegang voor deze NAS ingetrokken.', 'info'); }
+      break;
+    }
+    case 'nasInternetConnect': {
+      const result = broker.connectNasInternet(state, event.identity);
+      if (checked(state, result)) { state.nas = result.value; pauseNasAdministration(state); notify(state, 'Dezelfde NAS via internet bereikt in de simulatie. Er zijn geen bestanden verstuurd.'); }
+      break;
+    }
+    case 'observeNasRoute': {
+      const result = broker.observeNasRoute(state, event);
+      if (checked(state, result)) {
+        state.nas = result.value;
+        if (state.nas.state !== 'online' || state.nas.network !== 'lan') pauseNasAdministration(state);
+        notify(state, state.nas.state === 'online'
+          ? `Mijn NAS blijft verbonden ${state.nas.network === 'internet' ? 'via internet' : 'op je thuisnetwerk'} · simulatie.`
+          : state.nas.state === 'identityMismatch' ? errors.IDENTITY_MISMATCH
+            : 'De NAS-verbinding is gepauzeerd. Je kunt lokaal verder werken.', 'info');
+      }
+      break;
+    }
+    case 'nasSharing': {
+      const result = changeNasSharing(state.nasSharing, event.action, {
+        localAdminAvailable: state.nas.state === 'online' && state.nas.identity === NAS_IDENTITY && state.nas.network === 'lan',
+      });
+      if (checked(state, result)) { state.nasSharing = result.value; if (result.message) notify(state, result.message, 'info'); }
       break;
     }
     case 'beginInstall': state.install = { state: 'checking', toolId: event.id }; break;
@@ -242,6 +285,7 @@ export function resumeState(serialized) {
     const nasCondition = ['unpaired', 'offline', 'networkChanged', 'identityMismatch', 'online'].includes(stored.nas.state) ? stored.nas.state : 'unpaired';
     state.nas = { ...fresh.nas, state: nasCondition === 'online' && stored.nas.identity !== NAS_IDENTITY ? 'unpaired' : nasCondition,
       identity: stored.nas.identity === NAS_IDENTITY ? NAS_IDENTITY : null };
+    state.nasSharing = resumeNasSharing(stored.nasSharing);
     const availability = ['ready', 'missingModel', 'lowMemory'].includes(stored.ai.availability) ? stored.ai.availability : 'ready';
     state.ai = { ...fresh.ai, availability, state: availability,
       context: Array.isArray(stored.ai.context) ? [...new Set(stored.ai.context.filter(hasObject))].slice(0, 3) : [state.objects[0].id] };
@@ -249,3 +293,4 @@ export function resumeState(serialized) {
     return state;
   } catch { return createFixtureState(); }
 }
+

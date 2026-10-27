@@ -1,5 +1,13 @@
 # Productbesluit en bouwspecificatie P2 — Materiaal
 
+## Aanvulling N01 — 27 oktober 2026
+
+De gebruikerswijziging is leidend boven onderstaande oorspronkelijke scope van één eigen NAS. Apparaten heeft nu drie flows: **Mijn NAS**, **Ruimte ontvangen** en **Ruimte aanbieden**. Internet is afzonderlijk toegestaan voor een bevestigde NAS-identiteit. Ontvangen ruimte kan bij vrienden/familie staan; de ontvanger bevestigt dat de host zijn NAS-kopie kan verwijderen en krijgt het advies een onafhankelijke kopie te bewaren. De beheerder ziet alleen capaciteit/gebruik/status en mag intrekken+wissen zonder gasttoestemming of inhoudssleutel.
+
+Datatoegang geeft geen beheerrol. In de mock is expliciete lokale beheeractivatie vereist; een internetroute verleent geen extern beheer. Intrekking verhoogt de generatie, blokkeert oude uploads en geeft capaciteit vrij; een nieuwe uitnodiging krijgt een nieuw ruimte-ID. Documentnamen en inhoud horen alleen in de echte client versleuteld te worden: de browserflow simuleert dit en verwerkt geen sleutels, verbindingen of echte NAS-bestanden.
+
+De 39 state-tests en syntaxiscontroles zijn uitgevoerd; grafische browsercontrole van deze nieuwe schermen is nog open. Exacte crypto-/dienstproef en native integratiegrenzen: [NAS-SHARING-AND-INTERNET.md](NAS-SHARING-AND-INTERNET.md), [privacycontract revisie 3](../LOCAL-PRIVACY-CONTRACT.md), [UI-handleiding](../../ui/prototype/README.md).
+
 Status: **besluit voor de eerste implementatie**, 26 oktober 2026. De bronnenvergelijking en conceptkeuze zijn nu uitgevoerd. Gebruikersonderzoek, grafische implementatie en native OS-integratie zijn nog niet uitgevoerd. Codex hoeft vóór P2 geen nieuwe brede conceptstudie te starten. Alleen een concreet gevonden conflict of gebruikerscorrectie heropent de keuze.
 
 ## 1. Gekozen productlogica
@@ -193,3 +201,4 @@ Microsoft. (z.d.). *Snap your windows*. Geraadpleegd op 26 oktober 2026, van htt
 World Wide Web Consortium. (2024, 12 december). *Web Content Accessibility Guidelines (WCAG) 2.2*. https://www.w3.org/TR/WCAG22/
 
 Tokenwaarden, conceptkeuze, taakscenario's, interfaces, schermen en acceptatietests zijn eigen projectbesluiten. De bronnen worden alleen gebruikt voor de genoemde bestaande patronen en toegankelijkheidscriteria.
+

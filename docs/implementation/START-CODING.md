@@ -27,7 +27,7 @@ Referentieprofiel: QEMU 10.0.14, machine pc-q35-10.0, CPU qemu64, TCG, één CPU
 
 ## Voorrang en bewijs
 
-Expliciete gebruikersvereisten en [../LOCAL-PRIVACY-CONTRACT.md](../LOCAL-PRIVACY-CONTRACT.md) blijven leidend: alleen eigen NAS binnen eigen LAN, AI op het apparaat, geen externe OS-cloud of telemetrie, afzonderlijke apprechten. De implementatiespecificaties concretiseren oudere onderzoeksvoorstellen; zij herroepen geen privacy- of productambitie.
+Expliciete gebruikersvereisten en [../LOCAL-PRIVACY-CONTRACT.md](../LOCAL-PRIVACY-CONTRACT.md) blijven leidend: internet met afzonderlijke rechten, E2EE-opslag op expliciet gekoppelde eigen NAS of NAS van vrienden/familie, remote toegang alleen na peergebonden toestemming, admin-verwijderrecht zonder inhoudssleutel, AI op het apparaat, geen leverancierscloud of telemetrie. De implementatiespecificaties concretiseren oudere onderzoeksvoorstellen; zij herroepen geen privacy- of productambitie.
 
 Alle bronnen, gekozen grenzen en nog onbewezen eigenschappen staan per specificatie. [VERIFICATION.md](VERIFICATION.md) registreert wat in dit onderzoek daadwerkelijk is gecontroleerd. Heropen een besluit alleen bij een concrete technische tegenstrijdigheid, aangetoonde fout of nieuwe gebruikersinstructie. Repareer die gericht, leg haar vast en ga door met bouwen.
 
@@ -39,3 +39,4 @@ Alle bronnen, gekozen grenzen en nog onbewezen eigenschappen staan per specifica
 - Daarna de volgende kleine kernel-, native-product- en quantumhardwarestappen uit [../ROADMAP.md](../ROADMAP.md).
 
 PQC, quantumprogramma's uitvoeren en het OS op een hybride klassiek/QPU-systeem laten draaien zijn drie verschillende doelen. De eerste simulator wist die verdere ambitie niet, maar bewijst haar ook niet. Hetzelfde geldt voor brede apparaatondersteuning: de eerste x86_64-boot is één testplatform, geen beperking van het einddoel.
+

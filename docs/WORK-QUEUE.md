@@ -1,5 +1,19 @@
 # Werkqueue — M6a actief
 
+## Parallel N01 — internet en persoonlijke NAS
+
+Gebruikersuitbreiding 27 oktober 2026; privacycontract revisie 3. Bron vanaf `a96ad45`, branch `codex/nas-private-sharing`.
+
+| ID | Gebied | Status/bewijs |
+|---|---|---|
+| N01-C | services/nas/ | echte hostencryptie, ciphertextstore, quota, revoke/evict en netwerkbeleidsmodel; 50 tests groen |
+| N01-P | ui/prototype/ | drie NAS-flows en afzonderlijke lokale beheerrol; 39 tests groen, nieuwe visuele browsercontrole open |
+| N01-R | alleen-lezen review | vier concrete bevindingen hersteld; gerichte hercontroles groen |
+| N01-G | root/docs/Git | herziene productgrens, ADR-027, integratiebewijs 89 tests + demo |
+| N02 | toekomstige native integratie | netwerkstack/TLS/identiteit, clientkeys/multi-device, NAS-rol en socketcapabilities nog open |
+
+Resultaten tellen niet als M6a-/M8-QEMU- of echte-internetbewijs. Eerste kernelvervolg blijft de hieronder beschreven M6a-poort.
+
 27 oktober 2026, basis `448974b`, branch `codex/m6a-write-recovery`. Gekozen invariant/ABI/cases vóór implementatie: implementation/M6A-WRITE-RECOVERY.md.
 
 | ID | Eigenaar | Exclusieve writes | Status |
@@ -29,3 +43,4 @@ Eén schrijver per bestand, maximaal drie agents en één gedeeld build/QEMUslot
 Opdrachten, resultaten, grenzen en hervatroute: PROJECT-STATE.md en verification/m5/ACCEPTANCE.md. Eerste mislukte gate blijft failed bewaard; de finale bron is opnieuw getest. Bestaande UI/quantum en M1–M4-baseline behouden.
 
 Volgende stap: de M6a-bronpoort en regressie hervatten vanaf deze checkpoint. De M6a-specificatie, huidige teststatus en open punten staan in PROJECT-STATE.md. Geen echte hardware/disks/NAS/keys, betaalde infrastructuur, publieke release of merge zonder passende opdracht. Licentie vóór publicatie blijft open.
+

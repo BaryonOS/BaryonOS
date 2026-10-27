@@ -1,0 +1,12 @@
+{
+  "prototype": "N01 Node-hostprototype",
+  "result": "passed",
+  "checks": [
+    "authenticated-encryption-roundtrip",
+    "real-ciphertext-storage",
+    "explicit-peer-internet-policy",
+    "administrator-eviction-without-user-key",
+    "stale-upload-denied"
+  ],
+  "boundary": "Geen TLS, sockets, echte NAS of native OS-integratie; uitsluitend synthetische data."
+}

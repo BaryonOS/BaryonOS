@@ -1,5 +1,9 @@
 # Nieuw OS — eigen kernel en eerste geïsoleerde blokdienst
 
+## Nieuwe richting: internet en persoonlijke NAS-opslag
+
+De gebruikerswijziging van 27 oktober 2026 voegt veilige internettoegang, eigen NAS en gedeelde ruimte bij vrienden/familie toe. Inhoud en documentnamen worden op de gebruikersclient versleuteld; de NAS-beheerder kan ruimte intrekken en zijn kopie verwijderen zonder gebruikerssleutel of toestemming. De uitvoerbare hostproef staat in [services/nas/](services/nas/README.md); het browserprototype blijft een simulatie. Contract en native integratiecriteria: [NAS-SHARING-AND-INTERNET.md](docs/implementation/NAS-SHARING-AND-INTERNET.md). Dit voegt nog geen netwerkstack aan de kernel toe en verandert de M6a-bewijsstatus niet.
+
 De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde gebruikersprocessen en verwerkt capabilities/IPC. M5 voegt een echte ring-3-blokdienst met alleen-lezen virtio-I/O toe. De definitieve M1–M5-suites slagen: **77 controlegroepen en 64 echte VM-runs**, plus een normale M5-eindstart. Materiaal en qsim blijven afzonderlijke hostprototypes. Dit is een experimentele ontwikkelversie met synthetische testprogramma's.
 
 - **Actuele voortgang en open controles:** [PROJECT-STATE.md](docs/PROJECT-STATE.md).
@@ -8,7 +12,7 @@ De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde
 - **Productprototype:** [handleiding](ui/prototype/README.md).
 - **Quantumsimulator:** [handleiding](experiments/quantum/README.md).
 
-De actuele code en het testbewijs staan op [codex/m5-block-service](https://github.com/simonvanieperen/nieuw-os/tree/codex/m5-block-service), met [concept-PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3). Selecteer die branch. `main` bevat de startspecificaties totdat de concept-PR's zijn beoordeeld. Checkpoints bewaren bron, echte testuitkomsten, review en open punten. De M5-testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
+De M1–M5-basis staat inmiddels op `main`; de voortgezette M6a-integratie staat op [codex/m2-m4-isolation](https://github.com/simonvanieperen/nieuw-os/tree/codex/m2-m4-isolation). N01 internet/persoonlijke NAS staat op [codex/nas-private-sharing](https://github.com/simonvanieperen/nieuw-os/tree/codex/nas-private-sharing). De status en nog open controles staan per spoor in PROJECT-STATE.md. [PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3) bewaart de M5-historie; de testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
 
 Start vanuit de projectroot met `python tools/build.py --kernel-feature milestone-m5` en daarna `python tools/run.py --smoke --milestone m5`. De runner maakt zelf een synthetische alleen-lezen testimage; na de gecontroleerde leesproef sluit QEMU af. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
 
@@ -28,7 +32,7 @@ Dit pakket is een voorbereid project met gekozen oplossingen, exacte interfaces,
 4. Bewaar actuele voortgang in [docs/PROJECT-STATE.md](docs/PROJECT-STATE.md), niet alleen in de chat.
 
 ## De gekozen richting
-Een eigen Rust-kernel met een kleine vertrouwde kern, expliciete bevoegdheden (capabilities) en afzonderlijke systeemdiensten. Eerst x86_64 in QEMU met UEFI; later één aantoonbaar ondersteund apparaat tegelijk. De eerste architectuur is als bouwbasis gekozen, maar nog niet geïmplementeerd. Harde privacygrens: OS-data uitsluitend op het apparaat of eigen NAS op eigen LAN; AI-inferentie op het apparaat zonder cloudfallback. Derdenapps blijven installeerbaar met afzonderlijk begrensde rechten.
+Een eigen Rust-kernel met een kleine vertrouwde kern, expliciete bevoegdheden (capabilities) en afzonderlijke systeemdiensten. Eerst x86_64 in QEMU met UEFI; later één aantoonbaar ondersteund apparaat tegelijk. De eerste architectuur is als bouwbasis gekozen, maar nog niet geïmplementeerd. Privacygrens herzien op 27 oktober 2026: OS-data lokaal of end-to-end versleuteld op een expliciet gekoppelde eigen NAS of NAS van vrienden/familie; internet naar die NAS vereist afzonderlijke toestemming. De beheerder mag opslag intrekken/verwijderen zonder de inhoud te kunnen ontsleutelen. AI-inferentie blijft op het apparaat zonder cloudfallback. Derdenapps blijven installeerbaar met afzonderlijk begrensde rechten.
 
 Eigen kernel en eigen productervaring betekenen niet: zelf een compiler, encryptiealgoritme of netwerkstandaard uitvinden. Bestaande ontwikkelgereedschappen, formele methoden, open standaarden en zorgvuldig gekozen bibliotheken mogen worden gebruikt. Een bestaande Linux-, BSD-, XNU- of seL4-kernel als basis valt buiten de huidige opdracht.
 
@@ -66,3 +70,4 @@ Eigen kernel en eigen productervaring betekenen niet: zelf een compiler, encrypt
 De eerste productkeuze (Materiaal), het bootcontract, de kernelgrenzen en de lokale quantumproef zijn besloten. Een inventarisatiescript staat in `tools/preflight.py`. Nog niet aanwezig: loader/kernel, productprototype en Rust-quantumsimulator. De startprompt laat Codex deze bouwen; hij vraagt geen nieuwe algemene onderzoeksronde.
 
 Bronnen staan per onderzoeksbestand in APA-achtige bibliografische vorm met directe URL's en raadpleegdatum. De implementatiespecificaties bevatten gekozen projectbesluiten; achtergrondbestanden bevatten ook voorstellen voor latere fasen. Keuzes en budgetten zijn geen door bronnen bewezen prestaties. De documentatie dekt de start; zij vervangt geen processorhandleiding, securityreview of ervaren OS-ontwikkelaar.
+

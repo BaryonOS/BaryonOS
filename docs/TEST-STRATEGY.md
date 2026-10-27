@@ -28,7 +28,7 @@ Gebruik tools als Miri/sanitizers alleen voor onderdelen/targets die zij onderst
 - Beperkte, reproduceerbare inputs; time-outs; geen live persoonlijke data.
 
 ## Bindende privacychecks
-Na invoering van netwerk, NAS of AI gelden de relevante LP-01 t/m LP-14-tests uit LOCAL-PRIVACY-CONTRACT.md. Test peer-identiteit, netwerkovergangen, geen externe fallback, netwerkloze inferentie, gescheiden modeldownloader, combinaties van apprechten en herstel van NAS-backups. Dit zijn toekomstige acceptatiecriteria; nog geen uitgevoerde resultaten.
+Na invoering van netwerk, NAS of AI gelden alle relevante LP-tests uit LOCAL-PRIVACY-CONTRACT.md. Test peer-identiteit, eenmalige uitnodigingen, expliciete remote toegang, encryptie van inhoud én namen, adminverwijdering zonder gebruikerssleutel, stale uploads na revoke, quota/herstart, netwerkovergangen, geen leveranciersfallback, netwerkloze inferentie, gescheiden modeldownloader, combinaties van apprechten en onafhankelijk herstel van NAS-backups. Dit zijn toekomstige acceptatiecriteria; nog geen uitgevoerde resultaten.
 
 ## Prestaties
 Vaste machineconfiguratie, versies, workload en meetgrenzen. Rapporteer sampleaantal, mediaan en spreiding/p95 waar zinvol. Vergelijk hetzelfde werk met dezelfde beveiligingsgaranties. TCG-resultaten niet vergelijken met native Windows/macOS-cijfers. Stel realistische budgetten pas na een gemeten baseline vast.
@@ -37,3 +37,4 @@ Vaste machineconfiguratie, versies, workload en meetgrenzen. Rapporteer sampleaa
 Later: dependencies en checksums vastleggen, SBOM, repeatable builds in schone omgevingen, bronreview, ondertekende artifacts en hersteltest. Geen secrets in CI voor onbeoordeelde externe pull requests. Releasekeys buiten gewone agents/CI-buildjobs; aparte beperkte ondertekeningsstap. Zelfhosted runners voor onbetrouwbare PR-code moeten wegwerpbaar en geïsoleerd zijn.
 
 Een CI-badge bewijst uitsluitend dat de geconfigureerde controles voor de genoemde versie zijn geslaagd. Geen OS-release publiceerbaar noemen voordat criteria, licentie, meldpunt, herstelroute en beperkingen zijn gecontroleerd.
+

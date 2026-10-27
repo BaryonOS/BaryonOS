@@ -23,7 +23,7 @@ Dit zijn **eigen projecteisen**, geen opsomming van letterlijk voorgeschreven we
 
 | ID | Te bouwen en aantoonbaar te controleren |
 |---|---|
-| EU-01 | Datastromenregister met dataset, doel, locatie, bewaartermijn, bevoegdheid en verwijderpad. Alleen apparaat of expliciet gekoppelde eigen NAS op eigen LAN voor OS-persoonsgegevens. Geen leverancieraccount, relay, sleutelbewaring of externe telemetrie. Voer LP-01 t/m LP-14 uit zodra de functies bestaan. |
+| EU-01 | Datastromenregister met dataset, doel, locatie, bewaartermijn, bevoegdheid en verwijderpad. Apparaat of end-to-end versleutelde opslag op expliciet gekoppelde eigen NAS of NAS van vrienden/familie; internet uitsluitend na peergebonden toestemming. Beheerder mag opslag intrekken/verwijderen maar krijgt geen inhoudssleutel. Geen leverancieraccount, stille relay/fallback, sleutelbewaring of externe telemetrie. Voer alle toepasselijke LP-tests uit LOCAL-PRIVACY-CONTRACT.md revisie 3 uit zodra de functies bestaan; dit is geen wettelijke conformiteitsclaim. |
 | EU-02 | AI-inferentie zonder netwerkbevoegdheid; modeldownloader zonder persoonlijke context. Modelgebrek, geheugenfout en wegvallend LAN activeren nooit cloudfallback. Test ook helperprocessen en lokale brokers. |
 | EU-03 | Appinstallatie verleent geen algemene bevoegdheden. Test afzonderlijk bestanden, NAS-datasets, LAN, internet, camera en microfoon; test intrekking en omwegen via tussendiensten. Maak gecombineerde lees- en internetrechten zichtbaar. |
 | EU-04 | Exporteer documenten, instellingen en geselecteerde AI-geschiedenis in gedocumenteerde formaten zonder account. Verwijder tevens indexen, caches en embeddings. Toon afzonderlijk wat in NAS-herstelpunten blijft bestaan; beweer geen gewiste externe kopieën terug te halen. |
@@ -52,3 +52,4 @@ Geraadpleegd op 26 oktober 2026; links verwijzen naar officiële teksten/uitleg.
 8. ETSI. (2021). *EN 301 549 V3.2.1: Accessibility requirements for ICT products and services*. https://www.etsi.org/deliver/etsi_en/301500_301599/301549/03.02.01_60/en_301549v030201p.pdf
 9. Europese Commissie. (2025, 5 mei). *Web Accessibility Directive — Standards and harmonisation*. https://digital-strategy.ec.europa.eu/en/policies/web-accessibility-directive-standards-and-harmonisation
 10. Mozilla. (z.d.). *Mozilla Public License, version 2.0*, §§ 1.10, 3.1–3.4. https://www.mozilla.org/en-US/MPL/2.0/
+

@@ -1,5 +1,7 @@
 # Afhankelijkheden en herkomst
 
+N01 (27 oktober 2026) gebruikt de aanwezige Node.js 24.22.1-hostruntime met OpenSSL 3.5.9 en uitsluitend ingebouwde modules (`node:crypto`, filesystem en test-/process-API's). Geen npm-package, Cargo-dependency, externe crypto-implementatie of buildscript toegevoegd. Node/OpenSSL zijn ontwikkel-/proefmiddelen, geen gekozen native Nieuw OS-runtime. AES-GCM, randomness en authenticated-decryption-API's zijn gecontroleerd tegen de primaire Node v24-documentatie; concrete versies/testbewijs staan in verification/nas/report.json. Native crypto-/TLS-bibliotheekselectie, no_std-geschiktheid, licentie-/supplychaincheck en key lifecycle blijven afzonderlijke gates vóór die integratie.
+
 Actuele uitvoeringsstatus27 oktober2026: Rust1.90.0, r-efi7.1.0, serde1.0.229 en serde_json1.0.154 zijn daadwerkelijk opgehaald en gebouwd. De root- en quantumlockfiles zijn gegenereerd. De gebruikte emulator is de toegestane Windows-ontwikkelvariant QEMU11.1.0 met bijpassend packaged CODE/VARS-paar; exacte herkomst/hashes en bewijsgrenzen staan in DEVELOPMENT.md, third-party/README.md en ../experiments/quantum/THIRD-PARTY.md. De onderstaande oorspronkelijke selectietabel is historische context; PROJECT-STATE.md beschrijft de actuele verificatie.
 
 M2–M4 voegen uitsluitend eigen lokale crates toe: kernel-core0.1.0 (frames/ELF/copybeleid) en capability-core0.1.0 (vaste rechten-/IPC-transacties). Beide zijn dependencyvrij/no_std en verbieden unsafe in de library. De kernelarch-/kopieergrens bevat de gemotiveerde unsafe/assembly; de eigen crates hebben geen extern buildscript. Root-Cargo.lock behoudt r-efi exact7.1.0 met dezelfde checksum. Er is voor M2–M4 geen nieuwe externe runtimebibliotheek toegevoegd. Corebron/host-/targetchecks en actuele testcasegrenzen staan in verification/m2-m4/.
@@ -24,3 +26,4 @@ Per daadwerkelijk opgenomen dependency vastleggen: naam, versie/commit/hash, pri
 Geen bestaande kernelcode overnemen zonder expliciete scopewijziging. Kleine overgenomen algoritmen/voorbeelden blijven externe broncode: behoud herkomst/licentie. Een AI-herschrijving wist die verplichtingen niet.
 
 Toolchain, firmware en buildomgeving horen bij de vertrouwensketen. Reproduceerbare builds tonen overeenstemming tussen builds; ze bewijzen niet dat broncode, compiler of hardware vrij van achterdeuren is.
+

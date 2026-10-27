@@ -4,7 +4,7 @@ Status: ontwerpvoorstel, 26 oktober 2026. Dit document beschrijft gewenste eigen
 
 ## 1. Eén duidelijke productbelofte
 
-Een zelfstandig, open besturingssysteem waarmee mensen hun apparaten en gegevens kunnen gebruiken met lokale accounts, uitsluitend een eigen NAS op het eigen LAN voor synchronisatie en zonder externe cloud voor OS-gegevens, met begrijpelijke toegangsrechten en herstelbare wijzigingen.
+Een zelfstandig, open besturingssysteem waarmee mensen hun apparaten en gegevens kunnen gebruiken met lokale accounts, een eigen NAS of vrijwillig aangeboden NAS-ruimte bij vrienden/familie voor end-to-end versleutelde synchronisatie, via LAN of expliciet toegestane internettoegang, zonder leverancierscloud voor OS-gegevens, met begrijpelijke toegangsrechten en herstelbare wijzigingen.
 
 De technische eerste proef draait op de vastgelegde virtuele machine; productontwerp en interactieonderzoek beginnen tegelijk. Ontwerp interfaces zodat later verschillende apparaten mogelijk zijn. Een telefoon, pc en klein ingebouwd apparaat hebben verschillende bediening, energiebehoeften en beveiligingsgrenzen. Eén productfamilie hoeft daarom geen identieke interface of identiek installatiebestand te hebben.
 
@@ -30,7 +30,7 @@ Deze richtingen zijn hypotheses, geen reeds gekozen product of bewezen wereldpri
 | Concept | Primair organisatiemodel | Onderscheidende onderzoeksvraag |
 |---|---|---|
 | **Materiaal** | Mensen beginnen bij een document, foto, verzameling of apparaat; geïnstalleerde apps bieden passende bewerkingen aan. | Kan één object verschillende gereedschappen gebruiken met tijdelijke rechten per bewerking, zonder bestanden steeds tussen apps te verplaatsen? |
-| **Werk** | Mensen openen een activiteit met doel, huidige stap, resultaten en hersteltijdlijn; apps verschijnen waar nodig. | Kan werk na onderbreking begrijpelijk worden hervat, ook op een tweede eigen apparaat via de eigen NAS op het eigen LAN? |
+| **Werk** | Mensen openen een activiteit met doel, huidige stap, resultaten en hersteltijdlijn; apps verschijnen waar nodig. | Kan werk na onderbreking begrijpelijk worden hervat, ook op een tweede eigen apparaat via een expliciet gekoppelde persoonlijke NAS? |
 | **Atelier** | Mensen richten directe bedieningsoppervlakken in: meerdere gereedschappen, materiaal en feedback tegelijk zichtbaar, passend bij taak en scherm. | Kunnen beginners meteen werken terwijl gevorderden bediening ingrijpend aanpassen zonder versnipperde instellingen of breuk in toegankelijkheid? |
 
 Maak voor elk concept dezelfde vijf taakproeven: installeren, iets maken/bewerken, terugvinden, onderbreken/hervatten en een fout herstellen. Vergelijk met een klassieke vensterdesktop, appstartscherm en bestandsbeheer: benoem precies wat verandert, wat bewust herkenbaar blijft en welk voordeel gebruikers ervaren. Kies daarna één samenhangende richting; combineer niet automatisch alle ideeën.
@@ -51,12 +51,12 @@ Een onbekende technische mogelijkheid krijgt een onderzoeksvraag en een afgebake
 
 Dit zijn producteisen voor toekomstige implementatie:
 
-- De basisinstallatie werkt met een lokaal account. OS-cloudfuncties bestaan uitsluitend als optionele koppeling met een eigen NAS op het eigen lokale netwerk. Geen externe cloudprovider, leverancierslogin, relay, extern sleutelbeheer of uitwijkserver. Zonder NAS blijven lokale kerntaken werken.
+- De basisinstallatie werkt met een lokaal account. De persoonlijke cloud bestaat uit optionele E2EE-opslag op een eigen NAS of aangeboden NAS-ruimte bij vrienden/familie, met dezelfde OS-ervaring voor client en host. LAN standaard; internet expliciet per gekoppelde NAS. Geen leverancierscloud, leverancierslogin, stille relay/fallback, extern sleutelbeheer of uitwijkserver. Zonder NAS blijven lokale taken werken. De host beheert quota en mag zijn kopie zonder gasttoestemming wissen; dat geeft geen decryptiesleutel of documenttoegang.
 - Geen externe OS-telemetrie of automatische externe crashuploads. Diagnostiek blijft lokaal, is begrensd en inzichtelijk. Eventuele backup daarvan uitsluitend naar de eigen gekoppelde NAS.
 - Crashexports tonen vóór verzending welke gegevens meegaan. Geen automatische geheugendumps met mogelijk documentinhoud of sleutels.
 - Geen advertentie-ID, systeemreclame, verplicht platformaccount of vooraf aangevinkte gegevensdeling.
 - Netwerkverkeer is verklaarbaar per dienst. Updates en tijdsynchronisatie hebben een zichtbare instelling en mogen niet stilzwijgend als “telemetrie” worden gebundeld.
-- AI is optioneel en verwijderbaar, maar inferentie vindt uitsluitend op het apparaat plaats. Prompts, geschiedenis, embeddings en resultaten blijven lokaal; eventuele opslagbackup alleen naar de eigen NAS. Geen cloudfallback of uitbestede inferentie. Een aparte modeldownloader heeft geen toegang tot persoonlijke context; de inferentiedienst heeft geen netwerkrecht.
+- AI is optioneel en verwijderbaar, maar inferentie vindt uitsluitend op het apparaat plaats. Prompts, geschiedenis, embeddings en resultaten blijven lokaal; eventuele opslagbackup alleen end-to-end versleuteld naar een expliciet gekoppelde persoonlijke NAS. Geen cloudfallback of uitbestede inferentie. Een aparte modeldownloader heeft geen toegang tot persoonlijke context; de inferentiedienst heeft geen netwerkrecht.
 - Offline gebruik mag geen gedwongen cloudregistratie activeren. Gebruikers worden wel duidelijk geïnformeerd over gemiste beveiligingsupdates.
 - Export en migratie moeten mogelijk zijn met gedocumenteerde formaten. Intrekken van toegang kan eerder gemaakte kopieën bij een andere partij niet ongedaan maken.
 
@@ -90,7 +90,7 @@ Plan vertaling vanaf de eerste UI: externe tekstbestanden, Unicode, verschillend
 
 | Laag | Betekenis voor dit project |
 | --- | --- |
-| Tijdens gebruik | OS-gegevens uitsluitend op apparaat/eigen NAS op eigen LAN; AI-inferentie alleen op apparaat. Geen externe OS-cloud, relay of telemetrie. Updates/modeldownloads mogen via een afgescheiden downloader; derdenapps alleen met toegekende rechten. |
+| Tijdens gebruik | OS-gegevens lokaal of E2EE op gekoppelde eigen/gedeelde persoonlijke NAS; internet per peer expliciet. Host kan opslag intrekken/wissen zonder inhoudssleutel. AI-inferentie alleen op apparaat. Geen leverancierscloud, stille relay/fallback of telemetrie. Updates/modeldownloads mogen via een afgescheiden downloader; derdenapps alleen met toegekende rechten. |
 | Tijdens ontwikkeling | Codex kan helpen schrijven en onderzoeken; broncode, besluiten, tests en buildinstructies blijven buiten de chat beschikbaar. |
 | Tijdens bouwen | Een derde partij moet uit de broncode kunnen bouwen zonder Codex-account. Controleer alle download- en buildafhankelijkheden. |
 | Publicatie | De code blijft via Git exporteerbaar; releasebestanden, issues en documentatie krijgen een overdraagbare kopie. |
@@ -122,3 +122,4 @@ Open Source Initiative. (z.d.). *The Open Source Definition*. Geraadpleegd op 26
 Open Source Initiative. (z.d.). *OSI approved licenses*. Geraadpleegd op 26 oktober 2026, van https://opensource.org/licenses
 
 World Wide Web Consortium. (2024, 12 december). *Web Content Accessibility Guidelines (WCAG) 2.2*. https://www.w3.org/TR/WCAG22/
+
