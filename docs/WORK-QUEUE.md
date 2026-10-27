@@ -20,8 +20,10 @@ Doel: eigen boot, twee werkelijk geïsoleerde ring-3-processen, begrensde foutaf
 | K02 | kernel_m2 (Sol) | kernel/, crates/kernel-core/ | G00 | geslaagd op a256951 | acht groepen, twintig hosttests, zeven QEMU-runs; docs/verification/m2-m4/m2/ |
 | P02V | product_acceptance (Sol) | ui/prototype/ | bestaande P02 | afgerond binnen beschikbare controles | 23/23 Node-tests; skiplink/draft/focus/typezoek/288px-inspector echt gecontroleerd; 200%-zoom, schermlezer en mensenproef open; ui/prototype/verification/ |
 | Q01V | quantum_contract (Sol) | experiments/quantum/ | bestaande Q01 | code/test afgerond; reviewer R02 | CDF-fix: oude code faalt nieuwe regressie, huidige 25tests/5fixtures groen; 17-caseaudit onder docs/verification/m2-m4/quantum/ |
-| K03 | kernel_m2 + product_acceptance (Sol) | kernel/ + crates/kernel-core/ respectievelijk userspace/ | geslaagde K02 | implementatie actief | KS-04–08 vereist; root owns tools/build_users.py en image-invoer |
-| K04 | later toegewezen | later expliciet toegewezen | geslaagde K03 | geblokkeerd door poort | KS-09–16 vereist |
+| K03 | kernel_m2 + product_acceptance (Sol) | kernel/ + crates/kernel-core/ respectievelijk userspace/ | geslaagde K02 | geslaagd op 6802b17 | 20 groepen/18 echte VM-runs; twaalf coretests en dertien user-artifacttests; m3/suite.json |
+| K04K | kernel_m2 (Sol) | kernel/, crates/kernel-core/ | geslaagde K03 | implementatie actief | usercopy/syscalls/lifecycle en echte KS-09–16-observer |
+| K04C | quantum_contract (Sol) | crates/capability-core/ | geslaagde K03 | implementatie actief | safe no_std Engine, transacties/rights/generations/quotas en hosttests |
+| U04 | product_acceptance (Sol) | userspace/ | geslaagde K03 | implementatie actief | afzonderlijke IPC-scriptprobe; M3-fixture behouden |
 | R04 | onafhankelijke reviewer | eerst alleen lezen | geïntegreerde M4 | wacht | concrete negatieve tegenvoorbeelden en herstel |
 | V04 | hoofd | tools/, docs/verification/ | R04 en herstel | wacht | volledige eindmatrix en remote commitcontrole |
 
@@ -35,9 +37,9 @@ Doel: eigen boot, twee werkelijk geïsoleerde ring-3-processen, begrensde foutaf
 
 ## Laatste checkpoint
 
-- M2 op `a256951`: acht groepen, twintig hosttests, zeven QEMU-runs. Serial/exit/artifacthashes opnieuw gecontroleerd; bewijs `docs/verification/m2-m4/m2/`. De eerste mislukte run en daaropvolgende cacheattribuut-/aliasfix staan in de Git- en lokale runhistorie.
-- M3 code aanwezig, volledige rootpoort nog niet uitgevoerd. Gerichte echte proeven voor normal/peer-write/XMM, B exit7 en ongeldige return-RSP slagen volgens builderlogs. Reviews hebben exit/faultobserver van generieke procesafhandeling gescheiden, monotone u64-PID's, gecontroleerde returnvalidatie en volledige resourcebalans aangescherpt.
-- Nog vóór de M3-rootpoort: expliciete debugregisterinitialisatie en veilige idle/IRQ0-route na exit van alle processen. Kernelbuilder bezit het buildslot; root wijzigt alleen eigen tools/docs. Geen M4-start.
-- U03: probe modes0–16, zes int80-sites, dertien artifacttests groen; actuele bron/hashes onder `userspace/verification/`. Hostbewijs is geen CPL3-bewijs. Root ondersteunt vijftien afzonderlijke M3-procescases plus normale fairness en idleproef.
-- P02V en Q01V zijn gericht hersteld en privé gecheckpoint. Native 200%-zoom is door de Computer Use URL-controle gestopt; geen geverifieerde zoommutatie. Zoom, schermlezer en mensenproef blijven open.
-- Volgende rootactie: na kernelwritepause broncheckpoint pushen, `python -u tools/test_milestones.py --through m3` draaien, reviewbevindingen sluiten en bewijs bewaren. Alleen bij geslaagde M3-poort wordt M4 expliciet vrijgegeven.
+- Samengestelde rootpoort op `6802b17`: `python -u tools/test_milestones.py --through m3` exit0, M2 acht groepen/zeven VM-runs, M3 twintig groepen/achttien VM-runs. Alle exit/serial/artifacthashes daarna gecontroleerd door capture_gate. Bewijs onder `docs/verification/m2-m4/{m2,m3}/`.
+- R03/R03V-bevindingen hersteld en gericht herbeoordeeld; zie `m3-review.md`. Idle na beide exits, acht IRQ0-wakeups, debuginit, u64-PID, user-return-context en exacte cleanup zijn meegenomen in de volledige gate.
+- M4 nu expliciet vrijgegeven. Cap-engine, kernelintegratie en afzonderlijke IPC-userfixture hebben elk één schrijver. Root beheert workspace/lockfile/buildtools en testpoort. Geen gelijktijdige root-targetbuilds.
+- M4-fixture: drie processen met eigen endpointroot/gereduceerde next-peer-cap, concrete scriptmodes copy/wire/snapshot/handles/rights/revoke/quotas/lifecycle. ABI/Message320 en foutvolgorde blijven bindend. Een hosttest bewijst geen CPL3-grens.
+- P02V en Q01V zijn gericht hersteld en privé gecheckpoint. Native 200%-zoom is door de Computer Use URL-controle gestopt; zoom/schermlezer/mensenproef blijven open.
+- Volgende rootactie: M3-bewijscheckpoint pushen; M4-workspace/lockfile en NOS_IPC_ELF-build integreren; daarna echte host-/QEMU-poort en review/herstel. Gehele fase blijft actief tot M4 en eindregressie voldoen.

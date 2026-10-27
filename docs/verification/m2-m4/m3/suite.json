@@ -1,0 +1,188 @@
+{
+  "phase": "M3",
+  "status": "completed",
+  "passed": true,
+  "started_utc": "2026-10-27T11:37:54.873482+00:00",
+  "results": [
+    {
+      "name": "user-elf-frame-abi-host-tests",
+      "passed": true,
+      "requirements": [
+        "KS-04",
+        "USER_ELF",
+        "RETURN_FLAGS"
+      ],
+      "evidence": "build/logs/m3-host-tests.stdout.txt"
+    },
+    {
+      "name": "user-artifact-negative-tests",
+      "passed": true,
+      "requirements": [
+        "USER_ELF",
+        "USER_SYSCALL_FIXTURE"
+      ],
+      "evidence": "build/logs/m3-user-artifact-tests.stdout.txt"
+    },
+    {
+      "name": "private-address-spaces-preemption-fairness-cleanup",
+      "passed": true,
+      "requirements": [
+        "KS-04",
+        "KS-07",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m3-6977a83f16"
+    },
+    {
+      "name": "test-m3-peer-read",
+      "passed": true,
+      "requirements": [
+        "KS-05",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-peer-read-963005c6bb"
+    },
+    {
+      "name": "test-m3-peer-write",
+      "passed": true,
+      "requirements": [
+        "KS-05",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-peer-write-802126b8a7"
+    },
+    {
+      "name": "test-m3-kernel-write",
+      "passed": true,
+      "requirements": [
+        "KS-05",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-kernel-write-77c51b7b37"
+    },
+    {
+      "name": "test-m3-stack-exec",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-stack-exec-6bc8fcc2b8"
+    },
+    {
+      "name": "test-m3-heap-exec",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-heap-exec-1b521047f6"
+    },
+    {
+      "name": "test-m3-guard-low",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-guard-low-de2142fd24"
+    },
+    {
+      "name": "test-m3-guard-high",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-guard-high-5390e56f4c"
+    },
+    {
+      "name": "test-m3-cli",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-cli-3a6790d2be"
+    },
+    {
+      "name": "test-m3-x87",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-x87-dff3ce0087"
+    },
+    {
+      "name": "test-m3-xmm",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-xmm-2f19dcbba5"
+    },
+    {
+      "name": "test-m3-avx",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-avx-dd61d3889e"
+    },
+    {
+      "name": "test-m3-ud",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-ud-f3e06b862c"
+    },
+    {
+      "name": "test-m3-exit",
+      "passed": true,
+      "requirements": [
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-exit-038ed1b81f"
+    },
+    {
+      "name": "test-m3-b-exit",
+      "passed": true,
+      "requirements": [
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-b-exit-c5606bc5f0"
+    },
+    {
+      "name": "test-m3-invalid-rsp",
+      "passed": true,
+      "requirements": [
+        "KS-08"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-invalid-rsp-4ab1311f00"
+    },
+    {
+      "name": "all-processes-exit-idle-timer-and-resources",
+      "passed": true,
+      "requirements": [
+        "KS-08",
+        "IDLE_CPL0_IRQ0",
+        "RESOURCE_RECLAIM"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m3-idle-bf3ec76587"
+    },
+    {
+      "name": "m1-regression-after-m3",
+      "passed": true,
+      "requirements": [
+        "M1"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m1-after-m3-d2a4d73247"
+    }
+  ],
+  "finished_utc": "2026-10-27T11:39:25.907069+00:00"
+}

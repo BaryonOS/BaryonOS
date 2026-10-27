@@ -1,37 +1,42 @@
 
 running 6 tests
 test tests::explicit_wire_fixture_and_offsets ... ok
-test tests::invalid_header_and_received_pointer_are_rejected ... ok
-test tests::map_shape_and_stride_are_checked ... ok
 test tests::overlap_overflow_and_zero_pages_rejected_unknown_memory_reserved ... ok
 test tests::ranges_must_be_aligned_bounded_nonoverlapping ... ok
+test tests::invalid_header_and_received_pointer_are_rejected ... ok
 test tests::unsorted_extended_stride_and_adjacent_descriptors_cover_allocations ... ok
+test tests::map_shape_and_stride_are_checked ... ok
 
 test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 
 running 7 tests
 test tests::arithmetic_and_file_bounds_fail_closed ... ok
-test tests::nonexecuting_metadata_allowed_executable_stack_denied ... ok
+test tests::entry_must_be_in_rx_file_bytes_not_bss_or_metadata ... ok
+test tests::permissions_alignment_addresses_and_page_overlap_fail ... ok
 test tests::valid_plan_keeps_bss_and_does_not_modify_input ... ok
 test tests::wrong_headers_and_program_types_fail ... ok
-test tests::permissions_alignment_addresses_and_page_overlap_fail ... ok
-test tests::entry_must_be_in_rx_file_bytes_not_bss_or_metadata ... ok
+test tests::nonexecuting_metadata_allowed_executable_stack_denied ... ok
 test tests::every_truncation_before_required_file_end_fails ... ok
 
 test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 
 
-running 7 tests
+running 12 tests
 test tests::checked_ranges ... ok
-test tests::physical_alias_wx_and_mapped_free ... ok
 test tests::ovmf_cache_capabilities_are_not_special_memory ... ok
-test tests::reserved_and_special_memory ... ok
+test tests::physical_alias_wx_and_mapped_free ... ok
 test tests::unique_exhaustion_ownership_and_zero_order ... ok
+test user::tests::user_return_layout_rejects_untrusted_stack_and_noncanonical_alias ... ok
+test user::tests::overflow_offset_and_page_overlap ... ok
+test tests::reserved_and_special_memory ... ok
+test user::tests::pids_survive_16bit_boundary_and_never_wrap ... ok
 test tests::unmap_mismatched_alias_is_atomic_and_cannot_free_executable ... ok
+test user::tests::return_flags_strip_authority ... ok
+test user::tests::valid_and_wx_entry_checks ... ok
 test tests::quota_no_partial_allocation ... ok
 
-test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
 
 
 running 0 tests

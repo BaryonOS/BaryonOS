@@ -1,5 +1,4 @@
-   Compiling kernel-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\crates\kernel-core)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.59s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
      Running unittests src\lib.rs (target\debug\deps\boot_protocol-ac93adc6975feb97.exe)
      Running unittests src\lib.rs (target\debug\deps\elf_loader_core-83153a59523b233e.exe)
      Running unittests src\lib.rs (target\debug\deps\kernel_core-47807490b0b9e789.exe)
