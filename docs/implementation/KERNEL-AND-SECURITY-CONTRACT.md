@@ -10,7 +10,7 @@ Dit is een eigen Rust-microkernel. seL4 dient als openbare kennisbron voor capab
 |---|---|
 | Machine | Het M1-profiel: QEMU q35, TCG, x86_64, één CPU, 256 MiB RAM, geen netwerk of hostschijf |
 | Kernel | Rust `no_std`, `panic=abort`, `x86_64-unknown-none`, `code-model=small`; minimale assembly |
-| Bootcompatibiliteit | Bestaande M1 `BootInfo` v1, 128 bytes; fysieke pointers; kernel VA=PA=`0x00200000`, gereserveerd bereik 2–18 MiB |
+| Bootcompatibiliteit | Bestaande M1 `BootInfo` v1.1, 128 bytes; fysieke pointers; kernel VA=PA=`0x02000000`, gereserveerd bereik 32–48 MiB |
 | Paginaformaat | Eigen vierlaags paging, uitsluitend 4 KiB-pagina's; geen huge pages, PCID, demand paging of userspace-MMIO |
 | Processen | Maximaal 16 processen; precies één thread per adresruimte; geen gedeeld gebruikersgeheugen |
 | Executables | Eigen kleine statische ELF64-testprogramma's, System V-aanroepconventie, geen hostlibc, TLS of dynamische linker |
@@ -32,7 +32,7 @@ Alle bereiken zijn halfopen: het eindadres hoort er niet bij. Elke adresruimte h
 |---|---|
 | `0x00000000–0x00001000` | Ongemapt; null-page |
 | `0x00001000–0x40000000` | Supervisor-only identitygebied; map uitsluitend werkelijk benodigde RAM-pagina's en expliciete bootreserveringen, nooit automatisch gaten of apparaten |
-| `0x00200000–0x01200000` | M1-kernelreservering binnen dit supervisorgebied; map imagepagina's volgens ELF-segmentrechten |
+| `0x02000000–0x03000000` | M1-kernelreservering binnen dit supervisorgebied; map imagepagina's volgens ELF-segmentrechten |
 | `0x40000000–0x60000000` | User-ELF-segmenten; eerste text op `0x40000000`; alleen werkelijk geladen segmenten aanwezig |
 | `0x60000000–0x60010000` | Eerste vaste userheap, 64 KiB, read/write, NX |
 | `0x7ffee000–0x7ffef000` | Ongemapte onderste stackguard |

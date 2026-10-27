@@ -9,12 +9,13 @@ import platform
 import shutil
 import subprocess
 import sys
+from common import environment, firmware
 
 ROOT = Path(__file__).resolve().parents[1]
-PROBE_ENV = dict(os.environ, RUSTUP_AUTO_INSTALL="0")
+PROBE_ENV = environment()
 
 def probe(name: str) -> dict:
-    path = shutil.which(name)
+    path = shutil.which(name, path=PROBE_ENV["PATH"])
     result = {"available": bool(path), "path": path, "version": None}
     if path:
         try:
@@ -46,6 +47,11 @@ def main() -> int:
     ]
     if args.firmware:
         known_firmware.insert(0, args.firmware.expanduser())
+    else:
+        try:
+            known_firmware.insert(0, firmware()[0])
+        except (RuntimeError, OSError):
+            pass
     installed_targets = []
     if tools["rustup"]["available"]:
         try:
@@ -57,12 +63,12 @@ def main() -> int:
                 installed_targets = done.stdout.splitlines()
         except (OSError, subprocess.TimeoutExpired):
             pass
-    firmware = [str(f.resolve()) for f in known_firmware if f.is_file()]
+    firmware_candidates = [str(f.resolve()) for f in known_firmware if f.is_file()]
     required = ("git", "rustc", "cargo", "rustup", "qemu-system-x86_64")
     missing = [name for name in required if not tools[name]["available"]]
     required_targets = ("x86_64-unknown-uefi", "x86_64-unknown-none")
     missing_targets = [target for target in required_targets if target not in installed_targets]
-    if not firmware:
+    if not firmware_candidates:
         missing.append("OVMF code firmware (supply --firmware if stored elsewhere)")
     report = {
         "schema_version": 1,
@@ -76,7 +82,7 @@ def main() -> int:
         "tools": tools,
         "installed_rust_targets": installed_targets,
         "missing_rust_targets": missing_targets,
-        "firmware_candidates": firmware,
+        "firmware_candidates": firmware_candidates,
         "missing": missing,
         "baseline_tools_present": not missing and not missing_targets,
         "next": "Compare versions against docs/implementation/BOOT-AND-TOOLCHAIN.md; then build and run the real smoke test.",

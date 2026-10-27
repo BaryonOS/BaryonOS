@@ -1,0 +1,197 @@
+{
+  "checked": "2026-10-27",
+  "scope": "host adapter and build dependencies only; qsim-core has no external dependencies",
+  "packages": [
+    {
+      "name": "itoa",
+      "version": "1.0.18",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/dtolnay/itoa",
+      "rust_version": "1.68",
+      "build_script": false,
+      "notices": [
+        "third-party\\itoa-1.0.18\\LICENSE-APACHE",
+        "third-party\\itoa-1.0.18\\LICENSE-MIT"
+      ]
+    },
+    {
+      "name": "memchr",
+      "version": "2.8.3",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
+      "license": "Unlicense OR MIT",
+      "repository": "https://github.com/BurntSushi/memchr",
+      "rust_version": "1.61",
+      "build_script": false,
+      "notices": [
+        "third-party\\memchr-2.8.3\\COPYING",
+        "third-party\\memchr-2.8.3\\LICENSE-MIT",
+        "third-party\\memchr-2.8.3\\UNLICENSE"
+      ]
+    },
+    {
+      "name": "proc-macro2",
+      "version": "1.0.107",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+      "dependencies": [
+        "unicode-ident"
+      ],
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/dtolnay/proc-macro2",
+      "rust_version": "1.71",
+      "build_script": "build.rs",
+      "notices": [
+        "third-party\\proc-macro2-1.0.107\\LICENSE-APACHE",
+        "third-party\\proc-macro2-1.0.107\\LICENSE-MIT"
+      ],
+      "build_script_sha256": "baeb20b52f6b536be8657a566591a507bb2e34a45cf8baa42b135510a0c3c729"
+    },
+    {
+      "name": "quote",
+      "version": "1.0.47",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+      "dependencies": [
+        "proc-macro2"
+      ],
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/dtolnay/quote",
+      "rust_version": "1.71",
+      "build_script": "build.rs",
+      "notices": [
+        "third-party\\quote-1.0.47\\LICENSE-APACHE",
+        "third-party\\quote-1.0.47\\LICENSE-MIT"
+      ],
+      "build_script_sha256": "cd6808c02e476b09a520105e2c6f6d325cccb1ecd542cbbcc836a0ae6f6fb0f1"
+    },
+    {
+      "name": "serde",
+      "version": "1.0.229",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba",
+      "dependencies": [
+        "serde_core",
+        "serde_derive"
+      ],
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/serde-rs/serde",
+      "rust_version": "1.56",
+      "build_script": "build.rs",
+      "notices": [
+        "third-party\\serde-1.0.229\\LICENSE-APACHE",
+        "third-party\\serde-1.0.229\\LICENSE-MIT"
+      ],
+      "build_script_sha256": "e2ea6a7a82f5404c3e28cb055883c737ee7903367a10206fbb47b75c009f0eb3"
+    },
+    {
+      "name": "serde_core",
+      "version": "1.0.229",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "67dca2c9c51e58a4791a4b1ed58308b39c64224d349a935ab5039aa360942a48",
+      "dependencies": [
+        "serde_derive"
+      ],
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/serde-rs/serde",
+      "rust_version": "1.56",
+      "build_script": "build.rs",
+      "notices": [
+        "third-party\\serde_core-1.0.229\\LICENSE-APACHE",
+        "third-party\\serde_core-1.0.229\\LICENSE-MIT"
+      ],
+      "build_script_sha256": "7bc6b1eec8913ff4cd8e4b9b92cd04a82a4f38beb30a0b73a64c1e6e49f07b5f"
+    },
+    {
+      "name": "serde_derive",
+      "version": "1.0.229",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348",
+      "dependencies": [
+        "proc-macro2",
+        "quote",
+        "syn"
+      ],
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/serde-rs/serde",
+      "rust_version": "1.71",
+      "build_script": false,
+      "notices": [
+        "third-party\\serde_derive-1.0.229\\LICENSE-APACHE",
+        "third-party\\serde_derive-1.0.229\\LICENSE-MIT"
+      ]
+    },
+    {
+      "name": "serde_json",
+      "version": "1.0.154",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "e7e9cc8b1b85264074fbcc02a88680c4096b1e47df8f739dceb03bf482f04bd6",
+      "dependencies": [
+        "itoa",
+        "memchr",
+        "serde",
+        "serde_core",
+        "zmij"
+      ],
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/serde-rs/json",
+      "rust_version": "1.71",
+      "build_script": "build.rs",
+      "notices": [
+        "third-party\\serde_json-1.0.154\\LICENSE-APACHE",
+        "third-party\\serde_json-1.0.154\\LICENSE-MIT"
+      ],
+      "build_script_sha256": "a681e754be844c7dbef957f5d2d00b01f37c5dca160ef1055a8d8f975697a881"
+    },
+    {
+      "name": "syn",
+      "version": "3.0.9",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "d78c8dee4c7bf0e14673097256fed6142ce9d3b85a408189d07482442145823b",
+      "dependencies": [
+        "proc-macro2",
+        "quote",
+        "unicode-ident"
+      ],
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/dtolnay/syn",
+      "rust_version": "1.71",
+      "build_script": false,
+      "notices": [
+        "third-party\\syn-3.0.9\\LICENSE-APACHE",
+        "third-party\\syn-3.0.9\\LICENSE-MIT"
+      ]
+    },
+    {
+      "name": "unicode-ident",
+      "version": "1.0.27",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563",
+      "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "repository": "https://github.com/dtolnay/unicode-ident",
+      "rust_version": "1.71",
+      "build_script": false,
+      "notices": [
+        "third-party\\unicode-ident-1.0.27\\LICENSE-APACHE",
+        "third-party\\unicode-ident-1.0.27\\LICENSE-MIT",
+        "third-party\\unicode-ident-1.0.27\\LICENSE-UNICODE"
+      ]
+    },
+    {
+      "name": "zmij",
+      "version": "1.0.23",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b",
+      "license": "MIT",
+      "repository": "https://github.com/dtolnay/zmij",
+      "rust_version": "1.71",
+      "build_script": "build.rs",
+      "notices": [
+        "third-party\\zmij-1.0.23\\LICENSE-MIT"
+      ],
+      "build_script_sha256": "ad320bc635887879bdbbf1b9322da4a157ec2c5a4243bd7c2cf9b6884a3b2a41"
+    }
+  ]
+}

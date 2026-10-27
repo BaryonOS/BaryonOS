@@ -2,6 +2,10 @@
 
 Status: implementatiespecificatie, 26 oktober 2026. Dit document sluit de bootkeuzes voor M1; de volgende ontwikkelchat implementeert ze. Het bevat geen gecompileerde loader, kernel of geslaagde VM-test. De huidige onderzoeksomgeving heeft geen `rustc`, `cargo`, `rustup`, QEMU, Clang of `ld.lld` in PATH. Er is dus geen bootbewijs. De broncontrole hieronder is wel uitgevoerd. Lees voor M2–M4 ook [KERNEL-AND-SECURITY-CONTRACT.md](KERNEL-AND-SECURITY-CONTRACT.md).
 
+## Uitvoeringscorrecties — 27 oktober 2026
+
+De daadwerkelijke Windows-run gebruikt QEMU11.1.0 uit het vastgelegde ontwikkelpakket met bijpassende firmware. De oorspronkelijke 2–18MiB-reservering overlapt daarin ACPI NVS en BootServicesData; de loader wees deze terecht af. Het vaste profiel is daarom gewijzigd naar32–48MiB en BootInfo ABI1.1. De headerlayout is ongewijzigd; ABI1.0 wordt afgewezen. De alleen-lezen ESP is aangesloten via virtio, omdat IDE de alleen-lezen blocknode weigert. Een compilergegenereerde statische GOT is expliciet in .data opgenomen; runtime-relocaties blijven verboden. Zie ADR-019 t/m ADR-021 en PROJECT-STATE.md voor echt testbewijs. Oorspronkelijke onderzoeksclaims hieronder zijn historische context, geen nieuwe testuitslag.
+
 ## 1. Vast profiel
 
 | Onderdeel | Besluit voor M1 | Bewijsstatus |
@@ -91,7 +95,7 @@ cargo +1.90.0 build --locked --release -p os-kernel --target x86_64-unknown-none
 
 ## 3. ELF en linkerlayout
 
-De kernel gebruikt fysieke adressen gelijk aan virtuele adressen. Reserveer **`[0x00200000, 0x01200000)`**, exact 16 MiB, via UEFI `AllocatePages(AllocateAddress, EfiLoaderCode, 4096, &base)` voordat andere grote buffers worden gealloceerd. M1 is specifiek voor het vastgelegde VM-profiel. Wanneer deze reservering niet lukt: expliciete fout; geen willekeurig ander laadadres. De linker begrenst de gebruikte kernel tot dit interval.
+De kernel gebruikt fysieke adressen gelijk aan virtuele adressen. Reserveer **`[0x02000000, 0x03000000)`**, exact 16 MiB, via UEFI `AllocatePages(AllocateAddress, EfiLoaderCode, 4096, &base)` voordat andere grote buffers worden gealloceerd. M1 is specifiek voor het vastgelegde VM-profiel. Wanneer deze reservering niet lukt: expliciete fout; geen willekeurig ander laadadres. De linker begrenst de gebruikte kernel tot dit interval.
 
 Startpunt voor `kernel/linker.ld`:
 
@@ -105,17 +109,17 @@ PHDRS {
   data   PT_LOAD FLAGS(6);
 }
 SECTIONS {
-  . = 0x00200000;
+  . = 0x02000000;
   __kernel_start = .;
   .text : ALIGN(4096) { KEEP(*(.text.entry)) *(.text .text.*) } :text
   . = ALIGN(4096);
   .rodata : { *(.rodata .rodata.*) } :rodata
   . = ALIGN(4096);
-  .data : { *(.data .data.*) } :data
+  .data : { *(.data .data.*) *(.got .got.*) } :data
   .bss (NOLOAD) : ALIGN(16) { *(.bss .bss.*) *(COMMON) } :data
   __kernel_end = ALIGN(4096);
   /DISCARD/ : { *(.eh_frame*) *(.comment) *(.note*) }
-  ASSERT(__kernel_end <= 0x01200000, "kernel exceeds reserved span")
+  ASSERT(__kernel_end <= 0x03000000, "kernel exceeds reserved span")
 }
 ```
 
@@ -129,7 +133,7 @@ Voor dit kleine profiel: weiger `PT_INTERP`, `PT_DYNAMIC`, `PT_TLS`, en onbekend
 
 **W^X-status:** ELF-vlaggen vormen in M1 een gecontroleerde intentie, nog geen afgedwongen geheugenbescherming. M1 erft tijdelijk UEFI-pagetables. M2 maakt eigen tables, supervisor-only mappings, read-only code en NX-data en test de echte faults. Dit M1-profiel heeft nog geen userspace, ASLR, guardpages, DMA-isolatie of Secure Boot. Claim daarvoor geen beveiliging op basis van een succesvol bootbericht.
 
-## 4. BootInfo v1: exact overdrachtsformaat
+## 4. BootInfo v1.1: exact overdrachtsformaat
 
 Alle meerbytevelden zijn little-endian. Fysieke adressen worden als `u64` opgeslagen; geen Rust-references, `usize`, `bool`, enums, packed structs of slice-fat-pointers in de ABI. `#[repr(C)]`, alignment 8, totale grootte **128 bytes**. De structuur staat aan het begin van een eigen nulgevulde 4096-byte `EfiLoaderData`-allocatie. Alle pointers worden pas gebruikt na bounds-/overlapcontrole.
 
@@ -163,14 +167,14 @@ pub struct BootInfo {
 |---:|---|---|
 | 0 | `magic`, 8 bytes | `b"NOSBOOT\0"` |
 | 8 | `abi_major`, u16 | 1 |
-| 10 | `abi_minor`, u16 | 0 |
+| 10 | `abi_minor`, u16 | 1 |
 | 12 | `header_size`, u32 | 128 |
 | 16 | `flags`, u64 | bit0: EBS geslaagd; bit1: firmware-paging nog actief; bit2: M1-QEMU-testprofiel; overige bits 0 |
 | 24 | `memory_map_addr`, u64 | Fysiek begin van aparte, behouden pageallocatie |
 | 32 | `memory_map_len`, u64 | Werkelijke bytes van de laatste succesvolle `GetMemoryMap` |
 | 40 | `descriptor_size`, u32 | Firmwarestride, minstens 40, veelvoud van 8, maximaal 4096 in dit profiel |
 | 44 | `descriptor_version`, u32 | 1; onbekende versie wordt voor M1 geweigerd |
-| 48 | `kernel_reserved_start`, u64 | 0x00200000 |
+| 48 | `kernel_reserved_start`, u64 | 0x02000000 |
 | 56 | `kernel_reserved_len`, u64 | 0x01000000 |
 | 64 | `stack_start`, u64 | Eigen pagealigned stackbasis, geen firmwarestack |
 | 72 | `stack_len`, u64 | 65536 bytes |
@@ -181,7 +185,7 @@ pub struct BootInfo {
 | 112 | `memory_map_capacity`, u64 | Volledige gereserveerde mapbuffer in bytes; kan groter zijn dan len |
 | 120 | `reserved0`, u64 | 0 |
 
-M1 accepteert exact major1/minor0/header128 en flags7. Wijzig semantiek of vereiste velden alleen met een afgesproken ABI-versie; laat loader en kernel dezelfde crate gebruiken. Compile-time assert voor `size_of`, `align_of` en **ieder** `offset_of!`; een hosttest controleert een expliciete bytefixture. Daarmee kan de implementatie geen verborgen paddingverschuiving introduceren.
+M1 accepteert exact major1/minor1/header128 en flags7. Wijzig semantiek of vereiste velden alleen met een afgesproken ABI-versie; laat loader en kernel dezelfde crate gebruiken. Compile-time assert voor `size_of`, `align_of` en **ieder** `offset_of!`; een hosttest controleert een expliciete bytefixture. Daarmee kan de implementatie geen verborgen paddingverschuiving introduceren.
 
 Uitgevoerde beperkte controle op 26 oktober 2026: een Python `ctypes.Structure` met exact bovenstaande vaste-width-velden geeft op de onderzoeks-host grootte128, alignment8 en offsets `[0,8,10,12,16,24,32,40,44,48,56,64,72,80,88,96,104,112,120]`; asserts geslaagd, procesexit0. Dit controleert de voorgeschreven C-layout, niet de nog ongebouwde Rust-binaries of de boot.
 
@@ -253,7 +257,7 @@ qemu-system-x86_64 \
   -nic none -no-reboot \
   -drive if=pflash,unit=0,format=raw,readonly=on,file=build/firmware/OVMF_CODE.fd \
   -drive if=pflash,unit=1,format=raw,file=build/run/OVMF_VARS.fd \
-  -drive if=ide,index=0,format=raw,readonly=on,file=fat:build/esp \
+  -drive if=virtio,index=0,format=raw,readonly=on,file=fat:build/esp \
   -device isa-debug-exit,iobase=0xf4,iosize=0x04
 ```
 

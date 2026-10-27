@@ -1,3 +1,19 @@
+# Nieuw OS — eerste bouwbatch
+
+De eigen Rust-kernel start daadwerkelijk via de eigen UEFI-loader in QEMU. Daarnaast zijn het interactieve Materiaal-prototype en de lokale Rust-quantumsimulator geïmplementeerd. Dit is een experimentele ontwikkelversie, geen productie-OS.
+
+- **Actuele voortgang en open controles:** [PROJECT-STATE.md](docs/PROJECT-STATE.md).
+- **Starten en reproduceren:** [DEVELOPMENT.md](docs/DEVELOPMENT.md).
+- **Opgeslagen testbewijs:** [docs/verification/](docs/verification/).
+- **Productprototype:** [handleiding](ui/prototype/README.md).
+- **Quantumsimulator:** [handleiding](experiments/quantum/README.md).
+
+De actuele code staat op `codex/first-build`; `main` bevat de oorspronkelijke startspecificaties totdat de concept-PR is beoordeeld. Voortgang wordt per afgebakende stap gecommit en gepusht, met uitgevoerde tests en open punten.
+
+## Oorspronkelijk startpakket (historische context)
+
+Onderstaande tekst beschrijft de aangeleverde voorbereiding van26 oktober2026. Uitspraken daarin over ontbrekende code zijn historisch; de actuele status staat hierboven.
+
 # Een zelfstandig OS — startpakket voor Codex
 Onderzoeksdatum: 26 oktober 2026. Revisie 5: de eerste onderzoeken zijn uitgevoerd; concrete bouwspecificaties voor kernel, product, quantum en Europese eisen staan klaar. Werknaam: `nieuw-os`; geen merkonderzoek uitgevoerd.
 

@@ -1,0 +1,1 @@
+{"schema":"qsim-v0","job_id":"bell-4096","qubits":2,"gates":[{"op":"h","target":0},{"op":"cx","control":0,"target":1}],"shots":4096,"seed":"0000000000000000"}

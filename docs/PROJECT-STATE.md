@@ -1,35 +1,44 @@
 # Actuele projectstatus
-Bijgewerkt: 26 oktober 2026, revisie 5. De gebruiker vroeg de onderzoeken nu uit te voeren zodat Codex meteen kan coderen. Die voorbereiding is afgerond in docs/implementation/.
-Git-commit: niet beschikbaar; er is geen nieuwe remote repository aangemaakt of gepubliceerd.
 
-## Geleverd en besloten
+Bijgewerkt: 27 oktober 2026. Eerste bouwbatch B00/B01/P02/Q01.
+Repository: https://github.com/simonvanieperen/nieuw-os (privé).
+Werkbranch: `codex/first-build`; basiscommit `04bb3a388efd6b873177b6b3bc650f9ebfd19ba6`.
+De commit die dit bestand bevat is de voortgangssnapshot; `git log -1` geeft zijn exacte ID.
 
-- Boot/toolchain: eigen loader/kernel, vastgelegde ELF-layout, BootInfo, overdracht en testcommando's.
-- Kern M2–M4: adresruimten, syscallgrens, capabilities, IPC, quota en 16 acceptatiegevallen.
-- Product P0/P1: drie concepten vergeleken; Materiaal gekozen; zeven schermen en P2-bouwpad gespecificeerd.
-- Quantum Q0: simulatorprofiel gekozen; exacte JSON/gates/limieten/fixtures en Q1-bouwpad; PQC-keuzes apart.
-- Europese toepasselijkheidsmatrix en acht engineeringvoorwaarden; geen conformiteitsverklaring.
-- Startprompt omgezet naar implementatie, exclusieve agenttaken en read-only tools/preflight.py toegevoegd.
+## Geïmplementeerd
 
-## Werkelijk gecontroleerd
+- B00: afzonderlijke lokale Windows-toolomgeving; Rust1.90.0/MSVC, twee cross-targets, QEMU11.1.0 en bijpassende packaged firmware. Geen globale PATH-wijziging.
+- B01: eigen UEFI-loader, veilige ELF-laadplanning, BootInfo ABI1.1, assemblyoverdracht en eigen Rust-kernel. Werkelijk in QEMU gestart na ExitBootServices.
+- P02: dependencyvrij Materiaal-browserprototype, zeven routes, mockbroker, tijdelijke documentrechten, versieherstel, NAS-/AI-fouttoestanden. Fictieve data; geen native OS-integratie.
+- Q01: lokale Rust-statevector-simulator (max12 qubits), no_std+alloc-core en strikte JSON-CLI. Hostsimulatie; geen QPU of OS-port.
 
-Zie [implementation/VERIFICATION.md](implementation/VERIFICATION.md). Onder meer: primaire bronnen, Python/TOML-syntaxis, documentconsistentie, BootInfo-/IPC-layout met Python ctypes, quantumfixtures en kleurcontrastberekeningen. Preflight uitgevoerd in deze onderzoeksomgeving: Python/Git aanwezig; Rust/rustup/Cargo/QEMU/OVMF ontbreken. Dit zegt niets over Simons eigen computer.
+## Werkelijk uitgevoerd
 
-## Nog niet geïmplementeerd of getest
+| Opdracht | Resultaat | Bewijs in repository |
+|---|---|---|
+| `python tools/preflight.py --strict` | exit0; tools/targets/firmware gevonden | `docs/verification/toolchain-provenance.json` en DEVELOPMENT.md |
+| `python tools/build.py` | exit0; PE32+ en ELF64, drie laadsegmenten | `docs/verification/boot-manifest.json` |
+| `python -u tools/test.py` | exit0; 10 acceptatiegroepen, 13 hosttests | `docs/verification/boot-suite.json`, `boot-runs.json`, `boot-host-tests.txt` |
+| `python experiments/quantum/verify.py` | exit0; 23 Rust-tests, fixtures, Clippy, no_std-check | `docs/verification/quantum-report.json`, `quantum-tests.txt` |
+| `node --test ui/prototype/tests/state.test.mjs` | exit0; 22 tests | uitvoer in chat; definitief browserrapport volgt |
+| `node --check ui/prototype/app.js` | exit0 | uitgevoerd na laatste toetsenbordcorrectie |
 
-Geen eigen loader, kernel, gebruikersproces, capability-engine, UI-prototype of Rust-quantumsimulator. Geen Rust-build, echte QEMU-boot, hardwarecompatibiliteit, gebruikerstest of securityaudit. De geselecteerde compiler/dependency/firmwarecombinatie is nog niet samen uitgevoerd. Nooit voorbereiding als een behaalde M1 melden.
+De bootreeks omvat drie koude starts (ruwe QEMU-exit33), ontbrekende/corrupte kernel (35), echt stale-key EBS-herstel (33), kernelpanic (35) en een echte guest-timeout van60s. Normale artifacts zijn daarna hersteld. De ruwe lokale bestanden blijven in `build/run/` en `build/logs/`; controleerbare tekst-/hashrapporten zijn meegecommit.
 
-## Eerstvolgende taak
+Browserflows zijn daadwerkelijk doorlopen: onboarding, toegang weigeren/toestaan/intrekken, Ctrl+S, herstellen als nieuwe versie, NAS-koppeling en fouttoestanden, assistentuitkomst/model-/geheugenfouten, geldige/ongeldige voorbeeldinstallatie. Schermen op1440×900,1024×768,390×844 en320px hebben geen horizontale overflow. **Laatste modal-Tab-correctie wacht nog op runtimehercontrole**; daarom is P02 nog geen volledig afgeronde toegankelijkheidspoort. Werkelijke200%-browserzoom en schermlezer-/gebruikersproeven zijn nog niet aangetoond.
 
-Voer PROMPT-START.md en [implementation/FIRST-BATCH.md](implementation/FIRST-BATCH.md) uit:
-B00 inventariseert en bereidt de werkelijke ontwikkelomgeving voor; B01 schrijft de bootproef; P02 schrijft ui/prototype/; Q01 schrijft experiments/quantum/. Start geen nieuwe algemene concept- of toolchainstudie. Ontbrekende bootsystemen blokkeren onafhankelijk productwerk niet.
+## Besluiten en herstel
 
-## Bindende grenzen en latere open punten
+De oorspronkelijke vaste kernelspan2–18MiB overlapt de werkelijke UEFI-kaart. Nu32–48MiB, dezelfde16MiB-omvang, en BootInfo1.1 met ongewijzigde128byte-layout. De read-only ESP gebruikt virtio omdat de voorgeschreven IDE-drive werd geweigerd. Een statisch opgeloste GOT is expliciet in .data geplaatst; runtime-relocaties blijven verboden. Zie DECISIONS.md en DEVELOPMENT.md.
 
-OS-gegevens alleen apparaat/eigen NAS binnen eigen LAN; AI-inferentie alleen apparaat; geen externe OS-cloud/relay/telemetrie; afzonderlijke apprechten. Deze eisen zijn nog niet geïmplementeerd. De ambitie voor een eigen product en lokale hybride quantumhardware blijft behouden.
+## Niet geïmplementeerd of bewezen
 
-MPL-2.0 is onderzocht en aanbevolen; officiële projectlicentie en licentie-inventaris vóór publieke publicatie afronden. Menselijke OS-/securityreview, concrete QPU/controller en fysieke referentiehardware nog niet geregeld. Die latere keuzes blokkeren de eerste lokale codetaak niet.
+Gebruikersprocessen, eigen paginatabellen/W^X-afdwinging, capabilities/IPC in de kernel, drivers, Secure Boot, PQC, fysieke hardwarecompatibiliteit, echte NAS/AI-diensten, native UI en QPU-besturing. De UI-rechten zijn mockgedrag. Geen productie- of veiligheidscertificering en geen absolute quantum-/veiligheidsclaims.
 
-## Na iedere mijlpaal bijwerken
+## Eerstvolgende stap en overdracht
 
-Taak-ID; Git-basis/eindcommit; gewijzigde bestanden; wat werkt; werkelijk uitgevoerde commando's en exitstatus; log-/artifactpaden; niet uitgevoerde controles; besluiten; resterende risico's; eerstvolgende kleine taak.
+1. Runtimehercontrole van modal Tab/Shift+Tab en definitief browser-/netwerkrapport vastleggen.
+2. Eerste bouwbatch als concept-PR aanbieden; bron, lockfiles en bewijs zijn op de werkbranch te hervatten.
+3. Daarna M2: eigen exceptionafhandeling en paginatabellen met negatieve geheugenbeschermingstests, vóór gebruikersprocessen.
+
+Gebruik DEVELOPMENT.md voor de exacte startcommando's. Werk voortaan na iedere afgebakende stap en vóór langdurige controles deze status bij, commit de bron/bewijs/open punten en push de werkbranch. Een lokale wijziging of een alleen lokale commit is nog niet op GitHub opgeslagen. Wijzigingen die nog niet alle controles hebben doorstaan worden expliciet als tussenstand gemarkeerd.

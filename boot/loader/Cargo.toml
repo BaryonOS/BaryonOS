@@ -1,0 +1,20 @@
+[package]
+name = "os-loader"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+default = []
+test-ebs-retry = []
+
+[dependencies]
+r-efi = { version = "=7.1.0", default-features = false }
+boot-protocol = { path = "../../crates/boot-protocol" }
+elf-loader-core = { path = "../../crates/elf-loader-core" }
+
+[[bin]]
+name = "os-loader"
+path = "src/main.rs"
+test = false
+bench = false

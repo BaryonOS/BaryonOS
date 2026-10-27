@@ -1,0 +1,20 @@
+[package]
+name = "os-kernel"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "build.rs"
+
+[features]
+default = []
+test-panic = []
+test-hang = []
+
+[dependencies]
+boot-protocol = { path = "../crates/boot-protocol" }
+
+[[bin]]
+name = "os-kernel"
+path = "src/main.rs"
+test = false
+bench = false
