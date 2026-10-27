@@ -77,8 +77,8 @@ class ProbeArtifact(unittest.TestCase):
         # RDI deliberately contains the exit code and is not cleared here.
         expected = bytes.fromhex('b8 02 00 00 00 31 f6 31 d2 45 31 d2 45 31 c0 45 31 c9 cd 80 0f 0b')
         self.assertTrue(self.code.endswith(expected), self.code[-len(expected):].hex())
-        # Normal/unknown/invalid-argument prelude, yield and exit.
-        self.assertEqual(self.code.count(bytes.fromhex('cd 80')), 5)
+        # Normal/unknown/invalid-argument prelude, yield, invalid-RSP and exit.
+        self.assertEqual(self.code.count(bytes.fromhex('cd 80')), 6)
 
     def test_negative_syscall_and_direction_flag_prelude_is_in_actual_binary(self):
         for label, opcode in [
@@ -86,6 +86,11 @@ class ProbeArtifact(unittest.TestCase):
             ('read and check returned DF, then clear it', '9c 5a f7 c2 00 04 00 00 fc'),
             ('unknown syscall with zero RDX, expect ENOSYS', 'b8 ff ff 00 00 31 d2 cd 80 48 83 f8 fe'),
             ('unused RSI=1, expect EINVAL', '31 c0 be 01 00 00 00 cd 80 48 83 f8 ff'),
+            ('mode 15 dispatch', '48 83 f8 0f'),
+            ('explicit nonzero exit code 7', 'bf 07 00 00 00'),
+            ('mode 16 dispatch', '48 83 f8 10'),
+            ('zero ABI-info args, invalid return RSP, no normal continuation',
+             '31 c0 31 ff 31 f6 31 d2 45 31 d2 45 31 c0 45 31 c9 31 e4 cd 80 0f 0b'),
         ]:
             with self.subTest(prelude=label):
                 self.assertIn(bytes.fromhex(opcode), self.code)

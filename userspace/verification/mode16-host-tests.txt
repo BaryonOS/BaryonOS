@@ -1,0 +1,18 @@
+test_exact_entry_segments_and_private_data_layout (__main__.ProbeArtifact.test_exact_entry_segments_and_private_data_layout) ... ok
+test_exit_machine_code_clears_every_unused_argument_including_rdx (__main__.ProbeArtifact.test_exit_machine_code_clears_every_unused_argument_including_rdx) ... ok
+test_manifest_matches_actual_source_linker_and_binary (__main__.ProbeArtifact.test_manifest_matches_actual_source_linker_and_binary) ... ok
+test_negative_syscall_and_direction_flag_prelude_is_in_actual_binary (__main__.ProbeArtifact.test_negative_syscall_and_direction_flag_prelude_is_in_actual_binary) ... ok
+test_no_dynamic_relocations_tls_or_unexpected_allocatable_sections (__main__.ProbeArtifact.test_no_dynamic_relocations_tls_or_unexpected_allocatable_sections) ... ok
+test_rejects_entry_in_data_outside_image_or_rx_bss (__main__.ProbeArtifact.test_rejects_entry_in_data_outside_image_or_rx_bss) ... ok
+test_rejects_interpreter_dynamic_tls_and_unknown_program_types (__main__.ProbeArtifact.test_rejects_interpreter_dynamic_tls_and_unknown_program_types) ... ok
+test_rejects_out_of_range_unaligned_and_arithmetic_extremes (__main__.ProbeArtifact.test_rejects_out_of_range_unaligned_and_arithmetic_extremes) ... ok
+test_rejects_page_overlap_even_for_disjoint_byte_ranges (__main__.ProbeArtifact.test_rejects_page_overlap_even_for_disjoint_byte_ranges) ... ok
+test_rejects_truncated_required_bytes (__main__.ProbeArtifact.test_rejects_truncated_required_bytes) ... ok
+test_rejects_writable_executable_and_unknown_permission_bits (__main__.ProbeArtifact.test_rejects_writable_executable_and_unknown_permission_bits) ... ok
+test_rejects_wrong_class_endian_machine_and_dynamic_type (__main__.ProbeArtifact.test_rejects_wrong_class_endian_machine_and_dynamic_type) ... ok
+test_required_forbidden_instruction_encodings_are_in_rx_segment (__main__.ProbeArtifact.test_required_forbidden_instruction_encodings_are_in_rx_segment) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.056s
+
+OK

@@ -7,10 +7,10 @@ import struct
 from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
 
 M3_CASES = ("peer-read", "peer-write", "kernel-write", "stack-exec", "heap-exec",
-            "guard-low", "guard-high", "cli", "x87", "xmm", "avx", "ud", "exit")
+            "guard-low", "guard-high", "cli", "x87", "xmm", "avx", "ud", "exit", "b-exit", "invalid-rsp")
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
-                   "milestone-m3", *(f"test-m3-{case}" for case in M3_CASES)]
+                   "milestone-m3", "test-m3-idle", *(f"test-m3-{case}" for case in M3_CASES)]
 
 
 def inspect_elf(path):

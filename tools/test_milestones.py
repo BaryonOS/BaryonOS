@@ -11,6 +11,7 @@ from build import build, M3_CASES
 from run import run_guest
 
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
+M2_AUDIT = ("KS-01:PASS", "KS-02:PASS", "KS-03:PASS")
 
 
 def test_m2():
@@ -40,18 +41,18 @@ def test_m2():
                                 ("test-m2-nx", "M2:FAULT:NX:PASS"),
                                 ("test-m2-absent", "M2:FAULT:ABSENT:PASS")):
             build(kernel_feature=feature, label=feature)
-            guest = run_guest(feature, required_markers=BOOT + (marker,))
+            guest = run_guest(feature, required_markers=BOOT + M2_AUDIT + (marker,))
             record(feature, guest["passed"], guest["run_directory"],
                    ["KS-03", "REAL_PAGE_FAULT"])
         build(kernel_feature="test-m2-kernel-fault", label="m2-kernel-fault")
         guest = run_guest("m2-kernel-fault", expected_exit=35,
-                          required_markers=BOOT + ("M2:FAIL:KERNEL_EXCEPTION",),
+                          required_markers=BOOT + M2_AUDIT + ("M2:FAULT:KERNEL_UD:PASS", "M2:FAIL:KERNEL_EXCEPTION"),
                           forbidden_markers=("M1:PASS", "M2:PASS", "M1:FAIL"))
         record("kernel-fault-stops-controlled", guest["passed"], guest["run_directory"],
                ["KERNEL_FAULT_FAIL_CLOSED"])
         build(kernel_feature="test-m2-double-fault", label="m2-double-fault")
         guest = run_guest("m2-double-fault", expected_exit=35,
-                          required_markers=BOOT + ("M2:FAULT:DF_IST:PASS",),
+                          required_markers=BOOT + M2_AUDIT + ("M2:FAULT:DF_IST:PASS",),
                           forbidden_markers=("M1:PASS", "M2:PASS", "M1:FAIL", "M2:FAIL"))
         record("unusable-main-stack-double-fault-ist", guest["passed"], guest["run_directory"],
                ["DOUBLE_FAULT_IST1", "KERNEL_STACK_GUARDS"])
@@ -103,20 +104,27 @@ def test_m3():
         save_json(path, suite)
         guest = run_guest("m3", required_markers=BOOT + (
             "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "KS-04:PASS", "KS-07:PASS",
-            "KS-08:PASS", "M3:PASS", "M1:PASS"))
+            "KS-08:PASS", "M3:SYSCALL_DF_ENTRY:PASS", "M3:PASS", "M1:PASS"))
         record("private-address-spaces-preemption-fairness-cleanup", guest,
                ["KS-04", "KS-07", "KS-08"])
         for case in M3_CASES:
             feature = f"test-m3-{case}"
             build(kernel_feature=feature, label=feature)
-            marker = "M3:EXIT:PASS" if case == "exit" else f"M3:FAULT:{case.upper().replace('-', '_')}:PASS"
+            nonfault_events = {"exit": "M3:EXIT:PASS", "b-exit": "M3:EXIT_NONZERO_B:PASS",
+                               "invalid-rsp": "M3:INVALID_RSP:PASS"}
+            marker = nonfault_events.get(case, f"M3:FAULT:{case.upper().replace('-', '_')}:PASS")
             requirement = "KS-05" if case in ("peer-read", "peer-write", "kernel-write") else "KS-06"
             observed = (marker, "M3:SURVIVOR_PROGRESS:PASS", "M3:CLEANUP:PASS")
-            if case != "exit":
+            if case not in nonfault_events:
                 observed += (f"{requirement}:PASS",)
-            observed += ("KS-08:PASS", "M3:PASS", "M1:PASS")
+            observed += ("KS-08:PASS", "M3:SYSCALL_DF_ENTRY:PASS", "M3:PASS", "M1:PASS")
             guest = run_guest(feature, required_markers=BOOT + observed)
-            record(feature, guest, ([requirement] if case != "exit" else []) + ["KS-08"])
+            record(feature, guest, ([requirement] if case not in nonfault_events else []) + ["KS-08"])
+        build(kernel_feature="test-m3-idle", label="test-m3-idle")
+        guest = run_guest("test-m3-idle", required_markers=BOOT + (
+            "M3:IDLE:PASS", "M3:PASS", "M1:PASS"))
+        record("all-processes-exit-idle-timer-and-resources", guest,
+               ["KS-08", "IDLE_CPL0_IRQ0", "RESOURCE_RECLAIM"])
         build()
         record("m1-regression-after-m3", run_guest("m1-after-m3"), ["M1"])
         suite.update(status="completed", passed=True)

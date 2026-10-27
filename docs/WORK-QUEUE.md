@@ -35,12 +35,9 @@ Doel: eigen boot, twee werkelijk geïsoleerde ring-3-processen, begrensde foutaf
 
 ## Laatste checkpoint
 
-Startcontrole: alleen de reeds bestaande ongetrackte `.codex/environments/` staat buiten Git; deze lokale instelling wordt behouden. De eerste batch is aanwezig op `144d952`; M2–M4 zijn nog niet geïmplementeerd. De tools zijn beschikbaar. Deze beurt is voortgang zodra queue/branch en concrete implementatie zijn vastgelegd; het vorige antwoord was een statuscontrole, geen verkleining van dit nieuwe doel.
-
-Root-checkpoint: generiek QEMU-harnas met exacte marker-/exitverwachtingen en aparte M2-poort geschreven. Drie hosttests van de bewijsparser en Python-syntaxischecks slagen; dit is nadrukkelijk nog geen geslaagde M2-run.
-
-K02 eerste echte VM-run: KS-01 slaagt, daarna kernelpanic vóór KS-02; rootpoort faalt expliciet. Diagnose/herstel door kernel_m2, geen M3-start. R02-review is parallel read-only actief.
-
-Vervolg K02: OVMF-cacheattributen gericht hersteld; gewone M2-smoke nu groen. R02 vond onjuiste unmap-aliasklasse: code en negatieve regressie hersteld, bronreview akkoord, nieuwe tests nog uit te voeren. Extra echte double-fault/IST-proef wordt toegevoegd vóór de volledige poort. M3 blijft gesloten.
-
-M2-poort afgerond: acht groepen exit0 op a256951, nieuwe zeven coretests uitgevoerd, zeven guestresultaten/serial/artifacthashes opnieuw gecontroleerd door capture_gate.py. M3 expliciet vrijgegeven; eigen userprobe-ELF en kernelintegratie hebben afzonderlijke schrijvers. R03 controleert alleen-lezen de echte isolatie-/fairness-/cleanupbewijzen. NMI-injectie nog niet uitgevoerd.
+- M2 op `a256951`: acht groepen, twintig hosttests, zeven QEMU-runs. Serial/exit/artifacthashes opnieuw gecontroleerd; bewijs `docs/verification/m2-m4/m2/`. De eerste mislukte run en daaropvolgende cacheattribuut-/aliasfix staan in de Git- en lokale runhistorie.
+- M3 code aanwezig, volledige rootpoort nog niet uitgevoerd. Gerichte echte proeven voor normal/peer-write/XMM, B exit7 en ongeldige return-RSP slagen volgens builderlogs. Reviews hebben exit/faultobserver van generieke procesafhandeling gescheiden, monotone u64-PID's, gecontroleerde returnvalidatie en volledige resourcebalans aangescherpt.
+- Nog vóór de M3-rootpoort: expliciete debugregisterinitialisatie en veilige idle/IRQ0-route na exit van alle processen. Kernelbuilder bezit het buildslot; root wijzigt alleen eigen tools/docs. Geen M4-start.
+- U03: probe modes0–16, zes int80-sites, dertien artifacttests groen; actuele bron/hashes onder `userspace/verification/`. Hostbewijs is geen CPL3-bewijs. Root ondersteunt vijftien afzonderlijke M3-procescases plus normale fairness en idleproef.
+- P02V en Q01V zijn gericht hersteld en privé gecheckpoint. Native 200%-zoom is door de Computer Use URL-controle gestopt; geen geverifieerde zoommutatie. Zoom, schermlezer en mensenproef blijven open.
+- Volgende rootactie: na kernelwritepause broncheckpoint pushen, `python -u tools/test_milestones.py --through m3` draaien, reviewbevindingen sluiten en bewijs bewaren. Alleen bij geslaagde M3-poort wordt M4 expliciet vrijgegeven.

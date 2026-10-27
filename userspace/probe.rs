@@ -137,6 +137,10 @@ _start:
     je .Lymm
     cmp rax, 14
     je .Linvalid_instruction
+    cmp rax, 15
+    je .Lexit_seven
+    cmp rax, 16
+    je .Linvalid_return_stack
     mov edi, 0xe2
     jmp .Lexit
 
@@ -198,6 +202,22 @@ _start:
 .Linvalid_instruction:
     ud2
     jmp .Lunexpected_return
+.Lexit_seven:
+    mov edi, 7
+    jmp .Lexit
+.Linvalid_return_stack:
+    // int80 switches to the kernel TSS stack. The kernel must reject this
+    // saved return-RSP locally before iretq; no hardware fault is the verdict.
+    xor eax, eax
+    xor edi, edi
+    xor esi, esi
+    xor edx, edx
+    xor r10d, r10d
+    xor r8d, r8d
+    xor r9d, r9d
+    xor esp, esp
+    int 0x80
+    ud2
 
 .Labi_error:
     cld
