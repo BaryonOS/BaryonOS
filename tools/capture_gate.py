@@ -40,12 +40,16 @@ def guest_matches(phase, group, result):
     return False
 
 
-def capture(phase: str):
+def capture(phase: str, destination: str | None = None):
     suite_path = BUILD / ("test-results.json" if phase == "m1" else f"{phase}-test-results.json")
     suite = json.loads(suite_path.read_text(encoding="utf-8"))
     if suite.get("status") != "completed" or suite.get("passed") is not True:
         raise ValueError("Only a completed, passed gate can be captured")
-    destination = ROOT / "docs/verification/m5" if phase == "m5" else ROOT / "docs/verification/m2-m4" / phase
+    if destination is None:
+        destination = ROOT / "docs/verification/m5" if phase == "m5" else ROOT / "docs/verification/m2-m4" / phase
+    else:
+        destination = (ROOT / destination).resolve()
+        destination.relative_to((ROOT / "docs/verification").resolve())
     runs = []
     for group in suite["results"]:
         if group.get("passed") is not True:
@@ -108,4 +112,6 @@ def capture(phase: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("phase", choices=["m1", "m2", "m3", "m4", "m5"])
-    capture(parser.parse_args().phase)
+    parser.add_argument("--destination", help="Evidence directory within docs/verification/")
+    args = parser.parse_args()
+    capture(args.phase, args.destination)

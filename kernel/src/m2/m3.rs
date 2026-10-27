@@ -649,6 +649,7 @@ impl State {
     fn observer_exit(&mut self, slot: usize, counter: u64) {
         #[cfg(feature = "milestone-m5")]
         {
+            let _ = counter;
             m5::observe_exit(self, slot);
             return;
         }
@@ -684,6 +685,7 @@ impl State {
     fn observer_fault(&mut self, slot: usize, context: &[u64; 22], counter: u64) {
         #[cfg(feature = "milestone-m5")]
         {
+            let _ = counter;
             m5::observe_fault(self, slot, context);
             return;
         }

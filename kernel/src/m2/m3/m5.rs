@@ -50,6 +50,26 @@ struct Runtime {
     finish_counter: u64,
     final_error_seen: bool,
     now: u64,
+    service_calls: u64,
+    service_closes: u64,
+    bad_requests: u16,
+    bad_replies: u16,
+    bad: Option<BadRequest>,
+    initial_service: (u64, u64),
+    attacker_service_counter: u64,
+    attacker_client_counter: u64,
+}
+#[derive(Clone, Copy)]
+struct BadRequest {
+    id: u64,
+    header: wire::Header,
+    status: i64,
+    calls: u64,
+    submits: u64,
+    completions: u64,
+    handles: usize,
+    nodes: usize,
+    closes: u64,
 }
 static mut RUNTIME: Runtime = Runtime {
     info: None,
@@ -100,6 +120,14 @@ static mut RUNTIME: Runtime = Runtime {
     finish_counter: 0,
     final_error_seen: false,
     now: 0,
+    service_calls: 0,
+    service_closes: 0,
+    bad_requests: 0,
+    bad_replies: 0,
+    bad: None,
+    initial_service: (0, 0),
+    attacker_service_counter: 0,
+    attacker_client_counter: 0,
 };
 fn runtime() -> &'static mut Runtime {
     // SAFETY: Single CPU/IF0 service-stack execution. No device IRQ borrows this
@@ -165,6 +193,7 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         }
         Err(_) => {
             r.offline = -14;
+            r.quarantined = true;
         }
     }
 }
@@ -175,6 +204,10 @@ fn word(s: &State, slot: usize, offset: u64) -> u64 {
     read_word(s.processes[slot].physical(DATA + offset))
 }
 pub fn manifest(s: &mut State) {
+    runtime().initial_service = (
+        s.processes[0].pid,
+        s.processes[0].paging.as_ref().unwrap().root,
+    );
     let engine = m4::engine();
     for slot in 0..s.amount {
         engine.register(s.processes[slot].pid).unwrap();
@@ -213,10 +246,8 @@ pub fn manifest(s: &mut State) {
         .bootstrap_delegate(client, control, supervisor, 1)
         .unwrap();
     put(s, 2, 64, forward);
-    let client_control = engine
-        .bootstrap_delegate(supervisor, announcements, client, 1)
-        .unwrap();
-    put(s, 1, 64, client_control);
+    put(s, 1, 64, 0);
+    assert_eq!(word(s, 1, 64), 0);
     bind_service(s);
 }
 fn bind_service(s: &mut State) {
@@ -300,6 +331,9 @@ fn err(error: virtio_core::Error) -> i64 {
     }
 }
 pub fn syscall(s: &mut State, slot: usize, number: u64, a: [u64; 6]) -> (i64, u64) {
+    if slot == 0 {
+        runtime().service_calls += 1;
+    }
     let result = device_call(s, slot, number, a);
     match result {
         Ok(value) => (0, value),
@@ -309,6 +343,11 @@ pub fn syscall(s: &mut State, slot: usize, number: u64, a: [u64; 6]) -> (i64, u6
             }
             (code, 0)
         }
+    }
+}
+pub fn cap_event(slot: usize, number: u64) {
+    if slot == 0 && number == 0x10 {
+        runtime().service_closes += 1;
     }
 }
 fn device_call(s: &mut State, slot: usize, number: u64, a: [u64; 6]) -> Result<u64, i64> {
@@ -322,6 +361,9 @@ fn device_call(s: &mut State, slot: usize, number: u64, a: [u64; 6]) -> Result<u
     let auth = m4::engine()
         .check_block(pid, a[0], BLOCK_READ)
         .map_err(|e| e.code())?;
+    if auth.scope().device != 0 {
+        return Err(-5);
+    }
     let binding = Binding {
         pid,
         object_key: auth.object_key(),
@@ -357,7 +399,7 @@ fn device_call(s: &mut State, slot: usize, number: u64, a: [u64; 6]) -> Result<u
             )
             .map_err(err)?;
         let first = !r.injected;
-        let suppress = (first && matches!(m5_case(), 3 | 11 | 12));
+        let suppress = first && matches!(m5_case(), 3 | 11 | 12);
         let bad = first && m5_case() == 4;
         let submit = r.device.as_mut().unwrap().submit(sector, suppress, bad);
         if first && matches!(m5_case(), 3 | 4 | 11 | 12) {
@@ -423,6 +465,16 @@ fn begin_reset(now: u64, restart: bool) {
 }
 pub fn detach(pid: u64) {
     let r = runtime();
+    // A reset may already have removed Policy.pending while an unconsumed
+    // terminal result still names the dying PID. It must not block future reads.
+    if r.error
+        .is_some_and(|(request, _)| request.binding.pid == pid)
+    {
+        r.error = None;
+    }
+    if r.quarantined {
+        return;
+    }
     if r.policy
         .request()
         .is_some_and(|request| request.binding.pid == pid)
@@ -448,7 +500,11 @@ pub fn observe_fault(s: &mut State, slot: usize, c: &[u64; 22]) {
     } else if (14..=16).contains(&m5_case()) {
         slot == 3
             && match m5_case() {
-                14 | 15 => c[15] == 14 && c[16] == 5,
+                14 | 15 => {
+                    c[15] == 14
+                        && c[16] == 5
+                        && s.last_event.cr2 == word(s, 3, if m5_case() == 14 { 208 } else { 216 })
+                }
                 16 => c[15] == 13 && c[16] == 0,
                 _ => false,
             }
@@ -458,11 +514,129 @@ pub fn observe_fault(s: &mut State, slot: usize, c: &[u64; 22]) {
     s.unexpected |= !expected;
     if expected && slot == 3 {
         runtime().attacker_fault = true;
+        runtime().attacker_service_counter = word(s, 0, 8);
+        runtime().attacker_client_counter = word(s, 1, 8);
     }
     s.observer_survivor(slot);
 }
 pub fn sent(s: &mut State, slot: usize, message: &Message) {
     let r = runtime();
+    if m5_case() == 1 && slot == 1 && message.tag == wire::TAG {
+        let id = wire::get64(&message.data, 8);
+        if (1..=13).contains(&id) {
+            assert!(r.bad.is_none());
+            let mut body = wire::request(id, 1, 0, 128, wire::READ);
+            let status = match id {
+                1 => {
+                    body[0] = 2;
+                    -1
+                }
+                2 => {
+                    body[2] = 2;
+                    -2
+                }
+                3 => {
+                    wire::put32(&mut body, 4, 1);
+                    -1
+                }
+                4 => {
+                    wire::put64(&mut body, 40, 1);
+                    -1
+                }
+                5 => {
+                    wire::put32(&mut body, 32, 0);
+                    -3
+                }
+                6 => {
+                    wire::put32(&mut body, 32, 129);
+                    -3
+                }
+                7 => {
+                    wire::put64(&mut body, 24, u64::MAX);
+                    -3
+                }
+                8 => {
+                    wire::put64(&mut body, 24, 511);
+                    wire::put32(&mut body, 32, 2);
+                    -3
+                }
+                9 => {
+                    wire::put64(&mut body, 16, 0);
+                    -10
+                }
+                10 => {
+                    body[48] = 1;
+                    -1
+                }
+                11 | 12 | 13 => -1,
+                _ => unreachable!(),
+            };
+            let mut expected = [0u8; 256];
+            expected[..192].copy_from_slice(&body);
+            assert_eq!(message.data, expected);
+            assert_eq!(
+                message.len,
+                if id == 11 {
+                    191
+                } else if id == 12 {
+                    193
+                } else {
+                    192
+                }
+            );
+            assert_eq!(message.cap_count, if id == 13 { 2 } else { 0 });
+            if id == 13 {
+                assert!(message
+                    .caps
+                    .iter()
+                    .all(|cap| cap.handle != 0 && cap.rights == 1));
+            }
+            let stats = m4::engine().stats();
+            r.bad = Some(BadRequest {
+                id,
+                header: wire::header(&body),
+                status,
+                calls: r.service_calls,
+                submits: r.submits,
+                completions: r.completions,
+                handles: stats.handles,
+                nodes: stats.nodes,
+                closes: r.service_closes,
+            });
+            r.bad_requests |= 1 << (id - 1);
+        }
+    }
+    if slot == 0 && message.tag == wire::TAG {
+        if let Some(bad) = r.bad {
+            assert_eq!(wire::get64(&message.data, 8), bad.id);
+            assert_eq!(message.len, 192);
+            assert_eq!(message.cap_count, 0);
+            let expected = wire::reply(
+                bad.header,
+                r.service_epoch,
+                wire::Status::from_code(bad.status),
+                &[],
+            )
+            .unwrap();
+            assert_eq!(&message.data[..192], &expected);
+            assert!(message.data[192..].iter().all(|byte| *byte == 0));
+            assert_eq!(
+                (r.service_calls, r.submits, r.completions),
+                (bad.calls, bad.submits, bad.completions)
+            );
+            if bad.id == 13 {
+                let stats = m4::engine().stats();
+                assert_eq!(stats.handles, bad.handles);
+                assert_eq!(stats.nodes + 2, bad.nodes);
+            }
+            assert_eq!(
+                r.service_closes - bad.closes,
+                if bad.id == 13 { 2 } else { 0 }
+            );
+            r.bad_replies |= 1 << (bad.id - 1);
+            r.bad = None;
+        }
+    }
     if slot == 0 && message.tag == wire::ANNOUNCE {
         assert_eq!(message.cap_count, 2);
         assert!(message.caps.iter().all(|cap| cap.rights == 9));
@@ -647,7 +821,11 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
     }
     match m5_case() {
         0 => {}
-        1 => assert!(word(s, 1, 152) > 0),
+        1 => {
+            assert_eq!(r.bad_requests, 0x1fff);
+            assert_eq!(r.bad_replies, 0x1fff);
+            assert!(r.bad.is_none());
+        }
         2 => assert!(r.errors[3] > 0 && r.errors[5] > 0 && r.errors[6] > 0 && r.errors[11] > 0),
         3 => assert!(r.injected && r.errors[8] > 0 && s.ticks >= 3),
         4 => assert!(r.injected && r.errors[15] > 0),
@@ -663,7 +841,20 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
                 && r.forward >= 4
                 && word(s, 1, 136) == 4
         ),
-        14..=16 => assert!(r.attacker_fault),
+        14..=16 => {
+            assert!(r.attacker_fault && r.restarts == 0);
+            assert_eq!(
+                (
+                    s.processes[0].pid,
+                    s.processes[0].paging.as_ref().unwrap().root
+                ),
+                r.initial_service
+            );
+            assert!(
+                word(s, 0, 8) > r.attacker_service_counter
+                    && word(s, 1, 8) > r.attacker_client_counter
+            );
+        }
         17 => assert!(r.device.is_none() && r.submits == 0 && r.errors[14] > 0),
         _ => unreachable!(),
     }

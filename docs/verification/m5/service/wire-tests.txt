@@ -1,0 +1,24 @@
+
+running 9 tests
+test wire::tests::exact_header_offsets_and_valid_boundary ... ok
+test wire::tests::bad_version_flags_status_reserved_and_request_data ... ok
+test wire::tests::error_reply_is_empty_and_cannot_smuggle_old_data ... ok
+test wire::tests::four_slices_accumulate_same_diagnostic_checksum_as_one_sector ... ok
+test wire::tests::stale_epoch_is_rejected_without_returning_a_valid_request ... ok
+test wire::tests::reply_uses_only_supplied_slice_and_zeroes_all_unused_bytes ... ok
+test wire::tests::reply_correlation_epoch_and_tail_are_checked ... ok
+test wire::tests::zero_oversized_overflow_and_cross_scope_ranges ... ok
+test wire::tests::unsupported_write_and_unknown_opcode_have_no_read_request ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling block-protocol v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\services\block)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.63s
+     Running unittests src\lib.rs (build\m5-service-tests\debug\deps\block_protocol-6769975ef888bca1.exe)
+   Doc-tests block_protocol
+exit_status= 0

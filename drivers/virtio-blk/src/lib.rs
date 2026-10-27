@@ -239,6 +239,11 @@ impl Device {
             command((cfg_read(4) as u16) | 6 | (1 << 10));
             write8(common + 20, 15);
             if read8(common + 20) != 15 {
+                // Failure after BME-enable is not an idle/offline device: first
+                // request reset and disable bus mastering. Caller quarantines
+                // its permanent pool; no future reuse is authorized by this Err.
+                write8(common + 20, 0);
+                command((cfg_read(4) as u16 & !4) | (1 << 10));
                 return Err(Error::Protocol);
             }
         }

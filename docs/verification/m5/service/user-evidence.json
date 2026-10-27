@@ -1,0 +1,136 @@
+{
+  "task": "M5-U",
+  "scope": "user source/build,wirehost/artifact checks,read-only runtime review; no full guestgate claim",
+  "head_at_report": "42608d799643cb0cfd4308ca1069deeb7490d298",
+  "build": {
+    "owner": "root",
+    "command": [
+      "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\rustc.EXE",
+      "+1.90.0",
+      "--edition=2021",
+      "--crate-type=bin",
+      "--crate-name=os_user_m5_probe",
+      "--target=x86_64-unknown-none",
+      "-C",
+      "panic=abort",
+      "-C",
+      "opt-level=2",
+      "-C",
+      "code-model=small",
+      "-C",
+      "relocation-model=static",
+      "-C",
+      "no-redzone=yes",
+      "-C",
+      "linker=rust-lld",
+      "-C",
+      "link-arg=-TC:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\m5_linker.ld",
+      "-C",
+      "link-arg=--no-pie",
+      "-C",
+      "link-arg=--build-id=none",
+      "-C",
+      "link-arg=-zmax-page-size=0x1000",
+      "--emit=link",
+      "-o",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\users\\m5_probe.elf",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\m5_probe.rs"
+    ],
+    "exit": 0,
+    "stderr_bytes": 0
+  },
+  "wire_tests": {
+    "argv": [
+      "cargo",
+      "+1.90.0",
+      "test",
+      "-p",
+      "block-protocol",
+      "--locked",
+      "--offline"
+    ],
+    "target": "build/m5-service-tests",
+    "exit": 0,
+    "passed": 9,
+    "failed": 0,
+    "log": "services/block/verification/wire-tests.txt"
+  },
+  "artifact_tests": {
+    "argv": [
+      "python",
+      "-B",
+      "-X",
+      "utf8",
+      "userspace/tests/test_m5_probe.py",
+      "--elf",
+      "build/users/m5_probe.elf"
+    ],
+    "exit": 0,
+    "passed": 11,
+    "failed": 0,
+    "log": "services/block/verification/artifact-tests.txt"
+  },
+  "artifact": {
+    "schema_version": 1,
+    "purpose": "synthetic ring-3 acceptance probe",
+    "binary_sha256": "933291ef6f097f68648696f129b58c257a951c2a7fdf6920b5892694aa92914e",
+    "source_sha256": "5da71bb42e801bfb754d3834e9ac60d8630d9e3a6a53b64fd38d516ffa2a3633",
+    "linker_sha256": "6f8cd2b385e603cd7cf6632f0dbe413e877b71ef94a610c3cb7f998996ae8911",
+    "entry": 1073741824,
+    "segments": [
+      {
+        "flags": 5,
+        "address": 1073741824,
+        "offset": 4096,
+        "filesz": 16199,
+        "memsz": 16199,
+        "page_start": 1073741824,
+        "page_end": 1073758208
+      },
+      {
+        "flags": 6,
+        "address": 1073807360,
+        "offset": 20480,
+        "filesz": 12288,
+        "memsz": 12288,
+        "page_start": 1073807360,
+        "page_end": 1073819648
+      },
+      {
+        "flags": 4,
+        "address": 1073819648,
+        "offset": 32768,
+        "filesz": 1118,
+        "memsz": 1118,
+        "page_start": 1073819648,
+        "page_end": 1073823744
+      }
+    ],
+    "module_sha256": {
+      "userspace/m5_probe.rs": "5da71bb42e801bfb754d3834e9ac60d8630d9e3a6a53b64fd38d516ffa2a3633",
+      "userspace/m5_runtime.rs": "dad9f8a94f5059c63d323d938b5f06be53b04a19c7126efa0b8728eb25d98d93",
+      "services/block/src/wire.rs": "2c420405abe8efea36e15a98cf649317ab7364891d51c6b55d04b40bbbf7f6d1",
+      "services/block/src/user_service.rs": "16c8c92851e28101eb543f9ba2810c671bf6a8d7be86543fd7a1381c6808028c"
+    }
+  },
+  "current_file_sha256": {
+    "userspace/m5_probe.rs": "5da71bb42e801bfb754d3834e9ac60d8630d9e3a6a53b64fd38d516ffa2a3633",
+    "userspace/m5_runtime.rs": "dad9f8a94f5059c63d323d938b5f06be53b04a19c7126efa0b8728eb25d98d93",
+    "userspace/m5_linker.ld": "6f8cd2b385e603cd7cf6632f0dbe413e877b71ef94a610c3cb7f998996ae8911",
+    "userspace/tests/test_m5_probe.py": "cd9fbe3b742b2b086972fdcd10339b458b3b259e900731b6b0dfb8c9ad2848a5",
+    "services/block/Cargo.toml": "0d9c74937b17dfdaff9188905da7a2f8535f34ea144464deb6836af6caf06d83",
+    "services/block/src/lib.rs": "b7ec4c775f67ffa25d1b13556ef68f4fa802943de5b3317ecee36dca9e4ec430",
+    "services/block/src/wire.rs": "2c420405abe8efea36e15a98cf649317ab7364891d51c6b55d04b40bbbf7f6d1",
+    "services/block/src/user_service.rs": "16c8c92851e28101eb543f9ba2810c671bf6a8d7be86543fd7a1381c6808028c",
+    "services/block/.gitignore": "1b63b580294531ed970325f452bf1b7537395022609235ec9e952bca0e9fe7d5",
+    "services/block/README.md": "bc70f1aa7943382aa239174ab11afa07d7d7ac1e977122a54f4f1d0e4c199d76",
+    "userspace/M5-PROBE.md": "83ff3b2a918c2b5302cb74102edcc58b95ad98cbaad14032eb8079c20c0792c7"
+  },
+  "open_review": [
+    "independent13malformed-request/noIO/errorreply/cap-close observer",
+    "remove unnecessary client supervisorSEND grant",
+    "actual3pendingcrash rebind and final diskoracle",
+    "allM5caseboots plus M1-M4regressions"
+  ],
+  "source_freeze": "M5 runtime unchanged; READMEs and local verification ignore complete; no further source writes until concrete integration assignment"
+}
