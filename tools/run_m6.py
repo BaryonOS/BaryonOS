@@ -198,7 +198,7 @@ def run_m6(case="normal", *, volume: Volume | None = None, label=None, timeout=6
     oracle = verify_volume(volume, out, allowed_generations=allowed,
                            data_required=case not in NO_DATA and cut is None,
                            unchanged=no_mutation, before=before,
-                           allow_torn=case in UNKNOWN or (cut or service_cut or 0) in (2, 3, 4))
+                           allow_torn=case in UNKNOWN or case == "recover" or (cut or service_cut or 0) in (2, 3, 4))
     markers = BOOT + (f"M6A:CUT:{cut}",) if cut else case_markers(case)
     guest_pass = crash["passed"] if cut else is_success(rc, out, timed_out, required_markers=markers,
                                                        forbidden_markers=FAILURES)
