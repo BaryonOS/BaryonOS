@@ -9,6 +9,7 @@ import shutil
 import tempfile
 from common import ROOT, BUILD, save_json, sha256
 from run import is_success, MARKERS
+from gate_contract import guest_expectation
 
 
 def _replace_archive(staged: Path, destination: Path) -> None:
@@ -39,10 +40,14 @@ def _replace_archive(staged: Path, destination: Path) -> None:
 
 def guest_matches(phase, group, result):
     if phase != "m1":
+        expectation = guest_expectation(phase, group)
+        if expectation is None or not all(
+                field in result for field in ("raw_qemu_exit", "stdout", "timed_out")):
+            return False
+        required, expected_exit, forbidden = expectation
         return is_success(result["raw_qemu_exit"], result["stdout"], result["timed_out"],
-                          required_markers=result["required_markers"],
-                          expected_exit=result["expected_exit"],
-                          forbidden_markers=result["forbidden_markers"])
+                          required_markers=required, expected_exit=expected_exit,
+                          forbidden_markers=forbidden)
     # M1 also tests that the guest/harness rejects real failures. Preserve the
     # original passed=false in those raw guest records; only the outer test passes.
     lines = result["stdout"].splitlines()

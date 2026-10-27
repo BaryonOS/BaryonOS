@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import capture_gate
+from gate_contract import guest_expectation
 
 
 class CaptureGateArchive(unittest.TestCase):
@@ -40,7 +41,8 @@ class CaptureGateArchive(unittest.TestCase):
 
         guest = self.build / "run/guest-1"
         guest.mkdir(parents=True, exist_ok=True)
-        stdout = "M1:PASS\n"
+        required, expected_exit, forbidden = guest_expectation("m2", "test-m2-nx")
+        stdout = "\n".join(required) + "\n"
         (guest / "serial.txt").write_text(stdout, encoding="utf-8")
         (guest / "stderr.txt").write_text("", encoding="utf-8")
         artifact = guest / "artifact.bin"
@@ -49,11 +51,11 @@ class CaptureGateArchive(unittest.TestCase):
         result = {
             "stdout": stdout,
             "stderr": "",
-            "raw_qemu_exit": 33,
+            "raw_qemu_exit": expected_exit,
             "timed_out": False,
-            "required_markers": ["M1:PASS"],
-            "expected_exit": 33,
-            "forbidden_markers": [],
+            "required_markers": list(required),
+            "expected_exit": expected_exit,
+            "forbidden_markers": list(forbidden),
             "artifact_sha256": {"artifact.bin": digest},
         }
         (guest / "result.json").write_text(json.dumps(result), encoding="utf-8")
@@ -62,7 +64,7 @@ class CaptureGateArchive(unittest.TestCase):
             "passed": True,
             "results": [
                 {"name": "host-tests", "passed": True, "evidence": str(host)},
-                {"name": "guest-smoke", "passed": True, "evidence": str(guest)},
+                {"name": "test-m2-nx", "passed": True, "evidence": str(guest)},
             ],
         }
         self.build.mkdir(parents=True, exist_ok=True)
@@ -108,6 +110,28 @@ class CaptureGateArchive(unittest.TestCase):
             capture_gate.capture("m2")
 
         self.assertEqual(self._snapshot(), before)
+
+    def test_guest_evidence_is_bound_to_phase_and_case_not_record_expectations(self):
+        record = {
+            "stdout": "BOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nM1:PASS\n",
+            "raw_qemu_exit": 33,
+            "timed_out": False,
+            "required_markers": ["M1:PASS"],
+            "expected_exit": 33,
+            "forbidden_markers": [],
+        }
+
+        self.assertFalse(capture_gate.guest_matches("m2", "test-m2-nx", record))
+        self.assertFalse(capture_gate.guest_matches("m4", "test-m4-copy", record))
+        self.assertFalse(capture_gate.guest_matches("m4", "unknown-case", record))
+
+    def test_guest_record_cannot_omit_raw_timeout_status(self):
+        record = {
+            "stdout": "BOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nM1:PASS\n",
+            "raw_qemu_exit": 33,
+        }
+
+        self.assertFalse(capture_gate.guest_matches("m2", "test-m2-nx", record))
 
     def test_archive_install_error_restores_the_previous_archive(self):
         staged = self.root / "staged"

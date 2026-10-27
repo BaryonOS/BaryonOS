@@ -5,12 +5,7 @@ import argparse
 import shutil
 import struct
 from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
-
-M3_CASES = ("peer-read", "peer-write", "kernel-write", "stack-exec", "heap-exec",
-            "guard-low", "guard-high", "cli", "x87", "xmm", "avx", "ud", "exit", "b-exit", "invalid-rsp")
-M4_CASES = (("copy", "KS-09"), ("wire", "KS-10"), ("snapshot", "KS-11"),
-            ("handles", "KS-12"), ("rights", "KS-13"), ("revoke", "KS-14"),
-            ("quotas", "KS-15"), ("lifecycle", "KS-16"))
+from gate_contract import M3_CASES, M4_CASES
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
