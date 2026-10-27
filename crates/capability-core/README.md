@@ -134,7 +134,7 @@ owner-exit sluit nog gerefereerde tombstones.
 
 De huidige M5-hostsuite bevat26 tests: alle21 M4-tests plus vijf BlockDevice-
 transactieproeven. Gezamenlijke virtio-/capabilitychecks en actuele hashes staan
-onder `../virtio-core/verification/report.json`. De kernel moet poll opnieuw
+onder `docs/verification/m5/core/report.json`. De kernel moet poll opnieuw
 autoriseren: een eerder teruggegeven `BlockAuthorization`-kopie is geen blijvende
 vrijstelling van revocation. Tickets binden PID + objectkey/generation +
 transportepoch, onafhankelijk van de gebruikte lokale handle; een andere nog
