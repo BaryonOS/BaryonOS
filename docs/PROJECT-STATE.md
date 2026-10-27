@@ -2,6 +2,31 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
+## M6c — native documentnamen en catalogus: broncheckpoint
+
+28 oktober 2026. Basis `bb22fdbe15919edc23baa158a46236195ce314b2`, werkbranch
+`codex/m6c-named-catalog`. De afgeronde M6b-basis hieronder blijft behouden.
+
+Gebouwd: dependencyvrije `catalog-core`, IPC v4, journal v2, blijvende UTF-8-namen,
+GET/PUT/DELETE/RENAME en één domeingebonden LIST-snapshot. Hernoemen bewaart de
+inhoud onder een nieuwe objectrevisie; alleen na WRITE én FLUSH volgt succes.
+De vier objecten, twee domeinen, 128 inhoudsbytes en 32 journalrecords blijven
+proefbudgetten. Nieuwe formaten zijn expliciet; bezet M6b-v1 wordt vóór READY
+geweigerd, zonder migratie of formattering. Bestaande M6b blijft afzonderlijk
+bouwbaar. Contract: `implementation/M6C-NAMED-CATALOG.md`; besluit ADR-030.
+
+Tot dit checkpoint uitgevoerd: 30 Rust-coretests, fmt/Clippy/no_std-controle,
+33 Python-harnastests en een eerste werkelijke native normalrun (raw QEMU 33,
+sequence 10, 10 ACKs, 10 catalogusantwoorden). Die diagnostic ging vooraf aan
+het versterken van twee negatieve fixtures en is geen finale bronacceptatie.
+Een afzonderlijke AI-review test de daadwerkelijke adapter via een host-ABI-shim;
+dat is geen native devicefoutinjectie of menselijke audit.
+
+Open op dit broncheckpoint: volledige M6c-gate, koude recoveries, externe kills
+tijdens RENAME, corruptie/legacy en M6b-regressie op de gecombineerde eindbron.
+Geen niet-uitgevoerde controle als geslaagd aangemerkt. Exacte eindlogs en
+hashbinding volgen onder `verification/m6c/` en `verification/m6c-review/`.
+
 ## M6b — native documentopslag gebouwd en getest
 
 Basis `10b32e31671827f2bd63444113b981ff15bfbb73`, werkbranch `codex/m6b-object-storage`.

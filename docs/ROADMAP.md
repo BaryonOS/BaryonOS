@@ -1,6 +1,11 @@
 # Route van onderzoeksproject naar bruikbaar systeem
 
-Status 27 oktober 2026: M1–M5 zijn geïmplementeerd en getest in het vaste QEMU-profiel. Definitieve suites: 77 groepen/64 VM plus een normale M5-eindstart. M5 is alleen-lezen; schrijven en persistentie volgen in M6a. P02 en Q01 blijven hostprototypes met expliciete open controles. Bron, bewijs en grenzen: PROJECT-STATE.md, WORK-QUEUE.md en verification/m5/. Verdere fasen zijn een ontwikkelroute, geen kalenderbelofte.
+Status 28 oktober 2026: M1–M6b zijn geïmplementeerd en hebben versiegebonden
+native bewijs in het vaste QEMU-profiel. M6c voegt nu namen, atomisch hernoemen
+en een domeingebonden documentcatalogus toe; de finale M6c-gate is bij het
+broncheckpoint nog open. Actuele uitvoering: PROJECT-STATE.md en WORK-QUEUE.md.
+Materiaal, NAS/TLS en qsim behouden hun afzonderlijke host-/prototypegrenzen.
+Verdere fasen zijn een ontwikkelroute, geen kalenderbelofte.
 
 ## Richting en grenzen
 

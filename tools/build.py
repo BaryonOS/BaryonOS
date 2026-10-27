@@ -15,13 +15,15 @@ M6A_CASES = ("service-errors", "device-rights", "full", "write-error", "flush-er
              "stale-generation", "no-device", *(f"service-cut-{i}" for i in range(1, 7)),
              *(f"vm-cut-{i}" for i in range(1, 7)), "recover")
 M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush")
+M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename")
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
                    "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),
                    "milestone-m5", *(f"test-m5-{case}" for case in M5_CASES),
                    "milestone-m6a", *(f"test-m6a-{case}" for case in M6A_CASES),
-                   "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES)]
+                   "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
+                   "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES)]
 
 
 def inspect_elf(path):
@@ -86,17 +88,19 @@ def inspect_pe(path):
 
 def build(loader_feature=None, kernel_feature=None, label="normal"):
     extra_env = None
-    if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b")):
+    if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b", "m6c")):
         from build_users import build_users
         extra_env = {"NOS_USER_ELF": str(build_users("large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
-        if any(m in kernel_feature for m in ("m4", "m5", "m6a", "m6b")):
+        if any(m in kernel_feature for m in ("m4", "m5", "m6a", "m6b", "m6c")):
             extra_env["NOS_IPC_ELF"] = str(build_users("ipc").resolve())
-        if any(m in kernel_feature for m in ("m5", "m6a", "m6b")):
+        if any(m in kernel_feature for m in ("m5", "m6a", "m6b", "m6c")):
             extra_env["NOS_M5_ELF"] = str(build_users("m5").resolve())
         if "m6a" in kernel_feature:
             extra_env["NOS_M6_ELF"] = str(build_users("m6").resolve())
         if "m6b" in kernel_feature:
             extra_env["NOS_M6B_ELF"] = str(build_users("m6b").resolve())
+        if "m6c" in kernel_feature:
+            extra_env["NOS_M6C_ELF"] = str(build_users("m6c").resolve())
     if not (ROOT / "Cargo.lock").exists():
         run_logged(["cargo", "+1.90.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):

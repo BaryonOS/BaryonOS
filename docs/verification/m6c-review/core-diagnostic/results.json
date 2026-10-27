@@ -1,0 +1,42 @@
+[
+  {
+    "command": [
+      "cargo",
+      "+1.90.0",
+      "fmt",
+      "--package",
+      "catalog-core",
+      "--",
+      "--check"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "cargo",
+      "+1.90.0",
+      "test",
+      "--locked",
+      "--offline",
+      "-p",
+      "catalog-core"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "cargo",
+      "+1.90.0",
+      "clippy",
+      "--locked",
+      "--offline",
+      "-p",
+      "catalog-core",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "returncode": 101
+  }
+]

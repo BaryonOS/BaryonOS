@@ -46,7 +46,8 @@ def build_users(kind="probe"):
                 "large": ("probe", "large_linker.ld", "probe_large", "manifest-large.json"),
                 "m5": ("m5_probe", "m5_linker.ld", "m5_probe", "manifest-m5.json"),
                 "m6": ("m6_probe", "m6_linker.ld", "m6_probe", "manifest-m6.json"),
-                "m6b": ("m6b_probe", "m6b_linker.ld", "m6b_probe", "manifest-m6b.json")}
+                "m6b": ("m6b_probe", "m6b_linker.ld", "m6b_probe", "manifest-m6b.json"),
+                "m6c": ("m6c_probe", "m6c_linker.ld", "m6c_probe", "manifest-m6c.json")}
     if kind not in fixtures:
         raise ValueError("unknown synthetic user fixture")
     source_stem, linker_name, stem, manifest_name = fixtures[kind]
@@ -78,6 +79,11 @@ def build_users(kind="probe"):
                    "services/objects/src/wire.rs", "services/objects/src/journal.rs",
                    "services/objects/src/user_service.rs")
         manifest["module_sha256"] = {path: sha256(ROOT / path) for path in modules}
+    if kind == "m6c":
+        modules = ("userspace/m6c_probe.rs", "userspace/m6_runtime.rs",
+                   "services/catalog/src/wire.rs", "services/catalog/src/journal.rs",
+                   "services/catalog/src/user_service.rs")
+        manifest["module_sha256"] = {path: sha256(ROOT / path) for path in modules}
     save_json(BUILD / "users" / manifest_name, manifest)
     print(f"Built own {stem} ELF: entry={manifest['entry']:#x}, {len(manifest['segments'])} segments")
     return output
@@ -85,5 +91,5 @@ def build_users(kind="probe"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--kind", choices=["probe", "ipc", "large", "m5", "m6", "m6b"], default="probe")
+    parser.add_argument("--kind", choices=["probe", "ipc", "large", "m5", "m6", "m6b", "m6c"], default="probe")
     build_users(parser.parse_args().kind)

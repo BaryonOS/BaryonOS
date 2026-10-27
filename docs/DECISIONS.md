@@ -1,5 +1,35 @@
 # Ontwerpbesluiten
 
+## ADR-030 — Native labels en een catalogus per appdomein
+
+**Datum/status:** 28 oktober 2026; geïmplementeerd, finale native gate op het
+broncheckpoint nog open. Basis bb22fdb. Exact contract: implementation/M6C-NAMED-CATALOG.md.
+
+**Context en besluit:** afgeronde M6b heeft anonieme objectslots. Materiaal heeft
+benoemde objecten en list/open nodig. Voeg een aparte dependencyvrije catalog-core
+met expliciete IPC v4/journal v2 toe. Namen zijn UTF-8-labels, geen autoriteit of
+pad; object-ID en endpoint/caller blijven de toegangsgrens. LIST retourneert één
+begrensde snapshot van uitsluitend eigen live objecten met eigen revisiesom.
+PUT/RENAME zijn één record met naam/inhoud onder één CAS-revisie. RENAME behoudt
+inhoud; WRITE- en FLUSH-completion gaan vóór ACK. Unknown blokkeert ook LIST.
+
+**Alternatieven/gevolgen:** stil hergebruik van v3/v1-padding zou oude readers
+misleiden; een losse naamtabel vereist meerdere atomische writes. Automatische
+migratie is niet nodig voor deze synthetische proef: v1 weigert vóór READY en de
+M6b-reader blijft behouden. Duplicaatlabels zijn toegestaan; geen directoryboom,
+normalisatie, encryptie of fysieke secure erase toegevoegd. Kleinere grenzen zijn
+proefbudgetten, geen vaste consumentenproductkeuze.
+
+**Bewijs en herziening:** hostcore-, native twee-app-, koude herstel-, volledige
+journal- en externe rename-killproeven hebben gescheiden bewijs. De nieuwe kernel-
+module bevat een expliciete fixtureobserver plus de bestaande blokbroker; het
+catalogusbeleid draait in ring 3. Herzie formaat/migratie vóór echt gebruikersdata,
+meer slots, grotere documenten of compositorintegratie. Terugdraaien kan via de
+bestaande M6b-build en zijn eigen volumes; geen bestaande image overschrijven.
+
+**Bronnen:** huidige M6B-OBJECT-STORAGE.md/PROJECT-STATE.md op bb22fdb; Rust
+bare-metal targetdocumentatie in het M6c-contract. Dit is een projectbesluit.
+
 ## ADR-028 — Bewijs per eigenschap en standaard hybride NAS-transport
 
 **Datum/status:** 27 oktober 2026; ontwerp aanvaard en N02-hostproef getest vanaf `ece94a5`. **Context:** de gebruikersblauwdruk vraagt formele verificatie, kleine TCB, capabilities, geheugenbescherming en PQC. De richting past bij het project; de absolute productclaims en het eigen KDF-/tunnelvoorstel zijn niet onderbouwd.

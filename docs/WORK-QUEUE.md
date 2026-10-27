@@ -1,4 +1,24 @@
-# Werkqueue — M6a actief
+# Werkqueue — M6c native catalogus actief
+
+## Actuele uitvoering — 28 oktober 2026
+
+Basis `bb22fdb`, branch `codex/m6c-named-catalog`. M6a en M6b zijn al afgerond
+volgens de versiegebonden bewijsarchieven in PROJECT-STATE.md. De oudere queue
+hieronder bewaart uitsluitend de toenmalige werkverdeling.
+
+| ID | Eigenaar / schrijfgebied | Resultaat / open gate |
+|---|---|---|
+| C07-core | catalog_core / services/catalog core en tests | namen, v4-wire, v2-journal, catalogus; 30 hosttests en no_std groen |
+| C07-native | catalog_native / nieuwe serviceadapter, probe en kernelobserver | eerste normalrun groen; finale uitgebreide native gate open |
+| G07 | root / gedeelde config, tools, harnas en docs | onafhankelijk schijforakel; 33 hosttests; broncheckpoint vóór lange controles |
+| R07 | context_review / alleen lezen | echte adapter via host-ABI-shim; brongebonden audit, geen menselijk/formele audit |
+| V07 | root + reviewers | volledige M6c-gate/capture, M6b-regressie, finale archiefcontrole |
+
+Vervolg na acceptatie: native Materiaal-koppeling en beveiligingsafhankelijkheden
+uit VERIFIABLE-SECURITY-AND-PQC blijven afzonderlijke stappen; geen automatische
+sleutelgeneratie zonder entropy of grafische/native NAS-claim door deze catalogus.
+
+## Historische queue vóór afgeronde M6b
 
 ## Parallel N01 — internet en persoonlijke NAS
 

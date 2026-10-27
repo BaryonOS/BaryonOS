@@ -1,6 +1,23 @@
-# Nieuw OS — eigen kernel en native documentopslag
+# Nieuw OS — eigen kernel en native documentcatalogus
 
-## Actuele bouwstap: M6b
+## Actuele bouwstap: M6c — namen en documentcatalogus
+
+De nieuwe native dienst bewaart documentnamen, inventariseert uitsluitend het
+eigen appdomein en hernoemt met behoud van inhoud en revisiecontrole. Dit is de
+opslaginterface voor de latere Materiaal-integratie. De eerste normalrun en
+hosttests slagen; de volledige finale gate en regressie staan op dit broncheckpoint
+nog open. [Contract](docs/implementation/M6C-NAMED-CATALOG.md) ·
+[Actuele bewijsstatus](docs/PROJECT-STATE.md).
+
+```sh
+python3 -B tools/build.py --kernel-feature milestone-m6c
+python3 -B tools/run_m6c.py --case normal --smoke
+```
+
+Werkbranch: `codex/m6c-named-catalog`, boven op de afgeronde M6b-branch.
+De proef gebruikt eigen wegwerpimages, zonder automatische v1-migratie.
+
+## Afgeronde basis: M6b
 
 De eigen Rust-kernel heeft nu een native objectdienst in ring 3. Twee geïsoleerde
 testapps kunnen via capability-IPC objecten aanmaken, lezen, bijwerken en
