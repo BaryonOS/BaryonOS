@@ -2,7 +2,11 @@
 
 ## Actieve ontwikkelfase M2–M4
 
-27 oktober 2026: nieuwe opdracht actief op `codex/m2-m4-isolation`, gestart vanaf `144d952`. Eindcriteria, eigenaren, afhankelijkheden en bewijs staan in [WORK-QUEUE.md](WORK-QUEUE.md). Eigen paging/exceptions worden nu geïmplementeerd; M3 blijft gesloten totdat de echte M2-poort slaagt, M4 totdat procesisolatie is aangetoond. De root-bewijsparser heeft drie geslaagde hosttests; kernel-core heeft vijf geslaagde hosttests en de M2-crossbuild slaagt. De eerste echte M2-run slaagde voor KS-01 en faalde daarna met kernelpanic vóór KS-02; diagnose/herstel loopt en M3 blijft gesloten. Q01-contractcontrole heeft een CDF-afrondingsfout hersteld en 25 Rust-tests/5fixtures geslaagd; bewijs onder docs/verification/m2-m4/quantum/. Product en quantum krijgen uitsluitend gerichte contractcontroles en herstel van concrete fouten. De onderstaande resultaten beschrijven het behaalde basischeckpoint.
+27 oktober 2026: actief op `codex/m2-m4-isolation`, gestart vanaf `144d952`. Eindcriteria en eigenaren staan in [WORK-QUEUE.md](WORK-QUEUE.md). M2 is op basis `a256951` geslaagd; M3 is nu in implementatie. M4 blijft gesloten totdat de echte procesisolatiepoort slaagt. De volledige M1–M4-opdracht is nog niet afgerond.
+
+M2: `python -u tools/test_milestones.py` exit0, acht groepen, twintig hosttests (6 bootprotocol, 7 ELF-parser, 7 framebeheer), zeven echte QEMU-runs. Eigen CR3/GDT/TSS/IDT, frame-eigenaars, nulmaken, quota en fysieke W^X-aliascontrole zijn uitgevoerd. Afzonderlijke RO-, NX- en null-pagefaults slagen; kernel-UD stopt gecontroleerd en een onbruikbare MAIN-stack wordt via echte double-fault/IST1 afgehandeld. De default-M1-regressie slaagt. R02 vond een alias-unmapfout; herstel en negatieve tests zijn meegenomen. Compact bewijs: `docs/verification/m2-m4/m2/`; ruwe runs onder `build/run/`. NMI-overname is niet geïnjecteerd; userheap/-stack en echte userisolatie volgen in M3.
+
+Q01-contractcontrole herstelde een CDF-afrondingsfout; 25 Rust-tests en vijf fixtures slagen. Bewijs: `docs/verification/m2-m4/quantum/`. Dit blijft lokale hostsimulatie. De volgende sectie bewaart het eerdere basischeckpoint; historische beperkingen daar beschrijven die basis.
 
 ## Basischeckpoint eerste batch
 

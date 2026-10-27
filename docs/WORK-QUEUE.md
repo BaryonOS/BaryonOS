@@ -17,10 +17,10 @@ Doel: eigen boot, twee werkelijk geïsoleerde ring-3-processen, begrensde foutaf
 | ID | Eigenaar | Exclusief schrijfgebied | Afhankelijk van | Status | Bewijs |
 |---|---|---|---|---|---|
 | G00 | hoofd | rootconfig, tools/, docs/ | bestaande toestand | actief | preflight exit0; bestaande M1/P02/Q01-rapporten aanwezig |
-| K02 | kernel_m2 (Sol) | kernel/, crates/kernel-core/ | G00 | implementatie actief | frame-/mappingcore en eigen archlaag geschreven; nog geen build- of M2-poortbewijs |
+| K02 | kernel_m2 (Sol) | kernel/, crates/kernel-core/ | G00 | geslaagd op a256951 | acht groepen, twintig hosttests, zeven QEMU-runs; docs/verification/m2-m4/m2/ |
 | P02V | product_acceptance (Sol) | ui/prototype/ | bestaande P02 | afgerond binnen beschikbare controles | 23/23 Node-tests; skiplink/draft/focus/typezoek/288px-inspector echt gecontroleerd; 200%-zoom, schermlezer en mensenproef open; ui/prototype/verification/ |
 | Q01V | quantum_contract (Sol) | experiments/quantum/ | bestaande Q01 | code/test afgerond; reviewer R02 | CDF-fix: oude code faalt nieuwe regressie, huidige 25tests/5fixtures groen; 17-caseaudit onder docs/verification/m2-m4/quantum/ |
-| K03 | kernbuilder | later expliciet toegewezen | geslaagde K02 | geblokkeerd door poort | KS-04–08 vereist |
+| K03 | kernel_m2 + product_acceptance (Sol) | kernel/ + crates/kernel-core/ respectievelijk userspace/ | geslaagde K02 | implementatie actief | KS-04–08 vereist; root owns tools/build_users.py en image-invoer |
 | K04 | later toegewezen | later expliciet toegewezen | geslaagde K03 | geblokkeerd door poort | KS-09–16 vereist |
 | R04 | onafhankelijke reviewer | eerst alleen lezen | geïntegreerde M4 | wacht | concrete negatieve tegenvoorbeelden en herstel |
 | V04 | hoofd | tools/, docs/verification/ | R04 en herstel | wacht | volledige eindmatrix en remote commitcontrole |
@@ -42,3 +42,5 @@ Root-checkpoint: generiek QEMU-harnas met exacte marker-/exitverwachtingen en ap
 K02 eerste echte VM-run: KS-01 slaagt, daarna kernelpanic vóór KS-02; rootpoort faalt expliciet. Diagnose/herstel door kernel_m2, geen M3-start. R02-review is parallel read-only actief.
 
 Vervolg K02: OVMF-cacheattributen gericht hersteld; gewone M2-smoke nu groen. R02 vond onjuiste unmap-aliasklasse: code en negatieve regressie hersteld, bronreview akkoord, nieuwe tests nog uit te voeren. Extra echte double-fault/IST-proef wordt toegevoegd vóór de volledige poort. M3 blijft gesloten.
+
+M2-poort afgerond: acht groepen exit0 op a256951, nieuwe zeven coretests uitgevoerd, zeven guestresultaten/serial/artifacthashes opnieuw gecontroleerd door capture_gate.py. M3 expliciet vrijgegeven; eigen userprobe-ELF en kernelintegratie hebben afzonderlijke schrijvers. R03 controleert alleen-lezen de echte isolatie-/fairness-/cleanupbewijzen. NMI-injectie nog niet uitgevoerd.

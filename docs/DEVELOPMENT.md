@@ -50,6 +50,17 @@ Die opdracht omvat hosttests, drie koude VM-starts, ontbrekende/corrupte kernel,
 
 Een losse ontwikkelopdracht in dezelfde omgeving:
 
+De afzonderlijke M2-poort bouwt echte foutvarianten en herstelt daarna de gewone M1-image:
+
+```powershell
+python -u tools/test_milestones.py --through m2
+python tools/capture_gate.py m2
+```
+
+`capture_gate.py` controleert ruwe exit/markers, seriële output en artifacthashes voordat het compacte bewijs naar `docs/verification/m2-m4/m2/` kopieert. Het wijzigt geen testuitkomsten. Bestaande oudere runs verwijzen voor de onveranderde VARS-template nog naar de gehashte bron; nieuwe runs bewaren die template ook in hun eigen map.
+
+Een losse ontwikkelopdracht in dezelfde omgeving:
+
 ```powershell
 python tools/dev.py cargo +1.90.0 test --locked -p boot-protocol -p elf-loader-core
 python tools/dev.py rustc +1.90.0 -vV

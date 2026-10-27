@@ -39,7 +39,8 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     run_dir = BUILD / "run" / f"{label}-{uuid.uuid4().hex[:10]}"
     run_dir.mkdir(parents=True)
     shutil.copytree(source, run_dir / "esp")
-    shutil.copy2(variables, run_dir / "OVMF_VARS.fd")
+    shutil.copy2(variables, run_dir / "OVMF_VARS.template.fd")
+    shutil.copy2(run_dir / "OVMF_VARS.template.fd", run_dir / "OVMF_VARS.fd")
     shutil.copy2(code, run_dir / "OVMF_CODE.fd")
     # Use paths relative to cwd: drive-letter colons and commas are not passed
     # through QEMU's file-option parser, and the FAT tree cannot change mid-run.
@@ -65,7 +66,7 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     (run_dir / "serial.txt").write_bytes(out)
     (run_dir / "stderr.txt").write_bytes(err)
     artifacts = {path.relative_to(run_dir).as_posix(): sha256(path) for path in (run_dir / "esp").rglob("*") if path.is_file()}
-    artifacts.update({"OVMF_CODE.fd": sha256(run_dir / "OVMF_CODE.fd"), "OVMF_VARS.template.fd": sha256(variables)})
+    artifacts.update({"OVMF_CODE.fd": sha256(run_dir / "OVMF_CODE.fd"), "OVMF_VARS.template.fd": sha256(run_dir / "OVMF_VARS.template.fd")})
     git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
     report = {"label": label, "started_utc": started, "duration_s": time.monotonic()-start, "timeout_s": timeout, "timed_out": timed_out, "raw_qemu_exit": rc, "expected_exit": expected_exit, "required_markers": list(required_markers), "forbidden_markers": list(forbidden_markers), "passed": is_success(rc, stdout, timed_out, required_markers=required_markers, expected_exit=expected_exit, forbidden_markers=forbidden_markers), "command": args, "qemu_version": version, "profile": "development-package; pc-q35-10.0/qemu64/TCG/1CPU/256MiB", "base_commit": git.stdout.strip() if git.returncode == 0 else None, "source_sha256": source_hash(), "artifact_sha256": artifacts, "firmware_source": [str(code), str(variables)], "run_directory": str(run_dir), "stdout": stdout, "stderr": stderr}
     save_json(run_dir / "result.json", report)

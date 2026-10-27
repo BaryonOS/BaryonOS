@@ -58,7 +58,7 @@ def save_json(path: Path, value: object) -> None:
 def source_hash() -> str:
     """Fingerprint source inputs without traversing generated artifacts or caches."""
     digest = hashlib.sha256()
-    for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "tools", ROOT / ".cargo"):
+    for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "userspace", ROOT / "tools", ROOT / ".cargo"):
         if folder.exists():
             for path in sorted(folder.rglob("*")):
                 if path.is_file() and "__pycache__" not in path.parts:
