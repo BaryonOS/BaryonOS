@@ -6,6 +6,12 @@ import shutil
 import struct
 from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
 
+M3_CASES = ("peer-read", "peer-write", "kernel-write", "stack-exec", "heap-exec",
+            "guard-low", "guard-high", "cli", "x87", "xmm", "avx", "ud", "exit")
+KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
+                   "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
+                   "milestone-m3", *(f"test-m3-{case}" for case in M3_CASES)]
+
 
 def inspect_elf(path):
     data = path.read_bytes()
@@ -68,13 +74,17 @@ def inspect_pe(path):
 
 
 def build(loader_feature=None, kernel_feature=None, label="normal"):
+    extra_env = None
+    if kernel_feature and ("m3" in kernel_feature or "m4" in kernel_feature):
+        from build_users import build_users
+        extra_env = {"NOS_USER_ELF": str(build_users().resolve())}
     if not (ROOT / "Cargo.lock").exists():
         run_logged(["cargo", "+1.90.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):
         args = ["cargo", "+1.90.0", "build", "--locked", "--release", "-p", package, "--target", target]
         if feature:
             args += ["--features", feature]
-        run_logged(args, f"build-{label}-{package}")
+        run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
     loader = ROOT / "target/x86_64-unknown-uefi/release/os-loader.efi"
     kernel = ROOT / "target/x86_64-unknown-none/release/os-kernel"
     manifest = {"schema_version": 1, "profile": label, "source_sha256": source_hash(), "loader": {"sha256": sha256(loader), **inspect_pe(loader)}, "kernel": {"sha256": sha256(kernel), **inspect_elf(kernel)}}
@@ -91,6 +101,6 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--loader-feature", choices=["test-ebs-retry"])
-    parser.add_argument("--kernel-feature", choices=["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx", "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault"])
+    parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()
     build(args.loader_feature, args.kernel_feature, args.loader_feature or args.kernel_feature or "normal")

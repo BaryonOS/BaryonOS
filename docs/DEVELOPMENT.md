@@ -48,8 +48,6 @@ python tools/test.py
 
 Die opdracht omvat hosttests, drie koude VM-starts, ontbrekende/corrupte kernel, de test met een verouderde firmwaremapkey, kernelpanic en een echte guest-timeout. De hangproef mag bewust 60 seconden duren. Na de featureproeven wordt de normale build teruggezet. Alleen een actuele suite met `status: completed` en `passed: true` telt als geslaagde volledige run; `running` en `failed` zijn geen groen resultaat.
 
-Een losse ontwikkelopdracht in dezelfde omgeving:
-
 De afzonderlijke M2-poort bouwt echte foutvarianten en herstelt daarna de gewone M1-image:
 
 ```powershell

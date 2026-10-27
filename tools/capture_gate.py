@@ -46,8 +46,17 @@ def capture(phase: str):
             evidence.resolve().relative_to(BUILD.resolve())
             destination.mkdir(parents=True, exist_ok=True)
             # Preserve textual host output; never turn a log into a test result.
-            (destination / evidence.name).write_text(
-                evidence.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
+            paths = [evidence]
+            if evidence.name.endswith(".stdout.txt"):
+                stem = evidence.name.removesuffix(".stdout.txt")
+                metadata = evidence.with_name(stem + ".json")
+                details = json.loads(metadata.read_text(encoding="utf-8"))
+                if details.get("returncode") != 0:
+                    raise ValueError(f"Failed host command: {metadata}")
+                paths += [metadata, evidence.with_name(stem + ".stderr.txt")]
+            for source in paths:
+                (destination / source.name).write_text(
+                    source.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
         else:
             raise ValueError(f"Missing evidence: {evidence}")
     save_json(destination / "suite.json", suite)

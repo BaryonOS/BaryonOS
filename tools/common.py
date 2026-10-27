@@ -71,9 +71,12 @@ def source_hash() -> str:
     return digest.hexdigest()
 
 
-def run_logged(args: list[str], name: str, *, cwd: Path = ROOT, timeout: int = 180) -> subprocess.CompletedProcess:
+def run_logged(args: list[str], name: str, *, cwd: Path = ROOT, timeout: int = 180,
+               extra_env: dict[str, str] | None = None) -> subprocess.CompletedProcess:
     started = time.time()
     env = environment()
+    if extra_env:
+        env.update(extra_env)
     args = [shutil.which(args[0], path=env["PATH"]) or args[0], *args[1:]]
     result = subprocess.run(args, cwd=cwd, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
     log = BUILD / "logs" / name
