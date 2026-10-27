@@ -13,6 +13,6 @@ test_rejects_wrong_class_endian_machine_and_dynamic_type (__main__.ProbeArtifact
 test_required_forbidden_instruction_encodings_are_in_rx_segment (__main__.ProbeArtifact.test_required_forbidden_instruction_encodings_are_in_rx_segment) ... ok
 
 ----------------------------------------------------------------------
-Ran 13 tests in 0.063s
+Ran 13 tests in 0.057s
 
 OK

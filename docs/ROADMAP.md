@@ -1,6 +1,6 @@
 # Route van onderzoeksproject naar bruikbaar systeem
 
-Status27 oktober2026: M1–M4 zijn geïmplementeerd en getest in het vastgelegde QEMU-profiel. P02 en Q01 zijn afzonderlijke hostprototypes met gerichte resultaten en expliciete open controles. Eerstvolgende implementatiefase is M5. Actuele code, gates en bewijs staan in PROJECT-STATE.md, WORK-QUEUE.md en verification/m2-m4/. Verdere fasen zijn een ontwikkelroute, geen leveringsbelofte of kalenderplanning.
+Status 27 oktober 2026: M1–M5 zijn geïmplementeerd en getest in het vaste QEMU-profiel. Definitieve suites: 77 groepen/64 VM plus een normale M5-eindstart. M5 is alleen-lezen; schrijven en persistentie volgen in M6a. P02 en Q01 blijven hostprototypes met expliciete open controles. Bron, bewijs en grenzen: PROJECT-STATE.md, WORK-QUEUE.md en verification/m5/. Verdere fasen zijn een ontwikkelroute, geen kalenderbelofte.
 
 ## Richting en grenzen
 

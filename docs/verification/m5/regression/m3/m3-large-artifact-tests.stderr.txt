@@ -6,6 +6,6 @@ test_mutated_large_segment_cannot_escape_user_image_range_or_gain_wx (__main__.L
 test_text_is_byte_identical_to_unchanged_normal_m3_probe (__main__.LargeArtifact.test_text_is_byte_identical_to_unchanged_normal_m3_probe) ... ok
 
 ----------------------------------------------------------------------
-Ran 6 tests in 0.008s
+Ran 6 tests in 0.006s
 
 OK

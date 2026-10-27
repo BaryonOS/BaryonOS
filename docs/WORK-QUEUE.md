@@ -1,18 +1,16 @@
-# Werkqueue — M5 blokdienst en virtio
+# Werkqueue — M5 afgerond
 
-Gestart 27 oktober 2026 vanaf `c630c59`, branch `codex/m5-block-service`. M1–M4-basis en bewijs behouden; vorige queue in verification/m2-m4/WORK-QUEUE.md.
+27 oktober 2026. Bron `7af544a`, basis `c630c59`, branch `codex/m5-block-service`, concept-PR#3. Definitieve fingerprint v3: c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307.
 
-Volledige eindcriteria vóór implementatie: implementation/M5-BLOCK-SERVICE.md. READ-only echte virtio-blk-I/O, geïsoleerde userdienst, typedREADcaps, nonblocking bounce-DMA, gecontroleerd reset/herstart/quarantaine,17negatieve cases+twee normaleimages, regressie/review/hash/privatepush. Geen claim van IOMMU-/maliciousdevice-containment.
+| ID | Eigenaar | Gebied | Status / bewijs |
+|---|---|---|---|
+| G05 | root | config/tools/docs/Git | geïntegreerd; preflight exit0, private checkpoints, einddocs |
+| K05 | kernel_m2 | kernel/,kernel-core/,drivers/virtio-blk/ | gereed; M5 25 groepen/20 VM exit0 |
+| C05 | quantum_contract | virtio-core/,capability-core/ | gereed; 12/26 tests, fmt/Clippy/no_std exit0 |
+| U05 | product_acceptance | services/block/,M5-userspace | gereed; 9 protocol- en 11 artifacttests exit0, echte gastdienst |
+| R05 | twee reviewers | alleen lezen | herstelpunten gesloten; ongeïnjecteerde randen expliciet |
+| V05 | root/verifier | ruwe evidence/hashbinding | 77 groepen/64 VM plus M5-eindstart; alle 65 VM en 279 artifacthashes geaudit |
 
-| ID | Eigenaar | Exclusieve writes | Status | Afhankelijk/bewijs |
-|---|---|---|---|---|
-| G05 | root | rootconfig/tools/docs | actief | preflight strict exit0,basis schoon behalve bestaande .codex/environments/ |
-| K05 | kernel_m2 | kernel/,kernel-core/,drivers/virtio-blk/ | reviewherstel actief | eerste normale kernelbuild/QEMU-read raw33; volledige poort nog open |
-| C05 | quantum_contract | virtio-core/,capability-core/ | hostcontroles geslaagd | 26 capabilitytests, 12 virtio-tests; fmt/Clippy/no_std exit0 |
-| U05 | product_acceptance | services/block/,M5userspace | hostcontroles geslaagd | 9 protocoltests +11 ELF-artifacttests exit0; eerste echte dienst-read geslaagd |
-| R05 | quantum_contract/product_acceptance | alleen lezen | actief | transport-/runtime-review, concrete tegenvoorbeelden en herstel |
-| V05 | root | tools/docs/verification/m5/ | wacht | volledige host/QEMU/regressie/eindmatrix en remotehead |
+Opdrachten, resultaten, grenzen en hervatroute: PROJECT-STATE.md en verification/m5/ACCEPTANCE.md. Eerste mislukte gate blijft failed bewaard; de finale bron is opnieuw getest. Bestaande UI/quantum en M1–M4-baseline behouden.
 
-Root beheert interfaces en buildslot; maximaal3 actieve agents/Sol. Geen gelijktijdige schrijvers. Tussentijdsbron/bewijs/openpunten committen en privépushen, ook vóór lange tests. Geen publieke release, hostdisks, hardware, NAS, productiegegevens of configwijziging.
-
-Laatste checkpoint: eerste geïntegreerde bron op GitHub in `2bb856b`, concept-PR#3. Eerste normale QEMU-read geslaagd; vroege evidence in verification/m5/checkpoints/. Driver-TCB bestaat uit kerneltransport en protocolconform QEMU-device; userdienst heeft geen MMIO-/DMA-rechten. Review vond vijf concrete herstelpunten; volledige foutpoort/regressie nog open. Volgende actie: gericht herstel, volledige M5-poort en samengestelde regressie.
+Volgende stap: M6a, veilige WRITE/FLUSH en crashherstel op een synthetische wegwerpimage. Nog niet gestart. Geen echte hardware/disks/NAS/keys, betaalde infrastructuur, publieke release of merge zonder passende opdracht. Licentie vóór publicatie blijft open.

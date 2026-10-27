@@ -1,5 +1,4 @@
-   Compiling capability-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\crates\capability-core)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.17s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
      Running unittests src\lib.rs (target\debug\deps\capability_core-d85afd4192c7ae5a.exe)
      Running unittests src\lib.rs (target\debug\deps\kernel_core-47807490b0b9e789.exe)
    Doc-tests capability_core

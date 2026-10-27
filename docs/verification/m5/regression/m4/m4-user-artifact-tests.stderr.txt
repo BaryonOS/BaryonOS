@@ -13,6 +13,6 @@ test_reject_truncation_of_required_load_bytes (__main__.IpcArtifact.test_reject_
 test_script_and_result_tables_fit_control_page_without_overlap (__main__.IpcArtifact.test_script_and_result_tables_fit_control_page_without_overlap) ... ok
 
 ----------------------------------------------------------------------
-Ran 13 tests in 0.061s
+Ran 13 tests in 0.062s
 
 OK

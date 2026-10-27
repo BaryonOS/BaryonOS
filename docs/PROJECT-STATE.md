@@ -1,75 +1,59 @@
 # Actuele projectstatus
 
-Bijgewerkt: 27 oktober 2026. Eigen kernel, ontwikkelfase M1–M4.
+27 oktober 2026. M5 is geïmplementeerd en getest in het vaste QEMU-profiel.
 
-Repository: https://github.com/simonvanieperen/nieuw-os (privé). Werkbranch: `codex/m2-m4-isolation`. Kernel-/integratiebron: `ed09818e0f80b3a755237b813783b662f9153faf`. Concept-PR: https://github.com/simonvanieperen/nieuw-os/pull/2, basis `codex/first-build`. Main bevat nog de startspecificatie. De laatste bewijs-/documentatiecommit volgt bovenop de genoemde bronversie.
+Repository: https://github.com/simonvanieperen/nieuw-os. Branch `codex/m5-block-service`, concept-PR [#3](https://github.com/simonvanieperen/nieuw-os/pull/3). Basis `c630c59` (M1–M4); definitieve runtime-/harnasbron `7af544aa1b8d731ac27f384f0ba95aa44586a57d`. Latere commits bewaren documentatie en bewijs. Main bevat de startspecificatie; geen merge of release uitgevoerd.
 
-## Actief: M5
+## Wat werkt
 
-Nieuwe opdracht 27 oktober 2026 op `codex/m5-block-service`, basis `c630c59`; concept-PR [#3](https://github.com/simonvanieperen/nieuw-os/pull/3). De eerste bron staat in `2bb856b`. Bouwcriteria en DMA-/TCB-grenzen zijn vóór de code vastgelegd in implementation/M5-BLOCK-SERVICE.md. Een alleen-lezen blokdienst in ring 3 gebruikt modern virtio-kerneltransport, een gepinde bouncepool en getypeerde apparaatrechten.
+- Eigen UEFI-loader en Rust no_std-kernel, BootInfo 1.1, eigen framebeheer/paging, W^X, bewaakte stacks, ring-3-processen, PIT-preëmptie, capabilities en Message320-IPC. Geen bestaande kernel als basis.
+- Echte Rust-blokdienst in ring 3 met client en supervisor. Alleen de dienst krijgt READ op een getypeerd BlockDevice; requestendpoints binden sector 4 en 6. Appvelden kiezen geen fysieke sector of replycap.
+- Modern virtio-blk op PCI `00:05.0`: splitqueue van acht plaatsen, maximaal één uitstaande read, vijf gepinde kernel-DMA-pagina's, begrensde submit/poll/reset en supervisor-RW/NX/UC-MMIO. User-MMIO/DMA/PCI-toegang wordt geweigerd.
+- Drie echte dienstcrashes met pending software-read, bevestigde reset, nieuwe dienst-PID/epoch en echte IPC-capoverdracht. Client en supervisor behouden PID/adresruimte; epoch 4 levert nieuwe devicebytes. Geen claim dat DMA fysiek tegelijk met de fault liep.
+- Alle 13 ongeldige dienstverzoeken veroorzaken aantoonbaar geen blockcall/publicatie/completion. Foutreplies zijn leeg/nulgevuld; onverwachte caps worden gesloten. Time-out/reset/quarantaine en lokale foutafhandeling zijn getest.
 
-Werkelijk uitgevoerd: 26 capabilitytests, 12 virtio-tests, 9 protocoltests, 11 user-ELF-artifacttests, 5 schijf-orakeltests en 4 harnasparsertests geslaagd. De eerste normale kernelbuild en QEMU-read zijn geslaagd (raw33): sector 4/6 kloppen met de externe image, image-SHA256 blijft gelijk. Vroege run in verification/m5/checkpoints/first-read.json; deze geldt niet voor latere bronwijzigingen. Core-logs/bronhashes staan in verification/m5/core/ en zijn opnieuw vergeleken (geen drift).
+M5 is alleen lezen op synthetische wegwerpimages. Nog geen schrijvende opslag, bestandssysteem, interactieve native desktop of algemene spawn-/driverbeheer-API.
 
-Reviewherstel staat in `0d4bad7`: initialisatiefouten na DMA-enable, device-id-binding, terminale tickets bij procesexit, onnodige clientautoriteit, harde kernelcorrelatie van ongeldige dienstverzoeken, quarantainecleanup en CPU-adresbreedte. De gerichte tweede-agentreviews zijn gesloten; specifieke init-readback/device1/exit-na-error-takken zijn bronfixes zonder aparte gastinjectie. Bron is bevroren met fingerprint v3 `b98826bc699f265fde265aac4a67835e114e52acf6c5df1ec15b2eb84b410300`.
+## Werkelijk uitgevoerd
 
-De eerste gecombineerde poort stopte terecht met exit1 bij M5-device-rights: scopeoverschrijding gaf EINVAL in plaats van het afgesproken EACCESS. De smalle kernelboundaryfix staat in `7af544a`; tests zijn niet afgezwakt. Mislukte suite/guest en console blijven als failed bewaard in verification/m5/diagnostics/.
-
-De volledige M5-hertest slaagt nu: **25 groepen, 20 echte VM-runs**, alle 17 foutcases, dezelfde kernel op twee verschillende images en M1-na-M5. `capture_gate.py m5` heeft ruwe exits/markers, serial/stderr, alle artifacthashes en daadwerkelijke image-oracles opnieuw gecontroleerd (exit0). Evidence: verification/m5/{suite.json,guest-runs.json}. Finale fingerprint v3: `c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307`.
-
-Een nieuwe M2–M4-poort en de volledige M1-foutreeks draaien nu op deze finale bron. Daarna volgen onafhankelijke eindcontrole, normale M5-eindstart en documentatie. De eerdere M2–M4-poort was groen, maar de finale bronbinding wordt opnieuw gecontroleerd. De M1–M4-tabel hieronder beschrijft het eerdere behaalde basischeckpoint.
-
-## Hoofdresultaat
-
-De ontwikkelfase M1–M4 is geïmplementeerd en getest. De samengestelde M2–M4-poort slaagt op deze bron: 42 controlegroepen en 36 echte QEMU-runs. De aanvullende volledige M1-bootfoutregressie op `622c2ee` slaagt met tien groepen en acht extra VM-runs, inclusief de bewuste60s-timeout. De eindmatrix en het onafhankelijke V04-bewijsoverzicht staan onder verification/m2-m4/. De laatste bewijs-/documentatiecommit is de commit die dit bestand bevat.
-
-## Geïmplementeerd en getest
-
-- Eigen UEFI-loader en Rust no_std-kernel; BootInfo1.1, geen bestaande kernel als basis.
-- M2: eigen framebeheer, CR3/GDT/TSS/IDT, W^X inclusief fysieke aliases, bewaakte stacks en gecontroleerde exceptions. Echte RO/NX/null/UD/#DF-IST-proeven.
-- M3: private ring-3-adresruimten, int80/iretq, PIC/PIT-preëmptie, twee16-worker-rondes en lokale procesbeëindiging. A-fault/B-voortgang, B exit7, invalid-RSP en veilige idle met acht IRQ0-wakeups. Mappingmetadata biedt2048 plaatsen per proces; de grotere image heeft35 imagepages +32 heap/stackpages =67 usermappings en alle BSS-tailbytes zijn nul.
-- M4: capability-rechten, lokale generatiehandles, delegatie/revocatie en atomaire Message320-IPC. Drie echte userprocessen, normale exchange en KS09–16-cases. Revoked queuecaps annuleren het hele bericht; exit trekt autoriteit in vóór frames worden vrijgegeven.
-- Materiaal blijft een lokaal browserprototype; qsim blijft een lokale hostsimulator. Geen native UI-/NAS-/AI-/QPU-integratie geclaimd.
-
-## Werkelijk testbewijs
-
-| Opdracht / laag | Resultaat | Bewijs |
+| Opdracht / fase | Resultaat | Bewijs onder verification/m5/ |
 |---|---|---|
-| `python -u tools/test_milestones.py --through m4` | exit0; M2 8 groepen/7 VM, M3 22 groepen/19 VM, M4 12 groepen/10 VM | `verification/m2-m4/{m2,m3,m4}/suite.json` en guest-runs.json |
-| `python -u tools/test.py` | exit0; tien groepen, acht VM-runs en dertien hosttests | verification/m2-m4/m1/ |
-| Normale M4-build + `run.py --smoke --milestone m4` | exit0/raw33; extra CLI-start, loader/kernel bytegelijk aan volledige M4-gate | verification/m2-m4/manual-m4.json |
-| M2-hosttests | 6 bootprotocol +7 ELF +14 kernel-core geslaagd | m2/m2-host-tests.* |
-| M3-host/artifacttests | 14 kernel-core +13 gewone user +6 large-image geslaagd | m3/*host/artifact-tests.* |
-| M4-host/artifacttests | 21 capability-core +14 kernel-core +13 IPC-artifacttests geslaagd | m4/*host/artifact-tests.* |
-| `python tools/capture_gate.py m1/m2/m3/m4` (vier opdrachten) | exit0; serial/stderr, raw-exitverwachtingen en alle artifacthashes opnieuw gecontroleerd | genoemde suite-/guestrapporten; negatieve M1-guestrecords blijven false |
-| Capability-core extra controles | fmt, Clippy-Dwarnings, no_std: exit0; 2.560 wire-bitmutaties/800 transacties | verification/m2-m4/capability-core/report.json |
-| Materiaal | 23 Node-tests en gerichte browsermetingen geslaagd; bron ongewijzigd sinds P02V | ../ui/prototype/verification/ |
-| Quantum | 25 Rust-tests, vijf fixtures, Clippy/no_std; bron ongewijzigd sinds Q01V | verification/m2-m4/quantum/ |
+| preflight.py --strict | exit0, geen ontbrekende tools/targets | preflight.json |
+| python -u tools/test_m5.py | exit0; 25 groepen/20 VM | suite.json,guest-runs.json |
+| python -u tools/test_milestones.py --through m4 | exit0; M2 8/7, M3 22/19, M4 12/10 groepen/VM | regression/{m2,m3,m4}/ |
+| python -u tools/test.py | exit0; 10 groepen/8 VM | regression/m1/ |
+| Vijf capture_gate.py-opdrachten | exit0; raw/serial/stderr/artifacthashes en M5-schijforacles hercontroleerd | genoemde rapportmappen |
+| Normale M5-build + run.py --smoke --milestone m5 | exit0/raw33; extra eindstart | manual-m5.json,final-build-manifest.json |
 
-Hosttests zijn per fase opnieuw uitgevoerd; de aantallen zijn geen som van unieke tests. Global1024-node-uitputting en maximale generations zijn hostmodelbewijs. QEMU-KS15 toetst queue16,255 capslots,depth8/9 en capaciteit na close. De testvingerafdruk is diagnostisch; hosttests vergelijken de volledige Engine-toestand.
+Definitieve suites: **77 controlegroepen en 64 echte VM-runs**, plus één normale M5-eindstart. Eerdere diagnostische runs zijn niet opgeteld. M1-negatieve guestrecords blijven terecht passed:false; de suite controleert ontbrekende/corrupte kernel, panic en echte 60s-time-out.
 
-Voor Materiaal en quantum zijn de negen respectievelijk vijftien geregistreerde bron-/binaryhashes opnieuw vergeleken: alle gelijk. De ongewijzigde tests zijn daarom niet opnieuw uitgevoerd; eerdere resultaten blijven aan exact die bestanden gebonden.
+M5-hostlaag: 62 Rust-tests (26 capability, 15 kernel-core, 12 virtio, 9 protocol), 11 ELF-artifacttests, 4 harnasparsertests en 5 negatieve schijf-oracletests. Alle 21 eerdere M4-capabilitytests zijn behouden. Extra corecontroles fmt/Clippy-Dwarnings/no_std exit0; exacte scope/argv in core/report.json. Hosttests bewijzen op zichzelf geen device-I/O.
+
+Alle definitieve guestrecords hebben fingerprint v3 c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307. Twee normale M5-runs gebruiken dezelfde kernel/loader en verschillende echte images; ontvangen sectorchecksums kloppen en de volledige image-SHA256 blijft gelijk. FNV is diagnostiek, geen cryptografie; de guest kent geen seed/fixtureantwoord. Exacte opdrachten/gewijzigde bronbestanden: validation.json. Testmatrix: ACCEPTANCE.md.
 
 ## Starten
 
 Vanuit de projectroot in PowerShell:
 
 ```powershell
-python tools/build.py --kernel-feature milestone-m4
-python tools/run.py --smoke --milestone m4
+python tools/build.py --kernel-feature milestone-m5
+python tools/run.py --smoke --milestone m5
 ```
 
-Dit is de normale eindige ontwikkelproef: de kernel laat synthetische processen berichten uitwisselen en sluit QEMU na controle af. Er is nog geen interactieve OS-shell/native desktop. De volledige testreeks herstelt na foutvarianten de gewone M1-image; de laatste afzonderlijke CLI-start heeft daarna het M4-profiel gebouwd/gecontroleerd. Bouw bij hervatten het gewenste profiel expliciet. Zie DEVELOPMENT.md voor Materiaal op loopback en de quantum-CLI.
+De runner maakt zelf een nieuwe alleen-lezen 64KiB-image onder build/run/. De eindige proef leest via de dienst en sluit QEMU na de assertions af. De laatste lokale build staat op het normale M5-profiel. Testsuites herstellen na foutvarianten M1; bouw bij hervatten expliciet het gewenste profiel. Zie DEVELOPMENT.md, drivers/virtio-blk/README.md, services/block/README.md en userspace/M5-PROBE.md.
 
-## Reviews en concrete grenzen
+## Review en grenzen
 
-Gerichte tweede-agentreviews en herstel: `verification/m2-m4/m3-review.md` en `m4-review.md`; geen menselijke audit. Privilege-/geheugenbewijs geldt voor qemu64/TCG, één CPU,256MiB. AVX veroorzaakt #UD; geen FP-contextswitchingclaim. Gastcycli zijn geen realtimegarantie. NMI is niet geïnjecteerd; SMP, DMA/IOMMU, sidechannels, fysieke hardware, Secure Boot, crypto/PQC, drivers en opslag zijn niet bewezen.
+Herstelreviews: transport-review.md en service/user-review.md. De verifier controleerde alle 65 definitieve VM-runs,279 artifacthashes en werkelijke M5-schijfbytes: m5-verifier-guest.json en m5-verifier-final.json. Finale kernel/loader zijn gelijk aan beide normale gate-runs en de laatste CLI-start. Dit zijn AI-reviews, geen menselijke audit.
 
-Echte200%-browserzoom, schermlezer- en menselijke taakproeven blijven open. Computer Use stopte de native zoomcontrole doordat de actuele Chrome-URL op Windows niet betrouwbaar kon worden vastgesteld; geen geverifieerde zoommutatie. Quantum heeft geen eigen-OS-port, QPU of OS-afgedwongen netwerkdeny-bewijs. Geen echte NAS/AI-diensten of privacy-LP-tests geclaimd.
+Echte tests vonden en herstelden opnieuw resetten tijdens quarantainecleanup en een verkeerde sectorscope-foutcode. De eerste gecombineerde gate bleef rood; failed-records blijven als failed bewaard onder diagnostics/. Andere herstelpunten: BME-clear/reset na initfout, device-id-binding, terminale PID-resultaten, onnodige clientautoriteit, CPU-adresbreedte en harde observatie van alle 13 protocolfouten. DRIVER_OK-readbackfout, device1-scope en exit na resetack vóór foutpoll zijn bronfixes zonder aparte gastinjectie; aanvullende testmogelijkheden.
 
-Geen publicatie/release of licentiekeuze uitgevoerd. LICENSE-PLAN.md bewaart dat open besluit vóór publieke open-sourcepublicatie. Geen hostdisk, firmware, NAS, productiekeys of globale Codexconfig gewijzigd. De bestaande lokale `.codex/environments/` blijft buiten Git behouden.
+Kerneltransport en protocolconform QEMU-device/backend zijn vertrouwd. Geen IOMMU, containment van kwaadwillige DMA, SMP- of fysieke-hardwareclaim. Pool blijft gepind; zonder resetack in quarantaine tot VM-stop. Injecties zijn test-only: lokale snapshots na echte completion of suppress-notify/mask-ack. Geen Secure Boot/PQC/productiegeschiktheidsclaim.
 
-## Vervolg en hervatten
+Materiaal is browserprototype; qsim is hostsimulator. 9 UI- en 15 quantum-bron-/binaryhashes opnieuw gelijk; eerdere resultaten blijven geldig voor die bestanden, tests niet herhaald. 200%-zoom, schermlezer/menselijke proeven, native UI, OS-quantumport, QPU en OS-afgedwongen lokale AI/NAS-grenzen blijven open.
 
-De werklijst en gates staan in WORK-QUEUE.md; de eis-voor-eis-matrix staat in verification/m2-m4/ACCEPTANCE.md. De volgende implementatiefase is M5: een eerste user-space-systeemdienst met geïsoleerde virtio-testimage en expliciet DMA-/drivercontract. Geen echte hardware- of opslaginstallatie zonder nieuwe opdracht.
+Geen hostdisk, firmware, NAS, productiekeys, globale Codexconfig of betaalde infrastructuur gewijzigd. Bestaande .codex/environments/ behouden buiten Git. Licentiekeuze vóór publieke publicatie blijft volgens LICENSE-PLAN.md open.
 
-Eerdere basis: eerste batch op `144d952` en concept-PR#1. De historische bewijzen in verification/boot-suite.json, quantum-report.json en browser-report.json blijven behouden; de nieuwe m2-m4-rapporten hebben eigen bronversies en gemeten uitkomsten.
+## Vervolg en herstel
+
+M6a: begrensde WRITE/FLUSH op wegwerpvolume met volle-schijf-, gedeeltelijke-write- en crashherstelproeven vóór bestandssysteem/updateketen. Nog niet gestart. Werkqueue: WORK-QUEUE.md. Contract: implementation/M5-BLOCK-SERVICE.md. M1–M4-baseline behouden onder verification/m2-m4/, inclusief oorspronkelijke PROJECT-STATE.md. Herstel via aparte consistente checkout c630c59; geen destructieve reset of hostconfigmigratie.

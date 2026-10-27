@@ -1,0 +1,7 @@
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.03s
+   Compiling os-kernel v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\kernel)
+    Finished `release` profile [optimized] target(s) in 1.14s
+Built and inspected milestone-m5: 3 ELF load segments

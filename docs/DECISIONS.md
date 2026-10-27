@@ -1,5 +1,5 @@
 # Ontwerpbesluiten
-Status revisie 5: onderstaande principes zijn projectbesluiten. Concrete keuzes voor de eerste bouwfase staan in implementation/START-CODING.md en bijbehorende specificaties. Bouwuitvoerbaarheid is nog niet getest.
+De oorspronkelijke revisie-5-principes hieronder zijn behouden als projectbesluiten. Uitvoeringsbesluiten vanaf ADR-019 beschrijven de gebouwde richting; actuele M1–M5-testuitkomsten en grenzen staan in PROJECT-STATE.md.
 
 | ID | Besluit | Reden | Herzien als |
 |---|---|---|---|
