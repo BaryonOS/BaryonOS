@@ -4,6 +4,8 @@
 
 27 oktober 2026: actief op `codex/m2-m4-isolation`, gestart vanaf `144d952`. Eindcriteria en eigenaren staan in [WORK-QUEUE.md](WORK-QUEUE.md). M2 is op basis `a256951` geslaagd; M3 is nu in implementatie. M4 blijft gesloten totdat de echte procesisolatiepoort slaagt. De volledige M1–M4-opdracht is nog niet afgerond.
 
+De privébranch wordt beoordeelbaar bewaard in [concept-PR #2](https://github.com/simonvanieperen/nieuw-os/pull/2), met `codex/first-build` als basis. `main` blijft ongewijzigd. Eigen user-ELF, buildtool en M3-harnas zijn toegevoegd; de probe heeft dertien geslaagde host-artifacttests, inclusief negatieve ELF-inputs en controle van echte ABI-/foutopcodes. Kernelintegratie en de echte ring-3-proeven zijn nog in uitvoering; de hosttests bewijzen geen isolatie.
+
 M2: `python -u tools/test_milestones.py` exit0, acht groepen, twintig hosttests (6 bootprotocol, 7 ELF-parser, 7 framebeheer), zeven echte QEMU-runs. Eigen CR3/GDT/TSS/IDT, frame-eigenaars, nulmaken, quota en fysieke W^X-aliascontrole zijn uitgevoerd. Afzonderlijke RO-, NX- en null-pagefaults slagen; kernel-UD stopt gecontroleerd en een onbruikbare MAIN-stack wordt via echte double-fault/IST1 afgehandeld. De default-M1-regressie slaagt. R02 vond een alias-unmapfout; herstel en negatieve tests zijn meegenomen. Compact bewijs: `docs/verification/m2-m4/m2/`; ruwe runs onder `build/run/`. NMI-overname is niet geïnjecteerd; userheap/-stack en echte userisolatie volgen in M3.
 
 Q01-contractcontrole herstelde een CDF-afrondingsfout; 25 Rust-tests en vijf fixtures slagen. Bewijs: `docs/verification/m2-m4/quantum/`. Dit blijft lokale hostsimulatie. De volgende sectie bewaart het eerdere basischeckpoint; historische beperkingen daar beschrijven die basis.

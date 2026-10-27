@@ -1,0 +1,91 @@
+{
+  "date": "2026-10-27",
+  "scope": "host artifact checks only; no CPL3 execution by R03",
+  "build": {
+    "owner": "root",
+    "exit": 0,
+    "command": [
+      "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\rustc.EXE",
+      "+1.90.0",
+      "--edition=2021",
+      "--crate-type=bin",
+      "--crate-name=os_user_probe",
+      "--target=x86_64-unknown-none",
+      "-C",
+      "panic=abort",
+      "-C",
+      "opt-level=2",
+      "-C",
+      "code-model=small",
+      "-C",
+      "relocation-model=static",
+      "-C",
+      "no-redzone=yes",
+      "-C",
+      "linker=rust-lld",
+      "-C",
+      "link-arg=-TC:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\linker.ld",
+      "-C",
+      "link-arg=--no-pie",
+      "-C",
+      "link-arg=--build-id=none",
+      "-C",
+      "link-arg=-zmax-page-size=0x1000",
+      "--emit=link",
+      "-o",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\users\\probe.elf",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\userspace\\probe.rs"
+    ],
+    "stderr_bytes": 0
+  },
+  "host_tests": {
+    "command": "python -B -X utf8 userspace/tests/test_probe.py --elf build/users/probe.elf",
+    "exit": 0,
+    "tests": 13,
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0
+  },
+  "artifact": {
+    "schema_version": 1,
+    "purpose": "synthetic ring-3 acceptance probe",
+    "binary_sha256": "5d929163f89a7c1c0734dc4bc8e48049a0f4481d8e660ae16a7f8caee32a52a6",
+    "source_sha256": "35c0310322156ccc11e11f4841f2e9556bab60afea8e64d4805405b03c3e0723",
+    "linker_sha256": "6e2575a606a8e1f7ce0743e9b6766db2c870369dc1aafca68277bd02b0e03bea",
+    "entry": 1073741824,
+    "segments": [
+      {
+        "flags": 5,
+        "address": 1073741824,
+        "offset": 4096,
+        "filesz": 1009,
+        "memsz": 1009,
+        "page_start": 1073741824,
+        "page_end": 1073745920
+      },
+      {
+        "flags": 6,
+        "address": 1073807360,
+        "offset": 8192,
+        "filesz": 32,
+        "memsz": 32,
+        "page_start": 1073807360,
+        "page_end": 1073811456
+      }
+    ]
+  },
+  "source_sha256": {
+    "userspace/probe.rs": "35c0310322156ccc11e11f4841f2e9556bab60afea8e64d4805405b03c3e0723",
+    "userspace/linker.ld": "6e2575a606a8e1f7ce0743e9b6766db2c870369dc1aafca68277bd02b0e03bea",
+    "userspace/tests/test_probe.py": "72fd19711ef1339924d75cf090fc60502e4f52b38278bbf3ce04f2f35e58e513",
+    "tools/build_users.py": "9b0e87a679d9684d194ab9bc9f98956b67ce57b1df6766ba17fc0500daf62837"
+  },
+  "remaining": [
+    "actual privilege transition",
+    "PIT preemption and sixteen-worker fairness",
+    "per-process physical isolation and TLB",
+    "fault vector/address/error bits and B progress",
+    "safe frame/page-table reclaim",
+    "actual unknown-syscall/unused-argument error paths and DF/GPR preservation"
+  ]
+}
