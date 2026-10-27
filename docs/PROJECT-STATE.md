@@ -1,10 +1,14 @@
 # Actuele projectstatus
 
-## N02 — hybride PQC-transport: implementatiecheckpoint
+## N02 — hybride PQC-transport: echte hostproef getest
 
-27 oktober 2026, basis `ece94a5cfebecaec763eb2855aa9f84e55dcdcbc` (PR #7), werkbranch `codex/pqc-transport-foundation`. De aangeleverde beveiligingsblauwdruk is getoetst aan de actuele bronnen en repository. ADR-028 en `implementation/VERIFIABLE-SECURITY-AND-PQC.md` leggen de gekozen standaard-TLS-proef, formele bewijsgrenzen en concrete native vervolgopdrachten vast.
+27 oktober 2026, basis `ece94a5cfebecaec763eb2855aa9f84e55dcdcbc` (PR #7), werkbranch `codex/pqc-transport-foundation`; eerste checkpoint `3d05f9f8dccb4f515d8522578d20bbf00d8b8ed7`. De aangeleverde beveiligingsblauwdruk is getoetst aan de actuele bronnen en repository. ADR-028 en `implementation/VERIFIABLE-SECURITY-AND-PQC.md` leggen het standaard-TLS-profiel, formele bewijsgrenzen en concrete native vervolgopdrachten vast.
 
-De policy heeft nu een afzonderlijke `authorizeNasConnection`-controle vóór een verbindingspoging. Die verleent geen nieuwe rechten en geldt nooit als transportauthenticatie. Gerichte policysuite: 16/16 geslaagd (14 bestaande + 2 nieuwe), exit 0. De echte loopback TLS-adapter en negatieve handshakeproeven zijn bij dit checkpoint nog in uitvoering; nog geen geslaagd transport- of totaaltestresultaat geclaimd.
+`services/nas/transport.mjs` heeft echte loopback TLS 1.3 met gemeten X25519MLKEM768, AES-256-GCM-SHA384, vereist ALPN, wederzijdse CA-/certificaatpincontrole en serverhostnamecontrole. De client versleutelt vóór transport; de server echoot alleen begrensde ciphertext. Policy controleert toestemming vóór de socketpoging, na authenticatie en bij iedere verzending/response. Een transportfact is gebonden aan app en toestemmingsgeneratie; intrekken en opnieuw toestaan herstelt geen oude geauthenticeerde verbinding. Alleen internet intrekken laat de toegestane LAN-route bestaan. Geen klassieke fallback of sessiehergebruik.
+
+Werkelijk uitgevoerd op Node 24.22.1/OpenSSL 3.5.9/Linux x64: `node --test --test-isolation=none services/nas/tests/*.test.mjs ui/prototype/tests/*.test.mjs` → **124/124**, exit 0, geen skips (85 service: 13 crypto, 19 policy, 23 store, 30 transport; 39 UI). Beide demo's exit 0; 20 JS/mjs-syntaxchecks en diffcontrole geslaagd. Ruwe uitvoer, bronhashes, runtimeversies en review: `verification/pqc-transport/`. De oorspronkelijke sandbox weigerde lokaal luisteren; de expliciete loopback-escalatie is automatisch toegestaan en de tests zijn vervolgens werkelijk uitgevoerd. Geen externe verbinding of echte NAS/router gewijzigd.
+
+Twee afzonderlijke AI-reviews; een concreet randgeval rond herleving van oude idletransportfacts is hersteld en onafhankelijk hertoetst. Dit is geen formeel bewijs of menselijke audit. De testcertificaten zijn klassiek Ed25519; netwerklabels zijn harnasaannames bij loopback. Geen postkwantumauthenticatie, WAN-/LAN-detectie of koppeling van transportecho aan de N01-store. Tijdelijke frame-/tijdsgrenzen zijn geen productbeperkingen. De browserrendering is in deze stap niet opnieuw getest.
 
 Geen native PQC-crate, entropy-syscall, boot-/blokcryptografie of Grover-uitbreiding toegevoegd. De native build heeft concrete ABI-/geheugen-/instructiegrenzen; Rust/Cargo en QEMU zijn in deze ontwikkelsessie niet beschikbaar. Dit verandert geen bestaande M1–M6a-bewijsstatus. N01 hieronder blijft als historische basis bewaard.
 

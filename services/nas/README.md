@@ -1,6 +1,6 @@
-# N01 — versleutelde NAS-opslag en afzonderlijk beheer
+# N01/N02 — versleutelde NAS-opslag en hybride transportproef
 
-**Uitvoerbaar Node-hostprototype:** echte AES-256-GCM-encryptie, echte lokale opslag van ciphertext en afdwingbare bevoegdheidscontroles binnen de service-API. Dit is geen draaiende NAS-server, netwerkprotocol of native Nieuw OS-dienst. Er worden geen sockets geopend, geen echte NAS gekoppeld en geen bestaande gebruikersmappen gewijzigd.
+**Uitvoerbaar Node-hostprototype:** N01 levert echte AES-256-GCM-encryptie, lokale ciphertextopslag en bevoegdheidscontroles binnen de service-API. De oorspronkelijke opslagdemo opent geen sockets. N02 voegt een afzonderlijke echte TLS 1.3/X25519MLKEM768-proef toe, uitsluitend op loopback: zie [TRANSPORT.md](TRANSPORT.md). Dit is geen native Nieuw OS-dienst of geconfigureerde thuis-NAS; de transportecho is nog niet aan de store gekoppeld.
 
 Deze implementatie volgt de gewijzigde opdracht van 27 oktober 2026: een NAS kan thuis staan of bij vrienden/familie, met afzonderlijk toegestane directe internettoegang. De NAS-beheerder mag zijn opgeslagen kopieën zelfstandig verwijderen of de opslagruimte intrekken, zonder gebruikerssleutel of handtekening. Die beheerbevoegdheid geeft geen decryptiesleutel. Oudere teksten met uitsluitend eigen LAN zijn voor deze afgebakende opdracht herzien door de nieuwe gebruikersinstructie; de hoofdagent beheert de gedeelde contractdocumenten.
 
@@ -10,6 +10,7 @@ Vanaf de projectroot, met Node.js 24:
 
 ```sh
 node services/nas/demo.mjs
+node services/nas/transport-demo.mjs
 node --test --test-isolation=none services/nas/tests/*.test.mjs
 ```
 
@@ -26,7 +27,8 @@ Gecontroleerd op Node.js **24.22.1**, Linux x86_64. `--test-isolation=none` laat
 | `store.mjs` | `NasStore.createSynthetic()` retourneert `{store, adminCapability}`; `openSynthetic({directory})` opent alleen een gemarkeerde synthetische store. `close()` beëindigt alle tijdelijke handles. |
 | `store.mjs` | Beheer: `createInvitation(admin, {quotaBytes, lifetimeMs})`, `inspectUsage(admin)`, `revokeNamespace(admin, namespace)`, `evictNamespace(admin, namespace)` en `deleteObject(admin, namespace, objectId)`. Geen beheermethode ontsleutelt data. |
 | `store.mjs` | Gebruiker: `acceptInvitation({namespace, invitation, confirmedPeerIdentity})`, `openSession({namespace, accessCapability})`, `stageUpload(session, envelope)`, `commitUpload(session, upload)`, `cancelUpload`, `readObject`, `listObjects`, `closeSession`. Leesresultaten zijn ciphertext, geen documentnamen of inhoud. |
-| `policy.mjs` | `createPolicyEngine()` retourneert een gescheiden `authority`, `check` en `planNasRoute`. Alleen een toekomstige vertrouwde OS-/toestemmings-/transportadapter houdt `authority`; apps krijgen uitsluitend hun eigen opaque handle en de beslisinterface. Dit zijn hostbeleidsbeslissingen, geen kernelafdwinging. |
+| `policy.mjs` | `createPolicyEngine()` retourneert `authority`, `check`, `planNasRoute` en `authorizeNasConnection`. De preflight controleert toestemming vóór socketaanmaak en verleent geen transportvertrouwen. Alleen de vertrouwde adapter houdt `authority`; apps krijgen hun eigen opaque handle/beslisinterface. Geen kernelafdwinging. |
+| `transport.mjs` | Loopback TLS met hybride sleuteluitwisseling, mTLS/pins en levende policycontrole; de precieze interfaces en bewijsgrenzen staan in TRANSPORT.md. |
 | `policy.mjs` | `planNasRoute({app, peerIdentity, transports})` kiest automatisch een beschikbare toegestane LAN-route, anders direct internet naar exact dezelfde peer onder bestaande toestemming. Resultaat: `{status: 'ready', route: 'lan' \| 'internet', transport, reason}`, of `{status: 'paused', route: null, transport: null, reason}`. |
 
 De NAS-opslag kent geen gebruikersnaam of bestandsnaam. Namespace-ID's, object-ID's, versienummers, lengtes, status en quota blijven zichtbaar als operationele metadata. Een inhoudsnaam en de inhoud zelf zitten samen in het versleutelde JSON-payload. Lengtes en toegangsritme worden niet verborgen; traffic padding is niet geïmplementeerd.
@@ -69,7 +71,7 @@ De vertrouwde adapter levert maximaal 64 actuele beschikbare transportfacts aan.
 
 De beleidsrechten leven in dit hostprototype in geheugen. Een productieversie moet eenmalige keuzes veilig op het apparaat bewaren, na restart herstellen en nieuwe transportidentiteit opnieuw controleren; daarvoor mag geen reeks nieuwe toestemmingsvragen nodig zijn. Ook de beperkte noncebudgetten en read-only sleutelrecovery hierboven zijn tijdelijke proefgrenzen. Betrouwbare achtergrondwerking, bruikbaar sleutelherstel en normale dagelijkse toegang zijn producteisen, geen aan de gebruiker op te leggen permanente handmatige omwegen.
 
-`authority.attestVerifiedTransport(...)` is uitsluitend het toekomstige adapterkoppelvlak: de tests leveren daar een expliciete aanname aan. Het geeft een opaque handle terug die niet uit JSON is na te maken; een clientobject met `verified: true` wordt geweigerd. **Deze functie voert zelf geen TLS, certificaatcontrole of identiteitsbewijs uit.** De `peerIdentity` in de synthetische store is een stabiel willekeurig fixture-ID, geen geverifieerd certificaat. Bij een echte implementatie moet die worden vervangen/bonden aan gecontroleerde TLS-/peeridentiteit, met echte interface-, route-, DNS- en verbindingsvalidatie. Die adapter is niet aanwezig; de policy is daarom nog niet met een echte netwerkstack verbonden.
+`authority.attestVerifiedTransport(...)` is het vertrouwde adapterkoppelvlak. Het geeft een opaque handle terug die niet uit JSON is na te maken; een clientobject met `verified: true` wordt geweigerd. **Deze functie voert zelf geen TLS, certificaatcontrole of identiteitsbewijs uit.** N01-policytests leveren hier een expliciete aanname aan; de N02-loopbackadapter doet dit pas na echte TLS-controle. De `peerIdentity` in de synthetische store blijft een willekeurig fixture-ID en is nog niet aan deze transportpin gekoppeld. Native interface-, route-, DNS- en socketvalidatie en integratie tussen store en transport blijven open.
 
 ## Begrensde invoer
 
@@ -89,9 +91,9 @@ De beleidsrechten leven in dit hostprototype in geheugen. Een productieversie mo
 
 ## Bewijs en resterende integratie
 
-De testset controleert encryptie/decryptie, tag-/metadatawijzigingen, verkeerde sleutels, read-only recovery, geheimen buiten NAS-diskdata, tenantgrenzen, beheerdersrechten, uitnodigingen, quota, conflictsituaties, noncegrenzen, stale uploads, restart, corrupted/symlinked snapshots, orphan-cleanup en het internetbeleid. De routeproeven omvatten LAN→internet→LAN met één toestemming, pauze/hervatten, intrekking terwijl oude facts bestaan en afwijzing van verkeerde peers, relays, redirects en vervalste facts. Testcommando's, actuele telling en versies worden door de hoofdagent in het projectbewijs vastgelegd. Een geslaagde hosttest is geen QEMU-, TLS-, echte-NAS- of productiebeveiligingsbewijs.
+De testset controleert encryptie/decryptie, tag-/metadatawijzigingen, verkeerde sleutels, read-only recovery, geheimen buiten NAS-diskdata, tenantgrenzen, beheerdersrechten, uitnodigingen, quota, conflictsituaties, noncegrenzen, stale uploads, restart, corrupted/symlinked snapshots, orphan-cleanup en het internetbeleid. De routeproeven omvatten LAN→internet→LAN met één toestemming, pauze/hervatten, intrekking terwijl oude facts bestaan en afwijzing van verkeerde peers, relays, redirects en vervalste facts. Testcommando's, actuele telling en versies worden door de hoofdagent in het projectbewijs vastgelegd. N01-unit-/policytests bewijzen geen TLS. De afzonderlijke N02-handshakeproeven leveren echt loopback-TLS-bewijs; zij zijn geen QEMU-, echte-NAS- of productiebeveiligingsbewijs.
 
-Open: native OS-proces-/capabilityintegratie, echte versleutelde netwerkverbinding, geauthenticeerde pairing tussen apparaten, veilige key lifecycle, crash-/powerlossdekking, rollbackbescherming, background sync/conflictafhandeling, transportquota, peer-admin UI en onafhankelijke menselijke securityaudit. M1–M6/kernelbestanden worden door deze module niet aangepast.
+Open: native OS-proces-/capabilityintegratie, verbinding met een echte thuis-NAS, geauthenticeerde pairing tussen apparaten, veilige key lifecycle, crash-/powerlossdekking, rollbackbescherming, background sync/conflictafhandeling, productie-transportquota en onafhankelijke menselijke securityaudit. N02 levert alleen de begrensde echte loopbackverbinding. M1–M6/kernelbestanden worden door deze modules niet aangepast.
 
 ## Primaire implementatiereferenties
 

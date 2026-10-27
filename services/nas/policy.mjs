@@ -51,12 +51,12 @@ export function createPolicyEngine() {
       if (typeof appId !== 'string' || !/^[a-z0-9][a-z0-9.-]{0,63}$/.test(appId) || !allowedKinds.has(kind)) fail('INVALID_APP');
       const handle = Object.freeze({});
       apps.set(handle, { appId, kind, installed: true, internet: false, documents: new Map(),
-        peers: new Map(), internetPeers: new Set() });
+        peers: new Map(), peerEpochs: new Map(), internetPeers: new Set(), internetEpoch: Object.freeze({}) });
       return handle;
     },
     uninstallApp(app) {
       const record = appRecord(app); record.installed = false; record.internet = false;
-      record.documents.clear(); record.peers.clear(); record.internetPeers.clear();
+      record.documents.clear(); record.peers.clear(); record.peerEpochs.clear(); record.internetPeers.clear();
     },
     // Invocation by the trusted consent adapter represents a deliberate user action.
     grantInternet(app) {
@@ -64,7 +64,10 @@ export function createPolicyEngine() {
       if (record.kind === 'nas') fail('USE_PEER_BOUND_CONSENT');
       record.internet = true;
     },
-    revokeInternet(app) { const record = appRecord(app); record.internet = false; record.internetPeers.clear(); },
+    revokeInternet(app) {
+      const record = appRecord(app); record.internet = false; record.internetPeers.clear();
+      record.internetEpoch = Object.freeze({});
+    },
     grantDocument(app, objectId, mode = 'read') {
       const record = appRecord(app); requireId(objectId);
       if (['nas', 'model-downloader', 'update-downloader'].includes(record.kind) || !['read', 'write'].includes(mode)) fail('DOCUMENT_GRANT_DENIED');
@@ -77,6 +80,7 @@ export function createPolicyEngine() {
       peer(peerIdentity);
       if (typeof localNetworkId !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(localNetworkId)) fail('INVALID_NETWORK');
       record.peers.set(peerIdentity, localNetworkId);
+      record.peerEpochs.set(peerIdentity, Object.freeze({}));
       record.internetPeers.delete(peerIdentity); // Pin/re-pin never implicitly restores internet consent.
     },
     grantNasDirectInternet(app, peerIdentity) {
@@ -85,16 +89,20 @@ export function createPolicyEngine() {
       record.internetPeers.add(peerIdentity);
     },
     revokeNasPeer(app, peerIdentity) {
-      const record = appRecord(app); record.peers.delete(peerIdentity); record.internetPeers.delete(peerIdentity);
+      const record = appRecord(app); record.peers.delete(peerIdentity); record.peerEpochs.delete(peerIdentity);
+      record.internetPeers.delete(peerIdentity);
     },
     // Only a trusted future transport adapter may mint this after REAL validation.
     // In N01 tests these are declared assumptions, never measured TLS evidence.
-    attestVerifiedTransport({ peerIdentity, networkScope, localNetworkId = null, route = 'direct' }) {
+    attestVerifiedTransport({ app, peerIdentity, networkScope, localNetworkId = null, route = 'direct' }) {
+      const record = appRecord(app);
+      if (record.kind !== 'nas') fail('NAS_GRANT_DENIED');
       peer(peerIdentity);
       if (!['lan', 'internet'].includes(networkScope) || !['direct', 'relay', 'redirect'].includes(route)) fail('INVALID_TRANSPORT_FACT');
       if (networkScope === 'lan' && (typeof localNetworkId !== 'string' || !/^[a-zA-Z0-9_-]{1,64}$/.test(localNetworkId))) fail('INVALID_NETWORK');
       const fact = Object.freeze({});
-      transportFacts.set(fact, { peerIdentity, networkScope, localNetworkId, route });
+      transportFacts.set(fact, { app, peerIdentity, networkScope, localNetworkId, route,
+        peerEpoch: record.peerEpochs.get(peerIdentity), internetEpoch: record.internetEpoch });
       return fact;
     },
     forgetTransport(fact) { transportFacts.delete(fact); },
@@ -116,7 +124,14 @@ export function createPolicyEngine() {
       if (record.kind !== 'nas') return deny('NAS_DENIED');
       const fact = typeof transport === 'object' && transport !== null ? transportFacts.get(transport) : undefined;
       if (!fact) return deny('UNVERIFIED_TRANSPORT');
-      return nasRouteDecision(record, fact);
+      if (fact.app !== app) return deny('TRANSPORT_APP_MISMATCH');
+      const decision = nasRouteDecision(record, fact);
+      if (!decision.allowed) return decision;
+      if (!fact.peerEpoch || fact.peerEpoch !== record.peerEpochs.get(fact.peerIdentity) ||
+          (fact.networkScope === 'internet' && fact.internetEpoch !== record.internetEpoch)) {
+        return deny('STALE_TRANSPORT_AUTHORITY');
+      }
+      return decision;
     }
     // General LAN, admin and unknown rights have no implicit route through this API.
     return deny('DEFAULT_DENY');

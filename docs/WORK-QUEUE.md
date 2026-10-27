@@ -10,9 +10,12 @@ Gebruikersuitbreiding 27 oktober 2026; privacycontract revisie 3. Bron vanaf `a9
 | N01-P | ui/prototype/ | drie NAS-flows en afzonderlijke lokale beheerrol; 39 tests groen, nieuwe visuele browsercontrole open |
 | N01-R | alleen-lezen review | vier concrete bevindingen hersteld; gerichte hercontroles groen |
 | N01-G | root/docs/Git | herziene productgrens, ADR-027, integratiebewijs 89 tests + demo |
-| N02 | toekomstige native integratie | netwerkstack/TLS/identiteit, clientkeys/multi-device, NAS-rol en socketcapabilities nog open |
+| N02 | services/nas/transport.mjs | begrensde echte hybride TLS-hostproef; actuele resultaten onder verification/pqc-transport/ en PROJECT-STATE.md |
+| N03 | toekomstige native integratie | netwerkstack/TLS-port/identiteit, clientkeys/multi-device, NAS-rol en socketcapabilities nog open |
 
 Resultaten tellen niet als M6a-/M8-QEMU- of echte-internetbewijs. Eerste kernelvervolg blijft de hieronder beschreven M6a-poort.
+
+De aangeleverde formele-/PQC-blauwdruk is verwerkt in `implementation/VERIFIABLE-SECURITY-AND-PQC.md`: V01 voor machinegecontroleerde capability-invarianten, P01–P04 voor native build/entropy/image-/opslagintegratie en Q02 voor een afzonderlijke Grover-onderwijsproef. Deze taken zijn gespecificeerd, niet reeds uitgevoerd. N02 voegt geen eigen cryptografische tunnel of bestaande OS-kernel toe.
 
 27 oktober 2026, basis `448974b`, branch `codex/m6a-write-recovery`. Gekozen invariant/ABI/cases vóór implementatie: implementation/M6A-WRITE-RECOVERY.md.
 
