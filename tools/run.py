@@ -9,9 +9,20 @@ import subprocess
 import time
 import uuid
 from common import ROOT, BUILD, LOCAL, environment, firmware, save_json, sha256, source_hash
-from gate_contract import FAIL_MARKERS, MILESTONE_MARKERS, M1_MARKERS, guest_expectation
+from gate_contract import (
+    FAIL_MARKERS as BASE_FAIL_MARKERS,
+    MILESTONE_MARKERS as BASE_MILESTONE_MARKERS,
+    M1_MARKERS,
+    guest_expectation,
+)
 
 MARKERS = M1_MARKERS
+FAIL_MARKERS = BASE_FAIL_MARKERS + ("M5:FAIL",)
+MILESTONE_MARKERS = {
+    **BASE_MILESTONE_MARKERS,
+    "m5": MARKERS[:3] + ("M5:CASE:READ:PASS", "M5:SURVIVOR_PROGRESS:PASS",
+                         "M5:RESOURCES:PASS", "M5:PASS", "M1:PASS"),
+}
 
 
 def is_success(returncode, stdout, timed_out=False, *, required_markers=MARKERS,
@@ -25,7 +36,7 @@ def is_success(returncode, stdout, timed_out=False, *, required_markers=MARKERS,
 
 
 def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
-              expected_exit=33, forbidden_markers=FAIL_MARKERS):
+              expected_exit=33, forbidden_markers=FAIL_MARKERS, m5_case=None, m5_seed=None):
     if not 0 < timeout <= 60:
         raise ValueError("guest timeout must be in (0,60]")
     env = environment()
@@ -38,6 +49,13 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
         raise ValueError("ESP must be a generated directory under build/")
     run_dir = BUILD / "run" / f"{label}-{uuid.uuid4().hex[:10]}"
     run_dir.mkdir(parents=True)
+    disk_path, disk_info = None, None
+    if m5_case is not None:
+        from build import M5_CASES
+        from m5_disk import create_disk
+        if m5_case not in ("read",) + M5_CASES:
+            raise ValueError("Unknown M5 case")
+        disk_path, disk_info = create_disk(run_dir, m5_seed)
     shutil.copytree(source, run_dir / "esp")
     shutil.copy2(variables, run_dir / "OVMF_VARS.template.fd")
     shutil.copy2(run_dir / "OVMF_VARS.template.fd", run_dir / "OVMF_VARS.fd")
@@ -50,6 +68,9 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
             "-drive", f"if=pflash,unit=1,format=raw,file={run_rel}/OVMF_VARS.fd",
             "-drive", f"if=virtio,index=0,format=raw,readonly=on,file=fat:{run_rel}/esp",
             "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]
+    if m5_case is not None and m5_case != "no-device":
+        args += ["-drive", f"if=none,id=m5-test,format=raw,readonly=on,file={run_rel}/test-disk.img",
+                 "-device", "virtio-blk-pci,drive=m5-test,id=m5blk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M5-TEST"]
     share = Path(qemu).parent / "share"
     if share.is_dir():
         args += ["-L", str(share)]
@@ -67,8 +88,18 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     (run_dir / "stderr.txt").write_bytes(err)
     artifacts = {path.relative_to(run_dir).as_posix(): sha256(path) for path in (run_dir / "esp").rglob("*") if path.is_file()}
     artifacts.update({"OVMF_CODE.fd": sha256(run_dir / "OVMF_CODE.fd"), "OVMF_VARS.template.fd": sha256(run_dir / "OVMF_VARS.template.fd")})
+    disk_result = None
+    if disk_info is not None:
+        from m5_disk import verify_disk
+        disk_result = verify_disk(disk_path, disk_info, stdout,
+                                  data_required=m5_case not in ("no-device", "reset-timeout"))
+        artifacts["test-disk.img"] = sha256(disk_path)
     git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
-    report = {"label": label, "started_utc": started, "duration_s": time.monotonic()-start, "timeout_s": timeout, "timed_out": timed_out, "raw_qemu_exit": rc, "expected_exit": expected_exit, "required_markers": list(required_markers), "forbidden_markers": list(forbidden_markers), "passed": is_success(rc, stdout, timed_out, required_markers=required_markers, expected_exit=expected_exit, forbidden_markers=forbidden_markers), "command": args, "qemu_version": version, "profile": "development-package; pc-q35-10.0/qemu64/TCG/1CPU/256MiB", "base_commit": git.stdout.strip() if git.returncode == 0 else None, "source_fingerprint_version": 2, "source_sha256": source_hash(), "artifact_sha256": artifacts, "firmware_source": [str(code), str(variables)], "run_directory": str(run_dir), "stdout": stdout, "stderr": stderr}
+    report = {"label": label, "started_utc": started, "duration_s": time.monotonic()-start, "timeout_s": timeout, "timed_out": timed_out, "raw_qemu_exit": rc, "expected_exit": expected_exit, "required_markers": list(required_markers), "forbidden_markers": list(forbidden_markers), "passed": is_success(rc, stdout, timed_out, required_markers=required_markers, expected_exit=expected_exit, forbidden_markers=forbidden_markers), "command": args, "qemu_version": version, "profile": "development-package; pc-q35-10.0/qemu64/TCG/1CPU/256MiB", "base_commit": git.stdout.strip() if git.returncode == 0 else None, "source_fingerprint_version": 3, "source_sha256": source_hash(), "artifact_sha256": artifacts, "firmware_source": [str(code), str(variables)], "run_directory": str(run_dir), "stdout": stdout, "stderr": stderr}
+    if disk_result is not None:
+        report.update(m5_case=m5_case, disk_oracle=disk_result)
+        report["passed"] = report["passed"] and disk_result["passed"]
+        report["profile"] += "; readonly synthetic virtio-blk00:05.0" if m5_case != "no-device" else "; M5 target absent"
     save_json(run_dir / "result.json", report)
     print(stdout, end="")
     print(stderr, end="")
@@ -90,4 +121,4 @@ if __name__ == "__main__":
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--milestone", choices=list(MILESTONE_MARKERS), default="m1")
     args = parser.parse_args()
-    raise SystemExit(0 if run_guest(required_markers=MILESTONE_MARKERS[args.milestone])["passed"] else 1)
+    raise SystemExit(0 if run_guest(required_markers=MILESTONE_MARKERS[args.milestone], m5_case="read" if args.milestone == "m5" else None)["passed"] else 1)

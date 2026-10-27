@@ -43,7 +43,8 @@ def inspect_user(path):
 def build_users(kind="probe"):
     fixtures = {"probe": ("probe", "linker.ld", "probe", "manifest.json"),
                 "ipc": ("ipc_probe", "ipc_linker.ld", "ipc_probe", "manifest-ipc.json"),
-                "large": ("probe", "large_linker.ld", "probe_large", "manifest-large.json")}
+                "large": ("probe", "large_linker.ld", "probe_large", "manifest-large.json"),
+                "m5": ("m5_probe", "m5_linker.ld", "m5_probe", "manifest-m5.json")}
     if kind not in fixtures:
         raise ValueError("unknown synthetic user fixture")
     source_stem, linker_name, stem, manifest_name = fixtures[kind]
@@ -61,6 +62,10 @@ def build_users(kind="probe"):
     manifest = {"schema_version": 1, "purpose": "synthetic ring-3 acceptance probe",
                 "binary_sha256": sha256(output), "source_sha256": sha256(source),
                 "linker_sha256": sha256(linker), **inspect_user(output)}
+    if kind == "m5":
+        modules = ("userspace/m5_probe.rs", "userspace/m5_runtime.rs",
+                   "services/block/src/wire.rs", "services/block/src/user_service.rs")
+        manifest["module_sha256"] = {path: sha256(ROOT / path) for path in modules}
     save_json(BUILD / "users" / manifest_name, manifest)
     print(f"Built own {stem} ELF: entry={manifest['entry']:#x}, {len(manifest['segments'])} segments")
     return output
@@ -68,5 +73,5 @@ def build_users(kind="probe"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--kind", choices=["probe", "ipc", "large"], default="probe")
+    parser.add_argument("--kind", choices=["probe", "ipc", "large", "m5"], default="probe")
     build_users(parser.parse_args().kind)

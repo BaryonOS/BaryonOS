@@ -1,0 +1,14 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+    "+1.90.0",
+    "test",
+    "--locked",
+    "-p",
+    "kernel-core"
+  ],
+  "cwd": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System",
+  "started_unix": 1793109948.258413,
+  "duration_s": 0.23529052734375,
+  "returncode": 0
+}

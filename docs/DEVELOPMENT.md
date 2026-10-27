@@ -109,7 +109,36 @@ python tools/dev.py rustc +1.90.0 -vV
 
 Loader en kernel gebruiken afzonderlijke targets. Instellen van één globale workspace-target zou de hosttests verstoren en hoort niet bij deze inrichting.
 
-## QEMU-profiel en bewijs
+## M5-blokdienst starten en controleren
+
+Bouw expliciet het M5-profiel en start de eindige ontwikkelproef:
+
+```powershell
+python tools/build.py --kernel-feature milestone-m5
+python tools/run.py --smoke --milestone m5
+```
+
+De runner maakt per start een nieuwe synthetische 64KiB-image onder `build/run/`, koppelt die alleen-lezen aan modern virtio-blk op `00:05.0` en bewaart de hele commandoregel, serial, stderr, firmware-/binary-/imagehashes en het externe datacontrole-resultaat. De aparte boot-ESP blijft een ander device. Er is geen parameter voor een echte hostdisk. De dienst leest sector 4 en 6 via IPC, waarna QEMU na de assertions afsluit. Dit is nog geen interactieve OS-shell.
+
+De M5-poort voert hosttests, ELF-controles, dezelfde kernel op twee verschillende images, 17 foutvarianten en een M1-regressiestart uit:
+
+```powershell
+python -u tools/test_m5.py
+python tools/capture_gate.py m5
+```
+
+Voor de gecombineerde M2–M5-regressie en de volledige bootfoutreeks:
+
+```powershell
+python -u tools/test_milestones.py --through m5
+python -u tools/test.py
+```
+
+Deze suites herstellen aan het einde de gewone M1-build. Bouw daarna opnieuw `milestone-m5` voor een losse M5-start. Gebruik voor foutfeatures de gate met bijbehorende casemarkers; `run.py --milestone m5` verlangt bewust de normale READ-case. Alleen `status: completed` en `passed: true`, plus opnieuw gecontroleerde ruwe evidence, tellen als geslaagde gate. Actueel uitgevoerd bewijs staat in PROJECT-STATE.md.
+
+Het dienstprotocol en alle injectiegrenzen staan in [M5-BLOCK-SERVICE.md](implementation/M5-BLOCK-SERVICE.md). Het kerneltransport en het protocolconforme device zijn vertrouwd; M5 levert geen IOMMU-containment of fysieke-hardwarebewijs. Bij ontbrekende resetack blijft de vaste DMA-pool in quarantaine tot VM-stop.
+
+## Vast QEMU-profiel
 
 De lokale ontwikkelvariant gebruikt `pc-q35-10.0`, `qemu64`, TCG, één CPU, 256 MiB RAM, geen gastnetwerk en geen hostschijf. De test maakt een eigen ESP-kopie en een verse VARS-kopie in `build/run/`; CODE wordt read-only gebruikt. De concrete argumenten, ruwe exitstatus, hashes en seriële output staan per run in `result.json`, `serial.txt` en `stderr.txt`.
 

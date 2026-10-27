@@ -58,8 +58,8 @@ def save_json(path: Path, value: object) -> None:
 def source_hash() -> str:
     """Fingerprint source inputs without traversing generated artifacts or caches."""
     digest = hashlib.sha256()
-    digest.update(b"nieuw-os source inputs v2\n")
-    for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "userspace", ROOT / "tools", ROOT / ".cargo"):
+    digest.update(b"nieuw-os source inputs v3\n")
+    for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "drivers", ROOT / "services", ROOT / "userspace", ROOT / "tools", ROOT / ".cargo"):
         if folder.exists():
             for path in sorted(folder.rglob("*")):
                 if path.is_file() and not {"__pycache__", "verification", "target", "build", ".git"}.intersection(path.relative_to(folder).parts):

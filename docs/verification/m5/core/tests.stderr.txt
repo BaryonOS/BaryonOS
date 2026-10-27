@@ -1,0 +1,7 @@
+   Compiling virtio-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\crates\virtio-core)
+   Compiling capability-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\crates\capability-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.80s
+     Running unittests src\lib.rs (build\m5-core-tests\debug\deps\capability_core-d85afd4192c7ae5a.exe)
+     Running unittests src\lib.rs (build\m5-core-tests\debug\deps\virtio_core-31b160e9d4f04af1.exe)
+   Doc-tests capability_core
+   Doc-tests virtio_core

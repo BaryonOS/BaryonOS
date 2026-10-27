@@ -1,0 +1,200 @@
+{
+  "purpose": "Targeted repair of five verified M5 review findings; all valid, none skipped",
+  "base_revision": "448974b1352493fba41158da08daf1ad1937d973",
+  "source_fingerprint_version": 3,
+  "source_sha256": "f65f8f8812aa0215608363331df7a59811918bef0574feb80a63d7e9d9aa45ce",
+  "changed_input_sha256": {
+    "crates/capability-core/README.md": "421dbfeb3be6926c0a79adf586197bf488a8e40f5dcae34dba3fa9ae940f8a36",
+    "docs/DECISIONS.md": "73393c7f6a92d6fb421a071e9c2938f9d1097d3c7f13c104f463cc74d161db18",
+    "docs/verification/m5/core/clippy.txt": "deleted",
+    "docs/verification/m5/core/tests.txt": "deleted",
+    "kernel/src/m2/m3/m5.rs": "9d94353789bdca5bcf2215c1119c163bb9dd0fbffb237978c9490664d6215a01"
+  },
+  "environment": {
+    "os": "Ubuntu26.04.1 x86_64",
+    "rust": "1.90.0 (1159e78c4)",
+    "python": "3.14.4",
+    "qemu": "10.2.1",
+    "profile": "pc-q35-10.0/qemu64/TCG/oneCPU/256MiB; isolated fresh OVMF VARS and readonly synthetic disks; no guest network",
+    "ovmf_package": "2025.11-3ubuntu7.3",
+    "firmware_sha256": {
+      "OVMF_CODE_4M.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+      "OVMF_VARS_4M.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    "lockfile_sha256": "64b3d0f76a7fd8e0aa3544f48e5692e9eb0ee758bcebe480cd3930035760c161"
+  },
+  "summary": {
+    "gate_groups": 77,
+    "gate_guest_runs": 64,
+    "additional_malformed_response_guests": 2,
+    "host_harness_tests": 11,
+    "host_regression_groups": 2,
+    "unexpected_failures": 0,
+    "reused_prior_turn_checks": 0
+  },
+  "suites": [
+    {
+      "stage": "m1",
+      "status": "passed",
+      "command": "PATH=/home/vercel-sandbox/.cargo/bin:$PATH python3 -u tools/test.py",
+      "process_exit": 0,
+      "groups": 10,
+      "guest_runs": 8,
+      "suite_path": "build/test-results.json",
+      "suite_sha256": "b2ee0cc967ab0643261551ed48e2c89c046897c3ae1c746709bb3db92e942639",
+      "guest_records_sha256": "6f9c68cfc0549f722a6707bfdfce5e3e3709a69dfa565a531d32320f4f1d6576"
+    },
+    {
+      "stage": "m2",
+      "status": "passed",
+      "command": "PATH=/home/vercel-sandbox/.cargo/bin:$PATH python3 -u tools/test_milestones.py --through m5",
+      "process_exit": 0,
+      "groups": 8,
+      "guest_runs": 7,
+      "suite_path": "build/m2-test-results.json",
+      "suite_sha256": "57f894487de9e191a99a144f0700e9d7962f4cfe9a547e489e73b4145bf32963",
+      "guest_records_sha256": "43f2e09e0cec5103d81cf1cee8c626591c76d489ef5dd453ee6d582df295f3ce"
+    },
+    {
+      "stage": "m3",
+      "status": "passed",
+      "command": "PATH=/home/vercel-sandbox/.cargo/bin:$PATH python3 -u tools/test_milestones.py --through m5",
+      "process_exit": 0,
+      "groups": 22,
+      "guest_runs": 19,
+      "suite_path": "build/m3-test-results.json",
+      "suite_sha256": "510b7f7196fdc4e26e4663938f67fee38974f6ab4f22bb63d533f04238cebc6c",
+      "guest_records_sha256": "52d225bd2af6717d2a4a5473df10ad3e0b1f4cb0f567767f3eb6a663a5ba26fc"
+    },
+    {
+      "stage": "m4",
+      "status": "passed",
+      "command": "PATH=/home/vercel-sandbox/.cargo/bin:$PATH python3 -u tools/test_milestones.py --through m5",
+      "process_exit": 0,
+      "groups": 12,
+      "guest_runs": 10,
+      "suite_path": "build/m4-test-results.json",
+      "suite_sha256": "23a18bcfa2557fe3fbbd9905c18bb288611183569a8c9158db90927217362582",
+      "guest_records_sha256": "a41ce48bcfc53f8693e99d01702643c71528c19fa1df082daf22eeec2a747fd8"
+    },
+    {
+      "stage": "m5",
+      "status": "passed",
+      "command": "PATH=/home/vercel-sandbox/.cargo/bin:$PATH python3 -u tools/test_milestones.py --through m5",
+      "process_exit": 0,
+      "groups": 25,
+      "guest_runs": 20,
+      "suite_path": "build/m5-test-results.json",
+      "suite_sha256": "30feafa45ad297121a1d2cff6df4bd3e79c622ab45a537be057d27952291a5fc",
+      "guest_records_sha256": "de17fbfff1b73974b4b06c3c5a3385493c2d1ebcf2e9721a638f4030e868403f"
+    }
+  ],
+  "malformed_response_check": {
+    "command": "PATH=/home/vercel-sandbox/.cargo/bin:$PATH python3 /tmp/bc70df4b-malformed-guest.py",
+    "script_sha256": "0129593af49cd8fc4d4a8fe3d79d0ce1704e33bfae46897a761ba2ccd57f1dac",
+    "process_exit": 0,
+    "guests": [
+      {
+        "length": 0,
+        "result": "expected USER_OR_PROTOCOL exit35 without panic",
+        "record": "build/run/review-malformed-length-0-22a918ccc8/negative-result.json",
+        "record_sha256": "991c7f2207e2bd6895748df4d5a6a9f9a29e88f0142ae42d707638ccf088d21e",
+        "injection": {
+          "kind": "malformed service success response length",
+          "length": 0,
+          "source_is_unmodified_kernel": true,
+          "service_path": "/tmp/bc70df4b-malformed-guest/service-0.rs",
+          "service_sha256": "4477352032866503d661e0f5237169bb190d6732957c3f02923947be2bb7299f",
+          "probe_sha256": "468ad058c30814dab201e878072c273d2587a5f88407972d09557898c90a4624",
+          "probe_elf_sha256": "46082b68d1983d8aaae5749c51ee33dcbc4cead543fcc44644c7897245f2a0b7",
+          "data_digests_expected": false,
+          "image_unchanged_required": true
+        },
+        "kernel_sha256": "781df4757be73f8845156de191cc9e9680af845200ffc00f8fe60506aafa75c0",
+        "disk_unchanged": true
+      },
+      {
+        "length": 4294967295,
+        "result": "expected USER_OR_PROTOCOL exit35 without panic",
+        "record": "build/run/review-malformed-length-4294967295-983139b5fb/negative-result.json",
+        "record_sha256": "db9f68fe5be50ce3db3b1959e4c6c1def4b0c22191a2f50ec757055988cd49bc",
+        "injection": {
+          "kind": "malformed service success response length",
+          "length": 4294967295,
+          "source_is_unmodified_kernel": true,
+          "service_path": "/tmp/bc70df4b-malformed-guest/service-4294967295.rs",
+          "service_sha256": "09802fff365a306a5371e4da16e40ef88dd828f49bba561a8beaadc65f2d3533",
+          "probe_sha256": "77d971c1cf0422193eb922b9458e3a4ea7ed08460337782849d84414039b560e",
+          "probe_elf_sha256": "667f6341235653f99593900f8906dc230a4f2769026c5df4ec419c31c7353604",
+          "data_digests_expected": false,
+          "image_unchanged_required": true
+        },
+        "kernel_sha256": "0fddfaf60b66f0346cb2164937346ef08b6c68ec714830466ea4c4cd08cfda7f",
+        "disk_unchanged": true
+      }
+    ],
+    "scope": "Copied user service changes only successful response length after real block_poll; kernel has current task patch without test-only injection. Full read digests intentionally absent; full-image SHA256 still required unchanged."
+  },
+  "host_regression": {
+    "commands": [
+      "python3 /tmp/bc70df4b-kernel-verifier/generate.py",
+      "/home/vercel-sandbox/.cargo/bin/rustc +1.90.0 --edition=2021 --crate-name capability_core --crate-type rlib crates/capability-core/src/lib.rs -o /tmp/bc70df4b-kernel-verifier/libcapability_core.rlib",
+      "/home/vercel-sandbox/.cargo/bin/rustc +1.90.0 --edition=2021 --test /tmp/bc70df4b-kernel-verifier/harness.rs --extern capability_core=/tmp/bc70df4b-kernel-verifier/libcapability_core.rlib -o /tmp/bc70df4b-kernel-verifier/harness",
+      "/tmp/bc70df4b-kernel-verifier/harness --test-threads=1 --nocapture"
+    ],
+    "process_exits": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "inputs": {
+      "kernel/src/m2/m3/m5.rs": "9d94353789bdca5bcf2215c1119c163bb9dd0fbffb237978c9490664d6215a01",
+      "kernel/src/m2/m3.rs": "eed55514a5860d60f63d1f27391534b692493f0717fdcee9bc6348da709b037c",
+      "kernel/src/m2/m3/m4.rs": "9e650b4d37bb79602a6327465e36d06cc992a318600d6de942e86b677cb19ae2",
+      "services/block/src/wire.rs": "2c420405abe8efea36e15a98cf649317ab7364891d51c6b55d04b40bbbf7f6d1",
+      "crates/capability-core/src/lib.rs": "ff825d0bef61f42f0b0132381d403c0b49dccf21a77e4ee1f2c633785a247d47",
+      "Cargo.lock": "64b3d0f76a7fd8e0aa3544f48e5692e9eb0ee758bcebe480cd3930035760c161",
+      "rust-toolchain.toml": "fdc1c499d524be4dc57534d10a6d41c854fa6340866f63fcc9abdaa22a540437",
+      "extracted_sha256": "f12e0c131038a2a5ad30ddee0ce062cf470355fb45c161da0006c291aa2eb7e5",
+      "harness_sha256": "aa1f76e77fecf8372f97189de54082faa88eb4eb3011c8c22a9360cc4a0b6522"
+    },
+    "generator_sha256": "44ca8f570e8f8b686e2d31f9375db6a9dd4d8224d8f5337abf1f5b6c6b12dc1a",
+    "scope": "Exact full sent/manifest/bind_service/put/word functions; real capability-core Engine and wire.rs; host stubs for Runtime/State/memory; serial tests. Eleven passing tests comprise two regression groups and nine existing wire tests. Two stub visibility warnings during compilation.",
+    "baseline_sensitivity": {
+      "revision": "448974b1352493fba41158da08daf1ad1937d973",
+      "command": "/tmp/bc70df4b-kernel-verifier/baseline-harness extracted_ --test-threads=1 --nocapture",
+      "expected_exit": 101,
+      "observed_exit": 101,
+      "result": "Both regression groups detect original faults: service offset208 overwritten in case0; response length0 triggers assertion panic."
+    }
+  },
+  "other_checks": [
+    {
+      "command": "PATH=/home/vercel-sandbox/.cargo/bin:$PATH python3 tools/preflight.py --strict",
+      "exit": 0
+    },
+    {
+      "command": "PATH=/home/vercel-sandbox/.cargo/bin:$PATH cargo +1.90.0 fmt -p os-kernel -- --check",
+      "exit": 0
+    },
+    {
+      "command": "python3 /tmp/bc70df4b-verify-docs.py",
+      "script_sha256": "5152d88544a42036affbfdb4daf33e37a18a3bc7e881aa698f768a08b862811f",
+      "exit": 0,
+      "scope": "README exact replacement; ADR original consequences/revision text intact; old evidence absent; retained report/stdout/stderr identical to base; primary source versions checked."
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "review": "Independent read-only kernel verifier found no concrete issue in current diff; host and guest tests corroborate targeted behavior. AI review is not a human audit.",
+  "limits": [
+    "No physical-hardware, IOMMU or malicious-DMA containment claim.",
+    "Existing IPC assertions in other sent branches are outside the requested successful-response block.",
+    "Per-run binaries and raw logs remain local under ignored build/; scratch harnesses remain under /tmp. Compact hashes identify exact tested inputs.",
+    "M1 negative guest records correctly retain false success flags and raw failures/timeouts; suite expectations determine their pass.",
+    "Original core report.json/tests.stdout.txt/clippy.stderr.txt are preserved byte-for-byte."
+  ]
+}

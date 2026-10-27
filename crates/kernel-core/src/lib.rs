@@ -3,6 +3,14 @@
 //! Fixed-capacity ownership and physical-alias policy. No physical dereferences.
 pub const PAGE: u64 = 4096;
 pub const USER_QUOTA: usize = 2048;
+/// x86-64 physical-page metadata check; no CPU instruction or pointer access.
+pub fn physical_page_fits(address: u64, width: u8) -> bool {
+    (32..=52).contains(&width)
+        && address % PAGE == 0
+        && address
+            .checked_add(PAGE)
+            .is_some_and(|end| end <= 1u64 << width)
+}
 pub mod user;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -224,6 +232,16 @@ impl<const N: usize> Frames<N> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn physical_page_width_and_overflow_fail_closed() {
+        assert!(physical_page_fits(0xfffff000, 32));
+        assert!(!physical_page_fits(0x100000000, 32));
+        assert!(physical_page_fits(0x100000000, 36));
+        assert!(!physical_page_fits(u64::MAX - 4095, 52));
+        assert!(!physical_page_fits(0x1000, 0));
+        assert!(!physical_page_fits(0x1000, 53));
+        assert!(!physical_page_fits(0x1001, 40));
+    }
     fn pool<const N: usize>() -> Frames<N> {
         let mut p = Frames::new();
         p.admit(Range::pages(0, N as u64).unwrap(), 7, 8, &[]);

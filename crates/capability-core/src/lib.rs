@@ -14,9 +14,53 @@ pub const MAX_PROCESSES: usize = 16;
 pub const MAX_SLOTS: usize = 256;
 pub const MAX_NODES: usize = 1024;
 pub const MAX_ENDPOINTS: usize = 64;
+pub const MAX_BLOCK_DEVICES: usize = 4;
+pub const BLOCK_READ: u64 = 1;
+pub const BLOCK_RIGHTS: u64 = BLOCK_READ | DERIVE | TRANSFER | REVOKE;
 pub const MAX_OWNED_ENDPOINTS: usize = 4;
 pub const QUEUE_CAPACITY: usize = 16;
 pub const MAX_DEPTH: u8 = 8;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BlockScope {
+    pub device: u32,
+    pub first_sector: u64,
+    pub sector_count: u64,
+}
+impl BlockScope {
+    pub fn validate(self) -> Result<(), Error> {
+        if self.sector_count == 0 || self.first_sector.checked_add(self.sector_count).is_none() {
+            Err(Error::Invalid)
+        } else {
+            Ok(())
+        }
+    }
+    pub fn sector(self, relative: u64) -> Result<u64, Error> {
+        self.validate()?;
+        if relative >= self.sector_count {
+            return Err(Error::Invalid);
+        }
+        self.first_sector
+            .checked_add(relative)
+            .ok_or(Error::Invalid)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BlockAuthorization {
+    object_key: u64,
+    scope: BlockScope,
+}
+impl BlockAuthorization {
+    pub const fn object_key(self) -> u64 {
+        self.object_key
+    }
+    pub const fn scope(self) -> BlockScope {
+        self.scope
+    }
+    pub fn sector(self, relative: u64) -> Result<u64, Error> {
+        self.scope.sector(relative)
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(i64)]
@@ -238,6 +282,32 @@ impl Endpoint {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct BlockObject {
+    generation: u32,
+    live: bool,
+    retired: bool,
+    open: bool,
+    owner: u64,
+    nodes: u32,
+    scope: BlockScope,
+}
+impl BlockObject {
+    const EMPTY: Self = Self {
+        generation: 1,
+        live: false,
+        retired: false,
+        open: false,
+        owner: 0,
+        nodes: 0,
+        scope: BlockScope {
+            device: 0,
+            first_sector: 0,
+            sector_count: 0,
+        },
+    };
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Stats {
     pub processes: usize,
     pub handles: usize,
@@ -249,6 +319,8 @@ pub struct Stats {
     pub retired_slots: usize,
     pub retired_nodes: usize,
     pub retired_endpoints: usize,
+    pub block_objects: usize,
+    pub retired_block_objects: usize,
     pub state_digest: u64,
 }
 
@@ -257,6 +329,7 @@ pub struct Engine {
     processes: [Process; MAX_PROCESSES],
     nodes: [Node; MAX_NODES],
     endpoints: [Endpoint; MAX_ENDPOINTS],
+    blocks: [BlockObject; MAX_BLOCK_DEVICES],
     last_pid: u64,
 }
 impl Default for Engine {
@@ -271,6 +344,7 @@ impl Engine {
             processes: [Process::EMPTY; MAX_PROCESSES],
             nodes: [Node::EMPTY; MAX_NODES],
             endpoints: [Endpoint::EMPTY; MAX_ENDPOINTS],
+            blocks: [BlockObject::EMPTY; MAX_BLOCK_DEVICES],
             last_pid: 0,
         }
     }
@@ -331,6 +405,9 @@ impl Engine {
     }
     pub fn check_endpoint(&self, pid: u64, handle: u64, required: u64) -> Result<(), Error> {
         let node = self.resolve(pid, handle)?;
+        if self.nodes[node].object.index as usize >= MAX_ENDPOINTS {
+            return Err(Error::Type);
+        }
         self.require(node, required)?;
         if required & RECV != 0
             && self.endpoints[self.nodes[node].object.index as usize].owner != pid
@@ -338,6 +415,56 @@ impl Engine {
             return Err(Error::Access);
         }
         Ok(())
+    }
+    /// Boot-manifest constructor only; no user syscall grants object creation.
+    pub fn create_block_device(&mut self, owner: u64, scope: BlockScope) -> Result<u64, Error> {
+        let p = self.process(owner)?;
+        scope.validate()?;
+        let slot = self.slots(p, 1)?[0];
+        let node = self.free_nodes(1)?[0];
+        let object = self
+            .blocks
+            .iter()
+            .position(|b| !b.live && !b.retired)
+            .ok_or(Error::Quota)?;
+        let generation = self.blocks[object].generation;
+        self.blocks[object] = BlockObject {
+            generation,
+            live: true,
+            open: true,
+            owner,
+            scope,
+            ..BlockObject::EMPTY
+        };
+        self.make_node(
+            node,
+            Id {
+                index: (MAX_ENDPOINTS + object) as u16,
+                generation,
+            },
+            Id::NONE,
+            owner,
+            BLOCK_RIGHTS,
+            0,
+        );
+        Ok(self.attach(p, slot, self.node_id(node)))
+    }
+    pub fn check_block(
+        &self,
+        pid: u64,
+        handle: u64,
+        required: u64,
+    ) -> Result<BlockAuthorization, Error> {
+        let node = self.resolve(pid, handle)?;
+        let object = self.nodes[node].object;
+        if (object.index as usize) < MAX_ENDPOINTS {
+            return Err(Error::Type);
+        }
+        self.require(node, required)?;
+        Ok(BlockAuthorization {
+            object_key: (u64::from(object.generation) << 32) | u64::from(object.index),
+            scope: self.blocks[object.index as usize - MAX_ENDPOINTS].scope,
+        })
     }
     /// Close is deliberately valid for revoked nodes and closed objects.
     pub fn close(&mut self, pid: u64, handle: u64) -> Result<(), Error> {
@@ -550,6 +677,11 @@ impl Engine {
                 e.open = false;
             }
         }
+        for b in &mut self.blocks {
+            if b.live && b.owner == pid {
+                b.open = false;
+            }
+        }
         self.maintain();
         Ok(())
     }
@@ -579,13 +711,13 @@ impl Engine {
             return Err(Error::Revoked);
         }
         let o = self.nodes[n].object;
-        if !self.object_live(o) || !self.endpoints[o.index as usize].open {
+        if !self.object_live(o) || !self.object_open(o) {
             return Err(Error::Closed);
         }
         Ok(n)
     }
     fn require(&self, n: usize, rights: u64) -> Result<(), Error> {
-        if rights & !ALL_RIGHTS != 0 {
+        if rights & !self.allowed_rights(self.nodes[n].object) != 0 {
             return Err(Error::Invalid);
         }
         if rights & !self.nodes[n].rights != 0 {
@@ -649,9 +781,38 @@ impl Engine {
             && self.nodes[id.index as usize].generation == id.generation
     }
     fn object_live(&self, id: Id) -> bool {
-        (id.index as usize) < MAX_ENDPOINTS
-            && self.endpoints[id.index as usize].live
-            && self.endpoints[id.index as usize].generation == id.generation
+        let i = id.index as usize;
+        if i < MAX_ENDPOINTS {
+            self.endpoints[i].live && self.endpoints[i].generation == id.generation
+        } else if i < MAX_ENDPOINTS + MAX_BLOCK_DEVICES {
+            let b = self.blocks[i - MAX_ENDPOINTS];
+            b.live && b.generation == id.generation
+        } else {
+            false
+        }
+    }
+    fn object_open(&self, id: Id) -> bool {
+        let i = id.index as usize;
+        if i < MAX_ENDPOINTS {
+            self.endpoints[i].open
+        } else {
+            self.blocks[i - MAX_ENDPOINTS].open
+        }
+    }
+    fn allowed_rights(&self, id: Id) -> u64 {
+        if (id.index as usize) < MAX_ENDPOINTS {
+            ALL_RIGHTS
+        } else {
+            BLOCK_RIGHTS
+        }
+    }
+    fn object_refs(&mut self, id: Id) -> &mut u32 {
+        let i = id.index as usize;
+        if i < MAX_ENDPOINTS {
+            &mut self.endpoints[i].nodes
+        } else {
+            &mut self.blocks[i - MAX_ENDPOINTS].nodes
+        }
     }
     fn attach(&mut self, p: usize, s: usize, node: Id) -> u64 {
         self.processes[p].slots[s].node = node;
@@ -680,7 +841,7 @@ impl Engine {
             refs: 1,
             depth,
         };
-        self.endpoints[object.index as usize].nodes += 1;
+        *self.object_refs(object) += 1;
         if parent != Id::NONE {
             self.nodes[parent.index as usize].refs += 1;
         }
@@ -769,7 +930,7 @@ impl Engine {
                 if n.parent != Id::NONE {
                     self.nodes[n.parent.index as usize].refs -= 1;
                 }
-                self.endpoints[n.object.index as usize].nodes -= 1;
+                *self.object_refs(n.object) -= 1;
                 let (generation, retired) = advance(n.generation);
                 self.nodes[i] = Node {
                     generation,
@@ -792,6 +953,18 @@ impl Engine {
                 };
             }
         }
+        // Block objects have no receiver/queue. Their last node, not a RECV
+        // handle, controls reclamation; owner exit closes surviving tombstones.
+        for b in &mut self.blocks {
+            if b.live && b.nodes == 0 {
+                let (generation, retired) = advance(b.generation);
+                *b = BlockObject {
+                    generation,
+                    retired,
+                    ..BlockObject::EMPTY
+                };
+            }
+        }
     }
     pub fn stats(&self) -> Stats {
         let mut s = Stats {
@@ -805,6 +978,8 @@ impl Engine {
             retired_slots: 0,
             retired_nodes: 0,
             retired_endpoints: 0,
+            block_objects: 0,
+            retired_block_objects: 0,
             state_digest: self.state_digest(),
         };
         for p in &self.processes {
@@ -824,6 +999,10 @@ impl Engine {
             s.open_endpoints += usize::from(e.live && e.open);
             s.queued_messages += usize::from(e.len);
             s.retired_endpoints += usize::from(e.retired);
+        }
+        for b in &self.blocks {
+            s.block_objects += usize::from(b.live);
+            s.retired_block_objects += usize::from(b.retired);
         }
         s
     }
@@ -887,12 +1066,27 @@ impl Engine {
                 }
             }
         }
+        for b in &self.blocks {
+            for x in [
+                u64::from(b.generation),
+                u64::from(b.live),
+                u64::from(b.retired),
+                u64::from(b.open),
+                b.owner,
+                u64::from(b.nodes),
+                u64::from(b.scope.device),
+                b.scope.first_sector,
+                b.scope.sector_count,
+            ] {
+                add(&mut h, x);
+            }
+        }
         h
     }
     /// Full structural/refcount check for observers/tests, not a syscall hook.
     pub fn check_invariants(&self) -> bool {
         let mut refs = [0u32; MAX_NODES];
-        let mut objects = [0u32; MAX_ENDPOINTS];
+        let mut objects = [0u32; MAX_ENDPOINTS + MAX_BLOCK_DEVICES];
         for p in &self.processes {
             if p.slots[0].node != Id::NONE {
                 return false;
@@ -914,7 +1108,8 @@ impl Engine {
                     let n = self.nodes[slot.node.index as usize];
                     if !self.object_live(n.object)
                         || n.rights & RECV != 0
-                            && self.endpoints[n.object.index as usize].owner != p.pid
+                            && ((n.object.index as usize) >= MAX_ENDPOINTS
+                                || self.endpoints[n.object.index as usize].owner != p.pid)
                     {
                         return false;
                     }
@@ -930,7 +1125,7 @@ impl Engine {
             }
             if n.retired
                 || n.generation == 0
-                || n.rights & !ALL_RIGHTS != 0
+                || n.rights & !self.allowed_rights(n.object) != 0
                 || n.depth > MAX_DEPTH
                 || n.issuer == 0
                 || n.issuer > self.last_pid
@@ -1033,6 +1228,21 @@ impl Engine {
                         return false;
                     }
                 }
+            }
+        }
+        for (i, b) in self.blocks.iter().enumerate() {
+            if b.generation == 0
+                || b.retired && (b.live || b.generation != u32::MAX)
+                || b.nodes != objects[MAX_ENDPOINTS + i]
+                || !b.live && (b.open || b.nodes != 0)
+            {
+                return false;
+            }
+            if b.live && (b.nodes == 0 || b.owner == 0 || b.scope.validate().is_err()) {
+                return false;
+            }
+            if b.open && self.process(b.owner).is_err() {
+                return false;
             }
         }
         self.nodes.iter().enumerate().all(|(i, n)| {

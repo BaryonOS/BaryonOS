@@ -1,0 +1,90 @@
+{
+  "phase": "M5",
+  "status": "failed",
+  "passed": false,
+  "started_utc": "2026-10-27T13:59:25.413987+00:00",
+  "results": [
+    {
+      "name": "typed-capability-virtio-policy-protocol-host-tests",
+      "passed": true,
+      "requirements": [
+        "M5-TYPED",
+        "M5-QUEUE",
+        "M5-PROTOCOL"
+      ],
+      "evidence": "build/logs/m5-host-tests.stdout.txt"
+    },
+    {
+      "name": "guest-evidence-parser-tests",
+      "passed": true,
+      "requirements": [
+        "M5-EVIDENCE"
+      ],
+      "evidence": "build/logs/m5-parser-tests.stdout.txt"
+    },
+    {
+      "name": "external-disk-oracle-negative-tests",
+      "passed": true,
+      "requirements": [
+        "M5-ORACLE"
+      ],
+      "evidence": "build/logs/m5-disk-oracle-tests.stdout.txt"
+    },
+    {
+      "name": "m5-user-artifact-tests",
+      "passed": true,
+      "requirements": [
+        "M5-USER-ELF"
+      ],
+      "evidence": "build/logs/m5-user-artifact-tests.stdout.txt"
+    },
+    {
+      "name": "m5-read-a",
+      "passed": true,
+      "requirements": [
+        "M5-READ",
+        "M5-ORACLE",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m5-read-a-e165210a3c"
+    },
+    {
+      "name": "m5-read-b",
+      "passed": true,
+      "requirements": [
+        "M5-READ",
+        "M5-ORACLE",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m5-read-b-ffb0480080"
+    },
+    {
+      "name": "same-binary-two-actual-disks",
+      "passed": true,
+      "requirements": [
+        "M5-ORACLE"
+      ],
+      "evidence": "build/logs/m5-two-image-check.json"
+    },
+    {
+      "name": "test-m5-service-errors",
+      "passed": true,
+      "requirements": [
+        "M5-SERVICE_ERRORS",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-service-errors-a5f06a73af"
+    },
+    {
+      "name": "test-m5-device-rights",
+      "passed": false,
+      "requirements": [
+        "M5-DEVICE_RIGHTS",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-device-rights-cbec36ef1b"
+    }
+  ],
+  "error": "M5 gate failed: test-m5-device-rights",
+  "finished_utc": "2026-10-27T13:59:47.287251+00:00"
+}

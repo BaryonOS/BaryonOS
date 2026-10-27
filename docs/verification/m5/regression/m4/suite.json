@@ -1,0 +1,112 @@
+{
+  "phase": "M4",
+  "status": "completed",
+  "passed": true,
+  "started_utc": "2026-10-27T14:07:07.472381+00:00",
+  "results": [
+    {
+      "name": "capability-transaction-wire-generation-host-tests",
+      "passed": true,
+      "requirements": [
+        "KS-09",
+        "KS-10",
+        "KS-11",
+        "KS-12",
+        "KS-13",
+        "KS-14",
+        "KS-15",
+        "KS-16"
+      ],
+      "evidence": "build/logs/m4-host-tests.stdout.txt"
+    },
+    {
+      "name": "ipc-user-artifact-negative-tests",
+      "passed": true,
+      "requirements": [
+        "USER_IPC_ELF"
+      ],
+      "evidence": "build/logs/m4-user-artifact-tests.stdout.txt"
+    },
+    {
+      "name": "real-ring3-message-exchange",
+      "passed": true,
+      "requirements": [
+        "IPC_POSITIVE"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m4-exchange-e69fbf9f30"
+    },
+    {
+      "name": "test-m4-copy",
+      "passed": true,
+      "requirements": [
+        "KS-09"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-copy-747b311629"
+    },
+    {
+      "name": "test-m4-wire",
+      "passed": true,
+      "requirements": [
+        "KS-10"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-wire-7054ca776b"
+    },
+    {
+      "name": "test-m4-snapshot",
+      "passed": true,
+      "requirements": [
+        "KS-11"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-snapshot-94a4614a72"
+    },
+    {
+      "name": "test-m4-handles",
+      "passed": true,
+      "requirements": [
+        "KS-12"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-handles-5552961bf4"
+    },
+    {
+      "name": "test-m4-rights",
+      "passed": true,
+      "requirements": [
+        "KS-13"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-rights-8314125cfa"
+    },
+    {
+      "name": "test-m4-revoke",
+      "passed": true,
+      "requirements": [
+        "KS-14"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-revoke-db3bdbdd6e"
+    },
+    {
+      "name": "test-m4-quotas",
+      "passed": true,
+      "requirements": [
+        "KS-15"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-quotas-27940014c6"
+    },
+    {
+      "name": "test-m4-lifecycle",
+      "passed": true,
+      "requirements": [
+        "KS-16"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m4-lifecycle-1e54d58394"
+    },
+    {
+      "name": "m1-regression-after-m4",
+      "passed": true,
+      "requirements": [
+        "M1"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m1-after-m4-0b46b778a9"
+    }
+  ],
+  "finished_utc": "2026-10-27T14:07:50.225368+00:00"
+}

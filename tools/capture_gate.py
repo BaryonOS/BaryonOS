@@ -8,8 +8,8 @@ from pathlib import Path
 import shutil
 import tempfile
 from common import ROOT, BUILD, save_json, sha256
-from run import is_success, MARKERS
-from gate_contract import guest_expectation
+from run import is_success, MARKERS, FAIL_MARKERS, MILESTONE_MARKERS
+from gate_contract import M1_MARKERS, guest_expectation
 
 
 def _replace_archive(staged: Path, destination: Path) -> None:
@@ -39,10 +39,38 @@ def _replace_archive(staged: Path, destination: Path) -> None:
 
 
 def guest_matches(phase, group, result):
+    if not isinstance(group, str) or not isinstance(result, dict) or not all(
+            field in result for field in ("raw_qemu_exit", "stdout", "timed_out")):
+        return False
+    if not isinstance(result["stdout"], str) or not isinstance(result["timed_out"], bool):
+        return False
+    if phase == "m5":
+        if group == "m1-regression-after-m5":
+            required = M1_MARKERS
+        elif group in ("m5-read-a", "m5-read-b"):
+            if result.get("m5_case") != "read":
+                return False
+            required = MILESTONE_MARKERS["m5"]
+        elif group.startswith("test-m5-"):
+            case = group.removeprefix("test-m5-")
+            from build import M5_CASES
+            if case not in M5_CASES or result.get("m5_case") != case:
+                return False
+            marker = case.upper().replace("-", "_")
+            required = MARKERS[:3] + (
+                f"M5:CASE:{marker}:PASS", "M5:SURVIVOR_PROGRESS:PASS",
+                "M5:RESOURCES:PASS", "M5:PASS", "M1:PASS")
+        else:
+            return False
+        if not is_success(result["raw_qemu_exit"], result["stdout"], result["timed_out"],
+                          required_markers=required, forbidden_markers=FAIL_MARKERS):
+            return False
+        oracle = result.get("disk_oracle")
+        return (group == "m1-regression-after-m5"
+                or isinstance(oracle, dict) and oracle.get("passed") is True)
     if phase != "m1":
         expectation = guest_expectation(phase, group)
-        if expectation is None or not all(
-                field in result for field in ("raw_qemu_exit", "stdout", "timed_out")):
+        if expectation is None:
             return False
         required, expected_exit, forbidden = expectation
         return is_success(result["raw_qemu_exit"], result["stdout"], result["timed_out"],
@@ -71,12 +99,17 @@ def guest_matches(phase, group, result):
     return False
 
 
-def capture(phase: str):
+def capture(phase: str, destination: str | None = None):
     suite_path = BUILD / ("test-results.json" if phase == "m1" else f"{phase}-test-results.json")
     suite = json.loads(suite_path.read_text(encoding="utf-8"))
     if suite.get("status") != "completed" or suite.get("passed") is not True:
         raise ValueError("Only a completed, passed gate can be captured")
-    destination = ROOT / "docs/verification/m2-m4" / phase
+    if destination is None:
+        destination = (ROOT / "docs/verification/m5" if phase == "m5"
+                       else ROOT / "docs/verification/m2-m4" / phase)
+    else:
+        destination = (ROOT / destination).resolve()
+        destination.relative_to((ROOT / "docs/verification").resolve())
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=f".{phase}-capture-", dir=destination.parent) as temporary:
         temporary = Path(temporary)
@@ -113,23 +146,40 @@ def capture(phase: str):
                         artifact = Path(result["firmware_source"][1])
                     if sha256(artifact) != expected:
                         raise ValueError(f"Artifact changed: {artifact}")
+                if phase == "m5" and group["name"] != "m1-regression-after-m5":
+                    from m5_disk import verify_disk
+                    oracle = verify_disk(
+                        evidence / "test-disk.img", result["disk_oracle"], result["stdout"],
+                        data_required=result["m5_case"] not in ("no-device", "reset-timeout"))
+                    if not oracle["passed"]:
+                        raise ValueError(f"Disk oracle failed: {evidence}")
                 runs.append(result)
-            elif evidence.is_file() and evidence.name.endswith(".stdout.txt"):
+            elif evidence.is_file() and (
+                    evidence.name.endswith(".stdout.txt")
+                    or (phase == "m5" and evidence.name == "m5-two-image-check.json")):
                 host_logs = (BUILD / "logs").resolve()
                 resolved_evidence = evidence.resolve()
                 resolved_evidence.relative_to(host_logs)
-                # Preserve textual host output; never turn a guest result into a host log.
-                stem = resolved_evidence.name.removesuffix(".stdout.txt")
-                metadata = resolved_evidence.with_name(stem + ".json")
-                paths = [resolved_evidence, metadata,
-                         resolved_evidence.with_name(stem + ".stderr.txt")]
-                for source in paths:
-                    source.resolve().relative_to(host_logs)
-                    if not source.is_file():
-                        raise ValueError(f"Missing host log: {source}")
-                details = json.loads(metadata.read_text(encoding="utf-8"))
-                if details.get("returncode") != 0:
-                    raise ValueError(f"Failed host command: {metadata}")
+                if resolved_evidence.name.endswith(".stdout.txt"):
+                    # Preserve textual host output; never turn a guest result into a host log.
+                    stem = resolved_evidence.name.removesuffix(".stdout.txt")
+                    metadata = resolved_evidence.with_name(stem + ".json")
+                    paths = [resolved_evidence, metadata,
+                             resolved_evidence.with_name(stem + ".stderr.txt")]
+                    for source in paths:
+                        source.resolve().relative_to(host_logs)
+                        if not source.is_file():
+                            raise ValueError(f"Missing host log: {source}")
+                    details = json.loads(metadata.read_text(encoding="utf-8"))
+                    if details.get("returncode") != 0:
+                        raise ValueError(f"Failed host command: {metadata}")
+                else:
+                    details = json.loads(resolved_evidence.read_text(encoding="utf-8"))
+                    checks = details.get("checks")
+                    if (details.get("passed") is not True or not isinstance(checks, dict)
+                            or not checks or any(value is not True for value in checks.values())):
+                        raise ValueError(f"Failed host evidence: {resolved_evidence}")
+                    paths = [resolved_evidence]
                 for source in paths:
                     target = staged / source.name
                     if target.exists():
@@ -147,5 +197,7 @@ def capture(phase: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("phase", choices=["m1", "m2", "m3", "m4"])
-    capture(parser.parse_args().phase)
+    parser.add_argument("phase", choices=["m1", "m2", "m3", "m4", "m5"])
+    parser.add_argument("--destination", help="Evidence directory within docs/verification/")
+    args = parser.parse_args()
+    capture(args.phase, args.destination)

@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "profile": "milestone-m5",
+  "source_fingerprint_version": 3,
+  "source_sha256": "c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307",
+  "loader": {
+    "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8",
+    "format": "AMD64 PE32+",
+    "subsystem": "EFI_APPLICATION",
+    "imports": 0
+  },
+  "kernel": {
+    "sha256": "74e6b1be591f3e5509746b4f849384198a2fbef4312350f31beb07ec6d605e81",
+    "entry": 33554432,
+    "segments": [
+      {
+        "flags": 5,
+        "offset": 4096,
+        "address": 33554432,
+        "filesz": 111767,
+        "memsz": 111767,
+        "page_start": 33554432,
+        "page_end": 33669120
+      },
+      {
+        "flags": 4,
+        "offset": 118784,
+        "address": 33669120,
+        "filesz": 734936,
+        "memsz": 734936,
+        "page_start": 33669120,
+        "page_end": 34406400
+      },
+      {
+        "flags": 6,
+        "offset": 856064,
+        "address": 34406400,
+        "filesz": 1258160,
+        "memsz": 4344912,
+        "page_start": 34406400,
+        "page_end": 38752256
+      }
+    ],
+    "sections": [
+      {
+        "name": "",
+        "type": 0,
+        "flags": 0,
+        "size": 0
+      },
+      {
+        "name": ".text",
+        "type": 1,
+        "flags": 6,
+        "size": 111767
+      },
+      {
+        "name": ".rodata",
+        "type": 1,
+        "flags": 50,
+        "size": 734936
+      },
+      {
+        "name": ".data",
+        "type": 1,
+        "flags": 3,
+        "size": 1258160
+      },
+      {
+        "name": ".bss",
+        "type": 8,
+        "flags": 3,
+        "size": 3083344
+      },
+      {
+        "name": ".symtab",
+        "type": 2,
+        "flags": 0,
+        "size": 7776
+      },
+      {
+        "name": ".shstrtab",
+        "type": 3,
+        "flags": 0,
+        "size": 52
+      },
+      {
+        "name": ".strtab",
+        "type": 3,
+        "flags": 0,
+        "size": 17377
+      }
+    ]
+  }
+}

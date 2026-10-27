@@ -24,6 +24,63 @@ pub struct Paging {
     asid: u16,
 }
 impl Paging {
+    #[cfg(feature = "milestone-m5")]
+    pub fn map_mmio(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+        va: u64,
+        pa: u64,
+    ) -> Result<(), kernel_core::Error> {
+        if !(0x3f000000..0x3f100000).contains(&va)
+            || va % PAGE != 0
+            || pa % PAGE != 0
+            || pa < 0x80000000
+        {
+            return Err(kernel_core::Error::Range);
+        }
+        // SAFETY: CPUID queries integer CPU capabilities only. Do not install a
+        // PTE whose physical bits exceed this CPU's MAXPHYADDR, even if PCI
+        // metadata itself permits a wider BAR; missing/unknown widths fail closed.
+        let width = unsafe {
+            if core::arch::x86_64::__cpuid(0x80000000).eax < 0x80000008 {
+                return Err(kernel_core::Error::Range);
+            }
+            core::arch::x86_64::__cpuid(0x80000008).eax as u8
+        };
+        if !kernel_core::physical_page_fits(pa, width) {
+            return Err(kernel_core::Error::Range);
+        }
+        let (lo, hi): (u32, u32);
+        // SAFETY: CPL0 read-only PAT query; require index3=UC rather than changing
+        // global cache attributes inherited from firmware.
+        unsafe {
+            core::arch::asm!("rdmsr",in("ecx") 0x277u32,out("eax") lo,out("edx") hi,options(nostack));
+        }
+        if ((u64::from(hi) << 32 | u64::from(lo)) >> 24) & 255 != 0 {
+            return Err(kernel_core::Error::Permission);
+        }
+        let mut table = self.root;
+        for shift in [39, 30, 21] {
+            let index = ((va >> shift) & 511) as usize;
+            let mut e = read(table, index);
+            if e & PRESENT == 0 {
+                e = self.table(frames) | PRESENT | WRITE;
+                write(table, index, e);
+            }
+            if e & (USER | 128 | NX) != 0 {
+                return Err(kernel_core::Error::Permission);
+            }
+            table = e & ADDRESS;
+        }
+        let index = ((va >> 12) & 511) as usize;
+        if read(table, index) != 0 {
+            return Err(kernel_core::Error::Overlap);
+        }
+        // Separate MMIO class: never RAM/user frames. PCD|PWT selects checked UC.
+        write(table, index, pa | PRESENT | WRITE | NX | 8 | 16);
+        invalidate(va);
+        Ok(())
+    }
     pub fn new(frames: &mut Frames<FRAME_COUNT>) -> Self {
         let root = frames
             .allocate(Owner::PageTable(0), zero)
