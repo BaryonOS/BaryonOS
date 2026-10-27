@@ -27,6 +27,7 @@ def main() -> int:
         print("Rust/Cargo missing; install the documented project toolchain first.", file=sys.stderr)
         return 2
     env["RUSTUP_AUTO_INSTALL"] = "0"
+    env["CARGO_TARGET_DIR"] = str(ROOT / "target")
     OUTPUT.mkdir(exist_ok=True)
     report = {"scope": "Q01 host simulation; no OS port or physical QPU", "commands": [], "fixtures": [], "files": {}}
 
@@ -55,7 +56,6 @@ def main() -> int:
         ("no-std", [cargo, "+1.90.0", "check", "-p", "qsim-core", "--target", "x86_64-unknown-none", "--locked", "--offline"], 30),
         ("dependency-tree", [cargo, "+1.90.0", "tree", "--locked", "--offline"], 30),
     ]
-    env["CARGO_TARGET_DIR"] = str(ROOT / "target")
     good = True
     for name, argv, timeout in checks:
         if not command(name, argv, timeout):

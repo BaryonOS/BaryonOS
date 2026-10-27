@@ -266,7 +266,8 @@ function save() {
 }
 
 document.addEventListener('click', (event) => {
-  if (event.target.closest('.skip-link')) {
+  const skipLink = event.target.closest('.skip-link');
+  if (skipLink) {
     event.preventDefault();
     document.querySelector('#main')?.focus();
     return;
@@ -387,8 +388,4 @@ document.addEventListener('keydown', (event) => {
 });
 
 window.addEventListener('hashchange', routeChanged);
-document.querySelector('.skip-link').addEventListener('click', event => {
-  event.preventDefault();
-  document.querySelector('#main')?.focus();
-});
 routeChanged();
