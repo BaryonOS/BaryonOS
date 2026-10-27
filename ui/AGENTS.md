@@ -1,0 +1,6 @@
+# UI- en productregels
+Lees rootinstructies en docs/PRODUCT-AND-SOVEREIGNTY.md. Lees ook docs/DESIGN-AMBITION.md. De conceptvergelijking is afgerond; bouw nu ui/prototype/ volgens docs/implementation/PRODUCT-SPEC.md. Verbind het gekozen product later met echte kernel-/dienstcontracten. Label simulatie en werkend OS afzonderlijk.
+Eigen consistente producttaal; geen kopie van bestaande shells als doel. Gebruik bekende patronen waar gebruikersonderzoek dat rechtvaardigt.
+Toets toetsenbordbediening, focus, schaal, contrast, duidelijke taal en hulptechnologie. Geef rechtenmeldingen concrete objecten en gevolgen; voorkom eindeloze toestemmingsdialogen.
+Een app mag de vertrouwde systeemdialoog niet betrouwbaar kunnen imiteren; beschrijf de compositor-/inputgrens. Configureerbaarheid mag veiligheid niet stilzwijgend uitschakelen.
+Geen externe OS-cloud of telemetrie aanbieden. Toon alleen eigen-NAS-koppeling op eigen LAN. AI uitsluitend lokaal op apparaat zonder cloudfallback. Maak gecombineerde bestands-/NAS-/internetrechten van derdenapps begrijpelijk en intrekbaar. Geen accounts of AI verplichten. Maak uitgebreide instellingen vindbaar en herstelbaar. Meet taakuitvoering met echte gebruikers vóór claims over gebruiksvriendelijkheid.
