@@ -76,14 +76,13 @@ def oracle_policy(case, before):
     service_cut = int(case[-1]) if case.startswith("service-cut-") else None
     allowed = {2}
     if case == "full": allowed = {4}
-    elif case in ("torn-tail", "no-flush", "readonly", "no-device"): allowed = {1}
+    elif case in ("torn-tail", "no-flush", "readonly", "no-device", "bad-descriptor"): allowed = {1}
     elif case == "corrupt-all": allowed = {None}
     elif case in UNKNOWN: allowed = {1, 2}
     elif case == "recover":
         selected = scan(before); allowed = {selected["generation"] if selected else None}
     elif (point := cut or service_cut) is not None:
         allowed = {1} if point == 1 else {2} if point >= 5 else {1, 2}
-    if case == "bad-descriptor": allowed = {1}
     return {"allowed_generations": allowed, "data_required": case not in NO_DATA and cut is None,
             "unchanged": case in ("recover", "torn-tail", "corrupt-all", "no-flush", "readonly", "no-device", "bad-descriptor") or cut == 1 or service_cut == 1,
             "before": before,

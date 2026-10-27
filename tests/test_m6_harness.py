@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from run_m6 import execute, normal_success, case_markers, run_m6
+from run_m6 import execute, normal_success, case_markers, run_m6, oracle_policy
 from capture_m6 import required_groups, validate_coverage
 
 
@@ -58,6 +58,13 @@ class CrashEvidence(unittest.TestCase):
         for altered in ([], groups[:-1], groups+groups[:1], list(reversed(groups))):
             with self.assertRaises(ValueError): validate_coverage(altered, [])
         with self.assertRaises(ValueError): validate_coverage(groups, [])
+
+    def test_remote_oracle_corrections_survive_integration(self):
+        rejected = oracle_policy("bad-descriptor", bytes(65536))
+        self.assertEqual(rejected["allowed_generations"], {1})
+        self.assertTrue(rejected["unchanged"])
+        recovery = oracle_policy("recover", bytes(65536))
+        self.assertTrue(recovery["allow_torn"] and recovery["unchanged"])
 
 
 if __name__ == "__main__":
