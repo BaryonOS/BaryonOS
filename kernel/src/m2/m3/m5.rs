@@ -58,6 +58,8 @@ struct Runtime {
     initial_service: (u64, u64),
     attacker_service_counter: u64,
     attacker_client_counter: u64,
+    last_number: [u64; MAX],
+    last_result: [i64; MAX],
 }
 #[derive(Clone, Copy)]
 struct BadRequest {
@@ -128,6 +130,8 @@ static mut RUNTIME: Runtime = Runtime {
     initial_service: (0, 0),
     attacker_service_counter: 0,
     attacker_client_counter: 0,
+    last_number: [0; MAX],
+    last_result: [0; MAX],
 };
 fn runtime() -> &'static mut Runtime {
     // SAFETY: Single CPU/IF0 service-stack execution. No device IRQ borrows this
@@ -335,6 +339,11 @@ pub fn syscall(s: &mut State, slot: usize, number: u64, a: [u64; 6]) -> (i64, u6
         runtime().service_calls += 1;
     }
     let result = device_call(s, slot, number, a);
+    runtime().last_number[slot] = number;
+    runtime().last_result[slot] = match result {
+        Ok(_) => 0,
+        Err(code) => code,
+    };
     match result {
         Ok(value) => (0, value),
         Err(code) => {
@@ -374,6 +383,11 @@ fn device_call(s: &mut State, slot: usize, number: u64, a: [u64; 6]) -> Result<u
         }
         if a[2].checked_add(a[3]).filter(|end| *end <= 512).is_none() {
             return Err(-1);
+        }
+        // The core integer helper reports Range/Invalid; at the authority ABI a
+        // well-formed sector outside this particular grant is EACCESS.
+        if a[1] >= auth.scope().sector_count {
+            return Err(-5);
         }
         let sector = auth.sector(a[1]).map_err(|e| e.code())?;
         let r = runtime();
@@ -487,8 +501,21 @@ pub fn detach(pid: u64) {
     }
 }
 pub fn observe_exit(s: &mut State, slot: usize) {
+    diagnostic(s, slot);
     s.unexpected = true;
     s.observer_survivor(slot);
+}
+fn diagnostic(s: &State, slot: usize) {
+    let code = word(s, slot, 240);
+    if code <= 255 {
+        print_number(b"M5:USER_DIAG_SLOT:", slot as u64);
+        print_number(b"M5:USER_DIAG_CODE:", code);
+        print_number(b"M5:USER_DIAG_SYSCALL:", runtime().last_number[slot]);
+        let result = runtime().last_result[slot];
+        if (-15..=0).contains(&result) {
+            print_number(b"M5:USER_DIAG_ERRNO:", (-result) as u64);
+        }
+    }
 }
 pub fn observe_fault(s: &mut State, slot: usize, c: &[u64; 22]) {
     let expected = if m5_case() == 13 {
@@ -774,6 +801,7 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         if s.processes[slot].status != Status::Dead {
             assert_eq!(word(s, slot, 16), s.processes[slot].pattern);
             if word(s, slot, 40) >= 0x100 {
+                diagnostic(s, slot);
                 s.unexpected = true;
             }
         }
