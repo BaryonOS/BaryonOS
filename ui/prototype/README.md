@@ -74,3 +74,7 @@ Tijdens browserreview is een gevonden overlap tussen zoekicoon en invoertekst he
 De server stoppen verandert geen systeembestanden. **Demo opnieuw beginnen** herstelt de fictieve beginstaat en verwijdert de fictieve bewerkingen van deze demo. De ZIP-bron en bestanden buiten `ui/prototype/` worden door het prototype niet gewijzigd.
 
 Volgende productstap: gecontroleerde gebruiks- en schermlezerproeven, daarna vervanging van de mockinterfaces door echt afgedwongen kernel-/servicecontracten. Dit prototype geeft geen conformiteits- of beveiligingsgarantie.
+
+## Uitgevoerde browsercontrole
+
+Op27 oktober2026 zijn de kerntaken, modal-focuslus/annulering en vier viewportbreedtes werkelijk in de browser gecontroleerd. Netwerkregistratie zag zeven initiële loopbackassets en daarna nul aanvullende verzoeken tijdens de gecontroleerde flows; console zonder warnings/errors. Zie ../../docs/verification/browser-report.json en screenshots/. De eindcontrole gebruikte127.0.0.1:8776 na lege responses op8765. Echte200%-browserzoom, schermlezer en menselijke gebruikersproef zijn nog open; reflow op320 CSS px is afzonderlijk aangetoond.

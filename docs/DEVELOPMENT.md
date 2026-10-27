@@ -75,7 +75,7 @@ Start Materiaal uitsluitend op de lokale loopbackinterface:
 python -m http.server 8765 --bind 127.0.0.1 --directory ui/prototype
 ```
 
-Open [Materiaal op localhost](http://127.0.0.1:8765/). Stop de server met `Ctrl+C`. Dit is het browserprototype met fictieve gegevens; het draait nog niet op de eigen kernel. De uitgebreide bediening en bekende bewijsgrenzen staan in [ui/prototype/README.md](../ui/prototype/README.md).
+Open [Materiaal op localhost](http://127.0.0.1:8765/). De eindcontrole na hervatten gebruikte poort8776, omdat8765 lege responses gaf. Gebruik zo nodig dezelfde opdracht met8776 en open http://127.0.0.1:8776/. Stop de server met `Ctrl+C`. Dit is het browserprototype met fictieve gegevens; het draait nog niet op de eigen kernel. De uitgebreide bediening en bekende bewijsgrenzen staan in [ui/prototype/README.md](../ui/prototype/README.md).
 
 Controleer de quantumproef en voer de Bellfixture uit:
 

@@ -1,0 +1,30 @@
+✔ P2-01: onboarding steps and local profile complete without account (0.9885ms)
+✔ P2-01: search, collection and empty fixture results (0.4773ms)
+✔ P2-02: requesting and denying access never modifies content or grants (0.4048ms)
+✔ P2-02: explicit grant stays scoped to one document, session and operations (0.2848ms)
+✔ P2-02: forged broad and unknown requests fail closed (0.1982ms)
+✔ P2-02: revocation blocks subsequent saves and preserves local draft (0.7205ms)
+✔ P2-02: closing and reopening expires the old grant, resumes draft only (0.2628ms)
+✔ P2-02: refresh resumes fixtures but never an active lease (0.5528ms)
+✔ stored display values cannot inject version markup or alter tool permissions (0.2788ms)
+✔ P2-02: fixture installation grants zero rights and invalid signature blocks it (0.2997ms)
+✔ P2-02: Webvenster requests explicit destination but receives no write grant (0.1608ms)
+✔ P2-03: all NAS failure states keep local save working without a sync claim (0.5223ms)
+✔ P2-03: NAS identity cannot be trusted by a network-state toggle (0.1614ms)
+✔ P2-04: missing local model or memory never produces a summary (0.1688ms)
+✔ P2-04: summary uses selected material only (0.123ms)
+✔ P2-04: cancellation and changed context reject stale asynchronous completion (0.16ms)
+✔ P2-05: restore first previews, then appends without erasing history (0.163ms)
+✔ stale revision and oversized content cannot overwrite saved material (0.098ms)
+✔ unknown object route never keeps a previous object or lease open (0.1235ms)
+✔ reducer does not mutate its caller state (0.1619ms)
+✔ P2-08: CSP blocks outbound connections and app code has no networking APIs (9.8523ms)
+✔ P2-06: specified text and control color pairs meet their contrast thresholds (1.6628ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 226.3364

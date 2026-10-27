@@ -1,0 +1,78 @@
+{
+  "boot-host-tests.txt": {
+    "sha256": "f7936b79f011b93cad2ebdc8e2cc34f02dafcc501b19681f3e363837401532f8",
+    "bytes": 1323
+  },
+  "boot-manifest.json": {
+    "sha256": "0cdb8ae1d9d9575c1179de723ba2b54ab3495fde684b08a5134cb4918244bc5b",
+    "bytes": 1892
+  },
+  "boot-runs.json": {
+    "sha256": "6c32566baeb63af9fedb6037256bf1efdc5fee8b9b062c6cc042104c0917f089",
+    "bytes": 19020
+  },
+  "boot-suite.json": {
+    "sha256": "aa68093962e25ba4213928134134c3e0030bebb878954c7c2a6eca958e13b111",
+    "bytes": 1461
+  },
+  "browser-report.json": {
+    "sha256": "89f661d71f09053ca0aa4d67b2d4db3be6bbbe5ab4c20db5b26f6489e36b0865",
+    "bytes": 4119
+  },
+  "quantum-report.json": {
+    "sha256": "1f78a85317d094fb5bdbfba4479c208ea7f7cdd3a8408d075a77bcaba06150f8",
+    "bytes": 4798
+  },
+  "quantum-tests.txt": {
+    "sha256": "296cf40c999587fb78aaeda483158776e4bd1f0bcc6d0985cc9b85b1637ed3b0",
+    "bytes": 2494
+  },
+  "screenshots/access-320.png": {
+    "sha256": "20ae7cb98ed03a89ab4f99df556d6506df1619ae598975b7ea5cd4e7695dc9f0",
+    "bytes": 27425,
+    "dimensions": [
+      65536,
+      4292542531
+    ]
+  },
+  "screenshots/materiaal-1024.png": {
+    "sha256": "745659ce89b0c60b8d9347a60d14526bd737b9db5d2bfacf71215c5507869176",
+    "bytes": 50016,
+    "dimensions": [
+      65536,
+      4292542531
+    ]
+  },
+  "screenshots/materiaal-1440.png": {
+    "sha256": "aa1a59284d56b10ca8e1ed16cdf99a8f0dfb4facd437856ac707a6a59896792f",
+    "bytes": 57405,
+    "dimensions": [
+      65536,
+      4292542531
+    ]
+  },
+  "screenshots/materiaal-320.png": {
+    "sha256": "145b745635fb975b8b48376976f4ad780ee292ea8ccc038accd8e8befd1f23c6",
+    "bytes": 27589,
+    "dimensions": [
+      65536,
+      4292542531
+    ]
+  },
+  "screenshots/materiaal-390.png": {
+    "sha256": "bb6e9a603fe9f57ecf64a91ba03892cadad81ea03af6f2dda168d07779bdc223",
+    "bytes": 29394,
+    "dimensions": [
+      65536,
+      4292542531
+    ]
+  },
+  "toolchain-provenance.json": {
+    "sha256": "b0e345a44d8c739174942669801590bff216dd9596e450c9051231db55592211",
+    "bytes": 849
+  },
+  "ui-tests.txt": {
+    "sha256": "c73a69648b699d8ba9244f591ec237f960de6be0828de5b2749b26274e0dbe18",
+    "bytes": 1902
+  }
+}
