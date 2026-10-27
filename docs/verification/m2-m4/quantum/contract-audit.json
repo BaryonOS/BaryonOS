@@ -1,0 +1,313 @@
+{
+  "task": "Q01V",
+  "date": "2026-10-27",
+  "basis_commit": "dac1fe870e0523ed446fc3aa07568118275dc3e8",
+  "scope": "local no_std+alloc numerical core and Windows MSVC host CLI; no own-OS runtime, network sandbox, QPU or crypto proof",
+  "changed_files": [
+    "README.md",
+    "qsim-core/src/statevector.rs",
+    "qsim-core/tests/cancellation.rs"
+  ],
+  "fix": "CDF normalization assigns the final rounding remainder to the last occupied bin, preventing an impossible trailing zero-probability sample. Added deterministic regression and separate 256-basis-index/64-shot checkpoint bounds. No dependencies changed.",
+  "rust_tests_passed": 25,
+  "fixture_count": 5,
+  "verification_command": "python experiments/quantum/verify.py",
+  "verification_exit": 0,
+  "commands": [
+    {
+      "name": "cargo-version",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "--version"
+      ],
+      "exit": 0,
+      "timeout_seconds": 30,
+      "elapsed_seconds": 0.034461
+    },
+    {
+      "name": "rust-version",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\rustc.exe",
+        "+1.90.0",
+        "-vV"
+      ],
+      "exit": 0,
+      "timeout_seconds": 30,
+      "elapsed_seconds": 0.035931
+    },
+    {
+      "name": "format",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "timeout_seconds": 30,
+      "elapsed_seconds": 0.121885
+    },
+    {
+      "name": "build-tests",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "test",
+        "--workspace",
+        "--locked",
+        "--offline",
+        "--no-run"
+      ],
+      "exit": 0,
+      "timeout_seconds": 180,
+      "elapsed_seconds": 2.32652
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "test",
+        "--workspace",
+        "--locked",
+        "--offline",
+        "--",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "timeout_seconds": 30,
+      "elapsed_seconds": 0.588983
+    },
+    {
+      "name": "clippy",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "timeout_seconds": 180,
+      "elapsed_seconds": 0.510635
+    },
+    {
+      "name": "no-std",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "check",
+        "-p",
+        "qsim-core",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "exit": 0,
+      "timeout_seconds": 30,
+      "elapsed_seconds": 0.246865
+    },
+    {
+      "name": "dependency-tree",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "tree",
+        "--locked",
+        "--offline"
+      ],
+      "exit": 0,
+      "timeout_seconds": 30,
+      "elapsed_seconds": 0.07054
+    }
+  ],
+  "fixtures": [
+    {
+      "name": "identity",
+      "exit": 0,
+      "passed": true,
+      "elapsed_seconds": 0.008107
+    },
+    {
+      "name": "x1",
+      "exit": 0,
+      "passed": true,
+      "elapsed_seconds": 0.008578
+    },
+    {
+      "name": "bell8",
+      "exit": 0,
+      "passed": true,
+      "elapsed_seconds": 0.007597
+    },
+    {
+      "name": "bell4096",
+      "exit": 0,
+      "passed": true,
+      "elapsed_seconds": 0.008693
+    },
+    {
+      "name": "invalid-target",
+      "exit": 2,
+      "passed": true,
+      "elapsed_seconds": 0.008117
+    }
+  ],
+  "coverage": [
+    {
+      "id": "Q1-01",
+      "status": "pass",
+      "evidence": "core gates.rs identity; standalone identity fixture"
+    },
+    {
+      "id": "Q1-02",
+      "status": "pass",
+      "evidence": "core gates.rs little-endian; standalone x1 fixture"
+    },
+    {
+      "id": "Q1-03",
+      "status": "pass",
+      "evidence": "statevector unit-test H/H complex amplitude tolerance 1e-12"
+    },
+    {
+      "id": "Q1-04",
+      "status": "pass",
+      "evidence": "statevector unit-test X/X,Z/Z,S^4,CX/CX on four fixed prefixes"
+    },
+    {
+      "id": "Q1-05",
+      "status": "pass",
+      "evidence": "statevector unit-test H/S complex phase comparison"
+    },
+    {
+      "id": "Q1-06",
+      "status": "pass",
+      "evidence": "statevector unit-test Bell probabilities and norm"
+    },
+    {
+      "id": "Q1-07",
+      "status": "pass",
+      "evidence": "core/CLI/standalone Bell8 exact 5/3"
+    },
+    {
+      "id": "Q1-08",
+      "status": "pass",
+      "evidence": "core/CLI/standalone Bell4096 exact 2082/2014"
+    },
+    {
+      "id": "Q1-09",
+      "status": "pass",
+      "evidence": "core result equality and CLI repeat/schema exact eight fields"
+    },
+    {
+      "id": "Q1-10",
+      "status": "pass",
+      "evidence": "core validation + CLI invalid dimensions/targets/CX/variants; no execute API until validated"
+    },
+    {
+      "id": "Q1-11",
+      "status": "pass",
+      "evidence": "core limits/capacity/overflow; CLI 262145-byte input,4097 gates,65537 shots,u64 overflow"
+    },
+    {
+      "id": "Q1-12",
+      "status": "pass",
+      "evidence": "CLI duplicate root/gate key,unknown/missing fields,seed,fractional,trailing/truncated/non-UTF8"
+    },
+    {
+      "id": "Q1-13",
+      "status": "pass",
+      "evidence": "core deterministic before-allocation/gate/sampling cancellation; Result Err carries no histogram; separate loop intervals"
+    },
+    {
+      "id": "Q1-14",
+      "status": "pass",
+      "evidence": "core deterministic DeadlineExceeded stub without sleep"
+    },
+    {
+      "id": "Q1-15",
+      "status": "pass",
+      "evidence": "internal state injection NaN,infinite,bad norm,zero/empty; zero-mass CDF regression"
+    },
+    {
+      "id": "Q1-16",
+      "status": "partial",
+      "evidence": "locked offline compilation; standalone CLI with unusable proxies; dependency tree has no network client; network was not blocked at OS level"
+    },
+    {
+      "id": "Q1-17",
+      "status": "pass",
+      "evidence": "core maximum 12 qubits/4096 gates/65536 shots <=512KiB; CLI whole-process 30-second harness; current core 212992 owned bytes"
+    }
+  ],
+  "before_fix_regression": {
+    "argv": [
+      "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.exe",
+      "+1.90.0",
+      "test",
+      "--manifest-path",
+      "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\experiments\\quantum\\verification\\regression-before\\Cargo.toml",
+      "--offline",
+      "--lib",
+      "rounding_remainder_cannot_create_trailing_zero_probability_mass",
+      "--",
+      "--exact",
+      "statevector::tests::rounding_remainder_cannot_create_trailing_zero_probability_mass"
+    ],
+    "exit": 101,
+    "expected_exit": 101,
+    "scope": "disposable copied core with previous CDF final-entry behavior; current source untouched"
+  },
+  "unperformed_checks": [
+    "Q1-16: CLI execution with OS-enforced network denial or physically disconnected host; unusable proxies and offline builds do not prove denied network access. No host-network settings were changed.",
+    "Injected global allocator/OOM failure is not tested; core reservations are fallible in source, whereas bounded host/Serde allocations use normal Rust allocation.",
+    "Own-OS floating-point ABI/context-save, IPC cancel, scheduler quota and physical QPU remain outside Q1.",
+    "CLI monotonic 10-second deadline does not interrupt blocked stdin/stdout; the integration harness applies a 30-second whole-process limit."
+  ],
+  "rollback": "Revert only the three changed quantum files; standalone workspace has no kernel dependency or host configuration changes.",
+  "logs": [
+    "verification/report.json",
+    "verification/tests.stdout.txt",
+    "verification/tests.stderr.txt",
+    "verification/cdf-regression-before.stdout.txt",
+    "verification/cdf-regression-before.stderr.txt",
+    "verification/dependency-tree.stdout.txt"
+  ],
+  "hashes": {
+    "Cargo.toml": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+    "Cargo.lock": "e367d32407d7f2acb18d41e489d551901302134a7e7f1c098a1fd8be57a8b892",
+    "README.md": "e9f02687535829fae66e357243d45cbbc828ba3ed315eb8ef56f9c99b9c24b4f",
+    "qsim-core\\Cargo.toml": "fe656cc4dbae574e141e426a4d45e6b5da425cc0b93db67bf439101adcdda9ff",
+    "qsim-cli\\Cargo.toml": "05bc58344f59f3418b059b5be044d40e981cf01e03af6fe15c151fd1808e2806",
+    "qsim-cli\\src\\main.rs": "1c0e5ba5c457e6cb97864822a0afc8ff8dd9cdd3fa8424ad20686ebcc587a3ba",
+    "qsim-core\\src\\complex.rs": "e42565b6ce5f0789bacbc78fa2ec1cb40294d59a16c1f4a164df936c93dd34b0",
+    "qsim-core\\src\\gate.rs": "0d2e6f972fb863585937b2ed840bc359991448f4e5e48f3abc3ae853cd412236",
+    "qsim-core\\src\\lib.rs": "14f9194521beacfdc27e076e0af763a4a6903b970b3c9b04363d1272024348ee",
+    "qsim-core\\src\\sampler.rs": "8423463aa7f9fd00df55aaaa68ac21212f5a6d20d9203e34c063819630c46ce7",
+    "qsim-core\\src\\statevector.rs": "159ca0be29f663e5f81670ff73bb6ad483919e25c87620005343be9d91bed463",
+    "qsim-core\\src\\validate.rs": "9e73a4c589c10fb470363d430a5d1aeec7634b62f10027fa296222bac24dfd99",
+    "qsim-cli\\tests\\cli.rs": "90f099e6f8baf4ef97248fadaac3615dd1fa085b2df54d9d26c948b3d1058dff",
+    "qsim-core\\tests\\cancellation.rs": "931897aed8e75a6af8ac22d8a406397f4e6cddb41aac355e657bbe88c144ff35",
+    "qsim-core\\tests\\fixtures.rs": "8d07ab4a9abb53eeec9514dd3afd149a7074beae0f79fc390b4392d1014d2f76",
+    "qsim-core\\tests\\gates.rs": "f23635285fd5183c70533531832a62665ec3848271e1705463cc63f5b3124c4c",
+    "qsim-core\\tests\\validation.rs": "7206741f5c80aff7cd92418c4513c155595663f575a24d907e00361430cb8240",
+    "fixtures\\bell4096.json": "3353faed00e05adddabb4106752916b52272a7b1dc7dee97d368f632e887441a",
+    "fixtures\\bell8.json": "7e73f3922bc8cf6d13b76b99007543b7004d020b9ab56b283a67fcf8b8957b61",
+    "fixtures\\identity.json": "2352b94659dfbd14f6b6bcb28082ee393e13ca29431205f02d4ff4e0f8bd07a6",
+    "fixtures\\invalid-target.json": "d7f973d7008984e68e832bd0fd071dc0a754ba33150cb2f6cd0f803831cc9451",
+    "fixtures\\x1.json": "6dc15bae1d59edc63d2e207f3d384d861ddaa324cc4a714b7ca7f7e09c0bb147",
+    "verification\\report.json": "8c9cb20149ec349a69d8fd3ce53330bc7292295bb456234c15a70f2476e8043f",
+    "verification\\tests.stdout.txt": "0731c037863f010f46a60b9db0ef6e0dcbe9983472db62acb6034112e91a64a2",
+    "verification\\cdf-regression-before.stdout.txt": "6d026341e107d69f6c8847e530b0eaa81afda95d3217c6a5e8bd7d5249b6b6e0",
+    "target\\debug\\qsim-cli.exe": "29f1d9aa8041f916ad8ee307381f8acb6d34408a2671922fb1973ee08b3ef77d"
+  }
+}

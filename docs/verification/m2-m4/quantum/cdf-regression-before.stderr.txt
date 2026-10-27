@@ -1,0 +1,23 @@
+   Compiling qsim-core-cdf-regression-before v0.0.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\experiments\quantum\verification\regression-before)
+warning: variable `last_nonzero` is assigned to, but never used
+  --> src\statevector.rs:96:13
+   |
+96 |     let mut last_nonzero = 0;
+   |             ^^^^^^^^^^^^
+   |
+   = note: consider using `_last_nonzero` instead
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: value assigned to `last_nonzero` is never read
+   --> src\statevector.rs:108:13
+    |
+108 |             last_nonzero = index;
+    |             ^^^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+    = note: `#[warn(unused_assignments)]` on by default
+
+warning: `qsim-core-cdf-regression-before` (lib test) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.50s
+     Running unittests src\lib.rs (experiments\quantum\verification\regression-before\target\debug\deps\qsim_core_cdf_regression_before-44bc17c95c766ab5.exe)
+error: test failed, to rerun pass `--lib`

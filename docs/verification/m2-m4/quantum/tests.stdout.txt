@@ -1,0 +1,65 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 8 tests
+test q1_16_local_binary_needs_no_dependency_fetch_or_network_endpoint ... ok
+test deep_input_is_rejected_and_recursion_guard_remains_enabled ... ok
+test q1_07_q1_08_q1_09_exact_fixture_schema_and_repeatability ... ok
+test ids_and_schema_are_validated_without_echoing_untrusted_data ... ok
+test q1_17_maximum_json_job_finishes_or_reports_deadline ... ok
+test q1_11_request_gate_shot_and_overflow_limits ... ok
+test q1_12_duplicates_unknown_fields_seed_trailing_and_truncated_json ... ok
+test q1_10_invalid_dimensions_targets_and_gate_variants ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+
+running 7 tests
+test statevector::tests::q1_05_s_changes_phase ... ok
+test statevector::tests::q1_15_invalid_internal_states_are_rejected ... ok
+test sampler::tests::published_seed_zero_words_and_exclusive_upper_bound ... ok
+test statevector::tests::q1_03_h_twice_is_identity ... ok
+test statevector::tests::q1_04_gate_cycles_restore_basis_and_superposition ... ok
+test statevector::tests::rounding_remainder_cannot_create_trailing_zero_probability_mass ... ok
+test statevector::tests::q1_06_bell_probabilities_and_norm ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test q1_14_deadline_is_deterministic_and_never_returns_partial_result ... ok
+test basis_loops_and_sampling_have_separate_checkpoint_bounds ... ok
+test gate_and_sampling_checkpoint_intervals_are_bounded ... ok
+test q1_13_cancel_before_allocation_during_gate_and_during_sampling ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test q1_07_bell8_q1_08_bell4096_and_q1_09_repeatability ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test q1_01_identity_and_q1_02_little_endian_bit_order ... ok
+test control_direction_and_zero_probability_bins ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test q1_10_invalid_dimensions_and_targets_rejected_without_execution ... ok
+test q1_11_limits_and_integer_overflow ... ok
+maximum-job owned buffer capacities: 212992 bytes
+test q1_17_maximum_job_and_measured_buffer_capacities ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

@@ -1,0 +1,170 @@
+{
+  "scope": "Q01 host simulation; no OS port or physical QPU",
+  "commands": [
+    {
+      "name": "cargo-version",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "--version"
+      ],
+      "exit": 0,
+      "timeout_seconds": 30,
+      "elapsed_seconds": 0.034461
+    },
+    {
+      "name": "rust-version",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\rustc.exe",
+        "+1.90.0",
+        "-vV"
+      ],
+      "exit": 0,
+      "timeout_seconds": 30,
+      "elapsed_seconds": 0.035931
+    },
+    {
+      "name": "format",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "timeout_seconds": 30,
+      "elapsed_seconds": 0.121885
+    },
+    {
+      "name": "build-tests",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "test",
+        "--workspace",
+        "--locked",
+        "--offline",
+        "--no-run"
+      ],
+      "exit": 0,
+      "timeout_seconds": 180,
+      "elapsed_seconds": 2.32652
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "test",
+        "--workspace",
+        "--locked",
+        "--offline",
+        "--",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "timeout_seconds": 30,
+      "elapsed_seconds": 0.588983
+    },
+    {
+      "name": "clippy",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "timeout_seconds": 180,
+      "elapsed_seconds": 0.510635
+    },
+    {
+      "name": "no-std",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "check",
+        "-p",
+        "qsim-core",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "exit": 0,
+      "timeout_seconds": 30,
+      "elapsed_seconds": 0.246865
+    },
+    {
+      "name": "dependency-tree",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+        "+1.90.0",
+        "tree",
+        "--locked",
+        "--offline"
+      ],
+      "exit": 0,
+      "timeout_seconds": 30,
+      "elapsed_seconds": 0.07054
+    }
+  ],
+  "fixtures": [
+    {
+      "name": "identity",
+      "exit": 0,
+      "passed": true,
+      "elapsed_seconds": 0.008107
+    },
+    {
+      "name": "x1",
+      "exit": 0,
+      "passed": true,
+      "elapsed_seconds": 0.008578
+    },
+    {
+      "name": "bell8",
+      "exit": 0,
+      "passed": true,
+      "elapsed_seconds": 0.007597
+    },
+    {
+      "name": "bell4096",
+      "exit": 0,
+      "passed": true,
+      "elapsed_seconds": 0.008693
+    },
+    {
+      "name": "invalid-target",
+      "exit": 2,
+      "passed": true,
+      "elapsed_seconds": 0.008117
+    }
+  ],
+  "files": {
+    "Cargo.lock": "e367d32407d7f2acb18d41e489d551901302134a7e7f1c098a1fd8be57a8b892",
+    "verify.py": "29f3d29c7fec8494e1ee7fe6a208249116fb13d2baa032cae5aed67226121168",
+    "target\\debug\\qsim-cli.exe": "29f1d9aa8041f916ad8ee307381f8acb6d34408a2671922fb1973ee08b3ef77d",
+    "qsim-cli\\src\\main.rs": "1c0e5ba5c457e6cb97864822a0afc8ff8dd9cdd3fa8424ad20686ebcc587a3ba",
+    "qsim-core\\src\\complex.rs": "e42565b6ce5f0789bacbc78fa2ec1cb40294d59a16c1f4a164df936c93dd34b0",
+    "qsim-core\\src\\gate.rs": "0d2e6f972fb863585937b2ed840bc359991448f4e5e48f3abc3ae853cd412236",
+    "qsim-core\\src\\lib.rs": "14f9194521beacfdc27e076e0af763a4a6903b970b3c9b04363d1272024348ee",
+    "qsim-core\\src\\sampler.rs": "8423463aa7f9fd00df55aaaa68ac21212f5a6d20d9203e34c063819630c46ce7",
+    "qsim-core\\src\\statevector.rs": "159ca0be29f663e5f81670ff73bb6ad483919e25c87620005343be9d91bed463",
+    "qsim-core\\src\\validate.rs": "9e73a4c589c10fb470363d430a5d1aeec7634b62f10027fa296222bac24dfd99",
+    "qsim-cli\\tests\\cli.rs": "90f099e6f8baf4ef97248fadaac3615dd1fa085b2df54d9d26c948b3d1058dff",
+    "qsim-core\\tests\\cancellation.rs": "931897aed8e75a6af8ac22d8a406397f4e6cddb41aac355e657bbe88c144ff35",
+    "qsim-core\\tests\\fixtures.rs": "8d07ab4a9abb53eeec9514dd3afd149a7074beae0f79fc390b4392d1014d2f76",
+    "qsim-core\\tests\\gates.rs": "f23635285fd5183c70533531832a62665ec3848271e1705463cc63f5b3124c4c",
+    "qsim-core\\tests\\validation.rs": "7206741f5c80aff7cd92418c4513c155595663f575a24d907e00361430cb8240"
+  },
+  "passed": true
+}

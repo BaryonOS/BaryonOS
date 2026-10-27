@@ -1,5 +1,11 @@
 # Actuele projectstatus
 
+## Actieve ontwikkelfase M2–M4
+
+27 oktober 2026: nieuwe opdracht actief op `codex/m2-m4-isolation`, gestart vanaf `144d952`. Eindcriteria, eigenaren, afhankelijkheden en bewijs staan in [WORK-QUEUE.md](WORK-QUEUE.md). Eigen paging/exceptions worden nu geïmplementeerd; M3 blijft gesloten totdat de echte M2-poort slaagt, M4 totdat procesisolatie is aangetoond. De root-bewijsparser heeft drie geslaagde hosttests; kernel-core heeft vijf geslaagde hosttests en de M2-crossbuild slaagt. De eerste echte M2-run slaagde voor KS-01 en faalde daarna met kernelpanic vóór KS-02; diagnose/herstel loopt en M3 blijft gesloten. Q01-contractcontrole heeft een CDF-afrondingsfout hersteld en 25 Rust-tests/5fixtures geslaagd; bewijs onder docs/verification/m2-m4/quantum/. Product en quantum krijgen uitsluitend gerichte contractcontroles en herstel van concrete fouten. De onderstaande resultaten beschrijven het behaalde basischeckpoint.
+
+## Basischeckpoint eerste batch
+
 Bijgewerkt: 27 oktober 2026. Eerste bouwbatch B00/B01/P02/Q01.
 Repository: https://github.com/simonvanieperen/nieuw-os (privé).
 Werkbranch: `codex/first-build`; basiscommit `04bb3a388efd6b873177b6b3bc650f9ebfd19ba6`.

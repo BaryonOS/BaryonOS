@@ -71,3 +71,39 @@ fn gate_and_sampling_checkpoint_intervals_are_bounded() {
     execute(&job, &mut control).unwrap();
     assert!(control.max_gap <= 832);
 }
+
+#[test]
+fn basis_loops_and_sampling_have_separate_checkpoint_bounds() {
+    struct CheckIntervals {
+        previous_work: u64,
+        sampling_start: u64,
+        basis_max: u64,
+        sampling_max: u64,
+    }
+    impl Control for CheckIntervals {
+        fn checkpoint(&mut self, work: u64) -> Result<(), Abort> {
+            let gap = work.checked_sub(self.previous_work).unwrap();
+            if self.previous_work < self.sampling_start {
+                self.basis_max = self.basis_max.max(gap);
+                assert!(gap <= 256, "basis loop checkpoint gap: {gap}");
+            } else {
+                self.sampling_max = self.sampling_max.max(gap);
+                assert!(gap <= 64 * 13, "sampling checkpoint gap: {gap}");
+            }
+            self.previous_work = work;
+            Ok(())
+        }
+    }
+    let job = ValidatedJob::new(12, vec![Gate::H { target: 0 }; 2], 129, 0).unwrap();
+    let mut control = CheckIntervals {
+        previous_work: 0,
+        // Initialization + gates + probability/CDF passes + counter allocation.
+        sampling_start: (2 + 4) * 4096,
+        basis_max: 0,
+        sampling_max: 0,
+    };
+    execute(&job, &mut control).unwrap();
+    assert_eq!(control.basis_max, 256);
+    assert_eq!(control.sampling_max, 64 * 13);
+    assert_eq!(control.previous_work, control.sampling_start + 129 * 13);
+}
