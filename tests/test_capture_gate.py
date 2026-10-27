@@ -40,7 +40,8 @@ class CaptureGateArchive(unittest.TestCase):
 
         guest = self.build / "run/guest-1"
         guest.mkdir(parents=True, exist_ok=True)
-        stdout = "M1:PASS\n"
+        stdout = "\n".join(("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK",
+                            "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS", "M1:PASS")) + "\n"
         (guest / "serial.txt").write_text(stdout, encoding="utf-8")
         (guest / "stderr.txt").write_text("", encoding="utf-8")
         artifact = guest / "artifact.bin"
@@ -51,7 +52,8 @@ class CaptureGateArchive(unittest.TestCase):
             "stderr": "",
             "raw_qemu_exit": 33,
             "timed_out": False,
-            "required_markers": ["M1:PASS"],
+            "required_markers": ["BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK",
+                                 "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS", "M1:PASS"],
             "expected_exit": 33,
             "forbidden_markers": [],
             "artifact_sha256": {"artifact.bin": digest},
@@ -62,7 +64,7 @@ class CaptureGateArchive(unittest.TestCase):
             "passed": True,
             "results": [
                 {"name": "host-tests", "passed": True, "evidence": str(host)},
-                {"name": "guest-smoke", "passed": True, "evidence": str(guest)},
+                {"name": "own-cr3-frame-ownership-wx", "passed": True, "evidence": str(guest)},
             ],
         }
         self.build.mkdir(parents=True, exist_ok=True)
@@ -108,6 +110,35 @@ class CaptureGateArchive(unittest.TestCase):
             capture_gate.capture("m2")
 
         self.assertEqual(self._snapshot(), before)
+
+    def test_milestone_guest_contract_rejects_weakened_record_expectations(self):
+        result = {
+            "raw_qemu_exit": 33,
+            "stdout": "BOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nM1:PASS\n",
+            "timed_out": False,
+            "required_markers": ["M1:PASS"],
+            "expected_exit": 33,
+            "forbidden_markers": [],
+        }
+
+        for phase, group in (("m2", "own-cr3-frame-ownership-wx"),
+                             ("m4", "test-m4-copy")):
+            with self.subTest(phase=phase, group=group):
+                self.assertFalse(capture_gate.guest_matches(phase, group, result))
+
+    def test_m4_case_requires_its_specific_markers(self):
+        result = {
+            "raw_qemu_exit": 33,
+            "stdout": "\n".join(("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK",
+                                 "M4:CASE:COPY:PASS", "M4:SURVIVOR_PROGRESS:PASS",
+                                 "M4:CLEANUP:PASS", "KS-09:PASS", "M4:PASS", "M1:PASS")),
+            "timed_out": False,
+            "required_markers": ["M1:PASS"],
+            "expected_exit": 33,
+            "forbidden_markers": [],
+        }
+
+        self.assertTrue(capture_gate.guest_matches("m4", "test-m4-copy", result))
 
     def test_archive_install_error_restores_the_previous_archive(self):
         staged = self.root / "staged"

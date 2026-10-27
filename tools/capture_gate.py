@@ -8,7 +8,77 @@ from pathlib import Path
 import shutil
 import tempfile
 from common import ROOT, BUILD, save_json, sha256
-from run import is_success, MARKERS
+from build import M3_CASES, M4_CASES
+from run import FAIL_MARKERS, MILESTONE_MARKERS, is_success, MARKERS
+
+
+M2_AUDIT = ("KS-01:PASS", "KS-02:PASS", "KS-03:PASS")
+
+
+def _guest_expectation(phase, group):
+    boot = MARKERS[:3]
+    if phase == "m2":
+        if group == "own-cr3-frame-ownership-wx":
+            return 33, MILESTONE_MARKERS["m2"], FAIL_MARKERS
+        if group in ("test-m2-ro", "test-m2-nx", "test-m2-absent"):
+            marker = {
+                "test-m2-ro": "M2:FAULT:RO:PASS",
+                "test-m2-nx": "M2:FAULT:NX:PASS",
+                "test-m2-absent": "M2:FAULT:ABSENT:PASS",
+            }[group]
+            return 33, boot + M2_AUDIT + (marker,), FAIL_MARKERS
+        if group == "kernel-fault-stops-controlled":
+            return (35, boot + M2_AUDIT +
+                    ("M2:FAULT:KERNEL_UD:PASS", "M2:FAIL:KERNEL_EXCEPTION"),
+                    ("M1:PASS", "M2:PASS", "M1:FAIL"))
+        if group == "unusable-main-stack-double-fault-ist":
+            return (35, boot + M2_AUDIT + ("M2:FAULT:DF_IST:PASS",),
+                    ("M1:PASS", "M2:PASS", "M1:FAIL", "M2:FAIL"))
+        if group == "m1-regression":
+            return 33, MILESTONE_MARKERS["m1"], FAIL_MARKERS
+    elif phase == "m3":
+        if group == "private-address-spaces-preemption-fairness-cleanup":
+            return (33, boot + ("KS-01:PASS", "KS-02:PASS", "KS-03:PASS",
+                                "KS-04:PASS", "KS-07:PASS", "KS-08:PASS",
+                                "M3:SYSCALL_DF_ENTRY:PASS", "M3:PASS", "M1:PASS"),
+                    FAIL_MARKERS)
+        if group.startswith("test-m3-"):
+            case = group.removeprefix("test-m3-")
+            if case in M3_CASES:
+                nonfault_events = {
+                    "exit": "M3:EXIT:PASS",
+                    "b-exit": "M3:EXIT_NONZERO_B:PASS",
+                    "invalid-rsp": "M3:INVALID_RSP:PASS",
+                }
+                marker = nonfault_events.get(
+                    case, f"M3:FAULT:{case.upper().replace('-', '_')}:PASS")
+                requirement = ("KS-05" if case in ("peer-read", "peer-write", "kernel-write")
+                               else "KS-06")
+                observed = (marker, "M3:SURVIVOR_PROGRESS:PASS", "M3:CLEANUP:PASS")
+                if case not in nonfault_events:
+                    observed += (f"{requirement}:PASS",)
+                observed += ("KS-08:PASS", "M3:SYSCALL_DF_ENTRY:PASS", "M3:PASS", "M1:PASS")
+                return 33, boot + observed, FAIL_MARKERS
+        if group == "all-processes-exit-idle-timer-and-resources":
+            return 33, boot + ("M3:IDLE:PASS", "M3:PASS", "M1:PASS"), FAIL_MARKERS
+        if group == "large-bss-image-exceeds-old-64-mapping-limit":
+            return 33, MILESTONE_MARKERS["m3"], FAIL_MARKERS
+        if group == "m1-regression-after-m3":
+            return 33, MILESTONE_MARKERS["m1"], FAIL_MARKERS
+    elif phase == "m4":
+        if group == "real-ring3-message-exchange":
+            return 33, MILESTONE_MARKERS["m4"], FAIL_MARKERS
+        if group.startswith("test-m4-"):
+            case = group.removeprefix("test-m4-")
+            requirements = dict(M4_CASES)
+            if case in requirements:
+                return (33, boot + (f"M4:CASE:{case.upper()}:PASS",
+                                    "M4:SURVIVOR_PROGRESS:PASS", "M4:CLEANUP:PASS",
+                                    f"{requirements[case]}:PASS", "M4:PASS", "M1:PASS"),
+                        FAIL_MARKERS)
+        if group == "m1-regression-after-m4":
+            return 33, MILESTONE_MARKERS["m1"], FAIL_MARKERS
+    return None
 
 
 def _replace_archive(staged: Path, destination: Path) -> None:
@@ -39,10 +109,13 @@ def _replace_archive(staged: Path, destination: Path) -> None:
 
 def guest_matches(phase, group, result):
     if phase != "m1":
+        expectation = _guest_expectation(phase, group)
+        if expectation is None:
+            return False
+        expected_exit, required_markers, forbidden_markers = expectation
         return is_success(result["raw_qemu_exit"], result["stdout"], result["timed_out"],
-                          required_markers=result["required_markers"],
-                          expected_exit=result["expected_exit"],
-                          forbidden_markers=result["forbidden_markers"])
+                          required_markers=required_markers, expected_exit=expected_exit,
+                          forbidden_markers=forbidden_markers)
     # M1 also tests that the guest/harness rejects real failures. Preserve the
     # original passed=false in those raw guest records; only the outer test passes.
     lines = result["stdout"].splitlines()
