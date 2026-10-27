@@ -95,7 +95,7 @@ function shell(content, route) {
   return `<div class="shell ${route === '/start' ? 'onboarding-shell' : ''}">
     <aside class="rail ${menuOpen ? 'menu-open' : ''}" aria-label="Werkruimte">
       <a class="brand" href="#/materiaal" aria-label="Materiaal, naar Mijn materiaal"><svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M3 6h7v20H3zm10 0h7v20h-7zm10 0h6v20h-6z"/><path fill="#EDF0E9" d="m3 16 7-5v6l-7 5zm10-5 7 5v6l-7-5z"/></svg><span>Materiaal</span></a>
-      ${button('Menu', 'toggleMenu', 'mobile-menu quiet', `aria-expanded="${menuOpen}" aria-controls="main-nav"`, 'menu')}
+      ${button('Menu', 'toggleMenu', 'mobile-menu quiet', `id="toggle-menu" aria-expanded="${menuOpen}" aria-controls="main-nav"`, 'menu')}
       <nav class="nav" id="main-nav" aria-label="Hoofdnavigatie">${nav.map(([path, text, symbol]) => `<a href="#${path}" title="${text}" ${current === path ? 'aria-current="page"' : ''}>${icon(symbol)}<span class="nav-label">${text}</span></a>`).join('')}</nav>
       <div class="rail-foot"><span class="avatar" aria-hidden="true">${escape(state.onboarding.name[0] || 'L')}</span><div class="profile-copy"><p class="meta">${escape(state.onboarding.name)}</p><p class="meta">Op dit apparaat</p></div></div>
     </aside>
@@ -157,7 +157,7 @@ function objectScreen() {
   } else {
     content = `<div class="document-layout"><article class="document" aria-label="Inhoud van ${escape(object.title)}">${object.mediaType === 'image' ? planDrawing() + '<p class="meta">Lokale SVG-fixture · geen schaaltekening. Pixelbewerking is in deze proef niet beschikbaar.</p>' : editing ? `<label class="editor-label" for="document-editor">Notities · alleen dit document${state.mode === 'saving' ? ' · Opslaan…' : ''}</label><textarea id="document-editor" maxlength="20000" spellcheck="false" ${state.mode === 'saving' ? 'readonly' : ''}>${escape(state.draft?.text)}</textarea>` : `<div class="document-text">${escape(currentVersion(object).text) || 'Dit document is nog leeg. Kies Bewerken om te beginnen.'}</div>`}</article>${inspector(object)}</div>`;
   }
-  return `<a class="button quiet object-back" href="#/materiaal" data-close-object>${icon('back')}Mijn materiaal</a>${pageHead(object.title, `${object.collectionId} · Versie ${object.revision} · Op dit apparaat`, `<div class="actions">${button('Informatie', 'toggleInspector', 'inspector-toggle', `aria-expanded="${inspectorOpen}" aria-controls="object-inspector"`, 'info')}${object.mediaType === 'text' && state.mode !== 'preview' ? button(state.mode === 'saving' ? 'Opslaan…' : editing ? 'Opslaan' : 'Bewerken', editing ? 'save' : 'requestEdit', 'primary', `id="edit-object" ${state.mode === 'saving' ? 'disabled' : ''}`, editing ? 'check' : 'tools') : ''}</div>`)}${content}`;
+  return `<a class="button quiet object-back" href="#/materiaal" data-close-object>${icon('back')}Mijn materiaal</a>${pageHead(object.title, `${object.collectionId} · Versie ${object.revision} · Op dit apparaat`, `<div class="actions">${button('Informatie', 'toggleInspector', 'inspector-toggle', `id="toggle-inspector" aria-expanded="${inspectorOpen}" aria-controls="object-inspector"`, 'info')}${object.mediaType === 'text' && state.mode !== 'preview' ? button(state.mode === 'saving' ? 'Opslaan…' : editing ? 'Opslaan' : 'Bewerken', editing ? 'save' : 'requestEdit', 'primary', `id="edit-object" ${state.mode === 'saving' ? 'disabled' : ''}`, editing ? 'check' : 'tools') : ''}</div>`)}${content}`;
 }
 
 function accessScreen() {
@@ -266,6 +266,13 @@ function save() {
 }
 
 document.addEventListener('click', (event) => {
+  // A plain #main fragment would be interpreted as a new route by the hash
+  // router. Move keyboard focus without leaving the current document/session.
+  if (event.target.closest('.skip-link')) {
+    event.preventDefault();
+    document.querySelector('#main')?.focus();
+    return;
+  }
   const element = event.target.closest('[data-action]');
   if (!element || element.disabled) return;
   const action = element.dataset.action;

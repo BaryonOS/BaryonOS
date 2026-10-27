@@ -6,6 +6,8 @@
 
 ## Basischeckpoint eerste batch
 
+Aanvulling P02V op deze basis: skiplink behoudt route en documentdraft, openerfocus is hersteld, zoeken ondersteunt documenttype en de desktopinspector is 288px. De actuele suite heeft 23/23 geslaagde tests; browsermetingen, bronhashes en drie screenshots staan onder `ui/prototype/verification/`. Echte 200%-zoom, schermlezer- en menselijke taakproeven blijven open. Dit is uitsluitend het hostprototype.
+
 Bijgewerkt: 27 oktober 2026. Eerste bouwbatch B00/B01/P02/Q01.
 Repository: https://github.com/simonvanieperen/nieuw-os (privé).
 Werkbranch: `codex/first-build`; basiscommit `04bb3a388efd6b873177b6b3bc650f9ebfd19ba6`.

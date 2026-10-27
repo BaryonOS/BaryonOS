@@ -29,6 +29,13 @@ test('P2-01: search, collection and empty fixture results', () => {
   assert.equal(broker.listObjects(state, { query: 'bestaat niet' }).value.length, 0);
 });
 
+test('P2-01: search also finds the visible document type within its collection', () => {
+  const state = createFixtureState();
+  assert.deepEqual(broker.listObjects(state, { query: 'AfBeElDiNg' }).value.map((item) => item.id), ['obj-002']);
+  assert.deepEqual(broker.listObjects(state, { query: 'tekst' }).value.map((item) => item.id), ['obj-001', 'obj-003']);
+  assert.deepEqual(broker.listObjects(state, { query: 'afbeelding', collection: 'Vandaag' }).value, []);
+});
+
 test('P2-02: requesting and denying access never modifies content or grants', () => {
   let state = reducer(createFixtureState(), { type: 'openObject', id: 'obj-001' });
   const original = structuredClone(state.objects);

@@ -63,6 +63,8 @@ De daadwerkelijk gebruikte basistokens zijn met de sRGB-luminantieformule gecont
 
 De hoofdagent verzorgt browseracceptatie en screenshots op 1440×900, 1024×768 en 390×844, plus reflow op 320 CSS px. De uitgevoerde browserchecks en screenshots worden in het integratieverslag vastgelegd. Screenreadergebruik, een echte gebruikersproef en native OS-toegankelijkheid zijn hiermee niet aangetoond.
 
+De gerichte P02V-vervolgcontrole op 27 oktober 2026 herstelt skiplinknavigatie, focusbehoud op Menu/Informatie, zoeken op documenttype en de voorgeschreven 288px-inspector. De actuele Node-suite heeft **23 geslaagde tests**. Nieuw bewijs, bronhashes, screenshots en resterende toegankelijkheidsafhankelijkheden staan in [verification/P02V-2026-10-27.md](verification/P02V-2026-10-27.md). De eerdere rapporten blijven als historische uitvoeringen behouden.
+
 ## Visuele aansluiting op de gekozen specificatie
 
 De bestaande tekstspecificatie `docs/implementation/PRODUCT-SPEC.md` is de ontwerpbron; er is geen nieuwe conceptselectie of rasterconcept toegevoegd. De implementatie gebruikt de voorgeschreven minerale achtergrond, groene primaire bediening, systeemtypografie, materiaallijst, 224/72 px navigatierail en volledige smalle dialoog. De hoofdtaak begint bij documenten; gereedschappen zijn ondergeschikt.

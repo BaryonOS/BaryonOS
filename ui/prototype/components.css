@@ -89,7 +89,7 @@ label.field { display: grid; gap: 8px; font-size: 14px; font-weight: 500; }
 .notice .icon { flex-shrink: 0; }
 .notice button { margin-left: auto; min-width: 44px; }
 .object-back { margin: -12px 0 20px -12px; }
-.document-layout { display: grid; grid-template-columns: minmax(0, 1fr) 256px; align-items: start; gap: 32px; }
+.document-layout { display: grid; grid-template-columns: minmax(0, 1fr) 288px; align-items: start; gap: 32px; }
 .document { background: white; border: 1px solid var(--line); border-radius: 8px; min-height: 460px; padding: 40px; }
 .document-text { white-space: pre-wrap; font-size: 16px; line-height: 28px; overflow-wrap: anywhere; }
 .document textarea { min-height: 400px; resize: vertical; line-height: 28px; font-size: 16px; font-weight: 400; border-color: var(--border); padding: 16px; }
