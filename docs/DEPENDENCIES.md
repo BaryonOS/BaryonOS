@@ -1,5 +1,19 @@
 # Afhankelijkheden en herkomst
 
+M6b voegt uitsluitend de eigen lokale crate `object-core 0.1.0` toe: `no_std`,
+geen allocator of externe dependencies, `forbid(unsafe_code)` in de core.
+De native adapter gebruikt de bestaande vaste syscallbuffers en gemotiveerde
+unsafe-grens. Root-Cargo.lock behoudt `r-efi 7.1.0` met dezelfde checksum.
+
+De nieuwe Linux-ontwikkelvariant gebruikt Rust 1.90.0, QEMU 10.0.2
+(`1:10.0.2+ds-2+deb13u1~bpo12+1`) en matching OVMF 2025.02-8+deb13u1.
+Rust kwam van static.rust-lang.org; Debian-pakketten zijn via ondertekende
+InRelease, Packages-SHA256 en pakket-SHA256 gecontroleerd en uitsluitend
+lokaal uitgepakt. De metadata, URLs, binary-/firmwarehashes en hostlibraries
+staan in `verification/native-linux-toolchain/`. Dit zijn hostgereedschappen,
+geen nieuwe runtimebibliotheken van de eigen kernel of objectdienst.
+
+
 N02 (27 oktober 2026) gebruikt aanvullend uitsluitend ingebouwde `node:tls`, `node:net` en de bestaande `node:crypto`-API op Node 24.22.1/OpenSSL 3.5.9. Geen npm- of Cargo-dependency toegevoegd. De aparte system-OpenSSL-CLI **3.0.13** genereert tijdelijke Ed25519-testcertificaten; die CLI voert niet de hybride TLS-handshake uit. Deze gebeurt in Node's OpenSSL **3.5.9**. Runtimewaarden, bronhashes en testuitvoer staan onder `verification/pqc-transport/`. Geen certificaat/private key of productie-CA in Git. TLS-groep X25519MLKEM768 is gestandaardiseerd in RFC 10024 (augustus 2026); native protocol/libraryport blijft een afzonderlijke dependencyselectie.
 
 Onderzocht, **niet geïnstalleerd/toegevoegd**: `libcrux-ml-kem` en `libcrux-ml-dsa` 0.0.11, officiële repository `celabshq/libcrux`, Apache-2.0 en manifest-Rustminimum 1.89.0. De exacte no_std-features, Rust-buildscripts/SIMD-selectie, transitieve licenties en werkelijke targetbuild moeten nog worden vastgelegd vóór opname. De projectversie Rust 1.90.0 alleen is geen compatibiliteitsbewijs. De gedeeltelijke formele verificatiedekking staat in de eigen librarydocumentatie; geen blanket constant-time-/machinecodeclaim. Bronnen en native budgetten: `implementation/VERIFIABLE-SECURITY-AND-PQC.md`.

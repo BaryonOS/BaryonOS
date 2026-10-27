@@ -3,14 +3,87 @@
 from __future__ import annotations
 from pathlib import Path
 import shutil
+import sys
 import tempfile
-from common import ROOT, BUILD, save_json, sha256, source_hash
+from common import ROOT, BUILD, environment, save_json, sha256, source_hash
 from capture_m6 import inside_run, read_json, raw_checks
 from capture_gate import _replace_archive
 from m6b_disk import Volume, synthetic_initial, verify_volume
 from run_m6b import BOOT, CUTS, FAILURES, WINDOWS_CRASH_EXIT, normal_success, unique_markers
 from run import is_success
 from test_m6b import test_sources
+
+
+# These are the fixed outputs of run_m6b.py and an ordinary run.py M1 run.
+# A claimed digest map is not allowed to decide which evidence is mandatory.
+M6B_ARTIFACTS = frozenset((
+    'esp/EFI/BOOT/BOOTX64.EFI', 'esp/kernel.elf', 'OVMF_CODE.fd',
+    'OVMF_VARS.template.fd', 'OVMF_VARS.fd', 'test-disk.before.img',
+    'test-disk.after.img', 'build-manifest.json', 'volume-manifest.json',
+))
+M1_ARTIFACTS = frozenset((
+    'esp/EFI/BOOT/BOOTX64.EFI', 'esp/kernel.elf', 'OVMF_CODE.fd',
+    'OVMF_VARS.template.fd',
+))
+HOST_GROUPS = {
+    'strict-development-inventory': ('m6b-preflight', 'python',
+        ('-B', 'tools/preflight.py', '--strict')),
+    'object-core-and-wire-host-tests': ('m6b-host-tests', 'cargo',
+        ('+1.90.0', 'test', '--locked', '--offline', '-p', 'object-core')),
+    'external-oracle-and-crash-harness-tests': ('m6b-harness-tests', 'python',
+        ('-B', '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_m6b_*.py')),
+}
+
+
+def require_artifacts(report, phase):
+    expected = {'m1': M1_ARTIFACTS, 'm6b': M6B_ARTIFACTS}[phase]
+    actual = report.get('artifact_sha256')
+    if not isinstance(actual, dict) or set(actual) != expected:
+        raise ValueError(f'Incomplete or unexpected {phase} artifact set')
+
+
+def check_host_group(name, evidence, seen=None):
+    """Bind each host requirement to its own log trio and exact executed argv."""
+    if name not in HOST_GROUPS:
+        raise ValueError('Unknown M6b host-test group')
+    stem, program, arguments = HOST_GROUPS[name]
+    logs = (BUILD/'logs').resolve(strict=True)
+    logs.relative_to(BUILD.resolve(strict=True))
+    evidence = Path(evidence)
+    if not evidence.is_absolute():
+        evidence = ROOT/evidence
+    if (evidence.parent.resolve(strict=True) != logs
+            or evidence.name != stem+'.stdout.txt'):
+        raise ValueError('Host group requires its fixed exact log path')
+    files = tuple(logs/(stem+suffix) for suffix in ('.stdout.txt', '.json', '.stderr.txt'))
+    identities = set()
+    for path in files:
+        if path.is_symlink() or not path.is_file():
+            raise ValueError('Host logs must be separate regular files')
+        info = path.stat()
+        identity = {('inode', info.st_dev, info.st_ino), ('path', str(path))}
+        if identities.intersection(identity) or seen is not None and seen.intersection(identity):
+            raise ValueError('Host groups cannot reuse the same physical log file')
+        identities.update(identity)
+    command = [sys.executable if program == 'python' else program, *arguments]
+    command[0] = shutil.which(command[0], path=environment()['PATH']) or command[0]
+    metadata = read_json(files[1])
+    if (not isinstance(metadata, dict)
+            or metadata.get('command') != command or metadata.get('cwd') != str(ROOT)
+            or type(metadata.get('returncode')) is not int or metadata['returncode'] != 0
+            or metadata.get('timed_out', False) is not False):
+        raise ValueError('Host command/working-directory/exit contract mismatch')
+    if seen is not None:
+        seen.update(identities)
+    return files
+
+
+def check_m1_run(directory, report, frozen):
+    require_artifacts(report, 'm1')
+    raw_checks(directory, report, frozen)
+    if (not is_success(report['raw_qemu_exit'], report['stdout'], report['timed_out'])
+            or 'M6B:' in report['stdout'] or 'volume_path' in report):
+        raise ValueError('Final M1 must be an ordinary M1 run')
 
 
 def required_groups():
@@ -27,6 +100,7 @@ def required_groups():
 
 
 def check_run(directory,report,frozen):
+    require_artifacts(report, 'm6b')
     raw_checks(directory,report,frozen)
     case=report['case']
     image=inside_run(report['volume_path'])
@@ -87,7 +161,7 @@ def capture():
     expected=required_groups(); groups=suite['results']
     if [g['name'] for g in groups]!=[name for name,_,_ in expected]:
         raise ValueError('Missing/reordered/duplicate M6b coverage')
-    runs=[]; by_name={}; host_files=[]
+    runs=[]; by_name={}; host_files=[]; host_seen=set()
     for group,(name,case,parent) in zip(groups,expected):
         if group.get('passed') is not True: raise ValueError('Failed group cannot be relabeled')
         evidence=Path(group['evidence'])
@@ -95,10 +169,7 @@ def capture():
         if case is not None:
             directory=inside_run(evidence); report=read_json(directory/'result.json')
             if case=='m1':
-                raw_checks(directory,report,frozen)
-                if (not is_success(report['raw_qemu_exit'],report['stdout'],report['timed_out'])
-                        or 'M6B:' in report['stdout'] or 'volume_path' in report):
-                    raise ValueError('Final M1 must be an ordinary M1 run')
+                check_m1_run(directory,report,frozen)
             else:
                 if report.get('case')!=case: raise ValueError('Group executed a different case')
                 check_run(directory,report,frozen)
@@ -106,8 +177,8 @@ def capture():
                     raise ValueError('Recovery is attached to a different parent')
             by_name[name]=report; runs.append(report)
         else:
-            evidence=evidence.resolve(strict=True); evidence.relative_to((BUILD/'logs').resolve())
             if name=='same-binary-two-canary-images':
+                evidence=evidence.resolve(strict=True); evidence.relative_to((BUILD/'logs').resolve())
                 saved=read_json(evidence); a,b=by_name['normal-a'],by_name['normal-b']
                 checks=dict(same_kernel=a['artifact_sha256']['esp/kernel.elf']==b['artifact_sha256']['esp/kernel.elf'],
                     same_loader=a['artifact_sha256']['esp/EFI/BOOT/BOOTX64.EFI']==b['artifact_sha256']['esp/EFI/BOOT/BOOTX64.EFI'],
@@ -117,11 +188,7 @@ def capture():
                     raise ValueError('Two-image check does not match actual runs')
                 host_files.append(evidence)
             else:
-                stem=evidence.name.removesuffix('.stdout.txt')
-                meta=evidence.with_name(stem+'.json'); stderr=evidence.with_name(stem+'.stderr.txt')
-                if read_json(meta).get('returncode')!=0:
-                    raise ValueError('Host command did not exit successfully')
-                host_files.extend((evidence,meta,stderr))
+                host_files.extend(check_host_group(name,evidence,host_seen))
     if len(runs)!=14 or len({r['run_directory'] for r in runs})!=14:
         raise ValueError('Gate requires 14 distinct real VM invocations')
     destination=ROOT/'docs/verification/m6b'

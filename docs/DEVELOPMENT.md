@@ -2,6 +2,41 @@
 
 Vastgelegd op 27 oktober 2026. Deze handleiding beschrijft de daadwerkelijk ingerichte Windows-ontwikkelroute. De afzonderlijke build-, QEMU-, product- en quantumresultaten staan in [PROJECT-STATE.md](PROJECT-STATE.md) en hun ruwe rapporten. Beschikbare tools en deze commando's zijn op zichzelf geen geslaagde OS-test.
 
+## Native M6b op de Linux-ontwikkelvariant
+
+Op de M6b-werkbranch is ook een lokale Linux-toolchain ingericht: Rust 1.90.0,
+beide bestaande targets, QEMU 10.0.2 uit Debian bookworm-backports en OVMF
+2025.02 uit één matching CODE/VARS-pakket. De machine blijft `pc-q35-10.0`,
+TCG, `qemu64`, één CPU en 256 MiB. Hashes en officiële herkomst:
+`verification/native-linux-toolchain/`. Dit is een afzonderlijk getest
+hostprofiel; bestaande Windowsresultaten blijven historisch behouden.
+
+`tools/common.py` ontdekt de toolmap `.tools/nieuw-os/` onder de checkout.
+Op andere machines kan de bestaande toolchainroute worden gebruikt. Beide
+firmwarevariabelen `OS_OVMF_CODE` en `OS_OVMF_VARS` moeten naar één matching
+build wijzen wanneer automatische discovery geen paar vindt. Er zijn geen
+globale PATH-/pakket-/shellwijzigingen nodig voor de vastgelegde lokale route.
+
+```bash
+python3 -B tools/dev.py cargo +1.90.0 fetch --locked
+python3 -B tools/preflight.py --strict
+python3 -B tools/build.py --kernel-feature milestone-m6b
+python3 -B tools/run_m6b.py --case normal --smoke
+python3 -B -u tools/test_m6b.py
+python3 -B tools/capture_m6b.py
+```
+
+De rooktest maakt zelf een nieuw wegwerpvolume en laat twee native apps
+objecten aanmaken, wijzigen en verwijderen. Hij sluit de VM na de assertions
+af. De complete gate start ook afzonderlijke recovery-VM's op exact de
+voorgaande images; de CLI accepteert geen willekeurige bestaande disk.
+`M6B:PASS` is alleen geldig samen met de verwachte raw exit en schijforacle.
+Na de gate staat de normale M1-build klaar; bouw M6b opnieuw voor een demo.
+
+Voer suites per checkout achtereenvolgens uit: ESP, manifests en outputlocaties
+worden gedeeld. Afzonderlijke, bevroren Git-worktrees hebben eigen buildoutputs.
+Behoud `build/run/` totdat capture de raw logs, hashes en images heeft nagekeken.
+
 ## Werkmap en gereedschappen
 
 Projectroot: `C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System`.

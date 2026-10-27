@@ -1,5 +1,7 @@
 # Actuele projectstatus
 
+De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
+
 ## M6b — native documentopslag in uitvoering
 
 Basis `10b32e31671827f2bd63444113b981ff15bfbb73`, werkbranch `codex/m6b-object-storage`.
@@ -13,14 +15,26 @@ mutaties sluiten toegang af; er is geen automatische herhaling van writes.
 Checkpoint `3ba72ca`: broncode en native buildselectie opgeslagen. 22 Rust-hosttests,
 16 harnastests en de eerste echte native QEMU-uitvoering zijn geslaagd: twee apps,
 acht bevestigde mutaties, vier afzonderlijke objectrevisies en onafhankelijke
-controle van de werkelijke schijfbytes. De volledige M6b-gate met koude herstarts,
-uitputting, corruptie en externe QEMU-kills volgt nu; nog geen volledige M6b-claim.
+controle van de werkelijke schijfbytes. De eerste complete M6b-gate op `44892e7`
+is eveneens geslaagd: 18 groepen en 14 echte VM-invocaties, waaronder zes koude
+recoveries en twee externe kills. Een aparte parseraudit controleerde alle 121
+artifacts en de werkelijke schijfbytes. Review heeft daarna de binding van
+hostlogs en de verplichte artifactsets aangescherpt; de definitieve gate op die
+verifierbron volgt nog.
 
 De ongewijzigde basis `10b32e3` heeft inmiddels de complete M6a-gate opnieuw
 gehaald: 54/54 controlegroepen, 49 echte VM-invocaties, zes externe QEMU-kills en
 17 afzonderlijke koude recoveries. Capture heeft raw output, hashes en links
 opnieuw gecontroleerd. Dit is één nieuwe Linux-run; oude deelresultaten zijn niet
-opgeteld. De volledige M1–M5-regressie op de nieuwe M6b-bron volgt afzonderlijk.
+opgeteld. M2–M5 op `44892e7` zijn ook gecaptured: 67 groepen/56 VM, plus een
+M6a normal/recovery-paar. Eén eerste M1-coldboot bevatte onverwacht een oude
+M5-testvariant. De toenmalige parser accepteerde die ten onrechte; die gehele
+M1-run is afgewezen. De vervangingsoorzaak is niet vastgesteld. M1 heeft nu
+strikte fasecontrole en een vooraf gecontroleerde snapshotbinding aan de eigen
+buildhashes. De onafhankelijke review vond geen blocker in deze guards.
+Gerichte hostcontroles: 26 M6b-harnastests, 7 guestparsertests, 5 snapshotbinding-
+tests en 9 bestaande capturetests geslaagd. De volledige M1-gate en de definitieve
+M6b-gate worden na dit broncheckpoint opnieuw uitgevoerd.
 
 Deze begrensde lokale opslagproef heeft geen namen, directoryboom, garbage
 collection of encryptie. Verwijderrecords voorkomen het terugkomen van oude
@@ -38,7 +52,7 @@ Werkelijk uitgevoerd op Node 24.22.1/OpenSSL 3.5.9/Linux x64: `node --test --tes
 
 Twee afzonderlijke AI-reviews; een concreet randgeval rond herleving van oude idletransportfacts is hersteld en onafhankelijk hertoetst. Dit is geen formeel bewijs of menselijke audit. De testcertificaten zijn klassiek Ed25519; netwerklabels zijn harnasaannames bij loopback. Geen postkwantumauthenticatie, WAN-/LAN-detectie of koppeling van transportecho aan de N01-store. Tijdelijke frame-/tijdsgrenzen zijn geen productbeperkingen. De browserrendering is in deze stap niet opnieuw getest.
 
-Geen native PQC-crate, entropy-syscall, boot-/blokcryptografie of Grover-uitbreiding toegevoegd. De native build heeft concrete ABI-/geheugen-/instructiegrenzen; Rust/Cargo en QEMU zijn in deze ontwikkelsessie niet beschikbaar. Dit verandert geen bestaande M1–M6a-bewijsstatus. N01 hieronder blijft als historische basis bewaard.
+Geen native PQC-crate, entropy-syscall, boot-/blokcryptografie of Grover-uitbreiding toegevoegd. De native build heeft concrete ABI-/geheugen-/instructiegrenzen; Rust/Cargo en QEMU waren tijdens die N02-hostsessie niet beschikbaar. Het huidige M6b-traject hierboven heeft inmiddels een werkende native toolchain. Dit verandert geen bestaande M1–M6a-bewijsstatus. N01 hieronder blijft als historische basis bewaard.
 
 ## N01 — internet en persoonlijke NAS-ruimte: hostproef getest
 

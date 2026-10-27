@@ -1,0 +1,20 @@
+{
+  "checkpoint": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+  "scope": "Native implementation and build inputs unchanged by capture-proof fixes",
+  "sha256": {
+    "kernel/Cargo.toml": "91d41a4fa17a9dce2eae261c8d2388236c1ec68264c85603cddeb55f82efed18",
+    "kernel/build.rs": "363387c780584d5e7bdcb8d6b5ea9711a60e9962af31a34e3fadaabde41e8440",
+    "kernel/src/m2/m3.rs": "92de0f03fee95e78e22e131a55bddce9aefa54fd5d8a7691e1fc17fee6ec7b21",
+    "kernel/src/m2/m3/m6b.rs": "d3e1939d179caade601ec098f1b7e7e1377d3a9a466258d8bff8605284a6b19b",
+    "userspace/m6b_probe.rs": "9acfb273d128dc0b312b36e80f4f7ae13ecacd87128c9129ebae848452f5ac21",
+    "userspace/m6b_linker.ld": "21f1e9aa125fb6b9eb185e510540c762e14eb27ebb559800ad74919fa29a17bd",
+    "services/objects/src/lib.rs": "7e8124d02bf95e952809664d4f73ea71f1ee841eadc1f836406ee58d09634aa2",
+    "services/objects/src/journal.rs": "d84785f09fb15b880b03f228286c7a5d4d43213e028434af7b074a389a55d522",
+    "services/objects/src/wire.rs": "c6a7faa02267bfb4e291eeca454632d8a6fe5f289ab2f4650a8007b0a80bc823",
+    "services/objects/src/user_service.rs": "794d5aa7c46e931dfaa90f2e63367deb19f37f8eb5d31c959548142e854b79c2",
+    "Cargo.toml": "8fdade5730eb492acf23e7f9ac31e5c5709bf8a6ccfa6cd33a19ab19801ebf46",
+    "Cargo.lock": "eb5920cfec124d092cce91307e89ef8ea7cc29975bc0c1f7a7d9491745db0405",
+    "tools/build.py": "5f08d32ff7eb3bcce9be31e436c13b9d23d8eff93325a7d8b4543435e2356203",
+    "tools/build_users.py": "2733e5c173d230898792dbf968ebd081ea3c3b124afb1381dcd7e67bc77e889c"
+  }
+}

@@ -80,8 +80,10 @@ def test_m6b():
             build(kernel_feature='test-m6b-'+case,label='m6b-'+case)
             result,volume=guest(case,case)
             if case!='corrupt': recovery(result,volume,case+'-cold-recovery')
-        build()
-        regression=run_guest('m1-after-m6b')
+        baseline=build()
+        regression=run_guest('m1-after-m6b',
+            expected_kernel_sha256=baseline['kernel']['sha256'],
+            expected_loader_sha256=baseline['loader']['sha256'])
         record('m1-regression-after-m6b',regression['passed'] and regression['source_sha256']==frozen,
                regression['run_directory'],['M1-BOOT'])
         if source_hash()!=frozen or test_sources()!=tests:

@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_m6_*.py"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-baseline",
+  "started_unix": 1793140506.2712805,
+  "duration_s": 0.856926679611206,
+  "returncode": 0
+}
