@@ -10,7 +10,9 @@ Nieuwe opdracht 27 oktober 2026 op `codex/m5-block-service`, basis `c630c59`; co
 
 Werkelijk uitgevoerd: 26 capabilitytests, 12 virtio-tests, 9 protocoltests, 11 user-ELF-artifacttests, 5 schijf-orakeltests en 4 harnasparsertests geslaagd. De eerste normale kernelbuild en QEMU-read zijn geslaagd (raw33): sector 4/6 kloppen met de externe image, image-SHA256 blijft gelijk. Vroege run in verification/m5/checkpoints/first-read.json; deze geldt niet voor latere bronwijzigingen. Core-logs/bronhashes staan in verification/m5/core/ en zijn opnieuw vergeleken (geen drift).
 
-Reviewherstel is actief voor initialisatiefouten na DMA-enable, device-id-binding, terminale tickets bij procesexit, onnodige clientautoriteit en harde kernelcorrelatie van ongeldige dienstverzoeken. De volledige M5-foutpoort en M1–M4-regressie zijn nog niet afgerond. M1–M4 hieronder blijven het behaalde basischeckpoint.
+Reviewherstel staat in `0d4bad7`: initialisatiefouten na DMA-enable, device-id-binding, terminale tickets bij procesexit, onnodige clientautoriteit, harde kernelcorrelatie van ongeldige dienstverzoeken, quarantainecleanup en CPU-adresbreedte. De gerichte tweede-agentreviews zijn gesloten; specifieke init-readback/device1/exit-na-error-takken zijn bronfixes zonder aparte gastinjectie. Bron is bevroren met fingerprint v3 `b98826bc699f265fde265aac4a67835e114e52acf6c5df1ec15b2eb84b410300`.
+
+De nieuwe gecombineerde poort loopt: M2 (8 groepen/7 VM) en M3 (22 groepen/19 VM) zijn geslaagd en opnieuw vastgelegd in verification/m5/regression/. M4/M5 en de volledige M1-foutreeks zijn nog niet afgerond. Gerichte M5-cases 1/12/13/14 zijn al raw33/harnas- en oracle-groen; bewaar ze als diagnostisch bewijs, geen vervanging voor de volledige gate. De M1–M4-tabel hieronder beschrijft het eerdere behaalde basischeckpoint.
 
 ## Hoofdresultaat
 

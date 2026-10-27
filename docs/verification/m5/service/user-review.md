@@ -1,5 +1,10 @@
 # M5-U — gerichte runtime/protocolreview
 
+**Delta-review op basis 0d4bad72: beide concrete bevindingen hieronder zijn
+gesloten door broninspectie en gerichte gastrecords. De oorspronkelijke
+bevindingen blijven staan als reviewgeschiedenis. Zie het delta-addendum
+onderaan voor de precieze bewijsgrens; de volledige gate blijft afzonderlijk.**
+
 27 oktober2026. Scope: eerste echte Rust userdienst/cliënt/testsupervisor en hun M5-koppeling, één CPU/één thread. Read-only review na de eerste userbuild; geen kernel- of driverwrites door deze agent. Geen gast-/deviceclaim uit de onderstaande hosttests.
 
 ## Werkelijk uitgevoerd
@@ -53,3 +58,52 @@ Bij13 maakt IPC twee verschillende receiverhandles; de dienst sluit beide. De cl
 Na kernelobserverherstel: voer SERVICE_ERRORS uit en eis onafhankelijk13afwijzingen met nul devicecalls/submissions/completions; eis daarna8 echte slice-replies en beidehostdigests. Verifieer ook de twee ontvangen capcloses. Herhaal de RESTARTcase met exact3pendingcrashes,3resetacks,4verschillende servicePIDs/epochs,4echteannouncements/forwardings, oudeEREVOKED en ongewijzigde cliënt-/supervisorPID/CR3 plus counters die doorgaan. Twee verschillende per-run images moeten met dezelfde kernel/userbinary elk de overeenkomstigehostchecksums en ongewijzigdeimagehash opleveren.
 
 Verder: gerichte device-rights/polloutputnietconsume, alle descriptor/completion/resetfoutcases en CPUattackerfaults met survivorprogress, gevolgd door de geïntegreerde M1–M4-regressie. Deze review start geen tests opnieuw en kent nog geen volledige M5-gastgate toe. Kerneltransport/device zijn TCB; zonder IOMMU geen kwaadaardige-hardware-DMA-containmentclaim. De userdienst is echt ring3, geen volledig userspace-hardwaredriver. Geen WRITE/filesysteem/M6- of fysiekehardwareclaim.
+
+## Delta-addendum: gericht herstel gecontroleerd
+
+Basis `0d4bad72e6570354d779ed49bdf475ba242d9b6e`. Alleen de afgesproken
+observer-/manifestdelta en de twee bestaande diagnostische gastrecords zijn
+gelezen; geen tests, builds of bronwijzigingen uitgevoerd.
+
+1. **SERVICE_ERRORS gesloten.** `kernel/src/m2/m3/m5.rs:522` classificeert
+   na een daadwerkelijk geslaagde client-send de IDs 1..13, exacte requestdata,
+   lengtes en capcount. De verwachte status wordt in de observer bepaald.
+   Per request worden servicecalls naar 0x40/0x41, submissions en completions
+   vastgelegd. De echte service-send moet een exact leeg foutantwoord met
+   dezelfde ID/opcode/offset en huidige epoch bevatten; alle drie counters
+   moeten gelijk blijven. Voor ID13 moeten twee succesvolle service-capcloses
+   zijn uitgevoerd, handles terug op baseline en nodes met twee verminderd.
+   `m4.rs:205` telt uitsluitend geslaagde cap_close-resultaten; de sendhook
+   volgt op geslaagde Engine.send. De eindobserver vereist beide masks
+   `0x1fff` en geen onafgehandeld request (`m5.rs:825`). Daarmee vervalt de
+   eerdere afhankelijkheid van alleen de usercounter als bewijs.
+2. **Onnodige cliëntautoriteit gesloten.** De manifestfunctie maakt alleen de
+   supervisor→client-control-delegatie; de eerdere client→SUP-delegatie is
+   weg. Cliëntveld64 wordt expliciet nul gezet en gecontroleerd
+   (`m5.rs:250`). Er is geen wijziging aan de userruntime nodig.
+3. **Gericht herstartbewijs gelezen.** De faultobserver vereist voor case13
+   een echte service-#UD met een open request en maximaal drie herstarts.
+   Herinitialisatie volgt op daadwerkelijke resetack; vóór iedere vervanging
+   blijven cliënt-/supervisor-PID en CR3 gelijk. Het eindpad vereist drie
+   pending crashes, drie herstarts, minimaal drie resets, vier announcements
+   en forwards, cliënt-epoch4 en acht met devicebytes gecorreleerde slices.
+   De cliënt valideert iedere epoch en oude EREVOKED-handles in de ongewijzigde
+   ELF. De usercounter blijft aanvullend, geen zelfstandig restartbewijs.
+
+Gelezen bestaande records:
+
+| Runmap onder build/run | Raw exit | Timeout | Record | Diskoracle |
+|---|---:|---|---|---|
+| m5-service-errors-diagnostic-9f848293fa | 33 | nee | passed=true | beide sectoren correct; image ongewijzigd |
+| m5-restart-diagnostic-f53e180603 | 33 | nee | passed=true | beide sectoren correct; image ongewijzigd |
+
+De serials bevatten alle vereiste markers, geen verboden FAIL-marker en lege
+stderr. Parent rapporteert voor beide harnas-exit0; de resultaatrecords zelf
+leggen raw exit33/expected33 en passed=true vast. De exacte resultaat-, serial-,
+kernel- en bronhashes staan in `user-evidence.json`.
+
+Deze twee diagnostische runs hebben verschillende kernel-/bronhashes. Ze
+vormen dus geen bewijs voor de nog vereiste twee images met exact dezelfde
+bevroren binary, en vervangen de samengestelde M5-gate plus M1–M4-regressies
+niet. Binnen deze gerichte delta-review blijven geen concrete bevindingen
+open. Userbron en handleidingen blijven bevroren.

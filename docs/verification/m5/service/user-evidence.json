@@ -127,10 +127,87 @@
     "userspace/M5-PROBE.md": "83ff3b2a918c2b5302cb74102edcc58b95ad98cbaad14032eb8079c20c0792c7"
   },
   "open_review": [
-    "independent13malformed-request/noIO/errorreply/cap-close observer",
-    "remove unnecessary client supervisorSEND grant",
-    "actual3pendingcrash rebind and final diskoracle",
-    "allM5caseboots plus M1-M4regressions"
+    "full frozen-source M5 gate incl same-binary two-image diskoracle",
+    "all M5 caseboots plus M1-M4 regressions"
   ],
-  "source_freeze": "M5 runtime unchanged; READMEs and local verification ignore complete; no further source writes until concrete integration assignment"
+  "source_freeze": "M5 runtime unchanged; READMEs and local verification ignore complete; no further source writes until concrete integration assignment",
+  "delta_review": {
+    "basis_commit": "0d4bad72e6570354d779ed49bdf475ba242d9b6e",
+    "closed": [
+      "13 exact malformed requests and zero-device-I/O/errorreply/resource observer",
+      "unnecessary client to supervisor SEND grant",
+      "focused three-pending-crash/four-epoch rebind evidence"
+    ],
+    "reviewed_records": [
+      {
+        "directory": "build\\run\\m5-service-errors-diagnostic-9f848293fa",
+        "raw_qemu_exit": 33,
+        "record_passed": true,
+        "timed_out": false,
+        "source_sha256": "e629a8fde149a29345b374f9f21ff2c391372d707adcd10a8b99a5c4fd7c7ead",
+        "kernel_sha256": "4471e7db75c59cec95a9dc5694b34db89e21a86a916c09e3f57f7f4fb2cb4134",
+        "result_sha256": "34b1ba7ec7deaa2a4c351a356739e7e51a65ac6e442ebd942b4b2ae16da70735",
+        "serial_sha256": "13b3f90fc5bd71e9f2ed7d9d9bca618263b9810e153ece568de394ed44c65306",
+        "disk_oracle": {
+          "scope": "synthetic readonly per-run raw image; no host disk",
+          "seed": 2178778050754045806,
+          "bytes": 65536,
+          "bdf": "00:05.0",
+          "readonly": true,
+          "sha256_before": "bcd0a2597976fa48e79da43de1163109e72c5f00b4ab7e6ceb5c5a260a1ed76e",
+          "expected_digests": {
+            "4": "e882454dcae5b997",
+            "6": "c6df68889e761c74"
+          },
+          "sha256_after": "bcd0a2597976fa48e79da43de1163109e72c5f00b4ab7e6ceb5c5a260a1ed76e",
+          "unchanged": true,
+          "data_required": true,
+          "observed_digests": {
+            "4": "e882454dcae5b997",
+            "6": "c6df68889e761c74"
+          },
+          "unique_digest_lines": true,
+          "oracle_passed": true,
+          "metadata_matches_image": true,
+          "passed": true
+        }
+      },
+      {
+        "directory": "build\\run\\m5-restart-diagnostic-f53e180603",
+        "raw_qemu_exit": 33,
+        "record_passed": true,
+        "timed_out": false,
+        "source_sha256": "b98826bc699f265fde265aac4a67835e114e52acf6c5df1ec15b2eb84b410300",
+        "kernel_sha256": "dd2ffbd4432483ef3ec871c3847ed00921ddb5e807eea1de8f776b2d44869e3c",
+        "result_sha256": "07a7216e4a47ce5ce8faac5318ad45f8f8e2a1c4fc8867f6f0d5e8627cd5510e",
+        "serial_sha256": "d1f3cc3c3b706404e7728e149d5243adf6fc925dfba633e1835598fe77eefe1c",
+        "disk_oracle": {
+          "scope": "synthetic readonly per-run raw image; no host disk",
+          "seed": 1493633608501150835,
+          "bytes": 65536,
+          "bdf": "00:05.0",
+          "readonly": true,
+          "sha256_before": "2871802914e306e4ff3c5662a895497a0c5caf5d3de0791ea72f3e9a279cb4d7",
+          "expected_digests": {
+            "4": "300671e05455247d",
+            "6": "b35eab2a6014df76"
+          },
+          "sha256_after": "2871802914e306e4ff3c5662a895497a0c5caf5d3de0791ea72f3e9a279cb4d7",
+          "unchanged": true,
+          "data_required": true,
+          "observed_digests": {
+            "4": "300671e05455247d",
+            "6": "b35eab2a6014df76"
+          },
+          "unique_digest_lines": true,
+          "oracle_passed": true,
+          "metadata_matches_image": true,
+          "passed": true
+        }
+      }
+    ],
+    "new_test_runs": 0,
+    "limits": "diagnostic runs have different kernel/source hashes; full frozen-source gate and same-binary two-image oracle remain separate",
+    "kernel_source_sha256": "b314866324e56930b68733f861f1e1f49e315f5be33203ea695d374dc8b1ce64"
+  }
 }
