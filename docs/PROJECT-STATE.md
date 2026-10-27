@@ -6,9 +6,7 @@ Repository: https://github.com/simonvanieperen/nieuw-os (privé). Werkbranch: `c
 
 ## Reviewfollow-up
 
-De bewijsarchiefcapture valideert een volledige nieuwe opname in een tijdelijke map en laat het bestaande archief bij validatiefouten of een installatiefout ongemoeid. Alleen stdoutlogs onder `build/logs/` kunnen als hostbewijs worden opgenomen; andere bewijsverwijzingen volgen de gastvalidatie. Screenshotregistraties zijn aan de bestandssignatuur getoetst. `python -B -X utf8 tests/test_capture_gate.py` (4 tests) en `python -B -X utf8 tests/test_evidence_files.py` (1 test) slagen, beide exit 0. De expliciete grote-probehostcontrole staat nog open; zie `userspace/LARGE-PROBE.md`.
-
-De screenshotindex gebruikt nu de bestandsignatuur voor het formaat en de beeldheader voor dimensies. De vijf bestanden met `.png`-naam zijn JPEG's; hun afmetingen, bytes en SHA-256 zijn opnieuw geregistreerd. `python3 tools/update_evidence_files.py` en `python3 -B -X utf8 tests/test_evidence_files.py` slaagden; 4 tests, exit 0. Dit is bewijsregistratie, geen nieuwe browser- of OS-test.
+De bewijsarchiefcapture valideert een volledige nieuwe opname in een tijdelijke map en laat het bestaande archief bij validatie- of installatiefouten ongemoeid. Alleen stdoutlogs onder `build/logs/` kunnen als hostbewijs worden opgenomen; gastresultaten doorlopen hun eigen controles. `python -B -X utf8 tests/test_capture_gate.py` (4 tests) slaagt. De registratie van vijf `.png`-bestanden als JPEG gebruikt nu hun signatures: `python3 tools/update_evidence_files.py` en `python -B -X utf8 tests/test_evidence_files.py` (4 tests) slagen. Alle controles exit 0; dit is hosttool-/bewijsregistratie, geen nieuwe browser- of OS-test. De gedocumenteerde grote-probehostcontrole staat nog open.
 
 ## Hoofdresultaat
 
