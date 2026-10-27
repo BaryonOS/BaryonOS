@@ -74,7 +74,7 @@ def capture(phase: str):
                 if sha256(artifact) != expected:
                     raise ValueError(f"Artifact changed: {artifact}")
             runs.append(result)
-        elif evidence.is_file():
+        elif evidence.is_file() and evidence.name.endswith(".stdout.txt"):
             evidence.resolve().relative_to(BUILD.resolve())
             destination.mkdir(parents=True, exist_ok=True)
             # Preserve textual host output; never turn a log into a test result.
