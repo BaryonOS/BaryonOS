@@ -11,17 +11,21 @@ import uuid
 from common import ROOT, BUILD, LOCAL, environment, firmware, save_json, sha256, source_hash
 
 MARKERS = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "M1:PASS")
+FAIL_MARKERS = ("M1:FAIL", "M2:FAIL", "M3:FAIL", "M4:FAIL")
 
 
-def is_success(returncode, stdout, timed_out=False):
+def is_success(returncode, stdout, timed_out=False, *, required_markers=MARKERS,
+               expected_exit=33, forbidden_markers=FAIL_MARKERS):
     lines = iter(stdout.splitlines())
-    for marker in MARKERS:
+    for marker in required_markers:
         if not any(line == marker for line in lines):
             return False
-    return returncode == 33 and not timed_out and "M1:FAIL" not in stdout
+    return (returncode == expected_exit and not timed_out
+            and not any(marker in stdout for marker in forbidden_markers))
 
 
-def run_guest(label="smoke", *, esp=None, timeout=60):
+def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
+              expected_exit=33, forbidden_markers=FAIL_MARKERS):
     if not 0 < timeout <= 60:
         raise ValueError("guest timeout must be in (0,60]")
     env = environment()
@@ -63,11 +67,11 @@ def run_guest(label="smoke", *, esp=None, timeout=60):
     artifacts = {path.relative_to(run_dir).as_posix(): sha256(path) for path in (run_dir / "esp").rglob("*") if path.is_file()}
     artifacts.update({"OVMF_CODE.fd": sha256(run_dir / "OVMF_CODE.fd"), "OVMF_VARS.template.fd": sha256(variables)})
     git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
-    report = {"label": label, "started_utc": started, "duration_s": time.monotonic()-start, "timeout_s": timeout, "timed_out": timed_out, "raw_qemu_exit": rc, "passed": is_success(rc, stdout, timed_out), "command": args, "qemu_version": version, "profile": "development-package; pc-q35-10.0/qemu64/TCG/1CPU/256MiB", "base_commit": git.stdout.strip() if git.returncode == 0 else None, "source_sha256": source_hash(), "artifact_sha256": artifacts, "firmware_source": [str(code), str(variables)], "run_directory": str(run_dir), "stdout": stdout, "stderr": stderr}
+    report = {"label": label, "started_utc": started, "duration_s": time.monotonic()-start, "timeout_s": timeout, "timed_out": timed_out, "raw_qemu_exit": rc, "expected_exit": expected_exit, "required_markers": list(required_markers), "forbidden_markers": list(forbidden_markers), "passed": is_success(rc, stdout, timed_out, required_markers=required_markers, expected_exit=expected_exit, forbidden_markers=forbidden_markers), "command": args, "qemu_version": version, "profile": "development-package; pc-q35-10.0/qemu64/TCG/1CPU/256MiB", "base_commit": git.stdout.strip() if git.returncode == 0 else None, "source_sha256": source_hash(), "artifact_sha256": artifacts, "firmware_source": [str(code), str(variables)], "run_directory": str(run_dir), "stdout": stdout, "stderr": stderr}
     save_json(run_dir / "result.json", report)
     print(stdout, end="")
     print(stderr, end="")
-    print(f"QEMU raw={rc}; timeout={timed_out}; smoke_pass={report['passed']}; {run_dir}")
+    print(f"QEMU raw={rc}; expected={expected_exit}; timeout={timed_out}; expectation_pass={report['passed']}; {run_dir}")
     return report
 
 

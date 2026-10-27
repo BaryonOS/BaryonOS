@@ -17,9 +17,9 @@ Doel: eigen boot, twee werkelijk geïsoleerde ring-3-processen, begrensde foutaf
 | ID | Eigenaar | Exclusief schrijfgebied | Afhankelijk van | Status | Bewijs |
 |---|---|---|---|---|---|
 | G00 | hoofd | rootconfig, tools/, docs/ | bestaande toestand | actief | preflight exit0; bestaande M1/P02/Q01-rapporten aanwezig |
-| K02 | kernbuilder | kernel/, crates/kernel-core/ | G00 | klaar om te starten | KS-01–03 + echte M2-faults vereist |
-| P02V | productagent | ui/prototype/ | bestaande P02 | klaar om te starten | resterende PRODUCT-SPEC-controles; bestaande 22 tests behouden |
-| Q01V | quantumagent | experiments/quantum/ | bestaande Q01 | klaar om te starten | requirementaudit; wijzig alleen concrete ontbrekende dekking/fouten |
+| K02 | kernel_m2 (Sol) | kernel/, crates/kernel-core/ | G00 | implementatie actief | frame-/mappingcore en eigen archlaag geschreven; nog geen build- of M2-poortbewijs |
+| P02V | product_acceptance (Sol) | ui/prototype/ | bestaande P02 | controle/herstel actief | echte skiplink-routefout hersteld; focus- en kleurcontroles lopen; 200%-zoom nog onbewezen |
+| Q01V | quantum_contract (Sol) | experiments/quantum/ | bestaande Q01 | gericht herstel actief | CDF-nulmassa-afrondingsfout gevonden; deterministische regressie en checkpointgrenzen in werk |
 | K03 | kernbuilder | later expliciet toegewezen | geslaagde K02 | geblokkeerd door poort | KS-04–08 vereist |
 | K04 | later toegewezen | later expliciet toegewezen | geslaagde K03 | geblokkeerd door poort | KS-09–16 vereist |
 | R04 | onafhankelijke reviewer | eerst alleen lezen | geïntegreerde M4 | wacht | concrete negatieve tegenvoorbeelden en herstel |
@@ -36,3 +36,5 @@ Doel: eigen boot, twee werkelijk geïsoleerde ring-3-processen, begrensde foutaf
 ## Laatste checkpoint
 
 Startcontrole: alleen de reeds bestaande ongetrackte `.codex/environments/` staat buiten Git; deze lokale instelling wordt behouden. De eerste batch is aanwezig op `144d952`; M2–M4 zijn nog niet geïmplementeerd. De tools zijn beschikbaar. Deze beurt is voortgang zodra queue/branch en concrete implementatie zijn vastgelegd; het vorige antwoord was een statuscontrole, geen verkleining van dit nieuwe doel.
+
+Root-checkpoint: generiek QEMU-harnas met exacte marker-/exitverwachtingen en aparte M2-poort geschreven. Drie hosttests van de bewijsparser en Python-syntaxischecks slagen; dit is nadrukkelijk nog geen geslaagde M2-run.
