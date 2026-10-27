@@ -92,6 +92,9 @@ class Volume:
         import json
         saved = json.loads(manifest.read_text(encoding="utf-8"))
         if (saved.get("identity") != self.identity or saved.get("seed") != self.seed
+                or type(saved.get("seed")) is not int or saved.get("variant") != self.variant
+                or saved.get("scratch") is not self.scratch or saved.get("bytes") != SIZE
+                or saved.get("bdf") != "00:05.0"
                 or saved.get("initial_sha256") != hashlib.sha256(self.initial).hexdigest()
                 or saved.get("scope") != "fresh synthetic M6a volume"
                 or self.path.stat().st_size != SIZE or len(self.initial) != SIZE):
@@ -110,20 +113,12 @@ class Volume:
         return result
 
 
-def create_volume(label: str, *, variant="normal", scratch=False, seed=None) -> Volume:
-    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,60}", label):
-        raise ValueError("M6a labels cannot contain paths")
+def synthetic_initial(seed, variant="normal"):
+    """Reconstruct host fixture bytes without opening or formatting any image."""
     if variant not in ("normal", "torn-tail", "corrupt-all"):
         raise ValueError("Unknown M6a synthetic initialization")
-    if seed is None:
-        seed = secrets.randbits(64)
     if type(seed) is not int or not 0 <= seed < 1 << 64:
         raise ValueError("M6a seed must be u64")
-    parent = (BUILD / "run").resolve()
-    parent.mkdir(parents=True, exist_ok=True)
-    identity = uuid.uuid4().hex
-    directory = parent / f"m6-volume-{label}-{identity[:10]}"
-    directory.mkdir()
     rng = random.Random(seed)
     data = bytearray(rng.randbytes(SIZE))
     data[:1024] = bytes(1024)
@@ -140,7 +135,20 @@ def create_volume(label: str, *, variant="normal", scratch=False, seed=None) -> 
         data[(FIRST+1)*SECTOR:(FIRST+2)*SECTOR] = torn
     elif variant == "corrupt-all":
         data[FIRST*SECTOR] ^= 0x80
-    initial = bytes(data)
+    return bytes(data)
+
+
+def create_volume(label: str, *, variant="normal", scratch=False, seed=None) -> Volume:
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,60}", label):
+        raise ValueError("M6a labels cannot contain paths")
+    if seed is None:
+        seed = secrets.randbits(64)
+    initial = synthetic_initial(seed, variant)
+    parent = (BUILD / "run").resolve()
+    parent.mkdir(parents=True, exist_ok=True)
+    identity = uuid.uuid4().hex
+    directory = parent / f"m6-volume-{label}-{identity[:10]}"
+    directory.mkdir()
     path = directory / "test-disk.img"
     with path.open("xb") as output:
         output.write(initial)
@@ -170,7 +178,7 @@ def value_markers(stdout: str):
 
 
 def verify_volume(volume: Volume, stdout: str, *, allowed_generations, data_required=True,
-                  unchanged=False, before=None, allow_torn=False):
+                  unchanged=False, before=None, allow_torn=False, require_full_prefix=False):
     data = volume.guard().read_bytes()
     selected = scan(data)
     allowed_generations = set(allowed_generations)
@@ -197,6 +205,8 @@ def verify_volume(volume: Volume, stdout: str, *, allowed_generations, data_requ
         records_valid &= valid
     scratch_valid = (not volume.scratch or data[SCRATCH*SECTOR:(SCRATCH+1)*SECTOR]
                      == bytes([0x3c])*255 + bytes([0xa7])*257)
+    prefix_valid = not require_full_prefix or len(expected) == SLOTS and all(
+        data[(FIRST+slot)*SECTOR:(FIRST+slot+1)*SECTOR] == expected[slot] for slot in range(SLOTS))
     try:
         markers = value_markers(stdout)
         marker_valid = (selected is not None and markers == {key: selected[key] for key in
@@ -206,6 +216,7 @@ def verify_volume(volume: Volume, stdout: str, *, allowed_generations, data_requ
     stable = not unchanged or data == (volume.initial if before is None else before)
     checks = {"outside_journal_unchanged": bool(canaries), "journal_records_bounded": bool(records_valid),
               "scratch_snapshot_exact": bool(scratch_valid), "allowed_generation": observed_generation in allowed_generations,
+              "required_committed_prefix": bool(prefix_valid),
               "guest_value_matches_actual_record": bool(marker_valid), "required_unchanged": bool(stable)}
     return {"scope": "actual synthetic 64KiB bytes; independent Python journal oracle",
             "volume_directory": str(volume.directory), "identity": volume.identity, "seed": volume.seed,
@@ -213,5 +224,6 @@ def verify_volume(volume: Volume, stdout: str, *, allowed_generations, data_requ
             "sha256_initial": hashlib.sha256(volume.initial).hexdigest(), "sha256_after": sha256(volume.path),
             "allowed_generations": sorted(allowed_generations, key=lambda x: -1 if x is None else x),
             "data_required": data_required, "allow_torn": allow_torn, "unchanged_required": unchanged,
+            "require_full_prefix": require_full_prefix,
             "actual_generation": observed_generation, "observed": markers, "checks": checks,
             "passed": all(checks.values())}

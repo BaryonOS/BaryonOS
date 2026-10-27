@@ -107,7 +107,10 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
         run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
     loader = ROOT / "target/x86_64-unknown-uefi/release/os-loader.efi"
     kernel = ROOT / "target/x86_64-unknown-none/release/os-kernel"
-    manifest = {"schema_version": 1, "profile": label, "source_fingerprint_version": 3, "source_sha256": source_hash(), "loader": {"sha256": sha256(loader), **inspect_pe(loader)}, "kernel": {"sha256": sha256(kernel), **inspect_elf(kernel)}}
+    manifest = {"schema_version": 1, "profile": label, "kernel_feature": kernel_feature,
+                "loader_feature": loader_feature, "source_fingerprint_version": 3,
+                "source_sha256": source_hash(), "loader": {"sha256": sha256(loader), **inspect_pe(loader)},
+                "kernel": {"sha256": sha256(kernel), **inspect_elf(kernel)}}
     esp = BUILD / "esp"
     (esp / "EFI/BOOT").mkdir(parents=True, exist_ok=True)
     shutil.copy2(loader, esp / "EFI/BOOT/BOOTX64.EFI")

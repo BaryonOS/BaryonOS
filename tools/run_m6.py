@@ -2,6 +2,7 @@
 """M6a QEMU runner: fresh guarded writable volumes and real host crash cuts."""
 from __future__ import annotations
 import argparse
+import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -57,7 +58,57 @@ def case_markers(case):
                    "M6A:RESOURCES:PASS", "M6A:PASS", "M1:PASS")
 
 
-def execute(args, env, *, cut=None, timeout=60):
+def unique_markers(stdout, expected):
+    prefixes = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "M6A:CASE:",
+                "M6A:SURVIVOR_PROGRESS", "M6A:RESOURCES", "M6A:PASS", "M1:PASS", "M6A:CUT:")
+    controlled = [line for line in stdout.splitlines() if any(line.startswith(p) for p in prefixes)]
+    return controlled == list(expected)
+
+
+def normal_success(rc, stdout, timed_out, case):
+    markers = case_markers(case)
+    return (unique_markers(stdout, markers) and is_success(rc, stdout, timed_out,
+            required_markers=markers, forbidden_markers=FAILURES))
+
+
+def oracle_policy(case, before):
+    cut = int(case[-1]) if case.startswith("vm-cut-") else None
+    service_cut = int(case[-1]) if case.startswith("service-cut-") else None
+    allowed = {2}
+    if case == "full": allowed = {4}
+    elif case in ("torn-tail", "no-flush", "readonly", "no-device"): allowed = {1}
+    elif case == "corrupt-all": allowed = {None}
+    elif case in UNKNOWN: allowed = {1, 2}
+    elif case == "recover":
+        selected = scan(before); allowed = {selected["generation"] if selected else None}
+    elif (point := cut or service_cut) is not None:
+        allowed = {1} if point == 1 else {2} if point >= 5 else {1, 2}
+    if case == "bad-descriptor": allowed = {1}
+    return {"allowed_generations": allowed, "data_required": case not in NO_DATA and cut is None,
+            "unchanged": case in ("recover", "torn-tail", "corrupt-all", "no-flush", "readonly", "no-device", "bad-descriptor") or cut == 1 or service_cut == 1,
+            "before": before,
+            "allow_torn": case == "recover" or case in UNKNOWN or (cut or service_cut or 0) in (2, 3, 4),
+            "require_full_prefix": case == "full"}
+
+
+def previous_stage(volume):
+    """Recovery is evidence about an actual previous run, never fresh format."""
+    volume.guard()
+    pointer = json.loads((volume.directory / "last-stage.json").read_text(encoding="utf-8"))
+    previous = Path(pointer["run_directory"]).resolve(strict=True)
+    previous.relative_to((BUILD / "run").resolve())
+    report = json.loads((previous / "result.json").read_text(encoding="utf-8"))
+    image = volume.path.resolve(strict=True)
+    if (report.get("passed") is not True or report.get("case") == "recover"
+            or Path(report["volume_path"]).resolve(strict=True) != image
+            or report["disk_oracle"]["identity"] != volume.identity
+            or report["artifact_sha256"]["test-disk.after.img"] != sha256(image)
+            or (previous / "test-disk.after.img").read_bytes() != image.read_bytes()):
+        raise ValueError("Recovery must use the exact successful previous stage's image")
+    return previous
+
+
+def execute(args, env, *, cut=None, timeout=60, capture_directory=None):
     """Consume both real pipes, killing only the live child after an exact cut.
 
     Unit tests can use a bounded child process; that is host-harness evidence,
@@ -116,12 +167,18 @@ def execute(args, env, *, cut=None, timeout=60):
     for thread in threads: thread.join(timeout=10)
     if any(thread.is_alive() for thread in threads):
         raise RuntimeError("M6a QEMU output pipe did not close")
-    out = b"".join(stdout).decode("utf-8", "replace")
-    err = b"".join(stderr).decode("utf-8", "replace")
+    out_bytes, err_bytes = b"".join(stdout), b"".join(stderr)
+    if capture_directory is not None:
+        capture_directory.resolve(strict=True).relative_to((BUILD / "run").resolve())
+        (capture_directory / "serial.txt").write_bytes(out_bytes)
+        (capture_directory / "stderr.txt").write_bytes(err_bytes)
+    out = out_bytes.decode("utf-8", "replace")
+    err = err_bytes.decode("utf-8", "replace")
     # Count all lines, including bytes drained after process exit. A process that
     # prints a marker and exits itself is never an externally crashed QEMU.
     all_cuts = [line for line in out.splitlines() if line.startswith("M6A:CUT:")]
     crash = {"requested_cut": cut, "cut_lines": all_cuts, "kill_requested": killed,
+             "process_id": process.pid,
              "was_running_before_kill": running_before_kill,
              "required_live_hold_s": 0.05,
              "termination_code_expected": WINDOWS_CRASH_EXIT if os.name == "nt" else -9,
@@ -130,6 +187,7 @@ def execute(args, env, *, cut=None, timeout=60):
         crash["passed"] = (not timed_out and killed and running_before_kill
             and process.returncode == crash["termination_code_expected"]
             and all_cuts == [f"M6A:CUT:{cut}"]
+            and unique_markers(out, BOOT + (f"M6A:CUT:{cut}",))
             and is_success(process.returncode, out, required_markers=BOOT + (f"M6A:CUT:{cut}",),
                            expected_exit=process.returncode,
                            forbidden_markers=FAILURES + ("M6A:PASS", "M1:PASS")))
@@ -140,11 +198,16 @@ def run_m6(case="normal", *, volume: Volume | None = None, label=None, timeout=6
     if case not in ("normal",) + M6A_CASES:
         raise ValueError("Unknown M6a case")
     if volume is None:
+        if case == "recover":
+            raise ValueError("Recovery requires an earlier actual run and its Volume")
         volume = create_volume(case, variant=case if case in ("torn-tail", "corrupt-all") else "normal",
                                scratch=case == "device-rights")
     if not isinstance(volume, Volume):
         raise ValueError("Only this harness's synthetic Volume objects are accepted")
     image = volume.guard()
+    previous = previous_stage(volume) if case == "recover" else None
+    if case != "recover" and (volume.directory / "last-stage.json").exists():
+        raise ValueError("Refuse to replay a mutator stage on an already used volume")
     before = image.read_bytes()
     if label is None: label = case
     import re
@@ -156,6 +219,14 @@ def run_m6(case="normal", *, volume: Volume | None = None, label=None, timeout=6
     source = (BUILD / "esp").resolve(strict=True)
     source.relative_to(BUILD.resolve())
     shutil.copytree(source, run_dir / "esp")
+    manifest = json.loads((BUILD / "manifest.json").read_text(encoding="utf-8"))
+    expected_feature = "milestone-m6a" if case == "normal" else f"test-m6a-{case}"
+    if (manifest.get("kernel_feature") != expected_feature or manifest.get("loader_feature") is not None
+            or manifest["source_sha256"] != source_hash()
+            or manifest["kernel"]["sha256"] != sha256(run_dir / "esp/kernel.elf")
+            or manifest["loader"]["sha256"] != sha256(run_dir / "esp/EFI/BOOT/BOOTX64.EFI")):
+        raise ValueError("Build the exact M6a case on the current source before running it")
+    save_json(run_dir / "build-manifest.json", manifest)
     env = environment()
     qemu = shutil.which("qemu-system-x86_64", path=env["PATH"])
     if not qemu: raise RuntimeError("Missing QEMU")
@@ -179,44 +250,32 @@ def run_m6(case="normal", *, volume: Volume | None = None, label=None, timeout=6
     version = subprocess.check_output([qemu, "--version"], env=env, text=True).strip()
     cut = int(case[-1]) if case.startswith("vm-cut-") else None
     started = datetime.now(timezone.utc).isoformat(); clock = time.monotonic()
-    rc, out, err, timed_out, crash = execute(args, env, cut=cut, timeout=timeout)
+    rc, out, err, timed_out, crash = execute(args, env, cut=cut, timeout=timeout, capture_directory=run_dir)
     after = image.read_bytes()
     (run_dir / "test-disk.after.img").write_bytes(after)
-    (run_dir / "serial.txt").write_text(out, encoding="utf-8", newline="")
-    (run_dir / "stderr.txt").write_text(err, encoding="utf-8", newline="")
-    service_cut = int(case[-1]) if case.startswith("service-cut-") else None
-    allowed = {2}
-    if case == "full": allowed = {4}
-    elif case in ("torn-tail", "no-flush", "readonly", "no-device"): allowed = {1}
-    elif case == "corrupt-all": allowed = {None}
-    elif case in UNKNOWN: allowed = {1, 2}
-    elif case == "recover":
-        selected = scan(before); allowed = {selected["generation"] if selected else None}
-    elif (point := cut or service_cut) is not None:
-        allowed = {1} if point == 1 else {2} if point >= 5 else {1, 2}
-    no_mutation = case in ("recover", "torn-tail", "corrupt-all", "no-flush", "readonly", "no-device") or cut == 1 or service_cut == 1
-    oracle = verify_volume(volume, out, allowed_generations=allowed,
-                           data_required=case not in NO_DATA and cut is None,
-                           unchanged=no_mutation, before=before,
-                           allow_torn=case in UNKNOWN or (cut or service_cut or 0) in (2, 3, 4))
+    oracle = verify_volume(volume, out, **oracle_policy(case, before))
     markers = BOOT + (f"M6A:CUT:{cut}",) if cut else case_markers(case)
-    guest_pass = crash["passed"] if cut else is_success(rc, out, timed_out, required_markers=markers,
-                                                       forbidden_markers=FAILURES)
-    unknown_pass = case not in UNKNOWN or out.splitlines().count("M6A:OUTCOME:UNKNOWN") == 1
+    guest_pass = crash["passed"] if cut else normal_success(rc, out, timed_out, case)
+    unknown_lines = [line for line in out.splitlines() if line.startswith("M6A:OUTCOME")]
+    unknown_pass = unknown_lines == (["M6A:OUTCOME:UNKNOWN"] if case in UNKNOWN else [])
     artifacts = {p.relative_to(run_dir).as_posix(): sha256(p) for p in (run_dir / "esp").rglob("*") if p.is_file()}
     artifacts.update({name: sha256(run_dir/name) for name in ("OVMF_CODE.fd", "OVMF_VARS.template.fd",
-                                                            "test-disk.before.img", "test-disk.after.img")})
+                                                            "test-disk.before.img", "test-disk.after.img", "build-manifest.json")})
     report = {"label": label, "case": case, "started_utc": started, "duration_s": time.monotonic()-clock,
               "timeout_s": timeout, "timed_out": timed_out, "raw_qemu_exit": rc,
               "expected_exit": "real host termination after exact cut" if cut else 33,
-              "required_markers": list(markers), "forbidden_markers": list(FAILURES),
+              "required_markers": list(markers),
+              "forbidden_markers": list(FAILURES + (("M6A:PASS", "M1:PASS") if cut else ())),
               "passed": bool(guest_pass and oracle["passed"] and unknown_pass),
               "command": args, "qemu_version": version, "profile": "M6a q35/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
               "base_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
               "source_fingerprint_version": 3, "source_sha256": source_hash(), "artifact_sha256": artifacts,
               "volume_path": str(image), "disk_oracle": oracle, "host_crash": crash,
+              "serial_sha256": sha256(run_dir / "serial.txt"), "stderr_sha256": sha256(run_dir / "stderr.txt"),
+              "previous_stage": str(previous) if previous else None,
               "unknown_marker_passed": unknown_pass, "run_directory": str(run_dir), "stdout": out, "stderr": err}
     save_json(run_dir / "result.json", report)
+    save_json(volume.directory / "last-stage.json", {"run_directory": str(run_dir)})
     print(out, end=""); print(err, end="")
     print(f"M6a raw={rc}; timeout={timed_out}; passed={report['passed']}; {run_dir}")
     return report, volume
@@ -224,7 +283,7 @@ def run_m6(case="normal", *, volume: Volume | None = None, label=None, timeout=6
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--case", choices=("normal",)+M6A_CASES, default="normal")
+    parser.add_argument("--case", choices=("normal",)+tuple(c for c in M6A_CASES if c != "recover"), default="normal")
     parser.add_argument("--smoke", action="store_true")
     args = parser.parse_args()
     raise SystemExit(0 if run_m6(args.case)[0]["passed"] else 1)

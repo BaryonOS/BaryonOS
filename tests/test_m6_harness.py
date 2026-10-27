@@ -4,7 +4,8 @@ from pathlib import Path
 import sys
 import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from run_m6 import execute
+from run_m6 import execute, normal_success, case_markers, run_m6
+from capture_m6 import required_groups, validate_coverage
 
 
 class CrashEvidence(unittest.TestCase):
@@ -39,6 +40,24 @@ class CrashEvidence(unittest.TestCase):
         rc, _, _, timed_out, evidence = self.child("raise SystemExit(33)", cut=None)
         self.assertEqual(rc, 33); self.assertFalse(timed_out)
         self.assertFalse(evidence["kill_requested"])
+
+    def test_normal_markers_are_unique_and_case_exact(self):
+        normal = "\n".join(case_markers("normal"))
+        self.assertTrue(normal_success(33, normal, False, "normal"))
+        for wrong in (normal+"\n"+normal, normal+"\nM6A:CASE:OTHER:PASS",
+                      normal+"\nM6A:PASS-bogus", normal+"\nM6A:CUT:1"):
+            self.assertFalse(normal_success(33, wrong, False, "normal"))
+
+    def test_recovery_refuses_a_fresh_volume_without_prior_guest(self):
+        with self.assertRaises(ValueError):
+            run_m6("recover")
+
+    def test_capture_rejects_missing_duplicate_reordered_coverage(self):
+        groups = [{"name": name, "evidence": "not-a-guest"} for name, _, _ in required_groups()]
+        self.assertEqual(len(groups), 54)  # Frozen M6a contract, not a VM result.
+        for altered in ([], groups[:-1], groups+groups[:1], list(reversed(groups))):
+            with self.assertRaises(ValueError): validate_coverage(altered, [])
+        with self.assertRaises(ValueError): validate_coverage(groups, [])
 
 
 if __name__ == "__main__":

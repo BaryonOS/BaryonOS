@@ -450,12 +450,12 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
             .map(|(r, _)| r)
             .or_else(|| runtime().policy.request())
             .ok_or(-1)?;
-        if request.binding != binding || request.ticket != a[1] {
-            return Err(-1);
-        }
         m4::engine()
             .check_block(pid, a[0], required(request.operation))
             .map_err(|e| e.code())?;
+        if request.binding != binding || request.ticket != a[1] {
+            return Err(-1);
+        }
         let output = m4::plan(s, slot, a[2], 320, true).map_err(|e| {
             runtime().invalid_outputs += 1;
             e.code()
@@ -547,9 +547,9 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         }
         if is_put {
             let h = runtime().put_header.unwrap();
-            let current = runtime().latest.as_ref().unwrap();
+            let current = runtime().latest.unwrap();
             let expected =
-                journal::prepare(current, h.generation, h.request_id, &runtime().put_value)
+                journal::prepare(&current, h.generation, h.request_id, &runtime().put_value)
                     .unwrap();
             assert_eq!(bytes, expected);
             runtime().journal_snapshot = bytes;
@@ -774,7 +774,7 @@ fn cut(s: &State, n: u8) -> bool {
     r.cut_fired = true;
     r.cut_observed = n;
     if (24..=29).contains(&case()) {
-        print_number(b"M6A:CUT:", u64::from(n));
+        number(b"M6A:CUT:", u64::from(n));
         // Deliberate host-kill rendezvous, no PASS and no fabricated completion.
         // IF0 prevents scheduling; the harnas must terminate the live QEMU.
         loop {
@@ -808,15 +808,15 @@ pub fn observe_fault(s: &mut State, slot: usize, c: &[u64; 22]) {
     s.observer_survivor(slot);
 }
 fn diagnostic(s: &State, slot: usize) {
-    print_number(b"M6A:USER_SLOT:", slot as u64);
+    number(b"M6A:USER_SLOT:", slot as u64);
     let code = word(s, slot, 240);
     if code <= 255 {
-        print_number(b"M6A:USER_CODE:", code);
+        number(b"M6A:USER_CODE:", code);
     }
-    print_number(b"M6A:USER_SYSCALL:", runtime().last_number[slot]);
+    number(b"M6A:USER_SYSCALL:", runtime().last_number[slot]);
     let e = runtime().last_result[slot];
     if (-18..=0).contains(&e) {
-        print_number(b"M6A:USER_ERRNO:", (-e) as u64);
+        number(b"M6A:USER_ERRNO:", (-e) as u64);
     }
 }
 pub fn cap_event(slot: usize, n: u64) {
@@ -1150,8 +1150,8 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
                     && r.errors[11] > 0
             );
         }
-        print_number(b"M6A:GENERATION:", value.generation);
-        print_number(b"M6A:REQUEST_ID:", value.request_id);
+        number(b"M6A:GENERATION:", value.generation);
+        number(b"M6A:REQUEST_ID:", value.request_id);
         hex(
             b"M6A:VALUE_DIGEST:",
             wire::checksum_update(wire::FNV_OFFSET, &value.value),
@@ -1168,6 +1168,9 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
     }
     // All live operations/results have either been consumed or belong to the
     // stopped service; cleanup may clear metadata, never the pinned pool.
+    // End this Runtime borrow before cleanup invokes detach, which takes its
+    // own exclusive borrow. IF0 does not permit overlapping Rust &mut values.
+    let pool = r.pool;
     for slot in 0..s.amount {
         if s.processes[slot].status != Status::Dead {
             s.processes[slot].status = Status::Dying;
@@ -1187,11 +1190,11 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         (0, 0, 0, 0, 0, 0)
     );
     for page in [
-        r.pool.descriptors,
-        r.pool.available,
-        r.pool.used,
-        r.pool.request,
-        r.pool.bounce,
+        pool.descriptors,
+        pool.available,
+        pool.used,
+        pool.request,
+        pool.bounce,
     ] {
         assert_eq!(s.frames.owner(page), Ok(Owner::Kernel));
         assert_eq!(s.kernel.leaf(page) & (4 | NX | 2), NX | 2);
@@ -1337,4 +1340,20 @@ fn marker() -> &'static [u8] {
         30 => b"M6A:CASE:RECOVER:PASS\n",
         _ => unreachable!(),
     }
+}
+
+fn number(label: &[u8], mut value: u64) {
+    let mut bytes = [b'0'; 20];
+    let mut at = 19;
+    loop {
+        bytes[at] = b'0' + (value % 10) as u8;
+        value /= 10;
+        if value == 0 {
+            break;
+        }
+        at -= 1;
+    }
+    serial::write(label);
+    serial::write(&bytes[at..]);
+    serial::write(b"\n");
 }

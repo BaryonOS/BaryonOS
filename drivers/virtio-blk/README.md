@@ -24,3 +24,37 @@ python -u tools/test_m5.py
 ```
 
 De normale smoke-CLI verwacht de READ-case. Negatieve features moeten via de variantbewuste gate worden gestart; alleen een raw33 is geen volledige testuitslag. Alle runs gebruiken eigen gegenereerde images onder `build/run/`, zonder netwerk of hostdevices. FNV-sectorchecksums zijn diagnostische testmetadata; SHA256 legt de ongewijzigde hostimage vast. Zie `docs/implementation/M5-BLOCK-SERVICE.md` voor ABI1.1, de 17 foutcases, scope en bewijsgrenzen.
+
+
+## M6a WRITE/FLUSH-profiel
+
+Het afzonderlijke M6a-profiel selecteert hetzelfde vaste device, dezelfde queue
+van acht plaatsen en dezelfde vijf gepinde pagina's. Het vereist VERSION_1 en
+FLUSH en weigert een readonly device. CONFIG_WCE wordt niet onderhandeld of
+gewijzigd; de flush-respecterende QEMU-backend wordt als writeback behandeld.
+De bestaande M5-initialisatie en readonly fixture blijven afzonderlijk.
+
+WRITE gebruikt header16 device-readable, bounce512 device-readable en status1
+device-writable; FLUSH gebruikt uitsluitend header16 en status1, met sector0.
+De ongebruikte derde FLUSH-descriptor is exactnul. Een succesvolle WRITE/FLUSH
+heeft used-lengte1. De kernel kopieert eerst alle512 userbytes naar eigen RAM,
+valideert daarna de vaste descriptorchain en markeert Published direct voordat
+avail.idx wordt geschreven. notify is geen publicatiegrens. Er blijft maximaal
+één operatie uitstaand; geen wachten op device-I/O met interrupts uit.
+
+Alleen WRITE-completion gevolgd door echte FLUSH-completion staat een app-ACK toe.
+Onzekere gepubliceerde WRITE/FLUSH-uitkomsten worden niet automatisch herhaald.
+Reset is quiescence, geen rollback of bewijs van duurzaamheid. Zonder resetack
+blijft de pool in quarantaine; gebruikersframes zijn nooit een DMA-target.
+Het M5-vertrouwensmodel zonder IOMMU blijft gelden. Een QEMU-procesabort bewijst
+geen hoststroomuitval of atomische fysieke sectorwrites.
+
+```powershell
+python tools/build.py --kernel-feature milestone-m6a
+python tools/run_m6.py --smoke
+```
+
+Varianten moeten met hun overeenkomstige feature en `--case` worden gestart.
+Koude recovery gebruikt uitsluitend de bestaande guarded Volume via run_m6;
+geen nieuw aangemaakt volume als herstelbewijs. Het exacte protocol, de zes
+servicecuts en zes externe VMcuts staan in docs/implementation/M6A-WRITE-RECOVERY.md.

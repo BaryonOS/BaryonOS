@@ -6,7 +6,11 @@ Nieuwe opdracht 27 oktober 2026 vanaf `448974b`, branch `codex/m6a-write-recover
 
 Eerste samenhangende bronversie: typed WRITE32/FLUSH64, Prepared/Published/Unknown, kernel-inputsnapshot512, modern transport, echte nieuwe M6-userdienst/client/supervisor en Python-volume-/crashharnas. Daadwerkelijk geslaagd: 30 capability- en 21 virtio-tests, 20 protocol/journaltests, 16 kernel-core-tests en 12 M6-ELF-artifacttests; core fmt/Clippy/no_std exit0. Eerste echte M6-crossbuild exit0; latere twee observercorrecties worden opnieuw gebouwd. Het root-harnas heeft 8 schijf-oracle- en 5 childprocescontroles geslaagd, geen guestbewijs. Logs/hashes onder verification/m6a/core/ en service/.
 
-Nog geen M6-QEMU-resultaat geclaimd. Nu: eerste bewaakte QEMU-run, gerichte transport-/harnasreviews en concrete integratiefouten herstellen. GitHub-e-mailprivacy blokkeerde de eerste push; alleen de ongepushte commitmetadata is naar het GitHub-noreplyadres hersteld. De branchpush en remote-ID-controle slaagden daarna, zonder privacy-/globale configwijziging.
+Gerichte echte M6-QEMU-proeven zijn nu geslaagd: normaal gen2, 512B-rechten/snapshot, dienstcrashes vóór WRITE en na ACK, FLUSH-fout en resetquarantaine. Ook een echte externe QEMU-kill na FLUSH (raw3765043201, geen PASS) plus nieuwe VM op exact dezelfde image is geslaagd: gen2, orakel groen, recovery veranderde geen imagebytes. Negen diagnostische records inclusief de eerdere afgewezen getalnotatie blijven onder verification/m6a/diagnostics/. Laatste broncorrecties zijn nog niet door de volledige gate afgedekt.
+
+Transport-/harnasreviews sloten concrete foutvolgorde-/Rust-borrow-/recovery-/coveragebevindingen; rapporten onder verification/m6a/. Root-hostharnas heeft nu 19 geslaagde controles. De volledige poort is geïmplementeerd (verwacht 54 groepen/49 VM, nog niet als geslaagd geclaimd), met 6 dienstcuts, 6 echte VMcut/recoveryparen, Unknown/full/corruptie en twee normale images. Nu: bronfreeze/checkpoint, die hele poort werkelijk uitvoeren, daarna M1–M5-regressie en onafhankelijke raw/hash-audit.
+
+GitHub-e-mailprivacy blokkeerde de eerste push; alleen de ongepushte commitmetadata is naar het GitHub-noreplyadres hersteld. De branchpush en remote-ID-controle slaagden daarna, zonder privacy-/globale configwijziging. M6a staat als concept-PR https://github.com/simonvanieperen/nieuw-os/pull/5 boven op de M5-branch.
 
 27 oktober 2026. M5 is geïmplementeerd en getest in het vaste QEMU-profiel.
 

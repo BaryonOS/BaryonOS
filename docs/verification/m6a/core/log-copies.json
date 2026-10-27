@@ -1,0 +1,35 @@
+{
+  "normalization": "UTF8/LF, trailing empty lines removed; raw source hashes retained",
+  "copies": [
+    {
+      "source": "crates\\virtio-core\\verification\\m6-clippy.log",
+      "source_raw_sha256": "c4c8db4f5be05804c48283959f0177c55d43329b687d1434b3f49f8568957325",
+      "canonical_copy": "m6-clippy.log.txt",
+      "canonical_sha256": "b44caabae8d39e825e88d74c85892558ce69cdb7812bd9d70806e428aa68c890"
+    },
+    {
+      "source": "crates\\virtio-core\\verification\\m6-diff.log",
+      "source_raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "canonical_copy": "m6-diff.log.txt",
+      "canonical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "crates\\virtio-core\\verification\\m6-fmt.log",
+      "source_raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "canonical_copy": "m6-fmt.log.txt",
+      "canonical_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "crates\\virtio-core\\verification\\m6-host.log",
+      "source_raw_sha256": "c1e53a54367fa2db840e4e22b79452fa1c765305ff4b79f1ef5530b69d2485cd",
+      "canonical_copy": "m6-host.log.txt",
+      "canonical_sha256": "3bf46459fd32a8ac519b73bab25a2e8c4cfe5c3079b5c58ec753e97890c055c0"
+    },
+    {
+      "source": "crates\\virtio-core\\verification\\m6-no_std.log",
+      "source_raw_sha256": "f9de4d8763e22c0ad72bfbec9c5604feca1f732bcf0c17ff5a57304726e823c5",
+      "canonical_copy": "m6-no_std.log.txt",
+      "canonical_sha256": "3e5bc8108a4eeedf6e0a05015284d747329d36762b1590b6b93a607d37ff0043"
+    }
+  ]
+}

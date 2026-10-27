@@ -48,6 +48,7 @@ class M6DiskOracle(unittest.TestCase):
     def test_no_marker_forgery_duplicate_or_hybrid_payload(self):
         volume = self.volume(); selected = self.append(volume); output = self.markers(selected)
         for invalid in ("M6A:PASS\n", output+output, output.replace("GENERATION:2", "GENERATION:2-bogus"),
+                        output.replace("VALUE_DIGEST:", "VALUE_DIGEST_BAD:"),
                         output.replace(selected["value_digest"], "0"*16)):
             self.assertFalse(verify_volume(volume, invalid, allowed_generations={2})["passed"])
         data = bytearray(volume.path.read_bytes()); data[(FIRST+1)*SECTOR+80] ^= 1
@@ -104,6 +105,30 @@ class M6DiskOracle(unittest.TestCase):
         self.assertIsNone(parse_record(volume.initial[FIRST*SECTOR:(FIRST+1)*SECTOR], 4))
         with self.assertRaises(ValueError): next_value(bytes(128), 5)
         with self.assertRaises(ValueError): scan(bytes(512))
+
+    def test_full_requires_every_committed_prefix_record(self):
+        volume = self.volume(); selected = self.append(volume, 4)
+        output = self.markers(selected)
+        self.assertFalse(verify_volume(volume, output, allowed_generations={4}, require_full_prefix=True)["passed"])
+        data = bytearray(volume.path.read_bytes())
+        for slot, raw in enumerate(volume.expected_records()):
+            data[(FIRST+slot)*SECTOR:(FIRST+slot+1)*SECTOR] = raw
+        volume.path.write_bytes(data)
+        self.assertTrue(verify_volume(volume, output, allowed_generations={4}, require_full_prefix=True)["passed"])
+
+    def test_recovery_retains_a_previously_permitted_torn_tail_exactly(self):
+        volume = self.volume(); data = bytearray(volume.initial); at = (FIRST+1)*SECTOR
+        data[at:at+200] = volume.expected_records()[1][:200]; volume.path.write_bytes(data)
+        before = bytes(data); output = self.markers(scan(before))
+        self.assertTrue(verify_volume(volume, output, allowed_generations={1}, allow_torn=True,
+                                     unchanged=True, before=before)["passed"])
+        data[at+10] ^= 1; volume.path.write_bytes(data)
+        self.assertFalse(verify_volume(volume, output, allowed_generations={1}, allow_torn=True,
+                                      unchanged=True, before=before)["passed"])
+
+    def test_new_volume_is_not_evidence_of_a_previous_run(self):
+        from run_m6 import previous_stage
+        with self.assertRaises(FileNotFoundError): previous_stage(self.volume())
 
 
 if __name__ == "__main__":
