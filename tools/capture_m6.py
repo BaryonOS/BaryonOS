@@ -92,8 +92,10 @@ def check_m6(directory, report, frozen):
     metadata = read_json(image.parent / "volume.json")
     volume = Volume(image.parent, metadata["seed"], synthetic_initial(metadata["seed"], metadata["variant"]),
                     metadata["variant"], metadata["scratch"], metadata["identity"])
-    if volume.guard() != image or volume.scratch != (case == "device-rights") and case != "recover":
-        raise ValueError("M6a image identity/scratch scope mismatch")
+    expected_variant = case if case in ("torn-tail", "corrupt-all") else "normal"
+    if (volume.guard() != image or case != "recover" and (
+            volume.scratch != (case == "device-rights") or volume.variant != expected_variant)):
+        raise ValueError("M6a image identity/variant/scratch scope mismatch")
     before = (directory/"test-disk.before.img").read_bytes()
     after = (directory/"test-disk.after.img").read_bytes()
     if image.read_bytes() != after:
