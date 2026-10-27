@@ -133,6 +133,20 @@ class CaptureGateArchive(unittest.TestCase):
 
         self.assertFalse(capture_gate.guest_matches("m2", "test-m2-nx", record))
 
+    def test_m4_case_requires_its_specific_markers(self):
+        result = {
+            "raw_qemu_exit": 33,
+            "stdout": "\n".join(("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK",
+                                 "M4:CASE:COPY:PASS", "M4:SURVIVOR_PROGRESS:PASS",
+                                 "M4:CLEANUP:PASS", "KS-09:PASS", "M4:PASS", "M1:PASS")),
+            "timed_out": False,
+            "required_markers": ["M1:PASS"],
+            "expected_exit": 33,
+            "forbidden_markers": [],
+        }
+
+        self.assertTrue(capture_gate.guest_matches("m4", "test-m4-copy", result))
+
     def test_archive_install_error_restores_the_previous_archive(self):
         staged = self.root / "staged"
         staged.mkdir()
