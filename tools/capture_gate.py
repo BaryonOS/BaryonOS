@@ -5,11 +5,40 @@ import argparse
 import json
 from pathlib import Path
 from common import ROOT, BUILD, save_json, sha256
-from run import is_success
+from run import is_success, MARKERS
+
+
+def guest_matches(phase, group, result):
+    if phase != "m1":
+        return is_success(result["raw_qemu_exit"], result["stdout"], result["timed_out"],
+                          required_markers=result["required_markers"],
+                          expected_exit=result["expected_exit"],
+                          forbidden_markers=result["forbidden_markers"])
+    # M1 also tests that the guest/harness rejects real failures. Preserve the
+    # original passed=false in those raw guest records; only the outer test passes.
+    lines = result["stdout"].splitlines()
+    if group in ("reject-missing-kernel", "reject-corrupt-kernel"):
+        return (result["raw_qemu_exit"] == 35 and not result["timed_out"]
+                and any(line.startswith("M1:FAIL:") for line in lines)
+                and "KERNEL:ENTRY" not in lines and "M1:PASS" not in lines)
+    if group == "kernel-panic-fails":
+        return (result["raw_qemu_exit"] == 35 and not result["timed_out"]
+                and "KERNEL:ENTRY" in lines and "M1:FAIL:KERNEL_PANIC" in lines
+                and "M1:PASS" not in lines)
+    if group == "real-hang-times-out":
+        return (result["timed_out"] and result["raw_qemu_exit"] is None
+                and result["passed"] is False and "KERNEL:ENTRY" in lines
+                and "M1:PASS" not in lines and not any("M1:FAIL" in line for line in lines))
+    if group == "real-ebs-stale-key-retry":
+        return is_success(result["raw_qemu_exit"], result["stdout"], result["timed_out"],
+                          required_markers=("BOOT:EBS_RETRY",) + MARKERS)
+    if group in ("cold-boot-1", "cold-boot-2", "cold-boot-3"):
+        return is_success(result["raw_qemu_exit"], result["stdout"], result["timed_out"])
+    return False
 
 
 def capture(phase: str):
-    suite_path = BUILD / f"{phase}-test-results.json"
+    suite_path = BUILD / ("test-results.json" if phase == "m1" else f"{phase}-test-results.json")
     suite = json.loads(suite_path.read_text(encoding="utf-8"))
     if suite.get("status") != "completed" or suite.get("passed") is not True:
         raise ValueError("Only a completed, passed gate can be captured")
@@ -18,19 +47,22 @@ def capture(phase: str):
     for group in suite["results"]:
         if group.get("passed") is not True:
             raise ValueError(f"Failed group: {group['name']}")
+        if group["evidence"] is None and phase == "m1" and group["name"] == "harness-rejects-wrong-exit-markers-timeout":
+            # This synthetic parser assertion has no guest artifact. It remains
+            # labeled as such in the unmodified suite, never as an extra VM run.
+            continue
         evidence = Path(group["evidence"])
         if not evidence.is_absolute():
             evidence = ROOT / evidence
         if evidence.is_dir():
             evidence.resolve().relative_to((BUILD / "run").resolve())
             result = json.loads((evidence / "result.json").read_text(encoding="utf-8"))
-            if not is_success(result["raw_qemu_exit"], result["stdout"], result["timed_out"],
-                              required_markers=result["required_markers"],
-                              expected_exit=result["expected_exit"],
-                              forbidden_markers=result["forbidden_markers"]):
+            if not guest_matches(phase, group["name"], result):
                 raise ValueError(f"Guest evidence failed: {evidence}")
             if (evidence / "serial.txt").read_bytes().decode("utf-8") != result["stdout"]:
                 raise ValueError(f"Serial evidence changed: {evidence}")
+            if (evidence / "stderr.txt").read_bytes().decode("utf-8") != result["stderr"]:
+                raise ValueError(f"Stderr evidence changed: {evidence}")
             for name, expected in result["artifact_sha256"].items():
                 artifact = evidence / name
                 artifact.resolve().relative_to(evidence.resolve())
@@ -66,5 +98,5 @@ def capture(phase: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("phase", choices=["m2", "m3", "m4"])
+    parser.add_argument("phase", choices=["m1", "m2", "m3", "m4"])
     capture(parser.parse_args().phase)
