@@ -1,5 +1,9 @@
 # Actuele projectstatus
 
+## Actief: M6a
+
+Nieuwe opdracht 27 oktober 2026 vanaf `448974b`, branch `codex/m6a-write-recovery`. Bouwcontract vóór code: implementation/M6A-WRITE-RECOVERY.md. Gekozen: WRITE512/FLUSH met expliciete rechten, een vierrecords-journal, echte dienstcrashes en QEMU-proceskills plus koude recovery op uitsluitend harnasgegenereerde images. Geen fysieke stroomuitvalclaim. Drie builders werken in exclusieve gebieden; root beheert tools/config/evidence/Git. Preflight strict daadwerkelijk exit0; code en M6a-tests nog niet afgerond. M5-basis hieronder behouden; oorspronkelijke status ook in verification/m5/PROJECT-STATE.md.
+
 27 oktober 2026. M5 is geïmplementeerd en getest in het vaste QEMU-profiel.
 
 Repository: https://github.com/simonvanieperen/nieuw-os. Branch `codex/m5-block-service`, concept-PR [#3](https://github.com/simonvanieperen/nieuw-os/pull/3). Basis `c630c59` (M1–M4); definitieve runtime-/harnasbron `7af544aa1b8d731ac27f384f0ba95aa44586a57d`. Latere commits bewaren documentatie en bewijs. Main bevat de startspecificatie; geen merge of release uitgevoerd.
