@@ -3,13 +3,13 @@
   "status": "completed",
   "passed": true,
   "source_fingerprint_version": 3,
-  "source_sha256": "09fef202b74c362b2ead29c7cac12fee772bee3a3d382a6dbf7d576798c3e8f5",
+  "source_sha256": "43e6c06e43e3ba602b49c304328f0c1700bc26dae0a1256f0d5d420421f55ae2",
   "host_test_sha256": {
     "tests/test_m6b_capture.py": "cdb297ed4b74fb9b5862a7d70b6887ca15ef23b0906186eadeb64c21cd7621e2",
     "tests/test_m6b_disk.py": "57ecfc8c5d099ca814b084649e4c0db9ff67ca17eb4ae430793168d586ea26d5",
     "tests/test_m6b_harness.py": "c6115765616fcc13976c7f9adda7cfb121ab2644fbf61e1f8508262d145b7410"
   },
-  "started_utc": "2026-10-27T22:56:50.712238+00:00",
+  "started_utc": "2026-10-27T23:07:10.639227+00:00",
   "results": [
     {
       "name": "strict-development-inventory",
@@ -41,7 +41,7 @@
     {
       "name": "normal-a",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-b1852d2ea7",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-28e833e8c1",
       "requirements": [
         "M6B-NORMAL",
         "M6B-EXTERNAL-DISK-ORACLE"
@@ -50,7 +50,7 @@
     {
       "name": "normal-a-cold-recovery",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-cold-recovery-be1a3ab1ac",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-cold-recovery-83671949a0",
       "requirements": [
         "M6B-COLD-RECOVERY",
         "M6B-NO-REPLAY",
@@ -69,7 +69,7 @@
     {
       "name": "normal-b",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-8990cc99ab",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-e77781c67a",
       "requirements": [
         "M6B-NORMAL",
         "M6B-EXTERNAL-DISK-ORACLE"
@@ -78,7 +78,7 @@
     {
       "name": "normal-b-cold-recovery",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-cold-recovery-0cdbf0c065",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-cold-recovery-f0de003d80",
       "requirements": [
         "M6B-COLD-RECOVERY",
         "M6B-NO-REPLAY",
@@ -105,7 +105,7 @@
     {
       "name": "errors",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-8a030899f3",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-f58f856e8c",
       "requirements": [
         "M6B-ERRORS",
         "M6B-EXTERNAL-DISK-ORACLE"
@@ -114,7 +114,7 @@
     {
       "name": "errors-cold-recovery",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-cold-recovery-329de17dc5",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-cold-recovery-a8512b36eb",
       "requirements": [
         "M6B-COLD-RECOVERY",
         "M6B-NO-REPLAY",
@@ -133,7 +133,7 @@
     {
       "name": "full",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-c871e387d1",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-d1a7f9f8be",
       "requirements": [
         "M6B-FULL",
         "M6B-EXTERNAL-DISK-ORACLE"
@@ -142,7 +142,7 @@
     {
       "name": "full-cold-recovery",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-cold-recovery-e913a262ca",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-cold-recovery-ee8afb734d",
       "requirements": [
         "M6B-COLD-RECOVERY",
         "M6B-NO-REPLAY",
@@ -161,7 +161,7 @@
     {
       "name": "corrupt",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-corrupt-de81f26232",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-corrupt-1985e36589",
       "requirements": [
         "M6B-CORRUPT",
         "M6B-EXTERNAL-DISK-ORACLE"
@@ -170,7 +170,7 @@
     {
       "name": "vm-cut-before-ack",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-f575243317",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-4488dd6735",
       "requirements": [
         "M6B-VM-CUT-BEFORE-ACK",
         "M6B-EXTERNAL-DISK-ORACLE"
@@ -179,7 +179,7 @@
     {
       "name": "vm-cut-before-ack-cold-recovery",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-cold-recovery-d2fbebb280",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-cold-recovery-1afd0959b0",
       "requirements": [
         "M6B-COLD-RECOVERY",
         "M6B-NO-REPLAY",
@@ -198,7 +198,7 @@
     {
       "name": "vm-cut-after-flush",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-45aae09ac1",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-feff45eb77",
       "requirements": [
         "M6B-VM-CUT-AFTER-FLUSH",
         "M6B-EXTERNAL-DISK-ORACLE"
@@ -207,7 +207,7 @@
     {
       "name": "vm-cut-after-flush-cold-recovery",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-cold-recovery-2dc9bd27b9",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-cold-recovery-d4db36a7b6",
       "requirements": [
         "M6B-COLD-RECOVERY",
         "M6B-NO-REPLAY",
@@ -226,11 +226,11 @@
     {
       "name": "m1-regression-after-m6b",
       "passed": true,
-      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m1-after-m6b-4abdfd73e3",
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m1-after-m6b-34ee0f8c91",
       "requirements": [
         "M1-BOOT"
       ]
     }
   ],
-  "finished_utc": "2026-10-27T22:57:56.390827+00:00"
+  "finished_utc": "2026-10-27T23:08:15.625232+00:00"
 }

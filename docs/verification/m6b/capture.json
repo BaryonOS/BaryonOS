@@ -1,21 +1,21 @@
 {
   "passed": true,
-  "source_sha256": "09fef202b74c362b2ead29c7cac12fee772bee3a3d382a6dbf7d576798c3e8f5",
+  "source_sha256": "43e6c06e43e3ba602b49c304328f0c1700bc26dae0a1256f0d5d420421f55ae2",
   "groups": 18,
   "vm_invocations": 14,
   "scope": "Raw output, exit, image, hash, exact coverage and recovery links rechecked.",
   "files": {
-    "m6b-two-image-check.json": "7937f987ee0d50218972b4d1451aee7ae881ff5cccc047ead8f2c3fbac552ba7",
-    "m6b-host-tests.stderr.txt": "0d8381c3cb4abc77d8ced8110d85984088ea573fadbc63b6b0deb79492bf87c8",
+    "m6b-two-image-check.json": "7c449ddd4e519976bee538d6d97d2333228c8bca472703ef20539c630f48889a",
+    "m6b-host-tests.stderr.txt": "5c474a4892ccb319c690143f851333039c4f59549b81c3ffd156a19e667e748a",
     "m6b-harness-tests.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "m6b-preflight.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "m6b-harness-tests.json": "4341e8473e71c82d8cf455c762338a84214a47fbb166cc77f5eda6ad133c8292",
-    "suite.json": "7d3871d1adf1c609c46c1705e4fafd9e47675467fafc45beb9e44b0ef6d5ed9c",
-    "m6b-preflight.json": "888b95b111b2e61d564ff9bacbcc445470b8fae0090b1af2fb89c0289cdf0fd6",
-    "m6b-host-tests.json": "e887de5217746aa845bf5977a05b514a99f1b87e4949167c4053b4e96d41ce22",
-    "m6b-host-tests.stdout.txt": "b019af08c62e53182e8335d126eb1a38f5f335b1adbc206d98b6edaaaafff5dc",
+    "m6b-harness-tests.json": "f7b399a9dadd434e679c68e86a80159713b07e50b6330cf7c7ebbebb4e5ebd8d",
+    "suite.json": "3273d2730660c097561c8d52d54dad703b48798fcd6266b10ecf1c24f0259e48",
+    "m6b-preflight.json": "95b5ac6d24d8f9eb43be1e9c7510acc4c502c52d15f5efbca43d90acf6e36fc4",
+    "m6b-host-tests.json": "3840306ef667ee9f74f0c86a808740b92d6f2e333284370a77d6a5cf8ba658b9",
+    "m6b-host-tests.stdout.txt": "299c972aad9908c449613f39a6aaf8a46badf2d3da836b29250efbafdad35144",
     "m6b-preflight.stdout.txt": "a38cdeb5fc30e5ebd29c654079ba7eaf27714d9fb5b07de698a4c115e4276401",
-    "m6b-harness-tests.stderr.txt": "6ac6a565ceafd896d414798a82b05d418b6cba4a3d3d9794729e5adebe402477",
-    "guest-runs.json": "cfa446f0166993680653f13feb474ae6726da176375e52ecc2ea30eadadd6bc6"
+    "m6b-harness-tests.stderr.txt": "5fe40b133324950c15e5cea5316353af4f0a8ae91bb3f7fc2b764928b77f5fb3",
+    "guest-runs.json": "091cab3ca72c0d0257eb736cdb1a37d685b925aa2d3d15ab305d64d0b68ae33a"
   }
 }

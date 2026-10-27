@@ -8,7 +8,7 @@
   "passed": true,
   "scope": "Canary seed variation; document bytes are explicitly deterministic.",
   "run_directories": [
-    "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-b1852d2ea7",
-    "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-8990cc99ab"
+    "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-28e833e8c1",
+    "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-e77781c67a"
   ]
 }

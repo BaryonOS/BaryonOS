@@ -8,7 +8,7 @@ verwijderen. De dienst schrijft via echte virtio-I/O; revisies en verwijderrecor
 blijven behouden na een koude herstart. Apps krijgen uitsluitend hun eigen
 domeinendpoint, geen rechtstreekse blok- of DMA-toegang.
 
-De volledige M6b-gate op broncheckpoint `20f7ed2` is geslaagd: **18 controlegroepen
+De volledige M6b-gate op broncheckpoint `1e61a20` is geslaagd: **18 controlegroepen
 en 14 echte VM-invocaties**, inclusief zes koude recoveries en twee externe
 QEMU-kills. Ook 22 Rust-tests en 26 M6b-harnastests slagen. Ruwe uitvoer, hashes en
 de onafhankelijke schijfcontrole staan in [verification/m6b](docs/verification/m6b/).

@@ -81,31 +81,31 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 
 running 13 tests
+test gaps_duplicate_slots_wrong_order_and_incomplete_scan_fail_closed ... ok
+test empty_value_is_a_real_object_distinct_from_absent_and_tombstone ... ok
 test malformed_commands_and_stale_replays_leave_every_object_unchanged ... ok
 test four_object_values_and_revisions_survive_complete_streaming_scan ... ok
-test empty_value_is_a_real_object_distinct_from_absent_and_tombstone ... ok
-test every_single_byte_corruption_in_an_occupied_record_is_rejected ... ok
-test gaps_duplicate_slots_wrong_order_and_incomplete_scan_fail_closed ... ok
-test malformed_tail_poison_is_sticky_and_never_guesses_an_older_success ... ok
 test full_log_never_overwrites_an_old_record_or_wraps_revisions ... ok
+test malformed_tail_poison_is_sticky_and_never_guesses_an_older_success ... ok
 test prepared_mutation_does_not_change_live_state_and_cannot_commit_twice ... ok
-test resealed_revision_skip_and_delete_of_never_created_object_are_rejected ... ok
-test prepared_mutation_cannot_be_committed_to_a_different_equal_sequence_state ... ok
-test tombstone_revision_prevents_replay_and_allows_explicit_cas_recreation ... ok
 test valid_checksum_never_replaces_structure_sequence_or_revision_validation ... ok
+test resealed_revision_skip_and_delete_of_never_created_object_are_rejected ... ok
 test zero_volume_is_valid_empty_state_but_out_of_range_scan_is_invalid ... ok
+test tombstone_revision_prevents_replay_and_allows_explicit_cas_recreation ... ok
+test prepared_mutation_cannot_be_committed_to_a_different_equal_sequence_state ... ok
+test every_single_byte_corruption_in_an_occupied_record_is_rejected ... ok
 
-test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
 
 running 9 tests
 test empty_put_is_valid_but_get_and_delete_cannot_smuggle_payloads ... ok
+test exact_offsets_and_domain_binding_are_canonical ... ok
 test all_objects_require_the_endpoint_bound_domain_for_every_operation ... ok
 test failure_replies_never_leak_object_revision_or_data ... ok
-test exact_offsets_and_domain_binding_are_canonical ... ok
 test get_can_return_a_present_empty_object_but_never_revision_zero ... ok
-test notfound_exposes_tombstone_revision_only_for_authorized_get_or_delete ... ok
 test reserved_fields_zero_tail_and_epoch_are_enforced ... ok
+test notfound_exposes_tombstone_revision_only_for_authorized_get_or_delete ... ok
 test sizes_large_integers_and_invalid_opcodes_are_bounded ... ok
 test successful_replies_bind_object_request_epoch_revision_and_payload ... ok
 
@@ -116,14 +116,14 @@ running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
      Running unittests src/lib.rs (target/debug/deps/object_core-bf291d3a0fb76009)
      Running tests/core.rs (target/debug/deps/core-506762df88e4c801)
      Running tests/wire.rs (target/debug/deps/wire-5d6f9555fc82ea32)
    Doc-tests object_core
 ..........................
 ----------------------------------------------------------------------
-Ran 26 tests in 0.675s
+Ran 26 tests in 0.676s
 
 OK
 Built own probe ELF: entry=0x40000000, 2 segments
@@ -146,9 +146,9 @@ warning: methods `rights` and `add_caps` are never used
 warning: 1 warning emitted
 
 Built own m6b_probe ELF: entry=0x40000000, 3 segments
-    Finished `release` profile [optimized] target(s) in 0.02s
+    Finished `release` profile [optimized] target(s) in 0.00s
    Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/kernel)
-    Finished `release` profile [optimized] target(s) in 1.37s
+    Finished `release` profile [optimized] target(s) in 1.26s
 Built and inspected m6b-normal: 3 ELF load segments
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
@@ -183,7 +183,7 @@ M6B:SURVIVOR_PROGRESS:PASS
 M6B:RESOURCES:PASS
 M6B:PASS
 M1:PASS
-M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-b1852d2ea7
+M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-28e833e8c1
 Built own probe ELF: entry=0x40000000, 2 segments
 Built own ipc_probe ELF: entry=0x40000000, 3 segments
 Built own m5_probe ELF: entry=0x40000000, 3 segments
@@ -206,7 +206,7 @@ warning: 1 warning emitted
 Built own m6b_probe ELF: entry=0x40000000, 3 segments
     Finished `release` profile [optimized] target(s) in 0.00s
    Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/kernel)
-    Finished `release` profile [optimized] target(s) in 1.36s
+    Finished `release` profile [optimized] target(s) in 1.35s
 Built and inspected m6b-recover: 3 ELF load segments
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
@@ -241,7 +241,7 @@ M6B:SURVIVOR_PROGRESS:PASS
 M6B:RESOURCES:PASS
 M6B:PASS
 M1:PASS
-M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-cold-recovery-be1a3ab1ac
+M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-cold-recovery-83671949a0
 Built own probe ELF: entry=0x40000000, 2 segments
 Built own ipc_probe ELF: entry=0x40000000, 3 segments
 Built own m5_probe ELF: entry=0x40000000, 3 segments
@@ -264,7 +264,7 @@ warning: 1 warning emitted
 Built own m6b_probe ELF: entry=0x40000000, 3 segments
     Finished `release` profile [optimized] target(s) in 0.00s
    Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/kernel)
-    Finished `release` profile [optimized] target(s) in 1.28s
+    Finished `release` profile [optimized] target(s) in 1.24s
 Built and inspected m6b-normal: 3 ELF load segments
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
@@ -299,7 +299,7 @@ M6B:SURVIVOR_PROGRESS:PASS
 M6B:RESOURCES:PASS
 M6B:PASS
 M1:PASS
-M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-8990cc99ab
+M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-e77781c67a
 Built own probe ELF: entry=0x40000000, 2 segments
 Built own ipc_probe ELF: entry=0x40000000, 3 segments
 Built own m5_probe ELF: entry=0x40000000, 3 segments
@@ -322,7 +322,7 @@ warning: 1 warning emitted
 Built own m6b_probe ELF: entry=0x40000000, 3 segments
     Finished `release` profile [optimized] target(s) in 0.00s
    Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/kernel)
-    Finished `release` profile [optimized] target(s) in 1.33s
+    Finished `release` profile [optimized] target(s) in 1.25s
 Built and inspected m6b-recover: 3 ELF load segments
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
@@ -357,7 +357,7 @@ M6B:SURVIVOR_PROGRESS:PASS
 M6B:RESOURCES:PASS
 M6B:PASS
 M1:PASS
-M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-cold-recovery-0cdbf0c065
+M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-cold-recovery-f0de003d80
 Built own probe ELF: entry=0x40000000, 2 segments
 Built own ipc_probe ELF: entry=0x40000000, 3 segments
 Built own m5_probe ELF: entry=0x40000000, 3 segments
@@ -380,7 +380,7 @@ warning: 1 warning emitted
 Built own m6b_probe ELF: entry=0x40000000, 3 segments
     Finished `release` profile [optimized] target(s) in 0.00s
    Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/kernel)
-    Finished `release` profile [optimized] target(s) in 1.18s
+    Finished `release` profile [optimized] target(s) in 1.25s
 Built and inspected m6b-errors: 3 ELF load segments
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
@@ -415,7 +415,7 @@ M6B:SURVIVOR_PROGRESS:PASS
 M6B:RESOURCES:PASS
 M6B:PASS
 M1:PASS
-M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-8a030899f3
+M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-f58f856e8c
 Built own probe ELF: entry=0x40000000, 2 segments
 Built own ipc_probe ELF: entry=0x40000000, 3 segments
 Built own m5_probe ELF: entry=0x40000000, 3 segments
@@ -438,7 +438,7 @@ warning: 1 warning emitted
 Built own m6b_probe ELF: entry=0x40000000, 3 segments
     Finished `release` profile [optimized] target(s) in 0.00s
    Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/kernel)
-    Finished `release` profile [optimized] target(s) in 1.23s
+    Finished `release` profile [optimized] target(s) in 1.30s
 Built and inspected m6b-recover: 3 ELF load segments
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
@@ -473,7 +473,7 @@ M6B:SURVIVOR_PROGRESS:PASS
 M6B:RESOURCES:PASS
 M6B:PASS
 M1:PASS
-M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-cold-recovery-329de17dc5
+M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-cold-recovery-a8512b36eb
 Built own probe ELF: entry=0x40000000, 2 segments
 Built own ipc_probe ELF: entry=0x40000000, 3 segments
 Built own m5_probe ELF: entry=0x40000000, 3 segments
@@ -496,7 +496,7 @@ warning: 1 warning emitted
 Built own m6b_probe ELF: entry=0x40000000, 3 segments
     Finished `release` profile [optimized] target(s) in 0.00s
    Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/kernel)
-    Finished `release` profile [optimized] target(s) in 1.29s
+    Finished `release` profile [optimized] target(s) in 1.28s
 Built and inspected m6b-full: 3 ELF load segments
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
@@ -531,7 +531,7 @@ M6B:SURVIVOR_PROGRESS:PASS
 M6B:RESOURCES:PASS
 M6B:PASS
 M1:PASS
-M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-c871e387d1
+M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-d1a7f9f8be
 Built own probe ELF: entry=0x40000000, 2 segments
 Built own ipc_probe ELF: entry=0x40000000, 3 segments
 Built own m5_probe ELF: entry=0x40000000, 3 segments
@@ -554,7 +554,7 @@ warning: 1 warning emitted
 Built own m6b_probe ELF: entry=0x40000000, 3 segments
     Finished `release` profile [optimized] target(s) in 0.00s
    Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/kernel)
-    Finished `release` profile [optimized] target(s) in 1.32s
+    Finished `release` profile [optimized] target(s) in 1.23s
 Built and inspected m6b-recover: 3 ELF load segments
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
@@ -589,7 +589,7 @@ M6B:SURVIVOR_PROGRESS:PASS
 M6B:RESOURCES:PASS
 M6B:PASS
 M1:PASS
-M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-cold-recovery-e913a262ca
+M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-cold-recovery-ee8afb734d
 Built own probe ELF: entry=0x40000000, 2 segments
 Built own ipc_probe ELF: entry=0x40000000, 3 segments
 Built own m5_probe ELF: entry=0x40000000, 3 segments
@@ -612,7 +612,7 @@ warning: 1 warning emitted
 Built own m6b_probe ELF: entry=0x40000000, 3 segments
     Finished `release` profile [optimized] target(s) in 0.00s
    Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/kernel)
-    Finished `release` profile [optimized] target(s) in 1.14s
+    Finished `release` profile [optimized] target(s) in 1.28s
 Built and inspected m6b-corrupt: 3 ELF load segments
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
@@ -628,7 +628,7 @@ M6B:SURVIVOR_PROGRESS:PASS
 M6B:RESOURCES:PASS
 M6B:PASS
 M1:PASS
-M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-corrupt-de81f26232
+M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-corrupt-1985e36589
 Built own probe ELF: entry=0x40000000, 2 segments
 Built own ipc_probe ELF: entry=0x40000000, 3 segments
 Built own m5_probe ELF: entry=0x40000000, 3 segments
@@ -651,7 +651,7 @@ warning: 1 warning emitted
 Built own m6b_probe ELF: entry=0x40000000, 3 segments
     Finished `release` profile [optimized] target(s) in 0.00s
    Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/kernel)
-    Finished `release` profile [optimized] target(s) in 1.19s
+    Finished `release` profile [optimized] target(s) in 1.21s
 Built and inspected m6b-vm-cut-before-ack: 3 ELF load segments
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
@@ -663,7 +663,7 @@ KS-02:PASS
 KS-03:PASS
 M2:PASS
 M6B:CUT:1
-M6b raw=-9; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-f575243317
+M6b raw=-9; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-4488dd6735
 Built own probe ELF: entry=0x40000000, 2 segments
 Built own ipc_probe ELF: entry=0x40000000, 3 segments
 Built own m5_probe ELF: entry=0x40000000, 3 segments
@@ -686,7 +686,7 @@ warning: 1 warning emitted
 Built own m6b_probe ELF: entry=0x40000000, 3 segments
     Finished `release` profile [optimized] target(s) in 0.00s
    Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/kernel)
-    Finished `release` profile [optimized] target(s) in 1.38s
+    Finished `release` profile [optimized] target(s) in 1.26s
 Built and inspected m6b-recover: 3 ELF load segments
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
@@ -721,7 +721,7 @@ M6B:SURVIVOR_PROGRESS:PASS
 M6B:RESOURCES:PASS
 M6B:PASS
 M1:PASS
-M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-cold-recovery-d2fbebb280
+M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-cold-recovery-1afd0959b0
 Built own probe ELF: entry=0x40000000, 2 segments
 Built own ipc_probe ELF: entry=0x40000000, 3 segments
 Built own m5_probe ELF: entry=0x40000000, 3 segments
@@ -744,7 +744,7 @@ warning: 1 warning emitted
 Built own m6b_probe ELF: entry=0x40000000, 3 segments
     Finished `release` profile [optimized] target(s) in 0.00s
    Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/kernel)
-    Finished `release` profile [optimized] target(s) in 1.12s
+    Finished `release` profile [optimized] target(s) in 1.13s
 Built and inspected m6b-vm-cut-after-flush: 3 ELF load segments
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
@@ -756,7 +756,7 @@ KS-02:PASS
 KS-03:PASS
 M2:PASS
 M6B:CUT:2
-M6b raw=-9; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-45aae09ac1
+M6b raw=-9; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-feff45eb77
 Built own probe ELF: entry=0x40000000, 2 segments
 Built own ipc_probe ELF: entry=0x40000000, 3 segments
 Built own m5_probe ELF: entry=0x40000000, 3 segments
@@ -779,7 +779,7 @@ warning: 1 warning emitted
 Built own m6b_probe ELF: entry=0x40000000, 3 segments
     Finished `release` profile [optimized] target(s) in 0.00s
    Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/kernel)
-    Finished `release` profile [optimized] target(s) in 1.25s
+    Finished `release` profile [optimized] target(s) in 1.24s
 Built and inspected m6b-recover: 3 ELF load segments
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
@@ -814,7 +814,7 @@ M6B:SURVIVOR_PROGRESS:PASS
 M6B:RESOURCES:PASS
 M6B:PASS
 M1:PASS
-M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-cold-recovery-2dc9bd27b9
+M6b raw=33; timeout=False; passed=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-cold-recovery-d4db36a7b6
     Finished `release` profile [optimized] target(s) in 0.00s
     Finished `release` profile [optimized] target(s) in 0.00s
 Built and inspected normal: 3 ELF load segments
@@ -824,5 +824,5 @@ BOOT:EBS_OK
 KERNEL:ENTRY
 BOOTINFO:OK
 M1:PASS
-QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m1-after-m6b-4abdfd73e3
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m1-after-m6b-34ee0f8c91
 M6b gate passed: 18 groups; broader regression separate

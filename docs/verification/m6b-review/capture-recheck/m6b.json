@@ -1,0 +1,18 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "tools/capture_m6b.py"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-native",
+  "started_utc": "2026-10-27T23:09:49.542760+00:00",
+  "duration_s": 0.27822251099860296,
+  "exit_code": 0,
+  "base_commit": "1e61a20beac67d685cf4bff5f0f9f588bf2cb56e",
+  "stdout": "docs/verification/m6b-review/capture-recheck/m6b.stdout.txt",
+  "stdout_sha256": "c7752a305e24b7796932cabaa78b5d1f6c23bc56b7f60a675dff83efe1ac9ce3",
+  "stderr": "docs/verification/m6b-review/capture-recheck/m6b.stderr.txt",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "new_vm_invocations": 0,
+  "scope": "Repeat capture validation of existing final run records; subprocess output retained in memory until command completes"
+}

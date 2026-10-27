@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "tests/test_capture_gate.py"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-native",
+  "started_unix": 1793142527.842621,
+  "duration_s": 0.16481971740722656,
+  "returncode": 0
+}

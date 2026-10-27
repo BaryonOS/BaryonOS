@@ -1,4 +1,4 @@
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
      Running unittests src/lib.rs (target/debug/deps/object_core-bf291d3a0fb76009)
      Running tests/core.rs (target/debug/deps/core-506762df88e4c801)
      Running tests/wire.rs (target/debug/deps/wire-5d6f9555fc82ea32)

@@ -1,0 +1,5 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (target/debug/deps/boot_protocol-0c4756592423435b)
+     Running unittests src/lib.rs (target/debug/deps/elf_loader_core-4ab92dc5239b8964)
+   Doc-tests boot_protocol
+   Doc-tests elf_loader_core

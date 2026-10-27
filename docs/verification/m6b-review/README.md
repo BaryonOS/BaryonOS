@@ -37,4 +37,15 @@ capturetests zijn daarvoor afzonderlijk opnieuw uitgevoerd (exit 0).
 herstelparen, twee vastgelegde SIGKILL-cuts, 22 Rust- en 26 harnastests.
 De aparte parser reconstrueerde de bronfingerprint uit `git archive` en de
 record-, revisie-, verwijder- en canarytoestand uit de werkelijke schijfbytes.
-De latere wijziging naar private M1-buildsnapshots krijgt een eigen eindgate.
+De latere wijziging naar private M1-buildsnapshots heeft een eigen eindgate:
+`final-native-audit.json` controleert opnieuw alle 18 groepen/14 VM-runs en 121
+artifacthashes op `1e61a20`. Het exacte afzonderlijke stdlib-auditscript staat in
+`independent_native_audit.py`; oorspronkelijke runtimepaden zijn behouden.
+De daadwerkelijke gate/hostlogs staan in `../m6b/`. `guards-final/` bewaart de
+8 snapshotbinding-, 7 parser- en 9 bestaande capturetests op dezelfde bron.
+
+De eerste capture-wrapperconsole bleek leeg ondanks de geregistreerde exit 0.
+De audit gebruikt daarvoor geen consolemarkerclaim: gastrecords, schijfbeelden
+en capturehashes zijn afzonderlijk gecontroleerd. `capture-recheck/` bevat een
+latere geslaagde capture-hercontrole van M1 en M6b, met volledige in-memory
+opgevangen stdout, exitstatus en hashes; daarbij zijn geen nieuwe VM's gestart.

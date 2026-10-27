@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "kernel_sha256": "daf93cc8791c0e43201536ba15f5851ea88b5ba5942501aa827db3c5ebd9331a",
+  "loader_sha256": "ec169b98c4f15b75f4df9086bd7ea502f6e22cf917167db5d192763681906336",
+  "source_sha256": "43e6c06e43e3ba602b49c304328f0c1700bc26dae0a1256f0d5d420421f55ae2",
+  "kernel_feature": "milestone-m6b",
+  "matches_both_final_normal_gate_runs": true,
+  "scope": "Build restored for normal M6b demo; binary identity checked, no additional VM counted"
+}

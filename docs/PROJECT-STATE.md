@@ -2,7 +2,7 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
-## M6b — native documentopslag in uitvoering
+## M6b — native documentopslag gebouwd en getest
 
 Basis `10b32e31671827f2bd63444113b981ff15bfbb73`, werkbranch `codex/m6b-object-storage`.
 De nieuwe `services/objects`-crate bevat een allocatorvrije Rust `no_std`-objectdienst:
@@ -12,41 +12,50 @@ krijgt blokrechten op de 32 journal-sectoren; apps krijgen hun eigen endpoint.
 Succes volgt pas na echte WRITE- en FLUSH-completion. Corruptie en onzekere
 mutaties sluiten toegang af; er is geen automatische herhaling van writes.
 
-Checkpoint `3ba72ca`: broncode en native buildselectie opgeslagen. 22 Rust-hosttests,
-16 harnastests en de eerste echte native QEMU-uitvoering zijn geslaagd: twee apps,
-acht bevestigde mutaties, vier afzonderlijke objectrevisies en onafhankelijke
-controle van de werkelijke schijfbytes. De eerste complete M6b-gate op `44892e7`
-is eveneens geslaagd: 18 groepen en 14 echte VM-invocaties, waaronder zes koude
-recoveries en twee externe kills. Een aparte parseraudit controleerde alle 121
-artifacts en de werkelijke schijfbytes. Review heeft daarna de binding van
-hostlogs en de verplichte artifactsets aangescherpt. De complete M6b-gate op
-`20f7ed2` slaagt eveneens: 18 groepen/14 VM, 22 Rust- en 26 harnastests; capture
-en een aparte audit van alle 121 artifacthashes en zeven volumes zijn groen.
+Definitieve uitvoeringsbron: `1e61a20beac67d685cf4bff5f0f9f588bf2cb56e`;
+fingerprint v3 `43e6c06e43e3ba602b49c304328f0c1700bc26dae0a1256f0d5d420421f55ae2`.
+Op 28 oktober 2026 (UTC-logdatum 27 oktober) zijn beide volledige eindgates en hun captures met exit 0
+afgerond. De resultaten hebben afzonderlijke scopes en worden niet met eerdere
+deelruns opgeteld:
 
-De ongewijzigde basis `10b32e3` heeft inmiddels de complete M6a-gate opnieuw
-gehaald: 54/54 controlegroepen, 49 echte VM-invocaties, zes externe QEMU-kills en
-17 afzonderlijke koude recoveries. Capture heeft raw output, hashes en links
-opnieuw gecontroleerd. Dit is één nieuwe Linux-run; oude deelresultaten zijn niet
-opgeteld. M2–M5 op `44892e7` zijn ook gecaptured: 67 groepen/56 VM, plus een
-M6a normal/recovery-paar. Eén eerste M1-coldboot bevatte onverwacht een oude
-M5-testvariant. De toenmalige parser accepteerde die ten onrechte; die gehele
-M1-run is afgewezen. De vervangingsoorzaak is niet vastgesteld. M1 heeft nu
-strikte fasecontrole en een vooraf gecontroleerde snapshotbinding aan de eigen
-buildhashes. De onafhankelijke review vond geen blocker in deze guards.
-Gerichte hostcontroles: 26 M6b-harnastests, 7 guestparsertests, 5 snapshotbinding-
-tests en 9 bestaande capturetests geslaagd. Twee volgende M1-pogingen zijn door
-de nieuwe hashguard vóór een verkeerde VM-start afgewezen: één in de regression-
-werkmap, één zonder andere actieve builds in de native werkmap. Oudere gegenereerde
-artifacts waren opnieuw verschenen; de oorzaak is niet vastgesteld. Alle drie
-afgewezen pogingen blijven bewaard en tellen niet mee als M1-acceptatie.
+| Scope | Bron | Groepen / echte VM-runs | Bewijs |
+|---|---|---|---|
+| M6b volledige objectopslag | `1e61a20` | 18 / 14 | `verification/m6b/` |
+| M1 volledige boot- en foutgate | `1e61a20` | 10 / 8 | `verification/regression-m6b/m1/` |
+| M2–M5 volledige regressies | `44892e7` | 67 / 56 | `verification/regression-m6b/m2/` t/m `m5/` |
+| M6a volledige ongewijzigde baseline | `10b32e3` | 54 / 49 | `verification/m6a-linux/` |
+| M6a normal/herstel op M6b-runtime | `44892e7` | afzonderlijk paar / 2 | `verification/regression-m6b/m6a-pair/` |
 
-De M1-gate gebruikt daarom per build een eigen UUID-snapshot met onmiddellijke
-hashcontrole. Herhaalde coldboots en negatieve fixtures gebruiken die vaste
-normale build, zonder opnieuw uit het veranderlijke `build/esp` te lezen.
-Deze laatste verifierwijziging is afzonderlijk beoordeeld; 8 snapshotbinding-,
-7 guestparser-, 9 capture- en 26 M6b-harnastests slagen. Zij vereist opnieuw de
-volledige M1- en M6b-gates na dit checkpoint; native kernel-, service- en
-buildinputs zijn sinds `44892e7` onveranderd.
+M6b omvat twee normale images met dezelfde binaries, CRUD/domeingrenzen, een
+volle journal, corruptie, twee echte externe QEMU-kills en zes koude recoveries.
+Een aparte AI-audit decodeerde zeven werkelijke volumes en controleerde alle
+121 artifacthashes. De M1-audit controleerde acht eigen gastlogs, 31 artifacthashes,
+vier buildprofielen en de echte 60-seconden-time-out. De 56 eerdere M2–M5-runs
+zijn onder de laatste parser opnieuw gecontroleerd; alle 68 native bron- en
+bouwinputs zijn sinds `44892e7` bytegelijk. Dat zijn geen 56 nieuwe runs.
+
+Hostbewijs: 22 Rust-objecttests, 26 M6b-harnastests, 8 snapshotbindingtests,
+7 guestparsertests en 9 bestaande capturetests. Zeven aanvullende proeven van
+de echte serviceadapter met een host-ABI-shim controleren onzekere WRITE/FLUSH-
+uitkomsten; dit is geen native M6b-devicefoutinjectie. Reviews staan in
+`verification/m6b-review/`; het zijn AI-reviews, geen menselijke audit of formeel
+bewijs. Rust 1.90.0, QEMU 10.0.2 en het bijbehorende OVMF-profiel zijn vastgelegd
+in `verification/native-linux-toolchain/`.
+
+Drie eerdere M1-pogingen zijn expliciet afgewezen en behouden. De oude parser
+accepteerde eerst een hogere testfase; later blokkeerde de hashguard teruggekeerde
+oude artifacts vóór QEMU-start. De vervangingsoorzaak is niet vastgesteld.
+M1 gebruikt nu per build een eigen gecontroleerde UUID-snapshot, dezelfde normale
+kopie voor alle coldboots/negatieve fixtures, strikte fasecontrole en hashes vóór
+iedere start. De afsluitende volledige M1-gate slaagt. De wrapperconsole is niet
+overal compleet; de bewijsbasis zijn de afzonderlijke gecontroleerde gastrecords.
+Details en de geslaagde capture-hercontrole zonder nieuwe VM-runs:
+`verification/regression-m6b/FINAL-ACCEPTANCE.md` en
+`verification/m6b-review/capture-recheck/`.
+
+De laatste lokale build is opnieuw `milestone-m6b`; kernel en loader zijn
+bytegelijk aan beide normale eindgate-runs. Dit is een buildcontrole zonder
+extra VM-start (`verification/m6b-ready/`).
 
 Deze begrensde lokale opslagproef heeft geen namen, directoryboom, garbage
 collection of encryptie. Verwijderrecords voorkomen het terugkomen van oude

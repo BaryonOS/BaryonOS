@@ -1,0 +1,74 @@
+{
+  "source_checkpoint": "1e61a20beac67d685cf4bff5f0f9f588bf2cb56e",
+  "base_checkpoint": "10b32e31671827f2bd63444113b981ff15bfbb73",
+  "source_fingerprint_version": 3,
+  "source_sha256": "43e6c06e43e3ba602b49c304328f0c1700bc26dae0a1256f0d5d420421f55ae2",
+  "m6b": {
+    "passed": true,
+    "groups": 18,
+    "vm_invocations": 14,
+    "audit": {
+      "groups": 18,
+      "vm_invocations": 14,
+      "m6b_vm_invocations": 13,
+      "m1_vm_invocations": 1,
+      "artifact_hashes": 121,
+      "volumes": 7,
+      "cold_recoveries": 6,
+      "actual_sigkill_records": 2,
+      "rust_host_tests": 22,
+      "python_harness_tests": 26
+    }
+  },
+  "m1": {
+    "passed": true,
+    "groups": 10,
+    "vm_invocations": 8,
+    "artifact_hashes": 31,
+    "wrapper_stdout_complete": false
+  },
+  "earlier_m2_m5": {
+    "checkpoint": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+    "groups": 67,
+    "vm_invocations": 56,
+    "rechecked_under_final_parser": true,
+    "identical_native_inputs": 68,
+    "new_vm_invocations_during_recheck": 0
+  },
+  "m6a_baseline": {
+    "checkpoint": "10b32e31671827f2bd63444113b981ff15bfbb73",
+    "groups": 54,
+    "vm_invocations": 49,
+    "proof": "docs/verification/m6a-linux/"
+  },
+  "m6a_pair": {
+    "checkpoint": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+    "vm_invocations": 2,
+    "proof": "docs/verification/regression-m6b/m6a-pair/"
+  },
+  "additional_host_guard_tests": {
+    "m6b-final-existing-capture-v2.stderr.txt": 9,
+    "m6b-final-guest-guards-v2.stderr.txt": 7,
+    "m6b-final-snapshot-binding-v2.stderr.txt": 8
+  },
+  "scope": "Separate accepted suites; prior partial, rejected and earlier M6b checkpoint runs are not added to these counts. Reviews are AI checks, not human audits or formal verification.",
+  "remaining_limits": [
+    "Four objects, two endpoint domains, 128 bytes per object, 32 append-only records",
+    "No filenames, directories, compaction or space reclamation",
+    "Logical deletion only; old payload bytes remain",
+    "No native storage encryption, internet/NAS adapter or native desktop integration",
+    "FNV is diagnostic, not cryptographic; no malicious rollback protection",
+    "Trusted QEMU/device/kernel transport; no physical power-loss or IOMMU claim",
+    "M6b Unknown I/O fault paths additionally probed with host ABI shim, not native fault injection",
+    "Historical artifact replacement cause remains undetermined; final gates use stricter artifact binding and private M1 snapshots"
+  ],
+  "normal_build_ready": {
+    "passed": true,
+    "kernel_sha256": "daf93cc8791c0e43201536ba15f5851ea88b5ba5942501aa827db3c5ebd9331a",
+    "loader_sha256": "ec169b98c4f15b75f4df9086bd7ea502f6e22cf917167db5d192763681906336",
+    "source_sha256": "43e6c06e43e3ba602b49c304328f0c1700bc26dae0a1256f0d5d420421f55ae2",
+    "kernel_feature": "milestone-m6b",
+    "matches_both_final_normal_gate_runs": true,
+    "scope": "Build restored for normal M6b demo; binary identity checked, no additional VM counted"
+  }
+}

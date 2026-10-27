@@ -1,0 +1,49 @@
+{
+  "base_commit": "1e61a20beac67d685cf4bff5f0f9f588bf2cb56e",
+  "source_sha256": "43e6c06e43e3ba602b49c304328f0c1700bc26dae0a1256f0d5d420421f55ae2",
+  "created_utc": "2026-10-27T23:08:48.022536+00:00",
+  "scope": "7 guest parser +8 build/snapshot binding +9 existing capture host tests; no native VM runs",
+  "test_source_sha256": {
+    "tests/test_guest_harness.py": "0e5a8d566c6f37544c0d2e160d73b34972c96506a14ace7ecfa21fa751da3713",
+    "tests/test_m1_artifact_binding.py": "5d8d44ae6c5430f389499a5f20fe0cb677744367f4793b57e1edd0fab8f6bf26",
+    "tests/test_capture_gate.py": "a41646e14138a24222b28398dce446951fbffcad57c283d3157ad781d334ee45"
+  },
+  "files": [
+    {
+      "path": "docs/verification/m6b-review/guards-final/m6b-final-guest-guards-v2.json",
+      "sha256": "ef1055101c9fb7146ac1cc5c776f2912180497404d11a44944a04e955eb1d84e"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards-final/m6b-final-guest-guards-v2.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards-final/m6b-final-guest-guards-v2.stderr.txt",
+      "sha256": "83166b089fbcb82fac63f22522fa6ae99bb5e46368cd35d756277fd463dd6346"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards-final/m6b-final-snapshot-binding-v2.json",
+      "sha256": "582af439ce2149d6b01b132bc13fc7475d7a658c6b849704080a12a1e1119cfb"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards-final/m6b-final-snapshot-binding-v2.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards-final/m6b-final-snapshot-binding-v2.stderr.txt",
+      "sha256": "a3368a96609729e1369d057dfefa6cbe072afa751335d84019542cf280c86090"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards-final/m6b-final-existing-capture-v2.json",
+      "sha256": "2da4837918ac117d10a111d68ffdb26ab20602b45b85921b2cb617fd35d57c25"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards-final/m6b-final-existing-capture-v2.stdout.txt",
+      "sha256": "f3fc5a113a0b979de42941211a0fa0e08bbccc346ba96fa0ef92beed977c8cd7"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards-final/m6b-final-existing-capture-v2.stderr.txt",
+      "sha256": "25660486d75d5f4b9efa5b4fdd11e9e694dfc634802c6601b239be93e2d13722"
+    }
+  ]
+}
