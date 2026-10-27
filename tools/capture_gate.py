@@ -10,10 +10,11 @@ from run import is_success, MARKERS
 
 def guest_matches(phase, group, result):
     if phase != "m1":
-        return is_success(result["raw_qemu_exit"], result["stdout"], result["timed_out"],
+        return (is_success(result["raw_qemu_exit"], result["stdout"], result["timed_out"],
                           required_markers=result["required_markers"],
                           expected_exit=result["expected_exit"],
                           forbidden_markers=result["forbidden_markers"])
+                and (phase != "m5" or result.get("disk_oracle", {}).get("passed") is True))
     # M1 also tests that the guest/harness rejects real failures. Preserve the
     # original passed=false in those raw guest records; only the outer test passes.
     lines = result["stdout"].splitlines()
@@ -42,7 +43,7 @@ def capture(phase: str):
     suite = json.loads(suite_path.read_text(encoding="utf-8"))
     if suite.get("status") != "completed" or suite.get("passed") is not True:
         raise ValueError("Only a completed, passed gate can be captured")
-    destination = ROOT / "docs/verification/m2-m4" / phase
+    destination = ROOT / "docs/verification/m5" if phase == "m5" else ROOT / "docs/verification/m2-m4" / phase
     runs = []
     for group in suite["results"]:
         if group.get("passed") is not True:
@@ -73,6 +74,12 @@ def capture(phase: str):
                     artifact = Path(result["firmware_source"][1])
                 if sha256(artifact) != expected:
                     raise ValueError(f"Artifact changed: {artifact}")
+            if phase == "m5":
+                from m5_disk import verify_disk
+                oracle = verify_disk(evidence / "test-disk.img", result["disk_oracle"], result["stdout"],
+                                     data_required=result["m5_case"] not in ("no-device", "reset-timeout"))
+                if not oracle["passed"]:
+                    raise ValueError(f"Disk oracle failed: {evidence}")
             runs.append(result)
         elif evidence.is_file():
             evidence.resolve().relative_to(BUILD.resolve())
@@ -98,5 +105,5 @@ def capture(phase: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("phase", choices=["m1", "m2", "m3", "m4"])
+    parser.add_argument("phase", choices=["m1", "m2", "m3", "m4", "m5"])
     capture(parser.parse_args().phase)

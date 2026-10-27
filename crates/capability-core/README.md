@@ -1,4 +1,4 @@
-# capability-core — M4 authority engine
+# capability-core — M4/M5 authority engine
 
 Dependencyvrije `no_std`-bibliotheek met `forbid(unsafe_code)`. Alle proces-,
 handle-, node-, endpoint- en queueopslag heeft een vaste capaciteit. Er is geen
@@ -73,7 +73,7 @@ vergelijken de volledige `Engine`-toestand, zonder hashcollisieaanname.
 ## Werkelijk uitgevoerd
 
 Rust 1.90.0, Windows MSVC-host, afzonderlijke targetmap
-`build/capability-tests`. De laatste uitvoering bevat 21 geslaagde unit-tests:
+`build/capability-tests`. De oorspronkelijke M4-uitvoering bevat 21 geslaagde unit-tests:
 
 | Contract | Hostbewijs |
 |---|---|
@@ -89,8 +89,8 @@ Rust 1.90.0, Windows MSVC-host, afzonderlijke targetmap
 KS-09, echte syscall-/ring3-grenzen, scheduler-/mappinglifecycle, usercopy en de
 onfeilbare outputcopy worden door de kernelintegratie getest. Deze hosttests
 bewijzen die grens niet. `NoSys`, `Fault` en `Type` hebben de juiste numerieke
-API-waarde; NoSys/Fault zijn kernelgrenzen en alle objecten in dit profiel zijn
-endpoints, zodat een tweede objecttype hier niet wordt gefabriceerd voor tests.
+API-waarde; NoSys/Fault zijn kernelgrenzen. De M5-uitbreiding hieronder toetst
+Type daadwerkelijk tussen Endpoint en BlockDevice.
 
 Exacte controles vanuit de projectroot, met de projecttoolchain en
 `CARGO_TARGET_DIR` op `build/capability-tests`:
@@ -108,3 +108,34 @@ hashrapport: `verification/`; de hoofdagent bewaart de compacte bewijsversie
 onder `docs/verification/`. Geen productiegegevens, crypto, dependencies of
 hostinstellingen toegevoegd. Herstel: draai uitsluitend deze crate en haar
 door root beheerde workspace-/kerneldependency terug, gezamenlijk met callers.
+
+## M5 — getypeerd readonly BlockDevice
+
+Vier extra objectrecords komen naast de bestaande64 endpointrecords; de
+endpointcapaciteit wordt niet verkleind. `BlockScope {device,first_sector,
+sector_count}` is immutable per object en wordt vóór creatie op nul/overflow
+gecontroleerd. Relatieve sectoren worden via `BlockAuthorization::sector`
+gecontroleerd vertaald; de transportlaag toetst daarnaast devicecapaciteit.
+
+Bootmanifest-API: `create_block_device(owner,scope) -> handle` met rootrechten29.
+`check_block(pid,handle,BLOCK_READ) -> BlockAuthorization` valideert handle/
+generation/revoked/object en vervolgens **type vóór recht**. De opaque
+`object_key()` bevat typegescheiden objectindex en generation. `scope()` geeft
+alleen een kopie van de vaste scope; er is geen userspace-creatiesyscall.
+
+Voor BlockDevice zijn READ1, DERIVE4, TRANSFER8 en REVOKE16 geldig; bit2 is
+ongeldig. Endpoint-SEND1 kan geen BlockDevice-READ1 worden. Een READ-cap zonder
+DERIVE geeft Access vóór een fout nieuw rechtenmasker; een geldige admincap met
+bit2 geeft Invalid. Lokale derive en IPC-transfer gebruiken dezelfde begrensde
+boom/refcounts/revocation/issuer-exit als endpoints. BlockDevice heeft geen
+RECV-handle of queue en valt niet onder last-RECV-closure. Na adminclose blijft
+een afgeleide READ-handle bruikbaar. Het laatste noderef ruimt het object op;
+owner-exit sluit nog gerefereerde tombstones.
+
+De huidige M5-hostsuite bevat26 tests: alle21 M4-tests plus vijf BlockDevice-
+transactieproeven. Gezamenlijke virtio-/capabilitychecks en actuele hashes staan
+onder `../virtio-core/verification/report.json`. De kernel moet poll opnieuw
+autoriseren: een eerder teruggegeven `BlockAuthorization`-kopie is geen blijvende
+vrijstelling van revocation. Tickets binden PID + objectkey/generation +
+transportepoch, onafhankelijk van de gebruikte lokale handle; een andere nog
+geldige READ-cap naar hetzelfde scopeobject binnen dezelfde PID mag pollen.

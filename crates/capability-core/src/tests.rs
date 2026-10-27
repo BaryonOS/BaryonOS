@@ -554,6 +554,150 @@ fn exact_public_error_numbers_match_the_syscall_contract() {
     }
 }
 
+fn block_scope() -> BlockScope {
+    BlockScope {
+        device: 0,
+        first_sector: 4,
+        sector_count: 4,
+    }
+}
+#[test]
+fn m5_block_type_scope_and_admin_close_are_enforced() {
+    run(|e| {
+        setup(e, 1);
+        let ep = e.create_endpoint(1).unwrap();
+        let root = e.create_block_device(1, block_scope()).unwrap();
+        assert_atomic(e, Error::Type, |e| e.check_block(1, ep, BLOCK_READ));
+        assert_atomic(e, Error::Type, |e| e.check_block(1, ep, RECV));
+        assert_atomic(e, Error::Type, |e| e.check_endpoint(1, root, SEND));
+        assert_atomic(e, Error::Type, |e| e.check_endpoint(1, root, 32));
+        let read = e.derive(1, root, BLOCK_READ).unwrap();
+        let auth = e.check_block(1, read, BLOCK_READ).unwrap();
+        assert_eq!(auth.scope(), block_scope());
+        assert_eq!(auth.sector(0), Ok(4));
+        assert_eq!(auth.sector(2), Ok(6));
+        assert_eq!(auth.sector(4), Err(Error::Invalid));
+        assert_atomic(e, Error::Invalid, |e| e.derive(1, root, RECV));
+        assert_atomic(e, Error::Access, |e| e.derive(1, read, BLOCK_READ));
+        e.close(1, root).unwrap();
+        assert_eq!(e.check_block(1, read, BLOCK_READ), Ok(auth));
+        assert_atomic(e, Error::Access, |e| e.revoke(1, read));
+        e.close(1, read).unwrap();
+        assert_eq!(e.stats().block_objects, 0);
+        assert_eq!(e.stats().endpoints, 1);
+    });
+}
+#[test]
+fn m5_block_transfer_revoke_and_owner_exit_use_common_lifetimes() {
+    run(|e| {
+        setup(e, 2);
+        let root = e.create_block_device(1, block_scope()).unwrap();
+        let (ep, dest) = destination(e);
+        assert_atomic(e, Error::Invalid, |e| {
+            e.bootstrap_delegate(1, root, 2, RECV)
+        });
+        assert_atomic(e, Error::Invalid, |e| {
+            e.send(1, dest, &cap_message(root, RECV))
+        });
+        e.send(1, dest, &cap_message(root, BLOCK_READ)).unwrap();
+        let received = e.receive(2, ep).unwrap();
+        let h = received.caps[0].handle;
+        assert_eq!(
+            e.check_block(2, h, BLOCK_READ).unwrap().scope(),
+            block_scope()
+        );
+        e.revoke(1, root).unwrap();
+        assert_atomic(e, Error::Revoked, |e| e.check_block(2, h, BLOCK_READ));
+        e.close(2, h).unwrap();
+        let child = e.bootstrap_delegate(1, root, 2, BLOCK_READ).unwrap();
+        e.exit(1).unwrap();
+        assert_atomic(e, Error::Revoked, |e| e.check_block(2, child, BLOCK_READ));
+        e.close(2, child).unwrap();
+        e.exit(2).unwrap();
+        assert_eq!(e.stats().nodes, 0);
+        assert_eq!(e.stats().block_objects, 0);
+    });
+}
+
+#[test]
+fn m5_revoked_queued_block_cap_cancels_complete_mixed_type_message() {
+    run(|e| {
+        setup(e, 2);
+        let block = e.create_block_device(1, block_scope()).unwrap();
+        let endpoint = e.create_endpoint(1).unwrap();
+        let (inbox, send) = destination(e);
+        let mut m = cap_message(block, BLOCK_READ);
+        m.cap_count = 2;
+        m.caps[1] = Cap {
+            handle: endpoint,
+            rights: SEND,
+        };
+        e.send(1, send, &m).unwrap();
+        e.revoke(1, block).unwrap();
+        assert_atomic(e, Error::Again, |e| e.receive(2, inbox));
+        e.check_block(1, block, BLOCK_READ).unwrap();
+        e.check_endpoint(1, endpoint, SEND).unwrap();
+        assert_eq!(e.stats().queued_messages, 0);
+        assert_eq!(e.stats().block_objects, 1);
+    });
+}
+#[test]
+fn m5_block_quota_is_separate_from_all_64_endpoint_objects() {
+    run(|e| {
+        setup(e, 16);
+        for pid in 1..=16 {
+            for _ in 0..4 {
+                e.create_endpoint(pid).unwrap();
+            }
+        }
+        let mut roots = [0; 4];
+        for h in &mut roots {
+            *h = e.create_block_device(1, block_scope()).unwrap();
+        }
+        assert_eq!(e.stats().endpoints, 64);
+        assert_eq!(e.stats().block_objects, 4);
+        assert_atomic(e, Error::Quota, |e| e.create_block_device(2, block_scope()));
+        e.close(1, roots[0]).unwrap();
+        e.create_block_device(2, block_scope()).unwrap();
+        assert_eq!(e.stats().endpoints, 64);
+    });
+}
+#[test]
+fn m5_block_scope_invalid_masks_error_order_and_generation_retirement() {
+    run(|e| {
+        setup(e, 1);
+        for scope in [
+            BlockScope {
+                sector_count: 0,
+                ..block_scope()
+            },
+            BlockScope {
+                first_sector: u64::MAX,
+                sector_count: 1,
+                ..block_scope()
+            },
+        ] {
+            assert_atomic(e, Error::Invalid, |e| e.create_block_device(1, scope));
+        }
+        e.blocks[0].generation = u32::MAX;
+        let root = e.create_block_device(1, block_scope()).unwrap();
+        let old = e.check_block(1, root, BLOCK_READ).unwrap();
+        assert_atomic(e, Error::Invalid, |e| e.check_block(1, root, RECV));
+        assert_atomic(e, Error::Invalid, |e| e.derive(1, root, 32));
+        let read = e.derive(1, root, BLOCK_READ).unwrap();
+        assert_atomic(e, Error::Access, |e| e.derive(1, read, RECV));
+        e.close(1, root).unwrap();
+        e.close(1, read).unwrap();
+        assert!(e.blocks[0].retired);
+        let new = e.create_block_device(1, block_scope()).unwrap();
+        assert_ne!(
+            e.check_block(1, new, BLOCK_READ).unwrap().object_key(),
+            old.object_key()
+        );
+        assert_atomic(e, Error::BadHandle, |e| e.check_block(1, root, BLOCK_READ));
+    });
+}
+
 #[test]
 fn bounded_transaction_state_machine_fuzz_preserves_error_atomicity() {
     run(|e| {

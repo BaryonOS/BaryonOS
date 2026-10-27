@@ -41,7 +41,7 @@ const EMPTY_EVIDENCE: Evidence = Evidence {
 };
 static mut EVIDENCE: Evidence = EMPTY_EVIDENCE;
 static mut LIFECYCLE_ROUNDS: u8 = 0;
-fn engine() -> &'static mut Engine {
+pub(super) fn engine() -> &'static mut Engine {
     // SAFETY: One CPU, IF=0, no nested engine calls or retained engine borrows.
     unsafe { &mut *ptr::addr_of_mut!(ENGINE) }
 }
@@ -49,7 +49,7 @@ fn evidence() -> &'static mut Evidence {
     // SAFETY: Same serialized service-stack lifetime as Engine; no IRQ mutates it.
     unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
 }
-fn plan(
+pub(super) fn plan(
     state: &State,
     slot: usize,
     pointer: u64,
@@ -72,7 +72,7 @@ fn plan(
     })
     .map_err(|_| Error::Fault)
 }
-fn read_plan(plan: &CopyPlan) -> [u8; 320] {
+pub(super) fn read_plan(plan: &CopyPlan) -> [u8; 320] {
     let mut bytes = [0; 320];
     let mut at = 0;
     for chunk in &plan.chunks[..plan.count] {
@@ -87,7 +87,7 @@ fn read_plan(plan: &CopyPlan) -> [u8; 320] {
     }
     bytes
 }
-fn write_plan(plan: &CopyPlan, bytes: &[u8; 320]) {
+pub(super) fn write_plan(plan: &CopyPlan, bytes: &[u8; 320]) {
     let mut at = 0;
     for chunk in &plan.chunks[..plan.count] {
         paging::physical(chunk.physical, |dest| {
@@ -160,6 +160,8 @@ fn dispatch(
                 }
                 let message = Message::decode(&snapshot)?;
                 engine().send(pid, args[0], &message)?;
+                #[cfg(feature = "milestone-m5")]
+                super::m5::sent(state, slot, &message);
                 Ok(0)
             } else {
                 // Full output validation precedes all node/slot/queue commits.

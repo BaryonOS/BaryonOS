@@ -6,7 +6,7 @@ Repository: https://github.com/simonvanieperen/nieuw-os (privé). Werkbranch: `c
 
 ## Actief: M5
 
-Nieuwe opdracht27 oktober2026 op `codex/m5-block-service`, basis `c630c59`. Bouwcriteria en DMA-/TCB-grenzen zijn vóór de code vastgelegd in implementation/M5-BLOCK-SERVICE.md; WORK-QUEUE.md registreert ownership/status. READ-only blokdienst in ring3 met modernvirtio-kerneltransport, vaste gepinde bouncepool en nonblocking typeddevicecaps. Driver-/serviceherstart en echte QEMU-foutproeven volgen. Nog geen M5-testresultaat geclaimd. M1–M4 hieronder blijven het behaalde basischeckpoint.
+Nieuwe opdracht 27 oktober 2026 op `codex/m5-block-service`, basis `c630c59`. Bouwcriteria en DMA-/TCB-grenzen zijn vóór de code vastgelegd in implementation/M5-BLOCK-SERVICE.md; WORK-QUEUE.md registreert ownership/status. De eerste bronversie bevat een alleen-lezen blokdienst in ring 3, modern virtio-kerneltransport, een gepinde bouncepool en asynchrone getypeerde apparaatrechten. Hostcontroles: 26 capabilitytests, 12 virtio-tests en 9 protocoltests geslaagd; user-ELF gebouwd (exit0). Het schijf-orakel heeft 5 geslaagde negatieve hosttests. Kernelbuild, echte QEMU-I/O, foutproeven en regressie zijn nog niet afgerond. M1–M4 hieronder blijven het behaalde basischeckpoint.
 
 ## Hoofdresultaat
 

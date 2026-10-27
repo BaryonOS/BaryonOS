@@ -15,10 +15,14 @@ use core::{
 use kernel_core::{user, Frames, Kind, Owner, PAGE};
 #[cfg(feature = "milestone-m4")]
 mod m4;
+#[cfg(feature = "milestone-m5")]
+mod m5;
 #[cfg(not(feature = "milestone-m4"))]
 const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
-#[cfg(feature = "milestone-m4")]
+#[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
 const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
+#[cfg(feature = "milestone-m5")]
+const ELF: &[u8] = include_bytes!(env!("NOS_M5_ELF"));
 const DATA: u64 = 0x40010000;
 const HEAP: u64 = 0x60000000;
 const STACK: u64 = 0x7ffef000;
@@ -164,6 +168,8 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
     let image = user::parse(ELF).expect("embedded user ELF");
     assert_eq!(image.entry, 0x40000000);
     kernel.begin_scratch(frames);
+    #[cfg(feature = "milestone-m5")]
+    m5::prepare(frames, &mut kernel);
     // SAFETY: One CPU, IF=0; permanent state constructed once. The service stack
     // is the retained guarded MAIN stack; no interrupted frame is stored there.
     unsafe {
@@ -223,7 +229,9 @@ impl State {
         self.exited = false;
         self.survivor_slot = 1;
         self.unexpected = false;
-        self.amount = if cfg!(feature = "milestone-m4") {
+        self.amount = if cfg!(feature = "milestone-m5") && (14..=16).contains(&m5_case()) {
+            4
+        } else if cfg!(feature = "milestone-m4") {
             3
         } else if mode() != 0 || self.round >= 2 {
             2
@@ -231,135 +239,12 @@ impl State {
             16
         };
         for slot in 0..self.amount {
-            assert!(self.processes[slot].status == Status::Dead);
-            let (pid, next) = user::issue_pid(self.next_pid).expect("PID exhaustion");
-            self.next_pid = next;
-            let mut p = Process::new();
-            p.map_slot = slot;
-            p.pid = pid;
-            p.pattern = 0x4141000000000000 | u64::from(pid);
-            p.paging = Some(Paging::new_user(
-                self.frames,
-                &self.kernel,
-                u16::try_from(slot + 1).unwrap(),
-            ));
-            let image = user::parse(ELF).unwrap();
-            for segment in &image.segments[..image.count] {
-                let start = segment.va & !(PAGE - 1);
-                let end = (segment.va + segment.memory_size + PAGE - 1) & !(PAGE - 1);
-                for va in (start..end).step_by(PAGE as usize) {
-                    let kind = if segment.executable {
-                        Kind::Text
-                    } else {
-                        Kind::Data
-                    };
-                    let pa = self.add_user(
-                        &mut p,
-                        va,
-                        kind,
-                        segment.writable,
-                        segment.executable,
-                        false,
-                    );
-                    let first = core::cmp::max(va, segment.va);
-                    let last = core::cmp::min(va + PAGE, segment.va + segment.file_size);
-                    if first < last {
-                        let offset = (segment.file_offset + first - segment.va) as usize;
-                        let length = (last - first) as usize;
-                        paging::physical(pa, |dest| {
-                            // SAFETY: Entire frame exclusively allocated and not executable yet;
-                            // validated ELF source/file range, nonoverlapping kernel input.
-                            unsafe {
-                                ptr::copy_nonoverlapping(
-                                    ELF.as_ptr().add(offset),
-                                    dest.add((first - va) as usize),
-                                    length,
-                                );
-                            }
-                        });
-                    }
-                    let zero_start = core::cmp::max(va, segment.va + segment.file_size);
-                    let zero_end = core::cmp::min(va + PAGE, segment.va + segment.memory_size);
-                    if zero_start < zero_end {
-                        paging::physical(pa, |bytes| {
-                            for offset in zero_start - va..zero_end - va {
-                                // SAFETY: Exclusive newly allocated frame, not yet
-                                // executable. Observe actual ELF BSS zeroing bytes.
-                                assert_eq!(
-                                    unsafe { bytes.add(offset as usize).read_volatile() },
-                                    0
-                                );
-                            }
-                        });
-                    }
-                    if segment.executable {
-                        self.kernel.identity_readonly(self.frames, pa);
-                    }
-                    p.paging.as_mut().unwrap().map_user(
-                        self.frames,
-                        va,
-                        pa,
-                        segment.writable,
-                        segment.executable,
-                    );
-                }
-            }
-            for va in (HEAP..HEAP + 65536).step_by(PAGE as usize) {
-                self.add_user(&mut p, va, Kind::Data, true, false, true);
-            }
-            for va in (STACK..STACK_END).step_by(PAGE as usize) {
-                self.add_user(&mut p, va, Kind::Stack, true, false, true);
-            }
-            let lower = 0x30000000 + slot as u64 * 0x6000;
-            assert_eq!(self.kernel.leaf(lower), 0);
-            assert_eq!(self.kernel.leaf(lower + 0x5000), 0);
-            for i in 0..4 {
-                let pa = self
-                    .frames
-                    .allocate(Owner::Kernel, paging::zero_dynamic)
-                    .unwrap();
-                p.kernel_frames[i] = pa;
-                self.kernel.map(self.frames, pa, pa, true, false);
-                self.kernel
-                    .map(self.frames, lower + PAGE * (i as u64 + 1), pa, true, false);
-            }
-            p.kernel_top = lower + 0x5000;
-            let own_mode = if cfg!(feature = "milestone-m4") {
-                0
-            } else if mode() == 17 {
-                2
-            } else if mode() == 15 {
-                if slot == 1 {
-                    15
-                } else {
-                    0
-                }
-            } else if slot == 0 {
-                if mode() == 0 && self.round >= 2 {
-                    2
-                } else {
-                    mode()
-                }
-            } else {
-                0
-            };
-            write_word(p.physical(DATA), own_mode);
-            write_word(p.physical(DATA + 8), 0);
-            write_word(p.physical(DATA + 16), p.pattern);
-            write_word(p.physical(DATA + 24), 0);
-            p.context[17] = image.entry;
-            p.context[18] = 0x23;
-            p.context[19] = 0x202;
-            p.context[20] = STACK_END - 8;
-            p.context[21] = 0x1b;
-            assert_eq!(read_word(p.physical(STACK_END - 8)), 0);
-            p.status = Status::Ready;
-            if cfg!(feature = "test-m3-large-image") {
-                assert_eq!(p.count, 67);
-            }
-            self.processes[slot] = p;
+            self.spawn_process(slot);
         }
-        let target = if mode() == 5 {
+
+        let target = if cfg!(feature = "milestone-m5") {
+            0
+        } else if mode() == 5 {
             text_start()
         } else {
             self.processes[1].physical(DATA + 16)
@@ -370,8 +255,136 @@ impl State {
         if cfg!(feature = "test-m3-large-image") {
             serial::write(b"M3:LARGE_IMAGE:PASS\n");
         }
-        #[cfg(feature = "milestone-m4")]
+        #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
         m4::manifest(self);
+        #[cfg(feature = "milestone-m5")]
+        m5::manifest(self);
+    }
+    fn spawn_process(&mut self, slot: usize) {
+        assert!(self.processes[slot].status == Status::Dead);
+        let (pid, next) = user::issue_pid(self.next_pid).expect("PID exhaustion");
+        self.next_pid = next;
+        let mut p = Process::new();
+        p.map_slot = slot;
+        p.pid = pid;
+        p.pattern = 0x4141000000000000 | u64::from(pid);
+        p.paging = Some(Paging::new_user(
+            self.frames,
+            &self.kernel,
+            u16::try_from(slot + 1).unwrap(),
+        ));
+        let image = user::parse(ELF).unwrap();
+        for segment in &image.segments[..image.count] {
+            let start = segment.va & !(PAGE - 1);
+            let end = (segment.va + segment.memory_size + PAGE - 1) & !(PAGE - 1);
+            for va in (start..end).step_by(PAGE as usize) {
+                let kind = if segment.executable {
+                    Kind::Text
+                } else {
+                    Kind::Data
+                };
+                let pa = self.add_user(
+                    &mut p,
+                    va,
+                    kind,
+                    segment.writable,
+                    segment.executable,
+                    false,
+                );
+                let first = core::cmp::max(va, segment.va);
+                let last = core::cmp::min(va + PAGE, segment.va + segment.file_size);
+                if first < last {
+                    let offset = (segment.file_offset + first - segment.va) as usize;
+                    let length = (last - first) as usize;
+                    paging::physical(pa, |dest| {
+                        // SAFETY: Entire frame exclusively allocated and not executable yet;
+                        // validated ELF source/file range, nonoverlapping kernel input.
+                        unsafe {
+                            ptr::copy_nonoverlapping(
+                                ELF.as_ptr().add(offset),
+                                dest.add((first - va) as usize),
+                                length,
+                            );
+                        }
+                    });
+                }
+                let zero_start = core::cmp::max(va, segment.va + segment.file_size);
+                let zero_end = core::cmp::min(va + PAGE, segment.va + segment.memory_size);
+                if zero_start < zero_end {
+                    paging::physical(pa, |bytes| {
+                        for offset in zero_start - va..zero_end - va {
+                            // SAFETY: Exclusive newly allocated frame, not yet
+                            // executable. Observe actual ELF BSS zeroing bytes.
+                            assert_eq!(unsafe { bytes.add(offset as usize).read_volatile() }, 0);
+                        }
+                    });
+                }
+                if segment.executable {
+                    self.kernel.identity_readonly(self.frames, pa);
+                }
+                p.paging.as_mut().unwrap().map_user(
+                    self.frames,
+                    va,
+                    pa,
+                    segment.writable,
+                    segment.executable,
+                );
+            }
+        }
+        for va in (HEAP..HEAP + 65536).step_by(PAGE as usize) {
+            self.add_user(&mut p, va, Kind::Data, true, false, true);
+        }
+        for va in (STACK..STACK_END).step_by(PAGE as usize) {
+            self.add_user(&mut p, va, Kind::Stack, true, false, true);
+        }
+        let lower = 0x30000000 + slot as u64 * 0x6000;
+        assert_eq!(self.kernel.leaf(lower), 0);
+        assert_eq!(self.kernel.leaf(lower + 0x5000), 0);
+        for i in 0..4 {
+            let pa = self
+                .frames
+                .allocate(Owner::Kernel, paging::zero_dynamic)
+                .unwrap();
+            p.kernel_frames[i] = pa;
+            self.kernel.map(self.frames, pa, pa, true, false);
+            self.kernel
+                .map(self.frames, lower + PAGE * (i as u64 + 1), pa, true, false);
+        }
+        p.kernel_top = lower + 0x5000;
+        let own_mode = if cfg!(feature = "milestone-m4") {
+            0
+        } else if mode() == 17 {
+            2
+        } else if mode() == 15 {
+            if slot == 1 {
+                15
+            } else {
+                0
+            }
+        } else if slot == 0 {
+            if mode() == 0 && self.round >= 2 {
+                2
+            } else {
+                mode()
+            }
+        } else {
+            0
+        };
+        write_word(p.physical(DATA), own_mode);
+        write_word(p.physical(DATA + 8), 0);
+        write_word(p.physical(DATA + 16), p.pattern);
+        write_word(p.physical(DATA + 24), 0);
+        p.context[17] = image.entry;
+        p.context[18] = 0x23;
+        p.context[19] = 0x202;
+        p.context[20] = STACK_END - 8;
+        p.context[21] = 0x1b;
+        assert_eq!(read_word(p.physical(STACK_END - 8)), 0);
+        p.status = Status::Ready;
+        if cfg!(feature = "test-m3-large-image") {
+            assert_eq!(p.count, 67);
+        }
+        self.processes[slot] = p;
     }
     fn add_user(
         &mut self,
@@ -550,6 +563,8 @@ impl State {
         let mut p = replace(&mut self.processes[slot], Process::new());
         assert!(p.status == Status::Dying || p.status == Status::Dead);
         let mut address = p.paging.take().unwrap();
+        #[cfg(feature = "milestone-m5")]
+        m5::detach(p.pid);
         #[cfg(feature = "milestone-m4")]
         m4::process_exit(p.pid);
         let free_before = self.free_count();
@@ -632,7 +647,12 @@ impl State {
             .count()
     }
     fn observer_exit(&mut self, slot: usize, counter: u64) {
-        #[cfg(feature = "milestone-m4")]
+        #[cfg(feature = "milestone-m5")]
+        {
+            m5::observe_exit(self, slot);
+            return;
+        }
+        #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
         {
             m4::observe_exit(self, slot, counter);
             return;
@@ -662,7 +682,12 @@ impl State {
         }
     }
     fn observer_fault(&mut self, slot: usize, context: &[u64; 22], counter: u64) {
-        #[cfg(feature = "milestone-m4")]
+        #[cfg(feature = "milestone-m5")]
+        {
+            m5::observe_fault(self, slot, context);
+            return;
+        }
+        #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
         {
             m4::observe_fault(self, slot, context, counter);
             return;
@@ -762,8 +787,14 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             context[6],
         ];
         #[cfg(feature = "milestone-m4")]
-        if number >= 0x10 {
+        if number >= 0x10 && !(cfg!(feature = "milestone-m5") && matches!(number, 0x40 | 0x41)) {
             let (rax, rdx) = m4::syscall(state, current, number, args);
+            state.processes[current].context[14] = rax as u64;
+            state.processes[current].context[12] = rdx;
+        }
+        #[cfg(feature = "milestone-m5")]
+        if matches!(number, 0x40 | 0x41) {
+            let (rax, rdx) = m5::syscall(state, current, number, args);
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
         }
@@ -777,7 +808,7 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                 p.context[14] = (-1i64) as u64;
             } else {
                 match number {
-                    0 => p.context[12] = 1 << 32,
+                    0 => p.context[12] = (1 << 32) | u64::from(cfg!(feature = "milestone-m5")),
                     1 => {}
                     2 => {
                         // Generic syscall semantics: every process may exit with any code.
@@ -829,8 +860,12 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
     } else {
         state.processes[current].status = Status::Ready;
     }
-    #[cfg(feature = "milestone-m4")]
+    #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
     if let Some(next) = m4::poll(state) {
+        return next;
+    }
+    #[cfg(feature = "milestone-m5")]
+    if let Some(next) = m5::poll(state) {
         return next;
     }
     #[cfg(not(feature = "milestone-m4"))]
@@ -975,6 +1010,45 @@ fn mode() -> u64 {
     } else if cfg!(feature = "test-m3-invalid-rsp") {
         16
     } else if cfg!(feature = "test-m3-idle") {
+        17
+    } else {
+        0
+    }
+}
+fn m5_case() -> u8 {
+    if cfg!(feature = "test-m5-service-errors") {
+        1
+    } else if cfg!(feature = "test-m5-device-rights") {
+        2
+    } else if cfg!(feature = "test-m5-async") {
+        3
+    } else if cfg!(feature = "test-m5-bad-descriptor") {
+        4
+    } else if cfg!(feature = "test-m5-used-id") {
+        5
+    } else if cfg!(feature = "test-m5-used-index") {
+        6
+    } else if cfg!(feature = "test-m5-used-short") {
+        7
+    } else if cfg!(feature = "test-m5-used-long") {
+        8
+    } else if cfg!(feature = "test-m5-used-status") {
+        9
+    } else if cfg!(feature = "test-m5-io-error") {
+        10
+    } else if cfg!(feature = "test-m5-timeout") {
+        11
+    } else if cfg!(feature = "test-m5-reset-timeout") {
+        12
+    } else if cfg!(feature = "test-m5-restart") {
+        13
+    } else if cfg!(feature = "test-m5-cpu-mmio") {
+        14
+    } else if cfg!(feature = "test-m5-cpu-dma") {
+        15
+    } else if cfg!(feature = "test-m5-cpu-pci") {
+        16
+    } else if cfg!(feature = "test-m5-no-device") {
         17
     } else {
         0

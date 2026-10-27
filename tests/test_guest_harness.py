@@ -21,7 +21,7 @@ class GuestEvidenceGate(unittest.TestCase):
             for altered in (marker + "-bogus", "bogus-" + marker, ""):
                 self.assertFalse(is_success(33, "\n".join(
                     altered if item == marker else item for item in MARKERS)))
-        for failure in ("M1:FAIL:x", "M2:FAIL:x", "M3:FAIL:x", "M4:FAIL:x"):
+        for failure in ("M1:FAIL:x", "M2:FAIL:x", "M3:FAIL:x", "M4:FAIL:x", "M5:FAIL:x"):
             self.assertFalse(is_success(33, "\n".join(MARKERS) + "\n" + failure))
 
     def test_expected_negative_exit_is_explicit_and_not_timeout(self):
