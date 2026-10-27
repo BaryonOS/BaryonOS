@@ -133,6 +133,19 @@ class CaptureGateArchive(unittest.TestCase):
 
         self.assertFalse(capture_gate.guest_matches("m2", "test-m2-nx", record))
 
+    def test_guest_exit_status_is_bound_to_the_phase_and_case(self):
+        required, _, _ = guest_expectation("m4", "test-m4-copy")
+        record = {
+            "stdout": "\n".join(required),
+            "raw_qemu_exit": 35,
+            "timed_out": False,
+            "required_markers": required,
+            "expected_exit": 35,
+            "forbidden_markers": [],
+        }
+
+        self.assertFalse(capture_gate.guest_matches("m4", "test-m4-copy", record))
+
     def test_m4_case_requires_its_specific_markers(self):
         result = {
             "raw_qemu_exit": 33,
