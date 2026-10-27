@@ -71,7 +71,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
     if not (ROOT / "Cargo.lock").exists():
         run_logged(["cargo", "+1.90.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):
-        args = ["cargo", "+1.90.0", "build", "--locked", "--release", "-p", package, "--target", target]
+        args = ["cargo", "+1.90.0", "build", "--locked", "--release", "--target-dir", str(ROOT / "target"), "-p", package, "--target", target]
         if feature:
             args += ["--features", feature]
         run_logged(args, f"build-{label}-{package}")
