@@ -6,6 +6,16 @@ Repository: https://github.com/simonvanieperen/nieuw-os (privé). Werkbranch: `c
 
 ## Reviewfollow-up
 
+Op basis `a1fdc0d74254420de2822b08f41e6d448036b42a` accepteert qsim-cli requests en gates nu uitsluitend als JSON-objecten. De twee nieuwe CLI-tests reproduceerden eerst exit 0 voor positionele arrays en controleren nu exit 2, ook voor een CX-array. De bestaande getypeerde veldcontroles blijven behouden. Met Rust 1.90.0 op Ubuntu 26.04.1 slagen de 27 quantumtests, opmaak en Clippy (alle exit 0):
+
+```bash
+$HOME/.cargo/bin/cargo +1.90.0 test --manifest-path experiments/quantum/Cargo.toml --workspace --locked --offline
+$HOME/.cargo/bin/cargo +1.90.0 fmt --manifest-path experiments/quantum/Cargo.toml --all -- --check
+$HOME/.cargo/bin/cargo +1.90.0 clippy --manifest-path experiments/quantum/Cargo.toml --workspace --all-targets --locked --offline -- -D warnings
+```
+
+Logs in deze sandbox: `/tmp/qsim-array-before.log`, `/tmp/qsim-array-after.log`, `/tmp/qsim-tests.log`, `/tmp/qsim-fmt.log`, `/tmp/qsim-clippy.log`. CodeRabbit-review volgt nog; dit betreft de hostadapter.
+
 De bewijsarchiefcapture valideert een volledige nieuwe opname in een tijdelijke map en laat het bestaande archief bij validatie- of installatiefouten ongemoeid. Alleen stdoutlogs onder `build/logs/` kunnen als hostbewijs worden opgenomen; gastresultaten doorlopen hun eigen controles. `python -B -X utf8 tests/test_capture_gate.py` (4 tests) slaagt. De registratie van vijf `.png`-bestanden als JPEG gebruikt nu hun signatures: `python3 tools/update_evidence_files.py` en `python -B -X utf8 tests/test_evidence_files.py` (4 tests) slagen. Alle controles exit 0; dit is hosttool-/bewijsregistratie, geen nieuwe browser- of OS-test. De grote-probehostcontrole is lokaal geblokkeerd: Rust 1.90.0 en `x86_64-unknown-none` ontbreken; `tools/preflight.py` meldt ook geen QEMU/OVMF.
 
 De capturegate herleidt M2–M4-markers, verboden markers en ruwe exitstatus nu uit één fase-/casecontract dat ook de milestone-runner gebruikt; verwachtingen in een opgeslagen runrecord worden daarvoor niet vertrouwd. `python -B -X utf8 tests/test_capture_gate.py` (6 tests), `python -B -X utf8 tests/test_guest_harness.py` (3 tests), de gedeelde-contractimportcontrole en vergelijking met alle 36 gearchiveerde M2–M4-gastruns slagen (exit 0). Dit is hostvalidatie van de verifier, geen nieuwe QEMU-run.
@@ -35,11 +45,11 @@ De ontwikkelfase M1–M4 is geïmplementeerd en getest. De samengestelde M2–M4
 | `python tools/capture_gate.py m1/m2/m3/m4` (vier opdrachten) | exit0; serial/stderr, raw-exitverwachtingen en alle artifacthashes opnieuw gecontroleerd | genoemde suite-/guestrapporten; negatieve M1-guestrecords blijven false |
 | Capability-core extra controles | fmt, Clippy-Dwarnings, no_std: exit0; 2.560 wire-bitmutaties/800 transacties | verification/m2-m4/capability-core/report.json |
 | Materiaal | 23 Node-tests en gerichte browsermetingen geslaagd; bron ongewijzigd sinds P02V | ../ui/prototype/verification/ |
-| Quantum | 25 Rust-tests, vijf fixtures, Clippy/no_std; bron ongewijzigd sinds Q01V | verification/m2-m4/quantum/ |
+| Quantum (eerdere Q01V-basis) | 25 Rust-tests, vijf fixtures, Clippy/no_std | verification/m2-m4/quantum/ |
 
 Hosttests zijn per fase opnieuw uitgevoerd; de aantallen zijn geen som van unieke tests. Global1024-node-uitputting en maximale generations zijn hostmodelbewijs. QEMU-KS15 toetst queue16,255 capslots,depth8/9 en capaciteit na close. De testvingerafdruk is diagnostisch; hosttests vergelijken de volledige Engine-toestand.
 
-Voor Materiaal en quantum zijn de negen respectievelijk vijftien geregistreerde bron-/binaryhashes opnieuw vergeleken: alle gelijk. De ongewijzigde tests zijn daarom niet opnieuw uitgevoerd; eerdere resultaten blijven aan exact die bestanden gebonden.
+Bij de M2–M4-hercontrole zijn voor Materiaal en quantum de negen respectievelijk vijftien geregistreerde bron-/binaryhashes vergeleken: toen alle gelijk. Die historische resultaten blijven aan exact die bestanden gebonden; de actuele qsim-cli-controles staan hierboven bij de reviewfollow-up.
 
 ## Starten
 

@@ -170,6 +170,20 @@ fn q1_12_duplicates_unknown_fields_seed_trailing_and_truncated_json() {
 }
 
 #[test]
+fn top_level_array_is_rejected() {
+    invalid(br#"["qsim-v0","test",2,[],8,"0000000000000000"]"#);
+}
+
+#[test]
+fn array_gates_are_rejected() {
+    for gate in [json!(["h", 0]), json!(["cx", 1, 0])] {
+        let mut value = request();
+        value["gates"] = json!([gate]);
+        invalid(&encode(&value));
+    }
+}
+
+#[test]
 fn ids_and_schema_are_validated_without_echoing_untrusted_data() {
     for id in ["", "bad/id", "non_ascii_\u{e9}", &"x".repeat(65)] {
         let mut value = request();
