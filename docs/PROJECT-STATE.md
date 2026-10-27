@@ -12,6 +12,8 @@ Transport-/harnasreviews sloten concrete foutvolgorde-/Rust-borrow-/recovery-/co
 
 GitHub-e-mailprivacy blokkeerde de eerste push; alleen de ongepushte commitmetadata is naar het GitHub-noreplyadres hersteld. De branchpush en remote-ID-controle slaagden daarna, zonder privacy-/globale configwijziging. M6a staat als concept-PR https://github.com/simonvanieperen/nieuw-os/pull/5 boven op de M5-branch.
 
+Finale kandidaatbron `8c53ea4` bevat ook de twee tussentijdse remote-orakelcorrecties via een gewone merge, zonder force-push. Fingerprint v3: `6fce5c12e87cf6b1a1353743357593de3d8b6843012b12be6deaf7fe17ce3b66`. Volledige M6a-poort gestart; tussentijdse snapshot bij 43 geslaagde groepen bewaart nog nadrukkelijk running/false in verification/m6a/checkpoints/. Normaal schrijven, volle journal en koude recovery zijn daarin werkelijk groen; volledige einduitslag/regressie/audit volgen afzonderlijk. De root-harnascontroles zijn inmiddels 20/20 groen, inclusief behoud van beide remote-correcties.
+
 27 oktober 2026. M5 is geïmplementeerd en getest in het vaste QEMU-profiel.
 
 Repository: https://github.com/simonvanieperen/nieuw-os. Branch `codex/m5-block-service`, concept-PR [#3](https://github.com/simonvanieperen/nieuw-os/pull/3). Basis `c630c59` (M1–M4); definitieve runtime-/harnasbron `7af544aa1b8d731ac27f384f0ba95aa44586a57d`. Latere commits bewaren documentatie en bewijs. Main bevat de startspecificatie; geen merge of release uitgevoerd.
