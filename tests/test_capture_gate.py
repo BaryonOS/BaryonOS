@@ -111,6 +111,18 @@ class CaptureGateArchive(unittest.TestCase):
 
         self.assertEqual(self._snapshot(), before)
 
+    def test_guest_case_cannot_be_substituted_with_a_host_log(self):
+        suite_path = self.build / "m2-test-results.json"
+        suite = json.loads(suite_path.read_text(encoding="utf-8"))
+        suite["results"][0]["name"] = "test-m2-nx"
+        suite_path.write_text(json.dumps(suite), encoding="utf-8")
+        before = self._snapshot()
+
+        with self.assertRaisesRegex(ValueError, "Guest case requires run-directory evidence"):
+            capture_gate.capture("m2")
+
+        self.assertEqual(self._snapshot(), before)
+
     def test_guest_evidence_is_bound_to_phase_and_case_not_record_expectations(self):
         record = {
             "stdout": "BOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nM1:PASS\n",

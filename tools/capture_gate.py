@@ -12,6 +12,23 @@ from run import is_success, MARKERS, FAIL_MARKERS, MILESTONE_MARKERS
 from gate_contract import M1_MARKERS, guest_expectation
 
 
+def requires_guest_evidence(phase, group):
+    if phase in ("m2", "m3", "m4"):
+        return guest_expectation(phase, group) is not None
+    if phase == "m1":
+        return group in {
+            "cold-boot-1", "cold-boot-2", "cold-boot-3",
+            "reject-missing-kernel", "reject-corrupt-kernel",
+            "real-ebs-stale-key-retry", "kernel-panic-fails", "real-hang-times-out",
+        }
+    if phase == "m5":
+        from build import M5_CASES
+        return (group in ("m1-regression-after-m5", "m5-read-a", "m5-read-b")
+                or group.startswith("test-m5-")
+                and group.removeprefix("test-m5-") in M5_CASES)
+    return False
+
+
 def _replace_archive(staged: Path, destination: Path) -> None:
     backup_root = Path(tempfile.mkdtemp(
         prefix=f".{destination.name}-backup-", dir=destination.parent))
@@ -127,6 +144,8 @@ def capture(phase: str, destination: str | None = None):
             evidence = Path(group["evidence"])
             if not evidence.is_absolute():
                 evidence = ROOT / evidence
+            if requires_guest_evidence(phase, group["name"]) and not evidence.is_dir():
+                raise ValueError(f"Guest case requires run-directory evidence: {group['name']}")
             if evidence.is_dir():
                 evidence.resolve().relative_to((BUILD / "run").resolve())
                 result = json.loads((evidence / "result.json").read_text(encoding="utf-8"))
