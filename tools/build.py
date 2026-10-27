@@ -5,12 +5,7 @@ import argparse
 import shutil
 import struct
 from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
-
-M3_CASES = ("peer-read", "peer-write", "kernel-write", "stack-exec", "heap-exec",
-            "guard-low", "guard-high", "cli", "x87", "xmm", "avx", "ud", "exit", "b-exit", "invalid-rsp")
-M4_CASES = (("copy", "KS-09"), ("wire", "KS-10"), ("snapshot", "KS-11"),
-            ("handles", "KS-12"), ("rights", "KS-13"), ("revoke", "KS-14"),
-            ("quotas", "KS-15"), ("lifecycle", "KS-16"))
+from gate_contract import M3_CASES, M4_CASES
 M5_CASES = ("service-errors", "device-rights", "async", "bad-descriptor", "used-id",
             "used-index", "used-short", "used-long", "used-status", "io-error", "timeout",
             "reset-timeout", "restart", "cpu-mmio", "cpu-dma", "cpu-pci", "no-device")
