@@ -117,6 +117,11 @@ def guest_matches(phase, group, result):
 
 
 def capture(phase: str, destination: str | None = None):
+    if phase == "m6a":
+        if destination is not None:
+            raise ValueError("M6a has a dedicated evidence directory")
+        from capture_m6 import capture as capture_m6
+        return capture_m6()
     suite_path = BUILD / ("test-results.json" if phase == "m1" else f"{phase}-test-results.json")
     suite = json.loads(suite_path.read_text(encoding="utf-8"))
     if suite.get("status") != "completed" or suite.get("passed") is not True:
@@ -216,7 +221,7 @@ def capture(phase: str, destination: str | None = None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("phase", choices=["m1", "m2", "m3", "m4", "m5"])
+    parser.add_argument("phase", choices=["m1", "m2", "m3", "m4", "m5", "m6a"])
     parser.add_argument("--destination", help="Evidence directory within docs/verification/")
     args = parser.parse_args()
     capture(args.phase, args.destination)

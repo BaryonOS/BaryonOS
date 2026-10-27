@@ -1,0 +1,124 @@
+{
+  "basis": "448974b1352493fba41158da08daf1ad1937d973",
+  "head": "5abf3543045919a95d3c0e3f8a4b86e6fd7c1657",
+  "utc": "2026-10-27T17:30:09.321710+00:00",
+  "target_dir": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\m6-core-tests",
+  "commands": [
+    {
+      "name": "fmt",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "-p",
+        "capability-core",
+        "-p",
+        "virtio-core",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "log": "crates\\virtio-core\\verification\\m6-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "host",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "-p",
+        "capability-core",
+        "-p",
+        "virtio-core",
+        "--locked",
+        "--offline",
+        "--",
+        "--test-threads=3"
+      ],
+      "exit": 0,
+      "log": "crates\\virtio-core\\verification\\m6-host.log",
+      "log_sha256": "c1e53a54367fa2db840e4e22b79452fa1c765305ff4b79f1ef5530b69d2485cd"
+    },
+    {
+      "name": "clippy",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "-p",
+        "capability-core",
+        "-p",
+        "virtio-core",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "log": "crates\\virtio-core\\verification\\m6-clippy.log",
+      "log_sha256": "c4c8db4f5be05804c48283959f0177c55d43329b687d1434b3f49f8568957325"
+    },
+    {
+      "name": "no_std",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "check",
+        "-p",
+        "capability-core",
+        "-p",
+        "virtio-core",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "exit": 0,
+      "log": "crates\\virtio-core\\verification\\m6-no_std.log",
+      "log_sha256": "f9de4d8763e22c0ad72bfbec9c5604feca1f732bcf0c17ff5a57304726e823c5"
+    },
+    {
+      "name": "diff",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "crates/capability-core",
+        "crates/virtio-core"
+      ],
+      "exit": 0,
+      "log": "crates\\virtio-core\\verification\\m6-diff.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "sources": {
+    "crates\\capability-core\\Cargo.toml": "7b24ddba37bca5b44a8b75b6cc229e2ae06c7a44533fe0d6a121783ad7552087",
+    "crates\\capability-core\\README.md": "c7b64784d23de5d64017517dfd5133715550bf47fe2b24967b19606fa7b44b7c",
+    "crates\\capability-core\\src\\lib.rs": "e201e714ad4f6e8e65c84af42002dfed1ec84c182959038593fbfb0e71d0d807",
+    "crates\\capability-core\\src\\tests.rs": "d2adb64b348a7a2cbf272ae9f97d27e0b0f69e7cf5bc8f4c631e526b6ea7153a",
+    "crates\\virtio-core\\Cargo.toml": "466f4e1dcaa1a58a136e4bc0fc0a5df1cef607bc8ff0926adb326a9ff2ac17bf",
+    "crates\\virtio-core\\README.md": "c516fcea37e4e8ce026ab85455cf75890bd2d840bf8e4bb1f0a3b4f6529030d8",
+    "crates\\virtio-core\\src\\lib.rs": "ce2a795eca805fdc8a0624a418ea366e80fb5ef2dec6b3a488b8cc50c02ca523",
+    "crates\\virtio-core\\src\\tests.rs": "297e43e3dc9969606ad800ae13acc7e572146dcea10e97e739b73bd4ade2e83c",
+    "crates\\virtio-core\\verify_m6.py": "a2da0c5bd97f4ebb9fad0723389296f1e9e347c9cca0cca9479ef2d05f3e3505",
+    "crates\\virtio-core\\M6-API.md": "568d6d736dde3df3b6ea8b3bbfa3669e1a24162136beec2159f394705316c78b"
+  },
+  "limits": "Pure host/no_std verification; no guest, DMA, FLUSH, crash/recovery or physical-powerloss proof.",
+  "m5_test_adjustment": "WRITE32 is now known but absent from legacyroot29: Access; unknown128 remains Invalid. Both full-state atomicity assertions retained; root approved.",
+  "earlier_diagnostics": [
+    "First compile rejected a newly added Stats.objects test typo; corrected to existing Stats.endpoints.",
+    "First host run: 29/30 capability tests passed; original bit32 unknown-mask assertion required the documented, approved contract update."
+  ]
+}

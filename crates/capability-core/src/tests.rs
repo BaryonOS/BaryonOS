@@ -49,6 +49,143 @@ fn destination(e: &mut Engine) -> (u64, u64) {
 }
 
 #[test]
+fn m6_explicit_write_flush_roots_preserve_legacy_rights_and_type_boundary() {
+    run(|e| {
+        setup(e, 2);
+        assert_eq!(ALL_RIGHTS, 31);
+        assert_eq!(BLOCK_READ_RIGHTS, 29);
+        assert_eq!(BLOCK_RIGHTS, 125);
+        let legacy = e.create_block_device(1, block_scope()).unwrap();
+        for required in [BLOCK_WRITE, BLOCK_FLUSH, BLOCK_WRITE | BLOCK_FLUSH] {
+            assert_atomic(e, Error::Access, |e| e.check_block(1, legacy, required));
+        }
+        let root = e
+            .create_block_device_with_rights(1, block_scope(), BLOCK_RIGHTS)
+            .unwrap();
+        let endpoint = e.create_endpoint(1).unwrap();
+        assert_atomic(e, Error::Type, |e| e.check_block(1, endpoint, BLOCK_WRITE));
+        assert_atomic(e, Error::Type, |e| e.check_endpoint(1, root, SEND));
+        assert_atomic(e, Error::Invalid, |e| e.derive(1, endpoint, BLOCK_WRITE));
+        let rwf = BLOCK_READ | BLOCK_WRITE | BLOCK_FLUSH;
+        assert_eq!(rwf, 97);
+        let service = e.bootstrap_delegate(1, root, 2, rwf).unwrap();
+        e.close(1, root).unwrap();
+        assert_eq!(
+            e.check_block(2, service, rwf).unwrap().scope(),
+            block_scope()
+        );
+        assert_atomic(e, Error::Access, |e| e.derive(2, service, rwf));
+        assert_atomic(e, Error::Access, |e| e.derive(2, service, 128));
+    });
+}
+
+#[test]
+fn m6_manifest_masks_and_subset_failures_are_transactional() {
+    run(|e| {
+        setup(e, 2);
+        for rights in [RECV, 128, u64::MAX] {
+            assert_atomic(e, Error::Invalid, |e| {
+                e.create_block_device_with_rights(1, block_scope(), rights)
+            });
+        }
+        let root = e
+            .create_block_device_with_rights(1, block_scope(), BLOCK_RIGHTS)
+            .unwrap();
+        for rights in 0..256 {
+            if rights & !BLOCK_RIGHTS == 0 {
+                let derived = e.derive(1, root, rights).unwrap();
+                assert_eq!(
+                    e.check_block(1, derived, rights).unwrap().scope(),
+                    block_scope()
+                );
+                e.close(1, derived).unwrap();
+            } else {
+                assert_atomic(e, Error::Invalid, |e| e.derive(1, root, rights));
+            }
+        }
+        let read = e.derive(1, root, BLOCK_READ | DERIVE | TRANSFER).unwrap();
+        for rights in [BLOCK_WRITE, BLOCK_FLUSH] {
+            assert_atomic(e, Error::Access, |e| e.derive(1, read, rights));
+            assert_atomic(e, Error::Access, |e| {
+                e.bootstrap_delegate(1, read, 2, rights)
+            });
+        }
+    });
+}
+
+#[test]
+fn m6_queued_write_authority_revoke_exit_and_generation_remain_bounded() {
+    run(|e| {
+        setup(e, 3);
+        let (recv, send) = destination(e);
+        let root = e
+            .create_block_device_with_rights(1, block_scope(), BLOCK_RIGHTS)
+            .unwrap();
+        let key = e.check_block(1, root, BLOCK_WRITE).unwrap().object_key();
+        e.send(1, send, &cap_message(root, BLOCK_WRITE | BLOCK_FLUSH))
+            .unwrap();
+        let m = e.receive(2, recv).unwrap();
+        let transferred = m.caps[0].handle;
+        assert_eq!(
+            e.check_block(2, transferred, BLOCK_WRITE | BLOCK_FLUSH)
+                .unwrap()
+                .object_key(),
+            key
+        );
+        assert_atomic(e, Error::Access, |e| {
+            e.check_block(2, transferred, BLOCK_READ)
+        });
+        e.send(1, send, &cap_message(root, BLOCK_WRITE)).unwrap();
+        e.revoke(1, root).unwrap();
+        assert_atomic(e, Error::Revoked, |e| {
+            e.check_block(2, transferred, BLOCK_WRITE)
+        });
+        assert_atomic(e, Error::Again, |e| e.receive(2, recv));
+        e.close(2, transferred).unwrap();
+        e.close(1, root).unwrap();
+        let replacement = e
+            .create_block_device_with_rights(3, block_scope(), BLOCK_RIGHTS)
+            .unwrap();
+        assert_ne!(
+            e.check_block(3, replacement, BLOCK_FLUSH)
+                .unwrap()
+                .object_key(),
+            key
+        );
+        assert_atomic(e, Error::BadHandle, |e| e.check_block(1, root, BLOCK_WRITE));
+        let delegated = e
+            .bootstrap_delegate(3, replacement, 2, BLOCK_WRITE)
+            .unwrap();
+        e.exit(3).unwrap();
+        assert_atomic(e, Error::Revoked, |e| {
+            e.check_block(2, delegated, BLOCK_WRITE)
+        });
+        e.close(2, delegated).unwrap();
+    });
+}
+
+#[test]
+fn m6_writable_objects_do_not_reduce_endpoint_or_separate_block_quota() {
+    run(|e| {
+        setup(e, 16);
+        for pid in 1..=16 {
+            for _ in 0..4 {
+                e.create_endpoint(pid).unwrap();
+            }
+        }
+        for _ in 0..MAX_BLOCK_DEVICES {
+            e.create_block_device_with_rights(1, block_scope(), BLOCK_RIGHTS)
+                .unwrap();
+        }
+        assert_eq!(e.stats().endpoints, 64);
+        assert_eq!(e.stats().block_objects, 4);
+        assert_atomic(e, Error::Quota, |e| {
+            e.create_block_device_with_rights(2, block_scope(), BLOCK_RIGHTS)
+        });
+    });
+}
+
+#[test]
 fn ks10_wire_exact_offsets_canonical_fields_and_misaligned_byte_source() {
     let mut m = Message::new();
     m.tag = u64::MAX;
@@ -683,7 +820,10 @@ fn m5_block_scope_invalid_masks_error_order_and_generation_retirement() {
         let root = e.create_block_device(1, block_scope()).unwrap();
         let old = e.check_block(1, root, BLOCK_READ).unwrap();
         assert_atomic(e, Error::Invalid, |e| e.check_block(1, root, RECV));
-        assert_atomic(e, Error::Invalid, |e| e.derive(1, root, 32));
+        // M6 assigns bit32 to WRITE. It remains absent from the legacy root;
+        // bit128 is still unknown and must retain the invalid-mask rejection.
+        assert_atomic(e, Error::Access, |e| e.derive(1, root, BLOCK_WRITE));
+        assert_atomic(e, Error::Invalid, |e| e.derive(1, root, 128));
         let read = e.derive(1, root, BLOCK_READ).unwrap();
         assert_atomic(e, Error::Access, |e| e.derive(1, read, RECV));
         e.close(1, root).unwrap();

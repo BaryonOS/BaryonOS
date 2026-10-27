@@ -8,9 +8,7 @@ use core::{
     ptr,
     sync::atomic::{fence, Ordering},
 };
-use virtio_core::{
-    descriptor_plan, parse_capabilities, validate_descriptors, validate_used, QUEUE_SIZE,
-};
+use virtio_core::{descriptor_plan, parse_capabilities, validate_descriptors, QUEUE_SIZE};
 pub use virtio_core::{Bar, Completion, DmaPool, Error, Regions};
 const BDF: u32 = 5 << 11;
 const RAM_END: u64 = 256 * 1024 * 1024;
@@ -131,6 +129,8 @@ pub struct Device {
     used: u16,
     pending: bool,
     ready: bool,
+    operation: virtio_core::Operation,
+    prepared: bool,
 }
 impl Device {
     /// Kernel passes only supervisor UC mappings corresponding to the validated
@@ -139,6 +139,18 @@ impl Device {
         info: Discovery,
         mapped: [u64; 6],
         pool: DmaPool,
+    ) -> Result<Self, Error> {
+        // SAFETY: Caller supplies the permanent validated MMIO and pinned pool.
+        unsafe { Self::initialize_profile(info, mapped, pool, false, false) }
+    }
+    /// Same mapping/pool contract as initialize. Writable mode is explicit;
+    /// no_flush is a test-only advertisement snapshot selected by the kernel.
+    pub unsafe fn initialize_profile(
+        info: Discovery,
+        mapped: [u64; 6],
+        pool: DmaPool,
+        writable: bool,
+        no_flush: bool,
     ) -> Result<Self, Error> {
         pool.validate(RAM_END)?;
         let address = |region: virtio_core::Region| -> Result<u64, Error> {
@@ -163,6 +175,12 @@ impl Device {
             used: 0,
             pending: false,
             ready: false,
+            operation: virtio_core::Operation::Read {
+                sector: 0,
+                offset: 0,
+                length: 512,
+            },
+            prepared: false,
         };
         // SAFETY: All addresses come from validated supervisor UC BAR mappings.
         unsafe {
@@ -176,8 +194,15 @@ impl Device {
             let low = read32(common + 4);
             write32(common, 1);
             let high = read32(common + 4);
-            let features =
-                virtio_core::negotiate_features(u64::from(low) | (u64::from(high) << 32))?;
+            let mut offered = u64::from(low) | (u64::from(high) << 32);
+            if no_flush {
+                offered &= !(1 << 9);
+            }
+            let features = if writable {
+                virtio_core::negotiate_writable_features(offered)?
+            } else {
+                virtio_core::negotiate_features(offered)?
+            };
             write32(common + 8, 0);
             write32(common + 12, features as u32);
             write32(common + 8, 1);
@@ -265,6 +290,11 @@ impl Device {
         if sector >= self.capacity {
             return Err(Error::Range);
         }
+        self.operation = virtio_core::Operation::Read {
+            sector,
+            offset: 0,
+            length: 512,
+        };
         let mut descriptors = descriptor_plan(self.pool, RAM_END)?;
         if bad_descriptor {
             descriptors[1].address = 0x02000000;
@@ -299,6 +329,86 @@ impl Device {
         }
         Ok(())
     }
+    /// Prepare a validated fixed chain without exposing it to the device.
+    /// Input is a kernel-owned exact sector snapshot, never a user address.
+    pub fn prepare_operation(
+        &mut self,
+        operation: virtio_core::Operation,
+        input: Option<&[u8; 512]>,
+        bad_descriptor: bool,
+    ) -> Result<(), Error> {
+        if !self.ready {
+            return Err(Error::Offline);
+        }
+        if self.pending || self.prepared {
+            return Err(Error::Busy);
+        }
+        let sector = match operation {
+            virtio_core::Operation::Read { sector, .. }
+            | virtio_core::Operation::Write { sector } => Some(sector),
+            _ => None,
+        };
+        if sector.is_some_and(|n| n >= self.capacity) {
+            return Err(Error::Range);
+        }
+        if matches!(operation, virtio_core::Operation::Write { .. }) != input.is_some() {
+            return Err(Error::Invalid);
+        }
+        let mut chain = virtio_core::descriptor_plan_for(operation, self.pool, RAM_END)?;
+        if bad_descriptor {
+            chain.entries[1].address = 0x02000000;
+        }
+        virtio_core::validate_descriptors_for(&chain, operation, self.pool, RAM_END)?;
+        let header = virtio_core::header_for(operation);
+        // SAFETY: No outstanding/exposed chain. Distinct exclusive pinned pages
+        // are supervisor-only RAM. All writes finish before any avail publication.
+        unsafe {
+            ptr::write_bytes(self.pool.request as *mut u8, 0, 4096);
+            ptr::write_bytes(self.pool.bounce as *mut u8, 0, 4096);
+            for (i, b) in header.into_iter().enumerate() {
+                write8(self.pool.request + i as u64, b);
+            }
+            if let Some(bytes) = input {
+                for (i, b) in bytes.iter().copied().enumerate() {
+                    write8(self.pool.bounce + i as u64, b);
+                }
+            }
+            write8(self.pool.request + 16, 0xff);
+            for (i, d) in chain.entries.into_iter().enumerate() {
+                for (j, b) in d.encode().into_iter().enumerate() {
+                    write8(self.pool.descriptors + i as u64 * 16 + j as u64, b);
+                }
+            }
+            write16(
+                self.pool.available + 4 + u64::from(self.available % QUEUE_SIZE) * 2,
+                0,
+            );
+        }
+        self.operation = operation;
+        self.prepared = true;
+        Ok(())
+    }
+    /// Kernel must first mark its matching policy ticket Published. Even a
+    /// suppressed notify can be observed by a polling device after avail.idx.
+    pub fn publish_prepared(&mut self, suppress_notify: bool) -> Result<(), Error> {
+        if !self.ready || !self.prepared || self.pending {
+            return Err(Error::Invalid);
+        }
+        self.prepared = false;
+        self.pending = true;
+        fence(Ordering::SeqCst);
+        self.available = self.available.wrapping_add(1);
+        // SAFETY: Fully validated immutable chain/snapshot, one producer. The
+        // raw release publication is the only transition authorizing device DMA.
+        unsafe {
+            write16(self.pool.available + 2, self.available);
+        }
+        fence(Ordering::SeqCst);
+        if !suppress_notify {
+            self.kick();
+        }
+        Ok(())
+    }
     /// Injection changes only a local snapshot after an actual device used-index
     /// advance. It never gives QEMU an unsafe descriptor or DMA target.
     pub fn poll(&mut self, injection: u8) -> Result<Option<([u8; 512], Completion)>, Error> {
@@ -323,15 +433,26 @@ impl Device {
                 7 => length = 512,
                 8 => length = 514,
                 9 => status = 0xff,
+                20 => length = 2,
                 10 => {
                     status = 1;
                     length = 1;
                 }
                 _ => {}
             }
-            let outcome = validate_used(0, self.used, next, id, length, status)?;
+            let outcome = virtio_core::validate_used_for(
+                self.operation,
+                0,
+                self.used,
+                next,
+                id,
+                length,
+                status,
+            )?;
             let mut data = [0u8; 512];
-            if outcome == Completion::Success {
+            if outcome == Completion::Success
+                && matches!(self.operation, virtio_core::Operation::Read { .. })
+            {
                 for (i, byte) in data.iter_mut().enumerate() {
                     *byte = read8(self.pool.bounce + i as u64);
                 }

@@ -1,9 +1,24 @@
 # Actuele projectstatus
 
+## Actief: M6a
+
+Nieuwe opdracht 27 oktober 2026 vanaf `448974b`, branch `codex/m6a-write-recovery`. Bouwcontract vóór code: implementation/M6A-WRITE-RECOVERY.md. Gekozen: WRITE512/FLUSH met expliciete rechten, een vierrecords-journal, echte dienstcrashes en QEMU-proceskills plus koude recovery op uitsluitend harnasgegenereerde images. Geen fysieke stroomuitvalclaim. M5-basis hieronder behouden; oorspronkelijke status ook in verification/m5/PROJECT-STATE.md.
+
+Mergecheckpoint: de basisbranch `codex/m2-m4-isolation` (`e816dfd`) is geïntegreerd. De M5-kernel- en archiefvalidatie uit die branch blijft behouden; M6a-rechten, transport, toolroutes en herstelcode blijven actief. Post-merge geslaagd: Python-tool `py_compile`; evidence-/capture-/M6-harnascontroles (9, 1, 4, 4 en 20 tests); M6-ELF-artifacttests (12); Rust-hosttests (`cargo +1.90.0 test --locked -p capability-core -p virtio-core -p block-protocol -p kernel-core`: 30/21/20/16); en `python -B -X utf8 tools/build.py --kernel-feature milestone-m5` plus `--kernel-feature milestone-m6a`. De M1–M6a-QEMU-poorten en gastregressies zijn na deze merge niet opnieuw uitgevoerd.
+
+Eerste samenhangende bronversie: typed WRITE32/FLUSH64, Prepared/Published/Unknown, kernel-inputsnapshot512, modern transport, echte nieuwe M6-userdienst/client/supervisor en Python-volume-/crashharnas. Daadwerkelijk geslaagd: 30 capability- en 21 virtio-tests, 20 protocol/journaltests, 16 kernel-core-tests en 12 M6-ELF-artifacttests; core fmt/Clippy/no_std exit0. Eerste echte M6-crossbuild exit0; latere twee observercorrecties worden opnieuw gebouwd. Het root-harnas heeft 8 schijf-oracle- en 5 childprocescontroles geslaagd, geen guestbewijs. Logs/hashes onder verification/m6a/core/ en service/.
+
+Gerichte echte M6-QEMU-proeven zijn nu geslaagd: normaal gen2, 512B-rechten/snapshot, dienstcrashes vóór WRITE en na ACK, FLUSH-fout en resetquarantaine. Ook een echte externe QEMU-kill na FLUSH (raw3765043201, geen PASS) plus nieuwe VM op exact dezelfde image is geslaagd: gen2, orakel groen, recovery veranderde geen imagebytes. Negen diagnostische records inclusief de eerdere afgewezen getalnotatie blijven onder verification/m6a/diagnostics/. Laatste broncorrecties zijn nog niet door de volledige gate afgedekt.
+
+Transport-/harnasreviews sloten concrete foutvolgorde-/Rust-borrow-/recovery-/coveragebevindingen; rapporten onder verification/m6a/. Root-hostharnas heeft nu 19 geslaagde controles. De volledige poort is geïmplementeerd (verwacht 54 groepen/49 VM, nog niet als geslaagd geclaimd), met 6 dienstcuts, 6 echte VMcut/recoveryparen, Unknown/full/corruptie en twee normale images. Nu: bronfreeze/checkpoint, die hele poort werkelijk uitvoeren, daarna M1–M5-regressie en onafhankelijke raw/hash-audit.
+
+GitHub-e-mailprivacy blokkeerde de eerste push; alleen de ongepushte commitmetadata is naar het GitHub-noreplyadres hersteld. De branchpush en remote-ID-controle slaagden daarna, zonder privacy-/globale configwijziging. M6a staat als concept-PR https://github.com/simonvanieperen/nieuw-os/pull/5 boven op de M5-branch.
+
+Finale kandidaatbron `8c53ea4` bevat ook de twee tussentijdse remote-orakelcorrecties via een gewone merge, zonder force-push. Fingerprint v3: `6fce5c12e87cf6b1a1353743357593de3d8b6843012b12be6deaf7fe17ce3b66`. Volledige M6a-poort gestart; tussentijdse snapshot bij 43 geslaagde groepen bewaart nog nadrukkelijk running/false in verification/m6a/checkpoints/. Normaal schrijven, volle journal en koude recovery zijn daarin werkelijk groen; volledige einduitslag/regressie/audit volgen afzonderlijk. De root-harnascontroles zijn inmiddels 20/20 groen, inclusief behoud van beide remote-correcties.
+
 27 oktober 2026. M5 is geïmplementeerd en getest in het vaste QEMU-profiel.
 
-Repository: https://github.com/simonvanieperen/nieuw-os. Branch `codex/m5-block-service`, concept-PR [#3](https://github.com/simonvanieperen/nieuw-os/pull/3). Basis `c630c59` (M1–M4); definitieve runtime-/harnasbron `7af544aa1b8d731ac27f384f0ba95aa44586a57d`. Latere commits bewaren documentatie en bewijs. Main bevat de startspecificatie; geen merge naar main of release uitgevoerd.
-
+Repository: https://github.com/simonvanieperen/nieuw-os. Branch `codex/m5-block-service`, concept-PR [#3](https://github.com/simonvanieperen/nieuw-os/pull/3). Basis `c630c59` (M1–M4); definitieve runtime-/harnasbron `7af544aa1b8d731ac27f384f0ba95aa44586a57d`. Latere commits bewaren documentatie en bewijs. Main bevat de startspecificatie; geen merge of release uitgevoerd.
 ## Reviewfollow-up
 
 De bewijsarchiefcapture valideert een volledige nieuwe opname in een tijdelijke map en laat het bestaande archief bij validatie- of installatiefouten ongemoeid. Alleen stdoutlogs onder `build/logs/` kunnen als hostbewijs worden opgenomen; daarnaast is alleen het gevalideerde `m5-two-image-check.json` toegestaan als gestructureerd M5-hostbewijs. M2–M4-gastresultaten voldoen aan de gedeelde fase-/caseverwachtingen voor markers en ruwe exitstatus; alle gastresultaten doorlopen hun eigen controles. `python -B -X utf8 tests/test_capture_gate.py` (8 tests) slaagt; dit is hosttoolbewijs, geen nieuwe browser- of OS-test. De registratie van vijf `.png`-bestanden als JPEG gebruikt nu hun signatures: `python3 tools/update_evidence_files.py` en `python -B -X utf8 tests/test_evidence_files.py` (4 tests) slagen. Alle genoemde controles exit 0. De grote-probehostcontrole is lokaal geblokkeerd: Rust 1.90.0 en `x86_64-unknown-none` ontbreken; `tools/preflight.py` meldt ook geen QEMU/OVMF.
@@ -15,6 +30,7 @@ Na de nieuwste samenvoeging van `codex/m2-m4-isolation` zijn `python -B -X utf8 
 De reviewfollow-up blokkeert nu ook een gevalideerde hostlog als bewijs voor een M2–M4-gastcase; de fase-/caseverwachting uit `gate_contract.py` bepaalt dat hiervoor een gecontroleerde runmap nodig is. `python -B -X utf8 tests/test_capture_gate.py` (9 tests), `python -B -X utf8 tests/test_common.py` (1 test), `node --test ui/prototype/tests/state.test.mjs` (23 tests) en `python -B -X utf8 -m py_compile tools/capture_gate.py tools/common.py tools/build.py experiments/quantum/verify.py` slagen (exit 0). Dit zijn host-/mockcontroles; geen QEMU-run.
 
 Een alleen-lezen-Webvenstergrant vervangt nu geen nog geldige Notities-schrijftoestemming van de editor; beide grants blijven afzonderlijk begrensd. `node --test ui/prototype/tests/state.test.mjs` slaagt met 24 tests en `node --check ui/prototype/state.js && node --check ui/prototype/app.js` slaagt (exit 0). Dit is mockbroker-/hostbewijs, geen OS-enforcementbewijs.
+
 
 ## Wat werkt
 
@@ -74,4 +90,4 @@ Op deze reparaties opnieuw uitgevoerd in Ubuntu 26.04.1 met Rust 1.90.0/QEMU 10.
 
 ## Vervolg en herstel
 
-M6a: begrensde WRITE/FLUSH op wegwerpvolume met volle-schijf-, gedeeltelijke-write- en crashherstelproeven vóór bestandssysteem/updateketen. Nog niet gestart. Werkqueue: WORK-QUEUE.md. Contract: implementation/M5-BLOCK-SERVICE.md. M1–M4-baseline behouden onder verification/m2-m4/, inclusief oorspronkelijke PROJECT-STATE.md. Herstel via aparte consistente checkout c630c59; geen destructieve reset of hostconfigmigratie.
+M6a: begrensde WRITE/FLUSH en crashherstel op een synthetische wegwerpimage; de actieve status en nog uit te voeren volledige poort staan hierboven. Werkqueue: WORK-QUEUE.md. Contract: implementation/M6A-WRITE-RECOVERY.md. M1–M5-baseline en eerder bewijs blijven behouden; de volledige QEMU-poort is na deze merge niet opnieuw uitgevoerd. Herstel via aparte consistente checkout c630c59; geen destructieve reset of hostconfigmigratie.

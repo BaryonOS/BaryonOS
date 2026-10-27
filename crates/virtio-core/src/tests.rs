@@ -340,3 +340,326 @@ fn maximum_epoch_and_ticket_do_not_wrap() {
     assert_eq!(p.submit(binding(), read(), 8, 0, 20), Err(Error::Exhausted));
     assert_eq!(p, before);
 }
+
+#[test]
+fn m6_writable_feature_profile_cannot_weaken_m5_or_assume_flush() {
+    assert_eq!(
+        negotiate_writable_features(VERSION_1 | FLUSH | (1 << 11)),
+        Ok(VERSION_1 | FLUSH)
+    );
+    for offered in [
+        0,
+        VERSION_1,
+        FLUSH,
+        VERSION_1 | FLUSH | READ_ONLY,
+        VERSION_1 | FLUSH | ACCESS_PLATFORM,
+    ] {
+        assert_eq!(
+            negotiate_writable_features(offered),
+            Err(Error::Unsupported)
+        );
+    }
+    assert_eq!(
+        negotiate_features(VERSION_1 | FLUSH),
+        Err(Error::Unsupported)
+    );
+    assert_eq!(
+        negotiate_writable_features(VERSION_1 | READ_ONLY),
+        Err(Error::Unsupported)
+    );
+}
+
+#[test]
+fn m6_exact_operation_chains_headers_and_all_descriptor_mutations() {
+    for op in [
+        Operation::Read {
+            sector: 7,
+            offset: 384,
+            length: 128,
+        },
+        Operation::Write { sector: 7 },
+        Operation::Flush,
+    ] {
+        let plan = descriptor_plan_for(op, pool(), 65536).unwrap();
+        validate_descriptors_for(&plan, op, pool(), 65536).unwrap();
+        let header = header_for(op);
+        assert_eq!(&header[4..8], &[0; 4]);
+        assert_eq!(&header[8..], &op.sector().to_le_bytes());
+        assert_eq!(plan.entries[0].flags, NEXT);
+        match op {
+            Operation::Read { .. } => assert_eq!(plan.entries[1].flags, NEXT | WRITE),
+            Operation::Write { .. } => {
+                assert_eq!(&header[..4], &1u32.to_le_bytes());
+                assert_eq!(plan.entries[1].flags, NEXT);
+            }
+            Operation::Flush => {
+                assert_eq!(&header[..4], &4u32.to_le_bytes());
+                assert_eq!(plan.count, 2);
+                assert_eq!(plan.entries[1].address, pool().request + 16);
+                assert_eq!(plan.entries[2].encode(), [0; 16]);
+            }
+        }
+        for index in 0..3 {
+            for change in 0..4 {
+                let mut bad = plan;
+                match change {
+                    0 => bad.entries[index].address ^= 4096,
+                    1 => bad.entries[index].length ^= 1,
+                    2 => bad.entries[index].flags ^= WRITE,
+                    _ => bad.entries[index].next ^= 1,
+                }
+                assert_eq!(
+                    validate_descriptors_for(&bad, op, pool(), 65536),
+                    Err(Error::Protocol)
+                );
+            }
+        }
+        for count in [0, 1, 4, 255] {
+            let mut bad = plan;
+            bad.count = count;
+            assert_eq!(
+                validate_descriptors_for(&bad, op, pool(), 65536),
+                Err(Error::Protocol)
+            );
+        }
+    }
+    let op = Operation::Write { sector: 7 };
+    for length in [0, 511, 513, u32::MAX] {
+        let mut plan = descriptor_plan_for(op, pool(), 65536).unwrap();
+        plan.entries[1].length = length;
+        assert_eq!(
+            validate_descriptors_for(&plan, op, pool(), 65536),
+            Err(Error::Protocol)
+        );
+    }
+}
+
+#[test]
+fn m6_used_completion_is_operation_specific_never_decodes_unknown() {
+    for op in [Operation::Write { sector: 4 }, Operation::Flush] {
+        for status in [0, 1, 2] {
+            let expected =
+                [Completion::Success, Completion::Io, Completion::Unsupported][status as usize];
+            assert_eq!(
+                validate_used_for(op, 0, u16::MAX, 0, 0, 1, status),
+                Ok(expected)
+            );
+            for len in [0, 2, 512, 513, u32::MAX] {
+                assert_eq!(
+                    validate_used_for(op, 0, 0, 1, 0, len, status),
+                    Err(Error::Protocol)
+                );
+            }
+        }
+        for (idx, id, status) in [
+            (2, 0, 0),
+            (1, 1, 0),
+            (1, u32::MAX, 0),
+            (1, 0, 3),
+            (1, 0, 255),
+        ] {
+            assert_eq!(
+                validate_used_for(op, 0, 0, idx, id, 1, status),
+                Err(Error::Protocol)
+            );
+        }
+    }
+}
+
+#[test]
+fn m6_prepared_rejection_has_no_publication_and_failures_are_atomic() {
+    let mut p = online();
+    let r = p
+        .prepare(binding(), Operation::Write { sector: 7 }, 8, 0, 20)
+        .unwrap();
+    assert_eq!(p.phase(), Phase::Prepared);
+    assert!(!r.published);
+    assert_eq!((r.offset, r.length), (0, 512));
+    let before = p;
+    assert_eq!(
+        p.complete(r.epoch, r.ticket, Completion::Success),
+        Err(Error::Offline)
+    );
+    assert_eq!(p, before);
+    assert_eq!(p.publish(r.epoch + 1, r.ticket), Err(Error::StaleEpoch));
+    assert_eq!(p.publish(r.epoch, r.ticket + 1), Err(Error::WrongTicket));
+    assert_eq!(
+        p.reject_prepared(
+            Binding {
+                pid: 8,
+                ..binding()
+            },
+            r.ticket
+        ),
+        Err(Error::WrongTicket)
+    );
+    assert_eq!(p, before);
+    p.reject_prepared(binding(), r.ticket).unwrap();
+    assert_eq!(p.phase(), Phase::Ready);
+    assert_eq!(p.request(), None);
+    for op in [
+        Operation::Write { sector: 8 },
+        Operation::Read {
+            sector: 4,
+            offset: 0,
+            length: 129,
+        },
+    ] {
+        let before = p;
+        assert_eq!(p.prepare(binding(), op, 8, 0, 20), Err(Error::Range));
+        assert_eq!(p, before);
+    }
+}
+
+#[test]
+fn m6_published_unknown_survives_reset_and_cannot_replay() {
+    for op in [Operation::Write { sector: 4 }, Operation::Flush] {
+        let mut p = online();
+        let r = p.prepare(binding(), op, 8, 0, 20).unwrap();
+        p.publish(r.epoch, r.ticket).unwrap();
+        assert_eq!(p.phase(), Phase::Published);
+        assert!(p.request().unwrap().published);
+        let before = p;
+        assert_eq!(p.reject_prepared(binding(), r.ticket), Err(Error::Offline));
+        assert_eq!(p, before);
+        assert!(!p.timeout(19));
+        assert!(p.timeout(20));
+        assert_eq!(p.request().unwrap().completion, Some(Completion::Unknown));
+        p.reset_completed(true).unwrap();
+        assert_eq!(p.phase(), Phase::Complete);
+        assert_ne!(p.epoch(), r.epoch);
+        let before = p;
+        assert_eq!(p.prepare(binding(), op, 8, 21, 20), Err(Error::Busy));
+        assert_eq!(
+            p.complete(r.epoch, r.ticket, Completion::Success),
+            Err(Error::StaleEpoch)
+        );
+        assert_eq!(
+            p.consume(
+                Binding {
+                    object_key: (2 << 32) | 64,
+                    ..binding()
+                },
+                r.ticket
+            ),
+            Err(Error::WrongTicket)
+        );
+        assert_eq!(p, before);
+        assert_eq!(p.consume(binding(), r.ticket), Ok(Completion::Unknown));
+        assert_eq!(p.phase(), Phase::Ready);
+        let next = p.prepare(binding(), op, 8, 21, 20).unwrap();
+        assert_ne!(next.ticket, r.ticket);
+    }
+}
+
+#[test]
+fn m6_unknown_poll_during_reset_or_quarantine_never_releases_pool() {
+    for ack in [None, Some(false)] {
+        let mut p = online();
+        let r = p
+            .prepare(binding(), Operation::Write { sector: 4 }, 8, 0, 20)
+            .unwrap();
+        p.publish(r.epoch, r.ticket).unwrap();
+        p.start_reset().unwrap();
+        if let Some(ack) = ack {
+            assert_eq!(p.reset_completed(ack), Err(Error::Offline));
+        }
+        let phase = p.phase();
+        assert_eq!(p.consume(binding(), r.ticket), Ok(Completion::Unknown));
+        assert_eq!(p.phase(), phase);
+        assert!(p.prepare(binding(), Operation::Flush, 8, 21, 20).is_err());
+        if ack.is_none() {
+            p.reset_completed(true).unwrap();
+            assert_eq!(p.phase(), Phase::Ready);
+        } else {
+            assert_eq!(p.reset_completed(true), Err(Error::Offline));
+        }
+    }
+}
+
+#[test]
+fn m6_device_failures_are_unknown_and_completed_results_do_not_expire() {
+    for op in [Operation::Write { sector: 4 }, Operation::Flush] {
+        for completion in [Completion::Success, Completion::Io, Completion::Unsupported] {
+            let mut p = online();
+            let r = p.prepare(binding(), op, 8, 0, 20).unwrap();
+            p.publish(r.epoch, r.ticket).unwrap();
+            p.complete(r.epoch, r.ticket, completion).unwrap();
+            let before = p;
+            assert!(!p.timeout(u64::MAX));
+            assert_eq!(p, before);
+            p.start_reset().unwrap();
+            p.reset_completed(true).unwrap();
+            assert_eq!(
+                p.consume(binding(), r.ticket),
+                Ok(if completion == Completion::Success {
+                    Completion::Success
+                } else {
+                    Completion::Unknown
+                })
+            );
+        }
+    }
+}
+
+#[test]
+fn m6_owner_exit_discards_results_without_unquarantining_or_implying_rollback() {
+    for published in [false, true] {
+        let mut p = online();
+        let r = p
+            .prepare(binding(), Operation::Write { sector: 4 }, 8, 0, 20)
+            .unwrap();
+        if published {
+            p.publish(r.epoch, r.ticket).unwrap();
+        }
+        let before = p;
+        assert_eq!(p.exit(9), None);
+        assert_eq!(p, before);
+        let exited = p.exit(7).unwrap();
+        assert_eq!(
+            exited.completion,
+            if published {
+                Some(Completion::Unknown)
+            } else {
+                None
+            }
+        );
+        assert_eq!(p.request(), None);
+        assert_eq!(
+            p.phase(),
+            if published {
+                Phase::Resetting
+            } else {
+                Phase::Ready
+            }
+        );
+    }
+    let mut p = online();
+    let r = p.prepare(binding(), Operation::Flush, 8, 0, 20).unwrap();
+    p.publish(r.epoch, r.ticket).unwrap();
+    p.start_reset().unwrap();
+    p.reset_completed(false).unwrap_err();
+    assert_eq!(p.exit(7).unwrap().completion, Some(Completion::Unknown));
+    assert_eq!(p.phase(), Phase::Quarantined);
+}
+
+#[test]
+fn m6_mutation_epoch_exhaustion_retains_unknown_and_ticket_never_wraps() {
+    let mut p = online();
+    p.epoch = u64::MAX;
+    let r = p.prepare(binding(), Operation::Flush, 8, 0, 20).unwrap();
+    p.publish(r.epoch, r.ticket).unwrap();
+    p.start_reset().unwrap();
+    assert_eq!(p.reset_completed(true), Err(Error::Exhausted));
+    assert_eq!(p.phase(), Phase::Quarantined);
+    assert_eq!(p.consume(binding(), r.ticket), Ok(Completion::Unknown));
+    assert_eq!(p.phase(), Phase::Quarantined);
+    let mut p = online();
+    p.next_ticket = u64::MAX;
+    let before = p;
+    assert_eq!(
+        p.prepare(binding(), Operation::Write { sector: 4 }, 8, 0, 20),
+        Err(Error::Exhausted)
+    );
+    assert_eq!(p, before);
+}

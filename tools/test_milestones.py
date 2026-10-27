@@ -187,13 +187,16 @@ def test_m4():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--through", choices=["m2", "m3", "m4", "m5"], default="m2")
+    parser.add_argument("--through", choices=["m2", "m3", "m4", "m5", "m6a"], default="m2")
     args = parser.parse_args()
     test_m2()
-    if args.through in ("m3", "m4", "m5"):
+    if args.through in ("m3", "m4", "m5", "m6a"):
         test_m3()
-    if args.through in ("m4", "m5"):
+    if args.through in ("m4", "m5", "m6a"):
         test_m4()
-    if args.through == "m5":
+    if args.through in ("m5", "m6a"):
         from test_m5 import test_m5
         test_m5()
+    if args.through == "m6a":
+        from test_m6 import test_m6
+        test_m6()
