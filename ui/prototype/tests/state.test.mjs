@@ -134,6 +134,25 @@ test('P2-02: Webvenster requests explicit destination but receives no write gran
   assert.equal(broker.authorize(state, state.activeGrantId, 'obj-001', 'write').code, 'DENIED');
 });
 
+test('P2-02: granting Webvenster preserves a valid editor grant', () => {
+  let state = editable();
+  state = reducer(state, { type: 'updateDraft', text: 'Eerste concept', cursor: 14 });
+  const editorGrantId = state.activeGrantId;
+  state = reducer(state, { type: 'requestEdit', toolId: 'webvenster' });
+  state = reducer(state, { type: 'grantSession' });
+
+  assert.equal(state.mode, 'edit');
+  assert.equal(state.activeGrantId, editorGrantId);
+  const webGrant = activeGrants(state).find((grant) => grant.toolId === 'webvenster');
+  assert.equal(broker.authorize(state, webGrant.id, 'obj-001', 'read').ok, true);
+  assert.equal(broker.authorize(state, webGrant.id, 'obj-001', 'write').code, 'DENIED');
+
+  state = reducer(state, { type: 'updateDraft', text: 'Bijgewerkt concept', cursor: 18 });
+  state = reducer(state, { type: 'saveDraft' });
+  assert.equal(selectedObject(state).revision, 4);
+  assert.equal(selectedObject(state).versions.at(-1).text, 'Bijgewerkt concept');
+});
+
 test('P2-03: all NAS failure states keep local save working without a sync claim', () => {
   for (const condition of ['offline', 'networkChanged', 'identityMismatch']) {
     let state = reducer(editable(), { type: 'nasCondition', condition });
