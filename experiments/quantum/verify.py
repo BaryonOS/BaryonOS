@@ -27,6 +27,7 @@ def main() -> int:
         print("Rust/Cargo missing; install the documented project toolchain first.", file=sys.stderr)
         return 2
     env["RUSTUP_AUTO_INSTALL"] = "0"
+    env["CARGO_TARGET_DIR"] = str(ROOT / "target")
     OUTPUT.mkdir(exist_ok=True)
     report = {"scope": "Q01 host simulation; no OS port or physical QPU", "commands": [], "fixtures": [], "files": {}}
 

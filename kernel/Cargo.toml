@@ -60,7 +60,6 @@ test-m5-cpu-mmio = ["milestone-m5"]
 test-m5-cpu-dma = ["milestone-m5"]
 test-m5-cpu-pci = ["milestone-m5"]
 test-m5-no-device = ["milestone-m5"]
-
 milestone-m6a = ["milestone-m5"]
 test-m6a-service-errors = ["milestone-m6a"]
 test-m6a-device-rights = ["milestone-m6a"]

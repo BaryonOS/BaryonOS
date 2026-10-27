@@ -237,11 +237,14 @@ pub fn manifest(s: &mut State) {
             (168, supervisor),
             (176, s.processes[0].pid),
             (200, 4),
-            (208, 0x3f000000 + 4 * 65536),
-            (216, runtime().pool.bounce),
         ] {
             put(s, slot, offset, value);
         }
+    }
+    match m5_case() {
+        14 => put(s, 3, 208, 0x3f000000 + 4 * 65536),
+        15 => put(s, 3, 216, runtime().pool.bounce),
+        _ => {}
     }
     put(s, 1, 56, reply);
     put(s, 1, 80, control);
@@ -317,8 +320,6 @@ fn bind_service(s: &mut State) {
             },
         ),
         (200, 4),
-        (208, 0x3f000000 + 4 * 65536),
-        (216, runtime().pool.bounce),
     ] {
         put(s, 0, offset, value);
     }
@@ -674,27 +675,38 @@ pub fn sent(s: &mut State, slot: usize, message: &Message) {
         assert!(message.caps.iter().all(|cap| cap.rights == 1));
         r.forward += 1;
     }
-    if slot == 0
-        && message.tag == wire::TAG
-        && message.len == wire::SIZE as u32
-        && wire::get32(&message.data, 36) == 0
-    {
+    if slot == 0 && message.tag == wire::TAG && wire::get32(&message.data, 36) == 0 {
         let length = wire::get32(&message.data, 32) as usize;
-        assert!(r.last_poll && length == r.last_len);
-        assert_eq!(&message.data[48..48 + length], &r.last_bytes[..length]);
+        if message.len != wire::SIZE as u32
+            || message.cap_count != 0
+            || !r.last_poll
+            || length != wire::SLICE
+            || length != r.last_len
+            || r.last_offset > 512 - wire::SLICE as u64
+        {
+            s.unexpected = true;
+            return;
+        }
         let sector = match r.last_sector {
             4 => 0,
             6 => 1,
-            _ => panic!("out of service scope"),
+            _ => {
+                s.unexpected = true;
+                return;
+            }
         };
-        assert_eq!(r.last_offset, r.slices[sector] * 128);
-        assert_eq!(length, 128);
+        if r.slices[sector] >= 4
+            || r.last_offset != r.slices[sector] * wire::SLICE as u64
+            || message.data[48..48 + length] != r.last_bytes[..length]
+        {
+            s.unexpected = true;
+            return;
+        }
         r.digest[sector] = wire::checksum_update(r.digest[sector], &message.data[48..48 + length]);
         r.slices[sector] += 1;
         r.correlations += 1;
         r.last_poll = false;
     }
-    let _ = s;
 }
 fn advance(now: u64) {
     let r = runtime();

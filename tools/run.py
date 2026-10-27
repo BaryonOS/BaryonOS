@@ -9,16 +9,17 @@ import subprocess
 import time
 import uuid
 from common import ROOT, BUILD, LOCAL, environment, firmware, save_json, sha256, source_hash
+from gate_contract import (
+    FAIL_MARKERS as BASE_FAIL_MARKERS,
+    MILESTONE_MARKERS as BASE_MILESTONE_MARKERS,
+    M1_MARKERS,
+    guest_expectation,
+)
 
-MARKERS = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "M1:PASS")
-FAIL_MARKERS = ("M1:FAIL", "M2:FAIL", "M3:FAIL", "M4:FAIL", "M5:FAIL")
+MARKERS = M1_MARKERS
+FAIL_MARKERS = BASE_FAIL_MARKERS + ("M5:FAIL",)
 MILESTONE_MARKERS = {
-    "m1": MARKERS,
-    "m2": MARKERS[:3] + ("KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS", "M1:PASS"),
-    "m3": MARKERS[:3] + ("KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "KS-04:PASS",
-                         "KS-07:PASS", "KS-08:PASS", "M3:SYSCALL_DF_ENTRY:PASS", "M3:PASS", "M1:PASS"),
-    "m4": MARKERS[:3] + ("M4:EXCHANGE:PASS", "M4:SURVIVOR_PROGRESS:PASS",
-                         "M4:CLEANUP:PASS", "M4:PASS", "M1:PASS"),
+    **BASE_MILESTONE_MARKERS,
     "m5": MARKERS[:3] + ("M5:CASE:READ:PASS", "M5:SURVIVOR_PROGRESS:PASS",
                          "M5:RESOURCES:PASS", "M5:PASS", "M1:PASS"),
 }
@@ -104,6 +105,15 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     print(stderr, end="")
     print(f"QEMU raw={rc}; expected={expected_exit}; timeout={timed_out}; expectation_pass={report['passed']}; {run_dir}")
     return report
+
+
+def run_gate_case(phase, group, *, label=None):
+    expectation = guest_expectation(phase, group)
+    if expectation is None:
+        raise ValueError(f"Unknown guest gate case: {phase}/{group}")
+    required_markers, expected_exit, forbidden_markers = expectation
+    return run_guest(label or group, required_markers=required_markers,
+                     expected_exit=expected_exit, forbidden_markers=forbidden_markers)
 
 
 if __name__ == "__main__":

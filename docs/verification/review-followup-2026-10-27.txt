@@ -1,0 +1,19 @@
+Review follow-up checks
+Base reviewed by PR comment: c630c59aa2e3ad4ce025aa8ac059e58be7334601
+
+PASS (exit 0): python -B -X utf8 tests/test_capture_gate.py
+Result: 4 synthetic capture/archive tests passed.
+
+PASS (exit 0): python -B -X utf8 tests/test_evidence_files.py
+Result: 4 tests passed; the signature-based updater and registry metadata match all 5 screenshots.
+
+PASS (exit 0): python3 tools/update_evidence_files.py
+Result: refreshed 5 screenshot records from file bytes.
+
+PASS (exit 0): git diff --check
+PASS (exit 0): python -m json.tool docs/verification/evidence-files.json
+
+BLOCKED (exit 1): python tools/build_users.py --kind probe && python tools/build_users.py --kind large && python -B -X utf8 userspace/tests/test_large_probe.py --elf build/users/probe_large.elf
+The first command stopped because Rust 1.90.0 is not installed; the large build and artifact test did not run. `python3 tools/preflight.py` exited 0 and confirmed the missing Rust toolchain/target and QEMU/OVMF.
+
+These host checks do not constitute a kernel or guest test.

@@ -5,12 +5,7 @@ import argparse
 import shutil
 import struct
 from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
-
-M3_CASES = ("peer-read", "peer-write", "kernel-write", "stack-exec", "heap-exec",
-            "guard-low", "guard-high", "cli", "x87", "xmm", "avx", "ud", "exit", "b-exit", "invalid-rsp")
-M4_CASES = (("copy", "KS-09"), ("wire", "KS-10"), ("snapshot", "KS-11"),
-            ("handles", "KS-12"), ("rights", "KS-13"), ("revoke", "KS-14"),
-            ("quotas", "KS-15"), ("lifecycle", "KS-16"))
+from gate_contract import M3_CASES, M4_CASES
 M5_CASES = ("service-errors", "device-rights", "async", "bad-descriptor", "used-id",
             "used-index", "used-short", "used-long", "used-status", "io-error", "timeout",
             "reset-timeout", "restart", "cpu-mmio", "cpu-dma", "cpu-pci", "no-device")
@@ -101,7 +96,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
     if not (ROOT / "Cargo.lock").exists():
         run_logged(["cargo", "+1.90.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):
-        args = ["cargo", "+1.90.0", "build", "--locked", "--release", "-p", package, "--target", target]
+        args = ["cargo", "+1.90.0", "build", "--locked", "--release", "--target-dir", str(ROOT / "target"), "-p", package, "--target", target]
         if feature:
             args += ["--features", feature]
         run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
