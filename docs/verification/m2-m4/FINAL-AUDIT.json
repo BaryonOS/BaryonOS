@@ -86,5 +86,18 @@
     "public license/publication decision"
   ],
   "runtime_source_changes_since_kernel_gate": "none; evidence archiver/docs updated separately",
-  "next_phase": "M5 first isolated service/virtio test image; not started"
+  "next_phase": "M5 first isolated service/virtio test image; not started",
+  "manual_cli": {
+    "command": [
+      "python tools/build.py --kernel-feature milestone-m4",
+      "python tools/run.py --smoke --milestone m4"
+    ],
+    "exit": 0,
+    "raw_qemu_exit": 33,
+    "base_commit": "4ea4132e80abe9663320e0eb446a407439782c32",
+    "evidence": "manual-m4.json",
+    "loader_and_kernel_identical_to_full_m4_gate": true
+  },
+  "additional_cli_guest_runs": 1,
+  "total_guest_runs_including_cli": 45
 }

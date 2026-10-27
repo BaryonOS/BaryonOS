@@ -41,6 +41,8 @@ De gehele afgesproken M1–M4-ontwikkelfase is geïmplementeerd, gereviewd en ge
 
 Capture van m1/m2/m3/m4 controleert serial/stderr/rawexpectations/artifacthashes; negatieve M1-records blijven false. V04 bevestigt de fasevolgorde en KS01–16-casedekking. ACCEPTANCE.md en FINAL-AUDIT.json geven de eindgrenzen. Materiaal/qsim-hashes blijven gelijk aan hun geteste bestanden; menselijke/hardware/OS-portcontroles blijven expliciet open.
 
+Het gedocumenteerde normale M4-startcommando is daarna afzonderlijk uitgevoerd: exit0/raw33. Die extra CLI-run telt apart van de52groepen/44suite-VM's; totaal inclusief CLI45VM's. Loader/kernel zijn bytegelijk aan de volledige M4-gate. De documentinconsistenties zijn door V04 nogmaals compact gesloten.
+
 De actuele commit bevat de laatste bewijs-/overdrachtsteksten en wordt privé gepusht op codex/m2-m4-isolation. Concept-PR#2 blijft open; main blijft de startspecificatie. Geen publieke release/licentiekeuze/hostconfig/hardwarewijziging.
 
 Volgende implementatiefase na deze afgeronde opdracht: M5, eerste geïsoleerde systeemdienst/virtio-testimage met expliciet DMA-contract. Niet stilzwijgend gestart. De lokale gebruikersconfig .codex/environments/ blijft buiten Git behouden.

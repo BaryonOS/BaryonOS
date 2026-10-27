@@ -22,6 +22,7 @@ De ontwikkelfase M1–M4 is geïmplementeerd en getest. De samengestelde M2–M4
 |---|---|---|
 | `python -u tools/test_milestones.py --through m4` | exit0; M2 8 groepen/7 VM, M3 22 groepen/19 VM, M4 12 groepen/10 VM | `verification/m2-m4/{m2,m3,m4}/suite.json` en guest-runs.json |
 | `python -u tools/test.py` | exit0; tien groepen, acht VM-runs en dertien hosttests | verification/m2-m4/m1/ |
+| Normale M4-build + `run.py --smoke --milestone m4` | exit0/raw33; extra CLI-start, loader/kernel bytegelijk aan volledige M4-gate | verification/m2-m4/manual-m4.json |
 | M2-hosttests | 6 bootprotocol +7 ELF +14 kernel-core geslaagd | m2/m2-host-tests.* |
 | M3-host/artifacttests | 14 kernel-core +13 gewone user +6 large-image geslaagd | m3/*host/artifact-tests.* |
 | M4-host/artifacttests | 21 capability-core +14 kernel-core +13 IPC-artifacttests geslaagd | m4/*host/artifact-tests.* |
@@ -43,7 +44,7 @@ python tools/build.py --kernel-feature milestone-m4
 python tools/run.py --smoke --milestone m4
 ```
 
-Dit is de normale eindige ontwikkelproef: de kernel laat synthetische processen berichten uitwisselen en sluit QEMU na controle af. Er is nog geen interactieve OS-shell/native desktop. De volledige testreeks herstelt na foutvarianten de gewone M1-image; bouw daarom het gewenste profiel expliciet. Zie DEVELOPMENT.md voor Materiaal op loopback en de quantum-CLI.
+Dit is de normale eindige ontwikkelproef: de kernel laat synthetische processen berichten uitwisselen en sluit QEMU na controle af. Er is nog geen interactieve OS-shell/native desktop. De volledige testreeks herstelt na foutvarianten de gewone M1-image; de laatste afzonderlijke CLI-start heeft daarna het M4-profiel gebouwd/gecontroleerd. Bouw bij hervatten het gewenste profiel expliciet. Zie DEVELOPMENT.md voor Materiaal op loopback en de quantum-CLI.
 
 ## Reviews en concrete grenzen
 

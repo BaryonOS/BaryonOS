@@ -67,6 +67,7 @@ docs/verification/m2-m4/m4/m4-user-artifact-tests.json
 docs/verification/m2-m4/m4/m4-user-artifact-tests.stderr.txt
 docs/verification/m2-m4/m4/m4-user-artifact-tests.stdout.txt
 docs/verification/m2-m4/m4/suite.json
+docs/verification/m2-m4/manual-m4.json
 docs/verification/m2-m4/p02-zoom-followup.md
 docs/verification/m2-m4/quantum/cdf-regression-before.json
 docs/verification/m2-m4/quantum/cdf-regression-before.stderr.txt
