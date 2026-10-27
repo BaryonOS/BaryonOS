@@ -12,7 +12,11 @@ Werkelijk uitgevoerd: 26 capabilitytests, 12 virtio-tests, 9 protocoltests, 11 u
 
 Reviewherstel staat in `0d4bad7`: initialisatiefouten na DMA-enable, device-id-binding, terminale tickets bij procesexit, onnodige clientautoriteit, harde kernelcorrelatie van ongeldige dienstverzoeken, quarantainecleanup en CPU-adresbreedte. De gerichte tweede-agentreviews zijn gesloten; specifieke init-readback/device1/exit-na-error-takken zijn bronfixes zonder aparte gastinjectie. Bron is bevroren met fingerprint v3 `b98826bc699f265fde265aac4a67835e114e52acf6c5df1ec15b2eb84b410300`.
 
-De gecombineerde poort is gestopt met exit1: M2 (8 groepen/7 VM), M3 (22 groepen/19 VM) en M4 (12 groepen/10 VM) slaagden. M5 faalde bij device-rights (raw35, M5:FAIL:USER_OR_PROTOCOL); de twee normale images en service-errors waren al geslaagd. Mislukte suite/guest en console zijn ongewijzigd als failed vastgelegd in verification/m5/diagnostics/. Diagnose loopt; bronfreeze is uitsluitend voor dit herstel opgeheven. De volledige M1-foutreeks volgt nog. Gerichte M5-cases 1/12/13/14 blijven afzonderlijk diagnostisch bewijs. De M1–M4-tabel hieronder beschrijft het eerdere behaalde basischeckpoint.
+De eerste gecombineerde poort stopte terecht met exit1 bij M5-device-rights: scopeoverschrijding gaf EINVAL in plaats van het afgesproken EACCESS. De smalle kernelboundaryfix staat in `7af544a`; tests zijn niet afgezwakt. Mislukte suite/guest en console blijven als failed bewaard in verification/m5/diagnostics/.
+
+De volledige M5-hertest slaagt nu: **25 groepen, 20 echte VM-runs**, alle 17 foutcases, dezelfde kernel op twee verschillende images en M1-na-M5. `capture_gate.py m5` heeft ruwe exits/markers, serial/stderr, alle artifacthashes en daadwerkelijke image-oracles opnieuw gecontroleerd (exit0). Evidence: verification/m5/{suite.json,guest-runs.json}. Finale fingerprint v3: `c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307`.
+
+Een nieuwe M2–M4-poort en de volledige M1-foutreeks draaien nu op deze finale bron. Daarna volgen onafhankelijke eindcontrole, normale M5-eindstart en documentatie. De eerdere M2–M4-poort was groen, maar de finale bronbinding wordt opnieuw gecontroleerd. De M1–M4-tabel hieronder beschrijft het eerdere behaalde basischeckpoint.
 
 ## Hoofdresultaat
 

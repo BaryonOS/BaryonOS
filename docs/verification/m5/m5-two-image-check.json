@@ -1,0 +1,13 @@
+{
+  "checks": {
+    "same_kernel": true,
+    "same_loader": true,
+    "different_images": true,
+    "different_received_digests": true
+  },
+  "runs": [
+    "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m5-read-a-cf0d8841ea",
+    "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m5-read-b-8caeea4205"
+  ],
+  "passed": true
+}
