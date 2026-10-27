@@ -1,6 +1,10 @@
 # Teststrategie en bewijsstatus
 Dit is een eigen testplan voor het project, geen verslag van al uitgevoerde OS-tests.
 
+## N02 — onderscheid echte TLS, beleid en native bewijs
+
+De uitgevoerde N02-integratie onder `verification/pqc-transport/` bevat 124 tests: 85 service inclusief 30 echte loopback-TLS-proeven, plus 39 UI-statustests. Handshakebewijs registreert de onderhandelde groep/protocol/cipher, wederzijdse identiteit, negatieve downgrade-/servergevallen en het ontbreken van sessiehergebruik. Policytests zijn geen TLS-bewijs; een configureerbare groepsnaam zonder handshake evenmin. Harnasaannames LAN/internet blijven onderscheiden van daadwerkelijk gemeten loopbacktransport. Test geen productiekeys of externe apparaten. App-/toestemmingsgeneraties voorkomen herleving van oude geauthenticeerde verbindingen na intrekken en opnieuw toestaan. Geen native/QEMU-, formeel-, menselijke-audit- of PQ-authenticatieclaim aan deze resultaten verbinden.
+
 ## Vanaf M1
 Een geslaagde build, een geslaagde emulatorboot en functionele isolatie zijn aparte resultaten. Geef elke test een naam, requirement, exacte versie/configuratie, verwachte observatie, time-out en foutcriterium. Archiveer de relevante seriële uitvoer buiten de bronboom; leg in de repository vast hoe die te reproduceren is.
 

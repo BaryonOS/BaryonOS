@@ -3,6 +3,8 @@ Datum: 27 oktober 2026. Gebruikersbesluit: internettoegang, NAS bij de gebruiker
 
 ## Status en scope
 
+**Aanvulling N02, 27 oktober 2026:** de oorspronkelijke N01-scope hieronder blijft herkenbaar. De afzonderlijke [TLS-hostproef](../../services/nas/TRANSPORT.md) voegt werkelijk geauthenticeerd hybride loopbacktransport en aan app/generatie gebonden facts toe. Zij levert geen native NAS-netwerkdienst en koppelt de echo nog niet aan de store. Actueel bewijs: `docs/verification/pqc-transport/`; formele/native vervolgcriteria: [VERIFIABLE-SECURITY-AND-PQC.md](VERIFIABLE-SECURITY-AND-PQC.md).
+
 N01 loopt parallel aan M6a. De eigen kernel/netwerkdriver wordt in deze wijziging niet uitgebreid.
 
 | Laag | Levering | Bewijsgrens |

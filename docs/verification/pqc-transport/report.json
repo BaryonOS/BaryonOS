@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "verified_utc": "2026-10-27T22:06:08.182775+00:00",
+  "base_commit": "ece94a5cfebecaec763eb2855aa9f84e55dcdcbc",
+  "checkpoint_commit": "3d05f9f8dccb4f515d8522578d20bbf00d8b8ed7",
+  "candidate": "N02 source with app and revocation generation binding",
+  "status": "passed",
+  "counts": {
+    "tests": 124,
+    "pass": 124,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "syntax_files": 20,
+  "environment": {
+    "node": "v24.22.1",
+    "openssl": "3.5.9",
+    "v8": "13.6.233.17-node.58",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "fixture_openssl_cli": "OpenSSL 3.0.13 30 Jan 2024 (Library: OpenSSL 3.0.13 30 Jan 2024)",
+    "rustc_available": false,
+    "cargo_available": false,
+    "qemu_available": false
+  },
+  "commands": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-isolation=none",
+        "services/nas/tests/crypto.test.mjs",
+        "services/nas/tests/policy.test.mjs",
+        "services/nas/tests/store.test.mjs",
+        "services/nas/tests/transport.test.mjs",
+        "ui/prototype/tests/nas-sharing.test.mjs",
+        "ui/prototype/tests/state.test.mjs"
+      ],
+      "exit_code": 0,
+      "output": "tests.txt"
+    },
+    {
+      "argv": [
+        "node",
+        "services/nas/demo.mjs"
+      ],
+      "exit_code": 0,
+      "output": "storage-demo.json"
+    },
+    {
+      "argv": [
+        "node",
+        "services/nas/transport-demo.mjs"
+      ],
+      "exit_code": 0,
+      "output": "transport-demo.json"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": "diff-check.txt"
+    }
+  ],
+  "source_sha256": {
+    "services/nas/crypto.mjs": "19c4681f1164442dc245637f9e7a539ab163d262305c7299f46fad8e4f142be2",
+    "services/nas/demo.mjs": "90a7235305976d647ec13d8297c796df83ca740e6ea2dfe72e96e2c2c8d74167",
+    "services/nas/errors.mjs": "1d9d458819d42baecab9d0b7ffaee60e4e4a8e364b48f5920bc515c5a6f7a9ce",
+    "services/nas/policy.mjs": "ff8a7422e8958e1d57fd98ab515d27832d623bb266d4241dd73b5adbf324fdb0",
+    "services/nas/store.mjs": "fadf71eafaea052a6def0bb277c3c0cc8ba4da60967c035fc20b0d323582b8be",
+    "services/nas/tests/crash-worker.mjs": "9c22db274aefd4a9f87e0a024e13791fba2d47b418ca3f7560eb1a87a336ad12",
+    "services/nas/tests/crypto.test.mjs": "a7f7ae401aa3777fe95067e7ee7d6b7d34b2108d0379a9aba9ec13ceaa63fe18",
+    "services/nas/tests/policy.test.mjs": "da99097586c007fd59a20b468805013f60d71958cc3984501ea0909c84db6e3d",
+    "services/nas/tests/store.test.mjs": "fb03451b971a6e00d5307a887c4bf59127686d87d83ddfde33aa9874d1055b13",
+    "services/nas/tests/tls-fixture.mjs": "0f68c8ce64218404fbcecfe916c05336c9e2958b0f45181e8c1d494a35322d4f",
+    "services/nas/tests/transport.test.mjs": "1ca77b5866f80954fb7544445c7679c96bb71631b8b8e97aff99bd06166da338",
+    "services/nas/transport-demo.mjs": "e3f8156119deca9586782dd342ad95dc3cb4ee842e311b7fdbc6b8d32c7f2981",
+    "services/nas/transport.mjs": "26742c44b6239f64edafed8cfd1796e0797059642a820e7190abd20fe83990b4",
+    "ui/prototype/app.js": "6a20864a6f159c43c5ae1f56f778cb4e2e7fa4f6b879ec6b711a904f452779bb",
+    "ui/prototype/broker.js": "8bfc3721fce6b09e154d7a4c06616c86d118f8980333e1a9596abe9bea87e77a",
+    "ui/prototype/fixtures.js": "a6fdd3e04282c0dd495f9f4a16e8bc2dba9c47275c707f78db8f8f19cc321a39",
+    "ui/prototype/nas-sharing.js": "1e60aa77dfcd31f9434f0c2242a71402bbcee3fa310bd7d6f5596d42dee30f2e",
+    "ui/prototype/state.js": "f6a08eeeeee3a41c8b4dc7f2905a7290b84f1ac5c56c91d44879cf002a67be95",
+    "ui/prototype/tests/nas-sharing.test.mjs": "77320172bc7c4ce98fb5bbbb97abbdb65192c2c59469a516f2de4a9aea06cf80",
+    "ui/prototype/tests/state.test.mjs": "71101a59adbccec7cadf56e2f047a80b3d54ad245fd2ba0d3bd76f92ee8178be"
+  },
+  "scope": {
+    "host_loopback_tls": true,
+    "nas_storage_api_host": true,
+    "ui_state_tests": true,
+    "native_os_network": false,
+    "wan_lan_detection": false,
+    "pqc_authentication": false,
+    "formal_proof": false,
+    "qemu_run": false,
+    "new_browser_visual_test": false,
+    "real_nas_router_changed": false
+  },
+  "limitations": [
+    "Loopback tests need permitted socket listen; default sandbox previously produced EPERM; explicit loopback escalation approved.",
+    "Ed25519 certificate authentication is classical; X25519MLKEM768 key exchange is hybrid.",
+    "Network labels are explicit harness assumptions, not observed WAN/LAN interfaces.",
+    "Echo transport is not wired to the N01 store; no durability acknowledgement.",
+    "Trusted host adapter owns authority; no native app/process isolation proof.",
+    "No Rust/Cargo/QEMU available in this session; no native cryptography, boot/block changes or Grover implementation tested.",
+    "No private keys, certificates, session secrets or personal data included in evidence."
+  ]
+}

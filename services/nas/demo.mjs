@@ -21,7 +21,7 @@ try {
   const { authority, check } = createPolicyEngine();
   const app = authority.installApp({ appId: 'demo.nas', kind: 'nas' });
   authority.pinNasPeer(app, { peerIdentity: offer.peerIdentity, localNetworkId: 'home' });
-  const assumedTransport = authority.attestVerifiedTransport({ peerIdentity: offer.peerIdentity, networkScope: 'internet' });
+  const assumedTransport = authority.attestVerifiedTransport({ app, peerIdentity: offer.peerIdentity, networkScope: 'internet' });
   assert.equal(check({ app, resource: 'nas', transport: assumedTransport }).allowed, false);
   authority.grantNasDirectInternet(app, offer.peerIdentity);
   assert.equal(check({ app, resource: 'nas', transport: assumedTransport }).allowed, true);

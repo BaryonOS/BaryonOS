@@ -1,7 +1,7 @@
 # Bindend privacycontract: internet, persoonlijke NAS en gedeelde opslag
 Revisie 3, 27 oktober 2026. Deze expliciete gebruikerswijziging vervangt de eerdere beperking tot een eigen NAS binnen het eigen LAN. De lokale AI-eis en het verbod op leverancierscloud/fallback blijven gelden.
 
-**Bewijsstatus:** dit zijn bindende product- en integratie-eisen. `services/nas/` bevat een uitvoerbare hostproef met echte encryptie en opslagbeheer; `ui/prototype/` bevat gesimuleerde productflows. Een native netwerkstack, NAS-distributie, transportauthenticatie en integratie met kernelcapabilities zijn hiermee niet aangetoond. Concrete scope en acceptatie: [NAS-SHARING-AND-INTERNET.md](implementation/NAS-SHARING-AND-INTERNET.md).
+**Bewijsstatus:** dit zijn bindende product- en integratie-eisen. `services/nas/` bevat N01 met echte hostencryptie/opslagbeheer en de afzonderlijke N02-loopbackproef met werkelijk geauthenticeerde hybride TLS. `ui/prototype/` bevat gesimuleerde productflows. Native netwerkstack, NAS-distributie, pairing tussen echte apparaten en kernelafdwinging blijven open. Scope: [NAS-SHARING-AND-INTERNET.md](implementation/NAS-SHARING-AND-INTERNET.md) en de [verificatie-/PQC-aanvulling ADR-028](implementation/VERIFIABLE-SECURITY-AND-PQC.md). Deze aanvulling verandert de opslag-/beheerdersrechten van revisie 3 niet.
 
 ## 1. Internet en gegevenslocatie
 
@@ -35,7 +35,7 @@ Hetzelfde OS-product krijgt een clientrol en een NAS-rol. De gewenste bediening 
 - Discovery, een hostnaam, privé-IP of hetzelfde wifi-netwerk zijn geen authenticatie.
 - Koppeling bindt een eenmalige, vervallende uitnodiging aan de NAS-identiteit, namespace en afgesproken capaciteit. Een zichtbare naam is geen autorisatie-ID.
 - Controleer de identiteit via QR of een reeds vertrouwd kanaal. Een korte vergelijkcode alleen mag geen herbruikbaar wachtwoord worden.
-- De toekomstige transportadapter verifieert TLS 1.3 en clientidentiteit. Mutaties gebruiken geen TLS 0-RTT; die route heeft replayrisico's (Rescorla, 2018). Koppel herhaalde requests aan operatie, identiteit en generatie.
+- De native transportadapter moet een onderhouden standaardprotocol voor hybride postkwantum-sleuteluitwisseling gebruiken, met echte peer-/clientauthenticatie en zonder stille klassieke fallback. N02 onderzoekt TLS 1.3/X25519MLKEM768 volgens RFC 10024 op loopback; de Ed25519-testauthenticatie blijft klassiek. Mutaties gebruiken geen TLS 0-RTT wegens replayrisico's. Koppel herhaalde requests aan operatie, identiteit en generatie; bind bestaande transportautoriteit aan app en intrekkingsgeneratie.
 - De trusted adapter levert netwerk-/identiteitsfeiten; een request mag zichzelf niet authenticeren met een boolean als `verified: true`.
 - Internetrecht is peergebonden. Identiteitsafwijking, een redirect of DNS-wijziging naar een ongeautoriseerde peer geeft een fout, geen fallback.
 - Geen automatische UPnP/portforwarding, open beheerpoort of afhankelijkheid van een commerciële relay als bijwerking. Directe bereikbaarheid of een afzonderlijk expliciet gekozen eigen netwerkroute moet eerst zijn aangetoond.

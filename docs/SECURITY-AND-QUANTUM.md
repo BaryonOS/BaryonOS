@@ -1,6 +1,8 @@
 # Beveiliging, privacy en postkwantumontwerp
 
-Status: onderzoeks- en ontwerpdocument, 26 oktober 2026. Er bestaat in dit startpakket nog geen bewezen veilige kernel. De onderstaande eisen zijn voorgestelde acceptatiecriteria; ze zijn niet al geïmplementeerd of getest.
+Status: beveiligingsontwerp, bijgewerkt 27 oktober 2026. M1–M5 hebben eigen QEMU-testbewijs, M6a heeft nog een open eindpoort en N01 heeft host-/mockbewijs. Er is geen formeel geverifieerde eigen kernel. De eisen hieronder zijn niet automatisch geïmplementeerd of bewezen; de actuele uitvoering staat in PROJECT-STATE.md.
+
+De nieuwe microkernel-/CHERI-/PQC-blauwdruk is gecontroleerd en vertaald in [VERIFIABLE-SECURITY-AND-PQC.md](implementation/VERIFIABLE-SECURITY-AND-PQC.md), met broncorrecties, de werkelijke native buildgrenzen, een N02-proefprofiel voor TLS 1.3/X25519MLKEM768 (RFC 10024) en afzonderlijke bewijs-/integratietaken. Geen eigen hybride KDF/tunnel, stille seL4-kernelwissel of onbewezen CHERI-garantie. Privacy en een soepele verbonden productervaring blijven gezamenlijke eisen.
 
 ## 1. Uitgangspunt
 

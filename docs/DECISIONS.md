@@ -1,5 +1,21 @@
 # Ontwerpbesluiten
 
+## ADR-028 — Bewijs per eigenschap en standaard hybride NAS-transport
+
+**Datum/status:** 27 oktober 2026; ontwerp aanvaard en N02-hostproef getest vanaf `ece94a5`. **Context:** de gebruikersblauwdruk vraagt formele verificatie, kleine TCB, capabilities, geheugenbescherming en PQC. De richting past bij het project; de absolute productclaims en het eigen KDF-/tunnelvoorstel zijn niet onderbouwd.
+
+**Besluit:** eigen Rust-kern behouden, formele eigenschappen met expliciete aannames en implementatiebinding uitwerken, CHERI als aparte platformproef. Asymmetrische/PQC-code blijft buiten `kernel/`. Voor de eerste uitvoerbare NAS-transportproef TLS 1.3 met uitsluitend de gestandaardiseerde groep X25519MLKEM768 (RFC 10024), wederzijdse certificaatcontrole/pinning en bestaande peergebonden rechten. Geen eigen combiner/recordcrypto. De optionele-PSK-framing uit het aangeleverde fragment is ambigu. Een klassieke-only peer krijgt geen fallback in dit proefprofiel.
+
+**Alternatieven/gevolgen:** onmiddellijk een ongeteste native crate toevoegen past niet bij de huidige directe-rustc-build, vaste ELF-limieten, kleine IPC, ontbrekende entropycapability en uitgeschakelde SIMD. Een hele kernel vervangen door seL4 is geen gegeven opdracht. De begrensde hostproef geeft werkelijk protocolbewijs zonder een native port te claimen. De proef gebruikt klassieke Ed25519-authenticatie; geen volledige postkwantum-authenticatie-/bootketenclaim. LAN/WAN-labels in loopbacktests zijn expliciete harnasaannames.
+
+**Invariant:** toestemming vóór verbinden; echte peer-authenticatie vóór data; actuele bevoegdheid bij iedere applicatiewrite/response; close/error trekt transportfeit in. Fact bindt aan app, peerpin-generatie en voor internet de intrekkingsgeneratie; oude geauthenticeerde verbindingen herleven niet na hernieuwde toestemming. Intrekking werkt bij de volgende gecontroleerde handeling, geen proactieve idle-socketpush. Client-only documentkeys en het bestaande beheerderverwijderrecht blijven gelden. Een geldig ondertekend pakket verleent op zichzelf geen capabilities. Eenmalig verleende beperkte autoriteit mag automatisch gebruikt worden zonder herhaalde prompts.
+
+**Bewijs/status:** geïntegreerd 124/124 tests (85 service, 39 UI), beide demo's exit 0, 20 syntaxchecks en diffcontrole geslaagd. Echte negatieve TLS-handshakes, geauthenticeerde kwaadaardige serverantwoorden, resourcegrenzen, intrekking en regrant getest. Twee AI-reviews en gerichte onafhankelijke hercontrole van de generatiecorrectie. Commando's/bronhashes/resultaten in `verification/pqc-transport/`. Het eerste 16-policytestcheckpoint is historisch bewaard en niet bij de 124 opgeteld. Geen formeel bewijs of menselijke audit.
+
+**Bronnen:** RFC 10024; seL4 verified configurations/Proofcraft nieuws 2026; CHERI FAQ/CHERI-D; NIST FIPS 203/204/205. Precieze URLs, correcties en native taken staan in `implementation/VERIFIABLE-SECURITY-AND-PQC.md`.
+
+**Herziening/rollback:** herzie bij incompatibele standaarden, library-/bewijsproblemen, native port of nieuwe productinstructie. N02 is een afzonderlijke werkbranch boven PR #7; verwijderen ervan vereist geen schijf-, sleutel- of firmwaremigratie. De nieuwe proef opent uitsluitend loopback. Bestaande N01/M6a-code en bewijsarchieven behouden.
+
 ## ADR-027 — Internet en versleutelde persoonlijke NAS-ruimte
 
 **Datum/status:** 27 oktober 2026; aanvaard op expliciete gebruikersopdracht, met geteste hostproef N01 en browsermock. Native integratie staat open. **Eigenaar:** hoofdagent voor contract/integratie; afzonderlijke service- en productbuilders.
