@@ -10,12 +10,17 @@ krijgt blokrechten op de 32 journal-sectoren; apps krijgen hun eigen endpoint.
 Succes volgt pas na echte WRITE- en FLUSH-completion. Corruptie en onzekere
 mutaties sluiten toegang af; er is geen automatische herhaling van writes.
 
-Checkpoint: broncode, native buildselectie en 22 geslaagde Rust-hosttests aanwezig.
-De native crossbuild, QEMU-uitvoering, onafhankelijke schijforacle, koude herstart
-en crashproeven worden nog geïntegreerd/uitgevoerd. Dit is nog geen behaalde
-M6b-mijlpaal. De complete M6a-poort wordt daarnaast opnieuw uitgevoerd op de
-ongewijzigde basis, in een aparte checkout; eerdere deelresultaten worden niet
-bij nieuwe runs opgeteld.
+Checkpoint `3ba72ca`: broncode en native buildselectie opgeslagen. 22 Rust-hosttests,
+16 harnastests en de eerste echte native QEMU-uitvoering zijn geslaagd: twee apps,
+acht bevestigde mutaties, vier afzonderlijke objectrevisies en onafhankelijke
+controle van de werkelijke schijfbytes. De volledige M6b-gate met koude herstarts,
+uitputting, corruptie en externe QEMU-kills volgt nu; nog geen volledige M6b-claim.
+
+De ongewijzigde basis `10b32e3` heeft inmiddels de complete M6a-gate opnieuw
+gehaald: 54/54 controlegroepen, 49 echte VM-invocaties, zes externe QEMU-kills en
+17 afzonderlijke koude recoveries. Capture heeft raw output, hashes en links
+opnieuw gecontroleerd. Dit is één nieuwe Linux-run; oude deelresultaten zijn niet
+opgeteld. De volledige M1–M5-regressie op de nieuwe M6b-bron volgt afzonderlijk.
 
 Deze begrensde lokale opslagproef heeft geen namen, directoryboom, garbage
 collection of encryptie. Verwijderrecords voorkomen het terugkomen van oude

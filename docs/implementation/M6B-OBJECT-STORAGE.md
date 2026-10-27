@@ -49,7 +49,9 @@ het volledige record met nul checksumveld berekend. Dit is geen cryptografie.
 ## Native acceptatie
 
 Build: `python3 -B tools/build.py --kernel-feature milestone-m6b`.
-De runner en complete gate worden in dezelfde werkbranch toegevoegd.
+Smoke: `python3 -B tools/run_m6b.py --case normal --smoke`.
+Volledige gate: `python3 -B -u tools/test_m6b.py`; daarna
+`python3 -B tools/capture_m6b.py` voor hercontrole en tekstarchief.
 
 Normaal maakt iedere app twee objecten, werkt één bij, verwijdert één en leest
 beide terug. De eindtoestand heeft sequence 8: objecten 0/2 live op revisie 2,
@@ -60,7 +62,7 @@ Negatieve proeven controleren alle CRUD-operaties over de domeingrens,
 malformed/padding/epoch/revisie, onjuiste handles, rechten en gesloten handles.
 De observer controleert dat afgewezen serviceverzoeken geen device-I/O geven.
 De full-proef doet 32 echte writes; extra writes geven Full zonder overschrijven.
-De host controleert independently alle journalbytes en canaries buiten scope.
+De host controleert onafhankelijk alle journalbytes en canaries buiten scope.
 
 Twee externe QEMU-kills: vóór de eerste WRITE-publicatie en na de eerste echte
 mutatie-FLUSH maar vóór ACK. Een tweede koude VM moet respectievelijk de oude
