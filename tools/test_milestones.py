@@ -7,8 +7,8 @@ from datetime import datetime, timezone
 import json
 import sys
 from common import BUILD, ROOT, run_logged, save_json
-from build import build, M3_CASES
-from run import run_guest
+from build import build, M3_CASES, M4_CASES
+from run import run_guest, MILESTONE_MARKERS
 
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 M2_AUDIT = ("KS-01:PASS", "KS-02:PASS", "KS-03:PASS")
@@ -125,6 +125,16 @@ def test_m3():
             "M3:IDLE:PASS", "M3:PASS", "M1:PASS"))
         record("all-processes-exit-idle-timer-and-resources", guest,
                ["KS-08", "IDLE_CPL0_IRQ0", "RESOURCE_RECLAIM"])
+        build(kernel_feature="test-m3-large-image", label="test-m3-large-image")
+        run_logged([sys.executable, "-B", "-X", "utf8", "userspace/tests/test_large_probe.py",
+                    "--elf", "build/users/probe_large.elf"], "m3-large-artifact-tests")
+        suite["results"].append({"name": "large-bss-artifact-host-tests", "passed": True,
+                                 "requirements": ["MAPPING_CAPACITY", "USER_ELF"],
+                                 "evidence": "build/logs/m3-large-artifact-tests.stdout.txt"})
+        save_json(path, suite)
+        guest = run_guest("test-m3-large-image", required_markers=MILESTONE_MARKERS["m3"])
+        record("large-bss-image-exceeds-old-64-mapping-limit", guest,
+               ["KS-04", "KS-07", "KS-08", "MAPPING_CAPACITY"])
         build()
         record("m1-regression-after-m3", run_guest("m1-after-m3"), ["M1"])
         suite.update(status="completed", passed=True)
@@ -142,10 +152,62 @@ def test_m3():
     print(f"M3 gate passed: {len(suite['results'])} groups; M4 may now be considered")
 
 
+def test_m4():
+    path = BUILD / "m4-test-results.json"
+    suite = {"phase": "M4", "status": "running", "passed": False,
+             "started_utc": datetime.now(timezone.utc).isoformat(), "results": []}
+    save_json(path, suite)
+
+    def record(name, passed, evidence, requirements):
+        suite["results"].append({"name": name, "passed": bool(passed),
+                                 "requirements": requirements, "evidence": evidence})
+        save_json(path, suite)
+        if not passed:
+            raise RuntimeError(f"M4 gate failed: {name}")
+
+    try:
+        run_logged(["cargo", "+1.90.0", "test", "--locked", "-p", "capability-core",
+                    "-p", "kernel-core"], "m4-host-tests")
+        record("capability-transaction-wire-generation-host-tests", True,
+               "build/logs/m4-host-tests.stdout.txt", [r for _, r in M4_CASES])
+        build(kernel_feature="milestone-m4", label="m4")
+        run_logged([sys.executable, "-B", "-X", "utf8", "userspace/tests/test_ipc_probe.py",
+                    "--elf", "build/users/ipc_probe.elf"], "m4-user-artifact-tests")
+        record("ipc-user-artifact-negative-tests", True,
+               "build/logs/m4-user-artifact-tests.stdout.txt", ["USER_IPC_ELF"])
+        guest = run_guest("m4-exchange", required_markers=MILESTONE_MARKERS["m4"])
+        record("real-ring3-message-exchange", guest["passed"], guest["run_directory"], ["IPC_POSITIVE"])
+        for case, requirement in M4_CASES:
+            feature = f"test-m4-{case}"
+            build(kernel_feature=feature, label=feature)
+            guest = run_guest(feature, required_markers=BOOT + (
+                f"M4:CASE:{case.upper()}:PASS", "M4:SURVIVOR_PROGRESS:PASS",
+                "M4:CLEANUP:PASS", f"{requirement}:PASS", "M4:PASS", "M1:PASS"))
+            record(feature, guest["passed"], guest["run_directory"], [requirement])
+        build()
+        guest = run_guest("m1-after-m4")
+        record("m1-regression-after-m4", guest["passed"], guest["run_directory"], ["M1"])
+        suite.update(status="completed", passed=True)
+    except Exception as exc:
+        suite.update(status="failed", passed=False, error=str(exc))
+        save_json(path, suite)
+        try:
+            build()
+        except Exception as restore:
+            suite["restore_error"] = str(restore)
+        raise
+    finally:
+        suite["finished_utc"] = datetime.now(timezone.utc).isoformat()
+        save_json(path, suite)
+    print(f"M4 gate passed: {len(suite['results'])} groups; final review/audit still required")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--through", choices=["m2", "m3"], default="m2")
+    parser.add_argument("--through", choices=["m2", "m3", "m4"], default="m2")
     args = parser.parse_args()
     test_m2()
-    if args.through == "m3":
+    if args.through in ("m3", "m4"):
         test_m3()
+    if args.through == "m4":
+        test_m4()

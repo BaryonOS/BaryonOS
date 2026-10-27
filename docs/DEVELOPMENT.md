@@ -57,6 +57,27 @@ python tools/capture_gate.py m2
 
 `capture_gate.py` controleert ruwe exit/markers, seriële output en artifacthashes voordat het compacte bewijs naar `docs/verification/m2-m4/m2/` kopieert. Het wijzigt geen testuitkomsten. Bestaande oudere runs verwijzen voor de onveranderde VARS-template nog naar de gehashte bron; nieuwe runs bewaren die template ook in hun eigen map.
 
+De volledige M2–M3-poort is uitgevoerd op `6802b17` en start met:
+
+```powershell
+python -u tools/test_milestones.py --through m3
+python tools/capture_gate.py m2
+python tools/capture_gate.py m3
+```
+
+Deze reeks voert acht M2- en twintig M3-groepen uit. Na de afzonderlijke foutvarianten herstelt zij de gewone M1-image. Voor de normale M3-ontwikkelproef met eigen gebruikersprocessen bouw je expliciet het M3-profiel en eis je de bijbehorende markers:
+
+```powershell
+python tools/build.py --kernel-feature milestone-m3
+python tools/run.py --smoke --milestone m3
+```
+
+De M3-CLI-poort verlangt daadwerkelijke KS-04/07/08- en M3-markers; een gewone M1-image kan daarmee niet als M3 slagen. De normale M3-proef voert de vaste synthetische programma's uit en sluit QEMU daarna af. Er is nog geen interactieve OS-shell of native Materiaal-desktop.
+
+`userspace/` bevat de eigen statische userprobe en dertien host-artifacttests. `tools/build_users.py` gebruikt directe rustc-argumenten met het userlinkerscript; de Cargo-kernellinkopties worden daarvoor niet hergebruikt. M4 voegt een afzonderlijke IPC-probe toe via `--kind ipc`; dat spoor is pas een behaald resultaat na de eigen M4-poort.
+
+De latere bronvingerafdrukversie2 sluit gegenereerde `verification/`, `build/`, `target/` en caches uit en neemt gebruikersbron mee. Buildmanifesten en guestresultaten vermelden de versie expliciet. Oudere rapporten zonder dit veld behouden hun oorspronkelijke vingerafdruk; artifacthashes blijven rechtstreeks controleerbaar.
+
 Een losse ontwikkelopdracht in dezelfde omgeving:
 
 ```powershell

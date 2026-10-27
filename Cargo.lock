@@ -7,6 +7,10 @@ name = "boot-protocol"
 version = "0.1.0"
 
 [[package]]
+name = "capability-core"
+version = "0.1.0"
+
+[[package]]
 name = "elf-loader-core"
 version = "0.1.0"
 dependencies = [
@@ -22,6 +26,7 @@ name = "os-kernel"
 version = "0.1.0"
 dependencies = [
  "boot-protocol",
+ "capability-core",
  "kernel-core",
 ]
 

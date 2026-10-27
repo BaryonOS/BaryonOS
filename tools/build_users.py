@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Build the project's static user probe without Cargo's kernel linker script."""
 from __future__ import annotations
+import argparse
 import struct
 from common import ROOT, BUILD, run_logged, save_json, sha256
 
@@ -39,24 +40,33 @@ def inspect_user(path):
     return dict(entry=entry, segments=segments)
 
 
-def build_users():
-    output = BUILD / "users/probe.elf"
+def build_users(kind="probe"):
+    fixtures = {"probe": ("probe", "linker.ld", "probe", "manifest.json"),
+                "ipc": ("ipc_probe", "ipc_linker.ld", "ipc_probe", "manifest-ipc.json"),
+                "large": ("probe", "large_linker.ld", "probe_large", "manifest-large.json")}
+    if kind not in fixtures:
+        raise ValueError("unknown synthetic user fixture")
+    source_stem, linker_name, stem, manifest_name = fixtures[kind]
+    output = BUILD / f"users/{stem}.elf"
     output.parent.mkdir(parents=True, exist_ok=True)
-    source, linker = ROOT / "userspace/probe.rs", ROOT / "userspace/linker.ld"
-    args = ["rustc", "+1.90.0", "--edition=2021", "--crate-type=bin", "--crate-name=os_user_probe",
+    source = ROOT / f"userspace/{source_stem}.rs"
+    linker = ROOT / f"userspace/{linker_name}"
+    args = ["rustc", "+1.90.0", "--edition=2021", "--crate-type=bin", f"--crate-name=os_user_{stem}",
             "--target=x86_64-unknown-none", "-C", "panic=abort", "-C", "opt-level=2",
             "-C", "code-model=small", "-C", "relocation-model=static", "-C", "no-redzone=yes",
             "-C", "linker=rust-lld", "-C", f"link-arg=-T{linker}", "-C", "link-arg=--no-pie",
             "-C", "link-arg=--build-id=none", "-C", "link-arg=-zmax-page-size=0x1000",
             "--emit=link", "-o", str(output), str(source)]
-    run_logged(args, "build-users-probe")
+    run_logged(args, f"build-users-{stem}")
     manifest = {"schema_version": 1, "purpose": "synthetic ring-3 acceptance probe",
                 "binary_sha256": sha256(output), "source_sha256": sha256(source),
                 "linker_sha256": sha256(linker), **inspect_user(output)}
-    save_json(BUILD / "users/manifest.json", manifest)
-    print(f"Built own user ELF: entry={manifest['entry']:#x}, {len(manifest['segments'])} segments")
+    save_json(BUILD / "users" / manifest_name, manifest)
+    print(f"Built own {stem} ELF: entry={manifest['entry']:#x}, {len(manifest['segments'])} segments")
     return output
 
 
 if __name__ == "__main__":
-    build_users()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--kind", choices=["probe", "ipc", "large"], default="probe")
+    build_users(parser.parse_args().kind)

@@ -32,10 +32,21 @@ test-m3-exit = ["milestone-m3"]
 test-m3-b-exit = ["milestone-m3"]
 test-m3-invalid-rsp = ["milestone-m3"]
 test-m3-idle = ["milestone-m3"]
+test-m3-large-image = ["milestone-m3"]
+milestone-m4 = ["milestone-m3"]
+test-m4-copy = ["milestone-m4"]
+test-m4-wire = ["milestone-m4"]
+test-m4-snapshot = ["milestone-m4"]
+test-m4-handles = ["milestone-m4"]
+test-m4-rights = ["milestone-m4"]
+test-m4-revoke = ["milestone-m4"]
+test-m4-quotas = ["milestone-m4"]
+test-m4-lifecycle = ["milestone-m4"]
 
 [dependencies]
 boot-protocol = { path = "../crates/boot-protocol" }
 kernel-core = { path = "../crates/kernel-core" }
+capability-core = { path = "../crates/capability-core" }
 
 [[bin]]
 name = "os-kernel"

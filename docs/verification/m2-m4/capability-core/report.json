@@ -1,0 +1,116 @@
+{
+  "task": "K04C",
+  "scope": "capability-core host policy/transaction tests; no pointer/ring3 proof",
+  "basis_commit": "d2ab03d555efa09c9fa9d1f4fe8fd00a2d99e431",
+  "commands": [
+    {
+      "name": "format",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.exe",
+        "+1.90.0",
+        "fmt",
+        "-p",
+        "capability-core",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 2.608409
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.exe",
+        "+1.90.0",
+        "test",
+        "-p",
+        "capability-core",
+        "--locked",
+        "--offline",
+        "--",
+        "--test-threads=3"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 2.226953
+    },
+    {
+      "name": "clippy",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.exe",
+        "+1.90.0",
+        "clippy",
+        "-p",
+        "capability-core",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 4.398619
+    },
+    {
+      "name": "no-std",
+      "argv": [
+        "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.exe",
+        "+1.90.0",
+        "check",
+        "-p",
+        "capability-core",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 3.066679
+    },
+    {
+      "name": "diff-check",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "crates/capability-core"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.87763
+    }
+  ],
+  "source_sha256": {
+    "crates\\capability-core\\Cargo.toml": "7b24ddba37bca5b44a8b75b6cc229e2ae06c7a44533fe0d6a121783ad7552087",
+    "crates\\capability-core\\README.md": "fdbd594ed37a7b5e271845c71cf92804993763ce5b07a47a602dd6321d386ba0",
+    "crates\\capability-core\\src\\lib.rs": "9fd699ae91a7f7b3c23aee445994edd4c8d2c71811e60a76a093c0c0bfbca179",
+    "crates\\capability-core\\src\\tests.rs": "cf51cd2a1d91d5c889f02e1b3dc6ac73e4e8a2caa9dc5153bf130d30369b5a0f",
+    "Cargo.lock": "9ac79cb400224a94b1b2dc2ddcd3913bfbf3de49993a537d4dd541fb26b99a6e"
+  },
+  "passed": true,
+  "host_tests_passed": 21,
+  "runtime_dependencies": 0,
+  "unsafe": "forbidden",
+  "target_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\capability-tests\\final",
+  "pre_fix_regression": {
+    "test": "ks13_all_transfer_authority_precedes_any_depth_resource_failure",
+    "exit": 101,
+    "expected": true,
+    "log": "verification/depth-order-before.txt",
+    "observed": "Quota instead of BadHandle"
+  },
+  "post_fix_regression": {
+    "exit": 0,
+    "log": "verification/depth-order-after.txt"
+  },
+  "transient_environment_failure": {
+    "exit": 101,
+    "cause": "Windows link.exe LNK1104 could not open old test executable in build/capability-tests/debug/deps; rerun in separate final target succeeded"
+  },
+  "limitations": [
+    "KS09 and live ring3 usercopy/permission enforcement belong to kernel integration; no claim from these host tests.",
+    "NoSys/Fault/Type numeric mapping tested; runtime object type is Endpoint only.",
+    "Full state_digest is diagnostic and not collision-resistant; host failures compare full Engine snapshots.",
+    "Closed referenced endpoint tombstones still occupy global and per-owner object capacity until final references close."
+  ]
+}

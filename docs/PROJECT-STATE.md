@@ -12,6 +12,8 @@ M2: `python -u tools/test_milestones.py` exit0, acht groepen, twintig hosttests 
 
 Q01-contractcontrole herstelde een CDF-afrondingsfout; 25 Rust-tests en vijf fixtures slagen. Bewijs: `docs/verification/m2-m4/quantum/`. Dit blijft lokale hostsimulatie. De volgende sectie bewaart het eerdere basischeckpoint; historische beperkingen daar beschrijven die basis.
 
+Tussencheckpoint M4: dependencyvrije `capability-core` is toegevoegd met 21 hosttransactietests, formattering, Clippy-Dwarnings en no_std-check (alle exit0); bronhashes en commandexits zijn opnieuw gecontroleerd. De onafhankelijke review liet foutvolgorde bij twee transfercaps herstellen. Bewijs: `docs/verification/m2-m4/capability-core/`. Afzonderlijke IPC-/large-userfixtures hebben respectievelijk dertien en zes host-artifacttests. Workspace, lockfile en drivers zijn gecheckpoint; de nieuwe M4-kernelbron en 2048-mappingarena zijn op dit checkpoint nog in lokale integratie. De M4-features zijn daarom nog geen geslaagd resultaat; de rootpoort en gecombineerde regressie volgen na de complete bronoverdracht.
+
 ## Basischeckpoint eerste batch
 
 Aanvulling P02V op deze basis: skiplink behoudt route en documentdraft, openerfocus is hersteld, zoeken ondersteunt documenttype en de desktopinspector is 288px. De actuele suite heeft 23/23 geslaagde tests; browsermetingen, bronhashes en drie screenshots staan onder `ui/prototype/verification/`. Echte 200%-zoom, schermlezer- en menselijke taakproeven blijven open. Dit is uitsluitend het hostprototype.
