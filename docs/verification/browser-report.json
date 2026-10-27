@@ -1,0 +1,183 @@
+{
+  "date": "2026-10-27",
+  "source_commit": "7d2a76c736f1187601428534c66cc18c724ee199",
+  "scope": "Local browser interaction prototype with synthetic fixtures; no OS integration",
+  "origin": "http://127.0.0.1:8776",
+  "server_note": "8765 returned empty responses after resume; 8776 independently returned HTTP200 and was used for final checks",
+  "modal": [
+    {
+      "step": "initial",
+      "id": "deny-access",
+      "inDialog": true,
+      "text": "Annuleer"
+    },
+    {
+      "step": "shift-tab-wrap",
+      "id": "",
+      "inDialog": true,
+      "text": "Sta tijdelijk toe"
+    },
+    {
+      "step": "tab-wrap",
+      "id": "deny-access",
+      "inDialog": true,
+      "text": "Annuleer"
+    },
+    {
+      "step": "search-shortcut-keeps-modal",
+      "url": "http://127.0.0.1:8776/#/toegang",
+      "inDialog": true
+    },
+    {
+      "step": "escape-returns-focus",
+      "id": "edit-object",
+      "inDialog": false,
+      "text": "Bewerken"
+    }
+  ],
+  "narrow_modal": {
+    "clientWidth": 305,
+    "focused": "Sta tijdelijk toe",
+    "inDialog": true,
+    "scrollWidth": 305
+  },
+  "flows": [
+    {
+      "flow": "NAS offline",
+      "passed": true
+    },
+    {
+      "flow": "NAS networkChanged",
+      "passed": true
+    },
+    {
+      "flow": "NAS identityMismatch",
+      "passed": true
+    },
+    {
+      "flow": "assistant result",
+      "passed": true
+    },
+    {
+      "flow": "AI missingModel",
+      "passed": true
+    },
+    {
+      "flow": "AI lowMemory",
+      "passed": true
+    },
+    {
+      "flow": "invalid package",
+      "passed": true
+    },
+    {
+      "flow": "valid package without grants",
+      "passed": true
+    }
+  ],
+  "additional_flows": [
+    "onboarding three steps",
+    "deny and restore edit-button focus",
+    "grant/edit/Ctrl+S to revision4",
+    "restore revision2 as new revision5",
+    "revoke grant",
+    "NAS confirm synthetic identity",
+    "Ctrl+K focuses material-search",
+    "query with zero results",
+    "create new local synthetic document"
+  ],
+  "viewports": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "clientWidth": 1425,
+      "innerHeight": 900,
+      "innerWidth": 1440,
+      "scrollWidth": 1425,
+      "passed": true
+    },
+    {
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "clientWidth": 1009,
+      "innerHeight": 768,
+      "innerWidth": 1024,
+      "scrollWidth": 1009,
+      "passed": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "clientWidth": 375,
+      "innerHeight": 844,
+      "innerWidth": 390,
+      "scrollWidth": 375,
+      "passed": true
+    },
+    {
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "clientWidth": 305,
+      "innerHeight": 844,
+      "innerWidth": 320,
+      "scrollWidth": 305,
+      "passed": true
+    }
+  ],
+  "network": {
+    "requests": [
+      {
+        "sequence": 31,
+        "url": "http://127.0.0.1:8776/",
+        "type": "Document"
+      },
+      {
+        "sequence": 47,
+        "url": "http://127.0.0.1:8776/tokens.css",
+        "type": "Stylesheet"
+      },
+      {
+        "sequence": 52,
+        "url": "http://127.0.0.1:8776/components.css",
+        "type": "Stylesheet"
+      },
+      {
+        "sequence": 57,
+        "url": "http://127.0.0.1:8776/app.js",
+        "type": "Script"
+      },
+      {
+        "sequence": 62,
+        "url": "http://127.0.0.1:8776/fixtures.js",
+        "type": "Script"
+      },
+      {
+        "sequence": 67,
+        "url": "http://127.0.0.1:8776/state.js",
+        "type": "Script"
+      },
+      {
+        "sequence": 72,
+        "url": "http://127.0.0.1:8776/broker.js",
+        "type": "Script"
+      }
+    ],
+    "has_more": false,
+    "truncated": false,
+    "post_initial_asset_requests": 0
+  },
+  "console_issues": [],
+  "limitations": [
+    "Real 200 percent browser zoom not verified: Ctrl++ did not change viewport/DPR in this driver",
+    "Screen reader and human user study not performed",
+    "Mock permissions/NAS/AI/package checks do not prove native OS enforcement"
+  ]
+}

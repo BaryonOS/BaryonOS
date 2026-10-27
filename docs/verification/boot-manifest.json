@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "profile": "normal",
+  "source_sha256": "87fb1c8b1b72ddcd9d763d8f544c0e00245a24cae84298b7249d08c9ad64ecfb",
+  "loader": {
+    "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8",
+    "format": "AMD64 PE32+",
+    "subsystem": "EFI_APPLICATION",
+    "imports": 0
+  },
+  "kernel": {
+    "sha256": "5aedda025a118595724722586894f173ec477e14a27a125c919c26ec90a1145e",
+    "entry": 33554432,
+    "segments": [
+      {
+        "flags": 5,
+        "offset": 4096,
+        "address": 33554432,
+        "filesz": 6019,
+        "memsz": 6019,
+        "page_start": 33554432,
+        "page_end": 33562624
+      },
+      {
+        "flags": 4,
+        "offset": 12288,
+        "address": 33562624,
+        "filesz": 502,
+        "memsz": 502,
+        "page_start": 33562624,
+        "page_end": 33566720
+      },
+      {
+        "flags": 6,
+        "offset": 16384,
+        "address": 33566720,
+        "filesz": 96,
+        "memsz": 160,
+        "page_start": 33566720,
+        "page_end": 33570816
+      }
+    ],
+    "sections": [
+      {
+        "name": "",
+        "type": 0,
+        "flags": 0,
+        "size": 0
+      },
+      {
+        "name": ".text",
+        "type": 1,
+        "flags": 6,
+        "size": 6019
+      },
+      {
+        "name": ".rodata",
+        "type": 1,
+        "flags": 50,
+        "size": 502
+      },
+      {
+        "name": ".data",
+        "type": 1,
+        "flags": 3,
+        "size": 96
+      },
+      {
+        "name": ".bss",
+        "type": 8,
+        "flags": 3,
+        "size": 64
+      },
+      {
+        "name": ".symtab",
+        "type": 2,
+        "flags": 0,
+        "size": 1128
+      },
+      {
+        "name": ".shstrtab",
+        "type": 3,
+        "flags": 0,
+        "size": 52
+      },
+      {
+        "name": ".strtab",
+        "type": 3,
+        "flags": 0,
+        "size": 2203
+      }
+    ]
+  }
+}

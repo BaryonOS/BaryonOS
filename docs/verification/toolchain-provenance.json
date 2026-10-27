@@ -1,0 +1,12 @@
+{
+  "rust": "1.90.0",
+  "rustup_source": "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe",
+  "rustup_sha256": "00f139da614dced87d3c3d4121c43eebdac3c1bf8a5ee86b9d80dfd71c8d70fd",
+  "qemu_source": "https://qemu.weilnetz.de/w64/qemu-w64-setup-20260811.exe",
+  "qemu_installer_sha512": "5bcf9eed634e8575a37b74f445af41a2fe4106da512d0c30c368301d4c105037fdfab40a5287367a28a957624cddebbc8c07e16c88ab6634f554cdf3d16bf543",
+  "code_sha256": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a",
+  "vars_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+  "firmware_pair_source": "same QEMU package, share/firmware/60-edk2-x86_64.json",
+  "firmware_build_commit": "not independently established; packaged development firmware",
+  "host": "x86_64-pc-windows-msvc; existing VS2026/SDK"
+}
