@@ -1,5 +1,28 @@
 # Actuele projectstatus
 
+## M6b — native documentopslag in uitvoering
+
+Basis `10b32e31671827f2bd63444113b981ff15bfbb73`, werkbranch `codex/m6b-object-storage`.
+De nieuwe `services/objects`-crate bevat een allocatorvrije Rust `no_std`-objectdienst:
+vier objecten van maximaal 128 bytes, twee via IPC-endpoints gescheiden domeinen,
+GET/PUT/DELETE, revisiecontrole en blijvende verwijderrecords. Alleen de dienst
+krijgt blokrechten op de 32 journal-sectoren; apps krijgen hun eigen endpoint.
+Succes volgt pas na echte WRITE- en FLUSH-completion. Corruptie en onzekere
+mutaties sluiten toegang af; er is geen automatische herhaling van writes.
+
+Checkpoint: broncode, native buildselectie en 22 geslaagde Rust-hosttests aanwezig.
+De native crossbuild, QEMU-uitvoering, onafhankelijke schijforacle, koude herstart
+en crashproeven worden nog geïntegreerd/uitgevoerd. Dit is nog geen behaalde
+M6b-mijlpaal. De complete M6a-poort wordt daarnaast opnieuw uitgevoerd op de
+ongewijzigde basis, in een aparte checkout; eerdere deelresultaten worden niet
+bij nieuwe runs opgeteld.
+
+Deze begrensde lokale opslagproef heeft geen namen, directoryboom, garbage
+collection of encryptie. Verwijderrecords voorkomen het terugkomen van oude
+appverzoeken; zij wissen historische schijfbytes niet fysiek. FNV is uitsluitend
+een corruptiediagnose. Native NAS/netwerk, sleutels en desktopkoppeling blijven
+afzonderlijke stappen. Contract: `implementation/M6B-OBJECT-STORAGE.md`.
+
 ## N02 — hybride PQC-transport: echte hostproef getest
 
 27 oktober 2026, basis `ece94a5cfebecaec763eb2855aa9f84e55dcdcbc` (PR #7), werkbranch `codex/pqc-transport-foundation`; eerste checkpoint `3d05f9f8dccb4f515d8522578d20bbf00d8b8ed7`. De aangeleverde beveiligingsblauwdruk is getoetst aan de actuele bronnen en repository. ADR-028 en `implementation/VERIFIABLE-SECURITY-AND-PQC.md` leggen het standaard-TLS-profiel, formele bewijsgrenzen en concrete native vervolgopdrachten vast.

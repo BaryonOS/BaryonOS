@@ -17,8 +17,11 @@ use kernel_core::{user, Frames, Kind, Owner, PAGE};
 mod m4;
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
 mod m5;
-#[cfg(feature = "milestone-m6a")]
+#[cfg(all(feature = "milestone-m6a", not(feature = "milestone-m6b")))]
 #[path = "m3/m6.rs"]
+mod m5;
+#[cfg(feature = "milestone-m6b")]
+#[path = "m3/m6b.rs"]
 mod m5;
 #[cfg(not(feature = "milestone-m4"))]
 const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
@@ -26,8 +29,10 @@ const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
 const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
 const ELF: &[u8] = include_bytes!(env!("NOS_M5_ELF"));
-#[cfg(feature = "milestone-m6a")]
+#[cfg(all(feature = "milestone-m6a", not(feature = "milestone-m6b")))]
 const ELF: &[u8] = include_bytes!(env!("NOS_M6_ELF"));
+#[cfg(feature = "milestone-m6b")]
+const ELF: &[u8] = include_bytes!(env!("NOS_M6B_ELF"));
 const DATA: u64 = 0x40010000;
 const HEAP: u64 = 0x60000000;
 const STACK: u64 = 0x7ffef000;
@@ -800,6 +805,8 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                     || cfg!(feature = "milestone-m6a") && matches!(number, 0x42 | 0x43)))
         {
             let (rax, rdx) = m4::syscall(state, current, number, args);
+            #[cfg(feature = "milestone-m6b")]
+            m5::ipc_result(current, number, rax);
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
         }

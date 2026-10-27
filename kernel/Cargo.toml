@@ -92,6 +92,14 @@ test-m6a-vm-cut-5 = ["milestone-m6a"]
 test-m6a-vm-cut-6 = ["milestone-m6a"]
 test-m6a-recover = ["milestone-m6a"]
 
+milestone-m6b = ["milestone-m6a", "dep:object-core"]
+test-m6b-recover = ["milestone-m6b"]
+test-m6b-errors = ["milestone-m6b"]
+test-m6b-full = ["milestone-m6b"]
+test-m6b-corrupt = ["milestone-m6b"]
+test-m6b-vm-cut-before-ack = ["milestone-m6b"]
+test-m6b-vm-cut-after-flush = ["milestone-m6b"]
+
 [dependencies]
 boot-protocol = { path = "../crates/boot-protocol" }
 kernel-core = { path = "../crates/kernel-core" }
@@ -99,6 +107,7 @@ capability-core = { path = "../crates/capability-core" }
 virtio-core = { path = "../crates/virtio-core" }
 virtio-blk-driver = { path = "../drivers/virtio-blk" }
 block-protocol = { path = "../services/block" }
+object-core = { path = "../services/objects", optional = true }
 
 [[bin]]
 name = "os-kernel"
