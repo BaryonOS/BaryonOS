@@ -16,16 +16,16 @@ Doel: eigen boot, twee werkelijk geïsoleerde ring-3-processen, begrensde foutaf
 
 | ID | Eigenaar | Exclusief schrijfgebied | Afhankelijk van | Status | Bewijs |
 |---|---|---|---|---|---|
-| G00 | hoofd | rootconfig, tools/, docs/ | bestaande toestand | actief | preflight exit0; bestaande M1/P02/Q01-rapporten aanwezig |
-| K02 | kernel_m2 (Sol) | kernel/, crates/kernel-core/ | G00 | geslaagd op a256951 | acht groepen, twintig hosttests, zeven QEMU-runs; docs/verification/m2-m4/m2/ |
+| G00 | hoofd | rootconfig, tools/, docs/ | bestaande toestand | afgerond | preflight exit0; bestaande M1/P02/Q01-rapporten aanwezig |
+| K02 | kernel_m2 (Sol) | kernel/, crates/kernel-core/ | G00 | eindregressie geslaagd op ed09818 | acht groepen,27hosttests,zevenQEMU-runs; m2/suite.json |
 | P02V | product_acceptance (Sol) | ui/prototype/ | bestaande P02 | afgerond binnen beschikbare controles | 23/23 Node-tests; skiplink/draft/focus/typezoek/288px-inspector echt gecontroleerd; 200%-zoom, schermlezer en mensenproef open; ui/prototype/verification/ |
 | Q01V | quantum_contract (Sol) | experiments/quantum/ | bestaande Q01 | code/test afgerond; reviewer R02 | CDF-fix: oude code faalt nieuwe regressie, huidige 25tests/5fixtures groen; 17-caseaudit onder docs/verification/m2-m4/quantum/ |
-| K03 | kernel_m2 + product_acceptance (Sol) | kernel/ + crates/kernel-core/ respectievelijk userspace/ | geslaagde K02 | geslaagd op 6802b17 | 20 groepen/18 echte VM-runs; twaalf coretests en dertien user-artifacttests; m3/suite.json |
-| K04K | kernel_m2 (Sol) | kernel/, crates/kernel-core/ | geslaagde K03 | implementatie actief | usercopy/syscalls/lifecycle en echte KS-09–16-observer |
+| K03 | kernel_m2 + product_acceptance (Sol) | kernel/ + crates/kernel-core/ respectievelijk userspace/ | geslaagde K02 | eindregressie geslaagd op ed09818 |22groepen/19VM;14core/13probe/6largehosttests; m3/suite.json |
+| K04K | kernel_m2 (Sol) | kernel/, crates/kernel-core/ | geslaagde K03 | geslaagd op ed09818 |12groepen/10VM,21cap+14core+13IPCartifacttests; m4/suite.json |
 | K04C | quantum_contract (Sol) | crates/capability-core/ | geslaagde K03 | code/hostreview afgerond; nu R04K read-only | 21 hosttests, fmt/Clippy/no_std; a91e64e; docs/verification/m2-m4/capability-core/ |
 | U04 | product_acceptance (Sol) | userspace/ | geslaagde K03 | afgerond; R04C engine-review gesloten | 13 IPC- en 6 large-artifacttests; a91e64e; userspace/verification/ |
-| R04 | onafhankelijke reviewer | eerst alleen lezen | geïntegreerde M4 | wacht | concrete negatieve tegenvoorbeelden en herstel |
-| V04 | hoofd | tools/, docs/verification/ | R04 en herstel | wacht | volledige eindmatrix en remote commitcontrole |
+| R04 | R04C/R04K (Sol) | alleen lezen | geïntegreerde M4 | afgerond | concrete errororder/observerfindings hersteld; m4-review.md |
+| V04 | hoofd + product_acceptance (Sol) | tools/, docs/verification/ | R04 en herstel | eindaudit afgerond; overdracht vastgelegd in deze commit |52acceptatiegroepen/44VM,hashcontrole,eindmatrix enprivatecheckpoint |
 
 ## Werkafspraken
 
@@ -37,10 +37,10 @@ Doel: eigen boot, twee werkelijk geïsoleerde ring-3-processen, begrensde foutaf
 
 ## Laatste checkpoint
 
-- Samengestelde rootpoort op `6802b17`: `python -u tools/test_milestones.py --through m3` exit0, M2 acht groepen/zeven VM-runs, M3 twintig groepen/achttien VM-runs. Alle exit/serial/artifacthashes daarna gecontroleerd door capture_gate. Bewijs onder `docs/verification/m2-m4/{m2,m3}/`.
-- R03/R03V-bevindingen hersteld en gericht herbeoordeeld; zie `m3-review.md`. Idle na beide exits, acht IRQ0-wakeups, debuginit, u64-PID, user-return-context en exacte cleanup zijn meegenomen in de volledige gate.
-- M4 nu expliciet vrijgegeven. Cap-engine, kernelintegratie en afzonderlijke IPC-userfixture hebben elk één schrijver. Root beheert workspace/lockfile/buildtools en testpoort. Geen gelijktijdige root-targetbuilds.
-- M4-fixture: drie processen met eigen endpointroot/gereduceerde next-peer-cap, concrete scriptmodes copy/wire/snapshot/handles/rights/revoke/quotas/lifecycle. ABI/Message320 en foutvolgorde blijven bindend. Een hosttest bewijst geen CPL3-grens.
-- P02V en Q01V zijn gericht hersteld en privé gecheckpoint. Native 200%-zoom is door de Computer Use URL-controle gestopt; zoom/schermlezer/mensenproef blijven open.
-- Checkpoint a91e64e bewaart Engine, workspace/lockfile, drivers en IPC/large-fixtures. De M4-kernelintegratie en 2048-mappingarena zijn nog lokaal; hun volledige rootpoort is nog niet uitgevoerd. R04K toetst usercopy en foutvolgorde; de observer-read vóór auth is gericht hersteld.
-- Volgende rootactie: na kernelwritepause complete bron pushen, `--through m4` en bootregressie draaien, bewijs vangen en de eindmatrix auditen. Gehele fase blijft actief tot M4 en eindregressie voldoen.
+De gehele afgesproken M1–M4-ontwikkelfase is geïmplementeerd, gereviewd en getest. Kernelbron: ed09818. Samengestelde gate exit0: M2 achtgroepen/zevenVM, M3 22groepen/19VM, M4 twaalfgroepen/tienVM. Aanvullende volledige M1-regressie op622c2ee:exit0,tiengroepen/achtVM inclusief echte60s-timeout. Alle52groepen/44VM hebben afgebakend bewijs; geen hosttests alsVM meegeteld.
+
+Capture van m1/m2/m3/m4 controleert serial/stderr/rawexpectations/artifacthashes; negatieve M1-records blijven false. V04 bevestigt de fasevolgorde en KS01–16-casedekking. ACCEPTANCE.md en FINAL-AUDIT.json geven de eindgrenzen. Materiaal/qsim-hashes blijven gelijk aan hun geteste bestanden; menselijke/hardware/OS-portcontroles blijven expliciet open.
+
+De actuele commit bevat de laatste bewijs-/overdrachtsteksten en wordt privé gepusht op codex/m2-m4-isolation. Concept-PR#2 blijft open; main blijft de startspecificatie. Geen publieke release/licentiekeuze/hostconfig/hardwarewijziging.
+
+Volgende implementatiefase na deze afgeronde opdracht: M5, eerste geïsoleerde systeemdienst/virtio-testimage met expliciet DMA-contract. Niet stilzwijgend gestart. De lokale gebruikersconfig .codex/environments/ blijft buiten Git behouden.

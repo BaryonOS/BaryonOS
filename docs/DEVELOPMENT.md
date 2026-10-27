@@ -76,6 +76,28 @@ De M3-CLI-poort verlangt daadwerkelijke KS-04/07/08- en M3-markers; een gewone M
 
 `userspace/` bevat de eigen statische userprobe en dertien host-artifacttests. `tools/build_users.py` gebruikt directe rustc-argumenten met het userlinkerscript; de Cargo-kernellinkopties worden daarvoor niet hergebruikt. M4 voegt een afzonderlijke IPC-probe toe via `--kind ipc`; dat spoor is pas een behaald resultaat na de eigen M4-poort.
 
+De complete M1–M4-controle is uitgevoerd met deze opdrachten:
+
+```powershell
+python -u tools/test_milestones.py --through m4
+python -u tools/test.py
+python tools/capture_gate.py m1
+python tools/capture_gate.py m2
+python tools/capture_gate.py m3
+python tools/capture_gate.py m4
+```
+
+Dat zijn52 acceptatiegroepen en44 afzonderlijke VM-runs. De bewuste hang in de M1-regressie duurt60s; de negatieve ruwe guestuitkomsten worden bij het kopiëren van bewijs niet in succes veranderd. De actuele suites en expliciete host-/QEMU-grenzen staan in verification/m2-m4/.
+
+Start de normale M4-ontwikkelproef met:
+
+```powershell
+python tools/build.py --kernel-feature milestone-m4
+python tools/run.py --smoke --milestone m4
+```
+
+De kernel voert drie synthetische processen en een normale IPC-exchange uit en beëindigt QEMU na controle. Voor afzonderlijke negatieve cases gebruik je `test_milestones.py`; de normale M4-CLI-poort verlangt de exchange-/survivor-/cleanupmarkers en accepteert een gewone M1-image niet als M4.
+
 De latere bronvingerafdrukversie2 sluit gegenereerde `verification/`, `build/`, `target/` en caches uit en neemt gebruikersbron mee. Buildmanifesten en guestresultaten vermelden de versie expliciet. Oudere rapporten zonder dit veld behouden hun oorspronkelijke vingerafdruk; artifacthashes blijven rechtstreeks controleerbaar.
 
 Een losse ontwikkelopdracht in dezelfde omgeving:

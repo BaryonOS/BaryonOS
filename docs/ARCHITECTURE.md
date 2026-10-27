@@ -2,7 +2,7 @@
 
 > Update revisie 5: de eerste bouwkeuzes staan vast in [implementation/KERNEL-AND-SECURITY-CONTRACT.md](implementation/KERNEL-AND-SECURITY-CONTRACT.md). Gebruik dat document voor directe implementatie; dit bestand bewaart de ambitie en achtergrond voor vervolgfases.
 
-Status: onderzoeksvoorstel; er is in dit startpakket nog geen kernel gebouwd of getest. Onderzoeksdatum: 26 oktober 2026. Alle onderstaande keuzes zijn aanbevolen projectkeuzes, tenzij expliciet als bronfeit gemarkeerd.
+Historische status van dit achtergrondbestand: onderzoeksvoorstel van26 oktober2026. De eigen kernel is inmiddels tot en met M4 geïmplementeerd en in het vastgelegde QEMU-profiel getest; zie PROJECT-STATE.md en verification/m2-m4/. Onderstaande vervolgfasekeuzes blijven voorstellen tenzij het actuele bewijs ze uitdrukkelijk afdekt.
 
 ## 1. Wat ‘een eigen OS’ hier betekent
 

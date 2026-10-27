@@ -31,7 +31,7 @@ def guest_matches(phase, group, result):
                 and "M1:PASS" not in lines and not any("M1:FAIL" in line for line in lines))
     if group == "real-ebs-stale-key-retry":
         return is_success(result["raw_qemu_exit"], result["stdout"], result["timed_out"],
-                          required_markers=("BOOT:EBS_RETRY",) + MARKERS)
+                          required_markers=(MARKERS[0], "BOOT:EBS_RETRY") + MARKERS[1:])
     if group in ("cold-boot-1", "cold-boot-2", "cold-boot-3"):
         return is_success(result["raw_qemu_exit"], result["stdout"], result["timed_out"])
     return False

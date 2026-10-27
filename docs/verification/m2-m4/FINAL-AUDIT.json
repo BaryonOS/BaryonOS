@@ -1,0 +1,90 @@
+{
+  "scope": "M1-M4 developmental kernel, qemu64/TCG/1CPU/256MiB; synthetic data",
+  "kernel_source_commit": "ed09818e0f80b3a755237b813783b662f9153faf",
+  "phases": {
+    "m1": {
+      "groups": 10,
+      "guest_runs": 8,
+      "basis_commits": [
+        "622c2ee91763333943c668c63b02b776a9b79f35"
+      ],
+      "source_fingerprints": [
+        "8e6efb63231657b504b9774dcae185e4581042d3b943acf4d0fcbb06dfb62157"
+      ],
+      "raw_exits": {
+        "33": 4,
+        "35": 3,
+        "None": 1
+      },
+      "timeouts": 1,
+      "suite": "docs\\verification\\m2-m4\\m1\\suite.json"
+    },
+    "m2": {
+      "groups": 8,
+      "guest_runs": 7,
+      "basis_commits": [
+        "ed09818e0f80b3a755237b813783b662f9153faf"
+      ],
+      "source_fingerprints": [
+        "1e713bf2ff29583c739bde95b645a89a1924f820cbb7c96cab1645509fefcdec"
+      ],
+      "raw_exits": {
+        "33": 5,
+        "35": 2
+      },
+      "timeouts": 0,
+      "suite": "docs\\verification\\m2-m4\\m2\\suite.json"
+    },
+    "m3": {
+      "groups": 22,
+      "guest_runs": 19,
+      "basis_commits": [
+        "ed09818e0f80b3a755237b813783b662f9153faf"
+      ],
+      "source_fingerprints": [
+        "1e713bf2ff29583c739bde95b645a89a1924f820cbb7c96cab1645509fefcdec"
+      ],
+      "raw_exits": {
+        "33": 19
+      },
+      "timeouts": 0,
+      "suite": "docs\\verification\\m2-m4\\m3\\suite.json"
+    },
+    "m4": {
+      "groups": 12,
+      "guest_runs": 10,
+      "basis_commits": [
+        "ed09818e0f80b3a755237b813783b662f9153faf"
+      ],
+      "source_fingerprints": [
+        "1e713bf2ff29583c739bde95b645a89a1924f820cbb7c96cab1645509fefcdec"
+      ],
+      "raw_exits": {
+        "33": 10
+      },
+      "timeouts": 0,
+      "suite": "docs\\verification\\m2-m4\\m4\\suite.json"
+    }
+  },
+  "acceptance_groups": 52,
+  "unique_guest_runs": 44,
+  "phase_order_verified": true,
+  "serial_stderr_artifact_hashes_rechecked": true,
+  "negative_m1_records_preserved": true,
+  "prototype_hash_evidence": "unchanged-prototype-hashes.json",
+  "reviews": [
+    "m3-review.md",
+    "m4-review.md",
+    "V04-AUDIT.md"
+  ],
+  "changed_files": "changed-files.txt",
+  "external_open_checks": [
+    "real 200% zoom (Computer Use URL check stopped native access)",
+    "screenreader and human tasks",
+    "QPU/own-OS qsim port/OS network sandbox",
+    "NMI injection, SMP, DMA/IOMMU, physical hardware",
+    "public license/publication decision"
+  ],
+  "runtime_source_changes_since_kernel_gate": "none; evidence archiver/docs updated separately",
+  "next_phase": "M5 first isolated service/virtio test image; not started"
+}

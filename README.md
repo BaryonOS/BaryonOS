@@ -1,6 +1,6 @@
-# Nieuw OS — eerste bouwbatch
+# Nieuw OS — eigen kernel, ontwikkelfase M1–M4
 
-De eigen Rust-kernel start daadwerkelijk via de eigen UEFI-loader in QEMU. Daarnaast zijn het interactieve Materiaal-prototype en de lokale Rust-quantumsimulator geïmplementeerd. Dit is een experimentele ontwikkelversie, geen productie-OS.
+De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde gebruikersprocessen en verwerkt capability-rechten en atomaire IPC. M2–M4 zijn getest in42 controlegroepen met36 echte VM-runs; de volledige bootregressie voegt tien groepen en acht VM-runs toe. Materiaal en de quantumsimulator zijn afzonderlijke hostprototypes. Dit is een experimentele ontwikkelversie met vaste synthetische testprogramma's.
 
 - **Actuele voortgang en open controles:** [PROJECT-STATE.md](docs/PROJECT-STATE.md).
 - **Starten en reproduceren:** [DEVELOPMENT.md](docs/DEVELOPMENT.md).
@@ -8,7 +8,9 @@ De eigen Rust-kernel start daadwerkelijk via de eigen UEFI-loader in QEMU. Daarn
 - **Productprototype:** [handleiding](ui/prototype/README.md).
 - **Quantumsimulator:** [handleiding](experiments/quantum/README.md).
 
-De actuele code staat op `codex/first-build`; `main` bevat de oorspronkelijke startspecificaties totdat de concept-PR is beoordeeld. Voortgang wordt per afgebakende stap gecommit en gepusht, met uitgevoerde tests en open punten.
+De actuele code staat op [codex/m2-m4-isolation](https://github.com/simonvanieperen/nieuw-os/tree/codex/m2-m4-isolation), met [concept-PR#2](https://github.com/simonvanieperen/nieuw-os/pull/2). Selecteer die branch om de voortgang te zien. `main` bevat de oorspronkelijke startspecificaties totdat de concept-PR's zijn beoordeeld. Voortgang wordt per afgebakende stap gecommit en privé gepusht, met bron, testbewijs en open punten.
+
+De normale IPC-ontwikkelproef start met `python tools/build.py --kernel-feature milestone-m4` en daarna `python tools/run.py --smoke --milestone m4`. De kernel controleert de synthetische berichtenuitwisseling en sluit QEMU vervolgens af; er is nog geen interactieve OS-shell/native desktop. De volledige uitvoerroute staat in DEVELOPMENT.md. Publieke open-sourcepublicatie en de definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
 
 ## Oorspronkelijk startpakket (historische context)
 

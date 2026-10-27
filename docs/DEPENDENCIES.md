@@ -1,6 +1,8 @@
 # Afhankelijkheden en herkomst
 
 Actuele uitvoeringsstatus27 oktober2026: Rust1.90.0, r-efi7.1.0, serde1.0.229 en serde_json1.0.154 zijn daadwerkelijk opgehaald en gebouwd. De root- en quantumlockfiles zijn gegenereerd. De gebruikte emulator is de toegestane Windows-ontwikkelvariant QEMU11.1.0 met bijpassend packaged CODE/VARS-paar; exacte herkomst/hashes en bewijsgrenzen staan in DEVELOPMENT.md, third-party/README.md en ../experiments/quantum/THIRD-PARTY.md. De onderstaande oorspronkelijke selectietabel is historische context; PROJECT-STATE.md beschrijft de actuele verificatie.
+
+M2–M4 voegen uitsluitend eigen lokale crates toe: kernel-core0.1.0 (frames/ELF/copybeleid) en capability-core0.1.0 (vaste rechten-/IPC-transacties). Beide zijn dependencyvrij/no_std en verbieden unsafe in de library. De kernelarch-/kopieergrens bevat de gemotiveerde unsafe/assembly; de eigen crates hebben geen extern buildscript. Root-Cargo.lock behoudt r-efi exact7.1.0 met dezelfde checksum. Er is voor M2–M4 geen nieuwe externe runtimebibliotheek toegevoegd. Corebron/host-/targetchecks en actuele testcasegrenzen staan in verification/m2-m4/.
 Revisie 5, 26 oktober 2026. Versies zijn nu geselecteerd; de gecombineerde toolchain is nog niet gebouwd en packages zijn hier niet geïnstalleerd. Details en primaire bronnen staan in de implementatiespecificaties. Geen fictieve lockfiles of firmwarehashes toevoegen.
 
 | Selectie | Rol | Status |

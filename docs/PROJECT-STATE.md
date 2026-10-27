@@ -6,13 +6,13 @@ Repository: https://github.com/simonvanieperen/nieuw-os (privé). Werkbranch: `c
 
 ## Hoofdresultaat
 
-De samengestelde M2–M4-poort is daadwerkelijk geslaagd op deze bron: 42 controlegroepen en 36 echte QEMU-runs. De aanvullende volledige M1-bootfoutregressie en afsluitende overdrachtsaudit staan op dit tussencheckpoint nog open. Het actieve doel wordt pas daarna afgesloten.
+De ontwikkelfase M1–M4 is geïmplementeerd en getest. De samengestelde M2–M4-poort slaagt op deze bron: 42 controlegroepen en 36 echte QEMU-runs. De aanvullende volledige M1-bootfoutregressie op `622c2ee` slaagt met tien groepen en acht extra VM-runs, inclusief de bewuste60s-timeout. De eindmatrix en het onafhankelijke V04-bewijsoverzicht staan onder verification/m2-m4/. De laatste bewijs-/documentatiecommit is de commit die dit bestand bevat.
 
 ## Geïmplementeerd en getest
 
 - Eigen UEFI-loader en Rust no_std-kernel; BootInfo1.1, geen bestaande kernel als basis.
 - M2: eigen framebeheer, CR3/GDT/TSS/IDT, W^X inclusief fysieke aliases, bewaakte stacks en gecontroleerde exceptions. Echte RO/NX/null/UD/#DF-IST-proeven.
-- M3: private ring-3-adresruimten, int80/iretq, PIC/PIT-preëmptie, twee16-worker-rondes en lokale procesbeëindiging. A-fault/B-voortgang, B exit7, invalid-RSP en veilige idle met acht IRQ0-wakeups. Mappingmetadata biedt2048 plaatsen per proces; echte67-page-image heeft alle BSS-tailbytes nul.
+- M3: private ring-3-adresruimten, int80/iretq, PIC/PIT-preëmptie, twee16-worker-rondes en lokale procesbeëindiging. A-fault/B-voortgang, B exit7, invalid-RSP en veilige idle met acht IRQ0-wakeups. Mappingmetadata biedt2048 plaatsen per proces; de grotere image heeft35 imagepages +32 heap/stackpages =67 usermappings en alle BSS-tailbytes zijn nul.
 - M4: capability-rechten, lokale generatiehandles, delegatie/revocatie en atomaire Message320-IPC. Drie echte userprocessen, normale exchange en KS09–16-cases. Revoked queuecaps annuleren het hele bericht; exit trekt autoriteit in vóór frames worden vrijgegeven.
 - Materiaal blijft een lokaal browserprototype; qsim blijft een lokale hostsimulator. Geen native UI-/NAS-/AI-/QPU-integratie geclaimd.
 
@@ -21,15 +21,18 @@ De samengestelde M2–M4-poort is daadwerkelijk geslaagd op deze bron: 42 contro
 | Opdracht / laag | Resultaat | Bewijs |
 |---|---|---|
 | `python -u tools/test_milestones.py --through m4` | exit0; M2 8 groepen/7 VM, M3 22 groepen/19 VM, M4 12 groepen/10 VM | `verification/m2-m4/{m2,m3,m4}/suite.json` en guest-runs.json |
+| `python -u tools/test.py` | exit0; tien groepen, acht VM-runs en dertien hosttests | verification/m2-m4/m1/ |
 | M2-hosttests | 6 bootprotocol +7 ELF +14 kernel-core geslaagd | m2/m2-host-tests.* |
 | M3-host/artifacttests | 14 kernel-core +13 gewone user +6 large-image geslaagd | m3/*host/artifact-tests.* |
 | M4-host/artifacttests | 21 capability-core +14 kernel-core +13 IPC-artifacttests geslaagd | m4/*host/artifact-tests.* |
-| `python tools/capture_gate.py m2/m3/m4` (drie opdrachten) | exit0; serial, raw-exitverwachtingen en alle artifacthashes opnieuw gecontroleerd | genoemde suite-/guestrapporten |
+| `python tools/capture_gate.py m1/m2/m3/m4` (vier opdrachten) | exit0; serial/stderr, raw-exitverwachtingen en alle artifacthashes opnieuw gecontroleerd | genoemde suite-/guestrapporten; negatieve M1-guestrecords blijven false |
 | Capability-core extra controles | fmt, Clippy-Dwarnings, no_std: exit0; 2.560 wire-bitmutaties/800 transacties | verification/m2-m4/capability-core/report.json |
 | Materiaal | 23 Node-tests en gerichte browsermetingen geslaagd; bron ongewijzigd sinds P02V | ../ui/prototype/verification/ |
 | Quantum | 25 Rust-tests, vijf fixtures, Clippy/no_std; bron ongewijzigd sinds Q01V | verification/m2-m4/quantum/ |
 
 Hosttests zijn per fase opnieuw uitgevoerd; de aantallen zijn geen som van unieke tests. Global1024-node-uitputting en maximale generations zijn hostmodelbewijs. QEMU-KS15 toetst queue16,255 capslots,depth8/9 en capaciteit na close. De testvingerafdruk is diagnostisch; hosttests vergelijken de volledige Engine-toestand.
+
+Voor Materiaal en quantum zijn de negen respectievelijk vijftien geregistreerde bron-/binaryhashes opnieuw vergeleken: alle gelijk. De ongewijzigde tests zijn daarom niet opnieuw uitgevoerd; eerdere resultaten blijven aan exact die bestanden gebonden.
 
 ## Starten
 
@@ -52,6 +55,6 @@ Geen publicatie/release of licentiekeuze uitgevoerd. LICENSE-PLAN.md bewaart dat
 
 ## Vervolg en hervatten
 
-De werklijst en gates staan in WORK-QUEUE.md; de eis-voor-eis-matrix staat in verification/m2-m4/ACCEPTANCE.md. Eerst de genoemde afsluitende M1-regressie/audit afronden. Na volledige afsluiting volgt M5: een eerste user-space-systeemdienst met geïsoleerde virtio-testimage en expliciet DMA-/drivercontract. Geen echte hardware- of opslaginstallatie zonder nieuwe opdracht.
+De werklijst en gates staan in WORK-QUEUE.md; de eis-voor-eis-matrix staat in verification/m2-m4/ACCEPTANCE.md. De volgende implementatiefase is M5: een eerste user-space-systeemdienst met geïsoleerde virtio-testimage en expliciet DMA-/drivercontract. Geen echte hardware- of opslaginstallatie zonder nieuwe opdracht.
 
 Eerdere basis: eerste batch op `144d952` en concept-PR#1. De historische bewijzen in verification/boot-suite.json, quantum-report.json en browser-report.json blijven behouden; de nieuwe m2-m4-rapporten hebben eigen bronversies en gemeten uitkomsten.

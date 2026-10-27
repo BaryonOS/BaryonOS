@@ -1,6 +1,6 @@
 # Route van onderzoeksproject naar bruikbaar systeem
 
-Status 27 oktober 2026: eerste batch en M2 zijn uitgevoerd; M3 is actief. P02 en Q01 zijn hostprototypes met gerichte testresultaten en expliciete open controles. De actuele code, fasepoorten en bewijs staan in [PROJECT-STATE.md](PROJECT-STATE.md) en [WORK-QUEUE.md](WORK-QUEUE.md). De verdere fasen hieronder zijn een ontwikkelroute, geen leveringsbelofte of planning op kalenderdatum.
+Status27 oktober2026: M1–M4 zijn geïmplementeerd en getest in het vastgelegde QEMU-profiel. P02 en Q01 zijn afzonderlijke hostprototypes met gerichte resultaten en expliciete open controles. Eerstvolgende implementatiefase is M5. Actuele code, gates en bewijs staan in PROJECT-STATE.md, WORK-QUEUE.md en verification/m2-m4/. Verdere fasen zijn een ontwikkelroute, geen leveringsbelofte of kalenderplanning.
 
 ## Richting en grenzen
 
