@@ -8,7 +8,7 @@ const WRITE: u64 = 2;
 const USER: u64 = 4;
 const NX: u64 = 1 << 63;
 const ADDRESS: u64 = 0x000f_ffff_ffff_f000;
-const MAX_TABLES: usize = 128;
+const MAX_TABLES: usize = 256;
 pub const SCRATCH: u64 = 0x3fffe000;
 static mut SCRATCH_ENTRY: u64 = 0;
 static mut EXECUTABLE: [bool; FRAME_COUNT] = [false; FRAME_COUNT];
@@ -381,6 +381,24 @@ pub fn physical<R>(pa: u64, operation: impl FnOnce(*mut u8) -> R) -> R {
         entry.write_volatile(pa | PRESENT | WRITE | NX);
         invalidate(SCRATCH);
         let result = operation(SCRATCH as *mut u8);
+        entry.write_volatile(0);
+        invalidate(SCRATCH);
+        result
+    }
+}
+#[cfg(feature = "milestone-m4")]
+pub fn physical_read<R>(pa: u64, operation: impl FnOnce(*const u8) -> R) -> R {
+    assert_eq!(pa % PAGE, 0);
+    assert!(pa != 0 && pa < PAGE * FRAME_COUNT as u64);
+    // SAFETY: Same serialized scratch lifetime as physical(), but a supervisor
+    // RO/NX alias cannot violate W^X even when reading executable input pages.
+    unsafe {
+        let entry = ptr::addr_of!(SCRATCH_ENTRY).read() as *mut u64;
+        assert!(!entry.is_null());
+        assert_eq!(entry.read_volatile(), 0);
+        entry.write_volatile(pa | PRESENT | NX);
+        invalidate(SCRATCH);
+        let result = operation(SCRATCH as *const u8);
         entry.write_volatile(0);
         invalidate(SCRATCH);
         result

@@ -13,13 +13,18 @@ use core::{
     ptr,
 };
 use kernel_core::{user, Frames, Kind, Owner, PAGE};
+#[cfg(feature = "milestone-m4")]
+mod m4;
+#[cfg(not(feature = "milestone-m4"))]
 const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
+#[cfg(feature = "milestone-m4")]
+const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
 const DATA: u64 = 0x40010000;
 const HEAP: u64 = 0x60000000;
 const STACK: u64 = 0x7ffef000;
 const STACK_END: u64 = 0x7ffff000;
 const MAX: usize = 16;
-const MAPS: usize = 64;
+const MAPS: usize = 2048;
 const ADDRESS: u64 = 0x000f_ffff_ffff_f000;
 const NX: u64 = 1 << 63;
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -44,11 +49,12 @@ const EMPTY_MAP: Mapping = Mapping {
     writable: false,
     executable: false,
 };
+static mut USER_MAPS: [[Mapping; MAPS]; MAX] = [[EMPTY_MAP; MAPS]; MAX];
 struct Process {
     pid: u64,
     status: Status,
     paging: Option<Paging>,
-    maps: [Mapping; MAPS],
+    map_slot: usize,
     count: usize,
     kernel_frames: [u64; 4],
     kernel_top: u64,
@@ -62,7 +68,7 @@ impl Process {
             pid: 0,
             status: Status::Dead,
             paging: None,
-            maps: [EMPTY_MAP; MAPS],
+            map_slot: MAX,
             count: 0,
             kernel_frames: [0; 4],
             kernel_top: 0,
@@ -73,12 +79,38 @@ impl Process {
     }
     fn physical(&self, va: u64) -> u64 {
         let page = va & !(PAGE - 1);
-        self.maps[..self.count]
+        self.mappings()
             .iter()
             .find(|m| m.va == page)
             .expect("user page")
             .pa
             + (va & (PAGE - 1))
+    }
+    fn mappings(&self) -> &[Mapping] {
+        assert!(self.map_slot < MAX && self.count <= MAPS);
+        // SAFETY: Each live Process uniquely owns one fixed arena slot. Moves
+        // preserve that slot; reload begins only after cleanup drops all borrows.
+        // The arena is initialized typed storage inside retained kernel memory.
+        unsafe {
+            core::slice::from_raw_parts(
+                ptr::addr_of!(USER_MAPS)
+                    .cast::<Mapping>()
+                    .add(self.map_slot * MAPS),
+                self.count,
+            )
+        }
+    }
+    fn append_mapping(&mut self, mapping: Mapping) {
+        assert!(self.map_slot < MAX && self.count < MAPS);
+        // SAFETY: Exclusive Process borrow, distinct owned arena index and no
+        // retained mapping slice across this mutation or any scheduling point.
+        unsafe {
+            ptr::addr_of_mut!(USER_MAPS)
+                .cast::<Mapping>()
+                .add(self.map_slot * MAPS + self.count)
+                .write(mapping);
+        }
+        self.count += 1;
     }
 }
 struct State {
@@ -106,6 +138,7 @@ struct State {
     had_syscall_df_entry: bool,
 }
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "milestone-m4", allow(dead_code))]
 struct EventRecord {
     pid: u64,
     code: u64,
@@ -190,7 +223,9 @@ impl State {
         self.exited = false;
         self.survivor_slot = 1;
         self.unexpected = false;
-        self.amount = if mode() != 0 || self.round >= 2 {
+        self.amount = if cfg!(feature = "milestone-m4") {
+            3
+        } else if mode() != 0 || self.round >= 2 {
             2
         } else {
             16
@@ -200,6 +235,7 @@ impl State {
             let (pid, next) = user::issue_pid(self.next_pid).expect("PID exhaustion");
             self.next_pid = next;
             let mut p = Process::new();
+            p.map_slot = slot;
             p.pid = pid;
             p.pattern = 0x4141000000000000 | u64::from(pid);
             p.paging = Some(Paging::new_user(
@@ -242,6 +278,20 @@ impl State {
                             }
                         });
                     }
+                    let zero_start = core::cmp::max(va, segment.va + segment.file_size);
+                    let zero_end = core::cmp::min(va + PAGE, segment.va + segment.memory_size);
+                    if zero_start < zero_end {
+                        paging::physical(pa, |bytes| {
+                            for offset in zero_start - va..zero_end - va {
+                                // SAFETY: Exclusive newly allocated frame, not yet
+                                // executable. Observe actual ELF BSS zeroing bytes.
+                                assert_eq!(
+                                    unsafe { bytes.add(offset as usize).read_volatile() },
+                                    0
+                                );
+                            }
+                        });
+                    }
                     if segment.executable {
                         self.kernel.identity_readonly(self.frames, pa);
                     }
@@ -274,7 +324,9 @@ impl State {
                     .map(self.frames, lower + PAGE * (i as u64 + 1), pa, true, false);
             }
             p.kernel_top = lower + 0x5000;
-            let own_mode = if mode() == 17 {
+            let own_mode = if cfg!(feature = "milestone-m4") {
+                0
+            } else if mode() == 17 {
                 2
             } else if mode() == 15 {
                 if slot == 1 {
@@ -302,6 +354,9 @@ impl State {
             p.context[21] = 0x1b;
             assert_eq!(read_word(p.physical(STACK_END - 8)), 0);
             p.status = Status::Ready;
+            if cfg!(feature = "test-m3-large-image") {
+                assert_eq!(p.count, 67);
+            }
             self.processes[slot] = p;
         }
         let target = if mode() == 5 {
@@ -312,6 +367,11 @@ impl State {
         write_word(self.processes[0].physical(DATA + 24), target);
         self.survivor_start = read_word(self.processes[1].physical(DATA + 8));
         self.audit();
+        if cfg!(feature = "test-m3-large-image") {
+            serial::write(b"M3:LARGE_IMAGE:PASS\n");
+        }
+        #[cfg(feature = "milestone-m4")]
+        m4::manifest(self);
     }
     fn add_user(
         &mut self,
@@ -328,14 +388,13 @@ impl State {
             .allocate(Owner::User(p.pid, kind), paging::zero_dynamic)
             .unwrap();
         self.kernel.map(self.frames, pa, pa, true, false);
-        p.maps[p.count] = Mapping {
+        p.append_mapping(Mapping {
             va,
             pa,
             kind,
             writable,
             executable,
-        };
-        p.count += 1;
+        });
         if map_now {
             p.paging
                 .as_mut()
@@ -352,7 +411,7 @@ impl State {
             assert_eq!(tables.leaf(0), 0);
             assert_eq!(tables.leaf(0x7ffee000), 0);
             assert_eq!(tables.leaf(0x7ffff000), 0);
-            for m in &p.maps[..p.count] {
+            for m in p.mappings() {
                 assert_eq!(self.frames.owner(m.pa), Ok(Owner::User(p.pid, m.kind)));
                 let leaf = tables.leaf(m.va);
                 assert_eq!(leaf & ADDRESS, m.pa);
@@ -373,7 +432,7 @@ impl State {
                     m.executable || !m.writable && m.executable
                 );
                 for other in &self.processes[..i] {
-                    assert!(other.maps[..other.count].iter().all(|x| x.pa != m.pa));
+                    assert!(other.mappings().iter().all(|x| x.pa != m.pa));
                 }
             }
             assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
@@ -491,9 +550,11 @@ impl State {
         let mut p = replace(&mut self.processes[slot], Process::new());
         assert!(p.status == Status::Dying || p.status == Status::Dead);
         let mut address = p.paging.take().unwrap();
+        #[cfg(feature = "milestone-m4")]
+        m4::process_exit(p.pid);
         let free_before = self.free_count();
         let released = p.count + p.kernel_frames.len() + address.owned_table_count();
-        for m in &p.maps[..p.count] {
+        for m in p.mappings() {
             address.unmap(self.frames, m.va);
             self.kernel.unmap(self.frames, m.pa);
             self.frames
@@ -571,60 +632,76 @@ impl State {
             .count()
     }
     fn observer_exit(&mut self, slot: usize, counter: u64) {
-        let record = self.last_event;
-        let expected = if mode() == 17 {
-            record.code == 0 && counter >= 8
-        } else if mode() == 15 {
-            slot == 1 && record.code == 7 && counter == 1
-        } else {
-            (mode() == 2 || mode() == 0 && self.round >= 2)
-                && slot == 0
-                && record.code == 0
-                && counter >= 8
-        };
-        self.unexpected |= !expected;
-        if expected {
-            serial::write(if mode() == 15 {
-                b"M3:EXIT_NONZERO_B:PASS\n"
-            } else {
-                b"M3:EXIT:PASS\n"
-            });
-        }
-        self.observer_survivor(slot);
-    }
-    fn observer_fault(&mut self, slot: usize, context: &[u64; 22], counter: u64) {
-        if slot != 0 || self.fault {
-            self.unexpected = true;
-            self.observer_survivor(slot);
+        #[cfg(feature = "milestone-m4")]
+        {
+            m4::observe_exit(self, slot, counter);
             return;
         }
-        let record = self.last_event;
-        let expected = match mode() {
-            3 => Some((14, 5, read_word(self.processes[0].physical(DATA + 24)))),
-            4 | 5 => Some((14, 7, read_word(self.processes[0].physical(DATA + 24)))),
-            6 => Some((14, 21, STACK)),
-            7 => Some((14, 21, HEAP)),
-            8 => Some((14, 6, 0x7ffee000)),
-            9 => Some((14, 6, 0x7ffff000)),
-            10 => Some((13, 0, 0)),
-            11 => Some((7, 0, 0)),
-            12 | 13 | 14 => Some((6, 0, 0)),
-            _ => None,
-        };
-        let valid = slot == 0
-            && !self.fault
-            && counter > 0
-            && expected.is_some_and(|e| {
-                record.vector == e.0
-                    && context[16] == e.1
-                    && (record.vector != 14 || record.cr2 == e.2)
-                    && (!(mode() == 6 || mode() == 7) || record.rip == e.2)
-            });
-        self.unexpected |= !valid;
-        if valid {
-            serial::write(fault_marker());
+        #[cfg(not(feature = "milestone-m4"))]
+        {
+            let record = self.last_event;
+            let expected = if mode() == 17 {
+                record.code == 0 && counter >= 8
+            } else if mode() == 15 {
+                slot == 1 && record.code == 7 && counter == 1
+            } else {
+                (mode() == 2 || mode() == 0 && self.round >= 2)
+                    && slot == 0
+                    && record.code == 0
+                    && counter >= 8
+            };
+            self.unexpected |= !expected;
+            if expected {
+                serial::write(if mode() == 15 {
+                    b"M3:EXIT_NONZERO_B:PASS\n"
+                } else {
+                    b"M3:EXIT:PASS\n"
+                });
+            }
+            self.observer_survivor(slot);
         }
-        self.observer_survivor(slot);
+    }
+    fn observer_fault(&mut self, slot: usize, context: &[u64; 22], counter: u64) {
+        #[cfg(feature = "milestone-m4")]
+        {
+            m4::observe_fault(self, slot, context, counter);
+            return;
+        }
+        #[cfg(not(feature = "milestone-m4"))]
+        {
+            if slot != 0 || self.fault {
+                self.unexpected = true;
+                self.observer_survivor(slot);
+                return;
+            }
+            let record = self.last_event;
+            let expected = match mode() {
+                3 => Some((14, 5, read_word(self.processes[0].physical(DATA + 24)))),
+                4 | 5 => Some((14, 7, read_word(self.processes[0].physical(DATA + 24)))),
+                6 => Some((14, 21, STACK)),
+                7 => Some((14, 21, HEAP)),
+                8 => Some((14, 6, 0x7ffee000)),
+                9 => Some((14, 6, 0x7ffff000)),
+                10 => Some((13, 0, 0)),
+                11 => Some((7, 0, 0)),
+                12 | 13 | 14 => Some((6, 0, 0)),
+                _ => None,
+            };
+            let valid = slot == 0
+                && !self.fault
+                && counter > 0
+                && expected.is_some_and(|e| {
+                    record.vector == e.0
+                        && context[16] == e.1
+                        && (record.vector != 14 || record.cr2 == e.2)
+                        && (!(mode() == 6 || mode() == 7) || record.rip == e.2)
+                });
+            self.unexpected |= !valid;
+            if valid {
+                serial::write(fault_marker());
+            }
+            self.observer_survivor(slot);
+        }
     }
     fn observer_survivor(&mut self, departing: usize) {
         self.survivor_slot = (0..self.amount)
@@ -684,36 +761,44 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             context[7],
             context[6],
         ];
-        let p = &mut state.processes[current];
-        p.context[14] = 0;
-        p.context[12] = 0;
-        if (number <= 1 && args.iter().any(|x| *x != 0))
-            || (number == 2 && args[1..].iter().any(|x| *x != 0))
-        {
-            p.context[14] = (-1i64) as u64;
-        } else {
-            match number {
-                0 => p.context[12] = 1 << 32,
-                1 => {}
-                2 => {
-                    // Generic syscall semantics: every process may exit with any code.
-                    // The code is retained metadata; fixture expectations are separate.
-                    state.last_event = EventRecord {
-                        pid: p.pid,
-                        code: args[0],
-                        vector: 128,
-                        rip: context[17],
-                        cr2: 0,
-                    };
-                    terminate = true;
-                    state.exited = true;
-                }
-                _ => p.context[14] = (-2i64) as u64,
-            }
+        #[cfg(feature = "milestone-m4")]
+        if number >= 0x10 {
+            let (rax, rdx) = m4::syscall(state, current, number, args);
+            state.processes[current].context[14] = rax as u64;
+            state.processes[current].context[12] = rdx;
         }
-        if terminate {
-            let counter = read_word(state.processes[current].physical(DATA + 8));
-            state.observer_exit(current, counter);
+        if number < 0x10 || !cfg!(feature = "milestone-m4") {
+            let p = &mut state.processes[current];
+            p.context[14] = 0;
+            p.context[12] = 0;
+            if (number <= 1 && args.iter().any(|x| *x != 0))
+                || (number == 2 && args[1..].iter().any(|x| *x != 0))
+            {
+                p.context[14] = (-1i64) as u64;
+            } else {
+                match number {
+                    0 => p.context[12] = 1 << 32,
+                    1 => {}
+                    2 => {
+                        // Generic syscall semantics: every process may exit with any code.
+                        // The code is retained metadata; fixture expectations are separate.
+                        state.last_event = EventRecord {
+                            pid: p.pid,
+                            code: args[0],
+                            vector: 128,
+                            rip: context[17],
+                            cr2: 0,
+                        };
+                        terminate = true;
+                        state.exited = true;
+                    }
+                    _ => p.context[14] = (-2i64) as u64,
+                }
+            }
+            if terminate {
+                let counter = read_word(state.processes[current].physical(DATA + 8));
+                state.observer_exit(current, counter);
+            }
         }
         state.syscall_calls += 1;
     } else {
@@ -744,6 +829,11 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
     } else {
         state.processes[current].status = Status::Ready;
     }
+    #[cfg(feature = "milestone-m4")]
+    if let Some(next) = m4::poll(state) {
+        return next;
+    }
+    #[cfg(not(feature = "milestone-m4"))]
     if state.fault || state.exited {
         if state.survivor_slot == MAX && mode() != 17 {
             serial::write(b"M3:FAIL:NO_TEST_SURVIVOR\n");
@@ -786,18 +876,28 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
 fn read_word(pa: u64) -> u64 {
     let page = pa & !(PAGE - 1);
     let offset = (pa & (PAGE - 1)) as usize;
+    assert!(offset <= PAGE as usize - 8);
     paging::physical(page, |p| {
-        // SAFETY: Validated owned frame and aligned in-page u64 field; IF=0.
-        unsafe { p.add(offset).cast::<u64>().read_volatile() }
+        let mut bytes = [0; 8];
+        for (i, byte) in bytes.iter_mut().enumerate() {
+            // SAFETY: Validated owned in-page bytes; bytewise observation also
+            // supports the deliberately misaligned IPC output evidence.
+            *byte = unsafe { p.add(offset + i).read_volatile() };
+        }
+        u64::from_le_bytes(bytes)
     })
 }
 fn write_word(pa: u64, value: u64) {
     let page = pa & !(PAGE - 1);
     let offset = (pa & (PAGE - 1)) as usize;
+    assert!(offset <= PAGE as usize - 8);
     paging::physical(page, |p| {
-        // SAFETY: Validated writable data frame, aligned in-page field, exclusive.
-        unsafe {
-            p.add(offset).cast::<u64>().write_volatile(value);
+        for (i, byte) in value.to_le_bytes().into_iter().enumerate() {
+            // SAFETY: Exclusive validated in-page byte; no alignment or Rust
+            // representation assumption is made about the addressed field.
+            unsafe {
+                p.add(offset + i).write_volatile(byte);
+            }
         }
     });
 }
@@ -842,7 +942,9 @@ fn print_number(label: &[u8], mut value: u64) {
     serial::write(b"\n");
 }
 fn mode() -> u64 {
-    if cfg!(feature = "test-m3-peer-read") {
+    if cfg!(feature = "milestone-m4") {
+        18
+    } else if cfg!(feature = "test-m3-peer-read") {
         3
     } else if cfg!(feature = "test-m3-peer-write") {
         4
@@ -878,6 +980,7 @@ fn mode() -> u64 {
         0
     }
 }
+#[cfg(not(feature = "milestone-m4"))]
 fn fault_marker() -> &'static [u8] {
     match mode() {
         3 => b"M3:FAULT:PEER_READ:PASS\n",

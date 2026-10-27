@@ -156,10 +156,111 @@ pub fn valid_return_layout(rip: u64, rsp: u64, cs: u64, ss: u64) -> bool {
         && (0x40000000..0x60000000).contains(&rip)
         && (0x7ffef000..0x7ffff000).contains(&rsp)
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PageAccess {
+    pub physical: u64,
+    pub owner: u64,
+    pub user: bool,
+    pub writable: bool,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CopyChunk {
+    pub physical: u64,
+    pub offset: usize,
+    pub length: usize,
+}
+const NO_CHUNK: CopyChunk = CopyChunk {
+    physical: 0,
+    offset: 0,
+    length: 0,
+};
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CopyPlan {
+    pub chunks: [CopyChunk; 2],
+    pub count: usize,
+}
+pub fn copy_plan(
+    pointer: u64,
+    length: u64,
+    pid: u64,
+    output: bool,
+    mut lookup: impl FnMut(u64) -> Option<PageAccess>,
+) -> Result<CopyPlan, Error> {
+    let end = pointer.checked_add(length).ok_or(Error::Range)?;
+    if length == 0 || length > 320 || pointer < 0x40000000 || end > 0x80000000 {
+        return Err(Error::Range);
+    }
+    let mut plan = CopyPlan {
+        chunks: [NO_CHUNK; 2],
+        count: 0,
+    };
+    let mut cursor = pointer;
+    while cursor < end {
+        let page = lookup(cursor).ok_or(Error::Permission)?;
+        if !page.user || page.owner != pid || output && !page.writable || page.physical % PAGE != 0
+        {
+            return Err(Error::Permission);
+        }
+        let offset = (cursor & (PAGE - 1)) as usize;
+        let length = core::cmp::min(PAGE - offset as u64, end - cursor) as usize;
+        plan.chunks[plan.count] = CopyChunk {
+            physical: page.physical,
+            offset,
+            length,
+        };
+        plan.count += 1;
+        cursor += length as u64;
+    }
+    Ok(plan)
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn copy_plan_checks_entire_range_before_any_copy() {
+        let good = |_: u64| {
+            Some(PageAccess {
+                physical: 0x1000,
+                owner: 1,
+                user: true,
+                writable: true,
+            })
+        };
+        for pointer in [0, 0x2000000, 0x0001000040000000, u64::MAX - 100, 0x7fffff00] {
+            assert!(copy_plan(pointer, 320, 1, true, good).is_err());
+        }
+        assert_eq!(
+            copy_plan(0x40011001, 320, 1, true, good).unwrap().chunks[0].offset,
+            1
+        );
+        assert!(
+            copy_plan(0x40011fff, 320, 1, true, |va| if va >= 0x40012000 {
+                None
+            } else {
+                good(va)
+            })
+            .is_err()
+        );
+        let ro = |_: u64| {
+            Some(PageAccess {
+                physical: 0x1000,
+                owner: 1,
+                user: true,
+                writable: false,
+            })
+        };
+        assert!(copy_plan(0x40011000, 320, 1, true, ro).is_err());
+        assert!(copy_plan(0x40011000, 320, 1, false, ro).is_ok());
+        assert!(copy_plan(0x40011000, 320, 2, false, good).is_err());
+        assert!(copy_plan(0x40011000, 320, 1, false, |_| Some(PageAccess {
+            physical: 0x1000,
+            owner: 1,
+            user: false,
+            writable: true
+        }))
+        .is_err());
+    }
     fn elf() -> [u8; 8192] {
         let mut b = [0; 8192];
         b[..7].copy_from_slice(b"\x7fELF\x02\x01\x01");
@@ -191,6 +292,16 @@ mod tests {
         let mut b = elf();
         b[24..32].copy_from_slice(&0x40001000u64.to_le_bytes());
         assert!(parse(&b).is_err());
+    }
+    #[test]
+    fn legal_large_image_and_exact_user_mapping_budget() {
+        let mut b = elf();
+        b[104..112].copy_from_slice(&(33u64 * PAGE).to_le_bytes());
+        assert_eq!(parse(&b).unwrap().pages, 33);
+        b[104..112].copy_from_slice(&(2016u64 * PAGE).to_le_bytes());
+        assert_eq!(parse(&b).unwrap().pages + 32, 2048);
+        b[104..112].copy_from_slice(&(2017u64 * PAGE).to_le_bytes());
+        assert_eq!(parse(&b).unwrap_err(), Error::Quota);
     }
     #[test]
     fn overflow_offset_and_page_overlap() {
