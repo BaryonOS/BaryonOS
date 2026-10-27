@@ -1,0 +1,18 @@
+test_actual_binary_contains_limits_before_script_execution (__main__.IpcArtifact.test_actual_binary_contains_limits_before_script_execution) ... ok
+test_actual_private_output_and_load_instructions_exist (__main__.IpcArtifact.test_actual_private_output_and_load_instructions_exist) ... ok
+test_actual_rx_rw_ro_segments_have_no_writable_executable_page (__main__.IpcArtifact.test_actual_rx_rw_ro_segments_have_no_writable_executable_page) ... ok
+test_actual_syscalls_generic_dispatch_and_failure_exit_use_int80 (__main__.IpcArtifact.test_actual_syscalls_generic_dispatch_and_failure_exit_use_int80) ... ok
+test_all_control_rows_results_and_message_bytes_start_zero (__main__.IpcArtifact.test_all_control_rows_results_and_message_bytes_start_zero) ... ok
+test_manifest_matches_actual_binary_source_and_linker (__main__.IpcArtifact.test_manifest_matches_actual_binary_source_and_linker) ... ok
+test_no_tls_dynamic_relocation_or_unexpected_allocatable_section (__main__.IpcArtifact.test_no_tls_dynamic_relocation_or_unexpected_allocatable_section) ... ok
+test_reject_bad_headers_and_dynamic_features (__main__.IpcArtifact.test_reject_bad_headers_and_dynamic_features) ... ok
+test_reject_entry_in_data_or_readonly_and_page_overlap (__main__.IpcArtifact.test_reject_entry_in_data_or_readonly_and_page_overlap) ... ok
+test_reject_permission_escalation_and_readonly_boundary_changes (__main__.IpcArtifact.test_reject_permission_escalation_and_readonly_boundary_changes) ... ok
+test_reject_size_overflow_alignment_and_control_shrink (__main__.IpcArtifact.test_reject_size_overflow_alignment_and_control_shrink) ... ok
+test_reject_truncation_of_required_load_bytes (__main__.IpcArtifact.test_reject_truncation_of_required_load_bytes) ... ok
+test_script_and_result_tables_fit_control_page_without_overlap (__main__.IpcArtifact.test_script_and_result_tables_fit_control_page_without_overlap) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.061s
+
+OK

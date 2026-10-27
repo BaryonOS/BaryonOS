@@ -12,7 +12,7 @@ Werkelijk uitgevoerd: 26 capabilitytests, 12 virtio-tests, 9 protocoltests, 11 u
 
 Reviewherstel staat in `0d4bad7`: initialisatiefouten na DMA-enable, device-id-binding, terminale tickets bij procesexit, onnodige clientautoriteit, harde kernelcorrelatie van ongeldige dienstverzoeken, quarantainecleanup en CPU-adresbreedte. De gerichte tweede-agentreviews zijn gesloten; specifieke init-readback/device1/exit-na-error-takken zijn bronfixes zonder aparte gastinjectie. Bron is bevroren met fingerprint v3 `b98826bc699f265fde265aac4a67835e114e52acf6c5df1ec15b2eb84b410300`.
 
-De nieuwe gecombineerde poort loopt: M2 (8 groepen/7 VM) en M3 (22 groepen/19 VM) zijn geslaagd en opnieuw vastgelegd in verification/m5/regression/. M4/M5 en de volledige M1-foutreeks zijn nog niet afgerond. Gerichte M5-cases 1/12/13/14 zijn al raw33/harnas- en oracle-groen; bewaar ze als diagnostisch bewijs, geen vervanging voor de volledige gate. De M1–M4-tabel hieronder beschrijft het eerdere behaalde basischeckpoint.
+De gecombineerde poort is gestopt met exit1: M2 (8 groepen/7 VM), M3 (22 groepen/19 VM) en M4 (12 groepen/10 VM) slaagden. M5 faalde bij device-rights (raw35, M5:FAIL:USER_OR_PROTOCOL); de twee normale images en service-errors waren al geslaagd. Mislukte suite/guest en console zijn ongewijzigd als failed vastgelegd in verification/m5/diagnostics/. Diagnose loopt; bronfreeze is uitsluitend voor dit herstel opgeheven. De volledige M1-foutreeks volgt nog. Gerichte M5-cases 1/12/13/14 blijven afzonderlijk diagnostisch bewijs. De M1–M4-tabel hieronder beschrijft het eerdere behaalde basischeckpoint.
 
 ## Hoofdresultaat
 
