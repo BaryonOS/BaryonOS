@@ -266,6 +266,11 @@ function save() {
 }
 
 document.addEventListener('click', (event) => {
+  if (event.target.closest('.skip-link')) {
+    event.preventDefault();
+    document.querySelector('#main')?.focus();
+    return;
+  }
   const element = event.target.closest('[data-action]');
   if (!element || element.disabled) return;
   const action = element.dataset.action;
