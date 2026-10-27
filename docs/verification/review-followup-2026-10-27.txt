@@ -1,0 +1,14 @@
+Review follow-up checks
+Base reviewed by PR comment: c630c59aa2e3ad4ce025aa8ac059e58be7334601
+
+PASS (exit 0): python -B -X utf8 tests/test_capture_gate.py
+Result: 4 synthetic capture/archive tests passed.
+
+PASS (exit 0): python -B -X utf8 tests/test_evidence_files.py
+Result: 1 manifest test passed; signature-derived format and dimensions match all 5 registered screenshots.
+
+PASS (exit 0): git diff --check
+PASS (exit 0): python -m json.tool docs/verification/evidence-files.json
+
+Not yet run: the documented normal/large user-probe build and artifact test.
+These host checks do not constitute a kernel or guest test.

@@ -11,6 +11,32 @@ from common import ROOT, BUILD, save_json, sha256
 from run import is_success, MARKERS
 
 
+def _replace_archive(staged: Path, destination: Path) -> None:
+    backup_root = Path(tempfile.mkdtemp(
+        prefix=f".{destination.name}-backup-", dir=destination.parent))
+    backup = backup_root / "previous"
+    had_destination = destination.exists() or destination.is_symlink()
+    try:
+        if had_destination:
+            os.replace(destination, backup)
+        try:
+            os.replace(staged, destination)
+        except BaseException:
+            if had_destination:
+                try:
+                    os.replace(backup, destination)
+                except BaseException as restore_error:
+                    raise RuntimeError(
+                        f"Could not restore the previous archive; it remains at {backup}"
+                    ) from restore_error
+            raise
+        if had_destination:
+            shutil.rmtree(backup, ignore_errors=True)
+    finally:
+        if not backup.exists():
+            backup_root.rmdir()
+
+
 def guest_matches(phase, group, result):
     if phase != "m1":
         return is_success(result["raw_qemu_exit"], result["stdout"], result["timed_out"],
@@ -51,8 +77,6 @@ def capture(phase: str):
         temporary = Path(temporary)
         staged = temporary / "archive"
         staged.mkdir()
-        if destination.exists():
-            shutil.copytree(destination, staged, dirs_exist_ok=True)
 
         runs = []
         for group in suite["results"]:
@@ -86,33 +110,33 @@ def capture(phase: str):
                         raise ValueError(f"Artifact changed: {artifact}")
                 runs.append(result)
             elif evidence.is_file() and evidence.name.endswith(".stdout.txt"):
-                evidence.resolve().relative_to(BUILD.resolve())
-                # Preserve textual host output; never turn a log into a test result.
-                paths = [evidence]
-                if evidence.name.endswith(".stdout.txt"):
-                    stem = evidence.name.removesuffix(".stdout.txt")
-                    metadata = evidence.with_name(stem + ".json")
-                    details = json.loads(metadata.read_text(encoding="utf-8"))
-                    if details.get("returncode") != 0:
-                        raise ValueError(f"Failed host command: {metadata}")
-                    paths += [metadata, evidence.with_name(stem + ".stderr.txt")]
+                host_logs = (BUILD / "logs").resolve()
+                resolved_evidence = evidence.resolve()
+                resolved_evidence.relative_to(host_logs)
+                # Preserve textual host output; never turn a guest result into a host log.
+                stem = resolved_evidence.name.removesuffix(".stdout.txt")
+                metadata = resolved_evidence.with_name(stem + ".json")
+                paths = [resolved_evidence, metadata,
+                         resolved_evidence.with_name(stem + ".stderr.txt")]
                 for source in paths:
-                    (staged / source.name).write_text(
+                    source.resolve().relative_to(host_logs)
+                    if not source.is_file():
+                        raise ValueError(f"Missing host log: {source}")
+                details = json.loads(metadata.read_text(encoding="utf-8"))
+                if details.get("returncode") != 0:
+                    raise ValueError(f"Failed host command: {metadata}")
+                for source in paths:
+                    target = staged / source.name
+                    if target.exists():
+                        raise ValueError(f"Duplicate host log name: {source.name}")
+                    target.write_text(
                         source.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
             else:
                 raise ValueError(f"Missing evidence: {evidence}")
         save_json(staged / "suite.json", suite)
         save_json(staged / "guest-runs.json", runs)
 
-        backup = temporary / "previous"
-        if destination.exists():
-            os.replace(destination, backup)
-        try:
-            os.replace(staged, destination)
-        except BaseException:
-            if backup.exists():
-                os.replace(backup, destination)
-            raise
+        _replace_archive(staged, destination)
     print(f"Captured {phase}: {len(suite['results'])} groups, {len(runs)} verified guest runs")
 
 

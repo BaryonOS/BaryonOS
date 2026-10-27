@@ -6,7 +6,7 @@ Repository: https://github.com/simonvanieperen/nieuw-os (privé). Werkbranch: `c
 
 ## Reviewfollow-up
 
-De bewijsarchiefcapture valideert een volledige nieuwe opname in een tijdelijke kopie voordat zij het bestaande archief vervangt. De synthetische regressietests voor behoud bij een hashfout en vervanging na geldige validatie slagen: `python -B -X utf8 tests/test_capture_gate.py` (2 tests, exit 0). Dit is hosttoolbewijs, geen nieuwe kernel- of gasttest. `userspace/LARGE-PROBE.md` bouwt nu eerst de normale probe; de drie gedocumenteerde build-/testcommando's slaagden (6 hosttests, exit 0) met Rust 1.90.0.
+De bewijsarchiefcapture valideert een volledige nieuwe opname in een tijdelijke map en laat het bestaande archief bij validatiefouten of een installatiefout ongemoeid. Alleen stdoutlogs onder `build/logs/` kunnen als hostbewijs worden opgenomen; andere bewijsverwijzingen volgen de gastvalidatie. Screenshotregistraties zijn aan de bestandssignatuur getoetst. `python -B -X utf8 tests/test_capture_gate.py` (4 tests) en `python -B -X utf8 tests/test_evidence_files.py` (1 test) slagen, beide exit 0. De expliciete grote-probehostcontrole staat nog open; zie `userspace/LARGE-PROBE.md`.
 
 De screenshotindex gebruikt nu de bestandsignatuur voor het formaat en de beeldheader voor dimensies. De vijf bestanden met `.png`-naam zijn JPEG's; hun afmetingen, bytes en SHA-256 zijn opnieuw geregistreerd. `python3 tools/update_evidence_files.py` en `python3 -B -X utf8 tests/test_evidence_files.py` slaagden; 4 tests, exit 0. Dit is bewijsregistratie, geen nieuwe browser- of OS-test.
 

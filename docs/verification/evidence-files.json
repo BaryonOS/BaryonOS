@@ -30,15 +30,16 @@
   "screenshots/access-320.png": {
     "sha256": "20ae7cb98ed03a89ab4f99df556d6506df1619ae598975b7ea5cd4e7695dc9f0",
     "bytes": 27425,
+    "format": "jpeg",
     "dimensions": [
       305,
       804
-    ],
-    "format": "jpeg"
+    ]
   },
   "screenshots/materiaal-1024.png": {
     "sha256": "745659ce89b0c60b8d9347a60d14526bd737b9db5d2bfacf71215c5507869176",
     "bytes": 50016,
+    "format": "jpeg",
     "dimensions": [
       1009,
       757
@@ -48,6 +49,7 @@
   "screenshots/materiaal-1440.png": {
     "sha256": "aa1a59284d56b10ca8e1ed16cdf99a8f0dfb4facd437856ac707a6a59896792f",
     "bytes": 57405,
+    "format": "jpeg",
     "dimensions": [
       1425,
       891
@@ -57,6 +59,7 @@
   "screenshots/materiaal-320.png": {
     "sha256": "145b745635fb975b8b48376976f4ad780ee292ea8ccc038accd8e8befd1f23c6",
     "bytes": 27589,
+    "format": "jpeg",
     "dimensions": [
       305,
       804
@@ -66,6 +69,7 @@
   "screenshots/materiaal-390.png": {
     "sha256": "bb6e9a603fe9f57ecf64a91ba03892cadad81ea03af6f2dda168d07779bdc223",
     "bytes": 29394,
+    "format": "jpeg",
     "dimensions": [
       375,
       812

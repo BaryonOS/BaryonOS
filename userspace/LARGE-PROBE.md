@@ -3,7 +3,7 @@
 `large_linker.ld` linkt dezelfde ongewijzigde `probe.rs` met 33 extra NOLOAD BSS-pagina's. Entry/text en de vier datawoorden blijven gelijk. De bestaande `linker.ld`, M3-probe en M3-tests blijven ongewijzigd.
 
 ```powershell
-python tools/build_users.py
+python tools/build_users.py --kind probe
 python tools/build_users.py --kind large
 python -B -X utf8 userspace/tests/test_large_probe.py --elf build/users/probe_large.elf
 ```

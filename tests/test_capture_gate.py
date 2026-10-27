@@ -5,6 +5,7 @@ import sys
 import tempfile
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import capture_gate
@@ -86,10 +87,46 @@ class CaptureGateArchive(unittest.TestCase):
 
         self.assertEqual((self.destination / "host.stdout.txt").read_text(encoding="utf-8"),
                          "new host output\n")
-        self.assertTrue((self.destination / "preserved.txt").is_file())
+        self.assertFalse((self.destination / "preserved.txt").exists())
         self.assertEqual(json.loads((self.destination / "suite.json").read_text())["status"],
                          "completed")
         self.assertEqual(len(json.loads((self.destination / "guest-runs.json").read_text())), 1)
+
+    def test_guest_output_cannot_be_captured_as_a_host_log(self):
+        guest_log = self.build / "run/guest.stdout.txt"
+        guest_log.parent.mkdir(parents=True, exist_ok=True)
+        guest_log.write_text("unverified guest output\n", encoding="utf-8")
+        guest_log.with_name("guest.json").write_text('{"returncode": 0}\n', encoding="utf-8")
+        guest_log.with_name("guest.stderr.txt").write_text("", encoding="utf-8")
+        suite_path = self.build / "m2-test-results.json"
+        suite = json.loads(suite_path.read_text(encoding="utf-8"))
+        suite["results"][0]["evidence"] = str(guest_log)
+        suite_path.write_text(json.dumps(suite), encoding="utf-8")
+        before = self._snapshot()
+
+        with self.assertRaises(ValueError):
+            capture_gate.capture("m2")
+
+        self.assertEqual(self._snapshot(), before)
+
+    def test_archive_install_error_restores_the_previous_archive(self):
+        staged = self.root / "staged"
+        staged.mkdir()
+        (staged / "suite.json").write_text('{"passed": false}\n', encoding="utf-8")
+        before = self._snapshot()
+        real_replace = capture_gate.os.replace
+
+        def fail_install(source, target):
+            if Path(source) == staged and Path(target) == self.destination:
+                raise OSError("synthetic archive install failure")
+            return real_replace(source, target)
+
+        with patch.object(capture_gate.os, "replace", side_effect=fail_install):
+            with self.assertRaisesRegex(OSError, "synthetic archive install failure"):
+                capture_gate._replace_archive(staged, self.destination)
+
+        self.assertEqual(self._snapshot(), before)
+        self.assertTrue(staged.is_dir())
 
 
 if __name__ == "__main__":
