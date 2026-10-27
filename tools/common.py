@@ -79,9 +79,24 @@ def run_logged(args: list[str], name: str, *, cwd: Path = ROOT, timeout: int = 1
     if extra_env:
         env.update(extra_env)
     args = [shutil.which(args[0], path=env["PATH"]) or args[0], *args[1:]]
-    result = subprocess.run(args, cwd=cwd, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
     log = BUILD / "logs" / name
     log.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        result = subprocess.run(args, cwd=cwd, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
+    except subprocess.TimeoutExpired as error:
+        def partial_text(output):
+            if isinstance(output, bytes):
+                return output.decode("utf-8", "replace")
+            return output or ""
+
+        log.with_suffix(".stdout.txt").write_text(partial_text(error.stdout), encoding="utf-8")
+        log.with_suffix(".stderr.txt").write_text(partial_text(error.stderr), encoding="utf-8")
+        save_json(log.with_suffix(".json"), {
+            "command": args, "cwd": str(cwd), "started_unix": started,
+            "duration_s": time.time() - started, "returncode": None,
+            "timed_out": True, "timeout_seconds": timeout,
+        })
+        raise
     log.with_suffix(".stdout.txt").write_text(result.stdout, encoding="utf-8")
     log.with_suffix(".stderr.txt").write_text(result.stderr, encoding="utf-8")
     save_json(log.with_suffix(".json"), {"command": args, "cwd": str(cwd), "started_unix": started, "duration_s": time.time()-started, "returncode": result.returncode})

@@ -82,7 +82,8 @@ export function setNasCondition(state, condition) {
   if (!['offline', 'networkChanged', 'identityMismatch', 'online', 'unpaired'].includes(condition)) return fail('DENIED');
   if (condition === 'online' && state.nas.identity !== NAS_IDENTITY) return fail('NAS_UNAVAILABLE');
   if (condition === 'online' && ['identityMismatch', 'networkChanged'].includes(state.nas.state)) return fail('IDENTITY_MISMATCH');
-  return ok({ ...state.nas, state: condition, identity: condition === 'unpaired' ? null : state.nas.identity });
+  const identity = ['unpaired', 'networkChanged', 'identityMismatch'].includes(condition) ? null : state.nas.identity;
+  return ok({ ...state.nas, state: condition, identity });
 }
 
 export function installFixture(state, toolId) {

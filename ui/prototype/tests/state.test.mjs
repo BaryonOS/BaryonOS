@@ -150,11 +150,18 @@ test('P2-03: NAS identity cannot be trusted by a network-state toggle', () => {
   assert.equal(broker.pairNas(state, { confirmed: true, identity: 'attacker' }).code, 'IDENTITY_MISMATCH');
   state = reducer(state, { type: 'confirmNas', confirmed: true, identity: NAS_IDENTITY });
   assert.equal(state.nas.state, 'online');
-  state = reducer(state, { type: 'nasCondition', condition: 'identityMismatch' });
-  assert.equal(broker.setNasCondition(state, 'online').code, 'IDENTITY_MISMATCH');
-  state = reducer(state, { type: 'pairNas' });
-  state = reducer(state, { type: 'confirmNas', confirmed: true, identity: NAS_IDENTITY });
-  assert.equal(state.nas.state, 'online');
+  for (const condition of ['identityMismatch', 'networkChanged']) {
+    let failed = reducer(state, { type: 'nasCondition', condition });
+    assert.equal(failed.nas.identity, null);
+    failed = reducer(failed, { type: 'nasCondition', condition: 'offline' });
+    assert.equal(failed.nas.identity, null);
+    assert.equal(broker.setNasCondition(failed, 'online').ok, false);
+    failed = reducer(failed, { type: 'pairNas' });
+    assert.equal(failed.nas.state, 'verifying');
+    failed = reducer(failed, { type: 'confirmNas', confirmed: true, identity: NAS_IDENTITY });
+    assert.equal(failed.nas.state, 'online');
+    assert.equal(failed.nas.identity, NAS_IDENTITY);
+  }
 });
 
 test('P2-04: missing local model or memory never produces a summary', () => {
