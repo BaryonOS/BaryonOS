@@ -1,0 +1,232 @@
+{
+  "phase": "M5",
+  "status": "completed",
+  "passed": true,
+  "started_utc": "2026-10-27T22:44:41.301895+00:00",
+  "results": [
+    {
+      "name": "typed-capability-virtio-policy-protocol-host-tests",
+      "passed": true,
+      "requirements": [
+        "M5-TYPED",
+        "M5-QUEUE",
+        "M5-PROTOCOL"
+      ],
+      "evidence": "build/logs/m5-host-tests.stdout.txt"
+    },
+    {
+      "name": "guest-evidence-parser-tests",
+      "passed": true,
+      "requirements": [
+        "M5-EVIDENCE"
+      ],
+      "evidence": "build/logs/m5-parser-tests.stdout.txt"
+    },
+    {
+      "name": "external-disk-oracle-negative-tests",
+      "passed": true,
+      "requirements": [
+        "M5-ORACLE"
+      ],
+      "evidence": "build/logs/m5-disk-oracle-tests.stdout.txt"
+    },
+    {
+      "name": "m5-user-artifact-tests",
+      "passed": true,
+      "requirements": [
+        "M5-USER-ELF"
+      ],
+      "evidence": "build/logs/m5-user-artifact-tests.stdout.txt"
+    },
+    {
+      "name": "m5-read-a",
+      "passed": true,
+      "requirements": [
+        "M5-READ",
+        "M5-ORACLE",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m5-read-a-81de188365"
+    },
+    {
+      "name": "m5-read-b",
+      "passed": true,
+      "requirements": [
+        "M5-READ",
+        "M5-ORACLE",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m5-read-b-4400c5be57"
+    },
+    {
+      "name": "same-binary-two-actual-disks",
+      "passed": true,
+      "requirements": [
+        "M5-ORACLE"
+      ],
+      "evidence": "build/logs/m5-two-image-check.json"
+    },
+    {
+      "name": "test-m5-service-errors",
+      "passed": true,
+      "requirements": [
+        "M5-SERVICE_ERRORS",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-service-errors-f738c7bd1a"
+    },
+    {
+      "name": "test-m5-device-rights",
+      "passed": true,
+      "requirements": [
+        "M5-DEVICE_RIGHTS",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-device-rights-2fe2925e0d"
+    },
+    {
+      "name": "test-m5-async",
+      "passed": true,
+      "requirements": [
+        "M5-ASYNC",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-async-a56abdae87"
+    },
+    {
+      "name": "test-m5-bad-descriptor",
+      "passed": true,
+      "requirements": [
+        "M5-BAD_DESCRIPTOR",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-bad-descriptor-c938cd625d"
+    },
+    {
+      "name": "test-m5-used-id",
+      "passed": true,
+      "requirements": [
+        "M5-USED_ID",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-id-e9eaaac9f0"
+    },
+    {
+      "name": "test-m5-used-index",
+      "passed": true,
+      "requirements": [
+        "M5-USED_INDEX",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-index-35ce43cd6e"
+    },
+    {
+      "name": "test-m5-used-short",
+      "passed": true,
+      "requirements": [
+        "M5-USED_SHORT",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-short-cdf0a2adbc"
+    },
+    {
+      "name": "test-m5-used-long",
+      "passed": true,
+      "requirements": [
+        "M5-USED_LONG",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-long-c83f2c6149"
+    },
+    {
+      "name": "test-m5-used-status",
+      "passed": true,
+      "requirements": [
+        "M5-USED_STATUS",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-status-423902c906"
+    },
+    {
+      "name": "test-m5-io-error",
+      "passed": true,
+      "requirements": [
+        "M5-IO_ERROR",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-io-error-9b6d3b3fd4"
+    },
+    {
+      "name": "test-m5-timeout",
+      "passed": true,
+      "requirements": [
+        "M5-TIMEOUT",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-timeout-0b7c215650"
+    },
+    {
+      "name": "test-m5-reset-timeout",
+      "passed": true,
+      "requirements": [
+        "M5-RESET_TIMEOUT",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-reset-timeout-162c1a1b81"
+    },
+    {
+      "name": "test-m5-restart",
+      "passed": true,
+      "requirements": [
+        "M5-RESTART",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-restart-713ace33b0"
+    },
+    {
+      "name": "test-m5-cpu-mmio",
+      "passed": true,
+      "requirements": [
+        "M5-CPU_MMIO",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-cpu-mmio-2b2d8740a6"
+    },
+    {
+      "name": "test-m5-cpu-dma",
+      "passed": true,
+      "requirements": [
+        "M5-CPU_DMA",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-cpu-dma-eb827dc12a"
+    },
+    {
+      "name": "test-m5-cpu-pci",
+      "passed": true,
+      "requirements": [
+        "M5-CPU_PCI",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-cpu-pci-3b59198423"
+    },
+    {
+      "name": "test-m5-no-device",
+      "passed": true,
+      "requirements": [
+        "M5-NO_DEVICE",
+        "M5-RESOURCES"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-no-device-930a45dc80"
+    },
+    {
+      "name": "m1-regression-after-m5",
+      "passed": true,
+      "requirements": [
+        "M1"
+      ],
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m1-after-m5-0e398ea908"
+    }
+  ],
+  "finished_utc": "2026-10-27T22:46:05.328902+00:00"
+}

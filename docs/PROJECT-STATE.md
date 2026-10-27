@@ -19,8 +19,9 @@ controle van de werkelijke schijfbytes. De eerste complete M6b-gate op `44892e7`
 is eveneens geslaagd: 18 groepen en 14 echte VM-invocaties, waaronder zes koude
 recoveries en twee externe kills. Een aparte parseraudit controleerde alle 121
 artifacts en de werkelijke schijfbytes. Review heeft daarna de binding van
-hostlogs en de verplichte artifactsets aangescherpt; de definitieve gate op die
-verifierbron volgt nog.
+hostlogs en de verplichte artifactsets aangescherpt. De complete M6b-gate op
+`20f7ed2` slaagt eveneens: 18 groepen/14 VM, 22 Rust- en 26 harnastests; capture
+en een aparte audit van alle 121 artifacthashes en zeven volumes zijn groen.
 
 De ongewijzigde basis `10b32e3` heeft inmiddels de complete M6a-gate opnieuw
 gehaald: 54/54 controlegroepen, 49 echte VM-invocaties, zes externe QEMU-kills en
@@ -33,8 +34,19 @@ M1-run is afgewezen. De vervangingsoorzaak is niet vastgesteld. M1 heeft nu
 strikte fasecontrole en een vooraf gecontroleerde snapshotbinding aan de eigen
 buildhashes. De onafhankelijke review vond geen blocker in deze guards.
 Gerichte hostcontroles: 26 M6b-harnastests, 7 guestparsertests, 5 snapshotbinding-
-tests en 9 bestaande capturetests geslaagd. De volledige M1-gate en de definitieve
-M6b-gate worden na dit broncheckpoint opnieuw uitgevoerd.
+tests en 9 bestaande capturetests geslaagd. Twee volgende M1-pogingen zijn door
+de nieuwe hashguard vóór een verkeerde VM-start afgewezen: één in de regression-
+werkmap, één zonder andere actieve builds in de native werkmap. Oudere gegenereerde
+artifacts waren opnieuw verschenen; de oorzaak is niet vastgesteld. Alle drie
+afgewezen pogingen blijven bewaard en tellen niet mee als M1-acceptatie.
+
+De M1-gate gebruikt daarom per build een eigen UUID-snapshot met onmiddellijke
+hashcontrole. Herhaalde coldboots en negatieve fixtures gebruiken die vaste
+normale build, zonder opnieuw uit het veranderlijke `build/esp` te lezen.
+Deze laatste verifierwijziging is afzonderlijk beoordeeld; 8 snapshotbinding-,
+7 guestparser-, 9 capture- en 26 M6b-harnastests slagen. Zij vereist opnieuw de
+volledige M1- en M6b-gates na dit checkpoint; native kernel-, service- en
+buildinputs zijn sinds `44892e7` onveranderd.
 
 Deze begrensde lokale opslagproef heeft geen namen, directoryboom, garbage
 collection of encryptie. Verwijderrecords voorkomen het terugkomen van oude

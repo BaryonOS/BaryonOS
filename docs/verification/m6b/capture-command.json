@@ -1,0 +1,11 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "tools/capture_m6b.py"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-native",
+  "exit_code": 0,
+  "stdout": "M6b capture passed: 18 groups, 14 distinct actual VM runs\n",
+  "stderr": ""
+}

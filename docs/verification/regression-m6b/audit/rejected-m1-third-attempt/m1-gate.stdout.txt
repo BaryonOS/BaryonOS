@@ -1,0 +1,57 @@
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected normal: 3 ELF load segments
+
+running 6 tests
+test tests::invalid_header_and_received_pointer_are_rejected ... ok
+test tests::map_shape_and_stride_are_checked ... ok
+test tests::explicit_wire_fixture_and_offsets ... ok
+test tests::ranges_must_be_aligned_bounded_nonoverlapping ... ok
+test tests::unsorted_extended_stride_and_adjacent_descriptors_cover_allocations ... ok
+test tests::overlap_overflow_and_zero_pages_rejected_unknown_memory_reserved ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+test tests::arithmetic_and_file_bounds_fail_closed ... ok
+test tests::entry_must_be_in_rx_file_bytes_not_bss_or_metadata ... ok
+test tests::nonexecuting_metadata_allowed_executable_stack_denied ... ok
+test tests::wrong_headers_and_program_types_fail ... ok
+test tests::valid_plan_keeps_bss_and_does_not_modify_input ... ok
+test tests::permissions_alignment_addresses_and_page_overlap_fail ... ok
+test tests::every_truncation_before_required_file_end_fails ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling boot-protocol v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/crates/boot-protocol)
+   Compiling elf-loader-core v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-native/crates/elf-loader-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s
+     Running unittests src/lib.rs (target/debug/deps/boot_protocol-0c4756592423435b)
+     Running unittests src/lib.rs (target/debug/deps/elf_loader_core-4ab92dc5239b8964)
+   Doc-tests boot_protocol
+   Doc-tests elf_loader_core
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/cold-1-7226842142
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/cold-2-0f4122155e

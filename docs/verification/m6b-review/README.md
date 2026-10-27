@@ -30,5 +30,11 @@ vond geen daadwerkelijk ontbrekende run in de eerste volledige native gate.
 De laatste guardreview vond geen blocker in die capturewijzigingen, de strikte
 M1-fasecontrole of de binding van gekopieerde kernel/loader aan de verwachte
 buildhashes vóór QEMU-start. Vijf bindingtests, zeven guestparsertests en tien
-capturetests zijn daarvoor afzonderlijk opnieuw uitgevoerd (exit 0). De finale
-native gate op de aangescherpte verifierbron volgt na het broncheckpoint.
+capturetests zijn daarvoor afzonderlijk opnieuw uitgevoerd (exit 0).
+
+`native-audit-20f7ed2.json` controleert de daaropvolgende complete gate:
+18 groepen, 14 echte VM-runs, 121 artifacthashes, zeven volumes, zes koude
+herstelparen, twee vastgelegde SIGKILL-cuts, 22 Rust- en 26 harnastests.
+De aparte parser reconstrueerde de bronfingerprint uit `git archive` en de
+record-, revisie-, verwijder- en canarytoestand uit de werkelijke schijfbytes.
+De latere wijziging naar private M1-buildsnapshots krijgt een eigen eindgate.

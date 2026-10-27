@@ -1,0 +1,683 @@
+{
+  "status": "passed",
+  "original_run_checkpoint": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+  "revalidation_checkpoint": "20f7ed282e579b96d964ae84509d895a7a826f4d",
+  "revalidation_source_sha256": "09fef202b74c362b2ead29c7cac12fee772bee3a3d382a6dbf7d576798c3e8f5",
+  "new_vm_invocations": 0,
+  "prior_vm_invocations_rechecked": 56,
+  "artifact_hashes_rechecked": 243,
+  "preserved_prior_evidence_files": 54,
+  "native_inputs_identical_between_checkpoints": true,
+  "native_input_count": 68,
+  "native_inputs": [
+    {
+      "path": ".cargo/config.toml",
+      "sha256": "39fe0b25b1e707cd57d6d59975bac41f7733ab86ee03c072989869839e1ae435"
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "eb5920cfec124d092cce91307e89ef8ea7cc29975bc0c1f7a7d9491745db0405"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "8fdade5730eb492acf23e7f9ac31e5c5709bf8a6ccfa6cd33a19ab19801ebf46"
+    },
+    {
+      "path": "boot/loader/Cargo.toml",
+      "sha256": "3df802e02e461be13a1680e3c19ff08e2ebe15aec26ddd61c006cd28e655f353"
+    },
+    {
+      "path": "boot/loader/src/handoff.S",
+      "sha256": "7dcc6d3efdb480b2b73528fe830ab046b468ca509ddb36901d32d71876c8c933"
+    },
+    {
+      "path": "boot/loader/src/main.rs",
+      "sha256": "32780ab2bed8f9a84d2588dd1c8cdee7a5d7b88047decb4a2cfdf53d41d92d1e"
+    },
+    {
+      "path": "boot/loader/src/memory.rs",
+      "sha256": "01627cb918aa68a580d66134c9471666fd3b6de6bfed71c439f722819a5661a7"
+    },
+    {
+      "path": "boot/loader/src/serial.rs",
+      "sha256": "7be866761987a1a655ebbe3574ec651958fbf74cdaea66173ed8cc528d542804"
+    },
+    {
+      "path": "crates/boot-protocol/Cargo.toml",
+      "sha256": "0f6c0d23c43b99f02000a0f46c3d3347a3dade86b1e03ac589a3179af40dc1a9"
+    },
+    {
+      "path": "crates/boot-protocol/src/lib.rs",
+      "sha256": "a028bf306ed1d1563a94b0b803b2d0bfa4a0f6b94dd7b5062be033affbfb98fb"
+    },
+    {
+      "path": "crates/capability-core/Cargo.toml",
+      "sha256": "7b24ddba37bca5b44a8b75b6cc229e2ae06c7a44533fe0d6a121783ad7552087"
+    },
+    {
+      "path": "crates/capability-core/src/lib.rs",
+      "sha256": "e201e714ad4f6e8e65c84af42002dfed1ec84c182959038593fbfb0e71d0d807"
+    },
+    {
+      "path": "crates/capability-core/src/tests.rs",
+      "sha256": "d2adb64b348a7a2cbf272ae9f97d27e0b0f69e7cf5bc8f4c631e526b6ea7153a"
+    },
+    {
+      "path": "crates/elf-loader-core/Cargo.toml",
+      "sha256": "605293169e6205f9f1f74a1d82d5af704b42f975bb75189b30765ff49295ea31"
+    },
+    {
+      "path": "crates/elf-loader-core/src/lib.rs",
+      "sha256": "1409433e959533120cc2b2ddc8650127e812bc6b8d6ae229f6158663236eea21"
+    },
+    {
+      "path": "crates/kernel-core/Cargo.toml",
+      "sha256": "0335f20364f907eaa0f8b51434eb19885b19945d74f73ebc9339170cc86ad589"
+    },
+    {
+      "path": "crates/kernel-core/src/lib.rs",
+      "sha256": "3d0303a83b18171c9c2d5c9f1c6448e2bd944aa7f68c5a39ff50f987162b5495"
+    },
+    {
+      "path": "crates/kernel-core/src/user.rs",
+      "sha256": "ec481bc119bbc4548851deaa60d69af36dbb29aad9396a9be1ef7d9890e9945b"
+    },
+    {
+      "path": "crates/virtio-core/Cargo.toml",
+      "sha256": "466f4e1dcaa1a58a136e4bc0fc0a5df1cef607bc8ff0926adb326a9ff2ac17bf"
+    },
+    {
+      "path": "crates/virtio-core/src/lib.rs",
+      "sha256": "ce2a795eca805fdc8a0624a418ea366e80fb5ef2dec6b3a488b8cc50c02ca523"
+    },
+    {
+      "path": "crates/virtio-core/src/tests.rs",
+      "sha256": "297e43e3dc9969606ad800ae13acc7e572146dcea10e97e739b73bd4ade2e83c"
+    },
+    {
+      "path": "drivers/virtio-blk/Cargo.toml",
+      "sha256": "0476d23c7cd0b7e83af14474a5091cfb008e13cfb1b8af48c98cd31f43546124"
+    },
+    {
+      "path": "drivers/virtio-blk/src/lib.rs",
+      "sha256": "43e72d81986902b2abc7393ca7338b427fed616e1f7f2d6a9666220ddd32ce55"
+    },
+    {
+      "path": "kernel/Cargo.toml",
+      "sha256": "91d41a4fa17a9dce2eae261c8d2388236c1ec68264c85603cddeb55f82efed18"
+    },
+    {
+      "path": "kernel/build.rs",
+      "sha256": "363387c780584d5e7bdcb8d6b5ea9711a60e9962af31a34e3fadaabde41e8440"
+    },
+    {
+      "path": "kernel/linker.ld",
+      "sha256": "56b2e5def7ddf106ca54427cc46a229598a2320a0b27856bcc4b91ed18a47c36"
+    },
+    {
+      "path": "kernel/src/m2.rs",
+      "sha256": "6a5fce093c0acd983e5e031c7ff84fa3847cc2b9433cd61709cae9a353826f4c"
+    },
+    {
+      "path": "kernel/src/m2/arch.rs",
+      "sha256": "75131d8573957a9ecb217d2270713dee1c21bfaac0e8f28918a97781b44d4185"
+    },
+    {
+      "path": "kernel/src/m2/m3.rs",
+      "sha256": "92de0f03fee95e78e22e131a55bddce9aefa54fd5d8a7691e1fc17fee6ec7b21"
+    },
+    {
+      "path": "kernel/src/m2/m3/m4.rs",
+      "sha256": "9a6388b5a8d3b39c1f1e059c124f1d5f74dfd246e225a80c42641fd7513e6460"
+    },
+    {
+      "path": "kernel/src/m2/m3/m5.rs",
+      "sha256": "9d94353789bdca5bcf2215c1119c163bb9dd0fbffb237978c9490664d6215a01"
+    },
+    {
+      "path": "kernel/src/m2/m3/m6.rs",
+      "sha256": "31323bf4bbcd7729ab044b030732e02058fb1c51ee2cc57961aa61fb0a5aead3"
+    },
+    {
+      "path": "kernel/src/m2/m3/m6b.rs",
+      "sha256": "d3e1939d179caade601ec098f1b7e7e1377d3a9a466258d8bff8605284a6b19b"
+    },
+    {
+      "path": "kernel/src/m2/paging.rs",
+      "sha256": "96727d1543b50c13b6925a249ac281ed4c4d8fdc66039e6b70fd97d6bde8888c"
+    },
+    {
+      "path": "kernel/src/main.rs",
+      "sha256": "b9cf58539e5ec691a183c9892685e1f9278623951e8661f395818913101049ec"
+    },
+    {
+      "path": "kernel/src/memory.rs",
+      "sha256": "01627cb918aa68a580d66134c9471666fd3b6de6bfed71c439f722819a5661a7"
+    },
+    {
+      "path": "kernel/src/serial.rs",
+      "sha256": "739ac9487999e04f8bea2dd00feb2fa02facda0376bc1786fe0652985e9a608f"
+    },
+    {
+      "path": "rust-toolchain.toml",
+      "sha256": "fdc1c499d524be4dc57534d10a6d41c854fa6340866f63fcc9abdaa22a540437"
+    },
+    {
+      "path": "services/block/Cargo.toml",
+      "sha256": "0d9c74937b17dfdaff9188905da7a2f8535f34ea144464deb6836af6caf06d83"
+    },
+    {
+      "path": "services/block/src/journal.rs",
+      "sha256": "cc9336e34631805af7dbd01034569639a152b9d4672f2055b4b64513428060e6"
+    },
+    {
+      "path": "services/block/src/lib.rs",
+      "sha256": "4a57b2a92de17e37a931a6816859b853262a870623a09bdae5503e39e9163542"
+    },
+    {
+      "path": "services/block/src/m6_user_service.rs",
+      "sha256": "16ef5602b09521bf38572264e4594976dde514c1ccb8bb9a4a5b14c915f4cf7b"
+    },
+    {
+      "path": "services/block/src/m6_wire.rs",
+      "sha256": "e1bc87cc34d277e538d4b0374bd988bdf10f24b6cce80a1675c9bf58a045b6ec"
+    },
+    {
+      "path": "services/block/src/user_service.rs",
+      "sha256": "16c8c92851e28101eb543f9ba2810c671bf6a8d7be86543fd7a1381c6808028c"
+    },
+    {
+      "path": "services/block/src/wire.rs",
+      "sha256": "2c420405abe8efea36e15a98cf649317ab7364891d51c6b55d04b40bbbf7f6d1"
+    },
+    {
+      "path": "services/objects/Cargo.toml",
+      "sha256": "04c5c07f07f7a4b9afe80cb9b6a3c356dee42b9f45d0c5811523a2d3635697ec"
+    },
+    {
+      "path": "services/objects/src/journal.rs",
+      "sha256": "d84785f09fb15b880b03f228286c7a5d4d43213e028434af7b074a389a55d522"
+    },
+    {
+      "path": "services/objects/src/lib.rs",
+      "sha256": "7e8124d02bf95e952809664d4f73ea71f1ee841eadc1f836406ee58d09634aa2"
+    },
+    {
+      "path": "services/objects/src/user_service.rs",
+      "sha256": "794d5aa7c46e931dfaa90f2e63367deb19f37f8eb5d31c959548142e854b79c2"
+    },
+    {
+      "path": "services/objects/src/wire.rs",
+      "sha256": "c6a7faa02267bfb4e291eeca454632d8a6fe5f289ab2f4650a8007b0a80bc823"
+    },
+    {
+      "path": "services/objects/tests/core.rs",
+      "sha256": "844ea1095b6e5a512a4fc479fa079c8143b5149026f1f14cb91654cd7a7e7686"
+    },
+    {
+      "path": "services/objects/tests/wire.rs",
+      "sha256": "974c2b05787929105ec37275f889af680785cfbc507d2f7d2b878a792fc2a804"
+    },
+    {
+      "path": "tools/build.py",
+      "sha256": "5f08d32ff7eb3bcce9be31e436c13b9d23d8eff93325a7d8b4543435e2356203"
+    },
+    {
+      "path": "tools/build_users.py",
+      "sha256": "2733e5c173d230898792dbf968ebd081ea3c3b124afb1381dcd7e67bc77e889c"
+    },
+    {
+      "path": "tools/common.py",
+      "sha256": "12a895c02e934587552f6f4212ccdf460dab49ddb39648bd4ce7f81f0581b838"
+    },
+    {
+      "path": "userspace/ipc_linker.ld",
+      "sha256": "2feaa1ce7bfd3b8f98140660d7de2cfebcc3bbb9f3bce8f58b7c245ee0bd68c3"
+    },
+    {
+      "path": "userspace/ipc_probe.rs",
+      "sha256": "0cbdad021b1314cf81488e311b1f6055f073a674cdc13a96f4f4db81db98438c"
+    },
+    {
+      "path": "userspace/large_linker.ld",
+      "sha256": "7883b64b2711eed8e7253ce87ba68e39659b4d70fab9fb965621e1715690c71e"
+    },
+    {
+      "path": "userspace/linker.ld",
+      "sha256": "6e2575a606a8e1f7ce0743e9b6766db2c870369dc1aafca68277bd02b0e03bea"
+    },
+    {
+      "path": "userspace/m5_linker.ld",
+      "sha256": "6f8cd2b385e603cd7cf6632f0dbe413e877b71ef94a610c3cb7f998996ae8911"
+    },
+    {
+      "path": "userspace/m5_probe.rs",
+      "sha256": "5da71bb42e801bfb754d3834e9ac60d8630d9e3a6a53b64fd38d516ffa2a3633"
+    },
+    {
+      "path": "userspace/m5_runtime.rs",
+      "sha256": "dad9f8a94f5059c63d323d938b5f06be53b04a19c7126efa0b8728eb25d98d93"
+    },
+    {
+      "path": "userspace/m6_linker.ld",
+      "sha256": "4431d76b208474497be891083f1221efeda5b6529615653df3160ff54290cc41"
+    },
+    {
+      "path": "userspace/m6_probe.rs",
+      "sha256": "bdbf3e8fa8708cd28b2676bf6cdb263e6da72b5ce0d7549860d20754418f192c"
+    },
+    {
+      "path": "userspace/m6_runtime.rs",
+      "sha256": "f4af399746e113bbc08ef8b629ebd2ee569ef4bb4aaa0b5ed1ca65644aaa41bf"
+    },
+    {
+      "path": "userspace/m6b_linker.ld",
+      "sha256": "21f1e9aa125fb6b9eb185e510540c762e14eb27ebb559800ad74919fa29a17bd"
+    },
+    {
+      "path": "userspace/m6b_probe.rs",
+      "sha256": "9acfb273d128dc0b312b36e80f4f7ae13ecacd87128c9129ebae848452f5ac21"
+    },
+    {
+      "path": "userspace/probe.rs",
+      "sha256": "094bda3e3937d2a698591ad50befd85d5e153b020e21e658de7ac72a0288856c"
+    }
+  ],
+  "rejected_original_m1_cold3_remains_rejected_by_new_parser": true,
+  "prior_exact_build_profile_audit_sha256": "c8e68a3083f4f2d27c10d839c4cb2fe2f6572d4437c311ffbd961ac22d254214",
+  "runs": [
+    {
+      "phase": "m2",
+      "group": "own-cr3-frame-ownership-wx",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m2-493eaa5eca",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m2",
+      "group": "test-m2-ro",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m2-ro-e361a04c59",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m2",
+      "group": "test-m2-nx",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m2-nx-b35fb7e83b",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m2",
+      "group": "test-m2-absent",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m2-absent-dafed1ffb0",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m2",
+      "group": "kernel-fault-stops-controlled",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m2-kernel-fault-dcbd1fc7f2",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m2",
+      "group": "unusable-main-stack-double-fault-ist",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m2-double-fault-16491d95b9",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m2",
+      "group": "m1-regression",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m1-after-m2-d3f0a29412",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "private-address-spaces-preemption-fairness-cleanup",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m3-8084281faa",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-peer-read",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-peer-read-a29f67fec5",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-peer-write",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-peer-write-84e82ebdee",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-kernel-write",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-kernel-write-fdfbb5b81b",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-stack-exec",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-stack-exec-27e74cee54",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-heap-exec",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-heap-exec-c61ea122b1",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-guard-low",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-guard-low-de0c58a868",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-guard-high",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-guard-high-a2ad07c754",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-cli",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-cli-c1bb0e0481",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-x87",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-x87-e21a27ce90",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-xmm",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-xmm-a851bdee6f",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-avx",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-avx-bc2aac04f1",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-ud",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-ud-bd4260d882",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-exit",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-exit-a592421a7e",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-b-exit",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-b-exit-9798cb0c2d",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-invalid-rsp",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-invalid-rsp-f658bd2517",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "all-processes-exit-idle-timer-and-resources",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-idle-7c0b29eef2",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "large-bss-image-exceeds-old-64-mapping-limit",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-large-image-3e91c0cbf2",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m3",
+      "group": "m1-regression-after-m3",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m1-after-m3-54bd4ef8b3",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m4",
+      "group": "real-ring3-message-exchange",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m4-exchange-d149f67c2e",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-copy",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-copy-b2cb30b70b",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-wire",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-wire-ebbafaf5f3",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-snapshot",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-snapshot-a8450293a3",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-handles",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-handles-4adc07780f",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-rights",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-rights-2671caac5a",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-revoke",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-revoke-bcea1d6e16",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-quotas",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-quotas-bcf31478db",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-lifecycle",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-lifecycle-828663c14c",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m4",
+      "group": "m1-regression-after-m4",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m1-after-m4-b5705f3cc2",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "m5-read-a",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m5-read-a-81de188365",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "m5-read-b",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m5-read-b-4400c5be57",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-service-errors",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-service-errors-f738c7bd1a",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-device-rights",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-device-rights-2fe2925e0d",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-async",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-async-a56abdae87",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-bad-descriptor",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-bad-descriptor-c938cd625d",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-used-id",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-id-e9eaaac9f0",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-used-index",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-index-35ce43cd6e",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-used-short",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-short-cdf0a2adbc",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-used-long",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-long-c83f2c6149",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-used-status",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-status-423902c906",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-io-error",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-io-error-9b6d3b3fd4",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-timeout",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-timeout-0b7c215650",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-reset-timeout",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-reset-timeout-162c1a1b81",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-restart",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-restart-713ace33b0",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-cpu-mmio",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-cpu-mmio-2b2d8740a6",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-cpu-dma",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-cpu-dma-eb827dc12a",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-cpu-pci",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-cpu-pci-3b59198423",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-no-device",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-no-device-930a45dc80",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    },
+    {
+      "phase": "m5",
+      "group": "m1-regression-after-m5",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m1-after-m5-0e398ea908",
+      "guest_matches_on_new_verifier": true,
+      "raw_and_artifact_bytes_unchanged": true
+    }
+  ],
+  "scope": "Read-only revalidation of actual previous VM evidence; the 56 runs were not repeated and retain their original commit and fingerprint."
+}

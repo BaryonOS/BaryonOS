@@ -1,0 +1,65 @@
+
+running 30 tests
+test tests::exact_public_error_numbers_match_the_syscall_contract ... ok
+test tests::closed_object_tombstones_hold_global_capacity_without_retargeting ... ok
+test tests::ks10_message_rejection_and_endpoint_priority_are_atomic ... ok
+test tests::ks11_snapshot_fifo_and_queue_quota ... ok
+test tests::ks10_wire_exact_offsets_canonical_fields_and_misaligned_byte_source ... ok
+test tests::ks14_revocation_after_delivery_and_close_do_not_recall_bytes ... ok
+test tests::ks13_all_transfer_authority_precedes_any_depth_resource_failure ... ok
+test tests::ks13_attenuation_transfer_and_zero_rights ... ok
+test tests::ks12_process_local_numeric_collision_and_stale_handles ... ok
+test tests::ks14_revoke_cancels_whole_queued_transfer_but_preserves_fifo ... ok
+test tests::ks10_bounded_wire_bit_fuzz_never_panics_or_mutates_on_reject ... ok
+test tests::ks15_receive_reserves_both_slots_before_commit ... ok
+test tests::ks14_revoke_is_not_array_order_dependent_and_preserves_own_node ... ok
+test tests::endpoint_owner_and_global_quotas_recover_after_close ... ok
+test tests::m5_block_scope_invalid_masks_error_order_and_generation_retirement ... ok
+test tests::ks15_slot_node_object_max_generation_retire_without_aba ... ok
+test tests::ks15_depth_eight_parent_retention_and_reclamation ... ok
+test tests::m5_block_transfer_revoke_and_owner_exit_use_common_lifetimes ... ok
+test tests::m5_block_type_scope_and_admin_close_are_enforced ... ok
+test tests::m6_explicit_write_flush_roots_preserve_legacy_rights_and_type_boundary ... ok
+test tests::m5_revoked_queued_block_cap_cancels_complete_mixed_type_message ... ok
+test tests::m6_queued_write_authority_revoke_exit_and_generation_remain_bounded ... ok
+test tests::ks16_last_receive_close_tombstone_and_revoked_before_closed ... ok
+test tests::m5_block_quota_is_separate_from_all_64_endpoint_objects ... ok
+test tests::ks16_exit_revokes_received_and_issued_descendants_and_queued_caps ... ok
+test tests::monotone_process_identity_quota_and_process_row_reuse ... ok
+test tests::m6_writable_objects_do_not_reduce_endpoint_or_separate_block_quota ... ok
+test tests::ks15_two_cap_send_global_node_exhaustion_has_no_partial_node ... ok
+test tests::m6_manifest_masks_and_subset_failures_are_transactional ... ok
+test tests::bounded_transaction_state_machine_fuzz_preserves_error_atomicity ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+
+running 16 tests
+test tests::checked_ranges ... ok
+test tests::physical_page_width_and_overflow_fail_closed ... ok
+test tests::ovmf_cache_capabilities_are_not_special_memory ... ok
+test tests::physical_alias_wx_and_mapped_free ... ok
+test tests::reserved_and_special_memory ... ok
+test tests::unique_exhaustion_ownership_and_zero_order ... ok
+test tests::unmap_mismatched_alias_is_atomic_and_cannot_free_executable ... ok
+test user::tests::copy_plan_checks_entire_range_before_any_copy ... ok
+test user::tests::legal_large_image_and_exact_user_mapping_budget ... ok
+test user::tests::user_return_layout_rejects_untrusted_stack_and_noncanonical_alias ... ok
+test user::tests::sector_input_validates_second_page_owner_and_preserves_ipc_limit ... ok
+test user::tests::valid_and_wx_entry_checks ... ok
+test user::tests::pids_survive_16bit_boundary_and_never_wrap ... ok
+test user::tests::return_flags_strip_authority ... ok
+test user::tests::overflow_offset_and_page_overlap ... ok
+test tests::quota_no_partial_allocation ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

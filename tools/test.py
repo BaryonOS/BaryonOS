@@ -6,7 +6,7 @@ import sys
 import uuid
 import json
 from datetime import datetime, timezone
-from common import ROOT, BUILD, run_logged, save_json
+from common import ROOT, BUILD, run_logged, save_json, sha256
 from build import build
 from run import run_guest, is_success
 
@@ -15,6 +15,18 @@ def expected_artifacts(manifest):
     """Bind to the build result retained in memory, not a mutable disk manifest."""
     return {'expected_kernel_sha256': manifest['kernel']['sha256'],
             'expected_loader_sha256': manifest['loader']['sha256']}
+
+
+def snapshot_build(manifest, label):
+    """Retain this build before later commands can replace the public ESP."""
+    esp = BUILD / f"m1-candidate-{label}-{uuid.uuid4().hex}" / "esp"
+    shutil.copytree(BUILD / "esp", esp)
+    for relative, expected in (("kernel.elf", manifest['kernel']['sha256']),
+                               ("EFI/BOOT/BOOTX64.EFI", manifest['loader']['sha256'])):
+        actual = sha256(esp / relative)
+        if actual != expected:
+            raise ValueError(f"M1 candidate artifact SHA256 mismatch: {relative}; expected={expected}; actual={actual}")
+    return esp
 
 
 def main():
@@ -27,32 +39,36 @@ def main():
         if not passed:
             raise RuntimeError(f"acceptance failed: {name}")
     normal = build()
+    normal_esp = snapshot_build(normal, "normal")
     run_logged(["cargo", "+1.90.0", "test", "--locked", "-p", "boot-protocol", "-p", "elf-loader-core"], "host-tests")
     record("host-protocol-elf-tests", True, "build/logs/host-tests.stdout.txt")
     # These are harness-only checks; genuine VM evidence is collected below.
     expected = "\n".join(("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "M1:PASS"))
     record("harness-rejects-wrong-exit-markers-timeout", all((not is_success(0, expected), not is_success(33, "M1:PASS"), not is_success(33, expected, True), not is_success(33, expected + "M1:FAIL:x"), not is_success(33, "\n".join(reversed(expected.splitlines()))), not is_success(33, "\n".join(line + "-bogus" for line in expected.splitlines())), not is_success(33, "\n".join("bogus-" + line for line in expected.splitlines())))))
     for n in range(3):
-        report = run_guest(f"cold-{n+1}", **expected_artifacts(normal))
+        report = run_guest(f"cold-{n+1}", esp=normal_esp, **expected_artifacts(normal))
         record(f"cold-boot-{n+1}", report["passed"], report["run_directory"])
     for mutation in ("missing", "corrupt"):
         esp = BUILD / "negative" / f"{mutation}-{uuid.uuid4().hex[:8]}"
-        shutil.copytree(BUILD / "esp", esp, ignore=shutil.ignore_patterns("kernel.elf"))
+        shutil.copytree(normal_esp, esp, ignore=shutil.ignore_patterns("kernel.elf"))
         if mutation == "corrupt":
-            data = bytearray((BUILD / "esp/kernel.elf").read_bytes())
+            data = bytearray((normal_esp / "kernel.elf").read_bytes())
             data[0] = 0
             (esp / "kernel.elf").write_bytes(data)
         report = run_guest(mutation, esp=esp)
         record(f"reject-{mutation}-kernel", report["raw_qemu_exit"] == 35 and "M1:FAIL" in report["stdout"] and "KERNEL:ENTRY" not in report["stdout"] and "M1:PASS" not in report["stdout"] and not report["timed_out"], report["run_directory"])
     try:
         retry = build(loader_feature="test-ebs-retry", label="ebs-retry")
-        report = run_guest("ebs-retry", **expected_artifacts(retry))
+        retry_esp = snapshot_build(retry, "ebs-retry")
+        report = run_guest("ebs-retry", esp=retry_esp, **expected_artifacts(retry))
         record("real-ebs-stale-key-retry", report["passed"] and "BOOT:EBS_RETRY" in report["stdout"], report["run_directory"])
         panic = build(kernel_feature="test-panic", label="panic")
-        report = run_guest("panic", **expected_artifacts(panic))
+        panic_esp = snapshot_build(panic, "panic")
+        report = run_guest("panic", esp=panic_esp, **expected_artifacts(panic))
         record("kernel-panic-fails", report["raw_qemu_exit"] == 35 and "KERNEL:ENTRY" in report["stdout"] and "M1:FAIL:KERNEL_PANIC" in report["stdout"].splitlines() and "M1:PASS" not in report["stdout"], report["run_directory"])
         hang = build(kernel_feature="test-hang", label="hang")
-        report = run_guest("hang", **expected_artifacts(hang))
+        hang_esp = snapshot_build(hang, "hang")
+        report = run_guest("hang", esp=hang_esp, **expected_artifacts(hang))
         record("real-hang-times-out", report["timed_out"] and "KERNEL:ENTRY" in report["stdout"] and not report["passed"], report["run_directory"])
     finally:
         build()

@@ -1,0 +1,64 @@
+{
+  "accepted_m2_m5": {
+    "source_checkpoint": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+    "groups": 67,
+    "actual_vm_invocations": 56,
+    "per_phase": {
+      "m2": {
+        "groups": 8,
+        "vm": 7
+      },
+      "m3": {
+        "groups": 22,
+        "vm": 19
+      },
+      "m4": {
+        "groups": 12,
+        "vm": 10
+      },
+      "m5": {
+        "groups": 25,
+        "vm": 20
+      }
+    }
+  },
+  "read_only_revalidation": {
+    "verifier_checkpoint": "20f7ed282e579b96d964ae84509d895a7a826f4d",
+    "source_sha256": "09fef202b74c362b2ead29c7cac12fee772bee3a3d382a6dbf7d576798c3e8f5",
+    "prior_vm_invocations": 56,
+    "artifact_hashes": 243,
+    "identical_native_inputs": 68,
+    "new_vm_invocations": 0,
+    "passed": true
+  },
+  "m6a_compatibility_pair": {
+    "source_checkpoint": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+    "actual_vm_invocations": 2,
+    "normal": "passed",
+    "cold_recovery": "passed",
+    "recovery_no_writes": true,
+    "scope": "normal/recovery pair, not the complete M6a gate"
+  },
+  "rejected_m1_attempts": [
+    {
+      "checkpoint": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+      "script_returncode": 0,
+      "actual_vm_invocations": 8,
+      "accepted": false,
+      "reason": "cold3 ran prior M5-no-device kernel; old parser accepted higher milestone output",
+      "diagnostics": "audit/rejected-m1-first-attempt/"
+    },
+    {
+      "checkpoint": "20f7ed282e579b96d964ae84509d895a7a826f4d",
+      "script_returncode": 1,
+      "actual_vm_invocations": 1,
+      "accepted": false,
+      "reason": "new artifact hash guard rejected cold2 before QEMU because copied kernel matched prior M6a-recover artifact",
+      "diagnostics": "audit/rejected-m1-second-attempt/"
+    }
+  ],
+  "m1_acceptance": "pending separate fresh gate in root native worktree; no M1 acceptance claimed here",
+  "artifact_replacement_cause": "undetermined; no matching competing process observed after failure; no attribution to kernel, QEMU, Cargo, or agent",
+  "source_changes_by_this_verifier": false,
+  "scope": "Real VM output plus host revalidation. Rejected diagnostics are preserved and excluded from accepted totals. No IOMMU, physical hardware, native NAS, cryptographic or full OS security claim."
+}

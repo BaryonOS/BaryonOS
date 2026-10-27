@@ -1,0 +1,3 @@
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected normal: 3 ELF load segments

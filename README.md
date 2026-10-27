@@ -1,4 +1,29 @@
-# Nieuw OS — eigen kernel en eerste geïsoleerde blokdienst
+# Nieuw OS — eigen kernel en native documentopslag
+
+## Actuele bouwstap: M6b
+
+De eigen Rust-kernel heeft nu een native objectdienst in ring 3. Twee geïsoleerde
+testapps kunnen via capability-IPC objecten aanmaken, lezen, bijwerken en
+verwijderen. De dienst schrijft via echte virtio-I/O; revisies en verwijderrecords
+blijven behouden na een koude herstart. Apps krijgen uitsluitend hun eigen
+domeinendpoint, geen rechtstreekse blok- of DMA-toegang.
+
+De volledige M6b-gate op broncheckpoint `20f7ed2` is geslaagd: **18 controlegroepen
+en 14 echte VM-invocaties**, inclusief zes koude recoveries en twee externe
+QEMU-kills. Ook 22 Rust-tests en 26 M6b-harnastests slagen. Ruwe uitvoer, hashes en
+de onafhankelijke schijfcontrole staan in [verification/m6b](docs/verification/m6b/).
+Deze afgebakende proef gebruikt vier objecten van maximaal 128 bytes en een
+journal van 32 records. Namen, ruimtehergebruik, encryptie en native NAS/desktop
+volgen als aparte integratiestappen; dit is nog geen consumentensysteem.
+
+```sh
+python3 -B tools/build.py --kernel-feature milestone-m6b
+python3 -B tools/run_m6b.py --case normal --smoke
+```
+
+De runner gebruikt een eigen synthetisch wegwerpvolume en sluit na de
+acceptatieproef af. Volledig contract: [M6B-OBJECT-STORAGE.md](docs/implementation/M6B-OBJECT-STORAGE.md).
+Voortgang, regressies en resterende grenzen: [PROJECT-STATE.md](docs/PROJECT-STATE.md).
 
 ## Nieuwe richting: internet en persoonlijke NAS-opslag
 
@@ -14,9 +39,9 @@ De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde
 - **Productprototype:** [handleiding](ui/prototype/README.md).
 - **Quantumsimulator:** [handleiding](experiments/quantum/README.md).
 
-De M1–M5-basis staat inmiddels op `main`; de voortgezette M6a-integratie staat op [codex/m2-m4-isolation](https://github.com/simonvanieperen/nieuw-os/tree/codex/m2-m4-isolation). N01 internet/persoonlijke NAS staat op [codex/nas-private-sharing](https://github.com/simonvanieperen/nieuw-os/tree/codex/nas-private-sharing). De status en nog open controles staan per spoor in PROJECT-STATE.md. [PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3) bewaart de M5-historie; de testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
+M6b staat op [codex/m6b-object-storage](https://github.com/simonvanieperen/nieuw-os/tree/codex/m6b-object-storage), boven op `codex/pqc-transport-foundation` ([PR #8](https://github.com/simonvanieperen/nieuw-os/pull/8)). De status staat per spoor in PROJECT-STATE.md. [PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3) bewaart de M5-historie; de oude testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
 
-Start vanuit de projectroot met `python tools/build.py --kernel-feature milestone-m5` en daarna `python tools/run.py --smoke --milestone m5`. De runner maakt zelf een synthetische alleen-lezen testimage; na de gecontroleerde leesproef sluit QEMU af. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
+De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-feature milestone-m5` en `python tools/run.py --smoke --milestone m5`. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
 
 ## Oorspronkelijk startpakket (historische context)
 

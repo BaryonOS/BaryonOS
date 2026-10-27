@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/workspace/scratch/0d3232a3c004/nieuw-os-regression/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "test",
+    "--locked",
+    "-p",
+    "kernel-core",
+    "-p",
+    "boot-protocol",
+    "-p",
+    "elf-loader-core"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-regression",
+  "started_unix": 1793140950.823065,
+  "duration_s": 0.6073150634765625,
+  "returncode": 0
+}

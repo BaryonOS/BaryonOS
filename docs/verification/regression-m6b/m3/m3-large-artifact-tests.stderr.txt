@@ -1,0 +1,11 @@
+test_bss_is_noload_33_pages_and_inside_rw_segment (__main__.LargeArtifact.test_bss_is_noload_33_pages_and_inside_rw_segment) ... ok
+test_exact_memory_plan_exceeds_old_64_user_mapping_limit (__main__.LargeArtifact.test_exact_memory_plan_exceeds_old_64_user_mapping_limit) ... ok
+test_initial_four_words_match_normal_data_and_do_not_include_bss_bytes (__main__.LargeArtifact.test_initial_four_words_match_normal_data_and_do_not_include_bss_bytes) ... ok
+test_manifest_binds_existing_probe_source_new_linker_and_actual_binary (__main__.LargeArtifact.test_manifest_binds_existing_probe_source_new_linker_and_actual_binary) ... ok
+test_mutated_large_segment_cannot_escape_user_image_range_or_gain_wx (__main__.LargeArtifact.test_mutated_large_segment_cannot_escape_user_image_range_or_gain_wx) ... ok
+test_text_is_byte_identical_to_unchanged_normal_m3_probe (__main__.LargeArtifact.test_text_is_byte_identical_to_unchanged_normal_m3_probe) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.002s
+
+OK

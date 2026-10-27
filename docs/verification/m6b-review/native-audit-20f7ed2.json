@@ -1,0 +1,275 @@
+{
+  "schema_version": 1,
+  "audit": "R9 final native evidence audit",
+  "reviewer": "Separate AI agent; not a human audit or formal verification",
+  "recorded_utc": "2026-10-27T23:00:09.949830+00:00",
+  "status": "passed_actual_evidence_audit",
+  "checkpoint_commit": "20f7ed282e579b96d964ae84509d895a7a826f4d",
+  "source_fingerprint_version": 3,
+  "source_sha256": "09fef202b74c362b2ead29c7cac12fee772bee3a3d382a6dbf7d576798c3e8f5",
+  "suite_sha256": "7d3871d1adf1c609c46c1705e4fafd9e47675467fafc45beb9e44b0ef6d5ed9c",
+  "audit_script_sha256": "e1fc694a80a6e3164c25a9ffec5ee87b8e4034addb02066d6b30a16b19dbd3ef",
+  "audit_script_runtime_path": "/tmp/m6b-final-audit-r9.py",
+  "method": [
+    "Independent standard-library-only Python audit; no project journal/parser/capture imports.",
+    "Reconstructed source fingerprint from exact git archive, and checked root host-test hashes.",
+    "Checked exact coverage, original raw bytes, all required artifacts, manifests, capture hashes and host commands.",
+    "Decoded actual journal records independently: headers, FNV, sequence, revisions, DELETE predecessor, zero padding, fixture payloads.",
+    "Reconstructed all seeded volumes; checked canaries, current files, six cold recovery links and two recorded live-child SIGKILL cuts.",
+    "Checked final ordinary M1 raw output and copied artifact binding against expected in-memory build hashes."
+  ],
+  "observed": {
+    "groups": 18,
+    "vm_invocations": 14,
+    "m6b_vm_invocations": 13,
+    "m1_vm_invocations": 1,
+    "artifact_hashes": 121,
+    "volumes": 7,
+    "cold_recoveries": 6,
+    "actual_sigkill_records": 2,
+    "rust_host_tests": 22,
+    "python_harness_tests": 26
+  },
+  "host_commands": [
+    {
+      "stem": "m6b-preflight",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "returncode": 0,
+      "sha256": {
+        ".json": "888b95b111b2e61d564ff9bacbcc445470b8fae0090b1af2fb89c0289cdf0fd6",
+        ".stdout.txt": "a38cdeb5fc30e5ebd29c654079ba7eaf27714d9fb5b07de698a4c115e4276401",
+        ".stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "stem": "m6b-host-tests",
+      "command": [
+        "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "object-core"
+      ],
+      "returncode": 0,
+      "sha256": {
+        ".json": "e887de5217746aa845bf5977a05b514a99f1b87e4949167c4053b4e96d41ce22",
+        ".stdout.txt": "b019af08c62e53182e8335d126eb1a38f5f335b1adbc206d98b6edaaaafff5dc",
+        ".stderr.txt": "0d8381c3cb4abc77d8ced8110d85984088ea573fadbc63b6b0deb79492bf87c8"
+      }
+    },
+    {
+      "stem": "m6b-harness-tests",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m6b_*.py"
+      ],
+      "returncode": 0,
+      "sha256": {
+        ".json": "4341e8473e71c82d8cf455c762338a84214a47fbb166cc77f5eda6ad133c8292",
+        ".stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        ".stderr.txt": "6ac6a565ceafd896d414798a82b05d418b6cba4a3d3d9794729e5adebe402477"
+      }
+    }
+  ],
+  "vm_evidence": [
+    {
+      "group": "normal-a",
+      "case": "normal",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-b1852d2ea7",
+      "raw_qemu_exit": 33,
+      "result_sha256": "0e992f15b57952a2dd1d048bda4e19cfc7f979f7dd7ce200c979a1bb532fd732",
+      "serial_sha256": "5b89f78ee73d2c6bb236505c705dd6af867dadbec68def80256fd44218438d35",
+      "artifact_hashes": 9,
+      "volume_identity": "0ac56abfbe0549afa5555c04076ef6b5",
+      "disk_sha256": "3daad55995bd4764aac922c8fa93edbaf22ecf810652008c017fce10bd9568b0",
+      "sequence": 8,
+      "previous_stage": null
+    },
+    {
+      "group": "normal-a-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-cold-recovery-be1a3ab1ac",
+      "raw_qemu_exit": 33,
+      "result_sha256": "d2051d8f84e6ff486c8cff2bf31f84a86e0b5fed40331988d447c80912639946",
+      "serial_sha256": "334e9adc78da4a8629dac5206d49bf53e30d0e9777980d184f0726f4a672370d",
+      "artifact_hashes": 9,
+      "volume_identity": "0ac56abfbe0549afa5555c04076ef6b5",
+      "disk_sha256": "3daad55995bd4764aac922c8fa93edbaf22ecf810652008c017fce10bd9568b0",
+      "sequence": 8,
+      "previous_stage": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-b1852d2ea7"
+    },
+    {
+      "group": "normal-b",
+      "case": "normal",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-8990cc99ab",
+      "raw_qemu_exit": 33,
+      "result_sha256": "c801cd4ea2f104dc92107121abf758bb1c44aba74503d40ac1358f01846bc78d",
+      "serial_sha256": "5b89f78ee73d2c6bb236505c705dd6af867dadbec68def80256fd44218438d35",
+      "artifact_hashes": 9,
+      "volume_identity": "cec19fb75d914d57abbacf19790c998c",
+      "disk_sha256": "a932cf3e661efd50b2835ee96bdbcc2be147954a8599e2ea0c0c467bf2d111f7",
+      "sequence": 8,
+      "previous_stage": null
+    },
+    {
+      "group": "normal-b-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-cold-recovery-0cdbf0c065",
+      "raw_qemu_exit": 33,
+      "result_sha256": "6abd3ff50305e6d1e1a1eb1978244dfbd706c44a851c57d70e59a6d12bf240c3",
+      "serial_sha256": "334e9adc78da4a8629dac5206d49bf53e30d0e9777980d184f0726f4a672370d",
+      "artifact_hashes": 9,
+      "volume_identity": "cec19fb75d914d57abbacf19790c998c",
+      "disk_sha256": "a932cf3e661efd50b2835ee96bdbcc2be147954a8599e2ea0c0c467bf2d111f7",
+      "sequence": 8,
+      "previous_stage": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-8990cc99ab"
+    },
+    {
+      "group": "errors",
+      "case": "errors",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-8a030899f3",
+      "raw_qemu_exit": 33,
+      "result_sha256": "d883bc23dbc9feccae957932057da46bb4d277902eb18e2bed37da3bd0fe7eea",
+      "serial_sha256": "dc27689d6205a90f850980e54a31e44877e7e5fc50538de74786150985a77cde",
+      "artifact_hashes": 9,
+      "volume_identity": "b9e06777c2964b93973e38e5a14570cd",
+      "disk_sha256": "71bbc7b3936e3d911634a15c4a89b64b3d914e755be238d7fdbe1422a5cdcd92",
+      "sequence": 8,
+      "previous_stage": null
+    },
+    {
+      "group": "errors-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-cold-recovery-329de17dc5",
+      "raw_qemu_exit": 33,
+      "result_sha256": "4c568832fd0325ab0669f655dda0f5f69bc4242aceeda396d120a488fd12562a",
+      "serial_sha256": "334e9adc78da4a8629dac5206d49bf53e30d0e9777980d184f0726f4a672370d",
+      "artifact_hashes": 9,
+      "volume_identity": "b9e06777c2964b93973e38e5a14570cd",
+      "disk_sha256": "71bbc7b3936e3d911634a15c4a89b64b3d914e755be238d7fdbe1422a5cdcd92",
+      "sequence": 8,
+      "previous_stage": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-8a030899f3"
+    },
+    {
+      "group": "full",
+      "case": "full",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-c871e387d1",
+      "raw_qemu_exit": 33,
+      "result_sha256": "06ea7fa36f32adbe8d0f9ff52c38771216b95aeac5cac890eb6ae386695450a2",
+      "serial_sha256": "18c977ed6d26fd9feda5693e77f7e42ad900526a1567effb130448eec7fe6577",
+      "artifact_hashes": 9,
+      "volume_identity": "480723e27a0d4fcf9bc5f988b8d43421",
+      "disk_sha256": "faccb8a32f8abf647142e6dbc3e5693c3ca6d21605c6efe10a66266d37a17ebd",
+      "sequence": 32,
+      "previous_stage": null
+    },
+    {
+      "group": "full-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-cold-recovery-e913a262ca",
+      "raw_qemu_exit": 33,
+      "result_sha256": "3f0a7edd2ad869885a6f96585456ffd4990d8943bbcb9a6a512e9a87be59a4f1",
+      "serial_sha256": "ed3619dd249dccbb9fbe3967d86dd676dd9e835a3293d5af75fe6da99f3b899b",
+      "artifact_hashes": 9,
+      "volume_identity": "480723e27a0d4fcf9bc5f988b8d43421",
+      "disk_sha256": "faccb8a32f8abf647142e6dbc3e5693c3ca6d21605c6efe10a66266d37a17ebd",
+      "sequence": 32,
+      "previous_stage": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-c871e387d1"
+    },
+    {
+      "group": "corrupt",
+      "case": "corrupt",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-corrupt-de81f26232",
+      "raw_qemu_exit": 33,
+      "result_sha256": "72e49dc736e3b2f4530ff7f7143a69c7a4a88bf888e011562c41d5702d1cfd89",
+      "serial_sha256": "773581509f47d70331a2ca90071b98a0137599c97fd2496b1cc347c76e7dbe2b",
+      "artifact_hashes": 9,
+      "volume_identity": "d198108453bf4efcad0d9506cbde34ab",
+      "disk_sha256": "900dfd7f0a10aa8db9075a56a6ee5c5342e6fd8d6b30b0a99fd71b8f7db64c4c",
+      "sequence": null,
+      "previous_stage": null
+    },
+    {
+      "group": "vm-cut-before-ack",
+      "case": "vm-cut-before-ack",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-f575243317",
+      "raw_qemu_exit": -9,
+      "result_sha256": "aa31dae08e8c1ca92c3509ca9d68d5ba6e9142740ce584d4d272f84906e240e2",
+      "serial_sha256": "9eeeb5869c5e56da643f1cd52a228272873b9923738cc549a60ff50628addeb5",
+      "artifact_hashes": 9,
+      "volume_identity": "afaead323fcc4637a085c056ea2e2a07",
+      "disk_sha256": "6adbba3a1e61229b310dd8c372a69fd123deca960fb00ccfc2e4675270e73c5f",
+      "sequence": 0,
+      "previous_stage": null
+    },
+    {
+      "group": "vm-cut-before-ack-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-cold-recovery-d2fbebb280",
+      "raw_qemu_exit": 33,
+      "result_sha256": "fb478047d7562b7ae8b4d73678cd917781c8780dce48420eb37ff1f1e4c5dadb",
+      "serial_sha256": "123b3473f21fa167500f211ea89f43b938b7de6cd058e657729cc06b70c61e48",
+      "artifact_hashes": 9,
+      "volume_identity": "afaead323fcc4637a085c056ea2e2a07",
+      "disk_sha256": "6adbba3a1e61229b310dd8c372a69fd123deca960fb00ccfc2e4675270e73c5f",
+      "sequence": 0,
+      "previous_stage": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-f575243317"
+    },
+    {
+      "group": "vm-cut-after-flush",
+      "case": "vm-cut-after-flush",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-45aae09ac1",
+      "raw_qemu_exit": -9,
+      "result_sha256": "44df03ef617fa976e97dbf3c67c39dd1ac9e859c4b79fff8b6c78228c00454f1",
+      "serial_sha256": "34ac4d3c20c808256605468d68f78c7030c77b9b9e03a9d89fa2012369c93b87",
+      "artifact_hashes": 9,
+      "volume_identity": "cda0a96fff214cc9a5316b631e2184c3",
+      "disk_sha256": "5ac18db15714e98f1244258368ffe7b546b13fdfdd7f496a76855c3bbfa20f9c",
+      "sequence": 1,
+      "previous_stage": null
+    },
+    {
+      "group": "vm-cut-after-flush-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-cold-recovery-2dc9bd27b9",
+      "raw_qemu_exit": 33,
+      "result_sha256": "cbd5711be62fcaf6cffe98abc24ee1e415f0c58f03b9efedf4aa691278ed85c6",
+      "serial_sha256": "261605c7f6619da731c289830542b487360c78ef3a0972090e6afe5d6156f40b",
+      "artifact_hashes": 9,
+      "volume_identity": "cda0a96fff214cc9a5316b631e2184c3",
+      "disk_sha256": "5ac18db15714e98f1244258368ffe7b546b13fdfdd7f496a76855c3bbfa20f9c",
+      "sequence": 1,
+      "previous_stage": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-45aae09ac1"
+    },
+    {
+      "group": "m1-regression-after-m6b",
+      "case": "m1",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m1-after-m6b-4abdfd73e3",
+      "raw_qemu_exit": 33,
+      "result_sha256": "3a659a0fc0c38a593812f5e014ecdd07a1eb4cff6d7d416fa6806efb43ae9499",
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "artifact_hashes": 4,
+      "kernel_sha256": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1"
+    }
+  ],
+  "limits": [
+    "This audit executes no new guests and rechecks the recorded actual completed gate.",
+    "Only fixed synthetic QEMU/TCG fixtures are covered; no physical power-failure or production-storage claim.",
+    "FNV is a diagnostic checksum, not encryption/authentication; native NAS and I/O-fault Unknown injection are outside this gate.",
+    "No human/formal audit or protection from a malicious host fabricating all evidence is claimed."
+  ]
+}

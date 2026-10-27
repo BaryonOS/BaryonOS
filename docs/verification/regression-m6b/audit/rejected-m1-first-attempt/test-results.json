@@ -1,0 +1,58 @@
+{
+  "status": "completed",
+  "passed": true,
+  "started_utc": "2026-10-27T22:46:05.394400+00:00",
+  "results": [
+    {
+      "name": "host-protocol-elf-tests",
+      "passed": true,
+      "evidence": "build/logs/host-tests.stdout.txt"
+    },
+    {
+      "name": "harness-rejects-wrong-exit-markers-timeout",
+      "passed": true,
+      "evidence": null
+    },
+    {
+      "name": "cold-boot-1",
+      "passed": true,
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/cold-1-652f6f0270"
+    },
+    {
+      "name": "cold-boot-2",
+      "passed": true,
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/cold-2-d5b11ce300"
+    },
+    {
+      "name": "cold-boot-3",
+      "passed": true,
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/cold-3-3255a86c2b"
+    },
+    {
+      "name": "reject-missing-kernel",
+      "passed": true,
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/missing-49717e45f6"
+    },
+    {
+      "name": "reject-corrupt-kernel",
+      "passed": true,
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/corrupt-a88a0c5c48"
+    },
+    {
+      "name": "real-ebs-stale-key-retry",
+      "passed": true,
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/ebs-retry-e2a42e6ecd"
+    },
+    {
+      "name": "kernel-panic-fails",
+      "passed": true,
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/panic-01efddf94e"
+    },
+    {
+      "name": "real-hang-times-out",
+      "passed": true,
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/hang-dd7da64ffa"
+    }
+  ],
+  "finished_utc": "2026-10-27T22:47:20.793632+00:00"
+}

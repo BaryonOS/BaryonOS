@@ -1,0 +1,3 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (target/debug/deps/kernel_core-6d6e9fb9453fbf62)
+   Doc-tests kernel_core

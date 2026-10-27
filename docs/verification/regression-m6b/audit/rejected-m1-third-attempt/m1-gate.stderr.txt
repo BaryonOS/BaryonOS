@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/workspace/scratch/0d3232a3c004/nieuw-os-native/tools/test.py", line 66, in <module>
+    main()
+  File "/workspace/scratch/0d3232a3c004/nieuw-os-native/tools/test.py", line 36, in main
+    report = run_guest(f"cold-{n+1}", **expected_artifacts(normal))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/0d3232a3c004/nieuw-os-native/tools/run.py", line 73, in run_guest
+    raise ValueError(f"Snapshotted artifact SHA256 mismatch: {name}; expected={expected}; actual={actual}")
+ValueError: Snapshotted artifact SHA256 mismatch: esp/kernel.elf; expected=e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1; actual=d4ac2f833c3b0b7d0abc9778c8c27ede4d364f44ec6ef79e8d1e31f9cea6d98c

@@ -1,0 +1,11 @@
+{
+  "status": "rejected_by_independent_review",
+  "reason": "cold-boot-3 booted the M5-no-device kernel and contains M5 markers despite outer M1 suite passed=true",
+  "correct_m1_kernel_sha256": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1",
+  "observed_cold3_kernel_sha256": "44aca9b044e9b36ef906effe4367fe97996577aef2caa129368ec53533e9cc6a",
+  "affected_run": "build/run/cold-3-3255a86c2b",
+  "cause": "unresolved; no authorized concurrent builder, commands sequential and build/target directories independent",
+  "source_sha256": "6e8b320fce772d65f541e5c99e48b77a940f92e481487227cf868648cc8c68d8",
+  "raw_records_retained": true,
+  "existing_m1_parser_weakness": "ordered required markers alone permit later milestone output; no exact normal binary binding"
+}

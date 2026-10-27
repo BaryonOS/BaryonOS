@@ -1,0 +1,13 @@
+{
+  "checks": {
+    "same_kernel": true,
+    "same_loader": true,
+    "different_images": true,
+    "different_received_digests": true
+  },
+  "runs": [
+    "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m5-read-a-81de188365",
+    "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m5-read-b-4400c5be57"
+  ],
+  "passed": true
+}

@@ -1,0 +1,60 @@
+[
+  {
+    "label": "harness-canaries",
+    "command": [
+      "python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_*.py"
+    ],
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "CARGO_NET_OFFLINE": "true"
+    },
+    "started_unix": 1793140947.230569,
+    "duration_s": 1.5279357433319092,
+    "returncode": 0,
+    "source_sha256_after": "6e8b320fce772d65f541e5c99e48b77a940f92e481487227cf868648cc8c68d8"
+  },
+  {
+    "label": "m2-through-m5",
+    "command": [
+      "python3",
+      "-B",
+      "-u",
+      "tools/test_milestones.py",
+      "--through",
+      "m5"
+    ],
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "CARGO_NET_OFFLINE": "true"
+    },
+    "started_unix": 1793140948.7937536,
+    "duration_s": 216.5428397655487,
+    "returncode": 0,
+    "source_sha256_after": "6e8b320fce772d65f541e5c99e48b77a940f92e481487227cf868648cc8c68d8"
+  },
+  {
+    "label": "m1-acceptance",
+    "command": [
+      "python3",
+      "-B",
+      "-u",
+      "tools/test.py"
+    ],
+    "environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "CARGO_NET_OFFLINE": "true"
+    },
+    "started_unix": 1793141165.3550296,
+    "duration_s": 75.44806003570557,
+    "returncode": 0,
+    "source_sha256_after": "6e8b320fce772d65f541e5c99e48b77a940f92e481487227cf868648cc8c68d8"
+  }
+]

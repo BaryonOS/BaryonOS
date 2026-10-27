@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "scope": "normal and cold-recovery smoke on M6b source; not a second full M6a gate",
+  "base_commit": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+  "source_sha256": "6e8b320fce772d65f541e5c99e48b77a940f92e481487227cf868648cc8c68d8",
+  "checks": {
+    "both_passed": true,
+    "same_frozen_commit": true,
+    "same_frozen_source": true,
+    "separate_vm_invocations": true,
+    "same_volume": true,
+    "same_volume_identity": true,
+    "linked_previous": true,
+    "exact_previous_image": true,
+    "recovery_performs_no_write": true,
+    "actual_m6a_markers_without_m6b": true
+  }
+}

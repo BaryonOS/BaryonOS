@@ -1,0 +1,15 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "-u",
+    "tools/test_m6b.py"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-native",
+  "started_utc": "2026-10-27T22:56:50.651140+00:00",
+  "duration_s": 65.75028394499896,
+  "exit_code": 0,
+  "stdout": "/tmp/m6b-final-gate.stdout.txt",
+  "stderr": "/tmp/m6b-final-gate.stderr.txt",
+  "base_commit": "20f7ed282e579b96d964ae84509d895a7a826f4d"
+}
