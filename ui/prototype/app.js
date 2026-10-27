@@ -382,4 +382,8 @@ document.addEventListener('keydown', (event) => {
 });
 
 window.addEventListener('hashchange', routeChanged);
+document.querySelector('.skip-link').addEventListener('click', event => {
+  event.preventDefault();
+  document.querySelector('#main')?.focus();
+});
 routeChanged();
