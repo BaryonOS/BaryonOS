@@ -3,3 +3,6 @@
 *.fd binary
 *.efi binary
 *.elf binary
+# Keep recorded serial/console bytes identical to their evidence hashes.
+docs/verification/m6b/*.txt -text
+docs/verification/regression-m6b/**/*.txt -text
