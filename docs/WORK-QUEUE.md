@@ -22,8 +22,8 @@ Doel: eigen boot, twee werkelijk geïsoleerde ring-3-processen, begrensde foutaf
 | Q01V | quantum_contract (Sol) | experiments/quantum/ | bestaande Q01 | code/test afgerond; reviewer R02 | CDF-fix: oude code faalt nieuwe regressie, huidige 25tests/5fixtures groen; 17-caseaudit onder docs/verification/m2-m4/quantum/ |
 | K03 | kernel_m2 + product_acceptance (Sol) | kernel/ + crates/kernel-core/ respectievelijk userspace/ | geslaagde K02 | geslaagd op 6802b17 | 20 groepen/18 echte VM-runs; twaalf coretests en dertien user-artifacttests; m3/suite.json |
 | K04K | kernel_m2 (Sol) | kernel/, crates/kernel-core/ | geslaagde K03 | implementatie actief | usercopy/syscalls/lifecycle en echte KS-09–16-observer |
-| K04C | quantum_contract (Sol) | crates/capability-core/ | geslaagde K03 | implementatie actief | safe no_std Engine, transacties/rights/generations/quotas en hosttests |
-| U04 | product_acceptance (Sol) | userspace/ | geslaagde K03 | implementatie actief | afzonderlijke IPC-scriptprobe; M3-fixture behouden |
+| K04C | quantum_contract (Sol) | crates/capability-core/ | geslaagde K03 | code/hostreview afgerond; nu R04K read-only | 21 hosttests, fmt/Clippy/no_std; a91e64e; docs/verification/m2-m4/capability-core/ |
+| U04 | product_acceptance (Sol) | userspace/ | geslaagde K03 | afgerond; R04C engine-review gesloten | 13 IPC- en 6 large-artifacttests; a91e64e; userspace/verification/ |
 | R04 | onafhankelijke reviewer | eerst alleen lezen | geïntegreerde M4 | wacht | concrete negatieve tegenvoorbeelden en herstel |
 | V04 | hoofd | tools/, docs/verification/ | R04 en herstel | wacht | volledige eindmatrix en remote commitcontrole |
 
@@ -42,4 +42,5 @@ Doel: eigen boot, twee werkelijk geïsoleerde ring-3-processen, begrensde foutaf
 - M4 nu expliciet vrijgegeven. Cap-engine, kernelintegratie en afzonderlijke IPC-userfixture hebben elk één schrijver. Root beheert workspace/lockfile/buildtools en testpoort. Geen gelijktijdige root-targetbuilds.
 - M4-fixture: drie processen met eigen endpointroot/gereduceerde next-peer-cap, concrete scriptmodes copy/wire/snapshot/handles/rights/revoke/quotas/lifecycle. ABI/Message320 en foutvolgorde blijven bindend. Een hosttest bewijst geen CPL3-grens.
 - P02V en Q01V zijn gericht hersteld en privé gecheckpoint. Native 200%-zoom is door de Computer Use URL-controle gestopt; zoom/schermlezer/mensenproef blijven open.
-- Volgende rootactie: M3-bewijscheckpoint pushen; M4-workspace/lockfile en NOS_IPC_ELF-build integreren; daarna echte host-/QEMU-poort en review/herstel. Gehele fase blijft actief tot M4 en eindregressie voldoen.
+- Checkpoint a91e64e bewaart Engine, workspace/lockfile, drivers en IPC/large-fixtures. De M4-kernelintegratie en 2048-mappingarena zijn nog lokaal; hun volledige rootpoort is nog niet uitgevoerd. R04K toetst usercopy en foutvolgorde; de observer-read vóór auth is gericht hersteld.
+- Volgende rootactie: na kernelwritepause complete bron pushen, `--through m4` en bootregressie draaien, bewijs vangen en de eindmatrix auditen. Gehele fase blijft actief tot M4 en eindregressie voldoen.
