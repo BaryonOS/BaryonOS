@@ -6,7 +6,7 @@ Repository: https://github.com/simonvanieperen/nieuw-os (privé). Werkbranch: `c
 
 ## Reviewfollow-up
 
-De bewijsarchiefcapture valideert een volledige nieuwe opname in een tijdelijke kopie voordat zij het bestaande archief vervangt. De synthetische regressietests voor behoud bij een hashfout en vervanging na geldige validatie slagen: `python -B -X utf8 tests/test_capture_gate.py` (2 tests, exit 0). Dit is hosttoolbewijs, geen nieuwe kernel- of gasttest.
+De bewijsarchiefcapture valideert een volledige nieuwe opname in een tijdelijke kopie voordat zij het bestaande archief vervangt. De synthetische regressietests voor behoud bij een hashfout en vervanging na geldige validatie slagen: `python -B -X utf8 tests/test_capture_gate.py` (2 tests, exit 0). Dit is hosttoolbewijs, geen nieuwe kernel- of gasttest. `userspace/LARGE-PROBE.md` bouwt nu eerst de normale probe; de drie gedocumenteerde build-/testcommando's slaagden (6 hosttests, exit 0) met Rust 1.90.0.
 
 ## Hoofdresultaat
 
