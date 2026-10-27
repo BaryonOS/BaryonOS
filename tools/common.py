@@ -75,7 +75,15 @@ def run_logged(args: list[str], name: str, *, cwd: Path = ROOT, timeout: int = 1
     started = time.time()
     env = environment()
     args = [shutil.which(args[0], path=env["PATH"]) or args[0], *args[1:]]
-    result = subprocess.run(args, cwd=cwd, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
+    try:
+        result = subprocess.run(args, cwd=cwd, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        log = BUILD / "logs" / name
+        log.parent.mkdir(parents=True, exist_ok=True)
+        log.with_suffix(".stdout.txt").write_bytes(exc.stdout or b"")
+        log.with_suffix(".stderr.txt").write_bytes(exc.stderr or b"")
+        save_json(log.with_suffix(".json"), {"command": args, "cwd": str(cwd), "started_unix": started, "duration_s": time.time()-started, "returncode": None, "timed_out": True, "timeout_s": timeout})
+        raise
     log = BUILD / "logs" / name
     log.parent.mkdir(parents=True, exist_ok=True)
     log.with_suffix(".stdout.txt").write_text(result.stdout, encoding="utf-8")
