@@ -163,9 +163,11 @@ pub unsafe extern "C" fn memmove(dst: *mut u8, src: *const u8, n: usize) -> *mut
         // SAFETY: Forward byte order preserves overlapping ranges when dst<=src.
         unsafe { asm!("cld", "rep movsb", inout("rdi") dst => _, inout("rsi") src => _, inout("rcx") n => _, options(nostack)); }
     } else {
-        // SAFETY: Valid n-byte ranges and n>0 make the final-byte offsets valid;
-        // backward order preserves overlap, and DF is restored before return.
-        unsafe { asm!("std", "rep movsb", "cld", inout("rdi") dst.add(n - 1) => _, inout("rsi") src.add(n - 1) => _, inout("rcx") n => _, options(nostack)); }
+        // SAFETY: Descending byte copies preserve overlap without relying on DF,
+        // which the scheduler clears when returning to userspace.
+        for i in (0..n).rev() {
+            unsafe { dst.add(i).write_volatile(src.add(i).read_volatile()); }
+        }
     }
     dst
 }
