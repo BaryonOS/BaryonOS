@@ -4,7 +4,8 @@ from pathlib import Path
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from run import is_success, MARKERS
+from run import is_success, MARKERS, MILESTONE_MARKERS
+from capture_gate import guest_matches
 
 
 class GuestEvidenceGate(unittest.TestCase):
@@ -33,6 +34,23 @@ class GuestEvidenceGate(unittest.TestCase):
         self.assertFalse(is_success(33, log, **args))
         self.assertFalse(is_success(35, log, True, **args))
         self.assertFalse(is_success(35, log + "M2:PASS\n", **args))
+
+    def test_m5_capture_requires_disk_oracle_except_explicit_m1_regression(self):
+        result = dict(raw_qemu_exit=33, stdout="\n".join(MILESTONE_MARKERS["m5"]),
+                      timed_out=False, required_markers=list(MILESTONE_MARKERS["m5"]),
+                      expected_exit=33, forbidden_markers=["M5:FAIL"], m5_case="read")
+        self.assertFalse(guest_matches("m5", "m5-read-a", result))
+        result["disk_oracle"] = {"passed": False}
+        self.assertFalse(guest_matches("m5", "m5-read-a", result))
+        result["disk_oracle"]["passed"] = True
+        self.assertTrue(guest_matches("m5", "m5-read-a", result))
+        del result["m5_case"]
+        self.assertFalse(guest_matches("m5", "m5-read-a", result))
+        result.update(stdout="\n".join(MARKERS), required_markers=list(MARKERS))
+        del result["disk_oracle"]
+        self.assertTrue(guest_matches("m5", "m1-regression-after-m5", result))
+        result["raw_qemu_exit"] = 35
+        self.assertFalse(guest_matches("m5", "m1-regression-after-m5", result))
 
 
 if __name__ == "__main__":

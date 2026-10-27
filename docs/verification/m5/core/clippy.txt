@@ -1,0 +1,2 @@
+    Checking virtio-core v0.1.0 (C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\crates\virtio-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.35s

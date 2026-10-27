@@ -1,78 +1,98 @@
 # M5 — geïsoleerde blokdienst en virtio-transport
 
-Vastgelegde bouwbasis27 oktober2026, gestart op c630c59. Geen algemene conceptselectie: dit concretiseert roadmapM5. Root coördineert deze interfaceversie1; wijzigingen alleen met concrete fout en samenhangende tests.
+Bouwbasis vastgelegd op 27 oktober 2026, gestart op `c630c59`. Dit concretiseert roadmap M5. Interfaceversie 1; root coördineert wijzigingen en samenhangende tests. Dit document beschrijft acceptatiecriteria, geen reeds behaald testbewijs.
 
-## Te leveren resultaat en bewijsgrens
+## Resultaat en bewijsgrens
 
-Eén echte no_std ring3-blokdienst, één cliënt en één usertestsupervisor gebruiken bestaande Message320-IPC. Een kleine trusted kerneltransportdriver leest via een modern virtio-blk-PCI-testdevice een per run gegenereerd readonly64KiB-image. Vier128B-replies vormen één512B-sector. Twee requestendpoints binden afzonderlijk sector4 en6; alleen de service krijgt een getypeerde READ-devicecap. WRITE/FLUSH/DISCARD/filesystem/netwerk zijn geen M5-interfaces; een WRITE-serviceverzoek faalt zonder device-I/O. Verdere schrijf-/opslagsemantiek volgt M6.
+Een echte Rust no_std-dienst in ring 3, een client en een usertestsupervisor gebruiken de bestaande Message320-IPC. Een klein vertrouwd kerneltransport leest via modern virtio-blk-PCI een per run gegenereerde, alleen-lezen 64KiB-image. Vier replies van 128 bytes vormen één sector van 512 bytes. Twee requestendpoints binden afzonderlijk sector 4 en 6. Alleen de dienst krijgt een getypeerde READ-devicecapability.
 
-De kerneltransportdriver en het protocolconforme QEMU-device/backend behoren tot de TCB. De userdienst kan geen DMA-adres, descriptoradres, BAR/MMIO/PCI-config of busmasterinstelling opgeven. DMA bereikt uitsluitend vijf permanent gepinde supervisor-RW/NX-kernelpagina's. Zonder IOMMU is geen containment van een kwaadwillig device buiten die pool bewezen. Directe user-MMIO/queue-/busmastermacht, userpages alsDMAtarget en poolhergebruik zonder completion/quiescence zijn blockers. Dit is een geïsoleerde userdienst/front-end met kerneltransport, geen volledig userspace-hardwaredriver.
+WRITE, FLUSH, DISCARD, bestandssystemen en netwerk zijn geen M5-interfaces. Een WRITE-dienstverzoek faalt zonder device-I/O. Schrijven en persistentie volgen in M6.
 
-## Driver- en geheugencontract
+De vertrouwde basis (TCB) omvat het kerneltransport en het protocolconforme QEMU-device/backend. De userdienst kan geen DMA-adres, descriptor, BAR/MMIO, PCI-configuratie of busmasterinstelling kiezen. DMA bereikt volgens dit driverprotocol uitsluitend vijf permanent gepinde supervisor-RW/NX-kernelpagina's. Zonder IOMMU is geen containment van een kwaadwillig device bewezen. Dit is een geïsoleerde dienst met kerneltransport, geen volledig userspace-hardwaredriver.
 
-- Exact testdevice00:05.0, vendor1af4/device1042 modern virtio-blk; bestaande boot-ESP wordt niet als testvolume geselecteerd. Eén splitqueue8, maximaal één outstanding read,512B-sector, maximaal128B-resultaatslice.
-- PCI-capabilityketen, BAR-type/lengte, capabilityoffset/length en notify-multiplier worden bounded/checked verwerkt. Alleen de gevalideerde common/notify/ISR/device-subregio's krijgen een aparte supervisor-RW/NX-UC-mapping. Geen algemene RAMmap-bypass, geen user-MMIO.
-- Vereis VERSION1; onderhandel alleen begrepen features. Readonlytestbackend; geen virtio-write of willekeurige devicecommando's. Capaciteit komt uit stabiel gelezen deviceconfig, niet uit uservelden.
-- Vijf vaste pages: descriptors,avail,used,request/status,bounce. Header16B read-only voor device; bounce512B enstatus1B writable; chain0→1→2. De draft wordt vóór publicatie gevalideerd. Memorybarrières vóór avail/notify en ná used-index vóór dataread. Device-IRQs blijven gemaskeerd; PIT/user-yield verzorgen voortgang.
-- Submit/poll/reset zijn eindige stappen; geen I/O-wachtlus met IF0. Een normale usedcompletion vereist verwachte head0, juiste indexdelta en volledige512B+status voor succes. StatusIOERR/UNSUPP geeft geen data; onbekende/ongeldige id,len,index,status geeft lokaal protocolfoutpad.
-- Gepubliceerde descriptors/bounce blijven ongewijzigd tot completion of bevestigde reset(status0). Cancel/exit ontkoppelt het resultaat en vraagt reset; geen toestemming om buffers vroeg te wissen. Bij ontbrekende resetack blijft device offline en pool in quarantaine tot VM-stop, nooit terug naar Frames.
-- Een gewist PCI-busmasterbit bewijst op zichzelf geen beëindigde oude DMA. Virtio-used bevat geen epoch/nonce: softwareticketbinding detecteert geen kwaadwillige hardware-replay met dezelfde head. Vertrouwd resetgedrag is hier de devicegrens.
+## Driver en geheugen
 
-## Getypeerde autoriteit en ABI1.1
+- Exact testdevice `00:05.0`, vendor `1af4`, device `1042`; de bestaande boot-ESP is een ander device. Eén splitqueue met acht plaatsen, maximaal één uitstaande READ, sector 512 bytes, resultaatslice 1–128 bytes.
+- PCI-capabilityketen, BAR-type/grootte, capabilityoffset/lengte en notify-multiplier worden begrensd en met overflowcontrole verwerkt. Alleen gevalideerde devicegebieden krijgen supervisor-RW/NX-UC-mappings. Geen algemene RAM-map-bypass of user-MMIO.
+- Vereis VIRTIO_F_VERSION_1; onderhandel uitsluitend begrepen features. Alleen-lezen testbackend; geen willekeurige devicecommando's. Capaciteit komt uit stabiel gelezen deviceconfiguratie.
+- Vijf vaste pagina's: descriptors, available-ring, used-ring, request/status en bouncebuffer. Header 16 bytes leesbaar voor device, bouncebuffer 512 bytes en status 1 byte schrijfbaar; keten 0→1→2. Valideer de volledige draft vóór publicatie. Geheugenbarrières vóór available/notify en na used-index vóór dataread. Device-interrupts blijven gemaskeerd; PIT/yield verzorgen voortgang.
+- Submit, poll en reset zijn eindige stappen; geen I/O-wachtlus met interrupts uit. Succes vereist head 0, juiste indexstap, used-lengte 513 en status OK. IOERR/UNSUPP levert geen data. Ongeldige id/index/lengte/status geeft een lokaal foutpad.
+- Gepubliceerde descriptors en bouncebuffer blijven ongewijzigd tot completion of bevestigde reset (status 0). Cancel/exit ontkoppelt het resultaat en vraagt reset; nooit vroeg wissen. Zonder resetack blijft het device offline en de pool in quarantaine tot VM-stop. Poolpagina's gaan niet terug naar de frameallocator.
+- Het wissen van PCI-busmastering bewijst op zichzelf geen beëindiging van oude DMA. Een used-entry heeft geen epoch/nonce; softwaretickets detecteren geen kwaadwillige replay met dezelfde head. Protocolconform resetgedrag is hier een expliciete aanname.
 
-capability-core behoudt64endpointobjecten en voegt maximaal4BlockDevice-objecten toe. Scope bevat device-id,first-sector,count; M5-grantfirst4,count4. READ1 heeft alleen betekenis bij BlockDevice, SEND1 alleen bij Endpoint. Objecttype wordt vóór operatierecht gecontroleerd. Algemene DERIVE4/TRANSFER8/REVOKE16 blijven alleen met typespecifiek masker/subset mogelijk; RECV2 is ongeldig voorBlockDevice. De service ontvangt READ1; een eventueel ruimer manifestroot wordt vóór de eerste userentry gesloten/afgezwakt.
+## Autoriteit en ABI 1.1
 
-M5abi_info is major1/minor1, `(1<<32)|1`. Bestaande M1–M4-profielen blijven1.0. Argumenten/returnregisters blijven onveranderd. Nieuwe fouten:-12EIO,-13ETIMEDOUT,-14ENODEV,-15EPROTO; bestaande fouten blijven.
+`capability-core` behoudt 64 endpointobjecten en voegt maximaal vier BlockDevice-objecten toe. Scope bevat device-id, eerste sector en sectoraantal; M5 kent device 0, eerste sector 4 en vier sectoren toe. READ1 hoort uitsluitend bij BlockDevice; SEND1 uitsluitend bij Endpoint. Controleer objecttype vóór operatierecht. DERIVE4, TRANSFER8 en REVOKE16 vereisen het typespecifieke masker en een subset. RECV2 is ongeldig voor BlockDevice. De dienst ontvangt READ1; een ruimer manifestroot wordt vóór userentry afgezwakt en gesloten.
 
-| Syscall | Args | Resultaat |
+`abi_info` is voor M5 `(1<<32)|1` (major 1, minor 1); M1–M4 blijven 1.0. Nieuwe fouten: -12 EIO, -13 ETIMEDOUT, -14 ENODEV en -15 EPROTO. Registerconventie blijft gelijk.
+
+| Syscall | Argumenten | Resultaat |
 |---|---|---|
-| 0x40 block_submit | cap,relative_sector,offset,length; R8/R9nul | RDX opaque ticket; geen userpointer/inputbuffer |
-| 0x41 block_poll | cap,ticket,output_ptr,size320; R8/R9nul | RDXlength; Message320 metsender0/tagticket/len/data/restnul |
+| 0x40 block_submit | cap, relatieve sector, offset, lengte; R8/R9 nul | RDX opaque ticket; geen userpointer |
+| 0x41 block_poll | cap, ticket, outputpointer, grootte 320; R8/R9 nul | RDX lengte; Message320 met sender 0, tag ticket, data en alle overige bytes nul |
 
-Ticket bindt PID+getypeerde objectkey/generation+transportepoch+monotone ticket-id zonder wrap. Iedere poll herautoriseert READ op hetzelfde scopeobject. Een andere geldige READ-cap binnen dezelfde PID naar hetzelfde object mag pollen; geen binding aan één lokaal handlenummer. Revoked/stale handles zelf falen, procesexit annuleert altijd.
+Een ticket bindt PID, objectkey/generation, transportepoch en een monotone id zonder wrap. Iedere poll herautoriseert READ op hetzelfde object. Een andere geldige READ-handle van dezelfde PID naar hetzelfde object mag pollen. Een stale/revoked handle faalt; procesexit annuleert het resultaat.
 
-Foutvolgorde: syscall/unusedargs→vereiste wire-size bijpoll→cap/gen/node/object/type/READ→ticket bijpoll of scalar-scope/bounds bijsubmit→volledige outputvalidatie→resultaatconsumptie/bytecopy. Len0/>128 geeft EMSGSIZE; offset/offset+len buiten512 of overflow EINVAL; sector buiten toegekende scope EACCESS. Deviceoffline ENODEV, bezet/ongereed EAGAIN. Geen userpointer over scheduling/I/O bewaren. Ongeldige output consumeert geen completion; later geldig ophalen blijft mogelijk.
+Controlevolgorde: syscall/ongebruikte argumenten → vereiste pollgrootte → cap/generation/node/object/type/READ → pollticket of submitgrenzen → volledige outputvalidatie → consumptie en kopie. Lengte 0 of groter dan 128 geeft EMSGSIZE; offsetoverflow/buiten 512 geeft EINVAL; sector buiten scope geeft EACCESS. Offline geeft ENODEV, bezet/ongereed EAGAIN, onjuist/afgehandeld ticket EINVAL. Geen userpointer blijft over scheduling of I/O bewaard. Ongeldige output consumeert geen completion.
 
 ## Dienstprotocol en herstart
 
-Payload exact192B binnen Message320; apprequests cap_count0. Versie1/opREAD1,flags0,request-id,service-epoch,relative byteoffset,length1..128,status0,reserved0,data128,reserved16. OpWRITE2 geeft ENOSYS/EACCESS zonder submission. Ontvangstendpoint kiest vaste scope/replyendpoint; appvelden kiezen geen fysiekeLBA/replycap. Onverwachte ontvangen capdescriptors worden gesloten. Andere ongeldige velden/epoch/ranges geven een nulgevuld foutantwoord; daarna werkt een geldig request.
+Payload exact 192 bytes binnen Message320; apprequests hebben cap_count 0:
 
-Eén M5-userELF met private rolconfig: service0/client1/supervisor2; CPU-negatieven hebben extraattackerrole. Gemeenschappelijke data40010000,Messagebuffers40011000/40012000; rol/captabel wordt met kernelbuilder afgestemd in de userhandleiding. Clientdigests staan op private offsets120/128. Geen gedeelde userframes.
+| Offset | Veld |
+|---|---|
+| 0 | versie u16 = 1 |
+| 2 | opcode u16: READ1, WRITE2 niet ondersteund |
+| 4 | flags u32 = 0 |
+| 8 | request-id u64 |
+| 16 | dienstepoch u64 |
+| 24 | relatieve byteoffset u64 |
+| 32 | lengte u32 |
+| 36 | status i32, request 0 |
+| 40 | gereserveerd u64 = 0 |
+| 48 | data 128 bytes; request nul, reply ongebruikte bytes nul |
+| 176 | gereserveerd 16 bytes = 0 |
 
-Alleen een begrensde kerneltestcoördinator mag het vastgelegde dienstslot herstarten, na echte fault/exit en veilige devicequiescence. Geen algemene spawn-/beheer-API. ClientPID/adresruimte/counter blijven leven. Nieuwe dienst krijgt nieuwePID/epoch en endpointobjecten. Zij stuurt twee echte SEND|TRANSFER-requestcaps via IPC naar de usertestsupervisor; die stuurt SEND-only via het cliënt-controlendpoint. Geen stil herschrijven van cliënthandles. Cliënt ziet oudeEREVOKED, sluit die zelf en hervat. Restartcase herhaalt drie pending-read-crashes en eindigt met succesvolle reads; geen claim dat fysieke DMA exact gelijktijdig liep met de fault.
+Het ontvangstendpoint bepaalt vaste scope en replyendpoint; appvelden kiezen geen fysieke LBA of replycap. Onverwachte ontvangen capabilities worden gesloten. Andere ongeldige velden, epoch of ranges leveren een nulgevuld foutantwoord; daarna werkt een geldig verzoek. De kernelobserveerder moet foutverzoeken en replies koppelen en bewijzen dat daarbij geen blockcall/publicatie/completion plaatsvond.
 
-## Eindcriteria en cases vóór uitvoering
+Eén M5-user-ELF met private rollen: dienst 0, client 1, supervisor 2; CPU-negatieven voegen attacker 3 toe. Gemeenschappelijke virtuele data op `0x40010000`, Messagebuffers op `0x40011000`/`0x40012000`; frames blijven per proces privé. Clientdigests op offsets 120/128. Geen seed of verwachte schijfbytes in guestconfiguratie.
 
-Alle uitspraken vereisen kernel-observaties van calls/driverpublicatie/completion/bytes/resources/progress. Userstatus alleen is geen bewijs. Geen inhoudslogs; alleen synthetische checksummetadata. Iedere case: M5:CASE:NAME:PASS→M5:SURVIVOR_PROGRESS:PASS→M5:RESOURCES:PASS→M5:PASS→M1:PASS, raw33/geentimeout/onverwachteFAIL.
+Een begrensde kerneltestcoördinator mag uitsluitend het vaste dienstslot herstarten na echte fault/exit en veilige devicequiescence. Geen algemene spawn-API. Client-PID, adresruimte en voortgang blijven leven. De nieuwe dienst krijgt een nieuwe PID, epoch en endpointobjecten. Zij stuurt twee echte SEND|TRANSFER-requestcaps via IPC naar de supervisor; die stuurt SEND-only door via het client-controlendpoint. Geen stil herschrijven van handles. De client ziet oude EREVOKED, sluit die en hervat. Case 13 herhaalt drie pending-read-crashes en leest succesvol in epoch 4. Dit bewijst niet dat DMA fysiek tegelijk met de fault liep.
+
+## Acceptatiecases
+
+Iedere case vereist kernelobservaties van calls, publicatie, completion, bytes, resources en voortgang. Alleen userstatus is onvoldoende. Alleen synthetische checksummetadata wordt gelogd. Verwachte afsluiting: `M5:CASE:NAME:PASS`, `M5:SURVIVOR_PROGRESS:PASS`, `M5:RESOURCES:PASS`, `M5:PASS`, `M1:PASS`, raw-exit 33, geen timeout of onverwachte FAIL.
 
 | Case | Feature | Vereist bewijs |
 |---:|---|---|
-| 0 | milestone-m5, READ | normale client→service→virtio→reply; sector4/6 via vier128B-slices, twee verschillende images bij dezelfde kernelbinary |
-| 1 | test-m5-service-errors | versie/op/flags/reserved/len0/129/overflow/epoch/scope/caps geweigerd vóór device-I/O; daarna geldige read |
-| 2 | test-m5-device-rights | verkeerde objecttype/rechten/scope/ticket/foreigncap; ongeldig polloutput ongewijzigd en niet geconsumeerd; daarna geldige poll |
-| 3 | test-m5-async | test-only notifydelay, echte EAGAIN/PIT/peerprogress, daarna echte completion |
-| 4 | test-m5-bad-descriptor | draftinjectie vóór publicatie/notify geweigerd; geen onveilige DMA; later goede read |
-| 5–9 | test-m5-used-id/index/short/long/status | lokale snapshotinjectie ná echte devicecompletion; geen corrupte usercopy, lokaal fout/reset/herstel |
-| 10 | test-m5-io-error | geïnjecteerde bekende IOERR-status geeft EIO/geen data, gecontroleerd herstel |
-| 11 | test-m5-timeout | test-only suppress-notify, eindige tickdeadline, resetack, geen te vroege poolreuse; later goede read |
-| 12 | test-m5-reset-timeout | test-only resetack niet waarnemen; offline/quarantaine/stabiele pool en peerprogress; geen datadigest vereist |
-| 13 | test-m5-restart | drie echte dienstcrashes met pendingrequest, bevestigde reset, nieuwePID/epoch, echte IPC-rebind, stale oudeautoriteit en stabiele resources |
-| 14–16 | test-m5-cpu-mmio/dma/pci | echte user-MMIO-/poolread of PCI-out veroorzaakt alleen attackerfault; cliënt/service blijven werken |
-| 17 | test-m5-no-device | testdevice werkelijk weggelaten, boot-ESP niet verkeerd geselecteerd; lokaal ENODEV/peerprogress/geen submissions |
+| 0 | milestone-m5, READ | client→dienst→virtio→reply; sector 4/6 via vier slices; twee verschillende images bij dezelfde kernelbinary |
+| 1 | test-m5-service-errors | versie/op/flags/reserved/len0/129/overflow/epoch/scope/caps vóór I/O geweigerd; daarna geldig verzoek |
+| 2 | test-m5-device-rights | verkeerde type/rechten/scope/ticket/cap; ongeldig polloutput onveranderd en niet geconsumeerd; daarna goede poll |
+| 3 | test-m5-async | test-only notifydelay; echte EAGAIN/PIT/peerprogress en vervolgens completion |
+| 4 | test-m5-bad-descriptor | draftinjectie vóór publicatie/notify geweigerd; geen onveilige DMA; herstel |
+| 5–9 | test-m5-used-id/index/short/long/status | lokale snapshotinjectie na echte completion; geen corrupte usercopy; lokaal fout/reset/herstel |
+| 10 | test-m5-io-error | geïnjecteerde IOERR-status geeft EIO, geen data, herstel |
+| 11 | test-m5-timeout | test-only suppress-notify, tickdeadline, resetack, geen vroege poolreuse, herstel |
+| 12 | test-m5-reset-timeout | test-only resetack niet waarnemen; offline/quarantaine/stabiele pool/peerprogress; geen datadigests |
+| 13 | test-m5-restart | drie echte dienstcrashes, bevestigde reset, nieuwe PID/epoch, echte IPC-rebind, ingetrokken oude autoriteit, stabiele resources |
+| 14–16 | test-m5-cpu-mmio/dma/pci | userread van MMIO/pool of PCI-out laat alleen attacker faulten; dienst/client werken |
+| 17 | test-m5-no-device | testdevice werkelijk weggelaten; boot-ESP niet gekozen; lokaal ENODEV, peerprogress, geen submissions |
 
-Features gebruiken exacte uitgeschreven namen: used-index,used-short,used-long,used-status; geen wildcardfeatures. Case12/17 vereisen geen succesvolle readchecksums. Andere cases herstellen en leveren beide sectorchecksums. Root genereert per run readonly64KiB-image met andere synthetische bytes; guest kent geen seed/verwachte fixture. Marker M5:SECTOR4_DIGEST:<16hex> /SECTOR6_DIGEST komt uit werkelijk ontvangen bytes; host vergelijkt FNV-1a64 en ongewijzigdeSHA256-imagehash. FNV is diagnostische testchecksum, geen cryptografie. Interne guestasserts vergelijken kopieën bytegewijs.
+Exacte featurenamen staan in tools/build.py. Alle cases behalve 12/17 moeten herstellen en beide sectorchecksums leveren. De host genereert iedere run een andere image; de guest kent geen fixtureantwoord. `M5:SECTOR4_DIGEST:<16hex>` en `M5:SECTOR6_DIGEST:<16hex>` komen uit ontvangen bytes. De host vergelijkt FNV-1a64 en de ongewijzigde SHA256 van de volledige image; interne guestasserts vergelijken kopieën bytegewijs. FNV is diagnostiek, geen cryptografie.
 
-Aanvullend: hosttests voor getypeerde rechten/transfer/revoke/quota/generation, PCI-caploops/BARoverflow, descriptoradressen/flags/ketens, completionvelden, ticketepochs/nonwrap en reset/quarantaine. Faultinjecties blijven expliciet gelabeld en compile-time test-only. Volledige M1–M4-regressie na integratie. Review door een andere agent, herstel en finale hash/remotecommitcontrole vereist.
+Aanvullend: hosttests voor types/rechten/transfer/revoke/quota/generation, PCI-loops/BARoverflow, descriptors, completionvelden, tickets/nonwrap, reset en quarantaine. Faultinjecties blijven expliciet gelabeld en compile-time test-only. Volledige M1–M4-regressie, review door een andere agent, herstel en finale hash-/remotecontrole zijn vereist.
 
-## Exclusieve ownership en oplevering
+## Ownership en oplevering
 
-- kernel_m2: kernel/**,crates/kernel-core/**,drivers/virtio-blk/**; driver/scheduler/manifest en echte observer.
-- quantum_contract: crates/virtio-core/**,crates/capability-core/**; pure policy/parser/typedcap en hosttests.
-- product_acceptance: services/block/**,nieuweM5-userspacebestanden; echte dienst/client/supervisor/protocol en artifacttests. Bestaande probes behouden.
-- Root: rootworkspace/lockfiles/tools/docs,images/build/run/harnas/branches/checkpoints. Maximaal drie actieve agents, geen gedeelde schrijvers. Reviews eerst read-only.
+- kernel_m2: kernel/**, crates/kernel-core/**, drivers/virtio-blk/**; transport, scheduler, manifest, kernelobserveerder.
+- quantum_contract: crates/virtio-core/**, crates/capability-core/**; pure policy/parser, getypeerde caps, hosttests.
+- product_acceptance: services/block/** en nieuwe M5-userspacebestanden; dienst/client/supervisor, protocol, artifacttests. Bestaande probes behouden.
+- Root: workspace/lockfiles/tools/docs, images, build-/runharnas, branches/checkpoints. Maximaal drie actieve agents, één schrijver per bestand; reviews eerst alleen lezen.
 
-Voortgang gaat na iedere betekenisvolle stap en vóór lange tests naar de privébranch codex/m5-block-service. Bron/pins/echte logs/exits/openpunten blijven hervatbaar; geen binaries/caches/secrets. Terug naar M1–M4 via een consistente aparte checkout op c630c59, geen destructieve reset.
+Na betekenisvolle stappen en vóór lange tests privé pushen naar `codex/m5-block-service`. Bewaar bron, pins, echte logs/exits en open punten; geen binaries/caches/secrets. Herstel via een aparte consistente checkout op `c630c59`, geen destructieve reset.
 
-## Primaire broncontrole
+## Primaire bronnen
 
-OASIS Open, *Virtual I/O Device (VIRTIO) Version1.2*, Committee Specification01,1juli2022: https://docs.oasis-open.org/virtio/virtio/v1.2/virtio-v1.2.html ; gerichte §§2.4,2.7,3.1,3.3,4.1,5.2. QEMU Project, huidige system-manpage en geïnstalleerde11.1-help: https://www.qemu.org/docs/master/system/qemu-manpage.html ; device/BDF/readonly-variant. Gecontroleerd27oktober2026. Versie1.2 is de gekozen protocolbasis, niet een claim van nieuwste versie. Bovenstaande quota/ABI/cases zijn eigen projectbesluiten.
+OASIS Open, *Virtual I/O Device (VIRTIO) Version 1.2*, Committee Specification 01, 1 juli 2022: https://docs.oasis-open.org/virtio/virtio/v1.2/virtio-v1.2.html — §§2.4, 2.7, 3.1, 3.3, 4.1, 5.2. Versie 1.2 is de gekozen protocolbasis, geen claim van nieuwste versie.
+
+QEMU Project, system-manpage en lokaal geïnstalleerde 11.1-help: https://www.qemu.org/docs/master/system/qemu-manpage.html — device/BDF/readonly-opties. Gericht gecontroleerd op 27 oktober 2026. Quota, ABI en acceptatiecases hierboven zijn projectbesluiten.

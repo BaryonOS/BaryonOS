@@ -14,7 +14,9 @@ def guest_matches(phase, group, result):
                           required_markers=result["required_markers"],
                           expected_exit=result["expected_exit"],
                           forbidden_markers=result["forbidden_markers"])
-                and (phase != "m5" or result.get("disk_oracle", {}).get("passed") is True))
+                and (phase != "m5" or group == "m1-regression-after-m5"
+                     or (result.get("m5_case") is not None
+                         and result.get("disk_oracle", {}).get("passed") is True)))
     # M1 also tests that the guest/harness rejects real failures. Preserve the
     # original passed=false in those raw guest records; only the outer test passes.
     lines = result["stdout"].splitlines()
@@ -74,7 +76,7 @@ def capture(phase: str):
                     artifact = Path(result["firmware_source"][1])
                 if sha256(artifact) != expected:
                     raise ValueError(f"Artifact changed: {artifact}")
-            if phase == "m5":
+            if phase == "m5" and group["name"] != "m1-regression-after-m5":
                 from m5_disk import verify_disk
                 oracle = verify_disk(evidence / "test-disk.img", result["disk_oracle"], result["stdout"],
                                      data_required=result["m5_case"] not in ("no-device", "reset-timeout"))

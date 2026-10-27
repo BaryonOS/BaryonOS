@@ -6,7 +6,11 @@ Repository: https://github.com/simonvanieperen/nieuw-os (privé). Werkbranch: `c
 
 ## Actief: M5
 
-Nieuwe opdracht 27 oktober 2026 op `codex/m5-block-service`, basis `c630c59`. Bouwcriteria en DMA-/TCB-grenzen zijn vóór de code vastgelegd in implementation/M5-BLOCK-SERVICE.md; WORK-QUEUE.md registreert ownership/status. De eerste bronversie bevat een alleen-lezen blokdienst in ring 3, modern virtio-kerneltransport, een gepinde bouncepool en asynchrone getypeerde apparaatrechten. Hostcontroles: 26 capabilitytests, 12 virtio-tests en 9 protocoltests geslaagd; user-ELF gebouwd (exit0). Het schijf-orakel heeft 5 geslaagde negatieve hosttests. Kernelbuild, echte QEMU-I/O, foutproeven en regressie zijn nog niet afgerond. M1–M4 hieronder blijven het behaalde basischeckpoint.
+Nieuwe opdracht 27 oktober 2026 op `codex/m5-block-service`, basis `c630c59`; concept-PR [#3](https://github.com/simonvanieperen/nieuw-os/pull/3). De eerste bron staat in `2bb856b`. Bouwcriteria en DMA-/TCB-grenzen zijn vóór de code vastgelegd in implementation/M5-BLOCK-SERVICE.md. Een alleen-lezen blokdienst in ring 3 gebruikt modern virtio-kerneltransport, een gepinde bouncepool en getypeerde apparaatrechten.
+
+Werkelijk uitgevoerd: 26 capabilitytests, 12 virtio-tests, 9 protocoltests, 11 user-ELF-artifacttests, 5 schijf-orakeltests en 4 harnasparsertests geslaagd. De eerste normale kernelbuild en QEMU-read zijn geslaagd (raw33): sector 4/6 kloppen met de externe image, image-SHA256 blijft gelijk. Vroege run in verification/m5/checkpoints/first-read.json; deze geldt niet voor latere bronwijzigingen. Core-logs/bronhashes staan in verification/m5/core/ en zijn opnieuw vergeleken (geen drift).
+
+Reviewherstel is actief voor initialisatiefouten na DMA-enable, device-id-binding, terminale tickets bij procesexit, onnodige clientautoriteit en harde kernelcorrelatie van ongeldige dienstverzoeken. De volledige M5-foutpoort en M1–M4-regressie zijn nog niet afgerond. M1–M4 hieronder blijven het behaalde basischeckpoint.
 
 ## Hoofdresultaat
 
