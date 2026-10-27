@@ -111,17 +111,22 @@ class CaptureGateArchive(unittest.TestCase):
 
         self.assertEqual(self._snapshot(), before)
 
-    def test_guest_case_cannot_be_substituted_with_a_host_log(self):
-        suite_path = self.build / "m2-test-results.json"
-        suite = json.loads(suite_path.read_text(encoding="utf-8"))
-        suite["results"][0]["name"] = "test-m2-nx"
-        suite_path.write_text(json.dumps(suite), encoding="utf-8")
-        before = self._snapshot()
+    def test_guest_cases_cannot_be_substituted_with_a_valid_host_log(self):
+        source_suite = json.loads(
+            (self.build / "m2-test-results.json").read_text(encoding="utf-8"))
+        for phase, group_name in (("m2", "test-m2-nx"), ("m4", "test-m4-copy")):
+            suite_path = self.build / f"{phase}-test-results.json"
+            suite = json.loads(json.dumps(source_suite))
+            suite["results"][0]["name"] = group_name
+            suite["results"][0]["evidence"] = str(self.build / "logs/host.stdout.txt")
+            suite["results"].pop()
+            suite_path.write_text(json.dumps(suite), encoding="utf-8")
+            before = self._snapshot()
 
-        with self.assertRaisesRegex(ValueError, "Guest case requires run-directory evidence"):
-            capture_gate.capture("m2")
+            with self.assertRaisesRegex(ValueError, "Guest case requires run-directory evidence"):
+                capture_gate.capture(phase)
 
-        self.assertEqual(self._snapshot(), before)
+            self.assertEqual(self._snapshot(), before)
 
     def test_guest_evidence_is_bound_to_phase_and_case_not_record_expectations(self):
         record = {
