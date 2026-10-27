@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["boot/loader", "kernel", "crates/boot-protocol", "crates/elf-loader-core"]
+members = ["boot/loader", "kernel", "crates/boot-protocol", "crates/elf-loader-core", "crates/kernel-core"]
 exclude = ["experiments/quantum", "ui/prototype"]
 
 [profile.dev]

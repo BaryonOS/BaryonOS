@@ -14,10 +14,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kernel-core"
+version = "0.1.0"
+
+[[package]]
 name = "os-kernel"
 version = "0.1.0"
 dependencies = [
  "boot-protocol",
+ "kernel-core",
 ]
 
 [[package]]

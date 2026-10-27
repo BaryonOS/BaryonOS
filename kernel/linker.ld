@@ -11,8 +11,10 @@ SECTIONS {
   __kernel_start = .;
   .text : ALIGN(4096) { KEEP(*(.text.entry)) *(.text .text.*) } :text
   . = ALIGN(4096);
+  __text_end = .;
   .rodata : { *(.rodata .rodata.*) } :rodata
   . = ALIGN(4096);
+  __rodata_end = .;
   /* LLVM emits a small GOT with link-time resolved pointers between Rust crates.
      Include it explicitly; the build inspector rejects all runtime relocations. */
   .data : { *(.data .data.*) *(.got .got.*) } :data

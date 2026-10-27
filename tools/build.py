@@ -91,6 +91,6 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--loader-feature", choices=["test-ebs-retry"])
-    parser.add_argument("--kernel-feature", choices=["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx", "test-m2-absent", "test-m2-kernel-fault"])
+    parser.add_argument("--kernel-feature", choices=["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx", "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault"])
     args = parser.parse_args()
     build(args.loader_feature, args.kernel_feature, args.loader_feature or args.kernel_feature or "normal")

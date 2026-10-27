@@ -1,0 +1,110 @@
+//! Only 4-KiB leaves. Tables are exclusive PageTable(0) allocations, never freed
+//! while active. Mapping changes are bootstrap-only until M3 supplies invalidation.
+use core::ptr;
+use kernel_core::{Alias,Frames,Owner,PAGE};
+use super::{FRAME_COUNT,zero};
+const PRESENT:u64=1;
+const WRITE:u64=2;
+const USER:u64=4;
+const NX:u64=1<<63;
+const ADDRESS:u64=0x000f_ffff_ffff_f000;
+const MAX_TABLES:usize=128;
+static mut OBSERVED:[Alias;FRAME_COUNT]=[Alias { writable:0,executable:0,total:0 };FRAME_COUNT];
+pub struct Paging { pub root:u64, tables:[u64;MAX_TABLES], count:usize }
+impl Paging {
+    pub fn new(frames:&mut Frames<FRAME_COUNT>)->Self {
+        let root=frames.allocate(Owner::PageTable(0),zero).expect("root table");
+        let mut result=Self { root,tables:[0;MAX_TABLES],count:1 }; result.tables[0]=root; result
+    }
+    fn table(&mut self,frames:&mut Frames<FRAME_COUNT>)->u64 {
+        assert!(self.count<MAX_TABLES);
+        let address=frames.allocate(Owner::PageTable(0),zero).expect("table capacity");
+        self.tables[self.count]=address; self.count+=1; address
+    }
+    pub fn map(&mut self, frames:&mut Frames<FRAME_COUNT>,va:u64,pa:u64,writable:bool,executable:bool) {
+        assert!(va!=0 && va<PAGE*FRAME_COUNT as u64 && va%PAGE==0 && pa%PAGE==0);
+        let mut table=self.root;
+        for shift in [39,30,21] {
+            let index=((va>>shift)&511) as usize;
+            let mut entry=read(table,index);
+            if entry&PRESENT==0 {
+                let next=self.table(frames);
+                entry=next|PRESENT|WRITE;
+                write(table,index,entry);
+            }
+            assert_eq!(entry & (USER|128|NX),0);
+            table=entry&ADDRESS;
+        }
+        let index=((va>>12)&511) as usize;
+        assert_eq!(read(table,index)&PRESENT,0);
+        frames.map(pa,writable,executable,false).expect("physical alias W^X");
+        write(table,index,pa|PRESENT|if writable {WRITE} else {0}|if executable {0} else {NX});
+    }
+    pub fn map_tables(&mut self,frames:&mut Frames<FRAME_COUNT>) {
+        // Newly needed PTs can themselves require identity mappings. The fixed
+        // table bound makes this a bounded bootstrap fixed point.
+        let mut i=0;
+        while i<self.count { let address=self.tables[i]; self.map(frames,address,address,true,false); i+=1; }
+    }
+    pub fn leaf(&self,va:u64)->u64 {
+        let mut table=self.root;
+        for shift in [39,30,21] {
+            let entry=read(table,((va>>shift)&511) as usize);
+            if entry&PRESENT==0 { return 0; }
+            assert_eq!(entry&128,0);
+            table=entry&ADDRESS;
+        }
+        read(table,((va>>12)&511) as usize)
+    }
+    pub fn audit(&self,frames:&Frames<FRAME_COUNT>) {
+        assert_eq!(self.leaf(0),0);
+        // SAFETY: Exclusive single-CPU bootstrap, IF=0. Static scratch is distinct
+        // from frame metadata and page tables, initialized before every audit.
+        let observed=unsafe { &mut *ptr::addr_of_mut!(OBSERVED) };
+        observed.fill(Alias { writable:0,executable:0,total:0 });
+        self.walk(frames,observed,self.root,4,false,true,false);
+        for (i,actual) in observed.iter().enumerate() {
+            let expected=frames.alias(i as u64*PAGE).unwrap();
+            assert_eq!(*actual,expected,"physical alias index differs from actual tables");
+            assert!(actual.executable==0 || actual.writable==0);
+        }
+        for &table in &self.tables[..self.count] {
+            assert_eq!(frames.owner(table),Ok(Owner::PageTable(0)));
+            assert_eq!(self.leaf(table)&(PRESENT|WRITE|USER|NX),PRESENT|WRITE|NX);
+        }
+    }
+    fn walk(&self,frames:&Frames<FRAME_COUNT>,observed:&mut [Alias;FRAME_COUNT],table:u64,level:u8,parent_user:bool,parent_write:bool,parent_nx:bool) {
+        assert!(self.tables[..self.count].contains(&table));
+        assert_eq!(frames.owner(table),Ok(Owner::PageTable(0)));
+        for i in 0..512 {
+            let entry=read(table,i);
+            if entry&PRESENT==0 { assert_eq!(entry,0); continue; }
+            assert_eq!(entry&128,0,"huge pages forbidden");
+            let user=(level==4 || parent_user) && entry&USER!=0;
+            let writable=parent_write && entry&WRITE!=0;
+            let nx=parent_nx || entry&NX!=0;
+            let pa=entry&ADDRESS;
+            if level>1 { self.walk(frames,observed,pa,level-1,user,writable,nx); }
+            else {
+                assert!(!user,"M2 has no user mappings");
+                assert!(!matches!(frames.owner(pa).unwrap(),Owner::Free));
+                let a=&mut observed[(pa/PAGE) as usize];
+                a.total=a.total.checked_add(1).unwrap(); a.writable+=u16::from(writable); a.executable+=u16::from(!nx);
+            }
+        }
+    }
+}
+fn read(table:u64,index:usize)->u64 {
+    assert_eq!(table%PAGE,0); assert!(index<512);
+    // SAFETY: Callers only follow validated owned PageTable(0) pages. All pages
+    // are identity mapped by firmware during building and by our CR3 afterwards.
+    // u64 accesses are naturally aligned, no concurrent hardware table writers
+    // except CPU A/D bits; volatile observes those and stores preserve ownership.
+    unsafe { (table as *const u64).add(index).read_volatile() }
+}
+fn write(table:u64,index:usize,value:u64) {
+    assert_eq!(table%PAGE,0); assert!(index<512);
+    // SAFETY: Exclusive owned aligned table; bootstrap-only with firmware CR3
+    // active. No references to entries exist, and this table is not yet active.
+    unsafe { (table as *mut u64).add(index).write_volatile(value); }
+}

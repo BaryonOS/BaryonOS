@@ -9,9 +9,16 @@ build = "build.rs"
 default = []
 test-panic = []
 test-hang = []
+milestone-m2 = []
+test-m2-ro = ["milestone-m2"]
+test-m2-nx = ["milestone-m2"]
+test-m2-absent = ["milestone-m2"]
+test-m2-kernel-fault = ["milestone-m2"]
+test-m2-double-fault = ["milestone-m2"]
 
 [dependencies]
 boot-protocol = { path = "../crates/boot-protocol" }
+kernel-core = { path = "../crates/kernel-core" }
 
 [[bin]]
 name = "os-kernel"

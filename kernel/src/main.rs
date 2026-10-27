@@ -4,6 +4,8 @@
 
 mod memory;
 mod serial;
+#[cfg(feature = "milestone-m2")]
+mod m2;
 
 use boot_protocol::{BootInfo, ADDRESS_LIMIT, PAGE_SIZE};
 use core::{arch::asm, ptr};
@@ -81,12 +83,26 @@ pub extern "sysv64" fn _start(info_pointer: *const BootInfo) -> ! {
     }
     #[cfg(not(any(feature = "test-panic", feature = "test-hang")))]
     {
-        serial::write(b"M1:PASS\n");
-        serial::exit(0x10)
+        #[cfg(feature = "milestone-m2")]
+        m2::start(info, map);
+        #[cfg(not(feature = "milestone-m2"))]
+        {
+            serial::write(b"M1:PASS\n");
+            serial::exit(0x10)
+        }
     }
 }
 
 #[panic_handler]
-fn panic(_: &core::panic::PanicInfo<'_>) -> ! {
+fn panic(info: &core::panic::PanicInfo<'_>) -> ! {
+    #[cfg(feature="milestone-m2")]
+    if let Some(location)=info.location() {
+        let mut digits=[b'0';10];
+        let mut n=location.line();
+        for digit in digits.iter_mut().rev() { *digit=b'0'+(n%10) as u8; n/=10; }
+        serial::write(b"M2:PANIC_LINE:"); serial::write(&digits); serial::write(b"\n");
+    }
+    #[cfg(not(feature="milestone-m2"))]
+    let _=info;
     serial::fail(b"KERNEL_PANIC")
 }

@@ -48,6 +48,12 @@ def test_m2():
                           forbidden_markers=("M1:PASS", "M2:PASS", "M1:FAIL"))
         record("kernel-fault-stops-controlled", guest["passed"], guest["run_directory"],
                ["KERNEL_FAULT_FAIL_CLOSED"])
+        build(kernel_feature="test-m2-double-fault", label="m2-double-fault")
+        guest = run_guest("m2-double-fault", expected_exit=35,
+                          required_markers=BOOT + ("M2:FAULT:DF_IST:PASS",),
+                          forbidden_markers=("M1:PASS", "M2:PASS", "M1:FAIL", "M2:FAIL"))
+        record("unusable-main-stack-double-fault-ist", guest["passed"], guest["run_directory"],
+               ["DOUBLE_FAULT_IST1", "KERNEL_STACK_GUARDS"])
         # Return the default ESP to its ordinary profile even after a failed case.
         build()
         baseline = run_guest("m1-after-m2")
