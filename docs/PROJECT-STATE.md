@@ -8,6 +8,8 @@ Repository: https://github.com/simonvanieperen/nieuw-os (privé). Werkbranch: `c
 
 De bewijsarchiefcapture valideert een volledige nieuwe opname in een tijdelijke kopie voordat zij het bestaande archief vervangt. De synthetische regressietests voor behoud bij een hashfout en vervanging na geldige validatie slagen: `python -B -X utf8 tests/test_capture_gate.py` (2 tests, exit 0). Dit is hosttoolbewijs, geen nieuwe kernel- of gasttest. `userspace/LARGE-PROBE.md` bouwt nu eerst de normale probe; de drie gedocumenteerde build-/testcommando's slaagden (6 hosttests, exit 0) met Rust 1.90.0.
 
+De screenshotindex gebruikt nu de bestandsignatuur voor het formaat en de beeldheader voor dimensies. De vijf bestanden met `.png`-naam zijn JPEG's; hun afmetingen, bytes en SHA-256 zijn opnieuw geregistreerd. `python3 tools/update_evidence_files.py` en `python3 -B -X utf8 tests/test_evidence_files.py` slaagden; 4 tests, exit 0. Dit is bewijsregistratie, geen nieuwe browser- of OS-test.
+
 ## Hoofdresultaat
 
 De ontwikkelfase M1–M4 is geïmplementeerd en getest. De samengestelde M2–M4-poort slaagt op deze bron: 42 controlegroepen en 36 echte QEMU-runs. De aanvullende volledige M1-bootfoutregressie op `622c2ee` slaagt met tien groepen en acht extra VM-runs, inclusief de bewuste60s-timeout. De eindmatrix en het onafhankelijke V04-bewijsoverzicht staan onder verification/m2-m4/. De laatste bewijs-/documentatiecommit is de commit die dit bestand bevat.
