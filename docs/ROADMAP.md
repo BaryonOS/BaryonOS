@@ -49,9 +49,11 @@ Volg [QUANTUM-RESEARCH.md](QUANTUM-RESEARCH.md): Q0 is voor de eerste proef afge
 
 ## Aanvullende privacygates na de netwerkbasis
 
-De gebruikerscorrectie staat bindend in LOCAL-PRIVACY-CONTRACT.md. Plan na M8 afzonderlijke kleine taken voor (a) expliciete NAS-koppeling op eigen LAN met authenticatie/herstel en (b) lokale AI met geïsoleerde modeldownloader en netwerkloze inferentie. Deze vergroten M1 niet.
+N02 voegt een echte, begrensde hybride TLS-hostproef toe vóór de native port. De gewijzigde bewijs-/PQC-opdrachten staan in [VERIFIABLE-SECURITY-AND-PQC.md](implementation/VERIFIABLE-SECURITY-AND-PQC.md): formeel capabilitymodel, gecontroleerde native cryptobuild, entropy, ondertekende images, geauthenticeerde opslag en daarna N03-integratie. CHERI blijft een expliciete toekomstige platformproef; de huidige x86_64-code erft die hardwaregaranties niet. Qsim en PQC behouden afzonderlijke acceptatiecriteria.
 
-Voordat een daarvan als werkend wordt gemeld: NAS-onbereikbaarheid geeft geen cloudfallback; een vals NAS-adres krijgt geen gegevens; het verlaten van het eigen LAN stopt sync; de AI werkt met uitgeschakeld internet en onvoldoende RAM start geen externe inferentie. Test derdenapps op geweigerde bestands-/NAS-/netwerktoegang en misbruik van tussenliggende diensten. Een schone installatie zonder deze functies bewijst die toekomstige privacy-eigenschappen nog niet.
+De gebruikerscorrectie van 27 oktober 2026 staat bindend in LOCAL-PRIVACY-CONTRACT.md revisie 3. Internet is een productvereiste. Bouw nu parallel N01: een afgebakende versleutelde hostopslagproef, quota/intrekking en de drie NAS-productflows; integreer na M8 de native netwerkadapter, same-OS-NAS-rol en geauthenticeerde koppeling met eigen NAS of vrienden/familie. Remote toegang blijft expliciet peergebonden; geen leveranciersfallback. Lokale AI houdt een geïsoleerde modeldownloader en netwerkloze inferentie. N01 verandert de M1–M6a-teststatus niet.
+
+Voordat een daarvan als werkend wordt gemeld: NAS-onbereikbaarheid geeft geen cloudfallback; een vals NAS-adres krijgt geen gegevens; het verlaten van het toegestane LAN stopt sync tenzij expliciet internetrecht voor dezelfde geverifieerde NAS bestaat; adminintrekking blokkeert oude sessies en uploads zonder gebruikerssleutel of gasttoestemming; de AI werkt met uitgeschakeld internet en onvoldoende RAM start geen externe inferentie. Test derdenapps op geweigerde bestands-/NAS-/netwerktoegang en misbruik van tussenliggende diensten. Een schone installatie zonder deze functies bewijst die toekomstige privacy-eigenschappen nog niet.
 
 ## Eerste opdracht aan Codex
 
@@ -97,3 +99,4 @@ Gebruik nooit ‘ondersteunt ARM’, ‘draait op alle apparaten’ of ‘quantu
 Vóór dagelijks gebruik moeten ten minste de concrete crypto-implementatie, opslagintegriteit, updatevertrouwensketen, UEFI-/hardwarevertrouwen, isolatie onder DMA en resource-uitputting, compiler-/dependencyketen en gebruikersherstel door onafhankelijke deskundigen worden onderzocht. Formele modellen zijn vooral zinvol voor kleine kerninvarianten en rechtenovergangen; bewijsstatus altijd per component en property registreren.
 
 De roadmap is een eigen synthese. Technische onderbouwing en primaire bronnen staan in [ARCHITECTURE.md](ARCHITECTURE.md) en [SECURITY-AND-QUANTUM.md](SECURITY-AND-QUANTUM.md). De geselecteerde toolversies staan in implementation/BOOT-AND-TOOLCHAIN.md; hun werkelijke gezamenlijke build wordt tijdens B00/B01 getest. Geselecteerd betekent niet getest.
+

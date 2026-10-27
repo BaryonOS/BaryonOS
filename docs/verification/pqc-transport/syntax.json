@@ -1,0 +1,162 @@
+[
+  {
+    "argv": [
+      "node",
+      "--check",
+      "services/nas/crypto.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "services/nas/demo.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "services/nas/errors.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "services/nas/policy.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "services/nas/store.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "services/nas/tests/crash-worker.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "services/nas/tests/crypto.test.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "services/nas/tests/policy.test.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "services/nas/tests/store.test.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "services/nas/tests/tls-fixture.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "services/nas/tests/transport.test.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "services/nas/transport-demo.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "services/nas/transport.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "ui/prototype/app.js"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "ui/prototype/broker.js"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "ui/prototype/fixtures.js"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "ui/prototype/nas-sharing.js"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "ui/prototype/state.js"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "ui/prototype/tests/nas-sharing.test.mjs"
+    ],
+    "exit_code": 0
+  },
+  {
+    "argv": [
+      "node",
+      "--check",
+      "ui/prototype/tests/state.test.mjs"
+    ],
+    "exit_code": 0
+  }
+]

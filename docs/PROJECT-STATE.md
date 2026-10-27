@@ -1,5 +1,29 @@
 # Actuele projectstatus
 
+## N02 — hybride PQC-transport: echte hostproef getest
+
+27 oktober 2026, basis `ece94a5cfebecaec763eb2855aa9f84e55dcdcbc` (PR #7), werkbranch `codex/pqc-transport-foundation`; eerste checkpoint `3d05f9f8dccb4f515d8522578d20bbf00d8b8ed7`. De aangeleverde beveiligingsblauwdruk is getoetst aan de actuele bronnen en repository. ADR-028 en `implementation/VERIFIABLE-SECURITY-AND-PQC.md` leggen het standaard-TLS-profiel, formele bewijsgrenzen en concrete native vervolgopdrachten vast.
+
+`services/nas/transport.mjs` heeft echte loopback TLS 1.3 met gemeten X25519MLKEM768, AES-256-GCM-SHA384, vereist ALPN, wederzijdse CA-/certificaatpincontrole en serverhostnamecontrole. De client versleutelt vóór transport; de server echoot alleen begrensde ciphertext. Policy controleert toestemming vóór de socketpoging, na authenticatie en bij iedere verzending/response. Een transportfact is gebonden aan app en toestemmingsgeneratie; intrekken en opnieuw toestaan herstelt geen oude geauthenticeerde verbinding. Alleen internet intrekken laat de toegestane LAN-route bestaan. Geen klassieke fallback of sessiehergebruik.
+
+Werkelijk uitgevoerd op Node 24.22.1/OpenSSL 3.5.9/Linux x64: `node --test --test-isolation=none services/nas/tests/*.test.mjs ui/prototype/tests/*.test.mjs` → **124/124**, exit 0, geen skips (85 service: 13 crypto, 19 policy, 23 store, 30 transport; 39 UI). Beide demo's exit 0; 20 JS/mjs-syntaxchecks en diffcontrole geslaagd. Ruwe uitvoer, bronhashes, runtimeversies en review: `verification/pqc-transport/`. De oorspronkelijke sandbox weigerde lokaal luisteren; de expliciete loopback-escalatie is automatisch toegestaan en de tests zijn vervolgens werkelijk uitgevoerd. Geen externe verbinding of echte NAS/router gewijzigd.
+
+Twee afzonderlijke AI-reviews; een concreet randgeval rond herleving van oude idletransportfacts is hersteld en onafhankelijk hertoetst. Dit is geen formeel bewijs of menselijke audit. De testcertificaten zijn klassiek Ed25519; netwerklabels zijn harnasaannames bij loopback. Geen postkwantumauthenticatie, WAN-/LAN-detectie of koppeling van transportecho aan de N01-store. Tijdelijke frame-/tijdsgrenzen zijn geen productbeperkingen. De browserrendering is in deze stap niet opnieuw getest.
+
+Geen native PQC-crate, entropy-syscall, boot-/blokcryptografie of Grover-uitbreiding toegevoegd. De native build heeft concrete ABI-/geheugen-/instructiegrenzen; Rust/Cargo en QEMU zijn in deze ontwikkelsessie niet beschikbaar. Dit verandert geen bestaande M1–M6a-bewijsstatus. N01 hieronder blijft als historische basis bewaard.
+
+## N01 — internet en persoonlijke NAS-ruimte: hostproef getest
+
+27 oktober 2026, gebouwd vanaf ontwikkelbasis `a96ad45adb044177e18670cd38624ea2a671db3d` op `codex/nas-private-sharing`. De nieuwe gebruikersopdracht verruimt de eigen-LAN-beperking naar eigen of vrienden-/familie-NAS, met expliciet peergebonden internet, client-only inhoudssleutels en eenzijdig adminverwijderrecht. Privacycontract revisie 3 en ADR-027 zijn leidend.
+
+Werkende code in `services/nas/`: AES-256-GCM voor inhoud en namen; echte lokale ciphertextstore; tenantgrenzen, quota, eenmalige uitnodigingen, aparte admincapability, revoke/evict, afwijzen van oude sessies en uploads, duurzame tombstones en heropening. Materiaal bevat Mijn NAS, Ruimte ontvangen en Ruimte aanbieden als browsermock. Eenmalig toestaan volstaat voor automatische routekeuze LAN→internet→LAN naar dezelfde geverifieerde peer; planner en UI verlenen daarbij geen nieuwe rechten. Lokale beheerrol is apart van NAS-datatoegang; internet geeft geen beheerrecht.
+
+Werkelijk uitgevoerd op Node 24.22.1/OpenSSL 3.5.9/Linux x64: `node --test --test-isolation=none services/nas/tests/*.test.mjs ui/prototype/tests/*.test.mjs` → **89/89**, exit0 (50 service, 39 UI). `node services/nas/demo.mjs` → passed/exit0. Ruwe uitvoer, bronhashes, review en grenzen: `verification/nas/`. De procescrashproeven gebruiken eigen synthetische tempmappen. Geen echte gebruikersbestanden, NAS of router gewijzigd.
+
+**Niet geleverd/bewezen:** native netwerkstack, TLS-/echte peer-authenticatie, socketafdwinging, NAS-installatiemodus op eigen OS, veilige persistente schrijfkeys/multi-device recovery, fysieke stroomuitval, vijandige-admin snapshotrollback of fysieke gegevensvernietiging. Key recovery is alleen lezen; N01 bevat geen achtergrondsync. Algemene internettoestemming is nog appgebonden, NAS-internet wel peergebonden. Browserrendering van de nieuwe schermen is niet gecontroleerd: de Browser-plugin kon zonder oorspronkelijke browsercontext niet starten; state-/syntaxcontroles wel uitgevoerd.
+
+N01 wijzigt de M6a-runtimecode en bestaande bewijsclaims niet. De M6a-eindpoort hieronder blijft een eigen open stap. Vervolg: M6a afronden, dan native opslag-/netwerkadapter en clientkeybeheer volgens implementation/NAS-SHARING-AND-INTERNET.md.
+
 ## Actief: M6a
 
 Nieuwe opdracht 27 oktober 2026 vanaf `448974b`, branch `codex/m6a-write-recovery`. Bouwcontract vóór code: implementation/M6A-WRITE-RECOVERY.md. Gekozen: WRITE512/FLUSH met expliciete rechten, een vierrecords-journal, echte dienstcrashes en QEMU-proceskills plus koude recovery op uitsluitend harnasgegenereerde images. Geen fysieke stroomuitvalclaim. M5-basis hieronder behouden; oorspronkelijke status ook in verification/m5/PROJECT-STATE.md.
@@ -91,3 +115,4 @@ Op deze reparaties opnieuw uitgevoerd in Ubuntu 26.04.1 met Rust 1.90.0/QEMU 10.
 ## Vervolg en herstel
 
 M6a: begrensde WRITE/FLUSH en crashherstel op een synthetische wegwerpimage; de actieve status en nog uit te voeren volledige poort staan hierboven. Werkqueue: WORK-QUEUE.md. Contract: implementation/M6A-WRITE-RECOVERY.md. M1–M5-baseline en eerder bewijs blijven behouden; de volledige QEMU-poort is na deze merge niet opnieuw uitgevoerd. Herstel via aparte consistente checkout c630c59; geen destructieve reset of hostconfigmigratie.
+

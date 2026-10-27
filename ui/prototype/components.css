@@ -127,10 +127,23 @@ summary { cursor: pointer; min-height: 44px; padding: 10px 0; color: var(--accen
 .device-symbol { width: 56px; height: 56px; color: var(--accent); margin-bottom: 24px; }
 .device h2 { margin-bottom: 8px; }
 .device .actions { margin-top: 24px; }
+.nas-views { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.nas-wide { max-width: 900px; }
+.nas-principles { border-top: 1px solid var(--line); padding-top: 24px; margin-top: 28px; }
+.nas-principles h3 { margin-bottom: 12px; }
+.nas-principles p + p { margin-top: 12px; }
+.nas-invite-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(100px, .5fr); gap: 16px; margin: 24px 0; }
+.nas-invite-form > button { grid-column: 1 / -1; justify-self: start; }
+.nas-guests { overflow-wrap: anywhere; }
+.nas-guests li > div { min-width: 0; }
+.nas-guests button { flex-shrink: 0; align-self: start; }
+.nas-demo-scenarios { margin: 24px 0; max-width: 600px; }
+.nas-demo-scenarios .meta { margin-top: 8px; }
+
 .device dl, .permission-details { margin: 24px 0 0; display: grid; gap: 16px; }
 dt { font-size: 14px; color: var(--muted); }
 dd { margin: 4px 0 0; font-size: 16px; overflow-wrap: anywhere; }
-.identity-code { font: 600 24px/32px ui-monospace, monospace; letter-spacing: 2px; padding: 20px 0; color: var(--accent); }
+.identity-code { overflow-wrap: anywhere; max-width: 100%; font: 600 24px/32px ui-monospace, monospace; letter-spacing: 2px; padding: 20px 0; color: var(--accent); }
 .onboarding { max-width: 650px; margin: 16px auto 48px; }
 .steps { display: flex; align-items: center; gap: 8px; margin-bottom: 40px; }
 .steps span { height: 4px; flex: 1; background: var(--line); border-radius: 2px; }
@@ -182,6 +195,9 @@ dialog::backdrop { background: rgba(22,43,43,.32); }
   .inspector section { min-width: 0; }
 }
 @media (max-width: 767px) {
+  .nas-invite-form { grid-template-columns: minmax(0, 1fr); }
+  .nas-views { align-items: stretch; }
+  .nas-views button { flex: 1 1 140px; }
   .shell { display: block; }
   .rail { padding: 12px 16px; border-right: 0; border-bottom: 1px solid var(--line); gap: 12px; }
   .brand { padding: 0; }
@@ -231,3 +247,4 @@ dialog::backdrop { background: rgba(22,43,43,.32); }
 }
 html.reduce-motion { scroll-behavior: auto; }
 .reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation: none !important; transition-duration: 0ms !important; }
+

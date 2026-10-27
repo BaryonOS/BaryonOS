@@ -22,7 +22,12 @@ De eerste start bestaat uit drie stappen. Daarna zijn de routes `#/materiaal`, `
 - Een lokale bewerkingsdraft en cursorpositie bij het sluiten/hervatten van hetzelfde document. Het prototype bewaart één onafgemaakte bewerkingsdraft tegelijk.
 - Voorbeeldinstallatie met geldige/ongeldige signatuur, verwijderen zonder materiaal te verwijderen en nul rechten bij installatie.
 - Expliciete waarschuwing voor Webvenster met leesrecht en een fictieve internetbestemming. Er wordt geen verbinding gemaakt.
-- NAS-koppeling via bevestigde voorbeeldidentiteit. Offline, gewijzigd netwerk en afwijkende identiteit pauzeren de gesimuleerde verbinding; lokaal opslaan blijft werken.
+- NAS-koppeling via bevestigde voorbeeldidentiteit. Na de eenmalige internetkeuze wisselt de mock automatisch tussen thuisnetwerk en internet zodra dezelfde bevestigde NAS daar bereikbaar is. Er is geen tweede toestemmingsvraag of verbindklik. Ontbrekend bereikbaarheids-/identiteitsbewijs, ontbrekende toestemming en afwijkende identiteit pauzeren de verbinding; lokaal opslaan blijft werken.
+- Drie opslagroutes in dezelfde omgeving: **Mijn NAS**, **Ruimte ontvangen** en **Ruimte aanbieden**. Internettoegang wordt per bevestigde NAS afzonderlijk toegestaan; er is geen netwerkverkeer in de browserdemo.
+- Ontvangen ruimte vraagt identiteitsbevestiging en erkenning dat de beheerder zijn NAS-kopie kan verwijderen. De voorbeelduitnodiging is eenmalig en verloopt na tien minuten.
+- De beheerder verdeelt een fictieve capaciteit van 100 GiB, ziet alleen gastnaam/quota/gebruik/status en kan toegang intrekken en zijn NAS-kopie wissen. Alleen de beheerder bevestigt deze actie; er is geen toestemmingsvraag aan de gast en geen decryptiesleutel nodig.
+- NAS-beheer vereist een afzonderlijk geactiveerde **lokale voorbeeldbeheerrol**. Een datakoppeling geeft geen beheerrechten; activeren, uitnodigen en verwijderen via de internetroute worden geweigerd. Remote beheer is nog niet beschikbaar. Een netwerkovergang beëindigt de actieve lokale beheerrol en een open verwijderbevestiging.
+- Na verwijdering blijven oude uploadantwoorden ongeldig. Een nieuwe uitnodiging krijgt een andere ruimte-identiteit. Lokale documenten blijven behouden.
 - Een vaste voorbeeldsamenvatting van uitsluitend geselecteerde context. Ontbrekend model, onvoldoende geheugen en annulering hebben eigen toestanden.
 
 Het **Prototypepaneel** onderaan ieder werkscherm activeert foutscenario's. Het is expliciet testbediening en geen onderdeel van het beoogde OS-product.
@@ -41,6 +46,12 @@ Native `dialog` sluit de achtergrond uit van toetsenbordbediening en begint op *
 ## Architectuur en grenzen
 
 `fixtures.js` bevat uitsluitend fictieve data. `state.js` beheert overgangen als pure reducer; `broker.js` controleert mockoperaties opnieuw op object, handeling, intrekking, levensduur en revisie. `app.js` verzorgt de routes en semantische bediening. `tokens.css` volgt de vastgelegde productkleuren en `components.css` de responsive componentregels.
+
+`nas-sharing.js` beheert de aanvullende NAS-producttoestanden. De codes, uitnodigingen, quota, uploads en verwijderingen zijn fictief. Er worden geen cryptografische sleutels gegenereerd of bewaard. Werkelijke encryptie in het afzonderlijke hostprototype onder `services/nas/` maakt dit browserprototype niet tot een beveiligingsgrens. Pairing, vertrouwde input, identiteitscontrole en transport moeten in de native client/diensten worden geïntegreerd.
+
+`observeNasRoute` ontvangt uitsluitend synthetische routeobservaties: bereikbaarheid, gecontroleerde peeridentiteit en een vertrouwd thuisnetwerk worden door het prototypepaneel gesimuleerd. Een observatie verleent geen koppeling, internettoestemming of beheerrecht. `networkChanged` blijft het afzonderlijke scenario zonder bevestigd routebewijs; alleen de nieuwe positieve observatie kan de bekende NAS automatisch weer bereikbaar maken. Op internet of bij een gepauzeerde verbinding vervalt de lokale beheerrol, ook als de data later thuis vanzelf hervatten.
+
+Bij verversen vervallen in deze browserproef nieuwe internet-/ontvangen-NAS-/beheerbevestigingen. Dit is een tijdelijke mockbeperking, geen productdoel: blijvend veilig sleutelbeheer en gebruik op meerdere apparaten moeten later in de native diensten worden geïntegreerd. Alleen begrensde beheerhistorie blijft bewaard; verwijderde gastrecords blijven verwijderd. Browseropslag kan door de browsergebruiker worden aangepast en is nooit bewijs van OS-autorisatie.
 
 De mockbroker is geen echte beveiligingsgrens. In een toekomstige native port moeten kernel/services de capabilities afdwingen. De vertrouwde visuele dialoog kan in een browser worden nagebootst; daarvoor is later een compositor-/inputgrens nodig. Installeren is gesimuleerd en zegt niets over compatibiliteit of cryptografische authenticiteit.
 
@@ -80,3 +91,18 @@ Volgende productstap: gecontroleerde gebruiks- en schermlezerproeven, daarna ver
 ## Uitgevoerde browsercontrole
 
 Op27 oktober2026 zijn de kerntaken, modal-focuslus/annulering en vier viewportbreedtes werkelijk in de browser gecontroleerd. Netwerkregistratie zag zeven initiële loopbackassets en daarna nul aanvullende verzoeken tijdens de gecontroleerde flows; console zonder warnings/errors. Zie ../../docs/verification/browser-report.json en screenshots/. De eindcontrole gebruikte127.0.0.1:8776 na lege responses op8765. Echte200%-browserzoom, schermlezer en menselijke gebruikersproef zijn nog open; reflow op320 CSS px is afzonderlijk aangetoond.
+
+## NAS-vervolgcontrole — 27 oktober 2026
+
+De bovenstaande browserbewijzen zijn historisch en dekken de nieuwe NAS-schermen niet. Op Node v24.22.1 is de gecombineerde huidige state-suite uitgevoerd:
+
+```sh
+node --test --test-isolation=none ui/prototype/tests/*.test.mjs
+```
+
+Resultaat: **39 tests geslaagd, 0 mislukt**, exit 0: de 24 bestaande tests plus 15 NAS-tests voor identiteit, eenmalige/verlopen uitnodigingen, peergebonden internetkeuze, automatische routewisseling met bestaande toestemming, blokkeren zonder bereikbaarheids-/identiteitsbewijs, quota, afzonderlijk lokaal beheer zonder remote adminroute, beheerderverwijdering zonder gasttoestemming, oude uploadantwoorden, beheerdata zonder documentinhoud, intrekking en hervatten. `node --check` slaagt voor app/state/broker/nas-sharing/fixtures. Dit is host-/mockbewijs; geen netwerk-, encryptie- of native OS-bewijs.
+
+Een poging om de nieuwe schermen via de Browser-plugin te controleren werd geblokkeerd doordat de vereiste oorspronkelijke browsercontext ontbreekt. Rendercontrole, modalinteractie en kleine viewports van deze wijziging zijn daarom nog open; eerdere screenshots zijn geen nieuw bewijs.
+
+De beoogde gebruikersroute: Apparaten → Mijn NAS → identiteit bevestigen → eventueel **Gebruik mijn NAS ook buitenshuis**. Daarna demonstreert het prototypepaneel met **Verbindingswissel** de automatische overgang thuis/onderweg, zonder nieuwe toestemming. Voor ontvangen ruimte: Apparaten → Ruimte ontvangen → voorbeelduitnodiging → identiteit en verwijderrisico bevestigen → eventueel internet toestaan. Voor aanbieden: eerst eigen NAS koppelen → Ruimte aanbieden → aanbod activeren → quota/naam → uitnodiging. **Intrekken en wissen** opent een beheerdersdialoog met Annuleer als eerste focus. Het prototypepaneel kan daarna oude verbindingen, intrekking en fictief ruimtegebruik demonstreren.
+

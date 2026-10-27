@@ -1,6 +1,7 @@
 import { createFixtureState, STORAGE_KEY, COLLECTIONS, NAS_IDENTITY } from './fixtures.js';
 import { reducer, selectedObject, currentVersion, activeGrants, resumeState } from './state.js';
 import { listObjects } from './broker.js';
+import { FAMILY_NAS_IDENTITY, guestMetadata } from './nas-sharing.js';
 
 const app = document.querySelector('#app');
 const announcements = document.querySelector('#announcements');
@@ -77,6 +78,9 @@ function routeChanged() {
   } else if (route !== '/toegang' && state.selectedObjectId) {
     dispatch({ type: 'closeObject' }, { redraw: false });
   }
+  if (previousRoute === '/apparaten' && route !== '/apparaten' && state.nasSharing.pendingRemoval) {
+    dispatch({ type: 'nasSharing', action: { type: 'cancelRemoval' } }, { redraw: false });
+  }
   if (previousRoute === '/toegang' && state.grantRequest && route !== '/toegang') {
     dispatch({ type: 'denyGrant' }, { redraw: false });
   }
@@ -115,7 +119,7 @@ function startScreen() {
   let body;
   if (step === 1) body = `<label class="field">Taal<select id="language" aria-describedby="language-help"><option>Nederlands</option></select></label><p class="meta" id="language-help">Deze eerste demo is beschikbaar in het Nederlands.</p><label class="checkbox"><input id="reduce-motion" type="checkbox" ${state.onboarding.reducedMotion ? 'checked' : ''}>Minder beweging</label><p class="meta">Alle handelingen werken ook met Tab, Shift+Tab en Enter.</p>`;
   if (step === 2) body = `<label class="field">Naam van je voorbeeldprofiel<input id="profile-name" value="${escape(state.onboarding.name)}" maxlength="40" autocomplete="off" aria-describedby="profile-help"></label><p class="meta" id="profile-help">Gebruik een fictieve naam. Geen accountregistratie of wachtwoord nodig.</p><div class="onboarding-facts"><p>${icon('devices')}Je instellingen blijven in deze lokale demo.</p><p>${icon('shield')}Gereedschappen vragen toegang per document.</p></div>`;
-  if (step === 3) body = `<div class="onboarding-facts"><p>${icon('devices')}Begin op dit apparaat. Je kunt direct documenten maken en bewerken.</p><p>${icon('nas')}Koppel later je eigen NAS binnen je eigen netwerk.</p><p>${icon('assistant')}De lokale assistent is optioneel. In deze demo is het antwoord gesimuleerd.</p></div>${notice('Dit is een interactieprototype met fictieve gegevens. Er wordt geen OS geïnstalleerd.')}`;
+  if (step === 3) body = `<div class="onboarding-facts"><p>${icon('devices')}Begin op dit apparaat. Je kunt direct documenten maken en bewerken.</p><p>${icon('nas')}Koppel later je eigen NAS of ontvang versleutelde ruimte van vrienden of familie.</p><p>${icon('assistant')}De lokale assistent is optioneel. In deze demo is het antwoord gesimuleerd.</p></div>${notice('Dit is een interactieprototype met fictieve gegevens. Er wordt geen OS geïnstalleerd.')}`;
   return `<section class="onboarding"><div class="steps" aria-label="Stap ${step} van 3">${[1, 2, 3].map((number) => `<span class="${number <= step ? 'complete' : ''}"></span>`).join('')}</div>${icon(step === 3 ? 'material' : step === 2 ? 'shield' : 'devices', 'onboarding-icon')}<p class="meta">Stap ${step} van 3</p><h1 id="page-title" tabindex="-1">${titles[step - 1]}</h1><p class="muted">${intro[step - 1]}</p><div class="onboarding-body">${body}</div><div class="onboarding-actions">${step > 1 ? button('Terug', 'onboardingBack', 'quiet', '', 'back') : '<span></span>'}${button(step === 3 ? 'Begin lokaal' : 'Verder', step === 3 ? 'finishOnboarding' : 'onboardingNext', 'primary', '', 'arrow')}</div></section>`;
 }
 
@@ -136,7 +140,7 @@ function planDrawing() {
 
 function nasLabel(object) {
   if (object.nasState === 'local') return 'Alleen op dit apparaat';
-  if (state.nas.state !== 'online') return 'Wacht op eigen NAS';
+  if (state.nas.state !== 'online') return 'Wacht op gekoppelde NAS';
   return 'Wacht op synchronisatie · simulatie';
 }
 
@@ -163,7 +167,7 @@ function objectScreen() {
 function accessScreen() {
   if (state.grantRequest) return objectScreen();
   const grants = state.grants.filter((grant) => ['active', 'revoked'].includes(grant.state));
-  return `${pageHead('Toegang', 'Je bepaalt welk gereedschap welk materiaal kan gebruiken.')}<p class="inline-note">${icon('shield')}Dit scherm simuleert een vertrouwd systeemoppervlak. De browser is geen OS-beveiligingsgrens.</p>${grants.length ? `<ul class="grants-list">${grants.map((grant) => `<li><div><h2>${escape(state.tools.find((tool) => tool.id === grant.toolId)?.name)}</h2><p>${grant.objectIds.map((id) => escape(state.objects.find((object) => object.id === id)?.title)).join(', ')} · ${grant.operations.includes('write') ? 'lezen en wijzigen' : 'lezen'}</p><p class="meta">${grant.state === 'active' ? 'Tot je dit document sluit' : 'Ingetrokken'}</p></div>${grant.state === 'active' ? button('Trek toegang in', 'revoke', '', `data-id="${grant.id}"`) : status('Ingetrokken', 'close')}</li>`).join('')}</ul>` : '<div class="empty"><h2>Geen actieve toegang</h2><p class="muted">Open een document om een gereedschap tijdelijk toegang te geven.</p></div>'}<a class="button" href="#/materiaal">Naar Mijn materiaal ${icon('arrow')}</a>`;
+  return `${pageHead('Toegang', 'Je bepaalt welk gereedschap welk materiaal kan gebruiken.')}<p class="inline-note">${icon('shield')}Dit scherm simuleert een vertrouwd systeemoppervlak. De browser is geen OS-beveiligingsgrens.</p>${grants.length ? `<ul class="grants-list">${grants.map((grant) => `<li><div><h2>${escape(state.tools.find((tool) => tool.id === grant.toolId)?.name)}</h2><p>${grant.objectIds.map((id) => escape(state.objects.find((object) => object.id === id)?.title)).join(', ')} · ${grant.operations.includes('write') ? 'lezen en wijzigen' : 'lezen'}</p><p class="meta">${grant.state === 'active' ? 'Tot je dit document sluit' : 'Ingetrokken'}</p></div>${grant.state === 'active' ? button('Trek toegang in', 'revoke', '', `data-id="${grant.id}"`) : status('Ingetrokken', 'close')}</li>`).join('')}</ul>` : '<div class="empty"><h2>Geen actieve toegang</h2><p class="muted">Open een document om een gereedschap tijdelijk toegang te geven.</p></div>'}<section class="nas-principles"><h2>Opslag en internet</h2><p>NAS-toegang is afzonderlijk gekoppeld aan een bevestigde identiteit. Internet is een expliciete keuze per NAS; de lokale assistent krijgt geen netwerkrecht. Een opslagbeheerder kan zijn kopie verwijderen, maar krijgt daarmee geen recht om documenten te lezen.</p><a class="button" href="#/apparaten">Beheer gekoppelde opslag ${icon('arrow')}</a></section><a class="button" href="#/materiaal">Naar Mijn materiaal ${icon('arrow')}</a>`;
 }
 
 function accessDialog() {
@@ -181,24 +185,74 @@ function toolScreen() {
   }).join('')}</div><p class="inline-note">${icon('shield')}De catalogus bevat alleen lokale fictieve pakketten. Geen download, appcompatibiliteit of echte handtekeningcontrole.</p>`;
 }
 
-function devicesScreen() {
+function ownNasPanel() {
   const condition = state.nas.state;
   const descriptions = {
-    unpaired: 'Koppel je eigen NAS wanneer je je materiaal ook daar wilt bewaren.',
-    verifying: 'Vergelijk deze voorbeeldidentiteit met de code op je eigen NAS. In deze demo is geen apparaat verbonden.',
-    online: 'De voorbeeldidentiteit is bevestigd. Alleen de geselecteerde dataset is gekoppeld.',
-    offline: 'Thuis-NAS is niet bereikbaar. Je wijzigingen blijven op dit apparaat en wachten op je eigen NAS.',
-    networkChanged: 'Het netwerk is veranderd. Synchronisatie is gepauzeerd totdat je de lokale verbinding opnieuw controleert.',
-    identityMismatch: 'De identiteit wijkt af. Synchronisatie is gestopt. Vertrouw deze verbinding pas na een nieuwe identiteitscontrole.',
+    unpaired: 'Nieuw OS begeleidt de koppeling met je eigen opslag. Begin met het vergelijken van de identiteit.',
+    verifying: 'Vergelijk deze voorbeeldidentiteit met de code op je NAS via een vertrouwd kanaal. Er is geen echt apparaat verbonden.',
+    online: 'Je eigen opslag blijft in dezelfde omgeving beschikbaar. Alleen de dataset Huis is geselecteerd.',
+    offline: state.nas.network === 'internet' && !state.nas.internetIdentity
+      ? 'Je NAS is alleen thuis beschikbaar. Je kunt hier lokaal doorwerken; thuis herstelt de verbinding vanzelf.'
+      : 'De NAS is nog niet veilig bereikbaar. Je wijzigingen blijven op dit apparaat. De verbinding herstelt vanzelf zodra dezelfde NAS weer bereikbaar is.',
+    networkChanged: state.nas.identity === NAS_IDENTITY ? 'Er is nog geen bevestigde verbinding gevonden. Je kunt lokaal doorwerken; dezelfde NAS wordt automatisch weer verbonden zodra die bereikbaar is.' : 'Er is geen bevestigde verbinding. Je kunt lokaal doorwerken en de koppeling controleren.',
+    identityMismatch: 'De identiteit wijkt af. De verbinding en internettoestemming zijn ingetrokken. Koppel pas opnieuw na controle.',
   };
-  const labels = { unpaired: 'Niet gekoppeld', verifying: 'Code vergelijken', online: 'Gekoppeld · simulatie', offline: 'Wacht op eigen NAS', networkChanged: 'Netwerk veranderd', identityMismatch: 'Identiteit afwijkend' };
+  const labels = { unpaired: 'Niet gekoppeld', verifying: 'Identiteit vergelijken', online: `${state.nas.network === 'internet' ? 'Verbonden via internet' : 'Verbonden thuis'} · simulatie`, offline: 'Verbinding gepauzeerd', networkChanged: 'Verbinding gepauzeerd', identityMismatch: 'Identiteit afwijkend' };
   const problem = ['offline', 'networkChanged', 'identityMismatch'].includes(condition);
   let action = '';
-  if (condition === 'unpaired') action = button('Koppel eigen NAS', 'pairNas', 'primary');
+  if (condition === 'unpaired') action = button('Koppel mijn NAS', 'pairNas', 'primary');
   if (condition === 'verifying') action = `<div class="identity-code">${NAS_IDENTITY}</div><label class="checkbox"><input type="checkbox" id="nas-confirm">Ik heb de voorbeeldidentiteit vergeleken</label><div class="actions">${button('Annuleer', 'unpairNas')}${button('Bevestig koppeling', 'confirmNas', 'primary', 'id="confirm-nas" disabled')}</div>`;
-  if (condition === 'online') action = `<dl><div><dt>Bevestigde identiteit</dt><dd>${NAS_IDENTITY}</dd></div><div><dt>Geselecteerde dataset</dt><dd>Huis</dd></div><div><dt>Synchronisatie</dt><dd>Geen bestanden verstuurd in deze demo</dd></div></dl><div class="actions">${button('Ontkoppel', 'unpairNas')}</div>`;
-  if (problem) action = `<div class="actions">${button('Verbinding opnieuw controleren', 'pairNas', 'primary')}</div>`;
-  return `${pageHead('Apparaten', 'Hier staat je materiaal. Jij bepaalt wat je koppelt.')}<div class="device-layout"><section class="device">${icon('devices', 'device-symbol')}<h2>Dit apparaat</h2>${status('Lokaal beschikbaar')}<dl><div><dt>Type</dt><dd>Desktop · voorbeeld</dd></div><div><dt>Materiaal</dt><dd>${state.objects.length} lokale objecten</dd></div><div><dt>Opslag</dt><dd>Fictieve browsersessie</dd></div></dl><div class="actions"><a class="button" href="#/materiaal">Open materiaal ${icon('arrow')}</a></div></section><section class="device">${icon('nas', 'device-symbol')}<h2>Thuis-NAS</h2>${status(labels[condition], problem ? 'warning' : condition === 'online' ? 'check' : 'nas', condition === 'identityMismatch' ? 'error' : problem ? 'warning' : '')}<p class="section-gap">${descriptions[condition]}</p>${action}</section></div><p class="inline-note">${icon('shield')}Alleen je eigen NAS binnen je eigen netwerk. Lokaal werken blijft mogelijk als de verbinding wegvalt.</p>`;
+  if (condition === 'online') action = `<dl><div><dt>Bevestigde identiteit</dt><dd>${NAS_IDENTITY}</dd></div><div><dt>Verbinding</dt><dd>${state.nas.network === 'internet' ? 'Via internet · simulatie' : 'Thuisnetwerk · simulatie'}</dd></div><div><dt>Geselecteerde dataset</dt><dd>Huis</dd></div></dl><label class="checkbox section-gap"><input id="own-nas-internet" type="checkbox" ${state.nas.internetIdentity ? 'checked' : ''}>Gebruik mijn NAS ook buitenshuis</label><p class="meta">Eén keer toestaan voor deze NAS. Daarna schakelt de verbinding vanzelf tussen je thuisnetwerk en internet, zodra dezelfde bevestigde NAS bereikbaar is. Er wordt geen andere opslag of leverancierrelay gebruikt.</p><div class="actions">${button('Ontkoppel', 'unpairNas')}</div>`;
+  if (problem) action = `<div class="actions">${state.nas.internetIdentity ? button('Trek internettoegang in', 'nasInternetOff', 'quiet') : ''}${state.nas.identity === NAS_IDENTITY ? button('Ontkoppel', 'unpairNas', 'quiet') : button('Controleer koppeling', 'pairNas', 'quiet')}</div>`;
+  return `<section class="device" aria-labelledby="own-nas-title">${icon('nas', 'device-symbol')}<h2 id="own-nas-title" tabindex="-1">Mijn NAS</h2>${status(labels[condition], problem ? 'warning' : condition === 'online' ? 'check' : 'nas', condition === 'identityMismatch' ? 'error' : problem ? 'warning' : '')}<p class="section-gap">${descriptions[condition]}</p>${action}</section>`;
+}
+
+function receiveNasPanel() {
+  const shared = state.nasSharing;
+  const received = shared.received;
+  let content;
+  if (received.state === 'verifying') {
+    content = `<p>Een familielid biedt <strong>25 GiB</strong> aan op de onderstaande voorbeeld-NAS.</p><div class="identity-code">${FAMILY_NAS_IDENTITY}</div><p class="meta">Vergelijk de identiteit met de afzender via een vertrouwd kanaal. Deze voorbeelduitnodiging verloopt na tien minuten.</p><label class="checkbox section-gap"><input id="received-nas-confirm" type="checkbox">De identiteit komt overeen</label><label class="checkbox section-gap"><input id="received-nas-loss" type="checkbox">Ik begrijp dat de beheerder zijn NAS-kopie kan verwijderen.</label><p class="meta">Advies: bewaar belangrijke bestanden ook op dit apparaat of op een tweede vertrouwde plek. Bewaar je herstelmateriaal buiten deze NAS.</p><div class="actions">${button('Annuleer', 'cancelNasInvitation')}${button('Koppel deze ruimte', 'confirmNasInvitation', 'primary', 'id="confirm-nas-invitation" disabled')}</div>`;
+  } else if (['paired', 'offline'].includes(received.state)) {
+    content = `${status(received.state === 'paired' ? 'Ruimte gekoppeld · simulatie' : 'NAS niet bereikbaar', received.state === 'paired' ? 'check' : 'warning')}<dl><div><dt>Aanbieder</dt><dd>Familie · fictief voorbeeld</dd></div><div><dt>Identiteit</dt><dd>${escape(received.identity)}</dd></div><div><dt>Beschikbare ruimte</dt><dd>${received.quotaGiB} GiB · voorbeeld</dd></div><div><dt>Leesrechten</dt><dd>Documenten en sleutels blijven onder jouw beheer</dd></div></dl><label class="checkbox section-gap"><input id="received-nas-internet" type="checkbox" ${received.internetIdentity ? 'checked' : ''} ${received.state !== 'paired' && !received.internetIdentity ? 'disabled' : ''}>Sta internettoegang naar alleen deze bevestigde NAS toe</label><p class="meta">Nodig als de NAS in een ander huis staat. Zonder toestemming blijft de koppeling alleen lokaal bruikbaar.</p><div class="actions">${button('Ontkoppel', 'cancelNasInvitation')}</div>`;
+  } else {
+    const info = received.state === 'revoked' ? notice('De beheerder heeft deze ruimte ingetrokken en kan zijn kopie hebben gewist. Nieuwe uploads stoppen. Je lokale documenten blijven behouden.', 'warning') : received.state === 'identityMismatch' ? notice('De NAS-identiteit wijkt af. De koppeling en internettoestemming zijn gestopt.', 'error') : '';
+    content = `${info}<p>Geen eigen NAS nodig: ontvang een eigen opslagruimte van iemand die je kent.</p><p class="meta section-gap">In deze demo laad je een fictieve uitnodiging; er wordt niemand benaderd.</p><div class="actions">${button('Laad voorbeelduitnodiging', 'loadNasInvitation', 'primary')}</div>`;
+  }
+  return `<section class="device nas-wide" aria-labelledby="receive-nas-title">${icon('nas', 'device-symbol')}<h2 id="receive-nas-title" tabindex="-1">Ruimte ontvangen</h2>${content}<div class="nas-principles"><h3>Jouw inhoud blijft van jou</h3><p>Het beoogde OS versleutelt documenten en bestandsnamen op jouw apparaat. De NAS-beheerder krijgt geen decryptiesleutel, maar ziet wel ruimtegebruik en verbindingsgegevens.</p><p><strong>De beheerder mag zijn opslag altijd leegmaken, zonder jouw toestemming.</strong> Bewaar daarom een eigen kopie en je herstelmateriaal buiten die NAS. Verlies je alle sleutels, dan kan de beheerder je inhoud niet ontsleutelen.</p></div></section>`;
+}
+
+function offerNasPanel() {
+  const host = state.nasSharing.hosting;
+  const paired = state.nas.state === 'online' && state.nas.identity === NAS_IDENTITY;
+  const ready = paired && state.nas.network === 'lan';
+  const guests = guestMetadata(state.nasSharing);
+  const reserved = guests.reduce((sum, guest) => sum + guest.quotaGiB, 0);
+  let content;
+  if (paired && !ready) content = `${notice('Je bereikt deze NAS via internet. Extern beheer is nog niet beschikbaar; beheer ruimte lokaal op de NAS.', 'warning')}<p>De datakoppeling geeft geen beheerrechten. Lokale beheerders kunnen gastopslag zonder gasttoestemming intrekken en wissen.</p>`;
+  else if (!ready) content = `<p>Koppel eerst je eigen NAS lokaal. Dezelfde Nieuw OS-omgeving begeleidt vervolgens het aanbieden en beheren van ruimte.</p><div class="actions">${button('Ga naar Mijn NAS', 'nasView', 'primary', 'data-view="own"')}</div>`;
+  else if (!host.enabled || host.adminRole !== 'local-demo') content = `<p>Activeer de lokale voorbeeldbeheerrol voordat je ruimte aanbiedt. Je beheert quota en toegang; de datakoppeling zelf verleent geen beheerrechten.</p><p class="meta section-gap">Deze browserdemo simuleert een lokale beheerder. Echte beheeridentiteit en OS-authenticatie zijn nog te integreren.</p><div class="actions">${button('Activeer lokaal voorbeeldbeheer', 'enableNasHosting', 'primary')}</div>`;
+  else content = `${status('Beheer op mijn NAS · simulatie')}<p class="section-gap"><strong>${host.capacityGiB - reserved} van ${host.capacityGiB} GiB</strong> beschikbaar om toe te wijzen.</p><div class="nas-invite-form"><label class="field">Naam van de gast<input id="nas-guest-label" maxlength="40" placeholder="Fictieve gastnaam" autocomplete="off"></label><label class="field">Aanbod in GiB<input id="nas-guest-quota" type="number" min="1" max="${host.capacityGiB - reserved}" value="${Math.min(10, host.capacityGiB - reserved)}" step="1"></label>${button('Maak voorbeelduitnodiging', 'inviteNasGuest', 'primary', reserved >= host.capacityGiB ? 'disabled' : '')}</div><ul class="grants-list nas-guests">${guests.map((guest) => {
+    const record = host.guests.find((item) => item.id === guest.id);
+    return `<li><div><h3>${escape(guest.label)}</h3><p>${guest.state === 'removed' ? 'Ingetrokken en gewist · simulatie' : `${guest.usedGiB} van ${guest.quotaGiB} GiB gebruikt · ${guest.state === 'invited' ? 'uitnodiging klaar' : 'actief'}`}</p>${record.invitation ? `<p class="meta">Fictieve uitnodiging: <code>${escape(record.invitation)}</code></p>` : ''}<p class="meta">Geen toegang tot documentnamen, inhoud of gebruikerssleutels.</p></div>${guest.state !== 'removed' ? button('Intrekken en wissen', 'requestNasRemoval', 'danger', `data-id="${guest.id}" aria-label="Ruimte van ${escape(guest.label)} intrekken en wissen"`) : status('Verwijderd', 'close')}</li>`;
+  }).join('') || '<li><p class="muted">Er zijn nog geen gasten.</p></li>'}</ul>`;
+  return `<section class="device nas-wide" aria-labelledby="offer-nas-title">${icon('nas', 'device-symbol')}<h2 id="offer-nas-title" tabindex="-1">Ruimte aanbieden</h2>${content}<div class="nas-principles"><h3>Ruimte beheren zonder documenten te lezen</h3><p>Een gast hoeft verwijdering niet goed te keuren. Bij intrekken stoppen ook bestaande uploads en vervallen oude toegangsbewijzen. Een nieuw aanbod krijgt een nieuwe opslagruimte.</p><p>Wissen betreft de kopie op jouw NAS. Lokale kopieën bij de gast of elders blijven bestaan. Deze browserdemo verwerkt alleen fictieve gegevens.</p></div></section>`;
+}
+
+function nasRemovalDialog() {
+  const pending = state.nasSharing.pendingRemoval;
+  const guest = pending && guestMetadata(state.nasSharing).find((entry) => entry.id === pending.id);
+  if (!guest) return '';
+  return `<dialog id="nas-removal-dialog" aria-labelledby="nas-removal-title" aria-describedby="nas-removal-intro"><div class="dialog-content"><div class="dialog-heading">${icon('nas')}<span>Opslagbeheer · simulatie</span></div><h2 id="nas-removal-title">Ruimte van ${escape(guest.label)} intrekken?</h2><p id="nas-removal-intro">Je beëindigt de toegang en wist de kopie op jouw voorbeeld-NAS. Je hebt geen toestemming of decryptiesleutel van de gast nodig.</p>${notice('Ook bestaande uploads worden gestopt. Lokale kopieën bij de gast blijven bestaan.', 'warning')}</div><div class="dialog-actions">${button('Annuleer', 'cancelNasRemoval', '', 'id="cancel-nas-removal" autofocus')}${button('Trek in en wis NAS-kopie', 'confirmNasRemoval', 'danger', `data-id="${guest.id}"`)}</div></dialog>`;
+}
+
+function devicesScreen() {
+  const view = state.nasSharing.view;
+  const choices = [['own', 'Mijn NAS'], ['receive', 'Ruimte ontvangen'], ['offer', 'Ruimte aanbieden']];
+  const tabs = `<div class="nas-views" role="group" aria-label="Opslag instellen">${choices.map(([id, label]) => button(label, 'nasView', view === id ? 'primary' : '', `data-view="${id}" aria-pressed="${view === id}"`)).join('')}</div>`;
+  const local = `<section class="device">${icon('devices', 'device-symbol')}<h2>Dit apparaat</h2>${status('Lokaal beschikbaar')}<dl><div><dt>Materiaal</dt><dd>${state.objects.length} lokale voorbeeldobjecten</dd></div><div><dt>Opslag</dt><dd>Fictieve browsersessie</dd></div></dl><div class="actions"><a class="button" href="#/materiaal">Open materiaal ${icon('arrow')}</a></div></section>`;
+  const panel = view === 'own' ? `<div class="device-layout">${local}${ownNasPanel()}</div>` : view === 'receive' ? receiveNasPanel() : offerNasPanel();
+  return `${pageHead('Apparaten', 'Je eigen opslagomgeving, thuis en met mensen die je kent.')}${tabs}${panel}<p class="inline-note">${icon('info')}Simulatie: geen NAS-verbinding, encryptie of echte verwijdering in deze browser. Lokaal werken blijft beschikbaar; de assistent krijgt geen netwerkrecht.</p>`;
 }
 
 function assistantScreen() {
@@ -210,8 +264,16 @@ function assistantScreen() {
   return `${pageHead('Lokale assistent', 'Alleen het materiaal dat jij selecteert.')}<div class="assistant-layout"><section><h2>Geselecteerde context</h2><p class="meta section-gap">Maximaal drie documenten voor deze proef.</p><div class="context-list">${state.objects.map((object) => `<label class="checkbox"><input type="checkbox" data-context="${escape(object.id)}" ${ai.context.includes(object.id) ? 'checked' : ''} ${ai.context.length >= 3 && !ai.context.includes(object.id) ? 'disabled' : ''}><span>${escape(object.title)}<br><small>Op dit apparaat</small></span></label>`).join('')}</div><p class="inline-note">${icon('shield')}Geen internetrecht. Geen algemene toegang tot je materiaal.</p></section><section class="assistant-main">${content}</section></div><p class="inline-note">${icon('info')}Deterministische voorbeeldrespons. Er draait geen AI-model; er wordt niets gedownload.</p>`;
 }
 
+function nasScenarioControls() {
+  const received = state.nasSharing.received;
+  const available = ['paired', 'offline'].includes(received.state);
+  const routeAvailable = state.nas.identity === NAS_IDENTITY && ['online', 'offline', 'networkChanged'].includes(state.nas.state);
+  const route = `<label class="field">Verbindingswissel · browsermock<select id="demo-nas-route" ${routeAvailable ? '' : 'disabled'}><option value="" ${state.nas.state !== 'online' ? 'selected' : ''}>Geen bevestigde verbinding</option><option value="lan" ${state.nas.state === 'online' && state.nas.network === 'lan' ? 'selected' : ''}>Thuis · bekende NAS bereikbaar</option><option value="internet" ${state.nas.state === 'online' && state.nas.network === 'internet' ? 'selected' : ''}>Onderweg · bekende NAS bereikbaar</option></select></label><p class="meta">Simuleert een gecontroleerde identiteit en bereikbaarheid; voert geen netwerkcontrole uit. Buitenshuis is eerst de eenmalige internetkeuze nodig.</p>`;
+  return `<div class="nas-demo-scenarios">${route}<label class="field">Ontvangen NAS-ruimte<select id="demo-received-nas" ${available ? '' : 'disabled'}>${!available ? '<option selected>Geen actieve koppeling</option>' : ''}<option value="online" ${received.state === 'paired' ? 'selected' : ''}>Gekoppeld</option><option value="offline" ${received.state === 'offline' ? 'selected' : ''}>Niet bereikbaar</option><option value="identityMismatch">Verkeerde identiteit</option><option value="revoked">Door beheerder ingetrokken</option></select></label><p class="meta">Koppel eerst de voorbeelduitnodiging onder Apparaten → Ruimte ontvangen.</p><div class="actions">${state.nasSharing.hosting.guests.filter((guest) => guest.state !== 'removed').map((guest) => button(`Simuleer gebruik: ${escape(guest.label)}`, 'demoNasUsage', 'quiet', `data-id="${guest.id}"`)).join('')}</div></div>`;
+}
+
 function prototypePanel() {
-  return `<details class="prototype-panel" id="prototype-panel"><summary>Prototypepaneel · test een situatie</summary><p class="meta">Alleen voor deze interactieproef. Deze bediening hoort niet bij de uiteindelijke OS-ervaring. Er wordt geen echt apparaat of model aangestuurd.</p><div class="prototype-grid"><label class="field">Eigen NAS<select id="demo-nas">${[['unpaired', 'Niet gekoppeld'], ['offline', 'NAS offline'], ['networkChanged', 'Netwerk veranderd'], ['identityMismatch', 'Verkeerde identiteit']].map(([value, text]) => `<option value="${value}" ${state.nas.state === value ? 'selected' : ''}>${text}</option>`).join('')}${['online', 'verifying'].includes(state.nas.state) ? `<option value="${state.nas.state}" selected>${state.nas.state === 'online' ? 'Gekoppeld' : 'Identiteit controleren'}</option>` : ''}</select></label><label class="field">Lokale assistent<select id="demo-ai">${[['ready', 'Model aanwezig · simulatie'], ['missingModel', 'Model ontbreekt'], ['lowMemory', 'Onvoldoende geheugen']].map(([value, text]) => `<option value="${value}" ${state.ai.availability === value ? 'selected' : ''}>${text}</option>`).join('')}</select></label><div><label class="checkbox"><input id="demo-package" type="checkbox" ${state.conditions.invalidPackage ? 'checked' : ''}>Ongeldige pakketsignatuur</label><p class="meta">Bij de volgende voorbeeldinstallatie.</p></div></div><a class="button quiet" href="#/start">Bekijk de eerste start ${icon('arrow')}</a><a class="button quiet" href="#/toegang">Bekijk toegang ${icon('shield')}</a></details>`;
+  return `<details class="prototype-panel" id="prototype-panel"><summary>Prototypepaneel · test een situatie</summary><p class="meta">Alleen voor deze interactieproef. Deze bediening hoort niet bij de uiteindelijke OS-ervaring. Er wordt geen echt apparaat of model aangestuurd.</p><div class="prototype-grid"><label class="field">Eigen NAS<select id="demo-nas">${[['unpaired', 'Niet gekoppeld'], ['offline', 'NAS offline'], ['networkChanged', 'Netwerk veranderd'], ['identityMismatch', 'Verkeerde identiteit']].map(([value, text]) => `<option value="${value}" ${state.nas.state === value ? 'selected' : ''}>${text}</option>`).join('')}${['online', 'verifying'].includes(state.nas.state) ? `<option value="${state.nas.state}" selected>${state.nas.state === 'online' ? 'Gekoppeld' : 'Identiteit controleren'}</option>` : ''}</select></label><label class="field">Lokale assistent<select id="demo-ai">${[['ready', 'Model aanwezig · simulatie'], ['missingModel', 'Model ontbreekt'], ['lowMemory', 'Onvoldoende geheugen']].map(([value, text]) => `<option value="${value}" ${state.ai.availability === value ? 'selected' : ''}>${text}</option>`).join('')}</select></label><div><label class="checkbox"><input id="demo-package" type="checkbox" ${state.conditions.invalidPackage ? 'checked' : ''}>Ongeldige pakketsignatuur</label><p class="meta">Bij de volgende voorbeeldinstallatie.</p></div></div>${nasScenarioControls()}<a class="button quiet" href="#/start">Bekijk de eerste start ${icon('arrow')}</a><a class="button quiet" href="#/toegang">Bekijk toegang ${icon('shield')}</a></details>`;
 }
 
 function render(focusId = null) {
@@ -229,16 +291,21 @@ function render(focusId = null) {
   else if (route === '/gereedschap') content = toolScreen();
   else if (route === '/apparaten') content = devicesScreen();
   else content = assistantScreen();
-  app.innerHTML = shell(content, route) + (route === '/toegang' ? accessDialog() : '');
+  app.innerHTML = shell(content, route) + (route === '/toegang' ? accessDialog() : route === '/apparaten' ? nasRemovalDialog() : '');
   document.title = `${document.querySelector('h1')?.textContent || 'Materiaal'} · Materiaal prototype`;
   if (panelOpen && document.querySelector('#prototype-panel')) document.querySelector('#prototype-panel').open = true;
   const editor = document.querySelector('#document-editor');
   if (editor && state.draft) editor.setSelectionRange(state.draft.cursor, state.draft.cursor);
-  const dialog = document.querySelector('#access-dialog');
+  const dialog = document.querySelector('#access-dialog, #nas-removal-dialog');
   if (dialog) {
     dialog.showModal();
-    dialog.addEventListener('cancel', (event) => { event.preventDefault(); denyAccess(); });
-    document.querySelector('#deny-access').focus();
+    const isRemoval = dialog.id === 'nas-removal-dialog';
+    dialog.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      if (isRemoval) dispatch({ type: 'nasSharing', action: { type: 'cancelRemoval' } }, { focus: 'offer-nas-title' });
+      else denyAccess();
+    });
+    document.querySelector(isRemoval ? '#cancel-nas-removal' : '#deny-access').focus();
   } else {
     const target = document.getElementById(focusId || oldId);
     target?.focus({ preventScroll: !focusId });
@@ -315,6 +382,27 @@ document.addEventListener('click', (event) => {
       dispatch({ type: 'openObject', id: 'obj-001' }, { redraw: false });
       requestAccess(element.dataset.id); break;
     }
+    case 'nasView': dispatch({ type: 'nasSharing', action: { type: 'view', view: element.dataset.view } }, { focus: 'page-title' }); break;
+    case 'loadNasInvitation': dispatch({ type: 'nasSharing', action: { type: 'exampleInvitation', now: Date.now() } }, { focus: 'receive-nas-title' }); break;
+    case 'cancelNasInvitation': dispatch({ type: 'nasSharing', action: { type: 'cancelInvitation' } }, { focus: 'receive-nas-title' }); break;
+    case 'confirmNasInvitation': {
+      const confirmed = document.querySelector('#received-nas-confirm')?.checked === true;
+      const lossAccepted = document.querySelector('#received-nas-loss')?.checked === true;
+      dispatch({ type: 'nasSharing', action: { type: 'confirmInvitation', confirmed, lossAccepted, identity: FAMILY_NAS_IDENTITY,
+        invitationId: state.nasSharing.invitation?.id, now: Date.now() } }, { focus: 'receive-nas-title' }); break;
+    }
+    case 'enableNasHosting': dispatch({ type: 'nasSharing', action: { type: 'enableHosting', confirmed: true } }, { focus: 'offer-nas-title' }); break;
+    case 'inviteNasGuest': dispatch({ type: 'nasSharing', action: { type: 'inviteGuest', label: document.querySelector('#nas-guest-label')?.value,
+      quotaGiB: Number(document.querySelector('#nas-guest-quota')?.value) } }, { focus: 'offer-nas-title' }); break;
+    case 'requestNasRemoval': dispatch({ type: 'nasSharing', action: { type: 'requestRemoval', id: element.dataset.id } }); break;
+    case 'cancelNasRemoval': dispatch({ type: 'nasSharing', action: { type: 'cancelRemoval' } }, { focus: 'offer-nas-title' }); break;
+    case 'confirmNasRemoval': dispatch({ type: 'nasSharing', action: { type: 'removeGuest', id: element.dataset.id, confirmed: true } }, { focus: 'offer-nas-title' }); break;
+    case 'demoNasUsage': {
+      const guest = state.nasSharing.hosting.guests.find((entry) => entry.id === element.dataset.id);
+      if (guest) dispatch({ type: 'nasSharing', action: { type: 'guestUsage', id: guest.id, epoch: guest.epoch, usedGiB: Math.min(5, guest.quotaGiB) } });
+      break;
+    }
+    case 'nasInternetOff': dispatch({ type: 'nasInternet', identity: NAS_IDENTITY, allowed: false }, { focus: 'own-nas-title' }); break;
     case 'pairNas': dispatch({ type: 'pairNas' }, { focus: 'page-title' }); break;
     case 'unpairNas': dispatch({ type: 'nasCondition', condition: 'unpaired' }, { focus: 'page-title' }); break;
     case 'confirmNas': {
@@ -346,7 +434,13 @@ document.addEventListener('change', (event) => {
   const element = event.target;
   if (element.id === 'reduce-motion') dispatch({ type: 'reducedMotion', value: element.checked });
   if (element.id === 'nas-confirm') document.querySelector('#confirm-nas').disabled = !element.checked;
+  if (['received-nas-confirm', 'received-nas-loss'].includes(element.id)) document.querySelector('#confirm-nas-invitation').disabled = !(document.querySelector('#received-nas-confirm').checked && document.querySelector('#received-nas-loss').checked);
+  if (element.id === 'own-nas-internet') dispatch({ type: 'nasInternet', identity: NAS_IDENTITY, allowed: element.checked });
+  if (element.id === 'received-nas-internet') dispatch({ type: 'nasSharing', action: { type: 'internet', identity: FAMILY_NAS_IDENTITY, allowed: element.checked } });
+  if (element.id === 'demo-received-nas') dispatch({ type: 'nasSharing', action: { type: 'receivedCondition', condition: element.value } });
   if (element.id === 'demo-nas') dispatch({ type: 'nasCondition', condition: element.value });
+  if (element.id === 'demo-nas-route') dispatch({ type: 'observeNasRoute', network: element.value || state.nas.network,
+    identity: NAS_IDENTITY, reachable: Boolean(element.value), verified: Boolean(element.value), trustedLan: element.value === 'lan' });
   if (element.id === 'demo-ai') dispatch({ type: 'aiCondition', condition: element.value });
   if (element.id === 'demo-package') dispatch({ type: 'invalidPackage', value: element.checked });
   if (element.dataset.context) dispatch({ type: 'aiContext', id: element.dataset.context, selected: element.checked });
@@ -390,3 +484,4 @@ document.addEventListener('keydown', (event) => {
 
 window.addEventListener('hashchange', routeChanged);
 routeChanged();
+

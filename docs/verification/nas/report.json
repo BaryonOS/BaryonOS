@@ -1,0 +1,188 @@
+{
+  "scope": "N01 local Node host prototype and browser state mock; no native networking",
+  "status": "passed_with_explicit_integration_limits",
+  "verified_utc": "2026-10-27 20:59:32 UTC",
+  "base_commit": "a96ad45adb044177e18670cd38624ea2a671db3d",
+  "branch": "codex/nas-private-sharing",
+  "environment": {
+    "node": "24.22.1",
+    "openssl": "3.5.9",
+    "platform": "linux",
+    "arch": "x64"
+  },
+  "commands": [
+    {
+      "argv": [
+        "node",
+        "--test",
+        "--test-isolation=none",
+        "services/nas/tests/*.test.mjs",
+        "ui/prototype/tests/*.test.mjs"
+      ],
+      "shell_expands_globs": true,
+      "exit_code": 0,
+      "tests": 89,
+      "passed": 89,
+      "failed": 0,
+      "skipped": 0,
+      "service_tests": 50,
+      "ui_tests": 39,
+      "log": "tests.txt"
+    },
+    {
+      "argv": [
+        "node",
+        "services/nas/demo.mjs"
+      ],
+      "exit_code": 0,
+      "result": {
+        "prototype": "N01 Node-hostprototype",
+        "result": "passed",
+        "checks": [
+          "authenticated-encryption-roundtrip",
+          "real-ciphertext-storage",
+          "explicit-peer-internet-policy",
+          "administrator-eviction-without-user-key",
+          "stale-upload-denied"
+        ],
+        "boundary": "Geen TLS, sockets, echte NAS of native OS-integratie; uitsluitend synthetische data."
+      },
+      "log": "demo.json"
+    },
+    {
+      "command": "node --check for each listed .mjs/.js source and tests",
+      "exit_code": 0,
+      "results": [
+        {
+          "path": "services/nas/crypto.mjs",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "services/nas/demo.mjs",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "services/nas/errors.mjs",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "services/nas/policy.mjs",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "services/nas/store.mjs",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "services/nas/tests/crash-worker.mjs",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "services/nas/tests/crypto.test.mjs",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "services/nas/tests/policy.test.mjs",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "services/nas/tests/store.test.mjs",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "ui/prototype/app.js",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "ui/prototype/broker.js",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "ui/prototype/fixtures.js",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "ui/prototype/nas-sharing.js",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "ui/prototype/state.js",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "ui/prototype/tests/nas-sharing.test.mjs",
+          "exit_code": 0,
+          "stderr": ""
+        },
+        {
+          "path": "ui/prototype/tests/state.test.mjs",
+          "exit_code": 0,
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "source_sha256": {
+    "services/nas/crypto.mjs": "19c4681f1164442dc245637f9e7a539ab163d262305c7299f46fad8e4f142be2",
+    "services/nas/demo.mjs": "d74aef8ca67fc680a4d839f363dfcc8d70d4b3db60ae2b8018dca2f1893376db",
+    "services/nas/errors.mjs": "1d9d458819d42baecab9d0b7ffaee60e4e4a8e364b48f5920bc515c5a6f7a9ce",
+    "services/nas/policy.mjs": "ed768bdcbb57bd6d0f000df276c6fb5e123d29ce9098c198ad849ff428f3b20e",
+    "services/nas/store.mjs": "fadf71eafaea052a6def0bb277c3c0cc8ba4da60967c035fc20b0d323582b8be",
+    "services/nas/tests/crash-worker.mjs": "9c22db274aefd4a9f87e0a024e13791fba2d47b418ca3f7560eb1a87a336ad12",
+    "services/nas/tests/crypto.test.mjs": "a7f7ae401aa3777fe95067e7ee7d6b7d34b2108d0379a9aba9ec13ceaa63fe18",
+    "services/nas/tests/policy.test.mjs": "7763c324e04a998aaccef22f208d7cb27e13183c0af1b163f832738f991018dd",
+    "services/nas/tests/store.test.mjs": "fb03451b971a6e00d5307a887c4bf59127686d87d83ddfde33aa9874d1055b13",
+    "ui/prototype/app.js": "6a20864a6f159c43c5ae1f56f778cb4e2e7fa4f6b879ec6b711a904f452779bb",
+    "ui/prototype/broker.js": "8bfc3721fce6b09e154d7a4c06616c86d118f8980333e1a9596abe9bea87e77a",
+    "ui/prototype/fixtures.js": "a6fdd3e04282c0dd495f9f4a16e8bc2dba9c47275c707f78db8f8f19cc321a39",
+    "ui/prototype/nas-sharing.js": "1e60aa77dfcd31f9434f0c2242a71402bbcee3fa310bd7d6f5596d42dee30f2e",
+    "ui/prototype/state.js": "f6a08eeeeee3a41c8b4dc7f2905a7290b84f1ac5c56c91d44879cf002a67be95",
+    "ui/prototype/tests/nas-sharing.test.mjs": "77320172bc7c4ce98fb5bbbb97abbdb65192c2c59469a516f2de4a9aea06cf80",
+    "ui/prototype/tests/state.test.mjs": "71101a59adbccec7cadf56e2f047a80b3d54ad245fd2ba0d3bd76f92ee8178be"
+  },
+  "review": {
+    "kind": "independent AI-agent review, not a human security audit",
+    "findings_resolved": [
+      "Nonce ledger limit across staged uploads",
+      "Owned abandoned ciphertext snapshot cleanup before deletion success",
+      "Concurrent stale writer-lock recovery",
+      "Internet data pairing must not grant local administration"
+    ],
+    "targeted_checks_overlap_main_suite": true,
+    "additional_review": "Controlled multi-process lock contention probe; automatic route selection separately checked"
+  },
+  "boundaries": [
+    "No actual network connection, TLS adapter, peer cryptographic authentication, router changes or native Nieuw OS network enforcement.",
+    "UI simulates connection and encryption; graphical browser validation of new screens not run: originating Browser extension context unavailable.",
+    "Client keys are in memory; exported recovery is read-only. Safe persistent writable recovery, key rotation and multi-device integration remain open.",
+    "Prototype nonce/capacity limits and refreshing mock permissions are temporary test bounds, not accepted daily product restrictions.",
+    "Peer identity and transport facts are declared trusted-adapter assumptions in the host policy; NAS internet is peer-bound, general app internet is not yet destination-scoped.",
+    "Actual child process SIGKILL tests cover confirmed operations, not physical power loss at every write point.",
+    "No protection against hostile administrator rollback of the entire store snapshot; no claim of physical secure erasure or deletion of uncontrolled copies.",
+    "Kernel/M1-M6a source and existing evidence are not modified by N01; their runtime gates were not rerun."
+  ],
+  "requirements": "../../LOCAL-PRIVACY-CONTRACT.md and ../../implementation/NAS-SHARING-AND-INTERNET.md"
+}
