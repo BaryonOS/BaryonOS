@@ -1,69 +1,165 @@
 //! x86-64 entry ABI: 15 GPRs, vector, error, CPU iret frame. IF stays clear in M2.
 //! Intel SDM vol.3 ch.4-7: CR0.WP, EFER.NXE, IDT/GDT/TSS and IST.
-use core::{arch::{asm, global_asm}, ptr};
 use crate::serial;
+use core::{
+    arch::{asm, global_asm},
+    ptr,
+};
 
 #[repr(C, align(4096))]
-pub struct Stack { lower: [u8;4096], data: [u8;16384], upper: [u8;4096] }
-impl Stack { const fn new()->Self { Self { lower:[0;4096],data:[0;16384],upper:[0;4096] } } }
-static mut MAIN: Stack=Stack::new();
-static mut DOUBLE: Stack=Stack::new();
-static mut NMI: Stack=Stack::new();
-pub fn stack_top()->u64 { ptr::addr_of!(MAIN) as u64 + 20480 }
-pub fn guard_pages()->[u64;6] {
-    let main=ptr::addr_of!(MAIN) as u64;
-    let double=ptr::addr_of!(DOUBLE) as u64;
-    let nmi=ptr::addr_of!(NMI) as u64;
-    [main,main+20480,double,double+20480,nmi,nmi+20480]
+pub struct Stack {
+    lower: [u8; 4096],
+    data: [u8; 16384],
+    upper: [u8; 4096],
 }
-pub fn is_guard(address:u64)->bool {
+impl Stack {
+    const fn new() -> Self {
+        Self {
+            lower: [0; 4096],
+            data: [0; 16384],
+            upper: [0; 4096],
+        }
+    }
+}
+static mut MAIN: Stack = Stack::new();
+static mut DOUBLE: Stack = Stack::new();
+static mut NMI: Stack = Stack::new();
+pub fn stack_top() -> u64 {
+    ptr::addr_of!(MAIN) as u64 + 20480
+}
+pub fn guard_pages() -> [u64; 6] {
+    let main = ptr::addr_of!(MAIN) as u64;
+    let double = ptr::addr_of!(DOUBLE) as u64;
+    let nmi = ptr::addr_of!(NMI) as u64;
+    [main, main + 20480, double, double + 20480, nmi, nmi + 20480]
+}
+pub fn is_guard(address: u64) -> bool {
     guard_pages().contains(&address)
 }
-pub fn double_fault_probe()->! {
-    let guard=guard_pages()[0]+2048;
+pub fn double_fault_probe() -> ! {
+    let guard = guard_pages()[0] + 2048;
     // SAFETY: Explicit destructive test-only terminal path. RSP is set inside an
     // unmapped MAIN guard, then an actual push faults. #PF cannot push its CPU
     // frame there, requiring #DF on the separate IST1 stack. No Rust execution
     // may resume on the invalid stack. The feature handler exits the VM.
-    unsafe { asm!("mov rsp, {guard}","push 0","ud2",guard=in(reg) guard,options(noreturn)); }
+    unsafe {
+        asm!("mov rsp, {guard}","push 0","ud2",guard=in(reg) guard,options(noreturn));
+    }
 }
-#[repr(C,packed)]
-struct Pointer { limit:u16, base:u64 }
-#[repr(C,packed)]
-struct Tss { reserved:u32, rsp:[u64;3], reserved1:u64, ist:[u64;7], reserved2:u64, reserved3:u16, io:u16 }
-static mut TSS:Tss=Tss { reserved:0,rsp:[0;3],reserved1:0,ist:[0;7],reserved2:0,reserved3:0,io:104 };
-static mut GDT:[u64;7]=[0;7];
-#[derive(Clone,Copy)]
-#[repr(C,packed)]
-struct Gate { lo:u16, cs:u16, ist:u8, flags:u8, mid:u16, hi:u32, reserved:u32 }
-const EMPTY:Gate=Gate { lo:0,cs:0,ist:0,flags:0,mid:0,hi:0,reserved:0 };
-static mut IDT:[Gate;256]=[EMPTY;256];
-extern "C" { static exception_addresses:[u64;32]; }
+#[repr(C, packed)]
+struct Pointer {
+    limit: u16,
+    base: u64,
+}
+#[repr(C, packed)]
+struct Tss {
+    reserved: u32,
+    rsp: [u64; 3],
+    reserved1: u64,
+    ist: [u64; 7],
+    reserved2: u64,
+    reserved3: u16,
+    io: u16,
+}
+static mut TSS: Tss = Tss {
+    reserved: 0,
+    rsp: [0; 3],
+    reserved1: 0,
+    ist: [0; 7],
+    reserved2: 0,
+    reserved3: 0,
+    io: 104,
+};
+static mut GDT: [u64; 7] = [0; 7];
+#[derive(Clone, Copy)]
+#[repr(C, packed)]
+struct Gate {
+    lo: u16,
+    cs: u16,
+    ist: u8,
+    flags: u8,
+    mid: u16,
+    hi: u32,
+    reserved: u32,
+}
+const EMPTY: Gate = Gate {
+    lo: 0,
+    cs: 0,
+    ist: 0,
+    flags: 0,
+    mid: 0,
+    hi: 0,
+    reserved: 0,
+};
+static mut IDT: [Gate; 256] = [EMPTY; 256];
+extern "C" {
+    static exception_addresses: [u64; 32];
+}
 
 pub fn install() {
     // SAFETY: Exclusive single-CPU bootstrap, IF=0, static tables are aligned and
     // live forever. Packed TSS fields use unaligned raw writes. All gate addresses
     // originate in our executable stubs. No user/GDT writes after initialization.
     unsafe {
-        ptr::addr_of_mut!(TSS.rsp).cast::<u64>().write_unaligned(stack_top());
-        ptr::addr_of_mut!(TSS.ist).cast::<u64>().write_unaligned(ptr::addr_of!(DOUBLE) as u64+20480);
-        ptr::addr_of_mut!(TSS.ist).cast::<u64>().add(1).write_unaligned(ptr::addr_of!(NMI) as u64+20480);
-        let base=ptr::addr_of!(TSS) as u64;
-        let low=103 | ((base&0xffffff)<<16) | (0x89<<40) | (((base>>24)&0xff)<<56);
-        ptr::addr_of_mut!(GDT).write([0,0x00af9a000000ffff,0x00cf92000000ffff,0x00cff2000000ffff,0x00affa000000ffff,low,base>>32]);
+        ptr::addr_of_mut!(TSS.rsp)
+            .cast::<u64>()
+            .write_unaligned(stack_top());
+        ptr::addr_of_mut!(TSS.ist)
+            .cast::<u64>()
+            .write_unaligned(ptr::addr_of!(DOUBLE) as u64 + 20480);
+        ptr::addr_of_mut!(TSS.ist)
+            .cast::<u64>()
+            .add(1)
+            .write_unaligned(ptr::addr_of!(NMI) as u64 + 20480);
+        let base = ptr::addr_of!(TSS) as u64;
+        let low = 103 | ((base & 0xffffff) << 16) | (0x89 << 40) | (((base >> 24) & 0xff) << 56);
+        ptr::addr_of_mut!(GDT).write([
+            0,
+            0x00af9a000000ffff,
+            0x00cf92000000ffff,
+            0x00cff2000000ffff,
+            0x00affa000000ffff,
+            low,
+            base >> 32,
+        ]);
         for i in 0..32 {
-            let a=ptr::addr_of!(exception_addresses).cast::<u64>().add(i).read();
-            let gate=Gate { lo:a as u16,cs:8,ist:if i==8 {1} else if i==2 {2} else {0},flags:0x8e,mid:(a>>16) as u16,hi:(a>>32) as u32,reserved:0 };
+            let a = ptr::addr_of!(exception_addresses)
+                .cast::<u64>()
+                .add(i)
+                .read();
+            let gate = Gate {
+                lo: a as u16,
+                cs: 8,
+                ist: if i == 8 {
+                    1
+                } else if i == 2 {
+                    2
+                } else {
+                    0
+                },
+                flags: 0x8e,
+                mid: (a >> 16) as u16,
+                hi: (a >> 32) as u32,
+                reserved: 0,
+            };
             ptr::addr_of_mut!(IDT).cast::<Gate>().add(i).write(gate);
         }
-        let gdtr=Pointer { limit:55,base:ptr::addr_of!(GDT) as u64 };
-        let idtr=Pointer { limit:4095,base:ptr::addr_of!(IDT) as u64 };
+        let gdtr = Pointer {
+            limit: 55,
+            base: ptr::addr_of!(GDT) as u64,
+        };
+        let idtr = Pointer {
+            limit: 4095,
+            base: ptr::addr_of!(IDT) as u64,
+        };
         asm!("lgdt [{}]",in(reg) &gdtr,options(readonly,nostack));
         asm!("push 8","lea rax, [rip + 2f]","push rax","retfq","2:","mov ax, 16","mov ds, ax","mov es, ax","mov ss, ax","xor eax,eax","mov fs, ax","mov gs, ax",out("rax") _);
         asm!("ltr ax",in("ax") 0x28u16,options(nostack));
         asm!("lidt [{}]",in(reg) &idtr,options(readonly,nostack));
         // Clear FS/GS/KERNEL_GS base; user code cannot set FSGSBASE in this profile.
-        for msr in [0xc0000100u32,0xc0000101,0xc0000102] { asm!("wrmsr",in("ecx") msr,in("eax") 0u32,in("edx") 0u32,options(nostack)); }
+        for msr in [0xc0000100u32, 0xc0000101, 0xc0000102] {
+            asm!("wrmsr",in("ecx") msr,in("eax") 0u32,in("edx") 0u32,options(nostack));
+        }
     }
 }
 
@@ -71,76 +167,151 @@ pub fn protection() {
     // SAFETY: CPUID has no memory effects; own scalar-only kernel target. All CR
     // and MSR operations execute at CPL0 with IF clear. NX checked before NXE.
     unsafe {
-        let ext=core::arch::x86_64::__cpuid(0x80000000);
-        if ext.eax<0x80000001 || core::arch::x86_64::__cpuid(0x80000001).edx&(1<<20)==0 { serial::fail(b"M2_NX_UNAVAILABLE"); }
-        let (mut lo,hi):(u32,u32);
+        let ext = core::arch::x86_64::__cpuid(0x80000000);
+        if ext.eax < 0x80000001 || core::arch::x86_64::__cpuid(0x80000001).edx & (1 << 20) == 0 {
+            serial::fail(b"M2_NX_UNAVAILABLE");
+        }
+        let (mut lo, hi): (u32, u32);
         asm!("rdmsr",in("ecx") 0xc0000080u32,out("eax") lo,out("edx") hi,options(nostack));
-        lo|=1<<11;
+        lo |= 1 << 11;
         asm!("wrmsr",in("ecx") 0xc0000080u32,in("eax") lo,in("edx") hi,options(nostack));
-        let mut cr0:u64; let mut cr4:u64;
+        let mut cr0: u64;
+        let mut cr4: u64;
         asm!("mov {}, cr0",out(reg) cr0,options(nomem,nostack));
         asm!("mov {}, cr4",out(reg) cr4,options(nomem,nostack));
-        cr0|=(1<<16)|(1<<1)|(1<<2)|(1<<3);
-        cr4&=!((1<<7)|(1<<9)|(1<<10)|(1<<16)|(1<<17)|(1<<18));
+        cr0 |= (1 << 16) | (1 << 1) | (1 << 2) | (1 << 3);
+        cr4 &= !((1 << 7) | (1 << 9) | (1 << 10) | (1 << 16) | (1 << 17) | (1 << 18));
         asm!("mov cr4, {}",in(reg) cr4,options(nostack));
         asm!("mov cr0, {}",in(reg) cr0,options(nostack));
     }
 }
-pub fn activate(root:u64) {
+pub fn activate(root: u64) {
     // SAFETY: paging builder validates/retains own aligned tables and maps current
     // code, stacks, GDT, IDT, TSS and all metadata before this serializing switch.
-    unsafe { asm!("mov cr3, {}",in(reg) root,options(nostack)); }
-    let actual:u64;
+    unsafe {
+        asm!("mov cr3, {}",in(reg) root,options(nostack));
+    }
+    let actual: u64;
     // SAFETY: Read-only CPL0 register query; verifies real switch, not metadata.
-    unsafe { asm!("mov {}, cr3",out(reg) actual,options(nomem,nostack)); }
-    assert_eq!(actual,root);
+    unsafe {
+        asm!("mov {}, cr3",out(reg) actual,options(nomem,nostack));
+    }
+    assert_eq!(actual, root);
+}
+#[cfg(feature = "milestone-m3")]
+pub fn service_stack() -> u64 {
+    stack_top()
+}
+#[cfg(feature = "milestone-m3")]
+pub fn process_stack(top: u64) {
+    // SAFETY: Single-CPU IF=0; caller supplies mapped supervisor stack with guards.
+    unsafe {
+        ptr::addr_of_mut!(TSS.rsp)
+            .cast::<u64>()
+            .write_unaligned(top);
+    }
+}
+#[cfg(feature = "milestone-m3")]
+pub fn reset_debug() {
+    // SAFETY: CPL0, IF=0. No debugger API exists. Disable all breakpoints first,
+    // then clear addresses and status; users cannot write these registers.
+    unsafe {
+        asm!("mov dr7, {control}","mov dr0, {zero}","mov dr1, {zero}","mov dr2, {zero}","mov dr3, {zero}","mov dr6, {status}",control=in(reg) 0x400u64,zero=in(reg) 0u64,status=in(reg) 0xffff0ff0u64,options(nostack));
+    }
+}
+#[cfg(feature = "milestone-m3")]
+pub fn user_gate(vector: usize, address: u64, user: bool) {
+    assert!(vector == 32 || vector == 128);
+    let gate = Gate {
+        lo: address as u16,
+        cs: 8,
+        ist: 0,
+        flags: if user { 0xee } else { 0x8e },
+        mid: (address >> 16) as u16,
+        hi: (address >> 32) as u32,
+        reserved: 0,
+    };
+    // SAFETY: Exclusive IF=0 initialization of own permanent IDT, valid text stub.
+    unsafe {
+        ptr::addr_of_mut!(IDT)
+            .cast::<Gate>()
+            .add(vector)
+            .write(gate);
+    }
 }
 
 #[no_mangle]
-extern "C" fn m2_exception(frame:*const u64)->! {
+extern "C" fn m2_exception(frame: *const u64) -> ! {
     // SAFETY: Stub saves 15 GPRs and normalizes vector/error before CPU frame;
     // it passes its live, aligned kernel/IST stack and never returns. No scheduler
     // or allocator mutation, including NMI/DF paths. Only fixed metadata read.
-    let (vector,error,rip,cs)=unsafe { (frame.add(15).read(),frame.add(16).read(),frame.add(17).read(),frame.add(18).read()) };
-    let cr2:u64;
+    let (vector, error, rip, cs) = unsafe {
+        (
+            frame.add(15).read(),
+            frame.add(16).read(),
+            frame.add(17).read(),
+            frame.add(18).read(),
+        )
+    };
+    let cr2: u64;
     // SAFETY: CPL0 read of fault address; no pointed-to data is followed/logged.
-    unsafe { asm!("mov {}, cr2",out(reg) cr2,options(nomem,nostack)); }
-    if cfg!(feature="test-m2-double-fault") && vector==8 && error==0 && cs==8 {
-        let double=ptr::addr_of!(DOUBLE) as u64;
-        let main=ptr::addr_of!(MAIN) as u64;
-        let rsp:u64;
+    unsafe {
+        asm!("mov {}, cr2",out(reg) cr2,options(nomem,nostack));
+    }
+    if cfg!(feature = "test-m2-double-fault") && vector == 8 && error == 0 && cs == 8 {
+        let double = ptr::addr_of!(DOUBLE) as u64;
+        let main = ptr::addr_of!(MAIN) as u64;
+        let rsp: u64;
         // SAFETY: CPL0 metadata query on the current handler stack; CPU supplied
         // the 64-bit IST frame, whose saved old RSP is at the normalized offset.
-        let old_rsp=unsafe {
+        let old_rsp = unsafe {
             asm!("mov {}, rsp",out(reg) rsp,options(nomem,nostack));
             frame.add(20).read()
         };
-        let start=frame as u64;
-        if rsp>=double+4096 && rsp<double+20480
-            && start>=double+4096 && start.checked_add(22*8).is_some_and(|end| end<=double+20480)
-            && old_rsp>=main && old_rsp<main+4096
+        let start = frame as u64;
+        if rsp >= double + 4096
+            && rsp < double + 20480
+            && start >= double + 4096
+            && start
+                .checked_add(22 * 8)
+                .is_some_and(|end| end <= double + 20480)
+            && old_rsp >= main
+            && old_rsp < main + 4096
         {
-            serial::write(b"M2:FAULT:DF_IST:PASS\n"); serial::exit(0x11);
+            serial::write(b"M2:FAULT:DF_IST:PASS\n");
+            serial::exit(0x11);
         }
     }
-    let supervisor=cs==8 && error&4==0;
-    if vector==14 && supervisor {
-        if cfg!(feature="test-m2-ro") && cr2==super::text_start() && error&0x1f==3 {
-            serial::write(b"M2:FAULT:RO:PASS\n"); serial::exit(0x10);
+    let supervisor = cs == 8 && error & 4 == 0;
+    if cfg!(feature = "test-m2-kernel-fault") && vector == 6 && error == 0 && cs == 8 {
+        serial::write(b"M2:FAULT:KERNEL_UD:PASS\n");
+    }
+    if vector == 14 && supervisor {
+        if cfg!(feature = "test-m2-ro") && cr2 == super::text_start() && error & 0x1f == 3 {
+            serial::write(b"M2:FAULT:RO:PASS\n");
+            serial::exit(0x10);
         }
-        if cfg!(feature="test-m2-nx") && cr2==super::nx_probe() && rip==cr2 && error&0x1f==17 {
-            serial::write(b"M2:FAULT:NX:PASS\n"); serial::exit(0x10);
+        if cfg!(feature = "test-m2-nx")
+            && cr2 == super::nx_probe()
+            && rip == cr2
+            && error & 0x1f == 17
+        {
+            serial::write(b"M2:FAULT:NX:PASS\n");
+            serial::exit(0x10);
         }
-        if cfg!(feature="test-m2-absent") && cr2==0 && error&0x1f==0 {
-            serial::write(b"M2:FAULT:ABSENT:PASS\n"); serial::exit(0x10);
+        if cfg!(feature = "test-m2-absent") && cr2 == 0 && error & 0x1f == 0 {
+            serial::write(b"M2:FAULT:ABSENT:PASS\n");
+            serial::exit(0x10);
         }
     }
-    serial::write(b"M2:FAIL:KERNEL_EXCEPTION\n"); serial::exit(0x11)
+    serial::write(b"M2:FAIL:KERNEL_EXCEPTION\n");
+    serial::exit(0x11)
 }
 
 // All GPRs are saved before entering Rust. The call stack is SysV aligned and DF
 // cleared. No floating point context is used. Non-returning M2 failure path.
-global_asm!(r#"
+global_asm!(
+    r#"
 .section .text
 .macro EX n, err=0
 .global m2_exc_\n
@@ -200,10 +371,7 @@ m2_exception_common:
  push r13
  push r14
  push r15
- mov rdi,rsp
- and rsp,-16
- call m2_exception
- ud2
+ jmp m2_dispatch
 .section .rodata
 .align 8
 .global exception_addresses
@@ -212,4 +380,83 @@ exception_addresses:
 .quad m2_exc_8,m2_exc_9,m2_exc_10,m2_exc_11,m2_exc_12,m2_exc_13,m2_exc_14,m2_exc_15
 .quad m2_exc_16,m2_exc_17,m2_exc_18,m2_exc_19,m2_exc_20,m2_exc_21,m2_exc_22,m2_exc_23
 .quad m2_exc_24,m2_exc_25,m2_exc_26,m2_exc_27,m2_exc_28,m2_exc_29,m2_exc_30,m2_exc_31
-"#);
+"#
+);
+
+#[cfg(not(feature = "milestone-m3"))]
+global_asm!(
+    r#"
+.section .text
+m2_dispatch:
+ mov rdi,rsp
+ and rsp,-16
+ call m2_exception
+ ud2
+"#
+);
+#[cfg(feature = "milestone-m3")]
+global_asm!(
+    r#"
+.section .text
+.global m3_timer
+m3_timer:
+ push 0
+ push 32
+ jmp m2_exception_common
+.global m3_syscall
+m3_syscall:
+ push 0
+ push 128
+ jmp m2_exception_common
+m2_dispatch:
+ cmp qword ptr [rsp+120],2
+ je m3_terminal
+ cmp qword ptr [rsp+120],8
+ je m3_terminal
+ cmp qword ptr [rsp+120],32
+ jne m3_user_entry
+ cmp qword ptr [rsp+144],8
+ jne m3_user_entry
+ cmp byte ptr [rip+m3_idle_active],1
+ jne m3_terminal
+ inc qword ptr [rip+m3_idle_wakeups]
+ mov al,0x20
+ out 0x20,al
+ mov rax,rsp
+ jmp m3_restore
+m3_user_entry:
+ mov rax,[rsp+144]
+ and eax,3
+ cmp eax,3
+ jne m3_terminal
+ mov rdi,rsp
+ mov rsp,[rip+m3_service_stack]
+ and rsp,-16
+ call m3_event
+.global m3_restore
+m3_restore:
+ mov rsp,rax
+ pop r15
+ pop r14
+ pop r13
+ pop r12
+ pop r11
+ pop r10
+ pop r9
+ pop r8
+ pop rdi
+ pop rsi
+ pop rbp
+ pop rbx
+ pop rdx
+ pop rcx
+ pop rax
+ add rsp,16
+ iretq
+m3_terminal:
+ mov rdi,rsp
+ and rsp,-16
+ call m2_exception
+ ud2
+"#
+);
