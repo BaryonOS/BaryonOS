@@ -26,6 +26,18 @@ Gebruik de matrix om een taak voor te bereiden. De architectuurkeuzes en de volg
 
 De matrix is bewust breed: een bruikbaar OS is ook een appplatform, driverproject en onderhoudsorganisatie. Codex kan kennis ontsluiten en voorstellen doen. Het ontbrekende empirische bewijs moet uit builds, tests en onafhankelijke beoordeling komen.
 
+### Productonderzoek en consumentenadoptie
+
+Voor UX-, onboarding-, migratie- en positioneringstaken zijn
+[MARKET-AND-ADOPTION-2026-10-28.md](research/MARKET-AND-ADOPTION-2026-10-28.md)
+en [CONSUMER-VALUE-2026-10-28.md](research/CONSUMER-VALUE-2026-10-28.md)
+de actuele onderzoeksingangen. Houd **aandacht, proberen, overstappen en blijven
+gebruiken** als verschillende uitkomsten. Privacy, lokale AI, vormgeving en
+Europese herkomst zijn geen zelfstandige adoptiegaranties. Onderzoek
+taakprestatie, leerlast, noodzakelijke apps/bestanden/apparaten, herstel en
+vrijwillig hergebruik; ontwerpvoorstellen blijven hypotheses totdat passende
+gebruikersproeven ze ondersteunen.
+
 ## 2. Wat vóór iedere ontwikkeltaak in de context hoort
 
 Geef een agent niet alle documenten tegelijk. Laat hem eerst de relevante repository-instructies lezen en daarna alleen de bronstukken die voor de taak nodig zijn.
