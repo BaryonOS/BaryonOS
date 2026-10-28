@@ -50,6 +50,7 @@ jobs:
           cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked
           cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings
           cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check
+          python3 -B sdk/examples/catalog-read/build.py
       - name: Network parser tests and native cross-build
         run: |
           cargo +1.90.0 test --manifest-path services/net-protocol/Cargo.toml --locked
@@ -132,3 +133,28 @@ jobs:
           NOS_TARGET_DIR="$PWD/target/ci-qsim-job" \
           CARGO_TARGET_DIR="$PWD/target/ci-qsim-job" \
           python3 -B tools/run_qsim_job.py
+
+      - name: Ordinary SDK app - normal authority
+        shell: bash
+        run: |
+          rm -rf build/ci-sdk-normal target/ci-sdk-normal
+          NOS_BUILD_DIR="$PWD/build/ci-sdk-normal" \
+          NOS_TARGET_DIR="$PWD/target/ci-sdk-normal" \
+          CARGO_TARGET_DIR="$PWD/target/ci-sdk-normal" \
+          python3 -B tools/build.py --kernel-feature native-sdk-app
+          NOS_BUILD_DIR="$PWD/build/ci-sdk-normal" \
+          NOS_TARGET_DIR="$PWD/target/ci-sdk-normal" \
+          CARGO_TARGET_DIR="$PWD/target/ci-sdk-normal" \
+          python3 -B tools/run_sdk_app.py --case normal
+      - name: Ordinary SDK app - denied authority
+        shell: bash
+        run: |
+          rm -rf build/ci-sdk-denied target/ci-sdk-denied
+          NOS_BUILD_DIR="$PWD/build/ci-sdk-denied" \
+          NOS_TARGET_DIR="$PWD/target/ci-sdk-denied" \
+          CARGO_TARGET_DIR="$PWD/target/ci-sdk-denied" \
+          python3 -B tools/build.py --kernel-feature test-sdk-app-denied
+          NOS_BUILD_DIR="$PWD/build/ci-sdk-denied" \
+          NOS_TARGET_DIR="$PWD/target/ci-sdk-denied" \
+          CARGO_TARGET_DIR="$PWD/target/ci-sdk-denied" \
+          python3 -B tools/run_sdk_app.py --case denied

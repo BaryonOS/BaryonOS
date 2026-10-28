@@ -10,10 +10,18 @@ native = []
 [dependencies]
 nieuw-os-sdk-runtime = { path = "../../runtime" }
 nieuw-os-catalog-client = { path = "../../catalog-client" }
+catalog-core = { path = "../../../services/catalog" }
 
 [[bin]]
 name = "catalog-read"
 path = "src/main.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[[bin]]
+name = "catalog-read-service"
+path = "src/service.rs"
 required-features = ["native"]
 test = false
 bench = false

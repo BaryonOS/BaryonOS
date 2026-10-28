@@ -19,6 +19,8 @@ mod m4;
 mod qsim;
 #[cfg(feature = "native-qsim-job")]
 mod qsim_job;
+#[cfg(feature = "native-sdk-app")]
+mod sdk_app;
 #[cfg(all(
     feature = "native-qsim",
     any(
@@ -37,6 +39,16 @@ compile_error!("native-qsim is a separate opt-in M3 profile");
     )
 ))]
 compile_error!("native-qsim-job is a separate opt-in M4 profile");
+#[cfg(all(
+    feature = "native-sdk-app",
+    any(
+        feature = "milestone-m5",
+        feature = "graphics-g0",
+        feature = "native-qsim",
+        feature = "native-qsim-job"
+    )
+))]
+compile_error!("native-sdk-app is a separate opt-in M4 profile");
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
 mod m5;
 #[cfg(all(feature = "milestone-m6a", not(feature = "milestone-m6b")))]
@@ -54,10 +66,15 @@ const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
 const ELF: &[u8] = include_bytes!(env!("NOS_QSIM_ELF"));
 #[cfg(feature = "native-qsim-job")]
 const ELF: &[u8] = include_bytes!(env!("NOS_QSIM_JOB_ELF"));
+#[cfg(feature = "native-sdk-app")]
+const SDK_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_SDK_SERVICE_ELF"));
+#[cfg(feature = "native-sdk-app")]
+const SDK_APP_ELF: &[u8] = include_bytes!(env!("NOS_SDK_APP_ELF"));
 #[cfg(all(
     feature = "milestone-m4",
     not(feature = "milestone-m5"),
-    not(feature = "native-qsim-job")
+    not(feature = "native-qsim-job"),
+    not(feature = "native-sdk-app")
 ))]
 const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
@@ -208,9 +225,22 @@ extern "C" {
     fn m3_restore();
 }
 
+#[cfg(feature = "native-sdk-app")]
+fn process_elf(slot: usize) -> &'static [u8] {
+    match slot {
+        0 => SDK_SERVICE_ELF,
+        1 => SDK_APP_ELF,
+        _ => panic!("native SDK profile has only service and app"),
+    }
+}
+#[cfg(not(feature = "native-sdk-app"))]
+fn process_elf(_slot: usize) -> &'static [u8] {
+    ELF
+}
+
 pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! {
     arch::reset_debug();
-    let image = user::parse(ELF).expect("embedded user ELF");
+    let image = user::parse(process_elf(0)).expect("embedded user ELF");
     assert_eq!(image.entry, 0x40000000);
     kernel.begin_scratch(frames);
     #[cfg(feature = "milestone-m5")]
@@ -274,7 +304,11 @@ impl State {
         self.exited = false;
         self.survivor_slot = 1;
         self.unexpected = false;
-        self.amount = if cfg!(any(feature = "native-qsim", feature = "native-qsim-job")) {
+        self.amount = if cfg!(any(
+            feature = "native-qsim",
+            feature = "native-qsim-job",
+            feature = "native-sdk-app"
+        )) {
             2
         } else if cfg!(feature = "milestone-m5") && (14..=16).contains(&m5_case()) {
             4
@@ -292,6 +326,7 @@ impl State {
         let target = if cfg!(feature = "milestone-m5")
             || cfg!(feature = "native-qsim")
             || cfg!(feature = "native-qsim-job")
+            || cfg!(feature = "native-sdk-app")
         {
             0
         } else if mode() == 5 {
@@ -308,9 +343,12 @@ impl State {
         #[cfg(all(
             feature = "milestone-m4",
             not(feature = "milestone-m5"),
-            not(feature = "native-qsim-job")
+            not(feature = "native-qsim-job"),
+            not(feature = "native-sdk-app")
         ))]
         m4::manifest(self);
+        #[cfg(feature = "native-sdk-app")]
+        sdk_app::manifest(self);
         #[cfg(feature = "milestone-m5")]
         m5::manifest(self);
         #[cfg(feature = "native-qsim")]
@@ -331,7 +369,8 @@ impl State {
             &self.kernel,
             u16::try_from(slot + 1).unwrap(),
         ));
-        let image = user::parse(ELF).unwrap();
+        let elf = process_elf(slot);
+        let image = user::parse(elf).unwrap();
         for segment in &image.segments[..image.count] {
             let start = segment.va & !(PAGE - 1);
             let end = (segment.va + segment.memory_size + PAGE - 1) & !(PAGE - 1);
@@ -359,7 +398,7 @@ impl State {
                         // validated ELF source/file range, nonoverlapping kernel input.
                         unsafe {
                             ptr::copy_nonoverlapping(
-                                ELF.as_ptr().add(offset),
+                                elf.as_ptr().add(offset),
                                 dest.add((first - va) as usize),
                                 length,
                             );
@@ -474,39 +513,44 @@ impl State {
         }
         pa
     }
-    fn audit(&self) {
-        for (i, p) in self.processes[..self.amount].iter().enumerate() {
-            let tables = p.paging.as_ref().unwrap();
-            assert_ne!(tables.root, self.kernel.root);
-            assert!(!tables.permissions(text_start()).unwrap().3);
-            assert_eq!(tables.leaf(0), 0);
-            assert_eq!(tables.leaf(0x7ffee000), 0);
-            assert_eq!(tables.leaf(0x7ffff000), 0);
-            for m in p.mappings() {
-                assert_eq!(self.frames.owner(m.pa), Ok(Owner::User(p.pid, m.kind)));
-                let leaf = tables.leaf(m.va);
-                assert_eq!(leaf & ADDRESS, m.pa);
-                assert_ne!(leaf & 4, 0);
-                assert_eq!(leaf & 2 != 0, m.writable);
-                assert_eq!(leaf & NX == 0, m.executable);
-                assert_eq!(
-                    tables.permissions(m.va).unwrap(),
-                    (m.pa, m.writable, m.executable, true)
-                );
-                let alias = self.frames.alias(m.pa).unwrap();
-                assert!(alias.executable == 0 || alias.writable == 0);
-                let identity = self.kernel.leaf(m.pa);
-                assert_eq!(identity & 4, 0);
-                assert_ne!(identity & NX, 0);
-                assert_eq!(
-                    identity & 2 == 0,
-                    m.executable || !m.writable && m.executable
-                );
-                for other in &self.processes[..i] {
-                    assert!(other.mappings().iter().all(|x| x.pa != m.pa));
-                }
+    fn audit_process(&self, i: usize) {
+        let p = &self.processes[i];
+        assert!(!matches!(p.status, Status::Dead));
+        let tables = p.paging.as_ref().unwrap();
+        assert_ne!(tables.root, self.kernel.root);
+        assert!(!tables.permissions(text_start()).unwrap().3);
+        assert_eq!(tables.leaf(0), 0);
+        assert_eq!(tables.leaf(0x7ffee000), 0);
+        assert_eq!(tables.leaf(0x7ffff000), 0);
+        for m in p.mappings() {
+            assert_eq!(self.frames.owner(m.pa), Ok(Owner::User(p.pid, m.kind)));
+            let leaf = tables.leaf(m.va);
+            assert_eq!(leaf & ADDRESS, m.pa);
+            assert_ne!(leaf & 4, 0);
+            assert_eq!(leaf & 2 != 0, m.writable);
+            assert_eq!(leaf & NX == 0, m.executable);
+            assert_eq!(
+                tables.permissions(m.va).unwrap(),
+                (m.pa, m.writable, m.executable, true)
+            );
+            let alias = self.frames.alias(m.pa).unwrap();
+            assert!(alias.executable == 0 || alias.writable == 0);
+            let identity = self.kernel.leaf(m.pa);
+            assert_eq!(identity & 4, 0);
+            assert_ne!(identity & NX, 0);
+            assert_eq!(
+                identity & 2 == 0,
+                m.executable || !m.writable && m.executable
+            );
+            for other in &self.processes[..i] {
+                assert!(other.mappings().iter().all(|x| x.pa != m.pa));
             }
-            assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
+        }
+        assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
+    }
+    fn audit(&self) {
+        for i in 0..self.amount {
+            self.audit_process(i);
         }
     }
     fn select(&mut self) -> *const u64 {
@@ -569,6 +613,7 @@ impl State {
                 p.selected += 1;
                 if !cfg!(feature = "native-qsim")
                     && !cfg!(feature = "native-qsim-job")
+                    && !cfg!(feature = "native-sdk-app")
                     && mode() == 0
                     && self.round < 2
                     && !self.fault
@@ -711,6 +756,11 @@ impl State {
             .count()
     }
     fn observer_exit(&mut self, slot: usize, counter: u64) {
+        #[cfg(feature = "native-sdk-app")]
+        {
+            sdk_app::observe_exit(self, slot, counter);
+            return;
+        }
         #[cfg(feature = "native-qsim-job")]
         {
             qsim_job::observe_exit(self, slot, counter);
@@ -725,7 +775,8 @@ impl State {
         #[cfg(all(
             feature = "milestone-m4",
             not(feature = "milestone-m5"),
-            not(feature = "native-qsim-job")
+            not(feature = "native-qsim-job"),
+            not(feature = "native-sdk-app")
         ))]
         {
             m4::observe_exit(self, slot, counter);
@@ -756,6 +807,11 @@ impl State {
         }
     }
     fn observer_fault(&mut self, slot: usize, context: &[u64; 22], counter: u64) {
+        #[cfg(feature = "native-sdk-app")]
+        {
+            sdk_app::observe_fault(self, slot, context, counter);
+            return;
+        }
         #[cfg(feature = "native-qsim-job")]
         {
             qsim_job::observe_fault(self, slot, context, counter);
@@ -770,7 +826,8 @@ impl State {
         #[cfg(all(
             feature = "milestone-m4",
             not(feature = "milestone-m5"),
-            not(feature = "native-qsim-job")
+            not(feature = "native-qsim-job"),
+            not(feature = "native-sdk-app")
         ))]
         {
             m4::observe_fault(self, slot, context, counter);
@@ -962,13 +1019,18 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
     #[cfg(all(
         feature = "milestone-m4",
         not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job")
+        not(feature = "native-qsim-job"),
+        not(feature = "native-sdk-app")
     ))]
     if let Some(next) = m4::poll(state) {
         return next;
     }
     #[cfg(feature = "milestone-m5")]
     if let Some(next) = m5::poll(state) {
+        return next;
+    }
+    #[cfg(feature = "native-sdk-app")]
+    if let Some(next) = sdk_app::poll(state) {
         return next;
     }
     #[cfg(feature = "native-qsim")]

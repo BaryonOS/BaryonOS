@@ -29,7 +29,8 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "tes
                    "milestone-m5", *(f"test-m5-{case}" for case in M5_CASES),
                    "milestone-m6a", *(f"test-m6a-{case}" for case in M6A_CASES),
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
-                   "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job"]
+                   "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
+                   "native-sdk-app", "test-sdk-app-denied"]
 
 
 def inspect_elf(path):
@@ -130,6 +131,21 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
         if not qsim_report.get("passed") or sha256(output / "qsim-job-native.elf") != qsim_report["binary_sha256"]:
             raise ValueError("Native qsim job executable failed its artifact gate")
         extra_env = {"NOS_QSIM_JOB_ELF": str((output / "qsim-job-native.elf").resolve())}
+    elif kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
+        from build_users import inspect_user
+        app_target = TARGET / "sdk-app"
+        run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/catalog-read/build.py")],
+                   "build-sdk-example", extra_env={"CARGO_TARGET_DIR": str(app_target)})
+        app = app_target / "x86_64-unknown-none/release/catalog-read"
+        service = app_target / "x86_64-unknown-none/release/catalog-read-service"
+        qsim_report = {
+            "app_sha256": sha256(app), "app_elf": inspect_user(app),
+            "service_sha256": sha256(service), "service_elf": inspect_user(service),
+        }
+        extra_env = {
+            "NOS_SDK_APP_ELF": str(app.resolve()),
+            "NOS_SDK_SERVICE_ELF": str(service.resolve()),
+        }
     if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b", "m6c")):
         from build_users import build_users
         extra_env = {"NOS_USER_ELF": str(build_users("large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
@@ -161,7 +177,10 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
     manifest["sdk_runtime"] = use_sdk
     manifest["document_session"] = use_document_session
     if qsim_report is not None:
-        manifest["qsim_user"] = qsim_report
+        if kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
+            manifest["sdk_app"] = qsim_report
+        else:
+            manifest["qsim_user"] = qsim_report
     esp = BUILD / "esp"
     (esp / "EFI/BOOT").mkdir(parents=True, exist_ok=True)
     shutil.copy2(loader, esp / "EFI/BOOT/BOOTX64.EFI")
