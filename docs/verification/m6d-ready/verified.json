@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "source_commit": "88e6c04be218b8b09ea4f0a226f6b9719da706a6",
+  "source_sha256": "8ca6d5d5291fde62f91fb47dca7df4d058424604449fb32b9e5899b1d4fbef93",
+  "checks": {
+    "two_normal_runs": true,
+    "feature": true,
+    "loader_feature": true,
+    "source": true,
+    "kernel": true,
+    "loader": true
+  },
+  "scope": "Final ordinary milestone-m6c build; kernel and loader byte-identical to both successful normal runs. No additional VM invocation.",
+  "files": {
+    "m6d-ready-build.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build-manifest.json": "bf960df3efb8af93429081bc00977b0849a71e15aa563e04b8f0063d216c3513",
+    "m6d-ready-build.json": "f177f0615225f3f07d815aeb781bf5793f7b4e62e4a574bdb14f2b01a3a47067",
+    "m6d-final-rustfmt.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m6d-final-rustfmt.json": "242db057309c4b87353fd25c4349073da0eef3a4630e07897267f7bd4137c6c4",
+    "m6d-final-rustfmt.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m6d-ready-build.stdout.txt": "62e9e72643db40a05bac5358703ca695d5c8031bd9b54ced3f7f498119ee5524"
+  }
+}

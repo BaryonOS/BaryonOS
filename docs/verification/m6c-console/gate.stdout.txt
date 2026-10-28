@@ -1,0 +1,1111 @@
+{
+  "schema_version": 1,
+  "scope": "inventory only; no build, boot, acceleration or ABI validated",
+  "workspace": "/workspace/scratch/244976efa240/nieuw-os",
+  "host": {
+    "system": "Linux",
+    "architecture": "x86_64",
+    "python": "3.12.14"
+  },
+  "tools": {
+    "git": {
+      "available": true,
+      "path": "/usr/local/bin/git",
+      "version": "git version 2.51.1",
+      "probe_exit": 0
+    },
+    "rustc": {
+      "available": true,
+      "path": "/workspace/scratch/244976efa240/nieuw-os/.tools/nieuw-os/cargo/bin/rustc",
+      "version": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+      "probe_exit": 0
+    },
+    "cargo": {
+      "available": true,
+      "path": "/workspace/scratch/244976efa240/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+      "version": "cargo 1.90.0 (840b83a10 2025-07-30)",
+      "probe_exit": 0
+    },
+    "rustup": {
+      "available": true,
+      "path": "/workspace/scratch/244976efa240/nieuw-os/.tools/nieuw-os/cargo/bin/rustup",
+      "version": "rustup 1.29.2 (d8c92c676 2026-10-21)",
+      "probe_exit": -6
+    },
+    "qemu-system-x86_64": {
+      "available": true,
+      "path": "/workspace/scratch/244976efa240/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "version": "QEMU emulator version 10.0.2 (Debian 1:10.0.2+ds-2+deb13u1~bpo12+1)",
+      "probe_exit": 0
+    },
+    "ld.lld": {
+      "available": false,
+      "path": null,
+      "version": null
+    },
+    "clang": {
+      "available": false,
+      "path": null,
+      "version": null
+    },
+    "cc": {
+      "available": true,
+      "path": "/usr/bin/cc",
+      "version": "cc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+      "probe_exit": 0
+    },
+    "python3": {
+      "available": true,
+      "path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "version": "Python 3.12.14",
+      "probe_exit": 0
+    }
+  },
+  "installed_rust_targets": [
+    "x86_64-unknown-linux-gnu",
+    "x86_64-unknown-none",
+    "x86_64-unknown-uefi"
+  ],
+  "missing_rust_targets": [],
+  "firmware_candidates": [
+    "/workspace/scratch/244976efa240/nieuw-os/.tools/nieuw-os/distro/usr/share/OVMF/OVMF_CODE_4M.fd"
+  ],
+  "missing": [],
+  "baseline_tools_present": true,
+  "next": "Compare versions against docs/implementation/BOOT-AND-TOOLCHAIN.md; then build and run the real smoke test."
+}
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 15 tests
+test catalog_sorted_filtered_and_tombstone_revision_is_local ... ok
+test duplicate_labels_and_byte_distinct_unicode_keep_id_identity ... ok
+test empty_catalog_has_no_global_activity_or_invalid_domain ... ok
+test prepared_commit_is_bound_to_complete_prior_state ... ok
+test recovery_checks_rename_predecessor_and_content_despite_valid_checksum ... ok
+test recovery_rejects_revision_jump_and_invalid_utf8_with_new_checksum ... ok
+test recovery_requires_complete_contiguous_scan_and_stays_failed ... ok
+test full_preserves_latest_name_and_content_without_wrap ... ok
+test mixed_lifecycle_roundtrips_all_records_and_deleted_metadata_is_cleared ... ok
+test valid_legacy_v1_record_is_rejected_without_modifying_it ... ok
+test stale_mutation_cannot_resurrect_deleted_object ... ok
+test state_rejects_bad_operation_id_bounds_name_and_rename_value ... ok
+test rename_is_atomic_preserves_all_content_and_has_no_early_commit ... ok
+test zero_length_content_is_a_live_named_object ... ok
+test recovery_rejects_all_single_byte_damage_and_noncanonical_rehashed_fields ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 15 tests
+test all_five_valid_requests_are_accepted_only_in_their_endpoint_domain ... ok
+test constructors_never_truncate_oversize_values_or_names ... ok
+test arbitrary_external_lengths_never_create_out_of_bounds_slices ... ok
+test error_replies_scrub_all_data_and_only_authorized_notfound_keeps_revision ... ok
+test get_reply_contains_canonical_name_and_value_including_empty_content ... ok
+test list_roundtrip_preserves_sorted_metadata_and_no_contents ... ok
+test malformed_catalog_constructor_fails_closed_without_panicking ... ok
+test list_rejects_foreign_ids_unsorted_duplicate_or_forged_revisions ... ok
+test list_empty_zero_generation_and_deleted_generation_are_valid ... ok
+test mutation_acks_have_no_data_and_are_bound_to_next_revision ... ok
+test list_rejects_bad_count_lengths_names_and_all_padding ... ok
+test names_validate_bytes_utf8_controls_bidi_and_path_punctuation ... ok
+test replies_bind_request_epoch_operation_object_and_status ... ok
+test operation_specific_fields_reject_impossible_requests ... ok
+test request_identity_epoch_version_and_every_padding_byte_are_checked ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (target/debug/deps/catalog_core-a8070c27aae832d2)
+     Running tests/core.rs (target/debug/deps/core-b795e532764d6336)
+     Running tests/wire.rs (target/debug/deps/wire-c87bb83abbd1b5e6)
+   Doc-tests catalog_core
+.................................
+----------------------------------------------------------------------
+Ran 33 tests in 0.643s
+
+OK
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.02s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+   Compiling catalog-core v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/services/catalog)
+    Finished `release` profile [optimized] target(s) in 1.46s
+Built and inspected m6c-normal: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:READY
+M6C:SEQUENCE:10
+M6C:OBJECT0:REVISION:3
+M6C:OBJECT0:PRESENT:1
+M6C:OBJECT0:LENGTH:128
+M6C:OBJECT0:NAME_LENGTH:16
+M6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a
+M6C:OBJECT0:DIGEST:b283dc2e26cecaa5
+M6C:OBJECT1:REVISION:2
+M6C:OBJECT1:PRESENT:0
+M6C:OBJECT1:LENGTH:0
+M6C:OBJECT1:NAME_LENGTH:0
+M6C:OBJECT1:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT1:DIGEST:cbf29ce484222325
+M6C:OBJECT2:REVISION:3
+M6C:OBJECT2:PRESENT:1
+M6C:OBJECT2:LENGTH:128
+M6C:OBJECT2:NAME_LENGTH:16
+M6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7
+M6C:OBJECT2:DIGEST:7a79c58355bc8925
+M6C:OBJECT3:REVISION:2
+M6C:OBJECT3:PRESENT:0
+M6C:OBJECT3:LENGTH:0
+M6C:OBJECT3:NAME_LENGTH:0
+M6C:OBJECT3:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT3:DIGEST:cbf29ce484222325
+M6C:ACKS:10
+M6C:REJECTED_NO_IO:6
+M6C:CATALOG_REPLIES:10
+M6C:DOMAIN0:REVISION:5
+M6C:DOMAIN1:REVISION:5
+M6C:CASE:NORMAL:PASS
+M6C:SURVIVOR_PROGRESS:PASS
+M6C:RESOURCES:PASS
+M6C:PASS
+M1:PASS
+M6c raw=33; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-a-569ed90fa6
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.29s
+Built and inspected m6c-recover: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:READY
+M6C:SEQUENCE:10
+M6C:OBJECT0:REVISION:3
+M6C:OBJECT0:PRESENT:1
+M6C:OBJECT0:LENGTH:128
+M6C:OBJECT0:NAME_LENGTH:16
+M6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a
+M6C:OBJECT0:DIGEST:b283dc2e26cecaa5
+M6C:OBJECT1:REVISION:2
+M6C:OBJECT1:PRESENT:0
+M6C:OBJECT1:LENGTH:0
+M6C:OBJECT1:NAME_LENGTH:0
+M6C:OBJECT1:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT1:DIGEST:cbf29ce484222325
+M6C:OBJECT2:REVISION:3
+M6C:OBJECT2:PRESENT:1
+M6C:OBJECT2:LENGTH:128
+M6C:OBJECT2:NAME_LENGTH:16
+M6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7
+M6C:OBJECT2:DIGEST:7a79c58355bc8925
+M6C:OBJECT3:REVISION:2
+M6C:OBJECT3:PRESENT:0
+M6C:OBJECT3:LENGTH:0
+M6C:OBJECT3:NAME_LENGTH:0
+M6C:OBJECT3:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT3:DIGEST:cbf29ce484222325
+M6C:ACKS:0
+M6C:REJECTED_NO_IO:2
+M6C:CATALOG_REPLIES:2
+M6C:DOMAIN0:REVISION:5
+M6C:DOMAIN1:REVISION:5
+M6C:CASE:RECOVER:PASS
+M6C:SURVIVOR_PROGRESS:PASS
+M6C:RESOURCES:PASS
+M6C:PASS
+M1:PASS
+M6c raw=33; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-a-cold-recovery-bd8654b5ae
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.22s
+Built and inspected m6c-normal: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:READY
+M6C:SEQUENCE:10
+M6C:OBJECT0:REVISION:3
+M6C:OBJECT0:PRESENT:1
+M6C:OBJECT0:LENGTH:128
+M6C:OBJECT0:NAME_LENGTH:16
+M6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a
+M6C:OBJECT0:DIGEST:b283dc2e26cecaa5
+M6C:OBJECT1:REVISION:2
+M6C:OBJECT1:PRESENT:0
+M6C:OBJECT1:LENGTH:0
+M6C:OBJECT1:NAME_LENGTH:0
+M6C:OBJECT1:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT1:DIGEST:cbf29ce484222325
+M6C:OBJECT2:REVISION:3
+M6C:OBJECT2:PRESENT:1
+M6C:OBJECT2:LENGTH:128
+M6C:OBJECT2:NAME_LENGTH:16
+M6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7
+M6C:OBJECT2:DIGEST:7a79c58355bc8925
+M6C:OBJECT3:REVISION:2
+M6C:OBJECT3:PRESENT:0
+M6C:OBJECT3:LENGTH:0
+M6C:OBJECT3:NAME_LENGTH:0
+M6C:OBJECT3:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT3:DIGEST:cbf29ce484222325
+M6C:ACKS:10
+M6C:REJECTED_NO_IO:6
+M6C:CATALOG_REPLIES:10
+M6C:DOMAIN0:REVISION:5
+M6C:DOMAIN1:REVISION:5
+M6C:CASE:NORMAL:PASS
+M6C:SURVIVOR_PROGRESS:PASS
+M6C:RESOURCES:PASS
+M6C:PASS
+M1:PASS
+M6c raw=33; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-b-794c25ceba
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.21s
+Built and inspected m6c-recover: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:READY
+M6C:SEQUENCE:10
+M6C:OBJECT0:REVISION:3
+M6C:OBJECT0:PRESENT:1
+M6C:OBJECT0:LENGTH:128
+M6C:OBJECT0:NAME_LENGTH:16
+M6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a
+M6C:OBJECT0:DIGEST:b283dc2e26cecaa5
+M6C:OBJECT1:REVISION:2
+M6C:OBJECT1:PRESENT:0
+M6C:OBJECT1:LENGTH:0
+M6C:OBJECT1:NAME_LENGTH:0
+M6C:OBJECT1:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT1:DIGEST:cbf29ce484222325
+M6C:OBJECT2:REVISION:3
+M6C:OBJECT2:PRESENT:1
+M6C:OBJECT2:LENGTH:128
+M6C:OBJECT2:NAME_LENGTH:16
+M6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7
+M6C:OBJECT2:DIGEST:7a79c58355bc8925
+M6C:OBJECT3:REVISION:2
+M6C:OBJECT3:PRESENT:0
+M6C:OBJECT3:LENGTH:0
+M6C:OBJECT3:NAME_LENGTH:0
+M6C:OBJECT3:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT3:DIGEST:cbf29ce484222325
+M6C:ACKS:0
+M6C:REJECTED_NO_IO:2
+M6C:CATALOG_REPLIES:2
+M6C:DOMAIN0:REVISION:5
+M6C:DOMAIN1:REVISION:5
+M6C:CASE:RECOVER:PASS
+M6C:SURVIVOR_PROGRESS:PASS
+M6C:RESOURCES:PASS
+M6C:PASS
+M1:PASS
+M6c raw=33; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-b-cold-recovery-a901cd2702
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.29s
+Built and inspected m6c-errors: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:READY
+M6C:SEQUENCE:10
+M6C:OBJECT0:REVISION:3
+M6C:OBJECT0:PRESENT:1
+M6C:OBJECT0:LENGTH:128
+M6C:OBJECT0:NAME_LENGTH:16
+M6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a
+M6C:OBJECT0:DIGEST:b283dc2e26cecaa5
+M6C:OBJECT1:REVISION:2
+M6C:OBJECT1:PRESENT:0
+M6C:OBJECT1:LENGTH:0
+M6C:OBJECT1:NAME_LENGTH:0
+M6C:OBJECT1:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT1:DIGEST:cbf29ce484222325
+M6C:OBJECT2:REVISION:3
+M6C:OBJECT2:PRESENT:1
+M6C:OBJECT2:LENGTH:128
+M6C:OBJECT2:NAME_LENGTH:16
+M6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7
+M6C:OBJECT2:DIGEST:7a79c58355bc8925
+M6C:OBJECT3:REVISION:2
+M6C:OBJECT3:PRESENT:0
+M6C:OBJECT3:LENGTH:0
+M6C:OBJECT3:NAME_LENGTH:0
+M6C:OBJECT3:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT3:DIGEST:cbf29ce484222325
+M6C:ACKS:10
+M6C:REJECTED_NO_IO:80
+M6C:CATALOG_REPLIES:10
+M6C:DOMAIN0:REVISION:5
+M6C:DOMAIN1:REVISION:5
+M6C:CASE:ERRORS:PASS
+M6C:SURVIVOR_PROGRESS:PASS
+M6C:RESOURCES:PASS
+M6C:PASS
+M1:PASS
+M6c raw=33; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-errors-95fe752382
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.19s
+Built and inspected m6c-recover: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:READY
+M6C:SEQUENCE:10
+M6C:OBJECT0:REVISION:3
+M6C:OBJECT0:PRESENT:1
+M6C:OBJECT0:LENGTH:128
+M6C:OBJECT0:NAME_LENGTH:16
+M6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a
+M6C:OBJECT0:DIGEST:b283dc2e26cecaa5
+M6C:OBJECT1:REVISION:2
+M6C:OBJECT1:PRESENT:0
+M6C:OBJECT1:LENGTH:0
+M6C:OBJECT1:NAME_LENGTH:0
+M6C:OBJECT1:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT1:DIGEST:cbf29ce484222325
+M6C:OBJECT2:REVISION:3
+M6C:OBJECT2:PRESENT:1
+M6C:OBJECT2:LENGTH:128
+M6C:OBJECT2:NAME_LENGTH:16
+M6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7
+M6C:OBJECT2:DIGEST:7a79c58355bc8925
+M6C:OBJECT3:REVISION:2
+M6C:OBJECT3:PRESENT:0
+M6C:OBJECT3:LENGTH:0
+M6C:OBJECT3:NAME_LENGTH:0
+M6C:OBJECT3:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT3:DIGEST:cbf29ce484222325
+M6C:ACKS:0
+M6C:REJECTED_NO_IO:2
+M6C:CATALOG_REPLIES:2
+M6C:DOMAIN0:REVISION:5
+M6C:DOMAIN1:REVISION:5
+M6C:CASE:RECOVER:PASS
+M6C:SURVIVOR_PROGRESS:PASS
+M6C:RESOURCES:PASS
+M6C:PASS
+M1:PASS
+M6c raw=33; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-errors-cold-recovery-846735973c
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.28s
+Built and inspected m6c-full: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:READY
+M6C:SEQUENCE:32
+M6C:OBJECT0:REVISION:16
+M6C:OBJECT0:PRESENT:1
+M6C:OBJECT0:LENGTH:128
+M6C:OBJECT0:NAME_LENGTH:16
+M6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a
+M6C:OBJECT0:DIGEST:9e80810b25e10a25
+M6C:OBJECT1:REVISION:0
+M6C:OBJECT1:PRESENT:0
+M6C:OBJECT1:LENGTH:0
+M6C:OBJECT1:NAME_LENGTH:0
+M6C:OBJECT1:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT1:DIGEST:cbf29ce484222325
+M6C:OBJECT2:REVISION:16
+M6C:OBJECT2:PRESENT:1
+M6C:OBJECT2:LENGTH:128
+M6C:OBJECT2:NAME_LENGTH:16
+M6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7
+M6C:OBJECT2:DIGEST:cd36c6f0239ab525
+M6C:OBJECT3:REVISION:0
+M6C:OBJECT3:PRESENT:0
+M6C:OBJECT3:LENGTH:0
+M6C:OBJECT3:NAME_LENGTH:0
+M6C:OBJECT3:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT3:DIGEST:cbf29ce484222325
+M6C:ACKS:32
+M6C:REJECTED_NO_IO:8
+M6C:CATALOG_REPLIES:4
+M6C:DOMAIN0:REVISION:16
+M6C:DOMAIN1:REVISION:16
+M6C:CASE:FULL:PASS
+M6C:SURVIVOR_PROGRESS:PASS
+M6C:RESOURCES:PASS
+M6C:PASS
+M1:PASS
+M6c raw=33; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-full-7dd37b655b
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.36s
+Built and inspected m6c-recover: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:READY
+M6C:SEQUENCE:32
+M6C:OBJECT0:REVISION:16
+M6C:OBJECT0:PRESENT:1
+M6C:OBJECT0:LENGTH:128
+M6C:OBJECT0:NAME_LENGTH:16
+M6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a
+M6C:OBJECT0:DIGEST:9e80810b25e10a25
+M6C:OBJECT1:REVISION:0
+M6C:OBJECT1:PRESENT:0
+M6C:OBJECT1:LENGTH:0
+M6C:OBJECT1:NAME_LENGTH:0
+M6C:OBJECT1:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT1:DIGEST:cbf29ce484222325
+M6C:OBJECT2:REVISION:16
+M6C:OBJECT2:PRESENT:1
+M6C:OBJECT2:LENGTH:128
+M6C:OBJECT2:NAME_LENGTH:16
+M6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7
+M6C:OBJECT2:DIGEST:cd36c6f0239ab525
+M6C:OBJECT3:REVISION:0
+M6C:OBJECT3:PRESENT:0
+M6C:OBJECT3:LENGTH:0
+M6C:OBJECT3:NAME_LENGTH:0
+M6C:OBJECT3:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT3:DIGEST:cbf29ce484222325
+M6C:ACKS:0
+M6C:REJECTED_NO_IO:2
+M6C:CATALOG_REPLIES:2
+M6C:DOMAIN0:REVISION:16
+M6C:DOMAIN1:REVISION:16
+M6C:CASE:RECOVER:PASS
+M6C:SURVIVOR_PROGRESS:PASS
+M6C:RESOURCES:PASS
+M6C:PASS
+M1:PASS
+M6c raw=33; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-full-cold-recovery-a86cb6732b
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.32s
+Built and inspected m6c-corrupt: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:CASE:CORRUPT:PASS
+M6C:SURVIVOR_PROGRESS:PASS
+M6C:RESOURCES:PASS
+M6C:PASS
+M1:PASS
+M6c raw=33; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-corrupt-c2d21aa59d
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.45s
+Built and inspected m6c-legacy: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:CASE:LEGACY:PASS
+M6C:SURVIVOR_PROGRESS:PASS
+M6C:RESOURCES:PASS
+M6C:PASS
+M1:PASS
+M6c raw=33; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-legacy-e2efd50a17
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.30s
+Built and inspected m6c-vm-cut-before-rename: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:READY
+M6C:CUT:1
+M6c raw=-9; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-vm-cut-before-rename-0da0344444
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.33s
+Built and inspected m6c-recover: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:READY
+M6C:SEQUENCE:1
+M6C:OBJECT0:REVISION:1
+M6C:OBJECT0:PRESENT:1
+M6C:OBJECT0:LENGTH:128
+M6C:OBJECT0:NAME_LENGTH:7
+M6C:OBJECT0:NAME_DIGEST:8b693a4cfde3b6fe
+M6C:OBJECT0:DIGEST:6afd46d48f832825
+M6C:OBJECT1:REVISION:0
+M6C:OBJECT1:PRESENT:0
+M6C:OBJECT1:LENGTH:0
+M6C:OBJECT1:NAME_LENGTH:0
+M6C:OBJECT1:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT1:DIGEST:cbf29ce484222325
+M6C:OBJECT2:REVISION:0
+M6C:OBJECT2:PRESENT:0
+M6C:OBJECT2:LENGTH:0
+M6C:OBJECT2:NAME_LENGTH:0
+M6C:OBJECT2:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT2:DIGEST:cbf29ce484222325
+M6C:OBJECT3:REVISION:0
+M6C:OBJECT3:PRESENT:0
+M6C:OBJECT3:LENGTH:0
+M6C:OBJECT3:NAME_LENGTH:0
+M6C:OBJECT3:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT3:DIGEST:cbf29ce484222325
+M6C:ACKS:0
+M6C:REJECTED_NO_IO:3
+M6C:CATALOG_REPLIES:2
+M6C:DOMAIN0:REVISION:1
+M6C:DOMAIN1:REVISION:0
+M6C:CASE:RECOVER:PASS
+M6C:SURVIVOR_PROGRESS:PASS
+M6C:RESOURCES:PASS
+M6C:PASS
+M1:PASS
+M6c raw=33; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-vm-cut-before-rename-cold-recovery-6e41980b65
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.24s
+Built and inspected m6c-vm-cut-after-rename: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:READY
+M6C:CUT:2
+M6c raw=-9; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-vm-cut-after-rename-892b8af9e8
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/244976efa240/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.21s
+Built and inspected m6c-recover: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M6C:READY
+M6C:SEQUENCE:2
+M6C:OBJECT0:REVISION:2
+M6C:OBJECT0:PRESENT:1
+M6C:OBJECT0:LENGTH:128
+M6C:OBJECT0:NAME_LENGTH:16
+M6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a
+M6C:OBJECT0:DIGEST:6afd46d48f832825
+M6C:OBJECT1:REVISION:0
+M6C:OBJECT1:PRESENT:0
+M6C:OBJECT1:LENGTH:0
+M6C:OBJECT1:NAME_LENGTH:0
+M6C:OBJECT1:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT1:DIGEST:cbf29ce484222325
+M6C:OBJECT2:REVISION:0
+M6C:OBJECT2:PRESENT:0
+M6C:OBJECT2:LENGTH:0
+M6C:OBJECT2:NAME_LENGTH:0
+M6C:OBJECT2:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT2:DIGEST:cbf29ce484222325
+M6C:OBJECT3:REVISION:0
+M6C:OBJECT3:PRESENT:0
+M6C:OBJECT3:LENGTH:0
+M6C:OBJECT3:NAME_LENGTH:0
+M6C:OBJECT3:NAME_DIGEST:cbf29ce484222325
+M6C:OBJECT3:DIGEST:cbf29ce484222325
+M6C:ACKS:0
+M6C:REJECTED_NO_IO:3
+M6C:CATALOG_REPLIES:2
+M6C:DOMAIN0:REVISION:2
+M6C:DOMAIN1:REVISION:0
+M6C:CASE:RECOVER:PASS
+M6C:SURVIVOR_PROGRESS:PASS
+M6C:RESOURCES:PASS
+M6C:PASS
+M1:PASS
+M6c raw=33; timeout=False; passed=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m6c-vm-cut-after-rename-cold-recovery-34e63e33d8
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 0.12s
+Built and inspected normal: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/scratch/244976efa240/nieuw-os/build/run/m1-after-m6c-fd54dd640a
+M6c gate passed: 19 groups; broader regression separate

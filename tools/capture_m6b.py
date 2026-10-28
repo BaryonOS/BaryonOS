@@ -156,12 +156,18 @@ def check_run(directory,report,frozen):
         raise ValueError('Mutator did not start with its fresh synthetic fixture')
 
 
+def archive_destination(destination=None):
+    root = (ROOT/'docs/verification').resolve()
+    target = (ROOT/(destination or 'docs/verification/m6b')).resolve()
+    # Atomic replacement owns one archive directory only. The verification
+    # root and paths escaping it must never replace unrelated historical proof.
+    if target.parent != root or target == root:
+        raise ValueError('Destination must be one direct child of docs/verification')
+    return target
+
+
 def capture(destination=None):
-    destination = (ROOT/'docs/verification/m6b' if destination is None else ROOT/destination).resolve()
-    archive_root = (ROOT/'docs/verification').resolve()
-    destination.relative_to(archive_root)
-    if destination == archive_root:
-        raise ValueError('Archive destination must be a subdirectory of docs/verification')
+    destination = archive_destination(destination)
     suite=read_json(BUILD/'m6b-test-results.json'); frozen=source_hash()
     if (suite.get('status')!='completed' or suite.get('passed') is not True
             or suite.get('source_sha256')!=frozen or suite.get('host_test_sha256')!=test_sources()):
@@ -213,6 +219,6 @@ def capture(destination=None):
 
 
 if __name__=='__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--destination', help='Archive subdirectory within docs/verification/')
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--destination',default='docs/verification/m6b')
     capture(parser.parse_args().destination)

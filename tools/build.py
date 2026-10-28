@@ -6,6 +6,7 @@ import shutil
 import struct
 from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
 from gate_contract import M3_CASES, M4_CASES
+from m6c_faults import FAULT_CASES as M6C_FAULT_CASES
 M5_CASES = ("service-errors", "device-rights", "async", "bad-descriptor", "used-id",
             "used-index", "used-short", "used-long", "used-status", "io-error", "timeout",
             "reset-timeout", "restart", "cpu-mmio", "cpu-dma", "cpu-pci", "no-device")
@@ -17,13 +18,15 @@ M6A_CASES = ("service-errors", "device-rights", "full", "write-error", "flush-er
 M6B_TIMEOUT_CASES = ("write-timeout", "flush-timeout", "reset-timeout", "write-poll-limit", "flush-poll-limit")
 M6B_FAULT_CASES = ("write-error", "flush-error") + M6B_TIMEOUT_CASES
 M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush") + M6B_FAULT_CASES
+M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
                    "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),
                    "milestone-m5", *(f"test-m5-{case}" for case in M5_CASES),
                    "milestone-m6a", *(f"test-m6a-{case}" for case in M6A_CASES),
-                   "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES), "graphics-g0"]
+                   "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
+                   "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0"]
 
 
 def inspect_elf(path):
@@ -94,18 +97,20 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
     elif loader_feature == "graphics-g0":
         raise ValueError("Graphics loader requires the G0 kernel")
     extra_env = None
-    if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b")):
+    if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b", "m6c")):
         from build_users import build_users
         extra_env = {"NOS_USER_ELF": str(build_users("large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
-        if any(m in kernel_feature for m in ("m4", "m5", "m6a", "m6b")):
+        if any(m in kernel_feature for m in ("m4", "m5", "m6a", "m6b", "m6c")):
             extra_env["NOS_IPC_ELF"] = str(build_users("ipc").resolve())
-        if any(m in kernel_feature for m in ("m5", "m6a", "m6b")):
+        if any(m in kernel_feature for m in ("m5", "m6a", "m6b", "m6c")):
             extra_env["NOS_M5_ELF"] = str(build_users("m5").resolve())
         if "m6a" in kernel_feature:
             extra_env["NOS_M6_ELF"] = str(build_users("m6").resolve())
         if "m6b" in kernel_feature:
             extra_env["NOS_M6B_ELF"] = str(build_users("m6b", short_poll=kernel_feature in
                 ("test-m6b-write-poll-limit", "test-m6b-flush-poll-limit")).resolve())
+        if "m6c" in kernel_feature:
+            extra_env["NOS_M6C_ELF"] = str(build_users("m6c").resolve())
     if not (ROOT / "Cargo.lock").exists():
         run_logged(["cargo", "+1.90.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):

@@ -2,7 +2,43 @@
 
 Vastgelegd op 27 oktober 2026. Deze handleiding beschrijft de daadwerkelijk ingerichte Windows-ontwikkelroute. De afzonderlijke build-, QEMU-, product- en quantumresultaten staan in [PROJECT-STATE.md](PROJECT-STATE.md) en hun ruwe rapporten. Beschikbare tools en deze commando's zijn op zichzelf geen geslaagde OS-test.
 
-## Native M6b op de Linux-ontwikkelvariant
+## Native M6c/M6d op de Linux-ontwikkelvariant
+
+De actuele M6c/M6d-gate gebruikt de hieronder beschreven toolchain en de
+kernel-feature `milestone-m6c`. Vanuit de repositoryroot:
+
+```bash
+python3 -B tools/preflight.py --strict
+python3 -B tools/build.py --kernel-feature milestone-m6c
+python3 -B tools/run_m6c.py --case normal --smoke
+python3 -B -u tools/test_m6c.py
+python3 -B tools/capture_m6c.py --destination "docs/verification/m6d-local-$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
+python3 -B tools/build.py --kernel-feature milestone-m6c
+```
+
+De captureopdracht kiest met een nieuwe UUID een eigen directe submap van
+`docs/verification/`. Gebruik voor iedere nieuwe uitvoering een nieuwe
+bestemming; de standaardbestemming `docs/verification/m6d` bevat geaccepteerd
+historisch bewijs en mag niet door een lokale herhaling worden vervangen.
+
+De rooktest start twee geïsoleerde apps voor benoemde objecten, catalogus en
+hernoemen. De volledige gate omvat ook echte externe QEMU-kills en koude
+recoveries; succes vereist gastuitvoer, raw exit en het onafhankelijke
+schijforakel. Iedere nieuwe proef maakt eigen synthetische volumes. Bezet
+M6b-v1 wordt geweigerd en niet gemigreerd. Suites delen buildoutputs: voer ze
+achtereenvolgens uit. De laatste opdracht herstelt de M6c-build nadat de gate
+de gewone M1-boot heeft gecontroleerd; dit is geen extra VM-run.
+
+De actuele M6c/M6d-gate omvat **35 groepen / 31 VM-invocaties**; de afzonderlijke
+M6b-regressie omvat **18 groepen / 14 VM-invocaties**. Vastgelegde resultaten,
+bronbinding en archieven: [M6D-ACCEPTANCE.md](verification/M6D-ACCEPTANCE.md)
+voor de oorspronkelijke Linuxuitvoering en
+[M6D-CLOSEOUT.md](verification/M6D-CLOSEOUT.md) voor de aanvullende
+Windowsuitvoering op `326d2f6`. De opdrachten hierboven zijn een uitvoerroute,
+geen nieuwe testresultaten. De historische M6c-gate van 19 groepen / 15 VM staat
+in [M6C-ACCEPTANCE.md](verification/M6C-ACCEPTANCE.md).
+
+## Toolchain en bestaande native M6b-route
 
 Op de M6b-werkbranch is ook een lokale Linux-toolchain ingericht: Rust 1.90.0,
 beide bestaande targets, QEMU 10.0.2 uit Debian bookworm-backports en OVMF
@@ -23,7 +59,17 @@ python3 -B tools/preflight.py --strict
 python3 -B tools/build.py --kernel-feature milestone-m6b
 python3 -B tools/run_m6b.py --case normal --smoke
 python3 -B -u tools/test_m6b.py
-python3 -B tools/capture_m6b.py
+python3 -B tools/capture_m6b.py --destination "docs/verification/m6b-local-$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
+```
+
+Ook deze capture gebruikt per uitvoering een eigen nieuwe map; het bestaande
+`docs/verification/m6b` blijft behouden. In PowerShell zijn de equivalente
+captureopdrachten hieronder bruikbaar, telkens direct na de bijbehorende
+geslaagde gate en vóór een volgende suite de gedeelde buildoutputs vervangt:
+
+```powershell
+python -X utf8 -B tools/capture_m6c.py --destination "docs/verification/m6d-local-$(python -c 'import uuid; print(uuid.uuid4().hex)')"
+python -X utf8 -B tools/capture_m6b.py --destination "docs/verification/m6b-local-$(python -c 'import uuid; print(uuid.uuid4().hex)')"
 ```
 
 De rooktest maakt zelf een nieuw wegwerpvolume en laat twee native apps
@@ -172,6 +218,23 @@ python -u tools/test.py
 Deze suites herstellen aan het einde de gewone M1-build. Bouw daarna opnieuw `milestone-m5` voor een losse M5-start. Gebruik voor foutfeatures de gate met bijbehorende casemarkers; `run.py --milestone m5` verlangt bewust de normale READ-case. Alleen `status: completed` en `passed: true`, plus opnieuw gecontroleerde ruwe evidence, tellen als geslaagde gate. Actueel uitgevoerd bewijs staat in PROJECT-STATE.md.
 
 Het dienstprotocol en alle injectiegrenzen staan in [M5-BLOCK-SERVICE.md](implementation/M5-BLOCK-SERVICE.md). Het kerneltransport en het protocolconforme device zijn vertrouwd; M5 levert geen IOMMU-containment of fysieke-hardwarebewijs. Bij ontbrekende resetack blijft de vaste DMA-pool in quarantaine tot VM-stop.
+
+## Windows: exclusieve testimages buiten synchronisatiemappen
+
+Voer schrijvende M6-gates uit in een aparte Git-worktree buiten gesynchroniseerde
+mappen. Op 28 oktober 2026 wees de single-linkguard een echte normale M6c-run
+terecht af: tijdens uitvoering ontstond een tweede hardlink naar dezelfde image
+onder `.tmp.driveupload`. `fsutil hardlink list` bevestigde beide namen; welk
+proces die link maakte is niet vastgesteld. Het guestresultaat raw33 en alle
+succesmarkers maakten deze hostgrensfout niet groen.
+
+Een afzonderlijke worktree behoudt dezelfde commit en bronfingerprint. Bewaar
+ruwe images uitsluitend in haar eigen `build/run`; neem alleen controleerbare
+tekst-/hashrapporten in Git op. De `st_nlink == 1`-voorwaarde blijft verplicht;
+geen uitzondering voor syncsoftware of retry die de waargenomen tweede link
+verbergt. Pas geen sync-, netwerk- of andere hostinstellingen aan voor de proef.
+De mislukte run en de exacte hardlinkobservatie staan onder
+`docs/verification/m6d-closeout/`.
 
 ## Vast QEMU-profiel
 

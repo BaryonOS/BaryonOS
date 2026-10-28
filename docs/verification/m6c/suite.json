@@ -1,0 +1,245 @@
+{
+  "phase": "M6c",
+  "status": "completed",
+  "passed": true,
+  "source_fingerprint_version": 3,
+  "source_sha256": "4468b3c18bd7fa57bf3631d634d52ee4c5fe9a76da9f125714d6db95e4407345",
+  "host_test_sha256": {
+    "tests/test_m6c_capture.py": "ec7ba41e542226321e9b2ea29b239887774135bf4957e0b58c5efb3063b0766a",
+    "tests/test_m6c_disk.py": "9258b2fccfa2737d3e08a296de0fb617a82745a473576730031de27539ce1f03",
+    "tests/test_m6c_harness.py": "9456f8d4970087068971cd6f6b1f0ee5e8195408fcd192a47b908b6af81db6ff"
+  },
+  "started_utc": "2026-10-27T23:48:09.563628+00:00",
+  "results": [
+    {
+      "name": "strict-development-inventory",
+      "passed": true,
+      "evidence": "build/logs/m6c-preflight.stdout.txt",
+      "requirements": [
+        "M6C-TOOLS"
+      ]
+    },
+    {
+      "name": "catalog-core-and-wire-host-tests",
+      "passed": true,
+      "evidence": "build/logs/m6c-host-tests.stdout.txt",
+      "requirements": [
+        "M6C-REVISIONS",
+        "M6C-TOMBSTONES",
+        "M6C-BOUNDED-RECOVERY"
+      ]
+    },
+    {
+      "name": "external-oracle-and-crash-harness-tests",
+      "passed": true,
+      "evidence": "build/logs/m6c-harness-tests.stdout.txt",
+      "requirements": [
+        "M6C-EVIDENCE",
+        "M6C-IMAGE-BOUNDARY"
+      ]
+    },
+    {
+      "name": "normal-a",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-a-569ed90fa6",
+      "requirements": [
+        "M6C-NORMAL",
+        "M6C-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "normal-a-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-a-cold-recovery-bd8654b5ae",
+      "requirements": [
+        "M6C-COLD-RECOVERY",
+        "M6C-NO-REPLAY",
+        "M6C-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "normal-b",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-b-794c25ceba",
+      "requirements": [
+        "M6C-NORMAL",
+        "M6C-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "normal-b-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-b-cold-recovery-a901cd2702",
+      "requirements": [
+        "M6C-COLD-RECOVERY",
+        "M6C-NO-REPLAY",
+        "M6C-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "same-binary-two-canary-images",
+      "passed": true,
+      "evidence": "build/logs/m6c-two-image-check.json",
+      "requirements": [
+        "M6C-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "errors",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-errors-95fe752382",
+      "requirements": [
+        "M6C-ERRORS",
+        "M6C-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "errors-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-errors-cold-recovery-846735973c",
+      "requirements": [
+        "M6C-COLD-RECOVERY",
+        "M6C-NO-REPLAY",
+        "M6C-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "full",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-full-7dd37b655b",
+      "requirements": [
+        "M6C-FULL",
+        "M6C-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "full-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-full-cold-recovery-a86cb6732b",
+      "requirements": [
+        "M6C-COLD-RECOVERY",
+        "M6C-NO-REPLAY",
+        "M6C-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "corrupt",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-corrupt-c2d21aa59d",
+      "requirements": [
+        "M6C-CORRUPT",
+        "M6C-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "legacy",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-legacy-e2efd50a17",
+      "requirements": [
+        "M6C-LEGACY",
+        "M6C-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "vm-cut-before-rename",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-vm-cut-before-rename-0da0344444",
+      "requirements": [
+        "M6C-VM-CUT-BEFORE-RENAME",
+        "M6C-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "vm-cut-before-rename-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-vm-cut-before-rename-cold-recovery-6e41980b65",
+      "requirements": [
+        "M6C-COLD-RECOVERY",
+        "M6C-NO-REPLAY",
+        "M6C-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "vm-cut-after-rename",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-vm-cut-after-rename-892b8af9e8",
+      "requirements": [
+        "M6C-VM-CUT-AFTER-RENAME",
+        "M6C-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "vm-cut-after-rename-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-vm-cut-after-rename-cold-recovery-34e63e33d8",
+      "requirements": [
+        "M6C-COLD-RECOVERY",
+        "M6C-NO-REPLAY",
+        "M6C-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "m1-regression-after-m6c",
+      "passed": true,
+      "evidence": "/workspace/scratch/244976efa240/nieuw-os/build/run/m1-after-m6c-fd54dd640a",
+      "requirements": [
+        "M1-BOOT"
+      ]
+    }
+  ],
+  "finished_utc": "2026-10-27T23:49:21.354293+00:00"
+}

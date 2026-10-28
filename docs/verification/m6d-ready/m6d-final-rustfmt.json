@@ -1,0 +1,16 @@
+{
+  "command": [
+    ".tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustfmt",
+    "--check",
+    "--edition",
+    "2021",
+    "--config",
+    "skip_children=true",
+    "kernel/src/m2/m3/m6c.rs",
+    "userspace/m6c_probe.rs"
+  ],
+  "cwd": "/workspace/scratch/2ffeac9e0e8f/nieuw-os",
+  "started_unix": 1793178086.9236047,
+  "duration_s": 0.055322885513305664,
+  "returncode": 0
+}

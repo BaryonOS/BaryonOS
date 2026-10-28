@@ -4,6 +4,14 @@ De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hie
 
 ## Doorbouw — opslagtimeouts en native grafische basis
 
+Integratiecheckpoint: `main` op `391f02e` (M6C/D, PR #13) wordt via normale merge
+opgenomen. Alle catalogus-/M6d-features, `archive_destination` met direct-child-
+grens en Windows `wait(timeout=10)` blijven behouden. De andere chat beheert
+haar afzonderlijke M6a-observerbranch; die bron is hier niet overschreven.
+Oude captures houden hun oorspronkelijke bronbinding. Gecombineerde eindgates
+zijn op dit checkpoint nog niet uitgevoerd. Voortgangsmeter: **14% → 14%**;
+de lopende G0- en timeoutstappen sluiten geen nieuw volledig criterium.
+
 28 oktober 2026, vanaf `7b4945f` op `codex/m6b-storage-errors`. De OS-bouw loopt
 door; het vorige checkpoint is geen voltooid OS. K08 voegt kerneldeadlines,
 resetquarantaine en lokaal afgebroken polls toe. De dienst sluit bij eigen
@@ -16,14 +24,17 @@ de resetproef houdt de pool vast. Het harnas heeft 33 geslaagde hosttests.
 Afzonderlijk bewijs: `verification/m6b-timeouts-directed/`. De uitgebreide
 volledige 32-groepen-/28-VM-poort volgt na de native grafische bronfreeze.
 
-G09 bouwt parallel een opt-in native grafische basis volgens ADR-030 en
+G09 bouwt parallel een opt-in native grafische basis volgens ADR-033 en
 `implementation/GRAPHICS-G0.md`: eigen framebufferuitvoer en PS/2-invoer,
 geen browser, volledige desktop of opslagadapter. De pure `ui-core` is aanwezig
 met tien geslaagde hosttests; de native GOP-/kernelintegratie staat klaar voor
 de eerste hardwareproef. Elf bootprotocoltests, drie grafische harnastests,
 fmt/Clippy/no_std slagen. Standaard BootInfo 1.1 blijft behouden. Deze
 tussenstand bevat nog geen bewezen native grafische uitvoering; logs en
-verdere verificatie volgen.
+verdere verificatie volgen. De eerste G0-start faalde vóór kernelboot door een
+ontbrekende VGA-ROM-lookup. De reeds geïnstalleerde officiële SeaBIOS-ROM is nu
+uitsluitend in de projectlokale QEMU-datamap gelinkt; de mislukte run blijft
+failed bewaard.
 
 ## Hervatting — native M6b-opslagfouten, 28 oktober 2026
 
@@ -77,6 +88,355 @@ observerstatus afwijken als geen terminale brokerfout is teruggegeven. De
 snapshotproeven sluiten dat afzonderlijke randgeval niet. Volgende opslagstap:
 deze fout-/timeoutgrenzen, daarna ruimtehergebruik en de verdere productadapter;
 native netwerk/desktop en updateketen blijven afzonderlijke bouwtaken.
+## Reviewgrenzen en historische auditbron — 28 oktober 2026
+
+Basis `322c553f58f11843aab7cf895bcba05564a9c7ac`, branch
+`codex/integrate-m6d-main`. De parallel gepubliceerde recorderreparatie en vier
+regressietests zijn behouden; dubbel lokaal herstelwerk is apart bewaard.
+De documentatie begrenst receiptbehoud nu expliciet tot beëindigde childprocessen:
+de bestaande timeout werpt vóór registratie `TimeoutExpired`.
+
+De oorspronkelijke A04-auditor is toegevoegd als `a04_m6b_audit.original.py`,
+exact gebonden aan commit `7484d87`, zijn 22802 bytes en de hash van het oude
+auditrecord. De zes historische methoderegels blijven onderscheiden van het
+latere script met zeven regels; geen volledige rawaudit is herhaald.
+M6D-CLOSEOUT beschrijft de huidige R09-bestandsnaam en de vereiste canonieke
+oorspronkelijke uitvoeringsroot. De M6c-queue heeft een expliciet historische
+subkop. Ongewijzigde uitvoeringsrecords behouden hun eigen hashes.
+
+Exacte uitgevoerde host-/tekstcontroles, exitstatussen en bytevergelijkingen:
+[review-provenance.json](verification/m6d-closeout/review-provenance.json).
+Geen nieuwe build of VM-run. Native bronbinding en de vaste score blijven
+**14% → 14%**. Het aanvullende native scenario dat een normale pending-poll
+en het latere clientresultaat samen observeert, blijft open; de bestaande
+terminale foutproeven vervangen die gerichte observatie niet.
+De uiteindelijke review- en squashmergestatus staat in PR #13.
+
+## Volledige PR-review: recorder en documentatie — 28 oktober 2026
+
+Broncheckpoint `7113f4ddcf3af34918f89f3869aa3889694d47b2`, branch
+`codex/integrate-m6d-main`. Drie aanvullende CodeRabbit-bevindingen uit de
+volledige review op `4c8ae3c` zijn gericht verwerkt. De ontwikkelhandleiding
+kiest voor iedere M6c/M6d- en M6b-capture een nieuwe expliciete UUID-bestemming;
+de roadmap vermeldt de bestaande M6d-acceptatie van 35 groepen / 31 VM,
+M6b-regressie 18 / 14 en S07, met behoud van de bewijsgrenzen.
+
+De historische capture-recorder schreef fouten en gewijzigde inputs wel in
+zijn receipt, maar eindigde daarna ten onrechte met status 0. De recorder
+bewaart nu eerst receipt en uitvoer en retourneert daarna status 1 bij
+een beëindigd subproces met niet-nul exitstatus of gewijzigde inputs. Succes met
+ongewijzigde inputs houdt status 0. De grens van 60 seconden blijft gelden:
+bij een timeout werpt `subprocess.run` eerst `TimeoutExpired`, voordat deze
+recorder een receipt of uitvoerbestanden schrijft. De gerichte proeven hieronder
+testen beëindigde subprocessen, geen timeoutregistratie.
+
+Werkelijk uitgevoerd: twee gerichte hosttestinvocaties met
+`python3 -B -m unittest discover -s tests -p test_capture_check_recorder.py -v`.
+De identieke vier scenario's controleren succes, een falend subproces,
+gewijzigde input en beide fouten samen. Vóór herstel slaagt één scenario en
+falen drie op de onterechte recorderstatus 0 (suite-exit 1); na herstel slagen
+**4/4** (suite-exit 0). Receiptvelden, inputhashes en ruwe output blijven ook
+bij afwijzing controleerbaar. Exacte executable, opdrachten, cwd, bronhashes,
+uitvoer en exitstatussen staan in
+[capture-check-regressions.json](verification/m6c-review/integration-followup/capture-check-regressions.json).
+
+De oorspronkelijke 29-testsuite, provenance en drie commandorecords blijven
+bytegelijk en aan de historische recorder gebonden. De actuele recorder en
+nieuwe regressiecontrole hebben afzonderlijke hashes in het bijbehorende
+manifest. Deze vier tests worden niet bij de historische 29 of Windows-173
+opgeteld. De twee documentwijzigingen zijn tegen de actuele captureargumenten,
+links en opgeslagen aantallen gecontroleerd; Bash-syntax en UUID-fragmenten
+zijn lokaal gecontroleerd, PowerShell alleen statisch.
+
+De 144 native/build/runnerinputs en het gepubliceerde Windowsbewijs blijven
+ongewijzigd. Geen nieuwe native build, VM-uitvoering of extra productpunt.
+Voortgang **14% → 14%**; criteria en gewichten blijven gelijk.
+`python3 tools/progress.py --write` en daarna `--check` zijn uitgevoerd met
+exit 0. De definitieve externe review- en squashmergestatus staat in
+[PR #13](https://github.com/simonvanieperen/nieuw-os/pull/13).
+
+## PR-integratie en qsim-herstel — 28 oktober 2026
+
+Broncheckpoint `8d756ed4b85585e9878f440ea537c7875b02da45`, branch
+`codex/integrate-m6d-main`. De eerdere squash van PR #12 naar main (`1f24f994`)
+was inhoudelijk aanwezig, maar ontbrak als ouder van de integratiebranch.
+Commit `e089e929` verbindt beide geschiedenissen zonder bestandswijzigingen.
+Het daarna gepubliceerde checkpoint `c8945c6` bewaart die verbinding en voegt
+het hieronder beschreven Windowsbewijs toe. Ook het latere Copilot-checkpoint
+`f835a061` en zijn integratieverslag blijven behouden. De twee oude M5-logs blijven weg.
+
+Een nog ontbrekende CodeRabbit-reparatie uit PR #2 is gericht overgenomen:
+de qsim-JSON-parser accepteert alleen objecten voor requests en gates.
+De oude parser faalt op twee nieuwe regressietests; na herstel slagen
+**27 hosttests**, `cargo fmt --all -- --check` en
+`cargo clippy --offline --locked --workspace --all-targets -- -D warnings`.
+Lockfile, dependencies en quantumcore blijven gelijk. Exacte commando's,
+bronbinding en ruwe uitvoer: [qsim-request-validation](verification/qsim-request-validation/README.md).
+
+De 144 native/build/runnerinputs zijn bytegelijk aan Windows-uitvoeringsbron
+`326d2f6`. Deze integratiestap controleert gepubliceerd bewijs en voert geen
+nieuwe native build of VM-test uit. De historische M6b-observerbeperking en
+de twee ontbrekende individuele M1-QEMU-hashes blijven expliciet. Voortgang
+**14% → 14%**: de hostparserfix en integratie voegen geen native criterium toe.
+`python3 tools/progress.py --write` en daarna `--check` zijn uitgevoerd met
+exit 0; zij controleren de berekening, bewijsverwijzingen en weergave.
+Reviewaanvulling `82c94221f4e50fbcc5ce3a6200372f94f1d63efc` behandelt vijf
+CodeRabbit-punten: bytebehoud van de historische archieven, brongebonden
+M6c-opdrachten, de actuele R08-receiptnaam, de latere A04-scriptversie en de
+actuele FINAL-REVIEW-hash met vorige/tussenliggende commits. Alleen de twee
+gecorrigeerde documenthashes veranderen in de actuele M6d-index; historische
+test- en auditreceipts blijven bytegelijk. De CodeRabbit-deelclaim dat het
+A04-sectorbestand als ontbrekend stond vermeld, bleek niet reproduceerbaar;
+het bestand stond al in Git en in de overdrachtstabel.
+
+Een afzonderlijke lokale Git-controle met `core.autocrlf=true` en
+`core.eol=crlf` bevestigt `text: unset` voor alle 26 betrokken archiefpaden.
+Acht CRLF-proefbestanden (beide archieven, direct/genest, JSON/TXT) blijven
+bytegelijk in de index en na `git checkout-index --all --force`.
+De documenthashes, historische hashherkomst en receiptverwijzingen zijn
+eveneens gecontroleerd; geen native uitvoering of nieuwe acceptatiepunten.
+
+Dit verslag legt de bron en uitvoering van de integratie vast. De definitieve
+review- en squashmergestatus staat in
+[PR #13](https://github.com/simonvanieperen/nieuw-os/pull/13).
+
+## Main- en remote-PR-integratie — conflictresolutie 28 oktober 2026
+
+De actuele `main` (`1f24f994`) is samengevoegd in mergecommit
+`6603a6bc`, vanaf gemeenschappelijke basis `5a58a743` op integratiebron
+`1068e89c`. De M6c/M6d-
+implementatie bleef behouden. De gedeelde kernel-, capability-, virtio- en
+dienstbronnen zijn bytegelijk aan zowel de M6d-uitvoeringsbron `88e6c04` als de
+overlappende bron op `main`; de M6c-selectie is apart behouden. De twee
+eerder uitgesloten, onbewezen M5-corelogs uit de inkomende `main` zijn niet
+opnieuw toegevoegd; overig main-bewijs is behouden.
+
+Na conflictresolutie zijn uitgevoerd (allemaal exit 0):
+
+```text
+python3 -B tests/test_guest_harness.py                         # 7 tests
+python3 -B tests/test_m6b_capture.py                            # 13 tests
+python3 -B -m py_compile tools/build.py tools/build_users.py tools/capture_m6b.py tools/run.py tools/run_m6b.py
+cargo +1.90.0 test --locked -p capability-core -p virtio-core -p block-protocol -p object-core -p catalog-core -p kernel-core # 139 tests
+rustup +1.90.0 target add x86_64-unknown-none x86_64-unknown-uefi
+python3 -B tools/build.py --kernel-feature milestone-m6c
+```
+
+De eerste buildpoging eindigde met exit 1 omdat `x86_64-unknown-none` niet was
+geïnstalleerd (`E0463`). Na installatie van de twee officiële Rust-targets
+slaagde de build; twee bestaande dead-codewaarschuwingen bleven staan. Rustup
+installeerde automatisch de ontbrekende 1.90.0-toolchain en Cargo ververste de
+index zonder lockfilewijziging.
+
+De M1–M6d-QEMU-gates zijn **niet opnieuw uitgevoerd** op de mergecommit.
+De succesvolle M6c-crossbuild bewijst alleen compilatie, geen boot of VM-gedrag.
+De eerder opgeslagen M6d-gates blijven aan hun exacte uitvoeringsbron gebonden;
+de native bronvergelijking bevestigt dat de merge geen runtimecode van die bron
+veranderde. Voortgang blijft **14% → 14%**: geen nieuw native criterium of
+bewijsclaim.
+
+De bijgewerkte remote PR-branch `c8945c6` brengt het M6d-closeoutbewijs mee:
+opgeslagen M6c/M6d- en M6b-captures, plus een Windows-hostsuite van 173 tests.
+Dit zijn ingekomen, brongebonden rapporten op checkpoint `326d2f6`, geen nieuwe
+lokale VM-runs. De volledige hostregressie is ook lokaal op de gecombineerde
+werkboom uitgevoerd: `python3 -B -m unittest discover -s tests -v`, **173/173,
+exit 0**. De uitvoer is in deze sessie getoond, maar niet als nieuw
+repository-logbestand opgeslagen.
+
+## M6d-reviewherstel — Windowsacceptatie 28 oktober 2026
+
+Aanvullende uitvoering op `326d2f6`, in een afzonderlijke worktree buiten
+synchronisatiemappen. Fingerprint v3:
+`5c69802a6de7c591207950f311d2e9e4f7eb07628d3b91dc9457f21c0bfa8c75`.
+M6c/M6d: **35 groepen / 31 VM**, M6b: **18 groepen / 14 VM**, beide captures
+exit 0. Samen 45 VM-starts, 20 koude recoveries en vier externe Windows-kills.
+De twee gewone M1-runs missen een eigen per-run-QEMU-executablehash; die
+meetgrens blijft open. Native kernel/service/probe zijn bytegelijk aan 88e6c04.
+
+Host: M6c 30 Rust- en 48 Python-tests; M6b 22 Rust- en 30 Python-tests.
+De bredere definitieve Python-hostsuite slaagt met **173/173**, inclusief
+22 auditor- en 19 capturechecks. Deze overlappende aantallen niet optellen.
+De eerdere brede suite faalde door LF→CRLF-conversie in synthetische fixtures;
+alleen fixturebytes zijn gecorrigeerd. Exacte productiebytevergelijking en
+single-linkguard blijven intact. Vier bronmutanten toetsen de auditbypass;
+geen algemene formele Pythoncontrole.
+
+De mislukte gesynchroniseerde run blijft failed bewaard. Een onmiddellijke
+`fsutil hardlink list` toonde een echte tweede naam onder `.tmp.driveupload`;
+het veroorzakende proces is niet vastgesteld. Identieke bron buiten die map
+slaagt. Oorspronkelijk Linuxbewijs blijft aan 88e6c04 gebonden; de volledige
+historische rawaudit is niet opnieuw uitgevoerd. Een tweede agent controleerde
+alle 45 rawrecords, 395 artifacthashes en de werkelijke imagebytes; geen
+menselijke audit of fysieke stroomuitvalclaim.
+
+Exacte opdrachten en grenzen: [M6D-CLOSEOUT.md](verification/M6D-CLOSEOUT.md).
+Voortgang **14% → 14%**; volgende native stap blijft catalogusherstart.
+PR #11 is tussentijds extern gemerged op checkpoint 326d2f6 naar de M6c-branch
+(`baeaa7bf`); #12 is extern naar main gemerged (`1f24f994`). Beide nieuwe trees
+zijn vergeleken: zij voegen geen main-only broncorrectie toe. PR #13 behoudt
+deze actuele main als ouder en voegt M6c/M6d plus het definitieve reviewbewijs
+toe. Twee eerder verwijderde oude M5-logs blijven uitgesloten. Bij het schrijven
+van dit closeoutverslag was de merge van #13 nog niet geclaimd; de actuele
+integratiestatus staat in het bovenstaande checkpoint.
+
+### Vooraf bewaard checkpoint
+
+Hervat vanaf GitHub-head `7484d87`, afzonderlijke checkout `nieuw-os-review`.
+De oude M6a-werkmap en ongetrackte bewijsbestanden zijn behouden. De vijf
+CodeRabbit-punten op PR #11 worden gericht afgehandeld: exact QEMU-contract
+ook voor M1, verplichte 164-bestandsinventaris, reproduceerpaden, historische
+bestandsnaam en een nieuwe expliciete bronreview van de definitieve native bytes.
+De historische R08-review en receipts blijven bytegelijk; hashwijzigingen van
+de bijgewerkte audit/docs staan bewust in `verification/m6d-summary.json`.
+
+De eerste Windows-hostcontrole faalde bij de natuurlijke exit van een child
+met WinError 5, zowel in M6b als M6c. Na verlenging van uitsluitend de begrensde
+wait bij een geweigerde TerminateProcess-call van 0,25 naar de bestaande
+cleanupgrens van 10 seconden slagen 48 M6c- en 30 M6b-Python-tests. Een natuurlijke
+exit blijft `kill_requested:false`; werkelijke live kills en timeoutafwijzing
+blijven getest. De kernel/service/probe zijn ongewijzigd.
+
+Dit checkpoint gaat vóór de nieuwe volledige Windows-gates naar GitHub.
+Die gates, hun captures, externe herreview en merges waren op dit checkpoint
+nog **niet** afgerond. De volledige historische Linux-rawaudit is in deze Windowscheckout
+niet uitvoerbaar zonder oorspronkelijke ruwe bestanden en QEMU-binary; de
+nieuwe audit heeft afzonderlijke negatieve hosttests. Voortgang **14% → 14%**.
+Volgende native functie blijft de beperkte catalogusherstart uit WORK-QUEUE.
+
+## M6d — native onzekere I/O gebouwd en geaccepteerd
+
+28 oktober 2026. Uitvoeringsbron `88e6c04be218b8b09ea4f0a226f6b9719da706a6`,
+fingerprint v3 `8ca6d5d5291fde62f91fb47dca7df4d058424604449fb32b9e5899b1d4fbef93`.
+Werkbranch `codex/m6d-io-recovery-roadmap`, [PR #11](https://github.com/simonvanieperen/nieuw-os/pull/11).
+De broncheckpoint is vóór de eindgates gepusht en bewaart zowel M6d-checkpoint
+b739183 als upstream M6c-review 5ba238cc. De afsluiting wijzigt documentatie en
+bewijs; alle 45 eindruns zijn aan deze ene native uitvoeringsbron gebonden.
+
+De kernelobserver koppelt de eerste Unknown aan een werkelijk teruggegeven
+terminale muterende syscallfout. Geen onzekere commit, succes-ACK of levende
+revisie; beide appdomeinen blijven actief. Na Unknown leveren geldige
+GET/LIST/PUT/DELETE/RENAME-aanvragen geen nieuwe I/O op. Ongeldige of vreemde
+verzoeken houden hun eigen validatie-/autorisatiefout. Acht native testfeatures
+dekken WRITE/FLUSH-status, time-outs, resetquarantaine, descriptorweigering en
+ongeldige used-length. De eigen kernel, capabilities, IPC v4 en journal v2
+blijven het fundament; geen nieuwe externe dependency.
+
+| Werkelijk uitgevoerd op deze bron | Resultaat |
+|---|---|
+| M6d-gate en capture | exit 0; 35 groepen / 31 VM-invocaties, 14 koude recoveries, 8 foutcases, 2 externe cuts |
+| Afzonderlijke M6b-regressie en capture | exit 0; 18 groepen / 14 VM-invocaties, 6 koude recoveries, 2 externe cuts |
+| Hostcontroles | 30 Rust + 48 Python voor M6c; 22 Rust + 30 Python voor M6b; exit 0 |
+| Gerichte rustfmt en normale eindbuild | exit 0; kernel/loader bytegelijk aan beide normale M6d-runs |
+| Twee afzonderlijke bewijsaudits | exit 0; 274 + 121 artifacthashes, 16 + 7 werkelijke volumes; bronnen en herstelkoppelingen gecontroleerd |
+
+R09 vergeleek alle 144 bronbestanden en vier M6c-hosttestbestanden met de
+uitvoeringscommit; alle 368 M6d-runfiles zijn gehasht. De 16 M6d-images zijn
+ook vanuit alleen seeds en sectorhex opnieuw opgebouwd met dezelfde hashes.
+A04 controleerde afzonderlijk de 14 M6b-runs en hun werkelijke schijfbytes.
+AI-review is geen menselijke audit of formeel bewijs. Exacte commando's,
+archieven en grenzen: [M6D-ACCEPTANCE.md](verification/M6D-ACCEPTANCE.md).
+
+De eerste gate stopte vóór een VM door een ontbrekend firmwarezoekpad;
+de failed suite is bewaard en het aanwezige passende OVMF-paar is naar de
+ondersteunde lokale testmap gekopieerd. Daarna is de volledige gate opnieuw
+uitgevoerd zonder bron-/criteriumwijziging. De twee concrete reviewbevindingen
+(archiefbestemming en precieze request-ID's) zijn vóór de bronfreeze hersteld.
+
+**Voortgang: 13% → 14% (+1 punt voor S07).** README bevat de zichtbare balk;
+`progress.json`, `PROGRESS.md` en `tools/progress.py` houden de vaste 100-punten-
+roadmap consistent. AGENTS.md verplicht herbeoordeling na iedere opdracht,
+ook als de score gelijk blijft. Geen tijdsraming of veiligheidspercentage.
+
+Grenzen: koude recovery start een nieuwe VM op dezelfde bytes; automatische
+herstart in dezelfde sessie is nog open. De historische M6b-observer houdt zijn
+foutpadbeperking. Vier objecten, 128 inhoudsbytes en 32 records blijven
+proefbudgetten; geen desktop, grotere documenten, encryptie of native NAS.
+Status-/completioninjecties zijn geen fysieke schijffout of stroomuitval.
+Volgende beperkte stap: geautoriseerde catalogusherstart met nieuwe generatie,
+veilige reset en journalherstel zonder replay. K05 en S08 blijven open.
+
+## M6c — native documentnamen en catalogus gebouwd en getest
+
+28 oktober 2026. Basis `bb22fdbe15919edc23baa158a46236195ce314b2`, werkbranch
+`codex/m6c-named-catalog`. De afgeronde M6b-basis hieronder blijft behouden.
+
+Gebouwd: dependencyvrije `catalog-core`, IPC v4, journal v2, blijvende UTF-8-namen,
+GET/PUT/DELETE/RENAME en één domeingebonden LIST-snapshot. Hernoemen bewaart de
+inhoud onder een nieuwe objectrevisie; alleen na WRITE én FLUSH volgt succes.
+De vier objecten, twee domeinen, 128 inhoudsbytes en 32 journalrecords blijven
+proefbudgetten. Nieuwe formaten zijn expliciet; bezet M6b-v1 wordt vóór READY
+geweigerd, zonder migratie of formattering. Bestaande M6b blijft afzonderlijk
+bouwbaar. Contract: `implementation/M6C-NAMED-CATALOG.md`; besluit ADR-030.
+
+Definitieve uitvoeringsbron: `bc4cd104e86e2c047b727ae96e07a03fbc810c3c`;
+fingerprint v3 `4468b3c18bd7fa57bf3631d634d52ee4c5fe9a76da9f125714d6db95e4407345`.
+Deze bron is vóór de lange controles op GitHub bewaard. De oorspronkelijke afsluitende wijzigingen
+betreffen documentatie en bewijs. De latere integratie van het M6b-reviewherstel
+wijzigt hosttools en tests; de native runtimebron blijft gelijk. Het afzonderlijke
+hostbewijs staat in `verification/m6c-review/merge-followup/`. [PR #10](https://github.com/simonvanieperen/nieuw-os/pull/10)
+staat boven de M6b-branch; geen merge naar main of release uitgevoerd.
+
+| Scope op deze bron | Resultaat | Bewijs |
+|---|---|---|
+| Volledige M6c-gate en capture | exit 0; 19 groepen / 15 VM-invocaties | `verification/m6c/` |
+| Volledige M6b-regressie en capture | exit 0; 18 groepen / 14 VM-invocaties | `verification/regression-m6c/` |
+| Catalog-core en harnas | 30 Rust- en 33 Python-tests; fmt/Clippy/no_std exit 0 | `verification/m6c/`, `verification/m6c-review/core-recheck/` |
+| Echte adapter via host-ABI-shim | 15 scenario's, exit 0; geen native devicefoutinjectie | `verification/m6c-review/adapter-result.json` |
+| Afsluitende M6c-build | exit 0; kernel en loader bytegelijk aan beide normale eindruns | `verification/m6c-ready/` |
+
+De 15 M6c-gate-invocaties zijn 14 M6c-VM's plus één gewone M1-boot. Ze omvatten
+twee normale images, domeingrenzen na populatie, volle journal, corruptie, geldig
+legacy-v1, zes koude recoveries en twee echte externe QEMU-kills tijdens RENAME.
+Vóór WRITE blijft `Café A` op revisie 1; na FLUSH vóór ACK verschijnt
+`Café hernoemd A` op revisie 2. De 128 inhoudsbytes blijven exact gelijk.
+Alle zes koude herstelruns veranderen geen schijfbytes. De M6b-regressie omvat
+eveneens een eigen gewone M1-boot; dit zijn geen nieuwe volledige M1–M6a-gates.
+
+Een afzonderlijke AI-audit controleerde 130 geregistreerde artifacthashes,
+176 runbestanden, acht werkelijke volumes en alle 141 bronbestanden tegen
+`bc4cd104`. De 67 niet-lege journal-sectoren en seeds zijn als tekst bewaard;
+daaruit zijn alle imagehashes opnieuw opgebouwd. Zes vroege runrecords noemen
+nog de toenmalige lokale HEAD `bb22fdb`; hun volledige broninhoud en fingerprint
+zijn bytegelijk aan `bc4cd104`. Dit metadataverschil blijft zichtbaar.
+De aparte statische integratiecontrole bindt het native gebruikers-ELF aan de
+geteste kernel en controleert budgetten en instructies. Reviews zijn AI-reviews,
+geen menselijke audit of formeel bewijs. Exacte commando's, afbakening en
+provenance: [M6C-ACCEPTANCE.md](verification/M6C-ACCEPTANCE.md).
+
+De vijf GitHub-reviewopmerkingen over bewijsstatus en reproduceerbaarheid zijn
+afgehandeld in `verification/m6c-review/REVIEW-FOLLOWUP.md`: actuele native
+resultaten gelinkt, portable adapter opnieuw getest en de vier corecontroles
+read-only herhaald met HEAD/status en bronhashes vóór/na. Historische evidence
+blijft behouden. Dit verandert de native bron of het aantal VM-runs niet.
+
+Het geïntegreerde hosttoolherstel heeft 123 unieke hosttests over twee runs:
+121 bestaande tests, gevolgd door vijf preflighttests waarvan drie herhaald
+en twee nieuw. Een latere reviewaanscherping bindt de drie M6c-hostlogtrio's
+met SHA-256 aan de gate en controleert de binding vóór én na het kopiëren.
+Deze wijziging heeft afzonderlijk hosttestbewijs in
+`verification/m6c-review/host-log-binding/`; de eerdere 123 tests worden niet
+als uitvoering op deze latere toolbron opgevoerd. De oorspronkelijke M6c-suite
+mist gate-time-hostloghashes en blijft als historisch bewijs ongewijzigd.
+
+Na opname van het M6b-vervolgherstel zijn de gedeelde capturepaden samen
+gecontroleerd: 29 tests geslaagd (vier M6a, tien M6b, vijftien M6c), met
+ongewijzigde inputhashes vóór/na. Dit is één afzonderlijke hostinvocatie;
+het aantal wordt niet bij eerdere overlappende runs opgeteld. Broncombinatie,
+commando en ruwe uitvoer staan in `verification/m6c-review/integration-followup/`.
+Geen native build of VM uitgevoerd voor deze integratiecontrole.
+
+Bekende observerfout op de hierboven vastgelegde historische M6c-bron: native
+WRITE-/FLUSH-fouten of time-outs kunnen ook in de gewone `milestone-m6c` een
+kernel panic veroorzaken voordat de client `Unknown` ontvangt. De host-ABI-
+proeven toetsen alleen de serviceadapter. Contract en M6C-ACCEPTANCE vermelden
+expliciet dat dit native pad op die bron niet gerepareerd of end-to-end bewezen
+is. De afzonderlijke M6d-reparatie en haar geslaagde foutinjectiegate staan bovenaan.
+De onderzoeksacceptatie blijft begrensd tot de vastgelegde QEMU/device-fixture.
+
+Vervolg: deze opslaginterface aan native productfuncties koppelen; grotere
+documenten, ruimtehergebruik, encryptie, sleutels en native NAS/netwerk vereisen
+eigen ontwerp en acceptatie. M6c heeft nog geen interactieve desktop. FNV blijft
+uitsluitend corruptiediagnose; QEMU-kills bewijzen geen fysieke stroomuitval.
 
 ## M6b — native documentopslag gebouwd en getest
 

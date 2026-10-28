@@ -1,0 +1,15 @@
+{
+  "scope": "Original full wrapper console, preserved after actual successful execution; authoritative timed child records are in the suite archive.",
+  "command": [
+    "python3",
+    "-B",
+    "-u",
+    "tools/test_m6c.py"
+  ],
+  "cwd": "/workspace/scratch/244976efa240/nieuw-os",
+  "returncode": 0,
+  "files": {
+    "gate.stdout.txt": "bbb5de24372d755695793cfe20d01fe0bcbb1977a02c9ae7321ebedd9ce923c0",
+    "gate.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

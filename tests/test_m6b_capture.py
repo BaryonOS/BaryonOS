@@ -145,6 +145,51 @@ class HostEvidenceBinding(unittest.TestCase):
         self.assertEqual(list(destination.iterdir()), [preserved])
 
 
+class ArchiveDestination(unittest.TestCase):
+    def test_default_and_alternate_direct_child_are_accepted(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            alternative = root/'docs/verification/m6d-m6b-regression'
+            with patch.object(capture, 'ROOT', root):
+                self.assertEqual(capture.archive_destination(), root/'docs/verification/m6b')
+                self.assertEqual(capture.archive_destination('docs/verification/m6d-m6b-regression'),
+                                 alternative)
+                self.assertEqual(capture.archive_destination(alternative), alternative)
+
+    def test_root_nested_and_escape_paths_fail_before_reading_or_replacing(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            invalid = ('docs/verification', 'docs/verification/../outside',
+                       'docs/verification/m6b/nested', root/'docs', root.parent/'outside')
+            with patch.object(capture, 'ROOT', root), \
+                    patch.object(capture, 'read_json') as read, \
+                    patch.object(capture, '_replace_archive') as replace:
+                for destination in invalid:
+                    with self.subTest(destination=str(destination)), \
+                            self.assertRaisesRegex(ValueError, 'direct child'):
+                        capture.capture(destination)
+                read.assert_not_called()
+                replace.assert_not_called()
+
+    def test_symlink_to_outside_archive_root_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            verification = root/'docs/verification'
+            verification.mkdir(parents=True)
+            outside = root/'outside'
+            outside.mkdir()
+            link = verification/'redirected'
+            try:
+                link.symlink_to(outside, target_is_directory=True)
+            except (NotImplementedError, OSError) as error:
+                self.skipTest(f'Directory symlinks unavailable: {error}')
+            with patch.object(capture, 'ROOT', root), \
+                    patch.object(capture, '_replace_archive') as replace, \
+                    self.assertRaisesRegex(ValueError, 'direct child'):
+                capture.capture(link)
+            replace.assert_not_called()
+
+
 class RequiredArtifactBinding(unittest.TestCase):
     def test_custom_archive_cannot_replace_verification_root_or_escape_it(self):
         for destination in ('docs/verification', 'docs/verification/..', 'build/capture'):

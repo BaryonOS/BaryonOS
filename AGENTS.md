@@ -40,5 +40,42 @@ Werk docs/PROJECT-STATE.md bij na elke mijlpaal. Noteer architectuurwijzigingen 
 Blokkeer wijzigingen die capability-rechten verruimen zonder expliciet ontwerp, onbetrouwbare pointers/IPC-lengtes vertrouwen, ongecontroleerde DMA toelaten, secrets loggen, authenticatie bij fouten laten slagen of testresultaten vervalsen. Een ontbrekend bewijs wordt een open punt, nooit een impliciete goedkeuring.
 
 ## Voortgang op GitHub
+
+Expliciete opdracht van Simon, 28 oktober 2026: handel commits, pushes en
+geschikte squash-merges voor dit project zelfstandig af. Maak nieuwe PRs
+eerst als concept. Controleer actuele head/base, inhoudsbehoud, passende tests,
+bewijs en concrete reviewbevindingen vóór afronding; omzeil geen branchregels.
+Sluit een ingehaalde PR pas als aantoonbaar dezelfde inhoud via de vervangende
+integratie is opgenomen. Dit verruimt geen hardware-, publicatie-,
+infrastructuur- of privacygrenzen.
+
 Na iedere afgebakende implementatiestap en vóór langdurige controles: werk PROJECT-STATE.md bij, commit broncode/lockfiles/controleerbaar bewijs en open punten, en push de werkbranch. Wacht hiermee niet tot de gehele batch klaar is. Label tussenstanden en niet-uitgevoerde tests expliciet. Controleer dat de remote branch het lokale commit-ID bevat. Laat gegenereerde binaries, caches en secrets buiten Git; bewaar compacte tekst- en hashrapporten onder docs/verification/.
 
+
+## Verplichte voortgangsmeter na iedere opdracht
+
+De gebruiker verlangt een zichtbare 0–100%-roadmap in README.md. Het vaste
+criteriumregister staat in docs/progress.json; betekenis, acceptatie en
+onderhoudsroute in docs/PROGRESS.md. 0% = nog geen criterium gerealiseerd;
+100% = een volwaardig, dagelijks bruikbaar en onderhoudbaar zelfstandig OS op
+gedocumenteerde ondersteunde hardware. De eigen kernel blijft verplicht;
+geen Linux-, Windows-, macOS-/XNU- of andere bestaande OS-kernel als basis.
+
+- De hoofdagent is eigenaar van het scoreblad en de gegenereerde README/SVG.
+  Deelagents leveren criterium-ID, bronversie, bewijs en voorgestelde wijziging;
+  er zijn geen gelijktijdige schrijvers voor deze gedeelde voortgangsbestanden.
+- Herbeoordeel na **iedere opdracht** en bij een checkpoint vóór lange controles
+  de betrokken criteria. Werk assessment (datum Europe/Amsterdam, broncommit,
+  branch, taak, vorige score en uitleg) ook bij als het percentage gelijk blijft.
+- Ken alleen vaste punten toe voor volledig geaccepteerde criteria met passend
+  opgeslagen bewijs. Hostprototype, compilatie, extra testaantallen, plannen en
+  AI-review vervangen geen native acceptatie of menselijke audit. Lopend of
+  niet getest werk blijft open. Regressie kan de score verlagen.
+- Voer `python3 tools/progress.py --write` en daarna
+  `python3 tools/progress.py --check` uit. Neem docs/progress.json, README.md,
+  docs/PROGRESS.md en docs/assets/progress.svg samen in het checkpoint op;
+  PROJECT-STATE.md beschrijft de feitelijke uitvoering en open grenzen.
+- Rapporteer de oude/nieuwe score en de onderbouwing. Wijzig gewichten, criteria
+  of eindscope alleen als gemotiveerd en versieerbaar projectbesluit; nooit om
+  het percentage kunstmatig te laten stijgen. De score is een planningsmeter,
+  geen tijdsprognose, veiligheidspercentage of claim van volledige featurepariteit.

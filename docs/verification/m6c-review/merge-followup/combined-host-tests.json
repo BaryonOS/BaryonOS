@@ -1,0 +1,33 @@
+{
+  "base_commit": "b58ae2a56be6978eab2b5ac4bb5d12e3d615865f",
+  "overlay_commit": "56c43da0806f5f4de57cfb49dfd0418954e2ed9c",
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "-v",
+    "test_capture_gate",
+    "test_common",
+    "test_guest_harness",
+    "test_m1_artifact_binding",
+    "test_m5_disk",
+    "test_m6_disk",
+    "test_m6_harness",
+    "test_m6b_capture",
+    "test_m6b_disk",
+    "test_m6b_gate",
+    "test_m6b_harness",
+    "test_m6c_capture",
+    "test_m6c_disk",
+    "test_m6c_harness",
+    "test_preflight"
+  ],
+  "cwd": "/workspace/scratch/a9adbdc1f137/pr10-verifier/combined/tests",
+  "started_unix": 1793146542.1930108,
+  "duration_s": 2.4373233318328857,
+  "returncode": 0,
+  "stdout_sha256": "33cef0f908314ca751b693dde6b54f26cdead8262ee6a1368bf179c2ff782c7c",
+  "stderr_sha256": "549f4c84362bbd94fca423006faa94f7fe4b35f39f2cdfa271688c6864c3d2e8",
+  "scope": "Existing selected Python host tests; no native QEMU suite or Rust build"
+}

@@ -54,7 +54,7 @@ Voer vanuit de projectroot uit:
 python experiments/quantum/verify.py
 ```
 
-Dit script vindt ook de projectlokale Windows-toolchain, installeert niets, gebruikt Cargo offline, controleert formatting, compileert tests, voert 25 Rust-tests uit, controleert Clippy zonder toegestane waarschuwingen en compileert de core met target `x86_64-unknown-none`. Daarna voert het de vijf losse fixtures uit, met 30 seconden per proces. Ruwe logs, uitvoer, bron-/binaryhashes en exacte opdrachten komen in `verification/`; die map is een lokaal gegenereerd artifact.
+Dit script vindt ook de projectlokale Windows-toolchain, installeert niets, gebruikt Cargo offline, controleert formatting, compileert en voert de Rust-tests uit, controleert Clippy zonder toegestane waarschuwingen en compileert de core met target `x86_64-unknown-none`. Daarna voert het de vijf losse fixtures uit, met 30 seconden per proces. Ruwe logs, uitvoer, bron-/binaryhashes en exacte opdrachten komen in `verification/`; die map is een lokaal gegenereerd artifact.
 
 Op 27 oktober 2026 zijn deze controles werkelijk geslaagd met Rust 1.90.0 en de Windows MSVC-hosttoolchain:
 

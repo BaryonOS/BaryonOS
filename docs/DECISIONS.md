@@ -1,5 +1,102 @@
 # Ontwerpbesluiten
 
+## ADR-031 — Native I/O-onzekerheid zonder observerpanic
+
+**Datum/status/eigenaar:** 28 oktober 2026; geïmplementeerd en geaccepteerd op
+bron 88e6c04. Native builder A01, integratie root, AI-reviews R08/R09 en A04.
+
+**Context en besluit:** de dienst kende Unknown al, maar de M6c-observer eiste
+bij een voorbereide mutatie altijd Ok. Bind de eerste onzekere reply aan een
+werkelijk aan de dienst teruggegeven terminale muterende syscallfout; Pending
+is geen fout. Latch de I/O-tellingen, commit geen kandidaat, tel geen ACK en
+controleer dat beide appdomeinen daarna geen nieuwe I/O veroorzaken. Validatie
+en autorisatie blijven vóór de gesloten diensttoestand. Alleen volledige koude
+recovery bepaalt de werkelijk opgeslagen versie.
+
+**Alternatieven en gevolgen:** de succesasserties verwijderen zou fouten maskeren;
+automatische write-replay kan een onzekere mutatie verdubbelen. Het gekozen pad
+houdt normale WRITE+FLUSH-voorwaarden streng en verandert geen capability,
+syscall, wire-/journalformaat, dienstimplementatie of externe dependency.
+Testinjecties lopen via bestaande driversnapshot-, deadline- en resetpaden.
+Geen automatische dienstherstart; historische M6b-observer apart behouden.
+
+**Bewijs en herziening:** de volledige 35-groepen/31-VM-gate en M6b-regressie
+(18 groepen/14 VM) slagen, met beide captures en afzonderlijke bewijsaudits.
+30 Rust/48 Python-tests voor M6c, 22 Rust/30 Python-tests voor M6b; alle exit 0.
+Exacte scope en bron: `verification/M6D-ACCEPTANCE.md`; S07 levert 13% → 14%.
+Contract en primaire VIRTIO-bron:
+`implementation/M6D-IO-UNCERTAINTY.md`. Geen fysieke devicefout, stroomuitval,
+menselijke audit of formeel bewijs. Herzie bij algemene servicesupervisie,
+parallelle mutaties, nieuwe I/O-foutmodellen of andere hardware.
+
+## ADR-032 — Vaste 100-puntenroadmap met verplichte herbeoordeling
+
+**Datum/status/eigenaar:** 28 oktober 2026; aanvaard en uitgevoerd op expliciete
+gebruikersopdracht. De hoofdagent bezit de gedeelde voortgangsbestanden.
+
+**Besluit:** `docs/progress.json` bevat vaste, binaire acceptatiecriteria met
+gewichten die samen 100 vormen. De generator maakt de README, criteriatabel
+en lokale SVG. 0% is nog niet gerealiseerd; 100% is een volwaardig zelfstandig
+dagelijks OS op aantoonbaar ondersteunde hardware. De eigen kernel blijft
+verplicht. De beginscore van de M1–M6c-bewijsstand is 13%.
+
+**Alternatieven/gevolgen:** commits, regels code, testaantallen of M-nummers
+meten geen productvoltooiing. Daarom leveren hostprototypes of alleen plannen
+geen native punten op. Iedere opdracht actualiseert beoordeling, bron en datum;
+een score mag gelijk blijven of dalen. Gewichten zijn een expliciete
+planningskeuze, geen wetenschappelijke meting of resterende-tijdsraming.
+
+**Bewijs en herziening:** `tools/progress.py --check` controleert som, unieke
+criteria, bestaande bewijsverwijzingen en gelijkheid van gegenereerde weergaven.
+Het beoordeelt de bewijsinhoud niet en voert geen native tests uit. Wijzigingen
+aan eindscope/gewichten vereisen rubricversie, reden en vergelijking met de oude
+score. Zie `PROGRESS.md`; nooit de lat verlagen om een hoger getal te krijgen.
+
+## ADR-030 — Native labels en een catalogus per appdomein
+
+**Datum/status:** 28 oktober 2026; geïmplementeerd en native eindgate geslaagd
+op broncommit bc4cd104, basis bb22fdb. Exact contract: implementation/M6C-NAMED-CATALOG.md.
+Op deze historische M6c-uitvoeringsbron heeft het native `Unknown`-foutpad een
+bekende, ongerepareerde observerpanic, ook met `milestone-m6c`. De afzonderlijke
+reparatiebron en haar afzonderlijke acceptatie staan bovenaan in ADR-031.
+
+**Context en besluit:** afgeronde M6b heeft anonieme objectslots. Materiaal heeft
+benoemde objecten en list/open nodig. Voeg een aparte dependencyvrije catalog-core
+met expliciete IPC v4/journal v2 toe. Namen zijn UTF-8-labels, geen autoriteit of
+pad; object-ID en endpoint/caller blijven de toegangsgrens. LIST retourneert één
+begrensde snapshot van uitsluitend eigen live objecten met eigen revisiesom.
+PUT/RENAME zijn één record met naam/inhoud onder één CAS-revisie. RENAME behoudt
+inhoud; WRITE- en FLUSH-completion gaan vóór ACK. Het servicecontract sluit bij
+`Unknown` ook LIST af; dit foutpad is alleen via host-ABI getest.
+
+**Alternatieven/gevolgen:** stil hergebruik van v3/v1-padding zou oude readers
+misleiden; een losse naamtabel vereist meerdere atomische writes. Automatische
+migratie is niet nodig voor deze synthetische proef: v1 weigert vóór READY en de
+M6b-reader blijft behouden. Duplicaatlabels zijn toegestaan; geen directoryboom,
+normalisatie, encryptie of fysieke secure erase toegevoegd. Kleinere grenzen zijn
+proefbudgetten, geen vaste consumentenproductkeuze.
+
+**Bewijs en herziening:** de finale M6c-gate/capture slaagt met 19 groepen en
+15 VM-invocaties: 14 M6c plus één gewone M1. M6b-regressie slaagt met 18 groepen
+en 14 VM-invocaties op dezelfde fingerprint. De 30 coretests, 33 harnastests en
+15 host-ABI-adapterproeven behouden hun eigen scope. De native observer in
+`kernel/src/m2/m3/m6c.rs` kan bij WRITE-/FLUSH-fouten of time-outs panikeren
+vóór de client `Unknown` ontvangt; gecontroleerde native foutafhandeling was
+op die bron niet gerealiseerd. Een afzonderlijke AI-audit
+controleert alle 141 bronbestanden, 130 geregistreerde artifacthashes en acht
+volumes, inclusief twee externe rename-kills en zes koude recoveries. Details:
+`verification/M6C-ACCEPTANCE.md`; geen menselijke audit of formeel bewijs.
+De nieuwe kernelmodule bevat een expliciete fixtureobserver plus de bestaande blokbroker; het
+catalogusbeleid draait in ring 3. Herstel van het bekende `Unknown`-defect
+vereist een afzonderlijke native reparatie met WRITE-/FLUSH-fout- en
+time-outinjectie, controle van het werkelijk ontvangen clientantwoord en
+nieuwe brongebonden native verificatie. Herzie formaat/migratie vóór echt gebruikersdata,
+meer slots, grotere documenten of compositorintegratie. Terugdraaien kan via de
+bestaande M6b-build en zijn eigen volumes; geen bestaande image overschrijven.
+
+**Bronnen:** huidige M6B-OBJECT-STORAGE.md/PROJECT-STATE.md op bb22fdb; Rust
+bare-metal targetdocumentatie in het M6c-contract. Dit is een projectbesluit.
+
 ## ADR-028 — Bewijs per eigenschap en standaard hybride NAS-transport
 
 **Datum/status:** 27 oktober 2026; ontwerp aanvaard en N02-hostproef getest vanaf `ece94a5`. **Context:** de gebruikersblauwdruk vraagt formele verificatie, kleine TCB, capabilities, geheugenbescherming en PQC. De richting past bij het project; de absolute productclaims en het eigen KDF-/tunnelvoorstel zijn niet onderbouwd.
@@ -115,7 +212,7 @@ de historische beweringen hierboven gelden voor hun oude bron. Verder herstel
 van lokale poll-LIMIT, echte brokerdeadline en resetquarantaine is de actieve
 vervolgstap K08; uitgevoerde resultaten blijven in PROJECT-STATE.md.
 
-## ADR-030 — opt-in native grafische bootstrap vóór productintegratie
+## ADR-033 — opt-in native grafische bootstrap vóór productintegratie
 
 Datum 28 oktober 2026, aanvaard als begrensde ontwikkelstap; root integreert,
 G09 beheert core/loader/adapter. Het browserprototype geeft geen bewijs voor

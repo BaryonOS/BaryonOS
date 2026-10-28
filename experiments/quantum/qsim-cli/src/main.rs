@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 
 use qsim_core::{execute, Abort, Control, ExecuteError, Gate, JobResult, ValidatedJob, MAX_GATES};
-use serde::de::{self, SeqAccess, Visitor};
+use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
@@ -13,7 +13,7 @@ const SCHEMA: &str = "qsim-v0";
 const BACKEND: &str = "local-statevector-v0";
 
 #[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(deny_unknown_fields, remote = "Self")]
 struct Request {
     schema: String,
     job_id: String,
@@ -23,13 +23,46 @@ struct Request {
     seed: String,
 }
 
+impl<'de> Deserialize<'de> for Request {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct RequestVisitor;
+        impl<'de> Visitor<'de> for RequestVisitor {
+            type Value = Request;
+            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                f.write_str("a request object")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, map: A) -> Result<Self::Value, A::Error> {
+                // Use the derived field checks only after requiring an object.
+                Request::deserialize(de::value::MapAccessDeserializer::new(map))
+            }
+        }
+        deserializer.deserialize_map(RequestVisitor)
+    }
+}
+
 #[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(deny_unknown_fields, remote = "Self")]
 struct GateRequest {
     op: Operation,
     target: u64,
     #[serde(default, deserialize_with = "present_control")]
     control: Option<u64>,
+}
+
+impl<'de> Deserialize<'de> for GateRequest {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct GateVisitor;
+        impl<'de> Visitor<'de> for GateVisitor {
+            type Value = GateRequest;
+            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                f.write_str("a gate object")
+            }
+            fn visit_map<A: MapAccess<'de>>(self, map: A) -> Result<Self::Value, A::Error> {
+                GateRequest::deserialize(de::value::MapAccessDeserializer::new(map))
+            }
+        }
+        deserializer.deserialize_map(GateVisitor)
+    }
 }
 
 fn present_control<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<u64>, D::Error> {

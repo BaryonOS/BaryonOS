@@ -1,0 +1,44 @@
+{
+  "scope": "Independent AI review follow-up: exactly two host regressions, no VM run",
+  "base_commit": "b58ae2a56be6978eab2b5ac4bb5d12e3d615865f",
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "test_m6c_uncertainty.FaultDiskOracle.test_valid_checksums_cannot_hide_wrong_request_identity",
+    "test_m6c_uncertainty.ArchiveBoundary.test_verification_root_and_escape_cannot_be_replaced"
+  ],
+  "cwd": "/workspace/scratch/2ffeac9e0e8f/nieuw-os",
+  "env_override": {
+    "PYTHONPATH": "/workspace/scratch/2ffeac9e0e8f/nieuw-os/tests:/workspace/scratch/2ffeac9e0e8f/nieuw-os/tools"
+  },
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.019s\n\nOK\n",
+  "source_sha256_before": {
+    "kernel/Cargo.toml": "f051aa44b0e4b6d3e5048a1c5997f9761c0e73f030e92a2a5dd5ed599030e1b5",
+    "kernel/src/m2/m3/m6c.rs": "24685e4d5064d6ab6974cfb93ff6ea3406270ffcd2451766b6e3a4c154b1b03e",
+    "userspace/m6c_probe.rs": "9bd89d5157b6ad6aa761f3e08154bb33006e24b17b04f35419e56a37faf49989",
+    "tools/build.py": "7f5b17d560c5cddb7a0c96a712ca7e23f83a964b7fa807030ddb6cf12d0b94dc",
+    "tools/run_m6c.py": "f24a124295fdf5512f41485cb1672040f8cc84121bde3dd9bdef53811654bb95",
+    "tools/m6c_disk.py": "a7bb1d743f3c19454f28a01095baca0665fea2fdb94486b542a6486454754350",
+    "tools/m6c_faults.py": "c01017395824d7bf223f6d38d3449a0e8b348fc34619631e9764f7262997b6cc",
+    "tools/capture_m6c.py": "2deea66084d16f4102f2bd4841b39f16340ea2499d8261c451089f3e48d65fb8",
+    "tools/test_m6c.py": "6b7c5f368418517ac732dfc68048babc7ac6e90fa659512e95db2fffeda813e5",
+    "tests/test_m6c_uncertainty.py": "b90b1e04766393dece1ede1432fbad1d3254ec399bcf7e404535b3276b06ea11"
+  },
+  "source_sha256_after": {
+    "kernel/Cargo.toml": "f051aa44b0e4b6d3e5048a1c5997f9761c0e73f030e92a2a5dd5ed599030e1b5",
+    "kernel/src/m2/m3/m6c.rs": "24685e4d5064d6ab6974cfb93ff6ea3406270ffcd2451766b6e3a4c154b1b03e",
+    "userspace/m6c_probe.rs": "9bd89d5157b6ad6aa761f3e08154bb33006e24b17b04f35419e56a37faf49989",
+    "tools/build.py": "7f5b17d560c5cddb7a0c96a712ca7e23f83a964b7fa807030ddb6cf12d0b94dc",
+    "tools/run_m6c.py": "f24a124295fdf5512f41485cb1672040f8cc84121bde3dd9bdef53811654bb95",
+    "tools/m6c_disk.py": "a7bb1d743f3c19454f28a01095baca0665fea2fdb94486b542a6486454754350",
+    "tools/m6c_faults.py": "c01017395824d7bf223f6d38d3449a0e8b348fc34619631e9764f7262997b6cc",
+    "tools/capture_m6c.py": "2deea66084d16f4102f2bd4841b39f16340ea2499d8261c451089f3e48d65fb8",
+    "tools/test_m6c.py": "6b7c5f368418517ac732dfc68048babc7ac6e90fa659512e95db2fffeda813e5",
+    "tests/test_m6c_uncertainty.py": "b90b1e04766393dece1ede1432fbad1d3254ec399bcf7e404535b3276b06ea11"
+  },
+  "sources_unchanged": true
+}
