@@ -21,6 +21,18 @@ Meet per taak voltooiing, aantal beslissingen/prompts, fout-/herstelgedrag en be
 
 Eenmalige koppel-/herstelstappen zijn toegestaan waar zij een reële vertrouwensgrens bevestigen. CLI-stappen, herhaald vergelijken van dezelfde identiteit, handmatige sync en telkens opnieuw toestemming geven zijn geen gewenste standaardervaring. Read-only keyrecovery en kleine capaciteiten in N01 zijn proefgrenzen; veilige persistente keys, rotatie en multi-devicegebruik zijn vereisten vóór een productclaim.
 
+## Onderzoeksaanvulling — consumentenwaarde, 28 oktober 2026
+
+De literatuurverkenning in [research/CONSUMER-VALUE-2026-10-28.md](research/CONSUMER-VALUE-2026-10-28.md) ondersteunt de bestaande ambitie, maar scherpt de productvraag aan: een zelfstandige kernel en sterke privacyarchitectuur zijn geen voldoende consumentenbelofte. De eerste aantoonbare waarde moet liggen in een herkenbare dagelijkse taak die merkbaar beter of duidelijker verloopt.
+
+Te onderzoeken kernbelofte:
+
+> **Je materiaal direct terugvinden, ermee verdergaan en controle houden over wijzigingen en toegang.**
+
+Behandel **aandacht, proberen, overstappen en blijven gebruiken** als verschillende uitkomsten. Meet taakprestatie, begrip, herstel, hulpbehoefte en vrijwillig hergebruik afzonderlijk van visuele waardering. Behoud vertrouwde basisbediening, namen, mappen en export waar die overstapfrictie verminderen; originaliteit moet uit de samenhang van Materiaal, gereedschappen, geschiedenis, rechten en herstel komen, niet uit het onnodig opnieuw uitvinden van iedere conventie.
+
+Dit is onderzoeksrichting, geen bewijs dat consumenten al voor Nieuw OS kiezen. De P2-productspecificatie blijft leidend voor de huidige bouwscope; nieuwe hypotheses worden eerst getest voordat zij vaste producteisen worden.
+
 > Update revisie 5: de eerste bouwkeuzes staan vast in [implementation/PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md). Gebruik dat document voor directe implementatie; dit bestand bewaart de ambitie en achtergrond voor vervolgfases.
 Revisie 3, 26 oktober 2026. Dit is een bindende productopdracht op basis van Simons aanvullende instructie. Het versmallen van de eerste technische proef mag de oorspronkelijke ambitie niet vervangen.
 
