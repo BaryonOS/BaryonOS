@@ -2,6 +2,45 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
+## Volledige PR-review: recorder en documentatie — 28 oktober 2026
+
+Broncheckpoint `7113f4ddcf3af34918f89f3869aa3889694d47b2`, branch
+`codex/integrate-m6d-main`. Drie aanvullende CodeRabbit-bevindingen uit de
+volledige review op `4c8ae3c` zijn gericht verwerkt. De ontwikkelhandleiding
+kiest voor iedere M6c/M6d- en M6b-capture een nieuwe expliciete UUID-bestemming;
+de roadmap vermeldt de bestaande M6d-acceptatie van 35 groepen / 31 VM,
+M6b-regressie 18 / 14 en S07, met behoud van de bewijsgrenzen.
+
+De historische capture-recorder schreef fouten en gewijzigde inputs wel in
+zijn receipt, maar eindigde daarna ten onrechte met status 0. De recorder
+bewaart nu eerst receipt en uitvoer en retourneert daarna status 1 bij een
+subprocessfout of gewijzigde inputs. Succes met ongewijzigde inputs houdt status 0.
+
+Werkelijk uitgevoerd: twee gerichte hosttestinvocaties met
+`python3 -B -m unittest discover -s tests -p test_capture_check_recorder.py -v`.
+De identieke vier scenario's controleren succes, een falend subproces,
+gewijzigde input en beide fouten samen. Vóór herstel slaagt één scenario en
+falen drie op de onterechte recorderstatus 0 (suite-exit 1); na herstel slagen
+**4/4** (suite-exit 0). Receiptvelden, inputhashes en ruwe output blijven ook
+bij afwijzing controleerbaar. Exacte executable, opdrachten, cwd, bronhashes,
+uitvoer en exitstatussen staan in
+[capture-check-regressions.json](verification/m6c-review/integration-followup/capture-check-regressions.json).
+
+De oorspronkelijke 29-testsuite, provenance en drie commandorecords blijven
+bytegelijk en aan de historische recorder gebonden. De actuele recorder en
+nieuwe regressiecontrole hebben afzonderlijke hashes in het bijbehorende
+manifest. Deze vier tests worden niet bij de historische 29 of Windows-173
+opgeteld. De twee documentwijzigingen zijn tegen de actuele captureargumenten,
+links en opgeslagen aantallen gecontroleerd; Bash-syntax en UUID-fragmenten
+zijn lokaal gecontroleerd, PowerShell alleen statisch.
+
+De 144 native/build/runnerinputs en het gepubliceerde Windowsbewijs blijven
+ongewijzigd. Geen nieuwe native build, VM-uitvoering of extra productpunt.
+Voortgang **14% → 14%**; criteria en gewichten blijven gelijk.
+`python3 tools/progress.py --write` en daarna `--check` zijn uitgevoerd met
+exit 0. De definitieve externe review- en squashmergestatus staat in
+[PR #13](https://github.com/simonvanieperen/nieuw-os/pull/13).
+
 ## PR-integratie en qsim-herstel — 28 oktober 2026
 
 Broncheckpoint `8d756ed4b85585e9878f440ea537c7875b02da45`, branch

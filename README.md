@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`82c94221`](https://github.com/simonvanieperen/nieuw-os/commit/82c94221f4e50fbcc5ce3a6200372f94f1d63efc) ·
+**Bron:** [`7113f4dd`](https://github.com/simonvanieperen/nieuw-os/commit/7113f4ddcf3af34918f89f3869aa3889694d47b2) ·
 **Ontwikkelbranch:** `codex/integrate-m6d-main`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** PR-review en integratie na conflictherstel.
-De integratie bewaart main, M6c/M6d en het Windowsbewijs. De qsim-parserfix heeft 27 geslaagde hosttests, rustfmt en Clippy, met twee falende regressies vóór herstel. Vijf CodeRabbit-punten over archiefbytes, historische opdrachten, receiptverwijzingen en hashherkomst zijn hersteld. De 144 native inputs en oorspronkelijke testreceipts blijven gelijk; geen nieuwe VM-uitvoering of nieuw native productcriterium. Voortgang blijft 14%.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Volledige PR-review: capturefoutstatus en documentatie.
+Drie aanvullende CodeRabbit-punten zijn gericht hersteld: nieuwe capturebestemmingen, actuele M6d-roadmap en een falende recorderstatus bij subprocessfouten of gewijzigde inputs. Vier hostregressies slagen; drie negatieve gevallen falen vóór herstel. Het historische bewijs, de 144 native inputs en eerdere qsim-reparatie blijven behouden. Geen nieuwe VM-uitvoering of nieuw native productcriterium; voortgang blijft 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
