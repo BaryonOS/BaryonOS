@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "5ba4da74a2ad091612b48e277acd0f02536f4c4b",
-    "branch": "research/privacy-browser-20261028",
-    "task": "Privacybrowseronderzoek en tijdelijke site-uitzonderingen vastgelegd",
+    "source_commit": "c75804ecc5e9e173cca38028f100ffa4b46d4b4d",
+    "branch": "codex/research-market-adoption-20261028",
+    "task": "Markt- en consumentenonderzoek toegevoegd; geen native acceptatie",
     "previous_score": 14,
-    "summary": "Chromium/Gecko en privacygerichte opensourcevarianten zijn als onderzoeksbasis vergeleken. Het gewenste default-private profiel, tijdelijke site-uitzonderingen, sandboxgrenzen en BR-01 t/m BR-08 zijn vastgelegd; er is nog geen engine gekozen of native browser gebouwd. Geen nieuw acceptatiecriterium: 14% naar 14%."
+    "summary": "Een gedateerde repository-synthese legt marktkansen, overstapfrictie, Europese alternatieven en wetenschappelijk consumentenonderzoek vast. De privacybrowser-aanvulling op main blijft behouden. Bestaande productkeuzes blijven onveranderd; doelgroep-, kleur-, prestatie- en retentievoorstellen blijven hypotheses. Geen nieuw native criterium: 14% naar 14%."
   },
   "tracks": [
     {

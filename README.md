@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`5ba4da74`](https://github.com/simonvanieperen/nieuw-os/commit/5ba4da74a2ad091612b48e277acd0f02536f4c4b) ·
-**Ontwikkelbranch:** `research/privacy-browser-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Privacybrowseronderzoek en tijdelijke site-uitzonderingen vastgelegd.
-Chromium/Gecko en privacygerichte opensourcevarianten zijn als onderzoeksbasis vergeleken. Het gewenste default-private profiel, tijdelijke site-uitzonderingen, sandboxgrenzen en BR-01 t/m BR-08 zijn vastgelegd; er is nog geen engine gekozen of native browser gebouwd. Geen nieuw acceptatiecriterium: 14% naar 14%.
+**Bron:** [`c75804ec`](https://github.com/simonvanieperen/nieuw-os/commit/c75804ecc5e9e173cca38028f100ffa4b46d4b4d) ·
+**Ontwikkelbranch:** `codex/research-market-adoption-20261028`.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Markt- en consumentenonderzoek toegevoegd; geen native acceptatie.
+Een gedateerde repository-synthese legt marktkansen, overstapfrictie, Europese alternatieven en wetenschappelijk consumentenonderzoek vast. De privacybrowser-aanvulling op main blijft behouden. Bestaande productkeuzes blijven onveranderd; doelgroep-, kleur-, prestatie- en retentievoorstellen blijven hypotheses. Geen nieuw native criterium: 14% naar 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -164,6 +164,21 @@ wanneer een website anders niet werkt. **Er is nog geen engine gekozen en er is
 nog geen native browserport.**
 
 [Onderzoek, kandidaten, uitzonderingsmodel en BR-acceptatievragen](docs/PRIVACY-BROWSER-RESEARCH.md).
+
+## Markt- en consumentenonderzoek
+
+Op 28 oktober 2026 is aanvullend onderzoek vastgelegd naar marktkansen,
+consumentenadoptie, Europese alternatieven, ontwerp-/prestatietrends en
+blijvende overstap. De kern: een eigen kernel, privacy of Europese herkomst
+zijn op zichzelf geen bewijs van brede adoptie. Dagelijkse compatibiliteit,
+begrijpelijke Materiaal-workflows, herstel, hardware, migratie en ondersteuning
+moeten samen aantoonbaar goed werken.
+
+De onderzoeksvoorstellen veranderen niet stilzwijgend de productspecificatie.
+Doelgroep-, kleur-, latency-, retentie- en verkoopvoorstellen blijven hypotheses
+tot eigen meting of een expliciet projectbesluit. Zie
+[de onderzoeksindex](docs/research/README.md) en
+[de gezamenlijke synthese](docs/research/MARKET-AND-ADOPTION-2026-10-28.md).
 
 ## Projectrichting en verder lezen
 
