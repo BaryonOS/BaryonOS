@@ -168,7 +168,7 @@ python tools/capture_gate.py m3
 python tools/capture_gate.py m4
 ```
 
-Dat zijn52 acceptatiegroepen en44 afzonderlijke VM-runs. De bewuste hang in de M1-regressie duurt60s; de negatieve ruwe guestuitkomsten worden bij het kopiëren van bewijs niet in succes veranderd. De actuele suites en expliciete host-/QEMU-grenzen staan in verification/m2-m4/.
+Dat zijn 52 acceptatiegroepen en 44 afzonderlijke VM-runs. De bewuste hang in de M1-regressie duurt 60 s; de negatieve ruwe guestuitkomsten worden bij het kopiëren van bewijs niet in succes veranderd. De actuele suites en expliciete host-/QEMU-grenzen staan in verification/m2-m4/.
 
 Start de normale M4-ontwikkelproef met:
 
@@ -179,7 +179,7 @@ python tools/run.py --smoke --milestone m4
 
 De kernel voert drie synthetische processen en een normale IPC-exchange uit en beëindigt QEMU na controle. Voor afzonderlijke negatieve cases gebruik je `test_milestones.py`; de normale M4-CLI-poort verlangt de exchange-/survivor-/cleanupmarkers en accepteert een gewone M1-image niet als M4.
 
-De latere bronvingerafdrukversie2 sluit gegenereerde `verification/`, `build/`, `target/` en caches uit en neemt gebruikersbron mee. Buildmanifesten en guestresultaten vermelden de versie expliciet. Oudere rapporten zonder dit veld behouden hun oorspronkelijke vingerafdruk; artifacthashes blijven rechtstreeks controleerbaar.
+De latere bronvingerafdrukversie 2 sluit gegenereerde `verification/`, `build/`, `target/` en caches uit en neemt gebruikersbron mee. Buildmanifesten en guestresultaten vermelden de versie expliciet. Oudere rapporten zonder dit veld behouden hun oorspronkelijke vingerafdruk; artifacthashes blijven rechtstreeks controleerbaar.
 
 Een losse ontwikkelopdracht in dezelfde omgeving:
 
@@ -225,7 +225,7 @@ Voer schrijvende M6-gates uit in een aparte Git-worktree buiten gesynchroniseerd
 mappen. Op 28 oktober 2026 wees de single-linkguard een echte normale M6c-run
 terecht af: tijdens uitvoering ontstond een tweede hardlink naar dezelfde image
 onder `.tmp.driveupload`. `fsutil hardlink list` bevestigde beide namen; welk
-proces die link maakte is niet vastgesteld. Het guestresultaat raw33 en alle
+proces die link maakte is niet vastgesteld. Het guestresultaat raw 33 en alle
 succesmarkers maakten deze hostgrensfout niet groen.
 
 Een afzonderlijke worktree behoudt dezelfde commit en bronfingerprint. Bewaar
@@ -254,7 +254,7 @@ Start Materiaal uitsluitend op de lokale loopbackinterface:
 python -m http.server 8765 --bind 127.0.0.1 --directory ui/prototype
 ```
 
-Open [Materiaal op localhost](http://127.0.0.1:8765/). De eindcontrole na hervatten gebruikte poort8776, omdat8765 lege responses gaf. Gebruik zo nodig dezelfde opdracht met8776 en open http://127.0.0.1:8776/. Stop de server met `Ctrl+C`. Dit is het browserprototype met fictieve gegevens; het draait nog niet op de eigen kernel. De uitgebreide bediening en bekende bewijsgrenzen staan in [ui/prototype/README.md](../ui/prototype/README.md).
+Open [Materiaal op localhost](http://127.0.0.1:8765/). De eindcontrole na hervatten gebruikte poort 8776, omdat 8765 lege responses gaf. Gebruik zo nodig dezelfde opdracht met 8776 en open http://127.0.0.1:8776/. Stop de server met `Ctrl+C`. Dit is het browserprototype met fictieve gegevens; het draait nog niet op de eigen kernel. De uitgebreide bediening en bekende bewijsgrenzen staan in [ui/prototype/README.md](../ui/prototype/README.md).
 
 Controleer de quantumproef en voer de Bellfixture uit:
 
