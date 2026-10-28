@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import shutil
 import subprocess
 
 from build import build
@@ -27,8 +28,11 @@ def require(condition: bool, message: str) -> None:
 
 
 def git_head() -> str:
+    git = shutil.which("git")
+    if git is None:
+        raise RuntimeError("git executable not found")
     return subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, timeout=10
+        [git, "rev-parse", "HEAD"], cwd=ROOT, text=True, timeout=10
     ).strip()
 
 
@@ -65,11 +69,20 @@ def accepted_guest(report: dict, case: str, frozen: str, head: str) -> dict:
     }
 
 
-def cold_recovery(previous: dict, volume, case: str, frozen: str, head: str) -> dict:
+def cold_recovery(
+    previous: dict,
+    volume,
+    case: str,
+    frozen: str,
+    head: str,
+    report: dict,
+) -> dict:
     build(kernel_feature="test-m6c-recover", label=f"s08-{case}-recover")
     recovered, _ = run_m6c(
         "recover", volume=volume, label=f"s08-{case}-cold-recovery"
     )
+    report["real_vm_invocations"] += 1
+    report["last_run_directory"] = recovered.get("run_directory")
     require(recovered.get("passed") is True, f"{case}: cold recovery failed")
     require(recovered.get("base_commit") == head, f"{case}: recovery HEAD mismatch")
     require(
@@ -133,11 +146,13 @@ def main() -> int:
             build(kernel_feature=f"test-m6c-{case}", label=f"s08-{case}")
             guest, volume = run_m6c(case, label=f"s08-{case}")
             report["real_vm_invocations"] += 1
+            report["last_run_directory"] = guest.get("run_directory")
             report["cases"].append(accepted_guest(guest, case, frozen, head))
             save_json(result_path, report)
             if case in RECOVERABLE:
-                recovery = cold_recovery(guest, volume, case, frozen, head)
-                report["real_vm_invocations"] += 1
+                recovery = cold_recovery(
+                    guest, volume, case, frozen, head, report
+                )
                 report["recoveries"].append(recovery)
                 save_json(result_path, report)
         require(report["real_vm_invocations"] == 13, "expected exactly 13 VM invocations")
