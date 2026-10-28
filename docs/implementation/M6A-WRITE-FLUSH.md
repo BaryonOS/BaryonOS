@@ -40,8 +40,9 @@ nieuwe API wordt in deze stap nog niet door de kernel/driver aangeroepen.
 `accepted_bits()` geeft het te onderhandelen masker. `Operation` is
 `Write { sector }` of `Flush`. `Plan::new(features, operation, pool, ram_end,
 capacity)` maakt een immutable plan, met accessors voor operatie, header en de
-actieve descriptorslice. `Plan::validate_descriptors` en `Plan::validate_used`
-controleren de draft respectievelijk de completion voor dat plan.
+actieve descriptorslice. `Plan::validate(header, descriptors)` bindt ook de
+headerbytes aan de draft. `Plan::validate_used(old_idx, new_idx, id, len, status)`
+controleert de completion voor vaste head 0.
 
 Geen nieuwe capability- of syscallinterface in deze stap. Een geldig plan geeft
 geen app schrijfbevoegdheid. De toekomstige kernelcaller moet opnieuw autoriseren,

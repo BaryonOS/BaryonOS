@@ -3,8 +3,9 @@
 Safe Rust `no_std`, nul dependencies en `forbid(unsafe_code)`. Deze crate krijgt
 alleen integers en vaste arrays: geen raw pointers, MMIO, PCI-I/O, klok of heap.
 Het profiel is modern virtio-blk, split queue8, één outstanding request,
-512-byte READ en een gebruikersslice van 1–128 bytes. WRITE en IOMMU-integratie
-worden niet aangeboden.
+512-byte READ en een gebruikersslice van 1–128 bytes. De M5-runtime biedt geen
+WRITE of IOMMU-integratie. De aanvullende M6a-planhelpers hieronder publiceren
+zelf geen I/O en verruimen geen capability of syscall.
 
 ## API
 
@@ -84,6 +85,43 @@ Uitgevoerde resultaten, exacte argv en bronhashes worden lokaal bewaard in
 Een hosttest is geen echte PCI-/DMA-/reset- of ring3-uitvoering. De kernelagent
 beheert die afzonderlijke grens. Terugdraaien vereist gezamenlijk verwijderen
 van deze crate en de door root beheerde workspace-/driverdependency.
+
+## Eerste M6a-stap: zuivere WRITE/FLUSH-plannen
+
+`writeback::Features::negotiate` vereist VERSION_1 en FLUSH (bit9), weigert
+READ_ONLY en ACCESS_PLATFORM en neemt alleen de twee vereiste bits over. Dit
+valideert een featurevoorstel; het bewijst geen `FEATURES_OK`-acceptatie door een
+device. De bestaande M5-featurefunctie en `Policy` blijven ongewijzigd.
+
+`writeback::Plan::new` krijgt dit gevalideerde featuretype, een `Operation`, de
+vaste vijfpagina-pool, RAM-einde en devicecapaciteit in sectoren. `Write { sector }`
+vereist `sector < capacity` en bouwt exact header16/RO → bounce512/RO →
+status1/device-WRITE. FLUSH bouwt header16/RO → status1/device-WRITE, met opcode4,
+sector0 en geen data-descriptor. De WRITE-opcode is1. Alle headerbytes en de
+volledige actieve descriptorketen worden vóór publicatie vergeleken door
+`Plan::validate`; een extra of ontbrekende descriptor faalt ook.
+
+Head is altijd0. `Plan::validate_used` verlangt één nieuwe used-entry, id0,
+lengte1 en een bekende status; alleen de statusbyte is device-writable. De
+normale 16-bit indexwrap blijft toegestaan. IOERR en UNSUPP zijn terminale
+foutuitkomsten en rechtvaardigen geen payload of aanname dat de opslag
+ongewijzigd is. De zeven aanvullende hosttests controleren features,
+bytevolgorde, beide ketens, capaciteit-/poolgrenzen, header-/descriptormutaties
+en completionmetadata. Deze zijn zuivere hostcontroles, geen echte WRITE/FLUSH.
+
+De toekomstige transportcaller blijft verantwoordelijk voor autorisatie,
+featureacceptatie, het volledig initialiseren en kopiëren van precies512
+payloadbytes vóór publicatie, barrières, deadlines en de volledige DMA-lifetime.
+Een writecompletion bewijst geen duurzaamheid. Een fout, timeout of reset kan
+een al gedeeltelijk uitgevoerde write niet terugdraaien; crashherstel blijft een
+afzonderlijke M6a-stap. Er is nog geen schrijvende kernel-/dienstinterface.
+
+Primaire bron: OASIS Open, *VIRTIO1.2*, Committee Specification01 (1 juli2022),
+§§2.7 en5.2; tag `v1.2-cs01`, commit
+`e230375adde48ff39f734ea2783ef7b9d2ba346a`,
+[vast bronbestand](https://raw.githubusercontent.com/oasis-tcs/virtio-spec/e230375adde48ff39f734ea2783ef7b9d2ba346a/content.tex),
+gecontroleerd op28 oktober2026. SHA256 van het bronbestand:
+`08554df46753374735954a8436f8786a8cc5bd0b29f9f260f434e8c05061d7fd`.
 
 Bron voor de geïnterpreteerde velden/protocolgrens:
 [OASIS VIRTIO1.2](https://docs.oasis-open.org/virtio/virtio/v1.2/virtio-v1.2.html),

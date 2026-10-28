@@ -4,6 +4,8 @@
 //! Hardware ordering, DMA pinning, MMIO and actual reset acknowledgement are the
 //! caller's responsibility. No policy result proves hardware quiescence.
 
+pub mod writeback;
+
 pub const QUEUE_SIZE: u16 = 8;
 pub const SECTOR_SIZE: u32 = 512;
 pub const MAX_SLICE: u64 = 128;

@@ -1,0 +1,4 @@
+   Compiling virtio-core v0.1.0 (/workspace/nieuw-os/crates/virtio-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.85s
+     Running unittests src/lib.rs (build/m6a-builder-target/debug/deps/virtio_core-56bd066db634f2e3)
+   Doc-tests virtio_core

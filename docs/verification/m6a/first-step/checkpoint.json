@@ -1,0 +1,20 @@
+{
+  "basis": "5a58a74",
+  "scope": "pure WRITE/FLUSH plans only; no runtime integration",
+  "source_sha256": {
+    "crates/virtio-core/README.md": "c9dd47bddab1c989c19b2df5ab7684b1d16ab6a3c1818cbfcad74c094701b67a",
+    "crates/virtio-core/src/lib.rs": "c7c779bc3ad10f82f48e4fd1d0ae061fd23fde69de3dd036b963bd2d358624aa",
+    "crates/virtio-core/src/writeback.rs": "6bc3125b7405340cd177256d3ef96e4e2aab87f376d710e9ce476a9062db31eb",
+    "crates/virtio-core/src/writeback/tests.rs": "cfb8f7a3404f07d5e75b2ad67bd90b987f32765f19ca1512fc3236f7acabef33"
+  },
+  "builder_report": "builder/report.json",
+  "review": "pending",
+  "integrated_m5_gate": "not yet executed",
+  "full_m6a": "not completed",
+  "open": [
+    "WRITE/FLUSH authority and ABI",
+    "kernel/driver/service integration",
+    "writable disposable-image oracle",
+    "partial writes, backend errors and crash recovery"
+  ]
+}

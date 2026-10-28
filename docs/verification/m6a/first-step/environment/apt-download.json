@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/usr/bin/apt-get",
+    "--download-only",
+    "--no-install-recommends",
+    "-y",
+    "install",
+    "qemu-system-x86",
+    "ovmf"
+  ],
+  "APT_CONFIG": "/workspace/nieuw-os/.tools/nieuw-os/qemu-debian/apt/config",
+  "returncode": 0
+}

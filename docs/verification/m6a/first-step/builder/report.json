@@ -1,0 +1,98 @@
+{
+  "cwd": "/workspace/nieuw-os",
+  "env": {
+    "CARGO_TARGET_DIR": "/workspace/nieuw-os/build/m6a-builder-target"
+  },
+  "commands": [
+    {
+      "name": "format",
+      "argv": [
+        "python3",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "-p",
+        "virtio-core"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "python3",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "-p",
+        "virtio-core",
+        "--locked",
+        "--offline"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "format-check",
+      "argv": [
+        "python3",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "-p",
+        "virtio-core",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "clippy",
+      "argv": [
+        "python3",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "-p",
+        "virtio-core",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "no-std",
+      "argv": [
+        "python3",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "check",
+        "-p",
+        "virtio-core",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "diff-check",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "crates/virtio-core"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

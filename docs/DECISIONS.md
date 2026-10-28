@@ -58,3 +58,33 @@ ID, datum, status, context, alternatieven, besluit, onderbouwing/bronnen, gevolg
 De vertrouwde basis omvat het kerneltransport en het protocolconforme QEMU-device/backend. M5 bevat geen IOMMU: CPU-isolatie en begrensde descriptoropbouw bewijzen geen containment van kwaadwillige DMA. De pool blijft gepind tot VM-stop; hergebruik vereist completion of bevestigde reset. Zonder resetack blijft zij in quarantaine en het device offline. Een used-entry heeft geen epoch; softwaretickets vervangen geen hardware-resetgarantie. Herzie dit besluit vóór directe userdriver-DMA, SMP, fysieke hardware of een andere devicebackend.
 
 De eerste scope is alleen lezen op een synthetische 64KiB-wegwerpimage. Schrijven, persistentie en herstel blijven M6. Herstart gebruikt een begrensde testcoördinator en echte nieuwe dienst-PID/epoch plus IPC-capoverdracht; geen algemene spawn-API. De client blijft leven. Het externe testorakel controleert sectorchecksums op twee verschillende images bij dezelfde kernel en controleert dat alle imagebytes ongewijzigd blijven. Uitgevoerde resultaten en open punten staan uitsluitend in PROJECT-STATE.md en verification/m5/. Herstel: een afzonderlijke checkout van M1–M4 op `c630c59`; geen hostdisk- of firmwaremigratie.
+
+**ADR-027 — M6a begint met afzonderlijke WRITE/FLUSH-plannen.** Datum:
+28 oktober 2026. Status: aanvaard voor de eerste corestap; runtime-integratie
+blijft open. Eigenaar: root voor contract/integratie, B06 voor `virtio-core`.
+
+Context: M5 heeft bewust alleen READ-autoriteit en een read-only backend.
+WRITE/FLUSH veranderen DMA-richting, completionlengte en de betekenis van
+fouten/herstart. Het bestaande leesprofiel verruimen zou deze grenzen vermengen.
+Alternatieven: meteen driver/ABI/dienst/harnas samen uitbreiden (te grote eerste
+reviewstap), of schrijfplannen in de driver zelf bouwen (minder zuiver testbaar).
+Besluit: een afzonderlijke safe `no_std`-module met gevalideerd schrijfprofiel en
+immutable één-sector-WRITE-/dataloze-FLUSH-plannen. Geen nieuwe dependencies,
+capabilityrechten of syscalls; M5-code blijft dezelfde publieke API gebruiken.
+
+Security-invariant: alleen VERSION_1+FLUSH op een niet-read-only offer, exacte
+gevalideerde pool/keten/header, alleen status device-writable en gebruikte lengte
+exact 1. Een plan is geen autorisatie of bewijs van deviceacceptatie, pinning,
+I/O of duurzaamheid. Reset kan een uitgevoerde write niet ongedaan maken.
+Onderbouwing: OASIS VIRTIO 1.2 CS01, §§2.7 en 5.2; officiële broncommit
+`e230375adde48ff39f734ea2783ef7b9d2ba346a`, gecontroleerd 28 oktober 2026.
+Exacte URL, hash, interface en acceptatie staan in
+[M6A-WRITE-FLUSH.md](implementation/M6A-WRITE-FLUSH.md).
+
+Gevolgen: de eerste stap is hosttestbare bouwcode; echte schrijvende opslag
+vereist nog het aparte rechten-/ABI-ontwerp, transport, dienst, externe
+imagecontrole en fout-/herstartproeven. Testbewijs staat in PROJECT-STATE.md en
+verification/m6a/. Herzie vóór meer-sector-I/O, gedeeltelijke sectors, een andere
+devicebackend, SMP of fysieke hardware; een concreet incompatibel device of
+falende negatieve test weerlegt dit profiel. Herstel via aparte checkout van
+`5a58a74`; geen schijfmigratie, firmwarewijziging of destructieve reset.

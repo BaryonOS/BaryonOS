@@ -6,10 +6,10 @@ coreplannen; volledige schrijvende opslag/crashherstel blijven open.
 
 | ID | Eigenaar | Gebied | Status / bewijs |
 |---|---|---|---|
-| A06/B06 | m6a_architect_review | crates/virtio-core/ | read-only ontwerp klaar; bouw WRITE/FLUSH-plannen en negatieve hosttests loopt |
+| A06/B06 | m6a_architect_review | crates/virtio-core/ | coreplannen klaar; 19 hosttests/fmt/Clippy/no_std exit 0 |
 | E06 | m6a_environment | projectlokale .tools/, build/ | QEMU/OVMF ingericht; strict preflight exit 0 |
-| G06 | root | docs/tools/Git/integratie | contract vastgelegd; geïntegreerde controles en checkpoint volgen |
-| R06 | andere agent | alleen lezen | review nog niet uitgevoerd |
+| G06 | root | docs/tools/Git/integratie | contract en broncheckpoint; geïntegreerde eindcontroles volgen |
+| R06 | m6a_environment | alleen lezen | onafhankelijke bronreview/externe hostproeven lopen |
 
 ## Bewaarde M5-queue
 

@@ -1,0 +1,52 @@
+{
+  "task": "E06",
+  "result": "completed",
+  "scope": "project-local development-tool installation and read-only inventory; no build or VM executed",
+  "host": "Linux-6.18.55-x86_64-with-glibc2.41",
+  "method": "Official signed Debian trixie/trixie-security APT repositories; download-only, extract .deb archives without maintainer scripts or system install",
+  "repositories": [
+    "https://deb.debian.org/debian trixie main",
+    "https://security.debian.org/debian-security trixie-security main"
+  ],
+  "package_manifest": "build/m6a-environment/deb-extract.json",
+  "qemu_version": {
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "--version"
+    ],
+    "returncode": 0,
+    "stdout": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers\n",
+    "stderr": ""
+  },
+  "firmware": {
+    "OVMF_CODE_4M.fd": {
+      "path": "/workspace/nieuw-os/.tools/nieuw-os/qemu-debian/root/usr/share/OVMF/OVMF_CODE_4M.fd",
+      "sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0"
+    },
+    "OVMF_VARS_4M.fd": {
+      "path": "/workspace/nieuw-os/.tools/nieuw-os/qemu-debian/root/usr/share/OVMF/OVMF_VARS_4M.fd",
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    }
+  },
+  "wrapper": {
+    "path": "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+    "sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "content": "#!/bin/sh\nLD_LIBRARY_PATH=/workspace/nieuw-os/.tools/nieuw-os/qemu-debian/root/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH:-}\nexport LD_LIBRARY_PATH\nexec /workspace/nieuw-os/.tools/nieuw-os/qemu-debian/root/usr/bin/qemu-system-x86_64 -L /workspace/nieuw-os/.tools/nieuw-os/qemu-debian/root/usr/share/qemu \"$@\"\n"
+  },
+  "preflight": {
+    "command": [
+      "python3",
+      "tools/preflight.py",
+      "--strict"
+    ],
+    "returncode": 0,
+    "report": "build/m6a-environment/preflight.json"
+  },
+  "notes": [
+    "No sudo/root available. Installed only under gitignored .tools/.",
+    "APT_CONFIG environment isolates package configuration and cache; no global PATH or host config changed.",
+    "First apt update using -c read an existing global cleanup hook; attempted system-cache cleanup was denied. Subsequent package download used APT_CONFIG to avoid global hooks.",
+    "No build, VM run, actual disk, firmware flash, network guest or source/Git mutation.",
+    "QEMU 10.0.13 differs from the documented reference QEMU 10.0.14; treat as development variant pending actual guest test."
+  ]
+}

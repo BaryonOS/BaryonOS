@@ -1,0 +1,9 @@
+{
+  "command": [
+    "/usr/bin/apt-get",
+    "-c",
+    "/workspace/nieuw-os/.tools/nieuw-os/qemu-debian/apt/config",
+    "update"
+  ],
+  "returncode": 0
+}

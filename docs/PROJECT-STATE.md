@@ -6,15 +6,23 @@ Nieuwe werkbranch `codex/m6a-write-flush-core`, basis `5a58a74`. M6a is gestart
 met een afgebakende eerste stap: zuivere WRITE/FLUSH-requestplannen in
 `virtio-core`, nog zonder kernel-/driverintegratie of verruiming van rechten.
 Contract en verdere acceptatie: [M6A-WRITE-FLUSH.md](implementation/M6A-WRITE-FLUSH.md).
-Implementatie/review/tests voor deze stap lopen; nog geen nieuwe geslaagde
-WRITE/FLUSH-, persistentie- of crashherstelproef. De eerdere M5-resultaten
+De core-implementatie is klaar: aparte `Features`/`Operation`/`Plan`, exacte
+header-/descriptorvalidatie en status-only-completions voor WRITE/FLUSH. Zeven
+nieuwe tests plus alle twaalf bestaande virtio-coretests slagen (19 totaal).
+Buildercontroles voor fmt, Clippy `-D warnings`, no_std en diffcontrole: exit 0;
+exacte opdrachten en bronhashes onder `verification/m6a/first-step/`. Review en
+geïntegreerde eindcontroles lopen; geen uitgevoerde WRITE/FLUSH-, persistentie-
+of crashherstelproef. De eerdere M5-resultaten
 hieronder blijven historisch bewijs op de daarbij genoemde bronversies.
 
 Rust 1.90.0 en de cross-targets zijn aanwezig. De eerste inventaris miste
 QEMU/OVMF; die zijn projectlokaal uit officiële Debian-pakketten ingericht.
 Daarna slaagt `python3 tools/preflight.py --strict` (exit 0): QEMU 10.0.13,
 OVMF 2025.02-8+deb13u1. Dit is een andere ontwikkelvariant; nog geen bootbewijs.
-Installatie-/inventarisrapporten staan voorlopig onder `build/m6a-environment/`.
+Installatie-/inventarisrapporten staan onder `build/m6a-environment/`, compact
+bewaard in `verification/m6a/first-step/environment/`. De eerste M5-build en
+smoke-start slagen (exit 0/raw 33), met het bestaande READ-schijforakel. Deze
+start is een tussentijdse omgevingscontrole; de finale M5-gate volgt nog.
 
 ## Afgeronde M5-baseline (27 oktober 2026)
 
