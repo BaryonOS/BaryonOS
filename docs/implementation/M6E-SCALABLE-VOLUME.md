@@ -112,7 +112,7 @@ RENAME, LIST (gepagineerd, 3 entries per pagina met domeingeneratie).
 
 ## Acceptatie
 
-1. Hosttests `volume-core` (16): grote documenten, hergebruik (60 commits,
+1. Hosttests `volume-core` (17): grote documenten, hergebruik (60 commits,
    > 4 × capaciteit gealloceerd), Quota/Full vóór I/O, domeinisolatie,
    malformed requests, streamingregels, tombstones, read-only, corruptie,
    zekere I/O-fouten, `Unknown` bij iedere tabelwritepositie, en een
@@ -121,7 +121,7 @@ RENAME, LIST (gepagineerd, 3 entries per pagina met domeingeneratie).
    suffixpersistentie van de schrijfcache. Mutatietests bevestigden dat het
    weglaten van de flush vóór de tabelwrite en schrijven naar de actieve slot
    worden gevangen.
-2. Orakeltests (`tests/test_volume_disk.py`) en SDK-completiontests.
+2. Orakeltests (`tests/test_volume_disk.py`, 8) en SDK-completiontests.
 3. Native gate `tools/test_volume.py`, zeven echte QEMU-invocaties op één
    bevroren bron: normaal → koude read-only recovery van exact dezelfde image;
    kill midden in inhoudswrites → koude recovery; kill midden in de tabelwrite

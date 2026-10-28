@@ -5,10 +5,12 @@ Datum: 28 oktober 2026 (Europe/Amsterdam). Contract:
 
 ## Bronbinding
 
-- Branch `ccr-d3fe1610-gl4r8s`, commit `74de599b288ac8dd77fec08cce03f0dcb42d3915`
-  (bevat `main` `78a96ae`).
-- Bronvingerafdruk v3: `535d672e45681cfb…` (volledig in `m6e/volume-gate.json`).
-- Kernel-ELF (normal) SHA-256 `7b2e77f8c7ac141f…`; `volume-service` `5060faef2cd58097…`;
+- Branch `ccr-d3fe1610-gl4r8s`, commit `bac9cbb` (reviewcorrectie
+  pogingdigest bovenop `8ae9194`/`74de599`; bevat `main` `78a96ae`).
+- Bronvingerafdruk v3: `24dbc374a3299526…` (volledig in `m6e/volume-gate.json`).
+  Het eerdere bewijs van bron `535d672e…` (vóór de reviewcorrectie) is vervangen;
+  het staat nog in de Git-geschiedenis van commit `8ae9194`.
+- Kernel-ELF (normal) SHA-256 `5ff76ae42ba7bd51…`; `volume-service` `d799ff90f05669a0…`;
   `volume-app` `1924a6b533bfd5ba…` (volledig per stap in `result.json`).
 - Omgeving: Linux-container, Rust 1.90.0, QEMU 8.2.2 (Ubuntu-pakket),
   `pc-q35-8.2`, TCG, `qemu64`, 1 CPU, 256 MiB, OVMF 4M uit het Ubuntu-pakket.
@@ -23,20 +25,20 @@ python3 -B tools/capture_volume.py     # exit 0 -> docs/verification/m6e/
 ```
 
 De gate voert eerst drie hostcontroles uit (alle exit 0):
-`cargo +1.90.0 test --locked -p volume-core` (16 tests),
+`cargo +1.90.0 test --locked -p volume-core` (17 tests: 14 dienst, 3 crash),
 `cargo +1.90.0 test --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime`
-en `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'` (7 orakeltests).
+en `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'` (8 orakeltests).
 Daarna volgen zeven echte QEMU-invocaties:
 
-| # | Stap | Image | Uitkomst | Raw exit | Duur |
+| # | Stap | Image vóór → na | Uitkomst | Raw exit | Duur |
 |---|---|---|---|---|---|
-| 0 | normal (schrijvend) | nieuw `f35db550` | geslaagd | 33 | 93,4 s |
-| 1 | recover (read-only, koud) | dezelfde image | geslaagd, image byte-identiek | 33 | 54,9 s |
-| 2 | cut-data: kill na 40 inhoudswrites van de 2e upload | nieuw `659669b2` | echte hostkill van live guest | −9 | 4,5 s |
-| 3 | recover-cut (read-only, koud) | dezelfde image | revisie 1 intact | 33 | 4,4 s |
-| 4 | cut-table: kill na 4 van 9 tabelsectoren | nieuw `ff61359a` | echte hostkill van live guest | −9 | 5,5 s |
-| 5 | recover-cut (read-only, koud) | dezelfde image | revisie 1 intact | 33 | 4,5 s |
-| 6 | corrupt (verzegelde, niet-canonieke tabel) | nieuw `a2183766` | geweigerd vóór READY | 33 | 4,2 s |
+| 0 | normal (schrijvend) | nieuw `b8f331f4` → `b3c109a1` | geslaagd | 33 | 87,8 s |
+| 1 | recover (read-only, koud) | `b3c109a1` → `b3c109a1` | geslaagd, image byte-identiek | 33 | 52,4 s |
+| 2 | cut-data: kill na 40 inhoudswrites van de 2e upload | nieuw `b8f331f4` → `0eb98c00` | echte hostkill van live guest | −9 | 4,2 s |
+| 3 | recover-cut (read-only, koud) | `0eb98c00` → `0eb98c00` | revisie 1 intact | 33 | 4,5 s |
+| 4 | cut-table: kill na 4 van 9 tabelsectoren | nieuw `b8f331f4` → `a59951f7` | echte hostkill van live guest | −9 | 5,0 s |
+| 5 | recover-cut (read-only, koud) | `a59951f7` → `a59951f7` | revisie 1 intact | 33 | 4,3 s |
+| 6 | corrupt (verzegelde, niet-canonieke tabel) | fixture `c8f750b8` → `c8f750b8` | geweigerd vóór READY | 33 | 4,1 s |
 
 Iedere herstelstap is gekoppeld aan de vorige: before-hash = after-hash van de
 voorgaande geslaagde stap, dezelfde volume-identiteit en dezelfde bron.
@@ -78,6 +80,12 @@ Na cut-table bevatte kopie 0 vier sectoren van generatie 2 en vijf nulsectoren.
 Zowel het orakel als de dienst kozen generatie 1. De corrupte fixture wordt ook door
 het orakel geweigerd.
 
+Na de reviewcorrectie (pogingdigest) weigeren dienst én orakel sectoren van twee
+verschillende schrijfpogingen voor dezelfde generatie als één geldige kopie
+(`mixed_attempts_for_one_generation_are_never_combined` en
+`test_sectors_of_two_attempts_never_form_one_copy`; de hosttest faalt zonder de
+correctie). Native is die menging niet als aparte VM-stap opgewekt.
+
 ## Beoordeling volgens rubric v1
 
 - **S04 (3 punten), geaccepteerd.**
@@ -104,4 +112,6 @@ is niet uitgevoerd; zekere en onzekere I/O-fouten zijn alleen hostgetest. S07/S0
 blijven gekoppeld aan de M6c-keten.
 
 GitHub Actions op de PR-head moeten deze uitslag nog onafhankelijk herhalen. Zie
-PR #47.
+PR #47. `tools/capture_volume.py` weigert een bestaande doelmap; voor een nieuwe
+vastlegging wordt de oude map eerst bewust verwijderd (`git rm -r
+docs/verification/m6e`) of wordt `--destination` met een nieuwe map gebruikt.

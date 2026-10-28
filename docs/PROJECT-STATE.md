@@ -2,7 +2,7 @@
 
 ## M6e schaalbare documentopslag native geaccepteerd, 26% — 28 oktober 2026
 
-Branch `ccr-d3fe1610-gl4r8s`, commit `74de599` (bevat `main` `78a96ae`), concept-PR
+Branch `ccr-d3fe1610-gl4r8s`, broncommit `bac9cbb` (bevat `main` `78a96ae`), concept-PR
 [#47](https://github.com/simonvanieperen/nieuw-os/pull/47). Uitgevoerd in een
 Linux-container met Rust 1.90.0, QEMU 8.2.2, `pc-q35-8.2` en OVMF 4M uit het
 Ubuntu-pakket.
@@ -18,7 +18,12 @@ Ubuntu-pakket.
   en de gate `tools/test_volume.py` met capture.
 
 **Uitgevoerd en geslaagd:**
-- `python3 -B -u tools/test_volume.py`, exit 0, met 3 hostcontroles en 7 QEMU-runs.
+- `python3 -B -u tools/test_volume.py`, exit 0, met 3 hostcontroles (17 volume-core-,
+  14 SDK- en 8 orakeltests) en 7 QEMU-runs op bron `24dbc374…`.
+- Reviewcorrectie (CodeRabbit, PR #47): iedere tabelsector draagt nu een
+  pogingdigest, zodat sectoren van twee schrijfpogingen voor dezelfde generatie
+  nooit samen een geldige kopie vormen. De nieuwe hosttest faalt zonder de
+  correctie; het oude bewijs van bron `535d672e…` is vervangen.
 - `python3 -B tools/capture_volume.py`, exit 0, naar `docs/verification/m6e/`.
 - Regressie: `milestone-m6c` normal smoke.
 - Uitslagen en grenzen: [M6E-ACCEPTANCE](verification/M6E-ACCEPTANCE.md).
@@ -39,9 +44,11 @@ Ubuntu-pakket.
   het gebruikslimiet.
 - Drie Claude-subagents zijn bevestigd gestart in eigen worktrees, met lokale
   QEMU: G1 (ring-3 display/invoer), K05 (procesbeheer) en N01 (virtio-net/UDP).
-  Hun resultaten zijn nog niet geïntegreerd of geaccepteerd.
+  G1 en K05-a (ring-3-supervisor met niet-overdraagbare procescapabilities,
+  3 native gevallen volgens het agentrapport) zijn opgeleverd maar nog niet
+  geïntegreerd, onafhankelijk herhaald of geaccepteerd; N01 loopt nog.
 - S06 (collecties, metadata, revisiegeschiedenis, transacties) is in een aparte
-  lokale worktree in ontwikkeling: niets gecommit of getest.
+  lokale worktree in ontwikkeling: hosttests groen, native gate nog niet gedraaid.
 
 ## N01 voorbereidend netwerkwerk — UDP-uitvoer zonder native NIC (28 oktober 2026)
 
