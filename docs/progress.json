@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "34a0e9ce499f19ad6bd9bc4f3cc36d2c5682ed05",
-    "branch": "docs/consumer-adoption-evidence-20261028",
-    "task": "Consumentenwaarde-onderzoek aangevuld en vroege gebruiksvalidatie gepland",
+    "source_commit": "dbd9a89736023be6f04fb5c2c1a8f842f266134f",
+    "branch": "docs/security-floor-opaque-cloud-ux-20261028",
+    "task": "Security Floor, opaque provideropslag en premium native UX vastgelegd",
     "previous_score": 14,
-    "summary": "De bestaande consumentenwaarde-verkenning is aangevuld met bewijs over desktopgewenning, ervaren competentie, tijdelijke opslag, local-first en meldingsgedrag. PRX1–PRX4 leggen de vroege gebruiksvalidatie vast; er is nog geen deelnemer onderzocht en geen native criterium geaccepteerd. Geen functiewinst: 14% naar 14%."
+    "summary": "Privacycontract revisie 4, ADR-035 t/m ADR-038 en de nieuwe encrypted-objectspecificatie leggen vrijwillige externe ciphertextopslag, niet-uitzetbare beveiligingsgrenzen, uitzetbare privacyuitleg en de premium productiviteitsambitie vast. Dit is architectuur/documentatie: geen native provider-, crypto- of UI-acceptatie en dus 14% naar 14%."
   },
   "tracks": [
     {

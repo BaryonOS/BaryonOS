@@ -50,7 +50,7 @@ Geef een agent niet alle documenten tegelijk. Laat hem eerst de relevante reposi
 6. **Bewijs:** bewaar uitgevoerde commando's, relevante logs, uitkomst en beperkingen.
 7. **Overdracht:** wat veranderd is, wat nog onzeker is en wat de volgende taak veilig kan aannemen.
 
-Een verwijzing naar een document betekent niet dat de hele inhoud in het modelgeheugen aanwezig is. Laat de agent de relevante passage ophalen of een gecontroleerde lokale kopie lezen. Leg van gedownloade specificaties versie en checksum vast wanneer de build of review ervan afhankelijk is. Bewaar geen volledige beschermde boeken in de repository zonder passende rechten.
+Een verwijzing naar een document betekent niet dat de hele inhoud in het modelgeheugen aanwezig is. Voor OS-ontwikkeltaken is `.agents/skills/os-dev/SKILL.md` de lokale route naar de gebundelde OSDev Wiki-snapshot en *The little book about OS development*; laat de agent met `scripts/zoeken.py` alleen de relevante passage ophalen. Voor overige bronnen: laat de agent de relevante passage ophalen of een gecontroleerde lokale kopie lezen. Leg van gedownloade specificaties versie en checksum vast wanneer de build of review ervan afhankelijk is. Bewaar geen volledige beschermde boeken in de repository zonder passende rechten.
 
 ## 3. Leerroute voor Simon
 

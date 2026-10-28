@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`34a0e9ce`](https://github.com/simonvanieperen/nieuw-os/commit/34a0e9ce499f19ad6bd9bc4f3cc36d2c5682ed05) ·
-**Ontwikkelbranch:** `docs/consumer-adoption-evidence-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Consumentenwaarde-onderzoek aangevuld en vroege gebruiksvalidatie gepland.
-De bestaande consumentenwaarde-verkenning is aangevuld met bewijs over desktopgewenning, ervaren competentie, tijdelijke opslag, local-first en meldingsgedrag. PRX1–PRX4 leggen de vroege gebruiksvalidatie vast; er is nog geen deelnemer onderzocht en geen native criterium geaccepteerd. Geen functiewinst: 14% naar 14%.
+**Bron:** [`dbd9a897`](https://github.com/simonvanieperen/nieuw-os/commit/dbd9a89736023be6f04fb5c2c1a8f842f266134f) ·
+**Ontwikkelbranch:** `docs/security-floor-opaque-cloud-ux-20261028`.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Security Floor, opaque provideropslag en premium native UX vastgelegd.
+Privacycontract revisie 4, ADR-035 t/m ADR-038 en de nieuwe encrypted-objectspecificatie leggen vrijwillige externe ciphertextopslag, niet-uitzetbare beveiligingsgrenzen, uitzetbare privacyuitleg en de premium productiviteitsambitie vast. Dit is architectuur/documentatie: geen native provider-, crypto- of UI-acceptatie en dus 14% naar 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -153,33 +153,6 @@ M6b is hervat vanaf `main` (`1f24f99`) op [codex/m6b-storage-errors](https://git
 
 De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-feature milestone-m5` en `python tools/run.py --smoke --milestone m5`. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
 
-## Onderzoeksrichting: privacybrowser
-
-Voor dagelijks internetgebruik onderzoekt Nieuw OS een eigen privacyvriendelijke
-browserervaring. De eerste vergelijking omvat Chromium/Blink en Firefox/Gecko,
-met onder meer ungoogled-chromium, Brave, Vanadium, LibreWolf en Mullvad Browser
-als technische referenties. De gewenste standaard is privacybescherming aan,
-geen niet-noodzakelijke browsertelemetrie en een gerichte tijdelijke uitzondering
-wanneer een website anders niet werkt. **Er is nog geen engine gekozen en er is
-nog geen native browserport.**
-
-[Onderzoek, kandidaten, uitzonderingsmodel en BR-acceptatievragen](docs/PRIVACY-BROWSER-RESEARCH.md).
-
-## Markt- en consumentenonderzoek
-
-Op 28 oktober 2026 is aanvullend onderzoek vastgelegd naar marktkansen,
-consumentenadoptie, Europese alternatieven, ontwerp-/prestatietrends en
-blijvende overstap. De kern: een eigen kernel, privacy of Europese herkomst
-zijn op zichzelf geen bewijs van brede adoptie. Dagelijkse compatibiliteit,
-begrijpelijke Materiaal-workflows, herstel, hardware, migratie en ondersteuning
-moeten samen aantoonbaar goed werken.
-
-De onderzoeksvoorstellen veranderen niet stilzwijgend de productspecificatie.
-Doelgroep-, kleur-, latency-, retentie- en verkoopvoorstellen blijven hypotheses
-tot eigen meting of een expliciet projectbesluit. Zie
-[de onderzoeksindex](docs/research/README.md) en
-[de gezamenlijke synthese](docs/research/MARKET-AND-ADOPTION-2026-10-28.md).
-
 ## Projectrichting en verder lezen
 
 Nieuw OS bouwt een eigen Rust-kernel met expliciete bevoegdheden en afzonderlijke
@@ -188,10 +161,14 @@ Documenten en collecties staan centraal; apps zijn verwisselbare gereedschappen.
 De eigen kernel is geen fork van een bestaand besturingssysteem. Rust/LLVM,
 QEMU, UEFI, open standaarden en gecontroleerde bibliotheken zijn ontwikkelmiddelen.
 
-Persoonlijke gegevens blijven lokaal of end-to-end versleuteld op een expliciet
-gekoppelde eigen NAS of NAS bij vrienden/familie. Internet vraagt passende
-app-/peerrechten. Systeem-AI blijft op het eigen apparaat zonder cloudfallback;
-installatie van een app verleent geen algemene bestands- of netwerkrechten.
+Persoonlijke gegevens blijven lokaal, end-to-end versleuteld op een expliciet
+gekoppelde persoonlijke NAS, of — na expliciete keuze — als opaque client-side
+versleutelde objecten bij een externe opslagprovider. Een provider krijgt geen
+Nieuw-OS-inhoudssleutel en is geen stille fallback. Internet vraagt passende
+app-/peer-/providerrechten. Systeem-AI blijft op het eigen apparaat zonder
+cloudfallback; installatie van een app verleent geen algemene bestands- of
+netwerkrechten. Privacykeuzes verruimen alleen expliciete gegevensstromen:
+de Security Floor met isolatie en capability-afdwinging blijft actief.
 De actuele native implementatiegrenzen staan per spoor hierboven.
 
 - [Architectuur en kernelcontract](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
@@ -199,6 +176,7 @@ De actuele native implementatiegrenzen staan per spoor hierboven.
 - [Privacycontract](docs/LOCAL-PRIVACY-CONTRACT.md).
 - [Quantumspoor](docs/QUANTUM-RESEARCH.md).
 - [Beveiliging en postkwantumroute](docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md).
+- [Security Floor en versleutelde object-/provideropslag](docs/implementation/ENCRYPTED-OBJECT-STORAGE.md).
 - [Werkinstructies voor agents](AGENTS.md).
 - [Ontwerpbesluiten](docs/DECISIONS.md) en [afhankelijkheden](docs/DEPENDENCIES.md).
 
