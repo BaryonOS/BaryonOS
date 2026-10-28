@@ -20,6 +20,118 @@ Onderzoek na de bestaande P2-acceptatie één samenhangende demonstratie (**DV-0
 
 DV-01 is een vervolghypothese en acceptatiescenario. Het verruimt P2 niet stilzwijgend en verandert geen bestaande native bewijsclaim of voortgangspunt.
 
+## Aanvulling P3/P4 — premium native productiviteit en eigen visuele taal
+
+Gebruikersbesluit 28 oktober 2026: privacyvriendelijkheid mag **niet** zichtbaar
+aanvoelen als een functionele of esthetische concessie. De uiteindelijke
+Nieuw-OS-ervaring moet qua afwerking, snelheid, typografie en samenhang kunnen
+concurreren met hoogwaardige moderne consumentensoftware, zonder Windows,
+macOS, Microsoft Office of andere suites visueel of interactioneel na te
+bouwen.
+
+Dit verandert de bevroren P2-taakflows niet. P2 blijft een prototype om
+Materiaal te toetsen. Onderstaande eisen sturen P3 (designsysteem/appcontract)
+en P4/M7 (native vertaling).
+
+### Productiviteitsmodel
+
+- **Materiaal blijft centraal.** Een document, tabel, presentatie, afbeelding of
+  collectie is het blijvende object; gereedschappen zijn verwisselbare
+  bewerkingsmogelijkheden.
+- **Geen Office-ribbonkopie als basis.** Contextuele gereedschappen verschijnen
+  wanneer het geselecteerde object of onderdeel ze nodig heeft. De inhoud
+  domineert het scherm.
+- **Herkenning zonder imitatie.** Bekende basisacties zoals openen, opslaan,
+  zoeken, undo, kopiëren en exporteren blijven voorspelbaar; onderscheid komt
+  uit objectcontinuïteit, geschiedenis, contextuele tools, motion en
+  capabilitybewust delen.
+- **Eén productfamilie.** Tekst, tabellen, presentaties, PDF/media en latere
+  eigen gereedschappen gebruiken dezelfde spacing, typografie, focus,
+  selectie, versiegeschiedenis, delen, herstel en foutpatronen.
+- **Interoperabiliteit is een migratie-eis.** DOCX/XLSX/PPTX/PDF-import/export
+  wordt als praktisch compatibiliteitsdoel onderzocht en per formaat/feature
+  getest. Een bestand kunnen openen is geen claim van volledige
+  round-trippariteit.
+
+### Visuele/interactionele ambitie: quiet futurism
+
+De gewenste uitstraling is modern en vooruitstrevend zonder decoratieve
+sciencefiction: scherpe typografie, precieze grids, subtiele diepte,
+responsieve motion en contextuele bediening. Privacy- en beveiligingsstatus
+moeten rustig in dezelfde visuele taal passen en geen beheerconsole worden.
+
+Belangrijke principes:
+
+- materiaal/content krijgt visuele prioriteit boven permanente chrome;
+- transitions volgen objectcontinuïteit: hetzelfde materiaal voelt als
+  hetzelfde object wanneer een ander gereedschap het opent;
+- motion ondersteunt plaats, status en causaliteit en respecteert
+  reduced-motion;
+- iconen en acties zijn direct herkenbaar op functie, met een eigen uitvoering;
+- technische details zijn beschikbaar maar niet de standaardtaal voor gewone
+  gebruikers;
+- fouten tonen gevolg en eerstvolgende herstelactie in plaats van cryptische
+  codes als primaire laag.
+
+De bestaande P2-kleuren/tokens zijn prototypekeuzes, geen definitieve merk- of
+OS-huisstijl.
+
+### Native renderdoel
+
+De uiteindelijke kernapps krijgen een gedeelde native UI-/renderlaag als
+productdoel. Die laag moet GPU-versnelling, high-DPI, tekst, vectoren,
+animaties, toegankelijkheid en consistente input/focus ondersteunen zodra de
+native graphicsbasis dat toelaat.
+
+Een verzameling los vormgegeven webviews is niet de gewenste eindarchitectuur
+voor de eigen kernapps. Het exacte compositor-, GPU-, text shaping- en
+renderontwerp blijft een afzonderlijk technisch besluit en wordt pas
+vastgezet na de relevante G/H-mijlpalen. Het browserprototype is dus
+ontwerpgereedschap, geen stil gekozen runtime.
+
+### Lokale AI als gereedschap, niet als verplichte chatbot
+
+Systeem-AI blijft lokaal volgens het privacycontract en wordt waar nuttig
+contextueel aangeboden, bijvoorbeeld op een expliciete tekstselectie:
+verkorten, verduidelijken, samenvatten, vergelijken of vertalen. AI krijgt
+alleen de geselecteerde context/capabilities en de gewone workflow blijft
+bruikbaar wanneer AI ontbreekt.
+
+De UI mag lokale verwerking zichtbaar maken, maar gebruikt geen opdringerige
+“AI overal”-interface als vervanging voor goede basisbediening.
+
+### Privacyuitleg zonder popupmoeheid
+
+Er zijn twee verschillende UI-elementen:
+
+1. een noodzakelijke capabilitybeslissing voor nieuwe toegang;
+2. optionele educatieve privacyuitleg met concreet voorbeeld of kritische vraag.
+
+De gebruiker kan de educatieve uitleg globaal of per app uitschakelen. Dat
+verleent geen nieuwe rechten en wijzigt bestaande grants niet. Een normale
+handeling binnen een reeds geldige grant geeft niet telkens opnieuw dezelfde
+uitleg.
+
+Tijdens gaming/focus worden niet-urgente educatieve meldingen niet midden in
+de activiteit getoond. Een bewust geactiveerde nieuwe gevoelige functie mag
+wel een compacte noodzakelijke grantvraag openen.
+
+### P3/P4-acceptatievragen
+
+- **PX-01:** tekst-, tabel- en presentatieprototypes voelen als één productfamilie
+  zonder permanente Office-ribbonimitatie.
+- **PX-02:** gebruikers kunnen bekende basistaken uitvoeren zonder uitleg van
+  het onderliggende capabilitymodel.
+- **PX-03:** dezelfde objectversie, locatie en historie blijven herkenbaar
+  wanneer een ander gereedschap wordt gebruikt.
+- **PX-04:** privacyuitleg uitzetten verandert geen grantstate.
+- **PX-05:** toetsenbord, 200% zoom, screenreaderroute en reduced-motion zijn
+  onderdeel van hetzelfde designsysteem.
+- **PX-06:** realistische documenten worden getest op renderkwaliteit, latency,
+  herstel en import/export; screenshots alleen tellen niet als acceptatie.
+- **PX-07:** visuele vergelijking controleert originaliteit en samenhang zonder
+  te claimen dat subjectieve “mooier dan Office” al bewezen is.
+
 Status: **besluit voor de eerste implementatie**, 26 oktober 2026. De bronnenvergelijking en conceptkeuze zijn nu uitgevoerd. Gebruikersonderzoek, grafische implementatie en native OS-integratie zijn nog niet uitgevoerd. Codex hoeft vóór P2 geen nieuwe brede conceptstudie te starten. Alleen een concreet gevonden conflict of gebruikerscorrectie heropent de keuze.
 
 ## 1. Gekozen productlogica
