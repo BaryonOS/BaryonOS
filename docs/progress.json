@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "322c553f58f11843aab7cf895bcba05564a9c7ac",
-    "branch": "codex/integrate-m6d-main",
-    "task": "Historische auditbron en laatste PR-reviewgrenzen vastleggen",
+    "source_commit": "391f02e9394cb96f37096c995dabcb7d624ba36b",
+    "branch": "codex/integrate-storage-fixes-20261028",
+    "task": "M6a-observerherstel integreren op actuele main",
     "previous_score": 14,
-    "summary": "Vier resterende documentatie- en herkomstpunten zijn hersteld: timeoutgrens van de recorder, originele A04-scriptbytes, R09-bestandsnaam en strikte padvereisten, historische M6c-queue. De bestaande native bron en rawreceipts blijven behouden; geen nieuwe native uitvoering of geaccepteerd criterium. Voortgang blijft 14%."
+    "summary": "M6a-observerintegratie is als hervatbare tussenstand bewaard. De eerste brede hostsuite had 179 tests met twee verwachte-tekstfouten door oude newline-normalisatie; na correctie slagen de zes gerichte rawbyte-capturetests. Native gate en tegenproeven zijn nog niet uitgevoerd op de gecombineerde bron. Verdere algemene audit is uitgesteld voor de expliciete prioriteit G0 en native Materiaal-documenthandeling. Geen extra geaccepteerd criterium; 14% blijft 14%."
   },
   "tracks": [
     {

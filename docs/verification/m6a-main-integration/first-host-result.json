@@ -1,0 +1,26 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+    "-X",
+    "utf8",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-v"
+  ],
+  "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-storage-integration-20261028",
+  "exit_status": 1,
+  "output": {
+    "stdout": {
+      "path": "build\\storage-integration-host\\stdout.txt",
+      "sha256": "aff122a999c513afcfa2e4f1ee4819202a004628bd8f837bee8e7402a92ef128"
+    },
+    "stderr": {
+      "path": "build\\storage-integration-host\\stderr.txt",
+      "sha256": "7b28b2f5d458ad282b16deca8a059e1c3777492709d632c096a64bac3ed0f5ce"
+    }
+  }
+}

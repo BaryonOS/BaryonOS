@@ -139,12 +139,22 @@ def check_m6(directory, report, frozen):
     return oracle
 
 
-def capture():
+def archive_destination(destination=None):
+    root = (ROOT/"docs/verification").resolve()
+    target = (ROOT/(destination or "docs/verification/m6a")).resolve()
+    if target.parent != root or target == root:
+        raise ValueError("Destination must be one direct child of docs/verification")
+    if destination is not None and target.exists():
+        raise FileExistsError("Use a new archive destination; existing evidence is preserved")
+    return target
+
+
+def capture(destination=None):
+    dest = archive_destination(destination)
     suite = read_json(BUILD/"m6-test-results.json")
     frozen = source_hash()
     if suite.get("status") != "completed" or suite.get("passed") is not True or suite["source_sha256"] != frozen:
         raise ValueError("Only a complete passed M6a suite on unchanged current source can be captured")
-    dest = ROOT/"docs/verification/m6a"
     dest.mkdir(parents=True, exist_ok=True)
     runs = []
     for group in suite["results"]:
@@ -172,8 +182,7 @@ def capture():
                 if read_json(meta)["returncode"] != 0: raise ValueError("Failed host command")
                 paths = [evidence.with_name(stem+suffix) for suffix in (".stdout.txt", ".json", ".stderr.txt")]
             for path in paths:
-                text = path.read_text(encoding="utf-8").rstrip()
-                (dest/path.name).write_text(text+"\n" if text else "", encoding="utf-8", newline="\n")
+                (dest/path.name).write_bytes(path.read_bytes())
         else:
             raise ValueError(f"Missing evidence: {evidence}")
     validate_coverage(suite["results"], runs)
@@ -183,4 +192,7 @@ def capture():
 
 
 if __name__ == "__main__":
-    capture()
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--destination")
+    capture(parser.parse_args().destination)

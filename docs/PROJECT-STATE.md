@@ -2,6 +2,34 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
+## M6a-observerherstel op actuele main — integratiecheckpoint
+
+28 oktober 2026, basis `391f02e9394cb96f37096c995dabcb7d624ba36b`, branch
+`codex/integrate-storage-fixes-20261028`. PR #13 is gesquasht naar deze main;
+zijn tree is exact gelijk aan de gecontroleerde eindstand `17a33aa`.
+De afzonderlijke PR #14 bevat actieve M6b-/grafische ontwikkeling in de andere
+OS-chat en wordt hier niet gewijzigd.
+
+De nog ontbrekende M6a-observer en tegenproefhelper zijn bytegelijk overgenomen
+uit `75a738db`: werkelijk ontvangen foutreplies, alle vijftien verschillende
+malformedgevallen, ontvangen Full en exacte publicatietellingen zonder muterende
+herhaling na Unknown. Geen nieuwe ABI, rechten of opslaginterface.
+Capture ondersteunt een expliciete nieuwe directe archiefsubmap en bewaart
+exacte hostlogbytes. De Windows-runner gebruikt dezelfde bestaande cleanupgrens
+van tien seconden als de M6b/M6c-runners; natuurlijke procesexit telt niet als kill.
+
+De eerste gerichte hostharnasrun had 8 PASS en 1 WinError5; de losse herhaling
+slaagde. De precieze oorzaak is niet vastgesteld. De brede hostregressie had 179 tests met twee failures doordat de oude
+capturetest newline-normalisatie verwachtte. Na correctie naar de vereiste
+exacte bytes slagen alle zes gerichte capturetests (exit 0). De volledige suite
+is daarna niet opnieuw uitgevoerd. M6a-gate en acht echte tegenproeven op de
+gecombineerde bron zijn nog niet uitgevoerd. Simon heeft daarna expliciet G0
+en de native Materiaal-documenthandeling voorrang gegeven; dit observerwerk
+blijft daarom een hervatbare, niet geaccepteerde tussenstand. De oude 122 VM-runs worden niet aan deze bron
+toegeschreven. Bron-/checkpointgegevens:
+[m6a-main-integration](verification/m6a-main-integration/checkpoint.json).
+Voortgang **14% → 14%**, zonder extra acceptatiecriterium.
+
 ## Reviewgrenzen en historische auditbron — 28 oktober 2026
 
 Basis `322c553f58f11843aab7cf895bcba05564a9c7ac`, branch

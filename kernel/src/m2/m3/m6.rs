@@ -36,6 +36,9 @@ struct Runtime {
     resets: u64,
     injected: bool,
     unknown_seen: bool,
+    unknown_publications: Option<[u64; 2]>,
+    unknown_sent: u64,
+    unknown_received: u64,
     active_put: bool,
     put_header: Option<wire::Header>,
     put_value: [u8; 128],
@@ -69,7 +72,42 @@ struct Runtime {
     close_count: u64,
     bad_requests: u64,
     bad_replies: u64,
+    bad_received: u64,
+    // One bit per malformed variant: request SEND, reply SEND, reply RECEIVE.
+    bad_masks: [u16; 3],
     bad: Option<Bad>,
+}
+impl Runtime {
+    fn mutating_publications(&self) -> [u64; 2] {
+        [self.publications[1], self.publications[2]]
+    }
+    fn note_unknown(&mut self) {
+        let publications = self.mutating_publications();
+        if let Some(previous) = self.unknown_publications {
+            assert_eq!(publications, previous, "M6A observer: mutation after Unknown");
+        } else {
+            self.unknown_publications = Some(publications);
+        }
+        self.unknown_seen = true;
+    }
+    fn check_unknown_publications(&self) {
+        assert_eq!(
+            Some(self.mutating_publications()),
+            self.unknown_publications,
+            "M6A observer: missing Unknown or mutation after Unknown"
+        );
+    }
+    fn record_bad_phase(&mut self, phase: usize, request_id: u64) {
+        if case() == 1 {
+            assert!((100..=114).contains(&request_id));
+            let bit = 1u16 << (request_id - 100);
+            assert_eq!(self.bad_masks[phase] & bit, 0, "M6A observer: repeated negative probe");
+            if phase != 0 {
+                assert_ne!(self.bad_masks[phase - 1] & bit, 0);
+            }
+            self.bad_masks[phase] |= bit;
+        }
+    }
 }
 #[derive(Clone, Copy)]
 struct Bad {
@@ -82,6 +120,7 @@ struct Bad {
     handles: usize,
     closes: u64,
     received: bool,
+    reply_sent: bool,
 }
 static mut RUNTIME: Runtime = Runtime {
     info: None,
@@ -118,6 +157,9 @@ static mut RUNTIME: Runtime = Runtime {
     resets: 0,
     injected: false,
     unknown_seen: false,
+    unknown_publications: None,
+    unknown_sent: 0,
+    unknown_received: 0,
     active_put: false,
     put_header: None,
     put_value: [0; 128],
@@ -151,6 +193,8 @@ static mut RUNTIME: Runtime = Runtime {
     close_count: 0,
     bad_requests: 0,
     bad_replies: 0,
+    bad_received: 0,
+    bad_masks: [0; 3],
     bad: None,
 };
 fn runtime() -> &'static mut Runtime {
@@ -402,6 +446,10 @@ fn input_bytes(plan: &user::CopyPlan) -> [u8; 512] {
 }
 pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
     if slot == 0 {
+        assert!(
+            !matches!(n, 0x42 | 0x43) || runtime().unknown_publications.is_none(),
+            "M6A observer: mutating retry after terminal outcome"
+        );
         runtime().calls += 1;
     }
     let result = device_call(s, slot, n, a);
@@ -465,14 +513,14 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
                 let _ = runtime().policy.consume(binding, a[1]);
             }
             if code == -16 {
-                runtime().unknown_seen = true;
+                runtime().note_unknown();
             }
             return Err(code);
         }
         let request = runtime().policy.peek(binding, a[1]).map_err(err)?;
         if request.completion == Some(Completion::Unknown) {
             runtime().policy.consume(binding, a[1]).map_err(err)?;
-            runtime().unknown_seen = true;
+            runtime().note_unknown();
             return Err(-16);
         }
         if request.completion != Some(Completion::Success) {
@@ -578,6 +626,9 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         runtime().injected |= bad;
         // A rejected draft has no exposed DMA. The service still treats this
         // failed PUT as uncertain; kernel does not claim data was written.
+        if bad {
+            runtime().note_unknown();
+        }
         return Err(err(e));
     }
     if is_put && matches!(op, Operation::Write { .. }) && cut(s, 1) {
@@ -677,6 +728,9 @@ fn advance(s: &State) {
     let q = r.policy.request().unwrap();
     if r.policy.timeout(now) {
         r.error = Some((q, if q.operation.is_mutating() { -16 } else { -13 }));
+        if q.operation.is_mutating() {
+            r.note_unknown();
+        }
         reset(now, false);
         return;
     }
@@ -740,6 +794,9 @@ fn advance(s: &State) {
                 .complete(q.epoch, q.ticket, Completion::Io)
                 .unwrap();
             r.error = Some((q, if q.operation.is_mutating() { -16 } else { -12 }));
+            if q.operation.is_mutating() {
+                r.note_unknown();
+            }
             reset(now, false);
         }
         Ok(None) => {}
@@ -753,6 +810,9 @@ fn advance(s: &State) {
                     err(e)
                 },
             ));
+            if q.operation.is_mutating() {
+                r.note_unknown();
+            }
             reset(now, false);
         }
     }
@@ -825,6 +885,40 @@ pub fn cap_event(slot: usize, n: u64) {
     }
 }
 
+fn check_malformed_probe(m: &Message, body: &[u8; wire::SIZE], epoch: u64) {
+    let id = wire::header(body).request_id;
+    assert!((100..=114).contains(&id));
+    let put = matches!(id, 105..=108 | 114);
+    let mut expected = wire::request(
+        id,
+        epoch,
+        u64::from(put),
+        if put { wire::PUT } else { wire::GET },
+        if put { Some(&[0x55; 128]) } else { None },
+    );
+    // Bind each coverage bit to its actual malformed field, not only its ID.
+    match id {
+        100 => expected[0] = 1,
+        101 => expected[2] = 3,
+        102 => expected[4] = 1,
+        103 => expected[40] = 1,
+        104 => wire::put32(&mut expected, 32, 1),
+        105 => wire::put32(&mut expected, 32, 0),
+        106 => wire::put32(&mut expected, 32, 129),
+        107 => wire::put64(&mut expected, 24, 0),
+        108 => wire::put64(&mut expected, 24, u64::MAX),
+        109 => wire::put64(&mut expected, 16, 0),
+        110 => expected[48] = 1,
+        _ => {}
+    }
+    assert_eq!(body, &expected, "M6A observer: negative probe content mismatch");
+    assert_eq!(m.len, match id { 111 => 191, 112 => 193, _ => 192 });
+    assert_eq!(m.cap_count, if id == 113 { 2 } else { 0 });
+    if id == 113 {
+        assert!(m.caps.iter().all(|cap| cap.rights == 1));
+    }
+}
+
 pub fn sent(s: &State, slot: usize, _handle: u64, m: &Message) {
     let r = runtime();
     if slot == 0 && m.tag == wire::ANNOUNCE {
@@ -864,6 +958,7 @@ pub fn sent(s: &State, slot: usize, _handle: u64, m: &Message) {
     body.copy_from_slice(&m.data[..wire::SIZE]);
     let h = wire::header(&body);
     if slot == 1 {
+        assert!(r.bad.is_none(), "M6A observer: new request before negative reply receive");
         let badcode = if case() == 1 && (100..=114).contains(&h.request_id) {
             Some(match h.request_id {
                 101 => -2,
@@ -883,7 +978,18 @@ pub fn sent(s: &State, slot: usize, _handle: u64, m: &Message) {
             None
         };
         if let Some(expected) = badcode {
-            assert!(r.bad.is_none());
+            if case() == 1 {
+                check_malformed_probe(m, &body, r.epoch);
+            } else {
+                assert_eq!(r.bad_requests, 0);
+                if case() == 3 {
+                    assert_eq!((h.request_id, h.generation, h.operation), (5, 4, wire::PUT));
+                    assert_eq!(m.len, 192);
+                    assert_eq!(m.cap_count, 0);
+                    wire::validate_request(&body, r.epoch, true).unwrap();
+                }
+            }
+            r.record_bad_phase(0, h.request_id);
             let stats = m4::engine().stats();
             r.bad = Some(Bad {
                 header: h,
@@ -895,6 +1001,7 @@ pub fn sent(s: &State, slot: usize, _handle: u64, m: &Message) {
                 handles: stats.handles,
                 closes: r.close_count,
                 received: false,
+                reply_sent: false,
             });
             r.bad_requests += 1;
             return;
@@ -924,8 +1031,8 @@ pub fn sent(s: &State, slot: usize, _handle: u64, m: &Message) {
     assert_eq!(m.len, 192);
     assert_eq!(m.cap_count, 0);
     assert!(m.data[192..].iter().all(|b| *b == 0));
-    if let Some(bad) = r.bad.take() {
-        assert!(bad.received);
+    if let Some(mut bad) = r.bad {
+        assert!(bad.received && !bad.reply_sent);
         assert_eq!(
             body,
             wire::reply(
@@ -946,6 +1053,9 @@ pub fn sent(s: &State, slot: usize, _handle: u64, m: &Message) {
             assert_eq!(stats.handles, bad.handles);
             assert_eq!(stats.nodes + 2, bad.nodes);
         }
+        bad.reply_sent = true;
+        r.bad = Some(bad);
+        r.record_bad_phase(1, bad.header.request_id);
         r.bad_replies += 1;
         return;
     }
@@ -964,8 +1074,14 @@ pub fn sent(s: &State, slot: usize, _handle: u64, m: &Message) {
             r.ack_sent += 1;
         } else {
             assert_eq!(h.status, -16);
-            assert!(r.injected && !r.flush_completed);
-            r.unknown_seen = true;
+            assert!(r.active_put && r.injected && r.unknown_seen && !r.flush_completed);
+            r.check_unknown_publications();
+            assert_eq!(r.unknown_sent, 0);
+            assert_eq!(
+                body,
+                wire::reply(request, r.epoch, 0, wire::Status::Unknown, None)
+            );
+            r.unknown_sent += 1;
         }
         r.active_put = false;
     } else if h.operation == wire::GET && h.status == 0 {
@@ -987,14 +1103,46 @@ pub fn received(s: &State, slot: usize, handle: u64, m: &Message) {
     let r = runtime();
     if slot == 0 {
         if let Some(bad) = r.bad.as_mut() {
+            assert!(!bad.received && !bad.reply_sent);
+            assert_eq!(m.sender_pid, s.processes[1].pid);
             assert_eq!(h, bad.header);
-            if h.request_id == 114 {
-                assert_eq!(handle, r.roots[0]);
-            }
+            assert_eq!(handle, r.roots[usize::from(h.request_id != 114)]);
             bad.received = true;
         } else if h.operation == wire::PUT {
             assert_eq!(handle, r.roots[1]);
         }
+    }
+    if slot == 1 && h.status != 0 {
+        assert_eq!(m.sender_pid, s.processes[0].pid);
+        assert_eq!(handle, r.client_roots[0]);
+        assert_eq!(m.len, 192);
+        assert_eq!(m.cap_count, 0);
+        assert!(m.data[192..].iter().all(|byte| *byte == 0));
+        if let Some(bad) = r.bad.take() {
+            assert!(bad.received && bad.reply_sent);
+            assert_eq!(
+                body,
+                wire::reply(bad.header, r.epoch, 0, wire::Status::from_code(bad.expected), None)
+            );
+            assert_eq!(
+                (r.calls, r.publications, r.completions),
+                (bad.calls, bad.publications, bad.completions)
+            );
+            r.record_bad_phase(2, bad.header.request_id);
+            r.bad_received += 1;
+        } else {
+            assert_eq!(h.operation, wire::PUT);
+            assert_eq!(h.status, -16);
+            assert!(r.unknown_seen && r.injected);
+            assert_eq!((r.unknown_sent, r.unknown_received), (1, 0));
+            r.check_unknown_publications();
+            assert_eq!(
+                body,
+                wire::reply(r.put_header.unwrap(), r.epoch, 0, wire::Status::Unknown, None)
+            );
+            r.unknown_received += 1;
+        }
+        return;
     }
     if slot == 1 && h.operation == wire::PUT && h.status == 0 {
         assert_eq!(m.sender_pid, s.processes[0].pid);
@@ -1095,10 +1243,17 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         }
     } else if matches!(case(),4..=8|11..=13) {
         assert!(r.injected && r.unknown_seen);
+        assert_eq!((r.unknown_sent, r.unknown_received), (1, 1));
+        assert_eq!((r.ack_sent, r.ack_received), (0, 0));
+        r.check_unknown_publications();
+        let expected = match case() {
+            4 | 6 | 8 | 12 => [1, 1],
+            5 | 7 | 13 => [1, 2],
+            11 => [0, 1],
+            _ => unreachable!(),
+        };
+        assert_eq!(r.mutating_publications(), expected);
         serial::write(b"M6A:OUTCOME:UNKNOWN\n");
-        assert_eq!(r.ack_sent, 0);
-        assert!(r.publications[1] <= 1);
-        assert!(r.publications[2] <= 2);
         if case() == 8 {
             assert!(r.quarantined);
         }
@@ -1116,6 +1271,7 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         if case() == 3 {
             assert_eq!(value.generation, 4);
             assert_eq!(r.ack_received, 3);
+            assert_eq!((r.bad_requests, r.bad_replies, r.bad_received), (1, 1, 1));
         } else if matches!(case(), 14 | 30) {
             assert_eq!(r.publications[1], 0);
         } else if (18..=23).contains(&case()) {
@@ -1131,10 +1287,13 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         if case() == 1 {
             assert_eq!(r.bad_requests, 15);
             assert_eq!(r.bad_replies, 15);
+            assert_eq!(r.bad_received, 15);
+            assert_eq!(r.bad_masks, [0x7fff; 3]);
         }
         if case() == 16 {
             assert_eq!(r.bad_requests, 1);
             assert_eq!(r.bad_replies, 1);
+            assert_eq!(r.bad_received, 1);
         }
         if case() == 2 {
             assert_eq!(r.scratch_writes, 2);
@@ -1157,6 +1316,7 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
             wire::checksum_update(wire::FNV_OFFSET, &value.value),
         );
     }
+    assert!(r.bad.is_none(), "M6A observer: unfinished negative probe");
     assert!(m4::engine().check_invariants());
     serial::write(marker());
     serial::write(b"M6A:SURVIVOR_PROGRESS:PASS\n");

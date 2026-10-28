@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`322c553f`](https://github.com/simonvanieperen/nieuw-os/commit/322c553f58f11843aab7cf895bcba05564a9c7ac) ·
-**Ontwikkelbranch:** `codex/integrate-m6d-main`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Historische auditbron en laatste PR-reviewgrenzen vastleggen.
-Vier resterende documentatie- en herkomstpunten zijn hersteld: timeoutgrens van de recorder, originele A04-scriptbytes, R09-bestandsnaam en strikte padvereisten, historische M6c-queue. De bestaande native bron en rawreceipts blijven behouden; geen nieuwe native uitvoering of geaccepteerd criterium. Voortgang blijft 14%.
+**Bron:** [`391f02e9`](https://github.com/simonvanieperen/nieuw-os/commit/391f02e9394cb96f37096c995dabcb7d624ba36b) ·
+**Ontwikkelbranch:** `codex/integrate-storage-fixes-20261028`.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** M6a-observerherstel integreren op actuele main.
+M6a-observerintegratie is als hervatbare tussenstand bewaard. De eerste brede hostsuite had 179 tests met twee verwachte-tekstfouten door oude newline-normalisatie; na correctie slagen de zes gerichte rawbyte-capturetests. Native gate en tegenproeven zijn nog niet uitgevoerd op de gecombineerde bron. Verdere algemene audit is uitgesteld voor de expliciete prioriteit G0 en native Materiaal-documenthandeling. Geen extra geaccepteerd criterium; 14% blijft 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

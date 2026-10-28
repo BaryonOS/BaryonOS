@@ -40,7 +40,7 @@ def kill_for_crash(process):
             # its natural exit instead of claiming that our kill succeeded.
             if error == 5:
                 try:
-                    process.wait(timeout=0.25)
+                    process.wait(timeout=10)
                     return False
                 except subprocess.TimeoutExpired:
                     pass

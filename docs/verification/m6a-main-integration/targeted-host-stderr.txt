@@ -1,0 +1,11 @@
+test_preserves_exact_host_bytes_in_new_archive (test_m6_capture.HostLogRouting.test_preserves_exact_host_bytes_in_new_archive) ... ok
+test_rejects_destinations_outside_one_archive_directory (test_m6_capture.HostLogRouting.test_rejects_destinations_outside_one_archive_directory) ... ok
+test_stderr_evidence_requires_metadata_and_stdout_members (test_m6_capture.HostLogRouting.test_stderr_evidence_requires_metadata_and_stdout_members) ... ok
+test_stdout_and_stderr_evidence_capture_the_complete_host_log_trio (test_m6_capture.HostLogRouting.test_stdout_and_stderr_evidence_capture_the_complete_host_log_trio) ... ok
+test_stdout_and_stderr_evidence_reject_failed_host_commands (test_m6_capture.HostLogRouting.test_stdout_and_stderr_evidence_reject_failed_host_commands) ... ok
+test_user_artifact_group_points_to_the_result_on_stderr (test_m6_capture.UserArtifactEvidenceProducer.test_user_artifact_group_points_to_the_result_on_stderr) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.047s
+
+OK

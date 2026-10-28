@@ -1,0 +1,23 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+    "-X",
+    "utf8",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_m6_capture.py",
+    "-v"
+  ],
+  "exit_status": 0,
+  "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-storage-integration-20261028",
+  "scope": "Six synthetic capture tests only; not a rerun of the full 179-test suite or native gates.",
+  "output_sha256": {
+    "stdout": "027cf903931bb9271f5db10308bd0a47723812522d8a084197070eb3627ad728",
+    "stderr": "79f2c868e401949b6065deae0971433f6a2b89663d8f3503afee800c08ca9d28"
+  }
+}

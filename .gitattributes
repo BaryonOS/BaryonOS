@@ -25,3 +25,7 @@ docs/verification/m6d-closeout-local/*.json -text
 docs/verification/m6d-closeout-m6b/*.json -text
 docs/verification/m6d-closeout-m6c/*.json -text
 docs/verification/regression-m6c/**/*.txt -text
+docs/verification/m6a-main-integration/*.txt -text
+docs/verification/m6a-main-integration/*.json -text
+docs/verification/m6a-main-integration-gate/*.txt -text
+docs/verification/m6a-main-integration-gate/*.json -text

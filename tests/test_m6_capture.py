@@ -36,10 +36,31 @@ class HostLogRouting(unittest.TestCase):
                               'requirements': ['M6A-USER-ELF']}]}
         (self.build / 'm6-test-results.json').write_text(json.dumps(suite))
 
-    def run_capture(self):
+    def run_capture(self, destination=None):
         with patch.object(capture, 'source_hash', return_value='synthetic-source'), \
                 patch.object(capture, 'validate_coverage'):
-            capture.capture()
+            capture.capture(destination)
+
+    def test_preserves_exact_host_bytes_in_new_archive(self):
+        self.write_fixture('.stderr.txt')
+        raw = b'Synthetic host output\r\n\r\n\t \r\n'
+        (self.logs / (self.stem + '.stderr.txt')).write_bytes(raw)
+        original = self.root / 'docs/verification/m6a'
+        original.mkdir(parents=True)
+        sentinel = original / 'historical.txt'
+        sentinel.write_bytes(b'historical evidence\r\n')
+        self.run_capture('docs/verification/m6a-new-run')
+        archived = self.root / 'docs/verification/m6a-new-run'
+        self.assertEqual((archived / (self.stem + '.stderr.txt')).read_bytes(), raw)
+        self.assertEqual(sentinel.read_bytes(), b'historical evidence\r\n')
+        with self.assertRaises(FileExistsError):
+            self.run_capture('docs/verification/m6a-new-run')
+
+    def test_rejects_destinations_outside_one_archive_directory(self):
+        for name in ('docs/verification', 'docs', 'docs/verification/deep/run',
+                     '../outside', 'docs/verification/../../outside'):
+            with self.subTest(destination=name), self.assertRaises(ValueError):
+                capture.archive_destination(name)
 
     def test_stdout_and_stderr_evidence_capture_the_complete_host_log_trio(self):
         for suffix in ('.stdout.txt', '.stderr.txt'):
@@ -51,9 +72,8 @@ class HostLogRouting(unittest.TestCase):
                         path.unlink()
                 self.run_capture()
                 for member in ('.stdout.txt', '.json', '.stderr.txt'):
-                    original = (self.logs / (self.stem + member)).read_text().rstrip()
-                    expected = original + '\n' if original else ''
-                    self.assertEqual((destination / (self.stem + member)).read_text(), expected)
+                    original = (self.logs / (self.stem + member)).read_bytes()
+                    self.assertEqual((destination / (self.stem + member)).read_bytes(), original)
 
     def test_stdout_and_stderr_evidence_reject_failed_host_commands(self):
         for suffix in ('.stdout.txt', '.stderr.txt'):

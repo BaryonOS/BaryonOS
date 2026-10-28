@@ -1,0 +1,21 @@
+{
+  "basis_commit": "391f02e9394cb96f37096c995dabcb7d624ba36b",
+  "imported_source_commit": "75a738db48d2219990d0126f49cf7775dfe4bae3",
+  "runtime_repair_commit": "f60445b26d31733cc6aaf557ee08820b2295b0df",
+  "source_fingerprint_version": 3,
+  "source_sha256": "7348545c876c5a239b51b6469e6401396097d0fb19e10988bdd76f3f5b4a15db",
+  "files": {
+    "kernel/src/m2/m3/m6.rs": "57a60248432451bc1b63b5744e032ae26cd9107f03f8037bbbb5af51ee5c957a",
+    "tests/verify_m6_observers.py": "8ca20500c5e175d4808044a02ab598464bbe4faa32c58ff446259d1a8eba096f",
+    "tools/run_m6.py": "d68671595dfc9889edeadf6bb5867de43fa7e29b6ba6b4e2763b37fa73914003",
+    "tools/capture_m6.py": "d9ac0928211b8738b6e0be9deb1e677aa2c94d56a82727d525162fceb6731988",
+    "tests/test_m6_capture.py": "130222f1b06afa41d41a42f6cf71cc493393133031902d8e2d5ca81af4cf779b"
+  },
+  "state": "deferred_checkpoint_for_native_document_priority",
+  "native_gate": "not executed on combined source at checkpoint",
+  "counterexamples": "not executed on combined source at checkpoint",
+  "score_before": 14,
+  "score_after": 14,
+  "historical_122_vm_runs": "remain bound to their original source; not counted here",
+  "host_regression": "Initial179 suite failed two obsolete newline expectations. Corrected rawbyte checks; targeted6 passed. Full suite not rerun."
+}
