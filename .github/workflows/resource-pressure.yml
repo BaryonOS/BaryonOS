@@ -1,0 +1,41 @@
+name: Resource pressure acceptance
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: k07-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  k07-native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Rust 1.90.0 and targets
+        shell: bash
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Disposable QEMU/OVMF
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+      - name: K07 combined native gate
+        shell: bash
+        run: |
+          rm -rf build/ci-k07 target/ci-k07
+          NOS_BUILD_DIR="$PWD/build/ci-k07" \
+          NOS_TARGET_DIR="$PWD/target/ci-k07" \
+          CARGO_TARGET_DIR="$PWD/target/ci-k07" \
+          python3 -B tools/test_resource_pressure.py
