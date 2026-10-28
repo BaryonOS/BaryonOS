@@ -61,11 +61,11 @@ De library repareert geen checksum, lengte, fragment of payload.
 
 ## Uitgaande pakketten (voorbereiding N01)
 
-Naast de bestaande parser kan de library met \`build_udp_ipv4(tx, payload, output)\`
+Naast de bestaande parser kan de library met `build_udp_ipv4(tx, payload, output)`
 nu een IPv4/UDP-datagram in een door de aanroeper beheerde buffer coderen.
-\`UdpIpv4Tx\` bevat MAC- en IP-adressen, poorten, TTL, identificatie en
+`UdpIpv4Tx` bevat MAC- en IP-adressen, poorten, TTL, identificatie en
 expliciete effectieve IPv4-MTU. De encoder plaatst IPv4- en UDP-checksums
-(ook de RFC 768-nul-als-\`0xffff\`-regel), zet DF, schrijft exact de
+(ook de RFC 768-nul-als-`0xffff`-regel), zet DF, schrijft exact de
 60-byte-Ethernet-minimumlengte waar nodig, en geeft de te verzenden lengte terug.
 
 **Geen enkele fout schrijft gedeeltelijke data:** een te klein buffer, een
