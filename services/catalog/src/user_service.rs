@@ -85,6 +85,9 @@ fn startup_error(error: Status) -> ! {
 pub fn run() -> ! {
     let epoch = rt::word(32);
     let cap = rt::word(48);
+    // Only the native recovery fixture is mounted read-only. Keep the
+    // normal durability barrier for every writable session.
+    let read_only_recovery = rt::word(112) == 1;
     let roots = [rt::word(56), rt::word(80)];
     let replies = [rt::word(88), rt::word(72)];
     let clients = [rt::word(160), rt::word(168)];
@@ -113,8 +116,10 @@ pub fn run() -> ! {
         Ok(current) => current,
         Err(_) => startup_error(Status::Corrupt),
     };
-    if let Err(error) = flush(cap) {
-        startup_error(error);
+    if !read_only_recovery {
+        if let Err(error) = flush(cap) {
+            startup_error(error);
+        }
     }
     rt::put(128, current.sequence());
     rt::put(232, 0);
@@ -169,6 +174,19 @@ pub fn run() -> ! {
                                 result = Status::NotFound;
                             }
                         } else if matches!(request.operation, PUT | DELETE | RENAME) {
+                            if read_only_recovery {
+                                result = Status::Access;
+                                // No state preparation, write, flush or acknowledgement.
+                                // The device capability separately enforces the same boundary.
+                                let response = wire::reply(
+                                    header, epoch, 0, result, None, None,
+                                );
+                                let mut message = rt::Message::new();
+                                message.payload(wire::TAG, &response);
+                                rt::send(replies[domain], &message);
+                                rt::yield_now();
+                                continue;
+                            }
                             let payload = &body[64..64 + request.length as usize];
                             match current.prepare(
                                 request.object,

@@ -248,6 +248,9 @@ def run_m6c(case="normal", *, volume: Volume | None = None, label=None, timeout=
         shutil.copy2(src, run_dir / name)
     rel = run_dir.relative_to(ROOT).as_posix()
     image_rel = image.relative_to(ROOT).as_posix()
+    # Cold recovery must not have write access even transiently: equality of
+    # pre/post hashes alone cannot prove absence of writes.
+    readonly = "on" if case == "recover" else "off"
     args = [qemu, "-machine", machine, "-accel", "tcg,thread=single", "-cpu", "qemu64",
             "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none",
             "-serial", "stdio", "-nic", "none", "-no-reboot",
@@ -255,7 +258,7 @@ def run_m6c(case="normal", *, volume: Volume | None = None, label=None, timeout=
             "-drive", f"if=pflash,unit=1,format=raw,file={rel}/OVMF_VARS.fd",
             "-drive", f"if=virtio,index=0,format=raw,readonly=on,file=fat:{rel}/esp",
             "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
-            "-drive", f"if=none,id=m6c-test,format=raw,cache=writeback,readonly=off,file={image_rel}",
+            "-drive", f"if=none,id=m6c-test,format=raw,cache=writeback,readonly={readonly},file={image_rel}",
             "-device", "virtio-blk-pci,drive=m6c-test,id=m6cblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6C-TEST"]
     if (Path(qemu).parent / "share").is_dir():
         args += ["-L", str(Path(qemu).parent / "share")]

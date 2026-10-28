@@ -194,7 +194,7 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
     }
     // SAFETY: All validated BAR subregions have permanent supervisor UC/NX
     // mappings; five distinct owned kernel RAM pages remain pinned to reboot.
-    let device = unsafe { Device::initialize_profile(info, mapped, pool, true, false) };
+    let device = unsafe { Device::initialize_profile(info, mapped, pool, case() != 1, false) };
     let r = runtime();
     r.info = Some(info);
     r.mapped = mapped;
@@ -296,6 +296,13 @@ pub fn manifest(s: &mut State) {
         e.close(service, ingress).unwrap();
         e.close(client, reply).unwrap();
     }
+    // A cold recovery accepts only READ capabilities. Normal/fault fixtures
+    // retain the existing explicit WRITE/FLUSH grant for mutation tests.
+    let block_rights = if case() == 1 {
+        BLOCK_READ
+    } else {
+        BLOCK_READ | BLOCK_WRITE | BLOCK_FLUSH
+    };
     let block = e
         .create_block_device_with_rights(
             service,
@@ -304,7 +311,7 @@ pub fn manifest(s: &mut State) {
                 first_sector: 4,
                 sector_count: 32,
             },
-            BLOCK_READ | BLOCK_WRITE | BLOCK_FLUSH,
+            block_rights,
         )
         .unwrap();
     for slot in 0..3 {
@@ -584,7 +591,7 @@ fn advance(s: &State) {
             // SAFETY: Real reset acknowledgement permits reuse of the same
             // pinned owned RAM pages and permanent validated supervisor MMIO.
             match unsafe {
-                Device::initialize_profile(r.info.unwrap(), r.mapped, r.pool, true, false)
+                Device::initialize_profile(r.info.unwrap(), r.mapped, r.pool, case() != 1, false)
             } {
                 Ok(device) => {
                     r.device = Some(device);
@@ -743,7 +750,8 @@ fn observe_ready(s: &State) {
         return;
     }
     assert_eq!(r.read_mask, u128::MAX);
-    assert_eq!(r.publications, [128, 0, 1]);
+    // Recovery on a physically read-only virtio device never issues FLUSH.
+    assert_eq!(r.publications, [128, 0, u64::from(case() != 1)]);
     assert_eq!(r.completions, r.publications);
     assert_eq!(r.policy.phase(), Phase::Ready);
     let mut recovery = journal::Recovery::new();
@@ -1227,7 +1235,10 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
             assert!(r.ready && r.get_replies >= if case() == 1 { 0 } else { 2 });
             assert_eq!(r.ack_sent, r.ack_received);
             assert_eq!(r.publications, r.completions);
-            assert_eq!(r.publications, [128, r.ack_received, r.ack_received + 1]);
+            assert_eq!(
+                r.publications,
+                [128, r.ack_received, r.ack_received + u64::from(case() != 1)]
+            );
             assert!(r.app_device_denials.iter().all(|count| *count >= 4));
             assert!(r.app_ipc_denials.iter().all(|count| *count >= 3));
             assert_eq!(r.stale_denials, [1, 1]);
