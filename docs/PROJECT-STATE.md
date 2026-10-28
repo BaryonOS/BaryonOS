@@ -1,5 +1,21 @@
 # Actuele projectstatus
 
+## Consumentenwaarde en differentiatie — documentatie 28 oktober 2026
+
+De gerichte literatuurverkenning naar consumentenacceptatie, overstapfrictie,
+persoonlijk informatiebeheer, privacy en mens-AI-interactie is toegevoegd als
+[CONSUMER-VALUE-2026-10-28.md](research/CONSUMER-VALUE-2026-10-28.md).
+`DESIGN-AMBITION.md` koppelt de kernbelofte aan de bestaande productambitie;
+`implementation/PRODUCT-SPEC.md` bewaart P2 als bevroren scope en registreert
+DV-01 als latere geïntegreerde toets: terugvinden, twee gereedschappen, bevestigd
+opslaan, herstel en ingetrokken toegang.
+
+Dit is onderzoeks- en productdocumentatie. Er is geen nieuwe native functie,
+gebruikersproef, kernelgarantie of marktclaim geaccepteerd. De bestaande
+productscore blijft **14% → 14%**. Voor deze documentatiestap zijn geen nieuwe
+VM-, browser- of hosttests uitgevoerd; bestaande technische bewijsclaims zijn
+niet gewijzigd.
+
 ## Markt- en consumentenonderzoek — 28 oktober 2026
 
 Twee aanvullende onderzoeken zijn als strategische onderbouwing vertaald naar
