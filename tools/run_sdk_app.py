@@ -62,8 +62,12 @@ def main() -> int:
             if not line.startswith("SDKAPP:APP_COUNTER:")
             and not line.startswith("SDKAPP:SERVICE_COUNTER:")
         )
-        if structural != required or service_counter == 0:
-            raise ValueError("SDK app evidence sequence/counter mismatch")
+        if structural != required:
+            raise ValueError("SDK app evidence sequence mismatch")
+        if args.case == "normal" and service_counter == 0:
+            raise ValueError("normal SDK app never reached the service")
+        if args.case == "denied" and service_counter != 0:
+            raise ValueError("denied SDK app reached the service")
         if source_hash() != frozen:
             raise ValueError("source changed during SDK app run")
         report.update(passed=True, app_counter=app_counter, service_counter=service_counter)
