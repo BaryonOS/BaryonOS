@@ -3,7 +3,7 @@
   "base_commit": "10b32e31671827f2bd63444113b981ff15bfbb73",
   "source_fingerprint_version": 3,
   "source_sha256": "dfb5edea9ef549d4dce5bb9111b021584bbf811a1a6f9d55c032a36b5103826c",
-  "gate": "new complete Linux run; not combined with historical43/54",
+  "gate": "Nieuwe volledige Linux-run; niet gecombineerd met de historische 43/54-resultaten",
   "gate_returncode": 0,
   "capture_returncode": 0,
   "groups_passed": 54,
@@ -33,10 +33,10 @@
   "capture_manifest": "/workspace/scratch/0d3232a3c004/nieuw-os-baseline/build/baseline-verification/capture-generated-files.json",
   "source_unchanged": true,
   "historical_evidence_unchanged": true,
-  "preflight_note": "strict preflight exit0; rustup --version has known restricted-sandbox SIGABRT (-6), recorded in preflight output. Compiler, target listing, builds and all native runs passed.",
+  "preflight_note": "De toenmalige strikte preflight gaf exit 0; rustup --version heeft de bekende SIGABRT (-6) in de beperkte sandbox, vastgelegd in de preflight-uitvoer. Compiler, targetlijst, builds en alle native runs slaagden.",
   "limits": [
-    "This is the fixed QEMU/TCG and trusted virtio-device/backend profile.",
-    "No physical power-failure, hostile DMA/IOMMU, SMP or production-security claim.",
-    "M1-M5 full regression was not requested in this task and was not rerun; concluding M1 smoke is included."
+    "Dit betreft het vaste QEMU/TCG-profiel met vertrouwd virtio-device/backend.",
+    "Geen claim over fysieke stroomuitval, vijandige DMA/IOMMU, SMP of veiligheid voor productiegebruik.",
+    "Volledige M1-M5-regressie was voor deze taak niet gevraagd en is niet opnieuw uitgevoerd; de afsluitende M1-smoke is inbegrepen."
   ]
 }

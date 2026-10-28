@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/round2/fixtures/after-tampered-seed/docs/verification/m6b-review/merge-followup/verify_m5_archive.py", line 105, in <module>
+    main()
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/round2/fixtures/after-tampered-seed/docs/verification/m6b-review/merge-followup/verify_m5_archive.py", line 42, in main
+    raise ValueError("Reconstructed M5 image disagrees with archived before/after hashes")
+ValueError: Reconstructed M5 image disagrees with archived before/after hashes

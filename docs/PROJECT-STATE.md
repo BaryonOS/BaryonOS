@@ -66,6 +66,13 @@ te herstellen en bewaart de oorspronkelijke fout. De 40 onafhankelijk uitgevoerd
 bronhashes en ruwe uitvoer staan in `verification/m6b-review/merge-followup/`.
 Deze follow-up betreft hosttools; de oorspronkelijke native uitvoeringsbronnen
 in de tabel hierboven blijven behouden.
+De vervolgreview scherpt de M5-archiefchecker aan met expliciete controles,
+ook onder `python -O`; een gewijzigd seedrecord wordt nu afgewezen. Vier
+nieuwe hosttests verifiëren de M6a-stderrverwijzing en volledige
+stdout/metadata/stderr-capture. Historische meetbestanden blijven intact;
+de M6a-suite heeft een afzonderlijke gecorrigeerde leesindex. Dit nieuwe
+hostbewijs staat in `verification/m6b-review/review-followup-2/` en is geen
+nieuwe native gate of herhaling van de eerdere 40 tests.
 Geen nieuwe native gate uitgevoerd; de M3-hosttestcheckout en de redirectinstelling
 van de oude buitenste capturewrapper blijven expliciet onbekend.
 Bekende native observerbeperking: WRITE-/FLUSH-fouten kunnen, ook in

@@ -1,0 +1,22 @@
+test_archive_install_error_restores_the_previous_archive (test_capture_gate.CaptureGateArchive.test_archive_install_error_restores_the_previous_archive) ... ok
+test_guest_cases_cannot_be_substituted_with_a_valid_host_log (test_capture_gate.CaptureGateArchive.test_guest_cases_cannot_be_substituted_with_a_valid_host_log) ... ok
+test_guest_evidence_is_bound_to_phase_and_case_not_record_expectations (test_capture_gate.CaptureGateArchive.test_guest_evidence_is_bound_to_phase_and_case_not_record_expectations) ... ok
+test_guest_exit_status_is_bound_to_the_phase_and_case (test_capture_gate.CaptureGateArchive.test_guest_exit_status_is_bound_to_the_phase_and_case) ... ok
+test_guest_output_cannot_be_captured_as_a_host_log (test_capture_gate.CaptureGateArchive.test_guest_output_cannot_be_captured_as_a_host_log) ... ok
+test_guest_record_cannot_omit_raw_timeout_status (test_capture_gate.CaptureGateArchive.test_guest_record_cannot_omit_raw_timeout_status) ... ok
+test_m4_case_requires_its_specific_markers (test_capture_gate.CaptureGateArchive.test_m4_case_requires_its_specific_markers) ... ok
+test_m5_capture_binds_comparison_to_verified_disks_and_records (test_capture_gate.CaptureGateArchive.test_m5_capture_binds_comparison_to_verified_disks_and_records) ... ok
+test_m5_comparison_cannot_be_omitted_duplicated_or_replaced_by_host_log (test_capture_gate.CaptureGateArchive.test_m5_comparison_cannot_be_omitted_duplicated_or_replaced_by_host_log) ... ok
+test_two_image_booleans_without_guest_binding_cannot_be_captured (test_capture_gate.CaptureGateArchive.test_two_image_booleans_without_guest_binding_cannot_be_captured) ... ok
+test_valid_capture_replaces_archive_only_after_validation (test_capture_gate.CaptureGateArchive.test_valid_capture_replaces_archive_only_after_validation) ... ok
+test_validation_failure_leaves_existing_archive_unchanged (test_capture_gate.CaptureGateArchive.test_validation_failure_leaves_existing_archive_unchanged) ... ok
+test_image_and_serial_digests_must_match_oracle (test_capture_gate.M5TwoImageBinding.test_image_and_serial_digests_must_match_oracle) ... ok
+test_matching_records_preserve_values_under_stable_run_ids (test_capture_gate.M5TwoImageBinding.test_matching_records_preserve_values_under_stable_run_ids) ... ok
+test_missing_or_duplicate_guest_is_rejected (test_capture_gate.M5TwoImageBinding.test_missing_or_duplicate_guest_is_rejected) ... ok
+test_saved_provenance_must_match_guest_record (test_capture_gate.M5TwoImageBinding.test_saved_provenance_must_match_guest_record) ... ok
+test_source_mismatch_cannot_pass_even_with_all_saved_booleans_true (test_capture_gate.M5TwoImageBinding.test_source_mismatch_cannot_pass_even_with_all_saved_booleans_true) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.040s
+
+OK

@@ -38,9 +38,12 @@ def main():
         data[:len(header)] = header
         digest = hashlib.sha256(data).hexdigest()
         sectors = {str(n): fnv64(data[n * 512:(n + 1) * 512]) for n in (4, 6)}
-        assert digest == oracle["sha256_before"] == oracle["sha256_after"]
-        assert digest == guest["artifact_sha256"]["test-disk.img"]
-        assert sectors == oracle["observed_digests"] == oracle["expected_digests"]
+        if not digest == oracle["sha256_before"] == oracle["sha256_after"]:
+            raise ValueError("Reconstructed M5 image disagrees with archived before/after hashes")
+        if digest != guest["artifact_sha256"]["test-disk.img"]:
+            raise ValueError("Reconstructed M5 image disagrees with its artifact hash")
+        if not sectors == oracle["observed_digests"] == oracle["expected_digests"]:
+            raise ValueError("Reconstructed M5 sectors disagree with archived digests")
         reconstructed.append({"run_id": Path(guest["run_directory"]).name,
                               "source_commit": guest["base_commit"],
                               "image_sha256": digest, "sector_digests": sectors})
@@ -49,13 +52,15 @@ def main():
     for field in ("esp/kernel.elf", "esp/EFI/BOOT/BOOTX64.EFI"):
         modified = copy.deepcopy(normal)
         modified[1]["artifact_sha256"][field] = "0" * 64
-        assert not two_image_evidence(modified)["passed"]
+        if two_image_evidence(modified)["passed"]:
+            raise ValueError("Different artifact unexpectedly accepted: " + field)
         negative.append("different_" + field)
     modified = copy.deepcopy(normal)
     for field in ("sha256_before", "sha256_after"):
         modified[1]["disk_oracle"][field] = modified[0]["disk_oracle"][field]
     modified[1]["artifact_sha256"]["test-disk.img"] = modified[0]["artifact_sha256"]["test-disk.img"]
-    assert not two_image_evidence(modified)["passed"]
+    if two_image_evidence(modified)["passed"]:
+        raise ValueError("Same image unexpectedly accepted")
     negative.append("same_image")
     modified = copy.deepcopy(normal)
     for field in ("expected_digests", "observed_digests"):
@@ -65,11 +70,13 @@ def main():
     modified[1]["stdout"] = "\n".join(lines + [
         f"M5:SECTOR{sector}_DIGEST:{value}"
         for sector, value in modified[0]["disk_oracle"]["observed_digests"].items()]) + "\n"
-    assert not two_image_evidence(modified)["passed"]
+    if two_image_evidence(modified)["passed"]:
+        raise ValueError("Same received digests unexpectedly accepted")
     negative.append("same_received_digests")
     modified = copy.deepcopy(normal)
     modified[1]["base_commit"] = "0" * 40
-    assert not two_image_evidence(modified)["passed"]
+    if two_image_evidence(modified)["passed"]:
+        raise ValueError("Different source commit unexpectedly accepted")
     negative.append("different_source_commit")
     for label, records, value in (
             ("missing_run", normal[:1], evidence),
@@ -80,7 +87,7 @@ def main():
         except ValueError:
             negative.append(label)
         else:
-            raise AssertionError(label)
+            raise ValueError("Invalid comparison unexpectedly accepted: " + label)
     result = {
         "scope": "Hercontrole van bestaande gecommitteerde gastrecords en reconstructie uit opgeslagen seeds; geen nieuwe VM-runs of opnieuw gelezen oorspronkelijke binaries.",
         "bot_commit": "56c43da0806f5f4de57cfb49dfd0418954e2ed9c",

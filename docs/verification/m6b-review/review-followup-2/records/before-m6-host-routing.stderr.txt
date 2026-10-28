@@ -1,0 +1,68 @@
+test_stderr_evidence_requires_metadata_and_stdout_members (test_m6_capture.HostLogRouting.test_stderr_evidence_requires_metadata_and_stdout_members) ... 
+  test_stderr_evidence_requires_metadata_and_stdout_members (test_m6_capture.HostLogRouting.test_stderr_evidence_requires_metadata_and_stdout_members) (missing='.json') ... FAIL
+  test_stderr_evidence_requires_metadata_and_stdout_members (test_m6_capture.HostLogRouting.test_stderr_evidence_requires_metadata_and_stdout_members) (missing='.stdout.txt') ... FAIL
+test_stdout_and_stderr_evidence_capture_the_complete_host_log_trio (test_m6_capture.HostLogRouting.test_stdout_and_stderr_evidence_capture_the_complete_host_log_trio) ... 
+  test_stdout_and_stderr_evidence_capture_the_complete_host_log_trio (test_m6_capture.HostLogRouting.test_stdout_and_stderr_evidence_capture_the_complete_host_log_trio) (evidence='.stderr.txt') ... ERROR
+test_stdout_and_stderr_evidence_reject_failed_host_commands (test_m6_capture.HostLogRouting.test_stdout_and_stderr_evidence_reject_failed_host_commands) ... 
+  test_stdout_and_stderr_evidence_reject_failed_host_commands (test_m6_capture.HostLogRouting.test_stdout_and_stderr_evidence_reject_failed_host_commands) (evidence='.stderr.txt') ... FAIL
+test_user_artifact_group_points_to_the_result_on_stderr (test_m6_capture.UserArtifactEvidenceProducer.test_user_artifact_group_points_to_the_result_on_stderr) ... FAIL
+
+======================================================================
+ERROR: test_stdout_and_stderr_evidence_capture_the_complete_host_log_trio (test_m6_capture.HostLogRouting.test_stdout_and_stderr_evidence_capture_the_complete_host_log_trio) (evidence='.stderr.txt')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/round2/candidate/tests/test_m6_capture.py", line 56, in test_stdout_and_stderr_evidence_capture_the_complete_host_log_trio
+    self.assertEqual((destination / (self.stem + member)).read_text(), expected)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/a9adbdc1f137/pr9-verifier/round2/tmp/tmpv46qry3g/docs/verification/m6a/m6a-user-artifact-tests.stdout.txt'
+
+======================================================================
+FAIL: test_stderr_evidence_requires_metadata_and_stdout_members (test_m6_capture.HostLogRouting.test_stderr_evidence_requires_metadata_and_stdout_members) (missing='.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/round2/candidate/tests/test_m6_capture.py", line 70, in test_stderr_evidence_requires_metadata_and_stdout_members
+    with self.assertRaises(FileNotFoundError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: FileNotFoundError not raised
+
+======================================================================
+FAIL: test_stderr_evidence_requires_metadata_and_stdout_members (test_m6_capture.HostLogRouting.test_stderr_evidence_requires_metadata_and_stdout_members) (missing='.stdout.txt')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/round2/candidate/tests/test_m6_capture.py", line 70, in test_stderr_evidence_requires_metadata_and_stdout_members
+    with self.assertRaises(FileNotFoundError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: FileNotFoundError not raised
+
+======================================================================
+FAIL: test_stdout_and_stderr_evidence_reject_failed_host_commands (test_m6_capture.HostLogRouting.test_stdout_and_stderr_evidence_reject_failed_host_commands) (evidence='.stderr.txt')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/round2/candidate/tests/test_m6_capture.py", line 62, in test_stdout_and_stderr_evidence_reject_failed_host_commands
+    with self.assertRaisesRegex(ValueError, 'Failed host command'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_user_artifact_group_points_to_the_result_on_stderr (test_m6_capture.UserArtifactEvidenceProducer.test_user_artifact_group_points_to_the_result_on_stderr)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/round2/candidate/tests/test_m6_capture.py", line 98, in test_user_artifact_group_points_to_the_result_on_stderr
+    self.assertEqual(group['evidence'], 'build/logs/m6a-user-artifact-tests.stderr.txt')
+AssertionError: 'build/logs/m6a-user-artifact-tests.stdout.txt' != 'build/logs/m6a-user-artifact-tests.stderr.txt'
+- build/logs/m6a-user-artifact-tests.stdout.txt
+?                                       ^^^
++ build/logs/m6a-user-artifact-tests.stderr.txt
+?                                       ^^^
+
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.019s
+
+FAILED (failures=4, errors=1)
