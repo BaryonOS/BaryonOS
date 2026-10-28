@@ -1,0 +1,15 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+    "-B",
+    "-X",
+    "utf8",
+    "userspace/tests/test_probe.py",
+    "--elf",
+    "build/users/probe.elf"
+  ],
+  "cwd": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System",
+  "started_unix": 1793190250.0675526,
+  "duration_s": 0.26342105865478516,
+  "returncode": 0
+}

@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running unittests src\lib.rs (target\debug\deps\block_protocol-6769975ef888bca1.exe)
+     Running unittests src\lib.rs (target\debug\deps\capability_core-d85afd4192c7ae5a.exe)
+     Running unittests src\lib.rs (target\debug\deps\kernel_core-47807490b0b9e789.exe)
+     Running unittests src\lib.rs (target\debug\deps\virtio_core-31b160e9d4f04af1.exe)
+   Doc-tests block_protocol
+   Doc-tests capability_core
+   Doc-tests kernel_core
+   Doc-tests virtio_core

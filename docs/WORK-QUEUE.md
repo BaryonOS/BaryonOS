@@ -1,17 +1,16 @@
-# Werkqueue — M6a actief
+# Werkqueue — M6a observerherstel
 
-27 oktober 2026, basis `448974b`, branch `codex/m6a-write-recovery`. Gekozen invariant/ABI/cases vóór implementatie: implementation/M6A-WRITE-RECOVERY.md.
+28 oktober 2026, geïntegreerde basis `803bf43`, runtimeherstel `f60445b`, branch `codex/m6a-write-recovery`. Contract: implementation/M6A-WRITE-RECOVERY.md. Eerdere M6a-gate blijft als historisch bewijs onder verification/m6a/history/6fce5c12/.
 
 | ID | Eigenaar | Exclusieve writes | Status |
 |---|---|---|---|
-| K06 | kernel_m2 | kernel/,kernel-core/,drivers/virtio-blk/ | bron bevroren; 16hosttests en gerichte QEMU/cut/recoveryproeven groen |
-| C06 | quantum_contract | capability-core/,virtio-core/ | 30+21tests/fmt/Clippy/no_std exit0; bron gepauzeerd |
-| U06 | product_acceptance | services/block/,nieuweM6-userspace | 20host+12artifacttests exit0; echte dienstbron gepauzeerd |
-| G06 | root | config/tools/tests/docs/Git | guarded writableimage/crashharnas/capture,19hostcontroles groen; volledige poort gereed |
-| R06 | C06/U06 | alleen lezen | gerichte transport- en zes harnas/capturebevindingen hersteld/gesloten |
-| V06 | later verifier | alleen lezen | finale M1–M6-poorten, echte cuts/recovery en hashbinding |
+| K07 | builder | kernel/src/m2/m3/m6.rs | drie observergaten hersteld; crossbuild en M6a-gate exit0 |
+| G07 | root | tests/docs/Git | 43 hostcontroles groen; acht echte QEMU-tegenproeven exit0; checkpoints gepusht |
+| R07 | securityreviewer | alleen lezen | concrete bronreview zonder blokkerende bevindingen; geen menselijke audit |
+| V09/V10 | verifier | alleen eigen rapport onder build/logs/ | audits exit0,nul fouten:122 VM/677artifacthashes;normale finalebinaries gelijk |
+| I07 | root | gedeelde buildslot | M6a54groepen/49VM;M1–M5 77groepen/64VM;alle captures en normale M6a-start exit0 |
 
-Eén schrijver per bestand, maximaal drie agents en één gedeeld build/QEMUslot. Geen nieuwe externe dependency. Na elke afgebakende stap bron/bewijs/open punten privépushen; noreplyafzender alleen per Git-commando, geen globale configwijziging. Gerichte M6-proeven groen; finale 54groepen/49VM-poort en regressie nog uit te voeren. QEMU-procescrash is geen fysieke stroomuitvalclaim.
+Eén schrijver per bestand, maximaal drie agents en één gedeeld buildslot in de hoofdwerkboom. De tegenproeven hebben een eigen externe wegwerpworktree, target en images. Geen nieuwe externe dependency. Bron/resultaten gaan per stap naar de privébranch; noreplyafzender alleen per Git-commando. QEMU-procescrash bewijst geen fysieke stroomuitval. Vervolg na afronding: observerherstel met de afzonderlijke vervolgbranch integreren en daar de gecombineerde poorten draaien; andere worktrees blijven behouden.
 
 ## M5 — behaalde basis (historisch)
 

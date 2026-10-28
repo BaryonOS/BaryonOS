@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "profile": "milestone-m6a",
+  "kernel_feature": "milestone-m6a",
+  "loader_feature": null,
+  "source_fingerprint_version": 3,
+  "source_sha256": "e721bec4c283c90fe6d05a66d092372cd59f7727815de79f0da18760155c365c",
+  "loader": {
+    "sha256": "b8a1d4919f841bf903a03166d068cebeb649f317a903520afeb263b57638fbe8",
+    "format": "AMD64 PE32+",
+    "subsystem": "EFI_APPLICATION",
+    "imports": 0
+  },
+  "kernel": {
+    "sha256": "0a8e3e30a1619063789db8b682def44b3990c8f120e50da943d115fd73088136",
+    "entry": 33554432,
+    "segments": [
+      {
+        "flags": 5,
+        "offset": 4096,
+        "address": 33554432,
+        "filesz": 128023,
+        "memsz": 128023,
+        "page_start": 33554432,
+        "page_end": 33685504
+      },
+      {
+        "flags": 4,
+        "offset": 135168,
+        "address": 33685504,
+        "filesz": 751280,
+        "memsz": 751280,
+        "page_start": 33685504,
+        "page_end": 34439168
+      },
+      {
+        "flags": 6,
+        "offset": 888832,
+        "address": 34439168,
+        "filesz": 1258160,
+        "memsz": 4344912,
+        "page_start": 34439168,
+        "page_end": 38785024
+      }
+    ],
+    "sections": [
+      {
+        "name": "",
+        "type": 0,
+        "flags": 0,
+        "size": 0
+      },
+      {
+        "name": ".text",
+        "type": 1,
+        "flags": 6,
+        "size": 128023
+      },
+      {
+        "name": ".rodata",
+        "type": 1,
+        "flags": 50,
+        "size": 751280
+      },
+      {
+        "name": ".data",
+        "type": 1,
+        "flags": 3,
+        "size": 1258160
+      },
+      {
+        "name": ".bss",
+        "type": 8,
+        "flags": 3,
+        "size": 3083344
+      },
+      {
+        "name": ".symtab",
+        "type": 2,
+        "flags": 0,
+        "size": 8448
+      },
+      {
+        "name": ".shstrtab",
+        "type": 3,
+        "flags": 0,
+        "size": 52
+      },
+      {
+        "name": ".strtab",
+        "type": 3,
+        "flags": 0,
+        "size": 19284
+      }
+    ]
+  }
+}

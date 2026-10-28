@@ -1,0 +1,232 @@
+{
+  "phase": "M5",
+  "status": "completed",
+  "passed": true,
+  "started_utc": "2026-10-28T12:26:29.298080+00:00",
+  "results": [
+    {
+      "name": "typed-capability-virtio-policy-protocol-host-tests",
+      "passed": true,
+      "requirements": [
+        "M5-TYPED",
+        "M5-QUEUE",
+        "M5-PROTOCOL"
+      ],
+      "evidence": "build/logs/m5-host-tests.stdout.txt"
+    },
+    {
+      "name": "guest-evidence-parser-tests",
+      "passed": true,
+      "requirements": [
+        "M5-EVIDENCE"
+      ],
+      "evidence": "build/logs/m5-parser-tests.stdout.txt"
+    },
+    {
+      "name": "external-disk-oracle-negative-tests",
+      "passed": true,
+      "requirements": [
+        "M5-ORACLE"
+      ],
+      "evidence": "build/logs/m5-disk-oracle-tests.stdout.txt"
+    },
+    {
+      "name": "m5-user-artifact-tests",
+      "passed": true,
+      "requirements": [
+        "M5-USER-ELF"
+      ],
+      "evidence": "build/logs/m5-user-artifact-tests.stdout.txt"
+    },
+    {
+      "name": "m5-read-a",
+      "passed": true,
+      "requirements": [
+        "M5-READ",
+        "M5-ORACLE",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m5-read-a-b5630ebd92"
+    },
+    {
+      "name": "m5-read-b",
+      "passed": true,
+      "requirements": [
+        "M5-READ",
+        "M5-ORACLE",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m5-read-b-5ef7b95448"
+    },
+    {
+      "name": "same-binary-two-actual-disks",
+      "passed": true,
+      "requirements": [
+        "M5-ORACLE"
+      ],
+      "evidence": "build/logs/m5-two-image-check.json"
+    },
+    {
+      "name": "test-m5-service-errors",
+      "passed": true,
+      "requirements": [
+        "M5-SERVICE_ERRORS",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-service-errors-f2e64ed50d"
+    },
+    {
+      "name": "test-m5-device-rights",
+      "passed": true,
+      "requirements": [
+        "M5-DEVICE_RIGHTS",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-device-rights-49dc27b729"
+    },
+    {
+      "name": "test-m5-async",
+      "passed": true,
+      "requirements": [
+        "M5-ASYNC",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-async-7487aa1a71"
+    },
+    {
+      "name": "test-m5-bad-descriptor",
+      "passed": true,
+      "requirements": [
+        "M5-BAD_DESCRIPTOR",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-bad-descriptor-dca62f5105"
+    },
+    {
+      "name": "test-m5-used-id",
+      "passed": true,
+      "requirements": [
+        "M5-USED_ID",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-used-id-82f17604e9"
+    },
+    {
+      "name": "test-m5-used-index",
+      "passed": true,
+      "requirements": [
+        "M5-USED_INDEX",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-used-index-63d3e7e31b"
+    },
+    {
+      "name": "test-m5-used-short",
+      "passed": true,
+      "requirements": [
+        "M5-USED_SHORT",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-used-short-65a90b97cc"
+    },
+    {
+      "name": "test-m5-used-long",
+      "passed": true,
+      "requirements": [
+        "M5-USED_LONG",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-used-long-9659bf536f"
+    },
+    {
+      "name": "test-m5-used-status",
+      "passed": true,
+      "requirements": [
+        "M5-USED_STATUS",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-used-status-c64e5c90e5"
+    },
+    {
+      "name": "test-m5-io-error",
+      "passed": true,
+      "requirements": [
+        "M5-IO_ERROR",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-io-error-4003f4a57e"
+    },
+    {
+      "name": "test-m5-timeout",
+      "passed": true,
+      "requirements": [
+        "M5-TIMEOUT",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-timeout-24f6f80773"
+    },
+    {
+      "name": "test-m5-reset-timeout",
+      "passed": true,
+      "requirements": [
+        "M5-RESET_TIMEOUT",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-reset-timeout-2f2108d808"
+    },
+    {
+      "name": "test-m5-restart",
+      "passed": true,
+      "requirements": [
+        "M5-RESTART",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-restart-d373670acc"
+    },
+    {
+      "name": "test-m5-cpu-mmio",
+      "passed": true,
+      "requirements": [
+        "M5-CPU_MMIO",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-cpu-mmio-e25441b5d1"
+    },
+    {
+      "name": "test-m5-cpu-dma",
+      "passed": true,
+      "requirements": [
+        "M5-CPU_DMA",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-cpu-dma-5b865a5c5d"
+    },
+    {
+      "name": "test-m5-cpu-pci",
+      "passed": true,
+      "requirements": [
+        "M5-CPU_PCI",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-cpu-pci-93230eb714"
+    },
+    {
+      "name": "test-m5-no-device",
+      "passed": true,
+      "requirements": [
+        "M5-NO_DEVICE",
+        "M5-RESOURCES"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\test-m5-no-device-cbe9d5f60d"
+    },
+    {
+      "name": "m1-regression-after-m5",
+      "passed": true,
+      "requirements": [
+        "M1"
+      ],
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m1-after-m5-4265465973"
+    }
+  ],
+  "finished_utc": "2026-10-28T12:28:15.446670+00:00"
+}

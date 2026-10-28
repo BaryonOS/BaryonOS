@@ -1,0 +1,58 @@
+{
+  "status": "completed",
+  "passed": true,
+  "started_utc": "2026-10-28T12:28:15.592686+00:00",
+  "results": [
+    {
+      "name": "host-protocol-elf-tests",
+      "passed": true,
+      "evidence": "build/logs/host-tests.stdout.txt"
+    },
+    {
+      "name": "harness-rejects-wrong-exit-markers-timeout",
+      "passed": true,
+      "evidence": null
+    },
+    {
+      "name": "cold-boot-1",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\cold-1-19115ec13c"
+    },
+    {
+      "name": "cold-boot-2",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\cold-2-75011da4c9"
+    },
+    {
+      "name": "cold-boot-3",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\cold-3-0d432a50cc"
+    },
+    {
+      "name": "reject-missing-kernel",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\missing-180086c7a4"
+    },
+    {
+      "name": "reject-corrupt-kernel",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\corrupt-3ef4135ea1"
+    },
+    {
+      "name": "real-ebs-stale-key-retry",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\ebs-retry-95ed0fe3eb"
+    },
+    {
+      "name": "kernel-panic-fails",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\panic-16abb761b1"
+    },
+    {
+      "name": "real-hang-times-out",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\hang-6018f69274"
+    }
+  ],
+  "finished_utc": "2026-10-28T12:29:31.516803+00:00"
+}

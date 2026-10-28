@@ -1,0 +1,328 @@
+{
+  "status": "completed",
+  "passed": true,
+  "base_commit": "803bf43",
+  "runtime_commit": "f60445b26d31733cc6aaf557ee08820b2295b0df",
+  "source_fingerprint_version": 3,
+  "source_sha256": "e721bec4c283c90fe6d05a66d092372cd59f7727815de79f0da18760155c365c",
+  "commands": [
+    {
+      "argv": [
+        "python",
+        "-X",
+        "utf8",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "exit": 0,
+      "logs": "m6a-preflight.*"
+    },
+    {
+      "argv": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests"
+      ],
+      "exit": 0,
+      "counts": "43 host checks",
+      "logs": "host-regression.*"
+    },
+    {
+      "argv": [
+        "python",
+        "-u",
+        "-X",
+        "utf8",
+        "tools/test_m6.py"
+      ],
+      "exit": 0,
+      "counts": "54 groups / 49 VM",
+      "logs": "suite.json,guest-runs.json; build/logs/m6a-observer-full-console.txt"
+    },
+    {
+      "argv": [
+        "python",
+        "-u",
+        "-B",
+        "-X",
+        "utf8",
+        "tests/verify_m6_observers.py"
+      ],
+      "exit": 0,
+      "counts": "8 checks / 8 VM",
+      "logs": "observer-counterexamples.json"
+    },
+    {
+      "argv": [
+        "python",
+        "-u",
+        "-X",
+        "utf8",
+        "tools/test_milestones.py",
+        "--through",
+        "m5"
+      ],
+      "exit": 0,
+      "counts": "67 groups / 56 VM",
+      "logs": "regression/{m2,m3,m4,m5}/; build/logs/m6a-observer-regression-m2-m5-console.txt"
+    },
+    {
+      "argv": [
+        "python",
+        "-u",
+        "-X",
+        "utf8",
+        "tools/test.py"
+      ],
+      "exit": 0,
+      "counts": "10 groups / 8 VM",
+      "logs": "regression/m1/; build/logs/m6a-observer-regression-m1-console.txt"
+    },
+    {
+      "argv": [
+        "python",
+        "-u",
+        "-X",
+        "utf8",
+        "tools/build.py",
+        "--kernel-feature",
+        "milestone-m6a"
+      ],
+      "exit": 0,
+      "logs": "build/logs/m6a-observer-manual-build-console.txt; final-build-manifest.json"
+    },
+    {
+      "argv": [
+        "python",
+        "-u",
+        "-X",
+        "utf8",
+        "tools/run_m6.py",
+        "--smoke"
+      ],
+      "exit": 0,
+      "counts": "1 VM,raw33,generation2",
+      "logs": "manual-m6a.json; build/logs/m6a-observer-manual-console.txt"
+    },
+    {
+      "argv": [
+        "python",
+        "-X",
+        "utf8",
+        "tools/capture_gate.py",
+        "m6a"
+      ],
+      "exit": 0,
+      "logs": "build/logs/m6a-observer-capture-console.txt"
+    },
+    {
+      "argv": [
+        "python",
+        "-X",
+        "utf8",
+        "tools/capture_gate.py",
+        "m1",
+        "--destination",
+        "docs/verification/m6a/regression/m1"
+      ],
+      "exit": 0,
+      "logs": "regression/m1"
+    },
+    {
+      "argv": [
+        "python",
+        "-X",
+        "utf8",
+        "tools/capture_gate.py",
+        "m2",
+        "--destination",
+        "docs/verification/m6a/regression/m2"
+      ],
+      "exit": 0,
+      "logs": "regression/m2"
+    },
+    {
+      "argv": [
+        "python",
+        "-X",
+        "utf8",
+        "tools/capture_gate.py",
+        "m3",
+        "--destination",
+        "docs/verification/m6a/regression/m3"
+      ],
+      "exit": 0,
+      "logs": "regression/m3"
+    },
+    {
+      "argv": [
+        "python",
+        "-X",
+        "utf8",
+        "tools/capture_gate.py",
+        "m4",
+        "--destination",
+        "docs/verification/m6a/regression/m4"
+      ],
+      "exit": 0,
+      "logs": "regression/m4"
+    },
+    {
+      "argv": [
+        "python",
+        "-X",
+        "utf8",
+        "tools/capture_gate.py",
+        "m5",
+        "--destination",
+        "docs/verification/m6a/regression/m5"
+      ],
+      "exit": 0,
+      "logs": "regression/m5"
+    }
+  ],
+  "changed_files": [
+    "README.md",
+    "docs/DECISIONS.md",
+    "docs/DEVELOPMENT.md",
+    "docs/PROJECT-STATE.md",
+    "docs/WORK-QUEUE.md",
+    "docs/verification/m6a/README.md",
+    "docs/verification/m6a/candidate.json",
+    "docs/verification/m6a/final-build-manifest.json",
+    "docs/verification/m6a/guest-runs.json",
+    "docs/verification/m6a/history/6fce5c12/README.md",
+    "docs/verification/m6a/history/6fce5c12/guest-runs.json",
+    "docs/verification/m6a/history/6fce5c12/m6a-harness-tests.json",
+    "docs/verification/m6a/history/6fce5c12/m6a-harness-tests.stderr.txt",
+    "docs/verification/m6a/history/6fce5c12/m6a-harness-tests.stdout.txt",
+    "docs/verification/m6a/history/6fce5c12/m6a-host-tests.json",
+    "docs/verification/m6a/history/6fce5c12/m6a-host-tests.stderr.txt",
+    "docs/verification/m6a/history/6fce5c12/m6a-host-tests.stdout.txt",
+    "docs/verification/m6a/history/6fce5c12/m6a-preflight.json",
+    "docs/verification/m6a/history/6fce5c12/m6a-preflight.stderr.txt",
+    "docs/verification/m6a/history/6fce5c12/m6a-preflight.stdout.txt",
+    "docs/verification/m6a/history/6fce5c12/m6a-two-image-check.json",
+    "docs/verification/m6a/history/6fce5c12/m6a-user-artifact-tests.json",
+    "docs/verification/m6a/history/6fce5c12/m6a-user-artifact-tests.stderr.txt",
+    "docs/verification/m6a/history/6fce5c12/m6a-user-artifact-tests.stdout.txt",
+    "docs/verification/m6a/history/6fce5c12/suite.json",
+    "docs/verification/m6a/host-regression.json",
+    "docs/verification/m6a/host-regression.stderr.txt",
+    "docs/verification/m6a/host-regression.stdout.txt",
+    "docs/verification/m6a/m6a-harness-tests.json",
+    "docs/verification/m6a/m6a-harness-tests.stderr.txt",
+    "docs/verification/m6a/m6a-harness-tests.stdout.txt",
+    "docs/verification/m6a/m6a-host-tests.json",
+    "docs/verification/m6a/m6a-host-tests.stderr.txt",
+    "docs/verification/m6a/m6a-host-tests.stdout.txt",
+    "docs/verification/m6a/m6a-preflight.json",
+    "docs/verification/m6a/m6a-preflight.stderr.txt",
+    "docs/verification/m6a/m6a-preflight.stdout.txt",
+    "docs/verification/m6a/m6a-two-image-check.json",
+    "docs/verification/m6a/m6a-user-artifact-tests.json",
+    "docs/verification/m6a/m6a-user-artifact-tests.stderr.txt",
+    "docs/verification/m6a/m6a-user-artifact-tests.stdout.txt",
+    "docs/verification/m6a/manual-m6a.json",
+    "docs/verification/m6a/observer-counterexamples-console.txt",
+    "docs/verification/m6a/observer-counterexamples.json",
+    "docs/verification/m6a/observer-diagnostics/nested-worktree.json",
+    "docs/verification/m6a/observer-diagnostics/old-comparison-attempt.json",
+    "docs/verification/m6a/observer-diagnostics/old-comparison-console.txt",
+    "docs/verification/m6a/observer-review.md",
+    "docs/verification/m6a/regression/m1/guest-runs.json",
+    "docs/verification/m6a/regression/m1/host-tests.json",
+    "docs/verification/m6a/regression/m1/host-tests.stderr.txt",
+    "docs/verification/m6a/regression/m1/host-tests.stdout.txt",
+    "docs/verification/m6a/regression/m1/suite.json",
+    "docs/verification/m6a/regression/m2/guest-runs.json",
+    "docs/verification/m6a/regression/m2/m2-host-tests.json",
+    "docs/verification/m6a/regression/m2/m2-host-tests.stderr.txt",
+    "docs/verification/m6a/regression/m2/m2-host-tests.stdout.txt",
+    "docs/verification/m6a/regression/m2/suite.json",
+    "docs/verification/m6a/regression/m3/guest-runs.json",
+    "docs/verification/m6a/regression/m3/m3-host-tests.json",
+    "docs/verification/m6a/regression/m3/m3-host-tests.stderr.txt",
+    "docs/verification/m6a/regression/m3/m3-host-tests.stdout.txt",
+    "docs/verification/m6a/regression/m3/m3-large-artifact-tests.json",
+    "docs/verification/m6a/regression/m3/m3-large-artifact-tests.stderr.txt",
+    "docs/verification/m6a/regression/m3/m3-large-artifact-tests.stdout.txt",
+    "docs/verification/m6a/regression/m3/m3-user-artifact-tests.json",
+    "docs/verification/m6a/regression/m3/m3-user-artifact-tests.stderr.txt",
+    "docs/verification/m6a/regression/m3/m3-user-artifact-tests.stdout.txt",
+    "docs/verification/m6a/regression/m3/suite.json",
+    "docs/verification/m6a/regression/m4/guest-runs.json",
+    "docs/verification/m6a/regression/m4/m4-host-tests.json",
+    "docs/verification/m6a/regression/m4/m4-host-tests.stderr.txt",
+    "docs/verification/m6a/regression/m4/m4-host-tests.stdout.txt",
+    "docs/verification/m6a/regression/m4/m4-user-artifact-tests.json",
+    "docs/verification/m6a/regression/m4/m4-user-artifact-tests.stderr.txt",
+    "docs/verification/m6a/regression/m4/m4-user-artifact-tests.stdout.txt",
+    "docs/verification/m6a/regression/m4/suite.json",
+    "docs/verification/m6a/regression/m5/guest-runs.json",
+    "docs/verification/m6a/regression/m5/m5-disk-oracle-tests.json",
+    "docs/verification/m6a/regression/m5/m5-disk-oracle-tests.stderr.txt",
+    "docs/verification/m6a/regression/m5/m5-disk-oracle-tests.stdout.txt",
+    "docs/verification/m6a/regression/m5/m5-host-tests.json",
+    "docs/verification/m6a/regression/m5/m5-host-tests.stderr.txt",
+    "docs/verification/m6a/regression/m5/m5-host-tests.stdout.txt",
+    "docs/verification/m6a/regression/m5/m5-parser-tests.json",
+    "docs/verification/m6a/regression/m5/m5-parser-tests.stderr.txt",
+    "docs/verification/m6a/regression/m5/m5-parser-tests.stdout.txt",
+    "docs/verification/m6a/regression/m5/m5-two-image-check.json",
+    "docs/verification/m6a/regression/m5/m5-user-artifact-tests.json",
+    "docs/verification/m6a/regression/m5/m5-user-artifact-tests.stderr.txt",
+    "docs/verification/m6a/regression/m5/m5-user-artifact-tests.stdout.txt",
+    "docs/verification/m6a/regression/m5/suite.json",
+    "docs/verification/m6a/suite.json",
+    "docs/verification/m6a/validation.json",
+    "docs/verification/m6a/verifier-m6a.json",
+    "docs/verification/m6a/verifier-regression.json",
+    "kernel/src/m2/m3/m6.rs",
+    "tests/test_capture_gate.py",
+    "tests/verify_m6_observers.py"
+  ],
+  "summary": {
+    "standard_gate_groups": 131,
+    "standard_gate_vm": 113,
+    "counterexample_vm": 8,
+    "manual_vm": 1,
+    "total_unique_vm": 122,
+    "independently_verified_artifact_hashes": 677
+  },
+  "review_reports": [
+    "observer-review.md",
+    "verifier-m6a.json",
+    "verifier-regression.json"
+  ],
+  "assumptions": [
+    "single-CPU QEMU/TCG and protocol-conform virtio device/backend trusted",
+    "no IOMMU or physical power-loss claim",
+    "FNV diagnostics are not cryptographic authentication",
+    "journal four sectors/one128B value; no filesystem/GC",
+    "three new counterexamples mutate guest behavior; three mutate observer instrumentation",
+    "raw logs aggregate observer verdicts, not full IPC/ACK/publication event traces"
+  ],
+  "not_executed": [
+    "physical hardware and QPU",
+    "native GUI",
+    "production storage or OS deployment",
+    "UI/quantum test rerun in this observer round",
+    "upstream permanent Codex repair validation"
+  ],
+  "rollback": "Use separate checkout or targeted revert of observer commit; preserve current branch/user work/images, no destructive reset or WRITE replay",
+  "preserved_user_work": ".codex/environments/ and unrelated worktrees",
+  "github_status": {
+    "original_pr": 5,
+    "original_pr_merged": true,
+    "original_pr_head": "803bf4370fc3cc12bb2a1f7b328bc3ff5aa664f0",
+    "followup": "new commits on codex/m6a-write-recovery; not integrated into later main/other worktrees"
+  },
+  "review_report_raw_sha256": {
+    "verifier-m6a.json": "a0435382e9f99d50df30494f989297f6a71e7aa9fbe9af24c8c5519470ea50e0",
+    "verifier-regression.json": "9d04da9eee9269fa2dd0f04e7255a3a4bd3ef2d90ddb5ced6db169f9583b507b"
+  }
+}

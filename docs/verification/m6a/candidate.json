@@ -3,8 +3,10 @@
   "source_fingerprint_version": 3,
   "source_sha256": "e721bec4c283c90fe6d05a66d092372cd59f7727815de79f0da18760155c365c",
   "m6_gate": "54 groups / 49 VM, exit0; capture exit0",
-  "pending": [
-    "counterexamples",
-    "M1-M5 regression"
-  ]
+  "pending": [],
+  "status": "verified",
+  "regression": "77 groups /64VM,exit0",
+  "counterexamples": "8 realVM,exit0",
+  "manual": "normal raw33,gen2",
+  "total_unique_vm": 122
 }
