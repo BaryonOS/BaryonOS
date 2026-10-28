@@ -10,8 +10,8 @@ De volledige native acceptatie blijft gebonden aan `3e41bbf9`. Het vervolg op
 | ROOT | in uitvoering | root: integratie, docs, GitHub en gedeelde buildhook | Zes gerichte native resultaten publiceren; PR15/14 afronden; G11-interface bewaken |
 | G11 | in uitvoering | native_apps: userspace-probe en eigen SDK-builddeel | DocumentSession echt in ring3 voor openen, bewerken, bewaren en heropenen; bestaande catalogus en oracle |
 | I13 | in uitvoering | runtime_platform: nieuwe document-session-poort en tests | Herbruikbare strikte normal/recover-acceptatie voor de G11-appbibliotheek |
-| B10 | in uitvoering | native_storage: parallel-b10 | Zeven concrete PR14-bevindingen toetsen aan actuele bron en bewijs |
-| B08/G10/I11/I12/ROOT | gereed voor integratie/controle | root, gescheiden bewijsbundels | Zes echte actuele VM-runs slagen; koude images en vijf grafische frames gecontroleerd |
+| B11 | in uitvoering | native_storage: services/net-protocol/** | Begrensde no_std Ethernet/IPv4/UDP-parser; nog geen driver of netwerkrechten |
+| B08/G10/I11/I12/B10/ROOT | gereed voor integratie/controle | root, gescheiden bewijsbundels | Zes echte actuele VM-runs slagen; koude images en vijf grafische frames gecontroleerd |
 | G07/I08/B09/G09/I10 | gereed voor integratie/controle | geïntegreerd op f52ef0a6 en dbd35b04 | Documentsessie, jobcodec en gerepareerde capture; gerichte reviews afgerond |
 | G1 | wacht op een benoemde afhankelijkheid | bestaande andere sessie: Materiaal en display/input | Eigenaar publiceert broncheckpoint van toegewezen G1-branch voor integratie |
 | S08 | gereed om te bouwen | volgende bouwer; root bewaakt herstelcontract | Begrensde vervanging van catalogusdienst zonder mutatiereplay |

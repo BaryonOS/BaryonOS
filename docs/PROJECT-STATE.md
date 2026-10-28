@@ -32,6 +32,11 @@ alle originele inputs en lossless PNG's zijn opnieuw gecontroleerd.
 [capturereparatie](verification/parallel-b09/README.md),
 [hercontrole](verification/parallel-g09/README.md).
 
+De [gerichte PR14-behoudcontrole](verification/parallel-b10/README.md)
+bevestigt dat de zeven eerdere reviewvragen in de integratiebron zijn opgelost
+en dat alle bestaande bestandspaden behouden zijn. De volledige bomen zijn
+vergeleken omdat de GitHub-compare slechts een deel van de paden retourneerde.
+
 De acht concrete CodeRabbit-bevindingen zijn afgehandeld met bron-/bewijslinks;
 de actuele vervolgbeoordeling en PR-status staan op GitHub. De eerdere
 volledige acceptatie van 80 VM's hieronder behoudt haar oorspronkelijke bron.

@@ -1,0 +1,666 @@
+{
+  "scope": "B10 read-only source/evidence binding; no test suite, VM or remote mutation.",
+  "completed_utc": "2026-10-28T16:30:24.719362+00:00",
+  "source_commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+  "source_files_sha256": {
+    "docs/verification/m6b-errors-review/README.md": "f359fdf7d73d96f9ea8a53382632b204ed725d2e241c3b77c490b7bc0347ac3a",
+    "tools/run_graphics.py": "fd406d0aebb03b04266793cd9d46cb673c691f4fd6a8659bf85405b58ac3e7bd",
+    "kernel/src/graphics.rs": "8fddd5aaf28de0046c87ccf7af3ccd84c6f12f2803c87ae41763113d16759922",
+    "crates/ui-core/src/lib.rs": "42480e159160316d3ddfde83acae45d75ea221db7e2964aa1fabeaadf0e965ee",
+    "tests/test_graphics_harness.py": "89c49fa18af105ee247c9e2d1f90f8383b6806784a3267ae535a2de8a54a1c07",
+    "tools/m6b_disk.py": "70ef0ac2dc158e507639b9a88c34fcf9c7efcac945c6bf061b5422ef8ca1d7e9",
+    "tests/test_m6b_disk.py": "748ef71dc34c7616dcdc0dd936cad4f1c513bc7472b59f5ba970b68d0f42e6e3",
+    "drivers/virtio-blk/src/lib.rs": "43e72d81986902b2abc7393ca7338b427fed616e1f7f2d6a9666220ddd32ce55",
+    "kernel/src/m2/m3/m6b.rs": "2eebb99a125ff7035cf3735d5d21b62f336cfcab1a40fc912238fec7019b291f",
+    "userspace/m6b_probe.rs": "177955b0cdc3da40d16a5b24df1ca281d41f3f5c339656cdf58baf5601463eac",
+    "services/objects/src/user_service.rs": "b7a8d00126c6d2d77e8ebc7bc11fefaab2c71ead91e7324163482afdcb4d8100"
+  },
+  "passed": true,
+  "blocking_findings": [],
+  "source_changes_required": [],
+  "github_threads_still_open": 7,
+  "current_pr14_still_requires_pr15_integration": true,
+  "ancestry": {
+    "main_to_pr14": {
+      "base": "391f02e9394cb96f37096c995dabcb7d624ba36b",
+      "head": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+      "status": "ahead",
+      "ahead_by": 7,
+      "behind_by": 0,
+      "merge_base_commit": {
+        "sha": "391f02e9394cb96f37096c995dabcb7d624ba36b",
+        "url": "https://api.github.com/repos/simonvanieperen/nieuw-os/commits/391f02e9394cb96f37096c995dabcb7d624ba36b",
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/commit/391f02e9394cb96f37096c995dabcb7d624ba36b"
+      }
+    },
+    "pr14_to_current": {
+      "base": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+      "head": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+      "status": "ahead",
+      "ahead_by": 5,
+      "behind_by": 0,
+      "merge_base_commit": {
+        "sha": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+        "url": "https://api.github.com/repos/simonvanieperen/nieuw-os/commits/1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/commit/1acf6e8cde2a63849dc49c948ad97ba7f2c39cad"
+      }
+    }
+  },
+  "comparison_api_filelist_limit_note": "PR15 compare returns 300 of 623 changed paths; preservation uses complete local trees and untruncated main Git-tree instead.",
+  "preservation": [
+    {
+      "base": "main",
+      "head": "pr14",
+      "base_files": 1000,
+      "head_files": 1065,
+      "unchanged": 970,
+      "changed": [
+        {
+          "path": ".gitattributes",
+          "base_object": "100644 blob 4ba8f7b5f0d176486713720fcffa03f149a5602c",
+          "head_object": "100644 blob 8b0dec0cf294f041b705889c893f31483c28d85e"
+        },
+        {
+          "path": "Cargo.lock",
+          "base_object": "100644 blob 21c2c9509a6b5db19848f84472b94a17b147bfef",
+          "head_object": "100644 blob de5af5dc63ae4f9901cc1ef536c32ac814724578"
+        },
+        {
+          "path": "Cargo.toml",
+          "base_object": "100644 blob ce141c3f99422b716efa226a6a76807543258063",
+          "head_object": "100644 blob 51e1bc6d3ca5c939007accb32a365aa182a86730"
+        },
+        {
+          "path": "README.md",
+          "base_object": "100644 blob 2a20219891fd49e05bd3b08da9a83f911df4ae1e",
+          "head_object": "100644 blob 558a9bd2b2099c001249620c7e22a13fa2fec666"
+        },
+        {
+          "path": "boot/loader/Cargo.toml",
+          "base_object": "100644 blob bcb249a8aeb8f2e6293abede96e5112559cdfeb1",
+          "head_object": "100644 blob 2f43e03c3c82a4ccdf8c114ae055b0512552f3cc"
+        },
+        {
+          "path": "boot/loader/src/main.rs",
+          "base_object": "100644 blob 0b6680c835e97608846d1fc45b295a690dac9259",
+          "head_object": "100644 blob bb158d992573dbee8da574304045e8924a9ae9b0"
+        },
+        {
+          "path": "crates/boot-protocol/src/lib.rs",
+          "base_object": "100644 blob 7a3dc2d2b19bae9b0c739d54e9df71f0bd49c30f",
+          "head_object": "100644 blob 3728309fd1287002c07944d33b54a1acf3f896de"
+        },
+        {
+          "path": "docs/DECISIONS.md",
+          "base_object": "100644 blob 1cf33e437007ae76424ecafe78c6143f237b19fd",
+          "head_object": "100644 blob 424571412fd38509673a1de1f3abfe65c60df976"
+        },
+        {
+          "path": "docs/PROGRESS.md",
+          "base_object": "100644 blob 918dc97a2168330a195defa495fb3dc536d44abf",
+          "head_object": "100644 blob e57de30d5f0f9c8331f6d2a35e4950be7cd79ea5"
+        },
+        {
+          "path": "docs/PROJECT-STATE.md",
+          "base_object": "100644 blob 9d794c6cd0a0afdfa21a223c1a239a8ff3aeca63",
+          "head_object": "100644 blob 33cf79d4bcae9a5a7ff67d7ff56d3c3aa3bc228a"
+        },
+        {
+          "path": "docs/WORK-QUEUE.md",
+          "base_object": "100644 blob eda6fbde705c66282914c51d3ecf6b904c04d19c",
+          "head_object": "100644 blob 889e1b180136d5cf11566c5efbe4f10eda7533f9"
+        },
+        {
+          "path": "docs/implementation/M6B-OBJECT-STORAGE.md",
+          "base_object": "100644 blob 6b3d83181f5fc9304ae3c9ef079f499673621630",
+          "head_object": "100644 blob afda76937e73ee9c6bf7483fc40e88197322958f"
+        },
+        {
+          "path": "docs/progress.json",
+          "base_object": "100644 blob c91617d4613070c6d0066c04d98a32357df03c77",
+          "head_object": "100644 blob a17f9f47a356115dca8c3980e879f8edcdbaec66"
+        },
+        {
+          "path": "kernel/Cargo.toml",
+          "base_object": "100644 blob 5e6a2c783fc28a97a2d04ff5ad7a38f58d180955",
+          "head_object": "100644 blob 5545b8eb2f66261a81f3bf2e0313f10ccf286da0"
+        },
+        {
+          "path": "kernel/src/m2.rs",
+          "base_object": "100644 blob 5a2eb41e6381f553b62b5644b6da2055bb5290e1",
+          "head_object": "100644 blob c8601b5bce0cc4996d81199ac07c9cbb8912e670"
+        },
+        {
+          "path": "kernel/src/m2/m3/m6b.rs",
+          "base_object": "100644 blob ce8afeee4cc89edd4c89c8a692447804ca666fec",
+          "head_object": "100644 blob be637347e350f3483b29ee3eb0db8f7754d71163"
+        },
+        {
+          "path": "kernel/src/m2/paging.rs",
+          "base_object": "100644 blob 9724654e18192e08bd7209f07adda514c2915c60",
+          "head_object": "100644 blob 844c1b5f4513bfa13c08eca2cceaaa95ba1a2b1b"
+        },
+        {
+          "path": "kernel/src/main.rs",
+          "base_object": "100644 blob c851198f6d2e1aa2c956c9280b4ed50f1de6db0b",
+          "head_object": "100644 blob e9dfcd885ee9f5ed0320702231c01e4a543d1192"
+        },
+        {
+          "path": "services/objects/README.md",
+          "base_object": "100644 blob 6d64bc0239400d8710608cca2157caf4e33f8932",
+          "head_object": "100644 blob ec8f0804e406694eb173e95d33e9e0677fc70571"
+        },
+        {
+          "path": "services/objects/src/user_service.rs",
+          "base_object": "100644 blob e24310de56ce47f6777dc9368b1aeca41261073f",
+          "head_object": "100644 blob 7091d6a9c148b70e5fbf85b80ba2786f5a8eeaf7"
+        },
+        {
+          "path": "tests/test_m6b_capture.py",
+          "base_object": "100644 blob 9925aaceec51486d86569390922085a98751d3a4",
+          "head_object": "100644 blob 5b26ccdb67f90519fd2e934a63eb0edff96c8b87"
+        },
+        {
+          "path": "tests/test_m6b_disk.py",
+          "base_object": "100644 blob 2fd1392bcb4c9ef5dc0f216f6d0c7505b29d1b09",
+          "head_object": "100644 blob ac92457644262c34d942ce33c91e05fc4383a1e8"
+        },
+        {
+          "path": "tests/test_m6b_harness.py",
+          "base_object": "100644 blob 480fbde7a4727cf9c57ccd97ba1c33074c7d967d",
+          "head_object": "100644 blob cfd7f915188f909b8548375d3509746670d6a157"
+        },
+        {
+          "path": "tools/build.py",
+          "base_object": "100644 blob bf7a2dc664464b2566b0c45d8bc2bf36c604fd7a",
+          "head_object": "100644 blob 55431f7e9b9e954af825f068f0a981c2b1ec9f8e"
+        },
+        {
+          "path": "tools/build_users.py",
+          "base_object": "100644 blob 750da175737a9fa051b44f21f11a4f9675fed95b",
+          "head_object": "100644 blob f6c71229e679776faf08baa416d7f18d6c535b43"
+        },
+        {
+          "path": "tools/capture_m6b.py",
+          "base_object": "100644 blob c7b4c0931ca8cae2119779b5b2f5f73c5f4d1e76",
+          "head_object": "100644 blob 5399b38bcb37972fc9ed9ecafb99ab7802d8cba2"
+        },
+        {
+          "path": "tools/m6b_disk.py",
+          "base_object": "100644 blob 535ac6c6e2276ebbaf94acf97f73e69614742f33",
+          "head_object": "100644 blob 2ca2025efae934efe665262e453d1f204f17c51f"
+        },
+        {
+          "path": "tools/run_m6b.py",
+          "base_object": "100644 blob 363a2d2c2b4cd6afedebbe24ffdc0a34dc5cb210",
+          "head_object": "100644 blob 290acee6a88763cc4fb94980c6166e2b57b8b30e"
+        },
+        {
+          "path": "tools/test_m6b.py",
+          "base_object": "100644 blob 53c9a125cb35013742c41380259850d6568e11d3",
+          "head_object": "100644 blob c50a0ea7a6273a5dced6089c0bf664e7c73cbf4e"
+        },
+        {
+          "path": "userspace/m6b_probe.rs",
+          "base_object": "100644 blob 7eae56089df2ffb294a91f827525e9d9a0924b6d",
+          "head_object": "100644 blob 0d5efe63545b7fd6a970b11b65c83f4efd8426fa"
+        }
+      ],
+      "deleted": [],
+      "added_count": 65
+    },
+    {
+      "base": "pr14",
+      "head": "current",
+      "base_files": 1065,
+      "head_files": 1657,
+      "unchanged": 1034,
+      "changed": [
+        {
+          "path": ".gitattributes",
+          "base_object": "100644 blob 8b0dec0cf294f041b705889c893f31483c28d85e",
+          "head_object": "100644 blob 5650edd9829723331f8f83a4194ae4897a31d188"
+        },
+        {
+          "path": "README.md",
+          "base_object": "100644 blob 558a9bd2b2099c001249620c7e22a13fa2fec666",
+          "head_object": "100644 blob a8dfe51bfe2fbc16930d8cf20eb4d5cd85b50c0b"
+        },
+        {
+          "path": "crates/ui-core/src/lib.rs",
+          "base_object": "100644 blob ebe142eb00a61f41874939b04e343e8fb14a5f39",
+          "head_object": "100644 blob bcef4667fc66e1c7f30a412e6ce55d20ea254684"
+        },
+        {
+          "path": "docs/DECISIONS.md",
+          "base_object": "100644 blob 424571412fd38509673a1de1f3abfe65c60df976",
+          "head_object": "100644 blob 961e0c49e350b77b6f7d7f576268eba0bedd8197"
+        },
+        {
+          "path": "docs/PROJECT-STATE.md",
+          "base_object": "100644 blob 33cf79d4bcae9a5a7ff67d7ff56d3c3aa3bc228a",
+          "head_object": "100644 blob 2535ce098ca6107ae06b19000a66f7d53f85945b"
+        },
+        {
+          "path": "docs/WORK-QUEUE.md",
+          "base_object": "100644 blob 889e1b180136d5cf11566c5efbe4f10eda7533f9",
+          "head_object": "100644 blob d3dae6c01ee509e62a76a69a55b7e2c13ad77034"
+        },
+        {
+          "path": "docs/progress.json",
+          "base_object": "100644 blob a17f9f47a356115dca8c3980e879f8edcdbaec66",
+          "head_object": "100644 blob 1a4b3452743597b28ff8298f65c5a617a5910cfd"
+        },
+        {
+          "path": "docs/verification/m6b-errors-review/README.md",
+          "base_object": "100644 blob 93392c1dec952975142e125d480642706f7de892",
+          "head_object": "100644 blob a476825d18a1cfaf824373b32e096493f75070fa"
+        },
+        {
+          "path": "kernel/Cargo.toml",
+          "base_object": "100644 blob 5545b8eb2f66261a81f3bf2e0313f10ccf286da0",
+          "head_object": "100644 blob e31ccad22266d7316e66efbc5958874ea9cb3513"
+        },
+        {
+          "path": "kernel/build.rs",
+          "base_object": "100644 blob a22535dc2340766187a2bfce75be407c64c8f492",
+          "head_object": "100644 blob 745673968ba8277737188e27a57d9da42dc6cac8"
+        },
+        {
+          "path": "kernel/src/graphics.rs",
+          "base_object": "100644 blob 2542dec0f000c95d025563325d664f3735342e00",
+          "head_object": "100644 blob 348c7e0de92562448fe6004bf8f3d6bb14cca089"
+        },
+        {
+          "path": "kernel/src/m2/m3.rs",
+          "base_object": "100644 blob 9391b602ac9ae670d445d223842bd9f131624b89",
+          "head_object": "100644 blob 2e81ae66a880cd92b72562a11fd529805f05376c"
+        },
+        {
+          "path": "services/catalog/src/lib.rs",
+          "base_object": "100644 blob c1c0b39f5d1fbe15ca098371751d64ce5e28a6ed",
+          "head_object": "100644 blob 9638d5adc6a20c22097cfaff7012c8e1530e69f5"
+        },
+        {
+          "path": "tests/test_common.py",
+          "base_object": "100644 blob 189e0c256731e445bf877ab486f7ba761aed02f7",
+          "head_object": "100644 blob bfa31c0d27f2ac7e46b0fb53595914a0d1ad9ff7"
+        },
+        {
+          "path": "tests/test_graphics_harness.py",
+          "base_object": "100644 blob b07069a94d7c25897af061be0db36b354a3b19b9",
+          "head_object": "100644 blob 80bd1da0ef552cc5cb1245fcc8f273e412dd3343"
+        },
+        {
+          "path": "tests/test_m6b_disk.py",
+          "base_object": "100644 blob ac92457644262c34d942ce33c91e05fc4383a1e8",
+          "head_object": "100644 blob 767621d7fc265802f86a45af3b374db040a2e6dc"
+        },
+        {
+          "path": "tests/test_preflight.py",
+          "base_object": "100644 blob 1f761de70a2331abd9825d62bfc0debb7015fa9c",
+          "head_object": "100644 blob bbb51388a1e25e7fb70db67b37d2c7dd486acc74"
+        },
+        {
+          "path": "tools/build.py",
+          "base_object": "100644 blob 55431f7e9b9e954af825f068f0a981c2b1ec9f8e",
+          "head_object": "100644 blob 4799094f575db7f418e73ce6133225434c54785c"
+        },
+        {
+          "path": "tools/build_users.py",
+          "base_object": "100644 blob f6c71229e679776faf08baa416d7f18d6c535b43",
+          "head_object": "100644 blob 8d3b92616cb30861db6a30fe94011d33ad8d062b"
+        },
+        {
+          "path": "tools/common.py",
+          "base_object": "100644 blob 265b1965ecb3f05b52c9d235979a89f4307053f3",
+          "head_object": "100644 blob 2c4314fa342e17359a6ba075b4febf9d938abf76"
+        },
+        {
+          "path": "tools/m6b_disk.py",
+          "base_object": "100644 blob 2ca2025efae934efe665262e453d1f204f17c51f",
+          "head_object": "100644 blob 1c06ca33ade99f3ede523d903927e1035ad929ba"
+        },
+        {
+          "path": "tools/preflight.py",
+          "base_object": "100644 blob fe5579564b1af38cc30460c355fbf560a8751a0d",
+          "head_object": "100644 blob 00714ebcd24be6e87d4eabed441be5c0c86e04b1"
+        },
+        {
+          "path": "tools/run.py",
+          "base_object": "100644 blob d4f1a6629cf7ff95c3e363072afb51554d9b4445",
+          "head_object": "100644 blob a9fa0dba817c26d71380777933dd9c7fcbb1005a"
+        },
+        {
+          "path": "tools/run_graphics.py",
+          "base_object": "100644 blob d9056d9644f6b441e733f9478a4809273dd56c6b",
+          "head_object": "100644 blob 651d0819b90e25d812b70a546b787cad95915f49"
+        },
+        {
+          "path": "tools/run_m6.py",
+          "base_object": "100644 blob 1f0e92caca3215ec047909979a79c366d7eaf3aa",
+          "head_object": "100644 blob 2a3191bc4885918398b8cdf3b8900108f0fd4dca"
+        },
+        {
+          "path": "tools/run_m6b.py",
+          "base_object": "100644 blob 290acee6a88763cc4fb94980c6166e2b57b8b30e",
+          "head_object": "100644 blob 84872c708714652c9d870bae02e1c1783e5254cc"
+        },
+        {
+          "path": "tools/run_m6c.py",
+          "base_object": "100644 blob 742b03c450c45fa6d20cb0b36c831c01de7122f9",
+          "head_object": "100644 blob 9767dec85b0b951ce730e901c5095bda7d615b76"
+        },
+        {
+          "path": "tools/test_m6b.py",
+          "base_object": "100644 blob c50a0ea7a6273a5dced6089c0bf664e7c73cbf4e",
+          "head_object": "100644 blob 4b19d3ca30829fb4b75ccd784b6d40ce7c06e490"
+        },
+        {
+          "path": "tools/test_m6c.py",
+          "base_object": "100644 blob c731c8d9cdf7da6b0b0b4ba7df3e887b94496c5f",
+          "head_object": "100644 blob 32531ccc2d73c4ec73edecd8818ddea4618a6a03"
+        },
+        {
+          "path": "tools/test_milestones.py",
+          "base_object": "100644 blob 39a38735db6120a217f1c8af9c0f04d72b0fec32",
+          "head_object": "100644 blob a20c7fe506c5e17d6276885838ece219f096948d"
+        },
+        {
+          "path": "userspace/m6c_probe.rs",
+          "base_object": "100644 blob eac17d3d33021119f769e6d599c27bd41a331c15",
+          "head_object": "100644 blob f12d8ff218872790cc2bbaa778693113a8337dfb"
+        }
+      ],
+      "deleted": [],
+      "added_count": 592
+    },
+    {
+      "base": "main",
+      "head": "current",
+      "base_files": 1000,
+      "head_files": 1657,
+      "unchanged": 957,
+      "changed": [
+        {
+          "path": ".gitattributes",
+          "base_object": "100644 blob 4ba8f7b5f0d176486713720fcffa03f149a5602c",
+          "head_object": "100644 blob 5650edd9829723331f8f83a4194ae4897a31d188"
+        },
+        {
+          "path": "Cargo.lock",
+          "base_object": "100644 blob 21c2c9509a6b5db19848f84472b94a17b147bfef",
+          "head_object": "100644 blob de5af5dc63ae4f9901cc1ef536c32ac814724578"
+        },
+        {
+          "path": "Cargo.toml",
+          "base_object": "100644 blob ce141c3f99422b716efa226a6a76807543258063",
+          "head_object": "100644 blob 51e1bc6d3ca5c939007accb32a365aa182a86730"
+        },
+        {
+          "path": "README.md",
+          "base_object": "100644 blob 2a20219891fd49e05bd3b08da9a83f911df4ae1e",
+          "head_object": "100644 blob a8dfe51bfe2fbc16930d8cf20eb4d5cd85b50c0b"
+        },
+        {
+          "path": "boot/loader/Cargo.toml",
+          "base_object": "100644 blob bcb249a8aeb8f2e6293abede96e5112559cdfeb1",
+          "head_object": "100644 blob 2f43e03c3c82a4ccdf8c114ae055b0512552f3cc"
+        },
+        {
+          "path": "boot/loader/src/main.rs",
+          "base_object": "100644 blob 0b6680c835e97608846d1fc45b295a690dac9259",
+          "head_object": "100644 blob bb158d992573dbee8da574304045e8924a9ae9b0"
+        },
+        {
+          "path": "crates/boot-protocol/src/lib.rs",
+          "base_object": "100644 blob 7a3dc2d2b19bae9b0c739d54e9df71f0bd49c30f",
+          "head_object": "100644 blob 3728309fd1287002c07944d33b54a1acf3f896de"
+        },
+        {
+          "path": "docs/DECISIONS.md",
+          "base_object": "100644 blob 1cf33e437007ae76424ecafe78c6143f237b19fd",
+          "head_object": "100644 blob 961e0c49e350b77b6f7d7f576268eba0bedd8197"
+        },
+        {
+          "path": "docs/PROGRESS.md",
+          "base_object": "100644 blob 918dc97a2168330a195defa495fb3dc536d44abf",
+          "head_object": "100644 blob e57de30d5f0f9c8331f6d2a35e4950be7cd79ea5"
+        },
+        {
+          "path": "docs/PROJECT-STATE.md",
+          "base_object": "100644 blob 9d794c6cd0a0afdfa21a223c1a239a8ff3aeca63",
+          "head_object": "100644 blob 2535ce098ca6107ae06b19000a66f7d53f85945b"
+        },
+        {
+          "path": "docs/WORK-QUEUE.md",
+          "base_object": "100644 blob eda6fbde705c66282914c51d3ecf6b904c04d19c",
+          "head_object": "100644 blob d3dae6c01ee509e62a76a69a55b7e2c13ad77034"
+        },
+        {
+          "path": "docs/implementation/M6B-OBJECT-STORAGE.md",
+          "base_object": "100644 blob 6b3d83181f5fc9304ae3c9ef079f499673621630",
+          "head_object": "100644 blob afda76937e73ee9c6bf7483fc40e88197322958f"
+        },
+        {
+          "path": "docs/progress.json",
+          "base_object": "100644 blob c91617d4613070c6d0066c04d98a32357df03c77",
+          "head_object": "100644 blob 1a4b3452743597b28ff8298f65c5a617a5910cfd"
+        },
+        {
+          "path": "kernel/Cargo.toml",
+          "base_object": "100644 blob 5e6a2c783fc28a97a2d04ff5ad7a38f58d180955",
+          "head_object": "100644 blob e31ccad22266d7316e66efbc5958874ea9cb3513"
+        },
+        {
+          "path": "kernel/build.rs",
+          "base_object": "100644 blob a22535dc2340766187a2bfce75be407c64c8f492",
+          "head_object": "100644 blob 745673968ba8277737188e27a57d9da42dc6cac8"
+        },
+        {
+          "path": "kernel/src/m2.rs",
+          "base_object": "100644 blob 5a2eb41e6381f553b62b5644b6da2055bb5290e1",
+          "head_object": "100644 blob c8601b5bce0cc4996d81199ac07c9cbb8912e670"
+        },
+        {
+          "path": "kernel/src/m2/m3.rs",
+          "base_object": "100644 blob 9391b602ac9ae670d445d223842bd9f131624b89",
+          "head_object": "100644 blob 2e81ae66a880cd92b72562a11fd529805f05376c"
+        },
+        {
+          "path": "kernel/src/m2/m3/m6b.rs",
+          "base_object": "100644 blob ce8afeee4cc89edd4c89c8a692447804ca666fec",
+          "head_object": "100644 blob be637347e350f3483b29ee3eb0db8f7754d71163"
+        },
+        {
+          "path": "kernel/src/m2/paging.rs",
+          "base_object": "100644 blob 9724654e18192e08bd7209f07adda514c2915c60",
+          "head_object": "100644 blob 844c1b5f4513bfa13c08eca2cceaaa95ba1a2b1b"
+        },
+        {
+          "path": "kernel/src/main.rs",
+          "base_object": "100644 blob c851198f6d2e1aa2c956c9280b4ed50f1de6db0b",
+          "head_object": "100644 blob e9dfcd885ee9f5ed0320702231c01e4a543d1192"
+        },
+        {
+          "path": "services/catalog/src/lib.rs",
+          "base_object": "100644 blob c1c0b39f5d1fbe15ca098371751d64ce5e28a6ed",
+          "head_object": "100644 blob 9638d5adc6a20c22097cfaff7012c8e1530e69f5"
+        },
+        {
+          "path": "services/objects/README.md",
+          "base_object": "100644 blob 6d64bc0239400d8710608cca2157caf4e33f8932",
+          "head_object": "100644 blob ec8f0804e406694eb173e95d33e9e0677fc70571"
+        },
+        {
+          "path": "services/objects/src/user_service.rs",
+          "base_object": "100644 blob e24310de56ce47f6777dc9368b1aeca41261073f",
+          "head_object": "100644 blob 7091d6a9c148b70e5fbf85b80ba2786f5a8eeaf7"
+        },
+        {
+          "path": "tests/test_common.py",
+          "base_object": "100644 blob 189e0c256731e445bf877ab486f7ba761aed02f7",
+          "head_object": "100644 blob bfa31c0d27f2ac7e46b0fb53595914a0d1ad9ff7"
+        },
+        {
+          "path": "tests/test_m6b_capture.py",
+          "base_object": "100644 blob 9925aaceec51486d86569390922085a98751d3a4",
+          "head_object": "100644 blob 5b26ccdb67f90519fd2e934a63eb0edff96c8b87"
+        },
+        {
+          "path": "tests/test_m6b_disk.py",
+          "base_object": "100644 blob 2fd1392bcb4c9ef5dc0f216f6d0c7505b29d1b09",
+          "head_object": "100644 blob 767621d7fc265802f86a45af3b374db040a2e6dc"
+        },
+        {
+          "path": "tests/test_m6b_harness.py",
+          "base_object": "100644 blob 480fbde7a4727cf9c57ccd97ba1c33074c7d967d",
+          "head_object": "100644 blob cfd7f915188f909b8548375d3509746670d6a157"
+        },
+        {
+          "path": "tests/test_preflight.py",
+          "base_object": "100644 blob 1f761de70a2331abd9825d62bfc0debb7015fa9c",
+          "head_object": "100644 blob bbb51388a1e25e7fb70db67b37d2c7dd486acc74"
+        },
+        {
+          "path": "tools/build.py",
+          "base_object": "100644 blob bf7a2dc664464b2566b0c45d8bc2bf36c604fd7a",
+          "head_object": "100644 blob 4799094f575db7f418e73ce6133225434c54785c"
+        },
+        {
+          "path": "tools/build_users.py",
+          "base_object": "100644 blob 750da175737a9fa051b44f21f11a4f9675fed95b",
+          "head_object": "100644 blob 8d3b92616cb30861db6a30fe94011d33ad8d062b"
+        },
+        {
+          "path": "tools/capture_m6b.py",
+          "base_object": "100644 blob c7b4c0931ca8cae2119779b5b2f5f73c5f4d1e76",
+          "head_object": "100644 blob 5399b38bcb37972fc9ed9ecafb99ab7802d8cba2"
+        },
+        {
+          "path": "tools/common.py",
+          "base_object": "100644 blob 265b1965ecb3f05b52c9d235979a89f4307053f3",
+          "head_object": "100644 blob 2c4314fa342e17359a6ba075b4febf9d938abf76"
+        },
+        {
+          "path": "tools/m6b_disk.py",
+          "base_object": "100644 blob 535ac6c6e2276ebbaf94acf97f73e69614742f33",
+          "head_object": "100644 blob 1c06ca33ade99f3ede523d903927e1035ad929ba"
+        },
+        {
+          "path": "tools/preflight.py",
+          "base_object": "100644 blob fe5579564b1af38cc30460c355fbf560a8751a0d",
+          "head_object": "100644 blob 00714ebcd24be6e87d4eabed441be5c0c86e04b1"
+        },
+        {
+          "path": "tools/run.py",
+          "base_object": "100644 blob d4f1a6629cf7ff95c3e363072afb51554d9b4445",
+          "head_object": "100644 blob a9fa0dba817c26d71380777933dd9c7fcbb1005a"
+        },
+        {
+          "path": "tools/run_m6.py",
+          "base_object": "100644 blob 1f0e92caca3215ec047909979a79c366d7eaf3aa",
+          "head_object": "100644 blob 2a3191bc4885918398b8cdf3b8900108f0fd4dca"
+        },
+        {
+          "path": "tools/run_m6b.py",
+          "base_object": "100644 blob 363a2d2c2b4cd6afedebbe24ffdc0a34dc5cb210",
+          "head_object": "100644 blob 84872c708714652c9d870bae02e1c1783e5254cc"
+        },
+        {
+          "path": "tools/run_m6c.py",
+          "base_object": "100644 blob 742b03c450c45fa6d20cb0b36c831c01de7122f9",
+          "head_object": "100644 blob 9767dec85b0b951ce730e901c5095bda7d615b76"
+        },
+        {
+          "path": "tools/test_m6b.py",
+          "base_object": "100644 blob 53c9a125cb35013742c41380259850d6568e11d3",
+          "head_object": "100644 blob 4b19d3ca30829fb4b75ccd784b6d40ce7c06e490"
+        },
+        {
+          "path": "tools/test_m6c.py",
+          "base_object": "100644 blob c731c8d9cdf7da6b0b0b4ba7df3e887b94496c5f",
+          "head_object": "100644 blob 32531ccc2d73c4ec73edecd8818ddea4618a6a03"
+        },
+        {
+          "path": "tools/test_milestones.py",
+          "base_object": "100644 blob 39a38735db6120a217f1c8af9c0f04d72b0fec32",
+          "head_object": "100644 blob a20c7fe506c5e17d6276885838ece219f096948d"
+        },
+        {
+          "path": "userspace/m6b_probe.rs",
+          "base_object": "100644 blob 7eae56089df2ffb294a91f827525e9d9a0924b6d",
+          "head_object": "100644 blob 0d5efe63545b7fd6a970b11b65c83f4efd8426fa"
+        },
+        {
+          "path": "userspace/m6c_probe.rs",
+          "base_object": "100644 blob eac17d3d33021119f769e6d599c27bd41a331c15",
+          "head_object": "100644 blob f12d8ff218872790cc2bbaa778693113a8337dfb"
+        }
+      ],
+      "deleted": [],
+      "added_count": 657
+    }
+  ],
+  "preserved_existing_contracts": [
+    "services/catalog/src/wire.rs",
+    "services/catalog/src/journal.rs",
+    "services/catalog/src/user_service.rs",
+    "kernel/src/m2/m3/m6c.rs",
+    "tools/capture_m6c.py",
+    "tests/test_m6c_capture.py",
+    "drivers/virtio-blk/src/lib.rs"
+  ],
+  "b04_unchanged_tested_sources": {
+    "tools/m6b_disk.py": "70ef0ac2dc158e507639b9a88c34fcf9c7efcac945c6bf061b5422ef8ca1d7e9",
+    "tests/test_m6b_disk.py": "748ef71dc34c7616dcdc0dd936cad4f1c513bc7472b59f5ba970b68d0f42e6e3",
+    "drivers/virtio-blk/src/lib.rs": "43e72d81986902b2abc7393ca7338b427fed616e1f7f2d6a9666220ddd32ce55",
+    "kernel/src/m2/m3/m6b.rs": "2eebb99a125ff7035cf3735d5d21b62f336cfcab1a40fc912238fec7019b291f",
+    "userspace/m6b_probe.rs": "177955b0cdc3da40d16a5b24df1ca281d41f3f5c339656cdf58baf5601463eac",
+    "services/objects/src/user_service.rs": "b7a8d00126c6d2d77e8ebc7bc11fefaab2c71ead91e7324163482afdcb4d8100"
+  },
+  "m6b_historical_native_timeout_observations": [
+    {
+      "case": "write-timeout",
+      "source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+      "journal_sequence": 0,
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-write-timeout-e6ce0c429c",
+      "raw_qemu_exit": 33,
+      "stdout_sha256": "6b0d2fdaaa402538e56e0e02edb7563c954a03b4348c0aef2fc6af454b88549b"
+    },
+    {
+      "case": "reset-timeout",
+      "source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+      "journal_sequence": 0,
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-reset-timeout-ac23b5dd37",
+      "raw_qemu_exit": 33,
+      "stdout_sha256": "5be83f36cbe3771cbfe16f83f4329a9cd90a3abd49b8a4e437e3bf13cff10efe"
+    },
+    {
+      "case": "write-poll-limit",
+      "source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+      "journal_sequence": 0,
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-write-poll-limit-e3c31c41c9",
+      "raw_qemu_exit": 33,
+      "stdout_sha256": "831c17741c103f0676b43c030f162e72291851ba552881c4480648347b2a1a1e"
+    }
+  ],
+  "m6b_native_sequence_one_observed": false,
+  "g0_current_run_directory": "/tmp/nieuw-os-followup-g0/graphics-g0-15e24b60b7",
+  "evidence_sha256": {
+    "docs/verification/parallel-b04/green.json": "48749e866352b3ab16331eff0e09b276e04aa1c6c7eafe131e43ad1527cf077e",
+    "docs/verification/parallel-b04/green-oracle.txt": "7ad1ddc36f8ba92c23961d4d1c5df3a10db488e0291ade035a3f24a745d1e084",
+    "docs/verification/parallel-final-m6b/capture.json": "944b75549e29df55d3097196643dccfa4716dac1009db8abaa96466d5af3eeaa",
+    "docs/verification/parallel-final-m6b/suite.json": "e913cb38b5ca704ae96bf6354c21c6aa7ac9a160e2cbf670b89a1dc83ea51519",
+    "docs/verification/parallel-final-m6b/guest-runs.json": "f82dbbe11e528251fcc28956fb8176379c9d2b93c6ac6410d1d03dc94c4020aa",
+    "docs/verification/parallel-b09/after.json": "b143455ca4b8c83dc141d365f0ed658e13413e02a9836283025296f5feb95d72",
+    "docs/verification/parallel-b09/after.stderr.txt": "647eac50866e023afcc8d14deb7dd8f190ebef6fb99dc6f17b89c22e7edeffd0",
+    "docs/verification/parallel-followup-g0/execution.json": "89523c7222dc9e418d5bdf9309a8f259f33b8877118859663a955838d4b55c8c",
+    "docs/verification/parallel-followup-g0/result.json": "69f85ff9f4d13c46e9c4f3ec528af08920ee926a8edc788d69c30a84f137c21d",
+    "docs/verification/parallel-followup-g0/final-observation.json": "47b4f5222a65384ffdf792c974cb8a8be9e406e70b1e20a10a87a5c6e6ee8375",
+    "docs/verification/parallel-followup-g0/capture.json": "f64e3f1073fd475a8592c582e23776962f4f50f2f637e60e024234ede415e6b8"
+  },
+  "newly_executed_vm_runs": 0,
+  "newly_executed_test_suites": 0,
+  "remote_mutations": 0
+}

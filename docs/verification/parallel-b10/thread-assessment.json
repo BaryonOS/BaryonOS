@@ -1,0 +1,63 @@
+{
+  "source_commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+  "threads": [
+    {
+      "thread_id": "PRRT_kwDOVZC91s6xLzTM",
+      "comment_id": 4402345992,
+      "path": "docs/verification/graphics-g0-first/rom-lookup-fix.json",
+      "github_resolved_at_snapshot": false,
+      "assessment": "Addressed in integration source dbd35b04; PR14 itself still awaits stacked integration",
+      "additional_source_change_required": false
+    },
+    {
+      "thread_id": "PRRT_kwDOVZC91s6xLzTb",
+      "comment_id": 4402346012,
+      "path": "docs/verification/m6b-errors-review/README.md",
+      "github_resolved_at_snapshot": false,
+      "assessment": "Addressed in integration source dbd35b04; PR14 itself still awaits stacked integration",
+      "additional_source_change_required": false
+    },
+    {
+      "thread_id": "PRRT_kwDOVZC91s6xLzTm",
+      "comment_id": 4402346033,
+      "path": "kernel/src/graphics.rs",
+      "github_resolved_at_snapshot": false,
+      "assessment": "Addressed in integration source dbd35b04; PR14 itself still awaits stacked integration",
+      "additional_source_change_required": false
+    },
+    {
+      "thread_id": "PRRT_kwDOVZC91s6xLzT8",
+      "comment_id": 4402346059,
+      "path": "tests/test_graphics_harness.py",
+      "github_resolved_at_snapshot": false,
+      "assessment": "Addressed in integration source dbd35b04; PR14 itself still awaits stacked integration",
+      "additional_source_change_required": false
+    },
+    {
+      "thread_id": "PRRT_kwDOVZC91s6xLzVA",
+      "comment_id": 4402346155,
+      "path": "tools/m6b_disk.py",
+      "github_resolved_at_snapshot": false,
+      "assessment": "Addressed in integration source dbd35b04; PR14 itself still awaits stacked integration",
+      "additional_source_change_required": false
+    },
+    {
+      "thread_id": "PRRT_kwDOVZC91s6xLzVg",
+      "comment_id": 4402346194,
+      "path": "tools/run_graphics.py",
+      "github_resolved_at_snapshot": false,
+      "assessment": "Addressed in integration source dbd35b04; PR14 itself still awaits stacked integration",
+      "additional_source_change_required": false
+    },
+    {
+      "thread_id": "PRRT_kwDOVZC91s6xLzV5",
+      "comment_id": 4402346226,
+      "path": "tools/run_graphics.py",
+      "github_resolved_at_snapshot": false,
+      "assessment": "Addressed in integration source dbd35b04; PR14 itself still awaits stacked integration",
+      "additional_source_change_required": false
+    }
+  ],
+  "scope": "Per-thread rationale and concrete evidence references in README.md",
+  "blocked": false
+}

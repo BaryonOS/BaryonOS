@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`dbd35b04`](https://github.com/simonvanieperen/nieuw-os/commit/dbd35b04d742b18d66b40fdd65d8a9b900656cac) ·
+**Bron:** [`ed98fd63`](https://github.com/simonvanieperen/nieuw-os/commit/ed98fd6352156fd2cce903a20e6787877062093d) ·
 **Ontwikkelbranch:** `codex/parallel-native-foundation-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Actuele gecombineerde bron: zes gerichte native VMs, koude opslag en strikte grafische capture.
-B08 G0, G10 SDK normal/cold, I11 quantum en ROOT M6b normal/cold slagen op exact dbd35b04. De eerdere volledige 80 native runs behouden hun binding aan 3e41bbf9; ongewijzigde native broninputs zijn expliciet vergeleken. G07/I08 libraries en B09 capture zijn gericht beoordeeld. G11 bouwt daarna de echte documentsessie in de bestaande userspace-proef; nog geen native GUI of algemene app/jobdienst. Vaste score14%, criteria en gewichten ongewijzigd.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Native vervolgacceptatie gepubliceerd; gerichte PR14-review en volledig inhoudsbehoud.
+Zes echte actuele VMs en onafhankelijke controle van216 bestanden zijn gepubliceerd; de eerdere80 geaccepteerde runs behouden hun oorspronkelijke binding. Zeven PR14-vragen zijn opgelost in de integratiebron en volledige bomen bevestigen nul verwijderde paden. G11/I13 bouwen de echte DocumentSession-proef; B11 een begrensde native netwerkparser zonder netwerk-I/O. Geen nieuw volledig criterium:14% naar14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

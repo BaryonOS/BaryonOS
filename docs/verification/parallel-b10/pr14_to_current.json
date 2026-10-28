@@ -1,0 +1,2422 @@
+{
+  "repository_full_name": "simonvanieperen/nieuw-os",
+  "base": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+  "head": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+  "status": "ahead",
+  "ahead_by": 5,
+  "behind_by": 0,
+  "total_commits": 5,
+  "too_large": null,
+  "base_commit": {
+    "sha": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+    "url": "https://api.github.com/repos/simonvanieperen/nieuw-os/commits/1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+    "html_url": "https://github.com/simonvanieperen/nieuw-os/commit/1acf6e8cde2a63849dc49c948ad97ba7f2c39cad"
+  },
+  "merge_base_commit": {
+    "sha": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+    "url": "https://api.github.com/repos/simonvanieperen/nieuw-os/commits/1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+    "html_url": "https://github.com/simonvanieperen/nieuw-os/commit/1acf6e8cde2a63849dc49c948ad97ba7f2c39cad"
+  },
+  "files": [
+    {
+      "filename": ".gitattributes",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 0,
+      "changes": 3,
+      "previous_filename": null
+    },
+    {
+      "filename": "README.md",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 4,
+      "changes": 8,
+      "previous_filename": null
+    },
+    {
+      "filename": "crates/ui-core/src/lib.rs",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "changes": 3,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/DECISIONS.md",
+      "status": "modified",
+      "additions": 69,
+      "deletions": 0,
+      "changes": 69,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/PROJECT-STATE.md",
+      "status": "modified",
+      "additions": 80,
+      "deletions": 1,
+      "changes": 81,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/WORK-QUEUE.md",
+      "status": "modified",
+      "additions": 26,
+      "deletions": 0,
+      "changes": 26,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/progress.json",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 4,
+      "changes": 8,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/PARALLEL-NATIVE-ACCEPTANCE.md",
+      "status": "added",
+      "additions": 171,
+      "deletions": 0,
+      "changes": 171,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/README.md",
+      "status": "modified",
+      "additions": 5,
+      "deletions": 2,
+      "changes": 7,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/README.md",
+      "status": "added",
+      "additions": 76,
+      "deletions": 0,
+      "changes": 76,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/cargo-attempt.json",
+      "status": "added",
+      "additions": 16,
+      "deletions": 0,
+      "changes": 16,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/cargo-attempt.stderr.txt",
+      "status": "added",
+      "additions": 4,
+      "deletions": 0,
+      "changes": 4,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/cargo-attempt.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/cargo-clippy.stderr.txt",
+      "status": "added",
+      "additions": 2,
+      "deletions": 0,
+      "changes": 2,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/cargo-clippy.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/cargo-native-build.stderr.txt",
+      "status": "added",
+      "additions": 2,
+      "deletions": 0,
+      "changes": 2,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/cargo-native-build.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/cargo-report.json",
+      "status": "added",
+      "additions": 103,
+      "deletions": 0,
+      "changes": 103,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/cargo-tests.stderr.txt",
+      "status": "added",
+      "additions": 7,
+      "deletions": 0,
+      "changes": 7,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/cargo-tests.stdout.txt",
+      "status": "added",
+      "additions": 70,
+      "deletions": 0,
+      "changes": 70,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/client-build.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/client-build.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/client-tests.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/client-tests.stdout.txt",
+      "status": "added",
+      "additions": 19,
+      "deletions": 0,
+      "changes": 19,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/clippy-library.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/clippy-library.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/clippy-tests.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/clippy-tests.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/core-build.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/core-build.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/core-library.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/core-library.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/core-tests.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/core-tests.stdout.txt",
+      "status": "added",
+      "additions": 20,
+      "deletions": 0,
+      "changes": 20,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/direct-host-report.json",
+      "status": "added",
+      "additions": 189,
+      "deletions": 0,
+      "changes": 189,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/git-diff-check.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/git-diff-check.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/native-core-build.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/native-core-build.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/rustfmt.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/rustfmt.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/source-diff-check.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/source-diff-check.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/static-report.json",
+      "status": "added",
+      "additions": 132,
+      "deletions": 0,
+      "changes": 132,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/unit-build.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/unit-build.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/unit-tests.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/unit-tests.stdout.txt",
+      "status": "added",
+      "additions": 6,
+      "deletions": 0,
+      "changes": 6,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/wire-build.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/wire-build.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/wire-tests.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b01/wire-tests.stdout.txt",
+      "status": "added",
+      "additions": 20,
+      "deletions": 0,
+      "changes": 20,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/README.md",
+      "status": "added",
+      "additions": 111,
+      "deletions": 0,
+      "changes": 111,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/build-boot-protocol.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/build-boot-protocol.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/build-graphics-helpers.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/build-graphics-helpers.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/build-kernel-core.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/build-kernel-core.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/build-ui-core.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/build-ui-core.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/list-graphics-helpers.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/list-graphics-helpers.stdout.txt",
+      "status": "added",
+      "additions": 9,
+      "deletions": 0,
+      "changes": 9,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/qmp-boundaries.stderr.txt",
+      "status": "added",
+      "additions": 14,
+      "deletions": 0,
+      "changes": 14,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/qmp-boundaries.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/result.json",
+      "status": "added",
+      "additions": 257,
+      "deletions": 0,
+      "changes": 257,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/run-graphics-helpers.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/run-graphics-helpers.stdout.txt",
+      "status": "added",
+      "additions": 12,
+      "deletions": 0,
+      "changes": 12,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/rustc-version.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/after/rustc-version.stdout.txt",
+      "status": "added",
+      "additions": 7,
+      "deletions": 0,
+      "changes": 7,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/build-boot-protocol.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/build-boot-protocol.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/build-graphics-helpers.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/build-graphics-helpers.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/build-kernel-core.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/build-kernel-core.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/build-ui-core.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/build-ui-core.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/list-graphics-helpers.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/list-graphics-helpers.stdout.txt",
+      "status": "added",
+      "additions": 9,
+      "deletions": 0,
+      "changes": 9,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/qmp-boundaries.stderr.txt",
+      "status": "added",
+      "additions": 129,
+      "deletions": 0,
+      "changes": 129,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/qmp-boundaries.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/result.json",
+      "status": "added",
+      "additions": 257,
+      "deletions": 0,
+      "changes": 257,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/run-graphics-helpers.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/run-graphics-helpers.stdout.txt",
+      "status": "added",
+      "additions": 12,
+      "deletions": 0,
+      "changes": 12,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/rustc-version.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/before/rustc-version.stdout.txt",
+      "status": "added",
+      "additions": 7,
+      "deletions": 0,
+      "changes": 7,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/initial-harness-compile-failure/build-boot-protocol.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/initial-harness-compile-failure/build-boot-protocol.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/initial-harness-compile-failure/build-graphics-helpers.stderr.txt",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/initial-harness-compile-failure/build-graphics-helpers.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/initial-harness-compile-failure/build-kernel-core.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/initial-harness-compile-failure/build-kernel-core.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/initial-harness-compile-failure/build-ui-core.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/initial-harness-compile-failure/build-ui-core.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/initial-harness-compile-failure/result.json",
+      "status": "added",
+      "additions": 173,
+      "deletions": 0,
+      "changes": 173,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/initial-harness-compile-failure/rustc-version.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/initial-harness-compile-failure/rustc-version.stdout.txt",
+      "status": "added",
+      "additions": 7,
+      "deletions": 0,
+      "changes": 7,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b02/review.json",
+      "status": "added",
+      "additions": 71,
+      "deletions": 0,
+      "changes": 71,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b03/README.md",
+      "status": "added",
+      "additions": 52,
+      "deletions": 0,
+      "changes": 52,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b03/diff-check.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b03/diff-check.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b03/report.json",
+      "status": "added",
+      "additions": 65,
+      "deletions": 0,
+      "changes": 65,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b03/standalone-strict.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b03/standalone-strict.stdout.txt",
+      "status": "added",
+      "additions": 206,
+      "deletions": 0,
+      "changes": 206,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b03/tests.stderr.txt",
+      "status": "added",
+      "additions": 19,
+      "deletions": 0,
+      "changes": 19,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b03/tests.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b04/README.md",
+      "status": "added",
+      "additions": 81,
+      "deletions": 0,
+      "changes": 81,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b04/green-oracle.txt",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b04/green.json",
+      "status": "added",
+      "additions": 27,
+      "deletions": 0,
+      "changes": 27,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b04/red-old-oracle.txt",
+      "status": "added",
+      "additions": 48,
+      "deletions": 0,
+      "changes": 48,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b04/red.json",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b05-paths/README.md",
+      "status": "added",
+      "additions": 27,
+      "deletions": 0,
+      "changes": 27,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b05-paths/capture.txt",
+      "status": "added",
+      "additions": 19,
+      "deletions": 0,
+      "changes": 19,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b05-paths/checks.json",
+      "status": "added",
+      "additions": 56,
+      "deletions": 0,
+      "changes": 56,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b05-paths/diff-check.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b05-paths/harness.txt",
+      "status": "added",
+      "additions": 12,
+      "deletions": 0,
+      "changes": 12,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b07/README.md",
+      "status": "added",
+      "additions": 114,
+      "deletions": 0,
+      "changes": 114,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b07/check_standard_png.py",
+      "status": "added",
+      "additions": 24,
+      "deletions": 0,
+      "changes": 24,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b07/cli-help.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b07/cli-help.stdout.txt",
+      "status": "added",
+      "additions": 13,
+      "deletions": 0,
+      "changes": 13,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b07/execution.json",
+      "status": "added",
+      "additions": 57,
+      "deletions": 0,
+      "changes": 57,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b07/host-tests.stderr.txt",
+      "status": "added",
+      "additions": 38,
+      "deletions": 0,
+      "changes": 38,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b07/host-tests.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b07/standard-png.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b07/standard-png.stdout.txt",
+      "status": "added",
+      "additions": 6,
+      "deletions": 0,
+      "changes": 6,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b09/README.md",
+      "status": "added",
+      "additions": 53,
+      "deletions": 0,
+      "changes": 53,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b09/after.json",
+      "status": "added",
+      "additions": 24,
+      "deletions": 0,
+      "changes": 24,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b09/after.stderr.txt",
+      "status": "added",
+      "additions": 39,
+      "deletions": 0,
+      "changes": 39,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b09/after.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b09/before.json",
+      "status": "added",
+      "additions": 20,
+      "deletions": 0,
+      "changes": 20,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b09/before.stderr.txt",
+      "status": "added",
+      "additions": 18,
+      "deletions": 0,
+      "changes": 18,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-b09/before.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-runtime/README.md",
+      "status": "added",
+      "additions": 66,
+      "deletions": 0,
+      "changes": 66,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-runtime/artifact-index.json",
+      "status": "added",
+      "additions": 11,
+      "deletions": 0,
+      "changes": 11,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-runtime/check_m6b.py",
+      "status": "added",
+      "additions": 244,
+      "deletions": 0,
+      "changes": 244,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-runtime/execution.json",
+      "status": "added",
+      "additions": 16,
+      "deletions": 0,
+      "changes": 16,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-runtime/result.json",
+      "status": "added",
+      "additions": 591,
+      "deletions": 0,
+      "changes": 591,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-runtime/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-runtime/stdout.txt",
+      "status": "added",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-storage/README.md",
+      "status": "added",
+      "additions": 89,
+      "deletions": 0,
+      "changes": 89,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-storage/SECOND-CHECK.md",
+      "status": "added",
+      "additions": 79,
+      "deletions": 0,
+      "changes": 79,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-storage/first-check-mismatch.json",
+      "status": "added",
+      "additions": 7,
+      "deletions": 0,
+      "changes": 7,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-storage/first-check.json",
+      "status": "added",
+      "additions": 710,
+      "deletions": 0,
+      "changes": 710,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-storage/forensics.json",
+      "status": "added",
+      "additions": 73,
+      "deletions": 0,
+      "changes": 73,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-storage/g0-serial-observed-mismatch.txt",
+      "status": "added",
+      "additions": 15,
+      "deletions": 0,
+      "changes": 15,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-storage/result.json",
+      "status": "added",
+      "additions": 710,
+      "deletions": 0,
+      "changes": 710,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-storage/second-check.json",
+      "status": "added",
+      "additions": 332,
+      "deletions": 0,
+      "changes": 332,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-storage/verify.py",
+      "status": "added",
+      "additions": 247,
+      "deletions": 0,
+      "changes": 247,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-crosscheck-storage/verify_confirmed_g0.py",
+      "status": "added",
+      "additions": 162,
+      "deletions": 0,
+      "changes": 162,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/README.md",
+      "status": "added",
+      "additions": 36,
+      "deletions": 0,
+      "changes": 36,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/acceptance.json",
+      "status": "added",
+      "additions": 11,
+      "deletions": 0,
+      "changes": 11,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/execute-attempt.py",
+      "status": "added",
+      "additions": 31,
+      "deletions": 0,
+      "changes": 31,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/execute-attempt.stderr.txt",
+      "status": "added",
+      "additions": 5,
+      "deletions": 0,
+      "changes": 5,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/execute-attempt.stdout.txt",
+      "status": "added",
+      "additions": 20,
+      "deletions": 0,
+      "changes": 20,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/pipe/a.png",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/pipe/ab.png",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/pipe/after-backspace.png",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/pipe/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/pipe/image-roundtrip.json",
+      "status": "added",
+      "additions": 45,
+      "deletions": 0,
+      "changes": 45,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/pipe/initial.png",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/pipe/qmp-trace.json",
+      "status": "added",
+      "additions": 172,
+      "deletions": 0,
+      "changes": 172,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/pipe/result.json",
+      "status": "added",
+      "additions": 122,
+      "deletions": 0,
+      "changes": 122,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/pipe/serial.txt",
+      "status": "added",
+      "additions": 17,
+      "deletions": 0,
+      "changes": 17,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/pipe/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/pipe/typed.png",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/unix-environment-failure/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/unix-environment-failure/qmp-trace.json",
+      "status": "added",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/unix-environment-failure/result.json",
+      "status": "added",
+      "additions": 83,
+      "deletions": 0,
+      "changes": 83,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/unix-environment-failure/serial.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0-confirmed/unix-environment-failure/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0/README.md",
+      "status": "added",
+      "additions": 28,
+      "deletions": 0,
+      "changes": 28,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0/acceptance.json",
+      "status": "added",
+      "additions": 28,
+      "deletions": 0,
+      "changes": 28,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0/execute.py",
+      "status": "added",
+      "additions": 33,
+      "deletions": 0,
+      "changes": 33,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0/execute.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0/execute.stdout.txt",
+      "status": "added",
+      "additions": 61,
+      "deletions": 0,
+      "changes": 61,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0/invalidated.json",
+      "status": "added",
+      "additions": 9,
+      "deletions": 0,
+      "changes": 9,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0/result.json",
+      "status": "added",
+      "additions": 122,
+      "deletions": 0,
+      "changes": 122,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0/serial.txt",
+      "status": "added",
+      "additions": 17,
+      "deletions": 0,
+      "changes": 17,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-g0/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/checks.json",
+      "status": "added",
+      "additions": 213,
+      "deletions": 0,
+      "changes": 213,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/common-isolation.stderr.txt",
+      "status": "added",
+      "additions": 7,
+      "deletions": 0,
+      "changes": 7,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/common-isolation.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/generic-harness.stderr.txt",
+      "status": "added",
+      "additions": 12,
+      "deletions": 0,
+      "changes": 12,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/generic-harness.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-harness.stderr.txt",
+      "status": "added",
+      "additions": 16,
+      "deletions": 0,
+      "changes": 16,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-harness.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/build-boot-protocol.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/build-boot-protocol.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/build-graphics-helpers.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/build-graphics-helpers.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/build-kernel-core.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/build-kernel-core.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/build-ui-core.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/build-ui-core.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/list-graphics-helpers.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/list-graphics-helpers.stdout.txt",
+      "status": "added",
+      "additions": 9,
+      "deletions": 0,
+      "changes": 9,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/qmp-boundaries.stderr.txt",
+      "status": "added",
+      "additions": 14,
+      "deletions": 0,
+      "changes": 14,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/qmp-boundaries.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/result.json",
+      "status": "added",
+      "additions": 257,
+      "deletions": 0,
+      "changes": 257,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/run-graphics-helpers.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/run-graphics-helpers.stdout.txt",
+      "status": "added",
+      "additions": 12,
+      "deletions": 0,
+      "changes": 12,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/rustc-version.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helper-detail/rustc-version.stdout.txt",
+      "status": "added",
+      "additions": 7,
+      "deletions": 0,
+      "changes": 7,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helpers.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/graphics-helpers.stdout.txt",
+      "status": "added",
+      "additions": 9,
+      "deletions": 0,
+      "changes": 9,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/preflight-host.stderr.txt",
+      "status": "added",
+      "additions": 19,
+      "deletions": 0,
+      "changes": 19,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/preflight-host.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/qsim-harness.stderr.txt",
+      "status": "added",
+      "additions": 20,
+      "deletions": 0,
+      "changes": 20,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/qsim-harness.stdout.txt",
+      "status": "added",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/scalar-gate.stderr.txt",
+      "status": "added",
+      "additions": 13,
+      "deletions": 0,
+      "changes": 13,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/scalar-gate.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/sdk-clippy.stderr.txt",
+      "status": "added",
+      "additions": 5,
+      "deletions": 0,
+      "changes": 5,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/sdk-clippy.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/sdk-native-example.stderr.txt",
+      "status": "added",
+      "additions": 5,
+      "deletions": 0,
+      "changes": 5,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/sdk-native-example.stdout.txt",
+      "status": "added",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/sdk-native.stderr.txt",
+      "status": "added",
+      "additions": 4,
+      "deletions": 0,
+      "changes": 4,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/sdk-native.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/sdk-tests.stderr.txt",
+      "status": "added",
+      "additions": 11,
+      "deletions": 0,
+      "changes": 11,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-host/sdk-tests.stdout.txt",
+      "status": "added",
+      "additions": 57,
+      "deletions": 0,
+      "changes": 57,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-integration-review/README.md",
+      "status": "added",
+      "additions": 112,
+      "deletions": 0,
+      "changes": 112,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-integration-review/fingerprint-omission.json",
+      "status": "added",
+      "additions": 13,
+      "deletions": 0,
+      "changes": 13,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-integration-review/fingerprint-omission.py",
+      "status": "added",
+      "additions": 42,
+      "deletions": 0,
+      "changes": 42,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-integration-review/fingerprint-omission.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-integration-review/review.json",
+      "status": "added",
+      "additions": 153,
+      "deletions": 0,
+      "changes": 153,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-integration/README.md",
+      "status": "added",
+      "additions": 24,
+      "deletions": 0,
+      "changes": 24,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-integration/artifact-audit.json",
+      "status": "added",
+      "additions": 664,
+      "deletions": 0,
+      "changes": 664,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-integration/audit.py",
+      "status": "added",
+      "additions": 36,
+      "deletions": 0,
+      "changes": 36,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-integration/initial-audit-schema-rejection.json",
+      "status": "added",
+      "additions": 666,
+      "deletions": 0,
+      "changes": 666,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-integration/retained-g0-artifact-rejection.json",
+      "status": "added",
+      "additions": 666,
+      "deletions": 0,
+      "changes": 666,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/README.md",
+      "status": "added",
+      "additions": 73,
+      "deletions": 0,
+      "changes": 73,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/accept.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/accept.stdout.txt",
+      "status": "added",
+      "additions": 585,
+      "deletions": 0,
+      "changes": 585,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/acceptance.json",
+      "status": "added",
+      "additions": 454,
+      "deletions": 0,
+      "changes": 454,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/artifact-index.json",
+      "status": "added",
+      "additions": 90,
+      "deletions": 0,
+      "changes": 90,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/build-and-host-logs.json",
+      "status": "added",
+      "additions": 594,
+      "deletions": 0,
+      "changes": 594,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/i05-run-checks.json",
+      "status": "added",
+      "additions": 45,
+      "deletions": 0,
+      "changes": 45,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/m3-test-results.json",
+      "status": "added",
+      "additions": 208,
+      "deletions": 0,
+      "changes": 208,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/all-processes-exit-idle-timer-and-resources/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/all-processes-exit-idle-timer-and-resources/result.json",
+      "status": "added",
+      "additions": 75,
+      "deletions": 0,
+      "changes": 75,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/all-processes-exit-idle-timer-and-resources/serial.txt",
+      "status": "added",
+      "additions": 22,
+      "deletions": 0,
+      "changes": 22,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/all-processes-exit-idle-timer-and-resources/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/large-bss-image-exceeds-old-64-mapping-limit/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/large-bss-image-exceeds-old-64-mapping-limit/result.json",
+      "status": "added",
+      "additions": 81,
+      "deletions": 0,
+      "changes": 81,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/large-bss-image-exceeds-old-64-mapping-limit/serial.txt",
+      "status": "added",
+      "additions": 34,
+      "deletions": 0,
+      "changes": 34,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/large-bss-image-exceeds-old-64-mapping-limit/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/m1-regression-after-m3/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/m1-regression-after-m3/result.json",
+      "status": "added",
+      "additions": 73,
+      "deletions": 0,
+      "changes": 73,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/m1-regression-after-m3/serial.txt",
+      "status": "added",
+      "additions": 6,
+      "deletions": 0,
+      "changes": 6,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/m1-regression-after-m3/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/private-address-spaces-preemption-fairness-cleanup/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/private-address-spaces-preemption-fairness-cleanup/result.json",
+      "status": "added",
+      "additions": 81,
+      "deletions": 0,
+      "changes": 81,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/private-address-spaces-preemption-fairness-cleanup/serial.txt",
+      "status": "added",
+      "additions": 28,
+      "deletions": 0,
+      "changes": 28,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/private-address-spaces-preemption-fairness-cleanup/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-avx/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-avx/result.json",
+      "status": "added",
+      "additions": 80,
+      "deletions": 0,
+      "changes": 80,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-avx/serial.txt",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-avx/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-b-exit/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-b-exit/result.json",
+      "status": "added",
+      "additions": 79,
+      "deletions": 0,
+      "changes": 79,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-b-exit/serial.txt",
+      "status": "added",
+      "additions": 20,
+      "deletions": 0,
+      "changes": 20,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-b-exit/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-cli/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-cli/result.json",
+      "status": "added",
+      "additions": 80,
+      "deletions": 0,
+      "changes": 80,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-cli/serial.txt",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-cli/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-exit/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-exit/result.json",
+      "status": "added",
+      "additions": 79,
+      "deletions": 0,
+      "changes": 79,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-exit/serial.txt",
+      "status": "added",
+      "additions": 20,
+      "deletions": 0,
+      "changes": 20,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-exit/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-guard-high/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-guard-high/result.json",
+      "status": "added",
+      "additions": 80,
+      "deletions": 0,
+      "changes": 80,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-guard-high/serial.txt",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-guard-high/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-guard-low/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-guard-low/result.json",
+      "status": "added",
+      "additions": 80,
+      "deletions": 0,
+      "changes": 80,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-guard-low/serial.txt",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-guard-low/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-heap-exec/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-heap-exec/result.json",
+      "status": "added",
+      "additions": 80,
+      "deletions": 0,
+      "changes": 80,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-heap-exec/serial.txt",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-heap-exec/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-invalid-rsp/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-invalid-rsp/result.json",
+      "status": "added",
+      "additions": 79,
+      "deletions": 0,
+      "changes": 79,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-invalid-rsp/serial.txt",
+      "status": "added",
+      "additions": 20,
+      "deletions": 0,
+      "changes": 20,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-invalid-rsp/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-kernel-write/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-kernel-write/result.json",
+      "status": "added",
+      "additions": 80,
+      "deletions": 0,
+      "changes": 80,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-kernel-write/serial.txt",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-kernel-write/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-peer-read/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-peer-read/result.json",
+      "status": "added",
+      "additions": 80,
+      "deletions": 0,
+      "changes": 80,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-peer-read/serial.txt",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-peer-read/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-peer-write/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-peer-write/result.json",
+      "status": "added",
+      "additions": 80,
+      "deletions": 0,
+      "changes": 80,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-peer-write/serial.txt",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-peer-write/stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/parallel-final-m3/runs/test-m3-stack-exec/build-manifest.json",
+      "status": "added",
+      "additions": 98,
+      "deletions": 0,
+      "changes": 98,
+      "previous_filename": null
+    }
+  ]
+}
