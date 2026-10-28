@@ -1,0 +1,695 @@
+{
+  "phase": "M6a",
+  "status": "completed",
+  "passed": true,
+  "source_fingerprint_version": 3,
+  "source_sha256": "e721bec4c283c90fe6d05a66d092372cd59f7727815de79f0da18760155c365c",
+  "started_utc": "2026-10-28T12:17:57.599893+00:00",
+  "results": [
+    {
+      "name": "strict-development-inventory",
+      "passed": true,
+      "evidence": "build/logs/m6a-preflight.stdout.txt",
+      "requirements": [
+        "M6A-TOOLS"
+      ]
+    },
+    {
+      "name": "core-protocol-journal-host-tests",
+      "passed": true,
+      "evidence": "build/logs/m6a-host-tests.stdout.txt",
+      "requirements": [
+        "M6A-AUTHORITY",
+        "M6A-POLICY",
+        "M6A-JOURNAL"
+      ]
+    },
+    {
+      "name": "external-volume-and-crash-harness-tests",
+      "passed": true,
+      "evidence": "build/logs/m6a-harness-tests.stdout.txt",
+      "requirements": [
+        "M6A-EVIDENCE",
+        "M6A-IMAGE-BOUNDARY"
+      ]
+    },
+    {
+      "name": "m6-user-artifact-tests",
+      "passed": true,
+      "evidence": "build/logs/m6a-user-artifact-tests.stdout.txt",
+      "requirements": [
+        "M6A-USER-ELF"
+      ]
+    },
+    {
+      "name": "m6a-normal-a",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-m6a-normal-a-88f94e7eb2",
+      "requirements": [
+        "M6A-NORMAL",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "m6a-normal-a-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-m6a-normal-a-cold-recovery-edb2ed6337",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "m6a-normal-b",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-m6a-normal-b-fac8a03813",
+      "requirements": [
+        "M6A-NORMAL",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "m6a-normal-b-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-m6a-normal-b-cold-recovery-664ce21e1a",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "same-normal-binary-two-real-images",
+      "passed": true,
+      "evidence": "build/logs/m6a-two-image-check.json",
+      "requirements": [
+        "M6A-EXTERNAL-ORACLE"
+      ]
+    },
+    {
+      "name": "service-errors",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-service-errors-b78d598e03",
+      "requirements": [
+        "M6A-SERVICE-ERRORS",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "device-rights",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-device-rights-249e54a816",
+      "requirements": [
+        "M6A-DEVICE-RIGHTS",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "full",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-full-0fe8334cf7",
+      "requirements": [
+        "M6A-FULL",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "full-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-full-cold-recovery-95976d7019",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "write-error",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-write-error-875ace4b38",
+      "requirements": [
+        "M6A-WRITE-ERROR",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "write-error-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-write-error-cold-recovery-a5cbfee239",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "flush-error",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-flush-error-a92840f7d6",
+      "requirements": [
+        "M6A-FLUSH-ERROR",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "flush-error-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-flush-error-cold-recovery-c1227af849",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "write-timeout",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-write-timeout-79b9697bca",
+      "requirements": [
+        "M6A-WRITE-TIMEOUT",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "write-timeout-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-write-timeout-cold-recovery-02b55dcfc8",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "flush-timeout",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-flush-timeout-e1d44fcc02",
+      "requirements": [
+        "M6A-FLUSH-TIMEOUT",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "flush-timeout-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-flush-timeout-cold-recovery-db1504364b",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "reset-timeout",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-reset-timeout-13c41562bb",
+      "requirements": [
+        "M6A-RESET-TIMEOUT",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "reset-timeout-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-reset-timeout-cold-recovery-1ff509c964",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "no-flush",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-no-flush-906d4e1bfe",
+      "requirements": [
+        "M6A-NO-FLUSH",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "readonly",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-readonly-729af1e8aa",
+      "requirements": [
+        "M6A-READONLY",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "bad-descriptor",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-bad-descriptor-812810aacd",
+      "requirements": [
+        "M6A-BAD-DESCRIPTOR",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "bad-descriptor-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-bad-descriptor-cold-recovery-6578fa38e4",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "used-write",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-used-write-a32a3b1616",
+      "requirements": [
+        "M6A-USED-WRITE",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "used-write-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-used-write-cold-recovery-2e31b61fd4",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "used-flush",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-used-flush-5a3f4f12d6",
+      "requirements": [
+        "M6A-USED-FLUSH",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "used-flush-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-used-flush-cold-recovery-f0a2c2c9b9",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "torn-tail",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-torn-tail-385170168d",
+      "requirements": [
+        "M6A-TORN-TAIL",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "corrupt-all",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-corrupt-all-a4860bacb6",
+      "requirements": [
+        "M6A-CORRUPT-ALL",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "stale-generation",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-stale-generation-2c3e478ce4",
+      "requirements": [
+        "M6A-STALE-GENERATION",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "no-device",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-no-device-bed16bf854",
+      "requirements": [
+        "M6A-NO-DEVICE",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "service-cut-1",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-service-cut-1-50b67dc21a",
+      "requirements": [
+        "M6A-SERVICE-CUT-1",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "service-cut-2",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-service-cut-2-dba1666d24",
+      "requirements": [
+        "M6A-SERVICE-CUT-2",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "service-cut-3",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-service-cut-3-bf4c4db0c4",
+      "requirements": [
+        "M6A-SERVICE-CUT-3",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "service-cut-4",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-service-cut-4-61ca74eb0c",
+      "requirements": [
+        "M6A-SERVICE-CUT-4",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "service-cut-5",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-service-cut-5-e60fe1cb10",
+      "requirements": [
+        "M6A-SERVICE-CUT-5",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "service-cut-6",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-service-cut-6-bea5a20e5a",
+      "requirements": [
+        "M6A-SERVICE-CUT-6",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "vm-cut-1",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-vm-cut-1-964d5233ae",
+      "requirements": [
+        "M6A-VM-CUT-1",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "vm-cut-1-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-vm-cut-1-cold-recovery-c93808e3b7",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "vm-cut-2",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-vm-cut-2-e478d00796",
+      "requirements": [
+        "M6A-VM-CUT-2",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "vm-cut-2-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-vm-cut-2-cold-recovery-7aa7909ec7",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "vm-cut-3",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-vm-cut-3-2e11f4b106",
+      "requirements": [
+        "M6A-VM-CUT-3",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "vm-cut-3-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-vm-cut-3-cold-recovery-231171cb27",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "vm-cut-4",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-vm-cut-4-c250ba21ab",
+      "requirements": [
+        "M6A-VM-CUT-4",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "vm-cut-4-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-vm-cut-4-cold-recovery-47202283e5",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "vm-cut-5",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-vm-cut-5-ee4a503563",
+      "requirements": [
+        "M6A-VM-CUT-5",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "vm-cut-5-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-vm-cut-5-cold-recovery-b2a2290bca",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "vm-cut-6",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-vm-cut-6-34013ef2bb",
+      "requirements": [
+        "M6A-VM-CUT-6",
+        "M6A-EXTERNAL-ORACLE",
+        "M6A-RESOURCES"
+      ]
+    },
+    {
+      "name": "vm-cut-6-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-vm-cut-6-cold-recovery-9cef7b3f00",
+      "requirements": [
+        "M6A-COLD-RECOVERY",
+        "M6A-SAME-IMAGE",
+        "M6A-NO-WRITE-REPLAY"
+      ],
+      "recovery_checks": {
+        "same_volume_identity": true,
+        "same_volume_path": true,
+        "new_invocation": true,
+        "linked_previous": true,
+        "exact_previous_after": true,
+        "recovery_has_no_volume_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "m1-regression-after-m6a",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m1-after-m6a-2365e90b11",
+      "requirements": [
+        "M1"
+      ]
+    }
+  ],
+  "finished_utc": "2026-10-28T12:23:24.092839+00:00"
+}

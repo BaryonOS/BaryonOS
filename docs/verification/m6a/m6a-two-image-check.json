@@ -1,0 +1,13 @@
+{
+  "checks": {
+    "same_kernel": true,
+    "same_loader": true,
+    "different_actual_initial_images": true,
+    "different_received_values": true
+  },
+  "run_directories": [
+    "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-m6a-normal-a-88f94e7eb2",
+    "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System\\build\\run\\m6-m6a-normal-b-fac8a03813"
+  ],
+  "passed": true
+}

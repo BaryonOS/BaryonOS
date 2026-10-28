@@ -1,6 +1,10 @@
 {
-  "source_commit": "8c53ea44319d98f82c63ebbe2d57390995888019",
+  "source_commit": "f60445b26d31733cc6aaf557ee08820b2295b0df",
   "source_fingerprint_version": 3,
-  "source_sha256": "6fce5c12e87cf6b1a1353743357593de3d8b6843012b12be6deaf7fe17ce3b66",
-  "status": "frozen candidate; complete M6a and M1-M5 gates still pending"
+  "source_sha256": "e721bec4c283c90fe6d05a66d092372cd59f7727815de79f0da18760155c365c",
+  "m6_gate": "54 groups / 49 VM, exit0; capture exit0",
+  "pending": [
+    "counterexamples",
+    "M1-M5 regression"
+  ]
 }

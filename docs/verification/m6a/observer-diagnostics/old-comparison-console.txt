@@ -1,0 +1,12 @@
+Preparing worktree (detached HEAD 6e42a96)
+HEAD is now at 6e42a96 Voeg reproduceerbare QEMU-tegenproeven voor M6a toe
+old-skip-full True child exit 0
+old-repeat-error-id True child exit 0
+old-retry-after-unknown False child exit 1
+Traceback (most recent call last):
+  File "C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\tests\verify_m6_observers.py", line 141, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System\tests\verify_m6_observers.py", line 132, in main
+    raise RuntimeError(label)
+RuntimeError: old-retry-after-unknown

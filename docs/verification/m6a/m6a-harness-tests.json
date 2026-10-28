@@ -1,0 +1,16 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_m6_*.py"
+  ],
+  "cwd": "C:\\Users\\simon\\OneDrive\\Documenten\\ChatGPT\\Operating System",
+  "started_unix": 1793189879.2043145,
+  "duration_s": 1.3575990200042725,
+  "returncode": 0
+}

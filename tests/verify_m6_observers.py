@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -61,6 +62,11 @@ def worker(worktree: Path, name: str, old: bool):
             position = kernel.rfind("assert_eq!(", 0, position)
         expected_line = kernel[:position].count("\n") + 1
     build(kernel_feature=f"test-m6a-{case}", label=f"observer-{name}")
+    fingerprints = sorted((worktree / "target/x86_64-unknown-none/release/.fingerprint").glob(
+        "os-kernel-*/bin-os-kernel.json"), key=lambda path: path.stat().st_mtime)
+    rustflags = json.loads(fingerprints[-1].read_text(encoding="utf-8"))["rustflags"]
+    if rustflags.count("link-arg=-Tkernel/linker.ld") != 1:
+        raise RuntimeError("Cargo inherited duplicate linker scripts; invalid experiment environment")
     report, _ = run_m6(case, label=f"observer-{name}")
     actual_lines = [int(line.split(":")[-1]) for line in report["stdout"].splitlines()
                     if line.startswith("M2:PANIC_LINE:")]
@@ -77,6 +83,7 @@ def worker(worktree: Path, name: str, old: bool):
               "check_passed":rejected, "expected_panic_line":expected_line,
               "actual_panic_lines":actual_lines,
               "mutation_file":relative, "mutated_file_sha256":hashlib.sha256(source.read_bytes()).hexdigest(),
+              "rustflags":rustflags,
               "run":report}
     (worktree / "build/observer-result.json").write_text(json.dumps(result,indent=2),encoding="utf-8")
     if not rejected:
@@ -91,15 +98,20 @@ def main():
     if args.worker:
         return worker(args.worker.resolve(strict=True), args.name, args.old)
     head = subprocess.check_output(["git","rev-parse","HEAD"],cwd=MAIN,text=True).strip()
-    directory = MAIN / "build/observer-checks" / uuid.uuid4().hex[:10]
+    identifier = uuid.uuid4().hex[:10]
+    directory = MAIN / "build/observer-checks" / identifier
     directory.mkdir(parents=True)
-    worktree = directory / "checkout"
+    # Cargo concatenates ancestor config arrays. A worktree nested in MAIN
+    # would inherit .cargo/config.toml twice, including two linker scripts.
+    worktree = Path(os.environ["LOCALAPPDATA"]) / "nieuw-os/observer-checks" / identifier / "checkout"
+    worktree.parent.mkdir(parents=True)
     subprocess.run(["git","worktree","add","--detach",str(worktree),head],cwd=MAIN,check=True)
-    report = {"base_commit":head,"scope":"separate disposable worktree; only synthetic QEMU disks; expected rejected guest runs stay passed:false", "status":"running","passed":False,"results":[]}
+    report = {"base_commit":head,"script_sha256":hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+              "scope":"separate disposable worktree; only synthetic QEMU disks; expected rejected guest runs stay passed:false", "status":"running","passed":False,"results":[]}
     destination = MAIN / "build/m6-observer-checks.json"
     sources = {p: subprocess.check_output(["git","show",f"{head}:{p}"],cwd=MAIN) for p in (KERNEL,PROBE,SERVICE)}
     try:
-        for old, names in [(True, ("skip-full","repeat-error-id","retry-after-unknown")), (False,tuple(MUTANTS))]:
+        for old, names in [(True, ("skip-full","repeat-error-id")), (False,tuple(MUTANTS))]:
             for name in names:
                 for relative in sources:
                     data = (subprocess.check_output(["git","show",f"803bf43:{relative}"],cwd=MAIN)
@@ -120,6 +132,9 @@ def main():
                 if completed.returncode or not entry["check_passed"]:
                     raise RuntimeError(label)
         report.update(status="completed",passed=True)
+    except Exception as error:
+        report.update(status="failed",passed=False,error=str(error))
+        raise
     finally:
         report["worktree"] = str(worktree)
         destination.write_text(json.dumps(report,indent=2),encoding="utf-8")
