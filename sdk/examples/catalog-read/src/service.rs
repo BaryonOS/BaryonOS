@@ -11,8 +11,13 @@ use nieuw_os_sdk_runtime::{native, Handle, Outgoing, ReceiveEndpoint, SendEndpoi
 const NAME: &[u8] = b"Voorbeeld";
 const VALUE: &[u8] = b"Nieuw OS SDK";
 
+fn tick() {
+    support::put(8, support::word(8).wrapping_add(1));
+}
+
 fn receive(endpoint: ReceiveEndpoint, peer: u64) -> Result<nieuw_os_sdk_runtime::Received, ()> {
     for _ in 0..100_000 {
+        tick();
         match native::receive(endpoint) {
             Ok(message) => {
                 if message.cap_count() != 0
@@ -35,6 +40,7 @@ fn receive(endpoint: ReceiveEndpoint, peer: u64) -> Result<nieuw_os_sdk_runtime:
 fn send(endpoint: SendEndpoint, payload: &[u8; wire::SIZE]) -> Result<(), ()> {
     let message = Outgoing::new(wire::TAG, payload).map_err(|_| ())?;
     for _ in 0..100_000 {
+        tick();
         match native::send(endpoint, &message) {
             Ok(()) => return Ok(()),
             Err(error) if error.is_again() => native::yield_now().map_err(|_| ())?,
@@ -102,6 +108,7 @@ fn run() -> Result<(), ()> {
     support::put(248, replies);
     support::put(40, 1);
     loop {
+        tick();
         native::yield_now().map_err(|_| ())?;
     }
 }
