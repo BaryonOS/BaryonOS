@@ -1,0 +1,6 @@
+    Blocking waiting for file lock on package cache
+   Compiling catalog-core v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/services/catalog)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/sdk/runtime)
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/sdk/catalog-client)
+   Compiling nieuw-os-document-session v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/sdk/document-session)
+    Finished `release` profile [optimized] target(s) in 0.45s

@@ -276,3 +276,30 @@ in `verification/parallel-*`. Herzie vóór dynamische apps, meer qubits,
 allocatiehergebruik, FPU/SIMD, SMP of een echte jobdienst. Beide profielen zijn
 opt-in; herstel door hun eerdere bron in een aparte checkout te bouwen.
 Geen migratie van echte data, nieuwe externe crate of fysieke hardwareactie.
+
+
+### ADR-034: afzonderlijke invarianten en weerlegging
+
+**SDK — security-invariant:** gewone apps verkrijgen alleen reeds toegekende
+procesgebonden endpointrechten. Elke reply wordt canoniek en op herkomst
+gecontroleerd. Na enqueue en verlies van zekerheid blijft een mutatie zonder
+automatische replay; een ongeldige reply geeft geen extra rechten of succes.
+**Weerlegd als:** dezelfde mutatie na Unknown/verloren reply opnieuw wordt
+verstuurd, een vreemde afzender wordt geaccepteerd of een ongeldig capability-
+bericht als geldig doorgaat. **Eigenaar:** G01–G03 voor SDK, root voor ABI en
+integratie. **Testbewijs:** parallel-g01/g03 en parallel-final-sdk-m6c (deze
+laatste toetst de runtimebridge, niet de losse catalogusvoorbeeldapp).
+**Migratie/rollback:** bestaande ABI en journal blijven gelijk; SDKselectie is
+opt-in, terugname via eerdere bron in aparte checkout zonder datamigratie.
+
+**Quantum — security-invariant:** elk proefproces heeft private mappings en
+maximaal64KiB arena; input blijft binnen6qubits/64gates/4096shots. SIMD/FPU en
+vreemde syscall/hardware-instructies zijn niet toegestaan in het geselecteerde
+scalarartifact. Simulatorbeleid blijft userspace; opruiming gebruikt echte
+procesframes. **Weerlegd als:** grenzen kunnen worden overschreden, processen
+elkaars geheugen bereiken, ongewenste instructies door de artifactgate komen
+of cleanup toegewezen frames achterlaat. **Eigenaar:** I01–I04 voor port/gate,
+root voor de testobserver en integratie. **Testbewijs:** parallel-i04,
+parallel-final-qsim en parallel-final-m3. Dit is geen formeel bewijs.
+**Migratie/rollback:** exclusief opt-in profiel; eerdere bron afzonderlijk
+bouwen, zonder opgeslagen gebruikersdata of hardwarefirmware te wijzigen.

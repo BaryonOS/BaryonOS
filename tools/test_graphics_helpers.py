@@ -179,7 +179,7 @@ def run_helpers(output_root, qmp_source, rustc):
     before = {str(path): sha256(path) for path in sorted(files)}
     report = dict(scope='host helper logic and QMP protocol tests; no native mapping, port I/O or VM proof',
                   status='running', passed=False, started_utc=datetime.now(timezone.utc).isoformat(),
-                  base_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+                  base_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True, timeout=30).strip(),
                   qmp_source=str(qmp_source), source_sha256=before, commands=[], checks={})
 
     def save():

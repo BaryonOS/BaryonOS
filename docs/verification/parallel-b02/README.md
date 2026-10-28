@@ -55,8 +55,8 @@ deze review kent daar geen extra native beveiligingsgarantie aan toe.
   de beoordeelde unsafe-/mapping-/eigenaarschapsgrenzen.
 - [before/result.json](before/result.json): rode run tegen de oorspronkelijke
   runner op de basiscommit, met afzonderlijke ruwe logs.
-- [after/result.json](after/result.json): groene run tegen de gerepareerde
-  rootrunner, met afzonderlijke ruwe logs.
+- [after/result.json](after/result.json): historische groene run tegen de toen
+  gerepareerde rootrunner met hash279fa48d..., met eigen ongewijzigde ruwe logs.
 - [initial-harness-compile-failure/result.json](initial-harness-compile-failure/result.json):
   eerste harnascompile faalde op ontbrekende accolades rond een Rust-constargument;
   deze harnasfout is hersteld en de mislukte uitvoer blijft zichtbaar.
@@ -98,3 +98,14 @@ voordat andere processen, interrupts of CPUs deze helpers gebruiken.
 B02 voegt controleerbaar hostbewijs en concrete harnasreparaties toe. De
 native acceptatie op de gecombineerde bron blijft bij de hoofdagent.
 Geen zelfstandig volledig roadmapcriterium gesloten: voorstel **14% → 14%**.
+
+
+## Latere integratiebron
+
+Dit B02-bewijs hoort bij de bovenstaande historische inhoudshashes. De runner
+is daarna uitgebreid met per-toetsbeelden en ROMpin; B02 claimt geen bewijs
+voor die latere bron. De hosthelpers zijn op de gecombineerde bron3e41bbf9
+opnieuw uitgevoerd: zie ../parallel-final-host/graphics-helper-detail/result.json.
+De echte finale native G0-run en de onafhankelijke bytecontrole staan in
+../parallel-final-g0-confirmed/ en ../parallel-final-crosscheck-storage/SECOND-CHECK.md.
+Historische rapporten, hashes en rawlogs zijn niet herschreven.

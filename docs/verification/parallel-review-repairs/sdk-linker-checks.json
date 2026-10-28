@@ -1,0 +1,41 @@
+{
+  "scope": "Real native example cross-build with rust-lld absent from initial PATH; no VM execution.",
+  "old_script_sha256": "6c83de4ad85a83f00ead6be6c3def28985b95c4a862a6c159a2ea5465b9ad0e9",
+  "new_script_sha256": "c683687efa8947f7c6d01826257bf0816b9cd5096f644c443bbce093708fd2b6",
+  "initial_path": "/tmp/nieuw-os-par-tools/bin:/usr/local/bin:/usr/bin:/bin",
+  "target": "/tmp/nieuw-os-par-review-sdk-linker-after-target",
+  "results": [
+    {
+      "name": "sdk-linker-before",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-c",
+        "import sys;from pathlib import Path;s=Path(sys.argv[1]).read_text();g={'__file__':sys.argv[2],'__name__':'__main__'};exec(compile(s,sys.argv[2],'exec'),g)",
+        "/tmp/nieuw-os-old-sdk-builder-source.txt",
+        "/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/examples/catalog-read/build.py"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "target_directory": "/tmp/nieuw-os-par-review-sdk-linker-before-target",
+      "binary_sha256": "8f22865bc86edb641bad921723a86b0b21bc4c0b39a7360cd02b7ae56728c932",
+      "stdout_sha256": "3a3f0964125f328d356471b370be81da85c054b7ad99814655ff0f0cc86b9405",
+      "stderr_sha256": "ff42867a9df7667bd886b17a1d8ab04c2e3beaeb09c483428c2cc7b9e26fbf61"
+    },
+    {
+      "name": "sdk-linker-after",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/examples/catalog-read/build.py"
+      ],
+      "exit_code": 0,
+      "expected_exit": 0,
+      "target_directory": "/tmp/nieuw-os-par-review-sdk-linker-after-target",
+      "binary_sha256": "8f22865bc86edb641bad921723a86b0b21bc4c0b39a7360cd02b7ae56728c932",
+      "stdout_sha256": "5020385418ec62e0a76de8df38897dbbedc7dfca6e71735c75426af267bd16c1",
+      "stderr_sha256": "acbde897ea51d2e0c14666d2fd5ad566f7db8ba52a6bc96c5ef8713529974d3f"
+    }
+  ],
+  "passed": true
+}

@@ -21,20 +21,48 @@ REQUIRED_RLIBS = ("core", "alloc", "compiler_builtins")
 def probe(name: str) -> dict:
     path = shutil.which(name, path=PROBE_ENV["PATH"])
     result = {"available": bool(path), "path": path, "version": None}
-    if path:
-        selector = ["+" + RUST_TOOLCHAIN] if name in ("rustc", "cargo") else []
-        if selector:
-            result["selected_toolchain"] = RUST_TOOLCHAIN
-        try:
-            completed = subprocess.run(
-                [path, *selector, "--version"], capture_output=True, text=True,
-                timeout=10, check=False, cwd=ROOT, env=PROBE_ENV,
-            )
-            lines = (completed.stdout or completed.stderr).splitlines()
-            result["version"] = lines[0] if lines else None
-            result["probe_exit"] = completed.returncode
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            result["probe_error"] = type(exc).__name__
+    if not path:
+        return result
+    pinned = name in ("rustc", "cargo")
+    candidates = (["+" + RUST_TOOLCHAIN], []) if pinned else ([],)
+    result["probe_attempts"] = []
+    if pinned:
+        result["selected_toolchain"] = RUST_TOOLCHAIN
+    for arguments in candidates:
+        attempt = query([path, *arguments, "--version"])
+        result["probe_attempts"].append(attempt)
+        if "error" in attempt:
+            result["probe_error"] = attempt["error"]
+            return result
+        lines = (attempt["stdout"] or attempt["stderr"]).splitlines()
+        result.update(version=lines[0] if lines else None, probe_exit=attempt["exit_code"])
+        if attempt["exit_code"] != 0:
+            # A rejected selector can mean a direct standalone binary. A
+            # crash/timeout is a failed tool probe, not a reason to hide it.
+            if arguments and attempt["exit_code"] > 0:
+                continue
+            return result
+        if pinned and not re.match(r"^" + re.escape(name + " " + RUST_TOOLCHAIN) + r"(?:\s|$)", result["version"] or ""):
+            result["probe_error"] = "ToolchainVersionMismatch"
+            return result
+        if name == "rustc":
+            # A standalone rustc can print --version while ignoring an input
+            # named +1.90.0, then reject that input for --print sysroot. Verify
+            # the actual compiler-query invocation before selecting its form.
+            capability = query([path, *arguments, "--print", "sysroot"])
+            attempt["sysroot_query"] = capability
+            try:
+                queried_directory(capability)
+            except (OSError, ValueError, RuntimeError) as error:
+                attempt["sysroot_error"] = str(error)
+                if arguments and "error" not in capability and capability.get("exit_code", -1) >= 0:
+                    continue
+                result["probe_error"] = "InvalidCompilerSysroot"
+                return result
+        if pinned:
+            result.update(toolchain_args=arguments,
+                          invocation_mode="pinned-selector" if arguments else "verified-direct")
+        return result
     return result
 
 
@@ -66,7 +94,7 @@ def queried_directory(result: dict) -> Path:
     return path
 
 
-def rlib_inventory(directory: Path, sysroot: Path, library: str) -> dict:
+def rlib_inventory(directory: Path, target_root: Path, library: str) -> dict:
     """Inspect real archive files, not rustup's installed-target metadata.
 
     Header/extent inspection is inventory only: no member/ABI/link validation
@@ -77,8 +105,8 @@ def rlib_inventory(directory: Path, sysroot: Path, library: str) -> dict:
         entry = {"path": str(path), "usable_archive": False}
         try:
             resolved = path.resolve(strict=True)
-            if not resolved.is_relative_to(sysroot) or not resolved.is_file():
-                raise ValueError("rlib is not a regular file within the selected sysroot")
+            if not resolved.is_relative_to(target_root) or not resolved.is_file():
+                raise ValueError("rlib is not a regular file within the selected target")
             size = resolved.stat().st_size
             with resolved.open("rb") as stream:
                 header = stream.read(68)
@@ -116,7 +144,12 @@ def rust_inventory(rustc: dict, rustup: dict) -> dict:
     if not re.match(r"^rustc 1\.90\.0(?:\s|$)", rustc.get("version") or ""):
         result["error"] = "selected compiler is not the pinned Rust 1.90.0"
         return result
-    compiler = [rustc["path"], "+" + RUST_TOOLCHAIN]
+    arguments = rustc.get("toolchain_args", ["+" + RUST_TOOLCHAIN])
+    if arguments not in ([], ["+" + RUST_TOOLCHAIN]):
+        result["error"] = "unsupported compiler invocation form"
+        return result
+    compiler = [rustc["path"], *arguments]
+    result["compiler_command"] = compiler
     root_query = query([*compiler, "--print", "sysroot"])
     result["sysroot_query"] = root_query
     try:
@@ -130,12 +163,17 @@ def rust_inventory(rustc: dict, rustup: dict) -> dict:
         item = {"query": target_query, "available": False}
         try:
             directory = queried_directory(target_query)
-            expected = (sysroot / "lib/rustlib" / target / "lib").resolve(strict=True)
-            if directory != expected or not directory.is_relative_to(sysroot):
+            target_root = sysroot / "lib/rustlib" / target
+            # Preserve the target identity before resolving a lib symlink:
+            # resolving both paths first would accept uefi/lib -> none/lib.
+            if target_root.resolve(strict=True) != target_root:
+                raise ValueError("selected target directory redirects to another location")
+            expected = (target_root / "lib").resolve(strict=True)
+            if directory != expected or not directory.is_relative_to(target_root):
                 raise ValueError("target library directory is outside its selected sysroot/target")
-            libraries = {library: rlib_inventory(directory, sysroot, library)
+            libraries = {library: rlib_inventory(directory, target_root, library)
                          for library in REQUIRED_RLIBS}
-            item.update(directory=str(directory), libraries=libraries,
+            item.update(directory=str(directory), target_root=str(target_root), libraries=libraries,
                         available=all(value["available"] for value in libraries.values()))
         except (OSError, ValueError, RuntimeError) as error:
             item["error"] = str(error)
@@ -178,6 +216,7 @@ def main() -> int:
     report = {
         "schema_version": 2,
         "scope": "inventory only; no build, boot, acceleration or ABI validated",
+        "build_launcher_scope": "Shared builds still require a pinned launcher or compatible +1.90.0 wrapper; direct-tool inventory does not validate that build chain.",
         "workspace": str(ROOT),
         "host": {
             "system": platform.system(),

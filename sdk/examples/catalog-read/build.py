@@ -2,16 +2,17 @@
 """Build the native example; this never boots or grants capabilities."""
 from __future__ import annotations
 import json
-import os
 from pathlib import Path
 import subprocess
 import sys
 
 EXAMPLE = Path(__file__).resolve().parent
 ROOT = EXAMPLE.parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
+from common import environment as toolchain_environment
 
 def main() -> int:
-    environment = os.environ.copy()
+    environment = toolchain_environment()
     # Explicit target flags prevent inheriting the parent kernel linker script.
     flags = ["-C", "code-model=small", "-C", "relocation-model=static",
              "-C", "no-redzone=yes", "-C", "linker=rust-lld",

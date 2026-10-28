@@ -28,6 +28,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "nieuw-os-document-session"
+version = "0.1.0"
+dependencies = [
+ "capability-core",
+ "catalog-core",
+ "nieuw-os-catalog-client",
+ "nieuw-os-sdk-runtime",
+]
+
+[[package]]
 name = "nieuw-os-sdk-runtime"
 version = "0.1.0"
 dependencies = [

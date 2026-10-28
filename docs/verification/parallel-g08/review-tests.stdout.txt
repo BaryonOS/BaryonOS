@@ -1,0 +1,9 @@
+
+running 2 tests
+G08 valid qubit/gate-count combinations: 390
+test all_gate_counts_at_every_valid_qubit_count_roundtrip ... ok
+G08 single-byte probes: 34277 accepted canonically; 358939 rejected
+test every_single_byte_value_preserves_canonical_accepted_payloads ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+

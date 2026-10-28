@@ -1,5 +1,21 @@
 # Actuele projectstatus
 
+## Vervolgcheckpoint — 28 oktober 2026
+
+Na bewijscheckpoint62c97e95 zijn drie zelfstandige bouwstappen geïntegreerd:
+G07 documentsessie met geladen revisie, dirtybuffer en CAS-save; I08 canonieke
+256-byte quantumjobrequestcodec; B07 strikte atomische G0-capture. De39 SDK-
+hosttests,13 codec-tests, native librarybuilds en33 grafische harnastests slagen.
+De document-/joblogica staat volledig buiten de kernel. Native GUI-/jobdispatch
+blijven open; deze librarychecks tellen niet als extra gestarte apps.
+
+CodeRabbit-reparaties behandelen de directe Rustselectie, cross-targetsymlinks,
+buildrootvalidatie, SDKbuildomgeving, git-timeout en expliciete bewijslinks.
+De bestaande native kernel-/dienst-/probebron en buildinputs zijn bytegelijk
+aan3e41. Gerichte native controles volgen op dit checkpoint; onafhankelijke
+reviews van de nieuwe documentsessie/capture lopen parallel. De vaste score
+blijft14%. De onderstaande volledige acceptatie behoudt haar exacte bron.
+
 ## Gecombineerde native acceptatie — 28 oktober 2026
 
 Uitvoeringsbron `3e41bbf93822f7044c6020259f4a752925e1966d`, branch
@@ -41,6 +57,15 @@ externe native quantumjobs blijven open. De catalogusclient+SDK bestaan nu;
 G07 bouwt een documentsessie, I08 een jobcodec en B07 een strikte G0-capture
 in eigen worktrees. Zij zijn nog geen geaccepteerde productfunctie.
 Zie `WORK-QUEUE.md` voor de kleine actuele taakverdeling en blokkades.
+
+### Directe nieuwe native bewijslinks
+
+- G0: [commando, raw33 en alle controles](verification/parallel-final-g0-confirmed/pipe/result.json), [ruwe serial](verification/parallel-final-g0-confirmed/pipe/serial.txt).
+- SDK/catalogus: [opdrachten en exitstatussen](verification/parallel-final-sdk-m6c/driver.json), [alle31 ruwe VM-records](verification/parallel-final-sdk-m6c/guest-runs.json).
+- Quantum: [opdrachten en bronbinding](verification/parallel-final-qsim/i05-run-checks.json), [native raw33-resultaat](verification/parallel-final-qsim/result.json), [ruwe serial](verification/parallel-final-qsim/serial.txt).
+
+Alle drie nieuwe bundels registreren werkelijk QEMU7.2.22/pc-q35-7.2.
+Historische M6c-consolelogs van andere QEMU-profielen zijn hiervoor niet gebruikt.
 
 ## Historische faseverslagen
 

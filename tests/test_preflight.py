@@ -24,7 +24,9 @@ def archive_bytes(payload=b'synthetic archive member'):
 class RequiredToolProbes(unittest.TestCase):
     def inventory(self, tool=None, strict=True, *, tool_name='cargo', mutate=None,
                   compiler='rustc 1.90.0 (synthetic)', query_fault=None,
-                  rustup=None, wrong_target=False):
+                  rustup=None, wrong_target=False, compiler_args=None):
+        if compiler_args is None:
+            compiler_args = ['+1.90.0']
         if rustup is None:
             rustup = {'available': False, 'path': None, 'version': None}
         self.commands = []
@@ -46,15 +48,20 @@ class RequiredToolProbes(unittest.TestCase):
                     return rustup
                 if name == tool_name and tool is not None:
                     return tool
-                return {'available': True, 'probe_exit': 0, 'path': 'synthetic-' + name,
-                        'version': compiler if name == 'rustc' else name + ' synthetic'}
+                result = {'available': True, 'probe_exit': 0, 'path': 'synthetic-' + name,
+                          'version': compiler if name == 'rustc' else name + ' synthetic'}
+                if name == 'rustc':
+                    result['toolchain_args'] = compiler_args
+                return result
 
             def run(command, **_kwargs):
                 self.commands.append(command)
                 if command[0] == 'synthetic-rustup':
                     self.assertEqual(command[1:], ['target', 'list', '--installed', '--toolchain', '1.90.0'])
                     return subprocess.CompletedProcess(command, 0, '\n'.join(preflight.REQUIRED_TARGETS) + '\n', '')
-                self.assertEqual(command[:2], ['synthetic-rustc', '+1.90.0'])
+                prefix = ['synthetic-rustc', *compiler_args]
+                self.assertEqual(command[:len(prefix)], prefix)
+                self.assertEqual(command[len(prefix):len(prefix) + 1], ['--print'])
                 target = command[-1] if '--target' in command else 'sysroot'
                 if query_fault and query_fault[0] == target:
                     failure = query_fault[1]
@@ -121,13 +128,13 @@ class RequiredToolProbes(unittest.TestCase):
         self.assertFalse(report['baseline_tools_present'])
 
     def test_standalone_compiler_without_rustup_requires_real_target_archives(self):
-        status, report = self.inventory()
+        status, report = self.inventory(compiler_args=[])
         self.assertEqual(status, 0)
         self.assertFalse(report['tools']['rustup']['available'])
         self.assertEqual(report['installed_rust_targets'], list(preflight.REQUIRED_TARGETS))
         self.assertEqual(report['rust_toolchain']['rustup_reported_targets'], [])
         for target in preflight.REQUIRED_TARGETS:
-            self.assertIn(['synthetic-rustc', '+1.90.0', '--print', 'target-libdir', '--target', target], self.commands)
+            self.assertIn(['synthetic-rustc', '--print', 'target-libdir', '--target', target], self.commands)
             self.assertTrue(report['rust_toolchain']['targets'][target]['available'])
 
     def test_manager_query_is_pinned_and_never_substitutes_for_target_files(self):
@@ -204,12 +211,133 @@ class RequiredToolProbes(unittest.TestCase):
             self.assertEqual((status, report['missing_rust_targets']), (2, [target]))
 
     def test_rustc_and_cargo_version_probes_select_the_pinned_toolchain(self):
+        with tempfile.TemporaryDirectory() as root:
+            for name in ('rustc', 'cargo'):
+                def run(command, **_kwargs):
+                    stdout = str(Path(root).resolve()) + '\n' if '--print' in command else name + ' 1.90.0\n'
+                    return subprocess.CompletedProcess(command, 0, stdout, '')
+                with patch.object(preflight.shutil, 'which', return_value='synthetic-' + name), \
+                        patch.object(preflight.subprocess, 'run', side_effect=run) as calls:
+                    tool = preflight.probe(name)
+                self.assertEqual(calls.call_args_list[0].args[0], ['synthetic-' + name, '+1.90.0', '--version'])
+                if name == 'rustc':
+                    self.assertEqual(calls.call_args_list[1].args[0], ['synthetic-rustc', '+1.90.0', '--print', 'sysroot'])
+                self.assertEqual(tool['selected_toolchain'], '1.90.0')
+                self.assertEqual(tool['toolchain_args'], ['+1.90.0'])
+                self.assertEqual(tool['invocation_mode'], 'pinned-selector')
+                self.assertTrue(preflight.usable(tool))
+
+    def test_direct_binaries_rejecting_selector_use_verified_direct_version(self):
+        with tempfile.TemporaryDirectory() as root:
+            for name in ('rustc', 'cargo'):
+                def run(command, **_kwargs):
+                    if '+1.90.0' in command:
+                        return subprocess.CompletedProcess(command, 1, '', 'unsupported selector')
+                    stdout = str(Path(root).resolve()) + '\n' if '--print' in command else name + ' 1.90.0 (direct)\n'
+                    return subprocess.CompletedProcess(command, 0, stdout, '')
+                with patch.object(preflight.shutil, 'which', return_value='synthetic-' + name), \
+                        patch.object(preflight.subprocess, 'run', side_effect=run) as calls:
+                    tool = preflight.probe(name)
+                self.assertTrue(preflight.usable(tool))
+                self.assertEqual(tool['toolchain_args'], [])
+                self.assertEqual(tool['invocation_mode'], 'verified-direct')
+                self.assertEqual(calls.call_args_list[1].args[0], ['synthetic-' + name, '--version'])
+
+    def test_direct_rustc_ignoring_selector_for_version_needs_bare_path_queries(self):
+        with tempfile.TemporaryDirectory() as root:
+            def run(command, **_kwargs):
+                if '--version' in command:
+                    return subprocess.CompletedProcess(command, 0, 'rustc 1.90.0 (direct)\n', '')
+                if '+1.90.0' in command:
+                    return subprocess.CompletedProcess(command, 1, '', "couldn't read +1.90.0")
+                return subprocess.CompletedProcess(command, 0, str(Path(root).resolve()) + '\n', '')
+            with patch.object(preflight.shutil, 'which', return_value='synthetic-rustc'), \
+                    patch.object(preflight.subprocess, 'run', side_effect=run):
+                tool = preflight.probe('rustc')
+            self.assertTrue(preflight.usable(tool))
+            self.assertEqual(tool['toolchain_args'], [])
+            status, report = self.inventory(tool, tool_name='rustc', compiler_args=[])
+            self.assertEqual(status, 0)
+            self.assertTrue(report['rust_toolchain']['compiler_valid'])
+            self.assertTrue(all('+1.90.0' not in command for command in self.commands))
+
+    def test_wrong_versions_cannot_pass_either_invocation_form(self):
         for name in ('rustc', 'cargo'):
-            with patch.object(preflight.shutil, 'which', return_value='synthetic-' + name), \
-                    patch.object(preflight.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, name + ' 1.90.0\n', '')) as run:
-                tool = preflight.probe(name)
-            self.assertEqual(run.call_args.args[0], ['synthetic-' + name, '+1.90.0', '--version'])
-            self.assertEqual(tool['selected_toolchain'], '1.90.0')
+            for version in ('1.89.0', '1.90.0-nightly', '1.91.0', '1.90.00'):
+                for direct in (False, True):
+                    def run(command, **_kwargs):
+                        if direct and '+1.90.0' in command:
+                            return subprocess.CompletedProcess(command, 1, '', 'unsupported selector')
+                        return subprocess.CompletedProcess(command, 0, name + ' ' + version + '\n', '')
+                    with self.subTest(name=name, version=version, direct=direct), \
+                            patch.object(preflight.shutil, 'which', return_value='synthetic-' + name), \
+                            patch.object(preflight.subprocess, 'run', side_effect=run):
+                        tool = preflight.probe(name)
+                    self.assertFalse(preflight.usable(tool))
+                    self.assertEqual(tool['probe_error'], 'ToolchainVersionMismatch')
+                    self.assertNotIn('toolchain_args', tool)
+
+    def test_compiler_capability_crash_or_timeout_is_not_hidden_by_fallback(self):
+        for fault in (-6, subprocess.TimeoutExpired('synthetic-rustc', 10)):
+            def run(command, **_kwargs):
+                if '--version' in command:
+                    return subprocess.CompletedProcess(command, 0, 'rustc 1.90.0\n', '')
+                if isinstance(fault, BaseException):
+                    raise fault
+                return subprocess.CompletedProcess(command, fault, '', 'compiler crashed')
+            with patch.object(preflight.shutil, 'which', return_value='synthetic-rustc'), \
+                    patch.object(preflight.subprocess, 'run', side_effect=run) as calls:
+                tool = preflight.probe('rustc')
+            self.assertFalse(preflight.usable(tool))
+            self.assertEqual(calls.call_count, 2)
+            self.assertNotIn('toolchain_args', tool)
+
+    def test_non_rust_probe_has_no_toolchain_selector(self):
+        with patch.object(preflight.shutil, 'which', return_value='synthetic-git'), \
+                patch.object(preflight.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, 'git version synthetic\n', '')) as calls:
+            tool = preflight.probe('git')
+        self.assertEqual(calls.call_args.args[0], ['synthetic-git', '--version'])
+        self.assertTrue(preflight.usable(tool))
+        self.assertNotIn('selected_toolchain', tool)
+
+    def test_cross_target_substitution_within_sysroot_is_rejected(self):
+        target, other = preflight.REQUIRED_TARGETS
+        for kind in ('target-directory', 'library-directory', 'rlib'):
+            def substitute(root):
+                own = root / 'lib/rustlib' / target
+                foreign = root / 'lib/rustlib' / other
+                if kind == 'target-directory':
+                    shutil.rmtree(own)
+                    own.symlink_to(foreign, target_is_directory=True)
+                elif kind == 'library-directory':
+                    shutil.rmtree(own / 'lib')
+                    (own / 'lib').symlink_to(foreign / 'lib', target_is_directory=True)
+                else:
+                    archive = own / 'lib/libcore-fixture.rlib'
+                    archive.unlink()
+                    archive.symlink_to(foreign / 'lib/libcore-fixture.rlib')
+            with self.subTest(kind=kind):
+                status, report = self.inventory(mutate=substitute)
+                self.assertEqual((status, report['missing_rust_targets']), (2, [target]))
+                self.assertTrue(report['rust_toolchain']['targets'][other]['available'])
+
+    def test_symlinks_remaining_within_the_same_target_are_valid_inventory(self):
+        target = preflight.REQUIRED_TARGETS[0]
+        for link_directory in (False, True):
+            def relocate(root):
+                own = root / 'lib/rustlib' / target
+                if link_directory:
+                    (own / 'lib').rename(own / 'real-libraries')
+                    (own / 'lib').symlink_to(own / 'real-libraries', target_is_directory=True)
+                else:
+                    (own / 'real-libraries').mkdir()
+                    archive = own / 'lib/libcore-fixture.rlib'
+                    archive.rename(own / 'real-libraries/libcore-fixture.rlib')
+                    archive.symlink_to(own / 'real-libraries/libcore-fixture.rlib')
+            with self.subTest(link_directory=link_directory):
+                status, report = self.inventory(mutate=relocate)
+                self.assertEqual(status, 0)
+                self.assertTrue(report['baseline_tools_present'])
 
 
 if __name__ == '__main__':

@@ -1,0 +1,7 @@
+
+lib.rmeta:
+
+qsim_job_protocol-6b7e0f90cb33f929.qsim_job_protocol.1afa8958ff9c5258-cgu.0.rcgu.o:
+                 U _ZN4core5slice5index24slice_end_index_len_fail17h5d1b2fbea7aa5999E
+                 U memcpy
+                 U memset

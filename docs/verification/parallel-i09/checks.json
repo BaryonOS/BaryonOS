@@ -1,0 +1,32 @@
+{
+  "task": "I09 targeted preflight review fixes",
+  "base_commit": "68c8cb76aaf905dcdd60d1e702203269e07aab2f",
+  "passed": true,
+  "finished_utc": "2026-10-28T16:08:51.839915+00:00",
+  "host_tests": 21,
+  "original_tests": 14,
+  "additional_tests": 7,
+  "source_sha256": {
+    "tools/preflight.py": "5ac7de1385e61b5cccd06fbb2e1e8d77b3f3b63e5d9b2cebd699cfa27b36f15f",
+    "tests/test_preflight.py": "094980646e5bf1b4309ab9691bb81b15b255add6cce6e3080024f4f5c908d814"
+  },
+  "python_compile_passed": true,
+  "inventory_only": true,
+  "new_vm_runs": 0,
+  "standalone_strict_exit": 0,
+  "wrapper_strict_exit": 0,
+  "foreign_target_directory_library_and_rlib_strict_exits": [
+    2,
+    2,
+    2
+  ],
+  "evidence_sha256": {
+    "cross-target-before.json": "ad53648f646daf35ff462353e9c68f7c35785fc1a817f973edfe52d7ca3a3cc3",
+    "host-tests.json": "a9c0faecccbd4f8a46f16eb89f7564be817856ab16cb795cabd03e07c428a0f6",
+    "pinned-wrapper-after.json": "c4e0d72418341cd1039f76dad338fecc09ff76c85b822df1c21871dfa6d9c57d",
+    "reproduction-after.json": "37d0cd200cc5a293ea462e4f1aa38e3e2e671a944fe68bbe570de27dbeccc3cd",
+    "reproduction-before.json": "4ac0c614ff18cab28ec55c725a4f6f2e283c541b4ddf09334ab3e6e56969f072",
+    "standalone-before.json": "cc9f2625a9efd3230a72a670e4c083b815d85cd3a252825c7465f625bcaff5b0",
+    "verified-direct-after.json": "c49b5eaae97dcec4ebd071ebf62141680fdc95c90d8edc0a47475e5c2eef31ec"
+  }
+}

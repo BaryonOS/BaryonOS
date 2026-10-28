@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "task": "G07",
+  "source_commit": "ccb2112072574d45b9c94c6f7181de23828bf79a",
+  "source_sha256": {
+    "sdk/Cargo.toml": "f929cb38e635f84289d947d5fcbc9c15e32b09ec57793fa7bef743a9e641a60b",
+    "sdk/Cargo.lock": "1a62818cb453dfd2ab07d56550a3b9c85ce50b311ba4401eea49015b60424875",
+    "sdk/README.md": "a3227306954e01aa447abb36de770f2c30d861758f3f25dfe8bf1bc7d9628969",
+    "sdk/document-session/Cargo.toml": "a738cf966c7a2574b46759d872f7c7f3f2669c197a0d41d60ad0987d1dae2c85",
+    "sdk/document-session/README.md": "c0b053ee6e51630abf58166d4dd2d89942a859f58a1cc7a0be1bf472bff2117f",
+    "sdk/document-session/src/lib.rs": "d44f7105dbd6d6062a6ef65873f3160e870ae87fecbe0f0da8392556d5ee8e8e",
+    "sdk/document-session/tests/editing.rs": "0dde9b66305be7b6c93bb66ca78840ca1dfdfc1d3a31c4a7fd5e205e021a225f",
+    "sdk/runtime/src/lib.rs": "c035469159e16e8615606ffff9a6b3246c74be536db2a2be3594d67be2b590f6",
+    "sdk/runtime/src/message.rs": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab",
+    "sdk/runtime/src/native.rs": "48758b9c92ed890260a7c0f2c3aebe81be0d0581639b924dcd4e5a8084e70c15",
+    "sdk/catalog-client/src/lib.rs": "5ca84b64fc6fc7384a0f92a5eb3c0f7532ba7ce982fe1008b1a9cef27bb34244",
+    "services/catalog/src/client.rs": "1a1474e3a829a4c247046ee916019e5857a1603efd4620d95e0c4a50ea4f0878",
+    "services/catalog/src/journal.rs": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+    "services/catalog/src/lib.rs": "375921af0dc4e449ede38beae0ebcd5a6b465018a9448585af96119a86b407cd",
+    "services/catalog/src/user_service.rs": "f822b19496b47a155aa62505cbec042d75a9d30c5829eef2153a547fc1072e01",
+    "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+    "crates/capability-core/src/lib.rs": "e201e714ad4f6e8e65c84af42002dfed1ec84c182959038593fbfb0e71d0d807",
+    "crates/capability-core/src/tests.rs": "d2adb64b348a7a2cbf272ae9f97d27e0b0f69e7cf5bc8f4c631e526b6ea7153a"
+  },
+  "finished_utc": "2026-10-28T16:03:15.122596+00:00",
+  "commands": [
+    {
+      "name": "workspace-tests",
+      "argv": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--workspace",
+        "--locked",
+        "--offline"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-g01",
+      "cargo_target_dir": "/tmp/nieuw-os-par-g07-target",
+      "returncode": 0,
+      "duration_s": 0.6703730510016612,
+      "stdout": "workspace-tests.stdout.txt",
+      "stderr": "workspace-tests.stderr.txt",
+      "stdout_sha256": "dca23524bd20c4d7df0665bc2510ef838f616b66922874924857284040723783",
+      "stderr_sha256": "b615b8196b4a488d56098954dbbb7f38052742c150672c1726aa83e49a5978f2"
+    },
+    {
+      "name": "host-clippy",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-g01",
+      "cargo_target_dir": "/tmp/nieuw-os-par-g07-clippy-target",
+      "returncode": 0,
+      "duration_s": 1.124171210998611,
+      "stdout": "host-clippy.stdout.txt",
+      "stderr": "host-clippy.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "0c77a642e887b5f15f0855cf64413495f77cb00a7097789f94cc094695a5f1f3"
+    },
+    {
+      "name": "native-build",
+      "argv": [
+        "cargo",
+        "build",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-document-session",
+        "--lib",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-g01",
+      "cargo_target_dir": "/tmp/nieuw-os-par-g07-native-target",
+      "returncode": 0,
+      "duration_s": 0.46686619499814697,
+      "stdout": "native-build.stdout.txt",
+      "stderr": "native-build.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "aedd8d499baeafaed08a9ede6978be5639714f094abf613ed44dde2858af297b"
+    },
+    {
+      "name": "native-clippy",
+      "argv": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-document-session",
+        "--lib",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-g01",
+      "cargo_target_dir": "/tmp/nieuw-os-par-g07-native-clippy-target",
+      "returncode": 0,
+      "duration_s": 0.48843919400314917,
+      "stdout": "native-clippy.stdout.txt",
+      "stderr": "native-clippy.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "9969e7b9ad1ea7ce565d9ff0b46e3adc9c9756144a1306a414c41a9c0ca0de17"
+    },
+    {
+      "name": "format",
+      "argv": [
+        "rustfmt",
+        "--edition",
+        "2021",
+        "--config",
+        "skip_children=true",
+        "--check",
+        "sdk/document-session/src/lib.rs",
+        "sdk/document-session/tests/editing.rs"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-g01",
+      "cargo_target_dir": null,
+      "returncode": 0,
+      "duration_s": 0.04728121199877933,
+      "stdout": "format.stdout.txt",
+      "stderr": "format.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diff-check",
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "ccb2112072574d45b9c94c6f7181de23828bf79a"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-g01",
+      "cargo_target_dir": null,
+      "returncode": 0,
+      "duration_s": 0.023909478000859963,
+      "stdout": "diff-check.stdout.txt",
+      "stderr": "diff-check.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source_unchanged": true,
+  "underlying_dependencies_match_root_frozen_3e41": {
+    "sdk/runtime/src/lib.rs": true,
+    "sdk/runtime/src/message.rs": true,
+    "sdk/runtime/src/native.rs": true,
+    "sdk/catalog-client/src/lib.rs": true,
+    "services/catalog/src/client.rs": true,
+    "services/catalog/src/journal.rs": true,
+    "services/catalog/src/lib.rs": true,
+    "services/catalog/src/user_service.rs": true,
+    "services/catalog/src/wire.rs": true,
+    "crates/capability-core/src/lib.rs": true,
+    "crates/capability-core/src/tests.rs": true
+  },
+  "passed": true,
+  "host_test_count": 39,
+  "new_document_test_count": 12,
+  "native_target": "x86_64-unknown-none",
+  "native_runtime_performed": false,
+  "native_artifact": {
+    "kind": "Rust rlib; not executable app",
+    "path": "/tmp/nieuw-os-par-g07-native-target/x86_64-unknown-none/release/libnieuw_os_document_session.rlib",
+    "sha256": "c539dc9de4450126ca0d45aa2d7467956799505603a8c2f4e7ce9f8e238755e3",
+    "bytes": 77336
+  },
+  "limitations": [
+    "Host service model orders in-memory WRITE/FLUSH completions and real journal commits/recovery; no native durability claim.",
+    "No G1/Materiaal/GUI/appstart change.",
+    "ReadOnly is local app policy, never authority.",
+    "Only existing documents; name and object remain unchanged; contents remain opaque bytes."
+  ],
+  "development_corrections": [
+    "Initial host fixture attempted non-monotonic PID registration; the real engine rejected it. Fixed registration order only.",
+    "Negative reversed-range test expressed as an explicit Range struct to satisfy Clippy without suppressing the lint."
+  ],
+  "root_checkout_modified_by_task": false
+}

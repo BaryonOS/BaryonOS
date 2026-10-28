@@ -1,0 +1,7 @@
+    Blocking waiting for file lock on package cache
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/sdk/runtime)
+    Checking catalog-core v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/services/catalog)
+    Checking capability-core v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/crates/capability-core)
+    Checking nieuw-os-catalog-client v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/sdk/catalog-client)
+    Checking nieuw-os-document-session v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/sdk/document-session)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.09s

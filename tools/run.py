@@ -44,6 +44,8 @@ def is_success(returncode, stdout, timed_out=False, *, required_markers=MARKERS,
 def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
               expected_exit=33, forbidden_markers=FAIL_MARKERS, m5_case=None, m5_seed=None,
               expected_kernel_sha256=None, expected_loader_sha256=None):
+    if not BUILD.resolve().is_relative_to(ROOT.resolve()):
+        raise ValueError("NOS_BUILD_DIR must be inside the checkout for QEMU runs")
     if not 0 < timeout <= 60:
         raise ValueError("guest timeout must be in (0,60]")
     machine = qemu_machine()

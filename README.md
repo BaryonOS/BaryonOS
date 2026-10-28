@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`3e41bbf9`](https://github.com/simonvanieperen/nieuw-os/commit/3e41bbf93822f7044c6020259f4a752925e1966d) ·
+**Bron:** [`62c97e95`](https://github.com/simonvanieperen/nieuw-os/commit/62c97e95fdd8f04c863e3ac8c7499b32427fb663) ·
 **Ontwikkelbranch:** `codex/parallel-native-foundation-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Gecombineerde native acceptatie: 80 VM-runs en doorbouw documentsessie/jobcodec/G0-capture.
-Vier echte agents. Native G0, SDK/catalogus met koude recovery, M6b-foutafhandeling, twee quantumprocessen en volledige M3-regressie geaccepteerd: 80 VMs,616 gecontroleerde artifacthashes. Oorspronkelijk afwijkend G0artifact uitgesloten; versepipe-run bevestigd. A01/U03/S04/S05/L02 blijven volgens vastecriteria open. Score14%; vervolgbouw in eigenworktrees.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Doorbouw: documentsessie, quantumjobcodec en G0-capture; gerichte CodeRabbit-reparaties.
+Na 80 geaccepteerde native VMs op3e41 zijn G07 documentsessie, I08 jobcodec en B07 capture geïntegreerd; host/native-librarycontroles groen. Bestaande kernel/dienst/probebron blijft bytegelijk. I09 herstelt directe Rustdetectie en targetsubstitutie; actuele gerichte VM-capture en onafhankelijke reviews volgen. A01/U03/S04/S05/L02 blijven open; vaste score14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

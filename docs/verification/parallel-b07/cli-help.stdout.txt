@@ -1,0 +1,13 @@
+usage: capture_graphics.py [-h] --run-dir RUN_DIR --destination DESTINATION
+
+Recheck a finished G0 run and atomically publish a new text/PNG archive. No
+VM, repaired log, raw binary, firmware or disk image is produced. Linux
+renameat2(RENAME_NOREPLACE) is required for publication without replacement.
+PNG is the bounded RGB8/filter-0 subset of W3C PNG, 24 June 2025:
+https://www.w3.org/TR/2025/REC-png-3-20250624/
+
+options:
+  -h, --help            show this help message and exit
+  --run-dir RUN_DIR     Existing completed G0 run directory
+  --destination DESTINATION
+                        New direct child of docs/verification; never replaced

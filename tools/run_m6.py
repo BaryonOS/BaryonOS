@@ -194,6 +194,8 @@ def execute(args, env, *, cut=None, timeout=60, capture_directory=None):
 
 
 def run_m6(case="normal", *, volume: Volume | None = None, label=None, timeout=60):
+    if not BUILD.resolve().is_relative_to(ROOT.resolve()):
+        raise ValueError("NOS_BUILD_DIR must be inside the checkout for QEMU runs")
     machine = qemu_machine()
     if case not in ("normal",) + M6A_CASES:
         raise ValueError("Unknown M6a case")
