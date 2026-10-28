@@ -207,12 +207,12 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **P03 — Meerdere apparaten en key lifecycle** | 1 | Open | Apparaten kunnen veilig worden toegevoegd/ingetrokken; sleutelrotatie, gelijktijdige schrijvers en herstel werken zonder leverancierssleutelbewaring. |
 | **P04 — Ruimte aanbieden, intrekken en verwijderen** | 1 | Open | De native NAS-beheerder beheert quota en trekt gastautoriteit in/verwijdert eigen kopieën zonder gastconsent of decryptiesleutel; oude sessies herleven niet. |
 
-### L — Lokale AI en quantum-runtime (0/3)
+### L — Lokale AI en quantum-runtime (1/3)
 
 | Criterium | Punten | Status | Acceptatie en bewijs |
 |---|---:|---|---|
 | **L01 — Bruikbare lokale systeem-AI** | 2 | Open | Minstens de afgesproken AI-kerntaken draaien op het eigen apparaat met begrensde context, afzonderlijke modeldownloads en geteste netwerkweigering; beperkte resources leiden niet tot cloudfallback. |
-| **L02 — Lokale quantumuitvoering op eigen OS** | 1 | Open | De lokale simulator/jobinterface draait native met quota, annulering en referentiecircuits; hostsimulatie en fysieke QPU-ondersteuning blijven afzonderlijk gelabeld. |
+| **L02 — Lokale quantumuitvoering op eigen OS** | 1 | Behaald | De lokale simulator/jobinterface draait native met quota, annulering en referentiecircuits; hostsimulatie en fysieke QPU-ondersteuning blijven afzonderlijk gelabeld. [bewijs 1](../docs/verification/L02-ACCEPTANCE.md) |
 
 ### R — Dagelijks gebruik en onderhoudbare release (0/5)
 
