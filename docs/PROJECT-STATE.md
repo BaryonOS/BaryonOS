@@ -4,7 +4,7 @@ De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hie
 
 ## Doorbouw — opslagtimeouts en native grafische basis
 
-Integratiecheckpoint: `main` op `391f02e` (M6C/D, PR #13) wordt via normale merge
+Integratiecheckpoint: `main` op `391f02e` (M6C/D, PR #13) is via normale merge
 opgenomen. Alle catalogus-/M6d-features, `archive_destination` met direct-child-
 grens en Windows `wait(timeout=10)` blijven behouden. De andere chat beheert
 haar afzonderlijke M6a-observerbranch; die bron is hier niet overschreven.
@@ -30,8 +30,13 @@ geen browser, volledige desktop of opslagadapter. De pure `ui-core` is aanwezig
 met tien geslaagde hosttests; de native GOP-/kernelintegratie staat klaar voor
 de eerste hardwareproef. Elf bootprotocoltests, drie grafische harnastests,
 fmt/Clippy/no_std slagen. Standaard BootInfo 1.1 blijft behouden. Deze
-tussenstand bevat nog geen bewezen native grafische uitvoering; logs en
-verdere verificatie volgen. De eerste G0-start faalde vóór kernelboot door een
+De eerste native G0-run op `f2c4055` slaagt: raw 33, eigen post-EBS/M2-uitvoer,
+800×600-framebuffer, echte QMP-toetsen a/b/backspace/c en aantoonbaar alleen
+gewijzigde pixels in de invoerregel. Backspace herstelt exact het eerdere beeld.
+Dit bewijst RAM-invoer en grafische bootstrap, geen compositor of opslagUI.
+Het harnas wordt nog aangescherpt met exacte marker-/geometriecontrole;
+nieuwe gecombineerde eindgates volgen. Bewijs: `verification/graphics-g0-first/`.
+De eerste G0-start faalde vóór kernelboot door een
 ontbrekende VGA-ROM-lookup. De reeds geïnstalleerde officiële SeaBIOS-ROM is nu
 uitsluitend in de projectlokale QEMU-datamap gelinkt; de mislukte run blijft
 failed bewaard.

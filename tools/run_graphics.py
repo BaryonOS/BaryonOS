@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import socket
@@ -41,6 +42,25 @@ def changed_bounds(before, after):
             x, y = pixel % width, pixel // width
             left, top, right, bottom = min(left,x), min(top,y), max(right,x), max(bottom,y)
     return None if right < 0 else (left,top,right+1,bottom+1)
+
+
+def valid_sequence(stdout, screenshot_width, screenshot_height):
+    lines = stdout.splitlines()
+    dimensions = [line for line in lines if line.startswith('G0:FRAMEBUFFER:')]
+    if len(dimensions) != 1:
+        return False
+    match = re.fullmatch(r'G0:FRAMEBUFFER:([0-9]{1,4}):([0-9]{1,4}):([0-9]{1,4}):([01])', dimensions[0])
+    if not match:
+        return False
+    width, height, stride, _ = map(int, match.groups())
+    if (width,height) != (screenshot_width,screenshot_height) or not width <= stride <= 4096:
+        return False
+    expected = ['BOOT:EBS_OK','KERNEL:ENTRY','BOOTINFO:OK','KS-01:PASS','KS-02:PASS','KS-03:PASS',
+                dimensions[0], 'G0:MAPPINGS:PASS','G0:READY','G0:INPUT:1','G0:INPUT:2',
+                'G0:INPUT:1','G0:INPUT:2','G0:PASS','M1:PASS']
+    controlled = [line for line in lines if line.startswith(('BOOT:EBS_','KERNEL:ENTRY','BOOTINFO:',
+        'KS-','G0:','M1:','M2:','M3:','M4:','M5:','M6'))]
+    return controlled == expected
 
 
 class Qmp:
@@ -124,6 +144,7 @@ def run_graphics():
     failure = None
     control = None
     checks = {}
+    screen_size = (0,0)
     rc = None
     trace = []
     with (directory/'serial.txt').open('wb') as stdout, (directory/'stderr.txt').open('wb') as stderr:
@@ -151,6 +172,7 @@ def run_graphics():
                 time.sleep(0.05)
             wait_for('G0:READY')
             initial = screenshot('initial')
+            screen_size = ppm(initial)[:2]
             key('a'); wait_for('G0:INPUT:1')
             first = screenshot('a')
             key('b'); wait_for('G0:INPUT:2')
@@ -183,12 +205,7 @@ def run_graphics():
     checks['real_exit33'] = rc==33
     checks['post_ebs_kernel_m2'] = all(lines.count(marker)==1 for marker in
         ('BOOT:EBS_OK','KERNEL:ENTRY','BOOTINFO:OK','KS-01:PASS','KS-02:PASS','KS-03:PASS'))
-    controlled = [line for line in lines if line.startswith('G0:')]
-    expected = ['G0:MAPPINGS:PASS','G0:READY','G0:INPUT:1','G0:INPUT:2',
-                'G0:INPUT:1','G0:INPUT:2','G0:PASS']
-    dimensions = [line for line in controlled if line.startswith('G0:FRAMEBUFFER:')]
-    checks['exact_g0_sequence'] = (len(dimensions)==1
-        and [line for line in controlled if not line.startswith('G0:FRAMEBUFFER:')]==expected)
+    checks['exact_g0_sequence'] = valid_sequence(text,*screen_size)
     checks['no_guest_failure'] = not any(marker in text for marker in ('FAIL','KERNEL_PANIC','M2:PANIC_LINE:'))
     checks['source_unchanged'] = source_hash()==frozen
     checks['normal_end_marker'] = lines.count('M1:PASS')==1
@@ -199,6 +216,7 @@ def run_graphics():
         source_fingerprint_version=3,source_sha256=frozen,
         base_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
         qemu_version=subprocess.check_output([qemu,'--version'],env=env,text=True).strip(),
+        qemu_entry_path=qemu,qemu_entry_sha256=sha256(Path(qemu)),
         run_directory=str(directory),stdout=text,
         artifacts={p.relative_to(directory).as_posix():sha256(p) for p in directory.rglob('*') if p.is_file()},
         changed_bounds=checks.get('only_input_row_changes') and bounds)

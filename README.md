@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`7c052180`](https://github.com/simonvanieperen/nieuw-os/commit/7c0521804d4c9eb76260fb44c487e634fa449671) ·
+**Bron:** [`f2c40551`](https://github.com/simonvanieperen/nieuw-os/commit/f2c4055120b893f004c11bf9b845f0f37c92adaf) ·
 **Ontwikkelbranch:** `codex/m6b-storage-errors`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Integreer main 391f02e met M6C/D, opslagtimeouts en opt-in G0; native eindgates nog uit te voeren.
-M6C/D en hun brongebonden historische bewijs zijn behouden. Vijf gerichte M6b-timeout/cancelproeven slagen op 9c0c434; G0-bron bouwt, eerste hardwarepoging faalde op ontbrekende projectlokale VGA-ROM. Nieuwe gecombineerde native gates volgen. Geen volledig nieuw roadmapcriterium geaccepteerd: H02/H03/U01 en algemeen herstel blijven open. Score 14% naar 14%.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Native G0 start en toetsenbordproef na main-integratie; eindregressies volgen.
+G0 voert echte beeldschermuitvoer en PS2-RAMinvoer uit in QEMU na EBS/M2; typen en backspace zijn met echte framebufferbeelden gecontroleerd. Geen compositor/sessie, audio/USB of fysieke-hardwarebewijs, dus U01/H02/H03 blijven open. Vijf gerichte M6b-timeout/cancelproeven geslaagd op eerdere bron; gecombineerde eindgates volgen. Score blijft 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

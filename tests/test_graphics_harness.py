@@ -3,7 +3,7 @@ from pathlib import Path
 import sys
 import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'tools'))
-from run_graphics import ppm, changed_bounds
+from run_graphics import ppm, changed_bounds, valid_sequence
 
 
 def frame(width=4, height=3, pixels=None):
@@ -29,6 +29,21 @@ class FramebufferEvidence(unittest.TestCase):
     def test_resolution_substitution_and_truncated_images_fail(self):
         with self.assertRaises(ValueError): changed_bounds(frame(),frame(3,4))
         with self.assertRaises(ValueError): changed_bounds(frame(),frame()[:-1])
+
+    def test_serial_geometry_order_and_actual_framebuffer_must_agree(self):
+        markers = ['BOOT:EBS_OK','KERNEL:ENTRY','BOOTINFO:OK','KS-01:PASS','KS-02:PASS','KS-03:PASS',
+                   'G0:FRAMEBUFFER:800:600:800:1','G0:MAPPINGS:PASS','G0:READY',
+                   'G0:INPUT:1','G0:INPUT:2','G0:INPUT:1','G0:INPUT:2','G0:PASS','M1:PASS']
+        output = '\n'.join(markers)+'\n'
+        self.assertTrue(valid_sequence(output,800,600))
+        self.assertFalse(valid_sequence(output,1024,768))
+        for old,new in [('800:600:800:1','800:600:799:1'),('800:600:800:1','800:600:800:2'),
+                        ('800:600:800:1','foo'),('G0:READY','G0:READY\nM6B:PASS')]:
+            self.assertFalse(valid_sequence(output.replace(old,new),800,600))
+        for index in range(len(markers)-1):
+            altered = markers.copy()
+            altered[index],altered[index+1] = altered[index+1],altered[index]
+            self.assertFalse(valid_sequence('\n'.join(altered),800,600))
 
 
 if __name__ == '__main__': unittest.main()
