@@ -23,6 +23,7 @@ dependencies = [
 name = "nieuw-os-catalog-read-example"
 version = "0.1.0"
 dependencies = [
+ "catalog-core",
  "nieuw-os-catalog-client",
  "nieuw-os-sdk-runtime",
 ]
