@@ -1,0 +1,856 @@
+{
+  "task": "R09 independent M6d final native audit",
+  "passed": true,
+  "audited_utc": "2026-10-28T09:02:49.369569+00:00",
+  "source_commit": "88e6c04be218b8b09ea4f0a226f6b9719da706a6",
+  "source_fingerprint_version": 3,
+  "source_sha256": "8ca6d5d5291fde62f91fb47dca7df4d058424604449fb32b9e5899b1d4fbef93",
+  "source_files_checked_against_commit": 144,
+  "host_test_files_checked_against_commit": 4,
+  "groups": 35,
+  "vm_invocations": 31,
+  "m6c_invocations": 30,
+  "m1_invocations": 1,
+  "completed_exit33": 29,
+  "external_kill_exit_minus9": 2,
+  "cold_recoveries": 14,
+  "fault_cases": 8,
+  "unique_volumes": 16,
+  "recorded_artifact_hashes_verified": 274,
+  "all_actual_run_files_hashed": 368,
+  "archive_hashes_verified": 12,
+  "valid_v2_records_across_unique_volumes": 78,
+  "nonempty_records_exported": 80,
+  "base_commit_metadata_counts": {
+    "88e6c04be218b8b09ea4f0a226f6b9719da706a6": 31
+  },
+  "host_groups": [
+    {
+      "name": "strict-development-inventory",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "returncode": 0,
+      "gate_time_log_sha256": {
+        "m6c-preflight.stdout.txt": "b7f85e6e77dd8348eb62c4b899269de0aa92aa2efea0c6a9c5a62c1d0425e801",
+        "m6c-preflight.json": "683a722ad26065c359ba2145c5548bcf5b83f7d04d68229659ff852fb4cc908b",
+        "m6c-preflight.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "test_counts": null
+    },
+    {
+      "name": "catalog-core-and-wire-host-tests",
+      "command": [
+        "/workspace/scratch/2ffeac9e0e8f/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "catalog-core"
+      ],
+      "returncode": 0,
+      "gate_time_log_sha256": {
+        "m6c-host-tests.stdout.txt": "26ba86ae22d2c7756d3757ad74c3bbe723954e6a16f3c801eba4fa150076d726",
+        "m6c-host-tests.json": "4e97007ccc95b3e4034e1acb88689ca0840516a15431e212a47b161d545188af",
+        "m6c-host-tests.stderr.txt": "213a7feb2d7f4bd0a4a4694cffa0f36a042aaaa69c8141b1dafd178311dfa5cf"
+      },
+      "test_counts": {
+        "rust_tests": 30
+      }
+    },
+    {
+      "name": "external-oracle-and-crash-harness-tests",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m6c_*.py"
+      ],
+      "returncode": 0,
+      "gate_time_log_sha256": {
+        "m6c-harness-tests.stdout.txt": "6ed46d39fa982414e91413bc0f298ece7f15e7242d77dd45962c897aafd61101",
+        "m6c-harness-tests.json": "1bc52c187cacc71649e717196bef5cbcff95423bda0e033d55d6c793b46a6729",
+        "m6c-harness-tests.stderr.txt": "b7d0bc061e19b6c4e4c80468bdcea0e751791271a5ece74dc048a60fbe1fb49c"
+      },
+      "test_counts": {
+        "python_tests": 48
+      }
+    }
+  ],
+  "runs": [
+    {
+      "name": "normal-a",
+      "case": "normal",
+      "raw_exit": 33,
+      "process_id": 4046,
+      "artifacts": 9,
+      "serial_sha256": "b3873fd5138011dca2171cf6f28c4af55869207a13d6cd09ea9bf427e058bbf0",
+      "volume_identity": "076f329bee7b4af8981159e7a273ee7c",
+      "image_after_sha256": "4d2981a85ec08c931d67b3c6769204f1d63aff58dd114bd45b895826d38716c0",
+      "journal_sequence": 10,
+      "passed": true
+    },
+    {
+      "name": "normal-a-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 4437,
+      "artifacts": 9,
+      "serial_sha256": "ec0f2d17fd62f7ef7065527c3c043a207b0053c111fbef5be181a600e90219cc",
+      "volume_identity": "076f329bee7b4af8981159e7a273ee7c",
+      "image_after_sha256": "4d2981a85ec08c931d67b3c6769204f1d63aff58dd114bd45b895826d38716c0",
+      "journal_sequence": 10,
+      "passed": true
+    },
+    {
+      "name": "normal-b",
+      "case": "normal",
+      "raw_exit": 33,
+      "process_id": 4780,
+      "artifacts": 9,
+      "serial_sha256": "b3873fd5138011dca2171cf6f28c4af55869207a13d6cd09ea9bf427e058bbf0",
+      "volume_identity": "367389fc2ec74fe38cff9a7e8b3267e0",
+      "image_after_sha256": "ea7894f965b4d0a8caa72a4c7de33c0193754ba103e48921e1a6d72186e5bacf",
+      "journal_sequence": 10,
+      "passed": true
+    },
+    {
+      "name": "normal-b-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 5149,
+      "artifacts": 9,
+      "serial_sha256": "ec0f2d17fd62f7ef7065527c3c043a207b0053c111fbef5be181a600e90219cc",
+      "volume_identity": "367389fc2ec74fe38cff9a7e8b3267e0",
+      "image_after_sha256": "ea7894f965b4d0a8caa72a4c7de33c0193754ba103e48921e1a6d72186e5bacf",
+      "journal_sequence": 10,
+      "passed": true
+    },
+    {
+      "name": "errors",
+      "case": "errors",
+      "raw_exit": 33,
+      "process_id": 5503,
+      "artifacts": 9,
+      "serial_sha256": "eeecef62d7f5508c0ea5a365ce6ec99edd6e6cc69977a6cd1b74d162696a70c9",
+      "volume_identity": "40d677e1a0a440f18ebd395c3f7276a4",
+      "image_after_sha256": "2c7ee49864e8c2ae3fe87ddb4cbb029cc67e98f135c72f0ccddea0a042d38b8b",
+      "journal_sequence": 10,
+      "passed": true
+    },
+    {
+      "name": "errors-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 5873,
+      "artifacts": 9,
+      "serial_sha256": "ec0f2d17fd62f7ef7065527c3c043a207b0053c111fbef5be181a600e90219cc",
+      "volume_identity": "40d677e1a0a440f18ebd395c3f7276a4",
+      "image_after_sha256": "2c7ee49864e8c2ae3fe87ddb4cbb029cc67e98f135c72f0ccddea0a042d38b8b",
+      "journal_sequence": 10,
+      "passed": true
+    },
+    {
+      "name": "full",
+      "case": "full",
+      "raw_exit": 33,
+      "process_id": 6226,
+      "artifacts": 9,
+      "serial_sha256": "6ccfc9a9eeeb290b650f7b00b26951109be68dfcff5dc8c8673e9aacc65d3d2b",
+      "volume_identity": "0c9e43fa440a4d4ba74d772aa3b5759a",
+      "image_after_sha256": "bd920ccf500c8eb5d441f877edbe06d69700c183e6b55da23b3790256188be75",
+      "journal_sequence": 32,
+      "passed": true
+    },
+    {
+      "name": "full-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 6561,
+      "artifacts": 9,
+      "serial_sha256": "3fd4918513a20d54d49bf3bf71781c65257f850a2493936b06c522f7ab3f499a",
+      "volume_identity": "0c9e43fa440a4d4ba74d772aa3b5759a",
+      "image_after_sha256": "bd920ccf500c8eb5d441f877edbe06d69700c183e6b55da23b3790256188be75",
+      "journal_sequence": 32,
+      "passed": true
+    },
+    {
+      "name": "corrupt",
+      "case": "corrupt",
+      "raw_exit": 33,
+      "process_id": 6914,
+      "artifacts": 9,
+      "serial_sha256": "afc36e4eb9b22bf5a1d6064b27063b96f3a1d522222d60908dc78dfbcba3b304",
+      "volume_identity": "79e0a9b17a414c0bad9373784f103d85",
+      "image_after_sha256": "95fc7e13a59927ee246b851aa53ac4988d8cc42e971c8907b821b9a05b85753e",
+      "journal_sequence": null,
+      "passed": true
+    },
+    {
+      "name": "legacy",
+      "case": "legacy",
+      "raw_exit": 33,
+      "process_id": 7304,
+      "artifacts": 9,
+      "serial_sha256": "1fde27906e51f9813f5642783c736c91292bafb710d47466a6ebceab42b46ee2",
+      "volume_identity": "341cde34a7374ac4b3485135f0920cd4",
+      "image_after_sha256": "d1a0143122166fbef7e4c760c22670d739b8a74d79d0ed0fcd974a6bdf935fb3",
+      "journal_sequence": null,
+      "passed": true
+    },
+    {
+      "name": "vm-cut-before-rename",
+      "case": "vm-cut-before-rename",
+      "raw_exit": -9,
+      "process_id": 7658,
+      "artifacts": 9,
+      "serial_sha256": "67c7bcc79f4248a97ac9c95087590291c14965976d2870895fc3a22bdaeae802",
+      "volume_identity": "64e6881b683f4812b49b5efad67efd44",
+      "image_after_sha256": "4465c4fed66397bb54784a05804710b217c0af3a67a99b3e566fdb55463e0a1c",
+      "journal_sequence": 1,
+      "passed": true
+    },
+    {
+      "name": "vm-cut-before-rename-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 8026,
+      "artifacts": 9,
+      "serial_sha256": "dd607760f30f0ad4029779e702bc89a07689f920eb13c5fb9fd62695d76ea039",
+      "volume_identity": "64e6881b683f4812b49b5efad67efd44",
+      "image_after_sha256": "4465c4fed66397bb54784a05804710b217c0af3a67a99b3e566fdb55463e0a1c",
+      "journal_sequence": 1,
+      "passed": true
+    },
+    {
+      "name": "vm-cut-after-rename",
+      "case": "vm-cut-after-rename",
+      "raw_exit": -9,
+      "process_id": 8408,
+      "artifacts": 9,
+      "serial_sha256": "d468e8848670b394cabc1710bfcd4dd6b8939601e4c74b8da31e7448c24a4495",
+      "volume_identity": "6bd5a5e97d4042b4b55fdc364b844a06",
+      "image_after_sha256": "32c5e3fd6ced9fe1b33069e360228ab90c7b9b959abb447651765a43f11eac76",
+      "journal_sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "vm-cut-after-rename-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 8741,
+      "artifacts": 9,
+      "serial_sha256": "5ef8a6544a112c6a78f766fe7b2fd83d03fdd5a87ba7682f64fd8329d9fea8ab",
+      "volume_identity": "6bd5a5e97d4042b4b55fdc364b844a06",
+      "image_after_sha256": "32c5e3fd6ced9fe1b33069e360228ab90c7b9b959abb447651765a43f11eac76",
+      "journal_sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "write-error",
+      "case": "write-error",
+      "raw_exit": 33,
+      "process_id": 9073,
+      "artifacts": 9,
+      "serial_sha256": "800d166e4b7c79f27620d80c01152e2679df95485637fad5ca5fa0acdd07ac00",
+      "volume_identity": "7c892bf1caa24ff6830ffadf16560e61",
+      "image_after_sha256": "fa98ebf512ce5cdc9ceeb82db9a721912943dd8d1d69b0e47aafef8dbeccd5f1",
+      "journal_sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "write-error-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 9405,
+      "artifacts": 9,
+      "serial_sha256": "5ef8a6544a112c6a78f766fe7b2fd83d03fdd5a87ba7682f64fd8329d9fea8ab",
+      "volume_identity": "7c892bf1caa24ff6830ffadf16560e61",
+      "image_after_sha256": "fa98ebf512ce5cdc9ceeb82db9a721912943dd8d1d69b0e47aafef8dbeccd5f1",
+      "journal_sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "flush-error",
+      "case": "flush-error",
+      "raw_exit": 33,
+      "process_id": 9758,
+      "artifacts": 9,
+      "serial_sha256": "e92c5fba3f9766c26e52a555ee697ebc88dd3a5fbf7f6c9c07f6d7de6f5ab904",
+      "volume_identity": "e74fb006d7904b57be46407713afdfc9",
+      "image_after_sha256": "fb401994fc958eb23bca252593400d62b79e609c5b78f6a0e3b3776472765afc",
+      "journal_sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "flush-error-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 10120,
+      "artifacts": 9,
+      "serial_sha256": "5ef8a6544a112c6a78f766fe7b2fd83d03fdd5a87ba7682f64fd8329d9fea8ab",
+      "volume_identity": "e74fb006d7904b57be46407713afdfc9",
+      "image_after_sha256": "fb401994fc958eb23bca252593400d62b79e609c5b78f6a0e3b3776472765afc",
+      "journal_sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "write-timeout",
+      "case": "write-timeout",
+      "raw_exit": 33,
+      "process_id": 10474,
+      "artifacts": 9,
+      "serial_sha256": "72a586aa5c8197b8adba937a60dc9c8975a5669db090d9be330c90a57b36c389",
+      "volume_identity": "3db4724cae1240289da8b668f16decda",
+      "image_after_sha256": "07db1888a7068b4f5d3ffed37bfb73494143436921a419b60666d33e04d07af3",
+      "journal_sequence": 1,
+      "passed": true
+    },
+    {
+      "name": "write-timeout-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 10809,
+      "artifacts": 9,
+      "serial_sha256": "dd607760f30f0ad4029779e702bc89a07689f920eb13c5fb9fd62695d76ea039",
+      "volume_identity": "3db4724cae1240289da8b668f16decda",
+      "image_after_sha256": "07db1888a7068b4f5d3ffed37bfb73494143436921a419b60666d33e04d07af3",
+      "journal_sequence": 1,
+      "passed": true
+    },
+    {
+      "name": "flush-timeout",
+      "case": "flush-timeout",
+      "raw_exit": 33,
+      "process_id": 11163,
+      "artifacts": 9,
+      "serial_sha256": "8b60b94d40f980c12d915ff49d678a10fa4ecf205e81cb2b7a53c9156a13c687",
+      "volume_identity": "8242d52df83a43cf8a0982abfd287ba4",
+      "image_after_sha256": "77fea337460321d174061aef0ef4f887738479d3435a247c18576afe05179eb9",
+      "journal_sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "flush-timeout-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 11507,
+      "artifacts": 9,
+      "serial_sha256": "5ef8a6544a112c6a78f766fe7b2fd83d03fdd5a87ba7682f64fd8329d9fea8ab",
+      "volume_identity": "8242d52df83a43cf8a0982abfd287ba4",
+      "image_after_sha256": "77fea337460321d174061aef0ef4f887738479d3435a247c18576afe05179eb9",
+      "journal_sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "reset-timeout",
+      "case": "reset-timeout",
+      "raw_exit": 33,
+      "process_id": 11870,
+      "artifacts": 9,
+      "serial_sha256": "623c3f2e4519a4f56f90b8700fb32df547bdb7f06a164e2ebb8ffc960cd53cbf",
+      "volume_identity": "d18ddd8069c04e75b4bddcb0c552498c",
+      "image_after_sha256": "b0ea92f27dab7c5483c5649b0807b2fc67c57ab51e7978665c40224102ae94a5",
+      "journal_sequence": 1,
+      "passed": true
+    },
+    {
+      "name": "reset-timeout-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 12203,
+      "artifacts": 9,
+      "serial_sha256": "dd607760f30f0ad4029779e702bc89a07689f920eb13c5fb9fd62695d76ea039",
+      "volume_identity": "d18ddd8069c04e75b4bddcb0c552498c",
+      "image_after_sha256": "b0ea92f27dab7c5483c5649b0807b2fc67c57ab51e7978665c40224102ae94a5",
+      "journal_sequence": 1,
+      "passed": true
+    },
+    {
+      "name": "bad-descriptor",
+      "case": "bad-descriptor",
+      "raw_exit": 33,
+      "process_id": 12556,
+      "artifacts": 9,
+      "serial_sha256": "0c730506f0abe3d36c69e4c4926ca088ff0e0efa6838bd7270ba0ba2d22d5339",
+      "volume_identity": "c329144991aa411db7759ee988601d68",
+      "image_after_sha256": "3559d41a81a89536c56515c64d1fa9a602264ddab9af5a766d7a7fae39c02964",
+      "journal_sequence": 1,
+      "passed": true
+    },
+    {
+      "name": "bad-descriptor-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 12888,
+      "artifacts": 9,
+      "serial_sha256": "dd607760f30f0ad4029779e702bc89a07689f920eb13c5fb9fd62695d76ea039",
+      "volume_identity": "c329144991aa411db7759ee988601d68",
+      "image_after_sha256": "3559d41a81a89536c56515c64d1fa9a602264ddab9af5a766d7a7fae39c02964",
+      "journal_sequence": 1,
+      "passed": true
+    },
+    {
+      "name": "used-write",
+      "case": "used-write",
+      "raw_exit": 33,
+      "process_id": 13242,
+      "artifacts": 9,
+      "serial_sha256": "b12497c6bf5c3fe43ca86f921b9e3aa19421f6403a61f2cd3a2af7736feb2154",
+      "volume_identity": "51ef345ec3894fec8d4c0af02469110a",
+      "image_after_sha256": "c95cb6eedca0bff9d6824b4d4ac76efc142a296795c3a04228d468118207cedc",
+      "journal_sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "used-write-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 13604,
+      "artifacts": 9,
+      "serial_sha256": "5ef8a6544a112c6a78f766fe7b2fd83d03fdd5a87ba7682f64fd8329d9fea8ab",
+      "volume_identity": "51ef345ec3894fec8d4c0af02469110a",
+      "image_after_sha256": "c95cb6eedca0bff9d6824b4d4ac76efc142a296795c3a04228d468118207cedc",
+      "journal_sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "used-flush",
+      "case": "used-flush",
+      "raw_exit": 33,
+      "process_id": 13958,
+      "artifacts": 9,
+      "serial_sha256": "2de8b9ddb7b41d1b8fd24027c94730bf6e4834dcfcf78b02cc4c1a618fa577d7",
+      "volume_identity": "be5099b66ba2467e89a2a9f20a30e8f0",
+      "image_after_sha256": "eaa4cd252757b427405396e1e74c755ca3adb294597a6c7506ae0208ed0329c8",
+      "journal_sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "used-flush-cold-recovery",
+      "case": "recover",
+      "raw_exit": 33,
+      "process_id": 14291,
+      "artifacts": 9,
+      "serial_sha256": "5ef8a6544a112c6a78f766fe7b2fd83d03fdd5a87ba7682f64fd8329d9fea8ab",
+      "volume_identity": "be5099b66ba2467e89a2a9f20a30e8f0",
+      "image_after_sha256": "eaa4cd252757b427405396e1e74c755ca3adb294597a6c7506ae0208ed0329c8",
+      "journal_sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "m1-regression-after-m6c",
+      "case": "m1",
+      "raw_exit": 33,
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "artifacts": 4,
+      "passed": true
+    }
+  ],
+  "cold_pairs": [
+    {
+      "run": "normal-a-cold-recovery",
+      "previous_run": "normal-a",
+      "same_identity": "076f329bee7b4af8981159e7a273ee7c",
+      "image_sha256": "4d2981a85ec08c931d67b3c6769204f1d63aff58dd114bd45b895826d38716c0",
+      "sequence": 10,
+      "process_ids": [
+        4046,
+        4437
+      ]
+    },
+    {
+      "run": "normal-b-cold-recovery",
+      "previous_run": "normal-b",
+      "same_identity": "367389fc2ec74fe38cff9a7e8b3267e0",
+      "image_sha256": "ea7894f965b4d0a8caa72a4c7de33c0193754ba103e48921e1a6d72186e5bacf",
+      "sequence": 10,
+      "process_ids": [
+        4780,
+        5149
+      ]
+    },
+    {
+      "run": "errors-cold-recovery",
+      "previous_run": "errors",
+      "same_identity": "40d677e1a0a440f18ebd395c3f7276a4",
+      "image_sha256": "2c7ee49864e8c2ae3fe87ddb4cbb029cc67e98f135c72f0ccddea0a042d38b8b",
+      "sequence": 10,
+      "process_ids": [
+        5503,
+        5873
+      ]
+    },
+    {
+      "run": "full-cold-recovery",
+      "previous_run": "full",
+      "same_identity": "0c9e43fa440a4d4ba74d772aa3b5759a",
+      "image_sha256": "bd920ccf500c8eb5d441f877edbe06d69700c183e6b55da23b3790256188be75",
+      "sequence": 32,
+      "process_ids": [
+        6226,
+        6561
+      ]
+    },
+    {
+      "run": "vm-cut-before-rename-cold-recovery",
+      "previous_run": "vm-cut-before-rename",
+      "same_identity": "64e6881b683f4812b49b5efad67efd44",
+      "image_sha256": "4465c4fed66397bb54784a05804710b217c0af3a67a99b3e566fdb55463e0a1c",
+      "sequence": 1,
+      "process_ids": [
+        7658,
+        8026
+      ]
+    },
+    {
+      "run": "vm-cut-after-rename-cold-recovery",
+      "previous_run": "vm-cut-after-rename",
+      "same_identity": "6bd5a5e97d4042b4b55fdc364b844a06",
+      "image_sha256": "32c5e3fd6ced9fe1b33069e360228ab90c7b9b959abb447651765a43f11eac76",
+      "sequence": 2,
+      "process_ids": [
+        8408,
+        8741
+      ]
+    },
+    {
+      "run": "write-error-cold-recovery",
+      "previous_run": "write-error",
+      "same_identity": "7c892bf1caa24ff6830ffadf16560e61",
+      "image_sha256": "fa98ebf512ce5cdc9ceeb82db9a721912943dd8d1d69b0e47aafef8dbeccd5f1",
+      "sequence": 2,
+      "process_ids": [
+        9073,
+        9405
+      ]
+    },
+    {
+      "run": "flush-error-cold-recovery",
+      "previous_run": "flush-error",
+      "same_identity": "e74fb006d7904b57be46407713afdfc9",
+      "image_sha256": "fb401994fc958eb23bca252593400d62b79e609c5b78f6a0e3b3776472765afc",
+      "sequence": 2,
+      "process_ids": [
+        9758,
+        10120
+      ]
+    },
+    {
+      "run": "write-timeout-cold-recovery",
+      "previous_run": "write-timeout",
+      "same_identity": "3db4724cae1240289da8b668f16decda",
+      "image_sha256": "07db1888a7068b4f5d3ffed37bfb73494143436921a419b60666d33e04d07af3",
+      "sequence": 1,
+      "process_ids": [
+        10474,
+        10809
+      ]
+    },
+    {
+      "run": "flush-timeout-cold-recovery",
+      "previous_run": "flush-timeout",
+      "same_identity": "8242d52df83a43cf8a0982abfd287ba4",
+      "image_sha256": "77fea337460321d174061aef0ef4f887738479d3435a247c18576afe05179eb9",
+      "sequence": 2,
+      "process_ids": [
+        11163,
+        11507
+      ]
+    },
+    {
+      "run": "reset-timeout-cold-recovery",
+      "previous_run": "reset-timeout",
+      "same_identity": "d18ddd8069c04e75b4bddcb0c552498c",
+      "image_sha256": "b0ea92f27dab7c5483c5649b0807b2fc67c57ab51e7978665c40224102ae94a5",
+      "sequence": 1,
+      "process_ids": [
+        11870,
+        12203
+      ]
+    },
+    {
+      "run": "bad-descriptor-cold-recovery",
+      "previous_run": "bad-descriptor",
+      "same_identity": "c329144991aa411db7759ee988601d68",
+      "image_sha256": "3559d41a81a89536c56515c64d1fa9a602264ddab9af5a766d7a7fae39c02964",
+      "sequence": 1,
+      "process_ids": [
+        12556,
+        12888
+      ]
+    },
+    {
+      "run": "used-write-cold-recovery",
+      "previous_run": "used-write",
+      "same_identity": "51ef345ec3894fec8d4c0af02469110a",
+      "image_sha256": "c95cb6eedca0bff9d6824b4d4ac76efc142a296795c3a04228d468118207cedc",
+      "sequence": 2,
+      "process_ids": [
+        13242,
+        13604
+      ]
+    },
+    {
+      "run": "used-flush-cold-recovery",
+      "previous_run": "used-flush",
+      "same_identity": "be5099b66ba2467e89a2a9f20a30e8f0",
+      "image_sha256": "eaa4cd252757b427405396e1e74c755ca3adb294597a6c7506ae0208ed0329c8",
+      "sequence": 2,
+      "process_ids": [
+        13958,
+        14291
+      ]
+    }
+  ],
+  "external_cuts": [
+    {
+      "run": "vm-cut-before-rename",
+      "process_id": 7658,
+      "raw_exit": -9,
+      "sequence": 1,
+      "image_sha256": "4465c4fed66397bb54784a05804710b217c0af3a67a99b3e566fdb55463e0a1c"
+    },
+    {
+      "run": "vm-cut-after-rename",
+      "process_id": 8408,
+      "raw_exit": -9,
+      "sequence": 2,
+      "image_sha256": "32c5e3fd6ced9fe1b33069e360228ab90c7b9b959abb447651765a43f11eac76"
+    }
+  ],
+  "uncertainty_cases": [
+    {
+      "case": "write-error",
+      "live_sequence": 1,
+      "ack_count": 1,
+      "unknown_replies": 11,
+      "successful_catalog_replies": 0,
+      "post_unknown_calls_publications_completions": [
+        0,
+        0,
+        0
+      ],
+      "physical_journal_sequence": 2,
+      "journal_request_ids": [
+        10,
+        11
+      ],
+      "quarantined": false,
+      "image_sha256": "fa98ebf512ce5cdc9ceeb82db9a721912943dd8d1d69b0e47aafef8dbeccd5f1"
+    },
+    {
+      "case": "flush-error",
+      "live_sequence": 1,
+      "ack_count": 1,
+      "unknown_replies": 11,
+      "successful_catalog_replies": 0,
+      "post_unknown_calls_publications_completions": [
+        0,
+        0,
+        0
+      ],
+      "physical_journal_sequence": 2,
+      "journal_request_ids": [
+        10,
+        11
+      ],
+      "quarantined": false,
+      "image_sha256": "fb401994fc958eb23bca252593400d62b79e609c5b78f6a0e3b3776472765afc"
+    },
+    {
+      "case": "write-timeout",
+      "live_sequence": 1,
+      "ack_count": 1,
+      "unknown_replies": 11,
+      "successful_catalog_replies": 0,
+      "post_unknown_calls_publications_completions": [
+        0,
+        0,
+        0
+      ],
+      "physical_journal_sequence": 1,
+      "journal_request_ids": [
+        10
+      ],
+      "quarantined": false,
+      "image_sha256": "07db1888a7068b4f5d3ffed37bfb73494143436921a419b60666d33e04d07af3"
+    },
+    {
+      "case": "flush-timeout",
+      "live_sequence": 1,
+      "ack_count": 1,
+      "unknown_replies": 11,
+      "successful_catalog_replies": 0,
+      "post_unknown_calls_publications_completions": [
+        0,
+        0,
+        0
+      ],
+      "physical_journal_sequence": 2,
+      "journal_request_ids": [
+        10,
+        11
+      ],
+      "quarantined": false,
+      "image_sha256": "77fea337460321d174061aef0ef4f887738479d3435a247c18576afe05179eb9"
+    },
+    {
+      "case": "reset-timeout",
+      "live_sequence": 1,
+      "ack_count": 1,
+      "unknown_replies": 11,
+      "successful_catalog_replies": 0,
+      "post_unknown_calls_publications_completions": [
+        0,
+        0,
+        0
+      ],
+      "physical_journal_sequence": 1,
+      "journal_request_ids": [
+        10
+      ],
+      "quarantined": true,
+      "image_sha256": "b0ea92f27dab7c5483c5649b0807b2fc67c57ab51e7978665c40224102ae94a5"
+    },
+    {
+      "case": "bad-descriptor",
+      "live_sequence": 1,
+      "ack_count": 1,
+      "unknown_replies": 11,
+      "successful_catalog_replies": 0,
+      "post_unknown_calls_publications_completions": [
+        0,
+        0,
+        0
+      ],
+      "physical_journal_sequence": 1,
+      "journal_request_ids": [
+        10
+      ],
+      "quarantined": false,
+      "image_sha256": "3559d41a81a89536c56515c64d1fa9a602264ddab9af5a766d7a7fae39c02964"
+    },
+    {
+      "case": "used-write",
+      "live_sequence": 1,
+      "ack_count": 1,
+      "unknown_replies": 11,
+      "successful_catalog_replies": 0,
+      "post_unknown_calls_publications_completions": [
+        0,
+        0,
+        0
+      ],
+      "physical_journal_sequence": 2,
+      "journal_request_ids": [
+        10,
+        11
+      ],
+      "quarantined": false,
+      "image_sha256": "c95cb6eedca0bff9d6824b4d4ac76efc142a296795c3a04228d468118207cedc"
+    },
+    {
+      "case": "used-flush",
+      "live_sequence": 1,
+      "ack_count": 1,
+      "unknown_replies": 11,
+      "successful_catalog_replies": 0,
+      "post_unknown_calls_publications_completions": [
+        0,
+        0,
+        0
+      ],
+      "physical_journal_sequence": 2,
+      "journal_request_ids": [
+        10,
+        11
+      ],
+      "quarantined": false,
+      "image_sha256": "eaa4cd252757b427405396e1e74c755ca3adb294597a6c7506ae0208ed0329c8"
+    }
+  ],
+  "archive_files": [
+    {
+      "file": "m6c-harness-tests.stderr.txt",
+      "sha256": "b7d0bc061e19b6c4e4c80468bdcea0e751791271a5ece74dc048a60fbe1fb49c"
+    },
+    {
+      "file": "m6c-host-tests.json",
+      "sha256": "4e97007ccc95b3e4034e1acb88689ca0840516a15431e212a47b161d545188af"
+    },
+    {
+      "file": "suite.json",
+      "sha256": "e34c8780c20a5cc30bbdc996806804b40ca1c29ca9f412a4da1b8f239a3a2959"
+    },
+    {
+      "file": "m6c-two-image-check.json",
+      "sha256": "c0f91b8f2de2f1171571db8e343039447a024fcdaaa02845303e19a2fadd55ab"
+    },
+    {
+      "file": "m6c-harness-tests.stdout.txt",
+      "sha256": "6ed46d39fa982414e91413bc0f298ece7f15e7242d77dd45962c897aafd61101"
+    },
+    {
+      "file": "m6c-preflight.stdout.txt",
+      "sha256": "b7f85e6e77dd8348eb62c4b899269de0aa92aa2efea0c6a9c5a62c1d0425e801"
+    },
+    {
+      "file": "m6c-harness-tests.json",
+      "sha256": "1bc52c187cacc71649e717196bef5cbcff95423bda0e033d55d6c793b46a6729"
+    },
+    {
+      "file": "m6c-preflight.json",
+      "sha256": "683a722ad26065c359ba2145c5548bcf5b83f7d04d68229659ff852fb4cc908b"
+    },
+    {
+      "file": "guest-runs.json",
+      "sha256": "481e0b867344947a404377159685bf3a25f3e8fccc280ed1b8e3fc9ed209309b"
+    },
+    {
+      "file": "m6c-host-tests.stderr.txt",
+      "sha256": "213a7feb2d7f4bd0a4a4694cffa0f36a042aaaa69c8141b1dafd178311dfa5cf"
+    },
+    {
+      "file": "m6c-preflight.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "m6c-host-tests.stdout.txt",
+      "sha256": "26ba86ae22d2c7756d3757ad74c3bbe723954e6a16f3c801eba4fa150076d726"
+    }
+  ],
+  "qemu_launcher_sha256": "4ee9a5fea1f41c86555be852e41e71d1db02ed818ff05c3e26a92d288c629b45",
+  "evidence_files": {
+    "m6d-actual-journal-records.json": "7722ec771c4fb2b3201ade501042cee2eb3e578f49207526237580538d00884a",
+    "m6d-all-artifact-hashes.json": "2ff2ead814ddf00f8df61a677d3b606abc5688d1f516f9f9a83dfdfe3a845fa2",
+    "m6d-audited-source-hashes.json": "c36955f49ebaa777e7988e3f79fa3f0d1257561c6f7eb1ec3a34288c9329e3e9",
+    "m6d-image-reconstruction.json": "cc571e8f5f030038815aa59d7b00f2eb0e44ff4e81670029f13222b157a4187b"
+  },
+  "suite_sha256": "e34c8780c20a5cc30bbdc996806804b40ca1c29ca9f412a4da1b8f239a3a2959",
+  "capture_sha256": "838a4f7920b5abd2a24b98df7486436252fc15bf7a875b93357fb7d3a47ecaf4",
+  "audit_script_sha256": "5c88448e100acadd49c515d71e7d1516752b86ca657bbcf14177f11739cd0c85",
+  "findings": [],
+  "limitations": [
+    "Read-only reinspection of existing native run evidence; this audit starts no new VM and is not an independent rerun.",
+    "Error/status and malformed used-length injections modify a local completion snapshot after a real used-ring advance; they are not physical device failures.",
+    "Timeout tests hide completion observation until the real deadline; a published write may already have reached the image. Live ACK state and journal sequence are checked separately.",
+    "Reset-timeout validates bounded quarantine and no reuse in the observed run; it does not prove real-hardware reset behavior.",
+    "Cold recovery is an OS/VM restart on the exact existing image, not automatic in-process service restart.",
+    "External QEMU process termination is not a physical power-loss test. FNV is diagnostic, not cryptographic authentication.",
+    "Guest no-replay and no-extra-I/O counters rely on the source-bound native assertions and raw emitted markers; this is not formal proof or hardware tracing.",
+    "The QEMU launcher, guest binaries and firmware artifacts are hashed; all host shared libraries and the entire host environment are not independently attested.",
+    "Initial failed preflight inventory is preserved separately and is not counted as a native VM success or failure in this completed gate.",
+    "M6b regression, other milestone reruns and the 100-point OS readiness score are outside this audit.",
+    "AI code/evidence review is not a human audit or formal verification."
+  ]
+}

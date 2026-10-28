@@ -6,14 +6,25 @@ import shutil
 import struct
 from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
 from gate_contract import M3_CASES, M4_CASES
+from m6c_faults import FAULT_CASES as M6C_FAULT_CASES
 M5_CASES = ("service-errors", "device-rights", "async", "bad-descriptor", "used-id",
             "used-index", "used-short", "used-long", "used-status", "io-error", "timeout",
             "reset-timeout", "restart", "cpu-mmio", "cpu-dma", "cpu-pci", "no-device")
+M6A_CASES = ("service-errors", "device-rights", "full", "write-error", "flush-error",
+             "write-timeout", "flush-timeout", "reset-timeout", "no-flush", "readonly",
+             "bad-descriptor", "used-write", "used-flush", "torn-tail", "corrupt-all",
+             "stale-generation", "no-device", *(f"service-cut-{i}" for i in range(1, 7)),
+             *(f"vm-cut-{i}" for i in range(1, 7)), "recover")
+M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush")
+M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
                    "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),
-                   "milestone-m5", *(f"test-m5-{case}" for case in M5_CASES)]
+                   "milestone-m5", *(f"test-m5-{case}" for case in M5_CASES),
+                   "milestone-m6a", *(f"test-m6a-{case}" for case in M6A_CASES),
+                   "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
+                   "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES)]
 
 
 def inspect_elf(path):
@@ -78,13 +89,19 @@ def inspect_pe(path):
 
 def build(loader_feature=None, kernel_feature=None, label="normal"):
     extra_env = None
-    if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5")):
+    if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b", "m6c")):
         from build_users import build_users
         extra_env = {"NOS_USER_ELF": str(build_users("large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
-        if "m4" in kernel_feature or "m5" in kernel_feature:
+        if any(m in kernel_feature for m in ("m4", "m5", "m6a", "m6b", "m6c")):
             extra_env["NOS_IPC_ELF"] = str(build_users("ipc").resolve())
-        if "m5" in kernel_feature:
+        if any(m in kernel_feature for m in ("m5", "m6a", "m6b", "m6c")):
             extra_env["NOS_M5_ELF"] = str(build_users("m5").resolve())
+        if "m6a" in kernel_feature:
+            extra_env["NOS_M6_ELF"] = str(build_users("m6").resolve())
+        if "m6b" in kernel_feature:
+            extra_env["NOS_M6B_ELF"] = str(build_users("m6b").resolve())
+        if "m6c" in kernel_feature:
+            extra_env["NOS_M6C_ELF"] = str(build_users("m6c").resolve())
     if not (ROOT / "Cargo.lock").exists():
         run_logged(["cargo", "+1.90.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):
@@ -94,7 +111,10 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
         run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
     loader = ROOT / "target/x86_64-unknown-uefi/release/os-loader.efi"
     kernel = ROOT / "target/x86_64-unknown-none/release/os-kernel"
-    manifest = {"schema_version": 1, "profile": label, "source_fingerprint_version": 3, "source_sha256": source_hash(), "loader": {"sha256": sha256(loader), **inspect_pe(loader)}, "kernel": {"sha256": sha256(kernel), **inspect_elf(kernel)}}
+    manifest = {"schema_version": 1, "profile": label, "kernel_feature": kernel_feature,
+                "loader_feature": loader_feature, "source_fingerprint_version": 3,
+                "source_sha256": source_hash(), "loader": {"sha256": sha256(loader), **inspect_pe(loader)},
+                "kernel": {"sha256": sha256(kernel), **inspect_elf(kernel)}}
     esp = BUILD / "esp"
     (esp / "EFI/BOOT").mkdir(parents=True, exist_ok=True)
     shutil.copy2(loader, esp / "EFI/BOOT/BOOTX64.EFI")

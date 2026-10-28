@@ -1,0 +1,11 @@
+# Lokale native OS-toolchain — 2026-10-27
+
+Rust 1.90.0, Cargo 1.90.0, LLVM 20.1.8, rustfmt en clippy zijn geïnstalleerd onder `cargo/` en `rustup/`. Geïnstalleerde targets: x86_64-unknown-linux-gnu (host), x86_64-unknown-none, x86_64-unknown-uefi. `tools/common.py` ontdekt deze automatisch.
+
+QEMU 10.0.2 (Debian 1:10.0.2+ds-2+deb13u1~bpo12+1) is uitgepakt onder `distro/`. `qemu/qemu-system-x86_64` stelt alleen voor dit proces de bibliotheek- en modulepaden en de QEMU-datamap in. `--version`, `-machine help` (pc-q35-10.0) en `-accel help` (tcg) zijn alle geslaagd. Het gewone OVMF 2025.02-8+deb13u1-paar van 4 MiB CODE/VARS is met de pakketdescriptor onder `qemu/share/` gekoppeld voor automatische ontdekking. Aan gewoon OVMF wordt geen Secure Boot-functionaliteit ontleend.
+
+Dit is een Linux-ontwikkelvariant van de gedocumenteerde hosttoolchain, met behoud van pc-q35-10.0, qemu64, TCG en het bestaande gastprofiel. Hiermee wordt geen bestaande OS-kernel in Nieuw OS vervangen of geïmporteerd. Er is geen pakketbeheerscript uitgevoerd; er heeft geen systeeminstallatie, wijziging aan /etc, globale omgeving of shellprofiel plaatsgevonden. De bibliotheken die op de Ubuntu-host ontbraken, zijn lokaal uitgepakt. Bestaande compatibele Ubuntu-bibliotheken blijven in gebruik en zijn geïnventariseerd.
+
+Verificatie: SHA256-nevenbestanden bij de Rust-installer en het manifest, plus rustup-componentverificatie; ondertekende Debian InRelease → SHA256 Packages-index → SHA256-/groottecontrole van pakketten. De vingerafdrukken van de Debian-archiefsleutels zijn vergeleken met de officiële HTTPS-lijst. Details, alle pakket-URL's/checksums, uitvoer van handtekeningverificatie, manifesthashes van Rust-componenten, hashes van geïnstalleerde binaries/firmware en hashes van gekoppelde hostbibliotheken staan in de JSON/TXT-bestanden naast dit bestand.
+
+Runtimebeperking: `rustup --version` breekt in de beperkte sandbox na het afdrukken van zijn versie af doordat de SIGCHLD-handler van wait-timeout EPERM ontvangt. Dezelfde alleen-lezen metadatacontrole slaagde met goedgekeurde escalatie. Versieprobes van rustc/cargo, QEMU-versie-/machine-/TCG-probes en tool-/firmwareontdekking door common.py slaagden in de sandbox. Werkelijk OS-build-/bootbewijs wordt afzonderlijk door de hoofdtaak verzameld en wordt hier niet geclaimd.

@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "rustc",
+    "+1.90.0",
+    "--edition=2021",
+    "/workspace/scratch/244976efa240/review/m6c_adapter_probe.rs",
+    "-o",
+    "/workspace/scratch/244976efa240/review/m6c_adapter_probe"
+  ],
+  "returncode": 0,
+  "stdout": "",
+  "stderr": ""
+}

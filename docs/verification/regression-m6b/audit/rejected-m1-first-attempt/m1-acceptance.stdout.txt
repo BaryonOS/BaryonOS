@@ -1,0 +1,115 @@
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.01s
+Built and inspected normal: 3 ELF load segments
+
+running 6 tests
+test tests::explicit_wire_fixture_and_offsets ... ok
+test tests::invalid_header_and_received_pointer_are_rejected ... ok
+test tests::ranges_must_be_aligned_bounded_nonoverlapping ... ok
+test tests::unsorted_extended_stride_and_adjacent_descriptors_cover_allocations ... ok
+test tests::map_shape_and_stride_are_checked ... ok
+test tests::overlap_overflow_and_zero_pages_rejected_unknown_memory_reserved ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 7 tests
+test tests::arithmetic_and_file_bounds_fail_closed ... ok
+test tests::entry_must_be_in_rx_file_bytes_not_bss_or_metadata ... ok
+test tests::nonexecuting_metadata_allowed_executable_stack_denied ... ok
+test tests::valid_plan_keeps_bss_and_does_not_modify_input ... ok
+test tests::wrong_headers_and_program_types_fail ... ok
+test tests::permissions_alignment_addresses_and_page_overlap_fail ... ok
+test tests::every_truncation_before_required_file_end_fails ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (target/debug/deps/boot_protocol-0c4756592423435b)
+     Running unittests src/lib.rs (target/debug/deps/elf_loader_core-4ab92dc5239b8964)
+   Doc-tests boot_protocol
+   Doc-tests elf_loader_core
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/cold-1-652f6f0270
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/cold-2-d5b11ce300
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+M5:CASE:NO_DEVICE:PASS
+M5:SURVIVOR_PROGRESS:PASS
+M5:RESOURCES:PASS
+M5:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/cold-3-3255a86c2b
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+M1:FAIL:KERNEL_OPEN
+QEMU raw=35; expected=33; timeout=False; expectation_pass=False; /workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/missing-49717e45f6
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+M1:FAIL:ELF_INVALID
+QEMU raw=35; expected=33; timeout=False; expectation_pass=False; /workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/corrupt-a88a0c5c48
+   Compiling os-loader v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-regression/boot/loader)
+    Finished `release` profile [optimized] target(s) in 0.28s
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected ebs-retry: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+BOOT:EBS_RETRY
+KERNEL:ENTRY
+BOOTINFO:OK
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/ebs-retry-e2a42e6ecd
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-regression/kernel)
+    Finished `release` profile [optimized] target(s) in 0.11s
+Built and inspected panic: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+M1:FAIL:KERNEL_PANIC
+QEMU raw=35; expected=33; timeout=False; expectation_pass=False; /workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/panic-01efddf94e
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-regression/kernel)
+    Finished `release` profile [optimized] target(s) in 0.14s
+Built and inspected hang: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+QEMU raw=None; expected=33; timeout=True; expectation_pass=False; /workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/hang-dd7da64ffa
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+Built and inspected normal: 3 ELF load segments
+PASS: 10 acceptance groups; normal artifacts restored

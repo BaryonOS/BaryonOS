@@ -1,0 +1,8 @@
+{
+  "services/objects/src/journal.rs": "d84785f09fb15b880b03f228286c7a5d4d43213e028434af7b074a389a55d522",
+  "services/objects/src/lib.rs": "7e8124d02bf95e952809664d4f73ea71f1ee841eadc1f836406ee58d09634aa2",
+  "services/objects/src/user_service.rs": "794d5aa7c46e931dfaa90f2e63367deb19f37f8eb5d31c959548142e854b79c2",
+  "services/objects/src/wire.rs": "c6a7faa02267bfb4e291eeca454632d8a6fe5f289ab2f4650a8007b0a80bc823",
+  "services/objects/tests/core.rs": "844ea1095b6e5a512a4fc479fa079c8143b5149026f1f14cb91654cd7a7e7686",
+  "services/objects/tests/wire.rs": "974c2b05787929105ec37275f889af680785cfbc507d2f7d2b878a792fc2a804"
+}

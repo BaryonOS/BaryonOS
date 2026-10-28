@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-X",
+    "utf8",
+    "userspace/tests/test_m5_probe.py",
+    "--elf",
+    "build/users/m5_probe.elf"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-regression",
+  "started_unix": 1793141085.0406423,
+  "duration_s": 0.08491802215576172,
+  "returncode": 0
+}

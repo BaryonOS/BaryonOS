@@ -1,0 +1,39 @@
+{
+  "copy_manifest_changed_entries": [
+    {
+      "path": "docs/verification/regression-m6b/README.md",
+      "historical_hash": "7e1380afa69dae09e0120b496388ab2c7965f22ba374b456fea6eae4d7014d72",
+      "old_hash_matches": true,
+      "current_hash_matches": false
+    },
+    {
+      "path": "docs/verification/regression-m6b/m3/m3-large-artifact-tests.json",
+      "historical_hash": "07060a67abc97f857b3caca8d807576e35451894ac66862542cb170310d30fb7",
+      "old_hash_matches": true,
+      "current_hash_matches": false
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-two-image-check.json",
+      "historical_hash": "8fc14fbd256c6dccc5f0028bea567bb544263a15357c6a3c82da07ed5bb5b0ea",
+      "old_hash_matches": true,
+      "current_hash_matches": false
+    },
+    {
+      "path": "docs/verification/regression-m6b/summary.json",
+      "historical_hash": "4c9572ebb77d7b56ff8f4d335716d4c9ed95a86fa98ad2121a88c61ed925c6cd",
+      "old_hash_matches": true,
+      "current_hash_matches": false
+    }
+  ],
+  "gate_original_hash_matches": true,
+  "gate_logs": [
+    {
+      "path": "docs/verification/m6b/gate.stdout.txt",
+      "hash_matches": true
+    },
+    {
+      "path": "docs/verification/m6b/gate.stderr.txt",
+      "hash_matches": true
+    }
+  ]
+}

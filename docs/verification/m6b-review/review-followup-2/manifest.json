@@ -1,0 +1,347 @@
+{
+  "baseline_commit": "3f308b07e0bab445d1ea926561eab8d8e01c86a4",
+  "baseline_tree": "0f3768a0afa55ce09bc80cba5b707a5fbc156e52",
+  "verified_baseline_files": 72,
+  "scope": "Uitsluitend M5-archiefreconstructie en synthetische Python-hosttests voor M6a-logverwijzingen. Geen native bronwijziging, build of VM-invocatie.",
+  "candidate_root": "/workspace/scratch/a9adbdc1f137/pr9-verifier/round2/candidate",
+  "changed_sources": {
+    "tools/test_m6.py": {
+      "before": {
+        "bytes": 6587,
+        "sha256": "43b6e69e7a19cd3213cebfe9d77cbd826987822b3afad8d3f43306362395d3d9",
+        "git_blob_sha": "018d15118dc9146c0ff48f0274131f7bf63578d8"
+      },
+      "after": {
+        "bytes": 6587,
+        "sha256": "7a081d9dda79b5635ca4b8353315fa495245d7a83aec7078616db3e4b3d325b7",
+        "git_blob_sha": "cb829e15d13fcb8abc3c0520e6584828e7749edc"
+      }
+    },
+    "tools/capture_m6.py": {
+      "before": {
+        "bytes": 10647,
+        "sha256": "f699abd02ef55a9e4d1fc281cd8fd160efbeebd9042d448faca6cbb4dc01cec9",
+        "git_blob_sha": "819c49fcef5660d9d2e5e13e64e151e5d94df085"
+      },
+      "after": {
+        "bytes": 10732,
+        "sha256": "1047e48c9aea890d451e4eb1d04108524e92259c6a7c33b636c1ddaa012e1cb3",
+        "git_blob_sha": "092683330c13c35ca2aa6e925a7eac28d705b595"
+      }
+    },
+    "docs/verification/m6b-review/merge-followup/verify_m5_archive.py": {
+      "before": {
+        "bytes": 4382,
+        "sha256": "2d2bc2e8b907d380f4beb858ead3e4fed876920e0368a775a3d24e87b8ace5f3",
+        "git_blob_sha": "c1d14d67677eda83491c1aea1cace75a046ab883"
+      },
+      "after": {
+        "bytes": 4961,
+        "sha256": "ffe9bc1f8c8e9a4a066a7e1695fe7c8894fc214e4218d5e862f83bb1543cfa7d",
+        "git_blob_sha": "3a9de6b8e471ef83e65fd254d1aaf3b8195e57cf"
+      }
+    }
+  },
+  "added_sources": {
+    "tests/test_m6_capture.py": {
+      "bytes": 5036,
+      "sha256": "aae62491e8f539e075d1a75efc901a8d9b635a593242665c97adfe6f17d39aa3",
+      "git_blob_sha": "358780d254855641a9b6530c24379ca5d6937c55"
+    }
+  },
+  "checks": {
+    "before-m6-host-routing": {
+      "record": "records/before-m6-host-routing.json",
+      "exit": 1,
+      "input_hashes_stable": true
+    },
+    "before-checker-optimized-negative": {
+      "record": "records/before-checker-optimized-negative.json",
+      "exit": 0,
+      "input_hashes_stable": true
+    },
+    "after-checker-normal": {
+      "record": "records/after-checker-normal.json",
+      "exit": 0,
+      "input_hashes_stable": true
+    },
+    "after-checker-optimized": {
+      "record": "records/after-checker-optimized.json",
+      "exit": 0,
+      "input_hashes_stable": true
+    },
+    "after-checker-optimized-negative": {
+      "record": "records/after-checker-optimized-negative.json",
+      "exit": 1,
+      "input_hashes_stable": true
+    },
+    "after-m6-host-routing": {
+      "record": "records/after-m6-host-routing.json",
+      "exit": 0,
+      "input_hashes_stable": true
+    }
+  },
+  "m6_host_routing_test_methods": 4,
+  "m6_before_fix_failures": 4,
+  "m6_before_fix_errors": 1,
+  "m6_after_fix_passed": 4,
+  "m6_red_and_green_test_source_sha256": "aae62491e8f539e075d1a75efc901a8d9b635a593242665c97adfe6f17d39aa3",
+  "checker_normal_and_optimized_stdout_identical": true,
+  "checker_reconstructed_images": 2,
+  "checker_negative_comparisons_per_positive_run": 8,
+  "checker_assert_statements": 0,
+  "optimized_negative_fixture": "Alleen m5-read-a.disk_oracle.seed is van 9220620458041727053 naar 9220620458041727054 gewijzigd in een afzonderlijke gekopieerde fixture. De oude checker accepteert dit onder -O; de gerepareerde checker wijst het onder -O af vóór een geslaagd rapport.",
+  "historical_execution_preserved": {
+    "directory": "records/historical/merge-followup",
+    "original_checker_sha256": "2d2bc2e8b907d380f4beb858ead3e4fed876920e0368a775a3d24e87b8ace5f3",
+    "command_record": "records/historical/merge-followup/m5-archive-recheck-command.json",
+    "original_execution_records_rewritten": false,
+    "historical_script_does_not_claim_current_reexecution": true
+  },
+  "publication_note": "Het oorspronkelijke merge-followup-manifest behoudt alle historische hashwaarden en verwijst expliciet naar commit3f en de bytegelijke historische kopie. De gewijzigde checker en zijn nieuwe uitvoeringen zijn apart in dit manifest gebonden; oude commandorecords zijn niet herschreven.",
+  "evidence_files": {
+    "records/after-checker-normal.json": {
+      "bytes": 9114,
+      "sha256": "37bf975326bc5e9e745898c13113b17020fa79d9b8579f13636d27f722e81b79",
+      "git_blob_sha": "6eadf8aec05861c474f977e6e654e125fe6fa647"
+    },
+    "records/after-checker-normal.stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "records/after-checker-normal.stdout.txt": {
+      "bytes": 1391,
+      "sha256": "3c64245dcd5f43a4a58fd5fdad5e0507e28e73eff0bf4b05e7258dd883f6f843",
+      "git_blob_sha": "fd0cf4c9b62061b1cc691f5f324ec2f0dd0f31f8"
+    },
+    "records/after-checker-optimized-negative.json": {
+      "bytes": 6356,
+      "sha256": "f2f8035ed2350295c3ce87f831a75e30aeb73bbf3ead285b151d1630b9cf04cd",
+      "git_blob_sha": "c968b3a219777499981f8ef41a69c4cb1189a613"
+    },
+    "records/after-checker-optimized-negative.stderr.txt": {
+      "bytes": 567,
+      "sha256": "206d8d257ac67809a83368fc478a29609fd7c52a928a5963b81e7343bd661b81",
+      "git_blob_sha": "8e32db3d94a93c35c3834bbc6c112bd3f906541a"
+    },
+    "records/after-checker-optimized-negative.stdout.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "records/after-checker-optimized.json": {
+      "bytes": 9130,
+      "sha256": "b8f77341e32a25cacc8eb5aaec9d5e1124647aefa73e89158c8aa6ce7501bfdb",
+      "git_blob_sha": "5a009480956a42bd3eba01c88bce22f38e55c34b"
+    },
+    "records/after-checker-optimized.stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "records/after-checker-optimized.stdout.txt": {
+      "bytes": 1391,
+      "sha256": "3c64245dcd5f43a4a58fd5fdad5e0507e28e73eff0bf4b05e7258dd883f6f843",
+      "git_blob_sha": "fd0cf4c9b62061b1cc691f5f324ec2f0dd0f31f8"
+    },
+    "records/after-m6-host-routing.json": {
+      "bytes": 9155,
+      "sha256": "48b8598778eeb3c199036914ffd27323a4a30c54a697e17223a9a2cfaef1149a",
+      "git_blob_sha": "277cbdcab761930ffce8f1b1f8f27e15602d9d29"
+    },
+    "records/after-m6-host-routing.stderr.txt": {
+      "bytes": 754,
+      "sha256": "769332cbcb8ba41db9c3da94d2abe173a97646135876a0384b10faf9f15e799b",
+      "git_blob_sha": "9d010402c0349f6ea933fafd8c7aaaed3d5d034c"
+    },
+    "records/after-m6-host-routing.stdout.txt": {
+      "bytes": 134,
+      "sha256": "85b7a8f1e9952514dc28a0beb6ed4c1118574d3d1d1004105ce0e7a223316230",
+      "git_blob_sha": "e870f14fa848171aecda74c6ec5843348f32c9bd"
+    },
+    "records/after-tampered-seed-mutation.json": {
+      "bytes": 703,
+      "sha256": "94a88ffb9cce304d317ee2d81cf209691b0c34c3d83da6ac6c9c3d2249a1d7cf",
+      "git_blob_sha": "8961cd3a198a22376f6f04a4a7f4780d54e728da"
+    },
+    "records/baseline-inputs.json": {
+      "bytes": 16326,
+      "sha256": "64af1db131869905b6b14cdd37af575212963cca5a564e2ba2a4de9653ee7ca0",
+      "git_blob_sha": "c2d2aea79e5813a0bd56ff37b917316ec8079da6"
+    },
+    "records/before-checker-optimized-negative.json": {
+      "bytes": 6360,
+      "sha256": "c8148d008185c48b4a75a9a4c3193b68c293c29ce8ed919a389d32410f7b5e8b",
+      "git_blob_sha": "844bbf87b6f0b06bc7485948429482869defcb66"
+    },
+    "records/before-checker-optimized-negative.stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "records/before-checker-optimized-negative.stdout.txt": {
+      "bytes": 1391,
+      "sha256": "2fd6574bfaf3dff6af50f415d1de2f59ca972dfea5e95ee40dc176ecee93ab6c",
+      "git_blob_sha": "ea2e95c0b490c777cbe4d3a2c8bd48f0cdb1bfc8"
+    },
+    "records/before-m6-host-routing.json": {
+      "bytes": 9159,
+      "sha256": "3b21db7675acf6beb53ee2ee1bc8ef76202a9cf0e64cf56d69ad499f5507603d",
+      "git_blob_sha": "d757b3412fe9bab9e4f0a79908814454469d4302"
+    },
+    "records/before-m6-host-routing.stderr.txt": {
+      "bytes": 5847,
+      "sha256": "8af1d8e52c1a3f301c00b311ce8f077cd8d89bd1244b7c55a10c20bb568b50f4",
+      "git_blob_sha": "e06ac3500b5f48160f9b059bd19465350f76200f"
+    },
+    "records/before-m6-host-routing.stdout.txt": {
+      "bytes": 335,
+      "sha256": "ae55cbc9faba9fa0f8637e7d1beae75c8bb854812ece0e7e7655c4f4ae0c91cf",
+      "git_blob_sha": "a542b3ab423984bb74f4cdfefef92bc7d9b1ba6c"
+    },
+    "records/before-tampered-seed-mutation.json": {
+      "bytes": 703,
+      "sha256": "aae580cea8622ec9d8d831e9b4de3d1bb6164001e896caade08f3b200d65d20b",
+      "git_blob_sha": "987cc5e1378bd5060cb2b48c8d211c2a709861ac"
+    },
+    "records/historical/merge-followup/README.md": {
+      "bytes": 4115,
+      "sha256": "f977efeb4c10429d455b6a7cc6c8bea736e51373250a424f06479c7762829ffb",
+      "git_blob_sha": "47c818b1101e10751d2fb7176f2de08db4b4445c"
+    },
+    "records/historical/merge-followup/host-tests.json": {
+      "bytes": 10074,
+      "sha256": "812a70597dc5f73db2d6a8bb9731c1730888eb1f9142a134db3181eda310d8da",
+      "git_blob_sha": "430395e7efd1702c6e443df2c0ac401ea85d5835"
+    },
+    "records/historical/merge-followup/m5-archive-check.json": {
+      "bytes": 1391,
+      "sha256": "3c64245dcd5f43a4a58fd5fdad5e0507e28e73eff0bf4b05e7258dd883f6f843",
+      "git_blob_sha": "fd0cf4c9b62061b1cc691f5f324ec2f0dd0f31f8"
+    },
+    "records/historical/merge-followup/m5-archive-recheck-command.json": {
+      "bytes": 2985,
+      "sha256": "5eea994d48eb21acfdee9d4880a0f34af5e711aaa7bfebcc95e214de53878a47",
+      "git_blob_sha": "a27e459826aa6cb3b32d3345918ff7489664e56a"
+    },
+    "records/historical/merge-followup/m5-archive-recheck-command.stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "records/historical/merge-followup/m5-archive-recheck-command.stdout.txt": {
+      "bytes": 1391,
+      "sha256": "3c64245dcd5f43a4a58fd5fdad5e0507e28e73eff0bf4b05e7258dd883f6f843",
+      "git_blob_sha": "fd0cf4c9b62061b1cc691f5f324ec2f0dd0f31f8"
+    },
+    "records/historical/merge-followup/manifest.json": {
+      "bytes": 3428,
+      "sha256": "b09fd8d5d658e33865b5163885a2424e366f37c02c27d9a4410aaf305a39b3ff",
+      "git_blob_sha": "e2b549a573d8fde1ea6d22a2320501378717405a"
+    },
+    "records/historical/merge-followup/metadata-hash-check.json": {
+      "bytes": 1271,
+      "sha256": "606070b60c7188a93671acff6b69f1981377f116c62ad8df9d43999fc1ae38c6",
+      "git_blob_sha": "878a824e3d94e96bd70b82da93eef5d033757f38"
+    },
+    "records/historical/merge-followup/preflight-before-extra-fix.json": {
+      "bytes": 398,
+      "sha256": "901839e6a55f4aef324400f8b55536b21d81229d439904d0afbda5d8e0725c66",
+      "git_blob_sha": "a33cd40fc25ba1c4599768896ecf1ca7988aec4b"
+    },
+    "records/historical/merge-followup/preflight-before-extra-fix.stderr.txt": {
+      "bytes": 4110,
+      "sha256": "3e45d8bd5a80c8ecf2de3b80af96ea5cdcb6a63dd0208a8d4408ea36a9fba85e",
+      "git_blob_sha": "2bf3ebfa00c95426e7aa83aceff87c1c304af4b8"
+    },
+    "records/historical/merge-followup/preflight-before-extra-fix.stdout.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "records/historical/merge-followup/test_capture_gate.stderr.txt": {
+      "bytes": 2808,
+      "sha256": "1d64d3bd76de0f1968d5b8bcb3ec5091f9567a92c1ba324baec12d3a3943cf9d",
+      "git_blob_sha": "81ae1777ef182bbea6a0ec5866d785c19e8d8770"
+    },
+    "records/historical/merge-followup/test_capture_gate.stdout.txt": {
+      "bytes": 90,
+      "sha256": "33cef0f908314ca751b693dde6b54f26cdead8262ee6a1368bf179c2ff782c7c",
+      "git_blob_sha": "c551ab49c14e6c401ea5925caaa83c49f30fd865"
+    },
+    "records/historical/merge-followup/test_guest_harness.stderr.txt": {
+      "bytes": 1190,
+      "sha256": "7aa9d73e5513fa975f550543317072206f8b549949197afefdfb1f1892903197",
+      "git_blob_sha": "f44eda10ebb39ecd4336dc64e55c67eb4d238be5"
+    },
+    "records/historical/merge-followup/test_guest_harness.stdout.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "records/historical/merge-followup/test_m6b_capture.stderr.txt": {
+      "bytes": 1707,
+      "sha256": "58566b9ed36acb1da85f014beee7f2ef43b888c4f19e53e317e407f0a8af4db0",
+      "git_blob_sha": "1ebbeafd9080404bd31d337a701fb3d2575d63f5"
+    },
+    "records/historical/merge-followup/test_m6b_capture.stdout.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "records/historical/merge-followup/test_m6b_gate.stderr.txt": {
+      "bytes": 252,
+      "sha256": "d310fdc2efdf14659f24fbf1d9c0b909b1eafe35ae5de03c1676e8b6fe804c79",
+      "git_blob_sha": "fa92b0378952fecac010199e836f75f24bcb18ad"
+    },
+    "records/historical/merge-followup/test_m6b_gate.stdout.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "records/historical/merge-followup/test_preflight.stderr.txt": {
+      "bytes": 843,
+      "sha256": "93353d570e9fde97920306ea3297235d751eacbc80f4078b9480b7d3b371f8f7",
+      "git_blob_sha": "54eac078d540751533eb1bb515c1b21643617a65"
+    },
+    "records/historical/merge-followup/test_preflight.stdout.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "records/historical/merge-followup/verify_m5_archive.py": {
+      "bytes": 4382,
+      "sha256": "2d2bc2e8b907d380f4beb858ead3e4fed876920e0368a775a3d24e87b8ace5f3",
+      "git_blob_sha": "c1d14d67677eda83491c1aea1cace75a046ab883"
+    },
+    "baseline-tree-selection.json": {
+      "bytes": 22599,
+      "sha256": "c66cdee4da4d2cee56242ef284b72724d25588febefa2ff21489aff401353485",
+      "git_blob_sha": "59d0a468e429bf74f7e33ee3982259a6e13e5a68"
+    },
+    "record_check.py": {
+      "bytes": 2611,
+      "sha256": "4027cdb00bbc05b9cff36c0cad7b5324452b14f320717f8a6d6755509a9f166b",
+      "git_blob_sha": "4bce61e4e1f016ad12e23986f96e4c0b957b3204"
+    },
+    "prepare_seed_fixture.py": {
+      "bytes": 1829,
+      "sha256": "f7c6083fa622ffb87e8689c7129005c5b7b66b694bd05780be7394b1f46fd468",
+      "git_blob_sha": "e786e2e17a9d7fef97a7b23e0cf73f6bd04e51db"
+    },
+    "round2.patch": {
+      "bytes": 10501,
+      "sha256": "5d35aa505baec8808cc7796e6fdd64f82477af2bca7976c6f40d482373befd25",
+      "git_blob_sha": "e2b9cd0ddb26273a5c28e9e5af3f3b18c6066b70"
+    }
+  },
+  "metadata_corrections": {
+    "basis_commit": "3f308b07e0bab445d1ea926561eab8d8e01c86a4",
+    "m6a_original_suite_and_capture_manifest_unchanged": true,
+    "m6a_corrected_reading_index": "docs/verification/m6a-linux/suite.corrected.json",
+    "guard_command_records_and_hashes_unchanged": true,
+    "object_cargo_manifest_sha256": "04c5c07f07f7a4b9afe80cb9b6a3c356dee42b9f45d0c5811523a2d3635697ec",
+    "note": "Historische metadata is toegelicht, beschrijvend proza vertaald en de bekende native observerpanic expliciet opgenomen. Dit vormt geen nieuwe native uitvoering."
+  }
+}

@@ -15,14 +15,29 @@ use core::{
 use kernel_core::{user, Frames, Kind, Owner, PAGE};
 #[cfg(feature = "milestone-m4")]
 mod m4;
-#[cfg(feature = "milestone-m5")]
+#[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
+mod m5;
+#[cfg(all(feature = "milestone-m6a", not(feature = "milestone-m6b")))]
+#[path = "m3/m6.rs"]
+mod m5;
+#[cfg(all(feature = "milestone-m6b", not(feature = "milestone-m6c")))]
+#[path = "m3/m6b.rs"]
+mod m5;
+#[cfg(feature = "milestone-m6c")]
+#[path = "m3/m6c.rs"]
 mod m5;
 #[cfg(not(feature = "milestone-m4"))]
 const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
 #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
 const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
-#[cfg(feature = "milestone-m5")]
+#[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
 const ELF: &[u8] = include_bytes!(env!("NOS_M5_ELF"));
+#[cfg(all(feature = "milestone-m6a", not(feature = "milestone-m6b")))]
+const ELF: &[u8] = include_bytes!(env!("NOS_M6_ELF"));
+#[cfg(all(feature = "milestone-m6b", not(feature = "milestone-m6c")))]
+const ELF: &[u8] = include_bytes!(env!("NOS_M6B_ELF"));
+#[cfg(feature = "milestone-m6c")]
+const ELF: &[u8] = include_bytes!(env!("NOS_M6C_ELF"));
 const DATA: u64 = 0x40010000;
 const HEAP: u64 = 0x60000000;
 const STACK: u64 = 0x7ffef000;
@@ -789,13 +804,21 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             context[6],
         ];
         #[cfg(feature = "milestone-m4")]
-        if number >= 0x10 && !(cfg!(feature = "milestone-m5") && matches!(number, 0x40 | 0x41)) {
+        if number >= 0x10
+            && !(cfg!(feature = "milestone-m5")
+                && (matches!(number, 0x40 | 0x41)
+                    || cfg!(feature = "milestone-m6a") && matches!(number, 0x42 | 0x43)))
+        {
             let (rax, rdx) = m4::syscall(state, current, number, args);
+            #[cfg(feature = "milestone-m6b")]
+            m5::ipc_result(current, number, rax);
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
         }
         #[cfg(feature = "milestone-m5")]
-        if matches!(number, 0x40 | 0x41) {
+        if (matches!(number, 0x40 | 0x41)
+            || cfg!(feature = "milestone-m6a") && matches!(number, 0x42 | 0x43))
+        {
             let (rax, rdx) = m5::syscall(state, current, number, args);
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
@@ -810,7 +833,14 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                 p.context[14] = (-1i64) as u64;
             } else {
                 match number {
-                    0 => p.context[12] = (1 << 32) | u64::from(cfg!(feature = "milestone-m5")),
+                    0 => {
+                        p.context[12] = (1 << 32)
+                            | if cfg!(feature = "milestone-m6a") {
+                                2
+                            } else {
+                                u64::from(cfg!(feature = "milestone-m5"))
+                            }
+                    }
                     1 => {}
                     2 => {
                         // Generic syscall semantics: every process may exit with any code.

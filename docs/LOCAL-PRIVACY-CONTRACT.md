@@ -1,30 +1,69 @@
-# Bindend privacycontract: eigen NAS, lokale AI en geïsoleerde apps
-Revisie 2, 26 oktober 2026. Vastgelegd naar aanleiding van Simons expliciete correctie. Dit zijn te implementeren eisen; er is nog geen OS-code of werkend bewijs.
+# Bindend privacycontract: internet, persoonlijke NAS en gedeelde opslag
+Revisie 3, 27 oktober 2026. Deze expliciete gebruikerswijziging vervangt de eerdere beperking tot een eigen NAS binnen het eigen LAN. De lokale AI-eis en het verbod op leverancierscloud/fallback blijven gelden.
 
-## 1. Productgrens
-De ingebouwde OS-diensten bewaren of verwerken persoonlijke gegevens uitsluitend op het apparaat zelf of, voor optionele opslag/synchronisatie/back-up, de eigen NAS binnen het eigen lokale netwerk. Geen externe cloudprovider, leverancieraccount, relay, beheerportaal, sleutelbewaarservice of externe OS-telemetrie. Dit geldt ook voor instellingen, indexen, diagnostiek en AI-context.
+**Bewijsstatus:** dit zijn bindende product- en integratie-eisen. `services/nas/` bevat N01 met echte hostencryptie/opslagbeheer en de afzonderlijke N02-loopbackproef met werkelijk geauthenticeerde hybride TLS. `ui/prototype/` bevat gesimuleerde productflows. Native netwerkstack, NAS-distributie, pairing tussen echte apparaten en kernelafdwinging blijven open. Scope: [NAS-SHARING-AND-INTERNET.md](implementation/NAS-SHARING-AND-INTERNET.md) en de [verificatie-/PQC-aanvulling ADR-028](implementation/VERIFIABLE-SECURITY-AND-PQC.md). Deze aanvulling verandert de opslag-/beheerdersrechten van revisie 3 niet.
 
-Zonder NAS moeten lokale kerntaken blijven werken. Een NAS die ontbreekt of buiten het eigen LAN ligt geeft een zichtbare onderbreking, nooit een externe fallback. NAS-inferentie en toegang vanaf buiten het LAN zijn niet stilzwijgend inbegrepen: het gekozen basisontwerp laat AI op het apparaat zelf draaien en sync uitsluitend binnen het eigen LAN.
+## 1. Internet en gegevenslocatie
 
-Internet is niet algemeen verboden: de gebruiker mag andere programma's downloaden en gebruiken. Pakket-/OS-updates en modeldownloads krijgen afgescheiden, beperkte downloadpaden. Geen persoonlijke documenten, context, identificerende telemetrie of NAS-credentials in die verzoeken. De downloadserver ziet wel de technisch noodzakelijke verbindingsgegevens, zoals een bron-IP; 'geen persoonlijke inhoud uploaden' is geen anonimiteitsgarantie. Offline installeren/updaten blijft een te ontwerpen route.
+Nieuw OS moet internet kunnen gebruiken. Netwerklocatie of eigendom schept geen automatisch vertrouwen: authenticatie, autorisatie en isolatie gelden ook thuis (Rose et al., 2020). Internettoegang maakt een app of dienst niet bevoegd om documenten, NAS-data of sleutels te lezen.
 
-## 2. Eigen NAS: eigendom is geen bewijs van veiligheid
-Het apparaat koppelt expliciet met de identiteit van de gekozen NAS. Controleer sleutel/certificaat via een begrijpelijk, geauthenticeerd koppelproces; het protocol wordt later uit onderhouden standaardimplementaties gekozen. Geen blind vertrouwen op hostnaam, ontdekking via multicast, privé-IP of hetzelfde wifi-netwerk. Een eigen LAN kan onbetrouwbare apparaten bevatten. NIST SP 800-207 maakt onderscheid tussen netwerklocatie en daadwerkelijk geauthenticeerde/geautoriseerde toegang (Rose et al., 2020).
+Persoonlijke gegevens blijven lokaal of gaan optioneel **end-to-end versleuteld** naar:
+- een eigen, expliciet gekoppelde NAS;
+- ruimte op een expliciet gekoppelde NAS van vrienden of familie.
 
-Ontwerpeisen:
-- Verifieer peer-identiteit bij elke sessie en handel sleutelwisseling/intrekking af.
-- Beperk verbindingen tot expliciet geselecteerde lokale interfaces/netwerken én de gekoppelde NAS-identiteit. Ontwerp voor IPv4, IPv6, multihoming, redirects, DNS-rebinding en netwerkovergangen; een privé-IP-check alleen is onvoldoende.
-- Geen UPnP/NAT-PMP/portforwarding, vendorrelay, externe tunnel of internetuitwijking door de OS-NAS-dienst.
-- Gebruik versleuteld transport. Voor een backupkluis: ook client-side encryptie met sleutels onder beheer van de gebruiker; geen key escrow bij een leverancier.
-- Leg sleutelherstel vast met een eigen offline herstelkopie. Verlies van alle sleutels kan gegevens onherstelbaar maken; verzin geen geheime achterdeur.
-- Geef een sync-/backupdienst alleen toegang tot de relevante datasets en bewerkingen. Apps krijgen geen NAS-adminaccount of algemeen gemounte NAS-root.
-- Behandel NAS-bestandsnamen, metadata en protocolantwoorden als onbetrouwbare invoer.
-- Sync is geen back-up. Bewaar herstelpunten die het syncaccount niet kan wissen en een aanvullende eigen offline kopie. Test herstel. NAS-admincompromis blijft een expliciet restrisico.
+Deze NAS kan op hetzelfde LAN of bij iemand anders thuis staan. LAN is de standaardroute. Toegang via internet vereist afzonderlijke toestemming voor de gekoppelde NAS-identiteit en een werkelijk geauthenticeerd transport. Geen stilzwijgende verruiming bij netwerkverandering. Geen leverancierscloud, verplicht leverancieraccount, sleutelbewaring door leverancier of beheerder, stille relay/fallback of externe OS-telemetrie.
 
-De OS-dienst kan niet bewijzen dat een willekeurige bestaande NAS nooit zelf extern synchroniseert of beheertelemetrie verstuurt. Vóór een claim 'niemand anders beheert deze gegevens' moet de gekozen NAS-configuratie op externe accounts, cloudsync, beheerkanalen, toegangsrechten en uitgaand verkeer worden beoordeeld. Er is in dit onderzoek geen echte NAS geïnspecteerd of aangepast.
+Lokale kerntaken blijven zonder NAS of internet werken. Een onbereikbare of ingetrokken opslagplaats wordt zichtbaar gepauzeerd; bestanden worden niet naar een andere host doorgestuurd. Lokale kopieën blijven van de gebruiker. NAS-inferentie is niet toegestaan als alternatief voor de lokale systeem-AI.
+
+Pakket-/OS-updates en modeldownloads krijgen afgescheiden, beperkte downloadpaden zonder persoonlijke context of NAS-credentials. De bestemming ziet noodzakelijke verbindingsmetadata zoals het bron-IP. Dit is geen anonimiteitsgarantie.
+
+## 2. Eenvoudige persoonlijke cloud met gescheiden bevoegdheden
+
+Privacy en gebruiksgemak zijn gezamenlijke producteisen: één keer koppelen en de scope kiezen, daarna automatische verbinding en synchronisatie binnen die autoriteit. Extra bevestiging is bedoeld voor een nieuwe vertrouwensrelatie, uitgebreid recht of ingrijpende handeling. De dagelijkse ervaring mag geen systeembeheerkennis vereisen; tijdelijke host-/browserproefbeperkingen zijn geen blijvende productkeuzes. Zie DESIGN-AMBITION.md voor de concrete taakcriteria.
+
+Hetzelfde OS-product krijgt een clientrol en een NAS-rol. De gewenste bediening is: kies opslagrol, stel ruimte in, koppel via een eenmalige uitnodiging en verifieer de identiteit. Geen verplicht leveranciersaccount. 'Haast plug & play' is een productdoel, geen bewijs dat willekeurige routers/NAT/CGNAT zonder verdere inrichting direct bereikbaar zijn.
+
+| Actor | Wel toegestaan | Niet automatisch toegestaan |
+|---|---|---|
+| Gebruiker/client | Eigen inhoud versleutelen/ontsleutelen; eigen gekoppelde namespace gebruiken; eigen sleutelherstel beheren | Andere namespaces, algemene NAS-adminrechten of netwerk voor alle apps |
+| NAS-beheerder | Uitnodigen, quota bepalen, toegang intrekken, eigen opgeslagen gastkopieën en staging verwijderen zonder toestemming van de gast | Gastinhoud, documentnamen, decryptiesleutels of key escrow |
+| Sync-/transportdienst | Toegestane versleutelde objecten naar de gekoppelde identiteit vervoeren | Willekeurige documenten ontsleutelen of een andere provider kiezen |
+| Leverancier | Gekozen update-/modelbestanden aanbieden via afgescheiden pad | Persoonlijke opslag, verplichte accounts, herstelkeys of telemetrie |
+
+### 2.1 Koppeling en netwerk
+
+- Discovery, een hostnaam, privé-IP of hetzelfde wifi-netwerk zijn geen authenticatie.
+- Koppeling bindt een eenmalige, vervallende uitnodiging aan de NAS-identiteit, namespace en afgesproken capaciteit. Een zichtbare naam is geen autorisatie-ID.
+- Controleer de identiteit via QR of een reeds vertrouwd kanaal. Een korte vergelijkcode alleen mag geen herbruikbaar wachtwoord worden.
+- De native transportadapter moet een onderhouden standaardprotocol voor hybride postkwantum-sleuteluitwisseling gebruiken, met echte peer-/clientauthenticatie en zonder stille klassieke fallback. N02 onderzoekt TLS 1.3/X25519MLKEM768 volgens RFC 10024 op loopback; de Ed25519-testauthenticatie blijft klassiek. Mutaties gebruiken geen TLS 0-RTT wegens replayrisico's. Koppel herhaalde requests aan operatie, identiteit en generatie; bind bestaande transportautoriteit aan app en intrekkingsgeneratie.
+- De trusted adapter levert netwerk-/identiteitsfeiten; een request mag zichzelf niet authenticeren met een boolean als `verified: true`.
+- Internetrecht is peergebonden. Identiteitsafwijking, een redirect of DNS-wijziging naar een ongeautoriseerde peer geeft een fout, geen fallback.
+- Geen automatische UPnP/portforwarding, open beheerpoort of afhankelijkheid van een commerciële relay als bijwerking. Directe bereikbaarheid of een afzonderlijk expliciet gekozen eigen netwerkroute moet eerst zijn aangetoond.
+
+### 2.2 Inhoud blijft onder de sleutel van de gebruiker
+
+- Versleutel vóór upload de inhoud, documentnamen en gevoelige manifests/metadata. Gebruik onderhouden authenticated-encryption-implementaties; geen zelfgemaakte cryptoprimitives.
+- Bind schema, namespace, object en versie cryptografisch aan de ciphertext. Onjuiste sleutel, gewijzigde tag/data/header of verkeerde namespace geeft geen geaccepteerde plaintext.
+- Alleen gebruikersapparaten houden inhoudssleutels; een NAS-adminreset geeft geen decryptierecht. Er is geen verborgen recoverykey bij de host.
+- Sleutelherstel verloopt via een eigen offline herstelkopie of vertrouwd eigen apparaat. Zonder alle sleutelkopieën kan inhoud onherstelbaar zijn. Een nieuwe client zonder vertrouwde versiegeschiedenis krijgt geen onbewezen rollbackgarantie.
+- De sleutelverwerkende client moet uit de vertrouwde OS-distributieketen komen. Een NAS mag geen willekeurige clientcode aanleveren die daarna gebruikerssleutels verwerkt.
+- De host ziet noodzakelijke beheermetadata: toegewezen ruimte, gebruik, opaque object-ID's en activiteit/verbindingsgegevens. Bestandsgroottes en timing worden niet automatisch verborgen door encryptie.
+- Encryptie beschermt inhoud, niet beschikbaarheid. Een gecompromitteerd gebruikersapparaat of kwaadaardige clientupdate valt buiten een garantie dat de NAS-beheerder de inhoud niet kan lezen.
+
+### 2.3 Beheerder kan ruimte altijd terugnemen
+
+De beheerder hoeft **geen toestemming, handtekening, verbinding of decryptiesleutel van de gast** te verkrijgen om de NAS-kopie te verwijderen. Quota, blokkeren en verwijderen zijn afzonderlijke beheercapabilities.
+
+Intrekking blokkeert eerst duurzaam verdere toegang en publicatie van uploads; daarna worden beheerde ciphertext, onafgemaakte uploads en beheerde herstelkopieën opgeruimd. Een bevestiging mag alleen de werkelijk voltooide stap beschrijven. Een I/O-fout mag geen valse succesvolle verwijdering opleveren.
+
+Oude sessies, tickets en uploadcommits worden geweigerd. Verwijderde namespaces blijven als ingetrokken bekend; synchronisatie mag ze niet stilzwijgend opnieuw aanmaken. Een nieuwe uitnodiging krijgt een nieuwe namespace. Reserveringen voor lopende uploads tellen mee in quota. Een volle gastquota verhindert de beheeractie niet.
+
+Dit verwijderrecht betreft de kopieën op de betreffende NAS. Het geeft geen recht om lokale bestanden of kopieën op andere apparaten te wissen. De host kan niet garanderen dat een kwaadwillige beheerder nergens een ciphertextbackup heeft behouden; fysieke secure erase en cryptografisch wissen zijn afzonderlijke eigenschappen.
+
+De ontvanger ziet vóór koppelen: de beheerder kan de opslag beëindigen, inhoud is voor de beheerder versleuteld, en een eigen kopie/back-up blijft nodig. Sync is geen zelfstandige back-up. Beschermde versies mogen gewone synccredentials weerstaan, maar mogen de hardware-eigenaar niet permanent de controle over zijn ruimte ontnemen.
 
 ## 3. AI uitsluitend op het apparaat
-Inference draait lokaal op CPU/GPU/NPU die op dat apparaat wordt ondersteund. Persoonlijke prompts, embeddings, zoekindexen, chatgeschiedenis, resultaten en inference-logs blijven lokaal. De gebruiker mag hiervan een versleutelde backup op de eigen gekoppelde NAS bewaren.
+Inference draait lokaal op CPU/GPU/NPU die op dat apparaat wordt ondersteund. Persoonlijke prompts, embeddings, zoekindexen, chatgeschiedenis, resultaten en inference-logs blijven lokaal. De gebruiker mag hiervan een end-to-end versleutelde backup op een expliciet gekoppelde persoonlijke NAS bewaren, inclusief ontvangen ruimte bij vrienden/familie. De NAS voert geen inferentie uit.
 
 - De inferentiedienst krijgt geen directe LAN-/internettoegang.
 - Ontbrekend model of onvoldoende RAM/rekenkracht geeft een fout, wachtrij, kleiner lokaal model of uitgeschakelde functie; nooit externe inference.
@@ -51,33 +90,54 @@ Een ondertekening toont herkomst onder de betreffende sleutel, geen betrouwbaarh
 
 Intrekken stopt toekomstig gebruik via de gecontroleerde grens, maar wist geen kopie die een app eerder mocht maken. Test ook gegevenslekken via tussendiensten, klembord, gedeelde opslag, logs en foutmeldingen. Volledige informatieflowbeveiliging vergt meer dan enkele schakelaars.
 
-## 5. Negatieve acceptatietests
+
+## 5. Acceptatietests
+
+Bestaande LP-identifiers blijven behouden; LP-03 is expliciet herzien voor peergebonden internettoegang.
+
 | ID | Scenario | Vereist resultaat |
 |---|---|---|
-| LP-01 | NAS onbereikbaar; internet beschikbaar | Lokale taken blijven werken; sync stopt zichtbaar; geen externe opslag/relay |
-| LP-02 | Een ander LAN-apparaat claimt NAS-naam/IP | Geen sessie of gegevens zonder correcte gekoppelde identiteit |
-| LP-03 | Apparaat verhuist naar ander netwerk | NAS-sync wordt niet buiten de toegestane lokale netwerkcontext voortgezet |
-| LP-04 | Lokale AI; internet uit | Ondersteunde inferentietaak werkt met geïnstalleerd model |
-| LP-05 | AI probeert upload, subprocess of helperroute | Uitgaand verkeer/ongeautoriseerde delegatie geweigerd |
-| LP-06 | Te weinig RAM of model ontbreekt | Expliciete lokale beperking; geen cloudfallback |
-| LP-07 | Modeldownloader vraagt persoonlijke context | Geen toegang tot documenten, historie, indexen of NAS-keys |
-| LP-08 | Externe app geïnstalleerd zonder extra rechten | Geen leesrecht buiten appopslag, geen NAS/LAN/internetrechten |
-| LP-09 | App heeft internetrecht, maar geen documentrecht | Persoonlijke testbestanden ook niet via helperdienst leesbaar |
-| LP-10 | Rechten ingetrokken, oude handle behouden | Verdere geautoriseerde operaties volgen het gespecificeerde revocatiemodel; bestaande kopieën apart benoemd |
-| LP-11 | Ransomware via gecompromitteerde syncbevoegdheid | Beschermde backups niet door syncaccount gewist; herstel naar geteste versie mogelijk |
-| LP-12 | Gemodificeerd model/pakket/update | Integriteits-/authenticiteitsfout gedetecteerd; geen stilzwijgende uitvoering |
-| LP-13 | Schone installatie + periodieke diensten | Alleen beschreven noodzakelijke verbindingen; geen externe telemetrie of inhoudsuploads |
-| LP-14 | Kwaadaardige NAS-antwoorden/bestandsmetadata | Begrensde foutafhandeling; geen proces-/bevoegdheidsontsnapping |
+| LP-01 | NAS onbereikbaar; internet beschikbaar | Lokale taken werken; geen andere provider/relay als fallback |
+| LP-02 | Ander apparaat claimt NAS-naam/IP | Geen gegevens zonder gekoppelde geverifieerde identiteit |
+| LP-03 | Netwerk wisselt van LAN naar internet | Geen sync zonder expliciet internetrecht voor dezelfde geverifieerde peer |
+| LP-04 | Systeem-AI; internet uit | Ondersteunde lokale taak werkt met geïnstalleerd model |
+| LP-05 | AI probeert socket, subprocess of helperupload | Directe en gedelegeerde netwerktoegang geweigerd |
+| LP-06 | RAM of model ontbreekt | Expliciete lokale beperking, geen cloudinferentie |
+| LP-07 | Modeldownloader vraagt persoonlijke context | Documenten, historie, indexen en NAS-keys geweigerd |
+| LP-08 | Nieuwe app zonder grants | Geen NAS/LAN/internet of algemene documenttoegang |
+| LP-09 | App heeft alleen internetrecht | Geen persoonlijk document via bestand-, NAS- of helperroute |
+| LP-10 | Recht ingetrokken, oude handle behouden | Toekomstige operaties geweigerd; eerdere externe kopieën apart benoemd |
+| LP-11 | Synccredentials gecompromitteerd | Afgescheiden herstelkopie blijft bruikbaar; admin mag zijn eigen NAS-ruimte wel wissen |
+| LP-12 | Gewijzigd model/pakket/update | Geen uitvoering zonder geslaagde authenticiteit/integriteit |
+| LP-13 | Schone installatie en periodieke diensten | Alleen beschreven noodzakelijke verbindingen; geen OS-telemetrie |
+| LP-14 | Kwaadaardige NAS-antwoorden/metadata | Begrensde fouten, geen code-uitvoering of bevoegdheidsontsnapping |
+| LP-15 | NAS-state plus admincredentials uitgelezen | Geen documentnamen/plaintext/gebruikerssleutels; noodzakelijke metadata expliciet |
+| LP-16 | Admin verwijdert ruimte; gast offline/weigert/key kwijt | Intrekken en verwijderen zonder gastconsent of decryptiesleutel |
+| LP-17 | Oude sessie/upload na eviction of herstart | Geen verdere publicatie of namespaceherleving; nieuwe invite = nieuwe namespace |
+| LP-18 | Meerdere uploads, volle quota, abort/herhaling | Reserveringen begrensd en correct vrijgegeven; admin niet door gastquota geblokkeerd |
+| LP-19 | Invite hergebruikt/verlopen/verkeerde peer | Koppeling geweigerd; geen automatische vertrouwenstoekenning |
+| LP-20 | NAS-adminwachtwoord gereset | Geen nieuwe decryptiebevoegdheid op gastdata |
+| LP-21 | Beheerscherm | Alleen quota/gebruik/identiteit/status; geen gastdocumentlijst of inhoud |
+| LP-22 | Ciphertext/header/object/versie gemanipuleerd | Authenticatiefout; geen gedeeltelijk geaccepteerde plaintext |
+| LP-23 | Internet aan voor browser, niet voor AI of NAS | Alleen expliciete appbestemming toegestaan; geen rechtenovererving |
+| LP-24 | Client- en NAS-rol op hetzelfde OS | Geauthenticeerd koppelen/ontvangen/aanbieden met begrijpelijke fout- en herstelroute |
+| LP-25 | Crash tijdens revoke/purge of echte schijffout | Oude autoriteit herleeft niet; geen onterechte duurzaamheids- of verwijderclaim |
 
-Leg platform, versie, netwerkopstelling, observatiepunt en ontbrekende coverage vast. Een lege app zonder netwerkstack bewijst niet dat deze eisen later worden afgedwongen.
+Hosttests, browsermocks en native OS-/netwerktests worden afzonderlijk gerapporteerd. Een hosttest of policyboolean bewijst geen veilig netwerk op de eigen kernel. Leg versie, netwerkopstelling, observatiepunt en ontbrekende coverage vast.
 
-## 6. 'Niet te hacken' als ambitie
-Geen absolute onhackbaarheidsclaim. Het concrete doel is minimale aanvalsmogelijkheden, technisch afgedwongen rechten, beperking van schade en controleerbaar herstel. Hardware, firmware, kernel, NAS en toegestane apps kunnen fouten bevatten. Formeel bewijs blijft gebonden aan de bewezen eigenschap en aannames. Benoem rest-risico's in plaats van een oncontroleerbare garantie.
+## 6. Veiligheidsdoel en bewijsgrenzen
+
+Het doel is minimale bevoegdheid, beperking van schade, gecontroleerde verbindingen en herstelbaarheid. Internet brengt een bereikbaar aanvalsoppervlak mee; er is geen absolute garantie 'niet te hacken'. Authenticatie/encryptie vervangen geen parsergrenzen, kernelisolatie, veilige updates, onderhoud of fysieke-hardwareonderzoeken.
 
 ## 7. Ontwikkelmiddelen zijn geen OS-runtime
-Codex en een Git-host zijn middelen om het project te ontwikkelen; zij worden geen onderdelen van het geïnstalleerde OS. Deze opdracht wijzigt geen bestaande Codex-, account- of NAS-instellingen. Gebruik bij ontwikkeling synthetische testgegevens en geen echte persoonlijke NAS-inhoud. Een eis om ook alle ontwikkeling uitsluitend offline te doen zou een andere workflow vereisen; dat is hier niet automatisch aangenomen.
 
-## Bron
-Rose, S., Borchert, O., Mitchell, S., & Connelly, S. (2020). *Zero trust architecture* (NIST Special Publication 800-207). National Institute of Standards and Technology. https://doi.org/10.6028/NIST.SP.800-207
+Codex, Git-host en de Node-ontwikkelhost zijn bouw-/testmiddelen. Zij worden geen verplichte diensten van het geïnstalleerde OS. Gebruik synthetische testdata. Deze wijziging configureert geen echte NAS, router, externe account of productiekey.
 
-De concrete componenten en tests hierboven zijn eigen ontwerpvoorstellen, geen claims dat NIST dit specifieke OS-ontwerp heeft goedgekeurd.
+## Primaire bronnen
+
+- OpenJS Foundation. (2026). *Crypto: Node.js v24.22.1 documentation*. https://nodejs.org/docs/latest-v24.x/api/crypto.html — maintained crypto-API, randomness, AAD en authenticated decryption; geraadpleegd 27 oktober 2026.
+- Rescorla, E. (2018). *The Transport Layer Security (TLS) protocol version 1.3* (RFC 8446). IETF. https://www.rfc-editor.org/rfc/rfc8446.html — transport en 0-RTT/replay; geraadpleegd 27 oktober 2026.
+- Rose, S., Borchert, O., Mitchell, S., & Connelly, S. (2020). *Zero trust architecture* (NIST SP 800-207). NIST. https://doi.org/10.6028/NIST.SP.800-207
+
+Quota, rolverdeling en beheerder-verwijderrecht zijn projectbesluiten op basis van de gebruikersopdracht; de bronnen certificeren dit project niet.
+

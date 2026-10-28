@@ -1,0 +1,24 @@
+{
+  "status": "failed",
+  "passed": false,
+  "started_utc": "2026-10-27T22:56:51.222009+00:00",
+  "results": [
+    {
+      "name": "host-protocol-elf-tests",
+      "passed": true,
+      "evidence": "build/logs/host-tests.stdout.txt"
+    },
+    {
+      "name": "harness-rejects-wrong-exit-markers-timeout",
+      "passed": true,
+      "evidence": null
+    },
+    {
+      "name": "cold-boot-1",
+      "passed": true,
+      "evidence": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/cold-1-013cc4acb6"
+    }
+  ],
+  "error": "Snapshotted artifact SHA256 mismatch: esp/kernel.elf; expected=e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1; actual=63d686f944f37279a0471802a0c133051cd7004266f287fc84eeb425581d2282",
+  "finished_utc": "2026-10-27T22:56:53.710659+00:00"
+}

@@ -139,3 +139,15 @@ autoriseren: een eerder teruggegeven `BlockAuthorization`-kopie is geen blijvend
 vrijstelling van revocation. Tickets binden PID + objectkey/generation +
 transportepoch, onafhankelijk van de gebruikte lokale handle; een andere nog
 geldige READ-cap naar hetzelfde scopeobject binnen dezelfde PID mag pollen.
+## M6 — expliciete WRITE/FLUSH-rechten
+
+Block WRITE32 en FLUSH64 verruimen uitsluitend expliciet gemaakte grants.
+Legacy `create_block_device` blijft root29; de nieuwe manifest-only
+`create_block_device_with_rights(owner,scope,rights)` accepteert uitsluitend
+Blockmasker125. Endpointmasker31, Block-bit2, scopes, quotas, refcounts en
+generations behouden hun grens. Globale KNOWN_RIGHTS127 wordt vervolgens
+typespecifiek begrensd. READ-only grants krijgen geen WRITE/FLUSH.
+
+Zie [M6-API](../virtio-core/M6-API.md) voor precieze signatures, publicatie/
+Unknown-beleid, testdekking, compatibiliteitsaanpassing van de oude unknown-bit32
+probe en de grenzen tussen pure hosttests en echt kernel-/devicebewijs.

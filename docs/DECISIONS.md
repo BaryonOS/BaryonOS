@@ -1,4 +1,137 @@
 # Ontwerpbesluiten
+
+## ADR-031 — Native I/O-onzekerheid zonder observerpanic
+
+**Datum/status/eigenaar:** 28 oktober 2026; geïmplementeerd en geaccepteerd op
+bron 88e6c04. Native builder A01, integratie root, AI-reviews R08/R09 en A04.
+
+**Context en besluit:** de dienst kende Unknown al, maar de M6c-observer eiste
+bij een voorbereide mutatie altijd Ok. Bind de eerste onzekere reply aan een
+werkelijk aan de dienst teruggegeven terminale muterende syscallfout; Pending
+is geen fout. Latch de I/O-tellingen, commit geen kandidaat, tel geen ACK en
+controleer dat beide appdomeinen daarna geen nieuwe I/O veroorzaken. Validatie
+en autorisatie blijven vóór de gesloten diensttoestand. Alleen volledige koude
+recovery bepaalt de werkelijk opgeslagen versie.
+
+**Alternatieven en gevolgen:** de succesasserties verwijderen zou fouten maskeren;
+automatische write-replay kan een onzekere mutatie verdubbelen. Het gekozen pad
+houdt normale WRITE+FLUSH-voorwaarden streng en verandert geen capability,
+syscall, wire-/journalformaat, dienstimplementatie of externe dependency.
+Testinjecties lopen via bestaande driversnapshot-, deadline- en resetpaden.
+Geen automatische dienstherstart; historische M6b-observer apart behouden.
+
+**Bewijs en herziening:** de volledige 35-groepen/31-VM-gate en M6b-regressie
+(18 groepen/14 VM) slagen, met beide captures en afzonderlijke bewijsaudits.
+30 Rust/48 Python-tests voor M6c, 22 Rust/30 Python-tests voor M6b; alle exit 0.
+Exacte scope en bron: `verification/M6D-ACCEPTANCE.md`; S07 levert 13% → 14%.
+Contract en primaire VIRTIO-bron:
+`implementation/M6D-IO-UNCERTAINTY.md`. Geen fysieke devicefout, stroomuitval,
+menselijke audit of formeel bewijs. Herzie bij algemene servicesupervisie,
+parallelle mutaties, nieuwe I/O-foutmodellen of andere hardware.
+
+## ADR-032 — Vaste 100-puntenroadmap met verplichte herbeoordeling
+
+**Datum/status/eigenaar:** 28 oktober 2026; aanvaard en uitgevoerd op expliciete
+gebruikersopdracht. De hoofdagent bezit de gedeelde voortgangsbestanden.
+
+**Besluit:** `docs/progress.json` bevat vaste, binaire acceptatiecriteria met
+gewichten die samen 100 vormen. De generator maakt de README, criteriatabel
+en lokale SVG. 0% is nog niet gerealiseerd; 100% is een volwaardig zelfstandig
+dagelijks OS op aantoonbaar ondersteunde hardware. De eigen kernel blijft
+verplicht. De beginscore van de M1–M6c-bewijsstand is 13%.
+
+**Alternatieven/gevolgen:** commits, regels code, testaantallen of M-nummers
+meten geen productvoltooiing. Daarom leveren hostprototypes of alleen plannen
+geen native punten op. Iedere opdracht actualiseert beoordeling, bron en datum;
+een score mag gelijk blijven of dalen. Gewichten zijn een expliciete
+planningskeuze, geen wetenschappelijke meting of resterende-tijdsraming.
+
+**Bewijs en herziening:** `tools/progress.py --check` controleert som, unieke
+criteria, bestaande bewijsverwijzingen en gelijkheid van gegenereerde weergaven.
+Het beoordeelt de bewijsinhoud niet en voert geen native tests uit. Wijzigingen
+aan eindscope/gewichten vereisen rubricversie, reden en vergelijking met de oude
+score. Zie `PROGRESS.md`; nooit de lat verlagen om een hoger getal te krijgen.
+
+## ADR-030 — Native labels en een catalogus per appdomein
+
+**Datum/status:** 28 oktober 2026; geïmplementeerd en native eindgate geslaagd
+op broncommit bc4cd104, basis bb22fdb. Exact contract: implementation/M6C-NAMED-CATALOG.md.
+Op deze historische M6c-uitvoeringsbron heeft het native `Unknown`-foutpad een
+bekende, ongerepareerde observerpanic, ook met `milestone-m6c`. De afzonderlijke
+reparatiebron en haar afzonderlijke acceptatie staan bovenaan in ADR-031.
+
+**Context en besluit:** afgeronde M6b heeft anonieme objectslots. Materiaal heeft
+benoemde objecten en list/open nodig. Voeg een aparte dependencyvrije catalog-core
+met expliciete IPC v4/journal v2 toe. Namen zijn UTF-8-labels, geen autoriteit of
+pad; object-ID en endpoint/caller blijven de toegangsgrens. LIST retourneert één
+begrensde snapshot van uitsluitend eigen live objecten met eigen revisiesom.
+PUT/RENAME zijn één record met naam/inhoud onder één CAS-revisie. RENAME behoudt
+inhoud; WRITE- en FLUSH-completion gaan vóór ACK. Het servicecontract sluit bij
+`Unknown` ook LIST af; dit foutpad is alleen via host-ABI getest.
+
+**Alternatieven/gevolgen:** stil hergebruik van v3/v1-padding zou oude readers
+misleiden; een losse naamtabel vereist meerdere atomische writes. Automatische
+migratie is niet nodig voor deze synthetische proef: v1 weigert vóór READY en de
+M6b-reader blijft behouden. Duplicaatlabels zijn toegestaan; geen directoryboom,
+normalisatie, encryptie of fysieke secure erase toegevoegd. Kleinere grenzen zijn
+proefbudgetten, geen vaste consumentenproductkeuze.
+
+**Bewijs en herziening:** de finale M6c-gate/capture slaagt met 19 groepen en
+15 VM-invocaties: 14 M6c plus één gewone M1. M6b-regressie slaagt met 18 groepen
+en 14 VM-invocaties op dezelfde fingerprint. De 30 coretests, 33 harnastests en
+15 host-ABI-adapterproeven behouden hun eigen scope. De native observer in
+`kernel/src/m2/m3/m6c.rs` kan bij WRITE-/FLUSH-fouten of time-outs panikeren
+vóór de client `Unknown` ontvangt; gecontroleerde native foutafhandeling was
+op die bron niet gerealiseerd. Een afzonderlijke AI-audit
+controleert alle 141 bronbestanden, 130 geregistreerde artifacthashes en acht
+volumes, inclusief twee externe rename-kills en zes koude recoveries. Details:
+`verification/M6C-ACCEPTANCE.md`; geen menselijke audit of formeel bewijs.
+De nieuwe kernelmodule bevat een expliciete fixtureobserver plus de bestaande blokbroker; het
+catalogusbeleid draait in ring 3. Herstel van het bekende `Unknown`-defect
+vereist een afzonderlijke native reparatie met WRITE-/FLUSH-fout- en
+time-outinjectie, controle van het werkelijk ontvangen clientantwoord en
+nieuwe brongebonden native verificatie. Herzie formaat/migratie vóór echt gebruikersdata,
+meer slots, grotere documenten of compositorintegratie. Terugdraaien kan via de
+bestaande M6b-build en zijn eigen volumes; geen bestaande image overschrijven.
+
+**Bronnen:** huidige M6B-OBJECT-STORAGE.md/PROJECT-STATE.md op bb22fdb; Rust
+bare-metal targetdocumentatie in het M6c-contract. Dit is een projectbesluit.
+
+## ADR-028 — Bewijs per eigenschap en standaard hybride NAS-transport
+
+**Datum/status:** 27 oktober 2026; ontwerp aanvaard en N02-hostproef getest vanaf `ece94a5`. **Context:** de gebruikersblauwdruk vraagt formele verificatie, kleine TCB, capabilities, geheugenbescherming en PQC. De richting past bij het project; de absolute productclaims en het eigen KDF-/tunnelvoorstel zijn niet onderbouwd.
+
+**Besluit:** eigen Rust-kern behouden, formele eigenschappen met expliciete aannames en implementatiebinding uitwerken, CHERI als aparte platformproef. Asymmetrische/PQC-code blijft buiten `kernel/`. Voor de eerste uitvoerbare NAS-transportproef TLS 1.3 met uitsluitend de gestandaardiseerde groep X25519MLKEM768 (RFC 10024), wederzijdse certificaatcontrole/pinning en bestaande peergebonden rechten. Geen eigen combiner/recordcrypto. De optionele-PSK-framing uit het aangeleverde fragment is ambigu. Een klassieke-only peer krijgt geen fallback in dit proefprofiel.
+
+**Alternatieven/gevolgen:** onmiddellijk een ongeteste native crate toevoegen past niet bij de huidige directe-rustc-build, vaste ELF-limieten, kleine IPC, ontbrekende entropycapability en uitgeschakelde SIMD. Een hele kernel vervangen door seL4 is geen gegeven opdracht. De begrensde hostproef geeft werkelijk protocolbewijs zonder een native port te claimen. De proef gebruikt klassieke Ed25519-authenticatie; geen volledige postkwantum-authenticatie-/bootketenclaim. LAN/WAN-labels in loopbacktests zijn expliciete harnasaannames.
+
+**Invariant:** toestemming vóór verbinden; echte peer-authenticatie vóór data; actuele bevoegdheid bij iedere applicatiewrite/response; close/error trekt transportfeit in. Fact bindt aan app, peerpin-generatie en voor internet de intrekkingsgeneratie; oude geauthenticeerde verbindingen herleven niet na hernieuwde toestemming. Intrekking werkt bij de volgende gecontroleerde handeling, geen proactieve idle-socketpush. Client-only documentkeys en het bestaande beheerderverwijderrecht blijven gelden. Een geldig ondertekend pakket verleent op zichzelf geen capabilities. Eenmalig verleende beperkte autoriteit mag automatisch gebruikt worden zonder herhaalde prompts.
+
+**Bewijs/status:** geïntegreerd 124/124 tests (85 service, 39 UI), beide demo's exit 0, 20 syntaxchecks en diffcontrole geslaagd. Echte negatieve TLS-handshakes, geauthenticeerde kwaadaardige serverantwoorden, resourcegrenzen, intrekking en regrant getest. Twee AI-reviews en gerichte onafhankelijke hercontrole van de generatiecorrectie. Commando's/bronhashes/resultaten in `verification/pqc-transport/`. Het eerste 16-policytestcheckpoint is historisch bewaard en niet bij de 124 opgeteld. Geen formeel bewijs of menselijke audit.
+
+**Bronnen:** RFC 10024; seL4 verified configurations/Proofcraft nieuws 2026; CHERI FAQ/CHERI-D; NIST FIPS 203/204/205. Precieze URLs, correcties en native taken staan in `implementation/VERIFIABLE-SECURITY-AND-PQC.md`.
+
+**Herziening/rollback:** herzie bij incompatibele standaarden, library-/bewijsproblemen, native port of nieuwe productinstructie. N02 is een afzonderlijke werkbranch boven PR #7; verwijderen ervan vereist geen schijf-, sleutel- of firmwaremigratie. De nieuwe proef opent uitsluitend loopback. Bestaande N01/M6a-code en bewijsarchieven behouden.
+
+## ADR-027 — Internet en versleutelde persoonlijke NAS-ruimte
+
+**Datum/status:** 27 oktober 2026; aanvaard op expliciete gebruikersopdracht, met geteste hostproef N01 en browsermock. Native integratie staat open. **Eigenaar:** hoofdagent voor contract/integratie; afzonderlijke service- en productbuilders.
+
+**Context:** de gebruiker wil internet, een NAS-rol binnen hetzelfde OS en opslagruimte aanbieden aan vrienden/familie. De host moet zijn ruimte kunnen terugnemen zonder toestemming van de gast, terwijl de inhoud voor hem versleuteld blijft. Dit herziet ADR-006 en de eerdere beperking tot eigen NAS/eigen LAN.
+
+**Alternatieven:** alleen eigen LAN handhaven voldoet niet aan de nieuwe opdracht; een leverancierscloud of beheerderssleutel voor gastinhoud schendt de privacygrens; gastconsent als vereiste voor verwijderen ontneemt de hardware-eigenaar zijn beheerrecht.
+
+**Besluit/invariant:** client-only inhoudssleutels; versleuteling van documentnaam en inhoud; namespace/object/revisie geauthenticeerd. NAS-beheer beheert quota, intrekking en verwijdering maar krijgt geen decryptiesleutel. Revoke/evict invalideert oude sessies en lopende uploads; tombstones verhinderen herleving. Internet is een afzonderlijk apprecht; NAS-internet is expliciet peergebonden, lokale AI blijft netwerkloos. Lokale NAS-beheerrol staat los van een internet-datakoppeling; extern beheer wordt niet stilzwijgend toegevoegd. Een routeplanner kiest automatisch geverifieerd LAN of eerder toegestaan direct internet naar dezelfde peer, zonder herhaalde consentvragen of nieuwe autoriteit. Privacy en gebruiksgemak zijn samen vereist; tijdelijke hostproefcaps zijn geen productkeuze.
+
+**Uitvoering:** dependencyvrije Node-hostproef in services/nas/, zonder sockets of echte NAS. Eigen synthetische ciphertextstore met één schrijver en atomische snapshots. Browserflows Mijn NAS / Ruimte ontvangen / Ruimte aanbieden zijn mocks. Deze ontwikkelmiddelen worden geen verplichte runtime van het eigen OS.
+
+**Testbewijs:** gezamenlijke suite 89/89 (50 service, 39 UI) en eindige demo exit0; bronhashes/commando's in verification/nas/report.json. Echte childproceskills na bevestigde opslagmutaties, geen fysieke stroomuitvaltest. Vier concrete reviewbevindingen zijn hersteld: noncebudget bij staging, tijdelijke ciphertextsnapshots bij wissen, race bij writerlockherstel en ongewenst beheerrecht via internet.
+
+**Grenzen/gevolgen:** hostidentiteit en transportfacts zijn synthetisch; geen TLS-/native netwerkbewijs. Herstelde inhoudssleutel kan alleen lezen, niet veilig blijven schrijven op meerdere apparaten. Browserinternet is in N01 appgebonden; bestemmingsgrants voor gewone apps/downloaders volgen nog. Geen volledige snapshot-rollbackbescherming, veilige fysieke erase of plug-and-play-NAT-claim. Native clientdistributie/key lifecycle, netwerkcapabilities, beheeropslag, onboarding en menselijke audit blijven afzonderlijke integratievoorwaarden.
+
+**Bronnen:** Node.js v24.22.1 Crypto (https://nodejs.org/docs/latest-v24.x/api/crypto.html), RFC 8446 (https://www.rfc-editor.org/rfc/rfc8446.html) en NIST SP 800-207 (https://doi.org/10.6028/NIST.SP.800-207), geraadpleegd 27 oktober 2026. Functionele keuze en adminverwijderrecht zijn projectbesluiten. Exact contract: implementation/NAS-SHARING-AND-INTERNET.md en LOCAL-PRIVACY-CONTRACT.md revisie 3.
+
+**Migratie/rollback/herziening:** geen bestaande echte NAS, router, kernel-ABI of M6a-image wordt gewijzigd. Bewaar oudere M1–M6a-resultaten. N01 kan als afzonderlijke featurecommit worden teruggedraaid; geen destructieve reset van gebruikerswerk. Herzie bij bewijs van key-/nonceproblemen, multi-writerintegratie, andere transport-/opslaglaag of een nieuwe gebruikersinstructie. Oude LAN-only teksten zijn op de actieve leesroutes bijgewerkt.
 De oorspronkelijke revisie-5-principes hieronder zijn behouden als projectbesluiten. Uitvoeringsbesluiten vanaf ADR-019 beschrijven de gebouwde richting; actuele M1–M5-testuitkomsten en grenzen staan in PROJECT-STATE.md.
 
 | ID | Besluit | Reden | Herzien als |
@@ -8,7 +141,7 @@ De oorspronkelijke revisie-5-principes hieronder zijn behouden als projectbeslui
 | ADR-003 | x86_64 QEMU q35, UEFI, software-emulatie baseline | Controleerbare eerste testomgeving | Praktische toolchainbeperking wordt aangetoond |
 | ADR-004 | Kleine capability-gebaseerde microkernel als richting | Autoriteit expliciet en TCB klein houden | Prototypes aantoonbare problemen met complexiteit/latency tonen |
 | ADR-005 | Standaarden en gecontroleerde bibliotheken toestaan | Zelf crypto/alle tools bouwen vergroot risico en scope | Herkomst/licentie/onderhoud onacceptabel is |
-| ADR-006 | Lokaal account, geen externe OS-telemetrie, OS-data alleen apparaat/eigen NAS op eigen LAN | Expliciete gebruikerscorrectie | Alleen na expliciete gewijzigde gebruikersopdracht |
+| ADR-006, herzien door ADR-027 | Lokaal account, geen OS-telemetrie, lokale data of E2EE naar gekoppelde eigen/gedeelde persoonlijke NAS; internet per peer expliciet | Expliciete gebruikersuitbreiding 27 oktober 2026 | Alleen na expliciete gewijzigde gebruikersopdracht |
 | ADR-007 | PQC-voorbereiding vanaf ontwerp; integratie pas met echte use case | Protocol- en sleutelmigratie voorkomen | Relevante standaarden/implementaties wijzigen |
 | ADR-008, herzien | Product-/interactieonderzoek parallel vanaf M0; echte systeemintegratie volgt bewezen kernfuncties | Originaliteit en hoogwaardige UX moeten het systeem mede sturen | Bijstelling op experimenten, geen stille reductie tot standaarddesktop |
 | ADR-009 | Geen kernelbrede claims over formeel bewijs | Eigen code erft geen seL4-bewijs | Afgebakend daadwerkelijk geverifieerd resultaat bestaat |
@@ -54,7 +187,21 @@ ID, datum, status, context, alternatieven, besluit, onderbouwing/bronnen, gevolg
 
 - OASIS Open, *[Virtual I/O Device (VIRTIO) Version 1.2](https://docs.oasis-open.org/virtio/virtio/v1.2/cs01/virtio-v1.2-cs01.html)*, Committee Specification 01, 1 juli 2022: §2.4 (resetbevestiging), §2.7 en §2.7.8 (splitqueue en used-entry zonder epoch), §4.1 (PCI-transport) en §5.2 (blokdevice). Queuegrootte, één gelijktijdige read en de gepinde pool zijn projectkeuzes.
 - Intel Corporation, *[Intel® 64 and IA-32 Architectures Software Developer’s Manual, Volume 3A: System Programming Guide, Part 1](https://www.intel.sg/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-3a-part-1-manual.pdf)*, Order No. 253668-060US, september 2016: §4.1.4 en §4.5 (CPUID/MAXPHYADDR en gereserveerde fysieke adresbits), §§11.12.2–11.12.3 (IA32_PAT en selectie met PAT/PCD/PWT). `map_mmio` controleert de CPU-adresbreedte en vereist UC in PAT-entry 3 vóór de 4KiB-mapping met PAT=0, PCD=1 en PWT=1; de firmware-PAT blijft ongewijzigd. Bronnen gecontroleerd op 27 oktober 2026.
-
 De vertrouwde basis omvat het kerneltransport en het protocolconforme QEMU-device/backend. M5 bevat geen IOMMU: CPU-isolatie en begrensde descriptoropbouw bewijzen geen containment van kwaadwillige DMA. De pool blijft gepind tot VM-stop; hergebruik vereist completion of bevestigde reset. Zonder resetack blijft zij in quarantaine en het device offline. Een used-entry heeft geen epoch; softwaretickets vervangen geen hardware-resetgarantie. Herzie dit besluit vóór directe userdriver-DMA, SMP, fysieke hardware of een andere devicebackend.
 
 De eerste scope is alleen lezen op een synthetische 64KiB-wegwerpimage. Schrijven, persistentie en herstel blijven M6. Herstart gebruikt een begrensde testcoördinator en echte nieuwe dienst-PID/epoch plus IPC-capoverdracht; geen algemene spawn-API. De client blijft leven. Het externe testorakel controleert sectorchecksums op twee verschillende images bij dezelfde kernel en controleert dat alle imagebytes ongewijzigd blijven. Uitgevoerde resultaten en open punten staan uitsluitend in PROJECT-STATE.md en verification/m5/. Herstel: een afzonderlijke checkout van M1–M4 op `c630c59`; geen hostdisk- of firmwaremigratie.
+
+
+## ADR-029 — Native objectdienst met revisies en begrensd journal
+
+**Datum/status/eigenaar:** 27 oktober 2026, geïmplementeerd en volledige native gate geslaagd binnen het begrensde QEMU-profiel. Het native `Unknown`-foutpad heeft een bekende, ongerepareerde observerpanic. Hoofdagent integreert, afzonderlijke builders en AI-reviewers controleren service, broker en harnas.
+
+**Context en besluit:** M6a bewaart één vaste waarde. M6b voegt een echte ring-3-objectdienst toe boven dezelfde begrensde READ/WRITE/FLUSH-ABI: vier objecten in twee endpointgebonden domeinen, GET/PUT/DELETE, maximaal 128 bytes en 32 append-only records. De limieten zijn proefgrenzen. De object-core is eigen dependencyvrije safe Rust; er worden geen nieuwe externe crates toegevoegd. De kernel houdt de bestaande DMA-broker plus een expliciete testobserver; objectpolicy draait in de dienst.
+
+**Alternatieven en gevolgen:** een volledig bestandssysteem met namen, garbage collection en encryptie ineens toevoegen maakt de herstel- en bevoegdheidsgrens veel groter. Een extra hoststore levert geen native vooruitgang. Dit begrensde native fundament maakt meerdere objecten en blijvende verwijdering nu toetsbaar, met expliciete latere uitbreidingen voor ruimtehergebruik, namen, crypto en de desktop. Geen migratie van bestaande M6a-images; M6b gebruikt uitsluitend eigen wegwerpvolumes.
+
+**Invariant:** de ontvangende endpointcapability bindt het domein. Geen appvelden als blok- of domeinautoriteit. Mutaties vergelijken de actuele revisie, en alleen een echte WRITE-completion gevolgd door FLUSH-completion mag een succesvolle reply opleveren. Een tombstone behoudt de revisie, zodat oude verzoeken geen verwijdering ongedaan maken. Corruptie geeft geen stilzwijgende terugval. Het servicecontract vereist dat onzekere mutaties `Unknown` opleveren en verdere geldige dienstoperaties blokkeren zonder automatische replay. Dit `Unknown`-contract is alleen op host-ABI-niveau getest en is voor native WRITE-/FLUSH-fouten niet gerealiseerd door de bekende observerpanic. Full verschijnt vóór muterende I/O. Verwijderen is logisch; oude payloadbytes blijven in het journal en zijn niet cryptografisch beschermd.
+
+**Onderbouwing en bewijs:** eigen contract `implementation/M6B-OBJECT-STORAGE.md`, eerdere virtio/capability-ABI uit ADR-026/M6a; wire- en journalindeling zijn interne projectbesluiten. De volledige eindgate op `1e61a20` slaagt: 18 groepen/14 echte VM-runs, 22 Rust-hosttests en 26 harnastests. Daaronder vallen zes koude recoveries, uitputting, corruptie en twee echte externe kills. Capture en een aparte audit van 121 artifacthashes/zeven schijfvolumes slagen; een extra Python-parser controleert onafhankelijk de echte schijfbytes zonder de Rust-journalcode te delen. Zeven host-ABI-adapterproeven controleren `Unknown`-uitkomsten. Native WRITE-/FLUSH-fouten kunnen via `sent()` in `kernel/src/m2/m3/m6b.rs` een kernel panic veroorzaken: de observer vergelijkt de reply eerst met een verwachte `Ok`-reply. Dit defect is niet gerepareerd; gecontroleerde end-to-end-afhandeling als `Unknown` ontbreekt ook in `milestone-m6b`. De native gate bevat geen devicefoutinjectie voor dit pad. Exacte bron, regressies en bewijsgrenzen staan in `PROJECT-STATE.md` en `verification/m6b/`.
+
+**Herziening en rollback:** een herziening van het native `Unknown`-pad vereist een native reparatie, gerichte WRITE-/FLUSH-devicefoutinjectie, controle van het daadwerkelijke clientantwoord en nieuwe native verificatie met bijbehorende bronbinding. Herzie ook bij meer objecten, compaction, meerdere schrijvers, sleutels, native UI of andere devices. M6b heeft een eigen feature/ELF/volumeformaat; bestaande M1–M6a-profielen blijven selecteerbaar. Een aparte werkbranch maakt terugname mogelijk zonder hostschijven of echte gebruikersdata te wijzigen. Tests in QEMU bewijzen geen fysieke stroomuitval, IOMMU-containment, formele correctheid of productierijpheid.

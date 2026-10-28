@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "-v",
+    "test_preflight"
+  ],
+  "cwd": "/workspace/scratch/a9adbdc1f137/pr10-verifier/combined/tests",
+  "source_files_sha256": {
+    "tools/preflight.py": "a983b43293d5f277b9d8b810ab14aeab34ab0f9868bbb6a78068a0a6baa6be8f",
+    "tests/test_preflight.py": "f49847a9d2ec090e1ac3896abd28bccd9bb4a02c78af65fdfafe287cf5726fdc"
+  },
+  "started_unix": 1793146686.0854473,
+  "duration_s": 0.10650634765625,
+  "returncode": 0,
+  "scope": "Targeted preflight host unit tests only, following the 121-test combined run; no native execution",
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "b4a7b20ddbb9c62fdbe9062dc5e11db7e35e37c9646cae0938a4f17328c6560a"
+}

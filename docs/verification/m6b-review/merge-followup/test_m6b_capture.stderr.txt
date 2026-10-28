@@ -1,0 +1,15 @@
+test_capture_rejects_substitution_before_touching_existing_archive (test_m6b_capture.HostEvidenceBinding.test_capture_rejects_substitution_before_touching_existing_archive) ... ok
+test_exact_argv_cwd_exit_and_timeout_are_required (test_m6b_capture.HostEvidenceBinding.test_exact_argv_cwd_exit_and_timeout_are_required) ... ok
+test_exact_three_separate_host_contracts_are_accepted (test_m6b_capture.HostEvidenceBinding.test_exact_three_separate_host_contracts_are_accepted) ... ok
+test_missing_member_of_host_log_trio_is_rejected (test_m6b_capture.HostEvidenceBinding.test_missing_member_of_host_log_trio_is_rejected) ... ok
+test_one_log_trio_cannot_count_twice (test_m6b_capture.HostEvidenceBinding.test_one_log_trio_cannot_count_twice) ... ok
+test_preflight_cannot_replace_rust_or_python_test_log_paths (test_m6b_capture.HostEvidenceBinding.test_preflight_cannot_replace_rust_or_python_test_log_paths) ... ok
+test_renaming_preflight_metadata_does_not_satisfy_test_commands (test_m6b_capture.HostEvidenceBinding.test_renaming_preflight_metadata_does_not_satisfy_test_commands) ... ok
+test_complete_fixed_m6b_and_m1_key_sets_are_accepted (test_m6b_capture.RequiredArtifactBinding.test_complete_fixed_m6b_and_m1_key_sets_are_accepted) ... ok
+test_each_missing_artifact_is_rejected_before_raw_hash_validation (test_m6b_capture.RequiredArtifactBinding.test_each_missing_artifact_is_rejected_before_raw_hash_validation) ... ok
+test_empty_missing_extra_and_wrong_phase_artifact_maps_are_rejected (test_m6b_capture.RequiredArtifactBinding.test_empty_missing_extra_and_wrong_phase_artifact_maps_are_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.018s
+
+OK

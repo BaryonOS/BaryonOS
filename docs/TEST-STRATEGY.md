@@ -1,6 +1,10 @@
 # Teststrategie en bewijsstatus
 Dit is een eigen testplan voor het project, geen verslag van al uitgevoerde OS-tests.
 
+## N02 — onderscheid echte TLS, beleid en native bewijs
+
+De uitgevoerde N02-integratie onder `verification/pqc-transport/` bevat 124 tests: 85 service inclusief 30 echte loopback-TLS-proeven, plus 39 UI-statustests. Handshakebewijs registreert de onderhandelde groep/protocol/cipher, wederzijdse identiteit, negatieve downgrade-/servergevallen en het ontbreken van sessiehergebruik. Policytests zijn geen TLS-bewijs; een configureerbare groepsnaam zonder handshake evenmin. Harnasaannames LAN/internet blijven onderscheiden van daadwerkelijk gemeten loopbacktransport. Test geen productiekeys of externe apparaten. App-/toestemmingsgeneraties voorkomen herleving van oude geauthenticeerde verbindingen na intrekken en opnieuw toestaan. Geen native/QEMU-, formeel-, menselijke-audit- of PQ-authenticatieclaim aan deze resultaten verbinden.
+
 ## Vanaf M1
 Een geslaagde build, een geslaagde emulatorboot en functionele isolatie zijn aparte resultaten. Geef elke test een naam, requirement, exacte versie/configuratie, verwachte observatie, time-out en foutcriterium. Archiveer de relevante seriële uitvoer buiten de bronboom; leg in de repository vast hoe die te reproduceren is.
 
@@ -28,7 +32,7 @@ Gebruik tools als Miri/sanitizers alleen voor onderdelen/targets die zij onderst
 - Beperkte, reproduceerbare inputs; time-outs; geen live persoonlijke data.
 
 ## Bindende privacychecks
-Na invoering van netwerk, NAS of AI gelden de relevante LP-01 t/m LP-14-tests uit LOCAL-PRIVACY-CONTRACT.md. Test peer-identiteit, netwerkovergangen, geen externe fallback, netwerkloze inferentie, gescheiden modeldownloader, combinaties van apprechten en herstel van NAS-backups. Dit zijn toekomstige acceptatiecriteria; nog geen uitgevoerde resultaten.
+Na invoering van netwerk, NAS of AI gelden alle relevante LP-tests uit LOCAL-PRIVACY-CONTRACT.md. Test peer-identiteit, eenmalige uitnodigingen, expliciete remote toegang, encryptie van inhoud én namen, adminverwijdering zonder gebruikerssleutel, stale uploads na revoke, quota/herstart, netwerkovergangen, geen leveranciersfallback, netwerkloze inferentie, gescheiden modeldownloader, combinaties van apprechten en onafhankelijk herstel van NAS-backups. Dit zijn toekomstige acceptatiecriteria; nog geen uitgevoerde resultaten.
 
 ## Prestaties
 Vaste machineconfiguratie, versies, workload en meetgrenzen. Rapporteer sampleaantal, mediaan en spreiding/p95 waar zinvol. Vergelijk hetzelfde werk met dezelfde beveiligingsgaranties. TCG-resultaten niet vergelijken met native Windows/macOS-cijfers. Stel realistische budgetten pas na een gemeten baseline vast.
@@ -37,3 +41,4 @@ Vaste machineconfiguratie, versies, workload en meetgrenzen. Rapporteer sampleaa
 Later: dependencies en checksums vastleggen, SBOM, repeatable builds in schone omgevingen, bronreview, ondertekende artifacts en hersteltest. Geen secrets in CI voor onbeoordeelde externe pull requests. Releasekeys buiten gewone agents/CI-buildjobs; aparte beperkte ondertekeningsstap. Zelfhosted runners voor onbetrouwbare PR-code moeten wegwerpbaar en geïsoleerd zijn.
 
 Een CI-badge bewijst uitsluitend dat de geconfigureerde controles voor de genoemde versie zijn geslaagd. Geen OS-release publiceerbaar noemen voordat criteria, licentie, meldpunt, herstelroute en beperkingen zijn gecontroleerd.
+

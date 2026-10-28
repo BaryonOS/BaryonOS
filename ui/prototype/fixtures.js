@@ -1,4 +1,5 @@
 // Synthetic examples only. No personal files, live device identifiers or accounts.
+import { createNasSharingState } from './nas-sharing.js';
 export const STORAGE_KEY = 'nieuw-os-prototype-v1';
 export const NAS_IDENTITY = 'NAS-DEMO-01';
 export const COLLECTIONS = ['Vandaag', 'Huis', 'Archief'];
@@ -36,10 +37,12 @@ export function createFixtureState() {
     selectedObjectId: null, lastOpenedId: 'obj-001', draft: null,
     mode: 'read', restoreRevision: null, grants: [], grantRequest: null,
     activeGrantId: null, lastGrantState: null,
-    nas: { state: 'unpaired', identity: null, datasets: ['Huis'] },
+    nas: { state: 'unpaired', identity: null, internetIdentity: null, network: 'lan', datasets: ['Huis'] },
+    nasSharing: createNasSharingState(),
     ai: { state: 'ready', availability: 'ready', context: ['obj-001'], response: '', runId: 0 },
     install: { state: 'idle', toolId: null },
     conditions: { invalidPackage: false },
     message: null, counter: 0,
   };
 }
+

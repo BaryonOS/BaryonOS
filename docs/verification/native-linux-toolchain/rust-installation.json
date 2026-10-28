@@ -1,0 +1,91 @@
+{
+  "rustc": {
+    "returncode": 0,
+    "stdout": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8\n",
+    "stderr": ""
+  },
+  "cargo": {
+    "returncode": 0,
+    "stdout": "cargo 1.90.0 (840b83a10 2025-07-30)\n",
+    "stderr": ""
+  },
+  "rustup": {
+    "returncode": 0,
+    "stdout": "rustup 1.29.2 (d8c92c676 2026-10-21)\n",
+    "stderr": "info: This is the version for the rustup toolchain manager, not the rustc compiler.\ninfo: the currently active `rustc` version is `rustc 1.90.0 (1159e78c4 2025-09-14)`\n"
+  },
+  "targets": {
+    "returncode": 0,
+    "stdout": "x86_64-unknown-linux-gnu\nx86_64-unknown-none\nx86_64-unknown-uefi\n",
+    "stderr": ""
+  },
+  "components": {
+    "returncode": 0,
+    "stdout": "cargo-x86_64-unknown-linux-gnu\nclippy-x86_64-unknown-linux-gnu\nrust-std-x86_64-unknown-linux-gnu\nrust-std-x86_64-unknown-none\nrust-std-x86_64-unknown-uefi\nrustc-x86_64-unknown-linux-gnu\nrustfmt-x86_64-unknown-linux-gnu\n",
+    "stderr": ""
+  },
+  "components_manifest": [
+    {
+      "package": "rustc",
+      "target": "x86_64-unknown-linux-gnu",
+      "version": "1.90.0 (1159e78c4 2025-09-14)",
+      "url": "https://static.rust-lang.org/dist/2025-09-18/rustc-1.90.0-x86_64-unknown-linux-gnu.tar.xz",
+      "sha256": "48c2a42de9e92fcae8c24568f5fe40d5734696a6f80e83cc6d46eef1a78f13c9",
+      "verification": "Downloaded and checked by rustup using official SHA256 manifest"
+    },
+    {
+      "package": "cargo",
+      "target": "x86_64-unknown-linux-gnu",
+      "version": "0.91.0 (840b83a10 2025-07-30)",
+      "url": "https://static.rust-lang.org/dist/2025-09-18/cargo-1.90.0-x86_64-unknown-linux-gnu.tar.xz",
+      "sha256": "9853db03d68578a30972e2755c89c66aec035fec641cf8f3a7117c81eec2578d",
+      "verification": "Downloaded and checked by rustup using official SHA256 manifest"
+    },
+    {
+      "package": "clippy-preview",
+      "target": "x86_64-unknown-linux-gnu",
+      "version": "0.1.90",
+      "url": "https://static.rust-lang.org/dist/2025-09-18/clippy-1.90.0-x86_64-unknown-linux-gnu.tar.xz",
+      "sha256": "5b6466419693a05365827378145014a37ae74fb2948fab390d5210a524792ed8",
+      "verification": "Downloaded and checked by rustup using official SHA256 manifest"
+    },
+    {
+      "package": "rustfmt-preview",
+      "target": "x86_64-unknown-linux-gnu",
+      "version": "1.8.0",
+      "url": "https://static.rust-lang.org/dist/2025-09-18/rustfmt-1.90.0-x86_64-unknown-linux-gnu.tar.xz",
+      "sha256": "7f4d38b9d782e55832bf17969ef35477703c60781545bb098eb127cc8172d1c6",
+      "verification": "Downloaded and checked by rustup using official SHA256 manifest"
+    },
+    {
+      "package": "rust-std",
+      "target": "x86_64-unknown-linux-gnu",
+      "version": "1.90.0 (1159e78c4 2025-09-14)",
+      "url": "https://static.rust-lang.org/dist/2025-09-18/rust-std-1.90.0-x86_64-unknown-linux-gnu.tar.xz",
+      "sha256": "663f4ab7945b392d5e5294dec1b050a66820a20e86f084ec37eeb0f2f7ff5569",
+      "verification": "Downloaded and checked by rustup using official SHA256 manifest"
+    },
+    {
+      "package": "rust-std",
+      "target": "x86_64-unknown-uefi",
+      "version": "1.90.0 (1159e78c4 2025-09-14)",
+      "url": "https://static.rust-lang.org/dist/2025-09-18/rust-std-1.90.0-x86_64-unknown-uefi.tar.xz",
+      "sha256": "1e3df3bac5f1451675e06118f7cd197e52cc1413d7bf1f1c38df0d28a8e5c916",
+      "verification": "Downloaded and checked by rustup using official SHA256 manifest"
+    },
+    {
+      "package": "rust-std",
+      "target": "x86_64-unknown-none",
+      "version": "1.90.0 (1159e78c4 2025-09-14)",
+      "url": "https://static.rust-lang.org/dist/2025-09-18/rust-std-1.90.0-x86_64-unknown-none.tar.xz",
+      "sha256": "47cb9f0ffcbeebeaee06a92a189ea81011b46d7dd10360a3b0801a041bc3b9af",
+      "verification": "Downloaded and checked by rustup using official SHA256 manifest"
+    }
+  ],
+  "installed_binary_sha256": {
+    "rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustc": "e6abf55ab1859e7c990be77fd593f51661ea99fb2fde626ae9f4108aaa34e7fa",
+    "rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo": "51de284e8bb0d03dcee595a0fb1cb3a952fe9e7e4b953a8b1467b7f71725b561",
+    "rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld": "5b224e53ad32986a5bf2e349addbe00c5ef37814a6a5584a9f2e3d03bb524306"
+  },
+  "execution_note": "rustup --version attempted in restricted sandbox first: it printed 1.29.2 then aborted because wait-timeout signal-handler write was EPERM. This metadata collection used approved escalation; rustc/cargo commands already worked in the sandbox."
+}

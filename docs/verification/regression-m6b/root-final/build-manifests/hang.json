@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "profile": "hang",
+  "kernel_feature": "test-hang",
+  "loader_feature": null,
+  "source_fingerprint_version": 3,
+  "source_sha256": "43e6c06e43e3ba602b49c304328f0c1700bc26dae0a1256f0d5d420421f55ae2",
+  "loader": {
+    "sha256": "ec169b98c4f15b75f4df9086bd7ea502f6e22cf917167db5d192763681906336",
+    "format": "AMD64 PE32+",
+    "subsystem": "EFI_APPLICATION",
+    "imports": 0
+  },
+  "kernel": {
+    "sha256": "2fa91fc2321517ecbbe7085729868a2f0ec32fd5bff0f51231ced0a9a6ed4ef1",
+    "entry": 33554432,
+    "segments": [
+      {
+        "flags": 5,
+        "offset": 4096,
+        "address": 33554432,
+        "filesz": 5763,
+        "memsz": 5763,
+        "page_start": 33554432,
+        "page_end": 33562624
+      },
+      {
+        "flags": 4,
+        "offset": 12288,
+        "address": 33562624,
+        "filesz": 502,
+        "memsz": 502,
+        "page_start": 33562624,
+        "page_end": 33566720
+      },
+      {
+        "flags": 6,
+        "offset": 16384,
+        "address": 33566720,
+        "filesz": 96,
+        "memsz": 160,
+        "page_start": 33566720,
+        "page_end": 33570816
+      }
+    ],
+    "sections": [
+      {
+        "name": "",
+        "type": 0,
+        "flags": 0,
+        "size": 0
+      },
+      {
+        "name": ".text",
+        "type": 1,
+        "flags": 6,
+        "size": 5763
+      },
+      {
+        "name": ".rodata",
+        "type": 1,
+        "flags": 50,
+        "size": 502
+      },
+      {
+        "name": ".data",
+        "type": 1,
+        "flags": 3,
+        "size": 96
+      },
+      {
+        "name": ".bss",
+        "type": 8,
+        "flags": 3,
+        "size": 64
+      },
+      {
+        "name": ".symtab",
+        "type": 2,
+        "flags": 0,
+        "size": 1176
+      },
+      {
+        "name": ".shstrtab",
+        "type": 3,
+        "flags": 0,
+        "size": 52
+      },
+      {
+        "name": ".strtab",
+        "type": 3,
+        "flags": 0,
+        "size": 2228
+      }
+    ]
+  }
+}

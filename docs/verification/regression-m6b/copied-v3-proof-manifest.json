@@ -1,0 +1,332 @@
+{
+  "source_root": "/workspace/scratch/0d3232a3c004/nieuw-os-regression",
+  "files": [
+    {
+      "path": "docs/verification/regression-m6b/README.md",
+      "bytes": 2408,
+      "sha256": "7e1380afa69dae09e0120b496388ab2c7965f22ba374b456fea6eae4d7014d72"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/capture-commands.json",
+      "bytes": 1260,
+      "sha256": "f51f99f6143ac01d05688a13c488f55bbde571f958e16eed2af6511951aafb82"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/commands.json",
+      "bytes": 1373,
+      "sha256": "64641375f9d68337230b03b1124a3b08fe9bcd2f24cf1dff5b82ccf091f01a87"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/frozen-source.json",
+      "bytes": 186,
+      "sha256": "42663220ab48a54a0fdd23144afa319002313dd45f1c3fac4e66ebf6ebc1c5bd"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/m2-m5-independent-profile-audit.json",
+      "bytes": 30883,
+      "sha256": "c8e68a3083f4f2d27c10d839c4cb2fe2f6572d4437c311ffbd961ac22d254214"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/m6a-pair-command.json",
+      "bytes": 165,
+      "sha256": "846831f31f30340547b908676ff7298efa5872641772f99891cfebc09f25240f"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/prior-regressions-new-verifier.json",
+      "bytes": 25826,
+      "sha256": "bb43cb28fab32f61db02299fca6cbf31694f36e31f4bb9ab496c85d38ed6462a"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-first-attempt/cold3-result.json",
+      "bytes": 2917,
+      "sha256": "3446f4ffa8749cfd47d345cf105f92372017cc83702309e9a792d690e2b9d7ed"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-first-attempt/cold3-serial.txt",
+      "bytes": 372,
+      "sha256": "b7cb940f12ae7a697dfaa9bd3c64ed08576ada8ee9823ed76c4c0968caf445b4"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-first-attempt/cold3-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-first-attempt/commands.json",
+      "bytes": 1373,
+      "sha256": "64641375f9d68337230b03b1124a3b08fe9bcd2f24cf1dff5b82ccf091f01a87"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-first-attempt/independent-rejection.json",
+      "bytes": 784,
+      "sha256": "8dd250712cd78acc534b3115017f4891f9f70d054c41fa8674c949529a8248ec"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-first-attempt/m1-acceptance.stdout.txt",
+      "bytes": 6094,
+      "sha256": "32b1dc2575957da242de4e14a60d92d53fbc07485e742525763c9140fb101865"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-first-attempt/test-results.json",
+      "bytes": 1781,
+      "sha256": "36d7f6ec8fcee95de27b6ab9c914bb85978ce13f567caf8fa4b56c8c117caf9c"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-second-attempt/cold-1-013cc4acb6-result.json",
+      "bytes": 3054,
+      "sha256": "c0b0bf68877f4816b5e3d7a88f27956c77a7ae6476a6a315053d1a39b5bc4e9e"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-second-attempt/cold-1-013cc4acb6-serial.txt",
+      "bytes": 256,
+      "sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-second-attempt/cold-1-013cc4acb6-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-second-attempt/independent-rejection.json",
+      "bytes": 2210,
+      "sha256": "89520aef78612225ce84eef47601d4f80048c5bee1023b3c1c6d7650cf514471"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-second-attempt/m1-final-acceptance.json",
+      "bytes": 911,
+      "sha256": "3032c9a0878cc6bf585b7d293a52525e7d1171ea8fde33bf3b40bf22bc41a773"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-second-attempt/m1-final-acceptance.stderr.txt",
+      "bytes": 790,
+      "sha256": "94cf17a89fb22548d7d9ae39d3fd818dd80cddc105018a1e6c985d8cdde37f6a"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-second-attempt/m1-final-acceptance.stdout.txt",
+      "bytes": 172,
+      "sha256": "e60bc61f6c97aa56f0d636f488d22983599fef9adccc4c9386f291766a87eb94"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/rejected-m1-second-attempt/test-results.json",
+      "bytes": 796,
+      "sha256": "ae547996be3f7949102c084f756cd551d2716253634c0ed54a2b60b84a8cf6e5"
+    },
+    {
+      "path": "docs/verification/regression-m6b/audit/status-before-m1-rerun.json",
+      "bytes": 1343,
+      "sha256": "cd677dd44c70f77689e96e06a80c462b12f98a7800dcd38fdb538aaf3dcee653"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m2/guest-runs.json",
+      "bytes": 21414,
+      "sha256": "5e297e1d4ca8f03a4b162589341fe5f40db0ed0f6aaf11109c488bbe4e1e5f4c"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m2/m2-host-tests.json",
+      "bytes": 405,
+      "sha256": "fdcf24755865ee6461604eece96aa6e86e5ef2adc8e8af118bd1416ebfec46be"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m2/m2-host-tests.stderr.txt",
+      "bytes": 736,
+      "sha256": "f913da568a274af0de5248b23ec68bee2621137bc128f2d7b435b78fe1dae26d"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m2/m2-host-tests.stdout.txt",
+      "bytes": 2559,
+      "sha256": "a37e7614f542d620886b308017d26d8b6e034c42e83323999fd429f5fbc328a9"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m2/suite.json",
+      "bytes": 2202,
+      "sha256": "d91a7f2c5c2b919244e0d2275f9f8a16f61cde46d7438fe9f43a17480c6e7159"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m3/guest-runs.json",
+      "bytes": 65774,
+      "sha256": "00a934ebf3106fae26e5e2a4d831f6e7a1f5ddaab862ff20f43c962d672798b8"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m3/m3-host-tests.json",
+      "bytes": 341,
+      "sha256": "028f2e12bd7f344cd4edb3851f772dfa9e72f924d52cc404f21f7db94600f156"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m3/m3-host-tests.stderr.txt",
+      "bytes": 181,
+      "sha256": "0ce461a55bf9c3cecbcf8c337268b680e2928f23c9d5122bf5933c2cabd6c35c"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m3/m3-host-tests.stdout.txt",
+      "bytes": 1235,
+      "sha256": "c8ddaf27b60455408c5cce93de74030b75a9fd3da3898024fa8257297f4a148b"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m3/m3-large-artifact-tests.json",
+      "bytes": 384,
+      "sha256": "07060a67abc97f857b3caca8d807576e35451894ac66862542cb170310d30fb7"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m3/m3-large-artifact-tests.stderr.txt",
+      "bytes": 1040,
+      "sha256": "f7526e550362957baa36fd5118fe1520ca2cbc5558b0d63aee8179221bb2b63b"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m3/m3-large-artifact-tests.stdout.txt",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m3/m3-user-artifact-tests.json",
+      "bytes": 372,
+      "sha256": "983de8ddab311a0f75bf7e257a137d278b8a304e21423543060800e478588ea5"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m3/m3-user-artifact-tests.stderr.txt",
+      "bytes": 2027,
+      "sha256": "1bd09c5d03572e550074a3f47818d6414839fbc865ce7327f70ee73eba454367"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m3/m3-user-artifact-tests.stdout.txt",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m3/suite.json",
+      "bytes": 5604,
+      "sha256": "b87af41565b84d2d800ba4d8733fe2b2c6dee0219bb0a5ebb2ffe3ae9014b739"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m4/guest-runs.json",
+      "bytes": 31904,
+      "sha256": "ed9d6aa76925d5b08be8cb84a6b1de50c5d4ae90d6fbd0b5e8af34d8e5f79d5f"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m4/m4-host-tests.json",
+      "bytes": 374,
+      "sha256": "d3aecfa3d80cd59ff8e25d3af510c0a168f5f16b816259d823a313b20e85e8c6"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m4/m4-host-tests.stderr.txt",
+      "bytes": 410,
+      "sha256": "5eaea5e5a264044e85710264ab8823d58c71486ded1475f348428bdd947c220b"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m4/m4-host-tests.stdout.txt",
+      "bytes": 3791,
+      "sha256": "1a13fbdf8b75bfc4d348c7304b264c938100a10c820dd1868668d8d754c95f55"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m4/m4-user-artifact-tests.json",
+      "bytes": 380,
+      "sha256": "eb1bb508e79208dcdd53d8eb28b17b3404af3f4971332c19ac2013366e2db5fb"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m4/m4-user-artifact-tests.stderr.txt",
+      "bytes": 1985,
+      "sha256": "c920a4996b712ddae3ae7c9de6c09fd17d074b5beb9cbd2cc9898a47b181c258"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m4/m4-user-artifact-tests.stdout.txt",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m4/suite.json",
+      "bytes": 2984,
+      "sha256": "7fea8043b4aebf1609b069c940c04ad5d573203881f71582a1450d780afcc0e0"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/guest-runs.json",
+      "bytes": 87555,
+      "sha256": "9b005d6b5883f1a86c18a84ac537bde75cab09bd5d8ded038a4784c27b892168"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-disk-oracle-tests.json",
+      "bytes": 359,
+      "sha256": "683d267b0895807f659d1fb5d8515dfd19ccbe34ec9687e48bb60c85031c8760"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-disk-oracle-tests.stderr.txt",
+      "bytes": 103,
+      "sha256": "533131dad8973c589ae697ab1dd346cc55caa134cd1e536cedf26f1b057c0f1f"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-disk-oracle-tests.stdout.txt",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-host-tests.json",
+      "bytes": 453,
+      "sha256": "a8c7af3504513bf6451fd621d3543481d7ad3f7a13316484357820b43705b905"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-host-tests.stderr.txt",
+      "bytes": 728,
+      "sha256": "1d136c30254fc9cca12fcefb0158db2bc16f137cf3da459af653f419f21cad9e"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-host-tests.stdout.txt",
+      "bytes": 7332,
+      "sha256": "1fa16e2be9205847441093608e43751c10d1dfb3303180c15ebe953cc3a5f1ca"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-parser-tests.json",
+      "bytes": 359,
+      "sha256": "3ac1b2a9399dbe9517bf01b409c12dea0cf6abb6db40fab39f7c1504affd29af"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-parser-tests.stderr.txt",
+      "bytes": 117,
+      "sha256": "04991273b9cbae4ea1bfc1e40456b04969f68423321674a8c28b48d8d1fbae80"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-parser-tests.stdout.txt",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-two-image-check.json",
+      "bytes": 355,
+      "sha256": "8fc14fbd256c6dccc5f0028bea567bb544263a15357c6a3c82da07ed5bb5b0ea"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-user-artifact-tests.json",
+      "bytes": 378,
+      "sha256": "948454e8ef9e8980a702a13e6c4630df9537677117408890b737a253c7e5fca3"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-user-artifact-tests.stderr.txt",
+      "bytes": 1606,
+      "sha256": "4788d941c34dac76124da0a9b48591665321f7e54a3b41027543d7fc6ca635bc"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/m5-user-artifact-tests.stdout.txt",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m5/suite.json",
+      "bytes": 6427,
+      "sha256": "734293758d0e595a1f81217330add1209cdf135e8fa7063dd5b8c30c671d2216"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m6a-pair/guest-runs.json",
+      "bytes": 11301,
+      "sha256": "3512d4067c9351ebccb2ac02c564aeef144172ee69c5129f96d6244e5b913005"
+    },
+    {
+      "path": "docs/verification/regression-m6b/m6a-pair/pair.json",
+      "bytes": 606,
+      "sha256": "a8731ccc10f503d431a99fd7d63646767b61f6a641d862fab5a0bf1585548de8"
+    },
+    {
+      "path": "docs/verification/regression-m6b/summary.json",
+      "bytes": 2253,
+      "sha256": "4c9572ebb77d7b56ff8f4d335716d4c9ed95a86fa98ad2121a88c61ed925c6cd"
+    }
+  ],
+  "count": 65,
+  "bytes": 350994
+}

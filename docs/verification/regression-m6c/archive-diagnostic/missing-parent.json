@@ -1,0 +1,12 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-c",
+    "import sys; sys.path.insert(0,'tools'); import capture_m6b as c; original=c._replace_archive; destination=c.ROOT/'docs/verification/regression-m6c/m6b'; c._replace_archive=lambda staged,unused: original(staged,destination); c.capture()"
+  ],
+  "cwd": "/workspace/scratch/244976efa240/nieuw-os",
+  "started_unix": 1793145074.3010728,
+  "duration_s": 0.31069421768188477,
+  "returncode": 1
+}

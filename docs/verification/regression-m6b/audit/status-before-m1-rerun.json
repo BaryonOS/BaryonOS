@@ -1,0 +1,44 @@
+{
+  "source_checkpoint": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+  "source_sha256": "6e8b320fce772d65f541e5c99e48b77a940f92e481487227cf868648cc8c68d8",
+  "accepted_milestones": {
+    "m2": {
+      "groups": 8,
+      "actual_vm_invocations": 7
+    },
+    "m3": {
+      "groups": 22,
+      "actual_vm_invocations": 19
+    },
+    "m4": {
+      "groups": 12,
+      "actual_vm_invocations": 10
+    },
+    "m5": {
+      "groups": 25,
+      "actual_vm_invocations": 20
+    }
+  },
+  "m2_through_m5": {
+    "accepted_groups": 67,
+    "actual_vm_invocations": 56,
+    "independent_profile_and_artifact_audit": "passed"
+  },
+  "m6a_compatibility": {
+    "actual_vm_invocations": 2,
+    "normal": "passed",
+    "separate_cold_recovery": "passed",
+    "recovery_performs_no_write": true,
+    "scope": "smoke pair, not a second full M6a gate"
+  },
+  "m1_first_attempt": {
+    "status": "rejected",
+    "script_exit": 0,
+    "reason": "cold-boot-3 executed exact M5-no-device artifact; old M1 parser wrongly accepted later milestone markers",
+    "actual_vm_invocations": 8,
+    "cause": "unknown; no asserted concurrent writer"
+  },
+  "m1_final_acceptance": "pending hardened harness checkpoint and fresh full M1 run",
+  "historical_baseline_m6a_gate": "separate source 10b32e3, excluded from all counts here",
+  "source_changes_by_this_agent": false
+}

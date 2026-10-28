@@ -1,6 +1,56 @@
 # Route van onderzoeksproject naar bruikbaar systeem
 
-Status 27 oktober 2026: M1–M5 zijn geïmplementeerd en getest in het vaste QEMU-profiel. Definitieve suites: 77 groepen/64 VM plus een normale M5-eindstart. M5 is alleen-lezen; schrijven en persistentie volgen in M6a. P02 en Q01 blijven hostprototypes met expliciete open controles. Bron, bewijs en grenzen: PROJECT-STATE.md, WORK-QUEUE.md en verification/m5/. Verdere fasen zijn een ontwikkelroute, geen kalenderbelofte.
+## Vaste productroadmap: 0% tot 100%
+
+De [README](../README.md#voortgang-naar-een-volwaardig-zelfstandig-os) toont de
+actuele voortgangsbalk en score per productspoor. De vaste noemer is
+**100 gewogen acceptatiepunten**, met alle criteria en bewijs in
+[PROGRESS.md](PROGRESS.md) en het bronbestand [progress.json](progress.json).
+De eerste meting op M1–M6c is **13%**; latere taakuitkomsten staan in de README.
+Dit is een planningskeuze, geen percentage resterende tijd of veiligheid.
+
+| Productspoor | Punten tot het volledige einddoel |
+|---|---:|
+| Eigen kern, processen en isolatie | 15 |
+| Opslag, documenten en gegevensherstel | 15 |
+| Drivers, fysieke hardware en energie | 12 |
+| Native Materiaal en toegankelijkheid | 15 |
+| Internet en netwerkdiensten | 10 |
+| Beveiliging, privacy en updates | 12 |
+| Apps, SDK en installatie | 8 |
+| Persoonlijke NAS en meerdere apparaten | 5 |
+| Lokale AI en native quantum-runtime | 3 |
+| Dagelijks gebruik en onderhoudbare release | 5 |
+| **Totaal** | **100** |
+
+De sporen kunnen parallel lopen. De M-nummers hieronder zijn technische
+mijlpalen, geen gelijke procentstappen: M6c betekent niet dat het OS voor
+60% of 6/11 klaar is. Een vier-objectenproef levert alleen haar specifieke
+punten op; grotere documenten, ruimtehergebruik en dagelijks herstel blijven
+aparte eisen.
+
+**0%** = nog geen criterium gerealiseerd. **100%** = alle criteria voor een
+volwaardig zelfstandig dagelijks OS gehaald, met eigen kernel, hoogwaardige
+native bediening, nuttige apps, internet, beveiligde opslag, updates, herstel,
+ondersteunde hardware en onderhoud. Geen bestaand OS vormt de basis.
+De ambitie wordt niet verlaagd tot een testshell of VM-demo. Concrete
+hardware- en appondersteuning blijven aantoonbaar afgebakend; volledige
+historische featurepariteit met ieder groot OS is geen meetbare release-eis.
+
+Iedere opdracht herbeoordeelt de score en actualiseert datum/bewijs; geen
+nieuwe acceptatie betekent **0 procentpunt verschil**, geen fictieve stijging.
+De generatie- en controleopdrachten staan in PROGRESS.md en AGENTS.md.
+
+## Technische route en bewijsgrenzen
+
+Status 28 oktober 2026: M1–M6b zijn geïmplementeerd en hebben versiegebonden
+native bewijs in het vaste QEMU-profiel. M6c voegt namen, atomisch hernoemen
+en een domeingebonden documentcatalogus toe. De finale M6c-gate slaagt met
+19 groepen / 15 VM-invocaties; M6b-regressie op dezelfde bron met 18 / 14.
+Dit voltooit de afgebakende catalogusproef; de bredere M6-opslag-/updatefase
+bevat nog vervolgwerk. Actuele uitvoering: PROJECT-STATE.md en WORK-QUEUE.md.
+Materiaal, NAS/TLS en qsim behouden hun afzonderlijke host-/prototypegrenzen.
+Verdere fasen zijn een ontwikkelroute, geen kalenderbelofte.
 
 ## Richting en grenzen
 
@@ -49,9 +99,11 @@ Volg [QUANTUM-RESEARCH.md](QUANTUM-RESEARCH.md): Q0 is voor de eerste proef afge
 
 ## Aanvullende privacygates na de netwerkbasis
 
-De gebruikerscorrectie staat bindend in LOCAL-PRIVACY-CONTRACT.md. Plan na M8 afzonderlijke kleine taken voor (a) expliciete NAS-koppeling op eigen LAN met authenticatie/herstel en (b) lokale AI met geïsoleerde modeldownloader en netwerkloze inferentie. Deze vergroten M1 niet.
+N02 voegt een echte, begrensde hybride TLS-hostproef toe vóór de native port. De gewijzigde bewijs-/PQC-opdrachten staan in [VERIFIABLE-SECURITY-AND-PQC.md](implementation/VERIFIABLE-SECURITY-AND-PQC.md): formeel capabilitymodel, gecontroleerde native cryptobuild, entropy, ondertekende images, geauthenticeerde opslag en daarna N03-integratie. CHERI blijft een expliciete toekomstige platformproef; de huidige x86_64-code erft die hardwaregaranties niet. Qsim en PQC behouden afzonderlijke acceptatiecriteria.
 
-Voordat een daarvan als werkend wordt gemeld: NAS-onbereikbaarheid geeft geen cloudfallback; een vals NAS-adres krijgt geen gegevens; het verlaten van het eigen LAN stopt sync; de AI werkt met uitgeschakeld internet en onvoldoende RAM start geen externe inferentie. Test derdenapps op geweigerde bestands-/NAS-/netwerktoegang en misbruik van tussenliggende diensten. Een schone installatie zonder deze functies bewijst die toekomstige privacy-eigenschappen nog niet.
+De gebruikerscorrectie van 27 oktober 2026 staat bindend in LOCAL-PRIVACY-CONTRACT.md revisie 3. Internet is een productvereiste. Bouw nu parallel N01: een afgebakende versleutelde hostopslagproef, quota/intrekking en de drie NAS-productflows; integreer na M8 de native netwerkadapter, same-OS-NAS-rol en geauthenticeerde koppeling met eigen NAS of vrienden/familie. Remote toegang blijft expliciet peergebonden; geen leveranciersfallback. Lokale AI houdt een geïsoleerde modeldownloader en netwerkloze inferentie. N01 verandert de M1–M6a-teststatus niet.
+
+Voordat een daarvan als werkend wordt gemeld: NAS-onbereikbaarheid geeft geen cloudfallback; een vals NAS-adres krijgt geen gegevens; het verlaten van het toegestane LAN stopt sync tenzij expliciet internetrecht voor dezelfde geverifieerde NAS bestaat; adminintrekking blokkeert oude sessies en uploads zonder gebruikerssleutel of gasttoestemming; de AI werkt met uitgeschakeld internet en onvoldoende RAM start geen externe inferentie. Test derdenapps op geweigerde bestands-/NAS-/netwerktoegang en misbruik van tussenliggende diensten. Een schone installatie zonder deze functies bewijst die toekomstige privacy-eigenschappen nog niet.
 
 ## Eerste opdracht aan Codex
 
@@ -97,3 +149,4 @@ Gebruik nooit ‘ondersteunt ARM’, ‘draait op alle apparaten’ of ‘quantu
 Vóór dagelijks gebruik moeten ten minste de concrete crypto-implementatie, opslagintegriteit, updatevertrouwensketen, UEFI-/hardwarevertrouwen, isolatie onder DMA en resource-uitputting, compiler-/dependencyketen en gebruikersherstel door onafhankelijke deskundigen worden onderzocht. Formele modellen zijn vooral zinvol voor kleine kerninvarianten en rechtenovergangen; bewijsstatus altijd per component en property registreren.
 
 De roadmap is een eigen synthese. Technische onderbouwing en primaire bronnen staan in [ARCHITECTURE.md](ARCHITECTURE.md) en [SECURITY-AND-QUANTUM.md](SECURITY-AND-QUANTUM.md). De geselecteerde toolversies staan in implementation/BOOT-AND-TOOLCHAIN.md; hun werkelijke gezamenlijke build wordt tijdens B00/B01 getest. Geselecteerd betekent niet getest.
+

@@ -1,0 +1,13 @@
+   Compiling block-protocol v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-baseline/services/block)
+   Compiling kernel-core v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-baseline/crates/kernel-core)
+   Compiling virtio-core v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-baseline/crates/virtio-core)
+   Compiling capability-core v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-baseline/crates/capability-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.72s
+     Running unittests src/lib.rs (target/debug/deps/block_protocol-e8a63e80018281f8)
+     Running unittests src/lib.rs (target/debug/deps/capability_core-e1b8727debf17276)
+     Running unittests src/lib.rs (target/debug/deps/kernel_core-6d6e9fb9453fbf62)
+     Running unittests src/lib.rs (target/debug/deps/virtio_core-56bd066db634f2e3)
+   Doc-tests block_protocol
+   Doc-tests capability_core
+   Doc-tests kernel_core
+   Doc-tests virtio_core

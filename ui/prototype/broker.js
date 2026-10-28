@@ -73,17 +73,50 @@ export function restoreAsNewRevision(state, { objectId, revision, confirmed, bas
 }
 
 export function pairNas(state, { confirmed = false, identity = null } = {}) {
-  if (!confirmed) return ok({ ...state.nas, state: 'verifying' });
+  if (!confirmed) return ok({ ...state.nas, state: 'verifying', internetIdentity: null });
   if (state.nas.state !== 'verifying' || identity !== NAS_IDENTITY) return fail('IDENTITY_MISMATCH');
-  return ok({ ...state.nas, state: 'online', identity: NAS_IDENTITY });
+  return ok({ ...state.nas, state: 'online', identity: NAS_IDENTITY, network: 'lan', internetIdentity: null });
 }
 
 export function setNasCondition(state, condition) {
   if (!['offline', 'networkChanged', 'identityMismatch', 'online', 'unpaired'].includes(condition)) return fail('DENIED');
   if (condition === 'online' && state.nas.identity !== NAS_IDENTITY) return fail('NAS_UNAVAILABLE');
+  if (condition === 'online' && state.nas.network === 'internet' && state.nas.internetIdentity !== NAS_IDENTITY) return fail('DENIED');
   if (condition === 'online' && ['identityMismatch', 'networkChanged'].includes(state.nas.state)) return fail('IDENTITY_MISMATCH');
-  const identity = ['unpaired', 'networkChanged', 'identityMismatch'].includes(condition) ? null : state.nas.identity;
-  return ok({ ...state.nas, state: condition, identity });
+  const canReconnectRemotely = state.nas.identity === NAS_IDENTITY && state.nas.internetIdentity === NAS_IDENTITY;
+  const clearIdentity = ['unpaired', 'identityMismatch'].includes(condition) || condition === 'networkChanged' && !canReconnectRemotely;
+  const identity = clearIdentity ? null : state.nas.identity;
+  return ok({ ...state.nas, state: condition, identity, internetIdentity: clearIdentity ? null : state.nas.internetIdentity });
+}
+
+export function setNasInternet(state, { identity, allowed } = {}) {
+  if ((allowed === true && state.nas.state !== 'online') || state.nas.identity !== NAS_IDENTITY || identity !== state.nas.identity) return fail('IDENTITY_MISMATCH');
+  if (allowed !== true && allowed !== false) return fail('DENIED');
+  return ok({ ...state.nas, internetIdentity: allowed ? identity : null,
+    state: !allowed && state.nas.network === 'internet' ? 'offline' : state.nas.state });
+}
+
+export function connectNasInternet(state, identity) {
+  if (!['online', 'offline', 'networkChanged'].includes(state.nas.state) || identity !== NAS_IDENTITY
+    || state.nas.identity !== identity || state.nas.internetIdentity !== identity) return fail('DENIED');
+  // Fixture identity assertion only; this does not authenticate a real peer.
+  return ok({ ...state.nas, state: 'online', network: 'internet' });
+}
+
+export function observeNasRoute(state, observation = {}) {
+  // Browser fixture only: these flags stand in for an authenticated service
+  // observation. They never establish pairing, internet consent or admin rights.
+  const { network, identity, reachable, verified, trustedLan } = observation || {};
+  const knownRoute = network === 'lan' || network === 'internet';
+  const nas = { ...state.nas, ...(knownRoute ? { network } : {}) };
+  if (!['online', 'offline', 'networkChanged'].includes(nas.state) || nas.identity !== NAS_IDENTITY) return ok(nas);
+  // Accept the observation with a paused data state, rather than returning an
+  // error that would leave an old online/LAN state and local admin session alive.
+  if (!knownRoute || reachable !== true || verified !== true) return ok({ ...nas, state: 'offline' });
+  if (identity !== nas.identity) return ok({ ...nas, state: 'identityMismatch', identity: null, internetIdentity: null });
+  if (network === 'internet' && nas.internetIdentity !== identity
+    || network === 'lan' && trustedLan !== true) return ok({ ...nas, state: 'offline' });
+  return ok({ ...nas, state: 'online' });
 }
 
 export function installFixture(state, toolId) {
@@ -106,3 +139,4 @@ export function summarizeFixture(state, objectIds) {
     return `${object.title}: ${first}`;
   }).join('\n\n'));
 }
+

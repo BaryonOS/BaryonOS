@@ -1,0 +1,13 @@
+{
+  "checks": {
+    "same_kernel": true,
+    "same_loader": true,
+    "different_actual_initial_images": true,
+    "different_received_values": true
+  },
+  "run_directories": [
+    "/workspace/scratch/0d3232a3c004/nieuw-os-baseline/build/run/m6-m6a-normal-a-06905bcb70",
+    "/workspace/scratch/0d3232a3c004/nieuw-os-baseline/build/run/m6-m6a-normal-b-e01adcdaa2"
+  ],
+  "passed": true
+}

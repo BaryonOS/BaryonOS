@@ -1,0 +1,12 @@
+test_complete_ordered_lines_and_raw_exit_required (test_guest_harness.GuestEvidenceGate.test_complete_ordered_lines_and_raw_exit_required) ... ok
+test_expected_negative_exit_is_explicit_and_not_timeout (test_guest_harness.GuestEvidenceGate.test_expected_negative_exit_is_explicit_and_not_timeout) ... ok
+test_explicit_milestone_profiles_remain_valid (test_guest_harness.GuestEvidenceGate.test_explicit_milestone_profiles_remain_valid) ... ok
+test_m1_and_ebs_retry_reject_any_later_milestone_output (test_guest_harness.GuestEvidenceGate.test_m1_and_ebs_retry_reject_any_later_milestone_output) ... ok
+test_m5_capture_requires_disk_oracle_except_explicit_m1_regression (test_guest_harness.GuestEvidenceGate.test_m5_capture_requires_disk_oracle_except_explicit_m1_regression) ... ok
+test_observed_m5_no_device_output_cannot_masquerade_as_m1 (test_guest_harness.GuestEvidenceGate.test_observed_m5_no_device_output_cannot_masquerade_as_m1) ... ok
+test_suffix_prefix_missing_and_failure_are_rejected (test_guest_harness.GuestEvidenceGate.test_suffix_prefix_missing_and_failure_are_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+OK

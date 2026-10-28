@@ -15,6 +15,10 @@ name = "capability-core"
 version = "0.1.0"
 
 [[package]]
+name = "catalog-core"
+version = "0.1.0"
+
+[[package]]
 name = "elf-loader-core"
 version = "0.1.0"
 dependencies = [
@@ -26,13 +30,19 @@ name = "kernel-core"
 version = "0.1.0"
 
 [[package]]
+name = "object-core"
+version = "0.1.0"
+
+[[package]]
 name = "os-kernel"
 version = "0.1.0"
 dependencies = [
  "block-protocol",
  "boot-protocol",
  "capability-core",
+ "catalog-core",
  "kernel-core",
+ "object-core",
  "virtio-blk-driver",
  "virtio-core",
 ]

@@ -1,0 +1,53 @@
+{
+  "base_commit": "20f7ed282e579b96d964ae84509d895a7a826f4d",
+  "created_utc": "2026-10-27T22:58:48.703833+00:00",
+  "scope": "Historische hostcontroles van de bewijsvalidatie; geen native VM-uitvoeringen. De brongebonden eindset staat in guards-final.",
+  "files": [
+    {
+      "path": "docs/verification/m6b-review/guards/m6b-final-guest-guards.json",
+      "sha256": "bb21d222ee58b9b9b645501c3073daa1075d81b34ad644d0fe64f82644efe911"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards/m6b-final-guest-guards.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards/m6b-final-guest-guards.stderr.txt",
+      "sha256": "83166b089fbcb82fac63f22522fa6ae99bb5e46368cd35d756277fd463dd6346"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards/m6b-final-snapshot-binding.json",
+      "sha256": "591f50931c8613f341ee727ec3494057b670cbfb068589c3c08956163214f5ae"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards/m6b-final-snapshot-binding.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards/m6b-final-snapshot-binding.stderr.txt",
+      "sha256": "f96363f8d8dff4c4abed7197c63606ead0bd955ea4259bdcb5fb6f47dbe53992"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards/m6b-final-existing-capture.json",
+      "sha256": "c2171b13dd21d63bcc1bf2e9b224ed2fec5bc209d3c0ad7be38ef129a8a5233f",
+      "evidence_status": "historical",
+      "superseded_by": "docs/verification/m6b-review/guards-final/m6b-final-existing-capture-v2.json"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards/m6b-final-existing-capture.stdout.txt",
+      "sha256": "f3fc5a113a0b979de42941211a0fa0e08bbccc346ba96fa0ef92beed977c8cd7"
+    },
+    {
+      "path": "docs/verification/m6b-review/guards/m6b-final-existing-capture.stderr.txt",
+      "sha256": "956a0c36ba55bb397484b342828153465a6efc7aa26b941cbfc3ed4f89e9cc8a"
+    }
+  ],
+  "evidence_status": "historical",
+  "superseded_by": "docs/verification/m6b-review/guards-final/manifest.json",
+  "review_annotation": {
+    "date": "2026-10-28",
+    "review_base_commit": "3f308b07e0bab445d1ea926561eab8d8e01c86a4",
+    "raw_records_unchanged": true,
+    "note": "Statusverduidelijking na review. De oorspronkelijke commandorecords, ruwe uitvoer, tijden en hun hashes zijn niet gewijzigd. Het genoemde capture-record is de historische run op de basis van dit manifest; het is geen actueel bewijs voor de eindbron."
+  }
+}

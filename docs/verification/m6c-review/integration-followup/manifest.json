@@ -1,0 +1,98 @@
+{
+  "baseline_commit": "b3d9d682f3f043ef7926f112b659ad77a5f00e1a",
+  "overlays": [
+    {
+      "label": "m6c_host_log_binding",
+      "commit": "9819d6b71efa9f13d0d68d9b75529ef5772d973f",
+      "tree": "728147e3edd64131dcbdfafe2ee85c1e57aa0110",
+      "local_source": "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate",
+      "files": [
+        {
+          "path": "tests/test_m6c_capture.py",
+          "git_blob_sha": "c83645aa01dc429ed1ca476bf2e50bb2619405c9",
+          "sha256": "c325abba590644803d5b2be1fec9ac269cabc86f40589fb776a227488bcc47fd",
+          "bytes": 18206
+        },
+        {
+          "path": "tools/capture_m6c.py",
+          "git_blob_sha": "10cb1a76433384cf8fb40337bd62b7f3a4ae5c1a",
+          "sha256": "60758632ad21b7272395ad8753fe377084302b297dd68ff7e0ea543410afa2cc",
+          "bytes": 12762
+        },
+        {
+          "path": "tools/test_m6c.py",
+          "git_blob_sha": "fffed7433ff12002ff365a4ce0fe17bebf268f1b",
+          "sha256": "1fccbe087c925d1d4c06d97cd7ca7c7e2638eb4a0175ae9b0eeebad43375a894",
+          "bytes": 6257
+        }
+      ]
+    },
+    {
+      "label": "m6a_stderr_routing",
+      "tree": "97bd9e2098f869397a6a8ee2ec211e5bfecbf719",
+      "local_source": "/workspace/scratch/a9adbdc1f137/pr9-verifier/round2/candidate",
+      "files": [
+        {
+          "path": "tests/test_m6_capture.py",
+          "git_blob_sha": "358780d254855641a9b6530c24379ca5d6937c55",
+          "sha256": "aae62491e8f539e075d1a75efc901a8d9b635a593242665c97adfe6f17d39aa3",
+          "bytes": 5036
+        },
+        {
+          "path": "tools/capture_m6.py",
+          "git_blob_sha": "092683330c13c35ca2aa6e925a7eac28d705b595",
+          "sha256": "1047e48c9aea890d451e4eb1d04108524e92259c6a7c33b636c1ddaa012e1cb3",
+          "bytes": 10732
+        },
+        {
+          "path": "tools/test_m6.py",
+          "git_blob_sha": "cb829e15d13fcb8abc3c0520e6584828e7749edc",
+          "sha256": "7a081d9dda79b5635ca4b8353315fa495245d7a83aec7078616db3e4b3d325b7",
+          "bytes": 6587
+        }
+      ]
+    }
+  ],
+  "scope": "Eén gecombineerde Python-integratiecontrole van de capturevalidators, met synthetische gastrecords en commandodoubles. Geen native builds of VM-uitvoering.",
+  "command_record": "records/combined-capture.json",
+  "invocations": 1,
+  "tests_passed": 29,
+  "test_method_counts_by_module": {
+    "test_m6_capture": 4,
+    "test_m6b_capture": 10,
+    "test_m6c_capture": 15
+  },
+  "input_files": 44,
+  "inputs_unchanged": true,
+  "returncode": 0,
+  "files": {
+    "provenance.json": {
+      "bytes": 10030,
+      "sha256": "e94d12784d6e5436a2068219d6622e56c93eeea95d53927dfb36d1e543119225",
+      "git_blob_sha": "58b11b57092a5823f83cabdcaeea348feae8d1f5"
+    },
+    "run_capture_check.py": {
+      "bytes": 3367,
+      "sha256": "68c969dac3f4a3927701da01fc23605a4df503d4152779c4ecc0a30b93380483",
+      "git_blob_sha": "9f4547f9916dbb46bbcd155eee12d1f7bccc89db"
+    },
+    "records/combined-capture.json": {
+      "bytes": 12295,
+      "sha256": "e8c102583e7d47e37f96b9607353e6bffa88c179e439a62be7c13bdefb81778a",
+      "git_blob_sha": "b52fafed34e54777435fc96edd079674fb1c777a"
+    },
+    "records/combined-capture.stdout.txt": {
+      "bytes": 192,
+      "sha256": "560a0616642b9314a3b925eb356e0205b81d893ee29aa21a0bcdf2c388ac48da",
+      "git_blob_sha": "d14f52d183071f4d09471f0f22b3a9d1b51ca7b0"
+    },
+    "records/combined-capture.stderr.txt": {
+      "bytes": 4806,
+      "sha256": "108c3576ea6f7031bc596d5ae335c269adb74669d6dff4671616542256340b20",
+      "git_blob_sha": "28d327c4a27cc648655ffbae7e6606e1525902df"
+    }
+  },
+  "published_incoming_commit": "69b3eec79234d12eef50f978e0ae02c4382a4d85",
+  "published_incoming_tree": "97bd9e2098f869397a6a8ee2ec211e5bfecbf719",
+  "publication_note": "De controle bindt aan de vooraf gepubliceerde incoming-tree en de vastgelegde overlaybytes. De commitverwijzing is later toegevoegd nadat dezelfde tree als commit was gepubliceerd; er wordt geen eerdere checkout van die latere commit geclaimd. Ruwe herkomst- en commandorecords blijven ongewijzigd."
+}

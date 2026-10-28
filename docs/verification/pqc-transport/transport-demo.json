@@ -1,0 +1,35 @@
+{
+  "status": "passed",
+  "node": "24.22.1",
+  "openssl": "3.5.9",
+  "connection": {
+    "hostLoopbackOnly": true,
+    "protocol": "TLSv1.3",
+    "group": "X25519MLKEM768",
+    "cipher": "TLS_AES_256_GCM_SHA384",
+    "alpn": "nieuw-os-nas-host/2",
+    "sessionReused": false,
+    "peerAuthentication": "classical-ed25519-certificate",
+    "peerIdentity": "8a62bb0721c8211c34339f1f1731b6108e47b950ad3ec09f8340efd082fb500e",
+    "networkScope": "lan",
+    "networkScopeSource": "explicit-loopback-harness-assumption",
+    "closed": false,
+    "sentFrames": 1
+  },
+  "server": {
+    "connections": 1,
+    "authenticatedConnections": 1,
+    "acceptedFrames": 1,
+    "acceptedCiphertextBytes": 331,
+    "rejectedConnections": 0,
+    "closed": false,
+    "activeConnections": 1,
+    "hostLoopbackOnly": true,
+    "configuredGroup": "X25519MLKEM768",
+    "peerAuthentication": "classical-ed25519-certificate",
+    "contentKeysOnServer": false
+  },
+  "clientOnlyDecryption": true,
+  "revokedSendBlocked": true,
+  "scope": "Real loopback host TLS; no native OS, WAN reachability, PQ authentication or disk durability claim"
+}

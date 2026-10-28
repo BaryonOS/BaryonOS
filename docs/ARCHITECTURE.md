@@ -55,14 +55,14 @@ De complete beveiligingsuitwerking staat in [SECURITY-AND-QUANTUM.md](SECURITY-A
 
 ## 4. Productrichting die meer is dan een andere desktop
 
-Harde privacygrens volgens de gebruikerscorrectie: opslag/synchronisatie uitsluitend op apparaat of eigen NAS binnen eigen LAN; AI-inferentie uitsluitend op het apparaat. Externe cloudintegraties, relays en cloudfallback zijn geen OS-opties. Zie [LOCAL-PRIVACY-CONTRACT.md](LOCAL-PRIVACY-CONTRACT.md). Derdenapps mogen via begrensde rechten internet gebruiken; dat verleent geen automatische toegang tot OS- of NAS-gegevens.
+Herziene privacygrens (27 oktober 2026): opslag lokaal of end-to-end versleuteld op een expliciet gekoppelde eigen NAS of NAS van vrienden/familie. Internet is ondersteunde productfunctionaliteit met afzonderlijke rechten; remote NAS-verkeer vereist toestemming gebonden aan de geverifieerde peer. NAS-beheer geeft ruimte-/verwijderrecht, geen inhoudssleutel. AI-inferentie blijft uitsluitend op het apparaat. Leverancierscloud, stille relays en cloudfallback zijn geen OS-opties. Zie [LOCAL-PRIVACY-CONTRACT.md](LOCAL-PRIVACY-CONTRACT.md). Derdenapps mogen via begrensde rechten internet gebruiken; dat verleent geen automatische toegang tot OS- of NAS-gegevens.
 
 Aanbevolen eerste producthypothese: een lokaal werkend persoonlijk systeem met begrijpelijke, tijdelijke toegang per taak. Eén consistent permissiemodel voor apps én toekomstige AI-assistenten, met een zichtbaar overzicht ‘welke app kan nu bij welke gegevens?’. Dit is een ontwerpvoorstel, geen claim van wereldwijde nieuwheid.
 
 | Doel | Concreet productgedrag | Te onderzoeken bewijs |
 |---|---|---|
 | Gebruiksvriendelijk | Werkt zonder online account; gewone taken via consistente instellingen; goede herstelroute | Gebruikersonderzoek met taakvoltooiing, fouten en herstelbaarheid |
-| Privacyvriendelijk | Geen externe OS-cloud of telemetrie; eigen NAS alleen via eigen LAN; AI op apparaat zonder netwerkrecht | Verkeersmetingen, NAS-onbereikbaarheid, vals NAS-endpoint en uitwijkpogingen testen |
+| Privacyvriendelijk | Geen leverancierscloud of telemetrie; E2EE naar gekoppelde persoonlijke NAS via LAN of expliciet internet; beheer kan wissen zonder lezen; AI zonder netwerkrecht | Verkeersmetingen, NAS-onbereikbaarheid, vals NAS-endpoint en uitwijkpogingen testen |
 | Zelf in te regelen | Verwisselbare shell, sneltoetsen en services; exporteerbare configuratie | Veilige standaardconfiguratie blijft intact bij normale personalisatie |
 | Europese autonomie | Open formaten, lokale taal/locale, onafhankelijke updatesleutels en verwisselbare diensten | Werkt zonder verplicht Apple-, Google- of Microsoft-account of centrale dienst |
 | Toegankelijk | Toetsenbordbediening, schaalbare tekst, hoog contrast, later semantische toegankelijkheidsboom en schermlezer | Tests met gebruikers en ondersteunende technologie |
@@ -129,3 +129,4 @@ Raadpleegdatum voor veranderlijke documentatie: 26 oktober 2026. Dit bestand bev
 - **A10.** UEFI Forum. (2024). *UEFI specification 2.11*. https://uefi.org/specs/UEFI/2.11/
 
 De UEFI-inhoudsopgave is geraadpleegd; het specifieke hoofdstuk over boot-services kon in dit onderzoek niet volledig worden opgehaald. De implementatieagent moet dat hoofdstuk daadwerkelijk lezen vóór bootcode te schrijven.
+

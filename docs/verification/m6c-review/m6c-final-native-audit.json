@@ -1,0 +1,318 @@
+{
+  "task": "V07 independent final native audit",
+  "passed": true,
+  "source_commit": "bc4cd104e86e2c047b727ae96e07a03fbc810c3c",
+  "source_fingerprint_version": 3,
+  "source_sha256": "4468b3c18bd7fa57bf3631d634d52ee4c5fe9a76da9f125714d6db95e4407345",
+  "source_files_checked_against_commit": 141,
+  "groups": 19,
+  "vm_invocations": 15,
+  "m6c_invocations": 14,
+  "m1_invocations": 1,
+  "completed_exit33": 13,
+  "external_kill_exit_minus9": 2,
+  "cold_recoveries": 6,
+  "unique_volumes": 8,
+  "recorded_artifact_hashes_verified": 130,
+  "all_actual_run_files_hashed": 176,
+  "archive_hashes_verified": 12,
+  "valid_v2_records_across_unique_volumes": 65,
+  "nonempty_records_exported": 67,
+  "base_commit_metadata_counts": {
+    "bb22fdbe15919edc23baa158a46236195ce314b2": 6,
+    "bc4cd104e86e2c047b727ae96e07a03fbc810c3c": 9
+  },
+  "provenance_note": "Six early normal/error runs retain bb22fdbe as then-current Git HEAD; every run and build binds identical independently recomputed source fingerprint, whose every file is byte-equal to commit bc4cd104. Remaining nine records name bc4cd104. No missing-code inference.",
+  "runs": [
+    {
+      "name": "normal-a",
+      "case": "normal",
+      "base_commit": "bb22fdbe15919edc23baa158a46236195ce314b2",
+      "raw_exit": 33,
+      "process_id": 529,
+      "artifacts": 9,
+      "serial_sha256": "b3873fd5138011dca2171cf6f28c4af55869207a13d6cd09ea9bf427e058bbf0",
+      "volume_identity": "68229b035b65437bb6d03f901af875b9",
+      "image_after_sha256": "3375fe5bec5368117d7098d90c900da815bb1ce20f9c1c8b6db3b367a319f4b5",
+      "sequence": 10,
+      "passed": true
+    },
+    {
+      "name": "normal-a-cold-recovery",
+      "case": "recover",
+      "base_commit": "bb22fdbe15919edc23baa158a46236195ce314b2",
+      "raw_exit": 33,
+      "process_id": 871,
+      "artifacts": 9,
+      "serial_sha256": "ec0f2d17fd62f7ef7065527c3c043a207b0053c111fbef5be181a600e90219cc",
+      "volume_identity": "68229b035b65437bb6d03f901af875b9",
+      "image_after_sha256": "3375fe5bec5368117d7098d90c900da815bb1ce20f9c1c8b6db3b367a319f4b5",
+      "sequence": 10,
+      "passed": true
+    },
+    {
+      "name": "normal-b",
+      "case": "normal",
+      "base_commit": "bb22fdbe15919edc23baa158a46236195ce314b2",
+      "raw_exit": 33,
+      "process_id": 1191,
+      "artifacts": 9,
+      "serial_sha256": "b3873fd5138011dca2171cf6f28c4af55869207a13d6cd09ea9bf427e058bbf0",
+      "volume_identity": "32d6f38d2e1141f9b3bf142dad36581a",
+      "image_after_sha256": "b445af13ac88053d86d750648dd74629e8c8deb79d79313732386651346e4ecc",
+      "sequence": 10,
+      "passed": true
+    },
+    {
+      "name": "normal-b-cold-recovery",
+      "case": "recover",
+      "base_commit": "bb22fdbe15919edc23baa158a46236195ce314b2",
+      "raw_exit": 33,
+      "process_id": 1511,
+      "artifacts": 9,
+      "serial_sha256": "ec0f2d17fd62f7ef7065527c3c043a207b0053c111fbef5be181a600e90219cc",
+      "volume_identity": "32d6f38d2e1141f9b3bf142dad36581a",
+      "image_after_sha256": "b445af13ac88053d86d750648dd74629e8c8deb79d79313732386651346e4ecc",
+      "sequence": 10,
+      "passed": true
+    },
+    {
+      "name": "errors",
+      "case": "errors",
+      "base_commit": "bb22fdbe15919edc23baa158a46236195ce314b2",
+      "raw_exit": 33,
+      "process_id": 1853,
+      "artifacts": 9,
+      "serial_sha256": "eeecef62d7f5508c0ea5a365ce6ec99edd6e6cc69977a6cd1b74d162696a70c9",
+      "volume_identity": "886475b22ea84f309d9270322da77594",
+      "image_after_sha256": "6141297ae2ad7792e6a8b70d425680a79a4e153127668fe3301c9b84429558bd",
+      "sequence": 10,
+      "passed": true
+    },
+    {
+      "name": "errors-cold-recovery",
+      "case": "recover",
+      "base_commit": "bb22fdbe15919edc23baa158a46236195ce314b2",
+      "raw_exit": 33,
+      "process_id": 2173,
+      "artifacts": 9,
+      "serial_sha256": "ec0f2d17fd62f7ef7065527c3c043a207b0053c111fbef5be181a600e90219cc",
+      "volume_identity": "886475b22ea84f309d9270322da77594",
+      "image_after_sha256": "6141297ae2ad7792e6a8b70d425680a79a4e153127668fe3301c9b84429558bd",
+      "sequence": 10,
+      "passed": true
+    },
+    {
+      "name": "full",
+      "case": "full",
+      "base_commit": "bc4cd104e86e2c047b727ae96e07a03fbc810c3c",
+      "raw_exit": 33,
+      "process_id": 2514,
+      "artifacts": 9,
+      "serial_sha256": "6ccfc9a9eeeb290b650f7b00b26951109be68dfcff5dc8c8673e9aacc65d3d2b",
+      "volume_identity": "3caa3a05de2641208e8e636ff7a803ca",
+      "image_after_sha256": "04f6dd2a42490b6d6f033ca3f4385b65b6fc47d48227e1074deca60ec0ffebdf",
+      "sequence": 32,
+      "passed": true
+    },
+    {
+      "name": "full-cold-recovery",
+      "case": "recover",
+      "base_commit": "bc4cd104e86e2c047b727ae96e07a03fbc810c3c",
+      "raw_exit": 33,
+      "process_id": 2834,
+      "artifacts": 9,
+      "serial_sha256": "3fd4918513a20d54d49bf3bf71781c65257f850a2493936b06c522f7ab3f499a",
+      "volume_identity": "3caa3a05de2641208e8e636ff7a803ca",
+      "image_after_sha256": "04f6dd2a42490b6d6f033ca3f4385b65b6fc47d48227e1074deca60ec0ffebdf",
+      "sequence": 32,
+      "passed": true
+    },
+    {
+      "name": "corrupt",
+      "case": "corrupt",
+      "base_commit": "bc4cd104e86e2c047b727ae96e07a03fbc810c3c",
+      "raw_exit": 33,
+      "process_id": 3176,
+      "artifacts": 9,
+      "serial_sha256": "afc36e4eb9b22bf5a1d6064b27063b96f3a1d522222d60908dc78dfbcba3b304",
+      "volume_identity": "89b19fcd6c264eba9c39dd3667b3f794",
+      "image_after_sha256": "e8e6ebefdd29cb55ad454fbd850953e493c33782167bd63366282d98a7c9f3a4",
+      "sequence": null,
+      "passed": true
+    },
+    {
+      "name": "legacy",
+      "case": "legacy",
+      "base_commit": "bc4cd104e86e2c047b727ae96e07a03fbc810c3c",
+      "raw_exit": 33,
+      "process_id": 3518,
+      "artifacts": 9,
+      "serial_sha256": "1fde27906e51f9813f5642783c736c91292bafb710d47466a6ebceab42b46ee2",
+      "volume_identity": "5a0c00b526ee4afaa50ae06ff17eb7eb",
+      "image_after_sha256": "0cd154fdd9ceaac8a5b63380e9751aacaceaa7641da1756b07aa4e1333a731fa",
+      "sequence": null,
+      "passed": true
+    },
+    {
+      "name": "vm-cut-before-rename",
+      "case": "vm-cut-before-rename",
+      "base_commit": "bc4cd104e86e2c047b727ae96e07a03fbc810c3c",
+      "raw_exit": -9,
+      "process_id": 3860,
+      "artifacts": 9,
+      "serial_sha256": "67c7bcc79f4248a97ac9c95087590291c14965976d2870895fc3a22bdaeae802",
+      "volume_identity": "b9011f9b2f0c4245b0e59f1e0d94d9c8",
+      "image_after_sha256": "e405b57fec8bef1277f800c2ea243fdd7c877b36f59756ae9d2b061f8c371991",
+      "sequence": 1,
+      "passed": true
+    },
+    {
+      "name": "vm-cut-before-rename-cold-recovery",
+      "case": "recover",
+      "base_commit": "bc4cd104e86e2c047b727ae96e07a03fbc810c3c",
+      "raw_exit": 33,
+      "process_id": 4180,
+      "artifacts": 9,
+      "serial_sha256": "dd607760f30f0ad4029779e702bc89a07689f920eb13c5fb9fd62695d76ea039",
+      "volume_identity": "b9011f9b2f0c4245b0e59f1e0d94d9c8",
+      "image_after_sha256": "e405b57fec8bef1277f800c2ea243fdd7c877b36f59756ae9d2b061f8c371991",
+      "sequence": 1,
+      "passed": true
+    },
+    {
+      "name": "vm-cut-after-rename",
+      "case": "vm-cut-after-rename",
+      "base_commit": "bc4cd104e86e2c047b727ae96e07a03fbc810c3c",
+      "raw_exit": -9,
+      "process_id": 4522,
+      "artifacts": 9,
+      "serial_sha256": "d468e8848670b394cabc1710bfcd4dd6b8939601e4c74b8da31e7448c24a4495",
+      "volume_identity": "40f0e634de7f4996b9c7408240c3796b",
+      "image_after_sha256": "1983a53a52fb74d34409dc79cd30fea2f6b5f951c0653a28042870bdedfa53b4",
+      "sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "vm-cut-after-rename-cold-recovery",
+      "case": "recover",
+      "base_commit": "bc4cd104e86e2c047b727ae96e07a03fbc810c3c",
+      "raw_exit": 33,
+      "process_id": 4842,
+      "artifacts": 9,
+      "serial_sha256": "5ef8a6544a112c6a78f766fe7b2fd83d03fdd5a87ba7682f64fd8329d9fea8ab",
+      "volume_identity": "40f0e634de7f4996b9c7408240c3796b",
+      "image_after_sha256": "1983a53a52fb74d34409dc79cd30fea2f6b5f951c0653a28042870bdedfa53b4",
+      "sequence": 2,
+      "passed": true
+    },
+    {
+      "name": "m1-regression-after-m6c",
+      "case": "m1",
+      "base_commit": "bc4cd104e86e2c047b727ae96e07a03fbc810c3c",
+      "raw_exit": 33,
+      "artifacts": 4,
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "passed": true
+    }
+  ],
+  "cold_pairs": [
+    {
+      "run": "normal-a-cold-recovery",
+      "previous_run": "normal-a",
+      "same_identity": "68229b035b65437bb6d03f901af875b9",
+      "same_before_after_sha256": "3375fe5bec5368117d7098d90c900da815bb1ce20f9c1c8b6db3b367a319f4b5",
+      "distinct_process_ids": [
+        529,
+        871
+      ]
+    },
+    {
+      "run": "normal-b-cold-recovery",
+      "previous_run": "normal-b",
+      "same_identity": "32d6f38d2e1141f9b3bf142dad36581a",
+      "same_before_after_sha256": "b445af13ac88053d86d750648dd74629e8c8deb79d79313732386651346e4ecc",
+      "distinct_process_ids": [
+        1191,
+        1511
+      ]
+    },
+    {
+      "run": "errors-cold-recovery",
+      "previous_run": "errors",
+      "same_identity": "886475b22ea84f309d9270322da77594",
+      "same_before_after_sha256": "6141297ae2ad7792e6a8b70d425680a79a4e153127668fe3301c9b84429558bd",
+      "distinct_process_ids": [
+        1853,
+        2173
+      ]
+    },
+    {
+      "run": "full-cold-recovery",
+      "previous_run": "full",
+      "same_identity": "3caa3a05de2641208e8e636ff7a803ca",
+      "same_before_after_sha256": "04f6dd2a42490b6d6f033ca3f4385b65b6fc47d48227e1074deca60ec0ffebdf",
+      "distinct_process_ids": [
+        2514,
+        2834
+      ]
+    },
+    {
+      "run": "vm-cut-before-rename-cold-recovery",
+      "previous_run": "vm-cut-before-rename",
+      "same_identity": "b9011f9b2f0c4245b0e59f1e0d94d9c8",
+      "same_before_after_sha256": "e405b57fec8bef1277f800c2ea243fdd7c877b36f59756ae9d2b061f8c371991",
+      "distinct_process_ids": [
+        3860,
+        4180
+      ]
+    },
+    {
+      "run": "vm-cut-after-rename-cold-recovery",
+      "previous_run": "vm-cut-after-rename",
+      "same_identity": "40f0e634de7f4996b9c7408240c3796b",
+      "same_before_after_sha256": "1983a53a52fb74d34409dc79cd30fea2f6b5f951c0653a28042870bdedfa53b4",
+      "distinct_process_ids": [
+        4522,
+        4842
+      ]
+    }
+  ],
+  "external_cuts": [
+    {
+      "run": "vm-cut-before-rename",
+      "process_id": 3860,
+      "raw_exit": -9,
+      "sequence": 1,
+      "name": "Café A",
+      "payload_sha256": "6d6157c9db832cdf0cd9f367d4fb8383b80e583db80253facde2210be441a1cc"
+    },
+    {
+      "run": "vm-cut-after-rename",
+      "process_id": 4522,
+      "raw_exit": -9,
+      "sequence": 2,
+      "name": "Café hernoemd A",
+      "payload_sha256": "6d6157c9db832cdf0cd9f367d4fb8383b80e583db80253facde2210be441a1cc"
+    }
+  ],
+  "evidence_files": {
+    "journal_records": "m6c-actual-journal-records.json",
+    "journal_records_sha256": "79b32a4b4fe4f37000ec9fd4ee8448b14b685ddd0c36fbb694371f128776351d",
+    "artifact_inventory": "m6c-all-artifact-hashes.json",
+    "artifact_inventory_sha256": "5fe5528d71223228623f9b1ac8d92626ced71c147d9f9f53523fcedef931333c",
+    "source_hashes": "m6c-audited-source-hashes.json",
+    "source_hashes_sha256": "5a0866956ed616d6e20f6d71c8e01d73357ac0f91345db151a0150c3b80d8426"
+  },
+  "suite_sha256": "073768460b177a1279d8834d6d56389adccad334fe870234befe3f58f0297cf8",
+  "capture_sha256": "cf9f93fd68072133cafd3cc20fa6e7c933d3403a235b7c1fcef22100656fff4e",
+  "audit_script_sha256": "4af38f256e7a92dfcf4bf97f4b613df5c6e2ec8ed6fbb307298b9de13bd9a47c",
+  "findings": [],
+  "limitations": [
+    "Read-only reinspection of real existing run evidence; no new VM execution.",
+    "QEMU process kills are not physical power-loss tests.",
+    "FNV is diagnostic and not cryptographic authentication.",
+    "AI audit is not a human audit or formal proof.",
+    "M6b regression running separately is outside this report."
+  ]
+}
