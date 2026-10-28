@@ -1,0 +1,17 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_m6b_*.py"
+  ],
+  "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028",
+  "started_unix": 1793180600.987066,
+  "duration_s": 1.1942682266235352,
+  "returncode": 0
+}

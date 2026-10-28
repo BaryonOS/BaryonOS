@@ -1,0 +1,110 @@
+{
+  "basis_commit": "7484d87ec639fd8a29be327cad47c2f97739199d",
+  "candidate_commit": "326d2f6efa20411d5bb349b8275bc3e741be7ae0",
+  "started_utc": "2026-10-28T09:34:17.104399+00:00",
+  "status": "failed",
+  "passed": false,
+  "commands": [
+    {
+      "name": "audit-negative-tests",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m6d_m6b_audit.py"
+      ],
+      "cwd": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review",
+      "started_utc": "2026-10-28T09:34:17.104933+00:00",
+      "finished_utc": "2026-10-28T09:34:17.250940+00:00",
+      "exit_status": 0,
+      "output_sha256": {
+        "docs/verification/m6d-closeout/audit-negative-tests.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "docs/verification/m6d-closeout/audit-negative-tests.stderr.txt": "938170522077765b26f6292b200d0dbc0f8d4d0557fa800d07bbf54446c026ff"
+      },
+      "output_encoding": "UTF-8, universal newline decoding to LF"
+    },
+    {
+      "name": "audit-self-test",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/verification/m6d-review/audit_m6d_native.py",
+        "--self-test"
+      ],
+      "cwd": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review",
+      "started_utc": "2026-10-28T09:34:17.251343+00:00",
+      "finished_utc": "2026-10-28T09:34:17.342525+00:00",
+      "exit_status": 0,
+      "output_sha256": {
+        "docs/verification/m6d-closeout/audit-self-test.stdout.txt": "4fdd8528a6a73c2775cf60aab29f9925fde62f83af74e7673ecf23b7a5b05f6a",
+        "docs/verification/m6d-closeout/audit-self-test.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "output_encoding": "UTF-8, universal newline decoding to LF"
+    },
+    {
+      "name": "image-text-reconstruction",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/verification/m6d-review/audit_m6d_native.py",
+        "--reconstruct",
+        "docs/verification/m6d-review/m6d-actual-journal-records.json"
+      ],
+      "cwd": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review",
+      "started_utc": "2026-10-28T09:34:17.342899+00:00",
+      "finished_utc": "2026-10-28T09:34:17.442158+00:00",
+      "exit_status": 0,
+      "output_sha256": {
+        "docs/verification/m6d-closeout/image-text-reconstruction.stdout.txt": "cc571e8f5f030038815aa59d7b00f2eb0e44ff4e81670029f13222b157a4187b",
+        "docs/verification/m6d-closeout/image-text-reconstruction.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "output_encoding": "UTF-8, universal newline decoding to LF"
+    },
+    {
+      "name": "m6c-gate",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-u",
+        "tools/test_m6c.py"
+      ],
+      "cwd": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review",
+      "started_utc": "2026-10-28T09:34:17.442620+00:00",
+      "finished_utc": "2026-10-28T09:34:28.639646+00:00",
+      "exit_status": 1,
+      "output_sha256": {
+        "docs/verification/m6d-closeout/m6c-gate.stdout.txt": "81ae10c10145b45f33ad7fde03d86154fe20b7debe7047090344a1a058aa1ef6",
+        "docs/verification/m6d-closeout/m6c-gate.stderr.txt": "8a83ab005b057c93ad0499842922ddc402e13730475c6490ac290113a5c45566"
+      },
+      "output_encoding": "UTF-8, universal newline decoding to LF"
+    }
+  ],
+  "boundary": "This initial Windows gate failed closed because an image acquired a second hardlink under .tmp.driveupload. Guest raw33/markers do not override the disk guard. Later runs use a separate nonsynced worktree.",
+  "initial_host_regressions": [
+    {
+      "scope": "M6c",
+      "tests": 48,
+      "exit_status": 1,
+      "error": "WinError5 in self-exit negative test before wait correction"
+    },
+    {
+      "scope": "M6b",
+      "tests": 30,
+      "exit_status": 1,
+      "error": "WinError5 in self-exit negative test before wait correction"
+    }
+  ]
+}

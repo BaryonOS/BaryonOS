@@ -171,3 +171,20 @@ Beide commando's eindigden met exit 0; de tweede diff was leeg. Met
 de checkoutbytes en de twee R08-receipthashes; exit 0. De tabel hierboven
 registreert de exacte beoordeelde inhoud. Er zijn geen hosttests, native
 tests, volledige historische bewijsaudit of prestatiemetingen toegevoegd.
+
+### Reproduceerbare hercontrole van de bronbinding
+
+De bovenstaande verkorte `python -X utf8 -c`-vermelding is geen volledige
+commandoreceipt. Daarom is de vergelijking op 28 oktober 2026 opnieuw
+uitgevoerd met het bewaarde programma
+`docs/verification/m6d-closeout/check_native_source.py`:
+
+```powershell
+python -X utf8 -B docs/verification/m6d-closeout/check_native_source.py
+```
+
+Exit 0. De volledige Git-argv's, werkmap en twaalf hashvergelijkingen staan in
+`docs/verification/m6d-closeout/native-source-binding.json`. Het programma
+vergelijkt beide bestanden op b739183, 88e6c04, 7484d87, 326d2f6 en HEAD met
+de checkoutbytes. Dit is nieuwe controle van de bronbinding; de eerdere
+R08-receipt en haar afwijkende hashes worden hiermee niet herschreven.

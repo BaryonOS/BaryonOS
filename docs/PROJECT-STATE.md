@@ -2,7 +2,39 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
-## M6d-reviewherstel — checkpoint 28 oktober 2026
+## M6d-reviewherstel — Windowsacceptatie 28 oktober 2026
+
+Aanvullende uitvoering op `326d2f6`, in een afzonderlijke worktree buiten
+synchronisatiemappen. Fingerprint v3:
+`5c69802a6de7c591207950f311d2e9e4f7eb07628d3b91dc9457f21c0bfa8c75`.
+M6c/M6d: **35 groepen / 31 VM**, M6b: **18 groepen / 14 VM**, beide captures
+exit 0. Samen 45 VM-starts, 20 koude recoveries en vier externe Windows-kills.
+De twee gewone M1-runs missen een eigen per-run-QEMU-executablehash; die
+meetgrens blijft open. Native kernel/service/probe zijn bytegelijk aan 88e6c04.
+
+Host: M6c 30 Rust- en 48 Python-tests; M6b 22 Rust- en 30 Python-tests.
+De bredere definitieve Python-hostsuite slaagt met **173/173**, inclusief
+22 auditor- en 19 capturechecks. Deze overlappende aantallen niet optellen.
+De eerdere brede suite faalde door LF→CRLF-conversie in synthetische fixtures;
+alleen fixturebytes zijn gecorrigeerd. Exacte productiebytevergelijking en
+single-linkguard blijven intact. Vier bronmutanten toetsen de auditbypass;
+geen algemene formele Pythoncontrole.
+
+De mislukte gesynchroniseerde run blijft failed bewaard. Een onmiddellijke
+`fsutil hardlink list` toonde een echte tweede naam onder `.tmp.driveupload`;
+het veroorzakende proces is niet vastgesteld. Identieke bron buiten die map
+slaagt. Oorspronkelijk Linuxbewijs blijft aan 88e6c04 gebonden; de volledige
+historische rawaudit is niet opnieuw uitgevoerd. Een tweede agent controleerde
+alle 45 rawrecords, 395 artifacthashes en de werkelijke imagebytes; geen
+menselijke audit of fysieke stroomuitvalclaim.
+
+Exacte opdrachten en grenzen: [M6D-CLOSEOUT.md](verification/M6D-CLOSEOUT.md).
+Voortgang **14% → 14%**; volgende native stap blijft catalogusherstart.
+PR #11 bevat het herstel; concept #13 integreert de actuele boom naar main
+met behoud van eerdere main-fixes. PR #12 is inhoudelijk ingehaald en wordt
+pas na geslaagde opname van #13 gesloten. Merges hier nog niet geclaimd.
+
+### Vooraf bewaard checkpoint
 
 Hervat vanaf GitHub-head `7484d87`, afzonderlijke checkout `nieuw-os-review`.
 De oude M6a-werkmap en ongetrackte bewijsbestanden zijn behouden. De vijf
@@ -15,13 +47,13 @@ de bijgewerkte audit/docs staan bewust in `verification/m6d-summary.json`.
 De eerste Windows-hostcontrole faalde bij de natuurlijke exit van een child
 met WinError 5, zowel in M6b als M6c. Na verlenging van uitsluitend de begrensde
 wait bij een geweigerde TerminateProcess-call van 0,25 naar de bestaande
-cleanupgrens van 10 seconden slagen 48 M6c- en 30 M6b-hosttests. Een natuurlijke
+cleanupgrens van 10 seconden slagen 48 M6c- en 30 M6b-Python-tests. Een natuurlijke
 exit blijft `kill_requested:false`; werkelijke live kills en timeoutafwijzing
 blijven getest. De kernel/service/probe zijn ongewijzigd.
 
 Dit checkpoint gaat vóór de nieuwe volledige Windows-gates naar GitHub.
-Die gates, hun captures, externe herreview en merges zijn hier nog **niet**
-afgerond. De volledige historische Linux-rawaudit is in deze Windowscheckout
+Die gates, hun captures, externe herreview en merges waren op dit checkpoint
+nog **niet** afgerond. De volledige historische Linux-rawaudit is in deze Windowscheckout
 niet uitvoerbaar zonder oorspronkelijke ruwe bestanden en QEMU-binary; de
 nieuwe audit heeft afzonderlijke negatieve hosttests. Voortgang **14% → 14%**.
 Volgende native functie blijft de beperkte catalogusherstart uit WORK-QUEUE.

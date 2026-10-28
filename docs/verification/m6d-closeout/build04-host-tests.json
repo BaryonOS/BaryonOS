@@ -1,0 +1,26 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+    "-X",
+    "utf8",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-v"
+  ],
+  "cwd": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review",
+  "started_utc": "2026-10-28T09:49:40.997545+00:00",
+  "duration_s": 4.322769599995809,
+  "returncode": 0,
+  "timed_out": false,
+  "base_commit": "326d2f6efa20411d5bb349b8275bc3e741be7ae0",
+  "test_sha256": {
+    "tests/test_capture_gate.py": "9528d5cfc0f2511db407d4a2c439d1e4d173080d2a80d46f38e7a85b158af657",
+    "tests/test_m6d_m6b_audit.py": "b21e2c9a4bc2ba1ddc831ae6af1a7b01d1a496c1da90d36ce9e07167aef23113"
+  },
+  "stdout_sha256": "29707c2a381d6c4d6568660bfd42c8ba9d186d9a5bbb6cd708f63b08533e8644",
+  "stderr_sha256": "e2bd041f2f8dbcf0473d7fa8f289a4a38d738c224e202bc6ae4fe559fec4e559"
+}

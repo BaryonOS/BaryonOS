@@ -1,0 +1,149 @@
+{
+  "method": "Unchanged Path.stat return object; original Volume.guard called without retries or relaxed checks.",
+  "argv": [
+    "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+    "build/diagnose_volume_guard.py",
+    "--label",
+    "diag-stat-2"
+  ],
+  "cwd": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review",
+  "started_utc": "2026-10-28T09:39:27.329978+00:00",
+  "finished_utc": "2026-10-28T09:39:30.495166+00:00",
+  "source_sha256": "5c69802a6de7c591207950f311d2e9e4f7eb07628d3b91dc9457f21c0bfa8c75",
+  "observed_source_sha256": "5c69802a6de7c591207950f311d2e9e4f7eb07628d3b91dc9457f21c0bfa8c75",
+  "exception": null,
+  "events": [
+    {
+      "event": "guard-enter",
+      "guard_number": 1,
+      "time_ns": 1793180367389829700,
+      "path": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\run\\m6c-volume-diag-stat-2-d75c8ec565\\test-disk.img"
+    },
+    {
+      "event": "Path.stat",
+      "time_ns": 1793180367390426000,
+      "path": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\run\\m6c-volume-diag-stat-2-d75c8ec565\\test-disk.img",
+      "guard_number": 1,
+      "kwargs": {},
+      "stat": {
+        "st_mode": 33206,
+        "st_nlink": 1,
+        "st_size": 65536,
+        "st_ino": 3659174698897601,
+        "st_dev": 17167361003335688271,
+        "st_file_attributes": 524320,
+        "st_reparse_tag": 0,
+        "st_mtime_ns": 1793180367388089000,
+        "st_ctime_ns": 1793180367387089400
+      },
+      "regular": true,
+      "stack": [
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\diagnose_volume_guard.py:98:<module>",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\diagnose_volume_guard.py:71:main",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\tools\\run_m6c.py:209:run_m6c",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\tools\\m6c_disk.py:189:create_volume",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\diagnose_volume_guard.py:51:traced_guard",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\tools\\m6c_disk.py:159:guard"
+      ]
+    },
+    {
+      "event": "guard-return",
+      "guard_number": 1,
+      "time_ns": 1793180367391626300
+    },
+    {
+      "event": "guard-enter",
+      "guard_number": 2,
+      "time_ns": 1793180367391630000,
+      "path": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\run\\m6c-volume-diag-stat-2-d75c8ec565\\test-disk.img"
+    },
+    {
+      "event": "Path.stat",
+      "time_ns": 1793180367392162200,
+      "path": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\run\\m6c-volume-diag-stat-2-d75c8ec565\\test-disk.img",
+      "guard_number": 2,
+      "kwargs": {},
+      "stat": {
+        "st_mode": 33206,
+        "st_nlink": 1,
+        "st_size": 65536,
+        "st_ino": 3659174698897601,
+        "st_dev": 17167361003335688271,
+        "st_file_attributes": 524320,
+        "st_reparse_tag": 0,
+        "st_mtime_ns": 1793180367388089000,
+        "st_ctime_ns": 1793180367387089400
+      },
+      "regular": true,
+      "stack": [
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\diagnose_volume_guard.py:98:<module>",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\diagnose_volume_guard.py:71:main",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\tools\\run_m6c.py:212:run_m6c",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\diagnose_volume_guard.py:51:traced_guard",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\tools\\m6c_disk.py:159:guard"
+      ]
+    },
+    {
+      "event": "guard-return",
+      "guard_number": 2,
+      "time_ns": 1793180367392715600
+    },
+    {
+      "event": "guard-enter",
+      "guard_number": 3,
+      "time_ns": 1793180370421528000,
+      "path": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\run\\m6c-volume-diag-stat-2-d75c8ec565\\test-disk.img"
+    },
+    {
+      "event": "Path.stat",
+      "time_ns": 1793180370422123900,
+      "path": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\run\\m6c-volume-diag-stat-2-d75c8ec565\\test-disk.img",
+      "guard_number": 3,
+      "kwargs": {},
+      "stat": {
+        "st_mode": 33206,
+        "st_nlink": 2,
+        "st_size": 65536,
+        "st_ino": 3659174698897601,
+        "st_dev": 17167361003335688271,
+        "st_file_attributes": 524320,
+        "st_reparse_tag": 0,
+        "st_mtime_ns": 1793180370228732200,
+        "st_ctime_ns": 1793180367387089400
+      },
+      "regular": true,
+      "stack": [
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\diagnose_volume_guard.py:98:<module>",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\diagnose_volume_guard.py:71:main",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\tools\\run_m6c.py:287:run_m6c",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\tools\\m6c_disk.py:231:verify_volume",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\diagnose_volume_guard.py:51:traced_guard",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\tools\\m6c_disk.py:159:guard"
+      ]
+    },
+    {
+      "event": "guard-rejected",
+      "guard_number": 3,
+      "time_ns": 1793180370422535900,
+      "error": "ValueError: M6c requires its own regular single-link 64KiB test image"
+    },
+    {
+      "event": "hardlink-list-after-rejection",
+      "guard_number": 3,
+      "time_ns": 1793180370432899300,
+      "argv": [
+        "fsutil",
+        "hardlink",
+        "list",
+        "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\run\\m6c-volume-diag-stat-2-d75c8ec565\\test-disk.img"
+      ],
+      "returncode": 0,
+      "stdout": "\\Users\\simon\\OneDrive\\Documenten\\.tmp.driveupload\\382165\n\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\run\\m6c-volume-diag-stat-2-d75c8ec565\\test-disk.img\n",
+      "stderr": ""
+    }
+  ],
+  "run_directory": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\run\\m6c-diag-stat-2-5f316c116e",
+  "passed": false,
+  "raw_qemu_exit": 33,
+  "oracle_error": "ValueError: M6c requires its own regular single-link 64KiB test image"
+}

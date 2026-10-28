@@ -1,0 +1,6 @@
+   Compiling object-core v0.1.0 (C:\Users\simon\Documents\Codex\nieuw-os-runtime-review-20261028\services\objects)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.58s
+     Running unittests src\lib.rs (target\debug\deps\object_core-efb49c0a99261cf8.exe)
+     Running tests\core.rs (target\debug\deps\core-d740b3cb1239e399.exe)
+     Running tests\wire.rs (target\debug\deps\wire-3d1a58e3f9cfd40b.exe)
+   Doc-tests object_core
