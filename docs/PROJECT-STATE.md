@@ -1,5 +1,61 @@
 # Actuele projectstatus
 
+## Volledige repository-audit en integratie — 28 oktober 2026
+
+De volledige huidige repository is opnieuw gecontroleerd op architectuurgrenzen,
+duplicatie, build-/testconfiguratie, dependencies, gegenereerde rommel, secrets,
+documentatie en open pull requests. De relevante inhoud van PR #16 is via
+[PR #25](https://github.com/simonvanieperen/nieuw-os/pull/25) geïntegreerd en
+PR #16 is daarna als vervangen gesloten. Een later verschenen, verouderde
+documentatie-closeout PR #27 is eveneens inhoudelijk vervangen in plaats van
+blind gemergd.
+
+De integratie behoudt de eigen Rust-kernel en de bestaande microkernelachtige
+scheiding: de Ethernet/IPv4/UDP-parser is een dependencyvrije
+`no_std`-userspace/servicebibliotheek zonder driver-, socket- of capabilityrecht.
+De DocumentSession-proef gebruikt bestaande catalogus-/IPC-capabilities en
+verruimt kernel-, IPC- of opslagformaten niet. Bewuste duplicatie voor afzonderlijke
+binaries/security-isolatie is niet samengevoegd.
+
+GitHub Actions bevat nu een read-only CI met gepinde officiële actions. Na de
+auditmerge werd op exact dezelfde Git-tree één niet-deterministische normale
+M6c-QEMU-fout waargenomen: de client ontving een geldige reply, maar de mutatie
+bereikte de bestaande `Unknown`-route doordat de completion niet binnen de
+20-tick brokerdeadline werd waargenomen. De onmiddellijke rerun op dezelfde tree
+slaagde. [PR #26](https://github.com/simonvanieperen/nieuw-os/pull/26) verhoogt
+uitsluitend de M6c-acceptatiebrokerdeadline naar 64 ticks; faultfixtures blijven
+completionwaarneming tot de echte deadline onderdrukken, zodat timeout/Unknown
+niet wordt weggefilterd of geretryd.
+
+De definitieve push-run op `main`,
+[run 40741321766](https://github.com/simonvanieperen/nieuw-os/actions/runs/40741321766),
+is volledig groen. `host-quality` slaagt voor Python/DocumentSession, root Rust,
+Clippy/rustfmt, SDK, netwerkparser inclusief native cross-build, quantum,
+productprototype, NAS-tests, native releasebuild en voortgangs-/clean-treecontrole.
+`qemu-smoke` slaagt voor strict preflight, baseline M6c en DocumentSession
+normal plus koude recovery in afzonderlijke VM-invocaties.
+
+CodeRabbit leverde op PR #16 vijf concrete reviewbevindingen; de geldige punten
+zijn in de integratie hersteld. Op PR #26 was de CodeRabbit-review bij merge nog
+asynchroon in uitvoering en waren geen inhoudelijke bevindingen of reviewthreads
+gepubliceerd; de volledige CI was wel groen. Codex code/security review op de
+verouderde PR #27 kon niet starten doordat het gekoppelde reviewquotum bereikt
+was; PR #27 is daarom niet als goedgekeurd beschouwd en juist vervangen.
+
+Repositoryonderhoud is aangescherpt met `CONTRIBUTING.md`, PR-/bugtemplates,
+beperkte maandelijkse Dependabot-voorstellen, binary-attributen voor PDF/GZIP,
+en gitignore-regels voor gegenereerde SDK-/netwerk-targets. De bestaande
+main-ruleset beschermt verwijdering, non-fast-forward en lineaire geschiedenis
+en vereist PR's plus opgeloste reviewthreads. Verplichte CI-statuschecks en
+GitHub-securityinstellingen konden via de beschikbare integratie niet worden
+gewijzigd of volledig uitgelezen; dit blijft een repository-instellingspunt.
+
+**Roadmap: 14% → 14%.** De audit maakt bestaande functionaliteit aantoonbaar
+schoner en beter bewaakt, maar DocumentSession is nog een begrensde headless
+proef, de netwerkparser is nog geen native netwerkdienst en de Security Floor/
+provider-/premium-UX-eisen zijn nog geen volledige native acceptatie. Daarom is
+geen nieuw vast criterium toegekend.
+
 ## Architectuurbesluit: Security Floor, opaque provideropslag en premium UX — 28 oktober 2026
 
 De nieuwe gebruikerskeuze is als documentatie-/architectuurwijziging vastgelegd.

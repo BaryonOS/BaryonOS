@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "dbd9a89736023be6f04fb5c2c1a8f842f266134f",
-    "branch": "docs/security-floor-opaque-cloud-ux-20261028",
-    "task": "Security Floor, opaque provideropslag en premium native UX vastgelegd",
+    "source_commit": "51dc38ebe82ac3ace16a52a904ecfe59551210d1",
+    "branch": "audit/finalize-current-repository-20261028",
+    "task": "Volledige technische repository-audit, PR16-integratie, CI-versterking en QEMU-flakecorrectie afgerond",
     "previous_score": 14,
-    "summary": "Privacycontract revisie 4, ADR-035 t/m ADR-038 en de nieuwe encrypted-objectspecificatie leggen vrijwillige externe ciphertextopslag, niet-uitzetbare beveiligingsgrenzen, uitzetbare privacyuitleg en de premium productiviteitsambitie vast. Dit is architectuur/documentatie: geen native provider-, crypto- of UI-acceptatie en dus 14% naar 14%."
+    "summary": "PR #25 integreert relevante PR16-code, reviewreparaties en repositoryonderhoud; PR #26 corrigeert een aantoonbare M6c/TCG-timingflake zonder ABI-, capability- of opslagcontractwijziging. De definitieve main-run 40741321766 is groen voor host-quality, baseline M6c-QEMU en DocumentSession normal/koude-recovery. Dit verbetert correctness en onderhoudbaarheid maar sluit geen volledig nieuw vast roadmapcriterium: 14% naar 14%."
   },
   "tracks": [
     {
