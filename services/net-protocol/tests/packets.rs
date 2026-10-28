@@ -1,5 +1,8 @@
 //! Fixed synthetic packets and hostile parser inputs; no network or VM.
-use nieuw_os_net_protocol::{parse, Error, Layer, UdpChecksum, Unsupported, MAX_IPV4_BYTES};
+use nieuw_os_net_protocol::{
+    build_udp_ipv4, parse, EncodeError, Error, Layer, UdpChecksum, UdpIpv4Tx, Unsupported,
+    MAX_IPV4_BYTES, MAX_UDP_PAYLOAD_BYTES,
+};
 
 // Values derived independently in docs/verification/parallel-b11/vectors.py.
 // Tests never regenerate these expected packet bytes with the library checksum.
@@ -360,4 +363,110 @@ fn source_port_zero_and_link_addresses_are_data_not_authority() {
     assert_eq!(packet.source_mac(), [0xff; 6]);
     assert_eq!(packet.checksum(), UdpChecksum::Absent);
     // No authenticated peer, socket handle or capability is returned by parse.
+}
+
+const TX: UdpIpv4Tx = UdpIpv4Tx {
+    destination_mac: [2, 0, 0, 0, 0, 2],
+    source_mac: [2, 0, 0, 0, 0, 1],
+    source_ipv4: [192, 0, 2, 1],
+    destination_ipv4: [198, 51, 100, 2],
+    source_port: 12345,
+    destination_port: 54321,
+    identification: 0x1234,
+    ttl: 64,
+    mtu: 1500,
+};
+
+#[test]
+fn transmitter_matches_independently_generated_ipv4_udp_vectors() {
+    for (hex, payload) in [
+        (ODD, b"nieuwOS".as_slice()),
+        (EVEN, b"01234567".as_slice()),
+        (EMPTY, b"".as_slice()),
+        (ZERO_AS_FFFF, [0x0f, 0x38].as_slice()),
+    ] {
+        let expected = bytes(hex);
+        let mut output = [0xa5_u8; 100];
+        let written = build_udp_ipv4(TX, payload, &mut output).unwrap();
+        assert_eq!(written, 60);
+        assert_eq!(&output[..expected.len()], expected.as_slice());
+        assert!(output[expected.len()..written].iter().all(|&b| b == 0));
+        assert!(output[written..].iter().all(|&b| b == 0xa5));
+        let decoded = parse(&output[..written]).unwrap();
+        assert_eq!(decoded.payload(), payload);
+        assert_eq!(decoded.ethernet_padding().len(), 60 - expected.len());
+    }
+}
+
+#[test]
+fn transmitter_rejects_invalid_limits_before_any_buffer_write() {
+    let mut buffer = [0xa5_u8; 59];
+    assert_eq!(
+        build_udp_ipv4(TX, b"", &mut buffer),
+        Err(EncodeError::OutputTooSmall {
+            needed: 60,
+            available: 59,
+        })
+    );
+    assert!(buffer.iter().all(|&b| b == 0xa5));
+    assert_eq!(
+        build_udp_ipv4(UdpIpv4Tx { ttl: 0, ..TX }, b"x", &mut buffer),
+        Err(EncodeError::ZeroTtl)
+    );
+    assert!(buffer.iter().all(|&b| b == 0xa5));
+    assert_eq!(
+        build_udp_ipv4(
+            UdpIpv4Tx { mtu: 27, ..TX },
+            b"",
+            &mut buffer,
+        ),
+        Err(EncodeError::ExceedsMtu {
+            ipv4_bytes: 28,
+            mtu: 27,
+        })
+    );
+    assert!(buffer.iter().all(|&b| b == 0xa5));
+    let huge = vec![0x5a; MAX_UDP_PAYLOAD_BYTES + 1];
+    assert_eq!(
+        build_udp_ipv4(TX, &huge, &mut buffer),
+        Err(EncodeError::PayloadTooLarge {
+            actual: MAX_UDP_PAYLOAD_BYTES + 1,
+            maximum: MAX_UDP_PAYLOAD_BYTES,
+        })
+    );
+    assert!(buffer.iter().all(|&b| b == 0xa5));
+}
+
+#[test]
+fn transmitter_respects_mtu_and_detects_post_build_payload_damage() {
+    let mut buffer = vec![0xab; 1515];
+    let payload = vec![0x93; 1472];
+    let length = build_udp_ipv4(TX, &payload, &mut buffer).unwrap();
+    assert_eq!(length, 1514);
+    assert_eq!(parse(&buffer[..length]).unwrap().payload(), payload);
+    assert_eq!(buffer[length], 0xab);
+    buffer[42] ^= 0x01;
+    assert_eq!(parse(&buffer[..length]), Err(Error::InvalidUdpChecksum));
+    let overflow = vec![0x93; 1473];
+    assert_eq!(
+        build_udp_ipv4(TX, &overflow, &mut buffer),
+        Err(EncodeError::ExceedsMtu {
+            ipv4_bytes: 1501,
+            mtu: 1500,
+        })
+    );
+}
+
+#[test]
+fn transmitter_ipv4_maximum_is_checked_without_integer_wraparound() {
+    let tx = UdpIpv4Tx {
+        mtu: u16::MAX,
+        ..TX
+    };
+    let payload = vec![0x7b; MAX_UDP_PAYLOAD_BYTES];
+    let mut buffer = vec![0xaa; 14 + u16::MAX as usize + 1];
+    let length = build_udp_ipv4(tx, &payload, &mut buffer).unwrap();
+    assert_eq!(length, 14 + u16::MAX as usize);
+    assert_eq!(buffer[length], 0xaa);
+    assert_eq!(parse(&buffer[..length]).unwrap().payload(), payload);
 }
