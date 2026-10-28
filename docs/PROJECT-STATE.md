@@ -2,6 +2,30 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
+## M6d-reviewherstel — checkpoint 28 oktober 2026
+
+Hervat vanaf GitHub-head `7484d87`, afzonderlijke checkout `nieuw-os-review`.
+De oude M6a-werkmap en ongetrackte bewijsbestanden zijn behouden. De vijf
+CodeRabbit-punten op PR #11 worden gericht afgehandeld: exact QEMU-contract
+ook voor M1, verplichte 164-bestandsinventaris, reproduceerpaden, historische
+bestandsnaam en een nieuwe expliciete bronreview van de definitieve native bytes.
+De historische R08-review en receipts blijven bytegelijk; hashwijzigingen van
+de bijgewerkte audit/docs staan bewust in `verification/m6d-summary.json`.
+
+De eerste Windows-hostcontrole faalde bij de natuurlijke exit van een child
+met WinError 5, zowel in M6b als M6c. Na verlenging van uitsluitend de begrensde
+wait bij een geweigerde TerminateProcess-call van 0,25 naar de bestaande
+cleanupgrens van 10 seconden slagen 48 M6c- en 30 M6b-hosttests. Een natuurlijke
+exit blijft `kill_requested:false`; werkelijke live kills en timeoutafwijzing
+blijven getest. De kernel/service/probe zijn ongewijzigd.
+
+Dit checkpoint gaat vóór de nieuwe volledige Windows-gates naar GitHub.
+Die gates, hun captures, externe herreview en merges zijn hier nog **niet**
+afgerond. De volledige historische Linux-rawaudit is in deze Windowscheckout
+niet uitvoerbaar zonder oorspronkelijke ruwe bestanden en QEMU-binary; de
+nieuwe audit heeft afzonderlijke negatieve hosttests. Voortgang **14% → 14%**.
+Volgende native functie blijft de beperkte catalogusherstart uit WORK-QUEUE.
+
 ## M6d — native onzekere I/O gebouwd en geaccepteerd
 
 28 oktober 2026. Uitvoeringsbron `88e6c04be218b8b09ea4f0a226f6b9719da706a6`,

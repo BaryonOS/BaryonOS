@@ -82,3 +82,92 @@ Quarantaine en geen hergebruik worden in de geobserveerde native run gecontrolee
 De audit leest bestaande native bewijsbestanden en bindt ze aan de bron; zij is geen tweede uitvoering van de 31 VM's. De geen-replay/geen-extra-I/O-conclusie steunt mede op de brongebonden native assertions en ruwe gastmarkers, niet op onafhankelijke hardwaretracing of een formeel bewijs. De QEMU-launcher, firmware en gastartefacten zijn gehasht; de volledige hostomgeving en alle gedeelde bibliotheken zijn niet geattesteerd.
 
 De afzonderlijke M6b-regressie wordt door A04 beoordeeld en valt buiten dit rapport. De voortgangsscore en acceptatie van roadmapregels blijven de verantwoordelijkheid van de hoofdtaak; deze audit onderbouwt uitsluitend de expliciet begrensde M6d-functionaliteit.
+
+## Addendum STATE-02 — gerichte bronreview van de definitieve native delta
+
+Datum: 28 oktober 2026. Reviewer: afzonderlijke AI-agent `state_architecture`.
+Dit addendum is een nieuwe, alleen-lezen bronreview; bovenstaande R09-audit en
+de historische R08-receipt zijn niet opnieuw uitgevoerd of gewijzigd.
+Reviewcheckout: `C:/Users/simon/OneDrive/Documenten/GitHub/nieuw-os-review`.
+Reviewbasis van de checkout: `7484d87ec639fd8a29be327cad47c2f97739199d`.
+
+**Conclusie:** geen nieuwe concrete blokkerende fout gevonden in de hieronder
+afgebakende native delta. Dit geldt voor de vaste M6c/M6d-fixture en is geen
+menselijke audit, algemene fouttolerantieclaim of nieuwe native testuitslag.
+
+### Versies en daadwerkelijk gelezen scope
+
+Gelezen delta: `b58ae2a56be6978eab2b5ac4bb5d12e3d615865f` naar
+`b739183c48a06cb7798d0be8cc683430152533ac`, uitsluitend
+`kernel/src/m2/m3/m6c.rs` en `userspace/m6c_probe.rs`. De omliggende
+broker-/reply-/validatiepaden en de ongewijzigde native catalogusadapter zijn
+als directe context gelezen. De twee native bestanden zijn bytegelijk op
+`b739183`, uitvoeringscommit `88e6c04be218b8b09ea4f0a226f6b9719da706a6` en de
+reviewcheckout; de integratiediff voor deze twee paden is leeg.
+
+| Native bestand | SHA-256 van de beoordeelde Git-blob en checkoutbytes |
+|---|---|
+| `kernel/src/m2/m3/m6c.rs` | `6a4eed0fde2d2741e26274df0a01c7cf067b96e98959b58df526dcd9e319c3f9` |
+| `userspace/m6c_probe.rs` | `1ba38587737ce9768ec4e54e174cafd5cb2b5df425685030bbcdb9c3da0337b2` |
+
+De R08-receipt `source-review-checks.json` registreert voor die paden
+respectievelijk `24685e4d5064d6ab6974cfb93ff6ea3406270ffcd2451766b6e3a4c154b1b03e`
+en `9bd89d5157b6ad6aa761f3e08154bb33006e24b17b04f35419e56a37faf49989`.
+Dat zijn andere bytes. De receipt bewijst dus de daarin vastgelegde lokale
+reviewstand boven basis `b58ae2a`, geen exactheid van de latere checkpoint.
+Dit addendum levert de ontbrekende expliciete bronreviewdekking voor de
+native bestanden op `b739183`/`88e6c04`; het vult geen ontbrekende historische
+uitvoering in.
+
+### Onderzochte tegenvoorbeelden en resultaat
+
+- **Onterechte Unknown of succesvolle ACK na een fout:** `syscall` koppelt de
+  eerste onzekerheid aan de daadwerkelijk teruggegeven fout tijdens een
+  voorbereide mutatie; een pending-poll (`-8`) wordt uitgesloten. `sent` eist
+  daarna de canonieke lege Unknown-reply en passeert de commit-/ACK-tak niet.
+  De gewone succesroute vereist nog beide daadwerkelijke completions.
+- **Rechten of metadata lekken via de gesloten dienst:** requestvalidatie en
+  endpointdomeincontrole gaan vóór de onzekerheidstak. `received` maakt voor
+  een geldige latere aanvraag geen mutatiekandidaat; `sent` vergelijkt de
+  volledige replybytes en de vastgehouden I/O-tellingen. De client controleert
+  sender, tag, lengte, requestidentiteit, epoch en canonieke foutpayload.
+- **Een timeout behandelen als bewijs dat niets is geschreven:** onderdrukte
+  notify wordt gecombineerd met uitgestelde completionwaarneming tot de
+  brokerdeadline. Dit levert onzekerheid, geen rollback. De levende toestand
+  en de bestaande onafhankelijke schijfcontrole houden verschillende rollen.
+- **Hergebruik zonder resetbevestiging:** `advance` herinitialiseert alleen na
+  waargenomen status-reset. Timeout of mislukte herinitialisatie zet ook de
+  policy in quarantaine; de afsluiting slaat een nieuwe reset daar over.
+  Dezelfde vijf DMA-pagina's blijven kernelbezit. De delta voegt geen nieuwe
+  userpointer, DMA-adres of capabilityrecht toe.
+- **Een groen resultaat vóór ontvangst door beide apps:** de eerste werkelijk
+  ontvangen Unknown opent uitsluitend de fixturebarrière voor app B. De twee
+  apps proberen alle vijf geldige operaties, domeinvreemde aanvragen en een
+  misvormd verzoek. De eindobserver vereist elf ontvangen Unknown-antwoorden,
+  één eerdere ACK, de verwachte afwijzingen, beide voortgangstellers en geen
+  extra blockcall/publicatie/succescompletion na onzekerheid.
+
+Deze conclusies volgen uit bronlezing en vergelijking. De native gate en
+ruwe imagecontrole blijven het eerder aan `88e6c04` gebonden R09-bewijs;
+deze reviewer heeft daarvoor geen nieuwe QEMU-run of build uitgevoerd.
+Dezelfde-VM-dienstherstart, corrupte succesvolle ABI-antwoorden, een service
+die na Unknown alsnog nieuwe syscalls doet, willekeurige servicecode en
+fysieke DMA-/stroomuitvalgedrag zijn hiermee niet als hersteld of getest
+aangemerkt. De observer bevat fixtureasserties; zijn checks zijn geen algemeen
+productieherstelmechanisme.
+
+### Uitgevoerde controleopdrachten
+
+Vanuit de hierboven genoemde reviewcheckout:
+
+```text
+git diff b58ae2a56be6978eab2b5ac4bb5d12e3d615865f..b739183c48a06cb7798d0be8cc683430152533ac -- kernel/src/m2/m3/m6c.rs userspace/m6c_probe.rs
+git diff b739183c48a06cb7798d0be8cc683430152533ac..88e6c04be218b8b09ea4f0a226f6b9719da706a6 -- kernel/src/m2/m3/m6c.rs userspace/m6c_probe.rs
+```
+
+Beide commando's eindigden met exit 0; de tweede diff was leeg. Met
+`python -X utf8 -c` zijn daarnaast de bytes uit `git show REF:PATH` voor
+`b58ae2a`, `b739183`, `88e6c04` en `HEAD` via `hashlib.sha256` vergeleken met
+de checkoutbytes en de twee R08-receipthashes; exit 0. De tabel hierboven
+registreert de exacte beoordeelde inhoud. Er zijn geen hosttests, native
+tests, volledige historische bewijsaudit of prestatiemetingen toegevoegd.

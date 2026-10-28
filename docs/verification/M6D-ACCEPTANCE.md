@@ -111,24 +111,44 @@ corrupt-/legacyfixtures. Dezelfde begin- en eindhashes kwamen terug. Het
 [zelfstandige auditprogramma](m6d-review/audit_m6d_native.py) en de
 [sectorgegevens](m6d-review/m6d-actual-journal-records.json) blijven bewaard.
 De controle die alleen die tekst nodig heeft is opnieuw uitgevoerd vanuit
-`/tmp`, zonder de oorspronkelijke raw images:
+`/tmp`, zonder de oorspronkelijke raw images. Onderstaand equivalent gebruikt
+de archiefpaden vanuit de repositoryroot; de oorspronkelijke absolute opdracht
+staat in [FINAL-REVIEW.md](m6d-review/FINAL-REVIEW.md):
 
 ```sh
 python3 -B docs/verification/m6d-review/audit_m6d_native.py \
   --reconstruct docs/verification/m6d-review/m6d-actual-journal-records.json
 ```
 
-Volledige audit op een checkout met de oorspronkelijke `build/run`-bestanden:
+De volledige audit van deze historische bundel is aan de **oorspronkelijke
+absolute repositorylocatie** `/workspace/scratch/2ffeac9e0e8f/nieuw-os` gebonden.
+Zij vergelijkt de opgeslagen `cwd`, absolute run-/artifactpaden en exacte
+Python-/Cargo-programmastrings. Alleen `build/run` naar een andere checkout
+kopiëren is daarom onvoldoende. Nodig zijn ook de oorspronkelijke
+`build/logs`, suite, bronbestanden en bereikbare gehashte artifacts, waaronder
+de vastgelegde QEMU-launcher. De expliciete programmapaden hieronder zijn
+vergelijkingswaarden uit de historische commandorecords; zij veranderen de
+vastgelegde metadata niet.
+
+Op die oorspronkelijke locatie luidt de volledige auditopdracht:
 
 ```sh
-python3 -B docs/verification/m6d-review/audit_m6d_native.py \
-  --repo . --out /tmp/nieuw-os-m6d-audit
+python3 -B /workspace/scratch/2ffeac9e0e8f/nieuw-os/docs/verification/m6d-review/audit_m6d_native.py \
+  --repo /workspace/scratch/2ffeac9e0e8f/nieuw-os \
+  --python-program /opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3 \
+  --cargo-program /workspace/scratch/2ffeac9e0e8f/nieuw-os/.tools/nieuw-os/cargo/bin/cargo \
+  --out /tmp/nieuw-os-m6d-audit
 ```
 
 De gearchiveerde oorspronkelijke commandorecords gebruiken de tijdelijke
-scriptlocatie van de uitvoering. Beide paden hierboven gebruiken dezelfde
-bewaarde scriptbytes. Een tekstreconstructie verifieert imagehashes; zij voert
-geen nieuwe native gast uit. De AI-review vervangt geen menselijke audit.
+scriptlocatie van de uitvoering. De bewaarde scriptbytes zijn gelijk aan die
+uitvoering. Vanuit een andere checkout kan de tekstreconstructie wel zonder
+die oorspronkelijke omgeving worden uitgevoerd; zij verifieert imagehashes
+en start geen native gast. Voor een volledige audit van een nieuwe omgeving
+zijn nieuwe gates en hun eigen bron-/padgebonden bewijs nodig, zonder oude
+commandorecords te herschrijven. De volledige historische audit is bij deze
+documentatiecorrectie niet opnieuw uitgevoerd. De AI-review vervangt geen
+menselijke audit.
 
 De aparte [M6b-audit](m6d-m6b-review/a04_m6b_summary.md) controleert nog eens
 121 artifacthashes, 164 run-/logbestanden en zeven volumes; 58 niet-lege sectoren
@@ -154,6 +174,19 @@ de gehele verificatiemap vervangen en de schijfcontrole moet de precieze PUT10/
 RENAME11-identiteit afdwingen. Negatieve tests dekken beide. De upstreamreview
 van 5ba238cc blijft behouden, waaronder gate-time hostloghashes vóór én na
 kopiëren. Geen historische mislukking is als een geslaagde native run geteld.
+
+De historische [SOURCE-REVIEW.md](m6d-review/SOURCE-REVIEW.md) noemt de toenmalige
+bestandsnaam `r08_review_checks.json`. Die receipt is in het archief opgenomen
+als [source-review-checks.json](m6d-review/source-review-checks.json), SHA-256
+`70bda10e3ee101dde7b729811f6971f5f93eb76be838e3b63e4377d1e5712fff`.
+De historische tekst en receipt blijven ongewijzigd. De receipt noemt basis
+`b58ae2a` plus lokale reviewbytes; haar native bestandshashes zijn niet die van
+checkpoint `b739183`. Daarom wordt de eerdere bronreview niet achteraf als
+review van exact `b739183` aangemerkt. Een nieuwe gerichte bronreview van de
+native delta `b58ae2a..b739183`, met bytegelijkheid naar uitvoeringsbron
+`88e6c04`, staat in het gedateerde STATE-02-addendum van
+[FINAL-REVIEW.md](m6d-review/FINAL-REVIEW.md). Deze bronreview is afzonderlijk
+van de bestaande native uitvoeringsaudit en voegt geen VM-runs toe.
 
 ## Acceptatiegrens en voortgang
 

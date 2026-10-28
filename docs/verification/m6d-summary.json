@@ -93,7 +93,7 @@
     "docs/verification/m6d-ready/m6d-ready-build.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "docs/verification/m6d-ready/m6d-ready-build.stdout.txt": "62e9e72643db40a05bac5358703ca695d5c8031bd9b54ced3f7f498119ee5524",
     "docs/verification/m6d-ready/verified.json": "9dfa88bbb013c82c4c50a8cb28680b502d5afc24ce4b805bfa1898326bf92937",
-    "docs/verification/m6d-review/FINAL-REVIEW.md": "883b04cf4f3cd439d963e1dcc10970b05893dedfecebb712c64d28be11b38bd4",
+    "docs/verification/m6d-review/FINAL-REVIEW.md": "f1c93260a24cdbcb2d1f64279cc1475a069eb4f263788a6cbff8e862824862c6",
     "docs/verification/m6d-review/SOURCE-REVIEW.md": "ded34c189e7b5e20d21df97b8c4a7203ff5abd369ba63f5783c30c425fd289cb",
     "docs/verification/m6d-review/audit_m6d_native.py": "5c88448e100acadd49c515d71e7d1516752b86ca657bbcf14177f11739cd0c85",
     "docs/verification/m6d-review/initial-preflight/m6c-preflight.json": "fa74a2835e13f6f7d806842e64f39ea9f7cc19e49c7ce76f912e57d33f804961",
@@ -110,7 +110,7 @@
     "docs/verification/m6d-review/m6d-text-only-reconstruction-run.json": "8f082cbf144309746c065d084f0416c9e6ebdad69289df7aa6c46e7bbf50d514",
     "docs/verification/m6d-review/source-review-checks.json": "70bda10e3ee101dde7b729811f6971f5f93eb76be838e3b63e4377d1e5712fff",
     "docs/verification/m6d-m6b-review/a04_m6b_audit.json": "a5f981e5581c731d320fef9745aa7fb2f1d6c34759b37c1ecb077a1a51173e3c",
-    "docs/verification/m6d-m6b-review/a04_m6b_audit.py": "3fbed4fa4d853a45e503c3ddbfdefe46624fa49508fd403145e7f7a968698897",
+    "docs/verification/m6d-m6b-review/a04_m6b_audit.py": "17fc9ca5744f9a8da5d407a621fec0500ba5c50cc7b989e77d6d82ee89145f4f",
     "docs/verification/m6d-m6b-review/a04_m6b_raw_hashes.json": "e1aac2a56d69ef5e13eefdfff1e7ee91c2371b480ab33ddfe8772b500cff0753",
     "docs/verification/m6d-m6b-review/a04_m6b_sectors.json": "73a19ffa223b77bcdfcf8c6123f283d933a7e117f8df00e7a8ab191cf09de3db",
     "docs/verification/m6d-m6b-review/a04_m6b_source_hashes.json": "e995727cc610cd883455a4d2d7cb36d3104972cb3bc6ccf27604a3419115e54f",
@@ -125,5 +125,19 @@
     ],
     "staged_diff_check_excluding_these_two_raw_logs_exit": 0,
     "native_source_and_tests_unchanged_from_execution_commit": true
+  },
+  "review_closeout": {
+    "basis_commit": "7484d87ec639fd8a29be327cad47c2f97739199d",
+    "changed_file_hashes": {
+      "docs/verification/m6d-review/FINAL-REVIEW.md": {
+        "previous_sha256": "883b04cf4f3cd439d963e1dcc10970b05893dedfecebb712c64d28be11b38bd4",
+        "current_sha256": "f1c93260a24cdbcb2d1f64279cc1475a069eb4f263788a6cbff8e862824862c6"
+      },
+      "docs/verification/m6d-m6b-review/a04_m6b_audit.py": {
+        "previous_sha256": "3fbed4fa4d853a45e503c3ddbfdefe46624fa49508fd403145e7f7a968698897",
+        "current_sha256": "17fc9ca5744f9a8da5d407a621fec0500ba5c50cc7b989e77d6d82ee89145f4f"
+      }
+    },
+    "boundary": "Historical VM records remain bound to 88e6c04. The amended A04 script has host unit coverage; its full historical raw audit has not been rerun on this Windows checkout. New Windows gates pending at checkpoint."
   }
 }
