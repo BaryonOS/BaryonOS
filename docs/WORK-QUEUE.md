@@ -7,17 +7,14 @@ De volledige native acceptatie blijft gebonden aan `3e41bbf9`. Het vervolg op
 
 | ID | Toestand | Eigenaar / exclusief gebied | Resultaat / kleinste afhankelijkheid |
 |---|---|---|---|
-| ROOT | in uitvoering | root: integratie, docs, GitHub en gedeelde buildhook | Zes gerichte native resultaten publiceren; PR15/14 afronden; G11-interface bewaken |
-| G11 | in uitvoering | native_apps: userspace-probe en eigen SDK-builddeel | DocumentSession echt in ring 3 voor openen, bewerken, bewaren en heropenen; bestaande catalogus en oracle |
-| I13 | in uitvoering | runtime_platform: nieuwe document-session-poort en tests | Herbruikbare strikte normal/recover-acceptatie voor de G11-appbibliotheek |
-| B11 | in uitvoering | native_storage: services/net-protocol/** | Begrensde no_std Ethernet/IPv4/UDP-parser; nog geen driver of netwerkrechten |
+| AUDIT | gereed voor integratie/controle | root: repository, CI, docs en GitHub | PR #25 geïntegreerd op `87e4f04b`; main push-CI host-quality + QEMU-smoke groen |
+| G11/I13 | gereed voor integratie/controle | native_apps/runtime_platform | Echte DocumentSession in ring 3; normal + koude recovery in twee afzonderlijke VM's groen; blijft begrensde headless proef |
+| B11 | gereed voor integratie/controle | native_storage: services/net-protocol/** | Dependencyvrije no_std Ethernet/IPv4/UDP-parser getest en native gecrossbuild; nog geen driver/netwerkdienst/rechten |
 | BR0 | gereed om te bouwen | browser_research: hostbuilds/tests; geen native runtime | Vergelijk Chromium/Gecko volgens BR-01 t/m BR-08; kies pas daarna engine/patchbudget. Native port wacht op volwassen netwerk- en grafische diensten |
-| B08/G10/I11/I12/B10/ROOT | gereed voor integratie/controle | root, gescheiden bewijsbundels | Zes echte actuele VM-runs slagen; koude images en vijf grafische frames gecontroleerd |
-| G07/I08/B09/G09/I10 | gereed voor integratie/controle | geïntegreerd op f52ef0a6 en dbd35b04 | Documentsessie, jobcodec en gerepareerde capture; gerichte reviews afgerond |
-| G1 | wacht op een benoemde afhankelijkheid | bestaande andere sessie: Materiaal en display/input | Eigenaar publiceert broncheckpoint van toegewezen G1-branch voor integratie |
-| S08 | gereed om te bouwen | volgende bouwer; root bewaakt herstelcontract | Begrensde vervanging van catalogusdienst zonder mutatiereplay |
+| G1 | wacht op een benoemde afhankelijkheid | Materiaal en display/input | Native interactieve Materiaal-/display-/inputketen is nog geen geaccepteerde productflow |
+| S08 | gereed om te bouwen | volgende bouwer; root bewaakt herstelcontract | Begrensde vervanging/herstart van catalogusdienst zonder mutatiereplay |
 | S04/S05 | wacht op een benoemde afhankelijkheid | root: opslagcontract | Versieerbaar formaat en crashacceptatie voor grotere documenten en ruimtehergebruik |
-| N03/P02/H | wacht op een benoemde afhankelijkheid | nog toe te wijzen | Native netwerk, entropy/crypto en peerrechten voor native NAS |
+| N03/P02/H | wacht op een benoemde afhankelijkheid | nog toe te wijzen | Native netwerkdienst/TLS/entropy, sync/key lifecycle en bredere hardwareondersteuning |
 
 Vier toestanden: gereed om te bouwen; in uitvoering; wacht op een benoemde
 afhankelijkheid; gereed voor integratie/controle. De oude capaciteitsvoorkeuren

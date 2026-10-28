@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`dbd9a897`](https://github.com/simonvanieperen/nieuw-os/commit/dbd9a89736023be6f04fb5c2c1a8f842f266134f) ·
-**Ontwikkelbranch:** `docs/security-floor-opaque-cloud-ux-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Security Floor, opaque provideropslag en premium native UX vastgelegd.
-Privacycontract revisie 4, ADR-035 t/m ADR-038 en de nieuwe encrypted-objectspecificatie leggen vrijwillige externe ciphertextopslag, niet-uitzetbare beveiligingsgrenzen, uitzetbare privacyuitleg en de premium productiviteitsambitie vast. Dit is architectuur/documentatie: geen native provider-, crypto- of UI-acceptatie en dus 14% naar 14%.
+**Bron:** [`87e4f04b`](https://github.com/simonvanieperen/nieuw-os/commit/87e4f04b8d2e5527f873d3815aebfb047eb68273) ·
+**Ontwikkelbranch:** `audit/finalize-repository-20261028`.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Volledige technische repository-audit, opschoning en PR16-integratie afgerond.
+PR #25 integreert de relevante PR16-code, reviewreparaties en repositoryonderhoud. De actuele main doorstaat brede hosttests, Clippy/rustfmt, SDK-, netwerkparser-, quantum-, UI- en NAS-controles, een native M6c-releasebuild, een baseline M6c-QEMU-smoke en een afzonderlijke DocumentSession normal/koude-recoveryproef. Dit verbetert correctness en onderhoudbaarheid maar sluit geen volledig nieuw vast roadmapcriterium: 14% naar 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

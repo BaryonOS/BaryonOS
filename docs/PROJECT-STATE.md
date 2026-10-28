@@ -1,5 +1,55 @@
 # Actuele projectstatus
 
+## Volledige repository-audit en integratie — 28 oktober 2026
+
+De volledige huidige repository is opnieuw gecontroleerd op architectuurgrenzen,
+duplicatie, build-/testconfiguratie, dependencies, gegenereerde rommel, secrets,
+documentatie en open pull requests. De relevante inhoud van PR #16 is via
+[PR #25](https://github.com/simonvanieperen/nieuw-os/pull/25) geïntegreerd in
+`main` als squashcommit `87e4f04b8d2e5527f873d3815aebfb047eb68273`; PR #16 en de vervangen audit-PR #22 zijn
+gesloten. Er staan na deze integratie geen open pull requests meer.
+
+De integratie behoudt de eigen Rust-kernel en de bestaande microkernelachtige
+scheiding: de nieuwe Ethernet/IPv4/UDP-parser is een dependencyvrije
+`no_std`-userspace/servicebibliotheek zonder driver-, socket- of capabilityrecht.
+De DocumentSession-proef gebruikt bestaande catalogus-/IPC-capabilities en
+verruimt kernel-, IPC- of opslagformaten niet. De twee exacte bronduplicaten
+buiten bewijs-/kennisarchieven zijn bewust behouden: de minimale
+`boot/loader/src/memory.rs` en `kernel/src/memory.rs` horen bij twee
+afzonderlijke binaries; twee lokale crate-`.gitignore`-bestanden zijn
+onschadelijke scopebestanden. Er zijn geen gegenereerde images/binaries,
+IDE-caches of build-/targetdirectories in de actieve bronboom aangetroffen.
+
+GitHub Actions bevat nu een read-only CI met gepinde officiële actions.
+De push-run op de gemergde main, [run 40740109679](https://github.com/simonvanieperen/nieuw-os/actions/runs/40740109679),
+is volledig groen: root-Rusttests, Clippy/rustfmt, SDK, netwerkparser inclusief
+native cross-build, quantum, productprototype, NAS-tests, OS-Dev-skillvalidator,
+M6c-releasebuild en voortgangs-/clean-treecontrole slagen. De afzonderlijke
+QEMU-job slaagt met preflight, een normale M6c-smoke en twee echte
+DocumentSession-VM-invocaties (normal en koude recovery). Dit CI-smokeprofiel
+gebruikt een ondersteunde QEMU-compatibiliteitsmachine en vervangt niet de
+historische mijlpaalacceptatie op haar eigen bron/profile.
+
+CodeRabbit leverde op PR #16 vijf concrete reviewbevindingen; de geldige punten
+zijn in de integratie hersteld. Een tweede brede CodeRabbit-review van PR #25
+kon niet publiceren doordat PR #25 tijdens de review al was gemergd; dat is dus
+geen aanvullende reviewgoedkeuring. De CI- en broncontroles hierboven zijn wel
+op de exacte geïntegreerde code uitgevoerd.
+
+Repositoryonderhoud is aangescherpt met `CONTRIBUTING.md`, PR-/bugtemplates,
+beperkte maandelijkse Dependabot-voorstellen, binary-attributen voor PDF/GZIP,
+en gitignore-regels voor de gegenereerde SDK-/netwerk-targets. De bestaande
+main-ruleset beschermt verwijdering, non-fast-forward en lineaire geschiedenis
+en vereist PR's plus opgeloste reviewthreads. Verplichte CI-statuschecks en
+GitHub-securityinstellingen konden via de beschikbare integratie niet worden
+gewijzigd of volledig uitgelezen; dit blijft een repository-instellingspunt.
+
+**Roadmap: 14% → 14%.** De audit maakt bestaande functionaliteit aantoonbaar
+schoner en beter bewaakt, maar DocumentSession is nog een begrensde headless
+proef, de netwerkparser is nog geen native netwerkdienst en de Security Floor/
+provider-/premium-UX-eisen uit ADR-035–038 zijn nog geen native acceptatie.
+Daarom is geen nieuw vast criterium toegekend.
+
 ## Architectuurbesluit: Security Floor, opaque provideropslag en premium UX — 28 oktober 2026
 
 De nieuwe gebruikerskeuze is als documentatie-/architectuurwijziging vastgelegd.
