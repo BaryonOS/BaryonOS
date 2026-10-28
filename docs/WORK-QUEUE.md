@@ -2,7 +2,7 @@
 
 Werkelijke capaciteit: vier agents tegelijk, inclusief hoofdagent. Eén schrijver
 per gebied; aparte builds, targets, volumes, VM-processen en logbestemmingen.
-De eerdere86 geaccepteerde native runs staan via PR15/14 op main `5ba4da74`.
+De eerdere 86 geaccepteerde native runs staan via PR15/14 op main `5ba4da74`.
 De vervolgbranch bouwt daarop voort met native documentuitvoering en een
 begrensde netwerkparser. Historisch bewijs behoudt zijn eigen bronbinding.
 

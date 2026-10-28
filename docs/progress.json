@@ -7,7 +7,7 @@
     "branch": "codex/native-documents-network-20261028",
     "task": "G11 echte gebruikersbibliotheek en I13 native documentpoort, na samenvoeging van PR15 en PR14",
     "previous_score": 14,
-    "summary": "Main bevat86 geaccepteerde native VMs op hun eigen bronversies. G11 echte DocumentSession, I13 poort, I15 gerichte compilerbindingreparaties en B11 netwerkparser zijn geïntegreerd.30 gezamenlijke Pythonmethoden,41 SDK-tests,18 parsertests en echte native crossbuilds slagen. G12-bevindingen zijn gericht gereproduceerd en gerepareerd. Native document/default/negatieve controles volgen op deze gepubliceerde bron. Geen nieuw volledig criterium;14% blijft gelijk."
+    "summary": "Main bevat 86 geaccepteerde native VMs op hun eigen bronversies. G11 echte DocumentSession, I13 poort, I15 gerichte compilerbindingreparaties en B11 netwerkparser zijn geïntegreerd. 30 gezamenlijke Pythonmethoden, 41 SDK-tests, 18 parsertests en echte native crossbuilds slagen. G12-bevindingen zijn gericht gereproduceerd en gerepareerd. Native document/default/negatieve controles volgen op deze gepubliceerde bron. Geen nieuw volledig criterium; 14% blijft gelijk."
   },
   "tracks": [
     {

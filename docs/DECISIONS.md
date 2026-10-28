@@ -306,38 +306,90 @@ bouwen, zonder opgeslagen gebruikersdata of hardwarefirmware te wijzigen.
 
 ## ADR-035 — Documentbewerking native controleren via de bestaande catalogus
 
-Datum 28 oktober 2026. Eigenaar: G11 voor de gebruikersproef en library,
-I13 voor de acceptatiepoort, root voor selectie, gedeelde interfaces en
-integratie. Dit besluit voegt geen syscall, capabilityrecht of opslagformaat toe.
+**Datum:** 28 oktober 2026.
 
-**Keuze:** voer de echte `DocumentSession` met `NativeTransport` uit in de
+**Status:** implementatie aanwezig; gerichte SDK-, selectie-, compilerbinding- en
+native crossbuildcontroles zijn geslaagd. De gecombineerde native
+DocumentSession-poort op de gepubliceerde PR-bron moet nog volledig slagen en
+wordt tot dat moment niet als native acceptatiebewijs gebruikt.
+
+**Eigenaar:** G11 voor de gebruikersproef en library, I13 voor de
+acceptatiepoort, I15 voor de compilerbindinggrenzen en root voor selectie,
+gedeelde interfaces en integratie.
+
+**Context:** de bestaande M6c-proef gebruikt de native catalogus en opslagroute,
+maar de hogere DocumentSession-bibliotheek was nog niet de daadwerkelijk
+uitgevoerde gebruikersroute. De volgende stap moet openen, lokaal bewerken,
+CAS-bewaren, opnieuw openen, LIST en koude recovery via dezelfde begrensde
+native diensten controleren zonder documentbeleid naar de kernel te verplaatsen.
+
+**Alternatieven:** (1) de interne catalogusclient mutabel aan de app blootstellen
+en LIST buiten DocumentSession uitvoeren; dit verdeelt endpointeigenaarschap en
+maakt sessiestatus moeilijker te begrenzen. (2) Een afzonderlijk document-ELF
+met gedupliceerde catalogusmodules bouwen; dit vergroot code/rodata en laat twee
+versies van dezelfde wire-/catalogusconstanten ontstaan. (3) Alleen de
+hostbibliotheek testen; dit bewijst niet dat de geselecteerde userspace-ELF,
+capabilities, WRITE/FLUSH-route en koude image samen werken.
+
+**Besluit:** voer de echte `DocumentSession` met `NativeTransport` uit in de
 bestaande M6c-gebruikersprocessen. De dubbele expliciete selectie
-`NOS_DOCUMENT_SESSION=1` en `NOS_SDK_RUNTIME=1` geldt uitsluitend voor normal
-en recover. Openen, conceptbewerking, CAS-save, opnieuw openen en cataloguslezen
-blijven gebruikerscode. De vaste kerneltestobserver blijft ongewijzigd en eist
-de bestaande 16/3 verzoeken per client. `list()` houdt één eigenaar van de
-endpoints, zodat er geen mutable toegang tot de interne sessie nodig is.
+`NOS_DOCUMENT_SESSION=1` en `NOS_SDK_RUNTIME=1` geldt uitsluitend voor
+`normal` en `recover`. Openen, conceptbewerking, CAS-save, opnieuw openen en
+cataloguslezen blijven gebruikerscode. `list()` blijft onderdeel van
+DocumentSession zodat één eigenaar beide endpoints beheert. De vaste
+kerneltestobserver en bestaande capability-, IPC- en opslagformaten blijven
+ongewijzigd.
 
-**Security-invariant:** de nieuwe route gebruikt uitsluitend bestaande grants,
-valideert werkelijke replies via SDK/catalogusclient en sluit beide endpoints
-éénmaal. LIST behoudt het lokale concept en conflictstatus en kan een gesloten
-of onzekere sessie niet heropenen. Geheugen-, linker- en capabilitygrenzen worden
-niet verruimd. De service en typed client delen dezelfde catalogusmodules om
-dubbele code/constanten binnen de bestaande rodata-pagina te voorkomen.
+**Voorstelgrens:** deze stap is een headless native documentproef van maximaal
+128 inhoudsbytes. Zij stelt geen grafische Materiaal-flow, algemene appstarter,
+grotere-documentondersteuning, ruimtehergebruik, netwerkdienst of nieuw
+roadmapcriterium voor.
 
-**Weerlegd als:** de proef nieuwe rechten nodig heeft, onbekende saves herhaalt,
-een draft via LIST verliest, een gesloten endpoint opnieuw bruikbaar maakt,
-de bestaande observer/oracle moet versoepelen of een andere binary als de
-documentapp kan meetellen. De poort bindt de exacte module- en rlibhashes,
-compilerselectie, embedded user-ELF en een byte-exacte koude imagekoppeling.
+**Implementatie:** G11 gebruikt de bestaande typed catalogusclient en gedeelde
+catalogusmodules; I13 bindt beide opt-inflags, de relevante broninputs,
+werkelijke libraries, compilerrecords, embedded user-ELF en de byte-exacte
+koude image. I15 weigert afwijkende rlib-externsets en dubbele/afwijkende
+ABI-opties. Er wordt geen syscall, capabilityrecht, kernelbeleid of
+opslagformaat toegevoegd.
 
-**Testbewijs:** gerichte SDK-/selectietests en native crosslink zijn uitgevoerd;
-de nieuwe gecombineerde native poort moet op een gepubliceerd broncheckpoint
-slagen. Uitvoering, rauwe resultaten en actuele status worden afzonderlijk
-vastgelegd. Hosttests sluiten geen native of grafisch criterium af.
+**Onderbouwing/bronnen:** het bestaande native cataloguscontract staat in
+`docs/implementation/M6C-NAMED-CATALOG.md`; de hogere sessie-API en foutgrenzen
+in `sdk/document-session/README.md`. Bron-, crossbuild- en hostbewijs staat in
+`docs/verification/parallel-g11/README.md`; poort- en negatieve
+bindingscontroles in `docs/verification/parallel-i13/README.md` en
+`docs/verification/parallel-i15/README.md`. De eerdere native opslag- en
+Unknown-eigenschappen blijven versiegebonden aan
+`docs/verification/M6C-ACCEPTANCE.md` en
+`docs/verification/M6D-ACCEPTANCE.md`.
 
-**Migratie/rollback:** standaardprofielen behouden hun bestaande selectie.
-De opt-in kan worden uitgezet of de eerdere bron apart gebouwd. Geen migratie
-van gebruikersdata of verandering van echte apparaten. Een native
-documentproef is nog geen Materiaal-scherm, algemene appstarter of oplossing
-voor grotere documenten en ruimtehergebruik.
+**Gevolgen:** de standaard M6c-build blijft de bestaande route gebruiken; de
+documentroute is expliciet opt-in. Delen van catalogusmodules voorkomt een
+tweede protocolimplementatie maar koppelt de buildpoort bewust aan exacte
+module-/libraryhashes. Nieuwe functionaliteit blijft beperkt tot bestaande
+grants en bestaande opslagsemantiek.
+
+**Security-invariant:** de route gebruikt uitsluitend reeds toegekende
+procesgebonden endpoints, valideert werkelijke replies via SDK/catalogusclient
+en sluit beide endpoints eenmaal. LIST behoudt lokaal concept, geladen revisie
+en conflictstatus en kan een gesloten of onzekere sessie niet heropenen. Een
+onzekere save wordt niet automatisch herhaald. Geheugen-, linker- en
+capabilitygrenzen worden niet verruimd.
+
+**Weerlegd als:** de proef nieuwe rechten nodig heeft, een onbekende save
+herhaalt, LIST een draft/conflictstatus verliest, een gesloten endpoint opnieuw
+bruikbaar maakt, de bestaande observer/oracle moet versoepelen of een andere
+binary dan de gebonden documentapp als bewijs kan meetellen.
+
+**Testbewijs:** 30 gecombineerde Pythonselectie-/harnasmethoden en 41
+SDK-hosttests slagen, samen met de betrokken native library/app-crossbuilds op
+de huidige PR-bron. De afzonderlijke B11-parser heeft zijn eigen 18 hosttests
+en bewijsbundel en geldt niet als bewijs voor deze documentbeslissing. De native
+DocumentSession normal/cold-poort blijft open totdat de echte VM-resultaten,
+bronbinding en koude imagekoppeling op dezelfde gepubliceerde bron zijn
+vastgelegd. Hosttests en crossbuilds alleen sluiten geen native of grafisch
+criterium af.
+
+**Migratie/rollback:** standaardprofielen behouden hun bestaande selectie. De
+opt-in kan worden uitgezet of de eerdere bron kan in een afzonderlijke checkout
+worden gebouwd. Er is geen migratie van gebruikersdata, wijziging van echte
+apparaten of destructieve omzetting van bestaande testimages.

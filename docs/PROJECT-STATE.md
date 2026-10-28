@@ -27,11 +27,11 @@ deze nieuwe documentroute volgt pas na publicatie van deze bronfreeze.
 
 G12 vond twee concrete compilerbindinggaten. I15 valideert nu de exacte
 afhankelijkheden van iedere library en precies één waarde voor elke vereiste
-ABI-optie, inclusief aangehechte rustc-opties. Alle29 gerichte negatieve
+ABI-optie, inclusief aangehechte rustc-opties. Alle 29 gerichte negatieve
 mutaties van echte compilerrecords worden geweigerd; oorspronkelijke records
 blijven geldig. [Rood/groen bewijs](verification/parallel-i15/README.md).
 
-B11 is geïntegreerd: een no_std Ethernet/IPv4/UDP-parser met18 geslaagde
+B11 is geïntegreerd: een no_std Ethernet/IPv4/UDP-parser met 18 geslaagde
 hosttests, foutgrenzen, native librarybuild en standaard checksumvalidatie.
 [API, primaire bronnen en grenzen](../services/net-protocol/README.md).
 Dit blijft een library-afhankelijkheid zonder driver, verbinding of rechten.
@@ -92,14 +92,14 @@ wordt uit de huidige proeven afgeleid. Roadmap: **14% → 14%**.
 ## Gecombineerde native acceptatie — 28 oktober 2026
 
 Uitvoeringsbron `3e41bbf93822f7044c6020259f4a752925e1966d`, branch
-`codex/parallel-native-foundation-20261028`, PR#15 boven de behouden PR#14.
+`codex/parallel-native-foundation-20261028`, PR #15 boven de behouden PR#14.
 Lokale/GitHub-commit identiek vóór gates; bronfingerprint v3
 `307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60` bleef gelijk.
 Alle vier werkelijke agentplaatsen zijn benut en hergebruikt met eigen
 worktrees/builds/targets/VMs/logs. G1 en de andere M6a-opdracht blijven bij hun
 bestaande eigenaars.
 
-**80 geaccepteerde native VM-runs:** M6b32 groepen/28 VM, SDK/M6c35/31,
+**80 geaccepteerde native VM-runs:** M6b 32 groepen/28 VM, SDK/M6c35/31,
 M3-regressie22/19, native quantum1 en bevestigde G0-pipe1. Volledige M6b- en
 M6c-captures slagen. Beide normale SDK-catalogusruns bewaren sequence10 en
 lezen na een nieuwe koude VM dezelfde bytes terug zonder writes. Twee quantum-
@@ -119,7 +119,7 @@ behouden. Alle bron-/bewijs-/reproduceerdetails staan in
 
 Concrete CodeRabbit- en gerichte AI-bevindingen zijn verwerkt voor QMP-
 deadlines/ID's, screenshots, ROMpin, WRITE-timeout-oracle, standalone preflight
-en prefixed FPU-instructies. De nieuwe PR#15-review op3e41 is aangevraagd;
+en prefixed FPU-instructies. De nieuwe PR #15-review op3e41 is aangevraagd;
 definitieve review/mergestatus wordt op GitHub bijgehouden. Geen veiligheids-
 of fysieke hardwareclaim door de AI-review. QEMU 7.2.22/pc-q35-7.2 is expliciet
 vastgelegd en verschilt van het historische10.0-referentieprofiel.

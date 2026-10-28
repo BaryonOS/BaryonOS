@@ -49,7 +49,7 @@ zij worden nooit als UDP-payload teruggegeven.
 Alle checksumwoorden zijn big-endian. De implementatie volgt de standaard
 Internet checksum met end-around carry en een nulpad na een oneven laatste
 octet. Vouwen na ieder woord houdt de accumulator begrensd. De IPv4-lengte
-begrensd het lees-/checksumwerk tot 65.535 bytes; de extra Ethernet-offset
+begrenst het lees-/checksumwerk tot 65.535 bytes; de extra Ethernet-offset
 wordt gecontroleerd op overflow. De tests op deze maximale lengte zijn
 synthetische parsergrenscontroles, geen claim dat de latere Ethernet-driver
 zulke frames of een bepaalde jumbo-MTU ondersteunt.
