@@ -11,6 +11,7 @@ De volledige native acceptatie blijft gebonden aan `3e41bbf9`. Het vervolg op
 | G11 | in uitvoering | native_apps: userspace-probe en eigen SDK-builddeel | DocumentSession echt in ring3 voor openen, bewerken, bewaren en heropenen; bestaande catalogus en oracle |
 | I13 | in uitvoering | runtime_platform: nieuwe document-session-poort en tests | Herbruikbare strikte normal/recover-acceptatie voor de G11-appbibliotheek |
 | B11 | in uitvoering | native_storage: services/net-protocol/** | Begrensde no_std Ethernet/IPv4/UDP-parser; nog geen driver of netwerkrechten |
+| BR0 | gereed om te bouwen | browser_research: hostbuilds/tests; geen native runtime | Vergelijk Chromium/Gecko volgens BR-01 t/m BR-08; kies pas daarna engine/patchbudget. Native port wacht op volwassen netwerk- en grafische diensten |
 | B08/G10/I11/I12/B10/ROOT | gereed voor integratie/controle | root, gescheiden bewijsbundels | Zes echte actuele VM-runs slagen; koude images en vijf grafische frames gecontroleerd |
 | G07/I08/B09/G09/I10 | gereed voor integratie/controle | geïntegreerd op f52ef0a6 en dbd35b04 | Documentsessie, jobcodec en gerepareerde capture; gerichte reviews afgerond |
 | G1 | wacht op een benoemde afhankelijkheid | bestaande andere sessie: Materiaal en display/input | Eigenaar publiceert broncheckpoint van toegewezen G1-branch voor integratie |

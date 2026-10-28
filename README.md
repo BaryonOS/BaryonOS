@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`ed98fd63`](https://github.com/simonvanieperen/nieuw-os/commit/ed98fd6352156fd2cce903a20e6787877062093d) ·
-**Ontwikkelbranch:** `codex/parallel-native-foundation-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Native vervolgacceptatie gepubliceerd; gerichte PR14-review en volledig inhoudsbehoud.
-Zes echte actuele VMs en onafhankelijke controle van216 bestanden zijn gepubliceerd; de eerdere80 geaccepteerde runs behouden hun oorspronkelijke binding. Zeven PR14-vragen zijn opgelost in de integratiebron en volledige bomen bevestigen nul verwijderde paden. G11/I13 bouwen de echte DocumentSession-proef; B11 een begrensde native netwerkparser zonder netwerk-I/O. Geen nieuw volledig criterium:14% naar14%.
+**Bron:** [`5ba4da74`](https://github.com/simonvanieperen/nieuw-os/commit/5ba4da74a2ad091612b48e277acd0f02536f4c4b) ·
+**Ontwikkelbranch:** `research/privacy-browser-20261028`.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Privacybrowseronderzoek en tijdelijke site-uitzonderingen vastgelegd.
+Chromium/Gecko en privacygerichte opensourcevarianten zijn als onderzoeksbasis vergeleken. Het gewenste default-private profiel, tijdelijke site-uitzonderingen, sandboxgrenzen en BR-01 t/m BR-08 zijn vastgelegd; er is nog geen engine gekozen of native browser gebouwd. Geen nieuw acceptatiecriterium: 14% naar 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -152,6 +152,18 @@ De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde
 M6b is hervat vanaf `main` (`1f24f99`) op [codex/m6b-storage-errors](https://github.com/simonvanieperen/nieuw-os/tree/codex/m6b-storage-errors). De status staat per spoor in PROJECT-STATE.md. [PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3) bewaart de M5-historie; de oude testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
 
 De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-feature milestone-m5` en `python tools/run.py --smoke --milestone m5`. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
+
+## Onderzoeksrichting: privacybrowser
+
+Voor dagelijks internetgebruik onderzoekt Nieuw OS een eigen privacyvriendelijke
+browserervaring. De eerste vergelijking omvat Chromium/Blink en Firefox/Gecko,
+met onder meer ungoogled-chromium, Brave, Vanadium, LibreWolf en Mullvad Browser
+als technische referenties. De gewenste standaard is privacybescherming aan,
+geen niet-noodzakelijke browsertelemetrie en een gerichte tijdelijke uitzondering
+wanneer een website anders niet werkt. **Er is nog geen engine gekozen en er is
+nog geen native browserport.**
+
+[Onderzoek, kandidaten, uitzonderingsmodel en BR-acceptatievragen](docs/PRIVACY-BROWSER-RESEARCH.md).
 
 ## Projectrichting en verder lezen
 
