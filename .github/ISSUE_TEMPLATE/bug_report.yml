@@ -1,0 +1,44 @@
+name: Bug report
+description: Reproduceerbaar defect in broncode, tooling, tests of documentatie
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Meld beveiligingsgevoelige details volgens SECURITY.md en zet geen secrets of echte gebruikersdata in een issue.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Probleem
+      description: Wat gebeurt er en wat had er moeten gebeuren?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduceerstappen
+      description: Exacte commando's, inputs en kleinste reproduceerbare route.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Omgeving
+      description: Commit, branch, OS/host, Rust/QEMU/firmware en relevante featureflags.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Bewijs
+      description: Foutmelding, exitstatus en relevante logpaden. Geen complete secrets/logdumps.
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Controle
+      options:
+        - label: Ik heb de relevante AGENTS.md en projectinstructies gelezen.
+          required: true
+        - label: Ik heb niet geprobeerd tests of securitycontroles te verzwakken om dit defect te omzeilen.
+          required: true
