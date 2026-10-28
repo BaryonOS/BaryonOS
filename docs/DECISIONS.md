@@ -545,3 +545,7 @@ authenticatie (B02 open). Proefgeometrie: 16 objecten, 64 KiB per document,
 **Migratie/rollback:** opt-in feature; geen automatische migratie van M6c-
 volumes en geen gebruik van echte schijven. Terugdraaien = feature niet
 selecteren of de M6e-commits gericht reverten.
+
+**Eigenaar:** hoofdagent voor formaat, contract en integratie
+(`services/volume`, `tools/volume_disk.py`, gate en bewijs); `kernel_m2` voor de
+generieke blokbroker in `kernel/src/m2/m3/volume.rs`.

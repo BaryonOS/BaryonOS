@@ -64,10 +64,17 @@ def main() -> int:
             summary["status"] = "failed"
             save_json(path, summary)
             return 1
+    # Leave the ordinary M1 image in place like the other gates. The verdict
+    # is written only after that build, so a failing build never leaves a
+    # passing summary behind.
+    try:
+        build()
+    except Exception:
+        summary["status"] = "failed"
+        save_json(path, summary)
+        raise
     summary.update(status="completed", passed=source_hash() == frozen)
     save_json(path, summary)
-    # Leave the ordinary M1 image in place like the other gates.
-    build()
     print(f"M6e gate passed={summary['passed']} stages={len(summary['stages'])}")
     return 0 if summary["passed"] else 1
 
