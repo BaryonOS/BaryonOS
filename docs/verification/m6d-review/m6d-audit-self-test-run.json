@@ -1,0 +1,13 @@
+{
+  "executed_utc": "2026-10-28T09:03:20.660948+00:00",
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/tmp/r09_audit_m6d.py",
+    "--self-test"
+  ],
+  "cwd": "/tmp",
+  "returncode": 0,
+  "stdout": "{\n  \"mode\": \"audit-script host-only self-test\",\n  \"passed\": true,\n  \"checks\": 16,\n  \"details\": [\n    \"valid exact PUT10/RENAME11 accepted\",\n    \"valid prepublication PUT10 prefix accepted\",\n    \"resealed wrong request identity\",\n    \"prepublication extra rename\",\n    \"rename changes payload with valid checksum\",\n    \"resealed noncanonical padding\",\n    \"record after empty slot\",\n    \"raw checksum corruption\",\n    \"legacy rejection\",\n    \"corrupt rejection\",\n    \"valid Unknown marker fixture accepted (host-only)\",\n    \"duplicate Unknown outcome\",\n    \"replay publication\",\n    \"false success ACK\",\n    \"stale full-state response\",\n    \"unexpected uncertainty in recovery\"\n  ],\n  \"boundary\": \"These are fabricated host test inputs, not guest execution evidence.\"\n}\n",
+  "stderr": ""
+}

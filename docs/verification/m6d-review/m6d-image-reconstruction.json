@@ -1,0 +1,104 @@
+{
+  "mode": "text-only seeded image reconstruction",
+  "passed": true,
+  "volumes": 16,
+  "checks": [
+    {
+      "identity": "076f329bee7b4af8981159e7a273ee7c",
+      "initial_sha256": "170f0a60b44f1753e149202f931a821985b0a6c5c8ed7f9c6dd7c8246bd1a9d7",
+      "final_sha256": "4d2981a85ec08c931d67b3c6769204f1d63aff58dd114bd45b895826d38716c0",
+      "passed": true
+    },
+    {
+      "identity": "367389fc2ec74fe38cff9a7e8b3267e0",
+      "initial_sha256": "edecb56fc6bc79f8c851b123394d4aca18c715ce6d89707620a57a45f22e255f",
+      "final_sha256": "ea7894f965b4d0a8caa72a4c7de33c0193754ba103e48921e1a6d72186e5bacf",
+      "passed": true
+    },
+    {
+      "identity": "40d677e1a0a440f18ebd395c3f7276a4",
+      "initial_sha256": "cf72ed84caa404a0d371f7369ce920274db812338da8bc8136a2a9855f20c391",
+      "final_sha256": "2c7ee49864e8c2ae3fe87ddb4cbb029cc67e98f135c72f0ccddea0a042d38b8b",
+      "passed": true
+    },
+    {
+      "identity": "0c9e43fa440a4d4ba74d772aa3b5759a",
+      "initial_sha256": "0fbc451d53df03f7088fb6377d51d937151653358f1c10c16566ed20ca64b2cf",
+      "final_sha256": "bd920ccf500c8eb5d441f877edbe06d69700c183e6b55da23b3790256188be75",
+      "passed": true
+    },
+    {
+      "identity": "79e0a9b17a414c0bad9373784f103d85",
+      "initial_sha256": "95fc7e13a59927ee246b851aa53ac4988d8cc42e971c8907b821b9a05b85753e",
+      "final_sha256": "95fc7e13a59927ee246b851aa53ac4988d8cc42e971c8907b821b9a05b85753e",
+      "passed": true
+    },
+    {
+      "identity": "341cde34a7374ac4b3485135f0920cd4",
+      "initial_sha256": "d1a0143122166fbef7e4c760c22670d739b8a74d79d0ed0fcd974a6bdf935fb3",
+      "final_sha256": "d1a0143122166fbef7e4c760c22670d739b8a74d79d0ed0fcd974a6bdf935fb3",
+      "passed": true
+    },
+    {
+      "identity": "64e6881b683f4812b49b5efad67efd44",
+      "initial_sha256": "f851a3f8bebf8d348e378517550b7789a59dcda96920868543cd62ed99503606",
+      "final_sha256": "4465c4fed66397bb54784a05804710b217c0af3a67a99b3e566fdb55463e0a1c",
+      "passed": true
+    },
+    {
+      "identity": "6bd5a5e97d4042b4b55fdc364b844a06",
+      "initial_sha256": "6c1a7f6cb05749d2e8f6a9f706d5e04a0c99e6888cab74cc45169aa42f2a7ee5",
+      "final_sha256": "32c5e3fd6ced9fe1b33069e360228ab90c7b9b959abb447651765a43f11eac76",
+      "passed": true
+    },
+    {
+      "identity": "7c892bf1caa24ff6830ffadf16560e61",
+      "initial_sha256": "3de89bedaff20fb81da5126457fb12aec4eeb2168fc9713485b7b904bc371262",
+      "final_sha256": "fa98ebf512ce5cdc9ceeb82db9a721912943dd8d1d69b0e47aafef8dbeccd5f1",
+      "passed": true
+    },
+    {
+      "identity": "e74fb006d7904b57be46407713afdfc9",
+      "initial_sha256": "6dcd186fa8bea0212d26a48a79223de84ce77dedcbebd1bb339948a74e306cf6",
+      "final_sha256": "fb401994fc958eb23bca252593400d62b79e609c5b78f6a0e3b3776472765afc",
+      "passed": true
+    },
+    {
+      "identity": "3db4724cae1240289da8b668f16decda",
+      "initial_sha256": "127a25a970d199e133c936f992a257375bfc20d1c2b1e6b12ad80b91b552e9b8",
+      "final_sha256": "07db1888a7068b4f5d3ffed37bfb73494143436921a419b60666d33e04d07af3",
+      "passed": true
+    },
+    {
+      "identity": "8242d52df83a43cf8a0982abfd287ba4",
+      "initial_sha256": "0204ade0a5f5eadc162a0538d770bfcb2f21915513b581d2198866ca8653f3f6",
+      "final_sha256": "77fea337460321d174061aef0ef4f887738479d3435a247c18576afe05179eb9",
+      "passed": true
+    },
+    {
+      "identity": "d18ddd8069c04e75b4bddcb0c552498c",
+      "initial_sha256": "ef2f837b2c7708e69905add566f8722f2131b376fb6276f4834b13a1ea2c65aa",
+      "final_sha256": "b0ea92f27dab7c5483c5649b0807b2fc67c57ab51e7978665c40224102ae94a5",
+      "passed": true
+    },
+    {
+      "identity": "c329144991aa411db7759ee988601d68",
+      "initial_sha256": "4ce3db68b9eccdc502ba44394367c5202584c6e462350b532bbbaf3a88c08d00",
+      "final_sha256": "3559d41a81a89536c56515c64d1fa9a602264ddab9af5a766d7a7fae39c02964",
+      "passed": true
+    },
+    {
+      "identity": "51ef345ec3894fec8d4c0af02469110a",
+      "initial_sha256": "52914f5bc1a339568b06f36a01bb601f45f1dc6a520f9327c9066ba0b07c84cf",
+      "final_sha256": "c95cb6eedca0bff9d6824b4d4ac76efc142a296795c3a04228d468118207cedc",
+      "passed": true
+    },
+    {
+      "identity": "be5099b66ba2467e89a2a9f20a30e8f0",
+      "initial_sha256": "1223ca2bc9ad0340292e89667c92942801c454eb6e2b651308e25cf79d393d6f",
+      "final_sha256": "eaa4cd252757b427405396e1e74c755ca3adb294597a6c7506ae0208ed0329c8",
+      "passed": true
+    }
+  ],
+  "boundary": "Reconstructs recorded bytes and hashes; does not prove a new native execution."
+}

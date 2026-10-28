@@ -16,15 +16,18 @@ bewaart de bestaande inhoud exact, verhoogt de revisie en schrijft één record.
 Recovery controleert predecessor, revisie en inhoudsbehoud. PUT/DELETE/RENAME
 mogen pas na WRITE- én FLUSH-completion bevestigd worden. Het servicecontract
 sluit na een onzekere mutatie alle geldige operaties, ook LIST, tot nieuwe
-volledige recovery af; dit `Unknown`-gedrag is alleen via host-ABI getest.
+volledige recovery af.
 
-Bekende native beperking, ook met `milestone-m6c`: de observer kan bij
-WRITE-/FLUSH-fouten of time-outs panikeren vóór de client `Unknown` ontvangt.
-Dit defect is niet gerepareerd; gecontroleerde native foutafhandeling is niet
-gerealiseerd. Herstel vereist een afzonderlijke native reparatie met
-WRITE-/FLUSH-fout- en time-outinjectie, controle van het werkelijk ontvangen
-clientantwoord en nieuwe brongebonden native verificatie, zoals vastgelegd
-in de [bewijsgrens](../../docs/implementation/M6C-NAMED-CATALOG.md#bekende-native-observerbeperking).
+De historische M6c-uitvoeringsbron had een observerdefect: bij WRITE-/FLUSH-
+fouten kon de kernel panikeren voordat de client `Unknown` ontving. De M6d-
+uitbreiding koppelt de reply aan de werkelijk teruggegeven syscallfout en
+bewaakt dat daarna geen nieuwe blockcall, publicatie of completion volgt.
+Acht native foutfeatures toetsen statusfouten, time-outs, resetquarantaine,
+descriptorweigering en ongeldige used-length. De volledige native
+acceptatiestatus staat in [PROJECT-STATE.md](../../docs/PROJECT-STATE.md);
+het [M6d-contract](../../docs/implementation/M6D-IO-UNCERTAINTY.md) bepaalt de
+exacte fout-/herstelgrens. Een proces herstart nog niet automatisch en fysieke
+schijffouten of stroomuitval worden hiermee niet nagebootst.
 
 Deze core kan geen fysieke duurzaamheid waarnemen; het native adapterbewijs
 is dus afzonderlijk nodig. FNV is diagnostiek, geen cryptografische authenticatie.

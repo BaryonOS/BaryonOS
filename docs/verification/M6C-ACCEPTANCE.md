@@ -1,5 +1,9 @@
 # M6c — finale acceptatie van namen, catalogus en hernoemen
 
+Dit verslag bewaart de historische M6c-uitvoering en haar toenmalige grenzen.
+De latere native reparatie van de Unknown-observer en haar nieuwe bewijs staan
+in [M6D-ACCEPTANCE.md](M6D-ACCEPTANCE.md); zij veranderen deze oude runuitslagen niet.
+
 28 oktober 2026, werkbranch `codex/m6c-named-catalog`,
 [PR #10](https://github.com/simonvanieperen/nieuw-os/pull/10).
 De UTC-uitvoeringslogs van de gates dateren van 27 oktober, 23:48–23:51.
@@ -195,4 +199,3 @@ Grotere opslag, sleutels/entropy, compositor/invoer en native netwerk hebben eig
 acceptatiecriteria. De bredere M6-opslag- en updatefase is daarmee nog niet af.
 De bron en tekstbewijzen staan op de private werkbranch; main is niet gemerged en
 er is geen release of installatie op echte hardware uitgevoerd.
-

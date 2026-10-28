@@ -1,0 +1,17 @@
+{
+  "phase": "M6c",
+  "status": "failed",
+  "passed": false,
+  "source_fingerprint_version": 3,
+  "source_sha256": "8ca6d5d5291fde62f91fb47dca7df4d058424604449fb32b9e5899b1d4fbef93",
+  "host_test_sha256": {
+    "tests/test_m6c_capture.py": "24c43507276d239919cb1d1b1551b5310f5a5e8cdd9bca2ac25e68cf496d20f0",
+    "tests/test_m6c_disk.py": "9258b2fccfa2737d3e08a296de0fb617a82745a473576730031de27539ce1f03",
+    "tests/test_m6c_harness.py": "9456f8d4970087068971cd6f6b1f0ee5e8195408fcd192a47b908b6af81db6ff",
+    "tests/test_m6c_uncertainty.py": "b90b1e04766393dece1ede1432fbad1d3254ec399bcf7e404535b3276b06ea11"
+  },
+  "started_utc": "2026-10-28T08:56:44.488059+00:00",
+  "results": [],
+  "error": "Command '['/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3', '-B', 'tools/preflight.py', '--strict']' returned non-zero exit status 2.",
+  "finished_utc": "2026-10-28T08:56:44.848152+00:00"
+}

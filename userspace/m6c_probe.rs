@@ -421,6 +421,50 @@ fn cross_domain_populated(domain: u64) {
         transact(&message, wire::Status::Access);
     }
 }
+fn uncertain_requests(domain: u64) {
+    let object = domain * 2;
+    for (index, operation) in [wire::GET, wire::LIST, wire::PUT, wire::DELETE, wire::RENAME]
+        .into_iter()
+        .enumerate()
+    {
+        let revision = if matches!(operation, wire::PUT | wire::DELETE | wire::RENAME) {
+            1
+        } else {
+            0
+        };
+        let new_value = value(object, 2);
+        let label = if matches!(operation, wire::PUT | wire::RENAME) {
+            Some(name(object, 2))
+        } else {
+            None
+        };
+        let payload = if operation == wire::PUT {
+            Some(&new_value[..])
+        } else {
+            None
+        };
+        let message = request(
+            400 + index as u64,
+            object,
+            revision,
+            operation,
+            label,
+            payload,
+        );
+        // validate_reply in rpc verifies the empty canonical error payload,
+        // zero revision and lack of names/catalog entries, as well as identity.
+        transact(&message, wire::Status::Unknown);
+    }
+    // Authorization and structural validation still precede the closed view.
+    // In particular the other domain never receives Unknown as an existence
+    // oracle or sees its peer's prior acknowledged name or content.
+    cross_domain_populated(domain);
+    let mut bytes = wire::request(410, rt::word(32), object, 0, wire::GET, None, None);
+    bytes[4] = 1;
+    let mut malformed = Message::new();
+    malformed.payload(wire::TAG, &bytes);
+    transact(&malformed, wire::Status::Invalid);
+}
 fn wait(offset: u64) {
     for _ in 0..rt::LIMIT {
         if rt::word(offset) == 1 {
@@ -447,6 +491,16 @@ fn client() -> ! {
     }
     wait(256);
     authority_probes(object);
+    if (8..=15).contains(&case) {
+        if domain == 0 {
+            put(10, object, 0);
+            rename(11, object, 1, wire::Status::Unknown);
+        } else {
+            wait(280);
+        }
+        uncertain_requests(domain);
+        finish(object);
+    }
     if case == 1 {
         let first = get(1, object);
         let second = get(2, object + 1);

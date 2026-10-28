@@ -15,6 +15,7 @@ import stat
 import struct
 import uuid
 from common import BUILD, save_json, sha256
+from m6c_faults import FAULT_CASES as M6C_FAULT_CASES, outcome_valid
 
 SIZE, SECTOR, FIRST, SLOTS, OBJECTS, VALUE, NAME = 65536, 512, 4, 32, 4, 128, 32
 MAGIC = b"NOSM6C02"
@@ -225,7 +226,7 @@ def state_markers(stdout: str):
 
 def verify_volume(volume: Volume, stdout: str, *, case: str, before: bytes):
     if case not in ("normal", "recover", "errors", "full", "corrupt", "legacy",
-                    "vm-cut-before-rename", "vm-cut-after-rename"):
+                    "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES:
         raise ValueError("Unknown M6c oracle case")
     data = volume.guard().read_bytes()
     low, high = FIRST*SECTOR, (FIRST+SLOTS)*SECTOR
@@ -241,8 +242,13 @@ def verify_volume(volume: Volume, stdout: str, *, case: str, before: bytes):
         state, records, corrupt = None, [], True
     checks["journal_valid_or_explicit_rejection_case"] = corrupt == (case in ("corrupt", "legacy"))
     try:
-        observed = state_markers(stdout)
-        no_values = case in ("corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename")
+        # The uncertain service cannot claim the disk's latest state. Keep its
+        # counters separate from successful GET/LIST/recovery state evidence.
+        guest_state = "\n".join(line for line in stdout.splitlines() if not (
+            case in M6C_FAULT_CASES and line.startswith((
+                "M6C:ACKS", "M6C:REJECTED_NO_IO", "M6C:CATALOG_REPLIES"))))
+        observed = state_markers(guest_state)
+        no_values = case in ("corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES
         checks["guest_matches_independent_disk_state"] = observed is None if no_values else (
             observed is not None and observed["state"] == state)
     except ValueError:
@@ -271,6 +277,17 @@ def verify_volume(volume: Volume, stdout: str, *, case: str, before: bytes):
             expected = [object_summary(revision, True, fixture_value(0, 1), fixture_name(0, revision)),
                         *[object_summary() for _ in range(3)]]
             checks["expected_final_state"] = seq == revision and objects == expected
+        elif case in M6C_FAULT_CASES:
+            possible = ((1,) if case == "bad-descriptor" else (1, 2)
+                        if case in ("write-timeout", "reset-timeout") else (2,))
+            expected = [object_summary(seq, True, fixture_value(0, 1), fixture_name(0, seq)),
+                        *[object_summary() for _ in range(3)]]
+            checks["fault_prefix_matches_publication_boundary"] = seq in possible and objects == expected
+            checks["fault_records_are_only_confirmed_put_and_optional_rename"] = (
+                [(r["sequence"], r["request_id"], r["object"], r["revision"], r["operation"]) for r in records]
+                == [(1, 10, 0, 1, 2), (2, 11, 0, 2, 4)][:seq] and seq in possible)
+    if case in M6C_FAULT_CASES:
+        checks["uncertainty_has_no_success_ack_or_replay"] = outcome_valid(stdout, case)
     if observed:
         expected_acks = 32 if case == "full" else 10 if case in ("normal", "errors") else 0
         expected_lists = 4 if case == "full" else 10 if case in ("normal", "errors") else 2

@@ -2,6 +2,7 @@
 """Recheck complete native M6b evidence before an atomic text-only archive."""
 from __future__ import annotations
 from pathlib import Path
+import argparse
 import shutil
 import sys
 import tempfile
@@ -153,7 +154,18 @@ def check_run(directory,report,frozen):
         raise ValueError('Mutator did not start with its fresh synthetic fixture')
 
 
-def capture():
+def archive_destination(destination=None):
+    root = (ROOT/'docs/verification').resolve()
+    target = (ROOT/(destination or 'docs/verification/m6b')).resolve()
+    # Atomic replacement owns one archive directory only. The verification
+    # root and paths escaping it must never replace unrelated historical proof.
+    if target.parent != root or target == root:
+        raise ValueError('Destination must be one direct child of docs/verification')
+    return target
+
+
+def capture(destination=None):
+    destination = archive_destination(destination)
     suite=read_json(BUILD/'m6b-test-results.json'); frozen=source_hash()
     if (suite.get('status')!='completed' or suite.get('passed') is not True
             or suite.get('source_sha256')!=frozen or suite.get('host_test_sha256')!=test_sources()):
@@ -191,7 +203,6 @@ def capture():
                 host_files.extend(check_host_group(name,evidence,host_seen))
     if len(runs)!=14 or len({r['run_directory'] for r in runs})!=14:
         raise ValueError('Gate requires 14 distinct real VM invocations')
-    destination=ROOT/'docs/verification/m6b'
     destination.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='m6b-capture-',dir=BUILD) as temporary:
         staged=Path(temporary)/'archive'; staged.mkdir()
@@ -205,4 +216,7 @@ def capture():
     print(f'M6b capture passed: {len(groups)} groups, {len(runs)} distinct actual VM runs')
 
 
-if __name__=='__main__': capture()
+if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--destination',default='docs/verification/m6b')
+    capture(parser.parse_args().destination)

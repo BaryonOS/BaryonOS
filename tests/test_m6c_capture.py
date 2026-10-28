@@ -109,7 +109,7 @@ class HostEvidenceBinding(unittest.TestCase):
                 patch.object(capture, 'inside_run', side_effect=Path), \
                 patch.object(capture, 'check_run'), \
                 patch.object(capture, 'check_m1_run'):
-            capture.capture()
+            capture.capture('docs/verification/m6c')
 
     def test_capture_accepts_unchanged_host_logs_with_gate_hashes(self):
         suite = self.completed_synthetic_suite()
@@ -257,7 +257,7 @@ class HostEvidenceBinding(unittest.TestCase):
                 patch.object(capture, 'test_sources', return_value={}), \
                 patch.object(capture, '_replace_archive') as replace, \
                 self.assertRaisesRegex(ValueError, 'fixed exact log path'):
-            capture.capture()
+            capture.capture('docs/verification/m6c')
         replace.assert_not_called()
         self.assertEqual(preserved.read_bytes(), b'existing archive remains unchanged')
         self.assertEqual(list(destination.iterdir()), [preserved])
