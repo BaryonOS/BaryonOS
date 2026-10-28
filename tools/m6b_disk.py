@@ -185,7 +185,8 @@ def verify_volume(volume: Volume, stdout: str, *, case: str, before: bytes):
     checks["journal_valid_or_explicit_corrupt_case"] = corrupt == (case == "corrupt")
     try:
         observed = state_markers(stdout)
-        no_values = case in ("corrupt", "vm-cut-before-ack", "vm-cut-after-flush", "write-error", "flush-error")
+        no_values = case in ("corrupt", "vm-cut-before-ack", "vm-cut-after-flush", "write-error", "flush-error",
+                             "write-timeout", "flush-timeout", "reset-timeout", "write-poll-limit", "flush-poll-limit")
         checks["guest_matches_independent_disk_state"] = observed is None if no_values else (
             observed is not None and observed["state"] == state)
     except ValueError:
@@ -215,7 +216,9 @@ def verify_volume(volume: Volume, stdout: str, *, case: str, before: bytes):
         elif case == "vm-cut-after-flush":
             checks["expected_final_state"] = (seq == 1 and records[0]["object"] in (0, 2)
                                                 and records[0]["revision"] == 1)
-        elif case in ("write-error", "flush-error"):
+        elif case in ("write-timeout", "reset-timeout", "write-poll-limit"):
+            checks["expected_final_state"] = seq == 0 and data == before
+        elif case in ("write-error", "flush-error", "flush-timeout", "flush-poll-limit"):
             # The injected status snapshot follows a real completion, so the
             # first full record exists even though the service cannot ACK it.
             checks["expected_final_state"] = (seq == 1 and len(records) == 1

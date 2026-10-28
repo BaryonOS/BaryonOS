@@ -2,6 +2,23 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
+## Doorbouw — opslagtimeouts en native grafische basis
+
+28 oktober 2026, vanaf `7b4945f` op `codex/m6b-storage-errors`. De OS-bouw loopt
+door; het vorige checkpoint is geen voltooid OS. K08 voegt kerneldeadlines,
+resetquarantaine en lokaal afgebroken polls toe. De dienst sluit bij eigen
+polluitputting zijn enige blokcapability via de bestaande ABI; de kernel kan
+zo echte autoriteitsbeëindiging waarnemen en pending DMA veilig annuleren.
+Vijf nieuwe native cases worden gebouwd. Het harnas heeft 33 geslaagde
+hosttests; nieuwe VM-uitkomsten zijn nog niet uitgevoerd op dit checkpoint.
+
+G09 bouwt parallel een opt-in native grafische basis volgens ADR-030 en
+`implementation/GRAPHICS-G0.md`: eigen framebufferuitvoer en PS/2-invoer,
+geen browser, volledige desktop of opslagadapter. De pure `ui-core` is aanwezig
+met tien geslaagde hosttests; de native GOP-/kernelintegratie is in bouw.
+Standaard BootInfo 1.1 blijft behouden. Deze tussenstand bevat geen bewezen
+native grafische uitvoering; logs en verdere verificatie volgen.
+
 ## Hervatting — native M6b-opslagfouten, 28 oktober 2026
 
 Basis `1f24f994bff1b2c7cb0a026b600c5c4948140cfe`, branch

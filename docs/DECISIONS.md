@@ -108,3 +108,32 @@ De eerste scope is alleen lezen op een synthetische 64KiB-wegwerpimage. Schrijve
 **Onderbouwing en bewijs:** eigen contract `implementation/M6B-OBJECT-STORAGE.md`, eerdere virtio/capability-ABI uit ADR-026/M6a; wire- en journalindeling zijn interne projectbesluiten. De volledige eindgate op `1e61a20` slaagt: 18 groepen/14 echte VM-runs, 22 Rust-hosttests en 26 harnastests. Daaronder vallen zes koude recoveries, uitputting, corruptie en twee echte externe kills. Capture en een aparte audit van 121 artifacthashes/zeven schijfvolumes slagen; een extra Python-parser controleert onafhankelijk de echte schijfbytes zonder de Rust-journalcode te delen. Zeven host-ABI-adapterproeven controleren `Unknown`-uitkomsten. Native WRITE-/FLUSH-fouten kunnen via `sent()` in `kernel/src/m2/m3/m6b.rs` een kernel panic veroorzaken: de observer vergelijkt de reply eerst met een verwachte `Ok`-reply. Dit defect is niet gerepareerd; gecontroleerde end-to-end-afhandeling als `Unknown` ontbreekt ook in `milestone-m6b`. De native gate bevat geen devicefoutinjectie voor dit pad. Exacte bron, regressies en bewijsgrenzen staan in `PROJECT-STATE.md` en `verification/m6b/`.
 
 **Herziening en rollback:** een herziening van het native `Unknown`-pad vereist een native reparatie, gerichte WRITE-/FLUSH-devicefoutinjectie, controle van het daadwerkelijke clientantwoord en nieuwe native verificatie met bijbehorende bronbinding. Herzie ook bij meer objecten, compaction, meerdere schrijvers, sleutels, native UI of andere devices. M6b heeft een eigen feature/ELF/volumeformaat; bestaande M1–M6a-profielen blijven selecteerbaar. Een aparte werkbranch maakt terugname mogelijk zonder hostschijven of echte gebruikersdata te wijzigen. Tests in QEMU bewijzen geen fysieke stroomuitval, IOMMU-containment, formele correctheid of productierijpheid.
+
+Aanvulling 28 oktober 2026 op ADR-029: de terminale WRITE-/FLUSH-observerfout
+is op `592dccf` hersteld en native getest met twee statussnapshotinjecties;
+de historische beweringen hierboven gelden voor hun oude bron. Verder herstel
+van lokale poll-LIMIT, echte brokerdeadline en resetquarantaine is de actieve
+vervolgstap K08; uitgevoerde resultaten blijven in PROJECT-STATE.md.
+
+## ADR-030 — opt-in native grafische bootstrap vóór productintegratie
+
+Datum 28 oktober 2026, aanvaard als begrensde ontwikkelstap; root integreert,
+G09 beheert core/loader/adapter. Het browserprototype geeft geen bewijs voor
+native scherm- en invoerondersteuning. Daarom komt eerst een afzonderlijke
+G0-feature met gevalideerde GOP-metadata, supervisor framebuffer en begrensde
+PS/2-polling. Alternatieven zijn een volledige compositor/driver/IPC-broker
+ineens bouwen (te grote eerste hardwarestap), of een browser op de host als
+native presenteren (geen voortgang op eigen hardwaregrens).
+
+Invariant: opt-in ABI 1.2 met vaste descriptor in de behouden BootInfo-pagina,
+geen firmwarecalls na EBS, geen framebufferalias naar RAM/user/executable,
+strikt begrensde RW/NX/UC-devicepagina's en safe `no_std`-render/invoercore.
+De kernelweergave is tijdelijke diagnostiek, geen app-, object- of opslagpolicy.
+Het scherm labelt de proef. Geen rechten voor willekeurige apps en geen nieuwe
+extern gepubliceerde productie-ABI.
+
+Contract/bronnen/acceptatie: [GRAPHICS-G0.md](implementation/GRAPHICS-G0.md).
+Testbewijs wordt afzonderlijk opgeslagen; dit besluit is geen boottest.
+Herzie vóór ring-3-compositor, IRQ-invoer, DMA/GPU, SMP, Unicode/IME of echte
+hardware. Herstel via aparte checkout `7b4945f`; standaard BootInfo 1.1 blijft
+selecteerbaar, geen echte schijf- of firmwaremigratie.

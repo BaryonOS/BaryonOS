@@ -34,6 +34,19 @@ struct Runtime {
     resetting: bool,
     reset_deadline: u64,
     quarantined: bool,
+    reset_requests: u64,
+    reset_acks: u64,
+    masked_ack_seen: bool,
+    timeouts: u64,
+    cancellations: u64,
+    block_handle: u64,
+    block_binding: Binding,
+    block_closed: bool,
+    pending_polls: u64,
+    held_pool: Option<[u64; 5]>,
+    held_tick: u64,
+    held_counters: [u64; 2],
+    held_pending_polls: u64,
     now: u64,
     roots: [u64; 2],
     replies: [u64; 2],
@@ -87,6 +100,22 @@ static mut RUNTIME: Runtime = Runtime {
     resetting: false,
     reset_deadline: 0,
     quarantined: false,
+    reset_requests: 0,
+    reset_acks: 0,
+    masked_ack_seen: false,
+    timeouts: 0,
+    cancellations: 0,
+    block_handle: 0,
+    block_binding: Binding {
+        pid: 0,
+        object_key: 0,
+    },
+    block_closed: false,
+    pending_polls: 0,
+    held_pool: None,
+    held_tick: 0,
+    held_counters: [0; 2],
+    held_pending_polls: 0,
     now: 0,
     roots: [0; 2],
     replies: [0; 2],
@@ -288,6 +317,14 @@ pub fn manifest(s: &mut State) {
             BLOCK_READ | BLOCK_WRITE | BLOCK_FLUSH,
         )
         .unwrap();
+    r.block_handle = block;
+    r.block_binding = Binding {
+        pid: service,
+        object_key: e
+            .check_block(service, block, BLOCK_READ | BLOCK_WRITE | BLOCK_FLUSH)
+            .unwrap()
+            .object_key(),
+    };
     for slot in 0..3 {
         for (offset, value) in [
             (0, slot as u64),
@@ -346,18 +383,10 @@ pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
     let result = device_call(s, slot, n, a);
     let r = runtime();
     if mutating && result.as_ref().is_err_and(|code| n != 0x41 || *code != -8) {
-        if let Some(active) = r.active.as_mut() {
-            if active.candidate.is_some() {
-                // The native adapter treats every terminal mutation failure as
-                // uncertain, including rejection before publication. Retain the
-                // candidate only as observer metadata; never commit or replay it.
-                active.status = wire::Status::Unknown;
-                active.revision = 0;
-                active.value = [0; 128];
-                active.length = 0;
-                r.uncertain = true;
-            }
-        }
+        // The native adapter treats every terminal mutation failure as
+        // uncertain, including rejection before publication. Retain the
+        // candidate only as observer metadata; never commit or replay it.
+        observe_uncertain(r);
     }
     r.last_number[slot] = n;
     r.last_result[slot] = result.as_ref().err().copied().unwrap_or(0);
@@ -418,7 +447,14 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
             }
             return Err(code);
         }
-        let request = r.policy.peek(binding, a[1]).map_err(err)?;
+        let request = match r.policy.peek(binding, a[1]) {
+            Ok(request) => request,
+            Err(virtio_core::Error::Pending) => {
+                r.pending_polls += 1;
+                return Err(-8);
+            }
+            Err(error) => return Err(err(error)),
+        };
         if request.completion == Some(Completion::Unknown) {
             r.policy.consume(binding, a[1]).map_err(err)?;
             return Err(-16);
@@ -518,17 +554,86 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         cut(1);
     }
     r.policy.publish(request.epoch, request.ticket).unwrap();
-    r.device.as_mut().unwrap().publish_prepared(false).unwrap();
+    let suppress = !r.injected
+        && r.ready
+        && ((matches!(case(), 9 | 11 | 12) && matches!(op, Operation::Write { .. }))
+            || (matches!(case(), 10 | 13) && op == Operation::Flush));
+    r.device
+        .as_mut()
+        .unwrap()
+        .publish_prepared(suppress)
+        .unwrap();
     r.publications[operation_index(op)] += 1;
+    if suppress {
+        r.injected = true;
+        r.held_pool = Some(pool_fingerprint(r.pool));
+        r.held_tick = s.ticks;
+        r.held_counters = [word(s, 1, 8), word(s, 2, 8)];
+        r.held_pending_polls = r.pending_polls;
+        serial::write(if matches!(op, Operation::Write { .. }) {
+            b"M6B:INJECT:WRITE_NOTIFY_SUPPRESSED\n"
+        } else {
+            b"M6B:INJECT:FLUSH_NOTIFY_SUPPRESSED\n"
+        });
+    }
     Ok(request.ticket)
+}
+fn pool_fingerprint(pool: DmaPool) -> [u64; 5] {
+    let mut hashes = [wire::FNV_OFFSET; 5];
+    for (index, page) in [
+        pool.descriptors,
+        pool.available,
+        pool.used,
+        pool.request,
+        pool.bounce,
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        for offset in 0..4096 {
+            // SAFETY: Each address is in a distinct permanent pinned kernel RAM
+            // page from prepare(). Raw volatile byte snapshots create no Rust
+            // alias with device DMA. They are diagnostic, not a DMA barrier or
+            // a cryptographic integrity proof; transport ordering is separate.
+            let byte = unsafe { ((page + offset) as *const u8).read_volatile() };
+            hashes[index] = (hashes[index] ^ u64::from(byte)).wrapping_mul(0x100000001b3);
+        }
+    }
+    hashes
+}
+fn check_held_pool(r: &Runtime) {
+    if let Some(before) = r.held_pool {
+        assert_eq!(pool_fingerprint(r.pool), before);
+    }
+}
+fn observe_uncertain(r: &mut Runtime) {
+    let Some(active) = r.active.as_mut() else {
+        return;
+    };
+    if active.candidate.is_some() {
+        active.status = wire::Status::Unknown;
+        active.revision = 0;
+        active.value = [0; 128];
+        active.length = 0;
+        r.uncertain = true;
+    }
 }
 fn reset(r: &mut Runtime, now: u64) {
     if r.quarantined {
         return;
     }
+    assert!(!r.resetting);
+    check_held_pool(r);
     r.policy.start_reset().unwrap();
     r.resetting = true;
     r.reset_deadline = now + RESET_TIMEOUT;
+    r.reset_requests += 1;
+    if deadline_case() {
+        serial::write(b"M6B:RESET:REQUESTED\n");
+        if case() == 11 {
+            serial::write(b"M6B:INJECT:RESET_ACK_MASKED\n");
+        }
+    }
     if let Some(device) = r.device.as_mut() {
         device.begin_reset();
     }
@@ -538,7 +643,7 @@ pub fn detach(pid: u64) {
     if r.error.is_some_and(|(q, _)| q.binding.pid == pid) {
         r.error = None;
     }
-    if r.policy.exit(pid).is_some() && !r.quarantined {
+    if r.policy.exit(pid).is_some() && !r.quarantined && !r.resetting {
         let now = r.now;
         reset(r, now);
     }
@@ -548,7 +653,10 @@ fn advance(s: &State) {
     let now = s.ticks;
     r.now = now;
     if r.resetting {
-        if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
+        let actual_ack = r.device.as_ref().is_some_and(Device::reset_acknowledged);
+        r.masked_ack_seen |= case() == 11 && actual_ack;
+        if actual_ack && case() != 11 {
+            check_held_pool(r);
             // SAFETY: Real reset acknowledgement permits reuse of the same
             // pinned owned RAM pages and permanent validated supervisor MMIO.
             match unsafe {
@@ -558,6 +666,11 @@ fn advance(s: &State) {
                     r.device = Some(device);
                     r.policy.reset_completed(true).unwrap();
                     r.resetting = false;
+                    r.reset_acks += 1;
+                    r.held_pool = None;
+                    if deadline_case() {
+                        serial::write(b"M6B:RESET:ACKNOWLEDGED\nM6B:POOL_REUSE_AFTER_ACK:PASS\n");
+                    }
                 }
                 Err(_) => {
                     r.offline = -14;
@@ -566,10 +679,15 @@ fn advance(s: &State) {
                 }
             }
         } else if now >= r.reset_deadline {
+            check_held_pool(r);
             let _ = r.policy.reset_completed(false);
             r.resetting = false;
             r.quarantined = true;
             r.offline = -13;
+            if case() == 11 {
+                assert!(r.masked_ack_seen);
+                serial::write(b"M6B:RESET:QUARANTINED\n");
+            }
         }
         return;
     }
@@ -578,6 +696,17 @@ fn advance(s: &State) {
     }
     let request = r.policy.request().unwrap();
     if r.policy.timeout(now) {
+        r.timeouts += 1;
+        if matches!(case(), 9..=11) {
+            assert!(r.injected && now >= request.deadline && now > r.held_tick);
+            assert!(r.pending_polls > r.held_pending_polls);
+            assert!((1..3).all(|slot| word(s, slot, 8) > r.held_counters[slot - 1]));
+            serial::write(if matches!(request.operation, Operation::Write { .. }) {
+                b"M6B:DEADLINE:WRITE_TIMEOUT\n"
+            } else {
+                b"M6B:DEADLINE:FLUSH_TIMEOUT\n"
+            });
+        }
         r.error = Some((
             request,
             if request.operation.is_mutating() {
@@ -915,7 +1044,51 @@ pub fn received(s: &State, slot: usize, handle: u64, message: &Message) {
         r.mutation_pending[domain] = false;
     }
 }
-pub fn cap_event(_slot: usize, _number: u64) {}
+pub fn cap_event(slot: usize, number: u64) {
+    if slot != 0 || number != 0x10 {
+        return;
+    }
+    let r = runtime();
+    if r.block_closed || r.block_handle == 0 {
+        return;
+    }
+    // Called only after a successful capability syscall. Closing an unrelated
+    // handle (including an unexpected received cap) leaves this check valid and
+    // cannot cancel I/O. This fixture gives the service exactly one nonderivable
+    // block handle; no application receives authority to this BlockDevice.
+    if m4::engine()
+        .check_block(r.block_binding.pid, r.block_handle, 0)
+        .is_ok()
+    {
+        return;
+    }
+    r.block_closed = true;
+    let request = r
+        .error
+        .map(|(request, _)| request)
+        .or_else(|| r.policy.request());
+    if let Some(request) = request {
+        assert_eq!(request.binding, r.block_binding);
+        if matches!(case(), 12 | 13) {
+            assert!(request.operation.is_mutating() && request.completion.is_none());
+            assert!(r.injected && r.now < request.deadline);
+            assert!(r.pending_polls > r.held_pending_polls);
+            serial::write(b"M6B:CANCEL:BLOCK_CAP_CLOSED\nM6B:POLL_LIMIT:CANCELLED\n");
+        }
+        let cancelled = r.policy.exit(r.block_binding.pid);
+        assert!(cancelled.is_some());
+        r.error = None;
+        r.cancellations += 1;
+        if request.published && !r.resetting && !r.quarantined {
+            let now = r.now;
+            reset(r, now);
+        }
+    }
+    // A local poll-LIMIT or response-validation error abandons the only block
+    // authority through the existing close ABI. The observed authority loss,
+    // not a user-writable status flag, grounds fail-closed Unknown handling.
+    observe_uncertain(r);
+}
 pub fn ipc_result(slot: usize, number: u64, result: i64) {
     let r = runtime();
     r.last_number[slot] = number;
@@ -1061,10 +1234,42 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
                 assert_eq!(r.publications, [128, 1, 1]);
                 assert_eq!(r.completions, [128, 0, 1]);
                 assert_eq!(r.io_errors, [0, 1, 0]);
-            } else {
+            } else if case() == 8 {
                 assert_eq!(r.publications, [128, 1, 2]);
                 assert_eq!(r.completions, [128, 1, 1]);
                 assert_eq!(r.io_errors, [0, 0, 1]);
+            } else {
+                assert_eq!(r.io_errors, [0; 3]);
+                let write = matches!(case(), 9 | 11 | 12);
+                assert_eq!(
+                    r.publications,
+                    if write { [128, 1, 1] } else { [128, 1, 2] }
+                );
+                assert_eq!(r.completions, if write { [128, 0, 1] } else { [128, 1, 1] });
+                assert_eq!(r.reset_requests, 1);
+                assert!((1..3).all(|slot| word(s, slot, 8) > r.held_counters[slot - 1] + 8));
+                if matches!(case(), 12 | 13) {
+                    assert!(r.block_closed);
+                    assert_eq!((r.cancellations, r.timeouts), (1, 0));
+                    assert!(m4::engine()
+                        .check_block(r.block_binding.pid, r.block_handle, 0)
+                        .is_err());
+                } else {
+                    assert!(!r.block_closed);
+                    assert_eq!((r.cancellations, r.timeouts), (0, 1));
+                }
+                if case() == 11 {
+                    assert!(r.quarantined && r.masked_ack_seen && r.offline == -13);
+                    assert_eq!(r.reset_acks, 0);
+                    assert_eq!(r.policy.phase(), Phase::Quarantined);
+                    assert!(r.held_pool.is_some());
+                    check_held_pool(r);
+                    serial::write(b"M6B:POOL_PINNED:PASS\n");
+                } else {
+                    assert!(!r.quarantined && r.offline == 0);
+                    assert_eq!(r.reset_acks, 1);
+                    assert!(r.held_pool.is_none());
+                }
             }
             assert!(r.app_device_denials.iter().all(|count| *count >= 4));
             assert!(r.app_ipc_denials.iter().all(|count| *count >= 3));
@@ -1115,13 +1320,22 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
             number(b"M6B:ACKS:", r.ack_received);
             number(b"M6B:REJECTED_NO_IO:", r.rejected);
         }
-        assert_eq!(r.policy.phase(), Phase::Ready);
+        assert_eq!(
+            r.policy.phase(),
+            if case() == 11 {
+                Phase::Quarantined
+            } else {
+                Phase::Ready
+            }
+        );
         assert!(m4::engine().check_invariants());
         serial::write(marker());
         serial::write(b"M6B:SURVIVOR_PROGRESS:PASS\n");
-        if let Some(device) = r.device.as_mut() {
-            device.begin_reset();
-            assert!(device.reset_acknowledged());
+        if !r.quarantined {
+            if let Some(device) = r.device.as_mut() {
+                device.begin_reset();
+                assert!(device.reset_acknowledged());
+            }
         }
         r.pool
     };
@@ -1173,12 +1387,25 @@ fn case() -> u8 {
         7
     } else if cfg!(feature = "test-m6b-flush-error") {
         8
+    } else if cfg!(feature = "test-m6b-write-timeout") {
+        9
+    } else if cfg!(feature = "test-m6b-flush-timeout") {
+        10
+    } else if cfg!(feature = "test-m6b-reset-timeout") {
+        11
+    } else if cfg!(feature = "test-m6b-write-poll-limit") {
+        12
+    } else if cfg!(feature = "test-m6b-flush-poll-limit") {
+        13
     } else {
         0
     }
 }
 fn fault_case() -> bool {
-    matches!(case(), 7 | 8)
+    matches!(case(), 7..=13)
+}
+fn deadline_case() -> bool {
+    matches!(case(), 9..=13)
 }
 fn marker() -> &'static [u8] {
     match case() {
@@ -1189,6 +1416,11 @@ fn marker() -> &'static [u8] {
         4 => b"M6B:CASE:CORRUPT:PASS\n",
         7 => b"M6B:CASE:WRITE_ERROR:PASS\n",
         8 => b"M6B:CASE:FLUSH_ERROR:PASS\n",
+        9 => b"M6B:CASE:WRITE_TIMEOUT:PASS\n",
+        10 => b"M6B:CASE:FLUSH_TIMEOUT:PASS\n",
+        11 => b"M6B:CASE:RESET_TIMEOUT:PASS\n",
+        12 => b"M6B:CASE:WRITE_POLL_LIMIT:PASS\n",
+        13 => b"M6B:CASE:FLUSH_POLL_LIMIT:PASS\n",
         _ => b"M6B:FAIL:CRASH_NOT_OBSERVED\n",
     }
 }

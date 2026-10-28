@@ -176,6 +176,19 @@ class DiskOracle(unittest.TestCase):
             for case in ('write-error', 'flush-error'):
                 self.assertFalse(d.verify_volume(self.volume, '', case=case,
                                                 before=self.volume.initial)['passed'])
+
+    def test_suppressed_write_is_unchanged_but_suppressed_flush_keeps_one_record(self):
+        initial = self.volume.initial
+        one = bytearray(record(0, 0, 1))
+        struct.pack_into('<Q', one, 24, 10); seal(one)
+        written = bytearray(initial)
+        written[d.FIRST*512:(d.FIRST+1)*512] = one
+        for case in ('write-timeout', 'reset-timeout', 'write-poll-limit', 'flush-timeout', 'flush-poll-limit'):
+            expected = initial if case.startswith('write') or case == 'reset-timeout' else bytes(written)
+            for actual in (initial, bytes(written)):
+                self.volume.path.write_bytes(actual)
+                self.assertEqual(d.verify_volume(self.volume, '', case=case, before=initial)['passed'],
+                                 actual == expected)
     def test_all_labels_and_seeds_are_bounded(self):
         for label in ('../disk','/dev/null','a/b',''):
             with self.assertRaises(ValueError): d.create_volume(label)

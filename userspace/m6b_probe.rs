@@ -256,7 +256,7 @@ fn client() -> ! {
     }
     wait(256);
     authority_probes(object);
-    if matches!(case, 7 | 8) {
+    if matches!(case, 7..=13) {
         uncertain_client(domain, object);
     }
     if case == 1 {

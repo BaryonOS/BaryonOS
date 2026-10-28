@@ -197,8 +197,8 @@ def capture(destination=None):
                 host_files.append(evidence)
             else:
                 host_files.extend(check_host_group(name,evidence,host_seen))
-    if len(runs)!=18 or len({r['run_directory'] for r in runs})!=18:
-        raise ValueError('Gate requires 18 distinct real VM invocations')
+    if len(runs)!=28 or len({r['run_directory'] for r in runs})!=28:
+        raise ValueError('Gate requires 28 distinct real VM invocations')
     destination.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='m6b-capture-',dir=BUILD) as temporary:
         staged=Path(temporary)/'archive'; staged.mkdir()

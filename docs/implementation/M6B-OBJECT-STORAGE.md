@@ -72,6 +72,30 @@ exit is onvoldoende bewijs. Een beschadigd journal moet vóór READY weigeren.
 
 ## Bewijsgrenzen
 
+### Vervolg K08: deadlines, annulering en quarantaine
+
+Na `7b4945f` volgen vijf afzonderlijke cases: WRITE_TIMEOUT, FLUSH_TIMEOUT,
+RESET_TIMEOUT, WRITE_POLL_LIMIT en FLUSH_POLL_LIMIT. Onderdrukte notify is een
+echte queuepublicatie zonder notification; onverwachte echte completion mag
+niet als timeout slagen. Kerneldeadline en peerprogress worden geobserveerd.
+De resetproef maskeert uitsluitend de waarneming van resetack en behoudt de
+vijf gepinde DMA-pagina's zonder hergebruik tot VM-stop.
+
+Bij eigen poll-LIMIT sluit de dienst zijn enige blokhandle via bestaande
+cap_close. Alleen geverifieerd verlies van de echte manifestautoriteit kan
+de kernelobserver over onzekerheid informeren; geen gebruikersboolean geldt
+als kernelbewijs. Het eigen pending ticket wordt ontkoppeld en gepubliceerde
+DMA vereist nog steeds een bevestigde reset. Geen nieuwe syscall of recht.
+Een compile-time testbudget verkort alleen de geselecteerde muterende poll;
+startup en normale profielen behouden hun budget.
+
+Alle vijf cases moeten negen Unknown-antwoorden en nul ACKs bewijzen,
+herhaalde mutaties/GET fail-closed afhandelen en domeinweigering behouden.
+Onderdrukte WRITE houdt het volume leeg; onderdrukte mutatie-FLUSH laat exact
+het eerste record achter. Elke case krijgt een koude recovery zonder writes.
+De uitgebreide volledige poort verlangt 32 groepen / 28 echte VM-runs.
+Dit contract is geen testresultaat; actuele uitvoering staat in PROJECT-STATE.md.
+
 Historische beperking op basis `1f24f99`: bij een WRITE- of FLUSH-fout kan
 `kernel/src/m2/m3/m6b.rs` een kernel panic veroorzaken, doordat `sent()` de reply
 nog met de verwachte `Ok`-reply vergelijkt voordat `Unknown` correct wordt

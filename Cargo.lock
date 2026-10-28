@@ -38,6 +38,7 @@ dependencies = [
  "capability-core",
  "kernel-core",
  "object-core",
+ "ui-core",
  "virtio-blk-driver",
  "virtio-core",
 ]
@@ -56,6 +57,10 @@ name = "r-efi"
 version = "7.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0ff379dd174eec5b2cab797063a2e7592dfcf0bf0323a50eeee724ee3537f13"
+
+[[package]]
+name = "ui-core"
+version = "0.1.0"
 
 [[package]]
 name = "virtio-blk-driver"

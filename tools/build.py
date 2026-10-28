@@ -14,7 +14,8 @@ M6A_CASES = ("service-errors", "device-rights", "full", "write-error", "flush-er
              "bad-descriptor", "used-write", "used-flush", "torn-tail", "corrupt-all",
              "stale-generation", "no-device", *(f"service-cut-{i}" for i in range(1, 7)),
              *(f"vm-cut-{i}" for i in range(1, 7)), "recover")
-M6B_FAULT_CASES = ("write-error", "flush-error")
+M6B_TIMEOUT_CASES = ("write-timeout", "flush-timeout", "reset-timeout", "write-poll-limit", "flush-poll-limit")
+M6B_FAULT_CASES = ("write-error", "flush-error") + M6B_TIMEOUT_CASES
 M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush") + M6B_FAULT_CASES
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
@@ -97,7 +98,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
         if "m6a" in kernel_feature:
             extra_env["NOS_M6_ELF"] = str(build_users("m6").resolve())
         if "m6b" in kernel_feature:
-            extra_env["NOS_M6B_ELF"] = str(build_users("m6b").resolve())
+            extra_env["NOS_M6B_ELF"] = str(build_users("m6b", short_poll=kernel_feature in
+                ("test-m6b-write-poll-limit", "test-m6b-flush-poll-limit")).resolve())
     if not (ROOT / "Cargo.lock").exists():
         run_logged(["cargo", "+1.90.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):

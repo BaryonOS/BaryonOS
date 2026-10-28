@@ -13,7 +13,7 @@ import threading
 import time
 import uuid
 from common import ROOT, BUILD, environment, firmware, save_json, sha256, source_hash
-from build import M6B_CASES, M6B_FAULT_CASES
+from build import M6B_CASES, M6B_FAULT_CASES, M6B_TIMEOUT_CASES
 from m6b_disk import Volume, create_volume, verify_volume
 from run import is_success, FAIL_MARKERS
 
@@ -52,8 +52,22 @@ def kill_for_crash(process):
 
 def case_markers(case):
     name = "NORMAL" if case == "normal" else case.upper().replace("-", "_")
-    fault = (f"M6B:INJECT:{name.removesuffix('_ERROR')}_IOERR_SNAPSHOT",
-             "M6B:OUTCOME:UNKNOWN", "M6B:NO_REPLAY:PASS", "M6B:NO_STALE_READ:PASS") if case in M6B_FAULT_CASES else ()
+    fault = ()
+    if case in M6B_TIMEOUT_CASES:
+        operation = 'FLUSH' if case.startswith('flush') else 'WRITE'
+        fault = (f'M6B:INJECT:{operation}_NOTIFY_SUPPRESSED',)
+        if case.endswith('poll-limit'):
+            fault += ('M6B:CANCEL:BLOCK_CAP_CLOSED', 'M6B:POLL_LIMIT:CANCELLED')
+        else:
+            fault += (f'M6B:DEADLINE:{operation}_TIMEOUT',)
+        fault += ('M6B:RESET:REQUESTED',)
+        fault += (('M6B:INJECT:RESET_ACK_MASKED', 'M6B:RESET:QUARANTINED', 'M6B:POOL_PINNED:PASS')
+                  if case == 'reset-timeout' else
+                  ('M6B:RESET:ACKNOWLEDGED', 'M6B:POOL_REUSE_AFTER_ACK:PASS'))
+    elif case in M6B_FAULT_CASES:
+        fault = (f"M6B:INJECT:{name.removesuffix('_ERROR')}_IOERR_SNAPSHOT",)
+    if case in M6B_FAULT_CASES:
+        fault += ("M6B:OUTCOME:UNKNOWN", "M6B:NO_REPLAY:PASS", "M6B:NO_STALE_READ:PASS")
     return BOOT + fault + (f"M6B:CASE:{name}:PASS", "M6B:SURVIVOR_PROGRESS:PASS",
                    "M6B:RESOURCES:PASS", "M6B:PASS", "M1:PASS")
 
@@ -61,7 +75,8 @@ def case_markers(case):
 def unique_markers(stdout, expected):
     prefixes = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "M6B:CASE:",
                 "M6B:SURVIVOR_PROGRESS", "M6B:RESOURCES", "M6B:PASS", "M1:PASS", "M6B:CUT:", "M6A:",
-                "M6B:INJECT", "M6B:OUTCOME", "M6B:NO_REPLAY", "M6B:NO_STALE_READ")
+                "M6B:INJECT", "M6B:OUTCOME", "M6B:NO_REPLAY", "M6B:NO_STALE_READ",
+                "M6B:DEADLINE", "M6B:CANCEL", "M6B:POLL_LIMIT", "M6B:RESET:", "M6B:POOL_")
     controlled = [line for line in stdout.splitlines()
                   if any(line.startswith(p) for p in prefixes)
                   or line.startswith("M6B:") and ":PASS" in line]

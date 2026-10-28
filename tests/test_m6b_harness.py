@@ -31,6 +31,22 @@ class NativeHarness(unittest.TestCase):
         self.assertEqual(rc,crash['termination_code_expected'])
         self.assertFalse(timed)
 
+    def test_timeout_cancellation_and_quarantine_require_their_actual_path(self):
+        cases = ('write-timeout', 'flush-timeout', 'reset-timeout', 'write-poll-limit', 'flush-poll-limit')
+        for case in cases:
+            markers = case_markers(case)
+            output = '\n'.join(markers)+'\n'
+            self.assertTrue(normal_success(33, output, False, case))
+            for marker in markers:
+                self.assertFalse(normal_success(33, output.replace(marker+'\n', ''), False, case))
+                self.assertFalse(normal_success(33, output+marker+'\n', False, case))
+            for other in cases:
+                if other != case:
+                    self.assertFalse(normal_success(33, output, False, other))
+            for extra in ('M6B:RESET:ACKNOWLEDGED', 'M6B:RESET:QUARANTINED',
+                          'M6B:DEADLINE:WRITE_TIMEOUT', 'M6B:CANCEL:BLOCK_CAP_CLOSED'):
+                self.assertFalse(normal_success(33, output+extra+'\n', False, case))
+
     def test_uncertain_mutations_require_unique_injection_and_unknown_proof(self):
         for case, operation in (('write-error', 'WRITE'), ('flush-error', 'FLUSH')):
             output = '\n'.join(case_markers(case))+'\n'

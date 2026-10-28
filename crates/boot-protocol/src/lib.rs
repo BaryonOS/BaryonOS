@@ -3,6 +3,8 @@
 
 //! M1 wire contract. Validation never follows physical pointers or reclaims memory.
 
+pub mod graphics;
+
 pub const PAGE_SIZE: u64 = 4096;
 pub const ADDRESS_LIMIT: u64 = 1 << 30;
 pub const KERNEL_START: u64 = 0x0200_0000;

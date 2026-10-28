@@ -10,6 +10,7 @@ default = []
 test-panic = []
 test-hang = []
 milestone-m2 = []
+graphics-g0 = ["milestone-m2", "dep:ui-core"]
 test-m2-ro = ["milestone-m2"]
 test-m2-nx = ["milestone-m2"]
 test-m2-absent = ["milestone-m2"]
@@ -101,6 +102,11 @@ test-m6b-vm-cut-before-ack = ["milestone-m6b"]
 test-m6b-vm-cut-after-flush = ["milestone-m6b"]
 test-m6b-write-error = ["milestone-m6b"]
 test-m6b-flush-error = ["milestone-m6b"]
+test-m6b-write-timeout = ["milestone-m6b"]
+test-m6b-flush-timeout = ["milestone-m6b"]
+test-m6b-reset-timeout = ["milestone-m6b"]
+test-m6b-write-poll-limit = ["milestone-m6b"]
+test-m6b-flush-poll-limit = ["milestone-m6b"]
 
 [dependencies]
 boot-protocol = { path = "../crates/boot-protocol" }
@@ -110,6 +116,7 @@ virtio-core = { path = "../crates/virtio-core" }
 virtio-blk-driver = { path = "../drivers/virtio-blk" }
 block-protocol = { path = "../services/block" }
 object-core = { path = "../services/objects", optional = true }
+ui-core = { path = "../crates/ui-core", optional = true }
 
 [[bin]]
 name = "os-kernel"

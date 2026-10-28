@@ -40,7 +40,9 @@ def inspect_user(path):
     return dict(entry=entry, segments=segments)
 
 
-def build_users(kind="probe"):
+def build_users(kind="probe", *, short_poll=False):
+    if short_poll and kind != "m6b":
+        raise ValueError("Short polling budget is an M6b test-only fixture")
     fixtures = {"probe": ("probe", "linker.ld", "probe", "manifest.json"),
                 "ipc": ("ipc_probe", "ipc_linker.ld", "ipc_probe", "manifest-ipc.json"),
                 "large": ("probe", "large_linker.ld", "probe_large", "manifest-large.json"),
@@ -60,10 +62,14 @@ def build_users(kind="probe"):
             "-C", "linker=rust-lld", "-C", f"link-arg=-T{linker}", "-C", "link-arg=--no-pie",
             "-C", "link-arg=--build-id=none", "-C", "link-arg=-zmax-page-size=0x1000",
             "--emit=link", "-o", str(output), str(source)]
+    if short_poll:
+        args.append("--cfg=nos_m6b_poll_limit")
     run_logged(args, f"build-users-{stem}")
     manifest = {"schema_version": 1, "purpose": "synthetic ring-3 acceptance probe",
                 "binary_sha256": sha256(output), "source_sha256": sha256(source),
                 "linker_sha256": sha256(linker), **inspect_user(output)}
+    if kind == "m6b":
+        manifest["short_poll_test_fixture"] = short_poll
     if kind == "m5":
         modules = ("userspace/m5_probe.rs", "userspace/m5_runtime.rs",
                    "services/block/src/wire.rs", "services/block/src/user_service.rs")
