@@ -303,3 +303,121 @@ root voor de testobserver en integratie. **Testbewijs:** parallel-i04,
 parallel-final-qsim en parallel-final-m3. Dit is geen formeel bewijs.
 **Migratie/rollback:** exclusief opt-in profiel; eerdere bron afzonderlijk
 bouwen, zonder opgeslagen gebruikersdata of hardwarefirmware te wijzigen.
+
+
+## ADR-035 — Security Floor blijft actief bij vrijwillig minder privacy
+
+**Datum/status/eigenaar:** 28 oktober 2026; aanvaard als product- en
+architectuurinvariant, nog niet volledig native gerealiseerd. Hoofdagent bewaakt
+integratie; security-eigenaars toetsen de enforcementgrenzen.
+
+**Context:** Nieuw OS moet privacybeschermende standaarden hebben, maar de
+gebruiker mag bewust online diensten, telemetrie, microfoon, cloudsync of
+andere gegevensdeling toestaan. Een dergelijke keuze mag niet veranderen in
+een algemene “trusted app”- of “minder veilige modus”.
+
+**Besluit:** privacykeuzes verruimen alleen expliciete capabilities en
+gegevensstromen. Kernel-/procesisolatie, capabilitycontrole, geheugen- en
+sleutelisolatie, pakket-/update-authenticiteit, bescherming van niet-gedeelde
+data en toekomstige DMA/IOMMU-grenzen blijven buiten die privacykeuze.
+
+**Security-invariant:** toestemming vergroot functionaliteit, niet vertrouwen.
+Een internetgrant alleen geeft geen document-, key-, camera-, microfoon-,
+NAS-, proces- of kernelrecht.
+
+**Weerlegd als:** een privacytoggle, providerkoppeling, telemetry-opt-in of
+focus/gamingmodus een bredere privilegeklasse activeert of bestaande
+isolatiechecks omzeilt.
+
+**Bewijs/migratie:** toekomstige native LP-/capabilitytests; geen nieuw
+acceptatiepunt door dit document. Bestaande grants blijven semantisch gelijk.
+Rollback: herstel dit ADR en de gekoppelde contracten gezamenlijk; geen
+datamigratie in deze documentatiestap.
+
+## ADR-036 — Externe provider mag alleen opaque ciphertextopslag zijn
+
+**Datum/status/eigenaar:** 28 oktober 2026; aanvaard architectuurdoel, nog geen
+native provideradapter. Opslag-/securityeigenaar beheert formaat en keygrens.
+
+**Context:** de eerdere revisie verbood leverancierscloud volledig. De gebruiker
+wil desgewenst bestaande algemene opslag zoals OneDrive/Google Drive kunnen
+benutten zonder die provider leesrecht op de opgeslagen inhoud te geven.
+
+**Alternatieven:** absolute provideruitsluiting beperkt keuze; provider-native
+encryptie/key escrow verschuift vertrouwen naar de provider; zelfgemaakte
+cryptografie is onaanvaardbaar.
+
+**Besluit:** een expliciet gekozen externe provider mag uitsluitend opaque,
+client-side versleutelde Nieuw-OS-objecten opslaan. De provider krijgt geen
+inhoudssleutel, documentplaintext, gevoelige manifestplaintext, lokale zoekindex
+of AI-context. Geen stille providerfallback. Het OS mag een eigen versieerbaar
+container-/objectformaat definiëren boven onderhouden standaardcryptografie.
+
+**Security-invariant:** bezit van alleen providerstate/credentials levert geen
+geaccepteerde documentplaintext op binnen het gedocumenteerde threat model.
+
+**Weerlegd als:** providercredentials of opgeslagen bytes zonder een geldige
+Nieuw-OS-key voldoende zijn voor plaintext; een provideradapter andere lokale
+objecten/keys kan lezen; of een outage stil een andere provider activeert.
+
+**Bewijs/migratie:** [implementation/ENCRYPTED-OBJECT-STORAGE.md](implementation/ENCRYPTED-OBJECT-STORAGE.md)
+definieert EO-acceptatie. De bestaande NAS-route blijft geldig. Geen echte
+provideraccount, productiekey of gebruikersdata wordt door dit besluit
+geconfigureerd.
+
+## ADR-037 — Eigen premium native productiviteitsfamilie, geen Office-ripoff
+
+**Datum/status/eigenaar:** 28 oktober 2026; productbesluit voor P3/P4/M7,
+nog niet native gerealiseerd. Product-/UI-eigenaar beheert designsysteem;
+graphics-eigenaar beheert later renderer/compositorgrenzen.
+
+**Context:** privacyvriendelijke alternatieven mogen niet aanvoelen als
+verouderde systeemsoftware. Tegelijk zou een directe kopie van Office,
+Windows of macOS de eigen productidentiteit ondermijnen.
+
+**Besluit:** Materiaal blijft het objectmodel. Eigen tekst-, tabel-,
+presentatie-, PDF/media- en latere productiviteitstools delen één designsysteem,
+contextuele gereedschappen, geschiedenis, delen, herstel, motion en
+toegankelijkheid. Geen permanente Office-ribbonkopie als basis. Een gedeelde
+native GPU-geaccelereerde UI-/renderlaag is het langetermijndoel zodra de
+graphicsbasis dat toelaat; exacte renderer/API blijft een later technisch
+besluit. DOCX/XLSX/PPTX/PDF zijn interoperabiliteitsdoelen die per feature
+moeten worden getest.
+
+**Productinvariant:** herkenbare basishandelingen blijven voorspelbaar; de
+eigenheid komt uit Materiaal, objectcontinuïteit, contextuele tools en
+capabilitybewust delen, niet uit onbekende bediening omwille van originaliteit.
+
+**Weerlegd als:** kernapps eindigen als inconsistente losstaande webviews,
+de interface structureel een bestaande suite kopieert, of privacy alleen via
+beheerachtige UX bruikbaar is.
+
+**Bewijs/migratie:** PX-acceptatie in PRODUCT-SPEC.md en latere gebruikers-/
+native tests. Het huidige P2-browserprototype blijft ontwerpgereedschap en
+wordt niet door dit ADR tot productruntime verklaard.
+
+## ADR-038 — Privacyuitleg is optioneel; capabilitybeslissingen blijven echt
+
+**Datum/status/eigenaar:** 28 oktober 2026; aanvaard UX-/securitycontract,
+nog niet native afgedwongen.
+
+**Context:** begrijpelijke voorbeelden en kritische vragen kunnen privacykeuzes
+duidelijker maken, maar herhaalde waarschuwingen kunnen de ervaring verstoren.
+De gebruiker wil die privacy-popups volledig kunnen uitschakelen.
+
+**Besluit:** de UI scheidt (a) noodzakelijke beslissingen over nieuwe
+capabilities van (b) educatieve privacyuitleg. Educatieve uitleg kan globaal
+of per app uit. Een reeds geldige grant wordt niet bij iedere normale
+handeling opnieuw gevraagd. Focus/gaming onderdrukt niet-urgente educatieve
+meldingen; een bewust gestarte nieuwe gevoelige functie mag nog wel een
+compacte noodzakelijke grantvraag tonen.
+
+**Security-invariant:** het uitschakelen van privacyuitleg wijzigt geen
+capabilityset en creëert geen impliciete “allow all”.
+
+**Weerlegd als:** dezelfde statewijziging zowel de uitleg als toegangsrechten
+uitzet/verruimt, of het systeem op basis van “uitleg uit” een nog niet verleende
+capability als toegestaan behandelt.
+
+**Bewijs/migratie:** LP-29/PX-04 en toekomstige native UI-/brokerproeven. Bestaande
+grants migreren niet; alleen de presentatievoorkeur wordt afzonderlijk bewaard.
