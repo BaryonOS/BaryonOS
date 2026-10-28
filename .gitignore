@@ -6,6 +6,7 @@
 /artifacts/
 /.tools/
 /experiments/quantum/target/
+/experiments/quantum/job-protocol/target/
 *.qcow2
 *.img
 *.iso

@@ -1,18 +1,18 @@
 //! M4 syscall boundary and synthetic ring-3 evidence. The authority engine never
 //! receives user pointers. All copies use prevalidated fixed-size byte plans.
 use super::*;
-#[cfg(not(feature = "milestone-m5"))]
+#[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
 use capability_core::{Cap, ALL_RIGHTS};
 use capability_core::{Engine, Error, Message, RECV, SEND};
 use kernel_core::user::{CopyPlan, PageAccess};
-#[cfg(not(feature = "milestone-m5"))]
+#[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
 const MSG: u64 = 0x40011000;
-#[cfg(not(feature = "milestone-m5"))]
+#[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
 const OUT: u64 = 0x40012000;
-#[cfg(not(feature = "milestone-m5"))]
+#[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
 const ROWS: u64 = DATA + 0x100;
 static mut ENGINE: Engine = Engine::new();
-#[cfg(not(feature = "milestone-m5"))]
+#[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
 struct Evidence {
     calls: u64,
     success: u64,
@@ -29,7 +29,7 @@ struct Evidence {
     expected_exit: bool,
     expected_fault: bool,
 }
-#[cfg(not(feature = "milestone-m5"))]
+#[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
 const EMPTY_EVIDENCE: Evidence = Evidence {
     calls: 0,
     success: 0,
@@ -46,15 +46,15 @@ const EMPTY_EVIDENCE: Evidence = Evidence {
     expected_exit: false,
     expected_fault: false,
 };
-#[cfg(not(feature = "milestone-m5"))]
+#[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
 static mut EVIDENCE: Evidence = EMPTY_EVIDENCE;
-#[cfg(not(feature = "milestone-m5"))]
+#[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
 static mut LIFECYCLE_ROUNDS: u8 = 0;
 pub(super) fn engine() -> &'static mut Engine {
     // SAFETY: One CPU, IF=0, no nested engine calls or retained engine borrows.
     unsafe { &mut *ptr::addr_of_mut!(ENGINE) }
 }
-#[cfg(not(feature = "milestone-m5"))]
+#[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
 fn evidence() -> &'static mut Evidence {
     // SAFETY: Same serialized service-stack lifetime as Engine; no IRQ mutates it.
     unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
@@ -197,9 +197,9 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
     // byte, including a read-only second page. Nothing is copied to output yet.
     let mut output_before = None;
     let result = dispatch(state, slot, number, args, &mut output_before);
-    #[cfg(not(feature = "milestone-m5"))]
+    #[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
     let e = evidence();
-    #[cfg(not(feature = "milestone-m5"))]
+    #[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
     {
         e.calls += 1;
     }
@@ -207,7 +207,7 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
         Ok(value) => {
             #[cfg(feature = "milestone-m5")]
             super::m5::cap_event(slot, number);
-            #[cfg(not(feature = "milestone-m5"))]
+            #[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
             {
                 e.success += 1;
                 match number {
@@ -234,7 +234,7 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
                     "failed receive partially wrote user output"
                 );
             }
-            #[cfg(not(feature = "milestone-m5"))]
+            #[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
             {
                 let index = (-error.code()) as usize;
                 e.errors[index] += 1;
@@ -250,7 +250,7 @@ pub fn process_exit(pid: u64) {
     engine().exit(pid).expect("registered process cleanup");
     assert!(engine().check_invariants());
 }
-#[cfg(not(feature = "milestone-m5"))]
+#[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
 mod acceptance {
     use super::*;
     pub fn observe_exit(state: &mut State, slot: usize, _counter: u64) {
@@ -856,5 +856,5 @@ mod acceptance {
         assert_eq!(engine().stats().queued_messages, 0);
     }
 }
-#[cfg(not(feature = "milestone-m5"))]
+#[cfg(all(not(feature = "milestone-m5"), not(feature = "native-qsim-job")))]
 pub(super) use acceptance::{manifest, observe_exit, observe_fault, poll};

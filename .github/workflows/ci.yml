@@ -36,7 +36,7 @@ jobs:
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
       - name: Python syntax and DocumentSession host tests
         run: |
-          python3 -m compileall -q tools tests userspace/tests experiments/quantum/native .agents/skills/os-dev
+          python3 -m compileall -q tools tests userspace/tests experiments/quantum/native experiments/quantum/native/job .agents/skills/os-dev
           python3 -m unittest discover -s tests -p 'test_document_session_*.py'
           python3 .agents/skills/os-dev/scripts/validate_skill.py
           python3 -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py'
@@ -62,6 +62,10 @@ jobs:
           cargo +1.90.0 clippy --manifest-path experiments/quantum/Cargo.toml --locked --all-targets -- -D warnings
           cargo +1.90.0 fmt --manifest-path experiments/quantum/Cargo.toml --all -- --check
           python3 experiments/quantum/verify.py
+          cargo +1.90.0 test --manifest-path experiments/quantum/job-protocol/Cargo.toml --locked
+          cargo +1.90.0 clippy --manifest-path experiments/quantum/job-protocol/Cargo.toml --locked --all-targets -- -D warnings
+          cargo +1.90.0 fmt --manifest-path experiments/quantum/job-protocol/Cargo.toml --all -- --check
+          python3 experiments/quantum/native/job/build.py --output-dir /tmp/nieuw-os-qsim-job-build --target-dir /tmp/nieuw-os-qsim-job-target
       - name: Product prototype tests
         run: node --test --test-isolation=none ui/prototype/tests/*.test.mjs
       - name: NAS policy, storage and transport tests
@@ -115,3 +119,16 @@ jobs:
           NOS_TARGET_DIR="$PWD/target/ci-document" \
           CARGO_TARGET_DIR="$PWD/target/ci-document" \
           python3 -B tools/test_document_session.py
+
+      - name: Native quantum job interface
+        shell: bash
+        run: |
+          rm -rf build/ci-qsim-job target/ci-qsim-job
+          NOS_BUILD_DIR="$PWD/build/ci-qsim-job" \
+          NOS_TARGET_DIR="$PWD/target/ci-qsim-job" \
+          CARGO_TARGET_DIR="$PWD/target/ci-qsim-job" \
+          python3 -B tools/build.py --kernel-feature native-qsim-job
+          NOS_BUILD_DIR="$PWD/build/ci-qsim-job" \
+          NOS_TARGET_DIR="$PWD/target/ci-qsim-job" \
+          CARGO_TARGET_DIR="$PWD/target/ci-qsim-job" \
+          python3 -B tools/run_qsim_job.py
