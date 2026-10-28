@@ -515,7 +515,7 @@ impl State {
     }
     fn audit_process(&self, i: usize) {
         let p = &self.processes[i];
-        assert_ne!(p.status, Status::Dead);
+        assert!(!matches!(p.status, Status::Dead));
         let tables = p.paging.as_ref().unwrap();
         assert_ne!(tables.root, self.kernel.root);
         assert!(!tables.permissions(text_start()).unwrap().3);
