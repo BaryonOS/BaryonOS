@@ -1,0 +1,10 @@
+test_missing_or_failed_probe_fails_strict_inventory (test_preflight.RequiredToolProbes.test_missing_or_failed_probe_fails_strict_inventory) ... ok
+test_non_strict_inventory_reports_crash_without_failing (test_preflight.RequiredToolProbes.test_non_strict_inventory_reports_crash_without_failing) ... ok
+test_non_strict_inventory_reports_probe_exceptions_without_failing (test_preflight.RequiredToolProbes.test_non_strict_inventory_reports_probe_exceptions_without_failing) ... ok
+test_probe_exceptions_fail_strict_inventory (test_preflight.RequiredToolProbes.test_probe_exceptions_fail_strict_inventory) ... ok
+test_zero_and_default_zero_probe_exit_succeed (test_preflight.RequiredToolProbes.test_zero_and_default_zero_probe_exit_succeed) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.013s
+
+OK

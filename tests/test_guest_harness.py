@@ -30,7 +30,7 @@ class GuestEvidenceGate(unittest.TestCase):
         for required in (MARKERS, ('BOOT:EBS_RETRY',) + MARKERS):
             log = '\n'.join(required)
             self.assertTrue(is_success(33, log, required_markers=required))
-            for phase in ('M2', 'M3', 'M4', 'M5', 'M6A', 'M6B'):
+            for phase in ('M2', 'M3', 'M4', 'M5', 'M6A', 'M6B', 'M6C'):
                 with self.subTest(profile=required, phase=phase):
                     self.assertFalse(is_success(33, log+'\n'+phase+':DIAGNOSTIC:1', required_markers=required))
 
@@ -38,7 +38,7 @@ class GuestEvidenceGate(unittest.TestCase):
         for phase, markers in MILESTONE_MARKERS.items():
             with self.subTest(phase=phase):
                 self.assertTrue(is_success(33, '\n'.join(markers), required_markers=markers))
-        for phase in ('M6A', 'M6B'):
+        for phase in ('M6A', 'M6B', 'M6C'):
             markers = MARKERS[:3] + (phase+':PASS', 'M1:PASS')
             self.assertTrue(is_success(33, '\n'.join(markers), required_markers=markers))
 

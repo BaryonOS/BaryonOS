@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/workspace/scratch/244976efa240/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "test",
+    "--locked",
+    "--offline",
+    "-p",
+    "catalog-core"
+  ],
+  "cwd": "/workspace/scratch/244976efa240/nieuw-os",
+  "started_unix": 1793144889.7516277,
+  "duration_s": 0.06987905502319336,
+  "returncode": 0
+}

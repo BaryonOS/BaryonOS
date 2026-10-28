@@ -1,5 +1,49 @@
 # Ontwerpbesluiten
 
+## ADR-030 — Native labels en een catalogus per appdomein
+
+**Datum/status:** 28 oktober 2026; geïmplementeerd en native eindgate geslaagd
+op broncommit bc4cd104, basis bb22fdb. Exact contract: implementation/M6C-NAMED-CATALOG.md.
+Het native `Unknown`-foutpad heeft een bekende, ongerepareerde observerpanic,
+ook met `milestone-m6c`.
+
+**Context en besluit:** afgeronde M6b heeft anonieme objectslots. Materiaal heeft
+benoemde objecten en list/open nodig. Voeg een aparte dependencyvrije catalog-core
+met expliciete IPC v4/journal v2 toe. Namen zijn UTF-8-labels, geen autoriteit of
+pad; object-ID en endpoint/caller blijven de toegangsgrens. LIST retourneert één
+begrensde snapshot van uitsluitend eigen live objecten met eigen revisiesom.
+PUT/RENAME zijn één record met naam/inhoud onder één CAS-revisie. RENAME behoudt
+inhoud; WRITE- en FLUSH-completion gaan vóór ACK. Het servicecontract sluit bij
+`Unknown` ook LIST af; dit foutpad is alleen via host-ABI getest.
+
+**Alternatieven/gevolgen:** stil hergebruik van v3/v1-padding zou oude readers
+misleiden; een losse naamtabel vereist meerdere atomische writes. Automatische
+migratie is niet nodig voor deze synthetische proef: v1 weigert vóór READY en de
+M6b-reader blijft behouden. Duplicaatlabels zijn toegestaan; geen directoryboom,
+normalisatie, encryptie of fysieke secure erase toegevoegd. Kleinere grenzen zijn
+proefbudgetten, geen vaste consumentenproductkeuze.
+
+**Bewijs en herziening:** de finale M6c-gate/capture slaagt met 19 groepen en
+15 VM-invocaties: 14 M6c plus één gewone M1. M6b-regressie slaagt met 18 groepen
+en 14 VM-invocaties op dezelfde fingerprint. De 30 coretests, 33 harnastests en
+15 host-ABI-adapterproeven behouden hun eigen scope. De native observer in
+`kernel/src/m2/m3/m6c.rs` kan bij WRITE-/FLUSH-fouten of time-outs panikeren
+vóór de client `Unknown` ontvangt; gecontroleerde native foutafhandeling is
+niet gerealiseerd. Een afzonderlijke AI-audit
+controleert alle 141 bronbestanden, 130 geregistreerde artifacthashes en acht
+volumes, inclusief twee externe rename-kills en zes koude recoveries. Details:
+`verification/M6C-ACCEPTANCE.md`; geen menselijke audit of formeel bewijs.
+De nieuwe kernelmodule bevat een expliciete fixtureobserver plus de bestaande blokbroker; het
+catalogusbeleid draait in ring 3. Herstel van het bekende `Unknown`-defect
+vereist een afzonderlijke native reparatie met WRITE-/FLUSH-fout- en
+time-outinjectie, controle van het werkelijk ontvangen clientantwoord en
+nieuwe brongebonden native verificatie. Herzie formaat/migratie vóór echt gebruikersdata,
+meer slots, grotere documenten of compositorintegratie. Terugdraaien kan via de
+bestaande M6b-build en zijn eigen volumes; geen bestaande image overschrijven.
+
+**Bronnen:** huidige M6B-OBJECT-STORAGE.md/PROJECT-STATE.md op bb22fdb; Rust
+bare-metal targetdocumentatie in het M6c-contract. Dit is een projectbesluit.
+
 ## ADR-028 — Bewijs per eigenschap en standaard hybride NAS-transport
 
 **Datum/status:** 27 oktober 2026; ontwerp aanvaard en N02-hostproef getest vanaf `ece94a5`. **Context:** de gebruikersblauwdruk vraagt formele verificatie, kleine TCB, capabilities, geheugenbescherming en PQC. De richting past bij het project; de absolute productclaims en het eigen KDF-/tunnelvoorstel zijn niet onderbouwd.

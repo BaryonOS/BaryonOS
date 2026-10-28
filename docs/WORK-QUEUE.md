@@ -1,4 +1,29 @@
-# Werkqueue — M6a actief
+# Werkqueue — M6c native catalogus afgerond
+
+## Actuele uitvoering — 28 oktober 2026
+
+Basis `bb22fdb`, branch `codex/m6c-named-catalog`. M6a en M6b zijn al afgerond
+volgens de versiegebonden bewijsarchieven in PROJECT-STATE.md. De oudere queue
+hieronder bewaart uitsluitend de toenmalige werkverdeling.
+
+| ID | Eigenaar / schrijfgebied | Afgerond resultaat |
+|---|---|---|
+| C07-core | catalog_core / services/catalog core en tests | namen, v4-wire, v2-journal, catalogus; 30 hosttests en no_std groen |
+| C07-native | catalog_native / nieuwe serviceadapter, probe en kernelobserver | finale native gate: 19 groepen / 15 VM-invocaties inclusief M1 |
+| G07 | root / gedeelde config, tools, harnas en docs | onafhankelijk schijforakel; 33 hosttests; checkpoint bc4cd104 vóór lange controles |
+| R07 | context_review / alleen lezen | 15 scenario's van echte adapter via host-ABI-shim; geen native devicefoutinjectie |
+| V07 | root + reviewers | M6c-capture, M6b 18 groepen / 14 VM, acht volumes en 130 artifacthashes geaudit; brongebonden integratiecontrole |
+
+Alle eindgates en captures hebben exit 0. Bron, exacte commando's, host-/native
+grenzen en bewijslinks: [M6C-ACCEPTANCE.md](verification/M6C-ACCEPTANCE.md).
+De M6c-eindbuild is bytegelijk aan de twee normale eindgate-runs. De reviews zijn
+AI-reviews, geen menselijke audit of formeel bewijs.
+
+Vervolg: native Materiaal-koppeling en beveiligingsafhankelijkheden
+uit VERIFIABLE-SECURITY-AND-PQC blijven afzonderlijke stappen; geen automatische
+sleutelgeneratie zonder entropy of grafische/native NAS-claim door deze catalogus.
+
+## Historische queue vóór afgeronde M6b
 
 ## Parallel N01 — internet en persoonlijke NAS
 

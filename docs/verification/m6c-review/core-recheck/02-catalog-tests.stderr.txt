@@ -1,0 +1,6 @@
+   Compiling catalog-core v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/services/catalog)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.61s
+     Running unittests src/lib.rs (/tmp/nieuw-os-catalog-core-recheck-34ror_ss/target/debug/deps/catalog_core-a8070c27aae832d2)
+     Running tests/core.rs (/tmp/nieuw-os-catalog-core-recheck-34ror_ss/target/debug/deps/core-b795e532764d6336)
+     Running tests/wire.rs (/tmp/nieuw-os-catalog-core-recheck-34ror_ss/target/debug/deps/wire-c87bb83abbd1b5e6)
+   Doc-tests catalog_core

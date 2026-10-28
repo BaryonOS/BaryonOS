@@ -2,6 +2,88 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
+## M6c — native documentnamen en catalogus gebouwd en getest
+
+28 oktober 2026. Basis `bb22fdbe15919edc23baa158a46236195ce314b2`, werkbranch
+`codex/m6c-named-catalog`. De afgeronde M6b-basis hieronder blijft behouden.
+
+Gebouwd: dependencyvrije `catalog-core`, IPC v4, journal v2, blijvende UTF-8-namen,
+GET/PUT/DELETE/RENAME en één domeingebonden LIST-snapshot. Hernoemen bewaart de
+inhoud onder een nieuwe objectrevisie; alleen na WRITE én FLUSH volgt succes.
+De vier objecten, twee domeinen, 128 inhoudsbytes en 32 journalrecords blijven
+proefbudgetten. Nieuwe formaten zijn expliciet; bezet M6b-v1 wordt vóór READY
+geweigerd, zonder migratie of formattering. Bestaande M6b blijft afzonderlijk
+bouwbaar. Contract: `implementation/M6C-NAMED-CATALOG.md`; besluit ADR-030.
+
+Definitieve uitvoeringsbron: `bc4cd104e86e2c047b727ae96e07a03fbc810c3c`;
+fingerprint v3 `4468b3c18bd7fa57bf3631d634d52ee4c5fe9a76da9f125714d6db95e4407345`.
+Deze bron is vóór de lange controles op GitHub bewaard. De oorspronkelijke afsluitende wijzigingen
+betreffen documentatie en bewijs. De latere integratie van het M6b-reviewherstel
+wijzigt hosttools en tests; de native runtimebron blijft gelijk. Het afzonderlijke
+hostbewijs staat in `verification/m6c-review/merge-followup/`. [PR #10](https://github.com/simonvanieperen/nieuw-os/pull/10)
+staat boven de M6b-branch; geen merge naar main of release uitgevoerd.
+
+| Scope op deze bron | Resultaat | Bewijs |
+|---|---|---|
+| Volledige M6c-gate en capture | exit 0; 19 groepen / 15 VM-invocaties | `verification/m6c/` |
+| Volledige M6b-regressie en capture | exit 0; 18 groepen / 14 VM-invocaties | `verification/regression-m6c/` |
+| Catalog-core en harnas | 30 Rust- en 33 Python-tests; fmt/Clippy/no_std exit 0 | `verification/m6c/`, `verification/m6c-review/core-recheck/` |
+| Echte adapter via host-ABI-shim | 15 scenario's, exit 0; geen native devicefoutinjectie | `verification/m6c-review/adapter-result.json` |
+| Afsluitende M6c-build | exit 0; kernel en loader bytegelijk aan beide normale eindruns | `verification/m6c-ready/` |
+
+De 15 M6c-gate-invocaties zijn 14 M6c-VM's plus één gewone M1-boot. Ze omvatten
+twee normale images, domeingrenzen na populatie, volle journal, corruptie, geldig
+legacy-v1, zes koude recoveries en twee echte externe QEMU-kills tijdens RENAME.
+Vóór WRITE blijft `Café A` op revisie 1; na FLUSH vóór ACK verschijnt
+`Café hernoemd A` op revisie 2. De 128 inhoudsbytes blijven exact gelijk.
+Alle zes koude herstelruns veranderen geen schijfbytes. De M6b-regressie omvat
+eveneens een eigen gewone M1-boot; dit zijn geen nieuwe volledige M1–M6a-gates.
+
+Een afzonderlijke AI-audit controleerde 130 geregistreerde artifacthashes,
+176 runbestanden, acht werkelijke volumes en alle 141 bronbestanden tegen
+`bc4cd104`. De 67 niet-lege journal-sectoren en seeds zijn als tekst bewaard;
+daaruit zijn alle imagehashes opnieuw opgebouwd. Zes vroege runrecords noemen
+nog de toenmalige lokale HEAD `bb22fdb`; hun volledige broninhoud en fingerprint
+zijn bytegelijk aan `bc4cd104`. Dit metadataverschil blijft zichtbaar.
+De aparte statische integratiecontrole bindt het native gebruikers-ELF aan de
+geteste kernel en controleert budgetten en instructies. Reviews zijn AI-reviews,
+geen menselijke audit of formeel bewijs. Exacte commando's, afbakening en
+provenance: [M6C-ACCEPTANCE.md](verification/M6C-ACCEPTANCE.md).
+
+De vijf GitHub-reviewopmerkingen over bewijsstatus en reproduceerbaarheid zijn
+afgehandeld in `verification/m6c-review/REVIEW-FOLLOWUP.md`: actuele native
+resultaten gelinkt, portable adapter opnieuw getest en de vier corecontroles
+read-only herhaald met HEAD/status en bronhashes vóór/na. Historische evidence
+blijft behouden. Dit verandert de native bron of het aantal VM-runs niet.
+
+Het geïntegreerde hosttoolherstel heeft 123 unieke hosttests over twee runs:
+121 bestaande tests, gevolgd door vijf preflighttests waarvan drie herhaald
+en twee nieuw. Een latere reviewaanscherping bindt de drie M6c-hostlogtrio's
+met SHA-256 aan de gate en controleert de binding vóór én na het kopiëren.
+Deze wijziging heeft afzonderlijk hosttestbewijs in
+`verification/m6c-review/host-log-binding/`; de eerdere 123 tests worden niet
+als uitvoering op deze latere toolbron opgevoerd. De oorspronkelijke M6c-suite
+mist gate-time-hostloghashes en blijft als historisch bewijs ongewijzigd.
+
+Na opname van het M6b-vervolgherstel zijn de gedeelde capturepaden samen
+gecontroleerd: 29 tests geslaagd (vier M6a, tien M6b, vijftien M6c), met
+ongewijzigde inputhashes vóór/na. Dit is één afzonderlijke hostinvocatie;
+het aantal wordt niet bij eerdere overlappende runs opgeteld. Broncombinatie,
+commando en ruwe uitvoer staan in `verification/m6c-review/integration-followup/`.
+Geen native build of VM uitgevoerd voor deze integratiecontrole.
+
+Bekende observerfout: native WRITE-/FLUSH-fouten of time-outs kunnen ook in de
+gewone `milestone-m6c` een kernel panic veroorzaken voordat de client `Unknown`
+ontvangt. De host-ABI-proeven toetsen alleen de serviceadapter. Contract en
+M6C-ACCEPTANCE vermelden nu expliciet dat dit native pad niet gerepareerd of
+end-to-end bewezen is. Latere reparatie vereist echte native foutinjectie.
+De onderzoeksacceptatie blijft begrensd tot de vastgelegde QEMU/device-fixture.
+
+Vervolg: deze opslaginterface aan native productfuncties koppelen; grotere
+documenten, ruimtehergebruik, encryptie, sleutels en native NAS/netwerk vereisen
+eigen ontwerp en acceptatie. M6c heeft nog geen interactieve desktop. FNV blijft
+uitsluitend corruptiediagnose; QEMU-kills bewijzen geen fysieke stroomuitval.
+
 ## M6b — native documentopslag gebouwd en getest
 
 Basis `10b32e31671827f2bd63444113b981ff15bfbb73`, werkbranch `codex/m6b-object-storage`.
@@ -201,3 +283,5 @@ Op deze reparaties opnieuw uitgevoerd in Ubuntu 26.04.1 met Rust 1.90.0/QEMU 10.
 ## Vervolg en herstel
 
 M6a: begrensde WRITE/FLUSH en crashherstel op een synthetische wegwerpimage; de actieve status en nog uit te voeren volledige poort staan hierboven. Werkqueue: WORK-QUEUE.md. Contract: implementation/M6A-WRITE-RECOVERY.md. M1–M5-baseline en eerder bewijs blijven behouden; de volledige QEMU-poort is na deze merge niet opnieuw uitgevoerd. Herstel via aparte consistente checkout c630c59; geen destructieve reset of hostconfigmigratie.
+
+

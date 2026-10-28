@@ -1,0 +1,2 @@
+    Checking catalog-core v0.1.0 (/workspace/scratch/244976efa240/nieuw-os/services/catalog)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.25s

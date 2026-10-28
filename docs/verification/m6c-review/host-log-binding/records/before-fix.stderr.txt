@@ -1,0 +1,193 @@
+test_each_completed_host_command_is_hashed_before_next_gate_step (test_m6c_capture.GateTimeHostLogBinding.test_each_completed_host_command_is_hashed_before_next_gate_step) ... FAIL
+test_capture_accepts_unchanged_host_logs_with_gate_hashes (test_m6c_capture.HostEvidenceBinding.test_capture_accepts_unchanged_host_logs_with_gate_hashes) ... ok
+test_capture_rechecks_each_host_log_after_copy_before_archive_install (test_m6c_capture.HostEvidenceBinding.test_capture_rechecks_each_host_log_after_copy_before_archive_install) ... 
+  test_capture_rechecks_each_host_log_after_copy_before_archive_install (test_m6c_capture.HostEvidenceBinding.test_capture_rechecks_each_host_log_after_copy_before_archive_install) (member=0) ... FAIL
+  test_capture_rechecks_each_host_log_after_copy_before_archive_install (test_m6c_capture.HostEvidenceBinding.test_capture_rechecks_each_host_log_after_copy_before_archive_install) (member=1) ... FAIL
+  test_capture_rechecks_each_host_log_after_copy_before_archive_install (test_m6c_capture.HostEvidenceBinding.test_capture_rechecks_each_host_log_after_copy_before_archive_install) (member=2) ... FAIL
+test_capture_rejects_each_host_log_changed_after_gate (test_m6c_capture.HostEvidenceBinding.test_capture_rejects_each_host_log_changed_after_gate) ... 
+  test_capture_rejects_each_host_log_changed_after_gate (test_m6c_capture.HostEvidenceBinding.test_capture_rejects_each_host_log_changed_after_gate) (member=0) ... FAIL
+  test_capture_rejects_each_host_log_changed_after_gate (test_m6c_capture.HostEvidenceBinding.test_capture_rejects_each_host_log_changed_after_gate) (member=1) ... FAIL
+  test_capture_rejects_each_host_log_changed_after_gate (test_m6c_capture.HostEvidenceBinding.test_capture_rejects_each_host_log_changed_after_gate) (member=2) ... FAIL
+test_capture_rejects_substitution_before_touching_existing_archive (test_m6c_capture.HostEvidenceBinding.test_capture_rejects_substitution_before_touching_existing_archive) ... ok
+test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) ... 
+  test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected=None) ... FAIL
+  test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected=[]) ... FAIL
+  test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected={}) ... FAIL
+  test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected={'m6c-preflight.stdout.txt': 'f6cdac4a3ec1257504d23c2638603c1ca74fd184de2be0bcfdf7f37ff7a72183', 'm6c-preflight.json': '619914cebb8e25bea6a9fe63406666cd36e4d8a99d5ce37505a9406bc5eedbb2', 'm6c-preflight.stderr.txt': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'extra.txt': '0000000000000000000000000000000000000000000000000000000000000000'}) ... FAIL
+  test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected={'m6c-preflight.json': '619914cebb8e25bea6a9fe63406666cd36e4d8a99d5ce37505a9406bc5eedbb2', 'm6c-preflight.stderr.txt': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}) ... FAIL
+  test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected={'m6c-preflight.stdout.txt': '000000000000000000000000000000000000000000000000000000000000000', 'm6c-preflight.json': '619914cebb8e25bea6a9fe63406666cd36e4d8a99d5ce37505a9406bc5eedbb2', 'm6c-preflight.stderr.txt': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}) ... FAIL
+  test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected={'m6c-preflight.stdout.txt': 'gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg', 'm6c-preflight.json': '619914cebb8e25bea6a9fe63406666cd36e4d8a99d5ce37505a9406bc5eedbb2', 'm6c-preflight.stderr.txt': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}) ... FAIL
+  test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected={'m6c-preflight.stdout.txt': 0, 'm6c-preflight.json': '619914cebb8e25bea6a9fe63406666cd36e4d8a99d5ce37505a9406bc5eedbb2', 'm6c-preflight.stderr.txt': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}) ... FAIL
+test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) ... FAIL
+test_exact_argv_cwd_exit_and_timeout_are_required (test_m6c_capture.HostEvidenceBinding.test_exact_argv_cwd_exit_and_timeout_are_required) ... ok
+test_exact_three_separate_host_contracts_are_accepted (test_m6c_capture.HostEvidenceBinding.test_exact_three_separate_host_contracts_are_accepted) ... ok
+test_missing_member_of_host_log_trio_is_rejected (test_m6c_capture.HostEvidenceBinding.test_missing_member_of_host_log_trio_is_rejected) ... ok
+test_one_log_trio_cannot_count_twice (test_m6c_capture.HostEvidenceBinding.test_one_log_trio_cannot_count_twice) ... ok
+test_preflight_cannot_replace_rust_or_python_test_log_paths (test_m6c_capture.HostEvidenceBinding.test_preflight_cannot_replace_rust_or_python_test_log_paths) ... ok
+test_renaming_preflight_metadata_does_not_satisfy_test_commands (test_m6c_capture.HostEvidenceBinding.test_renaming_preflight_metadata_does_not_satisfy_test_commands) ... ok
+test_complete_fixed_m6c_and_m1_key_sets_are_accepted (test_m6c_capture.RequiredArtifactBinding.test_complete_fixed_m6c_and_m1_key_sets_are_accepted) ... ok
+test_each_missing_artifact_is_rejected_before_raw_hash_validation (test_m6c_capture.RequiredArtifactBinding.test_each_missing_artifact_is_rejected_before_raw_hash_validation) ... ok
+test_empty_missing_extra_and_wrong_phase_artifact_maps_are_rejected (test_m6c_capture.RequiredArtifactBinding.test_empty_missing_extra_and_wrong_phase_artifact_maps_are_rejected) ... ok
+
+======================================================================
+FAIL: test_each_completed_host_command_is_hashed_before_next_gate_step (test_m6c_capture.GateTimeHostLogBinding.test_each_completed_host_command_is_hashed_before_next_gate_step)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 301, in test_each_completed_host_command_is_hashed_before_next_gate_step
+    gate.test_m6c()
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tools/test_m6c.py", line 55, in test_m6c
+    run_logged(['cargo','+1.90.0','test','--locked','--offline','-p','catalog-core'],'m6c-host-tests')
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 280, in command_double
+    verify_recorded()
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 276, in verify_recorded
+    self.assertIn('log_sha256', group)
+AssertionError: 'log_sha256' not found in {'name': 'strict-development-inventory', 'passed': True, 'evidence': 'build/logs/m6c-preflight.stdout.txt', 'requirements': ['M6C-TOOLS']}
+
+======================================================================
+FAIL: test_capture_rechecks_each_host_log_after_copy_before_archive_install (test_m6c_capture.HostEvidenceBinding.test_capture_rechecks_each_host_log_after_copy_before_archive_install) (member=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 180, in test_capture_rechecks_each_host_log_after_copy_before_archive_install
+    self.assertRaisesRegex(ValueError, 'Host logs changed while archiving'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_rechecks_each_host_log_after_copy_before_archive_install (test_m6c_capture.HostEvidenceBinding.test_capture_rechecks_each_host_log_after_copy_before_archive_install) (member=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 180, in test_capture_rechecks_each_host_log_after_copy_before_archive_install
+    self.assertRaisesRegex(ValueError, 'Host logs changed while archiving'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_rechecks_each_host_log_after_copy_before_archive_install (test_m6c_capture.HostEvidenceBinding.test_capture_rechecks_each_host_log_after_copy_before_archive_install) (member=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 180, in test_capture_rechecks_each_host_log_after_copy_before_archive_install
+    self.assertRaisesRegex(ValueError, 'Host logs changed while archiving'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_rejects_each_host_log_changed_after_gate (test_m6c_capture.HostEvidenceBinding.test_capture_rejects_each_host_log_changed_after_gate) (member=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 133, in test_capture_rejects_each_host_log_changed_after_gate
+    self.assertRaisesRegex(ValueError, 'Host logs changed after the gate'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_rejects_each_host_log_changed_after_gate (test_m6c_capture.HostEvidenceBinding.test_capture_rejects_each_host_log_changed_after_gate) (member=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 133, in test_capture_rejects_each_host_log_changed_after_gate
+    self.assertRaisesRegex(ValueError, 'Host logs changed after the gate'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_rejects_each_host_log_changed_after_gate (test_m6c_capture.HostEvidenceBinding.test_capture_rejects_each_host_log_changed_after_gate) (member=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 133, in test_capture_rejects_each_host_log_changed_after_gate
+    self.assertRaisesRegex(ValueError, 'Host logs changed after the gate'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected=None)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 150, in test_capture_requires_exact_well_formed_gate_hash_map
+    self.assertRaisesRegex(ValueError, 'gate-time SHA-256 hashes'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected=[])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 150, in test_capture_requires_exact_well_formed_gate_hash_map
+    self.assertRaisesRegex(ValueError, 'gate-time SHA-256 hashes'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 150, in test_capture_requires_exact_well_formed_gate_hash_map
+    self.assertRaisesRegex(ValueError, 'gate-time SHA-256 hashes'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected={'m6c-preflight.stdout.txt': 'f6cdac4a3ec1257504d23c2638603c1ca74fd184de2be0bcfdf7f37ff7a72183', 'm6c-preflight.json': '619914cebb8e25bea6a9fe63406666cd36e4d8a99d5ce37505a9406bc5eedbb2', 'm6c-preflight.stderr.txt': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'extra.txt': '0000000000000000000000000000000000000000000000000000000000000000'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 150, in test_capture_requires_exact_well_formed_gate_hash_map
+    self.assertRaisesRegex(ValueError, 'gate-time SHA-256 hashes'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected={'m6c-preflight.json': '619914cebb8e25bea6a9fe63406666cd36e4d8a99d5ce37505a9406bc5eedbb2', 'm6c-preflight.stderr.txt': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 150, in test_capture_requires_exact_well_formed_gate_hash_map
+    self.assertRaisesRegex(ValueError, 'gate-time SHA-256 hashes'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected={'m6c-preflight.stdout.txt': '000000000000000000000000000000000000000000000000000000000000000', 'm6c-preflight.json': '619914cebb8e25bea6a9fe63406666cd36e4d8a99d5ce37505a9406bc5eedbb2', 'm6c-preflight.stderr.txt': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 150, in test_capture_requires_exact_well_formed_gate_hash_map
+    self.assertRaisesRegex(ValueError, 'gate-time SHA-256 hashes'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected={'m6c-preflight.stdout.txt': 'gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg', 'm6c-preflight.json': '619914cebb8e25bea6a9fe63406666cd36e4d8a99d5ce37505a9406bc5eedbb2', 'm6c-preflight.stderr.txt': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 150, in test_capture_requires_exact_well_formed_gate_hash_map
+    self.assertRaisesRegex(ValueError, 'gate-time SHA-256 hashes'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map) (expected={'m6c-preflight.stdout.txt': 0, 'm6c-preflight.json': '619914cebb8e25bea6a9fe63406666cd36e4d8a99d5ce37505a9406bc5eedbb2', 'm6c-preflight.stderr.txt': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 150, in test_capture_requires_exact_well_formed_gate_hash_map
+    self.assertRaisesRegex(ValueError, 'gate-time SHA-256 hashes'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_capture_requires_exact_well_formed_gate_hash_map (test_m6c_capture.HostEvidenceBinding.test_capture_requires_exact_well_formed_gate_hash_map)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate/tests/test_m6c_capture.py", line 156, in test_capture_requires_exact_well_formed_gate_hash_map
+    self.assertRaisesRegex(ValueError, 'gate-time SHA-256 hashes'):
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.145s
+
+FAILED (failures=16)
