@@ -54,5 +54,35 @@ de bekende observerpanic blijft de afzonderlijk gedocumenteerde beperking.
 De bovenstaande opdracht kan vanuit de repositoryroot van de geïntegreerde
 bron worden herhaald. Herhalingen horen in een eigen werkmap en logset.
 De absolute paden in de ruwe records beschrijven de werkelijke uitvoering.
-`run_capture_check.py` bewaart de destijds gebruikte recorder met zijn aparte
-candidate-/recordsindeling en is geen opdracht om dit bewijs te overschrijven.
+`run_capture_check.py` gebruikt een aparte candidate-/recordsindeling en is geen
+opdracht om dit bewijs te overschrijven. De historische en huidige versie worden
+hieronder afzonderlijk gebonden.
+
+## Reviewherstel van de recorderexitstatus — 28 oktober 2026
+
+De historische run van 29 tests gebruikte recorder-SHA-256
+`68c969dac3f4a3927701da01fc23605a4df503d4152779c4ecc0a30b93380483`.
+Die [oorspronkelijke recorderbytes](https://github.com/simonvanieperen/nieuw-os/blob/4c8ae3cfee8a48e508cd3cd069ea4f832b0d9e0f/docs/verification/m6c-review/integration-followup/run_capture_check.py)
+zijn terug te lezen in archiefcommit `4c8ae3c`; dit is geen claim dat de eerdere
+testuitvoering op die latere commit plaatsvond. De oorspronkelijke
+`provenance.json`, commandoreceipt en stdout/stderr blijven bytegelijk.
+
+De huidige recorder schrijft eerst zijn receipt en output en eindigt daarna met
+status 1 wanneer het testsubproces faalt of de broninputs tijdens de controle
+veranderen. Een geslaagde controle met ongewijzigde inputs houdt status 0.
+De huidige recorder-SHA-256 is
+`ac885c4380f927811fa3358da6c4a882ae9f8a2fbe0184bb8463e87dbb491c91`.
+
+Vier gerichte hostregressies voeren de echte recorder en een klein
+Python-testsubproces uit in eigen tijdelijke mappen: succes, falend subproces,
+gewijzigde input en beide fouten samen. Op de oude recorder falen de drie
+negatieve scenario's op de onterechte exitstatus 0; na de twee-regelcorrectie
+slagen alle vier. De tests controleren ook dat receipts en ruwe output bij
+afwijzing bewaard blijven en aan hun werkelijke bytes zijn gebonden.
+
+Exacte opdrachten, bronhashes, uitvoer en exitstatussen staan in
+[capture-check-regressions.json](capture-check-regressions.json). Dit is een
+afzonderlijke hostcontrole van de recorder, geen heruitvoering van de historische
+29-testsuite en geen native build, QEMU-run of nieuwe native acceptatie.
+De actuele bestandsindex en historische recorderherkomst staan afzonderlijk in
+`manifest.json`.

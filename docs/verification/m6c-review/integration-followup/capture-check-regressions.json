@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "scope": "Four host-only recorder regressions using real local Python subprocesses and synthetic temporary inputs; no native build, QEMU execution, or rerun of the archived 29-test capture suite.",
+  "review_comment": "https://github.com/simonvanieperen/nieuw-os/pull/13#discussion_r4399968986",
+  "baseline_commit": "4c8ae3cfee8a48e508cd3cd069ea4f832b0d9e0f",
+  "invariant": "Write the receipt and raw output before returning status 1 for a nonzero child returncode or changed input bytes; return 0 only if both checks pass.",
+  "source_projection": "The baseline and fixed runs use isolated copies of the recorder plus the same new test file. The regression test was not present in the baseline commit.",
+  "baseline_recorder": {
+    "path": "docs/verification/m6c-review/integration-followup/run_capture_check.py",
+    "bytes": 3367,
+    "sha256": "68c969dac3f4a3927701da01fc23605a4df503d4152779c4ecc0a30b93380483",
+    "git_blob_sha": "9f4547f9916dbb46bbcd155eee12d1f7bccc89db"
+  },
+  "fixed_recorder": {
+    "path": "docs/verification/m6c-review/integration-followup/run_capture_check.py",
+    "bytes": 3432,
+    "sha256": "ac885c4380f927811fa3358da6c4a882ae9f8a2fbe0184bb8463e87dbb491c91",
+    "git_blob_sha": "bc0466643c5c461692c03410c92b2aede02306fb"
+  },
+  "regression_test": {
+    "path": "tests/test_capture_check_recorder.py",
+    "bytes": 5315,
+    "sha256": "5ba7bc3e5c9923e4c43a70d3f7abc2a9f4ed01748e811bd8c99a0e62f2a7c34a",
+    "git_blob_sha": "7db833d204fead886f69fbd56b90a216d3311eb1"
+  },
+  "scenarios": [
+    "successful child and unchanged inputs",
+    "failed child and unchanged inputs",
+    "successful child and mutated input",
+    "failed child and mutated input"
+  ],
+  "before_fix": {
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_capture_check_recorder.py",
+      "-v"
+    ],
+    "cwd": "/workspace/scratch/a9adbdc1f137/full-review-followup/capture-check/baseline",
+    "started_utc": "2026-10-28T11:29:48.338262+00:00",
+    "duration_s": 0.39868444400053704,
+    "returncode": 1,
+    "timed_out": false,
+    "source_sha256": {
+      "docs/verification/m6c-review/integration-followup/run_capture_check.py": "68c969dac3f4a3927701da01fc23605a4df503d4152779c4ecc0a30b93380483",
+      "tests/test_capture_check_recorder.py": "5ba7bc3e5c9923e4c43a70d3f7abc2a9f4ed01748e811bd8c99a0e62f2a7c34a"
+    },
+    "stdout": "",
+    "stderr": "test_child_failure_and_mutation_record_both_failures (test_capture_check_recorder.CaptureCheckRecorderTests.test_child_failure_and_mutation_record_both_failures) ... FAIL\ntest_child_failure_records_evidence_and_exits_one (test_capture_check_recorder.CaptureCheckRecorderTests.test_child_failure_records_evidence_and_exits_one) ... FAIL\ntest_input_mutation_records_evidence_and_exits_one (test_capture_check_recorder.CaptureCheckRecorderTests.test_input_mutation_records_evidence_and_exits_one) ... FAIL\ntest_success_with_unchanged_inputs_exits_zero (test_capture_check_recorder.CaptureCheckRecorderTests.test_success_with_unchanged_inputs_exits_zero) ... ok\n\n======================================================================\nFAIL: test_child_failure_and_mutation_record_both_failures (test_capture_check_recorder.CaptureCheckRecorderTests.test_child_failure_and_mutation_record_both_failures)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/scratch/a9adbdc1f137/full-review-followup/capture-check/baseline/tests/test_capture_check_recorder.py\", line 106, in test_child_failure_and_mutation_record_both_failures\n    self.run_scenario(child_fails=True, changes_input=True)\n  File \"/workspace/scratch/a9adbdc1f137/full-review-followup/capture-check/baseline/tests/test_capture_check_recorder.py\", line 94, in run_scenario\n    self.assertEqual(completed.returncode, 1 if child_fails or changes_input else 0)\nAssertionError: 0 != 1\n\n======================================================================\nFAIL: test_child_failure_records_evidence_and_exits_one (test_capture_check_recorder.CaptureCheckRecorderTests.test_child_failure_records_evidence_and_exits_one)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/scratch/a9adbdc1f137/full-review-followup/capture-check/baseline/tests/test_capture_check_recorder.py\", line 100, in test_child_failure_records_evidence_and_exits_one\n    self.run_scenario(child_fails=True, changes_input=False)\n  File \"/workspace/scratch/a9adbdc1f137/full-review-followup/capture-check/baseline/tests/test_capture_check_recorder.py\", line 94, in run_scenario\n    self.assertEqual(completed.returncode, 1 if child_fails or changes_input else 0)\nAssertionError: 0 != 1\n\n======================================================================\nFAIL: test_input_mutation_records_evidence_and_exits_one (test_capture_check_recorder.CaptureCheckRecorderTests.test_input_mutation_records_evidence_and_exits_one)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/scratch/a9adbdc1f137/full-review-followup/capture-check/baseline/tests/test_capture_check_recorder.py\", line 103, in test_input_mutation_records_evidence_and_exits_one\n    self.run_scenario(child_fails=False, changes_input=True)\n  File \"/workspace/scratch/a9adbdc1f137/full-review-followup/capture-check/baseline/tests/test_capture_check_recorder.py\", line 94, in run_scenario\n    self.assertEqual(completed.returncode, 1 if child_fails or changes_input else 0)\nAssertionError: 0 != 1\n\n----------------------------------------------------------------------\nRan 4 tests in 0.341s\n\nFAILED (failures=3)\n",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "a602668b302800a8bef9109db2f800ff2b1f868795ccdf008d12873fcc516974"
+  },
+  "after_fix": {
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_capture_check_recorder.py",
+      "-v"
+    ],
+    "cwd": "/workspace/scratch/a9adbdc1f137/full-review-followup/capture-check/candidate",
+    "started_utc": "2026-10-28T11:29:55.654526+00:00",
+    "duration_s": 0.43778164100149297,
+    "returncode": 0,
+    "timed_out": false,
+    "source_sha256": {
+      "docs/verification/m6c-review/integration-followup/run_capture_check.py": "ac885c4380f927811fa3358da6c4a882ae9f8a2fbe0184bb8463e87dbb491c91",
+      "tests/test_capture_check_recorder.py": "5ba7bc3e5c9923e4c43a70d3f7abc2a9f4ed01748e811bd8c99a0e62f2a7c34a"
+    },
+    "stdout": "",
+    "stderr": "test_child_failure_and_mutation_record_both_failures (test_capture_check_recorder.CaptureCheckRecorderTests.test_child_failure_and_mutation_record_both_failures) ... ok\ntest_child_failure_records_evidence_and_exits_one (test_capture_check_recorder.CaptureCheckRecorderTests.test_child_failure_records_evidence_and_exits_one) ... ok\ntest_input_mutation_records_evidence_and_exits_one (test_capture_check_recorder.CaptureCheckRecorderTests.test_input_mutation_records_evidence_and_exits_one) ... ok\ntest_success_with_unchanged_inputs_exits_zero (test_capture_check_recorder.CaptureCheckRecorderTests.test_success_with_unchanged_inputs_exits_zero) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 0.377s\n\nOK\n",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "d1e3c3f2f41f661dbe6ac5b06c9c2fcd4d00373dd5ed4a9a7066f7f51ac2ca2e"
+  },
+  "result": {
+    "baseline_tests": 4,
+    "baseline_passed": 1,
+    "baseline_failed": 3,
+    "baseline_failure_reason": "Each negative scenario observed recorder returncode 0 instead of the required 1, after verifying the saved failure receipt and output.",
+    "fixed_tests": 4,
+    "fixed_passed": 4,
+    "fixed_failed": 0
+  },
+  "preservation": "The archived provenance.json and records/combined-capture.json/stdout/stderr are unchanged. Their recorder_sha256 refers to the original recorder, whose bytes remain available at the baseline archive commit.",
+  "changed_native_fingerprint_inputs": [],
+  "native_boundary": "Only the archived recorder helper, its documentation/index, this host receipt and one tests/ file change; docs/ and tests/ are outside the 144 native fingerprint inputs."
+}

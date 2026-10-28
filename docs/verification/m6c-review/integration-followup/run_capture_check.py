@@ -69,3 +69,5 @@ print(json.dumps({'returncode': record['returncode'],
                   'test_method_counts_by_module': record['test_method_counts_by_module'],
                   'inputs_unchanged': record['inputs_unchanged'],
                   'stderr_tail': stderr.splitlines()[-6:]}, indent=2))
+if completed.returncode != 0 or before != after:
+    sys.exit(1)
