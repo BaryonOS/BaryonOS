@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`6603a6bc`](https://github.com/simonvanieperen/nieuw-os/commit/6603a6bc3acf93e2c3e9f9cb3ace98ede67c29bf) ·
+**Bron:** [`c8945c60`](https://github.com/simonvanieperen/nieuw-os/commit/c8945c609d64adaa5e23b57937c5886384e863ea) ·
 **Ontwikkelbranch:** `codex/integrate-m6d-main`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Main-integratie en conflictresolutie.
-Main 1f24f99 geïntegreerd; native runtimebronnen bleven gelijk aan M6d. Conflicten opgelost; 139 Rust- en 20 Python-tests, py_compile en M6c-crossbuild slagen. Geen nieuwe QEMU-gates; score blijft 14%.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Main- en PR-branch integreren met conflictresolutie.
+Main 1f24f99 en bijgewerkte PR-branch c8945c6 geïntegreerd; native runtime bleef gelijk aan M6d. Lokale hostsuite 173/173, 139 Rust-tests, py_compile en M6c-crossbuild slagen. Geen nieuwe lokale QEMU-gates; score blijft 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

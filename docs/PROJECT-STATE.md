@@ -2,7 +2,7 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
-## Main-integratie — conflictresolutie 28 oktober 2026
+## Main- en remote-PR-integratie — conflictresolutie 28 oktober 2026
 
 De actuele `main` (`1f24f994`) is samengevoegd in mergecommit
 `6603a6bc`, vanaf gemeenschappelijke basis `5a58a743` op integratiebron
@@ -37,7 +37,51 @@ de native bronvergelijking bevestigt dat de merge geen runtimecode van die bron
 veranderde. Voortgang blijft **14% → 14%**: geen nieuw native criterium of
 bewijsclaim.
 
-## M6d-reviewherstel — checkpoint 28 oktober 2026
+De bijgewerkte remote PR-branch `c8945c6` brengt het M6d-closeoutbewijs mee:
+opgeslagen M6c/M6d- en M6b-captures, plus een Windows-hostsuite van 173 tests.
+Dit zijn ingekomen, brongebonden rapporten op checkpoint `326d2f6`, geen nieuwe
+lokale VM-runs. De volledige hostregressie is ook lokaal op de gecombineerde
+werkboom uitgevoerd: `python3 -B -m unittest discover -s tests -v`, **173/173,
+exit 0**. De uitvoer is in deze sessie getoond, maar niet als nieuw
+repository-logbestand opgeslagen.
+
+## M6d-reviewherstel — Windowsacceptatie 28 oktober 2026
+
+Aanvullende uitvoering op `326d2f6`, in een afzonderlijke worktree buiten
+synchronisatiemappen. Fingerprint v3:
+`5c69802a6de7c591207950f311d2e9e4f7eb07628d3b91dc9457f21c0bfa8c75`.
+M6c/M6d: **35 groepen / 31 VM**, M6b: **18 groepen / 14 VM**, beide captures
+exit 0. Samen 45 VM-starts, 20 koude recoveries en vier externe Windows-kills.
+De twee gewone M1-runs missen een eigen per-run-QEMU-executablehash; die
+meetgrens blijft open. Native kernel/service/probe zijn bytegelijk aan 88e6c04.
+
+Host: M6c 30 Rust- en 48 Python-tests; M6b 22 Rust- en 30 Python-tests.
+De bredere definitieve Python-hostsuite slaagt met **173/173**, inclusief
+22 auditor- en 19 capturechecks. Deze overlappende aantallen niet optellen.
+De eerdere brede suite faalde door LF→CRLF-conversie in synthetische fixtures;
+alleen fixturebytes zijn gecorrigeerd. Exacte productiebytevergelijking en
+single-linkguard blijven intact. Vier bronmutanten toetsen de auditbypass;
+geen algemene formele Pythoncontrole.
+
+De mislukte gesynchroniseerde run blijft failed bewaard. Een onmiddellijke
+`fsutil hardlink list` toonde een echte tweede naam onder `.tmp.driveupload`;
+het veroorzakende proces is niet vastgesteld. Identieke bron buiten die map
+slaagt. Oorspronkelijk Linuxbewijs blijft aan 88e6c04 gebonden; de volledige
+historische rawaudit is niet opnieuw uitgevoerd. Een tweede agent controleerde
+alle 45 rawrecords, 395 artifacthashes en de werkelijke imagebytes; geen
+menselijke audit of fysieke stroomuitvalclaim.
+
+Exacte opdrachten en grenzen: [M6D-CLOSEOUT.md](verification/M6D-CLOSEOUT.md).
+Voortgang **14% → 14%**; volgende native stap blijft catalogusherstart.
+PR #11 is tussentijds extern gemerged op checkpoint 326d2f6 naar de M6c-branch
+(`baeaa7bf`); #12 is extern naar main gemerged (`1f24f994`). Beide nieuwe trees
+zijn vergeleken: zij voegen geen main-only broncorrectie toe. PR #13 behoudt
+deze actuele main als ouder en voegt M6c/M6d plus het definitieve reviewbewijs
+toe. Twee eerder verwijderde oude M5-logs blijven uitgesloten. Bij het schrijven
+van dit closeoutverslag was de merge van #13 nog niet geclaimd; de actuele
+integratiestatus staat in het bovenstaande checkpoint.
+
+### Vooraf bewaard checkpoint
 
 Hervat vanaf GitHub-head `7484d87`, afzonderlijke checkout `nieuw-os-review`.
 De oude M6a-werkmap en ongetrackte bewijsbestanden zijn behouden. De vijf
@@ -50,13 +94,13 @@ de bijgewerkte audit/docs staan bewust in `verification/m6d-summary.json`.
 De eerste Windows-hostcontrole faalde bij de natuurlijke exit van een child
 met WinError 5, zowel in M6b als M6c. Na verlenging van uitsluitend de begrensde
 wait bij een geweigerde TerminateProcess-call van 0,25 naar de bestaande
-cleanupgrens van 10 seconden slagen 48 M6c- en 30 M6b-hosttests. Een natuurlijke
+cleanupgrens van 10 seconden slagen 48 M6c- en 30 M6b-Python-tests. Een natuurlijke
 exit blijft `kill_requested:false`; werkelijke live kills en timeoutafwijzing
 blijven getest. De kernel/service/probe zijn ongewijzigd.
 
 Dit checkpoint gaat vóór de nieuwe volledige Windows-gates naar GitHub.
-Die gates, hun captures, externe herreview en merges zijn hier nog **niet**
-afgerond. De volledige historische Linux-rawaudit is in deze Windowscheckout
+Die gates, hun captures, externe herreview en merges waren op dit checkpoint
+nog **niet** afgerond. De volledige historische Linux-rawaudit is in deze Windowscheckout
 niet uitvoerbaar zonder oorspronkelijke ruwe bestanden en QEMU-binary; de
 nieuwe audit heeft afzonderlijke negatieve hosttests. Voortgang **14% → 14%**.
 Volgende native functie blijft de beperkte catalogusherstart uit WORK-QUEUE.

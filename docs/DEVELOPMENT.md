@@ -198,6 +198,23 @@ Deze suites herstellen aan het einde de gewone M1-build. Bouw daarna opnieuw `mi
 
 Het dienstprotocol en alle injectiegrenzen staan in [M5-BLOCK-SERVICE.md](implementation/M5-BLOCK-SERVICE.md). Het kerneltransport en het protocolconforme device zijn vertrouwd; M5 levert geen IOMMU-containment of fysieke-hardwarebewijs. Bij ontbrekende resetack blijft de vaste DMA-pool in quarantaine tot VM-stop.
 
+## Windows: exclusieve testimages buiten synchronisatiemappen
+
+Voer schrijvende M6-gates uit in een aparte Git-worktree buiten gesynchroniseerde
+mappen. Op 28 oktober 2026 wees de single-linkguard een echte normale M6c-run
+terecht af: tijdens uitvoering ontstond een tweede hardlink naar dezelfde image
+onder `.tmp.driveupload`. `fsutil hardlink list` bevestigde beide namen; welk
+proces die link maakte is niet vastgesteld. Het guestresultaat raw33 en alle
+succesmarkers maakten deze hostgrensfout niet groen.
+
+Een afzonderlijke worktree behoudt dezelfde commit en bronfingerprint. Bewaar
+ruwe images uitsluitend in haar eigen `build/run`; neem alleen controleerbare
+tekst-/hashrapporten in Git op. De `st_nlink == 1`-voorwaarde blijft verplicht;
+geen uitzondering voor syncsoftware of retry die de waargenomen tweede link
+verbergt. Pas geen sync-, netwerk- of andere hostinstellingen aan voor de proef.
+De mislukte run en de exacte hardlinkobservatie staan onder
+`docs/verification/m6d-closeout/`.
+
 ## Vast QEMU-profiel
 
 De lokale ontwikkelvariant gebruikt `pc-q35-10.0`, `qemu64`, TCG, één CPU, 256 MiB RAM, geen gastnetwerk en geen hostschijf. De test maakt een eigen ESP-kopie en een verse VARS-kopie in `build/run/`; CODE wordt read-only gebruikt. De concrete argumenten, ruwe exitstatus, hashes en seriële output staan per run in `result.json`, `serial.txt` en `stderr.txt`.

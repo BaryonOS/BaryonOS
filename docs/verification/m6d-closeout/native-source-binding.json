@@ -1,0 +1,112 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+    "-X",
+    "utf8",
+    "-B",
+    "docs/verification/m6d-closeout/check_native_source.py"
+  ],
+  "cwd": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review",
+  "passed": true,
+  "checks": [
+    {
+      "command": [
+        "git",
+        "show",
+        "b739183c48a06cb7798d0be8cc683430152533ac:kernel/src/m2/m3/m6c.rs"
+      ],
+      "exit_status": 0,
+      "sha256": "6a4eed0fde2d2741e26274df0a01c7cf067b96e98959b58df526dcd9e319c3f9"
+    },
+    {
+      "command": [
+        "git",
+        "show",
+        "b739183c48a06cb7798d0be8cc683430152533ac:userspace/m6c_probe.rs"
+      ],
+      "exit_status": 0,
+      "sha256": "1ba38587737ce9768ec4e54e174cafd5cb2b5df425685030bbcdb9c3da0337b2"
+    },
+    {
+      "command": [
+        "git",
+        "show",
+        "88e6c04be218b8b09ea4f0a226f6b9719da706a6:kernel/src/m2/m3/m6c.rs"
+      ],
+      "exit_status": 0,
+      "sha256": "6a4eed0fde2d2741e26274df0a01c7cf067b96e98959b58df526dcd9e319c3f9"
+    },
+    {
+      "command": [
+        "git",
+        "show",
+        "88e6c04be218b8b09ea4f0a226f6b9719da706a6:userspace/m6c_probe.rs"
+      ],
+      "exit_status": 0,
+      "sha256": "1ba38587737ce9768ec4e54e174cafd5cb2b5df425685030bbcdb9c3da0337b2"
+    },
+    {
+      "command": [
+        "git",
+        "show",
+        "7484d87ec639fd8a29be327cad47c2f97739199d:kernel/src/m2/m3/m6c.rs"
+      ],
+      "exit_status": 0,
+      "sha256": "6a4eed0fde2d2741e26274df0a01c7cf067b96e98959b58df526dcd9e319c3f9"
+    },
+    {
+      "command": [
+        "git",
+        "show",
+        "7484d87ec639fd8a29be327cad47c2f97739199d:userspace/m6c_probe.rs"
+      ],
+      "exit_status": 0,
+      "sha256": "1ba38587737ce9768ec4e54e174cafd5cb2b5df425685030bbcdb9c3da0337b2"
+    },
+    {
+      "command": [
+        "git",
+        "show",
+        "326d2f6efa20411d5bb349b8275bc3e741be7ae0:kernel/src/m2/m3/m6c.rs"
+      ],
+      "exit_status": 0,
+      "sha256": "6a4eed0fde2d2741e26274df0a01c7cf067b96e98959b58df526dcd9e319c3f9"
+    },
+    {
+      "command": [
+        "git",
+        "show",
+        "326d2f6efa20411d5bb349b8275bc3e741be7ae0:userspace/m6c_probe.rs"
+      ],
+      "exit_status": 0,
+      "sha256": "1ba38587737ce9768ec4e54e174cafd5cb2b5df425685030bbcdb9c3da0337b2"
+    },
+    {
+      "command": [
+        "git",
+        "show",
+        "HEAD:kernel/src/m2/m3/m6c.rs"
+      ],
+      "exit_status": 0,
+      "sha256": "6a4eed0fde2d2741e26274df0a01c7cf067b96e98959b58df526dcd9e319c3f9"
+    },
+    {
+      "command": [
+        "git",
+        "show",
+        "HEAD:userspace/m6c_probe.rs"
+      ],
+      "exit_status": 0,
+      "sha256": "1ba38587737ce9768ec4e54e174cafd5cb2b5df425685030bbcdb9c3da0337b2"
+    },
+    {
+      "checkout_path": "kernel/src/m2/m3/m6c.rs",
+      "sha256": "6a4eed0fde2d2741e26274df0a01c7cf067b96e98959b58df526dcd9e319c3f9"
+    },
+    {
+      "checkout_path": "userspace/m6c_probe.rs",
+      "sha256": "1ba38587737ce9768ec4e54e174cafd5cb2b5df425685030bbcdb9c3da0337b2"
+    }
+  ],
+  "boundary": "Source-byte binding only; no build, guest execution or human audit."
+}

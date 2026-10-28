@@ -3,6 +3,7 @@
 Requirements: exact M1/M6b QEMU profile and executable binding, and a complete
 immutable 164-file raw inventory. Archived records are fixtures, not new boots.
 """
+import ast
 import copy
 import importlib.util
 import json
@@ -24,6 +25,106 @@ M1 = next(record for record in RUNS if record.get("case", "m1") == "m1")
 M6 = next(record for record in RUNS if record.get("case") == "normal")
 PROGRAM = M6["command"][0]
 QEMU_HASH = M6["qemu_sha256"]
+
+
+def assert_validation_before_acceptance(tree):
+    """Guard the two fail-closed orchestration boundaries, not exact source text.
+
+    Pure validator tests cannot detect a correct helper that main never calls.
+    Here an unconditional validation must dominate VM acceptance and construction
+    of a successful audit report. This is a bounded source-flow regression check,
+    not execution of the historical audit or a general Python proof checker.
+    """
+    def calls(node, name):
+        return (isinstance(node, ast.Expr) and isinstance(node.value, ast.Call)
+                and isinstance(node.value.func, ast.Name) and node.value.func.id == name)
+
+    def appends_vm(node):
+        return any(isinstance(child, ast.Call) and isinstance(child.func, ast.Attribute)
+                   and child.func.attr == "append" and isinstance(child.func.value, ast.Name)
+                   and child.func.value.id == "vm" for child in ast.walk(node))
+
+    def creates_success(node):
+        return any(isinstance(child, ast.Call) and isinstance(child.func, ast.Name)
+                   and child.func.id == "dict"
+                   and any(keyword.arg == "status" and isinstance(keyword.value, ast.Constant)
+                           and keyword.value.value == "passed_actual_evidence_audit"
+                           for keyword in child.keywords)
+                   for child in ast.walk(node))
+
+    main = next(node for node in tree.body
+                if isinstance(node, ast.FunctionDef) and node.name == "main")
+    loops = [node for node in main.body if isinstance(node, ast.For)
+             and any(appends_vm(statement) for statement in node.body)]
+    if len(loops) != 1:
+        raise AssertionError("Expected one VM acceptance loop for the audit contract")
+    qemu_checked = False
+    for statement in loops[0].body:
+        if calls(statement, "validate_qemu"):
+            qemu_checked = True
+        if appends_vm(statement) and not qemu_checked:
+            raise AssertionError("VM accepted before unconditional QEMU validation")
+    inventory_checked = False
+    found_success = False
+    for statement in main.body:
+        if calls(statement, "validate_raw_inventory"):
+            inventory_checked = True
+        if creates_success(statement):
+            found_success = True
+            if not inventory_checked:
+                raise AssertionError("Successful report precedes unconditional raw inventory validation")
+    if not found_success:
+        raise AssertionError("Expected an explicit successful audit report")
+
+
+class AuditOrchestrationTests(unittest.TestCase):
+    """Mutants prove detection of the skipped-M1 and optional-inventory regressions."""
+
+    def setUp(self):
+        self.tree = ast.parse(SCRIPT.read_text(encoding="utf-8"))
+        self.main = next(node for node in self.tree.body
+                         if isinstance(node, ast.FunctionDef) and node.name == "main")
+        self.vm_loop = next(node for node in self.main.body if isinstance(node, ast.For)
+                            and isinstance(node.target, ast.Name) and node.target.id == "group")
+
+    def remove_validation(self, statements, name):
+        statement = next(node for node in statements if isinstance(node, ast.Expr)
+                         and isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name)
+                         and node.value.func.id == name)
+        statements.remove(statement)
+        return statement
+
+    def test_main_requires_both_validators_before_acceptance(self):
+        assert_validation_before_acceptance(self.tree)
+
+    def test_missing_qemu_call_is_detected(self):
+        self.remove_validation(self.vm_loop.body, "validate_qemu")
+        with self.assertRaisesRegex(AssertionError, "VM accepted before"):
+            assert_validation_before_acceptance(self.tree)
+
+    def test_qemu_call_after_m1_continue_is_detected(self):
+        call = self.remove_validation(self.vm_loop.body, "validate_qemu")
+        m1_branch = next(node for node in self.vm_loop.body if isinstance(node, ast.If)
+                         and any(isinstance(child, ast.Continue) for child in ast.walk(node))
+                         and any(isinstance(child, ast.Constant) and child.value == "m1"
+                                 for child in ast.walk(node.test)))
+        self.vm_loop.body.insert(self.vm_loop.body.index(m1_branch) + 1, call)
+        with self.assertRaisesRegex(AssertionError, "VM accepted before"):
+            assert_validation_before_acceptance(self.tree)
+
+    def test_missing_raw_inventory_call_is_detected(self):
+        self.remove_validation(self.main.body, "validate_raw_inventory")
+        with self.assertRaisesRegex(AssertionError, "Successful report precedes"):
+            assert_validation_before_acceptance(self.tree)
+
+    def test_inventory_call_after_success_report_is_detected(self):
+        call = self.remove_validation(self.main.body, "validate_raw_inventory")
+        success = next(node for node in self.main.body if isinstance(node, ast.Assign)
+                       and any(isinstance(target, ast.Name) and target.id == "report"
+                               for target in node.targets))
+        self.main.body.insert(self.main.body.index(success) + 1, call)
+        with self.assertRaisesRegex(AssertionError, "Successful report precedes"):
+            assert_validation_before_acceptance(self.tree)
 
 
 class QemuContractTests(unittest.TestCase):

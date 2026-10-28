@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os-review\tools\test_m6c.py", line 113, in <module>
+    if __name__=='__main__': test_m6c()
+                             ~~~~~~~~^^
+  File "C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os-review\tools\test_m6c.py", line 77, in test_m6c
+    result,volume=guest('normal',f'normal-{suffix}')
+                  ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os-review\tools\test_m6c.py", line 47, in guest
+    record(label,result['passed'] and result['source_sha256']==frozen,
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           result['run_directory'],['M6C-'+case.upper(),'M6C-EXTERNAL-DISK-ORACLE'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\simon\OneDrive\Documenten\GitHub\nieuw-os-review\tools\test_m6c.py", line 43, in record
+    if not passed: raise RuntimeError(f'M6c gate failed: {name}')
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: M6c gate failed: normal-a
