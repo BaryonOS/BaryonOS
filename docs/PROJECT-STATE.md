@@ -25,7 +25,7 @@ staat boven de M6b-branch; geen merge naar main of release uitgevoerd.
 |---|---|---|
 | Volledige M6c-gate en capture | exit 0; 19 groepen / 15 VM-invocaties | `verification/m6c/` |
 | Volledige M6b-regressie en capture | exit 0; 18 groepen / 14 VM-invocaties | `verification/regression-m6c/` |
-| Catalog-core en harnas | 30 Rust- en 33 Python-tests; fmt/Clippy/no_std exit 0 | `verification/m6c/`, `verification/m6c-review/core-final/` |
+| Catalog-core en harnas | 30 Rust- en 33 Python-tests; fmt/Clippy/no_std exit 0 | `verification/m6c/`, `verification/m6c-review/core-recheck/` |
 | Echte adapter via host-ABI-shim | 15 scenario's, exit 0; geen native devicefoutinjectie | `verification/m6c-review/adapter-result.json` |
 | Afsluitende M6c-build | exit 0; kernel en loader bytegelijk aan beide normale eindruns | `verification/m6c-ready/` |
 
@@ -47,6 +47,12 @@ De aparte statische integratiecontrole bindt het native gebruikers-ELF aan de
 geteste kernel en controleert budgetten en instructies. Reviews zijn AI-reviews,
 geen menselijke audit of formeel bewijs. Exacte commando's, afbakening en
 provenance: [M6C-ACCEPTANCE.md](verification/M6C-ACCEPTANCE.md).
+
+De vijf GitHub-reviewopmerkingen over bewijsstatus en reproduceerbaarheid zijn
+afgehandeld in `verification/m6c-review/REVIEW-FOLLOWUP.md`: actuele native
+resultaten gelinkt, portable adapter opnieuw getest en de vier corecontroles
+read-only herhaald met HEAD/status en bronhashes vóór/na. Historische evidence
+blijft behouden. Dit verandert de native bron of het aantal VM-runs niet.
 
 Vervolg: deze opslaginterface aan native productfuncties koppelen; grotere
 documenten, ruimtehergebruik, encryptie, sleutels en native NAS/netwerk vereisen

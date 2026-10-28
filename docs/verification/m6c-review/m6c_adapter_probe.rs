@@ -1,7 +1,7 @@
 #![allow(dead_code)]
-#[path = "/workspace/scratch/244976efa240/nieuw-os/services/catalog/src/wire.rs"] mod wire;
-#[path = "/workspace/scratch/244976efa240/nieuw-os/services/catalog/src/journal.rs"] mod journal;
-#[path = "/workspace/scratch/244976efa240/nieuw-os/services/catalog/src/user_service.rs"] mod catalog_service;
+#[path = "../../../services/catalog/src/wire.rs"] mod wire;
+#[path = "../../../services/catalog/src/journal.rs"] mod journal;
+#[path = "../../../services/catalog/src/user_service.rs"] mod catalog_service;
 use std::{cell::RefCell, collections::VecDeque};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)] enum Fault { Success, WriteSubmit, WritePoll, FlushSubmit, FlushPoll, BadWriteAmount, BadCompletionSender, BadCompletionTicket, BadCompletionPadding, WriteTimeout, FlushTimeout, Legacy, Corrupt, RenameChangedContent }
 #[derive(Clone, Copy, Debug)] struct Stop;

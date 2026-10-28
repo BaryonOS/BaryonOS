@@ -47,10 +47,10 @@ opgeteld bij historische runs uit eerdere mijlpalen.
 | `python3 -B tools/capture_m6c.py` | Volledige gate, bronbinding, gastuitvoer, hashes en schijfuitkomsten opnieuw gevalideerd | [capture](m6c/capture.json) |
 | `python3 -B -u tools/test_m6b.py` | 18 groepen; 14 echte VM-invocaties: 13 M6b + 1 gewone M1 | [regressiesuite](regression-m6c/m6b/suite.json), [gastrecords](regression-m6c/m6b/guest-runs.json) |
 | M6b-capture met afzonderlijke archiefbestemming | Bestaande validator ongewijzigd; alle nieuwe M6b-regressiegegevens gevalideerd | [exacte opdracht](regression-m6c/m6b/archive-command.json), [capture](regression-m6c/m6b/capture.json) |
-| `cargo +1.90.0 test --locked --offline -p catalog-core` | 30 Rust-tests; ook opnieuw uitgevoerd binnen de M6c-gate | [corecommando's](m6c-review/core-final/results.json), [gatelog](m6c/m6c-host-tests.stdout.txt) |
-| `cargo +1.90.0 fmt --package catalog-core -- --check` | Opmaakcontrole | [corecommando's en logs](m6c-review/core-final/) |
-| `cargo +1.90.0 clippy --locked --offline -p catalog-core --all-targets -- -D warnings` | Geen resterende Clippy-waarschuwingen | [corecommando's en logs](m6c-review/core-final/) |
-| `cargo +1.90.0 check --locked --offline -p catalog-core --target x86_64-unknown-none` | Core controleert voor het native target | [corecommando's en logs](m6c-review/core-final/) |
+| `cargo +1.90.0 test --locked --offline -p catalog-core` | 30 Rust-tests; ook opnieuw uitgevoerd binnen de M6c-gate | [brongebonden corecommando's](m6c-review/core-recheck/results.json), [gatelog](m6c/m6c-host-tests.stdout.txt) |
+| `cargo +1.90.0 fmt --package catalog-core -- --check` | Opmaakcontrole die geen bron wijzigt | [corecommando's en logs](m6c-review/core-recheck/) |
+| `cargo +1.90.0 clippy --locked --offline -p catalog-core --all-targets -- -D warnings` | Geen resterende Clippy-waarschuwingen | [corecommando's en logs](m6c-review/core-recheck/) |
+| `cargo +1.90.0 check --locked --offline -p catalog-core --target x86_64-unknown-none` | Core controleert voor het native target | [corecommando's en logs](m6c-review/core-recheck/) |
 | Python M6c-harnastests binnen `test_m6c.py` | 33 tests voor schijforakel, childproces en capture | [exacte argv](m6c/m6c-harness-tests.json), [uitvoer](m6c/m6c-harness-tests.stderr.txt) |
 | Echte serviceadapter met host-ABI-shim | 15 scenario's, inclusief WRITE/FLUSH-fouten en time-outs, identiteit, tombstones en legacy | [buildopdracht](m6c-review/adapter-build.json), [resultaat](m6c-review/adapter-result.json) |
 | `python3 -B tools/build.py --kernel-feature milestone-m6c` | Afsluitende build bytegelijk aan beide normale eindgate-binaries; geen extra VM | [buildvergelijking](m6c-ready/build-check.json), [console](m6c-ready/m6c-ready-build.stdout.txt) |
@@ -113,10 +113,22 @@ De [statische integratie-audit](m6c-review/m6c-integration-audit.json) controlee
 de bestaande runtimegrenzen en het daadwerkelijk ingebedde M6c-gebruikers-ELF.
 De adapterreview gebruikt de echte servicebron met een host-ABI-shim; dat is
 hostbewijs van de afhandeling van aangeboden fouten, geen native devicefoutinjectie.
+De actuele probe gebruikt relatieve modulepaden en kan vanuit de repositoryroot
+opnieuw worden gebouwd met de argv uit `adapter-build.json`. De oorspronkelijke
+probe en rapporten met sessiepaden blijven onder `m6c-review/adapter-original/`
+bewaard; de nieuwe build en alle 15 scenario's zijn werkelijk opnieuw uitgevoerd.
 De eerste diagnostische normalrun en aanvankelijke, later herstelde Clippy-melding
 zijn geen extra finale acceptatieruns. De reviews zijn afzonderlijke AI-controles,
 geen menselijke audit of formeel bewijs. De native audit dekt M6c; de latere
 M6b-regressie en afsluitende build hebben eigen archieven.
+
+De GitHub-review van het broncheckpoint is afzonderlijk behandeld in
+[REVIEW-FOLLOWUP.md](m6c-review/REVIEW-FOLLOWUP.md). De vier corecontroles zijn
+na de evidencecommit opnieuw read-only uitgevoerd, met HEAD, werkmapstatus,
+bronfingerprint en bestandshashes vóór en na. Het eerdere `core-final/` bewaart
+de oorspronkelijke voorbereidende formattering; die geschiedenis is niet
+achteraf veranderd in een fictieve `--check`-uitvoering. Herhaalde hostproeven
+tellen niet als extra scenario's of nieuwe native VM-runs.
 
 ## Grenzen en vervolg
 

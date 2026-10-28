@@ -1,24 +1,78 @@
 {
-  "task": "R07 independent design/core/native-adapter review",
-  "base": "bb22fdbe15919edc23baa158a46236195ce314b2",
+  "task": "R07 original independent review and R08 portable actual-adapter recheck",
+  "runtime_source_commit": "bc4cd104e86e2c047b727ae96e07a03fbc810c3c",
+  "execution_head": "1827302a3ed7d44b0edc372ec6c8d6d4ae17825f",
   "blockers": [],
-  "findings": [],
-  "reviewed": [
-    "M6c contract",
-    "wire parsing and canonical replies",
-    "journal transition/recovery invariants",
-    "native adapter authority and I/O-failure behavior",
-    "m6c broker/observer diff against m6b",
-    "native probe normal/error/full/recovery/cut request expectations",
-    "final populated-domain errors fixture barrier272, 53 RPC/app, 80 rejected replies",
-    "distinct refused Full rename label; existing name verified afterward"
-  ],
-  "test": {
+  "original_review": {
+    "task": "R07 independent design/core/native-adapter review",
+    "base_commit": "bb22fdbe15919edc23baa158a46236195ce314b2",
+    "summary_record": "adapter-original/r07-summary.json",
+    "build_record": "adapter-original/adapter-build.json",
+    "result_record": "adapter-original/adapter-result.json",
+    "probe": "adapter-original/m6c_adapter_probe.rs",
+    "preserved_original_sha256": {
+      "m6c_adapter_probe.rs": "cec80f7b6546b6a1e7764b0ef8ea671526535910eb7a9a3de134c271e0e37b5e",
+      "adapter-build.json": "f775fa76f9d5d4f5a8dfeaad1edd672f604f32c15c79138e4042cbe60e72333a",
+      "adapter-result.json": "96d7dcd1a16d5d2a8b95a6e41870fa5505ad79762940f3281a94ce611700b6f6",
+      "r07-summary.json": "7b9dcbd1076fdbdc3c37927843e663aadd05fd7614df8b71139f3057e95bba7d"
+    },
+    "preservation": "All four original records are byte-for-byte identical to the files committed at execution_head; their original absolute paths and recorded hashes have not been rewritten.",
+    "reviewed": [
+      "M6c contract",
+      "wire parsing and canonical replies",
+      "journal transition/recovery invariants",
+      "native adapter authority and I/O-failure behavior",
+      "m6c broker/observer diff against m6b",
+      "native probe normal/error/full/recovery/cut request expectations",
+      "final populated-domain errors fixture barrier272, 53 RPC/app, 80 rejected replies",
+      "distinct refused Full rename label; existing name verified afterward"
+    ],
+    "findings": [],
+    "blockers": []
+  },
+  "portable_recheck": {
+    "task": "R08",
+    "status": "passed",
     "scope": "actual services/catalog/src/user_service.rs with temporary host ABI shim; no native or device durability claim",
+    "probe": "m6c_adapter_probe.rs",
+    "probe_sha256": "f69c9ff89a0e46c95d320f2c20b8e0c4cff9d4300e300d072c0502af45b1116b",
+    "build_record": "adapter-build.json",
+    "result_record": "adapter-result.json",
+    "cwd": ".",
+    "cwd_reference": "repository root",
+    "environment_provider": "tools/common.py::environment",
+    "setup_argv": [
+      "mkdir",
+      "-p",
+      "build/m6c-review-portable"
+    ],
+    "setup_returncode": 0,
+    "compile_argv": [
+      "rustc",
+      "+1.90.0",
+      "--edition=2021",
+      "docs/verification/m6c-review/m6c_adapter_probe.rs",
+      "-o",
+      "build/m6c-review-portable/m6c_adapter_probe"
+    ],
+    "run_argv": [
+      "build/m6c-review-portable/m6c_adapter_probe"
+    ],
+    "compile_returncode": 0,
+    "run_returncode": 0,
     "scenarios": 15,
-    "returncode": 0,
-    "stdout": "PASS Success: 8 canonical replies, I/O=[128, 1, 2], sequence=3, own-domain catalog, rename content unchanged\nPASS WriteSubmit: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS WritePoll: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS FlushSubmit: 8 canonical replies, I/O=[128, 1, 2], sequence=2, own-domain catalog, rename content unchanged\nPASS FlushPoll: 8 canonical replies, I/O=[128, 1, 2], sequence=2, own-domain catalog, rename content unchanged\nPASS BadWriteAmount: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS BadCompletionSender: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS BadCompletionTicket: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS BadCompletionPadding: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS WriteTimeout: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS FlushTimeout: 8 canonical replies, I/O=[128, 1, 2], sequence=2, own-domain catalog, rename content unchanged\nPASS Legacy: refused before READY, reads=4, writes=0, flush=0\nPASS Corrupt: refused before READY, reads=8, writes=0, flush=0\nPASS RenameChangedContent: refused before READY, reads=12, writes=0, flush=0\nPASS AuthorityAndTombstones: spoofed PID/endpoint denied, 3 attached handles closed, 7 canonical replies, tombstone revision retained, no foreign/deleted name, no writes\n",
-    "stderr": "",
+    "checks": {
+      "process_exit_zero": true,
+      "same_fifteen_scenarios": true,
+      "stdout_identical_to_original_run": true,
+      "stderr_empty": true,
+      "sources_unchanged_during_build_and_run": true,
+      "probe_unchanged_during_build_and_run": true,
+      "environment_provider_unchanged_during_build_and_run": true,
+      "execution_head_unchanged": true
+    },
+    "started_utc": "2026-10-28T00:02:27.598724Z",
+    "finished_utc": "2026-10-28T00:02:27.914039Z",
     "source_hashes": {
       "services/catalog/Cargo.toml": "56198ca8ae556bfb70569569d82c09437a34a1b2f27dc247e5a9d2a733d260ac",
       "services/catalog/src/lib.rs": "72d00eef268f5768e6aa33b22a9d6c8e3ed37af2e466889d02e4123a114dc12c",
@@ -32,16 +86,29 @@
       "kernel/src/m2/m3/m6c.rs": "7dbd42855e63ca959e5bbcf11a65a4bec921b374531fd070056e96e18d54f0e8",
       "docs/implementation/M6C-NAMED-CATALOG.md": "39c8c4392b7e5160b7099fadacdc475c875aae8e00b760e7cf4f507d5e0ed70b"
     },
-    "probe_sha256": "cec80f7b6546b6a1e7764b0ef8ea671526535910eb7a9a3de134c271e0e37b5e"
+    "source_matches_runtime_commit": {
+      "services/catalog/Cargo.toml": true,
+      "services/catalog/src/lib.rs": true,
+      "services/catalog/src/wire.rs": true,
+      "services/catalog/src/journal.rs": true,
+      "services/catalog/src/user_service.rs": true,
+      "services/catalog/tests/core.rs": true,
+      "services/catalog/tests/wire.rs": true,
+      "services/catalog/README.md": true,
+      "userspace/m6c_probe.rs": true,
+      "kernel/src/m2/m3/m6c.rs": true,
+      "docs/implementation/M6C-NAMED-CATALOG.md": true
+    },
+    "changes": "Only three #[path] values changed from the original absolute checkout location to ../../../services/catalog/src/; all scenario code is byte-identical."
   },
   "limits": [
-    "Host ABI shim proves handling of supplied completion/failure events, not actual device durability.",
-    "No QEMU runs or shared build slot used by reviewer.",
-    "AI review is not human audit or formal proof.",
-    "Final native guest/disk evidence remains root verifier responsibility."
+    "The original R07 review and its historical evidence remain unchanged under adapter-original/.",
+    "R08 reruns the same 15 actual-service-adapter scenarios with a host ABI shim; it does not rerun the native gate or the broader static review.",
+    "Host ABI shim results prove handling of supplied completion/failure events, not actual device durability or native device fault injection.",
+    "No QEMU runs or native-source changes were made for this follow-up.",
+    "AI review is not a human audit or formal proof.",
+    "x86_64 Linux host: the unchanged ABI shim uses Linux mmap with MAP_FIXED_NOREPLACE at its private scratch address. Portability here means checkout location, not operating-system portability."
   ],
-  "repo_modified_by_reviewer": false,
-  "notes": [
-    "Python m6c_disk.py inspected for independent record parsing/recovery/name/tombstone checks; no issues found in inspected code. Final guest evidence not yet available."
-  ]
+  "repo_modified_by_reviewer": true,
+  "modification_scope": "Portable probe module paths and associated review evidence only; no native runtime sources."
 }
