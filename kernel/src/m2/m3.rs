@@ -17,11 +17,18 @@ use kernel_core::{user, Frames, Kind, Owner, PAGE};
 mod m4;
 #[cfg(feature = "native-qsim")]
 mod qsim;
+#[cfg(feature = "native-qsim-job")]
+mod qsim_job;
 #[cfg(all(
     feature = "native-qsim",
-    any(feature = "milestone-m4", feature = "graphics-g0")
+    any(feature = "milestone-m4", feature = "graphics-g0", feature = "native-qsim-job")
 ))]
 compile_error!("native-qsim is a separate opt-in M3 profile");
+#[cfg(all(
+    feature = "native-qsim-job",
+    any(feature = "milestone-m5", feature = "graphics-g0", feature = "native-qsim")
+))]
+compile_error!("native-qsim-job is a separate opt-in M4 profile");
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
 mod m5;
 #[cfg(all(feature = "milestone-m6a", not(feature = "milestone-m6b")))]
@@ -37,7 +44,13 @@ mod m5;
 const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
 #[cfg(feature = "native-qsim")]
 const ELF: &[u8] = include_bytes!(env!("NOS_QSIM_ELF"));
-#[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+#[cfg(feature = "native-qsim-job")]
+const ELF: &[u8] = include_bytes!(env!("NOS_QSIM_JOB_ELF"));
+#[cfg(all(
+    feature = "milestone-m4",
+    not(feature = "milestone-m5"),
+    not(feature = "native-qsim-job")
+))]
 const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
 const ELF: &[u8] = include_bytes!(env!("NOS_M5_ELF"));
@@ -253,7 +266,7 @@ impl State {
         self.exited = false;
         self.survivor_slot = 1;
         self.unexpected = false;
-        self.amount = if cfg!(feature = "native-qsim") {
+        self.amount = if cfg!(any(feature = "native-qsim", feature = "native-qsim-job")) {
             2
         } else if cfg!(feature = "milestone-m5") && (14..=16).contains(&m5_case()) {
             4
@@ -268,7 +281,10 @@ impl State {
             self.spawn_process(slot);
         }
 
-        let target = if cfg!(feature = "milestone-m5") || cfg!(feature = "native-qsim") {
+        let target = if cfg!(feature = "milestone-m5")
+            || cfg!(feature = "native-qsim")
+            || cfg!(feature = "native-qsim-job")
+        {
             0
         } else if mode() == 5 {
             text_start()
@@ -281,12 +297,18 @@ impl State {
         if cfg!(feature = "test-m3-large-image") {
             serial::write(b"M3:LARGE_IMAGE:PASS\n");
         }
-        #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+        #[cfg(all(
+            feature = "milestone-m4",
+            not(feature = "milestone-m5"),
+            not(feature = "native-qsim-job")
+        ))]
         m4::manifest(self);
         #[cfg(feature = "milestone-m5")]
         m5::manifest(self);
         #[cfg(feature = "native-qsim")]
         qsim::manifest(self);
+        #[cfg(feature = "native-qsim-job")]
+        qsim_job::manifest(self);
     }
     fn spawn_process(&mut self, slot: usize) {
         assert!(self.processes[slot].status == Status::Dead);
@@ -538,6 +560,7 @@ impl State {
                 p.status = Status::Running;
                 p.selected += 1;
                 if !cfg!(feature = "native-qsim")
+                    && !cfg!(feature = "native-qsim-job")
                     && mode() == 0
                     && self.round < 2
                     && !self.fault
@@ -680,13 +703,22 @@ impl State {
             .count()
     }
     fn observer_exit(&mut self, slot: usize, counter: u64) {
+        #[cfg(feature = "native-qsim-job")]
+        {
+            qsim_job::observe_exit(self, slot, counter);
+            return;
+        }
         #[cfg(feature = "milestone-m5")]
         {
             let _ = counter;
             m5::observe_exit(self, slot);
             return;
         }
-        #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+        #[cfg(all(
+            feature = "milestone-m4",
+            not(feature = "milestone-m5"),
+            not(feature = "native-qsim-job")
+        ))]
         {
             m4::observe_exit(self, slot, counter);
             return;
@@ -716,13 +748,22 @@ impl State {
         }
     }
     fn observer_fault(&mut self, slot: usize, context: &[u64; 22], counter: u64) {
+        #[cfg(feature = "native-qsim-job")]
+        {
+            qsim_job::observe_fault(self, slot, context, counter);
+            return;
+        }
         #[cfg(feature = "milestone-m5")]
         {
             let _ = counter;
             m5::observe_fault(self, slot, context);
             return;
         }
-        #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+        #[cfg(all(
+            feature = "milestone-m4",
+            not(feature = "milestone-m5"),
+            not(feature = "native-qsim-job")
+        ))]
         {
             m4::observe_fault(self, slot, context, counter);
             return;
@@ -910,7 +951,11 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
     } else {
         state.processes[current].status = Status::Ready;
     }
-    #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+    #[cfg(all(
+        feature = "milestone-m4",
+        not(feature = "milestone-m5"),
+        not(feature = "native-qsim-job")
+    ))]
     if let Some(next) = m4::poll(state) {
         return next;
     }
@@ -920,6 +965,10 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
     }
     #[cfg(feature = "native-qsim")]
     if let Some(next) = qsim::poll(state) {
+        return next;
+    }
+    #[cfg(feature = "native-qsim-job")]
+    if let Some(next) = qsim_job::poll(state) {
         return next;
     }
     #[cfg(not(feature = "milestone-m4"))]

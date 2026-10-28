@@ -5,7 +5,7 @@ PHDRS { text PT_LOAD FLAGS(5); data PT_LOAD FLAGS(6); readonly PT_LOAD FLAGS(4);
 SECTIONS {
   . = 0x40000000;
   .text : ALIGN(4096) { KEEP(*(.text.entry)) *(.text .text.*) } :text
-  ASSERT(SIZEOF(.text) > 0 && SIZEOF(.text) <= 0x18000, "qsim job text overlaps report")
+  ASSERT(SIZEOF(.text) > 0 && SIZEOF(.text) <= 0x10000, "qsim job text overlaps report")
   . = 0x40010000;
   .data : ALIGN(4096) { KEEP(*(.qsim.header)) *(.data .data.*) *(.got .got.*) } :data
   .bss (NOLOAD) : { *(.bss .bss.*) *(COMMON) } :data
