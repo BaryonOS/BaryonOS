@@ -95,6 +95,13 @@ pub fn manifest(state: &mut State) {
     let reply_send = engine
         .bootstrap_delegate(app, reply_root, service, SEND)
         .unwrap_or_else(|_| fail(b"REPLY_SEND"));
+    // Receiving is restricted to the endpoint owner at the delegation boundary.
+    // Checking service-side RECV on the handle alone would only test ownership.
+    if engine.bootstrap_delegate(app, reply_root, service, RECV)
+        != Err(capability_core::Error::Access)
+    {
+        fail(b"REPLY_RECV_TRANSFER");
+    }
     let reply_recv = if cfg!(feature = "test-sdk-app-denied") {
         0
     } else {
@@ -132,7 +139,6 @@ pub fn manifest(state: &mut State) {
         if engine.check_endpoint(app, request_send, RECV).is_ok()
             || engine.check_endpoint(app, reply_recv, SEND).is_ok()
             || engine.check_endpoint(service, request_recv, SEND).is_ok()
-            || engine.check_endpoint(service, reply_send, RECV).is_ok()
             || engine
                 .check_block(app, request_send, capability_core::BLOCK_READ)
                 .is_ok()
