@@ -62,7 +62,7 @@ Aanbevolen eerste producthypothese: een lokaal werkend persoonlijk systeem met b
 | Doel | Concreet productgedrag | Te onderzoeken bewijs |
 |---|---|---|
 | Gebruiksvriendelijk | Werkt zonder online account; gewone taken via consistente instellingen; goede herstelroute | Gebruikersonderzoek met taakvoltooiing, fouten en herstelbaarheid |
-| Privacyvriendelijk | Geen leverancierscloud of telemetrie; E2EE naar gekoppelde persoonlijke NAS via LAN of expliciet internet; beheer kan wissen zonder lezen; AI zonder netwerkrecht | Verkeersmetingen, NAS-onbereikbaarheid, vals NAS-endpoint en uitwijkpogingen testen |
+| Privacyvriendelijk | Geen verplichte leverancierscloud of OS-telemetrie; E2EE naar persoonlijke NAS en optioneel opaque client-side versleutelde objecten bij een expliciet gekozen externe provider; beheer/provider krijgt geen inhoudssleutel; AI zonder netwerkrecht | Verkeersmetingen, NAS-/provideruitval, vals endpoint, providercredentials-zonder-key, manipulatie/rollback en stille uitwijkpogingen testen |
 | Zelf in te regelen | Verwisselbare shell, sneltoetsen en services; exporteerbare configuratie | Veilige standaardconfiguratie blijft intact bij normale personalisatie |
 | Europese autonomie | Open formaten, lokale taal/locale, onafhankelijke updatesleutels en verwisselbare diensten | Werkt zonder verplicht Apple-, Google- of Microsoft-account of centrale dienst |
 | Toegankelijk | Toetsenbordbediening, schaalbare tekst, hoog contrast, later semantische toegankelijkheidsboom en schermlezer | Tests met gebruikers en ondersteunende technologie |
