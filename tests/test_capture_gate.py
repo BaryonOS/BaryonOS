@@ -43,7 +43,8 @@ class CaptureGateArchive(unittest.TestCase):
         guest.mkdir(parents=True, exist_ok=True)
         required, expected_exit, forbidden = guest_expectation("m2", "test-m2-nx")
         stdout = "\n".join(required) + "\n"
-        (guest / "serial.txt").write_text(stdout, encoding="utf-8")
+        # Match the runner's byte-preserving capture on Windows as well as Unix.
+        (guest / "serial.txt").write_bytes(stdout.encode("utf-8"))
         (guest / "stderr.txt").write_text("", encoding="utf-8")
         artifact = guest / "artifact.bin"
         artifact.write_bytes(b"synthetic artifact")
