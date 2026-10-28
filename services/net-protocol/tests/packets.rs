@@ -415,11 +415,7 @@ fn transmitter_rejects_invalid_limits_before_any_buffer_write() {
     );
     assert!(buffer.iter().all(|&b| b == 0xa5));
     assert_eq!(
-        build_udp_ipv4(
-            UdpIpv4Tx { mtu: 27, ..TX },
-            b"",
-            &mut buffer,
-        ),
+        build_udp_ipv4(UdpIpv4Tx { mtu: 27, ..TX }, b"", &mut buffer,),
         Err(EncodeError::ExceedsMtu {
             ipv4_bytes: 28,
             mtu: 27,
