@@ -16,4 +16,8 @@ docs/verification/m6d-closeout/*.txt -text
 docs/verification/m6d-closeout-local/*.txt -text
 docs/verification/m6d-closeout-m6b/*.txt -text
 docs/verification/m6d-closeout-m6c/*.txt -text
+docs/verification/m6d-closeout/*.json -text
+docs/verification/m6d-closeout-local/*.json -text
+docs/verification/m6d-closeout-m6b/*.json -text
+docs/verification/m6d-closeout-m6c/*.json -text
 docs/verification/regression-m6c/**/*.txt -text
