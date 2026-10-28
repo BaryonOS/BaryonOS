@@ -215,7 +215,6 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
         serial::write(b"SDKAPP:READ:PASS\nSDKAPP:SANDBOX:PASS\nSDKAPP:EXIT:PASS\n");
     }
 
-    state.audit();
     let released = releasable_frames(state);
     if state.free_count().checked_add(released) != Some(state.free_baseline) {
         fail(b"FRAME_BASELINE_CHANGED");
