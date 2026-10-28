@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`c8945c60`](https://github.com/simonvanieperen/nieuw-os/commit/c8945c609d64adaa5e23b57937c5886384e863ea) ·
+**Bron:** [`8d756ed4`](https://github.com/simonvanieperen/nieuw-os/commit/8d756ed4b85585e9878f440ea537c7875b02da45) ·
 **Ontwikkelbranch:** `codex/integrate-m6d-main`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Main- en PR-branch integreren met conflictresolutie.
-Main 1f24f99 en bijgewerkte PR-branch c8945c6 geïntegreerd; native runtime bleef gelijk aan M6d. Lokale hostsuite 173/173, 139 Rust-tests, py_compile en M6c-crossbuild slagen. Geen nieuwe lokale QEMU-gates; score blijft 14%.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** PR-conflicten oplossen en qsim-requestvalidatie herstellen.
+De integratiebranch bewaart de actuele main en het nieuwe M6d-Windowsbewijs. De qsim-hostparser weigert positionele request- en gatearrays; 27 tests, rustfmt en Clippy slagen, met twee aantoonbaar falende regressies vóór herstel. De 144 native broninputs blijven gelijk aan de uitgevoerde bron 326d2f6; deze integratie voert geen nieuwe VM-tests uit. Geen nieuw native productcriterium; voortgang blijft 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -48,6 +48,17 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
+
+## Laatste integratie en review
+
+[PR #13](https://github.com/simonvanieperen/nieuw-os/pull/13) brengt M6c/M6d,
+de actuele main en het [nieuwe Windowsbewijs](docs/verification/M6D-CLOSEOUT.md)
+samen. De geschiedenis is zonder codeverlies verbonden. Ook de ontbrekende
+qsim-parserfix is opgenomen: positionele JSON-arrays worden geweigerd;
+[27 hosttests, rustfmt en Clippy](docs/verification/qsim-request-validation/README.md)
+slagen. Dit checkpoint gaat vooraf aan de definitieve review en squashmerge;
+de actuele afhandeling staat in de PR. De native broninputs blijven gelijk en
+de voortgang blijft **14%**.
 
 ## Laatste bouwstap: M6d — opslagfouten gecontroleerd afhandelen
 

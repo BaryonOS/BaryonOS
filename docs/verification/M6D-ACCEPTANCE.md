@@ -3,13 +3,19 @@
 Datum: 28 oktober 2026. Eigen kernel, branch `codex/m6d-io-recovery-roadmap`,
 [PR #11](https://github.com/simonvanieperen/nieuw-os/pull/11).
 
-**Native uitvoeringsbron:** `88e6c04be218b8b09ea4f0a226f6b9719da706a6`.
+**Native uitvoeringsbron van deze oorspronkelijke Linuxafsluiting:**
+`88e6c04be218b8b09ea4f0a226f6b9719da706a6`.
 Fingerprint v3: `8ca6d5d5291fde62f91fb47dca7df4d058424604449fb32b9e5899b1d4fbef93`.
 De broncheckpoint is vóór de volledige gates op GitHub bewaard; de ouders
 `b739183c48a06cb7798d0be8cc683430152533ac` en
 `5ba238cc113c5a18924adab6f6a0908fdf193de0` bewaren zowel onze M6d-implementatie
-als de actuele M6c-reviewreparaties. Alle 45 eindrunrecords noemen deze ene
-uitvoeringsbron. Latere wijzigingen zijn documentatie en opgeslagen bewijs.
+als de toenmalige M6c-reviewreparaties. Alle 45 eindrunrecords van deze
+oorspronkelijke afsluiting noemen die ene uitvoeringsbron; de direct
+bijbehorende afsluitcommit voegde alleen documentatie en opgeslagen bewijs toe.
+Daarna zijn de Windowsrunners en hosttests gericht gecorrigeerd en zijn nieuwe
+Windowsgates op `326d2f6` uitgevoerd. Die afzonderlijke bronbinding, resultaten
+en grenzen staan in [M6D-CLOSEOUT.md](M6D-CLOSEOUT.md). Het historische bewijs
+hieronder blijft aan `88e6c04` en zijn eigen fingerprint gebonden.
 
 ## Gebouwd gedrag
 

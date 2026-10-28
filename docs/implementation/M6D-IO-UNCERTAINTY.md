@@ -1,8 +1,12 @@
 # M6d — native opslagfouten zonder kernelpanic
 
-Datum: 28 oktober 2026. Ontwerp vóór uitvoering, basis `b58ae2a` (M6c).
-Werkbranch: `codex/m6d-io-recovery-roadmap`. Testresultaten staan afzonderlijk in
-`../verification/m6d/`; dit contract zelf is geen geslaagd testresultaat.
+Datum: 28 oktober 2026. Vooraf vastgelegd contract, oorspronkelijke basis
+`b58ae2a` (M6c), werkbranch `codex/m6d-io-recovery-roadmap`.
+De M6c/M6d-implementatie en versiegebonden native uitvoering zijn inmiddels
+vastgelegd in [M6D-ACCEPTANCE.md](../verification/M6D-ACCEPTANCE.md) en de
+latere [Windowsafsluiting](../verification/M6D-CLOSEOUT.md). Dit ontwerpdocument
+zelf is geen testresultaat. De historische zelfstandige M6b-observer blijft
+ongewijzigd en krijgt hiermee geen nieuwe foutafhandelingsclaim.
 
 ## Probleem en gekozen grens
 

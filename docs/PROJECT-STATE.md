@@ -2,6 +2,34 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
+## PR-integratie en qsim-herstel — 28 oktober 2026
+
+Broncheckpoint `8d756ed4b85585e9878f440ea537c7875b02da45`, branch
+`codex/integrate-m6d-main`. De eerdere squash van PR #12 naar main (`1f24f994`)
+was inhoudelijk aanwezig, maar ontbrak als ouder van de integratiebranch.
+Commit `e089e929` verbindt beide geschiedenissen zonder bestandswijzigingen.
+Het daarna gepubliceerde checkpoint `c8945c6` bewaart die verbinding en voegt
+het hieronder beschreven Windowsbewijs toe. Ook het latere Copilot-checkpoint
+`f835a061` en zijn integratieverslag blijven behouden. De twee oude M5-logs blijven weg.
+
+Een nog ontbrekende CodeRabbit-reparatie uit PR #2 is gericht overgenomen:
+de qsim-JSON-parser accepteert alleen objecten voor requests en gates.
+De oude parser faalt op twee nieuwe regressietests; na herstel slagen
+**27 hosttests**, `cargo fmt --all -- --check` en
+`cargo clippy --offline --locked --workspace --all-targets -- -D warnings`.
+Lockfile, dependencies en quantumcore blijven gelijk. Exacte commando's,
+bronbinding en ruwe uitvoer: [qsim-request-validation](verification/qsim-request-validation/README.md).
+
+De 144 native/build/runnerinputs zijn bytegelijk aan Windows-uitvoeringsbron
+`326d2f6`. Deze integratiestap controleert gepubliceerd bewijs en voert geen
+nieuwe native build of VM-test uit. De historische M6b-observerbeperking en
+de twee ontbrekende individuele M1-QEMU-hashes blijven expliciet. Voortgang
+**14% → 14%**: de hostparserfix en integratie voegen geen native criterium toe.
+`python3 tools/progress.py --write` en daarna `--check` zijn uitgevoerd met
+exit 0; zij controleren de berekening, bewijsverwijzingen en weergave.
+Dit is het checkpoint vóór de definitieve externe review; de feitelijke
+review- en squashmergestatus staat in [PR #13](https://github.com/simonvanieperen/nieuw-os/pull/13).
+
 ## Main- en remote-PR-integratie — conflictresolutie 28 oktober 2026
 
 De actuele `main` (`1f24f994`) is samengevoegd in mergecommit
