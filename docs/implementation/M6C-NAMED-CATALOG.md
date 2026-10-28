@@ -98,6 +98,29 @@ De kernel bevat uitsluitend de bestaande blokbroker en een expliciete
 acceptatieobserver voor deze fixture, geen naam-/catalogusbeleid voor apps.
 Native probe: `userspace/m6c_probe.rs`; selector: `milestone-m6c`.
 
+## Bekende native observerbeperking
+
+De `Unknown`-afhandeling is met de echte serviceadapter en een host-ABI-shim
+gecontroleerd. In `kernel/src/m2/m3/m6c.rs` bewaart de acceptatieobserver bij
+een voorbereide mutatie echter de verwachte `Ok`-reply. Na een native WRITE-
+of FLUSH-fout of time-out kan de adapter `Unknown` aanbieden, waarna `sent()`
+op die verwachting panikeert voordat de client het antwoord ontvangt. Dit
+geldt ook voor `milestone-m6c`, niet alleen voor fouttestfeatures. Dit is een
+geldige, nog ongerepareerde observerfout.
+
+De huidige native integratie voldoet onder die devicefouten nog niet aan de
+bedoelde gecontroleerde `Unknown`-respons en voortzetting. De ontwerpvereisten
+blijven staan: geen commit zonder WRITE+FLUSH, geen automatische replay en
+geen verdere geldige GET/LIST/mutaties bij onzekerheid. Het geteste
+serviceadaptergedrag is geen bewijs dat het defecte native observerpad werkt.
+
+De begrensde native acceptatie gebruikt de vastgelegde QEMU/device-fixture
+zonder native devicefoutinjectie; `capture_m6c.py` weigert `M6C:OUTCOME`.
+De 15 host-ABI-scenario's vervangen geen toets van de kernelobserver.
+Herstel vraagt een afzonderlijke native wijziging met WRITE-/FLUSH-fout- en
+time-outinjectie, controle van het werkelijk ontvangen clientantwoord en
+nieuwe brongebonden native verificatie.
+
 ## Acceptatie
 
 1. Hosttests voor wire/UTF-8/canonicalisatie, catalogusfiltering, CAS, tombstones,

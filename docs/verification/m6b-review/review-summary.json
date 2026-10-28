@@ -1,5 +1,5 @@
 {
-  "result": "no blocker found within bounded NATIVE-B1 scope",
+  "result": "geen blocker gevonden binnen de afgebakende NATIVE-B1-scope",
   "source_hashes": {
     "services/objects/src/journal.rs": "d84785f09fb15b880b03f228286c7a5d4d43213e028434af7b074a389a55d522",
     "services/objects/src/lib.rs": "7e8124d02bf95e952809664d4f73ea71f1ee841eadc1f836406ee58d09634aa2",
@@ -16,18 +16,18 @@
     "skipped": 0
   },
   "actual_adapter_host_shim_scenarios": [
-    "success",
-    "write submit error",
-    "write poll error",
-    "flush submit error",
-    "flush poll error",
-    "malformed completion",
-    "write poll timeout"
+    "succes",
+    "write-submitfout",
+    "write-pollfout",
+    "flush-submitfout",
+    "flush-pollfout",
+    "ongeldige completion",
+    "time-out bij write poll"
   ],
   "limits": [
-    "The actual ring-3 adapter was compiled against a host-only ABI shim for injected error branches.",
-    "QEMU I/O, isolation, flush durability and crash recovery require the separate native gate.",
-    "FNV is diagnostic only; disk authenticity/hostile rollback and cryptography are outside this step."
+    "De echte ring-3-adapter is tegen een host-ABI-shim gecompileerd voor geïnjecteerde foutpaden.",
+    "QEMU-I/O, isolatie, FLUSH-duurzaamheid en crashherstel vereisen de afzonderlijke native gate.",
+    "FNV is uitsluitend diagnostisch; schijfauthenticiteit/bescherming tegen kwaadwillige rollback en cryptografie vallen buiten deze stap."
   ],
   "repo_writes": false
 }

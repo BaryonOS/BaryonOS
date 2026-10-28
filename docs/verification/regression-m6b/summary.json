@@ -55,10 +55,33 @@
       "accepted": false,
       "reason": "new artifact hash guard rejected cold2 before QEMU because copied kernel matched prior M6a-recover artifact",
       "diagnostics": "audit/rejected-m1-second-attempt/"
+    },
+    {
+      "checkpoint": "20f7ed282e579b96d964ae84509d895a7a826f4d",
+      "script_returncode": 1,
+      "actual_vm_invocations": 2,
+      "accepted": false,
+      "reason": "De artifacthashcontrole blokkeerde cold3 vóór QEMU wegens een afwijkende kernelhash; cold1 en cold2 hadden de verwachte artifacts.",
+      "diagnostics": "audit/rejected-m1-third-attempt/"
     }
   ],
-  "m1_acceptance": "pending separate fresh gate in root native worktree; no M1 acceptance claimed here",
+  "m1_acceptance": {
+    "status": "accepted",
+    "source_checkpoint": "1e61a20beac67d685cf4bff5f0f9f588bf2cb56e",
+    "source_sha256": "43e6c06e43e3ba602b49c304328f0c1700bc26dae0a1256f0d5d420421f55ae2",
+    "groups": 10,
+    "actual_vm_invocations": 8,
+    "gate_exit_code": 0,
+    "capture_exit_code": 0,
+    "evidence": "FINAL-ACCEPTANCE.md"
+  },
   "artifact_replacement_cause": "undetermined; no matching competing process observed after failure; no attribution to kernel, QEMU, Cargo, or agent",
   "source_changes_by_this_verifier": false,
-  "scope": "Real VM output plus host revalidation. Rejected diagnostics are preserved and excluded from accepted totals. No IOMMU, physical hardware, native NAS, cryptographic or full OS security claim."
+  "scope": "Real VM output plus host revalidation. Rejected diagnostics are preserved and excluded from accepted totals. No IOMMU, physical hardware, native NAS, cryptographic or full OS security claim.",
+  "evidence_status": {
+    "proposal": "Geen nieuw voorstel in deze samenvatting.",
+    "implementation": "Bestaand harnas met strikte M1-fasecontrole en gecontroleerde artifactsnapshots; zie FINAL-ACCEPTANCE.md.",
+    "test_evidence": "Geaccepteerde M1-eindgate en eerdere M2–M5-runs hebben afzonderlijke bronnen en aantallen; afgewezen pogingen tellen niet mee.",
+    "unknown": "De oorzaak van artifactvervanging en de afzonderlijke checkoutcommit van m3-large-artifact-tests zijn niet vastgesteld."
+  }
 }

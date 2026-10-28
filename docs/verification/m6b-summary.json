@@ -51,16 +51,16 @@
     "m6b-final-guest-guards-v2.stderr.txt": 7,
     "m6b-final-snapshot-binding-v2.stderr.txt": 8
   },
-  "scope": "Separate accepted suites; prior partial, rejected and earlier M6b checkpoint runs are not added to these counts. Reviews are AI checks, not human audits or formal verification.",
+  "scope": "Afzonderlijke geaccepteerde suites; eerdere gedeeltelijke, afgewezen en oudere M6b-checkpointruns worden niet bij deze aantallen opgeteld. Reviews zijn AI-controles, geen menselijke audits of formele verificatie.",
   "remaining_limits": [
-    "Four objects, two endpoint domains, 128 bytes per object, 32 append-only records",
-    "No filenames, directories, compaction or space reclamation",
-    "Logical deletion only; old payload bytes remain",
-    "No native storage encryption, internet/NAS adapter or native desktop integration",
-    "FNV is diagnostic, not cryptographic; no malicious rollback protection",
-    "Trusted QEMU/device/kernel transport; no physical power-loss or IOMMU claim",
-    "M6b Unknown I/O fault paths additionally probed with host ABI shim, not native fault injection",
-    "Historical artifact replacement cause remains undetermined; final gates use stricter artifact binding and private M1 snapshots"
+    "Vier objecten, twee endpointdomeinen, 128 bytes per object, 32 append-only-records",
+    "Geen bestandsnamen, mappen, compactie of ruimtehergebruik",
+    "Alleen logische verwijdering; oude payloadbytes blijven behouden",
+    "Geen native opslagversleuteling, internet-/NAS-adapter of native desktopintegratie",
+    "FNV is diagnostisch, niet cryptografisch; geen bescherming tegen kwaadwillige rollback",
+    "Vertrouwd QEMU-/device-/kerneltransport; geen claim over fysieke stroomuitval of IOMMU",
+    "M6b Unknown-I/O-foutpaden aanvullend beproefd met een host-ABI-shim, niet met native foutinjectie",
+    "De oorzaak van historische artifactvervanging blijft onbekend; eindgates gebruiken striktere artifactbinding en private M1-snapshots"
   ],
   "normal_build_ready": {
     "passed": true,
@@ -69,6 +69,6 @@
     "source_sha256": "43e6c06e43e3ba602b49c304328f0c1700bc26dae0a1256f0d5d420421f55ae2",
     "kernel_feature": "milestone-m6b",
     "matches_both_final_normal_gate_runs": true,
-    "scope": "Build restored for normal M6b demo; binary identity checked, no additional VM counted"
+    "scope": "Build hersteld voor de normale M6b-demo; binaire identiteit gecontroleerd, geen aanvullende VM meegeteld"
   }
 }

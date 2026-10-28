@@ -126,6 +126,16 @@ def capture(phase: str, destination: str | None = None):
     suite = json.loads(suite_path.read_text(encoding="utf-8"))
     if suite.get("status") != "completed" or suite.get("passed") is not True:
         raise ValueError("Only a completed, passed gate can be captured")
+    if phase == "m5":
+        comparisons = [group for group in suite["results"]
+                       if group.get("name") == "same-binary-two-actual-disks"]
+        if len(comparisons) != 1:
+            raise ValueError("M5 requires exactly one two-image comparison group")
+        evidence = Path(comparisons[0]["evidence"])
+        if not evidence.is_absolute():
+            evidence = ROOT / evidence
+        if evidence.resolve() != (BUILD / "logs/m5-two-image-check.json").resolve():
+            raise ValueError("M5 comparison requires m5-two-image-check.json evidence")
     if destination is None:
         destination = (ROOT / "docs/verification/m5" if phase == "m5"
                        else ROOT / "docs/verification/m2-m4" / phase)
@@ -139,6 +149,7 @@ def capture(phase: str, destination: str | None = None):
         staged.mkdir()
 
         runs = []
+        two_image_checks = []
         for group in suite["results"]:
             if group.get("passed") is not True:
                 raise ValueError(f"Failed group: {group['name']}")
@@ -203,6 +214,7 @@ def capture(phase: str, destination: str | None = None):
                     if (details.get("passed") is not True or not isinstance(checks, dict)
                             or not checks or any(value is not True for value in checks.values())):
                         raise ValueError(f"Failed host evidence: {resolved_evidence}")
+                    two_image_checks.append(details)
                     paths = [resolved_evidence]
                 for source in paths:
                     target = staged / source.name
@@ -212,6 +224,12 @@ def capture(phase: str, destination: str | None = None):
                         source.read_text(encoding="utf-8").rstrip() + "\n", encoding="utf-8")
             else:
                 raise ValueError(f"Missing evidence: {evidence}")
+        if phase == "m5" and len(two_image_checks) != 1:
+            raise ValueError("M5 requires exactly one bound two-image evidence file")
+        if two_image_checks:
+            from m5_evidence import validate_two_image_evidence
+            for details in two_image_checks:
+                validate_two_image_evidence(details, runs)
         save_json(staged / "suite.json", suite)
         save_json(staged / "guest-runs.json", runs)
 

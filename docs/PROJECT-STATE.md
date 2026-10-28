@@ -17,8 +17,10 @@ bouwbaar. Contract: `implementation/M6C-NAMED-CATALOG.md`; besluit ADR-030.
 
 Definitieve uitvoeringsbron: `bc4cd104e86e2c047b727ae96e07a03fbc810c3c`;
 fingerprint v3 `4468b3c18bd7fa57bf3631d634d52ee4c5fe9a76da9f125714d6db95e4407345`.
-Deze bron is vóór de lange controles op GitHub bewaard. De afsluitende wijzigingen
-betreffen documentatie en bewijs. [PR #10](https://github.com/simonvanieperen/nieuw-os/pull/10)
+Deze bron is vóór de lange controles op GitHub bewaard. De oorspronkelijke afsluitende wijzigingen
+betreffen documentatie en bewijs. De latere integratie van het M6b-reviewherstel
+wijzigt hosttools en tests; de native runtimebron blijft gelijk. Het afzonderlijke
+hostbewijs staat in `verification/m6c-review/merge-followup/`. [PR #10](https://github.com/simonvanieperen/nieuw-os/pull/10)
 staat boven de M6b-branch; geen merge naar main of release uitgevoerd.
 
 | Scope op deze bron | Resultaat | Bewijs |
@@ -53,6 +55,13 @@ afgehandeld in `verification/m6c-review/REVIEW-FOLLOWUP.md`: actuele native
 resultaten gelinkt, portable adapter opnieuw getest en de vier corecontroles
 read-only herhaald met HEAD/status en bronhashes vóór/na. Historische evidence
 blijft behouden. Dit verandert de native bron of het aantal VM-runs niet.
+
+Bekende observerfout: native WRITE-/FLUSH-fouten of time-outs kunnen ook in de
+gewone `milestone-m6c` een kernel panic veroorzaken voordat de client `Unknown`
+ontvangt. De host-ABI-proeven toetsen alleen de serviceadapter. Contract en
+M6C-ACCEPTANCE vermelden nu expliciet dat dit native pad niet gerepareerd of
+end-to-end bewezen is. Latere reparatie vereist echte native foutinjectie.
+De onderzoeksacceptatie blijft begrensd tot de vastgelegde QEMU/device-fixture.
 
 Vervolg: deze opslaginterface aan native productfuncties koppelen; grotere
 documenten, ruimtehergebruik, encryptie, sleutels en native NAS/netwerk vereisen
@@ -113,6 +122,22 @@ Details en de geslaagde capture-hercontrole zonder nieuwe VM-runs:
 De laatste lokale build is opnieuw `milestone-m6b`; kernel en loader zijn
 bytegelijk aan beide normale eindgate-runs. Dit is een buildcontrole zonder
 extra VM-start (`verification/m6b-ready/`).
+
+Reviewcorrecties van 28 oktober 2026, basis `bb22fdbe15919edc23baa158a46236195ce314b2`:
+historische audits/guards en M1-afwijzingen verduidelijkt, bewijsbeschrijvingen
+vertaald en M5-vergelijkingen aan geverifieerde gastrecords gebonden. Preflight
+weigert nu ook een niet-nul `probe_exit` en een `probe_error`; de oude `rustup`-probe met `-6` was dus
+geen geldige inventariscontrole. De M6b-gate probeert na fouten de normale M1-build
+te herstellen en bewaart de oorspronkelijke fout. De 40 onafhankelijk uitgevoerde gerichte hosttests slagen; exacte commando's,
+bronhashes en ruwe uitvoer staan in `verification/m6b-review/merge-followup/`.
+Deze follow-up betreft hosttools; de oorspronkelijke native uitvoeringsbronnen
+in de tabel hierboven blijven behouden.
+Geen nieuwe native gate uitgevoerd; de M3-hosttestcheckout en de redirectinstelling
+van de oude buitenste capturewrapper blijven expliciet onbekend.
+Bekende native observerbeperking: WRITE-/FLUSH-fouten kunnen, ook in
+`milestone-m6b`, een kernel panic veroorzaken voordat de client `Unknown` krijgt.
+Dit is niet gerepareerd of end-to-end native bewezen; contract en acceptatie
+beschrijven de begrensde onderzoeksafbakening en benodigde latere foutinjectie.
 
 Deze begrensde lokale opslagproef heeft geen namen, directoryboom, garbage
 collection of encryptie. Verwijderrecords voorkomen het terugkomen van oude

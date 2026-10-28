@@ -1,6 +1,6 @@
 {
   "checkpoint": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
-  "scope": "Native implementation and build inputs unchanged by capture-proof fixes",
+  "scope": "Native implementatie en bouwinputs ongewijzigd door de reparaties aan de bewijsregistratie",
   "sha256": {
     "kernel/Cargo.toml": "91d41a4fa17a9dce2eae261c8d2388236c1ec68264c85603cddeb55f82efed18",
     "kernel/build.rs": "363387c780584d5e7bdcb8d6b5ea9711a60e9962af31a34e3fadaabde41e8440",

@@ -32,17 +32,22 @@ M1-fasecontrole of de binding van gekopieerde kernel/loader aan de verwachte
 buildhashes vóór QEMU-start. Vijf bindingtests, zeven guestparsertests en tien
 capturetests zijn daarvoor afzonderlijk opnieuw uitgevoerd (exit 0).
 
-`native-audit-20f7ed2.json` controleert de daaropvolgende complete gate:
+`native-audit-20f7ed2.json` is de historische R9-audit van de complete gate
+voor checkpoint `20f7ed282e579b96d964ae84509d895a7a826f4d` en bronfingerprint
+`09fef202b74c362b2ead29c7cac12fee772bee3a3d382a6dbf7d576798c3e8f5`:
 18 groepen, 14 echte VM-runs, 121 artifacthashes, zeven volumes, zes koude
 herstelparen, twee vastgelegde SIGKILL-cuts, 22 Rust- en 26 harnastests.
 De aparte parser reconstrueerde de bronfingerprint uit `git archive` en de
 record-, revisie-, verwijder- en canarytoestand uit de werkelijke schijfbytes.
+Het R9-script is niet in de repository gearchiveerd; `audit_script_runtime_path`
+verwijst naar het oorspronkelijke tijdelijke pad `/tmp/m6b-final-audit-r9.py`.
 De latere wijziging naar private M1-buildsnapshots heeft een eigen eindgate:
 `final-native-audit.json` controleert opnieuw alle 18 groepen/14 VM-runs en 121
 artifacthashes op `1e61a20`. Het exacte afzonderlijke stdlib-auditscript staat in
 `independent_native_audit.py`; oorspronkelijke runtimepaden zijn behouden.
-De daadwerkelijke gate/hostlogs staan in `../m6b/`. `guards-final/` bewaart de
-8 snapshotbinding-, 7 parser- en 9 bestaande capturetests op dezelfde bron.
+De daadwerkelijke gate/hostlogs staan in `../m6b/`. `guards/` bevat historische
+guard-output voor `20f7ed2`. `guards-final/` bevat de actuele guardset voor
+`1e61a20`: 8 snapshotbinding-, 7 parser- en 9 bestaande capturetests.
 
 De eerste capture-wrapperconsole bleek leeg ondanks de geregistreerde exit 0.
 De audit gebruikt daarvoor geen consolemarkerclaim: gastrecords, schijfbeelden
