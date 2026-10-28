@@ -1,0 +1,7 @@
+{
+  "task": "G12",
+  "reviewed_gate_commit": "4ce6ba2f5bf7201848842fb10d54c7726ab975be",
+  "gate_sha256": "050c166ee7136c066fb67ac9507a02be6166043ba6d588128cda71103fb25a5b",
+  "compile_evidence_source_commit": "91bf66ca2cdc00b7d2e220cd5afefd270d8fe062",
+  "new_vm_runs": 0
+}

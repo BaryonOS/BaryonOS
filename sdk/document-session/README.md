@@ -22,6 +22,7 @@ voert geen UTF-8-, tekst-, bestands- of schijfbeleid in.
 | `is_uncertain()` | Een save kan al zijn uitgevoerd. Deze toestand is blijvend voor dit sessieobject; er wordt niet opnieuw verstuurd. |
 | `discard_changes()` | Zet alleen lokale bytes terug naar de laatst geladen/ACKed toestand. Geen GET, PUT, revisieverversing of oplossing van onzekerheid. |
 | `reopen()` | Expliciete GET voor het huidige object, mits er geen onverworpen wijzigingen of onzekere save zijn. |
+| `list()` | Leest de catalogus van het toegekende domein via dezelfde eigenaar van de endpoints. Behoudt concept, geladen revisie en conflictstatus; gesloten of onzekere sessies verzenden niets. |
 | `close()` | Sluit via G03 beide endpoints; het concept blijft leesbaar. Geen verborgen syscall in `Drop`. |
 
 `EditMode::ReadOnly` is uitsluitend lokaal appbeleid dat edit/save weigert.
@@ -77,11 +78,18 @@ wordt pas na de echte corecommit geïnjecteerd; een nieuw servicemodel bouwt
 zijn toestand uitsluitend uit de opgeslagen recordbytes op. Beschadiging
 van zo'n record wordt door de echte Recovery afgewezen.
 
-Dit zijn **hostmodeltests**, geen nieuwe native WRITE/FLUSH-, crash-,
-GUI-, G1- of appstartproeven. De library wordt daarnaast voor
-`x86_64-unknown-none` gebouwd. De eerder afzonderlijk uitgevoerde G05-suite
-blijft het native bewijs voor de onderliggende SDK-runtimebridge; zij
-beweert niet dat deze nieuwe documentlaag al in de gast is gestart.
+Dit zijn **hostmodeltests**. De library wordt daarnaast voor
+`x86_64-unknown-none` gebouwd. G11 voegt een afzonderlijke opt-in native proef
+toe: de bestaande M6c-gebruikersprocessen openen een bestaand document,
+bewerken de 128 inhoudsbytes, bewaren met de geladen revisie en openen
+opnieuw. Een aparte koude VM leest via dezelfde library de echte image terug.
+De poort vereist `NOS_DOCUMENT_SESSION=1` én `NOS_SDK_RUNTIME=1`; alleen de
+normale M6c-case en recovery zijn toegestaan. De bestaande kernelobserver,
+capabilitygrenzen, 16/3 verzoeken per client en externe disk-oracle blijven
+behouden. Actuele uitgevoerde resultaten en hun exacte bronbinding staan in
+`docs/PROJECT-STATE.md`; compilatie of deze beschrijving is geen VM-bewijs.
+Deze deterministische proef heeft geen grafische bediening of algemene
+appstart. G1/Materiaal behoudt een afzonderlijke implementatie en acceptatie.
 
 ```sh
 CARGO_TARGET_DIR=/tmp/nieuw-os-g07-target cargo test --manifest-path sdk/Cargo.toml --workspace --locked --offline
@@ -91,4 +99,4 @@ CARGO_TARGET_DIR=/tmp/nieuw-os-g07-target cargo build --manifest-path sdk/Cargo.
 
 Geen externe crate is toegevoegd: alle dependencies zijn de bestaande lokale
 SDK-, catalogus- en voor tests capability-crates. Het source-/testbewijs en
-de nog open native integratiegrens staan in `docs/verification/parallel-g07/`.
+de oorspronkelijke librarygrens staan in `docs/verification/parallel-g07/`.

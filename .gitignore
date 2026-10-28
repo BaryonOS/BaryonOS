@@ -1,4 +1,6 @@
 /target/
+/sdk/target/
+/services/net-protocol/target/
 /build/
 /out/
 /artifacts/

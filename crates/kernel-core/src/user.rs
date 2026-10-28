@@ -85,7 +85,7 @@ pub fn parse(bytes: &[u8]) -> Result<Image, Error> {
         if kind == 0 || kind == 4 || kind == 6 || (kind == 0x6474e551 && flags & 1 == 0) {
             continue;
         }
-        if kind != 1 || !matches!(flags, 4 | 5 | 6) {
+        if kind != 1 || !matches!(flags, 4..=6) {
             return Err(Error::Permission);
         }
         let offset = u64at(bytes, at + 8)?;

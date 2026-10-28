@@ -1,0 +1,245 @@
+{
+  "task": "G11",
+  "source_commit": "91bf66ca2cdc00b7d2e220cd5afefd270d8fe062",
+  "base_commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+  "commands": [
+    {
+      "name": "sdk-host-tests",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--workspace"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-g11",
+      "environment_overrides": {
+        "CARGO_TARGET_DIR": "/tmp/nieuw-os-par-g11-host-target"
+      },
+      "exit": 0,
+      "duration_s": 0.13944634400104405,
+      "stdout": "sdk-host-tests.stdout.txt",
+      "stderr": "sdk-host-tests.stderr.txt",
+      "stdout_sha256": "4f07a4688e2fa5c99c24c10bdcc14fbf508d4989b15048beb0665885d751c15a",
+      "stderr_sha256": "9e9c0e13638547260f69944ea5ceda0d6e6301e629bf46f23a3eaa863f2963c0"
+    },
+    {
+      "name": "sdk-clippy",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-g11",
+      "environment_overrides": {
+        "CARGO_TARGET_DIR": "/tmp/nieuw-os-par-g11-clippy-target"
+      },
+      "exit": 0,
+      "duration_s": 0.03503332199761644,
+      "stdout": "sdk-clippy.stdout.txt",
+      "stderr": "sdk-clippy.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "23b9a21bbaf189889e08dc27ed8eba521021280c5852db22205f721db08b2c7c"
+    },
+    {
+      "name": "user-selection-tests",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_document_session_users.py",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-g11",
+      "environment_overrides": {},
+      "exit": 0,
+      "duration_s": 0.13850530900162994,
+      "stdout": "user-selection-tests.stdout.txt",
+      "stderr": "user-selection-tests.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "b3378047470adda130b8819c1ca107e8ad83af7fcdea7e11c10f295519f34ca9"
+    },
+    {
+      "name": "native-document-user",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "from build_users import build_users; build_users(\"m6c\", sdk_runtime=True, document_session=True)"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-g11",
+      "environment_overrides": {
+        "PYTHONPATH": "tools",
+        "NOS_BUILD_DIR": "/workspace/scratch/debaa3b6a81c/wt-g11/build/parallel-g11-document",
+        "NOS_TARGET_DIR": "/tmp/nieuw-os-par-g11-native-target",
+        "CARGO_TARGET_DIR": "/tmp/nieuw-os-par-g11-native-target"
+      },
+      "exit": 0,
+      "duration_s": 1.0805304300010903,
+      "stdout": "native-document-user.stdout.txt",
+      "stderr": "native-document-user.stderr.txt",
+      "stdout_sha256": "88665d3cfa7239222ee3c24b0b22362b8e6eb76f238658dff72322c6171be3d5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "native-default-sdk-user",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "from build_users import build_users; build_users(\"m6c\", sdk_runtime=True)"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-g11",
+      "environment_overrides": {
+        "PYTHONPATH": "tools",
+        "NOS_BUILD_DIR": "/workspace/scratch/debaa3b6a81c/wt-g11/build/parallel-g11-default",
+        "NOS_TARGET_DIR": "/tmp/nieuw-os-par-g11-default-target",
+        "CARGO_TARGET_DIR": "/tmp/nieuw-os-par-g11-default-target"
+      },
+      "exit": 0,
+      "duration_s": 0.7465324879995023,
+      "stdout": "native-default-sdk-user.stdout.txt",
+      "stderr": "native-default-sdk-user.stderr.txt",
+      "stdout_sha256": "46a33ac161c7103645b07bfb6ee37d635e03eb1602e1c790b2c40d5e9223f6ab",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "rustfmt",
+      "argv": [
+        "rustfmt",
+        "+1.90.0",
+        "--edition",
+        "2021",
+        "--config",
+        "skip_children=true",
+        "--check",
+        "userspace/document_session_probe.rs",
+        "userspace/m6c_probe.rs",
+        "sdk/document-session/src/lib.rs",
+        "sdk/document-session/tests/editing.rs"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-g11",
+      "environment_overrides": {},
+      "exit": 0,
+      "duration_s": 0.03344520500104409,
+      "stdout": "rustfmt.stdout.txt",
+      "stderr": "rustfmt.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "passed": true,
+  "new_native_vm_runs": 0,
+  "scope": "Host SDK behavior/selection guards and real native userspace ELF crosscompilation; integrated QEMU gate still pending root freeze.",
+  "native_artifact_checks": [
+    {
+      "selection": "document",
+      "binary_sha256": "38f5dee1b903b9ad86cbb6d44f801fb49d07c92567d501cd818d4c76ad04c831",
+      "binary_size": 752168,
+      "readonly_segment_bytes": 3683,
+      "readonly_limit": 4096,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 39874,
+          "memsz": 39874,
+          "page_start": 1073741824,
+          "page_end": 1073782784
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 45056,
+          "filesz": 16384,
+          "memsz": 16384,
+          "page_start": 1073807360,
+          "page_end": 1073823744
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 61440,
+          "filesz": 3683,
+          "memsz": 3683,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ],
+      "all_manifest_source_hashes_match_immutable_commit": true,
+      "all_libraries_match_actual_bytes": true,
+      "document_session_cfg_selected": true
+    },
+    {
+      "selection": "default",
+      "binary_sha256": "cfb96c4e7f3362c733144423271d108d872cdf85fab1ee755e88acd088814080",
+      "binary_size": 754976,
+      "readonly_segment_bytes": 3047,
+      "readonly_limit": 4096,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 45426,
+          "memsz": 45426,
+          "page_start": 1073741824,
+          "page_end": 1073790976
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 53248,
+          "filesz": 16384,
+          "memsz": 16384,
+          "page_start": 1073807360,
+          "page_end": 1073823744
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 69632,
+          "filesz": 3047,
+          "memsz": 3047,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ],
+      "all_manifest_source_hashes_match_immutable_commit": true,
+      "all_libraries_match_actual_bytes": true,
+      "document_session_cfg_selected": false
+    }
+  ],
+  "source_files_sha256": {
+    "userspace/document_session_probe.rs": "12152c588b8c3730878d8c249cbc379ee9035cae1441a14a195796c9d13f6692",
+    "userspace/m6c_probe.rs": "5ecda84b213a0108f7ca1d3b7c84db8ddc1b2cfd6143ba5c7fad59917db9d34a",
+    "tools/build_users.py": "4db84cbd8ee70cfb6844c71006f2c85dac10c8841413c0252f926ff821fdf56d",
+    "tests/test_document_session_users.py": "94ed60d511e48aad7b49b9dca809f35d0c4a9b4c7d2321c656fc1c03e2c8b432",
+    "sdk/document-session/src/lib.rs": "94693742e5ce52c3d7d41b8d6c0a9121df3a1a011abbd9a45d09a5320a1e9d1d",
+    "sdk/document-session/tests/editing.rs": "9b478591648609409eddb0002104a52bfbea6450cfd06abbb7b0c9560248f529"
+  },
+  "failed_development_attempts": [
+    "Initial link duplicated catalog wire/journal implementations and exceeded the existing readonly page. No bounds were enlarged.",
+    "An exploratory fat LTO command was rejected by the installed sysroot bitcode; it is not selected.",
+    "Reusing the existing canonical catalog_core wire/journal only in the opt-in build fits the unchanged linker limits with ordinary opt-level=2.",
+    "I13 identified a Python loop-variable shadow of the entry-source path; corrected before the successful full builder and source-hash checks."
+  ]
+}

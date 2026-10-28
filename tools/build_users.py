@@ -40,11 +40,13 @@ def inspect_user(path):
     return dict(entry=entry, segments=segments)
 
 
-def build_users(kind="probe", *, short_poll=False, sdk_runtime=False):
+def build_users(kind="probe", *, short_poll=False, sdk_runtime=False, document_session=False):
     if short_poll and kind != "m6b":
         raise ValueError("Short polling budget is an M6b test-only fixture")
     if sdk_runtime and kind != "m6c":
         raise ValueError("SDK transport bridge is an opt-in M6c fixture")
+    if document_session and (kind != "m6c" or not sdk_runtime):
+        raise ValueError("Document-session probe requires M6c and its SDK runtime bridge")
     fixtures = {"probe": ("probe", "linker.ld", "probe", "manifest.json"),
                 "ipc": ("ipc_probe", "ipc_linker.ld", "ipc_probe", "manifest-ipc.json"),
                 "large": ("probe", "large_linker.ld", "probe_large", "manifest-large.json"),
@@ -75,6 +77,29 @@ def build_users(kind="probe", *, short_poll=False, sdk_runtime=False):
                     "-C", "no-redzone=yes", str(ROOT / "sdk/runtime/src/lib.rs"),
                     "-o", str(runtime)], "build-sdk-runtime")
         args += ["--cfg=nos_sdk_runtime", "--extern", f"nieuw_os_sdk_runtime={runtime}"]
+    libraries = {}
+    if document_session:
+        libraries["nieuw_os_sdk_runtime"] = runtime
+        for crate, library_source in (
+            ("catalog_core", "services/catalog/src/lib.rs"),
+            ("nieuw_os_catalog_client", "sdk/catalog-client/src/lib.rs"),
+            ("nieuw_os_document_session", "sdk/document-session/src/lib.rs"),
+        ):
+            library = BUILD / f"users/lib{crate}.rlib"
+            command = ["rustc", "+1.90.0", "--edition=2021", f"--crate-name={crate}",
+                       "--crate-type=rlib", "--target=x86_64-unknown-none", "-C", "panic=abort",
+                       "-C", "opt-level=2", "-C", "code-model=small", "-C", "relocation-model=static",
+                       "-C", "no-redzone=yes", "-L", f"dependency={BUILD / 'users'}"]
+            if crate != "catalog_core":
+                for dependency, path in libraries.items():
+                    command += ["--extern", f"{dependency}={path}"]
+            command += [str(ROOT / library_source), "-o", str(library)]
+            run_logged(command, f"build-document-library-{crate}")
+            libraries[crate] = library
+        args += ["--cfg=nos_document_session", "-L", f"dependency={BUILD / 'users'}"]
+        for crate, library in libraries.items():
+            if crate != "nieuw_os_sdk_runtime":
+                args += ["--extern", f"{crate}={library}"]
     run_logged(args, f"build-users-{stem}")
     manifest = {"schema_version": 1, "purpose": "synthetic ring-3 acceptance probe",
                 "binary_sha256": sha256(output), "source_sha256": sha256(source),
@@ -101,10 +126,19 @@ def build_users(kind="probe", *, short_poll=False, sdk_runtime=False):
                    "services/catalog/src/user_service.rs")
         manifest["module_sha256"] = {path: sha256(ROOT / path) for path in modules}
         manifest["sdk_runtime"] = sdk_runtime
+        manifest["document_session"] = document_session
         if sdk_runtime:
             manifest["module_sha256"]["userspace/sdk_probe_runtime.rs"] = sha256(ROOT / "userspace/sdk_probe_runtime.rs")
             for module in sorted((ROOT / "sdk/runtime/src").glob("*.rs")):
                 manifest["module_sha256"][module.relative_to(ROOT).as_posix()] = sha256(module)
+        if document_session:
+            inputs = [ROOT / "userspace/document_session_probe.rs", ROOT / "sdk/Cargo.toml", ROOT / "sdk/Cargo.lock"]
+            for package in ("sdk/runtime", "sdk/catalog-client", "sdk/document-session", "services/catalog"):
+                inputs.append(ROOT / package / "Cargo.toml")
+                inputs.extend(sorted((ROOT / package / "src").rglob("*.rs")))
+            manifest["module_sha256"].update({path.relative_to(ROOT).as_posix(): sha256(path) for path in inputs})
+            manifest["library_sha256"] = {path.relative_to(BUILD).as_posix(): sha256(path)
+                                          for path in libraries.values()}
     save_json(BUILD / "users" / manifest_name, manifest)
     print(f"Built own {stem} ELF: entry={manifest['entry']:#x}, {len(manifest['segments'])} segments")
     return output

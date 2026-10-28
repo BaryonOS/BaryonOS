@@ -98,7 +98,7 @@ pub fn discover() -> Result<Discovery, Error> {
     let mut at = config[0x34] as usize;
     let mut count = 0;
     while at != 0 && count < 48 {
-        if at < 0x40 || at > 0xfc || at % 4 != 0 {
+        if !(0x40..=0xfc).contains(&at) || !at.is_multiple_of(4) {
             return Err(Error::Protocol);
         }
         let word = cfg_read(at as u16);
@@ -135,6 +135,11 @@ pub struct Device {
 impl Device {
     /// Kernel passes only supervisor UC mappings corresponding to the validated
     /// BARs, and exclusive normal-RAM DMA pages. These lifetimes last to reboot.
+    ///
+    /// # Safety
+    /// `mapped` must contain the permanent supervisor-only UC mappings for the
+    /// BAR regions validated in `info`. Every page in `pool` must be an exclusive,
+    /// pinned normal-RAM DMA page owned by this device for the full device lifetime.
     pub unsafe fn initialize(
         info: Discovery,
         mapped: [u64; 6],
@@ -145,6 +150,11 @@ impl Device {
     }
     /// Same mapping/pool contract as initialize. Writable mode is explicit;
     /// no_flush is a test-only advertisement snapshot selected by the kernel.
+    ///
+    /// # Safety
+    /// The caller must uphold the same permanent MMIO mapping and exclusive
+    /// pinned-DMA ownership requirements as [`Self::initialize`]. `writable` and
+    /// `no_flush` may select protocol behavior but do not relax those memory rules.
     pub unsafe fn initialize_profile(
         info: Discovery,
         mapped: [u64; 6],
@@ -240,7 +250,7 @@ impl Device {
             result.notify = mapped[info.regions.notify.bar as usize]
                 .checked_add(relative)
                 .ok_or(Error::Range)?;
-            if result.notify % 2 != 0 {
+            if !result.notify.is_multiple_of(2) {
                 return Err(Error::Range);
             }
             write16(common + 28, 1);

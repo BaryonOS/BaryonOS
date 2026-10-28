@@ -293,7 +293,7 @@ laatste toetst de runtimebridge, niet de losse catalogusvoorbeeldapp).
 opt-in, terugname via eerdere bron in aparte checkout zonder datamigratie.
 
 **Quantum — security-invariant:** elk proefproces heeft private mappings en
-maximaal64KiB arena; input blijft binnen6qubits/64gates/4096shots. SIMD/FPU en
+maximaal 64 KiB arena; input blijft binnen 6 qubits / 64 gates / 4096 shots. SIMD/FPU en
 vreemde syscall/hardware-instructies zijn niet toegestaan in het geselecteerde
 scalarartifact. Simulatorbeleid blijft userspace; opruiming gebruikt echte
 procesframes. **Weerlegd als:** grenzen kunnen worden overschreden, processen
@@ -421,3 +421,57 @@ capability als toegestaan behandelt.
 
 **Bewijs/migratie:** LP-29/PX-04 en toekomstige native UI-/brokerproeven. Bestaande
 grants migreren niet; alleen de presentatievoorkeur wordt afzonderlijk bewaard.
+
+## ADR-039 — DocumentSession native controleren via de bestaande catalogus
+
+**Datum:** 28 oktober 2026.  
+**Status:** implementatie geïntegreerd in de auditbranch; host-/crossbuildbewijs en een
+actuele twee-VM normal/koude-recovery-proef zijn uitgevoerd, maar dit verandert
+geen bestaand roadmapcriterium.  
+**Eigenaar:** app/SDK voor de gebruikersproef en library, runtime voor de
+acceptatiepoort, root voor selectie en integratie.
+
+**Context:** de bestaande M6c-probe gebruikte de catalogus via directe helpers,
+terwijl de echte `DocumentSession`-library al bestaat. De integratiestap moet
+die echte library in ring 3 gebruiken zonder kernelobserver, capabilityrechten,
+IPC-envelop of opslagformaat te verruimen.
+
+**Alternatieven:** (1) de directe catalogushelpers blijven gebruiken, waardoor
+de appbibliotheek niet native wordt getoetst; (2) een afzonderlijke user-ELF met
+gekopieerde cataloguscode bouwen, wat duplicatie en bewijsoppervlak vergroot;
+(3) de bestaande M6c-userflow opt-in de echte library laten gebruiken en de
+bestaande catalogusmodules linken. Gekozen is optie 3.
+
+**Besluit/implementatie:** `DocumentSession<NativeTransport>` draait opt-in in
+de bestaande M6c-gebruikersprocessen. `NOS_DOCUMENT_SESSION=1` vereist
+`NOS_SDK_RUNTIME=1` en is beperkt tot normal/recover. Openen, lokaal bewerken,
+CAS-save, opnieuw openen en LIST blijven userspace. `list()` houdt één eigenaar
+van de endpoints; service en typed client delen de bestaande catalogusmodules.
+
+**Security-invariant:** de route gebruikt uitsluitend reeds toegekende
+procesgebonden endpoints. Replies blijven canoniek gevalideerd; LIST mag lokaal
+concept/conflict/onzekerheid niet wissen en een gesloten sessie niet heropenen.
+Onzekere saves worden niet automatisch herhaald. Syscall-, IPC-, geheugen- en
+capabilitygrenzen worden niet verruimd. ADR-035 (Security Floor) blijft volledig
+van toepassing.
+
+**Onderbouwing/bronnen:** `docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md`,
+`sdk/document-session/README.md`, `docs/verification/parallel-g11/`,
+`docs/verification/parallel-i13/` en `docs/verification/parallel-i15/`.
+Voor de afzonderlijke netwerkparser gelden RFC 768, RFC 791 en RFC 1071, zoals
+vastgelegd in `services/net-protocol/README.md`.
+
+**Testbewijs:** de repositorybrede audit-CI voert DocumentSession-hosttests,
+SDK-/compilerbindingcontroles, native M6c-build, een baseline M6c-QEMU-smoke en
+twee afzonderlijke DocumentSession-VM's (normal en koude recovery) uit.
+Historische bewijsbundels blijven aan hun oorspronkelijke bron gekoppeld.
+
+**Weerlegd als:** de proef nieuwe rechten nodig heeft, een draft via LIST
+verliest, een onzekere save herhaalt, een gesloten endpoint opnieuw bruikbaar
+maakt, de observer/oracle moet versoepelen of een andere binary als documentapp
+kan meetellen.
+
+**Migratie/rollback:** standaardprofielen behouden hun bestaande selectie. De
+opt-in kan worden uitgezet; er is geen migratie van echte gebruikersdata,
+firmware of fysieke apparaten. De headless documentproef is geen Materiaal-GUI,
+algemene appstarter, grotere-documentondersteuning of ruimtehergebruik.
