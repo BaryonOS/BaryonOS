@@ -60,11 +60,18 @@ extra VM-start (`verification/m6b-ready/`).
 Reviewcorrecties van 28 oktober 2026, basis `bb22fdbe15919edc23baa158a46236195ce314b2`:
 historische audits/guards en M1-afwijzingen verduidelijkt, bewijsbeschrijvingen
 vertaald en M5-vergelijkingen aan geverifieerde gastrecords gebonden. Preflight
-weigert nu ook een niet-nul `probe_exit`; de oude `rustup`-probe met `-6` was dus
+weigert nu ook een niet-nul `probe_exit` en een `probe_error`; de oude `rustup`-probe met `-6` was dus
 geen geldige inventariscontrole. De M6b-gate probeert na fouten de normale M1-build
-te herstellen en bewaart de oorspronkelijke fout. De 36 gerichte hosttests slagen.
+te herstellen en bewaart de oorspronkelijke fout. De 40 onafhankelijk uitgevoerde gerichte hosttests slagen; exacte commando's,
+bronhashes en ruwe uitvoer staan in `verification/m6b-review/merge-followup/`.
+Deze follow-up betreft hosttools; de oorspronkelijke native uitvoeringsbronnen
+in de tabel hierboven blijven behouden.
 Geen nieuwe native gate uitgevoerd; de M3-hosttestcheckout en de redirectinstelling
 van de oude buitenste capturewrapper blijven expliciet onbekend.
+Bekende native observerbeperking: WRITE-/FLUSH-fouten kunnen, ook in
+`milestone-m6b`, een kernel panic veroorzaken voordat de client `Unknown` krijgt.
+Dit is niet gerepareerd of end-to-end native bewezen; contract en acceptatie
+beschrijven de begrensde onderzoeksafbakening en benodigde latere foutinjectie.
 
 Deze begrensde lokale opslagproef heeft geen namen, directoryboom, garbage
 collection of encryptie. Verwijderrecords voorkomen het terugkomen van oude

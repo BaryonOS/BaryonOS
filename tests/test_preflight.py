@@ -56,6 +56,32 @@ class RequiredToolProbes(unittest.TestCase):
                 self.assertEqual(report['missing'], [])
                 self.assertTrue(report['baseline_tools_present'])
 
+    def test_probe_exceptions_fail_strict_inventory(self):
+        for error in (OSError('synthetic execution failure'),
+                      subprocess.TimeoutExpired('synthetic-rustup', 10)):
+            with self.subTest(error=type(error).__name__):
+                with patch.object(preflight.shutil, 'which', return_value='synthetic-rustup'), \
+                        patch.object(preflight.subprocess, 'run', side_effect=error):
+                    tool = preflight.probe('rustup')
+
+                self.assertTrue(tool['available'])
+                self.assertEqual(tool['probe_error'], type(error).__name__)
+                self.assertNotIn('probe_exit', tool)
+                status, report = self.inventory(tool)
+                self.assertEqual(status, 2)
+                self.assertEqual(report['missing'], ['rustup'])
+                self.assertFalse(report['baseline_tools_present'])
+
+    def test_non_strict_inventory_reports_probe_exceptions_without_failing(self):
+        for error in ('OSError', 'TimeoutExpired'):
+            with self.subTest(error=error):
+                status, report = self.inventory(
+                    {'available': True, 'path': 'synthetic-rustup', 'probe_error': error},
+                    strict=False)
+                self.assertEqual(status, 0)
+                self.assertEqual(report['missing'], ['rustup'])
+                self.assertFalse(report['baseline_tools_present'])
+
     def test_non_strict_inventory_reports_crash_without_failing(self):
         status, report = self.inventory(
             {'available': True, 'path': 'synthetic-rustup', 'probe_exit': -6}, strict=False)

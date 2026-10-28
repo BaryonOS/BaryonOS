@@ -58,6 +58,10 @@ zijn vertrouwd; een proceskill bewijst geen fysieke stroomuitval of IOMMU-isolat
 Unknown-uitkomsten zijn aanvullend met zeven host-ABI-proeven gecontroleerd,
 niet met native M6b-devicefoutinjectie.
 
+Bekende beperking van de native acceptatieobserver: bij een WRITE- of FLUSH-fout kan `kernel/src/m2/m3/m6b.rs` een kernel panic veroorzaken, doordat `sent()` de reply nog met de verwachte `Ok`-reply vergelijkt voordat `Unknown` correct wordt verwerkt. Deze fout is niet gerepareerd. De opgeslagen native gates dekken dit foutpad niet en tonen de `Unknown`-invariant niet end-to-end aan. De zeven host-ABI-proeven controleren uitsluitend de serviceadapter onder gesimuleerde I/O-uitkomsten. Binnen de begrensde, vertrouwde QEMU/device-fixture blijft dit een expliciete onderzoeksbeperking; een latere native reparatie vereist gerichte devicefoutinjectie, nieuwe native verificatie en bijbehorende bronbinding.
+Dit geldt ook voor de gewone `milestone-m6b`-build. De beperking is inhoudelijk
+beoordeeld in [de reviewthread van PR #9](https://github.com/simonvanieperen/nieuw-os/pull/9#discussion_r4395596783).
+
 ```sh
 python3 -B -u tools/test_m6b.py
 python3 -B tools/capture_m6b.py
