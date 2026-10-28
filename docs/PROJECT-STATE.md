@@ -1,21 +1,5 @@
 # Actuele projectstatus
 
-## Consumentenwaarde en differentiatie — documentatie 28 oktober 2026
-
-De gerichte literatuurverkenning naar consumentenacceptatie, overstapfrictie,
-persoonlijk informatiebeheer, privacy en mens-AI-interactie is toegevoegd als
-[CONSUMER-VALUE-2026-10-28.md](research/CONSUMER-VALUE-2026-10-28.md).
-`DESIGN-AMBITION.md` koppelt de kernbelofte aan de bestaande productambitie;
-`implementation/PRODUCT-SPEC.md` bewaart P2 als bevroren scope en registreert
-DV-01 als latere geïntegreerde toets: terugvinden, twee gereedschappen, bevestigd
-opslaan, herstel en ingetrokken toegang.
-
-Dit is onderzoeks- en productdocumentatie. Er is geen nieuwe native functie,
-gebruikersproef, kernelgarantie of marktclaim geaccepteerd. De bestaande
-productscore blijft **14% → 14%**. Voor deze documentatiestap zijn geen nieuwe
-VM-, browser- of hosttests uitgevoerd; bestaande technische bewijsclaims zijn
-niet gewijzigd.
-
 ## Markt- en consumentenonderzoek — 28 oktober 2026
 
 Twee aanvullende onderzoeken zijn als strategische onderbouwing vertaald naar
@@ -33,6 +17,13 @@ kernel-ABI of privacycontract niet zonder afzonderlijk besluit.
 De inmiddels op `main` opgenomen privacybrowser-aanvulling (#18) blijft
 volledig behouden en is een aangrenzend productonderzoek, geen conflict met
 deze markt-/adoptiesynthese.
+
+Aanvullend is [CONSUMER-VALUE-2026-10-28.md](research/CONSUMER-VALUE-2026-10-28.md)
+opgenomen als diepere productvertaling. Die legt de te onderzoeken kernbelofte
+“materiaal terugvinden, ermee verdergaan en controle houden over wijzigingen en
+toegang” vast en definieert DV-01 als latere geïntegreerde Materiaal-toets met
+twee gereedschappen, bevestigd opslaan, herstel en revocation. P2 blijft
+bevroren; DV-01 is geen reeds bewezen product- of native eigenschap.
 
 Geen broncode, native runtime of acceptatiebewijs is in deze documentatiestap
 gewijzigd of uitgevoerd. De technische momentopname in de oorspronkelijke
