@@ -128,6 +128,18 @@ impl Service {
         let bytes: [u8; wire::SIZE] = request.data[..wire::SIZE].try_into().unwrap();
         let header = wire::validate_request(&bytes, self.epoch, 0).unwrap();
         let reply = match header.operation {
+            wire::LIST => {
+                if self.fault == Fault::Denied {
+                    wire::catalog_reply(header, self.epoch, Status::Access, None)
+                } else {
+                    wire::catalog_reply(
+                        header,
+                        self.epoch,
+                        Status::Ok,
+                        Some(&self.state.catalog(0).unwrap()),
+                    )
+                }
+            }
             wire::GET => {
                 let object = self.state.get(header.object).unwrap();
                 wire::reply(
@@ -598,5 +610,59 @@ fn reverted_edits_and_explicit_discard_are_local_and_clean_save_is_noop() {
         assert_eq!(editor.save(), Err(Error::Closed));
         editor.close().unwrap();
         assert_eq!(service.borrow().closed, 2);
+    });
+}
+
+#[test]
+fn list_preserves_dirty_conflicted_draft_and_server_error() {
+    run(|| {
+        let (service, mut editor) = setup(b"original");
+        let mut writer = connect(&service, 3, EditMode::ReadWrite);
+        writer.open(0).unwrap();
+        editor.replace_contents(b"retained local draft").unwrap();
+        let draft = *editor.draft().unwrap();
+        let catalog = editor.list().unwrap();
+        assert_eq!((catalog.count, catalog.entries[0].revision), (1, 1));
+        assert_eq!(editor.draft(), Some(&draft));
+        assert!(editor.is_dirty() && !editor.is_conflicted() && !editor.is_uncertain());
+        writer.replace_contents(b"concurrent change").unwrap();
+        writer.save().unwrap();
+        assert_eq!(editor.save(), Err(Error::Conflict));
+        let catalog = editor.list().unwrap();
+        assert_eq!((catalog.count, catalog.entries[0].revision), (1, 2));
+        assert_eq!(editor.draft(), Some(&draft));
+        assert!(editor.is_dirty() && editor.is_conflicted() && !editor.is_uncertain());
+        service.borrow_mut().fault = Fault::Denied;
+        assert!(matches!(editor.list(), Err(Error::Service(Status::Access))));
+        assert_eq!(editor.draft(), Some(&draft));
+        assert!(editor.is_dirty() && editor.is_conflicted() && !editor.is_uncertain());
+        assert!(!editor.is_closed());
+        assert_eq!(service.borrow().state.sequence(), 2);
+    });
+}
+
+#[test]
+fn list_after_uncertain_or_closed_never_sends_and_retains_draft() {
+    run(|| {
+        let (service, mut editor) = setup(b"original");
+        editor.replace_contents(b"uncertain draft").unwrap();
+        let draft = *editor.draft().unwrap();
+        service.borrow_mut().fault = Fault::Unknown;
+        assert_eq!(editor.save(), Err(Error::Service(Status::Unknown)));
+        let attempts = service.borrow().attempts;
+        assert!(matches!(editor.list(), Err(Error::Uncertain)));
+        assert_eq!(service.borrow().attempts, attempts);
+        assert_eq!(editor.draft(), Some(&draft));
+        assert!(editor.is_dirty() && editor.is_uncertain());
+        assert_eq!(service.borrow().closed, 2);
+
+        let (other, mut closed) = setup(b"closed draft");
+        let draft = *closed.draft().unwrap();
+        closed.close().unwrap();
+        let attempts = other.borrow().attempts;
+        assert!(matches!(closed.list(), Err(Error::Closed)));
+        assert_eq!(other.borrow().attempts, attempts);
+        assert_eq!(closed.draft(), Some(&draft));
+        assert_eq!(other.borrow().closed, 2);
     });
 }

@@ -1,0 +1,8 @@
+test_document_session_cannot_attach_to_any_other_user_kind (test_document_session_users.DocumentSessionUserSelection.test_document_session_cannot_attach_to_any_other_user_kind) ... ok
+test_document_session_cannot_bypass_required_sdk_bridge (test_document_session_users.DocumentSessionUserSelection.test_document_session_cannot_bypass_required_sdk_bridge) ... ok
+test_document_session_does_not_enable_short_poll_fixture (test_document_session_users.DocumentSessionUserSelection.test_document_session_does_not_enable_short_poll_fixture) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.005s
+
+OK

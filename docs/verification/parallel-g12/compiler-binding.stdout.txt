@@ -1,0 +1,9 @@
+{
+  "original_actual_compiler_records_accepted": true,
+  "foreign_rlib_dependency": {
+    "rejected": false
+  },
+  "later_conflicting_abi_flag": {
+    "rejected": false
+  }
+}

@@ -1,0 +1,13 @@
+[package]
+name = "nieuw-os-net-protocol"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[workspace]
+members = ["."]
+resolver = "2"

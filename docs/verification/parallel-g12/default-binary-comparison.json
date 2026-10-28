@@ -1,0 +1,88 @@
+{
+  "baseline_source_commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+  "baseline_executed_in_G10": true,
+  "new_source_commit": "91bf66ca2cdc00b7d2e220cd5afefd270d8fe062",
+  "before_elf_sha256": "2ef58d24b7ea8da9a857f58d580b78d65d698779fb2384c7eba524a08963a52d",
+  "after_elf_sha256": "cfb96c4e7f3362c733144423271d108d872cdf85fab1ee755e88acd088814080",
+  "byte_identical": false,
+  "instruction_count_each": 8605,
+  "changed_annotation_only": 11,
+  "changed_instructions_only_readonly_address_shift": 123,
+  "unclassified_instruction_changes": [],
+  "segments": [
+    {
+      "flags": 5,
+      "before_filesz": 45426,
+      "after_filesz": 45426,
+      "same_segment_geometry": true,
+      "equal_bytes": false,
+      "before_sha256": "28a7ae6470e0969d253edf1426733cd2995478870fef49580c866ed531dfed56",
+      "after_sha256": "b17f7a9d8044aeb2c2a0478bef41ef4af5f0b9d1662579109a7ad32d23ba2e7b"
+    },
+    {
+      "flags": 6,
+      "before_filesz": 16384,
+      "after_filesz": 16384,
+      "same_segment_geometry": true,
+      "equal_bytes": false,
+      "before_sha256": "26aafd82c85deffc84b6fff3803c7017e2a8434395f171b86fe991518ee163eb",
+      "after_sha256": "ed8fddbad7d74c18f4d16adc0e85bf81fa13c47f3af5bb18fbd16d108dcde53a",
+      "changed_words": [
+        {
+          "offset": 1024,
+          "before": "0x400149b0",
+          "after": "0x400149a8"
+        },
+        {
+          "offset": 1040,
+          "before": "0x400149d0",
+          "after": "0x400149c8"
+        },
+        {
+          "offset": 1056,
+          "before": "0x40014768",
+          "after": "0x40014760"
+        },
+        {
+          "offset": 1072,
+          "before": "0x40014baa",
+          "after": "0x40014ba2"
+        },
+        {
+          "offset": 1088,
+          "before": "0x40014bcc",
+          "after": "0x40014bc4"
+        },
+        {
+          "offset": 1104,
+          "before": "0x40014be2",
+          "after": "0x40014bda"
+        }
+      ],
+      "all_changed_words_are_readonly_addresses_shifted_by_8": true
+    },
+    {
+      "flags": 4,
+      "before_filesz": 3055,
+      "after_filesz": 3047,
+      "same_segment_geometry": false,
+      "equal_bytes": false,
+      "before_sha256": "9908018d2ea8a471ff19e82d1f96b20b8918c1ed8b75747cad38519dc3e4fccb",
+      "after_sha256": "e7c2e968eb7147e0d85b4d92d58915737126d8ffeea7665126437bf3e74bf079",
+      "source_path_strings_before": [
+        "/workspace/scratch/debaa3b6a81c/nieuw-os/userspace/../services/catalog/src/wire.rs",
+        "/workspace/scratch/debaa3b6a81c/nieuw-os/userspace/../services/catalog/src/journal.rs",
+        "/workspace/scratch/debaa3b6a81c/nieuw-os/userspace/../services/catalog/src/user_service.rs",
+        "/workspace/scratch/debaa3b6a81c/nieuw-os/userspace/m6c_probe.rs"
+      ],
+      "source_path_strings_after": [
+        "/workspace/scratch/debaa3b6a81c/wt-g11/userspace/../services/catalog/src/wire.rs",
+        "/workspace/scratch/debaa3b6a81c/wt-g11/userspace/../services/catalog/src/journal.rs",
+        "/workspace/scratch/debaa3b6a81c/wt-g11/userspace/m6c_probe.rs",
+        "/workspace/scratch/debaa3b6a81c/wt-g11/userspace/../services/catalog/src/user_service.rs"
+      ]
+    }
+  ],
+  "scope": "Read-only comparison of actual compiled ELFs; relocation/source-location differences are not a proof of full behavioral equivalence. A new default native normal/recover pair remains required.",
+  "new_vm_runs": 0
+}

@@ -1,0 +1,103 @@
+{
+  "task": "B11",
+  "scope": "Synthetic host parser tests and genuine no_std target compilation; zero network I/O or VM runs",
+  "base_commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+  "source_fingerprint_version": 3,
+  "source_sha256": "df91a5a08d95876de38021d028e243aa04369660481200117d446f147eebcb3c",
+  "source_files_sha256": {
+    "services/net-protocol/Cargo.lock": "54cfb2f81b8d40ba5932d8155ddf5b100d4bf47d37d992354c45dfcf06ef74f5",
+    "services/net-protocol/Cargo.toml": "ff556040e9fb6acd2b52dc543940c513cfb2f4919a055616ef960ea4277aeb8d",
+    "services/net-protocol/README.md": "40593405abd5a6090d1739f7a45d258674427d22b6cc663887a55a4048969ed7",
+    "services/net-protocol/src/lib.rs": "00c66a6f815c03456812af90d008d659eae237494bf4a1fc826c8f8b4929c8b1",
+    "services/net-protocol/tests/packets.rs": "a8a37d8f5f79f461a86e2c0e4b0a8f8f92fd44b241a2b99c29c1840eef7bd990"
+  },
+  "checks": [
+    {
+      "name": "tests",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "services/net-protocol/Cargo.toml",
+        "--locked",
+        "--offline"
+      ],
+      "started_utc": "2026-10-28T16:45:39.573974+00:00",
+      "duration_s": 0.039362,
+      "exit_status": 0,
+      "stdout_sha256": "498c15d580f280edd35835810b84bca08c07cc3f71960b15e9977e57ecc2d09e",
+      "stderr_sha256": "3e6b1b89d2432180cfaa9abe136dcbf85b33f5d25c49f8e710af730f86a17a2c"
+    },
+    {
+      "name": "format",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "services/net-protocol/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "started_utc": "2026-10-28T16:45:39.613483+00:00",
+      "duration_s": 0.030405,
+      "exit_status": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "services/net-protocol/Cargo.toml",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "started_utc": "2026-10-28T16:45:39.644064+00:00",
+      "duration_s": 0.320247,
+      "exit_status": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "f0085a7449b140aee6447d31974efeacade12c7dd03b5c91d7fa692fab80ff03"
+    },
+    {
+      "name": "native-library",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "build",
+        "--manifest-path",
+        "services/net-protocol/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "started_utc": "2026-10-28T16:45:39.964375+00:00",
+      "duration_s": 0.218649,
+      "exit_status": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "69181f3907ce4ca4a394abb40a3e150a753ab8dbe31464a18808f48a9b7873c5"
+    }
+  ],
+  "passed": true,
+  "host_tests": 18,
+  "native_vm_runs": 0,
+  "network_io": 0,
+  "native_library": {
+    "path": "/tmp/nieuw-os-par-b11-target/x86_64-unknown-none/release/libnieuw_os_net_protocol.rlib",
+    "sha256": "1d4f76e683388cabdd078163636d0bd3486c7da64537d23f08c7e310443a08ab",
+    "bytes": 63120
+  },
+  "target_directory": "/tmp/nieuw-os-par-b11-target"
+}

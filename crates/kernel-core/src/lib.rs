@@ -6,7 +6,7 @@ pub const USER_QUOTA: usize = 2048;
 /// x86-64 physical-page metadata check; no CPU instruction or pointer access.
 pub fn physical_page_fits(address: u64, width: u8) -> bool {
     (32..=52).contains(&width)
-        && address % PAGE == 0
+        && address.is_multiple_of(PAGE)
         && address
             .checked_add(PAGE)
             .is_some_and(|end| end <= 1u64 << width)
@@ -47,7 +47,7 @@ impl Range {
         let end = start
             .checked_add(pages.checked_mul(PAGE).ok_or(Error::Range)?)
             .ok_or(Error::Range)?;
-        if pages == 0 || start % PAGE != 0 {
+        if pages == 0 || !start.is_multiple_of(PAGE) {
             return Err(Error::Range);
         }
         Ok(Self { start, end })
@@ -119,7 +119,7 @@ impl<const N: usize> Frames<N> {
         Ok(())
     }
     fn index(&self, address: u64) -> Result<usize, Error> {
-        if address % PAGE != 0 || address / PAGE >= N as u64 {
+        if !address.is_multiple_of(PAGE) || address / PAGE >= N as u64 {
             return Err(Error::Range);
         }
         Ok((address / PAGE) as usize)

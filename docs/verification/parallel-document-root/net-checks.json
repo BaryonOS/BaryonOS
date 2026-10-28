@@ -1,0 +1,22 @@
+{
+  "scope": "Root test of exactly integrated B11 parser sources, no packet I/O or native VM",
+  "tested_agent_commit": "b7ff4f9ac6cb2f9ef89bccdd51536800a9e2bf21",
+  "command": [
+    "cargo",
+    "+1.90.0",
+    "test",
+    "--locked",
+    "--offline",
+    "--manifest-path",
+    "services/net-protocol/Cargo.toml"
+  ],
+  "exit_code": 0,
+  "source_sha256": {
+    "services/net-protocol/Cargo.toml": "ff556040e9fb6acd2b52dc543940c513cfb2f4919a055616ef960ea4277aeb8d",
+    "services/net-protocol/Cargo.lock": "54cfb2f81b8d40ba5932d8155ddf5b100d4bf47d37d992354c45dfcf06ef74f5",
+    "services/net-protocol/src/lib.rs": "00c66a6f815c03456812af90d008d659eae237494bf4a1fc826c8f8b4929c8b1",
+    "services/net-protocol/tests/packets.rs": "a8a37d8f5f79f461a86e2c0e4b0a8f8f92fd44b241a2b99c29c1840eef7bd990"
+  },
+  "stdout_sha256": "7540341eb02da6d636c6d1ea0ad6366d8d507dcfb75174561278c4689e9c2210",
+  "stderr_sha256": "7b469d7425c8a8fa1ae926724521ed225ff2eed5e9de497ff1bfb9fa935d9ce5"
+}

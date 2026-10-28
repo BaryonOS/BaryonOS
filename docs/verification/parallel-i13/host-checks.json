@@ -1,0 +1,33 @@
+{
+  "task": "I13",
+  "scope": "Host harness tests only; no VM or native acceptance",
+  "base_commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+  "created_utc": "2026-10-28T16:41:00.619614+00:00",
+  "source_sha256": {
+    "tools/test_document_session.py": "050c166ee7136c066fb67ac9507a02be6166043ba6d588128cda71103fb25a5b",
+    "tests/test_document_session_harness.py": "e5b948b5f275304a245fc776ec845e72d90d0951fd45369c14a58235703754be"
+  },
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_document_session_harness.py",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-i01",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_changed_cold_image_and_new_recovery_ack_are_rejected (test_document_session_harness.ColdLinkTests.test_changed_cold_image_and_new_recovery_ack_are_rejected) ... ok\ntest_exact_cold_link_host_fixture (test_document_session_harness.ColdLinkTests.test_exact_cold_link_host_fixture) ... ok\ntest_source_or_head_change_between_runs_is_rejected (test_document_session_harness.ColdLinkTests.test_source_or_head_change_between_runs_is_rejected) ... ok\ntest_wrong_previous_stage_or_reused_invocation_is_rejected (test_document_session_harness.ColdLinkTests.test_wrong_previous_stage_or_reused_invocation_is_rejected) ... ok\ntest_wrong_volume_identity_or_path_is_rejected (test_document_session_harness.ColdLinkTests.test_wrong_volume_identity_or_path_is_rejected) ... ok\ntest_compiler_must_select_document_session_and_all_four_actual_libraries (test_document_session_harness.CompiledBindingTests.test_compiler_must_select_document_session_and_all_four_actual_libraries) ... ok\ntest_complete_host_binding_for_both_selected_profiles (test_document_session_harness.CompiledBindingTests.test_complete_host_binding_for_both_selected_profiles) ... ok\ntest_document_and_sdk_flags_must_be_explicit_true_in_both_manifests (test_document_session_harness.CompiledBindingTests.test_document_and_sdk_flags_must_be_explicit_true_in_both_manifests) ... ok\ntest_duplicate_or_oversized_json_is_rejected (test_document_session_harness.CompiledBindingTests.test_duplicate_or_oversized_json_is_rejected) ... ok\ntest_elf_swap_fails_even_with_relabelled_user_hash (test_document_session_harness.CompiledBindingTests.test_elf_swap_fails_even_with_relabelled_user_hash) ... ok\ntest_invalid_elf_cannot_be_accepted_by_relabelling_both_hashes (test_document_session_harness.CompiledBindingTests.test_invalid_elf_cannot_be_accepted_by_relabelling_both_hashes) ... ok\ntest_library_compiler_entry_source_cannot_be_swapped (test_document_session_harness.CompiledBindingTests.test_library_compiler_entry_source_cannot_be_swapped) ... ok\ntest_missing_rlib_manifest_entry_and_swapped_rlib_bytes_are_rejected (test_document_session_harness.CompiledBindingTests.test_missing_rlib_manifest_entry_and_swapped_rlib_bytes_are_rejected) ... ok\ntest_missing_selected_library_source_is_rejected (test_document_session_harness.CompiledBindingTests.test_missing_selected_library_source_is_rejected) ... ok\ntest_swapped_or_changed_source_hashes_are_rejected (test_document_session_harness.CompiledBindingTests.test_swapped_or_changed_source_hashes_are_rejected) ... ok\ntest_symlinked_library_is_rejected_even_if_contents_match (test_document_session_harness.CompiledBindingTests.test_symlinked_library_is_rejected_even_if_contents_match) ... ok\ntest_wrong_build_source_or_profile_stops_binding (test_document_session_harness.CompiledBindingTests.test_wrong_build_source_or_profile_stops_binding) ... ok\ntest_existing_results_are_preserved_before_any_build_or_vm (test_document_session_harness.LaunchBoundaryTests.test_existing_results_are_preserved_before_any_build_or_vm) ... ok\ntest_explicit_double_opt_in (test_document_session_harness.LaunchBoundaryTests.test_explicit_double_opt_in) ... ok\ntest_source_change_after_build_stops_before_first_vm (test_document_session_harness.LaunchBoundaryTests.test_source_change_after_build_stops_before_first_vm) ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 0.125s\n\nOK\n"
+    }
+  ],
+  "python_syntax_checked": true,
+  "native_vm_invocations": 0,
+  "passed": true
+}

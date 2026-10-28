@@ -189,6 +189,22 @@ impl<T: Transport> DocumentSession<T> {
         self.open(object)
     }
 
+    /// Read the granted domain's catalog without changing this local draft.
+    /// Dirty or conflicted edits remain intact; closed/uncertain sessions
+    /// cannot use this read as an implicit reconnect or recovery operation.
+    pub fn list(&mut self) -> Result<catalog_core::wire::Catalog, Error> {
+        self.available()?;
+        match self
+            .catalog
+            .exchange(Operation::List)
+            .map_err(Error::Transport)?
+        {
+            Reply::Catalog(catalog) => Ok(catalog),
+            Reply::ServiceError(status) => Err(Error::Service(status)),
+            _ => Err(self.unexpected()),
+        }
+    }
+
     pub fn replace_contents(&mut self, contents: &[u8]) -> Result<(), Error> {
         if self.mode == EditMode::ReadOnly {
             return Err(Error::ReadOnly);

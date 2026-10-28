@@ -1,0 +1,40 @@
+{
+  "scope": "Independent synthetic fixed-vector derivation; no sockets or native run.",
+  "vectors": {
+    "odd": {
+      "hex": "0200000000020200000000010800450000231234400040113c5fc0000201c63364023039d431000f70ff6e696575774f53",
+      "payload_hex": "6e696575774f53",
+      "ipv4_checksum": 15455,
+      "udp_checksum": 28927,
+      "computed_udp_checksum": 28927
+    },
+    "even": {
+      "hex": "0200000000020200000000010800450000241234400040113c5ec0000201c63364023039d4310010425b3031323334353637",
+      "payload_hex": "3031323334353637",
+      "ipv4_checksum": 15454,
+      "udp_checksum": 16987,
+      "computed_udp_checksum": 16987
+    },
+    "empty": {
+      "hex": "02000000000202000000000108004500001c1234400040113c66c0000201c63364023039d43100080f3c",
+      "payload_hex": "",
+      "ipv4_checksum": 15462,
+      "udp_checksum": 3900,
+      "computed_udp_checksum": 3900
+    },
+    "absent": {
+      "hex": "0200000000020200000000010800450000231234400040113c5fc0000201c63364023039d431000f00006e696575774f53",
+      "payload_hex": "6e696575774f53",
+      "ipv4_checksum": 15455,
+      "udp_checksum": 0,
+      "computed_udp_checksum": 28927
+    },
+    "zero_as_ffff": {
+      "hex": "02000000000202000000000108004500001e1234400040113c64c0000201c63364023039d431000affff0f38",
+      "payload_hex": "0f38",
+      "ipv4_checksum": 15460,
+      "udp_checksum": 65535,
+      "computed_udp_checksum": 0
+    }
+  }
+}

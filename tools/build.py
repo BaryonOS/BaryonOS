@@ -104,6 +104,13 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
     if sdk_selection not in ("0", "1"):
         raise ValueError("NOS_SDK_RUNTIME must be exactly 0 or 1")
     use_sdk = sdk_selection == "1" and kernel_feature is not None and "m6c" in kernel_feature
+    document_selection = os.environ.get("NOS_DOCUMENT_SESSION", "0")
+    if document_selection not in ("0", "1"):
+        raise ValueError("NOS_DOCUMENT_SESSION must be exactly 0 or 1")
+    use_document_session = document_selection == "1"
+    if use_document_session and (not use_sdk or kernel_feature not in
+                                ("milestone-m6c", "test-m6c-recover")):
+        raise ValueError("Document session requires NOS_SDK_RUNTIME=1 and the M6c normal/recover fixture")
     qsim_report = None
     if kernel_feature == "native-qsim":
         output = BUILD / "users/qsim"
@@ -127,7 +134,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
             extra_env["NOS_M6B_ELF"] = str(build_users("m6b", short_poll=kernel_feature in
                 ("test-m6b-write-poll-limit", "test-m6b-flush-poll-limit")).resolve())
         if "m6c" in kernel_feature:
-            extra_env["NOS_M6C_ELF"] = str(build_users("m6c", sdk_runtime=use_sdk).resolve())
+            extra_env["NOS_M6C_ELF"] = str(build_users("m6c", sdk_runtime=use_sdk,
+                document_session=use_document_session).resolve())
     if not (ROOT / "Cargo.lock").exists():
         run_logged(["cargo", "+1.90.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):
@@ -142,6 +150,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
                 "source_sha256": source_hash(), "loader": {"sha256": sha256(loader), **inspect_pe(loader)},
                 "kernel": {"sha256": sha256(kernel), **inspect_elf(kernel)}}
     manifest["sdk_runtime"] = use_sdk
+    manifest["document_session"] = use_document_session
     if qsim_report is not None:
         manifest["qsim_user"] = qsim_report
     esp = BUILD / "esp"
