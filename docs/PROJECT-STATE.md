@@ -14,6 +14,10 @@ steekproefgroottes, retentiedrempels, verkoopkanalen en verdienmodellen nog
 onderzoekshypothesen zijn. Zij wijzigen `PRODUCT-SPEC.md`, capabilities,
 kernel-ABI of privacycontract niet zonder afzonderlijk besluit.
 
+De inmiddels op `main` opgenomen privacybrowser-aanvulling (#18) blijft
+volledig behouden en is een aangrenzend productonderzoek, geen conflict met
+deze markt-/adoptiesynthese.
+
 Geen broncode, native runtime of acceptatiebewijs is in deze documentatiestap
 gewijzigd of uitgevoerd. De technische momentopname in de oorspronkelijke
 rapporten kan daarom ouder zijn dan deze actuele projectstatus. Roadmap:
