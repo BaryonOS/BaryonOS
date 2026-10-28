@@ -7,12 +7,12 @@ De volledige native acceptatie blijft gebonden aan `3e41bbf9`. Het vervolg op
 
 | ID | Toestand | Eigenaar / exclusief gebied | Resultaat / kleinste afhankelijkheid |
 |---|---|---|---|
-| ROOT | in uitvoering | root: integratie, docs, GitHub, eigen M6b-run | B09 en reviews publiceren; gerichte gezamenlijke broncontrole; CodeRabbit en PR-afronding |
-| B08 | in uitvoering | native_storage: parallel-followup-g0 | Verse native G0-run en atomische capture op gepubliceerde bronfreeze |
-| G10 | in uitvoering | native_apps: parallel-followup-sdk-m6c | Actuele SDK-route met opslaan en teruglezen in een nieuwe koude VM |
-| I11 | in uitvoering | runtime_platform: parallel-followup-qsim | Actuele native simulatorcontrole met twee geïsoleerde processen |
-| B09/G09/I10 | gereed voor integratie/controle | root, afzonderlijke commits behouden | Vaste capture-outputlijst plus onafhankelijke hercontrole; documentreview zonder blocker |
-| G07/I08/B07 | gereed voor integratie/controle | geïntegreerd op f52ef0a6 | Documentsessie, 256-byte jobcodec en G0-capture; library-/hostbewijs, nog geen GUI of jobdienst |
+| ROOT | in uitvoering | root: integratie, docs, GitHub en gedeelde buildhook | Zes gerichte native resultaten publiceren; PR15/14 afronden; G11-interface bewaken |
+| G11 | in uitvoering | native_apps: userspace-probe en eigen SDK-builddeel | DocumentSession echt in ring3 voor openen, bewerken, bewaren en heropenen; bestaande catalogus en oracle |
+| I13 | in uitvoering | runtime_platform: nieuwe document-session-poort en tests | Herbruikbare strikte normal/recover-acceptatie voor de G11-appbibliotheek |
+| B10 | in uitvoering | native_storage: parallel-b10 | Zeven concrete PR14-bevindingen toetsen aan actuele bron en bewijs |
+| B08/G10/I11/I12/ROOT | gereed voor integratie/controle | root, gescheiden bewijsbundels | Zes echte actuele VM-runs slagen; koude images en vijf grafische frames gecontroleerd |
+| G07/I08/B09/G09/I10 | gereed voor integratie/controle | geïntegreerd op f52ef0a6 en dbd35b04 | Documentsessie, jobcodec en gerepareerde capture; gerichte reviews afgerond |
 | G1 | wacht op een benoemde afhankelijkheid | bestaande andere sessie: Materiaal en display/input | Eigenaar publiceert broncheckpoint van toegewezen G1-branch voor integratie |
 | S08 | gereed om te bouwen | volgende bouwer; root bewaakt herstelcontract | Begrensde vervanging van catalogusdienst zonder mutatiereplay |
 | S04/S05 | wacht op een benoemde afhankelijkheid | root: opslagcontract | Versieerbaar formaat en crashacceptatie voor grotere documenten en ruimtehergebruik |

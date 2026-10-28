@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`f52ef0a6`](https://github.com/simonvanieperen/nieuw-os/commit/f52ef0a64b75f29396510c96ca57eaac9ea07d0d) ·
+**Bron:** [`dbd35b04`](https://github.com/simonvanieperen/nieuw-os/commit/dbd35b04d742b18d66b40fdd65d8a9b900656cac) ·
 **Ontwikkelbranch:** `codex/parallel-native-foundation-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Integratie van gerichte documentreview en gerepareerde G0-capture; bronfreeze voor actuele native controles.
-G07, I08 en B07 zijn gepubliceerd. I10 documentreview heeft geen blocker; B09 herstelt de door G09 gevonden dynamische outputlijst en de onafhankelijke hercontrole slaagt. De eerdere 80 native runs blijven aan 3e41bbf9 gebonden. B08/G10/I11 en een gerichte M6b-proef controleren hierna de actuele gecombineerde bron. A01/U03/S04/S05/L02 blijven open; 14% naar 14%.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Actuele gecombineerde bron: zes gerichte native VMs, koude opslag en strikte grafische capture.
+B08 G0, G10 SDK normal/cold, I11 quantum en ROOT M6b normal/cold slagen op exact dbd35b04. De eerdere volledige 80 native runs behouden hun binding aan 3e41bbf9; ongewijzigde native broninputs zijn expliciet vergeleken. G07/I08 libraries en B09 capture zijn gericht beoordeeld. G11 bouwt daarna de echte documentsessie in de bestaande userspace-proef; nog geen native GUI of algemene app/jobdienst. Vaste score14%, criteria en gewichten ongewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

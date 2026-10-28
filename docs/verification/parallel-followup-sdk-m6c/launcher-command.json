@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "python3",
+    "-u",
+    "-B",
+    "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-sdk-m6c/run_directed.py",
+    "--root",
+    "/workspace/scratch/debaa3b6a81c/nieuw-os",
+    "--expected-head",
+    "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+    "--expected-source",
+    "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+  ],
+  "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+  "exit": 0,
+  "duration_s": 19.072899547001725,
+  "stdout": "launcher.stdout.txt",
+  "stderr": "launcher.stderr.txt",
+  "stdout_sha256": "d03b57a2dfb0c05119119c1b5dc2a98e837558f599c05f1e06b1e39a2e74db45",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,84 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 14 tests
+test full_queue_budget_exhaustion_never_enqueues_or_replays ... ok
+test cleanup_failure_is_reported_and_other_endpoint_is_still_closed ... ok
+test actual_core_roundtrip_lists_creates_reads_cas_renames_and_deletes ... ok
+test failed_unexpected_cap_close_does_not_skip_other_caps_or_endpoints ... ok
+test invalid_poll_budgets_and_endpoint_alias_are_rejected ... ok
+test invalid_operation_is_local_and_leaves_session_usable ... ok
+test malformed_send_return_preserves_unknown_delivery_and_does_not_resend ... ok
+test lost_reply_after_state_commit_closes_without_replaying_mutation ... ok
+test real_full_queue_can_retry_only_before_publication ... ok
+test service_unknown_is_never_a_mutation_ack_and_closes_endpoints ... ok
+test unexpected_capabilities_reach_b01_unchanged_then_all_are_closed ... ok
+test revoked_endpoint_is_a_real_kernel_error_before_enqueue ... ok
+test transport_and_yield_errors_preserve_delivery_fact_and_close ... ok
+test wrong_kernel_peer_tag_and_request_id_close_the_session ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 12 tests
+test load_edit_save_reopen_uses_exact_revision_and_flush_before_ack ... ok
+test empty_maximum_and_non_utf8_contents_roundtrip ... ok
+test bounds_fail_before_mutation_or_transport ... ok
+test open_missing_or_foreign_document_never_silently_discards_current_document ... ok
+test readonly_is_local_policy_and_server_access_denial_preserves_writable_draft ... ok
+test preenqueue_timeout_preserves_draft_and_does_not_claim_a_commit ... ok
+test lost_reply_after_commit_retains_draft_without_replay_and_recovers_from_records ... ok
+test revoked_real_endpoint_cannot_be_restored_by_edit_mode ... ok
+test reverted_edits_and_explicit_discard_are_local_and_clean_save_is_noop ... ok
+test journal_full_preserves_edit_and_loaded_revision_without_retry ... ok
+test service_unknown_remains_uncertain_even_after_explicit_local_discard ... ok
+test two_writers_conflict_without_rebase_or_draft_loss ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 13 tests
+test abi_check_accepts_only_existing_compatible_versions ... ok
+test handle_representation_does_not_accept_sentinels_or_slot_overflow ... ok
+test delegated_cap_descriptors_are_validated_and_preserved ... ok
+test every_payload_length_matches_the_current_kernel_decoder ... ok
+test known_rights_do_not_allow_new_permission_bits ... ok
+test oversized_wire_lengths_never_index_or_truncate ... ok
+test received_length_must_equal_the_syscall_result ... ok
+test received_message_keeps_kernel_identity_and_exact_payload ... ok
+test raw_send_rejects_spoofed_sender_and_every_unused_byte ... ok
+test received_envelope_rejects_missing_sender_reserved_and_padding ... ok
+test register_errors_remain_errors_and_secondary_errors_are_zero ... ok
+test refused_cap_append_does_not_modify_the_message ... ok
+test sdk_messages_interoperate_with_actual_capability_engine ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

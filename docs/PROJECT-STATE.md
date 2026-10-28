@@ -1,30 +1,50 @@
 # Actuele projectstatus
 
-## Vervolgcheckpoint — 28 oktober 2026
+## Actuele vervolgacceptatie — 28 oktober 2026
 
-Op `f52ef0a6` zijn drie zelfstandige bouwstappen gepubliceerd: G07, een
-gebruikersbibliotheek die geladen revisie en lokale wijzigingen bewaart bij
-CAS-conflicten of onzekere opslag; I08, een canonieke 256-byte quantumjobcodec;
-en B07, een strikte atomische G0-capture. De 39 SDK-hosttests, 13 codec-tests,
-native librarybuilds en grafische harnastests slagen. Document- en joblogica
-staan buiten de kernel. Native GUI en jobdispatch blijven open.
+**Zes extra echte VM-runs slagen op `dbd35b04d742b18d66b40fdd65d8a9b900656cac`**,
+bronfingerprint v3 `c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f`.
+G0 draait met vijf echte invoerbeelden en nieuwe atomische capture; SDK/M6c
+en M6b bewaren en lezen terug in elk twee afzonderlijke VM's; de qsim-proef
+draait in twee geïsoleerde gebruikersprocessen. Alle zes ruwe exits zijn 33.
+Eigen builds, targets, volumes, QMP-pipes en logs voorkomen gedeelde output.
+De [onafhankelijke gecombineerde controle](verification/parallel-followup-integration/README.md)
+herhasht 216 unieke bestanden en bevestigt alle zes bron- en artifactketens.
 
-De gerichte documentreview I10 vond geen blocker binnen haar scope. De
-onafhankelijke capturereview G09 vond een concrete fout: een vroeg toegevoegd
-bestand kon zichzelf in de verwachte outputlijst opnemen. B09 gebruikt nu een
-vaste lijst vóór indexering én vóór publicatie. De negatieve test faalde op de
-oude bron en slaagt na de reparatie; alle 34 grafische testmethoden slagen.
-Dezelfde onafhankelijke grensproef bevestigt de afwijzing. Zie
-[documentreview](verification/parallel-i10/README.md),
-[capturereparatie](verification/parallel-b09/README.md) en
+- [G0: bron, opdrachten, vijf echte beelden en capture](verification/parallel-followup-g0/README.md).
+- [SDK/catalogus: normale opslag en koude herstart](verification/parallel-followup-sdk-m6c/README.md).
+- [Quantum: actuele strict run en vergelijking van werkelijke binaries](verification/parallel-followup-qsim/README.md).
+- [M6b en gerichte hostgrenzen](verification/parallel-followup-root/README.md).
+
+Op `f52ef0a6` zijn de G07-documentsessie, I08-jobcodec en B07-capture al
+gepubliceerd. De documentsessie bewaart geladen revisie en lokaal concept bij
+CAS-conflicten of onzekere opslag. Deze appbibliotheek staat buiten de kernel.
+De 39 SDK-hosttests en native librarybuilds slagen; I10 vond geen blocker
+binnen haar reviewscope. De canonieke 256-byte jobcodec heeft 13 tests en een
+gerichte onafhankelijke review; dispatch en gebruikersjobs blijven open.
+
+G09 vond een dynamische outputlijst in de capture. B09 gebruikt een vaste
+lijst vóór indexering én vóór publicatie. De negatieve test faalde op de oude
+bron en slaagt na reparatie; onafhankelijke herhaling en alle 34 grafische
+hosttestmethoden slagen. De verse B08-VM gebruikt de gerepareerde capture;
+alle originele inputs en lossless PNG's zijn opnieuw gecontroleerd.
+[Documentreview](verification/parallel-i10/README.md),
+[capturereparatie](verification/parallel-b09/README.md),
 [hercontrole](verification/parallel-g09/README.md).
 
-CodeRabbit-reparaties behandelen de directe Rustselectie, cross-targetsymlinks,
-buildrootvalidatie, SDK-buildomgeving, git-timeout en expliciete bewijslinks.
-De bestaande native kernel-, dienst- en probebron en hun buildinputs zijn
-bytegelijk aan `3e41bbf9`. B08, G10 en I11 controleren de actuele gecombineerde
-bron gericht in eigen VM's na publicatie van deze freeze. De eerdere 80 runs
-behouden hun oorspronkelijke bronbinding. De vaste roadmapscore blijft 14%.
+De acht concrete CodeRabbit-bevindingen zijn afgehandeld met bron-/bewijslinks;
+de actuele vervolgbeoordeling en PR-status staan op GitHub. De eerdere
+volledige acceptatie van 80 VM's hieronder behoudt haar oorspronkelijke bron.
+Bestaande kernel-, dienst- en probebron bleef tijdens deze vervolgstap gelijk.
+De nieuwe qsim-kernel en app zijn byte-identiek; twaalf gewijzigde loaderbytes
+zijn verklaard als PE-tijdstempels/buildidentifier, met originele artifacts.
+
+G11 bouwt nu de documentsessie in de bestaande headless gebruikersproef om
+ook openen, bewerken, bewaren en heropenen via deze bibliotheek native te
+controleren. Die uitvoering is nog niet geaccepteerd. G1/Materiaal blijft bij
+de bestaande eigenaar; publicatie van diens broncheckpoint is de kleinste
+integratieafhankelijkheid. Geen grafische documentflow of algemene appstarter
+wordt uit de huidige proeven afgeleid. Roadmap: **14% → 14%**.
 
 ## Gecombineerde native acceptatie — 28 oktober 2026
 

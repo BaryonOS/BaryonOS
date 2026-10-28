@@ -1,0 +1,101 @@
+{
+  "scope": "Two actual current-source M6b VMs plus focused host/tooling checks; not a rerun of the full 32-group gate",
+  "source": {
+    "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+    "tree": "421bb96102779d01d9cb4e6231d686aea417d63a",
+    "source_fingerprint_version": 3,
+    "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+  },
+  "passed": true,
+  "checks": {
+    "two_distinct_actual_vms": true,
+    "same_volume": true,
+    "linked_previous": true,
+    "same_identity": true,
+    "exact_saved_image": true,
+    "recovery_read_only": true,
+    "source_unchanged": true
+  },
+  "artifact_checks": [
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-normal-82d158c1f7/esp/kernel.elf",
+      "sha256": "7884d69cf48293f0f9484a37820cbe29fd62095b9e94cac185f8a04f02891694"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-normal-82d158c1f7/esp/EFI/BOOT/BOOTX64.EFI",
+      "sha256": "a829d4ab80284b93c9167d4305a10a381f56792ca835af5f6f68ea220ef128fc"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-normal-82d158c1f7/OVMF_CODE.fd",
+      "sha256": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-normal-82d158c1f7/OVMF_VARS.template.fd",
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-normal-82d158c1f7/OVMF_VARS.fd",
+      "sha256": "e4263ed70e8a2a51bb1be3ae21869be177db048424688c6a8bcc812a7278dcca"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-normal-82d158c1f7/test-disk.before.img",
+      "sha256": "eb0abcc04b99324c9203cb7024956806e7472b381f909da89c0e73c6021751b9"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-normal-82d158c1f7/test-disk.after.img",
+      "sha256": "05675190d5f8608227a1f01bbbcedc89045b1c8a98e87b9d158cba3366a19129"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-normal-82d158c1f7/build-manifest.json",
+      "sha256": "b551e5bd2c5d52fd3ecb34cde3c6abb0a025845a95005904c40c0ce48be25730"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-normal-82d158c1f7/volume-manifest.json",
+      "sha256": "be3a2d15977f06aa2414b6877cd5f7ee2045619049d48ca73844beba2e13c930"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-cold-6c3bee8bf3/esp/kernel.elf",
+      "sha256": "4268ef089b6248a826c633f6f2102d8fd2e8b01c8b997e69f5d1f23b281e3b4c"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-cold-6c3bee8bf3/esp/EFI/BOOT/BOOTX64.EFI",
+      "sha256": "a829d4ab80284b93c9167d4305a10a381f56792ca835af5f6f68ea220ef128fc"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-cold-6c3bee8bf3/OVMF_CODE.fd",
+      "sha256": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-cold-6c3bee8bf3/OVMF_VARS.template.fd",
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-cold-6c3bee8bf3/OVMF_VARS.fd",
+      "sha256": "e4263ed70e8a2a51bb1be3ae21869be177db048424688c6a8bcc812a7278dcca"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-cold-6c3bee8bf3/test-disk.before.img",
+      "sha256": "05675190d5f8608227a1f01bbbcedc89045b1c8a98e87b9d158cba3366a19129"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-cold-6c3bee8bf3/test-disk.after.img",
+      "sha256": "05675190d5f8608227a1f01bbbcedc89045b1c8a98e87b9d158cba3366a19129"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-cold-6c3bee8bf3/build-manifest.json",
+      "sha256": "55c2d29259d769fde3ec6d5c6498f7d58d26fbab7b153cdfc1603d3fabc0b3c4"
+    },
+    {
+      "path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-cold-6c3bee8bf3/volume-manifest.json",
+      "sha256": "be3a2d15977f06aa2414b6877cd5f7ee2045619049d48ca73844beba2e13c930"
+    }
+  ],
+  "raw_exit_codes": [
+    33,
+    33
+  ],
+  "run_directories": [
+    "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-normal-82d158c1f7",
+    "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-root/run/m6b-followup-root-cold-6c3bee8bf3"
+  ]
+}

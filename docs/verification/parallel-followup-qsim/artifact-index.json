@@ -1,0 +1,80 @@
+{
+  "task": "I11",
+  "captured_utc": "2026-10-28T16:22:54.160847+00:00",
+  "source_head": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+  "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f",
+  "files": {
+    "README.md": {
+      "sha256": "01890bb54b683efdb8f7cf3c1ebf61961724bb0fdeb2306e83620a1f3cb08fee",
+      "bytes": 5085
+    },
+    "acceptance.json": {
+      "sha256": "8d2e1cfbf94ecdb7cd9776f358c038097c7d35ce05b40e37e50202bea717328f",
+      "bytes": 5845
+    },
+    "build-manifest.json": {
+      "sha256": "55a1f9fa889ef29ea88bdef09992c973bc1b12f0f6e51df9a2a6d002dd4cad58",
+      "bytes": 7321
+    },
+    "execution.json": {
+      "sha256": "4b1ad7215402839e112be35fb1fd33efe38ff09a7d89e3c95d58488d185f327a",
+      "bytes": 11511
+    },
+    "i11_archive.py": {
+      "sha256": "87803c3f78ce54b5fbaf55fe3ed326a2d726cca85dbb87cd396258e97783733d",
+      "bytes": 11329
+    },
+    "i11_capture.py": {
+      "sha256": "d4663620072c15f21d95f5f1ea6ebe8fb1423d4d49611cd437342c40c0cd7f11",
+      "bytes": 8289
+    },
+    "i11_compare_loader.py": {
+      "sha256": "a29c886e773f217f01061f69cde092fff5c5f2ce9ac715b95c33fc44a5a31d4c",
+      "bytes": 6055
+    },
+    "loader-comparison.json": {
+      "sha256": "7a16cdaaf3ec5ef186f2df26bbd73830c9e406c6732daa2e01c004190bd8fdab",
+      "bytes": 15540
+    },
+    "qemu-tools.json": {
+      "sha256": "1df5c65167d994df858e2fb47b939c9a9e38291886f08e08912eda648dcb447c",
+      "bytes": 5461
+    },
+    "quantum-build-report.json": {
+      "sha256": "575527d27917481d84a494bb375f917f42a32c7d8a52a66af57bcb59aae9dc71",
+      "bytes": 4976
+    },
+    "raw-streams.json": {
+      "sha256": "bce1aadc4915d577c24f4df6e13e66b7b87347ddf2aaddfa9dc46925c6e06b34",
+      "bytes": 209807
+    },
+    "result.json": {
+      "sha256": "bb1e5cc9919f4e279357bbe41bf1b55b96437798d7042044cc1b7ffa1ca24bcb",
+      "bytes": 3914
+    },
+    "rust-tools.json": {
+      "sha256": "9cdda6da87e71c569c05f43037b9469987034ebfc5f12b87d7dbf6eab5b13da8",
+      "bytes": 639
+    },
+    "serial.txt": {
+      "sha256": "a69ca5650a543813702c60c7f685d510409a18394a7063684df5bfd121371d2a",
+      "bytes": 947
+    },
+    "stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  },
+  "archive_copies_match_original": {
+    "execution.json": true,
+    "acceptance.json": true,
+    "result.json": true,
+    "build-manifest.json": true,
+    "quantum-build-report.json": true,
+    "loader-comparison.json": true,
+    "serial.txt": true,
+    "stderr.txt": true,
+    "rust-tools.json": true,
+    "qemu-tools.json": true
+  }
+}
