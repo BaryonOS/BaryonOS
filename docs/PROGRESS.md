@@ -121,7 +121,7 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 ## Vast criteriumregister
 
 <!-- OS-RUBRIC:BEGIN -->
-### K — Eigen kern en procesisolatie (9/15)
+### K — Eigen kern en procesisolatie (11/15)
 
 | Criterium | Punten | Status | Acceptatie en bewijs |
 |---|---:|---|---|
@@ -131,7 +131,7 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **K04 — Capabilities en begrensde IPC** | 3 | Behaald | Rechtenvermindering, generaties, intrekking, usercopy en begrensde Message320-IPC hebben native negatieve/lifecycleproeven. [bewijs 1](../docs/verification/m2-m4/ACCEPTANCE.md) · [bewijs 2](../docs/verification/regression-m6b/FINAL-ACCEPTANCE.md) |
 | **K05 — Algemeen proces- en dienstbeheer** | 2 | Open | Niet-fixture-apps kunnen via begrensde API’s starten, afsluiten en diensten herstarten; afhankelijkheden en resources worden correct vrijgegeven. |
 | **K06 — Meerdere processorkernen** | 2 | Open | SMP-scheduling, synchronisatie, interrupts en adresruimtewisseling werken onder concurrente belasting op het ondersteunde profiel. |
-| **K07 — Resourcebeheer onder druk** | 2 | Open | Geheugen-, CPU-, IPC- en handle-uitputting blijven per app begrensd; het bruikbare systeem herstelt zonder kerneluitval. |
+| **K07 — Resourcebeheer onder druk** | 2 | Behaald | Geheugen-, CPU-, IPC- en handle-uitputting blijven per app begrensd; het bruikbare systeem herstelt zonder kerneluitval. [bewijs 1](../docs/verification/K07-ACCEPTANCE.md) |
 
 ### S — Opslag en gegevensherstel (4/15)
 
