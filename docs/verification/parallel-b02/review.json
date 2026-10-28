@@ -1,0 +1,71 @@
+{
+  "task": "B02",
+  "base_commit": "41bac3c173d464a286017d31558335d70899c434",
+  "completed_utc": "2026-10-28T15:19:13.489633+00:00",
+  "review_scope": "graphics helper unsafe metadata/mapping/call order and QMP response/deadline boundaries; host-only execution, no hardware claim",
+  "review_source_sha256": {
+    "kernel/src/graphics.rs": "077541b7226f1b34d373231efd2931f3866e4a68a33e974a84ae0ecec90fb247",
+    "kernel/src/main.rs": "2a345470d843471bd57cf6b6b67f92fc8f750ec3e750734eef138930226cd604",
+    "kernel/src/m2.rs": "2cec2e6729ec833667d3f60acc58fa2d11c911a4fa6ce6ac61c8f5c4f797afff",
+    "kernel/src/m2/paging.rs": "502a2da13bd50c091f13861b9438a942fb40f98c3e7a8d506dc13fcdfaa8a21d",
+    "crates/boot-protocol/src/graphics.rs": "254b5aedfdf7d5a9aa5f95d7195c201ba3e9224881349700ffc4d04db7f88f9a",
+    "crates/ui-core/src/input.rs": "2ddb4b63a0f9b9917637a05ba9a761a672d3dd6cc5a21cb8ba043405358a5be2"
+  },
+  "qmp_before_sha256": "3f21cc52d7cccc99bba4796c2d0afe20f230cf00a11059e7bbf7db92cf1c1f9f",
+  "qmp_after_sha256": "279fa48d24ea615bf9031eca9fa3b0e2dedbd55717c7449b8ede7f8b8fd4cc00",
+  "same_final_test_source": true,
+  "same_final_rust_harness": true,
+  "kernel_tests": {
+    "required_actual_kernel_tests": 6,
+    "additional_real_decoder_test": 1,
+    "executed_passed": 7
+  },
+  "qmp_tests": {
+    "methods": 9,
+    "before_failure_count_including_subtests": 10,
+    "after_passed_methods": 9
+  },
+  "findings": [
+    {
+      "id": "B02-R1",
+      "status": "fixed-and-host-regression-passed",
+      "boundary": "QMP command identity and success shape",
+      "before": "Missing return, event-as-reply, or bool/float ID could be accepted as success.",
+      "after": "Exact integer ID, mandatory return xor error, no event in a response; malformed responses rejected."
+    },
+    {
+      "id": "B02-R2",
+      "status": "fixed-and-host-regression-passed",
+      "boundary": "QMP send deadline",
+      "before": "Expired commands were sent, socket send reused an earlier timeout, pipe writes could block without a deadline.",
+      "after": "Deadline before send, bounded socket timeout and select/PIPE_BUF-limited pipe writes. A real filled pipe is rejected within its deadline in an isolated child."
+    },
+    {
+      "id": "B02-R3",
+      "status": "fixed-and-host-regression-passed",
+      "boundary": "QMP incremental read deadline",
+      "before": "Buffered readline could accept a complete reply after the shared deadline.",
+      "after": "Incremental read1 with checks around each chunk and reply parse; modeled late read rejected."
+    }
+  ],
+  "source_review": [
+    "capture is reached only after validate_graphics_header validates retained page plus extension offset; the copied descriptor validates format, bounds and reserved bytes.",
+    "pixel_span validates the entire pixel slice, visible row, color high bits and full extent before write_pixels reaches its first volatile store.",
+    "map_framebuffer rejects RAM overlap, checks leaf overlap and device pages/physical width/PAT, and readiness is not published on failure.",
+    "In current M2 call order map publishes the software-ready flag before CR3 activation, but no pixel writer is called until activation and audit complete. Reuse must preserve this ordering.",
+    "static mut metadata/ROW and input initialization rely on one CPU, IF=0, no reentrant graphics caller, and immutable metadata. Atomic flags do not provide an SMP or preemptive ownership protocol.",
+    "G0 run resets the real decoder on the 0xff sentinel; included kernel tests verify parity/timeout/AUX classification and the new decoder test verifies prefix/modifier recovery."
+  ],
+  "open_limits": [
+    "Host paging/serial stubs always panic and are not successful mappings. MMIO stores, PAT/PTE state, port-I/O timing and physical input are not exercised.",
+    "The actual framebuffer ready flag timing and single-CPU/IF=0 assumptions must be redesigned or explicitly preserved before G1/SMP/preemptive reuse.",
+    "QMP transport doubles and a real local pipe prove host harness boundaries only; no VM acceptance run was added here."
+  ],
+  "primary_reference": {
+    "title": "QEMU Machine Protocol Specification",
+    "organization": "QEMU Project",
+    "url": "https://www.qemu.org/docs/master/interop/qmp-spec.html",
+    "accessed": "2026-10-28",
+    "scope": "Commands Responses, Success, Error, Asynchronous events; integer sequence ID and shared deadline are this project profile choices."
+  }
+}

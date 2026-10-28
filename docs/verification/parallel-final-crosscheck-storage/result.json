@@ -1,0 +1,710 @@
+{
+  "scope": "Independent existing-artifact inspection; no new VM, build or suite",
+  "source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "started_utc": "2026-10-28T15:44:48.784344+00:00",
+  "checks": {
+    "current-source-and-head": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/README.md": true,
+    "hash:docs/verification/parallel-final-qsim/README.md": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/accept.stderr.txt": true,
+    "hash:docs/verification/parallel-final-qsim/accept.stderr.txt": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/accept.stdout.txt": true,
+    "hash:docs/verification/parallel-final-qsim/accept.stdout.txt": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/acceptance.json": true,
+    "hash:docs/verification/parallel-final-qsim/acceptance.json": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-manifest.json": true,
+    "hash:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-manifest.json": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-kernel.json": true,
+    "hash:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-kernel.json": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-kernel.stderr.txt": true,
+    "hash:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-kernel.stderr.txt": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-kernel.stdout.txt": true,
+    "hash:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-kernel.stdout.txt": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-loader.json": true,
+    "hash:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-loader.json": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-loader.stderr.txt": true,
+    "hash:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-loader.stderr.txt": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-loader.stdout.txt": true,
+    "hash:docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-loader.stdout.txt": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/build-logs/build-qsim-user.json": true,
+    "hash:docs/verification/parallel-final-qsim/build-logs/build-qsim-user.json": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/build-logs/build-qsim-user.stderr.txt": true,
+    "hash:docs/verification/parallel-final-qsim/build-logs/build-qsim-user.stderr.txt": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/build-logs/build-qsim-user.stdout.txt": true,
+    "hash:docs/verification/parallel-final-qsim/build-logs/build-qsim-user.stdout.txt": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/build-manifest.json": true,
+    "hash:docs/verification/parallel-final-qsim/build-manifest.json": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/build.stderr.txt": true,
+    "hash:docs/verification/parallel-final-qsim/build.stderr.txt": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/build.stdout.txt": true,
+    "hash:docs/verification/parallel-final-qsim/build.stdout.txt": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/disassembly.txt": true,
+    "hash:docs/verification/parallel-final-qsim/disassembly.txt": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/i05-run-checks.json": true,
+    "hash:docs/verification/parallel-final-qsim/i05-run-checks.json": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/qemu-tools.json": true,
+    "hash:docs/verification/parallel-final-qsim/qemu-tools.json": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/quantum-build-report.json": true,
+    "hash:docs/verification/parallel-final-qsim/quantum-build-report.json": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/result.json": true,
+    "hash:docs/verification/parallel-final-qsim/result.json": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/rust-tools.json": true,
+    "hash:docs/verification/parallel-final-qsim/rust-tools.json": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/serial.txt": true,
+    "hash:docs/verification/parallel-final-qsim/serial.txt": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/stderr.txt": true,
+    "hash:docs/verification/parallel-final-qsim/stderr.txt": true,
+    "regular-bound-file:docs/verification/parallel-final-qsim/symbols.txt": true,
+    "hash:docs/verification/parallel-final-qsim/symbols.txt": true,
+    "qsim-exact-archive-and-run-report": true,
+    "qsim-source-binding": true,
+    "qsim-exclusive-profile": true,
+    "qsim-exact-artifact-set": true,
+    "regular-bound-file:build/parallel-final-qsim/run/native-qsim-893634900f/esp/kernel.elf": true,
+    "hash:build/parallel-final-qsim/run/native-qsim-893634900f/esp/kernel.elf": true,
+    "regular-bound-file:build/parallel-final-qsim/run/native-qsim-893634900f/esp/EFI/BOOT/BOOTX64.EFI": true,
+    "hash:build/parallel-final-qsim/run/native-qsim-893634900f/esp/EFI/BOOT/BOOTX64.EFI": true,
+    "regular-bound-file:build/parallel-final-qsim/run/native-qsim-893634900f/OVMF_CODE.fd": true,
+    "hash:build/parallel-final-qsim/run/native-qsim-893634900f/OVMF_CODE.fd": true,
+    "regular-bound-file:build/parallel-final-qsim/run/native-qsim-893634900f/OVMF_VARS.template.fd": true,
+    "hash:build/parallel-final-qsim/run/native-qsim-893634900f/OVMF_VARS.template.fd": true,
+    "qsim-exact-input-set": true,
+    "regular-bound-file:build/parallel-final-qsim/qsim-inputs-42b7b0db1e/build-report.json": true,
+    "hash:build/parallel-final-qsim/qsim-inputs-42b7b0db1e/build-report.json": true,
+    "regular-bound-file:build/parallel-final-qsim/qsim-inputs-42b7b0db1e/disassembly.stdout.txt": true,
+    "hash:build/parallel-final-qsim/qsim-inputs-42b7b0db1e/disassembly.stdout.txt": true,
+    "regular-bound-file:build/parallel-final-qsim/qsim-inputs-42b7b0db1e/build-manifest.json": true,
+    "hash:build/parallel-final-qsim/qsim-inputs-42b7b0db1e/build-manifest.json": true,
+    "regular-bound-file:build/parallel-final-qsim/qsim-inputs-42b7b0db1e/qsim-native-probe.elf": true,
+    "hash:build/parallel-final-qsim/qsim-inputs-42b7b0db1e/qsim-native-probe.elf": true,
+    "regular-bound-file:build/parallel-final-qsim/qsim-inputs-42b7b0db1e/symbols.stdout.txt": true,
+    "hash:build/parallel-final-qsim/qsim-inputs-42b7b0db1e/symbols.stdout.txt": true,
+    "qsim-build-snapshot": true,
+    "hash:experiments/quantum/native/Cargo.toml": true,
+    "hash:experiments/quantum/native/Cargo.lock": true,
+    "hash:experiments/quantum/native/linker.ld": true,
+    "hash:experiments/quantum/native/build.py": true,
+    "hash:experiments/quantum/native/src/heap_budget.rs": true,
+    "hash:experiments/quantum/native/src/lib.rs": true,
+    "hash:experiments/quantum/native/src/probe.rs": true,
+    "hash:experiments/quantum/native/tests/adapter.rs": true,
+    "hash:experiments/quantum/native/tests/test_build_gate.py": true,
+    "hash:experiments/quantum/qsim-core/src/complex.rs": true,
+    "hash:experiments/quantum/qsim-core/src/gate.rs": true,
+    "hash:experiments/quantum/qsim-core/src/lib.rs": true,
+    "hash:experiments/quantum/qsim-core/src/sampler.rs": true,
+    "hash:experiments/quantum/qsim-core/src/statevector.rs": true,
+    "hash:experiments/quantum/qsim-core/src/validate.rs": true,
+    "hash:experiments/quantum/qsim-core/Cargo.toml": true,
+    "hash:experiments/quantum/Cargo.toml": true,
+    "hash:tools/build_users.py": true,
+    "qsim-exact-user-embedded-once": true,
+    "qsim-kernel-loader-manifest": true,
+    "qsim-ELF-header": true,
+    "qsim-ELF-executable": true,
+    "qsim-real-ELF-WX-and-report": true,
+    "qsim-raw-streams-match": true,
+    "qsim-real-completion": true,
+    "qsim-serial-grammar": true,
+    "qsim-actual-process-progress-heap-cleanup": true,
+    "hash:/tmp/nieuw-os-par-tools/bin/qemu-system-x86_64": true,
+    "hash:/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_CODE_4M.fd": true,
+    "hash:/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_VARS_4M.fd": true,
+    "qsim-networkless-single-CPU-profile": true,
+    "g0-exact-run-and-source": true,
+    "g0-paired-build": true,
+    "g0-complete-artifact-set": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/typed.ppm": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/typed.ppm": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/qmp-trace.json": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/qmp-trace.json": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/initial.ppm": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/initial.ppm": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/build-manifest.json": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/build-manifest.json": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/OVMF_VARS.fd": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/OVMF_VARS.fd": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/serial.txt": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/serial.txt": false,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/stderr.txt": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/stderr.txt": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/a.ppm": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/a.ppm": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/after-backspace.ppm": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/after-backspace.ppm": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/OVMF_CODE.fd": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/OVMF_CODE.fd": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/OVMF_VARS.template.fd": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/OVMF_VARS.template.fd": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/ab.ppm": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/ab.ppm": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/VGA.rom": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/VGA.rom": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/esp/kernel.elf": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/esp/kernel.elf": true,
+    "regular-bound-file:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/esp/EFI/BOOT/BOOTX64.EFI": true,
+    "hash:build/parallel-final-g0/run/graphics-g0-5ad6321b1d/esp/EFI/BOOT/BOOTX64.EFI": true,
+    "g0-kernel-loader-manifest": true,
+    "g0-real-transitions": true,
+    "g0-input-row-only": true,
+    "g0-exact-backspace": true,
+    "g0-nonempty-scene": true,
+    "g0-pixel-bounds-match-report": true,
+    "g0-raw-serial-stderr": false,
+    "g0-exact-native-serial": false,
+    "g0-real-completion": true,
+    "g0-correlated-QMP-order": true,
+    "g0-QMP-keys-and-actual-frame-paths": true,
+    "g0-ROM-explicit-pin": true,
+    "hash:/tmp/nieuw-os-par-tools/qemu/usr/share/seabios/vgabios-stdvga.bin": true,
+    "g0-stored-negative-ROM-check": true,
+    "shared-firmware-bytes": true,
+    "source-still-unchanged": true
+  },
+  "files": {
+    "tools/run_qsim.py": {
+      "bytes": 12250,
+      "sha256": "ccf67651ce2f3631de7db6315d15d5822733ab06f48b948b90c2685c33e1f972"
+    },
+    "tools/run_graphics.py": {
+      "bytes": 19692,
+      "sha256": "fd406d0aebb03b04266793cd9d46cb673c691f4fd6a8659bf85405b58ac3e7bd"
+    },
+    "kernel/src/m2/m3.rs": {
+      "bytes": 41212,
+      "sha256": "5d776c754ed24588571cf395f375f72a43185782555cc7b78ec8a08ad9ed3fd3"
+    },
+    "kernel/src/m2/m3/qsim.rs": {
+      "bytes": 6956,
+      "sha256": "c3d01c717276bae519ddc157ef63a327ebeedab5894cd443deaa31cabde2e152"
+    },
+    "kernel/src/graphics.rs": {
+      "bytes": 13383,
+      "sha256": "8fddd5aaf28de0046c87ccf7af3ccd84c6f12f2803c87ae41763113d16759922"
+    },
+    "experiments/quantum/native/src/probe.rs": {
+      "bytes": 9426,
+      "sha256": "340aa618573ca319068587dc6ffcc158e37d3d762ecaebaf8edb7802c6dcff84",
+      "expected_sha256": "340aa618573ca319068587dc6ffcc158e37d3d762ecaebaf8edb7802c6dcff84",
+      "matched": true
+    },
+    "experiments/quantum/native/src/lib.rs": {
+      "bytes": 3231,
+      "sha256": "251bda8230fd90943949d34a1b35da2b61acb8ced9a60ad847ab0f7841cb8ca7",
+      "expected_sha256": "251bda8230fd90943949d34a1b35da2b61acb8ced9a60ad847ab0f7841cb8ca7",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/acceptance.json": {
+      "bytes": 5830,
+      "sha256": "9adbb297e75aadea15a4515b32151953a49375ab940bce2e9ad338173a1f378b",
+      "expected_sha256": "9adbb297e75aadea15a4515b32151953a49375ab940bce2e9ad338173a1f378b",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/result.json": {
+      "bytes": 3902,
+      "sha256": "e96fcb4334af94d9b8504d6016217e325708d81d31d201ba6e7827597e2ca1b7",
+      "expected_sha256": "e96fcb4334af94d9b8504d6016217e325708d81d31d201ba6e7827597e2ca1b7",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/build-manifest.json": {
+      "bytes": 7315,
+      "sha256": "69c05c3de7b648113f94b260a7ecbe20c7b1e39b35c9088223b9679e1b66960c",
+      "expected_sha256": "69c05c3de7b648113f94b260a7ecbe20c7b1e39b35c9088223b9679e1b66960c",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/quantum-build-report.json": {
+      "bytes": 4970,
+      "sha256": "33912c8091a053abad364696568e576ec360734b347865ab0629f5448d385701",
+      "expected_sha256": "33912c8091a053abad364696568e576ec360734b347865ab0629f5448d385701",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/artifact-index.json": {
+      "bytes": 2846,
+      "sha256": "1c91cfd6e3a4bea5f5419a70bc2755fd27bbcfbd38016b557e557384af1a2fcb"
+    },
+    "docs/verification/parallel-final-qsim/README.md": {
+      "bytes": 3909,
+      "sha256": "04050831d65dfc49983668db06537f6919847fe57d7215062f9cc2f6b3f41ff6",
+      "expected_sha256": "04050831d65dfc49983668db06537f6919847fe57d7215062f9cc2f6b3f41ff6",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/accept.stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/accept.stdout.txt": {
+      "bytes": 1222,
+      "sha256": "99b036d5e48ba12696448fd49ebe44a979aeb1cc7b9fd4c0cb7080d3d6ea9773",
+      "expected_sha256": "99b036d5e48ba12696448fd49ebe44a979aeb1cc7b9fd4c0cb7080d3d6ea9773",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/build-logs/build-native-qsim-manifest.json": {
+      "bytes": 7315,
+      "sha256": "69c05c3de7b648113f94b260a7ecbe20c7b1e39b35c9088223b9679e1b66960c",
+      "expected_sha256": "69c05c3de7b648113f94b260a7ecbe20c7b1e39b35c9088223b9679e1b66960c",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-kernel.json": {
+      "bytes": 439,
+      "sha256": "f76161abcbdc48bd155d0c2794705f21cc8f1548dbfb5c2024e2e319db544918",
+      "expected_sha256": "f76161abcbdc48bd155d0c2794705f21cc8f1548dbfb5c2024e2e319db544918",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-kernel.stderr.txt": {
+      "bytes": 723,
+      "sha256": "c3910c27b45141620c6c717e9823f126d56f50d0dfa9cadb677c2e678b0bafe3",
+      "expected_sha256": "c3910c27b45141620c6c717e9823f126d56f50d0dfa9cadb677c2e678b0bafe3",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-kernel.stdout.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-loader.json": {
+      "bytes": 403,
+      "sha256": "b35cc2ba5d01b2196d0b7aa63c1d73c7ff94a2623ad33bf8ac6423fa560cc62b",
+      "expected_sha256": "b35cc2ba5d01b2196d0b7aa63c1d73c7ff94a2623ad33bf8ac6423fa560cc62b",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-loader.stderr.txt": {
+      "bytes": 373,
+      "sha256": "b50082037071057b0c2002c555500cbc828fd7321c230716255dbe27a77d530d",
+      "expected_sha256": "b50082037071057b0c2002c555500cbc828fd7321c230716255dbe27a77d530d",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/build-logs/build-native-qsim-os-loader.stdout.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/build-logs/build-qsim-user.json": {
+      "bytes": 521,
+      "sha256": "0d952333dfb2923239bbd282250a938de65bfb052f8185c506b779ab85c25ee0",
+      "expected_sha256": "0d952333dfb2923239bbd282250a938de65bfb052f8185c506b779ab85c25ee0",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/build-logs/build-qsim-user.stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/build-logs/build-qsim-user.stdout.txt": {
+      "bytes": 147,
+      "sha256": "7b8ef796e9e6903a7c644cd2550a7f2d4da8515a029b19c1f03dd121ad244dfb",
+      "expected_sha256": "7b8ef796e9e6903a7c644cd2550a7f2d4da8515a029b19c1f03dd121ad244dfb",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/build.stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/build.stdout.txt": {
+      "bytes": 1296,
+      "sha256": "2ffca25d98b0f92ad9f7a53c9b91cdd6eb55e4c7bf3b41088701481cd10defbe",
+      "expected_sha256": "2ffca25d98b0f92ad9f7a53c9b91cdd6eb55e4c7bf3b41088701481cd10defbe",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/disassembly.txt": {
+      "bytes": 174160,
+      "sha256": "7f96ffcf303a2a832ae1d1a951cd43b96effba8fc8626bb4e844f4548e40a76d",
+      "expected_sha256": "7f96ffcf303a2a832ae1d1a951cd43b96effba8fc8626bb4e844f4548e40a76d",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/i05-run-checks.json": {
+      "bytes": 2147,
+      "sha256": "9b100c775ec909f9f78081777a0a93b190cca92d2ee69078ebb493f612916760",
+      "expected_sha256": "9b100c775ec909f9f78081777a0a93b190cca92d2ee69078ebb493f612916760",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/qemu-tools.json": {
+      "bytes": 5461,
+      "sha256": "1df5c65167d994df858e2fb47b939c9a9e38291886f08e08912eda648dcb447c",
+      "expected_sha256": "1df5c65167d994df858e2fb47b939c9a9e38291886f08e08912eda648dcb447c",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/rust-tools.json": {
+      "bytes": 639,
+      "sha256": "9cdda6da87e71c569c05f43037b9469987034ebfc5f12b87d7dbf6eab5b13da8",
+      "expected_sha256": "9cdda6da87e71c569c05f43037b9469987034ebfc5f12b87d7dbf6eab5b13da8",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/serial.txt": {
+      "bytes": 947,
+      "sha256": "dfb2442011c1f43a19a7917c1b56eed1d952631083120e9393139aac3bd82eff",
+      "expected_sha256": "dfb2442011c1f43a19a7917c1b56eed1d952631083120e9393139aac3bd82eff",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matched": true
+    },
+    "docs/verification/parallel-final-qsim/symbols.txt": {
+      "bytes": 4511,
+      "sha256": "12753835b82e521662053d8d155a79dd6f2418d3febf1acd6a0db4c12cc249ad",
+      "expected_sha256": "12753835b82e521662053d8d155a79dd6f2418d3febf1acd6a0db4c12cc249ad",
+      "matched": true
+    },
+    "build/parallel-final-qsim/run/native-qsim-893634900f/result.json": {
+      "bytes": 3902,
+      "sha256": "e96fcb4334af94d9b8504d6016217e325708d81d31d201ba6e7827597e2ca1b7"
+    },
+    "build/parallel-final-qsim/run/native-qsim-893634900f/esp/kernel.elf": {
+      "bytes": 926576,
+      "sha256": "84c75a9504e923426db1f86ac6d1e24b62d70024e4bebfe52b571b67106ac72d",
+      "expected_sha256": "84c75a9504e923426db1f86ac6d1e24b62d70024e4bebfe52b571b67106ac72d",
+      "matched": true
+    },
+    "build/parallel-final-qsim/run/native-qsim-893634900f/esp/EFI/BOOT/BOOTX64.EFI": {
+      "bytes": 28672,
+      "sha256": "0c62a346c778526e5ab1c865e9a21da4f7ab3d32f2218eba4ec85ef9afa84da9",
+      "expected_sha256": "0c62a346c778526e5ab1c865e9a21da4f7ab3d32f2218eba4ec85ef9afa84da9",
+      "matched": true
+    },
+    "build/parallel-final-qsim/run/native-qsim-893634900f/OVMF_CODE.fd": {
+      "bytes": 3653632,
+      "sha256": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+      "expected_sha256": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+      "matched": true
+    },
+    "build/parallel-final-qsim/run/native-qsim-893634900f/OVMF_VARS.template.fd": {
+      "bytes": 540672,
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "expected_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "matched": true
+    },
+    "build/parallel-final-qsim/qsim-inputs-42b7b0db1e/build-report.json": {
+      "bytes": 4970,
+      "sha256": "33912c8091a053abad364696568e576ec360734b347865ab0629f5448d385701"
+    },
+    "build/parallel-final-qsim/qsim-inputs-42b7b0db1e/disassembly.stdout.txt": {
+      "bytes": 174160,
+      "sha256": "7f96ffcf303a2a832ae1d1a951cd43b96effba8fc8626bb4e844f4548e40a76d",
+      "expected_sha256": "7f96ffcf303a2a832ae1d1a951cd43b96effba8fc8626bb4e844f4548e40a76d",
+      "matched": true
+    },
+    "build/parallel-final-qsim/qsim-inputs-42b7b0db1e/build-manifest.json": {
+      "bytes": 7315,
+      "sha256": "69c05c3de7b648113f94b260a7ecbe20c7b1e39b35c9088223b9679e1b66960c"
+    },
+    "build/parallel-final-qsim/qsim-inputs-42b7b0db1e/qsim-native-probe.elf": {
+      "bytes": 34864,
+      "sha256": "3a20a6e8566b899ffec4939a03a9a7e5f970ca2f5b0c7d84fd85f5dccc860a5a",
+      "expected_sha256": "3a20a6e8566b899ffec4939a03a9a7e5f970ca2f5b0c7d84fd85f5dccc860a5a",
+      "matched": true
+    },
+    "build/parallel-final-qsim/qsim-inputs-42b7b0db1e/symbols.stdout.txt": {
+      "bytes": 4511,
+      "sha256": "12753835b82e521662053d8d155a79dd6f2418d3febf1acd6a0db4c12cc249ad",
+      "expected_sha256": "12753835b82e521662053d8d155a79dd6f2418d3febf1acd6a0db4c12cc249ad",
+      "matched": true
+    },
+    "experiments/quantum/native/Cargo.toml": {
+      "bytes": 419,
+      "sha256": "344c771511606a99668cee321be185e9f50bbc518e856c55d260c02e3fc292ce",
+      "expected_sha256": "344c771511606a99668cee321be185e9f50bbc518e856c55d260c02e3fc292ce",
+      "matched": true
+    },
+    "experiments/quantum/native/Cargo.lock": {
+      "bytes": 238,
+      "sha256": "2650bda1cf534c8792f68ca86399d11ab6aeca48ede12fbc3ba8aff4c93521e7",
+      "expected_sha256": "2650bda1cf534c8792f68ca86399d11ab6aeca48ede12fbc3ba8aff4c93521e7",
+      "matched": true
+    },
+    "experiments/quantum/native/linker.ld": {
+      "bytes": 847,
+      "sha256": "a1d0226cebd524b7f0e4b69c91ff68a2bf3cb2b21f77bbdf5fc4c31be5998f3c",
+      "expected_sha256": "a1d0226cebd524b7f0e4b69c91ff68a2bf3cb2b21f77bbdf5fc4c31be5998f3c",
+      "matched": true
+    },
+    "experiments/quantum/native/build.py": {
+      "bytes": 7965,
+      "sha256": "269d0d6abdfba5385554ec40a992cf7acfcc3de5b70251c58cef8babc59a78fa",
+      "expected_sha256": "269d0d6abdfba5385554ec40a992cf7acfcc3de5b70251c58cef8babc59a78fa",
+      "matched": true
+    },
+    "experiments/quantum/native/src/heap_budget.rs": {
+      "bytes": 711,
+      "sha256": "66a0648a8f58e180ffa2b026f2e3e4507cdc82307949b793ad85f3adf5e1f28b",
+      "expected_sha256": "66a0648a8f58e180ffa2b026f2e3e4507cdc82307949b793ad85f3adf5e1f28b",
+      "matched": true
+    },
+    "experiments/quantum/native/tests/adapter.rs": {
+      "bytes": 4848,
+      "sha256": "66b6338c29d7469a54d03de76885f059ee715298f1af4891942842a1a1bb9171",
+      "expected_sha256": "66b6338c29d7469a54d03de76885f059ee715298f1af4891942842a1a1bb9171",
+      "matched": true
+    },
+    "experiments/quantum/native/tests/test_build_gate.py": {
+      "bytes": 5266,
+      "sha256": "8d8bedfce7bd91ba597939ac916e84beb0154930facea3057e7cd793bc259fcc",
+      "expected_sha256": "8d8bedfce7bd91ba597939ac916e84beb0154930facea3057e7cd793bc259fcc",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/src/complex.rs": {
+      "bytes": 322,
+      "sha256": "e42565b6ce5f0789bacbc78fa2ec1cb40294d59a16c1f4a164df936c93dd34b0",
+      "expected_sha256": "e42565b6ce5f0789bacbc78fa2ec1cb40294d59a16c1f4a164df936c93dd34b0",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/src/gate.rs": {
+      "bytes": 535,
+      "sha256": "0d2e6f972fb863585937b2ed840bc359991448f4e5e48f3abc3ae853cd412236",
+      "expected_sha256": "0d2e6f972fb863585937b2ed840bc359991448f4e5e48f3abc3ae853cd412236",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/src/lib.rs": {
+      "bytes": 2703,
+      "sha256": "14f9194521beacfdc27e076e0af763a4a6903b970b3c9b04363d1272024348ee",
+      "expected_sha256": "14f9194521beacfdc27e076e0af763a4a6903b970b3c9b04363d1272024348ee",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/src/sampler.rs": {
+      "bytes": 1187,
+      "sha256": "8423463aa7f9fd00df55aaaa68ac21212f5a6d20d9203e34c063819630c46ce7",
+      "expected_sha256": "8423463aa7f9fd00df55aaaa68ac21212f5a6d20d9203e34c063819630c46ce7",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/src/statevector.rs": {
+      "bytes": 8062,
+      "sha256": "159ca0be29f663e5f81670ff73bb6ad483919e25c87620005343be9d91bed463",
+      "expected_sha256": "159ca0be29f663e5f81670ff73bb6ad483919e25c87620005343be9d91bed463",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/src/validate.rs": {
+      "bytes": 2680,
+      "sha256": "9e73a4c589c10fb470363d430a5d1aeec7634b62f10027fa296222bac24dfd99",
+      "expected_sha256": "9e73a4c589c10fb470363d430a5d1aeec7634b62f10027fa296222bac24dfd99",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/Cargo.toml": {
+      "bytes": 134,
+      "sha256": "fe656cc4dbae574e141e426a4d45e6b5da425cc0b93db67bf439101adcdda9ff",
+      "expected_sha256": "fe656cc4dbae574e141e426a4d45e6b5da425cc0b93db67bf439101adcdda9ff",
+      "matched": true
+    },
+    "experiments/quantum/Cargo.toml": {
+      "bytes": 199,
+      "sha256": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+      "expected_sha256": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+      "matched": true
+    },
+    "tools/build_users.py": {
+      "bytes": 7151,
+      "sha256": "b201c15db7012af5e888fc5c6023e9fbfbbd86adb3728a47e651c08c973a5865",
+      "expected_sha256": "b201c15db7012af5e888fc5c6023e9fbfbbd86adb3728a47e651c08c973a5865",
+      "matched": true
+    },
+    "/tmp/nieuw-os-par-tools/bin/qemu-system-x86_64": {
+      "bytes": 237,
+      "sha256": "561b9e1f55fe21ea20560797fbf148d9999a6a7425e0aa8e9569757a6a2dfdfa",
+      "expected_sha256": "561b9e1f55fe21ea20560797fbf148d9999a6a7425e0aa8e9569757a6a2dfdfa",
+      "matched": true
+    },
+    "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_CODE_4M.fd": {
+      "bytes": 3653632,
+      "sha256": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+      "expected_sha256": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+      "matched": true
+    },
+    "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_VARS_4M.fd": {
+      "bytes": 540672,
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "expected_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "matched": true
+    },
+    "docs/verification/parallel-final-g0/acceptance.json": {
+      "bytes": 1505,
+      "sha256": "a1e242a11e5bf00e8b2dd7f5ef0dfcff93701654c617560b2c77056adb3694e5"
+    },
+    "docs/verification/parallel-final-g0/result.json": {
+      "bytes": 4698,
+      "sha256": "c600aa705df3b9487746f13aeb3c4fb52216f323145a7b9715cc409b2091dcca"
+    },
+    "docs/verification/parallel-final-g0/build-manifest.json": {
+      "bytes": 2040,
+      "sha256": "70e8712d5633afdd3b8bdd188f99afb7e66b0989167342e3f8e01a668e93b0ef"
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/result.json": {
+      "bytes": 4698,
+      "sha256": "c600aa705df3b9487746f13aeb3c4fb52216f323145a7b9715cc409b2091dcca"
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/build-manifest.json": {
+      "bytes": 2040,
+      "sha256": "70e8712d5633afdd3b8bdd188f99afb7e66b0989167342e3f8e01a668e93b0ef",
+      "expected_sha256": "70e8712d5633afdd3b8bdd188f99afb7e66b0989167342e3f8e01a668e93b0ef",
+      "matched": true
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/typed.ppm": {
+      "bytes": 1440015,
+      "sha256": "e80f6cf1f572cc3bad3441cbbb5f3a27a750f8a0c84127bb63af77ab496e26dc",
+      "expected_sha256": "e80f6cf1f572cc3bad3441cbbb5f3a27a750f8a0c84127bb63af77ab496e26dc",
+      "matched": true
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/qmp-trace.json": {
+      "bytes": 3084,
+      "sha256": "8b5c98a35f46867caa37593ce4e8bd0278b5bf87be5f22d62e900cd7710611e4"
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/initial.ppm": {
+      "bytes": 1440015,
+      "sha256": "454aedf48cb14c89e6e947b5c96b1c6bd6432c53a1d8aea3d03f1ad19300bc73",
+      "expected_sha256": "454aedf48cb14c89e6e947b5c96b1c6bd6432c53a1d8aea3d03f1ad19300bc73",
+      "matched": true
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/OVMF_VARS.fd": {
+      "bytes": 540672,
+      "sha256": "793a126117906c1cd1d3a86ff73d2f20323687d150bcc848222aa8c0067cd5db",
+      "expected_sha256": "793a126117906c1cd1d3a86ff73d2f20323687d150bcc848222aa8c0067cd5db",
+      "matched": true
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/serial.txt": {
+      "bytes": 409,
+      "sha256": "53b8af732872d41510183073a89b610fcdaed00348ed44648819111dc55c2d68",
+      "expected_sha256": "f61350dd1041ed8736a36452f1f4e56821f05f4f11008c9036e327913bfe2596",
+      "matched": false
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matched": true
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/a.ppm": {
+      "bytes": 1440015,
+      "sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+      "expected_sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+      "matched": true
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/after-backspace.ppm": {
+      "bytes": 1440015,
+      "sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+      "expected_sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+      "matched": true
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/OVMF_CODE.fd": {
+      "bytes": 3653632,
+      "sha256": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+      "expected_sha256": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+      "matched": true
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/OVMF_VARS.template.fd": {
+      "bytes": 540672,
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "expected_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "matched": true
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/ab.ppm": {
+      "bytes": 1440015,
+      "sha256": "90c4fd29fd891de256c84239acba59811537146f1a9bc482c6264576615c6b4e",
+      "expected_sha256": "90c4fd29fd891de256c84239acba59811537146f1a9bc482c6264576615c6b4e",
+      "matched": true
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/VGA.rom": {
+      "bytes": 39936,
+      "sha256": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a",
+      "expected_sha256": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a",
+      "matched": true
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/esp/kernel.elf": {
+      "bytes": 76304,
+      "sha256": "1c5467ce79246bad48edc9c9f065b86ffb28261835c9a94ff3dffb9de0dc869d",
+      "expected_sha256": "1c5467ce79246bad48edc9c9f065b86ffb28261835c9a94ff3dffb9de0dc869d",
+      "matched": true
+    },
+    "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/esp/EFI/BOOT/BOOTX64.EFI": {
+      "bytes": 31744,
+      "sha256": "a0a3fa1d81de4bec28e365fcd95450aff73e6870b9322179a837f6380701aa0a",
+      "expected_sha256": "a0a3fa1d81de4bec28e365fcd95450aff73e6870b9322179a837f6380701aa0a",
+      "matched": true
+    },
+    "/tmp/nieuw-os-par-tools/qemu/usr/share/seabios/vgabios-stdvga.bin": {
+      "bytes": 39936,
+      "sha256": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a",
+      "expected_sha256": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a",
+      "matched": true
+    },
+    "docs/verification/parallel-final-crosscheck-storage/verify.py": {
+      "bytes": 15166,
+      "sha256": "bd90a0ed769e4a5978e422aa1bd8aef583959f2c0f8d737c17840e6ff78465ed"
+    }
+  },
+  "qsim_observed": {
+    "pids": [
+      1,
+      2
+    ],
+    "checkpoints": [
+      253,
+      253
+    ],
+    "useful_arena": [
+      7216,
+      7216
+    ],
+    "work_gap": [
+      448,
+      448
+    ],
+    "timer_irqs": [
+      4
+    ],
+    "syscalls": [
+      505
+    ],
+    "cleanup_frames": [
+      96
+    ]
+  },
+  "qsim_user_kernel_offset": 72160,
+  "g0_frames": {
+    "width": 800,
+    "height": 600,
+    "steps": [
+      [
+        48,
+        192,
+        62,
+        212
+      ],
+      [
+        60,
+        192,
+        74,
+        212
+      ],
+      [
+        60,
+        192,
+        74,
+        212
+      ],
+      [
+        60,
+        192,
+        74,
+        212
+      ]
+    ],
+    "overall": [
+      48,
+      192,
+      74,
+      212
+    ],
+    "backspace_byte_equal": true,
+    "initial_distinct_channel_values": 12
+  },
+  "passed": false,
+  "finished_utc": "2026-10-28T15:44:49.221680+00:00",
+  "verification_script_sha256": "bd90a0ed769e4a5978e422aa1bd8aef583959f2c0f8d737c17840e6ff78465ed"
+}

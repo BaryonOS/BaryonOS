@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "task": "I02 bounded quantum observer",
+  "base_commit": "5ea1fe127252ee3c1894bb976e2768751bad4244",
+  "native_runtime_performed": false,
+  "host_shim_only": true,
+  "passed": true,
+  "checks": [
+    {
+      "name": "compile",
+      "command": [
+        "rustc",
+        "--edition",
+        "2021",
+        "--test",
+        "docs/verification/parallel-i02/observer_host.rs",
+        "-o",
+        "/tmp/nieuw-os-par-i02-tests"
+      ],
+      "returncode": 0,
+      "log": "docs/verification/parallel-i02/compile.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "tests",
+      "command": [
+        "/tmp/nieuw-os-par-i02-tests"
+      ],
+      "returncode": 0,
+      "log": "docs/verification/parallel-i02/tests.txt",
+      "log_sha256": "348534a7fd47b6f0a0fd1462b1446ea51d257f9fcb723f3d4a2aafa418310d1d"
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "rustfmt",
+        "--edition",
+        "2021",
+        "--check",
+        "kernel/src/m2/m3/qsim.rs",
+        "docs/verification/parallel-i02/observer_host.rs"
+      ],
+      "returncode": 0,
+      "log": "docs/verification/parallel-i02/rustfmt.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source_sha256": {
+    "kernel/src/m2/m3/qsim.rs": "c3d01c717276bae519ddc157ef63a327ebeedab5894cd443deaa31cabde2e152",
+    "docs/verification/parallel-i02/observer_host.rs": "fe7b5e184ee16ac03e9acf7187151db7ec8f86de867c275261d1bc0282cb93de",
+    "kernel/src/m2/m3.rs": "a8ebe7b022359c54df1b34fd1e77845cb87668b5e35a948c968c110d4f705522"
+  },
+  "log_format": "Captured stdout+stderr; final whitespace normalized to one newline."
+}

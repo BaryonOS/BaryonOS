@@ -1,0 +1,48 @@
+test_all_labels_and_seeds_are_bounded (test_m6b_disk.DiskOracle.test_all_labels_and_seeds_are_bounded) ... ok
+test_canary_change_cannot_pass_with_perfect_guest_markers (test_m6b_disk.DiskOracle.test_canary_change_cannot_pass_with_perfect_guest_markers) ... ok
+test_corrupt_case_must_be_unchanged_and_have_no_value_claim (test_m6b_disk.DiskOracle.test_corrupt_case_must_be_unchanged_and_have_no_value_claim) ... ok
+test_gap_and_stale_revisions_cannot_hide_in_valid_checksums (test_m6b_disk.DiskOracle.test_gap_and_stale_revisions_cannot_hide_in_valid_checksums) ... ok
+test_manifest_identity_and_regular_file_size_are_enforced (test_m6b_disk.DiskOracle.test_manifest_identity_and_regular_file_size_are_enforced) ... ok
+test_missing_duplicate_unknown_and_wrong_state_markers_fail (test_m6b_disk.DiskOracle.test_missing_duplicate_unknown_and_wrong_state_markers_fail) ... ok
+test_one_bit_in_each_record_byte_is_rejected (test_m6b_disk.DiskOracle.test_one_bit_in_each_record_byte_is_rejected) ... ok
+test_plausible_wrong_payload_and_matching_guest_digest_fail_scenario (test_m6b_disk.DiskOracle.test_plausible_wrong_payload_and_matching_guest_digest_fail_scenario) ... ok
+test_published_write_may_land_but_suppressed_flush_keeps_one_record (test_m6b_disk.DiskOracle.test_published_write_may_land_but_suppressed_flush_keeps_one_record) ... 
+  test_published_write_may_land_but_suppressed_flush_keeps_one_record (test_m6b_disk.DiskOracle.test_published_write_may_land_but_suppressed_flush_keeps_one_record) (case='write-timeout', sequence=1) ... FAIL
+  test_published_write_may_land_but_suppressed_flush_keeps_one_record (test_m6b_disk.DiskOracle.test_published_write_may_land_but_suppressed_flush_keeps_one_record) (case='reset-timeout', sequence=1) ... FAIL
+  test_published_write_may_land_but_suppressed_flush_keeps_one_record (test_m6b_disk.DiskOracle.test_published_write_may_land_but_suppressed_flush_keeps_one_record) (case='write-poll-limit', sequence=1) ... FAIL
+test_published_write_timeout_rejects_other_operations_and_content (test_m6b_disk.DiskOracle.test_published_write_timeout_rejects_other_operations_and_content) ... ok
+test_published_write_timeout_requires_fresh_fixture_and_no_live_claim (test_m6b_disk.DiskOracle.test_published_write_timeout_requires_fresh_fixture_and_no_live_claim) ... ok
+test_real_prefix_and_tombstones_match (test_m6b_disk.DiskOracle.test_real_prefix_and_tombstones_match) ... ok
+test_recovery_requires_no_disk_writes (test_m6b_disk.DiskOracle.test_recovery_requires_no_disk_writes) ... ok
+test_resealed_policy_errors_still_fail (test_m6b_disk.DiskOracle.test_resealed_policy_errors_still_fail) ... ok
+test_uncertain_mutation_rejects_replay_missing_record_and_wrong_bytes (test_m6b_disk.DiskOracle.test_uncertain_mutation_rejects_replay_missing_record_and_wrong_bytes) ... ok
+test_uncertain_mutation_requires_exact_one_real_record_without_live_state_claim (test_m6b_disk.DiskOracle.test_uncertain_mutation_requires_exact_one_real_record_without_live_state_claim) ... ok
+
+======================================================================
+FAIL: test_published_write_may_land_but_suppressed_flush_keeps_one_record (test_m6b_disk.DiskOracle.test_published_write_may_land_but_suppressed_flush_keeps_one_record) (case='write-timeout', sequence=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b04/tests/test_m6b_disk.py", line 200, in test_published_write_may_land_but_suppressed_flush_keeps_one_record
+    self.assertEqual(result['passed'], case in WRITE_TIMEOUT_CASES or actual == written)
+AssertionError: False != True
+
+======================================================================
+FAIL: test_published_write_may_land_but_suppressed_flush_keeps_one_record (test_m6b_disk.DiskOracle.test_published_write_may_land_but_suppressed_flush_keeps_one_record) (case='reset-timeout', sequence=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b04/tests/test_m6b_disk.py", line 200, in test_published_write_may_land_but_suppressed_flush_keeps_one_record
+    self.assertEqual(result['passed'], case in WRITE_TIMEOUT_CASES or actual == written)
+AssertionError: False != True
+
+======================================================================
+FAIL: test_published_write_may_land_but_suppressed_flush_keeps_one_record (test_m6b_disk.DiskOracle.test_published_write_may_land_but_suppressed_flush_keeps_one_record) (case='write-poll-limit', sequence=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b04/tests/test_m6b_disk.py", line 200, in test_published_write_may_land_but_suppressed_flush_keeps_one_record
+    self.assertEqual(result['passed'], case in WRITE_TIMEOUT_CASES or actual == written)
+AssertionError: False != True
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.110s
+
+FAILED (failures=3)

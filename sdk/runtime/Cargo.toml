@@ -1,0 +1,8 @@
+[package]
+name = "nieuw-os-sdk-runtime"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dev-dependencies]
+capability-core = { path = "../../crates/capability-core" }

@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "source_commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+  "source_fingerprint_version": 3,
+  "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f",
+  "passed": true,
+  "scope": "Actual isolated G0 build and pipe VM; unchanged reusable capture; independent archived PNG byte check",
+  "started_utc": "2026-10-28T16:20:48.958596+00:00",
+  "commands": [
+    {
+      "name": "build",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "graphics-g0"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "started_utc": "2026-10-28T16:20:49.000229+00:00",
+      "exit_status": 0,
+      "duration_s": 2.477948
+    },
+    {
+      "name": "run",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/run_graphics.py",
+        "--qmp-transport",
+        "pipe",
+        "--machine",
+        "pc-q35-7.2",
+        "--run-root",
+        "/tmp/nieuw-os-followup-g0",
+        "--vga-rom",
+        "/tmp/nieuw-os-par-tools/qemu/usr/share/seabios/vgabios-stdvga.bin",
+        "--vga-rom-sha256",
+        "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "started_utc": "2026-10-28T16:20:51.525450+00:00",
+      "exit_status": 0,
+      "duration_s": 5.58225
+    },
+    {
+      "name": "capture",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/capture_graphics.py",
+        "--run-dir",
+        "/tmp/nieuw-os-followup-g0/graphics-g0-15e24b60b7",
+        "--destination",
+        "docs/verification/parallel-followup-g0"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "started_utc": "2026-10-28T16:20:57.146610+00:00",
+      "exit_status": 0,
+      "duration_s": 0.465297
+    }
+  ],
+  "environment": {
+    "NOS_BUILD_DIR": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-g0",
+    "NOS_TARGET_DIR": "/tmp/nieuw-os-par-followup-g0-target",
+    "CARGO_TARGET_DIR": "/tmp/nieuw-os-par-followup-g0-target",
+    "CARGO_HOME": "/tmp/nieuw-os-par-tools/cargo-home",
+    "CARGO_BUILD_JOBS": "2",
+    "NOS_QEMU_MACHINE": "pc-q35-7.2",
+    "NOS_SDK_RUNTIME": "0",
+    "OS_OVMF_CODE": "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "OS_OVMF_VARS": "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_VARS_4M.fd"
+  },
+  "run_directory": "/tmp/nieuw-os-followup-g0/graphics-g0-15e24b60b7",
+  "raw_qemu_exit": 33,
+  "native_checks": {
+    "real_key_changes_visible_pixels": true,
+    "only_input_row_changes": true,
+    "backspace_restores_previous_frame_exactly": true,
+    "nonempty_native_scene": true,
+    "real_exit33": true,
+    "post_ebs_kernel_m2": true,
+    "exact_g0_sequence": true,
+    "no_guest_failure": true,
+    "source_unchanged": true,
+    "normal_end_marker": true
+  },
+  "completed_utc": "2026-10-28T16:20:57.711287+00:00",
+  "archive_crosscheck": {
+    "input_files": 16,
+    "archived_files": 11,
+    "input_sha256": {
+      "OVMF_CODE.fd": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+      "OVMF_VARS.fd": "793a126117906c1cd1d3a86ff73d2f20323687d150bcc848222aa8c0067cd5db",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "VGA.rom": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a",
+      "a.ppm": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+      "ab.ppm": "90c4fd29fd891de256c84239acba59811537146f1a9bc482c6264576615c6b4e",
+      "after-backspace.ppm": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+      "build-manifest.json": "174233744737b8d7803c14a20c4a17db88544a730003fe1a7c5b6886a2a737c2",
+      "esp/EFI/BOOT/BOOTX64.EFI": "40a39d98edf2b266ffb40f93cef6907897f845201936bf3e9cb96ed1627f2a10",
+      "esp/kernel.elf": "1c5467ce79246bad48edc9c9f065b86ffb28261835c9a94ff3dffb9de0dc869d",
+      "initial.ppm": "454aedf48cb14c89e6e947b5c96b1c6bd6432c53a1d8aea3d03f1ad19300bc73",
+      "qmp-trace.json": "c90eb4acd48260ef745783562bacd501ee5fcd3d47063aed3a86d78274f2fa29",
+      "result.json": "69f85ff9f4d13c46e9c4f3ec528af08920ee926a8edc788d69c30a84f137c21d",
+      "serial.txt": "f61350dd1041ed8736a36452f1f4e56821f05f4f11008c9036e327913bfe2596",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typed.ppm": "e80f6cf1f572cc3bad3441cbbb5f3a27a750f8a0c84127bb63af77ab496e26dc"
+    },
+    "archive_sha256": {
+      "a.png": "19c0c2deed8e7f4280116ebf5714ce91ac680a1a99ea7140c703c982aad1b392",
+      "ab.png": "2af8a74dd0d9b47d12350a9d744b6c5e2b1125f718816784635aa2d6171023da",
+      "after-backspace.png": "19c0c2deed8e7f4280116ebf5714ce91ac680a1a99ea7140c703c982aad1b392",
+      "build-manifest.json": "174233744737b8d7803c14a20c4a17db88544a730003fe1a7c5b6886a2a737c2",
+      "image-roundtrip.json": "627fffe05315d4dd99fe56d030a650ab92545291ebaabb083de9e0f31e92d621",
+      "initial.png": "927aef2f61912ee0992bcbfdcb48b0d2f1b9b40c7c1bc8e69c1726ccad8c0e95",
+      "qmp-trace.json": "c90eb4acd48260ef745783562bacd501ee5fcd3d47063aed3a86d78274f2fa29",
+      "result.json": "69f85ff9f4d13c46e9c4f3ec528af08920ee926a8edc788d69c30a84f137c21d",
+      "serial.txt": "f61350dd1041ed8736a36452f1f4e56821f05f4f11008c9036e327913bfe2596",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typed.png": "9025e19199b33318a11175c6d8d2a7a47826ee8df12cef94a0a5d25247efd6dc"
+    },
+    "independent_decoder": "Pillow 12.3.0",
+    "images": [
+      {
+        "name": "initial",
+        "ppm_sha256": "454aedf48cb14c89e6e947b5c96b1c6bd6432c53a1d8aea3d03f1ad19300bc73",
+        "png_sha256": "927aef2f61912ee0992bcbfdcb48b0d2f1b9b40c7c1bc8e69c1726ccad8c0e95",
+        "byte_exact": true
+      },
+      {
+        "name": "a",
+        "ppm_sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+        "png_sha256": "19c0c2deed8e7f4280116ebf5714ce91ac680a1a99ea7140c703c982aad1b392",
+        "byte_exact": true
+      },
+      {
+        "name": "ab",
+        "ppm_sha256": "90c4fd29fd891de256c84239acba59811537146f1a9bc482c6264576615c6b4e",
+        "png_sha256": "2af8a74dd0d9b47d12350a9d744b6c5e2b1125f718816784635aa2d6171023da",
+        "byte_exact": true
+      },
+      {
+        "name": "after-backspace",
+        "ppm_sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+        "png_sha256": "19c0c2deed8e7f4280116ebf5714ce91ac680a1a99ea7140c703c982aad1b392",
+        "byte_exact": true
+      },
+      {
+        "name": "typed",
+        "ppm_sha256": "e80f6cf1f572cc3bad3441cbbb5f3a27a750f8a0c84127bb63af77ab496e26dc",
+        "png_sha256": "9025e19199b33318a11175c6d8d2a7a47826ee8df12cef94a0a5d25247efd6dc",
+        "byte_exact": true
+      }
+    ],
+    "actual_serial_bytes": 425,
+    "actual_serial_sha256": "f61350dd1041ed8736a36452f1f4e56821f05f4f11008c9036e327913bfe2596"
+  }
+}

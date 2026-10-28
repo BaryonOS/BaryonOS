@@ -1,8 +1,11 @@
 # Native M6b-foutafhandeling — bewijs en grenzen
 
 28 oktober 2026. Basis `1f24f99`, runtime-/harnascommit `592dccf`, branch
-`codex/m6b-storage-errors`. Latere commits bevatten uitsluitend documentatie en
-bewijs. Exacte commando's/exits en bronvingerafdruk: `validation.json`.
+`codex/m6b-storage-errors`. De resultaten in dit archief horen uitsluitend bij
+`592dccf`. Latere branchcommits voegen onder meer K08- en G0-runtimewijzigingen
+toe; die bron wordt niet door dit oude archief gedekt. De actuele gecombineerde
+gates en hun eigen bronbinding staan in PROJECT-STATE.md en afzonderlijke
+archieven. Exacte commando's/exits van dit checkpoint: `validation.json`.
 
 - `../m6b-storage-errors/`: volledige gate, 22 groepen / 18 echte VM-runs en
   opnieuw gecontroleerde capture. Hostlaag: 22 Rust- en 31 Python-tests.

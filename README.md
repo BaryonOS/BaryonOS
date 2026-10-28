@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`f2c40551`](https://github.com/simonvanieperen/nieuw-os/commit/f2c4055120b893f004c11bf9b845f0f37c92adaf) ·
-**Ontwikkelbranch:** `codex/m6b-storage-errors`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Native G0 start en toetsenbordproef na main-integratie; eindregressies volgen.
-G0 voert echte beeldschermuitvoer en PS2-RAMinvoer uit in QEMU na EBS/M2; typen en backspace zijn met echte framebufferbeelden gecontroleerd. Geen compositor/sessie, audio/USB of fysieke-hardwarebewijs, dus U01/H02/H03 blijven open. Vijf gerichte M6b-timeout/cancelproeven geslaagd op eerdere bron; gecombineerde eindgates volgen. Score blijft 14%.
+**Bron:** [`ed98fd63`](https://github.com/simonvanieperen/nieuw-os/commit/ed98fd6352156fd2cce903a20e6787877062093d) ·
+**Ontwikkelbranch:** `codex/parallel-native-foundation-20261028`.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Native vervolgacceptatie gepubliceerd; gerichte PR14-review en volledig inhoudsbehoud.
+Zes echte actuele VMs en onafhankelijke controle van216 bestanden zijn gepubliceerd; de eerdere80 geaccepteerde runs behouden hun oorspronkelijke binding. Zeven PR14-vragen zijn opgelost in de integratiebron en volledige bomen bevestigen nul verwijderde paden. G11/I13 bouwen de echte DocumentSession-proef; B11 een begrensde native netwerkparser zonder netwerk-I/O. Geen nieuw volledig criterium:14% naar14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -12,6 +12,42 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import common
 
 
+class QuantumSourceBinding(unittest.TestCase):
+    def test_inherited_package_manifest_and_job_codec_are_source_inputs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parent = root / "experiments/quantum/Cargo.toml"
+            parent.parent.mkdir(parents=True)
+            parent.write_text('[workspace.package]\nedition="2021"\n')
+            codec = root / "experiments/quantum/job-protocol/src/lib.rs"
+            codec.parent.mkdir(parents=True)
+            codec.write_text("pub const VERSION: u16 = 1;\n")
+            with patch.object(common, "ROOT", root):
+                initial = common.source_hash()
+                parent.write_text('[workspace.package]\nedition="2024"\n')
+                changed_manifest = common.source_hash()
+                self.assertNotEqual(initial, changed_manifest)
+                codec.write_text("pub const VERSION: u16 = 2;\n")
+                self.assertNotEqual(changed_manifest, common.source_hash())
+
+
+class MachineSelection(unittest.TestCase):
+    def test_only_explicit_versioned_profiles_and_no_silent_fallback(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(common.qemu_machine(), "pc-q35-10.0")
+        for name in common.QEMU_MACHINES:
+            with patch.dict(os.environ, {"NOS_QEMU_MACHINE": name}):
+                self.assertEqual(common.qemu_machine(), name)
+        for name in ("q35", "", "pc-q35-unknown", "pc-q35-7.2,accel=kvm"):
+            with self.subTest(name=name):
+                with self.assertRaises(ValueError):
+                    common.qemu_machine(name)
+        with patch.dict(os.environ, {"NOS_QEMU_MACHINE": "invalid"}):
+            with self.assertRaises(ValueError):
+                common.qemu_machine()
+            self.assertEqual(common.qemu_machine("pc-q35-7.2"), "pc-q35-7.2")
+
+
 class RunLoggedTimeout(unittest.TestCase):
     def test_timeout_saves_partial_output_and_metadata_before_reraising(self):
         with tempfile.TemporaryDirectory() as directory:

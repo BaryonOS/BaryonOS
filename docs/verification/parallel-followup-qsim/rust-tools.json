@@ -1,0 +1,17 @@
+{
+  "manifest_sha256": "489c19f20d331765ab2835661eb546de90f6446a107a8db83045e7371e45cae2",
+  "targets": [
+    {
+      "target": "x86_64-unknown-none",
+      "url": "https://static.rust-lang.org/dist/2025-09-18/rust-std-1.90.0-x86_64-unknown-none.tar.xz",
+      "sha256": "47cb9f0ffcbeebeaee06a92a189ea81011b46d7dd10360a3b0801a041bc3b9af",
+      "install_exit": 0
+    },
+    {
+      "target": "x86_64-unknown-uefi",
+      "url": "https://static.rust-lang.org/dist/2025-09-18/rust-std-1.90.0-x86_64-unknown-uefi.tar.xz",
+      "sha256": "1e3df3bac5f1451675e06118f7cd197e52cc1413d7bf1f1c38df0d28a8e5c916",
+      "install_exit": 0
+    }
+  ]
+}

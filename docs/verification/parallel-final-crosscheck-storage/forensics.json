@@ -1,0 +1,73 @@
+{
+  "scope": "Read-only metadata and agent-script write-scope inspection, no artifact repair",
+  "observed_utc": "2026-10-28T15:48:29.599645+00:00",
+  "b06_write_targets": [
+    "docs/verification/parallel-final-crosscheck-storage/result.json"
+  ],
+  "b06_subprocesses": [
+    [
+      "git",
+      "rev-parse",
+      "HEAD"
+    ]
+  ],
+  "negative_serial_mutation_performed": false,
+  "original_artifact_repair_performed": false,
+  "files": [
+    {
+      "path": "docs/verification/parallel-final-crosscheck-storage/verify.py",
+      "bytes": 15166,
+      "inode": 24682,
+      "hard_links": 1,
+      "mtime_ns": 1793202288526293011,
+      "ctime_ns": 1793202288526293011,
+      "mtime_utc": "2026-10-28T15:44:48.526293+00:00",
+      "ctime_utc": "2026-10-28T15:44:48.526293+00:00",
+      "sha256": "bd90a0ed769e4a5978e422aa1bd8aef583959f2c0f8d737c17840e6ff78465ed"
+    },
+    {
+      "path": "docs/verification/parallel-final-crosscheck-storage/first-check.json",
+      "bytes": 35935,
+      "inode": 24719,
+      "hard_links": 1,
+      "mtime_ns": 1793202289222506164,
+      "ctime_ns": 1793202328299893711,
+      "mtime_utc": "2026-10-28T15:44:49.222506+00:00",
+      "ctime_utc": "2026-10-28T15:45:28.299894+00:00",
+      "sha256": "896c64a89488c61ddc5673e996166b340857c4d245a9fe9ef2cf7fd2933e4966"
+    },
+    {
+      "path": "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/serial.txt",
+      "bytes": 409,
+      "inode": 21982,
+      "hard_links": 1,
+      "mtime_ns": 1793201843296464658,
+      "ctime_ns": 1793201845608452157,
+      "mtime_utc": "2026-10-28T15:37:23.296465+00:00",
+      "ctime_utc": "2026-10-28T15:37:25.608452+00:00",
+      "sha256": "53b8af732872d41510183073a89b610fcdaed00348ed44648819111dc55c2d68"
+    },
+    {
+      "path": "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/result.json",
+      "bytes": 4698,
+      "inode": 21976,
+      "hard_links": 1,
+      "mtime_ns": 1793201843951093800,
+      "ctime_ns": 1793201843951093800,
+      "mtime_utc": "2026-10-28T15:37:23.951094+00:00",
+      "ctime_utc": "2026-10-28T15:37:23.951094+00:00",
+      "sha256": "c600aa705df3b9487746f13aeb3c4fb52216f323145a7b9715cc409b2091dcca"
+    },
+    {
+      "path": "docs/verification/parallel-final-g0/serial.txt",
+      "bytes": 425,
+      "inode": 21980,
+      "hard_links": 1,
+      "mtime_ns": 1793201843824461803,
+      "ctime_ns": 1793201843978759575,
+      "mtime_utc": "2026-10-28T15:37:23.824462+00:00",
+      "ctime_utc": "2026-10-28T15:37:23.978760+00:00",
+      "sha256": "f61350dd1041ed8736a36452f1f4e56821f05f4f11008c9036e327913bfe2596"
+    }
+  ]
+}

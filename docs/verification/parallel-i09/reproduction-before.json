@@ -1,0 +1,12 @@
+{
+  "base_commit": "68c8cb76aaf905dcdd60d1e702203269e07aab2f",
+  "preflight_sha256": "0b2c7404b66dd0a04d289f9ab07582eca04ee051818c5d630edeaaaa7b8e912b",
+  "tests_sha256": "bfb83544edc7e51067213b05f099edfd48876476cbaf0d5289903059d9ca301b",
+  "standalone_actual_exit": 2,
+  "standalone_expected_exit": 0,
+  "standalone_rustc_selector_version_exit": 0,
+  "standalone_rustc_selector_sysroot_exit": 1,
+  "cross_target_actual_exit": 0,
+  "cross_target_expected_exit": 2,
+  "both_findings_reproduced": true
+}

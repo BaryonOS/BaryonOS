@@ -1,0 +1,190 @@
+{
+  "source": {
+    "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+    "tree": "421bb96102779d01d9cb4e6231d686aea417d63a",
+    "source_fingerprint_version": 3,
+    "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+  },
+  "steps": [
+    {
+      "name": "host-graphics",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_graphics*.py"
+      ],
+      "started_utc": "2026-10-28T16:21:53.587827+00:00",
+      "before": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      },
+      "exit_code": 0,
+      "duration_s": 1.1727943549994961,
+      "after": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      }
+    },
+    {
+      "name": "host-preflight",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_preflight.py"
+      ],
+      "started_utc": "2026-10-28T16:21:54.806787+00:00",
+      "before": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      },
+      "exit_code": 0,
+      "duration_s": 0.3655379849988094,
+      "after": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      }
+    },
+    {
+      "name": "host-build-paths",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_build_paths.py"
+      ],
+      "started_utc": "2026-10-28T16:21:55.262509+00:00",
+      "before": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      },
+      "exit_code": 0,
+      "duration_s": 0.16691451700171456,
+      "after": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      }
+    },
+    {
+      "name": "host-source-binding",
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_common.py"
+      ],
+      "started_utc": "2026-10-28T16:21:55.482926+00:00",
+      "before": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      },
+      "exit_code": 0,
+      "duration_s": 0.21497038999950746,
+      "after": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      }
+    },
+    {
+      "name": "actual-strict-preflight",
+      "command": [
+        "python",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "started_utc": "2026-10-28T16:21:55.758656+00:00",
+      "before": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      },
+      "exit_code": 0,
+      "duration_s": 0.21507790100076818,
+      "after": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      }
+    },
+    {
+      "name": "build-normal",
+      "command": "build(kernel_feature='milestone-m6b', label='followup-root-normal')",
+      "started_utc": "2026-10-28T16:21:56.030219+00:00",
+      "before": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      },
+      "exit_code": 0,
+      "duration_s": 4.80950163200032,
+      "after": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      }
+    },
+    {
+      "name": "vm-normal",
+      "command": "run_m6b('normal', label='followup-root-normal')",
+      "started_utc": "2026-10-28T16:22:00.883729+00:00",
+      "before": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      },
+      "exit_code": 0,
+      "duration_s": 5.399384226999246,
+      "after": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      }
+    },
+    {
+      "name": "build-recover",
+      "command": "build(kernel_feature='test-m6b-recover', label='followup-root-recover')",
+      "started_utc": "2026-10-28T16:22:06.342841+00:00",
+      "before": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      },
+      "exit_code": 0,
+      "duration_s": 2.2802927419979824,
+      "after": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      }
+    },
+    {
+      "name": "vm-recover",
+      "command": "run_m6b('recover', volume=normal_volume, label='followup-root-cold')",
+      "started_utc": "2026-10-28T16:22:08.663517+00:00",
+      "before": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      },
+      "exit_code": 0,
+      "duration_s": 4.73200682300012,
+      "after": {
+        "commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+        "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+      }
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "gate_source": "/workspace/scratch/debaa3b6a81c/nieuw-os/experiments/quantum/native/build.py",
+  "gate_sha256": "7b2e171d8418ab838736b8c995029f565c5aa16b06879ae415a2e79b8a992a5f",
+  "scope": "Host negative-control reproduction; fixture instructions are never executed.",
+  "objdump_version": "GNU objdump (GNU Binutils for Ubuntu) 2.42",
+  "cases": [
+    {
+      "name": "plain-fninit",
+      "hex": "cd80dbe3",
+      "argv": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-g04-xq0leyet/plain-fninit.bin"
+      ],
+      "objdump_exit": 0,
+      "disassembly": "\n/tmp/nieuw-os-g04-xq0leyet/plain-fninit.bin:     file format binary\n\n\nDisassembly of section .data:\n\n0000000000000000 <.data>:\n   0:\tint    0x80\n   2:\tfninit\n",
+      "expected_gate_acceptance": false,
+      "gate_accepted": false,
+      "gate_error": "non-scalar instruction at 2: fninit "
+    },
+    {
+      "name": "data16-fninit",
+      "hex": "cd8066dbe3",
+      "argv": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-g04-xq0leyet/data16-fninit.bin"
+      ],
+      "objdump_exit": 0,
+      "disassembly": "\n/tmp/nieuw-os-g04-xq0leyet/data16-fninit.bin:     file format binary\n\n\nDisassembly of section .data:\n\n0000000000000000 <.data>:\n   0:\tint    0x80\n   2:\tdata16 fninit\n",
+      "expected_gate_acceptance": false,
+      "gate_result": {
+        "decoded_instructions": 2,
+        "int80_sites": 1,
+        "extended_registers_found": false
+      },
+      "gate_accepted": true
+    },
+    {
+      "name": "repz-fninit",
+      "hex": "cd80f3dbe3",
+      "argv": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-g04-xq0leyet/repz-fninit.bin"
+      ],
+      "objdump_exit": 0,
+      "disassembly": "\n/tmp/nieuw-os-g04-xq0leyet/repz-fninit.bin:     file format binary\n\n\nDisassembly of section .data:\n\n0000000000000000 <.data>:\n   0:\tint    0x80\n   2:\trepz fninit\n",
+      "expected_gate_acceptance": false,
+      "gate_result": {
+        "decoded_instructions": 2,
+        "int80_sites": 1,
+        "extended_registers_found": false
+      },
+      "gate_accepted": true
+    }
+  ],
+  "all_negative_controls_rejected": false
+}

@@ -1,0 +1,236 @@
+{
+  "task": "I11",
+  "scope": "one current native qsim smoke; no M3 regression rerun",
+  "expected_head": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+  "expected_source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f",
+  "started_utc": "2026-10-28T16:21:29.269409+00:00",
+  "passed": true,
+  "commands": [
+    {
+      "label": "build",
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-qsim"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "returncode": 0,
+      "duration_s": 3.232859173000179,
+      "stdout": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-qsim/build.stdout.txt",
+      "stderr": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-qsim/build.stderr.txt",
+      "stdout_sha256": "ddd9f4e15a156952886d124f053802410b801e4f281f86b4ecd2b319534350fa",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "accept",
+      "command": [
+        "python3",
+        "-B",
+        "tools/run_qsim.py"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "returncode": 0,
+      "duration_s": 4.980390009000985,
+      "stdout": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-qsim/accept.stdout.txt",
+      "stderr": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-qsim/accept.stderr.txt",
+      "stdout_sha256": "e398a821c4e53ff9efc5eed8d90ef48bfbcf5a613fc304bc5f76ba51f12baa0e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "environment": {
+    "NOS_BUILD_DIR": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-qsim",
+    "NOS_TARGET_DIR": "/tmp/nieuw-os-followup-qsim-target",
+    "CARGO_TARGET_DIR": "/tmp/nieuw-os-followup-qsim-target",
+    "CARGO_HOME": "/tmp/nieuw-os-par-tools/cargo-home",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_NET_OFFLINE": "true",
+    "NOS_QEMU_MACHINE": "pc-q35-7.2",
+    "NOS_SDK_RUNTIME": "0",
+    "OS_OVMF_CODE": "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "OS_OVMF_VARS": "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_VARS_4M.fd",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "before": {
+    "head": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+    "tree": "421bb96102779d01d9cb4e6231d686aea417d63a",
+    "source_fingerprint_version": 3,
+    "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+  },
+  "previous_artifacts": {
+    "esp/kernel.elf": "84c75a9504e923426db1f86ac6d1e24b62d70024e4bebfe52b571b67106ac72d",
+    "esp/EFI/BOOT/BOOTX64.EFI": "0c62a346c778526e5ab1c865e9a21da4f7ab3d32f2218eba4ec85ef9afa84da9",
+    "users/qsim/qsim-native-probe.elf": "3a20a6e8566b899ffec4939a03a9a7e5f970ca2f5b0c7d84fd85f5dccc860a5a"
+  },
+  "previous_source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "qsim_inputs_vs_previous": {
+    "experiments/quantum/native/Cargo.toml": {
+      "previous": "344c771511606a99668cee321be185e9f50bbc518e856c55d260c02e3fc292ce",
+      "current": "344c771511606a99668cee321be185e9f50bbc518e856c55d260c02e3fc292ce"
+    },
+    "experiments/quantum/native/Cargo.lock": {
+      "previous": "2650bda1cf534c8792f68ca86399d11ab6aeca48ede12fbc3ba8aff4c93521e7",
+      "current": "2650bda1cf534c8792f68ca86399d11ab6aeca48ede12fbc3ba8aff4c93521e7"
+    },
+    "experiments/quantum/native/linker.ld": {
+      "previous": "a1d0226cebd524b7f0e4b69c91ff68a2bf3cb2b21f77bbdf5fc4c31be5998f3c",
+      "current": "a1d0226cebd524b7f0e4b69c91ff68a2bf3cb2b21f77bbdf5fc4c31be5998f3c"
+    },
+    "experiments/quantum/native/build.py": {
+      "previous": "269d0d6abdfba5385554ec40a992cf7acfcc3de5b70251c58cef8babc59a78fa",
+      "current": "269d0d6abdfba5385554ec40a992cf7acfcc3de5b70251c58cef8babc59a78fa"
+    },
+    "experiments/quantum/native/src/heap_budget.rs": {
+      "previous": "66a0648a8f58e180ffa2b026f2e3e4507cdc82307949b793ad85f3adf5e1f28b",
+      "current": "66a0648a8f58e180ffa2b026f2e3e4507cdc82307949b793ad85f3adf5e1f28b"
+    },
+    "experiments/quantum/native/src/lib.rs": {
+      "previous": "251bda8230fd90943949d34a1b35da2b61acb8ced9a60ad847ab0f7841cb8ca7",
+      "current": "251bda8230fd90943949d34a1b35da2b61acb8ced9a60ad847ab0f7841cb8ca7"
+    },
+    "experiments/quantum/native/src/probe.rs": {
+      "previous": "340aa618573ca319068587dc6ffcc158e37d3d762ecaebaf8edb7802c6dcff84",
+      "current": "340aa618573ca319068587dc6ffcc158e37d3d762ecaebaf8edb7802c6dcff84"
+    },
+    "experiments/quantum/native/tests/adapter.rs": {
+      "previous": "66b6338c29d7469a54d03de76885f059ee715298f1af4891942842a1a1bb9171",
+      "current": "66b6338c29d7469a54d03de76885f059ee715298f1af4891942842a1a1bb9171"
+    },
+    "experiments/quantum/native/tests/test_build_gate.py": {
+      "previous": "8d8bedfce7bd91ba597939ac916e84beb0154930facea3057e7cd793bc259fcc",
+      "current": "8d8bedfce7bd91ba597939ac916e84beb0154930facea3057e7cd793bc259fcc"
+    },
+    "experiments/quantum/qsim-core/src/complex.rs": {
+      "previous": "e42565b6ce5f0789bacbc78fa2ec1cb40294d59a16c1f4a164df936c93dd34b0",
+      "current": "e42565b6ce5f0789bacbc78fa2ec1cb40294d59a16c1f4a164df936c93dd34b0"
+    },
+    "experiments/quantum/qsim-core/src/gate.rs": {
+      "previous": "0d2e6f972fb863585937b2ed840bc359991448f4e5e48f3abc3ae853cd412236",
+      "current": "0d2e6f972fb863585937b2ed840bc359991448f4e5e48f3abc3ae853cd412236"
+    },
+    "experiments/quantum/qsim-core/src/lib.rs": {
+      "previous": "14f9194521beacfdc27e076e0af763a4a6903b970b3c9b04363d1272024348ee",
+      "current": "14f9194521beacfdc27e076e0af763a4a6903b970b3c9b04363d1272024348ee"
+    },
+    "experiments/quantum/qsim-core/src/sampler.rs": {
+      "previous": "8423463aa7f9fd00df55aaaa68ac21212f5a6d20d9203e34c063819630c46ce7",
+      "current": "8423463aa7f9fd00df55aaaa68ac21212f5a6d20d9203e34c063819630c46ce7"
+    },
+    "experiments/quantum/qsim-core/src/statevector.rs": {
+      "previous": "159ca0be29f663e5f81670ff73bb6ad483919e25c87620005343be9d91bed463",
+      "current": "159ca0be29f663e5f81670ff73bb6ad483919e25c87620005343be9d91bed463"
+    },
+    "experiments/quantum/qsim-core/src/validate.rs": {
+      "previous": "9e73a4c589c10fb470363d430a5d1aeec7634b62f10027fa296222bac24dfd99",
+      "current": "9e73a4c589c10fb470363d430a5d1aeec7634b62f10027fa296222bac24dfd99"
+    },
+    "experiments/quantum/qsim-core/Cargo.toml": {
+      "previous": "fe656cc4dbae574e141e426a4d45e6b5da425cc0b93db67bf439101adcdda9ff",
+      "current": "fe656cc4dbae574e141e426a4d45e6b5da425cc0b93db67bf439101adcdda9ff"
+    },
+    "experiments/quantum/Cargo.toml": {
+      "previous": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+      "current": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100"
+    },
+    "tools/build_users.py": {
+      "previous": "b201c15db7012af5e888fc5c6023e9fbfbbd86adb3728a47e651c08c973a5865",
+      "current": "b201c15db7012af5e888fc5c6023e9fbfbbd86adb3728a47e651c08c973a5865"
+    }
+  },
+  "qsim_inputs_unchanged": true,
+  "tools": {
+    "rustc": {
+      "path": "/tmp/nieuw-os-par-tools/bin/rustc",
+      "sha256": "fa7917d3358cc2c548705570120052551ab7e3340dc0c1abecd9ac546bf08a1a",
+      "version": "rustc 1.90.0 (1159e78c4 2025-09-14)"
+    },
+    "cargo": {
+      "path": "/tmp/nieuw-os-par-tools/bin/cargo",
+      "sha256": "40efaf1cb209b85a4b08520433e1feb47740d00c369b3aca1444868bf574c066",
+      "version": "cargo 1.90.0 (840b83a10 2025-07-30)"
+    },
+    "qemu-system-x86_64": {
+      "path": "/tmp/nieuw-os-par-tools/bin/qemu-system-x86_64",
+      "sha256": "561b9e1f55fe21ea20560797fbf148d9999a6a7425e0aa8e9569757a6a2dfdfa",
+      "version": "QEMU emulator version 7.2.22 (Debian 1:7.2+dfsg-7+deb12u18+b3)\nCopyright (c) 2003-2022 Fabrice Bellard and the QEMU Project developers"
+    },
+    "objdump": {
+      "path": "/usr/bin/objdump",
+      "sha256": "7fd25a9f02382a952fe983e40bd41aa12127d1bbe3f4dc5c93ea13d03279a2f5",
+      "version": "GNU objdump (GNU Binutils for Ubuntu) 2.42\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) any later version.\nThis program has absolutely no warranty."
+    },
+    "nm": {
+      "path": "/usr/bin/nm",
+      "sha256": "096b96ed1dbeee61397773d3f5858cca10da7004792213569a78237356c15e98",
+      "version": "GNU nm (GNU Binutils for Ubuntu) 2.42\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) any later version.\nThis program has absolutely no warranty."
+    }
+  },
+  "firmware": {
+    "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_CODE_4M.fd": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+    "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_VARS_4M.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "after": {
+    "head": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+    "tree": "421bb96102779d01d9cb4e6231d686aea417d63a",
+    "source_fingerprint_version": 3,
+    "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+  },
+  "source_and_head_unchanged": true,
+  "current_artifacts": {
+    "esp/kernel.elf": "84c75a9504e923426db1f86ac6d1e24b62d70024e4bebfe52b571b67106ac72d",
+    "esp/EFI/BOOT/BOOTX64.EFI": "1e13496735d3e2cbc80fac646379dc3c335c40a127b82aec22bf887535e24640",
+    "users/qsim/qsim-native-probe.elf": "3a20a6e8566b899ffec4939a03a9a7e5f970ca2f5b0c7d84fd85f5dccc860a5a"
+  },
+  "artifact_comparison": {
+    "esp/kernel.elf": {
+      "previous_sha256": "84c75a9504e923426db1f86ac6d1e24b62d70024e4bebfe52b571b67106ac72d",
+      "current_sha256": "84c75a9504e923426db1f86ac6d1e24b62d70024e4bebfe52b571b67106ac72d",
+      "identical_bytes": true
+    },
+    "esp/EFI/BOOT/BOOTX64.EFI": {
+      "previous_sha256": "0c62a346c778526e5ab1c865e9a21da4f7ab3d32f2218eba4ec85ef9afa84da9",
+      "current_sha256": "1e13496735d3e2cbc80fac646379dc3c335c40a127b82aec22bf887535e24640",
+      "identical_bytes": false
+    },
+    "users/qsim/qsim-native-probe.elf": {
+      "previous_sha256": "3a20a6e8566b899ffec4939a03a9a7e5f970ca2f5b0c7d84fd85f5dccc860a5a",
+      "current_sha256": "3a20a6e8566b899ffec4939a03a9a7e5f970ca2f5b0c7d84fd85f5dccc860a5a",
+      "identical_bytes": true
+    }
+  },
+  "old_artifacts_still_unchanged": true,
+  "acceptance_path": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-qsim/native-qsim-result.json",
+  "acceptance_sha256": "8d2e1cfbf94ecdb7cd9776f358c038097c7d35ce05b40e37e50202bea717328f",
+  "raw_qemu_exit": 33,
+  "acceptance_checks": {
+    "before_launch_source_unchanged": true,
+    "guest_exit_sequence_profile_and_artifacts": true,
+    "after_run_source_unchanged": true,
+    "qemu_entry_unchanged": true,
+    "quantum_binary_snapshot": true,
+    "scalar_report_snapshot": true,
+    "build_artifacts_unchanged": true
+  },
+  "observed": {
+    "processes": [
+      {
+        "pid": 1,
+        "checkpoints": 253,
+        "useful_arena": 7216,
+        "max_work_gap": 448
+      },
+      {
+        "pid": 2,
+        "checkpoints": 253,
+        "useful_arena": 7216,
+        "max_work_gap": 448
+      }
+    ],
+    "timer_irqs": 4,
+    "syscall_calls": 504,
+    "cleanup_frames": 96
+  },
+  "vm_count": 1,
+  "finished_utc": "2026-10-28T16:21:37.642865+00:00"
+}

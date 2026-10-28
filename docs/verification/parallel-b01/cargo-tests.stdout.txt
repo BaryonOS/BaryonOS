@@ -1,0 +1,70 @@
+
+running 1 test
+test client::tests::request_id_exhaustion_does_not_wrap_or_reopen ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 14 tests
+test catalog_open_edit_save_rename_delete_and_recover_use_existing_core ... ok
+test empty_and_maximum_documents_are_not_truncated ... ok
+test invalid_catalog_is_never_an_empty_or_cross_domain_result ... ok
+test every_truncated_envelope_and_oversized_envelope_is_rejected_without_panicking ... ok
+test full_core_journal_reports_full_without_changing_the_last_value ... ok
+test invalid_configuration_and_requests_never_start_transport ... ok
+test only_one_request_is_pending_and_duplicate_or_unsolicited_replies_are_not_accepted ... ok
+test outgoing_envelope_is_bounded_and_contains_no_authority ... ok
+test envelope_sender_tag_size_caps_and_all_padding_are_bound ... ok
+test ordinary_rejections_allow_an_explicit_fresh_request_with_a_new_id ... ok
+test wrong_ack_revision_cannot_turn_a_save_into_success ... ok
+test timeout_and_transport_error_preserve_mutation_uncertainty_and_reject_late_ack ... ok
+test unknown_and_terminal_service_errors_close_without_replay ... ok
+test wire_version_request_id_epoch_object_operation_status_and_payload_are_bound ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 15 tests
+test duplicate_labels_and_byte_distinct_unicode_keep_id_identity ... ok
+test empty_catalog_has_no_global_activity_or_invalid_domain ... ok
+test catalog_sorted_filtered_and_tombstone_revision_is_local ... ok
+test prepared_commit_is_bound_to_complete_prior_state ... ok
+test recovery_rejects_revision_jump_and_invalid_utf8_with_new_checksum ... ok
+test recovery_requires_complete_contiguous_scan_and_stays_failed ... ok
+test mixed_lifecycle_roundtrips_all_records_and_deleted_metadata_is_cleared ... ok
+test full_preserves_latest_name_and_content_without_wrap ... ok
+test recovery_checks_rename_predecessor_and_content_despite_valid_checksum ... ok
+test state_rejects_bad_operation_id_bounds_name_and_rename_value ... ok
+test rename_is_atomic_preserves_all_content_and_has_no_early_commit ... ok
+test zero_length_content_is_a_live_named_object ... ok
+test stale_mutation_cannot_resurrect_deleted_object ... ok
+test valid_legacy_v1_record_is_rejected_without_modifying_it ... ok
+test recovery_rejects_all_single_byte_damage_and_noncanonical_rehashed_fields ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 15 tests
+test get_reply_contains_canonical_name_and_value_including_empty_content ... ok
+test list_empty_zero_generation_and_deleted_generation_are_valid ... ok
+test all_five_valid_requests_are_accepted_only_in_their_endpoint_domain ... ok
+test list_rejects_bad_count_lengths_names_and_all_padding ... ok
+test error_replies_scrub_all_data_and_only_authorized_notfound_keeps_revision ... ok
+test list_roundtrip_preserves_sorted_metadata_and_no_contents ... ok
+test names_validate_bytes_utf8_controls_bidi_and_path_punctuation ... ok
+test list_rejects_foreign_ids_unsorted_duplicate_or_forged_revisions ... ok
+test arbitrary_external_lengths_never_create_out_of_bounds_slices ... ok
+test malformed_catalog_constructor_fails_closed_without_panicking ... ok
+test replies_bind_request_epoch_operation_object_and_status ... ok
+test constructors_never_truncate_oversize_values_or_names ... ok
+test mutation_acks_have_no_data_and_are_bound_to_next_revision ... ok
+test operation_specific_fields_reject_impossible_requests ... ok
+test request_identity_epoch_version_and_every_padding_byte_are_checked ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

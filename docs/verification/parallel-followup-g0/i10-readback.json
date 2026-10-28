@@ -1,0 +1,162 @@
+{
+  "scope": "Read-only review of I10 source/evidence binding and concrete documented state transitions; no repeated suite or VM",
+  "task": "B08 auxiliary I10 readback while awaiting root freeze",
+  "review_commit": "fcc9b0ff65528255d80425a100f322835886f3f8",
+  "reviewed_source_commit": "ccb2112072574d45b9c94c6f7181de23828bf79a",
+  "utc": "2026-10-28T16:18:34.339660+00:00",
+  "passed": true,
+  "checks": [
+    {
+      "check": "review commit bytes: README.md",
+      "passed": true
+    },
+    {
+      "check": "review commit bytes: assessment.json",
+      "passed": true
+    },
+    {
+      "check": "review commit bytes: checks.json",
+      "passed": true
+    },
+    {
+      "check": "review commit bytes: document-session-tests.json",
+      "passed": true
+    },
+    {
+      "check": "review commit bytes: native-library-build.json",
+      "passed": true
+    },
+    {
+      "check": "review SHA256: README.md",
+      "passed": true
+    },
+    {
+      "check": "review SHA256: checks.json",
+      "passed": true
+    },
+    {
+      "check": "review SHA256: document-session-tests.json",
+      "passed": true
+    },
+    {
+      "check": "review SHA256: native-library-build.json",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: crates/capability-core/Cargo.toml",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: crates/capability-core/src/lib.rs",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: crates/capability-core/src/tests.rs",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: sdk/Cargo.lock",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: sdk/Cargo.toml",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: sdk/catalog-client/Cargo.toml",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: sdk/catalog-client/src/lib.rs",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: sdk/document-session/Cargo.toml",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: sdk/document-session/README.md",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: sdk/document-session/src/lib.rs",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: sdk/document-session/tests/editing.rs",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: sdk/runtime/Cargo.toml",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: sdk/runtime/src/lib.rs",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: sdk/runtime/src/message.rs",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: sdk/runtime/src/native.rs",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: services/catalog/Cargo.toml",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: services/catalog/src/client.rs",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: services/catalog/src/journal.rs",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: services/catalog/src/lib.rs",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: services/catalog/src/user_service.rs",
+      "passed": true
+    },
+    {
+      "check": "G07/source bytes and SHA256: services/catalog/src/wire.rs",
+      "passed": true
+    },
+    {
+      "check": "exit zero: document-session-tests.json",
+      "passed": true
+    },
+    {
+      "check": "raw stream hash: document-session-tests.json/stdout",
+      "passed": true
+    },
+    {
+      "check": "raw stream hash: document-session-tests.json/stderr",
+      "passed": true
+    },
+    {
+      "check": "exit zero: native-library-build.json",
+      "passed": true
+    },
+    {
+      "check": "raw stream hash: native-library-build.json/stdout",
+      "passed": true
+    },
+    {
+      "check": "raw stream hash: native-library-build.json/stderr",
+      "passed": true
+    },
+    {
+      "check": "actual no_std library SHA256",
+      "passed": true
+    }
+  ],
+  "native_vm_runs": 0,
+  "new_test_runs": 0,
+  "blocking_findings": [],
+  "conclusion": "I10 claims match retained source and output bytes. Exact CAS, Stale conflict, draft preservation, sticky uncertainty and no-replay match the bounded source paths. Library compilation remains distinct from native execution."
+}

@@ -1,0 +1,138 @@
+{
+  "passed": true,
+  "scope": "real inventory of pinned standalone/wrapper binaries, synthetic cross-target link cases; no build or VM",
+  "results": {
+    "pinned-wrapper": {
+      "strict_exit": 0,
+      "rustc": "/tmp/nieuw-os-par-tools/bin/rustc",
+      "cargo": "/tmp/nieuw-os-par-tools/bin/cargo",
+      "compiler_command": [
+        "/tmp/nieuw-os-par-tools/bin/rustc",
+        "+1.90.0"
+      ],
+      "targets": [
+        "x86_64-unknown-uefi",
+        "x86_64-unknown-none"
+      ]
+    },
+    "verified-direct": {
+      "strict_exit": 0,
+      "rustc": "/tmp/nieuw-os-par-tools/rust/bin/rustc",
+      "cargo": "/tmp/nieuw-os-par-tools/rust/bin/cargo",
+      "compiler_command": [
+        "/tmp/nieuw-os-par-tools/rust/bin/rustc"
+      ],
+      "targets": [
+        "x86_64-unknown-uefi",
+        "x86_64-unknown-none"
+      ]
+    },
+    "foreign-library-directory": {
+      "strict_exit": 2,
+      "missing_targets": [
+        "x86_64-unknown-uefi"
+      ],
+      "target": {
+        "query": {
+          "command": [
+            "synthetic-rustc",
+            "+1.90.0",
+            "--print",
+            "target-libdir",
+            "--target",
+            "x86_64-unknown-uefi"
+          ],
+          "exit_code": 0,
+          "stdout": "/tmp/tmpybmd8o9a/sysroot/lib/rustlib/x86_64-unknown-uefi/lib\n",
+          "stderr": ""
+        },
+        "available": false,
+        "error": "target library directory is outside its selected sysroot/target"
+      }
+    },
+    "foreign-target-directory": {
+      "strict_exit": 2,
+      "missing_targets": [
+        "x86_64-unknown-uefi"
+      ],
+      "target": {
+        "query": {
+          "command": [
+            "synthetic-rustc",
+            "+1.90.0",
+            "--print",
+            "target-libdir",
+            "--target",
+            "x86_64-unknown-uefi"
+          ],
+          "exit_code": 0,
+          "stdout": "/tmp/tmpe37g3cgt/sysroot/lib/rustlib/x86_64-unknown-uefi/lib\n",
+          "stderr": ""
+        },
+        "available": false,
+        "error": "selected target directory redirects to another location"
+      }
+    },
+    "foreign-rlib": {
+      "strict_exit": 2,
+      "missing_targets": [
+        "x86_64-unknown-uefi"
+      ],
+      "target": {
+        "query": {
+          "command": [
+            "synthetic-rustc",
+            "+1.90.0",
+            "--print",
+            "target-libdir",
+            "--target",
+            "x86_64-unknown-uefi"
+          ],
+          "exit_code": 0,
+          "stdout": "/tmp/tmp504yrj5t/sysroot/lib/rustlib/x86_64-unknown-uefi/lib\n",
+          "stderr": ""
+        },
+        "available": false,
+        "directory": "/tmp/tmp504yrj5t/sysroot/lib/rustlib/x86_64-unknown-uefi/lib",
+        "target_root": "/tmp/tmp504yrj5t/sysroot/lib/rustlib/x86_64-unknown-uefi",
+        "libraries": {
+          "core": {
+            "library": "core",
+            "available": false,
+            "files": [
+              {
+                "path": "/tmp/tmp504yrj5t/sysroot/lib/rustlib/x86_64-unknown-uefi/lib/libcore-fixture.rlib",
+                "usable_archive": false,
+                "error": "rlib is not a regular file within the selected target"
+              }
+            ]
+          },
+          "alloc": {
+            "library": "alloc",
+            "available": true,
+            "files": [
+              {
+                "path": "/tmp/tmp504yrj5t/sysroot/lib/rustlib/x86_64-unknown-uefi/lib/liballoc-fixture.rlib",
+                "usable_archive": true,
+                "resolved_path": "/tmp/tmp504yrj5t/sysroot/lib/rustlib/x86_64-unknown-uefi/lib/liballoc-fixture.rlib",
+                "size_bytes": 92
+              }
+            ]
+          },
+          "compiler_builtins": {
+            "library": "compiler_builtins",
+            "available": true,
+            "files": [
+              {
+                "path": "/tmp/tmp504yrj5t/sysroot/lib/rustlib/x86_64-unknown-uefi/lib/libcompiler_builtins-fixture.rlib",
+                "usable_archive": true,
+                "resolved_path": "/tmp/tmp504yrj5t/sysroot/lib/rustlib/x86_64-unknown-uefi/lib/libcompiler_builtins-fixture.rlib",
+                "size_bytes": 92
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

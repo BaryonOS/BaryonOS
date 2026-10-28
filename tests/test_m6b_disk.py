@@ -10,12 +10,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
 import m6b_disk as d
 
 
-def record(slot, object_id, revision, *, operation=2, payload=None):
+WRITE_TIMEOUT_CASES = ('write-timeout', 'reset-timeout', 'write-poll-limit')
+
+
+def record(slot, object_id, revision, *, operation=2, payload=None, request_id=None):
     if payload is None:
         payload = d.fixture_value(object_id, revision) if operation == 2 else b''
+    if request_id is None:
+        request_id = slot + 1
     out = bytearray(512)
     out[:8] = d.MAGIC
-    struct.pack_into('<HHIQQQQHH', out, 8, 1, 64, 0, slot+1, slot+1,
+    struct.pack_into('<HHIQQQQHH', out, 8, 1, 64, 0, slot+1, request_id,
                      object_id, revision, operation, len(payload))
     out[64:64+len(payload)] = payload
     seal(out)
@@ -177,18 +182,79 @@ class DiskOracle(unittest.TestCase):
                 self.assertFalse(d.verify_volume(self.volume, '', case=case,
                                                 before=self.volume.initial)['passed'])
 
-    def test_suppressed_write_is_unchanged_but_suppressed_flush_keeps_one_record(self):
+    def timeout_image(self, first=None):
+        out = bytearray(self.volume.initial)
+        if first is None:
+            first = record(0, 0, 1, request_id=10)
+        out[d.FIRST*d.SECTOR:(d.FIRST+1)*d.SECTOR] = first
+        return bytes(out)
+
+    def test_published_write_may_land_but_suppressed_flush_keeps_one_record(self):
         initial = self.volume.initial
-        one = bytearray(record(0, 0, 1))
-        struct.pack_into('<Q', one, 24, 10); seal(one)
-        written = bytearray(initial)
-        written[d.FIRST*512:(d.FIRST+1)*512] = one
-        for case in ('write-timeout', 'reset-timeout', 'write-poll-limit', 'flush-timeout', 'flush-poll-limit'):
-            expected = initial if case.startswith('write') or case == 'reset-timeout' else bytes(written)
-            for actual in (initial, bytes(written)):
-                self.volume.path.write_bytes(actual)
-                self.assertEqual(d.verify_volume(self.volume, '', case=case, before=initial)['passed'],
-                                 actual == expected)
+        written = self.timeout_image()
+        for case in (*WRITE_TIMEOUT_CASES, 'flush-timeout', 'flush-poll-limit'):
+            for actual in (initial, written):
+                with self.subTest(case=case, sequence=d.scan(actual)['sequence']):
+                    self.volume.path.write_bytes(actual)
+                    result = d.verify_volume(self.volume, '', case=case, before=initial)
+                    self.assertEqual(result['passed'], case in WRITE_TIMEOUT_CASES or actual == written)
+                    self.assertIsNone(result['observed'])
+
+    def test_published_write_timeout_rejects_other_operations_and_content(self):
+        invalid = {
+            'other-own-object': self.timeout_image(record(0, 1, 1, request_id=10)),
+            'other-domain': self.timeout_image(record(0, 2, 1, request_id=10)),
+            'revision-zero': self.timeout_image(record(0, 0, 0, request_id=10)),
+            'revision-two': self.timeout_image(record(0, 0, 2, request_id=10)),
+            'request-zero': self.timeout_image(record(0, 0, 1, request_id=0)),
+            'request-eleven': self.timeout_image(record(0, 0, 1, request_id=11)),
+            'delete': self.timeout_image(record(0, 0, 1, operation=3, request_id=10)),
+            'other-value': self.timeout_image(record(0, 0, 1, payload=b'x'*128, request_id=10)),
+            'short-value': self.timeout_image(record(0, 0, 1, payload=d.fixture_value(0, 1)[:64],
+                                                      request_id=10)),
+        }
+        extra = bytearray(self.timeout_image())
+        extra[(d.FIRST+1)*d.SECTOR:(d.FIRST+2)*d.SECTOR] = record(1, 0, 2, request_id=11)
+        invalid['replay'] = bytes(extra)
+        for name, at in (('reserved', 52), ('padding', 192)):
+            first = bytearray(record(0, 0, 1, request_id=10))
+            first[at] = 1
+            seal(first)
+            invalid[name] = self.timeout_image(first)
+        first = bytearray(record(0, 0, 1, request_id=10))
+        first[-1] ^= 1
+        invalid['checksum'] = self.timeout_image(first)
+        for name, at in (('before-journal', d.FIRST*d.SECTOR-1), ('after-journal', -1)):
+            for kind, image in (('old', self.volume.initial), ('new', self.timeout_image())):
+                data = bytearray(image)
+                data[at] ^= 1
+                invalid[f'{name}-{kind}'] = bytes(data)
+        for name, data in invalid.items():
+            self.volume.path.write_bytes(data)
+            for case in WRITE_TIMEOUT_CASES:
+                with self.subTest(case=case, invalid=name):
+                    self.assertFalse(d.verify_volume(self.volume, '', case=case,
+                                                    before=self.volume.initial)['passed'])
+
+    def test_published_write_timeout_requires_fresh_fixture_and_no_live_claim(self):
+        initial, written = self.volume.initial, self.timeout_image()
+        for actual in (initial, written):
+            self.volume.path.write_bytes(actual)
+            for case in WRITE_TIMEOUT_CASES:
+                with self.subTest(case=case, sequence=d.scan(actual)['sequence']):
+                    self.assertFalse(d.verify_volume(self.volume, '', case=case, before=written)['passed'])
+                    for output in (markers(d.scan(actual), acks=0), markers(d.scan(actual), acks=1),
+                                   'M6B:ACKS:1\n', 'M6B:SEQUENCE:0\n'):
+                        self.assertFalse(d.verify_volume(self.volume, output, case=case,
+                                                        before=initial)['passed'])
+        corrupt = d.create_volume('timeout-corrupt', seed=24, variant='corrupt')
+        repaired = bytearray(corrupt.initial)
+        repaired[d.FIRST*d.SECTOR:(d.FIRST+1)*d.SECTOR] = record(0, 0, 1, request_id=10)
+        corrupt.path.write_bytes(repaired)
+        for case in WRITE_TIMEOUT_CASES:
+            with self.subTest(case=case, invalid='corrupt-variant'):
+                self.assertFalse(d.verify_volume(corrupt, '', case=case, before=corrupt.initial)['passed'])
+
     def test_all_labels_and_seeds_are_bounded(self):
         for label in ('../disk','/dev/null','a/b',''):
             with self.assertRaises(ValueError): d.create_volume(label)

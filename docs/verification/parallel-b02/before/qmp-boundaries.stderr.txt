@@ -1,0 +1,129 @@
+test_error_and_conflicting_success_fields_are_rejected (__main__.qmp_suite.<locals>.QmpBoundaries.test_error_and_conflicting_success_fields_are_rejected) ... ok
+test_exact_reply_after_event_is_accepted (__main__.qmp_suite.<locals>.QmpBoundaries.test_exact_reply_after_event_is_accepted) ... ok
+test_expired_command_is_never_sent (__main__.qmp_suite.<locals>.QmpBoundaries.test_expired_command_is_never_sent) ... FAIL
+test_expired_pipe_send_does_not_touch_the_writer (__main__.qmp_suite.<locals>.QmpBoundaries.test_expired_pipe_send_does_not_touch_the_writer) ... FAIL
+test_full_pipe_send_has_a_deadline_instead_of_blocking (__main__.qmp_suite.<locals>.QmpBoundaries.test_full_pipe_send_has_a_deadline_instead_of_blocking) ... FAIL
+test_response_id_preserves_the_integer_request_type (__main__.qmp_suite.<locals>.QmpBoundaries.test_response_id_preserves_the_integer_request_type) ... 
+  test_response_id_preserves_the_integer_request_type (__main__.qmp_suite.<locals>.QmpBoundaries.test_response_id_preserves_the_integer_request_type) (value=True) ... FAIL
+  test_response_id_preserves_the_integer_request_type (__main__.qmp_suite.<locals>.QmpBoundaries.test_response_id_preserves_the_integer_request_type) (value=1.0) ... FAIL
+test_slow_socket_read_is_not_accepted_after_shared_deadline (__main__.qmp_suite.<locals>.QmpBoundaries.test_slow_socket_read_is_not_accepted_after_shared_deadline) ... FAIL
+test_socket_send_timeout_is_bounded_by_remaining_run_time (__main__.qmp_suite.<locals>.QmpBoundaries.test_socket_send_timeout_is_bounded_by_remaining_run_time) ... FAIL
+test_success_requires_return_and_events_are_not_responses (__main__.qmp_suite.<locals>.QmpBoundaries.test_success_requires_return_and_events_are_not_responses) ... 
+  test_success_requires_return_and_events_are_not_responses (__main__.qmp_suite.<locals>.QmpBoundaries.test_success_requires_return_and_events_are_not_responses) (reply={'id': 1}) ... FAIL
+  test_success_requires_return_and_events_are_not_responses (__main__.qmp_suite.<locals>.QmpBoundaries.test_success_requires_return_and_events_are_not_responses) (reply={'id': 1, 'event': 'STOP'}) ... FAIL
+  test_success_requires_return_and_events_are_not_responses (__main__.qmp_suite.<locals>.QmpBoundaries.test_success_requires_return_and_events_are_not_responses) (reply={'id': 1, 'return': {}, 'event': 'STOP'}) ... FAIL
+
+======================================================================
+FAIL: test_expired_command_is_never_sent (__main__.qmp_suite.<locals>.QmpBoundaries.test_expired_command_is_never_sent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b02/tools/test_graphics_helpers.py", line 94, in test_expired_command_is_never_sent
+    control.socket.sendall.assert_not_called()
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 910, in assert_not_called
+    raise AssertionError(msg)
+AssertionError: Expected 'sendall' to not have been called. Called 1 times.
+Calls: [call(b'{"execute": "send-key", "id": 1}\n')].
+
+======================================================================
+FAIL: test_expired_pipe_send_does_not_touch_the_writer (__main__.qmp_suite.<locals>.QmpBoundaries.test_expired_pipe_send_does_not_touch_the_writer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b02/tools/test_graphics_helpers.py", line 126, in test_expired_pipe_send_does_not_touch_the_writer
+    with self.assertRaises(TimeoutError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: TimeoutError not raised
+
+======================================================================
+FAIL: test_full_pipe_send_has_a_deadline_instead_of_blocking (__main__.qmp_suite.<locals>.QmpBoundaries.test_full_pipe_send_has_a_deadline_instead_of_blocking)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b02/tools/test_graphics_helpers.py", line 161, in test_full_pipe_send_has_a_deadline_instead_of_blocking
+    result = subprocess.run([sys.executable, '-B', '-c', code, str(path)],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3', '-B', '-c', 'import importlib.util, os, sys, time\nfrom pathlib import Path\npath = Path(sys.argv[1])\nsys.path.insert(0, str(path.parent))\nspec = importlib.util.spec_from_file_location("g0_pipe_probe", path)\nmodule = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)\nr, w = os.pipe()\ntry:\n    os.set_blocking(w, False)\n    try:\n        while True: os.write(w, b"x" * 4096)\n    except BlockingIOError: pass\n    os.set_blocking(w, True)\n    control = module.QmpPipe.__new__(module.QmpPipe)\n    control.writer = os.fdopen(w, "wb", buffering=0)\n    control.deadline = time.monotonic() + 0.05\n    try: control.send(b"{}\\n")\n    except TimeoutError: pass\n    else: raise AssertionError("full pipe write did not fail by deadline")\nfinally:\n    os.close(r)\n', '/workspace/scratch/debaa3b6a81c/wt-b02/tools/run_graphics.py']' timed out after 2 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b02/tools/test_graphics_helpers.py", line 164, in test_full_pipe_send_has_a_deadline_instead_of_blocking
+    self.fail('full QMP pipe blocked beyond the command deadline')
+AssertionError: full QMP pipe blocked beyond the command deadline
+
+======================================================================
+FAIL: test_response_id_preserves_the_integer_request_type (__main__.qmp_suite.<locals>.QmpBoundaries.test_response_id_preserves_the_integer_request_type) (value=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b02/tools/test_graphics_helpers.py", line 80, in test_response_id_preserves_the_integer_request_type
+    with self.subTest(value=value), self.assertRaises((RuntimeError, ValueError)):
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'RuntimeError'>, <class 'ValueError'>) not raised
+
+======================================================================
+FAIL: test_response_id_preserves_the_integer_request_type (__main__.qmp_suite.<locals>.QmpBoundaries.test_response_id_preserves_the_integer_request_type) (value=1.0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b02/tools/test_graphics_helpers.py", line 80, in test_response_id_preserves_the_integer_request_type
+    with self.subTest(value=value), self.assertRaises((RuntimeError, ValueError)):
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'RuntimeError'>, <class 'ValueError'>) not raised
+
+======================================================================
+FAIL: test_slow_socket_read_is_not_accepted_after_shared_deadline (__main__.qmp_suite.<locals>.QmpBoundaries.test_slow_socket_read_is_not_accepted_after_shared_deadline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b02/tools/test_graphics_helpers.py", line 117, in test_slow_socket_read_is_not_accepted_after_shared_deadline
+    with patch.object(module.time, 'monotonic', clock), self.assertRaises(TimeoutError):
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: TimeoutError not raised
+
+======================================================================
+FAIL: test_socket_send_timeout_is_bounded_by_remaining_run_time (__main__.qmp_suite.<locals>.QmpBoundaries.test_socket_send_timeout_is_bounded_by_remaining_run_time)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b02/tools/test_graphics_helpers.py", line 100, in test_socket_send_timeout_is_bounded_by_remaining_run_time
+    control.socket.settimeout.assert_called()
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 918, in assert_called
+    raise AssertionError(msg)
+AssertionError: Expected 'settimeout' to have been called.
+
+======================================================================
+FAIL: test_success_requires_return_and_events_are_not_responses (__main__.qmp_suite.<locals>.QmpBoundaries.test_success_requires_return_and_events_are_not_responses) (reply={'id': 1})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b02/tools/test_graphics_helpers.py", line 75, in test_success_requires_return_and_events_are_not_responses
+    with self.subTest(reply=reply), self.assertRaises((RuntimeError, ValueError)):
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'RuntimeError'>, <class 'ValueError'>) not raised
+
+======================================================================
+FAIL: test_success_requires_return_and_events_are_not_responses (__main__.qmp_suite.<locals>.QmpBoundaries.test_success_requires_return_and_events_are_not_responses) (reply={'id': 1, 'event': 'STOP'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b02/tools/test_graphics_helpers.py", line 75, in test_success_requires_return_and_events_are_not_responses
+    with self.subTest(reply=reply), self.assertRaises((RuntimeError, ValueError)):
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'RuntimeError'>, <class 'ValueError'>) not raised
+
+======================================================================
+FAIL: test_success_requires_return_and_events_are_not_responses (__main__.qmp_suite.<locals>.QmpBoundaries.test_success_requires_return_and_events_are_not_responses) (reply={'id': 1, 'return': {}, 'event': 'STOP'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b02/tools/test_graphics_helpers.py", line 75, in test_success_requires_return_and_events_are_not_responses
+    with self.subTest(reply=reply), self.assertRaises((RuntimeError, ValueError)):
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'RuntimeError'>, <class 'ValueError'>) not raised
+
+----------------------------------------------------------------------
+Ran 9 tests in 2.009s
+
+FAILED (failures=10)

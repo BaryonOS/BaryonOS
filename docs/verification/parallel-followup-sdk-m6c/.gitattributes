@@ -1,0 +1,2 @@
+# Preserve raw captured stdout/serial bytes and their recorded SHA-256 values.
+*.txt -text

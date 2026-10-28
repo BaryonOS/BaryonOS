@@ -1,0 +1,213 @@
+{
+  "source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "scope": "Host tests, native cross-compilation and lint only. Synthetic fixture output is not native VM evidence.",
+  "results": [
+    {
+      "label": "sdk-tests",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--workspace"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "exit_code": 0,
+      "stdout_sha256": "12201094cb0700749f9149f643b73a71d30cc4e0ca7327cbff49c4e90da6c945",
+      "stderr_sha256": "e0a538afebe321e4bea02349854d2550f9c282ebb4f830635b5f1700b659712c"
+    },
+    {
+      "label": "sdk-clippy",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "3d63752ecd49ee7db96ae205361757b8e2950224a2d563d0b449a180a3f1d1a9"
+    },
+    {
+      "label": "sdk-native",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "build",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--workspace",
+        "--target",
+        "x86_64-unknown-none",
+        "--release"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "0b0493ad37de170d136980cf47bead2187e9377da7dcef42cc4d683e9a3370a3"
+    },
+    {
+      "label": "graphics-harness",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_graphics_harness.py",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "9b5da296c20124870558c00d7d230d7515bebcdd787bb6ed7b210d27b702e2c7"
+    },
+    {
+      "label": "preflight-host",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_preflight.py",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a92b726e733de99e8dd67fd47698e7a0b914bc851c167f99938e82b395b7add5"
+    },
+    {
+      "label": "generic-harness",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_guest_harness.py",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "7aa9d73e5513fa975f550543317072206f8b549949197afefdfb1f1892903197"
+    },
+    {
+      "label": "common-isolation",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_common.py",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ec180bb1c06b6dbf2df143e896ffa59c137e50978ac2414f9ac9bdb158ecf9cd"
+    },
+    {
+      "label": "scalar-gate",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "experiments/quantum/native/tests",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "66ecfa3b5986ca84acc456126d07e49f5804e6dbca9aa98545005624ad7a6308"
+    },
+    {
+      "label": "qsim-harness",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_qsim_harness.py",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "exit_code": 0,
+      "stdout_sha256": "56dd3836dd987694fea4bf44d2d7851283be81e60c436d684ea40f1526b71ac6",
+      "stderr_sha256": "36aac15062193810142a0b49247b5c186754d96115898d5dda3d5e39eabcff89"
+    },
+    {
+      "label": "sdk-native-example",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "sdk/examples/catalog-read/build.py"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "exit_code": 0,
+      "stdout_sha256": "fa1d1be3d7408d1936f4c3f277f2bdea98fdea8ac73865901b2884bdd8b4c038",
+      "stderr_sha256": "7f78e2afe21d353a215d1ac1f2d3ea00bbf15bf3842c29b51734b1907cae5f44"
+    },
+    {
+      "label": "graphics-helpers",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+        "-B",
+        "tools/test_graphics_helpers.py",
+        "--output-root",
+        "/tmp/nieuw-os-par-final-host-graphics-frozen"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "exit_code": 0,
+      "stdout_sha256": "3d96ac59fb24ec9be04cfa9e9c27f56595e1425dd05d6226baff70978fdd48db",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "passed": true,
+  "source_unchanged": true,
+  "environment": {
+    "CARGO_HOME": "/tmp/nieuw-os-par-tools/cargo-home",
+    "CARGO_TARGET_DIR": "/tmp/nieuw-os-par-final-host-target",
+    "NOS_TARGET_DIR": "/tmp/nieuw-os-par-final-host-target",
+    "CARGO_BUILD_JOBS": "2",
+    "rust_toolchain": "1.90.0",
+    "CARGO_NET_OFFLINE": "true"
+  }
+}

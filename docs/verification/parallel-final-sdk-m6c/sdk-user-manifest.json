@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "purpose": "synthetic ring-3 acceptance probe",
+  "binary_sha256": "2ef58d24b7ea8da9a857f58d580b78d65d698779fb2384c7eba524a08963a52d",
+  "source_sha256": "ae3d61e66d6572096462a8b67a0861a4e7d1c76276281340a256832461b97014",
+  "linker_sha256": "1abb4e5cc222479a2144db036f756861ae2aaa9edba3fcb5815d9e5acd659f65",
+  "entry": 1073741824,
+  "segments": [
+    {
+      "flags": 5,
+      "address": 1073741824,
+      "offset": 4096,
+      "filesz": 45426,
+      "memsz": 45426,
+      "page_start": 1073741824,
+      "page_end": 1073790976
+    },
+    {
+      "flags": 6,
+      "address": 1073807360,
+      "offset": 53248,
+      "filesz": 16384,
+      "memsz": 16384,
+      "page_start": 1073807360,
+      "page_end": 1073823744
+    },
+    {
+      "flags": 4,
+      "address": 1073823744,
+      "offset": 69632,
+      "filesz": 3055,
+      "memsz": 3055,
+      "page_start": 1073823744,
+      "page_end": 1073827840
+    }
+  ],
+  "module_sha256": {
+    "userspace/m6c_probe.rs": "ae3d61e66d6572096462a8b67a0861a4e7d1c76276281340a256832461b97014",
+    "userspace/m6_runtime.rs": "f4af399746e113bbc08ef8b629ebd2ee569ef4bb4aaa0b5ed1ca65644aaa41bf",
+    "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+    "services/catalog/src/journal.rs": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+    "services/catalog/src/user_service.rs": "f822b19496b47a155aa62505cbec042d75a9d30c5829eef2153a547fc1072e01",
+    "userspace/sdk_probe_runtime.rs": "b21c5e575fbf34589b1aca96afc8d128ac1f57e34d4a5e212b8c0aa27d1dcf76",
+    "sdk/runtime/src/lib.rs": "c035469159e16e8615606ffff9a6b3246c74be536db2a2be3594d67be2b590f6",
+    "sdk/runtime/src/message.rs": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab",
+    "sdk/runtime/src/native.rs": "48758b9c92ed890260a7c0f2c3aebe81be0d0581639b924dcd4e5a8084e70c15"
+  },
+  "sdk_runtime": true
+}

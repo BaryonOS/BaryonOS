@@ -1,0 +1,5 @@
+   Compiling catalog-core v0.1.0 (/tmp/nieuw-os-g10-sdk-f52ef0a/services/catalog)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/tmp/nieuw-os-g10-sdk-f52ef0a/sdk/runtime)
+   Compiling nieuw-os-catalog-client v0.1.0 (/tmp/nieuw-os-g10-sdk-f52ef0a/sdk/catalog-client)
+   Compiling nieuw-os-document-session v0.1.0 (/tmp/nieuw-os-g10-sdk-f52ef0a/sdk/document-session)
+    Finished `release` profile [optimized] target(s) in 0.32s

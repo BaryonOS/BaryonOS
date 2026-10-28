@@ -1,0 +1,57 @@
+{
+  "scope": "Synthetic host validators and PNG interoperability only; no new VM or native claim",
+  "base_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "source_fingerprint_version": 3,
+  "source_sha256": "e5d1c07736039e087ed80d3da44e689fdf6afaecb6558a719c8af08d0b204612",
+  "files": {
+    "tools/capture_graphics.py": "5d73519e8140faf8aae6208ef596593f8326c0853ee9ea5a1f24df43a93c7000",
+    "tests/test_graphics_capture.py": "48912403b1644a4bd5daf0b47fc80ac9d0e70da60a0e28f7c522727a4e6f4566",
+    "docs/verification/parallel-b07/check_standard_png.py": "54241b5d3ece13ed95efd926a7918001a1d6ca7dec8a4ee72504050281a4c2f8"
+  },
+  "checks": [
+    {
+      "name": "host-tests",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_graphics*.py",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b07",
+      "started_utc": "2026-10-28T16:08:57.512067+00:00",
+      "duration_s": 0.96559,
+      "exit_status": 0
+    },
+    {
+      "name": "standard-png",
+      "command": [
+        "python3",
+        "-B",
+        "docs/verification/parallel-b07/check_standard_png.py"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b07",
+      "started_utc": "2026-10-28T16:08:58.477741+00:00",
+      "duration_s": 0.249575,
+      "exit_status": 0
+    },
+    {
+      "name": "cli-help",
+      "command": [
+        "python3",
+        "-B",
+        "tools/capture_graphics.py",
+        "--help"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b07",
+      "started_utc": "2026-10-28T16:08:58.727372+00:00",
+      "duration_s": 0.058208,
+      "exit_status": 0
+    }
+  ]
+}

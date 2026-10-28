@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "profile": "g10-recover",
+  "kernel_feature": "test-m6c-recover",
+  "loader_feature": null,
+  "source_fingerprint_version": 3,
+  "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f",
+  "loader": {
+    "sha256": "ea5e0b56857fff64ea8a4c6a39a91fe9b9d13f33b5f5c40f38b51622fcf60d19",
+    "format": "AMD64 PE32+",
+    "subsystem": "EFI_APPLICATION",
+    "imports": 0
+  },
+  "kernel": {
+    "sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+    "entry": 33554432,
+    "segments": [
+      {
+        "flags": 5,
+        "offset": 4096,
+        "address": 33554432,
+        "filesz": 137714,
+        "memsz": 137714,
+        "page_start": 33554432,
+        "page_end": 33693696
+      },
+      {
+        "flags": 4,
+        "offset": 143360,
+        "address": 33693696,
+        "filesz": 781536,
+        "memsz": 781536,
+        "page_start": 33693696,
+        "page_end": 34476032
+      },
+      {
+        "flags": 6,
+        "offset": 925696,
+        "address": 34476032,
+        "filesz": 1274704,
+        "memsz": 4361296,
+        "page_start": 34476032,
+        "page_end": 38838272
+      }
+    ],
+    "sections": [
+      {
+        "name": "",
+        "type": 0,
+        "flags": 0,
+        "size": 0
+      },
+      {
+        "name": ".text",
+        "type": 1,
+        "flags": 6,
+        "size": 137714
+      },
+      {
+        "name": ".rodata",
+        "type": 1,
+        "flags": 50,
+        "size": 781536
+      },
+      {
+        "name": ".data",
+        "type": 1,
+        "flags": 3,
+        "size": 1274704
+      },
+      {
+        "name": ".bss",
+        "type": 8,
+        "flags": 3,
+        "size": 3083344
+      },
+      {
+        "name": ".symtab",
+        "type": 2,
+        "flags": 0,
+        "size": 8856
+      },
+      {
+        "name": ".shstrtab",
+        "type": 3,
+        "flags": 0,
+        "size": 52
+      },
+      {
+        "name": ".strtab",
+        "type": 3,
+        "flags": 0,
+        "size": 20411
+      }
+    ]
+  },
+  "sdk_runtime": true
+}

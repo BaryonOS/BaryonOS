@@ -1,0 +1,52 @@
+{
+  "task": "I04 prefix-aware scalar gate",
+  "base_commit": "b6743b464dfeee528bdd8b0caacacdca2f87d925",
+  "passed": true,
+  "native_runtime_performed": false,
+  "commands": [
+    {
+      "name": "gate-tests",
+      "command": [
+        "python3",
+        "-B",
+        "experiments/quantum/native/tests/test_build_gate.py"
+      ],
+      "returncode": 0,
+      "log": "docs/verification/parallel-i04/gate-tests.txt",
+      "log_sha256": "3e5da844f1824a82652941f99635e09a97f05c3845d2eabc98f1abf1df76a2c6"
+    },
+    {
+      "name": "harness-tests",
+      "command": [
+        "python3",
+        "-B",
+        "tests/test_qsim_harness.py"
+      ],
+      "returncode": 0,
+      "log": "docs/verification/parallel-i04/harness-tests.txt",
+      "log_sha256": "f4ac795cc69b7b0ecc5d8a2c263454aa9c0412e8d1b16f5779a7eab692478af5"
+    }
+  ],
+  "native_build_command": [
+    "python3",
+    "experiments/quantum/native/build.py",
+    "--output-dir",
+    "/tmp/nieuw-os-par-i04-build",
+    "--target-dir",
+    "/tmp/nieuw-os-par-i04-target"
+  ],
+  "native_build_returncode": 0,
+  "python_compilation": "passed",
+  "native_elf_unchanged": true,
+  "binary_sha256": "ee9ec71e1c37719c51ffd92021b62aaa8c9d6303bc92482547d717ac1d3a0481",
+  "scalar_gate": {
+    "decoded_instructions": 4096,
+    "int80_sites": 4,
+    "extended_registers_found": false
+  },
+  "source_sha256": {
+    "experiments/quantum/native/build.py": "269d0d6abdfba5385554ec40a992cf7acfcc3de5b70251c58cef8babc59a78fa",
+    "experiments/quantum/native/tests/test_build_gate.py": "8d8bedfce7bd91ba597939ac916e84beb0154930facea3057e7cd793bc259fcc"
+  },
+  "build_report_sha256": "a4ea6efe47037279d1290bfb8662d80654156d592a7f53a4c278863ad84c1079"
+}

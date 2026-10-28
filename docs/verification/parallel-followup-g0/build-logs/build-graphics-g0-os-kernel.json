@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/tmp/nieuw-os-par-tools/bin/cargo",
+    "+1.90.0",
+    "build",
+    "--locked",
+    "--release",
+    "--target-dir",
+    "/tmp/nieuw-os-par-followup-g0-target",
+    "-p",
+    "os-kernel",
+    "--target",
+    "x86_64-unknown-none",
+    "--features",
+    "graphics-g0"
+  ],
+  "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+  "started_unix": 1793204450.005927,
+  "duration_s": 1.4073615074157715,
+  "returncode": 0
+}

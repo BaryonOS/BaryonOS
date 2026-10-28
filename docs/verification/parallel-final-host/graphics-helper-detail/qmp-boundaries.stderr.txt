@@ -1,0 +1,14 @@
+test_error_and_conflicting_success_fields_are_rejected (__main__.qmp_suite.<locals>.QmpBoundaries.test_error_and_conflicting_success_fields_are_rejected) ... ok
+test_exact_reply_after_event_is_accepted (__main__.qmp_suite.<locals>.QmpBoundaries.test_exact_reply_after_event_is_accepted) ... ok
+test_expired_command_is_never_sent (__main__.qmp_suite.<locals>.QmpBoundaries.test_expired_command_is_never_sent) ... ok
+test_expired_pipe_send_does_not_touch_the_writer (__main__.qmp_suite.<locals>.QmpBoundaries.test_expired_pipe_send_does_not_touch_the_writer) ... ok
+test_full_pipe_send_has_a_deadline_instead_of_blocking (__main__.qmp_suite.<locals>.QmpBoundaries.test_full_pipe_send_has_a_deadline_instead_of_blocking) ... ok
+test_response_id_preserves_the_integer_request_type (__main__.qmp_suite.<locals>.QmpBoundaries.test_response_id_preserves_the_integer_request_type) ... ok
+test_slow_socket_read_is_not_accepted_after_shared_deadline (__main__.qmp_suite.<locals>.QmpBoundaries.test_slow_socket_read_is_not_accepted_after_shared_deadline) ... ok
+test_socket_send_timeout_is_bounded_by_remaining_run_time (__main__.qmp_suite.<locals>.QmpBoundaries.test_socket_send_timeout_is_bounded_by_remaining_run_time) ... ok
+test_success_requires_return_and_events_are_not_responses (__main__.qmp_suite.<locals>.QmpBoundaries.test_success_requires_return_and_events_are_not_responses) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.097s
+
+OK

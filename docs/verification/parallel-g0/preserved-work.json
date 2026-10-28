@@ -1,0 +1,11 @@
+{
+  "scope": "Preserved unfinished G0 work from an interrupted task; source worktree unchanged",
+  "base_commit": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+  "files": {
+    "kernel/src/graphics.rs": "077541b7226f1b34d373231efd2931f3866e4a68a33e974a84ae0ecec90fb247",
+    "tests/test_graphics_harness.py": "bb0640c94e75ec1b4827870d7383e11d78d20c45f1bce02120ec0344a22245e1",
+    "tools/build.py": "8e95b2dedc441d1a6c88ff45c15bde48365385294511d3a7cadb9acd88a7057b",
+    "tools/common.py": "7576478538822a50c8eeb5e71994df1190bb07a2321ae9df1cfaae58cc4beb31",
+    "tools/run_graphics.py": "3f21cc52d7cccc99bba4796c2d0afe20f230cf00a11059e7bbf7db92cf1c1f9f"
+  }
+}

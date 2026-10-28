@@ -9,8 +9,18 @@ import subprocess
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-BUILD = ROOT / "build"
+BUILD = Path(os.environ.get("NOS_BUILD_DIR", str(ROOT / "build"))).resolve()
+TARGET = Path(os.environ.get("NOS_TARGET_DIR", str(ROOT / "target"))).resolve()
 LOCAL = Path(os.environ.get("LOCALAPPDATA", str(ROOT / ".tools"))) / "nieuw-os"
+QEMU_MACHINES = ("pc-q35-10.0", "pc-q35-8.2", "pc-q35-7.2")
+
+
+def qemu_machine(value: str | None = None) -> str:
+    """An explicit development profile, never an automatic machine fallback."""
+    selected = os.environ.get("NOS_QEMU_MACHINE", "pc-q35-10.0") if value is None else value
+    if selected not in QEMU_MACHINES:
+        raise ValueError("Choose an explicitly supported and recorded QEMU machine")
+    return selected
 
 
 def environment() -> dict[str, str]:
@@ -59,13 +69,13 @@ def source_hash() -> str:
     """Fingerprint source inputs without traversing generated artifacts or caches."""
     digest = hashlib.sha256()
     digest.update(b"nieuw-os source inputs v3\n")
-    for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "drivers", ROOT / "services", ROOT / "userspace", ROOT / "tools", ROOT / ".cargo"):
+    for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "drivers", ROOT / "services", ROOT / "userspace", ROOT / "sdk", ROOT / "experiments/quantum/qsim-core", ROOT / "experiments/quantum/native", ROOT / "experiments/quantum/job-protocol", ROOT / "tools", ROOT / ".cargo"):
         if folder.exists():
             for path in sorted(folder.rglob("*")):
                 if path.is_file() and not {"__pycache__", "verification", "target", "build", ".git"}.intersection(path.relative_to(folder).parts):
                     digest.update(path.relative_to(ROOT).as_posix().encode())
                     digest.update(path.read_bytes())
-    for name in ("Cargo.toml", "Cargo.lock", "rust-toolchain.toml"):
+    for name in ("Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "experiments/quantum/Cargo.toml"):
         if (ROOT / name).exists():
             digest.update(name.encode())
             digest.update((ROOT / name).read_bytes())

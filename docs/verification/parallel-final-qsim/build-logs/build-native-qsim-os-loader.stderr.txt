@@ -1,0 +1,5 @@
+   Compiling boot-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/boot-protocol)
+   Compiling r-efi v7.1.0
+   Compiling elf-loader-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/elf-loader-core)
+   Compiling os-loader v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/boot/loader)
+    Finished `release` profile [optimized] target(s) in 0.93s

@@ -196,6 +196,7 @@ pub const SURFACE: Color = Color::new(0xff, 0xff, 0xff);
 pub const TEXT: Color = Color::new(0x16, 0x2b, 0x2b);
 pub const MUTED: Color = Color::new(0x5d, 0x6a, 0x67);
 pub const ACCENT: Color = Color::new(0x0a, 0x5e, 0x55);
+pub const INPUT_ROWS: core::ops::Range<u32> = 192..212;
 
 fn label_pixel(text: &[u8], x: u32, y: u32, origin_x: u32, origin_y: u32, scale: u32) -> bool {
     let (Some(dx), Some(dy)) = (x.checked_sub(origin_x), y.checked_sub(origin_y)) else {
@@ -248,7 +249,7 @@ pub fn render_debug_row<const N: usize>(
             color = TEXT;
         }
         let cursor = 48_u64 + line.len() as u64 * 12;
-        if u64::from(x) >= cursor && u64::from(x) < cursor + 2 && (192..212).contains(&y) {
+        if u64::from(x) >= cursor && u64::from(x) < cursor + 2 && INPUT_ROWS.contains(&y) {
             color = ACCENT;
         }
         if label_pixel(b"ALLEEN RAM - NIET OPGESLAGEN", x, y, 40, 280, 2) {

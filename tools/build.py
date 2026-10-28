@@ -2,9 +2,12 @@
 """Build the actual UEFI loader and ELF kernel; inspect artifacts and prepare ESP."""
 from __future__ import annotations
 import argparse
+import json
+import os
 import shutil
 import struct
-from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
+import sys
+from common import ROOT, BUILD, TARGET, run_logged, save_json, sha256, source_hash
 from gate_contract import M3_CASES, M4_CASES
 from m6c_faults import FAULT_CASES as M6C_FAULT_CASES
 M5_CASES = ("service-errors", "device-rights", "async", "bad-descriptor", "used-id",
@@ -26,7 +29,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "tes
                    "milestone-m5", *(f"test-m5-{case}" for case in M5_CASES),
                    "milestone-m6a", *(f"test-m6a-{case}" for case in M6A_CASES),
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
-                   "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0"]
+                   "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim"]
 
 
 def inspect_elf(path):
@@ -97,6 +100,20 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
     elif loader_feature == "graphics-g0":
         raise ValueError("Graphics loader requires the G0 kernel")
     extra_env = None
+    sdk_selection = os.environ.get("NOS_SDK_RUNTIME", "0")
+    if sdk_selection not in ("0", "1"):
+        raise ValueError("NOS_SDK_RUNTIME must be exactly 0 or 1")
+    use_sdk = sdk_selection == "1" and kernel_feature is not None and "m6c" in kernel_feature
+    qsim_report = None
+    if kernel_feature == "native-qsim":
+        output = BUILD / "users/qsim"
+        run_logged([sys.executable, "-B", str(ROOT / "experiments/quantum/native/build.py"),
+                    "--output-dir", str(output), "--target-dir", str(TARGET / "qsim-user")],
+                   "build-qsim-user")
+        qsim_report = json.loads((output / "build-report.json").read_text())
+        if not qsim_report.get("passed") or sha256(output / "qsim-native-probe.elf") != qsim_report["binary_sha256"]:
+            raise ValueError("Native qsim executable failed its artifact gate")
+        extra_env = {"NOS_QSIM_ELF": str((output / "qsim-native-probe.elf").resolve())}
     if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b", "m6c")):
         from build_users import build_users
         extra_env = {"NOS_USER_ELF": str(build_users("large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
@@ -110,20 +127,23 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
             extra_env["NOS_M6B_ELF"] = str(build_users("m6b", short_poll=kernel_feature in
                 ("test-m6b-write-poll-limit", "test-m6b-flush-poll-limit")).resolve())
         if "m6c" in kernel_feature:
-            extra_env["NOS_M6C_ELF"] = str(build_users("m6c").resolve())
+            extra_env["NOS_M6C_ELF"] = str(build_users("m6c", sdk_runtime=use_sdk).resolve())
     if not (ROOT / "Cargo.lock").exists():
         run_logged(["cargo", "+1.90.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):
-        args = ["cargo", "+1.90.0", "build", "--locked", "--release", "--target-dir", str(ROOT / "target"), "-p", package, "--target", target]
+        args = ["cargo", "+1.90.0", "build", "--locked", "--release", "--target-dir", str(TARGET), "-p", package, "--target", target]
         if feature:
             args += ["--features", feature]
         run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
-    loader = ROOT / "target/x86_64-unknown-uefi/release/os-loader.efi"
-    kernel = ROOT / "target/x86_64-unknown-none/release/os-kernel"
+    loader = TARGET / "x86_64-unknown-uefi/release/os-loader.efi"
+    kernel = TARGET / "x86_64-unknown-none/release/os-kernel"
     manifest = {"schema_version": 1, "profile": label, "kernel_feature": kernel_feature,
                 "loader_feature": loader_feature, "source_fingerprint_version": 3,
                 "source_sha256": source_hash(), "loader": {"sha256": sha256(loader), **inspect_pe(loader)},
                 "kernel": {"sha256": sha256(kernel), **inspect_elf(kernel)}}
+    manifest["sdk_runtime"] = use_sdk
+    if qsim_report is not None:
+        manifest["qsim_user"] = qsim_report
     esp = BUILD / "esp"
     (esp / "EFI/BOOT").mkdir(parents=True, exist_ok=True)
     shutil.copy2(loader, esp / "EFI/BOOT/BOOTX64.EFI")

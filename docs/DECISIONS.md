@@ -234,3 +234,72 @@ Testbewijs wordt afzonderlijk opgeslagen; dit besluit is geen boottest.
 Herzie vóór ring-3-compositor, IRQ-invoer, DMA/GPU, SMP, Unicode/IME of echte
 hardware. Herstel via aparte checkout `7b4945f`; standaard BootInfo 1.1 blijft
 selecteerbaar, geen echte schijf- of firmwaremigratie.
+
+
+## ADR-034 — Native SDK en begrensde quantumport als afzonderlijke profielen
+
+Datum 28 oktober 2026; geïmplementeerd als ontwikkelprofielen, eindacceptatie
+op de gecombineerde bron nog uit te voeren. Root beheert ABI/bootconfig;
+G01–G03 bouwen SDK/client, I01–I04 de port en controles.
+
+De SDK hergebruikt de bestaande capability-ABI en 320-byte IPC-envelop.
+Canonicalisatie, endpointrechten, antwoordherkomst en één uitstaand verzoek
+zijn expliciet begrensd. Alleen EAGAIN vóór enqueue mag opnieuw worden
+geprobeerd. Na enqueue, Unknown, ongeldige reply of deadline sluit de sessie
+zonder automatische mutatieherhaling. De catalogus bepaalt revisies/namen;
+de kernel krijgt geen app- of documentbeleid. De bestaande M6c-probe kan het
+SDK-transport selecteren, terwijl ruwe negatieve ABI-proeven hun oude pad
+behouden. Een apart native voorbeeld gebruikt de echte catalogusclient;
+compilatie is nog geen bewijs van algemene appstart.
+
+De quantumport gebruikt de ongewijzigde eigen qsim-core met maximaal zes
+qubits, 64 gates, 4096 shots en een vaste arena van 64 KiB per proces. Een
+monotone allocator vermijdt onbewezen hergebruik; de proef beëindigt de
+processen waarna de bestaande kernelcleanup de pagina's terugneemt. Software-
+float uit de gepinde Rust-toolchain maakt de eerste port mogelijk zonder
+schedulerwijziging voor FPU/SIMD-context. Een disassemblygate controleert het
+concrete ELF inclusief instructieprefixes; deze controle is geen formeel
+bewijs. Een nieuw opt-in profiel bevat twee userprocessen en uitsluitend een
+vaste kerneltestobserver. Het profiel is exclusief ten opzichte van M4/G0.
+
+De alternatieven — nieuwe syscalls, onbegrensde allocatie, FPU-state support
+of een volledige jobdienst tegelijk — vergroten deze eerste wijzigingsgrens.
+Gevolg: native referentieberekeningen en resourcegrenzen zijn nu uitvoerbaar,
+maar willekeurige jobaanvoer/resultaten/annulering buiten het gecompileerde
+proefprogramma blijven een eigen volgende stap. De Control-fixtures bewijzen
+geen externe cancel of klokdeadline. L02 krijgt daarom nog geen punt.
+
+Eigen contracten: SDK README/ABI, `implementation/QUANTUM-SPEC.md` en de
+bestaande capability/M3-contracten. Gerichte native uitvoering, exacte
+opdrachten, hashes, reviewbevindingen en grenzen worden afzonderlijk bewaard
+in `verification/parallel-*`. Herzie vóór dynamische apps, meer qubits,
+allocatiehergebruik, FPU/SIMD, SMP of een echte jobdienst. Beide profielen zijn
+opt-in; herstel door hun eerdere bron in een aparte checkout te bouwen.
+Geen migratie van echte data, nieuwe externe crate of fysieke hardwareactie.
+
+
+### ADR-034: afzonderlijke invarianten en weerlegging
+
+**SDK — security-invariant:** gewone apps verkrijgen alleen reeds toegekende
+procesgebonden endpointrechten. Elke reply wordt canoniek en op herkomst
+gecontroleerd. Na enqueue en verlies van zekerheid blijft een mutatie zonder
+automatische replay; een ongeldige reply geeft geen extra rechten of succes.
+**Weerlegd als:** dezelfde mutatie na Unknown/verloren reply opnieuw wordt
+verstuurd, een vreemde afzender wordt geaccepteerd of een ongeldig capability-
+bericht als geldig doorgaat. **Eigenaar:** G01–G03 voor SDK, root voor ABI en
+integratie. **Testbewijs:** parallel-g01/g03 en parallel-final-sdk-m6c (deze
+laatste toetst de runtimebridge, niet de losse catalogusvoorbeeldapp).
+**Migratie/rollback:** bestaande ABI en journal blijven gelijk; SDKselectie is
+opt-in, terugname via eerdere bron in aparte checkout zonder datamigratie.
+
+**Quantum — security-invariant:** elk proefproces heeft private mappings en
+maximaal64KiB arena; input blijft binnen6qubits/64gates/4096shots. SIMD/FPU en
+vreemde syscall/hardware-instructies zijn niet toegestaan in het geselecteerde
+scalarartifact. Simulatorbeleid blijft userspace; opruiming gebruikt echte
+procesframes. **Weerlegd als:** grenzen kunnen worden overschreden, processen
+elkaars geheugen bereiken, ongewenste instructies door de artifactgate komen
+of cleanup toegewezen frames achterlaat. **Eigenaar:** I01–I04 voor port/gate,
+root voor de testobserver en integratie. **Testbewijs:** parallel-i04,
+parallel-final-qsim en parallel-final-m3. Dit is geen formeel bewijs.
+**Migratie/rollback:** exclusief opt-in profiel; eerdere bron afzonderlijk
+bouwen, zonder opgeslagen gebruikersdata of hardwarefirmware te wijzigen.

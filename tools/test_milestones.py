@@ -84,14 +84,14 @@ def test_m3():
         run_logged(["cargo", "+1.90.0", "test", "--locked", "-p", "kernel-core"], "m3-host-tests")
         suite["results"].append({"name": "user-elf-frame-abi-host-tests", "passed": True,
                                  "requirements": ["KS-04", "USER_ELF", "RETURN_FLAGS"],
-                                 "evidence": "build/logs/m3-host-tests.stdout.txt"})
+                                 "evidence": str(BUILD / "logs/m3-host-tests.stdout.txt")})
         save_json(path, suite)
         build(kernel_feature="milestone-m3", label="m3")
         run_logged([sys.executable, "-B", "-X", "utf8", "userspace/tests/test_probe.py",
-                    "--elf", "build/users/probe.elf"], "m3-user-artifact-tests")
+                    "--elf", str(BUILD / "users/probe.elf")], "m3-user-artifact-tests")
         suite["results"].append({"name": "user-artifact-negative-tests", "passed": True,
                                  "requirements": ["USER_ELF", "USER_SYSCALL_FIXTURE"],
-                                 "evidence": "build/logs/m3-user-artifact-tests.stdout.txt"})
+                                 "evidence": str(BUILD / "logs/m3-user-artifact-tests.stdout.txt")})
         save_json(path, suite)
         guest = run_gate_case("m3", "private-address-spaces-preemption-fairness-cleanup",
                               label="m3")
@@ -110,10 +110,10 @@ def test_m3():
                ["KS-08", "IDLE_CPL0_IRQ0", "RESOURCE_RECLAIM"])
         build(kernel_feature="test-m3-large-image", label="test-m3-large-image")
         run_logged([sys.executable, "-B", "-X", "utf8", "userspace/tests/test_large_probe.py",
-                    "--elf", "build/users/probe_large.elf"], "m3-large-artifact-tests")
+                    "--elf", str(BUILD / "users/probe_large.elf")], "m3-large-artifact-tests")
         suite["results"].append({"name": "large-bss-artifact-host-tests", "passed": True,
                                  "requirements": ["MAPPING_CAPACITY", "USER_ELF"],
-                                 "evidence": "build/logs/m3-large-artifact-tests.stdout.txt"})
+                                 "evidence": str(BUILD / "logs/m3-large-artifact-tests.stdout.txt")})
         save_json(path, suite)
         guest = run_gate_case("m3", "large-bss-image-exceeds-old-64-mapping-limit",
                               label="test-m3-large-image")

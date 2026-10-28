@@ -1,0 +1,217 @@
+{
+  "scope": "direct comparison of preserved PE artifacts; no build or VM; no file normalization",
+  "previous_source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "current_source_commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+  "paths": {
+    "previous": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-qsim/esp/EFI/BOOT/BOOTX64.EFI",
+    "current": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-qsim/esp/EFI/BOOT/BOOTX64.EFI"
+  },
+  "parsed": {
+    "previous": {
+      "bytes": 28672,
+      "sha256": "0c62a346c778526e5ab1c865e9a21da4f7ab3d32f2218eba4ec85ef9afa84da9",
+      "pe_header_offset": 120,
+      "coff_timestamp": 1793201810,
+      "coff_timestamp_utc": "2026-10-28T15:36:50+00:00",
+      "debug_timestamp": 1793201810,
+      "debug_type": 2,
+      "codeview_signature": "RSDS",
+      "codeview_guid_hex": "66a00de3940b5bf84c4c44205044422e",
+      "codeview_age": 1,
+      "codeview_pdb": "os_loader-4a1f54e06634e9c1.pdb",
+      "metadata": [
+        {
+          "kind": "COFF TimeDateStamp",
+          "offset": 128,
+          "size": 4,
+          "hex": "9216e26a"
+        },
+        {
+          "kind": "IMAGE_DEBUG_DIRECTORY TimeDateStamp",
+          "offset": 27160,
+          "size": 4,
+          "hex": "9216e26a"
+        },
+        {
+          "kind": "CodeView RSDS GUID",
+          "offset": 27188,
+          "size": 16,
+          "hex": "66a00de3940b5bf84c4c44205044422e"
+        }
+      ],
+      "sections": [
+        {
+          "name": ".text",
+          "virtual_size": 24153,
+          "rva": 4096,
+          "raw_size": 24576,
+          "raw_offset": 1024,
+          "flags": 1610612768,
+          "raw_sha256": "fb06c936a6071d27445e848f8b68e9378cfcefaa27416f0b28fe234b47721bb2"
+        },
+        {
+          "name": ".rdata",
+          "virtual_size": 1639,
+          "rva": 28672,
+          "raw_size": 2048,
+          "raw_offset": 25600,
+          "flags": 1073741888,
+          "raw_sha256": "3022b2cdb9e2d8618b3bafd2427e97cb1079eea30ec3eddf1fcecdd57258a3d0"
+        },
+        {
+          "name": ".data",
+          "virtual_size": 65536,
+          "rva": 32768,
+          "raw_size": 0,
+          "raw_offset": 0,
+          "flags": 3221225536,
+          "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": ".eh_fram",
+          "virtual_size": 64,
+          "rva": 98304,
+          "raw_size": 512,
+          "raw_offset": 27648,
+          "flags": 1073741888,
+          "raw_sha256": "2882acf5387502c9bb8e030fd3660d607228a4148d7a60e2ce889569af1a74d0"
+        },
+        {
+          "name": ".reloc",
+          "virtual_size": 52,
+          "rva": 102400,
+          "raw_size": 512,
+          "raw_offset": 28160,
+          "flags": 1107296320,
+          "raw_sha256": "8af668bc6e86499a2a2e8711e27aaaeabf030843053dc9fbb6b191a9ac488a07"
+        }
+      ],
+      "in_memory_metadata_zeroed_sha256": "e4bf5e55df1cbc4ab866de16a55ccebf9a495882aa526888cff6a7777af029fe"
+    },
+    "current": {
+      "bytes": 28672,
+      "sha256": "1e13496735d3e2cbc80fac646379dc3c335c40a127b82aec22bf887535e24640",
+      "pe_header_offset": 120,
+      "coff_timestamp": 1793204490,
+      "coff_timestamp_utc": "2026-10-28T16:21:30+00:00",
+      "debug_timestamp": 1793204490,
+      "debug_type": 2,
+      "codeview_signature": "RSDS",
+      "codeview_guid_hex": "e4b8259aae60eeee4c4c44205044422e",
+      "codeview_age": 1,
+      "codeview_pdb": "os_loader-4a1f54e06634e9c1.pdb",
+      "metadata": [
+        {
+          "kind": "COFF TimeDateStamp",
+          "offset": 128,
+          "size": 4,
+          "hex": "0a21e26a"
+        },
+        {
+          "kind": "IMAGE_DEBUG_DIRECTORY TimeDateStamp",
+          "offset": 27160,
+          "size": 4,
+          "hex": "0a21e26a"
+        },
+        {
+          "kind": "CodeView RSDS GUID",
+          "offset": 27188,
+          "size": 16,
+          "hex": "e4b8259aae60eeee4c4c44205044422e"
+        }
+      ],
+      "sections": [
+        {
+          "name": ".text",
+          "virtual_size": 24153,
+          "rva": 4096,
+          "raw_size": 24576,
+          "raw_offset": 1024,
+          "flags": 1610612768,
+          "raw_sha256": "fb06c936a6071d27445e848f8b68e9378cfcefaa27416f0b28fe234b47721bb2"
+        },
+        {
+          "name": ".rdata",
+          "virtual_size": 1639,
+          "rva": 28672,
+          "raw_size": 2048,
+          "raw_offset": 25600,
+          "flags": 1073741888,
+          "raw_sha256": "376dccf49676f58d542751f6572869a8418a35578f93dcfa81bfd7251d8a913a"
+        },
+        {
+          "name": ".data",
+          "virtual_size": 65536,
+          "rva": 32768,
+          "raw_size": 0,
+          "raw_offset": 0,
+          "flags": 3221225536,
+          "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": ".eh_fram",
+          "virtual_size": 64,
+          "rva": 98304,
+          "raw_size": 512,
+          "raw_offset": 27648,
+          "flags": 1073741888,
+          "raw_sha256": "2882acf5387502c9bb8e030fd3660d607228a4148d7a60e2ce889569af1a74d0"
+        },
+        {
+          "name": ".reloc",
+          "virtual_size": 52,
+          "rva": 102400,
+          "raw_size": 512,
+          "raw_offset": 28160,
+          "flags": 1107296320,
+          "raw_sha256": "8af668bc6e86499a2a2e8711e27aaaeabf030843053dc9fbb6b191a9ac488a07"
+        }
+      ],
+      "in_memory_metadata_zeroed_sha256": "e4bf5e55df1cbc4ab866de16a55ccebf9a495882aa526888cff6a7777af029fe"
+    }
+  },
+  "changed_byte_count": 12,
+  "changed_offsets": [
+    128,
+    129,
+    27160,
+    27161,
+    27188,
+    27189,
+    27190,
+    27191,
+    27192,
+    27193,
+    27194,
+    27195
+  ],
+  "changes_only_coff_debug_timestamps_and_codeview_guid": true,
+  "all_other_file_bytes_identical": true,
+  "executable_sections_sha256": {
+    ".text": "fb06c936a6071d27445e848f8b68e9378cfcefaa27416f0b28fe234b47721bb2"
+  },
+  "artifacts_unchanged_after_inspection": true,
+  "independent_objdump_headers": {
+    "previous": {
+      "command": [
+        "objdump",
+        "-x",
+        "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-qsim/esp/EFI/BOOT/BOOTX64.EFI"
+      ],
+      "returncode": 0,
+      "stdout": "\n/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-qsim/esp/EFI/BOOT/BOOTX64.EFI:     file format pei-x86-64\n/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-qsim/esp/EFI/BOOT/BOOTX64.EFI\narchitecture: i386:x86-64, flags 0x0000012f:\nHAS_RELOC, EXEC_P, HAS_LINENO, HAS_DEBUG, HAS_LOCALS, D_PAGED\nstart address 0x00000001400036d0\n\nCharacteristics 0x22\n\texecutable\n\tlarge address aware\n\nTime/Date\t\tWed Oct 28 15:36:50 2026\nMagic\t\t\t020b\t(PE32+)\nMajorLinkerVersion\t14\nMinorLinkerVersion\t0\nSizeOfCode\t\t0000000000006000\nSizeOfInitializedData\t0000000000000c00\nSizeOfUninitializedData\t0000000000000000\nAddressOfEntryPoint\t00000000000036d0\nBaseOfCode\t\t0000000000001000\nImageBase\t\t0000000140000000\nSectionAlignment\t00001000\nFileAlignment\t\t00000200\nMajorOSystemVersion\t6\nMinorOSystemVersion\t0\nMajorImageVersion\t0\nMinorImageVersion\t0\nMajorSubsystemVersion\t6\nMinorSubsystemVersion\t0\nWin32Version\t\t00000000\nSizeOfImage\t\t0001a000\nSizeOfHeaders\t\t00000400\nCheckSum\t\t00000000\nSubsystem\t\t0000000a\t(EFI application)\nDllCharacteristics\t00008160\n\t\t\t\t\tHIGH_ENTROPY_VA\n\t\t\t\t\tDYNAMIC_BASE\n\t\t\t\t\tNX_COMPAT\n\t\t\t\t\tTERMINAL_SERVICE_AWARE\nSizeOfStackReserve\t0000000000100000\nSizeOfStackCommit\t0000000000001000\nSizeOfHeapReserve\t0000000000100000\nSizeOfHeapCommit\t0000000000001000\nLoaderFlags\t\t00000000\nNumberOfRvaAndSizes\t00000010\n\nThe Data Directory\nEntry 0 0000000000000000 00000000 Export Directory [.edata (or where ever we found it)]\nEntry 1 0000000000000000 00000000 Import Directory [parts of .idata]\nEntry 2 0000000000000000 00000000 Resource Directory [.rsrc]\nEntry 3 0000000000000000 00000000 Exception Directory [.pdata]\nEntry 4 0000000000000000 00000000 Security Directory\nEntry 5 0000000000019000 00000034 Base Relocation Directory [.reloc]\nEntry 6 0000000000007614 0000001c Debug Directory\nEntry 7 0000000000000000 00000000 Description Directory\nEntry 8 0000000000000000 00000000 Special Directory\nEntry 9 0000000000000000 00000000 Thread Storage Directory [.tls]\nEntry a 0000000000000000 00000000 Load Configuration Directory\nEntry b 0000000000000000 00000000 Bound Import Directory\nEntry c 0000000000000000 00000000 Import Address Table Directory\nEntry d 0000000000000000 00000000 Delay Import Directory\nEntry e 0000000000000000 00000000 CLR Runtime Header\nEntry f 0000000000000000 00000000 Reserved\n\n\nPE File Base Relocations (interpreted .reloc section contents)\n\nVirtual Address: 00007000 Chunk size 40 (0x28) Number of fixups 16\n\treloc    0 offset   a0 [70a0] DIR64\n\treloc    1 offset  218 [7218] DIR64\n\treloc    2 offset  230 [7230] DIR64\n\treloc    3 offset  248 [7248] DIR64\n\treloc    4 offset  2a0 [72a0] DIR64\n\treloc    5 offset  2e8 [72e8] DIR64\n\treloc    6 offset  318 [7318] DIR64\n\treloc    7 offset  320 [7320] DIR64\n\treloc    8 offset  410 [7410] DIR64\n\treloc    9 offset  420 [7420] DIR64\n\treloc   10 offset  448 [7448] DIR64\n\treloc   11 offset  540 [7540] DIR64\n\treloc   12 offset  588 [7588] DIR64\n\treloc   13 offset  598 [7598] DIR64\n\treloc   14 offset  5d0 [75d0] DIR64\n\treloc   15 offset  5e0 [75e0] DIR64\n\nVirtual Address: 00018000 Chunk size 12 (0xc) Number of fixups 2\n\treloc    0 offset   20 [18020] DIR64\n\treloc    1 offset    0 [18000] ABSOLUTE\n\nThere is a debug directory in .rdata at 0x140007614\n\nType                Size     Rva      Offset\n  2        CodeView 00000037 00007630 00006a30\n(format RSDS signature e30da0660b94f85b4c4c44205044422e age 1 pdb os_loader-4a1f54e06634e9c1.pdb)\n\nSections:\nIdx Name          Size      VMA               LMA               File off  Algn\n  0 .text         00005e59  0000000140001000  0000000140001000  00000400  2**4\n                  CONTENTS, ALLOC, LOAD, READONLY, CODE\n  1 .rdata        00000667  0000000140007000  0000000140007000  00006400  2**4\n                  CONTENTS, ALLOC, LOAD, READONLY, DATA\n  2 .data         00000000  0000000140008000  0000000140008000  00000000  2**4\n                  ALLOC, LOAD, DATA\n  3 .eh_fram      00000040  0000000140018000  0000000140018000  00006c00  2**2\n                  CONTENTS, ALLOC, LOAD, READONLY, DATA\n  4 .reloc        00000034  0000000140019000  0000000140019000  00006e00  2**2\n                  CONTENTS, ALLOC, LOAD, READONLY, DATA\nSYMBOL TABLE:\nno symbols\n\n\n",
+      "stderr": ""
+    },
+    "current": {
+      "command": [
+        "objdump",
+        "-x",
+        "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-qsim/esp/EFI/BOOT/BOOTX64.EFI"
+      ],
+      "returncode": 0,
+      "stdout": "\n/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-qsim/esp/EFI/BOOT/BOOTX64.EFI:     file format pei-x86-64\n/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-followup-qsim/esp/EFI/BOOT/BOOTX64.EFI\narchitecture: i386:x86-64, flags 0x0000012f:\nHAS_RELOC, EXEC_P, HAS_LINENO, HAS_DEBUG, HAS_LOCALS, D_PAGED\nstart address 0x00000001400036d0\n\nCharacteristics 0x22\n\texecutable\n\tlarge address aware\n\nTime/Date\t\tWed Oct 28 16:21:30 2026\nMagic\t\t\t020b\t(PE32+)\nMajorLinkerVersion\t14\nMinorLinkerVersion\t0\nSizeOfCode\t\t0000000000006000\nSizeOfInitializedData\t0000000000000c00\nSizeOfUninitializedData\t0000000000000000\nAddressOfEntryPoint\t00000000000036d0\nBaseOfCode\t\t0000000000001000\nImageBase\t\t0000000140000000\nSectionAlignment\t00001000\nFileAlignment\t\t00000200\nMajorOSystemVersion\t6\nMinorOSystemVersion\t0\nMajorImageVersion\t0\nMinorImageVersion\t0\nMajorSubsystemVersion\t6\nMinorSubsystemVersion\t0\nWin32Version\t\t00000000\nSizeOfImage\t\t0001a000\nSizeOfHeaders\t\t00000400\nCheckSum\t\t00000000\nSubsystem\t\t0000000a\t(EFI application)\nDllCharacteristics\t00008160\n\t\t\t\t\tHIGH_ENTROPY_VA\n\t\t\t\t\tDYNAMIC_BASE\n\t\t\t\t\tNX_COMPAT\n\t\t\t\t\tTERMINAL_SERVICE_AWARE\nSizeOfStackReserve\t0000000000100000\nSizeOfStackCommit\t0000000000001000\nSizeOfHeapReserve\t0000000000100000\nSizeOfHeapCommit\t0000000000001000\nLoaderFlags\t\t00000000\nNumberOfRvaAndSizes\t00000010\n\nThe Data Directory\nEntry 0 0000000000000000 00000000 Export Directory [.edata (or where ever we found it)]\nEntry 1 0000000000000000 00000000 Import Directory [parts of .idata]\nEntry 2 0000000000000000 00000000 Resource Directory [.rsrc]\nEntry 3 0000000000000000 00000000 Exception Directory [.pdata]\nEntry 4 0000000000000000 00000000 Security Directory\nEntry 5 0000000000019000 00000034 Base Relocation Directory [.reloc]\nEntry 6 0000000000007614 0000001c Debug Directory\nEntry 7 0000000000000000 00000000 Description Directory\nEntry 8 0000000000000000 00000000 Special Directory\nEntry 9 0000000000000000 00000000 Thread Storage Directory [.tls]\nEntry a 0000000000000000 00000000 Load Configuration Directory\nEntry b 0000000000000000 00000000 Bound Import Directory\nEntry c 0000000000000000 00000000 Import Address Table Directory\nEntry d 0000000000000000 00000000 Delay Import Directory\nEntry e 0000000000000000 00000000 CLR Runtime Header\nEntry f 0000000000000000 00000000 Reserved\n\n\nPE File Base Relocations (interpreted .reloc section contents)\n\nVirtual Address: 00007000 Chunk size 40 (0x28) Number of fixups 16\n\treloc    0 offset   a0 [70a0] DIR64\n\treloc    1 offset  218 [7218] DIR64\n\treloc    2 offset  230 [7230] DIR64\n\treloc    3 offset  248 [7248] DIR64\n\treloc    4 offset  2a0 [72a0] DIR64\n\treloc    5 offset  2e8 [72e8] DIR64\n\treloc    6 offset  318 [7318] DIR64\n\treloc    7 offset  320 [7320] DIR64\n\treloc    8 offset  410 [7410] DIR64\n\treloc    9 offset  420 [7420] DIR64\n\treloc   10 offset  448 [7448] DIR64\n\treloc   11 offset  540 [7540] DIR64\n\treloc   12 offset  588 [7588] DIR64\n\treloc   13 offset  598 [7598] DIR64\n\treloc   14 offset  5d0 [75d0] DIR64\n\treloc   15 offset  5e0 [75e0] DIR64\n\nVirtual Address: 00018000 Chunk size 12 (0xc) Number of fixups 2\n\treloc    0 offset   20 [18020] DIR64\n\treloc    1 offset    0 [18000] ABSOLUTE\n\nThere is a debug directory in .rdata at 0x140007614\n\nType                Size     Rva      Offset\n  2        CodeView 00000037 00007630 00006a30\n(format RSDS signature 9a25b8e460aeeeee4c4c44205044422e age 1 pdb os_loader-4a1f54e06634e9c1.pdb)\n\nSections:\nIdx Name          Size      VMA               LMA               File off  Algn\n  0 .text         00005e59  0000000140001000  0000000140001000  00000400  2**4\n                  CONTENTS, ALLOC, LOAD, READONLY, CODE\n  1 .rdata        00000667  0000000140007000  0000000140007000  00006400  2**4\n                  CONTENTS, ALLOC, LOAD, READONLY, DATA\n  2 .data         00000000  0000000140008000  0000000140008000  00000000  2**4\n                  ALLOC, LOAD, DATA\n  3 .eh_fram      00000040  0000000140018000  0000000140018000  00006c00  2**2\n                  CONTENTS, ALLOC, LOAD, READONLY, DATA\n  4 .reloc        00000034  0000000140019000  0000000140019000  00006e00  2**2\n                  CONTENTS, ALLOC, LOAD, READONLY, DATA\nSYMBOL TABLE:\nno symbols\n\n\n",
+      "stderr": ""
+    }
+  },
+  "explanation": "Only the build-time COFF/debug timestamps and CodeView RSDS build identifier differ. The executable .text section and every other byte outside those metadata fields are identical."
+}

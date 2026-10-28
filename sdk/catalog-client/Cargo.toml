@@ -1,0 +1,12 @@
+[package]
+name = "nieuw-os-catalog-client"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../runtime" }
+catalog-core = { path = "../../services/catalog" }
+
+[dev-dependencies]
+capability-core = { path = "../../crates/capability-core" }

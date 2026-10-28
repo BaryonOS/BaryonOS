@@ -1,0 +1,33 @@
+{
+  "source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "files": {
+    "README.md": "04050831d65dfc49983668db06537f6919847fe57d7215062f9cc2f6b3f41ff6",
+    "accept.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "accept.stdout.txt": "99b036d5e48ba12696448fd49ebe44a979aeb1cc7b9fd4c0cb7080d3d6ea9773",
+    "acceptance.json": "9adbb297e75aadea15a4515b32151953a49375ab940bce2e9ad338173a1f378b",
+    "build-logs/build-native-qsim-manifest.json": "69c05c3de7b648113f94b260a7ecbe20c7b1e39b35c9088223b9679e1b66960c",
+    "build-logs/build-native-qsim-os-kernel.json": "f76161abcbdc48bd155d0c2794705f21cc8f1548dbfb5c2024e2e319db544918",
+    "build-logs/build-native-qsim-os-kernel.stderr.txt": "c3910c27b45141620c6c717e9823f126d56f50d0dfa9cadb677c2e678b0bafe3",
+    "build-logs/build-native-qsim-os-kernel.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build-logs/build-native-qsim-os-loader.json": "b35cc2ba5d01b2196d0b7aa63c1d73c7ff94a2623ad33bf8ac6423fa560cc62b",
+    "build-logs/build-native-qsim-os-loader.stderr.txt": "b50082037071057b0c2002c555500cbc828fd7321c230716255dbe27a77d530d",
+    "build-logs/build-native-qsim-os-loader.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build-logs/build-qsim-user.json": "0d952333dfb2923239bbd282250a938de65bfb052f8185c506b779ab85c25ee0",
+    "build-logs/build-qsim-user.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build-logs/build-qsim-user.stdout.txt": "7b8ef796e9e6903a7c644cd2550a7f2d4da8515a029b19c1f03dd121ad244dfb",
+    "build-manifest.json": "69c05c3de7b648113f94b260a7ecbe20c7b1e39b35c9088223b9679e1b66960c",
+    "build.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build.stdout.txt": "2ffca25d98b0f92ad9f7a53c9b91cdd6eb55e4c7bf3b41088701481cd10defbe",
+    "disassembly.txt": "7f96ffcf303a2a832ae1d1a951cd43b96effba8fc8626bb4e844f4548e40a76d",
+    "i05-run-checks.json": "9b100c775ec909f9f78081777a0a93b190cca92d2ee69078ebb493f612916760",
+    "qemu-tools.json": "1df5c65167d994df858e2fb47b939c9a9e38291886f08e08912eda648dcb447c",
+    "quantum-build-report.json": "33912c8091a053abad364696568e576ec360734b347865ab0629f5448d385701",
+    "result.json": "e96fcb4334af94d9b8504d6016217e325708d81d31d201ba6e7827597e2ca1b7",
+    "rust-tools.json": "9cdda6da87e71c569c05f43037b9469987034ebfc5f12b87d7dbf6eab5b13da8",
+    "serial.txt": "dfb2442011c1f43a19a7917c1b56eed1d952631083120e9393139aac3bd82eff",
+    "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "symbols.txt": "12753835b82e521662053d8d155a79dd6f2418d3febf1acd6a0db4c12cc249ad"
+  },
+  "binaries_committed": false
+}

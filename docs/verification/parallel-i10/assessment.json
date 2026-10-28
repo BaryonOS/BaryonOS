@@ -1,0 +1,22 @@
+{
+  "reviewed_commit": "ccb2112072574d45b9c94c6f7181de23828bf79a",
+  "reviewer_task": "I10",
+  "blocking_findings": [],
+  "nonblocking_findings": [],
+  "scope": [
+    "loaded revision and exact CAS",
+    "dirty draft preservation on Stale Access Unknown",
+    "queued versus not-enqueued loss",
+    "explicit discard/reopen",
+    "capability revocation"
+  ],
+  "host_tests": 12,
+  "native_vm_runs": 0,
+  "native_library_compile_only": true,
+  "review_files_sha256": {
+    "README.md": "273139bb692a5bbcded9feb4b748860cbe9c917836147b6610cf62e294f8f636",
+    "checks.json": "beafc1d930913674be86e297e83b3183fc710bb18d94a091696131303cf3438e",
+    "document-session-tests.json": "9762b86bd4c161077d13a7ba940aba6cb321d3b2f54312064b377a2ba81ba353",
+    "native-library-build.json": "e6141721463fb0ef6f8e8e6cd5929b0df6440bd767d4c7bbbd37121839e06f5d"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "source_commit": "f52ef0a64b75f29396510c96ca57eaac9ea07d0d",
+  "scope": "Separate host/library compile evidence; no native execution or frozen G10 gate release claim.",
+  "commands": [
+    {
+      "name": "sdk-host-tests",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--workspace"
+      ],
+      "cwd": "/tmp/nieuw-os-g10-sdk-f52ef0a",
+      "exit": 0,
+      "duration_s": 1.9707180030018208,
+      "stdout": "sdk-host-tests.stdout.txt",
+      "stderr": "sdk-host-tests.stderr.txt",
+      "stdout_sha256": "516e144c6709e188a6677ef6d5ea508761bd79dfa4142b3d523f11873a93821a",
+      "stderr_sha256": "9111eb866a895953a6e64c704505514bdc94495a3c84356b13bbcaba8a9fe6c5"
+    },
+    {
+      "name": "sdk-native-libraries",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "build",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--lib",
+        "--workspace"
+      ],
+      "cwd": "/tmp/nieuw-os-g10-sdk-f52ef0a",
+      "exit": 0,
+      "duration_s": 0.33135656399826985,
+      "stdout": "sdk-native-libraries.stdout.txt",
+      "stderr": "sdk-native-libraries.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "5db7a1664755ca7f2c33bb6c3d68292ffbb3e51e4137e91cc71964569b3ce9c7"
+    }
+  ],
+  "passed": true,
+  "new_vm_runs": 0
+}

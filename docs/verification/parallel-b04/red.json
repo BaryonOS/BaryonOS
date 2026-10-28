@@ -1,0 +1,21 @@
+{
+  "scope": "host oracle regression, no VM or hardware claim",
+  "command": [
+    "python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_m6b_disk.py",
+    "-v"
+  ],
+  "exit_code": 1,
+  "source_commit": "41bac3c173d464a286017d31558335d70899c434",
+  "sha256": {
+    "tools/m6b_disk.py": "e6bcb18de80656d79fa9810409edd58e1606cc0f648837bb1202bcccaad88048",
+    "tests/test_m6b_disk.py": "748ef71dc34c7616dcdc0dd936cad4f1c513bc7472b59f5ba970b68d0f42e6e3"
+  }
+}

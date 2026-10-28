@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/tmp/nieuw-os-par-confirm-g0.py", line 14, in <module>
+    assert r['passed'] and r['raw_qemu_exit']==33 and r['error'] is None
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

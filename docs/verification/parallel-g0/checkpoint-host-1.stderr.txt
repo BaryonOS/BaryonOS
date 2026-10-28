@@ -1,0 +1,15 @@
+test_color_channels_and_inclusive_changed_pixel_bounds (test_graphics_harness.FramebufferEvidence.test_color_channels_and_inclusive_changed_pixel_bounds) ... ok
+test_exact_bounded_pixels_required (test_graphics_harness.FramebufferEvidence.test_exact_bounded_pixels_required) ... ok
+test_resolution_substitution_and_truncated_images_fail (test_graphics_harness.FramebufferEvidence.test_resolution_substitution_and_truncated_images_fail) ... ok
+test_serial_geometry_order_and_actual_framebuffer_must_agree (test_graphics_harness.FramebufferEvidence.test_serial_geometry_order_and_actual_framebuffer_must_agree) ... ok
+test_all_qmp_reads_share_the_run_deadline (test_graphics_harness.QmpEvidenceBoundary.test_all_qmp_reads_share_the_run_deadline) ... ok
+test_error_partial_oversized_and_endless_event_streams_fail (test_graphics_harness.QmpEvidenceBoundary.test_error_partial_oversized_and_endless_event_streams_fail) ... ok
+test_pipe_rejects_bad_partial_oversize_and_expired_buffered_data (test_graphics_harness.QmpEvidenceBoundary.test_pipe_rejects_bad_partial_oversize_and_expired_buffered_data) ... ok
+test_pipe_transport_handles_buffered_responses_and_eof (test_graphics_harness.QmpEvidenceBoundary.test_pipe_transport_handles_buffered_responses_and_eof) ... ok
+test_response_is_bound_to_request_and_events_are_not_success (test_graphics_harness.QmpEvidenceBoundary.test_response_is_bound_to_request_and_events_are_not_success) ... ok
+test_unregistered_machine_is_rejected_before_build_or_vm (test_graphics_harness.QmpEvidenceBoundary.test_unregistered_machine_is_rejected_before_build_or_vm) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.015s
+
+OK

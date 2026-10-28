@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "task": "G10",
+  "scope": "Directed two-VM native SDK regression with separate library evidence; no full M6c suite claim",
+  "passed": true,
+  "source_commit": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+  "source_fingerprint_version": 3,
+  "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f",
+  "archived_utc": "2026-10-28T16:24:45.883013+00:00",
+  "freeze_start": {
+    "head": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+    "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+  },
+  "freeze_finish": {
+    "head": "dbd35b04d742b18d66b40fdd65d8a9b900656cac",
+    "source_sha256": "c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f"
+  },
+  "actual_run_rechecks": [
+    {
+      "case": "normal",
+      "all_actual_artifacts_unchanged": true,
+      "existing_complete_per_run_validator_passed": true,
+      "raw_qemu_exit": 33,
+      "result_sha256": "a508e380364ddbaa17871c9664e894409e3dc8ffb7d0ae7c548dc33943e91d9b"
+    },
+    {
+      "case": "recover",
+      "all_actual_artifacts_unchanged": true,
+      "existing_complete_per_run_validator_passed": true,
+      "raw_qemu_exit": 33,
+      "result_sha256": "74bb119560190087b37ec7ec0e2a3931cdcae38b37b127bfad2b1c627b564e77"
+    }
+  ],
+  "sdk_artifacts_and_build_logs_unchanged": true,
+  "files_sha256": {
+    "README.md": "14af23eccf21618b69b0013c77ae61ff8b075758807cbef4ab80c30169332068",
+    "build-commands.json": "41279a0a67758c66d2a03b9f809f4e5947ca996149436208836fbfbac0d3bbbe",
+    "directed-result.json": "e8451f9973673852c9895963575d2f7a4608fe2559d8fc31d18b676ba23581a4",
+    "launcher-command.json": "2692d87b93171774a861573e63d14b01c88cb1c1a9d299e2c397e6caf386f75a",
+    "launcher.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "launcher.stdout.txt": "d03b57a2dfb0c05119119c1b5dc2a98e837558f599c05f1e06b1e39a2e74db45",
+    "normal-build-manifest.json": "f36af4b76115ac3ee144adcb18ce34d5c1e010e5fc29b79a0c68f1ef6a59d055",
+    "normal-result.json": "a508e380364ddbaa17871c9664e894409e3dc8ffb7d0ae7c548dc33943e91d9b",
+    "normal-sdk-user-manifest.json": "3853921af84ad9ba56f7185656a4b583a39cd1cfb8c604b815ca407a5885770a",
+    "normal-serial.txt": "b3873fd5138011dca2171cf6f28c4af55869207a13d6cd09ea9bf427e058bbf0",
+    "normal-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "normal-volume-manifest.json": "59f400d2ce7636a69b40447b2ac59d5aed9cd5376f16a833b3ec004d04f80fe9",
+    "recover-build-manifest.json": "738ec54cc203e009956955cb7fc55bea2eff6051e814d47c3ce0d5e581a57f73",
+    "recover-result.json": "74bb119560190087b37ec7ec0e2a3931cdcae38b37b127bfad2b1c627b564e77",
+    "recover-sdk-user-manifest.json": "3853921af84ad9ba56f7185656a4b583a39cd1cfb8c604b815ca407a5885770a",
+    "recover-serial.txt": "ec0f2d17fd62f7ef7065527c3c043a207b0053c111fbef5be181a600e90219cc",
+    "recover-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recover-volume-manifest.json": "59f400d2ce7636a69b40447b2ac59d5aed9cd5376f16a833b3ec004d04f80fe9",
+    "run_directed.py": "936ace9a542d7a79f2449674763cdfe90a5a1c12dcd5b4ff7da3774cb854b3d1",
+    "sdk-host-tests.stderr.txt": "9111eb866a895953a6e64c704505514bdc94495a3c84356b13bbcaba8a9fe6c5",
+    "sdk-host-tests.stdout.txt": "516e144c6709e188a6677ef6d5ea508761bd79dfa4142b3d523f11873a93821a",
+    "sdk-library-checks.json": "f2438a2722d1c571c3cc38c82ef6b7a52af95f6f5211313071b31a1438d9ccdf",
+    "sdk-library-freeze-binding.json": "81a1904e0438c9b7a430eb7feb06d58edc71af6ea970b95994f1d7e847b0c8ca",
+    "sdk-library-source.json": "cc260b1ad48b7ffc3f04e2dc1cedbc6b749412690dd11a88e09fe6477e7de867",
+    "sdk-native-libraries.stderr.txt": "5db7a1664755ca7f2c33bb6c3d68292ffbb3e51e4137e91cc71964569b3ce9c7",
+    "sdk-native-libraries.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".gitattributes": "9f9993f91a5b9ff360d3e6173d4a86df8a593f2221dec8329cd53997ae1374bb"
+  },
+  "binary_and_disk_bytes_copied_to_git": false,
+  "raw_log_git_preservation": "Local evidence attributes disable text normalization for captured *.txt so committed bytes retain their original SHA-256."
+}

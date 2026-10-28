@@ -1,0 +1,5 @@
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/runtime)
+    Checking capability-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/capability-core)
+    Checking catalog-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/services/catalog)
+    Checking nieuw-os-catalog-client v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/catalog-client)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.04s

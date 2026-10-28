@@ -1,0 +1,20 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_graphics_capture.py",
+    "-k",
+    "unknown_staged_file",
+    "-v"
+  ],
+  "exit_status": 1,
+  "scope": "Synthetic host fixture against unfixed B07 capture",
+  "base_commit": "764cc9f84291ed3ad7b0ea3de65debcbf1cc7da6",
+  "utc": "2026-10-28T16:15:00.882306+00:00"
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "task": "I03 source-bound native qsim runner",
+  "base_commit": "b3c1b7ffc28b2f145b274290ce0a46d8e3b2b118",
+  "native_runtime_performed": false,
+  "host_tests_only": true,
+  "passed": true,
+  "checks": [
+    {
+      "name": "host-negative-gates",
+      "command": [
+        "python3",
+        "-B",
+        "tests/test_qsim_harness.py"
+      ],
+      "returncode": 0,
+      "log": "docs/verification/parallel-i03/host-tests.txt",
+      "log_sha256": "e7a28ca3db1e43954e6003cbb1a91e99d4641bf7a28e1b830dbe28280ef552da"
+    },
+    {
+      "name": "python-compile",
+      "path": "tools/run_qsim.py",
+      "returncode": 0
+    },
+    {
+      "name": "python-compile",
+      "path": "tests/test_qsim_harness.py",
+      "returncode": 0
+    }
+  ],
+  "source_sha256": {
+    "tools/run_qsim.py": "ccf67651ce2f3631de7db6315d15d5822733ab06f48b948b90c2685c33e1f972",
+    "tests/test_qsim_harness.py": "92b4cba9aefb9866b4f0ac6f3c080c18b02e788c732d69291d4a4968224115fd",
+    "docs/verification/parallel-i03/observed-qsim-serial.txt": "b5474105c231f9440d5bf546add814d822d05d2036e34a07bb4822da9585245f"
+  }
+}

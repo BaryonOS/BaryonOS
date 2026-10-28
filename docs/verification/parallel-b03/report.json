@@ -1,0 +1,65 @@
+{
+  "scope": "host tests and actual read-only standalone compiler/target inventory; no build or boot claim",
+  "base_commit": "41bac3c173d464a286017d31558335d70899c434",
+  "completed_utc": "2026-10-28T15:24:05.851838+00:00",
+  "commands": [
+    {
+      "name": "tests",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_preflight.py",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b03",
+      "exit_code": 0,
+      "stdout": "tests.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "tests.stderr.txt",
+      "stderr_sha256": "986b1a2faa505410811de7f92232596cf99d6232205bc2822925bd77f4334ae5"
+    },
+    {
+      "name": "standalone-strict",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b03",
+      "exit_code": 0,
+      "stdout": "standalone-strict.stdout.txt",
+      "stdout_sha256": "858c00c0119011e75b5ed0b9a985b4c19180e0a268cc0b36e1f433670442f13f",
+      "stderr": "standalone-strict.stderr.txt",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "tools/preflight.py",
+        "tests/test_preflight.py"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b03",
+      "exit_code": 0,
+      "stdout": "diff-check.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "diff-check.stderr.txt",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source_sha256": {
+    "tools/preflight.py": "0b2c7404b66dd0a04d289f9ab07582eca04ee051818c5d630edeaaaa7b8e912b",
+    "tests/test_preflight.py": "bfb83544edc7e51067213b05f099edfd48876476cbaf0d5289903059d9ca301b",
+    "tools/common.py": "7576478538822a50c8eeb5e71994df1190bb07a2321ae9df1cfaae58cc4beb31"
+  }
+}

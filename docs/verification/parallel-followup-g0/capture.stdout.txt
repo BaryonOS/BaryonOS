@@ -1,0 +1,1 @@
+G0 capture passed: five exact PPM/PNG roundtrips; /workspace/scratch/debaa3b6a81c/nieuw-os/docs/verification/parallel-followup-g0

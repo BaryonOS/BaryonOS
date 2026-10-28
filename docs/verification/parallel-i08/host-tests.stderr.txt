@@ -1,0 +1,4 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/tmp/nieuw-os-par-i08-target/debug/deps/qsim_job_protocol-4452383c95dc1864)
+     Running tests/codec.rs (/tmp/nieuw-os-par-i08-target/debug/deps/codec-b466981792eefe02)
+   Doc-tests qsim_job_protocol

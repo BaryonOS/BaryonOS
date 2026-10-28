@@ -1,6 +1,110 @@
 # Actuele projectstatus
 
-De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
+## Actuele vervolgacceptatie — 28 oktober 2026
+
+**Zes extra echte VM-runs slagen op `dbd35b04d742b18d66b40fdd65d8a9b900656cac`**,
+bronfingerprint v3 `c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f`.
+G0 draait met vijf echte invoerbeelden en nieuwe atomische capture; SDK/M6c
+en M6b bewaren en lezen terug in elk twee afzonderlijke VM's; de qsim-proef
+draait in twee geïsoleerde gebruikersprocessen. Alle zes ruwe exits zijn 33.
+Eigen builds, targets, volumes, QMP-pipes en logs voorkomen gedeelde output.
+De [onafhankelijke gecombineerde controle](verification/parallel-followup-integration/README.md)
+herhasht 216 unieke bestanden en bevestigt alle zes bron- en artifactketens.
+
+- [G0: bron, opdrachten, vijf echte beelden en capture](verification/parallel-followup-g0/README.md).
+- [SDK/catalogus: normale opslag en koude herstart](verification/parallel-followup-sdk-m6c/README.md).
+- [Quantum: actuele strict run en vergelijking van werkelijke binaries](verification/parallel-followup-qsim/README.md).
+- [M6b en gerichte hostgrenzen](verification/parallel-followup-root/README.md).
+
+Op `f52ef0a6` zijn de G07-documentsessie, I08-jobcodec en B07-capture al
+gepubliceerd. De documentsessie bewaart geladen revisie en lokaal concept bij
+CAS-conflicten of onzekere opslag. Deze appbibliotheek staat buiten de kernel.
+De 39 SDK-hosttests en native librarybuilds slagen; I10 vond geen blocker
+binnen haar reviewscope. De canonieke 256-byte jobcodec heeft 13 tests en een
+gerichte onafhankelijke review; dispatch en gebruikersjobs blijven open.
+
+G09 vond een dynamische outputlijst in de capture. B09 gebruikt een vaste
+lijst vóór indexering én vóór publicatie. De negatieve test faalde op de oude
+bron en slaagt na reparatie; onafhankelijke herhaling en alle 34 grafische
+hosttestmethoden slagen. De verse B08-VM gebruikt de gerepareerde capture;
+alle originele inputs en lossless PNG's zijn opnieuw gecontroleerd.
+[Documentreview](verification/parallel-i10/README.md),
+[capturereparatie](verification/parallel-b09/README.md),
+[hercontrole](verification/parallel-g09/README.md).
+
+De [gerichte PR14-behoudcontrole](verification/parallel-b10/README.md)
+bevestigt dat de zeven eerdere reviewvragen in de integratiebron zijn opgelost
+en dat alle bestaande bestandspaden behouden zijn. De volledige bomen zijn
+vergeleken omdat de GitHub-compare slechts een deel van de paden retourneerde.
+
+De acht concrete CodeRabbit-bevindingen zijn afgehandeld met bron-/bewijslinks;
+de actuele vervolgbeoordeling en PR-status staan op GitHub. De eerdere
+volledige acceptatie van 80 VM's hieronder behoudt haar oorspronkelijke bron.
+Bestaande kernel-, dienst- en probebron bleef tijdens deze vervolgstap gelijk.
+De nieuwe qsim-kernel en app zijn byte-identiek; twaalf gewijzigde loaderbytes
+zijn verklaard als PE-tijdstempels/buildidentifier, met originele artifacts.
+
+G11 bouwt nu de documentsessie in de bestaande headless gebruikersproef om
+ook openen, bewerken, bewaren en heropenen via deze bibliotheek native te
+controleren. Die uitvoering is nog niet geaccepteerd. G1/Materiaal blijft bij
+de bestaande eigenaar; publicatie van diens broncheckpoint is de kleinste
+integratieafhankelijkheid. Geen grafische documentflow of algemene appstarter
+wordt uit de huidige proeven afgeleid. Roadmap: **14% → 14%**.
+
+## Gecombineerde native acceptatie — 28 oktober 2026
+
+Uitvoeringsbron `3e41bbf93822f7044c6020259f4a752925e1966d`, branch
+`codex/parallel-native-foundation-20261028`, PR#15 boven de behouden PR#14.
+Lokale/GitHub-commit identiek vóór gates; bronfingerprint v3
+`307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60` bleef gelijk.
+Alle vier werkelijke agentplaatsen zijn benut en hergebruikt met eigen
+worktrees/builds/targets/VMs/logs. G1 en de andere M6a-opdracht blijven bij hun
+bestaande eigenaars.
+
+**80 geaccepteerde native VM-runs:** M6b32 groepen/28 VM, SDK/M6c35/31,
+M3-regressie22/19, native quantum1 en bevestigde G0-pipe1. Volledige M6b- en
+M6c-captures slagen. Beide normale SDK-catalogusruns bewaren sequence10 en
+lezen na een nieuwe koude VM dezelfde bytes terug zonder writes. Twee quantum-
+userprocessen voeren bestaande referentieberekeningen uit, met64 KiB-arena's,
+4 timerIRQs/505 syscalls en96 werkelijk vrijgemaakte frames. G0 verwerkt echte
+invoer met per-toetsbeelden en exact backspaceherstel. Geen nieuwe syscall,
+capabilityverruiming, on-diskformaat of externecrate.
+
+De gecombineerde artifactcontrole bevestigt80 unieke VMs en616 directe
+hashvergelijkingen. De oorspronkelijke G0-run is uitgesloten wegens een
+later afwijkend bewaard serialartifact; oorzaak onbekend, niets hersteld.
+De verse private pipe-run en alle 15artifacts zijn herhaaldelijk gecontroleerd.
+Een aparte UNIX-socketprobe faalde op sandbox-EPERM; de bruikbare pipe-route
+is de native geverifieerde variant. Oude fouten en ruwe resultaten blijven
+behouden. Alle bron-/bewijs-/reproduceerdetails staan in
+[PARALLEL-NATIVE-ACCEPTANCE.md](verification/PARALLEL-NATIVE-ACCEPTANCE.md).
+
+Concrete CodeRabbit- en gerichte AI-bevindingen zijn verwerkt voor QMP-
+deadlines/ID's, screenshots, ROMpin, WRITE-timeout-oracle, standalone preflight
+en prefixed FPU-instructies. De nieuwe PR#15-review op3e41 is aangevraagd;
+definitieve review/mergestatus wordt op GitHub bijgehouden. Geen veiligheids-
+of fysieke hardwareclaim door de AI-review. QEMU 7.2.22/pc-q35-7.2 is expliciet
+vastgelegd en verschilt van het historische10.0-referentieprofiel.
+
+Voortgang **14% → 14%**; vaste criteria/gewichten behouden. A01 algemene appstart,
+U03 native Materiaal, S04/S05 bruikbare documentgrootte/ruimtehergebruik en L02
+externe native quantumjobs blijven open. De catalogusclient+SDK bestaan nu;
+G07 levert een documentsessie, I08 een jobcodec en B07 een strikte G0-capture.
+Deze geïntegreerde bouwblokken zijn nog geen volledige productfunctie.
+Zie `WORK-QUEUE.md` voor de kleine actuele taakverdeling en blokkades.
+
+### Directe nieuwe native bewijslinks
+
+- G0: [commando, raw33 en alle controles](verification/parallel-final-g0-confirmed/pipe/result.json), [ruwe serial](verification/parallel-final-g0-confirmed/pipe/serial.txt).
+- SDK/catalogus: [opdrachten en exitstatussen](verification/parallel-final-sdk-m6c/driver.json), [alle31 ruwe VM-records](verification/parallel-final-sdk-m6c/guest-runs.json).
+- Quantum: [opdrachten en bronbinding](verification/parallel-final-qsim/i05-run-checks.json), [native raw33-resultaat](verification/parallel-final-qsim/result.json), [ruwe serial](verification/parallel-final-qsim/serial.txt).
+
+Alle drie nieuwe bundels registreren werkelijk QEMU7.2.22/pc-q35-7.2.
+Historische M6c-consolelogs van andere QEMU-profielen zijn hiervoor niet gebruikt.
+
+## Historische faseverslagen
+
+De verslagen hieronder bewaren hun toenmalige bron- en bewijsgrenzen.
 
 ## Doorbouw — opslagtimeouts en native grafische basis
 

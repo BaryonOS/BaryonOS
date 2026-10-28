@@ -1,0 +1,12 @@
+test_duplicate_wrong_cut_and_success_marker_cannot_pass_kill (test_m6b_harness.NativeHarness.test_duplicate_wrong_cut_and_success_marker_cannot_pass_kill) ... ok
+test_genuine_live_child_kill_has_distinct_raw_exit (test_m6b_harness.NativeHarness.test_genuine_live_child_kill_has_distinct_raw_exit) ... ok
+test_normal_requires_exact_order_exit_and_no_failure (test_m6b_harness.NativeHarness.test_normal_requires_exact_order_exit_and_no_failure) ... ok
+test_self_exit_after_marker_never_counts_as_external_crash (test_m6b_harness.NativeHarness.test_self_exit_after_marker_never_counts_as_external_crash) ... ok
+test_timeout_cancellation_and_quarantine_require_their_actual_path (test_m6b_harness.NativeHarness.test_timeout_cancellation_and_quarantine_require_their_actual_path) ... ok
+test_timeout_without_rendezvous_is_not_a_crash_test_success (test_m6b_harness.NativeHarness.test_timeout_without_rendezvous_is_not_a_crash_test_success) ... ok
+test_uncertain_mutations_require_unique_injection_and_unknown_proof (test_m6b_harness.NativeHarness.test_uncertain_mutations_require_unique_injection_and_unknown_proof) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.625s
+
+OK

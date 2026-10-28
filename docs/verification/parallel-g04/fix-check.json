@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-10-28T15:34:05.257311+00:00",
+  "finding": "G04-01",
+  "review_verdict": "fixed in I04 candidate bytes; root must integrate these exact bytes and retain final source binding",
+  "fix_source_sha256": "269d0d6abdfba5385554ec40a992cf7acfcc3de5b70251c58cef8babc59a78fa",
+  "fix_tests_sha256": "8d8bedfce7bd91ba597939ac916e84beb0154930facea3057e7cd793bc259fcc",
+  "fix_checkout": "/workspace/scratch/debaa3b6a81c/wt-i01",
+  "fix_commit_at_check": "c39beb91669a3eb79a8604abeca213476e059df1",
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "/workspace/scratch/debaa3b6a81c/wt-g01/docs/verification/parallel-g04/prefix-repro.py",
+    "/workspace/scratch/debaa3b6a81c/wt-i01"
+  ],
+  "command_exit": 0,
+  "prefix_negative_controls": {
+    "gate_source": "/workspace/scratch/debaa3b6a81c/wt-i01/experiments/quantum/native/build.py",
+    "gate_sha256": "269d0d6abdfba5385554ec40a992cf7acfcc3de5b70251c58cef8babc59a78fa",
+    "scope": "Host negative-control reproduction; fixture instructions are never executed.",
+    "objdump_version": "GNU objdump (GNU Binutils for Ubuntu) 2.42",
+    "cases": [
+      {
+        "name": "plain-fninit",
+        "hex": "cd80dbe3",
+        "argv": [
+          "objdump",
+          "-D",
+          "-b",
+          "binary",
+          "-m",
+          "i386:x86-64",
+          "--no-show-raw-insn",
+          "-M",
+          "intel",
+          "/tmp/nieuw-os-g04-j8208gpk/plain-fninit.bin"
+        ],
+        "objdump_exit": 0,
+        "disassembly": "\n/tmp/nieuw-os-g04-j8208gpk/plain-fninit.bin:     file format binary\n\n\nDisassembly of section .data:\n\n0000000000000000 <.data>:\n   0:\tint    0x80\n   2:\tfninit\n",
+        "expected_gate_acceptance": false,
+        "gate_accepted": false,
+        "gate_error": "unsupported instruction at 2: fninit"
+      },
+      {
+        "name": "data16-fninit",
+        "hex": "cd8066dbe3",
+        "argv": [
+          "objdump",
+          "-D",
+          "-b",
+          "binary",
+          "-m",
+          "i386:x86-64",
+          "--no-show-raw-insn",
+          "-M",
+          "intel",
+          "/tmp/nieuw-os-g04-j8208gpk/data16-fninit.bin"
+        ],
+        "objdump_exit": 0,
+        "disassembly": "\n/tmp/nieuw-os-g04-j8208gpk/data16-fninit.bin:     file format binary\n\n\nDisassembly of section .data:\n\n0000000000000000 <.data>:\n   0:\tint    0x80\n   2:\tdata16 fninit\n",
+        "expected_gate_acceptance": false,
+        "gate_accepted": false,
+        "gate_error": "unsupported instruction at 2: data16 fninit"
+      },
+      {
+        "name": "repz-fninit",
+        "hex": "cd80f3dbe3",
+        "argv": [
+          "objdump",
+          "-D",
+          "-b",
+          "binary",
+          "-m",
+          "i386:x86-64",
+          "--no-show-raw-insn",
+          "-M",
+          "intel",
+          "/tmp/nieuw-os-g04-j8208gpk/repz-fninit.bin"
+        ],
+        "objdump_exit": 0,
+        "disassembly": "\n/tmp/nieuw-os-g04-j8208gpk/repz-fninit.bin:     file format binary\n\n\nDisassembly of section .data:\n\n0000000000000000 <.data>:\n   0:\tint    0x80\n   2:\trepz fninit\n",
+        "expected_gate_acceptance": false,
+        "gate_accepted": false,
+        "gate_error": "unsupported instruction at 2: repz fninit"
+      }
+    ],
+    "all_negative_controls_rejected": true
+  },
+  "original_directed_run_binary_sha256": "3a20a6e8566b899ffec4939a03a9a7e5f970ca2f5b0c7d84fd85f5dccc860a5a",
+  "original_directed_run_disassembly_sha256": "5971f78e0d03de6108a71b0d33e741c16a98e6c8aa6da66f05727034c96193ad",
+  "fixed_gate_on_original_directed_run_disassembly": {
+    "decoded_instructions": 4096,
+    "int80_sites": 4,
+    "extended_registers_found": false
+  },
+  "code_review": [
+    "Known prefix chains are removed before opcode classification; unknown opcodes and prefix-only lines fail closed.",
+    "The scalar allowlist excludes x87/MMX/SSE/AVX and hardware/foreign ABI opcodes; extended/context control registers are rejected in operands.",
+    "Original finding fixtures are rejected; the actual 4096-instruction artifact remains accepted."
+  ],
+  "new_vm_runs_performed": 0
+}

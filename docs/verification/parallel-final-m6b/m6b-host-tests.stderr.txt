@@ -1,0 +1,6 @@
+   Compiling object-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/services/objects)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.59s
+     Running unittests src/lib.rs (/tmp/nieuw-os-par-final-m6b-target/debug/deps/object_core-bf291d3a0fb76009)
+     Running tests/core.rs (/tmp/nieuw-os-par-final-m6b-target/debug/deps/core-506762df88e4c801)
+     Running tests/wire.rs (/tmp/nieuw-os-par-final-m6b-target/debug/deps/wire-5d6f9555fc82ea32)
+   Doc-tests object_core
