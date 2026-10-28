@@ -2,37 +2,37 @@
 //! receives user pointers. All copies use prevalidated fixed-size byte plans.
 use super::*;
 #[cfg(all(
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
-    ))]
+    not(feature = "milestone-m5"),
+    not(feature = "native-qsim-job"),
+    not(feature = "native-sdk-app")
+))]
 use capability_core::{Cap, ALL_RIGHTS};
 use capability_core::{Engine, Error, Message, RECV, SEND};
 use kernel_core::user::{CopyPlan, PageAccess};
 #[cfg(all(
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
-    ))]
+    not(feature = "milestone-m5"),
+    not(feature = "native-qsim-job"),
+    not(feature = "native-sdk-app")
+))]
 const MSG: u64 = 0x40011000;
 #[cfg(all(
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
-    ))]
+    not(feature = "milestone-m5"),
+    not(feature = "native-qsim-job"),
+    not(feature = "native-sdk-app")
+))]
 const OUT: u64 = 0x40012000;
 #[cfg(all(
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
-    ))]
+    not(feature = "milestone-m5"),
+    not(feature = "native-qsim-job"),
+    not(feature = "native-sdk-app")
+))]
 const ROWS: u64 = DATA + 0x100;
 static mut ENGINE: Engine = Engine::new();
 #[cfg(all(
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
-    ))]
+    not(feature = "milestone-m5"),
+    not(feature = "native-qsim-job"),
+    not(feature = "native-sdk-app")
+))]
 struct Evidence {
     calls: u64,
     success: u64,
@@ -50,10 +50,10 @@ struct Evidence {
     expected_fault: bool,
 }
 #[cfg(all(
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
-    ))]
+    not(feature = "milestone-m5"),
+    not(feature = "native-qsim-job"),
+    not(feature = "native-sdk-app")
+))]
 const EMPTY_EVIDENCE: Evidence = Evidence {
     calls: 0,
     success: 0,
@@ -71,16 +71,16 @@ const EMPTY_EVIDENCE: Evidence = Evidence {
     expected_fault: false,
 };
 #[cfg(all(
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
-    ))]
+    not(feature = "milestone-m5"),
+    not(feature = "native-qsim-job"),
+    not(feature = "native-sdk-app")
+))]
 static mut EVIDENCE: Evidence = EMPTY_EVIDENCE;
 #[cfg(all(
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
-    ))]
+    not(feature = "milestone-m5"),
+    not(feature = "native-qsim-job"),
+    not(feature = "native-sdk-app")
+))]
 static mut LIFECYCLE_ROUNDS: u8 = 0;
 pub(super) fn engine() -> &'static mut Engine {
     // SAFETY: One CPU, IF=0, no nested engine calls or retained engine borrows.
