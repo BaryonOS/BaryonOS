@@ -4,8 +4,9 @@ De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hie
 
 ## Main-integratie — conflictresolutie 28 oktober 2026
 
-De actuele `main` (`1f24f994`) is samengevoegd in integratiebron
-`1068e89c`, vanaf gemeenschappelijke basis `5a58a743`. De M6c/M6d-
+De actuele `main` (`1f24f994`) is samengevoegd in mergecommit
+`6603a6bc`, vanaf gemeenschappelijke basis `5a58a743` op integratiebron
+`1068e89c`. De M6c/M6d-
 implementatie bleef behouden. De gedeelde kernel-, capability-, virtio- en
 dienstbronnen zijn bytegelijk aan zowel de M6d-uitvoeringsbron `88e6c04` als de
 overlappende bron op `main`; de M6c-selectie is apart behouden. De twee

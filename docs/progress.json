@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "1068e89c5160bd84849304360b6494ac77ece7b3",
+    "source_commit": "6603a6bc3acf93e2c3e9f9cb3ace98ede67c29bf",
     "branch": "codex/integrate-m6d-main",
     "task": "Main-integratie en conflictresolutie",
     "previous_score": 14,

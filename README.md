@@ -32,7 +32,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`1068e89c`](https://github.com/simonvanieperen/nieuw-os/commit/1068e89c5160bd84849304360b6494ac77ece7b3) ·
+**Bron:** [`6603a6bc`](https://github.com/simonvanieperen/nieuw-os/commit/6603a6bc3acf93e2c3e9f9cb3ace98ede67c29bf) ·
 **Ontwikkelbranch:** `codex/integrate-m6d-main`.
 Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Main-integratie en conflictresolutie.
 Main 1f24f99 geïntegreerd; native runtimebronnen bleven gelijk aan M6d. Conflicten opgelost; 139 Rust- en 20 Python-tests, py_compile en M6c-crossbuild slagen. Geen nieuwe QEMU-gates; score blijft 14%.
