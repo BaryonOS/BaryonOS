@@ -8,6 +8,18 @@ Datatoegang geeft geen beheerrol. In de mock is expliciete lokale beheeractivati
 
 De 39 state-tests en syntaxiscontroles zijn uitgevoerd; grafische browsercontrole van deze nieuwe schermen is nog open. Exacte crypto-/dienstproef en native integratiegrenzen: [NAS-SHARING-AND-INTERNET.md](NAS-SHARING-AND-INTERNET.md), [privacycontract revisie 3](../LOCAL-PRIVACY-CONTRACT.md), [UI-handleiding](../../ui/prototype/README.md).
 
+## Aanvulling consumentenonderzoek — 28 oktober 2026
+
+De productkeuze **Materiaal** blijft ongewijzigd en P2 blijft bevroren op de zeven bestaande schermen. De aanvullende literatuurverkenning in [CONSUMER-VALUE-2026-10-28.md](../research/CONSUMER-VALUE-2026-10-28.md) voegt geen nieuw bewezen marktvoordeel toe, maar geeft een gerichte toetsvolgorde voor de onderscheidende ervaring.
+
+Onderzoek na de bestaande P2-acceptatie één samenhangende demonstratie (**DV-01**) waarin dezelfde ondersteunde materiaalidentiteit leidend blijft: terugvinden, beperkte toegang voor gereedschap A, bevestigd opslaan, A beëindigen, hetzelfde materiaal met gereedschap B openen, geschiedenis/herstel als nieuwe revisie, toegang van A intrekken en een nieuwe beschermde actie van A weigeren.
+
+**Productbewijs:** taaksucces, tijd/hulp, onbedoelde kopieën, begrip van opslagstatus en rechten, herstelsucces en vrijwillige keuze om dezelfde taak opnieuw via Materiaal uit te voeren.
+
+**Native systeembewijs:** echte capability-/dienstafdwinging, bevestigd werk dat binnen het opslagcontract het beëindigen van een gereedschap overleeft, revocation voor toekomstige acties en geen valse successtatus na onzekere opslag. Een browsermock bewijst deze eigenschappen niet.
+
+DV-01 is een vervolghypothese en acceptatiescenario. Het verruimt P2 niet stilzwijgend en verandert geen bestaande native bewijsclaim of voortgangspunt.
+
 Status: **besluit voor de eerste implementatie**, 26 oktober 2026. De bronnenvergelijking en conceptkeuze zijn nu uitgevoerd. Gebruikersonderzoek, grafische implementatie en native OS-integratie zijn nog niet uitgevoerd. Codex hoeft vóór P2 geen nieuwe brede conceptstudie te starten. Alleen een concreet gevonden conflict of gebruikerscorrectie heropent de keuze.
 
 ## 1. Gekozen productlogica

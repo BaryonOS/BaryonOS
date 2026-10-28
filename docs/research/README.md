@@ -54,3 +54,5 @@ Als zo'n hypothese wordt aangenomen als producteis, leg die wijziging afzonderli
 De onderzoeken beschrijven een markt- en productrichting. Voor de feitelijke technische toestand gelden altijd [PROJECT-STATE.md](../PROJECT-STATE.md), [PROGRESS.md](../PROGRESS.md) en de brongebonden verificatiebestanden.
 
 Zie [MARKET-AND-ADOPTION-2026-10-28.md](MARKET-AND-ADOPTION-2026-10-28.md) voor de gezamenlijke synthese en bronnen.
+
+Zie daarnaast [CONSUMER-VALUE-2026-10-28.md](CONSUMER-VALUE-2026-10-28.md) voor de verdiepte consumentenwaarde, de scheiding tussen product- en systeembewijs en het concrete DV-01-scenario rond terugvinden, twee gereedschappen, herstel en ingetrokken toegang.
