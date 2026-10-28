@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "fc9b0df47880defed7a1adf3382a7aff7cfdbef6",
-    "branch": "feature/n01-bounded-udp-ipv4-tx-20261028",
-    "task": "N01: begrensde IPv4/UDP-transmitter voorbereid; geen native packetdienst",
+    "source_commit": "74de599b288ac8dd77fec08cce03f0dcb42d3915",
+    "branch": "ccr-d3fe1610-gl4r8s",
+    "task": "M6e copy-on-write documentvolume: grote documenten, ruimtehergebruik, quota en crashconsistente vrijgave native geaccepteerd",
     "previous_score": 20,
-    "summary": "De nieuwe allocatorvrije no_std-encoder maakt begrensde Ethernet/IPv4/UDP-frames met expliciete MTU, gecontroleerde lengte, IPv4/UDP-checksums en nulvulling. De brongebonden host-quality-, QEMU-smoke-, resource- en storage-regressies op fc9b0df zijn groen. Deze QEMU-runs zijn bestaande OS-regressies, geen native netwerkacceptatie: er is nog geen NIC-/IP/TCP-dienst of aangetoond packettransport. Het N01-criterium blijft open; de vaste rubric en alle gewichten zijn ongewijzigd."
+    "summary": "S04 (+3) en S05 (+3) geaccepteerd op een bevroren bron: 16 hosttests incl. uitputtende crashsimulatie, 7 orakeltests en zeven echte QEMU-runs (normal, koude read-only recovery, twee echte VM-kills midden in inhouds- en tabelwrites met koude recovery, corrupte image geweigerd). 71 commits en 296 chunk-allocaties op 64 chunks; 64 KiB-documenten; Quota/Full vóór I/O; guest-digests gelijk aan het onafhankelijke Python-orakel. Proefgeometrie 256 KiB; geen fysieke schijf-, encryptie- of back-upclaim. GitHub Actions op PR #47 moet dit nog herhalen. N01-encoder (#46) gemerged zonder punt."
   },
   "tracks": [
     {
@@ -126,17 +126,23 @@
           "id": "S04",
           "title": "Ruimtehergebruik en schaalbare volumes",
           "points": 3,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "Opslag kan verwijderde ruimte veilig hergebruiken en langer dan de huidige 32 records doorwerken; crashconsistente compactie en quota zijn getest.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/M6E-ACCEPTANCE.md",
+            "docs/verification/m6e/volume-gate.json"
+          ]
         },
         {
           "id": "S05",
           "title": "Documenten van bruikbare omvang",
           "points": 3,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "Grote documenten en streams overschrijden de huidige 128-byteproefgrens; begrensde buffers, volle volumes en deelwrites zijn getest.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/M6E-ACCEPTANCE.md",
+            "docs/verification/m6e/volume-gate.json"
+          ]
         },
         {
           "id": "S06",

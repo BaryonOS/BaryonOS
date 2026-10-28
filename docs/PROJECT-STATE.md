@@ -1,5 +1,48 @@
 # Actuele projectstatus
 
+## M6e schaalbare documentopslag native geaccepteerd, 26% — 28 oktober 2026
+
+Branch `ccr-d3fe1610-gl4r8s`, commit `74de599` (bevat `main` `78a96ae`), concept-PR
+[#47](https://github.com/simonvanieperen/nieuw-os/pull/47). Uitgevoerd in een
+Linux-container met Rust 1.90.0, QEMU 8.2.2, `pc-q35-8.2` en OVMF 4M uit het
+Ubuntu-pakket.
+
+**Gerealiseerd (native):**
+- `services/volume` (`volume-core`, `no_std`, `forbid(unsafe_code)`): een
+  copy-on-write-volume met twee per sector verzegelde tabelkopieën en
+  4 KiB-chunks.
+- SDK-blok-API en een ring-3 `volume-service` met twee geïsoleerde app-instanties
+  (`sdk/examples/volume-docs`).
+- Generieke kernelbroker `native-volume` zonder formaatkennis.
+- Onafhankelijk Python-orakel (`tools/volume_disk.py`), runner met echte VM-kills,
+  en de gate `tools/test_volume.py` met capture.
+
+**Uitgevoerd en geslaagd:**
+- `python3 -B -u tools/test_volume.py`, exit 0, met 3 hostcontroles en 7 QEMU-runs.
+- `python3 -B tools/capture_volume.py`, exit 0, naar `docs/verification/m6e/`.
+- Regressie: `milestone-m6c` normal smoke.
+- Uitslagen en grenzen: [M6E-ACCEPTANCE](verification/M6E-ACCEPTANCE.md).
+  Contract: [M6E-SCALABLE-VOLUME](implementation/M6E-SCALABLE-VOLUME.md).
+  Besluit: ADR-040.
+
+**Roadmap rubric v1: 20% → 26%** (S04 +3, S05 +3).
+
+**Open en niet bewezen:**
+- GitHub Actions op de PR-head moeten nog onafhankelijk slagen.
+- Geen native I/O-foutinjectie voor dit profiel; I/O-fouten zijn alleen hostgetest.
+- Geen fysieke schijf, encryptie of authenticatie (B02), back-up (S09),
+  collecties/historie (S06) of migratie van M6c-volumes.
+
+**Ook in deze opdracht:**
+- PR #46 (N01-encoder) is na groene CI en een CodeRabbit-review zonder bevindingen
+  squash-gemerged (`78a96ae`), zonder punt. De Codex-review kon niet draaien door
+  het gebruikslimiet.
+- Drie Claude-subagents zijn bevestigd gestart in eigen worktrees, met lokale
+  QEMU: G1 (ring-3 display/invoer), K05 (procesbeheer) en N01 (virtio-net/UDP).
+  Hun resultaten zijn nog niet geïntegreerd of geaccepteerd.
+- S06 (collecties, metadata, revisiegeschiedenis, transacties) is in een aparte
+  lokale worktree in ontwikkeling: niets gecommit of getest.
+
 ## N01 voorbereidend netwerkwerk — UDP-uitvoer zonder native NIC (28 oktober 2026)
 
 Ontwikkelbranch `feature/n01-bounded-udp-ipv4-tx-20261028`, begonnen op main `6e12dcbbd4a37d404dd5a60bc2c8a8e32d2d187e`.

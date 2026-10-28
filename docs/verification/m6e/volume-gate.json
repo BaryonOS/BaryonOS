@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "535d672e45681cfb56a991d69663e590b6c7bed98aef445345ce1b041e18016d",
+  "status": "completed",
+  "passed": true,
+  "host": [
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "volume-core"
+      ],
+      "exit": 0,
+      "tail": [
+        "",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "",
+        "     Running tests/crash.rs (target/debug/deps/crash-77106d60b28a014e)",
+        "     Running tests/service.rs (target/debug/deps/service-837f7883f53726f4)",
+        "   Doc-tests volume_core"
+      ]
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "tail": [
+        "",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "",
+        "     Running unittests src/lib.rs (sdk/target/debug/deps/nieuw_os_sdk_runtime-2c8a0bd5a7f3e9ca)",
+        "     Running tests/message.rs (sdk/target/debug/deps/message-022c0b00e592cb2d)",
+        "   Doc-tests nieuw_os_sdk_runtime"
+      ]
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_volume_*.py"
+      ],
+      "exit": 0,
+      "tail": [
+        "Ran 7 tests in 0.075s",
+        "",
+        "OK"
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "parent": null,
+      "passed": true,
+      "run_directory": "/home/user/nieuw-os/build/run/volume-normal-605f8fe0f9",
+      "volume_identity": "f35db550bb6040d68ec141049bb703d1",
+      "before_sha256": "b8f331f4579b01c8a397701e5ac7e3c6d698ac427c05171417bf7efca42c6adc",
+      "after_sha256": "017e251948eadc74533c5551cd72eda40ea458571aefdb19650dcf1b2503c097",
+      "raw_qemu_exit": 33,
+      "duration_s": 93.37738509099972,
+      "error": null
+    },
+    {
+      "case": "recover",
+      "parent": "normal",
+      "passed": true,
+      "run_directory": "/home/user/nieuw-os/build/run/volume-recover-775f264d16",
+      "volume_identity": "f35db550bb6040d68ec141049bb703d1",
+      "before_sha256": "017e251948eadc74533c5551cd72eda40ea458571aefdb19650dcf1b2503c097",
+      "after_sha256": "017e251948eadc74533c5551cd72eda40ea458571aefdb19650dcf1b2503c097",
+      "raw_qemu_exit": 33,
+      "duration_s": 54.87753259700003,
+      "error": null
+    },
+    {
+      "case": "cut-data",
+      "parent": null,
+      "passed": true,
+      "run_directory": "/home/user/nieuw-os/build/run/volume-cut-data-4141a5021a",
+      "volume_identity": "659669b226634dd6aa0ea56609add5a4",
+      "before_sha256": "b8f331f4579b01c8a397701e5ac7e3c6d698ac427c05171417bf7efca42c6adc",
+      "after_sha256": "80606c8be750d68027b341c550eebb4f20ed528ba5ae9f478dcfbdd981ffd7c8",
+      "raw_qemu_exit": -9,
+      "duration_s": 4.485996677000003,
+      "error": null
+    },
+    {
+      "case": "recover-cut",
+      "parent": "cut-data",
+      "passed": true,
+      "run_directory": "/home/user/nieuw-os/build/run/volume-recover-cut-d4c3ee7139",
+      "volume_identity": "659669b226634dd6aa0ea56609add5a4",
+      "before_sha256": "80606c8be750d68027b341c550eebb4f20ed528ba5ae9f478dcfbdd981ffd7c8",
+      "after_sha256": "80606c8be750d68027b341c550eebb4f20ed528ba5ae9f478dcfbdd981ffd7c8",
+      "raw_qemu_exit": 33,
+      "duration_s": 4.422525849000067,
+      "error": null
+    },
+    {
+      "case": "cut-table",
+      "parent": null,
+      "passed": true,
+      "run_directory": "/home/user/nieuw-os/build/run/volume-cut-table-05988f8b6c",
+      "volume_identity": "ff61359af7c6424abd5adb66467bfb5b",
+      "before_sha256": "b8f331f4579b01c8a397701e5ac7e3c6d698ac427c05171417bf7efca42c6adc",
+      "after_sha256": "b2385b4c9799dba442936d378ea73cf685052ccd434e5e89fb37672e8a8d1dce",
+      "raw_qemu_exit": -9,
+      "duration_s": 5.462747720999687,
+      "error": null
+    },
+    {
+      "case": "recover-cut",
+      "parent": "cut-table",
+      "passed": true,
+      "run_directory": "/home/user/nieuw-os/build/run/volume-recover-cut-7bce5245f8",
+      "volume_identity": "ff61359af7c6424abd5adb66467bfb5b",
+      "before_sha256": "b2385b4c9799dba442936d378ea73cf685052ccd434e5e89fb37672e8a8d1dce",
+      "after_sha256": "b2385b4c9799dba442936d378ea73cf685052ccd434e5e89fb37672e8a8d1dce",
+      "raw_qemu_exit": 33,
+      "duration_s": 4.4889679779998914,
+      "error": null
+    },
+    {
+      "case": "corrupt",
+      "parent": null,
+      "passed": true,
+      "run_directory": "/home/user/nieuw-os/build/run/volume-corrupt-de3ebee2dd",
+      "volume_identity": "a21837660e4c4a2e89580e4aa124b7af",
+      "before_sha256": "510354b3e37772955b68f4f54b33abe3b7b19c3e2ce6c3723ca78744f894aaa5",
+      "after_sha256": "510354b3e37772955b68f4f54b33abe3b7b19c3e2ce6c3723ca78744f894aaa5",
+      "raw_qemu_exit": 33,
+      "duration_s": 4.191174855000099,
+      "error": null
+    }
+  ]
+}

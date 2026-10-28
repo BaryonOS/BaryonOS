@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 20% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 26% van de vaste productroadmap](docs/assets/progress.svg)
 
-**20% — 20 van 100 gewogen acceptatiepunten.** Dit is een
+**26% — 26 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -20,7 +20,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | Productspoor | Totaal punten | Behaald |
 |---|---:|---:|
 | Eigen kern en procesisolatie | 15 | 11 |
-| Opslag en gegevensherstel | 15 | 5 |
+| Opslag en gegevensherstel | 15 | 11 |
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
 | Internet en netwerkdiensten | 10 | 0 |
@@ -29,13 +29,13 @@ alleen een nette desktop haalt die eindgrens niet.
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **20** |
+| **Totaal** | **100** | **26** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`fc9b0df4`](https://github.com/simonvanieperen/nieuw-os/commit/fc9b0df47880defed7a1adf3382a7aff7cfdbef6) ·
-**Ontwikkelbranch:** `feature/n01-bounded-udp-ipv4-tx-20261028`.
-Deze opdracht: **20% → 20% (+0 procentpunt)**. **Opdracht:** N01: begrensde IPv4/UDP-transmitter voorbereid; geen native packetdienst.
-De nieuwe allocatorvrije no_std-encoder maakt begrensde Ethernet/IPv4/UDP-frames met expliciete MTU, gecontroleerde lengte, IPv4/UDP-checksums en nulvulling. De brongebonden host-quality-, QEMU-smoke-, resource- en storage-regressies op fc9b0df zijn groen. Deze QEMU-runs zijn bestaande OS-regressies, geen native netwerkacceptatie: er is nog geen NIC-/IP/TCP-dienst of aangetoond packettransport. Het N01-criterium blijft open; de vaste rubric en alle gewichten zijn ongewijzigd.
+**Bron:** [`74de599b`](https://github.com/simonvanieperen/nieuw-os/commit/74de599b288ac8dd77fec08cce03f0dcb42d3915) ·
+**Ontwikkelbranch:** `ccr-d3fe1610-gl4r8s`.
+Deze opdracht: **20% → 26% (+6 procentpunt)**. **Opdracht:** M6e copy-on-write documentvolume: grote documenten, ruimtehergebruik, quota en crashconsistente vrijgave native geaccepteerd.
+S04 (+3) en S05 (+3) geaccepteerd op een bevroren bron: 16 hosttests incl. uitputtende crashsimulatie, 7 orakeltests en zeven echte QEMU-runs (normal, koude read-only recovery, twee echte VM-kills midden in inhouds- en tabelwrites met koude recovery, corrupte image geweigerd). 71 commits en 296 chunk-allocaties op 64 chunks; 64 KiB-documenten; Quota/Full vóór I/O; guest-digests gelijk aan het onafhankelijke Python-orakel. Proefgeometrie 256 KiB; geen fysieke schijf-, encryptie- of back-upclaim. GitHub Actions op PR #47 moet dit nog herhalen. N01-encoder (#46) gemerged zonder punt.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -49,7 +49,26 @@ Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
 
-## Nieuwe native integratie — 20% (28 oktober 2026)
+## Schaalbare documentopslag M6e — 26% (28 oktober 2026)
+
+[PR #47](https://github.com/simonvanieperen/nieuw-os/pull/47) voegt het opt-in
+profiel `native-volume` toe: een copy-on-write-documentvolume in ring 3 met
+documenten tot 64 KiB (gestreamd in stukken van 160 bytes), ruimtehergebruik
+zonder recordlimiet, quota per domein, `Full` en crashconsistente vrijgave. De
+kernel blijft een generieke blokbroker zonder kennis van het formaat.
+
+Bewijs: 16 hosttests, waaronder een uitputtende crashsimulatie, 7 tests van het
+onafhankelijke Python-schijforakel, en zeven echte QEMU-runs. Die runs omvatten
+normaal gebruik, koude read-only recovery van exact dezelfde image, twee echte
+VM-kills (midden in de inhoudswrites en midden in de tabelwrite) met koude
+recovery, en een corrupte image die vóór READY wordt geweigerd.
+[M6e-bewijs](docs/verification/M6E-ACCEPTANCE.md).
+
+Rubric v1: **S04 (+3) en S05 (+3)**, **20% → 26%**. Proefgeometrie van 256 KiB
+inhoud; geen fysieke schijf-, encryptie- of back-upclaim. GitHub Actions op de
+PR-head moet de uitslag nog onafhankelijk herhalen.
+
+## Native integratie A01/S08 — 20% (28 oktober 2026)
 
 [A01 SDK-app, PR #31](https://github.com/simonvanieperen/nieuw-os/pull/31)
 is op `main` geïntegreerd: een echt, afzonderlijk gebruikersproces met een
