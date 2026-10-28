@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 15% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 17% van de vaste productroadmap](docs/assets/progress.svg)
 
-**15% — 15 van 100 gewogen acceptatiepunten.** Dit is een
+**17% — 17 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -19,7 +19,7 @@ alleen een nette desktop haalt die eindgrens niet.
 
 | Productspoor | Totaal punten | Behaald |
 |---|---:|---:|
-| Eigen kern en procesisolatie | 15 | 9 |
+| Eigen kern en procesisolatie | 15 | 11 |
 | Opslag en gegevensherstel | 15 | 4 |
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
@@ -29,13 +29,13 @@ alleen een nette desktop haalt die eindgrens niet.
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **15** |
+| **Totaal** | **100** | **17** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`433bab9f`](https://github.com/simonvanieperen/nieuw-os/commit/433bab9feab74473517eb8d44f2fb4475848e0cf) ·
-**Ontwikkelbranch:** `codex/progress-28-20261028`.
-Deze opdracht: **14% → 15% (+1 procentpunt)**. **Opdracht:** Native quantum-jobinterface met capability-IPC, quota, annulering en referentiecircuits geaccepteerd.
-PR #30 is geïntegreerd als main 7fb8c722. GitHub Actions-run 40743008938 slaagt volledig: host-quality en qemu-smoke zijn groen; de native quantum-jobinterface draait twee geïsoleerde ring-3-processen met QJ01-jobaanvoer, Bell- en zes-qubitreferenties, work-budget, annulering tijdens uitvoering, resultaatpaging en volledige proces/capability/framecleanup. L02 sluit hierdoor; 14% naar 15%.
+**Bron:** [`357124d0`](https://github.com/simonvanieperen/nieuw-os/commit/357124d05c85a1d77cc1ac01fcc53f9c960b9898) ·
+**Ontwikkelbranch:** `docs/k07-progress-17-20261028`.
+Deze opdracht: **15% → 17% (+2 procentpunt)**. **Opdracht:** K07 resource-uitputting en herstel op actuele native bron geaccepteerd.
+K07 sluit na brongebonden native QEMU-controles voor handle-/IPC-quota en geheugen-/CPU-druk. Zowel de gespecialiseerde resource-pressure-workflow als de brede CI slagen; processen en capabilities worden volledig opgeruimd. Geen rubricgewicht of ander criterium is gewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

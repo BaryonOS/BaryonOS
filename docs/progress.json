@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "433bab9feab74473517eb8d44f2fb4475848e0cf",
-    "branch": "codex/progress-28-20261028",
-    "task": "Native quantum-jobinterface met capability-IPC, quota, annulering en referentiecircuits geaccepteerd",
-    "previous_score": 14,
-    "summary": "PR #30 is geïntegreerd als main 7fb8c722. GitHub Actions-run 40743008938 slaagt volledig: host-quality en qemu-smoke zijn groen; de native quantum-jobinterface draait twee geïsoleerde ring-3-processen met QJ01-jobaanvoer, Bell- en zes-qubitreferenties, work-budget, annulering tijdens uitvoering, resultaatpaging en volledige proces/capability/framecleanup. L02 sluit hierdoor; 14% naar 15%."
+    "source_commit": "357124d05c85a1d77cc1ac01fcc53f9c960b9898",
+    "branch": "docs/k07-progress-17-20261028",
+    "task": "K07 resource-uitputting en herstel op actuele native bron geaccepteerd",
+    "previous_score": 15,
+    "summary": "K07 sluit na brongebonden native QEMU-controles voor handle-/IPC-quota en geheugen-/CPU-druk. Zowel de gespecialiseerde resource-pressure-workflow als de brede CI slagen; processen en capabilities worden volledig opgeruimd. Geen rubricgewicht of ander criterium is gewijzigd."
   },
   "tracks": [
     {
@@ -78,9 +78,11 @@
           "id": "K07",
           "title": "Resourcebeheer onder druk",
           "points": 2,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "Geheugen-, CPU-, IPC- en handle-uitputting blijven per app begrensd; het bruikbare systeem herstelt zonder kerneluitval.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/K07-ACCEPTANCE.md"
+          ]
         }
       ]
     },
