@@ -1,9 +1,9 @@
-# Begrensde Ethernet/IPv4/UDP-parser
+# Begrensd Ethernet/IPv4/UDP-protocol
 
 `nieuw-os-net-protocol` is een zelfstandige Rust-workspace met één
 allocatorvrije `no_std`-library, `forbid(unsafe_code)` en geen dependencies.
-Zij leest bestaande bytes; zij opent geen device, socket, verbinding of
-netwerkrecht en verstuurt niets.
+Zij valideert ontvangen bytes en codeert uitgaande frames, maar opent geen
+device, socket, verbinding of netwerkrecht en verstuurt niets.
 
 ## Interface en invariant
 
@@ -58,6 +58,29 @@ zulke frames of een bepaalde jumbo-MTU ondersteunt.
 ongeldige IP-header-/totallengte/flags/checksum, ongeldige of niet-passende
 UDP-lengte/checksum, onverwachte Ethernet-lengte en rekenkundige overflow.
 De library repareert geen checksum, lengte, fragment of payload.
+
+## Uitgaande pakketten (voorbereiding N01)
+
+Naast de bestaande parser kan de library met \`build_udp_ipv4(tx, payload, output)\`
+nu een IPv4/UDP-datagram in een door de aanroeper beheerde buffer coderen.
+\`UdpIpv4Tx\` bevat MAC- en IP-adressen, poorten, TTL, identificatie en
+expliciete effectieve IPv4-MTU. De encoder plaatst IPv4- en UDP-checksums
+(ook de RFC 768-nul-als-\`0xffff\`-regel), zet DF, schrijft exact de
+60-byte-Ethernet-minimumlengte waar nodig, en geeft de te verzenden lengte terug.
+
+**Geen enkele fout schrijft gedeeltelijke data:** een te klein buffer, een
+te groot payload, TTL nul of overschreden MTU wordt vooraf afgewezen.
+Een succesvolle aanroep laat alles na de geretourneerde lengte ongemoeid.
+De netwerkdienst moet MTU, afzenderadressen, bestemmingsrechten, route en
+naburige MAC-identiteit zelf afdwingen. Deze functie doet geen ARP,
+fragmentatie, transmissie, devicebeheer, IP/TCP-stack of privilegecontrole.
+
+Vaste onafhankelijk afgeleide bestaande RX-vectoren worden nu ook als TX-orakel
+gebruikt. Negatieve tests bestrijken MTU, te kleine output, payloadoverschrijding,
+nul-TTL, bytebehoud bij fout, maximaal IPv4-formaat en checksumcorruptie.
+De tests zijn hosttests; pas een afzonderlijke kernel-/NIC-/QEMU-gate kan de
+native netwerkvereisten van N01 onderbouwen. De voortgangsmeter blijft
+ongewijzigd.
 
 ## Autoriteit en nog ontbrekende functies
 
