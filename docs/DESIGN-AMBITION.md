@@ -82,8 +82,29 @@ De ervaring moet coherent zijn van eerste installatie tot foutmelding, van appin
 
 Een ontwerp mag aan vertrouwde patronen herinneren waar die werken. Het moet een eigen antwoord geven op de kerntaken en eigenaarschap van gegevens; alleen uiterlijk verschil is niet genoeg.
 
+## Aanvulling 28 oktober 2026 — privacy zonder visuele of functionele concessie
+
+De uiteindelijke eigen apps en systeemoppervlakken moeten bewust **premium en
+toekomstgericht** worden ontworpen. Privacyvriendelijkheid is geen reden voor
+verouderde bediening, grove systeembeheerpanelen of inconsistente open-source-
+achtige deelinterfaces. De referentiekwaliteit is het niveau van afwerking dat
+gebruikers bij moderne commerciële productiviteitssoftware verwachten; het
+product mag die software niet klonen.
+
+Materiaal blijft het onderscheidende model: inhoud en objectcontinuïteit eerst,
+contextuele gereedschappen daarna. Eén designsysteem moet typografie, spacing,
+focus, motion, delen, herstel, geschiedenis, fouttoestanden en
+toegankelijkheid over eigen apps heen dragen. Het langetermijndoel is een
+gedeelde native render-/UI-laag zodra de grafische basis dit technisch draagt;
+het huidige browserprototype is geen stil gekozen eindruntime.
+
+Een gebruiker mag aanvullende privacyuitleg uitschakelen. De daadwerkelijke
+Security Floor en capabilitygrenzen blijven onafhankelijk daarvan actief. Zie
+[implementation/PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md) en
+[implementation/ENCRYPTED-OBJECT-STORAGE.md](implementation/ENCRYPTED-OBJECT-STORAGE.md).
+
 ## Niet-onderhandelbare grenzen
-Eigen OS-kernel. Geen stille overgang naar een Linux-distributie of webshell op een bestaande kernel. OS-data lokaal of end-to-end versleuteld op een expliciet gekoppelde eigen NAS of NAS van vrienden/familie; LAN standaard, internet expliciet toegestaan per peer. De NAS-beheerder beheert capaciteit en verwijdering, de gebruiker zijn inhoudssleutel. AI-inferentie op apparaat, zonder cloudfallback. Externe apps met beperkte rechten. Volg LOCAL-PRIVACY-CONTRACT.md.
+Eigen OS-kernel. Geen stille overgang naar een Linux-distributie of webshell op een bestaande kernel. OS-data blijft lokaal of wordt client-side/end-to-end versleuteld op een expliciet gekoppelde eigen NAS, NAS van vrienden/familie of — na expliciete keuze — als opaque ciphertext op een externe opslagprovider gezet. Een externe provider krijgt geen Nieuw-OS-inhoudssleutel en is geen stille fallback. De NAS-beheerder beheert capaciteit en verwijdering, de gebruiker zijn inhoudssleutel. AI-inferentie op apparaat, zonder cloudfallback. Externe apps met beperkte rechten. Privacykeuzes mogen de Security Floor niet uitschakelen. Volg LOCAL-PRIVACY-CONTRACT.md.
 
 Streef naar zeer sterke bescherming, met heldere garanties per functie en testbaar herstel. Gebruik een absolute claim als 'niet te hacken' niet als vervanging voor ontwerp of bewijs. Maak veiligheid een kwaliteit van de ervaring, geen excuus voor een onaf product.
 
