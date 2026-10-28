@@ -238,11 +238,9 @@ pub fn parse(frame: &[u8]) -> Result<UdpDatagram<'_>, Error> {
     })
 }
 
-
 /// Maximum UDP payload for an IPv4 datagram without IP options. A particular
 /// NIC/route may impose a much smaller MTU; the caller must supply that bound.
-pub const MAX_UDP_PAYLOAD_BYTES: usize =
-    MAX_IPV4_BYTES - IPV4_HEADER_BYTES - UDP_HEADER_BYTES;
+pub const MAX_UDP_PAYLOAD_BYTES: usize = MAX_IPV4_BYTES - IPV4_HEADER_BYTES - UDP_HEADER_BYTES;
 
 /// Endpoint/header values come from an authorized network service, never
 /// directly from a request whose application lacks destination authority.
