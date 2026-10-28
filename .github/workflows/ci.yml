@@ -73,6 +73,7 @@ jobs:
           python3 tools/progress.py --write
           git diff --exit-code -- README.md docs/PROGRESS.md docs/assets/progress.svg
           python3 tools/progress.py --check
+          git status --porcelain
           test -z "$(git status --porcelain)"
 
   qemu-smoke:
