@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "8d756ed4b85585e9878f440ea537c7875b02da45",
+    "source_commit": "82c94221f4e50fbcc5ce3a6200372f94f1d63efc",
     "branch": "codex/integrate-m6d-main",
-    "task": "PR-conflicten oplossen en qsim-requestvalidatie herstellen",
+    "task": "PR-review en integratie na conflictherstel",
     "previous_score": 14,
-    "summary": "De integratiebranch bewaart de actuele main en het nieuwe M6d-Windowsbewijs. De qsim-hostparser weigert positionele request- en gatearrays; 27 tests, rustfmt en Clippy slagen, met twee aantoonbaar falende regressies vóór herstel. De 144 native broninputs blijven gelijk aan de uitgevoerde bron 326d2f6; deze integratie voert geen nieuwe VM-tests uit. Geen nieuw native productcriterium; voortgang blijft 14%."
+    "summary": "De integratie bewaart main, M6c/M6d en het Windowsbewijs. De qsim-parserfix heeft 27 geslaagde hosttests, rustfmt en Clippy, met twee falende regressies vóór herstel. Vijf CodeRabbit-punten over archiefbytes, historische opdrachten, receiptverwijzingen en hashherkomst zijn hersteld. De 144 native inputs en oorspronkelijke testreceipts blijven gelijk; geen nieuwe VM-uitvoering of nieuw native productcriterium. Voortgang blijft 14%."
   },
   "tracks": [
     {

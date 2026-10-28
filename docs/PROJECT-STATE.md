@@ -27,8 +27,25 @@ de twee ontbrekende individuele M1-QEMU-hashes blijven expliciet. Voortgang
 **14% → 14%**: de hostparserfix en integratie voegen geen native criterium toe.
 `python3 tools/progress.py --write` en daarna `--check` zijn uitgevoerd met
 exit 0; zij controleren de berekening, bewijsverwijzingen en weergave.
-Dit is het checkpoint vóór de definitieve externe review; de feitelijke
-review- en squashmergestatus staat in [PR #13](https://github.com/simonvanieperen/nieuw-os/pull/13).
+Reviewaanvulling `82c94221f4e50fbcc5ce3a6200372f94f1d63efc` behandelt vijf
+CodeRabbit-punten: bytebehoud van de historische archieven, brongebonden
+M6c-opdrachten, de actuele R08-receiptnaam, de latere A04-scriptversie en de
+actuele FINAL-REVIEW-hash met vorige/tussenliggende commits. Alleen de twee
+gecorrigeerde documenthashes veranderen in de actuele M6d-index; historische
+test- en auditreceipts blijven bytegelijk. De CodeRabbit-deelclaim dat het
+A04-sectorbestand als ontbrekend stond vermeld, bleek niet reproduceerbaar;
+het bestand stond al in Git en in de overdrachtstabel.
+
+Een afzonderlijke lokale Git-controle met `core.autocrlf=true` en
+`core.eol=crlf` bevestigt `text: unset` voor alle 26 betrokken archiefpaden.
+Acht CRLF-proefbestanden (beide archieven, direct/genest, JSON/TXT) blijven
+bytegelijk in de index en na `git checkout-index --all --force`.
+De documenthashes, historische hashherkomst en receiptverwijzingen zijn
+eveneens gecontroleerd; geen native uitvoering of nieuwe acceptatiepunten.
+
+Dit verslag legt de bron en uitvoering van de integratie vast. De definitieve
+review- en squashmergestatus staat in
+[PR #13](https://github.com/simonvanieperen/nieuw-os/pull/13).
 
 ## Main- en remote-PR-integratie — conflictresolutie 28 oktober 2026
 

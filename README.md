@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`8d756ed4`](https://github.com/simonvanieperen/nieuw-os/commit/8d756ed4b85585e9878f440ea537c7875b02da45) ·
+**Bron:** [`82c94221`](https://github.com/simonvanieperen/nieuw-os/commit/82c94221f4e50fbcc5ce3a6200372f94f1d63efc) ·
 **Ontwikkelbranch:** `codex/integrate-m6d-main`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** PR-conflicten oplossen en qsim-requestvalidatie herstellen.
-De integratiebranch bewaart de actuele main en het nieuwe M6d-Windowsbewijs. De qsim-hostparser weigert positionele request- en gatearrays; 27 tests, rustfmt en Clippy slagen, met twee aantoonbaar falende regressies vóór herstel. De 144 native broninputs blijven gelijk aan de uitgevoerde bron 326d2f6; deze integratie voert geen nieuwe VM-tests uit. Geen nieuw native productcriterium; voortgang blijft 14%.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** PR-review en integratie na conflictherstel.
+De integratie bewaart main, M6c/M6d en het Windowsbewijs. De qsim-parserfix heeft 27 geslaagde hosttests, rustfmt en Clippy, met twee falende regressies vóór herstel. Vijf CodeRabbit-punten over archiefbytes, historische opdrachten, receiptverwijzingen en hashherkomst zijn hersteld. De 144 native inputs en oorspronkelijke testreceipts blijven gelijk; geen nieuwe VM-uitvoering of nieuw native productcriterium. Voortgang blijft 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -56,8 +56,8 @@ de actuele main en het [nieuwe Windowsbewijs](docs/verification/M6D-CLOSEOUT.md)
 samen. De geschiedenis is zonder codeverlies verbonden. Ook de ontbrekende
 qsim-parserfix is opgenomen: positionele JSON-arrays worden geweigerd;
 [27 hosttests, rustfmt en Clippy](docs/verification/qsim-request-validation/README.md)
-slagen. Dit checkpoint gaat vooraf aan de definitieve review en squashmerge;
-de actuele afhandeling staat in de PR. De native broninputs blijven gelijk en
+slagen. De actuele review- en squashmergestatus staat in de PR.
+De native broninputs blijven gelijk en
 de voortgang blijft **14%**.
 
 ## Laatste bouwstap: M6d — opslagfouten gecontroleerd afhandelen
