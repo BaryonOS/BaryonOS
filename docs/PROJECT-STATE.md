@@ -1,5 +1,30 @@
 # Actuele projectstatus
 
+## Native A01 en S08 geïntegreerd, 20% — 28 oktober 2026
+
+Op `main` commit `b9c7cf8f4e1804f0333e8fba8862941190224155` zijn twee
+afzonderlijke functies nieuw opgenomen. [PR #31](https://github.com/simonvanieperen/nieuw-os/pull/31)
+voegt de begrensde gewone native SDK-app en gebruikersdienst toe; een echte
+QEMU-acceptatiecontrole toetst normale en geweigerde rechten, foutafhandeling,
+proceslevenscyclus en resourcecleanup. [PR #34](https://github.com/simonvanieperen/nieuw-os/pull/34)
+voegt de S08-resiliencegate toe met dertien aparte QEMU-runs, waaronder zes
+koud gestarte recoveries van exact dezelfde bewaarde image. Read-only is
+hardware-emulator-, driver-, capability- en userspace-afgedwongen, niet slechts
+een gelijke hash voor en na de proef.
+
+De acceptatiebewijzen staan in
+[A01-ACCEPTANCE](verification/A01-ACCEPTANCE.md) en
+[S08-ACCEPTANCE](verification/S08-ACCEPTANCE.md). Voor A01 en S08
+zijn de gespecialiseerde gates groen; [main-CI 40761772907](https://github.com/simonvanieperen/nieuw-os/actions/runs/40761772907)
+is eveneens volledig groen. De oorspronkelijke CodeRabbit-bevindingen zijn
+gecorrigeerd; oude formele reviews zijn pas na oplossing en nieuwe groene
+tests met onderbouwing gesloten. Codex-cloudagents konden niet starten door
+het huidige gebruikslimiet, dus er is geen parallelle agentuitvoering geclaimd.
+
+Roadmapacceptatie volgens bestaande rubric v1: **17% → 20%** (A01 +2, S08 +1).
+Alle overige criteria blijven open. Zonder fysiek hardwarebewijs, native GUI,
+breed app-ecosysteem, netwerkintegratie en updates is geen 50% geclaimd.
+
 ## Volledige repository-audit en integratie — 28 oktober 2026
 
 De volledige huidige repository is opnieuw gecontroleerd op architectuurgrenzen,
