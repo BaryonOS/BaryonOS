@@ -1,0 +1,4 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/tmp/nieuw-os-par-b11-target/debug/deps/nieuw_os_net_protocol-decde2498304b97e)
+     Running tests/packets.rs (/tmp/nieuw-os-par-b11-target/debug/deps/packets-7a8f55e1fcf6cfc7)
+   Doc-tests nieuw_os_net_protocol

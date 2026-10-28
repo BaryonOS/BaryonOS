@@ -1,17 +1,27 @@
 #![no_std]
 #![no_main]
+#[cfg(all(nos_document_session, not(nos_sdk_runtime)))]
+compile_error!("document-session acceptance requires the SDK runtime bridge");
 #[path = "../services/catalog/src/user_service.rs"]
 mod catalog_service;
+#[cfg(nos_document_session)]
+mod document_session_probe;
+#[cfg(not(nos_document_session))]
 #[path = "../services/catalog/src/journal.rs"]
 mod journal;
+#[cfg(nos_document_session)]
+use catalog_core::journal;
 #[cfg(not(nos_sdk_runtime))]
 #[path = "m6_runtime.rs"]
 mod rt;
 #[cfg(nos_sdk_runtime)]
 #[path = "sdk_probe_runtime.rs"]
 mod rt;
+#[cfg(not(nos_document_session))]
 #[path = "../services/catalog/src/wire.rs"]
 mod wire;
+#[cfg(nos_document_session)]
+use catalog_core::wire;
 use rt::Message;
 
 fn value(object: u64, revision: u64) -> [u8; 128] {
@@ -490,11 +500,19 @@ fn client() -> ! {
     let case = rt::word(112);
     let domain = rt::word(0) - 1;
     let object = domain * 2;
+    #[cfg(nos_document_session)]
+    if !matches!(case, 0 | 1) {
+        rt::fail(137);
+    }
     if matches!(case, 4 | 7) || (matches!(case, 5 | 6) && domain == 1) {
         rt::worker();
     }
     wait(256);
     authority_probes(object);
+    #[cfg(nos_document_session)]
+    if case == 1 {
+        document_session_probe::recover(domain, object);
+    }
     if (8..=15).contains(&case) {
         if domain == 0 {
             put(10, object, 0);
@@ -560,6 +578,7 @@ fn client() -> ! {
         check_get(6, object, 1, true);
         rename(7, object, 1, wire::Status::Ok);
         rename(8, object, 1, wire::Status::Stale);
+        #[cfg(not(nos_document_session))]
         check_get(9, object, 2, true);
         check_list(10, domain, [2, 1], [true, true]);
         let message = request(11, object + 1, 1, wire::DELETE, None, None);
@@ -568,9 +587,14 @@ fn client() -> ! {
         }
         check_list(12, domain, [2, 2], [true, false]);
         check_get(13, object + 1, 2, false);
-        put(14, object, 2);
-        check_get(15, object, 3, true);
-        check_list(16, domain, [3, 2], [true, false]);
+        #[cfg(nos_document_session)]
+        document_session_probe::complete_normal(domain, object);
+        #[cfg(not(nos_document_session))]
+        {
+            put(14, object, 2);
+            check_get(15, object, 3, true);
+            check_list(16, domain, [3, 2], [true, false]);
+        }
     }
     finish(object)
 }

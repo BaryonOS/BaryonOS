@@ -1,0 +1,14 @@
+{
+  "scope": "Actual pinned rustc accepts attached -C syntax; no binary or VM built",
+  "command": [
+    "rustc",
+    "+1.90.0",
+    "--print",
+    "cfg",
+    "--target=x86_64-unknown-none",
+    "-Cno-redzone=no"
+  ],
+  "exit_code": 0,
+  "stdout": "debug_assertions\npanic=\"abort\"\ntarget_abi=\"\"\ntarget_arch=\"x86_64\"\ntarget_endian=\"little\"\ntarget_env=\"\"\ntarget_feature=\"fxsr\"\ntarget_has_atomic=\"16\"\ntarget_has_atomic=\"32\"\ntarget_has_atomic=\"64\"\ntarget_has_atomic=\"8\"\ntarget_has_atomic=\"ptr\"\ntarget_os=\"none\"\ntarget_pointer_width=\"64\"\ntarget_vendor=\"unknown\"\n",
+  "stderr": ""
+}

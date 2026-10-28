@@ -1,0 +1,30 @@
+{
+  "scope": "Combined source after I15 compiler binding repair; no native VM",
+  "base_commit": "5ba4da74a2ad091612b48e277acd0f02536f4c4b",
+  "command": [
+    "python",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_document_session_*.py"
+  ],
+  "exit_code": 0,
+  "input_sha256": {
+    "tools/build.py": "fbd480ea48f022e8d7d9bca5bb156b348e360dd4fcf5650ea85abe6534b392b5",
+    "tools/build_users.py": "4db84cbd8ee70cfb6844c71006f2c85dac10c8841413c0252f926ff821fdf56d",
+    "tools/test_document_session.py": "3ea8fac07c48b0ccc1d7ed29e0dd115a231d095a0fd7671d33d7a726501d5259",
+    "userspace/m6c_probe.rs": "5ecda84b213a0108f7ca1d3b7c84db8ddc1b2cfd6143ba5c7fad59917db9d34a",
+    "userspace/document_session_probe.rs": "12152c588b8c3730878d8c249cbc379ee9035cae1441a14a195796c9d13f6692",
+    "sdk/document-session/src/lib.rs": "94693742e5ce52c3d7d41b8d6c0a9121df3a1a011abbd9a45d09a5320a1e9d1d",
+    "tests/test_document_session_selection.py": "85b3fc8923cd32845cc4e4f3aa7bd574dd71451125c98ecb397d5ea6957b47e7",
+    "tests/test_document_session_users.py": "94ed60d511e48aad7b49b9dca809f35d0c4a9b4c7d2321c656fc1c03e2c8b432",
+    "tests/test_document_session_harness.py": "ae0318169f4bd484637f79a796c41cdcc3ba7694fedeeec60628e2adbcd80877"
+  },
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "5c09be5720e8b73871f64255c8bce0c4ca5d91ff66faf8ea8477eedfb6b43c93",
+  "recorded_utc": "2026-10-28T16:53:17.527961+00:00"
+}

@@ -1,0 +1,37 @@
+{
+  "reviewed_gate_commit": "4ce6ba2f5bf7201848842fb10d54c7726ab975be",
+  "command": [
+    "python3",
+    "-B",
+    "docs/verification/parallel-g12/compiler_binding_probe.py",
+    "/tmp/nieuw-os-g12-review",
+    "/workspace/scratch/debaa3b6a81c/wt-g11"
+  ],
+  "cwd": "/workspace/scratch/debaa3b6a81c/wt-g11",
+  "exit": 0,
+  "duration_s": 0.1166520840015437,
+  "stdout_sha256": "4924da686afd631420ec43eb4660dd012f3bf378cfcb35c165162407c6eeb8ab",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "result": {
+    "original_actual_compiler_records_accepted": true,
+    "foreign_rlib_dependency": {
+      "rejected": false
+    },
+    "later_conflicting_abi_flag": {
+      "rejected": false
+    }
+  },
+  "new_vm_runs": 0,
+  "findings": [
+    {
+      "id": "G12-01",
+      "status": "open",
+      "summary": "Per-rlib external dependencies are not validated."
+    },
+    {
+      "id": "G12-02",
+      "status": "open",
+      "summary": "A later conflicting ABI codegen option is accepted by the subset check."
+    }
+  ]
+}

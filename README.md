@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`ed98fd63`](https://github.com/simonvanieperen/nieuw-os/commit/ed98fd6352156fd2cce903a20e6787877062093d) ·
-**Ontwikkelbranch:** `codex/parallel-native-foundation-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Native vervolgacceptatie gepubliceerd; gerichte PR14-review en volledig inhoudsbehoud.
-Zes echte actuele VMs en onafhankelijke controle van216 bestanden zijn gepubliceerd; de eerdere80 geaccepteerde runs behouden hun oorspronkelijke binding. Zeven PR14-vragen zijn opgelost in de integratiebron en volledige bomen bevestigen nul verwijderde paden. G11/I13 bouwen de echte DocumentSession-proef; B11 een begrensde native netwerkparser zonder netwerk-I/O. Geen nieuw volledig criterium:14% naar14%.
+**Bron:** [`5ba4da74`](https://github.com/simonvanieperen/nieuw-os/commit/5ba4da74a2ad091612b48e277acd0f02536f4c4b) ·
+**Ontwikkelbranch:** `codex/native-documents-network-20261028`.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** G11 echte gebruikersbibliotheek en I13 native documentpoort, na samenvoeging van PR15 en PR14.
+Main bevat86 geaccepteerde native VMs op hun eigen bronversies. G11 echte DocumentSession, I13 poort, I15 gerichte compilerbindingreparaties en B11 netwerkparser zijn geïntegreerd.30 gezamenlijke Pythonmethoden,41 SDK-tests,18 parsertests en echte native crossbuilds slagen. G12-bevindingen zijn gericht gereproduceerd en gerepareerd. Native document/default/negatieve controles volgen op deze gepubliceerde bron. Geen nieuw volledig criterium;14% blijft gelijk.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

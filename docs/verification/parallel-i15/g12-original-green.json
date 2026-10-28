@@ -1,0 +1,11 @@
+{
+  "original_actual_compiler_records_accepted": true,
+  "foreign_rlib_dependency": {
+    "rejected": true,
+    "reason": "Exact selected compiler dependency set mismatch: nieuw_os_catalog_client"
+  },
+  "later_conflicting_abi_flag": {
+    "rejected": true,
+    "reason": "Native ABI requires exactly one no-redzone=yes"
+  }
+}

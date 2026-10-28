@@ -2,15 +2,16 @@
 
 Werkelijke capaciteit: vier agents tegelijk, inclusief hoofdagent. Eén schrijver
 per gebied; aparte builds, targets, volumes, VM-processen en logbestemmingen.
-De volledige native acceptatie blijft gebonden aan `3e41bbf9`. Het vervolg op
-`f52ef0a6` bevat de documentsessie, jobcodec, capture en reviewreparaties.
+De eerdere86 geaccepteerde native runs staan via PR15/14 op main `5ba4da74`.
+De vervolgbranch bouwt daarop voort met native documentuitvoering en een
+begrensde netwerkparser. Historisch bewijs behoudt zijn eigen bronbinding.
 
 | ID | Toestand | Eigenaar / exclusief gebied | Resultaat / kleinste afhankelijkheid |
 |---|---|---|---|
-| ROOT | in uitvoering | root: integratie, docs, GitHub en gedeelde buildhook | Zes gerichte native resultaten publiceren; PR15/14 afronden; G11-interface bewaken |
-| G11 | in uitvoering | native_apps: userspace-probe en eigen SDK-builddeel | DocumentSession echt in ring3 voor openen, bewerken, bewaren en heropenen; bestaande catalogus en oracle |
-| I13 | in uitvoering | runtime_platform: nieuwe document-session-poort en tests | Herbruikbare strikte normal/recover-acceptatie voor de G11-appbibliotheek |
-| B11 | in uitvoering | native_storage: services/net-protocol/** | Begrensde no_std Ethernet/IPv4/UDP-parser; nog geen driver of netwerkrechten |
+| ROOT | in uitvoering | root: integratie, docs, GitHub en gedeelde buildhook | Vervolgbron publiceren; native DocumentSession-freeze en kleine nieuwe PR |
+| G12/G13 | in uitvoering | native_apps: gerichte poortreview en private default-VMs | Twee gevonden compilerbindinggrenzen hercontroleren; default normal/cold uitvoeren na freeze |
+| I15/I14 | in uitvoering | runtime_platform: poortfix en private native document-VMs | Rlib-externsets en ABI-overrides weigeren; daarna exact twee echte VMs |
+| B12 | in uitvoering | native_storage: private default errors-VM en bewijs | Uitgebreide bestaande negatieve request-/capabilityroute na gewijzigde default userbuild |
 | B08/G10/I11/I12/B10/ROOT | gereed voor integratie/controle | root, gescheiden bewijsbundels | Zes echte actuele VM-runs slagen; koude images en vijf grafische frames gecontroleerd |
 | G07/I08/B09/G09/I10 | gereed voor integratie/controle | geïntegreerd op f52ef0a6 en dbd35b04 | Documentsessie, jobcodec en gerepareerde capture; gerichte reviews afgerond |
 | G1 | wacht op een benoemde afhankelijkheid | bestaande andere sessie: Materiaal en display/input | Eigenaar publiceert broncheckpoint van toegewezen G1-branch voor integratie |

@@ -303,3 +303,41 @@ root voor de testobserver en integratie. **Testbewijs:** parallel-i04,
 parallel-final-qsim en parallel-final-m3. Dit is geen formeel bewijs.
 **Migratie/rollback:** exclusief opt-in profiel; eerdere bron afzonderlijk
 bouwen, zonder opgeslagen gebruikersdata of hardwarefirmware te wijzigen.
+
+## ADR-035 — Documentbewerking native controleren via de bestaande catalogus
+
+Datum 28 oktober 2026. Eigenaar: G11 voor de gebruikersproef en library,
+I13 voor de acceptatiepoort, root voor selectie, gedeelde interfaces en
+integratie. Dit besluit voegt geen syscall, capabilityrecht of opslagformaat toe.
+
+**Keuze:** voer de echte `DocumentSession` met `NativeTransport` uit in de
+bestaande M6c-gebruikersprocessen. De dubbele expliciete selectie
+`NOS_DOCUMENT_SESSION=1` en `NOS_SDK_RUNTIME=1` geldt uitsluitend voor normal
+en recover. Openen, conceptbewerking, CAS-save, opnieuw openen en cataloguslezen
+blijven gebruikerscode. De vaste kerneltestobserver blijft ongewijzigd en eist
+de bestaande 16/3 verzoeken per client. `list()` houdt één eigenaar van de
+endpoints, zodat er geen mutable toegang tot de interne sessie nodig is.
+
+**Security-invariant:** de nieuwe route gebruikt uitsluitend bestaande grants,
+valideert werkelijke replies via SDK/catalogusclient en sluit beide endpoints
+éénmaal. LIST behoudt het lokale concept en conflictstatus en kan een gesloten
+of onzekere sessie niet heropenen. Geheugen-, linker- en capabilitygrenzen worden
+niet verruimd. De service en typed client delen dezelfde catalogusmodules om
+dubbele code/constanten binnen de bestaande rodata-pagina te voorkomen.
+
+**Weerlegd als:** de proef nieuwe rechten nodig heeft, onbekende saves herhaalt,
+een draft via LIST verliest, een gesloten endpoint opnieuw bruikbaar maakt,
+de bestaande observer/oracle moet versoepelen of een andere binary als de
+documentapp kan meetellen. De poort bindt de exacte module- en rlibhashes,
+compilerselectie, embedded user-ELF en een byte-exacte koude imagekoppeling.
+
+**Testbewijs:** gerichte SDK-/selectietests en native crosslink zijn uitgevoerd;
+de nieuwe gecombineerde native poort moet op een gepubliceerd broncheckpoint
+slagen. Uitvoering, rauwe resultaten en actuele status worden afzonderlijk
+vastgelegd. Hosttests sluiten geen native of grafisch criterium af.
+
+**Migratie/rollback:** standaardprofielen behouden hun bestaande selectie.
+De opt-in kan worden uitgezet of de eerdere bron apart gebouwd. Geen migratie
+van gebruikersdata of verandering van echte apparaten. Een native
+documentproef is nog geen Materiaal-scherm, algemene appstarter of oplossing
+voor grotere documenten en ruimtehergebruik.

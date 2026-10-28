@@ -1,5 +1,43 @@
 # Actuele projectstatus
 
+## Vervolg op geïntegreerde main — 28 oktober 2026
+
+PR15 en PR14 zijn daadwerkelijk via squash samengevoegd. Main is
+`5ba4da74a2ad091612b48e277acd0f02536f4c4b`; de tree na beide merges is exact
+`62bd7dde0cd842c60b89c73901fb0079b680d8ba`, gelijk aan de bedoelde integratie.
+Alle zeven PR14- en acht PR15-reviewthreads zijn afgehandeld. De extra Codex-
+cloudreviews konden door accountlimieten niet draaien en tellen niet als
+beoordeling. Branchregels zijn behouden. De eerdere 86 geaccepteerde echte
+VM-runs hieronder blijven bij hun eigen bronversies.
+
+Vervolgbranch: `codex/native-documents-network-20261028`. G11 voegt de echte
+`DocumentSession` toe aan de bestaande native gebruikersproef: openen,
+128 bytes bewerken, CAS-save, heropenen en na koude start lezen. Het nieuwe
+LIST behoudt één endpoint-eigenaar en lokale wijzigingen. Default usercode
+blijft apart gebouwd; de opt-in past in de bestaande rodata-pagina door
+catalogusmodules te delen. Er verandert geen kernelobserver, capabilityrecht,
+IPC- of opslagformaat. [Bron-/crossbuildbewijs](verification/parallel-g11/README.md).
+
+I13 levert een herbruikbare poort voor exact twee echte native cases. Zij bindt
+beide expliciete flags, twintig broninputs, vier libraries, compilerselectie,
+de werkelijk ingebouwde user-ELF en een byte-exacte koude imagekoppeling.
+[Poort en negatieve tests](verification/parallel-i13/README.md). De gecombineerde
+30 Pythonmethoden en 41 SDK-hosttests slagen; daadwerkelijke uitvoering van
+deze nieuwe documentroute volgt pas na publicatie van deze bronfreeze.
+
+G12 vond twee concrete compilerbindinggaten. I15 valideert nu de exacte
+afhankelijkheden van iedere library en precies één waarde voor elke vereiste
+ABI-optie, inclusief aangehechte rustc-opties. Alle29 gerichte negatieve
+mutaties van echte compilerrecords worden geweigerd; oorspronkelijke records
+blijven geldig. [Rood/groen bewijs](verification/parallel-i15/README.md).
+
+B11 is geïntegreerd: een no_std Ethernet/IPv4/UDP-parser met18 geslaagde
+hosttests, foutgrenzen, native librarybuild en standaard checksumvalidatie.
+[API, primaire bronnen en grenzen](../services/net-protocol/README.md).
+Dit blijft een library-afhankelijkheid zonder driver, verbinding of rechten.
+G1/Materiaal is nog bij de bestaande eigenaar; diens gepubliceerde broncheckpoint
+ontbreekt. Roadmap **14% → 14%**; geen acceptatiecriteria of gewichten veranderd.
+
 ## Actuele vervolgacceptatie — 28 oktober 2026
 
 **Zes extra echte VM-runs slagen op `dbd35b04d742b18d66b40fdd65d8a9b900656cac`**,

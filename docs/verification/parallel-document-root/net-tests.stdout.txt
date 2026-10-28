@@ -1,0 +1,33 @@
+
+running 2 tests
+test checksum_tests::rfc1071_known_sum_and_every_chunk_boundary ... ok
+test checksum_tests::odd_octet_uses_high_byte_and_end_around_carry ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 16 tests
+test ethernet_minimum_padding_is_separate_and_extra_trailers_are_rejected ... ok
+test every_single_bit_error_in_the_ipv4_header_is_rejected ... ok
+test ipv4_total_length_cannot_underflow_trust_padding_or_exceed_available_bytes ... ok
+test fixed_odd_even_empty_and_negative_zero_vectors ... ok
+test ipv4_versions_and_all_ihl_values_have_explicit_errors ... ok
+test ipv4_optional_zero_udp_checksum_is_visible_not_verified ... ok
+test every_truncated_offset_of_each_fixed_packet_is_rejected ... ok
+test every_single_bit_error_in_udp_header_and_odd_payload_is_rejected ... ok
+test fragment_offsets_more_fragments_and_reserved_flag_are_rejected_but_df_is_allowed ... ok
+test only_udp_protocol_is_supported ... ok
+test successful_parse_preserves_every_input_byte_and_borrows_payload ... ok
+test unsupported_ethernet_types_and_vlan_tags_are_explicit ... ok
+test udp_length_must_cover_exactly_the_ipv4_payload ... ok
+test pseudoheader_binds_both_ipv4_addresses_even_after_ip_checksum_repair ... ok
+test source_port_zero_and_link_addresses_are_data_not_authority ... ok
+test maximum_ipv4_length_is_bounded_without_udp_length_wraparound ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

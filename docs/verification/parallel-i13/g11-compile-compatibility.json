@@ -1,0 +1,79 @@
+{
+  "task": "I13",
+  "scope": "Read-only compatibility check against actual G11 crosscompiled artifacts and successful compiler logs; no kernel build or VM",
+  "g11_commit": "91bf66ca2cdc00b7d2e220cd5afefd270d8fe062",
+  "created_utc": "2026-10-28T16:41:16.225728+00:00",
+  "g11_manifest_path": "/workspace/scratch/debaa3b6a81c/wt-g11/build/parallel-g11-document/users/manifest-m6c.json",
+  "g11_manifest_sha256": "e19bf0027815f8fa30fccda2bc7018e62727673e905fc2621c55dd8a77249407",
+  "gate_sha256": "050c166ee7136c066fb67ac9507a02be6166043ba6d588128cda71103fb25a5b",
+  "passed": true,
+  "selected_sources": {
+    "sdk/Cargo.lock": "1a62818cb453dfd2ab07d56550a3b9c85ce50b311ba4401eea49015b60424875",
+    "sdk/Cargo.toml": "f929cb38e635f84289d947d5fcbc9c15e32b09ec57793fa7bef743a9e641a60b",
+    "sdk/catalog-client/Cargo.toml": "37a0182bd118b59ab53e8004309f4d81c9ef16adce8dca58deb897cc7c02d887",
+    "sdk/catalog-client/src/lib.rs": "5ca84b64fc6fc7384a0f92a5eb3c0f7532ba7ce982fe1008b1a9cef27bb34244",
+    "sdk/document-session/Cargo.toml": "a738cf966c7a2574b46759d872f7c7f3f2669c197a0d41d60ad0987d1dae2c85",
+    "sdk/document-session/src/lib.rs": "94693742e5ce52c3d7d41b8d6c0a9121df3a1a011abbd9a45d09a5320a1e9d1d",
+    "sdk/runtime/Cargo.toml": "5062f7dc5bd8187c14a91b1127064f8f46741dfd28078a1c82da98e04278c56d",
+    "sdk/runtime/src/lib.rs": "c035469159e16e8615606ffff9a6b3246c74be536db2a2be3594d67be2b590f6",
+    "sdk/runtime/src/message.rs": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab",
+    "sdk/runtime/src/native.rs": "48758b9c92ed890260a7c0f2c3aebe81be0d0581639b924dcd4e5a8084e70c15",
+    "services/catalog/Cargo.toml": "56198ca8ae556bfb70569569d82c09437a34a1b2f27dc247e5a9d2a733d260ac",
+    "services/catalog/src/client.rs": "1a1474e3a829a4c247046ee916019e5857a1603efd4620d95e0c4a50ea4f0878",
+    "services/catalog/src/journal.rs": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+    "services/catalog/src/lib.rs": "375921af0dc4e449ede38beae0ebcd5a6b465018a9448585af96119a86b407cd",
+    "services/catalog/src/user_service.rs": "f822b19496b47a155aa62505cbec042d75a9d30c5829eef2153a547fc1072e01",
+    "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+    "userspace/document_session_probe.rs": "12152c588b8c3730878d8c249cbc379ee9035cae1441a14a195796c9d13f6692",
+    "userspace/m6_runtime.rs": "f4af399746e113bbc08ef8b629ebd2ee569ef4bb4aaa0b5ed1ca65644aaa41bf",
+    "userspace/m6c_probe.rs": "5ecda84b213a0108f7ca1d3b7c84db8ddc1b2cfd6143ba5c7fad59917db9d34a",
+    "userspace/sdk_probe_runtime.rs": "b21c5e575fbf34589b1aca96afc8d128ac1f57e34d4a5e212b8c0aa27d1dcf76"
+  },
+  "actual_library_sha256": {
+    "users/libnieuw_os_document_session.rlib": "6800556a5f45e19aec17ee271b269b3b20938142fb8b1da9ac85b9a67f22d837",
+    "users/libnieuw_os_sdk_runtime.rlib": "a5174073fcf89b5eda2dc3856ba97f361dd4e3e06dd7b0ac75f9722cf97aff16",
+    "users/libcatalog_core.rlib": "af4587c18b1fd7f54aaa287b7946096aedcac0c86953df504b96b0569a08bdc4",
+    "users/libnieuw_os_catalog_client.rlib": "191d7af66579d0506653c95a75fb229dee342c88f9fe4d00e7ceecc7490c5414"
+  },
+  "actual_user_elf_sha256": "38f5dee1b903b9ad86cbb6d44f801fb49d07c92567d501cd818d4c76ad04c831",
+  "compiler_command_sha256": {
+    "build-sdk-runtime": "54cd4d3c2f0c48dd657eecb699afaf6f297ea5d541e3325013625de7e299a9ec",
+    "build-document-library-catalog_core": "cc947d3b74d1eeaf60d234c86d308c53f2be2bb4465c6a4d26f1854dbff20ce5",
+    "build-document-library-nieuw_os_catalog_client": "bb298198bde493cb4b350e6bbbf641b6d00359e47db037ac416a5a9eb4213d3b",
+    "build-document-library-nieuw_os_document_session": "878e3f15501c028247f36ccc78faca9d192cc0287c9f8960fa6e08b43a9f9b4b",
+    "build-users-m6c_probe": "8f41825dd41d959dae19663c2e766c17a56a645d9459c5a617bf43bb90aad875"
+  },
+  "elf_layout": {
+    "entry": 1073741824,
+    "segments": [
+      {
+        "flags": 5,
+        "address": 1073741824,
+        "offset": 4096,
+        "filesz": 39874,
+        "memsz": 39874,
+        "page_start": 1073741824,
+        "page_end": 1073782784
+      },
+      {
+        "flags": 6,
+        "address": 1073807360,
+        "offset": 45056,
+        "filesz": 16384,
+        "memsz": 16384,
+        "page_start": 1073807360,
+        "page_end": 1073823744
+      },
+      {
+        "flags": 4,
+        "address": 1073823744,
+        "offset": 61440,
+        "filesz": 3683,
+        "memsz": 3683,
+        "page_start": 1073823744,
+        "page_end": 1073827840
+      }
+    ]
+  },
+  "native_vm_invocations": 0
+}
