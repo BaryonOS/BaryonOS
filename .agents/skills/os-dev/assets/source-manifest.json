@@ -1,0 +1,34 @@
+{
+  "skill_name": "os-dev",
+  "version": "2.0.0",
+  "assembled_date": "2026-10-28",
+  "wiki_pages": 3054,
+  "wiki_main_namespace_pages": 1172,
+  "wiki_main_articles_excluding_redirects": 787,
+  "pdf_pages": 78,
+  "source_records": 3132,
+  "wiki_volumes": 15,
+  "newest_wiki_revision": "2026-10-23T21:22:10Z",
+  "pdf_edition": "2015-01-19",
+  "source_text_bytes": 10161364,
+  "original_archive": {
+    "filename": "OS-Dev-Skill-Compleet-v1.0.zip",
+    "sha256": "55961cf2efb8ec1b0cc603518d437a23ba7e942bbda8ccd50554a2f593813710"
+  },
+  "original_inputs": {
+    "osdev-wiki.xml.gz": {
+      "bytes": 119668469,
+      "sha256": "dfb6e25f2d2bbf11739e69766353348106db3508b02b6d29e7c90ed656f3c345"
+    },
+    "book.pdf": {
+      "bytes": 499301,
+      "sha256": "5a68a45b3d81b1a7fc45fe5d950f79b969824388ad2501f9fd3e664b83fce023"
+    }
+  },
+  "source_metadata_index": "references/source-index.json",
+  "wiki_binary_images_included": false,
+  "pdf_figures_included": 3,
+  "scope": "All latest-page texts in supplied XML snapshot and all extracted PDF pages; no full external manuals or wiki image binaries; no general correctness guarantee.",
+  "package_design": "Self-contained; fewer than 500 files; no SQLite, pip, remote library, API key, account or download required for local lookup.",
+  "installation_status": "Created and validated locally; not installed in the user account."
+}

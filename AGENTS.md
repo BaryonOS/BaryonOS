@@ -2,7 +2,7 @@
 Dit is een zelfstandig OS-onderzoeksproject. Geen bestaande OS-kernel als basis. Eerst x86_64/QEMU/UEFI; geen installatie op echte apparaten. Dit bestand definieert werkwijze, geen bewijs van systeemveiligheid.
 
 ## Leesroute
-Lees README.md, docs/PROJECT-STATE.md, docs/implementation/START-CODING.md, docs/implementation/FIRST-BATCH.md, docs/DECISIONS.md en docs/LOCAL-PRIVACY-CONTRACT.md. De vijf specificaties in docs/implementation/ zijn de gekozen basis; oudere onderzoeksopdrachten zijn hiermee voor de eerste fase afgehandeld. Lees daarna alleen de relevante kennisbestanden en lokale AGENTS.md-bestanden. Vanuit de root: lees expliciet alle AGENTS.md-bestanden onder de mappen die je gaat wijzigen; veronderstel niet dat iedere client alle submappen automatisch laadt. Neem bronversies en bestaande code als uitgangspunt; onderzoeksvoorstellen zijn niet automatisch geïmplementeerd.
+Lees README.md, docs/PROJECT-STATE.md, docs/implementation/START-CODING.md, docs/implementation/FIRST-BATCH.md, docs/DECISIONS.md en docs/LOCAL-PRIVACY-CONTRACT.md. Gebruik bij OS-ontwikkeltaken daarnaast de repositoryskill `.agents/skills/os-dev/SKILL.md`; raadpleeg via de lokale zoekhelper alleen de relevante OSDev-/boekpassages. De vijf specificaties in docs/implementation/ zijn de gekozen basis; oudere onderzoeksopdrachten zijn hiermee voor de eerste fase afgehandeld. Lees daarna alleen de relevante kennisbestanden en lokale AGENTS.md-bestanden. Vanuit de root: lees expliciet alle AGENTS.md-bestanden onder de mappen die je gaat wijzigen; veronderstel niet dat iedere client alle submappen automatisch laadt. Neem bronversies en bestaande code als uitgangspunt; onderzoeksvoorstellen zijn niet automatisch geïmplementeerd.
 
 ## Productambitie
 

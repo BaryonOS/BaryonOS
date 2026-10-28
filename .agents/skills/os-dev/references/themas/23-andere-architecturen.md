@@ -1,0 +1,101 @@
+# ARM, AArch64, RISC-V en overige platforms
+
+Niet-x86-architecturen blijven volwaardig opgenomen: onder andere ARM/AArch64, RISC-V, PowerPC, MIPS, SPARC en S390. Hun handleidingen, interruptmodellen, geheugenbeheer en bare-bonesprojecten zijn niet afgeleid van de 32-bit x86-code in het boek.
+
+## Geselecteerde ingangen
+
+- [ARM Overview](../corpus/wiki-05.md#w002332) [W002332] · revisie 30546 · 2026-05-02T18:59:54Z
+- [AArch64](../corpus/wiki-12.md#w004267) [W004267] · revisie 30864 · 2026-07-07T17:29:26Z
+- [RISC-V](../corpus/wiki-11.md#w004033) [W004033] · revisie 28383 · 2023-10-12T17:54:42Z
+- [Raspberry Pi](../corpus/wiki-08.md#w003306) [W003306] · revisie 30457 · 2026-04-06T15:36:18Z
+- [PowerPC Overview](../corpus/wiki-03.md#w001834) [W001834] · revisie 29665 · 2025-09-18T21:46:23Z
+- [MIPS Overview](../corpus/wiki-03.md#w001832) [W001832] · revisie 29859 · 2026-01-11T19:10:23Z
+- [Sparc Hardware Docs](../corpus/wiki-07.md#w003045) [W003045] · revisie 29128 · 2024-06-18T14:53:30Z
+- [IBM Mainframe architecture](../corpus/wiki-15.md#w005085) [W005085] · revisie 30934 · 2026-09-01T00:37:40Z
+
+## Aanvullende vindplaatsen
+
+Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+
+- [AArch64](../corpus/wiki-12.md#w004267) [W004267]
+- [AArch64 Exceptions](../corpus/wiki-14.md#w005028) [W005028]
+- [Advanced Interrupt Architecture](../corpus/wiki-14.md#w004962) [W004962]
+- [Alpha](../corpus/wiki-14.md#w004980) [W004980]
+- [ARC](../corpus/wiki-13.md#w004382) [W004382]
+- [ARM Beagleboard](../corpus/wiki-07.md#w003037) [W003037]
+- [ARM Integrator-CP Bare Bones](../corpus/wiki-06.md#w002866) [W002866]
+- [ARM Integrator-CP IRQTimerAndPIC](../corpus/wiki-09.md#w003468) [W003468]
+- [ARM Integrator-CP IRQTimerAndPICAndTaskSwitch](../corpus/wiki-09.md#w003469) [W003469]
+- [ARM Integrator-CP IRQTimerPICTasksMMAndMods](../corpus/wiki-09.md#w003483) [W003483]
+- [ARM Integrator-CP ITPTMME Main](../corpus/wiki-09.md#w003504) [W003504]
+- [ARM Integrator-CP ITPTMME Phase2](../corpus/wiki-09.md#w003503) [W003503]
+- [ARM Integrator-CP PL110 Dirty](../corpus/wiki-07.md#w003150) [W003150]
+- [ARM Local Timer](../corpus/wiki-13.md#w004370) [W004370]
+- [ARM Overview](../corpus/wiki-05.md#w002332) [W002332]
+- [ARM Paging](../corpus/wiki-12.md#w004221) [W004221]
+- [ARM SMMU versions 1 and 2](../corpus/wiki-13.md#w004366) [W004366]
+- [ARM System Calls](../corpus/wiki-07.md#w002877) [W002877]
+- [ARM TargetingMultipleDevices](../corpus/wiki-09.md#w003450) [W003450]
+- [ARMv7 Common Memory System Architecture](../corpus/wiki-11.md#w004017) [W004017]
+- [ARMv7 Generic Timers](../corpus/wiki-12.md#w004196) [W004196]
+- [ARMv7-A Bare Bones](../corpus/wiki-11.md#w003802) [W003802]
+- [BCM System Timer](../corpus/wiki-13.md#w004369) [W004369]
+- [BOOTBOOT](../corpus/wiki-13.md#w004393) [W004393]
+- [Booting Raspberry Pi 3](../corpus/wiki-12.md#w004265) [W004265]
+- [CFE Bare Bones](../corpus/wiki-07.md#w003089) [W003089]
+- [Command SubSystem](../corpus/wiki-14.md#w004641) [W004641]
+- [Detecting Raspberry Pi Board](../corpus/wiki-13.md#w004416) [W004416]
+- [Devicetree](../corpus/wiki-13.md#w004422) [W004422]
+- [EBCDIC](../corpus/wiki-14.md#w005042) [W005042]
+- [FLATBOOT Barebones](../corpus/wiki-14.md#w004650) [W004650]
+- [GameBoy Advance Barebones](../corpus/wiki-07.md#w002894) [W002894]
+- [GameBoy Advance Introduction](../corpus/wiki-07.md#w002889) [W002889]
+- [Generic Interrupt Controller](../corpus/wiki-11.md#w004006) [W004006]
+- [Generic Interrupt Controller versions 3 and 4](../corpus/wiki-11.md#w004011) [W004011]
+- [HiFive-1 Bare Bones](../corpus/wiki-12.md#w004291) [W004291]
+- [IA-64](../corpus/wiki-06.md#w002772) [W002772]
+- [IBM Mainframe architecture](../corpus/wiki-15.md#w005085) [W005085]
+- [Interrupt Translation Service](../corpus/wiki-14.md#w005050) [W005050]
+- [IPL and Loading your kernel](../corpus/wiki-14.md#w005069) [W005069]
+- [Itanium2 Overview](../corpus/wiki-06.md#w002746) [W002746]
+- [Libreboot](../corpus/wiki-14.md#w004903) [W004903]
+- [Lowcore and Prefixing](../corpus/wiki-15.md#w005098) [W005098]
+- [M68k Overview](../corpus/wiki-07.md#w002873) [W002873]
+- [Memory Map (S390)](../corpus/wiki-14.md#w004644) [W004644]
+- [MIPS Overview](../corpus/wiki-03.md#w001832) [W001832]
+- [OPAL](../corpus/wiki-13.md#w004539) [W004539]
+- [Open Firmware](../corpus/wiki-14.md#w004850) [W004850]
+- [PA-RISC](../corpus/wiki-14.md#w004975) [W004975]
+- [PearPC](../corpus/wiki-08.md#w003180) [W003180]
+- [PicoEFI](../corpus/wiki-15.md#w005083) [W005083]
+- [PinePhone](../corpus/wiki-14.md#w004717) [W004717]
+- [PinePhone/DRAM initialization](../corpus/wiki-14.md#w004718) [W004718]
+- [PL050 PS/2 Controller](../corpus/wiki-08.md#w003165) [W003165]
+- [PLIC](../corpus/wiki-14.md#w004626) [W004626]
+- [Power Macintosh](../corpus/wiki-14.md#w004849) [W004849]
+- [PowerPC Bare Bones](../corpus/wiki-14.md#w004858) [W004858]
+- [PowerPC Overview](../corpus/wiki-03.md#w001834) [W001834]
+- [Program Status Word](../corpus/wiki-14.md#w004642) [W004642]
+- [QEMU AArch64 Virt Bare Bones](../corpus/wiki-14.md#w004657) [W004657]
+- [QEMU RISC-V Virt Bare Bones](../corpus/wiki-12.md#w004332) [W004332]
+- [QEMU RISC-V Virt Meaty Skeleton](../corpus/wiki-14.md#w004722) [W004722]
+- [Raspberry Pi](../corpus/wiki-08.md#w003306) [W003306]
+- [Raspberry Pi 4](../corpus/wiki-13.md#w004395) [W004395]
+- [Raspberry Pi Bare Bones](../corpus/wiki-08.md#w003316) [W003316]
+- [Raspberry Pi Bare Bones Rust](../corpus/wiki-11.md#w004002) [W004002]
+- [RISC-V](../corpus/wiki-11.md#w004033) [W004033]
+- [RISC-V IOMMU](../corpus/wiki-14.md#w005070) [W005070]
+- [S390 Interrupts](../corpus/wiki-14.md#w005062) [W005062]
+- [Sparc Barebones](../corpus/wiki-07.md#w003023) [W003023]
+- [Sparc Hardware Docs](../corpus/wiki-07.md#w003045) [W003045]
+- [Sparc Overview](../corpus/wiki-03.md#w001833) [W001833]
+- [STSI and ECAG](../corpus/wiki-15.md#w005084) [W005084]
+- [System Initialization (SGI Mips)](../corpus/wiki-03.md#w001807) [W001807]
+- [System Initialization (Sparc)](../corpus/wiki-03.md#w001801) [W001801]
+- [Timer Interrupt Sources](../corpus/wiki-12.md#w004069) [W004069]
+- [TKisem](../corpus/wiki-07.md#w003043) [W003043]
+- [UEFI](../corpus/wiki-07.md#w002924) [W002924]
+- [UltraSPARC](../corpus/wiki-03.md#w001902) [W001902]
+- [Xbox](../corpus/wiki-11.md#w003957) [W003957]
+- [ZDSFS](../corpus/wiki-14.md#w004638) [W004638]
+- [ZXFL Barebones](../corpus/wiki-14.md#w005031) [W005031]

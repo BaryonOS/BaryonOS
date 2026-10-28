@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`34a0e9ce`](https://github.com/simonvanieperen/nieuw-os/commit/34a0e9ce499f19ad6bd9bc4f3cc36d2c5682ed05) ·
-**Ontwikkelbranch:** `docs/consumer-adoption-evidence-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Consumentenwaarde-onderzoek aangevuld en vroege gebruiksvalidatie gepland.
-De bestaande consumentenwaarde-verkenning is aangevuld met bewijs over desktopgewenning, ervaren competentie, tijdelijke opslag, local-first en meldingsgedrag. PRX1–PRX4 leggen de vroege gebruiksvalidatie vast; er is nog geen deelnemer onderzocht en geen native criterium geaccepteerd. Geen functiewinst: 14% naar 14%.
+**Bron:** [`9a56e676`](https://github.com/simonvanieperen/nieuw-os/commit/9a56e67634a81d4458d47ef240bc3af2fc523ee5) ·
+**Ontwikkelbranch:** `codex/add-os-dev-skill`.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Repositorygebonden OS Dev skill en volledige lokale kennisbank geïntegreerd.
+De OS Dev Agent Skill is toegevoegd met een lokaal gevalideerde snapshot van 3.054 OSDev Wiki-pagina's en 78 boekpagina's, plus bronindex, zoekhelper en projectkoppelingen. Dit verbetert de ontwikkelkennis en reproduceerbaarheid, maar realiseert geen nieuw native productcriterium. De score blijft daarom 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -152,33 +152,6 @@ De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde
 M6b is hervat vanaf `main` (`1f24f99`) op [codex/m6b-storage-errors](https://github.com/simonvanieperen/nieuw-os/tree/codex/m6b-storage-errors). De status staat per spoor in PROJECT-STATE.md. [PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3) bewaart de M5-historie; de oude testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
 
 De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-feature milestone-m5` en `python tools/run.py --smoke --milestone m5`. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
-
-## Onderzoeksrichting: privacybrowser
-
-Voor dagelijks internetgebruik onderzoekt Nieuw OS een eigen privacyvriendelijke
-browserervaring. De eerste vergelijking omvat Chromium/Blink en Firefox/Gecko,
-met onder meer ungoogled-chromium, Brave, Vanadium, LibreWolf en Mullvad Browser
-als technische referenties. De gewenste standaard is privacybescherming aan,
-geen niet-noodzakelijke browsertelemetrie en een gerichte tijdelijke uitzondering
-wanneer een website anders niet werkt. **Er is nog geen engine gekozen en er is
-nog geen native browserport.**
-
-[Onderzoek, kandidaten, uitzonderingsmodel en BR-acceptatievragen](docs/PRIVACY-BROWSER-RESEARCH.md).
-
-## Markt- en consumentenonderzoek
-
-Op 28 oktober 2026 is aanvullend onderzoek vastgelegd naar marktkansen,
-consumentenadoptie, Europese alternatieven, ontwerp-/prestatietrends en
-blijvende overstap. De kern: een eigen kernel, privacy of Europese herkomst
-zijn op zichzelf geen bewijs van brede adoptie. Dagelijkse compatibiliteit,
-begrijpelijke Materiaal-workflows, herstel, hardware, migratie en ondersteuning
-moeten samen aantoonbaar goed werken.
-
-De onderzoeksvoorstellen veranderen niet stilzwijgend de productspecificatie.
-Doelgroep-, kleur-, latency-, retentie- en verkoopvoorstellen blijven hypotheses
-tot eigen meting of een expliciet projectbesluit. Zie
-[de onderzoeksindex](docs/research/README.md) en
-[de gezamenlijke synthese](docs/research/MARKET-AND-ADOPTION-2026-10-28.md).
 
 ## Projectrichting en verder lezen
 
