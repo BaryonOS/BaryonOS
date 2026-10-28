@@ -1,5 +1,45 @@
 # Actuele projectstatus
 
+## Architectuurbesluit: Security Floor, opaque provideropslag en premium UX — 28 oktober 2026
+
+De nieuwe gebruikerskeuze is als documentatie-/architectuurwijziging vastgelegd.
+Privacy is configureerbaar, maar de **Security Floor** niet: internet,
+vrijwillige telemetrie, microfoon, externe opslag of andere expliciete
+gegevensdeling verruimt alleen de betreffende capability/gegevensstroom en
+schakelt kernel-/procesisolatie, sleutelisolatie, geheugenbescherming,
+pakket-/update-authenticiteit of bescherming van niet-gedeelde data niet uit.
+
+Het absolute leverancierscloudverbod uit privacycontract revisie 3 is vervangen
+door revisie 4. Persoonlijke NAS blijft een eersteklas route. Daarnaast mag een
+gebruiker een algemene externe opslagprovider expliciet kiezen als
+**onbetrouwbare opaque ciphertextbackend**. De provider krijgt geen
+Nieuw-OS-inhoudssleutel, documentplaintext of gevoelige manifestplaintext.
+Geen stille providerfallback of key escrow. Metadata, beschikbaarheid,
+providerdelete en endpointcompromittering blijven expliciete rest-risico's.
+
+[ENCRYPTED-OBJECT-STORAGE.md](implementation/ENCRYPTED-OBJECT-STORAGE.md)
+legt het toekomstige objectformaat, key hierarchy, crypto-agility,
+rollback-/replay-eisen, multi-providergrens en EO-acceptatietests vast. Er is
+geen zelfbedachte cryptografische primitief gekozen en geen claim dat een
+provider “absoluut niet kan kraken”. P05/EO-tests zijn nog open.
+
+Ook de productambitie is aangescherpt: P3/P4/M7 moet een eigen premium
+productiviteitsfamilie opleveren met Materiaal als objectmodel, één designsysteem,
+contextuele gereedschappen, hoogwaardige typografie/motion, toekomstige
+gedeelde native renderlaag en geteste interoperabiliteit. Geen Office-ribbon-
+of bestaande-OS-kopie als einddoel. Het huidige browserprototype blijft alleen
+ontwerpgereedschap.
+
+Privacyuitleg en capabilities zijn gescheiden. Educatieve privacyuitleg mag
+globaal of per app uit; dat wijzigt geen grants. In focus/gaming worden
+niet-urgente educatieve meldingen onderdrukt, terwijl een nieuwe gevoelige
+functie nog steeds een noodzakelijke grant kan vereisen.
+
+Vastgelegd in ADR-035 t/m ADR-038. Er is in deze stap **geen native runtime-,
+crypto-, provider- of UI-implementatie uitgevoerd en geen nieuw
+acceptatiecriterium behaald**. De vaste roadmap blijft **14% → 14%**.
+
+
 ## Markt- en consumentenonderzoek — 28 oktober 2026
 
 Twee aanvullende onderzoeken zijn als strategische onderbouwing vertaald naar

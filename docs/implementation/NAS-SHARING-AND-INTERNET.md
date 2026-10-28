@@ -1,4 +1,14 @@
 # N01 — internet en persoonlijke NAS-ruimte
+
+## Aanvulling P05 — 28 oktober 2026
+
+N01/N03 blijven de **persoonlijke NAS-route**. Privacycontract revisie 4 staat
+daarnaast toe dat een gebruiker een algemene externe opslagprovider expliciet
+kiest als onbetrouwbare backend voor uitsluitend opaque, client-side
+versleutelde objecten. Dat is een afzonderlijke P05-route volgens
+[ENCRYPTED-OBJECT-STORAGE.md](ENCRYPTED-OBJECT-STORAGE.md); zij vervangt de NAS
+niet, geeft de provider geen inhoudssleutel en is nooit een stille fallback.
+
 Datum: 27 oktober 2026. Gebruikersbesluit: internettoegang, NAS bij de gebruiker thuis als persoonlijke cloud, dezelfde OS-bediening voor client en NAS, en ruimte delen met vrienden/familie zonder hun inhoud te kunnen lezen. De NAS-beheerder mag zijn ruimte eenzijdig terugnemen.
 
 ## Status en scope
@@ -9,7 +19,7 @@ N01 loopt parallel aan M6a. De eigen kernel/netwerkdriver wordt in deze wijzigin
 
 | Laag | Levering | Bewijsgrens |
 |---|---|---|
-| Bindend productcontract | Privacycontract revisie 3, ADR-027, bijgewerkte architectuur/roadmap/instructies | Eisen en gekozen rolverdeling |
+| Bindend productcontract | Privacycontract revisie 4, ADR-027 plus ADR-035/036, bijgewerkte architectuur/roadmap/instructies | Eisen en gekozen rolverdeling |
 | Versleutelde hostdienst | `services/nas/`: echte clientencryptie, lokale ciphertextopslag, quota, uitnodiging, intrekking en beheer | Node-hostproef; geen native OS-dienst of netwerkserver |
 | Netwerkbeleid | Default-deny beslislogica met gescheiden app-/AI-/NAS-rechten | Vertrouwde adapter moet identiteit en verbinding daadwerkelijk verifiëren |
 | Materiaal | Mijn NAS, Ruimte ontvangen, Ruimte aanbieden, identiteitscontrole, expliciet internet en hostverwijdering | Browsermock met fictieve data; geen cryptografische veiligheid van de demo |

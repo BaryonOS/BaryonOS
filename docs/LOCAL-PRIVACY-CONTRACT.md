@@ -1,17 +1,18 @@
 # Bindend privacycontract: internet, persoonlijke NAS en gedeelde opslag
-Revisie 3, 27 oktober 2026. Deze expliciete gebruikerswijziging vervangt de eerdere beperking tot een eigen NAS binnen het eigen LAN. De lokale AI-eis en het verbod op leverancierscloud/fallback blijven gelden.
+Revisie 4, 28 oktober 2026. Deze expliciete gebruikerswijziging vervangt zowel de eerdere beperking tot een eigen NAS binnen het eigen LAN als het absolute verbod op leverancierscloud. De lokale AI-eis blijft gelden. Externe opslagproviders zijn uitsluitend optioneel en mogen als onbetrouwbare opslaglaag voor client-side versleutelde opaque objecten worden gebruikt; zij worden geen sleutelhouder, OS-vertrouwensanker of stille fallback.
 
-**Bewijsstatus:** dit zijn bindende product- en integratie-eisen. `services/nas/` bevat N01 met echte hostencryptie/opslagbeheer en de afzonderlijke N02-loopbackproef met werkelijk geauthenticeerde hybride TLS. `ui/prototype/` bevat gesimuleerde productflows. Native netwerkstack, NAS-distributie, pairing tussen echte apparaten en kernelafdwinging blijven open. Scope: [NAS-SHARING-AND-INTERNET.md](implementation/NAS-SHARING-AND-INTERNET.md) en de [verificatie-/PQC-aanvulling ADR-028](implementation/VERIFIABLE-SECURITY-AND-PQC.md). Deze aanvulling verandert de opslag-/beheerdersrechten van revisie 3 niet.
+**Bewijsstatus:** dit zijn bindende product- en integratie-eisen. `services/nas/` bevat N01 met echte hostencryptie/opslagbeheer en de afzonderlijke N02-loopbackproef met werkelijk geauthenticeerde hybride TLS. `ui/prototype/` bevat gesimuleerde productflows. Native netwerkstack, NAS-distributie, pairing tussen echte apparaten, externe provideradapters, sleutelservice en kernelafdwinging blijven open. Scope: [NAS-SHARING-AND-INTERNET.md](implementation/NAS-SHARING-AND-INTERNET.md), [ENCRYPTED-OBJECT-STORAGE.md](implementation/ENCRYPTED-OBJECT-STORAGE.md) en de [verificatie-/PQC-aanvulling ADR-028](implementation/VERIFIABLE-SECURITY-AND-PQC.md). De bestaande NAS-beheerdersrechten blijven gelden; de externe provider krijgt geen vergelijkbare beheer- of decryptiebevoegdheid over lokale data.
 
 ## 1. Internet en gegevenslocatie
 
 Nieuw OS moet internet kunnen gebruiken. Netwerklocatie of eigendom schept geen automatisch vertrouwen: authenticatie, autorisatie en isolatie gelden ook thuis (Rose et al., 2020). Internettoegang maakt een app of dienst niet bevoegd om documenten, NAS-data of sleutels te lezen.
 
-Persoonlijke gegevens blijven lokaal of gaan optioneel **end-to-end versleuteld** naar:
+Persoonlijke gegevens blijven lokaal of gaan optioneel **client-side/end-to-end versleuteld** naar:
 - een eigen, expliciet gekoppelde NAS;
-- ruimte op een expliciet gekoppelde NAS van vrienden of familie.
+- ruimte op een expliciet gekoppelde NAS van vrienden of familie;
+- een expliciet gekozen externe opslagprovider die uitsluitend opaque ciphertextobjecten ontvangt.
 
-Deze NAS kan op hetzelfde LAN of bij iemand anders thuis staan. LAN is de standaardroute. Toegang via internet vereist afzonderlijke toestemming voor de gekoppelde NAS-identiteit en een werkelijk geauthenticeerd transport. Geen stilzwijgende verruiming bij netwerkverandering. Geen leverancierscloud, verplicht leverancieraccount, sleutelbewaring door leverancier of beheerder, stille relay/fallback of externe OS-telemetrie.
+Een NAS kan op hetzelfde LAN of bij iemand anders thuis staan. LAN is de standaardroute voor persoonlijke NAS-opslag. Toegang via internet vereist afzonderlijke toestemming voor de gekoppelde NAS-identiteit en een werkelijk geauthenticeerd transport. Een externe provider wordt afzonderlijk gekoppeld en mag een eigen account vereisen, maar Nieuw OS behandelt die provider als onbetrouwbare opslag en geeft hem geen inhoudssleutel. Geen stilzwijgende verruiming bij netwerkverandering, geen verplichte leverancierscloud, geen provider- of beheerder-key-escrow, geen stille relay/fallback en geen externe OS-telemetrie.
 
 Lokale kerntaken blijven zonder NAS of internet werken. Een onbereikbare of ingetrokken opslagplaats wordt zichtbaar gepauzeerd; bestanden worden niet naar een andere host doorgestuurd. Lokale kopieën blijven van de gebruiker. NAS-inferentie is niet toegestaan als alternatief voor de lokale systeem-AI.
 
@@ -28,7 +29,8 @@ Hetzelfde OS-product krijgt een clientrol en een NAS-rol. De gewenste bediening 
 | Gebruiker/client | Eigen inhoud versleutelen/ontsleutelen; eigen gekoppelde namespace gebruiken; eigen sleutelherstel beheren | Andere namespaces, algemene NAS-adminrechten of netwerk voor alle apps |
 | NAS-beheerder | Uitnodigen, quota bepalen, toegang intrekken, eigen opgeslagen gastkopieën en staging verwijderen zonder toestemming van de gast | Gastinhoud, documentnamen, decryptiesleutels of key escrow |
 | Sync-/transportdienst | Toegestane versleutelde objecten naar de gekoppelde identiteit vervoeren | Willekeurige documenten ontsleutelen of een andere provider kiezen |
-| Leverancier | Gekozen update-/modelbestanden aanbieden via afgescheiden pad | Persoonlijke opslag, verplichte accounts, herstelkeys of telemetrie |
+| Leverancier van OS-/modelbestanden | Gekozen update-/modelbestanden aanbieden via afgescheiden pad | Persoonlijke plaintextopslag, verplichte OS-accountkoppeling, herstelkeys of telemetrie |
+| Expliciet gekozen externe opslagprovider | Opaque versleutelde objecten bewaren/vervoeren binnen de toegekende provider-namespace | Documentplaintext, gevoelige manifestinhoud, Nieuw-OS-inhoudssleutels, lokale zoekindex, AI-context of rechten op andere providers/apps |
 
 ### 2.1 Koppeling en netwerk
 
@@ -47,7 +49,7 @@ Hetzelfde OS-product krijgt een clientrol en een NAS-rol. De gewenste bediening 
 - Alleen gebruikersapparaten houden inhoudssleutels; een NAS-adminreset geeft geen decryptierecht. Er is geen verborgen recoverykey bij de host.
 - Sleutelherstel verloopt via een eigen offline herstelkopie of vertrouwd eigen apparaat. Zonder alle sleutelkopieën kan inhoud onherstelbaar zijn. Een nieuwe client zonder vertrouwde versiegeschiedenis krijgt geen onbewezen rollbackgarantie.
 - De sleutelverwerkende client moet uit de vertrouwde OS-distributieketen komen. Een NAS mag geen willekeurige clientcode aanleveren die daarna gebruikerssleutels verwerkt.
-- De host ziet noodzakelijke beheermetadata: toegewezen ruimte, gebruik, opaque object-ID's en activiteit/verbindingsgegevens. Bestandsgroottes en timing worden niet automatisch verborgen door encryptie.
+- Een NAS of externe provider ziet noodzakelijke opslag-/verbindingsmetadata binnen zijn rol: bijvoorbeeld toegewezen ruimte of accountgebruik, opaque object-ID's en activiteit/verbindingsgegevens. Bestandsgroottes, aantallen en timing worden niet automatisch verborgen door encryptie.
 - Encryptie beschermt inhoud, niet beschikbaarheid. Een gecompromitteerd gebruikersapparaat of kwaadaardige clientupdate valt buiten een garantie dat de NAS-beheerder de inhoud niet kan lezen.
 
 ### 2.3 Beheerder kan ruimte altijd terugnemen
@@ -62,8 +64,23 @@ Dit verwijderrecht betreft de kopieën op de betreffende NAS. Het geeft geen rec
 
 De ontvanger ziet vóór koppelen: de beheerder kan de opslag beëindigen, inhoud is voor de beheerder versleuteld, en een eigen kopie/back-up blijft nodig. Sync is geen zelfstandige back-up. Beschermde versies mogen gewone synccredentials weerstaan, maar mogen de hardware-eigenaar niet permanent de controle over zijn ruimte ontnemen.
 
+## 2.4 Externe provider als opaque opslaglaag
+
+Een algemene cloudopslagdienst mag alleen na een expliciete gebruikerskeuze als
+onbetrouwbare opslagbackend worden gekoppeld. Dit verandert het trustmodel niet:
+de provider is geen onderdeel van de Security Floor en krijgt geen inhoudssleutel.
+
+- Versleutel inhoud, documentnamen en gevoelige manifests **vóór** de provideradapter ze ontvangt.
+- Gebruik een eigen versieerbaar object-/containerformaat, maar geen zelfbedachte cryptografische primitief; zie [ENCRYPTED-OBJECT-STORAGE.md](implementation/ENCRYPTED-OBJECT-STORAGE.md).
+- Providercredentials en inhoudssleutels blijven gescheiden. Compromittering van alleen het provideraccount mag geen plaintext opleveren.
+- De provideradapter krijgt alleen de bedoelde ciphertextnamespace en netwerkbestemming, niet automatisch lokale documenten, zoekindexen of AI-context.
+- Een provider mag ciphertext verwijderen, blokkeren of terugrollen. Encryptie is dus geen back-up- of beschikbaarheidsgarantie; onafhankelijke herstelkopieën en rollbackdetectie blijven nodig.
+- De gebruiker kan meerdere opslaglocaties kiezen. Nieuw OS schakelt nooit stil over naar een andere provider wanneer de gekozen opslag faalt.
+- Claims als “Microsoft/Google kunnen dit absoluut nooit kraken” zijn niet toegestaan. De toetsbare claim is dat de provider de decryptiesleutel niet bezit en dat gecontroleerde ciphertext zonder zo'n sleutel geen geaccepteerde plaintext oplevert onder het gedocumenteerde dreigingsmodel.
+- Account-, IP-, timing-, volume- en andere noodzakelijke provider-metadata kunnen zichtbaar blijven; client-side encryptie is geen anonimiteitslaag.
+
 ## 3. AI uitsluitend op het apparaat
-Inference draait lokaal op CPU/GPU/NPU die op dat apparaat wordt ondersteund. Persoonlijke prompts, embeddings, zoekindexen, chatgeschiedenis, resultaten en inference-logs blijven lokaal. De gebruiker mag hiervan een end-to-end versleutelde backup op een expliciet gekoppelde persoonlijke NAS bewaren, inclusief ontvangen ruimte bij vrienden/familie. De NAS voert geen inferentie uit.
+Inference draait lokaal op CPU/GPU/NPU die op dat apparaat wordt ondersteund. Persoonlijke prompts, embeddings, zoekindexen, chatgeschiedenis, resultaten en inference-logs blijven lokaal tijdens gebruik. De gebruiker mag hiervan een client-side versleutelde back-up bewaren op een expliciet gekoppelde persoonlijke NAS, ontvangen ruimte bij vrienden/familie of een expliciet gekozen externe provider volgens ENCRYPTED-OBJECT-STORAGE.md. Een NAS of provider voert geen systeeminferentie uit en ontvangt geen plaintext AI-context als onderdeel van deze back-uplaag.
 
 - De inferentiedienst krijgt geen directe LAN-/internettoegang.
 - Ontbrekend model of onvoldoende RAM/rekenkracht geeft een fout, wachtrij, kleiner lokaal model of uitgeschakelde functie; nooit externe inference.
@@ -90,6 +107,21 @@ Een ondertekening toont herkomst onder de betreffende sleutel, geen betrouwbaarh
 
 Intrekken stopt toekomstig gebruik via de gecontroleerde grens, maar wist geen kopie die een app eerder mocht maken. Test ook gegevenslekken via tussendiensten, klembord, gedeelde opslag, logs en foutmeldingen. Volledige informatieflowbeveiliging vergt meer dan enkele schakelaars.
 
+
+### 4.1 Security Floor en uitzetbare privacyuitleg
+
+Privacykeuzes en systeembeveiliging zijn verschillende lagen. Een gebruiker mag
+bijvoorbeeld een app internet, microfoon, cloudsync of vrijwillige telemetrie
+toestaan. Dat verruimt uitsluitend de daarbij horende expliciete capability en
+schakelt kernel-/procesisolatie, geheugenbescherming, sleutelisolatie,
+pakket-/update-authenticiteit of bescherming van niet-gedeelde data niet uit.
+
+De UI onderscheidt een noodzakelijke toegangsbeslissing van aanvullende
+educatieve privacyuitleg. De gebruiker mag die uitleg globaal of per app
+uitschakelen. “Privacyuitleg uit” betekent nooit “alles toestaan”. Bestaande
+grants blijven ongewijzigd en nieuwe rechten worden afzonderlijk verleend of
+geweigerd. Een eenmaal geldige grant hoeft niet voor iedere normale herhaling
+opnieuw te worden gevraagd.
 
 ## 5. Acceptatietests
 
@@ -122,12 +154,20 @@ Bestaande LP-identifiers blijven behouden; LP-03 is expliciet herzien voor peerg
 | LP-23 | Internet aan voor browser, niet voor AI of NAS | Alleen expliciete appbestemming toegestaan; geen rechtenovererving |
 | LP-24 | Client- en NAS-rol op hetzelfde OS | Geauthenticeerd koppelen/ontvangen/aanbieden met begrijpelijke fout- en herstelroute |
 | LP-25 | Crash tijdens revoke/purge of echte schijffout | Oude autoriteit herleeft niet; geen onterechte duurzaamheids- of verwijderclaim |
+| LP-26 | Alleen providercredentials buitgemaakt | Geen documentplaintext, gevoelige manifestinhoud of Nieuw-OS-inhoudssleutel beschikbaar |
+| LP-27 | Providerobject/tag/header/chunk/revisie gemanipuleerd | Authenticatie-/rollbackfout volgens het gekozen threat model; geen gedeeltelijke plaintext |
+| LP-28 | Externe provider offline/verwijdert data | Lokale werking en expliciete herstelstatus; geen stille providerfallback of valse back-upclaim |
+| LP-29 | Privacyuitleg globaal/per app uitgeschakeld | Geen educatieve popup; capabilityset blijft byte-/semantisch gelijk en nieuwe toegang blijft afzonderlijk |
+| LP-30 | App krijgt internet en vrijwillige telemetry, geen documentgrant | Telemetriepad mag de verleende scope gebruiken maar krijgt geen document-/NAS-/keycapability |
+| LP-31 | App krijgt document én internet na bewuste keuze | UI toont gecombineerde exfiltratieruimte; overige documenten/apps/secrets blijven afgeschermd |
 
 Hosttests, browsermocks en native OS-/netwerktests worden afzonderlijk gerapporteerd. Een hosttest of policyboolean bewijst geen veilig netwerk op de eigen kernel. Leg versie, netwerkopstelling, observatiepunt en ontbrekende coverage vast.
 
 ## 6. Veiligheidsdoel en bewijsgrenzen
 
-Het doel is minimale bevoegdheid, beperking van schade, gecontroleerde verbindingen en herstelbaarheid. Internet brengt een bereikbaar aanvalsoppervlak mee; er is geen absolute garantie 'niet te hacken'. Authenticatie/encryptie vervangen geen parsergrenzen, kernelisolatie, veilige updates, onderhoud of fysieke-hardwareonderzoeken.
+Het doel is minimale bevoegdheid, beperking van schade, gecontroleerde verbindingen en herstelbaarheid. De **Security Floor** blijft van kracht wanneer een gebruiker bewust minder privacy kiest: een ruimere gegevens- of netwerkgrant geeft niet automatisch meer systeemautoriteit. Internet brengt een bereikbaar aanvalsoppervlak mee; er is geen absolute garantie 'niet te hacken'. Authenticatie/encryptie vervangen geen parsergrenzen, kernelisolatie, veilige updates, onderhoud of fysieke-hardwareonderzoeken.
+
+Client-side encryptie van externe opslag betekent niet dat een provider niets kan observeren of verwijderen. Zonder provider-held decryptiesleutel moet inhoud binnen het geteste dreigingsmodel vertrouwelijk blijven; absolute onkraakbaarheid, anonimiteit en beschikbaarheid worden niet geclaimd.
 
 ## 7. Ontwikkelmiddelen zijn geen OS-runtime
 

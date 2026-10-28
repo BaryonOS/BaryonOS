@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`9a56e676`](https://github.com/simonvanieperen/nieuw-os/commit/9a56e67634a81d4458d47ef240bc3af2fc523ee5) ·
-**Ontwikkelbranch:** `codex/add-os-dev-skill`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Repositorygebonden OS Dev skill en volledige lokale kennisbank geïntegreerd.
-De OS Dev Agent Skill is toegevoegd met een lokaal gevalideerde snapshot van 3.054 OSDev Wiki-pagina's en 78 boekpagina's, plus bronindex, zoekhelper en projectkoppelingen. Dit verbetert de ontwikkelkennis en reproduceerbaarheid, maar realiseert geen nieuw native productcriterium. De score blijft daarom 14%.
+**Bron:** [`dbd9a897`](https://github.com/simonvanieperen/nieuw-os/commit/dbd9a89736023be6f04fb5c2c1a8f842f266134f) ·
+**Ontwikkelbranch:** `docs/security-floor-opaque-cloud-ux-20261028`.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Security Floor, opaque provideropslag en premium native UX vastgelegd.
+Privacycontract revisie 4, ADR-035 t/m ADR-038 en de nieuwe encrypted-objectspecificatie leggen vrijwillige externe ciphertextopslag, niet-uitzetbare beveiligingsgrenzen, uitzetbare privacyuitleg en de premium productiviteitsambitie vast. Dit is architectuur/documentatie: geen native provider-, crypto- of UI-acceptatie en dus 14% naar 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -161,10 +161,14 @@ Documenten en collecties staan centraal; apps zijn verwisselbare gereedschappen.
 De eigen kernel is geen fork van een bestaand besturingssysteem. Rust/LLVM,
 QEMU, UEFI, open standaarden en gecontroleerde bibliotheken zijn ontwikkelmiddelen.
 
-Persoonlijke gegevens blijven lokaal of end-to-end versleuteld op een expliciet
-gekoppelde eigen NAS of NAS bij vrienden/familie. Internet vraagt passende
-app-/peerrechten. Systeem-AI blijft op het eigen apparaat zonder cloudfallback;
-installatie van een app verleent geen algemene bestands- of netwerkrechten.
+Persoonlijke gegevens blijven lokaal, end-to-end versleuteld op een expliciet
+gekoppelde persoonlijke NAS, of — na expliciete keuze — als opaque client-side
+versleutelde objecten bij een externe opslagprovider. Een provider krijgt geen
+Nieuw-OS-inhoudssleutel en is geen stille fallback. Internet vraagt passende
+app-/peer-/providerrechten. Systeem-AI blijft op het eigen apparaat zonder
+cloudfallback; installatie van een app verleent geen algemene bestands- of
+netwerkrechten. Privacykeuzes verruimen alleen expliciete gegevensstromen:
+de Security Floor met isolatie en capability-afdwinging blijft actief.
 De actuele native implementatiegrenzen staan per spoor hierboven.
 
 - [Architectuur en kernelcontract](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
@@ -172,6 +176,7 @@ De actuele native implementatiegrenzen staan per spoor hierboven.
 - [Privacycontract](docs/LOCAL-PRIVACY-CONTRACT.md).
 - [Quantumspoor](docs/QUANTUM-RESEARCH.md).
 - [Beveiliging en postkwantumroute](docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md).
+- [Security Floor en versleutelde object-/provideropslag](docs/implementation/ENCRYPTED-OBJECT-STORAGE.md).
 - [Werkinstructies voor agents](AGENTS.md).
 - [Ontwerpbesluiten](docs/DECISIONS.md) en [afhankelijkheden](docs/DEPENDENCIES.md).
 

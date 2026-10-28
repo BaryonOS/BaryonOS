@@ -10,6 +10,50 @@ De ambitie blijft een moderne verbonden consumentenervaring. Gebruikers koppelen
 
 Een formeel bewijs heeft de vorm: onder aannames A voldoet implementatie I aan specificatie S voor eigenschap P. Leg A, I, S en P vast. Een fout in de bedoelde specificatie, niet-geverifieerde systeemdienst, updateketen, protocolintegratie of rechtenconfiguratie is óók een softwareprobleem. Het resterende risico beperkt zich dus niet tot fysieke chips en menselijke misleiding. Tests, modelchecking, broncodeverificatie en binaire refinement zijn verschillende bewijsniveaus.
 
+## 1.1 Security Floor bij vrijwillig minder privacy
+
+Privacy en systeemautoriteit zijn orthogonale assen. Een gebruiker mag bewust
+internet, externe opslag, microfoon, cloudsync of gegevensdeling toestaan. Dat
+besluit verruimt alleen de expliciet toegekende capability of gegevensstroom.
+
+Een privacykeuze mag niet automatisch uitschakelen of verzwakken:
+
+- proces-/adresruimte-isolatie en W^X/NX;
+- capabilitylookup, rights attenuation, generatie en revocation;
+- scheiding tussen app-, object-, key-, sync- en netwerkservices;
+- pakket-/update-authenticiteit en rollbackbeleid;
+- bescherming van niet-gedeelde data;
+- DMA/IOMMU-begrenzing zodra die voor het ondersteunde hardwareprofiel bestaat.
+
+Een app met plaintextrecht én internetrecht kan toegestane plaintext bewust
+versturen. Dat is een gegevensstroomrisico, geen reden om die app kernel- of
+brede bestandssysteemautoriteit te geven. De UI moet de combinatie zichtbaar
+maken, maar het beveiligingsmodel blijft least-authority.
+
+Privacyuitleg is eveneens geen enforcementlaag. De gebruiker mag educatieve
+privacyuitleg uitschakelen; de capabilityset verandert daardoor niet.
+
+## 1.2 Externe opslag is een onbetrouwbare ciphertextbackend
+
+Een expliciet gekozen algemene cloudopslagprovider mag in revisie 4 van het
+privacycontract opaque versleutelde objecten bewaren. De provider is geen
+vertrouwde service van Nieuw OS en krijgt geen inhoudssleutel.
+
+De volledige object-, key-, metadata-, rollback- en multi-providergrens staat
+in [ENCRYPTED-OBJECT-STORAGE.md](ENCRYPTED-OBJECT-STORAGE.md). De kernregels:
+
+- eigen versieerbaar containerformaat, geen eigen cryptoprimitieven;
+- authenticated encryption van inhoud en gevoelige manifestmetadata;
+- per-object sleutels en een afzonderlijke Key Service als doelarchitectuur;
+- providercredentials gescheiden van content keys;
+- crypto-agility en expliciet migratiepad;
+- rollback/replay, deletion en availability afzonderlijk testen;
+- provider-metadata en endpointcompromittering eerlijk als resterend risico
+  documenteren.
+
+Dit is een architectuurbesluit, geen bewijs dat OneDrive, Google Drive of een
+andere provider al werkt op Nieuw OS en geen claim van absolute onkraakbaarheid.
+
 ## 2. Correcties op de aangeleverde blauwdruk
 
 | Onderwerp | Leidende formulering |
@@ -71,6 +115,7 @@ De parameterkeuze ML-KEM-768/ML-DSA-65 blijft kandidaat voor integratie. FIPS 20
 | P02 — entropy | Gespecificeerde entropycapability en bronbeleid met gereedheid/foutpad | Geen sleutelgeneratie vóór ready; lege/mislukkende bron blijft geblokkeerd; testseed nooit productpad. DMA/virtio-rng en VM-snapshots apart beoordelen. |
 | P03 — systeemimage | Ondertekende manifesten met algoritmeversie, doel, lengte, digest, versie en rollbackbeleid | Beide vereiste signatures over exact dezelfde canonieke boodschap, pinned trust anchors, foutieve/missende/verwisselde/oude metadata geweigerd in echte guest-run; firmwaregrens benoemd. |
 | P04 — opslag | Geauthenticeerd opslagformaat met crash-/nonce-/rollbackontwerp boven de blokdienst | Eerst volledige M6a-poort/regressie; daarna bitflip, block-swap, replay, afgebroken write, herstel en keyrotatie op wegwerpimages. AES-XTS alleen voldoet niet. |
+| P05 — opaque provideropslag | Provider-onafhankelijke ciphertextadapter boven het geauthenticeerde objectformaat | Providercredentials zonder content key leveren geen plaintext; namen/manifests blijven beschermd; delete/outage/rollback en geen stille fallback zijn getest. Eerste adapters gebruiken synthetische/testaccounts voordat echte gebruikersdata is toegestaan. |
 | N03 — native NAS | Eigen netwerkdienst, transportlibrary, veilige pairing/key lifecycle en opslagadapter | Peergebonden rechten vóór verbinding en per operatie; E2EE tot de gebruikersclient; adminrevoke/evict blokkeert oude uploads; echte OS-/netwerkproeven. |
 | Q02 — educatief Grover | Afzonderlijke zesqubit-orakel-/diffusieproef in qsim | Alle 64 doelen, normbehoud, succeskans na zes iteraties, afname bij teveel iteraties en annulering. Geen claim van fysieke quantumversnelling of PQC-bewijs. |
 
@@ -90,6 +135,9 @@ Geraadpleegd 27 oktober 2026; projectkeuzes en integratiegevolgen zijn onze anal
 - Microsoft. (z.d.). *User mode and kernel mode*. https://learn.microsoft.com/en-us/windows-hardware/drivers/gettingstarted/user-mode-and-kernel-mode
 - Kwiatkowski, K., Kampanakis, P., Westerbaan, B. E., & Stebila, D. (2026). *Post-Quantum Traditional (PQ/T) Hybrid Key Agreement Mechanisms for TLS 1.3* (RFC 10024). https://www.rfc-editor.org/rfc/rfc10024.html
 - NIST. (2024). *FIPS 203; FIPS 204; FIPS 205*. https://csrc.nist.gov/pubs/fips/203/final ; https://csrc.nist.gov/pubs/fips/204/final ; https://csrc.nist.gov/pubs/fips/205/final . Controleer de gepubliceerde errata bij elke implementatiepin.
+- Gueron, S., Langley, A., & Lindell, Y. (2019). *AES-GCM-SIV: Nonce Misuse-Resistant Authenticated Encryption* (RFC 8452). https://www.rfc-editor.org/rfc/rfc8452
+- Biryukov, A., Dinu, D., Khovratovich, D., & Josefsson, S. (2021). *Argon2 Memory-Hard Function for Password Hashing and Proof-of-Work Applications* (RFC 9106). https://www.rfc-editor.org/rfc/rfc9106
+- NIST. (2026). *Considerations for Achieving Crypto Agility: Strategies and Practices*. https://csrc.nist.gov/pubs/cswp/39/upd1/final
 - NIST. (2010). *SP 800-38E: XTS-AES*. https://csrc.nist.gov/pubs/sp/800/38/e/final
 - NIST. (2018). *SP 800-90B: Entropy sources*. https://csrc.nist.gov/pubs/sp/800/90/b/final
 - Brassard, G., Høyer, P., & Tapp, A. (1997). *Quantum algorithm for the collision problem*. https://arxiv.org/abs/quant-ph/9705002

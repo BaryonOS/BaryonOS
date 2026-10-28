@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "9a56e67634a81d4458d47ef240bc3af2fc523ee5",
-    "branch": "codex/add-os-dev-skill",
-    "task": "Repositorygebonden OS Dev skill en volledige lokale kennisbank geïntegreerd",
+    "source_commit": "dbd9a89736023be6f04fb5c2c1a8f842f266134f",
+    "branch": "docs/security-floor-opaque-cloud-ux-20261028",
+    "task": "Security Floor, opaque provideropslag en premium native UX vastgelegd",
     "previous_score": 14,
-    "summary": "De OS Dev Agent Skill is toegevoegd met een lokaal gevalideerde snapshot van 3.054 OSDev Wiki-pagina's en 78 boekpagina's, plus bronindex, zoekhelper en projectkoppelingen. Dit verbetert de ontwikkelkennis en reproduceerbaarheid, maar realiseert geen nieuw native productcriterium. De score blijft daarom 14%."
+    "summary": "Privacycontract revisie 4, ADR-035 t/m ADR-038 en de nieuwe encrypted-objectspecificatie leggen vrijwillige externe ciphertextopslag, niet-uitzetbare beveiligingsgrenzen, uitzetbare privacyuitleg en de premium productiviteitsambitie vast. Dit is architectuur/documentatie: geen native provider-, crypto- of UI-acceptatie en dus 14% naar 14%."
   },
   "tracks": [
     {
