@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse
 import shutil
 import struct
-from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
+from common import ROOT, BUILD, TARGET, run_logged, save_json, sha256, source_hash
 from gate_contract import M3_CASES, M4_CASES
 from m6c_faults import FAULT_CASES as M6C_FAULT_CASES
 M5_CASES = ("service-errors", "device-rights", "async", "bad-descriptor", "used-id",
@@ -114,12 +114,12 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
     if not (ROOT / "Cargo.lock").exists():
         run_logged(["cargo", "+1.90.0", "generate-lockfile"], "lockfile")
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):
-        args = ["cargo", "+1.90.0", "build", "--locked", "--release", "--target-dir", str(ROOT / "target"), "-p", package, "--target", target]
+        args = ["cargo", "+1.90.0", "build", "--locked", "--release", "--target-dir", str(TARGET), "-p", package, "--target", target]
         if feature:
             args += ["--features", feature]
         run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
-    loader = ROOT / "target/x86_64-unknown-uefi/release/os-loader.efi"
-    kernel = ROOT / "target/x86_64-unknown-none/release/os-kernel"
+    loader = TARGET / "x86_64-unknown-uefi/release/os-loader.efi"
+    kernel = TARGET / "x86_64-unknown-none/release/os-kernel"
     manifest = {"schema_version": 1, "profile": label, "kernel_feature": kernel_feature,
                 "loader_feature": loader_feature, "source_fingerprint_version": 3,
                 "source_sha256": source_hash(), "loader": {"sha256": sha256(loader), **inspect_pe(loader)},

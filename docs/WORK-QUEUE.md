@@ -1,3 +1,29 @@
+# Werkqueue — parallelle native bouw, 28 oktober 2026
+
+Basis `1acf6e8`; rootbranch `codex/parallel-native-foundation-20261028`.
+Capaciteit: vier tegelijk, inclusief root. Eén eigenaar per schrijfgebied;
+geen gedeelde target-, VM-, socket-, image- of logbestemmingen.
+
+| ID | Toestand | Eigenaar / exclusief gebied | Resultaat / kleinste afhankelijkheid |
+|---|---|---|---|
+| G0R | in uitvoering | root: grafische helpers, tools/tests, integratie/docs | Bestaand G0-werk afronden; native VM afhankelijk van lokaal QEMU (I01-eigenaar) |
+| B01 | in uitvoering | native_storage: catalog/src/client.rs, export en clienttests | Begrensde allocatorvrije v4-client, CAS en geen replay na Unknown |
+| G01 | in uitvoering | native_apps: sdk/** | no_std app-API, echte IPC-voorbeeldapp; native launch root |
+| I01 | in uitvoering | runtime_platform: experiments/quantum/native/** | Bestaande qsim-core met begrensde heap naar scalar native ELF; kernelhook root |
+| G1 | wacht op een benoemde afhankelijkheid | bestaande andere sessie: services/materiaal/** en G1-interface | Reeds toegewezen native documentflow; minimaal gepubliceerd broncheckpoint/eigenaar nodig voor integratie |
+| S08 | gereed om te bouwen | eerstvolgende vrije bouwer, na centraal contract | Gecontroleerd catalogusherstel zonder write-replay; geen dubbel M6b-foutherstel |
+| B02 | wacht op een benoemde afhankelijkheid | root opslagcontract | Grotere documenten/ruimtehergebruik vereisen versieerbaar formaat + crashacceptatie |
+| N03 | wacht op een benoemde afhankelijkheid | toekomstige netwerkeigenaar | Native netwerkdriver/verbindingen en procesgebonden rechten vóór NAS |
+| P02 | wacht op een benoemde afhankelijkheid | toekomstige crypto-eigenaar | Echte entropyvoorziening vóór sleutelgeneratie; geen eigen cryptografie |
+
+Vier toestanden: gereed om te bouwen; in uitvoering; wacht op een benoemde
+afhankelijkheid; gereed voor integratie/controle. Voltooide bouwers krijgen
+onmiddellijk gerichte integratie-, review- of vervolgtaken. Oude queues hieronder
+zijn uitsluitend historisch; hun toenmalige gelijktijdigheidsvoorkeur geldt niet
+voor deze directe opdracht.
+
+## Historische registratie
+
 # Werkqueue — native M6b-opslagfouten
 
 28 oktober 2026, basis `1f24f99`, branch `codex/m6b-storage-errors`.

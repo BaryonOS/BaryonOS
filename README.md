@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`f2c40551`](https://github.com/simonvanieperen/nieuw-os/commit/f2c4055120b893f004c11bf9b845f0f37c92adaf) ·
-**Ontwikkelbranch:** `codex/m6b-storage-errors`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Native G0 start en toetsenbordproef na main-integratie; eindregressies volgen.
-G0 voert echte beeldschermuitvoer en PS2-RAMinvoer uit in QEMU na EBS/M2; typen en backspace zijn met echte framebufferbeelden gecontroleerd. Geen compositor/sessie, audio/USB of fysieke-hardwarebewijs, dus U01/H02/H03 blijven open. Vijf gerichte M6b-timeout/cancelproeven geslaagd op eerdere bron; gecombineerde eindgates volgen. Score blijft 14%.
+**Bron:** [`1acf6e8c`](https://github.com/simonvanieperen/nieuw-os/commit/1acf6e8cde2a63849dc49c948ad97ba7f2c39cad) ·
+**Ontwikkelbranch:** `codex/parallel-native-foundation-20261028`.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Parallel bouwcheckpoint: G0 hervatten, catalogusclient, app-SDK en native qsim-port.
+Vier gelijktijdige agents. Onvoltooid G0-werk behouden met 10 harnastests plus timeouttest; nieuwe native controles volgen. Catalogusclient, app-SDK en qsim-port in gescheiden worktrees in uitvoering. G1/Materiaal is elders toegewezen. Geen volledig nieuw roadmapcriterium geaccepteerd; score blijft 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

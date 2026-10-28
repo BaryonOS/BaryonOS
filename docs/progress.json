@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "f2c4055120b893f004c11bf9b845f0f37c92adaf",
-    "branch": "codex/m6b-storage-errors",
-    "task": "Native G0 start en toetsenbordproef na main-integratie; eindregressies volgen",
+    "source_commit": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+    "branch": "codex/parallel-native-foundation-20261028",
+    "task": "Parallel bouwcheckpoint: G0 hervatten, catalogusclient, app-SDK en native qsim-port",
     "previous_score": 14,
-    "summary": "G0 voert echte beeldschermuitvoer en PS2-RAMinvoer uit in QEMU na EBS/M2; typen en backspace zijn met echte framebufferbeelden gecontroleerd. Geen compositor/sessie, audio/USB of fysieke-hardwarebewijs, dus U01/H02/H03 blijven open. Vijf gerichte M6b-timeout/cancelproeven geslaagd op eerdere bron; gecombineerde eindgates volgen. Score blijft 14%."
+    "summary": "Vier gelijktijdige agents. Onvoltooid G0-werk behouden met 10 harnastests plus timeouttest; nieuwe native controles volgen. Catalogusclient, app-SDK en qsim-port in gescheiden worktrees in uitvoering. G1/Materiaal is elders toegewezen. Geen volledig nieuw roadmapcriterium geaccepteerd; score blijft 14%."
   },
   "tracks": [
     {

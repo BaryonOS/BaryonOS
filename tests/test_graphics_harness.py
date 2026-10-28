@@ -1,9 +1,14 @@
 """Screenshot-parser checks only; these synthetic pixels are not VM evidence."""
 from pathlib import Path
+import io
+import json
+import os
 import sys
+import time
 import unittest
+from unittest.mock import Mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'tools'))
-from run_graphics import ppm, changed_bounds, valid_sequence
+from run_graphics import Qmp, QmpPipe, ppm, changed_bounds, valid_sequence, run_graphics
 
 
 def frame(width=4, height=3, pixels=None):
@@ -44,6 +49,86 @@ class FramebufferEvidence(unittest.TestCase):
             altered = markers.copy()
             altered[index],altered[index+1] = altered[index+1],altered[index]
             self.assertFalse(valid_sequence('\n'.join(altered),800,600))
+        for index in range(len(markers)):
+            self.assertFalse(valid_sequence('\n'.join(markers[:index]+markers[index+1:]),800,600))
+            self.assertFalse(valid_sequence('\n'.join(markers[:index]+[markers[index]]+markers[index:]),800,600))
+
+
+def qmp_stream(*replies):
+    """Protocol-only double; never represented as QEMU execution."""
+    control = Qmp.__new__(Qmp)
+    control.socket = Mock()
+    control.reader = io.BytesIO(b''.join(json.dumps(reply).encode()+b'\n' for reply in replies))
+    control.sequence = 0
+    control.trace = []
+    control.deadline = time.monotonic()+10
+    return control
+
+
+class QmpEvidenceBoundary(unittest.TestCase):
+    def test_response_is_bound_to_request_and_events_are_not_success(self):
+        control = qmp_stream({'event':'STOP'}, {'return':{}, 'id':1})
+        self.assertEqual(control.command('query-status'), {})
+        self.assertEqual(control.trace[0]['request'], {'execute':'query-status','id':1})
+        self.assertEqual(control.trace[0]['response'], {'return':{},'id':1})
+        for response in ({'return':{}, 'id':2}, {'return':{}}, ['return'], None):
+            with self.subTest(response=response):
+                with self.assertRaises((RuntimeError, ValueError)):
+                    qmp_stream(response).command('query-status')
+
+    def test_error_partial_oversized_and_endless_event_streams_fail(self):
+        with self.assertRaises(RuntimeError):
+            qmp_stream({'error':{'class':'GenericError'},'id':1}).command('screendump')
+        for raw in (b'', b'{"return":{}}', b'x'*(1024*1024)+b'\n'):
+            control = qmp_stream()
+            control.reader = io.BytesIO(raw)
+            with self.assertRaises(RuntimeError): control.read()
+        with self.assertRaises(RuntimeError):
+            qmp_stream(*[{'event':'STOP'}]*1024).command('query-status')
+
+    def test_all_qmp_reads_share_the_run_deadline(self):
+        control = qmp_stream({'return':{},'id':1})
+        control.deadline = time.monotonic()-1
+        with self.assertRaises(TimeoutError): control.read()
+        self.assertEqual(control.reader.tell(), 0)
+
+    def test_unregistered_machine_is_rejected_before_build_or_vm(self):
+        with self.assertRaises(ValueError): run_graphics(machine='q35')
+
+    def test_pipe_transport_handles_buffered_responses_and_eof(self):
+        read_fd, write_fd = os.pipe()
+        control = QmpPipe.__new__(QmpPipe)
+        control.reader = os.fdopen(read_fd, 'rb', buffering=0)
+        control.writer = io.BytesIO()
+        control.pending = bytearray()
+        control.sequence, control.trace = 0, []
+        control.deadline = time.monotonic()+5
+        os.write(write_fd, b'{"event":"STOP"}\n{"return":{"ok":true},"id":1}\n')
+        os.close(write_fd)
+        try:
+            self.assertEqual(control.command('query-status'), {'ok':True})
+            self.assertEqual(json.loads(control.writer.getvalue()),
+                             {'execute':'query-status','id':1})
+            with self.assertRaises(RuntimeError): control.read()
+        finally:
+            control.close()
+
+    def test_pipe_rejects_bad_partial_oversize_and_expired_buffered_data(self):
+        for raw, exception in ((b'[]\n', ValueError), (b'{', RuntimeError),
+                               (b'x'*(1024*1024), RuntimeError)):
+            control = QmpPipe.__new__(QmpPipe)
+            control.pending = bytearray(raw)
+            control.deadline = time.monotonic()+5
+            read_fd, write_fd = os.pipe()
+            os.close(write_fd)
+            control.reader = os.fdopen(read_fd, 'rb', buffering=0)
+            try:
+                with self.assertRaises(exception): control.read()
+            finally:
+                control.reader.close()
+        control.pending = bytearray(b'{"return":{}}\n')
+        control.deadline = time.monotonic()-1
+        with self.assertRaises(TimeoutError): control.read()
 
 
 if __name__ == '__main__': unittest.main()

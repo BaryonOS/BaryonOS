@@ -1,5 +1,33 @@
 # Actuele projectstatus
 
+## Parallelle native bouw — 28 oktober 2026
+
+Checkpoint vanaf `1acf6e8cde2a63849dc49c948ad97ba7f2c39cad`, met `main`
+`391f02e9394cb96f37096c995dabcb7d624ba36b` als behouden ouder. Vier werkelijke
+agents: root/G0-integratie, B01 catalogusclient, G01 app-SDK en I01 native
+qsim-port. Alle drie bouwers hebben eigen worktrees en buildoutput. De bestaande
+G1/Materiaal-opdracht uit de andere sessie en M6a-observerbranch blijven apart.
+
+De onderbroken G0-werkboom is uitsluitend gelezen. De vijf onvoltooide bestanden
+zijn bytegetrouw in deze onafhankelijke branch behouden; herkomst/hashlijst in
+`verification/parallel-g0/preserved-work.json`. De hardwarehelpers begrenzen
+pixels tot één zichtbare rij van maximaal 80 pixels en begrensde PS/2-polls;
+geen nieuwe syscall, displaycapability, gebruikersbeleid of opslagformaat.
+De harnasaanvulling koppelt QMP-antwoorden aan request-ID en gedeelde deadline
+en biedt optioneel private pipes. `NOS_BUILD_DIR`/`NOS_TARGET_DIR` scheiden
+buildoutput. Tien grafische harnastests en één bestaande timeouttest slagen;
+exacte opdrachten en uitvoer in `verification/parallel-g0/checkpoint-host.json`.
+Dit checkpoint claimt nog geen nieuwe native grafische run.
+
+De vorige G0-taak eindigde met een platformfout. Het gelezen verslag meldt
+32 M6b-groepen/28 VM-runs, maar die claim wordt hier zonder definitief archief
+niet overgenomen. PR #14 blijft concept. De huidige CodeRabbit-discussie meldt
+een reviewaanvraag, geen afgeronde review van dit nieuwe checkpoint.
+
+Voortgang **14% → 14%**. Native Materiaal, bruikbare documentgrootte,
+ruimtehergebruik, native netwerk/crypto en algemene appstart blijven open.
+Zie `WORK-QUEUE.md` voor de actieve eigenaars en kleinste afhankelijkheden.
+
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
 ## Doorbouw — opslagtimeouts en native grafische basis

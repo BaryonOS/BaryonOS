@@ -9,7 +9,8 @@ import subprocess
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-BUILD = ROOT / "build"
+BUILD = Path(os.environ.get("NOS_BUILD_DIR", str(ROOT / "build"))).resolve()
+TARGET = Path(os.environ.get("NOS_TARGET_DIR", str(ROOT / "target"))).resolve()
 LOCAL = Path(os.environ.get("LOCALAPPDATA", str(ROOT / ".tools"))) / "nieuw-os"
 
 

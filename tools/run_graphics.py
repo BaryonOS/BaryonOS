@@ -9,6 +9,7 @@ import argparse
 import json
 import os
 import re
+import select
 from pathlib import Path
 import shutil
 import socket
@@ -16,6 +17,8 @@ import subprocess
 import time
 import uuid
 from common import ROOT, BUILD, environment, firmware, save_json, sha256, source_hash
+
+MACHINES = ('pc-q35-10.0', 'pc-q35-8.2')
 
 
 def ppm(data):
@@ -65,6 +68,7 @@ def valid_sequence(stdout, screenshot_width, screenshot_height):
 
 class Qmp:
     def __init__(self, path, deadline, process):
+        self.deadline = deadline
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         while True:
             try:
@@ -79,46 +83,122 @@ class Qmp:
         self.reader = self.socket.makefile('rb')
         self.sequence = 0
         self.trace = []
-        if 'QMP' not in self.read():
-            raise ValueError('Missing QMP greeting')
-        self.command('qmp_capabilities')
+        try:
+            if 'QMP' not in self.read():
+                raise ValueError('Missing QMP greeting')
+            self.command('qmp_capabilities')
+        except Exception:
+            self.close()
+            raise
 
     def read(self):
+        remaining = self.deadline-time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError('G0 QMP exceeded the shared deadline')
+        self.socket.settimeout(min(5, remaining))
         line = self.reader.readline(1024*1024)
         if not line or not line.endswith(b'\n'):
             raise RuntimeError('Missing or oversized QMP response')
-        return json.loads(line)
+        response = json.loads(line)
+        if not isinstance(response, dict):
+            raise ValueError('QMP response must be an object')
+        return response
 
     def command(self, name, arguments=None):
         self.sequence += 1
         request = dict(execute=name, id=self.sequence)
         if arguments is not None:
             request['arguments'] = arguments
-        self.socket.sendall((json.dumps(request)+'\n').encode())
-        while True:
+        self.send((json.dumps(request)+'\n').encode())
+        for _ in range(1024):
             reply = self.read()
             if reply.get('id') == self.sequence:
                 self.trace.append(dict(request=request,response=reply))
                 if 'error' in reply:
                     raise RuntimeError('QMP command failed: '+str(reply['error']))
                 return reply.get('return')
+            if 'event' not in reply:
+                raise RuntimeError('Unexpected QMP response ID')
+        raise RuntimeError('Too many QMP events without the command response')
+
+    def send(self, data):
+        self.socket.sendall(data)
 
     def close(self):
         self.reader.close()
         self.socket.close()
 
 
-def run_graphics():
+class QmpPipe(Qmp):
+    """The same QMP protocol through private pipes; no socket permission needed."""
+    def __init__(self, process, deadline):
+        self.deadline = deadline
+        self.reader, self.writer = process.stdout, process.stdin
+        self.pending = bytearray()
+        self.sequence = 0
+        self.trace = []
+        try:
+            if 'QMP' not in self.read():
+                raise ValueError('Missing QMP greeting')
+            self.command('qmp_capabilities')
+        except Exception:
+            self.close()
+            raise
+
+    def read(self):
+        while True:
+            if self.deadline-time.monotonic() <= 0:
+                raise TimeoutError('G0 QMP exceeded the shared deadline')
+            end = self.pending.find(b'\n')
+            if end >= 0:
+                if end >= 1024*1024:
+                    raise RuntimeError('Oversized QMP response')
+                line = bytes(self.pending[:end+1])
+                del self.pending[:end+1]
+                response = json.loads(line)
+                if not isinstance(response, dict):
+                    raise ValueError('QMP response must be an object')
+                return response
+            if len(self.pending) >= 1024*1024:
+                raise RuntimeError('Oversized QMP response')
+            remaining = self.deadline-time.monotonic()
+            if remaining <= 0 or not select.select([self.reader], [], [], min(5, remaining))[0]:
+                raise TimeoutError('G0 QMP exceeded the shared deadline')
+            chunk = os.read(self.reader.fileno(), 4096)
+            if not chunk:
+                raise RuntimeError('Missing or truncated QMP response')
+            self.pending.extend(chunk)
+
+    def send(self, data):
+        if self.writer.write(data) != len(data):
+            raise RuntimeError('Incomplete QMP command write')
+        self.writer.flush()
+
+    def close(self):
+        self.reader.close()
+        self.writer.close()
+
+
+def run_graphics(*, build_directory=BUILD, run_root=None, machine='pc-q35-10.0',
+                 qmp_transport='unix', vga_rom=None):
     if os.name == 'nt':
         raise RuntimeError('G0 QMP probe currently requires Unix sockets on Linux')
+    if machine not in MACHINES:
+        raise ValueError('Choose an explicitly supported and recorded QEMU machine')
+    if qmp_transport not in ('unix', 'pipe'):
+        raise ValueError('Unsupported QMP transport')
+    build_directory = Path(build_directory).resolve(strict=True)
+    run_root = (build_directory/'run') if run_root is None else Path(run_root).resolve()
     frozen = source_hash()
-    manifest = json.loads((BUILD/'manifest.json').read_text())
+    manifest = json.loads((build_directory/'manifest.json').read_text())
     if (manifest.get('kernel_feature') != 'graphics-g0' or manifest.get('loader_feature') != 'graphics-g0'
             or manifest.get('source_sha256') != frozen):
         raise ValueError('Build the paired graphics-g0 profile on the current source first')
-    directory = BUILD/'run'/('graphics-g0-'+uuid.uuid4().hex[:10])
+    directory = run_root/('graphics-g0-'+uuid.uuid4().hex[:10])
+    if qmp_transport == 'unix' and len(os.fsencode(directory/'qmp.sock')) >= 104:
+        raise ValueError('Private QMP socket path too long; choose a short --run-root')
     directory.mkdir(parents=True)
-    shutil.copytree(BUILD/'esp',directory/'esp')
+    shutil.copytree(build_directory/'esp',directory/'esp')
     if (sha256(directory/'esp/kernel.elf') != manifest['kernel']['sha256']
             or sha256(directory/'esp/EFI/BOOT/BOOTX64.EFI') != manifest['loader']['sha256']):
         raise ValueError('G0 build artifacts changed')
@@ -126,18 +206,25 @@ def run_graphics():
     code, variables = firmware()
     for source, name in ((code,'OVMF_CODE.fd'),(variables,'OVMF_VARS.template.fd'),(variables,'OVMF_VARS.fd')):
         shutil.copy2(source,directory/name)
+    vga_device = 'VGA,vgamem_mb=16'
+    if vga_rom is not None:
+        rom = Path(vga_rom).resolve(strict=True)
+        if not rom.is_file() or not 0 < rom.stat().st_size <= 1024*1024:
+            raise ValueError('VGA ROM must be a bounded regular firmware file')
+        shutil.copy2(rom,directory/'VGA.rom')
+        vga_device += ',romfile=VGA.rom'
     env = environment()
     qemu = shutil.which('qemu-system-x86_64',path=env['PATH'])
     if qemu is None:
         raise RuntimeError('Missing QEMU')
-    relative = directory.relative_to(ROOT).as_posix()
-    arguments = [qemu,'-machine','pc-q35-10.0','-accel','tcg,thread=single','-cpu','qemu64',
-        '-smp','1','-m','256M','-nodefaults','-display','none','-monitor','none','-serial','stdio',
-        '-nic','none','-no-reboot','-device','VGA,vgamem_mb=16',
-        '-qmp',f'unix:{relative}/qmp.sock,server=on,wait=off',
-        '-drive',f'if=pflash,unit=0,format=raw,readonly=on,file={relative}/OVMF_CODE.fd',
-        '-drive',f'if=pflash,unit=1,format=raw,file={relative}/OVMF_VARS.fd',
-        '-drive',f'if=virtio,index=0,format=raw,readonly=on,file=fat:{relative}/esp',
+    arguments = [qemu,'-machine',machine,'-accel','tcg,thread=single','-cpu','qemu64',
+        '-smp','1','-m','256M','-nodefaults','-display','none','-monitor','none',
+        '-serial','file:serial.txt' if qmp_transport == 'pipe' else 'stdio',
+        '-nic','none','-no-reboot','-device',vga_device,
+        '-qmp','stdio' if qmp_transport == 'pipe' else 'unix:qmp.sock,server=on,wait=off',
+        '-drive','if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd',
+        '-drive','if=pflash,unit=1,format=raw,file=OVMF_VARS.fd',
+        '-drive','if=virtio,index=0,format=raw,readonly=on,file=fat:esp',
         '-device','isa-debug-exit,iobase=0xf4,iosize=0x04']
     start = time.monotonic()
     deadline = start+60
@@ -148,9 +235,13 @@ def run_graphics():
     rc = None
     trace = []
     with (directory/'serial.txt').open('wb') as stdout, (directory/'stderr.txt').open('wb') as stderr:
-        process = subprocess.Popen(arguments,cwd=ROOT,env=env,stdout=stdout,stderr=stderr)
+        process = subprocess.Popen(arguments,cwd=directory,env=env,
+            stdout=subprocess.PIPE if qmp_transport == 'pipe' else stdout,
+            stdin=subprocess.PIPE if qmp_transport == 'pipe' else subprocess.DEVNULL,
+            stderr=stderr,bufsize=0)
         try:
-            control = Qmp(directory/'qmp.sock',deadline,process)
+            control = (QmpPipe(process,deadline) if qmp_transport == 'pipe'
+                       else Qmp(directory/'qmp.sock',deadline,process))
             def wait_for(marker, count=1):
                 while True:
                     text = (directory/'serial.txt').read_bytes().decode('utf-8','replace')
@@ -212,7 +303,8 @@ def run_graphics():
     save_json(directory/'qmp-trace.json',trace)
     report = dict(scope='actual own-kernel G0 framebuffer and PS/2 RAM input; not desktop or persistence',
         passed=failure is None and all(checks.values()),checks=checks,error=failure,
-        command=arguments,raw_qemu_exit=rc,duration_s=time.monotonic()-start,
+        command=arguments,cwd=str(directory),machine=machine,qmp_transport=qmp_transport,
+        build_directory=str(build_directory),raw_qemu_exit=rc,duration_s=time.monotonic()-start,
         source_fingerprint_version=3,source_sha256=frozen,
         base_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
         qemu_version=subprocess.check_output([qemu,'--version'],env=env,text=True).strip(),
@@ -221,7 +313,7 @@ def run_graphics():
         artifacts={p.relative_to(directory).as_posix():sha256(p) for p in directory.rglob('*') if p.is_file()},
         changed_bounds=checks.get('only_input_row_changes') and bounds)
     save_json(directory/'result.json',report)
-    save_json(BUILD/'graphics-g0-result.json',report)
+    save_json(build_directory/'graphics-g0-result.json',report)
     print(text,end='')
     print(f'G0 raw={rc}; passed={report["passed"]}; {directory}')
     if failure: print(failure)
@@ -229,5 +321,18 @@ def run_graphics():
 
 
 if __name__=='__main__':
-    argparse.ArgumentParser(description=__doc__).parse_args()
-    raise SystemExit(0 if run_graphics()['passed'] else 1)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--build-dir', type=Path, default=BUILD,
+                        help='Paired G0 build output; the manifest must bind the current source')
+    parser.add_argument('--run-root', type=Path,
+                        help='Private VM directory parent, e.g. /tmp/nieuw-os-g0')
+    parser.add_argument('--machine', choices=MACHINES, default='pc-q35-10.0',
+                        help='Exact machine; 8.2 is separate evidence, not a historical 10.0 rerun')
+    parser.add_argument('--qmp-transport', choices=('unix', 'pipe'), default='unix',
+                        help='Private local control; pipe also works when Unix sockets are forbidden')
+    parser.add_argument('--vga-rom', type=Path,
+                        help='Existing official VGA ROM; copied and hashbound inside this private run')
+    args = parser.parse_args()
+    raise SystemExit(0 if run_graphics(build_directory=args.build_dir,
+        run_root=args.run_root, machine=args.machine, qmp_transport=args.qmp_transport,
+        vga_rom=args.vga_rom)['passed'] else 1)
