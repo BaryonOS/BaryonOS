@@ -181,11 +181,13 @@ RENAME11-identiteit afdwingen. Negatieve tests dekken beide. De upstreamreview
 van 5ba238cc blijft behouden, waaronder gate-time hostloghashes vóór én na
 kopiëren. Geen historische mislukking is als een geslaagde native run geteld.
 
-De historische [SOURCE-REVIEW.md](m6d-review/SOURCE-REVIEW.md) noemt de toenmalige
-bestandsnaam `r08_review_checks.json`. Die receipt is in het archief opgenomen
+De historische [SOURCE-REVIEW.md](m6d-review/SOURCE-REVIEW.md) gebruikte oorspronkelijk
+de bestandsnaam `r08_review_checks.json`. Die receipt is in het archief opgenomen
 als [source-review-checks.json](m6d-review/source-review-checks.json), SHA-256
 `70bda10e3ee101dde7b729811f6971f5f93eb76be838e3b63e4377d1e5712fff`.
-De historische tekst en receipt blijven ongewijzigd. De receipt noemt basis
+Alleen de twee archiefverwijzingen in SOURCE-REVIEW zijn naar deze bestaande
+bestandsnaam gecorrigeerd; de reviewinhoud en de bytes van de historische receipt
+blijven behouden. De receipt noemt basis
 `b58ae2a` plus lokale reviewbytes; haar native bestandshashes zijn niet die van
 checkpoint `b739183`. Daarom wordt de eerdere bronreview niet achteraf als
 review van exact `b739183` aangemerkt. Een nieuwe gerichte bronreview van de

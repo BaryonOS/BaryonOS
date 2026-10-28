@@ -7,7 +7,7 @@ Dit is een AI-review, geen menselijke audit of formeel veiligheidsbewijs.
 Basiscommit: `b58ae2a56be6978eab2b5ac4bb5d12e3d615865f`.
 Beoordeeld: de lokale wijzigingen voor de M6d-bouwstap op de bestaande M6c-route.
 De exacte SHA-256-hashes van de beoordeelde bestanden en de uitgevoerde controles
-staan in `r08_review_checks.json`. De bestanden bleven tijdens die controles
+staan in [source-review-checks.json](source-review-checks.json). De bestanden bleven tijdens die controles
 ongewijzigd. De definitieve native gate is in deze notitie nog niet geaudit.
 
 ## Scope
@@ -74,7 +74,7 @@ Twee gerichte Python-hosttests via `python3 -B -m unittest`:
 2. `test_m6c_uncertainty.ArchiveBoundary.test_verification_root_and_escape_cannot_be_replaced`.
 
 Resultaat: **2 tests geslaagd, exit 0**. Exacte argv, werkmap, omgevingsaanpassing,
-stdout/stderr en bronhashes vóór/na staan in `r08_review_checks.json`.
+stdout/stderr en bronhashes vóór/na staan in [source-review-checks.json](source-review-checks.json).
 Deze tests gebruiken afzonderlijke tijdelijke hostfixtures. Zij zijn geen
 nieuwe VM-runs en worden niet bij het aantal native runs opgeteld.
 

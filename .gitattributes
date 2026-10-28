@@ -12,6 +12,10 @@ docs/verification/m6c-review/**/*.txt -text
 docs/verification/m6c-review/*.txt -text
 docs/verification/m6c-ready/*.txt -text
 docs/verification/m6c-console/*.txt -text
+docs/verification/m6d/**/*.txt -text
+docs/verification/m6d/**/*.json -text
+docs/verification/m6d-m6b-regression/**/*.txt -text
+docs/verification/m6d-m6b-regression/**/*.json -text
 docs/verification/m6d-closeout/*.txt -text
 docs/verification/m6d-closeout-local/*.txt -text
 docs/verification/m6d-closeout-m6b/*.txt -text

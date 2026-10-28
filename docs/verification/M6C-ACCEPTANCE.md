@@ -51,6 +51,15 @@ Geen nieuwe externe afhankelijkheid of ruimere appbevoegdheid toegevoegd.
 Alle onderstaande opdrachten eindigden met **exit 0**. Deze scopes worden niet
 opgeteld bij historische runs uit eerdere mijlpalen.
 
+De opdrachten horen bij de hierboven vastgelegde historische bron `bc4cd104`;
+zij reproduceren die uitvoering niet met de huidige bron. De actuele
+`tools/test_m6c.py` voert de uitgebreide M6c/M6d-gate met 35 groepen uit, en
+`tools/capture_m6c.py` gebruikt zonder `--destination` inmiddels
+`docs/verification/m6d`. Voer de oude captureopdracht dus niet op de huidige
+bron uit: zij kan dat M6d-archief vervangen. De actuele gate en expliciete
+archiefbestemmingen staan in [M6D-ACCEPTANCE.md](M6D-ACCEPTANCE.md) en de latere
+[Windowsafsluiting](M6D-CLOSEOUT.md).
+
 | Opdracht | Gecontroleerd resultaat | Bewijs |
 |---|---|---|
 | `python3 -B -u tools/test_m6c.py` | 19 groepen; 15 echte VM-invocaties: 14 M6c + 1 gewone M1 | [suite](m6c/suite.json), [gastrecords](m6c/guest-runs.json), [volledige console](m6c-console/gate.stdout.txt) |

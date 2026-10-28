@@ -58,3 +58,16 @@ Het resultaat geldt voor de vaste synthetische QEMU/TCG-fixtures. Het bewijst ge
 | `a04_m6b_sectors.json` | 69066 | `73a19ffa223b77bcdfcf8c6123f283d933a7e117f8df00e7a8ab191cf09de3db` |
 | `a04_m6b_source_hashes.json` | 14137 | `e995727cc610cd883455a4d2d7cb36d3104972cb3bc6ccf27604a3419115e54f` |
 | `a04_m6b_raw_hashes.json` | 21633 | `e1aac2a56d69ef5e13eefdfff1e7ee91c2371b480ab33ddfe8772b500cff0753` |
+
+### Addendum — latere scriptversie, 28 oktober 2026
+
+De tabel hierboven beschrijft de oorspronkelijke A04-overdracht. Het later
+bijgewerkte, ingecheckte `a04_m6b_audit.py` is **27056 bytes** en heeft SHA-256
+`17fc9ca5744f9a8da5d407a621fec0500ba5c50cc7b989e77d6d82ee89145f4f`.
+Die scriptversie heeft **22 geslaagde hosttests**, opgenomen in de definitieve
+Python-hostsuite van 173 tests; dit zijn overlappende aantallen. De volledige
+historische rawaudit is niet opnieuw uitgevoerd met deze gewijzigde versie.
+Zie [Windowsafsluiting](../M6D-CLOSEOUT.md) en het actuele
+[hashregister](../m6d-summary.json). Het in de tabel genoemde
+[a04_m6b_sectors.json](a04_m6b_sectors.json) is ingecheckt; zijn oorspronkelijke
+bytes en de historische tabelwaarden blijven behouden.

@@ -94,7 +94,7 @@
     "docs/verification/m6d-ready/m6d-ready-build.stdout.txt": "62e9e72643db40a05bac5358703ca695d5c8031bd9b54ced3f7f498119ee5524",
     "docs/verification/m6d-ready/verified.json": "9dfa88bbb013c82c4c50a8cb28680b502d5afc24ce4b805bfa1898326bf92937",
     "docs/verification/m6d-review/FINAL-REVIEW.md": "58a9c3e9d0330617e65658543d61de2022fba3f3fe14cdc55eed194d277e5433",
-    "docs/verification/m6d-review/SOURCE-REVIEW.md": "ded34c189e7b5e20d21df97b8c4a7203ff5abd369ba63f5783c30c425fd289cb",
+    "docs/verification/m6d-review/SOURCE-REVIEW.md": "08f322f4a9ee017a5ac1e39699f87c91396a6b9ac9f6011938dbf6c656a31661",
     "docs/verification/m6d-review/audit_m6d_native.py": "5c88448e100acadd49c515d71e7d1516752b86ca657bbcf14177f11739cd0c85",
     "docs/verification/m6d-review/initial-preflight/m6c-preflight.json": "fa74a2835e13f6f7d806842e64f39ea9f7cc19e49c7ce76f912e57d33f804961",
     "docs/verification/m6d-review/initial-preflight/m6c-preflight.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -114,7 +114,7 @@
     "docs/verification/m6d-m6b-review/a04_m6b_raw_hashes.json": "e1aac2a56d69ef5e13eefdfff1e7ee91c2371b480ab33ddfe8772b500cff0753",
     "docs/verification/m6d-m6b-review/a04_m6b_sectors.json": "73a19ffa223b77bcdfcf8c6123f283d933a7e117f8df00e7a8ab191cf09de3db",
     "docs/verification/m6d-m6b-review/a04_m6b_source_hashes.json": "e995727cc610cd883455a4d2d7cb36d3104972cb3bc6ccf27604a3419115e54f",
-    "docs/verification/m6d-m6b-review/a04_m6b_summary.md": "f8ed54b7023fd371b58034c430a5d8cefc9f69324bea895e84d88750d04edf5e"
+    "docs/verification/m6d-m6b-review/a04_m6b_summary.md": "cca5ad6c5efd65f5ba6963d6ebe91e26b8d13bdfbd0e634f5c4d98ad876bdc4f"
   },
   "verification_notes": {
     "full_staged_diff_check_exit": 2,
@@ -131,7 +131,11 @@
     "changed_file_hashes": {
       "docs/verification/m6d-review/FINAL-REVIEW.md": {
         "previous_sha256": "883b04cf4f3cd439d963e1dcc10970b05893dedfecebb712c64d28be11b38bd4",
-        "current_sha256": "f1c93260a24cdbcb2d1f64279cc1475a069eb4f263788a6cbff8e862824862c6"
+        "current_sha256": "58a9c3e9d0330617e65658543d61de2022fba3f3fe14cdc55eed194d277e5433",
+        "previous_commit": "7484d87ec639fd8a29be327cad47c2f97739199d",
+        "intermediate_commit": "326d2f6efa20411d5bb349b8275bc3e741be7ae0",
+        "intermediate_sha256": "f1c93260a24cdbcb2d1f64279cc1475a069eb4f263788a6cbff8e862824862c6",
+        "current_content_since_commit": "418421a5c94bd9785624ad5bd418f8213e412b28"
       },
       "docs/verification/m6d-m6b-review/a04_m6b_audit.py": {
         "previous_sha256": "3fbed4fa4d853a45e503c3ddbfdefe46624fa49508fd403145e7f7a968698897",
@@ -139,6 +143,19 @@
       }
     },
     "boundary": "Historical VM records remain bound to 88e6c04. The amended A04 script has 22 host unit tests; its historical full raw audit was not rerun. Separate Windows gates on 326d2f6 passed 35/31 and 18/14; full Python suite 173 passed. See docs/verification/M6D-CLOSEOUT.md.",
-    "followup_changes": {}
+    "followup_changes": {
+      "docs/verification/m6d-review/SOURCE-REVIEW.md": {
+        "previous_commit": "1e0c03c66c56615e697a3d70686c4d97a47d4005",
+        "previous_sha256": "ded34c189e7b5e20d21df97b8c4a7203ff5abd369ba63f5783c30c425fd289cb",
+        "current_sha256": "08f322f4a9ee017a5ac1e39699f87c91396a6b9ac9f6011938dbf6c656a31661",
+        "boundary": "Documentation correction only; historical test and audit receipts remain byte-identical. No new test execution."
+      },
+      "docs/verification/m6d-m6b-review/a04_m6b_summary.md": {
+        "previous_commit": "1e0c03c66c56615e697a3d70686c4d97a47d4005",
+        "previous_sha256": "f8ed54b7023fd371b58034c430a5d8cefc9f69324bea895e84d88750d04edf5e",
+        "current_sha256": "cca5ad6c5efd65f5ba6963d6ebe91e26b8d13bdfbd0e634f5c4d98ad876bdc4f",
+        "boundary": "Documentation correction only; historical test and audit receipts remain byte-identical. No new test execution."
+      }
+    }
   }
 }
