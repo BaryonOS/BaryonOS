@@ -84,6 +84,15 @@ def cold_recovery(
     report["real_vm_invocations"] += 1
     report["last_run_directory"] = recovered.get("run_directory")
     require(recovered.get("passed") is True, f"{case}: cold recovery failed")
+    # Hash equality alone misses transient writes that are later undone.
+    require(
+        any(
+            argument.startswith("if=none,id=m6c-test,")
+            and ",readonly=on," in argument
+            for argument in recovered.get("command", [])
+        ),
+        f"{case}: recovery disk was not opened read-only",
+    )
     require(recovered.get("base_commit") == head, f"{case}: recovery HEAD mismatch")
     require(
         recovered.get("source_sha256") == frozen
