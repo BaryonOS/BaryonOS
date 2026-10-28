@@ -91,6 +91,11 @@ def test_m6b():
         suite.update(status='completed',passed=True)
     except Exception as exc:
         suite.update(status='failed',passed=False,error=str(exc))
+        save_json(path,suite)
+        try:
+            build()
+        except Exception as restore:
+            suite['restore_error'] = str(restore)
         raise
     finally:
         suite['finished_utc']=datetime.now(timezone.utc).isoformat()

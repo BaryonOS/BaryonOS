@@ -3,11 +3,62 @@
     "same_kernel": true,
     "same_loader": true,
     "different_images": true,
-    "different_received_digests": true
+    "different_received_digests": true,
+    "same_source": true
   },
   "runs": [
-    "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m5-read-a-81de188365",
-    "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m5-read-b-4400c5be57"
+    "m5-read-a-81de188365",
+    "m5-read-b-4400c5be57"
+  ],
+  "provenance": [
+    {
+      "run_id": "m5-read-a-81de188365",
+      "label": "m5-read-a",
+      "base_commit": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+      "source_fingerprint_version": 3,
+      "source_sha256": "6e8b320fce772d65f541e5c99e48b77a940f92e481487227cf868648cc8c68d8",
+      "artifact_sha256": {
+        "esp/kernel.elf": "d2491dfcab5371064d9bbd576c96387412cfa97518cc2cbcb688cbc06dc1a434",
+        "esp/EFI/BOOT/BOOTX64.EFI": "47469e276c3ba260aa531093c80f483bd892e4cca7959bfcc7b8bf3119eeaa29",
+        "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+        "test-disk.img": "d7663bd81c4238f0557f7e92d6cdc830b743f2d1494f3f7f2f4822f2bcb0674f"
+      },
+      "image_sha256_before": "d7663bd81c4238f0557f7e92d6cdc830b743f2d1494f3f7f2f4822f2bcb0674f",
+      "image_sha256_after": "d7663bd81c4238f0557f7e92d6cdc830b743f2d1494f3f7f2f4822f2bcb0674f",
+      "expected_digests": {
+        "4": "3dfc486f1413da13",
+        "6": "4e3d2c4480bb3251"
+      },
+      "observed_digests": {
+        "4": "3dfc486f1413da13",
+        "6": "4e3d2c4480bb3251"
+      }
+    },
+    {
+      "run_id": "m5-read-b-4400c5be57",
+      "label": "m5-read-b",
+      "base_commit": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+      "source_fingerprint_version": 3,
+      "source_sha256": "6e8b320fce772d65f541e5c99e48b77a940f92e481487227cf868648cc8c68d8",
+      "artifact_sha256": {
+        "esp/kernel.elf": "d2491dfcab5371064d9bbd576c96387412cfa97518cc2cbcb688cbc06dc1a434",
+        "esp/EFI/BOOT/BOOTX64.EFI": "47469e276c3ba260aa531093c80f483bd892e4cca7959bfcc7b8bf3119eeaa29",
+        "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+        "test-disk.img": "9db60ae4a638dfc87281041dd9aa7e23e41323cbec26ec4ab2f72202453e613b"
+      },
+      "image_sha256_before": "9db60ae4a638dfc87281041dd9aa7e23e41323cbec26ec4ab2f72202453e613b",
+      "image_sha256_after": "9db60ae4a638dfc87281041dd9aa7e23e41323cbec26ec4ab2f72202453e613b",
+      "expected_digests": {
+        "4": "dea34d71b4b96d75",
+        "6": "2de0e3ee206fb1f8"
+      },
+      "observed_digests": {
+        "4": "dea34d71b4b96d75",
+        "6": "2de0e3ee206fb1f8"
+      }
+    }
   ],
   "passed": true
 }

@@ -57,6 +57,15 @@ De laatste lokale build is opnieuw `milestone-m6b`; kernel en loader zijn
 bytegelijk aan beide normale eindgate-runs. Dit is een buildcontrole zonder
 extra VM-start (`verification/m6b-ready/`).
 
+Reviewcorrecties van 28 oktober 2026, basis `bb22fdbe15919edc23baa158a46236195ce314b2`:
+historische audits/guards en M1-afwijzingen verduidelijkt, bewijsbeschrijvingen
+vertaald en M5-vergelijkingen aan geverifieerde gastrecords gebonden. Preflight
+weigert nu ook een niet-nul `probe_exit`; de oude `rustup`-probe met `-6` was dus
+geen geldige inventariscontrole. De M6b-gate probeert na fouten de normale M1-build
+te herstellen en bewaart de oorspronkelijke fout. De 36 gerichte hosttests slagen.
+Geen nieuwe native gate uitgevoerd; de M3-hosttestcheckout en de redirectinstelling
+van de oude buitenste capturewrapper blijven expliciet onbekend.
+
 Deze begrensde lokale opslagproef heeft geen namen, directoryboom, garbage
 collection of encryptie. Verwijderrecords voorkomen het terugkomen van oude
 appverzoeken; zij wissen historische schijfbytes niet fysiek. FNV is uitsluitend
@@ -178,4 +187,3 @@ Op deze reparaties opnieuw uitgevoerd in Ubuntu 26.04.1 met Rust 1.90.0/QEMU 10.
 ## Vervolg en herstel
 
 M6a: begrensde WRITE/FLUSH en crashherstel op een synthetische wegwerpimage; de actieve status en nog uit te voeren volledige poort staan hierboven. Werkqueue: WORK-QUEUE.md. Contract: implementation/M6A-WRITE-RECOVERY.md. M1–M5-baseline en eerder bewijs blijven behouden; de volledige QEMU-poort is na deze merge niet opnieuw uitgevoerd. Herstel via aparte consistente checkout c630c59; geen destructieve reset of hostconfigmigratie.
-

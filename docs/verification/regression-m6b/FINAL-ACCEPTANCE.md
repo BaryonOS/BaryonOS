@@ -1,8 +1,10 @@
 # Definitieve regressieacceptatie bij M6b
 
-Deze latere eindstatus vult het oorspronkelijke V3-verslag in `README.md` en
-`summary.json` aan; die bestanden en hun kopieermanifest blijven historisch
-behouden. Geen eerder afgewezen poging is alsnog als geslaagd aangemerkt.
+Deze eindstatus vult het oorspronkelijke V3-verslag aan. `README.md` en
+`summary.json` verwijzen inmiddels naar deze definitieve uitkomst; het historische
+`copied-v3-proof-manifest.json` bewaart de hashes van hun oorspronkelijke kopieën,
+waarvan de inhoud in de Git-historie staat. Geen eerder afgewezen poging is
+alsnog als geslaagd aangemerkt.
 
 ## M1 op de uiteindelijke verifierbron
 

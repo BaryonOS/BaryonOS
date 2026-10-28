@@ -65,7 +65,8 @@ def main() -> int:
             pass
     firmware_candidates = [str(f.resolve()) for f in known_firmware if f.is_file()]
     required = ("git", "rustc", "cargo", "rustup", "qemu-system-x86_64")
-    missing = [name for name in required if not tools[name]["available"]]
+    missing = [name for name in required
+               if not tools[name]["available"] or tools[name].get("probe_exit", 0) != 0]
     required_targets = ("x86_64-unknown-uefi", "x86_64-unknown-none")
     missing_targets = [target for target in required_targets if target not in installed_targets]
     if not firmware_candidates:

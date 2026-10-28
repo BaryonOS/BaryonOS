@@ -31,8 +31,15 @@ artifacthashes en schijforakel. `capture.json` bewaart de opnieuw gecontroleerde
 archiefhashes. De drie hostlogtrio's bevatten exact uitgevoerde commando's,
 werkdirectories, exitstatussen en uitvoer.
 
-`gate.json` en `gate.stdout.txt` bewaren de gateopdracht en console. De eerste
-`capture-command.stdout.txt` bleek leeg; daaruit wordt geen succesmarker afgeleid.
+`gate.json` en `gate.stdout.txt` bewaren de gateopdracht en console.
+`archive_annotation` in `gate.json` koppelt de oorspronkelijke `build/`-logpaden
+aan de ingecheckte kopieën en hun hashes. `run_logged` print subprocess-stderr
+naar gate-stdout; de redirectinstelling van de niet-gearchiveerde buitenste
+capturewrapper is onbekend. De oorspronkelijke metadatahash blijft vastgelegd.
+De preflight in deze historische run rapporteerde `rustup` met `probe_exit: -6`
+ten onrechte als beschikbaar. De herstelde preflight wijst dit af; deze wijziging
+is geen nieuwe native gate en maakt die oude inventariscontrole niet alsnog geldig.
+De eerste `capture-command.stdout.txt` bleek leeg; daaruit wordt geen succesmarker afgeleid.
 De extra capture-hercontrole in `../m6b-review/capture-recheck/` heeft volledige
 vastgelegde stdout en exit 0 voor M1 en M6b, zonder nieuwe VM-runs.
 
