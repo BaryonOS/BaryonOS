@@ -17,11 +17,18 @@ use kernel_core::{user, Frames, Kind, Owner, PAGE};
 mod m4;
 #[cfg(feature = "native-qsim")]
 mod qsim;
+#[cfg(feature = "native-sdk-app")]
+mod sdk_app;
 #[cfg(all(
     feature = "native-qsim",
     any(feature = "milestone-m4", feature = "graphics-g0")
 ))]
 compile_error!("native-qsim is a separate opt-in M3 profile");
+#[cfg(all(
+    feature = "native-sdk-app",
+    any(feature = "milestone-m5", feature = "graphics-g0", feature = "native-qsim")
+))]
+compile_error!("native-sdk-app is a separate opt-in M4 profile");
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
 mod m5;
 #[cfg(all(feature = "milestone-m6a", not(feature = "milestone-m6b")))]
@@ -37,8 +44,16 @@ mod m5;
 const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
 #[cfg(feature = "native-qsim")]
 const ELF: &[u8] = include_bytes!(env!("NOS_QSIM_ELF"));
-#[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+#[cfg(all(
+    feature = "milestone-m4",
+    not(feature = "milestone-m5"),
+    not(feature = "native-sdk-app")
+))]
 const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
+#[cfg(feature = "native-sdk-app")]
+const SDK_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_SDK_SERVICE_ELF"));
+#[cfg(feature = "native-sdk-app")]
+const SDK_APP_ELF: &[u8] = include_bytes!(env!("NOS_SDK_APP_ELF"));
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
 const ELF: &[u8] = include_bytes!(env!("NOS_M5_ELF"));
 #[cfg(all(feature = "milestone-m6a", not(feature = "milestone-m6b")))]
@@ -187,9 +202,22 @@ extern "C" {
     fn m3_restore();
 }
 
+#[cfg(feature = "native-sdk-app")]
+fn process_elf(slot: usize) -> &'static [u8] {
+    match slot {
+        0 => SDK_SERVICE_ELF,
+        1 => SDK_APP_ELF,
+        _ => panic!("native SDK profile has only service and app"),
+    }
+}
+#[cfg(not(feature = "native-sdk-app"))]
+fn process_elf(_slot: usize) -> &'static [u8] {
+    ELF
+}
+
 pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! {
     arch::reset_debug();
-    let image = user::parse(ELF).expect("embedded user ELF");
+    let image = user::parse(process_elf(0)).expect("embedded user ELF");
     assert_eq!(image.entry, 0x40000000);
     kernel.begin_scratch(frames);
     #[cfg(feature = "milestone-m5")]
@@ -253,7 +281,7 @@ impl State {
         self.exited = false;
         self.survivor_slot = 1;
         self.unexpected = false;
-        self.amount = if cfg!(feature = "native-qsim") {
+        self.amount = if cfg!(feature = "native-qsim") || cfg!(feature = "native-sdk-app") {
             2
         } else if cfg!(feature = "milestone-m5") && (14..=16).contains(&m5_case()) {
             4
@@ -268,7 +296,10 @@ impl State {
             self.spawn_process(slot);
         }
 
-        let target = if cfg!(feature = "milestone-m5") || cfg!(feature = "native-qsim") {
+        let target = if cfg!(feature = "milestone-m5")
+            || cfg!(feature = "native-qsim")
+            || cfg!(feature = "native-sdk-app")
+        {
             0
         } else if mode() == 5 {
             text_start()
@@ -281,8 +312,14 @@ impl State {
         if cfg!(feature = "test-m3-large-image") {
             serial::write(b"M3:LARGE_IMAGE:PASS\n");
         }
-        #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+        #[cfg(all(
+            feature = "milestone-m4",
+            not(feature = "milestone-m5"),
+            not(feature = "native-sdk-app")
+        ))]
         m4::manifest(self);
+        #[cfg(feature = "native-sdk-app")]
+        sdk_app::manifest(self);
         #[cfg(feature = "milestone-m5")]
         m5::manifest(self);
         #[cfg(feature = "native-qsim")]
@@ -301,7 +338,8 @@ impl State {
             &self.kernel,
             u16::try_from(slot + 1).unwrap(),
         ));
-        let image = user::parse(ELF).unwrap();
+        let elf = process_elf(slot);
+        let image = user::parse(elf).unwrap();
         for segment in &image.segments[..image.count] {
             let start = segment.va & !(PAGE - 1);
             let end = (segment.va + segment.memory_size + PAGE - 1) & !(PAGE - 1);
@@ -329,7 +367,7 @@ impl State {
                         // validated ELF source/file range, nonoverlapping kernel input.
                         unsafe {
                             ptr::copy_nonoverlapping(
-                                ELF.as_ptr().add(offset),
+                                elf.as_ptr().add(offset),
                                 dest.add((first - va) as usize),
                                 length,
                             );
@@ -680,13 +718,22 @@ impl State {
             .count()
     }
     fn observer_exit(&mut self, slot: usize, counter: u64) {
+        #[cfg(feature = "native-sdk-app")]
+        {
+            sdk_app::observe_exit(self, slot, counter);
+            return;
+        }
         #[cfg(feature = "milestone-m5")]
         {
             let _ = counter;
             m5::observe_exit(self, slot);
             return;
         }
-        #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+        #[cfg(all(
+            feature = "milestone-m4",
+            not(feature = "milestone-m5"),
+            not(feature = "native-sdk-app")
+        ))]
         {
             m4::observe_exit(self, slot, counter);
             return;
@@ -716,13 +763,22 @@ impl State {
         }
     }
     fn observer_fault(&mut self, slot: usize, context: &[u64; 22], counter: u64) {
+        #[cfg(feature = "native-sdk-app")]
+        {
+            sdk_app::observe_fault(self, slot, context, counter);
+            return;
+        }
         #[cfg(feature = "milestone-m5")]
         {
             let _ = counter;
             m5::observe_fault(self, slot, context);
             return;
         }
-        #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+        #[cfg(all(
+            feature = "milestone-m4",
+            not(feature = "milestone-m5"),
+            not(feature = "native-sdk-app")
+        ))]
         {
             m4::observe_fault(self, slot, context, counter);
             return;
@@ -910,8 +966,16 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
     } else {
         state.processes[current].status = Status::Ready;
     }
-    #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
+    #[cfg(all(
+        feature = "milestone-m4",
+        not(feature = "milestone-m5"),
+        not(feature = "native-sdk-app")
+    ))]
     if let Some(next) = m4::poll(state) {
+        return next;
+    }
+    #[cfg(feature = "native-sdk-app")]
+    if let Some(next) = sdk_app::poll(state) {
         return next;
     }
     #[cfg(feature = "milestone-m5")]
