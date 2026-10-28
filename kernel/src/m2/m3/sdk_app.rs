@@ -122,16 +122,32 @@ pub fn manifest(state: &mut State) {
     put(state, 1, 176, service);
 
     if !cfg!(feature = "test-sdk-app-denied") {
+        if engine.check_endpoint(app, request_send, SEND).is_err()
+            || engine.check_endpoint(app, reply_recv, RECV).is_err()
+            || engine.check_endpoint(service, request_recv, RECV).is_err()
+            || engine.check_endpoint(service, reply_send, SEND).is_err()
+        {
+            fail(b"RIGHTS_MISSING");
+        }
         if engine.check_endpoint(app, request_send, RECV).is_ok()
             || engine.check_endpoint(app, reply_recv, SEND).is_ok()
+            || engine.check_endpoint(service, request_recv, SEND).is_ok()
+            || engine.check_endpoint(service, reply_send, RECV).is_ok()
             || engine
                 .check_block(app, request_send, capability_core::BLOCK_READ)
+                .is_ok()
+            || engine
+                .check_block(app, reply_recv, capability_core::BLOCK_READ)
                 .is_ok()
         {
             fail(b"RIGHTS_WIDENED");
         }
-    } else if request_send != 0 || reply_recv != 0 {
-        fail(b"DENIED_HAS_CAPABILITY");
+        if engine.stats().handles != 4 {
+            fail(b"HANDLE_COUNT");
+        }
+    } else if request_send != 0 || reply_recv != 0 || engine.stats().handles != 2 {
+        // Only the service owns its receive/send handles; the app owns none.
+        fail(b"DENIED_HANDLE_COUNT");
     }
     if !engine.check_invariants() || engine.stats().queued_messages != 0 {
         fail(b"MANIFEST_ENGINE");
