@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "34a0e9ce499f19ad6bd9bc4f3cc36d2c5682ed05",
-    "branch": "docs/consumer-adoption-evidence-20261028",
-    "task": "Consumentenwaarde-onderzoek aangevuld en vroege gebruiksvalidatie gepland",
+    "source_commit": "9a56e67634a81d4458d47ef240bc3af2fc523ee5",
+    "branch": "codex/add-os-dev-skill",
+    "task": "Repositorygebonden OS Dev skill en volledige lokale kennisbank geïntegreerd",
     "previous_score": 14,
-    "summary": "De bestaande consumentenwaarde-verkenning is aangevuld met bewijs over desktopgewenning, ervaren competentie, tijdelijke opslag, local-first en meldingsgedrag. PRX1–PRX4 leggen de vroege gebruiksvalidatie vast; er is nog geen deelnemer onderzocht en geen native criterium geaccepteerd. Geen functiewinst: 14% naar 14%."
+    "summary": "De OS Dev Agent Skill is toegevoegd met een lokaal gevalideerde snapshot van 3.054 OSDev Wiki-pagina's en 78 boekpagina's, plus bronindex, zoekhelper en projectkoppelingen. Dit verbetert de ontwikkelkennis en reproduceerbaarheid, maar realiseert geen nieuw native productcriterium. De score blijft daarom 14%."
   },
   "tracks": [
     {

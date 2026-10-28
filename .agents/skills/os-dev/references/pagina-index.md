@@ -1,0 +1,3141 @@
+# Volledige bronindex
+
+Alle 3.132 bron-ID’s met lokale vindplaats. Alleen bronnavigatie; geen uitvoerinstructies.
+
+## Wiki
+
+- [W004929 — "8042" PS/2 Controller](corpus/wiki-14.md#w004929) · bronregels 13320–13320 | namespace 0 | revisie 29478 | 2025-04-19T23:56:34Z
+- [W004479 — "zig cc" Cross-Compiler](corpus/wiki-13.md#w004479) · bronregels 10064–10092 | namespace 0 | revisie 30526 | 2026-04-29T19:26:48Z
+- [W004706 — 3270](corpus/wiki-14.md#w004706) · bronregels 5679–5815 | namespace 0 | revisie 27040 | 2022-04-19T01:17:00Z
+- [W002365 — 3c556](corpus/wiki-05.md#w002365) · bronregels 7835–7835 | namespace 0 | revisie 6151 | 2008-08-04T20:55:22Z
+- [W001429 — 3c90x](corpus/wiki-01.md#w001429) · bronregels 4648–4678 | namespace 0 | revisie 22698 | 2018-09-10T01:35:54Z
+- [W004019 — 3D Renderer Basics](corpus/wiki-11.md#w004019) · bronregels 14910–15167 | namespace 0 | revisie 23566 | 2019-04-08T09:15:57Z
+- [W002626 — 802.11](corpus/wiki-06.md#w002626) · bronregels 3106–3141 | namespace 0 | revisie 21595 | 2017-10-01T21:45:18Z
+- [W001478 — 8259 PIC](corpus/wiki-01.md#w001478) · bronregels 10193–10461 | namespace 0 | revisie 30849 | 2026-07-04T18:16:11Z
+- [W001955 — A.out](corpus/wiki-04.md#w001955) · bronregels 195–366 | namespace 0 | revisie 30550 | 2026-05-02T19:07:46Z
+- [W003016 — A20](corpus/wiki-07.md#w003016) · bronregels 9302–9303 | namespace 0 | revisie 11766 | 2011-07-10T17:16:45Z
+- [W001433 — A20 Line](corpus/wiki-01.md#w001433) · bronregels 4974–5489 | namespace 0 | revisie 30909 | 2026-08-14T21:48:42Z
+- [W001686 — A20Line](corpus/wiki-02.md#w001686) · bronregels 8697–8697 | namespace 0 | revisie 2416 | 2006-12-17T22:15:05Z
+- [W004986 — AArch32](corpus/wiki-14.md#w004986) · bronregels 15792–15792 | namespace 0 | revisie 30026 | 2026-02-18T16:48:30Z
+- [W004267 — AArch64](corpus/wiki-12.md#w004267) · bronregels 11073–11111 | namespace 0 | revisie 30864 | 2026-07-07T17:29:26Z
+- [W005028 — AArch64 Exceptions](corpus/wiki-14.md#w005028) · bronregels 18943–19104 | namespace 0 | revisie 30938 | 2026-09-03T15:43:31Z
+- [W004233 — Abandoned Projects](corpus/wiki-12.md#w004233) · bronregels 7634–8523 | namespace 0 | revisie 28552 | 2024-01-09T21:37:07Z
+- [W003314 — AC97](corpus/wiki-08.md#w003314) · bronregels 12598–12999 | namespace 0 | revisie 30980 | 2026-09-28T12:28:12Z
+- [W003903 — Academic Papers](corpus/wiki-11.md#w003903) · bronregels 7808–7859 | namespace 0 | revisie 31041 | 2026-10-23T21:22:10Z
+- [W001854 — Accelerated Graphic Cards](corpus/wiki-03.md#w001854) · bronregels 6232–6314 | namespace 0 | revisie 27656 | 2023-03-06T10:00:26Z
+- [W003399 — Accelerated Graphics Cards](corpus/wiki-09.md#w003399) · bronregels 1180–1180 | namespace 0 | revisie 15098 | 2013-08-12T08:56:15Z
+- [W001438 — ACPI](corpus/wiki-01.md#w001438) · bronregels 5635–5687 | namespace 0 | revisie 30223 | 2026-03-16T14:50:17Z
+- [W002946 — Acpi](corpus/wiki-07.md#w002946) · bronregels 4058–4058 | namespace 0 | revisie 11054 | 2010-12-20T23:04:19Z
+- [W004598 — ACPI Timer](corpus/wiki-13.md#w004598) · bronregels 15559–15611 | namespace 0 | revisie 30392 | 2026-03-24T00:36:08Z
+- [W002593 — ACPICA](corpus/wiki-06.md#w002593) · bronregels 1069–1308 | namespace 0 | revisie 29487 | 2025-04-25T13:37:02Z
+- [W004477 — Ada](corpus/wiki-13.md#w004477) · bronregels 9822–10036 | namespace 0 | revisie 28262 | 2023-08-04T01:53:38Z
+- [W003231 — Ada Bare Bones](corpus/wiki-08.md#w003231) · bronregels 6500–7229 | namespace 0 | revisie 30645 | 2026-05-27T15:21:22Z
+- [W004630 — Ada Bare bones](corpus/wiki-14.md#w004630) · bronregels 999–999 | namespace 0 | revisie 26306 | 2021-08-12T23:08:22Z
+- [W004261 — Ada Kalinda](corpus/wiki-12.md#w004261) · bronregels 10209–10280 | namespace 0 | revisie 30501 | 2026-04-20T23:22:47Z
+- [W004421 — Ada Runtime Library](corpus/wiki-13.md#w004421) · bronregels 5648–6212 | namespace 0 | revisie 24723 | 2020-05-25T14:11:27Z
+- [W002539 — Address Resolution Protocol](corpus/wiki-05.md#w002539) · bronregels 15186–15258 | namespace 0 | revisie 11170 | 2011-02-05T23:24:22Z
+- [W002244 — ADMA](corpus/wiki-04.md#w002244) · bronregels 14129–14155 | namespace 0 | revisie 20357 | 2017-02-11T16:20:32Z
+- [W002090 — Advanced Integrated Peripheral](corpus/wiki-04.md#w002090) · bronregels 6332–6358 | namespace 0 | revisie 19821 | 2016-09-17T15:43:43Z
+- [W004962 — Advanced Interrupt Architecture](corpus/wiki-14.md#w004962) · bronregels 14870–15037 | namespace 0 | revisie 30817 | 2026-06-24T14:58:21Z
+- [W004538 — Advanced Projects](corpus/wiki-13.md#w004538) · bronregels 12682–12790 | namespace 0 | revisie 27855 | 2023-07-08T17:59:27Z
+- [W001520 — AFS](corpus/wiki-01.md#w001520) · bronregels 15828–15836 | namespace 0 | revisie 5919 | 2008-07-14T23:04:26Z
+- [W001855 — AGP](corpus/wiki-03.md#w001855) · bronregels 6328–6440 | namespace 0 | revisie 29908 | 2026-01-21T03:34:34Z
+- [W002185 — AGP Information](corpus/wiki-04.md#w002185) · bronregels 10584–10584 | namespace 0 | revisie 4747 | 2007-10-23T10:07:33Z
+- [W002674 — AHCI](corpus/wiki-06.md#w002674) · bronregels 5293–6058 | namespace 0 | revisie 29504 | 2025-04-29T14:21:32Z
+- [W001500 — ALink](corpus/wiki-01.md#w001500) · bronregels 12857–12880 | namespace 0 | revisie 31016 | 2026-10-12T11:57:25Z
+- [W004980 — Alpha](corpus/wiki-14.md#w004980) · bronregels 15406–15435 | namespace 0 | revisie 30145 | 2026-03-05T23:21:38Z
+- [W002449 — Alta Lang](corpus/wiki-05.md#w002449) · bronregels 10957–10989 | namespace 0 | revisie 30200 | 2026-03-11T23:59:48Z
+- [W004257 — AMD Atombios](corpus/wiki-12.md#w004257) · bronregels 9350–10134 | namespace 0 | revisie 30413 | 2026-03-25T03:12:18Z
+- [W003177 — AMD PCNET](corpus/wiki-08.md#w003177) · bronregels 2620–3074 | namespace 0 | revisie 28252 | 2023-07-18T00:32:29Z
+- [W004987 — AMD-Vi IOMMU](corpus/wiki-14.md#w004987) · bronregels 15806–16497 | namespace 0 | revisie 30805 | 2026-06-20T22:26:35Z
+- [W002816 — AMD64](corpus/wiki-06.md#w002816) · bronregels 16226–16226 | namespace 0 | revisie 9888 | 2010-03-02T20:37:40Z
+- [W003184 — AML](corpus/wiki-08.md#w003184) · bronregels 3562–3958 | namespace 0 | revisie 30224 | 2026-03-16T14:52:15Z
+- [W004491 — Andy Microbaum](corpus/wiki-13.md#w004491) · bronregels 10371–10398 | namespace 0 | revisie 29225 | 2024-08-18T21:05:17Z
+- [W001882 — APIC](corpus/wiki-03.md#w001882) · bronregels 8012–8622 | namespace 0 | revisie 30723 | 2026-06-11T04:36:56Z
+- [W002956 — Apic](corpus/wiki-07.md#w002956) · bronregels 4575–4575 | namespace 0 | revisie 11095 | 2011-01-11T13:37:46Z
+- [W003127 — APIC Timer](corpus/wiki-07.md#w003127) · bronregels 14408–14665 | namespace 0 | revisie 28146 | 2023-07-10T14:11:19Z
+- [W004793 — APIC timer](corpus/wiki-14.md#w004793) · bronregels 9208–9208 | namespace 0 | revisie 28147 | 2023-07-10T14:11:19Z
+- [W001441 — APM](corpus/wiki-01.md#w001441) · bronregels 5791–5949 | namespace 0 | revisie 30229 | 2026-03-16T14:59:20Z
+- [W004854 — Apple Screen Info](corpus/wiki-14.md#w004854) · bronregels 10878–10918 | namespace 0 | revisie 30230 | 2026-03-16T14:59:46Z
+- [W004740 — Apple TV 1st Generation](corpus/wiki-14.md#w004740) · bronregels 7946–7952 | namespace 0 | revisie 28468 | 2023-11-16T15:29:03Z
+- [W002424 — Ar](corpus/wiki-05.md#w002424) · bronregels 9824–9824 | namespace 0 | revisie 6610 | 2008-11-04T20:36:26Z
+- [W004382 — ARC](corpus/wiki-13.md#w004382) · bronregels 3691–3704 | namespace 0 | revisie 29927 | 2026-01-22T21:37:38Z
+- [W004633 — ARM](corpus/wiki-14.md#w004633) · bronregels 1110–1110 | namespace 0 | revisie 26335 | 2021-08-16T13:21:24Z
+- [W003037 — ARM Beagleboard](corpus/wiki-07.md#w003037) · bronregels 10281–10568 | namespace 0 | revisie 30411 | 2026-03-24T22:34:19Z
+- [W004371 — ARM Generic Timer](corpus/wiki-13.md#w004371) · bronregels 2925–2925 | namespace 0 | revisie 23793 | 2019-08-08T03:53:58Z
+- [W002866 — ARM Integrator-CP Bare Bones](corpus/wiki-06.md#w002866) · bronregels 18433–18543 | namespace 0 | revisie 30231 | 2026-03-16T15:00:30Z
+- [W003468 — ARM Integrator-CP IRQTimerAndPIC](corpus/wiki-09.md#w003468) · bronregels 7488–7823 | namespace 0 | revisie 30232 | 2026-03-16T15:01:28Z
+- [W003469 — ARM Integrator-CP IRQTimerAndPICAndTaskSwitch](corpus/wiki-09.md#w003469) · bronregels 7837–8471 | namespace 0 | revisie 28004 | 2023-07-09T17:47:33Z
+- [W003483 — ARM Integrator-CP IRQTimerPICTasksMMAndMods](corpus/wiki-09.md#w003483) · bronregels 11159–11531 | namespace 0 | revisie 28001 | 2023-07-09T17:45:27Z
+- [W003504 — ARM Integrator-CP ITPTMME Main](corpus/wiki-09.md#w003504) · bronregels 14202–14253 | namespace 0 | revisie 28085 | 2023-07-09T21:14:02Z
+- [W003503 — ARM Integrator-CP ITPTMME Phase2](corpus/wiki-09.md#w003503) · bronregels 13480–14188 | namespace 0 | revisie 28043 | 2023-07-09T19:00:12Z
+- [W003150 — ARM Integrator-CP PL110 Dirty](corpus/wiki-07.md#w003150) · bronregels 16284–16474 | namespace 0 | revisie 28052 | 2023-07-09T19:14:19Z
+- [W004370 — ARM Local Timer](corpus/wiki-13.md#w004370) · bronregels 2895–2910 | namespace 0 | revisie 28113 | 2023-07-09T22:48:42Z
+- [W002332 — ARM Overview](corpus/wiki-05.md#w002332) · bronregels 4486–5064 | namespace 0 | revisie 30546 | 2026-05-02T18:59:54Z
+- [W004221 — ARM Paging](corpus/wiki-12.md#w004221) · bronregels 6451–7497 | namespace 0 | revisie 30870 | 2026-07-07T17:36:55Z
+- [W004662 — ARM RaspberryPi](corpus/wiki-14.md#w004662) · bronregels 2582–2582 | namespace 0 | revisie 26587 | 2021-10-24T10:48:56Z
+- [W003681 — ARM RaspberryPi Tutorial C](corpus/wiki-10.md#w003681) · bronregels 13344–13344 | namespace 0 | revisie 17154 | 2014-11-30T22:44:49Z
+- [W004366 — ARM SMMU versions 1 and 2](corpus/wiki-13.md#w004366) · bronregels 2538–2819 | namespace 0 | revisie 30115 | 2026-03-03T15:12:55Z
+- [W002877 — ARM System Calls](corpus/wiki-07.md#w002877) · bronregels 376–426 | namespace 0 | revisie 30643 | 2026-05-27T15:12:59Z
+- [W003450 — ARM TargetingMultipleDevices](corpus/wiki-09.md#w003450) · bronregels 5559–5607 | namespace 0 | revisie 20525 | 2017-02-20T14:13:49Z
+- [W004017 — ARMv7 Common Memory System Architecture](corpus/wiki-11.md#w004017) · bronregels 14759–14881 | namespace 0 | revisie 27995 | 2023-07-09T17:39:04Z
+- [W004078 — ARMv7 Common Memory System Architecture,](corpus/wiki-12.md#w004078) · bronregels 2780–2780 | namespace 0 | revisie 21041 | 2017-08-03T02:16:48Z
+- [W004196 — ARMv7 Generic Timers](corpus/wiki-12.md#w004196) · bronregels 3912–4037 | namespace 0 | revisie 28114 | 2023-07-09T22:49:12Z
+- [W003802 — ARMv7-A Bare Bones](corpus/wiki-11.md#w003802) · bronregels 1877–1973 | namespace 0 | revisie 30234 | 2026-03-16T15:03:40Z
+- [W003282 — ARP](corpus/wiki-08.md#w003282) · bronregels 8728–8728 | namespace 0 | revisie 13976 | 2012-09-11T22:20:58Z
+- [W003597 — AS86](corpus/wiki-10.md#w003597) · bronregels 5615–5634 | namespace 0 | revisie 19822 | 2016-09-17T15:46:46Z
+- [W002751 — ASCII](corpus/wiki-06.md#w002751) · bronregels 9831–10011 | namespace 0 | revisie 30668 | 2026-05-29T09:02:41Z
+- [W003754 — Assemblers](corpus/wiki-10.md#w003754) · bronregels 17187–17187 | namespace 0 | revisie 17776 | 2015-03-11T15:23:22Z
+- [W001425 — Assembly](corpus/wiki-01.md#w001425) · bronregels 4571–4634 | namespace 0 | revisie 26136 | 2021-06-13T16:02:07Z
+- [W004219 — Assembly Language](corpus/wiki-12.md#w004219) · bronregels 6422–6422 | namespace 0 | revisie 21765 | 2017-11-26T16:44:45Z
+- [W002765 — ATA](corpus/wiki-06.md#w002765) · bronregels 10283–10283 | namespace 0 | revisie 11548 | 2011-05-23T17:17:00Z
+- [W004275 — ATA Command Matrix](corpus/wiki-12.md#w004275) · bronregels 11371–12968 | namespace 0 | revisie 26274 | 2021-08-07T01:06:17Z
+- [W004636 — ATA in x86 RealMode (BIOS)](corpus/wiki-14.md#w004636) · bronregels 1139–1139 | namespace 0 | revisie 26462 | 2021-10-05T18:52:22Z
+- [W003118 — ATA PIO](corpus/wiki-07.md#w003118) · bronregels 14123–14123 | namespace 0 | revisie 12829 | 2012-02-25T08:05:22Z
+- [W002239 — ATA PIO Mode](corpus/wiki-04.md#w002239) · bronregels 12920–13857 | namespace 0 | revisie 27609 | 2023-01-31T21:30:32Z
+- [W002984 — ATA read/write sectors](corpus/wiki-07.md#w002984) · bronregels 5770–6003 | namespace 0 | revisie 20723 | 2017-04-19T05:42:05Z
+- [W002242 — ATA/ATAPI Power Management](corpus/wiki-04.md#w002242) · bronregels 14046–14065 | namespace 0 | revisie 23759 | 2019-07-16T04:20:40Z
+- [W002241 — ATA/ATAPI using DMA](corpus/wiki-04.md#w002241) · bronregels 13905–14032 | namespace 0 | revisie 19394 | 2016-07-02T20:51:22Z
+- [W002246 — ATAPI](corpus/wiki-05.md#w002246) · bronregels 16–510 | namespace 0 | revisie 30235 | 2026-03-16T15:04:33Z
+- [W004956 — ATI Rage 128](corpus/wiki-14.md#w004956) · bronregels 14583–14748 | namespace 0 | revisie 30877 | 2026-07-09T01:38:13Z
+- [W001766 — Atomic operation](corpus/wiki-03.md#w001766) · bronregels 1672–1690 | namespace 0 | revisie 24056 | 2019-10-13T12:47:58Z
+- [W003841 — AudioPCI](corpus/wiki-11.md#w003841) · bronregels 4399–4399 | namespace 0 | revisie 18684 | 2015-12-07T05:19:30Z
+- [W004016 — Automated Build Using CircleCI](corpus/wiki-11.md#w004016) · bronregels 14582–14745 | namespace 0 | revisie 20119 | 2017-01-07T19:29:55Z
+- [W004013 — AVX](corpus/wiki-11.md#w004013) · bronregels 14540–14540 | namespace 0 | revisie 20133 | 2017-01-09T08:53:36Z
+- [W004725 — AVX2](corpus/wiki-14.md#w004725) · bronregels 7529–7577 | namespace 0 | revisie 29871 | 2026-01-12T02:58:53Z
+- [W001750 — Babystep](corpus/wiki-03.md#w001750) · bronregels 1109–1109 | namespace 0 | revisie 2790 | 2007-01-13T01:22:54Z
+- [W001769 — Babystep1](corpus/wiki-03.md#w001769) · bronregels 1742–1849 | namespace 0 | revisie 25013 | 2020-07-15T13:33:11Z
+- [W001770 — Babystep2](corpus/wiki-03.md#w001770) · bronregels 1863–2013 | namespace 0 | revisie 26162 | 2021-06-28T19:56:03Z
+- [W001771 — Babystep3](corpus/wiki-03.md#w001771) · bronregels 2027–2111 | namespace 0 | revisie 19080 | 2016-04-18T06:00:53Z
+- [W001774 — Babystep4](corpus/wiki-03.md#w001774) · bronregels 2142–2251 | namespace 0 | revisie 22352 | 2018-04-27T02:12:30Z
+- [W001775 — Babystep5](corpus/wiki-03.md#w001775) · bronregels 2265–2421 | namespace 0 | revisie 23448 | 2019-03-09T22:48:07Z
+- [W001776 — Babystep6](corpus/wiki-03.md#w001776) · bronregels 2435–2528 | namespace 0 | revisie 22878 | 2018-09-14T23:35:03Z
+- [W001777 — Babystep7](corpus/wiki-03.md#w001777) · bronregels 2542–2621 | namespace 0 | revisie 19020 | 2016-03-26T03:34:55Z
+- [W001778 — Babystep8](corpus/wiki-03.md#w001778) · bronregels 2635–2712 | namespace 0 | revisie 7946 | 2009-05-13T13:27:57Z
+- [W005034 — Bad Practices](corpus/wiki-14.md#w005034) · bronregels 19506–19515 | namespace 0 | revisie 30891 | 2026-07-14T06:07:09Z
+- [W001741 — Bare Bones](corpus/wiki-03.md#w001741) · bronregels 16–546 | namespace 0 | revisie 30776 | 2026-06-18T20:37:12Z
+- [W002497 — Bare bones](corpus/wiki-05.md#w002497) · bronregels 12842–12842 | namespace 0 | revisie 7134 | 2009-01-27T23:50:32Z
+- [W003990 — Bare Bones Compiler](corpus/wiki-11.md#w003990) · bronregels 11497–11497 | namespace 0 | revisie 19921 | 2016-10-27T19:25:46Z
+- [W003361 — Bare Bones with NASM](corpus/wiki-08.md#w003361) · bronregels 17090–17371 | namespace 0 | revisie 30237 | 2026-03-16T15:07:57Z
+- [W002324 — Barebones](corpus/wiki-05.md#w002324) · bronregels 4314–4314 | namespace 0 | revisie 8226 | 2009-06-13T10:10:07Z
+- [W004442 — Basic Theory Of Computer Science](corpus/wiki-13.md#w004442) · bronregels 7154–7268 | namespace 0 | revisie 28637 | 2024-02-21T23:33:33Z
+- [W004781 — Batch](corpus/wiki-14.md#w004781) · bronregels 9035–9035 | namespace 0 | revisie 27993 | 2023-07-09T17:36:44Z
+- [W002905 — Batch File](corpus/wiki-07.md#w002905) · bronregels 1294–1365 | namespace 0 | revisie 30613 | 2026-05-24T14:29:14Z
+- [W004369 — BCM System Timer](corpus/wiki-13.md#w004369) · bronregels 2861–2881 | namespace 0 | revisie 28167 | 2023-07-10T14:52:12Z
+- [W002682 — BDA](corpus/wiki-06.md#w002682) · bronregels 6384–6384 | namespace 0 | revisie 8628 | 2009-07-26T15:16:45Z
+- [W003038 — Beagleboard](corpus/wiki-07.md#w003038) · bronregels 10583–10583 | namespace 0 | revisie 12054 | 2011-09-30T15:36:05Z
+- [W001512 — BeFS](corpus/wiki-01.md#w001512) · bronregels 15122–15263 | namespace 0 | revisie 29835 | 2026-01-07T06:35:01Z
+- [W001879 — Beginner Mistakes](corpus/wiki-03.md#w001879) · bronregels 7578–7733 | namespace 0 | revisie 31014 | 2026-10-11T21:52:42Z
+- [W001604 — BFI](corpus/wiki-02.md#w001604) · bronregels 6678–6682 | namespace 0 | revisie 28809 | 2024-05-13T10:51:12Z
+- [W001517 — BFS](corpus/wiki-01.md#w001517) · bronregels 15760–15769 | namespace 0 | revisie 30004 | 2026-02-14T16:40:08Z
+- [W002576 — BGA](corpus/wiki-06.md#w002576) · bronregels 360–360 | namespace 0 | revisie 9616 | 2010-01-11T14:54:37Z
+- [W004600 — BGRT](corpus/wiki-13.md#w004600) · bronregels 15640–15711 | namespace 0 | revisie 29081 | 2024-06-07T13:37:35Z
+- [W003746 — Big-endian](corpus/wiki-10.md#w003746) · bronregels 16972–16972 | namespace 0 | revisie 17961 | 2015-04-29T19:03:38Z
+- [W003137 — Binary Notation](corpus/wiki-07.md#w003137) · bronregels 14928–15018 | namespace 0 | revisie 16269 | 2014-04-24T05:32:44Z
+- [W004051 — Binutils](corpus/wiki-12.md#w004051) · bronregels 826–850 | namespace 0 | revisie 22633 | 2018-09-09T23:02:02Z
+- [W001484 — BIOS](corpus/wiki-01.md#w001484) · bronregels 10638–10960 | namespace 0 | revisie 30975 | 2026-09-27T17:55:31Z
+- [W003053 — BIOS (PC)](corpus/wiki-07.md#w003053) · bronregels 11072–11072 | namespace 0 | revisie 12288 | 2011-12-12T14:36:19Z
+- [W003623 — BIOS32](corpus/wiki-10.md#w003623) · bronregels 7109–7202 | namespace 0 | revisie 30199 | 2026-03-11T21:16:30Z
+- [W001797 — Blocking Process](corpus/wiki-03.md#w001797) · bronregels 3505–3533 | namespace 0 | revisie 24004 | 2019-09-25T13:09:58Z
+- [W004263 — BMFS](corpus/wiki-12.md#w004263) · bronregels 10611–10860 | namespace 0 | revisie 30218 | 2026-03-15T23:49:16Z
+- [W001556 — Bochs](corpus/wiki-02.md#w001556) · bronregels 3476–3675 | namespace 0 | revisie 30658 | 2026-05-28T15:31:09Z
+- [W002399 — Bochs Graphics Adaptor](corpus/wiki-05.md#w002399) · bronregels 8754–8754 | namespace 0 | revisie 9615 | 2010-01-11T14:54:00Z
+- [W002231 — Bochs VBE Extensions](corpus/wiki-04.md#w002231) · bronregels 12383–12544 | namespace 0 | revisie 30571 | 2026-05-12T15:39:18Z
+- [W002727 — Bochs VBE extensions](corpus/wiki-06.md#w002727) · bronregels 9101–9101 | namespace 0 | revisie 9222 | 2009-11-16T18:09:14Z
+- [W001572 — Books](corpus/wiki-02.md#w001572) · bronregels 4446–5277 | namespace 0 | revisie 29661 | 2025-09-18T03:57:46Z
+- [W001870 — Boot Magic](corpus/wiki-03.md#w001870) · bronregels 6813–6821 | namespace 0 | revisie 6475 | 2008-10-29T09:37:51Z
+- [W001871 — Boot Sequence](corpus/wiki-03.md#w001871) · bronregels 6835–6906 | namespace 0 | revisie 30544 | 2026-05-02T10:58:50Z
+- [W003050 — Boot sequence](corpus/wiki-07.md#w003050) · bronregels 11027–11027 | namespace 0 | revisie 12256 | 2011-12-12T10:34:25Z
+- [W003732 — Boot Signature](corpus/wiki-10.md#w003732) · bronregels 16177–16177 | namespace 0 | revisie 19564 | 2016-07-23T11:58:22Z
+- [W003762 — Boot signature](corpus/wiki-10.md#w003762) · bronregels 17337–17337 | namespace 0 | revisie 20682 | 2017-04-10T17:39:51Z
+- [W001754 — Bootable CD](corpus/wiki-03.md#w001754) · bronregels 1292–1350 | namespace 0 | revisie 30479 | 2026-04-12T16:55:30Z
+- [W004471 — Bootable Disk](corpus/wiki-13.md#w004471) · bronregels 8964–9140 | namespace 0 | revisie 30564 | 2026-05-06T21:26:53Z
+- [W002415 — Bootable El-Torito CD with GRUB Legacy](corpus/wiki-05.md#w002415) · bronregels 9529–9711 | namespace 0 | revisie 30412 | 2026-03-24T22:44:12Z
+- [W004393 — BOOTBOOT](corpus/wiki-13.md#w004393) · bronregels 4045–4122 | namespace 0 | revisie 27196 | 2022-06-21T07:40:45Z
+- [W002204 — Bootf](corpus/wiki-04.md#w002204) · bronregels 10970–11000 | namespace 0 | revisie 8657 | 2009-07-28T04:21:01Z
+- [W004265 — Booting Raspberry Pi 3](corpus/wiki-12.md#w004265) · bronregels 10889–11045 | namespace 0 | revisie 28051 | 2023-07-09T19:08:29Z
+- [W001682 — Bootloader](corpus/wiki-02.md#w001682) · bronregels 8526–8605 | namespace 0 | revisie 30966 | 2026-09-22T22:19:12Z
+- [W004321 — Bootloader FAQ](corpus/wiki-12.md#w004321) · bronregels 16820–16897 | namespace 0 | revisie 29620 | 2025-08-06T22:24:49Z
+- [W003753 — Bootloaders](corpus/wiki-10.md#w003753) · bronregels 17172–17172 | namespace 0 | revisie 17775 | 2015-03-11T15:21:10Z
+- [W001916 — BootProg](corpus/wiki-03.md#w001916) · bronregels 14368–14375 | namespace 0 | revisie 28477 | 2023-11-23T08:43:57Z
+- [W001950 — Bran's Kernel Development Tutorial Known Bugs](corpus/wiki-04.md#w001950) · bronregels 16–99 | namespace 0 | revisie 27236 | 2022-07-12T19:46:31Z
+- [W004488 — Bran's Known Bugs](corpus/wiki-13.md#w004488) · bronregels 10303–10303 | namespace 0 | revisie 24787 | 2020-06-18T13:00:27Z
+- [W003809 — Brendan's Memory Management Guide](corpus/wiki-11.md#w003809) · bronregels 2812–2895 | namespace 0 | revisie 23066 | 2018-10-31T19:39:58Z
+- [W004285 — Brendan's Multi-tasking Tutorial](corpus/wiki-12.md#w004285) · bronregels 14435–15412 | namespace 0 | revisie 30636 | 2026-05-26T21:59:31Z
+- [W003807 — Broken UEFI implementations](corpus/wiki-11.md#w003807) · bronregels 2675–2784 | namespace 0 | revisie 30194 | 2026-03-11T02:57:51Z
+- [W004290 — Brokenthorn's Known Bugs](corpus/wiki-12.md#w004290) · bronregels 15769–15798 | namespace 0 | revisie 30147 | 2026-03-05T23:39:42Z
+- [W004544 — BSOD](corpus/wiki-13.md#w004544) · bronregels 13169–13169 | namespace 0 | revisie 25389 | 2020-11-28T19:57:56Z
+- [W003363 — Building GCC](corpus/wiki-08.md#w003363) · bronregels 17400–17519 | namespace 0 | revisie 30240 | 2026-03-16T15:12:47Z
+- [W004070 — Building libgcc for mcmodel=kernel](corpus/wiki-12.md#w004070) · bronregels 2192–2269 | namespace 0 | revisie 28490 | 2023-12-05T12:35:18Z
+- [W003357 — Building Upon Existing Software](corpus/wiki-08.md#w003357) · bronregels 16909–16930 | namespace 0 | revisie 30831 | 2026-06-30T02:51:13Z
+- [W004518 — Busy loop](corpus/wiki-13.md#w004518) · bronregels 11330–11346 | namespace 0 | revisie 28366 | 2023-10-04T11:58:33Z
+- [W001803 — C](corpus/wiki-03.md#w001803) · bronregels 4524–4569 | namespace 0 | revisie 22953 | 2018-09-25T20:25:59Z
+- [W003192 — C Library](corpus/wiki-08.md#w003192) · bronregels 5757–5882 | namespace 0 | revisie 30151 | 2026-03-06T12:08:15Z
+- [W002653 — C MinusMinus](corpus/wiki-06.md#w002653) · bronregels 4158–4158 | namespace 0 | revisie 8377 | 2009-07-05T22:48:09Z
+- [W002667 — C PlusPlus](corpus/wiki-06.md#w002667) · bronregels 4979–4979 | namespace 0 | revisie 8357 | 2009-07-05T16:39:23Z
+- [W002352 — C preprocessor](corpus/wiki-05.md#w002352) · bronregels 7047–7234 | namespace 0 | revisie 30418 | 2026-03-25T17:26:50Z
+- [W002255 — C Sharp](corpus/wiki-05.md#w002255) · bronregels 780–829 | namespace 0 | revisie 29217 | 2024-08-13T19:02:19Z
+- [W003240 — C Sharp Bare Bones](corpus/wiki-08.md#w003240) · bronregels 7327–7498 | namespace 0 | revisie 30659 | 2026-05-28T15:36:53Z
+- [W001528 — C++](corpus/wiki-02.md#w001528) · bronregels 378–903 | namespace 0 | revisie 30364 | 2026-03-22T16:20:56Z
+- [W001742 — C++ Bare Bones](corpus/wiki-03.md#w001742) · bronregels 561–561 | namespace 0 | revisie 14706 | 2013-05-18T16:45:01Z
+- [W003018 — C++ Exception Support](corpus/wiki-07.md#w003018) · bronregels 9317–9449 | namespace 0 | revisie 27230 | 2022-07-12T19:32:04Z
+- [W002714 — C++ to ASM linkage in GCC](corpus/wiki-06.md#w002714) · bronregels 7676–7829 | namespace 0 | revisie 28237 | 2023-07-10T22:05:18Z
+- [W002364 — C--](corpus/wiki-05.md#w002364) · bronregels 7531–7820 | namespace 0 | revisie 31021 | 2026-10-14T12:13:26Z
+- [W003254 — Calling C++ Constructors From C++](corpus/wiki-08.md#w003254) · bronregels 7760–7760 | namespace 0 | revisie 14730 | 2013-05-24T11:58:55Z
+- [W004212 — Calling Convention](corpus/wiki-12.md#w004212) · bronregels 5228–5228 | namespace 0 | revisie 21683 | 2017-11-12T21:20:39Z
+- [W001759 — Calling Conventions](corpus/wiki-03.md#w001759) · bronregels 1392–1513 | namespace 0 | revisie 29385 | 2025-02-08T13:33:55Z
+- [W003336 — Calling Global Constructors](corpus/wiki-08.md#w003336) · bronregels 15396–15694 | namespace 0 | revisie 28110 | 2023-07-09T22:43:14Z
+- [W003134 — Can I have a list of IO Ports](corpus/wiki-07.md#w003134) · bronregels 14882–14883 | namespace 0 | revisie 12937 | 2012-03-07T18:36:43Z
+- [W001884 — Canadian Cross](corpus/wiki-03.md#w001884) · bronregels 8730–8730 | namespace 0 | revisie 3158 | 2007-03-06T13:32:52Z
+- [W002962 — Cannot perform PE operations on non-PE file](corpus/wiki-07.md#w002962) · bronregels 4918–4919 | namespace 0 | revisie 11178 | 2011-02-07T17:03:15Z
+- [W002845 — Categorized Main Page](corpus/wiki-06.md#w002845) · bronregels 17637–17654 | namespace 0 | revisie 29148 | 2024-06-24T04:50:14Z
+- [W001780 — Category talk:Babystep](corpus/wiki-03.md#w001780) · bronregels 2908–2909 | namespace 15 | revisie 2795 | 2007-01-13T10:07:28Z
+- [W001791 — Category talk:Bare bones tutorials](corpus/wiki-03.md#w001791) · bronregels 3329–3332 | namespace 15 | revisie 2843 | 2007-01-18T06:10:29Z
+- [W001796 — Category talk:Hardware](corpus/wiki-03.md#w001796) · bronregels 3383–3491 | namespace 15 | revisie 9479 | 2009-12-20T16:05:08Z
+- [W002537 — Category talk:Network devices](corpus/wiki-05.md#w002537) · bronregels 14915–14917 | namespace 15 | revisie 7593 | 2009-04-06T22:50:03Z
+- [W001525 — Category talk:PowerManagement](corpus/wiki-02.md#w001525) · bronregels 144–144 | namespace 15 | revisie 1903 | 2006-12-06T23:54:12Z
+- [W003102 — Category talk:SSE](corpus/wiki-07.md#w003102) · bronregels 13814–13814 | namespace 15 | revisie 12668 | 2012-02-19T07:35:48Z
+- [W001767 — Category talk:Synchronization](corpus/wiki-03.md#w001767) · bronregels 1704–1706 | namespace 15 | revisie 2769 | 2007-01-12T05:32:07Z
+- [W001535 — Category talk:System Initialization (x86)](corpus/wiki-02.md#w001535) · bronregels 1683–1685 | namespace 15 | revisie 1936 | 2006-12-07T20:53:10Z
+- [W002159 — Category talk:Tools](corpus/wiki-04.md#w002159) · bronregels 9109–9126 | namespace 15 | revisie 4520 | 2007-09-04T21:40:44Z
+- [W002163 — Category talk:Tutorials](corpus/wiki-04.md#w002163) · bronregels 9251–9252 | namespace 15 | revisie 4542 | 2007-09-08T21:20:30Z
+- [W001690 — Category talk:VGA](corpus/wiki-02.md#w001690) · bronregels 8739–8741 | namespace 15 | revisie 2454 | 2006-12-19T10:30:30Z
+- [W002484 — Category talk:X86 Instructions](corpus/wiki-05.md#w002484) · bronregels 11922–11923 | namespace 15 | revisie 7024 | 2009-01-08T16:31:58Z
+- [W002338 — Category talk:X86-64](corpus/wiki-05.md#w002338) · bronregels 5196–5197 | namespace 15 | revisie 5823 | 2008-07-05T22:24:18Z
+- [W005075 — Category:AArch64](corpus/wiki-14.md#w005075) · bronregels 22151–22153 | namespace 14 | revisie 30861 | 2026-07-07T17:27:27Z
+- [W003508 — Category:ABI](corpus/wiki-09.md#w003508) · bronregels 14385–14385 | namespace 14 | revisie 15943 | 2014-04-08T19:10:34Z
+- [W003107 — Category:ACPI](corpus/wiki-07.md#w003107) · bronregels 13893–13894 | namespace 14 | revisie 12696 | 2012-02-19T19:32:15Z
+- [W004040 — Category:Ada](corpus/wiki-11.md#w004040) · bronregels 16423–16425 | namespace 14 | revisie 24063 | 2019-10-15T07:42:31Z
+- [W003982 — Category:Anti-Pattern](corpus/wiki-11.md#w003982) · bronregels 10959–10959 | namespace 14 | revisie 19889 | 2016-10-12T17:24:47Z
+- [W002333 — Category:ARM](corpus/wiki-05.md#w002333) · bronregels 5078–5078 | namespace 14 | revisie 5781 | 2008-07-02T20:17:04Z
+- [W005002 — Category:ARM Virtualization](corpus/wiki-14.md#w005002) · bronregels 17992–17993 | namespace 14 | revisie 30114 | 2026-03-03T15:12:24Z
+- [W004308 — Category:Articles Written in First Person](corpus/wiki-12.md#w004308) · bronregels 16434–16436 | namespace 14 | revisie 29403 | 2025-02-17T08:45:29Z
+- [W001489 — Category:Assemblers](corpus/wiki-01.md#w001489) · bronregels 12571–12571 | namespace 14 | revisie 3106 | 2007-02-28T06:47:36Z
+- [W001708 — Category:Assembly](corpus/wiki-02.md#w001708) · bronregels 10764–10764 | namespace 14 | revisie 8480 | 2009-07-10T08:16:28Z
+- [W002240 — Category:ATA](corpus/wiki-04.md#w002240) · bronregels 13871–13891 | namespace 14 | revisie 23196 | 2019-01-12T07:37:08Z
+- [W001772 — Category:Babystep](corpus/wiki-03.md#w001772) · bronregels 2125–2128 | namespace 14 | revisie 29109 | 2024-06-07T13:41:27Z
+- [W001399 — Category:Banner Exchange](corpus/wiki-01.md#w001399) · bronregels 3185–3187 | namespace 14 | revisie 2340 | 2006-12-16T20:58:12Z
+- [W001790 — Category:Bare bones tutorials](corpus/wiki-03.md#w001790) · bronregels 3315–3315 | namespace 14 | revisie 2840 | 2007-01-18T06:05:21Z
+- [W004324 — Category:Bias](corpus/wiki-12.md#w004324) · bronregels 17428–17428 | namespace 14 | revisie 22952 | 2018-09-25T20:06:35Z
+- [W003975 — Category:Binutils](corpus/wiki-11.md#w003975) · bronregels 10853–10854 | namespace 14 | revisie 30161 | 2026-03-09T08:51:35Z
+- [W003624 — Category:BIOS](corpus/wiki-10.md#w003624) · bronregels 7216–7219 | namespace 14 | revisie 20360 | 2017-02-11T17:28:17Z
+- [W001574 — Category:Book Covers](corpus/wiki-02.md#w001574) · bronregels 5307–5309 | namespace 14 | revisie 2339 | 2006-12-16T20:57:48Z
+- [W004769 — Category:Booting](corpus/wiki-14.md#w004769) · bronregels 8879–8879 | namespace 14 | revisie 27899 | 2023-07-09T04:50:07Z
+- [W001504 — Category:Bootloaders](corpus/wiki-01.md#w001504) · bronregels 12985–12988 | namespace 14 | revisie 2433 | 2006-12-18T11:21:34Z
+- [W004782 — Category:Build Tools](corpus/wiki-14.md#w004782) · bronregels 9049–9050 | namespace 14 | revisie 30162 | 2026-03-09T08:52:22Z
+- [W001848 — Category:Buses](corpus/wiki-03.md#w001848) · bronregels 5962–5962 | namespace 14 | revisie 3053 | 2007-02-15T01:25:57Z
+- [W002658 — Category:C](corpus/wiki-06.md#w002658) · bronregels 4876–4876 | namespace 14 | revisie 8482 | 2009-07-10T08:18:21Z
+- [W002659 — Category:C++](corpus/wiki-06.md#w002659) · bronregels 4890–4890 | namespace 14 | revisie 8483 | 2009-07-10T08:18:57Z
+- [W001671 — Category:Categories](corpus/wiki-02.md#w001671) · bronregels 8335–8336 | namespace 14 | revisie 12679 | 2012-02-19T18:57:51Z
+- [W005043 — Category:Character Encoding](corpus/wiki-14.md#w005043) · bronregels 20278–20279 | namespace 14 | revisie 30675 | 2026-05-29T16:49:53Z
+- [W002584 — Category:Common Algorithms](corpus/wiki-06.md#w002584) · bronregels 709–709 | namespace 14 | revisie 7835 | 2009-05-02T23:00:33Z
+- [W001849 — Category:Common Devices](corpus/wiki-03.md#w001849) · bronregels 5976–5976 | namespace 14 | revisie 3056 | 2007-02-15T01:28:42Z
+- [W005009 — Category:Compatability Layers](corpus/wiki-14.md#w005009) · bronregels 18117–18117 | namespace 14 | revisie 30175 | 2026-03-09T16:44:16Z
+- [W004785 — Category:Compatibility Layers](corpus/wiki-14.md#w004785) · bronregels 9092–9092 | namespace 14 | revisie 30174 | 2026-03-09T16:44:16Z
+- [W004789 — Category:Compiler Development](corpus/wiki-14.md#w004789) · bronregels 9150–9150 | namespace 14 | revisie 28075 | 2023-07-09T20:47:37Z
+- [W001491 — Category:Compilers](corpus/wiki-01.md#w001491) · bronregels 12585–12586 | namespace 14 | revisie 16376 | 2014-05-15T02:48:35Z
+- [W003885 — Category:CPU Registers](corpus/wiki-11.md#w003885) · bronregels 6671–6673 | namespace 14 | revisie 19601 | 2016-07-25T12:34:40Z
+- [W004672 — Category:CSharp](corpus/wiki-14.md#w004672) · bronregels 3108–3109 | namespace 14 | revisie 27587 | 2023-01-14T06:08:51Z
+- [W004310 — Category:D](corpus/wiki-12.md#w004310) · bronregels 16464–16465 | namespace 14 | revisie 27588 | 2023-01-14T06:10:59Z
+- [W004771 — Category:Debugging](corpus/wiki-14.md#w004771) · bronregels 8908–8908 | namespace 14 | revisie 27908 | 2023-07-09T05:03:20Z
+- [W005005 — Category:DEC Alpha](corpus/wiki-14.md#w005005) · bronregels 18039–18041 | namespace 14 | revisie 30148 | 2026-03-06T01:55:31Z
+- [W003983 — Category:Developer Anti-Pattern](corpus/wiki-11.md#w003983) · bronregels 10973–10973 | namespace 14 | revisie 19890 | 2016-10-12T17:25:20Z
+- [W003981 — Category:Developer Archetype](corpus/wiki-11.md#w003981) · bronregels 10945–10945 | namespace 14 | revisie 19877 | 2016-10-12T17:12:32Z
+- [W001607 — Category:Disk Image Utilities](corpus/wiki-02.md#w001607) · bronregels 7000–7002 | namespace 14 | revisie 6455 | 2008-10-28T08:53:39Z
+- [W004764 — Category:Disks](corpus/wiki-14.md#w004764) · bronregels 8807–8807 | namespace 14 | revisie 27886 | 2023-07-09T04:36:34Z
+- [W001795 — Category:Disputed Pages](corpus/wiki-03.md#w001795) · bronregels 3367–3369 | namespace 14 | revisie 2853 | 2007-01-20T10:23:26Z
+- [W003376 — Category:Driver Interfaces](corpus/wiki-09.md#w003376) · bronregels 319–321 | namespace 14 | revisie 14847 | 2013-06-13T07:49:31Z
+- [W003375 — Category:Drivers](corpus/wiki-09.md#w003375) · bronregels 303–305 | namespace 14 | revisie 14846 | 2013-06-13T07:46:48Z
+- [W001492 — Category:Emulators](corpus/wiki-01.md#w001492) · bronregels 12600–12600 | namespace 14 | revisie 1839 | 2006-12-06T01:33:53Z
+- [W001953 — Category:Executable Formats](corpus/wiki-04.md#w001953) · bronregels 147–149 | namespace 14 | revisie 3292 | 2007-03-11T05:08:38Z
+- [W004883 — Category:FAQ](corpus/wiki-14.md#w004883) · bronregels 11718–11720 | namespace 14 | revisie 29097 | 2024-06-07T13:39:26Z
+- [W004780 — Category:File Formats](corpus/wiki-14.md#w004780) · bronregels 9020–9020 | namespace 14 | revisie 27987 | 2023-07-09T17:30:00Z
+- [W001518 — Category:Filesystems](corpus/wiki-01.md#w001518) · bronregels 15783–15785 | namespace 14 | revisie 2343 | 2006-12-16T20:59:43Z
+- [W002928 — Category:Firmware](corpus/wiki-07.md#w002928) · bronregels 2857–2860 | namespace 14 | revisie 12565 | 2012-02-06T18:17:29Z
+- [W004788 — Category:Fonts](corpus/wiki-14.md#w004788) · bronregels 9136–9136 | namespace 14 | revisie 28069 | 2023-07-09T20:41:38Z
+- [W002895 — Category:Gameboy Advance](corpus/wiki-07.md#w002895) · bronregels 1177–1179 | namespace 14 | revisie 10505 | 2010-06-30T18:31:14Z
+- [W002015 — Category:Graphical UI](corpus/wiki-04.md#w002015) · bronregels 3766–3767 | namespace 14 | revisie 22822 | 2018-09-10T05:40:40Z
+- [W004338 — Category:GRUB](corpus/wiki-12.md#w004338) · bronregels 18228–18229 | namespace 14 | revisie 23076 | 2018-11-10T20:54:03Z
+- [W001563 — Category:Hardware](corpus/wiki-02.md#w001563) · bronregels 4295–4297 | namespace 14 | revisie 2325 | 2006-12-16T20:44:21Z
+- [W004776 — Category:Hardware Detection](corpus/wiki-14.md#w004776) · bronregels 8964–8964 | namespace 14 | revisie 29978 | 2026-02-11T17:00:57Z
+- [W004774 — Category:Hardware Interfaces](corpus/wiki-14.md#w004774) · bronregels 8936–8936 | namespace 14 | revisie 27925 | 2023-07-09T14:55:44Z
+- [W005045 — Category:Higher Half Barebones](corpus/wiki-14.md#w005045) · bronregels 20613–20615 | namespace 14 | revisie 30680 | 2026-06-03T11:09:47Z
+- [W004983 — Category:Historical Curiosities](corpus/wiki-14.md#w004983) · bronregels 15747–15747 | namespace 14 | revisie 29979 | 2026-02-11T17:02:43Z
+- [W004798 — Category:History](corpus/wiki-14.md#w004798) · bronregels 9279–9279 | namespace 14 | revisie 28177 | 2023-07-10T15:50:42Z
+- [W002215 — Category:Human Interface Device](corpus/wiki-04.md#w002215) · bronregels 11834–11834 | namespace 14 | revisie 5064 | 2008-01-28T04:43:09Z
+- [W003782 — Category:Humor](corpus/wiki-11.md#w003782) · bronregels 834–834 | namespace 14 | revisie 18006 | 2015-05-01T22:24:34Z
+- [W003085 — Category:IA-64](corpus/wiki-07.md#w003085) · bronregels 12474–12475 | namespace 14 | revisie 12624 | 2012-02-17T23:24:57Z
+- [W002222 — Category:IDEs](corpus/wiki-04.md#w002222) · bronregels 11985–11987 | namespace 14 | revisie 5169 | 2008-02-28T18:10:14Z
+- [W002148 — Category:In Progress](corpus/wiki-04.md#w002148) · bronregels 8758–8760 | namespace 14 | revisie 4899 | 2007-11-19T16:15:55Z
+- [W003641 — Category:Inadvisable](corpus/wiki-10.md#w003641) · bronregels 11255–11255 | namespace 14 | revisie 16800 | 2014-09-23T22:28:06Z
+- [W004772 — Category:Instruction Set Architecture](corpus/wiki-14.md#w004772) · bronregels 8922–8922 | namespace 14 | revisie 27921 | 2023-07-09T14:51:52Z
+- [W002161 — Category:Interrupts](corpus/wiki-04.md#w002161) · bronregels 9233–9237 | namespace 14 | revisie 4525 | 2007-09-06T04:33:36Z
+- [W001710 — Category:IPC](corpus/wiki-02.md#w001710) · bronregels 10792–10794 | namespace 14 | revisie 2609 | 2006-12-29T23:34:34Z
+- [W002745 — Category:Itanium2](corpus/wiki-06.md#w002745) · bronregels 9565–9569 | namespace 14 | revisie 9348 | 2009-12-06T22:43:19Z
+- [W001472 — Category:Kernel](corpus/wiki-01.md#w001472) · bronregels 9838–9841 | namespace 14 | revisie 2332 | 2006-12-16T20:47:23Z
+- [W001573 — Category:Languages](corpus/wiki-02.md#w001573) · bronregels 5291–5293 | namespace 14 | revisie 8458 | 2009-07-09T22:07:11Z
+- [W003128 — Category:Level 0 Tutorials](corpus/wiki-07.md#w003128) · bronregels 14679–14680 | namespace 14 | revisie 12925 | 2012-03-07T13:10:13Z
+- [W003129 — Category:Level 1 Tutorials](corpus/wiki-07.md#w003129) · bronregels 14694–14695 | namespace 14 | revisie 12926 | 2012-03-07T13:11:55Z
+- [W003130 — Category:Level 2 Tutorials](corpus/wiki-07.md#w003130) · bronregels 14709–14710 | namespace 14 | revisie 12927 | 2012-03-07T13:12:39Z
+- [W003131 — Category:Level 3 Tutorials](corpus/wiki-07.md#w003131) · bronregels 14724–14725 | namespace 14 | revisie 12928 | 2012-03-07T13:13:04Z
+- [W003084 — Category:Level 4 Tutorials](corpus/wiki-07.md#w003084) · bronregels 12458–12460 | namespace 14 | revisie 12564 | 2012-02-06T18:09:17Z
+- [W001497 — Category:Linkers](corpus/wiki-01.md#w001497) · bronregels 12777–12777 | namespace 14 | revisie 1849 | 2006-12-06T03:13:14Z
+- [W004791 — Category:Linux](corpus/wiki-14.md#w004791) · bronregels 9178–9179 | namespace 14 | revisie 30163 | 2026-03-09T08:54:14Z
+- [W004765 — Category:Loaders](corpus/wiki-14.md#w004765) · bronregels 8821–8821 | namespace 14 | revisie 27888 | 2023-07-09T04:37:59Z
+- [W003690 — Category:Lovecraftian](corpus/wiki-10.md#w003690) · bronregels 13648–13649 | namespace 14 | revisie 17259 | 2014-12-03T18:03:35Z
+- [W002874 — Category:M68k](corpus/wiki-07.md#w002874) · bronregels 73–74 | namespace 14 | revisie 10358 | 2010-05-24T18:31:06Z
+- [W002846 — Category:Main Page Templates](corpus/wiki-06.md#w002846) · bronregels 17668–17669 | namespace 14 | revisie 10170 | 2010-04-28T20:27:10Z
+- [W001665 — Category:Main Page Topics](corpus/wiki-02.md#w001665) · bronregels 8303–8305 | namespace 14 | revisie 2348 | 2006-12-16T21:05:37Z
+- [W001676 — Category:Memory management](corpus/wiki-02.md#w001676) · bronregels 8397–8400 | namespace 14 | revisie 3713 | 2007-04-25T22:07:23Z
+- [W004775 — Category:Memory Segmentation](corpus/wiki-14.md#w004775) · bronregels 8950–8950 | namespace 14 | revisie 27937 | 2023-07-09T15:09:18Z
+- [W002200 — Category:MIPS](corpus/wiki-04.md#w002200) · bronregels 10935–10937 | namespace 14 | revisie 4914 | 2007-11-20T10:20:16Z
+- [W003590 — Category:Multiprocessing](corpus/wiki-10.md#w003590) · bronregels 4984–4986 | namespace 14 | revisie 16224 | 2014-04-17T20:03:13Z
+- [W004766 — Category:Multitasking](corpus/wiki-14.md#w004766) · bronregels 8835–8835 | namespace 14 | revisie 27889 | 2023-07-09T04:38:33Z
+- [W001522 — Category:Network Filesystems](corpus/wiki-02.md#w001522) · bronregels 35–37 | namespace 14 | revisie 1896 | 2006-12-06T14:15:20Z
+- [W002546 — Category:Network Hardware](corpus/wiki-05.md#w002546) · bronregels 15349–15357 | namespace 14 | revisie 27489 | 2022-11-15T21:25:54Z
+- [W002542 — Category:Network Protocols](corpus/wiki-05.md#w002542) · bronregels 15288–15290 | namespace 14 | revisie 7591 | 2009-04-06T22:20:41Z
+- [W002536 — Category:Networking](corpus/wiki-05.md#w002536) · bronregels 14899–14901 | namespace 14 | revisie 7549 | 2009-04-04T03:45:38Z
+- [W002535 — Category:NetworkProtocols](corpus/wiki-05.md#w002535) · bronregels 14885–14885 | namespace 14 | revisie 7592 | 2009-04-06T22:21:15Z
+- [W003106 — Category:Object Files](corpus/wiki-07.md#w003106) · bronregels 13877–13879 | namespace 14 | revisie 12690 | 2012-02-19T19:25:54Z
+- [W002776 — Category:Operating Modes](corpus/wiki-06.md#w002776) · bronregels 10502–10503 | namespace 14 | revisie 9569 | 2009-12-31T05:54:03Z
+- [W004792 — Category:Operating Systems](corpus/wiki-14.md#w004792) · bronregels 9193–9193 | namespace 14 | revisie 28109 | 2023-07-09T22:41:45Z
+- [W002296 — Category:OS Development](corpus/wiki-05.md#w002296) · bronregels 3760–3762 | namespace 14 | revisie 5576 | 2008-06-04T19:28:12Z
+- [W001664 — Category:OS theory](corpus/wiki-02.md#w001664) · bronregels 8287–8289 | namespace 14 | revisie 2327 | 2006-12-16T20:44:47Z
+- [W004985 — Category:PA-RISC](corpus/wiki-14.md#w004985) · bronregels 15775–15777 | namespace 14 | revisie 30149 | 2026-03-06T01:55:56Z
+- [W004917 — Category:Pages using deprecated source tags](corpus/wiki-14.md#w004917) · bronregels 12959–12959 | namespace 14 | revisie 29404 | 2025-02-17T08:56:49Z
+- [W004821 — Category:Pages with broken file links](corpus/wiki-14.md#w004821) · bronregels 9992–9992 | namespace 14 | revisie 28365 | 2023-10-04T11:53:38Z
+- [W004768 — Category:Paging](corpus/wiki-14.md#w004768) · bronregels 8865–8865 | namespace 14 | revisie 27891 | 2023-07-09T04:40:13Z
+- [W005015 — Category:Pascal](corpus/wiki-14.md#w005015) · bronregels 18242–18243 | namespace 14 | revisie 30259 | 2026-03-16T16:01:45Z
+- [W004767 — Category:PCI](corpus/wiki-14.md#w004767) · bronregels 8849–8851 | namespace 14 | revisie 30431 | 2026-03-27T19:57:11Z
+- [W004429 — Category:PCI Local Bus](corpus/wiki-13.md#w004429) · bronregels 6451–6451 | namespace 14 | revisie 24137 | 2019-12-02T22:46:03Z
+- [W004802 — Category:Physical Memory](corpus/wiki-14.md#w004802) · bronregels 9371–9371 | namespace 14 | revisie 28207 | 2023-07-10T18:48:00Z
+- [W005014 — Category:PinePhone](corpus/wiki-14.md#w005014) · bronregels 18226–18228 | namespace 14 | revisie 30205 | 2026-03-12T15:37:59Z
+- [W001835 — Category:Platforms](corpus/wiki-03.md#w001835) · bronregels 5618–5618 | namespace 14 | revisie 3006 | 2007-02-14T22:30:06Z
+- [W004796 — Category:Porting](corpus/wiki-14.md#w004796) · bronregels 9251–9251 | namespace 14 | revisie 28166 | 2023-07-10T14:50:39Z
+- [W001842 — Category:Power management](corpus/wiki-03.md#w001842) · bronregels 5751–5751 | namespace 14 | revisie 3039 | 2007-02-15T01:13:16Z
+- [W001812 — Category:PowerPC](corpus/wiki-03.md#w001812) · bronregels 4663–4663 | namespace 14 | revisie 3003 | 2007-02-14T22:29:10Z
+- [W004783 — Category:Printing](corpus/wiki-14.md#w004783) · bronregels 9064–9064 | namespace 14 | revisie 28017 | 2023-07-09T18:02:04Z
+- [W001588 — Category:Processes and Threads](corpus/wiki-02.md#w001588) · bronregels 5831–5833 | namespace 14 | revisie 2597 | 2006-12-28T22:36:49Z
+- [W004790 — Category:Programming](corpus/wiki-14.md#w004790) · bronregels 9164–9164 | namespace 14 | revisie 28104 | 2023-07-09T22:38:36Z
+- [W002660 — Category:Python](corpus/wiki-06.md#w002660) · bronregels 4904–4904 | namespace 14 | revisie 8486 | 2009-07-10T08:21:00Z
+- [W004763 — Category:QEMU](corpus/wiki-14.md#w004763) · bronregels 8793–8793 | namespace 14 | revisie 27876 | 2023-07-09T04:19:20Z
+- [W004712 — Category:Raspberry Pi](corpus/wiki-14.md#w004712) · bronregels 6028–6028 | namespace 14 | revisie 27200 | 2022-06-21T07:43:08Z
+- [W002486 — Category:Real mode assembly](corpus/wiki-05.md#w002486) · bronregels 11990–11993 | namespace 14 | revisie 8525 | 2009-07-12T15:44:26Z
+- [W001668 — Category:Resources](corpus/wiki-02.md#w001668) · bronregels 8319–8321 | namespace 14 | revisie 2338 | 2006-12-16T20:55:23Z
+- [W004032 — Category:RISC-V](corpus/wiki-11.md#w004032) · bronregels 15951–15954 | namespace 14 | revisie 20538 | 2017-02-24T15:05:38Z
+- [W004039 — Category:Rust](corpus/wiki-11.md#w004039) · bronregels 16407–16409 | namespace 14 | revisie 27586 | 2023-01-14T06:07:57Z
+- [W004770 — Category:S390](corpus/wiki-14.md#w004770) · bronregels 8893–8894 | namespace 14 | revisie 30165 | 2026-03-09T08:56:53Z
+- [W004795 — Category:Scheduling](corpus/wiki-14.md#w004795) · bronregels 9237–9237 | namespace 14 | revisie 28156 | 2023-07-10T14:36:54Z
+- [W002357 — Category:Security](corpus/wiki-05.md#w002357) · bronregels 7340–7342 | namespace 14 | revisie 6072 | 2008-07-28T18:40:17Z
+- [W002236 — Category:Sound](corpus/wiki-04.md#w002236) · bronregels 12600–12603 | namespace 14 | revisie 5234 | 2008-03-22T22:38:31Z
+- [W001799 — Category:Sparc](corpus/wiki-03.md#w001799) · bronregels 3843–3845 | namespace 14 | revisie 3004 | 2007-02-14T22:29:19Z
+- [W004777 — Category:Standard Libraries](corpus/wiki-14.md#w004777) · bronregels 8978–8978 | namespace 14 | revisie 27961 | 2023-07-09T16:16:38Z
+- [W001672 — Category:Standards](corpus/wiki-02.md#w001672) · bronregels 8350–8352 | namespace 14 | revisie 2363 | 2006-12-16T21:15:31Z
+- [W004688 — Category:Stivale](corpus/wiki-14.md#w004688) · bronregels 4068–4069 | namespace 14 | revisie 27589 | 2023-01-14T06:21:49Z
+- [W001471 — Category:Storage](corpus/wiki-01.md#w001471) · bronregels 9821–9824 | namespace 14 | revisie 1765 | 2006-12-03T08:31:01Z
+- [W001526 — Category:Stubs](corpus/wiki-02.md#w001526) · bronregels 158–160 | namespace 14 | revisie 2349 | 2006-12-16T21:06:09Z
+- [W001758 — Category:Synchronization](corpus/wiki-03.md#w001758) · bronregels 1378–1378 | namespace 14 | revisie 2766 | 2007-01-11T11:50:52Z
+- [W004797 — Category:System Calls](corpus/wiki-14.md#w004797) · bronregels 9265–9265 | namespace 14 | revisie 28169 | 2023-07-10T14:55:38Z
+- [W001730 — Category:Task Models](corpus/wiki-02.md#w001730) · bronregels 14110–14110 | namespace 14 | revisie 2603 | 2006-12-29T23:24:59Z
+- [W004779 — Category:Testing](corpus/wiki-14.md#w004779) · bronregels 9006–9006 | namespace 14 | revisie 27985 | 2023-07-09T17:28:13Z
+- [W003104 — Category:Text UI](corpus/wiki-07.md#w003104) · bronregels 13843–13845 | namespace 14 | revisie 22821 | 2018-09-10T05:40:18Z
+- [W001663 — Category:Theory](corpus/wiki-02.md#w001663) · bronregels 8271–8273 | namespace 14 | revisie 2324 | 2006-12-16T20:40:16Z
+- [W003103 — Category:Time](corpus/wiki-07.md#w003103) · bronregels 13828–13829 | namespace 14 | revisie 12672 | 2012-02-19T18:50:37Z
+- [W004778 — Category:Timers](corpus/wiki-14.md#w004778) · bronregels 8992–8992 | namespace 14 | revisie 27963 | 2023-07-09T16:17:59Z
+- [W004042 — Category:Tone](corpus/wiki-11.md#w004042) · bronregels 16453–16455 | namespace 14 | revisie 29405 | 2025-02-17T09:01:30Z
+- [W001493 — Category:Tools](corpus/wiki-01.md#w001493) · bronregels 12614–12616 | namespace 14 | revisie 2395 | 2006-12-17T00:24:51Z
+- [W001673 — Category:Troubleshooting](corpus/wiki-02.md#w001673) · bronregels 8366–8368 | namespace 14 | revisie 5587 | 2008-06-04T19:32:05Z
+- [W001751 — Category:Tutorials](corpus/wiki-03.md#w001751) · bronregels 1123–1125 | namespace 14 | revisie 6683 | 2008-11-18T11:36:45Z
+- [W004080 — Category:UEFI](corpus/wiki-12.md#w004080) · bronregels 2812–2814 | namespace 14 | revisie 21067 | 2017-08-10T09:56:00Z
+- [W003377 — Category:Uniform Driver Interface](corpus/wiki-09.md#w003377) · bronregels 335–337 | namespace 14 | revisie 27019 | 2022-03-28T21:23:01Z
+- [W002723 — Category:USB](corpus/wiki-06.md#w002723) · bronregels 9069–9071 | namespace 14 | revisie 9219 | 2009-11-16T18:06:15Z
+- [W005011 — Category:Version Control Systems](corpus/wiki-14.md#w005011) · bronregels 18179–18179 | namespace 14 | revisie 30182 | 2026-03-10T00:52:32Z
+- [W001677 — Category:VGA](corpus/wiki-02.md#w001677) · bronregels 8414–8416 | namespace 14 | revisie 2612 | 2006-12-29T23:47:23Z
+- [W001675 — Category:Video](corpus/wiki-02.md#w001675) · bronregels 8382–8383 | namespace 14 | revisie 4368 | 2007-08-17T10:36:54Z
+- [W004999 — Category:Virtual](corpus/wiki-14.md#w004999) · bronregels 17929–17929 | namespace 14 | revisie 30105 | 2026-03-03T15:03:21Z
+- [W004803 — Category:Virtual Memory](corpus/wiki-14.md#w004803) · bronregels 9385–9385 | namespace 14 | revisie 28208 | 2023-07-10T18:48:57Z
+- [W003312 — Category:Virtualization](corpus/wiki-08.md#w003312) · bronregels 12045–12045 | namespace 14 | revisie 30104 | 2026-03-03T15:03:21Z
+- [W002993 — Category:Visual C++](corpus/wiki-07.md#w002993) · bronregels 6474–6478 | namespace 14 | revisie 12563 | 2012-02-06T18:06:55Z
+- [W001643 — Category:Wallpaper](corpus/wiki-02.md#w001643) · bronregels 7534–7536 | namespace 14 | revisie 2344 | 2006-12-16T21:00:32Z
+- [W004881 — Category:Wiki administration](corpus/wiki-14.md#w004881) · bronregels 11702–11704 | namespace 14 | revisie 28990 | 2024-06-06T17:25:18Z
+- [W004784 — Category:Windows](corpus/wiki-14.md#w004784) · bronregels 9078–9078 | namespace 14 | revisie 28020 | 2023-07-09T18:05:47Z
+- [W001384 — Category:X86](corpus/wiki-01.md#w001384) · bronregels 2956–2958 | namespace 14 | revisie 12645 | 2012-02-18T11:36:15Z
+- [W001841 — Category:X86 CPU](corpus/wiki-03.md#w001841) · bronregels 5737–5737 | namespace 14 | revisie 3030 | 2007-02-14T22:53:42Z
+- [W005000 — Category:X86 Virtualization](corpus/wiki-14.md#w005000) · bronregels 17943–17944 | namespace 14 | revisie 30110 | 2026-03-03T15:08:57Z
+- [W002334 — Category:X86-64](corpus/wiki-05.md#w002334) · bronregels 5092–5093 | namespace 14 | revisie 5782 | 2008-07-02T20:19:13Z
+- [W004043 — Category:Xbox](corpus/wiki-11.md#w004043) · bronregels 16469–16471 | namespace 14 | revisie 30166 | 2026-03-09T08:57:13Z
+- [W003089 — CFE Bare Bones](corpus/wiki-07.md#w003089) · bronregels 12519–12663 | namespace 0 | revisie 30248 | 2026-03-16T15:49:22Z
+- [W003144 — CFS](corpus/wiki-07.md#w003144) · bronregels 16115–16115 | namespace 0 | revisie 19209 | 2016-05-11T12:57:32Z
+- [W002039 — Chat](corpus/wiki-04.md#w002039) · bronregels 4652–4700 | namespace 0 | revisie 30127 | 2026-03-04T19:15:53Z
+- [W001825 — Chip Numbers, Acronyms and Things](corpus/wiki-03.md#w001825) · bronregels 4772–4845 | namespace 0 | revisie 17416 | 2015-01-01T19:25:29Z
+- [W002335 — CIL](corpus/wiki-05.md#w002335) · bronregels 5107–5123 | namespace 0 | revisie 24894 | 2020-06-22T13:59:50Z
+- [W003853 — CISC, RISC, and other CPU Architecture Concepts](corpus/wiki-11.md#w003853) · bronregels 5274–5275 | namespace 0 | revisie 19603 | 2016-07-25T17:40:05Z
+- [W002757 — CLI](corpus/wiki-06.md#w002757) · bronregels 10172–10178 | namespace 0 | revisie 28142 | 2023-07-10T03:18:52Z
+- [W002777 — CLI (Assembly)](corpus/wiki-06.md#w002777) · bronregels 10518–10518 | namespace 0 | revisie 9493 | 2009-12-20T16:45:02Z
+- [W004055 — CMake](corpus/wiki-12.md#w004055) · bronregels 912–912 | namespace 0 | revisie 20767 | 2017-05-06T12:06:58Z
+- [W003187 — CMake Build System](corpus/wiki-08.md#w003187) · bronregels 5480–5720 | namespace 0 | revisie 28241 | 2023-07-10T23:28:57Z
+- [W001717 — CMOS](corpus/wiki-02.md#w001717) · bronregels 11296–11676 | namespace 0 | revisie 30263 | 2026-03-16T17:42:49Z
+- [W003405 — Code Management](corpus/wiki-09.md#w003405) · bronregels 1783–1848 | namespace 0 | revisie 25368 | 2020-11-19T19:25:42Z
+- [W002811 — COFF](corpus/wiki-06.md#w002811) · bronregels 15151–15602 | namespace 0 | revisie 30559 | 2026-05-05T18:06:26Z
+- [W002950 — Colour Quantisation](corpus/wiki-07.md#w002950) · bronregels 4297–4406 | namespace 0 | revisie 16268 | 2014-04-24T05:31:15Z
+- [W002656 — COM](corpus/wiki-06.md#w002656) · bronregels 4814–4836 | namespace 0 | revisie 30376 | 2026-03-22T23:38:46Z
+- [W003735 — Command Line](corpus/wiki-10.md#w003735) · bronregels 16282–16321 | namespace 0 | revisie 29778 | 2025-12-01T15:48:07Z
+- [W004641 — Command SubSystem](corpus/wiki-14.md#w004641) · bronregels 1381–1514 | namespace 0 | revisie 26503 | 2021-10-15T18:59:39Z
+- [W003842 — Common Driver Interface](corpus/wiki-11.md#w003842) · bronregels 4413–4417 | namespace 0 | revisie 28405 | 2023-10-18T07:37:38Z
+- [W004408 — Communications](corpus/wiki-13.md#w004408) · bronregels 4801–4931 | namespace 0 | revisie 30158 | 2026-03-09T08:41:58Z
+- [W004649 — Compatibility Mode](corpus/wiki-14.md#w004649) · bronregels 2124–2124 | namespace 0 | revisie 26528 | 2021-10-17T08:59:11Z
+- [W003594 — Compiler](corpus/wiki-10.md#w003594) · bronregels 5505–5582 | namespace 0 | revisie 23942 | 2019-09-22T16:44:18Z
+- [W003643 — CompilerDev/Bare Bones Compiler](corpus/wiki-10.md#w003643) · bronregels 11283–11299 | namespace 0 | revisie 28201 | 2023-07-10T17:58:57Z
+- [W003986 — CompilerDev/Implementing Conditional Statements And Loops](corpus/wiki-11.md#w003986) · bronregels 11155–11426 | namespace 0 | revisie 28080 | 2023-07-09T20:55:44Z
+- [W003756 — Compilers](corpus/wiki-10.md#w003756) · bronregels 17216–17216 | namespace 0 | revisie 17780 | 2015-03-11T18:23:35Z
+- [W003354 — Compositing](corpus/wiki-08.md#w003354) · bronregels 16857–16880 | namespace 0 | revisie 28115 | 2023-07-09T23:12:52Z
+- [W001418 — Context Switching](corpus/wiki-01.md#w001418) · bronregels 3994–4055 | namespace 0 | revisie 28474 | 2023-11-21T04:00:11Z
+- [W002062 — Continuation Systems](corpus/wiki-04.md#w002062) · bronregels 4793–4818 | namespace 0 | revisie 22715 | 2018-09-10T02:20:34Z
+- [W004651 — Control Register](corpus/wiki-14.md#w004651) · bronregels 2338–2338 | namespace 0 | revisie 26549 | 2021-10-20T05:30:22Z
+- [W004652 — Control registers](corpus/wiki-14.md#w004652) · bronregels 2353–2353 | namespace 0 | revisie 26550 | 2021-10-20T05:32:06Z
+- [W003671 — Cooperative Multitasking](corpus/wiki-10.md#w003671) · bronregels 12090–12097 | namespace 0 | revisie 30768 | 2026-06-16T15:05:25Z
+- [W004493 — Cowboy Coder](corpus/wiki-13.md#w004493) · bronregels 10426–10464 | namespace 0 | revisie 29821 | 2026-01-02T03:40:59Z
+- [W002668 — CPlusPlus](corpus/wiki-06.md#w002668) · bronregels 4994–4994 | namespace 0 | revisie 8516 | 2009-07-10T13:22:58Z
+- [W001452 — CPU Bugs](corpus/wiki-01.md#w001452) · bronregels 7080–7221 | namespace 0 | revisie 30264 | 2026-03-16T17:43:15Z
+- [W002699 — CPU Caches](corpus/wiki-06.md#w002699) · bronregels 7024–7105 | namespace 0 | revisie 28242 | 2023-07-10T23:29:26Z
+- [W003775 — CPU Register x86](corpus/wiki-11.md#w003775) · bronregels 791–791 | namespace 0 | revisie 17967 | 2015-04-30T08:21:30Z
+- [W003729 — CPU Registers x86](corpus/wiki-10.md#w003729) · bronregels 15510–16147 | namespace 0 | revisie 30487 | 2026-04-16T09:34:41Z
+- [W003869 — CPU Registers x86 64](corpus/wiki-11.md#w003869) · bronregels 5840–5840 | namespace 0 | revisie 18836 | 2016-01-10T11:29:17Z
+- [W003774 — CPU Registers x86-64](corpus/wiki-11.md#w003774) · bronregels 16–776 | namespace 0 | revisie 30266 | 2026-03-16T17:44:07Z
+- [W001450 — CPUID](corpus/wiki-01.md#w001450) · bronregels 6819–7066 | namespace 0 | revisie 30267 | 2026-03-16T17:44:54Z
+- [W003736 — CR0](corpus/wiki-10.md#w003736) · bronregels 16336–16336 | namespace 0 | revisie 17970 | 2015-04-30T08:23:13Z
+- [W004653 — Cr2](corpus/wiki-14.md#w004653) · bronregels 2368–2368 | namespace 0 | revisie 26554 | 2021-10-20T06:06:32Z
+- [W004654 — Cr3](corpus/wiki-14.md#w004654) · bronregels 2383–2383 | namespace 0 | revisie 26555 | 2021-10-20T06:06:53Z
+- [W003757 — CR4](corpus/wiki-10.md#w003757) · bronregels 17231–17231 | namespace 0 | revisie 17971 | 2015-04-30T08:23:24Z
+- [W004655 — Cr8](corpus/wiki-14.md#w004655) · bronregels 2398–2398 | namespace 0 | revisie 26556 | 2021-10-20T06:07:28Z
+- [W002582 — CRC32](corpus/wiki-06.md#w002582) · bronregels 462–695 | namespace 0 | revisie 30503 | 2026-04-21T00:03:29Z
+- [W002797 — Crc32](corpus/wiki-06.md#w002797) · bronregels 12731–12731 | namespace 0 | revisie 9714 | 2010-02-07T03:54:09Z
+- [W002257 — Creating a 64-bit kernel](corpus/wiki-05.md#w002257) · bronregels 866–1119 | namespace 0 | revisie 30270 | 2026-03-16T17:47:34Z
+- [W003998 — Creating a 64-bit kernel using a separate loader](corpus/wiki-11.md#w003998) · bronregels 13138–13331 | namespace 0 | revisie 30494 | 2026-04-18T15:18:12Z
+- [W003299 — Creating a C Library](corpus/wiki-08.md#w003299) · bronregels 10406–10585 | namespace 0 | revisie 30272 | 2026-03-16T17:49:42Z
+- [W003617 — Creating A Shell](corpus/wiki-10.md#w003617) · bronregels 6709–6988 | namespace 0 | revisie 19431 | 2016-07-12T08:20:00Z
+- [W003353 — Creating an Operating System](corpus/wiki-08.md#w003353) · bronregels 16637–16843 | namespace 0 | revisie 29373 | 2025-02-05T22:41:52Z
+- [W002805 — Cross-Compiler Successful Builds](corpus/wiki-06.md#w002805) · bronregels 13208–14897 | namespace 0 | revisie 30946 | 2026-09-12T19:11:02Z
+- [W003628 — Cross-Porting Software](corpus/wiki-10.md#w003628) · bronregels 7469–7632 | namespace 0 | revisie 28165 | 2023-07-10T14:49:59Z
+- [W003062 — Crt0](corpus/wiki-07.md#w003062) · bronregels 11949–11949 | namespace 0 | revisie 14158 | 2012-12-19T14:02:11Z
+- [W002661 — CSharp](corpus/wiki-06.md#w002661) · bronregels 4919–4919 | namespace 0 | revisie 8488 | 2009-07-10T08:23:05Z
+- [W001453 — Cygwin](corpus/wiki-01.md#w001453) · bronregels 7235–7281 | namespace 0 | revisie 30176 | 2026-03-09T16:45:35Z
+- [W001880 — Cygwin Issues](corpus/wiki-03.md#w001880) · bronregels 7747–7967 | namespace 0 | revisie 27988 | 2023-07-09T17:31:36Z
+- [W002508 — D](corpus/wiki-05.md#w002508) · bronregels 13326–13347 | namespace 0 | revisie 30986 | 2026-09-28T14:34:58Z
+- [W002528 — D Bare Bones](corpus/wiki-05.md#w002528) · bronregels 14230–14401 | namespace 0 | revisie 30605 | 2026-05-22T14:00:48Z
+- [W002530 — D Bare bones](corpus/wiki-05.md#w002530) · bronregels 14416–14416 | namespace 0 | revisie 7519 | 2009-04-03T10:20:59Z
+- [W002531 — D bare bones](corpus/wiki-05.md#w002531) · bronregels 14431–14431 | namespace 0 | revisie 7518 | 2009-04-03T10:20:29Z
+- [W004691 — D Bare Bones II](corpus/wiki-14.md#w004691) · bronregels 4209–4397 | namespace 0 | revisie 30285 | 2026-03-16T18:55:31Z
+- [W003292 — D Bare Bones With LDC2](corpus/wiki-08.md#w003292) · bronregels 9610–9956 | namespace 0 | revisie 26640 | 2021-11-02T00:27:19Z
+- [W004670 — D barebone with ldc2](corpus/wiki-14.md#w004670) · bronregels 3079–3079 | namespace 0 | revisie 26641 | 2021-11-02T00:27:19Z
+- [W004494 — Dae Dreamer](corpus/wiki-13.md#w004494) · bronregels 10478–10506 | namespace 0 | revisie 29207 | 2024-08-09T09:35:52Z
+- [W001729 — Deadlock](corpus/wiki-02.md#w001729) · bronregels 14069–14096 | namespace 0 | revisie 2749 | 2007-01-10T09:02:37Z
+- [W003833 — Debugging UEFI applications with GDB](corpus/wiki-11.md#w003833) · bronregels 3821–3998 | namespace 0 | revisie 30286 | 2026-03-16T18:57:21Z
+- [W004981 — DEC Alpha](corpus/wiki-14.md#w004981) · bronregels 15450–15450 | namespace 0 | revisie 29926 | 2026-01-22T18:16:18Z
+- [W003120 — Definitions](corpus/wiki-07.md#w003120) · bronregels 14138–14138 | namespace 0 | revisie 12849 | 2012-02-28T10:35:01Z
+- [W002985 — Deprecated](corpus/wiki-07.md#w002985) · bronregels 6017–6075 | namespace 0 | revisie 20311 | 2017-02-01T11:33:01Z
+- [W002882 — Descriptor](corpus/wiki-07.md#w002882) · bronregels 588–789 | namespace 0 | revisie 28185 | 2023-07-10T17:32:31Z
+- [W002124 — Descriptor Cache](corpus/wiki-04.md#w002124) · bronregels 7881–7895 | namespace 0 | revisie 26974 | 2022-02-16T18:25:12Z
+- [W001877 — Descriptors](corpus/wiki-03.md#w001877) · bronregels 7222–7381 | namespace 0 | revisie 16219 | 2014-04-17T18:42:21Z
+- [W001914 — Detecting Colour and Monochrome Monitors](corpus/wiki-03.md#w001914) · bronregels 14285–14311 | namespace 0 | revisie 28077 | 2023-07-09T20:51:24Z
+- [W001446 — Detecting CPU Speed](corpus/wiki-01.md#w001446) · bronregels 6003–6233 | namespace 0 | revisie 30288 | 2026-03-16T18:58:39Z
+- [W002973 — Detecting CPU Topology (80x86)](corpus/wiki-07.md#w002973) · bronregels 5395–5521 | namespace 0 | revisie 28239 | 2023-07-10T23:27:32Z
+- [W003884 — Detecting Hardware](corpus/wiki-11.md#w003884) · bronregels 6643–6657 | namespace 0 | revisie 28187 | 2023-07-10T17:33:43Z
+- [W003886 — Detecting hardware](corpus/wiki-11.md#w003886) · bronregels 6688–6688 | namespace 0 | revisie 19007 | 2016-03-19T12:37:09Z
+- [W002279 — Detecting Memory (x86)](corpus/wiki-05.md#w002279) · bronregels 2248–3140 | namespace 0 | revisie 30850 | 2026-07-05T02:38:23Z
+- [W004416 — Detecting Raspberry Pi Board](corpus/wiki-13.md#w004416) · bronregels 5164–5239 | namespace 0 | revisie 30289 | 2026-03-16T18:59:11Z
+- [W002665 — Dev-C PlusPlus](corpus/wiki-06.md#w002665) · bronregels 4964–4964 | namespace 0 | revisie 8375 | 2009-07-05T22:46:45Z
+- [W001893 — Dev-C++](corpus/wiki-03.md#w001893) · bronregels 9460–9485 | namespace 0 | revisie 28244 | 2023-07-10T23:38:35Z
+- [W003410 — Device Driver Interfaces](corpus/wiki-09.md#w003410) · bronregels 2019–2019 | namespace 0 | revisie 15223 | 2013-10-02T22:07:49Z
+- [W002355 — Device Management](corpus/wiki-05.md#w002355) · bronregels 7248–7310 | namespace 0 | revisie 28406 | 2023-10-18T07:43:32Z
+- [W004422 — Devicetree](corpus/wiki-13.md#w004422) · bronregels 6226–6246 | namespace 0 | revisie 30825 | 2026-06-29T19:22:14Z
+- [W001901 — Direct Mapping](corpus/wiki-03.md#w001901) · bronregels 12405–12467 | namespace 0 | revisie 30754 | 2026-06-15T09:50:02Z
+- [W002495 — Disassemble](corpus/wiki-05.md#w002495) · bronregels 12744–12744 | namespace 0 | revisie 21457 | 2017-08-30T18:00:25Z
+- [W002245 — Disk access using the BIOS (INT 13h)](corpus/wiki-04.md#w002245) · bronregels 14169–14386 | namespace 0 | revisie 30242 | 2026-03-16T15:43:42Z
+- [W001606 — Disk Images](corpus/wiki-02.md#w001606) · bronregels 6732–6986 | namespace 0 | revisie 26884 | 2022-01-24T01:55:20Z
+- [W001872 — Diskless Booting](corpus/wiki-03.md#w001872) · bronregels 6920–7000 | namespace 0 | revisie 29089 | 2024-06-07T13:38:42Z
+- [W003052 — Diskless booting](corpus/wiki-07.md#w003052) · bronregels 11057–11057 | namespace 0 | revisie 12265 | 2011-12-12T10:39:30Z
+- [W004709 — DisplayPort](corpus/wiki-14.md#w004709) · bronregels 5863–5984 | namespace 0 | revisie 28118 | 2023-07-10T02:06:27Z
+- [W002951 — Dithering](corpus/wiki-07.md#w002951) · bronregels 4420–4483 | namespace 0 | revisie 11089 | 2011-01-09T16:56:30Z
+- [W004534 — Dizz Tracked](corpus/wiki-13.md#w004534) · bronregels 12506–12526 | namespace 0 | revisie 29743 | 2025-11-01T23:54:14Z
+- [W001746 — DJGPP](corpus/wiki-03.md#w001746) · bronregels 836–928 | namespace 0 | revisie 11721 | 2011-07-05T11:33:26Z
+- [W002390 — DMA](corpus/wiki-05.md#w002390) · bronregels 8622–8622 | namespace 0 | revisie 6414 | 2008-10-26T00:25:50Z
+- [W005099 — DMAR](corpus/wiki-15.md#w005099) · bronregels 1261–1261 | namespace 0 | revisie 31012 | 2026-10-11T16:55:17Z
+- [W001564 — DMI](corpus/wiki-02.md#w001564) · bronregels 4311–4326 | namespace 0 | revisie 28160 | 2023-07-10T14:45:15Z
+- [W004961 — Doors (IPC)](corpus/wiki-14.md#w004961) · bronregels 14841–14856 | namespace 0 | revisie 29745 | 2025-11-04T18:01:22Z
+- [W002489 — Double Buffering](corpus/wiki-05.md#w002489) · bronregels 12072–12305 | namespace 0 | revisie 28579 | 2024-01-26T16:31:33Z
+- [W002477 — Double Fault](corpus/wiki-05.md#w002477) · bronregels 11849–11849 | namespace 0 | revisie 6969 | 2008-12-31T16:22:06Z
+- [W002188 — DP8390](corpus/wiki-04.md#w002188) · bronregels 10777–10787 | namespace 0 | revisie 22650 | 2018-09-09T23:36:25Z
+- [W003964 — DPL](corpus/wiki-11.md#w003964) · bronregels 10048–10052 | namespace 0 | revisie 28238 | 2023-07-10T22:05:40Z
+- [W004597 — Drawing In a Linear Framebuffer](corpus/wiki-13.md#w004597) · bronregels 15319–15545 | namespace 0 | revisie 30599 | 2026-05-21T22:46:51Z
+- [W001934 — Drawing In Protected Mode](corpus/wiki-03.md#w001934) · bronregels 15333–15333 | namespace 0 | revisie 25994 | 2021-05-27T23:35:35Z
+- [W003111 — DSDT](corpus/wiki-07.md#w003111) · bronregels 13952–14021 | namespace 0 | revisie 30291 | 2026-03-16T19:00:48Z
+- [W005072 — DTB](corpus/wiki-14.md#w005072) · bronregels 22107–22107 | namespace 0 | revisie 30826 | 2026-06-29T19:23:36Z
+- [W005073 — DTS](corpus/wiki-14.md#w005073) · bronregels 22122–22122 | namespace 0 | revisie 30827 | 2026-06-29T19:23:55Z
+- [W004034 — Duct von Tape](corpus/wiki-11.md#w004034) · bronregels 16114–16137 | namespace 0 | revisie 24785 | 2020-06-18T12:39:06Z
+- [W003878 — DWARF](corpus/wiki-11.md#w003878) · bronregels 6288–6570 | namespace 0 | revisie 30292 | 2026-03-16T19:03:56Z
+- [W004000 — Dynamic Linker](corpus/wiki-11.md#w004000) · bronregels 13609–13868 | namespace 0 | revisie 30293 | 2026-03-16T19:05:14Z
+- [W005042 — EBCDIC](corpus/wiki-14.md#w005042) · bronregels 19881–20264 | namespace 0 | revisie 30670 | 2026-05-29T09:49:19Z
+- [W002774 — EBDA](corpus/wiki-06.md#w002774) · bronregels 10458–10458 | namespace 0 | revisie 9488 | 2009-12-20T16:29:59Z
+- [W002680 — EDI](corpus/wiki-06.md#w002680) · bronregels 6338–6338 | namespace 0 | revisie 8609 | 2009-07-24T08:45:33Z
+- [W003805 — EDID](corpus/wiki-11.md#w003805) · bronregels 2036–2646 | namespace 0 | revisie 30475 | 2026-04-11T00:15:02Z
+- [W003747 — Editors](corpus/wiki-10.md#w003747) · bronregels 16987–16987 | namespace 0 | revisie 17740 | 2015-03-04T15:16:41Z
+- [W004624 — EDK2](corpus/wiki-14.md#w004624) · bronregels 471–654 | namespace 0 | revisie 30304 | 2026-03-16T20:35:59Z
+- [W002925 — EFI](corpus/wiki-07.md#w002925) · bronregels 2813–2813 | namespace 0 | revisie 10840 | 2010-10-11T18:55:22Z
+- [W004394 — EFI System Partition](corpus/wiki-13.md#w004394) · bronregels 4136–4171 | namespace 0 | revisie 27953 | 2023-07-09T16:07:02Z
+- [W003783 — EFLAGS](corpus/wiki-11.md#w003783) · bronregels 849–849 | namespace 0 | revisie 18012 | 2015-05-02T11:25:54Z
+- [W003304 — EHCI](corpus/wiki-08.md#w003304) · bronregels 10978–10978 | namespace 0 | revisie 14218 | 2013-01-10T12:33:12Z
+- [W004820 — El Torito](corpus/wiki-14.md#w004820) · bronregels 9978–9978 | namespace 0 | revisie 28353 | 2023-10-03T09:15:38Z
+- [W002476 — El-Torito](corpus/wiki-05.md#w002476) · bronregels 11569–11834 | namespace 0 | revisie 27153 | 2022-06-03T12:46:54Z
+- [W001578 — Eleanore Semaphore](corpus/wiki-02.md#w001578) · bronregels 5444–5515 | namespace 0 | revisie 24892 | 2020-06-22T13:53:15Z
+- [W001542 — ELF](corpus/wiki-02.md#w001542) · bronregels 2100–2505 | namespace 0 | revisie 30569 | 2026-05-10T03:28:40Z
+- [W003429 — ELF Tutorial](corpus/wiki-09.md#w003429) · bronregels 2961–3557 | namespace 0 | revisie 30303 | 2026-03-16T20:34:39Z
+- [W001895 — EM64T](corpus/wiki-03.md#w001895) · bronregels 9499–9524 | namespace 0 | revisie 28117 | 2023-07-09T23:15:46Z
+- [W002678 — Emulator Comparison](corpus/wiki-06.md#w002678) · bronregels 6093–6323 | namespace 0 | revisie 25140 | 2020-09-08T02:50:42Z
+- [W002595 — Emulators](corpus/wiki-06.md#w002595) · bronregels 1322–1383 | namespace 0 | revisie 16270 | 2014-04-24T05:34:09Z
+- [W003773 — Endian](corpus/wiki-10.md#w003773) · bronregels 18298–18298 | namespace 0 | revisie 17959 | 2015-04-29T19:00:54Z
+- [W003744 — Endianness](corpus/wiki-10.md#w003744) · bronregels 16781–16942 | namespace 0 | revisie 29914 | 2026-01-22T04:02:03Z
+- [W003303 — Enhanced Host Controller Interface](corpus/wiki-08.md#w003303) · bronregels 10656–10963 | namespace 0 | revisie 25813 | 2021-04-21T00:43:14Z
+- [W003840 — Ensoniq AudioPCI](corpus/wiki-11.md#w003840) · bronregels 4249–4384 | namespace 0 | revisie 26176 | 2021-07-06T18:07:08Z
+- [W002323 — Enter Long Mode Directly](corpus/wiki-05.md#w002323) · bronregels 4299–4299 | namespace 0 | revisie 5724 | 2008-07-01T01:24:19Z
+- [W002322 — Entering Long Mode Directly](corpus/wiki-05.md#w002322) · bronregels 3977–4284 | namespace 0 | revisie 30302 | 2026-03-16T20:32:46Z
+- [W004844 — Español Llano](corpus/wiki-14.md#w004844) · bronregels 10539–10543 | namespace 0 | revisie 28597 | 2024-02-03T12:29:18Z
+- [W002362 — Ethernet devices](corpus/wiki-05.md#w002362) · bronregels 7426–7450 | namespace 0 | revisie 26434 | 2021-09-30T20:20:39Z
+- [W002843 — Everything about ports](corpus/wiki-06.md#w002843) · bronregels 17313–17314 | namespace 0 | revisie 10125 | 2010-04-26T19:06:09Z
+- [W004648 — Exception](corpus/wiki-14.md#w004648) · bronregels 2109–2109 | namespace 0 | revisie 26525 | 2021-10-17T08:18:09Z
+- [W002400 — Exceptions](corpus/wiki-05.md#w002400) · bronregels 8768–9233 | namespace 0 | revisie 29749 | 2025-11-08T00:40:46Z
+- [W003505 — Executable and Linkable Format](corpus/wiki-09.md#w003505) · bronregels 14268–14268 | namespace 0 | revisie 15936 | 2014-04-08T18:03:07Z
+- [W003506 — Executable and Linking Format](corpus/wiki-09.md#w003506) · bronregels 14283–14283 | namespace 0 | revisie 15937 | 2014-04-08T18:26:53Z
+- [W004213 — Executable Format](corpus/wiki-12.md#w004213) · bronregels 5243–5243 | namespace 0 | revisie 21694 | 2017-11-19T17:55:39Z
+- [W001954 — Executable Formats](corpus/wiki-04.md#w001954) · bronregels 163–181 | namespace 0 | revisie 27885 | 2023-07-09T04:33:20Z
+- [W003857 — Execution Architecture](corpus/wiki-11.md#w003857) · bronregels 5620–5621 | namespace 0 | revisie 22214 | 2018-03-16T00:31:24Z
+- [W003824 — Execution Loader](corpus/wiki-11.md#w003824) · bronregels 3458–3466 | namespace 0 | revisie 27879 | 2023-07-09T04:22:45Z
+- [W003739 — ExFAT](corpus/wiki-10.md#w003739) · bronregels 16373–16750 | namespace 0 | revisie 30517 | 2026-04-26T04:15:40Z
+- [W001465 — Exokernel](corpus/wiki-01.md#w001465) · bronregels 9096–9155 | namespace 0 | revisie 29667 | 2025-09-19T21:30:09Z
+- [W004974 — ExoOs](corpus/wiki-14.md#w004974) · bronregels 15264–15264 | namespace 0 | revisie 29855 | 2026-01-10T19:13:45Z
+- [W003549 — Expand Down](corpus/wiki-10.md#w003549) · bronregels 1675–1675 | namespace 0 | revisie 16091 | 2014-04-13T05:16:20Z
+- [W004888 — Expanded Main Page](corpus/wiki-14.md#w004888) · bronregels 11783–11800 | namespace 0 | revisie 30560 | 2026-05-06T12:56:57Z
+- [W001509 — Ext2](corpus/wiki-01.md#w001509) · bronregels 14424–15044 | namespace 0 | revisie 29719 | 2025-10-19T14:43:19Z
+- [W002998 — Ext3](corpus/wiki-07.md#w002998) · bronregels 6724–6847 | namespace 0 | revisie 29777 | 2025-12-01T16:12:15Z
+- [W003001 — Ext4](corpus/wiki-07.md#w003001) · bronregels 6946–7652 | namespace 0 | revisie 30518 | 2026-04-26T04:18:19Z
+- [W002681 — Extensible Driver Interface](corpus/wiki-06.md#w002681) · bronregels 6352–6369 | namespace 0 | revisie 27966 | 2023-07-09T16:27:40Z
+- [W002926 — Extensible Firmware Interface](corpus/wiki-07.md#w002926) · bronregels 2828–2828 | namespace 0 | revisie 10842 | 2010-10-11T19:00:44Z
+- [W003309 — EXtensible Host Controller Interface](corpus/wiki-08.md#w003309) · bronregels 11620–11769 | namespace 0 | revisie 30300 | 2026-03-16T20:31:16Z
+- [W002812 — FADT](corpus/wiki-06.md#w002812) · bronregels 15616–15800 | namespace 0 | revisie 30278 | 2026-03-16T17:57:33Z
+- [W002433 — FAQ](corpus/wiki-05.md#w002433) · bronregels 10143–10143 | namespace 0 | revisie 6702 | 2008-11-21T11:37:20Z
+- [W001584 — FASM](corpus/wiki-02.md#w001584) · bronregels 5760–5777 | namespace 0 | revisie 25422 | 2020-12-10T16:20:30Z
+- [W001506 — FAT](corpus/wiki-01.md#w001506) · bronregels 13175–14207 | namespace 0 | revisie 30279 | 2026-03-16T17:58:45Z
+- [W002401 — Fat imgen](corpus/wiki-05.md#w002401) · bronregels 9247–9267 | namespace 0 | revisie 22632 | 2018-09-09T23:00:35Z
+- [W002331 — FAT12](corpus/wiki-05.md#w002331) · bronregels 4472–4472 | namespace 0 | revisie 28332 | 2023-09-28T15:07:39Z
+- [W002337 — FAT16](corpus/wiki-05.md#w002337) · bronregels 5182–5182 | namespace 0 | revisie 28333 | 2023-09-28T15:08:09Z
+- [W002330 — FAT32](corpus/wiki-05.md#w002330) · bronregels 4457–4457 | namespace 0 | revisie 28334 | 2023-09-28T15:08:19Z
+- [W002900 — FDC](corpus/wiki-07.md#w002900) · bronregels 1212–1212 | namespace 0 | revisie 10575 | 2010-07-31T11:03:50Z
+- [W001514 — FFS (Amiga)](corpus/wiki-01.md#w001514) · bronregels 15300–15548 | namespace 0 | revisie 29569 | 2025-06-22T13:32:16Z
+- [W002779 — FFS (BSD)](corpus/wiki-06.md#w002779) · bronregels 10548–10548 | namespace 0 | revisie 9522 | 2009-12-21T21:11:31Z
+- [W001601 — File Disk](corpus/wiki-02.md#w001601) · bronregels 6595–6608 | namespace 0 | revisie 12043 | 2011-09-30T06:25:03Z
+- [W001859 — File Management](corpus/wiki-03.md#w001859) · bronregels 6496–6520 | namespace 0 | revisie 29945 | 2026-02-09T19:32:39Z
+- [W004220 — File System](corpus/wiki-12.md#w004220) · bronregels 6437–6437 | namespace 0 | revisie 21768 | 2017-11-26T17:51:44Z
+- [W001505 — File Systems](corpus/wiki-01.md#w001505) · bronregels 13002–13161 | namespace 0 | revisie 29795 | 2025-12-19T21:49:56Z
+- [W003112 — File talk:Difficulty 2.png](corpus/wiki-07.md#w003112) · bronregels 14035–14037 | namespace 7 | revisie 12798 | 2012-02-22T19:35:19Z
+- [W002446 — File talk:PS2 connector.png](corpus/wiki-05.md#w002446) · bronregels 10912–10913 | namespace 7 | revisie 6784 | 2008-11-28T22:49:28Z
+- [W004517 — File:1267.png](corpus/wiki-13.md#w004517) · bronregels 11316–11316 | namespace 6 | revisie 25091 | 2020-08-25T13:28:23Z
+- [W004755 — File:5-Difficulty 1.png](corpus/wiki-14.md#w004755) · bronregels 8695–8695 | namespace 6 | revisie 27829 | 2023-06-24T18:36:24Z
+- [W004646 — File:64-bit page tables1.png](corpus/wiki-14.md#w004646) · bronregels 2080–2080 | namespace 6 | revisie 26521 | 2021-10-17T05:43:35Z
+- [W004647 — File:64-bit page tables2.png](corpus/wiki-14.md#w004647) · bronregels 2094–2094 | namespace 6 | revisie 26522 | 2021-10-17T05:45:16Z
+- [W004234 — File:9front.png](corpus/wiki-12.md#w004234) · bronregels 8537–8537 | namespace 6 | revisie 22027 | 2018-01-04T09:58:03Z
+- [W003704 — File:Abbbab.png](corpus/wiki-10.md#w003704) · bronregels 14563–14563 | namespace 6 | revisie 17372 | 2014-12-15T03:52:42Z
+- [W004443 — File:Abstraction Layers.png](corpus/wiki-13.md#w004443) · bronregels 7282–7282 | namespace 6 | revisie 24335 | 2020-01-17T20:34:18Z
+- [W004761 — File:Access2.png](corpus/wiki-14.md#w004761) · bronregels 8779–8779 | namespace 6 | revisie 27859 | 2023-07-09T02:47:14Z
+- [W004992 — File:AeroSync-r0c4-5.4.9-sample-qemu-boot.png](corpus/wiki-14.md#w004992) · bronregels 17330–17330 | namespace 6 | revisie 30060 | 2026-02-22T11:48:47Z
+- [W004990 — File:AeroSync-r0c4-5.4.9-sample-qemu-boot.png.png](corpus/wiki-14.md#w004990) · bronregels 16684–16684 | namespace 6 | revisie 30058 | 2026-02-22T01:54:29Z
+- [W004898 — File:Amethyst-Screenshot.png](corpus/wiki-14.md#w004898) · bronregels 12253–12253 | namespace 6 | revisie 29230 | 2024-08-22T03:26:34Z
+- [W004968 — File:Amiga Guru Meditation.gif](corpus/wiki-14.md#w004968) · bronregels 15124–15125 | namespace 6 | revisie 29792 | 2025-12-18T13:40:58Z
+- [W004448 — File:Analog Circuits.png](corpus/wiki-13.md#w004448) · bronregels 7338–7338 | namespace 6 | revisie 24345 | 2020-01-18T09:46:51Z
+- [W004463 — File:Analog Digital Compare.png](corpus/wiki-13.md#w004463) · bronregels 8428–8428 | namespace 6 | revisie 24475 | 2020-03-04T17:56:58Z
+- [W004074 — File:Apbstatediagram.png](corpus/wiki-12.md#w004074) · bronregels 2356–2356 | namespace 6 | revisie 21028 | 2017-08-01T05:37:19Z
+- [W004454 — File:Application Software.png](corpus/wiki-13.md#w004454) · bronregels 7422–7422 | namespace 6 | revisie 24351 | 2020-01-18T09:48:28Z
+- [W004270 — File:AquilaOS.png](corpus/wiki-12.md#w004270) · bronregels 11155–11155 | namespace 6 | revisie 22380 | 2018-05-07T18:59:43Z
+- [W004452 — File:Architecture.png](corpus/wiki-13.md#w004452) · bronregels 7394–7394 | namespace 6 | revisie 24349 | 2020-01-18T09:47:57Z
+- [W003307 — File:ARM RaspberryPi serial.jpg](corpus/wiki-08.md#w003307) · bronregels 11591–11591 | namespace 6 | revisie 14231 | 2013-01-12T17:29:35Z
+- [W004760 — File:Aros.jpg](corpus/wiki-14.md#w004760) · bronregels 8765–8765 | namespace 6 | revisie 27854 | 2023-07-08T17:58:18Z
+- [W004872 — File:AstralFvwm3.png](corpus/wiki-14.md#w004872) · bronregels 11674–11674 | namespace 6 | revisie 28873 | 2024-05-26T18:19:12Z
+- [W005007 — File:Asuro.png](corpus/wiki-14.md#w005007) · bronregels 18086–18087 | namespace 6 | revisie 30156 | 2026-03-08T22:17:58Z
+- [W004365 — File:AsuroTUIWindows.png](corpus/wiki-13.md#w004365) · bronregels 2524–2524 | namespace 6 | revisie 23453 | 2019-03-13T14:51:29Z
+- [W002318 — File:At-kbc.png](corpus/wiki-05.md#w002318) · bronregels 3934–3934 | namespace 6 | revisie 5707 | 2008-06-28T15:05:35Z
+- [W004729 — File:ATOS Img2.png](corpus/wiki-14.md#w004729) · bronregels 7645–7645 | namespace 6 | revisie 27505 | 2022-12-01T21:20:52Z
+- [W004701 — File:Banana os 2.jpg](corpus/wiki-14.md#w004701) · bronregels 4974–4974 | namespace 6 | revisie 27013 | 2022-03-27T05:15:47Z
+- [W004635 — File:Bananaos.PNG](corpus/wiki-14.md#w004635) · bronregels 1124–1124 | namespace 6 | revisie 26440 | 2021-10-02T22:11:20Z
+- [W003959 — File:Beelz 3.png](corpus/wiki-11.md#w003959) · bronregels 9945–9945 | namespace 6 | revisie 19650 | 2016-08-03T09:24:02Z
+- [W004837 — File:Bleskos 2023.png](corpus/wiki-14.md#w004837) · bronregels 10410–10410 | namespace 6 | revisie 28545 | 2024-01-04T17:37:01Z
+- [W004699 — File:BleskOS 28 2 2022.png](corpus/wiki-14.md#w004699) · bronregels 4945–4945 | namespace 6 | revisie 26992 | 2022-02-28T13:51:28Z
+- [W004573 — File:BleskOS-VGA-edition-Alpha-2-computer.jpg](corpus/wiki-13.md#w004573) · bronregels 14352–14352 | namespace 6 | revisie 25729 | 2021-03-04T16:14:43Z
+- [W004998 — File:BoredOSscreenshot.jpg](corpus/wiki-14.md#w004998) · bronregels 17914–17914 | namespace 6 | revisie 30100 | 2026-03-02T21:52:57Z
+- [W005082 — File:BoredOSScreenshot26.jpg](corpus/wiki-15.md#w005082) · bronregels 72–72 | namespace 6 | revisie 30915 | 2026-08-21T01:01:41Z
+- [W004704 — File:BrutalDemo.png](corpus/wiki-14.md#w004704) · bronregels 5650–5650 | namespace 6 | revisie 27033 | 2022-04-11T13:34:51Z
+- [W004467 — File:Bsod bsd.jpg](corpus/wiki-13.md#w004467) · bronregels 8822–8822 | namespace 6 | revisie 24502 | 2020-03-14T10:55:42Z
+- [W004468 — File:Bsod linux.jpg](corpus/wiki-13.md#w004468) · bronregels 8836–8836 | namespace 6 | revisie 24503 | 2020-03-14T10:57:59Z
+- [W004466 — File:Bsod mac.jpg](corpus/wiki-13.md#w004466) · bronregels 8808–8808 | namespace 6 | revisie 24501 | 2020-03-14T10:53:31Z
+- [W004469 — File:Bsod osz.png](corpus/wiki-13.md#w004469) · bronregels 8850–8850 | namespace 6 | revisie 24504 | 2020-03-14T11:08:02Z
+- [W004465 — File:Bsod xp.png](corpus/wiki-13.md#w004465) · bronregels 8794–8794 | namespace 6 | revisie 24500 | 2020-03-14T10:51:50Z
+- [W002636 — File:BulkInterruptTx.gif](corpus/wiki-06.md#w002636) · bronregels 3499–3499 | namespace 6 | revisie 8289 | 2009-06-26T00:07:33Z
+- [W001570 — File:Buy from amazon.gif](corpus/wiki-02.md#w001570) · bronregels 4417–4417 | namespace 6 | revisie 2012 | 2006-12-11T02:31:42Z
+- [W003871 — File:CFS64.jpg](corpus/wiki-11.md#w003871) · bronregels 6000–6000 | namespace 6 | revisie 18844 | 2016-01-17T11:47:24Z
+- [W003843 — File:ChaiOS sine.png](corpus/wiki-11.md#w003843) · bronregels 4431–4431 | namespace 6 | revisie 18690 | 2015-12-13T10:17:44Z
+- [W002913 — File:Command list.jpg](corpus/wiki-07.md#w002913) · bronregels 1766–1766 | namespace 6 | revisie 10774 | 2010-09-22T14:31:13Z
+- [W002914 — File:Command table.jpg](corpus/wiki-07.md#w002914) · bronregels 1780–1780 | namespace 6 | revisie 10775 | 2010-09-22T14:32:02Z
+- [W003406 — File:Compilers1.png](corpus/wiki-09.md#w003406) · bronregels 1862–1862 | namespace 6 | revisie 15210 | 2013-09-29T22:49:17Z
+- [W003407 — File:Compilers2.png](corpus/wiki-09.md#w003407) · bronregels 1876–1876 | namespace 6 | revisie 15211 | 2013-09-29T22:50:06Z
+- [W002635 — File:ControlTx.gif](corpus/wiki-06.md#w002635) · bronregels 3485–3485 | namespace 6 | revisie 8288 | 2009-06-25T23:07:35Z
+- [W004940 — File:CoolPotOS.png](corpus/wiki-14.md#w004940) · bronregels 14048–14048 | namespace 6 | revisie 29562 | 2025-06-21T10:37:32Z
+- [W002749 — File:Core spec-8.gif](corpus/wiki-06.md#w002749) · bronregels 9803–9803 | namespace 6 | revisie 9697 | 2010-01-31T22:25:12Z
+- [W003334 — File:Correct-flow-of-PCI-traffic.png](corpus/wiki-08.md#w003334) · bronregels 15368–15368 | namespace 6 | revisie 14480 | 2013-02-20T21:04:17Z
+- [W003961 — File:Cromwell Firmware on an Xbox.jpg](corpus/wiki-11.md#w003961) · bronregels 9985–9985 | namespace 6 | revisie 19677 | 2016-08-12T12:49:04Z
+- [W004737 — File:Current.png](corpus/wiki-14.md#w004737) · bronregels 7904–7904 | namespace 6 | revisie 27603 | 2023-01-26T12:48:58Z
+- [W004543 — File:Cyjon 0.1331.png](corpus/wiki-13.md#w004543) · bronregels 13154–13154 | namespace 6 | revisie 25378 | 2020-11-23T20:16:59Z
+- [W004660 — File:Cyjon v0.1720.png](corpus/wiki-14.md#w004660) · bronregels 2552–2552 | namespace 6 | revisie 26581 | 2021-10-23T20:03:26Z
+- [W004715 — File:Cyjon v1440.png](corpus/wiki-14.md#w004715) · bronregels 6074–6074 | namespace 6 | revisie 27244 | 2022-07-19T08:08:39Z
+- [W004514 — File:Cyjon.png](corpus/wiki-13.md#w004514) · bronregels 11266–11266 | namespace 6 | revisie 25055 | 2020-08-13T06:09:54Z
+- [W005004 — File:Cylinder Head Sector.svg.png](corpus/wiki-14.md#w005004) · bronregels 18022–18025 | namespace 6 | revisie 30142 | 2026-03-05T23:09:48Z
+- [W004044 — File:Dawn.png](corpus/wiki-11.md#w004044) · bronregels 16485–16485 | namespace 6 | revisie 20589 | 2017-03-15T03:40:10Z
+- [W004948 — File:Demo.jpg](corpus/wiki-14.md#w004948) · bronregels 14239–14239 | namespace 6 | revisie 29606 | 2025-07-30T07:41:33Z
+- [W004978 — File:Development.png](corpus/wiki-14.md#w004978) · bronregels 15377–15377 | namespace 6 | revisie 29903 | 2026-01-18T07:32:34Z
+- [W004447 — File:Devices.png](corpus/wiki-13.md#w004447) · bronregels 7324–7324 | namespace 6 | revisie 24344 | 2020-01-18T09:46:30Z
+- [W002406 — File:Difficulty 0.png](corpus/wiki-05.md#w002406) · bronregels 9332–9332 | namespace 6 | revisie 27823 | 2023-06-24T18:19:42Z
+- [W002407 — File:Difficulty 1.png](corpus/wiki-05.md#w002407) · bronregels 9346–9346 | namespace 6 | revisie 27822 | 2023-06-24T18:19:32Z
+- [W002408 — File:Difficulty 2.png](corpus/wiki-05.md#w002408) · bronregels 9360–9360 | namespace 6 | revisie 27824 | 2023-06-24T18:19:50Z
+- [W002409 — File:Difficulty 3.png](corpus/wiki-05.md#w002409) · bronregels 9374–9374 | namespace 6 | revisie 27825 | 2023-06-24T18:19:56Z
+- [W002410 — File:Difficulty 4.png](corpus/wiki-05.md#w002410) · bronregels 9388–9388 | namespace 6 | revisie 27826 | 2023-06-24T18:20:02Z
+- [W004449 — File:Digital Circuits.png](corpus/wiki-13.md#w004449) · bronregels 7352–7352 | namespace 6 | revisie 24346 | 2020-01-18T09:47:07Z
+- [W004344 — File:Diyos.png](corpus/wiki-12.md#w004344) · bronregels 18377–18377 | namespace 6 | revisie 23148 | 2018-12-21T23:41:03Z
+- [W005102 — File:DragonWare-dcp.png](corpus/wiki-15.md#w005102) · bronregels 1357–1357 | namespace 6 | revisie 31033 | 2026-10-21T13:23:09Z
+- [W003390 — File:Drama.png](corpus/wiki-09.md#w003390) · bronregels 936–936 | namespace 6 | revisie 15028 | 2013-08-09T05:54:14Z
+- [W004749 — File:DuckOS.png](corpus/wiki-14.md#w004749) · bronregels 8598–8598 | namespace 6 | revisie 27767 | 2023-05-16T19:20:33Z
+- [W004753 — File:Edge vs level.png](corpus/wiki-14.md#w004753) · bronregels 8654–8654 | namespace 6 | revisie 27798 | 2023-06-16T01:20:12Z
+- [W001543 — File:Elfdiagram.png](corpus/wiki-02.md#w001543) · bronregels 2519–2519 | namespace 6 | revisie 1955 | 2006-12-08T07:28:59Z
+- [W003891 — File:Exdos64.png](corpus/wiki-11.md#w003891) · bronregels 6747–6747 | namespace 6 | revisie 19035 | 2016-04-02T11:30:49Z
+- [W004947 — File:ExectOS.png](corpus/wiki-14.md#w004947) · bronregels 14225–14225 | namespace 6 | revisie 29597 | 2025-07-19T21:45:01Z
+- [W001486 — File:Exokernel.png](corpus/wiki-01.md#w001486) · bronregels 12381–12381 | namespace 6 | revisie 1818 | 2006-12-05T02:48:40Z
+- [W002631 — File:FailedACKTx.gif](corpus/wiki-06.md#w002631) · bronregels 3429–3429 | namespace 6 | revisie 8278 | 2009-06-24T22:41:23Z
+- [W002630 — File:FailedDataTx.gif](corpus/wiki-06.md#w002630) · bronregels 3415–3415 | namespace 6 | revisie 10430 | 2010-06-14T05:43:57Z
+- [W004743 — File:Fig15-3.gif](corpus/wiki-14.md#w004743) · bronregels 7982–7982 | namespace 6 | revisie 27657 | 2023-03-06T12:53:21Z
+- [W002022 — File:Flat list.png](corpus/wiki-04.md#w002022) · bronregels 4165–4192 | namespace 6 | revisie 3669 | 2007-04-12T18:09:22Z
+- [W004945 — File:Foton v0.638.png](corpus/wiki-14.md#w004945) · bronregels 14130–14130 | namespace 6 | revisie 29579 | 2025-07-04T20:06:03Z
+- [W004587 — File:FoxOS.png](corpus/wiki-13.md#w004587) · bronregels 14764–14764 | namespace 6 | revisie 25873 | 2021-05-19T18:33:09Z
+- [W004235 — File:FreeDOS.png](corpus/wiki-12.md#w004235) · bronregels 8551–8551 | namespace 6 | revisie 22028 | 2018-01-04T09:58:56Z
+- [W002641 — File:FunctionConfigsIFacesEPs.gif](corpus/wiki-06.md#w002641) · bronregels 3901–3901 | namespace 6 | revisie 8312 | 2009-06-30T20:31:33Z
+- [W004666 — File:FuzzyOS.gif](corpus/wiki-14.md#w004666) · bronregels 2626–2626 | namespace 6 | revisie 26604 | 2021-10-25T20:40:07Z
+- [W002893 — File:Gba screen specs.png](corpus/wiki-07.md#w002893) · bronregels 984–984 | namespace 6 | revisie 10497 | 2010-06-30T17:15:35Z
+- [W004339 — File:Gdt bits fixed.png](corpus/wiki-12.md#w004339) · bronregels 18243–18243 | namespace 6 | revisie 23082 | 2018-11-14T22:08:27Z
+- [W002197 — File:Gdt bits.png](corpus/wiki-04.md#w002197) · bronregels 10906–10906 | namespace 6 | revisie 4887 | 2007-11-16T02:06:17Z
+- [W002195 — File:Gdt entry.png](corpus/wiki-04.md#w002195) · bronregels 10878–10878 | namespace 6 | revisie 4883 | 2007-11-16T01:27:51Z
+- [W002733 — File:GDT Entry.png](corpus/wiki-06.md#w002733) · bronregels 9348–9349 | namespace 6 | revisie 9253 | 2009-11-24T02:27:04Z
+- [W002196 — File:Gdtr.png](corpus/wiki-04.md#w002196) · bronregels 10892–10892 | namespace 6 | revisie 4886 | 2007-11-16T01:39:22Z
+- [W003772 — File:Ghost-ui-preview.png](corpus/wiki-10.md#w003772) · bronregels 18283–18283 | namespace 6 | revisie 17937 | 2015-04-28T13:44:21Z
+- [W004818 — File:Gloire.png](corpus/wiki-14.md#w004818) · bronregels 9949–9949 | namespace 6 | revisie 28328 | 2023-09-27T03:53:42Z
+- [W004841 — File:GloireJWM.png](corpus/wiki-14.md#w004841) · bronregels 10487–10487 | namespace 6 | revisie 29439 | 2025-03-15T16:15:22Z
+- [W002669 — File:Graphicscard.png](corpus/wiki-06.md#w002669) · bronregels 5008–5008 | namespace 6 | revisie 8530 | 2009-07-12T21:15:58Z
+- [W004434 — File:GreenteaOS-preview.jpg](corpus/wiki-13.md#w004434) · bronregels 6963–6963 | namespace 6 | revisie 29167 | 2024-06-29T14:31:56Z
+- [W004342 — File:Haiku.png](corpus/wiki-12.md#w004342) · bronregels 18347–18347 | namespace 6 | revisie 23139 | 2018-12-21T21:33:26Z
+- [W002915 — File:HBA registers.jpg](corpus/wiki-07.md#w002915) · bronregels 1794–1794 | namespace 6 | revisie 10776 | 2010-09-22T14:32:26Z
+- [W002469 — File:Header grey.jpg](corpus/wiki-05.md#w002469) · bronregels 11471–11471 | namespace 6 | revisie 6884 | 2008-12-15T04:56:58Z
+- [W004759 — File:HelenOS.png](corpus/wiki-14.md#w004759) · bronregels 8751–8751 | namespace 6 | revisie 27853 | 2023-07-08T17:56:12Z
+- [W004817 — File:HhuOS-logo.png](corpus/wiki-14.md#w004817) · bronregels 9935–9935 | namespace 6 | revisie 28323 | 2023-09-25T13:45:26Z
+- [W004815 — File:HhuOS.png](corpus/wiki-14.md#w004815) · bronregels 9853–9853 | namespace 6 | revisie 28320 | 2023-09-25T13:08:56Z
+- [W004679 — File:HistoricalCuriosity.png](corpus/wiki-14.md#w004679) · bronregels 3628–3628 | namespace 6 | revisie 26761 | 2021-12-19T06:45:13Z
+- [W002620 — File:HSDevsToHSHubToHSPort.gif](corpus/wiki-06.md#w002620) · bronregels 3022–3022 | namespace 6 | revisie 8210 | 2009-06-10T19:12:55Z
+- [W002637 — File:HSHBIsoIN.gif](corpus/wiki-06.md#w002637) · bronregels 3513–3513 | namespace 6 | revisie 8290 | 2009-06-26T02:47:54Z
+- [W002638 — File:HSHBIsoOUT.gif](corpus/wiki-06.md#w002638) · bronregels 3527–3527 | namespace 6 | revisie 8291 | 2009-06-26T02:48:43Z
+- [W002619 — File:HSHubToHSPort.gif](corpus/wiki-06.md#w002619) · bronregels 3008–3008 | namespace 6 | revisie 8209 | 2009-06-10T19:11:28Z
+- [W004897 — File:Hypnoticos-screenshot.png](corpus/wiki-14.md#w004897) · bronregels 12239–12239 | namespace 6 | revisie 29180 | 2024-07-13T18:08:07Z
+- [W004227 — File:Icon clock.png](corpus/wiki-12.md#w004227) · bronregels 7546–7546 | namespace 6 | revisie 21846 | 2017-12-13T14:01:45Z
+- [W004226 — File:Icon floppy.png](corpus/wiki-12.md#w004226) · bronregels 7532–7532 | namespace 6 | revisie 21844 | 2017-12-13T13:27:11Z
+- [W002074 — File:Icon info.png](corpus/wiki-04.md#w002074) · bronregels 4984–4984 | namespace 6 | revisie 3984 | 2007-05-27T22:36:54Z
+- [W004230 — File:Icon license.png](corpus/wiki-12.md#w004230) · bronregels 7588–7588 | namespace 6 | revisie 21852 | 2017-12-13T16:39:34Z
+- [W002072 — File:Icon magnify warning.png](corpus/wiki-04.md#w002072) · bronregels 4956–4956 | namespace 6 | revisie 3963 | 2007-05-27T20:47:07Z
+- [W004228 — File:Icon phone.png](corpus/wiki-12.md#w004228) · bronregels 7560–7560 | namespace 6 | revisie 21849 | 2017-12-13T14:33:45Z
+- [W004229 — File:Icon site.png](corpus/wiki-12.md#w004229) · bronregels 7574–7574 | namespace 6 | revisie 21850 | 2017-12-13T15:22:51Z
+- [W003333 — File:Incorrect-flow-of-PCI-traffic.png](corpus/wiki-08.md#w003333) · bronregels 15354–15354 | namespace 6 | revisie 14479 | 2013-02-20T21:00:34Z
+- [W002404 — File:Info.png](corpus/wiki-05.md#w002404) · bronregels 9296–9296 | namespace 6 | revisie 6480 | 2008-10-29T17:45:43Z
+- [W004932 — File:Intel Graphics Overview.png](corpus/wiki-14.md#w004932) · bronregels 13483–13484 | namespace 6 | revisie 29497 | 2025-04-28T11:00:33Z
+- [W004996 — File:Intel X520 SR2.jpg](corpus/wiki-14.md#w004996) · bronregels 17884–17885 | namespace 6 | revisie 30081 | 2026-02-28T13:08:19Z
+- [W002791 — File:Intel-82540EM.jpg](corpus/wiki-06.md#w002791) · bronregels 12584–12584 | namespace 6 | revisie 9639 | 2010-01-17T02:23:11Z
+- [W002790 — File:IntelPRO1000PT.jpg](corpus/wiki-06.md#w002790) · bronregels 12570–12570 | namespace 6 | revisie 9635 | 2010-01-16T09:27:41Z
+- [W004838 — File:ISA Bus pins.svg.png](corpus/wiki-14.md#w004838) · bronregels 10424–10426 | namespace 6 | revisie 28557 | 2024-01-12T01:18:39Z
+- [W003265 — File:ISBN 0073523402.jpg](corpus/wiki-08.md#w003265) · bronregels 8474–8474 | namespace 6 | revisie 13858 | 2012-07-26T13:06:55Z
+- [W004439 — File:ISBN 012383872X.jpg](corpus/wiki-13.md#w004439) · bronregels 7112–7112 | namespace 6 | revisie 24256 | 2020-01-03T04:18:28Z
+- [W004438 — File:ISBN 0130220051.jpg](corpus/wiki-13.md#w004438) · bronregels 7098–7098 | namespace 6 | revisie 24255 | 2020-01-03T04:17:29Z
+- [W003273 — File:ISBN 0130525642.jpg](corpus/wiki-08.md#w003273) · bronregels 8615–8615 | namespace 6 | revisie 13882 | 2012-07-28T05:20:36Z
+- [W003223 — File:ISBN 0130810819.jpg](corpus/wiki-08.md#w003223) · bronregels 6402–6402 | namespace 6 | revisie 13578 | 2012-06-13T09:56:26Z
+- [W003213 — File:ISBN 013089592X.jpg](corpus/wiki-08.md#w003213) · bronregels 6262–6262 | namespace 6 | revisie 13563 | 2012-06-13T06:47:48Z
+- [W003208 — File:ISBN 0131103628.jpg](corpus/wiki-08.md#w003208) · bronregels 6192–6192 | namespace 6 | revisie 13556 | 2012-06-13T06:28:34Z
+- [W003222 — File:ISBN 0131411551.jpg](corpus/wiki-08.md#w003222) · bronregels 6388–6388 | namespace 6 | revisie 13577 | 2012-06-13T09:54:33Z
+- [W001566 — File:ISBN 0131429388.jpg](corpus/wiki-02.md#w001566) · bronregels 4355–4356 | namespace 6 | revisie 13537 | 2012-06-13T02:40:58Z
+- [W004969 — File:ISBN 0132017997.jpg](corpus/wiki-14.md#w004969) · bronregels 15139–15140 | namespace 6 | revisie 29799 | 2025-12-24T22:03:09Z
+- [W003211 — File:ISBN 0132126958.jpg](corpus/wiki-08.md#w003211) · bronregels 6234–6234 | namespace 6 | revisie 13561 | 2012-06-13T06:40:18Z
+- [W003270 — File:ISBN 013230998X.jpg](corpus/wiki-08.md#w003270) · bronregels 8587–8587 | namespace 6 | revisie 13878 | 2012-07-28T05:05:31Z
+- [W003238 — File:ISBN 0132856204.jpg](corpus/wiki-08.md#w003238) · bronregels 7313–7313 | namespace 6 | revisie 13656 | 2012-06-13T20:23:00Z
+- [W003257 — File:ISBN 0132916525.jpg](corpus/wiki-08.md#w003257) · bronregels 7814–7814 | namespace 6 | revisie 13774 | 2012-07-05T19:27:37Z
+- [W003200 — File:ISBN 0136006639.jpg](corpus/wiki-08.md#w003200) · bronregels 6084–6084 | namespace 6 | revisie 13540 | 2012-06-13T02:49:43Z
+- [W003269 — File:ISBN 0136108040.jpg](corpus/wiki-08.md#w003269) · bronregels 8573–8573 | namespace 6 | revisie 13877 | 2012-07-28T05:04:16Z
+- [W003219 — File:ISBN 0136430163.jpg](corpus/wiki-08.md#w003219) · bronregels 6346–6346 | namespace 6 | revisie 13574 | 2012-06-13T09:49:52Z
+- [W003220 — File:ISBN 0136832105.jpg](corpus/wiki-08.md#w003220) · bronregels 6360–6360 | namespace 6 | revisie 13575 | 2012-06-13T09:50:58Z
+- [W003266 — File:ISBN 0138297711.jpg](corpus/wiki-08.md#w003266) · bronregels 8488–8488 | namespace 6 | revisie 13859 | 2012-07-26T13:07:32Z
+- [W003221 — File:ISBN 0139319573.jpg](corpus/wiki-08.md#w003221) · bronregels 6374–6374 | namespace 6 | revisie 13576 | 2012-06-13T09:52:29Z
+- [W003224 — File:ISBN 013937681X.jpg](corpus/wiki-08.md#w003224) · bronregels 6416–6416 | namespace 6 | revisie 13579 | 2012-06-13T09:59:01Z
+- [W001972 — File:ISBN 0201479508.jpg](corpus/wiki-04.md#w001972) · bronregels 2424–2424 | namespace 6 | revisie 13539 | 2012-06-13T02:44:20Z
+- [W002033 — File:ISBN 0201544288.jpg](corpus/wiki-04.md#w002033) · bronregels 4405–4405 | namespace 6 | revisie 13542 | 2012-06-13T03:09:52Z
+- [W003228 — File:ISBN 0201550210.jpg](corpus/wiki-08.md#w003228) · bronregels 6472–6472 | namespace 6 | revisie 13583 | 2012-06-13T11:42:49Z
+- [W001571 — File:ISBN 0201596164.jpg](corpus/wiki-02.md#w001571) · bronregels 4431–4432 | namespace 6 | revisie 2040 | 2006-12-11T05:08:46Z
+- [W003215 — File:ISBN 020163354X.jpg](corpus/wiki-08.md#w003215) · bronregels 6290–6290 | namespace 6 | revisie 13565 | 2012-06-13T06:50:54Z
+- [W003295 — File:ISBN 0201633612.jpg](corpus/wiki-08.md#w003295) · bronregels 10338–10338 | namespace 6 | revisie 14117 | 2012-11-29T12:33:39Z
+- [W003216 — File:ISBN 0201634953.jpg](corpus/wiki-08.md#w003216) · bronregels 6304–6304 | namespace 6 | revisie 13566 | 2012-06-13T06:51:20Z
+- [W003227 — File:ISBN 0201835959.jpg](corpus/wiki-08.md#w003227) · bronregels 6458–6458 | namespace 6 | revisie 13582 | 2012-06-13T10:41:59Z
+- [W003210 — File:ISBN 0201853922.jpg](corpus/wiki-08.md#w003210) · bronregels 6220–6220 | namespace 6 | revisie 13558 | 2012-06-13T06:31:19Z
+- [W003243 — File:ISBN 0262033844.jpg](corpus/wiki-08.md#w003243) · bronregels 7548–7548 | namespace 6 | revisie 13686 | 2012-06-16T05:51:30Z
+- [W003235 — File:ISBN 0321304543.jpg](corpus/wiki-08.md#w003235) · bronregels 7285–7285 | namespace 6 | revisie 13629 | 2012-06-13T14:11:58Z
+- [W003214 — File:ISBN 0321336313.jpg](corpus/wiki-08.md#w003214) · bronregels 6276–6276 | namespace 6 | revisie 13564 | 2012-06-13T06:49:59Z
+- [W003203 — File:ISBN 0321486811.jpg](corpus/wiki-08.md#w003203) · bronregels 6112–6112 | namespace 6 | revisie 13546 | 2012-06-13T04:16:21Z
+- [W003217 — File:ISBN 0321563212.jpg](corpus/wiki-08.md#w003217) · bronregels 6318–6318 | namespace 6 | revisie 13568 | 2012-06-13T07:10:17Z
+- [W003242 — File:ISBN 032157351X.jpg](corpus/wiki-08.md#w003242) · bronregels 7534–7534 | namespace 6 | revisie 13685 | 2012-06-16T05:46:15Z
+- [W003294 — File:ISBN 0321637739.jpg](corpus/wiki-08.md#w003294) · bronregels 10324–10324 | namespace 6 | revisie 14116 | 2012-11-29T12:19:58Z
+- [W003209 — File:ISBN 0321751043.jpg](corpus/wiki-08.md#w003209) · bronregels 6206–6206 | namespace 6 | revisie 13559 | 2012-06-13T06:31:57Z
+- [W003697 — File:ISBN 0321968972.jpg](corpus/wiki-10.md#w003697) · bronregels 14262–14262 | namespace 6 | revisie 17340 | 2014-12-08T13:48:10Z
+- [W003234 — File:ISBN 0470068523.jpg](corpus/wiki-08.md#w003234) · bronregels 7271–7271 | namespace 6 | revisie 13628 | 2012-06-13T14:10:35Z
+- [W003275 — File:ISBN 0471117099.jpg](corpus/wiki-08.md#w003275) · bronregels 8643–8643 | namespace 6 | revisie 13885 | 2012-07-28T13:18:05Z
+- [W003212 — File:ISBN 0596006101.jpg](corpus/wiki-08.md#w003212) · bronregels 6248–6248 | namespace 6 | revisie 13562 | 2012-06-13T06:42:18Z
+- [W003401 — File:ISBN 0596009658.jpg](corpus/wiki-09.md#w003401) · bronregels 1208–1208 | namespace 6 | revisie 15108 | 2013-08-19T23:54:48Z
+- [W003225 — File:ISBN 059652983X.jpg](corpus/wiki-08.md#w003225) · bronregels 6430–6430 | namespace 6 | revisie 13580 | 2012-06-13T10:24:26Z
+- [W003232 — File:ISBN 0716782669.jpg](corpus/wiki-08.md#w003232) · bronregels 7243–7243 | namespace 6 | revisie 13610 | 2012-06-13T13:22:04Z
+- [W003274 — File:ISBN 071678291X.jpg](corpus/wiki-08.md#w003274) · bronregels 8629–8629 | namespace 6 | revisie 13884 | 2012-07-28T13:14:53Z
+- [W003226 — File:ISBN 0735619670.jpg](corpus/wiki-08.md#w003226) · bronregels 6444–6444 | namespace 6 | revisie 13581 | 2012-06-13T10:34:34Z
+- [W003204 — File:ISBN 0735648735.jpg](corpus/wiki-08.md#w003204) · bronregels 6126–6126 | namespace 6 | revisie 13548 | 2012-06-13T04:34:08Z
+- [W003205 — File:ISBN 0735665877.jpg](corpus/wiki-08.md#w003205) · bronregels 6140–6140 | namespace 6 | revisie 13549 | 2012-06-13T04:34:44Z
+- [W003233 — File:ISBN 0764574817.jpg](corpus/wiki-08.md#w003233) · bronregels 7257–7257 | namespace 6 | revisie 13627 | 2012-06-13T14:09:26Z
+- [W003296 — File:ISBN 1118063333.jpg](corpus/wiki-08.md#w003296) · bronregels 10352–10352 | namespace 6 | revisie 14119 | 2012-11-30T16:40:17Z
+- [W003244 — File:ISBN 113318779X.jpg](corpus/wiki-08.md#w003244) · bronregels 7562–7562 | namespace 6 | revisie 13688 | 2012-06-16T07:40:47Z
+- [W004955 — File:ISBN 1558603204.jpg](corpus/wiki-14.md#w004955) · bronregels 14568–14569 | namespace 6 | revisie 29669 | 2025-09-18T04:00:40Z
+- [W003267 — File:ISBN 1558604960.jpg](corpus/wiki-08.md#w003267) · bronregels 8502–8502 | namespace 6 | revisie 13860 | 2012-07-26T13:07:52Z
+- [W003207 — File:ISBN 1558604979.jpg](corpus/wiki-08.md#w003207) · bronregels 6178–6178 | namespace 6 | revisie 13555 | 2012-06-13T06:25:48Z
+- [W003271 — File:ISBN 1588530000.jpg](corpus/wiki-08.md#w003271) · bronregels 8601–8601 | namespace 6 | revisie 13879 | 2012-07-28T05:06:41Z
+- [W004437 — File:ISBN 1695978552.jpg](corpus/wiki-13.md#w004437) · bronregels 7084–7084 | namespace 6 | revisie 24253 | 2020-01-03T04:14:13Z
+- [W004456 — File:ISBN 1717425364.jpg](corpus/wiki-13.md#w004456) · bronregels 7450–7450 | namespace 6 | revisie 24371 | 2020-01-25T20:14:00Z
+- [W004515 — File:ISBN 198508659X.jpg](corpus/wiki-13.md#w004515) · bronregels 11280–11280 | namespace 6 | revisie 25085 | 2020-08-24T02:57:34Z
+- [W003202 — File:ISBN 9780123838728.jpg](corpus/wiki-08.md#w003202) · bronregels 6098–6098 | namespace 6 | revisie 13544 | 2012-06-13T03:54:34Z
+- [W004954 — File:ISBN 9780128154120.jpg](corpus/wiki-14.md#w004954) · bronregels 14554–14554 | namespace 6 | revisie 29668 | 2025-09-18T02:33:51Z
+- [W004377 — File:Itmouse.png](corpus/wiki-13.md#w004377) · bronregels 3151–3151 | namespace 6 | revisie 23553 | 2019-04-04T15:31:14Z
+- [W002736 — File:Ix86-callgate-desc.png](corpus/wiki-06.md#w002736) · bronregels 9435–9435 | namespace 6 | revisie 9278 | 2009-11-28T13:17:27Z
+- [W002737 — File:Ix86-code-seg-desc.png](corpus/wiki-06.md#w002737) · bronregels 9449–9449 | namespace 6 | revisie 9279 | 2009-11-28T13:18:12Z
+- [W002738 — File:Ix86-data-seg-desc.png](corpus/wiki-06.md#w002738) · bronregels 9463–9463 | namespace 6 | revisie 9280 | 2009-11-28T13:19:11Z
+- [W002741 — File:Ix86-int-trap-gate-desc.png](corpus/wiki-06.md#w002741) · bronregels 9505–9505 | namespace 6 | revisie 9283 | 2009-11-28T13:22:11Z
+- [W002739 — File:Ix86-ldt-desc.png](corpus/wiki-06.md#w002739) · bronregels 9477–9477 | namespace 6 | revisie 9281 | 2009-11-28T13:20:09Z
+- [W002740 — File:Ix86-task-gate-desc.png](corpus/wiki-06.md#w002740) · bronregels 9491–9491 | namespace 6 | revisie 9282 | 2009-11-28T13:20:49Z
+- [W002742 — File:Ix86-tss-desc.png](corpus/wiki-06.md#w002742) · bronregels 9519–9519 | namespace 6 | revisie 9284 | 2009-11-28T13:23:02Z
+- [W004445 — File:Jsdos-1.gif](corpus/wiki-13.md#w004445) · bronregels 7296–7296 | namespace 6 | revisie 24339 | 2020-01-17T23:02:11Z
+- [W004426 — File:Klika os.png](corpus/wiki-13.md#w004426) · bronregels 6294–6294 | namespace 6 | revisie 24138 | 2019-12-04T21:44:34Z
+- [W001982 — File:Kmcguirebitmapnumbered.png](corpus/wiki-04.md#w001982) · bronregels 2681–2683 | namespace 6 | revisie 3906 | 2007-05-19T02:41:17Z
+- [W001983 — File:Kmcguirebitmapstrip.png](corpus/wiki-04.md#w001983) · bronregels 2697–2699 | namespace 6 | revisie 3905 | 2007-05-19T02:41:04Z
+- [W001965 — File:KmcguireBytemap.png](corpus/wiki-04.md#w001965) · bronregels 2207–2207 | namespace 6 | revisie 3346 | 2007-03-16T02:07:59Z
+- [W001966 — File:KmcguireBytemapPmmMap.png](corpus/wiki-04.md#w001966) · bronregels 2221–2223 | namespace 6 | revisie 3902 | 2007-05-19T02:39:29Z
+- [W001985 — File:KmcguireFindFreeVirt.png](corpus/wiki-04.md#w001985) · bronregels 2729–2729 | namespace 6 | revisie 3439 | 2007-03-23T09:28:47Z
+- [W001984 — File:Kmcguirephyandvirt.png](corpus/wiki-04.md#w001984) · bronregels 2713–2715 | namespace 6 | revisie 3904 | 2007-05-19T02:40:56Z
+- [W004236 — File:KolibriOS.png](corpus/wiki-12.md#w004236) · bronregels 8565–8565 | namespace 6 | revisie 22029 | 2018-01-04T09:59:52Z
+- [W005067 — File:LaCarreraLibra.png](corpus/wiki-14.md#w005067) · bronregels 21682–21682 | namespace 6 | revisie 30772 | 2026-06-17T19:35:39Z
+- [W004457 — File:Latest gui.png](corpus/wiki-13.md#w004457) · bronregels 7464–7464 | namespace 6 | revisie 24374 | 2020-01-25T20:37:04Z
+- [W004902 — File:LaylaOS.png](corpus/wiki-14.md#w004902) · bronregels 12296–12297 | namespace 6 | revisie 29286 | 2024-11-01T10:27:26Z
+- [W004529 — File:LemonOS.png](corpus/wiki-13.md#w004529) · bronregels 12274–12274 | namespace 6 | revisie 25737 | 2021-03-05T22:20:03Z
+- [W004586 — File:LF OS-20210519.png](corpus/wiki-13.md#w004586) · bronregels 14750–14750 | namespace 6 | revisie 25871 | 2021-05-19T13:37:24Z
+- [W002622 — File:LFHSDevsHSHubHSPortCorrect.gif](corpus/wiki-06.md#w002622) · bronregels 3050–3050 | namespace 6 | revisie 8212 | 2009-06-10T19:16:33Z
+- [W002621 — File:LFHSDevsHSHubHSPortIncorrect.gif](corpus/wiki-06.md#w002621) · bronregels 3036–3036 | namespace 6 | revisie 8211 | 2009-06-10T19:16:00Z
+- [W002618 — File:LFSpeedDevToHSPort.gif](corpus/wiki-06.md#w002618) · bronregels 2994–2994 | namespace 6 | revisie 8208 | 2009-06-10T19:08:26Z
+- [W002395 — File:Linear video memory layout 15bpp.png](corpus/wiki-05.md#w002395) · bronregels 8697–8697 | namespace 6 | revisie 6423 | 2008-10-26T06:02:24Z
+- [W002396 — File:Linear video memory layout 16bpp.png](corpus/wiki-05.md#w002396) · bronregels 8711–8711 | namespace 6 | revisie 6424 | 2008-10-26T06:02:43Z
+- [W002397 — File:Linear video memory layout 24bpp.png](corpus/wiki-05.md#w002397) · bronregels 8725–8725 | namespace 6 | revisie 6425 | 2008-10-26T06:02:58Z
+- [W002398 — File:Linear video memory layout 32bpp.png](corpus/wiki-05.md#w002398) · bronregels 8739–8739 | namespace 6 | revisie 6426 | 2008-10-26T06:03:17Z
+- [W002393 — File:Linear video memory layout 4bpp.png](corpus/wiki-05.md#w002393) · bronregels 8669–8669 | namespace 6 | revisie 6421 | 2008-10-26T06:00:20Z
+- [W002394 — File:Linear video memory layout 8bpp.png](corpus/wiki-05.md#w002394) · bronregels 8683–8683 | namespace 6 | revisie 6422 | 2008-10-26T06:00:40Z
+- [W001694 — File:Linkconvert.zip](corpus/wiki-02.md#w001694) · bronregels 8859–8859 | namespace 6 | revisie 2441 | 2006-12-19T03:18:31Z
+- [W004450 — File:Logic.png](corpus/wiki-13.md#w004450) · bronregels 7366–7366 | namespace 6 | revisie 24347 | 2020-01-18T09:47:23Z
+- [W004579 — File:LongModePagingVirtualAddressExample.png](corpus/wiki-13.md#w004579) · bronregels 14601–14601 | namespace 6 | revisie 25809 | 2021-04-15T17:39:17Z
+- [W004714 — File:Lotus-Effect v2017.png](corpus/wiki-14.md#w004714) · bronregels 6060–6060 | namespace 6 | revisie 27242 | 2022-07-19T08:05:19Z
+- [W003329 — File:Lspci-with-multifunction-device-highlighted.png](corpus/wiki-08.md#w003329) · bronregels 15298–15298 | namespace 6 | revisie 14472 | 2013-02-20T20:06:32Z
+- [W004944 — File:Maestro.png](corpus/wiki-14.md#w004944) · bronregels 14115–14116 | namespace 6 | revisie 29572 | 2025-06-24T16:25:28Z
+- [W004513 — File:Managarm-demo.png](corpus/wiki-13.md#w004513) · bronregels 11252–11252 | namespace 6 | revisie 25040 | 2020-08-05T18:12:34Z
+- [W004835 — File:MaslOS2-demo.png](corpus/wiki-14.md#w004835) · bronregels 10353–10353 | namespace 6 | revisie 28536 | 2023-12-26T18:50:53Z
+- [W004873 — File:Merlon os.jpg](corpus/wiki-14.md#w004873) · bronregels 11688–11688 | namespace 6 | revisie 28913 | 2024-06-01T02:44:06Z
+- [W003398 — File:Metta bootup.png](corpus/wiki-09.md#w003398) · bronregels 1165–1165 | namespace 6 | revisie 15092 | 2013-08-10T09:30:06Z
+- [W004451 — File:Microarchitecture.png](corpus/wiki-13.md#w004451) · bronregels 7380–7380 | namespace 6 | revisie 24348 | 2020-01-18T09:47:40Z
+- [W001413 — File:Microkernel.png](corpus/wiki-01.md#w001413) · bronregels 3906–3906 | namespace 6 | revisie 1579 | 2006-11-27T23:27:28Z
+- [W004237 — File:MikeOS.png](corpus/wiki-12.md#w004237) · bronregels 8579–8579 | namespace 6 | revisie 22030 | 2018-01-04T10:00:31Z
+- [W004571 — File:Minicom cs xterm.png](corpus/wiki-13.md#w004571) · bronregels 14324–14324 | namespace 6 | revisie 25705 | 2021-02-19T12:11:05Z
+- [W004758 — File:Minix.jpg](corpus/wiki-14.md#w004758) · bronregels 8737–8737 | namespace 6 | revisie 27852 | 2023-07-08T17:53:06Z
+- [W004831 — File:Mintia.png](corpus/wiki-14.md#w004831) · bronregels 10269–10269 | namespace 6 | revisie 28440 | 2023-11-07T06:22:21Z
+- [W001414 — File:Monolithic.png](corpus/wiki-01.md#w001414) · bronregels 3920–3920 | namespace 6 | revisie 1581 | 2006-11-27T23:33:25Z
+- [W004590 — File:Mu-screenshot.png](corpus/wiki-13.md#w004590) · bronregels 14817–14817 | namespace 6 | revisie 25887 | 2021-05-21T18:28:09Z
+- [W003335 — File:Multi-bus-PCI-host-controller-with-multiple-bridges.png](corpus/wiki-08.md#w003335) · bronregels 15382–15382 | namespace 6 | revisie 14481 | 2013-02-20T21:15:27Z
+- [W004942 — File:Neofetch.png](corpus/wiki-14.md#w004942) · bronregels 14076–14076 | namespace 6 | revisie 29570 | 2025-06-24T17:37:11Z
+- [W005079 — File:NeuroSamaOSImg.png](corpus/wiki-15.md#w005079) · bronregels 30–30 | namespace 6 | revisie 30912 | 2026-08-19T12:46:10Z
+- [W005081 — File:NeuroSamaOSRunningPng.png](corpus/wiki-15.md#w005081) · bronregels 58–58 | namespace 6 | revisie 30914 | 2026-08-19T12:55:52Z
+- [W005080 — File:NeuroSamaOSRunningPng.png.png](corpus/wiki-15.md#w005080) · bronregels 44–44 | namespace 6 | revisie 30913 | 2026-08-19T12:49:51Z
+- [W004852 — File:NullTerminator.png](corpus/wiki-14.md#w004852) · bronregels 10700–10700 | namespace 6 | revisie 28689 | 2024-03-11T19:46:10Z
+- [W002305 — File:Old Sound Card.jpg](corpus/wiki-05.md#w002305) · bronregels 3887–3891 | namespace 6 | revisie 5632 | 2008-06-07T11:58:19Z
+- [W004453 — File:Operating System.png](corpus/wiki-13.md#w004453) · bronregels 7408–7408 | namespace 6 | revisie 24350 | 2020-01-18T09:48:13Z
+- [W004440 — File:OS-on-kaleid.png](corpus/wiki-13.md#w004440) · bronregels 7126–7126 | namespace 6 | revisie 25724 | 2021-02-25T20:42:33Z
+- [W001398 — File:Os-projects.png](corpus/wiki-01.md#w001398) · bronregels 3171–3171 | namespace 6 | revisie 1559 | 2006-11-26T19:21:01Z
+- [W001642 — File:Osdev wallpaper 01.png](corpus/wiki-02.md#w001642) · bronregels 7520–7520 | namespace 6 | revisie 2265 | 2006-12-16T15:29:40Z
+- [W001644 — File:Osdev wallpaper 02.png](corpus/wiki-02.md#w001644) · bronregels 7550–7550 | namespace 6 | revisie 2267 | 2006-12-16T15:31:57Z
+- [W001645 — File:Osdev wallpaper 03.png](corpus/wiki-02.md#w001645) · bronregels 7564–7564 | namespace 6 | revisie 2268 | 2006-12-16T15:32:35Z
+- [W001646 — File:Osdev wallpaper 04.png](corpus/wiki-02.md#w001646) · bronregels 7578–7578 | namespace 6 | revisie 2269 | 2006-12-16T15:33:11Z
+- [W001647 — File:Osdev wallpaper 05.png](corpus/wiki-02.md#w001647) · bronregels 7592–7592 | namespace 6 | revisie 2270 | 2006-12-16T15:33:56Z
+- [W001648 — File:Osdev wallpaper 06.png](corpus/wiki-02.md#w001648) · bronregels 7606–7606 | namespace 6 | revisie 2271 | 2006-12-16T15:34:37Z
+- [W001649 — File:Osdev wallpaper 07.png](corpus/wiki-02.md#w001649) · bronregels 7620–7620 | namespace 6 | revisie 2272 | 2006-12-16T15:35:14Z
+- [W001650 — File:Osdev wallpaper 08.png](corpus/wiki-02.md#w001650) · bronregels 7634–7634 | namespace 6 | revisie 2273 | 2006-12-16T15:35:44Z
+- [W001651 — File:Osdev wallpaper 09.png](corpus/wiki-02.md#w001651) · bronregels 7648–7648 | namespace 6 | revisie 2274 | 2006-12-16T15:36:44Z
+- [W003827 — File:OVMF browse fs.png](corpus/wiki-11.md#w003827) · bronregels 3509–3509 | namespace 6 | revisie 18516 | 2015-11-11T15:45:53Z
+- [W003828 — File:OVMF run app.png](corpus/wiki-11.md#w003828) · bronregels 3523–3523 | namespace 6 | revisie 18520 | 2015-11-11T16:53:32Z
+- [W003826 — File:OVMF shell.png](corpus/wiki-11.md#w003826) · bronregels 3495–3495 | namespace 6 | revisie 18511 | 2015-11-11T14:32:11Z
+- [W002193 — File:Page dir.png](corpus/wiki-04.md#w002193) · bronregels 10850–10850 | namespace 6 | revisie 26486 | 2021-10-14T22:37:04Z
+- [W004639 — File:Page directory entry.png](corpus/wiki-14.md#w004639) · bronregels 1353–1353 | namespace 6 | revisie 26578 | 2021-10-22T23:09:22Z
+- [W004640 — File:Page table entry.png](corpus/wiki-14.md#w004640) · bronregels 1367–1367 | namespace 6 | revisie 26490 | 2021-10-14T23:15:58Z
+- [W002194 — File:Page table.png](corpus/wiki-04.md#w002194) · bronregels 10864–10864 | namespace 6 | revisie 4879 | 2007-11-15T20:12:27Z
+- [W002442 — File:Paging Structure.gif](corpus/wiki-05.md#w002442) · bronregels 10829–10829 | namespace 6 | revisie 6765 | 2008-11-27T02:26:35Z
+- [W004847 — File:PatienceOS.png](corpus/wiki-14.md#w004847) · bronregels 10585–10585 | namespace 6 | revisie 28638 | 2024-02-27T11:13:03Z
+- [W003332 — File:PCI-host-controller-and-single-bridge.png](corpus/wiki-08.md#w003332) · bronregels 15340–15340 | namespace 6 | revisie 14478 | 2013-02-20T20:48:19Z
+- [W003330 — File:PCI-host-controller-as-software-interface.png](corpus/wiki-08.md#w003330) · bronregels 15312–15312 | namespace 6 | revisie 14475 | 2013-02-20T20:28:04Z
+- [W003331 — File:PCI-host-controller-in-x86-architecture.png](corpus/wiki-08.md#w003331) · bronregels 15326–15326 | namespace 6 | revisie 14476 | 2013-02-20T20:34:50Z
+- [W003258 — File:PEFigure1.jpg](corpus/wiki-08.md#w003258) · bronregels 7828–7828 | namespace 6 | revisie 13792 | 2012-07-07T10:07:48Z
+- [W004446 — File:Physics.png](corpus/wiki-13.md#w004446) · bronregels 7310–7310 | namespace 6 | revisie 24343 | 2020-01-18T09:46:14Z
+- [W002916 — File:Port memory.jpg](corpus/wiki-07.md#w002916) · bronregels 1808–1808 | namespace 6 | revisie 10777 | 2010-09-22T14:36:39Z
+- [W002616 — File:PortRoutingBlockDiagram.gif](corpus/wiki-06.md#w002616) · bronregels 2966–2966 | namespace 6 | revisie 8206 | 2009-06-10T18:47:14Z
+- [W002977 — File:Practical File System Design.jpg](corpus/wiki-07.md#w002977) · bronregels 5646–5646 | namespace 6 | revisie 11478 | 2011-05-10T09:02:48Z
+- [W004238 — File:PrettyOS.png](corpus/wiki-12.md#w004238) · bronregels 8593–8593 | namespace 6 | revisie 22031 | 2018-01-04T10:02:15Z
+- [W002444 — File:PS2 connector.png](corpus/wiki-05.md#w002444) · bronregels 10881–10883 | namespace 6 | revisie 6791 | 2008-11-29T00:32:37Z
+- [W002319 — File:Ps2-kbc.png](corpus/wiki-05.md#w002319) · bronregels 3948–3948 | namespace 6 | revisie 5706 | 2008-06-28T15:01:40Z
+- [W004570 — File:PuTTY Ubuntu.png](corpus/wiki-13.md#w004570) · bronregels 14310–14310 | namespace 6 | revisie 25704 | 2021-02-19T12:10:16Z
+- [W004505 — File:Qemu gui mkfree1.png](corpus/wiki-13.md#w004505) · bronregels 10962–10962 | namespace 6 | revisie 24938 | 2020-06-25T12:06:12Z
+- [W004047 — File:Qemu-barebones-x86-c.png](corpus/wiki-12.md#w004047) · bronregels 480–480 | namespace 6 | revisie 20613 | 2017-03-29T05:23:06Z
+- [W002870 — File:Qemuarmhello.png](corpus/wiki-06.md#w002870) · bronregels 18629–18629 | namespace 6 | revisie 10335 | 2010-05-20T01:36:44Z
+- [W004441 — File:Qword-reference-screenshot-1.png](corpus/wiki-13.md#w004441) · bronregels 7140–7140 | namespace 6 | revisie 24292 | 2020-01-12T03:30:57Z
+- [W004361 — File:Qword.png](corpus/wiki-13.md#w004361) · bronregels 2150–2150 | namespace 6 | revisie 23351 | 2019-02-08T20:14:09Z
+- [W004384 — File:Qword1.png](corpus/wiki-13.md#w004384) · bronregels 3750–3750 | namespace 6 | revisie 23613 | 2019-05-09T23:25:03Z
+- [W004846 — File:Raidou.png](corpus/wiki-14.md#w004846) · bronregels 10571–10571 | namespace 6 | revisie 28616 | 2024-02-09T22:45:50Z
+- [W003618 — File:Rand spectrum.png](corpus/wiki-10.md#w003618) · bronregels 7002–7002 | namespace 6 | revisie 16613 | 2014-08-15T15:49:48Z
+- [W004757 — File:ReactOS.png](corpus/wiki-14.md#w004757) · bronregels 8723–8723 | namespace 6 | revisie 27851 | 2023-07-08T17:42:43Z
+- [W002316 — File:Really Simple Audio Architecture.png](corpus/wiki-05.md#w002316) · bronregels 3905–3905 | namespace 6 | revisie 5702 | 2008-06-27T08:57:47Z
+- [W004966 — File:Receive Ring Structure.png](corpus/wiki-14.md#w004966) · bronregels 15095–15095 | namespace 6 | revisie 29751 | 2025-11-09T18:54:49Z
+- [W002360 — File:Rtl8139.JPG](corpus/wiki-05.md#w002360) · bronregels 7386–7386 | namespace 6 | revisie 6102 | 2008-08-01T11:20:52Z
+- [W005026 — File:Screenshot of COS.png](corpus/wiki-14.md#w005026) · bronregels 18915–18915 | namespace 6 | revisie 30489 | 2026-04-17T07:14:49Z
+- [W004391 — File:Screenshot-191112e.png](corpus/wiki-13.md#w004391) · bronregels 3987–3987 | namespace 6 | revisie 23701 | 2019-06-21T20:10:55Z
+- [W005027 — File:SecondStepOfMany.png](corpus/wiki-14.md#w005027) · bronregels 18929–18929 | namespace 6 | revisie 30505 | 2026-04-21T01:56:03Z
+- [W004486 — File:SerenityOS-8ea4375.png](corpus/wiki-13.md#w004486) · bronregels 10273–10273 | namespace 6 | revisie 24737 | 2020-06-03T05:50:17Z
+- [W004756 — File:SerenityOS.png](corpus/wiki-14.md#w004756) · bronregels 8709–8709 | namespace 6 | revisie 27849 | 2023-07-08T17:35:42Z
+- [W002634 — File:SETUPTransaction.gif](corpus/wiki-06.md#w002634) · bronregels 3471–3471 | namespace 6 | revisie 8287 | 2009-06-25T17:22:49Z
+- [W003845 — File:Shot10.jpg](corpus/wiki-11.md#w003845) · bronregels 4460–4460 | namespace 6 | revisie 18722 | 2015-12-22T23:40:17Z
+- [W004509 — File:SingOS-2y.jpeg](corpus/wiki-13.md#w004509) · bronregels 11049–11049 | namespace 6 | revisie 24980 | 2020-07-02T08:44:17Z
+- [W002023 — File:Sized Portion Scheme.png](corpus/wiki-04.md#w002023) · bronregels 4206–4209 | namespace 6 | revisie 3672 | 2007-04-12T18:25:27Z
+- [W004535 — File:SkiftOS.png](corpus/wiki-13.md#w004535) · bronregels 12540–12540 | namespace 6 | revisie 25276 | 2020-10-29T11:53:27Z
+- [W004367 — File:Smmu-stage1-into-stage2-flowchart.png](corpus/wiki-13.md#w004367) · bronregels 2833–2833 | namespace 6 | revisie 23468 | 2019-03-28T04:03:57Z
+- [W004373 — File:Smmu-tlb-tagging.png](corpus/wiki-13.md#w004373) · bronregels 3091–3091 | namespace 6 | revisie 23503 | 2019-04-01T19:00:08Z
+- [W004368 — File:Smmu-transaction-flowchart.png](corpus/wiki-13.md#w004368) · bronregels 2847–2847 | namespace 6 | revisie 23469 | 2019-03-28T04:04:23Z
+- [W004239 — File:SnowdropOS.png](corpus/wiki-12.md#w004239) · bronregels 8607–8607 | namespace 6 | revisie 22032 | 2018-01-04T10:02:47Z
+- [W004240 — File:Sortix.png](corpus/wiki-12.md#w004240) · bronregels 8621–8621 | namespace 6 | revisie 22033 | 2018-01-04T10:03:12Z
+- [W004412 — File:Soso-gears.png](corpus/wiki-13.md#w004412) · bronregels 5024–5024 | namespace 6 | revisie 23903 | 2019-09-07T23:14:49Z
+- [W004413 — File:Soso-lua.png](corpus/wiki-13.md#w004413) · bronregels 5038–5038 | namespace 6 | revisie 23904 | 2019-09-07T23:16:32Z
+- [W004577 — File:Soso-v0.3-gears.png](corpus/wiki-13.md#w004577) · bronregels 14573–14573 | namespace 6 | revisie 25787 | 2021-04-03T14:07:17Z
+- [W001718 — File:Stack.png](corpus/wiki-02.md#w001718) · bronregels 11690–11690 | namespace 6 | revisie 2548 | 2006-12-23T07:37:51Z
+- [W002860 — File:Stub.png](corpus/wiki-06.md#w002860) · bronregels 18199–18199 | namespace 6 | revisie 10278 | 2010-05-07T18:39:38Z
+- [W002629 — File:SuccessfulDataTx.gif](corpus/wiki-06.md#w002629) · bronregels 3401–3401 | namespace 6 | revisie 8276 | 2009-06-24T22:39:49Z
+- [W004960 — File:Symbos.gif](corpus/wiki-14.md#w004960) · bronregels 14826–14827 | namespace 6 | revisie 29727 | 2025-10-23T21:16:32Z
+- [W004241 — File:TatOS.png](corpus/wiki-12.md#w004241) · bronregels 8635–8635 | namespace 6 | revisie 22034 | 2018-01-04T10:03:46Z
+- [W004242 — File:TempleOS.png](corpus/wiki-12.md#w004242) · bronregels 8649–8649 | namespace 6 | revisie 22035 | 2018-01-04T10:04:22Z
+- [W002283 — File:Test.png](corpus/wiki-05.md#w002283) · bronregels 3242–3242 | namespace 6 | revisie 5500 | 2008-05-29T21:21:14Z
+- [W004455 — File:Threshold Formation MOSFET.gif](corpus/wiki-13.md#w004455) · bronregels 7436–7436 | namespace 6 | revisie 24362 | 2020-01-20T11:52:07Z
+- [W004557 — File:Tilck screenshot.png](corpus/wiki-13.md#w004557) · bronregels 13603–13603 | namespace 6 | revisie 25568 | 2021-01-19T17:17:25Z
+- [W002066 — File:Time.png](corpus/wiki-04.md#w002066) · bronregels 4942–4942 | namespace 6 | revisie 3949 | 2007-05-27T19:35:28Z
+- [W003388 — File:Toaruos screenshot.png](corpus/wiki-09.md#w003388) · bronregels 907–907 | namespace 6 | revisie 26667 | 2021-11-09T10:16:28Z
+- [W004965 — File:Transmit Ring Structure.png](corpus/wiki-14.md#w004965) · bronregels 15081–15081 | namespace 6 | revisie 29750 | 2025-11-09T18:53:44Z
+- [W004266 — File:TravorOS 20180422.png](corpus/wiki-12.md#w004266) · bronregels 11059–11059 | namespace 6 | revisie 22346 | 2018-04-22T19:32:12Z
+- [W002020 — File:Tree based.png](corpus/wiki-04.md#w002020) · bronregels 4123–4123 | namespace 6 | revisie 3662 | 2007-04-12T07:42:16Z
+- [W005090 — File:Treonos logo.png](corpus/wiki-15.md#w005090) · bronregels 722–722 | namespace 6 | revisie 30957 | 2026-09-18T06:35:41Z
+- [W003997 — File:Tupai-0-1-0.png](corpus/wiki-11.md#w003997) · bronregels 13124–13124 | namespace 6 | revisie 19978 | 2016-11-30T03:26:04Z
+- [W004498 — File:Turbo C Preview.png](corpus/wiki-13.md#w004498) · bronregels 10700–10700 | namespace 6 | revisie 24889 | 2020-06-22T13:25:50Z
+- [W003876 — File:U365 0.6.png](corpus/wiki-11.md#w003876) · bronregels 6260–6260 | namespace 6 | revisie 18907 | 2016-02-06T13:32:36Z
+- [W005048 — File:UBixOS.png](corpus/wiki-14.md#w005048) · bronregels 20744–20744 | namespace 6 | revisie 30701 | 2026-06-08T16:20:03Z
+- [W002750 — File:Udi color 330x220.jpg](corpus/wiki-06.md#w002750) · bronregels 9817–9817 | namespace 6 | revisie 9365 | 2009-12-08T21:50:31Z
+- [W004572 — File:UDOS.png](corpus/wiki-13.md#w004572) · bronregels 14338–14338 | namespace 6 | revisie 27043 | 2022-04-20T23:20:10Z
+- [W002847 — File:Under Construction.png](corpus/wiki-06.md#w002847) · bronregels 17683–17683 | namespace 6 | revisie 10200 | 2010-05-01T14:52:38Z
+- [W002624 — File:USBDataFlow.gif](corpus/wiki-06.md#w002624) · bronregels 3078–3078 | namespace 6 | revisie 8214 | 2009-06-10T19:26:05Z
+- [W002632 — File:Usbframes.gif](corpus/wiki-06.md#w002632) · bronregels 3443–3443 | namespace 6 | revisie 8279 | 2009-06-25T02:43:36Z
+- [W002617 — File:USBSystem.gif](corpus/wiki-06.md#w002617) · bronregels 2980–2980 | namespace 6 | revisie 8207 | 2009-06-10T19:04:16Z
+- [W002623 — File:USBTopology.gif](corpus/wiki-06.md#w002623) · bronregels 3064–3064 | namespace 6 | revisie 8213 | 2009-06-10T19:20:24Z
+- [W002633 — File:Usbtransactionreorder.gif](corpus/wiki-06.md#w002633) · bronregels 3457–3457 | namespace 6 | revisie 8280 | 2009-06-25T04:38:00Z
+- [W004939 — File:Ux.png](corpus/wiki-14.md#w004939) · bronregels 14034–14034 | namespace 6 | revisie 29549 | 2025-06-14T04:38:44Z
+- [W005078 — File:UX20260722-234105.png](corpus/wiki-15.md#w005078) · bronregels 16–16 | namespace 6 | revisie 30899 | 2026-07-22T15:54:18Z
+- [W004243 — File:VanadiumOS.png](corpus/wiki-12.md#w004243) · bronregels 8663–8663 | namespace 6 | revisie 22036 | 2018-01-04T10:04:45Z
+- [W003714 — File:Vector desktop.png](corpus/wiki-10.md#w003714) · bronregels 15001–15001 | namespace 6 | revisie 17512 | 2015-02-02T16:36:31Z
+- [W003760 — File:Vector shell.png](corpus/wiki-10.md#w003760) · bronregels 17259–17259 | namespace 6 | revisie 17848 | 2015-04-02T21:26:15Z
+- [W003713 — File:Vector.png](corpus/wiki-10.md#w003713) · bronregels 14987–14987 | namespace 6 | revisie 17489 | 2015-01-24T10:42:41Z
+- [W002263 — File:Vfs diagram.png](corpus/wiki-05.md#w002263) · bronregels 1371–1373 | namespace 6 | revisie 5471 | 2008-05-18T10:42:52Z
+- [W001716 — File:VGA crtc.gif](corpus/wiki-02.md#w001716) · bronregels 11282–11282 | namespace 6 | revisie 2538 | 2006-12-22T20:47:56Z
+- [W001705 — File:VGA gc addressdecode.gif](corpus/wiki-02.md#w001705) · bronregels 10181–10181 | namespace 6 | revisie 2505 | 2006-12-20T23:07:31Z
+- [W001709 — File:VGA gc write0.gif](corpus/wiki-02.md#w001709) · bronregels 10778–10778 | namespace 6 | revisie 2517 | 2006-12-21T16:40:31Z
+- [W002234 — File:VGA gc write3.gif](corpus/wiki-04.md#w002234) · bronregels 12586–12586 | namespace 6 | revisie 5224 | 2008-03-12T15:12:59Z
+- [W003931 — File:Vga mode.gif](corpus/wiki-11.md#w003931) · bronregels 9163–9163 | namespace 6 | revisie 19409 | 2016-07-08T19:25:41Z
+- [W001696 — File:VGA overview.gif](corpus/wiki-02.md#w001696) · bronregels 8889–8889 | namespace 6 | revisie 2455 | 2006-12-19T11:16:22Z
+- [W004871 — File:Vinix.png](corpus/wiki-14.md#w004871) · bronregels 11660–11660 | namespace 6 | revisie 28871 | 2024-05-26T17:48:46Z
+- [W001487 — File:Virtual memory.png](corpus/wiki-01.md#w001487) · bronregels 12395–12395 | namespace 6 | revisie 1819 | 2006-12-05T02:48:58Z
+- [W004819 — File:VirtualBox BleskOS 28 09 2023 16 46 49.png](corpus/wiki-14.md#w004819) · bronregels 9963–9963 | namespace 6 | revisie 28336 | 2023-09-28T15:40:33Z
+- [W004244 — File:Visopsys.png](corpus/wiki-12.md#w004244) · bronregels 8677–8677 | namespace 6 | revisie 22037 | 2018-01-04T10:05:51Z
+- [W004282 — File:Vscode dbg1.PNG](corpus/wiki-12.md#w004282) · bronregels 14277–14277 | namespace 6 | revisie 22544 | 2018-08-03T22:40:02Z
+- [W004283 — File:Vscode dbg2.PNG](corpus/wiki-12.md#w004283) · bronregels 14291–14291 | namespace 6 | revisie 22546 | 2018-08-03T22:45:52Z
+- [W004281 — File:Vscode debug.PNG](corpus/wiki-12.md#w004281) · bronregels 14263–14263 | namespace 6 | revisie 22543 | 2018-08-03T22:32:55Z
+- [W004569 — File:VT220 Irssi.jpg](corpus/wiki-13.md#w004569) · bronregels 14296–14296 | namespace 6 | revisie 25703 | 2021-02-19T12:09:28Z
+- [W003722 — File:Wataha 0.328.jpg](corpus/wiki-10.md#w003722) · bronregels 15410–15410 | namespace 6 | revisie 17620 | 2015-02-17T20:22:58Z
+- [W003723 — File:Wataha.net 0.312.gif](corpus/wiki-10.md#w003723) · bronregels 15424–15424 | namespace 6 | revisie 17623 | 2015-02-17T20:28:12Z
+- [W003812 — File:Wataha.png](corpus/wiki-11.md#w003812) · bronregels 2932–2932 | namespace 6 | revisie 18297 | 2015-08-20T06:57:20Z
+- [W003893 — File:Win32 lpthandler exe 0000.jpg](corpus/wiki-11.md#w003893) · bronregels 6761–6761 | namespace 6 | revisie 19058 | 2016-04-09T04:51:54Z
+- [W004911 — File:Windows BSOD.png](corpus/wiki-14.md#w004911) · bronregels 12450–12450 | namespace 6 | revisie 29346 | 2025-01-23T16:58:01Z
+- [W004804 — File:Windows-Computer-Management.png](corpus/wiki-14.md#w004804) · bronregels 9399–9399 | namespace 6 | revisie 28213 | 2023-07-10T19:01:22Z
+- [W004805 — File:Windows-Create-VHD.png](corpus/wiki-14.md#w004805) · bronregels 9413–9413 | namespace 6 | revisie 28214 | 2023-07-10T19:03:33Z
+- [W005059 — File:Windows9xRunningOutVirtualMemory.jpg](corpus/wiki-14.md#w005059) · bronregels 21240–21241 | namespace 6 | revisie 30752 | 2026-06-15T09:47:57Z
+- [W003956 — File:Xbox-Console-Open-Drives.jpg](corpus/wiki-11.md#w003956) · bronregels 9871–9871 | namespace 6 | revisie 19646 | 2016-08-03T08:49:56Z
+- [W004857 — File:Xeneva2024March 5.png](corpus/wiki-14.md#w004857) · bronregels 11052–11052 | namespace 6 | revisie 28718 | 2024-03-30T03:03:31Z
+- [W002259 — Filesystem](corpus/wiki-05.md#w002259) · bronregels 1227–1227 | namespace 0 | revisie 5345 | 2008-04-12T04:25:55Z
+- [W004650 — FLATBOOT Barebones](corpus/wiki-14.md#w004650) · bronregels 2138–2323 | namespace 0 | revisie 30280 | 2026-03-16T17:59:26Z
+- [W003097 — Floating Point Number](corpus/wiki-07.md#w003097) · bronregels 13595–13722 | namespace 0 | revisie 30995 | 2026-09-30T17:10:30Z
+- [W003114 — Floats](corpus/wiki-07.md#w003114) · bronregels 14052–14052 | namespace 0 | revisie 12808 | 2012-02-22T20:30:24Z
+- [W003297 — Floppy](corpus/wiki-08.md#w003297) · bronregels 10367–10367 | namespace 0 | revisie 14123 | 2012-12-02T20:42:31Z
+- [W002767 — Floppy disk](corpus/wiki-06.md#w002767) · bronregels 10298–10298 | namespace 0 | revisie 9465 | 2009-12-20T14:50:06Z
+- [W001458 — Floppy Disk Controller](corpus/wiki-01.md#w001458) · bronregels 7844–8745 | namespace 0 | revisie 28697 | 2024-03-12T03:43:00Z
+- [W002092 — Floppy Drive Controller](corpus/wiki-04.md#w002092) · bronregels 6433–6433 | namespace 0 | revisie 4094 | 2007-06-17T11:32:14Z
+- [W002000 — Floppy Driver](corpus/wiki-04.md#w002000) · bronregels 3501–3501 | namespace 0 | revisie 4100 | 2007-06-17T11:44:02Z
+- [W003734 — Floppy Programming](corpus/wiki-10.md#w003734) · bronregels 16268–16268 | namespace 0 | revisie 17672 | 2015-03-02T15:34:48Z
+- [W003669 — Formatted Printing](corpus/wiki-10.md#w003669) · bronregels 11940–12051 | namespace 0 | revisie 30406 | 2026-03-24T22:11:31Z
+- [W002427 — FPU](corpus/wiki-05.md#w002427) · bronregels 9838–9943 | namespace 0 | revisie 29122 | 2024-06-08T14:58:12Z
+- [W002520 — Fpu](corpus/wiki-05.md#w002520) · bronregels 13972–13972 | namespace 0 | revisie 7447 | 2009-03-28T22:21:02Z
+- [W003820 — Fractal Page Mapping](corpus/wiki-11.md#w003820) · bronregels 3056–3071 | namespace 0 | revisie 29409 | 2025-02-17T09:30:32Z
+- [W001994 — FreeBASIC](corpus/wiki-04.md#w001994) · bronregels 3196–3239 | namespace 0 | revisie 12296 | 2011-12-12T14:47:28Z
+- [W002153 — FreeBasic](corpus/wiki-04.md#w002153) · bronregels 8798–8798 | namespace 0 | revisie 4486 | 2007-08-31T12:50:30Z
+- [W002155 — FreeBasic Bare Bones](corpus/wiki-04.md#w002155) · bronregels 8812–9042 | namespace 0 | revisie 30662 | 2026-05-28T15:43:25Z
+- [W003058 — FreeBasic Barebones](corpus/wiki-07.md#w003058) · bronregels 11890–11890 | namespace 0 | revisie 12309 | 2011-12-13T06:05:51Z
+- [W004372 — FUSE](corpus/wiki-13.md#w004372) · bronregels 2939–3077 | namespace 0 | revisie 27939 | 2023-07-09T15:49:54Z
+- [W004378 — Game port](corpus/wiki-13.md#w004378) · bronregels 3165–3345 | namespace 0 | revisie 28285 | 2023-08-18T18:04:55Z
+- [W002894 — GameBoy Advance Barebones](corpus/wiki-07.md#w002894) · bronregels 998–1163 | namespace 0 | revisie 24571 | 2020-04-08T20:31:54Z
+- [W002889 — GameBoy Advance Introduction](corpus/wiki-07.md#w002889) · bronregels 852–911 | namespace 0 | revisie 22870 | 2018-09-14T23:27:49Z
+- [W001698 — Garbage collection](corpus/wiki-02.md#w001698) · bronregels 9895–9948 | namespace 0 | revisie 19321 | 2016-06-02T20:59:53Z
+- [W004210 — Garbage Collection](corpus/wiki-12.md#w004210) · bronregels 5137–5137 | namespace 0 | revisie 21680 | 2017-11-12T19:31:04Z
+- [W001480 — GAS](corpus/wiki-01.md#w001480) · bronregels 10518–10551 | namespace 0 | revisie 20294 | 2017-01-26T21:05:28Z
+- [W001481 — GCC](corpus/wiki-01.md#w001481) · bronregels 10565–10624 | namespace 0 | revisie 27491 | 2022-11-18T21:23:12Z
+- [W003870 — GCC and Libc++](corpus/wiki-11.md#w003870) · bronregels 5854–5986 | namespace 0 | revisie 28088 | 2023-07-09T21:21:49Z
+- [W001824 — GCC Canadian Cross](corpus/wiki-03.md#w001824) · bronregels 4751–4758 | namespace 0 | revisie 22688 | 2018-09-10T01:13:02Z
+- [W003034 — GCC Cross Compiler](corpus/wiki-07.md#w003034) · bronregels 10140–10140 | namespace 0 | revisie 12001 | 2011-09-15T09:01:01Z
+- [W001448 — GCC Cross-Compiler](corpus/wiki-01.md#w001448) · bronregels 6479–6787 | namespace 0 | revisie 30955 | 2026-09-17T11:09:07Z
+- [W003657 — GCC Stack Smashing Protector](corpus/wiki-10.md#w003657) · bronregels 11667–11667 | namespace 0 | revisie 16949 | 2014-10-22T23:28:49Z
+- [W001544 — GDB](corpus/wiki-02.md#w001544) · bronregels 2533–2608 | namespace 0 | revisie 28511 | 2023-12-13T07:13:30Z
+- [W004606 — GDC Cross-Compiler](corpus/wiki-13.md#w004606) · bronregels 15814–15876 | namespace 0 | revisie 28036 | 2023-07-09T18:46:46Z
+- [W001534 — GDT](corpus/wiki-02.md#w001534) · bronregels 1669–1669 | namespace 0 | revisie 1933 | 2006-12-07T20:46:39Z
+- [W001531 — GDT Tutorial](corpus/wiki-02.md#w001531) · bronregels 1034–1433 | namespace 0 | revisie 30355 | 2026-03-18T19:41:25Z
+- [W004574 — General Protection Fault](corpus/wiki-13.md#w004574) · bronregels 14367–14367 | namespace 0 | revisie 25746 | 2021-03-11T23:15:59Z
+- [W004060 — Generic Interrrupt Controller](corpus/wiki-12.md#w004060) · bronregels 993–993 | namespace 0 | revisie 20795 | 2017-05-11T00:16:19Z
+- [W004059 — Generic Interrrupt Controller versions 3 and 4](corpus/wiki-12.md#w004059) · bronregels 978–978 | namespace 0 | revisie 20793 | 2017-05-11T00:15:34Z
+- [W004006 — Generic Interrupt Controller](corpus/wiki-11.md#w004006) · bronregels 14150–14281 | namespace 0 | revisie 28096 | 2023-07-09T21:32:12Z
+- [W004011 — Generic Interrupt Controller versions 3 and 4](corpus/wiki-11.md#w004011) · bronregels 14345–14525 | namespace 0 | revisie 30720 | 2026-06-11T00:24:39Z
+- [W002414 — Genisoimage](corpus/wiki-05.md#w002414) · bronregels 9515–9515 | namespace 0 | revisie 6544 | 2008-11-03T14:04:21Z
+- [W001748 — Getting Started](corpus/wiki-03.md#w001748) · bronregels 969–1094 | namespace 0 | revisie 29110 | 2024-06-07T13:41:28Z
+- [W002603 — Getting to Ring 3](corpus/wiki-06.md#w002603) · bronregels 1790–2034 | namespace 0 | revisie 27736 | 2023-04-07T18:45:20Z
+- [W003834 — Getting VBE Mode Info](corpus/wiki-11.md#w003834) · bronregels 4013–4013 | namespace 0 | revisie 18659 | 2015-11-28T17:30:37Z
+- [W004746 — Git](corpus/wiki-14.md#w004746) · bronregels 8387–8553 | namespace 0 | revisie 30354 | 2026-03-18T19:40:10Z
+- [W001533 — Global Descriptor Table](corpus/wiki-02.md#w001533) · bronregels 1447–1654 | namespace 0 | revisie 29554 | 2025-06-16T22:22:03Z
+- [W001537 — Global descriptor table](corpus/wiki-02.md#w001537) · bronregels 1715–1715 | namespace 0 | revisie 1940 | 2006-12-07T21:17:00Z
+- [W004464 — GNAT Cross-Compiler](corpus/wiki-13.md#w004464) · bronregels 8442–8780 | namespace 0 | revisie 25437 | 2020-12-14T00:38:28Z
+- [W004531 — GNU-EFI](corpus/wiki-13.md#w004531) · bronregels 12335–12456 | namespace 0 | revisie 30353 | 2026-03-18T19:39:41Z
+- [W004556 — Go](corpus/wiki-13.md#w004556) · bronregels 13553–13589 | namespace 0 | revisie 29986 | 2026-02-12T17:10:33Z
+- [W003823 — Go Bare Bones](corpus/wiki-11.md#w003823) · bronregels 3116–3444 | namespace 0 | revisie 30607 | 2026-05-22T14:04:10Z
+- [W003914 — Go Barebones](corpus/wiki-11.md#w003914) · bronregels 8474–8474 | namespace 0 | revisie 19277 | 2016-05-27T20:24:27Z
+- [W003919 — Going Further on x86](corpus/wiki-11.md#w003919) · bronregels 8574–8724 | namespace 0 | revisie 28742 | 2024-04-23T14:07:11Z
+- [W003949 — Going further on x86](corpus/wiki-11.md#w003949) · bronregels 9756–9756 | namespace 0 | revisie 19534 | 2016-07-22T20:57:19Z
+- [W004512 — GOP](corpus/wiki-13.md#w004512) · bronregels 11082–11238 | namespace 0 | revisie 30351 | 2026-03-18T19:37:13Z
+- [W004661 — GPF](corpus/wiki-14.md#w004661) · bronregels 2567–2567 | namespace 0 | revisie 26594 | 2021-10-25T02:30:35Z
+- [W004664 — Gpf](corpus/wiki-14.md#w004664) · bronregels 2612–2612 | namespace 0 | revisie 29868 | 2026-01-12T02:17:04Z
+- [W003126 — GPT](corpus/wiki-07.md#w003126) · bronregels 14256–14394 | namespace 0 | revisie 27892 | 2023-07-09T04:40:45Z
+- [W004822 — GPU](corpus/wiki-14.md#w004822) · bronregels 10007–10007 | namespace 0 | revisie 28367 | 2023-10-04T12:07:15Z
+- [W002347 — Graphical User Interface](corpus/wiki-05.md#w002347) · bronregels 6045–6045 | namespace 0 | revisie 5930 | 2008-07-14T23:28:41Z
+- [W004024 — Graphics stack](corpus/wiki-11.md#w004024) · bronregels 15583–15668 | namespace 0 | revisie 28083 | 2023-07-09T21:10:40Z
+- [W002803 — GRUB](corpus/wiki-06.md#w002803) · bronregels 12791–13157 | namespace 0 | revisie 30711 | 2026-06-10T11:30:45Z
+- [W003939 — GRUB 2](corpus/wiki-11.md#w003939) · bronregels 9631–9631 | namespace 0 | revisie 19452 | 2016-07-14T15:14:48Z
+- [W002713 — Grub Error 13](corpus/wiki-06.md#w002713) · bronregels 7590–7662 | namespace 0 | revisie 30350 | 2026-03-18T19:36:16Z
+- [W001432 — GRUB Legacy](corpus/wiki-01.md#w001432) · bronregels 4745–4960 | namespace 0 | revisie 23075 | 2018-11-10T20:53:38Z
+- [W002848 — GRUB2](corpus/wiki-06.md#w002848) · bronregels 17698–17698 | namespace 0 | revisie 20683 | 2017-04-10T17:40:27Z
+- [W002705 — GTF](corpus/wiki-06.md#w002705) · bronregels 7360–7360 | namespace 0 | revisie 8944 | 2009-09-01T19:31:06Z
+- [W002346 — GUI](corpus/wiki-05.md#w002346) · bronregels 5898–6030 | namespace 0 | revisie 26818 | 2021-12-30T10:55:02Z
+- [W002272 — Gujin](corpus/wiki-05.md#w002272) · bronregels 1698–1956 | namespace 0 | revisie 30357 | 2026-03-18T19:43:22Z
+- [W003698 — Hard Build System](corpus/wiki-10.md#w003698) · bronregels 14276–14420 | namespace 0 | revisie 29647 | 2025-09-13T09:28:47Z
+- [W002768 — Hard disks](corpus/wiki-06.md#w002768) · bronregels 10313–10313 | namespace 0 | revisie 20689 | 2017-04-10T17:43:11Z
+- [W002037 — Hardware Abstraction Layer](corpus/wiki-04.md#w002037) · bronregels 4616–4623 | namespace 0 | revisie 29462 | 2025-04-07T15:58:17Z
+- [W002702 — Haskell](corpus/wiki-06.md#w002702) · bronregels 7262–7292 | namespace 0 | revisie 31040 | 2026-10-23T17:14:32Z
+- [W003819 — HD Audio](corpus/wiki-11.md#w003819) · bronregels 3042–3042 | namespace 0 | revisie 18391 | 2015-10-13T14:00:03Z
+- [W003818 — HDAudio](corpus/wiki-11.md#w003818) · bronregels 3027–3027 | namespace 0 | revisie 18390 | 2015-10-13T13:59:24Z
+- [W003822 — Hdaudio](corpus/wiki-11.md#w003822) · bronregels 3102–3102 | namespace 0 | revisie 18439 | 2015-11-03T22:24:07Z
+- [W001600 — Hdiutil](corpus/wiki-02.md#w001600) · bronregels 6534–6581 | namespace 0 | revisie 11353 | 2011-04-05T04:03:19Z
+- [W003452 — Heap](corpus/wiki-09.md#w003452) · bronregels 5790–5813 | namespace 0 | revisie 15620 | 2014-02-21T23:16:16Z
+- [W001940 — Help My Kernel Crashed](corpus/wiki-03.md#w001940) · bronregels 15689–15689 | namespace 0 | revisie 6971 | 2008-12-31T16:51:17Z
+- [W001565 — Help:Editing](corpus/wiki-02.md#w001565) · bronregels 4341–4341 | namespace 12 | revisie 6618 | 2008-11-04T22:24:04Z
+- [W001387 — Help:Starting a new page](corpus/wiki-01.md#w001387) · bronregels 2973–2973 | namespace 12 | revisie 6617 | 2008-11-04T22:23:37Z
+- [W003293 — Henriavelabarbe:D barebone with ldc2](corpus/wiki-08.md#w003293) · bronregels 9970–10310 | namespace 0 | revisie 22661 | 2018-09-10T00:02:43Z
+- [W001455 — Hexadecimal Notation](corpus/wiki-01.md#w001455) · bronregels 7687–7778 | namespace 0 | revisie 29869 | 2026-01-12T02:51:39Z
+- [W002947 — Hexeditor](corpus/wiki-07.md#w002947) · bronregels 4072–4086 | namespace 0 | revisie 28470 | 2023-11-16T15:47:35Z
+- [W002769 — HFS](corpus/wiki-06.md#w002769) · bronregels 10327–10333 | namespace 0 | revisie 30689 | 2026-06-03T20:32:09Z
+- [W002770 — HFS+](corpus/wiki-06.md#w002770) · bronregels 10347–10357 | namespace 0 | revisie 18331 | 2015-09-01T22:29:12Z
+- [W002957 — Hierarchical VFS Theory](corpus/wiki-07.md#w002957) · bronregels 4589–4675 | namespace 0 | revisie 27996 | 2023-07-09T17:40:12Z
+- [W004291 — HiFive-1 Bare Bones](corpus/wiki-12.md#w004291) · bronregels 15812–16178 | namespace 0 | revisie 30458 | 2026-04-06T15:40:25Z
+- [W003944 — Higher Half bare bones](corpus/wiki-11.md#w003944) · bronregels 9704–9704 | namespace 0 | revisie 19518 | 2016-07-22T14:07:48Z
+- [W003947 — Higher Half Bare Bones](corpus/wiki-11.md#w003947) · bronregels 9719–9719 | namespace 0 | revisie 30682 | 2026-06-03T11:15:19Z
+- [W001868 — Higher Half Kernel](corpus/wiki-03.md#w001868) · bronregels 6761–6799 | namespace 0 | revisie 30637 | 2026-05-27T07:15:31Z
+- [W005041 — Higher Half x86 Bare Bones](corpus/wiki-14.md#w005041) · bronregels 19867–19867 | namespace 0 | revisie 30654 | 2026-05-28T12:50:08Z
+- [W001745 — Higher Half x86 Bare Bones (Backup)](corpus/wiki-03.md#w001745) · bronregels 649–822 | namespace 0 | revisie 23056 | 2018-10-27T19:39:13Z
+- [W003850 — Historical Notes on CISC and RISC](corpus/wiki-11.md#w003850) · bronregels 5139–5183 | namespace 0 | revisie 30409 | 2026-03-24T22:16:35Z
+- [W001409 — History](corpus/wiki-01.md#w001409) · bronregels 3745–3797 | namespace 0 | revisie 30565 | 2026-05-06T21:21:54Z
+- [W003458 — Host Triplet](corpus/wiki-09.md#w003458) · bronregels 6700–6700 | namespace 0 | revisie 15660 | 2014-02-26T19:06:33Z
+- [W003637 — Hosted GCC Cross-Compiler](corpus/wiki-10.md#w003637) · bronregels 10965–11081 | namespace 0 | revisie 30283 | 2026-03-16T18:03:27Z
+- [W001935 — How Do I Determine The Amount Of RAM](corpus/wiki-03.md#w001935) · bronregels 15348–15349 | namespace 0 | revisie 5465 | 2008-05-17T20:33:21Z
+- [W002565 — How do I set a graphics mode](corpus/wiki-05.md#w002565) · bronregels 16038–16063 | namespace 0 | revisie 25183 | 2020-09-17T16:21:17Z
+- [W002505 — How do I set a VGA mode without the BIOS](corpus/wiki-05.md#w002505) · bronregels 13183–13184 | namespace 0 | revisie 7236 | 2009-02-14T15:15:17Z
+- [W002146 — How Do I Test](corpus/wiki-04.md#w002146) · bronregels 8729–8729 | namespace 0 | revisie 4458 | 2007-08-31T05:50:07Z
+- [W003372 — How Do I Use A Debugger With My OS](corpus/wiki-09.md#w003372) · bronregels 182–183 | namespace 0 | revisie 14839 | 2013-06-05T16:45:48Z
+- [W001896 — How kernel, compiler, and C library work together](corpus/wiki-03.md#w001896) · bronregels 9538–9607 | namespace 0 | revisie 27935 | 2023-07-09T15:07:12Z
+- [W001883 — How To Ask Questions](corpus/wiki-03.md#w001883) · bronregels 8636–8715 | namespace 0 | revisie 29797 | 2025-12-22T15:27:09Z
+- [W002511 — How to develop on Mac OS X](corpus/wiki-05.md#w002511) · bronregels 13417–13419 | namespace 0 | revisie 7353 | 2009-03-06T23:36:58Z
+- [W003378 — HPET](corpus/wiki-09.md#w003378) · bronregels 351–730 | namespace 0 | revisie 30935 | 2026-09-01T14:51:09Z
+- [W001507 — HPFS](corpus/wiki-01.md#w001507) · bronregels 14221–14237 | namespace 0 | revisie 30688 | 2026-06-03T20:31:41Z
+- [W004977 — HPPA](corpus/wiki-14.md#w004977) · bronregels 15363–15363 | namespace 0 | revisie 29890 | 2026-01-12T21:16:53Z
+- [W002695 — Hybrid Kernel](corpus/wiki-06.md#w002695) · bronregels 6912–6926 | namespace 0 | revisie 30585 | 2026-05-19T18:12:29Z
+- [W001939 — I Can't Get Interrupts Working](corpus/wiki-03.md#w001939) · bronregels 15451–15674 | namespace 0 | revisie 30847 | 2026-07-04T12:50:02Z
+- [W003847 — I Cant Get Interrupts Working](corpus/wiki-11.md#w003847) · bronregels 4556–4556 | namespace 0 | revisie 18731 | 2015-12-26T12:16:00Z
+- [W003710 — I have followed a tutorial and it does not work](corpus/wiki-10.md#w003710) · bronregels 14946–14958 | namespace 0 | revisie 28081 | 2023-07-09T21:04:15Z
+- [W002715 — I use a Custom Filesystem - What Bootloader Solution is right for me?](corpus/wiki-06.md#w002715) · bronregels 7843–7892 | namespace 0 | revisie 28121 | 2023-07-10T02:30:35Z
+- [W003186 — I/O APIC](corpus/wiki-08.md#w003186) · bronregels 5466–5466 | namespace 0 | revisie 13361 | 2012-05-13T21:30:15Z
+- [W003132 — I/O Ports](corpus/wiki-07.md#w003132) · bronregels 14739–14847 | namespace 0 | revisie 29787 | 2025-12-12T20:06:08Z
+- [W003135 — I/O ports](corpus/wiki-07.md#w003135) · bronregels 14898–14898 | namespace 0 | revisie 12939 | 2012-03-07T18:37:17Z
+- [W005021 — I2C](corpus/wiki-14.md#w005021) · bronregels 18825–18825 | namespace 0 | revisie 30454 | 2026-04-05T17:55:29Z
+- [W003160 — I8042 PS/2 Controller](corpus/wiki-08.md#w003160) · bronregels 597–1136 | namespace 0 | revisie 30586 | 2026-05-20T07:46:42Z
+- [W002772 — IA-64](corpus/wiki-06.md#w002772) · bronregels 10386–10428 | namespace 0 | revisie 30370 | 2026-03-22T23:17:15Z
+- [W001897 — IA32 Architecture Family](corpus/wiki-03.md#w001897) · bronregels 9621–10145 | namespace 0 | revisie 22159 | 2018-02-21T05:15:22Z
+- [W005085 — IBM Mainframe architecture](corpus/wiki-15.md#w005085) · bronregels 422–584 | namespace 0 | revisie 30934 | 2026-09-01T00:37:40Z
+- [W003844 — Ich](corpus/wiki-11.md#w003844) · bronregels 4446–4446 | namespace 0 | revisie 18713 | 2015-12-15T22:53:30Z
+- [W003915 — ICMP](corpus/wiki-11.md#w003915) · bronregels 8489–8489 | namespace 0 | revisie 19281 | 2016-05-28T12:20:27Z
+- [W003380 — IDE](corpus/wiki-09.md#w003380) · bronregels 775–775 | namespace 0 | revisie 14930 | 2013-07-12T15:14:16Z
+- [W005057 — Identity Paging](corpus/wiki-14.md#w005057) · bronregels 21210–21210 | namespace 0 | revisie 30741 | 2026-06-12T23:18:57Z
+- [W001546 — IDT](corpus/wiki-02.md#w001546) · bronregels 2888–2888 | namespace 0 | revisie 1961 | 2006-12-08T12:53:38Z
+- [W003087 — IDT problems](corpus/wiki-07.md#w003087) · bronregels 12490–12490 | namespace 0 | revisie 19308 | 2016-06-02T09:49:35Z
+- [W003988 — Implementing Conditional Statements And Loops](corpus/wiki-11.md#w003988) · bronregels 11467–11467 | namespace 0 | revisie 19915 | 2016-10-27T19:16:50Z
+- [W003725 — Implications of writing a freestanding C project](corpus/wiki-10.md#w003725) · bronregels 15452–15479 | namespace 0 | revisie 29429 | 2025-03-06T11:59:57Z
+- [W004851 — Initramfs](corpus/wiki-14.md#w004851) · bronregels 10686–10686 | namespace 0 | revisie 28686 | 2024-03-04T16:18:11Z
+- [W003194 — Initrd](corpus/wiki-08.md#w003194) · bronregels 5919–5963 | namespace 0 | revisie 28032 | 2023-07-09T18:43:01Z
+- [W001706 — Inline Assembly](corpus/wiki-02.md#w001706) · bronregels 10195–10455 | namespace 0 | revisie 30389 | 2026-03-23T13:58:23Z
+- [W003437 — Inline assembly](corpus/wiki-09.md#w003437) · bronregels 3662–3662 | namespace 0 | revisie 15500 | 2013-12-30T15:54:03Z
+- [W001707 — Inline Assembly/Examples](corpus/wiki-02.md#w001707) · bronregels 10469–10750 | namespace 0 | revisie 28596 | 2024-02-01T10:49:24Z
+- [W004068 — Inline Functions in C](corpus/wiki-12.md#w004068) · bronregels 1859–1894 | namespace 0 | revisie 21003 | 2017-07-25T20:42:03Z
+- [W003856 — Instruction Set Architecture](corpus/wiki-11.md#w003856) · bronregels 5556–5606 | namespace 0 | revisie 27928 | 2023-07-09T14:57:55Z
+- [W003854 — Instruction Set Architectures](corpus/wiki-11.md#w003854) · bronregels 5290–5290 | namespace 0 | revisie 18783 | 2016-01-07T00:40:17Z
+- [W002725 — INT](corpus/wiki-06.md#w002725) · bronregels 9086–9086 | namespace 0 | revisie 9213 | 2009-11-14T19:00:27Z
+- [W005012 — INT 13h](corpus/wiki-14.md#w005012) · bronregels 18194–18194 | namespace 0 | revisie 30184 | 2026-03-10T20:48:07Z
+- [W002789 — Intel 8254x](corpus/wiki-06.md#w002789) · bronregels 11260–12556 | namespace 0 | revisie 30346 | 2026-03-17T21:07:33Z
+- [W004994 — Intel 82599](corpus/wiki-14.md#w004994) · bronregels 17429–17685 | namespace 0 | revisie 30567 | 2026-05-08T10:32:15Z
+- [W004064 — Intel Advanced Encryption Standard New Instructions](corpus/wiki-12.md#w004064) · bronregels 1644–1672 | namespace 0 | revisie 29083 | 2024-06-07T13:37:37Z
+- [W004278 — Intel Dual Band Wireless](corpus/wiki-12.md#w004278) · bronregels 13700–14046 | namespace 0 | revisie 30414 | 2026-03-25T12:34:42Z
+- [W003768 — Intel Ethernet i217](corpus/wiki-10.md#w003768) · bronregels 17427–18163 | namespace 0 | revisie 27712 | 2023-03-30T20:11:25Z
+- [W004023 — Intel HD Graphics](corpus/wiki-11.md#w004023) · bronregels 15294–15569 | namespace 0 | revisie 30452 | 2026-04-05T17:39:15Z
+- [W003313 — Intel High Definition Audio](corpus/wiki-08.md#w003313) · bronregels 12059–12584 | namespace 0 | revisie 30627 | 2026-05-26T15:09:57Z
+- [W003832 — Intel I/O Controller Hub](corpus/wiki-11.md#w003832) · bronregels 3796–3807 | namespace 0 | revisie 30196 | 2026-03-11T04:01:42Z
+- [W004995 — Intel NICs](corpus/wiki-14.md#w004995) · bronregels 17699–17870 | namespace 0 | revisie 30075 | 2026-02-26T09:05:44Z
+- [W005063 — Intel VT-d](corpus/wiki-14.md#w005063) · bronregels 21323–21462 | namespace 0 | revisie 30803 | 2026-06-20T21:39:56Z
+- [W004472 — Internal Kernel Debugger](corpus/wiki-13.md#w004472) · bronregels 9154–9170 | namespace 0 | revisie 29625 | 2025-08-22T00:03:46Z
+- [W002979 — Internet Control Message Protocol](corpus/wiki-07.md#w002979) · bronregels 5660–5756 | namespace 0 | revisie 11490 | 2011-05-11T04:42:47Z
+- [W002403 — Interrupt](corpus/wiki-05.md#w002403) · bronregels 9282–9282 | namespace 0 | revisie 6465 | 2008-10-28T11:12:51Z
+- [W001545 — Interrupt Descriptor Table](corpus/wiki-02.md#w001545) · bronregels 2622–2873 | namespace 0 | revisie 30250 | 2026-03-16T15:50:39Z
+- [W001548 — Interrupt descriptor table](corpus/wiki-02.md#w001548) · bronregels 2918–2918 | namespace 0 | revisie 1965 | 2006-12-08T12:56:11Z
+- [W003894 — Interrupt Service Routine](corpus/wiki-11.md#w003894) · bronregels 6776–6776 | namespace 0 | revisie 19066 | 2016-04-11T06:54:15Z
+- [W001719 — Interrupt Service Routines](corpus/wiki-02.md#w001719) · bronregels 11704–11964 | namespace 0 | revisie 30979 | 2026-09-27T19:56:54Z
+- [W005050 — Interrupt Translation Service](corpus/wiki-14.md#w005050) · bronregels 20775–21097 | namespace 0 | revisie 30730 | 2026-06-11T19:18:27Z
+- [W001550 — Interrupt Vector Table](corpus/wiki-02.md#w001550) · bronregels 2947–3179 | namespace 0 | revisie 30918 | 2026-08-22T04:25:58Z
+- [W001551 — Interrupt vector table](corpus/wiki-02.md#w001551) · bronregels 3194–3194 | namespace 0 | revisie 1969 | 2006-12-08T13:16:38Z
+- [W005060 — Interrupts](corpus/wiki-14.md#w005060) · bronregels 21256–21256 | namespace 0 | revisie 30756 | 2026-06-15T16:30:27Z
+- [W001547 — Interrupts Descriptor Table](corpus/wiki-02.md#w001547) · bronregels 2903–2903 | namespace 0 | revisie 1963 | 2006-12-08T12:54:27Z
+- [W002128 — Interrupts For Dummies](corpus/wiki-04.md#w002128) · bronregels 8316–8316 | namespace 0 | revisie 4317 | 2007-07-14T16:14:23Z
+- [W004320 — Interrupts Tutorial](corpus/wiki-12.md#w004320) · bronregels 16593–16806 | namespace 0 | revisie 29118 | 2024-06-08T07:23:54Z
+- [W004602 — Interrupts tutorial](corpus/wiki-13.md#w004602) · bronregels 15743–15743 | namespace 0 | revisie 26024 | 2021-05-30T20:50:23Z
+- [W001852 — Introduction](corpus/wiki-03.md#w001852) · bronregels 6010–6116 | namespace 0 | revisie 30898 | 2026-07-22T01:54:03Z
+- [W002434 — IOAPIC](corpus/wiki-05.md#w002434) · bronregels 10157–10435 | namespace 0 | revisie 30694 | 2026-06-07T16:19:01Z
+- [W005001 — IOMMU](corpus/wiki-14.md#w005001) · bronregels 17958–17978 | namespace 0 | revisie 30116 | 2026-03-03T15:35:16Z
+- [W003424 — IPC Data Copying methods](corpus/wiki-09.md#w003424) · bronregels 2719–2784 | namespace 0 | revisie 28094 | 2023-07-09T21:29:39Z
+- [W005069 — IPL and Loading your kernel](corpus/wiki-14.md#w005069) · bronregels 21710–22029 | namespace 0 | revisie 30811 | 2026-06-23T02:07:13Z
+- [W002358 — IRQ](corpus/wiki-05.md#w002358) · bronregels 7357–7357 | namespace 0 | revisie 6076 | 2008-07-28T19:38:25Z
+- [W002187 — ISA](corpus/wiki-04.md#w002187) · bronregels 10598–10763 | namespace 0 | revisie 30189 | 2026-03-11T02:45:58Z
+- [W001467 — ISA DMA](corpus/wiki-01.md#w001467) · bronregels 9169–9720 | namespace 0 | revisie 30347 | 2026-03-17T21:08:14Z
+- [W002785 — ISO](corpus/wiki-06.md#w002785) · bronregels 11083–11083 | namespace 0 | revisie 9575 | 2010-01-03T12:07:56Z
+- [W002211 — ISO 9660](corpus/wiki-04.md#w002211) · bronregels 11208–11686 | namespace 0 | revisie 29375 | 2025-02-06T23:03:34Z
+- [W002370 — ISR](corpus/wiki-05.md#w002370) · bronregels 7975–7975 | namespace 0 | revisie 6217 | 2008-08-20T15:34:36Z
+- [W004979 — Itanium](corpus/wiki-14.md#w004979) · bronregels 15392–15392 | namespace 0 | revisie 29906 | 2026-01-20T19:52:44Z
+- [W002746 — Itanium2 Overview](corpus/wiki-06.md#w002746) · bronregels 9583–9594 | namespace 0 | revisie 9349 | 2009-12-07T01:15:03Z
+- [W001549 — IVT](corpus/wiki-02.md#w001549) · bronregels 2933–2933 | namespace 0 | revisie 1967 | 2006-12-08T13:05:35Z
+- [W004991 — Iwlwifi](corpus/wiki-14.md#w004991) · bronregels 16698–17316 | namespace 0 | revisie 30192 | 2026-03-11T02:53:27Z
+- [W005020 — I²C](corpus/wiki-14.md#w005020) · bronregels 18801–18810 | namespace 0 | revisie 30453 | 2026-04-05T17:54:47Z
+- [W003461 — James Molloy's Known Bugs](corpus/wiki-09.md#w003461) · bronregels 7016–7016 | namespace 0 | revisie 15695 | 2014-03-07T07:16:33Z
+- [W003459 — James Molloy's Tutorial Known Bugs](corpus/wiki-09.md#w003459) · bronregels 6714–6983 | namespace 0 | revisie 25869 | 2021-05-18T22:17:05Z
+- [W001580 — James T. Klik](corpus/wiki-02.md#w001580) · bronregels 5549–5617 | namespace 0 | revisie 24652 | 2020-05-07T19:02:24Z
+- [W003831 — Java For Starters](corpus/wiki-11.md#w003831) · bronregels 3596–3782 | namespace 0 | revisie 27951 | 2023-07-09T16:06:01Z
+- [W003849 — Java Primer](corpus/wiki-11.md#w003849) · bronregels 4585–5125 | namespace 0 | revisie 28229 | 2023-07-10T20:34:16Z
+- [W004523 — Jbd2](corpus/wiki-13.md#w004523) · bronregels 12162–12166 | namespace 0 | revisie 27954 | 2023-07-09T16:08:12Z
+- [W003633 — JFFS2](corpus/wiki-10.md#w003633) · bronregels 7730–7743 | namespace 0 | revisie 30942 | 2026-09-04T15:46:18Z
+- [W001499 — JLoc](corpus/wiki-01.md#w001499) · bronregels 12822–12843 | namespace 0 | revisie 30984 | 2026-09-28T14:17:30Z
+- [W002775 — Joliet](corpus/wiki-06.md#w002775) · bronregels 10472–10488 | namespace 0 | revisie 27897 | 2023-07-09T04:48:05Z
+- [W003000 — Journaling](corpus/wiki-07.md#w003000) · bronregels 6875–6932 | namespace 0 | revisie 27725 | 2023-04-02T22:31:31Z
+- [W004399 — Joystick](corpus/wiki-13.md#w004399) · bronregels 4437–4437 | namespace 0 | revisie 23756 | 2019-07-13T20:35:16Z
+- [W002929 — Julian Day Number](corpus/wiki-07.md#w002929) · bronregels 2874–2990 | namespace 0 | revisie 24946 | 2020-06-26T14:01:16Z
+- [W002436 — JWasm](corpus/wiki-05.md#w002436) · bronregels 10520–10691 | namespace 0 | revisie 21651 | 2017-10-25T22:25:31Z
+- [W002975 — JWASM](corpus/wiki-07.md#w002975) · bronregels 5552–5552 | namespace 0 | revisie 11413 | 2011-04-19T11:40:55Z
+- [W002317 — KBC](corpus/wiki-05.md#w002317) · bronregels 3920–3920 | namespace 0 | revisie 17682 | 2015-03-02T16:19:02Z
+- [W002697 — Kernel](corpus/wiki-06.md#w002697) · bronregels 6955–6995 | namespace 0 | revisie 11619 | 2011-06-13T09:17:47Z
+- [W001947 — Kernel Debugging](corpus/wiki-03.md#w001947) · bronregels 15885–16146 | namespace 0 | revisie 28799 | 2024-05-05T23:19:00Z
+- [W004503 — Kernel Multitasking](corpus/wiki-13.md#w004503) · bronregels 10808–10933 | namespace 0 | revisie 30655 | 2026-05-28T14:09:53Z
+- [W004470 — Kernel Panic](corpus/wiki-13.md#w004470) · bronregels 8864–8950 | namespace 0 | revisie 29939 | 2026-01-30T17:29:41Z
+- [W002701 — Kernel Stdio Theory](corpus/wiki-06.md#w002701) · bronregels 7157–7248 | namespace 0 | revisie 28519 | 2023-12-13T08:05:24Z
+- [W001401 — Kernels](corpus/wiki-01.md#w001401) · bronregels 3216–3216 | namespace 0 | revisie 8875 | 2009-08-26T04:27:20Z
+- [W002761 — Kernels With Source](corpus/wiki-06.md#w002761) · bronregels 10223–10223 | namespace 0 | revisie 9454 | 2009-12-20T14:23:56Z
+- [W002834 — Keyboard](corpus/wiki-06.md#w002834) · bronregels 17086–17086 | namespace 0 | revisie 17288 | 2014-12-03T22:46:04Z
+- [W002095 — Keyboard Controller](corpus/wiki-04.md#w002095) · bronregels 6643–6643 | namespace 0 | revisie 17781 | 2015-03-11T18:35:02Z
+- [W004918 — KVM](corpus/wiki-14.md#w004918) · bronregels 12973–12980 | namespace 0 | revisie 29407 | 2025-02-17T09:11:52Z
+- [W002817 — L4](corpus/wiki-06.md#w002817) · bronregels 16240–16253 | namespace 0 | revisie 28026 | 2023-07-09T18:12:09Z
+- [W004607 — LAI](corpus/wiki-13.md#w004607) · bronregels 15890–16050 | namespace 0 | revisie 31024 | 2026-10-15T12:25:08Z
+- [W004610 — Lai](corpus/wiki-13.md#w004610) · bronregels 16084–16084 | namespace 0 | revisie 26044 | 2021-06-01T06:03:41Z
+- [W001680 — Languages](corpus/wiki-02.md#w001680) · bronregels 8458–8512 | namespace 0 | revisie 27206 | 2022-07-01T04:41:39Z
+- [W004812 — LAPIC](corpus/wiki-14.md#w004812) · bronregels 9623–9623 | namespace 0 | revisie 28282 | 2023-08-16T22:23:38Z
+- [W005003 — LBA](corpus/wiki-14.md#w005003) · bronregels 18008–18008 | namespace 0 | revisie 30141 | 2026-03-05T16:54:34Z
+- [W001496 — LD](corpus/wiki-01.md#w001496) · bronregels 12690–12763 | namespace 0 | revisie 27591 | 2023-01-15T00:03:15Z
+- [W004696 — LDT](corpus/wiki-14.md#w004696) · bronregels 4496–4496 | namespace 0 | revisie 26961 | 2022-02-16T13:45:55Z
+- [W001958 — LE](corpus/wiki-04.md#w001958) · bronregels 1017–1030 | namespace 0 | revisie 30374 | 2026-03-22T23:32:17Z
+- [W002851 — LEAN](corpus/wiki-06.md#w002851) · bronregels 17712–17946 | namespace 0 | revisie 27486 | 2022-11-09T22:15:35Z
+- [W002703 — Learning 80x86 Assembly](corpus/wiki-06.md#w002703) · bronregels 7306–7345 | namespace 0 | revisie 27910 | 2023-07-09T05:04:05Z
+- [W003705 — Lexical Analyzer](corpus/wiki-10.md#w003705) · bronregels 14577–14641 | namespace 0 | revisie 30322 | 2026-03-17T19:07:57Z
+- [W003848 — LGDT](corpus/wiki-11.md#w003848) · bronregels 4571–4571 | namespace 0 | revisie 23545 | 2019-04-03T19:29:45Z
+- [W004404 — Libc](corpus/wiki-13.md#w004404) · bronregels 4745–4745 | namespace 0 | revisie 23811 | 2019-08-12T08:34:19Z
+- [W003457 — Libgcc](corpus/wiki-09.md#w003457) · bronregels 6591–6685 | namespace 0 | revisie 30323 | 2026-03-17T19:08:33Z
+- [W003615 — Libgcc without red zone](corpus/wiki-10.md#w003615) · bronregels 6579–6668 | namespace 0 | revisie 28491 | 2023-12-05T12:37:20Z
+- [W001912 — Library Calls](corpus/wiki-03.md#w001912) · bronregels 14090–14174 | namespace 0 | revisie 28159 | 2023-07-10T14:40:06Z
+- [W004903 — Libreboot](corpus/wiki-14.md#w004903) · bronregels 12311–12329 | namespace 0 | revisie 30563 | 2026-05-06T13:30:09Z
+- [W002160 — Libsupcxx](corpus/wiki-04.md#w002160) · bronregels 9140–9219 | namespace 0 | revisie 17502 | 2015-01-28T12:50:16Z
+- [W001885 — Licensing](corpus/wiki-03.md#w001885) · bronregels 8744–8907 | namespace 0 | revisie 30983 | 2026-09-28T14:13:16Z
+- [W001978 — Licensing Issues](corpus/wiki-04.md#w001978) · bronregels 2562–2562 | namespace 0 | revisie 3404 | 2007-03-20T02:20:17Z
+- [W001907 — LILO](corpus/wiki-03.md#w001907) · bronregels 13271–13282 | namespace 0 | revisie 17713 | 2015-03-03T15:18:58Z
+- [W004530 — Limine](corpus/wiki-13.md#w004530) · bronregels 12288–12321 | namespace 0 | revisie 30493 | 2026-04-18T12:40:08Z
+- [W004702 — Limine Bare Bones](corpus/wiki-14.md#w004702) · bronregels 4988–5567 | namespace 0 | revisie 30950 | 2026-09-15T06:39:45Z
+- [W005017 — Linear Executable](corpus/wiki-14.md#w005017) · bronregels 18272–18272 | namespace 0 | revisie 30375 | 2026-03-22T23:32:50Z
+- [W004726 — Lingemu](corpus/wiki-14.md#w004726) · bronregels 7591–7597 | namespace 0 | revisie 28097 | 2023-07-09T22:34:09Z
+- [W001501 — Link](corpus/wiki-01.md#w001501) · bronregels 12894–12908 | namespace 0 | revisie 22691 | 2018-09-10T01:16:14Z
+- [W001908 — Link Archiver](corpus/wiki-03.md#w001908) · bronregels 13296–13322 | namespace 0 | revisie 19525 | 2016-07-22T19:42:53Z
+- [W004536 — Linker Script](corpus/wiki-13.md#w004536) · bronregels 12555–12555 | namespace 0 | revisie 25280 | 2020-10-29T21:06:17Z
+- [W002604 — Linker Scripts](corpus/wiki-06.md#w002604) · bronregels 2048–2237 | namespace 0 | revisie 30365 | 2026-03-22T17:18:01Z
+- [W001495 — Linkers](corpus/wiki-01.md#w001495) · bronregels 12630–12676 | namespace 0 | revisie 25052 | 2020-08-10T05:21:16Z
+- [W002762 — Links](corpus/wiki-06.md#w002762) · bronregels 10238–10238 | namespace 0 | revisie 9455 | 2009-12-20T14:24:09Z
+- [W001582 — Lino Commando](corpus/wiki-02.md#w001582) · bronregels 5699–5746 | namespace 0 | revisie 26660 | 2021-11-07T17:09:25Z
+- [W003766 — Linux](corpus/wiki-10.md#w003766) · bronregels 17367–17367 | namespace 0 | revisie 17876 | 2015-04-12T10:48:52Z
+- [W005049 — Linux Boot Protocol](corpus/wiki-14.md#w005049) · bronregels 20758–20761 | namespace 0 | revisie 30708 | 2026-06-10T01:43:55Z
+- [W002209 — Linux Kernel Primer](corpus/wiki-04.md#w002209) · bronregels 11089–11175 | namespace 0 | revisie 28235 | 2023-07-10T22:02:54Z
+- [W002207 — List of editors](corpus/wiki-04.md#w002207) · bronregels 11029–11059 | namespace 0 | revisie 26190 | 2021-07-17T08:44:37Z
+- [W003745 — Little-endian](corpus/wiki-10.md#w003745) · bronregels 16957–16957 | namespace 0 | revisie 17960 | 2015-04-29T19:03:01Z
+- [W004199 — LLVM](corpus/wiki-12.md#w004199) · bronregels 4141–4165 | namespace 0 | revisie 26382 | 2021-09-06T12:43:56Z
+- [W002968 — LLVM Cross-Compiler](corpus/wiki-07.md#w002968) · bronregels 5138–5275 | namespace 0 | revisie 27941 | 2023-07-09T15:53:37Z
+- [W002367 — Loading a Process](corpus/wiki-05.md#w002367) · bronregels 7863–7930 | namespace 0 | revisie 28561 | 2024-01-16T16:00:45Z
+- [W004537 — Loading files under UEFI](corpus/wiki-13.md#w004537) · bronregels 12569–12668 | namespace 0 | revisie 30859 | 2026-07-07T17:24:59Z
+- [W004575 — Loading Icons](corpus/wiki-13.md#w004575) · bronregels 14381–14559 | namespace 0 | revisie 28586 | 2024-01-31T08:23:18Z
+- [W003916 — Local Descriptor Table](corpus/wiki-11.md#w003916) · bronregels 8503–8560 | namespace 0 | revisie 28315 | 2023-09-23T22:21:53Z
+- [W002970 — Logical Block Addressing](corpus/wiki-07.md#w002970) · bronregels 5329–5358 | namespace 0 | revisie 30324 | 2026-03-17T19:08:59Z
+- [W002229 — Long Mode](corpus/wiki-04.md#w002229) · bronregels 12352–12352 | namespace 0 | revisie 5180 | 2008-03-05T01:55:25Z
+- [W001598 — Loopback Device](corpus/wiki-02.md#w001598) · bronregels 5922–6321 | namespace 0 | revisie 20229 | 2017-01-23T00:55:43Z
+- [W003302 — Low Pin Count](corpus/wiki-08.md#w003302) · bronregels 10635–10642 | namespace 0 | revisie 28064 | 2023-07-09T20:32:06Z
+- [W005098 — Lowcore and Prefixing](corpus/wiki-15.md#w005098) · bronregels 932–1246 | namespace 0 | revisie 31008 | 2026-10-10T08:17:44Z
+- [W003925 — LPT](corpus/wiki-11.md#w003925) · bronregels 8818–8818 | namespace 0 | revisie 19348 | 2016-06-11T20:46:58Z
+- [W004274 — Lua](corpus/wiki-12.md#w004274) · bronregels 11215–11357 | namespace 0 | revisie 30247 | 2026-03-16T15:47:37Z
+- [W002873 — M68k Overview](corpus/wiki-07.md#w002873) · bronregels 16–59 | namespace 0 | revisie 28394 | 2023-10-14T21:18:28Z
+- [W003785 — Mac OS X](corpus/wiki-11.md#w003785) · bronregels 934–934 | namespace 0 | revisie 20687 | 2017-04-10T17:42:34Z
+- [W004208 — Mach-O](corpus/wiki-12.md#w004208) · bronregels 5094–5108 | namespace 0 | revisie 30179 | 2026-03-09T18:36:53Z
+- [W004799 — MACH-O](corpus/wiki-14.md#w004799) · bronregels 9294–9294 | namespace 0 | revisie 28180 | 2023-07-10T16:51:25Z
+- [W003784 — MacOS](corpus/wiki-11.md#w003784) · bronregels 863–919 | namespace 0 | revisie 26140 | 2021-06-15T14:50:00Z
+- [W003259 — MADT](corpus/wiki-08.md#w003259) · bronregels 7842–8066 | namespace 0 | revisie 29938 | 2026-01-28T14:45:54Z
+- [W002756 — MagicISO](corpus/wiki-06.md#w002756) · bronregels 10103–10158 | namespace 0 | revisie 16259 | 2014-04-24T05:22:58Z
+- [W001388 — Main Page](corpus/wiki-01.md#w001388) · bronregels 2988–2988 | namespace 0 | revisie 29074 | 2024-06-07T13:34:23Z
+- [W004084 — Make](corpus/wiki-12.md#w004084) · bronregels 3548–3548 | namespace 0 | revisie 21113 | 2017-08-21T14:07:59Z
+- [W001785 — Makefile](corpus/wiki-03.md#w001785) · bronregels 3029–3301 | namespace 0 | revisie 30883 | 2026-07-11T22:19:14Z
+- [W003408 — Making a Compiler](corpus/wiki-09.md#w003408) · bronregels 1890–1989 | namespace 0 | revisie 29987 | 2026-02-12T17:19:55Z
+- [W002024 — Manual Of Style](corpus/wiki-04.md#w002024) · bronregels 4224–4224 | namespace 0 | revisie 6601 | 2008-11-04T19:25:30Z
+- [W002100 — MASM](corpus/wiki-04.md#w002100) · bronregels 6750–6952 | namespace 0 | revisie 22961 | 2018-09-25T20:28:49Z
+- [W002793 — MBR](corpus/wiki-06.md#w002793) · bronregels 12657–12657 | namespace 0 | revisie 9682 | 2010-01-28T20:39:16Z
+- [W001379 — MBR (x86)](corpus/wiki-01.md#w001379) · bronregels 2578–2903 | namespace 0 | revisie 28022 | 2023-07-09T18:08:27Z
+- [W005051 — MCFG](corpus/wiki-14.md#w005051) · bronregels 21112–21112 | namespace 0 | revisie 30724 | 2026-06-11T07:47:06Z
+- [W003448 — Meaty Skeleton](corpus/wiki-09.md#w003448) · bronregels 4260–5530 | namespace 0 | revisie 30797 | 2026-06-19T11:17:13Z
+- [W003067 — MediaWiki:Common.css](corpus/wiki-07.md#w003067) · bronregels 12038–12051 | namespace 8 | revisie 29133 | 2024-06-22T20:56:43Z
+- [W003007 — MediaWiki:Copyrightwarning2](corpus/wiki-07.md#w003007) · bronregels 7972–7973 | namespace 8 | revisie 11733 | 2011-07-07T20:49:00Z
+- [W003068 — MediaWiki:Geshi.css](corpus/wiki-07.md#w003068) · bronregels 12065–12071 | namespace 8 | revisie 12400 | 2012-01-07T21:58:51Z
+- [W000700 — MediaWiki:Mainpagetext](corpus/wiki-01.md#w000700) · bronregels 16–16 | namespace 8 | revisie 1393 | 2006-06-17T16:37:02Z
+- [W000897 — MediaWiki:Portal](corpus/wiki-01.md#w000897) · bronregels 30–30 | namespace 8 | revisie 1423 | 2006-06-20T03:22:11Z
+- [W000898 — MediaWiki:Portal-url](corpus/wiki-01.md#w000898) · bronregels 44–44 | namespace 8 | revisie 5682 | 2008-06-18T23:17:10Z
+- [W001090 — MediaWiki:Sidebar](corpus/wiki-01.md#w001090) · bronregels 58–68 | namespace 8 | revisie 2278 | 2006-12-16T16:14:15Z
+- [W003026 — Megalithic Kernel](corpus/wiki-07.md#w003026) · bronregels 9864–9871 | namespace 0 | revisie 27517 | 2022-12-12T04:08:52Z
+- [W001460 — Memory Allocation](corpus/wiki-01.md#w001460) · bronregels 8759–8891 | namespace 0 | revisie 30361 | 2026-03-19T23:08:33Z
+- [W003855 — Memory Architecture](corpus/wiki-11.md#w003855) · bronregels 5304–5542 | namespace 0 | revisie 30886 | 2026-07-12T13:42:29Z
+- [W003852 — Memory Architectures](corpus/wiki-11.md#w003852) · bronregels 5258–5259 | namespace 0 | revisie 18781 | 2016-01-07T00:38:42Z
+- [W002499 — Memory barriers](corpus/wiki-05.md#w002499) · bronregels 12871–12885 | namespace 0 | revisie 22592 | 2018-08-22T04:05:59Z
+- [W001469 — Memory management](corpus/wiki-01.md#w001469) · bronregels 9734–9807 | namespace 0 | revisie 29805 | 2025-12-26T12:33:42Z
+- [W001536 — Memory Management](corpus/wiki-02.md#w001536) · bronregels 1700–1700 | namespace 0 | revisie 1938 | 2006-12-07T20:56:29Z
+- [W003010 — Memory Management Unit](corpus/wiki-07.md#w003010) · bronregels 8726–8911 | namespace 0 | revisie 30832 | 2026-06-30T04:52:39Z
+- [W003695 — Memory Map](corpus/wiki-10.md#w003695) · bronregels 14223–14224 | namespace 0 | revisie 26505 | 2021-10-15T19:03:02Z
+- [W004644 — Memory Map (S390)](corpus/wiki-14.md#w004644) · bronregels 1930–2051 | namespace 0 | revisie 30894 | 2026-07-14T22:02:15Z
+- [W004357 — Memory Map (x86](corpus/wiki-13.md#w004357) · bronregels 869–869 | namespace 0 | revisie 23244 | 2019-01-23T11:46:57Z
+- [W002278 — Memory Map (x86)](corpus/wiki-05.md#w002278) · bronregels 1986–2234 | namespace 0 | revisie 30132 | 2026-03-04T23:07:33Z
+- [W003198 — Memory mapped registers in C/C++](corpus/wiki-08.md#w003198) · bronregels 5999–6056 | namespace 0 | revisie 30402 | 2026-03-24T22:05:22Z
+- [W001711 — Message Passing](corpus/wiki-02.md#w001711) · bronregels 10808–10869 | namespace 0 | revisie 29080 | 2024-06-07T13:37:33Z
+- [W003139 — Message Passing Tutorial](corpus/wiki-07.md#w003139) · bronregels 15048–15186 | namespace 0 | revisie 24893 | 2020-06-22T13:56:22Z
+- [W004599 — Message Signaled Interrupts](corpus/wiki-13.md#w004599) · bronregels 15626–15626 | namespace 0 | revisie 26004 | 2021-05-29T15:19:58Z
+- [W003612 — MessiahAndrw/Designing A Language](corpus/wiki-10.md#w003612) · bronregels 6222–6267 | namespace 0 | revisie 30160 | 2026-03-09T08:45:48Z
+- [W003003 — MFS](corpus/wiki-07.md#w003003) · bronregels 7688–7881 | namespace 0 | revisie 30686 | 2026-06-03T18:21:23Z
+- [W001411 — Microkernel](corpus/wiki-01.md#w001411) · bronregels 3857–3892 | namespace 0 | revisie 29930 | 2026-01-25T01:36:59Z
+- [W003685 — Microsoft C/C++ Optimizing Compiler Build Environment on Linux](corpus/wiki-10.md#w003685) · bronregels 13503–13503 | namespace 0 | revisie 17176 | 2014-12-01T19:32:25Z
+- [W001554 — Microsoft Virtual PC](corpus/wiki-02.md#w001554) · bronregels 3366–3389 | namespace 0 | revisie 28348 | 2023-10-02T21:00:48Z
+- [W001747 — MinGW](corpus/wiki-03.md#w001747) · bronregels 942–955 | namespace 0 | revisie 28040 | 2023-07-09T18:57:25Z
+- [W004381 — MIPS](corpus/wiki-13.md#w004381) · bronregels 3677–3677 | namespace 0 | revisie 23598 | 2019-05-03T18:45:19Z
+- [W001832 — MIPS Overview](corpus/wiki-03.md#w001832) · bronregels 5212–5463 | namespace 0 | revisie 29859 | 2026-01-11T19:10:23Z
+- [W004490 — Mister Perfect](corpus/wiki-13.md#w004490) · bronregels 10332–10357 | namespace 0 | revisie 24954 | 2020-06-27T08:32:53Z
+- [W001599 — Mkisofs](corpus/wiki-02.md#w001599) · bronregels 6335–6520 | namespace 0 | revisie 24395 | 2020-02-10T11:04:25Z
+- [W002125 — MMU](corpus/wiki-04.md#w002125) · bronregels 7910–7910 | namespace 0 | revisie 24592 | 2020-04-11T16:54:22Z
+- [W003100 — MMX](corpus/wiki-07.md#w003100) · bronregels 13766–13780 | namespace 0 | revisie 29873 | 2026-01-12T03:39:52Z
+- [W001919 — Model Specific Registers](corpus/wiki-03.md#w001919) · bronregels 14446–14587 | namespace 0 | revisie 30860 | 2026-07-07T17:25:46Z
+- [W005077 — Modula-2 Bare Bones](corpus/wiki-14.md#w005077) · bronregels 22181–22716 | namespace 0 | revisie 30902 | 2026-07-24T17:17:24Z
+- [W001906 — Modular Kernel](corpus/wiki-03.md#w001906) · bronregels 13203–13257 | namespace 0 | revisie 23607 | 2019-05-07T17:18:28Z
+- [W004891 — Module:Flex columns](corpus/wiki-14.md#w004891) · bronregels 12054–12096 | namespace 828 | revisie 29135 | 2024-06-22T22:39:18Z
+- [W004890 — Module:Flex columns/styles.css](corpus/wiki-14.md#w004890) · bronregels 11991–12040 | namespace 828 | revisie 29134 | 2024-06-22T22:38:07Z
+- [W004727 — Mold](corpus/wiki-14.md#w004727) · bronregels 7611–7617 | namespace 0 | revisie 28090 | 2023-07-09T21:24:24Z
+- [W004501 — Mono Lizzy](corpus/wiki-13.md#w004501) · bronregels 10745–10778 | namespace 0 | revisie 29884 | 2026-01-12T17:11:27Z
+- [W001410 — Monolithic Kernel](corpus/wiki-01.md#w001410) · bronregels 3811–3843 | namespace 0 | revisie 30583 | 2026-05-19T15:50:22Z
+- [W002298 — Monolithic kernel](corpus/wiki-05.md#w002298) · bronregels 3792–3792 | namespace 0 | revisie 5593 | 2008-06-04T19:36:06Z
+- [W001473 — Monotasking Systems](corpus/wiki-01.md#w001473) · bronregels 9855–9865 | namespace 0 | revisie 11215 | 2011-03-06T09:09:27Z
+- [W003996 — Mouse](corpus/wiki-11.md#w003996) · bronregels 13110–13110 | namespace 0 | revisie 19976 | 2016-11-29T18:32:26Z
+- [W001909 — Mouse Input](corpus/wiki-03.md#w001909) · bronregels 13336–13822 | namespace 0 | revisie 29232 | 2024-08-24T14:58:02Z
+- [W003591 — MP Specification](corpus/wiki-10.md#w003591) · bronregels 5000–5024 | namespace 0 | revisie 29078 | 2024-06-07T13:37:11Z
+- [W003290 — MSR](corpus/wiki-08.md#w003290) · bronregels 9582–9582 | namespace 0 | revisie 14088 | 2012-11-21T20:17:22Z
+- [W001602 — MTools](corpus/wiki-02.md#w001602) · bronregels 6622–6643 | namespace 0 | revisie 25359 | 2020-11-14T05:13:24Z
+- [W002784 — MTRR](corpus/wiki-06.md#w002784) · bronregels 10646–11068 | namespace 0 | revisie 28430 | 2023-11-01T14:09:18Z
+- [W002543 — Multi Processors](corpus/wiki-05.md#w002543) · bronregels 15305–15305 | namespace 0 | revisie 7600 | 2009-04-07T10:15:00Z
+- [W003350 — Multiboot](corpus/wiki-08.md#w003350) · bronregels 16470–16577 | namespace 0 | revisie 30712 | 2026-06-10T13:13:44Z
+- [W003929 — Multiboot 1 Higher Half x86 Bare Bones](corpus/wiki-11.md#w003929) · bronregels 8919–9134 | namespace 0 | revisie 30681 | 2026-06-03T11:13:04Z
+- [W004919 — Multikernel](corpus/wiki-14.md#w004919) · bronregels 12994–13012 | namespace 0 | revisie 29437 | 2025-03-14T19:26:14Z
+- [W002671 — Multiprocessing](corpus/wiki-06.md#w002671) · bronregels 5221–5279 | namespace 0 | revisie 20657 | 2017-04-06T14:13:17Z
+- [W003858 — Multiprocessing Architecture](corpus/wiki-11.md#w003858) · bronregels 5635–5636 | namespace 0 | revisie 18786 | 2016-01-07T00:45:11Z
+- [W001888 — Multiprocessor Scheduling](corpus/wiki-03.md#w001888) · bronregels 8921–8975 | namespace 0 | revisie 28122 | 2023-07-10T02:32:25Z
+- [W001474 — Multitasking Systems](corpus/wiki-01.md#w001474) · bronregels 9879–9918 | namespace 0 | revisie 30762 | 2026-06-16T09:33:34Z
+- [W004907 — Multithreaded Kernel](corpus/wiki-14.md#w004907) · bronregels 12371–12384 | namespace 0 | revisie 29495 | 2025-04-27T00:25:46Z
+- [W001867 — Mutual Exclusion](corpus/wiki-03.md#w001867) · bronregels 6730–6747 | namespace 0 | revisie 11335 | 2011-03-28T11:24:45Z
+- [W003688 — My Bootloader Does Not Work](corpus/wiki-10.md#w003688) · bronregels 13532–13608 | namespace 0 | revisie 27998 | 2023-07-09T17:42:22Z
+- [W001956 — MZ](corpus/wiki-04.md#w001956) · bronregels 380–585 | namespace 0 | revisie 30558 | 2026-05-05T18:04:16Z
+- [W002387 — Nanokernel](corpus/wiki-05.md#w002387) · bronregels 8570–8570 | namespace 0 | revisie 6395 | 2008-10-22T10:43:52Z
+- [W001479 — NASM](corpus/wiki-01.md#w001479) · bronregels 10475–10504 | namespace 0 | revisie 30122 | 2026-03-03T19:43:57Z
+- [W004026 — Native Intel graphics](corpus/wiki-11.md#w004026) · bronregels 15682–15862 | namespace 0 | revisie 25649 | 2021-02-08T17:43:25Z
+- [W001957 — NE](corpus/wiki-04.md#w001957) · bronregels 599–1003 | namespace 0 | revisie 29636 | 2025-08-31T18:33:08Z
+- [W001627 — Ne2000](corpus/wiki-02.md#w001627) · bronregels 7268–7409 | namespace 0 | revisie 27691 | 2023-03-18T08:54:41Z
+- [W002422 — Network devices:Cards](corpus/wiki-05.md#w002422) · bronregels 9794–9794 | namespace 0 | revisie 6596 | 2008-11-04T16:17:14Z
+- [W002538 — Network Stack](corpus/wiki-05.md#w002538) · bronregels 14931–15172 | namespace 0 | revisie 23577 | 2019-04-16T19:16:04Z
+- [W002341 — Networking](corpus/wiki-05.md#w002341) · bronregels 5836–5836 | namespace 0 | revisie 7596 | 2009-04-06T22:56:07Z
+- [W001519 — NFS](corpus/wiki-01.md#w001519) · bronregels 15799–15814 | namespace 0 | revisie 29013 | 2024-06-06T17:31:45Z
+- [W001581 — Nick Stacky](corpus/wiki-02.md#w001581) · bronregels 5631–5685 | namespace 0 | revisie 19878 | 2016-10-12T17:13:37Z
+- [W002179 — NMI](corpus/wiki-04.md#w002179) · bronregels 10321–10321 | namespace 0 | revisie 4697 | 2007-09-26T21:43:19Z
+- [W001913 — Non Maskable Interrupt](corpus/wiki-03.md#w001913) · bronregels 14188–14271 | namespace 0 | revisie 29100 | 2024-06-07T13:39:38Z
+- [W002771 — Non-Maskable Interrupt](corpus/wiki-06.md#w002771) · bronregels 10372–10372 | namespace 0 | revisie 9473 | 2009-12-20T15:57:57Z
+- [W001821 — Norton Diskedit](corpus/wiki-03.md#w001821) · bronregels 4723–4737 | namespace 0 | revisie 14304 | 2013-01-16T05:29:00Z
+- [W003874 — Notable Projects](corpus/wiki-11.md#w003874) · bronregels 6044–6217 | namespace 0 | revisie 30216 | 2026-03-14T22:03:52Z
+- [W001508 — NTFS](corpus/wiki-01.md#w001508) · bronregels 14251–14410 | namespace 0 | revisie 30013 | 2026-02-15T17:38:49Z
+- [W003733 — Null Character](corpus/wiki-10.md#w003733) · bronregels 16191–16253 | namespace 0 | revisie 30226 | 2026-03-16T14:53:30Z
+- [W003764 — Null character](corpus/wiki-10.md#w003764) · bronregels 17352–17352 | namespace 0 | revisie 17718 | 2015-03-03T19:52:11Z
+- [W004432 — NVMe](corpus/wiki-13.md#w004432) · bronregels 6549–6925 | namespace 0 | revisie 30943 | 2026-09-07T18:30:41Z
+- [W001981 — Nwcc](corpus/wiki-04.md#w001981) · bronregels 2635–2667 | namespace 0 | revisie 28073 | 2023-07-09T20:43:58Z
+- [W003825 — Object File](corpus/wiki-11.md#w003825) · bronregels 3481–3481 | namespace 0 | revisie 18452 | 2015-11-07T02:32:24Z
+- [W002864 — Object Files](corpus/wiki-06.md#w002864) · bronregels 18343–18404 | namespace 0 | revisie 19508 | 2016-07-22T13:15:53Z
+- [W003680 — Object oriented OS](corpus/wiki-10.md#w003680) · bronregels 13301–13329 | namespace 0 | revisie 30403 | 2026-03-24T22:07:04Z
+- [W002912 — OHCI](corpus/wiki-07.md#w002912) · bronregels 1752–1752 | namespace 0 | revisie 10766 | 2010-09-21T06:40:33Z
+- [W004539 — OPAL](corpus/wiki-13.md#w004539) · bronregels 12804–12903 | namespace 0 | revisie 30246 | 2026-03-16T15:46:40Z
+- [W001862 — Opcode syntax](corpus/wiki-03.md#w001862) · bronregels 6534–6644 | namespace 0 | revisie 31002 | 2026-10-04T08:29:27Z
+- [W004850 — Open Firmware](corpus/wiki-14.md#w004850) · bronregels 10647–10671 | namespace 0 | revisie 30971 | 2026-09-25T17:03:30Z
+- [W002911 — Open Host Controller Interface](corpus/wiki-07.md#w002911) · bronregels 1578–1737 | namespace 0 | revisie 29933 | 2026-01-27T02:39:37Z
+- [W004595 — Open Programmable Interrupt Controller](corpus/wiki-13.md#w004595) · bronregels 15260–15290 | namespace 0 | revisie 30159 | 2026-03-09T08:43:48Z
+- [W003121 — Open Watcom](corpus/wiki-07.md#w003121) · bronregels 14153–14153 | namespace 0 | revisie 12868 | 2012-03-01T15:00:36Z
+- [W002549 — OpenBSD's bootloader](corpus/wiki-05.md#w002549) · bronregels 15601–15607 | namespace 0 | revisie 28000 | 2023-07-09T17:43:41Z
+- [W005046 — OpenGL](corpus/wiki-14.md#w005046) · bronregels 20629–20639 | namespace 0 | revisie 30702 | 2026-06-09T13:25:09Z
+- [W003047 — Ophiophagus](corpus/wiki-07.md#w003047) · bronregels 10810–10810 | namespace 0 | revisie 12178 | 2011-11-11T10:58:57Z
+- [W004596 — OPIC](corpus/wiki-13.md#w004596) · bronregels 15305–15305 | namespace 0 | revisie 25991 | 2021-05-27T21:58:50Z
+- [W003416 — Optical Drive](corpus/wiki-09.md#w003416) · bronregels 2292–2456 | namespace 0 | revisie 21487 | 2017-09-06T18:02:13Z
+- [W002523 — Optimization](corpus/wiki-05.md#w002523) · bronregels 14146–14146 | namespace 0 | revisie 7472 | 2009-03-31T05:22:16Z
+- [W002429 — Optimizing](corpus/wiki-05.md#w002429) · bronregels 9972–10068 | namespace 0 | revisie 25236 | 2020-10-04T20:52:05Z
+- [W005095 — OS Specific LLVM Toolchain](corpus/wiki-15.md#w005095) · bronregels 816–889 | namespace 0 | revisie 31038 | 2026-10-23T12:18:59Z
+- [W002164 — OS Specific Toolchain](corpus/wiki-04.md#w002164) · bronregels 9266–9622 | namespace 0 | revisie 30281 | 2026-03-16T18:01:39Z
+- [W003933 — OS X](corpus/wiki-11.md#w003933) · bronregels 9224–9224 | namespace 0 | revisie 19416 | 2016-07-09T22:04:23Z
+- [W001422 — OSDev (foreign language)](corpus/wiki-01.md#w001422) · bronregels 4538–4557 | namespace 0 | revisie 28595 | 2024-02-01T10:45:40Z
+- [W002189 — OSDev Wiki talk:About](corpus/wiki-04.md#w002189) · bronregels 10801–10806 | namespace 5 | revisie 4795 | 2007-10-29T14:36:46Z
+- [W002475 — OSDev Wiki talk:License](corpus/wiki-05.md#w002475) · bronregels 11554–11555 | namespace 5 | revisie 6947 | 2008-12-26T23:51:41Z
+- [W002420 — OSDev Wiki talk:Manual Of Style](corpus/wiki-05.md#w002420) · bronregels 9770–9779 | namespace 5 | revisie 6615 | 2008-11-04T21:56:40Z
+- [W001431 — OSDev Wiki talk:Pages To Convert](corpus/wiki-01.md#w001431) · bronregels 4692–4731 | namespace 5 | revisie 7266 | 2009-02-18T10:32:24Z
+- [W001567 — OSDev Wiki talk:Pages To Convert/Questionable pages](corpus/wiki-02.md#w001567) · bronregels 4370–4373 | namespace 5 | revisie 2006 | 2006-12-11T01:57:56Z
+- [W003547 — OSDev Wiki talk:Privacy policy](corpus/wiki-10.md#w003547) · bronregels 1544–1548 | namespace 5 | revisie 16074 | 2014-04-11T14:44:31Z
+- [W001624 — OSDev Wiki:About](corpus/wiki-02.md#w001624) · bronregels 7164–7189 | namespace 4 | revisie 29813 | 2025-12-30T01:35:35Z
+- [W003005 — OSDev Wiki:Copyrights](corpus/wiki-07.md#w003005) · bronregels 7912–7944 | namespace 4 | revisie 11734 | 2011-07-07T21:00:58Z
+- [W001421 — OSDev Wiki:Editing](corpus/wiki-01.md#w001421) · bronregels 4491–4524 | namespace 4 | revisie 28451 | 2023-11-07T12:38:30Z
+- [W002030 — OSDev Wiki:General disclaimer](corpus/wiki-04.md#w002030) · bronregels 4358–4372 | namespace 4 | revisie 6586 | 2008-11-04T15:33:26Z
+- [W002386 — OSDev Wiki:Joining](corpus/wiki-05.md#w002386) · bronregels 8553–8555 | namespace 4 | revisie 6587 | 2008-11-04T15:33:44Z
+- [W002031 — OSDev Wiki:License](corpus/wiki-04.md#w002031) · bronregels 4386–4391 | namespace 4 | revisie 11735 | 2011-07-07T21:04:05Z
+- [W001999 — OSDev Wiki:Manual Of Style](corpus/wiki-04.md#w001999) · bronregels 3370–3486 | namespace 4 | revisie 30262 | 2026-03-16T16:12:52Z
+- [W001527 — OSDev Wiki:Pages To Convert/Questionable pages](corpus/wiki-02.md#w001527) · bronregels 174–364 | namespace 4 | revisie 3239 | 2007-03-08T16:20:00Z
+- [W002029 — OSDev Wiki:Privacy policy](corpus/wiki-04.md#w002029) · bronregels 4336–4344 | namespace 4 | revisie 16682 | 2014-09-04T02:51:13Z
+- [W001369 — OSDev Wiki:Sandbox](corpus/wiki-01.md#w001369) · bronregels 2137–2259 | namespace 4 | revisie 28523 | 2023-12-15T19:25:03Z
+- [W003473 — OSDev Wiki:Sandbox/Subpage](corpus/wiki-09.md#w003473) · bronregels 10167–10172 | namespace 4 | revisie 15809 | 2014-03-27T07:45:42Z
+- [W003475 — OSDev Wiki:Sandbox/Subpage/Subsubpage](corpus/wiki-09.md#w003475) · bronregels 10203–10206 | namespace 4 | revisie 15807 | 2014-03-27T07:42:49Z
+- [W002625 — OSDev Wiki:Setup](corpus/wiki-06.md#w002625) · bronregels 3092–3092 | namespace 4 | revisie 29143 | 2024-06-22T23:20:39Z
+- [W001375 — OSDev Wiki:Site support](corpus/wiki-01.md#w001375) · bronregels 2483–2487 | namespace 4 | revisie 18575 | 2015-11-18T21:10:34Z
+- [W003474 — OSDev Wiki:SubSubPage](corpus/wiki-09.md#w003474) · bronregels 10186–10189 | namespace 4 | revisie 15806 | 2014-03-27T07:41:49Z
+- [W002417 — OSDevWiki:About](corpus/wiki-05.md#w002417) · bronregels 9726–9726 | namespace 0 | revisie 6569 | 2008-11-04T15:12:46Z
+- [W002418 — OSDevWiki:Editing](corpus/wiki-05.md#w002418) · bronregels 9741–9741 | namespace 0 | revisie 6570 | 2008-11-04T15:14:59Z
+- [W002419 — OSDevWiki:Joining](corpus/wiki-05.md#w002419) · bronregels 9756–9756 | namespace 0 | revisie 6574 | 2008-11-04T15:21:34Z
+- [W001927 — OSKit](corpus/wiki-03.md#w001927) · bronregels 15002–15016 | namespace 0 | revisie 30990 | 2026-09-28T14:53:29Z
+- [W002763 — OSRC](corpus/wiki-06.md#w002763) · bronregels 10253–10253 | namespace 0 | revisie 9456 | 2009-12-20T14:24:22Z
+- [W001881 — Other Compilers](corpus/wiki-03.md#w001881) · bronregels 7981–7998 | namespace 0 | revisie 24957 | 2020-06-27T16:38:00Z
+- [W004562 — OVMF](corpus/wiki-13.md#w004562) · bronregels 13787–13806 | namespace 0 | revisie 30143 | 2026-03-05T23:16:12Z
+- [W004975 — PA-RISC](corpus/wiki-14.md#w004975) · bronregels 15278–15333 | namespace 0 | revisie 29961 | 2026-02-10T23:34:36Z
+- [W002936 — PAE](corpus/wiki-07.md#w002936) · bronregels 3362–3362 | namespace 0 | revisie 10892 | 2010-10-23T13:11:47Z
+- [W002368 — Page directory](corpus/wiki-05.md#w002368) · bronregels 7945–7945 | namespace 0 | revisie 6212 | 2008-08-20T14:51:19Z
+- [W001461 — Page Frame Allocation](corpus/wiki-01.md#w001461) · bronregels 8905–9009 | namespace 0 | revisie 30500 | 2026-04-20T16:42:28Z
+- [W002369 — Page table](corpus/wiki-05.md#w002369) · bronregels 7960–7960 | namespace 0 | revisie 6213 | 2008-08-20T14:51:46Z
+- [W005053 — Page Tables](corpus/wiki-14.md#w005053) · bronregels 21141–21141 | namespace 0 | revisie 30732 | 2026-06-12T15:53:08Z
+- [W005055 — Paging](corpus/wiki-14.md#w005055) · bronregels 21180–21180 | namespace 0 | revisie 30736 | 2026-06-12T16:50:24Z
+- [W003550 — Pancakes:IPC EntryBased](corpus/wiki-10.md#w003550) · bronregels 1689–1915 | namespace 0 | revisie 16114 | 2014-04-13T23:45:27Z
+- [W002094 — Parallel port](corpus/wiki-04.md#w002094) · bronregels 6462–6628 | namespace 0 | revisie 30349 | 2026-03-18T04:22:33Z
+- [W001905 — Partition Table](corpus/wiki-03.md#w001905) · bronregels 13048–13189 | namespace 0 | revisie 30519 | 2026-04-26T04:19:04Z
+- [W002868 — Partition table](corpus/wiki-06.md#w002868) · bronregels 18573–18573 | namespace 0 | revisie 10323 | 2010-05-18T17:31:21Z
+- [W001541 — Pascal](corpus/wiki-02.md#w001541) · bronregels 2007–2086 | namespace 0 | revisie 30257 | 2026-03-16T16:00:38Z
+- [W003055 — Pascal Bare Bones](corpus/wiki-07.md#w003055) · bronregels 11101–11749 | namespace 0 | revisie 30608 | 2026-05-22T14:06:01Z
+- [W003999 — PC Screen Font](corpus/wiki-11.md#w003999) · bronregels 13345–13595 | namespace 0 | revisie 30385 | 2026-03-23T13:53:25Z
+- [W002248 — PC Speaker](corpus/wiki-05.md#w002248) · bronregels 540–618 | namespace 0 | revisie 30842 | 2026-07-03T00:11:15Z
+- [W001485 — PCI](corpus/wiki-01.md#w001485) · bronregels 10974–12367 | namespace 0 | revisie 30693 | 2026-06-05T06:45:16Z
+- [W003794 — Pci](corpus/wiki-11.md#w003794) · bronregels 1139–1139 | namespace 0 | revisie 18064 | 2015-05-12T11:28:18Z
+- [W002829 — PCI Express](corpus/wiki-06.md#w002829) · bronregels 16604–17042 | namespace 0 | revisie 30435 | 2026-03-30T08:31:03Z
+- [W002716 — PCI IDE Controller](corpus/wiki-06.md#w002716) · bronregels 7906–8984 | namespace 0 | revisie 28314 | 2023-09-21T01:33:51Z
+- [W004427 — PCI Local Bus Commands](corpus/wiki-13.md#w004427) · bronregels 6308–6413 | namespace 0 | revisie 27901 | 2023-07-09T04:53:58Z
+- [W004400 — PCI Local Bus Signals](corpus/wiki-13.md#w004400) · bronregels 4451–4668 | namespace 0 | revisie 27883 | 2023-07-09T04:28:11Z
+- [W004814 — PCIE](corpus/wiki-14.md#w004814) · bronregels 9839–9839 | namespace 0 | revisie 28318 | 2023-09-24T22:37:58Z
+- [W004894 — PCIe](corpus/wiki-14.md#w004894) · bronregels 12156–12156 | namespace 0 | revisie 29163 | 2024-06-28T08:24:01Z
+- [W004658 — PDE](corpus/wiki-14.md#w004658) · bronregels 2523–2523 | namespace 0 | revisie 26569 | 2021-10-21T16:48:43Z
+- [W001892 — PE](corpus/wiki-03.md#w001892) · bronregels 9116–9446 | namespace 0 | revisie 30358 | 2026-03-18T19:44:21Z
+- [W001959 — PE Binaries](corpus/wiki-04.md#w001959) · bronregels 1045–1045 | namespace 0 | revisie 3302 | 2007-03-11T05:21:58Z
+- [W004487 — PE+](corpus/wiki-13.md#w004487) · bronregels 10288–10288 | namespace 0 | revisie 24747 | 2020-06-07T12:18:07Z
+- [W003180 — PearPC](corpus/wiki-08.md#w003180) · bronregels 3454–3471 | namespace 0 | revisie 28048 | 2023-07-09T19:03:32Z
+- [W002780 — Physical Address Extension](corpus/wiki-06.md#w002780) · bronregels 10562–10593 | namespace 0 | revisie 28245 | 2023-07-12T16:36:48Z
+- [W002643 — PIC](corpus/wiki-06.md#w002643) · bronregels 3916–3916 | namespace 0 | revisie 8332 | 2009-07-03T00:55:41Z
+- [W005083 — PicoEFI](corpus/wiki-15.md#w005083) · bronregels 86–179 | namespace 0 | revisie 31034 | 2026-10-22T12:32:01Z
+- [W004717 — PinePhone](corpus/wiki-14.md#w004717) · bronregels 6102–6396 | namespace 0 | revisie 30203 | 2026-03-12T15:36:14Z
+- [W004718 — PinePhone/DRAM initialization](corpus/wiki-14.md#w004718) · bronregels 6410–6690 | namespace 0 | revisie 30202 | 2026-03-12T15:34:31Z
+- [W001562 — PIT](corpus/wiki-02.md#w001562) · bronregels 4281–4281 | namespace 0 | revisie 1994 | 2006-12-10T23:15:14Z
+- [W004552 — Pit](corpus/wiki-13.md#w004552) · bronregels 13494–13494 | namespace 0 | revisie 25488 | 2020-12-27T16:43:23Z
+- [W003165 — PL050 PS/2 Controller](corpus/wiki-08.md#w003165) · bronregels 1210–1372 | namespace 0 | revisie 30871 | 2026-07-07T17:41:21Z
+- [W004541 — Plain English Programming](corpus/wiki-13.md#w004541) · bronregels 12936–13115 | namespace 0 | revisie 28680 | 2024-03-01T18:56:49Z
+- [W004626 — PLIC](corpus/wiki-14.md#w004626) · bronregels 710–903 | namespace 0 | revisie 30829 | 2026-06-29T19:30:08Z
+- [W002170 — Plug-and-Play](corpus/wiki-04.md#w002170) · bronregels 9805–9837 | namespace 0 | revisie 30134 | 2026-03-05T02:48:31Z
+- [W003666 — Pmode](corpus/wiki-10.md#w003666) · bronregels 11807–11807 | namespace 0 | revisie 17006 | 2014-11-09T10:30:48Z
+- [W004997 — PnP](corpus/wiki-14.md#w004997) · bronregels 17900–17900 | namespace 0 | revisie 30092 | 2026-03-01T16:45:35Z
+- [W001931 — PNP Calls In Protected Mode](corpus/wiki-03.md#w001931) · bronregels 15045–15078 | namespace 0 | revisie 30253 | 2026-03-16T15:54:36Z
+- [W002839 — Port IO](corpus/wiki-06.md#w002839) · bronregels 17232–17253 | namespace 0 | revisie 29780 | 2025-12-03T10:14:58Z
+- [W003402 — Portability](corpus/wiki-09.md#w003402) · bronregels 1222–1254 | namespace 0 | revisie 29011 | 2024-06-06T17:31:33Z
+- [W003731 — Porting GCC](corpus/wiki-10.md#w003731) · bronregels 16162–16162 | namespace 0 | revisie 17667 | 2015-03-02T14:12:23Z
+- [W001873 — Porting GCC to your OS](corpus/wiki-03.md#w001873) · bronregels 7014–7035 | namespace 0 | revisie 28221 | 2023-07-10T20:22:23Z
+- [W002126 — Porting Newlib](corpus/wiki-04.md#w002126) · bronregels 7924–8259 | namespace 0 | revisie 28218 | 2023-07-10T20:21:11Z
+- [W002547 — Porting Python](corpus/wiki-05.md#w002547) · bronregels 15371–15573 | namespace 0 | revisie 30384 | 2026-03-23T13:51:48Z
+- [W004698 — Porting Rust standard library](corpus/wiki-14.md#w004698) · bronregels 4524–4931 | namespace 0 | revisie 29768 | 2025-11-22T05:27:48Z
+- [W004548 — Porting to UEFI](corpus/wiki-13.md#w004548) · bronregels 13330–13388 | namespace 0 | revisie 29105 | 2024-06-07T13:40:00Z
+- [W004558 — POSIX-UEFI](corpus/wiki-13.md#w004558) · bronregels 13617–13724 | namespace 0 | revisie 30907 | 2026-08-09T08:28:35Z
+- [W003417 — Posting Checklist](corpus/wiki-09.md#w003417) · bronregels 2470–2492 | namespace 0 | revisie 30408 | 2026-03-24T22:15:47Z
+- [W004849 — Power Macintosh](corpus/wiki-14.md#w004849) · bronregels 10613–10633 | namespace 0 | revisie 28684 | 2024-03-04T07:10:00Z
+- [W004887 — Poweroff](corpus/wiki-14.md#w004887) · bronregels 11769–11769 | namespace 0 | revisie 29034 | 2024-06-07T00:26:21Z
+- [W003752 — PowerPC](corpus/wiki-10.md#w003752) · bronregels 17157–17157 | namespace 0 | revisie 17774 | 2015-03-11T15:18:32Z
+- [W004858 — PowerPC Bare Bones](corpus/wiki-14.md#w004858) · bronregels 11066–11171 | namespace 0 | revisie 30383 | 2026-03-23T13:49:48Z
+- [W001834 — PowerPC Overview](corpus/wiki-03.md#w001834) · bronregels 5566–5604 | namespace 0 | revisie 29665 | 2025-09-18T21:46:23Z
+- [W005039 — Pre-kernel](corpus/wiki-14.md#w005039) · bronregels 19818–19837 | namespace 0 | revisie 30633 | 2026-05-26T19:23:45Z
+- [W005040 — Prekernel](corpus/wiki-14.md#w005040) · bronregels 19852–19852 | namespace 0 | revisie 30635 | 2026-05-26T19:26:19Z
+- [W003364 — Preparing GCC Build](corpus/wiki-08.md#w003364) · bronregels 17533–17765 | namespace 0 | revisie 30954 | 2026-09-17T10:48:55Z
+- [W003974 — Prerequisites](corpus/wiki-11.md#w003974) · bronregels 10839–10839 | namespace 0 | revisie 19761 | 2016-09-03T08:27:18Z
+- [W004618 — Printer Command Language](corpus/wiki-14.md#w004618) · bronregels 392–397 | namespace 0 | revisie 28226 | 2023-07-10T20:27:46Z
+- [W004500 — Printing](corpus/wiki-13.md#w004500) · bronregels 10714–10731 | namespace 0 | revisie 28513 | 2023-12-13T07:22:11Z
+- [W003261 — Printing to Screen](corpus/wiki-08.md#w003261) · bronregels 8097–8097 | namespace 0 | revisie 13825 | 2012-07-17T22:03:51Z
+- [W005032 — Printing To Screen](corpus/wiki-14.md#w005032) · bronregels 19477–19477 | namespace 0 | revisie 30593 | 2026-05-21T08:48:12Z
+- [W002379 — Printing to the screen without a db](corpus/wiki-05.md#w002379) · bronregels 8419–8473 | namespace 0 | revisie 30420 | 2026-03-25T18:48:17Z
+- [W004067 — Problems Booting From USB Flash](corpus/wiki-12.md#w004067) · bronregels 1780–1845 | namespace 0 | revisie 29079 | 2024-06-07T13:37:19Z
+- [W001415 — Processes and Threads](corpus/wiki-01.md#w001415) · bronregels 3934–3959 | namespace 0 | revisie 26612 | 2021-10-27T21:12:29Z
+- [W004211 — Program Memory Allocation Types](corpus/wiki-12.md#w004211) · bronregels 5151–5213 | namespace 0 | revisie 29514 | 2025-05-10T13:02:50Z
+- [W004642 — Program Status Word](corpus/wiki-14.md#w004642) · bronregels 1528–1901 | namespace 0 | revisie 30947 | 2026-09-13T04:20:21Z
+- [W001560 — Programmable Interval Timer](corpus/wiki-02.md#w001560) · bronregels 3741–4251 | namespace 0 | revisie 30843 | 2026-07-03T00:12:58Z
+- [W001561 — Programmable interval timer](corpus/wiki-02.md#w001561) · bronregels 4266–4266 | namespace 0 | revisie 1993 | 2006-12-10T23:14:48Z
+- [W001367 — Projects](corpus/wiki-01.md#w001367) · bronregels 82–2014 | namespace 0 | revisie 31032 | 2026-10-21T13:31:24Z
+- [W001713 — Protected Mode](corpus/wiki-02.md#w001713) · bronregels 11079–11122 | namespace 0 | revisie 30251 | 2026-03-16T15:51:19Z
+- [W002252 — Protected mode](corpus/wiki-05.md#w002252) · bronregels 664–664 | namespace 0 | revisie 5292 | 2008-03-26T11:37:12Z
+- [W003159 — PS/2](corpus/wiki-08.md#w003159) · bronregels 530–583 | namespace 0 | revisie 28619 | 2024-02-10T07:14:23Z
+- [W001900 — PS/2 Keyboard](corpus/wiki-03.md#w001900) · bronregels 10159–12391 | namespace 0 | revisie 30840 | 2026-07-02T19:01:15Z
+- [W003157 — PS/2 Mouse](corpus/wiki-08.md#w003157) · bronregels 254–480 | namespace 0 | revisie 30841 | 2026-07-02T19:10:32Z
+- [W003955 — Ps2](corpus/wiki-11.md#w003955) · bronregels 9857–9857 | namespace 0 | revisie 19643 | 2016-08-01T15:07:17Z
+- [W003161 — PS2 Keyboard](corpus/wiki-08.md#w003161) · bronregels 1151–1151 | namespace 0 | revisie 17654 | 2015-03-01T15:09:38Z
+- [W003163 — PS2 Mouse](corpus/wiki-08.md#w003163) · bronregels 1181–1181 | namespace 0 | revisie 13098 | 2012-03-25T03:41:35Z
+- [W004645 — PSA](corpus/wiki-14.md#w004645) · bronregels 2066–2066 | namespace 0 | revisie 26506 | 2021-10-15T19:03:28Z
+- [W004643 — PSA Mapping](corpus/wiki-14.md#w004643) · bronregels 1916–1916 | namespace 0 | revisie 31009 | 2026-10-10T08:18:52Z
+- [W004585 — PSF](corpus/wiki-13.md#w004585) · bronregels 14736–14736 | namespace 0 | revisie 25853 | 2021-05-10T20:23:26Z
+- [W004659 — PTE](corpus/wiki-14.md#w004659) · bronregels 2538–2538 | namespace 0 | revisie 26570 | 2021-10-21T16:50:06Z
+- [W003013 — PXE](corpus/wiki-07.md#w003013) · bronregels 8941–9264 | namespace 0 | revisie 30252 | 2026-03-16T15:53:54Z
+- [W004516 — Python](corpus/wiki-13.md#w004516) · bronregels 11294–11302 | namespace 0 | revisie 30153 | 2026-03-06T16:52:02Z
+- [W001419 — QEMU](corpus/wiki-01.md#w001419) · bronregels 4069–4477 | namespace 0 | revisie 30887 | 2026-07-13T04:17:34Z
+- [W002941 — Qemu](corpus/wiki-07.md#w002941) · bronregels 3450–3450 | namespace 0 | revisie 10948 | 2010-11-17T04:06:42Z
+- [W004657 — QEMU AArch64 Virt Bare Bones](corpus/wiki-14.md#w004657) · bronregels 2427–2508 | namespace 0 | revisie 30865 | 2026-07-07T17:30:01Z
+- [W003895 — QEMU and GDB in long mode](corpus/wiki-11.md#w003895) · bronregels 6790–6898 | namespace 0 | revisie 28041 | 2023-07-09T18:58:52Z
+- [W004276 — QEMU fw cfg](corpus/wiki-12.md#w004276) · bronregels 12982–13147 | namespace 0 | revisie 30295 | 2026-03-16T20:22:31Z
+- [W004397 — QEMU Monitor](corpus/wiki-13.md#w004397) · bronregels 4346–4408 | namespace 0 | revisie 31017 | 2026-10-12T12:04:38Z
+- [W004786 — Qemu Monitor](corpus/wiki-14.md#w004786) · bronregels 9107–9107 | namespace 0 | revisie 28056 | 2023-07-09T20:20:06Z
+- [W004332 — QEMU RISC-V Virt Bare Bones](corpus/wiki-12.md#w004332) · bronregels 18004–18170 | namespace 0 | revisie 30478 | 2026-04-12T16:51:34Z
+- [W004722 — QEMU RISC-V Virt Meaty Skeleton](corpus/wiki-14.md#w004722) · bronregels 6895–7515 | namespace 0 | revisie 30471 | 2026-04-10T16:14:38Z
+- [W002760 — Quick Links](corpus/wiki-06.md#w002760) · bronregels 10208–10208 | namespace 0 | revisie 9453 | 2009-12-20T14:22:05Z
+- [W001923 — Ralf Brown's Interrupt List](corpus/wiki-03.md#w001923) · bronregels 14631–14695 | namespace 0 | revisie 28140 | 2023-07-10T03:01:33Z
+- [W004853 — Ramfb](corpus/wiki-14.md#w004853) · bronregels 10714–10864 | namespace 0 | revisie 30875 | 2026-07-09T01:06:40Z
+- [W002935 — Random Number Generator](corpus/wiki-07.md#w002935) · bronregels 3035–3347 | namespace 0 | revisie 27595 | 2023-01-16T02:22:23Z
+- [W003306 — Raspberry Pi](corpus/wiki-08.md#w003306) · bronregels 11419–11577 | namespace 0 | revisie 30457 | 2026-04-06T15:36:18Z
+- [W004269 — Raspberry Pi 3](corpus/wiki-12.md#w004269) · bronregels 11141–11141 | namespace 0 | revisie 22372 | 2018-04-28T21:17:51Z
+- [W004268 — Raspberry Pi 3 AArch64](corpus/wiki-12.md#w004268) · bronregels 11126–11126 | namespace 0 | revisie 26300 | 2021-08-12T22:58:56Z
+- [W004395 — Raspberry Pi 4](corpus/wiki-13.md#w004395) · bronregels 4185–4289 | namespace 0 | revisie 30869 | 2026-07-07T17:36:24Z
+- [W003316 — Raspberry Pi Bare Bones](corpus/wiki-08.md#w003316) · bronregels 13057–13664 | namespace 0 | revisie 30867 | 2026-07-07T17:32:10Z
+- [W004002 — Raspberry Pi Bare Bones Rust](corpus/wiki-11.md#w004002) · bronregels 13896–14092 | namespace 0 | revisie 28447 | 2023-11-07T11:38:20Z
+- [W004953 — Rave Bare Bones](corpus/wiki-14.md#w004953) · bronregels 14355–14540 | namespace 0 | revisie 30335 | 2026-03-17T20:58:21Z
+- [W001962 — RAWRITE](corpus/wiki-04.md#w001962) · bronregels 1272–1272 | namespace 0 | revisie 3316 | 2007-03-11T13:40:29Z
+- [W001960 — Rawwrite](corpus/wiki-04.md#w001960) · bronregels 1059–1077 | namespace 0 | revisie 20231 | 2017-01-23T00:58:39Z
+- [W001922 — RBIL](corpus/wiki-03.md#w001922) · bronregels 14617–14617 | namespace 0 | revisie 3260 | 2007-03-09T06:39:23Z
+- [W004550 — Reading sectors under UEFI](corpus/wiki-13.md#w004550) · bronregels 13416–13479 | namespace 0 | revisie 25441 | 2020-12-15T16:38:07Z
+- [W001712 — Real Mode](corpus/wiki-02.md#w001712) · bronregels 10883–11065 | namespace 0 | revisie 30882 | 2026-07-11T14:56:49Z
+- [W002251 — Real mode](corpus/wiki-05.md#w002251) · bronregels 649–649 | namespace 0 | revisie 5290 | 2008-03-26T11:35:54Z
+- [W002612 — Real mode assembly appendix A](corpus/wiki-06.md#w002612) · bronregels 2889–2904 | namespace 0 | revisie 27912 | 2023-07-09T05:05:57Z
+- [W002447 — Real mode assembly bare bones](corpus/wiki-05.md#w002447) · bronregels 10928–10928 | namespace 0 | revisie 7074 | 2009-01-17T00:21:45Z
+- [W002493 — Real mode assembly I](corpus/wiki-05.md#w002493) · bronregels 12357–12566 | namespace 0 | revisie 27894 | 2023-07-09T04:44:18Z
+- [W002451 — Real mode assembly II](corpus/wiki-05.md#w002451) · bronregels 11258–11378 | namespace 0 | revisie 27867 | 2023-07-09T04:00:30Z
+- [W002485 — Real mode assembly III](corpus/wiki-05.md#w002485) · bronregels 11937–11976 | namespace 0 | revisie 27979 | 2023-07-09T17:24:16Z
+- [W002487 — Real mode assembly IV](corpus/wiki-05.md#w002487) · bronregels 12007–12058 | namespace 0 | revisie 27882 | 2023-07-09T04:26:33Z
+- [W004020 — Real Mode OS Warning](corpus/wiki-11.md#w004020) · bronregels 15181–15250 | namespace 0 | revisie 25148 | 2020-09-10T07:29:58Z
+- [W002932 — Real Time Clock](corpus/wiki-07.md#w002932) · bronregels 3021–3021 | namespace 0 | revisie 10876 | 2010-10-17T20:45:51Z
+- [W001476 — Real-Time Systems](corpus/wiki-01.md#w001476) · bronregels 9952–9976 | namespace 0 | revisie 22704 | 2018-09-10T01:53:31Z
+- [W001844 — Reboot](corpus/wiki-03.md#w001844) · bronregels 5765–5855 | namespace 0 | revisie 26084 | 2021-06-04T22:16:55Z
+- [W004246 — Reduced State Vector Processor](corpus/wiki-12.md#w004246) · bronregels 8720–8720 | namespace 0 | revisie 22062 | 2018-01-12T02:23:32Z
+- [W003851 — Register Machine Model of Computation](corpus/wiki-11.md#w003851) · bronregels 5197–5243 | namespace 0 | revisie 26032 | 2021-05-31T18:06:33Z
+- [W001511 — ReiserFS](corpus/wiki-01.md#w001511) · bronregels 15090–15108 | namespace 0 | revisie 11686 | 2011-07-02T18:13:32Z
+- [W001763 — Remote Procedure Call](corpus/wiki-03.md#w001763) · bronregels 1574–1607 | namespace 0 | revisie 13503 | 2012-06-05T09:18:12Z
+- [W003073 — Required Knowledge](corpus/wiki-07.md#w003073) · bronregels 12100–12127 | namespace 0 | revisie 31039 | 2026-10-23T14:00:30Z
+- [W003074 — Required Knowlege](corpus/wiki-07.md#w003074) · bronregels 12142–12142 | namespace 0 | revisie 12444 | 2012-01-26T06:03:15Z
+- [W001368 — Resources](corpus/wiki-01.md#w001368) · bronregels 2028–2123 | namespace 0 | revisie 28287 | 2023-08-20T09:46:01Z
+- [W003779 — RFLAGS](corpus/wiki-11.md#w003779) · bronregels 806–806 | namespace 0 | revisie 18013 | 2015-05-02T11:26:18Z
+- [W001521 — RFS](corpus/wiki-02.md#w001521) · bronregels 16–21 | namespace 0 | revisie 29088 | 2024-06-07T13:38:36Z
+- [W003804 — Richard Theseus](corpus/wiki-11.md#w003804) · bronregels 1987–2022 | namespace 0 | revisie 25201 | 2020-09-25T15:20:26Z
+- [W004033 — RISC-V](corpus/wiki-11.md#w004033) · bronregels 15968–16100 | namespace 0 | revisie 28383 | 2023-10-12T17:54:42Z
+- [W005024 — RISC-V Bare Bones](corpus/wiki-14.md#w005024) · bronregels 18886–18886 | namespace 0 | revisie 30469 | 2026-04-10T16:08:54Z
+- [W005070 — RISC-V IOMMU](corpus/wiki-14.md#w005070) · bronregels 22043–22065 | namespace 0 | revisie 30806 | 2026-06-21T12:21:36Z
+- [W005025 — RISC-V Meaty Skeleton with QEMU virt board](corpus/wiki-14.md#w005025) · bronregels 18901–18901 | namespace 0 | revisie 30472 | 2026-04-10T16:14:38Z
+- [W004036 — Rng](corpus/wiki-11.md#w004036) · bronregels 16193–16193 | namespace 0 | revisie 20566 | 2017-03-07T01:48:18Z
+- [W004458 — Roll Your Own Bootloader](corpus/wiki-13.md#w004458) · bronregels 7479–7479 | namespace 0 | revisie 24379 | 2020-02-03T01:45:51Z
+- [W003638 — Roll Your Own Filesystem](corpus/wiki-10.md#w003638) · bronregels 11095–11121 | namespace 0 | revisie 30846 | 2026-07-04T13:13:54Z
+- [W001878 — Rolling Your Own Bootloader](corpus/wiki-03.md#w001878) · bronregels 7395–7564 | namespace 0 | revisie 30336 | 2026-03-17T20:59:00Z
+- [W002473 — Root System Description Pointer](corpus/wiki-05.md#w002473) · bronregels 11524–11524 | namespace 0 | revisie 6934 | 2008-12-22T15:56:23Z
+- [W001764 — RPC](corpus/wiki-03.md#w001764) · bronregels 1622–1622 | namespace 0 | revisie 2758 | 2007-01-11T10:19:20Z
+- [W001440 — RSDP](corpus/wiki-01.md#w001440) · bronregels 5701–5777 | namespace 0 | revisie 30901 | 2026-07-24T07:08:46Z
+- [W002712 — RSDT](corpus/wiki-06.md#w002712) · bronregels 7465–7576 | namespace 0 | revisie 30509 | 2026-04-22T19:48:54Z
+- [W002503 — RTC](corpus/wiki-05.md#w002503) · bronregels 13041–13153 | namespace 0 | revisie 30895 | 2026-07-15T08:21:49Z
+- [W002176 — RTL8139](corpus/wiki-04.md#w002176) · bronregels 9974–10230 | namespace 0 | revisie 30434 | 2026-03-29T22:49:11Z
+- [W004616 — RTL8168](corpus/wiki-14.md#w004616) · bronregels 275–275 | namespace 0 | revisie 26147 | 2021-06-18T02:41:17Z
+- [W002349 — RTL8169](corpus/wiki-05.md#w002349) · bronregels 6059–6266 | namespace 0 | revisie 30398 | 2026-03-24T21:48:49Z
+- [W002060 — RU:Hardware Abstraction Layer](corpus/wiki-04.md#w002060) · bronregels 4764–4764 | namespace 0 | revisie 3909 | 2007-05-19T21:04:05Z
+- [W004035 — Rules of OSDev](corpus/wiki-11.md#w004035) · bronregels 16151–16178 | namespace 0 | revisie 29520 | 2025-05-16T08:38:05Z
+- [W005071 — Rump kernel](corpus/wiki-14.md#w005071) · bronregels 22079–22092 | namespace 0 | revisie 30816 | 2026-06-23T19:34:41Z
+- [W003415 — Rust](corpus/wiki-09.md#w003415) · bronregels 2193–2278 | namespace 0 | revisie 30713 | 2026-06-10T18:12:11Z
+- [W003428 — Rust Bare Bones](corpus/wiki-09.md#w003428) · bronregels 2847–2947 | namespace 0 | revisie 30342 | 2026-03-17T21:03:52Z
+- [W005038 — Rust Bare Bones (UEFI)](corpus/wiki-14.md#w005038) · bronregels 19575–19804 | namespace 0 | revisie 30624 | 2026-05-26T04:04:25Z
+- [W004685 — S390 Barebones](corpus/wiki-14.md#w004685) · bronregels 3958–3958 | namespace 0 | revisie 26837 | 2022-01-04T00:47:34Z
+- [W005062 — S390 Interrupts](corpus/wiki-14.md#w005062) · bronregels 21285–21309 | namespace 0 | revisie 30759 | 2026-06-15T16:36:50Z
+- [W002243 — SATA](corpus/wiki-04.md#w002243) · bronregels 14079–14115 | namespace 0 | revisie 30508 | 2026-04-22T09:38:37Z
+- [W004388 — Scalable Screen Font](corpus/wiki-13.md#w004388) · bronregels 3844–3943 | namespace 0 | revisie 30325 | 2026-03-17T20:49:30Z
+- [W003909 — Scheduler](corpus/wiki-11.md#w003909) · bronregels 7950–7950 | namespace 0 | revisie 19220 | 2016-05-13T13:01:13Z
+- [W001477 — Scheduling Algorithms](corpus/wiki-01.md#w001477) · bronregels 9990–10179 | namespace 0 | revisie 28155 | 2023-07-10T14:36:22Z
+- [W004245 — Schol-R-LEA/Reduced State Vector Processor](corpus/wiki-12.md#w004245) · bronregels 8691–8705 | namespace 0 | revisie 22061 | 2018-01-12T02:23:32Z
+- [W002591 — SciTE](corpus/wiki-06.md#w002591) · bronregels 1025–1029 | namespace 0 | revisie 9761 | 2010-02-13T02:50:39Z
+- [W004521 — SCSI](corpus/wiki-13.md#w004521) · bronregels 12091–12132 | namespace 0 | revisie 28359 | 2023-10-03T09:56:53Z
+- [W004532 — SD card](corpus/wiki-13.md#w004532) · bronregels 12470–12478 | namespace 0 | revisie 28082 | 2023-07-09T21:06:13Z
+- [W004832 — SD Card](corpus/wiki-14.md#w004832) · bronregels 10284–10284 | namespace 0 | revisie 28445 | 2023-11-07T11:34:30Z
+- [W002262 — Security](corpus/wiki-05.md#w002262) · bronregels 1271–1357 | namespace 0 | revisie 30747 | 2026-06-13T20:30:30Z
+- [W001538 — Segment](corpus/wiki-02.md#w001538) · bronregels 1730–1730 | namespace 0 | revisie 1941 | 2006-12-07T21:41:13Z
+- [W003548 — Segment Limits](corpus/wiki-10.md#w003548) · bronregels 1562–1660 | namespace 0 | revisie 24065 | 2019-10-25T13:33:23Z
+- [W004675 — Segment Selector](corpus/wiki-14.md#w004675) · bronregels 3167–3196 | namespace 0 | revisie 31019 | 2026-10-13T15:25:46Z
+- [W004695 — Segment selector](corpus/wiki-14.md#w004695) · bronregels 4481–4481 | namespace 0 | revisie 26939 | 2022-02-14T07:23:04Z
+- [W001488 — Segmentation](corpus/wiki-01.md#w001488) · bronregels 12409–12557 | namespace 0 | revisie 31007 | 2026-10-09T18:17:42Z
+- [W003750 — Select](corpus/wiki-10.md#w003750) · bronregels 17082–17117 | namespace 0 | revisie 17763 | 2015-03-08T09:18:24Z
+- [W002883 — Selector](corpus/wiki-07.md#w002883) · bronregels 804–804 | namespace 0 | revisie 10420 | 2010-06-11T16:02:25Z
+- [W001752 — Semaphore](corpus/wiki-03.md#w001752) · bronregels 1139–1203 | namespace 0 | revisie 11881 | 2011-08-06T15:34:51Z
+- [W002299 — Semaphores](corpus/wiki-05.md#w002299) · bronregels 3807–3807 | namespace 0 | revisie 5603 | 2008-06-04T19:53:54Z
+- [W005008 — Serial ATA](corpus/wiki-14.md#w005008) · bronregels 18102–18102 | namespace 0 | revisie 30170 | 2026-03-09T16:32:14Z
+- [W002844 — Serial Port](corpus/wiki-06.md#w002844) · bronregels 17328–17623 | namespace 0 | revisie 29101 | 2024-06-07T13:39:51Z
+- [W001662 — Serial Ports](corpus/wiki-02.md#w001662) · bronregels 7784–8257 | namespace 0 | revisie 30963 | 2026-09-22T18:13:59Z
+- [W002840 — Serial ports](corpus/wiki-06.md#w002840) · bronregels 17268–17268 | namespace 0 | revisie 10119 | 2010-04-26T19:04:13Z
+- [W002814 — Setting Up Long Mode](corpus/wiki-06.md#w002814) · bronregels 15837–16171 | namespace 0 | revisie 30260 | 2026-03-16T16:06:39Z
+- [W002264 — Setting Up Paging](corpus/wiki-05.md#w002264) · bronregels 1387–1513 | namespace 0 | revisie 27621 | 2023-02-06T17:38:59Z
+- [W002435 — Setting Up Paging With PAE](corpus/wiki-05.md#w002435) · bronregels 10449–10506 | namespace 0 | revisie 28222 | 2023-07-10T20:25:37Z
+- [W002212 — SFS](corpus/wiki-04.md#w002212) · bronregels 11700–11790 | namespace 0 | revisie 26882 | 2022-01-24T01:49:00Z
+- [W003749 — Shared library](corpus/wiki-10.md#w003749) · bronregels 17057–17068 | namespace 0 | revisie 28703 | 2024-03-16T16:41:53Z
+- [W001765 — Shared Memory](corpus/wiki-03.md#w001765) · bronregels 1636–1658 | namespace 0 | revisie 28212 | 2023-07-10T18:54:12Z
+- [W002478 — Shell](corpus/wiki-05.md#w002478) · bronregels 11864–11864 | namespace 0 | revisie 19413 | 2016-07-09T21:56:09Z
+- [W001845 — Shutdown](corpus/wiki-03.md#w001845) · bronregels 5869–5948 | namespace 0 | revisie 30327 | 2026-03-17T20:50:27Z
+- [W001890 — Signals](corpus/wiki-03.md#w001890) · bronregels 9090–9102 | namespace 0 | revisie 24290 | 2020-01-10T14:38:06Z
+- [W004252 — Silcos Kernel](corpus/wiki-12.md#w004252) · bronregels 9042–9042 | namespace 0 | revisie 22085 | 2018-01-14T14:28:35Z
+- [W002217 — SILO](corpus/wiki-04.md#w002217) · bronregels 11875–11909 | namespace 0 | revisie 20389 | 2017-02-11T20:51:26Z
+- [W001579 — SimICS](corpus/wiki-02.md#w001579) · bronregels 5529–5535 | namespace 0 | revisie 29959 | 2026-02-10T23:22:00Z
+- [W003176 — SimNow](corpus/wiki-08.md#w003176) · bronregels 2602–2606 | namespace 0 | revisie 14207 | 2013-01-07T09:29:55Z
+- [W002439 — Simple Scalable Fonts](corpus/wiki-05.md#w002439) · bronregels 10725–10786 | namespace 0 | revisie 23980 | 2019-09-25T11:40:24Z
+- [W002440 — Simple True Type Fonts](corpus/wiki-05.md#w002440) · bronregels 10801–10801 | namespace 0 | revisie 6760 | 2008-11-27T00:16:08Z
+- [W004671 — Single Kernel Stack](corpus/wiki-14.md#w004671) · bronregels 3094–3094 | namespace 0 | revisie 26658 | 2021-11-04T00:07:57Z
+- [W004495 — Sir Dunning-Kruger](corpus/wiki-13.md#w004495) · bronregels 10520–10542 | namespace 0 | revisie 25719 | 2021-02-24T19:28:34Z
+- [W003926 — Smaller C](corpus/wiki-11.md#w003926) · bronregels 8832–8854 | namespace 0 | revisie 29901 | 2026-01-17T16:52:50Z
+- [W002971 — Smart Pointer](corpus/wiki-07.md#w002971) · bronregels 5372–5381 | namespace 0 | revisie 11341 | 2011-03-29T08:32:54Z
+- [W002225 — SMBIOS](corpus/wiki-04.md#w002225) · bronregels 12023–12023 | namespace 0 | revisie 5210 | 2008-03-06T22:00:57Z
+- [W003927 — Smlrl](corpus/wiki-11.md#w003927) · bronregels 8868–8891 | namespace 0 | revisie 29900 | 2026-01-17T16:50:44Z
+- [W003480 — SMM](corpus/wiki-09.md#w003480) · bronregels 10934–10934 | namespace 0 | revisie 15827 | 2014-03-30T11:36:46Z
+- [W002545 — SMP](corpus/wiki-05.md#w002545) · bronregels 15335–15335 | namespace 0 | revisie 7603 | 2009-04-07T10:17:52Z
+- [W004248 — SMT](corpus/wiki-12.md#w004248) · bronregels 8852–8855 | namespace 0 | revisie 27976 | 2023-07-09T17:21:37Z
+- [W003751 — Socket](corpus/wiki-10.md#w003751) · bronregels 17131–17142 | namespace 0 | revisie 17765 | 2015-03-08T09:27:30Z
+- [W004801 — Sol asm](corpus/wiki-14.md#w004801) · bronregels 9357–9357 | namespace 0 | revisie 28204 | 2023-07-10T18:42:59Z
+- [W002670 — Solar Assembler](corpus/wiki-06.md#w002670) · bronregels 5022–5207 | namespace 0 | revisie 28205 | 2023-07-10T18:44:08Z
+- [W002238 — Sound](corpus/wiki-04.md#w002238) · bronregels 12857–12906 | namespace 0 | revisie 28960 | 2024-06-06T17:17:53Z
+- [W002237 — Sound Blaster 16](corpus/wiki-04.md#w002237) · bronregels 12617–12843 | namespace 0 | revisie 30642 | 2026-05-27T15:09:52Z
+- [W003023 — Sparc Barebones](corpus/wiki-07.md#w003023) · bronregels 9513–9621 | namespace 0 | revisie 30329 | 2026-03-17T20:51:29Z
+- [W004869 — SPARC Barebones](corpus/wiki-14.md#w004869) · bronregels 11646–11646 | namespace 0 | revisie 28834 | 2024-05-23T15:04:33Z
+- [W003045 — Sparc Hardware Docs](corpus/wiki-07.md#w003045) · bronregels 10715–10749 | namespace 0 | revisie 29128 | 2024-06-18T14:53:30Z
+- [W001833 — Sparc Overview](corpus/wiki-03.md#w001833) · bronregels 5477–5552 | namespace 0 | revisie 27547 | 2022-12-25T05:49:21Z
+- [W002764 — Specifications](corpus/wiki-06.md#w002764) · bronregels 10268–10268 | namespace 0 | revisie 9457 | 2009-12-20T14:24:37Z
+- [W002494 — Spinlock](corpus/wiki-05.md#w002494) · bronregels 12580–12729 | namespace 0 | revisie 27583 | 2023-01-13T03:08:34Z
+- [W004203 — SRAT](corpus/wiki-12.md#w004203) · bronregels 4850–5013 | namespace 0 | revisie 30858 | 2026-07-07T17:21:51Z
+- [W003108 — SSDT](corpus/wiki-07.md#w003108) · bronregels 13908–13922 | namespace 0 | revisie 28197 | 2023-07-10T17:51:46Z
+- [W002521 — SSE](corpus/wiki-05.md#w002521) · bronregels 13986–14131 | namespace 0 | revisie 30331 | 2026-03-17T20:52:56Z
+- [W003095 — SSE2](corpus/wiki-07.md#w003095) · bronregels 13553–13553 | namespace 0 | revisie 12804 | 2012-02-22T20:27:03Z
+- [W003098 — SSE3](corpus/wiki-07.md#w003098) · bronregels 13737–13737 | namespace 0 | revisie 12805 | 2012-02-22T20:27:44Z
+- [W003099 — SSE4](corpus/wiki-07.md#w003099) · bronregels 13752–13752 | namespace 0 | revisie 12806 | 2012-02-22T20:28:40Z
+- [W003902 — SSL/TLS](corpus/wiki-11.md#w003902) · bronregels 7605–7794 | namespace 0 | revisie 30455 | 2026-04-06T00:09:49Z
+- [W001704 — Stack](corpus/wiki-02.md#w001704) · bronregels 9962–10167 | namespace 0 | revisie 26459 | 2021-10-04T21:23:30Z
+- [W002628 — Stack Smashing Protector](corpus/wiki-06.md#w002628) · bronregels 3169–3387 | namespace 0 | revisie 20864 | 2017-06-05T19:46:40Z
+- [W002513 — Stack Trace](corpus/wiki-05.md#w002513) · bronregels 13449–13544 | namespace 0 | revisie 27933 | 2023-07-09T15:04:22Z
+- [W003629 — Stan Dard](corpus/wiki-10.md#w003629) · bronregels 7646–7687 | namespace 0 | revisie 29280 | 2024-10-28T21:29:47Z
+- [W002773 — STI](corpus/wiki-06.md#w002773) · bronregels 10443–10443 | namespace 0 | revisie 9487 | 2009-12-20T16:26:16Z
+- [W004555 — Stivale](corpus/wiki-13.md#w004555) · bronregels 13539–13539 | namespace 0 | revisie 27250 | 2022-07-19T14:29:54Z
+- [W004554 — Stivale Bare Bones](corpus/wiki-13.md#w004554) · bronregels 13524–13524 | namespace 0 | revisie 27249 | 2022-07-19T14:27:54Z
+- [W004669 — Stivale2 CSharp BareBones](corpus/wiki-14.md#w004669) · bronregels 2657–3064 | namespace 0 | revisie 27028 | 2022-04-03T17:43:07Z
+- [W001457 — Storage](corpus/wiki-01.md#w001457) · bronregels 7812–7830 | namespace 0 | revisie 30961 | 2026-09-22T13:12:22Z
+- [W003661 — Strings do not work](corpus/wiki-10.md#w003661) · bronregels 11731–11732 | namespace 0 | revisie 25273 | 2020-10-28T20:10:00Z
+- [W005084 — STSI and ECAG](corpus/wiki-15.md#w005084) · bronregels 193–408 | namespace 0 | revisie 31026 | 2026-10-18T07:40:28Z
+- [W004037 — Supervisor Memory Protection](corpus/wiki-11.md#w004037) · bronregels 16207–16268 | namespace 0 | revisie 24076 | 2019-11-04T08:34:00Z
+- [W005006 — SVM](corpus/wiki-14.md#w005006) · bronregels 18055–18072 | namespace 0 | revisie 30150 | 2026-03-06T10:57:12Z
+- [W004362 — SWAPGS](corpus/wiki-13.md#w004362) · bronregels 2164–2255 | namespace 0 | revisie 27990 | 2023-07-09T17:34:54Z
+- [W003875 — Swift Bare Bones](corpus/wiki-11.md#w003875) · bronregels 6231–6246 | namespace 0 | revisie 26313 | 2021-08-12T23:34:28Z
+- [W004629 — Swift Barebones](corpus/wiki-14.md#w004629) · bronregels 984–984 | namespace 0 | revisie 26304 | 2021-08-12T23:03:32Z
+- [W003063 — Symbol Table](corpus/wiki-07.md#w003063) · bronregels 11963–11994 | namespace 0 | revisie 30541 | 2026-05-01T15:30:56Z
+- [W003748 — Symbolic link](corpus/wiki-10.md#w003748) · bronregels 17001–17043 | namespace 0 | revisie 28100 | 2023-07-09T22:36:58Z
+- [W001910 — Symmetric Multiprocessing](corpus/wiki-03.md#w001910) · bronregels 13836–14047 | namespace 0 | revisie 30332 | 2026-03-17T20:53:43Z
+- [W001889 — Synchronization Primitives](corpus/wiki-03.md#w001889) · bronregels 8989–9076 | namespace 0 | revisie 27650 | 2023-03-02T04:54:54Z
+- [W003324 — SYSCALL](corpus/wiki-08.md#w003324) · bronregels 14728–14728 | namespace 0 | revisie 14427 | 2013-02-04T18:08:06Z
+- [W003323 — SYSENTER](corpus/wiki-08.md#w003323) · bronregels 14627–14713 | namespace 0 | revisie 30835 | 2026-07-02T03:22:15Z
+- [W003327 — Sysenter](corpus/wiki-08.md#w003327) · bronregels 14773–14773 | namespace 0 | revisie 14446 | 2013-02-07T17:46:25Z
+- [W003325 — SYSEXIT](corpus/wiki-08.md#w003325) · bronregels 14743–14743 | namespace 0 | revisie 14428 | 2013-02-04T18:09:10Z
+- [W003030 — SysLinux](corpus/wiki-07.md#w003030) · bronregels 9978–10054 | namespace 0 | revisie 12548 | 2012-02-05T20:59:31Z
+- [W003326 — SYSRET](corpus/wiki-08.md#w003326) · bronregels 14758–14758 | namespace 0 | revisie 14429 | 2013-02-04T18:09:45Z
+- [W004206 — Sysroot](corpus/wiki-12.md#w004206) · bronregels 5042–5042 | namespace 0 | revisie 21614 | 2017-10-14T16:27:18Z
+- [W002831 — System Call](corpus/wiki-06.md#w002831) · bronregels 17057–17057 | namespace 0 | revisie 10038 | 2010-04-14T14:29:50Z
+- [W001961 — System Calls](corpus/wiki-04.md#w001961) · bronregels 1091–1257 | namespace 0 | revisie 30333 | 2026-03-17T20:54:10Z
+- [W001911 — System Commander](corpus/wiki-03.md#w001911) · bronregels 14061–14076 | namespace 0 | revisie 24861 | 2020-06-21T19:00:10Z
+- [W001807 — System Initialization (SGI Mips)](corpus/wiki-03.md#w001807) · bronregels 4606–4635 | namespace 0 | revisie 29801 | 2025-12-25T05:18:23Z
+- [W001801 — System Initialization (Sparc)](corpus/wiki-03.md#w001801) · bronregels 4388–4420 | namespace 0 | revisie 28031 | 2023-07-09T18:42:28Z
+- [W001840 — System Initialization (x86)](corpus/wiki-03.md#w001840) · bronregels 5632–5723 | namespace 0 | revisie 27975 | 2023-07-09T17:20:20Z
+- [W002226 — System Management BIOS](corpus/wiki-04.md#w002226) · bronregels 12037–12305 | namespace 0 | revisie 30972 | 2026-09-26T18:03:52Z
+- [W003479 — System Management Mode](corpus/wiki-09.md#w003479) · bronregels 10891–10919 | namespace 0 | revisie 30131 | 2026-03-04T22:15:31Z
+- [W003815 — System Root](corpus/wiki-11.md#w003815) · bronregels 2978–2978 | namespace 0 | revisie 18333 | 2015-09-06T17:57:56Z
+- [W003507 — System V ABI](corpus/wiki-09.md#w003507) · bronregels 14297–14371 | namespace 0 | revisie 29723 | 2025-10-20T19:38:00Z
+- [W004346 — Tail Recursion and Tail Call Optimization](corpus/wiki-12.md#w004346) · bronregels 18405–18484 | namespace 0 | revisie 30315 | 2026-03-17T19:01:34Z
+- [W004930 — Talk:"8042" PS/2 Controller](corpus/wiki-14.md#w004930) · bronregels 13335–13335 | namespace 1 | revisie 29480 | 2025-04-19T23:56:34Z
+- [W004481 — Talk:"zig cc" Cross-Compiler](corpus/wiki-13.md#w004481) · bronregels 10120–10124 | namespace 1 | revisie 24647 | 2020-05-03T04:45:11Z
+- [W002570 — Talk:32-bit assembler bare bones](corpus/wiki-05.md#w002570) · bronregels 16197–16197 | namespace 1 | revisie 7749 | 2009-04-21T00:22:25Z
+- [W002964 — Talk:8259 PIC](corpus/wiki-07.md#w002964) · bronregels 4980–5033 | namespace 1 | revisie 27710 | 2023-03-30T18:08:53Z
+- [W004808 — Talk:A.out](corpus/wiki-14.md#w004808) · bronregels 9555–9563 | namespace 1 | revisie 28268 | 2023-08-11T21:26:13Z
+- [W003015 — Talk:A20](corpus/wiki-07.md#w003015) · bronregels 9278–9287 | namespace 1 | revisie 11769 | 2011-07-11T12:27:08Z
+- [W001684 — Talk:A20 Line](corpus/wiki-02.md#w001684) · bronregels 8640–8667 | namespace 1 | revisie 29351 | 2025-01-25T20:41:18Z
+- [W001685 — Talk:A20Line](corpus/wiki-02.md#w001685) · bronregels 8682–8682 | namespace 1 | revisie 2414 | 2006-12-17T22:14:13Z
+- [W003245 — Talk:Ada Bare Bones](corpus/wiki-08.md#w003245) · bronregels 7576–7583 | namespace 1 | revisie 26307 | 2021-08-12T23:08:22Z
+- [W004631 — Talk:Ada Bare bones](corpus/wiki-14.md#w004631) · bronregels 1014–1014 | namespace 1 | revisie 26308 | 2021-08-12T23:08:22Z
+- [W002540 — Talk:AGP](corpus/wiki-05.md#w002540) · bronregels 15272–15274 | namespace 1 | revisie 7597 | 2009-04-06T22:59:31Z
+- [W003706 — Talk:AHCI](corpus/wiki-10.md#w003706) · bronregels 14655–14659 | namespace 1 | revisie 23562 | 2019-04-08T07:15:38Z
+- [W001695 — Talk:AMD K6 WriteBack Optimisations](corpus/wiki-02.md#w001695) · bronregels 8873–8875 | namespace 1 | revisie 2449 | 2006-12-19T08:24:56Z
+- [W004993 — Talk:AMD-Vi IOMMU](corpus/wiki-14.md#w004993) · bronregels 17344–17415 | namespace 1 | revisie 30069 | 2026-02-24T18:14:36Z
+- [W002119 — Talk:And what about USB](corpus/wiki-04.md#w002119) · bronregels 7374–7385 | namespace 1 | revisie 4273 | 2007-07-10T18:25:54Z
+- [W001975 — Talk:APIC](corpus/wiki-04.md#w001975) · bronregels 2472–2503 | namespace 1 | revisie 5683 | 2008-06-19T12:16:20Z
+- [W003400 — Talk:APIC Timer](corpus/wiki-09.md#w003400) · bronregels 1194–1194 | namespace 1 | revisie 28148 | 2023-07-10T14:11:19Z
+- [W004794 — Talk:APIC timer](corpus/wiki-14.md#w004794) · bronregels 9223–9223 | namespace 1 | revisie 28149 | 2023-07-10T14:11:19Z
+- [W002431 — Talk:Application-Security-Books](corpus/wiki-05.md#w002431) · bronregels 10112–10113 | namespace 1 | revisie 6688 | 2008-11-18T21:51:19Z
+- [W004374 — Talk:ARM Generic Timer](corpus/wiki-13.md#w004374) · bronregels 3105–3109 | namespace 1 | revisie 23522 | 2019-04-01T20:28:23Z
+- [W003152 — Talk:ARM Overview](corpus/wiki-08.md#w003152) · bronregels 189–196 | namespace 1 | revisie 13075 | 2012-03-24T15:26:06Z
+- [W004663 — Talk:ARM RaspberryPi](corpus/wiki-14.md#w004663) · bronregels 2597–2597 | namespace 1 | revisie 26589 | 2021-10-24T10:48:56Z
+- [W003682 — Talk:ARM RaspberryPi Tutorial C](corpus/wiki-10.md#w003682) · bronregels 13359–13359 | namespace 1 | revisie 17156 | 2014-11-30T22:44:50Z
+- [W003948 — Talk:AS86](corpus/wiki-11.md#w003948) · bronregels 9733–9741 | namespace 1 | revisie 28271 | 2023-08-12T11:39:47Z
+- [W001804 — Talk:Assembly](corpus/wiki-03.md#w001804) · bronregels 4583–4592 | namespace 1 | revisie 11404 | 2011-04-18T14:17:46Z
+- [W002247 — Talk:ATA](corpus/wiki-05.md#w002247) · bronregels 524–526 | namespace 1 | revisie 5274 | 2008-03-25T08:51:15Z
+- [W004578 — Talk:ATA PIO Mode](corpus/wiki-13.md#w004578) · bronregels 14587–14587 | namespace 1 | revisie 25792 | 2021-04-09T03:45:21Z
+- [W002986 — Talk:ATA read/write sectors](corpus/wiki-07.md#w002986) · bronregels 6089–6125 | namespace 1 | revisie 11551 | 2011-05-23T17:54:32Z
+- [W002988 — Talk:ATA/ATAPI using DMA](corpus/wiki-07.md#w002988) · bronregels 6153–6154 | namespace 1 | revisie 11566 | 2011-06-03T13:27:05Z
+- [W002254 — Talk:ATAPI](corpus/wiki-05.md#w002254) · bronregels 693–766 | namespace 1 | revisie 15313 | 2013-10-19T12:37:24Z
+- [W002106 — Talk:Atomic Action](corpus/wiki-04.md#w002106) · bronregels 7138–7138 | namespace 1 | revisie 4155 | 2007-07-02T17:39:52Z
+- [W002939 — Talk:Babystep1](corpus/wiki-07.md#w002939) · bronregels 3392–3415 | namespace 1 | revisie 14387 | 2013-01-24T19:14:44Z
+- [W004326 — Talk:Babystep5](corpus/wiki-12.md#w004326) · bronregels 17456–17460 | namespace 1 | revisie 27485 | 2022-11-05T23:55:00Z
+- [W002131 — Talk:Bare Bones](corpus/wiki-04.md#w002131) · bronregels 8374–8499 | namespace 1 | revisie 30937 | 2026-09-02T14:52:31Z
+- [W002498 — Talk:Bare bones](corpus/wiki-05.md#w002498) · bronregels 12857–12857 | namespace 1 | revisie 7136 | 2009-01-27T23:50:32Z
+- [W002003 — Talk:Beginner Mistakes](corpus/wiki-04.md#w002003) · bronregels 3567–3586 | namespace 1 | revisie 30981 | 2026-09-28T13:14:56Z
+- [W004972 — Talk:BFS](corpus/wiki-14.md#w004972) · bronregels 15204–15208 | namespace 1 | revisie 29839 | 2026-01-08T02:57:30Z
+- [W004601 — Talk:BGRT](corpus/wiki-13.md#w004601) · bronregels 15725–15728 | namespace 1 | revisie 26029 | 2021-05-31T12:26:50Z
+- [W003138 — Talk:Binary Notation](corpus/wiki-07.md#w003138) · bronregels 15032–15034 | namespace 1 | revisie 12957 | 2012-03-09T13:56:18Z
+- [W002754 — Talk:BIOS](corpus/wiki-06.md#w002754) · bronregels 10025–10059 | namespace 1 | revisie 23688 | 2019-06-12T16:53:47Z
+- [W003054 — Talk:BIOS (PC)](corpus/wiki-07.md#w003054) · bronregels 11087–11087 | namespace 1 | revisie 12290 | 2011-12-12T14:36:20Z
+- [W002232 — Talk:Bochs VBE Extensions](corpus/wiki-04.md#w002232) · bronregels 12558–12572 | namespace 1 | revisie 29711 | 2025-10-15T16:57:07Z
+- [W002728 — Talk:Bochs VBE extensions](corpus/wiki-06.md#w002728) · bronregels 9116–9116 | namespace 1 | revisie 9224 | 2009-11-16T18:09:14Z
+- [W001587 — Talk:Books](corpus/wiki-02.md#w001587) · bronregels 5791–5817 | namespace 1 | revisie 27429 | 2022-09-23T09:49:16Z
+- [W002108 — Talk:Boot Sequence](corpus/wiki-04.md#w002108) · bronregels 7187–7194 | namespace 1 | revisie 12257 | 2011-12-12T10:34:25Z
+- [W003051 — Talk:Boot sequence](corpus/wiki-07.md#w003051) · bronregels 11042–11042 | namespace 1 | revisie 12258 | 2011-12-12T10:34:25Z
+- [W002082 — Talk:Bootable CD](corpus/wiki-04.md#w002082) · bronregels 6211–6212 | namespace 1 | revisie 4031 | 2007-05-30T15:26:05Z
+- [W001683 — Talk:Bootloader](corpus/wiki-02.md#w001683) · bronregels 8619–8626 | namespace 1 | revisie 30967 | 2026-09-23T16:03:30Z
+- [W004383 — Talk:Bootloader FAQ](corpus/wiki-13.md#w004383) · bronregels 3718–3736 | namespace 1 | revisie 23602 | 2019-05-04T09:27:43Z
+- [W002111 — Talk:BootProg](corpus/wiki-04.md#w002111) · bronregels 7224–7226 | namespace 1 | revisie 4222 | 2007-07-09T09:02:55Z
+- [W002372 — Talk:Bran's Kernel Development Tutorial Known Bugs](corpus/wiki-05.md#w002372) · bronregels 7989–8020 | namespace 1 | revisie 24788 | 2020-06-18T13:00:27Z
+- [W004489 — Talk:Bran's Known Bugs](corpus/wiki-13.md#w004489) · bronregels 10318–10318 | namespace 1 | revisie 24789 | 2020-06-18T13:00:27Z
+- [W003814 — Talk:Broken UEFI implementations](corpus/wiki-11.md#w003814) · bronregels 2961–2963 | namespace 1 | revisie 18308 | 2015-08-22T01:02:20Z
+- [W002577 — Talk:Building GMP](corpus/wiki-06.md#w002577) · bronregels 374–382 | namespace 1 | revisie 8187 | 2009-06-08T04:48:45Z
+- [W002614 — Talk:Building MPFR](corpus/wiki-06.md#w002614) · bronregels 2932–2932 | namespace 1 | revisie 8186 | 2009-06-08T04:47:32Z
+- [W004604 — Talk:Busy loop](corpus/wiki-13.md#w004604) · bronregels 15772–15782 | namespace 1 | revisie 26030 | 2021-05-31T12:35:13Z
+- [W002729 — Talk:C](corpus/wiki-06.md#w002729) · bronregels 9130–9130 | namespace 1 | revisie 9228 | 2009-11-16T20:37:38Z
+- [W002575 — Talk:C language Example](corpus/wiki-06.md#w002575) · bronregels 334–345 | namespace 1 | revisie 7784 | 2009-04-24T03:20:56Z
+- [W003281 — Talk:C Library](corpus/wiki-08.md#w003281) · bronregels 8677–8713 | namespace 1 | revisie 13984 | 2012-09-13T19:32:42Z
+- [W002649 — Talk:C PlusPlus bare bones](corpus/wiki-06.md#w002649) · bronregels 4058–4058 | namespace 1 | revisie 9617 | 2010-01-11T14:55:42Z
+- [W002884 — Talk:C preprocessor](corpus/wiki-07.md#w002884) · bronregels 818–823 | namespace 1 | revisie 10592 | 2010-08-06T01:57:37Z
+- [W002256 — Talk:C Sharp](corpus/wiki-05.md#w002256) · bronregels 843–852 | namespace 1 | revisie 14144 | 2012-12-11T22:13:17Z
+- [W003241 — Talk:C Sharp Bare Bones](corpus/wiki-08.md#w003241) · bronregels 7512–7520 | namespace 1 | revisie 29216 | 2024-08-12T09:42:23Z
+- [W002377 — Talk:C++ Bare Bones](corpus/wiki-05.md#w002377) · bronregels 8275–8312 | namespace 1 | revisie 12096 | 2011-10-13T08:31:00Z
+- [W002664 — Talk:C++ bare bones](corpus/wiki-06.md#w002664) · bronregels 4949–4949 | namespace 1 | revisie 8498 | 2009-07-10T08:39:28Z
+- [W003019 — Talk:C++ Exception Support](corpus/wiki-07.md#w003019) · bronregels 9463–9463 | namespace 1 | revisie 11786 | 2011-07-12T09:37:56Z
+- [W003255 — Talk:Calling C++ Constructors From C++](corpus/wiki-08.md#w003255) · bronregels 7774–7778 | namespace 1 | revisie 14168 | 2012-12-19T16:11:39Z
+- [W003002 — Talk:Calling Conventions](corpus/wiki-07.md#w003002) · bronregels 7666–7674 | namespace 1 | revisie 19697 | 2016-08-20T23:13:43Z
+- [W002854 — Talk:Categorized Main Page](corpus/wiki-06.md#w002854) · bronregels 18003–18004 | namespace 1 | revisie 10233 | 2010-05-04T16:32:33Z
+- [W001374 — Talk:Categorized Main Page/archive](corpus/wiki-01.md#w001374) · bronregels 2287–2469 | namespace 1 | revisie 10230 | 2010-05-04T16:27:27Z
+- [W003090 — Talk:CFE Bare Bones](corpus/wiki-07.md#w003090) · bronregels 12677–12683 | namespace 1 | revisie 12589 | 2012-02-10T22:44:51Z
+- [W003145 — Talk:CFS](corpus/wiki-07.md#w003145) · bronregels 16130–16130 | namespace 1 | revisie 20694 | 2017-04-10T17:47:05Z
+- [W002040 — Talk:Chat](corpus/wiki-04.md#w002040) · bronregels 4714–4735 | namespace 1 | revisie 30128 | 2026-03-04T19:16:49Z
+- [W002006 — Talk:Chip Numbers, Acronyms and Things](corpus/wiki-04.md#w002006) · bronregels 3672–3675 | namespace 1 | revisie 5874 | 2008-07-09T21:48:57Z
+- [W002351 — Talk:CIL](corpus/wiki-05.md#w002351) · bronregels 7031–7033 | namespace 1 | revisie 5971 | 2008-07-16T23:37:37Z
+- [W001784 — Talk:CMOS](corpus/wiki-03.md#w001784) · bronregels 2962–3015 | namespace 1 | revisie 12323 | 2011-12-14T09:15:01Z
+- [W003987 — Talk:CompilerDev/Implementing Conditional Statements And Loops](corpus/wiki-11.md#w003987) · bronregels 11440–11452 | namespace 1 | revisie 19942 | 2016-10-30T18:50:38Z
+- [W004198 — Talk:Context Switching](corpus/wiki-12.md#w004198) · bronregels 4127–4127 | namespace 1 | revisie 22558 | 2018-08-07T04:19:54Z
+- [W002227 — Talk:Continuation Systems](corpus/wiki-04.md#w002227) · bronregels 12319–12322 | namespace 1 | revisie 5176 | 2008-03-05T01:23:24Z
+- [W003877 — Talk:Cooperative Multitasking](corpus/wiki-11.md#w003877) · bronregels 6274–6274 | namespace 1 | revisie 30765 | 2026-06-16T15:01:06Z
+- [W003868 — Talk:CPU Registers x86-64](corpus/wiki-11.md#w003868) · bronregels 5817–5825 | namespace 1 | revisie 19600 | 2016-07-25T12:30:31Z
+- [W002588 — Talk:CPUID](corpus/wiki-06.md#w002588) · bronregels 897–982 | namespace 1 | revisie 30268 | 2026-03-16T17:46:13Z
+- [W002819 — Talk:Creating a 64-bit kernel](corpus/wiki-06.md#w002819) · bronregels 16384–16388 | namespace 1 | revisie 18653 | 2015-11-26T09:29:20Z
+- [W003300 — Talk:Creating a C Library](corpus/wiki-08.md#w003300) · bronregels 10599–10603 | namespace 1 | revisie 26204 | 2021-07-25T03:41:08Z
+- [W003932 — Talk:Creating A Shell](corpus/wiki-11.md#w003932) · bronregels 9177–9209 | namespace 1 | revisie 29732 | 2025-10-25T22:24:10Z
+- [W002857 — Talk:Cross-Compiler Successful Builds](corpus/wiki-06.md#w002857) · bronregels 18074–18170 | namespace 1 | revisie 24162 | 2019-12-19T11:31:56Z
+- [W002662 — Talk:CSharp](corpus/wiki-06.md#w002662) · bronregels 4934–4934 | namespace 1 | revisie 8490 | 2009-07-10T08:23:06Z
+- [W003649 — Talk:D Bare Bones](corpus/wiki-10.md#w003649) · bronregels 11517–11528 | namespace 1 | revisie 20739 | 2017-04-22T14:51:08Z
+- [W004739 — Talk:D Bare Bones With LDC2](corpus/wiki-14.md#w004739) · bronregels 7932–7932 | namespace 1 | revisie 27607 | 2023-01-30T04:12:46Z
+- [W002007 — Talk:Definitions](corpus/wiki-04.md#w002007) · bronregels 3689–3690 | namespace 1 | revisie 3586 | 2007-04-06T03:16:53Z
+- [W002820 — Talk:DegenerateOS](corpus/wiki-06.md#w002820) · bronregels 16402–16407 | namespace 1 | revisie 9981 | 2010-03-29T15:05:24Z
+- [W002987 — Talk:Deprecated](corpus/wiki-07.md#w002987) · bronregels 6139–6139 | namespace 1 | revisie 11561 | 2011-05-27T07:50:17Z
+- [W003379 — Talk:Descriptor](corpus/wiki-09.md#w003379) · bronregels 744–760 | namespace 1 | revisie 14915 | 2013-07-08T17:40:07Z
+- [W003288 — Talk:Descriptor Cache](corpus/wiki-08.md#w003288) · bronregels 9548–9567 | namespace 1 | revisie 14095 | 2012-11-25T20:29:33Z
+- [W002113 — Talk:Descriptors](corpus/wiki-04.md#w002113) · bronregels 7240–7250 | namespace 1 | revisie 4235 | 2007-07-09T18:24:27Z
+- [W002116 — Talk:Detecting Colour and Monochrome Monitors](corpus/wiki-04.md#w002116) · bronregels 7308–7329 | namespace 1 | revisie 15467 | 2013-12-20T00:34:10Z
+- [W003358 — Talk:Detecting CPU Speed](corpus/wiki-08.md#w003358) · bronregels 16944–16947 | namespace 1 | revisie 14684 | 2013-05-15T18:31:57Z
+- [W002974 — Talk:Detecting CPU Topology (80x86)](corpus/wiki-07.md#w002974) · bronregels 5535–5537 | namespace 1 | revisie 11403 | 2011-04-18T12:39:24Z
+- [W002428 — Talk:Detecting Memory](corpus/wiki-05.md#w002428) · bronregels 9957–9958 | namespace 1 | revisie 6635 | 2008-11-09T10:56:30Z
+- [W002281 — Talk:Detecting Memory (x86)](corpus/wiki-05.md#w002281) · bronregels 3154–3182 | namespace 1 | revisie 18832 | 2016-01-09T22:02:47Z
+- [W002822 — Talk:Dev-C++](corpus/wiki-06.md#w002822) · bronregels 16441–16447 | namespace 1 | revisie 9994 | 2010-03-31T05:37:44Z
+- [W003411 — Talk:Device Driver Interfaces](corpus/wiki-09.md#w003411) · bronregels 2034–2034 | namespace 1 | revisie 15225 | 2013-10-02T22:07:49Z
+- [W003133 — Talk:Device Management](corpus/wiki-07.md#w003133) · bronregels 14861–14867 | namespace 1 | revisie 15224 | 2013-10-02T22:07:49Z
+- [W005058 — Talk:Direct Mapping](corpus/wiki-14.md#w005058) · bronregels 21224–21226 | namespace 1 | revisie 30744 | 2026-06-13T00:05:53Z
+- [W002496 — Talk:Disassemble](corpus/wiki-05.md#w002496) · bronregels 12758–12827 | namespace 1 | revisie 7612 | 2009-04-07T15:00:00Z
+- [W001608 — Talk:Disk Images](corpus/wiki-02.md#w001608) · bronregels 7016–7027 | namespace 1 | revisie 4519 | 2007-09-04T20:29:21Z
+- [W002391 — Talk:DMA](corpus/wiki-05.md#w002391) · bronregels 8637–8637 | namespace 1 | revisie 6416 | 2008-10-26T00:25:50Z
+- [W002550 — Talk:Double Buffering](corpus/wiki-05.md#w002550) · bronregels 15621–15638 | namespace 1 | revisie 28547 | 2024-01-04T21:52:42Z
+- [W003024 — Talk:El-Torito](corpus/wiki-07.md#w003024) · bronregels 9635–9767 | namespace 1 | revisie 27085 | 2022-05-13T02:46:07Z
+- [W002266 — Talk:ELF](corpus/wiki-05.md#w002266) · bronregels 1566–1572 | namespace 1 | revisie 22134 | 2018-02-06T19:03:08Z
+- [W002821 — Talk:EM64T](corpus/wiki-06.md#w002821) · bronregels 16421–16427 | namespace 1 | revisie 9979 | 2010-03-29T09:38:58Z
+- [W002573 — Talk:Entering Long Mode Directly](corpus/wiki-06.md#w002573) · bronregels 94–320 | namespace 1 | revisie 13639 | 2012-06-13T15:59:56Z
+- [W004867 — Talk:EPHERFS](corpus/wiki-14.md#w004867) · bronregels 11627–11631 | namespace 1 | revisie 28827 | 2024-05-21T10:45:48Z
+- [W003456 — Talk:Exceptions](corpus/wiki-09.md#w003456) · bronregels 6553–6577 | namespace 1 | revisie 25246 | 2020-10-10T12:32:30Z
+- [W002143 — Talk:Executable Formats](corpus/wiki-04.md#w002143) · bronregels 8688–8690 | namespace 1 | revisie 4419 | 2007-08-28T00:45:03Z
+- [W002855 — Talk:Expanded Main Page](corpus/wiki-06.md#w002855) · bronregels 18018–18024 | namespace 1 | revisie 12711 | 2012-02-19T20:15:39Z
+- [W001510 — Talk:Ext2](corpus/wiki-01.md#w001510) · bronregels 15058–15076 | namespace 1 | revisie 13918 | 2012-08-19T09:51:57Z
+- [W002480 — Talk:Far Call Trick](corpus/wiki-05.md#w002480) · bronregels 11878–11908 | namespace 1 | revisie 6999 | 2009-01-06T02:43:24Z
+- [W003060 — Talk:Fasm-TCC BareBones](corpus/wiki-07.md#w003060) · bronregels 11905–11905 | namespace 1 | revisie 12313 | 2011-12-13T06:07:12Z
+- [W001523 — Talk:FAT](corpus/wiki-02.md#w001523) · bronregels 51–130 | namespace 1 | revisie 28555 | 2024-01-10T16:33:48Z
+- [W004692 — Talk:File Systems](corpus/wiki-14.md#w004692) · bronregels 4411–4428 | namespace 1 | revisie 27016 | 2022-03-28T00:38:58Z
+- [W003116 — Talk:Floating Point Number](corpus/wiki-07.md#w003116) · bronregels 14084–14092 | namespace 1 | revisie 27469 | 2022-10-21T22:56:22Z
+- [W001464 — Talk:Floppy Disk Controller](corpus/wiki-01.md#w001464) · bronregels 9074–9082 | namespace 1 | revisie 4095 | 2007-06-17T11:32:14Z
+- [W002093 — Talk:Floppy Drive Controller](corpus/wiki-04.md#w002093) · bronregels 6448–6448 | namespace 1 | revisie 4096 | 2007-06-17T11:32:14Z
+- [W002001 — Talk:Floppy Driver](corpus/wiki-04.md#w002001) · bronregels 3516–3516 | namespace 1 | revisie 6223 | 2008-08-20T16:11:33Z
+- [W004713 — Talk:Game port](corpus/wiki-14.md#w004713) · bronregels 6042–6046 | namespace 1 | revisie 27212 | 2022-07-07T14:25:10Z
+- [W002691 — Talk:GAS](corpus/wiki-06.md#w002691) · bronregels 6865–6868 | namespace 1 | revisie 8859 | 2009-08-25T10:04:29Z
+- [W002132 — Talk:Gas Intel Howto](corpus/wiki-04.md#w002132) · bronregels 8513–8519 | namespace 1 | revisie 4346 | 2007-08-11T22:40:27Z
+- [W001967 — Talk:GCC Cross-Compiler](corpus/wiki-04.md#w001967) · bronregels 2237–2410 | namespace 1 | revisie 23887 | 2019-09-02T12:38:31Z
+- [W003032 — Talk:GCC Cross-Compiler for x86 64](corpus/wiki-07.md#w003032) · bronregels 10106–10110 | namespace 1 | revisie 11997 | 2011-09-10T21:04:30Z
+- [W003702 — Talk:GCC Cross-Compiler on Gentoo Linux](corpus/wiki-10.md#w003702) · bronregels 14478–14486 | namespace 1 | revisie 7705 | 2009-04-19T12:57:40Z
+- [W003658 — Talk:GCC Stack Smashing Protector](corpus/wiki-10.md#w003658) · bronregels 11682–11682 | namespace 1 | revisie 16951 | 2014-10-22T23:28:49Z
+- [W003206 — Talk:GDT Tutorial](corpus/wiki-08.md#w003206) · bronregels 6154–6164 | namespace 1 | revisie 29756 | 2025-11-12T07:29:01Z
+- [W004375 — Talk:Generic Interrupt Controller](corpus/wiki-13.md#w004375) · bronregels 3123–3123 | namespace 1 | revisie 23524 | 2019-04-01T20:38:34Z
+- [W002019 — Talk:Getting Started](corpus/wiki-04.md#w002019) · bronregels 4082–4109 | namespace 1 | revisie 13497 | 2012-06-04T10:56:57Z
+- [W002615 — Talk:Getting to Ring 3](corpus/wiki-06.md#w002615) · bronregels 2946–2952 | namespace 1 | revisie 12832 | 2012-02-26T07:34:25Z
+- [W003835 — Talk:Getting VBE Mode Info](corpus/wiki-11.md#w003835) · bronregels 4028–4028 | namespace 1 | revisie 18661 | 2015-11-28T17:30:38Z
+- [W002961 — Talk:Global Descriptor Table](corpus/wiki-07.md#w002961) · bronregels 4875–4903 | namespace 1 | revisie 29532 | 2025-06-05T11:27:42Z
+- [W002804 — Talk:GRUB](corpus/wiki-06.md#w002804) · bronregels 13171–13194 | namespace 1 | revisie 19453 | 2016-07-14T15:14:48Z
+- [W003940 — Talk:GRUB 2](corpus/wiki-11.md#w003940) · bronregels 9646–9646 | namespace 1 | revisie 19454 | 2016-07-14T15:14:48Z
+- [W002835 — Talk:Grub Error 13](corpus/wiki-06.md#w002835) · bronregels 17100–17108 | namespace 1 | revisie 10087 | 2010-04-19T13:12:59Z
+- [W002084 — Talk:GRUB Legacy](corpus/wiki-04.md#w002084) · bronregels 6240–6248 | namespace 1 | revisie 19450 | 2016-07-14T15:13:01Z
+- [W002592 — Talk:Gujin](corpus/wiki-06.md#w002592) · bronregels 1043–1055 | namespace 1 | revisie 29408 | 2025-02-17T09:25:56Z
+- [W002038 — Talk:Hardware Abstraction Layer](corpus/wiki-04.md#w002038) · bronregels 4637–4638 | namespace 1 | revisie 3910 | 2007-05-19T21:04:05Z
+- [W002366 — Talk:Hdiutil](corpus/wiki-05.md#w002366) · bronregels 7849–7849 | namespace 1 | revisie 6200 | 2008-08-15T23:18:03Z
+- [W002392 — Talk:Help My Kernel Crashed](corpus/wiki-05.md#w002392) · bronregels 8651–8655 | namespace 1 | revisie 6972 | 2008-12-31T16:52:15Z
+- [W002202 — Talk:Hexadecimal Notation](corpus/wiki-04.md#w002202) · bronregels 10951–10956 | namespace 1 | revisie 4949 | 2007-11-26T09:47:03Z
+- [W002103 — Talk:Higher Half x86 Bare Bones (Backup)](corpus/wiki-04.md#w002103) · bronregels 7030–7069 | namespace 1 | revisie 23156 | 2018-12-27T22:32:10Z
+- [W004389 — Talk:Historical Notes on CISC and RISC](corpus/wiki-13.md#w004389) · bronregels 3957–3959 | namespace 1 | revisie 23684 | 2019-06-11T23:25:35Z
+- [W002137 — Talk:History](corpus/wiki-04.md#w002137) · bronregels 8619–8619 | namespace 1 | revisie 4361 | 2007-08-16T04:22:20Z
+- [W002035 — Talk:How Do I Determine The Amount Of RAM](corpus/wiki-04.md#w002035) · bronregels 4557–4576 | namespace 1 | revisie 5466 | 2008-05-17T20:35:39Z
+- [W002147 — Talk:How Do I Test](corpus/wiki-04.md#w002147) · bronregels 8744–8744 | namespace 1 | revisie 4460 | 2007-08-31T05:50:07Z
+- [W003373 — Talk:How Do I Use A Debugger With My OS](corpus/wiki-09.md#w003373) · bronregels 198–198 | namespace 1 | revisie 14822 | 2013-06-04T05:11:40Z
+- [W001980 — Talk:How kernel, compiler, and C library work together](corpus/wiki-04.md#w001980) · bronregels 2607–2621 | namespace 1 | revisie 4194 | 2007-07-05T20:31:05Z
+- [W002182 — Talk:How To Ask Questions](corpus/wiki-04.md#w002182) · bronregels 10349–10352 | namespace 1 | revisie 4731 | 2007-10-16T22:41:36Z
+- [W002828 — Talk:I use a Custom Filesystem - What Bootloader Solution is right for me?](corpus/wiki-06.md#w002828) · bronregels 16583–16590 | namespace 1 | revisie 14817 | 2013-06-04T04:37:46Z
+- [W003287 — Talk:I8042 PS/2 Controller](corpus/wiki-08.md#w003287) · bronregels 9509–9534 | namespace 1 | revisie 29479 | 2025-04-19T23:56:34Z
+- [W002510 — Talk:IA32 Architecture Family](corpus/wiki-05.md#w002510) · bronregels 13375–13402 | namespace 1 | revisie 12035 | 2011-09-22T08:29:44Z
+- [W003381 — Talk:IDE](corpus/wiki-09.md#w003381) · bronregels 790–790 | namespace 1 | revisie 14932 | 2013-07-12T15:14:16Z
+- [W003088 — Talk:IDT problems](corpus/wiki-07.md#w003088) · bronregels 12505–12505 | namespace 1 | revisie 12585 | 2012-02-09T18:14:54Z
+- [W002191 — Talk:IDT2](corpus/wiki-04.md#w002191) · bronregels 10834–10836 | namespace 1 | revisie 4865 | 2007-11-14T21:43:25Z
+- [W003989 — Talk:Implementing Conditional Statements And Loops](corpus/wiki-11.md#w003989) · bronregels 11482–11482 | namespace 1 | revisie 19917 | 2016-10-27T19:16:50Z
+- [W001863 — Talk:Inline Assembly](corpus/wiki-03.md#w001863) · bronregels 6658–6677 | namespace 1 | revisie 15583 | 2014-02-13T10:21:21Z
+- [W002581 — Talk:Inline Assembly/Examples](corpus/wiki-06.md#w002581) · bronregels 396–448 | namespace 1 | revisie 11312 | 2011-03-22T15:55:58Z
+- [W003951 — Talk:Instruction Set Architecture](corpus/wiki-11.md#w003951) · bronregels 9828–9828 | namespace 1 | revisie 19574 | 2016-07-23T21:48:29Z
+- [W004845 — Talk:Intel Ethernet i217](corpus/wiki-14.md#w004845) · bronregels 10557–10557 | namespace 1 | revisie 28602 | 2024-02-03T18:33:21Z
+- [W003342 — Talk:Intel High Definition Audio](corpus/wiki-08.md#w003342) · bronregels 15831–15841 | namespace 1 | revisie 18528 | 2015-11-11T19:09:14Z
+- [W002025 — Talk:Interrupt Descriptor Table](corpus/wiki-04.md#w002025) · bronregels 4238–4277 | namespace 1 | revisie 29701 | 2025-09-29T21:52:02Z
+- [W002516 — Talk:Interrupt Vector Table](corpus/wiki-05.md#w002516) · bronregels 13593–13602 | namespace 1 | revisie 7404 | 2009-03-23T23:21:12Z
+- [W005061 — Talk:Interrupts](corpus/wiki-14.md#w005061) · bronregels 21271–21271 | namespace 1 | revisie 30758 | 2026-06-15T16:30:27Z
+- [W002129 — Talk:Interrupts For Dummies](corpus/wiki-04.md#w002129) · bronregels 8331–8331 | namespace 1 | revisie 4319 | 2007-07-14T16:14:24Z
+- [W004909 — Talk:Interrupts Tutorial](corpus/wiki-14.md#w004909) · bronregels 12436–12436 | namespace 1 | revisie 29342 | 2025-01-21T12:24:41Z
+- [W003460 — Talk:Introduction](corpus/wiki-09.md#w003460) · bronregels 6997–7001 | namespace 1 | revisie 15681 | 2014-03-01T18:55:09Z
+- [W003425 — Talk:IPC Data Copying methods](corpus/wiki-09.md#w003425) · bronregels 2798–2803 | namespace 1 | revisie 26401 | 2021-09-15T17:43:26Z
+- [W001996 — Talk:ISA DMA](corpus/wiki-04.md#w001996) · bronregels 3296–3316 | namespace 1 | revisie 13333 | 2012-05-07T00:32:29Z
+- [W003412 — Talk:ISO 9660](corpus/wiki-09.md#w003412) · bronregels 2048–2124 | namespace 1 | revisie 15275 | 2013-10-18T08:55:35Z
+- [W003793 — Talk:ISRs PIC And Multitasking](corpus/wiki-11.md#w003793) · bronregels 1119–1124 | namespace 1 | revisie 22158 | 2018-02-21T03:20:42Z
+- [W003696 — Talk:James Molloy's Tutorial Known Bugs](corpus/wiki-10.md#w003696) · bronregels 14238–14248 | namespace 1 | revisie 21729 | 2017-11-21T06:39:19Z
+- [W005089 — Talk:JLoc](corpus/wiki-15.md#w005089) · bronregels 708–708 | namespace 1 | revisie 31015 | 2026-10-12T11:56:53Z
+- [W002958 — Talk:Joliet](corpus/wiki-07.md#w002958) · bronregels 4689–4689 | namespace 1 | revisie 11099 | 2011-01-16T12:41:09Z
+- [W001979 — Talk:Journey To The Protected Land](corpus/wiki-04.md#w001979) · bronregels 2576–2593 | namespace 1 | revisie 21645 | 2017-10-22T21:42:34Z
+- [W002105 — Talk:Kernel Debugging](corpus/wiki-04.md#w002105) · bronregels 7115–7124 | namespace 1 | revisie 14821 | 2013-06-04T05:11:40Z
+- [W004504 — Talk:Kernel Multitasking](corpus/wiki-13.md#w004504) · bronregels 10948–10948 | namespace 1 | revisie 24924 | 2020-06-24T05:48:28Z
+- [W003759 — Talk:Kernel Stdio Theory](corpus/wiki-10.md#w003759) · bronregels 17245–17245 | namespace 1 | revisie 17812 | 2015-03-17T08:15:58Z
+- [W001463 — Talk:Kernels](corpus/wiki-01.md#w001463) · bronregels 9044–9060 | namespace 1 | revisie 2666 | 2007-01-03T09:21:14Z
+- [W002139 — Talk:Keyboard Input](corpus/wiki-04.md#w002139) · bronregels 8633–8633 | namespace 1 | revisie 17656 | 2015-03-01T15:12:20Z
+- [W004609 — Talk:LAI](corpus/wiki-13.md#w004609) · bronregels 16064–16069 | namespace 1 | revisie 26052 | 2021-06-01T14:37:11Z
+- [W004611 — Talk:Lai](corpus/wiki-13.md#w004611) · bronregels 16099–16099 | namespace 1 | revisie 26046 | 2021-06-01T06:03:41Z
+- [W004676 — Talk:Languages](corpus/wiki-14.md#w004676) · bronregels 3210–3211 | namespace 1 | revisie 26719 | 2021-11-29T04:49:03Z
+- [W002115 — Talk:LE](corpus/wiki-04.md#w002115) · bronregels 7293–7294 | namespace 1 | revisie 4257 | 2007-07-10T02:56:18Z
+- [W003659 — Talk:Libgcc without red zone](corpus/wiki-10.md#w003659) · bronregels 11696–11700 | namespace 1 | revisie 16964 | 2014-10-23T19:59:22Z
+- [W001921 — Talk:Library Calls](corpus/wiki-03.md#w001921) · bronregels 14601–14602 | namespace 1 | revisie 3212 | 2007-03-07T10:40:09Z
+- [W003418 — Talk:Libsupcxx](corpus/wiki-09.md#w003418) · bronregels 2506–2512 | namespace 1 | revisie 15363 | 2013-11-04T15:52:20Z
+- [W002361 — Talk:Licensing](corpus/wiki-05.md#w002361) · bronregels 7400–7412 | namespace 1 | revisie 6246 | 2008-08-27T06:08:30Z
+- [W004895 — Talk:Limine Bare Bones](corpus/wiki-14.md#w004895) · bronregels 12170–12171 | namespace 1 | revisie 29169 | 2024-06-29T15:04:05Z
+- [W002109 — Talk:Link Archiver](corpus/wiki-04.md#w002109) · bronregels 7208–7210 | namespace 1 | revisie 4207 | 2007-07-08T20:19:59Z
+- [W002730 — Talk:Linker Scripts](corpus/wiki-06.md#w002730) · bronregels 9144–9158 | namespace 1 | revisie 24202 | 2019-12-26T12:56:03Z
+- [W002208 — Talk:List of editors](corpus/wiki-04.md#w002208) · bronregels 11073–11075 | namespace 1 | revisie 6990 | 2009-01-05T13:32:09Z
+- [W001372 — Talk:List of OS resources](corpus/wiki-01.md#w001372) · bronregels 2273–2273 | namespace 1 | revisie 1375 | 2006-06-17T15:01:54Z
+- [W002969 — Talk:LLVM Cross-Compiler](corpus/wiki-07.md#w002969) · bronregels 5289–5315 | namespace 1 | revisie 21523 | 2017-09-18T11:53:31Z
+- [W004843 — Talk:Loading Icons](corpus/wiki-14.md#w004843) · bronregels 10517–10525 | namespace 1 | revisie 30000 | 2026-02-14T01:57:38Z
+- [W001629 — Talk:Loopback Device](corpus/wiki-02.md#w001629) · bronregels 7452–7469 | namespace 1 | revisie 14896 | 2013-07-03T14:19:10Z
+- [W003652 — Talk:MADT](corpus/wiki-10.md#w003652) · bronregels 11598–11598 | namespace 1 | revisie 16873 | 2014-10-08T21:50:46Z
+- [W001995 — Talk:Main Page](corpus/wiki-04.md#w001995) · bronregels 3253–3282 | namespace 1 | revisie 10367 | 2010-05-25T08:51:06Z
+- [W002852 — Talk:Main Page/archive](corpus/wiki-06.md#w002852) · bronregels 17961–17961 | namespace 1 | revisie 10231 | 2010-05-04T16:27:27Z
+- [W001963 — Talk:Makefile](corpus/wiki-04.md#w001963) · bronregels 1286–1441 | namespace 1 | revisie 19778 | 2016-09-05T11:09:21Z
+- [W003409 — Talk:Making a Compiler](corpus/wiki-09.md#w003409) · bronregels 2003–2004 | namespace 1 | revisie 15214 | 2013-09-30T19:52:20Z
+- [W002423 — Talk:Manual Of Style](corpus/wiki-05.md#w002423) · bronregels 9809–9809 | namespace 1 | revisie 6607 | 2008-11-04T20:12:58Z
+- [W002130 — Talk:MASM](corpus/wiki-04.md#w002130) · bronregels 8345–8360 | namespace 1 | revisie 9740 | 2010-02-10T03:20:14Z
+- [W002304 — Talk:MBR (x86)](corpus/wiki-05.md#w002304) · bronregels 3867–3873 | namespace 1 | revisie 5903 | 2008-07-11T23:24:10Z
+- [W003971 — Talk:Meaty Skeleton](corpus/wiki-11.md#w003971) · bronregels 10776–10824 | namespace 1 | revisie 30810 | 2026-06-22T20:51:37Z
+- [W003027 — Talk:Megalithic Kernel](corpus/wiki-07.md#w003027) · bronregels 9885–9916 | namespace 1 | revisie 29435 | 2025-03-13T14:09:18Z
+- [W003170 — Talk:Memory management](corpus/wiki-08.md#w003170) · bronregels 1664–1664 | namespace 1 | revisie 13172 | 2012-03-28T04:17:26Z
+- [W001987 — Talk:Memory Management2](corpus/wiki-04.md#w001987) · bronregels 2743–2750 | namespace 1 | revisie 4616 | 2007-09-16T22:10:38Z
+- [W002560 — Talk:Memory Map (x86)](corpus/wiki-05.md#w002560) · bronregels 15758–15770 | namespace 1 | revisie 29314 | 2024-11-30T23:37:22Z
+- [W003199 — Talk:Memory mapped registers in C/C++](corpus/wiki-08.md#w003199) · bronregels 6070–6070 | namespace 1 | revisie 13531 | 2012-06-12T15:22:01Z
+- [W001723 — Talk:Message Passing](corpus/wiki-02.md#w001723) · bronregels 11978–11986 | namespace 1 | revisie 2579 | 2006-12-27T05:26:58Z
+- [W003686 — Talk:Microsoft C/C++ Optimizing Compiler Build Environment on Linux](corpus/wiki-10.md#w003686) · bronregels 13518–13518 | namespace 1 | revisie 17178 | 2014-12-01T19:32:25Z
+- [W002963 — Talk:MinGW](corpus/wiki-07.md#w002963) · bronregels 4933–4966 | namespace 1 | revisie 14206 | 2013-01-07T04:12:08Z
+- [W004010 — Talk:Mister Perfect](corpus/wiki-11.md#w004010) · bronregels 14327–14331 | namespace 1 | revisie 20100 | 2017-01-03T09:07:30Z
+- [W003414 — Talk:Mkisofs](corpus/wiki-09.md#w003414) · bronregels 2168–2179 | namespace 1 | revisie 15332 | 2013-10-20T10:07:54Z
+- [W003117 — Talk:MMX](corpus/wiki-07.md#w003117) · bronregels 14106–14108 | namespace 1 | revisie 12821 | 2012-02-23T15:33:57Z
+- [W003952 — Talk:Model Specific Registers](corpus/wiki-11.md#w003952) · bronregels 9842–9842 | namespace 1 | revisie 19576 | 2016-07-23T22:01:39Z
+- [W002385 — Talk:Modular Kernel](corpus/wiki-05.md#w002385) · bronregels 8533–8539 | namespace 1 | revisie 6391 | 2008-10-21T13:41:46Z
+- [W004502 — Talk:Mono Lizzy](corpus/wiki-13.md#w004502) · bronregels 10792–10794 | namespace 1 | revisie 24906 | 2020-06-22T17:39:40Z
+- [W002005 — Talk:Mouse Input](corpus/wiki-04.md#w002005) · bronregels 3616–3658 | namespace 1 | revisie 19246 | 2016-05-18T17:56:53Z
+- [W002544 — Talk:Multi Processors](corpus/wiki-05.md#w002544) · bronregels 15320–15320 | namespace 1 | revisie 7602 | 2009-04-07T10:15:01Z
+- [W004425 — Talk:MZ](corpus/wiki-13.md#w004425) · bronregels 6274–6280 | namespace 1 | revisie 24165 | 2019-12-19T12:32:58Z
+- [W004952 — Talk:Native Intel graphics](corpus/wiki-14.md#w004952) · bronregels 14336–14341 | namespace 1 | revisie 29634 | 2025-08-30T19:58:15Z
+- [W004809 — Talk:NE](corpus/wiki-14.md#w004809) · bronregels 9577–9579 | namespace 1 | revisie 28269 | 2023-08-11T21:40:51Z
+- [W001628 — Talk:Ne2000](corpus/wiki-02.md#w001628) · bronregels 7423–7438 | namespace 1 | revisie 2232 | 2006-12-15T09:15:37Z
+- [W001597 — Talk:Networking](corpus/wiki-02.md#w001597) · bronregels 5898–5908 | namespace 1 | revisie 7595 | 2009-04-06T22:55:27Z
+- [W004474 — Talk:NexArchive](corpus/wiki-13.md#w004474) · bronregels 9184–9184 | namespace 1 | revisie 24567 | 2020-04-06T18:25:39Z
+- [W002114 — Talk:Non Maskable Interrupt](corpus/wiki-04.md#w002114) · bronregels 7264–7279 | namespace 1 | revisie 4265 | 2007-07-10T15:33:39Z
+- [W001768 — Talk:NTFS](corpus/wiki-03.md#w001768) · bronregels 1720–1728 | namespace 1 | revisie 12845 | 2012-02-28T08:02:52Z
+- [W002343 — Talk:Opcode syntax](corpus/wiki-05.md#w002343) · bronregels 5850–5855 | namespace 1 | revisie 22123 | 2018-02-01T01:04:38Z
+- [W002430 — Talk:Optimizing](corpus/wiki-05.md#w002430) · bronregels 10082–10098 | namespace 1 | revisie 7058 | 2009-01-12T16:34:21Z
+- [W002167 — Talk:OS Specific Toolchain](corpus/wiki-04.md#w002167) · bronregels 9664–9761 | namespace 1 | revisie 27466 | 2022-10-11T19:00:38Z
+- [W002174 — Talk:OSFAQ Foreword](corpus/wiki-04.md#w002174) · bronregels 9932–9946 | namespace 1 | revisie 4836 | 2007-11-14T07:03:40Z
+- [W005094 — Talk:OSKit](corpus/wiki-15.md#w005094) · bronregels 802–802 | namespace 1 | revisie 30991 | 2026-09-28T14:57:45Z
+- [W002011 — Talk:OSRC](corpus/wiki-04.md#w002011) · bronregels 3725–3730 | namespace 1 | revisie 12065 | 2011-10-03T12:27:18Z
+- [W002156 — Talk:Other Compilers](corpus/wiki-04.md#w002156) · bronregels 9056–9065 | namespace 1 | revisie 24920 | 2020-06-23T10:14:12Z
+- [W003136 — Talk:Page Fault](corpus/wiki-07.md#w003136) · bronregels 14912–14914 | namespace 1 | revisie 19313 | 2016-06-02T17:47:55Z
+- [W003921 — Talk:Page fault](corpus/wiki-11.md#w003921) · bronregels 8739–8739 | namespace 1 | revisie 19314 | 2016-06-02T17:47:55Z
+- [W002021 — Talk:Page Frame Allocation](corpus/wiki-04.md#w002021) · bronregels 4137–4151 | namespace 1 | revisie 12831 | 2012-02-25T11:58:30Z
+- [W005056 — Talk:Paging](corpus/wiki-14.md#w005056) · bronregels 21195–21195 | namespace 1 | revisie 30738 | 2026-06-12T16:50:24Z
+- [W002250 — Talk:Parallel port](corpus/wiki-05.md#w002250) · bronregels 632–634 | namespace 1 | revisie 5288 | 2008-03-26T09:37:28Z
+- [W003252 — Talk:Partition Table](corpus/wiki-08.md#w003252) · bronregels 7726–7745 | namespace 1 | revisie 27340 | 2022-09-03T18:21:45Z
+- [W002028 — Talk:Pascal](corpus/wiki-04.md#w002028) · bronregels 4321–4322 | namespace 1 | revisie 3719 | 2007-04-26T16:37:20Z
+- [W004347 — Talk:Pascal Bare Bones](corpus/wiki-12.md#w004347) · bronregels 18498–18498 | namespace 1 | revisie 23172 | 2019-01-05T10:09:23Z
+- [W004387 — Talk:PC Speaker](corpus/wiki-13.md#w004387) · bronregels 3825–3830 | namespace 1 | revisie 23755 | 2019-07-11T23:42:26Z
+- [W001689 — Talk:PCI](corpus/wiki-02.md#w001689) · bronregels 8711–8725 | namespace 1 | revisie 10025 | 2010-04-09T07:05:19Z
+- [W002722 — Talk:PCI IDE Controller](corpus/wiki-06.md#w002722) · bronregels 8998–9055 | namespace 1 | revisie 27072 | 2022-05-07T15:10:46Z
+- [W003154 — Talk:PE](corpus/wiki-08.md#w003154) · bronregels 210–210 | namespace 1 | revisie 13058 | 2012-03-22T09:40:22Z
+- [W001951 — Talk:Physical And Virtual Addresses](corpus/wiki-04.md#w001951) · bronregels 113–116 | namespace 1 | revisie 4283 | 2007-07-11T20:13:22Z
+- [W002171 — Talk:Plug-and-Play](corpus/wiki-04.md#w002171) · bronregels 9851–9851 | namespace 1 | revisie 4612 | 2007-09-16T21:24:48Z
+- [W002172 — Talk:Porting Newlib](corpus/wiki-04.md#w002172) · bronregels 9865–9904 | namespace 1 | revisie 25022 | 2020-07-24T20:14:28Z
+- [W002815 — Talk:Porting Python](corpus/wiki-06.md#w002815) · bronregels 16185–16211 | namespace 1 | revisie 9880 | 2010-02-28T08:21:25Z
+- [W004559 — Talk:PowerPC Overview](corpus/wiki-13.md#w004559) · bronregels 13738–13743 | namespace 1 | revisie 25593 | 2021-02-01T01:27:00Z
+- [W003115 — Talk:Print Functions](corpus/wiki-07.md#w003115) · bronregels 14066–14070 | namespace 1 | revisie 12814 | 2012-02-23T09:16:48Z
+- [W003262 — Talk:Printing to Screen](corpus/wiki-08.md#w003262) · bronregels 8112–8112 | namespace 1 | revisie 13827 | 2012-07-17T22:03:51Z
+- [W005033 — Talk:Printing To Screen](corpus/wiki-14.md#w005033) · bronregels 19492–19492 | namespace 1 | revisie 30590 | 2026-05-21T06:16:16Z
+- [W001475 — Talk:Processes and Threads](corpus/wiki-01.md#w001475) · bronregels 9932–9938 | namespace 1 | revisie 1786 | 2006-12-03T15:37:15Z
+- [W003193 — Talk:Programmable Interval Timer](corpus/wiki-08.md#w003193) · bronregels 5896–5905 | namespace 1 | revisie 13472 | 2012-05-30T09:54:52Z
+- [W001376 — Talk:Projects](corpus/wiki-01.md#w001376) · bronregels 2501–2564 | namespace 1 | revisie 21932 | 2017-12-17T15:50:31Z
+- [W001736 — Talk:Protected Mode](corpus/wiki-02.md#w001736) · bronregels 14311–14316 | namespace 1 | revisie 5293 | 2008-03-26T11:37:12Z
+- [W002253 — Talk:Protected mode](corpus/wiki-05.md#w002253) · bronregels 679–679 | namespace 1 | revisie 5294 | 2008-03-26T11:37:12Z
+- [W001977 — Talk:PS/2 Keyboard](corpus/wiki-04.md#w001977) · bronregels 2517–2547 | namespace 1 | revisie 17517 | 2015-02-02T22:00:23Z
+- [W003158 — Talk:PS/2 Mouse](corpus/wiki-08.md#w003158) · bronregels 494–516 | namespace 1 | revisie 13121 | 2012-03-25T05:08:37Z
+- [W003162 — Talk:PS2 Keyboard](corpus/wiki-08.md#w003162) · bronregels 1166–1166 | namespace 1 | revisie 13096 | 2012-03-25T03:40:42Z
+- [W002644 — Talk:PS2 mouse](corpus/wiki-06.md#w002644) · bronregels 3930–3936 | namespace 1 | revisie 8342 | 2009-07-03T18:09:47Z
+- [W003164 — Talk:PS2 Mouse](corpus/wiki-08.md#w003164) · bronregels 1196–1196 | namespace 1 | revisie 13100 | 2012-03-25T03:41:35Z
+- [W002683 — Talk:QEMU](corpus/wiki-06.md#w002683) · bronregels 6398–6402 | namespace 1 | revisie 24092 | 2019-11-07T05:33:15Z
+- [W004750 — Talk:QEMU AArch64 Virt Bare Bones](corpus/wiki-14.md#w004750) · bronregels 8612–8612 | namespace 1 | revisie 27785 | 2023-06-02T02:50:22Z
+- [W004436 — Talk:QEMU Monitor](corpus/wiki-13.md#w004436) · bronregels 7070–7070 | namespace 1 | revisie 28057 | 2023-07-09T20:20:06Z
+- [W004787 — Talk:Qemu Monitor](corpus/wiki-14.md#w004787) · bronregels 9122–9122 | namespace 1 | revisie 28058 | 2023-07-09T20:20:06Z
+- [W002013 — Talk:Quick Links](corpus/wiki-04.md#w002013) · bronregels 3744–3752 | namespace 1 | revisie 4269 | 2007-07-10T17:33:25Z
+- [W003619 — Talk:Random Number Generator](corpus/wiki-10.md#w003619) · bronregels 7016–7023 | namespace 1 | revisie 16614 | 2014-08-15T15:52:30Z
+- [W003315 — Talk:Raspberry Pi](corpus/wiki-08.md#w003315) · bronregels 13013–13043 | namespace 1 | revisie 26588 | 2021-10-24T10:48:56Z
+- [W004398 — Talk:Raspberry Pi 4](corpus/wiki-13.md#w004398) · bronregels 4422–4422 | namespace 1 | revisie 23747 | 2019-07-04T16:29:18Z
+- [W003321 — Talk:Raspberry Pi Bare Bones](corpus/wiki-08.md#w003321) · bronregels 14585–14599 | namespace 1 | revisie 22025 | 2018-01-04T05:27:49Z
+- [W002910 — Talk:Real Mode](corpus/wiki-07.md#w002910) · bronregels 1554–1564 | namespace 1 | revisie 11158 | 2011-02-05T14:24:59Z
+- [W004072 — Talk:Real Mode OS Warning](corpus/wiki-12.md#w004072) · bronregels 2283–2283 | namespace 1 | revisie 23214 | 2019-01-16T06:59:51Z
+- [W003260 — Talk:Reboot](corpus/wiki-08.md#w003260) · bronregels 8080–8082 | namespace 1 | revisie 13805 | 2012-07-15T18:14:34Z
+- [W002938 — Talk:Remote Data Streams](corpus/wiki-07.md#w002938) · bronregels 3376–3378 | namespace 1 | revisie 10923 | 2010-11-05T10:04:28Z
+- [W003110 — Talk:Required Knowledge](corpus/wiki-07.md#w003110) · bronregels 13936–13938 | namespace 1 | revisie 12756 | 2012-02-20T15:31:24Z
+- [W001436 — Talk:Resources](corpus/wiki-01.md#w001436) · bronregels 5503–5571 | namespace 1 | revisie 30944 | 2026-09-08T12:52:27Z
+- [W002178 — Talk:Resources/Archive](corpus/wiki-04.md#w002178) · bronregels 10279–10306 | namespace 1 | revisie 4689 | 2007-09-26T21:00:49Z
+- [W002177 — Talk:Resources/Merge Archive](corpus/wiki-04.md#w002177) · bronregels 10244–10265 | namespace 1 | revisie 4690 | 2007-09-26T21:11:57Z
+- [W002107 — Talk:Rolling Your Own Bootloader](corpus/wiki-04.md#w002107) · bronregels 7152–7173 | namespace 1 | revisie 28678 | 2024-03-01T07:51:54Z
+- [W003651 — Talk:RSDP](corpus/wiki-10.md#w003651) · bronregels 11581–11584 | namespace 1 | revisie 30214 | 2026-03-13T15:13:19Z
+- [W002794 — Talk:RTC](corpus/wiki-06.md#w002794) · bronregels 12671–12677 | namespace 1 | revisie 28424 | 2023-10-24T10:29:46Z
+- [W002061 — Talk:RU:Hardware Abstraction Layer](corpus/wiki-04.md#w002061) · bronregels 4779–4779 | namespace 1 | revisie 3911 | 2007-05-19T21:04:05Z
+- [W004547 — Talk:Scalable Screen Font](corpus/wiki-13.md#w004547) · bronregels 13312–13316 | namespace 1 | revisie 25403 | 2020-12-03T21:07:45Z
+- [W002610 — Talk:Security](corpus/wiki-06.md#w002610) · bronregels 2855–2875 | namespace 1 | revisie 20432 | 2017-02-15T15:35:22Z
+- [W002356 — Talk:Semaphore](corpus/wiki-05.md#w002356) · bronregels 7324–7326 | namespace 1 | revisie 20318 | 2017-02-03T11:19:17Z
+- [W002300 — Talk:Semaphores](corpus/wiki-05.md#w002300) · bronregels 3822–3822 | namespace 1 | revisie 6224 | 2008-08-20T16:12:14Z
+- [W004423 — Talk:Serial Port](corpus/wiki-13.md#w004423) · bronregels 6260–6260 | namespace 1 | revisie 24078 | 2019-11-06T03:38:07Z
+- [W001753 — Talk:Serial Ports](corpus/wiki-03.md#w001753) · bronregels 1217–1278 | namespace 1 | revisie 24029 | 2019-10-05T03:48:19Z
+- [W002841 — Talk:Serial ports](corpus/wiki-06.md#w002841) · bronregels 17283–17283 | namespace 1 | revisie 10121 | 2010-04-26T19:04:13Z
+- [W002856 — Talk:Setting Up Long Mode](corpus/wiki-06.md#w002856) · bronregels 18038–18060 | namespace 1 | revisie 29581 | 2025-07-05T15:20:29Z
+- [W002265 — Talk:Setting Up Paging](corpus/wiki-05.md#w002265) · bronregels 1527–1552 | namespace 1 | revisie 19640 | 2016-08-01T06:50:43Z
+- [W002908 — Talk:SFS](corpus/wiki-07.md#w002908) · bronregels 1426–1445 | namespace 1 | revisie 12180 | 2011-11-14T00:49:47Z
+- [W004957 — Talk:Shutdown](corpus/wiki-14.md#w004957) · bronregels 14762–14784 | namespace 1 | revisie 29705 | 2025-10-11T21:27:15Z
+- [W002441 — Talk:Simple Scalable Fonts](corpus/wiki-05.md#w002441) · bronregels 10815–10815 | namespace 1 | revisie 6762 | 2008-11-27T00:25:10Z
+- [W002859 — Talk:Solar/NewIntro](corpus/wiki-06.md#w002859) · bronregels 18185–18185 | namespace 1 | revisie 10271 | 2010-05-06T14:28:11Z
+- [W003042 — Talk:Sparc Barebones](corpus/wiki-07.md#w003042) · bronregels 10645–10647 | namespace 1 | revisie 12137 | 2011-10-25T04:52:28Z
+- [W002166 — Talk:Specifications](corpus/wiki-04.md#w002166) · bronregels 9650–9650 | namespace 1 | revisie 4553 | 2007-09-11T05:33:04Z
+- [W005022 — Talk:SSL/TLS](corpus/wiki-14.md#w005022) · bronregels 18839–18855 | namespace 1 | revisie 30464 | 2026-04-08T07:36:59Z
+- [W002452 — Talk:Stack](corpus/wiki-05.md#w002452) · bronregels 11392–11402 | namespace 1 | revisie 14546 | 2013-03-28T12:12:07Z
+- [W002896 — Talk:Stack Smashing Protector](corpus/wiki-07.md#w002896) · bronregels 1193–1197 | namespace 1 | revisie 16950 | 2014-10-22T23:28:49Z
+- [W002514 — Talk:Stack Trace](corpus/wiki-05.md#w002514) · bronregels 13558–13564 | namespace 1 | revisie 27647 | 2023-03-01T23:46:55Z
+- [W001462 — Talk:Storage](corpus/wiki-01.md#w001462) · bronregels 9023–9030 | namespace 1 | revisie 5057 | 2008-01-22T07:49:35Z
+- [W004328 — Talk:SUBLEQ](corpus/wiki-12.md#w004328) · bronregels 17489–17489 | namespace 1 | revisie 22993 | 2018-09-27T06:12:40Z
+- [W002004 — Talk:Symmetric Multiprocessing](corpus/wiki-04.md#w002004) · bronregels 3600–3602 | namespace 1 | revisie 7601 | 2009-04-07T10:15:01Z
+- [W002302 — Talk:Synchronisation Primitives](corpus/wiki-05.md#w002302) · bronregels 3837–3837 | namespace 1 | revisie 5602 | 2008-06-04T19:53:14Z
+- [W002228 — Talk:Synchronization Primitives](corpus/wiki-04.md#w002228) · bronregels 12336–12337 | namespace 1 | revisie 5601 | 2008-06-04T19:53:14Z
+- [W002220 — Talk:System Calls](corpus/wiki-04.md#w002220) · bronregels 11939–11971 | namespace 1 | revisie 29764 | 2025-11-16T13:49:32Z
+- [W004410 — Talk:Tail Recursion and Tail Call Optimization](corpus/wiki-13.md#w004410) · bronregels 4959–4962 | namespace 1 | revisie 27026 | 2022-04-02T23:31:42Z
+- [W003195 — Talk:Tar](corpus/wiki-08.md#w003195) · bronregels 5977–5985 | namespace 1 | revisie 23338 | 2019-02-05T13:00:53Z
+- [W003056 — Talk:TCC](corpus/wiki-07.md#w003056) · bronregels 11763–11772 | namespace 1 | revisie 12428 | 2012-01-16T12:03:59Z
+- [W002117 — Talk:Testing](corpus/wiki-04.md#w002117) · bronregels 7343–7346 | namespace 1 | revisie 4459 | 2007-08-31T05:50:07Z
+- [W002008 — Talk:Text Mode Cursor](corpus/wiki-04.md#w002008) · bronregels 3704–3711 | namespace 1 | revisie 20594 | 2017-03-19T06:24:33Z
+- [W001576 — Talk:Text UI](corpus/wiki-02.md#w001576) · bronregels 5323–5339 | namespace 1 | revisie 14055 | 2012-10-23T09:58:12Z
+- [W003908 — Talk:TFS](corpus/wiki-11.md#w003908) · bronregels 7935–7935 | namespace 1 | revisie 20693 | 2017-04-10T17:46:58Z
+- [W002144 — Talk:Time And Date](corpus/wiki-04.md#w002144) · bronregels 8704–8714 | namespace 1 | revisie 7836 | 2009-05-02T23:19:50Z
+- [W005066 — Talk:Timer Interrupt Sources](corpus/wiki-14.md#w005066) · bronregels 21666–21668 | namespace 1 | revisie 30769 | 2026-06-17T09:40:03Z
+- [W001437 — Talk:Tool Comparison](corpus/wiki-01.md#w001437) · bronregels 5585–5621 | namespace 1 | revisie 14085 | 2012-11-17T16:17:24Z
+- [W002472 — Talk:Triple Fault](corpus/wiki-05.md#w002472) · bronregels 11500–11509 | namespace 1 | revisie 9627 | 2010-01-15T22:36:06Z
+- [W002954 — Talk:Tutorial:C Kernel](corpus/wiki-07.md#w002954) · bronregels 4544–4544 | namespace 1 | revisie 11086 | 2011-01-07T12:17:41Z
+- [W002382 — Talk:Tutorials](corpus/wiki-05.md#w002382) · bronregels 8487–8501 | namespace 1 | revisie 16770 | 2014-09-20T03:25:07Z
+- [W004256 — Talk:UDI Environment](corpus/wiki-12.md#w004256) · bronregels 9327–9336 | namespace 1 | revisie 22111 | 2018-01-20T13:29:32Z
+- [W003025 — Talk:UEFI](corpus/wiki-07.md#w003025) · bronregels 9781–9850 | namespace 1 | revisie 26410 | 2021-09-20T13:41:15Z
+- [W004403 — Talk:UEFI App Bare Bones](corpus/wiki-13.md#w004403) · bronregels 4712–4730 | namespace 1 | revisie 25171 | 2020-09-17T15:41:39Z
+- [W004527 — Talk:UEFI Bare Bones](corpus/wiki-13.md#w004527) · bronregels 12229–12229 | namespace 1 | revisie 25172 | 2020-09-17T15:41:39Z
+- [W002149 — Talk:Unit Testing](corpus/wiki-04.md#w002149) · bronregels 8774–8783 | namespace 1 | revisie 13802 | 2012-07-10T15:08:52Z
+- [W002120 — Talk:Universal Serial Bus](corpus/wiki-04.md#w002120) · bronregels 7399–7417 | namespace 1 | revisie 9590 | 2010-01-08T07:11:21Z
+- [W002788 — Talk:USB](corpus/wiki-06.md#w002788) · bronregels 11246–11246 | namespace 1 | revisie 9591 | 2010-01-08T07:11:21Z
+- [W002118 — Talk:USB Tutorial](corpus/wiki-04.md#w002118) · bronregels 7360–7360 | namespace 1 | revisie 4262 | 2007-07-10T03:18:41Z
+- [W004546 — Talk:Using UEFI Runtime Services in your Kernel](corpus/wiki-13.md#w004546) · bronregels 13296–13298 | namespace 1 | revisie 25398 | 2020-12-01T04:11:32Z
+- [W002826 — Talk:VAL](corpus/wiki-06.md#w002826) · bronregels 16515–16517 | namespace 1 | revisie 10005 | 2010-03-31T21:58:43Z
+- [W003438 — Talk:VESA Video Modes](corpus/wiki-09.md#w003438) · bronregels 3676–3682 | namespace 1 | revisie 18660 | 2015-11-28T17:30:38Z
+- [W004603 — Talk:VFS](corpus/wiki-13.md#w004603) · bronregels 15757–15758 | namespace 1 | revisie 26027 | 2021-05-31T00:32:41Z
+- [W001802 — Talk:VGA Hardware](corpus/wiki-03.md#w001802) · bronregels 4434–4510 | namespace 1 | revisie 12345 | 2011-12-16T08:46:56Z
+- [W002121 — Talk:VGA Text Mode](corpus/wiki-04.md#w002121) · bronregels 7431–7446 | namespace 1 | revisie 30589 | 2026-05-21T06:16:16Z
+- [W004363 — Talk:Virtio](corpus/wiki-13.md#w004363) · bronregels 2269–2271 | namespace 1 | revisie 23364 | 2019-02-12T11:07:23Z
+- [W002693 — Talk:Virtual Box](corpus/wiki-06.md#w002693) · bronregels 6898–6898 | namespace 1 | revisie 8842 | 2009-08-23T23:19:27Z
+- [W002098 — Talk:VirtualBox](corpus/wiki-04.md#w002098) · bronregels 6733–6736 | namespace 1 | revisie 13259 | 2012-04-27T22:02:20Z
+- [W002518 — Talk:Visual Studio](corpus/wiki-05.md#w002518) · bronregels 13631–13641 | namespace 1 | revisie 17865 | 2015-04-07T13:39:08Z
+- [W001974 — Talk:VMware](corpus/wiki-04.md#w001974) · bronregels 2438–2458 | namespace 1 | revisie 14602 | 2013-04-30T11:22:02Z
+- [W003347 — Talk:VMWare](corpus/wiki-08.md#w003347) · bronregels 16440–16440 | namespace 1 | revisie 14603 | 2013-04-30T11:22:02Z
+- [W002036 — Talk:Volatile (keyword)](corpus/wiki-04.md#w002036) · bronregels 4590–4602 | namespace 1 | revisie 7053 | 2009-01-12T15:06:56Z
+- [W004315 — Talk:What order should I make things in](corpus/wiki-12.md#w004315) · bronregels 16523–16523 | namespace 1 | revisie 22843 | 2018-09-14T22:53:18Z
+- [W002268 — Talk:What Order Should I Make Things In?](corpus/wiki-05.md#w002268) · bronregels 1600–1637 | namespace 1 | revisie 22842 | 2018-09-14T22:53:18Z
+- [W003072 — Talk:What order should I make things in?](corpus/wiki-07.md#w003072) · bronregels 12086–12086 | namespace 1 | revisie 26302 | 2021-08-12T22:59:59Z
+- [W002976 — Talk:Why do I need a Cross Compiler?](corpus/wiki-07.md#w002976) · bronregels 5566–5632 | namespace 1 | revisie 15521 | 2014-01-07T16:14:48Z
+- [W003419 — Talk:Win95 DOS Call](corpus/wiki-09.md#w003419) · bronregels 2526–2530 | namespace 1 | revisie 15399 | 2013-11-11T07:13:08Z
+- [W003082 — Talk:Windows Virtual PC](corpus/wiki-07.md#w003082) · bronregels 12424–12428 | namespace 1 | revisie 12550 | 2012-02-06T07:55:29Z
+- [W002158 — Talk:WinImage](corpus/wiki-04.md#w002158) · bronregels 9094–9095 | namespace 1 | revisie 4497 | 2007-09-01T00:48:55Z
+- [W001944 — Talk:Wish List](corpus/wiki-03.md#w001944) · bronregels 15780–15809 | namespace 1 | revisie 30277 | 2026-03-16T17:56:50Z
+- [W002506 — Talk:Wish List/Archive](corpus/wiki-05.md#w002506) · bronregels 13198–13243 | namespace 1 | revisie 16356 | 2014-05-09T12:46:01Z
+- [W002590 — Talk:Writing A Page Frame Allocator](corpus/wiki-06.md#w002590) · bronregels 1011–1011 | namespace 1 | revisie 7941 | 2009-05-11T14:17:34Z
+- [W005065 — Talk:X86 Cooperative Multitasking Tutorial](corpus/wiki-14.md#w005065) · bronregels 21652–21652 | namespace 1 | revisie 30766 | 2026-06-16T15:01:23Z
+- [W002002 — Talk:X86 Interrupts](corpus/wiki-04.md#w002002) · bronregels 3530–3553 | namespace 1 | revisie 30757 | 2026-06-15T16:30:27Z
+- [W005054 — Talk:X86 Page Tables](corpus/wiki-14.md#w005054) · bronregels 21155–21165 | namespace 1 | revisie 30734 | 2026-06-12T16:24:55Z
+- [W002123 — Talk:X86 Paging](corpus/wiki-04.md#w002123) · bronregels 7850–7867 | namespace 1 | revisie 30737 | 2026-06-12T16:50:24Z
+- [W001449 — Talk:X86-64](corpus/wiki-01.md#w001449) · bronregels 6801–6805 | namespace 1 | revisie 1686 | 2006-11-30T20:19:58Z
+- [W004811 — Talk:XSDP](corpus/wiki-14.md#w004811) · bronregels 9608–9608 | namespace 1 | revisie 28280 | 2023-08-16T14:47:18Z
+- [W003057 — Tar](corpus/wiki-07.md#w003057) · bronregels 11786–11875 | namespace 0 | revisie 28704 | 2024-03-17T18:03:23Z
+- [W003420 — Target Triplet](corpus/wiki-09.md#w003420) · bronregels 2544–2606 | namespace 0 | revisie 30316 | 2026-03-17T19:01:58Z
+- [W002698 — Task](corpus/wiki-06.md#w002698) · bronregels 7010–7010 | namespace 0 | revisie 8877 | 2009-08-26T04:29:33Z
+- [W002018 — Task State Segment](corpus/wiki-04.md#w002018) · bronregels 3830–4068 | namespace 0 | revisie 28134 | 2023-07-10T02:49:00Z
+- [W002101 — TASM](corpus/wiki-04.md#w002101) · bronregels 6966–6989 | namespace 0 | revisie 28483 | 2023-11-28T07:05:58Z
+- [W002690 — TCC](corpus/wiki-06.md#w002690) · bronregels 6575–6851 | namespace 0 | revisie 30317 | 2026-03-17T19:03:16Z
+- [W004681 — Technical Specifications](corpus/wiki-14.md#w004681) · bronregels 3666–3915 | namespace 0 | revisie 30169 | 2026-03-09T16:31:17Z
+- [W002359 — Template talk:File formats](corpus/wiki-05.md#w002359) · bronregels 7371–7372 | namespace 11 | revisie 12910 | 2012-03-05T19:35:36Z
+- [W002474 — Template talk:In Progress](corpus/wiki-05.md#w002474) · bronregels 11538–11540 | namespace 11 | revisie 6939 | 2008-12-24T01:49:52Z
+- [W001595 — Template talk:Infobox Instruction](corpus/wiki-02.md#w001595) · bronregels 5869–5884 | namespace 11 | revisie 7021 | 2009-01-08T12:33:10Z
+- [W004478 — Template talk:Infobox Project](corpus/wiki-13.md#w004478) · bronregels 10050–10050 | namespace 11 | revisie 24611 | 2020-04-19T21:58:35Z
+- [W002339 — Template talk:SmallNavBox](corpus/wiki-05.md#w002339) · bronregels 5211–5211 | namespace 11 | revisie 5824 | 2008-07-06T18:34:53Z
+- [W004022 — Template talk:Tone](corpus/wiki-11.md#w004022) · bronregels 15280–15280 | namespace 11 | revisie 20293 | 2017-01-26T21:02:48Z
+- [W003395 — Template:=](corpus/wiki-09.md#w003395) · bronregels 1098–1098 | namespace 10 | revisie 15064 | 2013-08-10T05:54:42Z
+- [W004921 — Template:Abbr](corpus/wiki-14.md#w004921) · bronregels 13249–13249 | namespace 10 | revisie 29449 | 2025-04-01T23:09:27Z
+- [W004309 — Template:According to who](corpus/wiki-12.md#w004309) · bronregels 16450–16450 | namespace 10 | revisie 22783 | 2018-09-10T04:24:20Z
+- [W004800 — Template:ACPI](corpus/wiki-14.md#w004800) · bronregels 9308–9342 | namespace 10 | revisie 31013 | 2026-10-11T16:58:10Z
+- [W005037 — Template:AdmonitionCaution](corpus/wiki-14.md#w005037) · bronregels 19559–19561 | namespace 10 | revisie 30619 | 2026-05-24T14:58:49Z
+- [W005036 — Template:AdmonitionNote](corpus/wiki-14.md#w005036) · bronregels 19543–19545 | namespace 10 | revisie 30617 | 2026-05-24T14:48:26Z
+- [W002548 — Template:Anchor](corpus/wiki-05.md#w002548) · bronregels 15587–15587 | namespace 10 | revisie 12731 | 2012-02-19T20:31:03Z
+- [W003640 — Template:BadPractice](corpus/wiki-10.md#w003640) · bronregels 11231–11241 | namespace 10 | revisie 30609 | 2026-05-22T14:08:40Z
+- [W004306 — Template:BeginnersWarning](corpus/wiki-12.md#w004306) · bronregels 16406–16406 | namespace 10 | revisie 28953 | 2024-06-06T17:16:16Z
+- [W004296 — Template:Bias](corpus/wiki-12.md#w004296) · bronregels 16260–16264 | namespace 10 | revisie 22950 | 2018-09-25T20:01:30Z
+- [W001568 — Template:Book](corpus/wiki-02.md#w001568) · bronregels 4387–4403 | namespace 10 | revisie 24238 | 2020-01-03T03:34:51Z
+- [W001652 — Template:Box](corpus/wiki-02.md#w001652) · bronregels 7662–7667 | namespace 10 | revisie 12730 | 2012-02-19T20:30:37Z
+- [W004041 — Template:Cat main](corpus/wiki-11.md#w004041) · bronregels 16439–16439 | namespace 10 | revisie 20582 | 2017-03-14T03:32:00Z
+- [W002077 — Template:CloserInspectionIncomprehensible](corpus/wiki-04.md#w002077) · bronregels 6148–6148 | namespace 10 | revisie 12735 | 2012-02-19T20:32:46Z
+- [W002073 — Template:CloserInspectionValidity](corpus/wiki-04.md#w002073) · bronregels 4970–4970 | namespace 10 | revisie 12736 | 2012-02-19T20:33:03Z
+- [W003387 — Template:CloserInspectionValidityNew](corpus/wiki-09.md#w003387) · bronregels 893–893 | namespace 10 | revisie 14990 | 2013-08-03T22:05:57Z
+- [W002198 — Template:Conversion](corpus/wiki-04.md#w002198) · bronregels 10921–10921 | namespace 10 | revisie 4905 | 2007-11-20T09:37:39Z
+- [W001864 — Template:Convert](corpus/wiki-03.md#w001864) · bronregels 6691–6716 | namespace 10 | revisie 12732 | 2012-02-19T20:31:36Z
+- [W004318 — Template:DiscussThis](corpus/wiki-12.md#w004318) · bronregels 16565–16565 | namespace 10 | revisie 22868 | 2018-09-14T23:24:23Z
+- [W001794 — Template:Disputed](corpus/wiki-03.md#w001794) · bronregels 3346–3353 | namespace 10 | revisie 22865 | 2018-09-14T23:21:50Z
+- [W005016 — Template:Distinguish](corpus/wiki-14.md#w005016) · bronregels 18257–18257 | namespace 10 | revisie 30368 | 2026-03-22T22:57:00Z
+- [W004300 — Template:EditThis](corpus/wiki-12.md#w004300) · bronregels 16306–16306 | namespace 10 | revisie 22720 | 2018-09-10T02:32:44Z
+- [W003048 — Template:Emulators](corpus/wiki-07.md#w003048) · bronregels 10824–10846 | namespace 10 | revisie 14612 | 2013-04-30T11:31:40Z
+- [W002085 — Template:Eq](corpus/wiki-04.md#w002085) · bronregels 6262–6262 | namespace 10 | revisie 28982 | 2024-06-06T17:23:28Z
+- [W002086 — Template:Eq1](corpus/wiki-04.md#w002086) · bronregels 6276–6276 | namespace 10 | revisie 12737 | 2012-02-19T20:33:37Z
+- [W002336 — Template:File formats](corpus/wiki-05.md#w002336) · bronregels 5137–5167 | namespace 10 | revisie 28181 | 2023-07-10T16:53:03Z
+- [W002329 — Template:Filesystems](corpus/wiki-05.md#w002329) · bronregels 4395–4442 | namespace 10 | revisie 28985 | 2024-06-06T17:23:37Z
+- [W004293 — Template:FirstPerson](corpus/wiki-12.md#w004293) · bronregels 16214–16216 | namespace 10 | revisie 28981 | 2024-06-06T17:23:25Z
+- [W004892 — Template:Flex columns](corpus/wiki-14.md#w004892) · bronregels 12110–12110 | namespace 10 | revisie 29136 | 2024-06-22T22:42:20Z
+- [W003096 — Template:Floats](corpus/wiki-07.md#w003096) · bronregels 13567–13581 | namespace 10 | revisie 20106 | 2017-01-06T15:48:45Z
+- [W001397 — Template:Hardware](corpus/wiki-01.md#w001397) · bronregels 3147–3157 | namespace 10 | revisie 10171 | 2010-04-28T20:28:30Z
+- [W001653 — Template:Help Us](corpus/wiki-02.md#w001653) · bronregels 7681–7683 | namespace 10 | revisie 29141 | 2024-06-22T23:00:45Z
+- [W004680 — Template:Historical](corpus/wiki-14.md#w004680) · bronregels 3642–3652 | namespace 10 | revisie 26762 | 2021-12-19T06:45:36Z
+- [W004298 — Template:How](corpus/wiki-12.md#w004298) · bronregels 16292–16292 | namespace 10 | revisie 22709 | 2018-09-10T02:08:24Z
+- [W003391 — Template:Humor](corpus/wiki-09.md#w003391) · bronregels 950–959 | namespace 10 | revisie 28993 | 2024-06-06T17:27:27Z
+- [W001558 — Template:If](corpus/wiki-02.md#w001558) · bronregels 3703–3706 | namespace 10 | revisie 29029 | 2024-06-06T20:16:17Z
+- [W001408 — Template:In Progress](corpus/wiki-01.md#w001408) · bronregels 3722–3731 | namespace 10 | revisie 22717 | 2018-09-10T02:23:01Z
+- [W001589 — Template:Infobox Instruction](corpus/wiki-02.md#w001589) · bronregels 5847–5855 | namespace 10 | revisie 7020 | 2009-01-08T12:29:20Z
+- [W003393 — Template:Infobox Project](corpus/wiki-09.md#w003393) · bronregels 1020–1033 | namespace 10 | revisie 15085 | 2013-08-10T06:19:03Z
+- [W001559 — Template:Infobox Tool](corpus/wiki-02.md#w001559) · bronregels 3720–3727 | namespace 10 | revisie 15042 | 2013-08-10T05:44:48Z
+- [W001782 — Template:Infobox Tutorial](corpus/wiki-03.md#w001782) · bronregels 2938–2948 | namespace 10 | revisie 3888 | 2007-05-18T03:19:12Z
+- [W002089 — Template:IntelManualLink](corpus/wiki-04.md#w002089) · bronregels 6318–6318 | namespace 10 | revisie 4089 | 2007-06-17T07:14:47Z
+- [W002088 — Template:IntelManualURL](corpus/wiki-04.md#w002088) · bronregels 6304–6304 | namespace 10 | revisie 30067 | 2026-02-23T22:00:28Z
+- [W002388 — Template:Kernel designs](corpus/wiki-05.md#w002388) · bronregels 8584–8607 | namespace 10 | revisie 30814 | 2026-06-23T19:26:21Z
+- [W001392 — Template:Languages](corpus/wiki-01.md#w001392) · bronregels 3062–3066 | namespace 10 | revisie 10172 | 2010-04-28T20:28:39Z
+- [W003689 — Template:Lovecraftian](corpus/wiki-10.md#w003689) · bronregels 13622–13634 | namespace 10 | revisie 17231 | 2014-12-02T22:26:32Z
+- [W001400 — Template:Main](corpus/wiki-01.md#w001400) · bronregels 3201–3201 | namespace 10 | revisie 28974 | 2024-06-06T17:21:20Z
+- [W002293 — Template:Main2/Design Considerations](corpus/wiki-05.md#w002293) · bronregels 3681–3729 | namespace 10 | revisie 29988 | 2026-02-13T17:23:57Z
+- [W002289 — Template:Main2/Hardware](corpus/wiki-05.md#w002289) · bronregels 3314–3491 | namespace 10 | revisie 30852 | 2026-07-06T21:43:13Z
+- [W002291 — Template:Main2/Introduction](corpus/wiki-05.md#w002291) · bronregels 3527–3593 | namespace 10 | revisie 27394 | 2022-09-11T06:21:11Z
+- [W002288 — Template:Main2/Reference Information](corpus/wiki-05.md#w002288) · bronregels 3279–3300 | namespace 10 | revisie 26349 | 2021-08-20T00:38:47Z
+- [W002290 — Template:Main2/Resources](corpus/wiki-05.md#w002290) · bronregels 3505–3513 | namespace 10 | revisie 19163 | 2016-05-08T23:32:47Z
+- [W002292 — Template:Main2/Tools](corpus/wiki-05.md#w002292) · bronregels 3607–3667 | namespace 10 | revisie 27455 | 2022-10-05T01:04:11Z
+- [W002509 — Template:Maybe](corpus/wiki-05.md#w002509) · bronregels 13361–13361 | namespace 10 | revisie 10198 | 2010-05-01T14:29:10Z
+- [W002087 — Template:Month](corpus/wiki-04.md#w002087) · bronregels 6290–6290 | namespace 10 | revisie 4075 | 2007-06-08T20:43:45Z
+- [W004317 — Template:More References](corpus/wiki-12.md#w004317) · bronregels 16551–16551 | namespace 10 | revisie 22854 | 2018-09-14T23:10:08Z
+- [W004922 — Template:Na](corpus/wiki-14.md#w004922) · bronregels 13263–13263 | namespace 10 | revisie 29450 | 2025-04-01T23:10:35Z
+- [W003645 — Template:Navigation](corpus/wiki-10.md#w003645) · bronregels 11497–11503 | namespace 10 | revisie 16843 | 2014-10-03T11:11:50Z
+- [W001851 — Template:NeedsReview](corpus/wiki-03.md#w001851) · bronregels 5990–5996 | namespace 10 | revisie 3091 | 2007-02-27T14:02:19Z
+- [W001404 — Template:No](corpus/wiki-01.md#w001404) · bronregels 3258–3258 | namespace 10 | revisie 16083 | 2014-04-12T01:44:43Z
+- [W002294 — Template:NocatBox](corpus/wiki-05.md#w002294) · bronregels 3743–3746 | namespace 10 | revisie 5688 | 2008-06-21T18:12:39Z
+- [W001407 — Template:Note](corpus/wiki-01.md#w001407) · bronregels 3693–3708 | namespace 10 | revisie 8449 | 2009-07-09T19:31:23Z
+- [W004305 — Template:NoteBox](corpus/wiki-12.md#w004305) · bronregels 16387–16392 | namespace 10 | revisie 22788 | 2018-09-10T04:40:16Z
+- [W004295 — Template:Opinion](corpus/wiki-12.md#w004295) · bronregels 16244–16246 | namespace 10 | revisie 22746 | 2018-09-10T03:20:07Z
+- [W001389 — Template:OS Development](corpus/wiki-01.md#w001389) · bronregels 3002–3008 | namespace 10 | revisie 10173 | 2010-04-28T20:28:52Z
+- [W002297 — Template:OS development](corpus/wiki-05.md#w002297) · bronregels 3777–3777 | namespace 10 | revisie 5590 | 2008-06-04T19:33:05Z
+- [W001395 — Template:OS theory](corpus/wiki-01.md#w001395) · bronregels 3122–3133 | namespace 10 | revisie 10174 | 2010-04-28T20:29:01Z
+- [W001622 — Template:OS Theory](corpus/wiki-02.md#w001622) · bronregels 7150–7150 | namespace 10 | revisie 2175 | 2006-12-14T01:59:08Z
+- [W001733 — Template:OSFaq](corpus/wiki-02.md#w001733) · bronregels 14282–14297 | namespace 10 | revisie 2629 | 2006-12-31T07:34:17Z
+- [W003386 — Template:OSProject](corpus/wiki-09.md#w003386) · bronregels 860–879 | namespace 10 | revisie 28881 | 2024-05-28T08:16:07Z
+- [W002065 — Template:OSProjectEntry](corpus/wiki-04.md#w002065) · bronregels 4921–4928 | namespace 10 | revisie 21851 | 2017-12-13T15:34:59Z
+- [W002677 — Template:Outdated](corpus/wiki-06.md#w002677) · bronregels 6072–6079 | namespace 10 | revisie 30749 | 2026-06-14T21:53:09Z
+- [W005093 — Template:ProposedDeletion](corpus/wiki-15.md#w005093) · bronregels 786–788 | namespace 10 | revisie 30989 | 2026-09-28T14:52:35Z
+- [W001417 — Template:Quotation](corpus/wiki-01.md#w001417) · bronregels 3973–3980 | namespace 10 | revisie 28987 | 2024-06-06T17:24:22Z
+- [W003349 — Template:Quote](corpus/wiki-08.md#w003349) · bronregels 16454–16456 | namespace 10 | revisie 14615 | 2013-04-30T11:46:58Z
+- [W002411 — Template:Rating](corpus/wiki-05.md#w002411) · bronregels 9402–9419 | namespace 10 | revisie 28968 | 2024-06-06T17:18:57Z
+- [W002413 — Template:Ratingicon](corpus/wiki-05.md#w002413) · bronregels 9487–9500 | namespace 10 | revisie 6557 | 2008-11-03T16:24:30Z
+- [W001406 — Template:Ref](corpus/wiki-01.md#w001406) · bronregels 3679–3679 | namespace 10 | revisie 1570 | 2006-11-27T08:40:06Z
+- [W001394 — Template:Resources](corpus/wiki-01.md#w001394) · bronregels 3102–3108 | namespace 10 | revisie 19157 | 2016-05-08T21:14:44Z
+- [W004302 — Template:Rude](corpus/wiki-12.md#w004302) · bronregels 16338–16340 | namespace 10 | revisie 22745 | 2018-09-10T03:18:50Z
+- [W004319 — Template:Says who](corpus/wiki-12.md#w004319) · bronregels 16579–16579 | namespace 10 | revisie 22876 | 2018-09-14T23:32:22Z
+- [W001557 — Template:Show1](corpus/wiki-02.md#w001557) · bronregels 3689–3689 | namespace 10 | revisie 28994 | 2024-06-06T17:27:30Z
+- [W002325 — Template:SmallNavBox](corpus/wiki-05.md#w002325) · bronregels 4328–4364 | namespace 10 | revisie 29007 | 2024-06-06T17:30:42Z
+- [W004316 — Template:Sole Editor](corpus/wiki-12.md#w004316) · bronregels 16537–16537 | namespace 10 | revisie 22852 | 2018-09-14T23:04:57Z
+- [W004312 — Template:Spelling](corpus/wiki-12.md#w004312) · bronregels 16493–16493 | namespace 10 | revisie 22816 | 2018-09-10T05:32:00Z
+- [W001513 — Template:Stub](corpus/wiki-01.md#w001513) · bronregels 15277–15286 | namespace 10 | revisie 29006 | 2024-06-06T17:30:33Z
+- [W002303 — Template:Stylenav](corpus/wiki-05.md#w002303) · bronregels 3851–3853 | namespace 10 | revisie 10138 | 2010-04-26T19:42:17Z
+- [W004021 — Template:Tone](corpus/wiki-11.md#w004021) · bronregels 15264–15266 | namespace 10 | revisie 22744 | 2018-09-10T03:18:26Z
+- [W001393 — Template:Tools](corpus/wiki-01.md#w001393) · bronregels 3080–3088 | namespace 10 | revisie 10176 | 2010-04-28T20:29:36Z
+- [W003080 — Template:Troubleshooting](corpus/wiki-07.md#w003080) · bronregels 12388–12395 | namespace 10 | revisie 15665 | 2014-02-26T22:39:00Z
+- [W004307 — Template:TutorialExplain](corpus/wiki-12.md#w004307) · bronregels 16420–16420 | namespace 10 | revisie 22770 | 2018-09-10T03:50:43Z
+- [W004301 — Template:TutorialTone](corpus/wiki-12.md#w004301) · bronregels 16320–16324 | namespace 10 | revisie 22721 | 2018-09-10T02:33:53Z
+- [W004923 — Template:Unknown](corpus/wiki-14.md#w004923) · bronregels 13277–13277 | namespace 10 | revisie 29451 | 2025-04-01T23:10:51Z
+- [W003093 — Template:Video warning](corpus/wiki-07.md#w003093) · bronregels 13530–13538 | namespace 10 | revisie 12610 | 2012-02-16T13:37:18Z
+- [W004303 — Template:Warning](corpus/wiki-12.md#w004303) · bronregels 16354–16359 | namespace 10 | revisie 22734 | 2018-09-10T02:57:45Z
+- [W001390 — Template:Welcome](corpus/wiki-01.md#w001390) · bronregels 3022–3031 | namespace 10 | revisie 29146 | 2024-06-24T04:49:22Z
+- [W004304 — Template:What](corpus/wiki-12.md#w004304) · bronregels 16373–16373 | namespace 10 | revisie 22736 | 2018-09-10T03:02:45Z
+- [W004297 — Template:Which](corpus/wiki-12.md#w004297) · bronregels 16278–16278 | namespace 10 | revisie 22708 | 2018-09-10T02:07:17Z
+- [W004294 — Template:Who](corpus/wiki-12.md#w004294) · bronregels 16230–16230 | namespace 10 | revisie 22694 | 2018-09-10T01:29:27Z
+- [W004311 — Template:Why](corpus/wiki-12.md#w004311) · bronregels 16479–16479 | namespace 10 | revisie 22811 | 2018-09-10T05:27:39Z
+- [W001402 — Template:Wikitable](corpus/wiki-01.md#w001402) · bronregels 3230–3230 | namespace 10 | revisie 28972 | 2024-06-06T17:21:14Z
+- [W004920 — Template:X86 protected mode interrupts](corpus/wiki-14.md#w004920) · bronregels 13026–13235 | namespace 10 | revisie 29448 | 2025-04-01T23:09:14Z
+- [W001403 — Template:Yes](corpus/wiki-01.md#w001403) · bronregels 3244–3244 | namespace 10 | revisie 28957 | 2024-06-06T17:17:39Z
+- [W004567 — Terminals](corpus/wiki-13.md#w004567) · bronregels 14073–14267 | namespace 0 | revisie 29384 | 2025-02-08T12:30:48Z
+- [W001946 — Testing](corpus/wiki-03.md#w001946) · bronregels 15823–15871 | namespace 0 | revisie 29356 | 2025-01-30T03:35:06Z
+- [W002696 — Text mode](corpus/wiki-06.md#w002696) · bronregels 6941–6941 | namespace 0 | revisie 8874 | 2009-08-26T04:24:58Z
+- [W001932 — Text Mode Cursor](corpus/wiki-03.md#w001932) · bronregels 15092–15318 | namespace 0 | revisie 30460 | 2026-04-06T15:42:13Z
+- [W001553 — Text UI](corpus/wiki-02.md#w001553) · bronregels 3208–3352 | namespace 0 | revisie 30318 | 2026-03-17T19:03:37Z
+- [W003907 — TFS](corpus/wiki-11.md#w003907) · bronregels 7920–7920 | namespace 0 | revisie 19213 | 2016-05-11T12:57:43Z
+- [W005101 — Theia OS](corpus/wiki-15.md#w005101) · bronregels 1293–1343 | namespace 0 | revisie 31028 | 2026-10-18T22:31:11Z
+- [W004247 — Thread](corpus/wiki-12.md#w004247) · bronregels 8734–8838 | namespace 0 | revisie 30651 | 2026-05-28T11:09:18Z
+- [W003673 — Thread Local Storage](corpus/wiki-10.md#w003673) · bronregels 12149–12266 | namespace 0 | revisie 17081 | 2014-11-18T20:50:43Z
+- [W003806 — Time](corpus/wiki-11.md#w003806) · bronregels 2661–2661 | namespace 0 | revisie 18226 | 2015-07-08T14:18:38Z
+- [W001903 — Time And Date](corpus/wiki-03.md#w001903) · bronregels 12520–12694 | namespace 0 | revisie 30770 | 2026-06-17T10:09:27Z
+- [W004719 — Timekeeping in virtual machines](corpus/wiki-14.md#w004719) · bronregels 6704–6799 | namespace 0 | revisie 30321 | 2026-03-17T19:06:47Z
+- [W004069 — Timer Interrupt Sources](corpus/wiki-12.md#w004069) · bronregels 1908–2178 | namespace 0 | revisie 30009 | 2026-02-15T17:24:53Z
+- [W003043 — TKisem](corpus/wiki-07.md#w003043) · bronregels 10661–10685 | namespace 0 | revisie 12152 | 2011-11-03T09:43:26Z
+- [W002792 — TLB](corpus/wiki-06.md#w002792) · bronregels 12598–12642 | namespace 0 | revisie 28002 | 2023-07-09T17:46:29Z
+- [W001498 — TLink](corpus/wiki-01.md#w001498) · bronregels 12791–12808 | namespace 0 | revisie 22856 | 2018-09-14T23:11:42Z
+- [W003813 — TLS](corpus/wiki-11.md#w003813) · bronregels 2947–2947 | namespace 0 | revisie 18302 | 2015-08-21T12:08:02Z
+- [W003913 — TLS Encryption](corpus/wiki-11.md#w003913) · bronregels 8318–8459 | namespace 0 | revisie 28485 | 2023-12-02T12:55:11Z
+- [W003912 — TLS Handshake](corpus/wiki-11.md#w003912) · bronregels 7964–8304 | namespace 0 | revisie 28023 | 2023-07-09T18:08:57Z
+- [W001405 — Tool Comparison](corpus/wiki-01.md#w001405) · bronregels 3272–3665 | namespace 0 | revisie 24610 | 2020-04-19T17:20:13Z
+- [W001856 — Triple Fault](corpus/wiki-03.md#w001856) · bronregels 6454–6482 | namespace 0 | revisie 16538 | 2014-07-17T05:58:04Z
+- [W002471 — Triple-fault](corpus/wiki-05.md#w002471) · bronregels 11486–11486 | namespace 0 | revisie 6921 | 2008-12-19T10:45:48Z
+- [W001540 — Troubleshooting](corpus/wiki-02.md#w001540) · bronregels 1744–1993 | namespace 0 | revisie 28507 | 2023-12-13T06:59:56Z
+- [W002909 — TrueType Fonts](corpus/wiki-07.md#w002909) · bronregels 1459–1540 | namespace 0 | revisie 29690 | 2025-09-23T20:38:56Z
+- [W004249 — TSC](corpus/wiki-12.md#w004249) · bronregels 8869–8891 | namespace 0 | revisie 29527 | 2025-05-25T23:31:33Z
+- [W002079 — TSS](corpus/wiki-04.md#w002079) · bronregels 6163–6163 | namespace 0 | revisie 4009 | 2007-05-28T05:41:05Z
+- [W002443 — Turbo C](corpus/wiki-05.md#w002443) · bronregels 10843–10867 | namespace 0 | revisie 29111 | 2024-06-07T13:41:29Z
+- [W002953 — Tutorial:C Kernel](corpus/wiki-07.md#w002953) · bronregels 4529–4529 | namespace 0 | revisie 11084 | 2011-01-07T12:17:40Z
+- [W004889 — Tutorials](corpus/wiki-14.md#w004889) · bronregels 11814–11977 | namespace 0 | revisie 29583 | 2025-07-05T08:39:04Z
+- [W004459 — U-Boot](corpus/wiki-13.md#w004459) · bronregels 7493–7501 | namespace 0 | revisie 30207 | 2026-03-12T15:41:11Z
+- [W004861 — UACPI](corpus/wiki-14.md#w004861) · bronregels 11216–11598 | namespace 0 | revisie 30834 | 2026-07-01T00:11:53Z
+- [W002091 — UART](corpus/wiki-04.md#w002091) · bronregels 6372–6418 | namespace 0 | revisie 23885 | 2019-09-02T12:28:59Z
+- [W002876 — UDF](corpus/wiki-07.md#w002876) · bronregels 154–362 | namespace 0 | revisie 16514 | 2014-07-03T20:56:21Z
+- [W002748 — UDI](corpus/wiki-06.md#w002748) · bronregels 9789–9789 | namespace 0 | revisie 9360 | 2009-12-08T10:52:55Z
+- [W003644 — UDI Call Marshalling and RPC](corpus/wiki-10.md#w003644) · bronregels 11313–11483 | namespace 0 | revisie 16979 | 2014-10-29T10:23:16Z
+- [W002920 — UDI Channels](corpus/wiki-07.md#w002920) · bronregels 1822–1869 | namespace 0 | revisie 16809 | 2014-09-24T23:20:30Z
+- [W003359 — UDI Device Enumeration](corpus/wiki-08.md#w003359) · bronregels 16961–17076 | namespace 0 | revisie 27950 | 2023-07-09T16:04:34Z
+- [W003368 — UDI Driver Loading](corpus/wiki-09.md#w003368) · bronregels 16–153 | namespace 0 | revisie 24113 | 2019-11-23T04:38:05Z
+- [W004255 — UDI Environment](corpus/wiki-12.md#w004255) · bronregels 9115–9313 | namespace 0 | revisie 23112 | 2018-12-01T02:42:31Z
+- [W003365 — UDI IRQ Model](corpus/wiki-08.md#w003365) · bronregels 17779–17861 | namespace 0 | revisie 27997 | 2023-07-09T17:41:37Z
+- [W003374 — UDI Metalanguages](corpus/wiki-09.md#w003374) · bronregels 212–289 | namespace 0 | revisie 17189 | 2014-12-01T20:57:29Z
+- [W003367 — UDI Regions](corpus/wiki-08.md#w003367) · bronregels 17875–17953 | namespace 0 | revisie 29082 | 2024-06-07T13:37:35Z
+- [W002924 — UEFI](corpus/wiki-07.md#w002924) · bronregels 2114–2798 | namespace 0 | revisie 30920 | 2026-08-30T00:37:03Z
+- [W003609 — UEFI App Bare Bones](corpus/wiki-10.md#w003609) · bronregels 6013–6185 | namespace 0 | revisie 30312 | 2026-03-17T18:58:30Z
+- [W004526 — UEFI Bare Bones](corpus/wiki-13.md#w004526) · bronregels 12214–12214 | namespace 0 | revisie 25170 | 2020-09-17T15:41:39Z
+- [W004982 — UEFI From Scratch](corpus/wiki-14.md#w004982) · bronregels 15464–15733 | namespace 0 | revisie 30313 | 2026-03-17T18:59:22Z
+- [W003449 — UEFI ISO Bare Bones](corpus/wiki-09.md#w003449) · bronregels 5545–5545 | namespace 0 | revisie 25174 | 2020-09-17T15:46:02Z
+- [W004081 — UEFI NVRAM](corpus/wiki-12.md#w004081) · bronregels 2828–2864 | namespace 0 | revisie 21070 | 2017-08-10T10:11:08Z
+- [W003317 — Uefi.inc](corpus/wiki-08.md#w003317) · bronregels 13678–14425 | namespace 0 | revisie 25442 | 2020-12-15T16:46:45Z
+- [W001515 — UFS](corpus/wiki-01.md#w001515) · bronregels 15562–15578 | namespace 0 | revisie 30372 | 2026-03-22T23:21:00Z
+- [W003308 — UHCI](corpus/wiki-08.md#w003308) · bronregels 11606–11606 | namespace 0 | revisie 14235 | 2013-01-12T17:51:31Z
+- [W001902 — UltraSPARC](corpus/wiki-03.md#w001902) · bronregels 12481–12506 | namespace 0 | revisie 30665 | 2026-05-28T15:47:13Z
+- [W004038 — Undefined Behavior Sanitization](corpus/wiki-11.md#w004038) · bronregels 16282–16393 | namespace 0 | revisie 28093 | 2023-07-09T21:29:07Z
+- [W005044 — Unicode](corpus/wiki-14.md#w005044) · bronregels 20293–20599 | namespace 0 | revisie 30674 | 2026-05-29T13:53:50Z
+- [W002927 — Unified Extensible Firmware Interface](corpus/wiki-07.md#w002927) · bronregels 2843–2843 | namespace 0 | revisie 10843 | 2010-10-11T19:00:59Z
+- [W002747 — Uniform Driver Interface](corpus/wiki-06.md#w002747) · bronregels 9608–9774 | namespace 0 | revisie 19808 | 2016-09-08T22:35:45Z
+- [W001918 — Unit Testing](corpus/wiki-03.md#w001918) · bronregels 14412–14432 | namespace 0 | revisie 27984 | 2023-07-09T17:27:43Z
+- [W003445 — Universal Driver Block Format](corpus/wiki-09.md#w003445) · bronregels 4226–4226 | namespace 0 | revisie 15540 | 2014-01-17T13:19:12Z
+- [W003305 — Universal Host Controller Interface](corpus/wiki-08.md#w003305) · bronregels 10992–11405 | namespace 0 | revisie 29856 | 2026-01-11T05:17:33Z
+- [W004364 — Universal Plug-n-Play](corpus/wiki-13.md#w004364) · bronregels 2285–2510 | namespace 0 | revisie 27957 | 2023-07-09T16:13:51Z
+- [W001725 — Universal Serial Bus](corpus/wiki-02.md#w001725) · bronregels 12000–14055 | namespace 0 | revisie 29542 | 2025-06-08T17:41:27Z
+- [W001915 — Unix Pipes](corpus/wiki-03.md#w001915) · bronregels 14325–14354 | namespace 0 | revisie 23425 | 2019-02-27T15:47:23Z
+- [W001715 — Unreal Mode](corpus/wiki-02.md#w001715) · bronregels 11136–11268 | namespace 0 | revisie 30244 | 2026-03-16T15:45:50Z
+- [W002597 — Unreal mode](corpus/wiki-06.md#w002597) · bronregels 1508–1508 | namespace 0 | revisie 8008 | 2009-05-28T23:43:42Z
+- [W002787 — USB](corpus/wiki-06.md#w002787) · bronregels 11231–11231 | namespace 0 | revisie 9589 | 2010-01-08T07:11:21Z
+- [W003761 — USB Flash Memory](corpus/wiki-10.md#w003761) · bronregels 17273–17322 | namespace 0 | revisie 28092 | 2023-07-09T21:27:51Z
+- [W004745 — USB Hubs](corpus/wiki-14.md#w004745) · bronregels 8233–8373 | namespace 0 | revisie 27884 | 2023-07-09T04:29:59Z
+- [W002646 — USB Human Input Devices](corpus/wiki-06.md#w002646) · bronregels 4043–4043 | namespace 0 | revisie 20821 | 2017-05-22T15:11:19Z
+- [W004063 — USB Human Interface Devices](corpus/wiki-12.md#w004063) · bronregels 1028–1630 | namespace 0 | revisie 28137 | 2023-07-10T02:54:56Z
+- [W002645 — USB Mass Storage Class Devices](corpus/wiki-06.md#w002645) · bronregels 3950–4028 | namespace 0 | revisie 27911 | 2023-07-09T05:04:36Z
+- [W003740 — User Interface](corpus/wiki-10.md#w003740) · bronregels 16764–16767 | namespace 0 | revisie 22820 | 2018-09-10T05:39:40Z
+- [W002524 — User talk:01000101/optlib/](corpus/wiki-05.md#w002524) · bronregels 14160–14188 | namespace 3 | revisie 10596 | 2010-08-08T02:47:02Z
+- [W002710 — User talk:04wilsonm](corpus/wiki-06.md#w002710) · bronregels 7448–7451 | namespace 3 | revisie 9038 | 2009-09-28T17:45:01Z
+- [W002190 — User talk:A-OS](corpus/wiki-04.md#w002190) · bronregels 10820–10820 | namespace 3 | revisie 4810 | 2007-11-02T07:18:42Z
+- [W002224 — User talk:Abuashraf](corpus/wiki-04.md#w002224) · bronregels 12001–12008 | namespace 3 | revisie 5171 | 2008-02-28T18:17:27Z
+- [W002885 — User talk:AJ/Building GMP](corpus/wiki-07.md#w002885) · bronregels 837–838 | namespace 3 | revisie 10473 | 2010-06-26T18:00:53Z
+- [W004420 — User talk:Ajxs/Ada Runtime Library](corpus/wiki-13.md#w004420) · bronregels 5563–5634 | namespace 3 | revisie 24040 | 2019-10-06T03:38:30Z
+- [W002405 — User talk:Alfaomega08](corpus/wiki-05.md#w002405) · bronregels 9310–9318 | namespace 3 | revisie 12556 | 2012-02-06T13:23:35Z
+- [W001992 — User talk:Almafeta](corpus/wiki-04.md#w001992) · bronregels 3155–3155 | namespace 3 | revisie 3479 | 2007-03-26T03:27:24Z
+- [W003065 — User talk:Ammubhave](corpus/wiki-07.md#w003065) · bronregels 12024–12024 | namespace 3 | revisie 12373 | 2011-12-24T16:24:07Z
+- [W003044 — User talk:Anuaimi](corpus/wiki-07.md#w003044) · bronregels 10699–10701 | namespace 3 | revisie 12163 | 2011-11-08T05:25:55Z
+- [W004833 — User talk:Arthurcast18](corpus/wiki-14.md#w004833) · bronregels 10298–10301 | namespace 3 | revisie 28463 | 2023-11-15T14:14:47Z
+- [W004752 — User talk:Auxilus](corpus/wiki-14.md#w004752) · bronregels 8640–8640 | namespace 3 | revisie 27797 | 2023-06-15T16:25:14Z
+- [W003079 — User talk:Bellezzasolo](corpus/wiki-07.md#w003079) · bronregels 12308–12374 | namespace 3 | revisie 29496 | 2025-04-27T12:00:49Z
+- [W003141 — User talk:Bellezzasolo/CFS](corpus/wiki-07.md#w003141) · bronregels 16086–16100 | namespace 3 | revisie 18855 | 2016-01-17T12:29:26Z
+- [W003083 — User talk:Bellezzasolo/IDT problems](corpus/wiki-07.md#w003083) · bronregels 12442–12444 | namespace 3 | revisie 12586 | 2012-02-09T18:37:12Z
+- [W003873 — User talk:Bellezzasolo/TFS](corpus/wiki-11.md#w003873) · bronregels 6030–6030 | namespace 3 | revisie 18848 | 2016-01-17T11:48:31Z
+- [W003441 — User talk:Bellezzasolo/Windows](corpus/wiki-09.md#w003441) · bronregels 3831–3833 | namespace 3 | revisie 15524 | 2014-01-08T08:52:37Z
+- [W004721 — User talk:Bewing](corpus/wiki-14.md#w004721) · bronregels 6828–6881 | namespace 3 | revisie 27337 | 2022-09-03T16:14:11Z
+- [W004325 — User talk:Carver](corpus/wiki-12.md#w004325) · bronregels 17442–17442 | namespace 3 | revisie 22991 | 2018-09-27T06:07:36Z
+- [W002214 — User talk:Chase](corpus/wiki-04.md#w002214) · bronregels 11820–11820 | namespace 3 | revisie 29165 | 2024-06-28T19:38:52Z
+- [W003608 — User talk:Chosenoreo](corpus/wiki-10.md#w003608) · bronregels 5999–5999 | namespace 3 | revisie 16493 | 2014-06-21T06:49:03Z
+- [W003606 — User talk:ChosenOreo/Chipsets/Intel X58](corpus/wiki-10.md#w003606) · bronregels 5968–5968 | namespace 3 | revisie 16489 | 2014-06-21T06:45:00Z
+- [W003151 — User talk:Cognition](corpus/wiki-08.md#w003151) · bronregels 16–175 | namespace 3 | revisie 13045 | 2012-03-20T05:12:17Z
+- [W003236 — User talk:Combuster](corpus/wiki-08.md#w003236) · bronregels 7299–7299 | namespace 3 | revisie 13636 | 2012-06-13T15:44:21Z
+- [W003684 — User talk:Combuster/Frankenstein's MSVC](corpus/wiki-10.md#w003684) · bronregels 13479–13488 | namespace 3 | revisie 17183 | 2014-12-01T20:45:24Z
+- [W001998 — User talk:Combuster/Manual Of Style draft](corpus/wiki-04.md#w001998) · bronregels 3345–3356 | namespace 3 | revisie 3540 | 2007-04-03T07:34:35Z
+- [W003029 — User talk:Combuster/Relicensing](corpus/wiki-07.md#w003029) · bronregels 9944–9964 | namespace 3 | revisie 12615 | 2012-02-17T05:57:15Z
+- [W002796 — User talk:Combuster/UDI Graphics](corpus/wiki-06.md#w002796) · bronregels 12706–12716 | namespace 3 | revisie 18919 | 2016-02-09T03:55:13Z
+- [W003004 — User talk:Communistpancake](corpus/wiki-07.md#w003004) · bronregels 7895–7898 | namespace 3 | revisie 11715 | 2011-07-04T20:09:42Z
+- [W002686 — User talk:Computafreak](corpus/wiki-06.md#w002686) · bronregels 6416–6419 | namespace 3 | revisie 8774 | 2009-08-12T07:00:19Z
+- [W002210 — User talk:Crazygray1](corpus/wiki-04.md#w002210) · bronregels 11189–11194 | namespace 3 | revisie 5036 | 2008-01-04T20:19:00Z
+- [W002810 — User talk:Creature/Logarithms](corpus/wiki-06.md#w002810) · bronregels 15096–15137 | namespace 3 | revisie 9818 | 2010-02-17T11:15:08Z
+- [W002823 — User talk:Dedndave](corpus/wiki-06.md#w002823) · bronregels 16461–16470 | namespace 3 | revisie 9991 | 2010-03-30T15:44:57Z
+- [W002955 — User talk:Derekbank](corpus/wiki-07.md#w002955) · bronregels 4558–4560 | namespace 3 | revisie 11092 | 2011-01-11T12:46:09Z
+- [W002952 — User talk:Derekbank/C Kernel](corpus/wiki-07.md#w002952) · bronregels 4497–4514 | namespace 3 | revisie 11091 | 2011-01-11T12:38:22Z
+- [W004345 — User talk:Electrodeyt](corpus/wiki-12.md#w004345) · bronregels 18391–18391 | namespace 3 | revisie 23157 | 2018-12-27T22:50:55Z
+- [W002455 — User talk:Erikbomb](corpus/wiki-05.md#w002455) · bronregels 11455–11457 | namespace 3 | revisie 22445 | 2018-06-09T16:06:48Z
+- [W002613 — User talk:Essial](corpus/wiki-06.md#w002613) · bronregels 2918–2918 | namespace 3 | revisie 8175 | 2009-06-06T08:04:07Z
+- [W004971 — User talk:Finxx](corpus/wiki-14.md#w004971) · bronregels 15178–15190 | namespace 3 | revisie 29822 | 2026-01-02T07:52:24Z
+- [W004341 — User talk:Floppout76](corpus/wiki-12.md#w004341) · bronregels 18331–18333 | namespace 3 | revisie 23137 | 2018-12-15T14:28:48Z
+- [W003218 — User talk:G4b](corpus/wiki-08.md#w003218) · bronregels 6332–6332 | namespace 3 | revisie 13635 | 2012-06-13T15:34:46Z
+- [W004460 — User talk:Galaxyx](corpus/wiki-13.md#w004460) · bronregels 7515–7515 | namespace 3 | revisie 24403 | 2020-02-24T14:36:18Z
+- [W001819 — User talk:Gh975223](corpus/wiki-03.md#w001819) · bronregels 4677–4681 | namespace 3 | revisie 3007 | 2007-02-14T22:36:33Z
+- [W004260 — User talk:Glauxosdever](corpus/wiki-12.md#w004260) · bronregels 10187–10195 | namespace 3 | revisie 22202 | 2018-03-09T21:14:41Z
+- [W004333 — User talk:Glauxosdever/Higher Half x86 Bare Bones](corpus/wiki-12.md#w004333) · bronregels 18184–18184 | namespace 3 | revisie 23055 | 2018-10-27T19:37:36Z
+- [W003427 — User talk:Gravaera/IPC Data Copying methods](corpus/wiki-09.md#w003427) · bronregels 2833–2833 | namespace 3 | revisie 15460 | 2013-12-14T23:11:23Z
+- [W003599 — User talk:Habs](corpus/wiki-10.md#w003599) · bronregels 5719–5719 | namespace 3 | revisie 16454 | 2014-06-18T14:22:20Z
+- [W004533 — User talk:Himself65](corpus/wiki-13.md#w004533) · bronregels 12492–12492 | namespace 3 | revisie 25249 | 2020-10-12T12:46:22Z
+- [W003905 — User talk:Hwpplayer1](corpus/wiki-11.md#w003905) · bronregels 7887–7887 | namespace 3 | revisie 19162 | 2016-05-08T22:32:45Z
+- [W002589 — User talk:Imate900](corpus/wiki-06.md#w002589) · bronregels 996–997 | namespace 3 | revisie 7928 | 2009-05-10T03:25:19Z
+- [W002568 — User talk:Imate900/32-bit assembler bare bones](corpus/wiki-05.md#w002568) · bronregels 16168–16182 | namespace 3 | revisie 7750 | 2009-04-21T00:23:36Z
+- [W002585 — User talk:Imate900/Microkernel Bare Bones](corpus/wiki-06.md#w002585) · bronregels 723–725 | namespace 3 | revisie 7841 | 2009-05-04T23:02:58Z
+- [W002627 — User talk:Jamesm](corpus/wiki-06.md#w002627) · bronregels 3155–3155 | namespace 3 | revisie 8264 | 2009-06-21T00:56:16Z
+- [W003943 — User talk:Jfjhh](corpus/wiki-11.md#w003943) · bronregels 9689–9689 | namespace 3 | revisie 19492 | 2016-07-18T22:33:19Z
+- [W004406 — User talk:Jflopezfernandez](corpus/wiki-13.md#w004406) · bronregels 4773–4773 | namespace 3 | revisie 23823 | 2019-08-15T22:05:08Z
+- [W001679 — User talk:Jhawthorn](corpus/wiki-02.md#w001679) · bronregels 8430–8444 | namespace 3 | revisie 3993 | 2007-05-28T00:26:11Z
+- [W002169 — User talk:Jnc100/OS Specific Toolchain](corpus/wiki-04.md#w002169) · bronregels 9791–9791 | namespace 3 | revisie 4567 | 2007-09-13T17:21:59Z
+- [W003572 — User talk:Johnburger/Demo/Overview](corpus/wiki-10.md#w003572) · bronregels 3374–3376 | namespace 3 | revisie 21151 | 2017-08-28T20:20:32Z
+- [W003769 — User talk:Kemosparc](corpus/wiki-10.md#w003769) · bronregels 18178–18178 | namespace 3 | revisie 17900 | 2015-04-18T23:26:48Z
+- [W004359 — User talk:Khorlane](corpus/wiki-13.md#w004359) · bronregels 2120–2122 | namespace 3 | revisie 23324 | 2019-01-31T11:00:49Z
+- [W002076 — User talk:Kmcguire](corpus/wiki-04.md#w002076) · bronregels 6134–6134 | namespace 3 | revisie 3992 | 2007-05-27T23:42:09Z
+- [W001993 — User talk:Kmcguire/Quick And Dirty Device Management](corpus/wiki-04.md#w001993) · bronregels 3169–3182 | namespace 3 | revisie 17810 | 2015-03-15T08:32:22Z
+- [W004708 — User talk:Leapofazzam](corpus/wiki-14.md#w004708) · bronregels 5844–5849 | namespace 3 | revisie 27162 | 2022-06-08T09:34:42Z
+- [W003249 — User talk:Lionel/What kind of kernel should I make?](corpus/wiki-08.md#w003249) · bronregels 7687–7697 | namespace 3 | revisie 13744 | 2012-06-28T07:00:30Z
+- [W002965 — User talk:Love4boobies](corpus/wiki-07.md#w002965) · bronregels 5047–5088 | namespace 3 | revisie 20763 | 2017-05-01T00:01:42Z
+- [W003251 — User talk:Love4boobies/Linkers](corpus/wiki-08.md#w003251) · bronregels 7712–7712 | namespace 3 | revisie 13724 | 2012-06-25T14:34:25Z
+- [W003247 — User talk:Love4boobies/Static Linking](corpus/wiki-08.md#w003247) · bronregels 7613–7615 | namespace 3 | revisie 13723 | 2012-06-25T14:34:25Z
+- [W003866 — User talk:Lukaandjelkovic](corpus/wiki-11.md#w003866) · bronregels 5799–5803 | namespace 3 | revisie 19233 | 2016-05-15T14:02:45Z
+- [W004885 — User talk:Lukflug](corpus/wiki-14.md#w004885) · bronregels 11734–11740 | namespace 3 | revisie 29025 | 2024-06-06T18:06:15Z
+- [W003614 — User talk:Lweb20](corpus/wiki-10.md#w003614) · bronregels 6563–6565 | namespace 3 | revisie 16591 | 2014-08-04T18:20:32Z
+- [W003022 — User talk:Mariuszp](corpus/wiki-07.md#w003022) · bronregels 9495–9499 | namespace 3 | revisie 11836 | 2011-07-23T09:11:53Z
+- [W002786 — User talk:Markhobley](corpus/wiki-06.md#w002786) · bronregels 11097–11216 | namespace 3 | revisie 9633 | 2010-01-16T09:07:51Z
+- [W003963 — User talk:Max/Preparing Windows as a build environment](corpus/wiki-11.md#w003963) · bronregels 10033–10034 | namespace 3 | revisie 19684 | 2016-08-13T16:21:56Z
+- [W002135 — User talk:Meshounah](corpus/wiki-04.md#w002135) · bronregels 8547–8547 | namespace 3 | revisie 4354 | 2007-08-15T22:53:03Z
+- [W003189 — User talk:MessiahAndrw/Perception Bytecode](corpus/wiki-08.md#w003189) · bronregels 5734–5743 | namespace 3 | revisie 13438 | 2012-05-24T06:23:05Z
+- [W004829 — User talk:Minoto](corpus/wiki-14.md#w004829) · bronregels 10225–10238 | namespace 3 | revisie 28423 | 2023-10-22T23:36:48Z
+- [W004580 — User talk:Mishatheosmaker](corpus/wiki-13.md#w004580) · bronregels 14615–14615 | namespace 3 | revisie 25825 | 2021-04-30T17:25:06Z
+- [W002875 — User talk:Montrom](corpus/wiki-07.md#w002875) · bronregels 88–140 | namespace 3 | revisie 10364 | 2010-05-24T22:41:02Z
+- [W003716 — User talk:Mrvn](corpus/wiki-10.md#w003716) · bronregels 15015–15015 | namespace 3 | revisie 17580 | 2015-02-13T09:42:05Z
+- [W003621 — User talk:Muazzam](corpus/wiki-10.md#w003621) · bronregels 7057–7057 | namespace 3 | revisie 17493 | 2015-01-26T10:07:17Z
+- [W004015 — User talk:Naxnax](corpus/wiki-11.md#w004015) · bronregels 14568–14568 | namespace 3 | revisie 20113 | 2017-01-06T20:08:46Z
+- [W002967 — User talk:Neolander](corpus/wiki-07.md#w002967) · bronregels 5122–5124 | namespace 3 | revisie 11269 | 2011-03-14T12:26:28Z
+- [W004592 — User talk:Neon](corpus/wiki-13.md#w004592) · bronregels 15057–15057 | namespace 3 | revisie 25914 | 2021-05-24T01:27:07Z
+- [W004360 — User talk:No92](corpus/wiki-13.md#w004360) · bronregels 2136–2136 | namespace 3 | revisie 23333 | 2019-01-31T16:20:32Z
+- [W003635 — User talk:Ornitorrincos](corpus/wiki-10.md#w003635) · bronregels 7773–7939 | namespace 3 | revisie 16728 | 2014-09-17T18:06:32Z
+- [W002833 — User talk:Osdnlo](corpus/wiki-06.md#w002833) · bronregels 17071–17071 | namespace 3 | revisie 10093 | 2010-04-19T19:42:21Z
+- [W003155 — User talk:Pancakes](corpus/wiki-08.md#w003155) · bronregels 224–226 | namespace 3 | revisie 13065 | 2012-03-22T20:40:52Z
+- [W003183 — User talk:Pancakes/LazyDiskLoading](corpus/wiki-08.md#w003183) · bronregels 3547–3548 | namespace 3 | revisie 13322 | 2012-05-03T18:39:37Z
+- [W003169 — User talk:Pancakes/Sandbox](corpus/wiki-08.md#w003169) · bronregels 1647–1650 | namespace 3 | revisie 13169 | 2012-03-27T16:56:11Z
+- [W002383 — User talk:Patrickv](corpus/wiki-05.md#w002383) · bronregels 8515–8519 | namespace 3 | revisie 6380 | 2008-10-20T09:04:38Z
+- [W004682 — User talk:Raidtheweb](corpus/wiki-14.md#w004682) · bronregels 3929–3929 | namespace 3 | revisie 26804 | 2021-12-27T21:30:08Z
+- [W002273 — User talk:Randomibis](corpus/wiki-05.md#w002273) · bronregels 1970–1972 | namespace 3 | revisie 5424 | 2008-05-06T03:47:54Z
+- [W003041 — User talk:Renagadexx](corpus/wiki-07.md#w003041) · bronregels 10631–10631 | namespace 3 | revisie 12114 | 2011-10-17T07:20:21Z
+- [W004693 — User talk:Revolution](corpus/wiki-14.md#w004693) · bronregels 4442–4446 | namespace 3 | revisie 26978 | 2022-02-17T09:36:09Z
+- [W004605 — User talk:Rizxt](corpus/wiki-13.md#w004605) · bronregels 15796–15800 | namespace 3 | revisie 26036 | 2021-05-31T22:01:04Z
+- [W002838 — User talk:Rudimk](corpus/wiki-06.md#w002838) · bronregels 17218–17218 | namespace 3 | revisie 10327 | 2010-05-19T15:07:17Z
+- [W004970 — User talk:Salimanz23](corpus/wiki-14.md#w004970) · bronregels 15154–15164 | namespace 3 | revisie 29837 | 2026-01-07T09:22:15Z
+- [W002853 — User talk:Solar/NewIntro](corpus/wiki-06.md#w002853) · bronregels 17975–17989 | namespace 3 | revisie 10270 | 2010-05-06T14:28:11Z
+- [W003846 — User talk:Sortie](corpus/wiki-11.md#w003846) · bronregels 4474–4541 | namespace 3 | revisie 23169 | 2019-01-05T08:55:26Z
+- [W003362 — User talk:Sortie/Calling Global Constructors](corpus/wiki-08.md#w003362) · bronregels 17386–17386 | namespace 3 | revisie 14723 | 2013-05-24T11:29:08Z
+- [W003978 — User talk:Sortie/Naively Closed Source](corpus/wiki-11.md#w003978) · bronregels 10911–10917 | namespace 3 | revisie 19812 | 2016-09-12T08:48:14Z
+- [W003156 — User talk:Sparks88](corpus/wiki-08.md#w003156) · bronregels 240–240 | namespace 3 | revisie 13069 | 2012-03-24T03:20:03Z
+- [W003665 — User talk:Stephanvanschaik/Setting Up Long Mode](corpus/wiki-10.md#w003665) · bronregels 11792–11792 | namespace 3 | revisie 16988 | 2014-11-01T18:57:54Z
+- [W002157 — User talk:Stinkfly](corpus/wiki-04.md#w002157) · bronregels 9079–9080 | namespace 3 | revisie 4490 | 2007-08-31T13:09:04Z
+- [W004031 — User talk:Stux](corpus/wiki-11.md#w004031) · bronregels 15937–15937 | namespace 3 | revisie 20494 | 2017-02-18T21:23:42Z
+- [W004431 — User talk:Superleaf1995/AFPFS](corpus/wiki-13.md#w004431) · bronregels 6527–6535 | namespace 3 | revisie 24169 | 2019-12-19T18:32:42Z
+- [W004264 — User talk:Tay10r](corpus/wiki-12.md#w004264) · bronregels 10875–10875 | namespace 3 | revisie 22258 | 2018-04-05T00:25:25Z
+- [W002743 — User talk:Teodor väänänen](corpus/wiki-06.md#w002743) · bronregels 9533–9537 | namespace 3 | revisie 9286 | 2009-11-28T13:29:21Z
+- [W004075 — User talk:Thecool1kevin](corpus/wiki-12.md#w004075) · bronregels 2370–2370 | namespace 3 | revisie 21035 | 2017-08-02T22:01:08Z
+- [W004076 — User talk:Thecool1kevin/printf](corpus/wiki-12.md#w004076) · bronregels 2384–2750 | namespace 3 | revisie 21036 | 2017-08-02T22:01:25Z
+- [W003796 — User talk:Themav](corpus/wiki-11.md#w003796) · bronregels 1247–1255 | namespace 3 | revisie 18088 | 2015-05-21T18:07:46Z
+- [W003105 — User talk:Turdus](corpus/wiki-07.md#w003105) · bronregels 13859–13863 | namespace 3 | revisie 13214 | 2012-03-30T20:15:39Z
+- [W003446 — User talk:Turdus/Universal Driver Block Format](corpus/wiki-09.md#w003446) · bronregels 4240–4246 | namespace 3 | revisie 15541 | 2014-01-17T13:26:44Z
+- [W003839 — User talk:Twrl/Unicode](corpus/wiki-11.md#w003839) · bronregels 4235–4235 | namespace 3 | revisie 18679 | 2015-12-06T19:26:00Z
+- [W002271 — User talk:Tyra](corpus/wiki-05.md#w002271) · bronregels 1681–1684 | namespace 3 | revisie 5416 | 2008-05-03T13:16:37Z
+- [W004232 — User talk:Updater3](corpus/wiki-12.md#w004232) · bronregels 7616–7620 | namespace 3 | revisie 22332 | 2018-04-15T21:52:16Z
+- [W003906 — User talk:Vercas](corpus/wiki-11.md#w003906) · bronregels 7901–7905 | namespace 3 | revisie 19642 | 2016-08-01T09:50:15Z
+- [W002328 — User talk:Virtlink](corpus/wiki-05.md#w002328) · bronregels 4378–4381 | namespace 3 | revisie 5751 | 2008-07-02T16:15:54Z
+- [W002607 — User talk:Walling](corpus/wiki-06.md#w002607) · bronregels 2824–2825 | namespace 3 | revisie 8163 | 2009-06-04T14:37:35Z
+- [W002608 — User talk:Walling/Archive](corpus/wiki-06.md#w002608) · bronregels 2839–2841 | namespace 3 | revisie 8162 | 2009-06-04T14:36:53Z
+- [W001692 — User talk:Walling/Archive/Discussion1](corpus/wiki-02.md#w001692) · bronregels 8755–8787 | namespace 3 | revisie 8160 | 2009-06-04T14:34:58Z
+- [W004483 — User talk:Wesleyac/"zig cc" Cross-Compiler](corpus/wiki-13.md#w004483) · bronregels 10154–10154 | namespace 3 | revisie 24648 | 2020-05-03T04:45:11Z
+- [W001757 — User talk:Xyz1](corpus/wiki-03.md#w001757) · bronregels 1364–1364 | namespace 3 | revisie 2748 | 2007-01-10T08:19:30Z
+- [W002083 — User talk:Xyz1/Describe new OS project](corpus/wiki-04.md#w002083) · bronregels 6226–6226 | namespace 3 | revisie 4029 | 2007-05-30T15:13:07Z
+- [W004079 — User talk:Zesterer/Bare Bones](corpus/wiki-12.md#w004079) · bronregels 2794–2798 | namespace 3 | revisie 21060 | 2017-08-09T19:08:18Z
+- [W003021 — User talk:Zhongyijun](corpus/wiki-07.md#w003021) · bronregels 9477–9481 | namespace 3 | revisie 11835 | 2011-07-23T09:10:47Z
+- [W002412 — User:01000101](corpus/wiki-05.md#w002412) · bronregels 9433–9473 | namespace 2 | revisie 14294 | 2013-01-14T02:25:44Z
+- [W002519 — User:01000101/optlib/](corpus/wiki-05.md#w002519) · bronregels 13655–13957 | namespace 2 | revisie 28647 | 2024-02-29T17:37:33Z
+- [W002708 — User:04wilsonm](corpus/wiki-06.md#w002708) · bronregels 7404–7416 | namespace 2 | revisie 9019 | 2009-09-23T13:51:41Z
+- [W004667 — User:0nera](corpus/wiki-14.md#w004667) · bronregels 2640–2643 | namespace 2 | revisie 27598 | 2023-01-17T10:24:28Z
+- [W003246 — User:1ottsco](corpus/wiki-08.md#w003246) · bronregels 7597–7599 | namespace 2 | revisie 13702 | 2012-06-18T20:13:37Z
+- [W002907 — User:54616e6e6572](corpus/wiki-07.md#w002907) · bronregels 1393–1412 | namespace 2 | revisie 10631 | 2010-08-24T14:48:12Z
+- [W004862 — User:8infy](corpus/wiki-14.md#w004862) · bronregels 11613–11613 | namespace 2 | revisie 28745 | 2024-04-23T18:31:27Z
+- [W004052 — User:A22347](corpus/wiki-12.md#w004052) · bronregels 864–866 | namespace 2 | revisie 22526 | 2018-07-16T22:38:36Z
+- [W004197 — User:A22347/Memory Manager](corpus/wiki-12.md#w004197) · bronregels 4051–4113 | namespace 2 | revisie 21505 | 2017-09-10T20:58:14Z
+- [W004200 — User:A22347/Printf](corpus/wiki-12.md#w004200) · bronregels 4179–4661 | namespace 2 | revisie 25267 | 2020-10-27T16:33:49Z
+- [W004731 — User:Abdhdi](corpus/wiki-14.md#w004731) · bronregels 7780–7782 | namespace 2 | revisie 27542 | 2022-12-23T18:11:17Z
+- [W004716 — User:Abletheabove](corpus/wiki-14.md#w004716) · bronregels 6088–6088 | namespace 2 | revisie 27262 | 2022-08-01T09:13:52Z
+- [W004485 — User:Acurioso](corpus/wiki-13.md#w004485) · bronregels 10259–10259 | namespace 2 | revisie 24667 | 2020-05-13T02:48:29Z
+- [W004901 — User:Adamonair](corpus/wiki-14.md#w004901) · bronregels 12282–12282 | namespace 2 | revisie 29516 | 2025-05-14T20:16:31Z
+- [W003046 — User:Ahferroin7](corpus/wiki-07.md#w003046) · bronregels 10763–10795 | namespace 2 | revisie 12190 | 2011-11-16T16:14:06Z
+- [W002700 — User:Aj](corpus/wiki-06.md#w002700) · bronregels 7119–7143 | namespace 2 | revisie 16620 | 2014-08-20T20:33:42Z
+- [W002808 — User:AJ/Cross-Compiler Successful Builds](corpus/wiki-06.md#w002808) · bronregels 14990–14990 | namespace 2 | revisie 9807 | 2010-02-16T12:20:42Z
+- [W002807 — User:AJ/GCC Cross-Compiler](corpus/wiki-06.md#w002807) · bronregels 14975–14975 | namespace 2 | revisie 20691 | 2017-04-10T17:44:37Z
+- [W004253 — User:Aj/Windows Subsystem for Linux](corpus/wiki-12.md#w004253) · bronregels 9056–9086 | namespace 2 | revisie 22090 | 2018-01-15T12:25:05Z
+- [W004254 — User:Aj/WSL](corpus/wiki-12.md#w004254) · bronregels 9101–9101 | namespace 2 | revisie 22088 | 2018-01-15T12:04:25Z
+- [W004053 — User:Ajxs](corpus/wiki-12.md#w004053) · bronregels 880–897 | namespace 2 | revisie 26365 | 2021-09-01T23:03:21Z
+- [W004461 — User:Ajxs/ada bare bones](corpus/wiki-13.md#w004461) · bronregels 7529–8414 | namespace 2 | revisie 24487 | 2020-03-06T03:00:56Z
+- [W004520 — User:Ajxs/Ada Bare Bones](corpus/wiki-13.md#w004520) · bronregels 11379–12077 | namespace 2 | revisie 25111 | 2020-09-04T05:13:13Z
+- [W004411 — User:Ajxs/quotes](corpus/wiki-13.md#w004411) · bronregels 4976–5010 | namespace 2 | revisie 23899 | 2019-09-03T22:48:15Z
+- [W004409 — User:Ajxs/uart](corpus/wiki-13.md#w004409) · bronregels 4945–4945 | namespace 2 | revisie 24080 | 2019-11-06T03:51:01Z
+- [W003625 — User:Akasei](corpus/wiki-10.md#w003625) · bronregels 7233–7233 | namespace 2 | revisie 26609 | 2021-10-27T17:39:20Z
+- [W002017 — User:Alboin](corpus/wiki-04.md#w002017) · bronregels 3812–3816 | namespace 2 | revisie 5022 | 2008-01-02T23:21:40Z
+- [W003788 — User:Alexander](corpus/wiki-11.md#w003788) · bronregels 1053–1057 | namespace 2 | revisie 18030 | 2015-05-03T09:14:00Z
+- [W003787 — User:Alexander/Combining Bran's Kernel Development and the Barebones Tutorials](corpus/wiki-11.md#w003787) · bronregels 963–1039 | namespace 2 | revisie 19540 | 2016-07-22T22:52:52Z
+- [W003928 — User:Alexfru](corpus/wiki-11.md#w003928) · bronregels 8905–8905 | namespace 2 | revisie 19358 | 2016-06-12T23:38:51Z
+- [W003718 — User:Alexis211](corpus/wiki-10.md#w003718) · bronregels 15074–15121 | namespace 2 | revisie 17607 | 2015-02-15T18:49:14Z
+- [W003720 — User:Alexis211/BonaFideArchive/Device Management](corpus/wiki-10.md#w003720) · bronregels 15290–15396 | namespace 2 | revisie 17605 | 2015-02-15T15:02:07Z
+- [W003719 — User:Alexis211/BonaFideArchive/OS Design](corpus/wiki-10.md#w003719) · bronregels 15135–15276 | namespace 2 | revisie 17597 | 2015-02-15T14:28:59Z
+- [W003171 — User:AlfaOmega08/Cygwin toolchain](corpus/wiki-08.md#w003171) · bronregels 1678–1756 | namespace 2 | revisie 13194 | 2012-03-29T19:29:32Z
+- [W003896 — User:Alyssa](corpus/wiki-11.md#w003896) · bronregels 6912–6912 | namespace 2 | revisie 19085 | 2016-04-22T13:36:06Z
+- [W003322 — User:Andreasbwagner](corpus/wiki-08.md#w003322) · bronregels 14613–14613 | namespace 2 | revisie 14401 | 2013-01-26T22:49:05Z
+- [W004563 — User:Andrewaprice](corpus/wiki-13.md#w004563) · bronregels 13820–13827 | namespace 2 | revisie 25670 | 2021-02-13T02:50:49Z
+- [W004511 — User:Andreykapustin](corpus/wiki-13.md#w004511) · bronregels 11063–11068 | namespace 2 | revisie 24995 | 2020-07-08T15:04:42Z
+- [W005086 — User:Anotheridiot](corpus/wiki-15.md#w005086) · bronregels 598–608 | namespace 2 | revisie 30939 | 2026-09-04T14:39:01Z
+- [W005091 — User:Anotheridiot/Iridium](corpus/wiki-15.md#w005091) · bronregels 736–758 | namespace 2 | revisie 30997 | 2026-09-30T17:36:06Z
+- [W005088 — User:Anotheridiot/Kernel Security](corpus/wiki-15.md#w005088) · bronregels 657–694 | namespace 2 | revisie 31022 | 2026-10-14T12:25:37Z
+- [W005087 — User:Anotheridiot/Threading](corpus/wiki-15.md#w005087) · bronregels 622–643 | namespace 2 | revisie 30941 | 2026-09-04T15:01:54Z
+- [W004407 — User:Arcun](corpus/wiki-13.md#w004407) · bronregels 4787–4787 | namespace 2 | revisie 23828 | 2019-08-24T23:55:04Z
+- [W004830 — User:Arongeo](corpus/wiki-14.md#w004830) · bronregels 10252–10255 | namespace 2 | revisie 28428 | 2023-10-29T12:04:49Z
+- [W005068 — User:Arsenarsen](corpus/wiki-14.md#w005068) · bronregels 21696–21696 | namespace 2 | revisie 30792 | 2026-06-19T10:08:23Z
+- [W003670 — User:Arto](corpus/wiki-10.md#w003670) · bronregels 12065–12076 | namespace 2 | revisie 17098 | 2014-11-23T05:25:32Z
+- [W004390 — User:Ask](corpus/wiki-13.md#w004390) · bronregels 3973–3973 | namespace 2 | revisie 23669 | 2019-06-09T15:37:01Z
+- [W002216 — User:Assembler](corpus/wiki-04.md#w002216) · bronregels 11848–11861 | namespace 2 | revisie 24548 | 2020-04-04T04:54:27Z
+- [W004549 — User:Atie](corpus/wiki-13.md#w004549) · bronregels 13402–13402 | namespace 2 | revisie 27297 | 2022-08-15T11:10:04Z
+- [W004751 — User:Auxilus](corpus/wiki-14.md#w004751) · bronregels 8626–8626 | namespace 2 | revisie 27796 | 2023-06-15T16:25:00Z
+- [W003724 — User:Bandrami](corpus/wiki-10.md#w003724) · bronregels 15438–15438 | namespace 2 | revisie 17630 | 2015-02-19T03:16:41Z
+- [W002881 — User:Bastl/Selector](corpus/wiki-07.md#w002881) · bronregels 560–574 | namespace 2 | revisie 18214 | 2015-07-03T11:06:51Z
+- [W004008 — User:Bauen1](corpus/wiki-11.md#w004008) · bronregels 14313–14313 | namespace 2 | revisie 25082 | 2020-08-23T15:22:15Z
+- [W003078 — User:Bellezzasolo](corpus/wiki-07.md#w003078) · bronregels 12193–12294 | namespace 2 | revisie 18938 | 2016-02-12T10:54:43Z
+- [W003301 — User:Bellezzasolo/BPDI](corpus/wiki-08.md#w003301) · bronregels 10617–10621 | namespace 2 | revisie 14182 | 2012-12-26T23:54:51Z
+- [W004082 — User:Bellezzasolo/C++ Exceptions](corpus/wiki-12.md#w004082) · bronregels 2878–3451 | namespace 2 | revisie 21104 | 2017-08-16T20:42:47Z
+- [W003140 — User:Bellezzasolo/CFS](corpus/wiki-07.md#w003140) · bronregels 15200–16072 | namespace 2 | revisie 20985 | 2017-07-08T00:46:50Z
+- [W003634 — User:Bellezzasolo/He:Home](corpus/wiki-10.md#w003634) · bronregels 7757–7759 | namespace 2 | revisie 16721 | 2014-09-15T18:31:32Z
+- [W003077 — User:Bellezzasolo/IDT problems](corpus/wiki-07.md#w003077) · bronregels 12156–12179 | namespace 2 | revisie 12582 | 2012-02-09T18:14:54Z
+- [W004933 — User:Bellezzasolo/Intel Graphics Family](corpus/wiki-14.md#w004933) · bronregels 13498–13763 | namespace 2 | revisie 29509 | 2025-04-30T15:41:37Z
+- [W003172 — User:Bellezzasolo/Memory Management](corpus/wiki-08.md#w003172) · bronregels 1770–1810 | namespace 2 | revisie 13891 | 2012-08-04T21:04:26Z
+- [W003124 — User:Bellezzasolo/Old talk](corpus/wiki-07.md#w003124) · bronregels 14194–14242 | namespace 2 | revisie 12899 | 2012-03-05T13:13:13Z
+- [W003872 — User:Bellezzasolo/TFS](corpus/wiki-11.md#w003872) · bronregels 6015–6015 | namespace 2 | revisie 18846 | 2016-01-17T11:48:31Z
+- [W003440 — User:Bellezzasolo/Windows](corpus/wiki-09.md#w003440) · bronregels 3805–3817 | namespace 2 | revisie 15512 | 2014-01-04T17:29:56Z
+- [W003061 — User:Berkus/AffordableDevelopmentPlatforms](corpus/wiki-07.md#w003061) · bronregels 11919–11934 | namespace 2 | revisie 12319 | 2011-12-13T07:25:32Z
+- [W002027 — User:Bernhard](corpus/wiki-04.md#w002027) · bronregels 4305–4307 | namespace 2 | revisie 5076 | 2008-02-04T08:36:57Z
+- [W003960 — User:Binox](corpus/wiki-11.md#w003960) · bronregels 9959–9971 | namespace 2 | revisie 19666 | 2016-08-11T09:21:03Z
+- [W002825 — User:Bjork](corpus/wiki-06.md#w002825) · bronregels 16484–16501 | namespace 2 | revisie 9996 | 2010-03-31T10:46:39Z
+- [W003371 — User:Blacklight](corpus/wiki-09.md#w003371) · bronregels 167–167 | namespace 2 | revisie 14818 | 2013-06-04T04:38:21Z
+- [W004542 — User:Boringcactus](corpus/wiki-13.md#w004542) · bronregels 13129–13140 | namespace 2 | revisie 25375 | 2020-11-22T05:05:58Z
+- [W005013 — User:Brain](corpus/wiki-14.md#w005013) · bronregels 18208–18212 | namespace 2 | revisie 30201 | 2026-03-12T00:06:32Z
+- [W003610 — User:Brynet-inc](corpus/wiki-10.md#w003610) · bronregels 6199–6208 | namespace 2 | revisie 24781 | 2020-06-17T12:50:40Z
+- [W004927 — User:Callumari](corpus/wiki-14.md#w004927) · bronregels 13305–13305 | namespace 2 | revisie 29474 | 2025-04-17T12:06:34Z
+- [W004292 — User:Carver](corpus/wiki-12.md#w004292) · bronregels 16192–16200 | namespace 2 | revisie 22994 | 2018-09-27T15:53:47Z
+- [W003816 — User:Catnikita255](corpus/wiki-11.md#w003816) · bronregels 2992–2994 | namespace 2 | revisie 18350 | 2015-09-27T11:54:11Z
+- [W002921 — User:Cb88](corpus/wiki-07.md#w002921) · bronregels 1883–1908 | namespace 2 | revisie 10887 | 2010-10-21T22:01:23Z
+- [W004946 — User:Cerisesky](corpus/wiki-14.md#w004946) · bronregels 14144–14211 | namespace 2 | revisie 29584 | 2025-07-06T16:47:07Z
+- [W001391 — User:Chase](corpus/wiki-01.md#w001391) · bronregels 3045–3048 | namespace 2 | revisie 29132 | 2024-06-22T06:57:00Z
+- [W001654 — User:Chase/temp](corpus/wiki-02.md#w001654) · bronregels 7697–7738 | namespace 2 | revisie 29137 | 2024-06-22T22:43:05Z
+- [W003600 — User:ChosenOreo](corpus/wiki-10.md#w003600) · bronregels 5733–5740 | namespace 2 | revisie 16492 | 2014-06-21T06:47:59Z
+- [W003601 — User:Chosenoreo](corpus/wiki-10.md#w003601) · bronregels 5755–5762 | namespace 2 | revisie 19369 | 2016-06-19T14:53:24Z
+- [W003607 — User:ChosenOreo/Chipsets](corpus/wiki-10.md#w003607) · bronregels 5982–5985 | namespace 2 | revisie 16491 | 2014-06-21T06:47:42Z
+- [W003605 — User:ChosenOreo/Chipsets/Intel X58](corpus/wiki-10.md#w003605) · bronregels 5932–5954 | namespace 2 | revisie 16488 | 2014-06-21T06:42:14Z
+- [W003602 — User:ChosenOreo/CPU Detection](corpus/wiki-10.md#w003602) · bronregels 5776–5870 | namespace 2 | revisie 16486 | 2014-06-21T06:31:32Z
+- [W003603 — User:ChosenOreo/Templates](corpus/wiki-10.md#w003603) · bronregels 5884–5886 | namespace 2 | revisie 16494 | 2014-06-21T07:09:12Z
+- [W003604 — User:ChosenOreo/Templates/Infobox Chipset](corpus/wiki-10.md#w003604) · bronregels 5900–5918 | namespace 2 | revisie 16485 | 2014-06-21T06:08:33Z
+- [W003667 — User:Columbus](corpus/wiki-10.md#w003667) · bronregels 11821–11825 | namespace 2 | revisie 17077 | 2014-11-18T18:19:59Z
+- [W003674 — User:Columbus/OR1K BareBones](corpus/wiki-10.md#w003674) · bronregels 12280–12336 | namespace 2 | revisie 17079 | 2014-11-18T18:36:01Z
+- [W003668 — User:Columbus/OR1K Toolchain](corpus/wiki-10.md#w003668) · bronregels 11839–11926 | namespace 2 | revisie 17076 | 2014-11-18T16:28:48Z
+- [W002041 — User:Com1](corpus/wiki-04.md#w002041) · bronregels 4749–4749 | namespace 2 | revisie 3836 | 2007-05-16T19:50:27Z
+- [W001529 — User:Combuster](corpus/wiki-02.md#w001529) · bronregels 917–955 | namespace 2 | revisie 19430 | 2016-07-11T19:53:45Z
+- [W003703 — User:Combuster/Alloca](corpus/wiki-10.md#w003703) · bronregels 14500–14549 | namespace 2 | revisie 17367 | 2014-12-13T12:04:56Z
+- [W002374 — User:Combuster/CDRom BS](corpus/wiki-05.md#w002374) · bronregels 8095–8200 | namespace 2 | revisie 6263 | 2008-09-15T18:00:56Z
+- [W002818 — User:Combuster/Dreamcast Barebones](corpus/wiki-06.md#w002818) · bronregels 16267–16370 | namespace 2 | revisie 10455 | 2010-06-22T09:03:03Z
+- [W002184 — User:Combuster/FAQ Rebuild](corpus/wiki-04.md#w002184) · bronregels 10366–10569 | namespace 2 | revisie 5507 | 2008-06-01T02:37:20Z
+- [W003683 — User:Combuster/Frankenstein's MSVC](corpus/wiki-10.md#w003683) · bronregels 13373–13465 | namespace 2 | revisie 17335 | 2014-12-07T20:25:45Z
+- [W003930 — User:Combuster/Java Primer](corpus/wiki-11.md#w003930) · bronregels 9149–9149 | namespace 2 | revisie 19397 | 2016-07-02T21:17:35Z
+- [W002450 — User:Combuster/Mach64 Hardware](corpus/wiki-05.md#w002450) · bronregels 11003–11244 | namespace 2 | revisie 7214 | 2009-02-12T23:22:19Z
+- [W001853 — User:Combuster/Manual Of Style draft](corpus/wiki-03.md#w001853) · bronregels 6130–6218 | namespace 2 | revisie 21775 | 2017-11-27T02:49:53Z
+- [W001798 — User:Combuster/notepad](corpus/wiki-03.md#w001798) · bronregels 3547–3829 | namespace 2 | revisie 18280 | 2015-08-12T12:02:26Z
+- [W003338 — User:Combuster/Object File Architecture](corpus/wiki-08.md#w003338) · bronregels 15708–15750 | namespace 2 | revisie 14521 | 2013-03-07T11:46:17Z
+- [W002865 — User:Combuster/Object Files](corpus/wiki-06.md#w002865) · bronregels 18419–18419 | namespace 2 | revisie 10304 | 2010-05-14T20:27:12Z
+- [W002842 — User:Combuster/Port IO](corpus/wiki-06.md#w002842) · bronregels 17298–17298 | namespace 2 | revisie 10124 | 2010-04-26T19:05:15Z
+- [W003173 — User:Combuster/Recovered MBR](corpus/wiki-08.md#w003173) · bronregels 1824–2543 | namespace 2 | revisie 13225 | 2012-04-02T17:07:05Z
+- [W002836 — User:Combuster/Recovered USB Sheet](corpus/wiki-06.md#w002836) · bronregels 17122–17189 | namespace 2 | revisie 10094 | 2010-04-19T20:08:20Z
+- [W003009 — User:Combuster/Relicensing](corpus/wiki-07.md#w003009) · bronregels 7987–8712 | namespace 2 | revisie 27600 | 2023-01-19T19:50:55Z
+- [W002596 — User:Combuster/Trio64 Hardware](corpus/wiki-06.md#w002596) · bronregels 1397–1493 | namespace 2 | revisie 18268 | 2015-08-04T20:53:44Z
+- [W002732 — User:Combuster/UDI Graphics](corpus/wiki-06.md#w002732) · bronregels 9172–9334 | namespace 2 | revisie 16320 | 2014-04-27T17:52:38Z
+- [W002999 — User:Communistpancake](corpus/wiki-07.md#w002999) · bronregels 6861–6861 | namespace 2 | revisie 11677 | 2011-07-02T04:23:52Z
+- [W003006 — User:Communistpancake/SFSBrowser](corpus/wiki-07.md#w003006) · bronregels 7958–7958 | namespace 2 | revisie 11713 | 2011-07-04T20:03:30Z
+- [W002602 — User:Computafreak](corpus/wiki-06.md#w002602) · bronregels 1690–1776 | namespace 2 | revisie 23991 | 2019-09-25T12:30:31Z
+- [W002734 — User:Computafreak/DynamicLinking](corpus/wiki-06.md#w002734) · bronregels 9363–9395 | namespace 2 | revisie 9267 | 2009-11-25T19:49:18Z
+- [W004056 — User:Computerfido](corpus/wiki-12.md#w004056) · bronregels 926–926 | namespace 2 | revisie 20771 | 2017-05-07T00:57:03Z
+- [W001380 — User:ComputerPsi](corpus/wiki-01.md#w001380) · bronregels 2917–2918 | namespace 2 | revisie 1475 | 2006-07-16T01:58:51Z
+- [W002490 — User:Creature](corpus/wiki-05.md#w002490) · bronregels 12319–12343 | namespace 2 | revisie 11343 | 2011-03-29T08:33:46Z
+- [W002809 — User:Creature/Logarithms](corpus/wiki-06.md#w002809) · bronregels 15004–15082 | namespace 2 | revisie 9831 | 2010-02-19T15:57:02Z
+- [W002688 — User:Creature/QueueMutex](corpus/wiki-06.md#w002688) · bronregels 6433–6561 | namespace 2 | revisie 9422 | 2009-12-18T13:26:32Z
+- [W002862 — User:Creature/Template:Main2/Hardware Experiment](corpus/wiki-06.md#w002862) · bronregels 18231–18315 | namespace 2 | revisie 10285 | 2010-05-08T10:01:51Z
+- [W002861 — User:Creature/Template:Main2/Subheader](corpus/wiki-06.md#w002861) · bronregels 18213–18217 | namespace 2 | revisie 10284 | 2010-05-08T09:51:41Z
+- [W004943 — User:Crumble14](corpus/wiki-14.md#w004943) · bronregels 14090–14101 | namespace 2 | revisie 29571 | 2025-06-24T17:38:32Z
+- [W003340 — User:Cwood](corpus/wiki-08.md#w003340) · bronregels 15816–15817 | namespace 2 | revisie 15447 | 2013-12-06T14:47:16Z
+- [W003423 — User:CWood/Disk Image Management](corpus/wiki-09.md#w003423) · bronregels 2656–2705 | namespace 2 | revisie 15448 | 2013-12-07T00:24:56Z
+- [W004738 — User:Cyao](corpus/wiki-14.md#w004738) · bronregels 7918–7918 | namespace 2 | revisie 27605 | 2023-01-29T10:04:35Z
+- [W003821 — User:D3crypt](corpus/wiki-11.md#w003821) · bronregels 3085–3087 | namespace 2 | revisie 21025 | 2017-07-30T20:16:43Z
+- [W003726 — User:Dallinac](corpus/wiki-10.md#w003726) · bronregels 15493–15496 | namespace 2 | revisie 17633 | 2015-02-19T06:30:46Z
+- [W002940 — User:Darwish](corpus/wiki-07.md#w002940) · bronregels 3429–3435 | namespace 2 | revisie 29189 | 2024-07-19T21:36:22Z
+- [W004828 — User:Dbstream/Booting on x86](corpus/wiki-14.md#w004828) · bronregels 10021–10211 | namespace 2 | revisie 28409 | 2023-10-21T17:50:41Z
+- [W004813 — User:Dbstream/Paging on x86](corpus/wiki-14.md#w004813) · bronregels 9637–9824 | namespace 2 | revisie 28403 | 2023-10-15T16:50:45Z
+- [W005035 — User:Definedbehavior](corpus/wiki-14.md#w005035) · bronregels 19529–19529 | namespace 2 | revisie 30611 | 2026-05-23T15:13:09Z
+- [W004628 — User:Demindiro](corpus/wiki-14.md#w004628) · bronregels 932–969 | namespace 2 | revisie 27178 | 2022-06-17T17:53:40Z
+- [W004963 — User:Demindiro/Advanced Interrupt Architecture](corpus/wiki-14.md#w004963) · bronregels 15052–15052 | namespace 2 | revisie 29742 | 2025-11-01T19:33:53Z
+- [W004988 — User:Demindiro/AMD-Vi IOMMU](corpus/wiki-14.md#w004988) · bronregels 16512–16512 | namespace 2 | revisie 30037 | 2026-02-19T19:39:03Z
+- [W004989 — User:Demindiro/AMD-Vi IOMMU article scratchpad](corpus/wiki-14.md#w004989) · bronregels 16526–16670 | namespace 2 | revisie 30049 | 2026-02-20T19:57:43Z
+- [W004710 — User:Demindiro/DisplayPort](corpus/wiki-14.md#w004710) · bronregels 5999–5999 | namespace 2 | revisie 27181 | 2022-06-17T18:11:41Z
+- [W004964 — User:Demindiro/Doors (IPC)](corpus/wiki-14.md#w004964) · bronregels 15067–15067 | namespace 2 | revisie 29746 | 2025-11-04T18:01:22Z
+- [W005010 — User:Demindiro/Encryption](corpus/wiki-14.md#w005010) · bronregels 18131–18165 | namespace 2 | revisie 30180 | 2026-03-09T19:13:56Z
+- [W004627 — User:Demindiro/PLIC](corpus/wiki-14.md#w004627) · bronregels 918–918 | namespace 2 | revisie 26293 | 2021-08-12T19:19:54Z
+- [W004711 — User:Demindiro/Porting Rust standard library](corpus/wiki-14.md#w004711) · bronregels 6014–6014 | namespace 2 | revisie 27185 | 2022-06-17T18:29:39Z
+- [W004615 — User:Demindiro/RISC-V Notes](corpus/wiki-14.md#w004615) · bronregels 101–260 | namespace 2 | revisie 26294 | 2021-08-12T19:28:17Z
+- [W004632 — User:Demindiro/SBI](corpus/wiki-14.md#w004632) · bronregels 1028–1095 | namespace 2 | revisie 26344 | 2021-08-16T18:45:56Z
+- [W004914 — User:Demindiro/Super Tiny UEFI Hello World](corpus/wiki-14.md#w004914) · bronregels 12496–12883 | namespace 2 | revisie 30287 | 2026-03-16T18:58:02Z
+- [W004720 — User:Demindiro/Timekeeping in virtual machines](corpus/wiki-14.md#w004720) · bronregels 6814–6814 | namespace 2 | revisie 27315 | 2022-08-29T20:00:40Z
+- [W002948 — User:Derekbank/C Kernel](corpus/wiki-07.md#w002948) · bronregels 4100–4190 | namespace 2 | revisie 11083 | 2011-01-07T12:17:40Z
+- [W003039 — User:Doublebeta](corpus/wiki-07.md#w003039) · bronregels 10597–10601 | namespace 2 | revisie 12060 | 2011-10-01T11:21:33Z
+- [W003396 — User:Dozniak](corpus/wiki-09.md#w003396) · bronregels 1112–1112 | namespace 2 | revisie 15089 | 2013-08-10T09:12:21Z
+- [W003397 — User:Dozniak/Metta](corpus/wiki-09.md#w003397) · bronregels 1126–1151 | namespace 2 | revisie 15091 | 2013-08-10T09:24:50Z
+- [W004619 — User:Drakeor](corpus/wiki-14.md#w004619) · bronregels 411–411 | namespace 2 | revisie 26197 | 2021-07-22T09:56:36Z
+- [W002502 — User:Earlz](corpus/wiki-05.md#w002502) · bronregels 12899–13027 | namespace 2 | revisie 9458 | 2009-12-20T14:27:40Z
+- [W004356 — User:Eekee](corpus/wiki-13.md#w004356) · bronregels 735–854 | namespace 2 | revisie 29202 | 2024-07-30T15:00:04Z
+- [W004622 — User:Egoros7](corpus/wiki-14.md#w004622) · bronregels 453–457 | namespace 2 | revisie 26206 | 2021-07-25T19:12:35Z
+- [W002454 — User:Erikbomb](corpus/wiki-05.md#w002454) · bronregels 11431–11441 | namespace 2 | revisie 22444 | 2018-06-09T16:05:53Z
+- [W003148 — User:Essial](corpus/wiki-07.md#w003148) · bronregels 16144–16153 | namespace 2 | revisie 13021 | 2012-03-18T01:00:59Z
+- [W005076 — User:Eviessh](corpus/wiki-14.md#w005076) · bronregels 22167–22167 | namespace 2 | revisie 30872 | 2026-07-08T03:03:45Z
+- [W003755 — User:Exetwezz](corpus/wiki-10.md#w003755) · bronregels 17201–17201 | namespace 2 | revisie 30612 | 2026-05-23T11:39:58Z
+- [W004973 — User:Exoosdev/ExoOs](corpus/wiki-14.md#w004973) · bronregels 15222–15249 | namespace 2 | revisie 30808 | 2026-06-22T05:02:46Z
+- [W004354 — User:Fallenavatar](corpus/wiki-13.md#w004354) · bronregels 620–625 | namespace 2 | revisie 23212 | 2019-01-16T06:58:49Z
+- [W004355 — User:FallenAvatar/WSL Notes](corpus/wiki-13.md#w004355) · bronregels 639–721 | namespace 2 | revisie 23213 | 2019-01-16T06:59:08Z
+- [W002800 — User:Ferrarius](corpus/wiki-06.md#w002800) · bronregels 12777–12777 | namespace 2 | revisie 9745 | 2010-02-11T12:04:20Z
+- [W004855 — User:Finxx](corpus/wiki-14.md#w004855) · bronregels 10932–10942 | namespace 2 | revisie 30542 | 2026-05-02T03:40:13Z
+- [W005029 — User:Finxx/AArch64 Exceptions](corpus/wiki-14.md#w005029) · bronregels 19119–19119 | namespace 2 | revisie 30531 | 2026-04-29T21:32:32Z
+- [W004896 — User:Finxx/Device Tree Blob](corpus/wiki-14.md#w004896) · bronregels 12185–12225 | namespace 2 | revisie 30227 | 2026-03-16T14:55:04Z
+- [W004856 — User:Finxx/HFS+](corpus/wiki-14.md#w004856) · bronregels 10956–11038 | namespace 2 | revisie 30543 | 2026-05-02T03:41:44Z
+- [W004900 — User:Finxx/PowerPC Bare Bones](corpus/wiki-14.md#w004900) · bronregels 12268–12268 | namespace 2 | revisie 29267 | 2024-10-06T18:50:04Z
+- [W004565 — User:Foliagecanine](corpus/wiki-13.md#w004565) · bronregels 13841–13847 | namespace 2 | revisie 25682 | 2021-02-14T22:59:45Z
+- [W004566 — User:Foliagecanine/Paging in Long Mode](corpus/wiki-13.md#w004566) · bronregels 13861–14059 | namespace 2 | revisie 25810 | 2021-04-15T17:47:06Z
+- [W004279 — User:Frabert](corpus/wiki-12.md#w004279) · bronregels 14060–14060 | namespace 2 | revisie 22540 | 2018-08-03T10:59:43Z
+- [W003320 — User:Franciozzy](corpus/wiki-08.md#w003320) · bronregels 14571–14571 | namespace 2 | revisie 14374 | 2013-01-22T14:15:58Z
+- [W002104 — User:Frank](corpus/wiki-04.md#w002104) · bronregels 7083–7101 | namespace 2 | revisie 19535 | 2016-07-22T21:00:32Z
+- [W005023 — User:Freezo](corpus/wiki-14.md#w005023) · bronregels 18869–18871 | namespace 2 | revisie 30461 | 2026-04-07T03:29:12Z
+- [W004061 — User:Geri/Dawn](corpus/wiki-12.md#w004061) · bronregels 1007–1014 | namespace 2 | revisie 20805 | 2017-05-14T15:32:11Z
+- [W002507 — User:Gh975223](corpus/wiki-05.md#w002507) · bronregels 13257–13312 | namespace 2 | revisie 9711 | 2010-02-05T13:45:40Z
+- [W001829 — User:Gh975223/68K](corpus/wiki-03.md#w001829) · bronregels 4929–4955 | namespace 2 | revisie 2993 | 2007-02-14T22:21:11Z
+- [W001831 — User:Gh975223/Alpha](corpus/wiki-03.md#w001831) · bronregels 5198–5198 | namespace 2 | revisie 2995 | 2007-02-14T22:23:46Z
+- [W001830 — User:Gh975223/ARM](corpus/wiki-03.md#w001830) · bronregels 4969–5184 | namespace 2 | revisie 2994 | 2007-02-14T22:23:13Z
+- [W001827 — User:Gh975223/i960](corpus/wiki-03.md#w001827) · bronregels 4859–4889 | namespace 2 | revisie 2991 | 2007-02-14T22:18:41Z
+- [W001828 — User:Gh975223/IA32](corpus/wiki-03.md#w001828) · bronregels 4903–4915 | namespace 2 | revisie 2992 | 2007-02-14T22:19:36Z
+- [W001808 — User:Gh975223/Xtalk](corpus/wiki-03.md#w001808) · bronregels 4649–4649 | namespace 2 | revisie 3202 | 2007-03-07T05:20:17Z
+- [W003800 — User:Glauxosdev/Tutorials/Bootloader](corpus/wiki-11.md#w003800) · bronregels 1721–1863 | namespace 2 | revisie 18173 | 2015-05-30T11:24:23Z
+- [W004327 — User:Glauxosdever/Bootloader FAQ](corpus/wiki-12.md#w004327) · bronregels 17475–17475 | namespace 2 | revisie 22987 | 2018-09-26T13:18:48Z
+- [W003922 — User:Glauxosdever/Going Further on x86](corpus/wiki-11.md#w003922) · bronregels 8754–8754 | namespace 2 | revisie 19333 | 2016-06-04T18:34:56Z
+- [W004336 — User:Glauxosdever/Higher Half x86 Bare Bones](corpus/wiki-12.md#w004336) · bronregels 18199–18199 | namespace 2 | revisie 23061 | 2018-10-27T19:40:25Z
+- [W003977 — User:Glauxosdever/Maintained](corpus/wiki-11.md#w003977) · bronregels 10883–10897 | namespace 2 | revisie 19896 | 2016-10-14T16:02:56Z
+- [W003984 — User:Glauxosdever/Mister Perfect](corpus/wiki-11.md#w003984) · bronregels 10988–10988 | namespace 2 | revisie 19894 | 2016-10-14T15:58:54Z
+- [W003924 — User:Glauxosdever/TODO](corpus/wiki-11.md#w003924) · bronregels 8791–8803 | namespace 2 | revisie 19804 | 2016-09-08T10:09:56Z
+- [W004351 — User:Glauxosdever/Version Control Software](corpus/wiki-13.md#w004351) · bronregels 16–448 | namespace 2 | revisie 23202 | 2019-01-13T15:01:39Z
+- [W004936 — User:Goldside543](corpus/wiki-14.md#w004936) · bronregels 13997–13999 | namespace 2 | revisie 29537 | 2025-06-06T22:25:41Z
+- [W004937 — User:Goldside543/goldspace](corpus/wiki-14.md#w004937) · bronregels 14013–14020 | namespace 2 | revisie 29543 | 2025-06-08T21:42:57Z
+- [W002960 — User:Graham/Making a GRUB2 image](corpus/wiki-07.md#w002960) · bronregels 4797–4861 | namespace 2 | revisie 11119 | 2011-01-22T21:07:05Z
+- [W003011 — User:Gravaera](corpus/wiki-07.md#w003011) · bronregels 8925–8927 | namespace 2 | revisie 11746 | 2011-07-09T18:28:26Z
+- [W004073 — User:Gravaera/ARM AMBA Advanced Peripheral Bus](corpus/wiki-12.md#w004073) · bronregels 2297–2342 | namespace 2 | revisie 21029 | 2017-08-01T05:38:11Z
+- [W004018 — User:Gravaera/ARM Common Memory System Architecture](corpus/wiki-11.md#w004018) · bronregels 14896–14896 | namespace 2 | revisie 20141 | 2017-01-11T11:36:15Z
+- [W004402 — User:Gravaera/ARM Generic Timers](corpus/wiki-13.md#w004402) · bronregels 4698–4698 | namespace 2 | revisie 23791 | 2019-08-08T03:51:58Z
+- [W004401 — User:Gravaera/ARM SMMU versions 1 and 2](corpus/wiki-13.md#w004401) · bronregels 4683–4683 | namespace 2 | revisie 23788 | 2019-08-08T03:49:23Z
+- [W004077 — User:Gravaera/ARMv7 Common Memory System Architecture,](corpus/wiki-12.md#w004077) · bronregels 2765–2765 | namespace 2 | revisie 21039 | 2017-08-03T02:16:15Z
+- [W004027 — User:Gravaera/ARMv7 Virtual Memory System Architecture,](corpus/wiki-11.md#w004027) · bronregels 15876–15876 | namespace 2 | revisie 20479 | 2017-02-16T04:02:24Z
+- [W004289 — User:Gravaera/ARMv8 Overview](corpus/wiki-12.md#w004289) · bronregels 15705–15755 | namespace 2 | revisie 22572 | 2018-08-16T12:38:39Z
+- [W004908 — User:Gravaera/Building cross compiler with freestanding libsupc++ and libcpp](corpus/wiki-14.md#w004908) · bronregels 12398–12422 | namespace 2 | revisie 29337 | 2025-01-02T19:57:47Z
+- [W003994 — User:Gravaera/Freestanding GNU LibstdC++ v3](corpus/wiki-11.md#w003994) · bronregels 11575–13095 | namespace 2 | revisie 22492 | 2018-07-01T08:35:54Z
+- [W004029 — User:Gravaera/Generic Interrrupt Controller](corpus/wiki-11.md#w004029) · bronregels 15906–15906 | namespace 2 | revisie 20483 | 2017-02-16T04:06:31Z
+- [W004028 — User:Gravaera/Generic Interrrupt Controller versions 3 and 4](corpus/wiki-11.md#w004028) · bronregels 15891–15891 | namespace 2 | revisie 20481 | 2017-02-16T04:04:04Z
+- [W003426 — User:Gravaera/IPC Data Copying methods](corpus/wiki-09.md#w003426) · bronregels 2818–2818 | namespace 2 | revisie 15458 | 2013-12-14T23:11:23Z
+- [W004561 — User:Gravaera/PCI Local Bus Commands](corpus/wiki-13.md#w004561) · bronregels 13773–13773 | namespace 2 | revisie 25615 | 2021-02-06T02:24:28Z
+- [W004428 — User:Gravaera/PCI Local Bus Device Adress Spaces](corpus/wiki-13.md#w004428) · bronregels 6427–6437 | namespace 2 | revisie 24135 | 2019-12-02T22:43:54Z
+- [W004560 — User:Gravaera/PCI Local Bus Signals](corpus/wiki-13.md#w004560) · bronregels 13758–13758 | namespace 2 | revisie 25613 | 2021-02-06T02:22:56Z
+- [W004286 — User:Gravaera/RISC-V Overview](corpus/wiki-12.md#w004286) · bronregels 15426–15575 | namespace 2 | revisie 24098 | 2019-11-11T04:45:20Z
+- [W004287 — User:Gravaera/RISC-V Trap Architecture](corpus/wiki-12.md#w004287) · bronregels 15589–15655 | namespace 2 | revisie 22569 | 2018-08-16T04:49:11Z
+- [W004288 — User:Gravaera/RISC-V Virtualization](corpus/wiki-12.md#w004288) · bronregels 15669–15691 | namespace 2 | revisie 22570 | 2018-08-16T04:49:56Z
+- [W003431 — User:Gravaera/UDI Channels](corpus/wiki-09.md#w003431) · bronregels 3587–3587 | namespace 2 | revisie 15486 | 2013-12-26T21:47:39Z
+- [W003433 — User:Gravaera/UDI Device Enumeration](corpus/wiki-09.md#w003433) · bronregels 3602–3602 | namespace 2 | revisie 15490 | 2013-12-26T21:48:10Z
+- [W003985 — User:Gravaera/UDI Direct Memory Access](corpus/wiki-11.md#w003985) · bronregels 11002–11141 | namespace 2 | revisie 19904 | 2016-10-22T08:08:22Z
+- [W003434 — User:Gravaera/UDI Driver Loading](corpus/wiki-09.md#w003434) · bronregels 3617–3617 | namespace 2 | revisie 15492 | 2013-12-26T21:48:29Z
+- [W003650 — User:Gravaera/UDI Environment Implementation Guide](corpus/wiki-10.md#w003650) · bronregels 11542–11567 | namespace 2 | revisie 16864 | 2014-10-06T21:10:13Z
+- [W003435 — User:Gravaera/UDI IRQ Model](corpus/wiki-09.md#w003435) · bronregels 3632–3632 | namespace 2 | revisie 15494 | 2013-12-26T21:48:43Z
+- [W003663 — User:Gravaera/UDI Marshalling Layouts and Inline Control Block Elements](corpus/wiki-10.md#w003663) · bronregels 11762–11762 | namespace 2 | revisie 16976 | 2014-10-29T04:54:11Z
+- [W003436 — User:Gravaera/UDI Metalanguages](corpus/wiki-09.md#w003436) · bronregels 3647–3647 | namespace 2 | revisie 15496 | 2013-12-26T21:49:19Z
+- [W003430 — User:Gravaera/UDI Regions](corpus/wiki-09.md#w003430) · bronregels 3572–3572 | namespace 2 | revisie 15484 | 2013-12-26T21:46:57Z
+- [W004340 — User:Gravaera/VMSAv8-64 Overview](corpus/wiki-12.md#w004340) · bronregels 18257–18317 | namespace 2 | revisie 23095 | 2018-11-26T05:00:44Z
+- [W004385 — User:Gravaera/Xilinx Ultrascale+ MPSoC](corpus/wiki-13.md#w004385) · bronregels 3764–3796 | namespace 2 | revisie 23641 | 2019-05-23T06:36:18Z
+- [W003798 — User:Greasemonkey](corpus/wiki-11.md#w003798) · bronregels 1362–1362 | namespace 2 | revisie 18148 | 2015-05-27T05:58:47Z
+- [W003799 — User:Greasemonkey/Intel GenX](corpus/wiki-11.md#w003799) · bronregels 1376–1707 | namespace 2 | revisie 18181 | 2015-06-01T06:09:33Z
+- [W003256 — User:Griwes](corpus/wiki-08.md#w003256) · bronregels 7792–7800 | namespace 2 | revisie 19634 | 2016-07-27T14:04:39Z
+- [W003421 — User:Griwes/HPET](corpus/wiki-09.md#w003421) · bronregels 2621–2621 | namespace 2 | revisie 15430 | 2013-11-24T13:32:34Z
+- [W005097 — User:Guac](corpus/wiki-15.md#w005097) · bronregels 918–918 | namespace 2 | revisie 31006 | 2026-10-09T18:05:31Z
+- [W003642 — User:Gudenau](corpus/wiki-10.md#w003642) · bronregels 11269–11269 | namespace 2 | revisie 16805 | 2014-09-24T15:03:48Z
+- [W004262 — User:Gwoplock/EHCI](corpus/wiki-12.md#w004262) · bronregels 10294–10597 | namespace 2 | revisie 22249 | 2018-04-03T18:54:08Z
+- [W003404 — User:H0bby1](corpus/wiki-09.md#w003404) · bronregels 1347–1769 | namespace 2 | revisie 17233 | 2014-12-02T22:26:53Z
+- [W004613 — User:Hakivvi](corpus/wiki-13.md#w004613) · bronregels 16310–16311 | namespace 2 | revisie 26100 | 2021-06-06T22:43:13Z
+- [W003175 — User:Hakonmagnus](corpus/wiki-08.md#w003175) · bronregels 2583–2588 | namespace 2 | revisie 17859 | 2015-04-06T10:29:17Z
+- [W003962 — User:Halofreak1990/Cromwell](corpus/wiki-11.md#w003962) · bronregels 9999–10019 | namespace 2 | revisie 19678 | 2016-08-12T12:54:11Z
+- [W002707 — User:Hangin10](corpus/wiki-06.md#w002707) · bronregels 7374–7390 | namespace 2 | revisie 10624 | 2010-08-24T00:04:33Z
+- [W002906 — User:Hangin10/OS Kernel](corpus/wiki-07.md#w002906) · bronregels 1379–1379 | namespace 2 | revisie 21919 | 2017-12-17T10:55:03Z
+- [W003291 — User:Henriavelabarbe](corpus/wiki-08.md#w003291) · bronregels 9596–9596 | namespace 2 | revisie 14112 | 2012-11-27T19:27:14Z
+- [W004379 — User:Hextakatt](corpus/wiki-13.md#w004379) · bronregels 3359–3360 | namespace 2 | revisie 23556 | 2019-04-06T01:43:47Z
+- [W004816 — User:Hhubsinfo/hhuOS](corpus/wiki-14.md#w004816) · bronregels 9867–9921 | namespace 2 | revisie 29329 | 2024-12-23T19:52:05Z
+- [W003656 — User:Huntnb](corpus/wiki-10.md#w003656) · bronregels 11612–11652 | namespace 2 | revisie 21504 | 2017-09-10T16:12:02Z
+- [W003660 — User:Huntnb/List](corpus/wiki-10.md#w003660) · bronregels 11714–11716 | namespace 2 | revisie 16962 | 2014-10-23T17:14:48Z
+- [W003904 — User:Hwpplayer1](corpus/wiki-11.md#w003904) · bronregels 7873–7873 | namespace 2 | revisie 19159 | 2016-05-08T22:29:48Z
+- [W004259 — User:Iaz3](corpus/wiki-12.md#w004259) · bronregels 10173–10173 | namespace 2 | revisie 22152 | 2018-02-17T22:56:03Z
+- [W004277 — User:Iaz3/Personal Stuff](corpus/wiki-12.md#w004277) · bronregels 13161–13686 | namespace 2 | revisie 30390 | 2026-03-23T14:00:30Z
+- [W004519 — User:Iguessthislldo](corpus/wiki-13.md#w004519) · bronregels 11360–11365 | namespace 2 | revisie 25835 | 2021-05-05T18:01:56Z
+- [W004583 — User:Iguessthislldo/libx86emu](corpus/wiki-13.md#w004583) · bronregels 14657–14721 | namespace 2 | revisie 25845 | 2021-05-06T19:53:19Z
+- [W002554 — User:Imate900](corpus/wiki-05.md#w002554) · bronregels 15652–15663 | namespace 2 | revisie 8584 | 2009-07-18T05:37:52Z
+- [W002567 — User:Imate900/32-bit assembler bare bones](corpus/wiki-05.md#w002567) · bronregels 16077–16154 | namespace 2 | revisie 19527 | 2016-07-22T20:18:42Z
+- [W002563 — User:Imate900/GDC Cross-Compiler-Part2](corpus/wiki-05.md#w002563) · bronregels 15998–16024 | namespace 2 | revisie 9182 | 2009-11-09T14:51:00Z
+- [W002562 — User:Imate900/ROSS](corpus/wiki-05.md#w002562) · bronregels 15784–15984 | namespace 2 | revisie 7707 | 2009-04-19T13:05:47Z
+- [W002555 — User:Imate900/SauOS](corpus/wiki-05.md#w002555) · bronregels 15677–15679 | namespace 2 | revisie 8543 | 2009-07-14T20:19:48Z
+- [W004588 — User:Imdabigboss](corpus/wiki-13.md#w004588) · bronregels 14778–14783 | namespace 2 | revisie 25875 | 2021-05-19T18:39:14Z
+- [W004589 — User:ImDaBigBoss/FoxOS](corpus/wiki-13.md#w004589) · bronregels 14797–14803 | namespace 2 | revisie 25878 | 2021-05-19T18:43:02Z
+- [W004617 — User:Immibis/PinePhone Blinky](corpus/wiki-14.md#w004617) · bronregels 289–378 | namespace 2 | revisie 26179 | 2021-07-11T09:42:45Z
+- [W002375 — User:Inflater](corpus/wiki-05.md#w002375) · bronregels 8214–8219 | namespace 2 | revisie 6290 | 2008-09-24T18:22:20Z
+- [W003328 — User:Intx13](corpus/wiki-08.md#w003328) · bronregels 14787–15284 | namespace 2 | revisie 18482 | 2015-11-09T18:30:37Z
+- [W004732 — User:Isaccbarker](corpus/wiki-14.md#w004732) · bronregels 7796–7798 | namespace 2 | revisie 27682 | 2023-03-14T22:34:28Z
+- [W004744 — User:Isaccbarker/String Formatting](corpus/wiki-14.md#w004744) · bronregels 7996–8219 | namespace 2 | revisie 27679 | 2023-03-14T06:01:21Z
+- [W004925 — User:Israfiela](corpus/wiki-14.md#w004925) · bronregels 13291–13291 | namespace 2 | revisie 29720 | 2025-10-19T18:08:20Z
+- [W002136 — User:Jackscott](corpus/wiki-04.md#w002136) · bronregels 8561–8605 | namespace 2 | revisie 29416 | 2025-02-19T05:24:58Z
+- [W004893 — User:Jamix](corpus/wiki-14.md#w004893) · bronregels 12124–12141 | namespace 2 | revisie 30007 | 2026-02-14T22:55:54Z
+- [W004322 — User:Janworks](corpus/wiki-12.md#w004322) · bronregels 16911–16911 | namespace 2 | revisie 22942 | 2018-09-25T15:44:54Z
+- [W004323 — User:Janworks/Intel Ethernet i219-V](corpus/wiki-12.md#w004323) · bronregels 16925–17414 | namespace 2 | revisie 25053 | 2020-08-12T08:49:20Z
+- [W003817 — User:Jarno](corpus/wiki-11.md#w003817) · bronregels 3008–3012 | namespace 2 | revisie 18353 | 2015-09-30T09:48:37Z
+- [W003064 — User:Jezze](corpus/wiki-07.md#w003064) · bronregels 12008–12010 | namespace 2 | revisie 12359 | 2011-12-18T23:39:03Z
+- [W003942 — User:Jfjhh](corpus/wiki-11.md#w003942) · bronregels 9675–9675 | namespace 2 | revisie 19491 | 2016-07-18T22:09:23Z
+- [W004405 — User:Jflopezfernandez](corpus/wiki-13.md#w004405) · bronregels 4759–4759 | namespace 2 | revisie 23822 | 2019-08-15T22:03:05Z
+- [W001641 — User:Jhawthorn](corpus/wiki-02.md#w001641) · bronregels 7483–7506 | namespace 2 | revisie 2389 | 2006-12-16T23:53:57Z
+- [W001779 — User:Jhawthorn/ASCII](corpus/wiki-03.md#w001779) · bronregels 2726–2894 | namespace 2 | revisie 7241 | 2009-02-15T20:30:12Z
+- [W001693 — User:Jhawthorn/linkconvert](corpus/wiki-02.md#w001693) · bronregels 8801–8845 | namespace 2 | revisie 2442 | 2006-12-19T03:22:59Z
+- [W001997 — User:Jhawthorn/Pages To Fix](corpus/wiki-04.md#w001997) · bronregels 3330–3331 | namespace 2 | revisie 3536 | 2007-04-03T02:28:53Z
+- [W002080 — User:Jhawthorn/TLB](corpus/wiki-04.md#w002080) · bronregels 6177–6197 | namespace 2 | revisie 30213 | 2026-03-13T12:01:52Z
+- [W002165 — User:Jnc100](corpus/wiki-04.md#w002165) · bronregels 9636–9636 | namespace 2 | revisie 4550 | 2007-09-10T22:16:08Z
+- [W002168 — User:Jnc100/OS Specific Toolchain](corpus/wiki-04.md#w002168) · bronregels 9776–9776 | namespace 2 | revisie 4565 | 2007-09-13T17:21:59Z
+- [W003711 — User:Jnc100/UEFI Bare Bones](corpus/wiki-10.md#w003711) · bronregels 14973–14973 | namespace 2 | revisie 25175 | 2020-09-17T15:46:50Z
+- [W003897 — User:Joeeagar](corpus/wiki-11.md#w003897) · bronregels 6926–6942 | namespace 2 | revisie 19143 | 2016-05-07T21:00:36Z
+- [W003899 — User:Joeeagar/CoherentPosix](corpus/wiki-11.md#w003899) · bronregels 7003–7003 | namespace 2 | revisie 19093 | 2016-04-25T05:45:37Z
+- [W003898 — User:Joeeagar/CoherentUnix](corpus/wiki-11.md#w003898) · bronregels 6956–6988 | namespace 2 | revisie 19095 | 2016-04-25T05:48:13Z
+- [W003900 — User:Joeeagar/ElfLoading](corpus/wiki-11.md#w003900) · bronregels 7017–7180 | namespace 2 | revisie 19142 | 2016-05-07T21:00:03Z
+- [W003901 — User:Joeeagar/TerminalEmulation](corpus/wiki-11.md#w003901) · bronregels 7194–7591 | namespace 2 | revisie 19198 | 2016-05-10T11:58:12Z
+- [W003464 — User:Johnburger](corpus/wiki-09.md#w003464) · bronregels 7192–7219 | namespace 2 | revisie 23183 | 2019-01-08T09:27:21Z
+- [W004349 — User:Johnburger/](corpus/wiki-12.md#w004349) · bronregels 18661–18672 | namespace 2 | revisie 23207 | 2019-01-16T02:44:41Z
+- [W003476 — User:Johnburger/Demo](corpus/wiki-09.md#w003476) · bronregels 10220–10271 | namespace 2 | revisie 22422 | 2018-06-03T05:56:28Z
+- [W003511 — User:Johnburger/Demo/BIOS/A20](corpus/wiki-09.md#w003511) · bronregels 14491–14504 | namespace 2 | revisie 21387 | 2017-08-29T09:00:28Z
+- [W003510 — User:Johnburger/Demo/BIOS/BIOS](corpus/wiki-09.md#w003510) · bronregels 14443–14477 | namespace 2 | revisie 21357 | 2017-08-28T21:11:43Z
+- [W003515 — User:Johnburger/Demo/BIOS/Disk](corpus/wiki-09.md#w003515) · bronregels 14665–14682 | namespace 2 | revisie 21391 | 2017-08-29T09:01:46Z
+- [W003513 — User:Johnburger/Demo/BIOS/Key](corpus/wiki-09.md#w003513) · bronregels 14555–14613 | namespace 2 | revisie 21389 | 2017-08-29T09:01:11Z
+- [W003516 — User:Johnburger/Demo/BIOS/MBR](corpus/wiki-09.md#w003516) · bronregels 14696–14724 | namespace 2 | revisie 21392 | 2017-08-29T09:02:02Z
+- [W003517 — User:Johnburger/Demo/BIOS/MemMap](corpus/wiki-09.md#w003517) · bronregels 14738–14764 | namespace 2 | revisie 21393 | 2017-08-29T09:02:22Z
+- [W003512 — User:Johnburger/Demo/BIOS/RAMMap](corpus/wiki-09.md#w003512) · bronregels 14518–14541 | namespace 2 | revisie 21388 | 2017-08-29T09:00:51Z
+- [W003514 — User:Johnburger/Demo/BIOS/VGA](corpus/wiki-09.md#w003514) · bronregels 14627–14651 | namespace 2 | revisie 21390 | 2017-08-29T09:01:30Z
+- [W003499 — User:Johnburger/Demo/Boot/A20](corpus/wiki-09.md#w003499) · bronregels 13077–13207 | namespace 2 | revisie 21399 | 2017-08-29T09:07:30Z
+- [W003486 — User:Johnburger/Demo/Boot/Boot](corpus/wiki-09.md#w003486) · bronregels 11865–12044 | namespace 2 | revisie 21355 | 2017-08-28T21:11:16Z
+- [W003495 — User:Johnburger/Demo/Boot/CPU](corpus/wiki-09.md#w003495) · bronregels 12626–12664 | namespace 2 | revisie 21395 | 2017-08-29T09:06:44Z
+- [W003494 — User:Johnburger/Demo/Boot/Entry](corpus/wiki-09.md#w003494) · bronregels 12540–12612 | namespace 2 | revisie 21394 | 2017-08-29T09:06:34Z
+- [W003497 — User:Johnburger/Demo/Boot/IDT](corpus/wiki-09.md#w003497) · bronregels 12836–12933 | namespace 2 | revisie 21397 | 2017-08-29T09:07:08Z
+- [W003500 — User:Johnburger/Demo/Boot/Key](corpus/wiki-09.md#w003500) · bronregels 13221–13241 | namespace 2 | revisie 21400 | 2017-08-29T09:07:41Z
+- [W003496 — User:Johnburger/Demo/Boot/Load](corpus/wiki-09.md#w003496) · bronregels 12678–12822 | namespace 2 | revisie 21396 | 2017-08-29T09:06:57Z
+- [W003502 — User:Johnburger/Demo/Boot/PM](corpus/wiki-09.md#w003502) · bronregels 13369–13466 | namespace 2 | revisie 28460 | 2023-11-15T08:33:00Z
+- [W003498 — User:Johnburger/Demo/Boot/RAM](corpus/wiki-09.md#w003498) · bronregels 12947–13063 | namespace 2 | revisie 21398 | 2017-08-29T09:07:19Z
+- [W003501 — User:Johnburger/Demo/Boot/VGA](corpus/wiki-09.md#w003501) · bronregels 13255–13355 | namespace 2 | revisie 21401 | 2017-08-29T09:07:59Z
+- [W003509 — User:Johnburger/Demo/Data.inc](corpus/wiki-09.md#w003509) · bronregels 14399–14429 | namespace 2 | revisie 21404 | 2017-08-29T09:09:37Z
+- [W003484 — User:Johnburger/Demo/Demo](corpus/wiki-09.md#w003484) · bronregels 11545–11693 | namespace 2 | revisie 21353 | 2017-08-28T21:10:56Z
+- [W003485 — User:Johnburger/Demo/Demo.inc](corpus/wiki-09.md#w003485) · bronregels 11707–11851 | namespace 2 | revisie 21406 | 2017-08-29T09:12:50Z
+- [W003521 — User:Johnburger/Demo/Dev/A20](corpus/wiki-09.md#w003521) · bronregels 15053–15080 | namespace 2 | revisie 21413 | 2017-08-29T09:14:51Z
+- [W003520 — User:Johnburger/Demo/Dev/Dev](corpus/wiki-09.md#w003520) · bronregels 15014–15039 | namespace 2 | revisie 21359 | 2017-08-28T21:12:21Z
+- [W003524 — User:Johnburger/Demo/Dev/Key](corpus/wiki-09.md#w003524) · bronregels 15175–15257 | namespace 2 | revisie 21416 | 2017-08-29T09:15:20Z
+- [W003522 — User:Johnburger/Demo/Dev/PIC](corpus/wiki-09.md#w003522) · bronregels 15094–15132 | namespace 2 | revisie 21414 | 2017-08-29T09:15:01Z
+- [W003523 — User:Johnburger/Demo/Dev/Timer](corpus/wiki-09.md#w003523) · bronregels 15146–15161 | namespace 2 | revisie 21415 | 2017-08-29T09:15:10Z
+- [W003525 — User:Johnburger/Demo/Dev/VGA](corpus/wiki-09.md#w003525) · bronregels 15271–15345 | namespace 2 | revisie 21417 | 2017-08-29T09:15:33Z
+- [W003573 — User:Johnburger/Demo/Exec/Alloc/Alloc](corpus/wiki-10.md#w003573) · bronregels 3390–3424 | namespace 2 | revisie 21369 | 2017-08-28T21:15:00Z
+- [W003575 — User:Johnburger/Demo/Exec/Alloc/DT](corpus/wiki-10.md#w003575) · bronregels 3529–3653 | namespace 2 | revisie 21432 | 2017-08-29T09:27:32Z
+- [W003577 — User:Johnburger/Demo/Exec/Alloc/GDT](corpus/wiki-10.md#w003577) · bronregels 3706–3771 | namespace 2 | revisie 21429 | 2017-08-29T09:23:54Z
+- [W003576 — User:Johnburger/Demo/Exec/Alloc/IDT](corpus/wiki-10.md#w003576) · bronregels 3667–3692 | namespace 2 | revisie 21431 | 2017-08-29T09:27:22Z
+- [W003578 — User:Johnburger/Demo/Exec/Alloc/LDT](corpus/wiki-10.md#w003578) · bronregels 3785–3932 | namespace 2 | revisie 21428 | 2017-08-29T09:23:40Z
+- [W003574 — User:Johnburger/Demo/Exec/Alloc/RAM](corpus/wiki-10.md#w003574) · bronregels 3438–3515 | namespace 2 | revisie 21433 | 2017-08-29T09:27:42Z
+- [W003579 — User:Johnburger/Demo/Exec/Alloc/TSS](corpus/wiki-10.md#w003579) · bronregels 3946–4046 | namespace 2 | revisie 22424 | 2018-06-04T01:05:21Z
+- [W003551 — User:Johnburger/Demo/Exec/Exec](corpus/wiki-10.md#w003551) · bronregels 1929–2006 | namespace 2 | revisie 21363 | 2017-08-28T21:13:42Z
+- [W003565 — User:Johnburger/Demo/Exec/GDT](corpus/wiki-10.md#w003565) · bronregels 2819–2898 | namespace 2 | revisie 21424 | 2017-08-29T09:21:17Z
+- [W003552 — User:Johnburger/Demo/Exec/Init](corpus/wiki-10.md#w003552) · bronregels 2020–2072 | namespace 2 | revisie 21435 | 2017-08-29T09:29:37Z
+- [W003559 — User:Johnburger/Demo/Exec/Ints/BadStack](corpus/wiki-10.md#w003559) · bronregels 2488–2514 | namespace 2 | revisie 21440 | 2017-08-29T09:30:27Z
+- [W003560 — User:Johnburger/Demo/Exec/Ints/BadTSS](corpus/wiki-10.md#w003560) · bronregels 2528–2554 | namespace 2 | revisie 21441 | 2017-08-29T09:30:36Z
+- [W003555 — User:Johnburger/Demo/Exec/Ints/Debug](corpus/wiki-10.md#w003555) · bronregels 2185–2209 | namespace 2 | revisie 21437 | 2017-08-29T09:29:56Z
+- [W003558 — User:Johnburger/Demo/Exec/Ints/Double](corpus/wiki-10.md#w003558) · bronregels 2448–2474 | namespace 2 | revisie 21439 | 2017-08-29T09:30:15Z
+- [W003557 — User:Johnburger/Demo/Exec/Ints/Fault](corpus/wiki-10.md#w003557) · bronregels 2253–2434 | namespace 2 | revisie 21427 | 2017-08-29T09:22:50Z
+- [W003553 — User:Johnburger/Demo/Exec/Ints/Ints](corpus/wiki-10.md#w003553) · bronregels 2086–2141 | namespace 2 | revisie 21364 | 2017-08-28T21:13:57Z
+- [W003556 — User:Johnburger/Demo/Exec/Ints/NoSeg](corpus/wiki-10.md#w003556) · bronregels 2223–2239 | namespace 2 | revisie 21438 | 2017-08-29T09:30:06Z
+- [W003554 — User:Johnburger/Demo/Exec/Ints/Trace](corpus/wiki-10.md#w003554) · bronregels 2155–2171 | namespace 2 | revisie 21436 | 2017-08-29T09:29:46Z
+- [W003563 — User:Johnburger/Demo/Exec/Key](corpus/wiki-10.md#w003563) · bronregels 2681–2718 | namespace 2 | revisie 21425 | 2017-08-29T09:22:12Z
+- [W003564 — User:Johnburger/Demo/Exec/LDT](corpus/wiki-10.md#w003564) · bronregels 2732–2805 | namespace 2 | revisie 21313 | 2017-08-28T20:50:50Z
+- [W003561 — User:Johnburger/Demo/Exec/PICs](corpus/wiki-10.md#w003561) · bronregels 2568–2614 | namespace 2 | revisie 21442 | 2017-08-29T09:30:45Z
+- [W003562 — User:Johnburger/Demo/Exec/Timer](corpus/wiki-10.md#w003562) · bronregels 2628–2667 | namespace 2 | revisie 21405 | 2017-08-29T09:11:22Z
+- [W003567 — User:Johnburger/Demo/Exec/User/LDT](corpus/wiki-10.md#w003567) · bronregels 3009–3094 | namespace 2 | revisie 21423 | 2017-08-29T09:20:36Z
+- [W003568 — User:Johnburger/Demo/Exec/User/TSS](corpus/wiki-10.md#w003568) · bronregels 3108–3151 | namespace 2 | revisie 21422 | 2017-08-29T09:19:30Z
+- [W003566 — User:Johnburger/Demo/Exec/User/User](corpus/wiki-10.md#w003566) · bronregels 2912–2995 | namespace 2 | revisie 21365 | 2017-08-28T21:14:12Z
+- [W003518 — User:Johnburger/Demo/Host](corpus/wiki-09.md#w003518) · bronregels 14778–14950 | namespace 2 | revisie 21358 | 2017-08-28T21:11:59Z
+- [W003542 — User:Johnburger/Demo/Ints/Debug/Debug](corpus/wiki-10.md#w003542) · bronregels 872–1014 | namespace 2 | revisie 28461 | 2023-11-15T08:34:54Z
+- [W003543 — User:Johnburger/Demo/Ints/Debug/Init](corpus/wiki-10.md#w003543) · bronregels 1028–1068 | namespace 2 | revisie 21448 | 2017-08-29T09:32:51Z
+- [W003546 — User:Johnburger/Demo/Ints/Debug/Key](corpus/wiki-10.md#w003546) · bronregels 1383–1530 | namespace 2 | revisie 21451 | 2017-08-29T09:33:35Z
+- [W003544 — User:Johnburger/Demo/Ints/Debug/Regs](corpus/wiki-10.md#w003544) · bronregels 1082–1150 | namespace 2 | revisie 21449 | 2017-08-29T09:33:02Z
+- [W003545 — User:Johnburger/Demo/Ints/Debug/Show](corpus/wiki-10.md#w003545) · bronregels 1164–1369 | namespace 2 | revisie 21450 | 2017-08-29T09:33:23Z
+- [W003529 — User:Johnburger/Demo/Ints/Fault](corpus/wiki-09.md#w003529) · bronregels 15669–15832 | namespace 2 | revisie 21419 | 2017-08-29T09:15:54Z
+- [W003527 — User:Johnburger/Demo/Ints/IDT](corpus/wiki-09.md#w003527) · bronregels 15405–15486 | namespace 2 | revisie 21403 | 2017-08-29T09:09:02Z
+- [W003526 — User:Johnburger/Demo/Ints/Ints](corpus/wiki-09.md#w003526) · bronregels 15359–15391 | namespace 2 | revisie 21360 | 2017-08-28T21:12:40Z
+- [W003533 — User:Johnburger/Demo/Ints/IRQs](corpus/wiki-10.md#w003533) · bronregels 16–116 | namespace 2 | revisie 21380 | 2017-08-28T21:24:26Z
+- [W003535 — User:Johnburger/Demo/Ints/Key](corpus/wiki-10.md#w003535) · bronregels 173–267 | namespace 2 | revisie 21426 | 2017-08-29T09:22:18Z
+- [W003531 — User:Johnburger/Demo/Ints/NoSeg](corpus/wiki-09.md#w003531) · bronregels 15917–15970 | namespace 2 | revisie 21421 | 2017-08-29T09:16:21Z
+- [W003530 — User:Johnburger/Demo/Ints/Single](corpus/wiki-09.md#w003530) · bronregels 15846–15903 | namespace 2 | revisie 21420 | 2017-08-29T09:16:11Z
+- [W003534 — User:Johnburger/Demo/Ints/Timer](corpus/wiki-10.md#w003534) · bronregels 130–159 | namespace 2 | revisie 21381 | 2017-08-28T21:24:49Z
+- [W003532 — User:Johnburger/Demo/Ints/User](corpus/wiki-09.md#w003532) · bronregels 15984–16014 | namespace 2 | revisie 21443 | 2017-08-29T09:31:55Z
+- [W003536 — User:Johnburger/Demo/Ints/Util](corpus/wiki-10.md#w003536) · bronregels 281–486 | namespace 2 | revisie 21444 | 2017-08-29T09:32:07Z
+- [W003528 — User:Johnburger/Demo/Ints/Vectors](corpus/wiki-09.md#w003528) · bronregels 15500–15655 | namespace 2 | revisie 21418 | 2017-08-29T09:15:44Z
+- [W003477 — User:Johnburger/Demo/Overview](corpus/wiki-09.md#w003477) · bronregels 10285–10877 | namespace 2 | revisie 21351 | 2017-08-28T21:05:39Z
+- [W003571 — User:Johnburger/Demo/Pad/Floppy](corpus/wiki-10.md#w003571) · bronregels 3330–3360 | namespace 2 | revisie 21368 | 2017-08-28T21:14:48Z
+- [W003570 — User:Johnburger/Demo/Pad/HardDisk](corpus/wiki-10.md#w003570) · bronregels 3293–3316 | namespace 2 | revisie 21367 | 2017-08-28T21:14:37Z
+- [W003584 — User:Johnburger/Demo/Pad/ISO/Boot](corpus/wiki-10.md#w003584) · bronregels 4492–4517 | namespace 2 | revisie 21374 | 2017-08-28T21:16:03Z
+- [W003587 — User:Johnburger/Demo/Pad/ISO/Catalog](corpus/wiki-10.md#w003587) · bronregels 4608–4650 | namespace 2 | revisie 21377 | 2017-08-28T21:16:40Z
+- [W003582 — User:Johnburger/Demo/Pad/ISO/Defn](corpus/wiki-10.md#w003582) · bronregels 4204–4372 | namespace 2 | revisie 21372 | 2017-08-28T21:15:40Z
+- [W003581 — User:Johnburger/Demo/Pad/ISO/ISO](corpus/wiki-10.md#w003581) · bronregels 4095–4190 | namespace 2 | revisie 21371 | 2017-08-28T21:15:28Z
+- [W003586 — User:Johnburger/Demo/Pad/ISO/PathTable](corpus/wiki-10.md#w003586) · bronregels 4563–4594 | namespace 2 | revisie 21376 | 2017-08-28T21:16:27Z
+- [W003583 — User:Johnburger/Demo/Pad/ISO/Primary](corpus/wiki-10.md#w003583) · bronregels 4386–4478 | namespace 2 | revisie 21373 | 2017-08-28T21:15:52Z
+- [W003580 — User:Johnburger/Demo/Pad/ISO/RootDir](corpus/wiki-10.md#w003580) · bronregels 4060–4081 | namespace 2 | revisie 21370 | 2017-08-28T21:15:12Z
+- [W003585 — User:Johnburger/Demo/Pad/ISO/Terminator](corpus/wiki-10.md#w003585) · bronregels 4531–4549 | namespace 2 | revisie 21375 | 2017-08-28T21:16:16Z
+- [W003569 — User:Johnburger/Demo/Pad/Sizes](corpus/wiki-10.md#w003569) · bronregels 3165–3279 | namespace 2 | revisie 21366 | 2017-08-28T21:14:26Z
+- [W003519 — User:Johnburger/Demo/Target](corpus/wiki-09.md#w003519) · bronregels 14964–15000 | namespace 2 | revisie 21155 | 2017-08-28T20:21:29Z
+- [W003540 — User:Johnburger/Demo/User/Code](corpus/wiki-10.md#w003540) · bronregels 625–791 | namespace 2 | revisie 21446 | 2017-08-29T09:32:27Z
+- [W003539 — User:Johnburger/Demo/User/Data](corpus/wiki-10.md#w003539) · bronregels 589–611 | namespace 2 | revisie 21445 | 2017-08-29T09:32:17Z
+- [W003541 — User:Johnburger/Demo/User/Frame](corpus/wiki-10.md#w003541) · bronregels 805–858 | namespace 2 | revisie 21447 | 2017-08-29T09:32:37Z
+- [W003538 — User:Johnburger/Demo/User/LDT](corpus/wiki-10.md#w003538) · bronregels 541–575 | namespace 2 | revisie 21434 | 2017-08-29T09:29:27Z
+- [W003537 — User:Johnburger/Demo/User/User](corpus/wiki-10.md#w003537) · bronregels 500–527 | namespace 2 | revisie 21361 | 2017-08-28T21:12:54Z
+- [W003490 — User:Johnburger/Demo/x86/CR0](corpus/wiki-09.md#w003490) · bronregels 12243–12263 | namespace 2 | revisie 21409 | 2017-08-29T09:13:26Z
+- [W003491 — User:Johnburger/Demo/x86/Desc](corpus/wiki-09.md#w003491) · bronregels 12277–12422 | namespace 2 | revisie 21410 | 2017-08-29T09:13:39Z
+- [W003489 — User:Johnburger/Demo/x86/EFlags](corpus/wiki-09.md#w003489) · bronregels 12173–12229 | namespace 2 | revisie 21408 | 2017-08-29T09:13:15Z
+- [W003493 — User:Johnburger/Demo/x86/IVT](corpus/wiki-09.md#w003493) · bronregels 12510–12526 | namespace 2 | revisie 21412 | 2017-08-29T09:14:41Z
+- [W003488 — User:Johnburger/Demo/x86/Seg](corpus/wiki-09.md#w003488) · bronregels 12119–12159 | namespace 2 | revisie 21407 | 2017-08-29T09:13:02Z
+- [W003492 — User:Johnburger/Demo/x86/TSS](corpus/wiki-09.md#w003492) · bronregels 12436–12496 | namespace 2 | revisie 21411 | 2017-08-29T09:13:52Z
+- [W003487 — User:Johnburger/Demo/x86/x86](corpus/wiki-09.md#w003487) · bronregels 12058–12105 | namespace 2 | revisie 28462 | 2023-11-15T08:40:19Z
+- [W003965 — User:Johnburger/Dingle](corpus/wiki-11.md#w003965) · bronregels 10066–10071 | namespace 2 | revisie 21344 | 2017-08-28T20:54:10Z
+- [W003467 — User:Johnburger/NASMCritique](corpus/wiki-09.md#w003467) · bronregels 7406–7474 | namespace 2 | revisie 21143 | 2017-08-28T20:15:52Z
+- [W004353 — User:Johnburger/OS/Bootstrap](corpus/wiki-13.md#w004353) · bronregels 462–606 | namespace 2 | revisie 28722 | 2024-04-02T03:53:44Z
+- [W004348 — User:Johnburger/OS/Design](corpus/wiki-12.md#w004348) · bronregels 18512–18647 | namespace 2 | revisie 23205 | 2019-01-16T02:43:46Z
+- [W003466 — User:Johnburger/PIC](corpus/wiki-09.md#w003466) · bronregels 7288–7392 | namespace 2 | revisie 21379 | 2017-08-28T21:22:46Z
+- [W003470 — User:Johnburger/PIC/Background](corpus/wiki-09.md#w003470) · bronregels 8485–8555 | namespace 2 | revisie 21342 | 2017-08-28T20:54:03Z
+- [W003465 — User:Johnburger/Tutorials](corpus/wiki-09.md#w003465) · bronregels 7233–7274 | namespace 2 | revisie 21350 | 2017-08-28T21:03:17Z
+- [W004225 — User:Johnwilson](corpus/wiki-12.md#w004225) · bronregels 7511–7518 | namespace 2 | revisie 21828 | 2017-12-05T20:23:13Z
+- [W004204 — User:Joshw](corpus/wiki-12.md#w004204) · bronregels 5027–5027 | namespace 2 | revisie 21574 | 2017-09-27T16:28:22Z
+- [W002558 — User:Karekare0](corpus/wiki-05.md#w002558) · bronregels 15723–15723 | namespace 2 | revisie 7690 | 2009-04-17T02:37:46Z
+- [W003677 — User:Kazinsal](corpus/wiki-10.md#w003677) · bronregels 13180–13182 | namespace 2 | revisie 22193 | 2018-03-09T07:24:06Z
+- [W003679 — User:Kazinsal/BlacklightEVO](corpus/wiki-10.md#w003679) · bronregels 13245–13287 | namespace 2 | revisie 18673 | 2015-12-05T23:01:15Z
+- [W003678 — User:Kazinsal/VirtualBox Video Adapter](corpus/wiki-10.md#w003678) · bronregels 13196–13231 | namespace 2 | revisie 17254 | 2014-12-03T06:37:31Z
+- [W003691 — User:Kazinsal/VirtualBox Video Adapter/Notes](corpus/wiki-10.md#w003691) · bronregels 13663–13669 | namespace 2 | revisie 17255 | 2014-12-03T06:46:00Z
+- [W003699 — User:Kazinsal/VMWare SVGA](corpus/wiki-10.md#w003699) · bronregels 14434–14448 | namespace 2 | revisie 17365 | 2014-12-11T20:24:45Z
+- [W003700 — User:Kazinsal/VMWare SVGA/Notes](corpus/wiki-10.md#w003700) · bronregels 14462–14464 | namespace 2 | revisie 17364 | 2014-12-11T20:24:19Z
+- [W004540 — User:Kb](corpus/wiki-13.md#w004540) · bronregels 12917–12922 | namespace 2 | revisie 27535 | 2022-12-19T10:56:36Z
+- [W003767 — User:KemyLand](corpus/wiki-10.md#w003767) · bronregels 17381–17413 | namespace 2 | revisie 17879 | 2015-04-12T22:11:39Z
+- [W002949 — User:Kenny](corpus/wiki-07.md#w002949) · bronregels 4204–4283 | namespace 2 | revisie 14523 | 2013-03-10T12:07:03Z
+- [W003339 — User:Kenny/Test](corpus/wiki-08.md#w003339) · bronregels 15764–15802 | namespace 2 | revisie 14525 | 2013-03-11T11:10:13Z
+- [W004959 — User:Kerneldestroyer](corpus/wiki-14.md#w004959) · bronregels 14812–14812 | namespace 2 | revisie 29726 | 2025-10-23T20:52:56Z
+- [W004358 — User:Khorlane](corpus/wiki-13.md#w004358) · bronregels 883–2106 | namespace 2 | revisie 23332 | 2019-01-31T16:14:28Z
+- [W003887 — User:Kjam](corpus/wiki-11.md#w003887) · bronregels 6702–6704 | namespace 2 | revisie 19014 | 2016-03-23T23:35:35Z
+- [W004949 — User:Klakap](corpus/wiki-14.md#w004949) · bronregels 14254–14254 | namespace 2 | revisie 29623 | 2025-08-17T10:37:57Z
+- [W004594 — User:Klange](corpus/wiki-13.md#w004594) · bronregels 15246–15246 | namespace 2 | revisie 25955 | 2021-05-27T01:26:54Z
+- [W004733 — User:Klange/Kuroko](corpus/wiki-14.md#w004733) · bronregels 7812–7842 | namespace 2 | revisie 27577 | 2023-01-10T03:51:22Z
+- [W004689 — User:Klange/QEMU virt](corpus/wiki-14.md#w004689) · bronregels 4083–4181 | namespace 2 | revisie 26906 | 2022-02-01T00:31:46Z
+- [W003443 — User:Klange/Room-full-of-painters](corpus/wiki-09.md#w003443) · bronregels 3847–3875 | namespace 2 | revisie 15533 | 2014-01-13T09:05:52Z
+- [W004637 — User:Klange/Tables](corpus/wiki-14.md#w004637) · bronregels 1153–1187 | namespace 2 | revisie 26470 | 2021-10-07T13:39:46Z
+- [W003394 — User:Klange/ToaruOS](corpus/wiki-09.md#w003394) · bronregels 1047–1084 | namespace 2 | revisie 26673 | 2021-11-13T00:02:40Z
+- [W003969 — User:Klange/VirtualBox/Guest Additions](corpus/wiki-11.md#w003969) · bronregels 10747–10747 | namespace 2 | revisie 20685 | 2017-04-10T17:41:38Z
+- [W004330 — User:Klange/VMware tools](corpus/wiki-12.md#w004330) · bronregels 17975–17975 | namespace 2 | revisie 23018 | 2018-09-29T02:04:33Z
+- [W002075 — User:Kmcguire](corpus/wiki-04.md#w002075) · bronregels 4998–6120 | namespace 2 | revisie 15602 | 2014-02-21T07:44:46Z
+- [W003185 — User:Kmcguire/JavaClassLoadAndExecute](corpus/wiki-08.md#w003185) · bronregels 3972–5451 | namespace 2 | revisie 13363 | 2012-05-14T01:04:35Z
+- [W001990 — User:Kmcguire/Quick And Dirty Device Management](corpus/wiki-04.md#w001990) · bronregels 2764–3141 | namespace 2 | revisie 3897 | 2007-05-19T02:37:01Z
+- [W001952 — User:Kmcguire/Quick And Dirty Heap Algorithm](corpus/wiki-04.md#w001952) · bronregels 130–133 | namespace 2 | revisie 15831 | 2014-03-30T17:29:58Z
+- [W001964 — User:Kmcguire/Quick And Dirty Virtual Address Space Scheme](corpus/wiki-04.md#w001964) · bronregels 1455–2193 | namespace 2 | revisie 15635 | 2014-02-25T03:32:21Z
+- [W002640 — User:Kmtdk](corpus/wiki-06.md#w002640) · bronregels 3541–3887 | namespace 2 | revisie 14636 | 2013-05-07T06:29:02Z
+- [W002735 — User:Kotuxguy](corpus/wiki-06.md#w002735) · bronregels 9409–9421 | namespace 2 | revisie 19475 | 2016-07-14T21:23:20Z
+- [W004958 — User:Kouosi](corpus/wiki-14.md#w004958) · bronregels 14798–14798 | namespace 2 | revisie 29712 | 2025-10-17T07:31:17Z
+- [W004747 — User:Kraskaska](corpus/wiki-14.md#w004747) · bronregels 8568–8570 | namespace 2 | revisie 27755 | 2023-04-27T09:54:05Z
+- [W002282 — User:KrnlHckr](corpus/wiki-05.md#w002282) · bronregels 3196–3228 | namespace 2 | revisie 5504 | 2008-05-30T14:54:37Z
+- [W002026 — User:Ldenyer/Memory Management First Fit](corpus/wiki-04.md#w002026) · bronregels 4291–4291 | namespace 2 | revisie 10063 | 2010-04-16T10:56:31Z
+- [W004621 — User:Leapofazzam](corpus/wiki-14.md#w004621) · bronregels 439–439 | namespace 2 | revisie 26203 | 2021-07-24T14:45:44Z
+- [W004678 — User:Leapofazzam/Zig Bare Bones](corpus/wiki-14.md#w004678) · bronregels 3614–3614 | namespace 2 | revisie 26726 | 2021-12-01T11:28:43Z
+- [W004728 — User:Len](corpus/wiki-14.md#w004728) · bronregels 7631–7631 | namespace 2 | revisie 27479 | 2022-11-03T19:39:33Z
+- [W004057 — User:Lev](corpus/wiki-12.md#w004057) · bronregels 940–949 | namespace 2 | revisie 20784 | 2017-05-08T14:47:19Z
+- [W004058 — User:Lev/Drafts/Simple Stack Trace](corpus/wiki-12.md#w004058) · bronregels 963–963 | namespace 2 | revisie 20785 | 2017-05-08T14:47:41Z
+- [W003174 — User:Lionel](corpus/wiki-08.md#w003174) · bronregels 2557–2569 | namespace 2 | revisie 15508 | 2014-01-04T05:24:52Z
+- [W003462 — User:Lionel/James Molloy's Kernel Development Tutorials](corpus/wiki-09.md#w003462) · bronregels 7030–7063 | namespace 2 | revisie 15704 | 2014-03-10T02:15:44Z
+- [W003797 — User:Lionel/MSR Draft](corpus/wiki-11.md#w003797) · bronregels 1269–1348 | namespace 2 | revisie 18854 | 2016-01-17T12:11:25Z
+- [W003439 — User:Lionel/OSX](corpus/wiki-09.md#w003439) · bronregels 3696–3791 | namespace 2 | revisie 15848 | 2014-04-06T05:34:13Z
+- [W003248 — User:Lionel/What kind of kernel should I make?](corpus/wiki-08.md#w003248) · bronregels 7629–7673 | namespace 2 | revisie 16768 | 2014-09-20T03:22:45Z
+- [W003662 — User:Lisovy](corpus/wiki-10.md#w003662) · bronregels 11746–11747 | namespace 2 | revisie 16968 | 2014-10-27T11:12:21Z
+- [W004195 — User:Lkurusa](corpus/wiki-12.md#w004195) · bronregels 3891–3898 | namespace 2 | revisie 23036 | 2018-10-13T09:03:04Z
+- [W004331 — User:Lkurusa/HiFive1 Bare Bones](corpus/wiki-12.md#w004331) · bronregels 17990–17990 | namespace 2 | revisie 23039 | 2018-10-19T11:49:55Z
+- [W004840 — User:Lolguy91](corpus/wiki-14.md#w004840) · bronregels 10465–10473 | namespace 2 | revisie 28567 | 2024-01-17T18:29:26Z
+- [W002798 — User:Love4boobies](corpus/wiki-06.md#w002798) · bronregels 12745–12763 | namespace 2 | revisie 14042 | 2012-10-17T12:17:14Z
+- [W002995 — User:Love4Boobies/C style guide](corpus/wiki-07.md#w002995) · bronregels 6609–6696 | namespace 2 | revisie 11816 | 2011-07-21T14:12:58Z
+- [W003403 — User:Love4boobies/Cygwin as UNIX](corpus/wiki-09.md#w003403) · bronregels 1268–1333 | namespace 2 | revisie 19905 | 2016-10-24T01:59:32Z
+- [W003979 — User:Lucasaiu](corpus/wiki-11.md#w003979) · bronregels 10931–10931 | namespace 2 | revisie 19836 | 2016-09-22T07:30:39Z
+- [W003229 — User:Lucretia](corpus/wiki-08.md#w003229) · bronregels 6486–6486 | namespace 2 | revisie 13590 | 2012-06-13T12:09:34Z
+- [W004690 — User:Lugar](corpus/wiki-14.md#w004690) · bronregels 4195–4195 | namespace 2 | revisie 26901 | 2022-01-31T20:19:38Z
+- [W003865 — User:Lukaandjelkovic](corpus/wiki-11.md#w003865) · bronregels 5783–5785 | namespace 2 | revisie 19273 | 2016-05-25T09:00:04Z
+- [W003966 — User:Lukand](corpus/wiki-11.md#w003966) · bronregels 10085–10095 | namespace 2 | revisie 20075 | 2016-12-31T15:29:28Z
+- [W003613 — User:Lweb20](corpus/wiki-10.md#w003613) · bronregels 6281–6549 | namespace 2 | revisie 18435 | 2015-11-01T23:24:55Z
+- [W003352 — User:M12](corpus/wiki-08.md#w003352) · bronregels 16622–16623 | namespace 2 | revisie 14628 | 2013-05-02T19:25:47Z
+- [W003351 — User:M12/Rolling Your Own Filesystem](corpus/wiki-08.md#w003351) · bronregels 16591–16608 | namespace 2 | revisie 14627 | 2013-05-02T19:23:02Z
+- [W003598 — User:Madanra/Tasks before leaving Real Mode](corpus/wiki-10.md#w003598) · bronregels 5648–5705 | namespace 2 | revisie 16430 | 2014-05-31T16:49:12Z
+- [W004001 — User:Majicktek](corpus/wiki-11.md#w004001) · bronregels 13882–13882 | namespace 2 | revisie 20068 | 2016-12-30T11:28:02Z
+- [W003811 — User:Makerimages](corpus/wiki-11.md#w003811) · bronregels 2909–2918 | namespace 2 | revisie 18296 | 2015-08-19T18:49:54Z
+- [W003890 — User:Malloc19](corpus/wiki-11.md#w003890) · bronregels 6733–6733 | namespace 2 | revisie 19032 | 2016-04-01T21:02:29Z
+- [W004271 — User:Manwar/AquilaOS](corpus/wiki-12.md#w004271) · bronregels 11169–11201 | namespace 2 | revisie 22382 | 2018-05-07T19:16:06Z
+- [W004836 — User:Marceldarcel](corpus/wiki-14.md#w004836) · bronregels 10367–10396 | namespace 2 | revisie 28538 | 2023-12-26T19:41:33Z
+- [W002931 — User:Mariuszp](corpus/wiki-07.md#w002931) · bronregels 3004–3006 | namespace 2 | revisie 23267 | 2019-01-30T22:16:56Z
+- [W002994 — User:Mariuszp/Scheduler Tutorial](corpus/wiki-07.md#w002994) · bronregels 6492–6595 | namespace 2 | revisie 18648 | 2015-11-26T09:17:01Z
+- [W003422 — User:Max](corpus/wiki-09.md#w003422) · bronregels 2635–2642 | namespace 2 | revisie 27467 | 2022-10-11T19:02:11Z
+- [W003592 — User:Max/Building a GCC 4.9 cross compiler on OS X Mavericks](corpus/wiki-10.md#w003592) · bronregels 5038–5128 | namespace 2 | revisie 18219 | 2015-07-06T10:54:38Z
+- [W003771 — User:Max/Ghost Kernel](corpus/wiki-10.md#w003771) · bronregels 18249–18269 | namespace 2 | revisie 27463 | 2022-10-10T15:18:51Z
+- [W003795 — User:Max/Preparing Windows as a build environment](corpus/wiki-11.md#w003795) · bronregels 1153–1233 | namespace 2 | revisie 27464 | 2022-10-10T15:30:57Z
+- [W005019 — User:Maxvolts](corpus/wiki-14.md#w005019) · bronregels 18302–18787 | namespace 2 | revisie 30551 | 2026-05-05T05:03:04Z
+- [W002942 — User:Mduft/HigherHalf Kernel with 32-bit Paging](corpus/wiki-07.md#w002942) · bronregels 3464–4028 | namespace 2 | revisie 11041 | 2010-12-11T08:02:36Z
+- [W004912 — User:Meownium](corpus/wiki-14.md#w004912) · bronregels 12464–12465 | namespace 2 | revisie 29354 | 2025-01-29T14:20:29Z
+- [W004913 — User:Meownium/Ada Bare Bones](corpus/wiki-14.md#w004913) · bronregels 12479–12482 | namespace 2 | revisie 29355 | 2025-01-29T14:35:03Z
+- [W004417 — User:Mercury0x000d](corpus/wiki-13.md#w004417) · bronregels 5253–5437 | namespace 2 | revisie 23935 | 2019-09-16T18:24:48Z
+- [W002134 — User:Meshounah](corpus/wiki-04.md#w002134) · bronregels 8533–8533 | namespace 2 | revisie 4353 | 2007-08-15T22:52:42Z
+- [W002173 — User:MessiahAndrw](corpus/wiki-04.md#w002173) · bronregels 9918–9918 | namespace 2 | revisie 25669 | 2021-02-13T02:48:19Z
+- [W002782 — User:Messiahandrw](corpus/wiki-06.md#w002782) · bronregels 10608–10608 | namespace 2 | revisie 9551 | 2009-12-28T06:12:09Z
+- [W003694 — User:MessiahAndrw/LLVM OS Specific Toolchain](corpus/wiki-10.md#w003694) · bronregels 13720–14209 | namespace 2 | revisie 25731 | 2021-03-04T19:52:17Z
+- [W005018 — User:Michaelsermir](corpus/wiki-14.md#w005018) · bronregels 18286–18288 | namespace 2 | revisie 30444 | 2026-04-03T23:57:43Z
+- [W004915 — User:Mid/USB mobile modems](corpus/wiki-14.md#w004915) · bronregels 12897–12945 | namespace 2 | revisie 29396 | 2025-02-11T08:14:00Z
+- [W003622 — User:Minoto](corpus/wiki-10.md#w003622) · bronregels 7071–7095 | namespace 2 | revisie 16624 | 2014-08-24T02:34:03Z
+- [W005052 — User:Mishakov](corpus/wiki-14.md#w005052) · bronregels 21126–21126 | namespace 2 | revisie 30728 | 2026-06-11T09:33:51Z
+- [W004581 — User:Mishatheosmaker](corpus/wiki-13.md#w004581) · bronregels 14629–14629 | namespace 2 | revisie 26268 | 2021-08-06T10:47:10Z
+- [W004950 — User:Mohammedisam](corpus/wiki-14.md#w004950) · bronregels 14268–14272 | namespace 2 | revisie 29632 | 2025-08-28T23:08:26Z
+- [W004951 — User:Mohammedisam/laylaos](corpus/wiki-14.md#w004951) · bronregels 14286–14322 | namespace 2 | revisie 29631 | 2025-08-28T23:06:49Z
+- [W003808 — User:Moloch](corpus/wiki-11.md#w003808) · bronregels 2798–2798 | namespace 2 | revisie 18263 | 2015-07-28T05:25:46Z
+- [W004859 — User:Moltony112](corpus/wiki-14.md#w004859) · bronregels 11185–11188 | namespace 2 | revisie 28772 | 2024-04-27T05:06:41Z
+- [W002872 — User:Montrom](corpus/wiki-06.md#w002872) · bronregels 18658–18692 | namespace 2 | revisie 10396 | 2010-06-04T00:50:22Z
+- [W004004 — User:Moondeck](corpus/wiki-11.md#w004004) · bronregels 14120–14122 | namespace 2 | revisie 20036 | 2016-12-19T08:36:30Z
+- [W001800 — User:Mr.Confuzed](corpus/wiki-03.md#w001800) · bronregels 3859–4374 | namespace 2 | revisie 3623 | 2007-04-08T21:19:11Z
+- [W005047 — User:MrOlsen7905/uBixOS](corpus/wiki-14.md#w005047) · bronregels 20653–20730 | namespace 2 | revisie 30700 | 2026-06-08T16:29:29Z
+- [W003593 — User:Mrvn/LinkedListBucketHeapImplementation](corpus/wiki-10.md#w003593) · bronregels 5142–5491 | namespace 2 | revisie 16346 | 2014-05-06T20:12:37Z
+- [W003717 — User:Mrvn/Raspberry Pi 2](corpus/wiki-10.md#w003717) · bronregels 15029–15060 | namespace 2 | revisie 17586 | 2015-02-13T12:54:48Z
+- [W004396 — User:Mrwoggle](corpus/wiki-13.md#w004396) · bronregels 4303–4332 | namespace 2 | revisie 24103 | 2019-11-15T16:10:27Z
+- [W004673 — User:Mrwoggle123](corpus/wiki-14.md#w004673) · bronregels 3123–3153 | namespace 2 | revisie 26676 | 2021-11-13T23:32:46Z
+- [W003620 — User:Muazzam](corpus/wiki-10.md#w003620) · bronregels 7037–7043 | namespace 2 | revisie 18183 | 2015-06-02T09:56:24Z
+- [W004049 — User:Narke](corpus/wiki-12.md#w004049) · bronregels 532–537 | namespace 2 | revisie 25154 | 2020-09-13T21:13:14Z
+- [W004083 — User:Narke/Languages](corpus/wiki-12.md#w004083) · bronregels 3465–3533 | namespace 2 | revisie 30910 | 2026-08-16T11:34:46Z
+- [W004525 — User:Narke/Ring0OSPitfalls](corpus/wiki-13.md#w004525) · bronregels 12196–12199 | namespace 2 | revisie 25149 | 2020-09-10T22:17:08Z
+- [W002512 — User:Nathanjphillips](corpus/wiki-05.md#w002512) · bronregels 13433–13435 | namespace 2 | revisie 7368 | 2009-03-14T11:58:58Z
+- [W004014 — User:Naxnax](corpus/wiki-11.md#w004014) · bronregels 14554–14554 | namespace 2 | revisie 20112 | 2017-01-06T20:08:17Z
+- [W002755 — User:Nedbrek](corpus/wiki-06.md#w002755) · bronregels 10073–10089 | namespace 2 | revisie 11114 | 2011-01-22T19:38:46Z
+- [W002806 — User:Nedbrek/bootl](corpus/wiki-06.md#w002806) · bronregels 14911–14960 | namespace 2 | revisie 9794 | 2010-02-15T13:17:28Z
+- [W002827 — User:Nedbrek/Extracting bit patterns from BDF](corpus/wiki-06.md#w002827) · bronregels 16531–16569 | namespace 2 | revisie 10009 | 2010-04-01T11:39:37Z
+- [W002959 — User:Nedbrek/mmap](corpus/wiki-07.md#w002959) · bronregels 4703–4783 | namespace 2 | revisie 11121 | 2011-01-23T01:52:40Z
+- [W002966 — User:Neolander](corpus/wiki-07.md#w002966) · bronregels 5102–5108 | namespace 2 | revisie 11268 | 2011-03-14T11:03:25Z
+- [W004593 — User:Neon](corpus/wiki-13.md#w004593) · bronregels 15071–15232 | namespace 2 | revisie 26087 | 2021-06-05T04:38:54Z
+- [W004614 — User:Neon/Recursive Paging](corpus/wiki-14.md#w004614) · bronregels 16–87 | namespace 2 | revisie 26129 | 2021-06-12T06:17:12Z
+- [W003382 — User:Nessphoro](corpus/wiki-09.md#w003382) · bronregels 804–846 | namespace 2 | revisie 14954 | 2013-07-24T06:04:56Z
+- [W003950 — User:New16](corpus/wiki-11.md#w003950) · bronregels 9770–9814 | namespace 2 | revisie 26267 | 2021-08-06T10:43:25Z
+- [W004625 — User:Nexos](corpus/wiki-14.md#w004625) · bronregels 668–696 | namespace 2 | revisie 27232 | 2022-07-12T19:35:29Z
+- [W004528 — User:Nexos/UEFI Bare Bones](corpus/wiki-13.md#w004528) · bronregels 12243–12260 | namespace 2 | revisie 25179 | 2020-09-17T16:00:21Z
+- [W003595 — User:No92](corpus/wiki-10.md#w003595) · bronregels 5596–5601 | namespace 2 | revisie 20773 | 2017-05-07T09:57:16Z
+- [W004380 — User:No92/ACPICA](corpus/wiki-13.md#w004380) · bronregels 3374–3662 | namespace 2 | revisie 23579 | 2019-04-17T14:13:08Z
+- [W003709 — User:No92/ARM Instruction Encoding](corpus/wiki-10.md#w003709) · bronregels 14822–14932 | namespace 2 | revisie 25611 | 2021-02-05T21:14:53Z
+- [W004050 — User:No92/Random Bits](corpus/wiki-12.md#w004050) · bronregels 551–812 | namespace 2 | revisie 20860 | 2017-06-04T23:26:41Z
+- [W004284 — User:No92/UEFI Bare Bones](corpus/wiki-12.md#w004284) · bronregels 14305–14421 | namespace 2 | revisie 23761 | 2019-07-17T20:15:04Z
+- [W004935 — User:Notnekodev](corpus/wiki-14.md#w004935) · bronregels 13980–13983 | namespace 2 | revisie 29530 | 2025-05-29T09:04:54Z
+- [W002863 — User:Novayoshi](corpus/wiki-06.md#w002863) · bronregels 18329–18329 | namespace 2 | revisie 10298 | 2010-05-10T20:19:48Z
+- [W004591 — User:Nullplan/Random Number Generator](corpus/wiki-13.md#w004591) · bronregels 14831–15043 | namespace 2 | revisie 26174 | 2021-07-03T09:47:18Z
+- [W003991 — User:NunoLava1998](corpus/wiki-11.md#w003991) · bronregels 11511–11512 | namespace 2 | revisie 19936 | 2016-10-29T06:32:24Z
+- [W003992 — User:Nunolava1998](corpus/wiki-11.md#w003992) · bronregels 11526–11526 | namespace 2 | revisie 19937 | 2016-10-29T06:33:07Z
+- [W004065 — User:Obiwac/AQUA](corpus/wiki-12.md#w004065) · bronregels 1686–1689 | namespace 2 | revisie 20883 | 2017-06-07T21:56:34Z
+- [W003938 — User:Omarrx024/VESA Tutorial](corpus/wiki-11.md#w003938) · bronregels 9257–9616 | namespace 2 | revisie 27508 | 2022-12-02T14:40:54Z
+- [W002340 — User:Omega](corpus/wiki-05.md#w002340) · bronregels 5225–5821 | namespace 2 | revisie 5853 | 2008-07-08T09:17:11Z
+- [W002587 — User:Oros](corpus/wiki-06.md#w002587) · bronregels 883–883 | namespace 2 | revisie 7864 | 2009-05-09T03:24:47Z
+- [W002655 — User:Oros/FAT](corpus/wiki-06.md#w002655) · bronregels 4172–4800 | namespace 2 | revisie 8395 | 2009-07-07T05:26:45Z
+- [W002605 — User:Oros/SFS](corpus/wiki-06.md#w002605) · bronregels 2251–2788 | namespace 2 | revisie 17855 | 2015-04-03T09:51:29Z
+- [W002837 — User:Osdnlo](corpus/wiki-06.md#w002837) · bronregels 17204–17204 | namespace 2 | revisie 10095 | 2010-04-19T20:08:20Z
+- [W003149 — User:Pancakes](corpus/wiki-07.md#w003149) · bronregels 16167–16270 | namespace 2 | revisie 15830 | 2014-03-30T17:19:05Z
+- [W003472 — User:Pancakes/ARM Integrator-CP IRQTimerPICTasksAndMM](corpus/wiki-09.md#w003472) · bronregels 9028–10153 | namespace 2 | revisie 16198 | 2014-04-15T17:49:08Z
+- [W003482 — User:Pancakes/ARM Integrator-CP VMM2](corpus/wiki-09.md#w003482) · bronregels 10964–11145 | namespace 2 | revisie 16276 | 2014-04-24T14:16:15Z
+- [W003588 — User:Pancakes/arm qemu realview-pb-a](corpus/wiki-10.md#w003588) · bronregels 4664–4955 | namespace 2 | revisie 16327 | 2014-05-01T00:04:19Z
+- [W003589 — User:Pancakes/ARM QEMU REALVIEW-PB-A](corpus/wiki-10.md#w003589) · bronregels 4970–4970 | namespace 2 | revisie 16212 | 2014-04-17T18:12:13Z
+- [W003454 — User:Pancakes/BitmapHeapImplementation](corpus/wiki-09.md#w003454) · bronregels 6054–6239 | namespace 2 | revisie 25752 | 2021-03-12T08:53:31Z
+- [W003471 — User:Pancakes/BitmapHeapImplementationEnhanced](corpus/wiki-09.md#w003471) · bronregels 8569–9014 | namespace 2 | revisie 15824 | 2014-03-29T09:34:30Z
+- [W003455 — User:Pancakes/EntryBasedHeapImplementation](corpus/wiki-09.md#w003455) · bronregels 6253–6539 | namespace 2 | revisie 16348 | 2014-05-07T06:46:37Z
+- [W003182 — User:Pancakes/LazyDiskLoading](corpus/wiki-08.md#w003182) · bronregels 3525–3533 | namespace 2 | revisie 13314 | 2012-05-02T06:41:45Z
+- [W003179 — User:Pancakes/LazyDriverInterface](corpus/wiki-08.md#w003179) · bronregels 3103–3440 | namespace 2 | revisie 13308 | 2012-05-01T14:37:56Z
+- [W003167 — User:Pancakes/Sandbox](corpus/wiki-08.md#w003167) · bronregels 1510–1633 | namespace 2 | revisie 13195 | 2012-03-30T05:20:53Z
+- [W003451 — User:Pancakes/SimpleHeapImplementation](corpus/wiki-09.md#w003451) · bronregels 5621–5776 | namespace 2 | revisie 16351 | 2014-05-07T18:54:02Z
+- [W003453 — User:Pancakes/SimpleKernelModuleAttachment](corpus/wiki-09.md#w003453) · bronregels 5827–6040 | namespace 2 | revisie 15622 | 2014-02-22T21:34:11Z
+- [W003463 — User:Pancakes/StackBasedHeapImplementation](corpus/wiki-09.md#w003463) · bronregels 7077–7178 | namespace 2 | revisie 15713 | 2014-03-13T21:05:11Z
+- [W004906 — User:Partisani](corpus/wiki-14.md#w004906) · bronregels 12357–12357 | namespace 2 | revisie 29298 | 2024-11-18T17:13:17Z
+- [W002744 — User:Patrickv](corpus/wiki-06.md#w002744) · bronregels 9551–9551 | namespace 2 | revisie 9346 | 2009-12-06T21:24:19Z
+- [W002127 — User:Pcmattman](corpus/wiki-04.md#w002127) · bronregels 8273–8301 | namespace 2 | revisie 19309 | 2016-06-02T10:35:34Z
+- [W002525 — User:Pcmattman/Category:Networking](corpus/wiki-05.md#w002525) · bronregels 14202–14202 | namespace 2 | revisie 7488 | 2009-04-02T02:06:28Z
+- [W002526 — User:Pcmattman/Category:NetworkingHardware](corpus/wiki-05.md#w002526) · bronregels 14216–14216 | namespace 2 | revisie 7489 | 2009-04-02T02:07:48Z
+- [W004492 — User:PeterX](corpus/wiki-13.md#w004492) · bronregels 10412–10412 | namespace 2 | revisie 25765 | 2021-03-18T13:13:05Z
+- [W004433 — User:Peyty](corpus/wiki-13.md#w004433) · bronregels 6939–6949 | namespace 2 | revisie 29446 | 2025-03-25T14:21:08Z
+- [W004435 — User:Peyty/GreenteaOS](corpus/wiki-13.md#w004435) · bronregels 6977–7056 | namespace 2 | revisie 29611 | 2025-07-31T12:36:40Z
+- [W003676 — User:Phillid](corpus/wiki-10.md#w003676) · bronregels 12350–13166 | namespace 2 | revisie 17088 | 2014-11-22T00:03:29Z
+- [W002218 — User:Pietro10](corpus/wiki-04.md#w002218) · bronregels 11923–11925 | namespace 2 | revisie 5154 | 2008-02-25T23:05:04Z
+- [W003178 — User:Pinged](corpus/wiki-08.md#w003178) · bronregels 3088–3089 | namespace 2 | revisie 13275 | 2012-04-29T01:34:36Z
+- [W002867 — User:Pinged/ARM Bare Bones](corpus/wiki-06.md#w002867) · bronregels 18558–18558 | namespace 2 | revisie 10309 | 2010-05-16T11:26:55Z
+- [W002871 — User:Pinged/ARM Integrator-CP Bare Bones](corpus/wiki-06.md#w002871) · bronregels 18644–18644 | namespace 2 | revisie 10339 | 2010-05-20T17:07:01Z
+- [W002879 — User:Pinged/TR18037](corpus/wiki-07.md#w002879) · bronregels 440–546 | namespace 2 | revisie 10400 | 2010-06-07T16:59:09Z
+- [W004941 — User:Pinkcomputer](corpus/wiki-14.md#w004941) · bronregels 14062–14062 | namespace 2 | revisie 29567 | 2025-06-22T03:31:17Z
+- [W002904 — User:Primis](corpus/wiki-07.md#w002904) · bronregels 1276–1280 | namespace 2 | revisie 29241 | 2024-09-09T15:22:56Z
+- [W004839 — User:Puffer](corpus/wiki-14.md#w004839) · bronregels 10440–10451 | namespace 2 | revisie 28626 | 2024-02-15T18:57:16Z
+- [W004582 — User:Qoob](corpus/wiki-13.md#w004582) · bronregels 14643–14643 | namespace 2 | revisie 25832 | 2021-05-05T00:02:48Z
+- [W004754 — User:Quadrantal/difficulty icon test template](corpus/wiki-14.md#w004754) · bronregels 8668–8681 | namespace 2 | revisie 27828 | 2023-06-24T18:32:19Z
+- [W002016 — User:Quok](corpus/wiki-04.md#w002016) · bronregels 3781–3798 | namespace 2 | revisie 6248 | 2008-08-27T18:30:21Z
+- [W002373 — User:Quok/Silicon Image Datasheets](corpus/wiki-05.md#w002373) · bronregels 8034–8081 | namespace 2 | revisie 6252 | 2008-08-27T19:19:32Z
+- [W004683 — User:Raidtheweb](corpus/wiki-14.md#w004683) · bronregels 3943–3943 | namespace 2 | revisie 26805 | 2021-12-27T21:30:17Z
+- [W002267 — User:Randomibis](corpus/wiki-05.md#w002267) · bronregels 1586–1586 | namespace 2 | revisie 5412 | 2008-05-02T02:01:00Z
+- [W003298 — User:Ranok](corpus/wiki-08.md#w003298) · bronregels 10381–10392 | namespace 2 | revisie 14131 | 2012-12-08T01:10:12Z
+- [W004848 — User:Ravenlee](corpus/wiki-14.md#w004848) · bronregels 10599–10599 | namespace 2 | revisie 28679 | 2024-03-01T08:44:25Z
+- [W004697 — User:Rdrpenguin](corpus/wiki-14.md#w004697) · bronregels 4510–4510 | namespace 2 | revisie 26976 | 2022-02-17T04:21:56Z
+- [W003040 — User:Renagadexx](corpus/wiki-07.md#w003040) · bronregels 10615–10617 | namespace 2 | revisie 12106 | 2011-10-14T17:34:34Z
+- [W003627 — User:Requimrar/FAT32](corpus/wiki-10.md#w003627) · bronregels 7247–7455 | namespace 2 | revisie 16660 | 2014-08-30T05:30:40Z
+- [W004904 — User:Restingwitchface](corpus/wiki-14.md#w004904) · bronregels 12343–12343 | namespace 2 | revisie 29296 | 2024-11-17T18:56:22Z
+- [W004694 — User:Revolution](corpus/wiki-14.md#w004694) · bronregels 4460–4466 | namespace 2 | revisie 26972 | 2022-02-16T17:37:20Z
+- [W004507 — User:Rhodez](corpus/wiki-13.md#w004507) · bronregels 11000–11006 | namespace 2 | revisie 24982 | 2020-07-02T08:49:56Z
+- [W004506 — User:Rhodez/QuasiOS](corpus/wiki-13.md#w004506) · bronregels 10976–10986 | namespace 2 | revisie 24978 | 2020-07-02T08:16:42Z
+- [W004508 — User:Rhodez/SingOS](corpus/wiki-13.md#w004508) · bronregels 11020–11035 | namespace 2 | revisie 24981 | 2020-07-02T08:46:05Z
+- [W002902 — User:Rjah](corpus/wiki-07.md#w002902) · bronregels 1240–1242 | namespace 2 | revisie 10614 | 2010-08-22T11:37:49Z
+- [W002903 — User:Rjah/Getting started with PowerPC](corpus/wiki-07.md#w002903) · bronregels 1256–1262 | namespace 2 | revisie 10615 | 2010-08-22T11:42:10Z
+- [W003781 — User:Robschia](corpus/wiki-11.md#w003781) · bronregels 820–820 | namespace 2 | revisie 18001 | 2015-05-01T13:02:13Z
+- [W003789 — User:Roman](corpus/wiki-11.md#w003789) · bronregels 1071–1071 | namespace 2 | revisie 18028 | 2015-05-02T17:53:57Z
+- [W004734 — User:Rose932](corpus/wiki-14.md#w004734) · bronregels 7856–7858 | namespace 2 | revisie 27584 | 2023-01-13T22:51:57Z
+- [W002869 — User:Rudimk](corpus/wiki-06.md#w002869) · bronregels 18587–18615 | namespace 2 | revisie 10373 | 2010-05-27T15:25:47Z
+- [W002991 — User:Sanmukh](corpus/wiki-07.md#w002991) · bronregels 6310–6310 | namespace 2 | revisie 11605 | 2011-06-09T16:35:56Z
+- [W004748 — User:Saper](corpus/wiki-14.md#w004748) · bronregels 8584–8584 | namespace 2 | revisie 27757 | 2023-04-29T17:45:14Z
+- [W003413 — User:Scdbackup](corpus/wiki-09.md#w003413) · bronregels 2138–2154 | namespace 2 | revisie 26675 | 2021-11-13T19:24:01Z
+- [W004209 — User:Schizius](corpus/wiki-12.md#w004209) · bronregels 5122–5122 | namespace 2 | revisie 21663 | 2017-10-31T05:52:59Z
+- [W002269 — User:Schol-R-LEA](corpus/wiki-05.md#w002269) · bronregels 1651–1651 | namespace 2 | revisie 5414 | 2008-05-02T06:59:19Z
+- [W003692 — User:Schol-r-lea](corpus/wiki-10.md#w003692) · bronregels 13683–13691 | namespace 2 | revisie 21075 | 2017-08-10T13:15:18Z
+- [W004218 — User:Schol-r-lea/Brief Tutorial On Data Strctures In Assembly Language](corpus/wiki-12.md#w004218) · bronregels 6407–6407 | namespace 2 | revisie 21750 | 2017-11-25T22:01:17Z
+- [W004217 — User:Schol-r-lea/Brief Tutorial On Data Structures In Assembly Language](corpus/wiki-12.md#w004217) · bronregels 5860–6392 | namespace 2 | revisie 22221 | 2018-03-16T22:44:04Z
+- [W004092 — User:Schol-r-lea/CPU Implementation](corpus/wiki-12.md#w004092) · bronregels 3797–3852 | namespace 2 | revisie 22060 | 2018-01-12T02:23:13Z
+- [W004087 — User:Schol-r-lea/Early CLIs](corpus/wiki-12.md#w004087) · bronregels 3616–3639 | namespace 2 | revisie 21137 | 2017-08-22T21:41:57Z
+- [W004089 — User:Schol-r-lea/Early MIPS Workstations](corpus/wiki-12.md#w004089) · bronregels 3688–3697 | namespace 2 | revisie 21136 | 2017-08-22T21:41:33Z
+- [W004215 — User:Schol-r-lea/GRUB](corpus/wiki-12.md#w004215) · bronregels 5484–5680 | namespace 2 | revisie 21771 | 2017-11-26T21:00:33Z
+- [W004214 — User:Schol-r-lea/GRUB Legacy](corpus/wiki-12.md#w004214) · bronregels 5257–5470 | namespace 2 | revisie 21772 | 2017-11-26T21:02:31Z
+- [W004086 — User:Schol-r-lea/Hells Forum](corpus/wiki-12.md#w004086) · bronregels 3594–3602 | namespace 2 | revisie 21116 | 2017-08-22T20:58:25Z
+- [W004091 — User:Schol-r-lea/Itanic](corpus/wiki-12.md#w004091) · bronregels 3732–3783 | namespace 2 | revisie 21133 | 2017-08-22T21:39:37Z
+- [W004088 — User:Schol-r-lea/OISC Wars Part 1](corpus/wiki-12.md#w004088) · bronregels 3653–3674 | namespace 2 | revisie 21135 | 2017-08-22T21:40:46Z
+- [W004090 — User:Schol-r-lea/OISC Wars Part 2](corpus/wiki-12.md#w004090) · bronregels 3711–3718 | namespace 2 | revisie 21138 | 2017-08-22T21:42:33Z
+- [W004093 — User:Schol-r-lea/OISC Wars Part 3](corpus/wiki-12.md#w004093) · bronregels 3866–3877 | namespace 2 | revisie 21131 | 2017-08-22T21:38:57Z
+- [W004085 — User:Schol-r-lea/The Shoehorn Parable](corpus/wiki-12.md#w004085) · bronregels 3562–3580 | namespace 2 | revisie 21134 | 2017-08-22T21:40:15Z
+- [W004207 — User:Schol-r-lea/Understanding RISC vs CISC](corpus/wiki-12.md#w004207) · bronregels 5056–5080 | namespace 2 | revisie 22457 | 2018-06-12T16:19:54Z
+- [W004216 — User:Schol-r-lea/Upgrading GRUB Legacy to GRUB 2](corpus/wiki-12.md#w004216) · bronregels 5694–5846 | namespace 2 | revisie 21711 | 2017-11-19T21:11:41Z
+- [W002657 — User:Scorchos](corpus/wiki-06.md#w002657) · bronregels 4850–4862 | namespace 2 | revisie 8444 | 2009-07-09T09:47:53Z
+- [W004005 — User:Sdp](corpus/wiki-11.md#w004005) · bronregels 14136–14136 | namespace 2 | revisie 20044 | 2016-12-23T16:40:19Z
+- [W004612 — User:Seds](corpus/wiki-13.md#w004612) · bronregels 16113–16296 | namespace 2 | revisie 26056 | 2021-06-02T00:15:34Z
+- [W004686 — User:Sham1](corpus/wiki-14.md#w004686) · bronregels 3972–3972 | namespace 2 | revisie 26839 | 2022-01-04T19:17:51Z
+- [W004860 — User:Shifty](corpus/wiki-14.md#w004860) · bronregels 11202–11202 | namespace 2 | revisie 28741 | 2024-04-17T19:45:41Z
+- [W003276 — User:Shikhin](corpus/wiki-08.md#w003276) · bronregels 8657–8663 | namespace 2 | revisie 14006 | 2012-09-22T07:05:14Z
+- [W003036 — User:Shikhin/Tutorial SMP](corpus/wiki-07.md#w003036) · bronregels 10154–10267 | namespace 2 | revisie 12017 | 2011-09-18T15:57:39Z
+- [W004250 — User:Shukantpal](corpus/wiki-12.md#w004250) · bronregels 8905–8905 | namespace 2 | revisie 22078 | 2018-01-14T07:32:06Z
+- [W004251 — User:Shukantpal/Silcos Kernel](corpus/wiki-12.md#w004251) · bronregels 8919–9027 | namespace 2 | revisie 22493 | 2018-07-01T09:39:30Z
+- [W002997 — User:Sidewaysmilk](corpus/wiki-07.md#w002997) · bronregels 6710–6710 | namespace 2 | revisie 20587 | 2017-03-14T03:44:31Z
+- [W002901 — User:Sigaren](corpus/wiki-07.md#w002901) · bronregels 1226–1226 | namespace 2 | revisie 10606 | 2010-08-19T00:34:05Z
+- [W004522 — User:Silverfox1955](corpus/wiki-13.md#w004522) · bronregels 12146–12148 | namespace 2 | revisie 25124 | 2020-09-05T15:22:23Z
+- [W005100 — User:Skeletonz33](corpus/wiki-15.md#w005100) · bronregels 1275–1279 | namespace 2 | revisie 31027 | 2026-10-18T21:08:31Z
+- [W003923 — User:Snasim2002](corpus/wiki-11.md#w003923) · bronregels 8768–8777 | namespace 2 | revisie 19337 | 2016-06-05T12:24:01Z
+- [W005092 — User:Softwarewrighter](corpus/wiki-15.md#w005092) · bronregels 772–772 | namespace 2 | revisie 30973 | 2026-09-26T22:00:25Z
+- [W002175 — User:Solar](corpus/wiki-04.md#w002175) · bronregels 9960–9960 | namespace 2 | revisie 13888 | 2012-07-30T07:09:53Z
+- [W003049 — User:Solar/Makefile](corpus/wiki-07.md#w003049) · bronregels 10860–11012 | namespace 2 | revisie 12959 | 2012-03-10T07:38:32Z
+- [W003860 — User:Songziming](corpus/wiki-11.md#w003860) · bronregels 5650–5659 | namespace 2 | revisie 18809 | 2016-01-09T11:43:32Z
+- [W003863 — User:Songziming/ACPICA](corpus/wiki-11.md#w003863) · bronregels 5715–5747 | namespace 2 | revisie 18806 | 2016-01-07T20:36:43Z
+- [W003862 — User:Songziming/Junk](corpus/wiki-11.md#w003862) · bronregels 5687–5701 | namespace 2 | revisie 18831 | 2016-01-09T17:00:35Z
+- [W003861 — User:Songziming/OO](corpus/wiki-11.md#w003861) · bronregels 5673–5673 | namespace 2 | revisie 23534 | 2019-04-02T15:18:41Z
+- [W003864 — User:Songziming/OSDev](corpus/wiki-11.md#w003864) · bronregels 5761–5769 | namespace 2 | revisie 18812 | 2016-01-09T13:07:54Z
+- [W003166 — User:Sortie](corpus/wiki-08.md#w003166) · bronregels 1386–1496 | namespace 2 | revisie 22222 | 2018-03-17T14:21:48Z
+- [W003693 — User:Sortie/Creating an Operating System](corpus/wiki-10.md#w003693) · bronregels 13706–13706 | namespace 2 | revisie 17272 | 2014-12-03T20:54:04Z
+- [W003636 — User:Sortie/Meaty Skeleton](corpus/wiki-10.md#w003636) · bronregels 7953–10951 | namespace 2 | revisie 30812 | 2026-06-23T12:39:26Z
+- [W003708 — User:Sortie/Naively Closed Source](corpus/wiki-10.md#w003708) · bronregels 14673–14808 | namespace 2 | revisie 18328 | 2015-08-30T12:09:20Z
+- [W003389 — User:Sortie/OS Specific Toolchain](corpus/wiki-09.md#w003389) · bronregels 922–922 | namespace 2 | revisie 16781 | 2014-09-21T14:31:33Z
+- [W003672 — User:Sortie/Sortix Thread Local Storage](corpus/wiki-10.md#w003672) · bronregels 12111–12135 | namespace 2 | revisie 19057 | 2016-04-08T23:34:19Z
+- [W003770 — User:Sortie/Yes Another Unix Clone](corpus/wiki-10.md#w003770) · bronregels 18192–18235 | namespace 2 | revisie 19029 | 2016-03-30T12:00:32Z
+- [W002230 — User:Speal](corpus/wiki-04.md#w002230) · bronregels 12366–12369 | namespace 2 | revisie 5181 | 2008-03-05T02:05:52Z
+- [W001382 — User:SpooK](corpus/wiki-01.md#w001382) · bronregels 2932–2942 | namespace 2 | revisie 1481 | 2006-07-17T04:53:51Z
+- [W002813 — User:Stephanvanschaik](corpus/wiki-06.md#w002813) · bronregels 15814–15823 | namespace 2 | revisie 17705 | 2015-03-03T14:17:45Z
+- [W003664 — User:Stephanvanschaik/Setting Up Long Mode](corpus/wiki-10.md#w003664) · bronregels 11777–11777 | namespace 2 | revisie 16986 | 2014-11-01T18:57:53Z
+- [W002285 — User:Stevo14](corpus/wiki-05.md#w002285) · bronregels 3256–3265 | namespace 2 | revisie 6268 | 2008-09-16T20:51:09Z
+- [W002142 — User:Stinkfly](corpus/wiki-04.md#w002142) · bronregels 8647–8674 | namespace 2 | revisie 4474 | 2007-08-31T09:05:03Z
+- [W004030 — User:Stux](corpus/wiki-11.md#w004030) · bronregels 15920–15923 | namespace 2 | revisie 20493 | 2017-02-18T21:22:54Z
+- [W004414 — User:Superleaf1995](corpus/wiki-13.md#w004414) · bronregels 5052–5123 | namespace 2 | revisie 26879 | 2022-01-23T20:04:47Z
+- [W004430 — User:Superleaf1995/AFPFS](corpus/wiki-13.md#w004430) · bronregels 6465–6513 | namespace 2 | revisie 24189 | 2019-12-24T21:59:00Z
+- [W004707 — User:Superleaf1995/Compile GCCMVS under MVS3.8j](corpus/wiki-14.md#w004707) · bronregels 5830–5830 | namespace 2 | revisie 27087 | 2022-05-13T02:47:28Z
+- [W004484 — User:Superleaf1995/Explaining the architectures](corpus/wiki-13.md#w004484) · bronregels 10168–10245 | namespace 2 | revisie 28776 | 2024-04-30T10:13:28Z
+- [W004553 — User:Superleaf1995/LeafOS](corpus/wiki-13.md#w004553) · bronregels 13509–13509 | namespace 2 | revisie 25490 | 2020-12-27T23:12:36Z
+- [W004496 — User:Superleaf1995/lowFS](corpus/wiki-13.md#w004496) · bronregels 10556–10671 | namespace 2 | revisie 24962 | 2020-06-29T05:28:09Z
+- [W004475 — User:Superleaf1995/PCI in assembly](corpus/wiki-13.md#w004475) · bronregels 9198–9267 | namespace 2 | revisie 24568 | 2020-04-06T18:52:08Z
+- [W004415 — User:Superleaf1995/UDOS](corpus/wiki-13.md#w004415) · bronregels 5137–5150 | namespace 2 | revisie 27045 | 2022-04-20T23:23:39Z
+- [W004700 — User:Superleaf1995/uDOS](corpus/wiki-14.md#w004700) · bronregels 4960–4960 | namespace 2 | revisie 27010 | 2022-03-22T15:10:44Z
+- [W004497 — User:Superleaf1995/uniFS](corpus/wiki-13.md#w004497) · bronregels 10686–10686 | namespace 2 | revisie 24886 | 2020-06-22T12:26:53Z
+- [W002437 — User:Tantrikwizard](corpus/wiki-05.md#w002437) · bronregels 10705–10711 | namespace 2 | revisie 6727 | 2008-11-24T20:16:58Z
+- [W004742 — User:Techflash](corpus/wiki-14.md#w004742) · bronregels 7966–7968 | namespace 2 | revisie 27649 | 2023-03-01T23:51:03Z
+- [W001456 — User:Telexicon](corpus/wiki-01.md#w001456) · bronregels 7792–7798 | namespace 2 | revisie 1804 | 2006-12-04T11:28:38Z
+- [W004280 — User:TheCool1Kevin/VSCode Debug](corpus/wiki-12.md#w004280) · bronregels 14074–14249 | namespace 2 | revisie 30319 | 2026-03-17T19:05:04Z
+- [W004934 — User:Thedabbingduck/OStrichFS](corpus/wiki-14.md#w004934) · bronregels 13777–13966 | namespace 2 | revisie 30320 | 2026-03-17T19:05:56Z
+- [W003883 — User:Thefarmingbunny](corpus/wiki-11.md#w003883) · bronregels 6629–6629 | namespace 2 | revisie 18968 | 2016-03-05T11:33:09Z
+- [W003791 — User:Themav](corpus/wiki-11.md#w003791) · bronregels 1085–1105 | namespace 2 | revisie 18090 | 2015-05-21T18:14:01Z
+- [W002260 — User:Thepowersgang](corpus/wiki-05.md#w002260) · bronregels 1241–1257 | namespace 2 | revisie 10206 | 2010-05-03T01:49:32Z
+- [W003031 — User:Thepowersgang/ARM Notes](corpus/wiki-07.md#w003031) · bronregels 10068–10092 | namespace 2 | revisie 11969 | 2011-08-30T14:50:58Z
+- [W004834 — User:Thewindboi](corpus/wiki-14.md#w004834) · bronregels 10315–10339 | namespace 2 | revisie 28482 | 2023-11-26T18:17:14Z
+- [W003934 — User:Tjmonk15](corpus/wiki-11.md#w003934) · bronregels 9238–9243 | namespace 2 | revisie 19729 | 2016-08-30T00:49:48Z
+- [W003967 — User:Tjmonk15/WSL Notes](corpus/wiki-11.md#w003967) · bronregels 10109–10191 | namespace 2 | revisie 21661 | 2017-10-28T02:14:33Z
+- [W004976 — User:Tocariimaa/PA-RISC](corpus/wiki-14.md#w004976) · bronregels 15348–15348 | namespace 2 | revisie 29889 | 2026-01-12T21:13:59Z
+- [W004842 — User:Tokyo](corpus/wiki-14.md#w004842) · bronregels 10501–10503 | namespace 2 | revisie 28580 | 2024-01-26T16:34:47Z
+- [W002892 — User:Tosi](corpus/wiki-07.md#w002892) · bronregels 925–970 | namespace 2 | revisie 11277 | 2011-03-16T04:36:09Z
+- [W004735 — User:Trinka](corpus/wiki-14.md#w004735) · bronregels 7872–7872 | namespace 2 | revisie 27599 | 2023-01-19T19:44:58Z
+- [W002376 — User:Troy martin](corpus/wiki-05.md#w002376) · bronregels 8233–8261 | namespace 2 | revisie 9061 | 2009-10-06T02:23:46Z
+- [W002517 — User:Troy Martin](corpus/wiki-05.md#w002517) · bronregels 13617–13617 | namespace 2 | revisie 7400 | 2009-03-22T03:58:57Z
+- [W002453 — User:Troy martin/Code](corpus/wiki-05.md#w002453) · bronregels 11417–11417 | namespace 2 | revisie 6850 | 2008-12-14T23:39:59Z
+- [W002378 — User:Troy martin/Emulators](corpus/wiki-05.md#w002378) · bronregels 8326–8405 | namespace 2 | revisie 6946 | 2008-12-26T23:48:29Z
+- [W002650 — User:Troy martin/Monaco](corpus/wiki-06.md#w002650) · bronregels 4072–4072 | namespace 2 | revisie 8371 | 2009-07-05T22:25:40Z
+- [W002651 — User:Troy martin/Monaco/Monaco-sidebar](corpus/wiki-06.md#w002651) · bronregels 4086–4143 | namespace 2 | revisie 8379 | 2009-07-05T22:57:21Z
+- [W002448 — User:Troy martin/Real mode assembly bare bones](corpus/wiki-05.md#w002448) · bronregels 10943–10943 | namespace 2 | revisie 20686 | 2017-04-10T17:42:15Z
+- [W002572 — User:Troy martin/Rmode memory functions](corpus/wiki-06.md#w002572) · bronregels 16–80 | namespace 2 | revisie 7770 | 2009-04-23T15:21:19Z
+- [W002557 — User:Troy martin/TBOS](corpus/wiki-05.md#w002557) · bronregels 15693–15709 | namespace 2 | revisie 7845 | 2009-05-05T15:18:10Z
+- [W003268 — User:Tudoros1](corpus/wiki-08.md#w003268) · bronregels 8516–8559 | namespace 2 | revisie 14007 | 2012-09-22T08:33:12Z
+- [W003286 — User:Tudoros1/FileSystems/NTFS](corpus/wiki-08.md#w003286) · bronregels 8993–9495 | namespace 2 | revisie 14146 | 2012-12-12T08:31:11Z
+- [W003285 — User:Tudoros1/OSes/Auckland](corpus/wiki-08.md#w003285) · bronregels 8768–8979 | namespace 2 | revisie 14014 | 2012-09-23T09:38:21Z
+- [W003444 — User:Turdus/Universal Driver Block Format](corpus/wiki-09.md#w003444) · bronregels 3889–4211 | namespace 2 | revisie 15546 | 2014-01-20T21:25:48Z
+- [W004003 — User:Turnage](corpus/wiki-11.md#w004003) · bronregels 14106–14106 | namespace 2 | revisie 20001 | 2016-12-17T22:01:30Z
+- [W003838 — User:Twrl/Unicode](corpus/wiki-11.md#w003838) · bronregels 4072–4221 | namespace 2 | revisie 19242 | 2016-05-18T11:59:49Z
+- [W002270 — User:Tyra](corpus/wiki-05.md#w002270) · bronregels 1665–1667 | namespace 2 | revisie 5415 | 2008-05-03T13:15:23Z
+- [W002709 — User:Tyrelhaveman](corpus/wiki-06.md#w002709) · bronregels 7430–7434 | namespace 2 | revisie 9023 | 2009-09-23T16:34:24Z
+- [W002181 — User:Ucosty](corpus/wiki-04.md#w002181) · bronregels 10335–10335 | namespace 2 | revisie 4718 | 2007-10-02T17:24:07Z
+- [W005074 — User:Ultraslayyy](corpus/wiki-14.md#w005074) · bronregels 22136–22137 | namespace 2 | revisie 30837 | 2026-07-02T10:20:16Z
+- [W004524 — User:Unprotectedmode](corpus/wiki-13.md#w004524) · bronregels 12180–12182 | namespace 2 | revisie 25137 | 2020-09-08T01:32:10Z
+- [W004231 — User:Updater3](corpus/wiki-12.md#w004231) · bronregels 7602–7602 | namespace 2 | revisie 21865 | 2017-12-14T09:34:38Z
+- [W004258 — User:Valou3433](corpus/wiki-12.md#w004258) · bronregels 10148–10159 | namespace 2 | revisie 26672 | 2021-11-12T08:01:30Z
+- [W004984 — User:Veganaize](corpus/wiki-14.md#w004984) · bronregels 15761–15761 | namespace 2 | revisie 29981 | 2026-02-11T19:27:57Z
+- [W003631 — User:Veltas](corpus/wiki-10.md#w003631) · bronregels 7701–7701 | namespace 2 | revisie 16691 | 2014-09-09T15:20:15Z
+- [W004703 — User:Verticalegg/How To U-Boot](corpus/wiki-14.md#w004703) · bronregels 5581–5636 | namespace 2 | revisie 27030 | 2022-04-07T00:56:23Z
+- [W002205 — User:Viral](corpus/wiki-04.md#w002205) · bronregels 11014–11015 | namespace 2 | revisie 4951 | 2007-11-28T09:34:30Z
+- [W002345 — User:Virtlink](corpus/wiki-05.md#w002345) · bronregels 5869–5884 | namespace 2 | revisie 13854 | 2012-07-25T19:24:17Z
+- [W003343 — User:Virtlink/common.css](corpus/wiki-08.md#w003343) · bronregels 15855–15888 | namespace 2 | revisie 14583 | 2013-04-25T21:57:26Z
+- [W003263 — User:Virtlink/My dream CPU](corpus/wiki-08.md#w003263) · bronregels 8126–8152 | namespace 2 | revisie 13856 | 2012-07-26T12:31:25Z
+- [W003264 — User:Virtlink/My dream CPU/ISA](corpus/wiki-08.md#w003264) · bronregels 8166–8460 | namespace 2 | revisie 13870 | 2012-07-27T13:11:41Z
+- [W004620 — User:VSlezak](corpus/wiki-14.md#w004620) · bronregels 425–425 | namespace 2 | revisie 29622 | 2025-08-17T10:37:57Z
+- [W004343 — User:Waddlesplash](corpus/wiki-12.md#w004343) · bronregels 18361–18363 | namespace 2 | revisie 23145 | 2018-12-21T22:09:16Z
+- [W002606 — User:Walling](corpus/wiki-06.md#w002606) · bronregels 2802–2810 | namespace 2 | revisie 8159 | 2009-06-04T14:33:54Z
+- [W001655 — User:Walling/Archive](corpus/wiki-02.md#w001655) · bronregels 7752–7756 | namespace 2 | revisie 8157 | 2009-06-04T14:24:50Z
+- [W001609 — User:Walling/Archive/Sandbox](corpus/wiki-02.md#w001609) · bronregels 7041–7074 | namespace 2 | revisie 2299 | 2006-12-16T19:58:55Z
+- [W001611 — User:Walling/Archive/Sandbox/Box](corpus/wiki-02.md#w001611) · bronregels 7088–7091 | namespace 2 | revisie 2301 | 2006-12-16T19:59:08Z
+- [W001613 — User:Walling/Archive/Sandbox/BoxConversion](corpus/wiki-02.md#w001613) · bronregels 7105–7108 | namespace 2 | revisie 2303 | 2006-12-16T19:59:17Z
+- [W001614 — User:Walling/Archive/Sandbox/BoxWelcome](corpus/wiki-02.md#w001614) · bronregels 7122–7135 | namespace 2 | revisie 2305 | 2006-12-16T19:59:26Z
+- [W001625 — User:Walling/Archive/Sandbox2](corpus/wiki-02.md#w001625) · bronregels 7203–7236 | namespace 2 | revisie 2307 | 2006-12-16T20:00:58Z
+- [W001626 — User:Walling/Archive/Sandbox2/Box](corpus/wiki-02.md#w001626) · bronregels 7250–7254 | namespace 2 | revisie 2309 | 2006-12-16T20:01:15Z
+- [W001530 — User:Walling/Archive/UserPage1](corpus/wiki-02.md#w001530) · bronregels 969–1020 | namespace 2 | revisie 8156 | 2009-06-04T14:24:16Z
+- [W001656 — User:Walling/Sandbox](corpus/wiki-02.md#w001656) · bronregels 7770–7770 | namespace 2 | revisie 2311 | 2006-12-16T20:04:29Z
+- [W004480 — User:Wesleyac](corpus/wiki-13.md#w004480) · bronregels 10106–10106 | namespace 2 | revisie 24614 | 2020-04-22T22:07:26Z
+- [W004482 — User:Wesleyac/"zig cc" Cross-Compiler](corpus/wiki-13.md#w004482) · bronregels 10139–10139 | namespace 2 | revisie 24646 | 2020-05-03T04:45:11Z
+- [W004376 — User:Wukl](corpus/wiki-13.md#w004376) · bronregels 3137–3137 | namespace 2 | revisie 23542 | 2019-04-03T18:59:41Z
+- [W004687 — User:Wxwisiasdf/Compile GCCMVS under MVS3.8j](corpus/wiki-14.md#w004687) · bronregels 3986–4054 | namespace 2 | revisie 27086 | 2022-05-13T02:47:28Z
+- [W004736 — User:Xenobino](corpus/wiki-14.md#w004736) · bronregels 7886–7890 | namespace 2 | revisie 27602 | 2023-01-21T12:09:25Z
+- [W004476 — User:Xenos/UEFI Bare Bones](corpus/wiki-13.md#w004476) · bronregels 9281–9808 | namespace 2 | revisie 26635 | 2021-10-31T01:52:27Z
+- [W005030 — User:Xingji1919810](corpus/wiki-14.md#w005030) · bronregels 19133–19143 | namespace 2 | revisie 30535 | 2026-04-30T09:20:13Z
+- [W004886 — User:Xtex](corpus/wiki-14.md#w004886) · bronregels 11754–11754 | namespace 2 | revisie 29030 | 2024-06-07T00:15:50Z
+- [W003028 — User:Xvedejas](corpus/wiki-07.md#w003028) · bronregels 9930–9930 | namespace 2 | revisie 11866 | 2011-08-01T14:24:31Z
+- [W003616 — User:Xyh](corpus/wiki-10.md#w003616) · bronregels 6682–6695 | namespace 2 | revisie 16724 | 2014-09-16T21:23:37Z
+- [W001744 — User:Xyz1/Describe new OS project](corpus/wiki-03.md#w001744) · bronregels 593–635 | namespace 2 | revisie 2744 | 2007-01-10T08:16:38Z
+- [W001760 — User:Xyz1/Main Page](corpus/wiki-03.md#w001760) · bronregels 1527–1560 | namespace 2 | revisie 2755 | 2007-01-11T05:56:29Z
+- [W001743 — User:Xyz1/OS projects](corpus/wiki-03.md#w001743) · bronregels 575–579 | namespace 2 | revisie 2746 | 2007-01-10T08:17:20Z
+- [W002989 — User:Yargh](corpus/wiki-07.md#w002989) · bronregels 6168–6168 | namespace 2 | revisie 11939 | 2011-08-21T02:22:07Z
+- [W002432 — User:Yayyak](corpus/wiki-05.md#w002432) · bronregels 10128–10128 | namespace 2 | revisie 6693 | 2008-11-20T07:30:24Z
+- [W002559 — User:Zenith](corpus/wiki-05.md#w002559) · bronregels 15737–15744 | namespace 2 | revisie 7691 | 2009-04-17T02:38:06Z
+- [W004007 — User:Zenzizenzicube](corpus/wiki-11.md#w004007) · bronregels 14295–14299 | namespace 2 | revisie 20061 | 2016-12-28T11:44:43Z
+- [W004045 — User:Zesterer/Bare Bones](corpus/wiki-12.md#w004045) · bronregels 16–451 | namespace 2 | revisie 30275 | 2026-03-16T17:53:07Z
+- [W004046 — User:Zesterer/BareBones](corpus/wiki-12.md#w004046) · bronregels 466–466 | namespace 2 | revisie 20610 | 2017-03-29T03:55:34Z
+- [W003283 — Using Linker Script Values](corpus/wiki-08.md#w003283) · bronregels 8742–8754 | namespace 0 | revisie 30210 | 2026-03-12T19:58:09Z
+- [W002504 — Using the RTC](corpus/wiki-05.md#w002504) · bronregels 13168–13168 | namespace 0 | revisie 7218 | 2009-02-13T08:17:08Z
+- [W004545 — Using UEFI Runtime Services in your Kernel](corpus/wiki-13.md#w004545) · bronregels 13183–13282 | namespace 0 | revisie 25396 | 2020-12-01T00:08:34Z
+- [W004201 — USTAR](corpus/wiki-12.md#w004201) · bronregels 4675–4836 | namespace 0 | revisie 30314 | 2026-03-17T18:59:46Z
+- [W003829 — Vagrant](corpus/wiki-11.md#w003829) · bronregels 3537–3582 | namespace 0 | revisie 27971 | 2023-07-09T16:31:44Z
+- [W001502 — VAL](corpus/wiki-01.md#w001502) · bronregels 12922–12943 | namespace 0 | revisie 28562 | 2024-01-17T00:50:51Z
+- [W002795 — VBE](corpus/wiki-06.md#w002795) · bronregels 12692–12692 | namespace 0 | revisie 20684 | 2017-04-10T17:40:58Z
+- [W003836 — Vesa](corpus/wiki-11.md#w003836) · bronregels 4043–4043 | namespace 0 | revisie 18662 | 2015-11-28T17:32:40Z
+- [W003837 — VESA](corpus/wiki-11.md#w003837) · bronregels 4058–4058 | namespace 0 | revisie 18663 | 2015-11-28T17:38:28Z
+- [W003101 — VESA BIOS Extension/Accelerator Functions](corpus/wiki-07.md#w003101) · bronregels 13794–13800 | namespace 0 | revisie 28042 | 2023-07-09T18:59:21Z
+- [W001904 — VESA Video Modes](corpus/wiki-03.md#w001904) · bronregels 12708–13034 | namespace 0 | revisie 30513 | 2026-04-26T04:10:17Z
+- [W002778 — VFAT](corpus/wiki-06.md#w002778) · bronregels 10533–10533 | namespace 0 | revisie 28335 | 2023-09-28T15:08:31Z
+- [W002258 — VFS](corpus/wiki-05.md#w002258) · bronregels 1133–1212 | namespace 0 | revisie 29334 | 2024-12-30T14:15:40Z
+- [W002321 — VGA](corpus/wiki-05.md#w002321) · bronregels 3963–3963 | namespace 0 | revisie 6820 | 2008-12-09T00:27:24Z
+- [W003092 — VGA Fonts](corpus/wiki-07.md#w003092) · bronregels 12759–13516 | namespace 0 | revisie 30306 | 2026-03-17T18:50:19Z
+- [W001697 — VGA Hardware](corpus/wiki-02.md#w001697) · bronregels 8903–9881 | namespace 0 | revisie 30577 | 2026-05-17T09:47:51Z
+- [W001443 — VGA Resources](corpus/wiki-01.md#w001443) · bronregels 5963–5989 | namespace 0 | revisie 25369 | 2020-11-19T20:15:07Z
+- [W001925 — VGA Text Mode](corpus/wiki-03.md#w001925) · bronregels 14709–14988 | namespace 0 | revisie 30595 | 2026-05-21T17:49:20Z
+- [W003737 — Video RAM](corpus/wiki-10.md#w003737) · bronregels 16350–16359 | namespace 0 | revisie 22819 | 2018-09-10T05:37:55Z
+- [W002533 — Video Signals And Timing](corpus/wiki-05.md#w002533) · bronregels 14445–14870 | namespace 0 | revisie 18071 | 2015-05-14T06:26:30Z
+- [W003311 — Virtio](corpus/wiki-08.md#w003311) · bronregels 11798–12031 | namespace 0 | revisie 30307 | 2026-03-17T18:50:51Z
+- [W003632 — VirtIO](corpus/wiki-10.md#w003632) · bronregels 7716–7716 | namespace 0 | revisie 16692 | 2014-09-09T16:01:50Z
+- [W001731 — Virtual 8086 Mode](corpus/wiki-02.md#w001731) · bronregels 14124–14186 | namespace 0 | revisie 30836 | 2026-07-02T03:27:33Z
+- [W002692 — Virtual Box](corpus/wiki-06.md#w002692) · bronregels 6883–6883 | namespace 0 | revisie 8840 | 2009-08-23T23:19:27Z
+- [W002515 — Virtual Floppy Disk](corpus/wiki-05.md#w002515) · bronregels 13579–13579 | namespace 0 | revisie 7396 | 2009-03-21T21:17:30Z
+- [W001605 — Virtual Floppy Drive](corpus/wiki-02.md#w001605) · bronregels 6696–6718 | namespace 0 | revisie 30109 | 2026-03-03T15:05:08Z
+- [W004806 — Virtual Monitor](corpus/wiki-14.md#w004806) · bronregels 9428–9428 | namespace 0 | revisie 28247 | 2023-07-12T16:51:26Z
+- [W001732 — Virtual-8086 Monitor](corpus/wiki-02.md#w001732) · bronregels 14200–14268 | namespace 0 | revisie 30962 | 2026-09-22T13:17:40Z
+- [W002097 — VirtualBox](corpus/wiki-04.md#w002097) · bronregels 6657–6719 | namespace 0 | revisie 23255 | 2019-01-23T18:58:56Z
+- [W003968 — VirtualBox Guest Additions](corpus/wiki-11.md#w003968) · bronregels 10205–10732 | namespace 0 | revisie 28067 | 2023-07-09T20:39:42Z
+- [W003970 — VirtualBox/Guest Additions](corpus/wiki-11.md#w003970) · bronregels 10762–10762 | namespace 0 | revisie 19747 | 2016-08-30T06:58:53Z
+- [W002759 — Visual C](corpus/wiki-06.md#w002759) · bronregels 10193–10193 | namespace 0 | revisie 9443 | 2009-12-20T05:46:52Z
+- [W002992 — Visual C++ Runtime](corpus/wiki-07.md#w002992) · bronregels 6324–6460 | namespace 0 | revisie 28135 | 2023-07-10T02:51:55Z
+- [W001454 — Visual Studio](corpus/wiki-01.md#w001454) · bronregels 7295–7673 | namespace 0 | revisie 25386 | 2020-11-28T04:21:26Z
+- [W001555 — VMware](corpus/wiki-02.md#w001555) · bronregels 3403–3462 | namespace 0 | revisie 29214 | 2024-08-11T22:01:38Z
+- [W003346 — VMWare](corpus/wiki-08.md#w003346) · bronregels 16425–16425 | namespace 0 | revisie 14601 | 2013-04-30T11:22:02Z
+- [W004730 — VMWare SVGA-II](corpus/wiki-14.md#w004730) · bronregels 7659–7766 | namespace 0 | revisie 27868 | 2023-07-09T04:02:56Z
+- [W004329 — VMware tools](corpus/wiki-12.md#w004329) · bronregels 17503–17960 | namespace 0 | revisie 28102 | 2023-07-09T22:37:51Z
+- [W002598 — VMX](corpus/wiki-06.md#w002598) · bronregels 1522–1676 | namespace 0 | revisie 30309 | 2026-03-17T18:52:08Z
+- [W002945 — Volatile](corpus/wiki-07.md#w002945) · bronregels 4043–4043 | namespace 0 | revisie 11034 | 2010-12-06T19:26:00Z
+- [W002034 — Volatile (keyword)](corpus/wiki-04.md#w002034) · bronregels 4419–4543 | namespace 0 | revisie 15381 | 2013-11-04T19:05:12Z
+- [W003122 — Volume Boot Record](corpus/wiki-07.md#w003122) · bronregels 14167–14180 | namespace 0 | revisie 18540 | 2015-11-13T12:17:44Z
+- [W004568 — VT100](corpus/wiki-13.md#w004568) · bronregels 14282–14282 | namespace 0 | revisie 25701 | 2021-02-19T11:56:26Z
+- [W004931 — Vulkan](corpus/wiki-14.md#w004931) · bronregels 13349–13469 | namespace 0 | revisie 30692 | 2026-06-04T13:52:46Z
+- [W004807 — WAET](corpus/wiki-14.md#w004807) · bronregels 9442–9541 | namespace 0 | revisie 30066 | 2026-02-23T17:00:05Z
+- [W001938 — Watcom](corpus/wiki-03.md#w001938) · bronregels 15363–15437 | namespace 0 | revisie 29233 | 2024-08-25T18:45:00Z
+- [W004419 — WebAssembly](corpus/wiki-13.md#w004419) · bronregels 5451–5549 | namespace 0 | revisie 28777 | 2024-04-30T10:23:13Z
+- [W003481 — What do I need to know about SMM](corpus/wiki-09.md#w003481) · bronregels 10949–10950 | namespace 0 | revisie 15828 | 2014-03-30T11:37:33Z
+- [W002213 — What filesystem should I use](corpus/wiki-04.md#w002213) · bronregels 11805–11806 | namespace 0 | revisie 5034 | 2008-01-03T13:27:27Z
+- [W004314 — What order should I make things in](corpus/wiki-12.md#w004314) · bronregels 16508–16508 | namespace 0 | revisie 22841 | 2018-09-14T22:53:18Z
+- [W001577 — What Order Should I Make Things In?](corpus/wiki-02.md#w001577) · bronregels 5353–5430 | namespace 0 | revisie 29273 | 2024-10-09T17:06:17Z
+- [W001930 — Where Can I Find Info On PNP](corpus/wiki-03.md#w001930) · bronregels 15031–15031 | namespace 0 | revisie 4610 | 2007-09-16T21:23:01Z
+- [W002363 — Where Can I Find Information About Ports](corpus/wiki-05.md#w002363) · bronregels 7464–7517 | namespace 0 | revisie 26316 | 2021-08-12T23:52:57Z
+- [W003993 — Which assembler should I use?(x86)](corpus/wiki-11.md#w003993) · bronregels 11540–11561 | namespace 0 | revisie 28524 | 2023-12-15T19:31:16Z
+- [W003355 — Why do I need a Cross Compiler](corpus/wiki-08.md#w003355) · bronregels 16895–16895 | namespace 0 | revisie 14683 | 2013-05-15T06:22:27Z
+- [W002923 — Why do I need a Cross Compiler?](corpus/wiki-07.md#w002923) · bronregels 1922–2100 | namespace 0 | revisie 30777 | 2026-06-18T20:49:41Z
+- [W004048 — Why function implementations shouldn't be put in header files](corpus/wiki-12.md#w004048) · bronregels 494–518 | namespace 0 | revisie 29754 | 2025-11-11T16:08:06Z
+- [W004967 — Why function implementations shouldn't be put In header files](corpus/wiki-14.md#w004967) · bronregels 15110–15110 | namespace 0 | revisie 29755 | 2025-11-11T16:08:06Z
+- [W003976 — WhyNeverToPlaceFunctionsInIncludeHeaders](corpus/wiki-11.md#w003976) · bronregels 10869–10869 | namespace 0 | revisie 20655 | 2017-04-02T14:44:42Z
+- [W003880 — Wiki/PAE](corpus/wiki-11.md#w003880) · bronregels 6585–6585 | namespace 0 | revisie 18958 | 2016-02-27T16:20:45Z
+- [W003881 — Wiki/udi](corpus/wiki-11.md#w003881) · bronregels 6600–6600 | namespace 0 | revisie 18959 | 2016-02-27T20:37:39Z
+- [W001781 — Win Image](corpus/wiki-03.md#w001781) · bronregels 2924–2924 | namespace 0 | revisie 2804 | 2007-01-13T22:19:22Z
+- [W001820 — Win95 DOS Call](corpus/wiki-03.md#w001820) · bronregels 4695–4709 | namespace 0 | revisie 28471 | 2023-11-16T15:49:20Z
+- [W003091 — Windows Loopback Alternative](corpus/wiki-07.md#w003091) · bronregels 12697–12745 | namespace 0 | revisie 28215 | 2023-07-10T19:05:00Z
+- [W004066 — Windows Subsystem for Linux](corpus/wiki-12.md#w004066) · bronregels 1703–1766 | namespace 0 | revisie 30177 | 2026-03-09T16:45:58Z
+- [W002990 — Windows Tools](corpus/wiki-07.md#w002990) · bronregels 6182–6296 | namespace 0 | revisie 22685 | 2018-09-10T01:09:53Z
+- [W003081 — Windows Virtual PC](corpus/wiki-07.md#w003081) · bronregels 12410–12410 | namespace 0 | revisie 12551 | 2012-02-06T11:42:20Z
+- [W001603 — WinImage](corpus/wiki-02.md#w001603) · bronregels 6657–6664 | namespace 0 | revisie 28076 | 2023-07-09T20:48:31Z
+- [W001943 — Wish List](corpus/wiki-03.md#w001943) · bronregels 15703–15766 | namespace 0 | revisie 30399 | 2026-03-24T21:51:29Z
+- [W001503 — WLink](corpus/wiki-01.md#w001503) · bronregels 12957–12971 | namespace 0 | revisie 12870 | 2012-03-01T15:13:06Z
+- [W002064 — Writing a memory manager](corpus/wiki-04.md#w002064) · bronregels 4832–4907 | namespace 0 | revisie 20837 | 2017-06-03T09:33:27Z
+- [W002586 — Writing A Page Frame Allocator](corpus/wiki-06.md#w002586) · bronregels 739–869 | namespace 0 | revisie 30274 | 2026-03-16T17:52:28Z
+- [W003639 — Writing GRUB Modules](corpus/wiki-10.md#w003639) · bronregels 11135–11217 | namespace 0 | revisie 28139 | 2023-07-10T02:59:29Z
+- [W003941 — Writing GRUB2 Modules](corpus/wiki-11.md#w003941) · bronregels 9661–9661 | namespace 0 | revisie 19471 | 2016-07-14T21:09:58Z
+- [W004337 — WSL](corpus/wiki-12.md#w004337) · bronregels 18214–18214 | namespace 0 | revisie 23069 | 2018-11-04T16:00:03Z
+- [W002445 — X86](corpus/wiki-05.md#w002445) · bronregels 10898–10898 | namespace 0 | revisie 6776 | 2008-11-28T04:45:41Z
+- [W005064 — X86 Cooperative Multitasking Tutorial](corpus/wiki-14.md#w005064) · bronregels 21476–21638 | namespace 0 | revisie 30764 | 2026-06-16T15:00:50Z
+- [W003033 — X86 Instruction Encoding](corpus/wiki-07.md#w003033) · bronregels 10125–10125 | namespace 0 | revisie 12000 | 2011-09-12T16:37:44Z
+- [W001874 — X86 Interrupts](corpus/wiki-03.md#w001874) · bronregels 7049–7208 | namespace 0 | revisie 30830 | 2026-06-29T19:40:14Z
+- [W003344 — X86 Page Tables](corpus/wiki-08.md#w003344) · bronregels 15902–16410 | namespace 0 | revisie 30733 | 2026-06-12T16:13:00Z
+- [W002122 — X86 Paging](corpus/wiki-04.md#w002122) · bronregels 7460–7836 | namespace 0 | revisie 30739 | 2026-06-12T16:52:38Z
+- [W001447 — X86-64](corpus/wiki-01.md#w001447) · bronregels 6247–6465 | namespace 0 | revisie 30486 | 2026-04-15T15:10:11Z
+- [W002350 — X86-64 Instruction Encoding](corpus/wiki-05.md#w002350) · bronregels 6280–7017 | namespace 0 | revisie 30896 | 2026-07-17T12:50:16Z
+- [W005096 — X86-64 Registers](corpus/wiki-15.md#w005096) · bronregels 904–904 | namespace 0 | revisie 31001 | 2026-10-02T17:05:06Z
+- [W004705 — X87](corpus/wiki-14.md#w004705) · bronregels 5665–5665 | namespace 0 | revisie 27036 | 2022-04-11T15:49:10Z
+- [W003957 — Xbox](corpus/wiki-11.md#w003957) · bronregels 9885–9931 | namespace 0 | revisie 23829 | 2019-08-25T00:01:01Z
+- [W004656 — Xcr0](corpus/wiki-14.md#w004656) · bronregels 2413–2413 | namespace 0 | revisie 26558 | 2021-10-20T06:09:10Z
+- [W001516 — XFS](corpus/wiki-01.md#w001516) · bronregels 15592–15746 | namespace 0 | revisie 29834 | 2026-01-07T05:54:31Z
+- [W003310 — XHCI](corpus/wiki-08.md#w003310) · bronregels 11784–11784 | namespace 0 | revisie 14241 | 2013-01-12T19:50:45Z
+- [W004386 — Xilinx Ultrascale+ MPSoC](corpus/wiki-13.md#w004386) · bronregels 3811–3811 | namespace 0 | revisie 23624 | 2019-05-17T05:40:40Z
+- [W003786 — XNU](corpus/wiki-11.md#w003786) · bronregels 949–949 | namespace 0 | revisie 20690 | 2017-04-10T17:43:31Z
+- [W001917 — XOSL](corpus/wiki-03.md#w001917) · bronregels 14389–14398 | namespace 0 | revisie 10694 | 2010-09-06T16:19:29Z
+- [W004810 — XSDP](corpus/wiki-14.md#w004810) · bronregels 9594–9594 | namespace 0 | revisie 28281 | 2023-08-16T22:21:10Z
+- [W003319 — XSDT](corpus/wiki-08.md#w003319) · bronregels 14439–14557 | namespace 0 | revisie 30273 | 2026-03-16T17:51:03Z
+- [W004392 — Xv6](corpus/wiki-13.md#w004392) · bronregels 4001–4031 | namespace 0 | revisie 29896 | 2026-01-17T08:16:24Z
+- [W003181 — YAFFS](corpus/wiki-08.md#w003181) · bronregels 3485–3511 | namespace 0 | revisie 29106 | 2024-06-07T13:40:03Z
+- [W002102 — YASM](corpus/wiki-04.md#w002102) · bronregels 7003–7016 | namespace 0 | revisie 29992 | 2026-02-13T17:50:50Z
+- [W003889 — Yes Another Unix Clone](corpus/wiki-11.md#w003889) · bronregels 6719–6719 | namespace 0 | revisie 19030 | 2016-03-30T12:00:32Z
+- [W003392 — You Know Your OS Is Advanced When](corpus/wiki-09.md#w003392) · bronregels 973–1006 | namespace 0 | revisie 29644 | 2025-09-09T13:26:09Z
+- [W003882 — You know your OS is advanced when](corpus/wiki-11.md#w003882) · bronregels 6615–6615 | namespace 0 | revisie 18966 | 2016-03-03T19:48:07Z
+- [W004638 — ZDSFS](corpus/wiki-14.md#w004638) · bronregels 1201–1339 | namespace 0 | revisie 28011 | 2023-07-09T17:58:21Z
+- [W002783 — ZFS](corpus/wiki-06.md#w002783) · bronregels 10622–10632 | namespace 0 | revisie 27220 | 2022-07-09T07:36:38Z
+- [W004677 — Zig Bare Bones](corpus/wiki-14.md#w004677) · bronregels 3225–3599 | namespace 0 | revisie 30276 | 2026-03-16T17:53:53Z
+- [W005031 — ZXFL Barebones](corpus/wiki-14.md#w005031) · bronregels 19157–19462 | namespace 0 | revisie 31011 | 2026-10-11T10:46:49Z
+
+## Boek
+
+- [B001 — PDF-pagina 1](corpus/boek.md#b001) · bronregels 13–17
+- [B002 — PDF-pagina 2](corpus/boek.md#b002) · bronregels 29–29
+- [B003 — PDF-pagina 3](corpus/boek.md#b003) · bronregels 41–71
+- [B004 — PDF-pagina 4](corpus/boek.md#b004) · bronregels 83–120
+- [B005 — PDF-pagina 5](corpus/boek.md#b005) · bronregels 132–195
+- [B006 — PDF-pagina 6](corpus/boek.md#b006) · bronregels 207–246
+- [B007 — PDF-pagina 7](corpus/boek.md#b007) · bronregels 258–295
+- [B008 — PDF-pagina 8](corpus/boek.md#b008) · bronregels 307–355
+- [B009 — PDF-pagina 9](corpus/boek.md#b009) · bronregels 367–380
+- [B010 — PDF-pagina 10](corpus/boek.md#b010) · bronregels 392–392
+- [B011 — PDF-pagina 11](corpus/boek.md#b011) · bronregels 404–441
+- [B012 — PDF-pagina 12](corpus/boek.md#b012) · bronregels 453–494
+- [B013 — PDF-pagina 13](corpus/boek.md#b013) · bronregels 508–560
+- [B014 — PDF-pagina 14](corpus/boek.md#b014) · bronregels 572–623
+- [B015 — PDF-pagina 15](corpus/boek.md#b015) · bronregels 635–684
+- [B016 — PDF-pagina 16](corpus/boek.md#b016) · bronregels 696–744
+- [B017 — PDF-pagina 17](corpus/boek.md#b017) · bronregels 756–767
+- [B018 — PDF-pagina 18](corpus/boek.md#b018) · bronregels 779–779
+- [B019 — PDF-pagina 19](corpus/boek.md#b019) · bronregels 791–830
+- [B020 — PDF-pagina 20](corpus/boek.md#b020) · bronregels 842–892
+- [B021 — PDF-pagina 21](corpus/boek.md#b021) · bronregels 904–952
+- [B022 — PDF-pagina 22](corpus/boek.md#b022) · bronregels 964–1008
+- [B023 — PDF-pagina 23](corpus/boek.md#b023) · bronregels 1020–1057
+- [B024 — PDF-pagina 24](corpus/boek.md#b024) · bronregels 1069–1120
+- [B025 — PDF-pagina 25](corpus/boek.md#b025) · bronregels 1132–1183
+- [B026 — PDF-pagina 26](corpus/boek.md#b026) · bronregels 1195–1246
+- [B027 — PDF-pagina 27](corpus/boek.md#b027) · bronregels 1258–1309
+- [B028 — PDF-pagina 28](corpus/boek.md#b028) · bronregels 1321–1371
+- [B029 — PDF-pagina 29](corpus/boek.md#b029) · bronregels 1383–1431
+- [B030 — PDF-pagina 30](corpus/boek.md#b030) · bronregels 1443–1492
+- [B031 — PDF-pagina 31](corpus/boek.md#b031) · bronregels 1504–1554
+- [B032 — PDF-pagina 32](corpus/boek.md#b032) · bronregels 1566–1566
+- [B033 — PDF-pagina 33](corpus/boek.md#b033) · bronregels 1578–1616
+- [B034 — PDF-pagina 34](corpus/boek.md#b034) · bronregels 1628–1633
+- [B035 — PDF-pagina 35](corpus/boek.md#b035) · bronregels 1647–1691
+- [B036 — PDF-pagina 36](corpus/boek.md#b036) · bronregels 1703–1752
+- [B037 — PDF-pagina 37](corpus/boek.md#b037) · bronregels 1764–1786
+- [B038 — PDF-pagina 38](corpus/boek.md#b038) · bronregels 1798–1798
+- [B039 — PDF-pagina 39](corpus/boek.md#b039) · bronregels 1810–1848
+- [B040 — PDF-pagina 40](corpus/boek.md#b040) · bronregels 1860–1913
+- [B041 — PDF-pagina 41](corpus/boek.md#b041) · bronregels 1925–1975
+- [B042 — PDF-pagina 42](corpus/boek.md#b042) · bronregels 1987–2040
+- [B043 — PDF-pagina 43](corpus/boek.md#b043) · bronregels 2052–2098
+- [B044 — PDF-pagina 44](corpus/boek.md#b044) · bronregels 2110–2160
+- [B045 — PDF-pagina 45](corpus/boek.md#b045) · bronregels 2172–2201
+- [B046 — PDF-pagina 46](corpus/boek.md#b046) · bronregels 2213–2213
+- [B047 — PDF-pagina 47](corpus/boek.md#b047) · bronregels 2225–2265
+- [B048 — PDF-pagina 48](corpus/boek.md#b048) · bronregels 2277–2328
+- [B049 — PDF-pagina 49](corpus/boek.md#b049) · bronregels 2340–2388
+- [B050 — PDF-pagina 50](corpus/boek.md#b050) · bronregels 2400–2400
+- [B051 — PDF-pagina 51](corpus/boek.md#b051) · bronregels 2412–2447
+- [B052 — PDF-pagina 52](corpus/boek.md#b052) · bronregels 2459–2459
+- [B053 — PDF-pagina 53](corpus/boek.md#b053) · bronregels 2471–2507
+- [B054 — PDF-pagina 54](corpus/boek.md#b054) · bronregels 2519–2536
+- [B055 — PDF-pagina 55](corpus/boek.md#b055) · bronregels 2550–2600
+- [B056 — PDF-pagina 56](corpus/boek.md#b056) · bronregels 2612–2663
+- [B057 — PDF-pagina 57](corpus/boek.md#b057) · bronregels 2675–2728
+- [B058 — PDF-pagina 58](corpus/boek.md#b058) · bronregels 2740–2794
+- [B059 — PDF-pagina 59](corpus/boek.md#b059) · bronregels 2806–2821
+- [B060 — PDF-pagina 60](corpus/boek.md#b060) · bronregels 2833–2833
+- [B061 — PDF-pagina 61](corpus/boek.md#b061) · bronregels 2845–2885
+- [B062 — PDF-pagina 62](corpus/boek.md#b062) · bronregels 2897–2951
+- [B063 — PDF-pagina 63](corpus/boek.md#b063) · bronregels 2963–3009
+- [B064 — PDF-pagina 64](corpus/boek.md#b064) · bronregels 3021–3021
+- [B065 — PDF-pagina 65](corpus/boek.md#b065) · bronregels 3033–3070
+- [B066 — PDF-pagina 66](corpus/boek.md#b066) · bronregels 3082–3130
+- [B067 — PDF-pagina 67](corpus/boek.md#b067) · bronregels 3142–3191
+- [B068 — PDF-pagina 68](corpus/boek.md#b068) · bronregels 3203–3238
+- [B069 — PDF-pagina 69](corpus/boek.md#b069) · bronregels 3250–3288
+- [B070 — PDF-pagina 70](corpus/boek.md#b070) · bronregels 3300–3330
+- [B071 — PDF-pagina 71](corpus/boek.md#b071) · bronregels 3342–3380
+- [B072 — PDF-pagina 72](corpus/boek.md#b072) · bronregels 3392–3411
+- [B073 — PDF-pagina 73](corpus/boek.md#b073) · bronregels 3423–3464
+- [B074 — PDF-pagina 74](corpus/boek.md#b074) · bronregels 3476–3525
+- [B075 — PDF-pagina 75](corpus/boek.md#b075) · bronregels 3537–3573
+- [B076 — PDF-pagina 76](corpus/boek.md#b076) · bronregels 3585–3585
+- [B077 — PDF-pagina 77](corpus/boek.md#b077) · bronregels 3597–3628
+- [B078 — PDF-pagina 78](corpus/boek.md#b078) · bronregels 3640–3662
