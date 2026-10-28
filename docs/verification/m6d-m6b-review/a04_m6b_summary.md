@@ -71,3 +71,17 @@ Zie [Windowsafsluiting](../M6D-CLOSEOUT.md) en het actuele
 [hashregister](../m6d-summary.json). Het in de tabel genoemde
 [a04_m6b_sectors.json](a04_m6b_sectors.json) is ingecheckt; zijn oorspronkelijke
 bytes en de historische tabelwaarden blijven behouden.
+
+### Oorspronkelijke uitvoeringsbron beschikbaar
+
+Het script dat het historische `a04_m6b_audit.json` produceerde staat nu ook als
+[a04_m6b_audit.original.py](a04_m6b_audit.original.py) in dit archief. Het is
+bytegelijk aan `a04_m6b_audit.py` op commit
+`7484d87ec639fd8a29be327cad47c2f97739199d`: 22802 bytes, SHA-256
+`3fbed4fa4d853a45e503c3ddbfdefe46624fa49508fd403145e7f7a968698897`.
+Die hash is exact `audit_script_sha256` in het oorspronkelijke JSON-record.
+Ook zijn zes `method`-regels horen bij deze versie. Het bestaande resultaat
+bewijst geen uitvoering van de latere strengere `validate_qemu`- en
+`validate_raw_inventory`-controles. De actuele scriptversie en zijn afzonderlijke
+hosttests blijven beschreven in het eerdere addendum; er is geen nieuwe
+volledige rawaudit uitgevoerd. Het JSON-uitvoeringsrecord is niet gewijzigd.

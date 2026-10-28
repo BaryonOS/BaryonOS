@@ -68,8 +68,11 @@ testuitvoering op die latere commit plaatsvond. De oorspronkelijke
 `provenance.json`, commandoreceipt en stdout/stderr blijven bytegelijk.
 
 De huidige recorder schrijft eerst zijn receipt en output en eindigt daarna met
-status 1 wanneer het testsubproces faalt of de broninputs tijdens de controle
+status 1 wanneer het beëindigde testsubproces een niet-nul exitstatus heeft of de broninputs tijdens de controle
 veranderen. Een geslaagde controle met ongewijzigde inputs houdt status 0.
+Bij de bestaande timeout van 60 seconden werpt `subprocess.run` al vóór deze
+registratie `TimeoutExpired`; behoud van receipt/uitvoer bij timeout is hiermee
+niet geïmplementeerd of getest.
 De huidige recorder-SHA-256 is
 `ac885c4380f927811fa3358da6c4a882ae9f8a2fbe0184bb8463e87dbb491c91`.
 

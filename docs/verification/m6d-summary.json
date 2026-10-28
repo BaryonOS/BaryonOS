@@ -114,7 +114,8 @@
     "docs/verification/m6d-m6b-review/a04_m6b_raw_hashes.json": "e1aac2a56d69ef5e13eefdfff1e7ee91c2371b480ab33ddfe8772b500cff0753",
     "docs/verification/m6d-m6b-review/a04_m6b_sectors.json": "73a19ffa223b77bcdfcf8c6123f283d933a7e117f8df00e7a8ab191cf09de3db",
     "docs/verification/m6d-m6b-review/a04_m6b_source_hashes.json": "e995727cc610cd883455a4d2d7cb36d3104972cb3bc6ccf27604a3419115e54f",
-    "docs/verification/m6d-m6b-review/a04_m6b_summary.md": "cca5ad6c5efd65f5ba6963d6ebe91e26b8d13bdfbd0e634f5c4d98ad876bdc4f"
+    "docs/verification/m6d-m6b-review/a04_m6b_summary.md": "8c04e4ca1f6e842cc03a8a05772c898e33b4665b9ed926c6c1804c2d8c659628",
+    "docs/verification/m6d-m6b-review/a04_m6b_audit.original.py": "3fbed4fa4d853a45e503c3ddbfdefe46624fa49508fd403145e7f7a968698897"
   },
   "verification_notes": {
     "full_staged_diff_check_exit": 2,
@@ -153,9 +154,25 @@
       "docs/verification/m6d-m6b-review/a04_m6b_summary.md": {
         "previous_commit": "1e0c03c66c56615e697a3d70686c4d97a47d4005",
         "previous_sha256": "f8ed54b7023fd371b58034c430a5d8cefc9f69324bea895e84d88750d04edf5e",
-        "current_sha256": "cca5ad6c5efd65f5ba6963d6ebe91e26b8d13bdfbd0e634f5c4d98ad876bdc4f",
-        "boundary": "Documentation correction only; historical test and audit receipts remain byte-identical. No new test execution."
+        "current_sha256": "8c04e4ca1f6e842cc03a8a05772c898e33b4665b9ed926c6c1804c2d8c659628",
+        "boundary": "Documentation correction and immutable original script copy only. Historical test and audit receipts remain byte-identical. No full raw audit rerun.",
+        "intermediate_versions": [
+          {
+            "commit": "322c553f58f11843aab7cf895bcba05564a9c7ac",
+            "sha256": "cca5ad6c5efd65f5ba6963d6ebe91e26b8d13bdfbd0e634f5c4d98ad876bdc4f"
+          }
+        ]
       }
+    },
+    "original_a04_script": {
+      "path": "docs/verification/m6d-m6b-review/a04_m6b_audit.original.py",
+      "source_commit": "7484d87ec639fd8a29be327cad47c2f97739199d",
+      "original_path": "docs/verification/m6d-m6b-review/a04_m6b_audit.py",
+      "bytes": 22802,
+      "sha256": "3fbed4fa4d853a45e503c3ddbfdefe46624fa49508fd403145e7f7a968698897",
+      "git_blob_sha": "1efb9c04f02500c70b03844419e1fac46c1ba33f",
+      "execution_receipt": "docs/verification/m6d-m6b-review/a04_m6b_audit.json",
+      "scope": "The original six-method audit producer, copied byte-for-byte. No new audit execution."
     }
   }
 }

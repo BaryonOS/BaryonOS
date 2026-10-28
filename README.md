@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`7113f4dd`](https://github.com/simonvanieperen/nieuw-os/commit/7113f4ddcf3af34918f89f3869aa3889694d47b2) ·
+**Bron:** [`322c553f`](https://github.com/simonvanieperen/nieuw-os/commit/322c553f58f11843aab7cf895bcba05564a9c7ac) ·
 **Ontwikkelbranch:** `codex/integrate-m6d-main`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Volledige PR-review: capturefoutstatus en documentatie.
-Drie aanvullende CodeRabbit-punten zijn gericht hersteld: nieuwe capturebestemmingen, actuele M6d-roadmap en een falende recorderstatus bij subprocessfouten of gewijzigde inputs. Vier hostregressies slagen; drie negatieve gevallen falen vóór herstel. Het historische bewijs, de 144 native inputs en eerdere qsim-reparatie blijven behouden. Geen nieuwe VM-uitvoering of nieuw native productcriterium; voortgang blijft 14%.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Historische auditbron en laatste PR-reviewgrenzen vastleggen.
+Vier resterende documentatie- en herkomstpunten zijn hersteld: timeoutgrens van de recorder, originele A04-scriptbytes, R09-bestandsnaam en strikte padvereisten, historische M6c-queue. De bestaande native bron en rawreceipts blijven behouden; geen nieuwe native uitvoering of geaccepteerd criterium. Voortgang blijft 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

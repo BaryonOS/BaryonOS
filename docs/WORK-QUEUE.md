@@ -41,7 +41,7 @@ eigen productcriteria. Geen sleutelgeneratie zonder native entropybron.
 
 ## Historische M6c-queue
 
-## Actuele uitvoering — 28 oktober 2026
+### Historische M6c-uitvoering — 28 oktober 2026
 
 Basis `bb22fdb`, branch `codex/m6c-named-catalog`. M6a en M6b zijn al afgerond
 volgens de versiegebonden bewijsarchieven in PROJECT-STATE.md. De oudere queue

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "7113f4ddcf3af34918f89f3869aa3889694d47b2",
+    "source_commit": "322c553f58f11843aab7cf895bcba05564a9c7ac",
     "branch": "codex/integrate-m6d-main",
-    "task": "Volledige PR-review: capturefoutstatus en documentatie",
+    "task": "Historische auditbron en laatste PR-reviewgrenzen vastleggen",
     "previous_score": 14,
-    "summary": "Drie aanvullende CodeRabbit-punten zijn gericht hersteld: nieuwe capturebestemmingen, actuele M6d-roadmap en een falende recorderstatus bij subprocessfouten of gewijzigde inputs. Vier hostregressies slagen; drie negatieve gevallen falen vóór herstel. Het historische bewijs, de 144 native inputs en eerdere qsim-reparatie blijven behouden. Geen nieuwe VM-uitvoering of nieuw native productcriterium; voortgang blijft 14%."
+    "summary": "Vier resterende documentatie- en herkomstpunten zijn hersteld: timeoutgrens van de recorder, originele A04-scriptbytes, R09-bestandsnaam en strikte padvereisten, historische M6c-queue. De bestaande native bron en rawreceipts blijven behouden; geen nieuwe native uitvoering of geaccepteerd criterium. Voortgang blijft 14%."
   },
   "tracks": [
     {

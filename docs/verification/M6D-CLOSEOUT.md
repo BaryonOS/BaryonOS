@@ -85,3 +85,32 @@ aan closeout f3b15c6, uitgezonderd de twee bewust verwijderde oude M5-logs en
 deze expliciete documentwijzigingen. Een gerichte revert van de uiteindelijke
 squash is de herstelroute, zonder Git-reset.
 De score blijft **14% → 14%**. Catalogusherstart K05/S08 is volgende native werk.
+
+## Historische R09-naam en herhaalvoorwaarden
+
+Het historische script `/tmp/r09_audit_m6d.py` is in Git opgenomen als
+`docs/verification/m6d-review/audit_m6d_native.py`. De oude namen in zijn
+docstring en in FINAL-REVIEW beschrijven de toenmalige uitvoering. De scriptbytes
+blijven intact: SHA-256
+`5c88448e100acadd49c515d71e7d1516752b86ca657bbcf14177f11739cd0c85`,
+gelijk aan `audit_script_sha256` in `m6d-final-native-audit.json`.
+
+Deze opdrachten gebruiken de huidige bestandsnaam en controleren uitsluitend
+hostfixtures respectievelijk de geëxporteerde sectorbytes:
+
+```text
+python -X utf8 -B docs/verification/m6d-review/audit_m6d_native.py --self-test
+python -X utf8 -B docs/verification/m6d-review/audit_m6d_native.py --reconstruct docs/verification/m6d-review/m6d-actual-journal-records.json
+```
+
+Een volledige historische audit vereist bovendien `--repo` met de oorspronkelijke
+canonieke uitvoeringsroot, precies gelijk aan `cwd` in de hostreceipts. Vereist
+zijn de oorspronkelijke `build/logs/`, `build/run/` en
+`build/m6c-test-results.json`, naast de bron op de geregistreerde versie.
+Voor dit archief is die root `/workspace/scratch/2ffeac9e0e8f/nieuw-os`.
+Ook de QEMU-binary op het geregistreerde preflightpad moet aanwezig zijn en
+aan de opgeslagen hash voldoen; alleen de commandotekst is onvoldoende.
+Symlinks en niet-canonieke paden worden geweigerd; een kopie onder een willekeurige
+andere root voldoet niet. `--out` hoort naar een aparte nieuwe uitvoermap buiten
+de repository te wijzen. Deze voorwaarden zijn implementatie-eisen; de twee tekst-/hostopdrachten
+hierboven bewijzen geen volledige heruitvoering op die historische root.

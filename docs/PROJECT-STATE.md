@@ -2,6 +2,30 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
+## Reviewgrenzen en historische auditbron — 28 oktober 2026
+
+Basis `322c553f58f11843aab7cf895bcba05564a9c7ac`, branch
+`codex/integrate-m6d-main`. De parallel gepubliceerde recorderreparatie en vier
+regressietests zijn behouden; dubbel lokaal herstelwerk is apart bewaard.
+De documentatie begrenst receiptbehoud nu expliciet tot beëindigde childprocessen:
+de bestaande timeout werpt vóór registratie `TimeoutExpired`.
+
+De oorspronkelijke A04-auditor is toegevoegd als `a04_m6b_audit.original.py`,
+exact gebonden aan commit `7484d87`, zijn 22802 bytes en de hash van het oude
+auditrecord. De zes historische methoderegels blijven onderscheiden van het
+latere script met zeven regels; geen volledige rawaudit is herhaald.
+M6D-CLOSEOUT beschrijft de huidige R09-bestandsnaam en de vereiste canonieke
+oorspronkelijke uitvoeringsroot. De M6c-queue heeft een expliciet historische
+subkop. Ongewijzigde uitvoeringsrecords behouden hun eigen hashes.
+
+Exacte uitgevoerde host-/tekstcontroles, exitstatussen en bytevergelijkingen:
+[review-provenance.json](verification/m6d-closeout/review-provenance.json).
+Geen nieuwe build of VM-run. Native bronbinding en de vaste score blijven
+**14% → 14%**. Het aanvullende native scenario dat een normale pending-poll
+en het latere clientresultaat samen observeert, blijft open; de bestaande
+terminale foutproeven vervangen die gerichte observatie niet.
+De uiteindelijke review- en squashmergestatus staat in PR #13.
+
 ## Volledige PR-review: recorder en documentatie — 28 oktober 2026
 
 Broncheckpoint `7113f4ddcf3af34918f89f3869aa3889694d47b2`, branch
@@ -13,8 +37,12 @@ M6b-regressie 18 / 14 en S07, met behoud van de bewijsgrenzen.
 
 De historische capture-recorder schreef fouten en gewijzigde inputs wel in
 zijn receipt, maar eindigde daarna ten onrechte met status 0. De recorder
-bewaart nu eerst receipt en uitvoer en retourneert daarna status 1 bij een
-subprocessfout of gewijzigde inputs. Succes met ongewijzigde inputs houdt status 0.
+bewaart nu eerst receipt en uitvoer en retourneert daarna status 1 bij
+een beëindigd subproces met niet-nul exitstatus of gewijzigde inputs. Succes met
+ongewijzigde inputs houdt status 0. De grens van 60 seconden blijft gelden:
+bij een timeout werpt `subprocess.run` eerst `TimeoutExpired`, voordat deze
+recorder een receipt of uitvoerbestanden schrijft. De gerichte proeven hieronder
+testen beëindigde subprocessen, geen timeoutregistratie.
 
 Werkelijk uitgevoerd: twee gerichte hosttestinvocaties met
 `python3 -B -m unittest discover -s tests -p test_capture_check_recorder.py -v`.
