@@ -78,6 +78,10 @@ SMP- of productiegeschiktheidsclaim. Herstel start nog een nieuwe VM.
 Main 5a58a743 is treegelijk aan ancestor e816dfd van de ontwikkellijn.
 Integratie vanaf main behoudt de gecontroleerde bronboom, uitgezonderd twee
 al eerder verwijderde oude M5-logs. Geen bestaand main-bewijs vervangen.
-PR #12 is inhoudelijk ingehaald; sluiting pas na integratie #13. Een gerichte
-revert van de uiteindelijke squash is de herstelroute, zonder Git-reset.
+Tijdens de uitvoering zijn #11 en #12 extern gemerged. Nieuwe main 1f24f994
+is treegelijk aan de reeds gecontroleerde M6b-tip 1bc2901. De normale
+main→integratie-merge behoudt deze nieuwe ouder; zijn bronboom blijft gelijk
+aan closeout f3b15c6, uitgezonderd de twee bewust verwijderde oude M5-logs en
+deze expliciete documentwijzigingen. Een gerichte revert van de uiteindelijke
+squash is de herstelroute, zonder Git-reset.
 De score blijft **14% → 14%**. Catalogusherstart K05/S08 is volgende native werk.

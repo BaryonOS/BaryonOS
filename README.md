@@ -33,7 +33,7 @@ alleen een nette desktop haalt die eindgrens niet.
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
 **Bron:** [`326d2f6e`](https://github.com/simonvanieperen/nieuw-os/commit/326d2f6efa20411d5bb349b8275bc3e741be7ae0) ·
-**Ontwikkelbranch:** `codex/m6d-io-recovery-roadmap`.
+**Ontwikkelbranch:** `codex/integrate-m6d-main`.
 Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** M6d-reviewherstel en gecontroleerde mainintegratie.
 Reviewpunten en Windows-testgrenzen hersteld. M6c/M6d: 35 groepen en 31 VM met 30 Rust- en 48 Python-tests; M6b: 18 groepen en 14 VM met 22 Rust- en 30 Python-tests. Aanvullend 173 Python-hosttests groen. Geen nieuw productcriterium; voortgang blijft 14%.
 

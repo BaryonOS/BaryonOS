@@ -30,9 +30,12 @@ menselijke audit of fysieke stroomuitvalclaim.
 
 Exacte opdrachten en grenzen: [M6D-CLOSEOUT.md](verification/M6D-CLOSEOUT.md).
 Voortgang **14% → 14%**; volgende native stap blijft catalogusherstart.
-PR #11 bevat het herstel; concept #13 integreert de actuele boom naar main
-met behoud van eerdere main-fixes. PR #12 is inhoudelijk ingehaald en wordt
-pas na geslaagde opname van #13 gesloten. Merges hier nog niet geclaimd.
+PR #11 is tussentijds extern gemerged op checkpoint 326d2f6 naar de M6c-branch
+(`baeaa7bf`); #12 is extern naar main gemerged (`1f24f994`). Beide nieuwe trees
+zijn vergeleken: zij voegen geen main-only broncorrectie toe. PR #13 behoudt
+deze actuele main als ouder en voegt M6c/M6d plus het definitieve reviewbewijs
+toe. Twee eerder verwijderde oude M5-logs blijven uitgesloten. De merge van
+#13 is in deze bronnotitie nog niet geclaimd.
 
 ### Vooraf bewaard checkpoint
 
