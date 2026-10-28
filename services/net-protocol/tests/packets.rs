@@ -377,6 +377,7 @@ const TX: UdpIpv4Tx = UdpIpv4Tx {
     mtu: 1500,
 };
 
+/// Compare the transmitter byte-for-byte with independently generated RFC vectors.
 #[test]
 fn transmitter_matches_independently_generated_ipv4_udp_vectors() {
     for (hex, payload) in [
@@ -398,6 +399,7 @@ fn transmitter_matches_independently_generated_ipv4_udp_vectors() {
     }
 }
 
+/// All input-validation failures leave the entire caller-owned output unchanged.
 #[test]
 fn transmitter_rejects_invalid_limits_before_any_buffer_write() {
     let mut buffer = [0xa5_u8; 59];
@@ -433,6 +435,7 @@ fn transmitter_rejects_invalid_limits_before_any_buffer_write() {
     assert!(buffer.iter().all(|&b| b == 0xa5));
 }
 
+/// Effective MTU is binding; checksum detects damaged payload bytes.
 #[test]
 fn transmitter_respects_mtu_and_detects_post_build_payload_damage() {
     let mut buffer = vec![0xab; 1515];
@@ -453,6 +456,7 @@ fn transmitter_respects_mtu_and_detects_post_build_payload_damage() {
     );
 }
 
+/// The maximal IPv4 datagram is encoded and parsed without overflow.
 #[test]
 fn transmitter_ipv4_maximum_is_checked_without_integer_wraparound() {
     let tx = UdpIpv4Tx {
