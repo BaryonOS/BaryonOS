@@ -51,8 +51,8 @@ Een onbekende technische mogelijkheid krijgt een onderzoeksvraag en een afgebake
 
 Dit zijn producteisen voor toekomstige implementatie:
 
-- De basisinstallatie werkt met een lokaal account. De persoonlijke cloud bestaat uit optionele E2EE-opslag op een eigen NAS of aangeboden NAS-ruimte bij vrienden/familie, met dezelfde OS-ervaring voor client en host. LAN standaard; internet expliciet per gekoppelde NAS. Geen leverancierscloud, leverancierslogin, stille relay/fallback, extern sleutelbeheer of uitwijkserver. Zonder NAS blijven lokale taken werken. De host beheert quota en mag zijn kopie zonder gasttoestemming wissen; dat geeft geen decryptiesleutel of documenttoegang.
-- Geen externe OS-telemetrie of automatische externe crashuploads. Diagnostiek blijft lokaal, is begrensd en inzichtelijk. Eventuele backup daarvan uitsluitend naar de eigen gekoppelde NAS.
+- De basisinstallatie werkt met een lokaal account. Persoonlijke opslag bestaat uit lokale data, optionele E2EE-opslag op een eigen NAS/aangeboden NAS-ruimte en optioneel opaque client-side versleutelde objecten bij een expliciet gekozen externe opslagprovider. LAN blijft standaard voor persoonlijke NAS; internet is expliciet per peer/provider. Geen verplichte leverancierscloud, stille relay/fallback, provider-key-escrow of uitwijkserver. Een provideraccount kan nodig zijn voor de vrijwillig gekozen provider, maar geeft geen Nieuw-OS-inhoudssleutel. Zonder NAS/provider blijven lokale taken werken. De NAS-host beheert quota en mag zijn kopie zonder gasttoestemming wissen; dat geeft geen decryptiesleutel of documenttoegang.
+- Geen externe OS-telemetrie of automatische externe crashuploads. Diagnostiek blijft lokaal, is begrensd en inzichtelijk. Een gebruiker mag een expliciete client-side versleutelde back-up daarvan naar een toegestane NAS of opaque provideropslag maken; de opslagbackend krijgt geen plaintext diagnose-inhoud via deze route.
 - Crashexports tonen vóór verzending welke gegevens meegaan. Geen automatische geheugendumps met mogelijk documentinhoud of sleutels.
 - Geen advertentie-ID, systeemreclame, verplicht platformaccount of vooraf aangevinkte gegevensdeling.
 - Netwerkverkeer is verklaarbaar per dienst. Updates en tijdsynchronisatie hebben een zichtbare instelling en mogen niet stilzwijgend als “telemetrie” worden gebundeld.
@@ -90,7 +90,7 @@ Plan vertaling vanaf de eerste UI: externe tekstbestanden, Unicode, verschillend
 
 | Laag | Betekenis voor dit project |
 | --- | --- |
-| Tijdens gebruik | OS-gegevens lokaal of E2EE op gekoppelde eigen/gedeelde persoonlijke NAS; internet per peer expliciet. Host kan opslag intrekken/wissen zonder inhoudssleutel. AI-inferentie alleen op apparaat. Geen leverancierscloud, stille relay/fallback of telemetrie. Updates/modeldownloads mogen via een afgescheiden downloader; derdenapps alleen met toegekende rechten. |
+| Tijdens gebruik | OS-gegevens lokaal, E2EE op gekoppelde persoonlijke NAS of na expliciete keuze als opaque client-side versleutelde objecten bij een externe provider; internet per peer/provider expliciet. Host/provider krijgt geen inhoudssleutel. AI-inferentie alleen op apparaat. Geen verplichte leverancierscloud, stille relay/fallback, provider-key-escrow of OS-telemetrie. Updates/modeldownloads mogen via een afgescheiden downloader; derdenapps alleen met toegekende rechten. |
 | Tijdens ontwikkeling | Codex kan helpen schrijven en onderzoeken; broncode, besluiten, tests en buildinstructies blijven buiten de chat beschikbaar. |
 | Tijdens bouwen | Een derde partij moet uit de broncode kunnen bouwen zonder Codex-account. Controleer alle download- en buildafhankelijkheden. |
 | Publicatie | De code blijft via Git exporteerbaar; releasebestanden, issues en documentatie krijgen een overdraagbare kopie. |
