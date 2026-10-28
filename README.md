@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 17% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 20% van de vaste productroadmap](docs/assets/progress.svg)
 
-**17% — 17 van 100 gewogen acceptatiepunten.** Dit is een
+**20% — 20 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -20,22 +20,22 @@ alleen een nette desktop haalt die eindgrens niet.
 | Productspoor | Totaal punten | Behaald |
 |---|---:|---:|
 | Eigen kern en procesisolatie | 15 | 11 |
-| Opslag en gegevensherstel | 15 | 4 |
+| Opslag en gegevensherstel | 15 | 5 |
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
 | Internet en netwerkdiensten | 10 | 0 |
 | Beveiliging, privacy en updates | 12 | 0 |
-| Apps, SDK en installatie | 8 | 0 |
+| Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **17** |
+| **Totaal** | **100** | **20** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`357124d0`](https://github.com/simonvanieperen/nieuw-os/commit/357124d05c85a1d77cc1ac01fcc53f9c960b9898) ·
-**Ontwikkelbranch:** `docs/k07-progress-17-20261028`.
-Deze opdracht: **15% → 17% (+2 procentpunt)**. **Opdracht:** K07 resource-uitputting en herstel op actuele native bron geaccepteerd.
-K07 sluit na brongebonden native QEMU-controles voor handle-/IPC-quota en geheugen-/CPU-druk. Zowel de gespecialiseerde resource-pressure-workflow als de brede CI slagen; processen en capabilities worden volledig opgeruimd. Geen rubricgewicht of ander criterium is gewijzigd.
+**Bron:** [`b9c7cf8f`](https://github.com/simonvanieperen/nieuw-os/commit/b9c7cf8f4e1804f0333e8fba8862941190224155) ·
+**Ontwikkelbranch:** `docs/a01-s08-progress-20-20261028`.
+Deze opdracht: **17% → 20% (+3 procentpunt)**. **Opdracht:** A01 SDK-app en S08 native opslagherstel met echte read-only recovery geïntegreerd.
+A01 (+2) en S08 (+1) zijn na herstel van CodeRabbit-bevindingen, geslaagde brongebonden SDK-/resource-/storage-QEMU-gates en groene geïntegreerde main-CI geaccepteerd. S08 controleert dertien VM-runs met een werkelijk read-only recoverydrive, minimale blokrechten en zonder stille replay. De vaste rubric en de resterende criteria zijn ongewijzigd; geen algemene hardware-, GUI-, encryptie- of releaseclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -49,7 +49,27 @@ Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
 
-## Laatste integratie en review
+## Nieuwe native integratie — 20% (28 oktober 2026)
+
+[A01 SDK-app, PR #31](https://github.com/simonvanieperen/nieuw-os/pull/31)
+is op `main` geïntegreerd: een echt, afzonderlijk gebruikersproces met een
+gedocumenteerde app-ABI, begrensde capabilityrechten, normale en geweigerde
+verzoeken en volledige opruiming. De brongebonden native CI en resource-gates
+zijn geslaagd. [A01-bewijs](docs/verification/A01-ACCEPTANCE.md).
+
+[S08 opslagherstel, PR #34](https://github.com/simonvanieperen/nieuw-os/pull/34)
+is geïntegreerd na herstel van een wezenlijk probleem: koude recovery opent
+de virtuele schijf nu echt read-only, onderhandelt het virtio-readonly-profiel
+en kent alleen blokleesrechten toe. De opslagdienst doet in herstelmodus geen
+muterende startup-FLUSH. Alle 13 afzonderlijke native QEMU-proeven en de
+geïntegreerde [main-CI](https://github.com/simonvanieperen/nieuw-os/actions/runs/40761772907)
+slagen. [S08-bewijs](docs/verification/S08-ACCEPTANCE.md).
+
+De vaste rubric v1 kent nu uitsluitend **A01 (+2) en S08 (+1)** toe:
+**17% → 20%**. Dit is geen bewijs voor een al volwaardige desktop, fysieke
+schijfgaranties, algemene appcompatibiliteit of een productrelease.
+
+## Eerdere integratie en review (historisch)
 
 [PR #13](https://github.com/simonvanieperen/nieuw-os/pull/13) brengt M6c/M6d,
 de actuele main en het [nieuwe Windowsbewijs](docs/verification/M6D-CLOSEOUT.md)
