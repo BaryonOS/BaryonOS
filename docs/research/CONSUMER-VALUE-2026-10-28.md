@@ -51,11 +51,15 @@ Grzybowski en Nicolle (2021) vonden in historische gegevens over 9.799 toestelwi
 
 Onderzoek naar skill-based habits laat zien dat aangeleerde vaardigheden voorkeur voor bestaande producten kunnen versterken (Murray & Häubl, 2007).
 
+Een desktopstudie uit 2025 vergeleek Windows, macOS en Linux met taken, oogmetingen en de System Usability Scale bij ruim zestig geanalyseerde informaticastudenten, overwegend met Windows-ervaring. Subjectieve waardering en taakprestatie kwamen niet overal overeen; vertrouwdheid is daardoor een belangrijke mogelijke verklaring. De studie bepaalt niet welk OS voor consumenten universeel het beste is (Łazaruk et al., 2025).
+
 **Projectvertaling:** Materiaal mag het organisatiemodel vernieuwen, maar selectie, navigatie, bekende sneltoetsen, namen, mappen en een duidelijke route terug moeten herkenbaar blijven. Meet eerste gebruik én gebruik na oefening.
 
 ### 3.4 Vormgeving helpt de eerste indruk, maar vervangt bruikbaarheid niet
 
 Tuch et al. (2012a) vonden dat visuele complexiteit en prototypicaliteit snelle esthetische oordelen beïnvloeden. Ander onderzoek van dezelfde lijn laat zien dat mooie vormgeving een slecht bruikbare ervaring niet automatisch oplost (Tuch et al., 2012b).
+
+Hassenzahl et al. (2010) analyseerden ruim vijfhonderd terugblikken op positieve technologie-ervaringen. Onder meer competentie, stimulering en verbondenheid hingen samen met positieve gevoelens. Dit betreft correlaties in geselecteerde positieve herinneringen en bewijst geen causale OS-voorkeur.
 
 **Projectvertaling:** de visuele identiteit moet het productvoordeel snel leesbaar maken en ook tijdens zoeken, fouten en herstel overeind blijven.
 
@@ -102,7 +106,25 @@ Voor Nieuw OS betekent dit dat privacy niet alleen een slogan mag zijn. Rond mat
 - hoe lang dat geldt;
 - of inhoud via netwerkrechten kan worden verstuurd.
 
-## 5. Lokale AI: alleen behouden als taakwaarde aantoonbaar is
+Kleppmann et al. (2019) beschrijven in *local-first software* eigenaarschap, offline beschikbaarheid en samenwerking als samenhangende ontwerpdoelen. Dit is een ontwerp- en architectuurpaper, geen bewijs dat consumenten daarom naar een nieuw OS overstappen.
+
+**Projectvertaling:** laat de kernervaring zonder NAS beginnen. Onderzoek koppelen, sleutelherstel en herstel na apparaatverlies afzonderlijk; privacywinst moet in dezelfde gebruiksproef worden afgewogen tegen extra administratie of leertijd.
+
+### 4.5 Tijdelijk bewaren zonder meteen te organiseren
+
+Rutishauser en Fritz (2026) onderzochten bij 29 voornamelijk studenten en IT-professionals een tijdelijke opslagplek voor webmateriaal, gekoppeld aan later te vormen groepen. De aanpak hielp sommige deelnemers hun materiaal te beheersen, maar verminderde het aantal tabbladen niet bij iedereen. Het betrof opeenvolgende fasen en geen onafhankelijke gerandomiseerde controlegroep.
+
+**Hypothese:** test een optionele tijdelijke plek voor een link, foto of document waarvan iemand nog niet weet waar het thuishoort. Meet zowel later terugvinden als extra rommel en opruimlast. Dit is een onderzoeksoptie, geen nieuwe verplichte productpijler.
+
+## 5. Rust, onderbrekingen en lokale AI
+
+### 5.1 Regelbare onderbrekingen
+
+Een gerandomiseerd veldexperiment met 237 smartphonegebruikers vond gunstiger ervaren aandacht en controle bij drie dagelijkse meldingenbundels (Fitz et al., 2019). Dit bewijst geen universeel optimale frequentie voor een desktop-OS. Een preregistreerde studie met 205 deelnemers vond na één week meldingen uitschakelen geen duidelijke verbetering in checkgedrag, schermtijd of ervaren productiviteit; de vrees iets te missen nam toe (Dekker et al., 2025).
+
+**Projectvertaling:** onderzoek voorspelbare bundeling, door de gebruiker gekozen uitzonderingen en een makkelijk terug te vinden meldingenoverzicht. Meet naast ervaren rust ook gemiste belangrijke informatie en tijd om een taak te hervatten. Presenteer dit niet als bewezen gezondheids- of productiviteitsinterventie.
+
+### 5.2 Lokale AI: alleen behouden als taakwaarde aantoonbaar is
 
 Lokale verwerking is een privacy-architectuurkeuze, maar geeft niet automatisch begrip of vertrouwen. Kwalitatief onderzoek naar on-device machine learning laat zien dat gebruikers onduidelijke verwachtingen kunnen houden over wat wordt geanalyseerd en waarom (West et al., 2025).
 
@@ -151,7 +173,9 @@ Een browsermock bewijst alleen interactielogica.
 - **Fase A:** 12–18 interviews/taakobservaties als praktisch startvoorstel; geen statistisch vereiste omvang.
 - **Fase B:** pilot met circa 24–36 deelnemers voor vergelijkbare taken; voor bevestigende conclusies vooraf effectgrootte/power bepalen.
 - **Fase C:** verschillende eerlijke productboodschappen testen op zelfstandig uitgevoerde taken, niet alleen klikken.
-- **Fase D:** zodra één workflow native stabiel genoeg is, meerweeks vervolggebruik meten met vrijwillig gebruik, fouten, herstel en redenen om terug te keren naar de oude werkwijze.
+- **Fase D:** zodra één workflow stabiel genoeg is, eerst een vierweekse vroege veldproef uitvoeren met vrijwillig gebruik, fouten, herstel, hulp en redenen om terug te keren naar de oude werkwijze. Langere 90-/180-dagenvalidatie uit de markt-/adoptiesynthese blijft een afzonderlijke latere stap.
+
+Meet taaksucces, fouten en hulpbehoefte los van aantrekkelijkheid. NASA-TLX kan aanvullend worden gebruikt voor ervaren mentale belasting; het instrument meet werklast en bewijst geen OS-voorkeur.
 
 ## 9. Grenzen voor positionering
 
@@ -177,17 +201,31 @@ Bhattacherjee, A. (2001). Understanding information systems continuance: An expe
 
 Boardman, R., & Sasse, M. A. (2004). “Stuff Goes into the Computer and Doesn't Come Out”: A cross-tool study of personal information management. *CHI '04*, 583–590. https://doi.org/10.1145/985692.985766
 
+Dekker, C. A., Baumgartner, S. E., Sumter, S. R., & Ohme, J. (2025). Beyond the Buzz: Investigating the Effects of a Notification-Disabling Intervention on Smartphone Behavior and Digital Well-Being. *Media Psychology, 28*(1), 162–188. https://doi.org/10.1080/15213269.2024.2334025
+
 Dietvorst, B. J., Simmons, J. P., & Massey, C. (2018). Overcoming algorithm aversion. *Management Science, 64*(3), 1155–1170. https://doi.org/10.1287/mnsc.2016.2643
 
 Dumais, S., Cutrell, E., Cadiz, J. J., Jancke, G., Sarin, R., & Robbins, D. C. (2003). Stuff I've Seen. *SIGIR '03*, 72–79. https://doi.org/10.1145/860435.860451
 
-Farhang, S., Laszka, A., & Grossklags, J. (2018). An empirical study of how privacy, security, and other concerns influence upgrading to Windows 10. *ACSAC 2018*. https://www.cs.cit.tum.de/fileadmin/w00cfj/ct/papers/2018-ACSAC-Farhang.pdf
+Farhang, S., Weidman, J., Kamani, M. M., Grossklags, J., & Liu, P. (2018). Take It or Leave It: A Survey Study on Operating System Upgrade Practices. *ACSAC 2018*, 490–504. https://doi.org/10.1145/3274694.3274733
 
 Felt, A. P., Ha, E., Egelman, S., Haney, A., Chin, E., & Wagner, D. (2012). Android permissions: User attention, comprehension, and behavior. *SOUPS 2012*. https://research.google/pubs/android-permissions-user-attention-comprehension-and-behavior/
 
-Grzybowski, L., & Nicolle, A. (2021). Estimating consumer inertia in repeated smartphone operating system choices. *Journal of Institutional Economics*. https://doi.org/10.1111/joie.12239
+Fitz, N., Kushlev, K., Jagannathan, R., Lewis, T., Paliwal, D., & Ariely, D. (2019). Batching smartphone notifications can improve well-being. *Computers in Human Behavior, 101*, 84–94. https://doi.org/10.1016/j.chb.2019.07.016
+
+Grzybowski, L., & Nicolle, A. (2021). Estimating Consumer Inertia in Repeated Choices of Smartphones. *The Journal of Industrial Economics, 69*(1), 33–82. https://doi.org/10.1111/joie.12239
+
+Hassenzahl, M., Diefenbach, S., & Göritz, A. (2010). Needs, affect, and interactive products—Facets of user experience. *Interacting with Computers, 22*(5), 353–362. https://doi.org/10.1016/j.intcom.2010.04.002
+
+Kleppmann, M., Wiggins, A., van Hardenberg, P., & McGranaghan, M. (2019). Local-first software: You own your data, in spite of the cloud. *Onward! 2019*, 154–178. https://doi.org/10.1145/3359591.3359737
+
+Łazaruk, K., Tokarski, P., Rybak, K., Plechawska-Wójcik, M., & Dzieńkowski, M. (2025). The Force of Habit: Comparing Graphical User Interfaces of Popular Operating Systems Using Eye-Tracking Analysis. *IEEE Access, 13*, 169236–169261. https://doi.org/10.1109/ACCESS.2025.3614018
 
 Murray, K. B., & Häubl, G. (2007). Explaining cognitive lock-in. *Journal of Consumer Research, 34*(1), 77–88. https://doi.org/10.1086/513048
+
+NASA. (n.d.). *NASA Task Load Index (TLX).* https://www.nasa.gov/human-systems-integration-division/nasa-task-load-index-tlx/
+
+Rutishauser, R. A., & Fritz, T. (2026). From Tabs to Structures: Understanding and Supporting Web Page Management. *CHI ’26*, Article 1447, 1–18. https://doi.org/10.1145/3772318.3791979
 
 Tornatzky, L. G., & Klein, K. J. (1982). Innovation characteristics and innovation adoption-implementation. *IEEE Transactions on Engineering Management, EM-29*(1), 28–45. https://doi.org/10.1109/TEM.1982.6447463
 

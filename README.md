@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`c75804ec`](https://github.com/simonvanieperen/nieuw-os/commit/c75804ecc5e9e173cca38028f100ffa4b46d4b4d) ·
-**Ontwikkelbranch:** `codex/research-market-adoption-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Markt- en consumentenonderzoek toegevoegd; geen native acceptatie.
-Een gedateerde repository-synthese legt marktkansen, overstapfrictie, Europese alternatieven en wetenschappelijk consumentenonderzoek vast. De privacybrowser-aanvulling op main blijft behouden. Bestaande productkeuzes blijven onveranderd; doelgroep-, kleur-, prestatie- en retentievoorstellen blijven hypotheses. Geen nieuw native criterium: 14% naar 14%.
+**Bron:** [`34a0e9ce`](https://github.com/simonvanieperen/nieuw-os/commit/34a0e9ce499f19ad6bd9bc4f3cc36d2c5682ed05) ·
+**Ontwikkelbranch:** `docs/consumer-adoption-evidence-20261028`.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Consumentenwaarde-onderzoek aangevuld en vroege gebruiksvalidatie gepland.
+De bestaande consumentenwaarde-verkenning is aangevuld met bewijs over desktopgewenning, ervaren competentie, tijdelijke opslag, local-first en meldingsgedrag. PRX1–PRX4 leggen de vroege gebruiksvalidatie vast; er is nog geen deelnemer onderzocht en geen native criterium geaccepteerd. Geen functiewinst: 14% naar 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -25,6 +25,13 @@ toegang” vast en definieert DV-01 als latere geïntegreerde Materiaal-toets me
 twee gereedschappen, bevestigd opslaan, herstel en revocation. P2 blijft
 bevroren; DV-01 is geen reeds bewezen product- of native eigenschap.
 
+De consumentenwaarde-verkenning bevat nu ook de ontbrekende bewijsgrenzen rond
+ervaren competentie, desktopgewenning, tijdelijke opslag, local-first,
+regelbare meldingen en ervaren werklast. PRX1–PRX4 vertalen dit naar vroege
+taakobservatie, een DV-01-prototypeproef, boodschaptest en vierweekse veldproef.
+Er zijn nog geen deelnemers onderzocht; de 90-/180-dagenmarktvalidatie blijft
+een afzonderlijke latere stap.
+
 Geen broncode, native runtime of acceptatiebewijs is in deze documentatiestap
 gewijzigd of uitgevoerd. De technische momentopname in de oorspronkelijke
 rapporten kan daarom ouder zijn dan deze actuele projectstatus. Roadmap:
