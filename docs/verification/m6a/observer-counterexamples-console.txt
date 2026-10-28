@@ -1,0 +1,10 @@
+Preparing worktree (detached HEAD 24a333d)
+HEAD is now at 24a333d Bewaar aangescherpte M6a-gate en isoleer tegenproefbuilds
+old-skip-full True child exit 0
+old-repeat-error-id True child exit 0
+new-skip-full True child exit 0
+new-repeat-error-id True child exit 0
+new-retry-after-unknown True child exit 0
+new-hide-unknown-receive True child exit 0
+new-prepared-write-count True child exit 0
+new-post-unknown-count True child exit 0

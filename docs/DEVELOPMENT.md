@@ -167,6 +167,42 @@ Get-Content -Raw experiments/quantum/fixtures/bell8.json | python tools/dev.py c
 
 De quantumworkspace staat buiten de kernelworkspace. `verify.py` schrijft uitvoer, bron-/binaryhashes en exacte commandoregels naar `experiments/quantum/verification/`. Het is lokale hostsimulatie; geen fysieke QPU, eigen-OS-port of cryptografische toevalsgenerator. Zie [de quantumhandleiding](../experiments/quantum/README.md).
 
+## M6a: schrijven, flushen en koude recovery
+
+```powershell
+python tools/build.py --kernel-feature milestone-m6a
+python tools/run_m6.py --smoke
+python -u tools/test_m6.py
+python tools/capture_gate.py m6a
+```
+
+De normale proef schrijft één volgend journalrecord en controleert de teruggelezen
+waarde. De volledige poort omvat FULL/ENOSPC, rechten, onzekere I/O, corruptie,
+zes dienstcrashes en zes externe QEMU-proceskills, telkens met de toepasselijke
+koude recovery op exact dezelfde image. Alleen het harnas maakt volumes aan
+onder zijn eigen build/run/. Een losse `recover` zonder eerdere image is
+bewust geen CLI-route: de volledige poort bewaakt de vorige run en volume-identiteit.
+
+De observertegenproeven worden apart uitgevoerd:
+
+```powershell
+python -u -B -X utf8 tests/verify_m6_observers.py
+```
+
+Dit maakt een nieuwe wegwerpworktree onder LOCALAPPDATA/nieuw-os/observer-checks/,
+buiten de bronrepository. Cargo zou binnen een geneste worktree de
+linkerconfiguratie van beide bovenliggende repositories combineren; de helper
+eist daarom ook exact één kernellinkerscript. De helper verandert uitsluitend
+de afzonderlijke kopie en bewaart de logs/images voor controle. Twee oude
+false-greens en zes verwachte afwijzingen zijn afzonderlijk gelabeld. Drie
+afwijzingen muteren echte guestcode; drie testen de observerinstrumentatie en
+bewijzen daarmee geen extra werkelijk device-I/O.
+
+Zie verification/m6a/ voor bronpin, uitgevoerde resultaten en bewijsgrenzen.
+Een QEMU-proceskill laat hostcaches bestaan en bewijst geen fysieke stroomuitval.
+Herstel van de bron gebeurt via een aparte checkout of gerichte revert van het
+observerherstel; geen reset van de bestaande werkmap of data-image.
+
 ## Herkomst en hashes
 
 De waarden hieronder komen uit het daadwerkelijk aangemaakte [build/toolchain-provenance.json](../build/toolchain-provenance.json). Hashes identificeren de gebruikte bestanden; zij bewijzen geen foutloze of veilige software.

@@ -1,6 +1,6 @@
-# Nieuw OS — eigen kernel en eerste geïsoleerde blokdienst
+# Nieuw OS — eigen kernel en schrijvende geïsoleerde blokdienst
 
-De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde gebruikersprocessen en verwerkt capabilities/IPC. M5 voegt een echte ring-3-blokdienst met alleen-lezen virtio-I/O toe. De definitieve M1–M5-suites slagen: **77 controlegroepen en 64 echte VM-runs**, plus een normale M5-eindstart. Materiaal en qsim blijven afzonderlijke hostprototypes. Dit is een experimentele ontwikkelversie met synthetische testprogramma's.
+De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde gebruikersprocessen en verwerkt capabilities/IPC. M6a schrijft via de ring-3-blokdienst naar een begrensde journal, voert een echte virtio-FLUSH uit vóór het appantwoord en herstelt na dienstcrashes of een QEMU-proceskill. De aangescherpte M6a-poort slaagt: **54 controlegroepen en 49 echte VM-runs**. Acht aanvullende QEMU-tegenproeven toetsen de observer. Actuele regressie- en reviewstatus staat hieronder gelinkt. Materiaal en qsim blijven afzonderlijke hostprototypes.
 
 - **Actuele voortgang en open controles:** [PROJECT-STATE.md](docs/PROJECT-STATE.md).
 - **Starten en reproduceren:** [DEVELOPMENT.md](docs/DEVELOPMENT.md).
@@ -8,9 +8,9 @@ De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde
 - **Productprototype:** [handleiding](ui/prototype/README.md).
 - **Quantumsimulator:** [handleiding](experiments/quantum/README.md).
 
-De actuele code en het testbewijs staan op [codex/m5-block-service](https://github.com/simonvanieperen/nieuw-os/tree/codex/m5-block-service), met [concept-PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3). Selecteer die branch. `main` bevat de startspecificaties totdat de concept-PR's zijn beoordeeld. Checkpoints bewaren bron, echte testuitkomsten, review en open punten. De M5-testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
+Dit afgebakende M6a-herstel staat op [codex/m6a-write-recovery](https://github.com/simonvanieperen/nieuw-os/tree/codex/m6a-write-recovery), bij [concept-PR #5](https://github.com/simonvanieperen/nieuw-os/pull/5). Checkpoints bewaren bron, echte testuitkomsten, review en open punten. Andere vervolgbranches hebben hun eigen bron- en bewijsstatus. Het M6a-contract staat in [M6A-WRITE-RECOVERY.md](docs/implementation/M6A-WRITE-RECOVERY.md).
 
-Start vanuit de projectroot met `python tools/build.py --kernel-feature milestone-m5` en daarna `python tools/run.py --smoke --milestone m5`. De runner maakt zelf een synthetische alleen-lezen testimage; na de gecontroleerde leesproef sluit QEMU af. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
+Start vanuit de projectroot met `python tools/build.py --kernel-feature milestone-m6a` en daarna `python tools/run_m6.py --smoke`. De runner maakt zelf een synthetische 64KiB-image en sluit QEMU na de eindige schrijf-/flush-/leesproef af. Deze journal heeft vier records met één waarde van 128 bytes; er is nog geen algemeen bestandssysteem of native desktop in deze proef. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU-, fysieke stroomuitval- of productieclaim. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
 
 ## Oorspronkelijk startpakket (historische context)
 
