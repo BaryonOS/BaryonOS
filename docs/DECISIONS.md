@@ -293,7 +293,7 @@ laatste toetst de runtimebridge, niet de losse catalogusvoorbeeldapp).
 opt-in, terugname via eerdere bron in aparte checkout zonder datamigratie.
 
 **Quantum — security-invariant:** elk proefproces heeft private mappings en
-maximaal64KiB arena; input blijft binnen6qubits/64gates/4096shots. SIMD/FPU en
+maximaal 64 KiB arena; input blijft binnen 6 qubits / 64 gates / 4096 shots. SIMD/FPU en
 vreemde syscall/hardware-instructies zijn niet toegestaan in het geselecteerde
 scalarartifact. Simulatorbeleid blijft userspace; opruiming gebruikt echte
 procesframes. **Weerlegd als:** grenzen kunnen worden overschreden, processen
