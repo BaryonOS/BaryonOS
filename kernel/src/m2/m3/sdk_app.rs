@@ -215,6 +215,9 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
         serial::write(b"SDKAPP:READ:PASS\nSDKAPP:SANDBOX:PASS\nSDKAPP:EXIT:PASS\n");
     }
 
+    // The app has already completed its exit cleanup. Keep the established
+    // address-space/W^X audit for the still-live service before releasing it.
+    state.audit_process(0);
     let released = releasable_frames(state);
     if state.free_count().checked_add(released) != Some(state.free_baseline) {
         fail(b"FRAME_BASELINE_CHANGED");

@@ -513,39 +513,44 @@ impl State {
         }
         pa
     }
-    fn audit(&self) {
-        for (i, p) in self.processes[..self.amount].iter().enumerate() {
-            let tables = p.paging.as_ref().unwrap();
-            assert_ne!(tables.root, self.kernel.root);
-            assert!(!tables.permissions(text_start()).unwrap().3);
-            assert_eq!(tables.leaf(0), 0);
-            assert_eq!(tables.leaf(0x7ffee000), 0);
-            assert_eq!(tables.leaf(0x7ffff000), 0);
-            for m in p.mappings() {
-                assert_eq!(self.frames.owner(m.pa), Ok(Owner::User(p.pid, m.kind)));
-                let leaf = tables.leaf(m.va);
-                assert_eq!(leaf & ADDRESS, m.pa);
-                assert_ne!(leaf & 4, 0);
-                assert_eq!(leaf & 2 != 0, m.writable);
-                assert_eq!(leaf & NX == 0, m.executable);
-                assert_eq!(
-                    tables.permissions(m.va).unwrap(),
-                    (m.pa, m.writable, m.executable, true)
-                );
-                let alias = self.frames.alias(m.pa).unwrap();
-                assert!(alias.executable == 0 || alias.writable == 0);
-                let identity = self.kernel.leaf(m.pa);
-                assert_eq!(identity & 4, 0);
-                assert_ne!(identity & NX, 0);
-                assert_eq!(
-                    identity & 2 == 0,
-                    m.executable || !m.writable && m.executable
-                );
-                for other in &self.processes[..i] {
-                    assert!(other.mappings().iter().all(|x| x.pa != m.pa));
-                }
+    fn audit_process(&self, i: usize) {
+        let p = &self.processes[i];
+        assert_ne!(p.status, Status::Dead);
+        let tables = p.paging.as_ref().unwrap();
+        assert_ne!(tables.root, self.kernel.root);
+        assert!(!tables.permissions(text_start()).unwrap().3);
+        assert_eq!(tables.leaf(0), 0);
+        assert_eq!(tables.leaf(0x7ffee000), 0);
+        assert_eq!(tables.leaf(0x7ffff000), 0);
+        for m in p.mappings() {
+            assert_eq!(self.frames.owner(m.pa), Ok(Owner::User(p.pid, m.kind)));
+            let leaf = tables.leaf(m.va);
+            assert_eq!(leaf & ADDRESS, m.pa);
+            assert_ne!(leaf & 4, 0);
+            assert_eq!(leaf & 2 != 0, m.writable);
+            assert_eq!(leaf & NX == 0, m.executable);
+            assert_eq!(
+                tables.permissions(m.va).unwrap(),
+                (m.pa, m.writable, m.executable, true)
+            );
+            let alias = self.frames.alias(m.pa).unwrap();
+            assert!(alias.executable == 0 || alias.writable == 0);
+            let identity = self.kernel.leaf(m.pa);
+            assert_eq!(identity & 4, 0);
+            assert_ne!(identity & NX, 0);
+            assert_eq!(
+                identity & 2 == 0,
+                m.executable || !m.writable && m.executable
+            );
+            for other in &self.processes[..i] {
+                assert!(other.mappings().iter().all(|x| x.pa != m.pa));
             }
-            assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
+        }
+        assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
+    }
+    fn audit(&self) {
+        for i in 0..self.amount {
+            self.audit_process(i);
         }
     }
     fn select(&mut self) -> *const u64 {
