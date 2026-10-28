@@ -1,5 +1,23 @@
 # Actuele projectstatus
 
+## Hervatting M6a — 28 oktober 2026
+
+Nieuwe werkbranch `codex/m6a-write-flush-core`, basis `5a58a74`. M6a is gestart
+met een afgebakende eerste stap: zuivere WRITE/FLUSH-requestplannen in
+`virtio-core`, nog zonder kernel-/driverintegratie of verruiming van rechten.
+Contract en verdere acceptatie: [M6A-WRITE-FLUSH.md](implementation/M6A-WRITE-FLUSH.md).
+Implementatie/review/tests voor deze stap lopen; nog geen nieuwe geslaagde
+WRITE/FLUSH-, persistentie- of crashherstelproef. De eerdere M5-resultaten
+hieronder blijven historisch bewijs op de daarbij genoemde bronversies.
+
+Rust 1.90.0 en de cross-targets zijn aanwezig. De eerste inventaris miste
+QEMU/OVMF; die zijn projectlokaal uit officiële Debian-pakketten ingericht.
+Daarna slaagt `python3 tools/preflight.py --strict` (exit 0): QEMU 10.0.13,
+OVMF 2025.02-8+deb13u1. Dit is een andere ontwikkelvariant; nog geen bootbewijs.
+Installatie-/inventarisrapporten staan voorlopig onder `build/m6a-environment/`.
+
+## Afgeronde M5-baseline (27 oktober 2026)
+
 27 oktober 2026. M5 is geïmplementeerd en getest in het vaste QEMU-profiel.
 
 Repository: https://github.com/simonvanieperen/nieuw-os. Branch `codex/m5-block-service`, concept-PR [#3](https://github.com/simonvanieperen/nieuw-os/pull/3). Basis `c630c59` (M1–M4); definitieve runtime-/harnasbron `7af544aa1b8d731ac27f384f0ba95aa44586a57d`. Latere commits bewaren documentatie en bewijs. Main bevat de startspecificatie; geen merge naar main of release uitgevoerd.
