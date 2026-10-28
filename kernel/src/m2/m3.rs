@@ -21,12 +21,20 @@ mod qsim;
 mod qsim_job;
 #[cfg(all(
     feature = "native-qsim",
-    any(feature = "milestone-m4", feature = "graphics-g0", feature = "native-qsim-job")
+    any(
+        feature = "milestone-m4",
+        feature = "graphics-g0",
+        feature = "native-qsim-job"
+    )
 ))]
 compile_error!("native-qsim is a separate opt-in M3 profile");
 #[cfg(all(
     feature = "native-qsim-job",
-    any(feature = "milestone-m5", feature = "graphics-g0", feature = "native-qsim")
+    any(
+        feature = "milestone-m5",
+        feature = "graphics-g0",
+        feature = "native-qsim"
+    )
 ))]
 compile_error!("native-qsim-job is a separate opt-in M4 profile");
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]

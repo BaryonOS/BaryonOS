@@ -22,7 +22,9 @@ fn snapshot(process: &Process) -> [u64; REPORT_WORDS] {
 fn releasable_frames(state: &State) -> usize {
     let mut total = 0usize;
     for process in &state.processes[..state.amount] {
-        let Some(paging) = process.paging.as_ref() else { fail(b"MISSING_ADDRESS_SPACE"); };
+        let Some(paging) = process.paging.as_ref() else {
+            fail(b"MISSING_ADDRESS_SPACE");
+        };
         total = total
             .checked_add(process.count)
             .and_then(|value| value.checked_add(process.kernel_frames.len()))
@@ -43,23 +45,41 @@ pub fn manifest(state: &mut State) {
     }
 
     let engine = m4::engine();
-    if engine.stats().processes != 0 { fail(b"ENGINE_NOT_EMPTY"); }
-    engine.register(service_pid).unwrap_or_else(|_| fail(b"REGISTER_SERVICE"));
-    engine.register(client_pid).unwrap_or_else(|_| fail(b"REGISTER_CLIENT"));
+    if engine.stats().processes != 0 {
+        fail(b"ENGINE_NOT_EMPTY");
+    }
+    engine
+        .register(service_pid)
+        .unwrap_or_else(|_| fail(b"REGISTER_SERVICE"));
+    engine
+        .register(client_pid)
+        .unwrap_or_else(|_| fail(b"REGISTER_CLIENT"));
 
-    let request_root = engine.create_endpoint(service_pid).unwrap_or_else(|_| fail(b"REQUEST_ENDPOINT"));
-    let request_send = engine.bootstrap_delegate(service_pid, request_root, client_pid, SEND)
+    let request_root = engine
+        .create_endpoint(service_pid)
+        .unwrap_or_else(|_| fail(b"REQUEST_ENDPOINT"));
+    let request_send = engine
+        .bootstrap_delegate(service_pid, request_root, client_pid, SEND)
         .unwrap_or_else(|_| fail(b"REQUEST_SEND"));
-    let request_recv = engine.derive(service_pid, request_root, RECV)
+    let request_recv = engine
+        .derive(service_pid, request_root, RECV)
         .unwrap_or_else(|_| fail(b"REQUEST_RECV"));
-    engine.close(service_pid, request_root).unwrap_or_else(|_| fail(b"REQUEST_ROOT_CLOSE"));
+    engine
+        .close(service_pid, request_root)
+        .unwrap_or_else(|_| fail(b"REQUEST_ROOT_CLOSE"));
 
-    let reply_root = engine.create_endpoint(client_pid).unwrap_or_else(|_| fail(b"REPLY_ENDPOINT"));
-    let reply_send = engine.bootstrap_delegate(client_pid, reply_root, service_pid, SEND)
+    let reply_root = engine
+        .create_endpoint(client_pid)
+        .unwrap_or_else(|_| fail(b"REPLY_ENDPOINT"));
+    let reply_send = engine
+        .bootstrap_delegate(client_pid, reply_root, service_pid, SEND)
         .unwrap_or_else(|_| fail(b"REPLY_SEND"));
-    let reply_recv = engine.derive(client_pid, reply_root, RECV)
+    let reply_recv = engine
+        .derive(client_pid, reply_root, RECV)
         .unwrap_or_else(|_| fail(b"REPLY_RECV"));
-    engine.close(client_pid, reply_root).unwrap_or_else(|_| fail(b"REPLY_ROOT_CLOSE"));
+    engine
+        .close(client_pid, reply_root)
+        .unwrap_or_else(|_| fail(b"REPLY_ROOT_CLOSE"));
 
     write_word(state.processes[0].physical(DATA), 1);
     write_word(state.processes[0].physical(DATA + 24), client_pid);
@@ -72,14 +92,22 @@ pub fn manifest(state: &mut State) {
 
     for process in &state.processes[..state.amount] {
         let report = snapshot(process);
-        if report[1] != 0 || report[2] != process.pattern || report[6..].iter().any(|value| *value != 0) {
+        if report[1] != 0
+            || report[2] != process.pattern
+            || report[6..].iter().any(|value| *value != 0)
+        {
             fail(b"MANIFEST_REPORT");
         }
     }
-    if !engine.check_invariants() || engine.stats().endpoints != 2 || engine.stats().queued_messages != 0 {
+    if !engine.check_invariants()
+        || engine.stats().endpoints != 2
+        || engine.stats().queued_messages != 0
+    {
         fail(b"MANIFEST_CAPABILITIES");
     }
-    state.free_baseline = state.free_count().checked_add(releasable_frames(state))
+    state.free_baseline = state
+        .free_count()
+        .checked_add(releasable_frames(state))
         .unwrap_or_else(|| fail(b"FRAME_BASELINE_OVERFLOW"));
     serial::write(b"QSIMJOB:MANIFEST:PASS\n");
 }
@@ -95,7 +123,9 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
     if state.amount != PROCESS_COUNT || state.fault || state.exited || state.unexpected {
         fail(b"UNEXPECTED_EVENT");
     }
-    if state.ticks >= TIMEOUT_TICKS { fail(b"TIMEOUT"); }
+    if state.ticks >= TIMEOUT_TICKS {
+        fail(b"TIMEOUT");
+    }
 
     let service = snapshot(&state.processes[0]);
     let client = snapshot(&state.processes[1]);
@@ -103,20 +133,37 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
         if report[2] != state.processes[slot].pattern || (report[1] == 0 && report[6] != 0) {
             fail(b"PRIVATE_REPORT");
         }
-        if report[6] > 1 { fail(b"APP_FAILURE"); }
+        if report[6] > 1 {
+            fail(b"APP_FAILURE");
+        }
     }
     if service[6] != 1 || client[6] != 1 || state.timer_interrupts == 0 {
         return Some(state.select());
     }
 
-    if service[0] != 1 || client[0] != 2
-        || service[3] != state.processes[1].pid || client[3] != state.processes[0].pid
-        || service[4] == 0 || service[5] == 0 || client[4] == 0 || client[5] == 0
-        || service[7] != 15 || client[7] != 15
-        || service[8] != 7 || client[8] != 7 || service[9] != 7 || client[9] != 7
-        || service[10] == 0 || service[11] != 1 || client[11] != 1
-        || service[12] != 1 || client[12] != 1 || service[13] != 2 || client[13] != 2
-        || !(1..=65536).contains(&service[14]) {
+    if service[0] != 1
+        || client[0] != 2
+        || service[3] != state.processes[1].pid
+        || client[3] != state.processes[0].pid
+        || service[4] == 0
+        || service[5] == 0
+        || client[4] == 0
+        || client[5] == 0
+        || service[7] != 15
+        || client[7] != 15
+        || service[8] != 7
+        || client[8] != 7
+        || service[9] != 7
+        || client[9] != 7
+        || service[10] == 0
+        || service[11] != 1
+        || client[11] != 1
+        || service[12] != 1
+        || client[12] != 1
+        || service[13] != 2
+        || client[13] != 2
+        || !(1..=65536).contains(&service[14])
+    {
         fail(b"RESULT_MISMATCH");
     }
 
@@ -149,8 +196,12 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
     }
     let after = m4::engine().stats();
     if state.free_count() != state.free_baseline
-        || after.processes != 0 || after.handles != 0 || after.nodes != 0
-        || after.endpoints != 0 || after.queued_messages != 0 {
+        || after.processes != 0
+        || after.handles != 0
+        || after.nodes != 0
+        || after.endpoints != 0
+        || after.queued_messages != 0
+    {
         fail(b"CLEANUP");
     }
     print_number(b"QSIMJOB:CLEANUP_FRAMES:", released as u64);
