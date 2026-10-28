@@ -17,16 +17,36 @@ use kernel_core::{user, Frames, Kind, Owner, PAGE};
 mod m4;
 #[cfg(feature = "native-qsim")]
 mod qsim;
+#[cfg(feature = "native-qsim-job")]
+mod qsim_job;
 #[cfg(feature = "native-sdk-app")]
 mod sdk_app;
 #[cfg(all(
     feature = "native-qsim",
-    any(feature = "milestone-m4", feature = "graphics-g0")
+    any(
+        feature = "milestone-m4",
+        feature = "graphics-g0",
+        feature = "native-qsim-job"
+    )
 ))]
 compile_error!("native-qsim is a separate opt-in M3 profile");
 #[cfg(all(
+    feature = "native-qsim-job",
+    any(
+        feature = "milestone-m5",
+        feature = "graphics-g0",
+        feature = "native-qsim"
+    )
+))]
+compile_error!("native-qsim-job is a separate opt-in M4 profile");
+#[cfg(all(
     feature = "native-sdk-app",
-    any(feature = "milestone-m5", feature = "graphics-g0", feature = "native-qsim")
+    any(
+        feature = "milestone-m5",
+        feature = "graphics-g0",
+        feature = "native-qsim",
+        feature = "native-qsim-job"
+    )
 ))]
 compile_error!("native-sdk-app is a separate opt-in M4 profile");
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
@@ -44,16 +64,19 @@ mod m5;
 const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
 #[cfg(feature = "native-qsim")]
 const ELF: &[u8] = include_bytes!(env!("NOS_QSIM_ELF"));
-#[cfg(all(
-    feature = "milestone-m4",
-    not(feature = "milestone-m5"),
-    not(feature = "native-sdk-app")
-))]
-const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
+#[cfg(feature = "native-qsim-job")]
+const ELF: &[u8] = include_bytes!(env!("NOS_QSIM_JOB_ELF"));
 #[cfg(feature = "native-sdk-app")]
 const SDK_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_SDK_SERVICE_ELF"));
 #[cfg(feature = "native-sdk-app")]
 const SDK_APP_ELF: &[u8] = include_bytes!(env!("NOS_SDK_APP_ELF"));
+#[cfg(all(
+    feature = "milestone-m4",
+    not(feature = "milestone-m5"),
+    not(feature = "native-qsim-job"),
+    not(feature = "native-sdk-app")
+))]
+const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
 const ELF: &[u8] = include_bytes!(env!("NOS_M5_ELF"));
 #[cfg(all(feature = "milestone-m6a", not(feature = "milestone-m6b")))]
@@ -281,7 +304,11 @@ impl State {
         self.exited = false;
         self.survivor_slot = 1;
         self.unexpected = false;
-        self.amount = if cfg!(feature = "native-qsim") || cfg!(feature = "native-sdk-app") {
+        self.amount = if cfg!(any(
+            feature = "native-qsim",
+            feature = "native-qsim-job",
+            feature = "native-sdk-app"
+        )) {
             2
         } else if cfg!(feature = "milestone-m5") && (14..=16).contains(&m5_case()) {
             4
@@ -298,6 +325,7 @@ impl State {
 
         let target = if cfg!(feature = "milestone-m5")
             || cfg!(feature = "native-qsim")
+            || cfg!(feature = "native-qsim-job")
             || cfg!(feature = "native-sdk-app")
         {
             0
@@ -315,6 +343,7 @@ impl State {
         #[cfg(all(
             feature = "milestone-m4",
             not(feature = "milestone-m5"),
+            not(feature = "native-qsim-job"),
             not(feature = "native-sdk-app")
         ))]
         m4::manifest(self);
@@ -324,6 +353,8 @@ impl State {
         m5::manifest(self);
         #[cfg(feature = "native-qsim")]
         qsim::manifest(self);
+        #[cfg(feature = "native-qsim-job")]
+        qsim_job::manifest(self);
     }
     fn spawn_process(&mut self, slot: usize) {
         assert!(self.processes[slot].status == Status::Dead);
@@ -576,6 +607,8 @@ impl State {
                 p.status = Status::Running;
                 p.selected += 1;
                 if !cfg!(feature = "native-qsim")
+                    && !cfg!(feature = "native-qsim-job")
+                    && !cfg!(feature = "native-sdk-app")
                     && mode() == 0
                     && self.round < 2
                     && !self.fault
@@ -723,6 +756,11 @@ impl State {
             sdk_app::observe_exit(self, slot, counter);
             return;
         }
+        #[cfg(feature = "native-qsim-job")]
+        {
+            qsim_job::observe_exit(self, slot, counter);
+            return;
+        }
         #[cfg(feature = "milestone-m5")]
         {
             let _ = counter;
@@ -732,6 +770,7 @@ impl State {
         #[cfg(all(
             feature = "milestone-m4",
             not(feature = "milestone-m5"),
+            not(feature = "native-qsim-job"),
             not(feature = "native-sdk-app")
         ))]
         {
@@ -768,6 +807,11 @@ impl State {
             sdk_app::observe_fault(self, slot, context, counter);
             return;
         }
+        #[cfg(feature = "native-qsim-job")]
+        {
+            qsim_job::observe_fault(self, slot, context, counter);
+            return;
+        }
         #[cfg(feature = "milestone-m5")]
         {
             let _ = counter;
@@ -777,6 +821,7 @@ impl State {
         #[cfg(all(
             feature = "milestone-m4",
             not(feature = "milestone-m5"),
+            not(feature = "native-qsim-job"),
             not(feature = "native-sdk-app")
         ))]
         {
@@ -969,21 +1014,26 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
     #[cfg(all(
         feature = "milestone-m4",
         not(feature = "milestone-m5"),
+        not(feature = "native-qsim-job"),
         not(feature = "native-sdk-app")
     ))]
     if let Some(next) = m4::poll(state) {
-        return next;
-    }
-    #[cfg(feature = "native-sdk-app")]
-    if let Some(next) = sdk_app::poll(state) {
         return next;
     }
     #[cfg(feature = "milestone-m5")]
     if let Some(next) = m5::poll(state) {
         return next;
     }
+    #[cfg(feature = "native-sdk-app")]
+    if let Some(next) = sdk_app::poll(state) {
+        return next;
+    }
     #[cfg(feature = "native-qsim")]
     if let Some(next) = qsim::poll(state) {
+        return next;
+    }
+    #[cfg(feature = "native-qsim-job")]
+    if let Some(next) = qsim_job::poll(state) {
         return next;
     }
     #[cfg(not(feature = "milestone-m4"))]

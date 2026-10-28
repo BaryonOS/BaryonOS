@@ -29,7 +29,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "tes
                    "milestone-m5", *(f"test-m5-{case}" for case in M5_CASES),
                    "milestone-m6a", *(f"test-m6a-{case}" for case in M6A_CASES),
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
-                   "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim",
+                   "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
                    "native-sdk-app", "test-sdk-app-denied"]
 
 
@@ -122,6 +122,15 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
         if not qsim_report.get("passed") or sha256(output / "qsim-native-probe.elf") != qsim_report["binary_sha256"]:
             raise ValueError("Native qsim executable failed its artifact gate")
         extra_env = {"NOS_QSIM_ELF": str((output / "qsim-native-probe.elf").resolve())}
+    elif kernel_feature == "native-qsim-job":
+        output = BUILD / "users/qsim-job"
+        run_logged([sys.executable, "-B", str(ROOT / "experiments/quantum/native/job/build.py"),
+                    "--output-dir", str(output), "--target-dir", str(TARGET / "qsim-job-user")],
+                   "build-qsim-job-user")
+        qsim_report = json.loads((output / "build-report.json").read_text())
+        if not qsim_report.get("passed") or sha256(output / "qsim-job-native.elf") != qsim_report["binary_sha256"]:
+            raise ValueError("Native qsim job executable failed its artifact gate")
+        extra_env = {"NOS_QSIM_JOB_ELF": str((output / "qsim-job-native.elf").resolve())}
     elif kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
         from build_users import inspect_user
         app_target = TARGET / "sdk-app"

@@ -43,6 +43,9 @@ fn word(state: &State, slot: usize, offset: u64) -> u64 {
 fn releasable_frames(state: &State) -> usize {
     let mut total = 0usize;
     for process in &state.processes[..state.amount] {
+        if process.status == Status::Dead {
+            continue;
+        }
         let Some(paging) = process.paging.as_ref() else {
             fail(b"MISSING_ADDRESS_SPACE");
         };
@@ -210,6 +213,7 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
         serial::write(b"SDKAPP:READ:PASS\nSDKAPP:SANDBOX:PASS\nSDKAPP:EXIT:PASS\n");
     }
 
+    state.audit();
     let released = releasable_frames(state);
     if state.free_count().checked_add(released) != Some(state.free_baseline) {
         fail(b"FRAME_BASELINE_CHANGED");
