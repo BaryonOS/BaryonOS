@@ -1,0 +1,80 @@
+
+running 7 tests
+test statevector::tests::q1_05_s_changes_phase ... ok
+test statevector::tests::q1_04_gate_cycles_restore_basis_and_superposition ... ok
+test sampler::tests::published_seed_zero_words_and_exclusive_upper_bound ... ok
+test statevector::tests::q1_15_invalid_internal_states_are_rejected ... ok
+test statevector::tests::rounding_remainder_cannot_create_trailing_zero_probability_mass ... ok
+test statevector::tests::q1_03_h_twice_is_identity ... ok
+test statevector::tests::q1_06_bell_probabilities_and_norm ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 4 tests
+test q1_14_deadline_is_deterministic_and_never_returns_partial_result ... ok
+test gate_and_sampling_checkpoint_intervals_are_bounded ... ok
+test basis_loops_and_sampling_have_separate_checkpoint_bounds ... ok
+test q1_13_cancel_before_allocation_during_gate_and_during_sampling ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test q1_07_bell8_q1_08_bell4096_and_q1_09_repeatability ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test q1_01_identity_and_q1_02_little_endian_bit_order ... ok
+test control_direction_and_zero_probability_bins ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test q1_10_invalid_dimensions_and_targets_rejected_without_execution ... ok
+test q1_11_limits_and_integer_overflow ... ok
+test q1_17_maximum_job_and_measured_buffer_capacities ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 6 tests
+test native_limits_and_gate_errors_precede_execution ... ok
+test bump_allocation_rejects_overflow_misalignment_and_exhaustion ... ok
+test cancel_and_deadline_do_not_return_a_partial_histogram ... ok
+test unchanged_bell_fixture_has_exact_distribution_and_zero_tail ... ok
+test six_qubit_boundary_runs_the_existing_core ... ok
+test maximum_native_request_is_bounded_and_repeatable ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling qsim-native v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-i01/experiments/quantum/native)
+   Compiling qsim-core v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-i01/experiments/quantum/qsim-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.54s
+     Running unittests src/lib.rs (/tmp/nieuw-os-par-i01-target/debug/deps/qsim_core-0d50967a29feee14)
+     Running tests/cancellation.rs (/tmp/nieuw-os-par-i01-target/debug/deps/cancellation-fdc635c184b809c4)
+     Running tests/fixtures.rs (/tmp/nieuw-os-par-i01-target/debug/deps/fixtures-ea84e42ee489b42d)
+     Running tests/gates.rs (/tmp/nieuw-os-par-i01-target/debug/deps/gates-81c8de0fcb52d84e)
+     Running tests/validation.rs (/tmp/nieuw-os-par-i01-target/debug/deps/validation-2fb23a8f77ad0a1d)
+     Running unittests src/lib.rs (/tmp/nieuw-os-par-i01-target/debug/deps/qsim_native-5ecaa0a01403f3b4)
+     Running tests/adapter.rs (/tmp/nieuw-os-par-i01-target/debug/deps/adapter-f06a77970037713c)
+   Doc-tests qsim_core
+   Doc-tests qsim_native

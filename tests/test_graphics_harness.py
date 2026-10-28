@@ -8,7 +8,7 @@ import time
 import unittest
 from unittest.mock import Mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'tools'))
-from run_graphics import Qmp, QmpPipe, ppm, changed_bounds, valid_sequence, run_graphics
+from run_graphics import Qmp, QmpPipe, ppm, changed_bounds, frame_checks, valid_sequence, run_graphics
 
 
 def frame(width=4, height=3, pixels=None):
@@ -42,7 +42,7 @@ class FramebufferEvidence(unittest.TestCase):
         output = '\n'.join(markers)+'\n'
         self.assertTrue(valid_sequence(output,800,600))
         self.assertFalse(valid_sequence(output,1024,768))
-        for old,new in [('800:600:800:1','800:600:799:1'),('800:600:800:1','800:600:800:2'),
+        for old,new in [('800:600:800:1','800:600:799:1'),('800:600:800:1','800:600:4097:1'),('800:600:800:1','800:600:800:2'),
                         ('800:600:800:1','foo'),('G0:READY','G0:READY\nM6B:PASS')]:
             self.assertFalse(valid_sequence(output.replace(old,new),800,600))
         for index in range(len(markers)-1):
@@ -53,6 +53,34 @@ class FramebufferEvidence(unittest.TestCase):
             self.assertFalse(valid_sequence('\n'.join(markers[:index]+markers[index+1:]),800,600))
             self.assertFalse(valid_sequence('\n'.join(markers[:index]+[markers[index]]+markers[index:]),800,600))
 
+    def test_each_key_must_change_the_real_input_region(self):
+        pixels = bytearray(96*224*3)
+        pixels[:16] = bytes(range(16))
+        initial = frame(96, 224, bytes(pixels))
+        def changed(source, x, y, color):
+            width, height, data = ppm(source)
+            data = bytearray(data)
+            offset = (y*width+x)*3
+            data[offset:offset+3] = color
+            return frame(width, height, bytes(data))
+        first = changed(initial, 48, 194, b'abc')
+        second = changed(first, 64, 194, b'def')
+        final = changed(first, 64, 194, b'ghi')
+        frames = [initial, first, second, first, final]
+        checks, bounds, steps = frame_checks(*frames)
+        self.assertTrue(all(checks.values()))
+        self.assertIsNotNone(bounds)
+        self.assertTrue(all(rect is not None for rect in steps))
+        for index in range(1, 5):
+            altered = frames.copy()
+            altered[index] = altered[index-1]
+            self.assertFalse(all(frame_checks(*altered)[0].values()))
+        altered = frames.copy()
+        altered[2] = changed(second, 0, 0, b'xyz')
+        checks, bounds, steps = frame_checks(*altered)
+        self.assertFalse(checks['only_input_row_changes'])
+        self.assertEqual(steps[1][:2], (0, 0))
+
 
 def qmp_stream(*replies):
     """Protocol-only double; never represented as QEMU execution."""
@@ -60,6 +88,7 @@ def qmp_stream(*replies):
     control.socket = Mock()
     control.reader = io.BytesIO(b''.join(json.dumps(reply).encode()+b'\n' for reply in replies))
     control.sequence = 0
+    control.pending = bytearray()
     control.trace = []
     control.deadline = time.monotonic()+10
     return control
@@ -99,7 +128,8 @@ class QmpEvidenceBoundary(unittest.TestCase):
         read_fd, write_fd = os.pipe()
         control = QmpPipe.__new__(QmpPipe)
         control.reader = os.fdopen(read_fd, 'rb', buffering=0)
-        control.writer = io.BytesIO()
+        command_read, command_write = os.pipe()
+        control.writer = os.fdopen(command_write, 'wb', buffering=0)
         control.pending = bytearray()
         control.sequence, control.trace = 0, []
         control.deadline = time.monotonic()+5
@@ -107,11 +137,12 @@ class QmpEvidenceBoundary(unittest.TestCase):
         os.close(write_fd)
         try:
             self.assertEqual(control.command('query-status'), {'ok':True})
-            self.assertEqual(json.loads(control.writer.getvalue()),
+            self.assertEqual(json.loads(os.read(command_read, 4096)),
                              {'execute':'query-status','id':1})
             with self.assertRaises(RuntimeError): control.read()
         finally:
             control.close()
+            os.close(command_read)
 
     def test_pipe_rejects_bad_partial_oversize_and_expired_buffered_data(self):
         for raw, exception in ((b'[]\n', ValueError), (b'{', RuntimeError),

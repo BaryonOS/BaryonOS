@@ -1,0 +1,27 @@
+{
+  "scope": "host oracle regression, no VM or hardware claim",
+  "command": [
+    "python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_m6b_disk.py",
+    "-v"
+  ],
+  "exit_code": 0,
+  "base_commit": "41bac3c173d464a286017d31558335d70899c434",
+  "sha256": {
+    "tools/m6b_disk.py": "70ef0ac2dc158e507639b9a88c34fcf9c7efcac945c6bf061b5422ef8ca1d7e9",
+    "tests/test_m6b_disk.py": "748ef71dc34c7616dcdc0dd936cad4f1c513bc7472b59f5ba970b68d0f42e6e3",
+    "tools/run_m6b.py": "d853e79dec7fa9ffea462513711583fefd980c1a724d777dd940f48cdde7c32f",
+    "tools/m6c_disk.py": "a7bb1d743f3c19454f28a01095baca0665fea2fdb94486b542a6486454754350",
+    "drivers/virtio-blk/src/lib.rs": "43e72d81986902b2abc7393ca7338b427fed616e1f7f2d6a9666220ddd32ce55",
+    "kernel/src/m2/m3/m6b.rs": "2eebb99a125ff7035cf3735d5d21b62f336cfcab1a40fc912238fec7019b291f",
+    "userspace/m6b_probe.rs": "177955b0cdc3da40d16a5b24df1ca281d41f3f5c339656cdf58baf5601463eac",
+    "services/objects/src/user_service.rs": "b7a8d00126c6d2d77e8ebc7bc11fefaab2c71ead91e7324163482afdcb4d8100"
+  }
+}

@@ -1,0 +1,4 @@
+   Compiling catalog-core v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/services/catalog)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/sdk/runtime)
+   Compiling nieuw-os-catalog-read-example v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/sdk/examples/catalog-read)
+    Finished `release` profile [optimized] target(s) in 0.38s

@@ -1,0 +1,56 @@
+{
+  "scope": "host path/capture regressions; no native runs",
+  "base_commit": "41bac3c173d464a286017d31558335d70899c434",
+  "NOS_BUILD_DIR": "/workspace/scratch/debaa3b6a81c/wt-b05/build/parallel-b05-paths",
+  "results": [
+    {
+      "name": "capture",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m6b_capture.py",
+        "-v"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "harness",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m6b_harness.py",
+        "-v"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "tools/test_m6b.py"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "sha256": {
+    "tools/test_m6b.py": "5d8a7bfc8b7ae0a82b586dcf96c08ce6e8a88ff839efdad74ae94f350d87f20b",
+    "tools/capture_m6b.py": "96afe7824e7970b64883e1f4eab856df9404382ee53561a2306af30c09eba1c4",
+    "tests/test_m6b_capture.py": "7d1345737ddc5bd9f35bfc9eb55e69366c9399de6eb56bec22875181892b1318",
+    "tests/test_m6b_harness.py": "a1f77645a0ec091fe83c73620183a0382ce6d9b6d7aeefc6d558f2bc36aca9cf"
+  }
+}

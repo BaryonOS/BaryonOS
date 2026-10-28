@@ -1,0 +1,103 @@
+{
+  "scope": "host tests/lints and bare-metal core cross-compilation; no native execution",
+  "source_commit": "df7ac1af9fea8650ca0264d2fbd94e310ee0f67d",
+  "commands": [
+    {
+      "name": "cargo-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "-p",
+        "catalog-core"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b01",
+      "exit_code": 0,
+      "started_utc": "2026-10-28T15:08:54.411062+00:00",
+      "completed_utc": "2026-10-28T15:08:55.169622+00:00",
+      "stdout": "cargo-tests.stdout.txt",
+      "stdout_sha256": "af3d0fbded953bf7545e7319b9d43af48a6bc2492be75833cd575a8b59d7dcaa",
+      "stderr": "cargo-tests.stderr.txt",
+      "stderr_sha256": "0d090b94cae9f0cc2d2a2e80967e400ab29ace021c3f0d253fa0dd42af76b1ce"
+    },
+    {
+      "name": "cargo-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "-p",
+        "catalog-core",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b01",
+      "exit_code": 0,
+      "started_utc": "2026-10-28T15:08:55.169748+00:00",
+      "completed_utc": "2026-10-28T15:08:55.636994+00:00",
+      "stdout": "cargo-clippy.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "cargo-clippy.stderr.txt",
+      "stderr_sha256": "4d1f6d1383344bdb6993dc62d7bf438f075239a2059e773f70ad4ca66823295f"
+    },
+    {
+      "name": "cargo-native-build",
+      "command": [
+        "cargo",
+        "build",
+        "--offline",
+        "--locked",
+        "-p",
+        "catalog-core",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b01",
+      "exit_code": 0,
+      "started_utc": "2026-10-28T15:08:55.637075+00:00",
+      "completed_utc": "2026-10-28T15:08:55.951650+00:00",
+      "stdout": "cargo-native-build.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "cargo-native-build.stderr.txt",
+      "stderr_sha256": "3f314db994dc0b671d4e4ecd7635370bbedbae394a847c79e221cb3636a51cc9"
+    },
+    {
+      "name": "source-diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "HEAD^",
+        "HEAD",
+        "--",
+        "services/catalog"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b01",
+      "exit_code": 0,
+      "started_utc": "2026-10-28T15:08:55.951739+00:00",
+      "completed_utc": "2026-10-28T15:08:55.956505+00:00",
+      "stdout": "source-diff-check.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "source-diff-check.stderr.txt",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "environment": {
+    "CARGO_HOME": "/tmp/nieuw-os-par-tools/cargo-home",
+    "CARGO_TARGET_DIR": "/tmp/nieuw-os-par-b01-target",
+    "CARGO_NET_OFFLINE": "true"
+  },
+  "source_sha256": {
+    "services/catalog/src/lib.rs": "375921af0dc4e449ede38beae0ebcd5a6b465018a9448585af96119a86b407cd",
+    "services/catalog/src/client.rs": "1a1474e3a829a4c247046ee916019e5857a1603efd4620d95e0c4a50ea4f0878",
+    "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+    "services/catalog/src/journal.rs": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+    "services/catalog/tests/client.rs": "611027d93beb980eeaa8036f91ef3456a62f61d3bac4590702cbe0dc1a4efac1",
+    "services/catalog/tests/core.rs": "639a1c03cf03cb0a7dd5bd13c59f95b6682361f1632d8bf034413f0f0b370464",
+    "services/catalog/tests/wire.rs": "6cff9f23cd14a51bccae6f366196fd0b254def3625bf79a2a31d6199347f10a0"
+  }
+}

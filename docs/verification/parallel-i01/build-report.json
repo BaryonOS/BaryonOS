@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "kind": "I01 native target compilation and scalar inspection",
+  "native_runtime_performed": false,
+  "passed": true,
+  "commands": [
+    {
+      "argv": [
+        "rustc",
+        "--version"
+      ],
+      "returncode": 0,
+      "log": "rustc"
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--manifest-path",
+        "/workspace/scratch/debaa3b6a81c/wt-i01/experiments/quantum/native/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--release",
+        "--features",
+        "baremetal",
+        "--target",
+        "x86_64-unknown-none",
+        "--bin",
+        "qsim-native-probe"
+      ],
+      "returncode": 0,
+      "log": "build"
+    },
+    {
+      "argv": [
+        "objdump",
+        "-d",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-par-i01-build/qsim-native-probe.elf"
+      ],
+      "returncode": 0,
+      "log": "disassembly"
+    },
+    {
+      "argv": [
+        "nm",
+        "/tmp/nieuw-os-par-i01-build/qsim-native-probe.elf"
+      ],
+      "returncode": 0,
+      "log": "symbols"
+    }
+  ],
+  "source_sha256": {
+    "experiments/quantum/native/Cargo.toml": "344c771511606a99668cee321be185e9f50bbc518e856c55d260c02e3fc292ce",
+    "experiments/quantum/native/Cargo.lock": "2650bda1cf534c8792f68ca86399d11ab6aeca48ede12fbc3ba8aff4c93521e7",
+    "experiments/quantum/native/linker.ld": "a1d0226cebd524b7f0e4b69c91ff68a2bf3cb2b21f77bbdf5fc4c31be5998f3c",
+    "experiments/quantum/native/build.py": "7b2e171d8418ab838736b8c995029f565c5aa16b06879ae415a2e79b8a992a5f",
+    "experiments/quantum/native/src/heap_budget.rs": "66a0648a8f58e180ffa2b026f2e3e4507cdc82307949b793ad85f3adf5e1f28b",
+    "experiments/quantum/native/src/lib.rs": "251bda8230fd90943949d34a1b35da2b61acb8ced9a60ad847ab0f7841cb8ca7",
+    "experiments/quantum/native/src/probe.rs": "340aa618573ca319068587dc6ffcc158e37d3d762ecaebaf8edb7802c6dcff84",
+    "experiments/quantum/native/tests/adapter.rs": "66b6338c29d7469a54d03de76885f059ee715298f1af4891942842a1a1bb9171",
+    "experiments/quantum/native/tests/test_build_gate.py": "f543acf1698f7ee33bcb5c0f5ca38e768d73d6931c94eb33983578718b74cde2",
+    "experiments/quantum/qsim-core/src/complex.rs": "e42565b6ce5f0789bacbc78fa2ec1cb40294d59a16c1f4a164df936c93dd34b0",
+    "experiments/quantum/qsim-core/src/gate.rs": "0d2e6f972fb863585937b2ed840bc359991448f4e5e48f3abc3ae853cd412236",
+    "experiments/quantum/qsim-core/src/lib.rs": "14f9194521beacfdc27e076e0af763a4a6903b970b3c9b04363d1272024348ee",
+    "experiments/quantum/qsim-core/src/sampler.rs": "8423463aa7f9fd00df55aaaa68ac21212f5a6d20d9203e34c063819630c46ce7",
+    "experiments/quantum/qsim-core/src/statevector.rs": "159ca0be29f663e5f81670ff73bb6ad483919e25c87620005343be9d91bed463",
+    "experiments/quantum/qsim-core/src/validate.rs": "9e73a4c589c10fb470363d430a5d1aeec7634b62f10027fa296222bac24dfd99",
+    "experiments/quantum/qsim-core/Cargo.toml": "fe656cc4dbae574e141e426a4d45e6b5da425cc0b93db67bf439101adcdda9ff",
+    "experiments/quantum/Cargo.toml": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+    "tools/build_users.py": "6f382367ce0dffe5a16b983d00d882b0ae020f2fb765dc4f565df2d4205ea9c9"
+  },
+  "limitations": [
+    "No VM run is performed by this script.",
+    "Disassembly inspection is not formal verification."
+  ],
+  "rustflags": [
+    "-C",
+    "code-model=small",
+    "-C",
+    "relocation-model=static",
+    "-C",
+    "no-redzone=yes",
+    "-C",
+    "linker=rust-lld",
+    "-C",
+    "link-arg=-T/workspace/scratch/debaa3b6a81c/wt-i01/experiments/quantum/native/linker.ld",
+    "-C",
+    "link-arg=--no-pie",
+    "-C",
+    "link-arg=--build-id=none",
+    "-C",
+    "link-arg=-zmax-page-size=0x1000"
+  ],
+  "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+  "binary_sha256": "ee9ec71e1c37719c51ffd92021b62aaa8c9d6303bc92482547d717ac1d3a0481",
+  "elf": {
+    "entry": 1073741824,
+    "segments": [
+      {
+        "flags": 5,
+        "address": 1073741824,
+        "offset": 4096,
+        "filesz": 15814,
+        "memsz": 15814,
+        "page_start": 1073741824,
+        "page_end": 1073758208
+      },
+      {
+        "flags": 6,
+        "address": 1073807360,
+        "offset": 20480,
+        "filesz": 928,
+        "memsz": 936,
+        "page_start": 1073807360,
+        "page_end": 1073811456
+      },
+      {
+        "flags": 4,
+        "address": 1073811456,
+        "offset": 24576,
+        "filesz": 2724,
+        "memsz": 2724,
+        "page_start": 1073811456,
+        "page_end": 1073815552
+      }
+    ]
+  },
+  "scalar_gate": {
+    "decoded_instructions": 4096,
+    "int80_sites": 4,
+    "extended_registers_found": false
+  },
+  "disassembly_sha256": "9024d2b96c7fce05efe73267c4745110139373ac4bb0dc19be2f888e43e78eb1",
+  "software_float_symbols": [
+    "__adddf3",
+    "__muldf3",
+    "__divdf3",
+    "__floatdidf"
+  ]
+}

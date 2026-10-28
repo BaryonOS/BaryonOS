@@ -1,0 +1,233 @@
+{
+  "schema_version": 1,
+  "task": "G03",
+  "source_commit": "e29c2b4ac51efecd1df9e36321f5c8ec3250cba0",
+  "b01_dependency_commit": "29559563eab51a708afe4ffb3d469280863e5792",
+  "scope": "host capability/catalog core tests and native crosscompilation; no VM execution",
+  "cwd": "/workspace/scratch/debaa3b6a81c/wt-g01",
+  "target_dir": "/tmp/nieuw-os-par-g03-final-target",
+  "source_sha256": {
+    "sdk/Cargo.lock": "4d6c7833160e895f203c37e942faf8d7f59bec6995528458a730f807aff68898",
+    "sdk/Cargo.toml": "52111d1e22b5c606855a244d7742c71469f6977623a33383c44455e9eba6c154",
+    "sdk/catalog-client/Cargo.toml": "37a0182bd118b59ab53e8004309f4d81c9ef16adce8dca58deb897cc7c02d887",
+    "sdk/catalog-client/README.md": "02538fe577e2ed8bcc86a7dcf44365f58e8fa73461dd5dd7dcdf454bf2bff32f",
+    "sdk/catalog-client/src/lib.rs": "5ca84b64fc6fc7384a0f92a5eb3c0f7532ba7ce982fe1008b1a9cef27bb34244",
+    "sdk/catalog-client/tests/transport.rs": "d984e1aa120b8b2f46ffbd04bc68e15f1e3d449246f7a1fd4e17e4bf3a7ef0e8",
+    "sdk/examples/catalog-read/Cargo.toml": "c449f1f94598fc5afcecf13e636621559536c83b188f9a4cbce77162deaada26",
+    "sdk/examples/catalog-read/README.md": "dbd34c98a3fd4bac8c311e28d7da4245a1e5b54a1a9f4f0412dc3fc61b4eaa15",
+    "sdk/examples/catalog-read/build.py": "6c83de4ad85a83f00ead6be6c3def28985b95c4a862a6c159a2ea5465b9ad0e9",
+    "sdk/examples/catalog-read/linker.ld": "957d8f43e5e162b7755a8259567e20a33f3fbd1e35e2b3aa44f0d7c2c0ccc46d",
+    "sdk/examples/catalog-read/src/main.rs": "db07837724f3da8215a677b20ae4977b00a333b3ba92ff9a262a2fddb938c1b7",
+    "sdk/examples/catalog-read/src/support.rs": "1400f97a8dd1586d8e8092ea3f274afa35a25eefa5795554aa12784719875057",
+    "sdk/runtime/Cargo.toml": "5062f7dc5bd8187c14a91b1127064f8f46741dfd28078a1c82da98e04278c56d",
+    "sdk/runtime/README.md": "4148d267dd3a5e28921ccae0681f71aef76964d3ee2572d49f8532bf35508795",
+    "sdk/runtime/src/lib.rs": "c035469159e16e8615606ffff9a6b3246c74be536db2a2be3594d67be2b590f6",
+    "sdk/runtime/src/message.rs": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab",
+    "sdk/runtime/src/native.rs": "48758b9c92ed890260a7c0f2c3aebe81be0d0581639b924dcd4e5a8084e70c15",
+    "sdk/runtime/tests/message.rs": "069a6a25b26c03cf07d9bac056c3e8242584bb49ac937f91f95404d07bbdba6e",
+    "services/catalog/src/lib.rs": "375921af0dc4e449ede38beae0ebcd5a6b465018a9448585af96119a86b407cd",
+    "services/catalog/src/client.rs": "1a1474e3a829a4c247046ee916019e5857a1603efd4620d95e0c4a50ea4f0878",
+    "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+    "services/catalog/src/journal.rs": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+    "crates/capability-core/src/lib.rs": "e201e714ad4f6e8e65c84af42002dfed1ec84c182959038593fbfb0e71d0d807",
+    "userspace/m6c_probe.rs": "ae3d61e66d6572096462a8b67a0861a4e7d1c76276281340a256832461b97014",
+    "userspace/sdk_probe_runtime.rs": "b21c5e575fbf34589b1aca96afc8d128ac1f57e34d4a5e212b8c0aa27d1dcf76",
+    "userspace/m6_runtime.rs": "f4af399746e113bbc08ef8b629ebd2ee569ef4bb4aaa0b5ed1ca65644aaa41bf",
+    "tools/build_users.py": "6f382367ce0dffe5a16b983d00d882b0ae020f2fb765dc4f565df2d4205ea9c9",
+    "tools/common.py": "12a895c02e934587552f6f4212ccdf460dab49ddb39648bd4ce7f81f0581b838"
+  },
+  "checks": [
+    {
+      "name": "host-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-catalog-client",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit_code": 0,
+      "stdout": "host-tests.stdout.txt",
+      "stdout_sha256": "b5be8a4ed4fa3e337338f8fd1dda46b99c21c75bd4c216d12415ce6707093e2e",
+      "stderr": "host-tests.stderr.txt",
+      "stderr_sha256": "74c6c332828ea8cb888e19fe580d624b8042de4f02b59779df43eca123276ede"
+    },
+    {
+      "name": "host-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-catalog-client",
+        "-p",
+        "nieuw-os-sdk-runtime",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "stdout": "host-clippy.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "host-clippy.stderr.txt",
+      "stderr_sha256": "4762f07adea3e0101ace0c696715ffea64ecd927305b35654af0932662379f13"
+    },
+    {
+      "name": "native-adapter-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-catalog-client",
+        "--target",
+        "x86_64-unknown-none",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "stdout": "native-adapter-clippy.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "native-adapter-clippy.stderr.txt",
+      "stderr_sha256": "e39e7974c913c1fac6b4c7b0109f8922302edd316ad18ac1a8446d424c38f662"
+    },
+    {
+      "name": "native-example-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-catalog-read-example",
+        "--features",
+        "native",
+        "--target",
+        "x86_64-unknown-none",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "stdout": "native-example-clippy.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "native-example-clippy.stderr.txt",
+      "stderr_sha256": "d9caebbaff246ad300dbaae71f06f902d42824d92fab4e8d7d894e51b58c469b"
+    },
+    {
+      "name": "native-example-build",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "sdk/examples/catalog-read/build.py"
+      ],
+      "exit_code": 0,
+      "stdout": "native-example-build.stdout.txt",
+      "stdout_sha256": "eaac964e29a544433375304ebc908b4c6f4a77354c28fcd2728b76c98fdffeb3",
+      "stderr": "native-example-build.stderr.txt",
+      "stderr_sha256": "d0960c1c1db74b2d810523f576aad5c5205f821a40b836db1151df140d312b96"
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "rustfmt",
+        "--edition",
+        "2021",
+        "--config",
+        "skip_children=true",
+        "--check",
+        "sdk/catalog-client/src/lib.rs",
+        "sdk/catalog-client/tests/transport.rs",
+        "sdk/examples/catalog-read/src/main.rs",
+        "sdk/examples/catalog-read/src/support.rs",
+        "sdk/runtime/src/lib.rs",
+        "sdk/runtime/src/message.rs",
+        "sdk/runtime/src/native.rs",
+        "sdk/runtime/tests/message.rs"
+      ],
+      "exit_code": 0,
+      "stdout": "rustfmt.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "rustfmt.stderr.txt",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "diff-check.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "diff-check.stderr.txt",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8",
+  "sources_unchanged": true,
+  "b01_unchanged": {
+    "services/catalog/src/lib.rs": true,
+    "services/catalog/src/client.rs": true,
+    "services/catalog/tests/client.rs": true
+  },
+  "g02_unchanged": {
+    "userspace/m6c_probe.rs": true,
+    "userspace/sdk_probe_runtime.rs": true,
+    "userspace/m6_runtime.rs": true
+  },
+  "artifact": {
+    "path": "/tmp/nieuw-os-par-g03-final-target/x86_64-unknown-none/release/catalog-read",
+    "bytes": 31536,
+    "sha256": "99b379cd287002ad4ba1d0d80b328cc66998c12234a269d8a1c867220382cb4e",
+    "elf_validation": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 13874,
+          "memsz": 13874,
+          "page_start": 1073741824,
+          "page_end": 1073758208
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 20480,
+          "filesz": 1160,
+          "memsz": 1160,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 24576,
+          "filesz": 1428,
+          "memsz": 1428,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ]
+    }
+  },
+  "passed": true
+}

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`1acf6e8c`](https://github.com/simonvanieperen/nieuw-os/commit/1acf6e8cde2a63849dc49c948ad97ba7f2c39cad) ·
+**Bron:** [`303bed34`](https://github.com/simonvanieperen/nieuw-os/commit/303bed3424e59751c6404344a7ed20ecc33b020d) ·
 **Ontwikkelbranch:** `codex/parallel-native-foundation-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Parallel bouwcheckpoint: G0 hervatten, catalogusclient, app-SDK en native qsim-port.
-Vier gelijktijdige agents. Onvoltooid G0-werk behouden met 10 harnastests plus timeouttest; nieuwe native controles volgen. Catalogusclient, app-SDK en qsim-port in gescheiden worktrees in uitvoering. G1/Materiaal is elders toegewezen. Geen volledig nieuw roadmapcriterium geaccepteerd; score blijft 14%.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Gecombineerd native checkpoint: SDK/catalogus, G0, quantumport en concrete reviewreparaties.
+Vier echte agents. G0-invoer, SDK-catalogus met koude recovery en twee native quantumprocessen zijn gericht uitgevoerd; volledige gecombineerde gates volgen. Scalar-prefixreviewfix geïntegreerd; nieuwe native eindcontrole volgt. L02 mist native jobaanvoer/cancel buiten vaste proef, A01 algemene appstart en Materiaal eigen G1. Geen volledig nieuw criterium; score blijft 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

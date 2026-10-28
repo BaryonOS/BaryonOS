@@ -4,7 +4,11 @@
 mod catalog_service;
 #[path = "../services/catalog/src/journal.rs"]
 mod journal;
+#[cfg(not(nos_sdk_runtime))]
 #[path = "m6_runtime.rs"]
+mod rt;
+#[cfg(nos_sdk_runtime)]
+#[path = "sdk_probe_runtime.rs"]
 mod rt;
 #[path = "../services/catalog/src/wire.rs"]
 mod wire;

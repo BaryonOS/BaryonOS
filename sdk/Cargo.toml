@@ -1,0 +1,11 @@
+[workspace]
+resolver = "2"
+members = ["runtime", "catalog-client", "examples/catalog-read"]
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = false

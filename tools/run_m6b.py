@@ -12,7 +12,7 @@ import subprocess
 import threading
 import time
 import uuid
-from common import ROOT, BUILD, environment, firmware, save_json, sha256, source_hash
+from common import ROOT, BUILD, environment, firmware, qemu_machine, save_json, sha256, source_hash
 from build import M6B_CASES, M6B_FAULT_CASES, M6B_TIMEOUT_CASES
 from m6b_disk import Volume, create_volume, verify_volume
 from run import is_success, FAIL_MARKERS
@@ -221,6 +221,7 @@ def run_m6b(case="normal", *, volume: Volume | None = None, label=None, timeout=
     if not isinstance(volume, Volume):
         raise ValueError("Only this harness's synthetic Volume objects are accepted")
     image = volume.guard()
+    machine = qemu_machine()
     frozen = source_hash()
     previous = previous_stage(volume, expected_source=frozen) if case == "recover" else None
     if case != "recover" and (volume.directory / "last-stage.json").exists():
@@ -253,7 +254,7 @@ def run_m6b(case="normal", *, volume: Volume | None = None, label=None, timeout=
         shutil.copy2(src, run_dir / name)
     rel = run_dir.relative_to(ROOT).as_posix()
     image_rel = image.relative_to(ROOT).as_posix()
-    args = [qemu, "-machine", "pc-q35-10.0", "-accel", "tcg,thread=single", "-cpu", "qemu64",
+    args = [qemu, "-machine", machine, "-accel", "tcg,thread=single", "-cpu", "qemu64",
             "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none",
             "-serial", "stdio", "-nic", "none", "-no-reboot",
             "-drive", f"if=pflash,unit=0,format=raw,readonly=on,file={rel}/OVMF_CODE.fd",
@@ -321,7 +322,7 @@ def run_m6b(case="normal", *, volume: Volume | None = None, label=None, timeout=
         "passed": bool(execution_error is None and oracle_error is None and source_unchanged
                        and guest_pass and oracle["passed"] and outcome_pass),
         "command": args, "qemu_version": version, "qemu_sha256": qemu_hash,
-        "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+        "profile": f"M6b {machine}/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
         "firmware_source": [str(code), str(variables)], "base_commit": base_commit,
         "source_fingerprint_version": 3, "source_sha256": frozen,
         "observed_source_sha256": observed_source, "source_unchanged": source_unchanged,

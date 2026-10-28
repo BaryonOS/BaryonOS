@@ -1,34 +1,66 @@
 # Actuele projectstatus
 
-## Parallelle native bouw — 28 oktober 2026
+## Gecombineerde native bouw — 28 oktober 2026
 
-Checkpoint vanaf `1acf6e8cde2a63849dc49c948ad97ba7f2c39cad`, met `main`
-`391f02e9394cb96f37096c995dabcb7d624ba36b` als behouden ouder. Vier werkelijke
-agents: root/G0-integratie, B01 catalogusclient, G01 app-SDK en I01 native
-qsim-port. Alle drie bouwers hebben eigen worktrees en buildoutput. De bestaande
-G1/Materiaal-opdracht uit de andere sessie en M6a-observerbranch blijven apart.
+Werkbranch `codex/parallel-native-foundation-20261028`, concept-PR
+[#15](https://github.com/simonvanieperen/nieuw-os/pull/15) boven de behouden
+opslagbranch/PR #14. Basis `1acf6e8`; actuele main blijft `391f02e`.
+Vier echte gelijktijdige agents: hoofdagent voor gedeelde bron/integratie,
+`native_storage`, `native_apps` en `runtime_platform`, met eigen worktrees,
+buildmappen, targets, VM-images en logs. Geen wijziging van de elders toegewezen
+G1/Materiaal-implementatie of M6a-observerbranch.
 
-De onderbroken G0-werkboom is uitsluitend gelezen. De vijf onvoltooide bestanden
-zijn bytegetrouw in deze onafhankelijke branch behouden; herkomst/hashlijst in
-`verification/parallel-g0/preserved-work.json`. De hardwarehelpers begrenzen
-pixels tot één zichtbare rij van maximaal 80 pixels en begrensde PS/2-polls;
-geen nieuwe syscall, displaycapability, gebruikersbeleid of opslagformaat.
-De harnasaanvulling koppelt QMP-antwoorden aan request-ID en gedeelde deadline
-en biedt optioneel private pipes. `NOS_BUILD_DIR`/`NOS_TARGET_DIR` scheiden
-buildoutput. Tien grafische harnastests en één bestaande timeouttest slagen;
-exacte opdrachten en uitvoer in `verification/parallel-g0/checkpoint-host.json`.
-Dit checkpoint claimt nog geen nieuwe native grafische run.
+Geïntegreerde bouwstappen: allocatorvrije catalogusclient met canonieke replies,
+SDK voor de bestaande capability/IPC-ABI, begrensde SDK-catalogusadapter,
+SDK-transport in de bestaande native M6c-probe, behoud en aanscherping van G0,
+en een scalar port van de bestaande quantumcore in twee echte userprocessen.
+Er zijn geen nieuwe syscalls, apprechten, opslagformaten of externe crates.
+De kerneltestobserver bevat uitsluitend vaste acceptatieverwachtingen; de
+simulator en cataloguspolicy blijven gebruikerscode.
 
-De vorige G0-taak eindigde met een platformfout. Het gelezen verslag meldt
-32 M6b-groepen/28 VM-runs, maar die claim wordt hier zonder definitief archief
-niet overgenomen. PR #14 blijft concept. De huidige CodeRabbit-discussie meldt
-een reviewaanvraag, geen afgeronde review van dit nieuwe checkpoint.
+Drie gerichte native controles zijn werkelijk uitgevoerd in QEMU 7.2.22,
+expliciet `pc-q35-7.2`, TCG/qemu64, één CPU/256 MiB, eigen OVMF/wegwerpimages
+zonder gastnetwerk. G0 toont 800×600 eigen uitvoer en verwerkt echte toetsen.
+M6c via het nieuwe SDK-transport bewaart sequence 10 met tien bevestigde
+mutaties en leest dezelfde schijfbytes in een aparte koude VM terug zonder
+nieuwe writes. De quantumport draait tweemaal Bell/zes-qubitproeven en
+resource-/cancel-/deadline-fixtures in private processen; cleanup geeft alle
+96 toegewezen frames terug. Dit zijn gerichte ontwikkelruns, nog geen nieuwe
+volledige acceptatiepoort van de laatst samengevoegde bron.
 
-Voortgang **14% → 14%**. Native Materiaal, bruikbare documentgrootte,
-ruimtehergebruik, native netwerk/crypto en algemene appstart blijven open.
-Zie `WORK-QUEUE.md` voor de actieve eigenaars en kleinste afhankelijkheden.
+Concrete reviewreparaties: de M6b-oracle staat bij een gepubliceerde WRITE
+zonder notify alleen de oude schijf of exact de eerste verwachte record toe;
+Unknown blijft zonder ACK of replay. G0 controleert iedere toets-overgang,
+bewaart ook afwijkende pixelgrenzen en accepteert een expliciete VGA-ROM met
+hashpin. G0 hertekent na invoer alleen de invoerregels. QMP-deadlines gelden
+ook voor volle pipes en langzaam binnendruppelende antwoorden. De preflight
+controleert echte gepinde Rust-targetbibliotheken, ook zonder rustup.
+Een gerichte AI-review vond nog een prefixgat in de native scalar-disassembly-
+gate; I04 heeft dit met echte negatieve instructiebytes hersteld. De scalar
+herbouw behoudt exact dezelfde ELF; de finale native poort volgt. Er is geen
+ongewenste instructie in de huidige ELF aangetoond.
 
-De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
+Volgende verplichte stap: bron vastleggen, de volledige M6b- en SDK/M6c-poort
+parallel uitvoeren en hun captures controleren; daarna de strikte qsim- en
+vernieuwde G0-poort op dezelfde bron. De historische ruwe archieven worden
+niet overschreven. De agentrapporten staan onder `verification/parallel-*`;
+hosttests, compilaties en echte native uitvoeringen blijven afzonderlijk.
+De officiële toolchainherkomst en definitieve gecombineerde resultaten volgen
+in een eigen acceptatiebundel. Deze QEMU 7.2-variant is niet het historische
+QEMU 10.0-referentieprofiel en bewijst geen fysieke hardwareondersteuning.
+
+Voortgang **14% → 14%** met ongewijzigde criteria/gewichten. L02 blijft open:
+de native rekenbibliotheek werkt, maar jobs buiten de gecompileerde proef
+kunnen nog niet native worden aangeboden/ingetrokken. CANCEL/DEADLINE zijn
+Control-fixtures, geen IPC-annulering of gemeten klokdeadline. A01 blijft open
+voor gewone appstart; de catalogusvoorbeeldapp is native gecompileerd maar
+nog niet via algemene appstart uitgevoerd. Native Materiaal, bruikbare
+documentgrootte/ruimtehergebruik, netwerk en cryptografische afhankelijkheden
+blijven open. Zie `WORK-QUEUE.md` voor eigenaren en kleinste afhankelijkheden.
+
+## Historische faseverslagen
+
+De verslagen hieronder bewaren hun toenmalige bron- en bewijsgrenzen.
 
 ## Doorbouw — opslagtimeouts en native grafische basis
 

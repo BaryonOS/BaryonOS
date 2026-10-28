@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/tmp/nieuw-os-rust-1.90/bin/cargo",
+    "test",
+    "--offline",
+    "--locked",
+    "-p",
+    "catalog-core"
+  ],
+  "cwd": "/workspace/scratch/debaa3b6a81c/wt-b01",
+  "exit_code": 101,
+  "stdout": "cargo-attempt.stdout.txt",
+  "stderr": "cargo-attempt.stderr.txt",
+  "completed_utc": "2026-10-28T15:08:20.167737+00:00",
+  "scope": "workspace command; on missing r-efi this is a toolchain/cache block, not an executed failing catalog test"
+}

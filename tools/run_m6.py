@@ -12,7 +12,7 @@ import subprocess
 import threading
 import time
 import uuid
-from common import ROOT, BUILD, environment, firmware, save_json, sha256, source_hash
+from common import ROOT, BUILD, environment, firmware, qemu_machine, save_json, sha256, source_hash
 from build import M6A_CASES
 from m6_disk import Volume, create_volume, scan, verify_volume
 from run import is_success, FAIL_MARKERS
@@ -194,6 +194,7 @@ def execute(args, env, *, cut=None, timeout=60, capture_directory=None):
 
 
 def run_m6(case="normal", *, volume: Volume | None = None, label=None, timeout=60):
+    machine = qemu_machine()
     if case not in ("normal",) + M6A_CASES:
         raise ValueError("Unknown M6a case")
     if volume is None:
@@ -234,7 +235,7 @@ def run_m6(case="normal", *, volume: Volume | None = None, label=None, timeout=6
         shutil.copy2(src, run_dir / name)
     rel = run_dir.relative_to(ROOT).as_posix()
     image_rel = image.relative_to(ROOT).as_posix()
-    args = [qemu, "-machine", "pc-q35-10.0", "-accel", "tcg,thread=single", "-cpu", "qemu64",
+    args = [qemu, "-machine", machine, "-accel", "tcg,thread=single", "-cpu", "qemu64",
             "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none",
             "-serial", "stdio", "-nic", "none", "-no-reboot",
             "-drive", f"if=pflash,unit=0,format=raw,readonly=on,file={rel}/OVMF_CODE.fd",
@@ -266,7 +267,7 @@ def run_m6(case="normal", *, volume: Volume | None = None, label=None, timeout=6
               "required_markers": list(markers),
               "forbidden_markers": list(FAILURES + (("M6A:PASS", "M1:PASS") if cut else ())),
               "passed": bool(guest_pass and oracle["passed"] and unknown_pass),
-              "command": args, "qemu_version": version, "profile": "M6a q35/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+              "command": args, "qemu_version": version, "profile": f"M6a {machine}/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
               "base_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
               "source_fingerprint_version": 3, "source_sha256": source_hash(), "artifact_sha256": artifacts,
               "volume_path": str(image), "disk_oracle": oracle, "host_crash": crash,

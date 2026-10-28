@@ -40,9 +40,11 @@ def inspect_user(path):
     return dict(entry=entry, segments=segments)
 
 
-def build_users(kind="probe", *, short_poll=False):
+def build_users(kind="probe", *, short_poll=False, sdk_runtime=False):
     if short_poll and kind != "m6b":
         raise ValueError("Short polling budget is an M6b test-only fixture")
+    if sdk_runtime and kind != "m6c":
+        raise ValueError("SDK transport bridge is an opt-in M6c fixture")
     fixtures = {"probe": ("probe", "linker.ld", "probe", "manifest.json"),
                 "ipc": ("ipc_probe", "ipc_linker.ld", "ipc_probe", "manifest-ipc.json"),
                 "large": ("probe", "large_linker.ld", "probe_large", "manifest-large.json"),
@@ -65,6 +67,14 @@ def build_users(kind="probe", *, short_poll=False):
             "--emit=link", "-o", str(output), str(source)]
     if short_poll:
         args.append("--cfg=nos_m6b_poll_limit")
+    if sdk_runtime:
+        runtime = BUILD / "users/libnieuw_os_sdk_runtime.rlib"
+        run_logged(["rustc", "+1.90.0", "--edition=2021", "--crate-name=nieuw_os_sdk_runtime",
+                    "--crate-type=rlib", "--target=x86_64-unknown-none", "-C", "panic=abort",
+                    "-C", "opt-level=2", "-C", "code-model=small", "-C", "relocation-model=static",
+                    "-C", "no-redzone=yes", str(ROOT / "sdk/runtime/src/lib.rs"),
+                    "-o", str(runtime)], "build-sdk-runtime")
+        args += ["--cfg=nos_sdk_runtime", "--extern", f"nieuw_os_sdk_runtime={runtime}"]
     run_logged(args, f"build-users-{stem}")
     manifest = {"schema_version": 1, "purpose": "synthetic ring-3 acceptance probe",
                 "binary_sha256": sha256(output), "source_sha256": sha256(source),
@@ -90,6 +100,11 @@ def build_users(kind="probe", *, short_poll=False):
                    "services/catalog/src/wire.rs", "services/catalog/src/journal.rs",
                    "services/catalog/src/user_service.rs")
         manifest["module_sha256"] = {path: sha256(ROOT / path) for path in modules}
+        manifest["sdk_runtime"] = sdk_runtime
+        if sdk_runtime:
+            manifest["module_sha256"]["userspace/sdk_probe_runtime.rs"] = sha256(ROOT / "userspace/sdk_probe_runtime.rs")
+            for module in sorted((ROOT / "sdk/runtime/src").glob("*.rs")):
+                manifest["module_sha256"][module.relative_to(ROOT).as_posix()] = sha256(module)
     save_json(BUILD / "users" / manifest_name, manifest)
     print(f"Built own {stem} ELF: entry={manifest['entry']:#x}, {len(manifest['segments'])} segments")
     return output

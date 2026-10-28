@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "task": "G04",
+  "kind": "Targeted AI source/evidence review, not a human audit",
+  "reviewed_at_utc": "2026-10-28T15:33:16.587875+00:00",
+  "reviewed_checkout": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+  "reviewed_checkout_head": "41bac3c173d464a286017d31558335d70899c434",
+  "reviewed_checkout_clean": false,
+  "reviewed_source_sha256": {
+    "docs/PROGRESS.md": "bba62a1942927b4f9f1154983ebf852943fe7eabea0ab67cd62326faa062bc90",
+    "docs/implementation/QUANTUM-SPEC.md": "0bf7bc95ea9dd9685a1bf392bc03867f878c14f7481ce7ad321ca6ada4f0431d",
+    "docs/progress.json": "eb3411af0e9f4c3447e9a2c2f9b0edaa4ea878fcacaf67f1fb807facb58219d2",
+    "experiments/quantum/Cargo.toml": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+    "experiments/quantum/native/Cargo.lock": "2650bda1cf534c8792f68ca86399d11ab6aeca48ede12fbc3ba8aff4c93521e7",
+    "experiments/quantum/native/Cargo.toml": "344c771511606a99668cee321be185e9f50bbc518e856c55d260c02e3fc292ce",
+    "experiments/quantum/native/README.md": "8d591b7d2e011d3147c17b6e63416c3c9364986167374c8e1ad5e8d56fe36ff3",
+    "experiments/quantum/native/build.py": "7b2e171d8418ab838736b8c995029f565c5aa16b06879ae415a2e79b8a992a5f",
+    "experiments/quantum/native/linker.ld": "a1d0226cebd524b7f0e4b69c91ff68a2bf3cb2b21f77bbdf5fc4c31be5998f3c",
+    "experiments/quantum/native/src/heap_budget.rs": "66a0648a8f58e180ffa2b026f2e3e4507cdc82307949b793ad85f3adf5e1f28b",
+    "experiments/quantum/native/src/lib.rs": "251bda8230fd90943949d34a1b35da2b61acb8ced9a60ad847ab0f7841cb8ca7",
+    "experiments/quantum/native/src/probe.rs": "340aa618573ca319068587dc6ffcc158e37d3d762ecaebaf8edb7802c6dcff84",
+    "experiments/quantum/native/tests/adapter.rs": "66b6338c29d7469a54d03de76885f059ee715298f1af4891942842a1a1bb9171",
+    "experiments/quantum/native/tests/test_build_gate.py": "f543acf1698f7ee33bcb5c0f5ca38e768d73d6931c94eb33983578718b74cde2",
+    "experiments/quantum/qsim-core/Cargo.toml": "fe656cc4dbae574e141e426a4d45e6b5da425cc0b93db67bf439101adcdda9ff",
+    "experiments/quantum/qsim-core/src/complex.rs": "e42565b6ce5f0789bacbc78fa2ec1cb40294d59a16c1f4a164df936c93dd34b0",
+    "experiments/quantum/qsim-core/src/gate.rs": "0d2e6f972fb863585937b2ed840bc359991448f4e5e48f3abc3ae853cd412236",
+    "experiments/quantum/qsim-core/src/lib.rs": "14f9194521beacfdc27e076e0af763a4a6903b970b3c9b04363d1272024348ee",
+    "experiments/quantum/qsim-core/src/sampler.rs": "8423463aa7f9fd00df55aaaa68ac21212f5a6d20d9203e34c063819630c46ce7",
+    "experiments/quantum/qsim-core/src/statevector.rs": "159ca0be29f663e5f81670ff73bb6ad483919e25c87620005343be9d91bed463",
+    "experiments/quantum/qsim-core/src/validate.rs": "9e73a4c589c10fb470363d430a5d1aeec7634b62f10027fa296222bac24dfd99",
+    "kernel/Cargo.toml": "f36e35efe4cd5f260dc7001dc0b2c68c68b73cdaff0b8ad394a09ec395591e6b",
+    "kernel/build.rs": "2353823c517ffce3b7f163aaf9711eb19807114f9f5363b1f8ca882d829c5cf8",
+    "kernel/src/m2/arch.rs": "75131d8573957a9ecb217d2270713dee1c21bfaac0e8f28918a97781b44d4185",
+    "kernel/src/m2/m3.rs": "5d776c754ed24588571cf395f375f72a43185782555cc7b78ec8a08ad9ed3fd3",
+    "kernel/src/m2/m3/qsim.rs": "c3d01c717276bae519ddc157ef63a327ebeedab5894cd443deaa31cabde2e152",
+    "tools/build.py": "4335e593798ec5aa48884333df63a443df016420d78850ba441f32bf893501c4",
+    "tools/build_users.py": "b201c15db7012af5e888fc5c6023e9fbfbbd86adb3728a47e651c08c973a5865",
+    "tools/common.py": "b1ce783b0e23671efde020ab7d3b4f7ceae266c45ddfa4ead2724c812b9720b1"
+  },
+  "original_directed_run": {
+    "path": "build/parallel-qsim/directed-result.json",
+    "sha256": "d9581d6c0d99b0a47ae1fd55978045cd0f6e710b2c43c61ad83735629fa2e440",
+    "copied_sha256": "d9581d6c0d99b0a47ae1fd55978045cd0f6e710b2c43c61ad83735629fa2e440",
+    "source_fingerprint_version": 3,
+    "source_sha256": "c447a518bb034d9f76e283b252ffe68a90cc16d6ef8c5f7e15aeff21c09e71ad",
+    "artifact_binding_passed": true,
+    "source_unchanged_at_run": true,
+    "raw_qemu_exit": 33,
+    "passed": true,
+    "scope": "Directed native qsim integration; final exact harness pending"
+  },
+  "artifacts_rehashed": {
+    "esp/kernel.elf": {
+      "expected": "4c0937a6ce257c0d5ebe9a27f9df00a2700da92d67cb6faef5d1e0c37d43ce47",
+      "observed": "4c0937a6ce257c0d5ebe9a27f9df00a2700da92d67cb6faef5d1e0c37d43ce47",
+      "matched": true
+    },
+    "esp/EFI/BOOT/BOOTX64.EFI": {
+      "expected": "2b000a12f93c543fc3f92133682f2d83c0115be7c75cf29edcf62aaf3cae2fae",
+      "observed": "2b000a12f93c543fc3f92133682f2d83c0115be7c75cf29edcf62aaf3cae2fae",
+      "matched": true
+    },
+    "OVMF_CODE.fd": {
+      "expected": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+      "observed": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+      "matched": true
+    },
+    "OVMF_VARS.template.fd": {
+      "expected": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "observed": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "matched": true
+    }
+  },
+  "native_build_source_rechecks": {
+    "experiments/quantum/native/Cargo.toml": {
+      "expected": "344c771511606a99668cee321be185e9f50bbc518e856c55d260c02e3fc292ce",
+      "observed": "344c771511606a99668cee321be185e9f50bbc518e856c55d260c02e3fc292ce",
+      "matched": true
+    },
+    "experiments/quantum/native/Cargo.lock": {
+      "expected": "2650bda1cf534c8792f68ca86399d11ab6aeca48ede12fbc3ba8aff4c93521e7",
+      "observed": "2650bda1cf534c8792f68ca86399d11ab6aeca48ede12fbc3ba8aff4c93521e7",
+      "matched": true
+    },
+    "experiments/quantum/native/linker.ld": {
+      "expected": "a1d0226cebd524b7f0e4b69c91ff68a2bf3cb2b21f77bbdf5fc4c31be5998f3c",
+      "observed": "a1d0226cebd524b7f0e4b69c91ff68a2bf3cb2b21f77bbdf5fc4c31be5998f3c",
+      "matched": true
+    },
+    "experiments/quantum/native/build.py": {
+      "expected": "7b2e171d8418ab838736b8c995029f565c5aa16b06879ae415a2e79b8a992a5f",
+      "observed": "7b2e171d8418ab838736b8c995029f565c5aa16b06879ae415a2e79b8a992a5f",
+      "matched": true
+    },
+    "experiments/quantum/native/src/heap_budget.rs": {
+      "expected": "66a0648a8f58e180ffa2b026f2e3e4507cdc82307949b793ad85f3adf5e1f28b",
+      "observed": "66a0648a8f58e180ffa2b026f2e3e4507cdc82307949b793ad85f3adf5e1f28b",
+      "matched": true
+    },
+    "experiments/quantum/native/src/lib.rs": {
+      "expected": "251bda8230fd90943949d34a1b35da2b61acb8ced9a60ad847ab0f7841cb8ca7",
+      "observed": "251bda8230fd90943949d34a1b35da2b61acb8ced9a60ad847ab0f7841cb8ca7",
+      "matched": true
+    },
+    "experiments/quantum/native/src/probe.rs": {
+      "expected": "340aa618573ca319068587dc6ffcc158e37d3d762ecaebaf8edb7802c6dcff84",
+      "observed": "340aa618573ca319068587dc6ffcc158e37d3d762ecaebaf8edb7802c6dcff84",
+      "matched": true
+    },
+    "experiments/quantum/native/tests/adapter.rs": {
+      "expected": "66b6338c29d7469a54d03de76885f059ee715298f1af4891942842a1a1bb9171",
+      "observed": "66b6338c29d7469a54d03de76885f059ee715298f1af4891942842a1a1bb9171",
+      "matched": true
+    },
+    "experiments/quantum/native/tests/test_build_gate.py": {
+      "expected": "f543acf1698f7ee33bcb5c0f5ca38e768d73d6931c94eb33983578718b74cde2",
+      "observed": "f543acf1698f7ee33bcb5c0f5ca38e768d73d6931c94eb33983578718b74cde2",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/src/complex.rs": {
+      "expected": "e42565b6ce5f0789bacbc78fa2ec1cb40294d59a16c1f4a164df936c93dd34b0",
+      "observed": "e42565b6ce5f0789bacbc78fa2ec1cb40294d59a16c1f4a164df936c93dd34b0",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/src/gate.rs": {
+      "expected": "0d2e6f972fb863585937b2ed840bc359991448f4e5e48f3abc3ae853cd412236",
+      "observed": "0d2e6f972fb863585937b2ed840bc359991448f4e5e48f3abc3ae853cd412236",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/src/lib.rs": {
+      "expected": "14f9194521beacfdc27e076e0af763a4a6903b970b3c9b04363d1272024348ee",
+      "observed": "14f9194521beacfdc27e076e0af763a4a6903b970b3c9b04363d1272024348ee",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/src/sampler.rs": {
+      "expected": "8423463aa7f9fd00df55aaaa68ac21212f5a6d20d9203e34c063819630c46ce7",
+      "observed": "8423463aa7f9fd00df55aaaa68ac21212f5a6d20d9203e34c063819630c46ce7",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/src/statevector.rs": {
+      "expected": "159ca0be29f663e5f81670ff73bb6ad483919e25c87620005343be9d91bed463",
+      "observed": "159ca0be29f663e5f81670ff73bb6ad483919e25c87620005343be9d91bed463",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/src/validate.rs": {
+      "expected": "9e73a4c589c10fb470363d430a5d1aeec7634b62f10027fa296222bac24dfd99",
+      "observed": "9e73a4c589c10fb470363d430a5d1aeec7634b62f10027fa296222bac24dfd99",
+      "matched": true
+    },
+    "experiments/quantum/qsim-core/Cargo.toml": {
+      "expected": "fe656cc4dbae574e141e426a4d45e6b5da425cc0b93db67bf439101adcdda9ff",
+      "observed": "fe656cc4dbae574e141e426a4d45e6b5da425cc0b93db67bf439101adcdda9ff",
+      "matched": true
+    },
+    "experiments/quantum/Cargo.toml": {
+      "expected": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+      "observed": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+      "matched": true
+    },
+    "tools/build_users.py": {
+      "expected": "b201c15db7012af5e888fc5c6023e9fbfbbd86adb3728a47e651c08c973a5865",
+      "observed": "b201c15db7012af5e888fc5c6023e9fbfbbd86adb3728a47e651c08c973a5865",
+      "matched": true
+    }
+  },
+  "native_binary_recheck": {
+    "expected": "3a20a6e8566b899ffec4939a03a9a7e5f970ca2f5b0c7d84fd85f5dccc860a5a",
+    "observed": "3a20a6e8566b899ffec4939a03a9a7e5f970ca2f5b0c7d84fd85f5dccc860a5a",
+    "matched": true
+  },
+  "native_disassembly_recheck": {
+    "expected": "5971f78e0d03de6108a71b0d33e741c16a98e6c8aa6da66f05727034c96193ad",
+    "observed": "5971f78e0d03de6108a71b0d33e741c16a98e6c8aa6da66f05727034c96193ad",
+    "matched": true
+  },
+  "i02_host_evidence_source_rechecks": {
+    "kernel/src/m2/m3/qsim.rs": {
+      "expected": "c3d01c717276bae519ddc157ef63a327ebeedab5894cd443deaa31cabde2e152",
+      "observed": "c3d01c717276bae519ddc157ef63a327ebeedab5894cd443deaa31cabde2e152",
+      "matched": true
+    },
+    "docs/verification/parallel-i02/observer_host.rs": {
+      "expected": "fe7b5e184ee16ac03e9acf7187151db7ec8f86de867c275261d1bc0282cb93de",
+      "observed": "fe7b5e184ee16ac03e9acf7187151db7ec8f86de867c275261d1bc0282cb93de",
+      "matched": true
+    },
+    "kernel/src/m2/m3.rs": {
+      "expected": "a8ebe7b022359c54df1b34fd1e77845cb87668b5e35a948c968c110d4f705522",
+      "observed": "5d776c754ed24588571cf395f375f72a43185782555cc7b78ec8a08ad9ed3fd3",
+      "matched": false
+    }
+  },
+  "binding_limitations": [
+    "The checkout contains uncommitted integrated work; HEAD alone does not identify these files.",
+    "The original directed run retains its own total v3 fingerprint; this review does not relabel it to later source.",
+    "The earlier I02 host fixture did not bind the current integrated m3.rs hooks; current hook bytes are separately recorded above."
+  ],
+  "commands": [
+    {
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/workspace/scratch/debaa3b6a81c/wt-g01/docs/verification/parallel-g04/prefix-repro.py",
+        "/workspace/scratch/debaa3b6a81c/nieuw-os"
+      ],
+      "exit": 0,
+      "stdout": "prefix-repro.json",
+      "stderr": "prefix-repro.stderr.txt"
+    }
+  ],
+  "findings": [
+    {
+      "id": "G04-01",
+      "status": "open-assigned-I04",
+      "severity": "blocking-scalar-gate-assurance",
+      "location": "experiments/quantum/native/build.py::inspect_instructions",
+      "summary": "Real data16 fninit and repz fninit decode as prefix mnemonic and bypass the non-scalar rejection.",
+      "current_elf_fpu_instruction_proven": false,
+      "minimum_fix": "Classify full recognized prefix chains or reject uncertain forms; add real-disassembly negative tests and rerun unchanged ELF gate."
+    }
+  ],
+  "no_additional_blocking_findings_in": [
+    "monotonic allocator and lifetime",
+    "checked resource limits and actual core exhaustion",
+    "entry IF and service-stack lifetime",
+    "bounded report snapshots and process isolation",
+    "frame cleanup and accounting"
+  ],
+  "roadmap": {
+    "criterion": "L02",
+    "acceptance": "De lokale simulator/jobinterface draait native met quota, annulering en referentiecircuits; hostsimulatie en fysieke QPU-ondersteuning blijven afzonderlijk gelabeld.",
+    "suggested_status": "open",
+    "suggested_point_delta": 0,
+    "native_progress": "Callable bounded qsim library and fixed ring-3 fixture with reference circuits, injected cancellation/deadline and real heap exhaustion.",
+    "smallest_open_gate": "A bounded native caller-to-job submission/result/cancellation path under existing process authority, with explicit job memory lifetime.",
+    "does_not_require": [
+      "general worker pool",
+      "12-qubit profile",
+      "new syscall",
+      "kernel JSON parser",
+      "physical QPU",
+      "realtime deadline guarantee"
+    ]
+  },
+  "new_vm_runs_performed_by_reviewer": 0,
+  "checks": {
+    "all_original_run_artifacts_match": true,
+    "native_build_sources_match": true,
+    "native_binary_matches": true,
+    "native_disassembly_matches": true,
+    "known_prefix_bug_reproduced": true
+  }
+}

@@ -121,13 +121,13 @@ fn number(mut value: u64) {
     }
     serial::write(&digits[at..]);
 }
-fn redraw(geometry: Geometry, line: &TextLine<48>) {
+fn redraw(geometry: Geometry, line: &TextLine<48>, rows: core::ops::Range<u32>) {
     // SAFETY: Exactly one IF0 kernel thread owns ROW for this synchronous draw.
     // No callback, interrupt or user can access it, and it is ordinary RAM.
     let row = unsafe { &mut *ptr::addr_of_mut!(ROW) };
     let format = framebuffer().pixel_format;
     let mut pixels = [0u32; MAX_PIXEL_SPAN];
-    for y in 0..geometry.height() {
+    for y in rows.start..rows.end.min(geometry.height()) {
         ui_core::render_debug_row(geometry, line, y, row).unwrap();
         for x in (0..geometry.width()).step_by(MAX_PIXEL_SPAN) {
             let count = ((geometry.width() - x) as usize).min(MAX_PIXEL_SPAN);
@@ -239,7 +239,7 @@ pub fn poll_scancode() -> Option<u8> {
     scancode(status, read(0x60))
 }
 pub fn run() -> ! {
-    let f = framebuffer();
+    let f = descriptor();
     let format = if f.pixel_format == 0 {
         PixelFormat::Rgb
     } else {
@@ -258,7 +258,7 @@ pub fn run() -> ! {
     let mut line = TextLine::<48>::new();
     let mut keyboard = Keyboard::new();
     initialize_input();
-    redraw(geometry, &line);
+    redraw(geometry, &line, 0..geometry.height());
     serial::write(b"G0:READY\n");
     loop {
         let Some(byte) = poll_scancode() else {
@@ -275,7 +275,7 @@ pub fn run() -> ! {
                 serial::exit(0x10);
             }
             if line.apply(event) == EditResult::Changed {
-                redraw(geometry, &line);
+                redraw(geometry, &line, ui_core::INPUT_ROWS);
                 serial::write(b"G0:INPUT:");
                 number(line.len() as u64);
                 serial::write(b"\n");

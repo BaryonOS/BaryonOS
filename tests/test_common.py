@@ -12,6 +12,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import common
 
 
+class MachineSelection(unittest.TestCase):
+    def test_only_explicit_versioned_profiles_and_no_silent_fallback(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(common.qemu_machine(), "pc-q35-10.0")
+        for name in common.QEMU_MACHINES:
+            with patch.dict(os.environ, {"NOS_QEMU_MACHINE": name}):
+                self.assertEqual(common.qemu_machine(), name)
+        for name in ("q35", "", "pc-q35-unknown", "pc-q35-7.2,accel=kvm"):
+            with self.subTest(name=name):
+                with self.assertRaises(ValueError):
+                    common.qemu_machine(name)
+        with patch.dict(os.environ, {"NOS_QEMU_MACHINE": "invalid"}):
+            with self.assertRaises(ValueError):
+                common.qemu_machine()
+            self.assertEqual(common.qemu_machine("pc-q35-7.2"), "pc-q35-7.2")
+
+
 class RunLoggedTimeout(unittest.TestCase):
     def test_timeout_saves_partial_output_and_metadata_before_reraising(self):
         with tempfile.TemporaryDirectory() as directory:

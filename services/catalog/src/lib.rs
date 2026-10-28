@@ -3,5 +3,6 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
+pub mod client;
 pub mod journal;
 pub mod wire;
