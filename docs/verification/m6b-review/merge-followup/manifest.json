@@ -1,5 +1,5 @@
 {
-  "scope": "Archief van werkelijke hostcontroles en bewijshercontroles; geen nieuwe native uitvoering.",
+  "scope": "Historisch archief van werkelijke hostcontroles en bewijshercontroles op de hieronder vastgelegde bron; geen nieuwe native uitvoering.",
   "source_base_commit": "bb22fdbe15919edc23baa158a46236195ce314b2",
   "bot_commit": "56c43da0806f5f4de57cfb49dfd0418954e2ed9c",
   "local_code_delta": {
@@ -87,5 +87,9 @@
       "bytes": 4382,
       "sha256": "2d2bc2e8b907d380f4beb858ead3e4fed876920e0368a775a3d24e87b8ace5f3"
     }
-  }
+  },
+  "artifact_content_commit": "3f308b07e0bab445d1ea926561eab8d8e01c86a4",
+  "historical_files_directory": "docs/verification/m6b-review/review-followup-2/records/historical/merge-followup",
+  "current_checker_evidence": "docs/verification/m6b-review/review-followup-2/manifest.json",
+  "review_annotation": "De oorspronkelijke bestandshashes, inclusief de oude checkerhash, blijven behouden en horen bij artifact_content_commit of de bytegelijke historische kopie. Het script op het oorspronkelijke pad is later aangescherpt; de nieuwe uitvoering heeft een eigen bronbinding. Oude commandorecords zijn niet herschreven."
 }

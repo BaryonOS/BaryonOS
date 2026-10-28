@@ -5,5 +5,5 @@
   "source_sha256": "43e6c06e43e3ba602b49c304328f0c1700bc26dae0a1256f0d5d420421f55ae2",
   "kernel_feature": "milestone-m6b",
   "matches_both_final_normal_gate_runs": true,
-  "scope": "Build restored for normal M6b demo; binary identity checked, no additional VM counted"
+  "scope": "Build hersteld voor de normale M6b-demo; binaire identiteit gecontroleerd, geen aanvullende VM meegeteld"
 }

@@ -29,8 +29,11 @@ vond geen daadwerkelijk ontbrekende run in de eerste volledige native gate.
 
 De laatste guardreview vond geen blocker in die capturewijzigingen, de strikte
 M1-fasecontrole of de binding van gekopieerde kernel/loader aan de verwachte
-buildhashes vóór QEMU-start. Vijf bindingtests, zeven guestparsertests en tien
+buildhashes vóór QEMU-start. Vijf bindingtests, zeven guestparsertests en negen
 capturetests zijn daarvoor afzonderlijk opnieuw uitgevoerd (exit 0).
+`guards/m6b-final-existing-capture.json` is de historische hostrun op `20f7ed2`,
+voor het eindbewijs vervangen door de brongebonden v2-run in
+`guards-final/m6b-final-existing-capture-v2.json` met `guards-final/manifest.json`.
 
 `native-audit-20f7ed2.json` is de historische R9-audit van de complete gate
 voor checkpoint `20f7ed282e579b96d964ae84509d895a7a826f4d` en bronfingerprint

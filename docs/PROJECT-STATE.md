@@ -65,6 +65,13 @@ Deze wijziging heeft afzonderlijk hosttestbewijs in
 als uitvoering op deze latere toolbron opgevoerd. De oorspronkelijke M6c-suite
 mist gate-time-hostloghashes en blijft als historisch bewijs ongewijzigd.
 
+Na opname van het M6b-vervolgherstel zijn de gedeelde capturepaden samen
+gecontroleerd: 29 tests geslaagd (vier M6a, tien M6b, vijftien M6c), met
+ongewijzigde inputhashes vóór/na. Dit is één afzonderlijke hostinvocatie;
+het aantal wordt niet bij eerdere overlappende runs opgeteld. Broncombinatie,
+commando en ruwe uitvoer staan in `verification/m6c-review/integration-followup/`.
+Geen native build of VM uitgevoerd voor deze integratiecontrole.
+
 Bekende observerfout: native WRITE-/FLUSH-fouten of time-outs kunnen ook in de
 gewone `milestone-m6c` een kernel panic veroorzaken voordat de client `Unknown`
 ontvangt. De host-ABI-proeven toetsen alleen de serviceadapter. Contract en
@@ -141,6 +148,13 @@ te herstellen en bewaart de oorspronkelijke fout. De 40 onafhankelijk uitgevoerd
 bronhashes en ruwe uitvoer staan in `verification/m6b-review/merge-followup/`.
 Deze follow-up betreft hosttools; de oorspronkelijke native uitvoeringsbronnen
 in de tabel hierboven blijven behouden.
+De vervolgreview scherpt de M5-archiefchecker aan met expliciete controles,
+ook onder `python -O`; een gewijzigd seedrecord wordt nu afgewezen. Vier
+nieuwe hosttests verifiëren de M6a-stderrverwijzing en volledige
+stdout/metadata/stderr-capture. Historische meetbestanden blijven intact;
+de M6a-suite heeft een afzonderlijke gecorrigeerde leesindex. Dit nieuwe
+hostbewijs staat in `verification/m6b-review/review-followup-2/` en is geen
+nieuwe native gate of herhaling van de eerdere 40 tests.
 Geen nieuwe native gate uitgevoerd; de M3-hosttestcheckout en de redirectinstelling
 van de oude buitenste capturewrapper blijven expliciet onbekend.
 Bekende native observerbeperking: WRITE-/FLUSH-fouten kunnen, ook in

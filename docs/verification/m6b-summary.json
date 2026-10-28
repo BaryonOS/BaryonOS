@@ -59,7 +59,8 @@
     "Geen native opslagversleuteling, internet-/NAS-adapter of native desktopintegratie",
     "FNV is diagnostisch, niet cryptografisch; geen bescherming tegen kwaadwillige rollback",
     "Vertrouwd QEMU-/device-/kerneltransport; geen claim over fysieke stroomuitval of IOMMU",
-    "M6b Unknown-I/O-foutpaden aanvullend beproefd met een host-ABI-shim, niet met native foutinjectie",
+    "M6b Unknown-I/O-foutpaden zijn alleen op host-ABI-niveau beproefd; geen native devicefoutinjectie uitgevoerd voor deze paden",
+    "Bij native WRITE-/FLUSH-fouten kan de observer een kernel panic veroorzaken; dit bekende defect is ongerepareerd en gecontroleerde end-to-end-afhandeling als Unknown ontbreekt, ook met milestone-m6b",
     "De oorzaak van historische artifactvervanging blijft onbekend; eindgates gebruiken striktere artifactbinding en private M1-snapshots"
   ],
   "normal_build_ready": {

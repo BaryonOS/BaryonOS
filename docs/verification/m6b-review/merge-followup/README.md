@@ -1,5 +1,14 @@
 # Reviewafhandeling en integratievoorbereiding M6b
 
+Dit is het bewijs van de eerdere herstelbron `3f308b07`. De oorspronkelijke
+hashes en commandorecords blijven historisch; een bytegelijke kopie staat in
+[review-followup-2/records/historical/merge-followup](../review-followup-2/records/historical/merge-followup/).
+De hieronder genoemde eerdere runs zijn niet opnieuw aan gewijzigde code
+toegekend. `verify_m5_archive.py` op dit oorspronkelijke pad is later
+vervangen door expliciete controles die ook onder `python -O` blijven werken.
+Die nieuwe scriptversie en haar werkelijk uitgevoerde controles staan
+[afzonderlijk beschreven](../review-followup-2/README.md).
+
 Datum: 28 oktober 2026. Oorspronkelijke PR-bron:
 `bb22fdbe15919edc23baa158a46236195ce314b2`. CodeRabbit-herstelcommit:
 `56c43da0806f5f4de57cfb49dfd0418954e2ed9c`.

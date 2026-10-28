@@ -16,3 +16,26 @@ op SHA256 gecontroleerd. Historische Windowsbewijzen blijven ongewijzigd in
 Deze gate geldt voor M6a op de genoemde basis. De M6b-feature en M1–M5-regressie
 op nieuwe bron hebben aparte rapportmappen. Geen optelling van oude deelruns,
 geen fysieke stroomuitval- of vijandige-DMA-claim.
+
+## Correctie van de bewijsverwijzing
+
+[`suite.json`](suite.json) en [`capture-generated-files.json`](capture-generated-files.json)
+blijven de bytegelijke oorspronkelijke capture. De afgeleide leesindex
+[`suite.corrected.json`](suite.corrected.json) corrigeert uitsluitend de verwijzing
+voor `m6-user-artifact-tests` (`M6A-USER-ELF`) van het lege stdout-bestand naar het
+al gearchiveerde [stderr-bestand](m6a-user-artifact-tests.stderr.txt).
+Dat log bevat de twaalf testresultaten; het bijbehorende
+[commandrapport](m6a-user-artifact-tests.json) registreert exit 0.
+
+De herkomstmetadata van de leesindex vermeldt de oorspronkelijke suite, haar
+SHA256, de archiefbasis `3f308b07e0bab445d1ea926561eab8d8e01c86a4` en de
+uitvoeringsbasis `10b32e31671827f2bd63444113b981ff15bfbb73`. Uitslagen, tijden en
+bronfingerprint zijn overgenomen uit de oorspronkelijke uitvoering. De SHA256
+van de oorspronkelijke suite en het stderr-bestand zijn voor deze correctie
+opnieuw vergeleken met het bestaande capturemanifest; beide komen overeen.
+
+Deze correctie wijzigt geen bestand uit de oorspronkelijke set van vijftien
+capturebestanden; de bestaande capturehashes blijven daardoor geldig. De
+afgeleide leesindex is geen oorspronkelijk capturebestand en wordt niet aan
+het historische manifest toegevoegd. Er zijn geen nieuwe hosttests of
+VM-runs uitgevoerd en er wordt geen nieuw bewijs voor de huidige kernel geclaimd.
