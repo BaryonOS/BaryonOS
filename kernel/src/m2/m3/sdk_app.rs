@@ -124,7 +124,9 @@ pub fn manifest(state: &mut State) {
     if !cfg!(feature = "test-sdk-app-denied") {
         if engine.check_endpoint(app, request_send, RECV).is_ok()
             || engine.check_endpoint(app, reply_recv, SEND).is_ok()
-            || engine.check_block(app, request_send, capability_core::BLOCK_READ).is_ok()
+            || engine
+                .check_block(app, request_send, capability_core::BLOCK_READ)
+                .is_ok()
         {
             fail(b"RIGHTS_WIDENED");
         }
