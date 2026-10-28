@@ -6,3 +6,22 @@
 # Keep recorded serial/console bytes identical to their evidence hashes.
 docs/verification/m6b/*.txt -text
 docs/verification/regression-m6b/**/*.txt -text
+docs/verification/m6c/**/*.txt -text
+docs/verification/m6c/*.txt -text
+docs/verification/m6c-review/**/*.txt -text
+docs/verification/m6c-review/*.txt -text
+docs/verification/m6c-ready/*.txt -text
+docs/verification/m6c-console/*.txt -text
+docs/verification/m6d/**/*.txt -text
+docs/verification/m6d/**/*.json -text
+docs/verification/m6d-m6b-regression/**/*.txt -text
+docs/verification/m6d-m6b-regression/**/*.json -text
+docs/verification/m6d-closeout/*.txt -text
+docs/verification/m6d-closeout-local/*.txt -text
+docs/verification/m6d-closeout-m6b/*.txt -text
+docs/verification/m6d-closeout-m6c/*.txt -text
+docs/verification/m6d-closeout/*.json -text
+docs/verification/m6d-closeout-local/*.json -text
+docs/verification/m6d-closeout-m6b/*.json -text
+docs/verification/m6d-closeout-m6c/*.json -text
+docs/verification/regression-m6c/**/*.txt -text

@@ -1,0 +1,3 @@
+Captured M6a: 1 groups, 0 actual guest runs; crash exits preserved
+Captured M6a: 1 groups, 0 actual guest runs; crash exits preserved
+M6c capture passed: 19 groups, 15 distinct actual VM runs

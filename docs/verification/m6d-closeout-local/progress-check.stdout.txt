@@ -1,0 +1,2 @@
+Nieuw OS: 14/100 punten (14%); rubric v1; consistent.
+Dit controleert berekening, verwijzingen en weergave; geen nieuwe native tests of beoordeling van bewijsinhoud.

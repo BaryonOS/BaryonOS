@@ -1,0 +1,237 @@
+{
+  "phase": "M6b",
+  "status": "completed",
+  "passed": true,
+  "source_fingerprint_version": 3,
+  "source_sha256": "5c69802a6de7c591207950f311d2e9e4f7eb07628d3b91dc9457f21c0bfa8c75",
+  "host_test_sha256": {
+    "tests/test_m6b_capture.py": "da4092fa6599cd42e209af8d68c28d61be77395bc9cf4d0b1fe726a766551a07",
+    "tests/test_m6b_disk.py": "57ecfc8c5d099ca814b084649e4c0db9ff67ca17eb4ae430793168d586ea26d5",
+    "tests/test_m6b_gate.py": "855e9f6d35f0b9147e2e2ca9fd26265f4985a477e2d8d45b22af896d568a7632",
+    "tests/test_m6b_harness.py": "c6115765616fcc13976c7f9adda7cfb121ab2644fbf61e1f8508262d145b7410"
+  },
+  "started_utc": "2026-10-28T09:43:19.434255+00:00",
+  "results": [
+    {
+      "name": "strict-development-inventory",
+      "passed": true,
+      "evidence": "build/logs/m6b-preflight.stdout.txt",
+      "requirements": [
+        "M6B-TOOLS"
+      ]
+    },
+    {
+      "name": "object-core-and-wire-host-tests",
+      "passed": true,
+      "evidence": "build/logs/m6b-host-tests.stdout.txt",
+      "requirements": [
+        "M6B-REVISIONS",
+        "M6B-TOMBSTONES",
+        "M6B-BOUNDED-RECOVERY"
+      ]
+    },
+    {
+      "name": "external-oracle-and-crash-harness-tests",
+      "passed": true,
+      "evidence": "build/logs/m6b-harness-tests.stdout.txt",
+      "requirements": [
+        "M6B-EVIDENCE",
+        "M6B-IMAGE-BOUNDARY"
+      ]
+    },
+    {
+      "name": "normal-a",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m6b-normal-a-1f446dee9f",
+      "requirements": [
+        "M6B-NORMAL",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "normal-a-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m6b-normal-a-cold-recovery-6904bdb0c3",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "normal-b",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m6b-normal-b-678bc0c004",
+      "requirements": [
+        "M6B-NORMAL",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "normal-b-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m6b-normal-b-cold-recovery-0b7baa1433",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "same-binary-two-canary-images",
+      "passed": true,
+      "evidence": "build/logs/m6b-two-image-check.json",
+      "requirements": [
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "errors",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m6b-errors-598cf4202e",
+      "requirements": [
+        "M6B-ERRORS",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "errors-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m6b-errors-cold-recovery-911f64471c",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "full",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m6b-full-7897446116",
+      "requirements": [
+        "M6B-FULL",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "full-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m6b-full-cold-recovery-e00b4e850f",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "corrupt",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m6b-corrupt-5624d9d9de",
+      "requirements": [
+        "M6B-CORRUPT",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "vm-cut-before-ack",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m6b-vm-cut-before-ack-46586c858b",
+      "requirements": [
+        "M6B-VM-CUT-BEFORE-ACK",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "vm-cut-before-ack-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m6b-vm-cut-before-ack-cold-recovery-224edc2f0c",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "vm-cut-after-flush",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m6b-vm-cut-after-flush-3f1376f458",
+      "requirements": [
+        "M6B-VM-CUT-AFTER-FLUSH",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "vm-cut-after-flush-cold-recovery",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m6b-vm-cut-after-flush-cold-recovery-5ca96740f5",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "m1-regression-after-m6b",
+      "passed": true,
+      "evidence": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028\\build\\run\\m1-after-m6b-cec768f750",
+      "requirements": [
+        "M1-BOOT"
+      ]
+    }
+  ],
+  "finished_utc": "2026-10-28T09:44:46.829432+00:00"
+}

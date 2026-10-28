@@ -1,0 +1,253 @@
+[
+  {
+    "run": "normal-a",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "fb7c5c7b4ddf675f70e3cb0d4eeab9e6b8f852a60ecc75b8666c0a565ed5df2e",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "c3712608a6802b5f2846195cb74a820c174b0baa49d2552d963eeda0d27e78ae",
+      "result.json": "abc033570bc186166b5157a85c1d335c295ec247c886edea49280abd04626144",
+      "serial.txt": "b3873fd5138011dca2171cf6f28c4af55869207a13d6cd09ea9bf427e058bbf0",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "3375fe5bec5368117d7098d90c900da815bb1ce20f9c1c8b6db3b367a319f4b5",
+      "test-disk.before.img": "220ff8a111221c424347d49e5ec0b48aeb379f12f2c44f67acad72b5e98b23c2",
+      "volume-manifest.json": "f3e913830533c88a3623c87bc43998a4b9bd1c960e72c4b217b6c8b343a69ca2"
+    }
+  },
+  {
+    "run": "normal-a-cold-recovery",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "79712e61e3b0179d5250ec2b570417e25a5c92a9b72d6e49c4be5510ec7c4a37",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "4d849ff0ffa8ed7f9c9363ed6228367c4aafc2bb25c9c551bb69e89a70c191e0",
+      "result.json": "69e4dcc4b2a1895408dfd46a542f6f4b9751d36d988442dc61d1ecf3b90e5a1a",
+      "serial.txt": "ec0f2d17fd62f7ef7065527c3c043a207b0053c111fbef5be181a600e90219cc",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "3375fe5bec5368117d7098d90c900da815bb1ce20f9c1c8b6db3b367a319f4b5",
+      "test-disk.before.img": "3375fe5bec5368117d7098d90c900da815bb1ce20f9c1c8b6db3b367a319f4b5",
+      "volume-manifest.json": "f3e913830533c88a3623c87bc43998a4b9bd1c960e72c4b217b6c8b343a69ca2"
+    }
+  },
+  {
+    "run": "normal-b",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "fb7c5c7b4ddf675f70e3cb0d4eeab9e6b8f852a60ecc75b8666c0a565ed5df2e",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "c3712608a6802b5f2846195cb74a820c174b0baa49d2552d963eeda0d27e78ae",
+      "result.json": "27f3ddf2756d7fa8669867f9d05a65fca84c080cd57975c2d80b050f18fb77e5",
+      "serial.txt": "b3873fd5138011dca2171cf6f28c4af55869207a13d6cd09ea9bf427e058bbf0",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "b445af13ac88053d86d750648dd74629e8c8deb79d79313732386651346e4ecc",
+      "test-disk.before.img": "df3add941eb2ce14bd8de2f27f095fd6e886892e05d84e724744d0efea88e214",
+      "volume-manifest.json": "fbcafbdf82e48605eefe53230e20cbc79d95320d49318e806df293828761d26c"
+    }
+  },
+  {
+    "run": "normal-b-cold-recovery",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "79712e61e3b0179d5250ec2b570417e25a5c92a9b72d6e49c4be5510ec7c4a37",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "4d849ff0ffa8ed7f9c9363ed6228367c4aafc2bb25c9c551bb69e89a70c191e0",
+      "result.json": "aee1bac445fd6b1056eddff539ddcbf5cd3b729c3706a6d194caa6af45763bd4",
+      "serial.txt": "ec0f2d17fd62f7ef7065527c3c043a207b0053c111fbef5be181a600e90219cc",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "b445af13ac88053d86d750648dd74629e8c8deb79d79313732386651346e4ecc",
+      "test-disk.before.img": "b445af13ac88053d86d750648dd74629e8c8deb79d79313732386651346e4ecc",
+      "volume-manifest.json": "fbcafbdf82e48605eefe53230e20cbc79d95320d49318e806df293828761d26c"
+    }
+  },
+  {
+    "run": "errors",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "cf8ffb72dbf1b852f85677178079b293c8e0e53e763d417168287f0025fc1199",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "a82756f8566dd310e91c8ff154f0969c3435831d5f829c1c8735e96bc86ee132",
+      "result.json": "c444f648fffe1742375204bd87c40b6ce4d9841163da46cd43db9142883f3b86",
+      "serial.txt": "eeecef62d7f5508c0ea5a365ce6ec99edd6e6cc69977a6cd1b74d162696a70c9",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "6141297ae2ad7792e6a8b70d425680a79a4e153127668fe3301c9b84429558bd",
+      "test-disk.before.img": "3533c34bf525bcf90bef8dea6335f81c1c7de5ec2efbed66c4de51aabb13bd45",
+      "volume-manifest.json": "fa8a03cf2ec053594d9969c3db039aa988f07cb7e30d94fa9b1796b97ca0184d"
+    }
+  },
+  {
+    "run": "errors-cold-recovery",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "79712e61e3b0179d5250ec2b570417e25a5c92a9b72d6e49c4be5510ec7c4a37",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "4d849ff0ffa8ed7f9c9363ed6228367c4aafc2bb25c9c551bb69e89a70c191e0",
+      "result.json": "3837dd041c9e5d2b744450b56db5e1aa9eb807fe6d2944ec8eb64758609f1a69",
+      "serial.txt": "ec0f2d17fd62f7ef7065527c3c043a207b0053c111fbef5be181a600e90219cc",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "6141297ae2ad7792e6a8b70d425680a79a4e153127668fe3301c9b84429558bd",
+      "test-disk.before.img": "6141297ae2ad7792e6a8b70d425680a79a4e153127668fe3301c9b84429558bd",
+      "volume-manifest.json": "fa8a03cf2ec053594d9969c3db039aa988f07cb7e30d94fa9b1796b97ca0184d"
+    }
+  },
+  {
+    "run": "full",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "a8a731bbadb4ea63aa65bff029907436a78bafe3d7cfb0afe4f190fd1212b7ef",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "88420c81212a30581276d4f2963ec953da3f5c07fb5fb2db07413ef097b2233a",
+      "result.json": "19a02a0b0fbbc74029c45995f4c916f03bef8528c6c5eaff227cc12e610d107f",
+      "serial.txt": "6ccfc9a9eeeb290b650f7b00b26951109be68dfcff5dc8c8673e9aacc65d3d2b",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "04f6dd2a42490b6d6f033ca3f4385b65b6fc47d48227e1074deca60ec0ffebdf",
+      "test-disk.before.img": "a8dc375a92bafd0b9a106b44bfa6c8b453d4d290741127a874e1dcafa10e7d6e",
+      "volume-manifest.json": "ededd2d8ba16e4666b05f7fec8f6f5eeaeea7e14c6e89416d5e6c039b5504614"
+    }
+  },
+  {
+    "run": "full-cold-recovery",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "79712e61e3b0179d5250ec2b570417e25a5c92a9b72d6e49c4be5510ec7c4a37",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "4d849ff0ffa8ed7f9c9363ed6228367c4aafc2bb25c9c551bb69e89a70c191e0",
+      "result.json": "441788c6528051b3896be18a3a5dc453611c952dce080bdad8d429c3550e1352",
+      "serial.txt": "3fd4918513a20d54d49bf3bf71781c65257f850a2493936b06c522f7ab3f499a",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "04f6dd2a42490b6d6f033ca3f4385b65b6fc47d48227e1074deca60ec0ffebdf",
+      "test-disk.before.img": "04f6dd2a42490b6d6f033ca3f4385b65b6fc47d48227e1074deca60ec0ffebdf",
+      "volume-manifest.json": "ededd2d8ba16e4666b05f7fec8f6f5eeaeea7e14c6e89416d5e6c039b5504614"
+    }
+  },
+  {
+    "run": "corrupt",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "b41c3b4b70587f78e369aaf1d02c301ab2147939460e4e6995d4671df43ced22",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "18a97dcbbd9337f3f7290fb292ec4911d67119696ca778cfcbb7b5dc64794c04",
+      "result.json": "2573b950aff1742ec36a5dc4d20fadfbda31c3d4ede5861751c796bf14b89a10",
+      "serial.txt": "afc36e4eb9b22bf5a1d6064b27063b96f3a1d522222d60908dc78dfbcba3b304",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "e8e6ebefdd29cb55ad454fbd850953e493c33782167bd63366282d98a7c9f3a4",
+      "test-disk.before.img": "e8e6ebefdd29cb55ad454fbd850953e493c33782167bd63366282d98a7c9f3a4",
+      "volume-manifest.json": "ea9352716abff6f1918a9e37c8640101107afe23089a1c23ed3337719b55ce01"
+    }
+  },
+  {
+    "run": "legacy",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "a55797265c9606cfeb4527c6fd8016237405e9d47591da6f6270d2caf3250c91",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "07b3c0faebf93e4a5fa6dc12a94ed945ff2e7259f2a2dcb2e832893cfd985831",
+      "result.json": "cb3726d2ef335ac595d35c641c7da4c1a0ed5d3c93aa25ca74197a742f9333e7",
+      "serial.txt": "1fde27906e51f9813f5642783c736c91292bafb710d47466a6ebceab42b46ee2",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "0cd154fdd9ceaac8a5b63380e9751aacaceaa7641da1756b07aa4e1333a731fa",
+      "test-disk.before.img": "0cd154fdd9ceaac8a5b63380e9751aacaceaa7641da1756b07aa4e1333a731fa",
+      "volume-manifest.json": "b65ee18ff003a9244846cef29e9a5c9930f5e29fa4af2a853dc1be486c4285aa"
+    }
+  },
+  {
+    "run": "vm-cut-before-rename",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "42dca6bcec3a9aaaced248f021696521bfc2d9ca9f788b42929737911fac1425",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "125d19cad1e6bc3dbc5bcbbeed3b2c99a5c42ff011bb74815bdce6573a039211",
+      "result.json": "0c24a9edd96d6fb3f015ca822fcf46d1327c2270bdc1b9a807e9f760d43be03c",
+      "serial.txt": "67c7bcc79f4248a97ac9c95087590291c14965976d2870895fc3a22bdaeae802",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "e405b57fec8bef1277f800c2ea243fdd7c877b36f59756ae9d2b061f8c371991",
+      "test-disk.before.img": "6839352db0aa560547fb5f290e522d0e89dca904838bb57dfb47987de89c0912",
+      "volume-manifest.json": "3002b816af171eb77199e49c7aa704034d66bffecec171b5c9a32f53f5315ee8"
+    }
+  },
+  {
+    "run": "vm-cut-before-rename-cold-recovery",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "79712e61e3b0179d5250ec2b570417e25a5c92a9b72d6e49c4be5510ec7c4a37",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "4d849ff0ffa8ed7f9c9363ed6228367c4aafc2bb25c9c551bb69e89a70c191e0",
+      "result.json": "8660eeba8b26144b1e115cbca583a25de3ec7a4f7ea01d9c980e43186baaadf0",
+      "serial.txt": "dd607760f30f0ad4029779e702bc89a07689f920eb13c5fb9fd62695d76ea039",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "e405b57fec8bef1277f800c2ea243fdd7c877b36f59756ae9d2b061f8c371991",
+      "test-disk.before.img": "e405b57fec8bef1277f800c2ea243fdd7c877b36f59756ae9d2b061f8c371991",
+      "volume-manifest.json": "3002b816af171eb77199e49c7aa704034d66bffecec171b5c9a32f53f5315ee8"
+    }
+  },
+  {
+    "run": "vm-cut-after-rename",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "8ecd2caa64fa851d211c5f99343f535069fd010f92d11bcd5d5b9ff9fec56715",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "9dbaade538b94f62194edab6dbbe0285ec4fdbdeee9b520b8353b41dcce55240",
+      "result.json": "25e3ae6524cf4e378b758017c5ce187a10a180da518e685a9f71b31aa9f2ff13",
+      "serial.txt": "d468e8848670b394cabc1710bfcd4dd6b8939601e4c74b8da31e7448c24a4495",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "1983a53a52fb74d34409dc79cd30fea2f6b5f951c0653a28042870bdedfa53b4",
+      "test-disk.before.img": "e2245d41286a60b63b8812eb9c90811951193ef82417e786becc43f3f60ec584",
+      "volume-manifest.json": "84084ef21fc5505085f88c84454b33cbe3bbde32dc48ff5adcd98c2788b28253"
+    }
+  },
+  {
+    "run": "vm-cut-after-rename-cold-recovery",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "build-manifest.json": "79712e61e3b0179d5250ec2b570417e25a5c92a9b72d6e49c4be5510ec7c4a37",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "4d849ff0ffa8ed7f9c9363ed6228367c4aafc2bb25c9c551bb69e89a70c191e0",
+      "result.json": "07993d9f156fc94631498dbd4f14e83be3f6c5d3559ae2202bcf3beefe449a30",
+      "serial.txt": "5ef8a6544a112c6a78f766fe7b2fd83d03fdd5a87ba7682f64fd8329d9fea8ab",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test-disk.after.img": "1983a53a52fb74d34409dc79cd30fea2f6b5f951c0653a28042870bdedfa53b4",
+      "test-disk.before.img": "1983a53a52fb74d34409dc79cd30fea2f6b5f951c0653a28042870bdedfa53b4",
+      "volume-manifest.json": "84084ef21fc5505085f88c84454b33cbe3bbde32dc48ff5adcd98c2788b28253"
+    }
+  },
+  {
+    "run": "m1-regression-after-m6c",
+    "files": {
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.fd": "0f6a3ecdcb9c6ad7aefc2376a0da4b5c3e50f442c875ef6be42a378fd59dcd46",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "esp/EFI/BOOT/BOOTX64.EFI": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "esp/kernel.elf": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1",
+      "result.json": "e677d63a69bbc1ff8a475072b082aea21069260c2da0569957a5fe3b40cf54ab",
+      "serial.txt": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+]

@@ -1,0 +1,1 @@
+M6c capture passed: 19 groups, 15 distinct actual VM runs

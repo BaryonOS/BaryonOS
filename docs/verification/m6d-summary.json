@@ -1,0 +1,178 @@
+{
+  "source_commit": "88e6c04be218b8b09ea4f0a226f6b9719da706a6",
+  "source_fingerprint_version": 3,
+  "source_sha256": "8ca6d5d5291fde62f91fb47dca7df4d058424604449fb32b9e5899b1d4fbef93",
+  "summary": {
+    "m6d_groups": 35,
+    "m6d_vm_invocations": 31,
+    "m6b_regression_groups": 18,
+    "m6b_regression_vm_invocations": 14,
+    "total_distinct_vm_invocations": 45,
+    "new_fault_cases": 8,
+    "score_before": 13,
+    "score_after": 14,
+    "new_accepted_criterion": "S07"
+  },
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/test_m6c.py"
+      ],
+      "exit_status": 0,
+      "evidence": "docs/verification/m6d/suite.json"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/capture_m6c.py",
+        "--destination",
+        "docs/verification/m6d"
+      ],
+      "exit_status": 0,
+      "evidence": "docs/verification/m6d/capture.json"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/test_m6b.py"
+      ],
+      "exit_status": 0,
+      "evidence": "docs/verification/m6d-m6b-regression/suite.json"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/capture_m6b.py",
+        "--destination",
+        "docs/verification/m6d-m6b-regression"
+      ],
+      "exit_status": 0,
+      "evidence": "docs/verification/m6d-m6b-regression/capture.json"
+    }
+  ],
+  "boundary": "Gate exits recorded by the integrating agent at execution; individual guest raw outputs, commands, host receipts and hashes are archived. This summary does not create new test runs. Initial preflight failure is retained separately.",
+  "files": {
+    "docs/verification/m6d/capture.json": "838a4f7920b5abd2a24b98df7486436252fc15bf7a875b93357fb7d3a47ecaf4",
+    "docs/verification/m6d/guest-runs.json": "481e0b867344947a404377159685bf3a25f3e8fccc280ed1b8e3fc9ed209309b",
+    "docs/verification/m6d/m6c-harness-tests.json": "1bc52c187cacc71649e717196bef5cbcff95423bda0e033d55d6c793b46a6729",
+    "docs/verification/m6d/m6c-harness-tests.stderr.txt": "b7d0bc061e19b6c4e4c80468bdcea0e751791271a5ece74dc048a60fbe1fb49c",
+    "docs/verification/m6d/m6c-harness-tests.stdout.txt": "6ed46d39fa982414e91413bc0f298ece7f15e7242d77dd45962c897aafd61101",
+    "docs/verification/m6d/m6c-host-tests.json": "4e97007ccc95b3e4034e1acb88689ca0840516a15431e212a47b161d545188af",
+    "docs/verification/m6d/m6c-host-tests.stderr.txt": "213a7feb2d7f4bd0a4a4694cffa0f36a042aaaa69c8141b1dafd178311dfa5cf",
+    "docs/verification/m6d/m6c-host-tests.stdout.txt": "26ba86ae22d2c7756d3757ad74c3bbe723954e6a16f3c801eba4fa150076d726",
+    "docs/verification/m6d/m6c-preflight.json": "683a722ad26065c359ba2145c5548bcf5b83f7d04d68229659ff852fb4cc908b",
+    "docs/verification/m6d/m6c-preflight.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/verification/m6d/m6c-preflight.stdout.txt": "b7f85e6e77dd8348eb62c4b899269de0aa92aa2efea0c6a9c5a62c1d0425e801",
+    "docs/verification/m6d/m6c-two-image-check.json": "c0f91b8f2de2f1171571db8e343039447a024fcdaaa02845303e19a2fadd55ab",
+    "docs/verification/m6d/suite.json": "e34c8780c20a5cc30bbdc996806804b40ca1c29ca9f412a4da1b8f239a3a2959",
+    "docs/verification/m6d-m6b-regression/capture.json": "0f3682d30a6d5ab9281ef4a13de9ed8723d01dcf2eb940adaed8d3cd8156c9a8",
+    "docs/verification/m6d-m6b-regression/guest-runs.json": "9a5b75a257e71f51ce57244e8fbc4b174464e1e76b15c7f68aa99f1bc01f7a43",
+    "docs/verification/m6d-m6b-regression/m6b-harness-tests.json": "48f3bdf11e55a2f49c4fa385dcde46f44a99cb1bb147d94c4d8852c11319918f",
+    "docs/verification/m6d-m6b-regression/m6b-harness-tests.stderr.txt": "e70a50f599d298591b6cedd82eff6d6bd15f6637a3f6fef41891cea87d48b0d9",
+    "docs/verification/m6d-m6b-regression/m6b-harness-tests.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/verification/m6d-m6b-regression/m6b-host-tests.json": "7a70d4849e9997ead56404d512117c6aeb4dc51f3892766d2ace3992cbb8e8a6",
+    "docs/verification/m6d-m6b-regression/m6b-host-tests.stderr.txt": "915a1e418bc7d1278b1d0a2ddb49f4b6d20ec4b90687471a2648e86ff36a686c",
+    "docs/verification/m6d-m6b-regression/m6b-host-tests.stdout.txt": "83706a5260270dc857a0490d959f836099c8ba695b1e7858751c1bdfdbb51382",
+    "docs/verification/m6d-m6b-regression/m6b-preflight.json": "6e7cf547b60e3d0e2d85203bebd8e6559aeac07a2a5ea72a00c7261d8768a6d3",
+    "docs/verification/m6d-m6b-regression/m6b-preflight.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/verification/m6d-m6b-regression/m6b-preflight.stdout.txt": "b7f85e6e77dd8348eb62c4b899269de0aa92aa2efea0c6a9c5a62c1d0425e801",
+    "docs/verification/m6d-m6b-regression/m6b-two-image-check.json": "7adcb7e95735cfc05639696d29e63431773781d17fcb34ea56358ecfb0e57245",
+    "docs/verification/m6d-m6b-regression/suite.json": "96da4b3cbfd89f62ff715ad44ff67bc9644480f6d850f4badd6e9021c75e7e13",
+    "docs/verification/m6d-ready/build-manifest.json": "bf960df3efb8af93429081bc00977b0849a71e15aa563e04b8f0063d216c3513",
+    "docs/verification/m6d-ready/m6d-final-rustfmt.json": "242db057309c4b87353fd25c4349073da0eef3a4630e07897267f7bd4137c6c4",
+    "docs/verification/m6d-ready/m6d-final-rustfmt.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/verification/m6d-ready/m6d-final-rustfmt.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/verification/m6d-ready/m6d-ready-build.json": "f177f0615225f3f07d815aeb781bf5793f7b4e62e4a574bdb14f2b01a3a47067",
+    "docs/verification/m6d-ready/m6d-ready-build.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/verification/m6d-ready/m6d-ready-build.stdout.txt": "62e9e72643db40a05bac5358703ca695d5c8031bd9b54ced3f7f498119ee5524",
+    "docs/verification/m6d-ready/verified.json": "9dfa88bbb013c82c4c50a8cb28680b502d5afc24ce4b805bfa1898326bf92937",
+    "docs/verification/m6d-review/FINAL-REVIEW.md": "58a9c3e9d0330617e65658543d61de2022fba3f3fe14cdc55eed194d277e5433",
+    "docs/verification/m6d-review/SOURCE-REVIEW.md": "08f322f4a9ee017a5ac1e39699f87c91396a6b9ac9f6011938dbf6c656a31661",
+    "docs/verification/m6d-review/audit_m6d_native.py": "5c88448e100acadd49c515d71e7d1516752b86ca657bbcf14177f11739cd0c85",
+    "docs/verification/m6d-review/initial-preflight/m6c-preflight.json": "fa74a2835e13f6f7d806842e64f39ea9f7cc19e49c7ce76f912e57d33f804961",
+    "docs/verification/m6d-review/initial-preflight/m6c-preflight.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/verification/m6d-review/initial-preflight/m6c-preflight.stdout.txt": "c1e6009671e87ac705879f15ced67e9ef2f6d6f52da8aac6a61bd94b670214f1",
+    "docs/verification/m6d-review/initial-preflight/m6c-test-results.json": "6c8927cac18c12c1b79727386270adb8098bd120e13951100074131cf7f70824",
+    "docs/verification/m6d-review/initial-preflight/resolution.json": "86be525033fdfd61cf24ddcc52a4ad5e515c0d6321da0aa637bdc20989fe4e91",
+    "docs/verification/m6d-review/m6d-actual-journal-records.json": "7722ec771c4fb2b3201ade501042cee2eb3e578f49207526237580538d00884a",
+    "docs/verification/m6d-review/m6d-all-artifact-hashes.json": "2ff2ead814ddf00f8df61a677d3b606abc5688d1f516f9f9a83dfdfe3a845fa2",
+    "docs/verification/m6d-review/m6d-audit-self-test-run.json": "04713ff1c8665e3d1edb157c76d119f081bfeb8eba6cab2f7576bd3f2a290673",
+    "docs/verification/m6d-review/m6d-audited-source-hashes.json": "c36955f49ebaa777e7988e3f79fa3f0d1257561c6f7eb1ec3a34288c9329e3e9",
+    "docs/verification/m6d-review/m6d-final-native-audit.json": "23d2be645f0eba8120702a666ef5f1b6104e805def43b39817896ed7a0b2d82a",
+    "docs/verification/m6d-review/m6d-image-reconstruction.json": "cc571e8f5f030038815aa59d7b00f2eb0e44ff4e81670029f13222b157a4187b",
+    "docs/verification/m6d-review/m6d-text-only-reconstruction-run.json": "8f082cbf144309746c065d084f0416c9e6ebdad69289df7aa6c46e7bbf50d514",
+    "docs/verification/m6d-review/source-review-checks.json": "70bda10e3ee101dde7b729811f6971f5f93eb76be838e3b63e4377d1e5712fff",
+    "docs/verification/m6d-m6b-review/a04_m6b_audit.json": "a5f981e5581c731d320fef9745aa7fb2f1d6c34759b37c1ecb077a1a51173e3c",
+    "docs/verification/m6d-m6b-review/a04_m6b_audit.py": "17fc9ca5744f9a8da5d407a621fec0500ba5c50cc7b989e77d6d82ee89145f4f",
+    "docs/verification/m6d-m6b-review/a04_m6b_raw_hashes.json": "e1aac2a56d69ef5e13eefdfff1e7ee91c2371b480ab33ddfe8772b500cff0753",
+    "docs/verification/m6d-m6b-review/a04_m6b_sectors.json": "73a19ffa223b77bcdfcf8c6123f283d933a7e117f8df00e7a8ab191cf09de3db",
+    "docs/verification/m6d-m6b-review/a04_m6b_source_hashes.json": "e995727cc610cd883455a4d2d7cb36d3104972cb3bc6ccf27604a3419115e54f",
+    "docs/verification/m6d-m6b-review/a04_m6b_summary.md": "8c04e4ca1f6e842cc03a8a05772c898e33b4665b9ed926c6c1804c2d8c659628",
+    "docs/verification/m6d-m6b-review/a04_m6b_audit.original.py": "3fbed4fa4d853a45e503c3ddbfdefe46624fa49508fd403145e7f7a968698897"
+  },
+  "verification_notes": {
+    "full_staged_diff_check_exit": 2,
+    "reason": "Only two captured Rust stdout files have their original trailing blank line at EOF. Raw log bytes and their hash bindings are deliberately preserved.",
+    "files": [
+      "docs/verification/m6d/m6c-host-tests.stdout.txt",
+      "docs/verification/m6d-m6b-regression/m6b-host-tests.stdout.txt"
+    ],
+    "staged_diff_check_excluding_these_two_raw_logs_exit": 0,
+    "native_source_and_tests_unchanged_from_execution_commit": true
+  },
+  "review_closeout": {
+    "basis_commit": "7484d87ec639fd8a29be327cad47c2f97739199d",
+    "changed_file_hashes": {
+      "docs/verification/m6d-review/FINAL-REVIEW.md": {
+        "previous_sha256": "883b04cf4f3cd439d963e1dcc10970b05893dedfecebb712c64d28be11b38bd4",
+        "current_sha256": "58a9c3e9d0330617e65658543d61de2022fba3f3fe14cdc55eed194d277e5433",
+        "previous_commit": "7484d87ec639fd8a29be327cad47c2f97739199d",
+        "intermediate_commit": "326d2f6efa20411d5bb349b8275bc3e741be7ae0",
+        "intermediate_sha256": "f1c93260a24cdbcb2d1f64279cc1475a069eb4f263788a6cbff8e862824862c6",
+        "current_content_since_commit": "418421a5c94bd9785624ad5bd418f8213e412b28"
+      },
+      "docs/verification/m6d-m6b-review/a04_m6b_audit.py": {
+        "previous_sha256": "3fbed4fa4d853a45e503c3ddbfdefe46624fa49508fd403145e7f7a968698897",
+        "current_sha256": "17fc9ca5744f9a8da5d407a621fec0500ba5c50cc7b989e77d6d82ee89145f4f"
+      }
+    },
+    "boundary": "Historical VM records remain bound to 88e6c04. The amended A04 script has 22 host unit tests; its historical full raw audit was not rerun. Separate Windows gates on 326d2f6 passed 35/31 and 18/14; full Python suite 173 passed. See docs/verification/M6D-CLOSEOUT.md.",
+    "followup_changes": {
+      "docs/verification/m6d-review/SOURCE-REVIEW.md": {
+        "previous_commit": "1e0c03c66c56615e697a3d70686c4d97a47d4005",
+        "previous_sha256": "ded34c189e7b5e20d21df97b8c4a7203ff5abd369ba63f5783c30c425fd289cb",
+        "current_sha256": "08f322f4a9ee017a5ac1e39699f87c91396a6b9ac9f6011938dbf6c656a31661",
+        "boundary": "Documentation correction only; historical test and audit receipts remain byte-identical. No new test execution."
+      },
+      "docs/verification/m6d-m6b-review/a04_m6b_summary.md": {
+        "previous_commit": "1e0c03c66c56615e697a3d70686c4d97a47d4005",
+        "previous_sha256": "f8ed54b7023fd371b58034c430a5d8cefc9f69324bea895e84d88750d04edf5e",
+        "current_sha256": "8c04e4ca1f6e842cc03a8a05772c898e33b4665b9ed926c6c1804c2d8c659628",
+        "boundary": "Documentation correction and immutable original script copy only. Historical test and audit receipts remain byte-identical. No full raw audit rerun.",
+        "intermediate_versions": [
+          {
+            "commit": "322c553f58f11843aab7cf895bcba05564a9c7ac",
+            "sha256": "cca5ad6c5efd65f5ba6963d6ebe91e26b8d13bdfbd0e634f5c4d98ad876bdc4f"
+          }
+        ]
+      }
+    },
+    "original_a04_script": {
+      "path": "docs/verification/m6d-m6b-review/a04_m6b_audit.original.py",
+      "source_commit": "7484d87ec639fd8a29be327cad47c2f97739199d",
+      "original_path": "docs/verification/m6d-m6b-review/a04_m6b_audit.py",
+      "bytes": 22802,
+      "sha256": "3fbed4fa4d853a45e503c3ddbfdefe46624fa49508fd403145e7f7a968698897",
+      "git_blob_sha": "1efb9c04f02500c70b03844419e1fac46c1ba33f",
+      "execution_receipt": "docs/verification/m6d-m6b-review/a04_m6b_audit.json",
+      "scope": "The original six-method audit producer, copied byte-for-byte. No new audit execution."
+    }
+  }
+}

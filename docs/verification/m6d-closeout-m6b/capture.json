@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "source_sha256": "5c69802a6de7c591207950f311d2e9e4f7eb07628d3b91dc9457f21c0bfa8c75",
+  "groups": 18,
+  "vm_invocations": 14,
+  "scope": "Raw output, exit, image, hash, exact coverage and recovery links rechecked.",
+  "files": {
+    "guest-runs.json": "21ad08899a5c2d34f27fa8255d591bdaaeffb796ec0670fe088d011a19386309",
+    "m6b-harness-tests.json": "e852496c2f0fbb3e3637d9cce731d491613ba58403aea2b5f86e388066b1437b",
+    "m6b-harness-tests.stderr.txt": "efcda31cf7fdcb318d7ca6da1bd9d8002cfe71ae593cb8dee746b85120bf0d92",
+    "m6b-harness-tests.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m6b-host-tests.json": "44b0589a3fc3041f9cd9b2ba951d902366f65f0138b612d1ea729b9588f08214",
+    "m6b-host-tests.stderr.txt": "7cb80b2865d7746d662ae5523d87a87066fae7d39a6cdb309a56f45265ebf215",
+    "m6b-host-tests.stdout.txt": "2d88a5eb00682d62c5a0c690294ab673e44c8d69a101153861abdd90418ccae9",
+    "m6b-preflight.json": "8b01095199a725d6837f1881991c72521649adfadf6f64bc42ab9441a744ee56",
+    "m6b-preflight.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "m6b-preflight.stdout.txt": "c5f79862d9f235b225094d451c0e1e777f391fde43fa67fed56d3ddf32d47bdb",
+    "m6b-two-image-check.json": "b1df6c8fc4b13223d7c7fa3aa77589048e49579a2674cd4ad2a55f9c0aa7846a",
+    "suite.json": "1f149bd29d4bba81887547404b6e453b738f25ae81e79e5af5ca9c7b5dc44ddf"
+  }
+}

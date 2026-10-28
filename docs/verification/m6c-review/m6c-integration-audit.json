@@ -1,0 +1,738 @@
+{
+  "schema_version": 1,
+  "task": "V07 M6c integration and regression-source audit",
+  "reviewer": "/root/catalog_core",
+  "generated_utc": "2026-10-27T23:55:42.425327+00:00",
+  "status": "passed_with_stated_scope",
+  "blockers": [],
+  "base_commit": "bb22fdbe15919edc23baa158a46236195ce314b2",
+  "implementation_commit": "bc4cd104e86e2c047b727ae96e07a03fbc810c3c",
+  "scope": {
+    "read_only_repository": true,
+    "builds_run": false,
+    "tests_run": false,
+    "qemu_run": false,
+    "mutable_target_kernel_inspected": false,
+    "artifact_selection": "Retained M6c user ELF and archived normal-a/normal-b ESP copies; static inspection.",
+    "independence": "Separate agent review; not an independent human security audit."
+  },
+  "source_binding": {
+    "fingerprint_version": 3,
+    "commit_blob_fingerprint_sha256": "4468b3c18bd7fa57bf3631d634d52ee4c5fe9a76da9f125714d6db95e4407345",
+    "fingerprint_input_count": 141,
+    "saved_run_count": 15,
+    "all_saved_run_source_fingerprints_match": true,
+    "m6c_run_count": 14,
+    "all_m6c_before_after_source_fingerprints_match": true,
+    "m1_record_has_no_observed_source_field": true,
+    "recorded_base_commits": [
+      "bb22fdbe15919edc23baa158a46236195ce314b2",
+      "bc4cd104e86e2c047b727ae96e07a03fbc810c3c"
+    ],
+    "explanation": "Some early runs recorded the earlier local HEAD as base_commit because importing the already-created and pushed implementation checkpoint into local HEAD was still in progress. The checkpoint had been pushed before the gate started; the source tree was identical. The source-input fingerprint recomputed from bc4cd104 commit blobs equals every saved run fingerprint. Path-component ordering follows pathlib as tools/common.py does.",
+    "module_bindings": {
+      "userspace/m6c_probe.rs": {
+        "expected_sha256": "3fb6e9df945b4149c2af15b80cf117a69d3bb8432d45ba171b549310b92233cb",
+        "commit_sha256": "3fb6e9df945b4149c2af15b80cf117a69d3bb8432d45ba171b549310b92233cb",
+        "working_file_sha256": "3fb6e9df945b4149c2af15b80cf117a69d3bb8432d45ba171b549310b92233cb"
+      },
+      "userspace/m6_runtime.rs": {
+        "expected_sha256": "f4af399746e113bbc08ef8b629ebd2ee569ef4bb4aaa0b5ed1ca65644aaa41bf",
+        "commit_sha256": "f4af399746e113bbc08ef8b629ebd2ee569ef4bb4aaa0b5ed1ca65644aaa41bf",
+        "working_file_sha256": "f4af399746e113bbc08ef8b629ebd2ee569ef4bb4aaa0b5ed1ca65644aaa41bf"
+      },
+      "services/catalog/src/wire.rs": {
+        "expected_sha256": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+        "commit_sha256": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+        "working_file_sha256": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61"
+      },
+      "services/catalog/src/journal.rs": {
+        "expected_sha256": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+        "commit_sha256": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+        "working_file_sha256": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9"
+      },
+      "services/catalog/src/user_service.rs": {
+        "expected_sha256": "f822b19496b47a155aa62505cbec042d75a9d30c5829eef2153a547fc1072e01",
+        "commit_sha256": "f822b19496b47a155aa62505cbec042d75a9d30c5829eef2153a547fc1072e01",
+        "working_file_sha256": "f822b19496b47a155aa62505cbec042d75a9d30c5829eef2153a547fc1072e01"
+      }
+    },
+    "user_linker_sha256": "1abb4e5cc222479a2144db036f756861ae2aaa9edba3fcb5815d9e5acd659f65",
+    "normal_artifact_bindings": [
+      {
+        "label": "normal-a",
+        "run_directory": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-a-569ed90fa6",
+        "kernel_sha256": "c3712608a6802b5f2846195cb74a820c174b0baa49d2552d963eeda0d27e78ae",
+        "loader_sha256": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+        "build_manifest_sha256": "fb7c5c7b4ddf675f70e3cb0d4eeab9e6b8f852a60ecc75b8666c0a565ed5df2e",
+        "source_sha256": "4468b3c18bd7fa57bf3631d634d52ee4c5fe9a76da9f125714d6db95e4407345",
+        "embedded_user_elf_offset": 154064,
+        "embedded_user_elf_occurrences": 1,
+        "checks": {
+          "esp/kernel.elf": true,
+          "esp/EFI/BOOT/BOOTX64.EFI": true,
+          "build-manifest.json": true
+        }
+      },
+      {
+        "label": "normal-b",
+        "run_directory": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-b-794c25ceba",
+        "kernel_sha256": "c3712608a6802b5f2846195cb74a820c174b0baa49d2552d963eeda0d27e78ae",
+        "loader_sha256": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+        "build_manifest_sha256": "fb7c5c7b4ddf675f70e3cb0d4eeab9e6b8f852a60ecc75b8666c0a565ed5df2e",
+        "source_sha256": "4468b3c18bd7fa57bf3631d634d52ee4c5fe9a76da9f125714d6db95e4407345",
+        "embedded_user_elf_offset": 154064,
+        "embedded_user_elf_occurrences": 1,
+        "checks": {
+          "esp/kernel.elf": true,
+          "esp/EFI/BOOT/BOOTX64.EFI": true,
+          "build-manifest.json": true
+        }
+      }
+    ],
+    "normal_kernel_and_loader_byteidentical": true,
+    "user_binary_sha256": "3893a7c96e7f6239845304bcd67af2f416820c585b055ad2a1d2ddb8e222c50e",
+    "user_manifest_sha256": "4e65a38ec83d074b915e4bbb3f2800fe518ae326a9af1fc1c6d50ca0f93ba42a"
+  },
+  "legacy_runtime": {
+    "baseline_scope": "Every base file under boot, kernel, crates, drivers, services/block, services/objects, userspace and .cargo plus root Cargo.toml, Cargo.lock and rust-toolchain.toml.",
+    "baseline_file_count": 99,
+    "unchanged_file_count": 94,
+    "changed_existing_native_or_build_input_paths": [
+      "Cargo.lock",
+      "Cargo.toml",
+      "kernel/Cargo.toml",
+      "kernel/build.rs",
+      "kernel/src/m2/m3.rs"
+    ],
+    "removed_paths": [],
+    "old_feature_definition_count": 92,
+    "all_old_feature_definitions_unchanged": true,
+    "all_old_transitive_feature_closures_unchanged": true,
+    "all_old_dependency_definitions_unchanged": true,
+    "old_feature_matrix": [
+      {
+        "feature": "default",
+        "feature_closure": [
+          "default"
+        ],
+        "fixture_module": null,
+        "fixture_elf_environment": null,
+        "closure_unchanged": true,
+        "enables_m6c": false
+      },
+      {
+        "feature": "milestone-m2",
+        "feature_closure": [
+          "milestone-m2"
+        ],
+        "fixture_module": null,
+        "fixture_elf_environment": null,
+        "closure_unchanged": true,
+        "enables_m6c": false
+      },
+      {
+        "feature": "milestone-m3",
+        "feature_closure": [
+          "milestone-m2",
+          "milestone-m3"
+        ],
+        "fixture_module": null,
+        "fixture_elf_environment": "NOS_USER_ELF",
+        "closure_unchanged": true,
+        "enables_m6c": false
+      },
+      {
+        "feature": "milestone-m4",
+        "feature_closure": [
+          "milestone-m2",
+          "milestone-m3",
+          "milestone-m4"
+        ],
+        "fixture_module": "m3/m4.rs",
+        "fixture_elf_environment": "NOS_IPC_ELF",
+        "closure_unchanged": true,
+        "enables_m6c": false
+      },
+      {
+        "feature": "milestone-m5",
+        "feature_closure": [
+          "milestone-m2",
+          "milestone-m3",
+          "milestone-m4",
+          "milestone-m5"
+        ],
+        "fixture_module": "m3/m5.rs",
+        "fixture_elf_environment": "NOS_M5_ELF",
+        "closure_unchanged": true,
+        "enables_m6c": false
+      },
+      {
+        "feature": "milestone-m6a",
+        "feature_closure": [
+          "milestone-m2",
+          "milestone-m3",
+          "milestone-m4",
+          "milestone-m5",
+          "milestone-m6a"
+        ],
+        "fixture_module": "m3/m6.rs",
+        "fixture_elf_environment": "NOS_M6_ELF",
+        "closure_unchanged": true,
+        "enables_m6c": false
+      },
+      {
+        "feature": "milestone-m6b",
+        "feature_closure": [
+          "dep:object-core",
+          "milestone-m2",
+          "milestone-m3",
+          "milestone-m4",
+          "milestone-m5",
+          "milestone-m6a",
+          "milestone-m6b"
+        ],
+        "fixture_module": "m3/m6b.rs",
+        "fixture_elf_environment": "NOS_M6B_ELF",
+        "closure_unchanged": true,
+        "enables_m6c": false
+      }
+    ],
+    "m3_shared_runtime_tail_sha256": "dac9b781a4283b3324bd0081aec34b92065bc93f56f1f759bc9db8c173859029",
+    "shared_runtime_body_byteidentical": true,
+    "unchanged_paths": [
+      ".cargo/config.toml",
+      "boot/AGENTS.md",
+      "boot/loader/Cargo.toml",
+      "boot/loader/src/handoff.S",
+      "boot/loader/src/main.rs",
+      "boot/loader/src/memory.rs",
+      "boot/loader/src/serial.rs",
+      "crates/boot-protocol/Cargo.toml",
+      "crates/boot-protocol/src/lib.rs",
+      "crates/capability-core/.gitignore",
+      "crates/capability-core/Cargo.toml",
+      "crates/capability-core/README.md",
+      "crates/capability-core/src/lib.rs",
+      "crates/capability-core/src/tests.rs",
+      "crates/elf-loader-core/Cargo.toml",
+      "crates/elf-loader-core/src/lib.rs",
+      "crates/kernel-core/Cargo.toml",
+      "crates/kernel-core/src/lib.rs",
+      "crates/kernel-core/src/user.rs",
+      "crates/virtio-core/.gitignore",
+      "crates/virtio-core/Cargo.toml",
+      "crates/virtio-core/M6-API.md",
+      "crates/virtio-core/README.md",
+      "crates/virtio-core/src/lib.rs",
+      "crates/virtio-core/src/tests.rs",
+      "crates/virtio-core/verify_m6.py",
+      "drivers/AGENTS.md",
+      "drivers/virtio-blk/Cargo.toml",
+      "drivers/virtio-blk/README.md",
+      "drivers/virtio-blk/src/lib.rs",
+      "kernel/AGENTS.md",
+      "kernel/linker.ld",
+      "kernel/src/m2.rs",
+      "kernel/src/m2/arch.rs",
+      "kernel/src/m2/m3/m4.rs",
+      "kernel/src/m2/m3/m5.rs",
+      "kernel/src/m2/m3/m6.rs",
+      "kernel/src/m2/m3/m6b.rs",
+      "kernel/src/m2/paging.rs",
+      "kernel/src/main.rs",
+      "kernel/src/memory.rs",
+      "kernel/src/serial.rs",
+      "rust-toolchain.toml",
+      "services/block/.gitignore",
+      "services/block/Cargo.toml",
+      "services/block/README.md",
+      "services/block/src/journal.rs",
+      "services/block/src/lib.rs",
+      "services/block/src/m6_user_service.rs",
+      "services/block/src/m6_wire.rs",
+      "services/block/src/user_service.rs",
+      "services/block/src/wire.rs",
+      "services/objects/.gitignore",
+      "services/objects/Cargo.toml",
+      "services/objects/README.md",
+      "services/objects/src/journal.rs",
+      "services/objects/src/lib.rs",
+      "services/objects/src/user_service.rs",
+      "services/objects/src/wire.rs",
+      "services/objects/tests/core.rs",
+      "services/objects/tests/wire.rs",
+      "userspace/IPC-PROBE.md",
+      "userspace/LARGE-PROBE.md",
+      "userspace/M5-PROBE.md",
+      "userspace/M6-PROBE.md",
+      "userspace/README.md",
+      "userspace/ipc_linker.ld",
+      "userspace/ipc_probe.rs",
+      "userspace/large_linker.ld",
+      "userspace/linker.ld",
+      "userspace/m5_linker.ld",
+      "userspace/m5_probe.rs",
+      "userspace/m5_runtime.rs",
+      "userspace/m6_linker.ld",
+      "userspace/m6_probe.rs",
+      "userspace/m6_runtime.rs",
+      "userspace/m6b_linker.ld",
+      "userspace/m6b_probe.rs",
+      "userspace/probe.rs",
+      "userspace/tests/test_ipc_probe.py",
+      "userspace/tests/test_large_probe.py",
+      "userspace/tests/test_m5_probe.py",
+      "userspace/tests/test_m6_probe.py",
+      "userspace/tests/test_probe.py",
+      "userspace/verification/R03-HOST-2026-10-27.md",
+      "userspace/verification/U03-LARGE-HOST-2026-10-27.md",
+      "userspace/verification/U04-HOST-2026-10-27.md",
+      "userspace/verification/host-evidence.json",
+      "userspace/verification/ipc-host-evidence.json",
+      "userspace/verification/ipc-host-tests.txt",
+      "userspace/verification/large-host-evidence.json",
+      "userspace/verification/large-host-tests.txt",
+      "userspace/verification/mode15-host-tests.txt",
+      "userspace/verification/mode16-host-tests.txt"
+    ],
+    "shared_changes": [
+      {
+        "path": "Cargo.toml",
+        "change": "Adds services/catalog to workspace members; existing resolver, profiles and members retained.",
+        "old_feature_effect": "No runtime selection change."
+      },
+      {
+        "path": "Cargo.lock",
+        "change": "Adds dependency-free catalog-core 0.1.0 and the optional kernel dependency reference; no external package added.",
+        "old_feature_effect": "Old package definitions retained."
+      },
+      {
+        "path": "kernel/Cargo.toml",
+        "change": "Adds milestone-m6c = [milestone-m6b, dep:catalog-core], seven M6c test feature aliases and optional path dependency catalog-core.",
+        "old_feature_effect": "All existing feature definitions, transitive closures and dependency definitions are identical."
+      },
+      {
+        "path": "kernel/build.rs",
+        "change": "Adds four lines tracking NOS_M6C_ELF and its file for Cargo invalidation.",
+        "old_feature_effect": "Existing body is byte-identical after removing these four lines."
+      },
+      {
+        "path": "kernel/src/m2/m3.rs",
+        "change": "Adds not milestone-m6c to the M6b fixture module/ELF selectors; adds alternative M6c module/ELF selectors.",
+        "old_feature_effect": "Old feature closures do not enable milestone-m6c; old targets retained. Runtime body from const DATA onward is byte-identical."
+      },
+      {
+        "path": "tools/build.py",
+        "change": "Adds M6c cases/choices, extends shared fixture-build lists with m6c, supplies NOS_M6C_ELF.",
+        "old_feature_effect": "Old branches and assignments retained."
+      },
+      {
+        "path": "tools/build_users.py",
+        "change": "Adds M6c fixture, linker, manifest, five-module provenance list and CLI choice.",
+        "old_feature_effect": "Old mappings, compiler options, inspectors and per-milestone module lists unchanged."
+      },
+      {
+        "path": "tools/run.py",
+        "change": "Adds M6C: to later milestone prefixes.",
+        "old_feature_effect": "Rejects accidental M6c output when checking M1; no guest-runtime effect."
+      }
+    ],
+    "new_native_paths": [
+      "kernel/src/m2/m3/m6c.rs",
+      "services/catalog/Cargo.toml",
+      "services/catalog/README.md",
+      "services/catalog/src/journal.rs",
+      "services/catalog/src/lib.rs",
+      "services/catalog/src/user_service.rs",
+      "services/catalog/src/wire.rs",
+      "services/catalog/tests/core.rs",
+      "services/catalog/tests/wire.rs",
+      "userspace/m6c_linker.ld",
+      "userspace/m6c_probe.rs"
+    ],
+    "m6c_linker_matches_m6b_except_diagnostic_label": true
+  },
+  "elf_budgets": {
+    "user": {
+      "path": "/workspace/scratch/244976efa240/nieuw-os/build/users/m6c_probe.elf",
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 41842,
+          "memsz": 41842,
+          "page_start": 1073741824,
+          "page_end": 1073786880
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 49152,
+          "filesz": 16384,
+          "memsz": 16384,
+          "page_start": 1073807360,
+          "page_end": 1073823744
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 65536,
+          "filesz": 3007,
+          "memsz": 3007,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "address": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "address": 1073741824,
+          "size": 41842
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "address": 1073807360,
+          "size": 1192
+        },
+        {
+          "name": ".buffers",
+          "type": 1,
+          "flags": 3,
+          "address": 1073811456,
+          "size": 12288
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "address": 1073823744,
+          "size": 3007
+        },
+        {
+          "name": ".debug_abbrev",
+          "type": 1,
+          "flags": 0,
+          "address": 0,
+          "size": 3741
+        },
+        {
+          "name": ".debug_info",
+          "type": 1,
+          "flags": 0,
+          "address": 0,
+          "size": 179775
+        },
+        {
+          "name": ".debug_aranges",
+          "type": 1,
+          "flags": 0,
+          "address": 0,
+          "size": 9472
+        },
+        {
+          "name": ".debug_ranges",
+          "type": 1,
+          "flags": 0,
+          "address": 0,
+          "size": 80592
+        },
+        {
+          "name": ".debug_str",
+          "type": 1,
+          "flags": 48,
+          "address": 0,
+          "size": 263394
+        },
+        {
+          "name": ".debug_frame",
+          "type": 1,
+          "flags": 0,
+          "address": 0,
+          "size": 22048
+        },
+        {
+          "name": ".debug_line",
+          "type": 1,
+          "flags": 0,
+          "address": 0,
+          "size": 114653
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "address": 0,
+          "size": 2208
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "address": 0,
+          "size": 147
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "address": 0,
+          "size": 4764
+        }
+      ],
+      "text_limit_bytes": 65536,
+      "text_bytes": 41842,
+      "text_margin_bytes": 23694,
+      "rodata_limit_bytes": 4096,
+      "rodata_bytes": 3007,
+      "rodata_margin_bytes": 1089,
+      "rw_segment_bytes": 16384,
+      "buffer_section_bytes": 12288,
+      "startup_and_buffers_abi": {
+        "m6_startup": 1073807360,
+        "m6_message": 1073811456,
+        "m6_output": 1073815552,
+        "m6_sector": 1073819648
+      },
+      "segment_plan_matches_build_manifest": true
+    },
+    "kernel": {
+      "path": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-a-569ed90fa6/esp/kernel.elf",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 33554432,
+          "offset": 4096,
+          "filesz": 136994,
+          "memsz": 136994,
+          "page_start": 33554432,
+          "page_end": 33693696
+        },
+        {
+          "flags": 4,
+          "address": 33693696,
+          "offset": 143360,
+          "filesz": 776448,
+          "memsz": 776448,
+          "page_start": 33693696,
+          "page_end": 34471936
+        },
+        {
+          "flags": 6,
+          "address": 34471936,
+          "offset": 921600,
+          "filesz": 1274704,
+          "memsz": 4361296,
+          "page_start": 34471936,
+          "page_end": 38834176
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "address": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "address": 33554432,
+          "size": 136994
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "address": 33693696,
+          "size": 776448
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "address": 34471936,
+          "size": 1274704
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "address": 35749888,
+          "size": 3083344
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "address": 0,
+          "size": 8808
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "address": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "address": 0,
+          "size": 20242
+        }
+      ],
+      "reserved_start": 33554432,
+      "reserved_end_exclusive": 50331648,
+      "highest_loaded_end_exclusive": 38833232,
+      "highest_page_end_exclusive": 38834176,
+      "reserved_margin_after_page_end_bytes": 11497472,
+      "segment_plan_and_sections_match_build_manifest": true
+    },
+    "both_images_static_exec_x86_64": true,
+    "no_writable_executable_segments": true,
+    "no_overlapping_segment_pages": true,
+    "no_dynamic_or_relocation_sections": true,
+    "no_interpreter_or_dynamic_program_headers": true
+  },
+  "instruction_and_symbol_scan": {
+    "tool_version": "GNU objdump (GNU Binutils for Ubuntu) 2.42",
+    "method": "GNU objdump executable-section disassembly. Scan operands for XMM/YMM/ZMM/MM/ST/K/BND/TMM registers and mnemonics for x87, EMMS, vector zero, MXCSR and XSAVE/XRSTOR families. nm checks unresolved and forbidden demangled symbols.",
+    "forbidden_symbol_pattern": "\\b(?:std|alloc|object_core)::|\\b(?:__rust_alloc|__rust_dealloc|malloc|calloc|realloc|free|pthread_\\w*|dlopen|dlsym)\\b",
+    "simd_register_pattern": "\\b(?:[xyz]mm\\d+|mm[0-7]|st(?:\\([0-7]\\))?|k[0-7]|bnd[0-3]|tmm[0-7])\\b",
+    "artifacts": {
+      "user": {
+        "path": "/workspace/scratch/244976efa240/nieuw-os/build/users/m6c_probe.elf",
+        "sha256": "3893a7c96e7f6239845304bcd67af2f416820c585b055ad2a1d2ddb8e222c50e",
+        "instruction_lines_examined": 7928,
+        "simd_x87_extended_state_suspects": [],
+        "undefined_symbols": [],
+        "forbidden_symbols": [],
+        "symbol_lines_examined": 67
+      },
+      "kernel": {
+        "path": "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-a-569ed90fa6/esp/kernel.elf",
+        "sha256": "c3712608a6802b5f2846195cb74a820c174b0baa49d2552d963eeda0d27e78ae",
+        "instruction_lines_examined": 31635,
+        "simd_x87_extended_state_suspects": [],
+        "undefined_symbols": [],
+        "forbidden_symbols": [],
+        "symbol_lines_examined": 339
+      }
+    }
+  },
+  "runner_guard_followup": {
+    "status": "confirmed_in_implementation_commit",
+    "case_variant_binding": "expected_variant = case if case in (\"corrupt\", \"legacy\") else \"normal\"",
+    "fresh_nonrecovery_image_guard": "if volume.variant != expected_variant or case != \"recover\" and before != volume.initial:",
+    "tests_rerun_by_this_audit": false
+  },
+  "limitations": [
+    "Static review does not replace native regression execution; root owns recorded M6c and M6b gates.",
+    "No fresh build performed by this reviewer. Byte equality of two saved normal kernels/loaders and exact source/embedded-user bindings verified.",
+    "Instruction scan is GNU disassembly analysis, not a formal ISA/compiler correctness proof.",
+    "Stack high-water usage, arbitrary workload performance, SMP, physical devices and production deployment are not measured.",
+    "Feature isolation is established for existing feature closures; arbitrary simultaneous old/new test feature combinations are outside the supported build interface."
+  ],
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "ls-tree",
+        "-r",
+        "--name-only",
+        "bb22fdbe15919edc23baa158a46236195ce314b2"
+      ],
+      "exit_status": 0
+    },
+    {
+      "argv": [
+        "git",
+        "ls-tree",
+        "-r",
+        "--name-only",
+        "bc4cd104e86e2c047b727ae96e07a03fbc810c3c"
+      ],
+      "exit_status": 0
+    },
+    {
+      "argv": [
+        "objdump",
+        "-d",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/workspace/scratch/244976efa240/nieuw-os/build/users/m6c_probe.elf"
+      ],
+      "exit_status": 0
+    },
+    {
+      "argv": [
+        "nm",
+        "-u",
+        "/workspace/scratch/244976efa240/nieuw-os/build/users/m6c_probe.elf"
+      ],
+      "exit_status": 0
+    },
+    {
+      "argv": [
+        "nm",
+        "-C",
+        "/workspace/scratch/244976efa240/nieuw-os/build/users/m6c_probe.elf"
+      ],
+      "exit_status": 0
+    },
+    {
+      "argv": [
+        "objdump",
+        "-d",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-a-569ed90fa6/esp/kernel.elf"
+      ],
+      "exit_status": 0
+    },
+    {
+      "argv": [
+        "nm",
+        "-u",
+        "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-a-569ed90fa6/esp/kernel.elf"
+      ],
+      "exit_status": 0
+    },
+    {
+      "argv": [
+        "nm",
+        "-C",
+        "/workspace/scratch/244976efa240/nieuw-os/build/run/m6c-normal-a-569ed90fa6/esp/kernel.elf"
+      ],
+      "exit_status": 0
+    },
+    {
+      "argv": [
+        "objdump",
+        "--version"
+      ],
+      "exit_status": 0
+    }
+  ],
+  "inspection_process_exit_status": 0
+}

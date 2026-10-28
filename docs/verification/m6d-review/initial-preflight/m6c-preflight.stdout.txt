@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "scope": "inventory only; no build, boot, acceleration or ABI validated",
+  "workspace": "/workspace/scratch/2ffeac9e0e8f/nieuw-os",
+  "host": {
+    "system": "Linux",
+    "architecture": "x86_64",
+    "python": "3.12.14"
+  },
+  "tools": {
+    "git": {
+      "available": true,
+      "path": "/usr/local/bin/git",
+      "version": "git version 2.51.1",
+      "probe_exit": 0
+    },
+    "rustc": {
+      "available": true,
+      "path": "/workspace/scratch/2ffeac9e0e8f/nieuw-os/.tools/nieuw-os/cargo/bin/rustc",
+      "version": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+      "probe_exit": 0
+    },
+    "cargo": {
+      "available": true,
+      "path": "/workspace/scratch/2ffeac9e0e8f/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+      "version": "cargo 1.90.0 (840b83a10 2025-07-30)",
+      "probe_exit": 0
+    },
+    "rustup": {
+      "available": true,
+      "path": "/workspace/scratch/2ffeac9e0e8f/nieuw-os/.tools/nieuw-os/cargo/bin/rustup",
+      "version": "rustup 1.29.2 (d8c92c676 2026-10-21)",
+      "probe_exit": 0
+    },
+    "qemu-system-x86_64": {
+      "available": true,
+      "path": "/workspace/scratch/2ffeac9e0e8f/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "version": "QEMU emulator version 10.0.2 (Debian 1:10.0.2+ds-2+deb13u1~bpo12+1)",
+      "probe_exit": 0
+    },
+    "ld.lld": {
+      "available": false,
+      "path": null,
+      "version": null
+    },
+    "clang": {
+      "available": false,
+      "path": null,
+      "version": null
+    },
+    "cc": {
+      "available": true,
+      "path": "/usr/bin/cc",
+      "version": "cc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+      "probe_exit": 0
+    },
+    "python3": {
+      "available": true,
+      "path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "version": "Python 3.12.14",
+      "probe_exit": 0
+    }
+  },
+  "installed_rust_targets": [
+    "x86_64-unknown-linux-gnu",
+    "x86_64-unknown-none",
+    "x86_64-unknown-uefi"
+  ],
+  "missing_rust_targets": [],
+  "firmware_candidates": [],
+  "missing": [
+    "OVMF code firmware (supply --firmware if stored elsewhere)"
+  ],
+  "baseline_tools_present": false,
+  "next": "Compare versions against docs/implementation/BOOT-AND-TOOLCHAIN.md; then build and run the real smoke test."
+}

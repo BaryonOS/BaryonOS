@@ -46,8 +46,8 @@ class CaptureGateArchive(unittest.TestCase):
         guest.mkdir(parents=True, exist_ok=True)
         required, expected_exit, forbidden = guest_expectation("m2", "test-m2-nx")
         stdout = "\n".join(required) + "\n"
-        (guest / "serial.txt").write_text(stdout, encoding="utf-8")
-        (guest / "stderr.txt").write_text("", encoding="utf-8")
+        (guest / "serial.txt").write_bytes(stdout.encode("utf-8"))
+        (guest / "stderr.txt").write_bytes(b"")
         artifact = guest / "artifact.bin"
         artifact.write_bytes(b"synthetic artifact")
         digest = hashlib.sha256(artifact.read_bytes()).hexdigest() if valid_hash else "0" * 64
@@ -96,6 +96,34 @@ class CaptureGateArchive(unittest.TestCase):
         self.assertEqual(json.loads((self.destination / "suite.json").read_text())["status"],
                          "completed")
         self.assertEqual(len(json.loads((self.destination / "guest-runs.json").read_text())), 1)
+
+    def test_serial_line_ending_mutation_is_rejected_without_replacing_archive(self):
+        self._write_suite(valid_hash=True)
+        serial = self.build / "run/guest-1/serial.txt"
+        serial.write_bytes(serial.read_bytes().replace(b"\n", b"\r\n"))
+        before = self._snapshot()
+
+        with self.assertRaisesRegex(ValueError, "Serial evidence changed"):
+            capture_gate.capture("m2")
+
+        self.assertEqual(self._snapshot(), before)
+
+    def test_matching_crlf_serial_and_stderr_are_preserved_exactly(self):
+        self._write_suite(valid_hash=True)
+        guest = self.build / "run/guest-1"
+        result_path = guest / "result.json"
+        result = json.loads(result_path.read_text(encoding="utf-8"))
+        result["stdout"] = result["stdout"].replace("\n", "\r\n")
+        result["stderr"] = "synthetic diagnostic\r\n"
+        (guest / "serial.txt").write_bytes(result["stdout"].encode("utf-8"))
+        (guest / "stderr.txt").write_bytes(result["stderr"].encode("utf-8"))
+        result_path.write_text(json.dumps(result), encoding="utf-8")
+
+        capture_gate.capture("m2")
+
+        saved = json.loads((self.destination / "guest-runs.json").read_text(encoding="utf-8"))[0]
+        self.assertEqual(saved["stdout"], result["stdout"])
+        self.assertEqual(saved["stderr"], result["stderr"])
 
     def test_guest_output_cannot_be_captured_as_a_host_log(self):
         guest_log = self.build / "run/guest.stdout.txt"
@@ -222,8 +250,8 @@ class CaptureGateArchive(unittest.TestCase):
                 artifact.parent.mkdir(parents=True, exist_ok=True)
                 artifact.write_bytes(b"synthetic artifact")
                 artifacts[name] = hashlib.sha256(artifact.read_bytes()).hexdigest()
-            (directory / "serial.txt").write_text(stdout)
-            (directory / "stderr.txt").write_text("")
+            (directory / "serial.txt").write_bytes(stdout.encode("utf-8"))
+            (directory / "stderr.txt").write_bytes(b"")
             guest = {"label": label, "run_directory": str(directory), "stdout": stdout,
                      "stderr": "", "raw_qemu_exit": 33, "timed_out": False, "passed": True,
                      "m5_case": "read", "base_commit": "1" * 40,

@@ -1,0 +1,107 @@
+{
+  "passed": true,
+  "checks": {
+    "profile": true,
+    "source": true,
+    "kernel": true,
+    "loader": true
+  },
+  "scope": "No extra VM run: restored M6c build is byte-identical to both normal native gate artifacts.",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "milestone-m6c",
+    "kernel_feature": "milestone-m6c",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "4468b3c18bd7fa57bf3631d634d52ee4c5fe9a76da9f125714d6db95e4407345",
+    "loader": {
+      "sha256": "444541094f8b603cc8f063123150bb65fe1d21274d2ccdc444457e2a49780810",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "c3712608a6802b5f2846195cb74a820c174b0baa49d2552d963eeda0d27e78ae",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 136994,
+          "memsz": 136994,
+          "page_start": 33554432,
+          "page_end": 33693696
+        },
+        {
+          "flags": 4,
+          "offset": 143360,
+          "address": 33693696,
+          "filesz": 776448,
+          "memsz": 776448,
+          "page_start": 33693696,
+          "page_end": 34471936
+        },
+        {
+          "flags": 6,
+          "offset": 921600,
+          "address": 34471936,
+          "filesz": 1274704,
+          "memsz": 4361296,
+          "page_start": 34471936,
+          "page_end": 38834176
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 136994
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 776448
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1274704
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3083344
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 8808
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 20242
+        }
+      ]
+    }
+  }
+}

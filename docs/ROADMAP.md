@@ -1,6 +1,70 @@
 # Route van onderzoeksproject naar bruikbaar systeem
 
-Status 27 oktober 2026: M1–M5 zijn geïmplementeerd en getest in het vaste QEMU-profiel. Definitieve suites: 77 groepen/64 VM plus een normale M5-eindstart. M5 is alleen-lezen; schrijven en persistentie volgen in M6a. P02 en Q01 blijven hostprototypes met expliciete open controles. Bron, bewijs en grenzen: PROJECT-STATE.md, WORK-QUEUE.md en verification/m5/. Verdere fasen zijn een ontwikkelroute, geen kalenderbelofte.
+## Vaste productroadmap: 0% tot 100%
+
+De [README](../README.md#voortgang-naar-een-volwaardig-zelfstandig-os) toont de
+actuele voortgangsbalk en score per productspoor. De vaste noemer is
+**100 gewogen acceptatiepunten**, met alle criteria en bewijs in
+[PROGRESS.md](PROGRESS.md) en het bronbestand [progress.json](progress.json).
+De eerste meting op M1–M6c was **13%**. De M6d-acceptatie van S07 bracht de
+stand op **14%**; de actuele herbeoordeling staat in de README.
+Dit is een planningskeuze, geen percentage resterende tijd of veiligheid.
+
+| Productspoor | Punten tot het volledige einddoel |
+|---|---:|
+| Eigen kern, processen en isolatie | 15 |
+| Opslag, documenten en gegevensherstel | 15 |
+| Drivers, fysieke hardware en energie | 12 |
+| Native Materiaal en toegankelijkheid | 15 |
+| Internet en netwerkdiensten | 10 |
+| Beveiliging, privacy en updates | 12 |
+| Apps, SDK en installatie | 8 |
+| Persoonlijke NAS en meerdere apparaten | 5 |
+| Lokale AI en native quantum-runtime | 3 |
+| Dagelijks gebruik en onderhoudbare release | 5 |
+| **Totaal** | **100** |
+
+De sporen kunnen parallel lopen. De M-nummers hieronder zijn technische
+mijlpalen, geen gelijke procentstappen: M6c betekent niet dat het OS voor
+60% of 6/11 klaar is. Een vier-objectenproef levert alleen haar specifieke
+punten op; grotere documenten, ruimtehergebruik en dagelijks herstel blijven
+aparte eisen.
+
+**0%** = nog geen criterium gerealiseerd. **100%** = alle criteria voor een
+volwaardig zelfstandig dagelijks OS gehaald, met eigen kernel, hoogwaardige
+native bediening, nuttige apps, internet, beveiligde opslag, updates, herstel,
+ondersteunde hardware en onderhoud. Geen bestaand OS vormt de basis.
+De ambitie wordt niet verlaagd tot een testshell of VM-demo. Concrete
+hardware- en appondersteuning blijven aantoonbaar afgebakend; volledige
+historische featurepariteit met ieder groot OS is geen meetbare release-eis.
+
+Iedere opdracht herbeoordeelt de score en actualiseert datum/bewijs; geen
+nieuwe acceptatie betekent **0 procentpunt verschil**, geen fictieve stijging.
+De generatie- en controleopdrachten staan in PROGRESS.md en AGENTS.md.
+
+## Technische route en bewijsgrenzen
+
+Status 28 oktober 2026: M1–M6b zijn geïmplementeerd en hebben versiegebonden
+native bewijs in het vaste QEMU-profiel. M6c voegt namen, atomisch hernoemen
+en een domeingebonden documentcatalogus toe. De oorspronkelijke M6c-gate is
+vastgelegd met 19 groepen / 15 VM-invocaties; M6b-regressie op die bron met
+18 / 14. M6d voegt gecontroleerd `Unknown` bij native WRITE-/FLUSH-fouten toe,
+zonder automatische herhaling van de onzekere write. De geaccepteerde
+M6c/M6d-gate omvat **35 groepen / 31 VM-invocaties**, met een afzonderlijke
+M6b-regressie van **18 groepen / 14 VM-invocaties**. Dit sluit het afgebakende
+criterium **S07** en brengt de vaste productscore op **14%**.
+
+Het oorspronkelijke Linuxbewijs staat in
+[M6D-ACCEPTANCE.md](verification/M6D-ACCEPTANCE.md); de aanvullende
+Windowsuitvoering blijft afzonderlijk aan bron `326d2f6` gebonden in
+[M6D-CLOSEOUT.md](verification/M6D-CLOSEOUT.md). De foutinjecties bewijzen geen
+fysieke devicefout of stroomuitval. Herstel start nog via een nieuwe VM;
+automatische catalogusherstart en algemeen opslagherstel (K05/S08) blijven
+open. De historische M6b-observer krijgt geen nieuwe foutafhandelingsclaim.
+De bredere M6-opslag-/updatefase bevat dus vervolgwerk. Actuele ontwikkeling:
+[PROJECT-STATE.md](PROJECT-STATE.md) en [WORK-QUEUE.md](WORK-QUEUE.md).
+Materiaal, NAS/TLS en qsim behouden hun afzonderlijke host-/prototypegrenzen.
+Verdere fasen zijn een ontwikkelroute, geen kalenderbelofte.
 
 ## Richting en grenzen
 

@@ -1,0 +1,15 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\nieuw-os\\cargo\\bin\\cargo.EXE",
+    "+1.90.0",
+    "test",
+    "--locked",
+    "--offline",
+    "-p",
+    "catalog-core"
+  ],
+  "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028",
+  "started_unix": 1793180404.070222,
+  "duration_s": 1.1115753650665283,
+  "returncode": 0
+}

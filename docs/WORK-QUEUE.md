@@ -1,4 +1,70 @@
-# Werkqueue — M6a actief
+# Werkqueue — M6d native foutafhandeling en productvoortgang
+
+## Afgeronde uitvoering M6d — 28 oktober 2026
+
+Uitvoeringsbron `88e6c04be218b8b09ea4f0a226f6b9719da706a6`, branch
+`codex/m6d-io-recovery-roadmap`, PR #11. Contract:
+[M6D-IO-UNCERTAINTY.md](implementation/M6D-IO-UNCERTAINTY.md).
+
+| ID | Werkverdeling | Afgerond resultaat |
+|---|---|---|
+| A01/A02 | architecture_next_step / kernelobserver, native probe, integratie twee hosttools | Unknown zonder valse ACK; acht native foutfeatures; upstream hostlogbinding behouden |
+| A03 | architecture_next_step / M6b-capture en bijbehorende tests | begrensde alternatieve bestemming; drie negatieve/positieve bestemmingschecks |
+| D01/D02/D03 | progress_roadmap / scoremodel en historische documentintegratie; later alleen advies | vaste 100 punten, bron-/bewijsgrenzen en concreet herstelvervolg |
+| R08/R09 | native_review / aanvankelijk alleen lezen, daarna zelfstandige audit buiten de repo | twee vroege harnasbevindingen hersteld; 31 M6d-runs, 274 artifacthashes en 16 images gecontroleerd |
+| A04 | architecture_next_step / afzonderlijke read-only M6b-bewijsaudit | 14 M6b/M1-runs, 121 artifacthashes, zeven volumes en zes cold-links gecontroleerd |
+| G08/V08 | root / gedeelde interfaces, integratie, uitvoering, score en Git | 35/31 plus 18/14, beide captures en normale eindbuild geslaagd; S07 geaccepteerd, 13% → 14% |
+
+Eén schrijver per bestand en één build/QEMU-slot. Geen nieuwe OS-kernelbasis,
+capabilityverruiming, schijfformaat of externe dependency. Exacte uitslagen en
+bewijs: [M6D-ACCEPTANCE.md](verification/M6D-ACCEPTANCE.md). Iedere volgende
+opdracht herbeoordeelt de vaste meter volgens AGENTS.md.
+
+### Eerstvolgende native stap — begrensde catalogusrecovery
+
+Voorgesteld, nog niet gebouwd of als punt geteld:
+
+1. Eén geautoriseerde supervisor mag alleen deze catalogusdienst vervangen;
+   gewone apps krijgen geen reset-, processtart- of blokrechten.
+2. Oude servicegeneratie, endpoints en blokhandles intrekken vóór vervanging.
+   DMA-geheugen pas hergebruiken na bevestigde reset; anders quarantaine.
+3. Nieuwe instantie herstelt de echte journal zonder write-replay. Apps blijven
+   actief, krijgen binnen hun bestaande rechten nieuwe endpoints en lezen de
+   actuele revisie terug; Unknown wordt nooit alsnog een verzonnen succes-ACK.
+4. Herstartbudget begrenzen; stale caps, onbevoegde supervisor, corrupte journal,
+   herhaalde uitval en ontbrekende reset-ACK als negatieve gevallen opnemen.
+5. In dezelfde VM testen en de relevante M6d-regressie herhalen. Deze beperkte
+   proef voltooit niet automatisch algemeen dienstbeheer K05 of opslagherstel S08.
+
+Native Materiaal, grotere documenten en ruimtehergebruik houden daarnaast hun
+eigen productcriteria. Geen sleutelgeneratie zonder native entropybron.
+
+## Historische M6c-queue
+
+### Historische M6c-uitvoering — 28 oktober 2026
+
+Basis `bb22fdb`, branch `codex/m6c-named-catalog`. M6a en M6b zijn al afgerond
+volgens de versiegebonden bewijsarchieven in PROJECT-STATE.md. De oudere queue
+hieronder bewaart uitsluitend de toenmalige werkverdeling.
+
+| ID | Eigenaar / schrijfgebied | Afgerond resultaat |
+|---|---|---|
+| C07-core | catalog_core / services/catalog core en tests | namen, v4-wire, v2-journal, catalogus; 30 hosttests en no_std groen |
+| C07-native | catalog_native / nieuwe serviceadapter, probe en kernelobserver | finale native gate: 19 groepen / 15 VM-invocaties inclusief M1 |
+| G07 | root / gedeelde config, tools, harnas en docs | onafhankelijk schijforakel; 33 hosttests; checkpoint bc4cd104 vóór lange controles |
+| R07 | context_review / alleen lezen | 15 scenario's van echte adapter via host-ABI-shim; geen native devicefoutinjectie |
+| V07 | root + reviewers | M6c-capture, M6b 18 groepen / 14 VM, acht volumes en 130 artifacthashes geaudit; brongebonden integratiecontrole |
+
+Alle eindgates en captures hebben exit 0. Bron, exacte commando's, host-/native
+grenzen en bewijslinks: [M6C-ACCEPTANCE.md](verification/M6C-ACCEPTANCE.md).
+De M6c-eindbuild is bytegelijk aan de twee normale eindgate-runs. De reviews zijn
+AI-reviews, geen menselijke audit of formeel bewijs.
+
+Vervolg: native Materiaal-koppeling en beveiligingsafhankelijkheden
+uit VERIFIABLE-SECURITY-AND-PQC blijven afzonderlijke stappen; geen automatische
+sleutelgeneratie zonder entropy of grafische/native NAS-claim door deze catalogus.
+
+## Historische queue vóór afgeronde M6b
 
 ## Parallel N01 — internet en persoonlijke NAS
 

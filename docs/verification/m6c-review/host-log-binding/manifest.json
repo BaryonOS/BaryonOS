@@ -1,0 +1,151 @@
+{
+  "baseline_commit": "b3d9d682f3f043ef7926f112b659ad77a5f00e1a",
+  "scope": "Uitsluitend Python-hosttests met synthetische gastrecords en commandodoubles; geen native build of VM-invocatie. Bestaand historisch bewijs blijft ongewijzigd.",
+  "candidate_root": "/workspace/scratch/a9adbdc1f137/pr9-verifier/m6c-log-binding/candidate",
+  "baseline_local_files_compared": 56,
+  "changed_files": {
+    "tools/test_m6c.py": {
+      "before": {
+        "bytes": 5776,
+        "sha256": "71283e776f8b92e63fb622868e3674369aa796e7a7289ac3072bc90d507e319d",
+        "git_blob_sha": "40fd2ccfc5fb373206568e865789fcd43b025518"
+      },
+      "after": {
+        "bytes": 6257,
+        "sha256": "1fccbe087c925d1d4c06d97cd7ca7c7e2638eb4a0175ae9b0eeebad43375a894",
+        "git_blob_sha": "fffed7433ff12002ff365a4ce0fe17bebf268f1b"
+      }
+    },
+    "tools/capture_m6c.py": {
+      "before": {
+        "bytes": 11944,
+        "sha256": "30d822100e2deccf6f83af51b1179c613812bf8d9011aec3b8352e6cfa5c0720",
+        "git_blob_sha": "95a5ba4c84f815cb5a31e7cf4a98f6b6bc9e8061"
+      },
+      "after": {
+        "bytes": 12762,
+        "sha256": "60758632ad21b7272395ad8753fe377084302b297dd68ff7e0ea543410afa2cc",
+        "git_blob_sha": "10cb1a76433384cf8fb40337bd62b7f3a4ae5c1a"
+      }
+    },
+    "tests/test_m6c_capture.py": {
+      "before": {
+        "bytes": 9312,
+        "sha256": "ec7ba41e542226321e9b2ea29b239887774135bf4957e0b58c5efb3063b0766a",
+        "git_blob_sha": "c5754683f3579e28633c5f7adf63015e874b7360"
+      },
+      "after": {
+        "bytes": 18206,
+        "sha256": "c325abba590644803d5b2be1fec9ac269cabc86f40589fb776a227488bcc47fd",
+        "git_blob_sha": "c83645aa01dc429ed1ca476bf2e50bb2619405c9"
+      }
+    }
+  },
+  "only_changed_candidate_files": [
+    "tests/test_m6c_capture.py",
+    "tools/capture_m6c.py",
+    "tools/test_m6c.py"
+  ],
+  "original_baseline_host_files_git_blob_verified": 43,
+  "checks": {
+    "before-fix": {
+      "command_record": "records/before-fix.json",
+      "test_methods": 15,
+      "exit_code": 1,
+      "failures": 16,
+      "input_bytes_unchanged_during_run": true
+    },
+    "after-fix": {
+      "command_record": "records/after-fix.json",
+      "test_methods": 15,
+      "exit_code": 0,
+      "failures": 0,
+      "input_bytes_unchanged_during_run": true
+    },
+    "harness-regression": {
+      "command_record": "records/harness-regression.json",
+      "test_methods": 6,
+      "exit_code": 0,
+      "failures": 0,
+      "input_bytes_unchanged_during_run": true
+    }
+  },
+  "passing_tests_after_fix": 21,
+  "producer_test_included_in_15_capture_tests": "GateTimeHostLogBinding.test_each_completed_host_command_is_hashed_before_next_gate_step",
+  "before_fix_reproduction": {
+    "test_source": "records/before-fix-test_m6c_capture.py",
+    "sha256": "fa89d0360acaa84c0db73fb5c46bcc8f54422c2d8caacdcc72363626682cd5cb",
+    "reconstruction": "Bytegelijk hersteld uit de finale tests door uitsluitend bestaande directe callers en de oude substitutiefixture terug te zetten; de hash komt exact overeen met de vastgelegde bron van de werkelijk uitgevoerde vóór-fix-run.",
+    "instructions": "Gebruik tools/tests van baseline_commit, vervang tests/test_m6c_capture.py door deze exacte testbron en voer de argv uit records/before-fix.json uit vanuit de repositoryroot. De vastgelegde paden beschrijven de werkelijke uitvoering, geen toekomstige checkout.",
+    "new_regressions_unchanged_between_red_and_green": true,
+    "observed_failure": "De oude capture accepteerde gewijzigde stdout/json/stderrbytes en misvormde of ontbrekende maps; echte capture-aanroepen keerden terug zonder de verwachte ValueError. Geen TypeError-failures."
+  },
+  "old_suite_compatibility": "Suites zonder group.log_sha256 worden geweigerd. Aan het oorspronkelijke archief zijn geen gate-time-hashes achteraf toegevoegd.",
+  "evidence_files": {
+    "records/after-fix.json": {
+      "bytes": 9146,
+      "sha256": "276ab276b95eada7fa3f2d868042ccf5c46c03a7172e3c2e397ba48cccfc7169",
+      "git_blob_sha": "857e41f6f87d7bf35c7b204aad63cff88cb05e1c"
+    },
+    "records/after-fix.stderr.txt": {
+      "bytes": 2542,
+      "sha256": "0d320f452c6e4e40b298d1d8b08724c48600504f81088b5b8e3708ed37867e29",
+      "git_blob_sha": "3d5a6a0dd15a6d189d659ef1ed34f70909ea3574"
+    },
+    "records/after-fix.stdout.txt": {
+      "bytes": 58,
+      "sha256": "17d375152c337afd8f22b4af519a78c7357056f2dfd20098cde792702b16de6d",
+      "git_blob_sha": "7370488d5bc711449c049c7fd6db63676d6f63c1"
+    },
+    "records/baseline-host-inputs.json": {
+      "bytes": 7733,
+      "sha256": "e7dac8c4e8f980b9784d7cae1e5d4e3ebb7eb5fbdac790872a684e1ae3f7962d",
+      "git_blob_sha": "bc063a5f265e0842967ea61e7672d168c9f23787"
+    },
+    "records/before-fix.json": {
+      "bytes": 9147,
+      "sha256": "61014643ff3634c2a07ce200bf5474edbd3ccad8923694d9fca1c11f42d55b93",
+      "git_blob_sha": "1f81f7b4901ea2786f964597f95ea4426362cf0e"
+    },
+    "records/before-fix.stderr.txt": {
+      "bytes": 20390,
+      "sha256": "bf3ef3f441648d26413ffd267009a0b3268854d0dee482001751632a4849a6da",
+      "git_blob_sha": "bac0c0de22d9af3b3a3f20fc01bea797f8a77c42"
+    },
+    "records/before-fix.stdout.txt": {
+      "bytes": 928,
+      "sha256": "6cda0082789d5be800f85a3f3faf92337c5ce30fe6a17e42e54504449dc8655d",
+      "git_blob_sha": "3938ef980bc3f83aa2e06b878631019b3323feab"
+    },
+    "records/harness-regression.json": {
+      "bytes": 9163,
+      "sha256": "bfa817bbf96db217497a9b3e5ac0b5041aad84034a7dd8ecb97ba242d8badb15",
+      "git_blob_sha": "23da8ea7929d861ab1f64b7287dcd3302c530da6"
+    },
+    "records/harness-regression.stderr.txt": {
+      "bytes": 1024,
+      "sha256": "44ef8c69cad48ffbcf1896134324ef9528afb66afdf76d027aa8da0bf91dbdce",
+      "git_blob_sha": "c4a1ee2aeef7d256adc7a140ad87eab60393c7dc"
+    },
+    "records/harness-regression.stdout.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob_sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "run_host_check.py": {
+      "bytes": 2181,
+      "sha256": "e54932a2b9c541fee850f778113d49eef9a51a66f8011cc69386120f69524aa7",
+      "git_blob_sha": "643c6195430169f48f232109456941cdb13d34b5"
+    },
+    "host-log-binding.patch": {
+      "bytes": 17719,
+      "sha256": "fcaeb9e33d2565e58e35232977b2ebcb9ca0a34f76f9a59df20965c9a94d9308",
+      "git_blob_sha": "d55d199c0c9276c9d04638b173312bf341920475"
+    },
+    "records/before-fix-test_m6c_capture.py": {
+      "bytes": 17871,
+      "sha256": "fa89d0360acaa84c0db73fb5c46bcc8f54422c2d8caacdcc72363626682cd5cb",
+      "git_blob_sha": "f838c8a5546999b0265f3fcd6d6961c951fb4088"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "mode": "audit-script host-only self-test",
+  "passed": true,
+  "checks": 16,
+  "details": [
+    "valid exact PUT10/RENAME11 accepted",
+    "valid prepublication PUT10 prefix accepted",
+    "resealed wrong request identity",
+    "prepublication extra rename",
+    "rename changes payload with valid checksum",
+    "resealed noncanonical padding",
+    "record after empty slot",
+    "raw checksum corruption",
+    "legacy rejection",
+    "corrupt rejection",
+    "valid Unknown marker fixture accepted (host-only)",
+    "duplicate Unknown outcome",
+    "replay publication",
+    "false success ACK",
+    "stale full-state response",
+    "unexpected uncertainty in recovery"
+  ],
+  "boundary": "These are fabricated host test inputs, not guest execution evidence."
+}

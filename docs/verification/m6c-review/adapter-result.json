@@ -1,0 +1,160 @@
+{
+  "schema": "m6c-portable-adapter-recheck-v1",
+  "task": "R08 portable rerun of the original R07 actual-adapter host ABI shim",
+  "runtime_source_commit": "bc4cd104e86e2c047b727ae96e07a03fbc810c3c",
+  "execution_head": "1827302a3ed7d44b0edc372ec6c8d6d4ae17825f",
+  "source_hashes": {
+    "services/catalog/Cargo.toml": "56198ca8ae556bfb70569569d82c09437a34a1b2f27dc247e5a9d2a733d260ac",
+    "services/catalog/src/lib.rs": "72d00eef268f5768e6aa33b22a9d6c8e3ed37af2e466889d02e4123a114dc12c",
+    "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+    "services/catalog/src/journal.rs": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+    "services/catalog/src/user_service.rs": "f822b19496b47a155aa62505cbec042d75a9d30c5829eef2153a547fc1072e01",
+    "services/catalog/tests/core.rs": "639a1c03cf03cb0a7dd5bd13c59f95b6682361f1632d8bf034413f0f0b370464",
+    "services/catalog/tests/wire.rs": "6cff9f23cd14a51bccae6f366196fd0b254def3625bf79a2a31d6199347f10a0",
+    "services/catalog/README.md": "aabf31a6590409114d39be2b21d90ecb12fa10febaa2f9206cb93dd93726ff08",
+    "userspace/m6c_probe.rs": "3fb6e9df945b4149c2af15b80cf117a69d3bb8432d45ba171b549310b92233cb",
+    "kernel/src/m2/m3/m6c.rs": "7dbd42855e63ca959e5bbcf11a65a4bec921b374531fd070056e96e18d54f0e8",
+    "docs/implementation/M6C-NAMED-CATALOG.md": "39c8c4392b7e5160b7099fadacdc475c875aae8e00b760e7cf4f507d5e0ed70b"
+  },
+  "source_matches_runtime_commit": {
+    "services/catalog/Cargo.toml": true,
+    "services/catalog/src/lib.rs": true,
+    "services/catalog/src/wire.rs": true,
+    "services/catalog/src/journal.rs": true,
+    "services/catalog/src/user_service.rs": true,
+    "services/catalog/tests/core.rs": true,
+    "services/catalog/tests/wire.rs": true,
+    "services/catalog/README.md": true,
+    "userspace/m6c_probe.rs": true,
+    "kernel/src/m2/m3/m6c.rs": true,
+    "docs/implementation/M6C-NAMED-CATALOG.md": true
+  },
+  "source_matches_execution_head": {
+    "services/catalog/Cargo.toml": true,
+    "services/catalog/src/lib.rs": true,
+    "services/catalog/src/wire.rs": true,
+    "services/catalog/src/journal.rs": true,
+    "services/catalog/src/user_service.rs": true,
+    "services/catalog/tests/core.rs": true,
+    "services/catalog/tests/wire.rs": true,
+    "services/catalog/README.md": true,
+    "userspace/m6c_probe.rs": true,
+    "kernel/src/m2/m3/m6c.rs": true,
+    "docs/implementation/M6C-NAMED-CATALOG.md": true
+  },
+  "directly_compiled_source_paths": [
+    "services/catalog/src/wire.rs",
+    "services/catalog/src/journal.rs",
+    "services/catalog/src/user_service.rs"
+  ],
+  "probe_sha256": "f69c9ff89a0e46c95d320f2c20b8e0c4cff9d4300e300d072c0502af45b1116b",
+  "probe_path": "docs/verification/m6c-review/m6c_adapter_probe.rs",
+  "probe_change_scope": "Only three #[path] values changed from the original absolute checkout location to ../../../services/catalog/src/; all scenario code is byte-identical.",
+  "environment_setup": {
+    "provider": "tools/common.py::environment",
+    "provider_sha256": "12a895c02e934587552f6f4212ccdf460dab49ddb39648bd4ce7f81f0581b838",
+    "provider_matches_runtime_source_commit": true,
+    "provider_matches_execution_head": true,
+    "python_setup": "import sys; sys.path.insert(0, 'tools'); from common import environment; env = environment()",
+    "subprocess_parameter": "env=env",
+    "rustc_executable": ".tools/nieuw-os/cargo/bin/rustc",
+    "CARGO_HOME": ".tools/nieuw-os/cargo",
+    "RUSTUP_HOME": ".tools/nieuw-os/rustup",
+    "RUSTUP_AUTO_INSTALL": "0",
+    "PYTHONIOENCODING": "utf-8",
+    "path_resolution": "environment() prepends the existing repository toolchain and its host rustlib/bin to the inherited PATH; recorded checkout-local paths are relative to cwd."
+  },
+  "setup": {
+    "argv": [
+      "mkdir",
+      "-p",
+      "build/m6c-review-portable"
+    ],
+    "cwd": ".",
+    "cwd_reference": "repository root",
+    "started_utc": "2026-10-28T00:02:27.584857Z",
+    "finished_utc": "2026-10-28T00:02:27.586173Z",
+    "elapsed_seconds": 0.001306,
+    "status": "passed",
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "preparation_notes": [
+    {
+      "argv": [
+        "rustc",
+        "+1.90.0",
+        "-Vv"
+      ],
+      "cwd": ".",
+      "stage": "toolchain identification before using common.environment()",
+      "status": "spawn_failed",
+      "returncode": null,
+      "error": "FileNotFoundError: rustc was absent from the inherited PATH.",
+      "impact": "No compile or adapter scenario was attempted. Corrected by the existing tools/common.py environment() setup before the actual successful commands below."
+    }
+  ],
+  "toolchain": {
+    "argv": [
+      "rustc",
+      "+1.90.0",
+      "-Vv"
+    ],
+    "cwd": ".",
+    "cwd_reference": "repository root",
+    "started_utc": "2026-10-28T00:02:27.586197Z",
+    "finished_utc": "2026-10-28T00:02:27.598367Z",
+    "elapsed_seconds": 0.012186,
+    "status": "passed",
+    "returncode": 0,
+    "stdout": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8\n",
+    "stderr": ""
+  },
+  "host_requirements": "x86_64 Linux host: the unchanged ABI shim uses Linux mmap with MAP_FIXED_NOREPLACE at its private scratch address. Portability here means checkout location, not operating-system portability.",
+  "argv": [
+    "build/m6c-review-portable/m6c_adapter_probe"
+  ],
+  "cwd": ".",
+  "cwd_reference": "repository root",
+  "started_utc": "2026-10-28T00:02:27.908844Z",
+  "finished_utc": "2026-10-28T00:02:27.914039Z",
+  "elapsed_seconds": 0.005192,
+  "status": "passed",
+  "returncode": 0,
+  "stdout": "PASS Success: 8 canonical replies, I/O=[128, 1, 2], sequence=3, own-domain catalog, rename content unchanged\nPASS WriteSubmit: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS WritePoll: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS FlushSubmit: 8 canonical replies, I/O=[128, 1, 2], sequence=2, own-domain catalog, rename content unchanged\nPASS FlushPoll: 8 canonical replies, I/O=[128, 1, 2], sequence=2, own-domain catalog, rename content unchanged\nPASS BadWriteAmount: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS BadCompletionSender: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS BadCompletionTicket: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS BadCompletionPadding: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS WriteTimeout: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS FlushTimeout: 8 canonical replies, I/O=[128, 1, 2], sequence=2, own-domain catalog, rename content unchanged\nPASS Legacy: refused before READY, reads=4, writes=0, flush=0\nPASS Corrupt: refused before READY, reads=8, writes=0, flush=0\nPASS RenameChangedContent: refused before READY, reads=12, writes=0, flush=0\nPASS AuthorityAndTombstones: spoofed PID/endpoint denied, 3 attached handles closed, 7 canonical replies, tombstone revision retained, no foreign/deleted name, no writes\n",
+  "stderr": "",
+  "scope": "actual services/catalog/src/user_service.rs with temporary host ABI shim; no native or device durability claim",
+  "scenarios": 15,
+  "scenario_names": [
+    "Success",
+    "WriteSubmit",
+    "WritePoll",
+    "FlushSubmit",
+    "FlushPoll",
+    "BadWriteAmount",
+    "BadCompletionSender",
+    "BadCompletionTicket",
+    "BadCompletionPadding",
+    "WriteTimeout",
+    "FlushTimeout",
+    "Legacy",
+    "Corrupt",
+    "RenameChangedContent",
+    "AuthorityAndTombstones"
+  ],
+  "checks": {
+    "process_exit_zero": true,
+    "same_fifteen_scenarios": true,
+    "stdout_identical_to_original_run": true,
+    "stderr_empty": true,
+    "sources_unchanged_during_build_and_run": true,
+    "probe_unchanged_during_build_and_run": true,
+    "environment_provider_unchanged_during_build_and_run": true,
+    "execution_head_unchanged": true
+  },
+  "binary_path": "build/m6c-review-portable/m6c_adapter_probe",
+  "binary_sha256": "76a0a92ac200add4c3715c479d86796b9477ba3baaf175837ab49fc078821588",
+  "build_record": "adapter-build.json",
+  "original_result_record": "adapter-original/adapter-result.json"
+}

@@ -1,6 +1,112 @@
-# Nieuw OS — eigen kernel en native documentopslag
+# Nieuw OS — eigen kernel en native documentcatalogus
 
-## Actuele bouwstap: M6b
+<!-- OS-PROGRESS:BEGIN -->
+## Voortgang naar een volwaardig zelfstandig OS
+
+![Nieuw OS: 14% van de vaste productroadmap](docs/assets/progress.svg)
+
+**14% — 14 van 100 gewogen acceptatiepunten.** Dit is een
+planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
+percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
+met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
+die besturingssystemen is de basis.
+
+**0%:** nog geen criterium gerealiseerd. **100%:** een volwaardig, dagelijks
+bruikbaar en onderhoudbaar zelfstandig OS op gedocumenteerde ondersteunde
+hardware, met native Materiaal, nuttige apps, internet, veilige opslag,
+updates, herstel en de afgesproken privacyfuncties. Een bootende demo of
+alleen een nette desktop haalt die eindgrens niet.
+
+| Productspoor | Totaal punten | Behaald |
+|---|---:|---:|
+| Eigen kern en procesisolatie | 15 | 9 |
+| Opslag en gegevensherstel | 15 | 4 |
+| Hardware, drivers en energie | 12 | 1 |
+| Native Materiaal en toegankelijkheid | 15 | 0 |
+| Internet en netwerkdiensten | 10 | 0 |
+| Beveiliging, privacy en updates | 12 | 0 |
+| Apps, SDK en installatie | 8 | 0 |
+| Persoonlijke NAS en meerdere apparaten | 5 | 0 |
+| Lokale AI en quantum-runtime | 3 | 0 |
+| Dagelijks gebruik en onderhoudbare release | 5 | 0 |
+| **Totaal** | **100** | **14** |
+
+**Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
+**Bron:** [`322c553f`](https://github.com/simonvanieperen/nieuw-os/commit/322c553f58f11843aab7cf895bcba05564a9c7ac) ·
+**Ontwikkelbranch:** `codex/integrate-m6d-main`.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Historische auditbron en laatste PR-reviewgrenzen vastleggen.
+Vier resterende documentatie- en herkomstpunten zijn hersteld: timeoutgrens van de recorder, originele A04-scriptbytes, R09-bestandsnaam en strikte padvereisten, historische M6c-queue. De bestaande native bron en rawreceipts blijven behouden; geen nieuwe native uitvoering of geaccepteerd criterium. Voortgang blijft 14%.
+
+De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
+productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
+NAS/TLS en qsim staan zichtbaar in de projectstatus, maar krijgen geen native
+productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
+
+[Criteria, bewijs en berekening](docs/PROGRESS.md) ·
+[Volledige roadmap](docs/ROADMAP.md) ·
+[Actuele uitvoering](docs/PROJECT-STATE.md).
+Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
+beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
+<!-- OS-PROGRESS:END -->
+
+## Laatste integratie en review
+
+[PR #13](https://github.com/simonvanieperen/nieuw-os/pull/13) brengt M6c/M6d,
+de actuele main en het [nieuwe Windowsbewijs](docs/verification/M6D-CLOSEOUT.md)
+samen. De geschiedenis is zonder codeverlies verbonden. Ook de ontbrekende
+qsim-parserfix is opgenomen: positionele JSON-arrays worden geweigerd;
+[27 hosttests, rustfmt en Clippy](docs/verification/qsim-request-validation/README.md)
+slagen. De actuele review- en squashmergestatus staat in de PR.
+De native broninputs blijven gelijk en
+de voortgang blijft **14%**.
+
+## Laatste bouwstap: M6d — opslagfouten gecontroleerd afhandelen
+
+De eigen kernel laat onzekere schrijfuitkomsten nu bij de apps aankomen zonder
+observerpanic of onterechte bevestiging. Acht foutproeven controleren onder meer
+WRITE/FLUSH-fouten, time-outs, descriptorweigering en resetquarantaine. Beide
+appdomeinen blijven voortgang maken; na `Unknown` volgen geen nieuwe
+blokaanroepen of automatische herhalingen van de onzekere wijziging.
+
+Op bron `88e6c04b` slagen **35 groepen / 31 echte VM-invocaties**, inclusief
+14 koude recoveries. De afzonderlijke M6b-regressie slaagt met **18 groepen /
+14 VM-invocaties**. Beide bewijsbundels zijn afzonderlijk gecontroleerd; de
+normale eindbuild is bytegelijk aan beide normale M6d-gateruns. Dit sluit
+criterium S07 en brengt de vaste voortgangsmeter van **13% naar 14%**.
+
+[Acceptatie, commando's en bewijs](docs/verification/M6D-ACCEPTANCE.md) ·
+[Vooraf vastgelegd contract](docs/implementation/M6D-IO-UNCERTAINTY.md) ·
+[PR #11](https://github.com/simonvanieperen/nieuw-os/pull/11).
+Werkbranch: `codex/m6d-io-recovery-roadmap`. Herstel gebruikt nog een nieuwe VM;
+automatische dienstherstart in dezelfde sessie is de volgende beperkte stap.
+De foutinjecties bewijzen geen fysieke schijffouten of stroomuitval.
+
+## Eerdere bouwstap: M6c — namen en documentcatalogus
+
+De nieuwe native dienst bewaart documentnamen, inventariseert uitsluitend het
+eigen appdomein en hernoemt met behoud van inhoud en revisiecontrole. Dit is de
+opslaginterface voor de latere Materiaal-integratie. De volledige native gate
+slaagt op broncommit `bc4cd104`: **19 controlegroepen / 15 echte VM-invocaties**,
+waaronder zes koude recoveries, twee externe onderbrekingen tijdens hernoemen
+en één normale M1-boot. De volledige M6b-regressie op dezelfde bron slaagt ook:
+**18 groepen / 14 VM-invocaties**. Daarnaast slagen 30 Rust-coretests,
+33 M6c-harnastests en 15 afzonderlijke hostproeven van de echte serviceadapter.
+[Contract](docs/implementation/M6C-NAMED-CATALOG.md) ·
+[Acceptatie en reproduceerroute](docs/verification/M6C-ACCEPTANCE.md) ·
+[Actuele projectstatus](docs/PROJECT-STATE.md).
+
+```sh
+python3 -B tools/build.py --kernel-feature milestone-m6c
+python3 -B tools/run_m6c.py --case normal --smoke
+```
+
+Werkbranch: `codex/m6c-named-catalog`, [PR #10](https://github.com/simonvanieperen/nieuw-os/pull/10),
+boven op de afgeronde M6b-branch. De proef gebruikt eigen wegwerpimages:
+vier objecten, maximaal 128 inhoudsbytes, 32 UTF-8-naambytes en 32 journalrecords.
+Bezet v1 wordt zonder schrijven geweigerd. Dit levert native opslaggedrag;
+de interactieve desktop, encryptie en native NAS-integratie blijven vervolgstappen.
+
+## Afgeronde basis: M6b
 
 De eigen Rust-kernel heeft nu een native objectdienst in ring 3. Twee geïsoleerde
 testapps kunnen via capability-IPC objecten aanmaken, lezen, bijwerken en
@@ -12,9 +118,9 @@ De volledige M6b-gate op broncheckpoint `1e61a20` is geslaagd: **18 controlegroe
 en 14 echte VM-invocaties**, inclusief zes koude recoveries en twee externe
 QEMU-kills. Ook 22 Rust-tests en 26 M6b-harnastests slagen. Ruwe uitvoer, hashes en
 de onafhankelijke schijfcontrole staan in [verification/m6b](docs/verification/m6b/).
-Deze afgebakende proef gebruikt vier objecten van maximaal 128 bytes en een
-journal van 32 records. Namen, ruimtehergebruik, encryptie en native NAS/desktop
-volgen als aparte integratiestappen; dit is nog geen consumentensysteem.
+Deze afgebakende M6b-proef gebruikt vier objecten van maximaal 128 bytes en een
+journal van 32 records. M6c hierboven voegt namen toe; ruimtehergebruik,
+encryptie en native NAS/desktop volgen als aparte integratiestappen.
 
 ```sh
 python3 -B tools/build.py --kernel-feature milestone-m6b
@@ -43,58 +149,30 @@ M6b staat op [codex/m6b-object-storage](https://github.com/simonvanieperen/nieuw
 
 De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-feature milestone-m5` en `python tools/run.py --smoke --milestone m5`. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
 
-## Oorspronkelijk startpakket (historische context)
+## Projectrichting en verder lezen
 
-Onderstaande tekst beschrijft de aangeleverde voorbereiding van26 oktober2026. Uitspraken daarin over ontbrekende code zijn historisch; de actuele status staat hierboven.
+Nieuw OS bouwt een eigen Rust-kernel met expliciete bevoegdheden en afzonderlijke
+systeemdiensten, plus een oorspronkelijke productervaring: **Materiaal**.
+Documenten en collecties staan centraal; apps zijn verwisselbare gereedschappen.
+De eigen kernel is geen fork van een bestaand besturingssysteem. Rust/LLVM,
+QEMU, UEFI, open standaarden en gecontroleerde bibliotheken zijn ontwikkelmiddelen.
 
-# Een zelfstandig OS — startpakket voor Codex
-Onderzoeksdatum: 26 oktober 2026. Revisie 5: de eerste onderzoeken zijn uitgevoerd; concrete bouwspecificaties voor kernel, product, quantum en Europese eisen staan klaar. Werknaam: `nieuw-os`; geen merkonderzoek uitgevoerd.
+Persoonlijke gegevens blijven lokaal of end-to-end versleuteld op een expliciet
+gekoppelde eigen NAS of NAS bij vrienden/familie. Internet vraagt passende
+app-/peerrechten. Systeem-AI blijft op het eigen apparaat zonder cloudfallback;
+installatie van een app verleent geen algemene bestands- of netwerkrechten.
+De actuele native implementatiegrenzen staan per spoor hierboven.
 
-Dit pakket is een voorbereid project met gekozen oplossingen, exacte interfaces, instructies en een uitvoerbare eerste ontwikkelopdracht. Begin met [docs/implementation/START-CODING.md](docs/implementation/START-CODING.md). Het bevat **geen werkend besturingssysteem** en geen bewezen veilige kernel. Er is nog geen boot-, prestatie- of beveiligingstest uitgevoerd.
+- [Architectuur en kernelcontract](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
+- [Materiaal en productambitie](docs/implementation/PRODUCT-SPEC.md).
+- [Privacycontract](docs/LOCAL-PRIVACY-CONTRACT.md).
+- [Quantumspoor](docs/QUANTUM-RESEARCH.md).
+- [Beveiliging en postkwantumroute](docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md).
+- [Werkinstructies voor agents](AGENTS.md).
+- [Ontwerpbesluiten](docs/DECISIONS.md) en [afhankelijkheden](docs/DEPENDENCIES.md).
 
-## Begin
-1. Lees [START-HIER.md](START-HIER.md).
-2. Open de uitgepakte projectmap als werkproject in Codex.
-3. Plak [PROMPT-START.md](PROMPT-START.md) in de eerste ontwikkelchat.
-4. Bewaar actuele voortgang in [docs/PROJECT-STATE.md](docs/PROJECT-STATE.md), niet alleen in de chat.
-
-## De gekozen richting
-Een eigen Rust-kernel met een kleine vertrouwde kern, expliciete bevoegdheden (capabilities) en afzonderlijke systeemdiensten. Eerst x86_64 in QEMU met UEFI; later één aantoonbaar ondersteund apparaat tegelijk. De eerste architectuur is als bouwbasis gekozen, maar nog niet geïmplementeerd. Privacygrens herzien op 27 oktober 2026: OS-data lokaal of end-to-end versleuteld op een expliciet gekoppelde eigen NAS of NAS van vrienden/familie; internet naar die NAS vereist afzonderlijke toestemming. De beheerder mag opslag intrekken/verwijderen zonder de inhoud te kunnen ontsleutelen. AI-inferentie blijft op het apparaat zonder cloudfallback. Derdenapps blijven installeerbaar met afzonderlijk begrensde rechten.
-
-Eigen kernel en eigen productervaring betekenen niet: zelf een compiler, encryptiealgoritme of netwerkstandaard uitvinden. Bestaande ontwikkelgereedschappen, formele methoden, open standaarden en zorgvuldig gekozen bibliotheken mogen worden gebruikt. Een bestaande Linux-, BSD-, XNU- of seL4-kernel als basis valt buiten de huidige opdracht.
-
-## Inhoud
-| Bestand | Functie |
-|---|---|
-| START-HIER.md | Project, Git, GitHub/alternatieven en modelkeuze |
-| PROMPT-START.md | Volledige kopieerbare startopdracht |
-| PROMPT-VERVOLG.md | Herstarten zonder belangrijke context te verliezen |
-| AGENTS.md | Projectbrede werkinstructies |
-| boot/, kernel/, drivers/, services/, ui/, tests/, docs/AGENTS.md | Regels per map; nog geen subsystemen |
-| .codex/agents/*.toml | Optionele rollen volgens geraadpleegde actuele Codex-documentatie |
-| .codex/config.example.toml | Voorbeeld voor maximaal drie subagents; geen automatische installatie |
-| docs/implementation/START-CODING.md | Gekozen bouwbasis en ingang naar de vijf concrete specificaties |
-| docs/implementation/FIRST-BATCH.md | Directe opdrachten B00/B01/P02/Q01 met exclusieve schrijfgebieden |
-| docs/implementation/VERIFICATION.md | Werkelijk uitgevoerde controles en nog ontbrekend bewijs |
-| tools/preflight.py | Read-only inventarisatie van de ontwikkelomgeving |
-| docs/ARCHITECTURE.md | Systeemontwerp, interfaces en hardwarekeuzes |
-| docs/ROADMAP.md | Kleine mijlpalen met controleerbare acceptatiecriteria |
-| docs/SECURITY-AND-QUANTUM.md | Dreigingsmodel, isolatie, updateketen en postkwantumstrategie |
-| docs/QUANTUM-RESEARCH.md | Quantumprogramma’s, lokale QPU en eigen OS op hybride quantumhardware |
-| docs/LOCAL-PRIVACY-CONTRACT.md | Bindende NAS-, lokale AI- en derdenapp-eisen met acceptatietests |
-| docs/DESIGN-AMBITION.md | Eigen interactiemodel, hoogwaardige afwerking en parallel productonderzoek |
-| docs/PRODUCT-AND-SOVEREIGNTY.md | Privacy, Europese autonomie, originaliteit en gebruikerservaring |
-| docs/KNOWLEDGE-MAP.md | Benodigde kennis, bronnen en leerroute |
-| docs/OSDEV-LEERROUTE.md | Jouw OSDev-link, gekoppeld aan de mijlpalen |
-| docs/CODEX-WORKFLOW.md | Coördinatie, rollen, review en bewijsvoering |
-| docs/TEST-STRATEGY.md | Testlagen en betrouwbaar rapporteren |
-| docs/DECISIONS.md | Eerste ontwerpbesluiten en open keuzes |
-| docs/DEPENDENCIES.md | Inventaris en herkomstcontrole |
-| docs/TASK-TEMPLATE.md | Afgebakende opdracht voor één agent |
-| SECURITY.md | Voorlopig beveiligingsbeleid |
-| LICENSE-PLAN.md | Licentiekeuze vóór publicatie |
-
-De eerste productkeuze (Materiaal), het bootcontract, de kernelgrenzen en de lokale quantumproef zijn besloten. Een inventarisatiescript staat in `tools/preflight.py`. Nog niet aanwezig: loader/kernel, productprototype en Rust-quantumsimulator. De startprompt laat Codex deze bouwen; hij vraagt geen nieuwe algemene onderzoeksronde.
-
-Bronnen staan per onderzoeksbestand in APA-achtige bibliografische vorm met directe URL's en raadpleegdatum. De implementatiespecificaties bevatten gekozen projectbesluiten; achtergrondbestanden bevatten ook voorstellen voor latere fasen. Keuzes en budgetten zijn geen door bronnen bewezen prestaties. De documentatie dekt de start; zij vervangt geen processorhandleiding, securityreview of ervaren OS-ontwikkelaar.
-
+De startdocumenten van 26 oktober beschrijven de toenmalige voorbereiding.
+Zinnen daarin over ontbrekende loader/kernel of niet-uitgevoerde eerste tests
+zijn historisch; volg voor de huidige uitvoering PROJECT-STATE.md.
+De README en roadmap zijn geen claim van onhackbaarheid, algemene
+hardwarecompatibiliteit of reeds bewezen gelijkwaardigheid met bestaande platforms.

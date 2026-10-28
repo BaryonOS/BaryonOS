@@ -1,0 +1,47 @@
+{
+  "task": "R07 independent design/core/native-adapter review",
+  "base": "bb22fdbe15919edc23baa158a46236195ce314b2",
+  "blockers": [],
+  "findings": [],
+  "reviewed": [
+    "M6c contract",
+    "wire parsing and canonical replies",
+    "journal transition/recovery invariants",
+    "native adapter authority and I/O-failure behavior",
+    "m6c broker/observer diff against m6b",
+    "native probe normal/error/full/recovery/cut request expectations",
+    "final populated-domain errors fixture barrier272, 53 RPC/app, 80 rejected replies",
+    "distinct refused Full rename label; existing name verified afterward"
+  ],
+  "test": {
+    "scope": "actual services/catalog/src/user_service.rs with temporary host ABI shim; no native or device durability claim",
+    "scenarios": 15,
+    "returncode": 0,
+    "stdout": "PASS Success: 8 canonical replies, I/O=[128, 1, 2], sequence=3, own-domain catalog, rename content unchanged\nPASS WriteSubmit: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS WritePoll: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS FlushSubmit: 8 canonical replies, I/O=[128, 1, 2], sequence=2, own-domain catalog, rename content unchanged\nPASS FlushPoll: 8 canonical replies, I/O=[128, 1, 2], sequence=2, own-domain catalog, rename content unchanged\nPASS BadWriteAmount: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS BadCompletionSender: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS BadCompletionTicket: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS BadCompletionPadding: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS WriteTimeout: 8 canonical replies, I/O=[128, 1, 1], sequence=2, own-domain catalog, rename content unchanged\nPASS FlushTimeout: 8 canonical replies, I/O=[128, 1, 2], sequence=2, own-domain catalog, rename content unchanged\nPASS Legacy: refused before READY, reads=4, writes=0, flush=0\nPASS Corrupt: refused before READY, reads=8, writes=0, flush=0\nPASS RenameChangedContent: refused before READY, reads=12, writes=0, flush=0\nPASS AuthorityAndTombstones: spoofed PID/endpoint denied, 3 attached handles closed, 7 canonical replies, tombstone revision retained, no foreign/deleted name, no writes\n",
+    "stderr": "",
+    "source_hashes": {
+      "services/catalog/Cargo.toml": "56198ca8ae556bfb70569569d82c09437a34a1b2f27dc247e5a9d2a733d260ac",
+      "services/catalog/src/lib.rs": "72d00eef268f5768e6aa33b22a9d6c8e3ed37af2e466889d02e4123a114dc12c",
+      "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+      "services/catalog/src/journal.rs": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+      "services/catalog/src/user_service.rs": "f822b19496b47a155aa62505cbec042d75a9d30c5829eef2153a547fc1072e01",
+      "services/catalog/tests/core.rs": "639a1c03cf03cb0a7dd5bd13c59f95b6682361f1632d8bf034413f0f0b370464",
+      "services/catalog/tests/wire.rs": "6cff9f23cd14a51bccae6f366196fd0b254def3625bf79a2a31d6199347f10a0",
+      "services/catalog/README.md": "aabf31a6590409114d39be2b21d90ecb12fa10febaa2f9206cb93dd93726ff08",
+      "userspace/m6c_probe.rs": "3fb6e9df945b4149c2af15b80cf117a69d3bb8432d45ba171b549310b92233cb",
+      "kernel/src/m2/m3/m6c.rs": "7dbd42855e63ca959e5bbcf11a65a4bec921b374531fd070056e96e18d54f0e8",
+      "docs/implementation/M6C-NAMED-CATALOG.md": "39c8c4392b7e5160b7099fadacdc475c875aae8e00b760e7cf4f507d5e0ed70b"
+    },
+    "probe_sha256": "cec80f7b6546b6a1e7764b0ef8ea671526535910eb7a9a3de134c271e0e37b5e"
+  },
+  "limits": [
+    "Host ABI shim proves handling of supplied completion/failure events, not actual device durability.",
+    "No QEMU runs or shared build slot used by reviewer.",
+    "AI review is not human audit or formal proof.",
+    "Final native guest/disk evidence remains root verifier responsibility."
+  ],
+  "repo_modified_by_reviewer": false,
+  "notes": [
+    "Python m6c_disk.py inspected for independent record parsing/recovery/name/tombstone checks; no issues found in inspected code. Final guest evidence not yet available."
+  ]
+}
