@@ -1,0 +1,195 @@
+--- a/tools/test_m6.py
++++ b/tools/test_m6.py
+@@ -55,7 +55,7 @@
+         build(kernel_feature="milestone-m6a", label="m6a")
+         run_logged([sys.executable, "-B", "-X", "utf8", "userspace/tests/test_m6_probe.py",
+                     "--elf", "build/users/m6_probe.elf"], "m6a-user-artifact-tests")
+-        record("m6-user-artifact-tests", True, "build/logs/m6a-user-artifact-tests.stdout.txt", ["M6A-USER-ELF"])
++        record("m6-user-artifact-tests", True, "build/logs/m6a-user-artifact-tests.stderr.txt", ["M6A-USER-ELF"])
+         normals = []
+         for suffix in ("a", "b"):
+             if suffix == "b": build(kernel_feature="milestone-m6a", label="m6a")
+--- a/tools/capture_m6.py
++++ b/tools/capture_m6.py
+@@ -166,11 +166,11 @@
+         elif evidence.is_file():
+             evidence.resolve().relative_to(BUILD.resolve())
+             paths = [evidence]
+-            if evidence.name.endswith(".stdout.txt"):
+-                stem = evidence.name.removesuffix(".stdout.txt")
++            if evidence.name.endswith((".stdout.txt", ".stderr.txt")):
++                stem = evidence.name.removesuffix(".stdout.txt").removesuffix(".stderr.txt")
+                 meta = evidence.with_name(stem+".json")
+                 if read_json(meta)["returncode"] != 0: raise ValueError("Failed host command")
+-                paths += [meta, evidence.with_name(stem+".stderr.txt")]
++                paths = [evidence.with_name(stem+suffix) for suffix in (".stdout.txt", ".json", ".stderr.txt")]
+             for path in paths:
+                 text = path.read_text(encoding="utf-8").rstrip()
+                 (dest/path.name).write_text(text+"\n" if text else "", encoding="utf-8", newline="\n")
+--- a/docs/verification/m6b-review/merge-followup/verify_m5_archive.py
++++ b/docs/verification/m6b-review/merge-followup/verify_m5_archive.py
+@@ -38,9 +38,12 @@
+         data[:len(header)] = header
+         digest = hashlib.sha256(data).hexdigest()
+         sectors = {str(n): fnv64(data[n * 512:(n + 1) * 512]) for n in (4, 6)}
+-        assert digest == oracle["sha256_before"] == oracle["sha256_after"]
+-        assert digest == guest["artifact_sha256"]["test-disk.img"]
+-        assert sectors == oracle["observed_digests"] == oracle["expected_digests"]
++        if not digest == oracle["sha256_before"] == oracle["sha256_after"]:
++            raise ValueError("Reconstructed M5 image disagrees with archived before/after hashes")
++        if digest != guest["artifact_sha256"]["test-disk.img"]:
++            raise ValueError("Reconstructed M5 image disagrees with its artifact hash")
++        if not sectors == oracle["observed_digests"] == oracle["expected_digests"]:
++            raise ValueError("Reconstructed M5 sectors disagree with archived digests")
+         reconstructed.append({"run_id": Path(guest["run_directory"]).name,
+                               "source_commit": guest["base_commit"],
+                               "image_sha256": digest, "sector_digests": sectors})
+@@ -49,13 +52,15 @@
+     for field in ("esp/kernel.elf", "esp/EFI/BOOT/BOOTX64.EFI"):
+         modified = copy.deepcopy(normal)
+         modified[1]["artifact_sha256"][field] = "0" * 64
+-        assert not two_image_evidence(modified)["passed"]
++        if two_image_evidence(modified)["passed"]:
++            raise ValueError("Different artifact unexpectedly accepted: " + field)
+         negative.append("different_" + field)
+     modified = copy.deepcopy(normal)
+     for field in ("sha256_before", "sha256_after"):
+         modified[1]["disk_oracle"][field] = modified[0]["disk_oracle"][field]
+     modified[1]["artifact_sha256"]["test-disk.img"] = modified[0]["artifact_sha256"]["test-disk.img"]
+-    assert not two_image_evidence(modified)["passed"]
++    if two_image_evidence(modified)["passed"]:
++        raise ValueError("Same image unexpectedly accepted")
+     negative.append("same_image")
+     modified = copy.deepcopy(normal)
+     for field in ("expected_digests", "observed_digests"):
+@@ -65,11 +70,13 @@
+     modified[1]["stdout"] = "\n".join(lines + [
+         f"M5:SECTOR{sector}_DIGEST:{value}"
+         for sector, value in modified[0]["disk_oracle"]["observed_digests"].items()]) + "\n"
+-    assert not two_image_evidence(modified)["passed"]
++    if two_image_evidence(modified)["passed"]:
++        raise ValueError("Same received digests unexpectedly accepted")
+     negative.append("same_received_digests")
+     modified = copy.deepcopy(normal)
+     modified[1]["base_commit"] = "0" * 40
+-    assert not two_image_evidence(modified)["passed"]
++    if two_image_evidence(modified)["passed"]:
++        raise ValueError("Different source commit unexpectedly accepted")
+     negative.append("different_source_commit")
+     for label, records, value in (
+             ("missing_run", normal[:1], evidence),
+@@ -80,7 +87,7 @@
+         except ValueError:
+             negative.append(label)
+         else:
+-            raise AssertionError(label)
++            raise ValueError("Invalid comparison unexpectedly accepted: " + label)
+     result = {
+         "scope": "Hercontrole van bestaande gecommitteerde gastrecords en reconstructie uit opgeslagen seeds; geen nieuwe VM-runs of opnieuw gelezen oorspronkelijke binaries.",
+         "bot_commit": "56c43da0806f5f4de57cfb49dfd0418954e2ed9c",
+--- /dev/null
++++ b/tests/test_m6_capture.py
+@@ -0,0 +1,103 @@
++"""Synthetic M6a host-log routing tests; no native build or guest execution."""
++import json
++from pathlib import Path
++import sys
++import tempfile
++import unittest
++from unittest.mock import patch
++
++sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
++import capture_m6 as capture
++import test_m6 as gate
++
++
++class HostLogRouting(unittest.TestCase):
++    def setUp(self):
++        temporary = tempfile.TemporaryDirectory()
++        self.addCleanup(temporary.cleanup)
++        self.root = Path(temporary.name)
++        self.build = self.root / 'build'
++        self.logs = self.build / 'logs'
++        self.logs.mkdir(parents=True)
++        self.stem = 'm6a-user-artifact-tests'
++        for name, value in (('ROOT', self.root), ('BUILD', self.build)):
++            patcher = patch.object(capture, name, value)
++            patcher.start()
++            self.addCleanup(patcher.stop)
++
++    def write_fixture(self, suffix, returncode=0):
++        """Exercise the actual host-file branch; guest coverage is a double."""
++        (self.logs / (self.stem + '.stdout.txt')).write_text('')
++        (self.logs / (self.stem + '.stderr.txt')).write_text('Synthetic unittest result fixture.\n')
++        (self.logs / (self.stem + '.json')).write_text(json.dumps({'returncode': returncode}))
++        suite = {'status': 'completed', 'passed': True, 'source_sha256': 'synthetic-source',
++                 'results': [{'name': 'm6-user-artifact-tests', 'passed': True,
++                              'evidence': 'build/logs/' + self.stem + suffix,
++                              'requirements': ['M6A-USER-ELF']}]}
++        (self.build / 'm6-test-results.json').write_text(json.dumps(suite))
++
++    def run_capture(self):
++        with patch.object(capture, 'source_hash', return_value='synthetic-source'), \
++                patch.object(capture, 'validate_coverage'):
++            capture.capture()
++
++    def test_stdout_and_stderr_evidence_capture_the_complete_host_log_trio(self):
++        for suffix in ('.stdout.txt', '.stderr.txt'):
++            with self.subTest(evidence=suffix):
++                self.write_fixture(suffix)
++                destination = self.root / 'docs/verification/m6a'
++                if destination.exists():
++                    for path in destination.iterdir():
++                        path.unlink()
++                self.run_capture()
++                for member in ('.stdout.txt', '.json', '.stderr.txt'):
++                    original = (self.logs / (self.stem + member)).read_text().rstrip()
++                    expected = original + '\n' if original else ''
++                    self.assertEqual((destination / (self.stem + member)).read_text(), expected)
++
++    def test_stdout_and_stderr_evidence_reject_failed_host_commands(self):
++        for suffix in ('.stdout.txt', '.stderr.txt'):
++            with self.subTest(evidence=suffix):
++                self.write_fixture(suffix, returncode=1)
++                with self.assertRaisesRegex(ValueError, 'Failed host command'):
++                    self.run_capture()
++
++    def test_stderr_evidence_requires_metadata_and_stdout_members(self):
++        for missing in ('.json', '.stdout.txt'):
++            with self.subTest(missing=missing):
++                self.write_fixture('.stderr.txt')
++                (self.logs / (self.stem + missing)).unlink()
++                with self.assertRaises(FileNotFoundError):
++                    self.run_capture()
++
++
++class UserArtifactEvidenceProducer(unittest.TestCase):
++    def test_user_artifact_group_points_to_the_result_on_stderr(self):
++        with tempfile.TemporaryDirectory() as temporary:
++            root = Path(temporary)
++            build = root / 'build'
++            logs = build / 'logs'
++            logs.mkdir(parents=True)
++
++            def command_double(args, stem):
++                (logs / (stem + '.stdout.txt')).write_text('')
++                (logs / (stem + '.stderr.txt')).write_text('Synthetic unittest result fixture.\n')
++
++            stop = RuntimeError('synthetic stop before any guest execution')
++            with patch.object(gate, 'ROOT', root), patch.object(gate, 'BUILD', build), \
++                    patch.object(gate, 'source_hash', return_value='synthetic-source'), \
++                    patch.object(gate, 'run_logged', side_effect=command_double), \
++                    patch.object(gate, 'build'), \
++                    patch.object(gate, 'run_m6', side_effect=stop), \
++                    self.assertRaises(RuntimeError) as raised:
++                gate.test_m6()
++            self.assertIs(raised.exception, stop)
++            suite = json.loads((build / 'm6-test-results.json').read_text())
++            group = next(group for group in suite['results'] if group['name'] == 'm6-user-artifact-tests')
++            self.assertEqual(group['requirements'], ['M6A-USER-ELF'])
++            self.assertEqual(group['evidence'], 'build/logs/m6a-user-artifact-tests.stderr.txt')
++            self.assertEqual((root / group['evidence']).read_text(), 'Synthetic unittest result fixture.\n')
++
++
++if __name__ == '__main__':
++    unittest.main()

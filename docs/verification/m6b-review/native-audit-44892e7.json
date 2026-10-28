@@ -1,0 +1,324 @@
+{
+  "schema_version": 1,
+  "audit": "NATIVE-R6 independent read-only audit of first completed M6b gate",
+  "reviewer": "Separate AI agent in the same ChatGPT task; not a human or formal verification audit",
+  "recorded_utc": "2026-10-27T22:45:57.284216+00:00",
+  "status": "passed_actual_evidence_audit",
+  "checkpoint_commit": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+  "source_fingerprint_version": 3,
+  "source_sha256": "6e8b320fce772d65f541e5c99e48b77a940f92e481487227cf868648cc8c68d8",
+  "suite_json_sha256": "53744a2afd6462658ee4b5b2175d5515b1c595fb1d03876bde42d818d9d6b2d1",
+  "audit_invocation": {
+    "argv": [
+      "python",
+      "-B",
+      "-"
+    ],
+    "execution_exit_code": 0,
+    "stdin_script_preserved": false,
+    "note": "The standalone inline audit script was executed through exec_command; this compact report preserves its method, observations and evidence hashes, not the full stdin source."
+  },
+  "source_reconstruction_command": [
+    "git",
+    "archive",
+    "44892e7"
+  ],
+  "method": [
+    "De v3-bronfingerprint gereconstrueerd uit de bytes van bestanden onder versiebeheer uit git archive 44892e7, met de vastgelegde mapvolgorde en uitsluitingen; niet vertrouwd op een veranderende werkboom.",
+    "Het exacte geordende contract van 18 groepen, 14 afzonderlijke canonieke VM-runmappen, de oorspronkelijke vastgelegde bronhashes en de exacte argumentlijsten/cwd/exitstatus van de drie hostcommando's gecontroleerd.",
+    "Alle 121 vereiste SHA-256-artifacthashes opnieuw berekend, de exacte sets van 9 M6b- en 4 M1-sleutels gecontroleerd en ruwe serial/stderr-bytes met elk rapport vergeleken.",
+    "Een afzonderlijke inline Python-journaldecoder gebruikt zonder imports uit m6b_disk, capture_m6b of de Rust-codec. Record-magic/version/flags, sequence, object-/revisieovergangen, DELETE-voorgangers, nulstaarten, FNV en de deterministische payloadformule onafhankelijk gecontroleerd.",
+    "De zeven werkelijke volumebestanden en voor-/nasnapshots gelezen, bestandstype/grootte/aantal koppelingen en volumemanifesten gecontroleerd en bevestigd dat zes herstelfasen bytegelijke voorafgaande images gebruikten.",
+    "Exacte gastmarkervolgordes, werkelijk vastgelegde procesexitcodes, beide hostbeëindigingsrecords, native state/rejection/ACK-waarden, kernel-/loaderbouwmanifesten en de twee normale runs met verschillende canaries gecontroleerd."
+  ],
+  "observed": {
+    "ordered_groups": 18,
+    "distinct_vm_reports": 14,
+    "m6b_vm_reports": 13,
+    "m1_vm_reports": 1,
+    "actual_volumes": 7,
+    "linked_cold_recoveries": 6,
+    "artifact_hashes_recomputed": 121,
+    "rust_tests_in_actual_log": 22,
+    "python_tests_in_actual_log": 16,
+    "host_command_substitution_observed": false,
+    "missing_actual_artifact_hashes": false,
+    "all_native_source_hashes_match_checkpoint": true,
+    "actual_coverage_gap_observed": false
+  },
+  "native_results": {
+    "normal_a_and_b": "sequence 8; objecten 0 en 2 aanwezig op revisie 2; objecten 1 en 3 hebben een verwijderrecord op revisie 2",
+    "errors": "sequence 8 en 34 afgewezen verzoeken zonder device-I/O, overeenkomstig de native waarnemer en ruwe markers",
+    "full": "sequence 32; objecten 0 en 2 aanwezig op revisie 16; objecten 1 en 3 nooit aangemaakt",
+    "corrupt": "bezet corrupt journal afgewezen; volledige image ongewijzigd",
+    "before_publication_cut": "ruwe procesexit -9; nul records; koude recovery met sequence 0",
+    "after_flush_cut": "ruwe procesexit -9; één record voor object 0 op revisie 1; koude recovery met sequence 1",
+    "m1_regression": "ruwe procesexit 33; normale M1-bootmarkers"
+  },
+  "capture_guard_findings": [
+    {
+      "id": "R6-host-command-binding",
+      "description": "Original capture accepted a successful host metadata file without exact group-to-command/log binding.",
+      "actual_gate_impact": "None observed: this audit checked all three correct distinct commands and their real logs."
+    },
+    {
+      "id": "R6-artifact-set-completeness",
+      "description": "Original raw_checks verified reported artifact entries without requiring the complete expected key set.",
+      "actual_gate_impact": "None observed: all 121 required hashes and exact key sets were present and matched."
+    }
+  ],
+  "host_commands": [
+    {
+      "name": "m6b-preflight",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-native",
+      "returncode": 0,
+      "metadata_sha256": "c93f38ce424ea2829a4e7b4846be20e67ce3ca1cba31619be6382d327aada459",
+      "stdout_sha256": "a38cdeb5fc30e5ebd29c654079ba7eaf27714d9fb5b07de698a4c115e4276401",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "m6b-host-tests",
+      "command": [
+        "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "object-core"
+      ],
+      "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-native",
+      "returncode": 0,
+      "metadata_sha256": "b00fdcee516457fc820f086c0b9a67220bacbd7a0f730c071e55d6957cb3c549",
+      "stdout_sha256": "6fbe6d70aa4e10fa581ea36abbe34c98329ada59711c94760a15339dfdf88bea",
+      "stderr_sha256": "5c474a4892ccb319c690143f851333039c4f59549b81c3ffd156a19e667e748a"
+    },
+    {
+      "name": "m6b-harness-tests",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m6b_*.py"
+      ],
+      "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-native",
+      "returncode": 0,
+      "metadata_sha256": "f7c16cba0a08e74d36ac82c358d32af571faf925786d81b7eab87e28137c7cc9",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "724d7c9417ecc3398dd2fb2065c787ab54273266c5bd0d2e972b89bb381584e6"
+    }
+  ],
+  "vm_evidence": [
+    {
+      "group": "normal-a",
+      "case": "normal",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-a1e402ba96",
+      "raw_qemu_exit": 33,
+      "artifact_hashes_recomputed": 9,
+      "result_json_sha256": "c948c226d5cbc34e9d8a1b7c89aae893ecbb1ffe457f151e7286990693c1babf",
+      "serial_sha256": "5b89f78ee73d2c6bb236505c705dd6af867dadbec68def80256fd44218438d35",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "volume_identity": "5b5c1db17e5d47dd87011e4fcf387f4b",
+      "disk_after_sha256": "3379c423a58b8ff514de3afe92fa7e8aef52d8143f88c9290239aa0f16cd064f",
+      "sequence": 8,
+      "previous_stage": null
+    },
+    {
+      "group": "normal-a-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-cold-recovery-f227b3871c",
+      "raw_qemu_exit": 33,
+      "artifact_hashes_recomputed": 9,
+      "result_json_sha256": "38fb163d3dc82c422e1e64efff48145935e37fa7f0e3c22a8c538c9bda9db920",
+      "serial_sha256": "334e9adc78da4a8629dac5206d49bf53e30d0e9777980d184f0726f4a672370d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "volume_identity": "5b5c1db17e5d47dd87011e4fcf387f4b",
+      "disk_after_sha256": "3379c423a58b8ff514de3afe92fa7e8aef52d8143f88c9290239aa0f16cd064f",
+      "sequence": 8,
+      "previous_stage": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-a-a1e402ba96"
+    },
+    {
+      "group": "normal-b",
+      "case": "normal",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-5f02369f5d",
+      "raw_qemu_exit": 33,
+      "artifact_hashes_recomputed": 9,
+      "result_json_sha256": "eec7537bc7dc99ad068f4b48d3a35066a57d75613964dbafaf36e526c597a8d0",
+      "serial_sha256": "5b89f78ee73d2c6bb236505c705dd6af867dadbec68def80256fd44218438d35",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "volume_identity": "22b7b746ef2047f9a05c8002b3143df8",
+      "disk_after_sha256": "f6bc16b0f1d5b382309029b1205213fa5895549a0ba5ba17c8e98616ad187944",
+      "sequence": 8,
+      "previous_stage": null
+    },
+    {
+      "group": "normal-b-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-cold-recovery-faac7de980",
+      "raw_qemu_exit": 33,
+      "artifact_hashes_recomputed": 9,
+      "result_json_sha256": "9b24aa84137a3b91585927746522781d3fe939df50e9aa2a547566790ebebb2f",
+      "serial_sha256": "334e9adc78da4a8629dac5206d49bf53e30d0e9777980d184f0726f4a672370d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "volume_identity": "22b7b746ef2047f9a05c8002b3143df8",
+      "disk_after_sha256": "f6bc16b0f1d5b382309029b1205213fa5895549a0ba5ba17c8e98616ad187944",
+      "sequence": 8,
+      "previous_stage": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-normal-b-5f02369f5d"
+    },
+    {
+      "group": "errors",
+      "case": "errors",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-4eb40a0662",
+      "raw_qemu_exit": 33,
+      "artifact_hashes_recomputed": 9,
+      "result_json_sha256": "4b4e1f5d307249bb4caa6247e2f8cb9562e8803c2615d880d3f3967e8a5f23ef",
+      "serial_sha256": "dc27689d6205a90f850980e54a31e44877e7e5fc50538de74786150985a77cde",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "volume_identity": "d21ad7aba7ea42ac9f80b10d4f13418d",
+      "disk_after_sha256": "f56ee4a35f7cf66f56104926bc2f8530e3efbab33c68e10bb1334f055023ca7a",
+      "sequence": 8,
+      "previous_stage": null
+    },
+    {
+      "group": "errors-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-cold-recovery-05e6646919",
+      "raw_qemu_exit": 33,
+      "artifact_hashes_recomputed": 9,
+      "result_json_sha256": "ab4b9cc289c52b545bd7cc43f0b820672730fe6c51e64286bf520af5701e8385",
+      "serial_sha256": "334e9adc78da4a8629dac5206d49bf53e30d0e9777980d184f0726f4a672370d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "volume_identity": "d21ad7aba7ea42ac9f80b10d4f13418d",
+      "disk_after_sha256": "f56ee4a35f7cf66f56104926bc2f8530e3efbab33c68e10bb1334f055023ca7a",
+      "sequence": 8,
+      "previous_stage": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-errors-4eb40a0662"
+    },
+    {
+      "group": "full",
+      "case": "full",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-064463c2a3",
+      "raw_qemu_exit": 33,
+      "artifact_hashes_recomputed": 9,
+      "result_json_sha256": "8d8a85335b84285d901de953ddd692a8ff154fdeed19f548f01251181543eb44",
+      "serial_sha256": "18c977ed6d26fd9feda5693e77f7e42ad900526a1567effb130448eec7fe6577",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "volume_identity": "c3657bd0aa7e4f0795fa3b4636c177fe",
+      "disk_after_sha256": "2d07691bb946aa25d7acf6f14a7bf5960f7c15c9d74228e580021d879f575b2b",
+      "sequence": 32,
+      "previous_stage": null
+    },
+    {
+      "group": "full-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-cold-recovery-4d9eda8ad5",
+      "raw_qemu_exit": 33,
+      "artifact_hashes_recomputed": 9,
+      "result_json_sha256": "7942a38e21786187cf6b2cb02fe5427164fd83984feb1167bcdc82c55ab9abd9",
+      "serial_sha256": "ed3619dd249dccbb9fbe3967d86dd676dd9e835a3293d5af75fe6da99f3b899b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "volume_identity": "c3657bd0aa7e4f0795fa3b4636c177fe",
+      "disk_after_sha256": "2d07691bb946aa25d7acf6f14a7bf5960f7c15c9d74228e580021d879f575b2b",
+      "sequence": 32,
+      "previous_stage": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-full-064463c2a3"
+    },
+    {
+      "group": "corrupt",
+      "case": "corrupt",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-corrupt-da4d70a59b",
+      "raw_qemu_exit": 33,
+      "artifact_hashes_recomputed": 9,
+      "result_json_sha256": "30127a5d0888a718292fb2b824e6766a5b4685f4e340903508bdacfb41f912ef",
+      "serial_sha256": "773581509f47d70331a2ca90071b98a0137599c97fd2496b1cc347c76e7dbe2b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "volume_identity": "eda27a8690474f4f9ba49dd97c7c6038",
+      "disk_after_sha256": "4ef9c3ec7a992b71beab467521c8b89923da29a215ffe28d6f1019e8b848c3bf",
+      "sequence": null,
+      "previous_stage": null
+    },
+    {
+      "group": "vm-cut-before-ack",
+      "case": "vm-cut-before-ack",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-c20d02f7a9",
+      "raw_qemu_exit": -9,
+      "artifact_hashes_recomputed": 9,
+      "result_json_sha256": "a4b7a1b81d44306cc35c72030b324584f0270d96858fdc5f62c80876a24e64c4",
+      "serial_sha256": "9eeeb5869c5e56da643f1cd52a228272873b9923738cc549a60ff50628addeb5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "volume_identity": "b09ee776a3c943fd9ae4f48cb75c6243",
+      "disk_after_sha256": "2523074717013a6b0d47a341b8a0f60b49a6a52866ca1a48ecefcf8a009cf90d",
+      "sequence": 0,
+      "previous_stage": null
+    },
+    {
+      "group": "vm-cut-before-ack-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-cold-recovery-ac63d2c8ec",
+      "raw_qemu_exit": 33,
+      "artifact_hashes_recomputed": 9,
+      "result_json_sha256": "52f66bed7a52b16f9e35cd216296fc92fa92a596380bbe166d5c1e2e0210fe22",
+      "serial_sha256": "123b3473f21fa167500f211ea89f43b938b7de6cd058e657729cc06b70c61e48",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "volume_identity": "b09ee776a3c943fd9ae4f48cb75c6243",
+      "disk_after_sha256": "2523074717013a6b0d47a341b8a0f60b49a6a52866ca1a48ecefcf8a009cf90d",
+      "sequence": 0,
+      "previous_stage": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-before-ack-c20d02f7a9"
+    },
+    {
+      "group": "vm-cut-after-flush",
+      "case": "vm-cut-after-flush",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-1eedef88b2",
+      "raw_qemu_exit": -9,
+      "artifact_hashes_recomputed": 9,
+      "result_json_sha256": "354efab93cc33924cba2a555c44a626e0467f7902ae65cd1bff8b4f0bf633d92",
+      "serial_sha256": "34ac4d3c20c808256605468d68f78c7030c77b9b9e03a9d89fa2012369c93b87",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "volume_identity": "c85500587e824939bf41de90cb9d5f4d",
+      "disk_after_sha256": "5f4d681e03a4559afdad171dea36de3fc9050f899f341d9571c559cae8226732",
+      "sequence": 1,
+      "previous_stage": null
+    },
+    {
+      "group": "vm-cut-after-flush-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-cold-recovery-12fb196039",
+      "raw_qemu_exit": 33,
+      "artifact_hashes_recomputed": 9,
+      "result_json_sha256": "71aa8bdd0e684d883ca81def2e06fa6f9862fc0c5c2b3f20cbdabca64c6a3e14",
+      "serial_sha256": "261605c7f6619da731c289830542b487360c78ef3a0972090e6afe5d6156f40b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "volume_identity": "c85500587e824939bf41de90cb9d5f4d",
+      "disk_after_sha256": "5f4d681e03a4559afdad171dea36de3fc9050f899f341d9571c559cae8226732",
+      "sequence": 1,
+      "previous_stage": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m6b-vm-cut-after-flush-1eedef88b2"
+    },
+    {
+      "group": "m1-regression-after-m6b",
+      "case": "m1",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/m1-after-m6b-f0007f889d",
+      "raw_qemu_exit": 33,
+      "artifact_hashes_recomputed": 4,
+      "result_json_sha256": "e9e5e512ccb40fac2938e358fadb8fa10ccf0e1fec04688ba6e919744c5d73cb",
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "limits": [
+    "Deze audit voerde geen aanvullende native runs uit; hij herlas onafhankelijk het werkelijke bewijs en de schijfbestanden van de voltooide gate.",
+    "Het bewijs is beperkt tot de synthetische QEMU/TCG-fixtures en de vastgelegde bron 44892e7; het geldt niet voor productieopslag, crashbestendigheid op hardware of alle mogelijke uitvoeringen.",
+    "Native I/O-foutinjectie voor Unknown/no-replay valt buiten deze 14 VM-runs; afzonderlijke adapterhostproeven mogen niet als native bewijs worden aangeduid.",
+    "FNV is een diagnostische checksum, geen authenticatie of encryptie.",
+    "Dit rapport is geen formele verificatie, onafhankelijke menselijke audit of garantie tegen een kwaadwillige host die alle bewijsbestanden vervalst.",
+    "Latere wijzigingen aan de capture-guards en hun uiteindelijke herhaling vereisen een eigen audit van de dan actuele bron."
+  ]
+}

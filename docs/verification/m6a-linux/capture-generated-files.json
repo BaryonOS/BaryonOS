@@ -1,0 +1,82 @@
+{
+  "source_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-baseline/docs/verification/m6a",
+  "suggested_destination": "docs/verification/m6a-linux",
+  "files": [
+    {
+      "name": "guest-runs.json",
+      "sha256": "f762e92faa45a8a0802f44fd39b0b31d606374bba622746b5ea6042e5a26282c",
+      "bytes": 269299
+    },
+    {
+      "name": "m6a-harness-tests.json",
+      "sha256": "d19f718c26f5a5858092f6015b2e832377f25695972b3b69a8012e16dc4bc410",
+      "bytes": 352
+    },
+    {
+      "name": "m6a-harness-tests.stderr.txt",
+      "sha256": "cf0ce7ec11e4707b45eac99370818b64c209a8153ddbe5a0d06310fb41fbdd7c",
+      "bytes": 119
+    },
+    {
+      "name": "m6a-harness-tests.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "name": "m6a-host-tests.json",
+      "sha256": "dc41c364b456e4ed7281f0a7325b3ee30e413fbb2ae8c59275c19f4a27c2eeef",
+      "bytes": 449
+    },
+    {
+      "name": "m6a-host-tests.stderr.txt",
+      "sha256": "7fef6788c67bbd542d22f8678698ac677573741cf58bd864b01cffc28d697c4c",
+      "bytes": 938
+    },
+    {
+      "name": "m6a-host-tests.stdout.txt",
+      "sha256": "c31d330491106ef20fcbacb7eae756020ec48b49342c8c51e05ba3a9ae6ddf21",
+      "bytes": 7332
+    },
+    {
+      "name": "m6a-preflight.json",
+      "sha256": "8c11812a7ddfcd07633d2424cad873eb2849e81ed04351fd45ee22519311b98f",
+      "bytes": 300
+    },
+    {
+      "name": "m6a-preflight.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "name": "m6a-preflight.stdout.txt",
+      "sha256": "a46005c476460433d2056eef5f0633aebfc716ff3f7af070735e5664fd6d5ad6",
+      "bytes": 2372
+    },
+    {
+      "name": "m6a-two-image-check.json",
+      "sha256": "2c9b5180f90f4e4b4b78f91c73763f1015b2c627079c0bacdcc3185d4a6cff41",
+      "bytes": 388
+    },
+    {
+      "name": "m6a-user-artifact-tests.json",
+      "sha256": "582e9cf2cc662e30bdb57b15741bc31cd003943f04408f56779b8bb2a2ee0124",
+      "bytes": 375
+    },
+    {
+      "name": "m6a-user-artifact-tests.stderr.txt",
+      "sha256": "9a0fcda603e186787042fc1972caf8c3ab37da262c8e2b175dc41ae5bf146044",
+      "bytes": 1753
+    },
+    {
+      "name": "m6a-user-artifact-tests.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "name": "suite.json",
+      "sha256": "6e83c518590959d66a24b6ebf9c88df25d34519336324884f5f746dfb1cdb340",
+      "bytes": 20660
+    }
+  ],
+  "historical_files_unchanged": 30
+}

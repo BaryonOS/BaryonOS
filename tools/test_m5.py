@@ -6,6 +6,7 @@ import sys
 from common import BUILD, run_logged, save_json
 from build import build, M5_CASES
 from run import run_guest, MILESTONE_MARKERS
+from m5_evidence import two_image_evidence
 
 
 def test_m5():
@@ -41,17 +42,10 @@ def test_m5():
             guest = run_guest(name, required_markers=MILESTONE_MARKERS["m5"], m5_case="read")
             record(name, guest["passed"], guest["run_directory"], ["M5-READ", "M5-ORACLE", "M5-RESOURCES"])
             normal.append(guest)
-        a, b = normal
-        checks = {
-            "same_kernel": a["artifact_sha256"]["esp/kernel.elf"] == b["artifact_sha256"]["esp/kernel.elf"],
-            "same_loader": a["artifact_sha256"]["esp/EFI/BOOT/BOOTX64.EFI"] == b["artifact_sha256"]["esp/EFI/BOOT/BOOTX64.EFI"],
-            "different_images": a["disk_oracle"]["sha256_before"] != b["disk_oracle"]["sha256_before"],
-            "different_received_digests": a["disk_oracle"]["observed_digests"] != b["disk_oracle"]["observed_digests"],
-        }
+        comparison = two_image_evidence(normal)
         evidence = BUILD / "logs/m5-two-image-check.json"
-        save_json(evidence, {"checks": checks, "runs": [g["run_directory"] for g in normal],
-                             "passed": all(checks.values())})
-        record("same-binary-two-actual-disks", all(checks.values()), "build/logs/m5-two-image-check.json", ["M5-ORACLE"])
+        save_json(evidence, comparison)
+        record("same-binary-two-actual-disks", comparison["passed"], "build/logs/m5-two-image-check.json", ["M5-ORACLE"])
         for case in M5_CASES:
             feature = f"test-m5-{case}"
             build(kernel_feature=feature, label=feature)

@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/workspace/scratch/0d3232a3c004/nieuw-os-regression/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "test",
+    "--locked",
+    "-p",
+    "capability-core",
+    "-p",
+    "kernel-core"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-regression",
+  "started_unix": 1793141043.628558,
+  "duration_s": 1.0179784297943115,
+  "returncode": 0
+}

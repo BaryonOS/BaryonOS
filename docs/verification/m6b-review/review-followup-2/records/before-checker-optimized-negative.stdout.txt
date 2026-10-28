@@ -1,0 +1,38 @@
+{
+  "scope": "Hercontrole van bestaande gecommitteerde gastrecords en reconstructie uit opgeslagen seeds; geen nieuwe VM-runs of opnieuw gelezen oorspronkelijke binaries.",
+  "bot_commit": "56c43da0806f5f4de57cfb49dfd0418954e2ed9c",
+  "guest_archive_sha256": "e239e1cf0b9e05811db24a0fa16e2f1476880996e1cbacd944b445f2779ab4bf",
+  "comparison_sha256": "37997f112df6f5a4df7a7f806d10983c6eea00bd7480aef9eb66746bbad6fe73",
+  "saved_comparison_matches_guest_records": true,
+  "reconstructed_images": [
+    {
+      "run_id": "m5-read-a-81de188365",
+      "source_commit": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+      "image_sha256": "36d3c7b4098ab27ca7f5c4aba90c7777dbf93b028278a546d9e58b7c0b73f817",
+      "sector_digests": {
+        "4": "c338ea7c949f43bb",
+        "6": "bffb7a20e63d45c2"
+      }
+    },
+    {
+      "run_id": "m5-read-b-4400c5be57",
+      "source_commit": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+      "image_sha256": "9db60ae4a638dfc87281041dd9aa7e23e41323cbec26ec4ab2f72202453e613b",
+      "sector_digests": {
+        "4": "dea34d71b4b96d75",
+        "6": "2de0e3ee206fb1f8"
+      }
+    }
+  ],
+  "negative_checks_rejected": [
+    "different_esp/kernel.elf",
+    "different_esp/EFI/BOOT/BOOTX64.EFI",
+    "same_image",
+    "same_received_digests",
+    "different_source_commit",
+    "missing_run",
+    "duplicate_run",
+    "unbound_true_flags"
+  ],
+  "passed": true
+}

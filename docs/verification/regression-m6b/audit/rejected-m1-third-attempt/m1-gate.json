@@ -1,0 +1,15 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "-u",
+    "tools/test.py"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-native",
+  "base_commit": "20f7ed282e579b96d964ae84509d895a7a826f4d",
+  "started_utc": "2026-10-27T23:00:29.429265+00:00",
+  "duration_s": 4.578579174998595,
+  "exit_code": 1,
+  "stdout": "docs/verification/regression-m6b/audit/rejected-m1-third-attempt/m1-gate.stdout.txt",
+  "stderr": "docs/verification/regression-m6b/audit/rejected-m1-third-attempt/m1-gate.stderr.txt"
+}

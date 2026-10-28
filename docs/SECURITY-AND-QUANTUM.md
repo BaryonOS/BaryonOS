@@ -1,6 +1,8 @@
 # Beveiliging, privacy en postkwantumontwerp
 
-Status: onderzoeks- en ontwerpdocument, 26 oktober 2026. Er bestaat in dit startpakket nog geen bewezen veilige kernel. De onderstaande eisen zijn voorgestelde acceptatiecriteria; ze zijn niet al geïmplementeerd of getest.
+Status: beveiligingsontwerp, bijgewerkt 27 oktober 2026. M1–M5 hebben eigen QEMU-testbewijs, M6a heeft nog een open eindpoort en N01 heeft host-/mockbewijs. Er is geen formeel geverifieerde eigen kernel. De eisen hieronder zijn niet automatisch geïmplementeerd of bewezen; de actuele uitvoering staat in PROJECT-STATE.md.
+
+De nieuwe microkernel-/CHERI-/PQC-blauwdruk is gecontroleerd en vertaald in [VERIFIABLE-SECURITY-AND-PQC.md](implementation/VERIFIABLE-SECURITY-AND-PQC.md), met broncorrecties, de werkelijke native buildgrenzen, een N02-proefprofiel voor TLS 1.3/X25519MLKEM768 (RFC 10024) en afzonderlijke bewijs-/integratietaken. Geen eigen hybride KDF/tunnel, stille seL4-kernelwissel of onbewezen CHERI-garantie. Privacy en een soepele verbonden productervaring blijven gezamenlijke eisen.
 
 ## 1. Uitgangspunt
 
@@ -118,7 +120,7 @@ Reproduceerbare builds helpen om bron en output te vergelijken, maar bewijzen ni
 
 ## 9. Privacy en Europese autonomie
 
-Harde gebruikersvereiste: OS-gegevens blijven op het apparaat of op de eigen NAS binnen het eigen lokale netwerk. Geen externe cloudprovider, leveranciersaccount, relay, sleutelbewaar- of beheerdienst. Geen externe OS-telemetrie. Synchronisatie met de eigen NAS is optioneel; lokale kerntaken werken zonder NAS. Authenticatie en beperkte rechten blijven verplicht binnen het LAN. Gegevensverwijdering, offline herstelkopieën, back-up en sleutelverlies horen bij hetzelfde ontwerp. Zie LOCAL-PRIVACY-CONTRACT.md voor tests en de grens met toegestane derdenapps.
+Herziene gebruikersvereiste (27 oktober 2026): OS-gegevens blijven lokaal of gaan end-to-end versleuteld naar een expliciet gekoppelde eigen NAS of NAS van vrienden/familie. Remote bereik via internet vereist afzonderlijke toestemming en dezelfde identiteits-/rechtencontrole als LAN. Geen leverancierscloud, leveranciersaccount, stille relay/fallback, sleutelbewaarservice of OS-telemetrie. NAS-beheerder mag capaciteit intrekken en zijn ciphertextkopieën wissen zonder toestemming van de gast; inhoudssleutels en leesrechten blijven bij de gebruiker. Beheerder kan beschikbaarheid niet garanderen en ziet noodzakelijke gebruiksmetadata. Lokale taken blijven zonder NAS werken. Eigen herstelkopieën en sleutelherstel zijn afzonderlijke gebruikersverantwoordelijkheden. Zie LOCAL-PRIVACY-CONTRACT.md revisie 3 en implementation/NAS-SHARING-AND-INTERNET.md.
 
 Europese hosting alleen is geen bewijs van privacy; open source alleen evenmin. Houd ook afhankelijkheden van stores, signingdiensten, buildinfrastructuur, firmware, documentatie en externe authenticatie zichtbaar. Geografie is geen kwaliteitskeurmerk voor cryptografie: beoordeel openbare standaarden op inhoud, implementatie en onafhankelijke analyse.
 
@@ -167,3 +169,4 @@ seL4 Project. (z.d.-b). *What the proofs assume*. Geraadpleegd op 26 oktober 202
 The Update Framework. (z.d.-a). *Roles and metadata*. Geraadpleegd op 26 oktober 2026, van https://theupdateframework.io/docs/metadata/
 
 The Update Framework. (z.d.-b). *Security*. Geraadpleegd op 26 oktober 2026, van https://theupdateframework.io/docs/security/
+

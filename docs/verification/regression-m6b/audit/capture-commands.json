@@ -1,0 +1,58 @@
+[
+  {
+    "command": [
+      "python3",
+      "-B",
+      "tools/capture_gate.py",
+      "m2",
+      "--destination",
+      "docs/verification/regression-m6b/m2"
+    ],
+    "returncode": 0,
+    "duration_s": 0.06772756576538086,
+    "stdout": "Captured m2: 8 groups, 7 verified guest runs\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "-B",
+      "tools/capture_gate.py",
+      "m3",
+      "--destination",
+      "docs/verification/regression-m6b/m3"
+    ],
+    "returncode": 0,
+    "duration_s": 0.12772846221923828,
+    "stdout": "Captured m3: 22 groups, 19 verified guest runs\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "-B",
+      "tools/capture_gate.py",
+      "m4",
+      "--destination",
+      "docs/verification/regression-m6b/m4"
+    ],
+    "returncode": 0,
+    "duration_s": 0.08204770088195801,
+    "stdout": "Captured m4: 12 groups, 10 verified guest runs\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "python3",
+      "-B",
+      "tools/capture_gate.py",
+      "m5",
+      "--destination",
+      "docs/verification/regression-m6b/m5"
+    ],
+    "returncode": 0,
+    "duration_s": 0.1510457992553711,
+    "stdout": "Captured m5: 25 groups, 20 verified guest runs\n",
+    "stderr": ""
+  }
+]

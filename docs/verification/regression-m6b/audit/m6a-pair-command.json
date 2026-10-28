@@ -1,0 +1,10 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "-u",
+    "build/regression-verification/m6a_pair_check.py"
+  ],
+  "returncode": 0,
+  "duration_s": 9.81633973121643
+}

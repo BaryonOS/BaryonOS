@@ -1,4 +1,12 @@
 fn main() {
+    println!("cargo:rerun-if-env-changed=NOS_M6B_ELF");
+    if let Ok(path) = std::env::var("NOS_M6B_ELF") {
+        println!("cargo:rerun-if-changed={path}");
+    }
+    println!("cargo:rerun-if-env-changed=NOS_M6_ELF");
+    if let Ok(path) = std::env::var("NOS_M6_ELF") {
+        println!("cargo:rerun-if-changed={path}");
+    }
     println!("cargo:rerun-if-env-changed=NOS_M5_ELF");
     if let Ok(path) = std::env::var("NOS_M5_ELF") {
         println!("cargo:rerun-if-changed={path}");

@@ -1,0 +1,24 @@
+✔ connection preflight requires existing grants without minting authenticated transport (1.644081ms)
+✔ connection preflight rejects invalid routes, wrong identities, AI and stale app handles (0.849638ms)
+✔ installation grants no internet, LAN, documents, NAS or administrator rights (0.353766ms)
+✔ browser explicit internet consent does not grant general documents or NAS access (0.853053ms)
+✔ local system AI cannot receive internet or NAS authority (0.960024ms)
+✔ NAS requires the pinned identity and explicitly selected local network (0.713611ms)
+✔ direct internet to a paired NAS requires separate peer-bound consent (0.274046ms)
+✔ vendor relay and redirects stay denied even with direct-internet permission (0.285252ms)
+✔ client-supplied verified:true or cloned transport facts never count as authenticated transport (0.219643ms)
+✔ revoking a peer or internet right also invalidates decisions using previously valid facts (0.242767ms)
+✔ model and update downloader network rights never grant personal document or NAS authority (0.374838ms)
+✔ stale app handles, forged handles and unknown rights fail closed (1.362164ms)
+✔ one pairing and internet consent automatically select LAN to internet to LAN (1.150202ms)
+✔ route planner applies revoked rights immediately while previously verified facts remain (0.339143ms)
+✔ automatic selection never accepts a wrong peer, forged fact, relay, redirect or moved LAN (1.616048ms)
+✔ automatic selection never creates missing consent and bounds its candidate input (0.278011ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 33.70683

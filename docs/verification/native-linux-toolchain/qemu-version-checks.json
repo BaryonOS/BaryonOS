@@ -1,0 +1,31 @@
+[
+  {
+    "command": [
+      "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "--version"
+    ],
+    "returncode": 0,
+    "stdout": "QEMU emulator version 10.0.2 (Debian 1:10.0.2+ds-2+deb13u1~bpo12+1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "help"
+    ],
+    "returncode": 0,
+    "stdout": "Supported machines are:\nmicrovm              microvm (i386)\npc-i440fx-9.2        Standard PC (i440FX + PIIX, 1996)\npc-i440fx-9.1        Standard PC (i440FX + PIIX, 1996)\npc-i440fx-9.0        Standard PC (i440FX + PIIX, 1996)\npc-i440fx-8.2        Standard PC (i440FX + PIIX, 1996)\npc-i440fx-8.1        Standard PC (i440FX + PIIX, 1996)\npc-i440fx-8.0        Standard PC (i440FX + PIIX, 1996)\npc-i440fx-7.2        Standard PC (i440FX + PIIX, 1996)\npc-i440fx-7.1        Standard PC (i440FX + PIIX, 1996)\npc-i440fx-7.0        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-6.2        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-6.1        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-6.0        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-5.2        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-5.1        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-5.0        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-4.2        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-4.1        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-4.0        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-3.1        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-3.0        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-2.9        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-2.8        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-2.7        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-2.6        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-2.5        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-2.4        Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-2.12       Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-2.11       Standard PC (i440FX + PIIX, 1996) (deprecated)\npc-i440fx-2.10       Standard PC (i440FX + PIIX, 1996) (deprecated)\npc                   Standard PC (i440FX + PIIX, 1996) (alias of pc-i440fx-10.0)\npc-i440fx-10.0       Standard PC (i440FX + PIIX, 1996) (default)\npc-q35-9.2           Standard PC (Q35 + ICH9, 2009)\npc-q35-9.1           Standard PC (Q35 + ICH9, 2009)\npc-q35-9.0           Standard PC (Q35 + ICH9, 2009)\npc-q35-8.2           Standard PC (Q35 + ICH9, 2009)\npc-q35-8.1           Standard PC (Q35 + ICH9, 2009)\npc-q35-8.0           Standard PC (Q35 + ICH9, 2009)\npc-q35-7.2           Standard PC (Q35 + ICH9, 2009)\npc-q35-7.1           Standard PC (Q35 + ICH9, 2009)\npc-q35-7.0           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-6.2           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-6.1           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-6.0           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-5.2           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-5.1           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-5.0           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-4.2           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-4.1           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-4.0.1         Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-4.0           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-3.1           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-3.0           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-2.9           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-2.8           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-2.7           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-2.6           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-2.5           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-2.4           Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-2.12          Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-2.11          Standard PC (Q35 + ICH9, 2009) (deprecated)\npc-q35-2.10          Standard PC (Q35 + ICH9, 2009) (deprecated)\nq35                  Standard PC (Q35 + ICH9, 2009) (alias of pc-q35-10.0)\npc-q35-10.0          Standard PC (Q35 + ICH9, 2009)\nisapc                ISA-only PC\nnone                 empty machine\nx-remote             Experimental remote machine\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-accel",
+      "help"
+    ],
+    "returncode": 0,
+    "stdout": "Accelerators supported in QEMU binary:\ntcg\nkvm\n",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/workspace/scratch/0d3232a3c004/nieuw-os-baseline/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "test",
+    "--locked",
+    "--offline",
+    "-p",
+    "capability-core",
+    "-p",
+    "virtio-core",
+    "-p",
+    "kernel-core",
+    "-p",
+    "block-protocol"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-baseline",
+  "started_unix": 1793140505.1933455,
+  "duration_s": 1.0776586532592773,
+  "returncode": 0
+}

@@ -1,0 +1,14 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "-u",
+    "tools/test_m6.py"
+  ],
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "started_unix": 1793140504.9345114,
+  "duration_s": 238.54430770874023,
+  "returncode": 0
+}

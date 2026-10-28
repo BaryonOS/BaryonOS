@@ -1,4 +1,36 @@
-# Werkqueue — M5 afgerond
+# Werkqueue — M6a actief
+
+## Parallel N01 — internet en persoonlijke NAS
+
+Gebruikersuitbreiding 27 oktober 2026; privacycontract revisie 3. Bron vanaf `a96ad45`, branch `codex/nas-private-sharing`.
+
+| ID | Gebied | Status/bewijs |
+|---|---|---|
+| N01-C | services/nas/ | echte hostencryptie, ciphertextstore, quota, revoke/evict en netwerkbeleidsmodel; 50 tests groen |
+| N01-P | ui/prototype/ | drie NAS-flows en afzonderlijke lokale beheerrol; 39 tests groen, nieuwe visuele browsercontrole open |
+| N01-R | alleen-lezen review | vier concrete bevindingen hersteld; gerichte hercontroles groen |
+| N01-G | root/docs/Git | herziene productgrens, ADR-027, integratiebewijs 89 tests + demo |
+| N02 | services/nas/transport.mjs | begrensde echte hybride TLS-hostproef; actuele resultaten onder verification/pqc-transport/ en PROJECT-STATE.md |
+| N03 | toekomstige native integratie | netwerkstack/TLS-port/identiteit, clientkeys/multi-device, NAS-rol en socketcapabilities nog open |
+
+Resultaten tellen niet als M6a-/M8-QEMU- of echte-internetbewijs. Eerste kernelvervolg blijft de hieronder beschreven M6a-poort.
+
+De aangeleverde formele-/PQC-blauwdruk is verwerkt in `implementation/VERIFIABLE-SECURITY-AND-PQC.md`: V01 voor machinegecontroleerde capability-invarianten, P01–P04 voor native build/entropy/image-/opslagintegratie en Q02 voor een afzonderlijke Grover-onderwijsproef. Deze taken zijn gespecificeerd, niet reeds uitgevoerd. N02 voegt geen eigen cryptografische tunnel of bestaande OS-kernel toe.
+
+27 oktober 2026, basis `448974b`, branch `codex/m6a-write-recovery`. Gekozen invariant/ABI/cases vóór implementatie: implementation/M6A-WRITE-RECOVERY.md.
+
+| ID | Eigenaar | Exclusieve writes | Status |
+|---|---|---|---|
+| K06 | kernel_m2 | kernel/,kernel-core/,drivers/virtio-blk/ | bron bevroren; 16hosttests en gerichte QEMU/cut/recoveryproeven groen |
+| C06 | quantum_contract | capability-core/,virtio-core/ | 30+21tests/fmt/Clippy/no_std exit0; bron gepauzeerd |
+| U06 | product_acceptance | services/block/,nieuweM6-userspace | 20host+12artifacttests exit0; echte dienstbron gepauzeerd |
+| G06 | root | config/tools/tests/docs/Git | guarded writableimage/crashharnas/capture,19hostcontroles groen; volledige poort gereed |
+| R06 | C06/U06 | alleen lezen | gerichte transport- en zes harnas/capturebevindingen hersteld/gesloten |
+| V06 | later verifier | alleen lezen | finale M1–M6-poorten, echte cuts/recovery en hashbinding |
+
+Eén schrijver per bestand, maximaal drie agents en één gedeeld build/QEMUslot. Geen nieuwe externe dependency. Na elke afgebakende stap bron/bewijs/open punten privépushen; noreplyafzender alleen per Git-commando, geen globale configwijziging. Gerichte M6-proeven groen; finale 54groepen/49VM-poort en regressie nog uit te voeren. QEMU-procescrash is geen fysieke stroomuitvalclaim.
+
+## M5 — behaalde basis (historisch)
 
 27 oktober 2026. Bron `7af544a`, basis `c630c59`, branch `codex/m5-block-service`, concept-PR#3. Definitieve fingerprint v3: c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307.
 
@@ -13,4 +45,5 @@
 
 Opdrachten, resultaten, grenzen en hervatroute: PROJECT-STATE.md en verification/m5/ACCEPTANCE.md. Eerste mislukte gate blijft failed bewaard; de finale bron is opnieuw getest. Bestaande UI/quantum en M1–M4-baseline behouden.
 
-Volgende stap: M6a, veilige WRITE/FLUSH en crashherstel op een synthetische wegwerpimage. Nog niet gestart. Geen echte hardware/disks/NAS/keys, betaalde infrastructuur, publieke release of merge zonder passende opdracht. Licentie vóór publicatie blijft open.
+Volgende stap: de M6a-bronpoort en regressie hervatten vanaf deze checkpoint. De M6a-specificatie, huidige teststatus en open punten staan in PROJECT-STATE.md. Geen echte hardware/disks/NAS/keys, betaalde infrastructuur, publieke release of merge zonder passende opdracht. Licentie vóór publicatie blijft open.
+

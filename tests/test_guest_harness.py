@@ -9,6 +9,39 @@ from capture_gate import guest_matches
 
 
 class GuestEvidenceGate(unittest.TestCase):
+    def test_observed_m5_no_device_output_cannot_masquerade_as_m1(self):
+        # Actual control-line excerpt from the rejected cold-3-3255a86c2b
+        # diagnostic (kernel 44aca9b044e9b36ef906effe4367fe97996577aef2caa129368ec53533e9cc6a).
+        # This is a parser fixture, not a new guest-execution claim.
+        log = '\n'.join((
+            'BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK',
+            'KS-01:PASS', 'KS-02:PASS', 'KS-03:PASS', 'M2:PASS',
+            'M5:CASE:NO_DEVICE:PASS', 'M5:SURVIVOR_PROGRESS:PASS',
+            'M5:RESOURCES:PASS', 'M5:PASS', 'M1:PASS',
+        ))
+        self.assertFalse(is_success(33, log))
+        self.assertFalse(guest_matches('m5', 'm1-regression-after-m5',
+                                      dict(raw_qemu_exit=33, stdout=log, timed_out=False)))
+        explicit_m5 = MARKERS[:3] + ('M5:CASE:NO_DEVICE:PASS', 'M5:SURVIVOR_PROGRESS:PASS',
+                                    'M5:RESOURCES:PASS', 'M5:PASS', 'M1:PASS')
+        self.assertTrue(is_success(33, log, required_markers=explicit_m5))
+
+    def test_m1_and_ebs_retry_reject_any_later_milestone_output(self):
+        for required in (MARKERS, ('BOOT:EBS_RETRY',) + MARKERS):
+            log = '\n'.join(required)
+            self.assertTrue(is_success(33, log, required_markers=required))
+            for phase in ('M2', 'M3', 'M4', 'M5', 'M6A', 'M6B'):
+                with self.subTest(profile=required, phase=phase):
+                    self.assertFalse(is_success(33, log+'\n'+phase+':DIAGNOSTIC:1', required_markers=required))
+
+    def test_explicit_milestone_profiles_remain_valid(self):
+        for phase, markers in MILESTONE_MARKERS.items():
+            with self.subTest(phase=phase):
+                self.assertTrue(is_success(33, '\n'.join(markers), required_markers=markers))
+        for phase in ('M6A', 'M6B'):
+            markers = MARKERS[:3] + (phase+':PASS', 'M1:PASS')
+            self.assertTrue(is_success(33, '\n'.join(markers), required_markers=markers))
+
     def test_complete_ordered_lines_and_raw_exit_required(self):
         log = "firmware banner\r\n" + "\r\n".join(MARKERS) + "\r\n"
         self.assertTrue(is_success(33, log))
