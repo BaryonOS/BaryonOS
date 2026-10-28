@@ -10,6 +10,13 @@ from run import run_guest
 from run_m6c import run_m6c
 
 
+HOST_LOG_STEMS = {
+    'strict-development-inventory': 'm6c-preflight',
+    'catalog-core-and-wire-host-tests': 'm6c-host-tests',
+    'external-oracle-and-crash-harness-tests': 'm6c-harness-tests',
+}
+
+
 def test_sources():
     return {p.relative_to(ROOT).as_posix(): sha256(p)
             for p in sorted((ROOT/'tests').glob('test_m6c_*.py'))}
@@ -25,6 +32,11 @@ def test_m6c():
     save_json(path,suite)
 
     def record(name, passed, evidence, requirements, **details):
+        if name in HOST_LOG_STEMS:
+            stem = HOST_LOG_STEMS[name]
+            files = (BUILD/'logs'/(stem+suffix)
+                     for suffix in ('.stdout.txt', '.json', '.stderr.txt'))
+            details['log_sha256'] = {path.name: sha256(path) for path in files}
         suite['results'].append(dict(name=name,passed=bool(passed),evidence=str(evidence),
                                     requirements=requirements,**details))
         save_json(path,suite)

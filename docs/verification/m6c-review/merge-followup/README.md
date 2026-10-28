@@ -19,8 +19,11 @@ Daarna zijn uitsluitend `tools/preflight.py` en `tests/test_preflight.py`
 bijgewerkt naar de aanvullend gecontroleerde versies die ook probe-excepties
 afwijzen. De gerichte hertoets van **vijf preflighttests** slaagt met exit 0;
 `preflight-followup-tests.json` bevat de geteste bestandshashes en opdracht.
-Deze vijf overlappen de eerdere preflighttests en worden niet als vijf extra
-unieke scenario's bij 121 opgeteld. Overige geteste bronbytes bleven gelijk.
+Drie van deze vijf tests zaten al in de 121-run. Twee tests zijn nieuw:
+`test_probe_exceptions_fail_strict_inventory` en
+`test_non_strict_inventory_reports_probe_exceptions_without_failing`.
+In totaal zijn 123 unieke hosttests uitgevoerd, verdeeld over twee runs.
+Overige geteste bronbytes bleven gelijk.
 
 Er zijn in deze follow-up geen Rust-builds of native/QEMU-suites uitgevoerd.
 De bestaande native uitvoeringsbron blijft `bc4cd104`. De nieuwe hosttoolbron
@@ -50,3 +53,12 @@ dit is geen algemene goedkeuring of bewering dat de fout is opgelost.
 Dezelfde beoordeling bevestigt de inhoudelijke afhandeling van de oude
 `core-final`-thread met `core-recheck`. De oorspronkelijke formatteringslogs
 blijven behouden. GitHub-reviewstatus en merge worden afzonderlijk gecontroleerd.
+
+## Latere aanscherping van de M6c-hostlogbinding
+
+De bovenstaande runs horen bij de hier vermelde snapshots. Het volgende
+[reviewherstel](../host-log-binding/README.md) wijzigt `test_m6c.py`,
+`capture_m6c.py` en gerichte harnastests. Dat herstel heeft eigen bronhashes
+en uitvoeringslogs; de eerdere 123 tests worden niet als een nieuwe run op
+die latere bron voorgesteld.
+

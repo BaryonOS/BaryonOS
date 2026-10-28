@@ -56,6 +56,15 @@ resultaten gelinkt, portable adapter opnieuw getest en de vier corecontroles
 read-only herhaald met HEAD/status en bronhashes vóór/na. Historische evidence
 blijft behouden. Dit verandert de native bron of het aantal VM-runs niet.
 
+Het geïntegreerde hosttoolherstel heeft 123 unieke hosttests over twee runs:
+121 bestaande tests, gevolgd door vijf preflighttests waarvan drie herhaald
+en twee nieuw. Een latere reviewaanscherping bindt de drie M6c-hostlogtrio's
+met SHA-256 aan de gate en controleert de binding vóór én na het kopiëren.
+Deze wijziging heeft afzonderlijk hosttestbewijs in
+`verification/m6c-review/host-log-binding/`; de eerdere 123 tests worden niet
+als uitvoering op deze latere toolbron opgevoerd. De oorspronkelijke M6c-suite
+mist gate-time-hostloghashes en blijft als historisch bewijs ongewijzigd.
+
 Bekende observerfout: native WRITE-/FLUSH-fouten of time-outs kunnen ook in de
 gewone `milestone-m6c` een kernel panic veroorzaken voordat de client `Unknown`
 ontvangt. De host-ABI-proeven toetsen alleen de serviceadapter. Contract en
@@ -260,4 +269,5 @@ Op deze reparaties opnieuw uitgevoerd in Ubuntu 26.04.1 met Rust 1.90.0/QEMU 10.
 ## Vervolg en herstel
 
 M6a: begrensde WRITE/FLUSH en crashherstel op een synthetische wegwerpimage; de actieve status en nog uit te voeren volledige poort staan hierboven. Werkqueue: WORK-QUEUE.md. Contract: implementation/M6A-WRITE-RECOVERY.md. M1–M5-baseline en eerder bewijs blijven behouden; de volledige QEMU-poort is na deze merge niet opnieuw uitgevoerd. Herstel via aparte consistente checkout c630c59; geen destructieve reset of hostconfigmigratie.
+
 

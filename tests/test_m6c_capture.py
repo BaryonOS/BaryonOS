@@ -4,6 +4,7 @@ Requirements: bind distinct host requirements to their actual command contracts,
 and require every fixed guest artifact before validating any claimed hashes.
 All inputs live in a fresh temporary directory; no previous VM run is needed.
 """
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -13,6 +14,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
 import capture_m6c as capture
+import test_m6c as gate
 
 
 HOST_CONTRACTS = {
@@ -68,11 +70,124 @@ class HostEvidenceBinding(unittest.TestCase):
                         'cwd': str(self.root), 'returncode': 0}
         meta.write_text(json.dumps(metadata), encoding='utf-8')
 
+    def hashes(self, name):
+        return {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+                for path in self.files(name)}
+
+    def completed_synthetic_suite(self):
+        """Only host-log binding is real here; all guest records are doubles."""
+        groups = []
+        for name, case, parent in capture.required_groups():
+            group = {'name': name, 'passed': True}
+            if name in HOST_CONTRACTS:
+                group.update(evidence=str(self.files(name)[0]), log_sha256=self.hashes(name))
+            elif case is not None:
+                directory = self.build/'run'/name
+                directory.mkdir(parents=True, exist_ok=True)
+                report = {'case': case, 'run_directory': str(directory),
+                          'previous_stage': str(self.build/'run'/parent) if parent else None,
+                          'artifact_sha256': {'esp/kernel.elf': '1'*64,
+                                              'esp/EFI/BOOT/BOOTX64.EFI': '2'*64},
+                          'disk_oracle': {'sha256_initial': ('a' if name == 'normal-a' else 'b')*64,
+                                          'state': {'synthetic': True}}}
+                (directory/'result.json').write_text(json.dumps(report))
+                group['evidence'] = str(directory)
+            else:
+                evidence = self.logs/'m6c-two-image-check.json'
+                evidence.write_text(json.dumps({'passed': True, 'checks': {
+                    'same_kernel': True, 'same_loader': True,
+                    'different_canary_images': True, 'same_explicit_fixture_state': True}}))
+                group['evidence'] = str(evidence)
+            groups.append(group)
+        return {'status': 'completed', 'passed': True, 'source_sha256': 'synthetic-source',
+                'host_test_sha256': {}, 'results': groups}
+
+    def capture_synthetic_suite(self, suite):
+        (self.build/'m6c-test-results.json').write_text(json.dumps(suite))
+        with patch.object(capture, 'source_hash', return_value='synthetic-source'), \
+                patch.object(capture, 'test_sources', return_value={}), \
+                patch.object(capture, 'inside_run', side_effect=Path), \
+                patch.object(capture, 'check_run'), \
+                patch.object(capture, 'check_m1_run'):
+            capture.capture()
+
+    def test_capture_accepts_unchanged_host_logs_with_gate_hashes(self):
+        suite = self.completed_synthetic_suite()
+        self.capture_synthetic_suite(suite)
+        destination = self.root/'docs/verification/m6c'
+        for name in HOST_CONTRACTS:
+            for filename, expected in self.hashes(name).items():
+                self.assertEqual(hashlib.sha256((destination/filename).read_bytes()).hexdigest(), expected)
+
+    def test_capture_rejects_each_host_log_changed_after_gate(self):
+        name = 'catalog-core-and-wire-host-tests'
+        for index in range(3):
+            with self.subTest(member=index):
+                self.write_host(name)
+                suite = self.completed_synthetic_suite()
+                path = self.files(name)[index]
+                # Whitespace preserves JSON command/cwd/exit semantics, while
+                # changing the exact bytes recorded at the end of the command.
+                path.write_bytes(path.read_bytes() + b'\n ')
+                with patch.object(capture, '_replace_archive') as replace, \
+                        self.assertRaisesRegex(ValueError, 'Host logs changed after the gate'):
+                    self.capture_synthetic_suite(suite)
+                replace.assert_not_called()
+
+    def test_capture_requires_exact_well_formed_gate_hash_map(self):
+        name = 'strict-development-inventory'
+        original = self.hashes(name)
+        first = self.files(name)[0].name
+        malformed = [None, [], {}, {**original, 'extra.txt': '0'*64},
+                     {key: value for key, value in original.items() if key != first},
+                     {**original, first: '0'*63}, {**original, first: 'g'*64},
+                     {**original, first: 0}]
+        for expected in malformed:
+            with self.subTest(expected=expected):
+                suite = self.completed_synthetic_suite()
+                suite['results'][0]['log_sha256'] = expected
+                with patch.object(capture, '_replace_archive') as replace, \
+                        self.assertRaisesRegex(ValueError, 'gate-time SHA-256 hashes'):
+                    self.capture_synthetic_suite(suite)
+                replace.assert_not_called()
+        suite = self.completed_synthetic_suite()
+        del suite['results'][0]['log_sha256']
+        with patch.object(capture, '_replace_archive') as replace, \
+                self.assertRaisesRegex(ValueError, 'gate-time SHA-256 hashes'):
+            self.capture_synthetic_suite(suite)
+        replace.assert_not_called()
+
+    def test_capture_rechecks_each_host_log_after_copy_before_archive_install(self):
+        name = 'catalog-core-and-wire-host-tests'
+        original_copy = capture.shutil.copy2
+        destination = self.root/'docs/verification/m6c'
+        destination.mkdir(parents=True)
+        preserved = destination/'preserved.txt'
+        preserved.write_bytes(b'existing archive remains unchanged')
+        for index in range(3):
+            with self.subTest(member=index):
+                self.write_host(name)
+                suite = self.completed_synthetic_suite()
+                changed = self.files(name)[index]
+
+                def change_during_copy(source, target):
+                    if source == changed:
+                        source.write_bytes(source.read_bytes() + b'\n ')
+                    return original_copy(source, target)
+
+                with patch.object(capture.shutil, 'copy2', side_effect=change_during_copy), \
+                        patch.object(capture, '_replace_archive') as replace, \
+                        self.assertRaisesRegex(ValueError, 'Host logs changed while archiving'):
+                    self.capture_synthetic_suite(suite)
+                replace.assert_not_called()
+                self.assertEqual(preserved.read_bytes(), b'existing archive remains unchanged')
+                self.assertEqual(list(destination.iterdir()), [preserved])
+
     def test_exact_three_separate_host_contracts_are_accepted(self):
         seen = set()
         files = []
         for name in HOST_CONTRACTS:
-            actual = capture.check_host_group(name, self.files(name)[0], seen)
+            actual = capture.check_host_group(name, self.files(name)[0], self.hashes(name), seen)
             self.assertEqual(actual, self.files(name))
             files.extend(actual)
         self.assertEqual(len(files), 9)
@@ -82,14 +197,14 @@ class HostEvidenceBinding(unittest.TestCase):
         preflight = self.files('strict-development-inventory')[0]
         for name in ('catalog-core-and-wire-host-tests', 'external-oracle-and-crash-harness-tests'):
             with self.subTest(group=name), self.assertRaisesRegex(ValueError, 'fixed exact log path'):
-                capture.check_host_group(name, preflight)
+                capture.check_host_group(name, preflight, self.hashes(name))
 
     def test_renaming_preflight_metadata_does_not_satisfy_test_commands(self):
         preflight = json.loads(self.files('strict-development-inventory')[1].read_text())
         for name in ('catalog-core-and-wire-host-tests', 'external-oracle-and-crash-harness-tests'):
             self.write_host(name, preflight)
             with self.subTest(group=name), self.assertRaisesRegex(ValueError, 'command/working-directory/exit'):
-                capture.check_host_group(name, self.files(name)[0])
+                capture.check_host_group(name, self.files(name)[0], self.hashes(name))
 
     def test_exact_argv_cwd_exit_and_timeout_are_required(self):
         name = 'catalog-core-and-wire-host-tests'
@@ -108,20 +223,21 @@ class HostEvidenceBinding(unittest.TestCase):
         for label, change in mutations:
             self.write_host(name, {**original, **change})
             with self.subTest(mutation=label), self.assertRaisesRegex(ValueError, 'command/working-directory/exit'):
-                capture.check_host_group(name, self.files(name)[0])
+                capture.check_host_group(name, self.files(name)[0], self.hashes(name))
 
     def test_one_log_trio_cannot_count_twice(self):
         name = 'strict-development-inventory'
         seen = set()
-        capture.check_host_group(name, self.files(name)[0], seen)
+        capture.check_host_group(name, self.files(name)[0], self.hashes(name), seen)
         with self.assertRaisesRegex(ValueError, 'reuse the same physical log'):
-            capture.check_host_group(name, self.files(name)[0], seen)
+            capture.check_host_group(name, self.files(name)[0], self.hashes(name), seen)
 
     def test_missing_member_of_host_log_trio_is_rejected(self):
         name = 'catalog-core-and-wire-host-tests'
+        expected_hashes = self.hashes(name)
         self.files(name)[2].unlink()
         with self.assertRaisesRegex(ValueError, 'separate regular files'):
-            capture.check_host_group(name, self.files(name)[0])
+            capture.check_host_group(name, self.files(name)[0], expected_hashes)
 
     def test_capture_rejects_substitution_before_touching_existing_archive(self):
         destination = self.root/'docs/verification/m6c'
@@ -131,7 +247,9 @@ class HostEvidenceBinding(unittest.TestCase):
         groups = [{'name': name, 'passed': True, 'evidence': 'unused-later-fixture'}
                   for name, _, _ in capture.required_groups()]
         groups[0]['evidence'] = str(self.files('strict-development-inventory')[0])
+        groups[0]['log_sha256'] = self.hashes('strict-development-inventory')
         groups[1]['evidence'] = groups[0]['evidence']
+        groups[1]['log_sha256'] = self.hashes('catalog-core-and-wire-host-tests')
         suite = {'status': 'completed', 'passed': True, 'source_sha256': 'synthetic-source',
                  'host_test_sha256': {}, 'results': groups}
         (self.build/'m6c-test-results.json').write_text(json.dumps(suite), encoding='utf-8')
@@ -143,6 +261,51 @@ class HostEvidenceBinding(unittest.TestCase):
         replace.assert_not_called()
         self.assertEqual(preserved.read_bytes(), b'existing archive remains unchanged')
         self.assertEqual(list(destination.iterdir()), [preserved])
+
+
+class GateTimeHostLogBinding(unittest.TestCase):
+    def test_each_completed_host_command_is_hashed_before_next_gate_step(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            build = root/'build'
+            logs = build/'logs'
+            logs.mkdir(parents=True)
+            completed = []
+
+            def verify_recorded():
+                suite = json.loads((build/'m6c-test-results.json').read_text())
+                self.assertEqual(len(suite['results']), len(completed))
+                for group, expected in zip(suite['results'], completed):
+                    self.assertIn('log_sha256', group)
+                    self.assertEqual(group['log_sha256'], expected)
+
+            def command_double(args, stem):
+                verify_recorded()
+                (logs/(stem+'.stdout.txt')).write_bytes(b'synthetic host stdout\r\n')
+                (logs/(stem+'.stderr.txt')).write_bytes(b'synthetic host stderr\n')
+                (logs/(stem+'.json')).write_text(json.dumps({'command': args, 'returncode': 0}))
+                completed.append({path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+                                  for path in (logs/(stem+suffix)
+                                               for suffix in ('.stdout.txt', '.json', '.stderr.txt'))})
+
+            stop = RuntimeError('synthetic stop before any native build')
+
+            def build_double(**kwargs):
+                verify_recorded()
+                raise stop
+
+            with patch.object(gate, 'ROOT', root), patch.object(gate, 'BUILD', build), \
+                    patch.object(gate, 'source_hash', return_value='synthetic-source'), \
+                    patch.object(gate, 'test_sources', return_value={}), \
+                    patch.object(gate, 'run_logged', side_effect=command_double), \
+                    patch.object(gate, 'build', side_effect=build_double), \
+                    patch.object(gate, 'run_m6c') as guest, \
+                    self.assertRaises(RuntimeError) as raised:
+                gate.test_m6c()
+            self.assertIs(raised.exception, stop)
+            self.assertEqual(len(completed), 3)
+            guest.assert_not_called()
+            verify_recorded()
 
 
 class RequiredArtifactBinding(unittest.TestCase):

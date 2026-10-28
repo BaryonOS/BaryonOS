@@ -141,6 +141,12 @@ nieuwe brongebonden native verificatie.
 7. Corruptie en geldig legacy-v1-volume weigeren vóór READY zonder diskmutatie.
 8. M6b-regressie en relevante build-/bootcontroles. Bronnen, binaries, exacte
    commando's, ruwe uitvoer, exitcodes, imagescope en hashes blijven gebonden.
+   Nieuwe hostgroepen leggen de hashes van stdout, commandometadata en stderr
+   direct in het gate-record vast. Capture vergelijkt de bronbestanden én de
+   gekopieerde archiefbytes met deze vaste map; ontbrekende binding wordt
+   afgewezen. De historische suite vóór deze aanscherping heeft die binding
+   niet; afbakening en afzonderlijke hosttests staan in
+   `../verification/m6c-review/host-log-binding/README.md`.
 
 Een emulatorproceskill is geen fysieke stroomuitval. FNV is geen authenticatie;
 DELETE wist historische diskbytes niet. Geen encryptie, native NAS, grafische
@@ -156,3 +162,4 @@ desktop, formeel veiligheidsbewijs of productiegeschiktheid wordt geclaimd.
   echte gastuitvoering zijn afzonderlijke controles. Toolchain blijft 1.90.0.
 
 De nieuwe formaten en proefbudgetten hierboven zijn expliciete projectkeuzes.
+

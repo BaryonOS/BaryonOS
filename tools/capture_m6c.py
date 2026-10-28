@@ -2,6 +2,7 @@
 """Recheck complete native M6c evidence before an atomic text-only archive."""
 from __future__ import annotations
 from pathlib import Path
+import re
 import shutil
 import sys
 import tempfile
@@ -42,7 +43,7 @@ def require_artifacts(report, phase):
         raise ValueError(f'Incomplete or unexpected {phase} artifact set')
 
 
-def check_host_group(name, evidence, seen=None):
+def check_host_group(name, evidence, expected_hashes, seen=None):
     """Bind each host requirement to its own log trio and exact executed argv."""
     if name not in HOST_GROUPS:
         raise ValueError('Unknown M6c host-test group')
@@ -65,6 +66,13 @@ def check_host_group(name, evidence, seen=None):
         if identities.intersection(identity) or seen is not None and seen.intersection(identity):
             raise ValueError('Host groups cannot reuse the same physical log file')
         identities.update(identity)
+    if (not isinstance(expected_hashes, dict)
+            or set(expected_hashes) != {path.name for path in files}
+            or any(not isinstance(value, str) or not re.fullmatch(r'[0-9a-f]{64}', value)
+                   for value in expected_hashes.values())):
+        raise ValueError('Host logs require exact gate-time SHA-256 hashes')
+    if expected_hashes != {path.name: sha256(path) for path in files}:
+        raise ValueError('Host logs changed after the gate')
     command = [sys.executable if program == 'python' else program, *arguments]
     command[0] = shutil.which(command[0], path=environment()['PATH']) or command[0]
     metadata = read_json(files[1])
@@ -161,7 +169,7 @@ def capture():
     expected=required_groups(); groups=suite['results']
     if [g['name'] for g in groups]!=[name for name,_,_ in expected]:
         raise ValueError('Missing/reordered/duplicate M6c coverage')
-    runs=[]; by_name={}; host_files=[]; host_seen=set()
+    runs=[]; by_name={}; host_files=[]; host_seen=set(); host_hashes={}
     for group,(name,case,parent) in zip(groups,expected):
         if group.get('passed') is not True: raise ValueError('Failed group cannot be relabeled')
         evidence=Path(group['evidence'])
@@ -188,7 +196,9 @@ def capture():
                     raise ValueError('Two-image check does not match actual runs')
                 host_files.append(evidence)
             else:
-                host_files.extend(check_host_group(name,evidence,host_seen))
+                expected_hashes=group.get('log_sha256')
+                host_files.extend(check_host_group(name,evidence,expected_hashes,host_seen))
+                host_hashes.update(expected_hashes)
     if len(runs)!=15 or len({r['run_directory'] for r in runs})!=15:
         raise ValueError('Gate requires 15 distinct real VM invocations')
     destination=ROOT/'docs/verification/m6c'
@@ -196,6 +206,9 @@ def capture():
     with tempfile.TemporaryDirectory(prefix='m6c-capture-',dir=BUILD) as temporary:
         staged=Path(temporary)/'archive'; staged.mkdir()
         for path in host_files: shutil.copy2(path,staged/path.name)
+        for name, expected_hash in host_hashes.items():
+            if sha256(staged/name)!=expected_hash:
+                raise ValueError('Host logs changed while archiving')
         save_json(staged/'suite.json',suite)
         save_json(staged/'guest-runs.json',runs)
         save_json(staged/'capture.json',dict(passed=True,source_sha256=frozen,groups=len(groups),

@@ -61,6 +61,23 @@ opgeteld bij historische runs uit eerdere mijlpalen.
 | Echte serviceadapter met host-ABI-shim | 15 scenario's, inclusief WRITE/FLUSH-fouten en time-outs, identiteit, tombstones en legacy | [buildopdracht](m6c-review/adapter-build.json), [resultaat](m6c-review/adapter-result.json) |
 | `python3 -B tools/build.py --kernel-feature milestone-m6c` | Afsluitende build bytegelijk aan beide normale eindgate-binaries; geen extra VM | [buildvergelijking](m6c-ready/build-check.json), [console](m6c-ready/m6c-ready-build.stdout.txt) |
 
+### Latere reviewaanscherping: hostlogs binden aan de gate
+
+De oorspronkelijke suite op `bc4cd104` bewaart voor de drie hostgroepen nog
+geen `log_sha256`. De capture controleerde vaste logpaden, commando's, werkmap
+en exitstatus; de archiefhashes werden pas na het kopiëren berekend. Daarmee
+is niet aangetoond dat hostlogs tussen gate en capture onveranderd bleven.
+De oorspronkelijke suite, capture en logs blijven ongewijzigd als historisch
+bewijs bewaard; er worden geen achteraf geconstrueerde gatehashes toegevoegd.
+
+Het [latere herstel](m6c-review/host-log-binding/README.md) legt de SHA-256 van
+stdout, commandometadata en stderr direct bij iedere nieuwe hostgroep vast.
+De capture vereist die exacte map en controleert zowel de bronlogs als de
+naar het tijdelijke archief gekopieerde bytes. Oude suites zonder deze
+binding voldoen niet aan dit nieuwe capturecontract. Dit herstel heeft
+eigen hosttestbewijs; de native gate is daarvoor niet opnieuw uitgevoerd.
+Het verandert de oorspronkelijke VM-uitvoeringen of de native bron niet.
+
 Rust-opdrachten gebruiken de lokale toolchainomgeving uit `tools/common.py`;
 `python3 -B tools/dev.py` kan deze omgeving aan een losse Cargo-opdracht geven.
 Rust 1.90.0, QEMU 10.0.2, OVMF, q35/TCG, één CPU en 256 MiB zijn vastgelegd
@@ -178,3 +195,4 @@ Grotere opslag, sleutels/entropy, compositor/invoer en native netwerk hebben eig
 acceptatiecriteria. De bredere M6-opslag- en updatefase is daarmee nog niet af.
 De bron en tekstbewijzen staan op de private werkbranch; main is niet gemerged en
 er is geen release of installatie op echte hardware uitgevoerd.
+
