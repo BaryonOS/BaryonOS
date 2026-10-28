@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`62c97e95`](https://github.com/simonvanieperen/nieuw-os/commit/62c97e95fdd8f04c863e3ac8c7499b32427fb663) ·
+**Bron:** [`f52ef0a6`](https://github.com/simonvanieperen/nieuw-os/commit/f52ef0a64b75f29396510c96ca57eaac9ea07d0d) ·
 **Ontwikkelbranch:** `codex/parallel-native-foundation-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Doorbouw: documentsessie, quantumjobcodec en G0-capture; gerichte CodeRabbit-reparaties.
-Na 80 geaccepteerde native VMs op3e41 zijn G07 documentsessie, I08 jobcodec en B07 capture geïntegreerd; host/native-librarycontroles groen. Bestaande kernel/dienst/probebron blijft bytegelijk. I09 herstelt directe Rustdetectie en targetsubstitutie; actuele gerichte VM-capture en onafhankelijke reviews volgen. A01/U03/S04/S05/L02 blijven open; vaste score14%.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Integratie van gerichte documentreview en gerepareerde G0-capture; bronfreeze voor actuele native controles.
+G07, I08 en B07 zijn gepubliceerd. I10 documentreview heeft geen blocker; B09 herstelt de door G09 gevonden dynamische outputlijst en de onafhankelijke hercontrole slaagt. De eerdere 80 native runs blijven aan 3e41bbf9 gebonden. B08/G10/I11 en een gerichte M6b-proef controleren hierna de actuele gecombineerde bron. A01/U03/S04/S05/L02 blijven open; 14% naar 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

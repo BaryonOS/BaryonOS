@@ -2,19 +2,29 @@
 
 ## Vervolgcheckpoint — 28 oktober 2026
 
-Na bewijscheckpoint62c97e95 zijn drie zelfstandige bouwstappen geïntegreerd:
-G07 documentsessie met geladen revisie, dirtybuffer en CAS-save; I08 canonieke
-256-byte quantumjobrequestcodec; B07 strikte atomische G0-capture. De39 SDK-
-hosttests,13 codec-tests, native librarybuilds en33 grafische harnastests slagen.
-De document-/joblogica staat volledig buiten de kernel. Native GUI-/jobdispatch
-blijven open; deze librarychecks tellen niet als extra gestarte apps.
+Op `f52ef0a6` zijn drie zelfstandige bouwstappen gepubliceerd: G07, een
+gebruikersbibliotheek die geladen revisie en lokale wijzigingen bewaart bij
+CAS-conflicten of onzekere opslag; I08, een canonieke 256-byte quantumjobcodec;
+en B07, een strikte atomische G0-capture. De 39 SDK-hosttests, 13 codec-tests,
+native librarybuilds en grafische harnastests slagen. Document- en joblogica
+staan buiten de kernel. Native GUI en jobdispatch blijven open.
+
+De gerichte documentreview I10 vond geen blocker binnen haar scope. De
+onafhankelijke capturereview G09 vond een concrete fout: een vroeg toegevoegd
+bestand kon zichzelf in de verwachte outputlijst opnemen. B09 gebruikt nu een
+vaste lijst vóór indexering én vóór publicatie. De negatieve test faalde op de
+oude bron en slaagt na de reparatie; alle 34 grafische testmethoden slagen.
+Dezelfde onafhankelijke grensproef bevestigt de afwijzing. Zie
+[documentreview](verification/parallel-i10/README.md),
+[capturereparatie](verification/parallel-b09/README.md) en
+[hercontrole](verification/parallel-g09/README.md).
 
 CodeRabbit-reparaties behandelen de directe Rustselectie, cross-targetsymlinks,
-buildrootvalidatie, SDKbuildomgeving, git-timeout en expliciete bewijslinks.
-De bestaande native kernel-/dienst-/probebron en buildinputs zijn bytegelijk
-aan3e41. Gerichte native controles volgen op dit checkpoint; onafhankelijke
-reviews van de nieuwe documentsessie/capture lopen parallel. De vaste score
-blijft14%. De onderstaande volledige acceptatie behoudt haar exacte bron.
+buildrootvalidatie, SDK-buildomgeving, git-timeout en expliciete bewijslinks.
+De bestaande native kernel-, dienst- en probebron en hun buildinputs zijn
+bytegelijk aan `3e41bbf9`. B08, G10 en I11 controleren de actuele gecombineerde
+bron gericht in eigen VM's na publicatie van deze freeze. De eerdere 80 runs
+behouden hun oorspronkelijke bronbinding. De vaste roadmapscore blijft 14%.
 
 ## Gecombineerde native acceptatie — 28 oktober 2026
 
@@ -54,8 +64,8 @@ vastgelegd en verschilt van het historische10.0-referentieprofiel.
 Voortgang **14% → 14%**; vaste criteria/gewichten behouden. A01 algemene appstart,
 U03 native Materiaal, S04/S05 bruikbare documentgrootte/ruimtehergebruik en L02
 externe native quantumjobs blijven open. De catalogusclient+SDK bestaan nu;
-G07 bouwt een documentsessie, I08 een jobcodec en B07 een strikte G0-capture
-in eigen worktrees. Zij zijn nog geen geaccepteerde productfunctie.
+G07 levert een documentsessie, I08 een jobcodec en B07 een strikte G0-capture.
+Deze geïntegreerde bouwblokken zijn nog geen volledige productfunctie.
 Zie `WORK-QUEUE.md` voor de kleine actuele taakverdeling en blokkades.
 
 ### Directe nieuwe native bewijslinks

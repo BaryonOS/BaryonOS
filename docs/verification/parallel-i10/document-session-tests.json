@@ -1,0 +1,20 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "--manifest-path",
+    "/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/Cargo.toml",
+    "-p",
+    "nieuw-os-document-session",
+    "--locked",
+    "--offline",
+    "--",
+    "--test-threads=2"
+  ],
+  "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+  "returncode": 0,
+  "stdout_utf8": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 12 tests\ntest bounds_fail_before_mutation_or_transport ... ok\ntest empty_maximum_and_non_utf8_contents_roundtrip ... ok\ntest journal_full_preserves_edit_and_loaded_revision_without_retry ... ok\ntest load_edit_save_reopen_uses_exact_revision_and_flush_before_ack ... ok\ntest lost_reply_after_commit_retains_draft_without_replay_and_recovers_from_records ... ok\ntest open_missing_or_foreign_document_never_silently_discards_current_document ... ok\ntest readonly_is_local_policy_and_server_access_denial_preserves_writable_draft ... ok\ntest preenqueue_timeout_preserves_draft_and_does_not_claim_a_commit ... ok\ntest revoked_real_endpoint_cannot_be_restored_by_edit_mode ... ok\ntest reverted_edits_and_explicit_discard_are_local_and_clean_save_is_noop ... ok\ntest service_unknown_remains_uncertain_even_after_explicit_local_discard ... ok\ntest two_writers_conflict_without_rebase_or_draft_loss ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+  "stderr_utf8": "   Compiling catalog-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/services/catalog)\n   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/runtime)\n   Compiling capability-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/capability-core)\n   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/catalog-client)\n   Compiling nieuw-os-document-session v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/document-session)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.56s\n     Running unittests src/lib.rs (/tmp/nieuw-os-par-i10-target/debug/deps/nieuw_os_document_session-c82f8b4cda4689e1)\n     Running tests/editing.rs (/tmp/nieuw-os-par-i10-target/debug/deps/editing-d0e074a9e5b50861)\n   Doc-tests nieuw_os_document_session\n",
+  "stdout_sha256": "63bdefc432b83ae4690802dde25c6bd9d0bfbf481adc5477a3a5b6a66e431319",
+  "stderr_sha256": "729883eb0fc0d2887f4427663552647627462ec422a3f12093979722d425cc0b"
+}

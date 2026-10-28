@@ -329,6 +329,15 @@ class GraphicsCapture(unittest.TestCase):
     def test_source_change_during_capture_aborts(self):
         with patch.object(c,"source_hash",side_effect=[self.frozen,"0"*64]): self.rejected()
 
+    def test_unknown_staged_file_cannot_enter_the_hash_index(self):
+        original = c.encode_png
+        def additional_file(frame):
+            staged = next((self.root/"docs/verification").glob(".g0-capture-*"))
+            (staged/"unexpected.bin").write_bytes(b"Synthetic unexpected staged bytes")
+            return original(frame)
+        with patch.object(c,"encode_png",side_effect=additional_file): self.rejected()
+        self.assertEqual(list((self.root/"docs/verification").iterdir()),[])
+
     def test_staged_symlink_is_rejected_even_with_identical_bytes(self):
         original = c.snapshot
         calls = 0

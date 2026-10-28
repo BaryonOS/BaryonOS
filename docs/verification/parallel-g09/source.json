@@ -1,0 +1,13 @@
+{
+  "reviewed_commit": "764cc9f84291ed3ad7b0ea3de65debcbf1cc7da6",
+  "files_sha256": {
+    "tools/capture_graphics.py": "5d73519e8140faf8aae6208ef596593f8326c0853ee9ea5a1f24df43a93c7000",
+    "tools/common.py": "b1ce783b0e23671efde020ab7d3b4f7ceae266c45ddfa4ead2724c812b9720b1",
+    "tools/run_graphics.py": "fd406d0aebb03b04266793cd9d46cb673c691f4fd6a8659bf85405b58ac3e7bd",
+    "tests/test_graphics_capture.py": "48912403b1644a4bd5daf0b47fc80ac9d0e70da60a0e28f7c522727a4e6f4566",
+    "docs/verification/parallel-b07/README.md": "97db1e79d64034d4977935fc01d014f391dba26d8e50b1579cf6462893e913bb",
+    "docs/verification/parallel-b07/execution.json": "0df1248f6cae84f9bb726161b73b64aae355c7916fe30cb268f32e663f94da7f"
+  },
+  "immutable_git_snapshot": true,
+  "original_g0_artifacts_modified": false
+}

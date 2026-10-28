@@ -1,26 +1,26 @@
 # Werkqueue — 28 oktober 2026
 
-Werkelijke capaciteit: vier tegelijk, inclusief hoofdagent. Eén schrijver per
-gebied en eigen builds/targets/VM-artifacts. Uitvoeringsbron 3e41bbf9 is
-vastgelegd en native geaccepteerd; vervolgcode staat in aparte worktrees.
+Werkelijke capaciteit: vier agents tegelijk, inclusief hoofdagent. Eén schrijver
+per gebied; aparte builds, targets, volumes, VM-processen en logbestemmingen.
+De volledige native acceptatie blijft gebonden aan `3e41bbf9`. Het vervolg op
+`f52ef0a6` bevat de documentsessie, jobcodec, capture en reviewreparaties.
 
-|ID|Toestand|Eigenaar / schrijfgebied|Concreet resultaat / kleinste afhankelijkheid|
+| ID | Toestand | Eigenaar / exclusief gebied | Resultaat / kleinste afhankelijkheid |
 |---|---|---|---|
-|ROOT|in uitvoering|root: integratie/docs/GitHub|Acceptatie80 VM/616 hashes publiceren, concrete CodeRabbit-bevindingen afhandelen|
-|G07|in uitvoering|native_apps: sdk/document-session/** + SDKregistratie|Loadedrevision+dirtydraft+CASsave/reopen; Unknown zonderreplay; bestaandecatalogus|
-|I08|in uitvoering|runtime_platform: experiments/quantum/job-protocol/**|Allocatorvrije256-bytejobrequestcodec; jobdispatch blijftvolgende afhankelijkheid|
-|B07|in uitvoering|native_storage: capture_graphics.py +tests/eigenbewijs|Atomische G0-archiveerder metbron-/artifact-/pixelcontrole; niets herstellen|
-|B01–B06/G01–G06/I01–I07|gereed voor integratie/controle|root, commits/bewijs behouden|Native fundamenten+volledige gates+crosschecks afgerond; PR#15review loopt|
-|G1|wacht op een benoemde afhankelijkheid|bestaandeanderesessie: Materiaal+display/inputbootstrap|Kleinste oplossing: gepubliceerd broncheckpoint van toegewezenG1branch voor integratie|
-|S08|gereed om te bouwen|volgendevrijebouwer, root herstelcontract|Begrensde catalogusdienstvervanging zonder mutatiereplay|
-|S04/S05|wacht op een benoemde afhankelijkheid|root opslagcontract|Versieerbaar formaat+crashacceptatie vóór groteredocumenten/ruimtehergebruik|
-|N03/P02/H|wacht op een benoemde afhankelijkheid|nogtoe tewijzen|Native netwerk, entropy/crypto en peerrechten vóórnativeNAS|
-|G06-01|gereed om te bouwen|root common.py|Parentquantummanifest ookglobalefingerprint; huidigeqsimrunnerbindtditalextra|
+| ROOT | in uitvoering | root: integratie, docs, GitHub, eigen M6b-run | B09 en reviews publiceren; gerichte gezamenlijke broncontrole; CodeRabbit en PR-afronding |
+| B08 | in uitvoering | native_storage: parallel-followup-g0 | Verse native G0-run en atomische capture op gepubliceerde bronfreeze |
+| G10 | in uitvoering | native_apps: parallel-followup-sdk-m6c | Actuele SDK-route met opslaan en teruglezen in een nieuwe koude VM |
+| I11 | in uitvoering | runtime_platform: parallel-followup-qsim | Actuele native simulatorcontrole met twee geïsoleerde processen |
+| B09/G09/I10 | gereed voor integratie/controle | root, afzonderlijke commits behouden | Vaste capture-outputlijst plus onafhankelijke hercontrole; documentreview zonder blocker |
+| G07/I08/B07 | gereed voor integratie/controle | geïntegreerd op f52ef0a6 | Documentsessie, 256-byte jobcodec en G0-capture; library-/hostbewijs, nog geen GUI of jobdienst |
+| G1 | wacht op een benoemde afhankelijkheid | bestaande andere sessie: Materiaal en display/input | Eigenaar publiceert broncheckpoint van toegewezen G1-branch voor integratie |
+| S08 | gereed om te bouwen | volgende bouwer; root bewaakt herstelcontract | Begrensde vervanging van catalogusdienst zonder mutatiereplay |
+| S04/S05 | wacht op een benoemde afhankelijkheid | root: opslagcontract | Versieerbaar formaat en crashacceptatie voor grotere documenten en ruimtehergebruik |
+| N03/P02/H | wacht op een benoemde afhankelijkheid | nog toe te wijzen | Native netwerk, entropy/crypto en peerrechten voor native NAS |
 
 Vier toestanden: gereed om te bouwen; in uitvoering; wacht op een benoemde
-afhankelijkheid; gereed voor integratie/controle. Voltooide agents krijgen
-meteen volgendebouw-/controletaken. Historische capaciteitsvoorkeuren hieronder
-gelden niet voor deze opdracht.
+afhankelijkheid; gereed voor integratie/controle. De oude capaciteitsvoorkeuren
+in de historische registratie gelden niet voor deze opdracht.
 
 ## Historische registratie
 

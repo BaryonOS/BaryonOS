@@ -1,0 +1,22 @@
+{
+  "command": [
+    "cargo",
+    "build",
+    "--manifest-path",
+    "/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/Cargo.toml",
+    "-p",
+    "nieuw-os-document-session",
+    "--lib",
+    "--release",
+    "--target",
+    "x86_64-unknown-none",
+    "--locked",
+    "--offline"
+  ],
+  "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+  "returncode": 0,
+  "stdout_utf8": "",
+  "stderr_utf8": "   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/runtime)\n   Compiling catalog-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/services/catalog)\n   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/catalog-client)\n   Compiling nieuw-os-document-session v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/document-session)\n    Finished `release` profile [optimized] target(s) in 0.31s\n",
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "b0ff14589bb38c3d2ed9ac999336a69e094deaee82df01d4b54fd25ac6487cf1"
+}

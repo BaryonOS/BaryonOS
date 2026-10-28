@@ -1,0 +1,13 @@
+{
+  "scope": "Two isolated synthetic publication-boundary probes; no native execution",
+  "same_bytes_input_replacement": {
+    "rejected": true,
+    "reason": "Inputs or source changed before archive publication",
+    "same_bytes_new_inode": true
+  },
+  "extra_staged_file_before_index": {
+    "rejected": true,
+    "reason": "Unexpected or missing staged archive file",
+    "published_extra_file": false
+  }
+}

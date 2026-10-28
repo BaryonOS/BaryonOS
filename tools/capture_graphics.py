@@ -52,6 +52,7 @@ REPORT_FIELDS = frozenset(("scope", "passed", "checks", "error", "command", "cwd
     "source_sha256", "base_commit", "qemu_version", "qemu_entry_path", "qemu_entry_sha256",
     "run_directory", "stdout", "artifacts", "changed_bounds", "step_changed_bounds", "vga_rom"))
 TEXT_FILES = ("result.json", "build-manifest.json", "serial.txt", "stderr.txt", "qmp-trace.json")
+ARCHIVE_FILES = frozenset(TEXT_FILES) | {name + ".png" for name in FRAMES} | {"image-roundtrip.json"}
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 
@@ -339,11 +340,13 @@ def capture(run_directory, destination):
             images.append(dict(name=name, width=width, height=height, original_header_hex=header.hex(),
                                ppm_sha256=digest(original), png_sha256=sha256(path)))
         (staged/"image-roundtrip.json").write_text(json.dumps({"scope": "Lossless actual QEMU pixels; exact PPM header plus RGB roundtrip", "images": images}, indent=2)+"\n")
+        require({path.name for path in staged.iterdir()} == ARCHIVE_FILES,
+                "Unexpected or missing staged archive file")
         captured = dict(schema_version=1, passed=True, source_fingerprint_version=3, source_sha256=frozen,
             source_commit=report["base_commit"], run_directory=str(root), captured_utc=datetime.now(timezone.utc).isoformat(),
             scope="Existing raw G0 artifacts rechecked; no VM, repaired result, binary or firmware copied",
             input_sha256={name:digest(value) for name,value in raw.items()},
-            files={path.name:sha256(path) for path in staged.iterdir()})
+            files={name:sha256(staged/name) for name in sorted(ARCHIVE_FILES)})
         (staged/"capture.json").write_text(json.dumps(captured, indent=2)+"\n")
         again, again_identities = snapshot(root, raw, report["qmp_transport"])
         executable, identity, tool_hash = tool
@@ -351,7 +354,7 @@ def capture(run_directory, destination):
         require(again == raw and again_identities == identities and final_identity == identity
                 and digest(tool_raw) == tool_hash and source_hash() == frozen, "Inputs or source changed before archive publication")
         require(all(path.is_file() and not path.is_symlink() and path.stat().st_nlink == 1 for path in staged.iterdir())
-                and set(path.name for path in staged.iterdir()) == set(captured["files"]) | {"capture.json"}
+                and {path.name for path in staged.iterdir()} == ARCHIVE_FILES | {"capture.json"}
                 and all(sha256(staged/name) == expected for name,expected in captured["files"].items())
                 and read_json((staged/"capture.json").read_bytes()) == captured,
                 "Staged archive changed before publication")
