@@ -2,6 +2,40 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
+## Main-integratie — conflictresolutie 28 oktober 2026
+
+De actuele `main` (`1f24f994`) is samengevoegd in integratiebron
+`1068e89c`, vanaf gemeenschappelijke basis `5a58a743`. De M6c/M6d-
+implementatie bleef behouden. De gedeelde kernel-, capability-, virtio- en
+dienstbronnen zijn bytegelijk aan zowel de M6d-uitvoeringsbron `88e6c04` als de
+overlappende bron op `main`; de M6c-selectie is apart behouden. De twee
+eerder uitgesloten, onbewezen M5-corelogs uit de inkomende `main` zijn niet
+opnieuw toegevoegd; overig main-bewijs is behouden.
+
+Na conflictresolutie zijn uitgevoerd (allemaal exit 0):
+
+```text
+python3 -B tests/test_guest_harness.py                         # 7 tests
+python3 -B tests/test_m6b_capture.py                            # 13 tests
+python3 -B -m py_compile tools/build.py tools/build_users.py tools/capture_m6b.py tools/run.py tools/run_m6b.py
+cargo +1.90.0 test --locked -p capability-core -p virtio-core -p block-protocol -p object-core -p catalog-core -p kernel-core # 139 tests
+rustup +1.90.0 target add x86_64-unknown-none x86_64-unknown-uefi
+python3 -B tools/build.py --kernel-feature milestone-m6c
+```
+
+De eerste buildpoging eindigde met exit 1 omdat `x86_64-unknown-none` niet was
+geïnstalleerd (`E0463`). Na installatie van de twee officiële Rust-targets
+slaagde de build; twee bestaande dead-codewaarschuwingen bleven staan. Rustup
+installeerde automatisch de ontbrekende 1.90.0-toolchain en Cargo ververste de
+index zonder lockfilewijziging.
+
+De M1–M6d-QEMU-gates zijn **niet opnieuw uitgevoerd** op de mergecommit.
+De succesvolle M6c-crossbuild bewijst alleen compilatie, geen boot of VM-gedrag.
+De eerder opgeslagen M6d-gates blijven aan hun exacte uitvoeringsbron gebonden;
+de native bronvergelijking bevestigt dat de merge geen runtimecode van die bron
+veranderde. Voortgang blijft **14% → 14%**: geen nieuw native criterium of
+bewijsclaim.
+
 ## M6d-reviewherstel — checkpoint 28 oktober 2026
 
 Hervat vanaf GitHub-head `7484d87`, afzonderlijke checkout `nieuw-os-review`.

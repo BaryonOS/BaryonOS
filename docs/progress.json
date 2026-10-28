@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "7484d87ec639fd8a29be327cad47c2f97739199d",
-    "branch": "codex/m6d-io-recovery-roadmap",
-    "task": "M6d reviewherstel en Windows-regressiecheckpoint",
+    "source_commit": "1068e89c5160bd84849304360b6494ac77ece7b3",
+    "branch": "codex/integrate-m6d-main",
+    "task": "Main-integratie en conflictresolutie",
     "previous_score": 14,
-    "summary": "Auditgaten en bronreviewdekking hersteld; native functionaliteit en criteria ongewijzigd. Lokale 48 M6c- en 30 M6b-hosttests slagen na herstel van een Windows-exitrace. Volledige nieuwe native gates en externe herreview volgen na dit checkpoint."
+    "summary": "Main 1f24f99 geïntegreerd; native runtimebronnen bleven gelijk aan M6d. Conflicten opgelost; 139 Rust- en 20 Python-tests, py_compile en M6c-crossbuild slagen. Geen nieuwe QEMU-gates; score blijft 14%."
   },
   "tracks": [
     {

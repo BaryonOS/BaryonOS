@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`7484d87e`](https://github.com/simonvanieperen/nieuw-os/commit/7484d87ec639fd8a29be327cad47c2f97739199d) ·
-**Ontwikkelbranch:** `codex/m6d-io-recovery-roadmap`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** M6d reviewherstel en Windows-regressiecheckpoint.
-Auditgaten en bronreviewdekking hersteld; native functionaliteit en criteria ongewijzigd. Lokale 48 M6c- en 30 M6b-hosttests slagen na herstel van een Windows-exitrace. Volledige nieuwe native gates en externe herreview volgen na dit checkpoint.
+**Bron:** [`1068e89c`](https://github.com/simonvanieperen/nieuw-os/commit/1068e89c5160bd84849304360b6494ac77ece7b3) ·
+**Ontwikkelbranch:** `codex/integrate-m6d-main`.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Main-integratie en conflictresolutie.
+Main 1f24f99 geïntegreerd; native runtimebronnen bleven gelijk aan M6d. Conflicten opgelost; 139 Rust- en 20 Python-tests, py_compile en M6c-crossbuild slagen. Geen nieuwe QEMU-gates; score blijft 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
