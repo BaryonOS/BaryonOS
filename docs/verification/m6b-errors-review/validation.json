@@ -1,0 +1,109 @@
+{
+  "base_commit": "1f24f994bff1b2c7cb0a026b600c5c4948140cfe",
+  "runtime_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+  "source_fingerprint_version": 3,
+  "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/test_m6b.py"
+      ],
+      "exit": 0,
+      "groups": 22,
+      "actual_vm_runs": 18,
+      "evidence": "../m6b-storage-errors/suite.json"
+    },
+    {
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/capture_m6b.py",
+        "--destination",
+        "docs/verification/m6b-storage-errors"
+      ],
+      "exit": 0,
+      "metadata": "m6b-errors-final-capture.json"
+    },
+    {
+      "argv": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/rustfmt",
+        "+1.90.0",
+        "--edition",
+        "2021",
+        "--config",
+        "skip_children=true",
+        "--check",
+        "kernel/src/m2/m3/m6b.rs",
+        "userspace/m6b_probe.rs"
+      ],
+      "exit": 0,
+      "metadata": "m6b-errors-final-format.json"
+    },
+    {
+      "argv": [
+        "/usr/local/bin/git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "metadata": "m6b-errors-final-diff.json"
+    },
+    {
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "milestone-m6b"
+      ],
+      "exit": 0,
+      "metadata": "m6b-errors-final-build.json"
+    },
+    {
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/run_m6b.py",
+        "--case",
+        "normal",
+        "--smoke"
+      ],
+      "exit": 0,
+      "metadata": "m6b-errors-final-smoke.json"
+    }
+  ],
+  "host_unit_tests": {
+    "object_core": 22,
+    "python_m6b": 31
+  },
+  "final_normal_build_matches_gate": {
+    "esp/kernel.elf": true,
+    "esp/EFI/BOOT/BOOTX64.EFI": true
+  },
+  "verification": "verification.json",
+  "source_review": "review-report.json",
+  "directed_runs_scope": "two separate preliminary fault VMs, not added to the 18-VM gate count",
+  "final_smoke_scope": "one additional normal M6b run, separately recorded; no full M1-M6a rerun",
+  "limits": [
+    "local post-completion IOERR snapshot injections only",
+    "no real backend failure, partial write or physical power failure",
+    "no new timeout/reset-timeout/adapter-local poll-LIMIT native coverage",
+    "trusted single-CPU QEMU/backend; no IOMMU containment",
+    "no native desktop/network, secure updates, encryption or garbage collection added"
+  ],
+  "archive_whitespace_check": {
+    "argv": [
+      "git",
+      "-c",
+      "core.whitespace=-blank-at-eof",
+      "diff",
+      "--cached",
+      "--check"
+    ],
+    "exit": 0,
+    "reason": "Preserve exact raw test output, including its final blank line; source format checks remain unchanged."
+  }
+}

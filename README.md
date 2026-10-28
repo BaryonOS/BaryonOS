@@ -8,10 +8,14 @@ verwijderen. De dienst schrijft via echte virtio-I/O; revisies en verwijderrecor
 blijven behouden na een koude herstart. Apps krijgen uitsluitend hun eigen
 domeinendpoint, geen rechtstreekse blok- of DMA-toegang.
 
-De volledige M6b-gate op broncheckpoint `1e61a20` is geslaagd: **18 controlegroepen
-en 14 echte VM-invocaties**, inclusief zes koude recoveries en twee externe
-QEMU-kills. Ook 22 Rust-tests en 26 M6b-harnastests slagen. Ruwe uitvoer, hashes en
-de onafhankelijke schijfcontrole staan in [verification/m6b](docs/verification/m6b/).
+De uitgebreide M6b-gate op broncheckpoint `592dccf` is geslaagd: **22 controlegroepen
+en 18 echte VM-invocaties**, inclusief acht koude recoveries en twee externe
+QEMU-kills. Twee nieuwe WRITE-/FLUSH-foutproeven controleren dat de dienst
+Unknown teruggeeft zonder kernelpanic, valse succesmelding, replay of oude
+leesinhoud. Ook 22 Rust-tests en 31 M6b-harnastests slagen. De fouten zijn lokale
+statussnapshotinjecties na echte devicecompletion; geen echte defecte backend.
+Ruwe uitvoer en hashes: [verification/m6b-storage-errors](docs/verification/m6b-storage-errors/).
+Het [eerdere M6b-bewijs](docs/verification/m6b/) is behouden.
 Deze afgebakende proef gebruikt vier objecten van maximaal 128 bytes en een
 journal van 32 records. Namen, ruimtehergebruik, encryptie en native NAS/desktop
 volgen als aparte integratiestappen; dit is nog geen consumentensysteem.
@@ -39,7 +43,7 @@ De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde
 - **Productprototype:** [handleiding](ui/prototype/README.md).
 - **Quantumsimulator:** [handleiding](experiments/quantum/README.md).
 
-M6b staat op [codex/m6b-object-storage](https://github.com/simonvanieperen/nieuw-os/tree/codex/m6b-object-storage), boven op `codex/pqc-transport-foundation` ([PR #8](https://github.com/simonvanieperen/nieuw-os/pull/8)). De status staat per spoor in PROJECT-STATE.md. [PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3) bewaart de M5-historie; de oude testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
+M6b is hervat vanaf `main` (`1f24f99`) op [codex/m6b-storage-errors](https://github.com/simonvanieperen/nieuw-os/tree/codex/m6b-storage-errors). De status staat per spoor in PROJECT-STATE.md. [PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3) bewaart de M5-historie; de oude testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
 
 De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-feature milestone-m5` en `python tools/run.py --smoke --milestone m5`. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
 

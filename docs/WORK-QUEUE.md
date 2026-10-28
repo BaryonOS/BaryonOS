@@ -5,14 +5,15 @@
 | ID | Eigenaar | Exclusieve writes | Status |
 |---|---|---|---|
 | K07 | m6a_architect_review | kernel/Cargo.toml, kernel/src/m2/m3/m6b.rs, userspace/m6b_probe.rs | generieke Unknown-observerreparatie en twee statussnapshotinjecties klaar |
-| G07 | root | tools/tests/docs/Git | foutcaseharnas/oracle uitgebreid; 31 hostharnastests en preflight exit 0; native gate volgt |
-| R07 | m6a_environment | alleen lezen | harnas-/invariantontwerp gecontroleerd; bronreview volgt |
+| G07 | root | tools/tests/docs/Git | 31 hosttests, 22 groepen/18 VM en capture exit 0; nieuw bewijs apart gearchiveerd |
+| R07/V07 | m6a_environment | alleen lezen | bronreview geen blockers; onafhankelijke hash-/schijf-/recoveryaudit |
 
 Vereist: geen mutatie-ACK of live-stateclaim na onzekere I/O, geen replay,
 GET/PUT/DELETE fail-closed, canoniek foutantwoord en overlevende processen.
-Twee gerichte native foutcases plus koude recovery; daarna volledige M6b-gate
-en capture zonder historisch bewijs te overschrijven. Geen nieuwe rechten,
-dependency, schijfformaat of architectuur. Zie PROJECT-STATE.md.
+Twee gerichte native foutcases en de volledige M6b-gate met beide koude
+foutrecoveries slagen. Historisch bewijs behouden. Geen nieuwe rechten,
+dependency, schijfformaat of architectuur. Bron `592dccf`; bewijs en nog open
+backend-/timeout-/LIMIT-grenzen staan in PROJECT-STATE.md.
 
 ## Oudere werkqueue — historisch
 

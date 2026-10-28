@@ -1,0 +1,307 @@
+{
+  "task": "V07",
+  "generated_utc": "2026-10-28T12:33:33.771994+00:00",
+  "status": "completed",
+  "passed": true,
+  "basis": "592dccfb329c05107866b18f7187e8b340ccab98",
+  "directed": {
+    "vm_count": 2,
+    "artifact_hashes_checked": 18,
+    "runs": [
+      {
+        "case": "write-error",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-directed-write-error-47dd7136ae",
+        "raw_qemu_exit": 33,
+        "artifact_count": 9,
+        "serial_sha256": "387281a5b668a623f45f194de2ff77c15fc265663146e5fd94e272a69eeaa5c8",
+        "exact_record": "slot0/object0/revision1/request10/PUT/128bytes",
+        "only_changed_sector": 4,
+        "full_remaining_image_unchanged": true,
+        "unknown_marker_unique": true,
+        "no_live_state_or_ack_claim": true,
+        "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+        "passed": true
+      },
+      {
+        "case": "flush-error",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-directed-flush-error-dff40920cc",
+        "raw_qemu_exit": 33,
+        "artifact_count": 9,
+        "serial_sha256": "114c27897f7aa20022ed90e7447255ee72670cf00e7b732fa68781a6106d3801",
+        "exact_record": "slot0/object0/revision1/request10/PUT/128bytes",
+        "only_changed_sector": 4,
+        "full_remaining_image_unchanged": true,
+        "unknown_marker_unique": true,
+        "no_live_state_or_ack_claim": true,
+        "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+        "passed": true
+      }
+    ],
+    "passed": true
+  },
+  "complete_gate": {
+    "status": "completed",
+    "passed": true,
+    "groups": 22,
+    "vm_count": 18,
+    "artifact_hashes_checked": 157,
+    "raw_serial_stderr_files_checked": 36,
+    "archive_file_hashes_checked": 12,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_binding": "independently reconstructed fingerprint v3 matches all guest/build manifests and suite",
+    "runs": [
+      {
+        "name": "normal-a",
+        "case": "normal",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-normal-a-3480ffd50f",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 8,
+        "record_count": 8
+      },
+      {
+        "name": "normal-a-cold-recovery",
+        "case": "recover",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-normal-a-cold-recovery-9351fca234",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 8,
+        "record_count": 8,
+        "exact_previous_recovery": "normal-a"
+      },
+      {
+        "name": "normal-b",
+        "case": "normal",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-normal-b-4d35d59eab",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 8,
+        "record_count": 8
+      },
+      {
+        "name": "normal-b-cold-recovery",
+        "case": "recover",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-normal-b-cold-recovery-42183e6f96",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 8,
+        "record_count": 8,
+        "exact_previous_recovery": "normal-b"
+      },
+      {
+        "name": "errors",
+        "case": "errors",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-errors-1a434ec0b4",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 8,
+        "record_count": 8
+      },
+      {
+        "name": "errors-cold-recovery",
+        "case": "recover",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-errors-cold-recovery-2e3d17b69b",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 8,
+        "record_count": 8,
+        "exact_previous_recovery": "errors"
+      },
+      {
+        "name": "full",
+        "case": "full",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-full-ab1617d7bb",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 32,
+        "record_count": 32
+      },
+      {
+        "name": "full-cold-recovery",
+        "case": "recover",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-full-cold-recovery-97c726cbce",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 32,
+        "record_count": 32,
+        "exact_previous_recovery": "full"
+      },
+      {
+        "name": "corrupt",
+        "case": "corrupt",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-corrupt-96b580ce23",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true
+      },
+      {
+        "name": "vm-cut-before-ack",
+        "case": "vm-cut-before-ack",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-vm-cut-before-ack-b707accaa8",
+        "artifact_count": 9,
+        "raw_qemu_exit": -9,
+        "passed": true,
+        "sequence": 0,
+        "record_count": 0
+      },
+      {
+        "name": "vm-cut-before-ack-cold-recovery",
+        "case": "recover",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-vm-cut-before-ack-cold-recovery-d32db4d09a",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 0,
+        "record_count": 0,
+        "exact_previous_recovery": "vm-cut-before-ack"
+      },
+      {
+        "name": "vm-cut-after-flush",
+        "case": "vm-cut-after-flush",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-vm-cut-after-flush-f3f8183233",
+        "artifact_count": 9,
+        "raw_qemu_exit": -9,
+        "passed": true,
+        "sequence": 1,
+        "record_count": 1
+      },
+      {
+        "name": "vm-cut-after-flush-cold-recovery",
+        "case": "recover",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-vm-cut-after-flush-cold-recovery-7cd4339fe5",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 1,
+        "record_count": 1,
+        "exact_previous_recovery": "vm-cut-after-flush"
+      },
+      {
+        "name": "write-error",
+        "case": "write-error",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-write-error-5090a8986e",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 1,
+        "record_count": 1
+      },
+      {
+        "name": "write-error-cold-recovery",
+        "case": "recover",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-write-error-cold-recovery-a1c819df4b",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 1,
+        "record_count": 1,
+        "exact_previous_recovery": "write-error"
+      },
+      {
+        "name": "flush-error",
+        "case": "flush-error",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-flush-error-132344d636",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 1,
+        "record_count": 1
+      },
+      {
+        "name": "flush-error-cold-recovery",
+        "case": "recover",
+        "run_directory": "/workspace/nieuw-os/build/run/m6b-flush-error-cold-recovery-ca9f0b5a16",
+        "artifact_count": 9,
+        "raw_qemu_exit": 33,
+        "passed": true,
+        "sequence": 1,
+        "record_count": 1,
+        "exact_previous_recovery": "flush-error"
+      },
+      {
+        "name": "m1-regression-after-m6b",
+        "case": "m1",
+        "run_directory": "/workspace/nieuw-os/build/run/m1-after-m6b-e89bbd60a3",
+        "artifact_count": 4,
+        "raw_qemu_exit": 33,
+        "passed": true
+      }
+    ],
+    "cold_recoveries": 8,
+    "external_live_qemu_kills": 2,
+    "unique_m6b_volumes": 9,
+    "host_groups": [
+      {
+        "name": "m6b-preflight",
+        "returncode": 0,
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+          "-B",
+          "tools/preflight.py",
+          "--strict"
+        ]
+      },
+      {
+        "name": "m6b-host-tests",
+        "returncode": 0,
+        "command": [
+          "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+          "+1.90.0",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "object-core"
+        ]
+      },
+      {
+        "name": "m6b-harness-tests",
+        "returncode": 0,
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_m6b_*.py"
+        ]
+      }
+    ],
+    "rust_object_tests": 22,
+    "python_harness_tests": 31,
+    "normal_same_binary_different_initial_images": true,
+    "fault_binary_matches_directed_runs": true,
+    "archive": "docs/verification/m6b-storage-errors",
+    "independent_oracle": "Ad-hoc independent Python decoder; no project oracle/parser imports; exact on-disk record fields/checksum/fixtures and raw guest state checked.",
+    "qemu_provenance": {
+      "version": "10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)",
+      "note": "Guest qemu_sha256 hashes the project-local wrapper. The actual executable was independently matched byte-for-byte to its downloaded Debian package here.",
+      "wrapper_path": "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "wrapper_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+      "binary_path": "/workspace/nieuw-os/.tools/nieuw-os/qemu-debian/root/usr/bin/qemu-system-x86_64",
+      "binary_sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067",
+      "package_path": "/workspace/nieuw-os/.tools/nieuw-os/qemu-debian/archives/qemu-system-x86_1%3a10.0.13+ds-0+deb13u1_amd64.deb",
+      "package_sha256": "5e841d0723a657fd8bc2e9e1a085d24f47fcb3e4a0f94762e6c38b429f22fbb1",
+      "binary_equals_deb_member": true
+    }
+  },
+  "blockers": [],
+  "limits": [
+    "Verification reads actual saved guest serial/stderr, result metadata and binary/image bytes; it does not launch a new VM.",
+    "Only local completion-status snapshot errors after real used-index advance; not backend failure or physical power-loss evidence.",
+    "No new timeout/reset-timeout/adapter-LIMIT or physical/IOMMU coverage.",
+    "This gate includes one ordinary M1 regression boot, not a rerun of the complete M1 negative gate or broader M2\u2013M6a suites.",
+    "The subsequent normal ready-build/smoke requested by root is outside this verifier count unless separately added."
+  ]
+}

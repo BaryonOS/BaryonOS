@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "tools/run_m6b.py",
+    "--case",
+    "normal",
+    "--smoke"
+  ],
+  "cwd": "/workspace/nieuw-os",
+  "started_unix": 1793190698.0852625,
+  "duration_s": 2.7236032485961914,
+  "returncode": 0
+}

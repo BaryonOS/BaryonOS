@@ -6,3 +6,6 @@
 # Keep recorded serial/console bytes identical to their evidence hashes.
 docs/verification/m6b/*.txt -text
 docs/verification/regression-m6b/**/*.txt -text
+docs/verification/m6b-storage-errors/*.txt -text
+docs/verification/m6b-errors-review/*.txt -text
+docs/verification/m6b-storage-errors-checkpoint/*.txt -text

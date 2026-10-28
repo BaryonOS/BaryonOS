@@ -9,18 +9,51 @@ Basis `1f24f994bff1b2c7cb0a026b600c5c4948140cfe`, branch
 is deze actuele M6b-basis gekozen. De voorlopige, dubbele M6a-planstap op
 `codex/m6a-write-flush-core` is niet geïntegreerd en is geen vervolg op M6b.
 
-Actieve stap: repareer de hieronder genoemde observerpanic bij een onzekere
-WRITE/FLUSH en voeg native foutproeven plus koude recovery toe. De foutinjectie
+Afgeronde stap op uitvoeringsbron `592dccfb329c05107866b18f7187e8b340ccab98`:
+de observerpanic bij een terminale WRITE-/FLUSH-fout is gerepareerd. De observer
+volgt de echte brokerfout naar de ring-3-dienst, verwacht een canoniek Unknown-
+antwoord en bevestigt/commit de mutatie niet. Latere GET/PUT/DELETE en dezelfde
+PUT opnieuw geven Unknown zonder nieuwe I/O; verkeerde domeintoegang blijft
+Access. Geen nieuwe rechten, syscall, dependency, unsafe of schijfformaat.
+De foutinjectie
 vervangt uitsluitend een lokale statussnapshot ná echte devicecompletion;
 geen claim van een fysieke schijffout of stroomuitval. Eisen en markers staan
-in `implementation/M6B-OBJECT-STORAGE.md`. Bronimplementatie en eerste read-only
-review zijn klaar; 31 hostharnastests en strict preflight slagen (exit 0).
-Checkpoint met commando's en bronhashes: `verification/m6b-storage-errors-checkpoint/`.
-Nog geen nieuwe geslaagde M6b-VM-resultaten voor deze stap; native gates volgen.
+in `implementation/M6B-OBJECT-STORAGE.md`.
+
+`python3 -B -u tools/test_m6b.py` en
+`python3 -B tools/capture_m6b.py --destination docs/verification/m6b-storage-errors`
+slagen (exit 0): **22 groepen / 18 echte VM-runs**. Daarin zitten beide nieuwe
+foutcases met negen werkelijk ontvangen Unknown-replies, nul mutatie-ACKs,
+blijvend sequence 0 in de levende dienst en precies één werkelijk geschreven
+record op schijf. Beide koude vervolgruns herstellen sequence 1 zonder writes.
+De overige CRUD-/domein-/full-/corrupt-/kill-/recoverycases en M1-regressiestart
+slagen eveneens. Hostlaag: 22 Rust-objecttests en 31 harnastests. De gate telt
+acht koude recoveries en twee echte externe QEMU-kills.
+
+Vooraf slagen twee gerichte foutVMs; zij worden niet bij de gate opgeteld.
+Targeted rustfmt/diffcontrole slagen. Onafhankelijke AI-bronreview heeft geen
+blockers; extra negatieve markerproeven slagen. Checkpoint:
+`verification/m6b-storage-errors-checkpoint/`. Volledige ruwe gate/capture:
+`verification/m6b-storage-errors/`. Exacte aanvullende commando's, review,
+hashaudit en normale eindstart: `verification/m6b-errors-review/`.
+De verifier controleerde alle 18 gastrecords, 157 artifacthashes, 36 ruwe
+serial-/stderrbestanden en acht koude herstelkoppelingen; geen blockers.
+De normale `milestone-m6b`-build en een extra smoke-start slagen (exit 0/raw 33);
+kernel en loader zijn bytegelijk aan de normale eindgate. Dit is AI-verificatie,
+geen menselijke audit. Concept-PR: [#14](https://github.com/simonvanieperen/nieuw-os/pull/14).
 
 Ontwikkelomgeving: projectlokale Rust 1.90.0, QEMU 10.0.13 en OVMF
 2025.02-8+deb13u1 uit officiële Debian-pakketten; geen systeembrede installatie.
 Dit is een andere ontwikkelvariant dan het historische Linuxbewijs hieronder.
+
+Grenzen: geen nieuwe volledige M1–M6a-regressiesuite, browser-/NAS-/quantumproef
+of fysieke-hardwaretest. Echte backend-IOERR, gedeeltelijke write, timeout,
+reset-timeout en uitputting van de eigen poll-LIMIT van de dienst zijn niet
+nieuw native geïnjecteerd. Die laatste lokale timeout kan nog van de verwachte
+observerstatus afwijken als geen terminale brokerfout is teruggegeven. De
+snapshotproeven sluiten dat afzonderlijke randgeval niet. Volgende opslagstap:
+deze fout-/timeoutgrenzen, daarna ruimtehergebruik en de verdere productadapter;
+native netwerk/desktop en updateketen blijven afzonderlijke bouwtaken.
 
 ## M6b — native documentopslag gebouwd en getest
 
@@ -95,10 +128,10 @@ hostbewijs staat in `verification/m6b-review/review-followup-2/` en is geen
 nieuwe native gate of herhaling van de eerdere 40 tests.
 Geen nieuwe native gate uitgevoerd; de M3-hosttestcheckout en de redirectinstelling
 van de oude buitenste capturewrapper blijven expliciet onbekend.
-Bekende native observerbeperking: WRITE-/FLUSH-fouten kunnen, ook in
+Historische native observerbeperking op deze eerdere bron: WRITE-/FLUSH-fouten konden, ook in
 `milestone-m6b`, een kernel panic veroorzaken voordat de client `Unknown` krijgt.
-Dit is niet gerepareerd of end-to-end native bewezen; contract en acceptatie
-beschrijven de begrensde onderzoeksafbakening en benodigde latere foutinjectie.
+Deze oude gates leveren daarvoor geen native foutbewijs. De reparatie en nieuwe
+afgebakende injectieproeven op `592dccf` staan in de bovenste hervattingssectie.
 
 Deze begrensde lokale opslagproef heeft geen namen, directoryboom, garbage
 collection of encryptie. Verwijderrecords voorkomen het terugkomen van oude
