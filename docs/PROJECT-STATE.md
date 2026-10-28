@@ -9,8 +9,12 @@ door; het vorige checkpoint is geen voltooid OS. K08 voegt kerneldeadlines,
 resetquarantaine en lokaal afgebroken polls toe. De dienst sluit bij eigen
 polluitputting zijn enige blokcapability via de bestaande ABI; de kernel kan
 zo echte autoriteitsbeëindiging waarnemen en pending DMA veilig annuleren.
-Vijf nieuwe native cases worden gebouwd. Het harnas heeft 33 geslaagde
-hosttests; nieuwe VM-uitkomsten zijn nog niet uitgevoerd op dit checkpoint.
+Vijf gerichte echte VM-proeven op bron `9c0c434` slagen met raw-exit 33:
+WRITE-/FLUSH-deadline, gemaskeerde resetack/quarantaine en lokaal uitgeputte
+WRITE-/FLUSH-polls. De cancelproeven sluiten de blokcap vóór de kerneldeadline;
+de resetproef houdt de pool vast. Het harnas heeft 33 geslaagde hosttests.
+Afzonderlijk bewijs: `verification/m6b-timeouts-directed/`. De uitgebreide
+volledige 32-groepen-/28-VM-poort volgt na de native grafische bronfreeze.
 
 G09 bouwt parallel een opt-in native grafische basis volgens ADR-030 en
 `implementation/GRAPHICS-G0.md`: eigen framebufferuitvoer en PS/2-invoer,
