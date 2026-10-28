@@ -1,5 +1,31 @@
 # Actuele projectstatus
 
+## N01 voorbereidend netwerkwerk — UDP-uitvoer zonder native NIC (28 oktober 2026)
+
+Ontwikkelbranch `feature/n01-bounded-udp-ipv4-tx-20261028`, begonnen op main `6e12dcbbd4a37d404dd5a60bc2c8a8e32d2d187e`.
+De bestaande `no_std`-protocolmodule is uitgebreid met een begrensde
+Ethernet II/IPv4/UDP-transmitter. Deze code genereert uitsluitend bytes in een
+caller-buffer: expliciete effectieve MTU, TTL-controle, IPv4/UDP-checksums,
+zero-checksumcodering volgens RFC 768, zero padding en geen gedeeltelijke
+bufferschrijfactie bij geweigerde input. De ingestelde source/destination
+blijven data, geen gevalideerde app- of peerrechten. De bestaande parser wordt
+als roundtrip-validator gebruikt; vaste onafhankelijk afgeleide UDP-vectoren
+blijven het orakel, ook voor foutgevallen.
+
+**Bewijsstatus:** broncode en aanvullende Rust-hosttests staan in deze branch.
+De testcommando's `cargo +1.90.0 test/clippy/fmt` en cross-build naar
+`x86_64-unknown-none` zijn in deze chatsessie **niet lokaal uitgevoerd**:
+Rust en QEMU ontbreken in de beschikbare lokale omgeving. PR-CI kan dit
+op een gecontroleerde runner uitvoeren; de uitkomst daarvan moet nog op de
+exacte PR-head worden vastgelegd. Geen native NIC-/packettransmissie,
+TCP-stack, service-, hardware- of QEMU-acceptatie geclaimd.
+
+De zes aparte Codex-taken voor K05/S04/N01/U01/B03/H02 zijn op 28 oktober
+wel aangemaakt, maar direct zonder code afgerond met
+`No usable execution environment is available`. Dit is geen lopende
+parallelle agentuitvoering. De hoofdchat bouwt onafhankelijk verder via
+GitHub-bestanden. **Rubric v1 blijft 20/100 (20% → 20%); N01 is open.**
+
 ## Native A01 en S08 geïntegreerd, 20% — 28 oktober 2026
 
 Op `main` commit `b9c7cf8f4e1804f0333e8fba8862941190224155` zijn twee

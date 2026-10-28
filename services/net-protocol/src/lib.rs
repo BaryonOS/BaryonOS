@@ -1,6 +1,6 @@
 #![no_std]
 #![forbid(unsafe_code)]
-//! Bounded Ethernet II / IPv4 / UDP header parsing, with no I/O or authority.
+//! Bounded Ethernet II / IPv4 / UDP parsing and frame encoding, with no I/O or authority.
 //!
 //! Input is immutable driver-owned bytes beginning at the destination MAC,
 //! without FCS. Link padding may be stripped or present to the 60-byte Ethernet
@@ -236,6 +236,106 @@ pub fn parse(frame: &[u8]) -> Result<UdpDatagram<'_>, Error> {
         udp,
         checksum,
     })
+}
+
+/// Maximum UDP payload for an IPv4 datagram without IP options. A particular
+/// NIC/route may impose a much smaller MTU; the caller must supply that bound.
+pub const MAX_UDP_PAYLOAD_BYTES: usize = MAX_IPV4_BYTES - IPV4_HEADER_BYTES - UDP_HEADER_BYTES;
+
+/// Endpoint/header values come from an authorized network service, never
+/// directly from a request whose application lacks destination authority.
+/// This type performs no capability lookup, routing or neighbor discovery.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct UdpIpv4Tx {
+    pub destination_mac: [u8; 6],
+    pub source_mac: [u8; 6],
+    pub source_ipv4: [u8; 4],
+    pub destination_ipv4: [u8; 4],
+    pub source_port: u16,
+    pub destination_port: u16,
+    pub identification: u16,
+    pub ttl: u8,
+    /// Effective IPv4-layer MTU, including the 20-byte IPv4 header.
+    pub mtu: u16,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum EncodeError {
+    ZeroTtl,
+    PayloadTooLarge { actual: usize, maximum: usize },
+    ExceedsMtu { ipv4_bytes: usize, mtu: u16 },
+    OutputTooSmall { needed: usize, available: usize },
+}
+
+/// Write one FCS-free Ethernet II / IPv4 / UDP frame into caller-owned memory.
+/// Every error is checked before the first write: insufficient output space,
+/// impossible payload size, zero TTL and MTU refusal leave the buffer intact.
+/// A successful call returns the *exact* frame length to send, including
+/// zero-filled minimum Ethernet padding; callers must not transmit any tail.
+/// This only encodes bytes: it does not transmit packets or grant authority.
+pub fn build_udp_ipv4(
+    tx: UdpIpv4Tx,
+    payload: &[u8],
+    output: &mut [u8],
+) -> Result<usize, EncodeError> {
+    if tx.ttl == 0 {
+        return Err(EncodeError::ZeroTtl);
+    }
+    if payload.len() > MAX_UDP_PAYLOAD_BYTES {
+        return Err(EncodeError::PayloadTooLarge {
+            actual: payload.len(),
+            maximum: MAX_UDP_PAYLOAD_BYTES,
+        });
+    }
+    // The payload check makes both additions bounded by u16::MAX.
+    let udp_bytes = UDP_HEADER_BYTES + payload.len();
+    let ipv4_bytes = IPV4_HEADER_BYTES + udp_bytes;
+    if ipv4_bytes > usize::from(tx.mtu) {
+        return Err(EncodeError::ExceedsMtu {
+            ipv4_bytes,
+            mtu: tx.mtu,
+        });
+    }
+    let frame_bytes = ETHERNET_HEADER_BYTES + ipv4_bytes.max(MIN_ETHERNET_DATA_BYTES);
+    if output.len() < frame_bytes {
+        return Err(EncodeError::OutputTooSmall {
+            needed: frame_bytes,
+            available: output.len(),
+        });
+    }
+
+    output[..frame_bytes].fill(0);
+    output[..6].copy_from_slice(&tx.destination_mac);
+    output[6..12].copy_from_slice(&tx.source_mac);
+    output[12..14].copy_from_slice(&0x0800_u16.to_be_bytes());
+
+    let ip = &mut output[14..34];
+    ip[0] = 0x45; // IPv4, no options.
+    ip[2..4].copy_from_slice(&(ipv4_bytes as u16).to_be_bytes());
+    ip[4..6].copy_from_slice(&tx.identification.to_be_bytes());
+    ip[6..8].copy_from_slice(&0x4000_u16.to_be_bytes()); // DF, no fragmentation.
+    ip[8] = tx.ttl;
+    ip[9] = 17; // UDP.
+    ip[12..16].copy_from_slice(&tx.source_ipv4);
+    ip[16..20].copy_from_slice(&tx.destination_ipv4);
+    let ip_sum = internet_checksum(&[ip]);
+    output[24..26].copy_from_slice(&ip_sum.to_be_bytes());
+
+    output[34..36].copy_from_slice(&tx.source_port.to_be_bytes());
+    output[36..38].copy_from_slice(&tx.destination_port.to_be_bytes());
+    let udp_length = (udp_bytes as u16).to_be_bytes();
+    output[38..40].copy_from_slice(&udp_length);
+    output[42..42 + payload.len()].copy_from_slice(payload);
+    let pseudo_suffix = [0, 17, udp_length[0], udp_length[1]];
+    let sum = internet_checksum(&[
+        &output[26..34],
+        &pseudo_suffix,
+        &output[34..ETHERNET_HEADER_BYTES + ipv4_bytes],
+    ]);
+    // RFC 768: a computed zero checksum must be transmitted as all ones;
+    // an on-wire zero means "checksum absent" for IPv4 UDP.
+    output[40..42].copy_from_slice(&(if sum == 0 { 0xffff } else { sum }).to_be_bytes());
+    Ok(frame_bytes)
 }
 
 // RFC 1071 one's-complement addition. Fold after every word: the accumulator

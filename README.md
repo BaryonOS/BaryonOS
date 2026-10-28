@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **20** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`b9c7cf8f`](https://github.com/simonvanieperen/nieuw-os/commit/b9c7cf8f4e1804f0333e8fba8862941190224155) ·
-**Ontwikkelbranch:** `docs/a01-s08-progress-20-20261028`.
-Deze opdracht: **17% → 20% (+3 procentpunt)**. **Opdracht:** A01 SDK-app en S08 native opslagherstel met echte read-only recovery geïntegreerd.
-A01 (+2) en S08 (+1) zijn na herstel van CodeRabbit-bevindingen, geslaagde brongebonden SDK-/resource-/storage-QEMU-gates en groene geïntegreerde main-CI geaccepteerd. S08 controleert dertien VM-runs met een werkelijk read-only recoverydrive, minimale blokrechten en zonder stille replay. De vaste rubric en de resterende criteria zijn ongewijzigd; geen algemene hardware-, GUI-, encryptie- of releaseclaim.
+**Bron:** [`fc9b0df4`](https://github.com/simonvanieperen/nieuw-os/commit/fc9b0df47880defed7a1adf3382a7aff7cfdbef6) ·
+**Ontwikkelbranch:** `feature/n01-bounded-udp-ipv4-tx-20261028`.
+Deze opdracht: **20% → 20% (+0 procentpunt)**. **Opdracht:** N01: begrensde IPv4/UDP-transmitter voorbereid; geen native packetdienst.
+De nieuwe allocatorvrije no_std-encoder maakt begrensde Ethernet/IPv4/UDP-frames met expliciete MTU, gecontroleerde lengte, IPv4/UDP-checksums en nulvulling. De brongebonden host-quality-, QEMU-smoke-, resource- en storage-regressies op fc9b0df zijn groen. Deze QEMU-runs zijn bestaande OS-regressies, geen native netwerkacceptatie: er is nog geen NIC-/IP/TCP-dienst of aangetoond packettransport. Het N01-criterium blijft open; de vaste rubric en alle gewichten zijn ongewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
