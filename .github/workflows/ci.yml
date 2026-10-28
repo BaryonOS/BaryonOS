@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  host-quality:
+    name: host-quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Node 24.22.1
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24.22.1
+          package-manager-cache: false
+      - name: Rust 1.90.0 and targets
+        shell: bash
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup component add --toolchain 1.90.0 rustfmt clippy
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Python syntax and DocumentSession host tests
+        run: |
+          python3 -m compileall -q tools tests userspace/tests experiments/quantum/native .agents/skills/os-dev
+          python3 -m unittest discover -s tests -p 'test_document_session_*.py'
+          python3 .agents/skills/os-dev/scripts/validate_skill.py
+          python3 -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py'
+      - name: Root Rust host tests
+        run: |
+          cargo +1.90.0 test --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core
+          cargo +1.90.0 clippy --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core --all-targets -- -D warnings
+          cargo +1.90.0 fmt --all -- --check
+      - name: SDK tests and lint
+        run: |
+          cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked
+          cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings
+          cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check
+      - name: Network parser tests and native cross-build
+        run: |
+          cargo +1.90.0 test --manifest-path services/net-protocol/Cargo.toml --locked
+          cargo +1.90.0 clippy --manifest-path services/net-protocol/Cargo.toml --locked --all-targets -- -D warnings
+          cargo +1.90.0 fmt --manifest-path services/net-protocol/Cargo.toml --all -- --check
+          cargo +1.90.0 build --manifest-path services/net-protocol/Cargo.toml --locked --release --target x86_64-unknown-none
+      - name: Quantum host verification
+        run: |
+          cargo +1.90.0 test --manifest-path experiments/quantum/Cargo.toml --locked
+          cargo +1.90.0 clippy --manifest-path experiments/quantum/Cargo.toml --locked --all-targets -- -D warnings
+          cargo +1.90.0 fmt --manifest-path experiments/quantum/Cargo.toml --all -- --check
+          python3 experiments/quantum/verify.py
+      - name: Product prototype tests
+        run: node --test --test-isolation=none ui/prototype/tests/*.test.mjs
+      - name: NAS policy, storage and transport tests
+        run: node --test --test-isolation=none services/nas/tests/*.test.mjs
+      - name: Native release build
+        run: python3 -B tools/build.py --kernel-feature milestone-m6c
+      - name: Progress consistency and clean tree
+        shell: bash
+        run: |
+          python3 tools/progress.py --write
+          git diff --exit-code -- README.md docs/PROGRESS.md docs/assets/progress.svg
+          python3 tools/progress.py --check
+          test -z "$(git status --porcelain)"
+
+  qemu-smoke:
+    name: qemu-smoke
+    needs: host-quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Rust 1.90.0 and targets
+        shell: bash
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup component add --toolchain 1.90.0 rustfmt clippy
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Install disposable emulator dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+      - name: Preflight
+        run: python3 -B tools/preflight.py --strict
+      - name: Baseline M6c smoke
+        run: |
+          python3 -B tools/build.py --kernel-feature milestone-m6c
+          python3 -B tools/run_m6c.py --case normal --smoke
+      - name: DocumentSession normal and cold-recovery gate
+        shell: bash
+        run: |
+          rm -rf build/ci-document target/ci-document
+          NOS_DOCUMENT_SESSION=1 \
+          NOS_SDK_RUNTIME=1 \
+          NOS_BUILD_DIR="$PWD/build/ci-document" \
+          NOS_TARGET_DIR="$PWD/target/ci-document" \
+          CARGO_TARGET_DIR="$PWD/target/ci-document" \
+          python3 -B tools/test_document_session.py

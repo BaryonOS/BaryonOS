@@ -1,0 +1,18 @@
+{
+  "stage": "before-fix",
+  "base_commit": "4ce6ba2f5bf7201848842fb10d54c7726ab975be",
+  "gate_sha256": "050c166ee7136c066fb67ac9507a02be6166043ba6d588128cda71103fb25a5b",
+  "reproducer_sha256": "0c9b0a6ebb79cb48ae1d00e00625c880ba77610490e0b27684ee2b1ac2a210b3",
+  "command": [
+    "python3",
+    "-B",
+    "/workspace/scratch/debaa3b6a81c/wt-g11/docs/verification/parallel-g12/compiler_binding_probe.py",
+    "/workspace/scratch/debaa3b6a81c/wt-i01",
+    "/workspace/scratch/debaa3b6a81c/wt-g11"
+  ],
+  "returncode": 0,
+  "stdout": "{\n  \"original_actual_compiler_records_accepted\": true,\n  \"foreign_rlib_dependency\": {\n    \"rejected\": false\n  },\n  \"later_conflicting_abi_flag\": {\n    \"rejected\": false\n  }\n}\n",
+  "stderr": "",
+  "native_vm_invocations": 0,
+  "captured_utc": "2026-10-28T16:49:49.167006+00:00"
+}

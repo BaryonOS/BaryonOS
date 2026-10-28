@@ -1,0 +1,10 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (/tmp/nieuw-os-par-g11-host-target/debug/deps/nieuw_os_catalog_client-01fff99abf70f3bf)
+     Running tests/transport.rs (/tmp/nieuw-os-par-g11-host-target/debug/deps/transport-cd4e37a4d8fdeab4)
+     Running unittests src/lib.rs (/tmp/nieuw-os-par-g11-host-target/debug/deps/nieuw_os_document_session-3ef2a706453e1cdb)
+     Running tests/editing.rs (/tmp/nieuw-os-par-g11-host-target/debug/deps/editing-6d5f60ad8d855b27)
+     Running unittests src/lib.rs (/tmp/nieuw-os-par-g11-host-target/debug/deps/nieuw_os_sdk_runtime-9246fc9483d4e42c)
+     Running tests/message.rs (/tmp/nieuw-os-par-g11-host-target/debug/deps/message-6774c42725ca9d3f)
+   Doc-tests nieuw_os_catalog_client
+   Doc-tests nieuw_os_document_session
+   Doc-tests nieuw_os_sdk_runtime

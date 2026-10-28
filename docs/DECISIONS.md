@@ -303,3 +303,25 @@ root voor de testobserver en integratie. **Testbewijs:** parallel-i04,
 parallel-final-qsim en parallel-final-m3. Dit is geen formeel bewijs.
 **Migratie/rollback:** exclusief opt-in profiel; eerdere bron afzonderlijk
 bouwen, zonder opgeslagen gebruikersdata of hardwarefirmware te wijzigen.
+
+## ADR-035 — Documentbewerking native controleren via de bestaande catalogus
+
+**Datum:** 28 oktober 2026.  
+**Status:** geïmplementeerd op de integratiebranch; host-/crossbuildbewijs bestaat, maar de gecombineerde native DocumentSession-poort moet op de actuele integratiebron nog slagen voordat dit als native acceptatie geldt.  
+**Eigenaar:** G11 voor gebruikersproef/library, I13 voor acceptatiepoort en root voor selectie, gedeelde interfaces en integratie.
+
+**Context:** de bestaande M6c-probe gebruikt de catalogus via ruwe helpers, terwijl de echte `DocumentSession`-library al bestaat. De volgende stap moet die echte library in ring 3 gebruiken zonder de kernelobserver, capabilityrechten, IPC-envelop of het opslagformaat te verruimen.
+
+**Alternatieven:** (1) de ruwe catalogushelpers blijven gebruiken; dat test de appbibliotheek niet. (2) Een afzonderlijke nieuwe user-ELF met gekopieerde cataloguscode bouwen; dat vergroot duplicatie en bewijsoppervlak. (3) De bestaande M6c-userflow opt-in de echte library laten gebruiken en gedeelde catalogusmodules linken. Gekozen is optie 3 omdat die de bestaande trust-/capabilitygrenzen behoudt en duplicatie voorkomt.
+
+**Besluit / implementatie:** voer `DocumentSession<NativeTransport>` uit in de bestaande M6c-gebruikersprocessen. De dubbele expliciete selectie `NOS_DOCUMENT_SESSION=1` en `NOS_SDK_RUNTIME=1` geldt uitsluitend voor normal/recover. Openen, conceptbewerking, CAS-save, opnieuw openen en LIST blijven userspace. `list()` houdt één eigenaar van de endpoints. De service en typed client delen de bestaande catalogusmodules in plaats van een tweede wire/journalimplementatie.
+
+**Security-invariant:** de route gebruikt uitsluitend reeds toegekende endpoints; iedere reply blijft door SDK/catalogusclient en uiteindelijk kernel/service gevalideerd. LIST mag lokaal concept/conflict/onzekerheid niet wissen en kan een gesloten sessie niet heropenen. Onzekere saves worden niet automatisch herhaald. Geheugen-, linker-, syscall-, IPC- en capabilitygrenzen worden niet verruimd.
+
+**Onderbouwing/bronnen:** `docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md`, `sdk/document-session/README.md`, `docs/verification/parallel-g11/`, `docs/verification/parallel-i13/` en `docs/verification/parallel-i15/`. Voor het afzonderlijke netwerkparserdeel gelden RFC 768 (UDP), RFC 791 (IPv4) en RFC 1071 (Internet checksum), zoals vastgelegd in `services/net-protocol/README.md`.
+
+**Testbewijs:** gerichte SDK-/selectietests, compilerbinding-negatieftests, rustfmt/Clippy en native crosslink zijn op de oorspronkelijke PR-bron uitgevoerd en opgeslagen. Dat historische bewijs blijft brongebonden. De actuele auditintegratie moet opnieuw hostchecks, native build en de twee-VM DocumentSession-gate uitvoeren voordat de PR wordt gemergd.
+
+**Gevolgen / weerlegging:** weerlegd als de proef nieuwe rechten nodig heeft, een draft via LIST verliest, een onbekende save herhaalt, een gesloten endpoint opnieuw bruikbaar maakt, de observer/oracle moet versoepelen, of een andere binary als documentapp kan meetellen. De poort bindt broninputs, exacte rlibs/compileropties, ingebedde user-ELF en koude image.
+
+**Migratie/rollback:** standaardprofielen behouden hun bestaande selectie. De opt-in kan worden uitgezet of de eerdere bron apart worden gebouwd. Er is geen migratie van echte gebruikersdata, firmware of fysieke apparaten. Een geslaagde headless documentproef is nog geen Materiaal-GUI, algemene appstarter, grotere-documentondersteuning of ruimtehergebruik.

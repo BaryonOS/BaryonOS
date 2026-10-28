@@ -1,0 +1,21 @@
+{
+  ".gitattributes": "fd13dad2ecae9b5cdde18e56b396b87ce73a5e3d9c05455bb00a1afc2c424106",
+  "README.md": "5269d1c788b33eaeb8c6249c48acd07ed40e20c2f6ed7e922b43a09d0cde3356",
+  "checks.json": "d9203fbcfda92c0cf6ebc4fac7efaf89545a929dc5781e2733aa811b466b1dc7",
+  "default-build-commands.json": "0a555d458fc7f81750b8960f4b563c8dea381c54dafb9f7ed08b43765976fab1",
+  "default-user-manifest.json": "3d2fc3f5abcb537d28aa65d65831bab46b71813b400e635809cc5fd12b98ae5a",
+  "document-build-commands.json": "9c98d6aff4184de5dcfac0038cef906a85ce3bd20043d5fa7c25d31990da4543",
+  "document-user-manifest.json": "e19bf0027815f8fa30fccda2bc7018e62727673e905fc2621c55dd8a77249407",
+  "native-default-sdk-user.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "native-default-sdk-user.stdout.txt": "46a33ac161c7103645b07bfb6ee37d635e03eb1602e1c790b2c40d5e9223f6ab",
+  "native-document-user.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "native-document-user.stdout.txt": "88665d3cfa7239222ee3c24b0b22362b8e6eb76f238658dff72322c6171be3d5",
+  "rustfmt.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "rustfmt.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sdk-clippy.stderr.txt": "23b9a21bbaf189889e08dc27ed8eba521021280c5852db22205f721db08b2c7c",
+  "sdk-clippy.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sdk-host-tests.stderr.txt": "9e9c0e13638547260f69944ea5ceda0d6e6301e629bf46f23a3eaa863f2963c0",
+  "sdk-host-tests.stdout.txt": "4f07a4688e2fa5c99c24c10bdcc14fbf508d4989b15048beb0665885d751c15a",
+  "user-selection-tests.stderr.txt": "b3378047470adda130b8819c1ca107e8ad83af7fcdea7e11c10f295519f34ca9",
+  "user-selection-tests.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

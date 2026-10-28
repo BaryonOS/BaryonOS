@@ -1,0 +1,221 @@
+{
+  "scope": "Host negative fixtures made from real G11 compiler records; no compilation or VM",
+  "gate_sha256": "3ea8fac07c48b0ccc1d7ed29e0dd115a231d095a0fd7671d33d7a726501d5259",
+  "original_record_sha256": {
+    "build-sdk-runtime": "607e779f1507ff34a391e314d3618ed858b75cc50620c34509f434425913ff42",
+    "build-document-library-catalog_core": "326ab125bb76c7f92749d35ee7a6a926ffe36c5c5f4a1a96be8ed8314a684338",
+    "build-document-library-nieuw_os_catalog_client": "331841e76770816288ed04cae654494a5750e9cf5b29d64c4a32c88f773837ca",
+    "build-document-library-nieuw_os_document_session": "6dd6caa7d14c2861f4840a86ed4f60fec2fd6bd7c1c6a4560dac85b27673ce4c",
+    "build-users-m6c_probe": "9bac852c101b6fd25b634ebc6e6a77f398047def398f87170ee8883945034bb1"
+  },
+  "negative_cases": [
+    {
+      "name": "nieuw_os_sdk_runtime-extra-catalog_core",
+      "record": "build-sdk-runtime",
+      "negative_fixture_sha256": "9ae4fc3b8778d3873458dd0b3265386f0fad26d7df76f6bf5c127491a3aa75b5",
+      "rejected": true,
+      "reason": "Exact selected compiler dependency set mismatch: nieuw_os_sdk_runtime"
+    },
+    {
+      "name": "catalog_core-extra-catalog_core",
+      "record": "build-document-library-catalog_core",
+      "negative_fixture_sha256": "bf6de50254ee1069cb6734fdfb1f8dc340ae00cc7cf3f8b4417e66c70165395d",
+      "rejected": true,
+      "reason": "Exact selected compiler dependency set mismatch: catalog_core"
+    },
+    {
+      "name": "nieuw_os_catalog_client-foreign-catalog_core",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "e2c103ac5a2eb712d84aae3bc4fef1869a54299faa422c30afcb459d9d6eae41",
+      "rejected": true,
+      "reason": "Exact selected compiler dependency set mismatch: nieuw_os_catalog_client"
+    },
+    {
+      "name": "nieuw_os_document_session-foreign-nieuw_os_catalog_client",
+      "record": "build-document-library-nieuw_os_document_session",
+      "negative_fixture_sha256": "47fc3f2c31e34141df0ba59c14586695f3f24265b0dfae84f9c8ab5fe5da7055",
+      "rejected": true,
+      "reason": "Exact selected compiler dependency set mismatch: nieuw_os_document_session"
+    },
+    {
+      "name": "bin-foreign-catalog_core",
+      "record": "build-users-m6c_probe",
+      "negative_fixture_sha256": "e49df4c6743727d1fffdf19aa4edc76ddc68d4144469c9a12f7c9bc9d52a2b6e",
+      "rejected": true,
+      "reason": "Exact selected compiler dependency set mismatch: os_user_m6c_probe"
+    },
+    {
+      "name": "nieuw_os_catalog_client-missing-nieuw_os_sdk_runtime",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "777906e940049a50ecdf1b1b26be8ce46547317687b44dddfb4856fec41981fc",
+      "rejected": true,
+      "reason": "Exact selected compiler dependency set mismatch: nieuw_os_catalog_client"
+    },
+    {
+      "name": "nieuw_os_document_session-duplicate-catalog_core",
+      "record": "build-document-library-nieuw_os_document_session",
+      "negative_fixture_sha256": "514f6cb332f0908199934c66a97da1359641aaf03098a81ba5c47c301839b0ff",
+      "rejected": true,
+      "reason": "Exact selected compiler dependency set mismatch: nieuw_os_document_session"
+    },
+    {
+      "name": "before-duplicate-panic",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "7f40e087e781163192c745bcc2fa8dcdf2920408a2ccb29b1f1657b298dc40b6",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one panic=abort"
+    },
+    {
+      "name": "before-conflict-panic",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "f231b482531d5278c7005c841bf6740e8bc9f0a2d6188f7ef826429d8b4e39da",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one panic=abort"
+    },
+    {
+      "name": "after-duplicate-panic",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "143e47519e19e721ad11222c336f8d7f7ac3c255669654cae5cdaeab7917cfd5",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one panic=abort"
+    },
+    {
+      "name": "after-conflict-panic",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "a47d21af51772700bb2d7f0adcbee2c7cf6dfeb678c748f1e4721fd767b49964",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one panic=abort"
+    },
+    {
+      "name": "before-duplicate-code-model",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "9597dd4f48d8bd6a956a980e6599423ecd099a88ab02df150c18723035eb691c",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one code-model=small"
+    },
+    {
+      "name": "before-conflict-code-model",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "e75d77d3a48c6b284d922fe9b261047ca1fe4495e9d3126bb1846bfdd3b233c1",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one code-model=small"
+    },
+    {
+      "name": "after-duplicate-code-model",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "fcd9541be930dae5eb415b5a2e9d0b086bc71229da20e1e6e46f7c928b603666",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one code-model=small"
+    },
+    {
+      "name": "after-conflict-code-model",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "77513c6e6c20fad7bd2c8b18a751929a8729b80c735f1a86e93b58e302ab1624",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one code-model=small"
+    },
+    {
+      "name": "before-duplicate-relocation-model",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "d5d5c6f82833653f61deef44814e14726e9e0c3d53ab736db60798a3a48b753d",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one relocation-model=static"
+    },
+    {
+      "name": "before-conflict-relocation-model",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "c45f8f19dce8885062ffde2886faadef263c745a4078aa77e117ab037e22a5b9",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one relocation-model=static"
+    },
+    {
+      "name": "after-duplicate-relocation-model",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "89eaaa663622ee8587ad5a399ca4ab6783848383375774c1ee507529a24aac7e",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one relocation-model=static"
+    },
+    {
+      "name": "after-conflict-relocation-model",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "c649d64fecea33e3aac46ba94bccb2b5de6216fc053e23090c18a5cb9a41923e",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one relocation-model=static"
+    },
+    {
+      "name": "before-duplicate-no-redzone",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "d5434942ee26d1a1799bde48b12e861d2c4e17b4fb7f629abe4cdbd72c480d06",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one no-redzone=yes"
+    },
+    {
+      "name": "before-conflict-no-redzone",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "13ebc4231eedfa2148816511bbe4d04406ca4e472cac9bbcf414e1a15a19df36",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one no-redzone=yes"
+    },
+    {
+      "name": "after-duplicate-no-redzone",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "116fc9067104587f402cd912199bc4954414c238695dfeecd501a80dc531ee3d",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one no-redzone=yes"
+    },
+    {
+      "name": "after-conflict-no-redzone",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "f10c6c155db40bc8099c6feded7ed712bc5c9f8ab867eb4ca1eea89504be3395",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one no-redzone=yes"
+    },
+    {
+      "name": "alternate-codegen-spelling-0",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "77ad380e2f291ab98a2a870424f92f60dec102eebe98a63a4414bc8ee3664c0f",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one no-redzone=yes"
+    },
+    {
+      "name": "alternate-codegen-spelling-1",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "34a6f7bf6b4eb9d922e401fec852bd14d7c2d1adb6d66ed354e371e43e83f0c3",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one no-redzone=yes"
+    },
+    {
+      "name": "alternate-codegen-spelling-2",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "54146c66320b316300844ef5ceadc4b05a35fe8c710e9d0143d706d9b2c3693c",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one no-redzone=yes"
+    },
+    {
+      "name": "alternate-codegen-spelling-3",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "97b9780abd92ef7446f32c282599c83bf4aa107b8c38e40be042855482afe11a",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one no-redzone=yes"
+    },
+    {
+      "name": "alternate-codegen-spelling-4",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "96a547df3dfd11934d72e65a4e95647f538df720409b713cf9cf0fb64f97e01c",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one no-redzone=yes"
+    },
+    {
+      "name": "alternate-codegen-spelling-5",
+      "record": "build-document-library-nieuw_os_catalog_client",
+      "negative_fixture_sha256": "5f3d508eb443ab3ead7f506e2f7f960264ae4f3443abed01f1a689114f033a4b",
+      "rejected": true,
+      "reason": "Native ABI requires exactly one no-redzone=yes"
+    }
+  ],
+  "native_vm_invocations": 0,
+  "original_actual_records_accepted": true,
+  "original_records_unchanged": true,
+  "rejected_count": 29,
+  "negative_case_count": 29
+}
