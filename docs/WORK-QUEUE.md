@@ -23,6 +23,26 @@ Vier toestanden: gereed om te bouwen; in uitvoering; wacht op een benoemde
 afhankelijkheid; gereed voor integratie/controle. De oude capaciteitsvoorkeuren
 in de historische registratie gelden niet voor deze opdracht.
 
+## Vroege productvalidatie — consumentenadoptie
+
+De literatuurverkenning in
+[CONSUMER-VALUE-2026-10-28.md](research/CONSUMER-VALUE-2026-10-28.md)
+levert vier onderzoeksstappen naast de native bouw. Deze taken gebruiken geen
+agentcapaciteit totdat zij werkelijk worden uitgevoerd en tellen niet als
+roadmappunt zonder het bewijs van het betreffende acceptatiecriterium.
+
+| ID | Toestand | Onderzoeksdoel | Afhankelijkheid / grens |
+|---|---|---|---|
+| PRX1 | gereed voor onderzoek | 12–18 taakinterviews/-observaties om twee of drie kerntaken en overstapvoorwaarden vast te leggen | Praktische pilotomvang; geen statistische representativiteitsclaim |
+| PRX2 | wacht op PRX1 en bruikbaar DV-01-prototype | circa 24–36 deelnemers; terugvinden, twee gereedschappen, herstel en rechten vergelijken | Taakprestatie en aantrekkelijkheid apart meten; definitieve omvang na pilot/poweranalyse |
+| PRX3 | wacht op stabiele kernflow | eerlijke productbeloftes vergelijken op zelfstandig uitgevoerde taak, niet alleen klikgedrag | Zelfde prototypekwaliteit, prijs-/beschikbaarheidsinformatie en vooraf gekozen primaire uitkomst |
+| PRX4 | wacht op bruikbare afgebakende workflow | vierweekse vroege veldproef met vrijwillig hergebruik, fouten, herstel, hulp en terugvalredenen | Geen claim van langdurige retentie; 90-/180-dagenvalidatie blijft latere marktproef |
+
+DV-01 in [PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md) blijft het
+geïntegreerde Materiaal-scenario. U06 blijft open totdat representatieve
+gebruikers de afgesproken kerntaken daadwerkelijk uitvoeren en relevante
+frictie binnen productbudgetten is opgelost.
+
 ## Historische registratie
 
 # Werkqueue — native M6b-opslagfouten
