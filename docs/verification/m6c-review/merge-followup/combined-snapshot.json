@@ -1,0 +1,63 @@
+{
+  "base": "b58ae2a56be6978eab2b5ac4bb5d12e3d615865f",
+  "overlay_commit": "56c43da0806f5f4de57cfb49dfd0418954e2ed9c",
+  "overlay_parent": "bb22fdbe15919edc23baa158a46236195ce314b2",
+  "files": [
+    {
+      "path": "tests/test_capture_gate.py",
+      "incoming_blob_sha": "d184e545ba832a9bcd9c3a0aadca64c835676c07",
+      "integration_method": "unchanged-base-overlay",
+      "combined_sha256": "f05877fefd29378863ec29be047f996fdc265bf5ad545d6c62fc8b4e4b2a53b6"
+    },
+    {
+      "path": "tests/test_m6b_gate.py",
+      "incoming_blob_sha": "c3797d7659bf91967cf3ea62dbb42c80f33b43d3",
+      "integration_method": "unchanged-base-overlay",
+      "combined_sha256": "855e9f6d35f0b9147e2e2ca9fd26265f4985a477e2d8d45b22af896d568a7632"
+    },
+    {
+      "path": "tests/test_preflight.py",
+      "incoming_blob_sha": "a8afe5f256f3b164f48b44e091437383796f17aa",
+      "integration_method": "unchanged-base-overlay",
+      "combined_sha256": "ba8ed9f2877bfe2e19cdc2c86cb3e71ca47c5e15798bfd504203784f684e29ad"
+    },
+    {
+      "path": "tools/capture_gate.py",
+      "incoming_blob_sha": "126b99e5e380c5d5930f2d450c6501ef61646113",
+      "integration_method": "unchanged-base-overlay",
+      "combined_sha256": "8db495bd3c28ab14d1711de4c4685f470593432fed99ab8ae9b2f7bbdc2d5e77"
+    },
+    {
+      "path": "tools/m5_evidence.py",
+      "incoming_blob_sha": "0c1daabb75375f43f87845fe90f441f1570bd318",
+      "integration_method": "unchanged-base-overlay",
+      "combined_sha256": "5133954d3bc31b096577bf60852eb35246ed5973177770e74e05d15eb609dc30"
+    },
+    {
+      "path": "tools/preflight.py",
+      "incoming_blob_sha": "66c643735a9440ea828ff0b9c1315b2ed3e5531d",
+      "integration_method": "unchanged-base-overlay",
+      "combined_sha256": "11d2fe025173b0f04f7a1e5d91a285c4d3a81598114032c94b918d4b14294a32"
+    },
+    {
+      "path": "tools/test_m5.py",
+      "incoming_blob_sha": "45fd015ec5bae398d3c94a8fde7b758c8bd390c5",
+      "integration_method": "unchanged-base-overlay",
+      "combined_sha256": "95cbd825ab11ef02de7c752d94ac0cd5a97d192eadc617dcc358ffc92b30ffaf"
+    },
+    {
+      "path": "tools/test_m6b.py",
+      "incoming_blob_sha": "53c9a125cb35013742c41380259850d6568e11d3",
+      "integration_method": "unchanged-base-overlay",
+      "combined_sha256": "a5d72fa73f03a7b99825472d490738ea1d1684b1bb08e6d2eb0472129b94f6d1"
+    }
+  ],
+  "scope": "tools/tests host-only snapshot; documentation not integrated",
+  "additional_preflight_fix": {
+    "source_directory": "/workspace/scratch/a9adbdc1f137/pr9-verifier/candidate",
+    "files_sha256": {
+      "tools/preflight.py": "a983b43293d5f277b9d8b810ab14aeab34ab0f9868bbb6a78068a0a6baa6be8f",
+      "tests/test_preflight.py": "f49847a9d2ec090e1ac3896abd28bccd9bb4a02c78af65fdfafe287cf5726fdc"
+    }
+  }
+}

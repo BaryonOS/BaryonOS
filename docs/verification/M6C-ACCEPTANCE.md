@@ -5,7 +5,11 @@
 De UTC-uitvoeringslogs van de gates dateren van 27 oktober, 23:48–23:51.
 Basis: `bb22fdbe15919edc23baa158a46236195ce314b2` (afgeronde M6b).
 Uitgevoerde bron: `bc4cd104e86e2c047b727ae96e07a03fbc810c3c`.
-Latere wijzigingen in deze oplevering zijn documentatie/bewijs, geen runtimewijzigingen.
+De oorspronkelijke afsluiting wijzigde documentatie en bewijs. De latere
+integratie van M6b-reviewherstel wijzigt hosttools en hun tests, met apart
+[hostbewijs](m6c-review/merge-followup/README.md). De native runtimebron blijft
+ongewijzigd. De fingerprint hieronder hoort bij de oorspronkelijke
+uitvoeringsbron; zij wordt niet aan de inmiddels gewijzigde hosttools toegekend.
 
 Fingerprint v3 van alle 141 bron-/bouwinputs:
 
@@ -24,9 +28,11 @@ Een verwijderd object houdt zijn revisie en verschijnt niet in de catalogus.
 Namen verlenen geen rechten en zijn geen bestandspaden.
 
 Alleen geslaagde WRITE- én FLUSH-completion mogen een mutatie bevestigen.
-Bij een onzekere mutatie worden verdere GET/LIST/RENAME-verzoeken geblokkeerd;
-er is geen automatische herhaling van writes. Full wordt vóór muterende I/O
-vastgesteld. Corruptie of een bezet oud M6b-v1-volume wordt vóór READY geweigerd,
+De serviceadapter blokkeert bij onzekerheid verdere geldige verzoeken; dit is
+met de host-ABI-shim gecontroleerd. De bekende native observerbeperking onder
+‘Grenzen en vervolg’ verhindert momenteel een gecontroleerde `Unknown`-reply
+aan de client bij zulke devicefouten. Er is geen automatische herhaling van
+writes. Full wordt vóór muterende I/O vastgesteld. Corruptie of een bezet oud M6b-v1-volume wordt vóór READY geweigerd,
 zonder formatteren of migreren. De oorspronkelijke M6b-dienst blijft selecteerbaar.
 Contract: [M6C-NAMED-CATALOG.md](../implementation/M6C-NAMED-CATALOG.md), ADR-030.
 
@@ -54,6 +60,23 @@ opgeteld bij historische runs uit eerdere mijlpalen.
 | Python M6c-harnastests binnen `test_m6c.py` | 33 tests voor schijforakel, childproces en capture | [exacte argv](m6c/m6c-harness-tests.json), [uitvoer](m6c/m6c-harness-tests.stderr.txt) |
 | Echte serviceadapter met host-ABI-shim | 15 scenario's, inclusief WRITE/FLUSH-fouten en time-outs, identiteit, tombstones en legacy | [buildopdracht](m6c-review/adapter-build.json), [resultaat](m6c-review/adapter-result.json) |
 | `python3 -B tools/build.py --kernel-feature milestone-m6c` | Afsluitende build bytegelijk aan beide normale eindgate-binaries; geen extra VM | [buildvergelijking](m6c-ready/build-check.json), [console](m6c-ready/m6c-ready-build.stdout.txt) |
+
+### Latere reviewaanscherping: hostlogs binden aan de gate
+
+De oorspronkelijke suite op `bc4cd104` bewaart voor de drie hostgroepen nog
+geen `log_sha256`. De capture controleerde vaste logpaden, commando's, werkmap
+en exitstatus; de archiefhashes werden pas na het kopiëren berekend. Daarmee
+is niet aangetoond dat hostlogs tussen gate en capture onveranderd bleven.
+De oorspronkelijke suite, capture en logs blijven ongewijzigd als historisch
+bewijs bewaard; er worden geen achteraf geconstrueerde gatehashes toegevoegd.
+
+Het [latere herstel](m6c-review/host-log-binding/README.md) legt de SHA-256 van
+stdout, commandometadata en stderr direct bij iedere nieuwe hostgroep vast.
+De capture vereist die exacte map en controleert zowel de bronlogs als de
+naar het tijdelijke archief gekopieerde bytes. Oude suites zonder deze
+binding voldoen niet aan dit nieuwe capturecontract. Dit herstel heeft
+eigen hosttestbewijs; de native gate is daarvoor niet opnieuw uitgevoerd.
+Het verandert de oorspronkelijke VM-uitvoeringen of de native bron niet.
 
 Rust-opdrachten gebruiken de lokale toolchainomgeving uit `tools/common.py`;
 `python3 -B tools/dev.py` kan deze omgeving aan een losse Cargo-opdracht geven.
@@ -131,6 +154,33 @@ achteraf veranderd in een fictieve `--check`-uitvoering. Herhaalde hostproeven
 tellen niet als extra scenario's of nieuwe native VM-runs.
 
 ## Grenzen en vervolg
+
+### Bekende native observerbeperking
+
+De `Unknown`-afhandeling is met de echte serviceadapter en een host-ABI-shim
+gecontroleerd. In `kernel/src/m2/m3/m6c.rs` bewaart de acceptatieobserver bij
+een voorbereide mutatie echter de verwachte `Ok`-reply. Na een native WRITE-
+of FLUSH-fout of time-out kan de adapter `Unknown` aanbieden, waarna `sent()`
+op die verwachting panikeert voordat de client het antwoord ontvangt. Dit
+geldt ook voor `milestone-m6c`, niet alleen voor fouttestfeatures. Dit is een
+geldige, nog ongerepareerde observerfout.
+
+De huidige native integratie voldoet onder die devicefouten nog niet aan de
+bedoelde gecontroleerde `Unknown`-respons en voortzetting. De ontwerpvereisten
+blijven staan: geen commit zonder WRITE+FLUSH, geen automatische replay en
+geen verdere geldige GET/LIST/mutaties bij onzekerheid. Het geteste
+serviceadaptergedrag is geen bewijs dat het defecte native observerpad werkt.
+
+De begrensde native acceptatie gebruikt de vastgelegde QEMU/device-fixture
+zonder native devicefoutinjectie; `capture_m6c.py` weigert `M6C:OUTCOME`.
+De 15 host-ABI-scenario's vervangen geen toets van de kernelobserver.
+Herstel vraagt een afzonderlijke native wijziging met WRITE-/FLUSH-fout- en
+time-outinjectie, controle van het werkelijk ontvangen clientantwoord en
+nieuwe brongebonden native verificatie.
+
+[Gerichte scopebeoordeling door CodeRabbit](https://github.com/simonvanieperen/nieuw-os/pull/10#issuecomment-6457209539).
+
+### Overige grenzen
 
 De vier objectslots, 128 inhoudsbytes, 32 UTF-8-naambytes en 32 append-only
 journalrecords zijn tijdelijke proefbudgetten. Er zijn nog geen directoryboom,

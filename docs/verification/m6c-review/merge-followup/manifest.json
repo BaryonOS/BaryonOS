@@ -1,0 +1,35 @@
+{
+  "scope": "Gecombineerde hostverificatie; geen nieuwe native uitvoering.",
+  "m6c_base": "b58ae2a56be6978eab2b5ac4bb5d12e3d615865f",
+  "m6b_review_head": "3f308b07e0bab445d1ea926561eab8d8e01c86a4",
+  "files": {
+    "combined-snapshot.json": {
+      "sha256": "424da6f45b11be33cb7d2d2cd7e919ee750ace36609a047642930f271fbe540a",
+      "bytes": 2767
+    },
+    "combined-host-tests.json": {
+      "sha256": "82b5c61d711b6af150974aaa540f40c38af597f4831f1dc3c45021a127b71a90",
+      "bytes": 1043
+    },
+    "combined-host-tests.stdout.txt": {
+      "sha256": "33cef0f908314ca751b693dde6b54f26cdead8262ee6a1368bf179c2ff782c7c",
+      "bytes": 90
+    },
+    "combined-host-tests.stderr.txt": {
+      "sha256": "549f4c84362bbd94fca423006faa94f7fe4b35f39f2cdfa271688c6864c3d2e8",
+      "bytes": 18347
+    },
+    "preflight-followup-tests.json": {
+      "sha256": "7abc967de3226a6bc1170594b4703e52f31174377832643d237d93950f68839e",
+      "bytes": 842
+    },
+    "preflight-followup-tests.stdout.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "preflight-followup-tests.stderr.txt": {
+      "sha256": "b4a7b20ddbb9c62fdbe9062dc5e11db7e35e37c9646cae0938a4f17328c6560a",
+      "bytes": 843
+    }
+  }
+}

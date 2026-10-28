@@ -72,6 +72,12 @@ exit is onvoldoende bewijs. Een beschadigd journal moet vóór READY weigeren.
 
 ## Bewijsgrenzen
 
+Bekende beperking van de native acceptatieobserver: bij een WRITE- of FLUSH-fout kan `kernel/src/m2/m3/m6b.rs` een kernel panic veroorzaken, doordat `sent()` de reply nog met de verwachte `Ok`-reply vergelijkt voordat `Unknown` correct wordt verwerkt. Deze fout is niet gerepareerd. De opgeslagen native gates dekken dit foutpad niet en tonen de `Unknown`-invariant niet end-to-end aan. De zeven host-ABI-proeven controleren uitsluitend de serviceadapter onder gesimuleerde I/O-uitkomsten. Binnen de begrensde, vertrouwde QEMU/device-fixture blijft dit een expliciete onderzoeksbeperking; een latere native reparatie vereist gerichte devicefoutinjectie, nieuwe native verificatie en bijbehorende bronbinding.
+
+De bovenstaande `Unknown`-regel blijft het servicecontract en de vereiste voor
+latere native foutafhandeling. Zij is met het huidige observerpad niet voor
+native devicefouten gerealiseerd. Dit geldt ook voor `milestone-m6b`.
+
 Host-unittests, native uitvoering en onafhankelijke schijfcontrole worden apart
 geregistreerd. Een QEMU-kill is geen fysieke stroomuitval. Het QEMU-device en
 kerneltransport zijn vertrouwd, zonder IOMMU- of vijandige-DMA-claim. Er zijn nog

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **13** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`b58ae2a5`](https://github.com/simonvanieperen/nieuw-os/commit/b58ae2a56be6978eab2b5ac4bb5d12e3d615865f) ·
+**Bron:** [`b739183c`](https://github.com/simonvanieperen/nieuw-os/commit/b739183c48a06cb7798d0be8cc683430152533ac) ·
 **Ontwikkelbranch:** `codex/m6d-io-recovery-roadmap`.
-Deze opdracht: **13% → 13% (+0 procentpunt)**. **Opdracht:** M6d — broncheckpoint vóór native eindgate.
-De vaste roadmap en native foutafhandeling zijn gebouwd; S07 blijft open tot de volledige fout-/herstelgate en M6b-regressie zijn vastgelegd. De meter blijft daarom 13%.
+Deze opdracht: **13% → 13% (+0 procentpunt)**. **Opdracht:** M6d — geïntegreerde bron vóór native eindgate.
+M6d en de actuele upstreamreview zijn geïntegreerd; 48 M6c- en 30 M6b-hostharnastests slagen. S07 blijft open tot de complete native fout-/herstelgate en M6b-regressie zijn vastgelegd. De meter blijft 13%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -54,6 +54,9 @@ score. Zie `PROGRESS.md`; nooit de lat verlagen om een hoger getal te krijgen.
 
 **Datum/status:** 28 oktober 2026; geïmplementeerd en native eindgate geslaagd
 op broncommit bc4cd104, basis bb22fdb. Exact contract: implementation/M6C-NAMED-CATALOG.md.
+Op deze historische M6c-uitvoeringsbron heeft het native `Unknown`-foutpad een
+bekende, ongerepareerde observerpanic, ook met `milestone-m6c`. De afzonderlijke
+reparatiebron en haar nog open eindgate staan bovenaan in ADR-031.
 
 **Context en besluit:** afgeronde M6b heeft anonieme objectslots. Materiaal heeft
 benoemde objecten en list/open nodig. Voeg een aparte dependencyvrije catalog-core
@@ -61,7 +64,8 @@ met expliciete IPC v4/journal v2 toe. Namen zijn UTF-8-labels, geen autoriteit o
 pad; object-ID en endpoint/caller blijven de toegangsgrens. LIST retourneert één
 begrensde snapshot van uitsluitend eigen live objecten met eigen revisiesom.
 PUT/RENAME zijn één record met naam/inhoud onder één CAS-revisie. RENAME behoudt
-inhoud; WRITE- en FLUSH-completion gaan vóór ACK. Unknown blokkeert ook LIST.
+inhoud; WRITE- en FLUSH-completion gaan vóór ACK. Het servicecontract sluit bij
+`Unknown` ook LIST af; dit foutpad is alleen via host-ABI getest.
 
 **Alternatieven/gevolgen:** stil hergebruik van v3/v1-padding zou oude readers
 misleiden; een losse naamtabel vereist meerdere atomische writes. Automatische
@@ -73,12 +77,18 @@ proefbudgetten, geen vaste consumentenproductkeuze.
 **Bewijs en herziening:** de finale M6c-gate/capture slaagt met 19 groepen en
 15 VM-invocaties: 14 M6c plus één gewone M1. M6b-regressie slaagt met 18 groepen
 en 14 VM-invocaties op dezelfde fingerprint. De 30 coretests, 33 harnastests en
-15 host-ABI-adapterproeven behouden hun eigen scope. Een afzonderlijke AI-audit
+15 host-ABI-adapterproeven behouden hun eigen scope. De native observer in
+`kernel/src/m2/m3/m6c.rs` kan bij WRITE-/FLUSH-fouten of time-outs panikeren
+vóór de client `Unknown` ontvangt; gecontroleerde native foutafhandeling was
+op die bron niet gerealiseerd. Een afzonderlijke AI-audit
 controleert alle 141 bronbestanden, 130 geregistreerde artifacthashes en acht
 volumes, inclusief twee externe rename-kills en zes koude recoveries. Details:
 `verification/M6C-ACCEPTANCE.md`; geen menselijke audit of formeel bewijs.
 De nieuwe kernelmodule bevat een expliciete fixtureobserver plus de bestaande blokbroker; het
-catalogusbeleid draait in ring 3. Herzie formaat/migratie vóór echt gebruikersdata,
+catalogusbeleid draait in ring 3. Herstel van het bekende `Unknown`-defect
+vereist een afzonderlijke native reparatie met WRITE-/FLUSH-fout- en
+time-outinjectie, controle van het werkelijk ontvangen clientantwoord en
+nieuwe brongebonden native verificatie. Herzie formaat/migratie vóór echt gebruikersdata,
 meer slots, grotere documenten of compositorintegratie. Terugdraaien kan via de
 bestaande M6b-build en zijn eigen volumes; geen bestaande image overschrijven.
 
@@ -182,14 +192,14 @@ De eerste scope is alleen lezen op een synthetische 64KiB-wegwerpimage. Schrijve
 
 ## ADR-029 — Native objectdienst met revisies en begrensd journal
 
-**Datum/status/eigenaar:** 27 oktober 2026, geïmplementeerd en volledige native gate geslaagd binnen het begrensde QEMU-profiel. Hoofdagent integreert, afzonderlijke builders en AI-reviewers controleren service, broker en harnas.
+**Datum/status/eigenaar:** 27 oktober 2026, geïmplementeerd en volledige native gate geslaagd binnen het begrensde QEMU-profiel. Het native `Unknown`-foutpad heeft een bekende, ongerepareerde observerpanic. Hoofdagent integreert, afzonderlijke builders en AI-reviewers controleren service, broker en harnas.
 
 **Context en besluit:** M6a bewaart één vaste waarde. M6b voegt een echte ring-3-objectdienst toe boven dezelfde begrensde READ/WRITE/FLUSH-ABI: vier objecten in twee endpointgebonden domeinen, GET/PUT/DELETE, maximaal 128 bytes en 32 append-only records. De limieten zijn proefgrenzen. De object-core is eigen dependencyvrije safe Rust; er worden geen nieuwe externe crates toegevoegd. De kernel houdt de bestaande DMA-broker plus een expliciete testobserver; objectpolicy draait in de dienst.
 
 **Alternatieven en gevolgen:** een volledig bestandssysteem met namen, garbage collection en encryptie ineens toevoegen maakt de herstel- en bevoegdheidsgrens veel groter. Een extra hoststore levert geen native vooruitgang. Dit begrensde native fundament maakt meerdere objecten en blijvende verwijdering nu toetsbaar, met expliciete latere uitbreidingen voor ruimtehergebruik, namen, crypto en de desktop. Geen migratie van bestaande M6a-images; M6b gebruikt uitsluitend eigen wegwerpvolumes.
 
-**Invariant:** de ontvangende endpointcapability bindt het domein. Geen appvelden als blok- of domeinautoriteit. Mutaties vergelijken de actuele revisie, en alleen een echte WRITE-completion gevolgd door FLUSH-completion mag een succesvolle reply opleveren. Een tombstone behoudt de revisie, zodat oude verzoeken geen verwijdering ongedaan maken. Corruptie geeft geen stilzwijgende terugval; onzekere mutaties blokkeren verdere dienstoperaties zonder automatische replay. Full verschijnt vóór muterende I/O. Verwijderen is logisch; oude payloadbytes blijven in het journal en zijn niet cryptografisch beschermd.
+**Invariant:** de ontvangende endpointcapability bindt het domein. Geen appvelden als blok- of domeinautoriteit. Mutaties vergelijken de actuele revisie, en alleen een echte WRITE-completion gevolgd door FLUSH-completion mag een succesvolle reply opleveren. Een tombstone behoudt de revisie, zodat oude verzoeken geen verwijdering ongedaan maken. Corruptie geeft geen stilzwijgende terugval. Het servicecontract vereist dat onzekere mutaties `Unknown` opleveren en verdere geldige dienstoperaties blokkeren zonder automatische replay. Dit `Unknown`-contract is alleen op host-ABI-niveau getest en is voor native WRITE-/FLUSH-fouten niet gerealiseerd door de bekende observerpanic. Full verschijnt vóór muterende I/O. Verwijderen is logisch; oude payloadbytes blijven in het journal en zijn niet cryptografisch beschermd.
 
-**Onderbouwing en bewijs:** eigen contract `implementation/M6B-OBJECT-STORAGE.md`, eerdere virtio/capability-ABI uit ADR-026/M6a; wire- en journalindeling zijn interne projectbesluiten. De volledige eindgate op `1e61a20` slaagt: 18 groepen/14 echte VM-runs, 22 Rust-hosttests en 26 harnastests. Daaronder vallen zes koude recoveries, uitputting, corruptie en twee echte externe kills. Capture en een aparte audit van 121 artifacthashes/zeven schijfvolumes slagen; een extra Python-parser controleert onafhankelijk de echte schijfbytes zonder de Rust-journalcode te delen. Zeven host-ABI-adapterproeven controleren Unknown-uitkomsten; geen native M6b-devicefoutinjectieclaim. Exacte bron, regressies en bewijsgrenzen staan in `PROJECT-STATE.md` en `verification/m6b/`.
+**Onderbouwing en bewijs:** eigen contract `implementation/M6B-OBJECT-STORAGE.md`, eerdere virtio/capability-ABI uit ADR-026/M6a; wire- en journalindeling zijn interne projectbesluiten. De volledige eindgate op `1e61a20` slaagt: 18 groepen/14 echte VM-runs, 22 Rust-hosttests en 26 harnastests. Daaronder vallen zes koude recoveries, uitputting, corruptie en twee echte externe kills. Capture en een aparte audit van 121 artifacthashes/zeven schijfvolumes slagen; een extra Python-parser controleert onafhankelijk de echte schijfbytes zonder de Rust-journalcode te delen. Zeven host-ABI-adapterproeven controleren `Unknown`-uitkomsten. Native WRITE-/FLUSH-fouten kunnen via `sent()` in `kernel/src/m2/m3/m6b.rs` een kernel panic veroorzaken: de observer vergelijkt de reply eerst met een verwachte `Ok`-reply. Dit defect is niet gerepareerd; gecontroleerde end-to-end-afhandeling als `Unknown` ontbreekt ook in `milestone-m6b`. De native gate bevat geen devicefoutinjectie voor dit pad. Exacte bron, regressies en bewijsgrenzen staan in `PROJECT-STATE.md` en `verification/m6b/`.
 
-**Herziening en rollback:** herzie bij meer objecten, compaction, meerdere schrijvers, sleutels, native UI of andere devices. M6b heeft een eigen feature/ELF/volumeformaat; bestaande M1–M6a-profielen blijven selecteerbaar. Een aparte werkbranch maakt terugname mogelijk zonder hostschijven of echte gebruikersdata te wijzigen. Tests in QEMU bewijzen geen fysieke stroomuitval, IOMMU-containment, formele correctheid of productierijpheid.
+**Herziening en rollback:** een herziening van het native `Unknown`-pad vereist een native reparatie, gerichte WRITE-/FLUSH-devicefoutinjectie, controle van het daadwerkelijke clientantwoord en nieuwe native verificatie met bijbehorende bronbinding. Herzie ook bij meer objecten, compaction, meerdere schrijvers, sleutels, native UI of andere devices. M6b heeft een eigen feature/ELF/volumeformaat; bestaande M1–M6a-profielen blijven selecteerbaar. Een aparte werkbranch maakt terugname mogelijk zonder hostschijven of echte gebruikersdata te wijzigen. Tests in QEMU bewijzen geen fysieke stroomuitval, IOMMU-containment, formele correctheid of productierijpheid.

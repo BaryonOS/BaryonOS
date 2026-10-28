@@ -10,7 +10,7 @@ cases: [M6D-IO-UNCERTAINTY.md](implementation/M6D-IO-UNCERTAINTY.md).
 | A01 | architecture_next_step / kernel M6c-observer en native probe | Unknown zonder onterechte ACK; acht faultfeatures gebouwd; eerste native write-error groen |
 | D01 | progress_roadmap / README, AGENTS, roadmap, scoreblad en generator | vaste 100-puntenroadmap, basis 13%, consistentiecontrole groen |
 | R08 | native_review / aanvankelijk alleen lezen | native diff beoordeeld; twee harnasbevindingen hersteld; finale bewijsaudit volgt |
-| G08 | root / tools, gedeelde features, contract, status en Git | 43 hostharnastests groen; broncheckpoint vóór volledige native gates |
+| G08 | root / tools, gedeelde features, contract, status en Git | upstream 5ba238cc geïntegreerd; 48 M6c- en 30 M6b-hostharnastests groen; broncheckpoint vóór volledige native gates |
 | V08 | root + R08 / uitvoering en afzonderlijke controle | 35 groepen/31 VM + M6b-regressie en capture staan nog open |
 
 Eén schrijver per bestand en één build/QEMU-slot. De kern blijft eigen Rust;

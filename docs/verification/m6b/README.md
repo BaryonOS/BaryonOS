@@ -31,8 +31,15 @@ artifacthashes en schijforakel. `capture.json` bewaart de opnieuw gecontroleerde
 archiefhashes. De drie hostlogtrio's bevatten exact uitgevoerde commando's,
 werkdirectories, exitstatussen en uitvoer.
 
-`gate.json` en `gate.stdout.txt` bewaren de gateopdracht en console. De eerste
-`capture-command.stdout.txt` bleek leeg; daaruit wordt geen succesmarker afgeleid.
+`gate.json` en `gate.stdout.txt` bewaren de gateopdracht en console.
+`archive_annotation` in `gate.json` koppelt de oorspronkelijke `build/`-logpaden
+aan de ingecheckte kopieën en hun hashes. `run_logged` print subprocess-stderr
+naar gate-stdout; de redirectinstelling van de niet-gearchiveerde buitenste
+capturewrapper is onbekend. De oorspronkelijke metadatahash blijft vastgelegd.
+De preflight in deze historische run rapporteerde `rustup` met `probe_exit: -6`
+ten onrechte als beschikbaar. De herstelde preflight wijst dit af; deze wijziging
+is geen nieuwe native gate en maakt die oude inventariscontrole niet alsnog geldig.
+De eerste `capture-command.stdout.txt` bleek leeg; daaruit wordt geen succesmarker afgeleid.
 De extra capture-hercontrole in `../m6b-review/capture-recheck/` heeft volledige
 vastgelegde stdout en exit 0 voor M1 en M6b, zonder nieuwe VM-runs.
 
@@ -50,6 +57,10 @@ FNV is diagnostiek, geen cryptografische integriteit. QEMU/device/kerneltranspor
 zijn vertrouwd; een proceskill bewijst geen fysieke stroomuitval of IOMMU-isolatie.
 Unknown-uitkomsten zijn aanvullend met zeven host-ABI-proeven gecontroleerd,
 niet met native M6b-devicefoutinjectie.
+
+Bekende beperking van de native acceptatieobserver: bij een WRITE- of FLUSH-fout kan `kernel/src/m2/m3/m6b.rs` een kernel panic veroorzaken, doordat `sent()` de reply nog met de verwachte `Ok`-reply vergelijkt voordat `Unknown` correct wordt verwerkt. Deze fout is niet gerepareerd. De opgeslagen native gates dekken dit foutpad niet en tonen de `Unknown`-invariant niet end-to-end aan. De zeven host-ABI-proeven controleren uitsluitend de serviceadapter onder gesimuleerde I/O-uitkomsten. Binnen de begrensde, vertrouwde QEMU/device-fixture blijft dit een expliciete onderzoeksbeperking; een latere native reparatie vereist gerichte devicefoutinjectie, nieuwe native verificatie en bijbehorende bronbinding.
+Dit geldt ook voor de gewone `milestone-m6b`-build. De beperking is inhoudelijk
+beoordeeld in [de reviewthread van PR #9](https://github.com/simonvanieperen/nieuw-os/pull/9#discussion_r4395596783).
 
 ```sh
 python3 -B -u tools/test_m6b.py

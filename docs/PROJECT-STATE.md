@@ -8,6 +8,13 @@ De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hie
 `codex/m6d-io-recovery-roadmap`. Parallel uitgevoerd door een native builder,
 een roadmapbuilder, een afzonderlijke reviewer en de integrerende hoofdagent.
 
+Broncheckpoint `b739183c48a06cb7798d0be8cc683430152533ac` bewaart deze M6d-bron.
+De hostreviewaanvullingen van upstream
+`5ba238cc113c5a18924adab6f6a0908fdf193de0` zijn vóór de nieuwe eindgate
+geïntegreerd. Beide geschiedenissen blijven ouders van de integratiecheckpoint. Hun historische M6b/M6c-status en bewijsgrenzen zijn hieronder
+opgenomen; die hostresultaten gelden niet als nieuwe M6d-native tests.
+S07 blijft open totdat de gecombineerde bron de volledige acceptatie doorstaat.
+
 Gebouwd: de M6c-kernelobserver koppelt een Unknown-reply nu aan een werkelijk
 teruggegeven muterende syscallfout. Hij telt geen succes-ACK en commit geen
 onzekere wijziging. Beide appdomeinen blijven draaien en toetsen dat verdere
@@ -27,6 +34,11 @@ de nieuwe testkernelcrossbuild en één gerichte echte QEMU-write-error-proef
 (raw exit 33). Die probe bevestigde ACK1/Unknown11 en geen nieuwe I/O; dit is
 nog geen complete eindgate. De twee concrete reviewbevindingen over veilige
 archiefbestemming en exacte journal-request-ID's zijn hersteld en hertoetst.
+
+Op de geïntegreerde versie uitgevoerd: 48 M6c- en 30 M6b-hostharnastests
+(exit 0), gerichte rustfmt-controle en diffcontrole (exit 0). De capturetests
+gebruiken synthetische fixtures en tellen niet als echte VM-runs. Een begrensde
+alternatieve archiefbestemming bewaart de nieuwe M6b-regressie afzonderlijk.
 
 Nog uit te voeren op de vaste bron: uitgebreide M6c-gate (35 groepen/31 VM's),
 capture en afzonderlijke M6b-regressie. De normale toolchaininventaris slaagt
@@ -56,8 +68,10 @@ bouwbaar. Contract: `implementation/M6C-NAMED-CATALOG.md`; besluit ADR-030.
 
 Definitieve uitvoeringsbron: `bc4cd104e86e2c047b727ae96e07a03fbc810c3c`;
 fingerprint v3 `4468b3c18bd7fa57bf3631d634d52ee4c5fe9a76da9f125714d6db95e4407345`.
-Deze bron is vóór de lange controles op GitHub bewaard. De afsluitende wijzigingen
-betreffen documentatie en bewijs. [PR #10](https://github.com/simonvanieperen/nieuw-os/pull/10)
+Deze bron is vóór de lange controles op GitHub bewaard. De oorspronkelijke afsluitende wijzigingen
+betreffen documentatie en bewijs. De latere integratie van het M6b-reviewherstel
+wijzigt hosttools en tests; de native runtimebron blijft gelijk. Het afzonderlijke
+hostbewijs staat in `verification/m6c-review/merge-followup/`. [PR #10](https://github.com/simonvanieperen/nieuw-os/pull/10)
 staat boven de M6b-branch; geen merge naar main of release uitgevoerd.
 
 | Scope op deze bron | Resultaat | Bewijs |
@@ -92,6 +106,30 @@ afgehandeld in `verification/m6c-review/REVIEW-FOLLOWUP.md`: actuele native
 resultaten gelinkt, portable adapter opnieuw getest en de vier corecontroles
 read-only herhaald met HEAD/status en bronhashes vóór/na. Historische evidence
 blijft behouden. Dit verandert de native bron of het aantal VM-runs niet.
+
+Het geïntegreerde hosttoolherstel heeft 123 unieke hosttests over twee runs:
+121 bestaande tests, gevolgd door vijf preflighttests waarvan drie herhaald
+en twee nieuw. Een latere reviewaanscherping bindt de drie M6c-hostlogtrio's
+met SHA-256 aan de gate en controleert de binding vóór én na het kopiëren.
+Deze wijziging heeft afzonderlijk hosttestbewijs in
+`verification/m6c-review/host-log-binding/`; de eerdere 123 tests worden niet
+als uitvoering op deze latere toolbron opgevoerd. De oorspronkelijke M6c-suite
+mist gate-time-hostloghashes en blijft als historisch bewijs ongewijzigd.
+
+Na opname van het M6b-vervolgherstel zijn de gedeelde capturepaden samen
+gecontroleerd: 29 tests geslaagd (vier M6a, tien M6b, vijftien M6c), met
+ongewijzigde inputhashes vóór/na. Dit is één afzonderlijke hostinvocatie;
+het aantal wordt niet bij eerdere overlappende runs opgeteld. Broncombinatie,
+commando en ruwe uitvoer staan in `verification/m6c-review/integration-followup/`.
+Geen native build of VM uitgevoerd voor deze integratiecontrole.
+
+Bekende observerfout op de hierboven vastgelegde historische M6c-bron: native
+WRITE-/FLUSH-fouten of time-outs kunnen ook in de gewone `milestone-m6c` een
+kernel panic veroorzaken voordat de client `Unknown` ontvangt. De host-ABI-
+proeven toetsen alleen de serviceadapter. Contract en M6C-ACCEPTANCE vermelden
+expliciet dat dit native pad op die bron niet gerepareerd of end-to-end bewezen
+is. De afzonderlijke M6d-reparatie en nog open foutinjectiegate staan bovenaan.
+De onderzoeksacceptatie blijft begrensd tot de vastgelegde QEMU/device-fixture.
 
 Vervolg: deze opslaginterface aan native productfuncties koppelen; grotere
 documenten, ruimtehergebruik, encryptie, sleutels en native NAS/netwerk vereisen
@@ -152,6 +190,29 @@ Details en de geslaagde capture-hercontrole zonder nieuwe VM-runs:
 De laatste lokale build is opnieuw `milestone-m6b`; kernel en loader zijn
 bytegelijk aan beide normale eindgate-runs. Dit is een buildcontrole zonder
 extra VM-start (`verification/m6b-ready/`).
+
+Reviewcorrecties van 28 oktober 2026, basis `bb22fdbe15919edc23baa158a46236195ce314b2`:
+historische audits/guards en M1-afwijzingen verduidelijkt, bewijsbeschrijvingen
+vertaald en M5-vergelijkingen aan geverifieerde gastrecords gebonden. Preflight
+weigert nu ook een niet-nul `probe_exit` en een `probe_error`; de oude `rustup`-probe met `-6` was dus
+geen geldige inventariscontrole. De M6b-gate probeert na fouten de normale M1-build
+te herstellen en bewaart de oorspronkelijke fout. De 40 onafhankelijk uitgevoerde gerichte hosttests slagen; exacte commando's,
+bronhashes en ruwe uitvoer staan in `verification/m6b-review/merge-followup/`.
+Deze follow-up betreft hosttools; de oorspronkelijke native uitvoeringsbronnen
+in de tabel hierboven blijven behouden.
+De vervolgreview scherpt de M5-archiefchecker aan met expliciete controles,
+ook onder `python -O`; een gewijzigd seedrecord wordt nu afgewezen. Vier
+nieuwe hosttests verifiëren de M6a-stderrverwijzing en volledige
+stdout/metadata/stderr-capture. Historische meetbestanden blijven intact;
+de M6a-suite heeft een afzonderlijke gecorrigeerde leesindex. Dit nieuwe
+hostbewijs staat in `verification/m6b-review/review-followup-2/` en is geen
+nieuwe native gate of herhaling van de eerdere 40 tests.
+Geen nieuwe native gate uitgevoerd; de M3-hosttestcheckout en de redirectinstelling
+van de oude buitenste capturewrapper blijven expliciet onbekend.
+Bekende native observerbeperking: WRITE-/FLUSH-fouten kunnen, ook in
+`milestone-m6b`, een kernel panic veroorzaken voordat de client `Unknown` krijgt.
+Dit is niet gerepareerd of end-to-end native bewezen; contract en acceptatie
+beschrijven de begrensde onderzoeksafbakening en benodigde latere foutinjectie.
 
 Deze begrensde lokale opslagproef heeft geen namen, directoryboom, garbage
 collection of encryptie. Verwijderrecords voorkomen het terugkomen van oude
@@ -274,4 +335,3 @@ Op deze reparaties opnieuw uitgevoerd in Ubuntu 26.04.1 met Rust 1.90.0/QEMU 10.
 ## Vervolg en herstel
 
 M6a: begrensde WRITE/FLUSH en crashherstel op een synthetische wegwerpimage; de actieve status en nog uit te voeren volledige poort staan hierboven. Werkqueue: WORK-QUEUE.md. Contract: implementation/M6A-WRITE-RECOVERY.md. M1–M5-baseline en eerder bewijs blijven behouden; de volledige QEMU-poort is na deze merge niet opnieuw uitgevoerd. Herstel via aparte consistente checkout c630c59; geen destructieve reset of hostconfigmigratie.
-

@@ -1,8 +1,13 @@
 # M6c — native documentnamen en afgeschermde catalogus
 
-Datum: 28 oktober 2026. Ontwerp vóór implementatie, basis
-`bb22fdbe15919edc23baa158a46236195ce314b2` (afgeronde M6b).
-Werkbranch: `codex/m6c-named-catalog`. Uitvoering wordt afzonderlijk vastgelegd.
+Datum: 28 oktober 2026. Status: huidig M6c-contract met aanwezige implementatie.
+Oorspronkelijke basis: `bb22fdbe15919edc23baa158a46236195ce314b2` (afgeronde M6b).
+Werkbranch: `codex/m6c-named-catalog`. Bewijsstatus en acceptatiegrenzen:
+[M6C-ACCEPTANCE.md](../verification/M6C-ACCEPTANCE.md).
+Bekende beperking: de native observerpanic is nog ongerepareerd, ook met
+`milestone-m6c`. Het `Unknown`-gedrag is via host-ABI getest; gecontroleerde
+end-to-end-afhandeling bij native WRITE-/FLUSH-fouten of time-outs is niet
+gerealiseerd. Zie [Bekende native observerbeperking](#bekende-native-observerbeperking).
 
 ## Doel en grenzen
 
@@ -98,6 +103,29 @@ De kernel bevat uitsluitend de bestaande blokbroker en een expliciete
 acceptatieobserver voor deze fixture, geen naam-/catalogusbeleid voor apps.
 Native probe: `userspace/m6c_probe.rs`; selector: `milestone-m6c`.
 
+## Bekende native observerbeperking
+
+De `Unknown`-afhandeling is met de echte serviceadapter en een host-ABI-shim
+gecontroleerd. In `kernel/src/m2/m3/m6c.rs` bewaart de acceptatieobserver bij
+een voorbereide mutatie echter de verwachte `Ok`-reply. Na een native WRITE-
+of FLUSH-fout of time-out kan de adapter `Unknown` aanbieden, waarna `sent()`
+op die verwachting panikeert voordat de client het antwoord ontvangt. Dit
+geldt ook voor `milestone-m6c`, niet alleen voor fouttestfeatures. Dit is een
+geldige, nog ongerepareerde observerfout.
+
+De huidige native integratie voldoet onder die devicefouten nog niet aan de
+bedoelde gecontroleerde `Unknown`-respons en voortzetting. De ontwerpvereisten
+blijven staan: geen commit zonder WRITE+FLUSH, geen automatische replay en
+geen verdere geldige GET/LIST/mutaties bij onzekerheid. Het geteste
+serviceadaptergedrag is geen bewijs dat het defecte native observerpad werkt.
+
+De begrensde native acceptatie gebruikt de vastgelegde QEMU/device-fixture
+zonder native devicefoutinjectie; `capture_m6c.py` weigert `M6C:OUTCOME`.
+De 15 host-ABI-scenario's vervangen geen toets van de kernelobserver.
+Herstel vraagt een afzonderlijke native wijziging met WRITE-/FLUSH-fout- en
+time-outinjectie, controle van het werkelijk ontvangen clientantwoord en
+nieuwe brongebonden native verificatie.
+
 ## Acceptatie
 
 1. Hosttests voor wire/UTF-8/canonicalisatie, catalogusfiltering, CAS, tombstones,
@@ -118,6 +146,12 @@ Native probe: `userspace/m6c_probe.rs`; selector: `milestone-m6c`.
 7. Corruptie en geldig legacy-v1-volume weigeren vóór READY zonder diskmutatie.
 8. M6b-regressie en relevante build-/bootcontroles. Bronnen, binaries, exacte
    commando's, ruwe uitvoer, exitcodes, imagescope en hashes blijven gebonden.
+   Nieuwe hostgroepen leggen de hashes van stdout, commandometadata en stderr
+   direct in het gate-record vast. Capture vergelijkt de bronbestanden én de
+   gekopieerde archiefbytes met deze vaste map; ontbrekende binding wordt
+   afgewezen. De historische suite vóór deze aanscherping heeft die binding
+   niet; afbakening en afzonderlijke hosttests staan in
+   `../verification/m6c-review/host-log-binding/README.md`.
 
 Een emulatorproceskill is geen fysieke stroomuitval. FNV is geen authenticatie;
 DELETE wist historische diskbytes niet. Geen encryptie, native NAS, grafische

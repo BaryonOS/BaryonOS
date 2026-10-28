@@ -1,0 +1,14 @@
+{
+  "scope": "Synthetic negative fixture; original committed guest records remain unchanged.",
+  "source": "/workspace/scratch/a9adbdc1f137/pr9-verifier/round2/candidate",
+  "destination": "/workspace/scratch/a9adbdc1f137/pr9-verifier/round2/fixtures/after-tampered-seed",
+  "mutation": {
+    "record_label": "m5-read-a",
+    "field": "disk_oracle.seed",
+    "before": 9220620458041727053,
+    "after": 9220620458041727054
+  },
+  "original_sha256": "9b005d6b5883f1a86c18a84ac537bde75cab09bd5d8ded038a4784c27b892168",
+  "modified_sha256": "e239e1cf0b9e05811db24a0fa16e2f1476880996e1cbacd944b445f2779ab4bf",
+  "fixture_builder_sha256": "f7c6083fa622ffb87e8689c7129005c5b7b66b694bd05780be7394b1f46fd468"
+}

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "b58ae2a56be6978eab2b5ac4bb5d12e3d615865f",
+    "source_commit": "b739183c48a06cb7798d0be8cc683430152533ac",
     "branch": "codex/m6d-io-recovery-roadmap",
-    "task": "M6d — broncheckpoint vóór native eindgate",
+    "task": "M6d — geïntegreerde bron vóór native eindgate",
     "previous_score": 13,
-    "summary": "De vaste roadmap en native foutafhandeling zijn gebouwd; S07 blijft open tot de volledige fout-/herstelgate en M6b-regressie zijn vastgelegd. De meter blijft daarom 13%."
+    "summary": "M6d en de actuele upstreamreview zijn geïntegreerd; 48 M6c- en 30 M6b-hostharnastests slagen. S07 blijft open tot de complete native fout-/herstelgate en M6b-regressie zijn vastgelegd. De meter blijft 13%."
   },
   "tracks": [
     {
