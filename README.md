@@ -35,7 +35,7 @@ alleen een nette desktop haalt die eindgrens niet.
 **Bron:** [`51dc38eb`](https://github.com/simonvanieperen/nieuw-os/commit/51dc38ebe82ac3ace16a52a904ecfe59551210d1) ·
 **Ontwikkelbranch:** `audit/finalize-current-repository-20261028`.
 Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Volledige technische repository-audit, PR16-integratie, CI-versterking en QEMU-flakecorrectie afgerond.
-PR #25 integreert de relevante PR16-code, reviewreparaties en repositoryonderhoud; PR #26 corrigeert een aantoonbare M6c/TCG-timingflake zonder ABI-, capability- of opslagcontractwijziging. De definitieve `main` doorstaat brede hosttests, Clippy/rustfmt, SDK-, netwerkparser-, quantum-, UI- en NAS-controles, een native M6c-releasebuild, baseline M6c-QEMU-smoke en DocumentSession normal/koude-recovery. Dit verbetert correctness en onderhoudbaarheid maar sluit geen volledig nieuw vast roadmapcriterium: 14% naar 14%.
+PR #25 integreert relevante PR16-code, reviewreparaties en repositoryonderhoud; PR #26 corrigeert een aantoonbare M6c/TCG-timingflake zonder ABI-, capability- of opslagcontractwijziging. De definitieve main-run 40741321766 is groen voor host-quality, baseline M6c-QEMU en DocumentSession normal/koude-recovery. Dit verbetert correctness en onderhoudbaarheid maar sluit geen volledig nieuw vast roadmapcriterium: 14% naar 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
