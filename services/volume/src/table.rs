@@ -1,8 +1,10 @@
 //! Volume table v1 and fail-closed recovery.
 //!
 //! Generation `g` is always written to slot `g % 2`. Every table sector ends
-//! with the table generation and an FNV-64 over slot, sector index and the
-//! first 504 bytes, so a torn table write is visible per sector. Recovery may
+//! with the table generation, an attempt digest (FNV-64 over the payload of
+//! all sectors of that copy) and an FNV-64 over slot, sector index and the
+//! first 504 bytes. A torn write is visible per sector, and sectors of two
+//! different write attempts for the same generation can never form one copy. Recovery may
 //! only pick the newest completely valid copy when the other copy is either
 //! the previous generation or an interrupted attempt at the next generation.
 use crate::{
@@ -15,7 +17,7 @@ pub const MAGIC: &[u8; 8] = b"NOSVOL01";
 pub const VERSION: u16 = 1;
 pub const ENTRY: usize = 240;
 pub const TABLE_SECTORS_USIZE: usize = TABLE_SECTORS as usize;
-const TRAILER: usize = 496;
+const TRAILER: usize = 488;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Entry {
@@ -181,7 +183,27 @@ impl Table {
             .any(|entry| entry.chunks[..entry.chunk_count].contains(&chunk))
     }
 
+    /// Digest binding all sectors of one write attempt: FNV-64 over the
+    /// payload (bytes before the trailer) of every sector of the copy.
+    pub fn attempt_digest(&self) -> u64 {
+        (0..TABLE_SECTORS).fold(FNV_OFFSET, |digest, index| {
+            checksum_update(digest, &self.payload(index)[..TRAILER])
+        })
+    }
+
     pub fn encode_sector(&self, index: u64) -> [u8; SECTOR] {
+        let mut sector = self.payload(index);
+        seal(
+            &mut sector,
+            Self::slot(self.generation),
+            index,
+            self.generation,
+            self.attempt_digest(),
+        );
+        sector
+    }
+
+    fn payload(&self, index: u64) -> [u8; SECTOR] {
         assert!(index < TABLE_SECTORS);
         let mut sector = [0; SECTOR];
         if index == 0 {
@@ -200,12 +222,6 @@ impl Table {
                 self.entries[first + half].encode(&mut sector[half * ENTRY..(half + 1) * ENTRY]);
             }
         }
-        seal(
-            &mut sector,
-            Self::slot(self.generation),
-            index,
-            self.generation,
-        );
         sector
     }
 
@@ -215,16 +231,25 @@ impl Table {
         slot: u64,
         sectors: &[[u8; SECTOR]; TABLE_SECTORS as usize],
     ) -> Result<Self, Status> {
-        let mut generation = None;
+        let mut sealed = None;
         for (index, sector) in sectors.iter().enumerate() {
             match classify(slot, index as u64, sector) {
-                SectorState::Valid(found) if generation.is_none_or(|g| g == found) => {
-                    generation = Some(found)
+                SectorState::Valid(found, attempt)
+                    if sealed.is_none_or(|seal| seal == (found, attempt)) =>
+                {
+                    sealed = Some((found, attempt))
                 }
                 _ => return Err(Status::Corrupt),
             }
         }
-        let generation = generation.ok_or(Status::Corrupt)?;
+        let (generation, attempt) = sealed.ok_or(Status::Corrupt)?;
+        // All sectors must come from the same write attempt.
+        let digest = sectors.iter().fold(FNV_OFFSET, |digest, sector| {
+            checksum_update(digest, &sector[..TRAILER])
+        });
+        if digest != attempt {
+            return Err(Status::Corrupt);
+        }
         let header = &sectors[0];
         if generation == 0
             || Self::slot(generation) != slot
@@ -294,8 +319,9 @@ fn sector_sum(slot: u64, index: u64, sector: &[u8; SECTOR]) -> u64 {
     checksum_update(value, &sector[..504])
 }
 
-fn seal(sector: &mut [u8; SECTOR], slot: u64, index: u64, generation: u64) {
+fn seal(sector: &mut [u8; SECTOR], slot: u64, index: u64, generation: u64, attempt: u64) {
     put64(sector, TRAILER, generation);
+    put64(sector, TRAILER + 8, attempt);
     let sum = sector_sum(slot, index, sector);
     put64(sector, 504, sum);
 }
@@ -304,8 +330,9 @@ fn seal(sector: &mut [u8; SECTOR], slot: u64, index: u64, generation: u64) {
 pub enum SectorState {
     /// Never written: the whole sector is zero.
     Zero,
-    /// Trailer and checksum match this slot/index; carries the generation.
-    Valid(u64),
+    /// Trailer and checksum match this slot/index; carries the generation
+    /// and the digest of the write attempt that produced the sector.
+    Valid(u64, u64),
     /// Garbage, misplaced or partially written.
     Invalid,
 }
@@ -318,7 +345,7 @@ pub fn classify(slot: u64, index: u64, sector: &[u8; SECTOR]) -> SectorState {
     if generation == 0 || get64(sector, 504) != sector_sum(slot, index, sector) {
         SectorState::Invalid
     } else {
-        SectorState::Valid(generation)
+        SectorState::Valid(generation, get64(sector, TRAILER + 8))
     }
 }
 
@@ -349,7 +376,7 @@ impl SlotScan {
     /// torn write, and recovery must stop rather than silently skip it.
     fn uniform(&self) -> bool {
         match self.states[0] {
-            SectorState::Valid(g) => self.states.iter().all(|s| *s == SectorState::Valid(g)),
+            SectorState::Valid(g, a) => self.states.iter().all(|s| *s == SectorState::Valid(g, a)),
             _ => false,
         }
     }
@@ -363,7 +390,7 @@ impl SlotScan {
         }
         self.states.iter().all(|state| match *state {
             SectorState::Zero => g == 1,
-            SectorState::Valid(found) => found + 1 == g || found == g + 1,
+            SectorState::Valid(found, _) => found + 1 == g || found == g + 1,
             SectorState::Invalid => true,
         })
     }
@@ -406,7 +433,7 @@ pub fn choose(slots: [SlotScan; 2]) -> Result<Table, Status> {
                 && one.states.iter().all(|state| {
                     matches!(
                         state,
-                        SectorState::Zero | SectorState::Valid(1) | SectorState::Invalid
+                        SectorState::Zero | SectorState::Valid(1, _) | SectorState::Invalid
                     )
                 });
             if zero.all_zero() && (one.all_zero() || first_attempt) {

@@ -29,7 +29,7 @@ MAX_LENGTH = MAX_CHUNKS * CHUNK
 QUOTA = 40
 NAME = 32
 ENTRY = 240
-TRAILER = 496
+TRAILER = 488
 NO_CHUNK = 0xFFFF
 MAGIC = b"NOSVOL01"
 FNV_OFFSET = 0xCBF29CE484222325
@@ -79,12 +79,21 @@ def sector_sum(slot: int, index: int, sector: bytes) -> int:
 
 
 def classify(slot: int, index: int, sector: bytes):
+    """(kind, generation, attempt digest) of one table sector."""
     if sector == bytes(SECTOR):
-        return ("zero", 0)
-    generation = struct.unpack_from("<Q", sector, TRAILER)[0]
+        return ("zero", 0, 0)
+    generation, attempt = struct.unpack_from("<QQ", sector, TRAILER)
     if generation == 0 or struct.unpack_from("<Q", sector, 504)[0] != sector_sum(slot, index, sector):
-        return ("invalid", 0)
-    return ("valid", generation)
+        return ("invalid", 0, 0)
+    return ("valid", generation, attempt)
+
+
+def attempt_digest(sectors) -> int:
+    """Digest over the payloads of every sector of one copy (one attempt)."""
+    digest = FNV_OFFSET
+    for sector in sectors:
+        digest = fnv(sector[:TRAILER], digest)
+    return digest
 
 
 def decode_entry(raw: bytes, generation: int):
@@ -114,10 +123,12 @@ def decode_entry(raw: bytes, generation: int):
 
 def decode_table(slot: int, sectors: list[bytes]):
     states = [classify(slot, i, s) for i, s in enumerate(sectors)]
-    gens = {g for kind, g in states if kind == "valid"}
-    if any(kind != "valid" for kind, _ in states) or len(gens) != 1:
+    seals = {(g, a) for kind, g, a in states if kind == "valid"}
+    if any(kind != "valid" for kind, _, _ in states) or len(seals) != 1:
         raise ValueError("table sectors not uniform")
-    generation = gens.pop()
+    generation, attempt = seals.pop()
+    if attempt_digest(sectors) != attempt:
+        raise ValueError("table sectors from different write attempts")
     header = sectors[0]
     fields = struct.unpack_from("<8sHHHHQQHH", header, 0)
     if (generation % 2 != slot or fields[0] != MAGIC or fields[1:5] != (1, OBJECTS, CHUNKS, CHUNK_SECTORS)
@@ -144,7 +155,7 @@ def decode_table(slot: int, sectors: list[bytes]):
 def compatible(states, g: int, uniform_invalid: bool) -> bool:
     if uniform_invalid:
         return False
-    for kind, found in states:
+    for kind, found, _ in states:
         if kind == "zero" and g != 1:
             return False
         if kind == "valid" and not (found + 1 == g or found == g + 1):
@@ -176,8 +187,8 @@ def choose(volume: bytes):
                 raise ValueError("other table copy unexplained")
             return mine["table"]
     first_attempt = not b["uniform_invalid"] and all(
-        kind == "zero" or kind == "invalid" or (kind == "valid" and g == 1) for kind, g in b["states"])
-    if all(kind == "zero" for kind, _ in a["states"]) and first_attempt:
+        kind == "zero" or kind == "invalid" or (kind == "valid" and g == 1) for kind, g, _ in b["states"])
+    if all(kind == "zero" for kind, _, _ in a["states"]) and first_attempt:
         return dict(generation=0, request_id=0, entries=[dict(
             revision=0, request_id=0, length=0, present=False, name=b"", chunks=[], sums=[],
             content_sum=0) for _ in range(OBJECTS)])
@@ -261,8 +272,9 @@ def encode_table(generation: int, request_id: int, entries) -> list[bytes]:
             struct.pack_into("<16Q", raw, 96, *sums)
             sector[half * ENTRY:(half + 1) * ENTRY] = raw
         sectors.append(sector)
+    attempt = attempt_digest(sectors)
     for index, sector in enumerate(sectors):
-        struct.pack_into("<Q", sector, TRAILER, generation)
+        struct.pack_into("<QQ", sector, TRAILER, generation, attempt)
         struct.pack_into("<Q", sector, 504, sector_sum(slot, index, bytes(sector)))
     return [bytes(s) for s in sectors]
 

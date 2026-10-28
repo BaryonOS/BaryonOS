@@ -81,6 +81,20 @@ class VolumeOracleTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             vd.analyse(bytes(image_with(tables)))
 
+    def test_sectors_of_two_attempts_never_form_one_copy(self):
+        gen1 = vd.encode_table(1, 5, entries_with({0: document(0, 1, 0, [], 5)[0]}))
+        first, _ = document(0, 1, 0, [], 5)
+        a = dict(first, revision=2, request_id=6, name=b"Eerste")
+        b = dict(first, revision=2, request_id=7, name=b"Tweede")
+        attempt_a = vd.encode_table(2, 6, entries_with({0: a}))
+        attempt_b = vd.encode_table(2, 7, entries_with({0: b}))
+        mixed = attempt_b[:1] + attempt_a[1:]
+        self.assertTrue(all(vd.classify(0, i, sector)[:2] == ("valid", 2) for i, sector in enumerate(mixed)))
+        result = vd.analyse(bytes(image_with({1: gen1, 0: mixed})))
+        self.assertEqual(result["generation"], 1)
+        complete = vd.analyse(bytes(image_with({1: gen1, 0: attempt_a})))
+        self.assertEqual(complete["generation"], 2)
+
     def test_write_outside_scope_is_detected(self):
         image = image_with({})
         image[2 * vd.SECTOR] ^= 0xFF
@@ -94,7 +108,7 @@ class VolumeOracleTests(unittest.TestCase):
     def test_names_follow_the_rust_rules(self):
         for good in ("Café", "Notitie ✓", "a" * 32):
             self.assertTrue(vd.valid_name(good.encode()))
-        for bad in (b"", b".", b"..", b"a/b", b"a\\b", b"\x00", "x‮y".encode(), b"\xff", b"a" * 33):
+        for bad in (b"", b".", b"..", b"a/b", b"a\\b", b"\x00", "x\u202ey".encode(), b"\xff", b"a" * 33):
             self.assertFalse(vd.valid_name(bad))
 
 

@@ -44,9 +44,12 @@ canaries; het orakel weigert iedere wijziging daarvan.
   kopie `g % 2`. Sector 0 = header (magic `NOSVOL01`, versie, geometrie,
   generatie, request-ID van de commit, quota); sectoren 1–8 = twee entries van
   240 bytes.
-- Iedere tabelsector eindigt met `u64 generatie` + FNV-64 over slot, index en
-  de eerste 504 bytes. Zo is een gescheurde of verplaatste sector per sector
-  zichtbaar.
+- Iedere tabelsector eindigt met `u64 generatie`, `u64 pogingdigest` (FNV-64
+  over de payload, bytes 0–487, van alle negen sectoren van die kopie) en een
+  FNV-64 over slot, index en de eerste 504 bytes. Zo is een gescheurde of
+  verplaatste sector per sector zichtbaar, en kunnen sectoren van twee
+  verschillende schrijfpogingen voor dezelfde generatie nooit samen een
+  geldige kopie vormen (bevinding uit de CodeRabbit-review van PR #47).
 - Entry: revisie, request-ID van de laatste mutatie, lengte, aanwezig, naam
   (max. 32 UTF-8-bytes, M6c-naamregels), chunklijst (≤ 16) met per-chunk FNV en
   een inhoudschecksum. Tombstones houden revisie + request-ID. Alle ongebruikte

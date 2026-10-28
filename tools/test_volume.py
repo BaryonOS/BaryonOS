@@ -32,8 +32,12 @@ def main() -> int:
     save_json(path, summary)
     for command in HOST:
         result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
-        summary["host"].append({"command": command, "exit": result.returncode,
-                                "tail": result.stdout.splitlines()[-3:] + result.stderr.splitlines()[-3:]})
+        # Keep the complete output: cargo prints the per-binary test totals
+        # long before its final lines, and they are part of the evidence.
+        totals = [line for line in (result.stdout + result.stderr).splitlines()
+                  if line.startswith(("test result:", "Ran ", "OK", "FAILED"))]
+        summary["host"].append({"command": command, "exit": result.returncode, "totals": totals,
+                                "stdout": result.stdout, "stderr": result.stderr})
         if result.returncode != 0:
             summary["status"] = "failed"
             save_json(path, summary)

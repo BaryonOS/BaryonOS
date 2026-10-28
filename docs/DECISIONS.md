@@ -478,8 +478,31 @@ algemene appstarter, grotere-documentondersteuning of ruimtehergebruik.
 
 ## ADR-040 — Copy-on-write volume (M6e) in plaats van append-only journal
 
-**Datum/status:** 28 oktober 2026, geaccepteerd voor het opt-in profiel
-`native-volume`. M6b/M6c/M6d blijven ongewijzigd en afzonderlijk bouwbaar.
+**Datum:** 28 oktober 2026. M6b/M6c/M6d blijven ongewijzigd en afzonderlijk
+bouwbaar.
+
+**Status (gescheiden):** *ontwerp* geaccepteerd voor het opt-in profiel
+`native-volume`. *Implementatie*: `services/volume`, de native dienst/app in
+`sdk/examples/volume-docs`, de SDK-blok-API en kernelprofiel `native-volume` op
+PR #47. *Testbewijs*: zie hieronder; GitHub Actions moet op iedere nieuwe
+PR-head opnieuw groen zijn. *Onbekend/niet getest*: fysieke schijven en
+stroomuitval, authenticatie/encryptie, back-up/export en grotere volumes.
+
+**Onderbouwing/bronnen:** OASIS, *Virtual I/O Device (VIRTIO) Version 1.2*,
+Committee Specification 01, 1 juli 2022, §5.2 Block Device, §5.2.6.2:
+een write is stabiel wanneer na de voltooide write een `VIRTIO_BLK_T_FLUSH`
+wordt verstuurd en zelf voltooid is
+(https://docs.oasis-open.org/virtio/virtio/v1.2/cs01/virtio-v1.2-cs01.html,
+geraadpleegd 28 oktober 2026). De volgorde inhoud → FLUSH → tabel → FLUSH →
+ACK steunt op die garantie; een emulator die haar niet nakomt valt buiten dit
+bewijs.
+
+**Testbewijs:** hosttests `services/volume/tests/` (incl. uitputtende
+crashsimulatie en de test met twee gemengde schrijfpogingen),
+`tests/test_volume_disk.py`, en de native gate `tools/test_volume.py` met
+bewijs in `docs/verification/m6e/` en
+[M6E-ACCEPTANCE](verification/M6E-ACCEPTANCE.md). Wat daar niet staat, is
+niet uitgevoerd.
 
 **Besluit:** grote documenten en ruimtehergebruik (S04/S05) krijgen een nieuw
 userspace-volumeformaat met twee alternerende, per sector verzegelde
@@ -505,6 +528,14 @@ vóór of na de onderbroken stap; een write buiten de scope of naar een
 gerefereerde chunk plaatsvindt; guest en onafhankelijk orakel verschillende
 digests vinden; quota/Full pas ná I/O worden gemeld; of een read-only
 recovery de image wijzigt.
+
+**Reviewcorrectie (CodeRabbit, PR #47):** de oorspronkelijke verzegeling bond
+een sector alleen aan slot, index en generatie. Twee onderbroken pogingen voor
+dezelfde generatie konden daardoor samen een schijnbaar volledige kopie vormen
+en een teruggedraaide mutatie laten herleven. Iedere sector draagt nu ook een
+digest over de payload van alle sectoren van zijn kopie; recovery accepteert
+alleen een kopie waarvan alle sectoren dezelfde, herberekende digest hebben.
+Een gemengde kopie geldt als gescheurd.
 
 **Restrisico:** één onleesbare sector in de nieuwste tabelkopie leidt tot
 terugval naar de vorige generatie (verlies van de laatste commit). FNV is geen

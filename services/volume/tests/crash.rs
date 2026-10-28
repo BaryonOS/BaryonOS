@@ -255,3 +255,53 @@ fn recovered_instance_continues_after_interrupted_commit() {
     let mut check = SimDisk::from_image(disk.settled());
     assert_eq!(&table::recover(&mut check).unwrap(), service.table());
 }
+
+/// Two interrupted attempts at the same generation whose surviving sectors
+/// together form a complete copy (sectors 5-8 from attempt 1, 0-4 from
+/// attempt 2). Recovery must treat that as torn and keep the durable state;
+/// it must never resurrect attempt 1's rolled-back change.
+#[test]
+fn mixed_attempts_for_one_generation_are_never_combined() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    for step in [
+        Step::Write {
+            object: 1,
+            length: 10,
+        },
+        Step::Write {
+            object: 9,
+            length: 10,
+        },
+    ] {
+        apply(&mut service, &mut disk, step).unwrap();
+    }
+    let durable = *service.table();
+    // Attempt 1: rename object 9 (table sector 5); only sectors 5-8 persist.
+    disk.crash_at = Some(disk.mutating_ops + 9);
+    assert!(apply(&mut service, &mut disk, Step::Rename { object: 9 }).is_err());
+    assert_eq!(disk.pending.len(), 9);
+    let image = disk.crash_subset(|index| index >= 5);
+    assert_eq!(common::recover(image.clone()).unwrap(), durable);
+    // Attempt 2 by a fresh instance: rename object 1 (sector 1); only 0-4 persist.
+    let mut disk = SimDisk::from_image(image);
+    let mut service = Service::new(EPOCH, durable, false);
+    disk.crash_at = Some(9);
+    assert!(apply(&mut service, &mut disk, Step::Rename { object: 1 }).is_err());
+    let image = disk.crash_subset(|index| index < 5);
+    let slot = Table::slot(durable.generation + 1);
+    let states: Vec<_> = (0..table::TABLE_SECTORS_USIZE)
+        .map(|index| {
+            let sector = image[slot as usize * table::TABLE_SECTORS_USIZE + index];
+            table::classify(slot, index as u64, &sector)
+        })
+        .collect();
+    // Every sector is individually valid for the next generation ...
+    assert!(states.iter().all(
+        |state| matches!(state, table::SectorState::Valid(g, _) if *g == durable.generation + 1)
+    ));
+    // ... yet the copy is a mix of two attempts and recovery keeps `durable`.
+    let recovered = common::recover(image).unwrap();
+    assert_eq!(recovered, durable);
+    assert_eq!(recovered.entries[9].revision, 1);
+}
