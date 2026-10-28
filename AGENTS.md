@@ -40,6 +40,15 @@ Werk docs/PROJECT-STATE.md bij na elke mijlpaal. Noteer architectuurwijzigingen 
 Blokkeer wijzigingen die capability-rechten verruimen zonder expliciet ontwerp, onbetrouwbare pointers/IPC-lengtes vertrouwen, ongecontroleerde DMA toelaten, secrets loggen, authenticatie bij fouten laten slagen of testresultaten vervalsen. Een ontbrekend bewijs wordt een open punt, nooit een impliciete goedkeuring.
 
 ## Voortgang op GitHub
+
+Expliciete opdracht van Simon, 28 oktober 2026: handel commits, pushes en
+geschikte squash-merges voor dit project zelfstandig af. Maak nieuwe PRs
+eerst als concept. Controleer actuele head/base, inhoudsbehoud, passende tests,
+bewijs en concrete reviewbevindingen vóór afronding; omzeil geen branchregels.
+Sluit een ingehaalde PR pas als aantoonbaar dezelfde inhoud via de vervangende
+integratie is opgenomen. Dit verruimt geen hardware-, publicatie-,
+infrastructuur- of privacygrenzen.
+
 Na iedere afgebakende implementatiestap en vóór langdurige controles: werk PROJECT-STATE.md bij, commit broncode/lockfiles/controleerbaar bewijs en open punten, en push de werkbranch. Wacht hiermee niet tot de gehele batch klaar is. Label tussenstanden en niet-uitgevoerde tests expliciet. Controleer dat de remote branch het lokale commit-ID bevat. Laat gegenereerde binaries, caches en secrets buiten Git; bewaar compacte tekst- en hashrapporten onder docs/verification/.
 
 

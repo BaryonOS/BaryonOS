@@ -1,0 +1,6 @@
+   Compiling catalog-core v0.1.0 (C:\Users\simon\Documents\Codex\nieuw-os-runtime-review-20261028\services\catalog)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.87s
+     Running unittests src\lib.rs (target\debug\deps\catalog_core-6cb59cefa8ff7d73.exe)
+     Running tests\core.rs (target\debug\deps\core-b37c9bfca722fc5e.exe)
+     Running tests\wire.rs (target\debug\deps\wire-597ef7fb0b92f942.exe)
+   Doc-tests catalog_core

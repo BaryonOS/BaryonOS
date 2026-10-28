@@ -1,0 +1,195 @@
+{
+  "basis_commit": "7484d87ec639fd8a29be327cad47c2f97739199d",
+  "candidate_commit": "326d2f6efa20411d5bb349b8275bc3e741be7ae0",
+  "started_utc": "2026-10-28T09:40:02.764485+00:00",
+  "status": "completed",
+  "passed": true,
+  "commands": [
+    {
+      "name": "audit-negative-tests",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m6d_m6b_audit.py"
+      ],
+      "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028",
+      "started_utc": "2026-10-28T09:40:02.765122+00:00",
+      "finished_utc": "2026-10-28T09:40:02.948227+00:00",
+      "exit_status": 0,
+      "output_sha256": {
+        "docs/verification/m6d-closeout-local/audit-negative-tests.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "docs/verification/m6d-closeout-local/audit-negative-tests.stderr.txt": "b45cdc1a639291fb5ed5a9855bbc7652459ddd7595d2df36572d5495ffc63735"
+      },
+      "output_encoding": "UTF-8, universal newline decoding to LF"
+    },
+    {
+      "name": "audit-self-test",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/verification/m6d-review/audit_m6d_native.py",
+        "--self-test"
+      ],
+      "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028",
+      "started_utc": "2026-10-28T09:40:02.948680+00:00",
+      "finished_utc": "2026-10-28T09:40:03.061289+00:00",
+      "exit_status": 0,
+      "output_sha256": {
+        "docs/verification/m6d-closeout-local/audit-self-test.stdout.txt": "4fdd8528a6a73c2775cf60aab29f9925fde62f83af74e7673ecf23b7a5b05f6a",
+        "docs/verification/m6d-closeout-local/audit-self-test.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "output_encoding": "UTF-8, universal newline decoding to LF"
+    },
+    {
+      "name": "image-text-reconstruction",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/verification/m6d-review/audit_m6d_native.py",
+        "--reconstruct",
+        "docs/verification/m6d-review/m6d-actual-journal-records.json"
+      ],
+      "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028",
+      "started_utc": "2026-10-28T09:40:03.061719+00:00",
+      "finished_utc": "2026-10-28T09:40:03.177567+00:00",
+      "exit_status": 0,
+      "output_sha256": {
+        "docs/verification/m6d-closeout-local/image-text-reconstruction.stdout.txt": "cc571e8f5f030038815aa59d7b00f2eb0e44ff4e81670029f13222b157a4187b",
+        "docs/verification/m6d-closeout-local/image-text-reconstruction.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "output_encoding": "UTF-8, universal newline decoding to LF"
+    },
+    {
+      "name": "m6c-gate",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-u",
+        "tools/test_m6c.py"
+      ],
+      "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028",
+      "started_utc": "2026-10-28T09:40:03.177999+00:00",
+      "finished_utc": "2026-10-28T09:43:18.382142+00:00",
+      "exit_status": 0,
+      "output_sha256": {
+        "docs/verification/m6d-closeout-local/m6c-gate.stdout.txt": "14ddc55f516f81fff9d555d299db56792166752888d476620ef4dc6dcb2bf36c",
+        "docs/verification/m6d-closeout-local/m6c-gate.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "output_encoding": "UTF-8, universal newline decoding to LF"
+    },
+    {
+      "name": "m6c-capture",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "tools/capture_m6c.py",
+        "--destination",
+        "docs/verification/m6d-closeout-m6c"
+      ],
+      "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028",
+      "started_utc": "2026-10-28T09:43:18.382688+00:00",
+      "finished_utc": "2026-10-28T09:43:19.298029+00:00",
+      "exit_status": 0,
+      "output_sha256": {
+        "docs/verification/m6d-closeout-local/m6c-capture.stdout.txt": "6ed46d39fa982414e91413bc0f298ece7f15e7242d77dd45962c897aafd61101",
+        "docs/verification/m6d-closeout-local/m6c-capture.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "output_encoding": "UTF-8, universal newline decoding to LF"
+    },
+    {
+      "name": "m6b-gate",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-u",
+        "tools/test_m6b.py"
+      ],
+      "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028",
+      "started_utc": "2026-10-28T09:43:19.298596+00:00",
+      "finished_utc": "2026-10-28T09:44:46.842922+00:00",
+      "exit_status": 0,
+      "output_sha256": {
+        "docs/verification/m6d-closeout-local/m6b-gate.stdout.txt": "484aa5632589654290cbbd19c0a3b44d632fc189a2181d89ccc7106a6f665ff6",
+        "docs/verification/m6d-closeout-local/m6b-gate.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "output_encoding": "UTF-8, universal newline decoding to LF"
+    },
+    {
+      "name": "m6b-capture",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "tools/capture_m6b.py",
+        "--destination",
+        "docs/verification/m6d-closeout-m6b"
+      ],
+      "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028",
+      "started_utc": "2026-10-28T09:44:46.843331+00:00",
+      "finished_utc": "2026-10-28T09:44:47.426989+00:00",
+      "exit_status": 0,
+      "output_sha256": {
+        "docs/verification/m6d-closeout-local/m6b-capture.stdout.txt": "c7752a305e24b7796932cabaa78b5d1f6c23bc56b7f60a675dff83efe1ac9ce3",
+        "docs/verification/m6d-closeout-local/m6b-capture.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "output_encoding": "UTF-8, universal newline decoding to LF"
+    },
+    {
+      "name": "progress-check",
+      "command": [
+        "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028",
+      "started_utc": "2026-10-28T09:44:47.427422+00:00",
+      "finished_utc": "2026-10-28T09:44:47.514421+00:00",
+      "exit_status": 0,
+      "output_sha256": {
+        "docs/verification/m6d-closeout-local/progress-check.stdout.txt": "c6753f7ae3f91bdc8e7b5a5eeda02846830706c26cb1f3cb596019b488bd5ee8",
+        "docs/verification/m6d-closeout-local/progress-check.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "output_encoding": "UTF-8, universal newline decoding to LF"
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028",
+      "started_utc": "2026-10-28T09:44:47.514960+00:00",
+      "finished_utc": "2026-10-28T09:44:47.601030+00:00",
+      "exit_status": 0,
+      "output_sha256": {
+        "docs/verification/m6d-closeout-local/diff-check.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "docs/verification/m6d-closeout-local/diff-check.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "output_encoding": "UTF-8, universal newline decoding to LF"
+    }
+  ],
+  "finished_utc": "2026-10-28T09:44:47.601443+00:00"
+}

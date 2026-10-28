@@ -1,0 +1,69 @@
+{
+  "phase": "M6c",
+  "status": "failed",
+  "passed": false,
+  "source_fingerprint_version": 3,
+  "source_sha256": "5c69802a6de7c591207950f311d2e9e4f7eb07628d3b91dc9457f21c0bfa8c75",
+  "host_test_sha256": {
+    "tests/test_m6c_capture.py": "24c43507276d239919cb1d1b1551b5310f5a5e8cdd9bca2ac25e68cf496d20f0",
+    "tests/test_m6c_disk.py": "9258b2fccfa2737d3e08a296de0fb617a82745a473576730031de27539ce1f03",
+    "tests/test_m6c_harness.py": "9456f8d4970087068971cd6f6b1f0ee5e8195408fcd192a47b908b6af81db6ff",
+    "tests/test_m6c_uncertainty.py": "b90b1e04766393dece1ede1432fbad1d3254ec399bcf7e404535b3276b06ea11"
+  },
+  "started_utc": "2026-10-28T09:34:17.571839+00:00",
+  "results": [
+    {
+      "name": "strict-development-inventory",
+      "passed": true,
+      "evidence": "build/logs/m6c-preflight.stdout.txt",
+      "requirements": [
+        "M6C-TOOLS"
+      ],
+      "log_sha256": {
+        "m6c-preflight.stdout.txt": "6a27ef5ca133573fcaaee642620c81c8268303cba818a3865d2e994898202bc8",
+        "m6c-preflight.json": "46b73d0ad2415c5288312e64026be437141c3b3450a50d9f271eb23f87850479",
+        "m6c-preflight.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "catalog-core-and-wire-host-tests",
+      "passed": true,
+      "evidence": "build/logs/m6c-host-tests.stdout.txt",
+      "requirements": [
+        "M6C-REVISIONS",
+        "M6C-TOMBSTONES",
+        "M6C-BOUNDED-RECOVERY"
+      ],
+      "log_sha256": {
+        "m6c-host-tests.stdout.txt": "43b3059500684167fa3fae72d2fb1bf8ae8c9d43f3d5501f6f29018a3858238d",
+        "m6c-host-tests.json": "dc38ce1940f65b2d98be45d30661e42e52213013e55020e999ee7d46e8c7bc13",
+        "m6c-host-tests.stderr.txt": "94c40fd4edf8973b293b2973722bac107eeeb130194a8fe4f77d8b0e04b93348"
+      }
+    },
+    {
+      "name": "external-oracle-and-crash-harness-tests",
+      "passed": true,
+      "evidence": "build/logs/m6c-harness-tests.stdout.txt",
+      "requirements": [
+        "M6C-EVIDENCE",
+        "M6C-IMAGE-BOUNDARY"
+      ],
+      "log_sha256": {
+        "m6c-harness-tests.stdout.txt": "0f65e7d0a7c3c8f5b1fd73ec860e9907cfc469e3fa2574ce371536f1ceef4d9d",
+        "m6c-harness-tests.json": "e6e7c99741aa07b1ad76f9c7d04a63755122f531a5699d9dee2f0f9a9ce1c9f1",
+        "m6c-harness-tests.stderr.txt": "f61025875066aa3f3f707a05b0b736d2c0681f2f7c1faa43076cf8fb935074d8"
+      }
+    },
+    {
+      "name": "normal-a",
+      "passed": false,
+      "evidence": "C:\\Users\\simon\\OneDrive\\Documenten\\GitHub\\nieuw-os-review\\build\\run\\m6c-normal-a-a63891cd8f",
+      "requirements": [
+        "M6C-NORMAL",
+        "M6C-EXTERNAL-DISK-ORACLE"
+      ]
+    }
+  ],
+  "error": "M6c gate failed: normal-a",
+  "finished_utc": "2026-10-28T09:34:28.620732+00:00"
+}

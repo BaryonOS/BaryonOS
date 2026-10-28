@@ -1,0 +1,12 @@
+{
+  "command": [
+    "C:\\Users\\simon\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+    "-B",
+    "tools/preflight.py",
+    "--strict"
+  ],
+  "cwd": "C:\\Users\\simon\\Documents\\Codex\\nieuw-os-runtime-review-20261028",
+  "started_unix": 1793180403.3291044,
+  "duration_s": 0.7386853694915771,
+  "returncode": 0
+}

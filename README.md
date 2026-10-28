@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`7484d87e`](https://github.com/simonvanieperen/nieuw-os/commit/7484d87ec639fd8a29be327cad47c2f97739199d) ·
+**Bron:** [`326d2f6e`](https://github.com/simonvanieperen/nieuw-os/commit/326d2f6efa20411d5bb349b8275bc3e741be7ae0) ·
 **Ontwikkelbranch:** `codex/m6d-io-recovery-roadmap`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** M6d reviewherstel en Windows-regressiecheckpoint.
-Auditgaten en bronreviewdekking hersteld; native functionaliteit en criteria ongewijzigd. Lokale 48 M6c- en 30 M6b-hosttests slagen na herstel van een Windows-exitrace. Volledige nieuwe native gates en externe herreview volgen na dit checkpoint.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** M6d-reviewherstel en gecontroleerde mainintegratie.
+Reviewpunten en Windows-testgrenzen hersteld. M6c/M6d: 35 groepen en 31 VM met 30 Rust- en 48 Python-tests; M6b: 18 groepen en 14 VM met 22 Rust- en 30 Python-tests. Aanvullend 173 Python-hosttests groen. Geen nieuw productcriterium; voortgang blijft 14%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
