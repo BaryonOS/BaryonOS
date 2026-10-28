@@ -1,5 +1,24 @@
 # Actuele projectstatus
 
+## Markt- en consumentenonderzoek — 28 oktober 2026
+
+Twee aanvullende onderzoeken zijn als strategische onderbouwing vertaald naar
+`docs/research/`: een markt-/concurrentieanalyse en een wetenschappelijke
+consumentenadoptieverkenning. Nieuw is vooral de externe onderbouwing van
+overstapfrictie, compatibiliteit, herstel, ondersteuning, Europese alternatieven
+en 90-/180-dagenbehoud als latere marktvalidatie. Materiaal, de eigen kernel,
+lokale AI, beperkte apprechten en de privacyrichting waren al projectbesluiten.
+
+De synthese maakt expliciet dat doelgroep, kleurpaletten, prestatiedoelen,
+steekproefgroottes, retentiedrempels, verkoopkanalen en verdienmodellen nog
+onderzoekshypothesen zijn. Zij wijzigen `PRODUCT-SPEC.md`, capabilities,
+kernel-ABI of privacycontract niet zonder afzonderlijk besluit.
+
+Geen broncode, native runtime of acceptatiebewijs is in deze documentatiestap
+gewijzigd of uitgevoerd. De technische momentopname in de oorspronkelijke
+rapporten kan daarom ouder zijn dan deze actuele projectstatus. Roadmap:
+**14% → 14%**.
+
 ## Actuele vervolgacceptatie — 28 oktober 2026
 
 **Zes extra echte VM-runs slagen op `dbd35b04d742b18d66b40fdd65d8a9b900656cac`**,
