@@ -19,9 +19,11 @@ volledige 32-groepen-/28-VM-poort volgt na de native grafische bronfreeze.
 G09 bouwt parallel een opt-in native grafische basis volgens ADR-030 en
 `implementation/GRAPHICS-G0.md`: eigen framebufferuitvoer en PS/2-invoer,
 geen browser, volledige desktop of opslagadapter. De pure `ui-core` is aanwezig
-met tien geslaagde hosttests; de native GOP-/kernelintegratie is in bouw.
-Standaard BootInfo 1.1 blijft behouden. Deze tussenstand bevat geen bewezen
-native grafische uitvoering; logs en verdere verificatie volgen.
+met tien geslaagde hosttests; de native GOP-/kernelintegratie staat klaar voor
+de eerste hardwareproef. Elf bootprotocoltests, drie grafische harnastests,
+fmt/Clippy/no_std slagen. Standaard BootInfo 1.1 blijft behouden. Deze
+tussenstand bevat nog geen bewezen native grafische uitvoering; logs en
+verdere verificatie volgen.
 
 ## Hervatting — native M6b-opslagfouten, 28 oktober 2026
 

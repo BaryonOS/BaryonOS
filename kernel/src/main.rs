@@ -2,10 +2,14 @@
 #![no_main]
 #![deny(unsafe_op_in_unsafe_fn)]
 
+#[cfg(feature = "graphics-g0")]
+mod graphics;
 #[cfg(feature = "milestone-m2")]
 mod m2;
 mod memory;
 mod serial;
+#[cfg(all(feature = "graphics-g0", feature = "milestone-m3"))]
+compile_error!("graphics-g0 is an IF0 bootstrap, not a ring-3/compositor profile");
 
 use boot_protocol::{BootInfo, ADDRESS_LIMIT, PAGE_SIZE};
 use core::{arch::asm, ptr};
@@ -25,9 +29,15 @@ pub extern "sysv64" fn _start(info_pointer: *const BootInfo) -> ! {
     // SAFETY: Loader-to-kernel ABI guarantees this page is mapped and initialized;
     // range checks precede the copy. M1 trusts its own loader/firmware, not user pointers.
     let info = unsafe { info_pointer.read() };
-    if info.validate_header(address).is_err() {
+    #[cfg(feature = "graphics-g0")]
+    let valid_header = info.validate_graphics_header(address);
+    #[cfg(not(feature = "graphics-g0"))]
+    let valid_header = info.validate_header(address);
+    if valid_header.is_err() {
         serial::fail(b"BOOTINFO_HEADER");
     }
+    #[cfg(feature = "graphics-g0")]
+    graphics::capture(&info);
     let stack: u64;
     let flags: u64;
     // SAFETY: CPL0; read current stack and flags without changing them. Stack is
@@ -54,7 +64,11 @@ pub extern "sysv64" fn _start(info_pointer: *const BootInfo) -> ! {
             info.memory_map_len as usize,
         )
     };
-    if boot_protocol::validate_memory_map(&info, map).is_err() {
+    #[cfg(feature = "graphics-g0")]
+    let valid_map = boot_protocol::graphics::validate_graphics_memory_map(&info, map);
+    #[cfg(not(feature = "graphics-g0"))]
+    let valid_map = boot_protocol::validate_memory_map(&info, map);
+    if valid_map.is_err() {
         serial::fail(b"MEMORY_MAP");
     }
     for i in 0..8 {

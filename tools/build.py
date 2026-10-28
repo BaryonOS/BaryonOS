@@ -23,7 +23,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "tes
                    "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),
                    "milestone-m5", *(f"test-m5-{case}" for case in M5_CASES),
                    "milestone-m6a", *(f"test-m6a-{case}" for case in M6A_CASES),
-                   "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES)]
+                   "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES), "graphics-g0"]
 
 
 def inspect_elf(path):
@@ -87,6 +87,12 @@ def inspect_pe(path):
 
 
 def build(loader_feature=None, kernel_feature=None, label="normal"):
+    if kernel_feature == "graphics-g0":
+        if loader_feature not in (None, "graphics-g0"):
+            raise ValueError("G0 requires its paired graphics loader")
+        loader_feature = "graphics-g0"
+    elif loader_feature == "graphics-g0":
+        raise ValueError("Graphics loader requires the G0 kernel")
     extra_env = None
     if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b")):
         from build_users import build_users
@@ -125,7 +131,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--loader-feature", choices=["test-ebs-retry"])
+    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0"])
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()
     build(args.loader_feature, args.kernel_feature, args.loader_feature or args.kernel_feature or "normal")

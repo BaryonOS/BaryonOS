@@ -22,6 +22,8 @@ pub struct Paging {
     tables: [u64; MAX_TABLES],
     count: usize,
     asid: u16,
+    #[cfg(feature = "graphics-g0")]
+    framebuffer: Option<(u64, u64)>,
 }
 impl Paging {
     #[cfg(feature = "milestone-m5")]
@@ -38,6 +40,45 @@ impl Paging {
         {
             return Err(kernel_core::Error::Range);
         }
+        self.map_device_page(frames, va, pa)
+    }
+    #[cfg(feature = "graphics-g0")]
+    pub fn map_framebuffer(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+        framebuffer: &boot_protocol::graphics::FramebufferInfo,
+        map: &boot_protocol::MemoryMap<'_>,
+    ) -> Result<(), kernel_core::Error> {
+        framebuffer
+            .validate_memory_map(map)
+            .map_err(|_| kernel_core::Error::Range)?;
+        let length = framebuffer
+            .mapped_len()
+            .map_err(|_| kernel_core::Error::Range)?;
+        if self.framebuffer.is_some() {
+            return Err(kernel_core::Error::Overlap);
+        }
+        let start = boot_protocol::graphics::FRAMEBUFFER_WINDOW;
+        // Entire range is checked before any PTE; no user-selected physical
+        // address reaches this bootstrap-only, exact framebuffer mapping API.
+        for offset in (0..length).step_by(PAGE as usize) {
+            if self.leaf(start + offset) != 0 {
+                return Err(kernel_core::Error::Overlap);
+            }
+        }
+        for offset in (0..length).step_by(PAGE as usize) {
+            self.map_device_page(frames, start + offset, framebuffer.base + offset)?;
+        }
+        self.framebuffer = Some((framebuffer.base, length));
+        Ok(())
+    }
+    #[cfg(any(feature = "milestone-m5", feature = "graphics-g0"))]
+    fn map_device_page(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+        va: u64,
+        pa: u64,
+    ) -> Result<(), kernel_core::Error> {
         // SAFETY: CPUID queries integer CPU capabilities only. Do not install a
         // PTE whose physical bits exceed this CPU's MAXPHYADDR, even if PCI
         // metadata itself permits a wider BAR; missing/unknown widths fail closed.
@@ -90,6 +131,8 @@ impl Paging {
             tables: [0; MAX_TABLES],
             count: 1,
             asid: 0,
+            #[cfg(feature = "graphics-g0")]
+            framebuffer: None,
         };
         result.tables[0] = root;
         result
@@ -190,6 +233,8 @@ impl Paging {
             tables: [0; MAX_TABLES],
             count: 2,
             asid,
+            #[cfg(feature = "graphics-g0")]
+            framebuffer: kernel.framebuffer,
         };
         result.tables[0] = root;
         result.tables[1] = pdpt;
@@ -312,7 +357,7 @@ impl Paging {
             executable: 0,
             total: 0,
         });
-        self.walk(frames, observed, self.root, 4, false, true, false);
+        self.walk(frames, observed, self.root, 4, false, true, false, 0);
         for (i, actual) in observed.iter().enumerate() {
             let expected = frames.alias(i as u64 * PAGE).unwrap();
             assert_eq!(
@@ -338,6 +383,7 @@ impl Paging {
         parent_user: bool,
         parent_write: bool,
         parent_nx: bool,
+        virtual_base: u64,
     ) {
         assert!(self.tables[..self.count].contains(&table));
         assert_eq!(frames.owner(table), Ok(Owner::PageTable(0)));
@@ -352,10 +398,28 @@ impl Paging {
             let writable = parent_write && entry & WRITE != 0;
             let nx = parent_nx || entry & NX != 0;
             let pa = entry & ADDRESS;
+            let va = virtual_base | ((i as u64) << (12 + (u64::from(level) - 1) * 9));
             if level > 1 {
-                self.walk(frames, observed, pa, level - 1, user, writable, nx);
+                self.walk(frames, observed, pa, level - 1, user, writable, nx, va);
             } else {
                 assert!(!user, "M2 has no user mappings");
+                #[cfg(feature = "graphics-g0")]
+                if let Some((base, length)) = self.framebuffer {
+                    let start = boot_protocol::graphics::FRAMEBUFFER_WINDOW;
+                    if (start..start + length).contains(&va) {
+                        assert_eq!(pa, base + va - start, "framebuffer physical binding");
+                        assert!(writable && nx);
+                        assert_eq!(
+                            entry & (PRESENT | WRITE | USER | NX | 8 | 16),
+                            PRESENT | WRITE | NX | 8 | 16
+                        );
+                        assert_eq!(
+                            entry & !(ADDRESS | PRESENT | WRITE | NX | 8 | 16 | 32 | 64),
+                            0
+                        );
+                        continue;
+                    }
+                }
                 assert!(!matches!(frames.owner(pa).unwrap(), Owner::Free));
                 let a = &mut observed[(pa / PAGE) as usize];
                 a.total = a.total.checked_add(1).unwrap();
