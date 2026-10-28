@@ -1,0 +1,52 @@
+name: Storage resilience acceptance
+
+on:
+  pull_request:
+    paths:
+      - 'tools/test_storage_resilience.py'
+      - 'tools/run_m6c.py'
+      - 'tools/m6c_*.py'
+      - 'tools/build.py'
+      - 'kernel/**'
+      - 'services/catalog/**'
+      - 'services/block/**'
+      - 'drivers/virtio-blk/**'
+      - 'crates/virtio-core/**'
+      - 'crates/capability-core/**'
+      - '.github/workflows/storage-resilience.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: storage-resilience-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  s08:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/ci-s08
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/ci-s08
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/ci-s08
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Rust 1.90.0 and targets
+        shell: bash
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup component add --toolchain 1.90.0 rustfmt clippy
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Disposable QEMU and OVMF
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+      - name: Strict preflight
+        run: python3 -B tools/preflight.py --strict
+      - name: S08 native resilience gate
+        run: python3 -B -u tools/test_storage_resilience.py
