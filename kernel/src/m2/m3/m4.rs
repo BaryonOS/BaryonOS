@@ -87,10 +87,10 @@ pub(super) fn engine() -> &'static mut Engine {
     unsafe { &mut *ptr::addr_of_mut!(ENGINE) }
 }
 #[cfg(all(
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
-    ))]
+    not(feature = "milestone-m5"),
+    not(feature = "native-qsim-job"),
+    not(feature = "native-sdk-app")
+))]
 fn evidence() -> &'static mut Evidence {
     // SAFETY: Same serialized service-stack lifetime as Engine; no IRQ mutates it.
     unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
@@ -252,10 +252,10 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
             #[cfg(feature = "milestone-m5")]
             super::m5::cap_event(slot, number);
             #[cfg(all(
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
-    ))]
+                not(feature = "milestone-m5"),
+                not(feature = "native-qsim-job"),
+                not(feature = "native-sdk-app")
+            ))]
             {
                 e.success += 1;
                 match number {
@@ -283,10 +283,10 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
                 );
             }
             #[cfg(all(
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
-    ))]
+                not(feature = "milestone-m5"),
+                not(feature = "native-qsim-job"),
+                not(feature = "native-sdk-app")
+            ))]
             {
                 let index = (-error.code()) as usize;
                 e.errors[index] += 1;
@@ -303,10 +303,10 @@ pub fn process_exit(pid: u64) {
     assert!(engine().check_invariants());
 }
 #[cfg(all(
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
-    ))]
+    not(feature = "milestone-m5"),
+    not(feature = "native-qsim-job"),
+    not(feature = "native-sdk-app")
+))]
 mod acceptance {
     use super::*;
     pub fn observe_exit(state: &mut State, slot: usize, _counter: u64) {
@@ -913,8 +913,8 @@ mod acceptance {
     }
 }
 #[cfg(all(
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
-    ))]
+    not(feature = "milestone-m5"),
+    not(feature = "native-qsim-job"),
+    not(feature = "native-sdk-app")
+))]
 pub(super) use acceptance::{manifest, observe_exit, observe_fault, poll};
