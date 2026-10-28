@@ -72,11 +72,12 @@ branch, datum en opdracht staan in de README. Een behaalde mijlpaal op die
 branch is niet automatisch opgenomen in `main` of vrijgegeven als product.
 Het scoreblad verandert geen bestaande acceptatiegrenzen van M1–M6c.
 
-Voor de aansluitende M6d-opdracht blijft **S07 open totdat nieuw bewijs is
-vastgelegd**: de actuele M6c-catalogusdienst moet WRITE-/FLUSH-fouten afhandelen
-zonder kernelpanic, zonder automatisch herhalen en zonder onterechte
-succesbevestiging. De selecteerbare historische M6b-proef behoudt haar eigen
-bewijs en beperkingen; een M6c-fix bewijst geen gerepareerde M6b-observer.
+M6d op uitvoeringsbron `88e6c04be218b8b09ea4f0a226f6b9719da706a6` sluit
+**S07** met opgeslagen fout-/herstelbewijs en de vereiste regressie. De score
+stijgt daardoor **13% → 14%**: opslag van 3 naar 4 punten; alle andere gewichten
+en statussen blijven gelijk. De selecteerbare historische M6b-observer behoudt
+zijn afzonderlijke beperking. Zie [M6d-acceptatie](verification/M6D-ACCEPTANCE.md).
+K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
@@ -125,7 +126,7 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **K06 — Meerdere processorkernen** | 2 | Open | SMP-scheduling, synchronisatie, interrupts en adresruimtewisseling werken onder concurrente belasting op het ondersteunde profiel. |
 | **K07 — Resourcebeheer onder druk** | 2 | Open | Geheugen-, CPU-, IPC- en handle-uitputting blijven per app begrensd; het bruikbare systeem herstelt zonder kerneluitval. |
 
-### S — Opslag en gegevensherstel (3/15)
+### S — Opslag en gegevensherstel (4/15)
 
 | Criterium | Punten | Status | Acceptatie en bewijs |
 |---|---:|---|---|
@@ -135,7 +136,7 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **S04 — Ruimtehergebruik en schaalbare volumes** | 3 | Open | Opslag kan verwijderde ruimte veilig hergebruiken en langer dan de huidige 32 records doorwerken; crashconsistente compactie en quota zijn getest. |
 | **S05 — Documenten van bruikbare omvang** | 3 | Open | Grote documenten en streams overschrijden de huidige 128-byteproefgrens; begrensde buffers, volle volumes en deelwrites zijn getest. |
 | **S06 — Collecties, metadata en bewerkingsgeschiedenis** | 2 | Open | Native objectcollecties, persistente metadata en herstelbare revisies ondersteunen dagelijkse Materiaal-taken met consistente transacties. |
-| **S07 — Onzekere I/O zonder kernelpanic** | 1 | Open | De actuele M6c-catalogusdienst levert bij native WRITE/FLUSH-fouten gecontroleerd Unknown, sluit verdere toegang en herhaalt geen write; geen foutieve ACK of kernelpanic, overige processen blijven leven. Foutinjectie, koude recovery, schijforakel en normale M6c-/M6b-regressie zijn opgeslagen. De historische M6b-observer krijgt hiermee geen nieuwe foutafhandelingsclaim. |
+| **S07 — Onzekere I/O zonder kernelpanic** | 1 | Behaald | De actuele M6c-catalogusdienst levert bij native WRITE/FLUSH-fouten gecontroleerd Unknown, sluit verdere toegang en herhaalt geen write; geen foutieve ACK of kernelpanic, overige processen blijven leven. Foutinjectie, koude recovery, schijforakel en normale M6c-/M6b-regressie zijn opgeslagen. De historische M6b-observer krijgt hiermee geen nieuwe foutafhandelingsclaim. [bewijs 1](../docs/verification/M6D-ACCEPTANCE.md) · [bewijs 2](../docs/verification/m6d/capture.json) · [bewijs 3](../docs/verification/m6d-m6b-regression/capture.json) · [bewijs 4](../docs/verification/m6d-review/m6d-final-native-audit.json) |
 | **S08 — Algemeen opslagherstel bij fouten** | 1 | Open | Een bruikbaar systeem blijft reageren bij diskuitval, timeouts, corruptie en resource-uitputting; expliciete herstelkeuze voorkomt stille gegevensoverschrijving. |
 | **S09 — Back-up, herstel en data-export** | 2 | Open | Een gebruiker kan onafhankelijke herstelkopieën maken, controleren, terugzetten en data in gedocumenteerde formaten exporteren; verlies-/conflictscenario’s zijn getest. |
 

@@ -2,56 +2,57 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
-## M6d — native onzekere I/O: broncheckpoint, eindgate nog open
+## M6d — native onzekere I/O gebouwd en geaccepteerd
 
-28 oktober 2026. Basis `b58ae2a56be6978eab2b5ac4bb5d12e3d615865f`, werkbranch
-`codex/m6d-io-recovery-roadmap`. Parallel uitgevoerd door een native builder,
-een roadmapbuilder, een afzonderlijke reviewer en de integrerende hoofdagent.
+28 oktober 2026. Uitvoeringsbron `88e6c04be218b8b09ea4f0a226f6b9719da706a6`,
+fingerprint v3 `8ca6d5d5291fde62f91fb47dca7df4d058424604449fb32b9e5899b1d4fbef93`.
+Werkbranch `codex/m6d-io-recovery-roadmap`, [PR #11](https://github.com/simonvanieperen/nieuw-os/pull/11).
+De broncheckpoint is vóór de eindgates gepusht en bewaart zowel M6d-checkpoint
+b739183 als upstream M6c-review 5ba238cc. De afsluiting wijzigt documentatie en
+bewijs; alle 45 eindruns zijn aan deze ene native uitvoeringsbron gebonden.
 
-Broncheckpoint `b739183c48a06cb7798d0be8cc683430152533ac` bewaart deze M6d-bron.
-De hostreviewaanvullingen van upstream
-`5ba238cc113c5a18924adab6f6a0908fdf193de0` zijn vóór de nieuwe eindgate
-geïntegreerd. Beide geschiedenissen blijven ouders van de integratiecheckpoint. Hun historische M6b/M6c-status en bewijsgrenzen zijn hieronder
-opgenomen; die hostresultaten gelden niet als nieuwe M6d-native tests.
-S07 blijft open totdat de gecombineerde bron de volledige acceptatie doorstaat.
+De kernelobserver koppelt de eerste Unknown aan een werkelijk teruggegeven
+terminale muterende syscallfout. Geen onzekere commit, succes-ACK of levende
+revisie; beide appdomeinen blijven actief. Na Unknown leveren geldige
+GET/LIST/PUT/DELETE/RENAME-aanvragen geen nieuwe I/O op. Ongeldige of vreemde
+verzoeken houden hun eigen validatie-/autorisatiefout. Acht native testfeatures
+dekken WRITE/FLUSH-status, time-outs, resetquarantaine, descriptorweigering en
+ongeldige used-length. De eigen kernel, capabilities, IPC v4 en journal v2
+blijven het fundament; geen nieuwe externe dependency.
 
-Gebouwd: de M6c-kernelobserver koppelt een Unknown-reply nu aan een werkelijk
-teruggegeven muterende syscallfout. Hij telt geen succes-ACK en commit geen
-onzekere wijziging. Beide appdomeinen blijven draaien en toetsen dat verdere
-geldige documentoperaties Unknown geven zonder nieuwe I/O. Autorisatie en
-structuurcontrole blijven eerst gelden. Acht testfeatures dekken WRITE/FLUSH-
-status, timeout, resetquarantaine, descriptorweigering en ongeldige used-length.
-Contract vóór uitvoering: `implementation/M6D-IO-UNCERTAINTY.md`.
+| Werkelijk uitgevoerd op deze bron | Resultaat |
+|---|---|
+| M6d-gate en capture | exit 0; 35 groepen / 31 VM-invocaties, 14 koude recoveries, 8 foutcases, 2 externe cuts |
+| Afzonderlijke M6b-regressie en capture | exit 0; 18 groepen / 14 VM-invocaties, 6 koude recoveries, 2 externe cuts |
+| Hostcontroles | 30 Rust + 48 Python voor M6c; 22 Rust + 30 Python voor M6b; exit 0 |
+| Gerichte rustfmt en normale eindbuild | exit 0; kernel/loader bytegelijk aan beide normale M6d-runs |
+| Twee afzonderlijke bewijsaudits | exit 0; 274 + 121 artifacthashes, 16 + 7 werkelijke volumes; bronnen en herstelkoppelingen gecontroleerd |
 
-De README bevat nu een lokale voortgangsbalk en een vaste roadmap van 100
-gewogen acceptatiepunten. Beginscore **13%**, herbeoordeling verplicht bij iedere
-opdracht in AGENTS.md. Het nieuwe criterium S07 blijft open tot het complete
-native bewijs en de regressie beschikbaar zijn. De meter is geen tijdsprognose
-of veiligheidspercentage. Bron en criteria: `progress.json` en `PROGRESS.md`.
+R09 vergeleek alle 144 bronbestanden en vier M6c-hosttestbestanden met de
+uitvoeringscommit; alle 368 M6d-runfiles zijn gehasht. De 16 M6d-images zijn
+ook vanuit alleen seeds en sectorhex opnieuw opgebouwd met dezelfde hashes.
+A04 controleerde afzonderlijk de 14 M6b-runs en hun werkelijke schijfbytes.
+AI-review is geen menselijke audit of formeel bewijs. Exacte commando's,
+archieven en grenzen: [M6D-ACCEPTANCE.md](verification/M6D-ACCEPTANCE.md).
 
-Vóór deze checkpoint uitgevoerd: 30 catalog-core-tests, 43 Python-harnastests,
-de nieuwe testkernelcrossbuild en één gerichte echte QEMU-write-error-proef
-(raw exit 33). Die probe bevestigde ACK1/Unknown11 en geen nieuwe I/O; dit is
-nog geen complete eindgate. De twee concrete reviewbevindingen over veilige
-archiefbestemming en exacte journal-request-ID's zijn hersteld en hertoetst.
+De eerste gate stopte vóór een VM door een ontbrekend firmwarezoekpad;
+de failed suite is bewaard en het aanwezige passende OVMF-paar is naar de
+ondersteunde lokale testmap gekopieerd. Daarna is de volledige gate opnieuw
+uitgevoerd zonder bron-/criteriumwijziging. De twee concrete reviewbevindingen
+(archiefbestemming en precieze request-ID's) zijn vóór de bronfreeze hersteld.
 
-Op de geïntegreerde versie uitgevoerd: 48 M6c- en 30 M6b-hostharnastests
-(exit 0), gerichte rustfmt-controle en diffcontrole (exit 0). De capturetests
-gebruiken synthetische fixtures en tellen niet als echte VM-runs. Een begrensde
-alternatieve archiefbestemming bewaart de nieuwe M6b-regressie afzonderlijk.
+**Voortgang: 13% → 14% (+1 punt voor S07).** README bevat de zichtbare balk;
+`progress.json`, `PROGRESS.md` en `tools/progress.py` houden de vaste 100-punten-
+roadmap consistent. AGENTS.md verplicht herbeoordeling na iedere opdracht,
+ook als de score gelijk blijft. Geen tijdsraming of veiligheidspercentage.
 
-Nog uit te voeren op de vaste bron: uitgebreide M6c-gate (35 groepen/31 VM's),
-capture en afzonderlijke M6b-regressie. De normale toolchaininventaris slaagt
-buiten de sandbox; binnen de sandbox gaf alleen de rustup-versieprobe een
-signaalpipefout (exit -6), terwijl cargo/rustc functioneerden. Dit is een
-hostbeperking, geen geslaagd native resultaat. Geen bestaande bewijsarchieven
-overschreven en geen kernel-ABI, capabilityrechten of schijfformaat gewijzigd.
-
-Grenzen: de dienst blijft na Unknown gesloten tot een nieuwe instantie de
-werkelijke schijf herstelt; automatische dienstherstart is nog geen onderdeel.
-De injecties betreffen lokale completionsnapshots/brokerdeadlines op echte
-QEMU-I/O, geen fysieke schijffout of stroomuitval. De historische M6b-observer
-blijft onveranderd. Deze stap levert geen desktop, grotere documenten of NAS.
+Grenzen: koude recovery start een nieuwe VM op dezelfde bytes; automatische
+herstart in dezelfde sessie is nog open. De historische M6b-observer houdt zijn
+foutpadbeperking. Vier objecten, 128 inhoudsbytes en 32 records blijven
+proefbudgetten; geen desktop, grotere documenten, encryptie of native NAS.
+Status-/completioninjecties zijn geen fysieke schijffout of stroomuitval.
+Volgende beperkte stap: geautoriseerde catalogusherstart met nieuwe generatie,
+veilige reset en journalherstel zonder replay. K05 en S08 blijven open.
 
 ## M6c — native documentnamen en catalogus gebouwd en getest
 
@@ -128,7 +129,7 @@ WRITE-/FLUSH-fouten of time-outs kunnen ook in de gewone `milestone-m6c` een
 kernel panic veroorzaken voordat de client `Unknown` ontvangt. De host-ABI-
 proeven toetsen alleen de serviceadapter. Contract en M6C-ACCEPTANCE vermelden
 expliciet dat dit native pad op die bron niet gerepareerd of end-to-end bewezen
-is. De afzonderlijke M6d-reparatie en nog open foutinjectiegate staan bovenaan.
+is. De afzonderlijke M6d-reparatie en haar geslaagde foutinjectiegate staan bovenaan.
 De onderzoeksacceptatie blijft begrensd tot de vastgelegde QEMU/device-fixture.
 
 Vervolg: deze opslaginterface aan native productfuncties koppelen; grotere

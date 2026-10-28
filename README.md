@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 13% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 14% van de vaste productroadmap](docs/assets/progress.svg)
 
-**13% — 13 van 100 gewogen acceptatiepunten.** Dit is een
+**14% — 14 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -20,7 +20,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | Productspoor | Totaal punten | Behaald |
 |---|---:|---:|
 | Eigen kern en procesisolatie | 15 | 9 |
-| Opslag en gegevensherstel | 15 | 3 |
+| Opslag en gegevensherstel | 15 | 4 |
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
 | Internet en netwerkdiensten | 10 | 0 |
@@ -29,13 +29,13 @@ alleen een nette desktop haalt die eindgrens niet.
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 0 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **13** |
+| **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`b739183c`](https://github.com/simonvanieperen/nieuw-os/commit/b739183c48a06cb7798d0be8cc683430152533ac) ·
+**Bron:** [`88e6c04b`](https://github.com/simonvanieperen/nieuw-os/commit/88e6c04be218b8b09ea4f0a226f6b9719da706a6) ·
 **Ontwikkelbranch:** `codex/m6d-io-recovery-roadmap`.
-Deze opdracht: **13% → 13% (+0 procentpunt)**. **Opdracht:** M6d — geïntegreerde bron vóór native eindgate.
-M6d en de actuele upstreamreview zijn geïntegreerd; 48 M6c- en 30 M6b-hostharnastests slagen. S07 blijft open tot de complete native fout-/herstelgate en M6b-regressie zijn vastgelegd. De meter blijft 13%.
+Deze opdracht: **13% → 14% (+1 procentpunt)**. **Opdracht:** M6d — onzekere native I/O geaccepteerd.
+S07 is behaald: acht native foutgevallen en hun koude recovery, de volledige 35-groepen/31-VM-gate en de M6b-regressie met 18 groepen/14 VM slagen. Afzonderlijke bewijsaudits bevestigen de bron- en schijfgegevens. Eén vast acceptatiepunt erbij; de overige criteria blijven gelijk.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -49,7 +49,28 @@ Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
 
-## Afgeronde bouwstap: M6c — namen en documentcatalogus
+## Laatste bouwstap: M6d — opslagfouten gecontroleerd afhandelen
+
+De eigen kernel laat onzekere schrijfuitkomsten nu bij de apps aankomen zonder
+observerpanic of onterechte bevestiging. Acht foutproeven controleren onder meer
+WRITE/FLUSH-fouten, time-outs, descriptorweigering en resetquarantaine. Beide
+appdomeinen blijven voortgang maken; na `Unknown` volgen geen nieuwe
+blokaanroepen of automatische herhalingen van de onzekere wijziging.
+
+Op bron `88e6c04b` slagen **35 groepen / 31 echte VM-invocaties**, inclusief
+14 koude recoveries. De afzonderlijke M6b-regressie slaagt met **18 groepen /
+14 VM-invocaties**. Beide bewijsbundels zijn afzonderlijk gecontroleerd; de
+normale eindbuild is bytegelijk aan beide normale M6d-gateruns. Dit sluit
+criterium S07 en brengt de vaste voortgangsmeter van **13% naar 14%**.
+
+[Acceptatie, commando's en bewijs](docs/verification/M6D-ACCEPTANCE.md) ·
+[Vooraf vastgelegd contract](docs/implementation/M6D-IO-UNCERTAINTY.md) ·
+[PR #11](https://github.com/simonvanieperen/nieuw-os/pull/11).
+Werkbranch: `codex/m6d-io-recovery-roadmap`. Herstel gebruikt nog een nieuwe VM;
+automatische dienstherstart in dezelfde sessie is de volgende beperkte stap.
+De foutinjecties bewijzen geen fysieke schijffouten of stroomuitval.
+
+## Eerdere bouwstap: M6c — namen en documentcatalogus
 
 De nieuwe native dienst bewaart documentnamen, inventariseert uitsluitend het
 eigen appdomein en hernoemt met behoud van inhoud en revisiecontrole. Dit is de

@@ -1,0 +1,16 @@
+{
+  "reason": "First gate stopped before any VM: matching OVMF files existed in copied distro but automatic firmware search did not include that directory.",
+  "resolution": "Copied both matching files into the already supported build/firmware lookup path; no code or gate acceptance changed.",
+  "firmware": [
+    {
+      "source": "/workspace/scratch/2ffeac9e0e8f/nieuw-os/.tools/nieuw-os/distro/usr/share/OVMF/OVMF_CODE_4M.fd",
+      "destination": "/workspace/scratch/2ffeac9e0e8f/nieuw-os/build/firmware/OVMF_CODE_4M.fd",
+      "sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0"
+    },
+    {
+      "source": "/workspace/scratch/2ffeac9e0e8f/nieuw-os/.tools/nieuw-os/distro/usr/share/OVMF/OVMF_VARS_4M.fd",
+      "destination": "/workspace/scratch/2ffeac9e0e8f/nieuw-os/build/firmware/OVMF_VARS_4M.fd",
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    }
+  ]
+}

@@ -1,25 +1,43 @@
 # Werkqueue — M6d native foutafhandeling en productvoortgang
 
-## Actuele uitvoering M6d — 28 oktober 2026
+## Afgeronde uitvoering M6d — 28 oktober 2026
 
-Basis `b58ae2a`, branch `codex/m6d-io-recovery-roadmap`. Invarianten en acht
-cases: [M6D-IO-UNCERTAINTY.md](implementation/M6D-IO-UNCERTAINTY.md).
+Uitvoeringsbron `88e6c04be218b8b09ea4f0a226f6b9719da706a6`, branch
+`codex/m6d-io-recovery-roadmap`, PR #11. Contract:
+[M6D-IO-UNCERTAINTY.md](implementation/M6D-IO-UNCERTAINTY.md).
 
-| ID | Eigenaar / exclusieve writes | Status |
+| ID | Werkverdeling | Afgerond resultaat |
 |---|---|---|
-| A01 | architecture_next_step / kernel M6c-observer en native probe | Unknown zonder onterechte ACK; acht faultfeatures gebouwd; eerste native write-error groen |
-| D01 | progress_roadmap / README, AGENTS, roadmap, scoreblad en generator | vaste 100-puntenroadmap, basis 13%, consistentiecontrole groen |
-| R08 | native_review / aanvankelijk alleen lezen | native diff beoordeeld; twee harnasbevindingen hersteld; finale bewijsaudit volgt |
-| G08 | root / tools, gedeelde features, contract, status en Git | upstream 5ba238cc geïntegreerd; 48 M6c- en 30 M6b-hostharnastests groen; broncheckpoint vóór volledige native gates |
-| V08 | root + R08 / uitvoering en afzonderlijke controle | 35 groepen/31 VM + M6b-regressie en capture staan nog open |
+| A01/A02 | architecture_next_step / kernelobserver, native probe, integratie twee hosttools | Unknown zonder valse ACK; acht native foutfeatures; upstream hostlogbinding behouden |
+| A03 | architecture_next_step / M6b-capture en bijbehorende tests | begrensde alternatieve bestemming; drie negatieve/positieve bestemmingschecks |
+| D01/D02/D03 | progress_roadmap / scoremodel en historische documentintegratie; later alleen advies | vaste 100 punten, bron-/bewijsgrenzen en concreet herstelvervolg |
+| R08/R09 | native_review / aanvankelijk alleen lezen, daarna zelfstandige audit buiten de repo | twee vroege harnasbevindingen hersteld; 31 M6d-runs, 274 artifacthashes en 16 images gecontroleerd |
+| A04 | architecture_next_step / afzonderlijke read-only M6b-bewijsaudit | 14 M6b/M1-runs, 121 artifacthashes, zeven volumes en zes cold-links gecontroleerd |
+| G08/V08 | root / gedeelde interfaces, integratie, uitvoering, score en Git | 35/31 plus 18/14, beide captures en normale eindbuild geslaagd; S07 geaccepteerd, 13% → 14% |
 
-Eén schrijver per bestand en één build/QEMU-slot. De kern blijft eigen Rust;
-geen bestaande OS-kernel als basis. README-score blijft 13% zolang S07 open is.
-Iedere afgeronde opdracht herbeoordeelt score en bewijs volgens AGENTS.md.
+Eén schrijver per bestand en één build/QEMU-slot. Geen nieuwe OS-kernelbasis,
+capabilityverruiming, schijfformaat of externe dependency. Exacte uitslagen en
+bewijs: [M6D-ACCEPTANCE.md](verification/M6D-ACCEPTANCE.md). Iedere volgende
+opdracht herbeoordeelt de vaste meter volgens AGENTS.md.
 
-Volgende functionele grens na M6d: native productinterface en een algemene
-dienstherstart/herstelroute; grotere documenten en ruimtehergebruik vragen
-eigen opslagontwerp. Geen sleutelgeneratie zonder native entropybron.
+### Eerstvolgende native stap — begrensde catalogusrecovery
+
+Voorgesteld, nog niet gebouwd of als punt geteld:
+
+1. Eén geautoriseerde supervisor mag alleen deze catalogusdienst vervangen;
+   gewone apps krijgen geen reset-, processtart- of blokrechten.
+2. Oude servicegeneratie, endpoints en blokhandles intrekken vóór vervanging.
+   DMA-geheugen pas hergebruiken na bevestigde reset; anders quarantaine.
+3. Nieuwe instantie herstelt de echte journal zonder write-replay. Apps blijven
+   actief, krijgen binnen hun bestaande rechten nieuwe endpoints en lezen de
+   actuele revisie terug; Unknown wordt nooit alsnog een verzonnen succes-ACK.
+4. Herstartbudget begrenzen; stale caps, onbevoegde supervisor, corrupte journal,
+   herhaalde uitval en ontbrekende reset-ACK als negatieve gevallen opnemen.
+5. In dezelfde VM testen en de relevante M6d-regressie herhalen. Deze beperkte
+   proef voltooit niet automatisch algemeen dienstbeheer K05 of opslagherstel S08.
+
+Native Materiaal, grotere documenten en ruimtehergebruik houden daarnaast hun
+eigen productcriteria. Geen sleutelgeneratie zonder native entropybron.
 
 ## Historische M6c-queue
 

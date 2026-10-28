@@ -1,0 +1,32 @@
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/2ffeac9e0e8f/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: associated constant `EMPTY` is never used
+  --> /workspace/scratch/2ffeac9e0e8f/nieuw-os/userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+
+warning: 2 warnings emitted
+
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.00s
+   Compiling os-kernel v0.1.0 (/workspace/scratch/2ffeac9e0e8f/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.47s
+Built and inspected milestone-m6c: 3 ELF load segments

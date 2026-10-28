@@ -2,8 +2,8 @@
 
 ## ADR-031 — Native I/O-onzekerheid zonder observerpanic
 
-**Datum/status/eigenaar:** 28 oktober 2026; geïmplementeerd broncheckpoint,
-volledige eindgate nog open. Native builder A01, integratie root, aparte AI-review R08.
+**Datum/status/eigenaar:** 28 oktober 2026; geïmplementeerd en geaccepteerd op
+bron 88e6c04. Native builder A01, integratie root, AI-reviews R08/R09 en A04.
 
 **Context en besluit:** de dienst kende Unknown al, maar de M6c-observer eiste
 bij een voorbereide mutatie altijd Ok. Bind de eerste onzekere reply aan een
@@ -20,9 +20,11 @@ syscall, wire-/journalformaat, dienstimplementatie of externe dependency.
 Testinjecties lopen via bestaande driversnapshot-, deadline- en resetpaden.
 Geen automatische dienstherstart; historische M6b-observer apart behouden.
 
-**Bewijs en herziening:** 30 Rust- en 43 harnastests plus eerste write-error-VM
-slagen vóór de checkpoint; de complete 35-groepen/31-VM-gate en M6b-regressie
-staan nog open. Contract en primaire VIRTIO-bron:
+**Bewijs en herziening:** de volledige 35-groepen/31-VM-gate en M6b-regressie
+(18 groepen/14 VM) slagen, met beide captures en afzonderlijke bewijsaudits.
+30 Rust/48 Python-tests voor M6c, 22 Rust/30 Python-tests voor M6b; alle exit 0.
+Exacte scope en bron: `verification/M6D-ACCEPTANCE.md`; S07 levert 13% → 14%.
+Contract en primaire VIRTIO-bron:
 `implementation/M6D-IO-UNCERTAINTY.md`. Geen fysieke devicefout, stroomuitval,
 menselijke audit of formeel bewijs. Herzie bij algemene servicesupervisie,
 parallelle mutaties, nieuwe I/O-foutmodellen of andere hardware.
@@ -56,7 +58,7 @@ score. Zie `PROGRESS.md`; nooit de lat verlagen om een hoger getal te krijgen.
 op broncommit bc4cd104, basis bb22fdb. Exact contract: implementation/M6C-NAMED-CATALOG.md.
 Op deze historische M6c-uitvoeringsbron heeft het native `Unknown`-foutpad een
 bekende, ongerepareerde observerpanic, ook met `milestone-m6c`. De afzonderlijke
-reparatiebron en haar nog open eindgate staan bovenaan in ADR-031.
+reparatiebron en haar afzonderlijke acceptatie staan bovenaan in ADR-031.
 
 **Context en besluit:** afgeronde M6b heeft anonieme objectslots. Materiaal heeft
 benoemde objecten en list/open nodig. Voeg een aparte dependencyvrije catalog-core

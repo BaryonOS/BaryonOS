@@ -4,10 +4,12 @@ Datum: 28 oktober 2026. Status: huidig M6c-contract met aanwezige implementatie.
 Oorspronkelijke basis: `bb22fdbe15919edc23baa158a46236195ce314b2` (afgeronde M6b).
 Werkbranch: `codex/m6c-named-catalog`. Bewijsstatus en acceptatiegrenzen:
 [M6C-ACCEPTANCE.md](../verification/M6C-ACCEPTANCE.md).
-Bekende beperking: de native observerpanic is nog ongerepareerd, ook met
-`milestone-m6c`. Het `Unknown`-gedrag is via host-ABI getest; gecontroleerde
-end-to-end-afhandeling bij native WRITE-/FLUSH-fouten of time-outs is niet
-gerealiseerd. Zie [Bekende native observerbeperking](#bekende-native-observerbeperking).
+Historische bewijsgrens op `bc4cd104` en de daaropvolgende M6c-reviewstand:
+de native observer kon bij WRITE-/FLUSH-fouten panikeren. Die oude uitvoering
+had uitsluitend host-ABI-bewijs voor Unknown. M6d repareert dit op een nieuwe
+bron en voegt native foutinjectie toe; zie
+[M6D-ACCEPTANCE.md](../verification/M6D-ACCEPTANCE.md). De oorspronkelijke
+M6c-uitslag hieronder blijft aan haar eigen bron gekoppeld.
 
 ## Doel en grenzen
 
@@ -105,26 +107,24 @@ Native probe: `userspace/m6c_probe.rs`; selector: `milestone-m6c`.
 
 ## Bekende native observerbeperking
 
-De `Unknown`-afhandeling is met de echte serviceadapter en een host-ABI-shim
-gecontroleerd. In `kernel/src/m2/m3/m6c.rs` bewaart de acceptatieobserver bij
-een voorbereide mutatie echter de verwachte `Ok`-reply. Na een native WRITE-
-of FLUSH-fout of time-out kan de adapter `Unknown` aanbieden, waarna `sent()`
-op die verwachting panikeert voordat de client het antwoord ontvangt. Dit
-geldt ook voor `milestone-m6c`, niet alleen voor fouttestfeatures. Dit is een
-geldige, nog ongerepareerde observerfout.
+Deze paragraaf beschrijft de **historische M6c-uitvoeringsbron `bc4cd104`**.
+De echte serviceadapter was via een host-ABI-shim gecontroleerd, maar de
+kernelobserver bewaarde bij een voorbereide mutatie de verwachte Ok-reply.
+Bij WRITE-/FLUSH-fouten of time-outs kon de juiste Unknown-reply daardoor een
+panic veroorzaken voordat de client haar ontving, ook met `milestone-m6c`.
 
-De huidige native integratie voldoet onder die devicefouten nog niet aan de
-bedoelde gecontroleerde `Unknown`-respons en voortzetting. De ontwerpvereisten
-blijven staan: geen commit zonder WRITE+FLUSH, geen automatische replay en
-geen verdere geldige GET/LIST/mutaties bij onzekerheid. Het geteste
-serviceadaptergedrag is geen bewijs dat het defecte native observerpad werkt.
+De oorspronkelijke native acceptatie bevatte geen devicefoutinjectie en de
+toenmalige capture weigerde `M6C:OUTCOME`. De vijftien host-ABI-scenario's
+bewezen geen werkend native foutpad. De eisen bleven: geen commit zonder
+WRITE+FLUSH, geen replay en geen geldige toegang bij onzekere levende toestand.
 
-De begrensde native acceptatie gebruikt de vastgelegde QEMU/device-fixture
-zonder native devicefoutinjectie; `capture_m6c.py` weigert `M6C:OUTCOME`.
-De 15 host-ABI-scenario's vervangen geen toets van de kernelobserver.
-Herstel vraagt een afzonderlijke native wijziging met WRITE-/FLUSH-fout- en
-time-outinjectie, controle van het werkelijk ontvangen clientantwoord en
-nieuwe brongebonden native verificatie.
+**Actuele uitbreiding:** M6d op bron `88e6c04` bindt Unknown aan de werkelijk
+waargenomen syscallfout en toetst acht native foutcases plus koude recovery.
+De uitgebreide capture accepteert uitsluitend de exact vereiste Unknown-
+bewijsvorm voor die cases. Normale/cut-/recoveryruns mogen die niet claimen.
+Zie [het afzonderlijke contract](M6D-IO-UNCERTAINTY.md) en
+[de nieuwe acceptatie](../verification/M6D-ACCEPTANCE.md). Automatische
+serviceherstart en de historische M6b-foutpadbeperking blijven buiten M6d.
 
 ## Acceptatie
 

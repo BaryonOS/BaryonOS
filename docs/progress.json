@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "b739183c48a06cb7798d0be8cc683430152533ac",
+    "source_commit": "88e6c04be218b8b09ea4f0a226f6b9719da706a6",
     "branch": "codex/m6d-io-recovery-roadmap",
-    "task": "M6d — geïntegreerde bron vóór native eindgate",
+    "task": "M6d — onzekere native I/O geaccepteerd",
     "previous_score": 13,
-    "summary": "M6d en de actuele upstreamreview zijn geïntegreerd; 48 M6c- en 30 M6b-hostharnastests slagen. S07 blijft open tot de complete native fout-/herstelgate en M6b-regressie zijn vastgelegd. De meter blijft 13%."
+    "summary": "S07 is behaald: acht native foutgevallen en hun koude recovery, de volledige 35-groepen/31-VM-gate en de M6b-regressie met 18 groepen/14 VM slagen. Afzonderlijke bewijsaudits bevestigen de bron- en schijfgegevens. Eén vast acceptatiepunt erbij; de overige criteria blijven gelijk."
   },
   "tracks": [
     {
@@ -148,9 +148,14 @@
           "id": "S07",
           "title": "Onzekere I/O zonder kernelpanic",
           "points": 1,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De actuele M6c-catalogusdienst levert bij native WRITE/FLUSH-fouten gecontroleerd Unknown, sluit verdere toegang en herhaalt geen write; geen foutieve ACK of kernelpanic, overige processen blijven leven. Foutinjectie, koude recovery, schijforakel en normale M6c-/M6b-regressie zijn opgeslagen. De historische M6b-observer krijgt hiermee geen nieuwe foutafhandelingsclaim.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/M6D-ACCEPTANCE.md",
+            "docs/verification/m6d/capture.json",
+            "docs/verification/m6d-m6b-regression/capture.json",
+            "docs/verification/m6d-review/m6d-final-native-audit.json"
+          ]
         },
         {
           "id": "S08",
