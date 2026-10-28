@@ -23,7 +23,7 @@ def main() -> int:
     command = ["cargo", "build", "--offline", "--locked", "--release",
                "--manifest-path", str(ROOT / "sdk/Cargo.toml"),
                "-p", "nieuw-os-catalog-read-example", "--features", "native",
-               "--target", "x86_64-unknown-none"]
+               "--bins", "--target", "x86_64-unknown-none"]
     print(json.dumps({"command": command, "target_dir": environment["CARGO_TARGET_DIR"]}), flush=True)
     return subprocess.run(command, cwd=ROOT, env=environment, check=False).returncode
 
