@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "task": "G08",
+  "reviewed_commit": "148db2dba1e389afb33fb375e5b42466e2a76fd2",
+  "reviewed_source_sha256": {
+    "experiments/quantum/job-protocol/Cargo.toml": "be7b3b40df15ff92b8a62898a76607cbdd4b5d2fcc3d5c6a1d8bde86097b8718",
+    "experiments/quantum/job-protocol/Cargo.lock": "b3570255012c9c2344b5a36823f7f9681801a8730c36adbf5f1fb13fb38594ff",
+    "experiments/quantum/job-protocol/README.md": "d8748f92c60d2d1d58e8f1061a5b18762328389e167cde5d6a90a8b7078079c6",
+    "experiments/quantum/job-protocol/src/lib.rs": "acaf58349b3fdf636481ea1b7b60497eae667417ee5d0f967be180e70b7fa24c",
+    "experiments/quantum/job-protocol/tests/codec.rs": "54ce6f76833eecce1fc7f255b66ddc44d6305e4ada6f1e4ec0ed83e0315b8271",
+    "docs/verification/parallel-i08/checks.json": "80e25d11ccf7494111e69c7dc06b6786e8458526bc40e12117405fccdc319882"
+  },
+  "immutable_git_snapshot_used": true,
+  "implementation_worktree_modified": false,
+  "commands": [
+    {
+      "name": "library",
+      "argv": [
+        "rustc",
+        "+1.90.0",
+        "--edition=2021",
+        "--crate-name=qsim_job_protocol",
+        "--crate-type=rlib",
+        "-O",
+        "/tmp/nieuw-os-g08-review/experiments/quantum/job-protocol/src/lib.rs",
+        "-o",
+        "/tmp/nieuw-os-g08-review/libqsim_job_protocol.rlib"
+      ],
+      "exit": 0,
+      "duration_s": 0.16988613799912855,
+      "stdout": "library.stdout.txt",
+      "stderr": "library.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "review-compile",
+      "argv": [
+        "rustc",
+        "+1.90.0",
+        "--edition=2021",
+        "--test",
+        "-O",
+        "/workspace/scratch/debaa3b6a81c/wt-g01/docs/verification/parallel-g08/independent_codec.rs",
+        "--extern",
+        "qsim_job_protocol=/tmp/nieuw-os-g08-review/libqsim_job_protocol.rlib",
+        "-o",
+        "/tmp/nieuw-os-g08-review/g08_codec_review"
+      ],
+      "exit": 0,
+      "duration_s": 0.20474732799993944,
+      "stdout": "review-compile.stdout.txt",
+      "stderr": "review-compile.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "review-tests",
+      "argv": [
+        "/tmp/nieuw-os-g08-review/g08_codec_review",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "duration_s": 0.04011316799733322,
+      "stdout": "review-tests.stdout.txt",
+      "stderr": "review-tests.stderr.txt",
+      "stdout_sha256": "f79983b15b01e3be4259a7f41bad9b63a543bb1bbbf1d5554ca0cf386767ff9c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "passed": true,
+  "new_host_review_properties": 2,
+  "single_byte_probes": 393216,
+  "valid_qubit_gate_count_combinations": 390,
+  "new_native_executions": 0,
+  "new_simulator_executions": 0,
+  "review_scope": "Only the centrally agreed 256-byte QJ01 request codec; no job service or reply/runtime implementation.",
+  "findings": [],
+  "open_integration_requirements": [
+    "Bind kernel-authenticated IPC actor to jobs; IDs alone grant no authority.",
+    "Enforce requested work budget and cancellation in the future service.",
+    "Add codec dependency to the OS source fingerprint when actually linked into an OS image."
+  ],
+  "original_i08_evidence": {
+    "passed": true,
+    "source_hashes_match": true,
+    "command_count": 9,
+    "all_commands_succeeded": true
+  }
+}

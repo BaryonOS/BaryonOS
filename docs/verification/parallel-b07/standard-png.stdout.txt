@@ -1,0 +1,6 @@
+Synthetic host interoperability check; no guest/framebuffer execution.
+Pillow 12.3.0
+PASS: 1x1, all 3 original RGB bytes
+PASS: 3x2, all 18 original RGB bytes
+PASS: 96x224, all 64512 original RGB bytes
+PASS: 800x600, all 1440000 original RGB bytes

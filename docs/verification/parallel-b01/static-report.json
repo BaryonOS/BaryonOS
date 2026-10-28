@@ -1,0 +1,132 @@
+{
+  "scope": "cross-compilation and static lint only; no QEMU/native execution",
+  "base": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+  "commands": [
+    {
+      "name": "native-core-build",
+      "command": [
+        "/tmp/nieuw-os-par-tools/bin/rustc",
+        "--edition=2021",
+        "--crate-name",
+        "catalog_core",
+        "--crate-type",
+        "rlib",
+        "--target",
+        "x86_64-unknown-none",
+        "-D",
+        "warnings",
+        "services/catalog/src/lib.rs",
+        "-o",
+        "/tmp/nieuw-os-par-b01-target/direct/libcatalog_core_native.rlib"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b01",
+      "exit_code": 0,
+      "stdout": "native-core-build.stdout.txt",
+      "stderr": "native-core-build.stderr.txt",
+      "started_utc": "2026-10-28T15:07:16.250136+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "/tmp/nieuw-os-rust-1.90/bin/rustfmt",
+        "--edition",
+        "2021",
+        "--check",
+        "--config",
+        "skip_children=true",
+        "services/catalog/src/client.rs",
+        "services/catalog/tests/client.rs",
+        "services/catalog/src/lib.rs"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b01",
+      "exit_code": 0,
+      "stdout": "rustfmt.stdout.txt",
+      "stderr": "rustfmt.stderr.txt",
+      "started_utc": "2026-10-28T15:07:16.463996+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy-library",
+      "command": [
+        "/tmp/nieuw-os-rust-1.90/bin/clippy-driver",
+        "--edition=2021",
+        "--crate-name",
+        "catalog_core",
+        "--crate-type",
+        "rlib",
+        "-D",
+        "warnings",
+        "services/catalog/src/lib.rs",
+        "-o",
+        "/tmp/nieuw-os-par-b01-target/direct/libcatalog_core_clippy.rlib"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b01",
+      "exit_code": 0,
+      "stdout": "clippy-library.stdout.txt",
+      "stderr": "clippy-library.stderr.txt",
+      "started_utc": "2026-10-28T15:07:16.485824+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy-tests",
+      "command": [
+        "/tmp/nieuw-os-rust-1.90/bin/clippy-driver",
+        "--edition=2021",
+        "--test",
+        "-D",
+        "warnings",
+        "--extern",
+        "catalog_core=/tmp/nieuw-os-par-b01-target/direct/libcatalog_core.rlib",
+        "services/catalog/tests/client.rs",
+        "-o",
+        "/tmp/nieuw-os-par-b01-target/direct/client-tests-clippy"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b01",
+      "exit_code": 0,
+      "stdout": "clippy-tests.stdout.txt",
+      "stderr": "clippy-tests.stderr.txt",
+      "started_utc": "2026-10-28T15:07:16.773828+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "git-diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-b01",
+      "exit_code": 0,
+      "stdout": "git-diff-check.stdout.txt",
+      "stderr": "git-diff-check.stderr.txt",
+      "started_utc": "2026-10-28T15:07:16.985370+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope_note": "Pre-staging check; the authoritative source comparison, including added files, is source-diff-check in cargo-report.json. Raw test output keeps its trailing blank lines and is not normalized."
+    }
+  ],
+  "source_sha256": {
+    "services/catalog/src/lib.rs": "375921af0dc4e449ede38beae0ebcd5a6b465018a9448585af96119a86b407cd",
+    "services/catalog/src/client.rs": "1a1474e3a829a4c247046ee916019e5857a1603efd4620d95e0c4a50ea4f0878",
+    "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+    "services/catalog/src/journal.rs": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+    "services/catalog/tests/client.rs": "611027d93beb980eeaa8036f91ef3456a62f61d3bac4590702cbe0dc1a4efac1",
+    "services/catalog/tests/core.rs": "639a1c03cf03cb0a7dd5bd13c59f95b6682361f1632d8bf034413f0f0b370464",
+    "services/catalog/tests/wire.rs": "6cff9f23cd14a51bccae6f366196fd0b254def3625bf79a2a31d6199347f10a0"
+  },
+  "artifact_sha256": {
+    "/tmp/nieuw-os-par-b01-target/direct/libcatalog_core.rlib": "1c3b83de6ed3b1c3d117f54823ffecd1d0e05346b27d66ff150b2bf2906a85ec",
+    "/tmp/nieuw-os-par-b01-target/direct/core-tests": "afbffa49e9ef379ac817b78d5f22c73c1fb34b854b0ba009f52a1e07b90d50af",
+    "/tmp/nieuw-os-par-b01-target/direct/client-tests": "f0e7f74d7e4b9012628cfd8afd5ed188b26f32f7f2a04f2c1fef38ab5c845405",
+    "/tmp/nieuw-os-par-b01-target/direct/wire-tests": "2ee78ec6f6c49fec2a9d0c467faa74d3b3d2ece4164f9b299883f70cfb4f350e",
+    "/tmp/nieuw-os-par-b01-target/direct/libcatalog_core_clippy.rlib": "c04ee13e18cfd521f73db83944657ed63998d5d8325dcde9ad23404e52ddcf28",
+    "/tmp/nieuw-os-par-b01-target/direct/libcatalog_core_native.rlib": "b8d453eecfce0ca05e1a99cc99cac21aff63394a4fbadc9c4c8a0cacf836614d",
+    "/tmp/nieuw-os-par-b01-target/direct/client-tests-clippy": "ade5e74f1a45071fec9a3a80ccd0b64b1978ee35787973c150238bf68f50d958",
+    "/tmp/nieuw-os-par-b01-target/direct/unit-tests": "e8ad544fdf5daee8a5ed06899ac4c4918a0b6d96fad1fb8edeeea8f082f51653"
+  }
+}

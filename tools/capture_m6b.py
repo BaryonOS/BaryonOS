@@ -13,6 +13,7 @@ from m6b_disk import Volume, synthetic_initial, verify_volume
 from run_m6b import BOOT, CUTS, FAILURES, WINDOWS_CRASH_EXIT, normal_success, unique_markers
 from run import is_success
 from test_m6b import test_sources
+from build import M6B_FAULT_CASES
 
 
 # These are the fixed outputs of run_m6b.py and an ordinary run.py M1 run.
@@ -94,7 +95,7 @@ def required_groups():
         name='normal-'+suffix
         groups += [(name,'normal',None),(name+'-cold-recovery','recover',name)]
     groups += [('same-binary-two-canary-images',None,None)]
-    for case in ('errors','full','corrupt','vm-cut-before-ack','vm-cut-after-flush'):
+    for case in ('errors','full','corrupt','vm-cut-before-ack','vm-cut-after-flush') + M6B_FAULT_CASES:
         groups += [(case,case,None)]
         if case!='corrupt': groups += [(case+'-cold-recovery','recover',case)]
     return groups+[('m1-regression-after-m6b','m1',None)]
@@ -128,8 +129,9 @@ def check_run(directory,report,frozen):
             or report.get('execution_error') or report.get('oracle_error')
             or report.get('observed_source_sha256')!=frozen):
         raise ValueError('Wrong feature/source/artifact or failed execution')
-    if any(line.startswith('M6B:OUTCOME') for line in report['stdout'].splitlines()):
-        raise ValueError('Unexpected Unknown outcome in this bounded native gate')
+    outcomes = [line for line in report['stdout'].splitlines() if line.startswith('M6B:OUTCOME')]
+    if outcomes != (['M6B:OUTCOME:UNKNOWN'] if case in M6B_FAULT_CASES else []):
+        raise ValueError('Missing, duplicate or unexpected native Unknown outcome')
     if case in CUTS:
         point=CUTS[case]; crash=report['host_crash']; raw=report['raw_qemu_exit']
         if (report['timed_out'] or raw not in (-9,WINDOWS_CRASH_EXIT)
@@ -201,8 +203,8 @@ def capture(destination=None):
                 host_files.append(evidence)
             else:
                 host_files.extend(check_host_group(name,evidence,host_seen))
-    if len(runs)!=14 or len({r['run_directory'] for r in runs})!=14:
-        raise ValueError('Gate requires 14 distinct real VM invocations')
+    if len(runs)!=28 or len({r['run_directory'] for r in runs})!=28:
+        raise ValueError('Gate requires 28 distinct real VM invocations')
     destination.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='m6b-capture-',dir=BUILD) as temporary:
         staged=Path(temporary)/'archive'; staged.mkdir()

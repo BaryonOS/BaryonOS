@@ -1,0 +1,12 @@
+warning: associated constant `EMPTY` is never used
+  --> userspace/../services/catalog/src/wire.rs:93:15
+   |
+92 | impl Catalog {
+   | ------------ associated constant in this implementation
+93 |     pub const EMPTY: Self = Self::empty();
+   |               ^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: 1 warning emitted
+

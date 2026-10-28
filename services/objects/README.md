@@ -39,15 +39,16 @@ geen filesystem, NAS, algemene app-API of productgeschikte opslaglimiet.
   wacht op WRITE-completion en daarna op echte FLUSH-completion, roept pas
   daarna `State::commit` aan en verstuurt het appantwoord. Een prepared record
   mag uitsluitend op zijn oorspronkelijke toestand worden gecommit.
-- Servicecontract, alleen op host-ABI-niveau getest: iedere onzekere
+- Servicecontract: iedere onzekere
   mutatieuitkomst zet de dienst op `Unknown`. Verder geldige requests krijgen
   `Unknown` totdat een nieuw proces het hele journal herstelt. WRITE/FLUSH
-  worden nooit automatisch herhaald. Native is dit foutpad niet gerealiseerd:
-  de acceptatieobserver kan bij WRITE-/FLUSH-fouten panikeren vóór gecontroleerde
-  afhandeling van `Unknown`, ook met `milestone-m6b`. Dit defect is niet
-  gerepareerd. Zie de [bewijsgrenzen](../../docs/implementation/M6B-OBJECT-STORAGE.md#bewijsgrenzen);
-  herziening vereist een native reparatie met devicefoutinjectie en nieuwe
-  native verificatie met bronbinding.
+  worden nooit automatisch herhaald. Op bron `592dccf` is de observerpanic
+  gerepareerd en zijn twee lokale WRITE-/FLUSH-statussnapshotfouten native
+  gecontroleerd. Nieuwe kerneldeadline-/reset- en poll-LIMIT-proeven zijn
+  afzonderlijk in bouw. Bij lokaal verlaten polls sluit de adapter zijn
+  enige blokcapability, zodat de kernel de pending aanvraag veilig kan
+  annuleren en resetten. Dit is geen automatische schrijfherhaling.
+  Zie de [bewijsgrenzen](../../docs/implementation/M6B-OBJECT-STORAGE.md#bewijsgrenzen).
 - `request_id` correleert verzoek en antwoord; het is geen los idempotencysysteem.
   Een oude request met oude CAS-revisie wordt geweigerd.
 - Recovery scant alle32sectoren in volgorde. Alleen complete geldige prefixes

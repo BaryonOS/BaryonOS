@@ -205,3 +205,101 @@ De eerste scope is alleen lezen op een synthetische 64KiB-wegwerpimage. Schrijve
 **Onderbouwing en bewijs:** eigen contract `implementation/M6B-OBJECT-STORAGE.md`, eerdere virtio/capability-ABI uit ADR-026/M6a; wire- en journalindeling zijn interne projectbesluiten. De volledige eindgate op `1e61a20` slaagt: 18 groepen/14 echte VM-runs, 22 Rust-hosttests en 26 harnastests. Daaronder vallen zes koude recoveries, uitputting, corruptie en twee echte externe kills. Capture en een aparte audit van 121 artifacthashes/zeven schijfvolumes slagen; een extra Python-parser controleert onafhankelijk de echte schijfbytes zonder de Rust-journalcode te delen. Zeven host-ABI-adapterproeven controleren `Unknown`-uitkomsten. Native WRITE-/FLUSH-fouten kunnen via `sent()` in `kernel/src/m2/m3/m6b.rs` een kernel panic veroorzaken: de observer vergelijkt de reply eerst met een verwachte `Ok`-reply. Dit defect is niet gerepareerd; gecontroleerde end-to-end-afhandeling als `Unknown` ontbreekt ook in `milestone-m6b`. De native gate bevat geen devicefoutinjectie voor dit pad. Exacte bron, regressies en bewijsgrenzen staan in `PROJECT-STATE.md` en `verification/m6b/`.
 
 **Herziening en rollback:** een herziening van het native `Unknown`-pad vereist een native reparatie, gerichte WRITE-/FLUSH-devicefoutinjectie, controle van het daadwerkelijke clientantwoord en nieuwe native verificatie met bijbehorende bronbinding. Herzie ook bij meer objecten, compaction, meerdere schrijvers, sleutels, native UI of andere devices. M6b heeft een eigen feature/ELF/volumeformaat; bestaande M1–M6a-profielen blijven selecteerbaar. Een aparte werkbranch maakt terugname mogelijk zonder hostschijven of echte gebruikersdata te wijzigen. Tests in QEMU bewijzen geen fysieke stroomuitval, IOMMU-containment, formele correctheid of productierijpheid.
+
+Aanvulling 28 oktober 2026 op ADR-029: de terminale WRITE-/FLUSH-observerfout
+is op `592dccf` hersteld en native getest met twee statussnapshotinjecties;
+de historische beweringen hierboven gelden voor hun oude bron. Verder herstel
+van lokale poll-LIMIT, echte brokerdeadline en resetquarantaine is de actieve
+vervolgstap K08; uitgevoerde resultaten blijven in PROJECT-STATE.md.
+
+## ADR-033 — opt-in native grafische bootstrap vóór productintegratie
+
+Datum 28 oktober 2026, aanvaard als begrensde ontwikkelstap; root integreert,
+G09 beheert core/loader/adapter. Het browserprototype geeft geen bewijs voor
+native scherm- en invoerondersteuning. Daarom komt eerst een afzonderlijke
+G0-feature met gevalideerde GOP-metadata, supervisor framebuffer en begrensde
+PS/2-polling. Alternatieven zijn een volledige compositor/driver/IPC-broker
+ineens bouwen (te grote eerste hardwarestap), of een browser op de host als
+native presenteren (geen voortgang op eigen hardwaregrens).
+
+Invariant: opt-in ABI 1.2 met vaste descriptor in de behouden BootInfo-pagina,
+geen firmwarecalls na EBS, geen framebufferalias naar RAM/user/executable,
+strikt begrensde RW/NX/UC-devicepagina's en safe `no_std`-render/invoercore.
+De kernelweergave is tijdelijke diagnostiek, geen app-, object- of opslagpolicy.
+Het scherm labelt de proef. Geen rechten voor willekeurige apps en geen nieuwe
+extern gepubliceerde productie-ABI.
+
+Contract/bronnen/acceptatie: [GRAPHICS-G0.md](implementation/GRAPHICS-G0.md).
+Testbewijs wordt afzonderlijk opgeslagen; dit besluit is geen boottest.
+Herzie vóór ring-3-compositor, IRQ-invoer, DMA/GPU, SMP, Unicode/IME of echte
+hardware. Herstel via aparte checkout `7b4945f`; standaard BootInfo 1.1 blijft
+selecteerbaar, geen echte schijf- of firmwaremigratie.
+
+
+## ADR-034 — Native SDK en begrensde quantumport als afzonderlijke profielen
+
+Datum 28 oktober 2026; geïmplementeerd als ontwikkelprofielen, eindacceptatie
+op de gecombineerde bron nog uit te voeren. Root beheert ABI/bootconfig;
+G01–G03 bouwen SDK/client, I01–I04 de port en controles.
+
+De SDK hergebruikt de bestaande capability-ABI en 320-byte IPC-envelop.
+Canonicalisatie, endpointrechten, antwoordherkomst en één uitstaand verzoek
+zijn expliciet begrensd. Alleen EAGAIN vóór enqueue mag opnieuw worden
+geprobeerd. Na enqueue, Unknown, ongeldige reply of deadline sluit de sessie
+zonder automatische mutatieherhaling. De catalogus bepaalt revisies/namen;
+de kernel krijgt geen app- of documentbeleid. De bestaande M6c-probe kan het
+SDK-transport selecteren, terwijl ruwe negatieve ABI-proeven hun oude pad
+behouden. Een apart native voorbeeld gebruikt de echte catalogusclient;
+compilatie is nog geen bewijs van algemene appstart.
+
+De quantumport gebruikt de ongewijzigde eigen qsim-core met maximaal zes
+qubits, 64 gates, 4096 shots en een vaste arena van 64 KiB per proces. Een
+monotone allocator vermijdt onbewezen hergebruik; de proef beëindigt de
+processen waarna de bestaande kernelcleanup de pagina's terugneemt. Software-
+float uit de gepinde Rust-toolchain maakt de eerste port mogelijk zonder
+schedulerwijziging voor FPU/SIMD-context. Een disassemblygate controleert het
+concrete ELF inclusief instructieprefixes; deze controle is geen formeel
+bewijs. Een nieuw opt-in profiel bevat twee userprocessen en uitsluitend een
+vaste kerneltestobserver. Het profiel is exclusief ten opzichte van M4/G0.
+
+De alternatieven — nieuwe syscalls, onbegrensde allocatie, FPU-state support
+of een volledige jobdienst tegelijk — vergroten deze eerste wijzigingsgrens.
+Gevolg: native referentieberekeningen en resourcegrenzen zijn nu uitvoerbaar,
+maar willekeurige jobaanvoer/resultaten/annulering buiten het gecompileerde
+proefprogramma blijven een eigen volgende stap. De Control-fixtures bewijzen
+geen externe cancel of klokdeadline. L02 krijgt daarom nog geen punt.
+
+Eigen contracten: SDK README/ABI, `implementation/QUANTUM-SPEC.md` en de
+bestaande capability/M3-contracten. Gerichte native uitvoering, exacte
+opdrachten, hashes, reviewbevindingen en grenzen worden afzonderlijk bewaard
+in `verification/parallel-*`. Herzie vóór dynamische apps, meer qubits,
+allocatiehergebruik, FPU/SIMD, SMP of een echte jobdienst. Beide profielen zijn
+opt-in; herstel door hun eerdere bron in een aparte checkout te bouwen.
+Geen migratie van echte data, nieuwe externe crate of fysieke hardwareactie.
+
+
+### ADR-034: afzonderlijke invarianten en weerlegging
+
+**SDK — security-invariant:** gewone apps verkrijgen alleen reeds toegekende
+procesgebonden endpointrechten. Elke reply wordt canoniek en op herkomst
+gecontroleerd. Na enqueue en verlies van zekerheid blijft een mutatie zonder
+automatische replay; een ongeldige reply geeft geen extra rechten of succes.
+**Weerlegd als:** dezelfde mutatie na Unknown/verloren reply opnieuw wordt
+verstuurd, een vreemde afzender wordt geaccepteerd of een ongeldig capability-
+bericht als geldig doorgaat. **Eigenaar:** G01–G03 voor SDK, root voor ABI en
+integratie. **Testbewijs:** parallel-g01/g03 en parallel-final-sdk-m6c (deze
+laatste toetst de runtimebridge, niet de losse catalogusvoorbeeldapp).
+**Migratie/rollback:** bestaande ABI en journal blijven gelijk; SDKselectie is
+opt-in, terugname via eerdere bron in aparte checkout zonder datamigratie.
+
+**Quantum — security-invariant:** elk proefproces heeft private mappings en
+maximaal64KiB arena; input blijft binnen6qubits/64gates/4096shots. SIMD/FPU en
+vreemde syscall/hardware-instructies zijn niet toegestaan in het geselecteerde
+scalarartifact. Simulatorbeleid blijft userspace; opruiming gebruikt echte
+procesframes. **Weerlegd als:** grenzen kunnen worden overschreden, processen
+elkaars geheugen bereiken, ongewenste instructies door de artifactgate komen
+of cleanup toegewezen frames achterlaat. **Eigenaar:** I01–I04 voor port/gate,
+root voor de testobserver en integratie. **Testbewijs:** parallel-i04,
+parallel-final-qsim en parallel-final-m3. Dit is geen formeel bewijs.
+**Migratie/rollback:** exclusief opt-in profiel; eerdere bron afzonderlijk
+bouwen, zonder opgeslagen gebruikersdata of hardwarefirmware te wijzigen.

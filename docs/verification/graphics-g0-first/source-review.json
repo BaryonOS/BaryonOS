@@ -1,0 +1,52 @@
+{
+  "scope": "Read-only G09 source review of immutable commit, not a build or native test",
+  "source_commit": "7c0521804d4c9eb76260fb44c487e634fa449671",
+  "created_utc": "2026-10-28T13:04:45.663015+00:00",
+  "source_sha256": {
+    "boot/loader/src/graphics.rs": "85ff56d930a094a648c460c6e9d08b6c89dbdbb72ac25edf9557ae6b3ec7b08a",
+    "boot/loader/src/main.rs": "b689232c55c2facac7deab027c2646a71b04cf8ff769b172aea7657796f3cf4a",
+    "boot/loader/Cargo.toml": "a81258e36f28a4f781d6d8d4b1eade9c36cf7e1393fe1bd4abadd300dce7a42a",
+    "crates/boot-protocol/src/graphics.rs": "254b5aedfdf7d5a9aa5f95d7195c201ba3e9224881349700ffc4d04db7f88f9a",
+    "crates/boot-protocol/src/lib.rs": "3c61502e2df2dceffb56e3bdce71e611fc893617ecce2aa446ac1772f8124853",
+    "kernel/src/graphics.rs": "1c3b5f4fa1aa95999036b00e4836035f58400b8a378bd565b0a0c260157b5a86",
+    "kernel/src/main.rs": "2a345470d843471bd57cf6b6b67f92fc8f750ec3e750734eef138930226cd604",
+    "kernel/src/m2.rs": "2cec2e6729ec833667d3f60acc58fa2d11c911a4fa6ce6ac61c8f5c4f797afff",
+    "kernel/src/m2/paging.rs": "502a2da13bd50c091f13861b9438a942fb40f98c3e7a8d506dc13fcdfaa8a21d",
+    "kernel/Cargo.toml": "5e08933c0e8fa681839056ff7126bbc75c8a28ba8f5ba576368b772338522755",
+    "crates/ui-core/src/lib.rs": "09535a3f0676346df1218ed01e75c0a1321574eeae24a19db76c3abd1a0f3497",
+    "crates/ui-core/src/input.rs": "2ddb4b63a0f9b9917637a05ba9a761a672d3dd6cc5a21cb8ba043405358a5be2",
+    "crates/ui-core/src/tests.rs": "961c247d9af63db2a9c3b0977268b5f2a26a0de78c22881dafcd61138857a1f4",
+    "tools/run_graphics.py": "83c4b4278e2bf7c65dec7bc9a28f5cb8954e4512abca81caebcb0f136027c271"
+  },
+  "blockers": [],
+  "checks": [
+    "GOP LocateProtocol/QueryMode/SetMode/FreePool run only before final map freeze; EBS retry path retains only GetMemoryMap and ExitBootServices.",
+    "BootInfo default 1.1 remains exact; opt-in 1.2 validates flags, extension pointer at retained page+128, 64-byte extension layout and all original retained allocations.",
+    "GOP bytes may end before a page boundary; validated visible stride*height*4 fits byte_len, mapping rounds visible length, RAM overlap check uses entire rounded span.",
+    "Framebuffer can overlap only MMIO type11 or unreported holes; all ordinary, runtime, reserved, ACPI and unknown descriptor types are denied. Base is outside low RAM and each mapped physical page is checked against MAXPHYADDR.",
+    "Separate framebuffer VA window and immutable base/length allow actual page walk audit of physical binding and supervisor RW/NX/UC bits. Existing virtio MMIO wrapper retains original VA/alignment constraints.",
+    "A full clipped private RAM row is rendered before aligned volatile stores; only width pixels per scanline are written, excluding stride padding and mapped last-page padding.",
+    "PS/2 setup commands and response/drain waits are bounded. AUX/parity/timeout input resets decoder state. Set1 make/break, modifiers, bounded ASCII and backspace are handled by dependency-free safe no_std code.",
+    "Graphics bootstrap has interrupts disabled and cannot be combined with milestone-m3; no claim of ring-3 apps, persisted files, compositor, native M7 or full desktop.",
+    "QMP uses a private per-child Unix socket with no guest networking, only synthetic writable VARS and readonly boot ESP; screendumps come from QEMU and backspace must restore the previous frame exactly."
+  ],
+  "nonblocking_followups": [
+    {
+      "path": "tools/run_graphics.py",
+      "detail": "Parse G0:FRAMEBUFFER width/height/stride/pixel format and bind dimensions to actual PPM size; check post-EBS/KS markers in order rather than counts alone before final capture. Root has been notified."
+    }
+  ],
+  "limitations": [
+    "Code review by another AI is not a human audit or formal proof.",
+    "Framebuffer/keyboard behavior still requires a successful real G0 QEMU run; host core tests alone are not that evidence.",
+    "Review pinned to 7c05218; later merge conflict resolutions require comparison before applying this review to the merged source."
+  ],
+  "observed_native_attempt": {
+    "passed": false,
+    "error": "RuntimeError: QEMU did not open its private QMP socket",
+    "raw_qemu_exit": 1,
+    "base_commit": "7c0521804d4c9eb76260fb44c487e634fa449671",
+    "source_sha256": "c0eff36f3afbfe62e3365a5e574544a73a93c1d71dbc38001d4f7ef13015b181",
+    "run_directory": "/workspace/nieuw-os/build/run/graphics-g0-5f6975b99a"
+  }
+}

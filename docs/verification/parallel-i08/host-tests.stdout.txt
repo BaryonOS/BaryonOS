@@ -1,0 +1,27 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 13 tests
+test all_control_operations_and_pages_roundtrip_with_zero_unused_fields ... ok
+test corrupted_magic_version_operation_and_zero_ids_are_rejected ... ok
+test every_truncation_and_trailing_bytes_are_rejected ... ok
+test every_reserved_header_byte_is_rejected_for_every_operation ... ok
+test gate_codes_and_single_qubit_control_bytes_are_strict ... ok
+test golden_bytes_fix_offsets_endianness_and_all_gate_codes ... ok
+test maximum_gate_array_uses_the_last_three_payload_bytes ... ok
+test limits_include_minima_maxima_empty_circuit_and_full_seed_range ... ok
+test wire_limits_are_checked_before_gate_index_conversion ... ok
+test typed_constructors_reject_out_of_range_input_before_encoding ... ok
+test every_unused_gate_byte_must_remain_zero ... ok
+test non_submit_operations_reject_every_unrelated_field_byte ... ok
+test any_accepted_single_byte_mutation_roundtrips_without_normalization ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

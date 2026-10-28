@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/rustfmt",
+    "+1.90.0",
+    "--edition",
+    "2021",
+    "--config",
+    "skip_children=true",
+    "--check",
+    "kernel/src/m2/m3/m6b.rs",
+    "userspace/m6b_probe.rs"
+  ],
+  "cwd": "/workspace/nieuw-os",
+  "started_unix": 1793190664.1462095,
+  "duration_s": 0.07027816772460938,
+  "returncode": 0
+}

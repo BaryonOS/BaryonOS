@@ -1,0 +1,1 @@
+I06 accepted: 28 unique native runs; 13 byte-exact no-write cold links; all canaries and timeout/reset bounds match.

@@ -2,6 +2,8 @@
 #![no_main]
 #![deny(unsafe_op_in_unsafe_fn)]
 
+#[cfg(feature = "graphics-g0")]
+mod graphics;
 mod memory;
 mod serial;
 
@@ -397,8 +399,12 @@ impl Frozen {
                 u32::try_from(state.stride).unwrap_or_else(|_| serial::fail(b"MAP_STRIDE"));
             info.descriptor_version = state.version;
             let mut candidate = info;
-            candidate.flags = 7;
-            if candidate.validate_header(info_address).is_err() {
+            candidate.flags = if cfg!(feature = "graphics-g0") { 15 } else { 7 };
+            #[cfg(feature = "graphics-g0")]
+            let valid_header = candidate.validate_graphics_header(info_address);
+            #[cfg(not(feature = "graphics-g0"))]
+            let valid_header = candidate.validate_header(info_address);
+            if valid_header.is_err() {
                 serial::fail(b"BOOTINFO_HEADER");
             }
             // SAFETY: Returned length <= allocated capacity, checked before slice;
@@ -406,8 +412,29 @@ impl Frozen {
             let map = unsafe {
                 core::slice::from_raw_parts(info.memory_map_addr as *const u8, state.length)
             };
-            if boot_protocol::validate_memory_map(&candidate, map).is_err() {
+            #[cfg(feature = "graphics-g0")]
+            let valid_map = boot_protocol::graphics::validate_graphics_memory_map(&candidate, map);
+            #[cfg(not(feature = "graphics-g0"))]
+            let valid_map = boot_protocol::validate_memory_map(&candidate, map);
+            if valid_map.is_err() {
                 serial::fail(b"MEMORY_MAP");
+            }
+            #[cfg(feature = "graphics-g0")]
+            {
+                // SAFETY: Header binds the initialized 64-byte extension to our
+                // retained BootInfo page; it cannot overlap the separate map.
+                let framebuffer = unsafe {
+                    (candidate.reserved0 as *const boot_protocol::graphics::FramebufferInfo).read()
+                };
+                let view = boot_protocol::MemoryMap::new(
+                    map,
+                    candidate.descriptor_size,
+                    candidate.descriptor_version,
+                )
+                .unwrap_or_else(|_| serial::fail(b"GOP_MAP"));
+                if framebuffer.validate_memory_map(&view).is_err() {
+                    serial::fail(b"GOP_RAM_OVERLAP");
+                }
             }
             // SAFETY: Own aligned page and valid plain fixed-width value. The map is
             // a disjoint allocation; CPU-only writes do not invalidate its map key.
@@ -424,7 +451,7 @@ impl Frozen {
                 unsafe {
                     asm!("cli", "cld", "lidt [{}]", in(reg) EMPTY_IDT.as_ptr(), options(nostack));
                 }
-                info.flags = 7;
+                info.flags = if cfg!(feature = "graphics-g0") { 15 } else { 7 };
                 // SAFETY: Reserved page remains mapped and owned after EBS.
                 unsafe {
                     (info_address as *mut BootInfo).write(info);
@@ -456,6 +483,8 @@ impl Frozen {
 
 fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     let (device, loader_start, loader_len) = fw.loaded_image(image)?;
+    #[cfg(feature = "graphics-g0")]
+    let framebuffer = graphics::prepare(&fw)?;
     fw.pages(
         (KERNEL_LEN / PAGE_SIZE) as usize,
         efi::LOADER_CODE,
@@ -499,6 +528,12 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     unsafe {
         ptr::write_bytes(info_address as *mut u8, 0, PAGE_SIZE as usize);
     }
+    #[cfg(feature = "graphics-g0")]
+    // SAFETY: Our disjoint, zero-initialized page has 3968 bytes after its
+    // 128-byte header. The copied scalar extension uses only the first 64.
+    unsafe {
+        ((info_address + 128) as *mut boot_protocol::graphics::FramebufferInfo).write(framebuffer);
+    }
 
     let (needed, stride) = fw.map_size()?;
     let mut capacity = map_capacity(needed, stride)?;
@@ -530,9 +565,13 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     let info = BootInfo {
         magic: MAGIC,
         abi_major: ABI_MAJOR,
-        abi_minor: ABI_MINOR,
+        abi_minor: if cfg!(feature = "graphics-g0") {
+            2
+        } else {
+            ABI_MINOR
+        },
         header_size: 128,
-        flags: 6,
+        flags: if cfg!(feature = "graphics-g0") { 14 } else { 6 },
         memory_map_addr: map_address,
         memory_map_len: 0,
         descriptor_size: 0,
@@ -546,7 +585,11 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
         loader_start,
         loader_len,
         memory_map_capacity: capacity as u64,
-        reserved0: 0,
+        reserved0: if cfg!(feature = "graphics-g0") {
+            info_address + 128
+        } else {
+            0
+        },
     };
     // SAFETY: Own aligned page, initialized and disjoint from every other live object.
     unsafe {

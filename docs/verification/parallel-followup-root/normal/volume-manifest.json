@@ -1,0 +1,9 @@
+{
+  "scope": "fresh synthetic M6b volume",
+  "identity": "8158fa4bfa42460f8476b886684b73bf",
+  "seed": 11663695297027776864,
+  "variant": "normal",
+  "bytes": 65536,
+  "bdf": "00:05.0",
+  "initial_sha256": "eb0abcc04b99324c9203cb7024956806e7472b381f909da89c0e73c6021751b9"
+}

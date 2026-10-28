@@ -1,0 +1,122 @@
+{
+  "scope": "actual own-kernel G0 framebuffer and PS/2 RAM input; not desktop or persistence",
+  "passed": true,
+  "checks": {
+    "real_key_changes_visible_pixels": true,
+    "only_input_row_changes": true,
+    "backspace_restores_previous_frame_exactly": true,
+    "nonempty_native_scene": true,
+    "real_exit33": true,
+    "post_ebs_kernel_m2": true,
+    "exact_g0_sequence": true,
+    "no_guest_failure": true,
+    "source_unchanged": true,
+    "normal_end_marker": true
+  },
+  "error": null,
+  "command": [
+    "/tmp/nieuw-os-par-tools/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-7.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-qmp",
+    "stdio",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04"
+  ],
+  "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-g0/run/graphics-g0-5ad6321b1d",
+  "machine": "pc-q35-7.2",
+  "qmp_transport": "pipe",
+  "build_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-g0",
+  "raw_qemu_exit": 33,
+  "duration_s": 7.582720030000928,
+  "source_fingerprint_version": 3,
+  "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "base_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "qemu_version": "QEMU emulator version 7.2.22 (Debian 1:7.2+dfsg-7+deb12u18+b3)\nCopyright (c) 2003-2022 Fabrice Bellard and the QEMU Project developers",
+  "qemu_entry_path": "/tmp/nieuw-os-par-tools/bin/qemu-system-x86_64",
+  "qemu_entry_sha256": "561b9e1f55fe21ea20560797fbf148d9999a6a7425e0aa8e9569757a6a2dfdfa",
+  "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-g0/run/graphics-g0-5ad6321b1d",
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x2,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x2,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nG0:FRAMEBUFFER:800:600:800:1\nG0:MAPPINGS:PASS\nG0:READY\nG0:INPUT:1\nG0:INPUT:2\nG0:INPUT:1\nG0:INPUT:2\nG0:PASS\nM1:PASS\n",
+  "artifacts": {
+    "typed.ppm": "e80f6cf1f572cc3bad3441cbbb5f3a27a750f8a0c84127bb63af77ab496e26dc",
+    "qmp-trace.json": "8b5c98a35f46867caa37593ce4e8bd0278b5bf87be5f22d62e900cd7710611e4",
+    "initial.ppm": "454aedf48cb14c89e6e947b5c96b1c6bd6432c53a1d8aea3d03f1ad19300bc73",
+    "build-manifest.json": "70e8712d5633afdd3b8bdd188f99afb7e66b0989167342e3f8e01a668e93b0ef",
+    "OVMF_VARS.fd": "793a126117906c1cd1d3a86ff73d2f20323687d150bcc848222aa8c0067cd5db",
+    "serial.txt": "f61350dd1041ed8736a36452f1f4e56821f05f4f11008c9036e327913bfe2596",
+    "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "a.ppm": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+    "after-backspace.ppm": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+    "OVMF_CODE.fd": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "ab.ppm": "90c4fd29fd891de256c84239acba59811537146f1a9bc482c6264576615c6b4e",
+    "VGA.rom": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a",
+    "esp/kernel.elf": "1c5467ce79246bad48edc9c9f065b86ffb28261835c9a94ff3dffb9de0dc869d",
+    "esp/EFI/BOOT/BOOTX64.EFI": "a0a3fa1d81de4bec28e365fcd95450aff73e6870b9322179a837f6380701aa0a"
+  },
+  "changed_bounds": [
+    48,
+    192,
+    74,
+    212
+  ],
+  "step_changed_bounds": [
+    [
+      48,
+      192,
+      62,
+      212
+    ],
+    [
+      60,
+      192,
+      74,
+      212
+    ],
+    [
+      60,
+      192,
+      74,
+      212
+    ],
+    [
+      60,
+      192,
+      74,
+      212
+    ]
+  ],
+  "vga_rom": {
+    "source_path": "/tmp/nieuw-os-par-tools/qemu/usr/share/seabios/vgabios-stdvga.bin",
+    "copied_path": "VGA.rom",
+    "sha256": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a",
+    "expected_sha256": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a",
+    "expected_hash_checked": true
+  }
+}

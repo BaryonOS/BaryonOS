@@ -1,0 +1,782 @@
+{
+  "repository_full_name": "simonvanieperen/nieuw-os",
+  "base": "391f02e9394cb96f37096c995dabcb7d624ba36b",
+  "head": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+  "status": "ahead",
+  "ahead_by": 7,
+  "behind_by": 0,
+  "total_commits": 7,
+  "too_large": null,
+  "base_commit": {
+    "sha": "391f02e9394cb96f37096c995dabcb7d624ba36b",
+    "url": "https://api.github.com/repos/simonvanieperen/nieuw-os/commits/391f02e9394cb96f37096c995dabcb7d624ba36b",
+    "html_url": "https://github.com/simonvanieperen/nieuw-os/commit/391f02e9394cb96f37096c995dabcb7d624ba36b"
+  },
+  "merge_base_commit": {
+    "sha": "391f02e9394cb96f37096c995dabcb7d624ba36b",
+    "url": "https://api.github.com/repos/simonvanieperen/nieuw-os/commits/391f02e9394cb96f37096c995dabcb7d624ba36b",
+    "html_url": "https://github.com/simonvanieperen/nieuw-os/commit/391f02e9394cb96f37096c995dabcb7d624ba36b"
+  },
+  "files": [
+    {
+      "filename": ".gitattributes",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 0,
+      "changes": 3,
+      "previous_filename": null
+    },
+    {
+      "filename": "Cargo.lock",
+      "status": "modified",
+      "additions": 5,
+      "deletions": 0,
+      "changes": 5,
+      "previous_filename": null
+    },
+    {
+      "filename": "Cargo.toml",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "previous_filename": null
+    },
+    {
+      "filename": "README.md",
+      "status": "modified",
+      "additions": 16,
+      "deletions": 12,
+      "changes": 28,
+      "previous_filename": null
+    },
+    {
+      "filename": "boot/loader/Cargo.toml",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "previous_filename": null
+    },
+    {
+      "filename": "boot/loader/src/graphics.rs",
+      "status": "added",
+      "additions": 95,
+      "deletions": 0,
+      "changes": 95,
+      "previous_filename": null
+    },
+    {
+      "filename": "boot/loader/src/main.rs",
+      "status": "modified",
+      "additions": 50,
+      "deletions": 7,
+      "changes": 57,
+      "previous_filename": null
+    },
+    {
+      "filename": "crates/boot-protocol/src/graphics.rs",
+      "status": "added",
+      "additions": 266,
+      "deletions": 0,
+      "changes": 266,
+      "previous_filename": null
+    },
+    {
+      "filename": "crates/boot-protocol/src/lib.rs",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 0,
+      "changes": 2,
+      "previous_filename": null
+    },
+    {
+      "filename": "crates/ui-core/Cargo.toml",
+      "status": "added",
+      "additions": 7,
+      "deletions": 0,
+      "changes": 7,
+      "previous_filename": null
+    },
+    {
+      "filename": "crates/ui-core/README.md",
+      "status": "added",
+      "additions": 30,
+      "deletions": 0,
+      "changes": 30,
+      "previous_filename": null
+    },
+    {
+      "filename": "crates/ui-core/src/font.rs",
+      "status": "added",
+      "additions": 55,
+      "deletions": 0,
+      "changes": 55,
+      "previous_filename": null
+    },
+    {
+      "filename": "crates/ui-core/src/input.rs",
+      "status": "added",
+      "additions": 268,
+      "deletions": 0,
+      "changes": 268,
+      "previous_filename": null
+    },
+    {
+      "filename": "crates/ui-core/src/lib.rs",
+      "status": "added",
+      "additions": 280,
+      "deletions": 0,
+      "changes": 280,
+      "previous_filename": null
+    },
+    {
+      "filename": "crates/ui-core/src/tests.rs",
+      "status": "added",
+      "additions": 241,
+      "deletions": 0,
+      "changes": 241,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/DECISIONS.md",
+      "status": "modified",
+      "additions": 29,
+      "deletions": 0,
+      "changes": 29,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/PROGRESS.md",
+      "status": "modified",
+      "additions": 7,
+      "deletions": 0,
+      "changes": 7,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/PROJECT-STATE.md",
+      "status": "modified",
+      "additions": 94,
+      "deletions": 3,
+      "changes": 97,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/WORK-QUEUE.md",
+      "status": "modified",
+      "additions": 18,
+      "deletions": 0,
+      "changes": 18,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/implementation/GRAPHICS-G0.md",
+      "status": "added",
+      "additions": 60,
+      "deletions": 0,
+      "changes": 60,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/implementation/M6B-OBJECT-STORAGE.md",
+      "status": "modified",
+      "additions": 68,
+      "deletions": 5,
+      "changes": 73,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/progress.json",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 4,
+      "changes": 8,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/graphics-g0-first/failed-rom-run.json",
+      "status": "added",
+      "additions": 68,
+      "deletions": 0,
+      "changes": 68,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/graphics-g0-first/first-native-run.json",
+      "status": "added",
+      "additions": 81,
+      "deletions": 0,
+      "changes": 81,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/graphics-g0-first/rom-lookup-fix.json",
+      "status": "added",
+      "additions": 6,
+      "deletions": 0,
+      "changes": 6,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/graphics-g0-first/source-review.json",
+      "status": "added",
+      "additions": 52,
+      "deletions": 0,
+      "changes": 52,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/README.md",
+      "status": "added",
+      "additions": 34,
+      "deletions": 0,
+      "changes": 34,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/adversarial-markers.json",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/directed-runs.json",
+      "status": "added",
+      "additions": 324,
+      "deletions": 0,
+      "changes": 324,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/final-build-manifest.json",
+      "status": "added",
+      "additions": 97,
+      "deletions": 0,
+      "changes": 97,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/final-smoke.json",
+      "status": "added",
+      "additions": 190,
+      "deletions": 0,
+      "changes": 190,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/host-tests.json",
+      "status": "added",
+      "additions": 16,
+      "deletions": 0,
+      "changes": 16,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/host-tests.stderr.txt",
+      "status": "added",
+      "additions": 5,
+      "deletions": 0,
+      "changes": 5,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/host-tests.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-build.json",
+      "status": "added",
+      "additions": 13,
+      "deletions": 0,
+      "changes": 13,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-build.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-build.stdout.txt",
+      "status": "added",
+      "additions": 24,
+      "deletions": 0,
+      "changes": 24,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-capture.json",
+      "status": "added",
+      "additions": 13,
+      "deletions": 0,
+      "changes": 13,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-capture.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-capture.stdout.txt",
+      "status": "added",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-diff.json",
+      "status": "added",
+      "additions": 11,
+      "deletions": 0,
+      "changes": 11,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-diff.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-diff.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-format.json",
+      "status": "added",
+      "additions": 17,
+      "deletions": 0,
+      "changes": 17,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-format.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-format.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-smoke.json",
+      "status": "added",
+      "additions": 14,
+      "deletions": 0,
+      "changes": 14,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-smoke.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/m6b-errors-final-smoke.stdout.txt",
+      "status": "added",
+      "additions": 34,
+      "deletions": 0,
+      "changes": 34,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/review-report.json",
+      "status": "added",
+      "additions": 80,
+      "deletions": 0,
+      "changes": 80,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/validation.json",
+      "status": "added",
+      "additions": 109,
+      "deletions": 0,
+      "changes": 109,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-errors-review/verification.json",
+      "status": "added",
+      "additions": 307,
+      "deletions": 0,
+      "changes": 307,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors-checkpoint/checkpoint.json",
+      "status": "added",
+      "additions": 19,
+      "deletions": 0,
+      "changes": 19,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors-checkpoint/environment-report.json",
+      "status": "added",
+      "additions": 52,
+      "deletions": 0,
+      "changes": 52,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors-checkpoint/m6b-errors-preliminary-host.json",
+      "status": "added",
+      "additions": 17,
+      "deletions": 0,
+      "changes": 17,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors-checkpoint/m6b-errors-preliminary-host.stderr.txt",
+      "status": "added",
+      "additions": 5,
+      "deletions": 0,
+      "changes": 5,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors-checkpoint/m6b-errors-preliminary-host.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors-checkpoint/m6b-errors-preliminary-preflight.json",
+      "status": "added",
+      "additions": 11,
+      "deletions": 0,
+      "changes": 11,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors-checkpoint/m6b-errors-preliminary-preflight.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors-checkpoint/m6b-errors-preliminary-preflight.stdout.txt",
+      "status": "added",
+      "additions": 76,
+      "deletions": 0,
+      "changes": 76,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors/capture.json",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors/guest-runs.json",
+      "status": "added",
+      "additions": 3128,
+      "deletions": 0,
+      "changes": 3128,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors/m6b-harness-tests.json",
+      "status": "added",
+      "additions": 17,
+      "deletions": 0,
+      "changes": 17,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors/m6b-harness-tests.stderr.txt",
+      "status": "added",
+      "additions": 5,
+      "deletions": 0,
+      "changes": 5,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors/m6b-harness-tests.stdout.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors/m6b-host-tests.json",
+      "status": "added",
+      "additions": 15,
+      "deletions": 0,
+      "changes": 15,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors/m6b-host-tests.stderr.txt",
+      "status": "added",
+      "additions": 6,
+      "deletions": 0,
+      "changes": 6,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors/m6b-host-tests.stdout.txt",
+      "status": "added",
+      "additions": 42,
+      "deletions": 0,
+      "changes": 42,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors/m6b-preflight.json",
+      "status": "added",
+      "additions": 12,
+      "deletions": 0,
+      "changes": 12,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors/m6b-preflight.stderr.txt",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors/m6b-preflight.stdout.txt",
+      "status": "added",
+      "additions": 76,
+      "deletions": 0,
+      "changes": 76,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors/m6b-two-image-check.json",
+      "status": "added",
+      "additions": 14,
+      "deletions": 0,
+      "changes": 14,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-storage-errors/suite.json",
+      "status": "added",
+      "additions": 293,
+      "deletions": 0,
+      "changes": 293,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-timeouts-directed/guest-runs.json",
+      "status": "added",
+      "additions": 830,
+      "deletions": 0,
+      "changes": 830,
+      "previous_filename": null
+    },
+    {
+      "filename": "docs/verification/m6b-timeouts-directed/summary.json",
+      "status": "added",
+      "additions": 22,
+      "deletions": 0,
+      "changes": 22,
+      "previous_filename": null
+    },
+    {
+      "filename": "kernel/Cargo.toml",
+      "status": "modified",
+      "additions": 9,
+      "deletions": 0,
+      "changes": 9,
+      "previous_filename": null
+    },
+    {
+      "filename": "kernel/src/graphics.rs",
+      "status": "added",
+      "additions": 182,
+      "deletions": 0,
+      "changes": 182,
+      "previous_filename": null
+    },
+    {
+      "filename": "kernel/src/m2.rs",
+      "status": "modified",
+      "additions": 10,
+      "deletions": 2,
+      "changes": 12,
+      "previous_filename": null
+    },
+    {
+      "filename": "kernel/src/m2/m3/m6b.rs",
+      "status": "modified",
+      "additions": 373,
+      "deletions": 13,
+      "changes": 386,
+      "previous_filename": null
+    },
+    {
+      "filename": "kernel/src/m2/paging.rs",
+      "status": "modified",
+      "additions": 66,
+      "deletions": 2,
+      "changes": 68,
+      "previous_filename": null
+    },
+    {
+      "filename": "kernel/src/main.rs",
+      "status": "modified",
+      "additions": 16,
+      "deletions": 2,
+      "changes": 18,
+      "previous_filename": null
+    },
+    {
+      "filename": "services/objects/README.md",
+      "status": "modified",
+      "additions": 8,
+      "deletions": 7,
+      "changes": 15,
+      "previous_filename": null
+    },
+    {
+      "filename": "services/objects/src/user_service.rs",
+      "status": "modified",
+      "additions": 29,
+      "deletions": 8,
+      "changes": 37,
+      "previous_filename": null
+    },
+    {
+      "filename": "tests/test_graphics_harness.py",
+      "status": "added",
+      "additions": 49,
+      "deletions": 0,
+      "changes": 49,
+      "previous_filename": null
+    },
+    {
+      "filename": "tests/test_m6b_capture.py",
+      "status": "modified",
+      "additions": 5,
+      "deletions": 0,
+      "changes": 5,
+      "previous_filename": null
+    },
+    {
+      "filename": "tests/test_m6b_disk.py",
+      "status": "modified",
+      "additions": 51,
+      "deletions": 0,
+      "changes": 51,
+      "previous_filename": null
+    },
+    {
+      "filename": "tests/test_m6b_harness.py",
+      "status": "modified",
+      "additions": 32,
+      "deletions": 0,
+      "changes": 32,
+      "previous_filename": null
+    },
+    {
+      "filename": "tools/build.py",
+      "status": "modified",
+      "additions": 13,
+      "deletions": 4,
+      "changes": 17,
+      "previous_filename": null
+    },
+    {
+      "filename": "tools/build_users.py",
+      "status": "modified",
+      "additions": 7,
+      "deletions": 1,
+      "changes": 8,
+      "previous_filename": null
+    },
+    {
+      "filename": "tools/capture_m6b.py",
+      "status": "modified",
+      "additions": 7,
+      "deletions": 5,
+      "changes": 12,
+      "previous_filename": null
+    },
+    {
+      "filename": "tools/m6b_disk.py",
+      "status": "modified",
+      "additions": 10,
+      "deletions": 1,
+      "changes": 11,
+      "previous_filename": null
+    },
+    {
+      "filename": "tools/run_graphics.py",
+      "status": "added",
+      "additions": 233,
+      "deletions": 0,
+      "changes": 233,
+      "previous_filename": null
+    },
+    {
+      "filename": "tools/run_m6b.py",
+      "status": "modified",
+      "additions": 23,
+      "deletions": 5,
+      "changes": 28,
+      "previous_filename": null
+    },
+    {
+      "filename": "tools/test_m6b.py",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 2,
+      "changes": 4,
+      "previous_filename": null
+    },
+    {
+      "filename": "userspace/m6b_probe.rs",
+      "status": "modified",
+      "additions": 33,
+      "deletions": 0,
+      "changes": 33,
+      "previous_filename": null
+    }
+  ]
+}

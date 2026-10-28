@@ -1,0 +1,199 @@
+{
+  "task": "I08 allocator-free quantum request codec",
+  "base_commit": "c39beb91669a3eb79a8604abeca213476e059df1",
+  "started_utc": "2026-10-28T15:59:32.864244+00:00",
+  "passed": true,
+  "new_vm_runs": 0,
+  "native_library_compilation_only": true,
+  "commands": [
+    {
+      "name": "rustc",
+      "command": [
+        "rustc",
+        "--version"
+      ],
+      "returncode": 0,
+      "stdout": "rustc.stdout.txt",
+      "stderr": "rustc.stderr.txt",
+      "stdout_sha256": "3397f54a03033c1b027496d83acc64e8f3ceeb4017e0575150f78726edce8a1a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_sha256": "3397f54a03033c1b027496d83acc64e8f3ceeb4017e0575150f78726edce8a1a",
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "cargo",
+      "command": [
+        "cargo",
+        "--version"
+      ],
+      "returncode": 0,
+      "stdout": "cargo.stdout.txt",
+      "stderr": "cargo.stderr.txt",
+      "stdout_sha256": "5f9bdc5e0a6960db4a3cc66e9b3ae15bad5b9b506e8b7c49739c88dc5355c3f1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_sha256": "5f9bdc5e0a6960db4a3cc66e9b3ae15bad5b9b506e8b7c49739c88dc5355c3f1",
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "host-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "experiments/quantum/job-protocol/Cargo.toml",
+        "--locked",
+        "--offline"
+      ],
+      "returncode": 0,
+      "stdout": "host-tests.stdout.txt",
+      "stderr": "host-tests.stderr.txt",
+      "stdout_sha256": "9cf712195d8dbc5cf5562153d5d2eb02cd771fb342ec68009b3c901254e17e75",
+      "stderr_sha256": "c38767f0b0bfeac9b9182ca629b677d3544b78aa8815c8035d694d77d0b011b8",
+      "raw_stdout_sha256": "980460d504ac6d0e2c73c932d9bdd604e819052741e62e04f14100ed4a3536bd",
+      "raw_stderr_sha256": "c38767f0b0bfeac9b9182ca629b677d3544b78aa8815c8035d694d77d0b011b8"
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "experiments/quantum/job-protocol/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "returncode": 0,
+      "stdout": "fmt.stdout.txt",
+      "stderr": "fmt.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "host-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "experiments/quantum/job-protocol/Cargo.toml",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "returncode": 0,
+      "stdout": "host-clippy.stdout.txt",
+      "stderr": "host-clippy.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "4736476a002ca70836c27b5ca7dbd096ceda6b689674787d92e46085c6cbdf41",
+      "raw_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stderr_sha256": "4736476a002ca70836c27b5ca7dbd096ceda6b689674787d92e46085c6cbdf41"
+    },
+    {
+      "name": "native-build",
+      "command": [
+        "cargo",
+        "build",
+        "--manifest-path",
+        "experiments/quantum/job-protocol/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "returncode": 0,
+      "stdout": "native-build.stdout.txt",
+      "stderr": "native-build.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "7a7bb64a28cdda9b91e6e27f41be455104d929b5d7ad6dd5beca75fc5a47f1f4",
+      "raw_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stderr_sha256": "7a7bb64a28cdda9b91e6e27f41be455104d929b5d7ad6dd5beca75fc5a47f1f4"
+    },
+    {
+      "name": "native-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "experiments/quantum/job-protocol/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "returncode": 0,
+      "stdout": "native-clippy.stdout.txt",
+      "stderr": "native-clippy.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "31f200d0cf00f1a0ac6d630550de6cecf3cfc616f57a9824ef18c7c3dc481293",
+      "raw_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stderr_sha256": "31f200d0cf00f1a0ac6d630550de6cecf3cfc616f57a9824ef18c7c3dc481293"
+    },
+    {
+      "name": "dependency-tree",
+      "command": [
+        "cargo",
+        "tree",
+        "--manifest-path",
+        "experiments/quantum/job-protocol/Cargo.toml",
+        "--locked",
+        "--offline"
+      ],
+      "returncode": 0,
+      "stdout": "dependency-tree.stdout.txt",
+      "stderr": "dependency-tree.stderr.txt",
+      "stdout_sha256": "78c6b3f2fccadf0e8d679fe9dec7ea2b5edce71a6956f9be2d4b7ee6ac7f4593",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_stdout_sha256": "78c6b3f2fccadf0e8d679fe9dec7ea2b5edce71a6956f9be2d4b7ee6ac7f4593",
+      "raw_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "native-undefined-symbols",
+      "command": [
+        "nm",
+        "-u",
+        "/tmp/nieuw-os-par-i08-target/x86_64-unknown-none/release/libqsim_job_protocol.rlib"
+      ],
+      "returncode": 0,
+      "stdout": "native-undefined-symbols.stdout.txt",
+      "stderr": "native-undefined-symbols.stderr.txt",
+      "stdout_sha256": "cc22e46b05e8f45aac1d68c5b02864204acdecc9a56ff46919f88eab4c8b323e",
+      "stderr_sha256": "c21f787338db36ed302f5577d71f11b67d7db215cedf3b7dd0c5d810e0df72bf",
+      "raw_stdout_sha256": "cc22e46b05e8f45aac1d68c5b02864204acdecc9a56ff46919f88eab4c8b323e",
+      "raw_stderr_sha256": "c21f787338db36ed302f5577d71f11b67d7db215cedf3b7dd0c5d810e0df72bf"
+    }
+  ],
+  "environment": {
+    "CARGO_HOME": "/tmp/nieuw-os-par-tools/cargo-home",
+    "CARGO_TARGET_DIR": "/tmp/nieuw-os-par-i08-target",
+    "CARGO_BUILD_JOBS": "2"
+  },
+  "source_sha256": {
+    "experiments/quantum/job-protocol/Cargo.lock": "b3570255012c9c2344b5a36823f7f9681801a8730c36adbf5f1fb13fb38594ff",
+    "experiments/quantum/job-protocol/Cargo.toml": "be7b3b40df15ff92b8a62898a76607cbdd4b5d2fcc3d5c6a1d8bde86097b8718",
+    "experiments/quantum/job-protocol/README.md": "d8748f92c60d2d1d58e8f1061a5b18762328389e167cde5d6a90a8b7078079c6",
+    "experiments/quantum/job-protocol/src/lib.rs": "acaf58349b3fdf636481ea1b7b60497eae667417ee5d0f967be180e70b7fa24c",
+    "experiments/quantum/job-protocol/tests/codec.rs": "54ce6f76833eecce1fc7f255b66ddc44d6305e4ada6f1e4ec0ed83e0315b8271"
+  },
+  "text_log_normalization": "Trailing empty lines omitted from text logs; original UTF-8 byte streams preserved in raw-streams.json.",
+  "source_unchanged": true,
+  "native_library": {
+    "path": "/tmp/nieuw-os-par-i08-target/x86_64-unknown-none/release/libqsim_job_protocol.rlib",
+    "sha256": "1b6677e73ad7ecb57ff9ee37565e888a16306b20953f2f1c304e146838af61f0",
+    "bytes": 76770
+  },
+  "raw_streams_sha256": "946ed9b797bbf1f00dbee13f9ccaf93b58d3bf52135a98c28847d4b4a4832e26",
+  "host_tests": 13,
+  "single_byte_mutation_cases": 6400,
+  "finished_utc": "2026-10-28T15:59:33.539753+00:00"
+}

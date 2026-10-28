@@ -1,0 +1,433 @@
+{
+  "phase": "M6b",
+  "status": "completed",
+  "passed": true,
+  "source_fingerprint_version": 3,
+  "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "host_test_sha256": {
+    "tests/test_m6b_capture.py": "7d1345737ddc5bd9f35bfc9eb55e69366c9399de6eb56bec22875181892b1318",
+    "tests/test_m6b_disk.py": "748ef71dc34c7616dcdc0dd936cad4f1c513bc7472b59f5ba970b68d0f42e6e3",
+    "tests/test_m6b_gate.py": "855e9f6d35f0b9147e2e2ca9fd26265f4985a477e2d8d45b22af896d568a7632",
+    "tests/test_m6b_harness.py": "a1f77645a0ec091fe83c73620183a0382ce6d9b6d7aeefc6d558f2bc36aca9cf"
+  },
+  "started_utc": "2026-10-28T15:36:30.623571+00:00",
+  "results": [
+    {
+      "name": "strict-development-inventory",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/logs/m6b-preflight.stdout.txt",
+      "requirements": [
+        "M6B-TOOLS"
+      ]
+    },
+    {
+      "name": "object-core-and-wire-host-tests",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/logs/m6b-host-tests.stdout.txt",
+      "requirements": [
+        "M6B-REVISIONS",
+        "M6B-TOMBSTONES",
+        "M6B-BOUNDED-RECOVERY"
+      ]
+    },
+    {
+      "name": "external-oracle-and-crash-harness-tests",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/logs/m6b-harness-tests.stdout.txt",
+      "requirements": [
+        "M6B-EVIDENCE",
+        "M6B-IMAGE-BOUNDARY"
+      ]
+    },
+    {
+      "name": "normal-a",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-normal-a-935bc366ad",
+      "requirements": [
+        "M6B-NORMAL",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "normal-a-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-normal-a-cold-recovery-02273e7181",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "normal-b",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-normal-b-f5ceff63dd",
+      "requirements": [
+        "M6B-NORMAL",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "normal-b-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-normal-b-cold-recovery-274b67b144",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "same-binary-two-canary-images",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/logs/m6b-two-image-check.json",
+      "requirements": [
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "errors",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-errors-82e6c8eac5",
+      "requirements": [
+        "M6B-ERRORS",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "errors-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-errors-cold-recovery-7ad69d4570",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "full",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-full-0a4b3b165e",
+      "requirements": [
+        "M6B-FULL",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "full-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-full-cold-recovery-9f510a3d93",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "corrupt",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-corrupt-fe6a43652f",
+      "requirements": [
+        "M6B-CORRUPT",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "vm-cut-before-ack",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-vm-cut-before-ack-917a7c2870",
+      "requirements": [
+        "M6B-VM-CUT-BEFORE-ACK",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "vm-cut-before-ack-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-vm-cut-before-ack-cold-recovery-0ea35d499f",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "vm-cut-after-flush",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-vm-cut-after-flush-f9d54c9288",
+      "requirements": [
+        "M6B-VM-CUT-AFTER-FLUSH",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "vm-cut-after-flush-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-vm-cut-after-flush-cold-recovery-3289659977",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "write-error",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-write-error-350871216d",
+      "requirements": [
+        "M6B-WRITE-ERROR",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "write-error-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-write-error-cold-recovery-e80cf4b7d7",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "flush-error",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-flush-error-5b48436d4b",
+      "requirements": [
+        "M6B-FLUSH-ERROR",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "flush-error-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-flush-error-cold-recovery-c4d6a8e0b4",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "write-timeout",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-write-timeout-e6ce0c429c",
+      "requirements": [
+        "M6B-WRITE-TIMEOUT",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "write-timeout-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-write-timeout-cold-recovery-7ac7271d6d",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "flush-timeout",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-flush-timeout-33133640eb",
+      "requirements": [
+        "M6B-FLUSH-TIMEOUT",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "flush-timeout-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-flush-timeout-cold-recovery-8302ec9c3d",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "reset-timeout",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-reset-timeout-ac23b5dd37",
+      "requirements": [
+        "M6B-RESET-TIMEOUT",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "reset-timeout-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-reset-timeout-cold-recovery-62fdd46d11",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "write-poll-limit",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-write-poll-limit-e3c31c41c9",
+      "requirements": [
+        "M6B-WRITE-POLL-LIMIT",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "write-poll-limit-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-write-poll-limit-cold-recovery-cd11cca25c",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "flush-poll-limit",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-flush-poll-limit-7f6435872a",
+      "requirements": [
+        "M6B-FLUSH-POLL-LIMIT",
+        "M6B-EXTERNAL-DISK-ORACLE"
+      ]
+    },
+    {
+      "name": "flush-poll-limit-cold-recovery",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m6b-flush-poll-limit-cold-recovery-3cad0e74a7",
+      "requirements": [
+        "M6B-COLD-RECOVERY",
+        "M6B-NO-REPLAY",
+        "M6B-EXACT-SAME-IMAGE"
+      ],
+      "recovery_checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "m1-regression-after-m6b",
+      "passed": true,
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b/run/m1-after-m6b-5e76832126",
+      "requirements": [
+        "M1-BOOT"
+      ]
+    }
+  ],
+  "finished_utc": "2026-10-28T15:40:18.074630+00:00"
+}

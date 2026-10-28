@@ -1,0 +1,35 @@
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+warning: methods `rights` and `add_caps` are never used
+  --> /workspace/scratch/debaa3b6a81c/nieuw-os/userspace/m6_runtime.rs:83:12
+   |
+76 | impl Message {
+   | ------------ methods in this implementation
+...
+83 |     pub fn rights(&self, index: usize) -> u64 { crate::wire::get64(&self.bytes, 40 + index * 16) }
+   |            ^^^^^^
+...
+90 |     pub fn add_caps(&mut self, caps: &[u64], rights: u64) {
+   |            ^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: 1 warning emitted
+
+Built own m6b_probe ELF: entry=0x40000000, 3 segments
+   Compiling boot-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/boot-protocol)
+   Compiling r-efi v7.1.0
+   Compiling elf-loader-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/elf-loader-core)
+   Compiling os-loader v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/boot/loader)
+    Finished `release` profile [optimized] target(s) in 0.84s
+   Compiling virtio-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/virtio-core)
+   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)
+   Compiling block-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/services/block)
+   Compiling virtio-blk-driver v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/drivers/virtio-blk)
+   Compiling object-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/services/objects)
+   Compiling boot-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/boot-protocol)
+   Compiling kernel-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/kernel-core)
+   Compiling capability-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/capability-core)
+    Finished `release` profile [optimized] target(s) in 3.05s
+Built and inspected followup-root-normal: 3 ELF load segments

@@ -1,0 +1,13 @@
+test_real_incomplete_prefix_and_unknown_opcodes_fail_closed (test_build_gate.ActualObjdump.test_real_incomplete_prefix_and_unknown_opcodes_fail_closed) ... ok
+test_real_prefixed_extended_state_instructions_are_rejected (test_build_gate.ActualObjdump.test_real_prefixed_extended_state_instructions_are_rejected) ... ok
+test_real_prefixed_hardware_and_foreign_interrupts_are_rejected (test_build_gate.ActualObjdump.test_real_prefixed_hardware_and_foreign_interrupts_are_rejected) ... ok
+test_real_scalar_prefix_chains_and_strings_remain_valid (test_build_gate.ActualObjdump.test_real_scalar_prefix_chains_and_strings_remain_valid) ... ok
+test_extended_context_and_direct_hardware_are_rejected (test_build_gate.ScalarGate.test_extended_context_and_direct_hardware_are_rejected) ... ok
+test_missing_or_unparsed_instructions_fail_closed (test_build_gate.ScalarGate.test_missing_or_unparsed_instructions_fail_closed) ... ok
+test_prefix_tokens_are_not_scalar_opcode_verdicts (test_build_gate.ScalarGate.test_prefix_tokens_are_not_scalar_opcode_verdicts) ... ok
+test_scalar_integer_and_string_instructions_pass (test_build_gate.ScalarGate.test_scalar_integer_and_string_instructions_pass) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.062s
+
+OK

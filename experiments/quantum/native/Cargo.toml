@@ -1,0 +1,28 @@
+[package]
+name = "qsim-native"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+
+[dependencies]
+qsim-core = { path = "../qsim-core" }
+
+[features]
+baremetal = []
+
+[[bin]]
+name = "qsim-native-probe"
+path = "src/probe.rs"
+required-features = ["baremetal"]
+test = false
+bench = false
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+overflow-checks = true
+codegen-units = 1
+lto = false

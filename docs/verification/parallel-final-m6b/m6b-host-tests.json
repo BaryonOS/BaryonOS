@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/tmp/nieuw-os-par-tools/bin/cargo",
+    "+1.90.0",
+    "test",
+    "--locked",
+    "--offline",
+    "-p",
+    "object-core"
+  ],
+  "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+  "started_unix": 1793201790.884156,
+  "duration_s": 0.6792430877685547,
+  "returncode": 0
+}

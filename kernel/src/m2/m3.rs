@@ -15,6 +15,13 @@ use core::{
 use kernel_core::{user, Frames, Kind, Owner, PAGE};
 #[cfg(feature = "milestone-m4")]
 mod m4;
+#[cfg(feature = "native-qsim")]
+mod qsim;
+#[cfg(all(
+    feature = "native-qsim",
+    any(feature = "milestone-m4", feature = "graphics-g0")
+))]
+compile_error!("native-qsim is a separate opt-in M3 profile");
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
 mod m5;
 #[cfg(all(feature = "milestone-m6a", not(feature = "milestone-m6b")))]
@@ -26,8 +33,10 @@ mod m5;
 #[cfg(feature = "milestone-m6c")]
 #[path = "m3/m6c.rs"]
 mod m5;
-#[cfg(not(feature = "milestone-m4"))]
+#[cfg(all(not(feature = "milestone-m4"), not(feature = "native-qsim")))]
 const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
+#[cfg(feature = "native-qsim")]
+const ELF: &[u8] = include_bytes!(env!("NOS_QSIM_ELF"));
 #[cfg(all(feature = "milestone-m4", not(feature = "milestone-m5")))]
 const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
@@ -244,7 +253,9 @@ impl State {
         self.exited = false;
         self.survivor_slot = 1;
         self.unexpected = false;
-        self.amount = if cfg!(feature = "milestone-m5") && (14..=16).contains(&m5_case()) {
+        self.amount = if cfg!(feature = "native-qsim") {
+            2
+        } else if cfg!(feature = "milestone-m5") && (14..=16).contains(&m5_case()) {
             4
         } else if cfg!(feature = "milestone-m4") {
             3
@@ -257,7 +268,7 @@ impl State {
             self.spawn_process(slot);
         }
 
-        let target = if cfg!(feature = "milestone-m5") {
+        let target = if cfg!(feature = "milestone-m5") || cfg!(feature = "native-qsim") {
             0
         } else if mode() == 5 {
             text_start()
@@ -274,6 +285,8 @@ impl State {
         m4::manifest(self);
         #[cfg(feature = "milestone-m5")]
         m5::manifest(self);
+        #[cfg(feature = "native-qsim")]
+        qsim::manifest(self);
     }
     fn spawn_process(&mut self, slot: usize) {
         assert!(self.processes[slot].status == Status::Dead);
@@ -524,7 +537,12 @@ impl State {
                 let p = &mut self.processes[slot];
                 p.status = Status::Running;
                 p.selected += 1;
-                if mode() == 0 && self.round < 2 && !self.fault && !self.exited {
+                if !cfg!(feature = "native-qsim")
+                    && mode() == 0
+                    && self.round < 2
+                    && !self.fault
+                    && !self.exited
+                {
                     assert_eq!(slot, ((self.selections - 1) % 16) as usize);
                 }
                 let c = &mut p.context;
@@ -898,6 +916,10 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
     }
     #[cfg(feature = "milestone-m5")]
     if let Some(next) = m5::poll(state) {
+        return next;
+    }
+    #[cfg(feature = "native-qsim")]
+    if let Some(next) = qsim::poll(state) {
         return next;
     }
     #[cfg(not(feature = "milestone-m4"))]

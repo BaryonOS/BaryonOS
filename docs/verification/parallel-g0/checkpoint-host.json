@@ -1,0 +1,42 @@
+{
+  "base_commit": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+  "scope": "host harness only; native graphics rerun pending",
+  "commands": [
+    {
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_graphics_harness.py",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "returncode": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "76a0d66e8ed1d9ece88c7b50c4e79bcff0794cd6dd2ac27fe6121f3fa0702fd6"
+    },
+    {
+      "command": [
+        "python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_common.py",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+      "returncode": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "0af9691168645478a9df431db41a8a6b249d18017cb258a88d275a2d3bddca7a"
+    }
+  ]
+}

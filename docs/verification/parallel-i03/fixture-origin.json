@@ -1,0 +1,9 @@
+{
+  "purpose": "Parser fixture from the root agent's earlier native run; not an I03 runner execution",
+  "source_sha256": "c447a518bb034d9f76e283b252ffe68a90cc16d6ef8c5f7e15aeff21c09e71ad",
+  "base_commit": "41bac3c173d464a286017d31558335d70899c434",
+  "raw_qemu_exit": 33,
+  "profile": "development-package; pc-q35-7.2/qemu64/TCG/1CPU/256MiB",
+  "serial_sha256": "b5474105c231f9440d5bf546add814d822d05d2036e34a07bb4822da9585245f",
+  "source_run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-qsim/run/native-qsim-directed-1b55f345b4"
+}

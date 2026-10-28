@@ -1,7 +1,202 @@
 # Actuele projectstatus
 
-De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
+## Actuele vervolgacceptatie — 28 oktober 2026
 
+**Zes extra echte VM-runs slagen op `dbd35b04d742b18d66b40fdd65d8a9b900656cac`**,
+bronfingerprint v3 `c5f3d9316433ba09ba4b886985ffa8b28643d67c72a9ebb0e2b0136362dc7a9f`.
+G0 draait met vijf echte invoerbeelden en nieuwe atomische capture; SDK/M6c
+en M6b bewaren en lezen terug in elk twee afzonderlijke VM's; de qsim-proef
+draait in twee geïsoleerde gebruikersprocessen. Alle zes ruwe exits zijn 33.
+Eigen builds, targets, volumes, QMP-pipes en logs voorkomen gedeelde output.
+De [onafhankelijke gecombineerde controle](verification/parallel-followup-integration/README.md)
+herhasht 216 unieke bestanden en bevestigt alle zes bron- en artifactketens.
+
+- [G0: bron, opdrachten, vijf echte beelden en capture](verification/parallel-followup-g0/README.md).
+- [SDK/catalogus: normale opslag en koude herstart](verification/parallel-followup-sdk-m6c/README.md).
+- [Quantum: actuele strict run en vergelijking van werkelijke binaries](verification/parallel-followup-qsim/README.md).
+- [M6b en gerichte hostgrenzen](verification/parallel-followup-root/README.md).
+
+Op `f52ef0a6` zijn de G07-documentsessie, I08-jobcodec en B07-capture al
+gepubliceerd. De documentsessie bewaart geladen revisie en lokaal concept bij
+CAS-conflicten of onzekere opslag. Deze appbibliotheek staat buiten de kernel.
+De 39 SDK-hosttests en native librarybuilds slagen; I10 vond geen blocker
+binnen haar reviewscope. De canonieke 256-byte jobcodec heeft 13 tests en een
+gerichte onafhankelijke review; dispatch en gebruikersjobs blijven open.
+
+G09 vond een dynamische outputlijst in de capture. B09 gebruikt een vaste
+lijst vóór indexering én vóór publicatie. De negatieve test faalde op de oude
+bron en slaagt na reparatie; onafhankelijke herhaling en alle 34 grafische
+hosttestmethoden slagen. De verse B08-VM gebruikt de gerepareerde capture;
+alle originele inputs en lossless PNG's zijn opnieuw gecontroleerd.
+[Documentreview](verification/parallel-i10/README.md),
+[capturereparatie](verification/parallel-b09/README.md),
+[hercontrole](verification/parallel-g09/README.md).
+
+De [gerichte PR14-behoudcontrole](verification/parallel-b10/README.md)
+bevestigt dat de zeven eerdere reviewvragen in de integratiebron zijn opgelost
+en dat alle bestaande bestandspaden behouden zijn. De volledige bomen zijn
+vergeleken omdat de GitHub-compare slechts een deel van de paden retourneerde.
+
+De acht concrete CodeRabbit-bevindingen zijn afgehandeld met bron-/bewijslinks;
+de actuele vervolgbeoordeling en PR-status staan op GitHub. De eerdere
+volledige acceptatie van 80 VM's hieronder behoudt haar oorspronkelijke bron.
+Bestaande kernel-, dienst- en probebron bleef tijdens deze vervolgstap gelijk.
+De nieuwe qsim-kernel en app zijn byte-identiek; twaalf gewijzigde loaderbytes
+zijn verklaard als PE-tijdstempels/buildidentifier, met originele artifacts.
+
+G11 bouwt nu de documentsessie in de bestaande headless gebruikersproef om
+ook openen, bewerken, bewaren en heropenen via deze bibliotheek native te
+controleren. Die uitvoering is nog niet geaccepteerd. G1/Materiaal blijft bij
+de bestaande eigenaar; publicatie van diens broncheckpoint is de kleinste
+integratieafhankelijkheid. Geen grafische documentflow of algemene appstarter
+wordt uit de huidige proeven afgeleid. Roadmap: **14% → 14%**.
+
+## Gecombineerde native acceptatie — 28 oktober 2026
+
+Uitvoeringsbron `3e41bbf93822f7044c6020259f4a752925e1966d`, branch
+`codex/parallel-native-foundation-20261028`, PR#15 boven de behouden PR#14.
+Lokale/GitHub-commit identiek vóór gates; bronfingerprint v3
+`307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60` bleef gelijk.
+Alle vier werkelijke agentplaatsen zijn benut en hergebruikt met eigen
+worktrees/builds/targets/VMs/logs. G1 en de andere M6a-opdracht blijven bij hun
+bestaande eigenaars.
+
+**80 geaccepteerde native VM-runs:** M6b32 groepen/28 VM, SDK/M6c35/31,
+M3-regressie22/19, native quantum1 en bevestigde G0-pipe1. Volledige M6b- en
+M6c-captures slagen. Beide normale SDK-catalogusruns bewaren sequence10 en
+lezen na een nieuwe koude VM dezelfde bytes terug zonder writes. Twee quantum-
+userprocessen voeren bestaande referentieberekeningen uit, met64 KiB-arena's,
+4 timerIRQs/505 syscalls en96 werkelijk vrijgemaakte frames. G0 verwerkt echte
+invoer met per-toetsbeelden en exact backspaceherstel. Geen nieuwe syscall,
+capabilityverruiming, on-diskformaat of externecrate.
+
+De gecombineerde artifactcontrole bevestigt80 unieke VMs en616 directe
+hashvergelijkingen. De oorspronkelijke G0-run is uitgesloten wegens een
+later afwijkend bewaard serialartifact; oorzaak onbekend, niets hersteld.
+De verse private pipe-run en alle 15artifacts zijn herhaaldelijk gecontroleerd.
+Een aparte UNIX-socketprobe faalde op sandbox-EPERM; de bruikbare pipe-route
+is de native geverifieerde variant. Oude fouten en ruwe resultaten blijven
+behouden. Alle bron-/bewijs-/reproduceerdetails staan in
+[PARALLEL-NATIVE-ACCEPTANCE.md](verification/PARALLEL-NATIVE-ACCEPTANCE.md).
+
+Concrete CodeRabbit- en gerichte AI-bevindingen zijn verwerkt voor QMP-
+deadlines/ID's, screenshots, ROMpin, WRITE-timeout-oracle, standalone preflight
+en prefixed FPU-instructies. De nieuwe PR#15-review op3e41 is aangevraagd;
+definitieve review/mergestatus wordt op GitHub bijgehouden. Geen veiligheids-
+of fysieke hardwareclaim door de AI-review. QEMU 7.2.22/pc-q35-7.2 is expliciet
+vastgelegd en verschilt van het historische10.0-referentieprofiel.
+
+Voortgang **14% → 14%**; vaste criteria/gewichten behouden. A01 algemene appstart,
+U03 native Materiaal, S04/S05 bruikbare documentgrootte/ruimtehergebruik en L02
+externe native quantumjobs blijven open. De catalogusclient+SDK bestaan nu;
+G07 levert een documentsessie, I08 een jobcodec en B07 een strikte G0-capture.
+Deze geïntegreerde bouwblokken zijn nog geen volledige productfunctie.
+Zie `WORK-QUEUE.md` voor de kleine actuele taakverdeling en blokkades.
+
+### Directe nieuwe native bewijslinks
+
+- G0: [commando, raw33 en alle controles](verification/parallel-final-g0-confirmed/pipe/result.json), [ruwe serial](verification/parallel-final-g0-confirmed/pipe/serial.txt).
+- SDK/catalogus: [opdrachten en exitstatussen](verification/parallel-final-sdk-m6c/driver.json), [alle31 ruwe VM-records](verification/parallel-final-sdk-m6c/guest-runs.json).
+- Quantum: [opdrachten en bronbinding](verification/parallel-final-qsim/i05-run-checks.json), [native raw33-resultaat](verification/parallel-final-qsim/result.json), [ruwe serial](verification/parallel-final-qsim/serial.txt).
+
+Alle drie nieuwe bundels registreren werkelijk QEMU7.2.22/pc-q35-7.2.
+Historische M6c-consolelogs van andere QEMU-profielen zijn hiervoor niet gebruikt.
+
+## Historische faseverslagen
+
+De verslagen hieronder bewaren hun toenmalige bron- en bewijsgrenzen.
+
+## Doorbouw — opslagtimeouts en native grafische basis
+
+Integratiecheckpoint: `main` op `391f02e` (M6C/D, PR #13) is via normale merge
+opgenomen. Alle catalogus-/M6d-features, `archive_destination` met direct-child-
+grens en Windows `wait(timeout=10)` blijven behouden. De andere chat beheert
+haar afzonderlijke M6a-observerbranch; die bron is hier niet overschreven.
+Oude captures houden hun oorspronkelijke bronbinding. Gecombineerde eindgates
+zijn op dit checkpoint nog niet uitgevoerd. Voortgangsmeter: **14% → 14%**;
+de lopende G0- en timeoutstappen sluiten geen nieuw volledig criterium.
+
+28 oktober 2026, vanaf `7b4945f` op `codex/m6b-storage-errors`. De OS-bouw loopt
+door; het vorige checkpoint is geen voltooid OS. K08 voegt kerneldeadlines,
+resetquarantaine en lokaal afgebroken polls toe. De dienst sluit bij eigen
+polluitputting zijn enige blokcapability via de bestaande ABI; de kernel kan
+zo echte autoriteitsbeëindiging waarnemen en pending DMA veilig annuleren.
+Vijf gerichte echte VM-proeven op bron `9c0c434` slagen met raw-exit 33:
+WRITE-/FLUSH-deadline, gemaskeerde resetack/quarantaine en lokaal uitgeputte
+WRITE-/FLUSH-polls. De cancelproeven sluiten de blokcap vóór de kerneldeadline;
+de resetproef houdt de pool vast. Het harnas heeft 33 geslaagde hosttests.
+Afzonderlijk bewijs: `verification/m6b-timeouts-directed/`. De uitgebreide
+volledige 32-groepen-/28-VM-poort volgt na de native grafische bronfreeze.
+
+G09 bouwt parallel een opt-in native grafische basis volgens ADR-033 en
+`implementation/GRAPHICS-G0.md`: eigen framebufferuitvoer en PS/2-invoer,
+geen browser, volledige desktop of opslagadapter. De pure `ui-core` is aanwezig
+met tien geslaagde hosttests; de native GOP-/kernelintegratie staat klaar voor
+de eerste hardwareproef. Elf bootprotocoltests, drie grafische harnastests,
+fmt/Clippy/no_std slagen. Standaard BootInfo 1.1 blijft behouden. Deze
+De eerste native G0-run op `f2c4055` slaagt: raw 33, eigen post-EBS/M2-uitvoer,
+800×600-framebuffer, echte QMP-toetsen a/b/backspace/c en aantoonbaar alleen
+gewijzigde pixels in de invoerregel. Backspace herstelt exact het eerdere beeld.
+Dit bewijst RAM-invoer en grafische bootstrap, geen compositor of opslagUI.
+Het harnas wordt nog aangescherpt met exacte marker-/geometriecontrole;
+nieuwe gecombineerde eindgates volgen. Bewijs: `verification/graphics-g0-first/`.
+De eerste G0-start faalde vóór kernelboot door een
+ontbrekende VGA-ROM-lookup. De reeds geïnstalleerde officiële SeaBIOS-ROM is nu
+uitsluitend in de projectlokale QEMU-datamap gelinkt; de mislukte run blijft
+failed bewaard.
+
+## Hervatting — native M6b-opslagfouten, 28 oktober 2026
+
+Basis `1f24f994bff1b2c7cb0a026b600c5c4948140cfe`, branch
+`codex/m6b-storage-errors`. De lokale checkout liep achter op GitHub; na fetch
+is deze actuele M6b-basis gekozen. De voorlopige, dubbele M6a-planstap op
+`codex/m6a-write-flush-core` is niet geïntegreerd en is geen vervolg op M6b.
+
+Afgeronde stap op uitvoeringsbron `592dccfb329c05107866b18f7187e8b340ccab98`:
+de observerpanic bij een terminale WRITE-/FLUSH-fout is gerepareerd. De observer
+volgt de echte brokerfout naar de ring-3-dienst, verwacht een canoniek Unknown-
+antwoord en bevestigt/commit de mutatie niet. Latere GET/PUT/DELETE en dezelfde
+PUT opnieuw geven Unknown zonder nieuwe I/O; verkeerde domeintoegang blijft
+Access. Geen nieuwe rechten, syscall, dependency, unsafe of schijfformaat.
+De foutinjectie
+vervangt uitsluitend een lokale statussnapshot ná echte devicecompletion;
+geen claim van een fysieke schijffout of stroomuitval. Eisen en markers staan
+in `implementation/M6B-OBJECT-STORAGE.md`.
+
+`python3 -B -u tools/test_m6b.py` en
+`python3 -B tools/capture_m6b.py --destination docs/verification/m6b-storage-errors`
+slagen (exit 0): **22 groepen / 18 echte VM-runs**. Daarin zitten beide nieuwe
+foutcases met negen werkelijk ontvangen Unknown-replies, nul mutatie-ACKs,
+blijvend sequence 0 in de levende dienst en precies één werkelijk geschreven
+record op schijf. Beide koude vervolgruns herstellen sequence 1 zonder writes.
+De overige CRUD-/domein-/full-/corrupt-/kill-/recoverycases en M1-regressiestart
+slagen eveneens. Hostlaag: 22 Rust-objecttests en 31 harnastests. De gate telt
+acht koude recoveries en twee echte externe QEMU-kills.
+
+Vooraf slagen twee gerichte foutVMs; zij worden niet bij de gate opgeteld.
+Targeted rustfmt/diffcontrole slagen. Onafhankelijke AI-bronreview heeft geen
+blockers; extra negatieve markerproeven slagen. Checkpoint:
+`verification/m6b-storage-errors-checkpoint/`. Volledige ruwe gate/capture:
+`verification/m6b-storage-errors/`. Exacte aanvullende commando's, review,
+hashaudit en normale eindstart: `verification/m6b-errors-review/`.
+De verifier controleerde alle 18 gastrecords, 157 artifacthashes, 36 ruwe
+serial-/stderrbestanden en acht koude herstelkoppelingen; geen blockers.
+De normale `milestone-m6b`-build en een extra smoke-start slagen (exit 0/raw 33);
+kernel en loader zijn bytegelijk aan de normale eindgate. Dit is AI-verificatie,
+geen menselijke audit. Concept-PR: [#14](https://github.com/simonvanieperen/nieuw-os/pull/14).
+
+Ontwikkelomgeving: projectlokale Rust 1.90.0, QEMU 10.0.13 en OVMF
+2025.02-8+deb13u1 uit officiële Debian-pakketten; geen systeembrede installatie.
+Dit is een andere ontwikkelvariant dan het historische Linuxbewijs hieronder.
+
+Grenzen: geen nieuwe volledige M1–M6a-regressiesuite, browser-/NAS-/quantumproef
+of fysieke-hardwaretest. Echte backend-IOERR, gedeeltelijke write, timeout,
+reset-timeout en uitputting van de eigen poll-LIMIT van de dienst zijn niet
+nieuw native geïnjecteerd. Die laatste lokale timeout kan nog van de verwachte
+observerstatus afwijken als geen terminale brokerfout is teruggegeven. De
+snapshotproeven sluiten dat afzonderlijke randgeval niet. Volgende opslagstap:
+deze fout-/timeoutgrenzen, daarna ruimtehergebruik en de verdere productadapter;
+native netwerk/desktop en updateketen blijven afzonderlijke bouwtaken.
 ## Reviewgrenzen en historische auditbron — 28 oktober 2026
 
 Basis `322c553f58f11843aab7cf895bcba05564a9c7ac`, branch
@@ -425,10 +620,10 @@ hostbewijs staat in `verification/m6b-review/review-followup-2/` en is geen
 nieuwe native gate of herhaling van de eerdere 40 tests.
 Geen nieuwe native gate uitgevoerd; de M3-hosttestcheckout en de redirectinstelling
 van de oude buitenste capturewrapper blijven expliciet onbekend.
-Bekende native observerbeperking: WRITE-/FLUSH-fouten kunnen, ook in
+Historische native observerbeperking op deze eerdere bron: WRITE-/FLUSH-fouten konden, ook in
 `milestone-m6b`, een kernel panic veroorzaken voordat de client `Unknown` krijgt.
-Dit is niet gerepareerd of end-to-end native bewezen; contract en acceptatie
-beschrijven de begrensde onderzoeksafbakening en benodigde latere foutinjectie.
+Deze oude gates leveren daarvoor geen native foutbewijs. De reparatie en nieuwe
+afgebakende injectieproeven op `592dccf` staan in de bovenste hervattingssectie.
 
 Deze begrensde lokale opslagproef heeft geen namen, directoryboom, garbage
 collection of encryptie. Verwijderrecords voorkomen het terugkomen van oude

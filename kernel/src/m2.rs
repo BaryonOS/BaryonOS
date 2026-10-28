@@ -3,7 +3,7 @@
 mod arch;
 #[cfg(feature = "milestone-m3")]
 mod m3;
-mod paging;
+pub(crate) mod paging;
 use crate::serial;
 use boot_protocol::{BootInfo, MemoryMap, MAP_LIMIT};
 use core::{arch::asm, mem::MaybeUninit, ptr};
@@ -69,6 +69,10 @@ extern "C" fn run() -> ! {
             &mut *ptr::addr_of_mut!(FRAMES),
         )
     };
+    #[cfg(feature = "graphics-g0")]
+    boot_protocol::graphics::validate_graphics_memory_map(info, map_bytes)
+        .expect("copied graphics map");
+    #[cfg(not(feature = "graphics-g0"))]
     boot_protocol::validate_memory_map(info, map_bytes).expect("copied map");
     let map = MemoryMap::new(map_bytes, info.descriptor_size, info.descriptor_version).unwrap();
     let retained = info.retained_ranges().unwrap().map(|r| Range {
@@ -119,6 +123,8 @@ extern "C" fn run() -> ! {
     }
     #[cfg(feature = "milestone-m3")]
     paging.map(frames, paging::SCRATCH, nx_probe(), true, false);
+    #[cfg(feature = "graphics-g0")]
+    crate::graphics::map(&mut paging, frames, &map);
     paging.map_tables(frames);
     arch::protection();
     arch::activate(paging.root);
@@ -166,12 +172,14 @@ extern "C" fn run() -> ! {
     if cfg!(feature = "test-m2-double-fault") {
         arch::double_fault_probe();
     }
+    #[cfg(feature = "graphics-g0")]
+    crate::graphics::run();
     #[cfg(feature = "milestone-m3")]
     {
         serial::write(b"M2:PASS\n");
         m3::start(frames, paging);
     }
-    #[cfg(not(feature = "milestone-m3"))]
+    #[cfg(all(not(feature = "milestone-m3"), not(feature = "graphics-g0")))]
     {
         serial::write(b"M2:PASS\nM1:PASS\n");
         serial::exit(0x10)

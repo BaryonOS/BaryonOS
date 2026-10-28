@@ -1,0 +1,58 @@
+{
+  "suite": "qsim",
+  "expected_head": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "expected_source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "started_utc": "2026-10-28T15:36:48.482492+00:00",
+  "before": {
+    "head": "3e41bbf93822f7044c6020259f4a752925e1966d",
+    "source_fingerprint_version": 3,
+    "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60"
+  },
+  "env": {
+    "NOS_BUILD_DIR": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-qsim",
+    "NOS_TARGET_DIR": "/tmp/nieuw-os-par-final-qsim-target",
+    "CARGO_TARGET_DIR": "/tmp/nieuw-os-par-final-qsim-target",
+    "CARGO_HOME": "/tmp/nieuw-os-par-tools/cargo-home",
+    "CARGO_BUILD_JOBS": "2",
+    "NOS_QEMU_MACHINE": "pc-q35-7.2",
+    "NOS_SDK_RUNTIME": "0",
+    "OS_OVMF_CODE": "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "OS_OVMF_VARS": "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_VARS_4M.fd"
+  },
+  "commands": [
+    {
+      "label": "build",
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-qsim"
+      ],
+      "returncode": 0,
+      "duration_s": 3.5442982250024215,
+      "stdout": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-qsim/build.stdout.txt",
+      "stderr": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-qsim/build.stderr.txt"
+    },
+    {
+      "label": "accept",
+      "command": [
+        "python3",
+        "-B",
+        "tools/run_qsim.py"
+      ],
+      "returncode": 0,
+      "duration_s": 6.819015754997963,
+      "stdout": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-qsim/accept.stdout.txt",
+      "stderr": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-qsim/accept.stderr.txt"
+    }
+  ],
+  "passed": true,
+  "after": {
+    "head": "3e41bbf93822f7044c6020259f4a752925e1966d",
+    "source_fingerprint_version": 3,
+    "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60"
+  },
+  "finished_utc": "2026-10-28T15:36:58.889238+00:00",
+  "source_and_head_unchanged": true
+}

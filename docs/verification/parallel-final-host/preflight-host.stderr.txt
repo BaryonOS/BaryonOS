@@ -1,0 +1,19 @@
+test_empty_nonarchive_and_truncated_rlibs_are_rejected (test_preflight.RequiredToolProbes.test_empty_nonarchive_and_truncated_rlibs_are_rejected) ... ok
+test_every_required_target_query_failure_fails_strict (test_preflight.RequiredToolProbes.test_every_required_target_query_failure_fails_strict) ... ok
+test_manager_query_is_pinned_and_never_substitutes_for_target_files (test_preflight.RequiredToolProbes.test_manager_query_is_pinned_and_never_substitutes_for_target_files) ... ok
+test_missing_or_failed_optional_manager_does_not_hide_its_status (test_preflight.RequiredToolProbes.test_missing_or_failed_optional_manager_does_not_hide_its_status) ... ok
+test_missing_or_failed_probe_fails_strict_inventory (test_preflight.RequiredToolProbes.test_missing_or_failed_probe_fails_strict_inventory) ... ok
+test_missing_target_directory_or_any_required_library_fails_strict (test_preflight.RequiredToolProbes.test_missing_target_directory_or_any_required_library_fails_strict) ... ok
+test_non_strict_inventory_reports_crash_without_failing (test_preflight.RequiredToolProbes.test_non_strict_inventory_reports_crash_without_failing) ... ok
+test_non_strict_inventory_reports_probe_exceptions_without_failing (test_preflight.RequiredToolProbes.test_non_strict_inventory_reports_probe_exceptions_without_failing) ... ok
+test_probe_exceptions_fail_strict_inventory (test_preflight.RequiredToolProbes.test_probe_exceptions_fail_strict_inventory) ... ok
+test_rustc_and_cargo_version_probes_select_the_pinned_toolchain (test_preflight.RequiredToolProbes.test_rustc_and_cargo_version_probes_select_the_pinned_toolchain) ... ok
+test_standalone_compiler_without_rustup_requires_real_target_archives (test_preflight.RequiredToolProbes.test_standalone_compiler_without_rustup_requires_real_target_archives) ... ok
+test_wrong_selected_compiler_version_is_rejected (test_preflight.RequiredToolProbes.test_wrong_selected_compiler_version_is_rejected) ... ok
+test_wrong_target_directory_and_symlinks_outside_sysroot_are_rejected (test_preflight.RequiredToolProbes.test_wrong_target_directory_and_symlinks_outside_sysroot_are_rejected) ... ok
+test_zero_and_default_zero_probe_exit_succeed (test_preflight.RequiredToolProbes.test_zero_and_default_zero_probe_exit_succeed) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.143s
+
+OK

@@ -1,0 +1,24 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_graphics*.py",
+    "-v"
+  ],
+  "exit_status": 0,
+  "scope": "Synthetic host fixtures; no native VM",
+  "base_commit": "764cc9f84291ed3ad7b0ea3de65debcbf1cc7da6",
+  "utc": "2026-10-28T16:15:09.854054+00:00",
+  "source_fingerprint_version": 3,
+  "source_sha256": "915f6d3752ffedf1e2164a7a23666093fc811a436c7e859fd11de5af1e70b4f9",
+  "files": {
+    "tools/capture_graphics.py": "6585a357d58f6957616669c4923bd8db377de230d5ccafd08db42506f71f5c43",
+    "tests/test_graphics_capture.py": "f54e667e4f0ebaa32efb6586f7d166e2749f163ebf86ba5caaa4879152d9f490"
+  }
+}

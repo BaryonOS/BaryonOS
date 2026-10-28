@@ -1,0 +1,12 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "tools/preflight.py",
+    "--strict"
+  ],
+  "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+  "started_unix": 1793201790.623802,
+  "duration_s": 0.2600071430206299,
+  "returncode": 0
+}

@@ -1,0 +1,20 @@
+
+running 15 tests
+test arbitrary_external_lengths_never_create_out_of_bounds_slices ... ok
+test constructors_never_truncate_oversize_values_or_names ... ok
+test get_reply_contains_canonical_name_and_value_including_empty_content ... ok
+test list_rejects_foreign_ids_unsorted_duplicate_or_forged_revisions ... ok
+test list_empty_zero_generation_and_deleted_generation_are_valid ... ok
+test list_roundtrip_preserves_sorted_metadata_and_no_contents ... ok
+test malformed_catalog_constructor_fails_closed_without_panicking ... ok
+test error_replies_scrub_all_data_and_only_authorized_notfound_keeps_revision ... ok
+test mutation_acks_have_no_data_and_are_bound_to_next_revision ... ok
+test list_rejects_bad_count_lengths_names_and_all_padding ... ok
+test operation_specific_fields_reject_impossible_requests ... ok
+test request_identity_epoch_version_and_every_padding_byte_are_checked ... ok
+test names_validate_bytes_utf8_controls_bidi_and_path_punctuation ... ok
+test replies_bind_request_epoch_operation_object_and_status ... ok
+test all_five_valid_requests_are_accepted_only_in_their_endpoint_domain ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

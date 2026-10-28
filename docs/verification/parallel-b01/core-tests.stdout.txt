@@ -1,0 +1,20 @@
+
+running 15 tests
+test duplicate_labels_and_byte_distinct_unicode_keep_id_identity ... ok
+test catalog_sorted_filtered_and_tombstone_revision_is_local ... ok
+test empty_catalog_has_no_global_activity_or_invalid_domain ... ok
+test prepared_commit_is_bound_to_complete_prior_state ... ok
+test recovery_checks_rename_predecessor_and_content_despite_valid_checksum ... ok
+test recovery_requires_complete_contiguous_scan_and_stays_failed ... ok
+test full_preserves_latest_name_and_content_without_wrap ... ok
+test recovery_rejects_revision_jump_and_invalid_utf8_with_new_checksum ... ok
+test rename_is_atomic_preserves_all_content_and_has_no_early_commit ... ok
+test stale_mutation_cannot_resurrect_deleted_object ... ok
+test valid_legacy_v1_record_is_rejected_without_modifying_it ... ok
+test state_rejects_bad_operation_id_bounds_name_and_rename_value ... ok
+test mixed_lifecycle_roundtrips_all_records_and_deleted_metadata_is_cleared ... ok
+test zero_length_content_is_a_live_named_object ... ok
+test recovery_rejects_all_single_byte_damage_and_noncanonical_rehashed_fields ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,11 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "docs/verification/parallel-b10/verify_review.py"
+  ],
+  "exit_status": 0,
+  "utc": "2026-10-28T16:30:24.728317+00:00",
+  "scope": "Read-only source/evidence/tree comparison; not a new test suite",
+  "observer_setup_note": "Initial observer used a required case key; the ordinary M1 record has no case. Corrected selection to skip records without the three requested timeout case names."
+}

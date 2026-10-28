@@ -1,0 +1,10 @@
+
+running 6 tests
+test accounting_drift_and_cleanup_leak_cannot_report_success ... ok
+test faults_exit_unexpected_and_deadlines_fail_closed ... ok
+test pending_peer_and_absent_timer_never_accept ... ok
+test successful_pair_checks_reports_audits_and_frees_both_processes ... ok
+test initial_stale_results_shared_roots_and_invalid_counts_are_rejected ... ok
+test every_report_boundary_rejects_a_false_success_for_either_process ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

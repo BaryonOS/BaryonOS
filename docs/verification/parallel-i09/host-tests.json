@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "tests/test_preflight.py"
+  ],
+  "returncode": 0,
+  "raw": {
+    "stdout_utf8": "",
+    "stderr_utf8": ".....................\n----------------------------------------------------------------------\nRan 21 tests in 0.137s\n\nOK\n",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "76b5058eaab181fc1da938a3144f552576732971e9c8e3cf4e9134e94812d194"
+  }
+}

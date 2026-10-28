@@ -1,0 +1,19 @@
+
+running 14 tests
+test empty_and_maximum_documents_are_not_truncated ... ok
+test catalog_open_edit_save_rename_delete_and_recover_use_existing_core ... ok
+test invalid_configuration_and_requests_never_start_transport ... ok
+test full_core_journal_reports_full_without_changing_the_last_value ... ok
+test every_truncated_envelope_and_oversized_envelope_is_rejected_without_panicking ... ok
+test only_one_request_is_pending_and_duplicate_or_unsolicited_replies_are_not_accepted ... ok
+test invalid_catalog_is_never_an_empty_or_cross_domain_result ... ok
+test timeout_and_transport_error_preserve_mutation_uncertainty_and_reject_late_ack ... ok
+test ordinary_rejections_allow_an_explicit_fresh_request_with_a_new_id ... ok
+test envelope_sender_tag_size_caps_and_all_padding_are_bound ... ok
+test outgoing_envelope_is_bounded_and_contains_no_authority ... ok
+test unknown_and_terminal_service_errors_close_without_replay ... ok
+test wire_version_request_id_epoch_object_operation_status_and_payload_are_bound ... ok
+test wrong_ack_revision_cannot_turn_a_save_into_success ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

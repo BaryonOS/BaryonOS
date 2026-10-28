@@ -81,6 +81,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Doorbouwcheckpoint 28 oktober 2026: integratie van main `391f02e`, vijf gerichte
+M6b-timeout/cancelproeven en opt-in G0-bron veranderen de score niet:
+**14% → 14%**. G0 is geen compositor/sessie en voldoet niet aan U01 of de fysieke
+hardware-/audiogates H02/H03. De nieuwe gecombineerde native eindcontroles zijn
+op dit checkpoint nog open. Criteria, gewichten en eerder geaccepteerd bewijs
+zijn ongewijzigd; geen historische capture is naar nieuwe bron omgelabeld.
+
 De hoofdagent doet dit bij ieder afgerond werkpakket en bij een tussentijds
 checkpoint vóór lange controles:
 

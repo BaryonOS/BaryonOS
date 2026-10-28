@@ -31,6 +31,38 @@ class NativeHarness(unittest.TestCase):
         self.assertEqual(rc,crash['termination_code_expected'])
         self.assertFalse(timed)
 
+    def test_timeout_cancellation_and_quarantine_require_their_actual_path(self):
+        cases = ('write-timeout', 'flush-timeout', 'reset-timeout', 'write-poll-limit', 'flush-poll-limit')
+        for case in cases:
+            markers = case_markers(case)
+            output = '\n'.join(markers)+'\n'
+            self.assertTrue(normal_success(33, output, False, case))
+            for marker in markers:
+                self.assertFalse(normal_success(33, output.replace(marker+'\n', ''), False, case))
+                self.assertFalse(normal_success(33, output+marker+'\n', False, case))
+            for other in cases:
+                if other != case:
+                    self.assertFalse(normal_success(33, output, False, other))
+            for extra in ('M6B:RESET:ACKNOWLEDGED', 'M6B:RESET:QUARANTINED',
+                          'M6B:DEADLINE:WRITE_TIMEOUT', 'M6B:CANCEL:BLOCK_CAP_CLOSED'):
+                self.assertFalse(normal_success(33, output+extra+'\n', False, case))
+
+    def test_uncertain_mutations_require_unique_injection_and_unknown_proof(self):
+        for case, operation in (('write-error', 'WRITE'), ('flush-error', 'FLUSH')):
+            output = '\n'.join(case_markers(case))+'\n'
+            self.assertTrue(normal_success(33, output, False, case))
+            for marker in (f'M6B:INJECT:{operation}_IOERR_SNAPSHOT', 'M6B:OUTCOME:UNKNOWN',
+                           'M6B:NO_REPLAY:PASS', 'M6B:NO_STALE_READ:PASS'):
+                self.assertFalse(normal_success(33, output.replace(marker+'\n', ''), False, case))
+                self.assertFalse(normal_success(33, output+marker+'\n', False, case))
+            self.assertFalse(normal_success(33, output.replace('OUTCOME:UNKNOWN','OUTCOME:OK'), False, case))
+            self.assertFalse(normal_success(33, output.replace(operation+'_IOERR', 'READ_IOERR'), False, case))
+            self.assertFalse(normal_success(35, output, False, case))
+            self.assertFalse(normal_success(33, output, True, case))
+            for ordinary in ('normal', 'recover', 'errors', 'full', 'corrupt'):
+                good = '\n'.join(case_markers(ordinary))+'\n'
+                self.assertFalse(normal_success(33, good+'M6B:OUTCOME:UNKNOWN\n', False, ordinary))
+
     def test_self_exit_after_marker_never_counts_as_external_crash(self):
         output='\n'.join(BOOT+('M6B:CUT:1',))+'\n'
         rc,out,err,timed,crash=self.child(output,status=33,cut=1)

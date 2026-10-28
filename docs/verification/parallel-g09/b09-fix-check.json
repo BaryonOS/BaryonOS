@@ -1,0 +1,41 @@
+{
+  "reviewed_fix_commit": "030790820688f366abe5ad10c608f83655b0d81f",
+  "parent": "764cc9f84291ed3ad7b0ea3de65debcbf1cc7da6",
+  "files_sha256": {
+    "tools/capture_graphics.py": "6585a357d58f6957616669c4923bd8db377de230d5ccafd08db42506f71f5c43",
+    "tools/common.py": "b1ce783b0e23671efde020ab7d3b4f7ceae266c45ddfa4ead2724c812b9720b1",
+    "tools/run_graphics.py": "fd406d0aebb03b04266793cd9d46cb673c691f4fd6a8659bf85405b58ac3e7bd",
+    "tests/test_graphics_capture.py": "f54e667e4f0ebaa32efb6586f7d166e2749f163ebf86ba5caaa4879152d9f490"
+  },
+  "immutable_snapshot_used": true,
+  "command": {
+    "argv": [
+      "python3",
+      "-B",
+      "/workspace/scratch/debaa3b6a81c/wt-g01/docs/verification/parallel-g09/review_boundaries.py",
+      "/tmp/nieuw-os-g09-b09-review"
+    ],
+    "exit": 0,
+    "duration_s": 0.21649356499983696,
+    "stdout": "b09-review-boundaries.stdout.txt",
+    "stderr": "b09-review-boundaries.stderr.txt",
+    "stdout_sha256": "4c89a2510e6b7332b576304bd305f42957a26ef08a24f6fd4148ee80d187ed76",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "result": {
+    "scope": "Two isolated synthetic publication-boundary probes; no native execution",
+    "same_bytes_input_replacement": {
+      "rejected": true,
+      "reason": "Inputs or source changed before archive publication",
+      "same_bytes_new_inode": true
+    },
+    "extra_staged_file_before_index": {
+      "rejected": true,
+      "reason": "Unexpected or missing staged archive file",
+      "published_extra_file": false
+    }
+  },
+  "new_vm_runs": 0,
+  "original_g0_artifacts_modified": false,
+  "finding_G09_01": "fixed; independently reproduced rejection on immutable B09"
+}

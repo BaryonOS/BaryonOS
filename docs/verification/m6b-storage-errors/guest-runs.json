@@ -1,0 +1,3128 @@
+[
+  {
+    "label": "normal-a",
+    "case": "normal",
+    "started_utc": "2026-10-28T12:29:26.547762+00:00",
+    "duration_s": 2.5997252059996754,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CASE:NORMAL:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-normal-a-3480ffd50f/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-normal-a-3480ffd50f/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-normal-a-3480ffd50f/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-normal-a-9d75d4cd08/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "aba038f597e3aa4989ff01c81ec35bafaa477dd64d15ed9016616258a688190a",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "cb49ee35745cb19bdd8e8f214696fad89190e549327e9afeeb0eb62fe343e902",
+      "test-disk.after.img": "e6046ee1a6caa0245d6ea73a774590e6fc72314f3fb8d3faf16f177e1a9ce0f9",
+      "build-manifest.json": "fd7b99b4dfe8a9815726a44d218f1ced0dae6f174427fd366645a7159e614d18",
+      "volume-manifest.json": "58091a57470addc3f349167a4479a035f7e60e44ba8fe005bdae69fbad922846"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-normal-a-9d75d4cd08/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "9d75d4cd08c44175b3e444b6688b3d75",
+      "seed": 14184253298735994985,
+      "variant": "normal",
+      "sha256_initial": "cb49ee35745cb19bdd8e8f214696fad89190e549327e9afeeb0eb62fe343e902",
+      "sha256_after": "e6046ee1a6caa0245d6ea73a774590e6fc72314f3fb8d3faf16f177e1a9ce0f9",
+      "state": {
+        "sequence": 8,
+        "objects": [
+          {
+            "revision": 2,
+            "present": true,
+            "length": 128,
+            "digest": "8408b2e26aa26425"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 2,
+            "present": true,
+            "length": 128,
+            "digest": "a68134f00e7d0f25"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": {
+        "state": {
+          "sequence": 8,
+          "objects": [
+            {
+              "revision": 2,
+              "present": true,
+              "length": 128,
+              "digest": "8408b2e26aa26425"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 2,
+              "present": true,
+              "length": 128,
+              "digest": "a68134f00e7d0f25"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "acks": 8,
+        "rejected": 6
+      },
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true,
+        "exact_mutation_ack_count": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 8330,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "5b89f78ee73d2c6bb236505c705dd6af867dadbec68def80256fd44218438d35",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": null,
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-normal-a-3480ffd50f",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:SEQUENCE:8\nM6B:OBJECT0:REVISION:2\nM6B:OBJECT0:PRESENT:1\nM6B:OBJECT0:LENGTH:128\nM6B:OBJECT0:DIGEST:8408b2e26aa26425\nM6B:OBJECT1:REVISION:2\nM6B:OBJECT1:PRESENT:0\nM6B:OBJECT1:LENGTH:0\nM6B:OBJECT1:DIGEST:cbf29ce484222325\nM6B:OBJECT2:REVISION:2\nM6B:OBJECT2:PRESENT:1\nM6B:OBJECT2:LENGTH:128\nM6B:OBJECT2:DIGEST:a68134f00e7d0f25\nM6B:OBJECT3:REVISION:2\nM6B:OBJECT3:PRESENT:0\nM6B:OBJECT3:LENGTH:0\nM6B:OBJECT3:DIGEST:cbf29ce484222325\nM6B:ACKS:8\nM6B:REJECTED_NO_IO:6\nM6B:CASE:NORMAL:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "normal-a-cold-recovery",
+    "case": "recover",
+    "started_utc": "2026-10-28T12:29:31.748317+00:00",
+    "duration_s": 2.650674701999378,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CASE:RECOVER:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-normal-a-cold-recovery-9351fca234/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-normal-a-cold-recovery-9351fca234/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-normal-a-cold-recovery-9351fca234/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-normal-a-9d75d4cd08/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "48a44e7bb0959deb96d085e61a90d9aefb551603dbbef6cc97e7f1faa7d49735",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "e6046ee1a6caa0245d6ea73a774590e6fc72314f3fb8d3faf16f177e1a9ce0f9",
+      "test-disk.after.img": "e6046ee1a6caa0245d6ea73a774590e6fc72314f3fb8d3faf16f177e1a9ce0f9",
+      "build-manifest.json": "9087053e067b120210dd8f707d2041f4869dda9c360fb223257a1b39476a232c",
+      "volume-manifest.json": "58091a57470addc3f349167a4479a035f7e60e44ba8fe005bdae69fbad922846"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-normal-a-9d75d4cd08/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "9d75d4cd08c44175b3e444b6688b3d75",
+      "seed": 14184253298735994985,
+      "variant": "normal",
+      "sha256_initial": "cb49ee35745cb19bdd8e8f214696fad89190e549327e9afeeb0eb62fe343e902",
+      "sha256_after": "e6046ee1a6caa0245d6ea73a774590e6fc72314f3fb8d3faf16f177e1a9ce0f9",
+      "state": {
+        "sequence": 8,
+        "objects": [
+          {
+            "revision": 2,
+            "present": true,
+            "length": 128,
+            "digest": "8408b2e26aa26425"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 2,
+            "present": true,
+            "length": 128,
+            "digest": "a68134f00e7d0f25"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": {
+        "state": {
+          "sequence": 8,
+          "objects": [
+            {
+              "revision": 2,
+              "present": true,
+              "length": 128,
+              "digest": "8408b2e26aa26425"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 2,
+              "present": true,
+              "length": 128,
+              "digest": "a68134f00e7d0f25"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "acks": 0,
+        "rejected": 2
+      },
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true,
+        "exact_mutation_ack_count": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 8566,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "334e9adc78da4a8629dac5206d49bf53e30d0e9777980d184f0726f4a672370d",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": "/workspace/nieuw-os/build/run/m6b-normal-a-3480ffd50f",
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-normal-a-cold-recovery-9351fca234",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:SEQUENCE:8\nM6B:OBJECT0:REVISION:2\nM6B:OBJECT0:PRESENT:1\nM6B:OBJECT0:LENGTH:128\nM6B:OBJECT0:DIGEST:8408b2e26aa26425\nM6B:OBJECT1:REVISION:2\nM6B:OBJECT1:PRESENT:0\nM6B:OBJECT1:LENGTH:0\nM6B:OBJECT1:DIGEST:cbf29ce484222325\nM6B:OBJECT2:REVISION:2\nM6B:OBJECT2:PRESENT:1\nM6B:OBJECT2:LENGTH:128\nM6B:OBJECT2:DIGEST:a68134f00e7d0f25\nM6B:OBJECT3:REVISION:2\nM6B:OBJECT3:PRESENT:0\nM6B:OBJECT3:LENGTH:0\nM6B:OBJECT3:DIGEST:cbf29ce484222325\nM6B:ACKS:0\nM6B:REJECTED_NO_IO:2\nM6B:CASE:RECOVER:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "normal-b",
+    "case": "normal",
+    "started_utc": "2026-10-28T12:29:36.804875+00:00",
+    "duration_s": 2.7834591450000516,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CASE:NORMAL:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-normal-b-4d35d59eab/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-normal-b-4d35d59eab/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-normal-b-4d35d59eab/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-normal-b-f9a2937abd/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "aba038f597e3aa4989ff01c81ec35bafaa477dd64d15ed9016616258a688190a",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "58ccccdd2072b50a65176a4f304f57b6a2b9f4c5a3d9ca1a9b56e5ad9f4d2b10",
+      "test-disk.after.img": "25f070f05c51d94777542913e2382b337c5cb26170e38e44a11e3a02ba982d7d",
+      "build-manifest.json": "fd7b99b4dfe8a9815726a44d218f1ced0dae6f174427fd366645a7159e614d18",
+      "volume-manifest.json": "5890df71883bf1d35c032fb7a0f522b8d3572578b47cf760316eacf1321c78a8"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-normal-b-f9a2937abd/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "f9a2937abdf041db92942e779ce06be9",
+      "seed": 3595564700817987682,
+      "variant": "normal",
+      "sha256_initial": "58ccccdd2072b50a65176a4f304f57b6a2b9f4c5a3d9ca1a9b56e5ad9f4d2b10",
+      "sha256_after": "25f070f05c51d94777542913e2382b337c5cb26170e38e44a11e3a02ba982d7d",
+      "state": {
+        "sequence": 8,
+        "objects": [
+          {
+            "revision": 2,
+            "present": true,
+            "length": 128,
+            "digest": "8408b2e26aa26425"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 2,
+            "present": true,
+            "length": 128,
+            "digest": "a68134f00e7d0f25"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": {
+        "state": {
+          "sequence": 8,
+          "objects": [
+            {
+              "revision": 2,
+              "present": true,
+              "length": 128,
+              "digest": "8408b2e26aa26425"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 2,
+              "present": true,
+              "length": 128,
+              "digest": "a68134f00e7d0f25"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "acks": 8,
+        "rejected": 6
+      },
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true,
+        "exact_mutation_ack_count": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 8784,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "5b89f78ee73d2c6bb236505c705dd6af867dadbec68def80256fd44218438d35",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": null,
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-normal-b-4d35d59eab",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:SEQUENCE:8\nM6B:OBJECT0:REVISION:2\nM6B:OBJECT0:PRESENT:1\nM6B:OBJECT0:LENGTH:128\nM6B:OBJECT0:DIGEST:8408b2e26aa26425\nM6B:OBJECT1:REVISION:2\nM6B:OBJECT1:PRESENT:0\nM6B:OBJECT1:LENGTH:0\nM6B:OBJECT1:DIGEST:cbf29ce484222325\nM6B:OBJECT2:REVISION:2\nM6B:OBJECT2:PRESENT:1\nM6B:OBJECT2:LENGTH:128\nM6B:OBJECT2:DIGEST:a68134f00e7d0f25\nM6B:OBJECT3:REVISION:2\nM6B:OBJECT3:PRESENT:0\nM6B:OBJECT3:LENGTH:0\nM6B:OBJECT3:DIGEST:cbf29ce484222325\nM6B:ACKS:8\nM6B:REJECTED_NO_IO:6\nM6B:CASE:NORMAL:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "normal-b-cold-recovery",
+    "case": "recover",
+    "started_utc": "2026-10-28T12:29:42.135589+00:00",
+    "duration_s": 2.6674835750000057,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CASE:RECOVER:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-normal-b-cold-recovery-42183e6f96/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-normal-b-cold-recovery-42183e6f96/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-normal-b-cold-recovery-42183e6f96/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-normal-b-f9a2937abd/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "48a44e7bb0959deb96d085e61a90d9aefb551603dbbef6cc97e7f1faa7d49735",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "25f070f05c51d94777542913e2382b337c5cb26170e38e44a11e3a02ba982d7d",
+      "test-disk.after.img": "25f070f05c51d94777542913e2382b337c5cb26170e38e44a11e3a02ba982d7d",
+      "build-manifest.json": "9087053e067b120210dd8f707d2041f4869dda9c360fb223257a1b39476a232c",
+      "volume-manifest.json": "5890df71883bf1d35c032fb7a0f522b8d3572578b47cf760316eacf1321c78a8"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-normal-b-f9a2937abd/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "f9a2937abdf041db92942e779ce06be9",
+      "seed": 3595564700817987682,
+      "variant": "normal",
+      "sha256_initial": "58ccccdd2072b50a65176a4f304f57b6a2b9f4c5a3d9ca1a9b56e5ad9f4d2b10",
+      "sha256_after": "25f070f05c51d94777542913e2382b337c5cb26170e38e44a11e3a02ba982d7d",
+      "state": {
+        "sequence": 8,
+        "objects": [
+          {
+            "revision": 2,
+            "present": true,
+            "length": 128,
+            "digest": "8408b2e26aa26425"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 2,
+            "present": true,
+            "length": 128,
+            "digest": "a68134f00e7d0f25"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": {
+        "state": {
+          "sequence": 8,
+          "objects": [
+            {
+              "revision": 2,
+              "present": true,
+              "length": 128,
+              "digest": "8408b2e26aa26425"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 2,
+              "present": true,
+              "length": 128,
+              "digest": "a68134f00e7d0f25"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "acks": 0,
+        "rejected": 2
+      },
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true,
+        "exact_mutation_ack_count": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 9002,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "334e9adc78da4a8629dac5206d49bf53e30d0e9777980d184f0726f4a672370d",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": "/workspace/nieuw-os/build/run/m6b-normal-b-4d35d59eab",
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-normal-b-cold-recovery-42183e6f96",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:SEQUENCE:8\nM6B:OBJECT0:REVISION:2\nM6B:OBJECT0:PRESENT:1\nM6B:OBJECT0:LENGTH:128\nM6B:OBJECT0:DIGEST:8408b2e26aa26425\nM6B:OBJECT1:REVISION:2\nM6B:OBJECT1:PRESENT:0\nM6B:OBJECT1:LENGTH:0\nM6B:OBJECT1:DIGEST:cbf29ce484222325\nM6B:OBJECT2:REVISION:2\nM6B:OBJECT2:PRESENT:1\nM6B:OBJECT2:LENGTH:128\nM6B:OBJECT2:DIGEST:a68134f00e7d0f25\nM6B:OBJECT3:REVISION:2\nM6B:OBJECT3:PRESENT:0\nM6B:OBJECT3:LENGTH:0\nM6B:OBJECT3:DIGEST:cbf29ce484222325\nM6B:ACKS:0\nM6B:REJECTED_NO_IO:2\nM6B:CASE:RECOVER:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "errors",
+    "case": "errors",
+    "started_utc": "2026-10-28T12:29:47.224562+00:00",
+    "duration_s": 2.7163782810002886,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CASE:ERRORS:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-errors-1a434ec0b4/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-errors-1a434ec0b4/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-errors-1a434ec0b4/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-errors-9c0b31ba7c/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "e11a5741742134503b280ee47a540de0881bb5944f6d0a5997ad4ebd3529617b",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "4b6541ad1b96dbd3df98c13da3b143b037511f90d88614402cb30de24f9ff23c",
+      "test-disk.after.img": "9ec5325c2e9a745586f8521b6221224d5588eca297532636d0b78cf153f28721",
+      "build-manifest.json": "9201782a40f6030cb8e4028eb29142d6ea28374ef08523f77f433b349cda96c4",
+      "volume-manifest.json": "cb914d17043a874e2855184b81ea0c1e48b5322ec8a7c92111c74beebd0c2985"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-errors-9c0b31ba7c/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "9c0b31ba7cbd4e4cb54a990c229a6769",
+      "seed": 8466937638441094206,
+      "variant": "normal",
+      "sha256_initial": "4b6541ad1b96dbd3df98c13da3b143b037511f90d88614402cb30de24f9ff23c",
+      "sha256_after": "9ec5325c2e9a745586f8521b6221224d5588eca297532636d0b78cf153f28721",
+      "state": {
+        "sequence": 8,
+        "objects": [
+          {
+            "revision": 2,
+            "present": true,
+            "length": 128,
+            "digest": "8408b2e26aa26425"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 2,
+            "present": true,
+            "length": 128,
+            "digest": "a68134f00e7d0f25"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": {
+        "state": {
+          "sequence": 8,
+          "objects": [
+            {
+              "revision": 2,
+              "present": true,
+              "length": 128,
+              "digest": "8408b2e26aa26425"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 2,
+              "present": true,
+              "length": 128,
+              "digest": "a68134f00e7d0f25"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "acks": 8,
+        "rejected": 34
+      },
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true,
+        "exact_mutation_ack_count": true,
+        "all_negative_requests_without_io": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 9238,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "dc27689d6205a90f850980e54a31e44877e7e5fc50538de74786150985a77cde",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": null,
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-errors-1a434ec0b4",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:SEQUENCE:8\nM6B:OBJECT0:REVISION:2\nM6B:OBJECT0:PRESENT:1\nM6B:OBJECT0:LENGTH:128\nM6B:OBJECT0:DIGEST:8408b2e26aa26425\nM6B:OBJECT1:REVISION:2\nM6B:OBJECT1:PRESENT:0\nM6B:OBJECT1:LENGTH:0\nM6B:OBJECT1:DIGEST:cbf29ce484222325\nM6B:OBJECT2:REVISION:2\nM6B:OBJECT2:PRESENT:1\nM6B:OBJECT2:LENGTH:128\nM6B:OBJECT2:DIGEST:a68134f00e7d0f25\nM6B:OBJECT3:REVISION:2\nM6B:OBJECT3:PRESENT:0\nM6B:OBJECT3:LENGTH:0\nM6B:OBJECT3:DIGEST:cbf29ce484222325\nM6B:ACKS:8\nM6B:REJECTED_NO_IO:34\nM6B:CASE:ERRORS:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "errors-cold-recovery",
+    "case": "recover",
+    "started_utc": "2026-10-28T12:29:52.186035+00:00",
+    "duration_s": 2.531386818000101,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CASE:RECOVER:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-errors-cold-recovery-2e3d17b69b/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-errors-cold-recovery-2e3d17b69b/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-errors-cold-recovery-2e3d17b69b/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-errors-9c0b31ba7c/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "48a44e7bb0959deb96d085e61a90d9aefb551603dbbef6cc97e7f1faa7d49735",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "9ec5325c2e9a745586f8521b6221224d5588eca297532636d0b78cf153f28721",
+      "test-disk.after.img": "9ec5325c2e9a745586f8521b6221224d5588eca297532636d0b78cf153f28721",
+      "build-manifest.json": "9087053e067b120210dd8f707d2041f4869dda9c360fb223257a1b39476a232c",
+      "volume-manifest.json": "cb914d17043a874e2855184b81ea0c1e48b5322ec8a7c92111c74beebd0c2985"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-errors-9c0b31ba7c/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "9c0b31ba7cbd4e4cb54a990c229a6769",
+      "seed": 8466937638441094206,
+      "variant": "normal",
+      "sha256_initial": "4b6541ad1b96dbd3df98c13da3b143b037511f90d88614402cb30de24f9ff23c",
+      "sha256_after": "9ec5325c2e9a745586f8521b6221224d5588eca297532636d0b78cf153f28721",
+      "state": {
+        "sequence": 8,
+        "objects": [
+          {
+            "revision": 2,
+            "present": true,
+            "length": 128,
+            "digest": "8408b2e26aa26425"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 2,
+            "present": true,
+            "length": 128,
+            "digest": "a68134f00e7d0f25"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": {
+        "state": {
+          "sequence": 8,
+          "objects": [
+            {
+              "revision": 2,
+              "present": true,
+              "length": 128,
+              "digest": "8408b2e26aa26425"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 2,
+              "present": true,
+              "length": 128,
+              "digest": "a68134f00e7d0f25"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "acks": 0,
+        "rejected": 2
+      },
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true,
+        "exact_mutation_ack_count": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 9456,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "334e9adc78da4a8629dac5206d49bf53e30d0e9777980d184f0726f4a672370d",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": "/workspace/nieuw-os/build/run/m6b-errors-1a434ec0b4",
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-errors-cold-recovery-2e3d17b69b",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:SEQUENCE:8\nM6B:OBJECT0:REVISION:2\nM6B:OBJECT0:PRESENT:1\nM6B:OBJECT0:LENGTH:128\nM6B:OBJECT0:DIGEST:8408b2e26aa26425\nM6B:OBJECT1:REVISION:2\nM6B:OBJECT1:PRESENT:0\nM6B:OBJECT1:LENGTH:0\nM6B:OBJECT1:DIGEST:cbf29ce484222325\nM6B:OBJECT2:REVISION:2\nM6B:OBJECT2:PRESENT:1\nM6B:OBJECT2:LENGTH:128\nM6B:OBJECT2:DIGEST:a68134f00e7d0f25\nM6B:OBJECT3:REVISION:2\nM6B:OBJECT3:PRESENT:0\nM6B:OBJECT3:LENGTH:0\nM6B:OBJECT3:DIGEST:cbf29ce484222325\nM6B:ACKS:0\nM6B:REJECTED_NO_IO:2\nM6B:CASE:RECOVER:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "full",
+    "case": "full",
+    "started_utc": "2026-10-28T12:29:57.103015+00:00",
+    "duration_s": 2.7205657180002163,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CASE:FULL:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-full-ab1617d7bb/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-full-ab1617d7bb/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-full-ab1617d7bb/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-full-e44c7ef295/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "fb68b41399e89a4c7859b9dfa0a16b114f0ecba3b0a835dac98cd31099e8f160",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "82222bee11ebe1bcbc9ea3d579cb83556332962c70b3af30030783aad2651029",
+      "test-disk.after.img": "6507f866e47932c6f018025940841127cdaba52795d26b534806cc3b8762ab5a",
+      "build-manifest.json": "3df47f5f536dbc48ac0e4ee9e2eed47af83d3cd4622623ea95a2ce23a5269320",
+      "volume-manifest.json": "240f52d4402b5addf61c5d78e1fc575601cd0924dccc4641691a0124b8f7b75b"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-full-e44c7ef295/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "e44c7ef295cf486097588a9ed70f1901",
+      "seed": 12248310713179151447,
+      "variant": "normal",
+      "sha256_initial": "82222bee11ebe1bcbc9ea3d579cb83556332962c70b3af30030783aad2651029",
+      "sha256_after": "6507f866e47932c6f018025940841127cdaba52795d26b534806cc3b8762ab5a",
+      "state": {
+        "sequence": 32,
+        "objects": [
+          {
+            "revision": 16,
+            "present": true,
+            "length": 128,
+            "digest": "9e80810b25e10a25"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 16,
+            "present": true,
+            "length": 128,
+            "digest": "cd36c6f0239ab525"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": {
+        "state": {
+          "sequence": 32,
+          "objects": [
+            {
+              "revision": 16,
+              "present": true,
+              "length": 128,
+              "digest": "9e80810b25e10a25"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 16,
+              "present": true,
+              "length": 128,
+              "digest": "cd36c6f0239ab525"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "acks": 32,
+        "rejected": 8
+      },
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true,
+        "exact_mutation_ack_count": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 9692,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "18c977ed6d26fd9feda5693e77f7e42ad900526a1567effb130448eec7fe6577",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": null,
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-full-ab1617d7bb",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:SEQUENCE:32\nM6B:OBJECT0:REVISION:16\nM6B:OBJECT0:PRESENT:1\nM6B:OBJECT0:LENGTH:128\nM6B:OBJECT0:DIGEST:9e80810b25e10a25\nM6B:OBJECT1:REVISION:0\nM6B:OBJECT1:PRESENT:0\nM6B:OBJECT1:LENGTH:0\nM6B:OBJECT1:DIGEST:cbf29ce484222325\nM6B:OBJECT2:REVISION:16\nM6B:OBJECT2:PRESENT:1\nM6B:OBJECT2:LENGTH:128\nM6B:OBJECT2:DIGEST:cd36c6f0239ab525\nM6B:OBJECT3:REVISION:0\nM6B:OBJECT3:PRESENT:0\nM6B:OBJECT3:LENGTH:0\nM6B:OBJECT3:DIGEST:cbf29ce484222325\nM6B:ACKS:32\nM6B:REJECTED_NO_IO:8\nM6B:CASE:FULL:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "full-cold-recovery",
+    "case": "recover",
+    "started_utc": "2026-10-28T12:30:02.121637+00:00",
+    "duration_s": 2.386749195000448,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CASE:RECOVER:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-full-cold-recovery-97c726cbce/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-full-cold-recovery-97c726cbce/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-full-cold-recovery-97c726cbce/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-full-e44c7ef295/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "48a44e7bb0959deb96d085e61a90d9aefb551603dbbef6cc97e7f1faa7d49735",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "6507f866e47932c6f018025940841127cdaba52795d26b534806cc3b8762ab5a",
+      "test-disk.after.img": "6507f866e47932c6f018025940841127cdaba52795d26b534806cc3b8762ab5a",
+      "build-manifest.json": "9087053e067b120210dd8f707d2041f4869dda9c360fb223257a1b39476a232c",
+      "volume-manifest.json": "240f52d4402b5addf61c5d78e1fc575601cd0924dccc4641691a0124b8f7b75b"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-full-e44c7ef295/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "e44c7ef295cf486097588a9ed70f1901",
+      "seed": 12248310713179151447,
+      "variant": "normal",
+      "sha256_initial": "82222bee11ebe1bcbc9ea3d579cb83556332962c70b3af30030783aad2651029",
+      "sha256_after": "6507f866e47932c6f018025940841127cdaba52795d26b534806cc3b8762ab5a",
+      "state": {
+        "sequence": 32,
+        "objects": [
+          {
+            "revision": 16,
+            "present": true,
+            "length": 128,
+            "digest": "9e80810b25e10a25"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 16,
+            "present": true,
+            "length": 128,
+            "digest": "cd36c6f0239ab525"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": {
+        "state": {
+          "sequence": 32,
+          "objects": [
+            {
+              "revision": 16,
+              "present": true,
+              "length": 128,
+              "digest": "9e80810b25e10a25"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 16,
+              "present": true,
+              "length": 128,
+              "digest": "cd36c6f0239ab525"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "acks": 0,
+        "rejected": 2
+      },
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true,
+        "exact_mutation_ack_count": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 9910,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "ed3619dd249dccbb9fbe3967d86dd676dd9e835a3293d5af75fe6da99f3b899b",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": "/workspace/nieuw-os/build/run/m6b-full-ab1617d7bb",
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-full-cold-recovery-97c726cbce",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:SEQUENCE:32\nM6B:OBJECT0:REVISION:16\nM6B:OBJECT0:PRESENT:1\nM6B:OBJECT0:LENGTH:128\nM6B:OBJECT0:DIGEST:9e80810b25e10a25\nM6B:OBJECT1:REVISION:0\nM6B:OBJECT1:PRESENT:0\nM6B:OBJECT1:LENGTH:0\nM6B:OBJECT1:DIGEST:cbf29ce484222325\nM6B:OBJECT2:REVISION:16\nM6B:OBJECT2:PRESENT:1\nM6B:OBJECT2:LENGTH:128\nM6B:OBJECT2:DIGEST:cd36c6f0239ab525\nM6B:OBJECT3:REVISION:0\nM6B:OBJECT3:PRESENT:0\nM6B:OBJECT3:LENGTH:0\nM6B:OBJECT3:DIGEST:cbf29ce484222325\nM6B:ACKS:0\nM6B:REJECTED_NO_IO:2\nM6B:CASE:RECOVER:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "corrupt",
+    "case": "corrupt",
+    "started_utc": "2026-10-28T12:30:06.756318+00:00",
+    "duration_s": 2.45974143300009,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CASE:CORRUPT:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-corrupt-96b580ce23/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-corrupt-96b580ce23/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-corrupt-96b580ce23/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-corrupt-b52c3d792b/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "0cb3bfcc9a7d1da965ed98a43a289e8ade571fbaf396b7c8544cc1ffcda6c5cb",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "7c1af20b3bd73ea12bc0e59b87ab63dbf3cc56ff8b557de7a10eb210c372d8c1",
+      "test-disk.after.img": "7c1af20b3bd73ea12bc0e59b87ab63dbf3cc56ff8b557de7a10eb210c372d8c1",
+      "build-manifest.json": "47b517560f9865d82c4222aea39f66db652b723733d3ff66c15ae71e19d7c5a5",
+      "volume-manifest.json": "86c5568e8adb9ff8907e528ad1f585c132d86463bfa829e7b9069678c0b73549"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-corrupt-b52c3d792b/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "b52c3d792b2a437ea141417548325e31",
+      "seed": 8600279587009483566,
+      "variant": "corrupt",
+      "sha256_initial": "7c1af20b3bd73ea12bc0e59b87ab63dbf3cc56ff8b557de7a10eb210c372d8c1",
+      "sha256_after": "7c1af20b3bd73ea12bc0e59b87ab63dbf3cc56ff8b557de7a10eb210c372d8c1",
+      "state": null,
+      "observed": null,
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 10171,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "773581509f47d70331a2ca90071b98a0137599c97fd2496b1cc347c76e7dbe2b",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": null,
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-corrupt-96b580ce23",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:CASE:CORRUPT:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "vm-cut-before-ack",
+    "case": "vm-cut-before-ack",
+    "started_utc": "2026-10-28T12:30:11.360596+00:00",
+    "duration_s": 2.3876943829991433,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": -9,
+    "expected_exit": "real host termination after exact cut",
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CUT:1"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-vm-cut-before-ack-b707accaa8/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-vm-cut-before-ack-b707accaa8/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-vm-cut-before-ack-b707accaa8/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-vm-cut-before-ack-76778524ed/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "9688a2d48ee0e3d4302e0727c1a5109b29be446dde45d965b3f9f3e635e506dc",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "5a3b4b2c3cef95c2aadfa14d3cd4fe45d2baf9cde18c961f22816484ef04c2a5",
+      "test-disk.after.img": "5a3b4b2c3cef95c2aadfa14d3cd4fe45d2baf9cde18c961f22816484ef04c2a5",
+      "build-manifest.json": "a0736ce652a59f6f4347f7ca5f8be23b979a2367e0f7514d48952564e4606587",
+      "volume-manifest.json": "a7e0fed92053bd3bdc7667c67dea55ff7f86a823ad9c93ac9a6716029a563afe"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-vm-cut-before-ack-76778524ed/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "76778524ed3b4b7391a1da4b5041c30f",
+      "seed": 13362021336335117156,
+      "variant": "normal",
+      "sha256_initial": "5a3b4b2c3cef95c2aadfa14d3cd4fe45d2baf9cde18c961f22816484ef04c2a5",
+      "sha256_after": "5a3b4b2c3cef95c2aadfa14d3cd4fe45d2baf9cde18c961f22816484ef04c2a5",
+      "state": {
+        "sequence": 0,
+        "objects": [
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": null,
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": 1,
+      "cut_lines": [
+        "M6B:CUT:1"
+      ],
+      "kill_requested": true,
+      "process_id": 10407,
+      "was_running_before_kill": true,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": -9,
+      "passed": true
+    },
+    "serial_sha256": "9eeeb5869c5e56da643f1cd52a228272873b9923738cc549a60ff50628addeb5",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": null,
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-vm-cut-before-ack-b707accaa8",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:CUT:1\n",
+    "stderr": ""
+  },
+  {
+    "label": "vm-cut-before-ack-cold-recovery",
+    "case": "recover",
+    "started_utc": "2026-10-28T12:30:15.912438+00:00",
+    "duration_s": 2.4613545900001554,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CASE:RECOVER:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-vm-cut-before-ack-cold-recovery-d32db4d09a/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-vm-cut-before-ack-cold-recovery-d32db4d09a/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-vm-cut-before-ack-cold-recovery-d32db4d09a/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-vm-cut-before-ack-76778524ed/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "48a44e7bb0959deb96d085e61a90d9aefb551603dbbef6cc97e7f1faa7d49735",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "5a3b4b2c3cef95c2aadfa14d3cd4fe45d2baf9cde18c961f22816484ef04c2a5",
+      "test-disk.after.img": "5a3b4b2c3cef95c2aadfa14d3cd4fe45d2baf9cde18c961f22816484ef04c2a5",
+      "build-manifest.json": "9087053e067b120210dd8f707d2041f4869dda9c360fb223257a1b39476a232c",
+      "volume-manifest.json": "a7e0fed92053bd3bdc7667c67dea55ff7f86a823ad9c93ac9a6716029a563afe"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-vm-cut-before-ack-76778524ed/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "76778524ed3b4b7391a1da4b5041c30f",
+      "seed": 13362021336335117156,
+      "variant": "normal",
+      "sha256_initial": "5a3b4b2c3cef95c2aadfa14d3cd4fe45d2baf9cde18c961f22816484ef04c2a5",
+      "sha256_after": "5a3b4b2c3cef95c2aadfa14d3cd4fe45d2baf9cde18c961f22816484ef04c2a5",
+      "state": {
+        "sequence": 0,
+        "objects": [
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": {
+        "state": {
+          "sequence": 0,
+          "objects": [
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "acks": 0,
+        "rejected": 4
+      },
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true,
+        "exact_mutation_ack_count": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 10629,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "123b3473f21fa167500f211ea89f43b938b7de6cd058e657729cc06b70c61e48",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": "/workspace/nieuw-os/build/run/m6b-vm-cut-before-ack-b707accaa8",
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-vm-cut-before-ack-cold-recovery-d32db4d09a",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:SEQUENCE:0\nM6B:OBJECT0:REVISION:0\nM6B:OBJECT0:PRESENT:0\nM6B:OBJECT0:LENGTH:0\nM6B:OBJECT0:DIGEST:cbf29ce484222325\nM6B:OBJECT1:REVISION:0\nM6B:OBJECT1:PRESENT:0\nM6B:OBJECT1:LENGTH:0\nM6B:OBJECT1:DIGEST:cbf29ce484222325\nM6B:OBJECT2:REVISION:0\nM6B:OBJECT2:PRESENT:0\nM6B:OBJECT2:LENGTH:0\nM6B:OBJECT2:DIGEST:cbf29ce484222325\nM6B:OBJECT3:REVISION:0\nM6B:OBJECT3:PRESENT:0\nM6B:OBJECT3:LENGTH:0\nM6B:OBJECT3:DIGEST:cbf29ce484222325\nM6B:ACKS:0\nM6B:REJECTED_NO_IO:4\nM6B:CASE:RECOVER:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "vm-cut-after-flush",
+    "case": "vm-cut-after-flush",
+    "started_utc": "2026-10-28T12:30:20.617958+00:00",
+    "duration_s": 2.400490259000435,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": -9,
+    "expected_exit": "real host termination after exact cut",
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CUT:2"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-vm-cut-after-flush-f3f8183233/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-vm-cut-after-flush-f3f8183233/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-vm-cut-after-flush-f3f8183233/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-vm-cut-after-flush-97461e7741/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "ddc05d4b779f8781ef0cfe932d7fae5eae338b860a1c05565b10ea5ad415de09",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "901cf340aa73946e343ed0c3e7a06d7c4c702b0992624dd42aba23063c0a2fec",
+      "test-disk.after.img": "4c073cbe578d3506e52b379ae70d478d266dfaae5e153ce9c074792e58fab9eb",
+      "build-manifest.json": "0fc1be4cf2cb0a2175240f07256293ad5d40febb624da31255fa0fd8f9286599",
+      "volume-manifest.json": "5311e51c1241d0d57c1725ba661597d8ff6b75712cab407e6315fe9de4224177"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-vm-cut-after-flush-97461e7741/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "97461e77410a4c3ab905be56a9845f6c",
+      "seed": 4179631321036943762,
+      "variant": "normal",
+      "sha256_initial": "901cf340aa73946e343ed0c3e7a06d7c4c702b0992624dd42aba23063c0a2fec",
+      "sha256_after": "4c073cbe578d3506e52b379ae70d478d266dfaae5e153ce9c074792e58fab9eb",
+      "state": {
+        "sequence": 1,
+        "objects": [
+          {
+            "revision": 1,
+            "present": true,
+            "length": 128,
+            "digest": "6afd46d48f832825"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": null,
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": 2,
+      "cut_lines": [
+        "M6B:CUT:2"
+      ],
+      "kill_requested": true,
+      "process_id": 10870,
+      "was_running_before_kill": true,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": -9,
+      "passed": true
+    },
+    "serial_sha256": "34ac4d3c20c808256605468d68f78c7030c77b9b9e03a9d89fa2012369c93b87",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": null,
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-vm-cut-after-flush-f3f8183233",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:CUT:2\n",
+    "stderr": ""
+  },
+  {
+    "label": "vm-cut-after-flush-cold-recovery",
+    "case": "recover",
+    "started_utc": "2026-10-28T12:30:25.239386+00:00",
+    "duration_s": 2.4851770600007512,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CASE:RECOVER:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-vm-cut-after-flush-cold-recovery-7cd4339fe5/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-vm-cut-after-flush-cold-recovery-7cd4339fe5/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-vm-cut-after-flush-cold-recovery-7cd4339fe5/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-vm-cut-after-flush-97461e7741/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "48a44e7bb0959deb96d085e61a90d9aefb551603dbbef6cc97e7f1faa7d49735",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "4c073cbe578d3506e52b379ae70d478d266dfaae5e153ce9c074792e58fab9eb",
+      "test-disk.after.img": "4c073cbe578d3506e52b379ae70d478d266dfaae5e153ce9c074792e58fab9eb",
+      "build-manifest.json": "9087053e067b120210dd8f707d2041f4869dda9c360fb223257a1b39476a232c",
+      "volume-manifest.json": "5311e51c1241d0d57c1725ba661597d8ff6b75712cab407e6315fe9de4224177"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-vm-cut-after-flush-97461e7741/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "97461e77410a4c3ab905be56a9845f6c",
+      "seed": 4179631321036943762,
+      "variant": "normal",
+      "sha256_initial": "901cf340aa73946e343ed0c3e7a06d7c4c702b0992624dd42aba23063c0a2fec",
+      "sha256_after": "4c073cbe578d3506e52b379ae70d478d266dfaae5e153ce9c074792e58fab9eb",
+      "state": {
+        "sequence": 1,
+        "objects": [
+          {
+            "revision": 1,
+            "present": true,
+            "length": 128,
+            "digest": "6afd46d48f832825"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": {
+        "state": {
+          "sequence": 1,
+          "objects": [
+            {
+              "revision": 1,
+              "present": true,
+              "length": 128,
+              "digest": "6afd46d48f832825"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "acks": 0,
+        "rejected": 3
+      },
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true,
+        "exact_mutation_ack_count": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 11088,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "261605c7f6619da731c289830542b487360c78ef3a0972090e6afe5d6156f40b",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": "/workspace/nieuw-os/build/run/m6b-vm-cut-after-flush-f3f8183233",
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-vm-cut-after-flush-cold-recovery-7cd4339fe5",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:SEQUENCE:1\nM6B:OBJECT0:REVISION:1\nM6B:OBJECT0:PRESENT:1\nM6B:OBJECT0:LENGTH:128\nM6B:OBJECT0:DIGEST:6afd46d48f832825\nM6B:OBJECT1:REVISION:0\nM6B:OBJECT1:PRESENT:0\nM6B:OBJECT1:LENGTH:0\nM6B:OBJECT1:DIGEST:cbf29ce484222325\nM6B:OBJECT2:REVISION:0\nM6B:OBJECT2:PRESENT:0\nM6B:OBJECT2:LENGTH:0\nM6B:OBJECT2:DIGEST:cbf29ce484222325\nM6B:OBJECT3:REVISION:0\nM6B:OBJECT3:PRESENT:0\nM6B:OBJECT3:LENGTH:0\nM6B:OBJECT3:DIGEST:cbf29ce484222325\nM6B:ACKS:0\nM6B:REJECTED_NO_IO:3\nM6B:CASE:RECOVER:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "write-error",
+    "case": "write-error",
+    "started_utc": "2026-10-28T12:30:29.977093+00:00",
+    "duration_s": 2.3763752020004176,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:INJECT:WRITE_IOERR_SNAPSHOT",
+      "M6B:OUTCOME:UNKNOWN",
+      "M6B:NO_REPLAY:PASS",
+      "M6B:NO_STALE_READ:PASS",
+      "M6B:CASE:WRITE_ERROR:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-write-error-5090a8986e/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-write-error-5090a8986e/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-write-error-5090a8986e/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-write-error-d741a52e7d/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "dc5c88f4037e94173c3583c5ed77feb160ed169111f7dd4121a2bd37257a42b7",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "3d7e07248a881ba8e657cf1a218e2e6f30905994f9831e6471dac95554c04317",
+      "test-disk.after.img": "02c3eefbc1452618ec73c1da0ba571b430dec61d5d1305f3e37f6179d7cddcac",
+      "build-manifest.json": "869306fd037cbfdac0e474cef7a26fc4cb49633a1fd9f801b164c786ffbc68c4",
+      "volume-manifest.json": "27fc4aa7046491043a739f428727dc03f791f49a6b98bebb6f842f473a8ebe7c"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-write-error-d741a52e7d/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "d741a52e7dcd43578eab6f58d7cc5ac6",
+      "seed": 1983156685924597170,
+      "variant": "normal",
+      "sha256_initial": "3d7e07248a881ba8e657cf1a218e2e6f30905994f9831e6471dac95554c04317",
+      "sha256_after": "02c3eefbc1452618ec73c1da0ba571b430dec61d5d1305f3e37f6179d7cddcac",
+      "state": {
+        "sequence": 1,
+        "objects": [
+          {
+            "revision": 1,
+            "present": true,
+            "length": 128,
+            "digest": "6afd46d48f832825"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": null,
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 11306,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "387281a5b668a623f45f194de2ff77c15fc265663146e5fd94e272a69eeaa5c8",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": null,
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-write-error-5090a8986e",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:INJECT:WRITE_IOERR_SNAPSHOT\nM6B:OUTCOME:UNKNOWN\nM6B:NO_REPLAY:PASS\nM6B:NO_STALE_READ:PASS\nM6B:CASE:WRITE_ERROR:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "write-error-cold-recovery",
+    "case": "recover",
+    "started_utc": "2026-10-28T12:30:34.580915+00:00",
+    "duration_s": 2.5624471720002475,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CASE:RECOVER:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-write-error-cold-recovery-a1c819df4b/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-write-error-cold-recovery-a1c819df4b/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-write-error-cold-recovery-a1c819df4b/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-write-error-d741a52e7d/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "48a44e7bb0959deb96d085e61a90d9aefb551603dbbef6cc97e7f1faa7d49735",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "02c3eefbc1452618ec73c1da0ba571b430dec61d5d1305f3e37f6179d7cddcac",
+      "test-disk.after.img": "02c3eefbc1452618ec73c1da0ba571b430dec61d5d1305f3e37f6179d7cddcac",
+      "build-manifest.json": "9087053e067b120210dd8f707d2041f4869dda9c360fb223257a1b39476a232c",
+      "volume-manifest.json": "27fc4aa7046491043a739f428727dc03f791f49a6b98bebb6f842f473a8ebe7c"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-write-error-d741a52e7d/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "d741a52e7dcd43578eab6f58d7cc5ac6",
+      "seed": 1983156685924597170,
+      "variant": "normal",
+      "sha256_initial": "3d7e07248a881ba8e657cf1a218e2e6f30905994f9831e6471dac95554c04317",
+      "sha256_after": "02c3eefbc1452618ec73c1da0ba571b430dec61d5d1305f3e37f6179d7cddcac",
+      "state": {
+        "sequence": 1,
+        "objects": [
+          {
+            "revision": 1,
+            "present": true,
+            "length": 128,
+            "digest": "6afd46d48f832825"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": {
+        "state": {
+          "sequence": 1,
+          "objects": [
+            {
+              "revision": 1,
+              "present": true,
+              "length": 128,
+              "digest": "6afd46d48f832825"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "acks": 0,
+        "rejected": 3
+      },
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true,
+        "exact_mutation_ack_count": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 11524,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "261605c7f6619da731c289830542b487360c78ef3a0972090e6afe5d6156f40b",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": "/workspace/nieuw-os/build/run/m6b-write-error-5090a8986e",
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-write-error-cold-recovery-a1c819df4b",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:SEQUENCE:1\nM6B:OBJECT0:REVISION:1\nM6B:OBJECT0:PRESENT:1\nM6B:OBJECT0:LENGTH:128\nM6B:OBJECT0:DIGEST:6afd46d48f832825\nM6B:OBJECT1:REVISION:0\nM6B:OBJECT1:PRESENT:0\nM6B:OBJECT1:LENGTH:0\nM6B:OBJECT1:DIGEST:cbf29ce484222325\nM6B:OBJECT2:REVISION:0\nM6B:OBJECT2:PRESENT:0\nM6B:OBJECT2:LENGTH:0\nM6B:OBJECT2:DIGEST:cbf29ce484222325\nM6B:OBJECT3:REVISION:0\nM6B:OBJECT3:PRESENT:0\nM6B:OBJECT3:LENGTH:0\nM6B:OBJECT3:DIGEST:cbf29ce484222325\nM6B:ACKS:0\nM6B:REJECTED_NO_IO:3\nM6B:CASE:RECOVER:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "flush-error",
+    "case": "flush-error",
+    "started_utc": "2026-10-28T12:30:39.684862+00:00",
+    "duration_s": 2.5884035319995746,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:INJECT:FLUSH_IOERR_SNAPSHOT",
+      "M6B:OUTCOME:UNKNOWN",
+      "M6B:NO_REPLAY:PASS",
+      "M6B:NO_STALE_READ:PASS",
+      "M6B:CASE:FLUSH_ERROR:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-flush-error-132344d636/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-flush-error-132344d636/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-flush-error-132344d636/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-flush-error-fa91f17b79/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "9aa27d4404bf93db7e1cca2b779aebbbbd1abdb3a67ab40bf073f98050aca083",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "c00f766219a7eda7681ce42dfbb65376db74d25370cdd2b1f65248e5f54761ee",
+      "test-disk.after.img": "672f7a5cb7047ee3878fb4f920e55b34edd96a53e9fbda7f16139138cabc99fe",
+      "build-manifest.json": "e32e28903c09f42898646e8f3e1a3f638ef1955ed489cc61134548834e8ea04c",
+      "volume-manifest.json": "44d768f4f923978471e8bbb75fd743699471630efc7d830678242bd636cc37cd"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-flush-error-fa91f17b79/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "fa91f17b794640da9f148e4b37db0a34",
+      "seed": 10716592186786462860,
+      "variant": "normal",
+      "sha256_initial": "c00f766219a7eda7681ce42dfbb65376db74d25370cdd2b1f65248e5f54761ee",
+      "sha256_after": "672f7a5cb7047ee3878fb4f920e55b34edd96a53e9fbda7f16139138cabc99fe",
+      "state": {
+        "sequence": 1,
+        "objects": [
+          {
+            "revision": 1,
+            "present": true,
+            "length": 128,
+            "digest": "6afd46d48f832825"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": null,
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 11742,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "114c27897f7aa20022ed90e7447255ee72670cf00e7b732fa68781a6106d3801",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": null,
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-flush-error-132344d636",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:INJECT:FLUSH_IOERR_SNAPSHOT\nM6B:OUTCOME:UNKNOWN\nM6B:NO_REPLAY:PASS\nM6B:NO_STALE_READ:PASS\nM6B:CASE:FLUSH_ERROR:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "flush-error-cold-recovery",
+    "case": "recover",
+    "started_utc": "2026-10-28T12:30:44.608769+00:00",
+    "duration_s": 2.8964059439995253,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M6B:CASE:RECOVER:PASS",
+      "M6B:SURVIVOR_PROGRESS:PASS",
+      "M6B:RESOURCES:PASS",
+      "M6B:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL",
+      "M6A:FAIL",
+      "M6B:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m6b-flush-error-cold-recovery-ca9f0b5a16/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m6b-flush-error-cold-recovery-ca9f0b5a16/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m6b-flush-error-cold-recovery-ca9f0b5a16/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=none,id=m6b-test,format=raw,cache=writeback,readonly=off,file=build/run/m6b-volume-flush-error-fa91f17b79/test-disk.img",
+      "-device",
+      "virtio-blk-pci,drive=m6b-test,id=m6bblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6B-TEST",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "qemu_sha256": "7aa60f4da2e5b09c91e0285fbf77ca927f61b406acd1aae11003418bede07ac2",
+    "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "observed_source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "source_unchanged": true,
+    "artifact_sha256": {
+      "esp/kernel.elf": "48a44e7bb0959deb96d085e61a90d9aefb551603dbbef6cc97e7f1faa7d49735",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "OVMF_VARS.fd": "2e055c7e290084acf57c1d9a4229423c96493db030a6c2e6bb2c29155c87bd70",
+      "test-disk.before.img": "672f7a5cb7047ee3878fb4f920e55b34edd96a53e9fbda7f16139138cabc99fe",
+      "test-disk.after.img": "672f7a5cb7047ee3878fb4f920e55b34edd96a53e9fbda7f16139138cabc99fe",
+      "build-manifest.json": "9087053e067b120210dd8f707d2041f4869dda9c360fb223257a1b39476a232c",
+      "volume-manifest.json": "44d768f4f923978471e8bbb75fd743699471630efc7d830678242bd636cc37cd"
+    },
+    "volume_path": "/workspace/nieuw-os/build/run/m6b-volume-flush-error-fa91f17b79/test-disk.img",
+    "disk_oracle": {
+      "scope": "independent Python parser over actual synthetic 64KiB volume",
+      "identity": "fa91f17b794640da9f148e4b37db0a34",
+      "seed": 10716592186786462860,
+      "variant": "normal",
+      "sha256_initial": "c00f766219a7eda7681ce42dfbb65376db74d25370cdd2b1f65248e5f54761ee",
+      "sha256_after": "672f7a5cb7047ee3878fb4f920e55b34edd96a53e9fbda7f16139138cabc99fe",
+      "state": {
+        "sequence": 1,
+        "objects": [
+          {
+            "revision": 1,
+            "present": true,
+            "length": 128,
+            "digest": "6afd46d48f832825"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "observed": {
+        "state": {
+          "sequence": 1,
+          "objects": [
+            {
+              "revision": 1,
+              "present": true,
+              "length": 128,
+              "digest": "6afd46d48f832825"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 0,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "acks": 0,
+        "rejected": 3
+      },
+      "checks": {
+        "outside_journal_unchanged": true,
+        "journal_valid_or_explicit_corrupt_case": true,
+        "guest_matches_independent_disk_state": true,
+        "read_only_stage_unchanged": true,
+        "record_payloads_match_native_scenario": true,
+        "expected_final_state": true,
+        "exact_mutation_ack_count": true
+      },
+      "passed": true
+    },
+    "host_crash": {
+      "requested_cut": null,
+      "cut_lines": [],
+      "kill_requested": false,
+      "process_id": 11960,
+      "was_running_before_kill": false,
+      "required_live_hold_s": 0.05,
+      "termination_code_expected": -9,
+      "real_process_returncode": 33
+    },
+    "serial_sha256": "261605c7f6619da731c289830542b487360c78ef3a0972090e6afe5d6156f40b",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "previous_stage": "/workspace/nieuw-os/build/run/m6b-flush-error-132344d636",
+    "outcome_marker_passed": true,
+    "execution_error": null,
+    "oracle_error": null,
+    "run_directory": "/workspace/nieuw-os/build/run/m6b-flush-error-cold-recovery-ca9f0b5a16",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6B:SEQUENCE:1\nM6B:OBJECT0:REVISION:1\nM6B:OBJECT0:PRESENT:1\nM6B:OBJECT0:LENGTH:128\nM6B:OBJECT0:DIGEST:6afd46d48f832825\nM6B:OBJECT1:REVISION:0\nM6B:OBJECT1:PRESENT:0\nM6B:OBJECT1:LENGTH:0\nM6B:OBJECT1:DIGEST:cbf29ce484222325\nM6B:OBJECT2:REVISION:0\nM6B:OBJECT2:PRESENT:0\nM6B:OBJECT2:LENGTH:0\nM6B:OBJECT2:DIGEST:cbf29ce484222325\nM6B:OBJECT3:REVISION:0\nM6B:OBJECT3:PRESENT:0\nM6B:OBJECT3:LENGTH:0\nM6B:OBJECT3:DIGEST:cbf29ce484222325\nM6B:ACKS:0\nM6B:REJECTED_NO_IO:3\nM6B:CASE:RECOVER:PASS\nM6B:SURVIVOR_PROGRESS:PASS\nM6B:RESOURCES:PASS\nM6B:PASS\nM1:PASS\n",
+    "stderr": ""
+  },
+  {
+    "label": "m1-after-m6b",
+    "started_utc": "2026-10-28T12:30:47.872059+00:00",
+    "duration_s": 1.8770233989998815,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "M1:FAIL",
+      "M2:FAIL",
+      "M3:FAIL",
+      "M4:FAIL",
+      "M5:FAIL"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/run/m1-after-m6b-e89bbd60a3/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/run/m1-after-m6b-e89bbd60a3/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/m1-after-m6b-e89bbd60a3/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-L",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "profile": "development-package; pc-q35-10.0/qemu64/TCG/1CPU/256MiB",
+    "base_commit": "592dccfb329c05107866b18f7187e8b340ccab98",
+    "source_fingerprint_version": 3,
+    "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+    "artifact_sha256": {
+      "esp/kernel.elf": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    "firmware_source": [
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "/workspace/nieuw-os/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+    ],
+    "run_directory": "/workspace/nieuw-os/build/run/m1-after-m6b-e89bbd60a3",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nM1:PASS\n",
+    "stderr": "",
+    "expected_artifact_sha256": {
+      "esp/kernel.elf": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1",
+      "esp/EFI/BOOT/BOOTX64.EFI": "2417df2aa1289a6bc0397e6b2e1ec8eeb5bc602f46c4efb01cad5f540f09d3fb"
+    },
+    "artifact_binding_passed": true
+  }
+]

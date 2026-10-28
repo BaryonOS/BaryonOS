@@ -1,0 +1,15 @@
+I01 target build and scalar inspection passed: /workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-qsim/users/qsim/qsim-native-probe.elf
+   Compiling boot-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/boot-protocol)
+   Compiling r-efi v7.1.0
+   Compiling elf-loader-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/elf-loader-core)
+   Compiling os-loader v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/boot/loader)
+    Finished `release` profile [optimized] target(s) in 0.93s
+   Compiling virtio-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/virtio-core)
+   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)
+   Compiling block-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/services/block)
+   Compiling virtio-blk-driver v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/drivers/virtio-blk)
+   Compiling capability-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/capability-core)
+   Compiling kernel-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/kernel-core)
+   Compiling boot-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/boot-protocol)
+    Finished `release` profile [optimized] target(s) in 1.87s
+Built and inspected native-qsim: 3 ELF load segments

@@ -217,6 +217,36 @@ fn finish(object: u64) -> ! {
     rt::put(40, 1);
     rt::worker()
 }
+fn uncertain_client(domain: u64, object: u64) -> ! {
+    if domain == 0 {
+        // Only this first PUT may reach the device. The peer waits until the
+        // observer has seen its real Unknown reply delivered over IPC.
+        let next = value(object, 1);
+        let message = request(10, object, 0, wire::PUT, Some(&next));
+        let _ = transact(&message, wire::Status::Unknown);
+    }
+    wait(264);
+    let next = value(object, 1);
+    for (id, operation, bytes) in [
+        (20, wire::GET, None),
+        (21, wire::PUT, Some(&next)),
+        (22, wire::DELETE, None),
+        // Identical to the first domain-0 PUT: no automatic or explicit replay
+        // may publish another write in an uncertain service instance.
+        (10, wire::PUT, Some(&next)),
+    ] {
+        let message = request(id, object, 0, operation, bytes);
+        let (header, returned) = transact(&message, wire::Status::Unknown);
+        if header.revision != 0 || header.length != 0 || returned != [0; 128] {
+            rt::fail(43);
+        }
+    }
+    // Validation still precedes the uncertain-state guard. Domain denial must
+    // not expose an object, revision, payload or perform any block syscall.
+    let message = request(23, (1 - domain) * 2, 0, wire::GET, None);
+    let _ = transact(&message, wire::Status::Access);
+    finish(object)
+}
 fn client() -> ! {
     let case = rt::word(112);
     let domain = rt::word(0) - 1;
@@ -226,6 +256,9 @@ fn client() -> ! {
     }
     wait(256);
     authority_probes(object);
+    if matches!(case, 7..=13) {
+        uncertain_client(domain, object);
+    }
     if case == 1 {
         let _ = get(1, object);
         let _ = get(2, object + 1);

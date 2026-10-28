@@ -1,0 +1,55 @@
+{
+  "task": "I10 targeted document-session boundary review",
+  "reviewed_commit": "ccb2112072574d45b9c94c6f7181de23828bf79a",
+  "source_files": {
+    "crates/capability-core/Cargo.toml": "7b24ddba37bca5b44a8b75b6cc229e2ae06c7a44533fe0d6a121783ad7552087",
+    "crates/capability-core/src/lib.rs": "e201e714ad4f6e8e65c84af42002dfed1ec84c182959038593fbfb0e71d0d807",
+    "crates/capability-core/src/tests.rs": "d2adb64b348a7a2cbf272ae9f97d27e0b0f69e7cf5bc8f4c631e526b6ea7153a",
+    "sdk/Cargo.lock": "1a62818cb453dfd2ab07d56550a3b9c85ce50b311ba4401eea49015b60424875",
+    "sdk/Cargo.toml": "f929cb38e635f84289d947d5fcbc9c15e32b09ec57793fa7bef743a9e641a60b",
+    "sdk/catalog-client/Cargo.toml": "37a0182bd118b59ab53e8004309f4d81c9ef16adce8dca58deb897cc7c02d887",
+    "sdk/catalog-client/src/lib.rs": "5ca84b64fc6fc7384a0f92a5eb3c0f7532ba7ce982fe1008b1a9cef27bb34244",
+    "sdk/document-session/Cargo.toml": "a738cf966c7a2574b46759d872f7c7f3f2669c197a0d41d60ad0987d1dae2c85",
+    "sdk/document-session/README.md": "c0b053ee6e51630abf58166d4dd2d89942a859f58a1cc7a0be1bf472bff2117f",
+    "sdk/document-session/src/lib.rs": "d44f7105dbd6d6062a6ef65873f3160e870ae87fecbe0f0da8392556d5ee8e8e",
+    "sdk/document-session/tests/editing.rs": "0dde9b66305be7b6c93bb66ca78840ca1dfdfc1d3a31c4a7fd5e205e021a225f",
+    "sdk/runtime/Cargo.toml": "5062f7dc5bd8187c14a91b1127064f8f46741dfd28078a1c82da98e04278c56d",
+    "sdk/runtime/src/lib.rs": "c035469159e16e8615606ffff9a6b3246c74be536db2a2be3594d67be2b590f6",
+    "sdk/runtime/src/message.rs": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab",
+    "sdk/runtime/src/native.rs": "48758b9c92ed890260a7c0f2c3aebe81be0d0581639b924dcd4e5a8084e70c15",
+    "services/catalog/Cargo.toml": "56198ca8ae556bfb70569569d82c09437a34a1b2f27dc247e5a9d2a733d260ac",
+    "services/catalog/src/client.rs": "1a1474e3a829a4c247046ee916019e5857a1603efd4620d95e0c4a50ea4f0878",
+    "services/catalog/src/journal.rs": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+    "services/catalog/src/lib.rs": "375921af0dc4e449ede38beae0ebcd5a6b465018a9448585af96119a86b407cd",
+    "services/catalog/src/user_service.rs": "f822b19496b47a155aa62505cbec042d75a9d30c5829eef2153a547fc1072e01",
+    "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61"
+  },
+  "all_inputs_match_requested_commit": true,
+  "started_utc": "2026-10-28T16:14:02.119820+00:00",
+  "commands": [
+    {
+      "name": "document-session-tests",
+      "returncode": 0,
+      "evidence": "document-session-tests.json",
+      "evidence_sha256": "9762b86bd4c161077d13a7ba940aba6cb321d3b2f54312064b377a2ba81ba353"
+    },
+    {
+      "name": "native-library-build",
+      "returncode": 0,
+      "evidence": "native-library-build.json",
+      "evidence_sha256": "e6141721463fb0ef6f8e8e6cd5929b0df6440bd767d4c7bbbd37121839e06f5d"
+    }
+  ],
+  "native_vm_runs": 0,
+  "native_library_compile_only": true,
+  "environment": {
+    "CARGO_TARGET_DIR": "/tmp/nieuw-os-par-i10-target",
+    "CARGO_HOME": "/tmp/nieuw-os-par-tools/cargo-home",
+    "CARGO_BUILD_JOBS": "2"
+  },
+  "passed": true,
+  "source_unchanged": true,
+  "host_tests": 12,
+  "native_library_sha256": "93c8bfde768a4d9439c952ce6b3e2b3cb363cd649c0e0d42b21330f1285803d5",
+  "finished_utc": "2026-10-28T16:14:05.079276+00:00"
+}

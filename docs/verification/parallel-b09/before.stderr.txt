@@ -1,0 +1,18 @@
+test_unknown_staged_file_cannot_enter_the_hash_index (test_graphics_capture.GraphicsCapture.test_unknown_staged_file_cannot_enter_the_hash_index) ... FAIL
+
+======================================================================
+FAIL: test_unknown_staged_file_cannot_enter_the_hash_index (test_graphics_capture.GraphicsCapture.test_unknown_staged_file_cannot_enter_the_hash_index)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/debaa3b6a81c/wt-b07/tests/test_graphics_capture.py", line 338, in test_unknown_staged_file_cannot_enter_the_hash_index
+    with patch.object(c,"encode_png",side_effect=additional_file): self.rejected()
+                                                                   ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/debaa3b6a81c/wt-b07/tests/test_graphics_capture.py", line 103, in rejected
+    with self.assertRaises((ValueError,OSError,UnicodeError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'ValueError'>, <class 'OSError'>, <class 'UnicodeError'>) not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.042s
+
+FAILED (failures=1)

@@ -1,0 +1,120 @@
+x87-data16
+
+/tmp/nieuw-os-par-i04/x87-data16.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	int    0x80
+   2:	data16 fninit
+
+x87-repz
+
+/tmp/nieuw-os-par-i04/x87-repz.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	int    0x80
+   2:	repz fninit
+
+x87-chain
+
+/tmp/nieuw-os-par-i04/x87-chain.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	int    0x80
+   2:	data16 data16 cs repz fninit
+
+mmx-cs-emms
+
+/tmp/nieuw-os-par-i04/mmx-cs-emms.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	int    0x80
+   2:	cs emms
+
+mmx-addr32-emms
+
+/tmp/nieuw-os-par-i04/mmx-addr32-emms.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	int    0x80
+   2:	addr32 emms
+
+mmx-cs-pxor
+
+/tmp/nieuw-os-par-i04/mmx-cs-pxor.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	int    0x80
+   2:	cs pxor mm0,mm0
+
+sse-repnz-ldmxcsr
+
+/tmp/nieuw-os-par-i04/sse-repnz-ldmxcsr.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	int    0x80
+   2:	repnz ldmxcsr DWORD PTR [rax]
+
+sse-cs-stmxcsr
+
+/tmp/nieuw-os-par-i04/sse-cs-stmxcsr.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	int    0x80
+   2:	cs stmxcsr DWORD PTR [rax]
+
+sse-addr32-xorps
+
+/tmp/nieuw-os-par-i04/sse-addr32-xorps.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	int    0x80
+   2:	addr32 xorps xmm0,xmm0
+
+avx-addr32-vzeroupper
+
+/tmp/nieuw-os-par-i04/avx-addr32-vzeroupper.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	int    0x80
+   2:	addr32 vzeroupper
+
+avx-cs-vpxor
+
+/tmp/nieuw-os-par-i04/avx-cs-vpxor.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	int    0x80
+   2:	cs vpxor ymm0,ymm0,ymm0

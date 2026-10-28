@@ -1,0 +1,6 @@
+{
+  "old_command_observed_exit": 0,
+  "initial_expected_exit": 101,
+  "expectation_supported": false,
+  "meaning": "The former script did successfully find its linker in this installed Rust1.90 toolchain despite rust-lld being absent from the initial PATH. The change adopts the shared controlled environment; no reproduced linker failure is claimed."
+}

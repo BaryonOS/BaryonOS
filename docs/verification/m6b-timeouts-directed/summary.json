@@ -1,0 +1,22 @@
+{
+  "scope": "five directed actual VM runs; full updated M6b gate not yet executed",
+  "base_commit": "7b4945f",
+  "runtime_commit": "9c0c434",
+  "source_sha256": "b3e160371f2a1a1708bcf2f789c56dc93c7327c520b6ba27821678128c83c666",
+  "cases": [
+    "write-timeout",
+    "flush-timeout",
+    "reset-timeout",
+    "write-poll-limit",
+    "flush-poll-limit"
+  ],
+  "raw_exit": [
+    33,
+    33,
+    33,
+    33,
+    33
+  ],
+  "passed": true,
+  "command": "Python driver invoked build(kernel_feature=test-m6b-CASE), run_m6b(case,label=directed-CASE) sequentially; exact build and QEMU argv in build/logs and guest-runs.json."
+}

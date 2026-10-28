@@ -1,0 +1,16 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_m6b_*.py"
+  ],
+  "returncode": 0,
+  "duration_s": 0.7553107738494873,
+  "scope": "Independent host-harness unit tests; no kernel build/QEMU"
+}

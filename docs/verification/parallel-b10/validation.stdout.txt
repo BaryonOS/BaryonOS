@@ -1,0 +1,2 @@
+PASS: seven threads mapped to current source; no source fixes required; no deleted base paths
+PR14 itself remains on its old head until the stacked PR15 integration; evidence publication/review still applies

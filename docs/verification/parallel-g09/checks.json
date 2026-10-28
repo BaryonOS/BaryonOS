@@ -1,0 +1,93 @@
+{
+  "reviewed_commit": "764cc9f84291ed3ad7b0ea3de65debcbf1cc7da6",
+  "files_sha256": {
+    "tools/capture_graphics.py": "5d73519e8140faf8aae6208ef596593f8326c0853ee9ea5a1f24df43a93c7000",
+    "tools/common.py": "b1ce783b0e23671efde020ab7d3b4f7ceae266c45ddfa4ead2724c812b9720b1",
+    "tools/run_graphics.py": "fd406d0aebb03b04266793cd9d46cb673c691f4fd6a8659bf85405b58ac3e7bd",
+    "tests/test_graphics_capture.py": "48912403b1644a4bd5daf0b47fc80ac9d0e70da60a0e28f7c522727a4e6f4566",
+    "docs/verification/parallel-b07/README.md": "97db1e79d64034d4977935fc01d014f391dba26d8e50b1579cf6462893e913bb",
+    "docs/verification/parallel-b07/execution.json": "0df1248f6cae84f9bb726161b73b64aae355c7916fe30cb268f32e663f94da7f"
+  },
+  "immutable_git_snapshot": true,
+  "original_g0_artifacts_modified": false,
+  "task": "G09",
+  "commands": [
+    {
+      "name": "original-capture-tests",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_graphics_capture.py",
+        "-v"
+      ],
+      "cwd": "/tmp/nieuw-os-g09-review",
+      "exit": 0,
+      "duration_s": 1.0790581290020782,
+      "stdout": "original-capture-tests.stdout.txt",
+      "stderr": "original-capture-tests.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "d6c430aa1a500801c2e4380aa6a99e28c43b4b232a70a0b3403e08af4b447914"
+    },
+    {
+      "name": "review-boundaries",
+      "argv": [
+        "python3",
+        "-B",
+        "/workspace/scratch/debaa3b6a81c/wt-g01/docs/verification/parallel-g09/review_boundaries.py",
+        "/tmp/nieuw-os-g09-review"
+      ],
+      "cwd": "/workspace/scratch/debaa3b6a81c/wt-g01",
+      "exit": 0,
+      "duration_s": 0.21664951300044777,
+      "stdout": "review-boundaries.stdout.txt",
+      "stderr": "review-boundaries.stderr.txt",
+      "stdout_sha256": "e82a4ff9b446c69c4c337da2fb39275583788629d5d83533333ef95a4b165ede",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "new_vm_runs": 0,
+  "original_capture_tests_passed": true,
+  "independent_boundary_probes": {
+    "scope": "Two isolated synthetic publication-boundary probes; no native execution",
+    "same_bytes_input_replacement": {
+      "rejected": true,
+      "reason": "Inputs or source changed before archive publication",
+      "same_bytes_new_inode": true
+    },
+    "extra_staged_file_before_index": {
+      "rejected": false,
+      "published_extra_file": true,
+      "extra_file_in_capture_index": true,
+      "published_files": [
+        "a.png",
+        "ab.png",
+        "after-backspace.png",
+        "build-manifest.json",
+        "capture.json",
+        "image-roundtrip.json",
+        "initial.png",
+        "qmp-trace.json",
+        "result.json",
+        "serial.txt",
+        "stderr.txt",
+        "typed.png",
+        "unexpected.bin"
+      ]
+    }
+  },
+  "findings": [
+    {
+      "id": "G09-01",
+      "status": "open",
+      "scope": "Strict published artifact allowlist",
+      "summary": "A regular file inserted in private staging before metadata indexing is included and published; the final expected set is derived from the mutable directory itself.",
+      "minimum_fix": "Use a fixed output name set before indexing and again before publication; add a pre-index extra-file negative fixture."
+    }
+  ]
+}

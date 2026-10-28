@@ -6,6 +6,9 @@
 # Keep recorded serial/console bytes identical to their evidence hashes.
 docs/verification/m6b/*.txt -text
 docs/verification/regression-m6b/**/*.txt -text
+docs/verification/m6b-storage-errors/*.txt -text
+docs/verification/m6b-errors-review/*.txt -text
+docs/verification/m6b-storage-errors-checkpoint/*.txt -text
 docs/verification/m6c/**/*.txt -text
 docs/verification/m6c/*.txt -text
 docs/verification/m6c-review/**/*.txt -text
@@ -25,3 +28,6 @@ docs/verification/m6d-closeout-local/*.json -text
 docs/verification/m6d-closeout-m6b/*.json -text
 docs/verification/m6d-closeout-m6c/*.json -text
 docs/verification/regression-m6c/**/*.txt -text
+
+# Preserve exact raw bytes of current parallel acceptance and review logs.
+docs/verification/parallel-*/**/*.txt -text

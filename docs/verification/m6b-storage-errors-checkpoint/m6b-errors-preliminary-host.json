@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_m6b_*.py"
+  ],
+  "cwd": "/workspace/nieuw-os",
+  "started_unix": 1793190469.2914011,
+  "duration_s": 0.8233640193939209,
+  "returncode": 0
+}

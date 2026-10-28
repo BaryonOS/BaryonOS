@@ -1,0 +1,56 @@
+{
+  "rustc": {
+    "stdout_utf8": "rustc 1.90.0 (1159e78c4 2025-09-14)\n",
+    "stderr_utf8": "",
+    "stdout_sha256": "3397f54a03033c1b027496d83acc64e8f3ceeb4017e0575150f78726edce8a1a",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "cargo": {
+    "stdout_utf8": "cargo 1.90.0 (840b83a10 2025-07-30)\n",
+    "stderr_utf8": "",
+    "stdout_sha256": "5f9bdc5e0a6960db4a3cc66e9b3ae15bad5b9b506e8b7c49739c88dc5355c3f1",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "host-tests": {
+    "stdout_utf8": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 13 tests\ntest all_control_operations_and_pages_roundtrip_with_zero_unused_fields ... ok\ntest corrupted_magic_version_operation_and_zero_ids_are_rejected ... ok\ntest every_truncation_and_trailing_bytes_are_rejected ... ok\ntest every_reserved_header_byte_is_rejected_for_every_operation ... ok\ntest gate_codes_and_single_qubit_control_bytes_are_strict ... ok\ntest golden_bytes_fix_offsets_endianness_and_all_gate_codes ... ok\ntest maximum_gate_array_uses_the_last_three_payload_bytes ... ok\ntest limits_include_minima_maxima_empty_circuit_and_full_seed_range ... ok\ntest wire_limits_are_checked_before_gate_index_conversion ... ok\ntest typed_constructors_reject_out_of_range_input_before_encoding ... ok\ntest every_unused_gate_byte_must_remain_zero ... ok\ntest non_submit_operations_reject_every_unrelated_field_byte ... ok\ntest any_accepted_single_byte_mutation_roundtrips_without_normalization ... ok\n\ntest result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr_utf8": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/lib.rs (/tmp/nieuw-os-par-i08-target/debug/deps/qsim_job_protocol-4452383c95dc1864)\n     Running tests/codec.rs (/tmp/nieuw-os-par-i08-target/debug/deps/codec-b466981792eefe02)\n   Doc-tests qsim_job_protocol\n",
+    "stdout_sha256": "980460d504ac6d0e2c73c932d9bdd604e819052741e62e04f14100ed4a3536bd",
+    "stderr_sha256": "c38767f0b0bfeac9b9182ca629b677d3544b78aa8815c8035d694d77d0b011b8"
+  },
+  "fmt": {
+    "stdout_utf8": "",
+    "stderr_utf8": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "host-clippy": {
+    "stdout_utf8": "",
+    "stderr_utf8": "    Checking qsim-job-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-i01/experiments/quantum/job-protocol)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.19s\n",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "4736476a002ca70836c27b5ca7dbd096ceda6b689674787d92e46085c6cbdf41"
+  },
+  "native-build": {
+    "stdout_utf8": "",
+    "stderr_utf8": "    Finished `release` profile [optimized] target(s) in 0.07s\n",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "7a7bb64a28cdda9b91e6e27f41be455104d929b5d7ad6dd5beca75fc5a47f1f4"
+  },
+  "native-clippy": {
+    "stdout_utf8": "",
+    "stderr_utf8": "    Checking qsim-job-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-i01/experiments/quantum/job-protocol)\n    Finished `release` profile [optimized] target(s) in 0.18s\n",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "31f200d0cf00f1a0ac6d630550de6cecf3cfc616f57a9824ef18c7c3dc481293"
+  },
+  "dependency-tree": {
+    "stdout_utf8": "qsim-job-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-i01/experiments/quantum/job-protocol)\n",
+    "stderr_utf8": "",
+    "stdout_sha256": "78c6b3f2fccadf0e8d679fe9dec7ea2b5edce71a6956f9be2d4b7ee6ac7f4593",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "native-undefined-symbols": {
+    "stdout_utf8": "\nlib.rmeta:\n\nqsim_job_protocol-6b7e0f90cb33f929.qsim_job_protocol.1afa8958ff9c5258-cgu.0.rcgu.o:\n                 U _ZN4core5slice5index24slice_end_index_len_fail17h5d1b2fbea7aa5999E\n                 U memcpy\n                 U memset\n",
+    "stderr_utf8": "nm: lib.rmeta: no symbols\n",
+    "stdout_sha256": "cc22e46b05e8f45aac1d68c5b02864204acdecc9a56ff46919f88eab4c8b323e",
+    "stderr_sha256": "c21f787338db36ed302f5577d71f11b67d7db215cedf3b7dd0c5d810e0df72bf"
+  }
+}

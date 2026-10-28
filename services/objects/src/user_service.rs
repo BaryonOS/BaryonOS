@@ -3,8 +3,27 @@
 use crate::{journal, rt, wire};
 use wire::{Status, DELETE, GET, PUT};
 
-fn poll(cap: u64, ticket: u64, length: usize) -> Result<rt::Message, Status> {
-    for _ in 0..rt::LIMIT {
+fn abandon(cap: u64) {
+    // Existing cap-close ABI, not a new cancellation right or a claimed I/O
+    // outcome. This service owns one nonderivable block handle. Closing it lets
+    // the kernel observe authority loss and safely cancel/reset any pending DMA.
+    // Never retain an in-flight ticket behind an unobserved local poll failure.
+    if rt::call(0x10, [cap, 0, 0, 0, 0, 0]) != (0, 0) {
+        rt::fail(75);
+    }
+}
+fn mutation_poll_limit(number: u64) -> usize {
+    // Only the compile-time native fixture changes the local polling budget.
+    // Startup reads/FLUSH always use the normal limit. The case selects which
+    // mutating poll is shortened; it grants no authority to the process.
+    if cfg!(nos_m6b_poll_limit) && matches!((rt::word(112), number), (12, 0x42) | (13, 0x43)) {
+        1
+    } else {
+        rt::LIMIT
+    }
+}
+fn poll(cap: u64, ticket: u64, length: usize, limit: usize) -> Result<rt::Message, Status> {
+    for _ in 0..limit {
         let (code, amount) = rt::call(0x41, [cap, ticket, rt::OUT, 320, 0, 0]);
         if code == -8 {
             rt::yield_now();
@@ -22,10 +41,12 @@ fn poll(cap: u64, ticket: u64, length: usize) -> Result<rt::Message, Status> {
             || message.bytes[24..64].iter().any(|byte| *byte != 0)
             || message.bytes[64 + length..].iter().any(|byte| *byte != 0)
         {
+            abandon(cap);
             return Err(Status::Protocol);
         }
         return Ok(message);
     }
+    abandon(cap);
     Err(Status::Timeout)
 }
 fn submit(number: u64, args: [u64; 6]) -> Result<u64, Status> {
@@ -39,16 +60,16 @@ fn submit(number: u64, args: [u64; 6]) -> Result<u64, Status> {
         Err(Status::from_code(code))
     }
 }
-fn flush(cap: u64) -> Result<(), Status> {
+fn flush(cap: u64, limit: usize) -> Result<(), Status> {
     let ticket = submit(0x43, [cap, 0, 0, 0, 0, 0])?;
-    poll(cap, ticket, 0)?;
+    poll(cap, ticket, 0, limit)?;
     Ok(())
 }
 fn read_sector(cap: u64, index: u64) -> Result<[u8; journal::SECTOR], Status> {
     let mut record = [0; journal::SECTOR];
     for part in 0..4 {
         let ticket = submit(0x40, [cap, index, (part * 128) as u64, 128, 0, 0])?;
-        let message = poll(cap, ticket, 128)?;
+        let message = poll(cap, ticket, 128, rt::LIMIT)?;
         record[part * 128..part * 128 + 128].copy_from_slice(&message.bytes[64..192]);
     }
     Ok(record)
@@ -63,7 +84,7 @@ fn write_record(cap: u64, index: u64, record: &[u8; journal::SECTOR]) -> Result<
         }
     }
     let ticket = submit(0x42, [cap, index, rt::SECTOR, journal::SECTOR as u64, 0, 0])?;
-    poll(cap, ticket, 0)?;
+    poll(cap, ticket, 0, mutation_poll_limit(0x42))?;
     Ok(())
 }
 fn status(error: journal::Error) -> Status {
@@ -113,7 +134,7 @@ pub fn run() -> ! {
         Ok(current) => current,
         Err(_) => startup_error(Status::Corrupt),
     };
-    if let Err(error) = flush(cap) {
+    if let Err(error) = flush(cap, rt::LIMIT) {
         startup_error(error);
     }
     rt::put(128, current.sequence());
@@ -185,7 +206,7 @@ pub fn run() -> ! {
                                     write_record(cap, current.sequence(), prepared.record())
                                         .and_then(|()| {
                                             rt::put(192, 3);
-                                            flush(cap)
+                                            flush(cap, mutation_poll_limit(0x43))
                                         });
                                 if persisted.is_err() {
                                     uncertain = true;

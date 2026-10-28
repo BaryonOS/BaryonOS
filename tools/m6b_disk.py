@@ -185,7 +185,8 @@ def verify_volume(volume: Volume, stdout: str, *, case: str, before: bytes):
     checks["journal_valid_or_explicit_corrupt_case"] = corrupt == (case == "corrupt")
     try:
         observed = state_markers(stdout)
-        no_values = case in ("corrupt", "vm-cut-before-ack", "vm-cut-after-flush")
+        no_values = case in ("corrupt", "vm-cut-before-ack", "vm-cut-after-flush", "write-error", "flush-error",
+                             "write-timeout", "flush-timeout", "reset-timeout", "write-poll-limit", "flush-poll-limit")
         checks["guest_matches_independent_disk_state"] = observed is None if no_values else (
             observed is not None and observed["state"] == state)
     except ValueError:
@@ -215,6 +216,24 @@ def verify_volume(volume: Volume, stdout: str, *, case: str, before: bytes):
         elif case == "vm-cut-after-flush":
             checks["expected_final_state"] = (seq == 1 and records[0]["object"] in (0, 2)
                                                 and records[0]["revision"] == 1)
+        elif case in ("write-timeout", "reset-timeout", "write-poll-limit"):
+            # avail.idx publishes the first WRITE before notify is suppressed;
+            # a polling device may already have consumed that exact record.
+            # The uncertain service still cannot ACK, publish a peer mutation,
+            # or replay. Start from the normal fresh fixture in either outcome.
+            checks["expected_final_state"] = (volume.variant == "normal"
+                and before == volume.initial and (
+                    seq == 0 and data == volume.initial
+                    or seq == 1 and len(records) == 1
+                    and records[0]["object"] == 0 and records[0]["revision"] == 1
+                    and records[0]["operation"] == 2 and records[0]["request_id"] == 10
+                    and records[0]["payload"] == fixture_value(0, 1)))
+        elif case in ("write-error", "flush-error", "flush-timeout", "flush-poll-limit"):
+            # The injected status snapshot follows a real completion, so the
+            # first full record exists even though the service cannot ACK it.
+            checks["expected_final_state"] = (seq == 1 and len(records) == 1
+                and records[0]["object"] == 0 and records[0]["revision"] == 1
+                and records[0]["operation"] == 2 and records[0]["request_id"] == 10)
         else:
             checks["expected_final_state"] = False
     if observed:

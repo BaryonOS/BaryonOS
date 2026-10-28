@@ -63,13 +63,13 @@ def test_m6c():
 
     try:
         run_logged([sys.executable,'-B','tools/preflight.py','--strict'],'m6c-preflight')
-        record('strict-development-inventory',True,'build/logs/m6c-preflight.stdout.txt',['M6C-TOOLS'])
+        record('strict-development-inventory',True,BUILD/'logs/m6c-preflight.stdout.txt',['M6C-TOOLS'])
         run_logged(['cargo','+1.90.0','test','--locked','--offline','-p','catalog-core'],'m6c-host-tests')
-        record('catalog-core-and-wire-host-tests',True,'build/logs/m6c-host-tests.stdout.txt',
+        record('catalog-core-and-wire-host-tests',True,BUILD/'logs/m6c-host-tests.stdout.txt',
                ['M6C-REVISIONS','M6C-TOMBSTONES','M6C-BOUNDED-RECOVERY'])
         run_logged([sys.executable,'-B','-m','unittest','discover','-s','tests','-p','test_m6c_*.py'],
                    'm6c-harness-tests')
-        record('external-oracle-and-crash-harness-tests',True,'build/logs/m6c-harness-tests.stdout.txt',
+        record('external-oracle-and-crash-harness-tests',True,BUILD/'logs/m6c-harness-tests.stdout.txt',
                ['M6C-EVIDENCE','M6C-IMAGE-BOUNDARY'])
         normals=[]
         for suffix in ('a','b'):
@@ -86,7 +86,7 @@ def test_m6c():
                         scope='Canary seed variation; document bytes are explicitly deterministic.',
                         run_directories=[a['run_directory'],b['run_directory']])
         save_json(BUILD/'logs/m6c-two-image-check.json',comparison)
-        record('same-binary-two-canary-images',comparison['passed'],'build/logs/m6c-two-image-check.json',
+        record('same-binary-two-canary-images',comparison['passed'],BUILD/'logs/m6c-two-image-check.json',
                ['M6C-EXTERNAL-DISK-ORACLE'])
         for case in ('errors','full','corrupt','legacy','vm-cut-before-rename','vm-cut-after-rename') + M6C_FAULT_CASES:
             build(kernel_feature='test-m6c-'+case,label='m6c-'+case)

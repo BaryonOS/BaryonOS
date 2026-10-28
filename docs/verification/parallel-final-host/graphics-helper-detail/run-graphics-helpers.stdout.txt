@@ -1,0 +1,12 @@
+
+running 7 tests
+test decoder_reset_clears_both_modifier_sides_caps_and_partial_prefixes ... ok
+test graphics::tests::canonical_colors_encode_both_supported_device_formats ... ok
+test graphics::tests::helpers_reject_use_before_mapping_or_input_setup ... ok
+test graphics::tests::input_errors_reset_the_stream_and_aux_is_discarded ... ok
+test graphics::tests::span_checks_last_pixel_stride_and_exact_extent ... ok
+test graphics::tests::span_rejects_oversize_empty_high_bits_and_arithmetic_edges ... ok
+test graphics::tests::span_revalidates_metadata_before_any_hardware_access ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -191,6 +191,11 @@ class ArchiveDestination(unittest.TestCase):
 
 
 class RequiredArtifactBinding(unittest.TestCase):
+    def test_custom_archive_cannot_replace_verification_root_or_escape_it(self):
+        for destination in ('docs/verification', 'docs/verification/..', 'build/capture'):
+            with self.subTest(destination=destination), self.assertRaises(ValueError):
+                capture.capture(destination)
+
     def test_complete_fixed_m6b_and_m1_key_sets_are_accepted(self):
         self.assertEqual(len(M6B_KEYS), 9)
         self.assertEqual(len(M1_KEYS), 4)

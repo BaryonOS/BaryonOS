@@ -1,0 +1,2 @@
+    Checking nieuw-os-catalog-read-example v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/sdk/examples/catalog-read)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s

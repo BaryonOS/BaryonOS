@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/workspace/scratch/debaa3b6a81c/nieuw-os/experiments/quantum/native/build.py",
+    "--output-dir",
+    "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-qsim/users/qsim",
+    "--target-dir",
+    "/tmp/nieuw-os-par-final-qsim-target/qsim-user"
+  ],
+  "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+  "started_unix": 1793201808.5471187,
+  "duration_s": 0.5485730171203613,
+  "returncode": 0
+}

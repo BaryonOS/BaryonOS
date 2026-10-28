@@ -1,0 +1,7 @@
+{
+  "observed_utc": "2026-10-28T15:45:28.300212+00:00",
+  "path": "build/parallel-final-g0/run/graphics-g0-5ad6321b1d/serial.txt",
+  "bytes": 409,
+  "sha256": "53b8af732872d41510183073a89b610fcdaed00348ed44648819111dc55c2d68",
+  "scope": "Read-only snapshot after independent artifact hash failure; no source or original artifact modified."
+}

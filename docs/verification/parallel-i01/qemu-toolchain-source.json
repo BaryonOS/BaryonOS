@@ -1,0 +1,134 @@
+[
+  {
+    "package": "qemu-system-x86",
+    "version": "1:7.2+dfsg-7+deb12u18+b3",
+    "url": "https://deb.debian.org/debian/pool/main/q/qemu/qemu-system-x86_7.2+dfsg-7+deb12u18+b3_amd64.deb",
+    "sha256": "faf17e2cc7323acbb36bbd6329b61080e7ead0ebb92d33155f41b17d8db6fe15"
+  },
+  {
+    "package": "qemu-system-common",
+    "version": "1:7.2+dfsg-7+deb12u18+b3",
+    "url": "https://deb.debian.org/debian/pool/main/q/qemu/qemu-system-common_7.2+dfsg-7+deb12u18+b3_amd64.deb",
+    "sha256": "cc6bbe2d5e0b9ed6306f054008967b0564dc06b2558ea5142590f522ccca9b2b"
+  },
+  {
+    "package": "qemu-system-data",
+    "version": "1:7.2+dfsg-7+deb12u18",
+    "url": "https://deb.debian.org/debian/pool/main/q/qemu/qemu-system-data_7.2+dfsg-7+deb12u18_all.deb",
+    "sha256": "8d7647370573fe9871949acf60d0c000546c2c089008a70accb3d015781e6bf1"
+  },
+  {
+    "package": "seabios",
+    "version": "1.16.2-1",
+    "url": "https://deb.debian.org/debian/pool/main/s/seabios/seabios_1.16.2-1_all.deb",
+    "sha256": "08e5b3f761379f17a6051731cafa03e97686049e2cc1b8bdccc5a910646e2d8e"
+  },
+  {
+    "package": "ovmf",
+    "version": "2022.11-6+deb12u2",
+    "url": "https://deb.debian.org/debian/pool/main/e/edk2/ovmf_2022.11-6+deb12u2_all.deb",
+    "sha256": "e73d3d1a8799f7f6fc16b73501d913edcdd86237556fbff30693e747e6dc262e"
+  },
+  {
+    "package": "libaio1",
+    "version": "0.3.113-4",
+    "url": "https://deb.debian.org/debian/pool/main/liba/libaio/libaio1_0.3.113-4_amd64.deb",
+    "sha256": "d1476e4beab3d85f8a7d31de94c27472711ed3ef399ce70708e24b259426125b"
+  },
+  {
+    "package": "libcapstone4",
+    "version": "4.0.2-5",
+    "url": "https://deb.debian.org/debian/pool/main/c/capstone/libcapstone4_4.0.2-5_amd64.deb",
+    "sha256": "41277f0388184f6e3b9fc02eda3184afbc999314b25b77ed75e8049428bdfe5e"
+  },
+  {
+    "package": "libfdt1",
+    "version": "1.6.1-4+b1",
+    "url": "https://deb.debian.org/debian/pool/main/d/device-tree-compiler/libfdt1_1.6.1-4+b1_amd64.deb",
+    "sha256": "e7312b61267979a58ae1fa9e34746d077707560c955f6455d02a9ff0f8fa7995"
+  },
+  {
+    "package": "libpmem1",
+    "version": "1.12.1-2",
+    "url": "https://deb.debian.org/debian/pool/main/p/pmdk/libpmem1_1.12.1-2_amd64.deb",
+    "sha256": "63ed00821aecdb5537b51b6f378cf571144d02ac3af2f95141bfa0e397359a76"
+  },
+  {
+    "package": "librdmacm1",
+    "version": "44.0-2",
+    "url": "https://deb.debian.org/debian/pool/main/r/rdma-core/librdmacm1_44.0-2_amd64.deb",
+    "sha256": "16b18625834371d023b81477823074ea0d34c478d58dbef3f01107984f47d034"
+  },
+  {
+    "package": "libslirp0",
+    "version": "4.7.0-1",
+    "url": "https://deb.debian.org/debian/pool/main/libs/libslirp/libslirp0_4.7.0-1_amd64.deb",
+    "sha256": "e21e19f0e99e57f254162f61416ea82f00cbc6ab9eb6bead4f5a5a8944ede27e"
+  },
+  {
+    "package": "liburing2",
+    "version": "2.3-3",
+    "url": "https://deb.debian.org/debian/pool/main/libu/liburing/liburing2_2.3-3_amd64.deb",
+    "sha256": "c23077e3640e6cb4b819c134b3f41d5cf21b3edac099654b1b4142c3069a39a3"
+  },
+  {
+    "package": "libvdeplug2",
+    "version": "4.0.1-4",
+    "url": "https://deb.debian.org/debian/pool/main/v/vdeplug4/libvdeplug2_4.0.1-4_amd64.deb",
+    "sha256": "1ace8e6571009bb4b8e3c5e093609f30f3ffca96578d35d61100f1e73fd2110d"
+  },
+  {
+    "package": "libbrlapi0.8",
+    "version": "6.5-7+deb12u1",
+    "url": "https://deb.debian.org/debian/pool/main/b/brltty/libbrlapi0.8_6.5-7+deb12u1_amd64.deb",
+    "sha256": "7c8bfc4f1fb0a39f3bbc88a77f0b46f8feb923c4182207a95ea19ef01a9a43c7"
+  },
+  {
+    "package": "libcacard0",
+    "version": "1:2.8.0-3",
+    "url": "https://deb.debian.org/debian/pool/main/libc/libcacard/libcacard0_2.8.0-3_amd64.deb",
+    "sha256": "6ab099fc8ee08ebc52b85a4dc7534d7add9cefd6e0f450037b78a42e65804454"
+  },
+  {
+    "package": "libspice-server1",
+    "version": "0.15.1-1",
+    "url": "https://deb.debian.org/debian/pool/main/s/spice/libspice-server1_0.15.1-1_amd64.deb",
+    "sha256": "84ced2626aa55d876c08406492004c6e4e533358e9faf8745993c72340eada60"
+  },
+  {
+    "package": "libusbredirparser1",
+    "version": "0.13.0-2",
+    "url": "https://deb.debian.org/debian/pool/main/u/usbredir/libusbredirparser1_0.13.0-2_amd64.deb",
+    "sha256": "88573485ff4096850ebcbcb368f23e6c22e94e51622e4d592ecb9d15ca510b82"
+  },
+  {
+    "package": "libjpeg62-turbo",
+    "version": "1:2.1.5-2",
+    "url": "https://deb.debian.org/debian/pool/main/libj/libjpeg-turbo/libjpeg62-turbo_2.1.5-2_amd64.deb",
+    "sha256": "95ec30140789a342add8f8371ed018924de51b539056522b66f207b25cba9cad"
+  },
+  {
+    "package": "libndctl6",
+    "version": "76.1-1",
+    "url": "https://deb.debian.org/debian/pool/main/n/ndctl/libndctl6_76.1-1_amd64.deb",
+    "sha256": "3654dd3a0a05fdc28af8bcd307109ec41a9ea92218bf29816ff467a8c5e7d57f"
+  },
+  {
+    "package": "libdaxctl1",
+    "version": "76.1-1",
+    "url": "https://deb.debian.org/debian/pool/main/n/ndctl/libdaxctl1_76.1-1_amd64.deb",
+    "sha256": "af5f9ffe642ae25301eb88fdb2fa9e3c06dcfc5e131fbcee7575adf0adcc9abb"
+  },
+  {
+    "package": "libibverbs1",
+    "version": "44.0-2",
+    "url": "https://deb.debian.org/debian/pool/main/r/rdma-core/libibverbs1_44.0-2_amd64.deb",
+    "sha256": "35054815259fee46173240254246d03b673a5cd5c528aaac96fd15ac428a8d59"
+  },
+  {
+    "package": "libnl-route-3-200",
+    "version": "3.7.0-0.2+b1",
+    "url": "https://deb.debian.org/debian/pool/main/libn/libnl3/libnl-route-3-200_3.7.0-0.2+b1_amd64.deb",
+    "sha256": "0fdcc425ae2982788c085c76a7cb0eda3e3db99d41bd1ce56082ee18e9f1e21f"
+  }
+]

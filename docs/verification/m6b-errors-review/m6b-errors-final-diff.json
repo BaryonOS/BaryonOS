@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/usr/local/bin/git",
+    "diff",
+    "--check"
+  ],
+  "cwd": "/workspace/nieuw-os",
+  "started_unix": 1793190664.2168145,
+  "duration_s": 0.03857016563415527,
+  "returncode": 0
+}

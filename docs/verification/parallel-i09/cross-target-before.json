@@ -1,0 +1,212 @@
+{
+  "scenario": "synthetic within-sysroot target-libdir substitution",
+  "expected_strict_exit": 2,
+  "actual_strict_exit": 0,
+  "native_execution": false,
+  "inventory": {
+    "schema_version": 2,
+    "scope": "inventory only; no build, boot, acceleration or ABI validated",
+    "workspace": "/workspace/scratch/debaa3b6a81c/wt-i01",
+    "host": {
+      "system": "Linux",
+      "architecture": "x86_64",
+      "python": "3.12.14"
+    },
+    "tools": {
+      "git": {
+        "available": true,
+        "probe_exit": 0,
+        "path": "synthetic-git",
+        "version": "git synthetic"
+      },
+      "rustc": {
+        "available": true,
+        "probe_exit": 0,
+        "path": "synthetic-rustc",
+        "version": "rustc 1.90.0 (synthetic)"
+      },
+      "cargo": {
+        "available": true,
+        "probe_exit": 0,
+        "path": "synthetic-cargo",
+        "version": "cargo synthetic"
+      },
+      "rustup": {
+        "available": false,
+        "path": null,
+        "version": null
+      },
+      "qemu-system-x86_64": {
+        "available": true,
+        "probe_exit": 0,
+        "path": "synthetic-qemu-system-x86_64",
+        "version": "qemu-system-x86_64 synthetic"
+      },
+      "ld.lld": {
+        "available": true,
+        "probe_exit": 0,
+        "path": "synthetic-ld.lld",
+        "version": "ld.lld synthetic"
+      },
+      "clang": {
+        "available": true,
+        "probe_exit": 0,
+        "path": "synthetic-clang",
+        "version": "clang synthetic"
+      },
+      "cc": {
+        "available": true,
+        "probe_exit": 0,
+        "path": "synthetic-cc",
+        "version": "cc synthetic"
+      },
+      "python3": {
+        "available": true,
+        "probe_exit": 0,
+        "path": "synthetic-python3",
+        "version": "python3 synthetic"
+      }
+    },
+    "rust_toolchain": {
+      "toolchain": "1.90.0",
+      "compiler_valid": true,
+      "sysroot": "/tmp/tmp7bp4tlze/sysroot",
+      "targets": {
+        "x86_64-unknown-uefi": {
+          "query": {
+            "command": [
+              "synthetic-rustc",
+              "+1.90.0",
+              "--print",
+              "target-libdir",
+              "--target",
+              "x86_64-unknown-uefi"
+            ],
+            "exit_code": 0,
+            "stdout": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-uefi/lib\n",
+            "stderr": ""
+          },
+          "available": true,
+          "directory": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib",
+          "libraries": {
+            "core": {
+              "library": "core",
+              "available": true,
+              "files": [
+                {
+                  "path": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib/libcore-fixture.rlib",
+                  "usable_archive": true,
+                  "resolved_path": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib/libcore-fixture.rlib",
+                  "size_bytes": 92
+                }
+              ]
+            },
+            "alloc": {
+              "library": "alloc",
+              "available": true,
+              "files": [
+                {
+                  "path": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib/liballoc-fixture.rlib",
+                  "usable_archive": true,
+                  "resolved_path": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib/liballoc-fixture.rlib",
+                  "size_bytes": 92
+                }
+              ]
+            },
+            "compiler_builtins": {
+              "library": "compiler_builtins",
+              "available": true,
+              "files": [
+                {
+                  "path": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib/libcompiler_builtins-fixture.rlib",
+                  "usable_archive": true,
+                  "resolved_path": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib/libcompiler_builtins-fixture.rlib",
+                  "size_bytes": 92
+                }
+              ]
+            }
+          }
+        },
+        "x86_64-unknown-none": {
+          "query": {
+            "command": [
+              "synthetic-rustc",
+              "+1.90.0",
+              "--print",
+              "target-libdir",
+              "--target",
+              "x86_64-unknown-none"
+            ],
+            "exit_code": 0,
+            "stdout": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib\n",
+            "stderr": ""
+          },
+          "available": true,
+          "directory": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib",
+          "libraries": {
+            "core": {
+              "library": "core",
+              "available": true,
+              "files": [
+                {
+                  "path": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib/libcore-fixture.rlib",
+                  "usable_archive": true,
+                  "resolved_path": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib/libcore-fixture.rlib",
+                  "size_bytes": 92
+                }
+              ]
+            },
+            "alloc": {
+              "library": "alloc",
+              "available": true,
+              "files": [
+                {
+                  "path": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib/liballoc-fixture.rlib",
+                  "usable_archive": true,
+                  "resolved_path": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib/liballoc-fixture.rlib",
+                  "size_bytes": 92
+                }
+              ]
+            },
+            "compiler_builtins": {
+              "library": "compiler_builtins",
+              "available": true,
+              "files": [
+                {
+                  "path": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib/libcompiler_builtins-fixture.rlib",
+                  "usable_archive": true,
+                  "resolved_path": "/tmp/tmp7bp4tlze/sysroot/lib/rustlib/x86_64-unknown-none/lib/libcompiler_builtins-fixture.rlib",
+                  "size_bytes": 92
+                }
+              ]
+            }
+          }
+        }
+      },
+      "rustup_reported_targets": [],
+      "scope": "compiler-selected directories and archive presence; no build or ABI validation",
+      "sysroot_query": {
+        "command": [
+          "synthetic-rustc",
+          "+1.90.0",
+          "--print",
+          "sysroot"
+        ],
+        "exit_code": 0,
+        "stdout": "/tmp/tmp7bp4tlze/sysroot\n",
+        "stderr": ""
+      }
+    },
+    "installed_rust_targets": [
+      "x86_64-unknown-uefi",
+      "x86_64-unknown-none"
+    ],
+    "missing_rust_targets": [],
+    "firmware_candidates": [
+      "/tmp/tmp7bp4tlze/OVMF_CODE.fd"
+    ],
+    "missing": [],
+    "baseline_tools_present": true,
+    "next": "Compare versions against docs/implementation/BOOT-AND-TOOLCHAIN.md; then build and run the real smoke test."
+  }
+}

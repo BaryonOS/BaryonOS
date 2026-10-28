@@ -1,0 +1,2 @@
+    Checking qsim-job-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-i01/experiments/quantum/job-protocol)
+    Finished `release` profile [optimized] target(s) in 0.18s

@@ -12,8 +12,8 @@ import subprocess
 import threading
 import time
 import uuid
-from common import ROOT, BUILD, environment, firmware, save_json, sha256, source_hash
-from build import M6B_CASES
+from common import ROOT, BUILD, environment, firmware, qemu_machine, save_json, sha256, source_hash
+from build import M6B_CASES, M6B_FAULT_CASES, M6B_TIMEOUT_CASES
 from m6b_disk import Volume, create_volume, verify_volume
 from run import is_success, FAIL_MARKERS
 
@@ -52,13 +52,31 @@ def kill_for_crash(process):
 
 def case_markers(case):
     name = "NORMAL" if case == "normal" else case.upper().replace("-", "_")
-    return BOOT + (f"M6B:CASE:{name}:PASS", "M6B:SURVIVOR_PROGRESS:PASS",
+    fault = ()
+    if case in M6B_TIMEOUT_CASES:
+        operation = 'FLUSH' if case.startswith('flush') else 'WRITE'
+        fault = (f'M6B:INJECT:{operation}_NOTIFY_SUPPRESSED',)
+        if case.endswith('poll-limit'):
+            fault += ('M6B:CANCEL:BLOCK_CAP_CLOSED', 'M6B:POLL_LIMIT:CANCELLED')
+        else:
+            fault += (f'M6B:DEADLINE:{operation}_TIMEOUT',)
+        fault += ('M6B:RESET:REQUESTED',)
+        fault += (('M6B:INJECT:RESET_ACK_MASKED', 'M6B:RESET:QUARANTINED', 'M6B:POOL_PINNED:PASS')
+                  if case == 'reset-timeout' else
+                  ('M6B:RESET:ACKNOWLEDGED', 'M6B:POOL_REUSE_AFTER_ACK:PASS'))
+    elif case in M6B_FAULT_CASES:
+        fault = (f"M6B:INJECT:{name.removesuffix('_ERROR')}_IOERR_SNAPSHOT",)
+    if case in M6B_FAULT_CASES:
+        fault += ("M6B:OUTCOME:UNKNOWN", "M6B:NO_REPLAY:PASS", "M6B:NO_STALE_READ:PASS")
+    return BOOT + fault + (f"M6B:CASE:{name}:PASS", "M6B:SURVIVOR_PROGRESS:PASS",
                    "M6B:RESOURCES:PASS", "M6B:PASS", "M1:PASS")
 
 
 def unique_markers(stdout, expected):
     prefixes = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "M6B:CASE:",
-                "M6B:SURVIVOR_PROGRESS", "M6B:RESOURCES", "M6B:PASS", "M1:PASS", "M6B:CUT:", "M6A:")
+                "M6B:SURVIVOR_PROGRESS", "M6B:RESOURCES", "M6B:PASS", "M1:PASS", "M6B:CUT:", "M6A:",
+                "M6B:INJECT", "M6B:OUTCOME", "M6B:NO_REPLAY", "M6B:NO_STALE_READ",
+                "M6B:DEADLINE", "M6B:CANCEL", "M6B:POLL_LIMIT", "M6B:RESET:", "M6B:POOL_")
     controlled = [line for line in stdout.splitlines()
                   if any(line.startswith(p) for p in prefixes)
                   or line.startswith("M6B:") and ":PASS" in line]
@@ -66,7 +84,7 @@ def unique_markers(stdout, expected):
 
 
 def normal_success(rc, stdout, timed_out, case):
-    if case not in ("normal", "recover", "errors", "full", "corrupt"):
+    if case not in ("normal", "recover", "errors", "full", "corrupt") + M6B_FAULT_CASES:
         return False
     markers = case_markers(case)
     return (unique_markers(stdout, markers) and is_success(rc, stdout, timed_out,
@@ -187,6 +205,8 @@ def execute(args, env, *, cut=None, timeout=60, capture_directory=None):
 
 
 def run_m6b(case="normal", *, volume: Volume | None = None, label=None, timeout=60):
+    if not BUILD.resolve().is_relative_to(ROOT.resolve()):
+        raise ValueError("NOS_BUILD_DIR must be inside the checkout for QEMU runs")
     if case not in ("normal",) + M6B_CASES:
         raise ValueError("Unknown M6b case")
     if not 0 < timeout <= 60:
@@ -203,6 +223,7 @@ def run_m6b(case="normal", *, volume: Volume | None = None, label=None, timeout=
     if not isinstance(volume, Volume):
         raise ValueError("Only this harness's synthetic Volume objects are accepted")
     image = volume.guard()
+    machine = qemu_machine()
     frozen = source_hash()
     previous = previous_stage(volume, expected_source=frozen) if case == "recover" else None
     if case != "recover" and (volume.directory / "last-stage.json").exists():
@@ -235,7 +256,7 @@ def run_m6b(case="normal", *, volume: Volume | None = None, label=None, timeout=
         shutil.copy2(src, run_dir / name)
     rel = run_dir.relative_to(ROOT).as_posix()
     image_rel = image.relative_to(ROOT).as_posix()
-    args = [qemu, "-machine", "pc-q35-10.0", "-accel", "tcg,thread=single", "-cpu", "qemu64",
+    args = [qemu, "-machine", machine, "-accel", "tcg,thread=single", "-cpu", "qemu64",
             "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none",
             "-serial", "stdio", "-nic", "none", "-no-reboot",
             "-drive", f"if=pflash,unit=0,format=raw,readonly=on,file={rel}/OVMF_CODE.fd",
@@ -288,7 +309,7 @@ def run_m6b(case="normal", *, volume: Volume | None = None, label=None, timeout=
     markers = BOOT + (f"M6B:CUT:{cut}",) if cut is not None else case_markers(case)
     guest_pass = crash.get("passed", False) if cut is not None else normal_success(rc, out, timed_out, case)
     outcome_lines = [line for line in out.splitlines() if line.startswith("M6B:OUTCOME")]
-    outcome_pass = not outcome_lines  # Native Unknown/no-replay is a separate future fault gate.
+    outcome_pass = outcome_lines == (["M6B:OUTCOME:UNKNOWN"] if case in M6B_FAULT_CASES else [])
     artifacts = {p.relative_to(run_dir).as_posix(): sha256(p)
                  for p in (run_dir / "esp").rglob("*") if p.is_file()}
     artifacts.update({name: sha256(run_dir / name) for name in (
@@ -303,7 +324,7 @@ def run_m6b(case="normal", *, volume: Volume | None = None, label=None, timeout=
         "passed": bool(execution_error is None and oracle_error is None and source_unchanged
                        and guest_pass and oracle["passed"] and outcome_pass),
         "command": args, "qemu_version": version, "qemu_sha256": qemu_hash,
-        "profile": "M6b pc-q35-10.0/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+        "profile": f"M6b {machine}/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
         "firmware_source": [str(code), str(variables)], "base_commit": base_commit,
         "source_fingerprint_version": 3, "source_sha256": frozen,
         "observed_source_sha256": observed_source, "source_unchanged": source_unchanged,

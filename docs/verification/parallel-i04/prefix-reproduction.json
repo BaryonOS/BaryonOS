@@ -1,0 +1,327 @@
+{
+  "base_commit": "b6743b464dfeee528bdd8b0caacacdca2f87d925",
+  "old_gate_sha256": "7b2e171d8418ab838736b8c995029f565c5aa16b06879ae415a2e79b8a992a5f",
+  "new_gate_sha256": "269d0d6abdfba5385554ec40a992cf7acfcc3de5b70251c58cef8babc59a78fa",
+  "objdump_version": "GNU objdump (GNU Binutils for Ubuntu) 2.42",
+  "fixtures_executed": false,
+  "cases": [
+    {
+      "name": "x87-data16",
+      "bytes_hex": "cd8066dbe3",
+      "command": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-par-i04/x87-data16.bin"
+      ],
+      "returncode": 0,
+      "output_sha256": "74cd8c4d1130bd4693786c68f508fce57d21503b145b6cef96bc3eebb9231046",
+      "before": {
+        "accepted": true,
+        "result": {
+          "decoded_instructions": 2,
+          "int80_sites": 1,
+          "extended_registers_found": false
+        }
+      },
+      "after": {
+        "accepted": false,
+        "error": "unsupported instruction at 2: data16 fninit"
+      }
+    },
+    {
+      "name": "x87-repz",
+      "bytes_hex": "cd80f3dbe3",
+      "command": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-par-i04/x87-repz.bin"
+      ],
+      "returncode": 0,
+      "output_sha256": "d9f86208e3acd4efe6dc1bfaf1f09f4b19b6979f9288460aa99ed91db7ecc3d6",
+      "before": {
+        "accepted": true,
+        "result": {
+          "decoded_instructions": 2,
+          "int80_sites": 1,
+          "extended_registers_found": false
+        }
+      },
+      "after": {
+        "accepted": false,
+        "error": "unsupported instruction at 2: repz fninit"
+      }
+    },
+    {
+      "name": "x87-chain",
+      "bytes_hex": "cd8066662ef3dbe3",
+      "command": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-par-i04/x87-chain.bin"
+      ],
+      "returncode": 0,
+      "output_sha256": "0651e1fcdd34d9d85191a05d37d5dc1a9e50b3fe75fb80217b0ef7e50d80320e",
+      "before": {
+        "accepted": true,
+        "result": {
+          "decoded_instructions": 2,
+          "int80_sites": 1,
+          "extended_registers_found": false
+        }
+      },
+      "after": {
+        "accepted": false,
+        "error": "unsupported instruction at 2: data16 data16 cs repz fninit"
+      }
+    },
+    {
+      "name": "mmx-cs-emms",
+      "bytes_hex": "cd802e0f77",
+      "command": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-par-i04/mmx-cs-emms.bin"
+      ],
+      "returncode": 0,
+      "output_sha256": "a4ab0b64d39f9bfcdf81042ac0b2a8bec9b52b84f80ce38a3d69750f18691c82",
+      "before": {
+        "accepted": true,
+        "result": {
+          "decoded_instructions": 2,
+          "int80_sites": 1,
+          "extended_registers_found": false
+        }
+      },
+      "after": {
+        "accepted": false,
+        "error": "unsupported instruction at 2: cs emms"
+      }
+    },
+    {
+      "name": "mmx-addr32-emms",
+      "bytes_hex": "cd80670f77",
+      "command": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-par-i04/mmx-addr32-emms.bin"
+      ],
+      "returncode": 0,
+      "output_sha256": "2e51d71c5a82db600b369830b602e4385e6c7cd3c2c34571ac78cd7e8b1832fb",
+      "before": {
+        "accepted": true,
+        "result": {
+          "decoded_instructions": 2,
+          "int80_sites": 1,
+          "extended_registers_found": false
+        }
+      },
+      "after": {
+        "accepted": false,
+        "error": "unsupported instruction at 2: addr32 emms"
+      }
+    },
+    {
+      "name": "mmx-cs-pxor",
+      "bytes_hex": "cd802e0fefc0",
+      "command": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-par-i04/mmx-cs-pxor.bin"
+      ],
+      "returncode": 0,
+      "output_sha256": "a32849060eb219cac9c081f3fbe2b3fc6ab1ab2fa2866b442ef5abe6abb4cf37",
+      "before": {
+        "accepted": false,
+        "error": "non-scalar instruction at 2: cs pxor mm0,mm0"
+      },
+      "after": {
+        "accepted": false,
+        "error": "unsupported instruction at 2: cs pxor mm0,mm0"
+      }
+    },
+    {
+      "name": "sse-repnz-ldmxcsr",
+      "bytes_hex": "cd80f20fae10",
+      "command": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-par-i04/sse-repnz-ldmxcsr.bin"
+      ],
+      "returncode": 0,
+      "output_sha256": "e6a60337812e0b5e8244654bf5a141061d7ef07ffa307751448f65b34e800877",
+      "before": {
+        "accepted": true,
+        "result": {
+          "decoded_instructions": 2,
+          "int80_sites": 1,
+          "extended_registers_found": false
+        }
+      },
+      "after": {
+        "accepted": false,
+        "error": "unsupported instruction at 2: repnz ldmxcsr DWORD PTR [rax]"
+      }
+    },
+    {
+      "name": "sse-cs-stmxcsr",
+      "bytes_hex": "cd802e0fae18",
+      "command": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-par-i04/sse-cs-stmxcsr.bin"
+      ],
+      "returncode": 0,
+      "output_sha256": "91933bbf8b16048a2c87642c81377bcb97ab13b22945581803088b8d8b5539a8",
+      "before": {
+        "accepted": true,
+        "result": {
+          "decoded_instructions": 2,
+          "int80_sites": 1,
+          "extended_registers_found": false
+        }
+      },
+      "after": {
+        "accepted": false,
+        "error": "unsupported instruction at 2: cs stmxcsr DWORD PTR [rax]"
+      }
+    },
+    {
+      "name": "sse-addr32-xorps",
+      "bytes_hex": "cd80670f57c0",
+      "command": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-par-i04/sse-addr32-xorps.bin"
+      ],
+      "returncode": 0,
+      "output_sha256": "8c20fb4e3fb8b91041678311d0ea8867ed289a115dc6637a5e73ad3f7add4719",
+      "before": {
+        "accepted": false,
+        "error": "non-scalar instruction at 2: addr32 xorps xmm0,xmm0"
+      },
+      "after": {
+        "accepted": false,
+        "error": "unsupported instruction at 2: addr32 xorps xmm0,xmm0"
+      }
+    },
+    {
+      "name": "avx-addr32-vzeroupper",
+      "bytes_hex": "cd8067c5f877",
+      "command": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-par-i04/avx-addr32-vzeroupper.bin"
+      ],
+      "returncode": 0,
+      "output_sha256": "b5a05f9273efc6410ff61ae514db0e6622937e46e175dc289097495bf9bf6d61",
+      "before": {
+        "accepted": true,
+        "result": {
+          "decoded_instructions": 2,
+          "int80_sites": 1,
+          "extended_registers_found": false
+        }
+      },
+      "after": {
+        "accepted": false,
+        "error": "unsupported instruction at 2: addr32 vzeroupper"
+      }
+    },
+    {
+      "name": "avx-cs-vpxor",
+      "bytes_hex": "cd802ec5fdefc0",
+      "command": [
+        "objdump",
+        "-D",
+        "-b",
+        "binary",
+        "-m",
+        "i386:x86-64",
+        "--no-show-raw-insn",
+        "-M",
+        "intel",
+        "/tmp/nieuw-os-par-i04/avx-cs-vpxor.bin"
+      ],
+      "returncode": 0,
+      "output_sha256": "f91be9563ae0368ef1c9bfeb08c875138d775b0e9124f4eb14bf07d2840e12d6",
+      "before": {
+        "accepted": false,
+        "error": "non-scalar instruction at 2: cs vpxor ymm0,ymm0,ymm0"
+      },
+      "after": {
+        "accepted": false,
+        "error": "unsupported instruction at 2: cs vpxor ymm0,ymm0,ymm0"
+      }
+    }
+  ]
+}

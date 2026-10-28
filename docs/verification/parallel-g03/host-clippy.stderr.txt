@@ -1,0 +1,5 @@
+    Checking capability-core v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/crates/capability-core)
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/sdk/runtime)
+    Checking catalog-core v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/services/catalog)
+    Checking nieuw-os-catalog-client v0.1.0 (/workspace/scratch/debaa3b6a81c/wt-g01/sdk/catalog-client)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.38s

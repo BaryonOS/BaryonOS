@@ -1,4 +1,8 @@
 fn main() {
+    println!("cargo:rerun-if-env-changed=NOS_QSIM_ELF");
+    if let Ok(path) = std::env::var("NOS_QSIM_ELF") {
+        println!("cargo:rerun-if-changed={path}");
+    }
     println!("cargo:rerun-if-env-changed=NOS_M6C_ELF");
     if let Ok(path) = std::env::var("NOS_M6C_ELF") {
         println!("cargo:rerun-if-changed={path}");

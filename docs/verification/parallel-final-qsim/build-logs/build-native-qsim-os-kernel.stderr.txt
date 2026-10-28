@@ -1,0 +1,8 @@
+   Compiling virtio-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/virtio-core)
+   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)
+   Compiling block-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/services/block)
+   Compiling virtio-blk-driver v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/drivers/virtio-blk)
+   Compiling capability-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/capability-core)
+   Compiling kernel-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/kernel-core)
+   Compiling boot-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/boot-protocol)
+    Finished `release` profile [optimized] target(s) in 1.87s

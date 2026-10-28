@@ -1,0 +1,6 @@
+{
+  "scope": "project-local ROM lookup, no host config or source changes",
+  "rom": "/workspace/nieuw-os/.tools/nieuw-os/qemu-debian/root/usr/share/seabios/vgabios-stdvga.bin",
+  "sha256": "88277c3ebff60fe83696d99d44b7eee4426112ee1763c87347c30a5b75781932",
+  "private_symlink": ".tools/nieuw-os/qemu-debian/root/usr/share/qemu/vgabios-stdvga.bin"
+}

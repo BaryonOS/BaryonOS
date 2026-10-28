@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "task": "G02",
+  "cwd": "/workspace/scratch/debaa3b6a81c/wt-g01",
+  "base_commit": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+  "source_commit": "0617670585c818b9650f4ddef6e714f1be9fb034",
+  "scope": "native crossbuild and source preservation; no VM execution",
+  "checks": [
+    {
+      "name": "runtime-build",
+      "command": [
+        "rustc",
+        "+1.90.0",
+        "--edition=2021",
+        "--target=x86_64-unknown-none",
+        "-C",
+        "panic=abort",
+        "-C",
+        "opt-level=2",
+        "-C",
+        "code-model=small",
+        "-C",
+        "relocation-model=static",
+        "-C",
+        "no-redzone=yes",
+        "--crate-name=nieuw_os_sdk_runtime",
+        "--crate-type=rlib",
+        "sdk/runtime/src/lib.rs",
+        "-o",
+        "/tmp/nieuw-os-par-g02-proof/libnieuw_os_sdk_runtime.rlib"
+      ],
+      "exit_code": 0,
+      "stdout": "runtime-build.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "runtime-build.stderr.txt",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "probe-build",
+      "command": [
+        "rustc",
+        "+1.90.0",
+        "--edition=2021",
+        "--target=x86_64-unknown-none",
+        "-C",
+        "panic=abort",
+        "-C",
+        "opt-level=2",
+        "-C",
+        "code-model=small",
+        "-C",
+        "relocation-model=static",
+        "-C",
+        "no-redzone=yes",
+        "--crate-name=os_user_m6c_sdk_probe",
+        "--crate-type=bin",
+        "-C",
+        "linker=rust-lld",
+        "-C",
+        "link-arg=-Tuserspace/m6c_linker.ld",
+        "-C",
+        "link-arg=--no-pie",
+        "-C",
+        "link-arg=--build-id=none",
+        "-C",
+        "link-arg=-zmax-page-size=0x1000",
+        "--emit=link",
+        "--cfg",
+        "nos_sdk_runtime",
+        "--extern",
+        "nieuw_os_sdk_runtime=/tmp/nieuw-os-par-g02-proof/libnieuw_os_sdk_runtime.rlib",
+        "-o",
+        "/tmp/nieuw-os-par-g02-proof/m6c_sdk_probe.elf",
+        "userspace/m6c_probe.rs"
+      ],
+      "exit_code": 0,
+      "stdout": "probe-build.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "probe-build.stderr.txt",
+      "stderr_sha256": "f14100bfb376624505f5250df55b1c93d8dcb1ce898b8517ad4bbb5498cbf1e9"
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "rustfmt",
+        "--edition",
+        "2021",
+        "--config",
+        "skip_children=true",
+        "--check",
+        "userspace/sdk_probe_runtime.rs"
+      ],
+      "exit_code": 0,
+      "stdout": "rustfmt.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "rustfmt.stderr.txt",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "diff-check.stdout.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "diff-check.stderr.txt",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source_sha256": {
+    "userspace/m6c_probe.rs": "ae3d61e66d6572096462a8b67a0861a4e7d1c76276281340a256832461b97014",
+    "userspace/m6_runtime.rs": "f4af399746e113bbc08ef8b629ebd2ee569ef4bb4aaa0b5ed1ca65644aaa41bf",
+    "userspace/sdk_probe_runtime.rs": "b21c5e575fbf34589b1aca96afc8d128ac1f57e34d4a5e212b8c0aa27d1dcf76",
+    "userspace/m6c_linker.ld": "1abb4e5cc222479a2144db036f756861ae2aaa9edba3fcb5815d9e5acd659f65",
+    "services/catalog/src/user_service.rs": "f822b19496b47a155aa62505cbec042d75a9d30c5829eef2153a547fc1072e01",
+    "services/catalog/src/journal.rs": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+    "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+    "sdk/runtime/src/lib.rs": "c035469159e16e8615606ffff9a6b3246c74be536db2a2be3594d67be2b590f6",
+    "sdk/runtime/src/message.rs": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab",
+    "sdk/runtime/src/native.rs": "48758b9c92ed890260a7c0f2c3aebe81be0d0581639b924dcd4e5a8084e70c15"
+  },
+  "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8",
+  "preserved_from_base": {
+    "userspace/m6_runtime.rs": true,
+    "userspace/m6c_linker.ld": true,
+    "services/catalog/src/user_service.rs": true,
+    "services/catalog/src/journal.rs": true,
+    "services/catalog/src/wire.rs": true
+  },
+  "probe_roles_unchanged": true,
+  "sources_unchanged": true,
+  "artifacts": {
+    "runtime": {
+      "path": "/tmp/nieuw-os-par-g02-proof/libnieuw_os_sdk_runtime.rlib",
+      "sha256": "61491f1d6b40c6614f3dec1ebc1fee5687c16ed5483960b30557c3c5beea7735"
+    },
+    "probe": {
+      "path": "/tmp/nieuw-os-par-g02-proof/m6c_sdk_probe.elf",
+      "sha256": "088f0daba5f5a92850596fb50836c99d5df70095adc7a0e993fb36965fb066d4",
+      "bytes": 754968,
+      "elf_validation": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 45426,
+            "memsz": 45426,
+            "page_start": 1073741824,
+            "page_end": 1073790976
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 53248,
+            "filesz": 16384,
+            "memsz": 16384,
+            "page_start": 1073807360,
+            "page_end": 1073823744
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 69632,
+            "filesz": 2887,
+            "memsz": 2887,
+            "page_start": 1073823744,
+            "page_end": 1073827840
+          }
+        ]
+      }
+    }
+  },
+  "passed": true
+}

@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "base_commit": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+  "task": "I01 native qsim adapter and isolated native toolchain",
+  "passed": true,
+  "native_runtime_performed": false,
+  "checks": [
+    {
+      "check": "rust-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "experiments/quantum/native/Cargo.toml",
+        "--locked",
+        "--offline",
+        "-p",
+        "qsim-native",
+        "-p",
+        "qsim-core"
+      ],
+      "returncode": 0,
+      "log": "rust-tests.txt",
+      "log_sha256": "e57cbca811ff3b2b9bfda8dd70a1ac756b57311c247b613d3451ed5699751036"
+    },
+    {
+      "check": "host-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "experiments/quantum/native/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "returncode": 0,
+      "log": "host-clippy.txt",
+      "log_sha256": "736e2582f563605dd272e5fb977840b0c0767377d27b6940c440caf75eec7157"
+    },
+    {
+      "check": "native-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--manifest-path",
+        "experiments/quantum/native/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--release",
+        "--features",
+        "baremetal",
+        "--target",
+        "x86_64-unknown-none",
+        "--bin",
+        "qsim-native-probe",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "returncode": 0,
+      "log": "native-clippy.txt",
+      "log_sha256": "222a02ed477d249a21359df8cae975864a62d848f4739cadc5b00b6190a963c6"
+    },
+    {
+      "check": "rustfmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "experiments/quantum/native/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "returncode": 0,
+      "log": "rustfmt.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "check": "artifact-gate-tests",
+      "command": [
+        "python3",
+        "experiments/quantum/native/tests/test_build_gate.py"
+      ],
+      "returncode": 0,
+      "log": "artifact-gate-tests.txt",
+      "log_sha256": "921b60a7fd52e978fbb551cacd29df2d6708879400278e1fcc70fceeb0c6f8e0"
+    },
+    {
+      "check": "native-build",
+      "command": [
+        "python3",
+        "experiments/quantum/native/build.py",
+        "--output-dir",
+        "/tmp/nieuw-os-par-i01-build",
+        "--target-dir",
+        "/tmp/nieuw-os-par-i01-target"
+      ],
+      "returncode": 0,
+      "log": "native-build.txt",
+      "log_sha256": "60ecbab745ebd782c3686d8b238d2f6c504ab96ac8e86d189acab60a978ce7e2"
+    }
+  ],
+  "source_sha256": {
+    "experiments/quantum/native/Cargo.toml": "344c771511606a99668cee321be185e9f50bbc518e856c55d260c02e3fc292ce",
+    "experiments/quantum/native/Cargo.lock": "2650bda1cf534c8792f68ca86399d11ab6aeca48ede12fbc3ba8aff4c93521e7",
+    "experiments/quantum/native/linker.ld": "a1d0226cebd524b7f0e4b69c91ff68a2bf3cb2b21f77bbdf5fc4c31be5998f3c",
+    "experiments/quantum/native/build.py": "7b2e171d8418ab838736b8c995029f565c5aa16b06879ae415a2e79b8a992a5f",
+    "experiments/quantum/native/src/heap_budget.rs": "66a0648a8f58e180ffa2b026f2e3e4507cdc82307949b793ad85f3adf5e1f28b",
+    "experiments/quantum/native/src/lib.rs": "251bda8230fd90943949d34a1b35da2b61acb8ced9a60ad847ab0f7841cb8ca7",
+    "experiments/quantum/native/src/probe.rs": "340aa618573ca319068587dc6ffcc158e37d3d762ecaebaf8edb7802c6dcff84",
+    "experiments/quantum/native/tests/adapter.rs": "66b6338c29d7469a54d03de76885f059ee715298f1af4891942842a1a1bb9171",
+    "experiments/quantum/native/tests/test_build_gate.py": "f543acf1698f7ee33bcb5c0f5ca38e768d73d6931c94eb33983578718b74cde2",
+    "experiments/quantum/qsim-core/src/complex.rs": "e42565b6ce5f0789bacbc78fa2ec1cb40294d59a16c1f4a164df936c93dd34b0",
+    "experiments/quantum/qsim-core/src/gate.rs": "0d2e6f972fb863585937b2ed840bc359991448f4e5e48f3abc3ae853cd412236",
+    "experiments/quantum/qsim-core/src/lib.rs": "14f9194521beacfdc27e076e0af763a4a6903b970b3c9b04363d1272024348ee",
+    "experiments/quantum/qsim-core/src/sampler.rs": "8423463aa7f9fd00df55aaaa68ac21212f5a6d20d9203e34c063819630c46ce7",
+    "experiments/quantum/qsim-core/src/statevector.rs": "159ca0be29f663e5f81670ff73bb6ad483919e25c87620005343be9d91bed463",
+    "experiments/quantum/qsim-core/src/validate.rs": "9e73a4c589c10fb470363d430a5d1aeec7634b62f10027fa296222bac24dfd99",
+    "experiments/quantum/qsim-core/Cargo.toml": "fe656cc4dbae574e141e426a4d45e6b5da425cc0b93db67bf439101adcdda9ff",
+    "experiments/quantum/Cargo.toml": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+    "tools/build_users.py": "6f382367ce0dffe5a16b983d00d882b0ae020f2fb765dc4f565df2d4205ea9c9"
+  },
+  "test_source_sha256": {
+    "experiments/quantum/qsim-core/tests/cancellation.rs": "931897aed8e75a6af8ac22d8a406397f4e6cddb41aac355e657bbe88c144ff35",
+    "experiments/quantum/qsim-core/tests/fixtures.rs": "8d07ab4a9abb53eeec9514dd3afd149a7074beae0f79fc390b4392d1014d2f76",
+    "experiments/quantum/qsim-core/tests/gates.rs": "f23635285fd5183c70533531832a62665ec3848271e1705463cc63f5b3124c4c",
+    "experiments/quantum/qsim-core/tests/validation.rs": "7206741f5c80aff7cd92418c4513c155595663f575a24d907e00361430cb8240"
+  },
+  "artifacts": {
+    "artifact-gate-tests.txt": "921b60a7fd52e978fbb551cacd29df2d6708879400278e1fcc70fceeb0c6f8e0",
+    "build-report.json": "51cd62cf9811893b21ca912b665acae9c66830fc97b231e62c5243f0c1a70f5b",
+    "disassembly.txt": "9024d2b96c7fce05efe73267c4745110139373ac4bb0dc19be2f888e43e78eb1",
+    "host-clippy.txt": "736e2582f563605dd272e5fb977840b0c0767377d27b6940c440caf75eec7157",
+    "native-build.txt": "60ecbab745ebd782c3686d8b238d2f6c504ab96ac8e86d189acab60a978ce7e2",
+    "native-clippy.txt": "222a02ed477d249a21359df8cae975864a62d848f4739cadc5b00b6190a963c6",
+    "native-compile.txt": "92434e198f27984c035c376ec77a7cf9e6ebdde782f8ccb1336ae3329b66ddb7",
+    "qemu-toolchain-source.json": "1df5c65167d994df858e2fb47b939c9a9e38291886f08e08912eda648dcb447c",
+    "rust-tests.txt": "e57cbca811ff3b2b9bfda8dd70a1ac756b57311c247b613d3451ed5699751036",
+    "rust-toolchain-source.json": "9cdda6da87e71c569c05f43037b9469987034ebfc5f12b87d7dbf6eab5b13da8",
+    "rustfmt.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "symbols.txt": "d7ab7280ef0b71b32264c11d82403433a9b2d94984c498aa03127521b6ed51b0"
+  }
+}

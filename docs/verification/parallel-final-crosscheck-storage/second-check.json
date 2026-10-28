@@ -1,0 +1,332 @@
+{
+  "scope": "Second independent read-only artifact check; no new VM, build, suite or image write",
+  "source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "run_directory": "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840",
+  "started_utc": "2026-10-28T15:53:19.033274+00:00",
+  "checks": {
+    "current-source-and-head": true,
+    "same-raw-run-report": true,
+    "source-and-paired-build": true,
+    "exact-fifteen-artifacts": true,
+    "regular-run-artifact:typed.ppm": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/typed.ppm": true,
+    "regular-run-artifact:qmp-trace.json": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/qmp-trace.json": true,
+    "regular-run-artifact:initial.ppm": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/initial.ppm": true,
+    "regular-run-artifact:build-manifest.json": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/build-manifest.json": true,
+    "regular-run-artifact:OVMF_VARS.fd": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/OVMF_VARS.fd": true,
+    "regular-run-artifact:serial.txt": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/serial.txt": true,
+    "regular-run-artifact:stderr.txt": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/stderr.txt": true,
+    "regular-run-artifact:a.ppm": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/a.ppm": true,
+    "regular-run-artifact:after-backspace.ppm": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/after-backspace.ppm": true,
+    "regular-run-artifact:OVMF_CODE.fd": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/OVMF_CODE.fd": true,
+    "regular-run-artifact:OVMF_VARS.template.fd": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/OVMF_VARS.template.fd": true,
+    "regular-run-artifact:ab.ppm": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/ab.ppm": true,
+    "regular-run-artifact:VGA.rom": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/VGA.rom": true,
+    "regular-run-artifact:esp/kernel.elf": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/esp/kernel.elf": true,
+    "regular-run-artifact:esp/EFI/BOOT/BOOTX64.EFI": true,
+    "hash:/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/esp/EFI/BOOT/BOOTX64.EFI": true,
+    "hash:docs/verification/parallel-final-g0-confirmed/pipe/serial.txt": true,
+    "hash:docs/verification/parallel-final-g0-confirmed/pipe/stderr.txt": true,
+    "hash:docs/verification/parallel-final-g0-confirmed/pipe/build-manifest.json": true,
+    "hash:docs/verification/parallel-final-g0-confirmed/pipe/qmp-trace.json": true,
+    "bound-kernel-and-loader": true,
+    "complete-actual-serial": true,
+    "real-exit-and-selected-profile": true,
+    "each-key-changes-pixels": true,
+    "only-input-row": true,
+    "exact-backspace-restoration": true,
+    "nonempty-native-scene": true,
+    "computed-bounds-match": true,
+    "exact-five-lossless-images": true,
+    "hash:docs/verification/parallel-final-g0-confirmed/pipe/initial.png": true,
+    "PNG-mode-geometry:initial": true,
+    "PNG-restores-original-PPM:initial": true,
+    "hash:docs/verification/parallel-final-g0-confirmed/pipe/a.png": true,
+    "PNG-mode-geometry:a": true,
+    "PNG-restores-original-PPM:a": true,
+    "hash:docs/verification/parallel-final-g0-confirmed/pipe/ab.png": true,
+    "PNG-mode-geometry:ab": true,
+    "PNG-restores-original-PPM:ab": true,
+    "hash:docs/verification/parallel-final-g0-confirmed/pipe/after-backspace.png": true,
+    "PNG-mode-geometry:after-backspace": true,
+    "PNG-restores-original-PPM:after-backspace": true,
+    "hash:docs/verification/parallel-final-g0-confirmed/pipe/typed.png": true,
+    "PNG-mode-geometry:typed": true,
+    "PNG-restores-original-PPM:typed": true,
+    "QMP-id-and-response-correlation": true,
+    "QMP-keys-and-artifact-paths": true,
+    "explicit-ROM-pin": true,
+    "hash:/tmp/nieuw-os-par-tools/qemu/usr/share/seabios/vgabios-stdvga.bin": true,
+    "hash:/tmp/nieuw-os-par-tools/bin/qemu-system-x86_64": true,
+    "hash:/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_CODE_4M.fd": true,
+    "hash:/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_VARS_4M.fd": true,
+    "original-failed-run-still-excluded": true,
+    "separate-UNIX-failure-not-accepted": true,
+    "stable-after-crosscheck:typed.ppm": true,
+    "stable-after-crosscheck:qmp-trace.json": true,
+    "stable-after-crosscheck:initial.ppm": true,
+    "stable-after-crosscheck:build-manifest.json": true,
+    "stable-after-crosscheck:OVMF_VARS.fd": true,
+    "stable-after-crosscheck:serial.txt": true,
+    "stable-after-crosscheck:stderr.txt": true,
+    "stable-after-crosscheck:a.ppm": true,
+    "stable-after-crosscheck:after-backspace.ppm": true,
+    "stable-after-crosscheck:OVMF_CODE.fd": true,
+    "stable-after-crosscheck:OVMF_VARS.template.fd": true,
+    "stable-after-crosscheck:ab.ppm": true,
+    "stable-after-crosscheck:VGA.rom": true,
+    "stable-after-crosscheck:esp/kernel.elf": true,
+    "stable-after-crosscheck:esp/EFI/BOOT/BOOTX64.EFI": true,
+    "source-still-unchanged": true
+  },
+  "files": {
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/result.json": {
+      "bytes": 4623,
+      "sha256": "92ff18e3134c04343f747b33dbaa15de451fc1d2031e452f0493c60175e1c5f4"
+    },
+    "docs/verification/parallel-final-g0-confirmed/pipe/result.json": {
+      "bytes": 4623,
+      "sha256": "92ff18e3134c04343f747b33dbaa15de451fc1d2031e452f0493c60175e1c5f4"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/build-manifest.json": {
+      "bytes": 2040,
+      "sha256": "70e8712d5633afdd3b8bdd188f99afb7e66b0989167342e3f8e01a668e93b0ef",
+      "expected_sha256": "70e8712d5633afdd3b8bdd188f99afb7e66b0989167342e3f8e01a668e93b0ef"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/typed.ppm": {
+      "bytes": 1440015,
+      "sha256": "e80f6cf1f572cc3bad3441cbbb5f3a27a750f8a0c84127bb63af77ab496e26dc",
+      "expected_sha256": "e80f6cf1f572cc3bad3441cbbb5f3a27a750f8a0c84127bb63af77ab496e26dc"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/qmp-trace.json": {
+      "bytes": 2899,
+      "sha256": "3922d05f236bdac6f76cdf368db3746a1858f8d209a6d34a8838d5cb4c9a4dc3"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/initial.ppm": {
+      "bytes": 1440015,
+      "sha256": "454aedf48cb14c89e6e947b5c96b1c6bd6432c53a1d8aea3d03f1ad19300bc73",
+      "expected_sha256": "454aedf48cb14c89e6e947b5c96b1c6bd6432c53a1d8aea3d03f1ad19300bc73"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/OVMF_VARS.fd": {
+      "bytes": 540672,
+      "sha256": "793a126117906c1cd1d3a86ff73d2f20323687d150bcc848222aa8c0067cd5db",
+      "expected_sha256": "793a126117906c1cd1d3a86ff73d2f20323687d150bcc848222aa8c0067cd5db"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/serial.txt": {
+      "bytes": 425,
+      "sha256": "f61350dd1041ed8736a36452f1f4e56821f05f4f11008c9036e327913bfe2596",
+      "expected_sha256": "f61350dd1041ed8736a36452f1f4e56821f05f4f11008c9036e327913bfe2596"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/a.ppm": {
+      "bytes": 1440015,
+      "sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+      "expected_sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/after-backspace.ppm": {
+      "bytes": 1440015,
+      "sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+      "expected_sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/OVMF_CODE.fd": {
+      "bytes": 3653632,
+      "sha256": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+      "expected_sha256": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/OVMF_VARS.template.fd": {
+      "bytes": 540672,
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "expected_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/ab.ppm": {
+      "bytes": 1440015,
+      "sha256": "90c4fd29fd891de256c84239acba59811537146f1a9bc482c6264576615c6b4e",
+      "expected_sha256": "90c4fd29fd891de256c84239acba59811537146f1a9bc482c6264576615c6b4e"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/VGA.rom": {
+      "bytes": 39936,
+      "sha256": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a",
+      "expected_sha256": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/esp/kernel.elf": {
+      "bytes": 76304,
+      "sha256": "1c5467ce79246bad48edc9c9f065b86ffb28261835c9a94ff3dffb9de0dc869d",
+      "expected_sha256": "1c5467ce79246bad48edc9c9f065b86ffb28261835c9a94ff3dffb9de0dc869d"
+    },
+    "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/esp/EFI/BOOT/BOOTX64.EFI": {
+      "bytes": 31744,
+      "sha256": "a0a3fa1d81de4bec28e365fcd95450aff73e6870b9322179a837f6380701aa0a",
+      "expected_sha256": "a0a3fa1d81de4bec28e365fcd95450aff73e6870b9322179a837f6380701aa0a"
+    },
+    "docs/verification/parallel-final-g0-confirmed/pipe/serial.txt": {
+      "bytes": 425,
+      "sha256": "f61350dd1041ed8736a36452f1f4e56821f05f4f11008c9036e327913bfe2596",
+      "expected_sha256": "f61350dd1041ed8736a36452f1f4e56821f05f4f11008c9036e327913bfe2596"
+    },
+    "docs/verification/parallel-final-g0-confirmed/pipe/stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/parallel-final-g0-confirmed/pipe/build-manifest.json": {
+      "bytes": 2040,
+      "sha256": "70e8712d5633afdd3b8bdd188f99afb7e66b0989167342e3f8e01a668e93b0ef",
+      "expected_sha256": "70e8712d5633afdd3b8bdd188f99afb7e66b0989167342e3f8e01a668e93b0ef"
+    },
+    "docs/verification/parallel-final-g0-confirmed/pipe/qmp-trace.json": {
+      "bytes": 2899,
+      "sha256": "3922d05f236bdac6f76cdf368db3746a1858f8d209a6d34a8838d5cb4c9a4dc3",
+      "expected_sha256": "3922d05f236bdac6f76cdf368db3746a1858f8d209a6d34a8838d5cb4c9a4dc3"
+    },
+    "docs/verification/parallel-final-g0-confirmed/pipe/image-roundtrip.json": {
+      "bytes": 1742,
+      "sha256": "c6e0b0e7e4b69ba4a6131454d5dd1bdf639e4a6f8120ca5bef14e79de4e60172"
+    },
+    "docs/verification/parallel-final-g0-confirmed/pipe/initial.png": {
+      "bytes": 4092,
+      "sha256": "8279da9aca4935424d74fde1078fc38462b18f4be1c049b8e35480e1086ea90a",
+      "expected_sha256": "8279da9aca4935424d74fde1078fc38462b18f4be1c049b8e35480e1086ea90a"
+    },
+    "docs/verification/parallel-final-g0-confirmed/pipe/a.png": {
+      "bytes": 4146,
+      "sha256": "51835b55c5f2c5482a2ff7b7f4890ebe467124535fa1ef4b7f13ef6d71716b75",
+      "expected_sha256": "51835b55c5f2c5482a2ff7b7f4890ebe467124535fa1ef4b7f13ef6d71716b75"
+    },
+    "docs/verification/parallel-final-g0-confirmed/pipe/ab.png": {
+      "bytes": 4164,
+      "sha256": "f9f3fa2b96ae56113e6196e9203ecb5bf8abb35014d2a64838068ad3f4554b7a",
+      "expected_sha256": "f9f3fa2b96ae56113e6196e9203ecb5bf8abb35014d2a64838068ad3f4554b7a"
+    },
+    "docs/verification/parallel-final-g0-confirmed/pipe/after-backspace.png": {
+      "bytes": 4146,
+      "sha256": "51835b55c5f2c5482a2ff7b7f4890ebe467124535fa1ef4b7f13ef6d71716b75",
+      "expected_sha256": "51835b55c5f2c5482a2ff7b7f4890ebe467124535fa1ef4b7f13ef6d71716b75"
+    },
+    "docs/verification/parallel-final-g0-confirmed/pipe/typed.png": {
+      "bytes": 4172,
+      "sha256": "090b6e2803a6ed7b00573a28ac4925d765492b42bdcdb1261da6ee741c3319b3",
+      "expected_sha256": "090b6e2803a6ed7b00573a28ac4925d765492b42bdcdb1261da6ee741c3319b3"
+    },
+    "/tmp/nieuw-os-par-tools/qemu/usr/share/seabios/vgabios-stdvga.bin": {
+      "bytes": 39936,
+      "sha256": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a",
+      "expected_sha256": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a"
+    },
+    "/tmp/nieuw-os-par-tools/bin/qemu-system-x86_64": {
+      "bytes": 237,
+      "sha256": "561b9e1f55fe21ea20560797fbf148d9999a6a7425e0aa8e9569757a6a2dfdfa",
+      "expected_sha256": "561b9e1f55fe21ea20560797fbf148d9999a6a7425e0aa8e9569757a6a2dfdfa"
+    },
+    "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_CODE_4M.fd": {
+      "bytes": 3653632,
+      "sha256": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+      "expected_sha256": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c"
+    },
+    "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_VARS_4M.fd": {
+      "bytes": 540672,
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "expected_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    "docs/verification/parallel-final-g0/invalidated.json": {
+      "bytes": 633,
+      "sha256": "4c19f8a911fbdcfd727ff45c14f6c0d3a5ca92a815a0a953fa44514f047a7c59"
+    },
+    "/tmp/nieuw-os-g0-confirmed-unix/graphics-g0-a472268dd9/result.json": {
+      "bytes": 3320,
+      "sha256": "e771c5d5b4c02a9610d3ba24b406ba9c894467fbc27cec3b798534ae220b3866"
+    },
+    "docs/verification/parallel-final-crosscheck-storage/verify_confirmed_g0.py": {
+      "bytes": 10046,
+      "sha256": "bc0cef3d10ebd0b59ee52209b9f3261af79183a7d384d5792307f49810969dfe"
+    }
+  },
+  "image_decoder": "Pillow 12.3.0",
+  "pixel_bounds": {
+    "steps": [
+      [
+        48,
+        192,
+        62,
+        212
+      ],
+      [
+        60,
+        192,
+        74,
+        212
+      ],
+      [
+        60,
+        192,
+        74,
+        212
+      ],
+      [
+        60,
+        192,
+        74,
+        212
+      ]
+    ],
+    "overall": [
+      48,
+      192,
+      74,
+      212
+    ]
+  },
+  "roundtrips": [
+    {
+      "name": "initial",
+      "exact_bytes": true,
+      "reconstructed_ppm_sha256": "454aedf48cb14c89e6e947b5c96b1c6bd6432c53a1d8aea3d03f1ad19300bc73"
+    },
+    {
+      "name": "a",
+      "exact_bytes": true,
+      "reconstructed_ppm_sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba"
+    },
+    {
+      "name": "ab",
+      "exact_bytes": true,
+      "reconstructed_ppm_sha256": "90c4fd29fd891de256c84239acba59811537146f1a9bc482c6264576615c6b4e"
+    },
+    {
+      "name": "after-backspace",
+      "exact_bytes": true,
+      "reconstructed_ppm_sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba"
+    },
+    {
+      "name": "typed",
+      "exact_bytes": true,
+      "reconstructed_ppm_sha256": "e80f6cf1f572cc3bad3441cbbb5f3a27a750f8a0c84127bb63af77ab496e26dc"
+    }
+  ],
+  "excluded_unix_probe": {
+    "run_directory": "/tmp/nieuw-os-g0-confirmed-unix/graphics-g0-a472268dd9",
+    "passed": false,
+    "error": "PermissionError: [Errno 1] Operation not permitted",
+    "raw_qemu_exit": -9
+  },
+  "passed": true,
+  "finished_utc": "2026-10-28T15:53:19.633329+00:00",
+  "verification_script_sha256": "bc0cef3d10ebd0b59ee52209b9f3261af79183a7d384d5792307f49810969dfe"
+}

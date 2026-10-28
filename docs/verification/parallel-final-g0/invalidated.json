@@ -1,0 +1,9 @@
+{
+  "accepted_as_final_evidence": false,
+  "reason": "The retained original serial.txt was replaced with a 409-byte prefix missing G0:PASS/M1:PASS after the matching 425-byte archive had been created. Cause not established. No original artifacts were repaired.",
+  "source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "original_expected_serial_sha256": "f61350dd1041ed8736a36452f1f4e56821f05f4f11008c9036e327913bfe2596",
+  "observed_later_serial_sha256": "53b8af732872d41510183073a89b610fcdaed00348ed44648819111dc55c2d68",
+  "original_vm_report_preserved": true,
+  "fresh_confirmation": "../parallel-final-g0-confirmed/"
+}
