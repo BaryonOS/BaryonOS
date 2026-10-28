@@ -1,0 +1,31 @@
+{
+  "base_commit": "20f7ed282e579b96d964ae84509d895a7a826f4d",
+  "accepted": false,
+  "actual_vm_invocations": 2,
+  "script_exit_code": 1,
+  "reason": "Before cold3 QEMU, the copied kernel failed expected build hash; it matched prior M6b vm-cut-after-flush artifact. Two prior coldboots used the correct M1 kernel.",
+  "artifact_replacement_cause": "undetermined; no other build/VM active in this run",
+  "postfailure_artifacts": {
+    "build/esp/kernel.elf": {
+      "sha256": "d4ac2f833c3b0b7d0abc9778c8c27ede4d364f44ec6ef79e8d1e31f9cea6d98c",
+      "inode": 535245,
+      "nlink": 1,
+      "mtime_ns": 1793141866855130317,
+      "ctime_ns": 1793142033755696541
+    },
+    "target/x86_64-unknown-none/release/os-kernel": {
+      "sha256": "3bfb65df9a714615f4322d04c6e3bd20c4a30100043de05c794245b70da931bc",
+      "inode": 535256,
+      "nlink": 1,
+      "mtime_ns": 1793141871595235457,
+      "ctime_ns": 1793142033755696541
+    },
+    "build/manifest.json": {
+      "sha256": "a59882981c47734de55dc4602fa1fd59540e2dfd5fe081ba46310276ffdeaf35",
+      "inode": 533812,
+      "nlink": 1,
+      "mtime_ns": 1793142029575035601,
+      "ctime_ns": 1793142029575035601
+    }
+  }
+}

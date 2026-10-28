@@ -1,0 +1,60 @@
+test_missing_or_failed_probe_fails_strict_inventory (test_preflight.RequiredToolProbes.test_missing_or_failed_probe_fails_strict_inventory) ... ok
+test_non_strict_inventory_reports_crash_without_failing (test_preflight.RequiredToolProbes.test_non_strict_inventory_reports_crash_without_failing) ... ok
+test_non_strict_inventory_reports_probe_exceptions_without_failing (test_preflight.RequiredToolProbes.test_non_strict_inventory_reports_probe_exceptions_without_failing) ... 
+  test_non_strict_inventory_reports_probe_exceptions_without_failing (test_preflight.RequiredToolProbes.test_non_strict_inventory_reports_probe_exceptions_without_failing) (error='OSError') ... FAIL
+  test_non_strict_inventory_reports_probe_exceptions_without_failing (test_preflight.RequiredToolProbes.test_non_strict_inventory_reports_probe_exceptions_without_failing) (error='TimeoutExpired') ... FAIL
+test_probe_exceptions_fail_strict_inventory (test_preflight.RequiredToolProbes.test_probe_exceptions_fail_strict_inventory) ... 
+  test_probe_exceptions_fail_strict_inventory (test_preflight.RequiredToolProbes.test_probe_exceptions_fail_strict_inventory) (error='OSError') ... FAIL
+  test_probe_exceptions_fail_strict_inventory (test_preflight.RequiredToolProbes.test_probe_exceptions_fail_strict_inventory) (error='TimeoutExpired') ... FAIL
+test_zero_and_default_zero_probe_exit_succeed (test_preflight.RequiredToolProbes.test_zero_and_default_zero_probe_exit_succeed) ... ok
+
+======================================================================
+FAIL: test_non_strict_inventory_reports_probe_exceptions_without_failing (test_preflight.RequiredToolProbes.test_non_strict_inventory_reports_probe_exceptions_without_failing) (error='OSError')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/candidate/tests/test_preflight.py", line 82, in test_non_strict_inventory_reports_probe_exceptions_without_failing
+    self.assertEqual(report['missing'], ['rustup'])
+AssertionError: Lists differ: [] != ['rustup']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'rustup'
+
+- []
++ ['rustup']
+
+======================================================================
+FAIL: test_non_strict_inventory_reports_probe_exceptions_without_failing (test_preflight.RequiredToolProbes.test_non_strict_inventory_reports_probe_exceptions_without_failing) (error='TimeoutExpired')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/candidate/tests/test_preflight.py", line 82, in test_non_strict_inventory_reports_probe_exceptions_without_failing
+    self.assertEqual(report['missing'], ['rustup'])
+AssertionError: Lists differ: [] != ['rustup']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'rustup'
+
+- []
++ ['rustup']
+
+======================================================================
+FAIL: test_probe_exceptions_fail_strict_inventory (test_preflight.RequiredToolProbes.test_probe_exceptions_fail_strict_inventory) (error='OSError')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/candidate/tests/test_preflight.py", line 71, in test_probe_exceptions_fail_strict_inventory
+    self.assertEqual(status, 2)
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_probe_exceptions_fail_strict_inventory (test_preflight.RequiredToolProbes.test_probe_exceptions_fail_strict_inventory) (error='TimeoutExpired')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/a9adbdc1f137/pr9-verifier/candidate/tests/test_preflight.py", line 71, in test_probe_exceptions_fail_strict_inventory
+    self.assertEqual(status, 2)
+AssertionError: 0 != 2
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.012s
+
+FAILED (failures=4)

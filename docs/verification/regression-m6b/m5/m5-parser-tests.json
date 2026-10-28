@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_*harness.py"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-regression",
+  "started_unix": 1793141082.0677805,
+  "duration_s": 1.3778483867645264,
+  "returncode": 0
+}

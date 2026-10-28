@@ -55,7 +55,7 @@ def test_m6():
         build(kernel_feature="milestone-m6a", label="m6a")
         run_logged([sys.executable, "-B", "-X", "utf8", "userspace/tests/test_m6_probe.py",
                     "--elf", "build/users/m6_probe.elf"], "m6a-user-artifact-tests")
-        record("m6-user-artifact-tests", True, "build/logs/m6a-user-artifact-tests.stdout.txt", ["M6A-USER-ELF"])
+        record("m6-user-artifact-tests", True, "build/logs/m6a-user-artifact-tests.stderr.txt", ["M6A-USER-ELF"])
         normals = []
         for suffix in ("a", "b"):
             if suffix == "b": build(kernel_feature="milestone-m6a", label="m6a")

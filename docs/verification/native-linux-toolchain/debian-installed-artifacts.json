@@ -1,0 +1,191 @@
+[
+  {
+    "file": "ipxe-qemu.deb",
+    "url": "https://deb.debian.org/debian/pool/main/i/ipxe/ipxe-qemu_1.0.0+git-20190125.36a4c85-5.1_all.deb",
+    "package": "ipxe-qemu",
+    "version": "1.0.0+git-20190125.36a4c85-5.1",
+    "sha256": "5c2419ce07f4d80ac5e88e32ac09cdc523c048af86c4730d682ba969d3189db2",
+    "bytes": 766376,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "libaio1.deb",
+    "url": "https://deb.debian.org/debian/pool/main/liba/libaio/libaio1_0.3.113-4_amd64.deb",
+    "package": "libaio1",
+    "version": "0.3.113-4",
+    "sha256": "d1476e4beab3d85f8a7d31de94c27472711ed3ef399ce70708e24b259426125b",
+    "bytes": 13360,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "libcapstone4.deb",
+    "url": "https://deb.debian.org/debian/pool/main/c/capstone/libcapstone4_4.0.2-5_amd64.deb",
+    "package": "libcapstone4",
+    "version": "4.0.2-5",
+    "sha256": "41277f0388184f6e3b9fc02eda3184afbc999314b25b77ed75e8049428bdfe5e",
+    "bytes": 569084,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "libdaxctl1.deb",
+    "url": "https://deb.debian.org/debian/pool/main/n/ndctl/libdaxctl1_76.1-1_amd64.deb",
+    "package": "libdaxctl1",
+    "version": "76.1-1",
+    "sha256": "af5f9ffe642ae25301eb88fdb2fa9e3c06dcfc5e131fbcee7575adf0adcc9abb",
+    "bytes": 21124,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "libexecs0.deb",
+    "url": "https://deb.debian.org/debian/pool/main/libe/libexecs/libexecs0_1.3-2_amd64.deb",
+    "package": "libexecs0",
+    "version": "1.3-2",
+    "sha256": "35065556f06c5de1fc49c409943a8951638e4e9f8e21bd06f66b508fae935d1b",
+    "bytes": 8840,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "libfdt1.deb",
+    "url": "https://deb.debian.org/debian/pool/main/d/device-tree-compiler/libfdt1_1.6.1-4+b1_amd64.deb",
+    "package": "libfdt1",
+    "version": "1.6.1-4+b1",
+    "sha256": "e7312b61267979a58ae1fa9e34746d077707560c955f6455d02a9ff0f8fa7995",
+    "bytes": 19036,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "libibverbs1.deb",
+    "url": "https://deb.debian.org/debian/pool/main/r/rdma-core/libibverbs1_44.0-2_amd64.deb",
+    "package": "libibverbs1",
+    "version": "44.0-2",
+    "sha256": "35054815259fee46173240254246d03b673a5cd5c528aaac96fd15ac428a8d59",
+    "bytes": 60720,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "libjpeg62-turbo.deb",
+    "url": "https://deb.debian.org/debian/pool/main/libj/libjpeg-turbo/libjpeg62-turbo_2.1.5-2_amd64.deb",
+    "package": "libjpeg62-turbo",
+    "version": "1:2.1.5-2",
+    "sha256": "95ec30140789a342add8f8371ed018924de51b539056522b66f207b25cba9cad",
+    "bytes": 166332,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "libndctl6.deb",
+    "url": "https://deb.debian.org/debian/pool/main/n/ndctl/libndctl6_76.1-1_amd64.deb",
+    "package": "libndctl6",
+    "version": "76.1-1",
+    "sha256": "3654dd3a0a05fdc28af8bcd307109ec41a9ea92218bf29816ff467a8c5e7d57f",
+    "bytes": 61728,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "libnl-3-200.deb",
+    "url": "https://deb.debian.org/debian/pool/main/libn/libnl3/libnl-3-200_3.7.0-0.2+b1_amd64.deb",
+    "package": "libnl-3-200",
+    "version": "3.7.0-0.2+b1",
+    "sha256": "d1fc3e9eb8e79b4c96b0a64c3d8c9e068ae2f665cab71bd19f417ffd0453a890",
+    "bytes": 63124,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "libnl-route-3-200.deb",
+    "url": "https://deb.debian.org/debian/pool/main/libn/libnl3/libnl-route-3-200_3.7.0-0.2+b1_amd64.deb",
+    "package": "libnl-route-3-200",
+    "version": "3.7.0-0.2+b1",
+    "sha256": "0fdcc425ae2982788c085c76a7cb0eda3e3db99d41bd1ce56082ee18e9f1e21f",
+    "bytes": 184596,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "libpmem1.deb",
+    "url": "https://deb.debian.org/debian/pool/main/p/pmdk/libpmem1_1.12.1-2_amd64.deb",
+    "package": "libpmem1",
+    "version": "1.12.1-2",
+    "sha256": "63ed00821aecdb5537b51b6f378cf571144d02ac3af2f95141bfa0e397359a76",
+    "bytes": 90012,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "librdmacm1.deb",
+    "url": "https://deb.debian.org/debian/pool/main/r/rdma-core/librdmacm1_44.0-2_amd64.deb",
+    "package": "librdmacm1",
+    "version": "44.0-2",
+    "sha256": "16b18625834371d023b81477823074ea0d34c478d58dbef3f01107984f47d034",
+    "bytes": 68632,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "libslirp0.deb",
+    "url": "https://deb.debian.org/debian/pool/main/libs/libslirp/libslirp0_4.7.0-1_amd64.deb",
+    "package": "libslirp0",
+    "version": "4.7.0-1",
+    "sha256": "e21e19f0e99e57f254162f61416ea82f00cbc6ab9eb6bead4f5a5a8944ede27e",
+    "bytes": 62980,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "liburing2.deb",
+    "url": "https://deb.debian.org/debian/pool/main/libu/liburing/liburing2_2.3-3_amd64.deb",
+    "package": "liburing2",
+    "version": "2.3-3",
+    "sha256": "c23077e3640e6cb4b819c134b3f41d5cf21b3edac099654b1b4142c3069a39a3",
+    "bytes": 12572,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "libvdeplug2.deb",
+    "url": "https://deb.debian.org/debian/pool/main/v/vdeplug4/libvdeplug2_4.0.1-4_amd64.deb",
+    "package": "libvdeplug2",
+    "version": "4.0.1-4",
+    "sha256": "1ace8e6571009bb4b8e3c5e093609f30f3ffca96578d35d61100f1e73fd2110d",
+    "bytes": 27868,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "qemu-system-common.deb",
+    "url": "https://deb.debian.org/debian/pool/main/q/qemu/qemu-system-common_10.0.2+ds-2+deb13u1~bpo12+1_amd64.deb",
+    "package": "qemu-system-common",
+    "version": "1:10.0.2+ds-2+deb13u1~bpo12+1",
+    "sha256": "23a4672a138832d7173855e981aa8282c73ef5e04e080fa7ada9f82c6b34f507",
+    "bytes": 964384,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "qemu-system-data.deb",
+    "url": "https://deb.debian.org/debian/pool/main/q/qemu/qemu-system-data_10.0.2+ds-2+deb13u1~bpo12+1_all.deb",
+    "package": "qemu-system-data",
+    "version": "1:10.0.2+ds-2+deb13u1~bpo12+1",
+    "sha256": "2d831088187087013b3fcbd19bdfb955b182a2d5a08f6dafa0ad1c6d2007fb4e",
+    "bytes": 2113148,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "qemu-system-x86.deb",
+    "url": "https://deb.debian.org/debian/pool/main/q/qemu/qemu-system-x86_10.0.2+ds-2+deb13u1~bpo12+1_amd64.deb",
+    "package": "qemu-system-x86",
+    "version": "1:10.0.2+ds-2+deb13u1~bpo12+1",
+    "sha256": "4a6b1856c8b0d7df4ff8e70249e12c473ccf8d516aadb4ae14d3d938faed0c65",
+    "bytes": 10176912,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "ovmf.deb",
+    "url": "https://deb.debian.org/debian/pool/main/e/edk2/ovmf_2025.02-8+deb13u1_all.deb",
+    "package": "ovmf",
+    "version": "2025.02-8+deb13u1",
+    "sha256": "78e0d54df11fc77406cb7a0bc9a39e5bca6d1cbe06556b91d9a73491c52decdf",
+    "bytes": 5779964,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  },
+  {
+    "file": "seabios.deb",
+    "url": "https://deb.debian.org/debian/pool/main/s/seabios/seabios_1.16.3-2_all.deb",
+    "package": "seabios",
+    "version": "1.16.3-2",
+    "sha256": "2b590534250b940f43222eeab9a8f57f337a9d9a73fc412a43ab8cd07a7e56f6",
+    "bytes": 163272,
+    "verification": "SHA256 and size from archive-signed Debian Packages index"
+  }
+]

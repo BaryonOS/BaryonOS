@@ -1,0 +1,905 @@
+{
+  "base_commit": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+  "source_sha256": "6e8b320fce772d65f541e5c99e48b77a940f92e481487227cf868648cc8c68d8",
+  "actual_vm_runs": 56,
+  "all_passed": true,
+  "source_unchanged": true,
+  "runs": [
+    {
+      "phase": "m2",
+      "group": "own-cr3-frame-ownership-wx",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m2-493eaa5eca",
+      "build_manifest": "build/logs/build-m2-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m2",
+      "group": "test-m2-ro",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m2-ro-e361a04c59",
+      "build_manifest": "build/logs/build-test-m2-ro-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m2",
+      "group": "test-m2-nx",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m2-nx-b35fb7e83b",
+      "build_manifest": "build/logs/build-test-m2-nx-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m2",
+      "group": "test-m2-absent",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m2-absent-dafed1ffb0",
+      "build_manifest": "build/logs/build-test-m2-absent-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m2",
+      "group": "kernel-fault-stops-controlled",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m2-kernel-fault-dcbd1fc7f2",
+      "build_manifest": "build/logs/build-m2-kernel-fault-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m2",
+      "group": "unusable-main-stack-double-fault-ist",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m2-double-fault-16491d95b9",
+      "build_manifest": "build/logs/build-m2-double-fault-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m2",
+      "group": "m1-regression",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m1-after-m2-d3f0a29412",
+      "build_manifest": "build/logs/build-normal-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "private-address-spaces-preemption-fairness-cleanup",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m3-8084281faa",
+      "build_manifest": "build/logs/build-m3-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-peer-read",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-peer-read-a29f67fec5",
+      "build_manifest": "build/logs/build-test-m3-peer-read-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-peer-write",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-peer-write-84e82ebdee",
+      "build_manifest": "build/logs/build-test-m3-peer-write-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-kernel-write",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-kernel-write-fdfbb5b81b",
+      "build_manifest": "build/logs/build-test-m3-kernel-write-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-stack-exec",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-stack-exec-27e74cee54",
+      "build_manifest": "build/logs/build-test-m3-stack-exec-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-heap-exec",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-heap-exec-c61ea122b1",
+      "build_manifest": "build/logs/build-test-m3-heap-exec-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-guard-low",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-guard-low-de0c58a868",
+      "build_manifest": "build/logs/build-test-m3-guard-low-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-guard-high",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-guard-high-a2ad07c754",
+      "build_manifest": "build/logs/build-test-m3-guard-high-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-cli",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-cli-c1bb0e0481",
+      "build_manifest": "build/logs/build-test-m3-cli-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-x87",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-x87-e21a27ce90",
+      "build_manifest": "build/logs/build-test-m3-x87-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-xmm",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-xmm-a851bdee6f",
+      "build_manifest": "build/logs/build-test-m3-xmm-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-avx",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-avx-bc2aac04f1",
+      "build_manifest": "build/logs/build-test-m3-avx-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-ud",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-ud-bd4260d882",
+      "build_manifest": "build/logs/build-test-m3-ud-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-exit",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-exit-a592421a7e",
+      "build_manifest": "build/logs/build-test-m3-exit-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-b-exit",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-b-exit-9798cb0c2d",
+      "build_manifest": "build/logs/build-test-m3-b-exit-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "test-m3-invalid-rsp",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-invalid-rsp-f658bd2517",
+      "build_manifest": "build/logs/build-test-m3-invalid-rsp-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "all-processes-exit-idle-timer-and-resources",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-idle-7c0b29eef2",
+      "build_manifest": "build/logs/build-test-m3-idle-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "large-bss-image-exceeds-old-64-mapping-limit",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m3-large-image-3e91c0cbf2",
+      "build_manifest": "build/logs/build-test-m3-large-image-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m3",
+      "group": "m1-regression-after-m3",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m1-after-m3-54bd4ef8b3",
+      "build_manifest": "build/logs/build-normal-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m4",
+      "group": "real-ring3-message-exchange",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m4-exchange-d149f67c2e",
+      "build_manifest": "build/logs/build-m4-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-copy",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-copy-b2cb30b70b",
+      "build_manifest": "build/logs/build-test-m4-copy-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-wire",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-wire-ebbafaf5f3",
+      "build_manifest": "build/logs/build-test-m4-wire-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-snapshot",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-snapshot-a8450293a3",
+      "build_manifest": "build/logs/build-test-m4-snapshot-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-handles",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-handles-4adc07780f",
+      "build_manifest": "build/logs/build-test-m4-handles-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-rights",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-rights-2671caac5a",
+      "build_manifest": "build/logs/build-test-m4-rights-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-revoke",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-revoke-bcea1d6e16",
+      "build_manifest": "build/logs/build-test-m4-revoke-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-quotas",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-quotas-bcf31478db",
+      "build_manifest": "build/logs/build-test-m4-quotas-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m4",
+      "group": "test-m4-lifecycle",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m4-lifecycle-828663c14c",
+      "build_manifest": "build/logs/build-test-m4-lifecycle-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m4",
+      "group": "m1-regression-after-m4",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m1-after-m4-b5705f3cc2",
+      "build_manifest": "build/logs/build-normal-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "m5-read-a",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m5-read-a-81de188365",
+      "build_manifest": "build/logs/build-m5-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "m5-read-b",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m5-read-b-4400c5be57",
+      "build_manifest": "build/logs/build-m5-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-service-errors",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-service-errors-f738c7bd1a",
+      "build_manifest": "build/logs/build-test-m5-service-errors-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-device-rights",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-device-rights-2fe2925e0d",
+      "build_manifest": "build/logs/build-test-m5-device-rights-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-async",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-async-a56abdae87",
+      "build_manifest": "build/logs/build-test-m5-async-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-bad-descriptor",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-bad-descriptor-c938cd625d",
+      "build_manifest": "build/logs/build-test-m5-bad-descriptor-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-used-id",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-id-e9eaaac9f0",
+      "build_manifest": "build/logs/build-test-m5-used-id-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-used-index",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-index-35ce43cd6e",
+      "build_manifest": "build/logs/build-test-m5-used-index-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-used-short",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-short-cdf0a2adbc",
+      "build_manifest": "build/logs/build-test-m5-used-short-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-used-long",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-long-c83f2c6149",
+      "build_manifest": "build/logs/build-test-m5-used-long-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-used-status",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-used-status-423902c906",
+      "build_manifest": "build/logs/build-test-m5-used-status-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-io-error",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-io-error-9b6d3b3fd4",
+      "build_manifest": "build/logs/build-test-m5-io-error-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-timeout",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-timeout-0b7c215650",
+      "build_manifest": "build/logs/build-test-m5-timeout-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-reset-timeout",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-reset-timeout-162c1a1b81",
+      "build_manifest": "build/logs/build-test-m5-reset-timeout-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-restart",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-restart-713ace33b0",
+      "build_manifest": "build/logs/build-test-m5-restart-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-cpu-mmio",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-cpu-mmio-2b2d8740a6",
+      "build_manifest": "build/logs/build-test-m5-cpu-mmio-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-cpu-dma",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-cpu-dma-eb827dc12a",
+      "build_manifest": "build/logs/build-test-m5-cpu-dma-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-cpu-pci",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-cpu-pci-3b59198423",
+      "build_manifest": "build/logs/build-test-m5-cpu-pci-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "test-m5-no-device",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/test-m5-no-device-930a45dc80",
+      "build_manifest": "build/logs/build-test-m5-no-device-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "phase": "m5",
+      "group": "m1-regression-after-m5",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/m1-after-m5-0e398ea908",
+      "build_manifest": "build/logs/build-normal-manifest.json",
+      "checks": {
+        "frozen_commit": true,
+        "frozen_source": true,
+        "expected_kernel": true,
+        "expected_loader": true,
+        "actual_kernel": true,
+        "no_future_milestone_markers": true,
+        "raw_serial_unchanged": true
+      },
+      "passed": true
+    }
+  ]
+}

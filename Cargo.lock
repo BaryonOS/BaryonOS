@@ -26,6 +26,10 @@ name = "kernel-core"
 version = "0.1.0"
 
 [[package]]
+name = "object-core"
+version = "0.1.0"
+
+[[package]]
 name = "os-kernel"
 version = "0.1.0"
 dependencies = [
@@ -33,6 +37,7 @@ dependencies = [
  "boot-protocol",
  "capability-core",
  "kernel-core",
+ "object-core",
  "virtio-blk-driver",
  "virtio-core",
 ]

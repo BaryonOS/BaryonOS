@@ -1,0 +1,42 @@
+{
+  "task": "NATIVE-V1",
+  "base_commit": "10b32e31671827f2bd63444113b981ff15bfbb73",
+  "source_fingerprint_version": 3,
+  "source_sha256": "dfb5edea9ef549d4dce5bb9111b021584bbf811a1a6f9d55c032a36b5103826c",
+  "gate": "Nieuwe volledige Linux-run; niet gecombineerd met de historische 43/54-resultaten",
+  "gate_returncode": 0,
+  "capture_returncode": 0,
+  "groups_passed": 54,
+  "distinct_vm_invocations": 49,
+  "raw_exits": {
+    "33": 43,
+    "-9": 6
+  },
+  "external_kills": 6,
+  "service_cut_cases": 6,
+  "cold_recovery_invocations": 17,
+  "timeouts": 0,
+  "all_case_and_image_oracles_passed": true,
+  "normal_same_kernel": true,
+  "normal_same_loader": true,
+  "normal_different_initial_images": true,
+  "host_rust_tests": 87,
+  "host_harness_tests": 20,
+  "native_artifact_host_tests": 12,
+  "firmware_sha256": {
+    "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "qemu_version": "QEMU emulator version 10.0.2 (Debian 1:10.0.2+ds-2+deb13u1~bpo12+1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "initial_smoke_outside_gate": "/workspace/scratch/0d3232a3c004/nieuw-os-baseline/build/run/m6-normal-b14c4628b8/result.json",
+  "gate_summary": "/workspace/scratch/0d3232a3c004/nieuw-os-baseline/build/m6-test-results.json",
+  "capture_manifest": "/workspace/scratch/0d3232a3c004/nieuw-os-baseline/build/baseline-verification/capture-generated-files.json",
+  "source_unchanged": true,
+  "historical_evidence_unchanged": true,
+  "preflight_note": "De toenmalige strikte preflight gaf exit 0; rustup --version heeft de bekende SIGABRT (-6) in de beperkte sandbox, vastgelegd in de preflight-uitvoer. Compiler, targetlijst, builds en alle native runs slaagden.",
+  "limits": [
+    "Dit betreft het vaste QEMU/TCG-profiel met vertrouwd virtio-device/backend.",
+    "Geen claim over fysieke stroomuitval, vijandige DMA/IOMMU, SMP of veiligheid voor productiegebruik.",
+    "Volledige M1-M5-regressie was voor deze taak niet gevraagd en is niet opnieuw uitgevoerd; de afsluitende M1-smoke is inbegrepen."
+  ]
+}

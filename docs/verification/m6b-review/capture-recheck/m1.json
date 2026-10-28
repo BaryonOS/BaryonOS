@@ -1,0 +1,21 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "tools/capture_gate.py",
+    "m1",
+    "--destination",
+    "docs/verification/regression-m6b/m1"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-native",
+  "started_utc": "2026-10-27T23:09:49.461219+00:00",
+  "duration_s": 0.0786125720005657,
+  "exit_code": 0,
+  "base_commit": "1e61a20beac67d685cf4bff5f0f9f588bf2cb56e",
+  "stdout": "docs/verification/m6b-review/capture-recheck/m1.stdout.txt",
+  "stdout_sha256": "75984f5e15193a12fc6627c1ea6ba8ca067f7ed87753829519296b8475ecc6fd",
+  "stderr": "docs/verification/m6b-review/capture-recheck/m1.stderr.txt",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "new_vm_invocations": 0,
+  "scope": "Repeat capture validation of existing final run records; subprocess output retained in memory until command completes"
+}

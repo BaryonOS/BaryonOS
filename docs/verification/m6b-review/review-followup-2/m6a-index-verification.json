@@ -1,0 +1,65 @@
+{
+  "archive_base_commit": "3f308b07e0bab445d1ea926561eab8d8e01c86a4",
+  "execution_base_commit": "10b32e31671827f2bd63444113b981ff15bfbb73",
+  "operation": "Local metadata correction and read-only byte/structure verification",
+  "new_host_tests_performed": false,
+  "new_native_tests_performed": false,
+  "originals": [
+    {
+      "path": "docs/verification/m6a-linux/suite.json",
+      "bytes": 20660,
+      "sha256": "6e83c518590959d66a24b6ebf9c88df25d34519336324884f5f746dfb1cdb340",
+      "git_blob": "9fbb529bd6a4996ab861c63ce5af24c1b3df6d9c",
+      "matches_base_git_blob": true,
+      "matches_capture_manifest": true
+    },
+    {
+      "path": "docs/verification/m6a-linux/m6a-user-artifact-tests.stderr.txt",
+      "bytes": 1753,
+      "sha256": "9a0fcda603e186787042fc1972caf8c3ab37da262c8e2b175dc41ae5bf146044",
+      "git_blob": "15083c638cac29f98a059dbfca6368d46c880b3a",
+      "matches_base_git_blob": true,
+      "matches_capture_manifest": true
+    },
+    {
+      "path": "docs/verification/m6a-linux/capture-generated-files.json",
+      "bytes": 2581,
+      "sha256": "7aeb979d7d911e2c31951c08a05250dfa5bf70501d5929c956fc0ae854fc3453",
+      "git_blob": "dd3f0bdea4aede120bd2a561c0fb20ecf3ba3073",
+      "matches_base_git_blob": true,
+      "matches_capture_manifest": null
+    },
+    {
+      "path": "docs/verification/m6a-linux/README.md",
+      "bytes": 1122,
+      "sha256": "4903dc3659672da54fc91f4f098052b07b64e7fe460434eeeee5413e1812e06a",
+      "git_blob": "c7dae4061d89d1606f2254206fc5188905cdb21a",
+      "matches_base_git_blob": true,
+      "matches_capture_manifest": null
+    }
+  ],
+  "changed_files": [
+    {
+      "path": "docs/verification/m6a-linux/README.md",
+      "bytes": 2528,
+      "sha256": "83bd3e64c5ffe3f2f51ff7c7e6a803e367411d9e9401ff1eaad936dd92a8b76d"
+    },
+    {
+      "path": "docs/verification/m6a-linux/suite.corrected.json",
+      "bytes": 21989,
+      "sha256": "e3776a09c4af094f674c78120821209a4195b13bb662bed32f9f59bab155dd31"
+    }
+  ],
+  "semantic_suite_changes_excluding_provenance": [
+    {
+      "group": "m6-user-artifact-tests",
+      "field": "evidence",
+      "from": "build/logs/m6a-user-artifact-tests.stdout.txt",
+      "to": "build/logs/m6a-user-artifact-tests.stderr.txt"
+    }
+  ],
+  "all_other_suite_fields_unchanged": true,
+  "original_suite_and_capture_manifest_unchanged": true,
+  "raw_stderr_unchanged": true,
+  "result_groups_preserved": 54
+}

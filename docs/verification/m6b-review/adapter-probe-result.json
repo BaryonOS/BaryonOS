@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "/tmp/nieuw-os-objects-review-2oz293li/adapter_probe"
+  ],
+  "returncode": 0,
+  "stdout": "PASS Success: replies=4, I/O=[128, 1, 2], sequence=1\nPASS WriteSubmit: replies=4, I/O=[128, 1, 1], sequence=0\nPASS WritePoll: replies=4, I/O=[128, 1, 1], sequence=0\nPASS FlushSubmit: replies=4, I/O=[128, 1, 2], sequence=0\nPASS FlushPoll: replies=4, I/O=[128, 1, 2], sequence=0\nPASS BadWriteCompletion: replies=4, I/O=[128, 1, 1], sequence=0\nPASS WriteTimeout: replies=4, I/O=[128, 1, 1], sequence=0\n",
+  "stderr": "",
+  "scope": "actual user_service.rs compiled with temporary host-only ABI shim; no native or device durability claim"
+}

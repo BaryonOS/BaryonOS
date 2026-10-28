@@ -1,0 +1,36 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "-u",
+    "tools/test_m6b.py"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-native",
+  "base_commit": "1e61a20beac67d685cf4bff5f0f9f588bf2cb56e",
+  "started_utc": "2026-10-27T23:07:10.582282+00:00",
+  "duration_s": 65.05720461400051,
+  "exit_code": 0,
+  "stdout": "build/final-validation-cc5cb58d46/m6b-gate.stdout.txt",
+  "stderr": "build/final-validation-cc5cb58d46/m6b-gate.stderr.txt",
+  "archive_annotation": {
+    "original_metadata_sha256": "0398d385bc1424df9ba9f30b7cf6c7910d53ab763db50ab208a6c17af3100bd6",
+    "note": "Achteraf toegevoegde archiefinformatie; command, cwd, base_commit, tijden, exit_code en oorspronkelijke build/-logpaden blijven de vastgelegde runmetadata.",
+    "logs": {
+      "stdout": {
+        "path": "docs/verification/m6b/gate.stdout.txt",
+        "sha256": "f1138ac6a3f5ee2c5763bdb5447ec4ceff4ca4d0c9dc9cec99191a89bbeac3fe"
+      },
+      "stderr": {
+        "path": "docs/verification/m6b/gate.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "path_relation": "stdout en stderr hierboven zijn de oorspronkelijke build/-paden relatief aan cwd; logs.stdout en logs.stderr wijzen naar de ingecheckte kopieën. Hun hashes komen overeen met de loghashes in ../m6b-review/final-native-audit.json.",
+    "stream_capture": {
+      "subprocess_stderr_replayed_to_stdout": true,
+      "evidence": "tools/common.py::run_logged op base_commit vangt stdout en stderr afzonderlijk op en print beide naar de stdout van de gate. Daardoor staan Cargo-warnings in gate.stdout.txt en kan gate.stderr.txt leeg zijn.",
+      "wrapper_stderr_redirected_to_stdout": null,
+      "wrapper_limit": "Onbekend: de buitenste capturewrapper is niet gearchiveerd en de oorspronkelijke metadata vermeldt geen stderr-redirect. De lege stderr-kopie bewijst niet of de wrapper stderr met stdout samenvoegde."
+    }
+  }
+}

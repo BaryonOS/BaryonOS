@@ -1,5 +1,91 @@
 # Actuele projectstatus
 
+De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
+
+## M6b — native documentopslag gebouwd en getest
+
+Basis `10b32e31671827f2bd63444113b981ff15bfbb73`, werkbranch `codex/m6b-object-storage`.
+De nieuwe `services/objects`-crate bevat een allocatorvrije Rust `no_std`-objectdienst:
+vier objecten van maximaal 128 bytes, twee via IPC-endpoints gescheiden domeinen,
+GET/PUT/DELETE, revisiecontrole en blijvende verwijderrecords. Alleen de dienst
+krijgt blokrechten op de 32 journal-sectoren; apps krijgen hun eigen endpoint.
+Succes volgt pas na echte WRITE- en FLUSH-completion. Corruptie en onzekere
+mutaties sluiten toegang af; er is geen automatische herhaling van writes.
+
+Definitieve uitvoeringsbron: `1e61a20beac67d685cf4bff5f0f9f588bf2cb56e`;
+fingerprint v3 `43e6c06e43e3ba602b49c304328f0c1700bc26dae0a1256f0d5d420421f55ae2`.
+Op 28 oktober 2026 (UTC-logdatum 27 oktober) zijn beide volledige eindgates en hun captures met exit 0
+afgerond. De resultaten hebben afzonderlijke scopes en worden niet met eerdere
+deelruns opgeteld:
+
+| Scope | Bron | Groepen / echte VM-runs | Bewijs |
+|---|---|---|---|
+| M6b volledige objectopslag | `1e61a20` | 18 / 14 | `verification/m6b/` |
+| M1 volledige boot- en foutgate | `1e61a20` | 10 / 8 | `verification/regression-m6b/m1/` |
+| M2–M5 volledige regressies | `44892e7` | 67 / 56 | `verification/regression-m6b/m2/` t/m `m5/` |
+| M6a volledige ongewijzigde baseline | `10b32e3` | 54 / 49 | `verification/m6a-linux/` |
+| M6a normal/herstel op M6b-runtime | `44892e7` | afzonderlijk paar / 2 | `verification/regression-m6b/m6a-pair/` |
+
+M6b omvat twee normale images met dezelfde binaries, CRUD/domeingrenzen, een
+volle journal, corruptie, twee echte externe QEMU-kills en zes koude recoveries.
+Een aparte AI-audit decodeerde zeven werkelijke volumes en controleerde alle
+121 artifacthashes. De M1-audit controleerde acht eigen gastlogs, 31 artifacthashes,
+vier buildprofielen en de echte 60-seconden-time-out. De 56 eerdere M2–M5-runs
+zijn onder de laatste parser opnieuw gecontroleerd; alle 68 native bron- en
+bouwinputs zijn sinds `44892e7` bytegelijk. Dat zijn geen 56 nieuwe runs.
+
+Hostbewijs: 22 Rust-objecttests, 26 M6b-harnastests, 8 snapshotbindingtests,
+7 guestparsertests en 9 bestaande capturetests. Zeven aanvullende proeven van
+de echte serviceadapter met een host-ABI-shim controleren onzekere WRITE/FLUSH-
+uitkomsten; dit is geen native M6b-devicefoutinjectie. Reviews staan in
+`verification/m6b-review/`; het zijn AI-reviews, geen menselijke audit of formeel
+bewijs. Rust 1.90.0, QEMU 10.0.2 en het bijbehorende OVMF-profiel zijn vastgelegd
+in `verification/native-linux-toolchain/`.
+
+Drie eerdere M1-pogingen zijn expliciet afgewezen en behouden. De oude parser
+accepteerde eerst een hogere testfase; later blokkeerde de hashguard teruggekeerde
+oude artifacts vóór QEMU-start. De vervangingsoorzaak is niet vastgesteld.
+M1 gebruikt nu per build een eigen gecontroleerde UUID-snapshot, dezelfde normale
+kopie voor alle coldboots/negatieve fixtures, strikte fasecontrole en hashes vóór
+iedere start. De afsluitende volledige M1-gate slaagt. De wrapperconsole is niet
+overal compleet; de bewijsbasis zijn de afzonderlijke gecontroleerde gastrecords.
+Details en de geslaagde capture-hercontrole zonder nieuwe VM-runs:
+`verification/regression-m6b/FINAL-ACCEPTANCE.md` en
+`verification/m6b-review/capture-recheck/`.
+
+De laatste lokale build is opnieuw `milestone-m6b`; kernel en loader zijn
+bytegelijk aan beide normale eindgate-runs. Dit is een buildcontrole zonder
+extra VM-start (`verification/m6b-ready/`).
+
+Reviewcorrecties van 28 oktober 2026, basis `bb22fdbe15919edc23baa158a46236195ce314b2`:
+historische audits/guards en M1-afwijzingen verduidelijkt, bewijsbeschrijvingen
+vertaald en M5-vergelijkingen aan geverifieerde gastrecords gebonden. Preflight
+weigert nu ook een niet-nul `probe_exit` en een `probe_error`; de oude `rustup`-probe met `-6` was dus
+geen geldige inventariscontrole. De M6b-gate probeert na fouten de normale M1-build
+te herstellen en bewaart de oorspronkelijke fout. De 40 onafhankelijk uitgevoerde gerichte hosttests slagen; exacte commando's,
+bronhashes en ruwe uitvoer staan in `verification/m6b-review/merge-followup/`.
+Deze follow-up betreft hosttools; de oorspronkelijke native uitvoeringsbronnen
+in de tabel hierboven blijven behouden.
+De vervolgreview scherpt de M5-archiefchecker aan met expliciete controles,
+ook onder `python -O`; een gewijzigd seedrecord wordt nu afgewezen. Vier
+nieuwe hosttests verifiëren de M6a-stderrverwijzing en volledige
+stdout/metadata/stderr-capture. Historische meetbestanden blijven intact;
+de M6a-suite heeft een afzonderlijke gecorrigeerde leesindex. Dit nieuwe
+hostbewijs staat in `verification/m6b-review/review-followup-2/` en is geen
+nieuwe native gate of herhaling van de eerdere 40 tests.
+Geen nieuwe native gate uitgevoerd; de M3-hosttestcheckout en de redirectinstelling
+van de oude buitenste capturewrapper blijven expliciet onbekend.
+Bekende native observerbeperking: WRITE-/FLUSH-fouten kunnen, ook in
+`milestone-m6b`, een kernel panic veroorzaken voordat de client `Unknown` krijgt.
+Dit is niet gerepareerd of end-to-end native bewezen; contract en acceptatie
+beschrijven de begrensde onderzoeksafbakening en benodigde latere foutinjectie.
+
+Deze begrensde lokale opslagproef heeft geen namen, directoryboom, garbage
+collection of encryptie. Verwijderrecords voorkomen het terugkomen van oude
+appverzoeken; zij wissen historische schijfbytes niet fysiek. FNV is uitsluitend
+een corruptiediagnose. Native NAS/netwerk, sleutels en desktopkoppeling blijven
+afzonderlijke stappen. Contract: `implementation/M6B-OBJECT-STORAGE.md`.
+
 ## N02 — hybride PQC-transport: echte hostproef getest
 
 27 oktober 2026, basis `ece94a5cfebecaec763eb2855aa9f84e55dcdcbc` (PR #7), werkbranch `codex/pqc-transport-foundation`; eerste checkpoint `3d05f9f8dccb4f515d8522578d20bbf00d8b8ed7`. De aangeleverde beveiligingsblauwdruk is getoetst aan de actuele bronnen en repository. ADR-028 en `implementation/VERIFIABLE-SECURITY-AND-PQC.md` leggen het standaard-TLS-profiel, formele bewijsgrenzen en concrete native vervolgopdrachten vast.
@@ -10,7 +96,7 @@ Werkelijk uitgevoerd op Node 24.22.1/OpenSSL 3.5.9/Linux x64: `node --test --tes
 
 Twee afzonderlijke AI-reviews; een concreet randgeval rond herleving van oude idletransportfacts is hersteld en onafhankelijk hertoetst. Dit is geen formeel bewijs of menselijke audit. De testcertificaten zijn klassiek Ed25519; netwerklabels zijn harnasaannames bij loopback. Geen postkwantumauthenticatie, WAN-/LAN-detectie of koppeling van transportecho aan de N01-store. Tijdelijke frame-/tijdsgrenzen zijn geen productbeperkingen. De browserrendering is in deze stap niet opnieuw getest.
 
-Geen native PQC-crate, entropy-syscall, boot-/blokcryptografie of Grover-uitbreiding toegevoegd. De native build heeft concrete ABI-/geheugen-/instructiegrenzen; Rust/Cargo en QEMU zijn in deze ontwikkelsessie niet beschikbaar. Dit verandert geen bestaande M1–M6a-bewijsstatus. N01 hieronder blijft als historische basis bewaard.
+Geen native PQC-crate, entropy-syscall, boot-/blokcryptografie of Grover-uitbreiding toegevoegd. De native build heeft concrete ABI-/geheugen-/instructiegrenzen; Rust/Cargo en QEMU waren tijdens die N02-hostsessie niet beschikbaar. Het huidige M6b-traject hierboven heeft inmiddels een werkende native toolchain. Dit verandert geen bestaande M1–M6a-bewijsstatus. N01 hieronder blijft als historische basis bewaard.
 
 ## N01 — internet en persoonlijke NAS-ruimte: hostproef getest
 
@@ -115,4 +201,3 @@ Op deze reparaties opnieuw uitgevoerd in Ubuntu 26.04.1 met Rust 1.90.0/QEMU 10.
 ## Vervolg en herstel
 
 M6a: begrensde WRITE/FLUSH en crashherstel op een synthetische wegwerpimage; de actieve status en nog uit te voeren volledige poort staan hierboven. Werkqueue: WORK-QUEUE.md. Contract: implementation/M6A-WRITE-RECOVERY.md. M1–M5-baseline en eerder bewijs blijven behouden; de volledige QEMU-poort is na deze merge niet opnieuw uitgevoerd. Herstel via aparte consistente checkout c630c59; geen destructieve reset of hostconfigmigratie.
-

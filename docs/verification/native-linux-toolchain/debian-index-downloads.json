@@ -1,0 +1,74 @@
+[
+  {
+    "file": "archive-key-12.asc",
+    "url": "https://ftp-master.debian.org/keys/archive-key-12.asc",
+    "sha256": "c2a9a16fde95e037bafd0fa6b7e31f41b4ff1e85851de5558f19a2a2f0e955e2",
+    "bytes": 11861
+  },
+  {
+    "file": "archive-key-13.asc",
+    "url": "https://ftp-master.debian.org/keys/archive-key-13.asc",
+    "sha256": "6f1d277429dd7ffedcc6f8688a7ad9a458859b1139ffa026d1eeaadcbffb0da7",
+    "bytes": 11861
+  },
+  {
+    "file": "bookworm-InRelease",
+    "url": "https://deb.debian.org/debian/dists/bookworm/InRelease",
+    "sha256": "77737fa4b34f2693e982cc9ee35736816c35a7778fc2d326cc1bbf5b301fe1aa",
+    "bytes": 151075
+  },
+  {
+    "file": "bookworm-backports-InRelease",
+    "url": "https://deb.debian.org/debian/dists/bookworm-backports/InRelease",
+    "sha256": "5db1a165b7a2ad5919596de4d3e9a7928bc138174c3302f93096f4210ef62503",
+    "bytes": 59432
+  },
+  {
+    "file": "trixie-InRelease",
+    "url": "https://deb.debian.org/debian/dists/trixie/InRelease",
+    "sha256": "0584fba32e13e0ab8285fb16c27adea1ec03a73669c18702821094fd6ca86675",
+    "bytes": 140421
+  },
+  {
+    "file": "bookworm-amd64-Packages.xz",
+    "url": "https://deb.debian.org/debian/dists/bookworm/main/binary-amd64/Packages.xz",
+    "sha256": "9e0b5aabb2465b3d2e7a7fe27f9913846277833f7a2826e7767acccff5b588c5",
+    "bytes": 8790396,
+    "verification": "SHA256/size from archive-signed InRelease"
+  },
+  {
+    "file": "bookworm-all-Packages.xz",
+    "url": "https://deb.debian.org/debian/dists/bookworm/main/binary-all/Packages.xz",
+    "sha256": "743228b0bd99db92c91c5c133952cea0ff0c93a2b5b47a058973f3cab40d6481",
+    "bytes": 4231936,
+    "verification": "SHA256/size from archive-signed InRelease"
+  },
+  {
+    "file": "bookworm-backports-amd64-Packages.xz",
+    "url": "https://deb.debian.org/debian/dists/bookworm-backports/main/binary-amd64/Packages.xz",
+    "sha256": "b74b5bbca6f4701df6c5db54793a68449fb267ac10a9314e761b972ac63b3760",
+    "bytes": 300424,
+    "verification": "SHA256/size from archive-signed InRelease"
+  },
+  {
+    "file": "bookworm-backports-all-Packages.xz",
+    "url": "https://deb.debian.org/debian/dists/bookworm-backports/main/binary-all/Packages.xz",
+    "sha256": "98bdaf2c5c7aa711a7b87b98b7eeb05d4c31641df5dd042d52e5837cdc91777b",
+    "bytes": 145276,
+    "verification": "SHA256/size from archive-signed InRelease"
+  },
+  {
+    "file": "trixie-amd64-Packages.xz",
+    "url": "https://deb.debian.org/debian/dists/trixie/main/binary-amd64/Packages.xz",
+    "sha256": "7778d3e3f303b7ddb8ce0fe7c8d57473a076c6bf2e8f241f75421d2396352498",
+    "bytes": 9678380,
+    "verification": "SHA256/size from archive-signed InRelease"
+  },
+  {
+    "file": "trixie-all-Packages.xz",
+    "url": "https://deb.debian.org/debian/dists/trixie/main/binary-all/Packages.xz",
+    "sha256": "55bef3400f6614ac8bfdd05922310d9ff456e458d0bf9a0a201e6d9359144108",
+    "bytes": 4533564,
+    "verification": "SHA256/size from archive-signed InRelease"
+  }
+]

@@ -1,0 +1,305 @@
+{
+  "created_utc": "2026-10-27T22:19:56.885102+00:00",
+  "host_os_release": "PRETTY_NAME=\"Ubuntu 24.04.3 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"24.04\"\nVERSION=\"24.04.3 LTS (Noble Numbat)\"\nVERSION_CODENAME=noble\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nUBUNTU_CODENAME=noble\nLOGO=ubuntu-logo\n",
+  "paths": {
+    "CARGO_HOME": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/cargo",
+    "RUSTUP_HOME": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/rustup",
+    "qemu_launcher": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/qemu/qemu-system-x86_64",
+    "OVMF_CODE": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+    "OVMF_VARS": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd"
+  },
+  "machine": "pc-q35-10.0",
+  "acceleration": "tcg,thread=single",
+  "tool_variant": "Linux local development variant: QEMU 10.0.2 Debian bookworm-backports; reference pc-q35-10.0 machine retained. This is not a claim to match the documented Windows QEMU patch build.",
+  "scope": "All installed files reside below project .tools/nieuw-os; package payloads extracted only; no maintainer scripts, apt configuration, system libraries, shell profile or global environment modified.",
+  "rust_manifest_verification": "Official installer and Rust1.90.0 manifest each matched their official HTTPS .sha256 sidecar; rustup verifies component hashes.",
+  "debian_verification": "Archive keys bootstrapped over official ftp-master HTTPS and fingerprints checked against official key listing. At least one valid signature from known Debian12/13 archive key was required per InRelease, then Packages SHA256 and package SHA256/size verified. Full GPG status logs preserved.",
+  "release_checks": {
+    "bookworm": {
+      "valid_until": null,
+      "note": "Stable suite InRelease does not include Valid-Until; downloaded from official HTTPS and archive-signature verified."
+    },
+    "bookworm-backports": {
+      "valid_until": "2026-11-03T20:24:48+00:00",
+      "not_expired": true
+    },
+    "trixie": {
+      "valid_until": null,
+      "note": "Stable suite InRelease does not include Valid-Until; downloaded from official HTTPS and archive-signature verified."
+    }
+  },
+  "artifacts": [
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/bin/qemu-system-x86_64",
+      "bytes": 28686560,
+      "sha256": "e8f995668153f7c1af1896a15ed1642848ff5d3722a0ca69d6fd3c9864b1a87e"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd",
+      "bytes": 3653632,
+      "sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/qemu/share/OVMF_VARS_4M.fd",
+      "bytes": 540672,
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/qemu/qemu-system-x86_64",
+      "bytes": 578,
+      "sha256": "4ee9a5fea1f41c86555be852e41e71d1db02ed818ff05c3e26a92d288c629b45"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/qemu/share/firmware/60-edk2-x86_64.json",
+      "bytes": 737,
+      "sha256": "2e25c2d5f69a5eea485762b83621eb5d8df282703ed4f262194dd24516585cd8"
+    }
+  ],
+  "linked_libraries": [
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/lib/x86_64-linux-gnu/libcapstone.so.4",
+      "sha256": "faae0495d13e17b65ef579358dada70ee98b609b575d5a56951e073280660acd",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libgnutls.so.30",
+      "sha256": "96137275400f39510c9a533c6ad8a921e94266e664e7e09c9ad6ea9f23277c23",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libpixman-1.so.0",
+      "sha256": "73aa0daeedb7228754d798b194e2ff69c8b82a689b9aa4f1d8ab32a8763b0cc5",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libpng16.so.16",
+      "sha256": "eac265b3506df0d9110dd9143e1d0503e2daabafe1d98b23fac8ca17b71d1f6b",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libz.so.1",
+      "sha256": "9b64150b28505a33d6bc3ecf709c279f6de97a1c184dbda65d06ee4537f6d286",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/lib/x86_64-linux-gnu/libjpeg.so.62",
+      "sha256": "dad87949ccad2be7e40a02986306087fdcfb35ccaadd59aea923a3f96d290eec",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libsasl2.so.2",
+      "sha256": "a0f410ad093236856eee59c4ff2838dc04d932ea0993400f23ed77d67d85af34",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libudev.so.1",
+      "sha256": "4298228175fa62a36af88b1afd4406cdd8b1bf166621f957d0dbbde45a698fe5",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/lib/x86_64-linux-gnu/libpmem.so.1",
+      "sha256": "ea5ecede5ff804ca2d4bde094e4b3ff971cc478f8882d791d4a5698597b3965a",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libseccomp.so.2",
+      "sha256": "b4d9140a7797ccf3ac14f5d9d579b64f157111662940cb8330c632b11a8cea8e",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/lib/x86_64-linux-gnu/libfdt.so.1",
+      "sha256": "eec98cca18bb43f3f1c9af3ff67fdba8daeeaad4c220cb890f38cb9931fec170",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libnuma.so.1",
+      "sha256": "ccce381ad9aca398846df70536100d3936eaa218b228ba589523ad6b67ef7f3c",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libgio-2.0.so.0",
+      "sha256": "d8c4cf698e9b8790584cc5ede813a86ec4f041c0d58daa452b72431572685a87",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libgobject-2.0.so.0",
+      "sha256": "99bf0727e0ca4faf12ab09b753b3d03294562c29c559b970c4dad435f9ec2bc6",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libglib-2.0.so.0",
+      "sha256": "42467d0dbcc0a6c9e0a31f05a5944095504ce98f093c3fe0825f0a1533fa8207",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/lib/x86_64-linux-gnu/librdmacm.so.1",
+      "sha256": "12633b98c1c2eb0d5cd3da5ab8cadc8d4b785494ebea751f0f09ef91e4575fa9",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/lib/x86_64-linux-gnu/libibverbs.so.1",
+      "sha256": "f809f34bc16cc21be248da374ef72e44d5e336eae4bb10f5a2cebf3c330aa163",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libzstd.so.1",
+      "sha256": "0a2128bc10841fb29e76d08d945864dfb0b6a66da5df6df5d8299197439e54bb",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/lib/x86_64-linux-gnu/libslirp.so.0",
+      "sha256": "cd021edf1481d66728604dfbc8dc3d7526f694a814a7a42ca8808beec6b7996b",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/lib/x86_64-linux-gnu/libvdeplug.so.2",
+      "sha256": "e462bcbdf538d60ee8aabf40e3d61027f8e000f2454cc07364701fe397e6cb96",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libbpf.so.1",
+      "sha256": "0e9998e17e38d78e5ce953f89a5e6a7c8b457d3e1bfe71e3ec5a1cfb05bbd1c3",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libnettle.so.8",
+      "sha256": "a245ed916229583d6fe0b07657b3ed945bc148c28cc08b5266295f620d2b91cc",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libgmp.so.10",
+      "sha256": "0ccdfb6d6f5c039465f6d002cf7e4c072d48ac6a2cffc8dd6c748dec31592804",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libhogweed.so.6",
+      "sha256": "c3c606139d4f7776efa4dbd4a6b62e30c916b07a0cafd8c3ef173d6f093607e3",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libfuse3.so.3",
+      "sha256": "f1e75247f42d414df611ee554c8399bfe74565f89eed7c4501e2d97c48f21eab",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/lib/x86_64-linux-gnu/libaio.so.1",
+      "sha256": "a912d3c2a289fe84d59c7852a4038fc512aad75a076d22cb4d46c7b95d246caf",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/lib/x86_64-linux-gnu/liburing.so.2",
+      "sha256": "2f6aaaea8fc49298cae14598e5b913122798cf41fe0d6cf1884c1d3c73d2263b",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libgmodule-2.0.so.0",
+      "sha256": "f8445c01952fd3ff0bb4f17f73be821af3e4b9b61546ff517392e9baeb8f2126",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libm.so.6",
+      "sha256": "f06f2ce1f1833df5f41cf13b6447ff07bea993ad9b27297d3428c2f70ab3f0e7",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libc.so.6",
+      "sha256": "511f825ee075610ac9c0f7f91e2c13de2000d0f7b859f6461137e809a0a009d0",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libp11-kit.so.0",
+      "sha256": "c6b469a006685ebf2075e200180c3b21f41b88ad722c5697d736ea558cfe3ea1",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libidn2.so.0",
+      "sha256": "6e632fd9a3125db60bbc623719bbc17b0470330321c5b1c57f1ff7190e5551ad",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libunistring.so.5",
+      "sha256": "7bcf825cd449892db5105ad2aed91dcf94a27b796426600c765720c584c54dd1",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libtasn1.so.6",
+      "sha256": "7c9c7830afbaac7b07ec21ddaa6b4d606423432c264efd2636e8ca9734b4d7b6",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libcrypto.so.3",
+      "sha256": "c19c2cf8d7cf91c4f273b1d3bbc56a9d19c91a739bfe57ad630756ee8ede7b77",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libcap.so.2",
+      "sha256": "0e62ac3921a103914968b82c8c8514f34a056f4c9ac3d1ab927ca35de383ae02",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/lib/x86_64-linux-gnu/libndctl.so.6",
+      "sha256": "43e7e7d99b85f2ca384ec69831baf94c055821341eab52ed490f72a15cdd2bd5",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/lib/x86_64-linux-gnu/libdaxctl.so.1",
+      "sha256": "b2576a160c4f1222497bd96e8709a07973a4cc05e2263acd775154c2cfd2435b",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libmount.so.1",
+      "sha256": "43831ab1f85948e5599c5c0295d87ad6d03e3d58b801534abdf4cd5d266388de",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libselinux.so.1",
+      "sha256": "0ec0843463f90e227b0e138e1f379774f50b5514bd7f5dbd4c8a87aca0aa6670",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libffi.so.8",
+      "sha256": "00f593fe192f2851b8ce23b25cec2488d769beb5a8f63e8c9e563071e1075153",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libpcre2-8.so.0",
+      "sha256": "e00576d71d81d3ba0cfa4903c835a44a8723aac96f72f79ff75200b4cff9071b",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/lib/x86_64-linux-gnu/libnl-3.so.200",
+      "sha256": "a9aeb09860d011cfafde5d8333e532d99d668ad49d2f994657e75176d0617da9",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-native/.tools/nieuw-os/distro/usr/lib/x86_64-linux-gnu/libnl-route-3.so.200",
+      "sha256": "6a64fbc77d0281b2670a3a8c57b6edb75ea3627a8b752611ac3598de88b7d2b5",
+      "source": "local verified Debian package"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libelf.so.1",
+      "sha256": "248c989360783cdc52f3659921de852c2efcc2097253ce58e34443f856412814",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libuuid.so.1",
+      "sha256": "a0fe32d24d125186cf332570770ae749822b5b529d4d4f59222e1aedbc63b58d",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libkmod.so.2",
+      "sha256": "6108903e15200313fd0bb71bb7e17d8fb8d01a01fa7f3dd1649d4f0c6187c8d3",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libblkid.so.1",
+      "sha256": "f3d6283f6b58de134f0f13094deac9c3af6764923c62e85f08a5780ad4ebe039",
+      "source": "preexisting Ubuntu host runtime"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/liblzma.so.5",
+      "sha256": "a9793942a8a5f6f4d0f523ef9e0a5be4f0033f2c6c28520cd2b4e706d53c6e17",
+      "source": "preexisting Ubuntu host runtime"
+    }
+  ]
+}

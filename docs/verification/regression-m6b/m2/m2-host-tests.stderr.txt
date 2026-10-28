@@ -1,0 +1,10 @@
+   Compiling boot-protocol v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-regression/crates/boot-protocol)
+   Compiling kernel-core v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-regression/crates/kernel-core)
+   Compiling elf-loader-core v0.1.0 (/workspace/scratch/0d3232a3c004/nieuw-os-regression/crates/elf-loader-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.39s
+     Running unittests src/lib.rs (target/debug/deps/boot_protocol-0c4756592423435b)
+     Running unittests src/lib.rs (target/debug/deps/elf_loader_core-4ab92dc5239b8964)
+     Running unittests src/lib.rs (target/debug/deps/kernel_core-6d6e9fb9453fbf62)
+   Doc-tests boot_protocol
+   Doc-tests elf_loader_core
+   Doc-tests kernel_core

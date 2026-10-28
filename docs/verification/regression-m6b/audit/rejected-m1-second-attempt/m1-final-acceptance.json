@@ -1,0 +1,25 @@
+{
+  "label": "m1-final-acceptance",
+  "command": [
+    "python3",
+    "-B",
+    "-u",
+    "tools/test.py"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-regression",
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "CARGO_NET_OFFLINE": "true"
+  },
+  "source_checkpoint": "20f7ed282e579b96d964ae84509d895a7a826f4d",
+  "source_sha256_before": "09fef202b74c362b2ead29c7cac12fee772bee3a3d382a6dbf7d576798c3e8f5",
+  "started_utc": "2026-10-27T22:56:51.175856+00:00",
+  "status": "completed",
+  "returncode": 1,
+  "duration_s": 2.5430540860033943,
+  "finished_utc": "2026-10-27T22:56:53.719246+00:00",
+  "source_sha256_after": "09fef202b74c362b2ead29c7cac12fee772bee3a3d382a6dbf7d576798c3e8f5",
+  "stdout_sha256": "e60bc61f6c97aa56f0d636f488d22983599fef9adccc4c9386f291766a87eb94",
+  "stderr_sha256": "94cf17a89fb22548d7d9ae39d3fd818dd80cddc105018a1e6c985d8cdde37f6a",
+  "source_unchanged": true
+}

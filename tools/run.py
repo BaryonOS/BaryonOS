@@ -18,6 +18,7 @@ from gate_contract import (
 
 MARKERS = M1_MARKERS
 FAIL_MARKERS = BASE_FAIL_MARKERS + ("M5:FAIL",)
+LATER_MILESTONE_PREFIXES = ("M2:", "M3:", "M4:", "M5:", "M6A:", "M6B:")
 MILESTONE_MARKERS = {
     **BASE_MILESTONE_MARKERS,
     "m5": MARKERS[:3] + ("M5:CASE:READ:PASS", "M5:SURVIVOR_PROGRESS:PASS",
@@ -27,6 +28,11 @@ MILESTONE_MARKERS = {
 
 def is_success(returncode, stdout, timed_out=False, *, required_markers=MARKERS,
                expected_exit=33, forbidden_markers=FAIL_MARKERS):
+    required_markers = tuple(required_markers)
+    m1_only = ("M1:PASS" in required_markers
+               and not any(marker.startswith(LATER_MILESTONE_PREFIXES) for marker in required_markers))
+    if m1_only and any(line.startswith(LATER_MILESTONE_PREFIXES) for line in stdout.splitlines()):
+        return False
     lines = iter(stdout.splitlines())
     for marker in required_markers:
         if not any(line == marker for line in lines):
@@ -36,7 +42,8 @@ def is_success(returncode, stdout, timed_out=False, *, required_markers=MARKERS,
 
 
 def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
-              expected_exit=33, forbidden_markers=FAIL_MARKERS, m5_case=None, m5_seed=None):
+              expected_exit=33, forbidden_markers=FAIL_MARKERS, m5_case=None, m5_seed=None,
+              expected_kernel_sha256=None, expected_loader_sha256=None):
     if not 0 < timeout <= 60:
         raise ValueError("guest timeout must be in (0,60]")
     env = environment()
@@ -57,6 +64,14 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
             raise ValueError("Unknown M5 case")
         disk_path, disk_info = create_disk(run_dir, m5_seed)
     shutil.copytree(source, run_dir / "esp")
+    expected_artifacts = {}
+    for name, expected in (("esp/kernel.elf", expected_kernel_sha256),
+                           ("esp/EFI/BOOT/BOOTX64.EFI", expected_loader_sha256)):
+        if expected is not None:
+            actual = sha256(run_dir / name)
+            if actual != expected:
+                raise ValueError(f"Snapshotted artifact SHA256 mismatch: {name}; expected={expected}; actual={actual}")
+            expected_artifacts[name] = expected
     shutil.copy2(variables, run_dir / "OVMF_VARS.template.fd")
     shutil.copy2(run_dir / "OVMF_VARS.template.fd", run_dir / "OVMF_VARS.fd")
     shutil.copy2(code, run_dir / "OVMF_CODE.fd")
@@ -88,6 +103,7 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     (run_dir / "stderr.txt").write_bytes(err)
     artifacts = {path.relative_to(run_dir).as_posix(): sha256(path) for path in (run_dir / "esp").rglob("*") if path.is_file()}
     artifacts.update({"OVMF_CODE.fd": sha256(run_dir / "OVMF_CODE.fd"), "OVMF_VARS.template.fd": sha256(run_dir / "OVMF_VARS.template.fd")})
+    artifact_binding_passed = all(artifacts.get(name) == expected for name, expected in expected_artifacts.items())
     disk_result = None
     if disk_info is not None:
         from m5_disk import verify_disk
@@ -96,6 +112,8 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
         artifacts["test-disk.img"] = sha256(disk_path)
     git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
     report = {"label": label, "started_utc": started, "duration_s": time.monotonic()-start, "timeout_s": timeout, "timed_out": timed_out, "raw_qemu_exit": rc, "expected_exit": expected_exit, "required_markers": list(required_markers), "forbidden_markers": list(forbidden_markers), "passed": is_success(rc, stdout, timed_out, required_markers=required_markers, expected_exit=expected_exit, forbidden_markers=forbidden_markers), "command": args, "qemu_version": version, "profile": "development-package; pc-q35-10.0/qemu64/TCG/1CPU/256MiB", "base_commit": git.stdout.strip() if git.returncode == 0 else None, "source_fingerprint_version": 3, "source_sha256": source_hash(), "artifact_sha256": artifacts, "firmware_source": [str(code), str(variables)], "run_directory": str(run_dir), "stdout": stdout, "stderr": stderr}
+    report.update(expected_artifact_sha256=expected_artifacts, artifact_binding_passed=artifact_binding_passed)
+    report['passed'] = report['passed'] and artifact_binding_passed
     if disk_result is not None:
         report.update(m5_case=m5_case, disk_oracle=disk_result)
         report["passed"] = report["passed"] and disk_result["passed"]

@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-X",
+    "utf8",
+    "userspace/tests/test_large_probe.py",
+    "--elf",
+    "build/users/probe_large.elf"
+  ],
+  "cwd": "/workspace/scratch/0d3232a3c004/nieuw-os-regression",
+  "started_unix": 1793141036.0651197,
+  "duration_s": 0.09261465072631836,
+  "returncode": 0,
+  "base_commit": null,
+  "source_revision_status": "Onbekend: de checkoutcommit is niet in deze commandocapture vastgelegd en kan voor deze hosttest niet afzonderlijk worden vastgesteld. De reviewed revision en de tijdelijke cwd zijn geen bewijs van de uitgevoerde checkoutcommit."
+}

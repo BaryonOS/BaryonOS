@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_preflight.py",
+    "-v"
+  ],
+  "cwd": "/workspace/scratch/a9adbdc1f137/pr9-verifier/candidate",
+  "returncode": 1,
+  "purpose": "Reproduceer ontbrekende probe_error-afhandeling met negatieve hosttests."
+}

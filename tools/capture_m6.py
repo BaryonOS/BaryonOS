@@ -166,11 +166,11 @@ def capture():
         elif evidence.is_file():
             evidence.resolve().relative_to(BUILD.resolve())
             paths = [evidence]
-            if evidence.name.endswith(".stdout.txt"):
-                stem = evidence.name.removesuffix(".stdout.txt")
+            if evidence.name.endswith((".stdout.txt", ".stderr.txt")):
+                stem = evidence.name.removesuffix(".stdout.txt").removesuffix(".stderr.txt")
                 meta = evidence.with_name(stem+".json")
                 if read_json(meta)["returncode"] != 0: raise ValueError("Failed host command")
-                paths += [meta, evidence.with_name(stem+".stderr.txt")]
+                paths = [evidence.with_name(stem+suffix) for suffix in (".stdout.txt", ".json", ".stderr.txt")]
             for path in paths:
                 text = path.read_text(encoding="utf-8").rstrip()
                 (dest/path.name).write_text(text+"\n" if text else "", encoding="utf-8", newline="\n")

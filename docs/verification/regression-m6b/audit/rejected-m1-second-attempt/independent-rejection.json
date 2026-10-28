@@ -1,0 +1,51 @@
+{
+  "status": "rejected-before-second-qemu-start",
+  "script_returncode": 1,
+  "actual_vm_invocations": 1,
+  "successful_cold_boots": 1,
+  "expected_kernel_sha256": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1",
+  "unexpected_kernel_matches": "build/logs/build-m6a-on-m6b-recover-manifest.json",
+  "cause": "undetermined",
+  "artifact_observations": [
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/esp/kernel.elf",
+      "resolved_path": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/esp/kernel.elf",
+      "sha256": "63d686f944f37279a0471802a0c133051cd7004266f287fc84eeb425581d2282",
+      "inode": 655542,
+      "nlink": 1,
+      "device": 27,
+      "mtime_ns": 1793141361287810468,
+      "ctime_ns": 1793141813588012222
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/target/x86_64-unknown-none/release/os-kernel",
+      "resolved_path": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/target/x86_64-unknown-none/release/os-kernel",
+      "sha256": "63d686f944f37279a0471802a0c133051cd7004266f287fc84eeb425581d2282",
+      "inode": 655603,
+      "nlink": 1,
+      "device": 27,
+      "mtime_ns": 1793141361287810468,
+      "ctime_ns": 1793141813588012222
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/cold-1-013cc4acb6/esp/kernel.elf",
+      "resolved_path": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/cold-1-013cc4acb6/esp/kernel.elf",
+      "sha256": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1",
+      "inode": 660835,
+      "nlink": 1,
+      "device": 27,
+      "mtime_ns": 1793140970226893081,
+      "ctime_ns": 1793141811529758749
+    },
+    {
+      "path": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/cold-2-4958db7090/esp/kernel.elf",
+      "resolved_path": "/workspace/scratch/0d3232a3c004/nieuw-os-regression/build/run/cold-2-4958db7090/esp/kernel.elf",
+      "sha256": "63d686f944f37279a0471802a0c133051cd7004266f287fc84eeb425581d2282",
+      "inode": 655614,
+      "nlink": 1,
+      "device": 27,
+      "mtime_ns": 1793141361287810468,
+      "ctime_ns": 1793141813708377986
+    }
+  ]
+}

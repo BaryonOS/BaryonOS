@@ -1,0 +1,576 @@
+{
+  "status": "passed",
+  "audit_kind": "Independent AI read-only artifact/serial/build-profile audit; no new guest or compiler execution",
+  "audited_utc": "2026-10-27T23:09:52.896243+00:00",
+  "m1_checkpoint": "1e61a20beac67d685cf4bff5f0f9f588bf2cb56e",
+  "m1_source_sha256": "43e6c06e43e3ba602b49c304328f0c1700bc26dae0a1256f0d5d420421f55ae2",
+  "m1_acceptance_groups": 10,
+  "m1_actual_vm_invocations": 8,
+  "m1_artifact_hashes_rechecked": 31,
+  "m1_suite_started_utc": "2026-10-27T23:05:55.181079+00:00",
+  "m1_suite_finished_utc": "2026-10-27T23:07:10.494282+00:00",
+  "m1_normal_kernel_sha256": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1",
+  "m1_normal_loader_sha256": "ec169b98c4f15b75f4df9086bd7ea502f6e22cf917167db5d192763681906336",
+  "m1_gate_commands": {
+    "m1-gate": {
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/test.py"
+      ],
+      "exit_code": 0,
+      "duration_s": 75.36278100400159,
+      "stdout_sha256": "724726cdc55abc2f21cdbdac81d7570e5a940ddc373dd4334a4ce42ed6358c21",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "m1-capture": {
+      "command": [
+        "python3",
+        "-B",
+        "tools/capture_gate.py",
+        "m1",
+        "--destination",
+        "docs/verification/regression-m6b/m1"
+      ],
+      "exit_code": 0,
+      "duration_s": 0.07838276899929042,
+      "stdout_sha256": "75984f5e15193a12fc6627c1ea6ba8ca067f7ed87753829519296b8475ecc6fd",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "m1_runs": [
+    {
+      "group": "cold-boot-1",
+      "label": "cold-1",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/cold-1-c3e0168f95",
+      "started_utc": "2026-10-27T23:05:55.469029+00:00",
+      "duration_s": 1.8347344840003643,
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "guest_passed": true,
+      "acceptance_condition_passed": true,
+      "mandatory_artifact_hashes_verified": 4,
+      "result_json_sha256": "afb61aadc2cb055537a8cfa223761aefff91e5385622611ef4cc96259ec3e467",
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_bindings_verified": {
+        "esp/kernel.elf": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1",
+        "esp/EFI/BOOT/BOOTX64.EFI": "ec169b98c4f15b75f4df9086bd7ea502f6e22cf917167db5d192763681906336"
+      }
+    },
+    {
+      "group": "cold-boot-2",
+      "label": "cold-2",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/cold-2-49f6475e0f",
+      "started_utc": "2026-10-27T23:05:57.388624+00:00",
+      "duration_s": 1.757630097999936,
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "guest_passed": true,
+      "acceptance_condition_passed": true,
+      "mandatory_artifact_hashes_verified": 4,
+      "result_json_sha256": "bbdaaa53c62e70dac94935f27096eb25ba5faffba69381e36d35fcc15571a883",
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_bindings_verified": {
+        "esp/kernel.elf": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1",
+        "esp/EFI/BOOT/BOOTX64.EFI": "ec169b98c4f15b75f4df9086bd7ea502f6e22cf917167db5d192763681906336"
+      }
+    },
+    {
+      "group": "cold-boot-3",
+      "label": "cold-3",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/cold-3-88ddf9d2ea",
+      "started_utc": "2026-10-27T23:05:59.224215+00:00",
+      "duration_s": 2.1144078930010437,
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "guest_passed": true,
+      "acceptance_condition_passed": true,
+      "mandatory_artifact_hashes_verified": 4,
+      "result_json_sha256": "a4830b21c96655483039d9bad8bfe63389a3f58f597161d2cbb5e7082d93b692",
+      "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_bindings_verified": {
+        "esp/kernel.elf": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1",
+        "esp/EFI/BOOT/BOOTX64.EFI": "ec169b98c4f15b75f4df9086bd7ea502f6e22cf917167db5d192763681906336"
+      }
+    },
+    {
+      "group": "reject-missing-kernel",
+      "label": "missing",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/missing-1f2095c825",
+      "started_utc": "2026-10-27T23:06:01.414411+00:00",
+      "duration_s": 1.8403218340026797,
+      "raw_qemu_exit": 35,
+      "timed_out": false,
+      "guest_passed": false,
+      "acceptance_condition_passed": true,
+      "mandatory_artifact_hashes_verified": 3,
+      "result_json_sha256": "304c1a1521ba9755e61c8a4d581885c5141683e615335d36986bba2f1ddb571d",
+      "serial_sha256": "6359174b40028da955646ec1081ae3e49e25c45758427b8f5c11670ce0957c59",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_bindings_verified": {}
+    },
+    {
+      "group": "reject-corrupt-kernel",
+      "label": "corrupt",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/corrupt-c3cd678301",
+      "started_utc": "2026-10-27T23:06:03.337127+00:00",
+      "duration_s": 1.790540134999901,
+      "raw_qemu_exit": 35,
+      "timed_out": false,
+      "guest_passed": false,
+      "acceptance_condition_passed": true,
+      "mandatory_artifact_hashes_verified": 4,
+      "result_json_sha256": "9862bc6e325e03afcabd25b41a5effe85988eb5243b243ced8f8708216acf360",
+      "serial_sha256": "4ba69d64573782d67b1e210e98e502b3d54190b835c1bfd7d769f4f3b34a217a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_bindings_verified": {}
+    },
+    {
+      "group": "real-ebs-stale-key-retry",
+      "label": "ebs-retry",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/ebs-retry-64f66f9304",
+      "started_utc": "2026-10-27T23:06:05.774232+00:00",
+      "duration_s": 1.905437121000432,
+      "raw_qemu_exit": 33,
+      "timed_out": false,
+      "guest_passed": true,
+      "acceptance_condition_passed": true,
+      "mandatory_artifact_hashes_verified": 4,
+      "result_json_sha256": "c6e1398c1c1f5c424871b90c25408f01f7b8ecf1db7676635d7e7edbe970096a",
+      "serial_sha256": "ce1e6d9ecf49c4a849323fdc512970638eee19b0ed9f3d57fcf79ea7476e2725",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_bindings_verified": {
+        "esp/kernel.elf": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1",
+        "esp/EFI/BOOT/BOOTX64.EFI": "9801bb00b9359b16ab1d6ea2c601b537ff6d8c2fe5d53928e5bc44698b1ebc2a"
+      }
+    },
+    {
+      "group": "kernel-panic-fails",
+      "label": "panic",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/panic-01c00e91d0",
+      "started_utc": "2026-10-27T23:06:08.058349+00:00",
+      "duration_s": 1.9537804270003107,
+      "raw_qemu_exit": 35,
+      "timed_out": false,
+      "guest_passed": false,
+      "acceptance_condition_passed": true,
+      "mandatory_artifact_hashes_verified": 4,
+      "result_json_sha256": "9e9afa6036aa1700393d0efd033c015482cb46f601ada3408b7ae770d8dfdd60",
+      "serial_sha256": "20679788fb595aaface6f35bfa9d19a900e65932ffb96d8385efbce7acf5d0c8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_bindings_verified": {
+        "esp/kernel.elf": "8a78bd9cc0cd3cd9cdaed1ba5a501c9030eb8e242d6f719684f50aad2b6fed9b",
+        "esp/EFI/BOOT/BOOTX64.EFI": "ec169b98c4f15b75f4df9086bd7ea502f6e22cf917167db5d192763681906336"
+      }
+    },
+    {
+      "group": "real-hang-times-out",
+      "label": "hang",
+      "run_directory": "/workspace/scratch/0d3232a3c004/nieuw-os-native/build/run/hang-3d31c0cf0c",
+      "started_utc": "2026-10-27T23:06:10.348874+00:00",
+      "duration_s": 60.029801730001054,
+      "raw_qemu_exit": null,
+      "timed_out": true,
+      "guest_passed": false,
+      "acceptance_condition_passed": true,
+      "mandatory_artifact_hashes_verified": 4,
+      "result_json_sha256": "e14d507792e7dda004fb2cc2fd86d0319a989ae050ae22101122a602eb0ab268",
+      "serial_sha256": "28ee276ea45af5739455b78ff5547e66bbb1cfa43a8d4d51e4ac94c61e935593",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_bindings_verified": {
+        "esp/kernel.elf": "2fa91fc2321517ecbbe7085729868a2f0ec32fd5bff0f51231ced0a9a6ed4ef1",
+        "esp/EFI/BOOT/BOOTX64.EFI": "ec169b98c4f15b75f4df9086bd7ea502f6e22cf917167db5d192763681906336"
+      }
+    }
+  ],
+  "m1_build_manifests": {
+    "normal": {
+      "path": "build/logs/build-normal-manifest.json",
+      "sha256": "68ed2461a343699d5cfcc69fee86966d1ab89db61065fc3473422b0a3f6f5885",
+      "kernel_sha256": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1",
+      "loader_sha256": "ec169b98c4f15b75f4df9086bd7ea502f6e22cf917167db5d192763681906336",
+      "kernel_feature": null,
+      "loader_feature": null
+    },
+    "ebs-retry": {
+      "path": "build/logs/build-ebs-retry-manifest.json",
+      "sha256": "f559e87bdd6734504e351494ae0f84fb09ea27e7fee4e4582d4089a9da050943",
+      "kernel_sha256": "e8164747c9201dac6790ae167d824f47eaef7662f600d61647f516ea56320ce1",
+      "loader_sha256": "9801bb00b9359b16ab1d6ea2c601b537ff6d8c2fe5d53928e5bc44698b1ebc2a",
+      "kernel_feature": null,
+      "loader_feature": "test-ebs-retry"
+    },
+    "panic": {
+      "path": "build/logs/build-panic-manifest.json",
+      "sha256": "4929abe8f4467874460a9fb6d92bbb918c871c4ffd902e932a51a1f2d0dc38e5",
+      "kernel_sha256": "8a78bd9cc0cd3cd9cdaed1ba5a501c9030eb8e242d6f719684f50aad2b6fed9b",
+      "loader_sha256": "ec169b98c4f15b75f4df9086bd7ea502f6e22cf917167db5d192763681906336",
+      "kernel_feature": "test-panic",
+      "loader_feature": null
+    },
+    "hang": {
+      "path": "build/logs/build-hang-manifest.json",
+      "sha256": "503021ba77630e4b12735c48c24ea7ee7af810b6b9d29e206571cbbcab82f89d",
+      "kernel_sha256": "2fa91fc2321517ecbbe7085729868a2f0ec32fd5bff0f51231ced0a9a6ed4ef1",
+      "loader_sha256": "ec169b98c4f15b75f4df9086bd7ea502f6e22cf917167db5d192763681906336",
+      "kernel_feature": "test-hang",
+      "loader_feature": null
+    }
+  },
+  "wrapper_stdout_limitation": {
+    "qemu_summary_lines_present": 5,
+    "full_console_claimed": false,
+    "basis_for_eight_vm_count": "Eight distinct per-run snapshot directories, each own result.json, raw serial/stderr, verified artifact hashes, timestamp and QEMU command; suite references and archived records match."
+  },
+  "prior_m2_m5_revalidation": {
+    "original_checkpoint": "44892e7ddd311021c3ae262f8b8e07f321da87a3",
+    "verifier_checkpoint": "1e61a20beac67d685cf4bff5f0f9f588bf2cb56e",
+    "new_vm_invocations": 0,
+    "prior_vm_invocations_rechecked": 56,
+    "artifact_hashes_rechecked": 243,
+    "native_input_count": 68,
+    "native_inputs_identical": true,
+    "native_inputs": [
+      {
+        "path": ".cargo/config.toml",
+        "sha256": "39fe0b25b1e707cd57d6d59975bac41f7733ab86ee03c072989869839e1ae435"
+      },
+      {
+        "path": "Cargo.lock",
+        "sha256": "eb5920cfec124d092cce91307e89ef8ea7cc29975bc0c1f7a7d9491745db0405"
+      },
+      {
+        "path": "Cargo.toml",
+        "sha256": "8fdade5730eb492acf23e7f9ac31e5c5709bf8a6ccfa6cd33a19ab19801ebf46"
+      },
+      {
+        "path": "boot/loader/Cargo.toml",
+        "sha256": "3df802e02e461be13a1680e3c19ff08e2ebe15aec26ddd61c006cd28e655f353"
+      },
+      {
+        "path": "boot/loader/src/handoff.S",
+        "sha256": "7dcc6d3efdb480b2b73528fe830ab046b468ca509ddb36901d32d71876c8c933"
+      },
+      {
+        "path": "boot/loader/src/main.rs",
+        "sha256": "32780ab2bed8f9a84d2588dd1c8cdee7a5d7b88047decb4a2cfdf53d41d92d1e"
+      },
+      {
+        "path": "boot/loader/src/memory.rs",
+        "sha256": "01627cb918aa68a580d66134c9471666fd3b6de6bfed71c439f722819a5661a7"
+      },
+      {
+        "path": "boot/loader/src/serial.rs",
+        "sha256": "7be866761987a1a655ebbe3574ec651958fbf74cdaea66173ed8cc528d542804"
+      },
+      {
+        "path": "crates/boot-protocol/Cargo.toml",
+        "sha256": "0f6c0d23c43b99f02000a0f46c3d3347a3dade86b1e03ac589a3179af40dc1a9"
+      },
+      {
+        "path": "crates/boot-protocol/src/lib.rs",
+        "sha256": "a028bf306ed1d1563a94b0b803b2d0bfa4a0f6b94dd7b5062be033affbfb98fb"
+      },
+      {
+        "path": "crates/capability-core/Cargo.toml",
+        "sha256": "7b24ddba37bca5b44a8b75b6cc229e2ae06c7a44533fe0d6a121783ad7552087"
+      },
+      {
+        "path": "crates/capability-core/src/lib.rs",
+        "sha256": "e201e714ad4f6e8e65c84af42002dfed1ec84c182959038593fbfb0e71d0d807"
+      },
+      {
+        "path": "crates/capability-core/src/tests.rs",
+        "sha256": "d2adb64b348a7a2cbf272ae9f97d27e0b0f69e7cf5bc8f4c631e526b6ea7153a"
+      },
+      {
+        "path": "crates/elf-loader-core/Cargo.toml",
+        "sha256": "605293169e6205f9f1f74a1d82d5af704b42f975bb75189b30765ff49295ea31"
+      },
+      {
+        "path": "crates/elf-loader-core/src/lib.rs",
+        "sha256": "1409433e959533120cc2b2ddc8650127e812bc6b8d6ae229f6158663236eea21"
+      },
+      {
+        "path": "crates/kernel-core/Cargo.toml",
+        "sha256": "0335f20364f907eaa0f8b51434eb19885b19945d74f73ebc9339170cc86ad589"
+      },
+      {
+        "path": "crates/kernel-core/src/lib.rs",
+        "sha256": "3d0303a83b18171c9c2d5c9f1c6448e2bd944aa7f68c5a39ff50f987162b5495"
+      },
+      {
+        "path": "crates/kernel-core/src/user.rs",
+        "sha256": "ec481bc119bbc4548851deaa60d69af36dbb29aad9396a9be1ef7d9890e9945b"
+      },
+      {
+        "path": "crates/virtio-core/Cargo.toml",
+        "sha256": "466f4e1dcaa1a58a136e4bc0fc0a5df1cef607bc8ff0926adb326a9ff2ac17bf"
+      },
+      {
+        "path": "crates/virtio-core/src/lib.rs",
+        "sha256": "ce2a795eca805fdc8a0624a418ea366e80fb5ef2dec6b3a488b8cc50c02ca523"
+      },
+      {
+        "path": "crates/virtio-core/src/tests.rs",
+        "sha256": "297e43e3dc9969606ad800ae13acc7e572146dcea10e97e739b73bd4ade2e83c"
+      },
+      {
+        "path": "drivers/virtio-blk/Cargo.toml",
+        "sha256": "0476d23c7cd0b7e83af14474a5091cfb008e13cfb1b8af48c98cd31f43546124"
+      },
+      {
+        "path": "drivers/virtio-blk/src/lib.rs",
+        "sha256": "43e72d81986902b2abc7393ca7338b427fed616e1f7f2d6a9666220ddd32ce55"
+      },
+      {
+        "path": "kernel/Cargo.toml",
+        "sha256": "91d41a4fa17a9dce2eae261c8d2388236c1ec68264c85603cddeb55f82efed18"
+      },
+      {
+        "path": "kernel/build.rs",
+        "sha256": "363387c780584d5e7bdcb8d6b5ea9711a60e9962af31a34e3fadaabde41e8440"
+      },
+      {
+        "path": "kernel/linker.ld",
+        "sha256": "56b2e5def7ddf106ca54427cc46a229598a2320a0b27856bcc4b91ed18a47c36"
+      },
+      {
+        "path": "kernel/src/m2.rs",
+        "sha256": "6a5fce093c0acd983e5e031c7ff84fa3847cc2b9433cd61709cae9a353826f4c"
+      },
+      {
+        "path": "kernel/src/m2/arch.rs",
+        "sha256": "75131d8573957a9ecb217d2270713dee1c21bfaac0e8f28918a97781b44d4185"
+      },
+      {
+        "path": "kernel/src/m2/m3.rs",
+        "sha256": "92de0f03fee95e78e22e131a55bddce9aefa54fd5d8a7691e1fc17fee6ec7b21"
+      },
+      {
+        "path": "kernel/src/m2/m3/m4.rs",
+        "sha256": "9a6388b5a8d3b39c1f1e059c124f1d5f74dfd246e225a80c42641fd7513e6460"
+      },
+      {
+        "path": "kernel/src/m2/m3/m5.rs",
+        "sha256": "9d94353789bdca5bcf2215c1119c163bb9dd0fbffb237978c9490664d6215a01"
+      },
+      {
+        "path": "kernel/src/m2/m3/m6.rs",
+        "sha256": "31323bf4bbcd7729ab044b030732e02058fb1c51ee2cc57961aa61fb0a5aead3"
+      },
+      {
+        "path": "kernel/src/m2/m3/m6b.rs",
+        "sha256": "d3e1939d179caade601ec098f1b7e7e1377d3a9a466258d8bff8605284a6b19b"
+      },
+      {
+        "path": "kernel/src/m2/paging.rs",
+        "sha256": "96727d1543b50c13b6925a249ac281ed4c4d8fdc66039e6b70fd97d6bde8888c"
+      },
+      {
+        "path": "kernel/src/main.rs",
+        "sha256": "b9cf58539e5ec691a183c9892685e1f9278623951e8661f395818913101049ec"
+      },
+      {
+        "path": "kernel/src/memory.rs",
+        "sha256": "01627cb918aa68a580d66134c9471666fd3b6de6bfed71c439f722819a5661a7"
+      },
+      {
+        "path": "kernel/src/serial.rs",
+        "sha256": "739ac9487999e04f8bea2dd00feb2fa02facda0376bc1786fe0652985e9a608f"
+      },
+      {
+        "path": "rust-toolchain.toml",
+        "sha256": "fdc1c499d524be4dc57534d10a6d41c854fa6340866f63fcc9abdaa22a540437"
+      },
+      {
+        "path": "services/block/Cargo.toml",
+        "sha256": "0d9c74937b17dfdaff9188905da7a2f8535f34ea144464deb6836af6caf06d83"
+      },
+      {
+        "path": "services/block/src/journal.rs",
+        "sha256": "cc9336e34631805af7dbd01034569639a152b9d4672f2055b4b64513428060e6"
+      },
+      {
+        "path": "services/block/src/lib.rs",
+        "sha256": "4a57b2a92de17e37a931a6816859b853262a870623a09bdae5503e39e9163542"
+      },
+      {
+        "path": "services/block/src/m6_user_service.rs",
+        "sha256": "16ef5602b09521bf38572264e4594976dde514c1ccb8bb9a4a5b14c915f4cf7b"
+      },
+      {
+        "path": "services/block/src/m6_wire.rs",
+        "sha256": "e1bc87cc34d277e538d4b0374bd988bdf10f24b6cce80a1675c9bf58a045b6ec"
+      },
+      {
+        "path": "services/block/src/user_service.rs",
+        "sha256": "16c8c92851e28101eb543f9ba2810c671bf6a8d7be86543fd7a1381c6808028c"
+      },
+      {
+        "path": "services/block/src/wire.rs",
+        "sha256": "2c420405abe8efea36e15a98cf649317ab7364891d51c6b55d04b40bbbf7f6d1"
+      },
+      {
+        "path": "services/objects/Cargo.toml",
+        "sha256": "04c5c07f07f7a4b9afe80cb9b6a3c356dee42b9f45d0c5811523a2d3635697ec"
+      },
+      {
+        "path": "services/objects/src/journal.rs",
+        "sha256": "d84785f09fb15b880b03f228286c7a5d4d43213e028434af7b074a389a55d522"
+      },
+      {
+        "path": "services/objects/src/lib.rs",
+        "sha256": "7e8124d02bf95e952809664d4f73ea71f1ee841eadc1f836406ee58d09634aa2"
+      },
+      {
+        "path": "services/objects/src/user_service.rs",
+        "sha256": "794d5aa7c46e931dfaa90f2e63367deb19f37f8eb5d31c959548142e854b79c2"
+      },
+      {
+        "path": "services/objects/src/wire.rs",
+        "sha256": "c6a7faa02267bfb4e291eeca454632d8a6fe5f289ab2f4650a8007b0a80bc823"
+      },
+      {
+        "path": "services/objects/tests/core.rs",
+        "sha256": "844ea1095b6e5a512a4fc479fa079c8143b5149026f1f14cb91654cd7a7e7686"
+      },
+      {
+        "path": "services/objects/tests/wire.rs",
+        "sha256": "974c2b05787929105ec37275f889af680785cfbc507d2f7d2b878a792fc2a804"
+      },
+      {
+        "path": "tools/build.py",
+        "sha256": "5f08d32ff7eb3bcce9be31e436c13b9d23d8eff93325a7d8b4543435e2356203"
+      },
+      {
+        "path": "tools/build_users.py",
+        "sha256": "2733e5c173d230898792dbf968ebd081ea3c3b124afb1381dcd7e67bc77e889c"
+      },
+      {
+        "path": "tools/common.py",
+        "sha256": "12a895c02e934587552f6f4212ccdf460dab49ddb39648bd4ce7f81f0581b838"
+      },
+      {
+        "path": "userspace/ipc_linker.ld",
+        "sha256": "2feaa1ce7bfd3b8f98140660d7de2cfebcc3bbb9f3bce8f58b7c245ee0bd68c3"
+      },
+      {
+        "path": "userspace/ipc_probe.rs",
+        "sha256": "0cbdad021b1314cf81488e311b1f6055f073a674cdc13a96f4f4db81db98438c"
+      },
+      {
+        "path": "userspace/large_linker.ld",
+        "sha256": "7883b64b2711eed8e7253ce87ba68e39659b4d70fab9fb965621e1715690c71e"
+      },
+      {
+        "path": "userspace/linker.ld",
+        "sha256": "6e2575a606a8e1f7ce0743e9b6766db2c870369dc1aafca68277bd02b0e03bea"
+      },
+      {
+        "path": "userspace/m5_linker.ld",
+        "sha256": "6f8cd2b385e603cd7cf6632f0dbe413e877b71ef94a610c3cb7f998996ae8911"
+      },
+      {
+        "path": "userspace/m5_probe.rs",
+        "sha256": "5da71bb42e801bfb754d3834e9ac60d8630d9e3a6a53b64fd38d516ffa2a3633"
+      },
+      {
+        "path": "userspace/m5_runtime.rs",
+        "sha256": "dad9f8a94f5059c63d323d938b5f06be53b04a19c7126efa0b8728eb25d98d93"
+      },
+      {
+        "path": "userspace/m6_linker.ld",
+        "sha256": "4431d76b208474497be891083f1221efeda5b6529615653df3160ff54290cc41"
+      },
+      {
+        "path": "userspace/m6_probe.rs",
+        "sha256": "bdbf3e8fa8708cd28b2676bf6cdb263e6da72b5ce0d7549860d20754418f192c"
+      },
+      {
+        "path": "userspace/m6_runtime.rs",
+        "sha256": "f4af399746e113bbc08ef8b629ebd2ee569ef4bb4aaa0b5ed1ca65644aaa41bf"
+      },
+      {
+        "path": "userspace/m6b_linker.ld",
+        "sha256": "21f1e9aa125fb6b9eb185e510540c762e14eb27ebb559800ad74919fa29a17bd"
+      },
+      {
+        "path": "userspace/m6b_probe.rs",
+        "sha256": "9acfb273d128dc0b312b36e80f4f7ae13ecacd87128c9129ebae848452f5ac21"
+      },
+      {
+        "path": "userspace/probe.rs",
+        "sha256": "094bda3e3937d2a698591ad50befd85d5e153b020e21e658de7ac72a0288856c"
+      }
+    ],
+    "parser_files_unchanged_from_20f7ed2": [
+      {
+        "path": "tools/run.py",
+        "sha256": "2d8105f06172417ec026f28b5d290d6f596055fdf0c2e35a76829931effbc3a9"
+      },
+      {
+        "path": "tools/capture_gate.py",
+        "sha256": "7718bdc72813d94b8913bf2da6f584a60767601fc34b0d818675002ce757c6bf"
+      },
+      {
+        "path": "tools/gate_contract.py",
+        "sha256": "951c0f914374924d4a3841f9c533f7524d55788e2e696d6986f1cdc8b103addd"
+      }
+    ]
+  },
+  "rejected_attempts_preserved": [
+    {
+      "directory": "docs/verification/regression-m6b/audit/rejected-m1-first-attempt",
+      "files_preserved": 7,
+      "file_sha256": {
+        "cold3-result.json": "3446f4ffa8749cfd47d345cf105f92372017cc83702309e9a792d690e2b9d7ed",
+        "cold3-serial.txt": "b7cb940f12ae7a697dfaa9bd3c64ed08576ada8ee9823ed76c4c0968caf445b4",
+        "cold3-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "commands.json": "64641375f9d68337230b03b1124a3b08fe9bcd2f24cf1dff5b82ccf091f01a87",
+        "independent-rejection.json": "8dd250712cd78acc534b3115017f4891f9f70d054c41fa8674c949529a8248ec",
+        "m1-acceptance.stdout.txt": "32b1dc2575957da242de4e14a60d92d53fbc07485e742525763c9140fb101865",
+        "test-results.json": "36d7f6ec8fcee95de27b6ab9c914bb85978ce13f567caf8fa4b56c8c117caf9c"
+      },
+      "included_in_accepted_counts": false
+    },
+    {
+      "directory": "docs/verification/regression-m6b/audit/rejected-m1-second-attempt",
+      "files_preserved": 8,
+      "file_sha256": {
+        "cold-1-013cc4acb6-result.json": "c0b0bf68877f4816b5e3d7a88f27956c77a7ae6476a6a315053d1a39b5bc4e9e",
+        "cold-1-013cc4acb6-serial.txt": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+        "cold-1-013cc4acb6-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "independent-rejection.json": "89520aef78612225ce84eef47601d4f80048c5bee1023b3c1c6d7650cf514471",
+        "m1-final-acceptance.json": "3032c9a0878cc6bf585b7d293a52525e7d1171ea8fde33bf3b40bf22bc41a773",
+        "m1-final-acceptance.stderr.txt": "94cf17a89fb22548d7d9ae39d3fd818dd80cddc105018a1e6c985d8cdde37f6a",
+        "m1-final-acceptance.stdout.txt": "e60bc61f6c97aa56f0d636f488d22983599fef9adccc4c9386f291766a87eb94",
+        "test-results.json": "ae547996be3f7949102c084f756cd551d2716253634c0ed54a2b60b84a8cf6e5"
+      },
+      "included_in_accepted_counts": false
+    },
+    {
+      "directory": "docs/verification/regression-m6b/audit/rejected-m1-third-attempt",
+      "files_preserved": 6,
+      "file_sha256": {
+        "guest-runs.json": "fb27eed89fa2c5b0bd43f9893a7cae229baac1b0155dc4a11959f9024d08e2ac",
+        "m1-gate.json": "5bb8a49f6261039f7808dcaa2a2ab940b3962d8c95085179df16a12764152aae",
+        "m1-gate.stderr.txt": "03af046038ed3b38d513961cd4ce77f41f881c038a7c104f97445721534f47d4",
+        "m1-gate.stdout.txt": "5df36f2c0a3900b51667ac8df26d4a33535eb4c29f4d79c71e2225ba673d5b25",
+        "rejection.json": "71b8adf4202ff766e69d8049936ecaa1188420c276aa4fec8237ef981547a8fa",
+        "suite.json": "b39eb9b5308b05f816db5eb5a33512d5d191282b08f8760adac2150e9b41bc04"
+      },
+      "included_in_accepted_counts": false
+    }
+  ],
+  "limitations": [
+    "AI review is not a human audit or formal proof.",
+    "Three previously rejected attempts are excluded from accepted groups/VM totals; their artifact replacement cause remains undetermined.",
+    "The wrapper console file is partial and is not used as a complete console transcript.",
+    "Physical hardware, IOMMU, native NAS/network and global OS security properties are outside this audit."
+  ]
+}

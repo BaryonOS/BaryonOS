@@ -1,0 +1,6 @@
+test_restore_preserves_original_error_and_failed_suite (test_m6b_gate.FailedGateRestoration.test_restore_preserves_original_error_and_failed_suite) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.003s
+
+OK
