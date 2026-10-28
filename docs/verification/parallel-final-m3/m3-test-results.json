@@ -1,0 +1,208 @@
+{
+  "phase": "M3",
+  "status": "completed",
+  "passed": true,
+  "started_utc": "2026-10-28T15:36:58.958291+00:00",
+  "results": [
+    {
+      "name": "user-elf-frame-abi-host-tests",
+      "passed": true,
+      "requirements": [
+        "KS-04",
+        "USER_ELF",
+        "RETURN_FLAGS"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/logs/m3-host-tests.stdout.txt"
+    },
+    {
+      "name": "user-artifact-negative-tests",
+      "passed": true,
+      "requirements": [
+        "USER_ELF",
+        "USER_SYSCALL_FIXTURE"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/logs/m3-user-artifact-tests.stdout.txt"
+    },
+    {
+      "name": "private-address-spaces-preemption-fairness-cleanup",
+      "passed": true,
+      "requirements": [
+        "KS-04",
+        "KS-07",
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/m3-2c1895253e"
+    },
+    {
+      "name": "test-m3-peer-read",
+      "passed": true,
+      "requirements": [
+        "KS-05",
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-peer-read-c29afb4f49"
+    },
+    {
+      "name": "test-m3-peer-write",
+      "passed": true,
+      "requirements": [
+        "KS-05",
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-peer-write-ed7c20021c"
+    },
+    {
+      "name": "test-m3-kernel-write",
+      "passed": true,
+      "requirements": [
+        "KS-05",
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-kernel-write-a0bca256d7"
+    },
+    {
+      "name": "test-m3-stack-exec",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-stack-exec-de9dcf5bf7"
+    },
+    {
+      "name": "test-m3-heap-exec",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-heap-exec-365d368bb2"
+    },
+    {
+      "name": "test-m3-guard-low",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-guard-low-2aa210d937"
+    },
+    {
+      "name": "test-m3-guard-high",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-guard-high-1fa8ca345e"
+    },
+    {
+      "name": "test-m3-cli",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-cli-6e0650752a"
+    },
+    {
+      "name": "test-m3-x87",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-x87-f8a2b3e011"
+    },
+    {
+      "name": "test-m3-xmm",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-xmm-c2f6ffb908"
+    },
+    {
+      "name": "test-m3-avx",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-avx-db19b2afc2"
+    },
+    {
+      "name": "test-m3-ud",
+      "passed": true,
+      "requirements": [
+        "KS-06",
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-ud-0918625dc6"
+    },
+    {
+      "name": "test-m3-exit",
+      "passed": true,
+      "requirements": [
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-exit-ec64d97ae4"
+    },
+    {
+      "name": "test-m3-b-exit",
+      "passed": true,
+      "requirements": [
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-b-exit-2532f2468c"
+    },
+    {
+      "name": "test-m3-invalid-rsp",
+      "passed": true,
+      "requirements": [
+        "KS-08"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-invalid-rsp-c860290625"
+    },
+    {
+      "name": "all-processes-exit-idle-timer-and-resources",
+      "passed": true,
+      "requirements": [
+        "KS-08",
+        "IDLE_CPL0_IRQ0",
+        "RESOURCE_RECLAIM"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-idle-cf051aff0b"
+    },
+    {
+      "name": "large-bss-artifact-host-tests",
+      "passed": true,
+      "requirements": [
+        "MAPPING_CAPACITY",
+        "USER_ELF"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/logs/m3-large-artifact-tests.stdout.txt"
+    },
+    {
+      "name": "large-bss-image-exceeds-old-64-mapping-limit",
+      "passed": true,
+      "requirements": [
+        "KS-04",
+        "KS-07",
+        "KS-08",
+        "MAPPING_CAPACITY"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/test-m3-large-image-28e7496de1"
+    },
+    {
+      "name": "m1-regression-after-m3",
+      "passed": true,
+      "requirements": [
+        "M1"
+      ],
+      "evidence": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/run/m1-after-m3-708180236a"
+    }
+  ],
+  "finished_utc": "2026-10-28T15:39:10.879013+00:00"
+}

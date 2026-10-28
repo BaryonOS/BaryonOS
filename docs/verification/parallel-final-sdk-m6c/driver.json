@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "task": "G05",
+  "status": "completed",
+  "passed": true,
+  "source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "source_fingerprint_version": 3,
+  "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "started_utc": "2026-10-28T15:36:37.278699+00:00",
+  "environment": {
+    "CARGO_HOME": "/tmp/nieuw-os-par-tools/cargo-home",
+    "CARGO_TARGET_DIR": "/tmp/nieuw-os-par-final-sdk-m6c-target",
+    "NOS_TARGET_DIR": "/tmp/nieuw-os-par-final-sdk-m6c-target",
+    "NOS_BUILD_DIR": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c",
+    "NOS_SDK_RUNTIME": "1",
+    "CARGO_BUILD_JOBS": "2",
+    "NOS_QEMU_MACHINE": "pc-q35-7.2",
+    "OS_OVMF_CODE": "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "OS_OVMF_VARS": "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_VARS_4M.fd"
+  },
+  "commands": [
+    {
+      "name": "suite",
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/test_m6c.py"
+      ],
+      "returncode": 0,
+      "duration_s": 258.57434264900076,
+      "stdout": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/g05-suite.stdout.txt",
+      "stderr": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/g05-suite.stderr.txt",
+      "stdout_sha256": "d06f06ace7f76429d840a73b8b6f4fb723b347e70c988c1512f6122361b63667",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "capture",
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/capture_m6c.py",
+        "--destination",
+        "docs/verification/parallel-final-sdk-m6c"
+      ],
+      "returncode": 0,
+      "duration_s": 0.5191269179995288,
+      "stdout": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/g05-capture.stdout.txt",
+      "stderr": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/g05-capture.stderr.txt",
+      "stdout_sha256": "6ed46d39fa982414e91413bc0f298ece7f15e7242d77dd45962c897aafd61101",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "finished_utc": "2026-10-28T15:40:56.373562+00:00",
+  "source_unchanged": true
+}

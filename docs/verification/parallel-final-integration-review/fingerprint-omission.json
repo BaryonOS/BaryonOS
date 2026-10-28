@@ -1,0 +1,13 @@
+{
+  "task": "G06",
+  "root_source_modified": false,
+  "common_source_sha256": "b1ce783b0e23671efde020ab7d3b4f7ceae266c45ddfa4ead2724c812b9720b1",
+  "actual_inherited_input": "experiments/quantum/Cargo.toml",
+  "inheriting_package_manifest": "experiments/quantum/qsim-core/Cargo.toml",
+  "temporary_before_parent_sha256": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+  "temporary_after_parent_sha256": "7023d80fd769eea7c69fd4a2a1a34cc256ba65d394713b30ef1b95cf5224a011",
+  "temporary_before_fingerprint": "6f3336a4c0274533a271aa8f9886eef8ebcc82976b77e18433fc69fc6ce40443",
+  "temporary_after_fingerprint": "6f3336a4c0274533a271aa8f9886eef8ebcc82976b77e18433fc69fc6ce40443",
+  "omission_reproduced": true,
+  "current_qsim_gate_compensation": "run_qsim.validate_build compares artifact source hashes with native builder.sources before and after execution, including the parent manifest."
+}

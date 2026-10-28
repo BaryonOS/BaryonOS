@@ -1,0 +1,11 @@
+{
+  "source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "source_fingerprint_version": 3,
+  "passed": true,
+  "native_vm_count": 1,
+  "accepted_transport": "pipe",
+  "post_run_rehash_passed": true,
+  "run_directory": "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840",
+  "scope": "Fresh native G0 pipe run with immutable artifacts confirmed after later tool calls. Earlier changed artifact and separate UNIX EPERM run are excluded."
+}

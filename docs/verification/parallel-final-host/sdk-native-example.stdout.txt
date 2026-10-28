@@ -1,0 +1,1 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-catalog-read-example", "--features", "native", "--target", "x86_64-unknown-none"], "target_dir": "/tmp/nieuw-os-par-final-host-target"}

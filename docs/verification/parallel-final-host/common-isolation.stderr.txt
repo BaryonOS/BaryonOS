@@ -1,0 +1,7 @@
+test_only_explicit_versioned_profiles_and_no_silent_fallback (test_common.MachineSelection.test_only_explicit_versioned_profiles_and_no_silent_fallback) ... ok
+test_timeout_saves_partial_output_and_metadata_before_reraising (test_common.RunLoggedTimeout.test_timeout_saves_partial_output_and_metadata_before_reraising) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.005s
+
+OK

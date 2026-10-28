@@ -1,0 +1,14 @@
+{
+  "checks": {
+    "same_kernel": true,
+    "same_loader": true,
+    "different_canary_images": true,
+    "same_explicit_fixture_state": true
+  },
+  "passed": true,
+  "scope": "Canary seed variation; document bytes are explicitly deterministic.",
+  "run_directories": [
+    "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-normal-a-9672d6a3d3",
+    "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-normal-b-9c544b260a"
+  ]
+}

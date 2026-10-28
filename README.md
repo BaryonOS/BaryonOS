@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **14** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`303bed34`](https://github.com/simonvanieperen/nieuw-os/commit/303bed3424e59751c6404344a7ed20ecc33b020d) ·
+**Bron:** [`3e41bbf9`](https://github.com/simonvanieperen/nieuw-os/commit/3e41bbf93822f7044c6020259f4a752925e1966d) ·
 **Ontwikkelbranch:** `codex/parallel-native-foundation-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Gecombineerd native checkpoint: SDK/catalogus, G0, quantumport en concrete reviewreparaties.
-Vier echte agents. G0-invoer, SDK-catalogus met koude recovery en twee native quantumprocessen zijn gericht uitgevoerd; volledige gecombineerde gates volgen. Scalar-prefixreviewfix geïntegreerd; nieuwe native eindcontrole volgt. L02 mist native jobaanvoer/cancel buiten vaste proef, A01 algemene appstart en Materiaal eigen G1. Geen volledig nieuw criterium; score blijft 14%.
+Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Gecombineerde native acceptatie: 80 VM-runs en doorbouw documentsessie/jobcodec/G0-capture.
+Vier echte agents. Native G0, SDK/catalogus met koude recovery, M6b-foutafhandeling, twee quantumprocessen en volledige M3-regressie geaccepteerd: 80 VMs,616 gecontroleerde artifacthashes. Oorspronkelijk afwijkend G0artifact uitgesloten; versepipe-run bevestigd. A01/U03/S04/S05/L02 blijven volgens vastecriteria open. Score14%; vervolgbouw in eigenworktrees.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

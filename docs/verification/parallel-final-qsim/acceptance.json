@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "scope": "two isolated ring-3 qsim reference jobs, cancellation, resource bounds and cleanup; no QPU or general service API",
+  "passed": true,
+  "checks": {
+    "before_launch_source_unchanged": true,
+    "guest_exit_sequence_profile_and_artifacts": true,
+    "after_run_source_unchanged": true,
+    "qemu_entry_unchanged": true,
+    "quantum_binary_snapshot": true,
+    "scalar_report_snapshot": true,
+    "build_artifacts_unchanged": true
+  },
+  "source_fingerprint_version": 3,
+  "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "qemu_entry_path": "/tmp/nieuw-os-par-tools/bin/qemu-system-x86_64",
+  "qemu_entry_sha256": "561b9e1f55fe21ea20560797fbf148d9999a6a7425e0aa8e9569757a6a2dfdfa",
+  "inputs_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-qsim/qsim-inputs-42b7b0db1e",
+  "guest": {
+    "label": "native-qsim",
+    "started_utc": "2026-10-28T15:36:52.215269+00:00",
+    "duration_s": 6.564899488002993,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "KS-01:PASS",
+      "KS-02:PASS",
+      "KS-03:PASS",
+      "M2:PASS",
+      "QSIM:MANIFEST:PASS",
+      "QSIM:BELL4096:PASS",
+      "QSIM:SIX_QUBIT:PASS",
+      "QSIM:CANCEL:PASS",
+      "QSIM:DEADLINE:PASS",
+      "QSIM:RESOURCE_LIMITS:PASS",
+      "QSIM:PROCESS_ISOLATION:PASS",
+      "QSIM:CLEANUP:PASS",
+      "QSIM:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      "FAIL",
+      "PANIC"
+    ],
+    "passed": true,
+    "command": [
+      "/tmp/nieuw-os-par-tools/bin/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-7.2",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/parallel-final-qsim/run/native-qsim-893634900f/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/parallel-final-qsim/run/native-qsim-893634900f/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/parallel-final-qsim/run/native-qsim-893634900f/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04"
+    ],
+    "qemu_version": "QEMU emulator version 7.2.22 (Debian 1:7.2+dfsg-7+deb12u18+b3)\nCopyright (c) 2003-2022 Fabrice Bellard and the QEMU Project developers",
+    "profile": "development-package; pc-q35-7.2/qemu64/TCG/1CPU/256MiB",
+    "base_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+    "source_fingerprint_version": 3,
+    "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+    "artifact_sha256": {
+      "esp/kernel.elf": "84c75a9504e923426db1f86ac6d1e24b62d70024e4bebfe52b571b67106ac72d",
+      "esp/EFI/BOOT/BOOTX64.EFI": "0c62a346c778526e5ab1c865e9a21da4f7ab3d32f2218eba4ec85ef9afa84da9",
+      "OVMF_CODE.fd": "b157d97b1f69729514feb7f201d2cbe4957f23ab77920e361fe9f822ba49ca4c",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    "firmware_source": [
+      "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+      "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_VARS_4M.fd"
+    ],
+    "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-qsim/run/native-qsim-893634900f",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nQSIM:MANIFEST:PASS\nQSIM:PROCESS_PID:00000000000000000001\nQSIM:PROCESS_CHECKPOINTS:00000000000000000253\nQSIM:PROCESS_USEFUL_ARENA:00000000000000007216\nQSIM:PROCESS_MAX_WORK_GAP:00000000000000000448\nQSIM:PROCESS_PID:00000000000000000002\nQSIM:PROCESS_CHECKPOINTS:00000000000000000253\nQSIM:PROCESS_USEFUL_ARENA:00000000000000007216\nQSIM:PROCESS_MAX_WORK_GAP:00000000000000000448\nQSIM:BELL4096:PASS\nQSIM:SIX_QUBIT:PASS\nQSIM:CANCEL:PASS\nQSIM:DEADLINE:PASS\nQSIM:RESOURCE_LIMITS:PASS\nQSIM:PROCESS_ISOLATION:PASS\nQSIM:TIMER_IRQS:00000000000000000004\nQSIM:SYSCALL_CALLS:00000000000000000505\nQSIM:CLEANUP_FRAMES:00000000000000000096\nQSIM:CLEANUP:PASS\nQSIM:PASS\nM1:PASS\n",
+    "stderr": "",
+    "expected_artifact_sha256": {
+      "esp/kernel.elf": "84c75a9504e923426db1f86ac6d1e24b62d70024e4bebfe52b571b67106ac72d",
+      "esp/EFI/BOOT/BOOTX64.EFI": "0c62a346c778526e5ab1c865e9a21da4f7ab3d32f2218eba4ec85ef9afa84da9"
+    },
+    "artifact_binding_passed": true
+  },
+  "observed": {
+    "processes": [
+      {
+        "pid": 1,
+        "checkpoints": 253,
+        "useful_arena": 7216,
+        "max_work_gap": 448
+      },
+      {
+        "pid": 2,
+        "checkpoints": 253,
+        "useful_arena": 7216,
+        "max_work_gap": 448
+      }
+    ],
+    "timer_irqs": 4,
+    "syscall_calls": 505,
+    "cleanup_frames": 96
+  },
+  "input_artifact_sha256": {
+    "build-report.json": "33912c8091a053abad364696568e576ec360734b347865ab0629f5448d385701",
+    "disassembly.stdout.txt": "7f96ffcf303a2a832ae1d1a951cd43b96effba8fc8626bb4e844f4548e40a76d",
+    "build-manifest.json": "69c05c3de7b648113f94b260a7ecbe20c7b1e39b35c9088223b9679e1b66960c",
+    "qsim-native-probe.elf": "3a20a6e8566b899ffec4939a03a9a7e5f970ca2f5b0c7d84fd85f5dccc860a5a",
+    "symbols.stdout.txt": "12753835b82e521662053d8d155a79dd6f2418d3febf1acd6a0db4c12cc249ad"
+  }
+}

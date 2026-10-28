@@ -1,0 +1,61 @@
+   Compiling boot-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/boot-protocol)
+   Compiling r-efi v7.1.0
+   Compiling elf-loader-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/elf-loader-core)
+   Compiling os-loader v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/boot/loader)
+    Finished `release` profile [optimized] target(s) in 1.61s
+   Compiling virtio-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/virtio-core)
+   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)
+   Compiling capability-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/capability-core)
+   Compiling virtio-blk-driver v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/drivers/virtio-blk)
+   Compiling block-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/services/block)
+   Compiling kernel-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/kernel-core)
+   Compiling ui-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/ui-core)
+   Compiling boot-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/boot-protocol)
+    Finished `release` profile [optimized] target(s) in 1.88s
+Built and inspected normal: 3 ELF load segments
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x2,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x2,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+G0:FRAMEBUFFER:800:600:800:1
+G0:MAPPINGS:PASS
+G0:READY
+G0:INPUT:1
+G0:INPUT:2
+G0:INPUT:1
+G0:INPUT:2
+G0:PASS
+M1:PASS
+G0 raw=33; passed=True; /workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-g0/run/graphics-g0-5ad6321b1d
+{
+  "schema_version": 1,
+  "source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "source_fingerprint_version": 3,
+  "passed": true,
+  "scope": "Actual isolated native G0 VM plus deliberately wrong ROM hash rejected before VM launch; no native document UI claim.",
+  "wrong_rom_pin": {
+    "rejected": true,
+    "error": "VGA ROM does not match the explicitly pinned SHA256",
+    "expected_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "actual_sha256": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a",
+    "vm_started": false
+  },
+  "raw_qemu_exit": 33,
+  "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-g0/run/graphics-g0-5ad6321b1d",
+  "frame_sha256": {
+    "typed.ppm": "e80f6cf1f572cc3bad3441cbbb5f3a27a750f8a0c84127bb63af77ab496e26dc",
+    "initial.ppm": "454aedf48cb14c89e6e947b5c96b1c6bd6432c53a1d8aea3d03f1ad19300bc73",
+    "a.ppm": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+    "after-backspace.ppm": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+    "ab.ppm": "90c4fd29fd891de256c84239acba59811537146f1a9bc482c6264576615c6b4e"
+  },
+  "rom_sha256": "cc2f735f19b6318922ac3de9506dee498f149a6b75534f7e5c176d4441a7fa4a",
+  "source_unchanged": true,
+  "head_unchanged": true,
+  "build_manifest_sha256": "70e8712d5633afdd3b8bdd188f99afb7e66b0989167342e3f8e01a668e93b0ef"
+}

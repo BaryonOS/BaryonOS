@@ -1,62 +1,46 @@
 # Actuele projectstatus
 
-## Gecombineerde native bouw — 28 oktober 2026
+## Gecombineerde native acceptatie — 28 oktober 2026
 
-Werkbranch `codex/parallel-native-foundation-20261028`, concept-PR
-[#15](https://github.com/simonvanieperen/nieuw-os/pull/15) boven de behouden
-opslagbranch/PR #14. Basis `1acf6e8`; actuele main blijft `391f02e`.
-Vier echte gelijktijdige agents: hoofdagent voor gedeelde bron/integratie,
-`native_storage`, `native_apps` en `runtime_platform`, met eigen worktrees,
-buildmappen, targets, VM-images en logs. Geen wijziging van de elders toegewezen
-G1/Materiaal-implementatie of M6a-observerbranch.
+Uitvoeringsbron `3e41bbf93822f7044c6020259f4a752925e1966d`, branch
+`codex/parallel-native-foundation-20261028`, PR#15 boven de behouden PR#14.
+Lokale/GitHub-commit identiek vóór gates; bronfingerprint v3
+`307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60` bleef gelijk.
+Alle vier werkelijke agentplaatsen zijn benut en hergebruikt met eigen
+worktrees/builds/targets/VMs/logs. G1 en de andere M6a-opdracht blijven bij hun
+bestaande eigenaars.
 
-Geïntegreerde bouwstappen: allocatorvrije catalogusclient met canonieke replies,
-SDK voor de bestaande capability/IPC-ABI, begrensde SDK-catalogusadapter,
-SDK-transport in de bestaande native M6c-probe, behoud en aanscherping van G0,
-en een scalar port van de bestaande quantumcore in twee echte userprocessen.
-Er zijn geen nieuwe syscalls, apprechten, opslagformaten of externe crates.
-De kerneltestobserver bevat uitsluitend vaste acceptatieverwachtingen; de
-simulator en cataloguspolicy blijven gebruikerscode.
+**80 geaccepteerde native VM-runs:** M6b32 groepen/28 VM, SDK/M6c35/31,
+M3-regressie22/19, native quantum1 en bevestigde G0-pipe1. Volledige M6b- en
+M6c-captures slagen. Beide normale SDK-catalogusruns bewaren sequence10 en
+lezen na een nieuwe koude VM dezelfde bytes terug zonder writes. Twee quantum-
+userprocessen voeren bestaande referentieberekeningen uit, met64 KiB-arena's,
+4 timerIRQs/505 syscalls en96 werkelijk vrijgemaakte frames. G0 verwerkt echte
+invoer met per-toetsbeelden en exact backspaceherstel. Geen nieuwe syscall,
+capabilityverruiming, on-diskformaat of externecrate.
 
-Drie gerichte native controles zijn werkelijk uitgevoerd in QEMU 7.2.22,
-expliciet `pc-q35-7.2`, TCG/qemu64, één CPU/256 MiB, eigen OVMF/wegwerpimages
-zonder gastnetwerk. G0 toont 800×600 eigen uitvoer en verwerkt echte toetsen.
-M6c via het nieuwe SDK-transport bewaart sequence 10 met tien bevestigde
-mutaties en leest dezelfde schijfbytes in een aparte koude VM terug zonder
-nieuwe writes. De quantumport draait tweemaal Bell/zes-qubitproeven en
-resource-/cancel-/deadline-fixtures in private processen; cleanup geeft alle
-96 toegewezen frames terug. Dit zijn gerichte ontwikkelruns, nog geen nieuwe
-volledige acceptatiepoort van de laatst samengevoegde bron.
+De gecombineerde artifactcontrole bevestigt80 unieke VMs en616 directe
+hashvergelijkingen. De oorspronkelijke G0-run is uitgesloten wegens een
+later afwijkend bewaard serialartifact; oorzaak onbekend, niets hersteld.
+De verse private pipe-run en alle 15artifacts zijn herhaaldelijk gecontroleerd.
+Een aparte UNIX-socketprobe faalde op sandbox-EPERM; de bruikbare pipe-route
+is de native geverifieerde variant. Oude fouten en ruwe resultaten blijven
+behouden. Alle bron-/bewijs-/reproduceerdetails staan in
+[PARALLEL-NATIVE-ACCEPTANCE.md](verification/PARALLEL-NATIVE-ACCEPTANCE.md).
 
-Concrete reviewreparaties: de M6b-oracle staat bij een gepubliceerde WRITE
-zonder notify alleen de oude schijf of exact de eerste verwachte record toe;
-Unknown blijft zonder ACK of replay. G0 controleert iedere toets-overgang,
-bewaart ook afwijkende pixelgrenzen en accepteert een expliciete VGA-ROM met
-hashpin. G0 hertekent na invoer alleen de invoerregels. QMP-deadlines gelden
-ook voor volle pipes en langzaam binnendruppelende antwoorden. De preflight
-controleert echte gepinde Rust-targetbibliotheken, ook zonder rustup.
-Een gerichte AI-review vond nog een prefixgat in de native scalar-disassembly-
-gate; I04 heeft dit met echte negatieve instructiebytes hersteld. De scalar
-herbouw behoudt exact dezelfde ELF; de finale native poort volgt. Er is geen
-ongewenste instructie in de huidige ELF aangetoond.
+Concrete CodeRabbit- en gerichte AI-bevindingen zijn verwerkt voor QMP-
+deadlines/ID's, screenshots, ROMpin, WRITE-timeout-oracle, standalone preflight
+en prefixed FPU-instructies. De nieuwe PR#15-review op3e41 is aangevraagd;
+definitieve review/mergestatus wordt op GitHub bijgehouden. Geen veiligheids-
+of fysieke hardwareclaim door de AI-review. QEMU 7.2.22/pc-q35-7.2 is expliciet
+vastgelegd en verschilt van het historische10.0-referentieprofiel.
 
-Volgende verplichte stap: bron vastleggen, de volledige M6b- en SDK/M6c-poort
-parallel uitvoeren en hun captures controleren; daarna de strikte qsim- en
-vernieuwde G0-poort op dezelfde bron. De historische ruwe archieven worden
-niet overschreven. De agentrapporten staan onder `verification/parallel-*`;
-hosttests, compilaties en echte native uitvoeringen blijven afzonderlijk.
-De officiële toolchainherkomst en definitieve gecombineerde resultaten volgen
-in een eigen acceptatiebundel. Deze QEMU 7.2-variant is niet het historische
-QEMU 10.0-referentieprofiel en bewijst geen fysieke hardwareondersteuning.
-
-Voortgang **14% → 14%** met ongewijzigde criteria/gewichten. L02 blijft open:
-de native rekenbibliotheek werkt, maar jobs buiten de gecompileerde proef
-kunnen nog niet native worden aangeboden/ingetrokken. CANCEL/DEADLINE zijn
-Control-fixtures, geen IPC-annulering of gemeten klokdeadline. A01 blijft open
-voor gewone appstart; de catalogusvoorbeeldapp is native gecompileerd maar
-nog niet via algemene appstart uitgevoerd. Native Materiaal, bruikbare
-documentgrootte/ruimtehergebruik, netwerk en cryptografische afhankelijkheden
-blijven open. Zie `WORK-QUEUE.md` voor eigenaren en kleinste afhankelijkheden.
+Voortgang **14% → 14%**; vaste criteria/gewichten behouden. A01 algemene appstart,
+U03 native Materiaal, S04/S05 bruikbare documentgrootte/ruimtehergebruik en L02
+externe native quantumjobs blijven open. De catalogusclient+SDK bestaan nu;
+G07 bouwt een documentsessie, I08 een jobcodec en B07 een strikte G0-capture
+in eigen worktrees. Zij zijn nog geen geaccepteerde productfunctie.
+Zie `WORK-QUEUE.md` voor de kleine actuele taakverdeling en blokkades.
 
 ## Historische faseverslagen
 

@@ -1,0 +1,594 @@
+{
+  "logs/build-m3-manifest.json": {
+    "sha256": "90e6c1a546d71ce73b80bf4f1421ed1d56bc157e61839103e206eac6acf88b97",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"m3\",\n  \"kernel_feature\": \"milestone-m3\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"c30f4d2190745912075f6ade363a2e55c14d3fbccb4f6d5efa4d6a729b8f0779\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 60055,\n        \"memsz\": 60055,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17760,\n        \"memsz\": 17760,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 60055\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17760\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5256\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10822\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-m3-os-kernel.json": {
+    "sha256": "f88f2ef41b5731e9c174e280e7533e7f8b961366d6bb4f5dfadfcd3158cb73b6",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"milestone-m3\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201820.573072,\n  \"duration_s\": 1.6340177059173584,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-m3-os-kernel.stderr.txt": {
+    "sha256": "1f989084926efc1a5588adabb39e33226b104442f28840e0d254e94e5fb8f499",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n   Compiling virtio-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/virtio-core)\n   Compiling boot-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/boot-protocol)\n   Compiling virtio-blk-driver v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/drivers/virtio-blk)\n   Compiling capability-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/capability-core)\n   Compiling kernel-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/kernel-core)\n   Compiling block-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/services/block)\n    Finished `release` profile [optimized] target(s) in 1.59s\n"
+  },
+  "logs/build-m3-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-m3-os-loader.json": {
+    "sha256": "b9ee336544fd84bc9a29d3f0231a47add8f1fa634f83fb03c42ef9d1038241e6",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201819.6650949,\n  \"duration_s\": 0.9073984622955322,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-m3-os-loader.stderr.txt": {
+    "sha256": "04f54a47ba7fc5c154396c58750bac9cbdeb23831ced8a0d5ec42887d45ab44e",
+    "text": "   Compiling boot-protocol v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/boot-protocol)\n   Compiling r-efi v7.1.0\n   Compiling elf-loader-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/elf-loader-core)\n   Compiling os-loader v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/boot/loader)\n    Finished `release` profile [optimized] target(s) in 0.87s\n"
+  },
+  "logs/build-m3-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-normal-manifest.json": {
+    "sha256": "77b2cc876fb9d902b11af83434d63deb25b9cf5753cdcb311b73ac52c8c69620",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"normal\",\n  \"kernel_feature\": null,\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"5f710506ae62361e4d07b96db705be9106e76d20b15440b541872c211e27aed1\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 6019,\n        \"memsz\": 6019,\n        \"page_start\": 33554432,\n        \"page_end\": 33562624\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 12288,\n        \"address\": 33562624,\n        \"filesz\": 502,\n        \"memsz\": 502,\n        \"page_start\": 33562624,\n        \"page_end\": 33566720\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 16384,\n        \"address\": 33566720,\n        \"filesz\": 96,\n        \"memsz\": 160,\n        \"page_start\": 33566720,\n        \"page_end\": 33570816\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 6019\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 502\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 96\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 64\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 1176\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 2228\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-normal-os-kernel.json": {
+    "sha256": "a1292a03902d7403159dd1fb67d07a47df098b60be0f07069a8d30d2b56a6154",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201946.6209981,\n  \"duration_s\": 0.1833653450012207,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-normal-os-kernel.stderr.txt": {
+    "sha256": "456d604eed1ba0cb05d8ad9ded58a5194e4a04fd086da2ddf6b92c804926f6f2",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 0.15s\n"
+  },
+  "logs/build-normal-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-normal-os-loader.json": {
+    "sha256": "bd6ba072f057689132e6ddb3dae54c96a20cc1d0fc6d07913815822dce3421fc",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201946.581775,\n  \"duration_s\": 0.039083242416381836,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-normal-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-normal-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-avx-manifest.json": {
+    "sha256": "2129faf207afdfbcc2b321f433c9e2249623206b11f47e72dc870a48bb6786fc",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-avx\",\n  \"kernel_feature\": \"test-m3-avx\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"23b2ceb5785440e8486578399568c1826e4c00ff0cdf68da6dde0b35b21c81f8\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58775,\n        \"memsz\": 58775,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17496,\n        \"memsz\": 17496,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58775\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17496\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5232\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10761\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-avx-os-kernel.json": {
+    "sha256": "8dfc9162d22b80da63c605e1c324153f6259bdd4e8051fa6ab131491d0381cec",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-avx\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201901.3723457,\n  \"duration_s\": 1.036085605621338,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-avx-os-kernel.stderr.txt": {
+    "sha256": "8699fc9369b5f5487eb29c6a0dc776292cc4111411fe2a79b230e405df1435f6",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 1.00s\n"
+  },
+  "logs/build-test-m3-avx-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-avx-os-loader.json": {
+    "sha256": "d529e3313dbfec999f16e70aed49f5d7964bc04d6063519495bd15d78f9a185d",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201901.3371341,\n  \"duration_s\": 0.035085201263427734,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-avx-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-avx-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-b-exit-manifest.json": {
+    "sha256": "fbbc9064c683b06d20ab38171410f3204c0537c671bf2f68ea5e7fe20f4b0a9e",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-b-exit\",\n  \"kernel_feature\": \"test-m3-b-exit\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"8029e44785993def07c738cf8c9be92a85fb3a8821129d5c6ba04e1270c6558b\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 57959,\n        \"memsz\": 57959,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17520,\n        \"memsz\": 17520,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 57959\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17520\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5256\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10822\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-b-exit-os-kernel.json": {
+    "sha256": "2474caf60fbe90b10972668129d1d2565170b36a1ef6b3e12d4054571ff63275",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-b-exit\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201919.8956993,\n  \"duration_s\": 0.9318318367004395,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-b-exit-os-kernel.stderr.txt": {
+    "sha256": "7749eeadd12a780ddb5c3e27552659f7624ac3e0e2303370a83a3f2de4f367c8",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 0.90s\n"
+  },
+  "logs/build-test-m3-b-exit-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-b-exit-os-loader.json": {
+    "sha256": "f12a2e80f8ad9341822f911160d88ae0d1a552d557d80f3e3460cfef06566590",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201919.8605125,\n  \"duration_s\": 0.03503990173339844,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-b-exit-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-b-exit-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-cli-manifest.json": {
+    "sha256": "aac5ea8264edb70d209c6342df6f61a47ef65ccca9106704c1995fa47e208957",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-cli\",\n  \"kernel_feature\": \"test-m3-cli\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"3e005e538a4fc90a12667dd7d428114a5899550a07663370592f68c2230515a7\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58775,\n        \"memsz\": 58775,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17496,\n        \"memsz\": 17496,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58775\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17496\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5232\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10761\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-cli-os-kernel.json": {
+    "sha256": "ce5cabb49eaf2a641ddb840ec8517215ee0b10cff50189c9648d0b92c6c5307d",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-cli\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201882.256552,\n  \"duration_s\": 1.083188772201538,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-cli-os-kernel.stderr.txt": {
+    "sha256": "4eeeb91063a95c6f261618b3c8affd899aa4a32eb37591f8054f0bb49e97869a",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 1.05s\n"
+  },
+  "logs/build-test-m3-cli-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-cli-os-loader.json": {
+    "sha256": "61b78269eb15764041eb15282cd2a090b359d7e5104e122e1aee2aaa108334c8",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201882.220579,\n  \"duration_s\": 0.03578615188598633,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-cli-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-cli-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-exit-manifest.json": {
+    "sha256": "72bd1185c51601822ba31b1645460e8917e5013d5bfeb4147bfb0a890118978c",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-exit\",\n  \"kernel_feature\": \"test-m3-exit\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"8f5251712e312dcdcdedb9e47e679efe6127830c9b7829cd9465819cd284b38c\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58263,\n        \"memsz\": 58263,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17496,\n        \"memsz\": 17496,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58263\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17496\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5256\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10822\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-exit-os-kernel.json": {
+    "sha256": "8195b376859d7fac8016c2ef34a82a9ffb5a2d9f7de856c81c74f72613b92e55",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-exit\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201913.7149587,\n  \"duration_s\": 1.0576846599578857,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-exit-os-kernel.stderr.txt": {
+    "sha256": "45736517c28fde0b564493def3d4cef750618cb48748ce16648129460d893456",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 1.02s\n"
+  },
+  "logs/build-test-m3-exit-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-exit-os-loader.json": {
+    "sha256": "e3ca0dc857c2de55328dd55e0bceb516864cfbfda067af1f4cab320352b30044",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201913.6740506,\n  \"duration_s\": 0.04046010971069336,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-exit-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-exit-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-guard-high-manifest.json": {
+    "sha256": "694dba2900b46438adb5822d6bbbe829e6eca88ad0933f4ef2ecfe9d066e77bc",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-guard-high\",\n  \"kernel_feature\": \"test-m3-guard-high\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"1841804b9659d833f7bbd32d08baeac786111aa8623b68e7f91f12f462eb3f77\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58311,\n        \"memsz\": 58311,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17528,\n        \"memsz\": 17528,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58311\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17528\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5232\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10761\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-guard-high-os-kernel.json": {
+    "sha256": "1643bcbc651d3977f16bf6951ff86b2ae8a4f3be03f2e8794ac23eee8edba3ff",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-guard-high\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201874.8597388,\n  \"duration_s\": 1.198030710220337,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-guard-high-os-kernel.stderr.txt": {
+    "sha256": "fdd570c823ab04e44ada30c2ad2028664e58360cd04e368beeab59443b774be2",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 1.16s\n"
+  },
+  "logs/build-test-m3-guard-high-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-guard-high-os-loader.json": {
+    "sha256": "d73b25ba37904b6de1295bddc74e0cceab15868ae2ceb84d4c328e6049f79ba0",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201874.8191981,\n  \"duration_s\": 0.04036664962768555,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-guard-high-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-guard-high-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-guard-low-manifest.json": {
+    "sha256": "5f52cfea443a9da719cb57b5b3c1710376592ed3294218a5c3b491ac4aa8e4b7",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-guard-low\",\n  \"kernel_feature\": \"test-m3-guard-low\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"240034a00ef7918359df142e2ea5f16a234438ad7d6eee80e09b3f327cf1bbc8\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58311,\n        \"memsz\": 58311,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17520,\n        \"memsz\": 17520,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58311\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17520\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5232\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10761\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-guard-low-os-kernel.json": {
+    "sha256": "a7f84749ac2dbe0db4f4092d67ef2a6386c2ee1b881ec399a23684287e98ac15",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-guard-low\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201867.248631,\n  \"duration_s\": 1.2525854110717773,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-guard-low-os-kernel.stderr.txt": {
+    "sha256": "4a920b9dfd41e9a8918f3d7e82d3d99903d56d47d0f7a3e20d2438ad6ad14745",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 1.21s\n"
+  },
+  "logs/build-test-m3-guard-low-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-guard-low-os-loader.json": {
+    "sha256": "b10b05bea87f56de7883513b44bd394c1c0ef2db31e64b7e8b95ac935c96d432",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201867.2119255,\n  \"duration_s\": 0.03652811050415039,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-guard-low-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-guard-low-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-heap-exec-manifest.json": {
+    "sha256": "13496d25b88234f8dac2f647ba0c10299d1d86fe0c685b3002d0088bc421432a",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-heap-exec\",\n  \"kernel_feature\": \"test-m3-heap-exec\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"759f5850531ff23b4caa1d49149650385a3c81b68c8d6108624705846f1ea207\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58327,\n        \"memsz\": 58327,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17520,\n        \"memsz\": 17520,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58327\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17520\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5232\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10761\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-heap-exec-os-kernel.json": {
+    "sha256": "851f8bc707305bf0a470d680050dbf8f33f8bb1603d114b4308d378ef1c0143c",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-heap-exec\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201860.7341576,\n  \"duration_s\": 1.0446429252624512,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-heap-exec-os-kernel.stderr.txt": {
+    "sha256": "9b4d412b6a927697552f7b003ed6aaf27bbb69d7aa4ee20c01da95ea2489210e",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 1.01s\n"
+  },
+  "logs/build-test-m3-heap-exec-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-heap-exec-os-loader.json": {
+    "sha256": "949daae15d1e4e1a03c585edb1dd5ef0f6fa1fe7ef6f4e6183315cec121260c4",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201860.700111,\n  \"duration_s\": 0.03370213508605957,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-heap-exec-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-heap-exec-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-idle-manifest.json": {
+    "sha256": "8532543a0c8f345b6391fec27eb58e385455d393caf1ca88ac62158d612f9cb4",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-idle\",\n  \"kernel_feature\": \"test-m3-idle\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"7966defb8a37ab8c842b5f9743c06248a23a6322a418683545bd1dfeff933be6\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58615,\n        \"memsz\": 58615,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17656,\n        \"memsz\": 17656,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58615\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17656\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5256\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10822\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-idle-os-kernel.json": {
+    "sha256": "36f3b464ac5bfeb976f8219f137ff34604239183b321a0d6a9dcf09e37d1aba2",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-idle\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201932.1218412,\n  \"duration_s\": 1.0209441184997559,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-idle-os-kernel.stderr.txt": {
+    "sha256": "ebe3562f28fca0f57876ff5a6fcc69da13f0017193bdb60dd9b1499b014858b8",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 0.98s\n"
+  },
+  "logs/build-test-m3-idle-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-idle-os-loader.json": {
+    "sha256": "fcf650178b4000c20f673c04056afddabee7e9b2b20ccaf8c39b1541bb32b67c",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201932.0809412,\n  \"duration_s\": 0.0406336784362793,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-idle-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-idle-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-invalid-rsp-manifest.json": {
+    "sha256": "3be3f9cc782653f25464f5b1988e288a00cd7ad01cda6f8057c7f75fc8978b51",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-invalid-rsp\",\n  \"kernel_feature\": \"test-m3-invalid-rsp\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"b21c06e4fcee61fd8b76d70188a5f83e5ff94c410d0007f60baaf21e3b711b98\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 59239,\n        \"memsz\": 59239,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17520,\n        \"memsz\": 17520,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 59239\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17520\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5232\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10761\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-invalid-rsp-os-kernel.json": {
+    "sha256": "48b459ee2b53f50f2e093e62c87b076f6722968eb12fd8dfc37317b7c87ee4e2",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-invalid-rsp\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201926.0812948,\n  \"duration_s\": 1.0313684940338135,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-invalid-rsp-os-kernel.stderr.txt": {
+    "sha256": "3e86c89d0acbbb3451ffd453aab7e0452b6c35fd7cb42575493a33536d7c7b02",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 0.99s\n"
+  },
+  "logs/build-test-m3-invalid-rsp-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-invalid-rsp-os-loader.json": {
+    "sha256": "64ff0250685e0c673f60b86711dcbb8f974a30b113bd9a75db692f6df99846a2",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201926.0399961,\n  \"duration_s\": 0.04108738899230957,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-invalid-rsp-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-invalid-rsp-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-kernel-write-manifest.json": {
+    "sha256": "7af5cb98a3714a5916baec5e2fec82fed59decd93eaa4ad62cbe1cdfe50ebf7a",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-kernel-write\",\n  \"kernel_feature\": \"test-m3-kernel-write\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"87538454d8b324ad29c06fe721fcd3be9a2c0be0642a2d4a2503e7f1c372e170\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58375,\n        \"memsz\": 58375,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17528,\n        \"memsz\": 17528,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58375\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17528\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5232\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10761\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-kernel-write-os-kernel.json": {
+    "sha256": "4ed1571955bc87f089618c302f4826a90b9cc1840b20be38babfa3be9a83394a",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-kernel-write\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201846.5619366,\n  \"duration_s\": 1.0063693523406982,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-kernel-write-os-kernel.stderr.txt": {
+    "sha256": "609680ae1bce1840e3994c0509f16538f5d3fd029a2d78ba37d984178a2fe0cd",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 0.97s\n"
+  },
+  "logs/build-test-m3-kernel-write-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-kernel-write-os-loader.json": {
+    "sha256": "6967c6c2ad8033b51b24f56acba00cc9d5f55bca21ccc5057984b354378869d1",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201846.5247872,\n  \"duration_s\": 0.03700995445251465,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-kernel-write-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-kernel-write-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-large-image-manifest.json": {
+    "sha256": "04c506866ad87b6afddbf560fb65a4ec5cbf23032da6a5fd300c26a37f373fdd",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-large-image\",\n  \"kernel_feature\": \"test-m3-large-image\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"b0707e2a4779b40c5f2738e202718b8c18937d8d43b3aeb18d06aa5c83f37175\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 60711,\n        \"memsz\": 60711,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17944,\n        \"memsz\": 17944,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 60711\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17944\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5256\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10822\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-large-image-os-kernel.json": {
+    "sha256": "f23d2badef031ca43f792b42ebfabe7c097fc5c260e25951638df6dd7067a0e4",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-large-image\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201938.2350094,\n  \"duration_s\": 1.0890965461730957,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-large-image-os-kernel.stderr.txt": {
+    "sha256": "c09cc1fd4a06ca2ea65da599d153146b478b0324bc91a5384212ce450f44d165",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 1.06s\n"
+  },
+  "logs/build-test-m3-large-image-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-large-image-os-loader.json": {
+    "sha256": "e4f4ee6ae3c0db12b448d48d7aad232f5acb3ef8ef1488a4843e6f751dfcc7ac",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201938.1972864,\n  \"duration_s\": 0.03757739067077637,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-large-image-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-large-image-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-peer-read-manifest.json": {
+    "sha256": "ac70a78d2d7e2e9627d710a5d368aaf98330858bea9f6d288dd82cf27584f97c",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-peer-read\",\n  \"kernel_feature\": \"test-m3-peer-read\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"13945899a4ac0bd0846ee3a279495b527e89af39bc3bb599e58458a17c71029a\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58487,\n        \"memsz\": 58487,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17520,\n        \"memsz\": 17520,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58487\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17520\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5232\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10761\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-peer-read-os-kernel.json": {
+    "sha256": "a5a6bfc9b004126014b3000a1133ae4b18e5ec304ae9f7dd2ed5e4dd7936055e",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-peer-read\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201830.6211169,\n  \"duration_s\": 0.9148187637329102,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-peer-read-os-kernel.stderr.txt": {
+    "sha256": "413c83cf6be751e882d0903e243d75ca183226683eeb1bbe5dc1bb9c8cd7747a",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 0.88s\n"
+  },
+  "logs/build-test-m3-peer-read-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-peer-read-os-loader.json": {
+    "sha256": "616bdb00e14f5fa74a911a73bdf4e567c686b166c65524f1fedbefe4d9e27d36",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201830.5846334,\n  \"duration_s\": 0.03630471229553223,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-peer-read-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-peer-read-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-peer-write-manifest.json": {
+    "sha256": "000e19e22ba7afc4cc66deaada645848560b1c65b12ec633f9d274275c1aaab8",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-peer-write\",\n  \"kernel_feature\": \"test-m3-peer-write\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"c417a6acc17ad48ef0feb69928b58303ce18124b821cc5e731ad5e26499232b7\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58487,\n        \"memsz\": 58487,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17528,\n        \"memsz\": 17528,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58487\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17528\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5232\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10761\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-peer-write-os-kernel.json": {
+    "sha256": "4862ef5f5391f3c6b56206aa110ca1026d8fd133b3c65368757f05e588aed6b3",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-peer-write\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201838.7648153,\n  \"duration_s\": 1.2303166389465332,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-peer-write-os-kernel.stderr.txt": {
+    "sha256": "d8bc241a2ab7da5beef7a3c9a2dd6ebc6a6f4b39a5518b2652160d2bd04536ca",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 1.19s\n"
+  },
+  "logs/build-test-m3-peer-write-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-peer-write-os-loader.json": {
+    "sha256": "7c3ba7798cd4cd9878a6d8fd2cd7d810ab5bcbdc9886352c28158983b2a4968b",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201838.7250128,\n  \"duration_s\": 0.0396418571472168,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-peer-write-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-peer-write-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-stack-exec-manifest.json": {
+    "sha256": "58d6cb65e512eb6a802930b4f2a0f17bbb6a1315a9e779b39c2f17ae20fc4ada",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-stack-exec\",\n  \"kernel_feature\": \"test-m3-stack-exec\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"6bbcbf4340ce3b9a3778e095ea59d7fe11ad8a58137298795ffda028e55c6a64\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58327,\n        \"memsz\": 58327,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17528,\n        \"memsz\": 17528,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58327\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17528\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5232\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10761\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-stack-exec-os-kernel.json": {
+    "sha256": "0b804431ff43cd3d1fa5dc0e248e0208d3334edf909e553db6f0b5270be1eb72",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-stack-exec\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201853.9061222,\n  \"duration_s\": 1.2910850048065186,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-stack-exec-os-kernel.stderr.txt": {
+    "sha256": "93aaba412db030264b6a1b3fc2043ad754831154e06e254000674a6f407d76ac",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 1.25s\n"
+  },
+  "logs/build-test-m3-stack-exec-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-stack-exec-os-loader.json": {
+    "sha256": "ab5a16490633d464d78069233fc59e2c654ce2d5757538839d8b58a1d0dd54a5",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201853.872868,\n  \"duration_s\": 0.032971858978271484,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-stack-exec-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-stack-exec-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-ud-manifest.json": {
+    "sha256": "8ec5d5f62bf85199b181042a6168a5bc5a00369cdc2fd772e005222a987ad7ab",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-ud\",\n  \"kernel_feature\": \"test-m3-ud\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"5972340ebdc2b24a77bd1da3323911f17bd4e9051a803eca65f56c39a9698ff6\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58743,\n        \"memsz\": 58743,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17496,\n        \"memsz\": 17496,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58743\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17496\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5232\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10761\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-ud-os-kernel.json": {
+    "sha256": "77d7dba9f3bfe145d6eb9222742b3dd5af41adeb6ddbb9ddd3accc806959015c",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-ud\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201907.561042,\n  \"duration_s\": 1.0220105648040771,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-ud-os-kernel.stderr.txt": {
+    "sha256": "ebe3562f28fca0f57876ff5a6fcc69da13f0017193bdb60dd9b1499b014858b8",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 0.98s\n"
+  },
+  "logs/build-test-m3-ud-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-ud-os-loader.json": {
+    "sha256": "bd966380f0053c6e0dd539c974875a1fb9171049b8b717ff0bc460d071d614f7",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201907.5257256,\n  \"duration_s\": 0.03514528274536133,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-ud-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-ud-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-x87-manifest.json": {
+    "sha256": "afe20d17f332d9e22530c651430a487ee2f8f22137bf1d4bbe94ab616d8b82dc",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-x87\",\n  \"kernel_feature\": \"test-m3-x87\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"7d0d04793e6da4c0c8c5e66be03a0dbf1d76a2675294be74560f28d8eb6f409e\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58775,\n        \"memsz\": 58775,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17496,\n        \"memsz\": 17496,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58775\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17496\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5232\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10759\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-x87-os-kernel.json": {
+    "sha256": "656638d45f67b188a2ac1350b389df20b3a338d6d01c4b80731e4cbb7f13492d",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-x87\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201888.5926275,\n  \"duration_s\": 1.1777424812316895,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-x87-os-kernel.stderr.txt": {
+    "sha256": "b1275e3cf11195ca10d2f57bddb6446c4effdb4604a3422548c81b9797bd790f",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 1.14s\n"
+  },
+  "logs/build-test-m3-x87-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-x87-os-loader.json": {
+    "sha256": "3f656bad215faaa89d8794d95ca22f985f135b51fe4d1d6daf2e05c6eddb1398",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201888.5550027,\n  \"duration_s\": 0.03743147850036621,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-x87-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-x87-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-xmm-manifest.json": {
+    "sha256": "4a41596c86ec2ed1c28f21ad2eea6b895541e70a5297cf0b49d619978341a0bc",
+    "text": "{\n  \"schema_version\": 1,\n  \"profile\": \"test-m3-xmm\",\n  \"kernel_feature\": \"test-m3-xmm\",\n  \"loader_feature\": null,\n  \"source_fingerprint_version\": 3,\n  \"source_sha256\": \"307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60\",\n  \"loader\": {\n    \"sha256\": \"0c5a00cace019b3eed85ecb272df129fc9a8ad097832bcbc6865515f5ad27f02\",\n    \"format\": \"AMD64 PE32+\",\n    \"subsystem\": \"EFI_APPLICATION\",\n    \"imports\": 0\n  },\n  \"kernel\": {\n    \"sha256\": \"d27963ea11d0c8718ab77a40477037512ec87905aad3abf60d77a0a7bfb0f551\",\n    \"entry\": 33554432,\n    \"segments\": [\n      {\n        \"flags\": 5,\n        \"offset\": 4096,\n        \"address\": 33554432,\n        \"filesz\": 58775,\n        \"memsz\": 58775,\n        \"page_start\": 33554432,\n        \"page_end\": 33615872\n      },\n      {\n        \"flags\": 4,\n        \"offset\": 65536,\n        \"address\": 33615872,\n        \"filesz\": 17496,\n        \"memsz\": 17496,\n        \"page_start\": 33615872,\n        \"page_end\": 33636352\n      },\n      {\n        \"flags\": 6,\n        \"offset\": 86016,\n        \"address\": 33636352,\n        \"filesz\": 795104,\n        \"memsz\": 3882064,\n        \"page_start\": 33636352,\n        \"page_end\": 37519360\n      }\n    ],\n    \"sections\": [\n      {\n        \"name\": \"\",\n        \"type\": 0,\n        \"flags\": 0,\n        \"size\": 0\n      },\n      {\n        \"name\": \".text\",\n        \"type\": 1,\n        \"flags\": 6,\n        \"size\": 58775\n      },\n      {\n        \"name\": \".rodata\",\n        \"type\": 1,\n        \"flags\": 50,\n        \"size\": 17496\n      },\n      {\n        \"name\": \".data\",\n        \"type\": 1,\n        \"flags\": 3,\n        \"size\": 795104\n      },\n      {\n        \"name\": \".bss\",\n        \"type\": 8,\n        \"flags\": 3,\n        \"size\": 3083344\n      },\n      {\n        \"name\": \".symtab\",\n        \"type\": 2,\n        \"flags\": 0,\n        \"size\": 5232\n      },\n      {\n        \"name\": \".shstrtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 52\n      },\n      {\n        \"name\": \".strtab\",\n        \"type\": 3,\n        \"flags\": 0,\n        \"size\": 10761\n      }\n    ]\n  },\n  \"sdk_runtime\": false\n}\n"
+  },
+  "logs/build-test-m3-xmm-os-kernel.json": {
+    "sha256": "8ac19b6c217a2396f5a120b7975c7619116d1cd6795cd02a2e81df469bae4e9d",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-kernel\",\n    \"--target\",\n    \"x86_64-unknown-none\",\n    \"--features\",\n    \"test-m3-xmm\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201895.184538,\n  \"duration_s\": 0.9708821773529053,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-xmm-os-kernel.stderr.txt": {
+    "sha256": "72ddd4941ce680955c4163c27a6f4908ed1e2111858ff1d611a089c83ef46c8d",
+    "text": "   Compiling os-kernel v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/kernel)\n    Finished `release` profile [optimized] target(s) in 0.94s\n"
+  },
+  "logs/build-test-m3-xmm-os-kernel.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-test-m3-xmm-os-loader.json": {
+    "sha256": "a8a4751e86f2646c0449861bfbc4738f26c35d6efd6dc558b3d8b37c805f4ce7",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"build\",\n    \"--locked\",\n    \"--release\",\n    \"--target-dir\",\n    \"/tmp/nieuw-os-par-final-m3-target\",\n    \"-p\",\n    \"os-loader\",\n    \"--target\",\n    \"x86_64-unknown-uefi\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201895.1490889,\n  \"duration_s\": 0.03523707389831543,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-test-m3-xmm-os-loader.stderr.txt": {
+    "sha256": "376a48f02bf305a0c383aa68e8f2d8c5df3ec64cbee6a09491a649aa453baba9",
+    "text": "    Finished `release` profile [optimized] target(s) in 0.00s\n"
+  },
+  "logs/build-test-m3-xmm-os-loader.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-users-probe.json": {
+    "sha256": "bea288b68f02c696021b5c579a4393dfcfb4f612f164d69f71e12f2faaa9cf41",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/rustc\",\n    \"+1.90.0\",\n    \"--edition=2021\",\n    \"--crate-type=bin\",\n    \"--crate-name=os_user_probe\",\n    \"--target=x86_64-unknown-none\",\n    \"-C\",\n    \"panic=abort\",\n    \"-C\",\n    \"opt-level=2\",\n    \"-C\",\n    \"code-model=small\",\n    \"-C\",\n    \"relocation-model=static\",\n    \"-C\",\n    \"no-redzone=yes\",\n    \"-C\",\n    \"linker=rust-lld\",\n    \"-C\",\n    \"link-arg=-T/workspace/scratch/debaa3b6a81c/nieuw-os/userspace/linker.ld\",\n    \"-C\",\n    \"link-arg=--no-pie\",\n    \"-C\",\n    \"link-arg=--build-id=none\",\n    \"-C\",\n    \"link-arg=-zmax-page-size=0x1000\",\n    \"--emit=link\",\n    \"-o\",\n    \"/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/users/probe.elf\",\n    \"/workspace/scratch/debaa3b6a81c/nieuw-os/userspace/probe.rs\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201932.0147293,\n  \"duration_s\": 0.06536555290222168,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-users-probe.stderr.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-users-probe.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-users-probe_large.json": {
+    "sha256": "a9b61943aa2f7e2cce10ddac95d0dd5848cb60ab9e9d1d62d92fd6b4fda57bf6",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/rustc\",\n    \"+1.90.0\",\n    \"--edition=2021\",\n    \"--crate-type=bin\",\n    \"--crate-name=os_user_probe_large\",\n    \"--target=x86_64-unknown-none\",\n    \"-C\",\n    \"panic=abort\",\n    \"-C\",\n    \"opt-level=2\",\n    \"-C\",\n    \"code-model=small\",\n    \"-C\",\n    \"relocation-model=static\",\n    \"-C\",\n    \"no-redzone=yes\",\n    \"-C\",\n    \"linker=rust-lld\",\n    \"-C\",\n    \"link-arg=-T/workspace/scratch/debaa3b6a81c/nieuw-os/userspace/large_linker.ld\",\n    \"-C\",\n    \"link-arg=--no-pie\",\n    \"-C\",\n    \"link-arg=--build-id=none\",\n    \"-C\",\n    \"link-arg=-zmax-page-size=0x1000\",\n    \"--emit=link\",\n    \"-o\",\n    \"/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/users/probe_large.elf\",\n    \"/workspace/scratch/debaa3b6a81c/nieuw-os/userspace/probe.rs\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201938.1264873,\n  \"duration_s\": 0.07008886337280273,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/build-users-probe_large.stderr.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/build-users-probe_large.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/m3-host-tests.json": {
+    "sha256": "ab52aea54d985365f196e7a77f7d12367163ed8304d849b416ef67f9abb8722e",
+    "text": "{\n  \"command\": [\n    \"/tmp/nieuw-os-par-tools/bin/cargo\",\n    \"+1.90.0\",\n    \"test\",\n    \"--locked\",\n    \"-p\",\n    \"kernel-core\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201818.9586308,\n  \"duration_s\": 0.6502254009246826,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/m3-host-tests.stderr.txt": {
+    "sha256": "7bf7001ffc39dc7a636f16c0cd34ec287766a6e8b58376006e68ec63b35522af",
+    "text": "   Compiling kernel-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/kernel-core)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.51s\n     Running unittests src/lib.rs (/tmp/nieuw-os-par-final-m3-target/debug/deps/kernel_core-6d6e9fb9453fbf62)\n   Doc-tests kernel_core\n"
+  },
+  "logs/m3-host-tests.stdout.txt": {
+    "sha256": "c3ca3c71c7acf79aeca55110de2c94e6ab48d392be1f5d31cb67a2667405d637",
+    "text": "\nrunning 16 tests\ntest tests::physical_alias_wx_and_mapped_free ... ok\ntest tests::physical_page_width_and_overflow_fail_closed ... ok\ntest tests::checked_ranges ... ok\ntest tests::ovmf_cache_capabilities_are_not_special_memory ... ok\ntest tests::reserved_and_special_memory ... ok\ntest tests::unique_exhaustion_ownership_and_zero_order ... ok\ntest tests::unmap_mismatched_alias_is_atomic_and_cannot_free_executable ... ok\ntest user::tests::copy_plan_checks_entire_range_before_any_copy ... ok\ntest user::tests::legal_large_image_and_exact_user_mapping_budget ... ok\ntest user::tests::pids_survive_16bit_boundary_and_never_wrap ... ok\ntest user::tests::overflow_offset_and_page_overlap ... ok\ntest user::tests::valid_and_wx_entry_checks ... ok\ntest user::tests::return_flags_strip_authority ... ok\ntest user::tests::sector_input_validates_second_page_owner_and_preserves_ipc_limit ... ok\ntest user::tests::user_return_layout_rejects_untrusted_stack_and_noncanonical_alias ... ok\ntest tests::quota_no_partial_allocation ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  },
+  "logs/m3-large-artifact-tests.json": {
+    "sha256": "da0a8f9ab4a5816379c20fadc389187b22d7361877c84b58b6c147e72a26d35e",
+    "text": "{\n  \"command\": [\n    \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3\",\n    \"-B\",\n    \"-X\",\n    \"utf8\",\n    \"userspace/tests/test_large_probe.py\",\n    \"--elf\",\n    \"/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/users/probe_large.elf\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201939.3542168,\n  \"duration_s\": 0.09365057945251465,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/m3-large-artifact-tests.stderr.txt": {
+    "sha256": "f7526e550362957baa36fd5118fe1520ca2cbc5558b0d63aee8179221bb2b63b",
+    "text": "test_bss_is_noload_33_pages_and_inside_rw_segment (__main__.LargeArtifact.test_bss_is_noload_33_pages_and_inside_rw_segment) ... ok\ntest_exact_memory_plan_exceeds_old_64_user_mapping_limit (__main__.LargeArtifact.test_exact_memory_plan_exceeds_old_64_user_mapping_limit) ... ok\ntest_initial_four_words_match_normal_data_and_do_not_include_bss_bytes (__main__.LargeArtifact.test_initial_four_words_match_normal_data_and_do_not_include_bss_bytes) ... ok\ntest_manifest_binds_existing_probe_source_new_linker_and_actual_binary (__main__.LargeArtifact.test_manifest_binds_existing_probe_source_new_linker_and_actual_binary) ... ok\ntest_mutated_large_segment_cannot_escape_user_image_range_or_gain_wx (__main__.LargeArtifact.test_mutated_large_segment_cannot_escape_user_image_range_or_gain_wx) ... ok\ntest_text_is_byte_identical_to_unchanged_normal_m3_probe (__main__.LargeArtifact.test_text_is_byte_identical_to_unchanged_normal_m3_probe) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.002s\n\nOK\n"
+  },
+  "logs/m3-large-artifact-tests.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "logs/m3-user-artifact-tests.json": {
+    "sha256": "e98611f2be2f21f064385333901282d940e14f7c43ed1b1f9853bb16ba6fe7e0",
+    "text": "{\n  \"command\": [\n    \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3\",\n    \"-B\",\n    \"-X\",\n    \"utf8\",\n    \"userspace/tests/test_probe.py\",\n    \"--elf\",\n    \"/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m3/users/probe.elf\"\n  ],\n  \"cwd\": \"/workspace/scratch/debaa3b6a81c/nieuw-os\",\n  \"started_unix\": 1793201822.2353873,\n  \"duration_s\": 0.08046936988830566,\n  \"returncode\": 0\n}\n"
+  },
+  "logs/m3-user-artifact-tests.stderr.txt": {
+    "sha256": "6e0fa65fe429492127d2cce775c5349a5d43cdd04a01858f1b8f3a10f4355f52",
+    "text": "test_exact_entry_segments_and_private_data_layout (__main__.ProbeArtifact.test_exact_entry_segments_and_private_data_layout) ... ok\ntest_exit_machine_code_clears_every_unused_argument_including_rdx (__main__.ProbeArtifact.test_exit_machine_code_clears_every_unused_argument_including_rdx) ... ok\ntest_manifest_matches_actual_source_linker_and_binary (__main__.ProbeArtifact.test_manifest_matches_actual_source_linker_and_binary) ... ok\ntest_negative_syscall_and_direction_flag_prelude_is_in_actual_binary (__main__.ProbeArtifact.test_negative_syscall_and_direction_flag_prelude_is_in_actual_binary) ... ok\ntest_no_dynamic_relocations_tls_or_unexpected_allocatable_sections (__main__.ProbeArtifact.test_no_dynamic_relocations_tls_or_unexpected_allocatable_sections) ... ok\ntest_rejects_entry_in_data_outside_image_or_rx_bss (__main__.ProbeArtifact.test_rejects_entry_in_data_outside_image_or_rx_bss) ... ok\ntest_rejects_interpreter_dynamic_tls_and_unknown_program_types (__main__.ProbeArtifact.test_rejects_interpreter_dynamic_tls_and_unknown_program_types) ... ok\ntest_rejects_out_of_range_unaligned_and_arithmetic_extremes (__main__.ProbeArtifact.test_rejects_out_of_range_unaligned_and_arithmetic_extremes) ... ok\ntest_rejects_page_overlap_even_for_disjoint_byte_ranges (__main__.ProbeArtifact.test_rejects_page_overlap_even_for_disjoint_byte_ranges) ... ok\ntest_rejects_truncated_required_bytes (__main__.ProbeArtifact.test_rejects_truncated_required_bytes) ... ok\ntest_rejects_writable_executable_and_unknown_permission_bits (__main__.ProbeArtifact.test_rejects_writable_executable_and_unknown_permission_bits) ... ok\ntest_rejects_wrong_class_endian_machine_and_dynamic_type (__main__.ProbeArtifact.test_rejects_wrong_class_endian_machine_and_dynamic_type) ... ok\ntest_required_forbidden_instruction_encodings_are_in_rx_segment (__main__.ProbeArtifact.test_required_forbidden_instruction_encodings_are_in_rx_segment) ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 0.008s\n\nOK\n"
+  },
+  "logs/m3-user-artifact-tests.stdout.txt": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  }
+}

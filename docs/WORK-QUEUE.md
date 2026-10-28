@@ -1,28 +1,26 @@
-# Werkqueue — parallelle native bouw, 28 oktober 2026
+# Werkqueue — 28 oktober 2026
 
-Vier werkelijke agentplaatsen, inclusief hoofdagent. Eén eigenaar per
-schrijfgebied; afzonderlijke targets, VM-processen, images, sockets en logs.
-Root beheert gedeelde interfaces, bronfreeze, integratie, GitHub en score.
+Werkelijke capaciteit: vier tegelijk, inclusief hoofdagent. Eén schrijver per
+gebied en eigen builds/targets/VM-artifacts. Uitvoeringsbron 3e41bbf9 is
+vastgelegd en native geaccepteerd; vervolgcode staat in aparte worktrees.
 
-| ID | Toestand | Eigenaar / exclusief gebied | Resultaat / kleinste afhankelijkheid |
+|ID|Toestand|Eigenaar / schrijfgebied|Concreet resultaat / kleinste afhankelijkheid|
 |---|---|---|---|
-| G0R | in uitvoering | root: graphics/ui-core, build/run, integratie/docs | Finale G0-toetsovergangen, ROM-provenance en gecombineerde controle |
-| B05 | in uitvoering | native_storage: test_m6b-paden en eigen bewijs | Volledige M6b-gate/capture na centrale bronfreeze; oraclefix B04 geïntegreerd |
-| G05 | in uitvoering | native_apps: alleen lezen + eigen gatebewijs | Volledige native M6c-gate met SDK na centrale bronfreeze; G04-review afgerond |
-| I05 | in uitvoering | runtime_platform: alleen lezen + eigen native bewijs | Prefixfix I04 geïntegreerd; strikte qsim-poort + volledige M3-regressie na freeze |
-| B01/B02/B03/B04 | gereed voor integratie/controle | root, agentcommits behouden | Catalogusclient, grafische grensproeven, preflight, WRITE-oracle geïntegreerd; combinatiegate volgt |
-| G01/G02/G03 | gereed voor integratie/controle | root, agentcommits behouden | SDK, native probe-bridge en catalogusadapter geïntegreerd; gerichte cold-VM-run geslaagd |
-| I01/I02/I03 | gereed voor integratie/controle | root, agentcommits behouden | Native port, procesobserver en strikte runner geïntegreerd; gerichte native run geslaagd |
-| G1 | wacht op een benoemde afhankelijkheid | bestaande andere sessie: services/materiaal/** + display/inputbootstrap | Minimaal gepubliceerd broncheckpoint/eigenaar nodig voor integratie; geen dubbele implementatie |
-| I06 | gereed om te bouwen | eerstvolgende vrije bouwer, root stemt interface af | Begrensde native jobcodec; vervolgens submit/result/cancel buiten vaste quantumproef |
-| S08 | gereed om te bouwen | eerstvolgende vrije bouwer, root herstelcontract | Gecontroleerd catalogusherstel zonder write-replay; algemeen dienstbeheer blijft apart |
-| S04/S05 | wacht op een benoemde afhankelijkheid | root opslagcontract | Grotere documenten/ruimtehergebruik vereisen versieerbaar formaat + crashacceptatie |
-| N03/P02/H | wacht op een benoemde afhankelijkheid | nog toe te wijzen | Native netwerk, passende entropy/crypto en peerrechten vóór native NAS |
+|ROOT|in uitvoering|root: integratie/docs/GitHub|Acceptatie80 VM/616 hashes publiceren, concrete CodeRabbit-bevindingen afhandelen|
+|G07|in uitvoering|native_apps: sdk/document-session/** + SDKregistratie|Loadedrevision+dirtydraft+CASsave/reopen; Unknown zonderreplay; bestaandecatalogus|
+|I08|in uitvoering|runtime_platform: experiments/quantum/job-protocol/**|Allocatorvrije256-bytejobrequestcodec; jobdispatch blijftvolgende afhankelijkheid|
+|B07|in uitvoering|native_storage: capture_graphics.py +tests/eigenbewijs|Atomische G0-archiveerder metbron-/artifact-/pixelcontrole; niets herstellen|
+|B01–B06/G01–G06/I01–I07|gereed voor integratie/controle|root, commits/bewijs behouden|Native fundamenten+volledige gates+crosschecks afgerond; PR#15review loopt|
+|G1|wacht op een benoemde afhankelijkheid|bestaandeanderesessie: Materiaal+display/inputbootstrap|Kleinste oplossing: gepubliceerd broncheckpoint van toegewezenG1branch voor integratie|
+|S08|gereed om te bouwen|volgendevrijebouwer, root herstelcontract|Begrensde catalogusdienstvervanging zonder mutatiereplay|
+|S04/S05|wacht op een benoemde afhankelijkheid|root opslagcontract|Versieerbaar formaat+crashacceptatie vóór groteredocumenten/ruimtehergebruik|
+|N03/P02/H|wacht op een benoemde afhankelijkheid|nogtoe tewijzen|Native netwerk, entropy/crypto en peerrechten vóórnativeNAS|
+|G06-01|gereed om te bouwen|root common.py|Parentquantummanifest ookglobalefingerprint; huidigeqsimrunnerbindtditalextra|
 
 Vier toestanden: gereed om te bouwen; in uitvoering; wacht op een benoemde
-afhankelijkheid; gereed voor integratie/controle. Afgeronde bouwers krijgen
-meteen de volgende concrete taak. De oude capaciteitsvoorkeur in historische
-verslagen geldt niet voor deze opdracht.
+afhankelijkheid; gereed voor integratie/controle. Voltooide agents krijgen
+meteen volgendebouw-/controletaken. Historische capaciteitsvoorkeuren hieronder
+gelden niet voor deze opdracht.
 
 ## Historische registratie
 

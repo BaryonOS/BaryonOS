@@ -1,0 +1,19 @@
+{
+  "command": [
+    "/tmp/nieuw-os-par-tools/bin/cargo",
+    "+1.90.0",
+    "build",
+    "--locked",
+    "--release",
+    "--target-dir",
+    "/tmp/nieuw-os-par-final-qsim-target",
+    "-p",
+    "os-loader",
+    "--target",
+    "x86_64-unknown-uefi"
+  ],
+  "cwd": "/workspace/scratch/debaa3b6a81c/nieuw-os",
+  "started_unix": 1793201809.0963156,
+  "duration_s": 0.9687623977661133,
+  "returncode": 0
+}

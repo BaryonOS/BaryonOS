@@ -1,0 +1,20 @@
+test_duplicate_json_keys_are_not_evidence (test_qsim_harness.BoundArtifacts.test_duplicate_json_keys_are_not_evidence) ... ok
+test_kernel_hash_alone_does_not_bind_another_embedded_program (test_qsim_harness.BoundArtifacts.test_kernel_hash_alone_does_not_bind_another_embedded_program) ... ok
+test_matching_host_fixture_and_artifact_set_are_accepted_as_parser_input (test_qsim_harness.BoundArtifacts.test_matching_host_fixture_and_artifact_set_are_accepted_as_parser_input) ... ok
+test_mutated_binary_disassembly_and_kernel_cannot_reuse_prior_hashes (test_qsim_harness.BoundArtifacts.test_mutated_binary_disassembly_and_kernel_cannot_reuse_prior_hashes) ... ok
+test_profile_command_and_guest_artifact_changes_are_rejected (test_qsim_harness.BoundArtifacts.test_profile_command_and_guest_artifact_changes_are_rejected) ... ok
+test_quantum_report_source_and_gate_must_match_exactly (test_qsim_harness.BoundArtifacts.test_quantum_report_source_and_gate_must_match_exactly) ... ok
+test_raw_exit_timeout_stale_source_and_expected_marker_mismatch_fail (test_qsim_harness.BoundArtifacts.test_raw_exit_timeout_stale_source_and_expected_marker_mismatch_fail) ... ok
+test_reported_stdout_and_private_run_location_must_match (test_qsim_harness.BoundArtifacts.test_reported_stdout_and_private_run_location_must_match) ... ok
+test_source_change_during_a_mocked_guest_run_is_never_accepted (test_qsim_harness.BoundArtifacts.test_source_change_during_a_mocked_guest_run_is_never_accepted) ... ok
+test_wrong_build_feature_loader_source_or_sdk_profile_fails (test_qsim_harness.BoundArtifacts.test_wrong_build_feature_loader_source_or_sdk_profile_fails) ... ok
+test_each_marker_must_exist_once_in_exact_order (test_qsim_harness.QuantumSequence.test_each_marker_must_exist_once_in_exact_order) ... ok
+test_numbers_have_canonical_width_ascii_and_u64_bounds (test_qsim_harness.QuantumSequence.test_numbers_have_canonical_width_ascii_and_u64_bounds) ... ok
+test_observed_native_sequence_decodes_two_processes (test_qsim_harness.QuantumSequence.test_observed_native_sequence_decodes_two_processes) ... ok
+test_required_progress_resources_and_cleanup_cannot_be_zero_or_wrong (test_qsim_harness.QuantumSequence.test_required_progress_resources_and_cleanup_cannot_be_zero_or_wrong) ... ok
+test_unknown_foreign_and_prefixed_control_lines_are_rejected (test_qsim_harness.QuantumSequence.test_unknown_foreign_and_prefixed_control_lines_are_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.057s
+
+OK

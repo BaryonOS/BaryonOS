@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "task": "G06",
+  "kind": "Targeted AI integration source review; no new native run",
+  "reviewed_at_utc": "2026-10-28T15:49:36.184359+00:00",
+  "reviewed_source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "checkout_head_at_capture": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "diff_base_commit": "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+  "source_fingerprint_version": 3,
+  "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "source_file_checks": {
+    "tools/build.py": {
+      "observed_sha256": "4335e593798ec5aa48884333df63a443df016420d78850ba441f32bf893501c4",
+      "commit_sha256": "4335e593798ec5aa48884333df63a443df016420d78850ba441f32bf893501c4",
+      "matches": true
+    },
+    "tools/build_users.py": {
+      "observed_sha256": "b201c15db7012af5e888fc5c6023e9fbfbbd86adb3728a47e651c08c973a5865",
+      "commit_sha256": "b201c15db7012af5e888fc5c6023e9fbfbbd86adb3728a47e651c08c973a5865",
+      "matches": true
+    },
+    "tools/common.py": {
+      "observed_sha256": "b1ce783b0e23671efde020ab7d3b4f7ceae266c45ddfa4ead2724c812b9720b1",
+      "commit_sha256": "b1ce783b0e23671efde020ab7d3b4f7ceae266c45ddfa4ead2724c812b9720b1",
+      "matches": true
+    },
+    "kernel/src/m2/m3.rs": {
+      "observed_sha256": "5d776c754ed24588571cf395f375f72a43185782555cc7b78ec8a08ad9ed3fd3",
+      "commit_sha256": "5d776c754ed24588571cf395f375f72a43185782555cc7b78ec8a08ad9ed3fd3",
+      "matches": true
+    },
+    "kernel/Cargo.toml": {
+      "observed_sha256": "f36e35efe4cd5f260dc7001dc0b2c68c68b73cdaff0b8ad394a09ec395591e6b",
+      "commit_sha256": "f36e35efe4cd5f260dc7001dc0b2c68c68b73cdaff0b8ad394a09ec395591e6b",
+      "matches": true
+    },
+    "kernel/build.rs": {
+      "observed_sha256": "2353823c517ffce3b7f163aaf9711eb19807114f9f5363b1f8ca882d829c5cf8",
+      "commit_sha256": "2353823c517ffce3b7f163aaf9711eb19807114f9f5363b1f8ca882d829c5cf8",
+      "matches": true
+    },
+    ".cargo/config.toml": {
+      "observed_sha256": "39fe0b25b1e707cd57d6d59975bac41f7733ab86ee03c072989869839e1ae435",
+      "commit_sha256": "39fe0b25b1e707cd57d6d59975bac41f7733ab86ee03c072989869839e1ae435",
+      "matches": true
+    },
+    "experiments/quantum/Cargo.toml": {
+      "observed_sha256": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+      "commit_sha256": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+      "matches": true
+    },
+    "experiments/quantum/qsim-core/Cargo.toml": {
+      "observed_sha256": "fe656cc4dbae574e141e426a4d45e6b5da425cc0b93db67bf439101adcdda9ff",
+      "commit_sha256": "fe656cc4dbae574e141e426a4d45e6b5da425cc0b93db67bf439101adcdda9ff",
+      "matches": true
+    },
+    "experiments/quantum/native/Cargo.toml": {
+      "observed_sha256": "344c771511606a99668cee321be185e9f50bbc518e856c55d260c02e3fc292ce",
+      "commit_sha256": "344c771511606a99668cee321be185e9f50bbc518e856c55d260c02e3fc292ce",
+      "matches": true
+    },
+    "experiments/quantum/native/build.py": {
+      "observed_sha256": "269d0d6abdfba5385554ec40a992cf7acfcc3de5b70251c58cef8babc59a78fa",
+      "commit_sha256": "269d0d6abdfba5385554ec40a992cf7acfcc3de5b70251c58cef8babc59a78fa",
+      "matches": true
+    },
+    "tools/run_qsim.py": {
+      "observed_sha256": "ccf67651ce2f3631de7db6315d15d5822733ab06f48b948b90c2685c33e1f972",
+      "commit_sha256": "ccf67651ce2f3631de7db6315d15d5822733ab06f48b948b90c2685c33e1f972",
+      "matches": true
+    }
+  },
+  "reference_evidence_sha256": {
+    "docs/verification/parallel-final-sdk-m6c/capture.json": "e14ff936048b9b0036a0d50d1c43f07f1c64f74cc0c936c6899a81a65cd97837",
+    "docs/verification/parallel-final-sdk-m6c/sdk-binding.json": "722ddda1717c034312ebbc0a98c5d72ee978a2538cfaccb90530ce8f8ac78804",
+    "docs/verification/parallel-final-sdk-m6c/driver.json": "c7180f317812fa1dc6d36e8bf16e4e61e29ea7d1420c44b085e0ea178f60463f",
+    "docs/verification/parallel-final-m3/acceptance.json": "7e6da222994ab73ec9a02318aa6d2bbdfa4f9561f0336e0db0d71b078ce370f7",
+    "docs/verification/parallel-final-m3/i05-run-checks.json": "91d6b2c2ea3e7a213d56db57c9928469d0eabcb690a954a9b58948b8e02b05d7",
+    "docs/verification/parallel-final-qsim/acceptance.json": "9adbb297e75aadea15a4515b32151953a49375ab940bce2e9ad338173a1f378b",
+    "docs/verification/parallel-final-qsim/quantum-build-report.json": "33912c8091a053abad364696568e576ec360734b347865ab0629f5448d385701",
+    "docs/verification/parallel-final-qsim/i05-run-checks.json": "9b100c775ec909f9f78081777a0a93b190cca92d2ee69078ebb493f612916760"
+  },
+  "referenced_existing_vm_counts": {
+    "sdk_m6c_suite": 31,
+    "m3_suite": 19,
+    "native_qsim": 1
+  },
+  "new_vm_runs_performed": 0,
+  "new_general_suites_performed": 0,
+  "commands": [
+    {
+      "argv": [
+        "git",
+        "diff",
+        "1acf6e8cde2a63849dc49c948ad97ba7f2c39cad",
+        "3e41bbf93822f7044c6020259f4a752925e1966d",
+        "--",
+        "tools/build.py",
+        "tools/build_users.py",
+        "tools/common.py",
+        "kernel/src/m2/m3.rs",
+        "kernel/Cargo.toml",
+        "kernel/build.rs"
+      ],
+      "exit": 0
+    },
+    {
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/workspace/scratch/debaa3b6a81c/nieuw-os/docs/verification/parallel-final-integration-review/fingerprint-omission.py",
+        "/workspace/scratch/debaa3b6a81c/nieuw-os"
+      ],
+      "exit": 0,
+      "stdout": "fingerprint-omission.json",
+      "stderr": "fingerprint-omission.stderr.txt"
+    }
+  ],
+  "findings": [
+    {
+      "id": "G06-01",
+      "severity": "non-blocking-current-evidence",
+      "status": "queued-root-owner",
+      "summary": "Global source_hash omits the quantum workspace manifest inherited by qsim-core.",
+      "reproduction": "Temporary fixture edition change leaves fingerprint unchanged. Real source unchanged.",
+      "current_compensation": "run_qsim.validate_build compares native builder.sources including parent manifest before and after the run.",
+      "actual_parent_input_binding": {
+        "path": "experiments/quantum/Cargo.toml",
+        "build_report_sha256": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+        "actual_sha256": "15775ccd37793b4392b2111f7f8c63a0b888bded15549089c7c599b62cbf3100",
+        "matched": true
+      },
+      "minimum_fix": "Include experiments/quantum/Cargo.toml in global source fingerprint and add a focused change-detection check. Preserve historical evidence identities."
+    }
+  ],
+  "blocking_findings": [],
+  "checks": {
+    "all_reviewed_source_files_match_frozen_commit": true,
+    "frozen_source_fingerprint_matches": true,
+    "sdk_full_acceptance_passed": true,
+    "m3_full_regression_passed": true,
+    "qsim_strict_acceptance_passed": true,
+    "qsim_parent_input_independently_bound": true,
+    "build_and_target_roots_distinct": true
+  },
+  "g0_forensics_scope": {
+    "original_g0_artifact_written": false,
+    "original_g0_artifact_restored": false,
+    "own_scripts_and_m6c_fixture_setups_inspected": true,
+    "finding": "No write path to original G0 directory found in own recent scripts or the executed M6c fixtures. This does not establish the cause of the reported G0 alteration."
+  },
+  "roadmap_point_delta": 0
+}

@@ -1,0 +1,55 @@
+{
+  "scope": "Complete M6b native suite plus unchanged capture validator",
+  "status": "completed",
+  "passed": true,
+  "source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "source_fingerprint_version": 3,
+  "started_utc": "2026-10-28T15:36:30.523920+00:00",
+  "free_bytes_before": 26055602176,
+  "environment": {
+    "NOS_BUILD_DIR": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-m6b",
+    "NOS_TARGET_DIR": "/tmp/nieuw-os-par-final-m6b-target",
+    "CARGO_TARGET_DIR": "/tmp/nieuw-os-par-final-m6b-target",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_HOME": "/tmp/nieuw-os-par-tools/cargo-home",
+    "CARGO_NET_OFFLINE": "true",
+    "NOS_QEMU_MACHINE": "pc-q35-7.2",
+    "NOS_SDK_RUNTIME": "0",
+    "OS_OVMF_CODE": "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "OS_OVMF_VARS": "/tmp/nieuw-os-par-tools/qemu/usr/share/OVMF/OVMF_VARS_4M.fd"
+  },
+  "commands": [
+    {
+      "name": "gate",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-u",
+        "-B",
+        "tools/test_m6b.py"
+      ],
+      "returncode": 0,
+      "duration_s": 227.54455931300254,
+      "stdout_sha256": "29ae0f06d1c2fc97d6125087af4c4ada16e698893d50aa2d2576d2a8e9624471",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "capture",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-u",
+        "-B",
+        "tools/capture_m6b.py",
+        "--destination",
+        "docs/verification/parallel-final-m6b"
+      ],
+      "returncode": 0,
+      "duration_s": 0.5158360099994752,
+      "stdout_sha256": "00b4d7e20293cd35840ccbb2449ab39e0c1902a315c4bb58c6e7325b1e2073f5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "finished_utc": "2026-10-28T15:40:18.649200+00:00",
+  "free_bytes_after": 25217445888,
+  "observed_source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60"
+}

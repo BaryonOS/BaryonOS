@@ -1,0 +1,11 @@
+   Compiling capability-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/crates/capability-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/runtime)
+   Compiling catalog-core v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/services/catalog)
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/scratch/debaa3b6a81c/nieuw-os/sdk/catalog-client)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.54s
+     Running unittests src/lib.rs (/tmp/nieuw-os-par-final-host-target/debug/deps/nieuw_os_catalog_client-24b64d9af16ed402)
+     Running tests/transport.rs (/tmp/nieuw-os-par-final-host-target/debug/deps/transport-a4816fa0aa5628ad)
+     Running unittests src/lib.rs (/tmp/nieuw-os-par-final-host-target/debug/deps/nieuw_os_sdk_runtime-070dd80c6bd221f3)
+     Running tests/message.rs (/tmp/nieuw-os-par-final-host-target/debug/deps/message-33fd5b62622ce847)
+   Doc-tests nieuw_os_catalog_client
+   Doc-tests nieuw_os_sdk_runtime

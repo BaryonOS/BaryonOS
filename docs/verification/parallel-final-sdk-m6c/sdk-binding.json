@@ -1,0 +1,845 @@
+{
+  "schema_version": 1,
+  "task": "G05",
+  "passed": true,
+  "checked_utc": "2026-10-28T15:41:31.969841+00:00",
+  "source_commit": "3e41bbf93822f7044c6020259f4a752925e1966d",
+  "source_fingerprint_version": 3,
+  "source_sha256": "307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60",
+  "scope": "Additional SDK source/artifact selection check after unchanged full M6c acceptance capture.",
+  "capture_sha256": "e14ff936048b9b0036a0d50d1c43f07f1c64f74cc0c936c6899a81a65cd97837",
+  "suite_sha256": "7371a5998dd9c7072689d51b1a421dcd25afe0762ab68bf464171c6342028414",
+  "guest_runs_sha256": "e9c7f9edc603f1e084c1ee3819cbddd8bdbcb70b0fffc41f510d269c39bbb2fb",
+  "groups": 35,
+  "real_vm_invocations": 31,
+  "sdk_m6c_invocations": 30,
+  "ordinary_m1_regressions": 1,
+  "cold_recovery_pairs": 14,
+  "raw_exit_counts": {
+    "33": 29,
+    "-9": 2
+  },
+  "case_counts": {
+    "normal": 2,
+    "recover": 14,
+    "errors": 1,
+    "full": 1,
+    "corrupt": 1,
+    "legacy": 1,
+    "vm-cut-before-rename": 1,
+    "vm-cut-after-rename": 1,
+    "write-error": 1,
+    "flush-error": 1,
+    "write-timeout": 1,
+    "flush-timeout": 1,
+    "reset-timeout": 1,
+    "bad-descriptor": 1,
+    "used-write": 1,
+    "used-flush": 1,
+    "ordinary-m1": 1
+  },
+  "sdk_user_elf_sha256": "2ef58d24b7ea8da9a857f58d580b78d65d698779fb2384c7eba524a08963a52d",
+  "sdk_user_manifest_sha256": "3853921af84ad9ba56f7185656a4b583a39cd1cfb8c604b815ca407a5885770a",
+  "compiled_module_source_checks": {
+    "userspace/m6c_probe.rs": {
+      "expected": "ae3d61e66d6572096462a8b67a0861a4e7d1c76276281340a256832461b97014",
+      "observed": "ae3d61e66d6572096462a8b67a0861a4e7d1c76276281340a256832461b97014"
+    },
+    "userspace/m6_runtime.rs": {
+      "expected": "f4af399746e113bbc08ef8b629ebd2ee569ef4bb4aaa0b5ed1ca65644aaa41bf",
+      "observed": "f4af399746e113bbc08ef8b629ebd2ee569ef4bb4aaa0b5ed1ca65644aaa41bf"
+    },
+    "services/catalog/src/wire.rs": {
+      "expected": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+      "observed": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61"
+    },
+    "services/catalog/src/journal.rs": {
+      "expected": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+      "observed": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9"
+    },
+    "services/catalog/src/user_service.rs": {
+      "expected": "f822b19496b47a155aa62505cbec042d75a9d30c5829eef2153a547fc1072e01",
+      "observed": "f822b19496b47a155aa62505cbec042d75a9d30c5829eef2153a547fc1072e01"
+    },
+    "userspace/sdk_probe_runtime.rs": {
+      "expected": "b21c5e575fbf34589b1aca96afc8d128ac1f57e34d4a5e212b8c0aa27d1dcf76",
+      "observed": "b21c5e575fbf34589b1aca96afc8d128ac1f57e34d4a5e212b8c0aa27d1dcf76"
+    },
+    "sdk/runtime/src/lib.rs": {
+      "expected": "c035469159e16e8615606ffff9a6b3246c74be536db2a2be3594d67be2b590f6",
+      "observed": "c035469159e16e8615606ffff9a6b3246c74be536db2a2be3594d67be2b590f6"
+    },
+    "sdk/runtime/src/message.rs": {
+      "expected": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab",
+      "observed": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab"
+    },
+    "sdk/runtime/src/native.rs": {
+      "expected": "48758b9c92ed890260a7c0f2c3aebe81be0d0581639b924dcd4e5a8084e70c15",
+      "observed": "48758b9c92ed890260a7c0f2c3aebe81be0d0581639b924dcd4e5a8084e70c15"
+    }
+  },
+  "sdk_native_runs": [
+    {
+      "label": "normal-a",
+      "case": "normal",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-normal-a-9672d6a3d3",
+      "manifest_sha256": "180eb43fa3fee79873179acf4a4fd415cb97c6ed3e0290fd7c3c72b9076463f6",
+      "sdk_runtime": true,
+      "kernel_sha256": "a7373fa01c3557595f15512f4919c4ff39ad8352673999ec9373786acdc3ea36",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "normal-a-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-normal-a-cold-recovery-4aa92e83ee",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "normal-b",
+      "case": "normal",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-normal-b-9c544b260a",
+      "manifest_sha256": "180eb43fa3fee79873179acf4a4fd415cb97c6ed3e0290fd7c3c72b9076463f6",
+      "sdk_runtime": true,
+      "kernel_sha256": "a7373fa01c3557595f15512f4919c4ff39ad8352673999ec9373786acdc3ea36",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "normal-b-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-normal-b-cold-recovery-f8140b8209",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "errors",
+      "case": "errors",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-errors-c62b399b16",
+      "manifest_sha256": "d80641714e487be7c8ab9077b287ee8210ca5e8049fe6cd4c22abddc6baa3c4b",
+      "sdk_runtime": true,
+      "kernel_sha256": "9db5a953f292b9ef5535500fcded484eecb96f7fef3bcad3c1de78ab518bab54",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "errors-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-errors-cold-recovery-2356b1e854",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "full",
+      "case": "full",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-full-d5258b81d1",
+      "manifest_sha256": "f39459f3a8fbdd5bbb51121c636dbba8ee7e3ee8ff54e3b6237c5269171f64f7",
+      "sdk_runtime": true,
+      "kernel_sha256": "68ee407d09079791add3915581437f1359aea7f1b53e827230874acb25a8f276",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "full-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-full-cold-recovery-43414d1902",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "corrupt",
+      "case": "corrupt",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-corrupt-a732ce0161",
+      "manifest_sha256": "56f75cf84f4eedb773d5d457dfcc8ccdb88610140722b0ee1b3fc818d4e785cf",
+      "sdk_runtime": true,
+      "kernel_sha256": "5f51d992a239b7097466d7a2d7d479bfeace719cc7248f695c58a8f3f5b2bd37",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "legacy",
+      "case": "legacy",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-legacy-0b7e352285",
+      "manifest_sha256": "40ed892f2505b2126399ede737b4b1aadf90b4f84d539050bec3e32a7abcae7d",
+      "sdk_runtime": true,
+      "kernel_sha256": "9bc573d1586a347bc9cc3680db0d4537da19053dfb7899285705bb64c9fe3ca5",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "vm-cut-before-rename",
+      "case": "vm-cut-before-rename",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-vm-cut-before-rename-bbbe93baff",
+      "manifest_sha256": "bb6fe6c60555ff93822c8618f72e2cf73b7061a164221daa1fe766ee2e09c0be",
+      "sdk_runtime": true,
+      "kernel_sha256": "d0ee87e115bc2fc392f6df868eda8622c86c6ec4684bd02ab6e08b6fdb92f3d2",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": -9,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "vm-cut-before-rename-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-vm-cut-before-rename-cold-recovery-b0bfb26734",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "vm-cut-after-rename",
+      "case": "vm-cut-after-rename",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-vm-cut-after-rename-76dce0659c",
+      "manifest_sha256": "5694963e5e5f3bfc064a51722bb50a0aaab32f17c8aea5d80d8081d7e28ad9b8",
+      "sdk_runtime": true,
+      "kernel_sha256": "f48a50eaea679eb2928d17ab45fb9e86a2bde88d043c7291db555a5eaaf23a18",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": -9,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "vm-cut-after-rename-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-vm-cut-after-rename-cold-recovery-02050bed9e",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "write-error",
+      "case": "write-error",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-write-error-e272e0ca37",
+      "manifest_sha256": "a18cd0f4d79d3adbaa8f10ad645578ff77a90dee5704666fbe76f3564daad360",
+      "sdk_runtime": true,
+      "kernel_sha256": "b1ae0f0c0d1948a55398b36af942bbcf3fc30f15bb42ee5647f86ce17b1b9e88",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "write-error-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-write-error-cold-recovery-664e662ed0",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "flush-error",
+      "case": "flush-error",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-flush-error-35eaccc69e",
+      "manifest_sha256": "dfa770b6270c2d6d96e5439b93efbb6dbf717b3655a3ea51118071512df871b9",
+      "sdk_runtime": true,
+      "kernel_sha256": "c1e5a33fb2ebb7369af98575ef8dfa044c1d81075bf24f1d4e5085b980dab304",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "flush-error-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-flush-error-cold-recovery-6d9d9723de",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "write-timeout",
+      "case": "write-timeout",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-write-timeout-999fd92983",
+      "manifest_sha256": "4f1f2b6ca10c62b5cc7c11711b04b4cb996aebc9c5c585a8e44a7c77f4eb7a0e",
+      "sdk_runtime": true,
+      "kernel_sha256": "d594c606b5b55dee921e03fe1c710dc08ea327baac38d267e5db00fe845c6034",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "write-timeout-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-write-timeout-cold-recovery-8817f38cde",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "flush-timeout",
+      "case": "flush-timeout",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-flush-timeout-8e27cca1cf",
+      "manifest_sha256": "0f7260a46fd144bdcfacc14ede34eeb3c0463e237656b2a99f57147f88cdc788",
+      "sdk_runtime": true,
+      "kernel_sha256": "3f4e8d9af0ce24f15e46e69a622cb68ee70831178d98fc2d6e93a369510a96e8",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "flush-timeout-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-flush-timeout-cold-recovery-06c953bec0",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "reset-timeout",
+      "case": "reset-timeout",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-reset-timeout-14ecdc3ec4",
+      "manifest_sha256": "079c6d49757757d26517988ed444d3702700e8638890fc1d8be80471988b4fa2",
+      "sdk_runtime": true,
+      "kernel_sha256": "4a10c7898e14a70db262f247d646770f8c9a67c729151d8bc12afca219afb4c0",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "reset-timeout-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-reset-timeout-cold-recovery-db408418d9",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "bad-descriptor",
+      "case": "bad-descriptor",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-bad-descriptor-c19f0c689b",
+      "manifest_sha256": "597c37a9003edb02df8d6e60261b43e5329675e88f00ed6d31e9f5da4ec068cc",
+      "sdk_runtime": true,
+      "kernel_sha256": "74630759c0f03c0820ebf91a1f523ae8110252d1173d93d2deee2c8ac6481c4b",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "bad-descriptor-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-bad-descriptor-cold-recovery-fd7cc04a19",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "used-write",
+      "case": "used-write",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-used-write-cbfc17c23b",
+      "manifest_sha256": "d5e5d10565ea77e376dcbfa69727e802102b67ec9ccdff6c5ee730eb6322be5d",
+      "sdk_runtime": true,
+      "kernel_sha256": "20f85a2ca779c67a711075b4b96a2ed1975d0ab30e335d091bdb7b8721da7228",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "used-write-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-used-write-cold-recovery-b08f91103d",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "used-flush",
+      "case": "used-flush",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-used-flush-c72e0a34a1",
+      "manifest_sha256": "bf8b461352a868c2b4998002cd6733d889ca915c5a7a8cff5385e35d56f4e162",
+      "sdk_runtime": true,
+      "kernel_sha256": "640c3078532b8938645d255937b12632e6fce63937e51eb7ba0adb4bbb077356",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    },
+    {
+      "label": "used-flush-cold-recovery",
+      "case": "recover",
+      "run_directory": "/workspace/scratch/debaa3b6a81c/nieuw-os/build/parallel-final-sdk-m6c/run/m6c-used-flush-cold-recovery-3db483d838",
+      "manifest_sha256": "ada13c7e4bca4b1001292791c0e277676e0e2fe70b702634264b2db0393606a4",
+      "sdk_runtime": true,
+      "kernel_sha256": "98da09f727ff174d2a293b3084587bdf08c8f422b3958a9176cfbe60a4bdd394",
+      "actual_sdk_user_elf_embedded": true,
+      "source_matches": true,
+      "raw_qemu_exit": 33,
+      "disk_oracle_passed": true
+    }
+  ],
+  "normal_results": [
+    {
+      "label": "normal-a",
+      "oracle": {
+        "scope": "independent Python v2 parser over actual synthetic 64KiB volume",
+        "identity": "5a59d49fbc214d8b8168008e6eb7ce2f",
+        "seed": 6598895452614208619,
+        "variant": "normal",
+        "sha256_initial": "655b52922f7cf405a4ae62900ce9c7f4b4920dd03b480c4e6ccaf5563eeeed83",
+        "sha256_after": "a239152a106b8a77701dae2ca24bfb6fadcf45ded46dc397c8aba4e9554a669e",
+        "state": {
+          "sequence": 10,
+          "objects": [
+            {
+              "revision": 3,
+              "present": true,
+              "length": 128,
+              "digest": "b283dc2e26cecaa5",
+              "name_length": 16,
+              "name_digest": "8b2d238f15d9816a"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325",
+              "name_length": 0,
+              "name_digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 3,
+              "present": true,
+              "length": 128,
+              "digest": "7a79c58355bc8925",
+              "name_length": 16,
+              "name_digest": "8b2d228f15d97fb7"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325",
+              "name_length": 0,
+              "name_digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "observed": {
+          "state": {
+            "sequence": 10,
+            "objects": [
+              {
+                "revision": 3,
+                "present": true,
+                "length": 128,
+                "digest": "b283dc2e26cecaa5",
+                "name_length": 16,
+                "name_digest": "8b2d238f15d9816a"
+              },
+              {
+                "revision": 2,
+                "present": false,
+                "length": 0,
+                "digest": "cbf29ce484222325",
+                "name_length": 0,
+                "name_digest": "cbf29ce484222325"
+              },
+              {
+                "revision": 3,
+                "present": true,
+                "length": 128,
+                "digest": "7a79c58355bc8925",
+                "name_length": 16,
+                "name_digest": "8b2d228f15d97fb7"
+              },
+              {
+                "revision": 2,
+                "present": false,
+                "length": 0,
+                "digest": "cbf29ce484222325",
+                "name_length": 0,
+                "name_digest": "cbf29ce484222325"
+              }
+            ]
+          },
+          "acks": 10,
+          "rejected": 6,
+          "domain_revisions": [
+            5,
+            5
+          ],
+          "catalog_replies": 10
+        },
+        "checks": {
+          "outside_journal_unchanged": true,
+          "case_matches_volume_variant": true,
+          "fresh_mutator_before_image": true,
+          "journal_valid_or_explicit_rejection_case": true,
+          "guest_matches_independent_disk_state": true,
+          "read_only_stage_unchanged": true,
+          "record_payloads_and_names_match_native_scenario": true,
+          "expected_final_state": true,
+          "exact_mutation_ack_count": true,
+          "exact_catalog_reply_count": true,
+          "domain_revisions_exclude_foreign_mutations": true,
+          "all_negative_requests_without_io": true
+        },
+        "passed": true
+      }
+    },
+    {
+      "label": "normal-b",
+      "oracle": {
+        "scope": "independent Python v2 parser over actual synthetic 64KiB volume",
+        "identity": "1f4ce209c895441bb176dd9de71c6bae",
+        "seed": 5687278580680095767,
+        "variant": "normal",
+        "sha256_initial": "c60279c58a73c2b17f53937c401a89d6077b69039d8440783875fdd1a344829a",
+        "sha256_after": "2110789aed77328149a7373699beb1f1dc5fac4364059ed36e2b1cbab91cd833",
+        "state": {
+          "sequence": 10,
+          "objects": [
+            {
+              "revision": 3,
+              "present": true,
+              "length": 128,
+              "digest": "b283dc2e26cecaa5",
+              "name_length": 16,
+              "name_digest": "8b2d238f15d9816a"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325",
+              "name_length": 0,
+              "name_digest": "cbf29ce484222325"
+            },
+            {
+              "revision": 3,
+              "present": true,
+              "length": 128,
+              "digest": "7a79c58355bc8925",
+              "name_length": 16,
+              "name_digest": "8b2d228f15d97fb7"
+            },
+            {
+              "revision": 2,
+              "present": false,
+              "length": 0,
+              "digest": "cbf29ce484222325",
+              "name_length": 0,
+              "name_digest": "cbf29ce484222325"
+            }
+          ]
+        },
+        "observed": {
+          "state": {
+            "sequence": 10,
+            "objects": [
+              {
+                "revision": 3,
+                "present": true,
+                "length": 128,
+                "digest": "b283dc2e26cecaa5",
+                "name_length": 16,
+                "name_digest": "8b2d238f15d9816a"
+              },
+              {
+                "revision": 2,
+                "present": false,
+                "length": 0,
+                "digest": "cbf29ce484222325",
+                "name_length": 0,
+                "name_digest": "cbf29ce484222325"
+              },
+              {
+                "revision": 3,
+                "present": true,
+                "length": 128,
+                "digest": "7a79c58355bc8925",
+                "name_length": 16,
+                "name_digest": "8b2d228f15d97fb7"
+              },
+              {
+                "revision": 2,
+                "present": false,
+                "length": 0,
+                "digest": "cbf29ce484222325",
+                "name_length": 0,
+                "name_digest": "cbf29ce484222325"
+              }
+            ]
+          },
+          "acks": 10,
+          "rejected": 6,
+          "domain_revisions": [
+            5,
+            5
+          ],
+          "catalog_replies": 10
+        },
+        "checks": {
+          "outside_journal_unchanged": true,
+          "case_matches_volume_variant": true,
+          "fresh_mutator_before_image": true,
+          "journal_valid_or_explicit_rejection_case": true,
+          "guest_matches_independent_disk_state": true,
+          "read_only_stage_unchanged": true,
+          "record_payloads_and_names_match_native_scenario": true,
+          "expected_final_state": true,
+          "exact_mutation_ack_count": true,
+          "exact_catalog_reply_count": true,
+          "domain_revisions_exclude_foreign_mutations": true,
+          "all_negative_requests_without_io": true
+        },
+        "passed": true
+      }
+    }
+  ],
+  "recovery_checks": [
+    {
+      "name": "normal-a-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "normal-b-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "errors-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "full-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "vm-cut-before-rename-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "vm-cut-after-rename-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "write-error-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "flush-error-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "write-timeout-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "flush-timeout-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "reset-timeout-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "bad-descriptor-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "used-write-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    },
+    {
+      "name": "used-flush-cold-recovery",
+      "checks": {
+        "same_volume": true,
+        "same_identity": true,
+        "separate_vm": true,
+        "linked_previous": true,
+        "exact_previous_bytes": true,
+        "no_writes": true,
+        "frozen_source": true
+      }
+    }
+  ],
+  "known_limits": [
+    "This runs the existing synthetic M6c roles through the SDK runtime bridge.",
+    "Block I/O and deliberate malformed/negative ABI probes retain the original raw fixture path.",
+    "The separate typed B01 SDK catalog sample was compiled and host-tested earlier; this suite does not launch that sample.",
+    "No G1/Materiaal graphical editor, larger-document storage, physical disk durability, general app launcher or human audit claim."
+  ],
+  "roadmap": {
+    "delta": 0,
+    "existing_storage_gates": "S03 and S07 retained by regression",
+    "A01": "open",
+    "U03": "open"
+  }
+}

@@ -1,0 +1,9 @@
+decoder_reset_clears_both_modifier_sides_caps_and_partial_prefixes: test
+graphics::tests::canonical_colors_encode_both_supported_device_formats: test
+graphics::tests::helpers_reject_use_before_mapping_or_input_setup: test
+graphics::tests::input_errors_reset_the_stream_and_aux_is_discarded: test
+graphics::tests::span_checks_last_pixel_stride_and_exact_extent: test
+graphics::tests::span_rejects_oversize_empty_high_bits_and_arithmetic_edges: test
+graphics::tests::span_revalidates_metadata_before_any_hardware_access: test
+
+7 tests, 0 benchmarks

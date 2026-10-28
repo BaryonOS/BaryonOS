@@ -1,0 +1,172 @@
+[
+  {
+    "request": {
+      "execute": "qmp_capabilities",
+      "id": 1
+    },
+    "response": {
+      "return": {},
+      "id": 1
+    }
+  },
+  {
+    "request": {
+      "execute": "screendump",
+      "id": 2,
+      "arguments": {
+        "filename": "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/initial.ppm"
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 2
+    }
+  },
+  {
+    "request": {
+      "execute": "send-key",
+      "id": 3,
+      "arguments": {
+        "keys": [
+          {
+            "type": "qcode",
+            "data": "a"
+          }
+        ],
+        "hold-time": 30
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 3
+    }
+  },
+  {
+    "request": {
+      "execute": "screendump",
+      "id": 4,
+      "arguments": {
+        "filename": "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/a.ppm"
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 4
+    }
+  },
+  {
+    "request": {
+      "execute": "send-key",
+      "id": 5,
+      "arguments": {
+        "keys": [
+          {
+            "type": "qcode",
+            "data": "b"
+          }
+        ],
+        "hold-time": 30
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 5
+    }
+  },
+  {
+    "request": {
+      "execute": "screendump",
+      "id": 6,
+      "arguments": {
+        "filename": "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/ab.ppm"
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 6
+    }
+  },
+  {
+    "request": {
+      "execute": "send-key",
+      "id": 7,
+      "arguments": {
+        "keys": [
+          {
+            "type": "qcode",
+            "data": "backspace"
+          }
+        ],
+        "hold-time": 30
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 7
+    }
+  },
+  {
+    "request": {
+      "execute": "screendump",
+      "id": 8,
+      "arguments": {
+        "filename": "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/after-backspace.ppm"
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 8
+    }
+  },
+  {
+    "request": {
+      "execute": "send-key",
+      "id": 9,
+      "arguments": {
+        "keys": [
+          {
+            "type": "qcode",
+            "data": "c"
+          }
+        ],
+        "hold-time": 30
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 9
+    }
+  },
+  {
+    "request": {
+      "execute": "screendump",
+      "id": 10,
+      "arguments": {
+        "filename": "/tmp/nieuw-os-g0-confirmed-pipe/graphics-g0-6c34d3a840/typed.ppm"
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 10
+    }
+  },
+  {
+    "request": {
+      "execute": "send-key",
+      "id": 11,
+      "arguments": {
+        "keys": [
+          {
+            "type": "qcode",
+            "data": "esc"
+          }
+        ],
+        "hold-time": 30
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 11
+    }
+  }
+]

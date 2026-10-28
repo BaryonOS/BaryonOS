@@ -1,0 +1,45 @@
+{
+  "scope": "Lossless PNG encoding of the real QEMU PPM pixels; original PPM bytes reconstruct exactly from header plus decoded RGB pixels.",
+  "images": [
+    {
+      "name": "initial",
+      "width": 800,
+      "height": 600,
+      "original_header_hex": "50360a383030203630300a3235350a",
+      "ppm_sha256": "454aedf48cb14c89e6e947b5c96b1c6bd6432c53a1d8aea3d03f1ad19300bc73",
+      "png_sha256": "8279da9aca4935424d74fde1078fc38462b18f4be1c049b8e35480e1086ea90a"
+    },
+    {
+      "name": "a",
+      "width": 800,
+      "height": 600,
+      "original_header_hex": "50360a383030203630300a3235350a",
+      "ppm_sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+      "png_sha256": "51835b55c5f2c5482a2ff7b7f4890ebe467124535fa1ef4b7f13ef6d71716b75"
+    },
+    {
+      "name": "ab",
+      "width": 800,
+      "height": 600,
+      "original_header_hex": "50360a383030203630300a3235350a",
+      "ppm_sha256": "90c4fd29fd891de256c84239acba59811537146f1a9bc482c6264576615c6b4e",
+      "png_sha256": "f9f3fa2b96ae56113e6196e9203ecb5bf8abb35014d2a64838068ad3f4554b7a"
+    },
+    {
+      "name": "after-backspace",
+      "width": 800,
+      "height": 600,
+      "original_header_hex": "50360a383030203630300a3235350a",
+      "ppm_sha256": "ffe5175fabbd7c6f51579cb686c9a96746592422704daf5bce87674c80a781ba",
+      "png_sha256": "51835b55c5f2c5482a2ff7b7f4890ebe467124535fa1ef4b7f13ef6d71716b75"
+    },
+    {
+      "name": "typed",
+      "width": 800,
+      "height": 600,
+      "original_header_hex": "50360a383030203630300a3235350a",
+      "ppm_sha256": "e80f6cf1f572cc3bad3441cbbb5f3a27a750f8a0c84127bb63af77ab496e26dc",
+      "png_sha256": "090b6e2803a6ed7b00573a28ac4925d765492b42bdcdb1261da6ee741c3319b3"
+    }
+  ]
+}

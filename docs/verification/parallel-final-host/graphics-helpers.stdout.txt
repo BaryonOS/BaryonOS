@@ -1,0 +1,9 @@
+rustc-version: exit=0; timeout=False
+build-boot-protocol: exit=0; timeout=False
+build-ui-core: exit=0; timeout=False
+build-kernel-core: exit=0; timeout=False
+build-graphics-helpers: exit=0; timeout=False
+list-graphics-helpers: exit=0; timeout=False
+run-graphics-helpers: exit=0; timeout=False
+qmp-boundaries: exit=0; timeout=False
+Host graphics helpers passed=True; /tmp/nieuw-os-par-final-host-graphics-frozen/graphics-helpers-3b764ee2975e4fc4a4f5b6d363064054

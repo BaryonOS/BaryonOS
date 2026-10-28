@@ -1,0 +1,42 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 13 tests
+test empty_value_is_a_real_object_distinct_from_absent_and_tombstone ... ok
+test four_object_values_and_revisions_survive_complete_streaming_scan ... ok
+test malformed_commands_and_stale_replays_leave_every_object_unchanged ... ok
+test gaps_duplicate_slots_wrong_order_and_incomplete_scan_fail_closed ... ok
+test malformed_tail_poison_is_sticky_and_never_guesses_an_older_success ... ok
+test valid_checksum_never_replaces_structure_sequence_or_revision_validation ... ok
+test prepared_mutation_cannot_be_committed_to_a_different_equal_sequence_state ... ok
+test full_log_never_overwrites_an_old_record_or_wraps_revisions ... ok
+test every_single_byte_corruption_in_an_occupied_record_is_rejected ... ok
+test resealed_revision_skip_and_delete_of_never_created_object_are_rejected ... ok
+test prepared_mutation_does_not_change_live_state_and_cannot_commit_twice ... ok
+test zero_volume_is_valid_empty_state_but_out_of_range_scan_is_invalid ... ok
+test tombstone_revision_prevents_replay_and_allows_explicit_cas_recreation ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 9 tests
+test exact_offsets_and_domain_binding_are_canonical ... ok
+test all_objects_require_the_endpoint_bound_domain_for_every_operation ... ok
+test failure_replies_never_leak_object_revision_or_data ... ok
+test get_can_return_a_present_empty_object_but_never_revision_zero ... ok
+test notfound_exposes_tombstone_revision_only_for_authorized_get_or_delete ... ok
+test reserved_fields_zero_tail_and_epoch_are_enforced ... ok
+test empty_put_is_valid_but_get_and_delete_cannot_smuggle_payloads ... ok
+test successful_replies_bind_object_request_epoch_revision_and_payload ... ok
+test sizes_large_integers_and_invalid_opcodes_are_bounded ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
