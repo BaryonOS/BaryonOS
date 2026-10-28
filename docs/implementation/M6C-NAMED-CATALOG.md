@@ -1,8 +1,13 @@
 # M6c — native documentnamen en afgeschermde catalogus
 
-Datum: 28 oktober 2026. Ontwerp vóór implementatie, basis
-`bb22fdbe15919edc23baa158a46236195ce314b2` (afgeronde M6b).
-Werkbranch: `codex/m6c-named-catalog`. Uitvoering wordt afzonderlijk vastgelegd.
+Datum: 28 oktober 2026. Status: huidig M6c-contract met aanwezige implementatie.
+Oorspronkelijke basis: `bb22fdbe15919edc23baa158a46236195ce314b2` (afgeronde M6b).
+Werkbranch: `codex/m6c-named-catalog`. Bewijsstatus en acceptatiegrenzen:
+[M6C-ACCEPTANCE.md](../verification/M6C-ACCEPTANCE.md).
+Bekende beperking: de native observerpanic is nog ongerepareerd, ook met
+`milestone-m6c`. Het `Unknown`-gedrag is via host-ABI getest; gecontroleerde
+end-to-end-afhandeling bij native WRITE-/FLUSH-fouten of time-outs is niet
+gerealiseerd. Zie [Bekende native observerbeperking](#bekende-native-observerbeperking).
 
 ## Doel en grenzen
 
