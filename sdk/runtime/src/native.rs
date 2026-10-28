@@ -3,6 +3,7 @@
 use core::arch::asm;
 
 use crate::{
+    block::{self, BlockDevice, READ_MAX, SECTOR_SIZE},
     decode_return, validate_abi, zero_return, Error, Handle, Outgoing, ReceiveEndpoint, Received,
     Rights, SendEndpoint, MESSAGE_SIZE,
 };
@@ -117,4 +118,76 @@ pub fn close_received_caps(message: &Received) -> Result<(), Error> {
         }
     }
     first_error.map_or(Ok(()), Err)
+}
+
+/// Submit a READ of `length` (1..=128) bytes at `offset` within the scoped
+/// `sector`. Returns the broker ticket; data arrives through `block_wait`.
+pub fn block_read(
+    device: BlockDevice,
+    sector: u64,
+    offset: u64,
+    length: u64,
+) -> Result<u64, Error> {
+    call(0x40, [device.handle().raw(), sector, offset, length, 0, 0])
+}
+
+/// Submit one sector WRITE. The kernel copies all 512 bytes from this live
+/// buffer before returning; completion does not imply durability (FLUSH).
+pub fn block_write(
+    device: BlockDevice,
+    sector: u64,
+    data: &[u8; SECTOR_SIZE],
+) -> Result<u64, Error> {
+    call(
+        0x42,
+        [
+            device.handle().raw(),
+            sector,
+            data.as_ptr() as u64,
+            SECTOR_SIZE as u64,
+            0,
+            0,
+        ],
+    )
+}
+
+pub fn block_flush(device: BlockDevice) -> Result<u64, Error> {
+    call(0x43, [device.handle().raw(), 0, 0, 0, 0, 0])
+}
+
+/// Poll one ticket until completion, yielding while the broker reports
+/// EAGAIN, for at most `limit` polls. Copies READ data into `out`. A kernel
+/// error is returned unchanged; the caller decides whether it is uncertain.
+pub fn block_wait(
+    device: BlockDevice,
+    ticket: u64,
+    out: &mut [u8],
+    limit: usize,
+) -> Result<(), Error> {
+    if out.len() > READ_MAX {
+        return Err(Error::MessageSize);
+    }
+    for _ in 0..limit {
+        let mut bytes = [0; MESSAGE_SIZE];
+        match call(
+            0x41,
+            [
+                device.handle().raw(),
+                ticket,
+                bytes.as_mut_ptr() as u64,
+                MESSAGE_SIZE as u64,
+                0,
+                0,
+            ],
+        ) {
+            Ok(returned) => {
+                let data = block::completion(&bytes, returned, ticket, out.len())?;
+                out.copy_from_slice(data);
+                return Ok(());
+            }
+            Err(error) if error.is_again() => yield_now()?,
+            Err(error) => return Err(error),
+        }
+    }
+    Err(Error::Kernel(-13))
 }

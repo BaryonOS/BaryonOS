@@ -51,9 +51,18 @@ compile_error!("native-qsim-job is a separate opt-in M4 profile");
 compile_error!("native-sdk-app is a separate opt-in M4 profile");
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
 mod m5;
-#[cfg(all(feature = "milestone-m6a", not(feature = "milestone-m6b")))]
+#[cfg(all(
+    feature = "milestone-m6a",
+    not(feature = "milestone-m6b"),
+    not(feature = "native-volume")
+))]
 #[path = "m3/m6.rs"]
 mod m5;
+#[cfg(feature = "native-volume")]
+#[path = "m3/volume.rs"]
+mod m5;
+#[cfg(all(feature = "native-volume", feature = "milestone-m6b"))]
+compile_error!("native-volume is a separate opt-in M6a-based profile");
 #[cfg(all(feature = "milestone-m6b", not(feature = "milestone-m6c")))]
 #[path = "m3/m6b.rs"]
 mod m5;
@@ -79,8 +88,16 @@ const SDK_APP_ELF: &[u8] = include_bytes!(env!("NOS_SDK_APP_ELF"));
 const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
 const ELF: &[u8] = include_bytes!(env!("NOS_M5_ELF"));
-#[cfg(all(feature = "milestone-m6a", not(feature = "milestone-m6b")))]
+#[cfg(all(
+    feature = "milestone-m6a",
+    not(feature = "milestone-m6b"),
+    not(feature = "native-volume")
+))]
 const ELF: &[u8] = include_bytes!(env!("NOS_M6_ELF"));
+#[cfg(feature = "native-volume")]
+const VOLUME_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_VOLUME_SERVICE_ELF"));
+#[cfg(feature = "native-volume")]
+const VOLUME_APP_ELF: &[u8] = include_bytes!(env!("NOS_VOLUME_APP_ELF"));
 #[cfg(all(feature = "milestone-m6b", not(feature = "milestone-m6c")))]
 const ELF: &[u8] = include_bytes!(env!("NOS_M6B_ELF"));
 #[cfg(feature = "milestone-m6c")]
@@ -233,7 +250,15 @@ fn process_elf(slot: usize) -> &'static [u8] {
         _ => panic!("native SDK profile has only service and app"),
     }
 }
-#[cfg(not(feature = "native-sdk-app"))]
+#[cfg(feature = "native-volume")]
+fn process_elf(slot: usize) -> &'static [u8] {
+    match slot {
+        0 => VOLUME_SERVICE_ELF,
+        1 | 2 => VOLUME_APP_ELF,
+        _ => panic!("native volume profile has one service and two apps"),
+    }
+}
+#[cfg(not(any(feature = "native-sdk-app", feature = "native-volume")))]
 fn process_elf(_slot: usize) -> &'static [u8] {
     ELF
 }

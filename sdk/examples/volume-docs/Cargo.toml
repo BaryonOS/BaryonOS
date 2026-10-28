@@ -1,0 +1,26 @@
+[package]
+name = "nieuw-os-volume-docs-example"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+native = []
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../../runtime" }
+volume-core = { path = "../../../services/volume" }
+
+[[bin]]
+name = "volume-service"
+path = "src/service.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[[bin]]
+name = "volume-app"
+path = "src/app.rs"
+required-features = ["native"]
+test = false
+bench = false

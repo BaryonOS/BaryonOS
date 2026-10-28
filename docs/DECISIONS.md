@@ -475,3 +475,42 @@ kan meetellen.
 opt-in kan worden uitgezet; er is geen migratie van echte gebruikersdata,
 firmware of fysieke apparaten. De headless documentproef is geen Materiaal-GUI,
 algemene appstarter, grotere-documentondersteuning of ruimtehergebruik.
+
+## ADR-040 — Copy-on-write volume (M6e) in plaats van append-only journal
+
+**Datum/status:** 28 oktober 2026, geaccepteerd voor het opt-in profiel
+`native-volume`. M6b/M6c/M6d blijven ongewijzigd en afzonderlijk bouwbaar.
+
+**Besluit:** grote documenten en ruimtehergebruik (S04/S05) krijgen een nieuw
+userspace-volumeformaat met twee alternerende, per sector verzegelde
+tabelkopieën en 4 KiB-inhoudschunks. Een mutatie schrijft alleen naar chunks
+die de duurzame tabel niet refereert; daarna FLUSH, de volgende tabel in de
+oudere slot, FLUSH, ACK. Vrijgekomen chunks worden door latere commits
+hergebruikt. Er is geen journal en dus geen recordlimiet; een aparte
+compactiestap is niet nodig, omdat er geen append-only log is om te
+compacteren. Crashconsistente vrijgave vervult hier de rol die "compactie" in
+criterium S04 beschrijft. Deze interpretatie wordt hier expliciet vastgelegd,
+niet stilzwijgend toegepast.
+
+**Security-invariant:** de kernel blijft een generieke blokbroker zonder
+formaat- of domeinkennis (kernel/AGENTS.md: geen opslagpolicy in privileged
+code). Domeinautoriteit komt uitsluitend van het kernelgebonden endpoint. Apps
+krijgen geen blokrecht. Read-only recovery wordt afgedwongen door emulator,
+virtio-onderhandeling, capability (alleen READ) en dienst. Een fout tijdens de
+tabelwrite geeft `Unknown` zonder replay. Een niet-canonieke, volledig
+verzegelde nieuwste kopie stopt herstel.
+
+**Weerlegd als:** recovery na een crashpunt een andere staat oplevert dan
+vóór of na de onderbroken stap; een write buiten de scope of naar een
+gerefereerde chunk plaatsvindt; guest en onafhankelijk orakel verschillende
+digests vinden; quota/Full pas ná I/O worden gemeld; of een read-only
+recovery de image wijzigt.
+
+**Restrisico:** één onleesbare sector in de nieuwste tabelkopie leidt tot
+terugval naar de vorige generatie (verlies van de laatste commit). FNV is geen
+authenticatie (B02 open). Proefgeometrie: 16 objecten, 64 KiB per document,
+256 KiB inhoud.
+
+**Migratie/rollback:** opt-in feature; geen automatische migratie van M6c-
+volumes en geen gebruik van echte schijven. Terugdraaien = feature niet
+selecteren of de M6e-commits gericht reverten.
