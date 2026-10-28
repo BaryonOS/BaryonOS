@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 14% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 15% van de vaste productroadmap](docs/assets/progress.svg)
 
-**14% — 14 van 100 gewogen acceptatiepunten.** Dit is een
+**15% — 15 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -27,15 +27,15 @@ alleen een nette desktop haalt die eindgrens niet.
 | Beveiliging, privacy en updates | 12 | 0 |
 | Apps, SDK en installatie | 8 | 0 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
-| Lokale AI en quantum-runtime | 3 | 0 |
+| Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **14** |
+| **Totaal** | **100** | **15** |
 
 **Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`51dc38eb`](https://github.com/simonvanieperen/nieuw-os/commit/51dc38ebe82ac3ace16a52a904ecfe59551210d1) ·
-**Ontwikkelbranch:** `audit/finalize-current-repository-20261028`.
-Deze opdracht: **14% → 14% (+0 procentpunt)**. **Opdracht:** Volledige technische repository-audit, PR16-integratie, CI-versterking en QEMU-flakecorrectie afgerond.
-PR #25 integreert relevante PR16-code, reviewreparaties en repositoryonderhoud; PR #26 corrigeert een aantoonbare M6c/TCG-timingflake zonder ABI-, capability- of opslagcontractwijziging. De definitieve main-run 40741321766 is groen voor host-quality, baseline M6c-QEMU en DocumentSession normal/koude-recovery. Dit verbetert correctness en onderhoudbaarheid maar sluit geen volledig nieuw vast roadmapcriterium: 14% naar 14%.
+**Bron:** [`433bab9f`](https://github.com/simonvanieperen/nieuw-os/commit/433bab9feab74473517eb8d44f2fb4475848e0cf) ·
+**Ontwikkelbranch:** `codex/progress-28-20261028`.
+Deze opdracht: **14% → 15% (+1 procentpunt)**. **Opdracht:** Native quantum-jobinterface met capability-IPC, quota, annulering en referentiecircuits geaccepteerd.
+PR #30 is geïntegreerd als main 7fb8c722. GitHub Actions-run 40743008938 slaagt volledig: host-quality en qemu-smoke zijn groen; de native quantum-jobinterface draait twee geïsoleerde ring-3-processen met QJ01-jobaanvoer, Bell- en zes-qubitreferenties, work-budget, annulering tijdens uitvoering, resultaatpaging en volledige proces/capability/framecleanup. L02 sluit hierdoor; 14% naar 15%.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-28",
-    "source_commit": "51dc38ebe82ac3ace16a52a904ecfe59551210d1",
-    "branch": "audit/finalize-current-repository-20261028",
-    "task": "Volledige technische repository-audit, PR16-integratie, CI-versterking en QEMU-flakecorrectie afgerond",
+    "source_commit": "433bab9feab74473517eb8d44f2fb4475848e0cf",
+    "branch": "codex/progress-28-20261028",
+    "task": "Native quantum-jobinterface met capability-IPC, quota, annulering en referentiecircuits geaccepteerd",
     "previous_score": 14,
-    "summary": "PR #25 integreert relevante PR16-code, reviewreparaties en repositoryonderhoud; PR #26 corrigeert een aantoonbare M6c/TCG-timingflake zonder ABI-, capability- of opslagcontractwijziging. De definitieve main-run 40741321766 is groen voor host-quality, baseline M6c-QEMU en DocumentSession normal/koude-recovery. Dit verbetert correctness en onderhoudbaarheid maar sluit geen volledig nieuw vast roadmapcriterium: 14% naar 14%."
+    "summary": "PR #30 is geïntegreerd als main 7fb8c722. GitHub Actions-run 40743008938 slaagt volledig: host-quality en qemu-smoke zijn groen; de native quantum-jobinterface draait twee geïsoleerde ring-3-processen met QJ01-jobaanvoer, Bell- en zes-qubitreferenties, work-budget, annulering tijdens uitvoering, resultaatpaging en volledige proces/capability/framecleanup. L02 sluit hierdoor; 14% naar 15%."
   },
   "tracks": [
     {
@@ -477,9 +477,11 @@
           "id": "L02",
           "title": "Lokale quantumuitvoering op eigen OS",
           "points": 1,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "De lokale simulator/jobinterface draait native met quota, annulering en referentiecircuits; hostsimulatie en fysieke QPU-ondersteuning blijven afzonderlijk gelabeld.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/L02-ACCEPTANCE.md"
+          ]
         }
       ]
     },
