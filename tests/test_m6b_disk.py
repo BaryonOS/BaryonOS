@@ -138,6 +138,44 @@ class DiskOracle(unittest.TestCase):
         self.volume.path.write_bytes(bytes(32))
         with self.assertRaises(ValueError): self.volume.guard()
 
+    def test_uncertain_mutation_requires_exact_one_real_record_without_live_state_claim(self):
+        one = bytearray(record(0, 0, 1))
+        struct.pack_into('<Q', one, 24, 10)
+        seal(one)
+        data = bytearray(self.volume.initial)
+        at = d.FIRST*512
+        data[at:at+512] = one
+        self.volume.path.write_bytes(data)
+        for case in ('write-error', 'flush-error'):
+            result = d.verify_volume(self.volume, '', case=case, before=self.volume.initial)
+            self.assertTrue(result['passed'])
+            self.assertIsNone(result['observed'])
+            self.assertEqual(result['state']['sequence'], 1)
+            for output in (markers(d.scan(data), acks=0), 'M6B:ACKS:1\n', 'M6B:SEQUENCE:0\n'):
+                self.assertFalse(d.verify_volume(self.volume, output, case=case,
+                                                before=self.volume.initial)['passed'])
+            # A cold process may report the recovered state, but must not write.
+            self.assertTrue(d.verify_volume(self.volume, markers(d.scan(data), acks=0),
+                case='recover', before=bytes(data))['passed'])
+
+    def test_uncertain_mutation_rejects_replay_missing_record_and_wrong_bytes(self):
+        one = bytearray(record(0, 0, 1))
+        struct.pack_into('<Q', one, 24, 10)
+        seal(one)
+        good = bytearray(self.volume.initial)
+        at = d.FIRST*512
+        good[at:at+512] = one
+        extra = bytearray(good)
+        extra[at+512:at+1024] = record(1, 0, 2)
+        canary = bytearray(good); canary[-1] ^= 1
+        bad_value = bytearray(good)
+        altered = bytearray(one); altered[64] ^= 1; seal(altered)
+        bad_value[at:at+512] = altered
+        for data in (self.volume.initial, extra, canary, bad_value):
+            self.volume.path.write_bytes(data)
+            for case in ('write-error', 'flush-error'):
+                self.assertFalse(d.verify_volume(self.volume, '', case=case,
+                                                before=self.volume.initial)['passed'])
     def test_all_labels_and_seeds_are_bounded(self):
         for label in ('../disk','/dev/null','a/b',''):
             with self.assertRaises(ValueError): d.create_volume(label)

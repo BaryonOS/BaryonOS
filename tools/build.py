@@ -14,7 +14,8 @@ M6A_CASES = ("service-errors", "device-rights", "full", "write-error", "flush-er
              "bad-descriptor", "used-write", "used-flush", "torn-tail", "corrupt-all",
              "stale-generation", "no-device", *(f"service-cut-{i}" for i in range(1, 7)),
              *(f"vm-cut-{i}" for i in range(1, 7)), "recover")
-M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush")
+M6B_FAULT_CASES = ("write-error", "flush-error")
+M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush") + M6B_FAULT_CASES
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),

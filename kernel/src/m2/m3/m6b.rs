@@ -42,6 +42,8 @@ struct Runtime {
     calls: u64,
     publications: [u64; 3],
     completions: [u64; 3],
+    io_errors: [u64; 3],
+    injected: bool,
     records: [[u8; 512]; 32],
     read_mask: u128,
     current: Option<journal::State>,
@@ -51,6 +53,10 @@ struct Runtime {
     reply_bytes: [[u8; 224]; 2],
     reply_pending: [bool; 2],
     mutation_pending: [bool; 2],
+    unknown_pending: [bool; 2],
+    uncertain: bool,
+    unknown_sent: u64,
+    unknown_received: u64,
     ack_sent: u64,
     ack_received: u64,
     get_replies: u64,
@@ -89,6 +95,8 @@ static mut RUNTIME: Runtime = Runtime {
     calls: 0,
     publications: [0; 3],
     completions: [0; 3],
+    io_errors: [0; 3],
+    injected: false,
     records: [[0; 512]; 32],
     read_mask: 0,
     current: None,
@@ -98,6 +106,10 @@ static mut RUNTIME: Runtime = Runtime {
     reply_bytes: [[0; 224]; 2],
     reply_pending: [false; 2],
     mutation_pending: [false; 2],
+    unknown_pending: [false; 2],
+    uncertain: false,
+    unknown_sent: 0,
+    unknown_received: 0,
     ack_sent: 0,
     ack_received: 0,
     get_replies: 0,
@@ -319,8 +331,34 @@ pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
     if slot == 0 {
         runtime().calls += 1;
     }
+    // Snapshot the operation before polling can consume/reset its ticket. The
+    // observer follows the actual error delivered to the service, never a
+    // service-writable status word or the status claimed by a reply.
+    let mutating = if slot == 0 && n == 0x41 {
+        let r = runtime();
+        r.error
+            .map(|(request, _)| request)
+            .or_else(|| r.policy.request())
+            .is_some_and(|request| request.operation.is_mutating())
+    } else {
+        slot == 0 && matches!(n, 0x42 | 0x43)
+    };
     let result = device_call(s, slot, n, a);
     let r = runtime();
+    if mutating && result.as_ref().is_err_and(|code| n != 0x41 || *code != -8) {
+        if let Some(active) = r.active.as_mut() {
+            if active.candidate.is_some() {
+                // The native adapter treats every terminal mutation failure as
+                // uncertain, including rejection before publication. Retain the
+                // candidate only as observer metadata; never commit or replay it.
+                active.status = wire::Status::Unknown;
+                active.revision = 0;
+                active.value = [0; 128];
+                active.length = 0;
+                r.uncertain = true;
+            }
+        }
+    }
     r.last_number[slot] = n;
     r.last_result[slot] = result.as_ref().err().copied().unwrap_or(0);
     match result {
@@ -551,7 +589,29 @@ fn advance(s: &State) {
         reset(r, now);
         return;
     }
-    match r.device.as_mut().unwrap().poll(0) {
+    let injection = if !r.injected
+        && r.ready
+        && (case() == 7 && matches!(request.operation, Operation::Write { .. })
+            || case() == 8 && request.operation == Operation::Flush)
+    {
+        10
+    } else {
+        0
+    };
+    let outcome = r.device.as_mut().unwrap().poll(injection);
+    if injection != 0 && matches!(outcome, Ok(Some(_))) {
+        // Device::poll changes only its local status/length snapshot, after a
+        // real used-index advance. This is not an IOERR from the QEMU backend;
+        // the actual disk write/flush can already have completed successfully.
+        assert!(matches!(outcome, Ok(Some((_, Completion::Io)))));
+        r.injected = true;
+        serial::write(if case() == 7 {
+            b"M6B:INJECT:WRITE_IOERR_SNAPSHOT\n"
+        } else {
+            b"M6B:INJECT:FLUSH_IOERR_SNAPSHOT\n"
+        });
+    }
+    match outcome {
         Ok(Some((data, Completion::Success))) => {
             r.data = data;
             r.completions[operation_index(request.operation)] += 1;
@@ -590,6 +650,7 @@ fn advance(s: &State) {
             }
         }
         Ok(Some((_, _))) => {
+            r.io_errors[operation_index(request.operation)] += 1;
             r.policy
                 .complete(request.epoch, request.ticket, Completion::Io)
                 .unwrap();
@@ -688,7 +749,8 @@ pub fn sent(_s: &State, slot: usize, handle: u64, message: &Message) {
         wire::reply(active.header, 1, active.revision, active.status, value)
     );
     let mutating = active.candidate.is_some();
-    if mutating {
+    let acknowledged = mutating && active.status == wire::Status::Ok;
+    if acknowledged {
         assert!(active.write_done && active.flush_done);
         assert_eq!(active.status, wire::Status::Ok);
         assert_eq!(
@@ -713,6 +775,18 @@ pub fn sent(_s: &State, slot: usize, handle: u64, message: &Message) {
             .commit(active.candidate.take().unwrap())
             .unwrap();
         r.ack_sent += 1;
+    } else if mutating {
+        // A real terminal broker error has changed the expected reply before
+        // the canonical comparison above. Unknown is not a mutation ACK, even
+        // when the device may already have performed the write or flush.
+        assert!(r.uncertain && active.status == wire::Status::Unknown);
+        assert_eq!(r.publications[0], active.publications[0]);
+        for op in 1..3 {
+            assert!((active.publications[op]..=active.publications[op] + 1)
+                .contains(&r.publications[op]));
+            assert!(r.completions[op] <= r.publications[op]);
+        }
+        active.candidate = None;
     } else {
         // Malformed, wrong-domain, stale, full, absent and GET operations must
         // never cause even a rejected device syscall in this memory-backed view.
@@ -720,7 +794,9 @@ pub fn sent(_s: &State, slot: usize, handle: u64, message: &Message) {
             (r.calls, r.publications, r.completions),
             (active.calls, active.publications, active.completions)
         );
-        if active.status != wire::Status::Ok {
+        if active.status == wire::Status::Unknown {
+            assert!(r.uncertain);
+        } else if active.status != wire::Status::Ok {
             r.rejected += 1;
         } else {
             r.get_replies += 1;
@@ -729,7 +805,11 @@ pub fn sent(_s: &State, slot: usize, handle: u64, message: &Message) {
     assert!(!r.reply_pending[active.domain]);
     r.reply_bytes[active.domain] = body;
     r.reply_pending[active.domain] = true;
-    r.mutation_pending[active.domain] = mutating;
+    r.mutation_pending[active.domain] = acknowledged;
+    r.unknown_pending[active.domain] = active.status == wire::Status::Unknown;
+    if r.unknown_pending[active.domain] {
+        r.unknown_sent += 1;
+    }
 }
 pub fn received(s: &State, slot: usize, handle: u64, message: &Message) {
     let r = runtime();
@@ -764,6 +844,7 @@ pub fn received(s: &State, slot: usize, handle: u64, message: &Message) {
         };
         match valid {
             Err(error) => active.status = error,
+            Ok(_) if r.uncertain => active.status = wire::Status::Unknown,
             Ok(h) => {
                 let state = r.current.as_ref().unwrap();
                 let object = state.get(h.object).unwrap();
@@ -809,6 +890,19 @@ pub fn received(s: &State, slot: usize, handle: u64, message: &Message) {
         assert_eq!(message.cap_count, 0);
         assert_eq!(body, r.reply_bytes[domain]);
         r.reply_pending[domain] = false;
+        if r.unknown_pending[domain] {
+            r.unknown_received += 1;
+            assert!(r.unknown_received <= r.unknown_sent);
+            if fault_case() && r.unknown_received == 1 {
+                assert_eq!(domain, 0);
+                // Fixture barrier only, after a real canonical Unknown IPC
+                // receive. It grants no authority and cannot acknowledge I/O.
+                for client in 1..3 {
+                    put(s, client, 264, 1);
+                }
+            }
+        }
+        r.unknown_pending[domain] = false;
         if r.mutation_pending[domain] {
             r.ack_received += 1;
             assert!(r.ack_received <= r.ack_sent);
@@ -951,6 +1045,31 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
                 }
             }
             assert!(rejected);
+        } else if fault_case() {
+            assert!(r.ready && r.uncertain && r.injected);
+            assert_eq!(r.requests, [6, 5]);
+            assert_eq!((r.ack_sent, r.ack_received), (0, 0));
+            assert_eq!((r.unknown_sent, r.unknown_received), (9, 9));
+            assert_eq!((r.rejected, r.get_replies), (2, 0));
+            assert_eq!(r.unknown_pending, [false; 2]);
+            assert!(r.error.is_none());
+            assert_eq!(r.current.as_ref().unwrap().sequence(), 0);
+            assert_eq!(word(s, 0, 128), 0);
+            assert_eq!(word(s, 0, 192), 5);
+            assert_eq!(word(s, 0, 232) as i64, -16);
+            if case() == 7 {
+                assert_eq!(r.publications, [128, 1, 1]);
+                assert_eq!(r.completions, [128, 0, 1]);
+                assert_eq!(r.io_errors, [0, 1, 0]);
+            } else {
+                assert_eq!(r.publications, [128, 1, 2]);
+                assert_eq!(r.completions, [128, 1, 1]);
+                assert_eq!(r.io_errors, [0, 0, 1]);
+            }
+            assert!(r.app_device_denials.iter().all(|count| *count >= 4));
+            assert!(r.app_ipc_denials.iter().all(|count| *count >= 3));
+            assert_eq!(r.stale_denials, [1, 1]);
+            serial::write(b"M6B:OUTCOME:UNKNOWN\nM6B:NO_REPLAY:PASS\nM6B:NO_STALE_READ:PASS\n");
         } else {
             assert!(r.ready && r.get_replies >= if case() == 1 { 0 } else { 2 });
             assert_eq!(r.ack_sent, r.ack_received);
@@ -1050,9 +1169,16 @@ fn case() -> u8 {
         5
     } else if cfg!(feature = "test-m6b-vm-cut-after-flush") {
         6
+    } else if cfg!(feature = "test-m6b-write-error") {
+        7
+    } else if cfg!(feature = "test-m6b-flush-error") {
+        8
     } else {
         0
     }
+}
+fn fault_case() -> bool {
+    matches!(case(), 7 | 8)
 }
 fn marker() -> &'static [u8] {
     match case() {
@@ -1061,6 +1187,8 @@ fn marker() -> &'static [u8] {
         2 => b"M6B:CASE:ERRORS:PASS\n",
         3 => b"M6B:CASE:FULL:PASS\n",
         4 => b"M6B:CASE:CORRUPT:PASS\n",
+        7 => b"M6B:CASE:WRITE_ERROR:PASS\n",
+        8 => b"M6B:CASE:FLUSH_ERROR:PASS\n",
         _ => b"M6B:FAIL:CRASH_NOT_OBSERVED\n",
     }
 }

@@ -13,7 +13,7 @@ import threading
 import time
 import uuid
 from common import ROOT, BUILD, environment, firmware, save_json, sha256, source_hash
-from build import M6B_CASES
+from build import M6B_CASES, M6B_FAULT_CASES
 from m6b_disk import Volume, create_volume, verify_volume
 from run import is_success, FAIL_MARKERS
 
@@ -52,13 +52,16 @@ def kill_for_crash(process):
 
 def case_markers(case):
     name = "NORMAL" if case == "normal" else case.upper().replace("-", "_")
-    return BOOT + (f"M6B:CASE:{name}:PASS", "M6B:SURVIVOR_PROGRESS:PASS",
+    fault = (f"M6B:INJECT:{name.removesuffix('_ERROR')}_IOERR_SNAPSHOT",
+             "M6B:OUTCOME:UNKNOWN", "M6B:NO_REPLAY:PASS", "M6B:NO_STALE_READ:PASS") if case in M6B_FAULT_CASES else ()
+    return BOOT + fault + (f"M6B:CASE:{name}:PASS", "M6B:SURVIVOR_PROGRESS:PASS",
                    "M6B:RESOURCES:PASS", "M6B:PASS", "M1:PASS")
 
 
 def unique_markers(stdout, expected):
     prefixes = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "M6B:CASE:",
-                "M6B:SURVIVOR_PROGRESS", "M6B:RESOURCES", "M6B:PASS", "M1:PASS", "M6B:CUT:", "M6A:")
+                "M6B:SURVIVOR_PROGRESS", "M6B:RESOURCES", "M6B:PASS", "M1:PASS", "M6B:CUT:", "M6A:",
+                "M6B:INJECT", "M6B:OUTCOME", "M6B:NO_REPLAY", "M6B:NO_STALE_READ")
     controlled = [line for line in stdout.splitlines()
                   if any(line.startswith(p) for p in prefixes)
                   or line.startswith("M6B:") and ":PASS" in line]
@@ -66,7 +69,7 @@ def unique_markers(stdout, expected):
 
 
 def normal_success(rc, stdout, timed_out, case):
-    if case not in ("normal", "recover", "errors", "full", "corrupt"):
+    if case not in ("normal", "recover", "errors", "full", "corrupt") + M6B_FAULT_CASES:
         return False
     markers = case_markers(case)
     return (unique_markers(stdout, markers) and is_success(rc, stdout, timed_out,
@@ -288,7 +291,7 @@ def run_m6b(case="normal", *, volume: Volume | None = None, label=None, timeout=
     markers = BOOT + (f"M6B:CUT:{cut}",) if cut is not None else case_markers(case)
     guest_pass = crash.get("passed", False) if cut is not None else normal_success(rc, out, timed_out, case)
     outcome_lines = [line for line in out.splitlines() if line.startswith("M6B:OUTCOME")]
-    outcome_pass = not outcome_lines  # Native Unknown/no-replay is a separate future fault gate.
+    outcome_pass = outcome_lines == (["M6B:OUTCOME:UNKNOWN"] if case in M6B_FAULT_CASES else [])
     artifacts = {p.relative_to(run_dir).as_posix(): sha256(p)
                  for p in (run_dir / "esp").rglob("*") if p.is_file()}
     artifacts.update({name: sha256(run_dir / name) for name in (

@@ -72,11 +72,50 @@ exit is onvoldoende bewijs. Een beschadigd journal moet vóór READY weigeren.
 
 ## Bewijsgrenzen
 
-Bekende beperking van de native acceptatieobserver: bij een WRITE- of FLUSH-fout kan `kernel/src/m2/m3/m6b.rs` een kernel panic veroorzaken, doordat `sent()` de reply nog met de verwachte `Ok`-reply vergelijkt voordat `Unknown` correct wordt verwerkt. Deze fout is niet gerepareerd. De opgeslagen native gates dekken dit foutpad niet en tonen de `Unknown`-invariant niet end-to-end aan. De zeven host-ABI-proeven controleren uitsluitend de serviceadapter onder gesimuleerde I/O-uitkomsten. Binnen de begrensde, vertrouwde QEMU/device-fixture blijft dit een expliciete onderzoeksbeperking; een latere native reparatie vereist gerichte devicefoutinjectie, nieuwe native verificatie en bijbehorende bronbinding.
+Historische beperking op basis `1f24f99`: bij een WRITE- of FLUSH-fout kan
+`kernel/src/m2/m3/m6b.rs` een kernel panic veroorzaken, doordat `sent()` de reply
+nog met de verwachte `Ok`-reply vergelijkt voordat `Unknown` correct wordt
+verwerkt. De oudere native gates dekken dit foutpad niet. De zeven host-ABI-
+proeven controleren uitsluitend de serviceadapter met gesimuleerde I/O-uitkomsten.
 
-De bovenstaande `Unknown`-regel blijft het servicecontract en de vereiste voor
-latere native foutafhandeling. Zij is met het huidige observerpad niet voor
-native devicefouten gerealiseerd. Dit geldt ook voor `milestone-m6b`.
+### Native vervolgstap: WRITE/FLUSH-uitkomst onbekend
+
+Contract vóór uitvoering, 28 oktober 2026: repareer de observer generiek, ook
+voor `milestone-m6b`. Markeer onzekerheid bij een werkelijk aan de dienst
+teruggegeven terminale mutatiefout. Verwacht dan uitsluitend een canoniek
+Unknown-antwoord met nul revisie/lengte/data; geen in-memory commit of app-ACK.
+Alle latere geldige GET/PUT/DELETE en herhaalde PUT krijgen Unknown zonder I/O;
+ongeldige domeintoegang blijft Access.
+
+Twee compile-time foutcases, `test-m6b-write-error` en `test-m6b-flush-error`,
+vervangen één lokale completionstatus ná een echte WRITE respectievelijk de
+eerste mutatie-FLUSH door IOERR. De startup-FLUSH blijft normaal. Er wordt geen
+descriptor of daadwerkelijk deviceantwoord veranderd. Deze proef is geen
+echte falende backend, gedeeltelijke write, timeout of stroomuitval.
+
+De eerste PUT is deterministisch object 0, revisie 1, request-ID 10. Daarna
+controleren beide clientprocessen Unknown, geen replay, geen oude GET-inhoud
+en onveranderde rechten. De observer vereist negen verzonden én ontvangen
+Unknown-antwoorden, nul mutatie-ACKs en requests `[6,5]`. Publicaties zijn
+`[128,1,1]` bij WRITE-error en `[128,1,2]` bij FLUSH-error (inclusief startup);
+één foutcompletion wordt apart geteld. Geen geslaagde live-stateclaims loggen.
+
+Exacte gastmarkers na BOOT/EBS, kernelentry en BootInfo: één
+`M6B:INJECT:WRITE_IOERR_SNAPSHOT` of `M6B:INJECT:FLUSH_IOERR_SNAPSHOT`,
+`M6B:OUTCOME:UNKNOWN`, `M6B:NO_REPLAY:PASS`, `M6B:NO_STALE_READ:PASS`, dan de
+case-/survivor-/resource-/M6B-/M1-succesmarkers en raw-exit 33. Ontbrekende,
+herhaalde of verkeerde markers, panic en timeout falen. Andere cases mogen
+geen injectie-/Unknown-markers overnemen.
+
+Het externe schijforakel vereist exact het eerste geldige PUT-record en verder
+lege journalruimte/ongewijzigde canaries. Door de injectie ná echte completion
+kan dat record al op schijf staan terwijl de dienst het niet mag bevestigen.
+Een aparte koude VM moet dezelfde bytes teruglezen, sequence 1 rapporteren en
+niets schrijven. De volledige gate groeit met vier VM-runs naar 22 groepen /
+18 VM-runs. `capture_m6b.py --destination docs/verification/m6b-storage-errors`
+bewaart nieuw bewijs zonder het oude archief te vervangen. Werkelijke resultaten
+en resterende coverage staan in PROJECT-STATE.md; deze eisen zijn op zichzelf
+geen geslaagde testuitkomst.
 
 Host-unittests, native uitvoering en onafhankelijke schijfcontrole worden apart
 geregistreerd. Een QEMU-kill is geen fysieke stroomuitval. Het QEMU-device en

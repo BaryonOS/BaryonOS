@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import json
 import sys
 from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
-from build import build
+from build import build, M6B_FAULT_CASES
 from run import run_guest
 from run_m6b import run_m6b
 
@@ -76,7 +76,7 @@ def test_m6b():
         save_json(BUILD/'logs/m6b-two-image-check.json',comparison)
         record('same-binary-two-canary-images',comparison['passed'],'build/logs/m6b-two-image-check.json',
                ['M6B-EXTERNAL-DISK-ORACLE'])
-        for case in ('errors','full','corrupt','vm-cut-before-ack','vm-cut-after-flush'):
+        for case in ('errors','full','corrupt','vm-cut-before-ack','vm-cut-after-flush') + M6B_FAULT_CASES:
             build(kernel_feature='test-m6b-'+case,label='m6b-'+case)
             result,volume=guest(case,case)
             if case!='corrupt': recovery(result,volume,case+'-cold-recovery')

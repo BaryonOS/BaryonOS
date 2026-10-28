@@ -2,6 +2,26 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
+## Hervatting — native M6b-opslagfouten, 28 oktober 2026
+
+Basis `1f24f994bff1b2c7cb0a026b600c5c4948140cfe`, branch
+`codex/m6b-storage-errors`. De lokale checkout liep achter op GitHub; na fetch
+is deze actuele M6b-basis gekozen. De voorlopige, dubbele M6a-planstap op
+`codex/m6a-write-flush-core` is niet geïntegreerd en is geen vervolg op M6b.
+
+Actieve stap: repareer de hieronder genoemde observerpanic bij een onzekere
+WRITE/FLUSH en voeg native foutproeven plus koude recovery toe. De foutinjectie
+vervangt uitsluitend een lokale statussnapshot ná echte devicecompletion;
+geen claim van een fysieke schijffout of stroomuitval. Eisen en markers staan
+in `implementation/M6B-OBJECT-STORAGE.md`. Bronimplementatie en eerste read-only
+review zijn klaar; 31 hostharnastests en strict preflight slagen (exit 0).
+Checkpoint met commando's en bronhashes: `verification/m6b-storage-errors-checkpoint/`.
+Nog geen nieuwe geslaagde M6b-VM-resultaten voor deze stap; native gates volgen.
+
+Ontwikkelomgeving: projectlokale Rust 1.90.0, QEMU 10.0.13 en OVMF
+2025.02-8+deb13u1 uit officiële Debian-pakketten; geen systeembrede installatie.
+Dit is een andere ontwikkelvariant dan het historische Linuxbewijs hieronder.
+
 ## M6b — native documentopslag gebouwd en getest
 
 Basis `10b32e31671827f2bd63444113b981ff15bfbb73`, werkbranch `codex/m6b-object-storage`.

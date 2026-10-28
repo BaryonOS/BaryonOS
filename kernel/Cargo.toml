@@ -99,6 +99,8 @@ test-m6b-full = ["milestone-m6b"]
 test-m6b-corrupt = ["milestone-m6b"]
 test-m6b-vm-cut-before-ack = ["milestone-m6b"]
 test-m6b-vm-cut-after-flush = ["milestone-m6b"]
+test-m6b-write-error = ["milestone-m6b"]
+test-m6b-flush-error = ["milestone-m6b"]
 
 [dependencies]
 boot-protocol = { path = "../crates/boot-protocol" }

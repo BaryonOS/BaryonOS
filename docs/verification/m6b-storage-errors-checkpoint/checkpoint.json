@@ -1,0 +1,19 @@
+{
+  "base_commit": "1f24f994bff1b2c7cb0a026b600c5c4948140cfe",
+  "source_fingerprint_version": 3,
+  "source_sha256": "4b37669586a107fc47ca17208e142ed00c4560c4a0c355dd27518d1728fcbc41",
+  "native_validation": "pending; initial feature build only",
+  "host_tests": 31,
+  "host_exit": 0,
+  "scope": "Unknown observer fix and compile-time completion snapshot injections",
+  "files_sha256": {
+    "kernel/Cargo.toml": "077b341f1702b79a2315274ec02ca4157c5cd6299da78d771f1242c4ea74981c",
+    "kernel/src/m2/m3/m6b.rs": "b7d1c595d84db8831fbdd99f3724cba13ecb843f8a404f664c95e04ec678fbe4",
+    "userspace/m6b_probe.rs": "410eaa90904a33df5b564683903bbd90308809560b0c8f2a7e2f7244c5457699",
+    "tools/build.py": "abacee0382e2926bbbcefca50770679f3d9734fd08e2fbecacad0e183cb78f05",
+    "tools/run_m6b.py": "097e8af1db282eda0c7acd297561cca09a89d090f177f57b162a99ccc6d716a1",
+    "tools/m6b_disk.py": "9996988b00f75c9288db651ff7d1da6afd268b95294e1a048bca125fbc0c79c5",
+    "tools/test_m6b.py": "2506ca0541793ae9f1f7cc933b821ac624e289d0f3394ac29290b68553bff870",
+    "tools/capture_m6b.py": "7e96914536f319a9a606e8cb3cdf5bc9ce447f282777a17a378e876d3aa5a287"
+  }
+}

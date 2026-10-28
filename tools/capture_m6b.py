@@ -2,6 +2,7 @@
 """Recheck complete native M6b evidence before an atomic text-only archive."""
 from __future__ import annotations
 from pathlib import Path
+import argparse
 import shutil
 import sys
 import tempfile
@@ -12,6 +13,7 @@ from m6b_disk import Volume, synthetic_initial, verify_volume
 from run_m6b import BOOT, CUTS, FAILURES, WINDOWS_CRASH_EXIT, normal_success, unique_markers
 from run import is_success
 from test_m6b import test_sources
+from build import M6B_FAULT_CASES
 
 
 # These are the fixed outputs of run_m6b.py and an ordinary run.py M1 run.
@@ -93,7 +95,7 @@ def required_groups():
         name='normal-'+suffix
         groups += [(name,'normal',None),(name+'-cold-recovery','recover',name)]
     groups += [('same-binary-two-canary-images',None,None)]
-    for case in ('errors','full','corrupt','vm-cut-before-ack','vm-cut-after-flush'):
+    for case in ('errors','full','corrupt','vm-cut-before-ack','vm-cut-after-flush') + M6B_FAULT_CASES:
         groups += [(case,case,None)]
         if case!='corrupt': groups += [(case+'-cold-recovery','recover',case)]
     return groups+[('m1-regression-after-m6b','m1',None)]
@@ -127,8 +129,9 @@ def check_run(directory,report,frozen):
             or report.get('execution_error') or report.get('oracle_error')
             or report.get('observed_source_sha256')!=frozen):
         raise ValueError('Wrong feature/source/artifact or failed execution')
-    if any(line.startswith('M6B:OUTCOME') for line in report['stdout'].splitlines()):
-        raise ValueError('Unexpected Unknown outcome in this bounded native gate')
+    outcomes = [line for line in report['stdout'].splitlines() if line.startswith('M6B:OUTCOME')]
+    if outcomes != (['M6B:OUTCOME:UNKNOWN'] if case in M6B_FAULT_CASES else []):
+        raise ValueError('Missing, duplicate or unexpected native Unknown outcome')
     if case in CUTS:
         point=CUTS[case]; crash=report['host_crash']; raw=report['raw_qemu_exit']
         if (report['timed_out'] or raw not in (-9,WINDOWS_CRASH_EXIT)
@@ -153,7 +156,12 @@ def check_run(directory,report,frozen):
         raise ValueError('Mutator did not start with its fresh synthetic fixture')
 
 
-def capture():
+def capture(destination=None):
+    destination = (ROOT/'docs/verification/m6b' if destination is None else ROOT/destination).resolve()
+    archive_root = (ROOT/'docs/verification').resolve()
+    destination.relative_to(archive_root)
+    if destination == archive_root:
+        raise ValueError('Archive destination must be a subdirectory of docs/verification')
     suite=read_json(BUILD/'m6b-test-results.json'); frozen=source_hash()
     if (suite.get('status')!='completed' or suite.get('passed') is not True
             or suite.get('source_sha256')!=frozen or suite.get('host_test_sha256')!=test_sources()):
@@ -189,9 +197,8 @@ def capture():
                 host_files.append(evidence)
             else:
                 host_files.extend(check_host_group(name,evidence,host_seen))
-    if len(runs)!=14 or len({r['run_directory'] for r in runs})!=14:
-        raise ValueError('Gate requires 14 distinct real VM invocations')
-    destination=ROOT/'docs/verification/m6b'
+    if len(runs)!=18 or len({r['run_directory'] for r in runs})!=18:
+        raise ValueError('Gate requires 18 distinct real VM invocations')
     destination.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='m6b-capture-',dir=BUILD) as temporary:
         staged=Path(temporary)/'archive'; staged.mkdir()
@@ -205,4 +212,7 @@ def capture():
     print(f'M6b capture passed: {len(groups)} groups, {len(runs)} distinct actual VM runs')
 
 
-if __name__=='__main__': capture()
+if __name__=='__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--destination', help='Archive subdirectory within docs/verification/')
+    capture(parser.parse_args().destination)

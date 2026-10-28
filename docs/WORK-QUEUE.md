@@ -1,4 +1,20 @@
-# Werkqueue — M6a actief
+# Werkqueue — native M6b-opslagfouten
+
+28 oktober 2026, basis `1f24f99`, branch `codex/m6b-storage-errors`.
+
+| ID | Eigenaar | Exclusieve writes | Status |
+|---|---|---|---|
+| K07 | m6a_architect_review | kernel/Cargo.toml, kernel/src/m2/m3/m6b.rs, userspace/m6b_probe.rs | generieke Unknown-observerreparatie en twee statussnapshotinjecties klaar |
+| G07 | root | tools/tests/docs/Git | foutcaseharnas/oracle uitgebreid; 31 hostharnastests en preflight exit 0; native gate volgt |
+| R07 | m6a_environment | alleen lezen | harnas-/invariantontwerp gecontroleerd; bronreview volgt |
+
+Vereist: geen mutatie-ACK of live-stateclaim na onzekere I/O, geen replay,
+GET/PUT/DELETE fail-closed, canoniek foutantwoord en overlevende processen.
+Twee gerichte native foutcases plus koude recovery; daarna volledige M6b-gate
+en capture zonder historisch bewijs te overschrijven. Geen nieuwe rechten,
+dependency, schijfformaat of architectuur. Zie PROJECT-STATE.md.
+
+## Oudere werkqueue — historisch
 
 ## Parallel N01 — internet en persoonlijke NAS
 
