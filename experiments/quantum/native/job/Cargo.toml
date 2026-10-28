@@ -1,0 +1,26 @@
+[package]
+name = "qsim-job-native"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+
+[dependencies]
+qsim-native = { path = ".." }
+qsim-job-protocol = { path = "../../job-protocol" }
+nieuw-os-sdk-runtime = { path = "../../../../sdk/runtime" }
+
+[[bin]]
+name = "qsim-job-native"
+path = "src/main.rs"
+test = false
+bench = false
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+overflow-checks = true
+codegen-units = 1
+lto = false
