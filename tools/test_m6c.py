@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import json
 import sys
 from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
-from build import build
+from build import build, M6C_FAULT_CASES
 from run import run_guest
 from run_m6c import run_m6c
 
@@ -76,7 +76,7 @@ def test_m6c():
         save_json(BUILD/'logs/m6c-two-image-check.json',comparison)
         record('same-binary-two-canary-images',comparison['passed'],'build/logs/m6c-two-image-check.json',
                ['M6C-EXTERNAL-DISK-ORACLE'])
-        for case in ('errors','full','corrupt','legacy','vm-cut-before-rename','vm-cut-after-rename'):
+        for case in ('errors','full','corrupt','legacy','vm-cut-before-rename','vm-cut-after-rename') + M6C_FAULT_CASES:
             build(kernel_feature='test-m6c-'+case,label='m6c-'+case)
             result,volume=guest(case,case)
             if case not in ('corrupt','legacy'): recovery(result,volume,case+'-cold-recovery')

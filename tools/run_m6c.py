@@ -13,7 +13,8 @@ import threading
 import time
 import uuid
 from common import ROOT, BUILD, environment, firmware, save_json, sha256, source_hash
-from build import M6C_CASES
+from build import M6C_CASES, M6C_FAULT_CASES
+from m6c_faults import outcome_valid
 from m6c_disk import Volume, create_volume, verify_volume
 from run import is_success, FAIL_MARKERS
 
@@ -53,13 +54,17 @@ def kill_for_crash(process):
 def case_markers(case):
     name = "NORMAL" if case == "normal" else case.upper().replace("-", "_")
     ready = () if case in ("corrupt", "legacy") else ("M6C:READY",)
-    return BOOT + ready + (f"M6C:CASE:{name}:PASS", "M6C:SURVIVOR_PROGRESS:PASS",
+    fault = ((f"M6C:FAULT_INJECTED:{name}", "M6C:OUTCOME:UNKNOWN", "M6C:NO_REPLAY:PASS")
+             + (("M6C:QUARANTINE:PASS",) if case == "reset-timeout" else ())
+             if case in M6C_FAULT_CASES else ())
+    return BOOT + ready + fault + (f"M6C:CASE:{name}:PASS", "M6C:SURVIVOR_PROGRESS:PASS",
                    "M6C:RESOURCES:PASS", "M6C:PASS", "M1:PASS")
 
 
 def unique_markers(stdout, expected):
     prefixes = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "M6C:READY", "M6C:CASE:",
-                "M6C:SURVIVOR_PROGRESS", "M6C:RESOURCES", "M6C:PASS", "M1:PASS", "M6C:CUT:", "M6A:", "M6B:")
+                "M6C:SURVIVOR_PROGRESS", "M6C:RESOURCES", "M6C:PASS", "M1:PASS", "M6C:CUT:",
+                "M6C:FAULT_INJECTED", "M6C:OUTCOME", "M6C:NO_REPLAY", "M6C:QUARANTINE", "M6A:", "M6B:")
     controlled = [line for line in stdout.splitlines()
                   if any(line.startswith(p) for p in prefixes)
                   or line.startswith("M6C:") and ":PASS" in line]
@@ -67,10 +72,11 @@ def unique_markers(stdout, expected):
 
 
 def normal_success(rc, stdout, timed_out, case):
-    if case not in ("normal", "recover", "errors", "full", "corrupt", "legacy"):
+    if case not in ("normal", "recover", "errors", "full", "corrupt", "legacy") + M6C_FAULT_CASES:
         return False
     markers = case_markers(case)
-    return (unique_markers(stdout, markers) and is_success(rc, stdout, timed_out,
+    return (unique_markers(stdout, markers) and outcome_valid(stdout, case)
+            and is_success(rc, stdout, timed_out,
             required_markers=markers, forbidden_markers=FAILURES))
 
 
@@ -291,8 +297,7 @@ def run_m6c(case="normal", *, volume: Volume | None = None, label=None, timeout=
     source_unchanged = observed_source == frozen
     markers = BOOT + ("M6C:READY", f"M6C:CUT:{cut}") if cut is not None else case_markers(case)
     guest_pass = crash.get("passed", False) if cut is not None else normal_success(rc, out, timed_out, case)
-    outcome_lines = [line for line in out.splitlines() if line.startswith("M6C:OUTCOME")]
-    outcome_pass = not outcome_lines  # Native Unknown/no-replay is a separate future fault gate.
+    outcome_pass = outcome_valid(out, case)
     artifacts = {p.relative_to(run_dir).as_posix(): sha256(p)
                  for p in (run_dir / "esp").rglob("*") if p.is_file()}
     artifacts.update({name: sha256(run_dir / name) for name in (
@@ -315,6 +320,9 @@ def run_m6c(case="normal", *, volume: Volume | None = None, label=None, timeout=
         "host_crash": crash, "serial_sha256": sha256(run_dir / "serial.txt"),
         "stderr_sha256": sha256(run_dir / "stderr.txt"),
         "previous_stage": str(previous) if previous else None, "outcome_marker_passed": outcome_pass,
+        "fault_injection_scope": ("native broker fault path on real QEMU I/O; local completion snapshot, "
+            "bounded hidden completion/reset ack, or prepublication rejection; not a physical device failure"
+            if case in M6C_FAULT_CASES else None),
         "execution_error": execution_error, "oracle_error": oracle_error,
         "run_directory": str(run_dir), "stdout": out, "stderr": err,
     }

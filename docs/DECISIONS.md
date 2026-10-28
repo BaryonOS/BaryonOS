@@ -1,5 +1,55 @@
 # Ontwerpbesluiten
 
+## ADR-031 — Native I/O-onzekerheid zonder observerpanic
+
+**Datum/status/eigenaar:** 28 oktober 2026; geïmplementeerd broncheckpoint,
+volledige eindgate nog open. Native builder A01, integratie root, aparte AI-review R08.
+
+**Context en besluit:** de dienst kende Unknown al, maar de M6c-observer eiste
+bij een voorbereide mutatie altijd Ok. Bind de eerste onzekere reply aan een
+werkelijk aan de dienst teruggegeven terminale muterende syscallfout; Pending
+is geen fout. Latch de I/O-tellingen, commit geen kandidaat, tel geen ACK en
+controleer dat beide appdomeinen daarna geen nieuwe I/O veroorzaken. Validatie
+en autorisatie blijven vóór de gesloten diensttoestand. Alleen volledige koude
+recovery bepaalt de werkelijk opgeslagen versie.
+
+**Alternatieven en gevolgen:** de succesasserties verwijderen zou fouten maskeren;
+automatische write-replay kan een onzekere mutatie verdubbelen. Het gekozen pad
+houdt normale WRITE+FLUSH-voorwaarden streng en verandert geen capability,
+syscall, wire-/journalformaat, dienstimplementatie of externe dependency.
+Testinjecties lopen via bestaande driversnapshot-, deadline- en resetpaden.
+Geen automatische dienstherstart; historische M6b-observer apart behouden.
+
+**Bewijs en herziening:** 30 Rust- en 43 harnastests plus eerste write-error-VM
+slagen vóór de checkpoint; de complete 35-groepen/31-VM-gate en M6b-regressie
+staan nog open. Contract en primaire VIRTIO-bron:
+`implementation/M6D-IO-UNCERTAINTY.md`. Geen fysieke devicefout, stroomuitval,
+menselijke audit of formeel bewijs. Herzie bij algemene servicesupervisie,
+parallelle mutaties, nieuwe I/O-foutmodellen of andere hardware.
+
+## ADR-032 — Vaste 100-puntenroadmap met verplichte herbeoordeling
+
+**Datum/status/eigenaar:** 28 oktober 2026; aanvaard en uitgevoerd op expliciete
+gebruikersopdracht. De hoofdagent bezit de gedeelde voortgangsbestanden.
+
+**Besluit:** `docs/progress.json` bevat vaste, binaire acceptatiecriteria met
+gewichten die samen 100 vormen. De generator maakt de README, criteriatabel
+en lokale SVG. 0% is nog niet gerealiseerd; 100% is een volwaardig zelfstandig
+dagelijks OS op aantoonbaar ondersteunde hardware. De eigen kernel blijft
+verplicht. De beginscore van de M1–M6c-bewijsstand is 13%.
+
+**Alternatieven/gevolgen:** commits, regels code, testaantallen of M-nummers
+meten geen productvoltooiing. Daarom leveren hostprototypes of alleen plannen
+geen native punten op. Iedere opdracht actualiseert beoordeling, bron en datum;
+een score mag gelijk blijven of dalen. Gewichten zijn een expliciete
+planningskeuze, geen wetenschappelijke meting of resterende-tijdsraming.
+
+**Bewijs en herziening:** `tools/progress.py --check` controleert som, unieke
+criteria, bestaande bewijsverwijzingen en gelijkheid van gegenereerde weergaven.
+Het beoordeelt de bewijsinhoud niet en voert geen native tests uit. Wijzigingen
+aan eindscope/gewichten vereisen rubricversie, reden en vergelijking met de oude
+score. Zie `PROGRESS.md`; nooit de lat verlagen om een hoger getal te krijgen.
+
 ## ADR-030 — Native labels en een catalogus per appdomein
 
 **Datum/status:** 28 oktober 2026; geïmplementeerd en native eindgate geslaagd

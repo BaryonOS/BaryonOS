@@ -1,4 +1,27 @@
-# Werkqueue — M6c native catalogus afgerond
+# Werkqueue — M6d native foutafhandeling en productvoortgang
+
+## Actuele uitvoering M6d — 28 oktober 2026
+
+Basis `b58ae2a`, branch `codex/m6d-io-recovery-roadmap`. Invarianten en acht
+cases: [M6D-IO-UNCERTAINTY.md](implementation/M6D-IO-UNCERTAINTY.md).
+
+| ID | Eigenaar / exclusieve writes | Status |
+|---|---|---|
+| A01 | architecture_next_step / kernel M6c-observer en native probe | Unknown zonder onterechte ACK; acht faultfeatures gebouwd; eerste native write-error groen |
+| D01 | progress_roadmap / README, AGENTS, roadmap, scoreblad en generator | vaste 100-puntenroadmap, basis 13%, consistentiecontrole groen |
+| R08 | native_review / aanvankelijk alleen lezen | native diff beoordeeld; twee harnasbevindingen hersteld; finale bewijsaudit volgt |
+| G08 | root / tools, gedeelde features, contract, status en Git | 43 hostharnastests groen; broncheckpoint vóór volledige native gates |
+| V08 | root + R08 / uitvoering en afzonderlijke controle | 35 groepen/31 VM + M6b-regressie en capture staan nog open |
+
+Eén schrijver per bestand en één build/QEMU-slot. De kern blijft eigen Rust;
+geen bestaande OS-kernel als basis. README-score blijft 13% zolang S07 open is.
+Iedere afgeronde opdracht herbeoordeelt score en bewijs volgens AGENTS.md.
+
+Volgende functionele grens na M6d: native productinterface en een algemene
+dienstherstart/herstelroute; grotere documenten en ruimtehergebruik vragen
+eigen opslagontwerp. Geen sleutelgeneratie zonder native entropybron.
+
+## Historische M6c-queue
 
 ## Actuele uitvoering — 28 oktober 2026
 

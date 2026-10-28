@@ -2,6 +2,45 @@
 
 De bovenste fase geeft de actuele ontwikkeling weer. De oudere faseverslagen hieronder bewaren hun toenmalige implementatie- en bewijsgrenzen.
 
+## M6d — native onzekere I/O: broncheckpoint, eindgate nog open
+
+28 oktober 2026. Basis `b58ae2a56be6978eab2b5ac4bb5d12e3d615865f`, werkbranch
+`codex/m6d-io-recovery-roadmap`. Parallel uitgevoerd door een native builder,
+een roadmapbuilder, een afzonderlijke reviewer en de integrerende hoofdagent.
+
+Gebouwd: de M6c-kernelobserver koppelt een Unknown-reply nu aan een werkelijk
+teruggegeven muterende syscallfout. Hij telt geen succes-ACK en commit geen
+onzekere wijziging. Beide appdomeinen blijven draaien en toetsen dat verdere
+geldige documentoperaties Unknown geven zonder nieuwe I/O. Autorisatie en
+structuurcontrole blijven eerst gelden. Acht testfeatures dekken WRITE/FLUSH-
+status, timeout, resetquarantaine, descriptorweigering en ongeldige used-length.
+Contract vóór uitvoering: `implementation/M6D-IO-UNCERTAINTY.md`.
+
+De README bevat nu een lokale voortgangsbalk en een vaste roadmap van 100
+gewogen acceptatiepunten. Beginscore **13%**, herbeoordeling verplicht bij iedere
+opdracht in AGENTS.md. Het nieuwe criterium S07 blijft open tot het complete
+native bewijs en de regressie beschikbaar zijn. De meter is geen tijdsprognose
+of veiligheidspercentage. Bron en criteria: `progress.json` en `PROGRESS.md`.
+
+Vóór deze checkpoint uitgevoerd: 30 catalog-core-tests, 43 Python-harnastests,
+de nieuwe testkernelcrossbuild en één gerichte echte QEMU-write-error-proef
+(raw exit 33). Die probe bevestigde ACK1/Unknown11 en geen nieuwe I/O; dit is
+nog geen complete eindgate. De twee concrete reviewbevindingen over veilige
+archiefbestemming en exacte journal-request-ID's zijn hersteld en hertoetst.
+
+Nog uit te voeren op de vaste bron: uitgebreide M6c-gate (35 groepen/31 VM's),
+capture en afzonderlijke M6b-regressie. De normale toolchaininventaris slaagt
+buiten de sandbox; binnen de sandbox gaf alleen de rustup-versieprobe een
+signaalpipefout (exit -6), terwijl cargo/rustc functioneerden. Dit is een
+hostbeperking, geen geslaagd native resultaat. Geen bestaande bewijsarchieven
+overschreven en geen kernel-ABI, capabilityrechten of schijfformaat gewijzigd.
+
+Grenzen: de dienst blijft na Unknown gesloten tot een nieuwe instantie de
+werkelijke schijf herstelt; automatische dienstherstart is nog geen onderdeel.
+De injecties betreffen lokale completionsnapshots/brokerdeadlines op echte
+QEMU-I/O, geen fysieke schijffout of stroomuitval. De historische M6b-observer
+blijft onveranderd. Deze stap levert geen desktop, grotere documenten of NAS.
+
 ## M6c — native documentnamen en catalogus gebouwd en getest
 
 28 oktober 2026. Basis `bb22fdbe15919edc23baa158a46236195ce314b2`, werkbranch

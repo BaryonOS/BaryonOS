@@ -8,6 +8,21 @@ use virtio_blk_driver::{Device, Discovery, DmaPool};
 use virtio_core::{Binding, Completion, Operation, Phase, Policy, Request};
 const TIMEOUT: u64 = 20;
 const RESET_TIMEOUT: u64 = 10;
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct IoSnapshot {
+    calls: u64,
+    publications: [u64; 3],
+    completions: [u64; 3],
+}
+impl IoSnapshot {
+    fn read(r: &Runtime) -> Self {
+        Self {
+            calls: r.calls,
+            publications: r.publications,
+            completions: r.completions,
+        }
+    }
+}
 struct Active {
     header: wire::Header,
     domain: usize,
@@ -19,6 +34,7 @@ struct Active {
     completions: [u64; 3],
     write_done: bool,
     flush_done: bool,
+    io_error: Option<i64>,
 }
 struct Runtime {
     info: Option<Discovery>,
@@ -54,6 +70,12 @@ struct Runtime {
     get_replies: u64,
     catalog_replies: u64,
     rejected: u64,
+    uncertain: Option<IoSnapshot>,
+    unknown_sent: u64,
+    unknown_received: u64,
+    injected: bool,
+    hold_completion: bool,
+    resets: u64,
     app_device_denials: [u64; 2],
     app_ipc_denials: [u64; 2],
     stale_denials: [u64; 2],
@@ -102,6 +124,12 @@ static mut RUNTIME: Runtime = Runtime {
     get_replies: 0,
     catalog_replies: 0,
     rejected: 0,
+    uncertain: None,
+    unknown_sent: 0,
+    unknown_received: 0,
+    injected: false,
+    hold_completion: false,
+    resets: 0,
     app_device_denials: [0; 2],
     app_ipc_denials: [0; 2],
     stale_denials: [0; 2],
@@ -327,6 +355,19 @@ pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
     match result {
         Ok(v) => (0, v),
         Err(code) => {
+            // Observe an error actually delivered to the mutating service,
+            // independently of test features. A normal pending poll is not an
+            // error. The service conservatively closes its live view after any
+            // failed WRITE/FLUSH; the observer must not turn that into a panic
+            // by still predicting a successful ACK.
+            if slot == 0
+                && (matches!(n, 0x42 | 0x43) || n == 0x41 && code != -8)
+                && r.active.as_ref().is_some_and(|a| a.candidate.is_some())
+            {
+                assert!(r.uncertain.is_none());
+                r.active.as_mut().unwrap().io_error = Some(code);
+                r.uncertain = Some(IoSnapshot::read(r));
+            }
             if slot > 0 && matches!(code, -4 | -6) {
                 r.app_device_denials[slot - 1] += 1;
             }
@@ -468,13 +509,18 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         .policy
         .prepare(binding, op, capacity, s.ticks, TIMEOUT)
         .map_err(err)?;
-    if let Err(error) = r
-        .device
-        .as_mut()
-        .unwrap()
-        .prepare_operation(op, input.as_ref(), false)
+    let bad_descriptor =
+        case() == 13 && fault_target(r) && matches!(op, Operation::Write { .. }) && !r.injected;
+    if let Err(error) =
+        r.device
+            .as_mut()
+            .unwrap()
+            .prepare_operation(op, input.as_ref(), bad_descriptor)
     {
         r.policy.reject_prepared(binding, request.ticket).unwrap();
+        if bad_descriptor {
+            mark_fault(r);
+        }
         return Err(err(error));
     }
     if case() == 5
@@ -487,7 +533,19 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         cut(1);
     }
     r.policy.publish(request.epoch, request.ticket).unwrap();
-    r.device.as_mut().unwrap().publish_prepared(false).unwrap();
+    let suppress = fault_target(r)
+        && !r.injected
+        && (matches!(op, Operation::Write { .. }) && matches!(case(), 10 | 12)
+            || op == Operation::Flush && case() == 11);
+    r.device
+        .as_mut()
+        .unwrap()
+        .publish_prepared(suppress)
+        .unwrap();
+    // Suppressing notify alone does not prohibit device polling. Hold the
+    // completion observation until the real broker deadline as well; a cold
+    // disk oracle must still allow either an old or a newly written record.
+    r.hold_completion = suppress;
     r.publications[operation_index(op)] += 1;
     Ok(request.ticket)
 }
@@ -517,7 +575,9 @@ fn advance(s: &State) {
     let now = s.ticks;
     r.now = now;
     if r.resetting {
-        if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
+        let acknowledged = r.device.as_ref().is_some_and(Device::reset_acknowledged)
+            && !(case() == 12 && r.injected);
+        if acknowledged {
             // SAFETY: Real reset acknowledgement permits reuse of the same
             // pinned owned RAM pages and permanent validated supervisor MMIO.
             match unsafe {
@@ -527,8 +587,11 @@ fn advance(s: &State) {
                     r.device = Some(device);
                     r.policy.reset_completed(true).unwrap();
                     r.resetting = false;
+                    r.hold_completion = false;
+                    r.resets += 1;
                 }
                 Err(_) => {
+                    let _ = r.policy.reset_completed(false);
                     r.offline = -14;
                     r.resetting = false;
                     r.quarantined = true;
@@ -547,6 +610,10 @@ fn advance(s: &State) {
     }
     let request = r.policy.request().unwrap();
     if r.policy.timeout(now) {
+        if r.hold_completion {
+            assert!(now >= request.deadline);
+            mark_fault(r);
+        }
         r.error = Some((
             request,
             if request.operation.is_mutating() {
@@ -558,7 +625,22 @@ fn advance(s: &State) {
         reset(r, now);
         return;
     }
-    match r.device.as_mut().unwrap().poll(0) {
+    if r.hold_completion {
+        return;
+    }
+    // These faults alter only a local completion snapshot AFTER an actual
+    // used-ring advance. They do not manufacture a device write or force a
+    // physical disk error, and the disk may already contain the new record.
+    let injection = if fault_target(r) && !r.injected {
+        match (case(), request.operation) {
+            (8, Operation::Write { .. }) | (9, Operation::Flush) => 10,
+            (14, Operation::Write { .. }) | (15, Operation::Flush) => 20,
+            _ => 0,
+        }
+    } else {
+        0
+    };
+    match r.device.as_mut().unwrap().poll(injection) {
         Ok(Some((data, Completion::Success))) => {
             r.data = data;
             r.completions[operation_index(request.operation)] += 1;
@@ -598,6 +680,9 @@ fn advance(s: &State) {
             }
         }
         Ok(Some((_, _))) => {
+            if injection != 0 {
+                mark_fault(r);
+            }
             r.policy
                 .complete(request.epoch, request.ticket, Completion::Io)
                 .unwrap();
@@ -613,6 +698,9 @@ fn advance(s: &State) {
         }
         Ok(None) => {}
         Err(error) => {
+            if injection != 0 {
+                mark_fault(r);
+            }
             r.error = Some((
                 request,
                 if request.operation.is_mutating() {
@@ -687,9 +775,24 @@ pub fn sent(_s: &State, slot: usize, handle: u64, message: &Message) {
     assert!(message.data[wire::SIZE..].iter().all(|b| *b == 0));
     let mut body = [0; wire::SIZE];
     body.copy_from_slice(&message.data[..wire::SIZE]);
-    assert_eq!(body, active.response);
     let mutating = active.candidate.is_some();
-    if mutating {
+    let successful_mutation = mutating && active.io_error.is_none();
+    if active.io_error.is_some() {
+        assert!(mutating);
+        active.status = wire::Status::Unknown;
+        active.response = wire::reply(active.header, 1, 0, active.status, None, None);
+    }
+    assert_eq!(body, active.response);
+    if let Some(snapshot) = r.uncertain {
+        // No service syscall, publication, successful completion or replay is
+        // allowed after the error is delivered, even if the device reset works.
+        assert_eq!(IoSnapshot::read(r), snapshot);
+    }
+    if active.io_error.is_some() {
+        assert!(r.uncertain.is_some());
+        // A failed mutation is never committed and never enters the ACK path.
+        // A completed device write/flush is not itself an application ACK.
+    } else if successful_mutation {
         assert!(active.write_done && active.flush_done);
         assert_eq!(active.status, wire::Status::Ok);
         assert_eq!(
@@ -730,10 +833,14 @@ pub fn sent(_s: &State, slot: usize, handle: u64, message: &Message) {
             r.get_replies += 1;
         }
     }
+    if active.status == wire::Status::Unknown {
+        assert!(r.uncertain.is_some());
+        r.unknown_sent += 1;
+    }
     assert!(!r.reply_pending[active.domain]);
     r.reply_bytes[active.domain] = body;
     r.reply_pending[active.domain] = true;
-    r.mutation_pending[active.domain] = mutating;
+    r.mutation_pending[active.domain] = successful_mutation;
 }
 pub fn received(s: &State, slot: usize, handle: u64, message: &Message) {
     let r = runtime();
@@ -755,6 +862,7 @@ pub fn received(s: &State, slot: usize, handle: u64, message: &Message) {
             completions: r.completions,
             write_done: false,
             flush_done: false,
+            io_error: None,
         };
         let valid = if message.cap_count != 0
             || message.tag != wire::TAG
@@ -768,6 +876,12 @@ pub fn received(s: &State, slot: usize, handle: u64, message: &Message) {
             Err(error) => {
                 active.status = error;
                 active.response = wire::reply(header, 1, 0, error, None, None);
+            }
+            Ok(_) if r.uncertain.is_some() => {
+                // Validation/authorization still comes first. Unknown grants
+                // no authority and reveals no live data, names or revisions.
+                active.status = wire::Status::Unknown;
+                active.response = wire::reply(header, 1, 0, active.status, None, None);
             }
             Ok(h) => {
                 let state = r.current.as_ref().unwrap();
@@ -832,6 +946,16 @@ pub fn received(s: &State, slot: usize, handle: u64, message: &Message) {
         assert_eq!(message.cap_count, 0);
         assert_eq!(body, r.reply_bytes[domain]);
         r.reply_pending[domain] = false;
+        if wire::header(&body).status == wire::Status::Unknown as i32 {
+            r.unknown_received += 1;
+            assert!(r.unknown_received <= r.unknown_sent);
+            if fault_case() && r.unknown_received == 1 {
+                assert_eq!(domain, 0);
+                // Fixture-only barrier releases the second app after a real
+                // Unknown response was received; no authority is transferred.
+                put(s, 2, 280, 1);
+            }
+        }
         if r.mutation_pending[domain] {
             r.ack_received += 1;
             assert!(r.ack_received <= r.ack_sent);
@@ -977,6 +1101,74 @@ fn print_objects(current: &journal::State) {
         );
     }
 }
+fn verify_unknown(s: &State, r: &Runtime) {
+    assert!(r.ready && r.injected);
+    assert_eq!(word(s, 0, 232) as i64, -16);
+    assert_eq!(word(s, 0, 192), 5);
+    assert_eq!((r.ack_sent, r.ack_received), (1, 1));
+    assert_eq!((r.unknown_sent, r.unknown_received), (11, 11));
+    assert_eq!(r.requests, [13, 11]);
+    assert_eq!(r.rejected, 22);
+    assert_eq!((r.get_replies, r.catalog_replies), (0, 0));
+    assert!(r.app_device_denials.iter().all(|count| *count >= 4));
+    assert!(r.app_ipc_denials.iter().all(|count| *count >= 3));
+    assert_eq!(r.stale_denials, [1, 1]);
+    assert_eq!(IoSnapshot::read(r), r.uncertain.unwrap());
+    let current = r.current.as_ref().unwrap();
+    assert_eq!(current.sequence(), 1);
+    let object = current.get(0).unwrap();
+    assert!(object.present);
+    assert_eq!(object.revision, 1);
+    assert_eq!(object.length, 128);
+    assert_eq!(object.value, expected_value(0, 1));
+    assert_eq!(&object.name[..object.name_length], expected_name(0, 1));
+    for id in 1..4 {
+        let untouched = current.get(id).unwrap();
+        assert!(!untouched.present && untouched.revision == 0);
+    }
+    let (publications, completions) = match case() {
+        13 => ([128, 1, 2], [128, 1, 2]),
+        8 | 10 | 12 | 14 => ([128, 2, 2], [128, 1, 2]),
+        9 | 11 | 15 => ([128, 2, 3], [128, 2, 2]),
+        _ => unreachable!(),
+    };
+    assert_eq!(r.publications, publications);
+    assert_eq!(r.completions, completions);
+    assert!(r.error.is_none() && !r.resetting);
+    if case() == 12 {
+        assert!(r.quarantined && r.offline == -13 && r.resets == 0);
+        assert_eq!(r.policy.phase(), Phase::Quarantined);
+        for page in [
+            r.pool.descriptors,
+            r.pool.available,
+            r.pool.used,
+            r.pool.request,
+            r.pool.bounce,
+        ] {
+            assert_eq!(s.frames.owner(page), Ok(Owner::Kernel));
+            assert_eq!(s.kernel.leaf(page) & (4 | NX | 2), NX | 2);
+        }
+    } else {
+        assert!(!r.quarantined && r.offline == 0);
+        assert_eq!(r.resets, u64::from(case() != 13));
+        assert_eq!(r.policy.phase(), Phase::Ready);
+    }
+    serial::write(b"M6C:OUTCOME:UNKNOWN\n");
+    number(b"M6C:UNKNOWN_REPLIES:", r.unknown_received);
+    serial::write(b"M6C:NO_REPLAY:PASS\n");
+    if case() == 12 {
+        serial::write(b"M6C:QUARANTINE:PASS\n");
+    }
+    serial::write(b"M6C:POST_UNKNOWN:BLOCKCALLS:0\n");
+    serial::write(b"M6C:POST_UNKNOWN:PUBLICATIONS:0\n");
+    serial::write(b"M6C:POST_UNKNOWN:COMPLETIONS:0\n");
+    // This is the last acknowledged LIVE view, not a claim about current disk
+    // bytes. Only the independent disk oracle and a cold boot settle the latter.
+    number(b"M6C:LIVE_SEQUENCE:", current.sequence());
+    number(b"M6C:ACKS:", r.ack_received);
+    number(b"M6C:REJECTED_NO_IO:", r.rejected);
+    number(b"M6C:CATALOG_REPLIES:", r.catalog_replies);
+}
 pub fn poll(s: &mut State) -> Option<*const u64> {
     advance(s);
     if s.unexpected {
@@ -1026,6 +1218,8 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
                 }
             }
             assert!(rejected);
+        } else if fault_case() {
+            verify_unknown(s, r);
         } else {
             assert!(r.ready && r.get_replies >= if case() == 1 { 0 } else { 2 });
             assert_eq!(r.ack_sent, r.ack_received);
@@ -1083,13 +1277,22 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
                 current.catalog(1).unwrap().generation,
             );
         }
-        assert_eq!(r.policy.phase(), Phase::Ready);
+        assert_eq!(
+            r.policy.phase(),
+            if r.quarantined {
+                Phase::Quarantined
+            } else {
+                Phase::Ready
+            }
+        );
         assert!(m4::engine().check_invariants());
         serial::write(marker());
         serial::write(b"M6C:SURVIVOR_PROGRESS:PASS\n");
-        if let Some(device) = r.device.as_mut() {
-            device.begin_reset();
-            assert!(device.reset_acknowledged());
+        if !r.quarantined {
+            if let Some(device) = r.device.as_mut() {
+                device.begin_reset();
+                assert!(device.reset_acknowledged());
+            }
         }
         r.pool
     };
@@ -1124,6 +1327,33 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
     serial::write(b"M6C:RESOURCES:PASS\nM6C:PASS\nM1:PASS\n");
     serial::exit(0x10)
 }
+fn fault_case() -> bool {
+    (8..=15).contains(&case())
+}
+fn fault_target(r: &Runtime) -> bool {
+    fault_case()
+        && r.current
+            .as_ref()
+            .is_some_and(|state| state.sequence() == 1)
+        && r.active
+            .as_ref()
+            .is_some_and(|active| active.domain == 0 && active.header.operation == wire::RENAME)
+}
+fn mark_fault(r: &mut Runtime) {
+    assert!(fault_target(r) && !r.injected);
+    r.injected = true;
+    serial::write(match case() {
+        8 => b"M6C:FAULT_INJECTED:WRITE_ERROR\n",
+        9 => b"M6C:FAULT_INJECTED:FLUSH_ERROR\n",
+        10 => b"M6C:FAULT_INJECTED:WRITE_TIMEOUT\n",
+        11 => b"M6C:FAULT_INJECTED:FLUSH_TIMEOUT\n",
+        12 => b"M6C:FAULT_INJECTED:RESET_TIMEOUT\n",
+        13 => b"M6C:FAULT_INJECTED:BAD_DESCRIPTOR\n",
+        14 => b"M6C:FAULT_INJECTED:USED_WRITE\n",
+        15 => b"M6C:FAULT_INJECTED:USED_FLUSH\n",
+        _ => unreachable!(),
+    });
+}
 fn case() -> u8 {
     if cfg!(feature = "test-m6c-recover") {
         1
@@ -1139,6 +1369,22 @@ fn case() -> u8 {
         6
     } else if cfg!(feature = "test-m6c-legacy") {
         7
+    } else if cfg!(feature = "test-m6c-write-error") {
+        8
+    } else if cfg!(feature = "test-m6c-flush-error") {
+        9
+    } else if cfg!(feature = "test-m6c-write-timeout") {
+        10
+    } else if cfg!(feature = "test-m6c-flush-timeout") {
+        11
+    } else if cfg!(feature = "test-m6c-reset-timeout") {
+        12
+    } else if cfg!(feature = "test-m6c-bad-descriptor") {
+        13
+    } else if cfg!(feature = "test-m6c-used-write") {
+        14
+    } else if cfg!(feature = "test-m6c-used-flush") {
+        15
     } else {
         0
     }
@@ -1151,6 +1397,14 @@ fn marker() -> &'static [u8] {
         3 => b"M6C:CASE:FULL:PASS\n",
         4 => b"M6C:CASE:CORRUPT:PASS\n",
         7 => b"M6C:CASE:LEGACY:PASS\n",
+        8 => b"M6C:CASE:WRITE_ERROR:PASS\n",
+        9 => b"M6C:CASE:FLUSH_ERROR:PASS\n",
+        10 => b"M6C:CASE:WRITE_TIMEOUT:PASS\n",
+        11 => b"M6C:CASE:FLUSH_TIMEOUT:PASS\n",
+        12 => b"M6C:CASE:RESET_TIMEOUT:PASS\n",
+        13 => b"M6C:CASE:BAD_DESCRIPTOR:PASS\n",
+        14 => b"M6C:CASE:USED_WRITE:PASS\n",
+        15 => b"M6C:CASE:USED_FLUSH:PASS\n",
         _ => b"M6C:FAIL:CRASH_NOT_OBSERVED\n",
     }
 }

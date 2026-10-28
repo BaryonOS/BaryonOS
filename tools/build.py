@@ -6,6 +6,7 @@ import shutil
 import struct
 from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
 from gate_contract import M3_CASES, M4_CASES
+from m6c_faults import FAULT_CASES as M6C_FAULT_CASES
 M5_CASES = ("service-errors", "device-rights", "async", "bad-descriptor", "used-id",
             "used-index", "used-short", "used-long", "used-status", "io-error", "timeout",
             "reset-timeout", "restart", "cpu-mmio", "cpu-dma", "cpu-pci", "no-device")
@@ -15,7 +16,7 @@ M6A_CASES = ("service-errors", "device-rights", "full", "write-error", "flush-er
              "stale-generation", "no-device", *(f"service-cut-{i}" for i in range(1, 7)),
              *(f"vm-cut-{i}" for i in range(1, 7)), "recover")
 M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush")
-M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename")
+M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),

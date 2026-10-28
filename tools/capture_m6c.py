@@ -2,6 +2,7 @@
 """Recheck complete native M6c evidence before an atomic text-only archive."""
 from __future__ import annotations
 from pathlib import Path
+import argparse
 import shutil
 import sys
 import tempfile
@@ -9,7 +10,8 @@ from common import ROOT, BUILD, environment, save_json, sha256, source_hash
 from capture_m6 import inside_run, read_json, raw_checks
 from capture_gate import _replace_archive
 from m6c_disk import Volume, synthetic_initial, verify_volume
-from run_m6c import BOOT, CUTS, FAILURES, WINDOWS_CRASH_EXIT, normal_success, unique_markers
+from run_m6c import BOOT, CUTS, FAILURES, WINDOWS_CRASH_EXIT, normal_success, unique_markers, outcome_valid
+from build import M6C_FAULT_CASES
 from run import is_success
 from test_m6c import test_sources
 
@@ -93,7 +95,7 @@ def required_groups():
         name='normal-'+suffix
         groups += [(name,'normal',None),(name+'-cold-recovery','recover',name)]
     groups += [('same-binary-two-canary-images',None,None)]
-    for case in ('errors','full','corrupt','legacy','vm-cut-before-rename','vm-cut-after-rename'):
+    for case in ('errors','full','corrupt','legacy','vm-cut-before-rename','vm-cut-after-rename') + M6C_FAULT_CASES:
         groups += [(case,case,None)]
         if case not in ('corrupt','legacy'): groups += [(case+'-cold-recovery','recover',case)]
     return groups+[('m1-regression-after-m6c','m1',None)]
@@ -127,8 +129,8 @@ def check_run(directory,report,frozen):
             or report.get('execution_error') or report.get('oracle_error')
             or report.get('observed_source_sha256')!=frozen):
         raise ValueError('Wrong feature/source/artifact or failed execution')
-    if any(line.startswith('M6C:OUTCOME') for line in report['stdout'].splitlines()):
-        raise ValueError('Unexpected Unknown outcome in this bounded native gate')
+    if not outcome_valid(report['stdout'], case):
+        raise ValueError('Unexpected or incomplete Unknown/no-replay evidence')
     if case in CUTS:
         point=CUTS[case]; crash=report['host_crash']; raw=report['raw_qemu_exit']
         if (report['timed_out'] or raw not in (-9,WINDOWS_CRASH_EXIT)
@@ -153,7 +155,18 @@ def check_run(directory,report,frozen):
         raise ValueError('Mutator did not start with its fresh synthetic fixture')
 
 
-def capture():
+def archive_destination(destination=None):
+    root = (ROOT/'docs/verification').resolve()
+    target = (ROOT/(destination or 'docs/verification/m6d')).resolve()
+    # Atomic replacement owns one archive directory only. Accepting the root
+    # itself would replace all historical evidence rather than a single run.
+    if target.parent != root or target == root:
+        raise ValueError('Destination must be one direct child of docs/verification')
+    return target
+
+
+def capture(destination=None):
+    destination = archive_destination(destination)
     suite=read_json(BUILD/'m6c-test-results.json'); frozen=source_hash()
     if (suite.get('status')!='completed' or suite.get('passed') is not True
             or suite.get('source_sha256')!=frozen or suite.get('host_test_sha256')!=test_sources()):
@@ -189,9 +202,9 @@ def capture():
                 host_files.append(evidence)
             else:
                 host_files.extend(check_host_group(name,evidence,host_seen))
-    if len(runs)!=15 or len({r['run_directory'] for r in runs})!=15:
-        raise ValueError('Gate requires 15 distinct real VM invocations')
-    destination=ROOT/'docs/verification/m6c'
+    required_runs = 15 + 2 * len(M6C_FAULT_CASES)
+    if len(runs)!=required_runs or len({r['run_directory'] for r in runs})!=required_runs:
+        raise ValueError(f'Gate requires {required_runs} distinct real VM invocations')
     destination.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='m6c-capture-',dir=BUILD) as temporary:
         staged=Path(temporary)/'archive'; staged.mkdir()
@@ -205,4 +218,7 @@ def capture():
     print(f'M6c capture passed: {len(groups)} groups, {len(runs)} distinct actual VM runs')
 
 
-if __name__=='__main__': capture()
+if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--destination',default='docs/verification/m6d')
+    capture(parser.parse_args().destination)
