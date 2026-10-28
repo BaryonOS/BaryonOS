@@ -3,17 +3,17 @@ name: Storage resilience acceptance
 on:
   pull_request:
     paths:
-      - 'tools/test_storage_resilience.py'
-      - 'tools/run_m6c.py'
-      - 'tools/m6c_*.py'
-      - 'tools/build.py'
-      - 'tools/preflight.py'
+      - 'tools/**'
       - 'kernel/**'
-      - 'services/catalog/**'
-      - 'services/block/**'
-      - 'drivers/virtio-blk/**'
-      - 'crates/virtio-core/**'
-      - 'crates/capability-core/**'
+      - 'boot/**'
+      - 'userspace/**'
+      - 'services/**'
+      - 'drivers/**'
+      - 'crates/**'
+      - '.cargo/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
       - '.github/workflows/storage-resilience.yml'
   workflow_dispatch:
 
