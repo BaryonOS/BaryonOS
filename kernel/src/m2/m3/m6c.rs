@@ -6,7 +6,10 @@ use capability_core::{BlockScope, Message, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE,
 use catalog_core::{journal, wire};
 use virtio_blk_driver::{Device, Discovery, DmaPool};
 use virtio_core::{Binding, Completion, Operation, Phase, Policy, Request};
-const TIMEOUT: u64 = 20;
+// Keep the normal virtio completion budget comfortably above host/TCG scheduling
+// jitter. Fault fixtures still suppress completion observation until this real
+// deadline, so timeout/Unknown semantics stay exercised rather than retried.
+const TIMEOUT: u64 = 64;
 const RESET_TIMEOUT: u64 = 10;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct IoSnapshot {
