@@ -1,0 +1,298 @@
+{
+  "task": "TASK-NATIVE-NET-client-peer",
+  "basis_commit": "a241543ef989a27e8bae9ad3a3ede6885384f74f",
+  "completed_at_utc": "2026-10-29T23:30:18.913151+00:00",
+  "status": "host-target checks passed; initial joint native pair observed; final integrated root rerun required",
+  "source_sha256": {
+    "docs/implementation/NATIVE-NET-PROBE.md": "4d4fc2fba90af947081f6903d85d86660395f6eea26c534e66e392eef3b7e6eb",
+    "sdk/examples/net-probe/Cargo.lock": "60807526d5a179c16294574bae6e48ab26afed36c50a77bd787aa23e3a4dca5d",
+    "sdk/examples/net-probe/Cargo.toml": "148bc57068bcc0b35053380a6cc6b72a13b591acd5bb6ccdfccf89a589ddf9e9",
+    "sdk/examples/net-probe/build.py": "fb371718e3946480f21347cd1296bd2d2ba500c4ea80573a47023ebbe9c8c07b",
+    "sdk/examples/net-probe/linker.ld": "1cf5266a1c6a1a39f66b95996da39750691b6f93e9b5b265c2c576173cbb8e6e",
+    "sdk/examples/net-probe/src/main.rs": "3a3056baba8fb1c691fcc4f958eab4a30b7b4ce6f7cde1a3a94c29f1f136aa90",
+    "tests/test_net_peer.py": "b46dabc9f68e8b58ab32ff702bd86360ec23cb4ad1ab959f415a8be6430d3a63",
+    "tools/net_test_peer.py": "eef9753d444f0076d3be0e2c570b3995ec22bd51547efa47181ca3885ce3a044",
+    "tools/run_net_system.py": "bc6f0a1461b218ea50759672687cab35981fae60b2ac960d805640b73d2767cf"
+  },
+  "build_dependency_sha256": {
+    "sdk/runtime/src/lib.rs": "b55ab73361579af2ca517d6e12e8fd6787fb1f7c79785999de62d92f9ed860cf",
+    "sdk/runtime/src/native.rs": "1f1b548b793c5d396687c42c94b14c5ab981e18f9dd0972253182e93027d0df3",
+    "sdk/runtime/src/network.rs": "9679db5ad9bbf81164e84656650911ba8f508440460c5af2785ca3cf20fc310d",
+    "sdk/examples/system/src/support.rs": "413ecb19b093f67c406666fa52bc6a4949cd592b5f463e0400fc2c3d5545b153",
+    "services/net-protocol/src/lib.rs": "83a8a091bb79c10c24279168909dfc488ca720ba7be51559b5d9d229ef221b77",
+    "services/net-protocol/src/arp.rs": "9d3a1079166645676b1325be5e3da86e1db239994349b1b511f8fee7390d42ce",
+    "services/net-protocol/src/dns.rs": "a2ccfc20e6374b8fbde063ccd2aa514f39c19dbb5ff9112c6519264760d49aeb"
+  },
+  "dependency_note": "ABI1.5 runtime copied with owner authorization for this local build only; original ABI1.4 worktree dependency files restored byte-exact before this commit. Integrate the kernel/SDK ABI1.5 commit together.",
+  "checks": [
+    {
+      "name": "peer-host-tests",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_net_peer.py",
+        "-v"
+      ],
+      "environment": {
+        "LOCALAPPDATA": "/workspace/nieuw-os/.tools",
+        "CARGO_TARGET_DIR": "/workspace/scratch/net-probe-target"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 0.147,
+      "log": "/workspace/scratch/net-probe-checks/peer-host-tests.txt",
+      "log_sha256": "84dbddc35ccf1b4365657938988711da0b8696e1c35dacbac250a20e4c636078",
+      "passed_host_tests": 15
+    },
+    {
+      "name": "target-build",
+      "command": [
+        "python3",
+        "-B",
+        "sdk/examples/net-probe/build.py"
+      ],
+      "environment": {
+        "LOCALAPPDATA": "/workspace/nieuw-os/.tools",
+        "CARGO_TARGET_DIR": "/workspace/scratch/net-probe-target"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 0.094,
+      "log": "/workspace/scratch/net-probe-checks/target-build.txt",
+      "log_sha256": "5d32a543055e5e4fee665c8331cb543a9e98540db1f30e8116e2949688de1ea9"
+    },
+    {
+      "name": "target-clippy",
+      "command": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "sdk/examples/net-probe/Cargo.toml",
+        "--features",
+        "native",
+        "--bin",
+        "net-probe",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "environment": {
+        "LOCALAPPDATA": "/workspace/nieuw-os/.tools",
+        "CARGO_TARGET_DIR": "/workspace/scratch/net-probe-target"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 0.427,
+      "log": "/workspace/scratch/net-probe-checks/target-clippy.txt",
+      "log_sha256": "3a5e9d1a17252fc084c53a6306522c84f8a2770f320942f0583e24244c3b4791"
+    },
+    {
+      "name": "format",
+      "command": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/net-probe/Cargo.toml",
+        "--all",
+        "--",
+        "--check",
+        "--config",
+        "skip_children=true"
+      ],
+      "environment": {
+        "LOCALAPPDATA": "/workspace/nieuw-os/.tools",
+        "CARGO_TARGET_DIR": "/workspace/scratch/net-probe-target"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 0.385,
+      "log": "/workspace/scratch/net-probe-checks/format.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "python_ast_checks": "four owned Python files parsed successfully",
+  "artifact": {
+    "path": "/workspace/scratch/net-probe-target/x86_64-unknown-none/release/net-probe",
+    "sha256": "25048085c6f529ccbb075cc31541366e1466c7b36d7aaa9381522be7a020fbb5",
+    "inspection": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 6,
+          "memsz": 6,
+          "page_start": 1073741824,
+          "page_end": 1073745920
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 8192,
+          "filesz": 1240,
+          "memsz": 1240,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 12288,
+          "filesz": 1457,
+          "memsz": 1457,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        },
+        {
+          "flags": 5,
+          "address": 1073872896,
+          "offset": 16384,
+          "filesz": 21463,
+          "memsz": 21463,
+          "page_start": 1073872896,
+          "page_end": 1073897472
+        }
+      ]
+    },
+    "native_execution_of_this_exact_local_elf": false
+  },
+  "initial_joint_native_pair": [
+    {
+      "path": "/workspace/nieuw-os-worktrees/native-net/build/net-system/run/system-normal-be790fa0328d47de8a946341496f6ba3/result.json",
+      "report_sha256": "2f199261ce76ff9fa1b4e4d07d3baedc068a21173d92356b973d1910571109b6",
+      "serial_sha256": "1717be168137c38760d6f06d64dff4b04d43afc75ade4fc69fb57c6240aba7ee",
+      "case": "normal",
+      "passed": true,
+      "network_gate": true,
+      "source_sha256": "355c111fdaeed5dd7e7f487cbd702fba362d7fcec1c1376db6b60b5f3bcd17d8",
+      "raw_qemu_exit": 33,
+      "duration_s": 54.466113575000236,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "net_probe_elf_sha256": "36a57a9163777e2b0db9c7fda3426f6c50dc80153fe23290e5b46bf48f470273",
+      "native_counters": {
+        "NET_ARP_REPLIES": 1,
+        "NET_UDP_ECHOES": 1,
+        "NET_DNS_ANSWERS": 1,
+        "NET_APP_DENIED": 7,
+        "NET_TX_COMPLETIONS": 8,
+        "NET_RX_FRAMES": 7,
+        "NET_ARP_REJECTS": 2,
+        "NET_DNS_REJECTS": 2,
+        "NET_RX_TIMEOUTS": 1,
+        "NET_CACHE_INTACT": 1,
+        "NET_STALE_CAP": 1,
+        "NET_TX_SUBMITTED": 8,
+        "NET_TX_COMPLETED": 8,
+        "NET_RX_COMPLETED": 7,
+        "NET_RX_DELIVERED": 7,
+        "NET_DENIED": 7,
+        "NET_TX_TIMEOUTS": 0,
+        "NET_RESETS": 1,
+        "NET_RESET_ACKS": 1
+      },
+      "peer_counts": {
+        "accepted_frames": 8,
+        "arp_requests": 3,
+        "arp_bad_sender_sent": 1,
+        "arp_wrong_target_sent": 1,
+        "arp_valid_sent": 1,
+        "udp_echo_requests": 1,
+        "udp_echo_replies": 1,
+        "dns_requests": 4,
+        "dns_wrong_id_sent": 1,
+        "dns_bad_name_sent": 1,
+        "dns_answers_sent": 1,
+        "dns_timeouts": 1,
+        "response_frames": 7
+      }
+    },
+    {
+      "path": "/workspace/nieuw-os-worktrees/native-net/build/net-system/run/system-recover-092c6364f30b463ea2943a663311feab/result.json",
+      "report_sha256": "ed37b9322b70bd7515f7e90a3f14aafc80e135cea394bcf73fdd79ae85354c1e",
+      "serial_sha256": "3db574d934ce9ffbf81fd745511d8f6f10bf105632a1ee813e91e2cc5ea183b4",
+      "case": "recover",
+      "passed": true,
+      "network_gate": true,
+      "source_sha256": "355c111fdaeed5dd7e7f487cbd702fba362d7fcec1c1376db6b60b5f3bcd17d8",
+      "raw_qemu_exit": 33,
+      "duration_s": 60.015543525999874,
+      "before_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "net_probe_elf_sha256": "36a57a9163777e2b0db9c7fda3426f6c50dc80153fe23290e5b46bf48f470273",
+      "native_counters": {
+        "NET_ARP_REPLIES": 1,
+        "NET_UDP_ECHOES": 1,
+        "NET_DNS_ANSWERS": 1,
+        "NET_APP_DENIED": 7,
+        "NET_TX_COMPLETIONS": 8,
+        "NET_RX_FRAMES": 7,
+        "NET_ARP_REJECTS": 2,
+        "NET_DNS_REJECTS": 2,
+        "NET_RX_TIMEOUTS": 1,
+        "NET_CACHE_INTACT": 1,
+        "NET_STALE_CAP": 1,
+        "NET_TX_SUBMITTED": 8,
+        "NET_TX_COMPLETED": 8,
+        "NET_RX_COMPLETED": 7,
+        "NET_RX_DELIVERED": 7,
+        "NET_DENIED": 7,
+        "NET_TX_TIMEOUTS": 0,
+        "NET_RESETS": 1,
+        "NET_RESET_ACKS": 1
+      },
+      "peer_counts": {
+        "accepted_frames": 8,
+        "arp_requests": 3,
+        "arp_bad_sender_sent": 1,
+        "arp_wrong_target_sent": 1,
+        "arp_valid_sent": 1,
+        "udp_echo_requests": 1,
+        "udp_echo_replies": 1,
+        "dns_requests": 4,
+        "dns_wrong_id_sent": 1,
+        "dns_bad_name_sent": 1,
+        "dns_answers_sent": 1,
+        "dns_timeouts": 1,
+        "response_frames": 7
+      }
+    }
+  ],
+  "native_evidence_limit": "Actual tested ELF differs from local ELF because absolute worktree paths appear in rodata; do not transfer native acceptance to this different ELF. Native code/client sources matched the test worktree. Root-integrated source and tightened wrapper must be rerun.",
+  "not_claimed": [
+    "full N01/IP/TCP stack",
+    "TLS or authenticated NAS identity",
+    "general network configuration or rights portal",
+    "physical hardware",
+    "full test release"
+  ],
+  "historical_native_report_re_evaluation": [
+    {
+      "case": "normal",
+      "result": "passed strict host re-evaluation of historical native report",
+      "report_sha256": "2f199261ce76ff9fa1b4e4d07d3baedc068a21173d92356b973d1910571109b6",
+      "runner_sha256": "bc6f0a1461b218ea50759672687cab35981fae60b2ac960d805640b73d2767cf"
+    },
+    {
+      "case": "recover",
+      "result": "passed strict host re-evaluation of historical native report",
+      "report_sha256": "ed37b9322b70bd7515f7e90a3f14aafc80e135cea394bcf73fdd79ae85354c1e",
+      "runner_sha256": "bc6f0a1461b218ea50759672687cab35981fae60b2ac960d805640b73d2767cf"
+    }
+  ]
+}
