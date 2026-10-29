@@ -178,11 +178,11 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **N03 — Native geauthenticeerd transport** | 2 | Open | Onderhouden cryptografie/TLS met de vastgelegde hybride PQC-keuze werkt native, met peercontrole, negatieve handshakes en geen stille onveilige fallback. |
 | **N04 — Afdwingbare netwerkrechten** | 2 | Open | Proces-/bestemmingsrechten, intrekking en helperroutes worden native afgedwongen en via verkeer waargenomen; geen onbedoelde luisterpoorten. |
 
-### B — Beveiliging, privacy en updates (0/12)
+### B — Beveiliging, privacy en updates (2/12)
 
 | Criterium | Punten | Status | Acceptatie en bewijs |
 |---|---:|---|---|
-| **B01 — Entropy en sleutelbeheer** | 2 | Open | Native cryptografische entropy, key lifecycle, bescherming en herstel gebruiken gecontroleerde standaarden en geteste failure paths. |
+| **B01 — Entropy en sleutelbeheer** | 2 | Behaald | Native cryptografische entropy, key lifecycle, bescherming en herstel gebruiken gecontroleerde standaarden en geteste failure paths. [bewijs 1](../docs/verification/B01-ACCEPTANCE.md) · [bewijs 2](../docs/verification/b01/keyring-gate.json) |
 | **B02 — Geauthenticeerde persoonlijke opslag** | 2 | Open | Inhoud en gevoelige metadata worden native beschermd; manipulatie, replay/rollback binnen het dreigingsmodel en sleutelverlies zijn getest. |
 | **B03 — Ondertekende updates en rollback** | 2 | Open | Authentieke updates, onderbreking, downgrade-aanvallen en herstel naar een geldige vorige versie zijn end-to-end getest. |
 | **B04 — Vertrouwde boot- en distributieketen** | 2 | Open | Image-/bootverificatie, sleutelrotatie en dependency-/buildherkomst zijn voor het releaseprofiel afgebakend en onafhankelijk gecontroleerd. |

@@ -25,16 +25,17 @@ fn handle_representation_does_not_accept_sentinels_or_slot_overflow() {
 
 #[test]
 fn known_rights_do_not_allow_new_permission_bits() {
-    for value in 0..=1023 {
+    for value in 0..=2047 {
         assert_eq!(Rights::from_bits(value).unwrap().bits(), value);
     }
-    for value in [1024, 1 << 31, 1 << 63, u64::MAX] {
+    for value in [2048, 1 << 31, 1 << 63, u64::MAX] {
         assert_eq!(Rights::from_bits(value), Err(Error::InvalidRights));
     }
     assert_eq!(Rights::KNOWN_MASK, capability_core::KNOWN_RIGHTS);
     assert_eq!(Rights::LAUNCH.bits(), capability_core::LAUNCH);
     assert_eq!(Rights::OBSERVE.bits(), capability_core::OBSERVE);
     assert_eq!(Rights::KILL.bits(), capability_core::KILL);
+    assert_eq!(Rights::ENTROPY.bits(), capability_core::ENTROPY);
 }
 
 #[test]
@@ -51,10 +52,10 @@ fn register_errors_remain_errors_and_secondary_errors_are_zero() {
 
 #[test]
 fn abi_check_accepts_only_existing_compatible_versions() {
-    for minor in 0..=3 {
+    for minor in 0..=4 {
         assert_eq!(validate_abi((1 << 32) | minor), Ok(()));
     }
-    for version in [0, 1, 1 << 31, (1 << 32) | 4, 2 << 32, u64::MAX] {
+    for version in [0, 1, 1 << 31, (1 << 32) | 5, 2 << 32, u64::MAX] {
         assert_eq!(validate_abi(version), Err(Error::UnsupportedAbi));
     }
 }
@@ -183,7 +184,7 @@ fn delegated_cap_descriptors_are_validated_and_preserved() {
     assert_eq!(parsed.cap(0).unwrap().handle, handle(255));
     assert_eq!(parsed.cap(0).unwrap().rights.bits(), 9);
     assert_eq!(parsed.as_bytes(), &bytes);
-    for rights in [2u64, 1024, u64::MAX] {
+    for rights in [2u64, 2048, u64::MAX] {
         let mut bad = bytes;
         bad[40..48].copy_from_slice(&rights.to_le_bytes());
         assert_eq!(Received::from_bytes(bad, 4), Err(Error::InvalidRights));

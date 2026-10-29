@@ -912,7 +912,9 @@ fn k05_rights_constants_and_known_mask() {
     assert_eq!(LAUNCH, 128);
     assert_eq!(OBSERVE, 256);
     assert_eq!(KILL, 512);
-    assert_eq!(KNOWN_RIGHTS, 1023);
+    assert_eq!(ENTROPY, 1024);
+    assert_eq!(KNOWN_RIGHTS, 2047);
+    assert_eq!(ENTROPY_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(LAUNCH_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(PROCESS_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
 }
@@ -1131,5 +1133,41 @@ fn k05_process_quota_and_capacity_probes() {
         let mut out = [0; MAX_PROCESS_OBJECTS];
         assert_eq!(e.orphans(&mut out), MAX_PROCESSES - 1);
         assert!(e.can_register());
+    });
+}
+
+#[test]
+fn b01_entropy_capability_is_typed_exclusive_and_bounded() {
+    run(|e| {
+        setup(e, 2);
+        let entropy = e.create_entropy(1).unwrap();
+        assert_eq!(e.check_entropy(1, entropy), Ok(()));
+        assert_eq!(e.stats().entropy_objects, 1);
+        let endpoint = e.create_endpoint(1).unwrap();
+        assert_atomic(e, Error::Type, |e| e.check_entropy(1, endpoint));
+        assert_atomic(e, Error::Type, |e| e.check_endpoint(1, entropy, SEND));
+        assert_atomic(e, Error::Type, |e| e.check_block(1, entropy, BLOCK_READ));
+        assert_atomic(e, Error::Type, |e| e.check_launch(1, entropy));
+        assert_atomic(e, Error::Type, |e| e.check_process(1, entropy, OBSERVE));
+        assert_atomic(e, Error::Invalid, |e| e.derive(1, entropy, ENTROPY));
+        assert_atomic(e, Error::Invalid, |e| e.revoke(1, entropy));
+        assert_atomic(e, Error::Invalid, |e| {
+            e.bootstrap_delegate(1, entropy, 2, ENTROPY)
+        });
+        assert_atomic(e, Error::BadHandle, |e| e.check_entropy(2, entropy));
+        let (_, send) = destination(e);
+        assert_atomic(e, Error::Invalid, |e| {
+            e.send(1, send, &cap_message(entropy, ENTROPY))
+        });
+        for _ in 1..MAX_ENTROPY_OBJECTS {
+            e.create_entropy(1).unwrap();
+        }
+        assert_atomic(e, Error::Quota, |e| e.create_entropy(1));
+        e.close(1, entropy).unwrap();
+        assert_eq!(e.stats().entropy_objects, MAX_ENTROPY_OBJECTS - 1);
+        assert_atomic(e, Error::BadHandle, |e| e.check_entropy(1, entropy));
+        e.exit(1).unwrap();
+        assert_eq!(e.stats().entropy_objects, 0);
+        assert_eq!(e.stats().nodes, 1);
     });
 }

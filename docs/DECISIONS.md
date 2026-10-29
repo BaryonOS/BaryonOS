@@ -716,3 +716,70 @@ of de K05-commits gericht reverten. De rechtenbits 128/256/512 zijn in
 blokobjecten met `EINVAL` af, zoals voorheen.
 
 **Eigenaar:** hoofdagent (engine, kernelprofiel, SDK, voorbeeld, gate, bewijs).
+
+## ADR-043 — Entropy als capability en een ring-3 Key Service met onderhouden crypto-crates (B01)
+
+**Datum:** 29 oktober 2026. Profiel `native-keyring`, opt-in; bestaande
+profielen blijven ongewijzigd.
+
+**Status (gescheiden):** *ontwerp* in
+[B01-ENTROPY-AND-KEYS](implementation/B01-ENTROPY-AND-KEYS.md). *Implementatie*:
+`drivers/virtio-rng`, `Entropy`-objecttype in `capability-core` (recht 1024),
+kernelbroker `kernel/src/m2/m3/keyring.rs` (syscalls 0x60/0x61),
+`services/keyring` (`keyring-core`), SDK-runtime ABI 1.4,
+`sdk/examples/keyring`. *Testbewijs*: [B01-ACCEPTANCE](verification/B01-ACCEPTANCE.md);
+wat daar niet staat, is niet uitgevoerd. *Onbekend*: echte hardware-RNG-
+kwaliteit, TPM/hardwarebescherming, wachtwoordherstel, zijkanalen.
+
+**Besluit:**
+1. De kernel bezit het virtio-rng-apparaat en levert ruwe bytes alleen aan de
+   houder van een `Entropy`-capability (manifest-only objecttype zonder
+   `DERIVE`/`TRANSFER`/`REVOKE`). De kernel mengt, cachet of hergebruikt niets
+   en bevat geen cryptografie (kernel/AGENTS.md).
+2. Gereedheid en falen zijn expliciet: 1024 bytes opstartentropy door de
+   SP 800-90B-tests Repetition Count (cutoff 6) en Adaptive Proportion
+   (venster 512, cutoff 62; conservatief H = 4 bit/byte, α = 2⁻²⁰). Afwezig,
+   vastgelopen of kort leverend apparaat → `BLOCKED` met reden; geen
+   terugval, geen testseed in het productpad. Latere reseeds doorlopen
+   dezelfde tests; falen → `DEGRADED` en weigering.
+3. Alleen onderhouden, vastgepinde RustCrypto-crates met portable backends:
+   `chacha20poly1305` 0.10.1 (XChaCha20-Poly1305), `chacha20` 0.9.1,
+   `hkdf` 0.12.4, `sha2` 0.10.9, `zeroize` 1.8/1.9. De DRBG is de
+   fast-key-erasure-constructie op de ChaCha20-keystream (Bernstein, 2017),
+   geen eigen primitief. Dependencycontrole: licenties MIT/Apache-2.0,
+   buildscripts alleen `generic-array` (`version_check`) en `zerocopy`-vrije
+   boom; geen SIMD-instructies in de gegenereerde code (objdump-controle).
+4. Sleutels verlaten de Key Service nooit; apps krijgen (domein, index)-
+   handles; het domein volgt uit het kernelgebonden endpoint. AEAD bindt
+   formaat, domein en index in de AAD. Per domein 16 sleutels; intrekking is
+   permanent en reist mee in de herstelblob.
+5. Herstel zonder escrow: een willekeurig 256-bit herstelgeheim voor de
+   aanvragende app en een blob (hoofdsleutel + intrekkingsbitmaps, 76 bytes)
+   onder dat geheim. RESTORE in een andere instantie herleidt alle
+   domeinsleutels; de dienst bewaart het geheim niet.
+
+**Security-invariant:** geen sleutelgeneratie vóór `READY`; geen bytes uit
+een geweigerde, kort leverende of time-out-aanvraag; `entropy_poll` schrijft
+pas na validatie van de hele uitvoerbuffer en wist de brokerkopie; een
+gestorven aanvrager krijgt zijn antwoord niet alsnog via een ander proces.
+Cross-domain- en manipulatiepogingen leveren `Auth`/`BadHandle` zonder
+gedeeltelijke plaintext.
+
+**Weerlegd als:** een proces zonder `Entropy` bytes krijgt; een dienst
+sleutels maakt zonder geslaagde opstarttests; gemanipuleerde ciphertext,
+tag of nonce plaintext oplevert; een hersteld domein een ingetrokken sleutel
+weer bruikbaar maakt; of de kernel na afloop frames, nodes of objecten
+achterlaat.
+
+**Restrisico:** QEMU levert host-`/dev/urandom`; de tests toetsen gedrag,
+niet de werkelijke min-entropie van fysieke hardware. De hoofdsleutel staat
+onbeschermd in het dienstgeheugen (geen TPM). Zeroize is hygiëne, geen
+garantie over kopieën in registers of crashgeheugen. Eén broker-aanvraag
+tegelijk: diensten herhalen bij `EAGAIN`.
+
+**Migratie/rollback:** opt-in; terugdraaien = profiel niet selecteren of de
+B01-commit reverten. Rechtenbit 1024 wordt bij andere objecttypen met
+`EINVAL` afgewezen.
+
+**Eigenaar:** hoofdagent (driver, engine, kernelbroker, core, SDK, voorbeeld,
+gate, bewijs).

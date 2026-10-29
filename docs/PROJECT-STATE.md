@@ -1,5 +1,47 @@
 # Actuele projectstatus
 
+## B01 native entropy en sleutelbeheer geaccepteerd, 32% — 29 oktober 2026
+
+Branch `ccr-43832ef7-gi2qlz`, basis `main` `c92238b` (squash van
+[PR #51](https://github.com/simonvanieperen/nieuw-os/pull/51), K05; GitHub
+Actions daarop 6/6 groen inclusief de nieuwe job `k05-native-supervisor`).
+Omgeving: Linux-container, Rust 1.90.0, QEMU 8.2.2 (Ubuntu), `pc-q35-8.2`,
+OVMF 4M, virtio-rng-pci met host-`/dev/urandom`.
+
+**Gerealiseerd (native, profiel `native-keyring`, ADR-043):**
+- `drivers/virtio-rng`: eigen modern-virtio-pci-driver (00:06.0), één wachtrij,
+  één apparaat-beschrijfbare buffer, gepinde DMA-pagina's; `virtio-core`
+  parseert capabilities nu per apparaat-ID.
+- `capability-core`: objecttype `Entropy` (recht `ENTROPY`=1024, zonder
+  `DERIVE`/`TRANSFER`/`REVOKE`, quotum 4).
+- Kernelbroker `kernel/src/m2/m3/keyring.rs`: syscalls `entropy_request`
+  (0x60) en `entropy_poll` (0x61) met één aanvraag tegelijk, deadline 64 ticks,
+  geen cryptografie, geen caching; gelabelde fixtures voor afwezig en
+  vastgelopen apparaat. ABI-minor 1.4.
+- `services/keyring` (`keyring-core`): SP 800-90B Repetition Count (6) en
+  Adaptive Proportion (512/62), fast-key-erasure-DRBG op ChaCha20,
+  HKDF-SHA-256-afleiding, XChaCha20-Poly1305 met AAD-binding, 16 sleutels per
+  domein, permanente intrekking, herstelblob onder een gebruikersgehouden
+  geheim. Alleen vastgepinde RustCrypto-crates met portable backends.
+- SDK-runtime `native::entropy_request/entropy_wait`; `sdk/examples/keyring`
+  (dienst en acceptatie-app, eigen linkerscript met 128 KiB code).
+- Gate `tools/test_keyring.py`: 3 hostcontroles en 3 echte QEMU-runs; runner,
+  capture, 7 harnastests; workflow `B01 entropy and key management acceptance`.
+
+**Uitgevoerd en geslaagd:** zie [B01-ACCEPTANCE](verification/B01-ACCEPTANCE.md)
+en `docs/verification/b01/`. Bronvingerafdruk `202a3e68…`. Kernelbewijs:
+normal 2048 bytes geleverd, beide diensten READY, 17 sleutels, 4 manipulaties
+en 3 verkeerde-sleutel/domeinpogingen geweigerd, herstel A→B met behoud van
+intrekking; no-device Offline en beide diensten BLOCKED zonder sleutels; stuck
+Repetition Count blokkeert beide diensten zonder sleutels.
+
+**Roadmap rubric v1: 30% → 32%** (B01 +2).
+
+**Open en niet bewezen:** GitHub Actions op de PR-head moet de gate herhalen;
+geen fysieke RNG-kwaliteit, TPM, persistente sleutelopslag (B02), wachtwoord-
+herstel of zijkanaalclaim. Nieuwe dependencies zijn in ADR-043 en
+B01-ACCEPTANCE geïnventariseerd (licenties, buildscripts, SIMD-controle).
+
 ## K05 algemeen proces- en dienstbeheer native geaccepteerd, 30% — 29 oktober 2026
 
 Branch `ccr-43832ef7-gi2qlz`, basis `main` `8b60354`. Omgeving: Linux-container,

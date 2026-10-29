@@ -1,0 +1,26 @@
+[package]
+name = "nieuw-os-keyring-example"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+native = []
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../../runtime" }
+keyring-core = { path = "../../../services/keyring" }
+
+[[bin]]
+name = "keyring-service"
+path = "src/service.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[[bin]]
+name = "keyring-app"
+path = "src/app.rs"
+required-features = ["native"]
+test = false
+bench = false
