@@ -1,51 +1,68 @@
 # Actuele projectstatus
 
-## Hervat: B01-fouten eerst, S08 parallel — 29 oktober 2026
+## B01-herstel en S08 geïntegreerd geverifieerd, 32% — 29 oktober 2026
 
-Branch `codex/native-recovery-hardening`, basis `00e6af5` (main; geschikte
-PR #53 na inhoudscontrole en groene CI squash-gemerged). Initiële lokale
-branch `work` op `621eeaf` was schoon en liep achter op main `f63a0c1`.
-De drie P1-reviewthreads op de reeds gemergede B01-PR #52 zijn bevestigd:
-oude herstelblob kan intrekking terugdraaien; RCT/APT-status verdwijnt tussen
-reseeds; echt niet-antwoordend apparaat en reset/herstart missen native bewijs.
-B01 daarom tijdelijk **32% → 30%**, zonder rubricwijziging.
+Branch `codex/native-recovery-hardening`, PR [#54](https://github.com/simonvanieperen/nieuw-os/pull/54),
+basis `main` `00e6af5` (de gecontroleerde squash van workflow-PR #53).
+Exact geteste gezamenlijke bron: `53e0d57af99c9673c97bc900fae15b98e08c8ca3`;
+bronvingerafdruk v3 `60edda7943e979a8e2c16caf6aa873a8b7d7535cd633e2a10f094d4b0bb6c00f`.
+Latere checkpointwijzigingen betreffen uitsluitend documentatie/bewijs.
 
-**B01-R1 geïntegreerd:** `b0dc3a4` bewaart gezondheidstoestand en monotone
-intrekking. Vijf regressies bewezen rood vóór de reparatie, daarna 15/15 groen;
-fmt/clippy en native gebruikersbuild exit 0. Onafhankelijke agent herhaalde
-15/15 plus twee extra tegenvoorbeelden. Native integratie volgt nog.
+**Gerealiseerd:** B01 bewaart RCT/APT-toestand vanaf opstart over alle reseeds.
+Herstel van dezelfde master verenigt intrekkingen; een gebruikte dienst
+weigert een andere master. De native app bewijst oude-blobintrekking. De
+broker begrenst reset-ACK en sluit outstanding I/O bij requester-exit af
+(offline, gepinde quarantaine). Nieuwe afzonderlijke fixtures: werkelijk
+onbeantwoorde kernel-RNG-aanvraag en reset/herinitialisatie van een antwoordende
+driver op dezelfde pool met een nieuwe 32-byteaanvraag. S08-timing uit #48
+is overgenomen met actuele main intact: deadline 500 PIT-ticks, diagnostiek
+ook bij falen en latentie van `Device::poll`-foutcompletions.
 
-**B01-R2 geïntegreerd:** `d588220` voegt echte nonresponsive entropy,
-reset-ACK en een aparte herstartproef toe, met native oude-blobintrekking.
-Builder: timeout en restart exit 33, 11 harnastests en 3 drivertests groen;
-onafhankelijke diffreview en 11/11 harnastests groen. Geen blokkerende
-bevindingen. Reset zonder ACK en requestercrash zijn niet native getest;
-requester-exit sluit de broker veilig af met blijvend gepinde quarantaine.
-Volledige vijfgevallenpoort en opslagregressie op gezamenlijke bron volgen.
+**Uitgevoerd en geslaagd (exit 0):**
+- `tools/test_keyring.py`: 5 echte VM-runs; 58 core/driver/capability-, 17 SDK-
+  en 11 harnastests. Timeout: firmware 16 bytes, kernel 255+1 onbeantwoord,
+  geen geleverde kernelbyte/sleutel, 1 timeout en 1 reset-ACK.
+- `tools/test_storage_resilience.py`: 13 echte VM-runs, inclusief zes koude
+  read-only recoveries; orakels, geen replay, overige voortgang en cleanup groen.
+- `tools/test_volume.py`: 9 echte VM-runs met drie echte kill/recovery-paren,
+  corruptieweigering; 28 volume-, 17 SDK- en 21 harnastests.
+- Onafhankelijke hostverificatie: 325 Python-, 6 skill-, 238 root-Rust- en
+  46 SDK-tests; root-/SDK-Clippy, fmt, syntax en voortgangscontrole groen.
+- Afzonderlijke AI-review: geen blockers; vijf nieuwe keyringregressies bewezen
+  rood vóór reparatie en groen erna. Twee extra hersteltegenvoorbeelden groen.
 
-**Werkverdeling, nog niet geaccepteerd:** aparte worktrees voor B01-R1
-(`services/keyring`), B01-R2 (RNG-driver/broker/harnas) en S08-R
-(catalogus-/volumebrokertiming uit #48, zonder historische docs terug te zetten).
-Een afzonderlijke reviewer controleert tegenvoorbeelden en integratie.
-Taakcontract en controlelog: [native-recovery-hardening](verification/native-recovery-hardening/README.md).
+Omgeving: Rust 1.90.0, Debian QEMU 10.0.13, expliciet `pc-q35-8.2`,
+qemu64/TCG/1 CPU/256 MiB, OVMF 2025.02-8+deb13u1 (4M). Alle exacte
+commando's, rapporten, bron-/image-/loghashes en de ontwikkelfouten staan in
+[verification/native-recovery-hardening/](verification/native-recovery-hardening/README.md).
+GitHub eindhead-/reviewstatus: [PR #54](https://github.com/simonvanieperen/nieuw-os/pull/54);
+samenvoegen pas na groene toepasselijke checks. #48 mag pas sluiten nadat de
+vervangende integratie daadwerkelijk is opgenomen.
 
-**S08-code geïntegreerd:** beide brokers gebruiken 500 ticks met diagnostiek,
-ook bij foutcompletions. Builder: 7 M6c- en 3 volumeharnastests, fmt en beide
-native crossbuilds exit 0; gecombineerde native gate **NIET UITGEVOERD**.
-
-**Omgeving:** eerste preflight exit 2 (QEMU/OVMF ontbraken), daarna officiële
-Debianpakketten lokaal onder `.tools/`: QEMU 10.0.13, OVMF 2025.02.8.
-`python3 tools/preflight.py --strict --firmware .tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd`
-exit 0. Rust 1.90.0 en beide targets aanwezig; nieuwe OS-boottests volgen.
+**Roadmap:** oorspronkelijk 32%, tijdelijk 30% wegens bevestigde P1-fouten;
+na herstel en dezelfde native acceptatie weer **32%**. Geen nieuw criterium
+of gewijzigde gewichten. B01-bewijs is aangevuld, oude bewijsbestanden blijven
+historisch. Requestercrash en reset zonder ACK zijn niet native getest;
+herstartbewijs geldt voor een antwoordend apparaat. Koude antirollback,
+persistente sleutels/geauthenticeerde opslag (B02), TPM, fysieke RNG-kwaliteit
+of hardware worden niet geclaimd. De eerste stille fixture blokkeerde ook
+firmwareboot en is als mislukt vastgelegd, daarna gericht gecorrigeerd.
 
 ### NEXT AGENT HANDOFF
 
-- Bron: `codex/native-recovery-hardening`, basis `00e6af5`; exacte checkpoint-HEAD via `git rev-parse HEAD`.
-- Root bezit docs, voortgang, `kernel/Cargo.toml` en `tools/build.py`.
-- Integreer pas na gerichte tests en review de drie agentcommits; draai daarna
-  B01-gate en S08-/volumeregressie op bevroren bron in gescheiden buildmappen.
-- S09 is niet remote bereikbaar: geen hergebruik of acceptatie claimen op basis
-  van alleen de historische vermelding van een lokale branch.
+- Bron: `codex/native-recovery-hardening`; getest commit volledig hierboven;
+  PR #54 bevat alle drie agentimplementaties en bewijs. Controleer actuele
+  branch/HEAD/PR-merge; `git fetch origin main` vóór vervolgwerk.
+- Afgerond: B01-R1/R2, S08-R, ENV en host/native verificatie; geen onafgemaakte
+  productiecode in de hoofdwerkboom. De entropy-agentworktree bevat alleen
+  lokale kopieën van inmiddels geïntegreerde R1-/featurewijzigingen.
+- Open: B02, requestercrash/reset-zonder-ACK-nativebewijs. S09 staat alleen in
+  een historisch lokaal checkpoint; geen remote branch/commit teruggevonden.
+- Volgende concrete implementatiestap: B02, persistente geauthenticeerde
+  sleutel-/volumeopslag boven `services/keyring` en `services/volume`; begin met
+  versiegebonden recordformaat en negatieve manipulatie-/rollbacktests in een
+  eigen branch. Houd secrets buiten kernel en gewone apps. Geen S09 dubbel
+  implementeren zonder eerst eventuele lokale bron terug te vinden.
 
 ## Historische checkpoints
 

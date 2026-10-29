@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-29",
-    "source_commit": "d5882202954c08bcffecaea71f4513cfe4e4a9a9",
+    "source_commit": "53e0d57af99c9673c97bc900fae15b98e08c8ca3",
     "branch": "codex/native-recovery-hardening",
-    "task": "B01- en S08-herstel geïntegreerd; gezamenlijke native gates volgen",
+    "task": "B01-P1-herstel en hervatting S08 op gezamenlijke native bron geverifieerd",
     "previous_score": 30,
-    "summary": "Score blijft 30 tot geïntegreerd bewijs. R1 bewaart doorlopende Health en monotone intrekking; R2 geeft echte stille entropybron, begrensde reset-ACK en aparte driverherstart; native app test oude herstelblob na revoke. Gerichte core/driver/harnastests en twee echte apparaatproeven slagen; onafhankelijke review vindt geen blocker. Volledige B01(5), S08(13) en S06-volume(9) native runs op dezelfde bevroren bron volgen. Requestercrash/reset-zonder-ACK niet native getest; koude antirollback/fysieke RNG/B02 blijven open."
+    "summary": "B01 na tijdelijk heropenen herbevestigd (+2, 30→32; oorspronkelijke sessiestand32, geen nieuw criterium). Blijvende RCT/APT over reseeds, monotone intrekking en geen masterwissel in gebruikte dienst; native oude-blobtest. Echte stille kernel-RNG-fixture met timeout/reset-ACK en aparte herstart op dezelfde DMA-pool, requester-exit fail-closed. S08-timing uit#48 behouden op actuele main en foutcompletions gemeten. Geïntegreerde bron53e0d57, v3fingerprint60edda79: B01 5/5, S08 13/13, S06-volume9/9 echte VM-runs groen; 615 onafhankelijke hosttests plus lint/fmt/syntax/voortgang groen. Bewijs native-recovery-hardening. Requestercrash/reset-zonder-ACK niet native getest; koude antirollback/persistente sleutels/fysieke RNG/TPM blijven open. Geen rubric- of scopewijziging."
   },
   "tracks": [
     {
@@ -352,11 +352,12 @@
           "id": "B01",
           "title": "Entropy en sleutelbeheer",
           "points": 2,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "Native cryptografische entropy, key lifecycle, bescherming en herstel gebruiken gecontroleerde standaarden en geteste failure paths.",
           "evidence": [
             "docs/verification/B01-ACCEPTANCE.md",
-            "docs/verification/b01/keyring-gate.json"
+            "docs/verification/native-recovery-hardening/b01/keyring-gate.json",
+            "docs/verification/native-recovery-hardening/integration.json"
           ]
         },
         {

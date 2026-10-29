@@ -1,19 +1,19 @@
 # Werkqueue — 29 oktober 2026
 
-Actuele basis `00e6af5`; hoofdagent integreert, iedere builder heeft een eigen
-worktree en exclusieve bestanden. Historische status hieronder is geen actieve
-capaciteits- of voortgangsclaim.
+Actuele geteste bron `53e0d57af99c9673c97bc900fae15b98e08c8ca3`, PR #54.
+Root integreert; onafhankelijke worktrees en buildmappen zijn gebruikt.
+Historische registraties hieronder zijn geen actieve capaciteitsclaims.
 
 | ID | Toestand | Eigenaar / exclusief gebied | Resultaat / afhankelijkheid |
 |---|---|---|---|
-| B01-R1 | in uitvoering | keyring_repairs: services/keyring/** | Monotone intrekking en doorlopende RCT/APT; gerichte negatieve regressies |
-| B01-R2 | in uitvoering | entropy_timeout: virtio-rng, keyringbroker, keyringharnas | Echte ontbrekende completion, reset/herstart, cleanup bij eigenaarsexit |
-| B01-V | in uitvoering | security_verifier: alleen lezen | Tegenvoorbeelden en onafhankelijke review van R1/R2 |
-| S08-R | in uitvoering | storage_resume: m6c-/volumebroker, bijbehorende harnastests | #48 hervatten met Err-completionmeting en behoud van actuele main |
-| ENV | in uitvoering | emulator_setup: uitsluitend .tools/** | Officiële lokale QEMU/OVMF zonder systeemprechten |
-| INT | in uitvoering | root: docs/voortgang/build-featurelijsten/GitHub | #53 geïntegreerd; commits en bewijs van gecombineerde bron volgen |
-| S09 | wacht op bron of nieuwe implementatie | niet toegewezen | Historische lokale branch niet remote gevonden; geen bewezen geïntegreerde implementatie |
-| B02 | wacht op B01-R1/R2 | niet toegewezen | Persistente geauthenticeerde opslag vereist hersteld sleutelbeheer |
+| B01-R1 | afgerond, geïntegreerd getest | keyring_repairs: services/keyring/** | Blijvende Health, monotone intrekking; 15 tests en extra tegenvoorbeelden groen |
+| B01-R2 | afgerond, geïntegreerd getest | entropy_timeout: keyringbroker/app/harnas | Echte timeout/reset-ACK, aparte herstart, native oude-blobintrekking; 5/5 gate |
+| B01-V | afgerond | security_verifier: alleen lezen | Geen blocker; 615 hosttests plus lint/fmt/voortgang groen |
+| S08-R | afgerond, geïntegreerd getest | storage_resume: m6c-/volumebroker | Err-completionmeting; 13/13 gezamenlijke gate; aparte targeted cases groen |
+| ENV | afgerond | emulator_setup: uitsluitend .tools/** | Officiële lokale QEMU10.0.13/OVMF, preflight groen |
+| INT | lokale controles afgerond | root: docs/voortgang/bewijs/GitHub | 27 VM-runs groen; geschikte merge uitsluitend na finale PR-checks |
+| B02 | gereed om te bouwen | volgende eigen branch | Persistente geauthenticeerde sleutel-/volumeopslag; live herstel is geen koude antirollback |
+| S09 | wacht op bron of nieuwe implementatie | niet toegewezen | Historische lokale branch niet remote gevonden; geen geïntegreerde implementatie claimen |
 
 ## Vroege productvalidatie — consumentenadoptie
 

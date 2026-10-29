@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 30% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 32% van de vaste productroadmap](docs/assets/progress.svg)
 
-**30% — 30 van 100 gewogen acceptatiepunten.** Dit is een
+**32% — 32 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -24,18 +24,18 @@ alleen een nette desktop haalt die eindgrens niet.
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
 | Internet en netwerkdiensten | 10 | 0 |
-| Beveiliging, privacy en updates | 12 | 0 |
+| Beveiliging, privacy en updates | 12 | 2 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **30** |
+| **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`d5882202`](https://github.com/simonvanieperen/nieuw-os/commit/d5882202954c08bcffecaea71f4513cfe4e4a9a9) ·
+**Bron:** [`53e0d57a`](https://github.com/simonvanieperen/nieuw-os/commit/53e0d57af99c9673c97bc900fae15b98e08c8ca3) ·
 **Ontwikkelbranch:** `codex/native-recovery-hardening`.
-Deze opdracht: **30% → 30% (+0 procentpunt)**. **Opdracht:** B01- en S08-herstel geïntegreerd; gezamenlijke native gates volgen.
-Score blijft 30 tot geïntegreerd bewijs. R1 bewaart doorlopende Health en monotone intrekking; R2 geeft echte stille entropybron, begrensde reset-ACK en aparte driverherstart; native app test oude herstelblob na revoke. Gerichte core/driver/harnastests en twee echte apparaatproeven slagen; onafhankelijke review vindt geen blocker. Volledige B01(5), S08(13) en S06-volume(9) native runs op dezelfde bevroren bron volgen. Requestercrash/reset-zonder-ACK niet native getest; koude antirollback/fysieke RNG/B02 blijven open.
+Deze opdracht: **30% → 32% (+2 procentpunt)**. **Opdracht:** B01-P1-herstel en hervatting S08 op gezamenlijke native bron geverifieerd.
+B01 na tijdelijk heropenen herbevestigd (+2, 30→32; oorspronkelijke sessiestand32, geen nieuw criterium). Blijvende RCT/APT over reseeds, monotone intrekking en geen masterwissel in gebruikte dienst; native oude-blobtest. Echte stille kernel-RNG-fixture met timeout/reset-ACK en aparte herstart op dezelfde DMA-pool, requester-exit fail-closed. S08-timing uit#48 behouden op actuele main en foutcompletions gemeten. Geïntegreerde bron53e0d57, v3fingerprint60edda79: B01 5/5, S08 13/13, S06-volume9/9 echte VM-runs groen; 615 onafhankelijke hosttests plus lint/fmt/syntax/voortgang groen. Bewijs native-recovery-hardening. Requestercrash/reset-zonder-ACK niet native getest; koude antirollback/persistente sleutels/fysieke RNG/TPM blijven open. Geen rubric- of scopewijziging.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

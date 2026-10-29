@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "case": "restart",
+  "kernel_feature": "test-keyring-restart",
+  "started_utc": "2026-10-29T21:32:31.355364+00:00",
+  "duration_s": 3.3077856310000016,
+  "timeout_s": 180,
+  "timed_out": false,
+  "raw_qemu_exit": 33,
+  "command": [
+    "/workspace/nieuw-os/.tools/nieuw-os/qemu/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/verify-keyring/run/keyring-restart-26884e6ea4/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/verify-keyring/run/keyring-restart-26884e6ea4/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/verify-keyring/run/keyring-restart-26884e6ea4/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"
+  ],
+  "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "source_fingerprint_version": 3,
+  "source_sha256": "60edda7943e979a8e2c16caf6aa873a8b7d7535cd633e2a10f094d4b0bb6c00f",
+  "run_directory": "/workspace/nieuw-os/build/verify-keyring/run/keyring-restart-26884e6ea4",
+  "kernel_sha256": "07160501aa6cf9da40e77a182f13fd53ee766454d3b03d946415de97d9345932",
+  "keyring": {
+    "service_sha256": "903a1e222888fefc1af56b30ec72ae5e8446ea423cff9f9ea0c77cb16db645fa",
+    "app_sha256": "32be4229f319a9c640cdf08ca7245377dbc83d6015062eb7a28c2f5c8faa247c",
+    "service_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 6,
+          "memsz": 6,
+          "page_start": 1073741824,
+          "page_end": 1073745920
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 8192,
+          "filesz": 1288,
+          "memsz": 1288,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 12288,
+          "filesz": 1866,
+          "memsz": 1866,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        },
+        {
+          "flags": 5,
+          "address": 1073872896,
+          "offset": 16384,
+          "filesz": 48471,
+          "memsz": 48471,
+          "page_start": 1073872896,
+          "page_end": 1073922048
+        }
+      ]
+    },
+    "app_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 6,
+          "memsz": 6,
+          "page_start": 1073741824,
+          "page_end": 1073745920
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 8192,
+          "filesz": 1160,
+          "memsz": 1160,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 12288,
+          "filesz": 517,
+          "memsz": 517,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        },
+        {
+          "flags": 5,
+          "address": 1073872896,
+          "offset": 16384,
+          "filesz": 10471,
+          "memsz": 10471,
+          "page_start": 1073872896,
+          "page_end": 1073885184
+        }
+      ]
+    }
+  },
+  "esp_sha256": {
+    "esp/kernel.elf": "07160501aa6cf9da40e77a182f13fd53ee766454d3b03d946415de97d9345932",
+    "esp/EFI/BOOT/BOOTX64.EFI": "38042f7e29bf5724b18c3f8287f8be4eb5760e10283dd584e6fe01e864e679f4"
+  },
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nKEYRING:MANIFEST:PASS\nKEYRING:DIAG:APP_STATUS:00000000000000000001\nKEYRING:DIAG:APP_STEP:00000000000000000000\nKEYRING:DIAG:SERVICE_A_STATE:00000000000000000001\nKEYRING:DIAG:SERVICE_A_REASON:00000000000000000000\nKEYRING:DIAG:SERVICE_B_STATE:00000000000000000001\nKEYRING:DIAG:SERVICE_B_REASON:00000000000000000000\nKEYRING:DIAG:REQUESTS:00000000000000000012\nKEYRING:DIAG:DELIVERED:00000000000000002048\nKEYRING:DIAG:OFFLINE_ERRORS:00000000000000000000\nKEYRING:DIAG:TIMEOUTS:00000000000000000000\nKEYRING:DIAG:IO_ERRORS:00000000000000000000\nKEYRING:READY\nKEYRING:REQUESTS:00000000000000000012\nKEYRING:DELIVERED_BYTES:00000000000000002048\nKEYRING:DENIED:00000000000000000001\nKEYRING:OFFLINE_ERRORS:00000000000000000000\nKEYRING:BUSY:00000000000000000004\nKEYRING:TIMEOUTS:00000000000000000000\nKEYRING:RESET_ACKS:00000000000000000001\nKEYRING:QUARANTINED:00000000000000000000\nKEYRING:RESTARTED_BYTES:00000000000000000032\nKEYRING:SERVICE_A_STATE:00000000000000000001\nKEYRING:SERVICE_B_STATE:00000000000000000001\nKEYRING:SERVICE_A_REASON:00000000000000000000\nKEYRING:SERVICE_B_REASON:00000000000000000000\nKEYRING:SERVICE_A_KEYS:00000000000000000032\nKEYRING:SERVICE_B_KEYS:00000000000000000032\nKEYRING:SERVICE_A_ENTROPY_BYTES:00000000000000001024\nKEYRING:SERVICE_B_ENTROPY_BYTES:00000000000000001024\nKEYRING:APP_GENERATED:00000000000000000017\nKEYRING:APP_SEALED:00000000000000000001\nKEYRING:APP_UNSEALED:00000000000000000002\nKEYRING:APP_TAMPER_DENIED:00000000000000000004\nKEYRING:APP_CROSS_DENIED:00000000000000000003\nKEYRING:APP_REVOKED_DENIED:00000000000000000001\nKEYRING:APP_QUOTA_DENIED:00000000000000000001\nKEYRING:APP_PRE_RESTORE_DENIED:00000000000000000002\nKEYRING:APP_RESTORE_WRONG_DENIED:00000000000000000001\nKEYRING:APP_RESTORED_UNSEAL_OK:00000000000000000001\nKEYRING:APP_REVOKED_AFTER_RESTORE:00000000000000000002\nKEYRING:APP_NOT_READY:00000000000000000000\nKEYRING:APP_ENTROPY_DENIED:00000000000000000001\nKEYRING:TICKS:00000000000000000025\nKEYRING:CASE:RESTART:PASS\nKEYRING:RESOURCES:PASS\nKEYRING:PASS\nM1:PASS\n",
+  "stderr": "",
+  "passed": true,
+  "evidence": {
+    "REQUESTS": 12,
+    "DELIVERED_BYTES": 2048,
+    "DENIED": 1,
+    "OFFLINE_ERRORS": 0,
+    "BUSY": 4,
+    "TIMEOUTS": 0,
+    "RESET_ACKS": 1,
+    "QUARANTINED": 0,
+    "RESTARTED_BYTES": 32,
+    "SERVICE_A_STATE": 1,
+    "SERVICE_B_STATE": 1,
+    "SERVICE_A_REASON": 0,
+    "SERVICE_B_REASON": 0,
+    "SERVICE_A_KEYS": 32,
+    "SERVICE_B_KEYS": 32,
+    "SERVICE_A_ENTROPY_BYTES": 1024,
+    "SERVICE_B_ENTROPY_BYTES": 1024,
+    "APP_GENERATED": 17,
+    "APP_SEALED": 1,
+    "APP_UNSEALED": 2,
+    "APP_TAMPER_DENIED": 4,
+    "APP_CROSS_DENIED": 3,
+    "APP_REVOKED_DENIED": 1,
+    "APP_QUOTA_DENIED": 1,
+    "APP_PRE_RESTORE_DENIED": 2,
+    "APP_RESTORE_WRONG_DENIED": 1,
+    "APP_RESTORED_UNSEAL_OK": 1,
+    "APP_REVOKED_AFTER_RESTORE": 2,
+    "APP_NOT_READY": 0,
+    "APP_ENTROPY_DENIED": 1,
+    "TICKS": 25
+  }
+}
