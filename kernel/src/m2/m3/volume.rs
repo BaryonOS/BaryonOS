@@ -15,11 +15,11 @@ use virtio_core::{Binding, Completion, Operation, Phase, Policy};
 const TIMEOUT: u64 = 500;
 const RESET_TIMEOUT: u64 = 10;
 /// Granted scope: four reserved canary sectors precede the volume, which is
-/// 2 x 9 table sectors plus 64 x 8 content sectors (volume-core v1 geometry).
+/// 2 x 34 table sectors plus 64 x 8 content sectors (volume-core v2 geometry).
 const FIRST_SECTOR: u64 = 4;
-const SECTORS: u64 = 530;
+const SECTORS: u64 = 580;
 /// Only used by the crash fixtures to place a cut inside a table write.
-const TABLE_REGION: u64 = 18;
+const TABLE_REGION: u64 = 68;
 /// Whole-run budget in 100 Hz timer ticks; the host also bounds wall time.
 const RUN_TICKS: u64 = 60_000;
 
@@ -36,6 +36,8 @@ struct AppEvidence {
     full: u64,
     digest: u64,
     recovered_revision: u64,
+    recovered_collection: u64,
+    recovered_second: u64,
     phase: u64,
 }
 const NO_APP: AppEvidence = AppEvidence {
@@ -50,6 +52,8 @@ const NO_APP: AppEvidence = AppEvidence {
     full: 0,
     digest: 0,
     recovered_revision: 0,
+    recovered_collection: 0,
+    recovered_second: 0,
     phase: 0,
 };
 
@@ -140,6 +144,8 @@ fn case() -> u64 {
         4
     } else if cfg!(feature = "test-volume-corrupt") {
         5
+    } else if cfg!(feature = "test-volume-cut-txn") {
+        6
     } else {
         0
     }
@@ -661,13 +667,16 @@ fn advance(s: &State) {
                 }
                 // Crash fixtures: once app A started its second upload, kill
                 // after completed content writes or inside the table write.
-                if matches!(case(), 2 | 3) && r.apps[0].phase >= 1 {
+                if matches!(case(), 2 | 3 | 6) && r.apps[0].phase >= 1 {
                     let base = *r.cut_base.get_or_insert((r.data_writes, r.table_writes));
                     if case() == 2 && r.data_writes >= base.0 + 40 {
                         cut(b"VOLUME:CUT:DATA\n");
                     }
                     if case() == 3 && r.table_writes >= base.1 + 4 {
                         cut(b"VOLUME:CUT:TABLE\n");
+                    }
+                    if case() == 6 && r.table_writes >= base.1 + 4 {
+                        cut(b"VOLUME:CUT:TXN\n");
                     }
                 }
             }
@@ -724,6 +733,8 @@ fn snapshot(s: &State, slot: usize) {
     app.digest = word(s, slot, 448);
     app.phase = word(s, slot, 456);
     app.recovered_revision = word(s, slot, 480);
+    app.recovered_collection = word(s, slot, 488);
+    app.recovered_second = word(s, slot, 496);
 }
 
 pub fn observe_exit(s: &mut State, slot: usize) {
@@ -851,7 +862,13 @@ fn finish(s: &mut State) -> ! {
     }
     if case() == 0 {
         let (a, b) = (r.apps[0], r.apps[1]);
-        if a.quota != 1 || b.full != 1 || word(s, 0, 304) < 64 || word(s, 0, 312) <= 64 {
+        if a.quota != 1
+            || b.full != 1
+            || word(s, 0, 304) < 64
+            || word(s, 0, 312) <= 64
+            || word(s, 0, 384) != 1
+            || word(s, 0, 392) != 2
+        {
             fail(b"NORMAL_RESULT");
         }
     }
@@ -882,6 +899,10 @@ fn finish(s: &mut State) -> ! {
         print_number(prefix[3], app.digest);
         print_number(prefix[4], r.requests[index]);
         print_number(prefix[5], app.recovered_revision);
+        if index == 0 {
+            print_number(b"VOLUME:A:RECOVERED_COLLECTION:", app.recovered_collection);
+            print_number(b"VOLUME:A:RECOVERED_SECOND:", app.recovered_second);
+        }
     }
     for (label, offset) in [
         (&b"VOLUME:SERVICE:GENERATION:"[..], 128u64),
@@ -894,6 +915,8 @@ fn finish(s: &mut State) -> ! {
         (b"VOLUME:SERVICE:REJECTED:", 352),
         (b"VOLUME:SERVICE:ABORTED:", 360),
         (b"VOLUME:SERVICE:UNKNOWN:", 368),
+        (b"VOLUME:SERVICE:TRANSACTIONS:", 384),
+        (b"VOLUME:SERVICE:RESTORES:", 392),
     ] {
         print_number(label, word(s, 0, offset));
     }

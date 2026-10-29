@@ -13,6 +13,8 @@ SECTIONS {
   ASSERT(. <= 0x40011000, "app data exceeds one page")
   . = 0x40014000;
   .rodata : ALIGN(4096) { *(.rodata .rodata.*) } :readonly
-  ASSERT(SIZEOF(.rodata) <= 0x4000, "app rodata exceeds bounded budget")
+  /* The v2 volume service carries more read-only tables than the catalog
+     example; 32 KiB keeps rodata well inside the 0x40014000..0x60000000 window. */
+  ASSERT(SIZEOF(.rodata) <= 0x8000, "app rodata exceeds bounded budget")
   /DISCARD/ : { *(.eh_frame*) *(.comment) *(.note*) *(.llvm_addrsig) }
 }

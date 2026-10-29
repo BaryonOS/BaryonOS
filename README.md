@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **26** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`8ef3a9de`](https://github.com/simonvanieperen/nieuw-os/commit/8ef3a9ded2fdd6de317fa56ca703429d5b8c99f6) ·
+**Bron:** [`2c7291a4`](https://github.com/simonvanieperen/nieuw-os/commit/2c7291a489c4ccd0a6b427303847cccaa80b049d) ·
 **Ontwikkelbranch:** `ccr-a5fabb06-5mt06m`.
-Deze opdracht: **26% → 26% (+0 procentpunt)**. **Opdracht:** Merge van PR #47 (M6e, S04/S05) vastgelegd; S08-timingonderzoek met deadlineverhoging 64 naar 500 ticks en latentierapportage in beide fixturebrokers; herbeoordeling zonder nieuwe criteria.
-Score ongewijzigd op 26. PR #47 is als 092ee52 naar main gesquasht na 5/5 groene workflowjobs plus de CodeRabbit-check op c87f980 en zes opgeloste CodeRabbit-threads. De eenmalige s08-native-resilience-fouten (USER_CODE:33 voor de foutinjectie) zijn aannemelijk, niet bewezen, terug te voeren op een virtio-completiedeadline van 64 ticks (0,64 s bij 100 Hz) tegenover een host-fdatasync per FLUSH die onder last 162-311 ms meet; de oorzaak is lokaal niet gereproduceerd, de marge wel gekwantificeerd. Beide fixturebrokers gebruiken nu 500 ticks en rapporteren de maximale completielatentie. Validatie op 8ef3a9d: S08-gate onbelast en onder host-last accepted (13 echte VMs elk, latentie tot 34 ticks onder last), M6e-gate passed (7 stappen), GitHub Actions 5/5 workflowjobs groen. S04/S05 blijven geaccepteerd op het bewijs van d9e4b6b; geen nieuwe criteria. S06, G1/U01-voorwerk en K05-a blijven open tot onafhankelijke native acceptatie.
+Deze opdracht: **26% → 26% (+0 procentpunt)**. **Opdracht:** main 8b60354 met S06 in PR #48 geïntegreerd en conflicten opgelost; S08-bewijs behouden.
+Score blijft 26; geen criterium is door deze merge nieuw geaccepteerd. PR #49 (S06 volume v2) staat op main als 8b60354; de onafhankelijke native gateherhaling en de Actions-/CodeRabbit-controles zijn geslaagd. De afzonderlijke roadmapacceptatie staat nog in concept-PR #50, dus S06 blijft hier open. S08-timingbewijs en de wijziging naar 500 ticks blijven behouden; de vermoedelijke relatie tussen completionlatentie en de eerdere CI-fouten is niet bewezen. S04/S05 behouden hun bestaande opgeslagen acceptatiebewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

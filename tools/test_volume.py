@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Complete M6e gate: host tests, then seven real QEMU invocations in order.
+"""Complete M6e/S06 gate: host tests, then nine real QEMU invocations in order.
 
 normal -> cold read-only recover (same image); cut-data (real kill) -> cold
-recover; cut-table (real kill) -> cold recover; corrupt image refused.
+recover; cut-table (real kill) -> cold recover; cut-txn (real kill inside a
+multi-object transaction) -> cold recover; corrupt image refused.
 Every stage is bound to one frozen source fingerprint. The host test inputs
 under tests/ fall outside that fingerprint, so they are frozen separately and
 re-checked before the verdict. Only the final summary with passed=true counts
@@ -37,7 +38,8 @@ def test_inputs() -> dict[str, str]:
 
 
 PLAN = [("normal", None), ("recover", "normal"), ("cut-data", None), ("recover-cut", "cut-data"),
-        ("cut-table", None), ("recover-cut", "cut-table"), ("corrupt", None)]
+        ("cut-table", None), ("recover-cut", "cut-table"), ("cut-txn", None),
+        ("recover-cut", "cut-txn"), ("corrupt", None)]
 
 
 def main() -> int:

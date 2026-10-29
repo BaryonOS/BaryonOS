@@ -23,20 +23,29 @@ BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 FAILURES = ("PANIC", "FAIL", "M5:FAIL")
 FEATURE = {"normal": "native-volume", "recover": "test-volume-recover",
            "cut-data": "test-volume-cut-data", "cut-table": "test-volume-cut-table",
-           "recover-cut": "test-volume-recover-cut", "corrupt": "test-volume-corrupt"}
-CUT_MARKER = {"cut-data": "VOLUME:CUT:DATA", "cut-table": "VOLUME:CUT:TABLE"}
+           "cut-txn": "test-volume-cut-txn", "recover-cut": "test-volume-recover-cut",
+           "corrupt": "test-volume-corrupt"}
+CUT_MARKER = {"cut-data": "VOLUME:CUT:DATA", "cut-table": "VOLUME:CUT:TABLE", "cut-txn": "VOLUME:CUT:TXN"}
 CASE_MARKER = {"normal": "NORMAL", "recover": "RECOVER", "recover-cut": "RECOVER_CUT", "corrupt": "CORRUPT"}
 READ_ONLY = ("recover", "recover-cut", "corrupt")
 MAX_TIMEOUT = 600
 
-# Expected final state of the normal fixture (object, revision, content revision, length, name).
+# Expected final state of the normal fixture: object -> (revision, content
+# revision, length, name, collection, content revisions of the history).
 FINAL = {
-    1: (2, 1, 129, "Notitie ✓"), 2: (1, 1, 0, "Leeg"), 3: (40, 40, 5 * 4096, "Concept"),
-    4: (1, 1, 5000, "Herstart"), 5: (1, 1, 65536, "Archief"),
-    8: (1, 1, 4 * 4096, "Foto-index"), 9: (1, 1, 300, "Lijst"), 10: (20, 20, 4096, "Logboek"),
-    11: (1, 1, 65536, "Groot 1"), 12: (1, 1, 65536, "Groot 2"),
+    1: (3, 1, 129, "Notitie ✓", 2, []), 2: (2, 1, 0, "Leeg", 1, []),
+    3: (42, 38, 5 * 4096, "Concept", 0, []), 4: (4, 1, 5000, "Herstart", 0, []),
+    5: (1, 1, 65536, "Archief", 0, []),
+    8: (2, 1, 4 * 4096, "Foto-index", 1, []), 9: (1, 1, 300, "Lijst", 0, []),
+    10: (21, 20, 4096, "Logboek", 0, []), 11: (1, 1, 65536, "Groot 1", 0, []),
+    12: (1, 1, 65536, "Groot 2", 0, []),
 }
-TOMBSTONES = {0: 2}
+TOMBSTONES = {0: 4}
+# Present collections per (domain, index) -> name; all others never existed.
+COLLECTIONS = {(0, 1): "Werk", (0, 2): "Privé", (1, 1): "Fotos"}
+# 57 commits by A and 27 by B; A holds 24 chunks and B 38 (history included).
+GENERATION, CHUNKS_USED = 84, 62
+DOMAIN_CLOCKS = [57, 27]
 
 
 def numbers(stdout: str) -> dict[str, int]:
@@ -122,7 +131,7 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
     shutil.copytree(BUILD / "esp", run_dir / "esp")
     shutil.copy2(variables, run_dir / "OVMF_VARS.fd")
     shutil.copy2(code, run_dir / "OVMF_CODE.fd")
-    if case in ("normal", "cut-data", "cut-table", "corrupt"):
+    if case in ("normal", "cut-data", "cut-table", "cut-txn", "corrupt"):
         if volume_dir is not None:
             raise ValueError("writable and corrupt cases always start from a fresh image")
         volume_dir = BUILD / "run" / f"volume-image-{uuid.uuid4().hex[:10]}"
@@ -138,6 +147,12 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
         if (last.get("passed") is not True or last.get("after_sha256") != sha256(volume_dir / "volume.img")
                 or last.get("source_sha256") != frozen):
             raise ValueError("recovery requires the exact image left by a passing previous stage")
+    parent = None
+    if case not in ("normal", "cut-data", "cut-table", "cut-txn", "corrupt"):
+        parent = last["case"]
+        if (case, parent) not in (("recover", "normal"), ("recover-cut", "cut-data"),
+                                  ("recover-cut", "cut-table"), ("recover-cut", "cut-txn")):
+            raise ValueError(f"{case} cannot follow {parent}")
     image = volume_dir / "volume.img"
     if image.stat().st_nlink != 1:
         raise ValueError("volume image must have exactly one link")
@@ -168,7 +183,7 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
                   host_kill=killed, running_before_kill=running, command=args,
                   qemu_version=subprocess.check_output([qemu, "--version"], text=True).strip(),
                   source_fingerprint_version=3, source_sha256=frozen, volume_identity=info["identity"],
-                  volume_directory=str(volume_dir), before_sha256=before, after_sha256=after,
+                  parent_case=parent, volume_directory=str(volume_dir), before_sha256=before, after_sha256=after,
                   run_directory=str(run_dir), kernel_sha256=manifest["kernel"]["sha256"],
                   volume_docs=manifest.get("volume_docs"), stdout=out, stderr=err, passed=False)
     try:
@@ -196,7 +211,7 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
                 oracle = {"refused": str(error)}
         else:
             oracle = volume_disk.analyse(image.read_bytes())
-            check_state(case, oracle, evidence)
+            check_state(case, oracle, evidence, parent)
         report.update(evidence=evidence, oracle=oracle, passed=source_hash() == frozen)
         if not report["passed"]:
             raise ValueError("source changed during run")
@@ -211,39 +226,93 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
     return report, volume_dir
 
 
-def check_state(case: str, oracle, evidence):
+def current(item):
+    """The present version of an oracle object (first retained version)."""
+    if not item["present"] or not item["versions"]:
+        raise ValueError(f"object {item['object']} has no present version")
+    return item["versions"][0]
+
+
+def check_collections(oracle, expected):
+    for item in oracle["collections"]:
+        name = expected.get((item["domain"], item["index"]))
+        if name is None:
+            if item["present"] or item["revision"]:
+                raise ValueError(f"unexpected collection {item}")
+        elif not item["present"] or item["name"] != name:
+            raise ValueError(f"collection mismatch {item}")
+
+
+def check_document(item, revision, content_revision, length, name, collection, history):
+    version = current(item)
+    found = (item["revision"], version["content_revision"], version["length"], version["name"],
+             item["collection"], [v["content_revision"] for v in item["versions"][1:]])
+    if found != (revision, content_revision, length, name, collection, history):
+        raise ValueError(f"oracle object {item['object']} mismatch: {found}")
+
+
+def torn_sectors(oracle, in_table: bool) -> int:
+    """Sectors of the interrupted generation g + 1 in the other table copy.
+
+    A kill inside the table write must leave a real torn attempt there: a
+    non-empty, incomplete prefix of g + 1 sectors followed by the previous
+    copy (g - 1, or never-written sectors when g == 1). A kill during the
+    content writes must leave that copy untouched.
+    """
+    g = oracle["generation"]
+    other = oracle["slots"][(g + 1) % 2]
+    count = sum(1 for sector in other if sector == g + 1)
+    if not in_table:
+        if count or any(sector != g - 1 for sector in other):
+            raise ValueError(f"content cut touched the other table copy: {other}")
+        return 0
+    prefix = other[:count] == [g + 1] * count
+    if not (0 < count < len(other) and prefix and all(s == g - 1 for s in other[count:])):
+        raise ValueError(f"no torn table write in the other copy: {other}")
+    return count
+
+
+def check_state(case: str, oracle, evidence, parent: str | None = None):
     objects = oracle["objects"]
     if case in ("normal", "recover"):
         for obj, item in enumerate(objects):
             if obj in FINAL:
-                revision, content_revision, length, name = FINAL[obj]
-                if (item["present"], item["revision"], item.get("content_revision"), item["length"], item["name"]) \
-                        != (True, revision, content_revision, length, name):
-                    raise ValueError(f"oracle object {obj} mismatch: {item}")
+                check_document(item, *FINAL[obj])
             elif obj in TOMBSTONES:
-                if item["present"] or item["revision"] != TOMBSTONES[obj]:
+                if item["present"] or item["revision"] != TOMBSTONES[obj] or item["versions"]:
                     raise ValueError(f"oracle tombstone {obj} mismatch")
             elif item["present"] or item["revision"] != 0:
                 raise ValueError(f"unexpected object {obj}")
-        # 47 commits by A, 24 by B; A holds 24 chunks, B 38 (see FINAL).
-        if oracle["generation"] != 71 or oracle["chunks_used"] != 62:
+        check_collections(oracle, COLLECTIONS)
+        if (oracle["generation"], oracle["chunks_used"]) != (GENERATION, CHUNKS_USED):
             raise ValueError(f"oracle generation/usage {oracle['generation']}/{oracle['chunks_used']}")
+        if oracle["clocks"] != DOMAIN_CLOCKS:
+            raise ValueError(f"oracle domain clocks {oracle['clocks']}")
         if [evidence["VOLUME:A:DIGEST:"], evidence["VOLUME:B:DIGEST:"]] != oracle["digests"]:
             raise ValueError("guest-reported digests differ from the disk oracle")
-        if evidence["VOLUME:SERVICE:GENERATION:"] != 71:
+        if evidence["VOLUME:SERVICE:GENERATION:"] != GENERATION:
             raise ValueError("service generation differs")
-        if case == "normal" and not (evidence["VOLUME:SERVICE:COMMITS:"] == 71
-                                     and evidence["VOLUME:SERVICE:CHUNK_ALLOCATIONS:"] > 64):
-            raise ValueError("space reuse evidence missing")
-    elif case in ("cut-data", "cut-table", "recover-cut"):
-        first = objects[0]
-        if (first["present"], first["revision"], first["length"], first.get("content_revision")) != (True, 1, 9000, 1):
-            raise ValueError(f"interrupted second commit must leave revision 1 intact: {first}")
-        if any(item["present"] or item["revision"] for item in objects[1:]):
+        if case == "normal" and not (evidence["VOLUME:SERVICE:COMMITS:"] == GENERATION
+                                     and evidence["VOLUME:SERVICE:CHUNK_ALLOCATIONS:"] > 64
+                                     and evidence["VOLUME:SERVICE:TRANSACTIONS:"] == 1
+                                     and evidence["VOLUME:SERVICE:RESTORES:"] == 2):
+            raise ValueError("space reuse, transaction or restore evidence missing")
+    elif case in ("cut-data", "cut-table", "cut-txn", "recover-cut"):
+        txn = "cut-txn" in (case, parent)
+        check_document(objects[0], 1, 1, 9000, "Voor de crash", 0, [])
+        if txn:
+            check_document(objects[1], 1, 1, 300, "Tweede", 0, [])
+        rest = objects[2:] if txn else objects[1:]
+        if any(item["present"] or item["revision"] for item in rest):
             raise ValueError("unexpected objects after cut")
+        check_collections(oracle, {(0, 1): "Werk"} if txn else {})
+        if oracle["generation"] != (3 if txn else 1):
+            raise ValueError(f"interrupted commit must leave the previous generation: {oracle['generation']}")
+        oracle["torn_sectors"] = torn_sectors(oracle, "cut-data" not in (case, parent))
         if case == "recover-cut":
-            if evidence["VOLUME:A:RECOVERED_REVISION:"] != 1:
-                raise ValueError("guest recovered a different revision than the oracle")
+            if (evidence["VOLUME:A:RECOVERED_REVISION:"], evidence["VOLUME:A:RECOVERED_COLLECTION:"],
+                    evidence["VOLUME:A:RECOVERED_SECOND:"]) != (1, 0, 1 if txn else 0):
+                raise ValueError("guest recovered a different state than the oracle")
             if [evidence["VOLUME:A:DIGEST:"], evidence["VOLUME:B:DIGEST:"]] != oracle["digests"]:
                 raise ValueError("guest-reported digests differ from the disk oracle")
 

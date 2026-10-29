@@ -1,5 +1,19 @@
 # Actuele projectstatus
 
+## Merge-checkpoint PR #48 — 29 oktober 2026
+
+`main` `8b60354` is in branch `ccr-a5fabb06-5mt06m` geïntegreerd. Op de
+samengevoegde werkboom slaagden: `cargo +1.90.0 fmt --all -- --check`;
+M6c-hosttests (21, inclusief 35 groepen/31 VM-invocaties); volume-hosttests
+(49); `volume-core` (28); SDK-runtime (14); `tools/progress.py --write`,
+`--check`; en `sha256sum -c docs/verification/s06/SHA256SUMS`.
+
+De native `tools/test_volume.py`-poort is nog niet uitgevoerd: de eerste poging
+stopte vóór QEMU omdat `x86_64-unknown-none` ontbrak; na installatie daarvan
+stopte de retry vóór QEMU omdat `x86_64-unknown-uefi` ontbreekt. De
+S08-resiliencepoort is op deze merge nog niet opnieuw uitgevoerd. Dit checkpoint
+accepteert geen nieuw criterium; de score blijft 26%.
+
 ## S08-timingonderzoek: brokerdeadline 64 → 500 ticks — 29 oktober 2026
 
 Branch `ccr-a5fabb06-5mt06m`, concept-PR
@@ -134,9 +148,92 @@ bijgewerkt naar de merge-commit.
   `tools/test_storage_resilience.py` stond op dat moment open (uitgevoerd later
   op dezelfde dag; zie de sectie hierboven).
 
-**Volgende stappen:** S06 (collecties/historie) uit de lokale worktree
-integreren en native gaten; G1 en K05-a onafhankelijk herhalen en accepteren;
-de S08-timingkwestie reproduceren en structureel oplossen.
+**Volgende stappen:** S06 volume v2 is via PR #49 op `main` geïntegreerd. De
+onafhankelijke gateherhaling en CI zijn groen; de formele roadmapacceptatie
+blijft open in concept-PR #50. G1 en K05-a blijven open voor onafhankelijke
+herhaling. De oorzaak van de eerdere S08-fouten is niet bewezen; bij een
+herhaling geven de brokerdiagnostieken aan of completionlatentie eraan voorafging.
+
+## S06 volume v2: op main, bewijs herhaald, roadmapacceptatie open — 29 oktober 2026
+
+PR [#49](https://github.com/simonvanieperen/nieuw-os/pull/49) is als `8b60354`
+op `main` gemerged boven op `092ee52` (de squash van #47, M6e). De implementatie
+en het oorspronkelijke gatebewijs zijn gebonden aan `ce181bf`, met de
+test-/doccorrecties uit de tweede review. Uitgevoerd in Linux-containers met
+Rust 1.90.0, QEMU 8.2.2, `pc-q35-8.2` en OVMF 4M.
+
+**Gerealiseerd (native):** volume v2 (`NOSVOL02`, IPC v6) in `services/volume`,
+de native dienst en app, het kernelgeval `test-volume-cut-txn`, het v2-orakel,
+de runner en de gate. Onderdelen:
+- collecties (4 per domein, ook leesbaar met COLLECTION_STAT);
+- metadata (`tags`, `kind`, collectie) met stempels uit een klok per domein;
+- twee historische versies per object, met RESTORE en verwijderen ongedaan maken;
+- PURGE;
+- TRANSACT over maximaal 4 objecten in één commit.
+
+**Uitgevoerd en geslaagd (op `ce181bf`, schone kloon):**
+- `python3 -B -u tools/test_volume.py`, exit 0. Hostcontroles: 28 volume-core-,
+  14 SDK- en 18 Python-tests. Daarna 9 echte QEMU-runs op bronvingerafdruk
+  `528dfe4c…`. Guest-uitvoer en image-hashes zijn byte-gelijk aan de vorige run
+  op `cb20c27`:
+  - normal en koude read-only recovery (domeinklokken 57/27, generatie 84,
+    62 chunks);
+  - cut-data, cut-table en cut-txn, elk met echte hostkill en koude recovery.
+    Bij cut-table zijn 4 en bij cut-txn 5 gescheurde sectoren van g+1
+    aangetoond; bij cut-data is de andere kopie onaangeroerd;
+  - corrupt geweigerd.
+- `python3 -B -u tools/mutate_volume.py`, exit 0. Alle 24 mutanten zijn
+  gevangen. Elke mutant schakelt één regel uit die de reviews noemden; het
+  rapport staat in `verification/s06/volume-mutants.json`.
+- `python3 -B tools/capture_volume.py`, exit 0, vastgelegd als
+  `docs/verification/s06/`. Uitslagen:
+  [S06-ACCEPTANCE](verification/S06-ACCEPTANCE.md); besluit: ADR-041.
+- Een onafhankelijke review van de eerste S06-versie (drie AI-reviewers)
+  vond vijf inhoudelijke punten:
+  - STAT liet een domein de commits van het andere tellen;
+  - collecties waren via IPC alleen schrijfbaar;
+  - RESTORE verloor historie;
+  - er was geen flush na schrijfbare recovery;
+  - de gate kon geen gescheurde tabelwrite aantonen.
+
+  Alle vijf zijn opgelost met regressietests.
+- Een tweede review (vijf AI-reviewers; drie stopten door een gebruikslimiet)
+  vond geen fout in de productiecode. Wel vond ze tests die zonder hun regel
+  slaagden, ontbrekende negatieve tests voor COLLECTION_STAT en twee te ruime
+  claims:
+  - een read-only antwoord op een `Unknown` commit is voorlopig;
+  - `Full` en de instantiebrede `Unknown` zijn zichtbaar over domeinen heen.
+
+  Alles is gecorrigeerd in `ce181bf`. CodeRabbit vond drie kleine punten
+  (formulering vingerafdruk, niet vastgelegde mutatiecontrole, U+202E in een
+  testfixture); ook die zijn verwerkt.
+- Onafhankelijke herhaling op de PR-head `eadba7e` in een tweede container:
+  `NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_volume.py` slaagde
+  (`passed=True stages=9`); de bronvingerafdruk `528dfe4c…` en alle negen
+  `after_sha256`-imagehashes zijn gelijk aan het opgeslagen gatebewijs.
+  GitHub Actions en CodeRabbit op `eadba7e` zijn geslaagd; drie CodeRabbit-
+  threads zijn opgelost.
+- Bij de integratie bleek dat een eerdere lokale merge van de M6e-branch in de
+  S06-branch M6e-inhoud van `main` had teruggezet. Dat ging om het bewijs, de
+  voortgangsmetadata en de subpackage-binding uit `d9e4b6b`. Die inhoud is
+  hersteld; alle andere M6e-commits zijn per commit gecontroleerd.
+
+**Roadmap rubric v1: blijft 26%.** S06 (+2) blijft `open` in deze branch:
+de formele acceptatie is als afzonderlijke stap voorbereid in concept-PR #50.
+Deze merge accepteert geen nieuw criterium.
+
+**Open en niet bewezen:**
+- Er zijn geen fysieke schijven, encryptie of authenticatie (B02).
+- De Materiaal-interface draait niet native; S06 levert alleen de opslaglaag.
+- Native I/O-foutinjectie ontbreekt. De flushfout na recovery en het
+  `Unknown`-pad zijn alleen hostgetest.
+- S08: de eerdere CI-fouten zijn lokaal niet gereproduceerd. De metingen maken
+  completionlatentie een aannemelijke, maar onbewezen oorzaak; zie de
+  S08-timingsectie hierboven. Een toekomstige fout met lage brokerlatentie wijst
+  op een andere oorzaak.
+- S09 (back-up/herstel) staat in een aparte lokale branch op S06. De native
+  S09-gate (8 QEMU-runs) is daar geslaagd, en de S06-gate als regressie ook
+  (9/9, bron `06d46151…`). S09 blijft een afzonderlijke stap.
 
 ## M6e schaalbare documentopslag native geaccepteerd, 26% — 28 oktober 2026
 

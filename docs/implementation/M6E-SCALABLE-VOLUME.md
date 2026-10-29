@@ -3,6 +3,13 @@
 Datum: 28 oktober 2026. Basis: `main` `6e12dcb` (20/100). Werkbranch
 `ccr-d3fe1610-gl4r8s`. Bewijsstatus: [M6E-ACCEPTANCE](../verification/M6E-ACCEPTANCE.md).
 
+> **Opgevolgd door volume v2 (S06, ADR-041).** Formaat `NOSVOL01` en IPC v5
+> hieronder beschrijven de bron waarop S04/S05 zijn geaccepteerd. Het profiel
+> `native-volume` gebruikt nu `NOSVOL02`/IPC v6 met collecties, metadata,
+> historie en transacties: [S06-COLLECTIONS-HISTORY](S06-COLLECTIONS-HISTORY.md).
+> De commitvolgorde, invarianten 1–7 en de crash-/recoveryregels gelden
+> ongewijzigd; de S06-gate herhaalt de S04/S05-scenario's op v2.
+
 ## Doel en grenzen
 
 M6c bewaarde vier objecten van hoogstens 128 bytes in een append-only journal
