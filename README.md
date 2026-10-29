@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 26% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 28% van de vaste productroadmap](docs/assets/progress.svg)
 
-**26% — 26 van 100 gewogen acceptatiepunten.** Dit is een
+**28% — 28 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -20,7 +20,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | Productspoor | Totaal punten | Behaald |
 |---|---:|---:|
 | Eigen kern en procesisolatie | 15 | 11 |
-| Opslag en gegevensherstel | 15 | 11 |
+| Opslag en gegevensherstel | 15 | 13 |
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
 | Internet en netwerkdiensten | 10 | 0 |
@@ -29,13 +29,13 @@ alleen een nette desktop haalt die eindgrens niet.
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **26** |
+| **Totaal** | **100** | **28** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`ce181bfc`](https://github.com/simonvanieperen/nieuw-os/commit/ce181bfc6500619eb9d801d0b4dea3e8c3280aed) ·
-**Ontwikkelbranch:** `ccr-d3fe1610-gl4r8s`.
-Deze opdracht: **26% → 26% (+0 procentpunt)**. **Opdracht:** S06 volume v2: correcties tweede review en CodeRabbit; native gate en mutatiecontrole geslaagd, acceptatie wacht op derde reviewronde en CI.
-Score blijft 26. S06 blijft open tot de derde onafhankelijke reviewronde, GitHub Actions op de PR-head en de herbeoordeling door CodeRabbit zijn afgerond. Native gate geslaagd op ce181bf in een schone kloon, bronvingerafdruk v3 528dfe4c (een SHA-256 over de broninputs, geen Git-tree): 28 volume-core-, 14 SDK- en 18 Python-hosttests plus negen echte QEMU-runs. Guest-uitvoer en image-hashes zijn byte-gelijk aan de vorige run op cb20c27. Normal met koude read-only recovery, domeinklokken 57/27; cut-data, cut-table en cut-txn met echte hostkill, aangetoonde gescheurde tabelwrites (4 en 5 sectoren van g+1) en koude recovery; corrupte image geweigerd. Mutatiecontrole (tools/mutate_volume.py) op dezelfde bron: 24 van 24 mutanten gevangen, rapport vastgelegd. De tweede review vond geen fout in de productiecode, wel zwakke tests en twee te ruime claims; die zijn gecorrigeerd. Geen Materiaal-UI-, fysieke-schijf- of encryptieclaim.
+**Bron:** [`8b603549`](https://github.com/simonvanieperen/nieuw-os/commit/8b603549c27e2d0c2247272de53b6fa713a4cb5e) ·
+**Ontwikkelbranch:** `ccr-43832ef7-gi2qlz`.
+Deze opdracht: **26% → 28% (+2 procentpunt)**. **Opdracht:** S06 geaccepteerd na squash-merge van PR #49 (8b60354): GitHub Actions 6/6 groen op eadba7e, CodeRabbit-threads opgelost en de native gate onafhankelijk herhaald in een tweede container.
+S06 (+2): collecties, metadata met domeinklokken, twee bewaarde versies met RESTORE/PURGE en alles-of-niets TRANSACT in volume v2 (NOSVOL02, IPC v6). Bewijs op bron 528dfe4c: 28 volume-core-, 14 SDK- en 18 Python-hosttests, 9 echte QEMU-runs (normal, koude read-only recovery, cut-data/cut-table/cut-txn met echte hostkill en koude recovery, corrupte image geweigerd), 24/24 mutanten gevangen. Onafhankelijke herhaling van tools/test_volume.py op PR-head eadba7e in een tweede Linux-container (Rust 1.90.0, QEMU 8.2.2, pc-q35-8.2): exit 0, dezelfde bronvingerafdruk, alle 9 imagehashes byte-identiek aan docs/verification/s06. GitHub Actions op eadba7e: host-quality, qemu-smoke, k07-native, m6e-native-volume (9 runs), s08-native-resilience en CodeRabbit alle geslaagd. Geen Materiaal-UI-, fysieke-schijf-, encryptie- of back-upclaim; S09 en B02 blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
