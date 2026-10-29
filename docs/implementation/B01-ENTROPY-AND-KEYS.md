@@ -163,8 +163,9 @@ de softwarebackends buiten constante-tijdimplementatie van de crates zelf.
 De post-merge P1-bevindingen op #52 heropenden B01. Naast de native gevallen
 moeten regressies oude blobs na intrekking, verschillende domeinen, geweigerde
 masterwissel met behoud van bestaande sleutels en RCT/APT over reseeds testen.
-Eigenaarsverlies met een open RNG-aanvraag moet de driver resetten voordat
-DMA opnieuw gebruikt wordt; zonder bevestigde reset blijft de pool gepind en
-is de broker offline. Een timeout is een ander geval dan de constante-
+Eigenaarsverlies met een open RNG-aanvraag stopt de driver en sluit de broker
+af; de DMA-pool blijft in quarantaine tot reboot. Timeout controleert reset-ACK
+met een deadline; zonder bevestigde reset blijft de pool gepind en de broker
+offline. Requestercrash en ontbrekende reset-ACK zijn niet native getest. Een timeout is een ander geval dan de constante-
 bytefixture; de afzonderlijke herstartproef bewijst geen herstel van een
 vastgelopen of fysiek apparaat. Uitvoering uitsluitend in het nieuwe bewijs.

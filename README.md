@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **30** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`b0dc3a4f`](https://github.com/simonvanieperen/nieuw-os/commit/b0dc3a4f0b31198581cfdbe83cf25dcd3c60f47d) ·
+**Bron:** [`d5882202`](https://github.com/simonvanieperen/nieuw-os/commit/d5882202954c08bcffecaea71f4513cfe4e4a9a9) ·
 **Ontwikkelbranch:** `codex/native-recovery-hardening`.
-Deze opdracht: **30% → 30% (+0 procentpunt)**. **Opdracht:** B01-R1 hersteld en gericht getest; native timeout/herstart en gecombineerde opslagregressie volgen.
-Score blijft 30. B01-R1 herstelt blijvende Health en monotone intrekking; vijf nieuwe regressies faalden op oude code, 15/15 keyring-tests, clippy/fmt en juiste native gebruikersbuild slagen. Onafhankelijke agentreview en twee extra tegenvoorbeelden slagen. B01 blijft open totdat echte timeout/herstart en gecombineerde native gate voltooid zijn; bestaande B01-bewijs blijft historisch. S08-code behouden uit #48, inclusief Err-completionmeting; twee echte malformed-completioncases groen op agentbron. Geen nieuwe rubricpunten.
+Deze opdracht: **30% → 30% (+0 procentpunt)**. **Opdracht:** B01- en S08-herstel geïntegreerd; gezamenlijke native gates volgen.
+Score blijft 30 tot geïntegreerd bewijs. R1 bewaart doorlopende Health en monotone intrekking; R2 geeft echte stille entropybron, begrensde reset-ACK en aparte driverherstart; native app test oude herstelblob na revoke. Gerichte core/driver/harnastests en twee echte apparaatproeven slagen; onafhankelijke review vindt geen blocker. Volledige B01(5), S08(13) en S06-volume(9) native runs op dezelfde bevroren bron volgen. Requestercrash/reset-zonder-ACK niet native getest; koude antirollback/fysieke RNG/B02 blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

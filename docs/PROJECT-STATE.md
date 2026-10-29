@@ -15,7 +15,15 @@ intrekking. Vijf regressies bewezen rood vóór de reparatie, daarna 15/15 groen
 fmt/clippy en native gebruikersbuild exit 0. Onafhankelijke agent herhaalde
 15/15 plus twee extra tegenvoorbeelden. Native integratie volgt nog.
 
-**In uitvoering, nog niet geaccepteerd:** aparte worktrees voor B01-R1
+**B01-R2 geïntegreerd:** `d588220` voegt echte nonresponsive entropy,
+reset-ACK en een aparte herstartproef toe, met native oude-blobintrekking.
+Builder: timeout en restart exit 33, 11 harnastests en 3 drivertests groen;
+onafhankelijke diffreview en 11/11 harnastests groen. Geen blokkerende
+bevindingen. Reset zonder ACK en requestercrash zijn niet native getest;
+requester-exit sluit de broker veilig af met blijvend gepinde quarantaine.
+Volledige vijfgevallenpoort en opslagregressie op gezamenlijke bron volgen.
+
+**Werkverdeling, nog niet geaccepteerd:** aparte worktrees voor B01-R1
 (`services/keyring`), B01-R2 (RNG-driver/broker/harnas) en S08-R
 (catalogus-/volumebrokertiming uit #48, zonder historische docs terug te zetten).
 Een afzonderlijke reviewer controleert tegenvoorbeelden en integratie.
@@ -38,6 +46,12 @@ exit 0. Rust 1.90.0 en beide targets aanwezig; nieuwe OS-boottests volgen.
   B01-gate en S08-/volumeregressie op bevroren bron in gescheiden buildmappen.
 - S09 is niet remote bereikbaar: geen hergebruik of acceptatie claimen op basis
   van alleen de historische vermelding van een lokale branch.
+
+## Historische checkpoints
+
+Alle onderstaande gedateerde blokken zijn historische registraties van hun
+expliciete bron. Oude woorden als “open”, acceptatie in afwachting en oude
+percentages beschrijven die bron, niet de actuele toestand bovenaan.
 
 ## B01 native entropy en sleutelbeheer geaccepteerd, 32% — 29 oktober 2026
 

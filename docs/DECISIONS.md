@@ -796,8 +796,8 @@ blijft rollbackdetectie afhankelijk van toekomstige vertrouwde persistente
 status (B02); een recoveryblob alleen bewijst geen actualiteit.
 
 De broker bevestigt virtio-reset vóór hergebruik; bij ontbrekende reset-ACK
-blijft DMA gepind en de broker offline. Eigenaarsverlies krijgt dezelfde
-begrensde afwikkeling. Twee aparte native fixtures bewijzen een echt stille
+blijft DMA gepind en de broker offline. Eigenaarsverlies stopt het apparaat en sluit de broker af; de DMA-pool
+blijft in quarantaine tot reboot. Twee aparte native fixtures bewijzen een echt stille
 bron en een normale reset/herstart; de oude `stuck` is uitsluitend een
 constante-bytefixture. Geen fysieke entropy- of hardwareherstelclaim.
 
