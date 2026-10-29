@@ -1,5 +1,38 @@
 # Actuele projectstatus
 
+## S06 geaccepteerd na merge en onafhankelijke herhaling, 28% — 29 oktober 2026
+
+Branch `ccr-43832ef7-gi2qlz`, basis `main` `8b60354` (squash van
+[PR #49](https://github.com/simonvanieperen/nieuw-os/pull/49)). Omgeving: een
+tweede Linux-container met Rust 1.90.0, QEMU 8.2.2 (Ubuntu-pakket), `pc-q35-8.2`,
+OVMF 4M. Deze container is niet de omgeving waarin PR #49 is gebouwd.
+
+**Uitgevoerd en geslaagd:**
+- `NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_volume.py` op een
+  worktree van PR-head `eadba7e`: exit 0. Hostcontroles 28 volume-core-, 14 SDK-
+  en 18 Python-tests; daarna 9 echte QEMU-runs. Bronvingerafdruk `528dfe4c…`,
+  gelijk aan `docs/verification/s06/volume-gate.json`; alle 9 `after_sha256`-
+  imagehashes zijn byte-identiek aan het vastgelegde PR-bewijs (normal/recover
+  `19e2fdb3…`, cut-data `48dcfcdd…`, cut-table `2d37c7c1…`, cut-txn `ede3a54c…`,
+  corrupt `a19398f1…`).
+- GitHub Actions op `eadba7e`: host-quality, qemu-smoke, k07-native,
+  m6e-native-volume, s08-native-resilience en CodeRabbit alle geslaagd; de drie
+  CodeRabbit-threads zijn opgelost. Codex-review kon niet draaien (gebruikslimiet).
+- Baseline in deze container: `tools/preflight.py --strict`, build
+  `milestone-m6c` en `run_m6c.py --case normal --smoke` exit 0. Zonder
+  `NOS_QEMU_MACHINE=pc-q35-8.2` weigert QEMU 8.2.2 het standaardprofiel
+  `pc-q35-10.0`; dat is de bestaande, vastgelegde ontwikkelkeuze, geen fout.
+
+**Roadmap rubric v1: 26% → 28%** (S06 +2). Dit is de bewijsgrens van
+[S06-ACCEPTANCE](verification/S06-ACCEPTANCE.md): opt-in profiel, emulator-kill
+is geen stroomuitval, geen authenticatie/encryptie (B02), geen back-up/export
+(S09), geen Materiaal-UI.
+
+**Open:** PR [#48](https://github.com/simonvanieperen/nieuw-os/pull/48)
+(S08-timing, 0 punten) heeft vijf open CodeRabbit-bevindingen en conflicteert na
+deze merge met `main`; de eigenaarsessie is inactief. Volgende implementatiestap
+richting 50%: K05 (algemeen proces- en dienstbeheer) als nieuw native profiel.
+
 ## S06 volume v2: native gate geslaagd, acceptatie wacht op review en CI, 26% — 29 oktober 2026
 
 Branch `ccr-d3fe1610-gl4r8s`, PR [#49](https://github.com/simonvanieperen/nieuw-os/pull/49).
