@@ -1,5 +1,46 @@
 # Actuele projectstatus
 
+## PR #47 gemerged: M6e op `main`, 26% ongewijzigd — 29 oktober 2026
+
+Squash-merge van [PR #47](https://github.com/simonvanieperen/nieuw-os/pull/47)
+naar `main` als `092ee52` (`092ee525316bae03091fdb7eb6e8c69bfdbb7558`), volgens de staande
+opdracht van 28 oktober. Werkbranch voor deze afronding: `ccr-a5fabb06-5mt06m`.
+
+**Gecontroleerd vóór de merge (29 oktober):**
+- GitHub Actions op de exacte eindhead `c87f980`: 6/6 groen. `m6e-native-volume`
+  run 40793519031, `host-quality`/`qemu-smoke` run 40793519215, `k07-native`
+  run 40793519092, `s08-native-resilience` run 40793519027 (geslaagd na één
+  herhaling; zie hieronder), CodeRabbit.
+- Alle zes CodeRabbit-reviewthreads opgelost; de formele "changes requested"
+  was al verworpen na de correcties. Codex kon niet reviewen (gebruikslimiet).
+  De CodeRabbit-waarschuwing over docstring-dekking (23,7%) is een stijlmeting,
+  geen bevinding.
+- Onafhankelijke herhaling in deze sessie (Linux-container, Rust 1.90.0, geen
+  QEMU): `cargo +1.90.0 test --locked -p volume-core` 17/17 geslaagd,
+  `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'` 8/8,
+  `python3 tools/progress.py --check` consistent op 26, en
+  `sha256sum -c docs/verification/m6e/SHA256SUMS` 22/22 kloppend.
+  De native QEMU-gate op de eindhead is niet lokaal herhaald; daarvoor geldt
+  de CI-job `m6e-native-volume`.
+
+**Roadmap rubric v1: 26% → 26%.** Geen nieuwe criteria; de assessment is
+bijgewerkt naar de merge-commit.
+
+**Open punt uit de CI, niet veroorzaakt door #47 maar nog onverklaard:**
+- `s08-native-resilience` faalde eenmaal op `8ae9194` (geval `write-error`) en
+  eenmaal op `c87f980` (geval `flush-error`), beide keren vóór de
+  foutinjectiemarker, met `M6C:USER_CODE:33`, en slaagde telkens bij één
+  herhaling op dezelfde commit. Tussen `d9e4b6b` en `c87f980` wijzigen alleen
+  documentatiebestanden; het M6c-profiel zit niet in de diff. Vermoeden
+  (niet geverifieerd): de eerste PUT-completion wordt op een belaste runner niet
+  binnen de vaste M6c-brokerdeadline gezien, dezelfde timingklasse als #26.
+  "Flake" is geen oorzaak; het onderzoek met lokale herhalingen van
+  `tools/test_storage_resilience.py` staat open en vereist een omgeving met QEMU.
+
+**Volgende stappen:** S06 (collecties/historie) uit de lokale worktree
+integreren en native gaten; G1 en K05-a onafhankelijk herhalen en accepteren;
+de S08-timingkwestie reproduceren en structureel oplossen.
+
 ## M6e schaalbare documentopslag native geaccepteerd, 26% — 28 oktober 2026
 
 Branch `ccr-d3fe1610-gl4r8s`, broncommit `d9e4b6b` (bevat `main` `78a96ae`), concept-PR
@@ -39,7 +80,8 @@ Ubuntu-pakket.
 
 **Open en niet bewezen:**
 - GitHub Actions slaagden op `1037ee3`, `f9e22c1` en `bf0bf61` (5/5, inclusief
-  `m6e-native-volume`); de herhaling op de eindhead moet nog slagen.
+  `m6e-native-volume`). Bijgewerkt 29 oktober: ook op de eindhead `c87f980`
+  6/6 groen; PR #47 is gesquasht naar `main` (zie bovenaan).
 - Geen native I/O-foutinjectie voor dit profiel; I/O-fouten zijn alleen hostgetest.
 - Geen fysieke schijf, encryptie of authenticatie (B02), back-up (S09),
   collecties/historie (S06) of migratie van M6c-volumes.

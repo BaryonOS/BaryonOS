@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **26** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`d9e4b6ba`](https://github.com/simonvanieperen/nieuw-os/commit/d9e4b6ba6144fd5e7353ff4d4f3bd8c5d2977cbc) ·
-**Ontwikkelbranch:** `ccr-d3fe1610-gl4r8s`.
-Deze opdracht: **20% → 26% (+6 procentpunt)**. **Opdracht:** M6e copy-on-write documentvolume: grote documenten, ruimtehergebruik, quota en crashconsistente vrijgave native geaccepteerd.
-S04 (+3) en S05 (+3) geaccepteerd op een bevroren bron (d9e4b6b, na vier CodeRabbit-rondes: pogingdigest per tabelsector, gateverdict pas na de afsluitende build, binding aan alle hosttestinputs die discovery kan laden): 17 hosttests incl. uitputtende crashsimulatie en een test tegen gemengde pogingen, 8 orakeltests en zeven echte QEMU-runs (normal, koude read-only recovery, twee echte VM-kills midden in inhouds- en tabelwrites met koude recovery, corrupte image geweigerd). 71 commits en 296 chunk-allocaties op 64 chunks; 64 KiB-documenten; Quota/Full vóór I/O; guest-digests gelijk aan het onafhankelijke Python-orakel. Proefgeometrie 256 KiB; geen fysieke schijf-, encryptie- of back-upclaim. GitHub Actions op PR #47 moet dit op de nieuwe head herhalen. N01-encoder (#46) gemerged zonder punt.
+**Bron:** [`092ee525`](https://github.com/simonvanieperen/nieuw-os/commit/092ee525316bae03091fdb7eb6e8c69bfdbb7558) ·
+**Ontwikkelbranch:** `ccr-a5fabb06-5mt06m`.
+Deze opdracht: **26% → 26% (+0 procentpunt)**. **Opdracht:** PR #47 (M6e, S04/S05) na groene CI op de exacte head en opgeloste reviewbevindingen squash-gemerged naar main; herbeoordeling zonder nieuwe criteria.
+Score ongewijzigd op 26. PR #47 is als 092ee52 naar main gesquasht na 6/6 groene GitHub Actions op de eindhead c87f980 (incl. m6e-native-volume run 40793519031), zes opgeloste CodeRabbit-threads en een onafhankelijke herhaling van de hostcontroles in deze sessie (volume-core 17/17, orakel 8/8, 22/22 bewijshashes). S04 en S05 blijven geaccepteerd op het bewijs van d9e4b6b; de native gate is niet opnieuw lokaal gedraaid (geen QEMU in deze sessie). Open: s08-native-resilience faalde twee keer eenmalig (8ae9194 write-error, c87f980 flush-error) vóór de foutinjectie en slaagde na één herhaling; oorzaak onbekend en niet door #47 veroorzaakt. Geen nieuwe criteria; S06, G1/U01-voorwerk en K05-a blijven open tot onafhankelijke native acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
