@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "056445accfb8f26e0c100976285133220318589b64f8ef2a495a9c537fc3b70b",
+  "test_inputs": {
+    "tests/test_volume_disk.py": "d2da21e43a26833250e19939aa11bb196bd8a7c039ed182e403ac2adf4267984",
+    "tests/test_volume_runner.py": "adcc26767ed7d5deab7694abaf0065e94807a51ffc557ed9f6788fb58875a9d9"
+  },
+  "status": "completed",
+  "passed": true,
+  "host": [
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "volume-core"
+      ],
+      "exit": 0,
+      "totals": [
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 35.35s",
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 4 tests\ntest mixed_attempts_for_one_generation_are_never_combined ... ok\ntest recovery_makes_the_chosen_copy_durable_before_writing ... ok\ntest recovered_instance_continues_after_interrupted_commit ... ok\ntest every_crash_point_recovers_to_before_or_after ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 35.35s\n\n\nrunning 8 tests\ntest malformed_s06_requests_are_rejected ... ok\ntest collection_state_is_readable_and_resolves_unknown ... ok\ntest collections_metadata_and_filtered_listing ... ok\ntest restoring_the_newest_history_version_keeps_the_oldest ... ok\ntest history_restore_undelete_and_purge ... ok\ntest read_only_refuses_every_s06_mutation ... ok\ntest stamps_do_not_reveal_other_domain_commits ... ok\ntest transactions_are_all_or_nothing ... ok\n\ntest result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 15 tests\ntest client_rejects_tampered_replies ... ok\ntest certain_io_failures_abort_without_closing ... ok\ntest client_rejects_inconsistent_stat_and_list_replies ... ok\ntest empty_volume_recovers_as_generation_zero ... ok\ntest domains_are_isolated_and_listing_is_paged ... ok\ntest malformed_requests_are_rejected_without_io ... ok\ntest delete_rename_and_tombstones ... ok\ntest read_only_instance_refuses_mutations ... ok\ntest large_document_roundtrip_beyond_old_128_byte_limit ... ok\ntest streaming_protocol_rules ... ok\ntest corrupted_content_and_tables_fail_closed ... ok\ntest quota_and_full_are_reported_before_any_io ... ok\ntest table_sector_layout_is_canonical ... ok\ntest table_write_failure_is_unknown_and_closes_instance ... ok\ntest space_is_reused_far_beyond_record_and_capacity_limits ... ok\n\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "   Compiling catalog-core v0.1.0 (/home/user/s06-gate/services/catalog)\n   Compiling volume-core v0.1.0 (/home/user/s06-gate/services/volume)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.63s\n     Running unittests src/lib.rs (target/debug/deps/volume_core-e112b1c1407f7271)\n     Running tests/crash.rs (target/debug/deps/crash-77106d60b28a014e)\n     Running tests/history.rs (target/debug/deps/history-9717f03d94278a66)\n     Running tests/service.rs (target/debug/deps/service-837f7883f53726f4)\n   Doc-tests volume_core\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "totals": [
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 14 tests\ntest block_completion_accepts_only_the_canonical_ticket_envelope ... ok\ntest abi_check_accepts_only_existing_compatible_versions ... ok\ntest handle_representation_does_not_accept_sentinels_or_slot_overflow ... ok\ntest delegated_cap_descriptors_are_validated_and_preserved ... ok\ntest known_rights_do_not_allow_new_permission_bits ... ok\ntest oversized_wire_lengths_never_index_or_truncate ... ok\ntest received_length_must_equal_the_syscall_result ... ok\ntest every_payload_length_matches_the_current_kernel_decoder ... ok\ntest raw_send_rejects_spoofed_sender_and_every_unused_byte ... ok\ntest received_envelope_rejects_missing_sender_reserved_and_padding ... ok\ntest received_message_keeps_kernel_identity_and_exact_payload ... ok\ntest refused_cap_append_does_not_modify_the_message ... ok\ntest register_errors_remain_errors_and_secondary_errors_are_zero ... ok\ntest sdk_messages_interoperate_with_actual_capability_engine ... ok\n\ntest result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "   Compiling capability-core v0.1.0 (/home/user/s06-gate/crates/capability-core)\n   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/user/s06-gate/sdk/runtime)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.68s\n     Running unittests src/lib.rs (sdk/target/debug/deps/nieuw_os_sdk_runtime-5cbfe2f97c4e8db7)\n     Running tests/message.rs (sdk/target/debug/deps/message-6e294e39e8cfaf78)\n   Doc-tests nieuw_os_sdk_runtime\n"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_volume_*.py"
+      ],
+      "exit": 0,
+      "totals": [
+        "Ran 18 tests in 0.394s",
+        "OK"
+      ],
+      "stdout": "",
+      "stderr": "..................\n----------------------------------------------------------------------\nRan 18 tests in 0.394s\n\nOK\n"
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "parent": null,
+      "passed": true,
+      "run_directory": "/home/user/s06-gate/build/run/volume-normal-f8b51c26f7",
+      "volume_identity": "07fde8eb4d744cf0b1b0a4c3ce2bef52",
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+      "raw_qemu_exit": 33,
+      "duration_s": 74.12724664999996,
+      "error": null
+    },
+    {
+      "case": "recover",
+      "parent": "normal",
+      "passed": true,
+      "run_directory": "/home/user/s06-gate/build/run/volume-recover-2579ecaac6",
+      "volume_identity": "07fde8eb4d744cf0b1b0a4c3ce2bef52",
+      "before_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+      "after_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+      "raw_qemu_exit": 33,
+      "duration_s": 39.66446155099993,
+      "error": null
+    },
+    {
+      "case": "cut-data",
+      "parent": null,
+      "passed": true,
+      "run_directory": "/home/user/s06-gate/build/run/volume-cut-data-2f6a606b8f",
+      "volume_identity": "8836f65b8203487786e8a75df1021786",
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "48dcfcdd8dc747377e107531d20f41ec1d0aba36a8e2c038901b82cd7f39987e",
+      "raw_qemu_exit": -9,
+      "duration_s": 3.77522845999988,
+      "error": null
+    },
+    {
+      "case": "recover-cut",
+      "parent": "cut-data",
+      "passed": true,
+      "run_directory": "/home/user/s06-gate/build/run/volume-recover-cut-25a2b6c7a5",
+      "volume_identity": "8836f65b8203487786e8a75df1021786",
+      "before_sha256": "48dcfcdd8dc747377e107531d20f41ec1d0aba36a8e2c038901b82cd7f39987e",
+      "after_sha256": "48dcfcdd8dc747377e107531d20f41ec1d0aba36a8e2c038901b82cd7f39987e",
+      "raw_qemu_exit": 33,
+      "duration_s": 4.270405494999977,
+      "error": null
+    },
+    {
+      "case": "cut-table",
+      "parent": null,
+      "passed": true,
+      "run_directory": "/home/user/s06-gate/build/run/volume-cut-table-ba3fab4cfc",
+      "volume_identity": "d3bd296be2a5473591ee5a6df514f3e2",
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "2d37c7c157c78fae8eec078ca869e69ffdb03ca03cd82b0b65bb3f83e39f423d",
+      "raw_qemu_exit": -9,
+      "duration_s": 4.422396583999898,
+      "error": null
+    },
+    {
+      "case": "recover-cut",
+      "parent": "cut-table",
+      "passed": true,
+      "run_directory": "/home/user/s06-gate/build/run/volume-recover-cut-b1065895a1",
+      "volume_identity": "d3bd296be2a5473591ee5a6df514f3e2",
+      "before_sha256": "2d37c7c157c78fae8eec078ca869e69ffdb03ca03cd82b0b65bb3f83e39f423d",
+      "after_sha256": "2d37c7c157c78fae8eec078ca869e69ffdb03ca03cd82b0b65bb3f83e39f423d",
+      "raw_qemu_exit": 33,
+      "duration_s": 4.285986527999967,
+      "error": null
+    },
+    {
+      "case": "cut-txn",
+      "parent": null,
+      "passed": true,
+      "run_directory": "/home/user/s06-gate/build/run/volume-cut-txn-89011ea49d",
+      "volume_identity": "5254db6ebd764833a5087e329686f7a6",
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
+      "raw_qemu_exit": -9,
+      "duration_s": 3.43673400900002,
+      "error": null
+    },
+    {
+      "case": "recover-cut",
+      "parent": "cut-txn",
+      "passed": true,
+      "run_directory": "/home/user/s06-gate/build/run/volume-recover-cut-2eb3b38cc8",
+      "volume_identity": "5254db6ebd764833a5087e329686f7a6",
+      "before_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
+      "after_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
+      "raw_qemu_exit": 33,
+      "duration_s": 3.882155942000054,
+      "error": null
+    },
+    {
+      "case": "corrupt",
+      "parent": null,
+      "passed": true,
+      "run_directory": "/home/user/s06-gate/build/run/volume-corrupt-96a508967c",
+      "volume_identity": "30497051f5d74eb29323bf1bc00002ad",
+      "before_sha256": "a19398f1597865bf1f565764a5494159a0cad3c7971f41d9b3c5e41a94ca2485",
+      "after_sha256": "a19398f1597865bf1f565764a5494159a0cad3c7971f41d9b3c5e41a94ca2485",
+      "raw_qemu_exit": 33,
+      "duration_s": 3.3737254239999857,
+      "error": null
+    }
+  ]
+}

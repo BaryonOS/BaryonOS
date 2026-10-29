@@ -51,7 +51,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
       - name: Strict preflight
         run: python3 -B tools/preflight.py --strict
-      - name: M6e native volume gate (7 QEMU runs)
+      - name: M6e/S06 native volume gate (9 QEMU runs)
         run: python3 -B -u tools/test_volume.py
       - name: Upload M6e reports
         if: ${{ always() }}

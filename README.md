@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **26** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`d9e4b6ba`](https://github.com/simonvanieperen/nieuw-os/commit/d9e4b6ba6144fd5e7353ff4d4f3bd8c5d2977cbc) ·
+**Bron:** [`71a0f9fd`](https://github.com/simonvanieperen/nieuw-os/commit/71a0f9fd88bbe9ea50f322540f8b0b8df174f932) ·
 **Ontwikkelbranch:** `ccr-d3fe1610-gl4r8s`.
-Deze opdracht: **20% → 26% (+6 procentpunt)**. **Opdracht:** M6e copy-on-write documentvolume: grote documenten, ruimtehergebruik, quota en crashconsistente vrijgave native geaccepteerd.
-S04 (+3) en S05 (+3) geaccepteerd op een bevroren bron (d9e4b6b, na vier CodeRabbit-rondes: pogingdigest per tabelsector, gateverdict pas na de afsluitende build, binding aan alle hosttestinputs die discovery kan laden): 17 hosttests incl. uitputtende crashsimulatie en een test tegen gemengde pogingen, 8 orakeltests en zeven echte QEMU-runs (normal, koude read-only recovery, twee echte VM-kills midden in inhouds- en tabelwrites met koude recovery, corrupte image geweigerd). 71 commits en 296 chunk-allocaties op 64 chunks; 64 KiB-documenten; Quota/Full vóór I/O; guest-digests gelijk aan het onafhankelijke Python-orakel. Proefgeometrie 256 KiB; geen fysieke schijf-, encryptie- of back-upclaim. GitHub Actions op PR #47 moet dit op de nieuwe head herhalen. N01-encoder (#46) gemerged zonder punt.
+Deze opdracht: **26% → 26% (+0 procentpunt)**. **Opdracht:** S06 volume v2 (collecties, metadata, historie, transacties): native gate geslaagd, acceptatie wacht op review en CI.
+Score blijft 26. S06 blijft open tot de onafhankelijke review van de reviewcorrecties en GitHub Actions op de PR-head zijn afgerond. Native gate geslaagd op bron 056445ac (tree van 71a0f9f): 27 volume-core-, 14 SDK- en 18 Python-hosttests plus negen echte QEMU-runs. Normal met koude read-only recovery, domeinklokken 57/27; cut-data, cut-table en cut-txn met echte hostkill, aangetoonde gescheurde tabelwrites (4 en 5 sectoren van g+1) en koude recovery; corrupte image geweigerd. Vijf eerdere reviewbevindingen zijn opgelost met regressietests. M6e-inhoud van main die een lokale merge had teruggezet is hersteld. Geen Materiaal-UI-, fysieke-schijf- of encryptieclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
