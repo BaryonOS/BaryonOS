@@ -22,7 +22,7 @@ M6B_TIMEOUT_CASES = ("write-timeout", "flush-timeout", "reset-timeout", "write-p
 M6B_FAULT_CASES = ("write-error", "flush-error") + M6B_TIMEOUT_CASES
 M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush") + M6B_FAULT_CASES
 M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES
-VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt")
+VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "cut-txn")
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",

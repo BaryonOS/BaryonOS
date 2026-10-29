@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **26** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`d9e4b6ba`](https://github.com/simonvanieperen/nieuw-os/commit/d9e4b6ba6144fd5e7353ff4d4f3bd8c5d2977cbc) ·
+**Bron:** [`ce181bfc`](https://github.com/simonvanieperen/nieuw-os/commit/ce181bfc6500619eb9d801d0b4dea3e8c3280aed) ·
 **Ontwikkelbranch:** `ccr-d3fe1610-gl4r8s`.
-Deze opdracht: **20% → 26% (+6 procentpunt)**. **Opdracht:** M6e copy-on-write documentvolume: grote documenten, ruimtehergebruik, quota en crashconsistente vrijgave native geaccepteerd.
-S04 (+3) en S05 (+3) geaccepteerd op een bevroren bron (d9e4b6b, na vier CodeRabbit-rondes: pogingdigest per tabelsector, gateverdict pas na de afsluitende build, binding aan alle hosttestinputs die discovery kan laden): 17 hosttests incl. uitputtende crashsimulatie en een test tegen gemengde pogingen, 8 orakeltests en zeven echte QEMU-runs (normal, koude read-only recovery, twee echte VM-kills midden in inhouds- en tabelwrites met koude recovery, corrupte image geweigerd). 71 commits en 296 chunk-allocaties op 64 chunks; 64 KiB-documenten; Quota/Full vóór I/O; guest-digests gelijk aan het onafhankelijke Python-orakel. Proefgeometrie 256 KiB; geen fysieke schijf-, encryptie- of back-upclaim. GitHub Actions op PR #47 moet dit op de nieuwe head herhalen. N01-encoder (#46) gemerged zonder punt.
+Deze opdracht: **26% → 26% (+0 procentpunt)**. **Opdracht:** S06 volume v2: correcties tweede review en CodeRabbit; native gate en mutatiecontrole geslaagd, acceptatie wacht op derde reviewronde en CI.
+Score blijft 26. S06 blijft open tot de derde onafhankelijke reviewronde, GitHub Actions op de PR-head en de herbeoordeling door CodeRabbit zijn afgerond. Native gate geslaagd op ce181bf in een schone kloon, bronvingerafdruk v3 528dfe4c (een SHA-256 over de broninputs, geen Git-tree): 28 volume-core-, 14 SDK- en 18 Python-hosttests plus negen echte QEMU-runs. Guest-uitvoer en image-hashes zijn byte-gelijk aan de vorige run op cb20c27. Normal met koude read-only recovery, domeinklokken 57/27; cut-data, cut-table en cut-txn met echte hostkill, aangetoonde gescheurde tabelwrites (4 en 5 sectoren van g+1) en koude recovery; corrupte image geweigerd. Mutatiecontrole (tools/mutate_volume.py) op dezelfde bron: 24 van 24 mutanten gevangen, rapport vastgelegd. De tweede review vond geen fout in de productiecode, wel zwakke tests en twee te ruime claims; die zijn gecorrigeerd. Geen Materiaal-UI-, fysieke-schijf- of encryptieclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

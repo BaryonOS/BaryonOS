@@ -160,5 +160,7 @@ pub fn fill(object: u64, revision: u64) -> impl FnMut(usize, &mut [u8]) {
 
 pub fn recover(image: Vec<[u8; SECTOR]>) -> Result<table::Table, Status> {
     let mut disk = SimDisk::from_image(image);
-    table::recover(&mut disk)
+    let mut table = table::Table::EMPTY;
+    table::recover(&mut disk, &mut table)?;
+    Ok(table)
 }

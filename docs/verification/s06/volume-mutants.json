@@ -1,0 +1,641 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "528dfe4c0535a0f68dc72a9928a9b8494e9a608fa41e3ed2dc41f75241b8f383",
+  "test_inputs": {
+    "tests/test_volume_disk.py": "c612c63f6699de1ee4ea461e2bff3f395192d280a5886d6d31119a2a2f916e73",
+    "tests/test_volume_runner.py": "adcc26767ed7d5deab7694abaf0065e94807a51ffc557ed9f6788fb58875a9d9"
+  },
+  "status": "completed",
+  "passed": true,
+  "baseline": [
+    {
+      "suite": "rust",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 0,
+      "failed_tests": [],
+      "compile_error": false
+    },
+    {
+      "suite": "python",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_volume_*.py"
+      ],
+      "exit": 0,
+      "failed_tests": [],
+      "compile_error": false
+    }
+  ],
+  "mutants": [
+    {
+      "id": "choose-unrelated-generations",
+      "file": "services/volume/src/table.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "corrupted_content_and_tables_fail_closed"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "collection-clock-bound",
+      "file": "services/volume/src/table.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "table_sector_layout_is_canonical"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "revision-clock-bound",
+      "file": "services/volume/src/table.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "table_sector_layout_is_canonical"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "modified-clock-bound",
+      "file": "services/volume/src/table.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "table_sector_layout_is_canonical"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "restore-keeps-history",
+      "file": "services/volume/src/service.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "history_restore_undelete_and_purge",
+        "restoring_the_newest_history_version_keeps_the_oldest"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "flush-after-recovery",
+      "file": "services/volume/src/service.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "collection_state_is_readable_and_resolves_unknown"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "stat-version-nonzero",
+      "file": "services/volume/src/client.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "client_rejects_inconsistent_stat_and_list_replies"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "stat-history-nonzero",
+      "file": "services/volume/src/client.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "client_rejects_inconsistent_stat_and_list_replies"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "list-cursor-gate",
+      "file": "services/volume/src/client.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "client_rejects_inconsistent_stat_and_list_replies"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "collection-stat-name-length",
+      "file": "services/volume/src/client.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "client_rejects_forged_collection_stat_replies"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "collection-stat-count",
+      "file": "services/volume/src/client.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "client_rejects_forged_collection_stat_replies"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "collection-stat-request-id",
+      "file": "services/volume/src/client.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "client_rejects_forged_collection_stat_replies"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "collection-stat-present-revision",
+      "file": "services/volume/src/client.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "client_rejects_forged_collection_stat_replies"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "collection-stat-present-name",
+      "file": "services/volume/src/client.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "client_rejects_forged_collection_stat_replies"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "collection-stat-absent-empty",
+      "file": "services/volume/src/client.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "client_rejects_forged_collection_stat_replies"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "collection-stat-request-base",
+      "file": "services/volume/src/wire.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "malformed_s06_requests_are_rejected"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "collection-stat-request-revision",
+      "file": "services/volume/src/wire.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "malformed_s06_requests_are_rejected"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "collection-stat-request-length",
+      "file": "services/volume/src/wire.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "malformed_s06_requests_are_rejected"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "collection-stat-request-name-length",
+      "file": "services/volume/src/wire.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "malformed_s06_requests_are_rejected"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "collection-stat-request-count",
+      "file": "services/volume/src/wire.rs",
+      "suite": "rust",
+      "caught": true,
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "volume-core",
+        "--lib",
+        "--test",
+        "service",
+        "--test",
+        "history"
+      ],
+      "exit": 101,
+      "failed_tests": [
+        "malformed_s06_requests_are_rejected"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "oracle-unrelated-generations",
+      "file": "tools/volume_disk.py",
+      "suite": "python",
+      "caught": true,
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_volume_*.py"
+      ],
+      "exit": 1,
+      "failed_tests": [
+        "test_unrelated_generations_are_refused"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "oracle-modified-clock-bound",
+      "file": "tools/volume_disk.py",
+      "suite": "python",
+      "caught": true,
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_volume_*.py"
+      ],
+      "exit": 1,
+      "failed_tests": [
+        "test_domain_clocks_add_up_and_bound_every_stamp"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "oracle-revision-clock-bound",
+      "file": "tools/volume_disk.py",
+      "suite": "python",
+      "caught": true,
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_volume_*.py"
+      ],
+      "exit": 1,
+      "failed_tests": [
+        "test_domain_clocks_add_up_and_bound_every_stamp"
+      ],
+      "compile_error": false
+    },
+    {
+      "id": "oracle-collection-clock-bound",
+      "file": "tools/volume_disk.py",
+      "suite": "python",
+      "caught": true,
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_volume_*.py"
+      ],
+      "exit": 1,
+      "failed_tests": [
+        "test_domain_clocks_add_up_and_bound_every_stamp"
+      ],
+      "compile_error": false
+    }
+  ]
+}

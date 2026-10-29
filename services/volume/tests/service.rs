@@ -41,7 +41,8 @@ fn expected(object: u64, revision: u64, length: usize) -> Vec<u8> {
 #[test]
 fn empty_volume_recovers_as_generation_zero() {
     let mut disk = SimDisk::new();
-    let table = table::recover(&mut disk).unwrap();
+    let mut table = Table::EMPTY;
+    table::recover(&mut disk, &mut table).unwrap();
     assert_eq!(table, Table::EMPTY);
     assert_eq!(disk.log.len(), 2 * TABLE_SECTORS as usize);
 }
@@ -80,9 +81,11 @@ fn space_is_reused_far_beyond_record_and_capacity_limits() {
     let mut disk = SimDisk::new();
     let mut service = Service::new(EPOCH, Table::EMPTY, false);
     let mut revisions = [0u64; 3];
-    for round in 0..60u64 {
+    // Each object retains its two previous versions, so sizes leave room for
+    // three versions of everything plus one staged upload within the quota.
+    for round in 0..90u64 {
         let object = round % 3;
-        let length = [MAX_LENGTH, 3 * CHUNK + 17, 9000][object as usize];
+        let length = [4 * CHUNK, 3 * CHUNK + 17, 9000][object as usize];
         let mut c = client(&mut service, &mut disk, 0);
         let (revision, _) = c
             .write(
@@ -99,14 +102,14 @@ fn space_is_reused_far_beyond_record_and_capacity_limits() {
             expected(object, revision, length)
         );
     }
-    assert_eq!(service.counters.commits, 60);
+    assert_eq!(service.counters.commits, 90);
     // Far more chunks were allocated than the volume holds, and more commits
     // happened than the old 32-record journal allowed.
     assert!(service.counters.chunk_allocations > 4 * CHUNKS as u64);
-    assert_eq!(service.table().domain_chunks(0), 16 + 4 + 3);
+    assert_eq!(service.table().domain_chunks(0), 3 * (4 + 4 + 3));
     let recovered = recover(disk.settled()).unwrap();
     assert_eq!(&recovered, service.table());
-    assert_eq!(recovered.generation, 60);
+    assert_eq!(recovered.generation, 90);
 }
 
 #[test]
@@ -140,9 +143,12 @@ fn quota_and_full_are_reported_before_any_io() {
         assert_eq!(c.transport.disk.log.len(), writes);
     }
     {
-        // Deleting releases space that the other domain can then use.
+        // Deleting keeps the content restorable; only PURGE releases the
+        // space that the other domain can then use.
         let mut c = client(&mut service, &mut disk, 0);
         assert_eq!(c.delete(1, 1), Ok(2));
+        assert_eq!(c.transport.service.table().domain_chunks(0), QUOTA);
+        assert_eq!(c.purge(1, 2), Ok(3));
     }
     let mut c = client(&mut service, &mut disk, 1);
     c.write(10, 0, b"Vol", 15 * CHUNK, fill(10, 1)).unwrap();
@@ -167,13 +173,7 @@ fn domains_are_isolated_and_listing_is_paged() {
         )
         .unwrap();
     }
-    let mut entries = [wire::ListEntry {
-        object: 0,
-        revision: 0,
-        length: 0,
-        name_length: 0,
-        name: [0; 32],
-    }; PER_DOMAIN];
+    let mut entries = [wire::ListEntry::EMPTY; PER_DOMAIN];
     let (count, generation) = c.list(1, &mut entries).unwrap();
     assert_eq!((count, generation), (5, 5));
     assert_eq!(
@@ -367,7 +367,7 @@ fn corrupted_content_and_tables_fail_closed() {
         .unwrap();
     let image = disk.settled();
     // Flip one content byte: reads of that chunk report Corrupt, others work.
-    let chunk = service.table().entries[0].chunks[1] as u64;
+    let chunk = service.table().entries[0].current.chunks[1] as u64;
     let mut bad = image.clone();
     bad[(DATA_START + chunk * 8) as usize][3] ^= 0x40;
     let table = recover(bad.clone()).unwrap();
@@ -388,7 +388,7 @@ fn corrupted_content_and_tables_fail_closed() {
     // recovery stops instead of silently using generation 1.
     let newest = Table::slot(2) * TABLE_SECTORS;
     let mut invalid = *service.table();
-    invalid.entries[1].name[0] = b'/';
+    invalid.entries[1].current.name[0] = b'/';
     let mut bad = image.clone();
     for index in 0..TABLE_SECTORS {
         bad[(newest + index) as usize] = invalid.encode_sector(index);
@@ -411,9 +411,21 @@ fn corrupted_content_and_tables_fail_closed() {
     bad[(Table::slot(1) * TABLE_SECTORS + 4) as usize][0] = 0xff;
     assert_eq!(recover(bad).map(|table| table.generation), Ok(2));
     // An older copy that is not generation 1 or 3 is an unexplained state.
+    // The forged copy is valid on its own (its clocks add up), so only the
+    // generation rule of `choose` can refuse the pair.
     let mut bad = image;
     let mut foreign = *service.table();
+    foreign.clocks[0] += 5 - foreign.generation;
     foreign.generation = 5;
+    let mut alone = Table::EMPTY;
+    assert_eq!(
+        Table::decode_from(
+            Table::slot(5),
+            |index| Ok(foreign.encode_sector(index)),
+            &mut alone
+        ),
+        Ok(())
+    );
     for index in 0..TABLE_SECTORS {
         bad[(Table::slot(5) * TABLE_SECTORS + index) as usize] = foreign.encode_sector(index);
     }
@@ -536,20 +548,152 @@ fn client_rejects_tampered_replies() {
 }
 
 #[test]
+fn client_rejects_inconsistent_stat_and_list_replies() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, 0);
+    for revision in 0..3 {
+        c.write(0, revision, b"Doc", 300, fill(0, revision + 1))
+            .unwrap();
+    }
+    let stat = Header::new(wire::STAT, 60, EPOCH, 0);
+    let reply = service.handle(0, &wire::encode(&stat, &[]), &mut disk);
+    assert!(validate_reply(&stat, &reply, EPOCH).is_ok());
+    let put = |body: &mut [u8; wire::SIZE], at: usize, value: u64| {
+        body[64 + at..64 + at + 8].copy_from_slice(&value.to_le_bytes())
+    };
+    // Each case breaks exactly one rule; the other checks still hold.
+    let tampered: [(&str, usize, u64); 6] = [
+        ("version above object revision", 72, u64::MAX),
+        ("oldest history revision zero", 100, 0),
+        ("history not older", 80, 3),
+        ("history out of order", 100, 2),
+        ("created zero", 48, 0),
+        ("created after modified", 48, u64::MAX),
+    ];
+    for (what, at, value) in tampered {
+        let mut bad = reply;
+        put(&mut bad, at, value);
+        assert_eq!(
+            validate_reply(&stat, &bad, EPOCH),
+            Err(Status::Protocol),
+            "{what}"
+        );
+    }
+    let mut bad = reply;
+    bad[64 + 88..64 + 92].copy_from_slice(&u32::MAX.to_le_bytes());
+    assert_eq!(validate_reply(&stat, &bad, EPOCH), Err(Status::Protocol));
+    // A version of zero, for an object without history (so no ordering rule
+    // applies).
+    client(&mut service, &mut disk, 0)
+        .write(1, 0, b"Los", 10, fill(1, 1))
+        .unwrap();
+    let single = Header::new(wire::STAT, 62, EPOCH, 1);
+    let reply = service.handle(0, &wire::encode(&single, &[]), &mut disk);
+    assert!(validate_reply(&single, &reply, EPOCH).is_ok());
+    let mut bad = reply;
+    put(&mut bad, 72, 0);
+    assert_eq!(validate_reply(&single, &bad, EPOCH), Err(Status::Protocol));
+    // A LIST reply with a huge cursor is refused before its entries are
+    // inspected (no overflow, also in debug builds). The entry is inside the
+    // requested range, so an unchecked cursor would reach the bound sum.
+    let list = Header::new(wire::LIST, 61, EPOCH, PER_DOMAIN as u64);
+    let mut forged = Header::new(wire::LIST, 61, EPOCH, PER_DOMAIN as u64);
+    forged.count = 1;
+    forged.aux = u64::MAX;
+    forged.length = wire::LIST_ENTRY as u32;
+    let mut entry = [0u8; wire::LIST_ENTRY];
+    entry[0] = PER_DOMAIN as u8;
+    let body = wire::encode(&forged, &entry);
+    assert_eq!(validate_reply(&list, &body, EPOCH), Err(Status::Protocol));
+}
+
+#[test]
+fn client_rejects_forged_collection_stat_replies() {
+    let request = Header::new(wire::COLLECTION_STAT, 70, EPOCH, 0);
+    let reply = |revision: u64, request_id: u64, count: u32, name: &[u8], name_length: u32| {
+        let mut h = Header::new(wire::COLLECTION_STAT, 70, EPOCH, 0);
+        h.revision = revision;
+        h.aux = request_id;
+        h.count = count;
+        h.length = name.len() as u32;
+        h.name_length = name_length;
+        wire::encode(&h, name)
+    };
+    let check = |body: [u8; wire::SIZE]| validate_reply(&request, &body, EPOCH).map(|_| ());
+    // The three shapes the service produces.
+    assert_eq!(check(reply(0, 0, 0, b"", 0)), Ok(()), "never created");
+    assert_eq!(check(reply(2, 7, 1, b"Werk", 4)), Ok(()), "present");
+    assert_eq!(check(reply(3, 8, 0, b"", 0)), Ok(()), "deleted");
+    // Each forgery breaks one rule.
+    let forged: [(&str, [u8; wire::SIZE]); 7] = [
+        ("present without revision", reply(0, 0, 1, b"Werk", 4)),
+        ("present without name", reply(2, 7, 1, b"", 0)),
+        ("absent with a name", reply(3, 8, 0, b"Werk", 4)),
+        ("count above one", reply(3, 8, 2, b"", 0)),
+        ("revision without request ID", reply(2, 0, 1, b"Werk", 4)),
+        ("name length differs", reply(2, 7, 1, b"Werk", 3)),
+        ("invalid name", reply(2, 7, 1, b"a/b", 3)),
+    ];
+    for (what, body) in forged {
+        assert_eq!(check(body), Err(Status::Protocol), "{what}");
+    }
+}
+
+#[test]
 fn table_sector_layout_is_canonical() {
     let mut table = Table::EMPTY;
     table.generation = 3;
     table.request_id = 9;
+    table.clocks = [3, 0];
     table.entries[0].revision = 1;
     table.entries[0].request_id = 9;
+    table.entries[0].created = 3;
+    table.entries[0].modified = 3;
     table.entries[0].present = true;
-    table.entries[0].name_length = 1;
-    table.entries[0].name[0] = b'a';
+    table.entries[0].current.revision = 1;
+    table.entries[0].current.name_length = 1;
+    table.entries[0].current.name[0] = b'a';
     let sectors: [[u8; SECTOR]; TABLE_SECTORS as usize] =
         core::array::from_fn(|i| table.encode_sector(i as u64));
-    assert_eq!(Table::decode(1, &sectors), Ok(table));
-    assert_eq!(Table::decode(0, &sectors), Err(Status::Corrupt));
+    let decode = |slot: u64, sectors: &[[u8; SECTOR]; TABLE_SECTORS as usize]| {
+        let mut out = Table::EMPTY;
+        Table::decode_from(slot, |index| Ok(sectors[index as usize]), &mut out).map(|()| out)
+    };
+    assert_eq!(decode(1, &sectors), Ok(table));
+    assert_eq!(decode(0, &sectors), Err(Status::Corrupt));
     let mut swapped = sectors;
-    swapped.swap(1, 2);
-    assert_eq!(Table::decode(1, &swapped), Err(Status::Corrupt));
+    swapped.swap(2, 3);
+    assert_eq!(decode(1, &swapped), Err(Status::Corrupt));
+    // Domain clocks add up to the generation and bound every stamp of the
+    // domain's objects.
+    for clocks in [[2, 0], [3, 1], [0, 3]] {
+        let mut wrong = table;
+        wrong.clocks = clocks;
+        let sectors: [[u8; SECTOR]; TABLE_SECTORS as usize] =
+            core::array::from_fn(|i| wrong.encode_sector(i as u64));
+        assert!(decode(1, &sectors).is_err(), "clocks {clocks:?} accepted");
+    }
+    // Each bound on its own: the clocks add up and every value fits the
+    // generation, only one field exceeds its domain's clock (2).
+    let mut modified = table;
+    modified.clocks = [2, 1];
+    let mut revision = table;
+    revision.clocks = [2, 1];
+    revision.entries[0].revision = 3;
+    revision.entries[0].created = 2;
+    revision.entries[0].modified = 2;
+    let mut collection = table;
+    let foreign = &mut collection.collections[volume_core::COLLECTIONS];
+    foreign.revision = 1;
+    foreign.request_id = 7;
+    for (what, wrong) in [
+        ("modified", modified),
+        ("revision", revision),
+        ("collection", collection),
+    ] {
+        let sectors: [[u8; SECTOR]; TABLE_SECTORS as usize] =
+            core::array::from_fn(|i| wrong.encode_sector(i as u64));
+        assert_eq!(decode(1, &sectors), Err(Status::Corrupt), "{what}");
+    }
 }

@@ -549,3 +549,106 @@ selecteren of de M6e-commits gericht reverten.
 **Eigenaar:** hoofdagent voor formaat, contract en integratie
 (`services/volume`, `tools/volume_disk.py`, gate en bewijs); `kernel_m2` voor de
 generieke blokbroker in `kernel/src/m2/m3/volume.rs`.
+
+## ADR-041 — Volume v2: collecties, metadata, begrensde historie en transacties (S06)
+
+**Datum/status:** 29 oktober 2026, geaccepteerd voor het opt-in profiel
+`native-volume`. Formaat v2 (`NOSVOL02`) en IPC v6 vervangen v1/IPC v5 binnen
+dat profiel; er is geen migratie, omdat het profiel alleen wegwerpimages in
+QEMU gebruikt. M6b/M6c/M6d blijven ongewijzigd.
+
+**Status:** ontwerp geaccepteerd. Implementatie: `services/volume` (v2),
+`sdk/examples/volume-docs` (dienst en app), kernelgeval `test-volume-cut-txn`,
+orakel en gate. Testbewijs: zie
+[S06-ACCEPTANCE](verification/S06-ACCEPTANCE.md). Onbekend: fysieke schijven en
+stroomuitval, authenticatie/encryptie (B02), back-up/export (S09), grotere
+historie en de native Materiaal-interface.
+
+**Context:** Materiaal werkt vanuit objecten met collecties, type, labels en
+geschiedenis; herstel maakt een nieuwe revisie (PRODUCT-SPEC §2, P2-05). M6e had
+alleen naam en actuele inhoud.
+
+**Alternatieven:** (a) een journal of log van bewerkingen naast de tabel:
+verworpen, omdat het de recordlimiet en compactie terugbrengt die ADR-040
+juist verwijderde; (b) onbeperkte historie via een aparte versieketen op schijf:
+uitgesteld, omdat begrensde opslag en quota dan nog niet te bewijzen zijn;
+(c) collecties als gewone objecten: verworpen, omdat lidmaatschap dan niet
+atomair met objectmetadata te controleren is.
+
+**Besluit:** iedere objectentry krijgt een tweede tabelsector met twee
+historische versies; de kop bewaart `tags`, `kind`, collectie en logische
+tijden. Die tijden komen uit een klok per domein in de tabelheader: het aantal
+commits van dat domein (de klokken tellen op tot de generatie). Collecties
+staan in een eigen tabelsector per volume (4 per domein) en zijn leesbaar met
+COLLECTION_STAT, ook read-only. RESTORE maakt van een historische versie een
+nieuwe revisie zonder inhoud te herschrijven (chunks worden opnieuw
+gerefereerd); de teruggezette versie verlaat de historie en de vervangen
+actuele versie neemt haar plaats in, zodat geen andere versie wegvalt. DELETE
+bewaart de laatste versie als historie; PURGE geeft historie vrij. TRANSACT
+voert maximaal vier META/DELETE/PURGE-stappen op verschillende objecten van
+één domein uit in één tabelcommit. Alle wijzigingen gebruiken het
+ongewijzigde M6e-commitprotocol. Een schrijfbare nieuwe instantie flusht na
+recovery vóór het eerste verzoek; mislukt dat, dan start zij niet.
+
+**Onderbouwing/bronnen:** ADR-040 (commitvolgorde, VIRTIO 1.2 §5.2.6.2) en
+PRODUCT-SPEC §2/§6 voor de takenlijst. Geen nieuwe externe bron nodig.
+
+**Security-invariant:** domein komt uitsluitend van het kernelgebonden
+endpoint; een transactie kan alleen objectindices binnen het eigen domein
+noemen, en een object kan alleen in een collectie van het eigen domein staan.
+Quota telt behouden historie mee, dus historie kan geen ruimte buiten de quota
+vasthouden. Leesantwoorden (STAT, LIST, COLLECTION_STAT, READ) en de revisies,
+stempels en tellers in mutatieantwoorden bevatten alleen toestand van het eigen
+domein (tijdstempels gebruiken de eigen domeinklok; LIST geeft een
+domeinteller). Twee kanalen tussen domeinen zijn bewust restrisico: `Full`
+hangt af van de gedeelde, overboekte volumeruimte (2 × 40 van 64 chunks), en
+een mislukte tabelwrite van één domein sluit de instantie, waarna ook het
+andere domein `Unknown` krijgt. De kernel blijft formaatloos.
+
+**Weerlegd als:** een gedeeltelijk toegepaste transactie na een crash of fout
+zichtbaar is; RESTORE inhoud wijzigt of andere historie wist; een object naar
+een collectie van een ander domein kan; historie quota omzeilt; of guest en
+onafhankelijk orakel verschillende domeindigests (inclusief collecties)
+vinden.
+
+**Reviewcorrecties (29 oktober 2026, vóór acceptatie):** een onafhankelijke
+review vond vijf punten die in dit besluit zijn verwerkt, elk met een
+regressietest: (1) de globale generatie in STAT
+liet een domein de commits van het andere tellen; (2) collecties waren via IPC
+alleen schrijfbaar; (3) RESTORE van de nieuwste versie bij volle historie wiste
+de oudste; (4) een nieuwe instantie kon schrijven terwijl de gekozen kopie nog
+alleen in de schijfcache stond; (5) de gate kon een kill vóór de tabelwrite
+niet onderscheiden van een gescheurde tabelwrite. De runner eist nu een echt
+gescheurde poging (prefix van g+1-sectoren boven de vorige kopie).
+
+Een tweede review (van die correcties) vond geen fout in de productiecode,
+maar wel tests die de bedoelde fout niet vingen en twee te ruime claims. Ook
+die zijn gecorrigeerd:
+- de test op ongerelateerde generaties werd vacuüm door de klokken;
+- de LIST-cursortest bereikte de overloop niet;
+- COLLECTION_STAT had geen negatieve tests;
+- de losse klokgrenzen waren niet afzonderlijk getest;
+- invariant 7 claimde volledige non-interferentie;
+- een read-only antwoord op een `Unknown` commit werd als definitief
+  gepresenteerd.
+
+Sindsdien is de mutatiecontrole herhaalbaar en vastgelegd.
+`tools/mutate_volume.py` schakelt per mutant precies één regel uit in een
+kopie van de bron en eist dat ten minste één test faalt. Het rapport met
+commando, exitstatus en falende tests staat in
+`docs/verification/s06/volume-mutants.json`.
+
+**Gevolgen:** v1-images worden door v2 als corrupt geweigerd (andere magic);
+het M6e-bewijs blijft gebonden aan zijn eigen bron, en de S06-gate herhaalt de
+S04/S05-scenario's op v2.
+
+**Restrisico:** historie is begrensd tot twee versies (de oudste valt weg bij
+een nieuwe versie); geen zoekindex; FNV is geen authenticatie. `Full` en de
+instantiebrede `Unknown` na een mislukte tabelwrite zijn zichtbaar over
+domeinen heen. Een read-only antwoord op een `Unknown` commit is voorlopig.
+
+**Migratie/rollback:** geen migratie van v1-volumes; terugdraaien = de
+S06-commits gericht reverten (dan geldt weer v1 met zijn eigen bewijs).
+
+**Eigenaar:** hoofdagent voor formaat, contract, orakel en gate; `kernel_m2`
+voor het kernelgeval `test-volume-cut-txn`.

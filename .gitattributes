@@ -39,3 +39,7 @@ docs/verification/m6e/**/*.txt -text
 docs/verification/m6e/**/*.json -text
 docs/verification/m6e/*.json -text
 docs/verification/m6e/SHA256SUMS -text
+docs/verification/s06/**/*.txt -text
+docs/verification/s06/**/*.json -text
+docs/verification/s06/*.json -text
+docs/verification/s06/SHA256SUMS -text
