@@ -7,7 +7,7 @@
     "branch": "codex/supervisor-startup-slots",
     "task": "K05 vaste startcapabilityposities en raw ABI-negatieve gevallen native geverifieerd",
     "previous_score": 32,
-    "summary": "32→32. Bestaand P2-ABI-randgeval uit#51 opgelost: legecap0 behoudt cap1 opoffset64. Native regressie rood vóór herstel, groen erna. Volledige K05-gate op56b576b/fingerprintcccf0e3e:5/5 echte VM-runs, normal sparse-spawn1/slotchecks3/24antwoorden, denied21/21, behoudfault/orphan/quota en cleanup.65hosttests plus clippy/fmt/diff groen; tweedeagentreview geenblocker. #53/#54 geïntegreerd, #48gesloten en8reviewthreads opgelost. Geen nieuwe rechten, ABI, dependencies, criteria of gewichten. B02 en bestaande hardware-/antirollbackgrenzen blijven open."
+    "summary": "De score blijft 32%. Het bestaande P2-randgeval uit PR #51 is opgelost: een lege cap0 behoudt cap1 op offset 64. De nieuwe native regressie faalde vóór het herstel en slaagt erna. De volledige K05-gate op commit 56b576b (bronvingerafdruk cccf0e3e) heeft 5/5 echte VM-runs: normal bewijst één sparse spawn, drie positie-/rechtencontroles en 24 antwoorden; denied matcht 21/21 fouten. Fault-, orphan-, quota- en cleanupcontroles blijven groen. Ook 65 hosttests, Clippy, formattering en een afzonderlijke agentreview slagen. PRs #53 en #54 zijn geïntegreerd; #48 is gesloten en acht reviewthreads zijn opgelost. Geen nieuwe rechten, ABI, afhankelijkheden, criteria of gewichten. B02 en bestaande hardware-/antirollbackgrenzen blijven open."
   },
   "tracks": [
     {

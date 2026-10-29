@@ -78,12 +78,12 @@ wordt 1023. `derive`, `revoke` en IPC-overdracht van deze objecten falen met
 | 32 | 1 (startepoch) |
 | 56 | handle van `cap0` in de tabel van het kind, of 0 |
 | 64 | handle van `cap1`, of 0 |
-
-Lege posities worden niet samengepakt: bij cap0=0 en geldige cap1 blijft56
-nul en staat de gedelegeerde cap1 op64. Het aantal niet-lege capabilities
-bepaalt uitsluitend de resourcepreflight. Dit bestaande contract is na de
-P2-review van #51 met een echte native sparse-capregressie afgedwongen.
 | 176 | eigen PID |
+
+Lege posities worden niet samengepakt: bij `cap0=0` en een geldige `cap1`
+blijft offset 56 nul en staat de gedelegeerde `cap1` op offset 64. Het aantal
+niet-lege capabilities bepaalt uitsluitend de resourcepreflight. Dit bestaande
+contract is na de P2-review van #51 met een native regressie afgedwongen.
 
 ## 4. Kernelobjecten
 

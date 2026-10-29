@@ -9,28 +9,28 @@ bronvingerafdruk `cccf0e3e7fcec439428208c4458a0194ec23c6120e1f03d96abe65b0711631
 Latere wijzigingen zijn uitsluitend docs/bewijs.
 
 **Hersteld:** P2 uit #51: een geldige raw `proc_spawn` met lege cap0 en
-SEND in cap1 gaf cap1 foutief op startup-offset56 in plaats van64.
+SEND in cap1 gaf cap1 foutief op startup-offset 56 in plaats van 64.
 Verzamelen/installeren behouden nu beide indices; count blijft voor quota-
 preflight. Geen rechten-, ABI-, SDK-interface- of afhankelijkheidswijziging.
 
-**Uitgevoerd en geslaagd (exit0):** `tools/test_supervisor.py`,5/5 echte
-QEMU-runs normal/crash/denied/parent-exit/quota. Normal bewijst één sparse
-spawn, drie slot-/rechtencontroles,24 echteIPC-antwoorden en herstart;
-denied21/21 gematchte controles,11 geweigerde spawns. Engine-/framecleanup
-in alle gevallen groen. Host40capability/17SDK/1voorbeeldlib/7harnastests;
+**Uitgevoerd en geslaagd (exit 0):** `tools/test_supervisor.py`,5/5 echte
+QEMU-runs: normal, crash, denied, parent-exit en quota. Normal bewijst één sparse
+spawn, drie slot-/rechtencontroles, 24 echte IPC-antwoorden en herstart;
+denied 21/21 gematchte controles, 11 geweigerde spawns. Engine-/framecleanup
+in alle gevallen groen. Host: 40 capability-, 17 SDK-, 1 voorbeeldlib- en 7 harnastests;
 voorbeeldclippy, root-/SDKfmt en diffcontrole groen. Oude kernel met nieuwe
-native test faalde aantoonbaar na15s; gerichte herstelde normalcase groen.
-Afzonderlijke agentreview: geen blockers;7harnastests onafhankelijk herhaald.
+native test faalde aantoonbaar na 15 seconden; gerichte herstelde normalcase groen.
+Afzonderlijke agentreview: geen blockers; 7 harnastests onafhankelijk herhaald.
 Bewijs en exacte commando's: [k05-startup-slots](verification/k05-startup-slots/README.md).
 
-Omgeving: Rust1.90.0, QEMU10.0.13, explicietpc-q35-8.2, qemu64/TCG/1CPU/
-256MiB, OVMF2025.02-8+deb13u1/4M. Geen fysiekehardware- of SMPclaim.
-**Score32→32:** bestaand K05-ABI-randgeval hersteld; geen nieuw criterium.
+Omgeving: Rust 1.90.0, QEMU 10.0.13, expliciet pc-q35-8.2, qemu64, TCG, 1 CPU,
+256 MiB, OVMF 2025.02-8+deb13u1 (4M). Geen fysieke hardware- of SMPclaim.
+**Score 32% → 32%:** bestaand K05-ABI-randgeval hersteld; geen nieuw criterium.
 Eind-CI/review moet groen zijn vóór de geschikte squash-merge.
 
 Vorige geïntegreerde batch: #53 en #54 gemerged; #48 aantoonbaar vervangen en
-gesloten. Alle acht B01/S08-reviewthreads opgelost. B01/S08/S06 hebben27 echte
-VM-runs op hun eigen bevroren bron53e0d57 (historisch bewijs hieronder).
+gesloten. Alle acht B01/S08-reviewthreads opgelost. B01/S08/S06 hebben 27 echte
+VM-runs op hun eigen bevroren bron 53e0d57 (historisch bewijs hieronder).
 
 ### NEXT AGENT HANDOFF
 
