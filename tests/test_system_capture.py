@@ -1,0 +1,335 @@
+"""Host-only anti-false-pass fixtures. No fixture is native execution evidence."""
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+from pathlib import Path
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+import capture_system as capture
+from test_system_harness import transcript
+import volume_disk as disk
+
+
+def put_json(path, value):
+    path.write_text(json.dumps(value, indent=2) + "\n")
+
+
+class SystemCaptureTests(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.build = self.root / "build"
+        self.run_root = self.build / "run"
+        self.run_root.mkdir(parents=True)
+        (self.build / "logs").mkdir()
+        (self.root / "docs/verification").mkdir(parents=True)
+        self.destination = self.root / "docs/verification/full-release-host-fixture"
+        self.source = "a" * 64
+        self.test_inputs = {"tests/test_system_harness.py": "c" * 64}
+        for name, value in (("ROOT", self.root), ("BUILD", self.build)):
+            p = patch.object(capture, name, value)
+            p.start()
+            self.addCleanup(p.stop)
+        for name, value in (("source_hash", self.source), ("inputs", self.test_inputs), ("_git_head", "b" * 40)):
+            p = patch.object(capture, name, return_value=value)
+            p.start()
+            self.addCleanup(p.stop)
+        self.volume = self.run_root / ("system-image-" + "3" * 32)
+        self.volume.mkdir()
+        image = self.volume / "volume.img"
+        empty_hash = disk.create_image(image)["sha256"]
+        raw = bytearray(image.read_bytes())
+        data = disk.fixture(0, 1, 4096)
+        start = (disk.FIRST + disk.DATA_START) * disk.SECTOR
+        raw[start:start + len(data)] = data
+        entries = [disk.empty_entry() for _ in range(disk.OBJECTS)]
+        entries[0] = dict(disk.empty_entry(), revision=1, request_id=1, created=1, modified=1,
+                          present=True, current=dict(revision=1, length=4096, name=b"systeemproef",
+                                                     content_sum=disk.fnv(data), chunks=[0], sums=[disk.fnv(data)]))
+        for index, sector in enumerate(disk.encode_table(1, 1, entries)):
+            start = (disk.FIRST + disk.TABLE_SECTORS + index) * disk.SECTOR
+            raw[start:start + disk.SECTOR] = sector
+        image.write_bytes(raw)
+        after = capture.digest(raw)
+        oracle = disk.analyse(raw)
+        capture.check_disk(oracle)
+        self.reports = []
+        self.runs = []
+        self.manifests = []
+        for index, case in enumerate(("normal", "recover")):
+            run = self.run_root / (f"system-{case}-" + str(index + 1) * 32)
+            run.mkdir()
+            (run / "volume.after.img").write_bytes(raw)
+            (run / "OVMF_CODE.fd").write_bytes(b"host fixture firmware code")
+            (run / "OVMF_VARS.fd").write_bytes(b"host fixture firmware variables")
+            esp, manifest = self.make_esp(run / "esp", case)
+            self.manifests.append(manifest)
+            serial = transcript(case)
+            (run / "serial.txt").write_bytes(serial.encode())
+            (run / "stderr.txt").write_bytes(b"host-only fixture\r\n")
+            report = dict(schema_version=1, source_fingerprint_version=3, source_commit="b" * 40,
+                          case=case, passed=True, source_sha256=self.source,
+                          kernel_feature=capture.FEATURE[case], manifest=manifest,
+                          run_directory=str(run), volume_directory=str(self.volume),
+                          raw_qemu_exit=33, timed_out=False, duration_s=1.0, timeout_s=180,
+                          before_sha256=empty_hash if case == "normal" else after,
+                          after_sha256=after, evidence=capture.evaluate(case, serial, 33, False),
+                          oracle=oracle, command=self.command(case, run),
+                          firmware_sha256=dict(code=capture.digest((run / "OVMF_CODE.fd").read_bytes()),
+                                               vars_template="d" * 64),
+                          esp_sha256=esp)
+            self.reports.append(report)
+            self.runs.append(run)
+            put_json(run / "result.json", report)
+        put_json(self.volume / "last-system-stage.json", self.reports[-1])
+        self.make_esp(self.build / "esp", "normal")
+        put_json(self.build / "manifest.json", self.manifests[0])
+        hosts = []
+        for index in range(2):
+            host = dict(command=["host-fixture-not-executed"], exit=0)
+            for stream in ("stdout", "stderr"):
+                path = self.build / "logs" / f"system-host-{index}.{stream}.txt"
+                path.write_bytes(f"host-only {stream} fixture\r\n".encode())
+                host[stream] = str(path)
+            hosts.append(host)
+        self.gate = dict(schema_version=1, source_fingerprint_version=3, status="completed", passed=True,
+                         source_sha256=self.source, test_inputs=self.test_inputs, host=hosts,
+                         stages=[{key: report[key] for key in ("case", "passed", "run_directory",
+                                  "raw_qemu_exit", "before_sha256", "after_sha256", "duration_s")}
+                                 for report in self.reports],
+                         final_manifest=str(self.build / "manifest.json"),
+                         final_kernel_sha256=self.manifests[0]["kernel"]["sha256"])
+        self.save_gate()
+
+    def make_esp(self, esp, case):
+        (esp / "EFI/BOOT").mkdir(parents=True)
+        (esp / "kernel.elf").write_bytes(f"host fixture kernel {case}".encode())
+        (esp / "EFI/BOOT/BOOTX64.EFI").write_bytes(b"host fixture loader")
+        hashes = {"esp/" + name: capture.digest((esp / name).read_bytes())
+                  for name in ("kernel.elf", "EFI/BOOT/BOOTX64.EFI")}
+        manifest = dict(schema_version=1, source_fingerprint_version=3, source_sha256=self.source,
+                        kernel_feature=capture.FEATURE[case],
+                        kernel=dict(sha256=hashes["esp/kernel.elf"]),
+                        loader=dict(sha256=hashes["esp/EFI/BOOT/BOOTX64.EFI"]),
+                        system={key: dict(sha256="e" * 64) for key in
+                                ("system_init", "system_app", "system_worker", "keyring_service", "volume_service")})
+        return hashes, manifest
+
+    def command(self, case, run):
+        rel = run.relative_to(self.root).as_posix()
+        image = (self.volume / "volume.img").relative_to(self.root).as_posix()
+        mode = "on" if case == "recover" else "off"
+        return ["/fixture/qemu-system-x86_64", "-machine", "pc-q35-8.2", "-accel", "tcg,thread=single",
+                "-cpu", "qemu64", "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none",
+                "-monitor", "none", "-serial", "stdio", "-nic", "none", "-no-reboot",
+                "-drive", f"if=pflash,unit=0,format=raw,readonly=on,file={rel}/OVMF_CODE.fd",
+                "-drive", f"if=pflash,unit=1,format=raw,file={rel}/OVMF_VARS.fd",
+                "-drive", f"if=virtio,index=0,format=raw,readonly=on,file=fat:{rel}/esp",
+                "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
+                "-drive", f"if=none,id=volume,format=raw,cache=writeback,readonly={mode},file={image}",
+                "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+                "-object", "rng-random,id=rng0,filename=/dev/urandom",
+                "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"]
+
+    def save_gate(self):
+        put_json(self.build / "system-gate.json", self.gate)
+
+    def save_report(self, index):
+        put_json(self.runs[index] / "result.json", self.reports[index])
+
+    def rejected(self):
+        with self.assertRaises((ValueError, FileExistsError)):
+            capture.capture(self.destination)
+        self.assertFalse(self.destination.exists())
+
+    def test_valid_snapshot_preserves_exact_raw_bytes_and_hashes_without_binaries(self):
+        original = (self.runs[0] / "serial.txt").read_bytes()
+        archive = capture.capture(self.destination)
+        self.assertEqual((archive / "0-normal/serial.txt").read_bytes(), original)
+        self.assertEqual((archive / "system-gate.json").read_bytes(), (self.build / "system-gate.json").read_bytes())
+        self.assertEqual((archive / "1-recover/stderr.txt").read_bytes(), b"host-only fixture\r\n")
+        self.assertFalse(any(p.suffix in (".img", ".elf", ".fd", ".efi") for p in archive.rglob("*")))
+        for line in (archive / "SHA256SUMS").read_text().splitlines():
+            value, name = line.split("  ", 1)
+            self.assertEqual(hashlib.sha256((archive / name).read_bytes()).hexdigest(), value)
+
+    def test_incomplete_false_or_stale_gate_is_rejected_before_writes(self):
+        good = copy.deepcopy(self.gate)
+        for key, value in (("status", "running"), ("passed", False), ("source_sha256", "f" * 64),
+                           ("test_inputs", {}), ("stages", []), ("host", [])):
+            with self.subTest(key=key):
+                self.gate = {**good, key: value}
+                self.save_gate()
+                self.rejected()
+
+    def test_stage_missing_duplicate_out_of_order_or_failed_is_rejected(self):
+        good = copy.deepcopy(self.gate["stages"])
+        for stages in ([good[0]], list(reversed(good)), [good[0], good[0]],
+                       [{**good[0], "passed": False}, good[1]]):
+            self.gate["stages"] = stages
+            self.save_gate()
+            self.rejected()
+
+    def test_pass_boolean_cannot_hide_wrong_raw_exit_missing_markers_or_timeout(self):
+        for key, value in (("raw_qemu_exit", 0), ("timed_out", True), ("evidence", {})):
+            with self.subTest(key=key):
+                original = copy.deepcopy(self.reports[0])
+                self.reports[0][key] = value
+                self.save_report(0)
+                self.rejected()
+                self.reports[0] = original
+                self.save_report(0)
+        (self.runs[0] / "serial.txt").write_text("M1:PASS\n")
+        self.rejected()
+
+    def test_stale_esp_kernel_loader_or_final_artifact_is_rejected(self):
+        paths = [self.runs[0] / "esp/kernel.elf", self.runs[1] / "esp/EFI/BOOT/BOOTX64.EFI",
+                 self.build / "esp/kernel.elf"]
+        for path in paths:
+            with self.subTest(path=path):
+                original = path.read_bytes()
+                path.write_bytes(b"different untested binary")
+                self.rejected()
+                path.write_bytes(original)
+
+    def test_recovery_readonly_cannot_be_replaced_by_snapshot_or_writable_disk(self):
+        original = self.reports[1]["command"]
+        for command in ([arg.replace("readonly=on,file=build/run/system-image-", "readonly=off,file=build/run/system-image-")
+                         for arg in original], original + ["-snapshot"], ["/bin/true"]):
+            self.reports[1]["command"] = command
+            self.save_report(1)
+            self.rejected()
+
+    def test_real_disk_hash_or_contents_cannot_be_replaced_by_stored_oracle(self):
+        path = self.runs[0] / "volume.after.img"
+        raw = path.read_bytes()
+        damaged = bytearray(raw)
+        damaged[(disk.FIRST + disk.DATA_START) * disk.SECTOR] ^= 1
+        path.write_bytes(damaged)
+        # Even updating the report hash cannot turn a corrupt actual document
+        # into a pass via the old, apparently successful oracle JSON.
+        self.reports[0]["after_sha256"] = capture.digest(damaged)
+        self.gate["stages"][0]["after_sha256"] = capture.digest(damaged)
+        self.save_report(0)
+        self.save_gate()
+        self.rejected()
+
+    def test_current_image_change_breaks_cold_chain(self):
+        (self.volume / "volume.img").write_bytes(bytes(disk.IMAGE_SECTORS * disk.SECTOR))
+        self.rejected()
+
+    def test_individually_valid_recovery_image_still_cannot_change_unused_disk_bytes(self):
+        path = self.runs[1] / "volume.after.img"
+        raw = bytearray(path.read_bytes())
+        # An unallocated chunk is invisible in the document oracle. The exact
+        # readonly cold-chain hash must still detect this write.
+        raw[(disk.FIRST + disk.DATA_START + disk.CHUNK_SECTORS) * disk.SECTOR] ^= 1
+        oracle = disk.analyse(raw)
+        capture.check_disk(oracle)
+        path.write_bytes(raw)
+        self.reports[1]["after_sha256"] = capture.digest(raw)
+        self.reports[1]["oracle"] = oracle
+        self.gate["stages"][1]["after_sha256"] = capture.digest(raw)
+        self.save_report(1)
+        self.save_gate()
+        self.rejected()
+
+    def test_fresh_final_manifest_cannot_substitute_an_untested_normal_kernel(self):
+        replacement = b"an untested but freshly hashed kernel"
+        (self.build / "esp/kernel.elf").write_bytes(replacement)
+        manifest = copy.deepcopy(self.manifests[0])
+        manifest["kernel"]["sha256"] = capture.digest(replacement)
+        put_json(self.build / "manifest.json", manifest)
+        self.gate["final_kernel_sha256"] = capture.digest(replacement)
+        self.save_gate()
+        self.rejected()
+
+    def test_stale_run_source_or_replaced_firmware_is_rejected(self):
+        self.reports[0]["source_sha256"] = "f" * 64
+        self.save_report(0)
+        self.rejected()
+        self.reports[0]["source_sha256"] = self.source
+        self.save_report(0)
+        (self.runs[1] / "OVMF_CODE.fd").write_bytes(b"untested firmware")
+        self.rejected()
+
+    def test_failed_host_check_is_not_saved_as_completed_success(self):
+        self.gate["host"][0]["exit"] = 1
+        self.save_gate()
+        self.rejected()
+
+    def test_input_file_change_after_initial_validation_cannot_escape_snapshot_check(self):
+        original = capture.Snapshot.stable
+        calls = 0
+        def change(snapshot):
+            nonlocal calls
+            original(snapshot)
+            if calls == 0:
+                (self.runs[0] / "serial.txt").write_bytes(b"changed after validation")
+            calls += 1
+        with patch.object(capture.Snapshot, "stable", change):
+            self.rejected()
+
+    def test_source_change_during_archive_removes_only_new_output(self):
+        with patch.object(capture, "source_hash", side_effect=[self.source, self.source, "f" * 64]):
+            self.rejected()
+        self.assertTrue((self.build / "system-gate.json").exists())
+
+    def test_test_input_change_during_validation_is_rejected(self):
+        with patch.object(capture, "inputs", side_effect=[self.test_inputs, {}]):
+            self.rejected()
+
+    def test_overwrite_existing_directory_file_and_broken_symlink_is_rejected(self):
+        for kind in ("directory", "file", "symlink"):
+            with self.subTest(kind=kind):
+                if kind == "directory":
+                    self.destination.mkdir()
+                elif kind == "file":
+                    self.destination.write_bytes(b"keep this user content")
+                else:
+                    self.destination.symlink_to(self.root / "missing")
+                with self.assertRaises(FileExistsError):
+                    capture.capture(self.destination)
+                if kind == "directory":
+                    self.destination.rmdir()
+                else:
+                    self.destination.unlink()
+
+    def test_path_escape_symlink_hardlink_or_external_logs_are_rejected(self):
+        with self.assertRaises(ValueError):
+            capture.capture(self.root / "elsewhere/full-release-test")
+        original = self.gate["host"][0]["stdout"]
+        self.gate["host"][0]["stdout"] = str(self.root / "personal-file")
+        self.save_gate()
+        self.rejected()
+        self.gate["host"][0]["stdout"] = original
+        self.save_gate()
+        path = self.runs[0] / "serial.txt"
+        text = path.read_bytes()
+        other = self.root / "other-serial.txt"
+        other.write_bytes(text)
+        path.unlink()
+        path.symlink_to(other)
+        self.rejected()
+        path.unlink()
+        path.write_bytes(text)
+        import os
+        os.link(path, self.root / "hard-serial.txt")
+        self.rejected()
+
+    def test_duplicate_json_keys_are_not_silently_overwritten(self):
+        path = self.build / "system-gate.json"
+        raw = path.read_bytes()
+        path.write_bytes(raw.replace(b'"passed": true', b'"passed": false, "passed": true', 1))
+        self.rejected()
+
+
+if __name__ == "__main__":
+    unittest.main()
