@@ -16,9 +16,14 @@ B01 daarom tijdelijk **32% → 30%**, zonder rubricwijziging.
 Een afzonderlijke reviewer controleert tegenvoorbeelden en integratie.
 Taakcontract en controlelog: [native-recovery-hardening](verification/native-recovery-hardening/README.md).
 
-**Baseline:** `python3 tools/preflight.py --strict` exit 2: Rust 1.90.0 en
-beide targets aanwezig; QEMU/OVMF ontbreken. Lokale installatie van officiële
-pakketten onder `.tools/` loopt. Nieuwe QEMU-tests **NIET UITGEVOERD**.
+**S08-code geïntegreerd:** beide brokers gebruiken 500 ticks met diagnostiek,
+ook bij foutcompletions. Builder: 7 M6c- en 3 volumeharnastests, fmt en beide
+native crossbuilds exit 0; gecombineerde native gate **NIET UITGEVOERD**.
+
+**Omgeving:** eerste preflight exit 2 (QEMU/OVMF ontbraken), daarna officiële
+Debianpakketten lokaal onder `.tools/`: QEMU 10.0.13, OVMF 2025.02.8.
+`python3 tools/preflight.py --strict --firmware .tools/nieuw-os/qemu/share/OVMF_CODE_4M.fd`
+exit 0. Rust 1.90.0 en beide targets aanwezig; nieuwe OS-boottests volgen.
 
 ### NEXT AGENT HANDOFF
 
