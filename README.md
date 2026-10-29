@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **26** |
 
-**Herbeoordeeld:** 2026-10-28 · **Rubric:** v1 ·
-**Bron:** [`e30e10d7`](https://github.com/simonvanieperen/nieuw-os/commit/e30e10d7c03c257e72e669161904367fb3a05969) ·
+**Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
+**Bron:** [`68a04a34`](https://github.com/simonvanieperen/nieuw-os/commit/68a04a340e2bafe62f5471781b8035e2bbf2b0ec) ·
 **Ontwikkelbranch:** `ccr-d3fe1610-gl4r8s`.
 Deze opdracht: **20% → 26% (+6 procentpunt)**. **Opdracht:** M6e copy-on-write documentvolume: grote documenten, ruimtehergebruik, quota en crashconsistente vrijgave native geaccepteerd.
-S04 (+3) en S05 (+3) geaccepteerd op een bevroren bron (e30e10d, na twee CodeRabbit-rondes: pogingdigest per tabelsector en gateverdict pas na de afsluitende build): 17 hosttests incl. uitputtende crashsimulatie en een test tegen gemengde pogingen, 8 orakeltests en zeven echte QEMU-runs (normal, koude read-only recovery, twee echte VM-kills midden in inhouds- en tabelwrites met koude recovery, corrupte image geweigerd). 71 commits en 296 chunk-allocaties op 64 chunks; 64 KiB-documenten; Quota/Full vóór I/O; guest-digests gelijk aan het onafhankelijke Python-orakel. Proefgeometrie 256 KiB; geen fysieke schijf-, encryptie- of back-upclaim. GitHub Actions op PR #47 moet dit op de nieuwe head herhalen. N01-encoder (#46) gemerged zonder punt.
+S04 (+3) en S05 (+3) geaccepteerd op een bevroren bron (68a04a3, na drie CodeRabbit-rondes: pogingdigest per tabelsector, gateverdict pas na de afsluitende build, binding aan de hosttestinputs): 17 hosttests incl. uitputtende crashsimulatie en een test tegen gemengde pogingen, 8 orakeltests en zeven echte QEMU-runs (normal, koude read-only recovery, twee echte VM-kills midden in inhouds- en tabelwrites met koude recovery, corrupte image geweigerd). 71 commits en 296 chunk-allocaties op 64 chunks; 64 KiB-documenten; Quota/Full vóór I/O; guest-digests gelijk aan het onafhankelijke Python-orakel. Proefgeometrie 256 KiB; geen fysieke schijf-, encryptie- of back-upclaim. GitHub Actions op PR #47 moet dit op de nieuwe head herhalen. N01-encoder (#46) gemerged zonder punt.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
