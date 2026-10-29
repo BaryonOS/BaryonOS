@@ -74,6 +74,7 @@ struct Runtime {
     completions: [u64; 3],
     published_at: u64,
     max_completion_ticks: u64,
+    timeouts: u64,
     table_writes: u64,
     data_writes: u64,
     cut_base: Option<(u64, u64)>,
@@ -111,6 +112,7 @@ static mut RUNTIME: Runtime = Runtime {
     completions: [0; 3],
     published_at: 0,
     max_completion_ticks: 0,
+    timeouts: 0,
     table_writes: 0,
     data_writes: 0,
     cut_base: None,
@@ -159,6 +161,22 @@ fn fail(reason: &[u8]) -> ! {
     serial::write(reason);
     serial::write(b"\n");
     serial::exit(0x11)
+}
+/// Diagnostic only: completion latency and timeout counters of the broker, so
+/// a failing run shows whether a missed deadline preceded the failure. Printed
+/// on success and before the run-level failures that user behaviour can cause.
+fn broker_diagnostic(r: &Runtime) {
+    print_number(
+        b"VOLUME:BROKER:MAX_COMPLETION_TICKS:",
+        r.max_completion_ticks,
+    );
+    print_number(b"VOLUME:BROKER:TIMEOUTS:", r.timeouts);
+    if r.policy.phase() == Phase::Published {
+        print_number(
+            b"VOLUME:BROKER:OUTSTANDING_TICKS:",
+            r.now.saturating_sub(r.published_at),
+        );
+    }
 }
 fn put(s: &State, slot: usize, offset: u64, value: u64) {
     write_word(s.processes[slot].physical(DATA + offset), value);
@@ -614,6 +632,7 @@ fn advance(s: &State) {
     }
     let request = r.policy.request().unwrap();
     if r.policy.timeout(now) {
+        r.timeouts += 1;
         let code = if request.operation.is_mutating() {
             -16
         } else {
@@ -709,6 +728,7 @@ fn snapshot(s: &State, slot: usize) {
 
 pub fn observe_exit(s: &mut State, slot: usize) {
     if slot == 0 {
+        broker_diagnostic(runtime());
         fail(b"SERVICE_EXIT");
     }
     snapshot(s, slot);
@@ -716,14 +736,17 @@ pub fn observe_exit(s: &mut State, slot: usize) {
     let app = &mut r.apps[slot - 1];
     app.exited = true;
     app.code = s.last_event.code;
-    if app.code != 0 || app.status != 1 {
+    let (code, status, step) = (app.code, app.status, app.step);
+    if code != 0 || status != 1 {
         print_number(b"VOLUME:APP_SLOT:", slot as u64);
-        print_number(b"VOLUME:APP_STEP:", app.step);
+        print_number(b"VOLUME:APP_STEP:", step);
+        broker_diagnostic(r);
         fail(b"APP_RESULT");
     }
 }
 pub fn observe_fault(_s: &mut State, slot: usize, _context: &[u64; 22]) {
     print_number(b"VOLUME:FAULT_SLOT:", slot as u64);
+    broker_diagnostic(runtime());
     fail(b"UNEXPECTED_FAULT");
 }
 
@@ -760,6 +783,7 @@ fn barriers(s: &State) {
 pub fn poll(s: &mut State) -> Option<*const u64> {
     advance(s);
     if s.unexpected || s.fault {
+        broker_diagnostic(runtime());
         fail(b"USER_OR_PROTOCOL");
     }
     if s.ticks >= RUN_TICKS {
@@ -769,9 +793,11 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
                 print_number(b"VOLUME:APP_PHASE:", word(s, slot, 456));
             }
         }
+        broker_diagnostic(runtime());
         fail(b"TIMEOUT");
     }
     if s.processes[0].status == Status::Dead {
+        broker_diagnostic(runtime());
         fail(b"SERVICE_GONE");
     }
     let state = word(s, 0, 192);
@@ -873,10 +899,7 @@ fn finish(s: &mut State) -> ! {
     print_number(b"VOLUME:BROKER:READS:", r.publications[0]);
     print_number(b"VOLUME:BROKER:WRITES:", r.publications[1]);
     print_number(b"VOLUME:BROKER:FLUSHES:", r.publications[2]);
-    print_number(
-        b"VOLUME:BROKER:MAX_COMPLETION_TICKS:",
-        r.max_completion_ticks,
-    );
+    broker_diagnostic(r);
     print_number(b"VOLUME:BROKER:TABLE_SECTOR_WRITES:", r.table_writes);
     print_number(b"VOLUME:BROKER:DATA_SECTOR_WRITES:", r.data_writes);
     print_number(

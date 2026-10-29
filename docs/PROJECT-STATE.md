@@ -41,10 +41,16 @@ keerde dus terug.
 in `kernel/src/m2/m3/m6c.rs` en `kernel/src/m2/m3/volume.rs` (M6e heeft 140
 flushes per run en geen native foutfixtures, dus daar kost het geen testtijd).
 Beide brokers rapporteren nu de grootste waargenomen publish-tot-completion-
-latentie (`M6C:BROKER:MAX_COMPLETION_TICKS:`, `VOLUME:BROKER:MAX_COMPLETION_TICKS:`),
-zodat de marge per run zichtbaar is. Niet gewijzigd: `RESET_TIMEOUT`,
+latentie en het aantal verstreken deadlines (`M6C:BROKER:MAX_COMPLETION_TICKS:`,
+`M6C:BROKER:TIMEOUTS:`, `VOLUME:BROKER:…`), plus de openstaande ticks van een
+nog niet voltooide aanvraag. Dit staat in de slaagsamenvatting én op de
+faalpaden die door gebruikersgedrag ontstaan (`USER_OR_PROTOCOL`, `USER_STATUS`,
+app-/dienstexit, run-timeout), zodat een volgende CI-fout zelf laat zien of een
+gemiste deadline voorafging. Alleen diagnostiek: geen parser telt deze regels
+als pass-marker (hosttests pinnen dat). Niet gewijzigd: `RESET_TIMEOUT`,
 `rt::LIMIT`, QEMU-cachemodus, foutfixtures (die onderdrukken completions nog
-steeds tot de echte deadline). Timeout-fixtures duren hierdoor ~4,4 s langer.
+steeds tot de echte deadline en tellen daardoor terecht één timeout).
+Timeout-fixtures duren hierdoor ~4,4 s langer.
 
 **Validatie op `8ef3a9d` (uitgevoerd, alle exit 0):**
 - `cargo +1.90.0 fmt --all -- --check`.
@@ -68,6 +74,12 @@ steeds tot de echte deadline). Timeout-fixtures duren hierdoor ~4,4 s langer.
   (10 tests) en nieuw `tests/test_volume_harness.py` (3 tests, valt onder de
   `test_volume_*`-binding van de M6e-gate). Alle M6c-/volume-hosttests slagen
   (49 en 11).
+- Tweede ronde na de uitbreiding van de diagnostiek naar de faalpaden en de
+  timeout-teller (`cargo fmt` exit 0): S08-gate onbelast `accepted=True;
+  real VMs=13`; de drie timeout-fixtures melden `M6C:BROKER:TIMEOUTS:1`, alle
+  overige tien runs `0`. GitHub Actions op `c491d9e` (vorige head): 5/5 groen.
+  De M6e-gate op deze bron **loopt nog**; resultaat volgt in het volgende
+  checkpoint.
 
 **Restrisico:** keert de fout terug terwijl de gerapporteerde maximale latentie
 onder 500 blijft, dan ligt de oorzaak elders dan in completionlatentie.
