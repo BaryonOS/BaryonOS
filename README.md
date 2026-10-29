@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **26** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`71a0f9fd`](https://github.com/simonvanieperen/nieuw-os/commit/71a0f9fd88bbe9ea50f322540f8b0b8df174f932) ·
+**Bron:** [`ce181bfc`](https://github.com/simonvanieperen/nieuw-os/commit/ce181bfc6500619eb9d801d0b4dea3e8c3280aed) ·
 **Ontwikkelbranch:** `ccr-d3fe1610-gl4r8s`.
-Deze opdracht: **26% → 26% (+0 procentpunt)**. **Opdracht:** S06 volume v2 (collecties, metadata, historie, transacties): native gate geslaagd, acceptatie wacht op review en CI.
-Score blijft 26. S06 blijft open tot de onafhankelijke review van de reviewcorrecties en GitHub Actions op de PR-head zijn afgerond. Native gate geslaagd op bron 056445ac (tree van 71a0f9f): 27 volume-core-, 14 SDK- en 18 Python-hosttests plus negen echte QEMU-runs. Normal met koude read-only recovery, domeinklokken 57/27; cut-data, cut-table en cut-txn met echte hostkill, aangetoonde gescheurde tabelwrites (4 en 5 sectoren van g+1) en koude recovery; corrupte image geweigerd. Vijf eerdere reviewbevindingen zijn opgelost met regressietests. M6e-inhoud van main die een lokale merge had teruggezet is hersteld. Geen Materiaal-UI-, fysieke-schijf- of encryptieclaim.
+Deze opdracht: **26% → 26% (+0 procentpunt)**. **Opdracht:** S06 volume v2: correcties tweede review en CodeRabbit; native gate en mutatiecontrole geslaagd, acceptatie wacht op derde reviewronde en CI.
+Score blijft 26. S06 blijft open tot de derde onafhankelijke reviewronde, GitHub Actions op de PR-head en de herbeoordeling door CodeRabbit zijn afgerond. Native gate geslaagd op ce181bf in een schone kloon, bronvingerafdruk v3 528dfe4c (een SHA-256 over de broninputs, geen Git-tree): 28 volume-core-, 14 SDK- en 18 Python-hosttests plus negen echte QEMU-runs. Guest-uitvoer en image-hashes zijn byte-gelijk aan de vorige run op cb20c27. Normal met koude read-only recovery, domeinklokken 57/27; cut-data, cut-table en cut-txn met echte hostkill, aangetoonde gescheurde tabelwrites (4 en 5 sectoren van g+1) en koude recovery; corrupte image geweigerd. Mutatiecontrole (tools/mutate_volume.py) op dezelfde bron: 24 van 24 mutanten gevangen, rapport vastgelegd. De tweede review vond geen fout in de productiecode, wel zwakke tests en twee te ruime claims; die zijn gecorrigeerd. Geen Materiaal-UI-, fysieke-schijf- of encryptieclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -2,9 +2,10 @@
 
 ## S06 volume v2: native gate geslaagd, acceptatie wacht op review en CI, 26% — 29 oktober 2026
 
-Branch `ccr-d3fe1610-gl4r8s`, broncommit `71a0f9f` direct op `main` `092ee52`
-(de squash van #47, M6e). De gate draaide op `cb20c27`, dat een identieke
-bronboom heeft. Uitgevoerd in een Linux-container met Rust 1.90.0, QEMU 8.2.2,
+Branch `ccr-d3fe1610-gl4r8s`, PR [#49](https://github.com/simonvanieperen/nieuw-os/pull/49).
+S06 staat als `71a0f9f` direct op `main` `092ee52` (de squash van #47, M6e).
+Het huidige bewijs is van `ce181bf`, met de test- en doccorrecties uit de
+tweede review. Uitgevoerd in een Linux-container met Rust 1.90.0, QEMU 8.2.2,
 `pc-q35-8.2` en OVMF 4M uit het Ubuntu-pakket.
 
 **Gerealiseerd (native):** volume v2 (`NOSVOL02`, IPC v6) in `services/volume`,
@@ -16,18 +17,23 @@ de runner en de gate. Onderdelen:
 - PURGE;
 - TRANSACT over maximaal 4 objecten in één commit.
 
-**Uitgevoerd en geslaagd:**
-- `python3 -B -u tools/test_volume.py`, exit 0. Hostcontroles: 27 volume-core-,
-  14 SDK- en 18 Python-tests. Daarna 9 echte QEMU-runs op bron `056445ac…`:
+**Uitgevoerd en geslaagd (op `ce181bf`, schone kloon):**
+- `python3 -B -u tools/test_volume.py`, exit 0. Hostcontroles: 28 volume-core-,
+  14 SDK- en 18 Python-tests. Daarna 9 echte QEMU-runs op bronvingerafdruk
+  `528dfe4c…`. Guest-uitvoer en image-hashes zijn byte-gelijk aan de vorige run
+  op `cb20c27`:
   - normal en koude read-only recovery (domeinklokken 57/27, generatie 84,
     62 chunks);
   - cut-data, cut-table en cut-txn, elk met echte hostkill en koude recovery.
     Bij cut-table zijn 4 en bij cut-txn 5 gescheurde sectoren van g+1
     aangetoond; bij cut-data is de andere kopie onaangeroerd;
   - corrupt geweigerd.
-- `python3 -B tools/capture_volume.py --destination docs/verification/s06`,
-  exit 0. Uitslagen: [S06-ACCEPTANCE](verification/S06-ACCEPTANCE.md); besluit:
-  ADR-041.
+- `python3 -B -u tools/mutate_volume.py`, exit 0. Alle 24 mutanten zijn
+  gevangen. Elke mutant schakelt één regel uit die de reviews noemden; het
+  rapport staat in `verification/s06/volume-mutants.json`.
+- `python3 -B tools/capture_volume.py`, exit 0, vastgelegd als
+  `docs/verification/s06/`. Uitslagen:
+  [S06-ACCEPTANCE](verification/S06-ACCEPTANCE.md); besluit: ADR-041.
 - Een onafhankelijke review van de eerste S06-versie (drie AI-reviewers)
   vond vijf inhoudelijke punten:
   - STAT liet een domein de commits van het andere tellen;
@@ -36,15 +42,28 @@ de runner en de gate. Onderdelen:
   - er was geen flush na schrijfbare recovery;
   - de gate kon geen gescheurde tabelwrite aantonen.
 
-  Alle vijf zijn opgelost met regressietests die zonder de correctie falen.
+  Alle vijf zijn opgelost met regressietests.
+- Een tweede review (vijf AI-reviewers; drie stopten door een gebruikslimiet)
+  vond geen fout in de productiecode. Wel vond ze tests die zonder hun regel
+  slaagden, ontbrekende negatieve tests voor COLLECTION_STAT en twee te ruime
+  claims:
+  - een read-only antwoord op een `Unknown` commit is voorlopig;
+  - `Full` en de instantiebrede `Unknown` zijn zichtbaar over domeinen heen.
+
+  Alles is gecorrigeerd in `ce181bf`. CodeRabbit vond drie kleine punten
+  (formulering vingerafdruk, niet vastgelegde mutatiecontrole, U+202E in een
+  testfixture); ook die zijn verwerkt.
 - Bij de integratie bleek dat een eerdere lokale merge van de M6e-branch in de
   S06-branch M6e-inhoud van `main` had teruggezet. Dat ging om het bewijs, de
   voortgangsmetadata en de subpackage-binding uit `d9e4b6b`. Die inhoud is
   hersteld; alle andere M6e-commits zijn per commit gecontroleerd.
 
-**Roadmap rubric v1: blijft 26%.** S06 (+2) wordt pas geaccepteerd als twee
-dingen afgerond zijn: de tweede onafhankelijke review van de correcties, die nu
-loopt, en GitHub Actions op de PR-head.
+**Roadmap rubric v1: blijft 26%.** S06 (+2) wordt pas geaccepteerd als drie
+dingen afgerond zijn:
+- de derde reviewronde (RESTORE/flush, gate-bewijs, merge/docs en een
+  controle van `ce181bf`), die nu loopt;
+- GitHub Actions op de PR-head;
+- de herbeoordeling door CodeRabbit.
 
 **Open en niet bewezen:**
 - Er zijn geen fysieke schijven, encryptie of authenticatie (B02).
@@ -53,9 +72,11 @@ loopt, en GitHub Actions op de PR-head.
   `Unknown`-pad zijn alleen hostgetest.
 - S08: de CI-job `s08-native-resilience` faalde op `c87f980` één keer in het
   bestaande geval `flush-error` (`USER_OR_PROTOCOL`) en slaagde bij de herhaling.
-  Die commit veranderde alleen documentatie. Een agent onderzoekt de oorzaak.
-- S09 (back-up/herstel) staat in een aparte lokale branch op S06. De hosttests
-  zijn groen; native integratie loopt.
+  Die commit veranderde alleen documentatie. De oorzaak is nog onbekend: de
+  onderzoeksagent is door een onderbreking gestopt zonder rapport.
+- S09 (back-up/herstel) staat in een aparte lokale branch op S06. De native
+  S09-gate (8 QEMU-runs) is daar geslaagd, en de S06-gate als regressie ook
+  (9/9, bron `06d46151…`). S09 krijgt een eigen PR na de merge van #49.
 
 ## M6e schaalbare documentopslag native geaccepteerd, 26% — 28 oktober 2026
 
