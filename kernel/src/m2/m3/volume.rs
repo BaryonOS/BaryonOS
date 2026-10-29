@@ -648,13 +648,16 @@ fn advance(s: &State) {
         reset(r, now);
         return;
     }
-    match r.device.as_mut().unwrap().poll(0) {
+    let completion = r.device.as_mut().unwrap().poll(0);
+    if let Ok(Some(_)) = &completion {
+        r.max_completion_ticks = r
+            .max_completion_ticks
+            .max(now.saturating_sub(r.published_at));
+    }
+    match completion {
         Ok(Some((data, Completion::Success))) => {
             r.data = data;
             r.completions[operation_index(request.operation)] += 1;
-            r.max_completion_ticks = r
-                .max_completion_ticks
-                .max(now.saturating_sub(r.published_at));
             r.policy
                 .complete(request.epoch, request.ticket, Completion::Success)
                 .unwrap();
