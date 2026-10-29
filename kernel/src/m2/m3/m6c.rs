@@ -6,10 +6,18 @@ use capability_core::{BlockScope, Message, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE,
 use catalog_core::{journal, wire};
 use virtio_blk_driver::{Device, Discovery, DmaPool};
 use virtio_core::{Binding, Completion, Operation, Phase, Policy, Request};
-// Keep the normal virtio completion budget comfortably above host/TCG scheduling
-// jitter. Fault fixtures still suppress completion observation until this real
-// deadline, so timeout/Unknown semantics stay exercised rather than retried.
-const TIMEOUT: u64 = 64;
+// Completion budget in 100 Hz PIT ticks, which QEMU drives from the host clock
+// (approximately wall time; delivery can lag under heavy host load). A FLUSH is a
+// host fdatasync of the image file; under host I/O load that alone measured
+// 0.16-0.31 s per flush (idle: 6 ms). Two CI runs answered the first PUT with
+// a non-Ok status before any fault was injected, consistent with a missed
+// 64-tick (0.64 s) deadline; that cause was not reproduced locally. Five
+// seconds is still far below ordinary 30 s block-device timeouts. Fault
+// fixtures keep suppressing completion observation until this real deadline,
+// so the timeout/Unknown path is exercised, not retried. The broker reports
+// the largest observed completion latency and its timeout count, on success
+// and on the user-failure path, so the margin is visible per run.
+const TIMEOUT: u64 = 500;
 const RESET_TIMEOUT: u64 = 10;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct IoSnapshot {
@@ -59,6 +67,9 @@ struct Runtime {
     calls: u64,
     publications: [u64; 3],
     completions: [u64; 3],
+    published_at: u64,
+    max_completion_ticks: u64,
+    timeouts: u64,
     records: [[u8; 512]; 32],
     read_mask: u128,
     current: Option<journal::State>,
@@ -113,6 +124,9 @@ static mut RUNTIME: Runtime = Runtime {
     calls: 0,
     publications: [0; 3],
     completions: [0; 3],
+    published_at: 0,
+    max_completion_ticks: 0,
+    timeouts: 0,
     records: [[0; 512]; 32],
     read_mask: 0,
     current: None,
@@ -557,6 +571,7 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     // disk oracle must still allow either an old or a newly written record.
     r.hold_completion = suppress;
     r.publications[operation_index(op)] += 1;
+    r.published_at = s.ticks;
     Ok(request.ticket)
 }
 fn reset(r: &mut Runtime, now: u64) {
@@ -620,6 +635,7 @@ fn advance(s: &State) {
     }
     let request = r.policy.request().unwrap();
     if r.policy.timeout(now) {
+        r.timeouts += 1;
         if r.hold_completion {
             assert!(now >= request.deadline);
             mark_fault(r);
@@ -650,7 +666,15 @@ fn advance(s: &State) {
     } else {
         0
     };
-    match r.device.as_mut().unwrap().poll(injection) {
+    let completion = r.device.as_mut().unwrap().poll(injection);
+    // Err also follows an observed used-ring advance (malformed completion).
+    // Only Ok(None) means that no completion arrived.
+    if !matches!(&completion, Ok(None)) {
+        r.max_completion_ticks = r
+            .max_completion_ticks
+            .max(now.saturating_sub(r.published_at));
+    }
+    match completion {
         Ok(Some((data, Completion::Success))) => {
             r.data = data;
             r.completions[operation_index(request.operation)] += 1;
@@ -1008,6 +1032,19 @@ fn diagnostic(s: &State, slot: usize) {
     if (-19..=0).contains(&error) {
         number(b"M6C:USER_ERRNO:", (-error) as u64);
     }
+    broker_diagnostic(runtime(), s.ticks);
+}
+/// Diagnostic only: completion latency and timeout counters of the broker, so a
+/// failing run shows whether a missed deadline preceded the user failure.
+fn broker_diagnostic(r: &Runtime, now: u64) {
+    number(b"M6C:BROKER:MAX_COMPLETION_TICKS:", r.max_completion_ticks);
+    number(b"M6C:BROKER:TIMEOUTS:", r.timeouts);
+    if r.policy.phase() == Phase::Published {
+        number(
+            b"M6C:BROKER:OUTSTANDING_TICKS:",
+            now.saturating_sub(r.published_at),
+        );
+    }
 }
 pub fn observe_exit(s: &mut State, slot: usize) {
     diagnostic(s, slot);
@@ -1183,6 +1220,9 @@ fn verify_unknown(s: &State, r: &Runtime) {
 pub fn poll(s: &mut State) -> Option<*const u64> {
     advance(s);
     if s.unexpected {
+        // Kernel-side protocol checks set `unexpected` without a user
+        // diagnostic; print the broker state here as well.
+        broker_diagnostic(runtime(), s.ticks);
         serial::fail(b"M6C:FAIL:USER_OR_PROTOCOL\n");
     }
     observe_ready(s);
@@ -1302,6 +1342,9 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         assert!(m4::engine().check_invariants());
         serial::write(marker());
         serial::write(b"M6C:SURVIVOR_PROGRESS:PASS\n");
+        // Diagnostic only, read against TIMEOUT when a run is slow. Not a
+        // pass marker; the fault fixtures legitimately count one timeout.
+        broker_diagnostic(r, s.ticks);
         if !r.quarantined {
             if let Some(device) = r.device.as_mut() {
                 device.begin_reset();

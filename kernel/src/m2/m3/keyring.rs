@@ -10,6 +10,7 @@ use virtio_rng_driver::{Device, Discovery, RngPool, MAX_REQUEST};
 
 /// Broker deadline for one device answer, in 100 Hz ticks.
 const TIMEOUT: u64 = 64;
+const RESET_TIMEOUT: u64 = 10;
 /// Whole-run budget in ticks; the host also bounds wall time.
 const RUN_TICKS: u64 = 6000;
 const SERVICE_SLOTS: [usize; 2] = [0, 1];
@@ -18,6 +19,8 @@ const APP_SLOT: usize = 2;
 const NORMAL: u64 = 0;
 const NO_DEVICE: u64 = 1;
 const STUCK: u64 = 2;
+const NONRESPONSIVE: u64 = 3;
+const RESTART: u64 = 4;
 
 /// Service evidence words (startup page offsets), snapshotted at finish.
 const SERVICE_WORDS: [u64; 10] = [192, 200, 208, 216, 224, 232, 240, 248, 256, 264];
@@ -45,6 +48,13 @@ struct Runtime {
     timeouts: u64,
     io_errors: u64,
     busy: u64,
+    resetting: bool,
+    reset_deadline: u64,
+    reset_acks: u64,
+    quarantined: bool,
+    restart_stage: u8,
+    restart_deadline: u64,
+    restarted_bytes: u64,
     app_exited: bool,
     app_code: u64,
     app: [u64; 16],
@@ -71,6 +81,13 @@ static mut RUNTIME: Runtime = Runtime {
     timeouts: 0,
     io_errors: 0,
     busy: 0,
+    resetting: false,
+    reset_deadline: 0,
+    reset_acks: 0,
+    quarantined: false,
+    restart_stage: 0,
+    restart_deadline: 0,
+    restarted_bytes: 0,
     app_exited: false,
     app_code: 0,
     app: [0; 16],
@@ -86,6 +103,10 @@ fn case() -> u64 {
         NO_DEVICE
     } else if cfg!(feature = "test-keyring-stuck") {
         STUCK
+    } else if cfg!(feature = "test-keyring-timeout") {
+        NONRESPONSIVE
+    } else if cfg!(feature = "test-keyring-restart") {
+        RESTART
     } else {
         NORMAL
     }
@@ -94,7 +115,9 @@ fn marker() -> &'static [u8] {
     match case() {
         NORMAL => b"KEYRING:CASE:NORMAL:PASS\n",
         NO_DEVICE => b"KEYRING:CASE:NO_DEVICE:PASS\n",
-        _ => b"KEYRING:CASE:STUCK:PASS\n",
+        STUCK => b"KEYRING:CASE:STUCK:PASS\n",
+        NONRESPONSIVE => b"KEYRING:CASE:TIMEOUT:PASS\n",
+        _ => b"KEYRING:CASE:RESTART:PASS\n",
     }
 }
 fn fail(reason: &[u8]) -> ! {
@@ -369,6 +392,18 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
 
 fn advance(s: &State) {
     let r = runtime();
+    if r.resetting {
+        if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
+            r.resetting = false;
+            r.reset_acks += 1;
+        } else if s.ticks >= r.reset_deadline {
+            // No memory may be cleared, recycled or reinitialized without
+            // reset acknowledgement. All three DMA pages stay pinned.
+            r.resetting = false;
+            r.quarantined = true;
+        }
+        return;
+    }
     let Some((pid, ticket, requested, deadline)) = r.pending else {
         return;
     };
@@ -401,8 +436,11 @@ fn advance(s: &State) {
                 r.timeouts += 1;
                 r.pending = None;
                 r.completed = Some((pid, ticket, Err(-13)));
+                r.bytes = [0; 256];
                 device.begin_reset();
                 r.offline = -13;
+                r.resetting = true;
+                r.reset_deadline = s.ticks + RESET_TIMEOUT;
             }
         }
         Err(_) => {
@@ -416,7 +454,14 @@ fn advance(s: &State) {
 pub fn detach(pid: u64) {
     let r = runtime();
     if r.pending.is_some_and(|(owner, _, _, _)| owner == pid) {
-        // The requester died: its answer is dropped, never handed to another.
+        // Dropping the broker ticket alone leaves the driver's DMA request
+        // outstanding forever. Fail closed and stop the device; the pinned
+        // pages are quarantined until reboot, never reused by another owner.
+        if let Some(device) = r.device.as_mut() {
+            device.begin_reset();
+        }
+        r.offline = -14;
+        r.quarantined = true;
         r.pending = None;
         r.bytes = [0; 256];
     }
@@ -469,10 +514,88 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         r.finish += 1;
         return None;
     }
-    if r.pending.is_some() {
+    if r.pending.is_some() || r.resetting {
+        return None;
+    }
+    if case() == RESTART && !restart_fixture(s) {
         return None;
     }
     finish(s)
+}
+
+/// Labelled native driver acceptance only: a responding device is reset and
+/// initialized again with exactly the same kernel-owned pool. This does not
+/// recover a failed Key Service or silently resume a timed-out entropy source.
+fn restart_fixture(s: &State) -> bool {
+    let r = runtime();
+    if r.restart_stage == 0 {
+        require(
+            r.pending.is_none() && r.completed.is_none(),
+            b"RESTART_BROKER_BUSY",
+        );
+        require(!r.quarantined && r.offline == 0, b"RESTART_OFFLINE");
+        let device = r
+            .device
+            .as_mut()
+            .unwrap_or_else(|| fail(b"RESTART_NO_DEVICE"));
+        require(!device.pending(), b"RESTART_DEVICE_BUSY");
+        device.begin_reset();
+        r.resetting = true;
+        r.reset_deadline = s.ticks + RESET_TIMEOUT;
+        r.restart_stage = 1;
+        return false;
+    }
+    require(!r.quarantined && r.reset_acks == 1, b"RESTART_RESET_ACK");
+    if r.restart_stage == 1 {
+        require(
+            r.device.as_ref().is_some_and(Device::reset_acknowledged),
+            b"RESTART_WITHOUT_ACK",
+        );
+        for page in [r.pool.rings, r.pool.used, r.pool.bounce] {
+            require(
+                s.frames.owner(page) == Ok(Owner::Kernel),
+                b"RESTART_POOL_OWNER",
+            );
+        }
+        require(
+            m4::engine().stats().entropy_objects == 2,
+            b"RESTART_CAPABILITIES",
+        );
+        // SAFETY: The same validated mappings and exclusively pinned pages
+        // supplied to prepare remain owned. Reset was acknowledged before
+        // initialize can clear the old rings or bounce page.
+        let mut device = unsafe { Device::initialize(r.info.unwrap(), r.mapped, r.pool) }
+            .unwrap_or_else(|_| fail(b"RESTART_INITIALIZE"));
+        require(
+            device.pool == r.pool && !device.pending(),
+            b"RESTART_POOL_CHANGED",
+        );
+        device
+            .request(32)
+            .unwrap_or_else(|_| fail(b"RESTART_REQUEST"));
+        r.device = Some(device);
+        r.restart_stage = 2;
+        r.restart_deadline = s.ticks + TIMEOUT;
+        return false;
+    }
+    if r.restart_stage == 2 {
+        let mut bytes = [0xa5; 256];
+        match r.device.as_mut().unwrap().poll(&mut bytes) {
+            Ok(Some(32)) => {
+                // A shorter, fresh device transaction cannot write beyond
+                // its declared output or be mistaken for a startup request.
+                require(
+                    bytes[32..].iter().all(|b| *b == 0xa5),
+                    b"RESTART_OUTPUT_BOUNDS",
+                );
+                r.restarted_bytes = 32;
+                r.restart_stage = 3;
+            }
+            Ok(None) if s.ticks < r.restart_deadline => return false,
+            _ => fail(b"RESTART_COMPLETION"),
+        }
+    }
+    true
 }
 
 fn finish(s: &mut State) -> ! {
@@ -509,9 +632,13 @@ fn finish(s: &mut State) -> ! {
         b"APP_ENTROPY_NOT_DENIED",
     );
     require(status_calls >= 2, b"STATUS_CALLS");
-    require(r.timeouts == 0 && r.io_errors == 0, b"BROKER_ERRORS");
+    require(r.io_errors == 0, b"BROKER_ERRORS");
+    require(
+        r.timeouts == u64::from(case() == NONRESPONSIVE),
+        b"TIMEOUT_COUNT",
+    );
     match case() {
-        NORMAL => {
+        NORMAL | RESTART => {
             require(
                 services[0][0] == 1 && services[1][0] == 1,
                 b"SERVICES_NOT_READY",
@@ -574,6 +701,27 @@ fn finish(s: &mut State) -> ! {
             );
             require(services[0][2] == 0 && services[1][2] == 0, b"SERVICE_KEYS");
         }
+        NONRESPONSIVE => {
+            require(
+                r.offline == -13 && r.offline_errors >= 1,
+                b"TIMEOUT_NOT_OBSERVED",
+            );
+            require(r.delivered_bytes == 0 && r.timeouts == 1, b"TIMEOUT_BYTES");
+            require(r.reset_acks == 1 && !r.quarantined, b"TIMEOUT_RESET_ACK");
+            require(r.bytes.iter().all(|b| *b == 0), b"TIMEOUT_OUTPUT");
+            require(
+                services.iter().all(|v| v[0] == 2 && v[1] == 1),
+                b"TIMEOUT_NOT_BLOCKED",
+            );
+            require(
+                not_ready >= 2 && generated == 0 && sealed == 0,
+                b"KEYS_WITHOUT_ENTROPY",
+            );
+            require(
+                services.iter().all(|v| v[2] == 0 && v[3] == 0 && v[9] == 0),
+                b"SERVICE_KEYS",
+            );
+        }
         _ => {
             require(
                 r.offline == 0 && r.delivered_bytes >= 256,
@@ -598,6 +746,10 @@ fn finish(s: &mut State) -> ! {
         (b"KEYRING:DENIED:", r.denied),
         (b"KEYRING:OFFLINE_ERRORS:", r.offline_errors),
         (b"KEYRING:BUSY:", r.busy),
+        (b"KEYRING:TIMEOUTS:", r.timeouts),
+        (b"KEYRING:RESET_ACKS:", r.reset_acks),
+        (b"KEYRING:QUARANTINED:", u64::from(r.quarantined)),
+        (b"KEYRING:RESTARTED_BYTES:", r.restarted_bytes),
         (b"KEYRING:SERVICE_A_STATE:", services[0][0]),
         (b"KEYRING:SERVICE_B_STATE:", services[1][0]),
         (b"KEYRING:SERVICE_A_REASON:", services[0][1]),

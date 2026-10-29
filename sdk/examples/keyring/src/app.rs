@@ -22,6 +22,7 @@ use nieuw_os_sdk_runtime::{
 
 const LIMIT: usize = 400_000;
 const CASE_NORMAL: u64 = 0;
+const CASE_RESTART: u64 = 4;
 
 // Evidence words (kernel keyring.rs APP_WORDS).
 const EV_GENERATED: u64 = 400;
@@ -342,6 +343,25 @@ fn run_normal(client: &mut Client, a0: &Target, a1: &Target, b0: &Target) {
     if keys_b != [16, 16] {
         fail(56);
     }
+    // 8. An older authentic blob must not undo a revocation the same live
+    // instance already knows. B's restored copy is a separate instance;
+    // this specifically exercises A's in-memory revocation history.
+    let (status, _, _) = client.call(a0, wire::REVOKE, k0, &[]);
+    if status != Status::Ok {
+        fail(57);
+    }
+    let (status, _, _) = client.call(a0, wire::RESTORE, 0, &recovery);
+    if status != Status::Ok {
+        fail(58);
+    }
+    client.expect_unseal_denied(
+        a0,
+        k0,
+        &sealed[..length],
+        Status::Revoked,
+        EV_REVOKED_AFTER_RESTORE,
+        59,
+    );
 }
 
 fn run_blocked(client: &mut Client, a0: &Target, b0: &Target, expected_reason: u8) {
@@ -399,11 +419,11 @@ fn main() -> ! {
         Err(Error::Kernel(-6)) => bump(EV_ENTROPY_DENIED),
         _ => fail(4),
     }
-    if case == CASE_NORMAL {
+    if matches!(case, CASE_NORMAL | CASE_RESTART) {
         run_normal(&mut client, &a0, &a1, &b0);
     } else {
-        // no-device: reason Source (1); stuck: reason Repetition (2).
-        run_blocked(&mut client, &a0, &b0, if case == 1 { 1 } else { 2 });
+        // no-device and timeout: Source (1); stuck: Repetition (2).
+        run_blocked(&mut client, &a0, &b0, if case == 2 { 2 } else { 1 });
     }
     support::put(40, 1);
     native::exit(0)

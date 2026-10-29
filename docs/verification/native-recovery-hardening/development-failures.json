@@ -1,0 +1,16 @@
+{
+  "passed": false,
+  "raw_qemu_exit": 0,
+  "timed_out": false,
+  "duration_s": 99.13530847599998,
+  "error": "ValueError: marker sequence mismatch: []",
+  "source_sha256": "a1110c33373595d702886c2f5f928ed207c97fd66918336a7357a30d31cb0f25",
+  "scope": "Eerste testfixture hield ook OVMF-entropy tegen; geen kernelmarker. Run bewust gestopt, nooit als geslaagd beschouwd. Correctie: firmware krijgt os.urandom vóór echte MANIFEST, kernelrequests daarna onbeantwoord; geïntegreerde vijfgevallenpoort slaagt.",
+  "direct_library_build": {
+    "command": "cargo +1.90.0 build --locked --release -p keyring-core --target x86_64-unknown-none",
+    "exit": 101,
+    "error": "LLVM/poly1305 SIGILL zonder portable cfg-vlaggen; niet de geldige repositoryroute",
+    "correct_command": "python3 -B sdk/examples/keyring/build.py",
+    "correct_exit": 0
+  }
+}

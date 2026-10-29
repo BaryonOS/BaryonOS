@@ -26,7 +26,7 @@ VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "c
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
 SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota")
 SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES))
-KEYRING_CASES = ("no-device", "stuck")
+KEYRING_CASES = ("no-device", "stuck", "timeout", "restart")
 KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRING_CASES))
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",

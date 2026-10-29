@@ -1,5 +1,53 @@
 # B01 — acceptatie native entropy en sleutelbeheer
 
+## Herstelverificatie op 29 oktober 2026
+
+De post-merge P1-bevindingen uit #52 zijn hersteld op gezamenlijke bron
+`53e0d57af99c9673c97bc900fae15b98e08c8ca3` (branch
+`codex/native-recovery-hardening`, basis `00e6af5`). Bronvingerafdruk v3:
+`60edda7943e979a8e2c16caf6aa873a8b7d7535cd633e2a10f094d4b0bb6c00f`.
+Nieuw bewijs: [native-recovery-hardening/b01/](native-recovery-hardening/b01/).
+De actuele integratie-/scorebeslissing staat in PROJECT-STATE.md.
+
+`NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_keyring.py`: **exit 0**,
+5/5 echte QEMU-runs, alle raw exit 33. Eigen build-/targetmappen onder
+`build/verify-keyring` en `target/verify-keyring`; Rust 1.90.0, QEMU 10.0.13
+(Debian), qemu64/TCG/1 CPU/256 MiB, OVMF 2025.02-8+deb13u1 (4M).
+Hostfase: 40 capability-, 15 keyring- en 3 RNG-drivertests; 17 SDK-tests;
+11 Pythonharnastests; alles exit 0. Vastgelegde host- en broninputs bleven gelijk.
+
+| Geval | Aanvullend herstelbewijs |
+|---|---|
+| normal | Blijvende intrekking na A→B-herstel én na herstel van een oudere blob op A (`APP_REVOKED_AFTER_RESTORE=2`) |
+| no-device | Offline; beide diensten BLOCKED; geen entropylevering of sleutel |
+| stuck | Gelabelde constante-bytefixture na echte completion; RCT blokkeert |
+| timeout | Firmware ontvangt 16 bytes; na echte kernelmanifestmarker worden EGD-aanvragen van 255+1 byte niet beantwoord; 0 kernelbytes, 1 timeout, 1 reset-ACK, geen sleutel |
+| restart | Afzonderlijke antwoordende driver: reset-ACK, herinitialisatie van dezelfde gepinde pool en een nieuwe 32-bytecompletion; capability- en framecontrole |
+
+Vijf regressies bewezen rood op oude code, daarna groen: RCT over
+startup/reseed en reseed/reseed; APT over twee 256-byte-reseeds; oude
+herstelblob na intrekking; masterwissel en fout herstel met behoud van
+sleutels. Permanente Health bewaakt de hele stroom. Herstel van dezelfde
+master verenigt tombstones; andere master alleen naar een ongebruikte
+dienst. Een aparte agent herhaalde 15/15 coretests, twee extra
+beide-domeinen-/replaytegenvoorbeelden en 11/11 harnastests; geen blocker.
+Dit is AI-review, geen onafhankelijke menselijke audit.
+
+Bewijsgrenzen: requestercrash en ontbrekende reset-ACK zijn niet native
+getest. Requester-exit sluit de broker af en houdt DMA in quarantaine;
+herstartfixture bewijst uitsluitend een antwoordend apparaat. Een koude
+nieuwe instantie kent geen nieuwere intrekkingsgeschiedenis uit een oude
+blob (B02). Geen fysieke RNG-/min-entropie-, TPM- of zijkanaalclaim.
+De eerste stille firmwarefixture faalde vóór kernelboot en is als mislukt
+vastgelegd in `native-recovery-hardening/development-failures.json`.
+
+## Historische acceptatie vóór herstel (#52)
+
+Alle onderstaande gegevens horen uitsluitend bij de oorspronkelijke bron.
+De oude `stuck`-proef injecteert constante bytes en was geen echte
+timeout/reset/herstarttest. Het herstelbewijs hierboven vervangt die te ruime
+interpretatie; de oorspronkelijke bestanden blijven controleerbaar.
+
 Datum: 29 oktober 2026 (Europe/Amsterdam). Contract:
 [B01-ENTROPY-AND-KEYS](../implementation/B01-ENTROPY-AND-KEYS.md); besluit
 ADR-043. Bewijsmap: [`b01/`](b01/).

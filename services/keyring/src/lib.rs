@@ -171,6 +171,8 @@ struct Domain {
 pub struct Service {
     state: State,
     reason: HealthFailure,
+    /// One continuous raw sample stream, including startup and reseed borders.
+    health: Health,
     drbg: Option<Drbg>,
     master: [u8; KEY_BYTES],
     domains: [Domain; DOMAINS],
@@ -202,6 +204,7 @@ impl Service {
         Self {
             state: State::Starting,
             reason: HealthFailure::None,
+            health: Health::new(),
             drbg: None,
             master: [0; KEY_BYTES],
             domains: [Domain {
@@ -237,7 +240,6 @@ impl Service {
             return Err(Status::Invalid);
         }
         let mut raw = [0u8; STARTUP_ENTROPY];
-        let mut health = Health::new();
         for chunk in raw.chunks_mut(RESEED_ENTROPY) {
             if source.read(chunk).is_err() {
                 self.block(HealthFailure::Source);
@@ -245,7 +247,7 @@ impl Service {
                 return Err(Status::Entropy);
             }
             self.counters.entropy_bytes += chunk.len() as u64;
-            if let Err(failure) = health.feed(chunk) {
+            if let Err(failure) = self.health.feed(chunk) {
                 self.block(failure);
                 raw.zeroize();
                 return Err(Status::Entropy);
@@ -281,9 +283,8 @@ impl Service {
         }
         self.operations = 0;
         let mut raw = [0u8; RESEED_ENTROPY];
-        let mut health = Health::new();
         let outcome = source.read(&mut raw).map_err(|_| HealthFailure::Source);
-        let outcome = outcome.and_then(|_| health.feed(&raw));
+        let outcome = outcome.and_then(|_| self.health.feed(&raw));
         match outcome {
             Ok(()) => {
                 self.counters.entropy_bytes += raw.len() as u64;
@@ -370,7 +371,7 @@ impl Service {
     }
 
     /// Verifies the tag before any plaintext byte becomes visible; on failure
-    /// `out` is left zeroed.
+    /// `out` is left unchanged.
     pub fn unseal(
         &mut self,
         domain: usize,
@@ -460,10 +461,12 @@ impl Service {
         Ok(())
     }
 
-    /// Replace this instance's master and revocation state with the recovered
-    /// ones. Keys generated in this instance before the restore are gone.
+    /// Import another master only before this instance has issued or restored
+    /// keys. Otherwise only the current master can be restored, preserving
+    /// the union of known and recovered revocations. This prevents switching
+    /// away from a master and back to an old blob to erase its history.
     /// The created counts become "all indices exist", so an app can address
-    /// every key the exporting instance had.
+    /// every key the exporting instance had; no index can be reissued.
     pub fn restore(
         &mut self,
         secret: &[u8; SECRET_BYTES],
@@ -487,12 +490,16 @@ impl Service {
             self.counters.auth_failures += 1;
             return Err(Status::Auth);
         }
+        if self.master != body[..KEY_BYTES] && self.domains.iter().any(|table| table.created != 0) {
+            body.zeroize();
+            return Err(Status::Invalid);
+        }
         self.master.zeroize();
         self.master.copy_from_slice(&body[..KEY_BYTES]);
         for (i, table) in self.domains.iter_mut().enumerate() {
             let mut word = [0u8; 2];
             word.copy_from_slice(&body[KEY_BYTES + i * 2..KEY_BYTES + i * 2 + 2]);
-            table.revoked = u16::from_le_bytes(word);
+            table.revoked |= u16::from_le_bytes(word);
             table.created = KEYS_PER_DOMAIN as u16;
         }
         body.zeroize();

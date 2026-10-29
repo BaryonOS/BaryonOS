@@ -1,0 +1,39 @@
+{
+  "source_commit": "53e0d57af99c9673c97bc900fae15b98e08c8ca3",
+  "source_sha256": "60edda7943e979a8e2c16caf6aa873a8b7d7535cd633e2a10f094d4b0bb6c00f",
+  "base_commit": "00e6af5db4d315d2536471ccbce1cb1f4cf14958",
+  "branch": "codex/native-recovery-hardening",
+  "pr": 54,
+  "local_validation_passed": true,
+  "real_vm_invocations": 27,
+  "gates": {
+    "b01": {
+      "passed": true,
+      "vm_invocations": 5
+    },
+    "s08": {
+      "passed": true,
+      "vm_invocations": 13
+    },
+    "volume": {
+      "passed": true,
+      "vm_invocations": 9
+    }
+  },
+  "host_report": "host-checks.json",
+  "independent_ai_review": {
+    "keyring_core": "15 coretests + 2 extra beide-domeinen/replaytests; geen blocker",
+    "broker_harness": "11 harnastests en diffreview; geen blocker"
+  },
+  "not_native_tested": [
+    "requester crash",
+    "missing reset acknowledgement"
+  ],
+  "remaining_boundaries": [
+    "cold recovery antirollback/B02",
+    "physical RNG quality",
+    "TPM",
+    "physical hardware"
+  ],
+  "rollback": "Normale revert van de herstelcommit(s), B01 heropenen als bewijsgrens wordt teruggedraaid."
+}

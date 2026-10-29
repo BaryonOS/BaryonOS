@@ -55,8 +55,14 @@ sleutels nooit aan gewone apps afgeeft.
    een andere dienstinstantie herleidt daarmee alle domeinsleutels. Zonder het
    geheim is de blob onbruikbaar; de dienst bewaart het geheim niet.
 7. **Intrekking.** REVOKE wist de afgeleide sleutel en markeert de index; de
-   index wordt niet hergebruikt. Een hersteld domein neemt de intrekkingsstatus
-   uit de blob over.
+   index wordt niet hergebruikt. Herstel onder dezelfde hoofdsleutel verenigt
+   de bestaande en geïmporteerde intrekkingsbitmaps. Een andere hoofdsleutel
+   mag alleen in een ongebruikte instantie zonder uitgegeven/geïmporteerde
+   indices worden geïmporteerd; anders `Invalid`. Een oude blob mag geen
+   bestaande intrekking terugdraaien of een index opnieuw uitgeefbaar maken.
+   Dit geldt binnen de levende instantie. Een koude nieuwe dienst kan zonder
+   vertrouwde persistente geschiedenis geen nieuwere intrekking uit een oude
+   herstelblob afleiden; die rollbackgrens blijft open voor B02.
 8. **Kernel blijft klein.** Geen cryptografie in de kernel; de kernelbroker
    kent alleen de virtio-rng-wachtrij, DMA-eigendom, timeouts en de
    `Entropy`-capability (kernel/AGENTS.md).
@@ -83,8 +89,10 @@ sleutels nooit aan gewone apps afgeeft.
   (exact binomiaal herberekend in `tests/test_keyring_harness.py`). Falen →
   `BLOCKED` met reden; geen herkansing zonder nieuwe start.
 - Continu: iedere latere bijvulling (256 bytes per reseed, na elke 64
-  sleuteloperaties) doorloopt dezelfde tests; falen blokkeert verdere
-  sleuteloperaties met `Degraded`.
+  sleuteloperaties) doorloopt dezelfde tests met blijvende toestand vanaf de eerste opstartbyte.
+  RCT loopt over alle buffergrenzen; APT-vensters van 512 bytes gaan door over
+  twee reseeds van 256 bytes. Falen blokkeert verdere sleuteloperaties met
+  `Degraded`; geen nieuwe `Health` per reseed.
 - Testfixture `test-keyring-stuck`: de kernel vervangt de apparaatbytes door
   een constante vóór de kopie naar de dienst. Dit is een gelabelde
   foutinjectie om de gezondheidstest te bewijzen, geen productpad.
@@ -104,7 +112,7 @@ recovery_secret (32 B, uit DRBG) ──XChaCha20-Poly1305(aad = "nieuw-os recove
 | UNSEAL | handle, nonce ‖ ciphertext ‖ tag | plaintext | NotReady, BadHandle, Revoked, Auth |
 | REVOKE | handle | – | BadHandle |
 | EXPORT_RECOVERY | – | secret (32 B), blob (76 B) | NotReady |
-| RESTORE | secret, blob | aantal herstelde domeinen | NotReady, Auth |
+| RESTORE | secret, blob | aantal herstelde domeinen | NotReady, Auth, Invalid (andere master in gebruikte instantie) |
 
 De dienst houdt per domein een teller en de intrekkingsbitmap bij; het
 domeinnummer volgt uit het endpoint waarop het verzoek binnenkomt. Verzoeken
@@ -116,13 +124,15 @@ met een capability, verkeerde tag of lengte worden geweigerd zonder effect.
 |---|---|---|
 | normal | `native-keyring` | dienst A en B worden READY (opstartentropy geslaagd); app in domein 0 en 1: GENERATE, SEAL/UNSEAL rondgang, cross-domain handle geweigerd, gemanipuleerde byte/tag/nonce geweigerd zonder plaintext, REVOKE → Revoked, 17e sleutel → Quota; EXPORT_RECOVERY bij A, UNSEAL van A-ciphertext bij B faalt vóór RESTORE (NoKey/BadHandle), RESTORE met fout geheim → Auth, RESTORE met juist geheim → UNSEAL slaagt, ingetrokken sleutel blijft ingetrokken; kernel: alleen de twee diensten lezen entropy, appverzoeken om entropy → geweigerd |
 | no-device | `test-keyring-no-device` (QEMU zonder virtio-rng) | `entropy_read` → Offline; beide diensten BLOCKED; app: elke GENERATE → NotReady; kernel: 0 geslaagde entropyleveringen, 0 sleutels |
-| stuck | `test-keyring-stuck` | constante bytes; Repetition Count faalt bij de opstart; BLOCKED met reden; geen sleutels |
+| stuck | `test-keyring-stuck` | gelabelde constante-bytefixture na echte completion; Repetition Count faalt bij de opstart; BLOCKED met reden; geen sleutels |
+| timeout | `test-keyring-timeout` | lokale stille rng-egd-backend ontvangt de echte apparaataanvraag maar levert niets; deadline, reset-ACK, 0 geleverde bytes, 0 sleutels en behoud van de gepinde DMA-pool |
+| restart | `test-keyring-restart` | normale bron; na de sleuteltaken gecontroleerde reset-ACK, herinitialisatie van dezelfde DMA-pool en een nieuwe aanvraag van 32 bytes met echte completion |
 
 Markers `KEYRING:MANIFEST:PASS`, `KEYRING:READY`, `KEYRING:CASE:<X>:PASS`,
 `KEYRING:RESOURCES:PASS`, `KEYRING:PASS`, `M1:PASS`; getalsbewijs
 `KEYRING:<NAAM>:<20 cijfers>`. Gate `tools/test_keyring.py`: hosttests
 (`keyring-core` met RFC 8439/draft-xchacha- en RFC 5869-testvectoren, de
-90B-tests met synthetische reeksen, wire-codec), daarna de drie runs op één
+90B-tests met synthetische reeksen, wire-codec), daarna de vijf runs op één
 bevroren bron.
 
 ## 6. Wat B01 niet bewijst
@@ -147,3 +157,15 @@ de softwarebackends buiten constante-tijdimplementatie van de crates zelf.
   het voorbeeld gebruikt een eigen linkerscript met 128 KiB code vanaf
   `0x40020000` en een losse entry-pagina op `0x40000000`, binnen de
   bestaande gebruikersgrenzen van de kernel (`0x40000000–0x60000000`).
+
+## 8. Herstelreview 29 oktober 2026
+
+De post-merge P1-bevindingen op #52 heropenden B01. Naast de native gevallen
+moeten regressies oude blobs na intrekking, verschillende domeinen, geweigerde
+masterwissel met behoud van bestaande sleutels en RCT/APT over reseeds testen.
+Eigenaarsverlies met een open RNG-aanvraag stopt de driver en sluit de broker
+af; de DMA-pool blijft in quarantaine tot reboot. Timeout controleert reset-ACK
+met een deadline; zonder bevestigde reset blijft de pool gepind en de broker
+offline. Requestercrash en ontbrekende reset-ACK zijn niet native getest. Een timeout is een ander geval dan de constante-
+bytefixture; de afzonderlijke herstartproef bewijst geen herstel van een
+vastgelopen of fysiek apparaat. Uitvoering uitsluitend in het nieuwe bewijs.
