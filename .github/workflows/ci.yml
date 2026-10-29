@@ -34,6 +34,26 @@ jobs:
           rustup toolchain install 1.90.0 --profile minimal
           rustup component add --toolchain 1.90.0 rustfmt clippy
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Cache Cargo downloads
+        id: cargo-downloads
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+          key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache host Rust build intermediates
+        id: host-build-cache
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          # Host-only outputs: never native images, acceptance reports or secrets.
+          path: |
+            target/debug
+            sdk/target/debug
+            services/net-protocol/target/debug
+            experiments/quantum/target/debug
+            experiments/quantum/job-protocol/target/debug
+          key: host-rust-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}
       - name: Python syntax and DocumentSession host tests
         run: |
           python3 -m compileall -q tools tests userspace/tests experiments/quantum/native experiments/quantum/native/job .agents/skills/os-dev
@@ -83,6 +103,20 @@ jobs:
           python3 tools/progress.py --check
           git status --porcelain
           test -z "$(git status --porcelain)"
+      - name: Cache diagnostics (not test evidence)
+        if: ${{ always() }}
+        shell: bash
+        env:
+          DOWNLOADS_HIT: ${{ steps.cargo-downloads.outputs.cache-hit }}
+          HOST_BUILD_HIT: ${{ steps.host-build-cache.outputs.cache-hit }}
+        run: |
+          {
+            echo '### CI cache diagnostics'
+            printf 'Cargo downloads exact cache-hit: `%s`\n\n' "${DOWNLOADS_HIT:-not-restored}"
+            printf 'Host build exact cache-hit: `%s`\n\n' "${HOST_BUILD_HIT:-not-restored}"
+            echo 'All test/build steps still execute. Native acceptance images are not cached.'
+            echo 'Use job step durations for measurements; no speedup is asserted by a cache hit.'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   qemu-smoke:
     name: qemu-smoke
@@ -102,6 +136,14 @@ jobs:
           rustup toolchain install 1.90.0 --profile minimal
           rustup component add --toolchain 1.90.0 rustfmt clippy
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Cache Cargo downloads
+        id: cargo-downloads
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+          key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Install disposable emulator dependencies
         run: |
           sudo apt-get update
