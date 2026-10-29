@@ -6,10 +6,12 @@ geen `unsafe`; `native.rs` bevat de kleine `int 0x80`-grens. De hostbuild biedt
 die native module niet aan, zodat een hosttest niet per ongeluk een Linux-
 syscall met Nieuw OS-argumenten uitvoert.
 
-De runtime is een bouwbare SDK-basis. Zij voegt geen algemene processtarter,
-appinstallatie, compositor, opslagrecht of nieuwe syscall toe. Een app moet
-nog door een geautoriseerde bootstrap worden gestart en concrete endpoints
-krijgen. Het vaste roadmapcriterium A01 is hierdoor niet volledig afgerond.
+De runtime is een bouwbare SDK-basis. Zij voegt geen appinstallatie,
+compositor of opslagrecht toe. Sinds K05 (ADR-042) kan een proces mét een
+`LaunchImage`-capability kinderen starten, observeren en beëindigen en kan elk
+proces binnen het quotum eigen endpoints maken; zonder die capability blijft
+een app afhankelijk van een geautoriseerde bootstrap. `ChildProcess`-handles
+kunnen niet worden afgeleid, overgedragen of ingetrokken.
 
 ## API en autoriteit
 
@@ -22,12 +24,15 @@ rechtenverruiming weigeren. Dit is dezelfde authoritygrens als vóór de SDK.
 
 | Functie | Gedrag |
 |---|---|
-| `native::abi_info/check_abi` | Lees ABI en accepteer uitsluitend bestaande compatibele profielen 1.0, 1.1 en 1.2 |
+| `native::abi_info/check_abi` | Lees ABI en accepteer uitsluitend bestaande compatibele profielen 1.0 t/m 1.3 |
 | `native::yield_now/exit` | Bestaand proces afstaan/beëindigen |
 | `native::close/derive/revoke` | Bestaande capabilityoperaties; geen nieuwe objectaanmaak |
 | `native::send` | Eén nonblocking send; `Ok` betekent alleen dat het bericht is gequeued |
 | `native::receive` | Eén nonblocking receive naar een eigen stackbuffer, daarna envelopevalidatie |
 | `native::close_received_caps` | Expliciete cleanup van ontvangen caps; probeert alle handles en bewaart de oorspronkelijke berichtbytes |
+| `native::endpoint_create` | K05 (ABI 1.3, profiel `native-supervisor`): eigen endpoint binnen het kernelquotum van 4 per proces |
+| `native::spawn` | K05: start de image van een `LaunchImage` met één argumentwoord en maximaal twee verminderde capabilities (nooit RECV); levert de enige `ChildProcess`-handle |
+| `native::kill/status` | K05: beëindig of observeer een eigen kind; `ProcessStatus` decodeert alleen canonieke statuswoorden |
 
 `Outgoing::new` bouwt een volledig nulgevulde Message320 met maximaal 256
 payloadbytes. `Outgoing::from_bytes` accepteert een bestaand protocolbericht

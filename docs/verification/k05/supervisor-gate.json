@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "01735e0379a2e646f70cfe636389f59eaf26f22e6f8786752e0683db91f386b2",
+  "test_inputs": {
+    "tests/test_supervisor_harness.py": "8fa62d8f003f0d20691c17f9082a4dda54528644d598d592ed63ab4ba86e6d95"
+  },
+  "status": "completed",
+  "passed": true,
+  "host": [
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "capability-core"
+      ],
+      "exit": 0,
+      "totals": [
+        "test result: ok. 39 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "stdout": "\nrunning 39 tests\ntest tests::exact_public_error_numbers_match_the_syscall_contract ... ok\ntest tests::closed_object_tombstones_hold_global_capacity_without_retargeting ... ok\ntest tests::k05_delegation_precheck_matches_bootstrap_rules ... ok\ntest tests::k05_invalid_death_states_and_duplicate_children_are_rejected ... ok\ntest tests::endpoint_owner_and_global_quotas_recover_after_close ... ok\ntest tests::k05_launch_quota_and_owner_exit_close_objects ... ok\ntest tests::k05_process_quota_and_capacity_probes ... ok\ntest tests::k05_rights_constants_and_known_mask ... ok\ntest tests::k05_launch_is_typed_non_derivable_non_transferable_and_closable ... ok\ntest tests::k05_process_object_reports_lifecycle_to_its_spawner_only ... ok\ntest tests::k05_spawner_exit_ends_grandchildren_iteratively ... ok\ntest tests::ks10_message_rejection_and_endpoint_priority_are_atomic ... ok\ntest tests::ks10_wire_exact_offsets_canonical_fields_and_misaligned_byte_source ... ok\ntest tests::ks10_bounded_wire_bit_fuzz_never_panics_or_mutates_on_reject ... ok\ntest tests::k05_running_child_without_handles_stays_an_orphan_candidate ... ok\ntest tests::ks12_process_local_numeric_collision_and_stale_handles ... ok\ntest tests::ks13_all_transfer_authority_precedes_any_depth_resource_failure ... ok\ntest tests::ks11_snapshot_fifo_and_queue_quota ... ok\ntest tests::ks14_revocation_after_delivery_and_close_do_not_recall_bytes ... ok\ntest tests::ks13_attenuation_transfer_and_zero_rights ... ok\ntest tests::ks14_revoke_cancels_whole_queued_transfer_but_preserves_fifo ... ok\ntest tests::ks15_receive_reserves_both_slots_before_commit ... ok\ntest tests::ks14_revoke_is_not_array_order_dependent_and_preserves_own_node ... ok\ntest tests::ks15_slot_node_object_max_generation_retire_without_aba ... ok\ntest tests::ks16_exit_revokes_received_and_issued_descendants_and_queued_caps ... ok\ntest tests::ks15_depth_eight_parent_retention_and_reclamation ... ok\ntest tests::ks15_two_cap_send_global_node_exhaustion_has_no_partial_node ... ok\ntest tests::ks16_last_receive_close_tombstone_and_revoked_before_closed ... ok\ntest tests::m5_block_scope_invalid_masks_error_order_and_generation_retirement ... ok\ntest tests::m5_block_transfer_revoke_and_owner_exit_use_common_lifetimes ... ok\ntest tests::m5_block_quota_is_separate_from_all_64_endpoint_objects ... ok\ntest tests::m5_block_type_scope_and_admin_close_are_enforced ... ok\ntest tests::m5_revoked_queued_block_cap_cancels_complete_mixed_type_message ... ok\ntest tests::m6_explicit_write_flush_roots_preserve_legacy_rights_and_type_boundary ... ok\ntest tests::m6_queued_write_authority_revoke_exit_and_generation_remain_bounded ... ok\ntest tests::m6_writable_objects_do_not_reduce_endpoint_or_separate_block_quota ... ok\ntest tests::monotone_process_identity_quota_and_process_row_reuse ... ok\ntest tests::bounded_transaction_state_machine_fuzz_preserves_error_atomicity ... ok\ntest tests::m6_manifest_masks_and_subset_failures_are_transactional ... ok\n\ntest result: ok. 39 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/lib.rs (target/debug/deps/capability_core-e1b8727debf17276)\n   Doc-tests capability_core\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "totals": [
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 14 tests\ntest delegated_cap_descriptors_are_validated_and_preserved ... ok\ntest handle_representation_does_not_accept_sentinels_or_slot_overflow ... ok\ntest known_rights_do_not_allow_new_permission_bits ... ok\ntest oversized_wire_lengths_never_index_or_truncate ... ok\ntest every_payload_length_matches_the_current_kernel_decoder ... ok\ntest abi_check_accepts_only_existing_compatible_versions ... ok\ntest block_completion_accepts_only_the_canonical_ticket_envelope ... ok\ntest raw_send_rejects_spoofed_sender_and_every_unused_byte ... ok\ntest received_message_keeps_kernel_identity_and_exact_payload ... ok\ntest register_errors_remain_errors_and_secondary_errors_are_zero ... ok\ntest received_length_must_equal_the_syscall_result ... ok\ntest received_envelope_rejects_missing_sender_reserved_and_padding ... ok\ntest refused_cap_append_does_not_modify_the_message ... ok\ntest sdk_messages_interoperate_with_actual_capability_engine ... ok\n\ntest result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 3 tests\ntest typed_handles_keep_their_representation ... ok\ntest status_words_round_trip_and_reject_noncanonical_values ... ok\ntest abi_1_3_is_accepted_and_1_4_is_not ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/lib.rs (sdk/target/debug/deps/nieuw_os_sdk_runtime-2c8a0bd5a7f3e9ca)\n     Running tests/message.rs (sdk/target/debug/deps/message-022c0b00e592cb2d)\n     Running tests/process.rs (sdk/target/debug/deps/process-a3f83a46e9e0f7f9)\n   Doc-tests nieuw_os_sdk_runtime\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-supervisor-example",
+        "--lib"
+      ],
+      "exit": 0,
+      "totals": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "stdout": "\nrunning 1 test\ntest tests::frames_round_trip_and_reject_bad_sizes_or_ops ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/protocol.rs (sdk/target/debug/deps/k05_protocol-6a4aad1531e9593a)\n"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_supervisor_*.py"
+      ],
+      "exit": 0,
+      "totals": [
+        "Ran 7 tests in 0.002s",
+        "OK"
+      ],
+      "stdout": "",
+      "stderr": ".......\n----------------------------------------------------------------------\nRan 7 tests in 0.002s\n\nOK\n"
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "passed": true,
+      "run_directory": "/home/user/nieuw-os/build/run/supervisor-normal-3c1b6e506a",
+      "raw_qemu_exit": 33,
+      "duration_s": 3.9070899029998145,
+      "evidence": {
+        "SPAWNS": 3,
+        "KILLS": 2,
+        "SPAWN_DENIED": 0,
+        "SPAWN_QUOTA": 0,
+        "KILL_ERRORS": 0,
+        "STATUS_CALLS": 55,
+        "ENDPOINT_CREATES": 4,
+        "ORPHANS_REAPED": 0,
+        "CHILD_EXITS": 1,
+        "CHILD_FAULTS": 0,
+        "MAX_LIVE": 3,
+        "KERNEL_TABLES_GROWN": 0,
+        "RESTARTS": 1,
+        "CLIENT_REPLIES": 24,
+        "CLIENT_CLOSED": 1,
+        "WORKER_INSTANCES": 2,
+        "DENIED_MATCHED": 0,
+        "DENIED_TOTAL": 0,
+        "TICKS": 15
+      },
+      "error": null
+    },
+    {
+      "case": "crash",
+      "passed": true,
+      "run_directory": "/home/user/nieuw-os/build/run/supervisor-crash-42bdca9676",
+      "raw_qemu_exit": 33,
+      "duration_s": 3.4322927490002257,
+      "evidence": {
+        "SPAWNS": 3,
+        "KILLS": 1,
+        "SPAWN_DENIED": 0,
+        "SPAWN_QUOTA": 0,
+        "KILL_ERRORS": 0,
+        "STATUS_CALLS": 53,
+        "ENDPOINT_CREATES": 4,
+        "ORPHANS_REAPED": 0,
+        "CHILD_EXITS": 1,
+        "CHILD_FAULTS": 1,
+        "MAX_LIVE": 3,
+        "KERNEL_TABLES_GROWN": 0,
+        "RESTARTS": 1,
+        "CLIENT_REPLIES": 24,
+        "CLIENT_CLOSED": 1,
+        "WORKER_INSTANCES": 2,
+        "DENIED_MATCHED": 0,
+        "DENIED_TOTAL": 0,
+        "TICKS": 16
+      },
+      "error": null
+    },
+    {
+      "case": "denied",
+      "passed": true,
+      "run_directory": "/home/user/nieuw-os/build/run/supervisor-denied-a6e7ef3cd1",
+      "raw_qemu_exit": 33,
+      "duration_s": 3.2218081099999836,
+      "evidence": {
+        "SPAWNS": 2,
+        "KILLS": 1,
+        "SPAWN_DENIED": 7,
+        "SPAWN_QUOTA": 0,
+        "KILL_ERRORS": 4,
+        "STATUS_CALLS": 3,
+        "ENDPOINT_CREATES": 6,
+        "ORPHANS_REAPED": 0,
+        "CHILD_EXITS": 1,
+        "CHILD_FAULTS": 0,
+        "MAX_LIVE": 3,
+        "KERNEL_TABLES_GROWN": 0,
+        "RESTARTS": 0,
+        "CLIENT_REPLIES": 0,
+        "CLIENT_CLOSED": 0,
+        "WORKER_INSTANCES": 0,
+        "DENIED_MATCHED": 17,
+        "DENIED_TOTAL": 17,
+        "TICKS": 7
+      },
+      "error": null
+    },
+    {
+      "case": "parent-exit",
+      "passed": true,
+      "run_directory": "/home/user/nieuw-os/build/run/supervisor-parent-exit-4868964765",
+      "raw_qemu_exit": 33,
+      "duration_s": 3.784844450000037,
+      "evidence": {
+        "SPAWNS": 2,
+        "KILLS": 0,
+        "SPAWN_DENIED": 0,
+        "SPAWN_QUOTA": 0,
+        "KILL_ERRORS": 0,
+        "STATUS_CALLS": 8,
+        "ENDPOINT_CREATES": 3,
+        "ORPHANS_REAPED": 2,
+        "CHILD_EXITS": 0,
+        "CHILD_FAULTS": 0,
+        "MAX_LIVE": 3,
+        "KERNEL_TABLES_GROWN": 0,
+        "RESTARTS": 0,
+        "CLIENT_REPLIES": 4,
+        "CLIENT_CLOSED": 0,
+        "WORKER_INSTANCES": 1,
+        "DENIED_MATCHED": 0,
+        "DENIED_TOTAL": 0,
+        "TICKS": 6
+      },
+      "error": null
+    },
+    {
+      "case": "quota",
+      "passed": true,
+      "run_directory": "/home/user/nieuw-os/build/run/supervisor-quota-58aa4ba0ad",
+      "raw_qemu_exit": 33,
+      "duration_s": 4.358887638999931,
+      "evidence": {
+        "SPAWNS": 15,
+        "KILLS": 15,
+        "SPAWN_DENIED": 0,
+        "SPAWN_QUOTA": 1,
+        "KILL_ERRORS": 0,
+        "STATUS_CALLS": 30,
+        "ENDPOINT_CREATES": 16,
+        "ORPHANS_REAPED": 0,
+        "CHILD_EXITS": 0,
+        "CHILD_FAULTS": 0,
+        "MAX_LIVE": 16,
+        "KERNEL_TABLES_GROWN": 1,
+        "RESTARTS": 0,
+        "CLIENT_REPLIES": 0,
+        "CLIENT_CLOSED": 0,
+        "WORKER_INSTANCES": 0,
+        "DENIED_MATCHED": 0,
+        "DENIED_TOTAL": 0,
+        "TICKS": 47
+      },
+      "error": null
+    }
+  ]
+}

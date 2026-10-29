@@ -21,6 +21,19 @@ mod qsim;
 mod qsim_job;
 #[cfg(feature = "native-sdk-app")]
 mod sdk_app;
+#[cfg(feature = "native-supervisor")]
+mod supervisor;
+#[cfg(all(
+    feature = "native-supervisor",
+    any(
+        feature = "milestone-m5",
+        feature = "graphics-g0",
+        feature = "native-qsim",
+        feature = "native-qsim-job",
+        feature = "native-sdk-app"
+    )
+))]
+compile_error!("native-supervisor is a separate opt-in M4 profile");
 #[cfg(all(
     feature = "native-qsim",
     any(
@@ -79,11 +92,18 @@ const ELF: &[u8] = include_bytes!(env!("NOS_QSIM_JOB_ELF"));
 const SDK_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_SDK_SERVICE_ELF"));
 #[cfg(feature = "native-sdk-app")]
 const SDK_APP_ELF: &[u8] = include_bytes!(env!("NOS_SDK_APP_ELF"));
+#[cfg(feature = "native-supervisor")]
+const SUPERVISOR_ELF: &[u8] = include_bytes!(env!("NOS_SUPERVISOR_ELF"));
+#[cfg(feature = "native-supervisor")]
+const WORKER_ELF: &[u8] = include_bytes!(env!("NOS_WORKER_ELF"));
+#[cfg(feature = "native-supervisor")]
+const CLIENT_ELF: &[u8] = include_bytes!(env!("NOS_CLIENT_ELF"));
 #[cfg(all(
     feature = "milestone-m4",
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
-    not(feature = "native-sdk-app")
+    not(feature = "native-sdk-app"),
+    not(feature = "native-supervisor")
 ))]
 const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
@@ -258,7 +278,20 @@ fn process_elf(slot: usize) -> &'static [u8] {
         _ => panic!("native volume profile has one service and two apps"),
     }
 }
-#[cfg(not(any(feature = "native-sdk-app", feature = "native-volume")))]
+#[cfg(feature = "native-supervisor")]
+fn process_elf(slot: usize) -> &'static [u8] {
+    match slot {
+        0 => SUPERVISOR_ELF,
+        _ => {
+            panic!("native supervisor profile boots only the supervisor; children spawn at runtime")
+        }
+    }
+}
+#[cfg(not(any(
+    feature = "native-sdk-app",
+    feature = "native-volume",
+    feature = "native-supervisor"
+)))]
 fn process_elf(_slot: usize) -> &'static [u8] {
     ELF
 }
@@ -329,7 +362,10 @@ impl State {
         self.exited = false;
         self.survivor_slot = 1;
         self.unexpected = false;
-        self.amount = if cfg!(any(
+        self.amount = if cfg!(feature = "native-supervisor") {
+            // The whole table is schedulable; only the supervisor boots now.
+            MAX
+        } else if cfg!(any(
             feature = "native-qsim",
             feature = "native-qsim-job",
             feature = "native-sdk-app"
@@ -344,7 +380,12 @@ impl State {
         } else {
             16
         };
-        for slot in 0..self.amount {
+        let initial = if cfg!(feature = "native-supervisor") {
+            1
+        } else {
+            self.amount
+        };
+        for slot in 0..initial {
             self.spawn_process(slot);
         }
 
@@ -352,6 +393,7 @@ impl State {
             || cfg!(feature = "native-qsim")
             || cfg!(feature = "native-qsim-job")
             || cfg!(feature = "native-sdk-app")
+            || cfg!(feature = "native-supervisor")
         {
             0
         } else if mode() == 5 {
@@ -360,7 +402,11 @@ impl State {
             self.processes[1].physical(DATA + 16)
         };
         write_word(self.processes[0].physical(DATA + 24), target);
-        self.survivor_start = read_word(self.processes[1].physical(DATA + 8));
+        self.survivor_start = if self.processes[1].status == Status::Dead {
+            0
+        } else {
+            read_word(self.processes[1].physical(DATA + 8))
+        };
         self.audit();
         if cfg!(feature = "test-m3-large-image") {
             serial::write(b"M3:LARGE_IMAGE:PASS\n");
@@ -369,11 +415,14 @@ impl State {
             feature = "milestone-m4",
             not(feature = "milestone-m5"),
             not(feature = "native-qsim-job"),
-            not(feature = "native-sdk-app")
+            not(feature = "native-sdk-app"),
+            not(feature = "native-supervisor")
         ))]
         m4::manifest(self);
         #[cfg(feature = "native-sdk-app")]
         sdk_app::manifest(self);
+        #[cfg(feature = "native-supervisor")]
+        supervisor::manifest(self);
         #[cfg(feature = "milestone-m5")]
         m5::manifest(self);
         #[cfg(feature = "native-qsim")]
@@ -382,6 +431,11 @@ impl State {
         qsim_job::manifest(self);
     }
     fn spawn_process(&mut self, slot: usize) {
+        self.spawn_process_from(slot, process_elf(slot));
+    }
+    /// Build one process from a validated embedded ELF into a dead slot. The
+    /// caller has checked capacity; allocation failure here is a kernel bug.
+    fn spawn_process_from(&mut self, slot: usize, elf: &'static [u8]) {
         assert!(self.processes[slot].status == Status::Dead);
         let (pid, next) = user::issue_pid(self.next_pid).expect("PID exhaustion");
         self.next_pid = next;
@@ -394,7 +448,6 @@ impl State {
             &self.kernel,
             u16::try_from(slot + 1).unwrap(),
         ));
-        let elf = process_elf(slot);
         let image = user::parse(elf).unwrap();
         for segment in &image.segments[..image.count] {
             let start = segment.va & !(PAGE - 1);
@@ -575,7 +628,9 @@ impl State {
     }
     fn audit(&self) {
         for i in 0..self.amount {
-            self.audit_process(i);
+            if self.processes[i].status != Status::Dead {
+                self.audit_process(i);
+            }
         }
     }
     fn select(&mut self) -> *const u64 {
@@ -786,6 +841,11 @@ impl State {
             sdk_app::observe_exit(self, slot, counter);
             return;
         }
+        #[cfg(feature = "native-supervisor")]
+        {
+            supervisor::observe_exit(self, slot, counter);
+            return;
+        }
         #[cfg(feature = "native-qsim-job")]
         {
             qsim_job::observe_exit(self, slot, counter);
@@ -801,7 +861,8 @@ impl State {
             feature = "milestone-m4",
             not(feature = "milestone-m5"),
             not(feature = "native-qsim-job"),
-            not(feature = "native-sdk-app")
+            not(feature = "native-sdk-app"),
+            not(feature = "native-supervisor")
         ))]
         {
             m4::observe_exit(self, slot, counter);
@@ -837,6 +898,11 @@ impl State {
             sdk_app::observe_fault(self, slot, context, counter);
             return;
         }
+        #[cfg(feature = "native-supervisor")]
+        {
+            supervisor::observe_fault(self, slot, context, counter);
+            return;
+        }
         #[cfg(feature = "native-qsim-job")]
         {
             qsim_job::observe_fault(self, slot, context, counter);
@@ -852,7 +918,8 @@ impl State {
             feature = "milestone-m4",
             not(feature = "milestone-m5"),
             not(feature = "native-qsim-job"),
-            not(feature = "native-sdk-app")
+            not(feature = "native-sdk-app"),
+            not(feature = "native-supervisor")
         ))]
         {
             m4::observe_fault(self, slot, context, counter);
@@ -952,8 +1019,19 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             context[7],
             context[6],
         ];
+        #[cfg(feature = "native-supervisor")]
+        let supervisor_call = matches!(number, 0x30 | 0x50..=0x52);
+        #[cfg(not(feature = "native-supervisor"))]
+        let supervisor_call = false;
+        #[cfg(feature = "native-supervisor")]
+        if supervisor_call {
+            let (rax, rdx) = supervisor::syscall(state, current, number, args);
+            state.processes[current].context[14] = rax as u64;
+            state.processes[current].context[12] = rdx;
+        }
         #[cfg(feature = "milestone-m4")]
         if number >= 0x10
+            && !supervisor_call
             && !(cfg!(feature = "milestone-m5")
                 && (matches!(number, 0x40 | 0x41)
                     || cfg!(feature = "milestone-m6a") && matches!(number, 0x42 | 0x43)))
@@ -984,7 +1062,9 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                 match number {
                     0 => {
                         p.context[12] = (1 << 32)
-                            | if cfg!(feature = "milestone-m6a") {
+                            | if cfg!(feature = "native-supervisor") {
+                                3
+                            } else if cfg!(feature = "milestone-m6a") {
                                 2
                             } else {
                                 u64::from(cfg!(feature = "milestone-m5"))
@@ -1045,9 +1125,14 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         feature = "milestone-m4",
         not(feature = "milestone-m5"),
         not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app")
+        not(feature = "native-sdk-app"),
+        not(feature = "native-supervisor")
     ))]
     if let Some(next) = m4::poll(state) {
+        return next;
+    }
+    #[cfg(feature = "native-supervisor")]
+    if let Some(next) = supervisor::poll(state) {
         return next;
     }
     #[cfg(feature = "milestone-m5")]

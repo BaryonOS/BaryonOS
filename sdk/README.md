@@ -9,6 +9,7 @@ Zij veranderen geen kernel-ABI, capabilityrechten of opslagformaat.
 | [catalog-client](catalog-client/README.md) | B01-catalogusclient over de runtime, met begrensd wachten, canonieke antwoorden en geen replay na publicatie. |
 | [document-session](document-session/README.md) | Bestaand document openen, lokaal bewerken, CAS-bewaren en expliciet heropenen; conceptbehoud bij conflict of onzekerheid. |
 | [catalog-read](examples/catalog-read/README.md) | Compileerbaar native voorbeeld voor LIST → GET via de getypeerde catalogusclient. |
+| [supervisor](examples/supervisor/README.md) | K05: ring-3 supervisor, herstartbare worker en client over de spawn/kill/status-ABI 1.3; de acceptatieprogramma's van het profiel `native-supervisor`. |
 
 G01/G03 bewijzen veilige hostvalidatie en native compilatie. De afzonderlijke
 G05-suite bewijst de runtimebridge in de bestaande native M6c-keten. G07 is

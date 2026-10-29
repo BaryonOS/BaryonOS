@@ -897,3 +897,239 @@ fn ks10_bounded_wire_bit_fuzz_never_panics_or_mutates_on_reject() {
         }
     });
 }
+
+// ---- K05: Launch and Process objects (ADR-042) ----
+
+fn launch_pair(e: &mut Engine) -> (u64, u64) {
+    // pid 1 is the spawner with one launch capability; pid 2 is its child.
+    let launch = e.create_launch(1, 0).unwrap();
+    let child = e.create_process(1, 2).unwrap();
+    (launch, child)
+}
+
+#[test]
+fn k05_rights_constants_and_known_mask() {
+    assert_eq!(LAUNCH, 128);
+    assert_eq!(OBSERVE, 256);
+    assert_eq!(KILL, 512);
+    assert_eq!(KNOWN_RIGHTS, 1023);
+    assert_eq!(LAUNCH_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
+    assert_eq!(PROCESS_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
+}
+
+#[test]
+fn k05_launch_is_typed_non_derivable_non_transferable_and_closable() {
+    run(|e| {
+        setup(e, 2);
+        let launch = e.create_launch(1, 3).unwrap();
+        assert_eq!(e.check_launch(1, launch), Ok(3));
+        assert_eq!(e.stats().launch_objects, 1);
+        let endpoint = e.create_endpoint(1).unwrap();
+        assert_atomic(e, Error::Type, |e| e.check_launch(1, endpoint));
+        assert_atomic(e, Error::Type, |e| e.check_endpoint(1, launch, SEND));
+        assert_atomic(e, Error::Type, |e| e.check_block(1, launch, BLOCK_READ));
+        assert_atomic(e, Error::Type, |e| e.check_process(1, launch, OBSERVE));
+        // No derive, revoke or transfer exists for this object type at all.
+        assert_atomic(e, Error::Invalid, |e| e.derive(1, launch, LAUNCH));
+        assert_atomic(e, Error::Invalid, |e| e.revoke(1, launch));
+        assert_atomic(e, Error::Invalid, |e| {
+            e.bootstrap_delegate(1, launch, 2, LAUNCH)
+        });
+        assert_atomic(e, Error::Invalid, |e| e.check_delegation(1, launch, LAUNCH));
+        // Another process cannot use the numeric value (its table is empty).
+        assert_atomic(e, Error::BadHandle, |e| e.check_launch(2, launch));
+        let (_, send) = destination(e);
+        assert_atomic(e, Error::Invalid, |e| {
+            e.send(1, send, &cap_message(launch, LAUNCH))
+        });
+        // After pid 2 gained its own slot 1, the same number names only pid 2's
+        // own endpoint, never pid 1's launch object (KS-12 collision rule).
+        assert_atomic(e, Error::Type, |e| e.check_launch(2, launch));
+        e.close(1, launch).unwrap();
+        assert_eq!(e.stats().launch_objects, 0);
+        assert_eq!(e.stats().retired_launch_objects, 0);
+        assert_atomic(e, Error::BadHandle, |e| e.check_launch(1, launch));
+    });
+}
+
+#[test]
+fn k05_launch_quota_and_owner_exit_close_objects() {
+    run(|e| {
+        setup(e, 2);
+        let mut handles = Vec::new();
+        for image in 0..MAX_LAUNCH_OBJECTS as u32 {
+            handles.push(e.create_launch(1, image).unwrap());
+        }
+        assert_atomic(e, Error::Quota, |e| e.create_launch(1, 0));
+        assert_eq!(e.stats().launch_objects, MAX_LAUNCH_OBJECTS);
+        e.exit(1).unwrap();
+        assert_eq!(e.stats().launch_objects, 0);
+        assert_eq!(e.stats().nodes, 0);
+        for handle in handles {
+            assert_atomic(e, Error::BadHandle, |e| e.check_launch(1, handle));
+        }
+    });
+}
+
+#[test]
+fn k05_process_object_reports_lifecycle_to_its_spawner_only() {
+    run(|e| {
+        setup(e, 3);
+        let (_, child) = launch_pair(e);
+        let view = e.check_process(1, child, OBSERVE).unwrap();
+        assert_eq!(
+            view,
+            ProcessView {
+                child: 2,
+                state: PROCESS_RUNNING,
+                code: 0
+            }
+        );
+        assert!(e.check_process(1, child, KILL).is_ok());
+        assert_atomic(e, Error::BadHandle, |e| e.check_process(2, child, OBSERVE));
+        assert_atomic(e, Error::BadHandle, |e| e.check_process(3, child, OBSERVE));
+        assert_atomic(e, Error::Invalid, |e| e.check_process(1, child, SEND));
+        assert_atomic(e, Error::Invalid, |e| e.derive(1, child, OBSERVE));
+        assert_atomic(e, Error::Invalid, |e| e.revoke(1, child));
+        assert_atomic(e, Error::Invalid, |e| {
+            e.bootstrap_delegate(1, child, 3, OBSERVE)
+        });
+        // Child dies with an exit code: the object keeps the report.
+        assert!(e.process_died(2, PROCESS_EXITED, 7));
+        e.exit(2).unwrap();
+        assert_eq!(
+            e.check_process(1, child, OBSERVE).unwrap(),
+            ProcessView {
+                child: 2,
+                state: PROCESS_EXITED,
+                code: 7
+            }
+        );
+        // A second death report for the same child changes nothing.
+        assert!(!e.process_died(2, PROCESS_KILLED, 0));
+        assert_eq!(e.check_process(1, child, OBSERVE).unwrap().code, 7);
+        assert_eq!(e.stats().process_objects, 1);
+        e.close(1, child).unwrap();
+        assert_eq!(e.stats().process_objects, 0);
+        // Only the launch handle of the spawner remains.
+        assert_eq!(e.stats().nodes, 1);
+    });
+}
+
+#[test]
+fn k05_invalid_death_states_and_duplicate_children_are_rejected() {
+    run(|e| {
+        setup(e, 2);
+        let (_, child) = launch_pair(e);
+        assert!(!e.process_died(2, 0, 0));
+        assert!(!e.process_died(2, PROCESS_RUNNING, 0));
+        assert!(!e.process_died(2, 9, 0));
+        assert!(!e.process_died(5, PROCESS_EXITED, 0));
+        assert_eq!(
+            e.check_process(1, child, OBSERVE).unwrap().state,
+            PROCESS_RUNNING
+        );
+        assert_atomic(e, Error::Invalid, |e| e.create_process(1, 2));
+        assert_atomic(e, Error::Invalid, |e| e.create_process(1, 1));
+        assert_atomic(e, Error::BadHandle, |e| e.create_process(1, 9));
+        assert_atomic(e, Error::BadHandle, |e| e.create_process(9, 2));
+    });
+}
+
+#[test]
+fn k05_running_child_without_handles_stays_an_orphan_candidate() {
+    run(|e| {
+        setup(e, 3);
+        let (_, child) = launch_pair(e);
+        let mut out = [0; MAX_PROCESS_OBJECTS];
+        assert_eq!(e.orphans(&mut out), 0);
+        // The spawner drops its handle while the child still runs: the link
+        // survives so a later spawner exit can still end the child.
+        e.close(1, child).unwrap();
+        assert_eq!(e.stats().process_objects, 1);
+        assert_eq!(e.stats().nodes, 1);
+        assert_eq!(e.orphans(&mut out), 0);
+        e.exit(1).unwrap();
+        assert_eq!(e.orphans(&mut out), 1);
+        assert_eq!(out[0], 2);
+        // The kernel ends the orphan and reports the kill; then it retires.
+        assert!(e.process_died(2, PROCESS_KILLED, 0));
+        assert_eq!(e.orphans(&mut out), 0);
+        assert_eq!(e.stats().process_objects, 0);
+        e.exit(2).unwrap();
+        assert_eq!(e.stats().processes, 1);
+    });
+}
+
+#[test]
+fn k05_spawner_exit_ends_grandchildren_iteratively() {
+    run(|e| {
+        setup(e, 4);
+        let a = e.create_process(1, 2).unwrap();
+        let b = e.create_process(2, 3).unwrap();
+        let c = e.create_process(3, 4).unwrap();
+        let mut out = [0; MAX_PROCESS_OBJECTS];
+        assert_eq!(e.orphans(&mut out), 0);
+        e.exit(1).unwrap();
+        assert_eq!(e.orphans(&mut out), 1);
+        assert_eq!(out[0], 2);
+        assert!(e.process_died(2, PROCESS_KILLED, 0));
+        e.exit(2).unwrap();
+        assert_eq!(e.orphans(&mut out), 1);
+        assert_eq!(out[0], 3);
+        assert!(e.process_died(3, PROCESS_KILLED, 0));
+        e.exit(3).unwrap();
+        assert_eq!(e.orphans(&mut out), 1);
+        assert_eq!(out[0], 4);
+        assert!(e.process_died(4, PROCESS_KILLED, 0));
+        e.exit(4).unwrap();
+        assert_eq!(e.orphans(&mut out), 0);
+        let s = e.stats();
+        assert_eq!((s.processes, s.nodes, s.process_objects), (0, 0, 0));
+        for handle in [a, b, c] {
+            assert_atomic(e, Error::BadHandle, |e| e.check_process(1, handle, OBSERVE));
+        }
+    });
+}
+
+#[test]
+fn k05_delegation_precheck_matches_bootstrap_rules() {
+    run(|e| {
+        setup(e, 2);
+        let root = e.create_endpoint(1).unwrap();
+        assert_eq!(e.check_delegation(1, root, SEND), Ok(()));
+        assert_atomic(e, Error::Access, |e| e.check_delegation(1, root, RECV));
+        assert_atomic(e, Error::Invalid, |e| e.check_delegation(1, root, 1024));
+        let send_only = e.derive(1, root, SEND).unwrap();
+        assert_atomic(e, Error::Access, |e| e.check_delegation(1, send_only, SEND));
+        assert_atomic(e, Error::BadHandle, |e| e.check_delegation(1, 0, SEND));
+        assert_atomic(e, Error::BadHandle, |e| e.check_delegation(2, root, SEND));
+        let (_, child) = launch_pair(e);
+        assert_atomic(e, Error::Invalid, |e| e.check_delegation(1, child, OBSERVE));
+        let before = e.clone();
+        assert_eq!(e.available_nodes(), MAX_NODES - 4);
+        assert_eq!(e.available_slots(1), MAX_SLOTS - 1 - 4);
+        assert_eq!(e.available_slots(9), 0);
+        assert!(e.can_register());
+        assert!(e.can_create_process());
+        assert_eq!(*e, before);
+    });
+}
+
+#[test]
+fn k05_process_quota_and_capacity_probes() {
+    run(|e| {
+        setup(e, MAX_PROCESSES as u64);
+        assert!(!e.can_register());
+        for child in 2..=MAX_PROCESSES as u64 {
+            e.create_process(1, child).unwrap();
+        }
+        assert_eq!(e.stats().process_objects, MAX_PROCESSES - 1);
+        // Every object slot is bound to a live child, so a 17th cannot exist.
+        assert_atomic(e, Error::Invalid, |e| e.create_process(1, 2));
+        e.exit(1).unwrap();
+        let mut out = [0; MAX_PROCESS_OBJECTS];
+        assert_eq!(e.orphans(&mut out), MAX_PROCESSES - 1);
+        assert!(e.can_register());
+    });
+}

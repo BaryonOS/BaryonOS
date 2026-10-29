@@ -1,5 +1,40 @@
 # Actuele projectstatus
 
+## K05 algemeen proces- en dienstbeheer native geaccepteerd, 30% — 29 oktober 2026
+
+Branch `ccr-43832ef7-gi2qlz`, basis `main` `8b60354`. Omgeving: Linux-container,
+Rust 1.90.0, QEMU 8.2.2 (Ubuntu), `pc-q35-8.2`, OVMF 4M.
+
+**Gerealiseerd (native, profiel `native-supervisor`, ADR-042):**
+- `capability-core`: objecttypen `Launch` (rechten `LAUNCH`=128) en `Process`
+  (`OBSERVE`=256, `KILL`=512), zonder `DERIVE`/`TRANSFER`/`REVOKE`; `orphans()`
+  voor kinderen van een gestorven starter; 9 nieuwe hosttests.
+- Kernel `kernel/src/m2/m3/supervisor.rs`: syscalls `endpoint_create` (0x30),
+  `proc_spawn` (0x50), `proc_kill` (0x51), `proc_status` (0x52); alle controles
+  vóór toewijzing; dood via het bestaande `cleanup`-pad; wezen worden iteratief
+  in dezelfde gebeurtenis beëindigd. ABI-minor 1.3.
+- SDK-runtime: `native::endpoint_create/spawn/kill/status`, `LaunchImage`,
+  `ChildProcess`, `ProcessStatus`; drie gewone programma's in
+  `sdk/examples/supervisor` (supervisor, herstartbare worker, client).
+- Gate `tools/test_supervisor.py`: 4 hostcontroles en 5 echte QEMU-runs
+  (normal, crash, denied, parent-exit, quota); runner, capture, 7 harnastests;
+  workflow `K05 process management acceptance`.
+
+**Uitgevoerd en geslaagd:** zie [K05-ACCEPTANCE](verification/K05-ACCEPTANCE.md)
+en `docs/verification/k05/`. Kernelbewijs per run: normal 3 spawns/2 kills/1
+herstart/24 antwoorden; crash 1 echte `#UD`, herstart, 24 antwoorden; denied
+17/17 foutcodes, 2 processen; parent-exit 2 wezen beëindigd zonder kills;
+quota 15 spawns, 16e `EQUOTA` zonder frameverandering, 16 gelijktijdig, 15
+kills. Elke run eindigt met lege engine en framebaseline.
+
+**Roadmap rubric v1: 28% → 30%** (K05 +2).
+
+**Open en niet bewezen:** GitHub Actions op de PR-head moet de gate herhalen;
+geen SMP, fysieke hardware, gebruikersgeleverde images (A02) of beleid voor wie
+supervisor mag zijn. Tijdens de eerste gate-run is de bronvingerafdruk
+veranderd door een gelijktijdige README-wijziging onder `sdk/`; die run is
+terecht als mislukt afgewezen en volledig herhaald.
+
 ## S06 geaccepteerd na merge en onafhankelijke herhaling, 28% — 29 oktober 2026
 
 Branch `ccr-43832ef7-gi2qlz`, basis `main` `8b60354` (squash van
