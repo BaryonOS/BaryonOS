@@ -28,6 +28,7 @@ SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota")
 SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES))
 KEYRING_CASES = ("no-device", "stuck", "timeout", "restart")
 KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRING_CASES))
+SYSTEM_FEATURES = ("native-system", "test-system-recover")
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
@@ -37,7 +38,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "tes
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
                    "native-sdk-app", "test-sdk-app-denied", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
-                   *KEYRING_FEATURES]
+                   *KEYRING_FEATURES, *SYSTEM_FEATURES]
 
 
 def inspect_elf(path):
@@ -153,6 +154,28 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
             "NOS_SDK_APP_ELF": str(app.resolve()),
             "NOS_SDK_SERVICE_ELF": str(service.resolve()),
         }
+    elif kernel_feature in SYSTEM_FEATURES:
+        from build_users import inspect_user
+        binaries = {}
+        # These are ordinary freestanding ring-3 programs. Their existing
+        # builders keep each linker/portable-crypto contract and an isolated
+        # target directory; the kernel receives only the inspected ELFs.
+        for component, package, names in (
+            ("system", "system", ("init", "app", "worker")),
+            ("keyring", "keyring", ("service",)),
+            ("volume", "volume-docs", ("service",)),
+        ):
+            component_target = TARGET / f"system-{component}"
+            run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{package}/build.py")],
+                       f"build-system-{component}",
+                       extra_env={"CARGO_TARGET_DIR": str(component_target)})
+            for name in names:
+                binary = component_target / f"x86_64-unknown-none/release/{component}-{name}"
+                binaries[f"{component}_{name}"] = binary
+        qsim_report = {name: {"sha256": sha256(path), "elf": inspect_user(path)}
+                       for name, path in binaries.items()}
+        extra_env = {f"NOS_{name.upper()}_ELF": str(path.resolve())
+                     for name, path in binaries.items()}
     elif kernel_feature in VOLUME_FEATURES:
         from build_users import inspect_user
         volume_target = TARGET / "volume-docs"
@@ -225,6 +248,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
             manifest["volume_docs"] = qsim_report
         elif kernel_feature in SUPERVISOR_FEATURES:
             manifest["supervisor"] = qsim_report
+        elif kernel_feature in SYSTEM_FEATURES:
+            manifest["system"] = qsim_report
         elif kernel_feature in KEYRING_FEATURES:
             manifest["keyring"] = qsim_report
         else:

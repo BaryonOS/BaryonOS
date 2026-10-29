@@ -180,6 +180,7 @@ dependencies = [
  "catalog-core",
  "nieuw-os-catalog-client",
  "nieuw-os-sdk-runtime",
+ "volume-core",
 ]
 
 [[package]]
@@ -202,6 +203,15 @@ name = "nieuw-os-supervisor-example"
 version = "0.1.0"
 dependencies = [
  "nieuw-os-sdk-runtime",
+]
+
+[[package]]
+name = "nieuw-os-system-example"
+version = "0.1.0"
+dependencies = [
+ "keyring-core",
+ "nieuw-os-sdk-runtime",
+ "volume-core",
 ]
 
 [[package]]
