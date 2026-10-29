@@ -913,7 +913,9 @@ fn k05_rights_constants_and_known_mask() {
     assert_eq!(OBSERVE, 256);
     assert_eq!(KILL, 512);
     assert_eq!(ENTROPY, 1024);
-    assert_eq!(KNOWN_RIGHTS, 2047);
+    assert_eq!(NETWORK, 2048);
+    assert_eq!(KNOWN_RIGHTS, 4095);
+    assert_eq!(NETWORK_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(ENTROPY_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(LAUNCH_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(PROCESS_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
@@ -1169,5 +1171,57 @@ fn b01_entropy_capability_is_typed_exclusive_and_bounded() {
         e.exit(1).unwrap();
         assert_eq!(e.stats().entropy_objects, 0);
         assert_eq!(e.stats().nodes, 1);
+    });
+}
+
+#[test]
+fn raw_network_authority_is_typed_private_and_cannot_be_delegated() {
+    run(|e| {
+        setup(e, 2);
+        let net = e.create_network(1).unwrap();
+        assert!(e.check_network(1, net).is_ok());
+        let entropy = e.create_entropy(1).unwrap();
+        let endpoint = e.create_endpoint(1).unwrap();
+        assert_atomic(e, Error::Type, |e| e.check_network(1, endpoint));
+        assert_atomic(e, Error::Type, |e| e.check_network(1, entropy));
+        assert_atomic(e, Error::Type, |e| e.check_entropy(1, net));
+        assert_atomic(e, Error::Type, |e| e.check_endpoint(1, net, SEND));
+        assert_atomic(e, Error::Type, |e| e.check_block(1, net, BLOCK_READ));
+        assert_atomic(e, Error::Type, |e| e.check_launch(1, net));
+        assert_atomic(e, Error::Type, |e| e.check_process(1, net, OBSERVE));
+        assert_atomic(e, Error::BadHandle, |e| e.check_network(2, net));
+        assert_atomic(e, Error::Invalid, |e| e.derive(1, net, NETWORK));
+        assert_atomic(e, Error::Invalid, |e| e.revoke(1, net));
+        assert_atomic(e, Error::Invalid, |e| {
+            e.bootstrap_delegate(1, net, 2, NETWORK)
+        });
+        let (_, send) = destination(e);
+        assert_atomic(e, Error::Invalid, |e| {
+            e.send(1, send, &cap_message(net, NETWORK))
+        });
+        assert_eq!(e.stats().network_objects, 1);
+    });
+}
+
+#[test]
+fn raw_network_close_exit_and_reissue_do_not_resurrect_authority() {
+    run(|e| {
+        setup(e, 1);
+        let old = e.create_network(1).unwrap();
+        let old_object = e.check_network(1, old).unwrap();
+        for _ in 1..MAX_NETWORK_OBJECTS {
+            e.create_network(1).unwrap();
+        }
+        assert_atomic(e, Error::Quota, |e| e.create_network(1));
+        e.close(1, old).unwrap();
+        assert_atomic(e, Error::BadHandle, |e| e.check_network(1, old));
+        let new = e.create_network(1).unwrap();
+        assert_ne!(e.check_network(1, new).unwrap(), old_object);
+        assert_ne!(new, old);
+        assert_atomic(e, Error::BadHandle, |e| e.check_network(1, old));
+        e.exit(1).unwrap();
+        assert_eq!(e.stats().network_objects, 0);
+        assert_eq!(e.stats().nodes, 0);
+        assert_eq!(e.stats().handles, 0);
     });
 }

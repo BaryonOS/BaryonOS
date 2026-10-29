@@ -6,6 +6,7 @@ use crate::{
     block::{self, BlockDevice, READ_MAX, SECTOR_SIZE},
     decode_return,
     entropy::{EntropySource, ENTROPY_MAX},
+    network::{NetworkSource, NET_FRAME_MAX},
     process::{spawn_cap_words, ChildProcess, LaunchImage, ProcessStatus},
     validate_abi, zero_return, Capability, Error, Handle, Outgoing, ReceiveEndpoint, Received,
     Rights, SendEndpoint, MESSAGE_SIZE,
@@ -270,4 +271,68 @@ pub fn entropy_wait(
         }
     }
     Err(Error::Kernel(-13))
+}
+
+/// Publish one raw Ethernet frame. Success is a ticket, not device completion
+/// or peer delivery. The timeout is 1..=500 monotone 100 Hz ticks; never replay
+/// a failed/uncertain transmission automatically.
+pub fn net_send(source: NetworkSource, frame: &[u8], timeout_ticks: u64) -> Result<u64, Error> {
+    if !(14..=NET_FRAME_MAX).contains(&frame.len()) {
+        return Err(Error::MessageSize);
+    }
+    if !(1..=500).contains(&timeout_ticks) {
+        return Err(Error::Kernel(-1));
+    }
+    let ticket = call(
+        0x70,
+        [
+            source.handle().raw(),
+            frame.as_ptr() as u64,
+            frame.len() as u64,
+            timeout_ticks,
+            0,
+            0,
+        ],
+    )?;
+    if ticket == 0 {
+        Err(Error::InvalidReturn)
+    } else {
+        Ok(ticket)
+    }
+}
+
+/// Poll a previously published TX ticket. EAGAIN leaves it pending; completion
+/// confirms only device processing, never acknowledgement by a remote peer.
+pub fn net_poll_tx(source: NetworkSource, ticket: u64) -> Result<usize, Error> {
+    let count = call(0x71, [source.handle().raw(), ticket, 0, 0, 0, 0])?;
+    if !(14..=NET_FRAME_MAX as u64).contains(&count) {
+        Err(Error::InvalidReturn)
+    } else {
+        Ok(count as usize)
+    }
+}
+
+/// Receive at most one complete raw frame. EAGAIN means no frame is queued.
+/// The kernel validates the complete writable output before consumption or
+/// copying; errors leave it untouched. Caller supplies its own bounded wait.
+pub fn net_receive(source: NetworkSource, out: &mut [u8]) -> Result<usize, Error> {
+    if !(14..=NET_FRAME_MAX).contains(&out.len()) {
+        return Err(Error::MessageSize);
+    }
+    let count = call(
+        0x72,
+        [
+            source.handle().raw(),
+            out.as_mut_ptr() as u64,
+            out.len() as u64,
+            0,
+            0,
+            0,
+        ],
+    )?;
+    if count < 14 || count > out.len() as u64 {
+        Err(Error::InvalidReturn)
+    } else {
+        Ok(count as usize)
+    }
 }

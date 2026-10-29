@@ -18,12 +18,20 @@ struct Evidence {
     init: Option<[u64; 13]>,
     faults: u64,
     kernel_tables: usize,
+    #[cfg(feature = "native-system-net")]
+    net: Option<[u64; 13]>,
+    #[cfg(feature = "native-system-net")]
+    net_pid: u64,
 }
 static mut EVIDENCE: Evidence = Evidence {
     app: None,
     init: None,
     faults: 0,
     kernel_tables: 0,
+    #[cfg(feature = "native-system-net")]
+    net: None,
+    #[cfg(feature = "native-system-net")]
+    net_pid: 0,
 };
 fn evidence() -> &'static mut Evidence {
     // SAFETY: One CPU, IF=0. Each borrow ends before a syscall or scheduling.
@@ -61,10 +69,19 @@ fn channel(e: &mut capability_core::Engine, owner: u64, sender: u64) -> (u64, u6
     (receive, send)
 }
 pub(super) fn manifest(s: &mut State) {
+    let initial = if cfg!(feature = "native-system-net") {
+        5
+    } else {
+        4
+    };
     require(
         s.amount == MAX
-            && s.processes[..4].iter().all(|p| p.status != Status::Dead)
-            && s.processes[4..].iter().all(|p| p.status == Status::Dead),
+            && s.processes[..initial]
+                .iter()
+                .all(|p| p.status != Status::Dead)
+            && s.processes[initial..]
+                .iter()
+                .all(|p| p.status == Status::Dead),
         b"MANIFEST_STATE",
     );
     let ids = [
@@ -77,6 +94,21 @@ pub(super) fn manifest(s: &mut State) {
     let e = m4::engine();
     for pid in ids {
         e.register(pid).unwrap();
+    }
+    #[cfg(feature = "native-system-net")]
+    {
+        let pid = s.processes[4].pid;
+        evidence().net_pid = pid;
+        e.register(pid).unwrap();
+        let cap = e.create_network(pid).unwrap();
+        let key = e.check_network(pid, cap).unwrap();
+        let private = e.create_endpoint(pid).unwrap();
+        let wrong_type = e.derive(pid, private, RECV).unwrap();
+        e.close(pid, private).unwrap();
+        for (offset, value) in [(32, 1), (40, 0), (48, cap), (56, wrong_type), (176, pid)] {
+            put(s, 4, offset, value);
+        }
+        network::bind(pid, cap, key);
     }
     let launch = e.create_launch(init, 0).unwrap();
     // Init owns the registry so it can delegate only SEND to each worker.
@@ -178,12 +210,13 @@ pub(super) fn manifest(s: &mut State) {
         require(
             e.check_entropy(app, handle).is_err()
                 && e.check_block(app, handle, BLOCK_READ).is_err()
-                && e.check_launch(app, handle).is_err(),
+                && e.check_launch(app, handle).is_err()
+                && e.check_network(app, handle).is_err(),
             b"APP_AUTHORITY",
         );
     }
     require(e.check_invariants(), b"MANIFEST_ENGINE");
-    let releasable: usize = s.processes[..4]
+    let releasable: usize = s.processes[..initial]
         .iter()
         .map(|p| p.count + p.kernel_frames.len() + p.paging.as_ref().unwrap().owned_table_count())
         .sum();
@@ -191,8 +224,20 @@ pub(super) fn manifest(s: &mut State) {
     evidence().kernel_tables = s.kernel.owned_table_count();
     serial::write(b"SYSTEM:MANIFEST:PASS\n");
 }
+fn is_net_probe(s: &State, slot: usize) -> bool {
+    #[cfg(feature = "native-system-net")]
+    return s.processes[slot].pid == evidence().net_pid;
+    #[cfg(not(feature = "native-system-net"))]
+    {
+        let _ = (s, slot);
+        false
+    }
+}
 pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
-    require(slot == INIT || slot == APP, b"UNEXPECTED_EXIT");
+    require(
+        slot == INIT || slot == APP || is_net_probe(s, slot),
+        b"UNEXPECTED_EXIT",
+    );
     let mut words = [0; 13];
     for (i, at) in WORDS.iter().enumerate() {
         words[i] = word(s, slot, *at);
@@ -204,14 +249,22 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
     }
     if slot == INIT {
         evidence().init = Some(words);
-    } else {
+    } else if slot == APP {
         evidence().app = Some(words);
     }
+    #[cfg(feature = "native-system-net")]
+    if is_net_probe(s, slot) {
+        evidence().net = Some(words);
+    }
+
     m4::engine().process_died(s.processes[slot].pid, PROCESS_EXITED, 0);
 }
 pub(super) fn observe_fault(s: &mut State, slot: usize, context: &[u64; 22], _counter: u64) {
     require(
-        slot >= 4 && context[15] == 6 && evidence().faults == 0,
+        supervisor::is_managed_image(slot, 0)
+            && !is_net_probe(s, slot)
+            && context[15] == 6
+            && evidence().faults == 0,
         b"UNEXPECTED_FAULT",
     );
     evidence().faults += 1;
@@ -223,10 +276,16 @@ pub(super) fn observe_fault(s: &mut State, slot: usize, context: &[u64; 22], _co
 pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     keyring::broker_tick(s);
     m5::broker_tick(s);
+    #[cfg(feature = "native-system-net")]
+    network::broker_tick(s);
     supervisor::reap_orphans(s);
     require(!s.unexpected, b"UNEXPECTED_EVENT");
     if s.ticks >= 20_000 {
-        for slot in 0..4 {
+        for slot in 0..if cfg!(feature = "native-system-net") {
+            5
+        } else {
+            4
+        } {
             if s.processes[slot].status != Status::Dead {
                 print_number(b"SYSTEM:TIMEOUT:SLOT:", slot as u64);
                 print_number(b"SYSTEM:TIMEOUT:STEP:", word(s, slot, 240));
@@ -235,6 +294,10 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
         fail(b"TIMEOUT");
     }
     if evidence().app.is_none() || evidence().init.is_none() {
+        return None;
+    }
+    #[cfg(feature = "native-system-net")]
+    if evidence().net.is_none() || !network::finished() {
         return None;
     }
     finish(s)
@@ -308,6 +371,30 @@ fn finish(s: &mut State) -> ! {
     ] {
         print_number(label, value);
     }
+    #[cfg(feature = "native-system-net")]
+    {
+        let net = evidence().net.unwrap();
+        require(
+            net[2..6] == [1, 1, 1, 7] && net[8..13] == [2, 2, 1, 1, 1],
+            b"NET_PROTOCOL_EVIDENCE",
+        );
+        for (label, value) in [
+            (&b"SYSTEM:NET_ARP_REPLIES:"[..], net[2]),
+            (b"SYSTEM:NET_UDP_ECHOES:", net[3]),
+            (b"SYSTEM:NET_DNS_ANSWERS:", net[4]),
+            (b"SYSTEM:NET_APP_DENIED:", net[5]),
+            (b"SYSTEM:NET_TX_COMPLETIONS:", net[6]),
+            (b"SYSTEM:NET_RX_FRAMES:", net[7]),
+            (b"SYSTEM:NET_ARP_REJECTS:", net[8]),
+            (b"SYSTEM:NET_DNS_REJECTS:", net[9]),
+            (b"SYSTEM:NET_RX_TIMEOUTS:", net[10]),
+            (b"SYSTEM:NET_CACHE_INTACT:", net[11]),
+            (b"SYSTEM:NET_STALE_CAP:", net[12]),
+        ] {
+            print_number(label, value);
+        }
+        network::print_and_check(net[6], net[7]);
+    }
     serial::write(b"SYSTEM:BROKERS:PASS\n");
     for slot in [KEY, VOLUME] {
         s.processes[slot].status = Status::Dying;
@@ -324,6 +411,7 @@ fn finish(s: &mut State) -> ! {
             && stats.entropy_objects == 0
             && stats.launch_objects == 0
             && stats.process_objects == 0
+            && stats.network_objects == 0
             && m4::engine().check_invariants(),
         b"ENGINE_CLEANUP",
     );

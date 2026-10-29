@@ -18,6 +18,8 @@ use kernel_core::{user, Frames, Kind, Owner, PAGE};
 mod keyring;
 #[cfg(feature = "milestone-m4")]
 mod m4;
+#[cfg(feature = "native-system-net")]
+mod network;
 #[cfg(feature = "native-qsim")]
 mod qsim;
 #[cfg(feature = "native-qsim-job")]
@@ -154,6 +156,8 @@ const SYSTEM_INIT_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_INIT_ELF"));
 const SYSTEM_APP_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_APP_ELF"));
 #[cfg(feature = "native-system")]
 const SYSTEM_WORKER_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_WORKER_ELF"));
+#[cfg(feature = "native-system-net")]
+const NET_PROBE_ELF: &[u8] = include_bytes!(env!("NOS_NET_PROBE_ELF"));
 const DATA: u64 = 0x40010000;
 const HEAP: u64 = 0x60000000;
 const STACK: u64 = 0x7ffef000;
@@ -334,6 +338,8 @@ fn process_elf(slot: usize) -> &'static [u8] {
         1 => KEYRING_SERVICE_ELF,
         2 => VOLUME_SERVICE_ELF,
         3 => SYSTEM_APP_ELF,
+        #[cfg(feature = "native-system-net")]
+        4 => NET_PROBE_ELF,
         _ => panic!("system workers are launched by init"),
     }
 }
@@ -356,6 +362,8 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
     m5::prepare(frames, &mut kernel);
     #[cfg(feature = "native-keyring")]
     keyring::prepare(frames, &mut kernel);
+    #[cfg(feature = "native-system-net")]
+    network::prepare(frames, &mut kernel);
     // SAFETY: One CPU, IF=0; permanent state constructed once. The service stack
     // is the retained guarded MAIN stack; no interrupted frame is stored there.
     unsafe {
@@ -435,7 +443,9 @@ impl State {
         } else {
             16
         };
-        let initial = if cfg!(feature = "native-system") {
+        let initial = if cfg!(feature = "native-system-net") {
+            5
+        } else if cfg!(feature = "native-system") {
             4
         } else if cfg!(feature = "native-supervisor") {
             1
@@ -819,6 +829,8 @@ impl State {
         m5::detach(p.pid);
         #[cfg(feature = "native-keyring")]
         keyring::detach(p.pid);
+        #[cfg(feature = "native-system-net")]
+        network::detach(p.pid);
         #[cfg(feature = "milestone-m4")]
         m4::process_exit(p.pid);
         let free_before = self.free_count();
@@ -1111,7 +1123,8 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         #[cfg(all(feature = "native-keyring", not(feature = "native-system")))]
         let supervisor_call = matches!(number, 0x60 | 0x61);
         #[cfg(feature = "native-system")]
-        let supervisor_call = matches!(number, 0x30 | 0x50..=0x52 | 0x60 | 0x61);
+        let supervisor_call = matches!(number, 0x30 | 0x50..=0x52 | 0x60 | 0x61)
+            || cfg!(feature = "native-system-net") && matches!(number, 0x70..=0x72);
         #[cfg(not(any(feature = "native-supervisor", feature = "native-keyring")))]
         let supervisor_call = false;
         #[cfg(feature = "native-supervisor")]
@@ -1123,6 +1136,12 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         #[cfg(feature = "native-keyring")]
         if matches!(number, 0x60 | 0x61) {
             let (rax, rdx) = keyring::syscall(state, current, number, args);
+            state.processes[current].context[14] = rax as u64;
+            state.processes[current].context[12] = rdx;
+        }
+        #[cfg(feature = "native-system-net")]
+        if matches!(number, 0x70..=0x72) {
+            let (rax, rdx) = network::syscall(state, current, number, args);
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
         }
@@ -1159,7 +1178,9 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                 match number {
                     0 => {
                         p.context[12] = (1 << 32)
-                            | if cfg!(feature = "native-keyring") {
+                            | if cfg!(feature = "native-system-net") {
+                                5
+                            } else if cfg!(feature = "native-keyring") {
                                 4
                             } else if cfg!(feature = "native-supervisor") {
                                 3

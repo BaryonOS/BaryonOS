@@ -33,11 +33,12 @@ impl Paging {
         va: u64,
         pa: u64,
     ) -> Result<(), kernel_core::Error> {
-        if !(0x3f000000..0x3f100000).contains(&va)
-            || va % PAGE != 0
-            || pa % PAGE != 0
-            || pa < 0x80000000
-        {
+        let end = if cfg!(feature = "native-system-net") {
+            0x3f160000
+        } else {
+            0x3f100000
+        };
+        if !(0x3f000000..end).contains(&va) || va % PAGE != 0 || pa % PAGE != 0 || pa < 0x80000000 {
             return Err(kernel_core::Error::Range);
         }
         self.map_device_page(frames, va, pa)

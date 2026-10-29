@@ -631,3 +631,9 @@ pub(super) fn mechanism_counts() -> (u64, u64, u64) {
     let e = evidence();
     (e.spawns, e.kills, e.status_calls)
 }
+
+/// The image was recorded by the checked spawn mechanism, not by user memory.
+#[cfg(feature = "native-system")]
+pub(super) fn is_managed_image(slot: usize, image: u32) -> bool {
+    evidence().image_of[slot] == image
+}

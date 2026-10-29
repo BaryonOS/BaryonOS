@@ -30,6 +30,9 @@ test-supervisor-quota = ["native-supervisor"]
 # FR-I01 explicit composed profile; legacy fixture profiles remain separate.
 native-system = ["native-volume", "native-keyring", "native-supervisor"]
 test-system-recover = ["native-system"]
+# Real NIC integration; the base joint profile never probes or maps a NIC.
+native-system-net = ["native-system", "dep:virtio-net-driver"]
+test-system-net-recover = ["native-system-net", "test-system-recover"]
 # B01 entropy broker + Key Service profile: virtio-rng broker, two services, one app.
 native-keyring = ["milestone-m4", "dep:virtio-rng-driver"]
 test-keyring-no-device = ["native-keyring"]
@@ -160,6 +163,7 @@ capability-core = { path = "../crates/capability-core" }
 virtio-core = { path = "../crates/virtio-core" }
 virtio-blk-driver = { path = "../drivers/virtio-blk" }
 virtio-rng-driver = { path = "../drivers/virtio-rng", optional = true }
+virtio-net-driver = { path = "../drivers/virtio-net", optional = true }
 block-protocol = { path = "../services/block" }
 object-core = { path = "../services/objects", optional = true }
 ui-core = { path = "../crates/ui-core", optional = true }

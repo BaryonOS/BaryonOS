@@ -14,16 +14,18 @@ pub use entropy::{EntropySource, ENTROPY_MAX};
 pub use message::{Outgoing, Received, MAX_CAPS, MAX_PAYLOAD, MESSAGE_SIZE};
 pub use process::{ChildProcess, LaunchImage, ProcessStatus};
 pub mod entropy;
+pub mod network;
+pub use network::{NetworkSource, NET_FRAME_MAX};
 
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]
 pub mod native;
 
 pub const ABI_MAJOR: u64 = 1;
-pub const ABI_MAX_MINOR: u64 = 4;
+pub const ABI_MAX_MINOR: u64 = 5;
 
-/// The common syscall contract is unchanged across the existing 1.0–1.4
+/// The common syscall contract is unchanged across the existing 1.0–1.5
 /// profiles (1.3 adds the K05 process-management calls, 1.4 the B01 entropy
-/// broker). Unknown revisions require a separate compatibility check.
+/// broker; 1.5 adds the raw NIC broker). Unknown revisions require a separate compatibility check.
 pub fn validate_abi(version: u64) -> Result<(), Error> {
     if version >> 32 == ABI_MAJOR && version as u32 as u64 <= ABI_MAX_MINOR {
         Ok(())
@@ -118,7 +120,9 @@ impl Rights {
     pub const KILL: Self = Self(512);
     /// B01: read raw bytes from the kernel entropy broker (Key Service only).
     pub const ENTROPY: Self = Self(1024);
-    pub const KNOWN_MASK: u64 = 2047;
+    /// Raw NIC transport for the isolated network service, not an app grant.
+    pub const NETWORK: Self = Self(2048);
+    pub const KNOWN_MASK: u64 = 4095;
 
     pub const fn from_bits(bits: u64) -> Result<Self, Error> {
         if bits & !Self::KNOWN_MASK != 0 {

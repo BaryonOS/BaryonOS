@@ -4,10 +4,11 @@ use nieuw_os_sdk_runtime::{
 };
 
 #[test]
-fn abi_1_3_and_1_4_are_accepted_and_1_5_is_not() {
+fn abi_1_3_through_1_5_are_accepted_and_1_6_is_not() {
     assert_eq!(validate_abi((1 << 32) | 3), Ok(()));
     assert_eq!(validate_abi((1 << 32) | 4), Ok(()));
-    assert_eq!(validate_abi((1 << 32) | 5), Err(Error::UnsupportedAbi));
+    assert_eq!(validate_abi((1 << 32) | 5), Ok(()));
+    assert_eq!(validate_abi((1 << 32) | 6), Err(Error::UnsupportedAbi));
 }
 
 #[test]

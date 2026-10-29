@@ -35,6 +35,7 @@ fn main() {
         }
     }
     for name in [
+        "NOS_NET_PROBE_ELF",
         "NOS_SYSTEM_INIT_ELF",
         "NOS_SYSTEM_APP_ELF",
         "NOS_SYSTEM_WORKER_ELF",
