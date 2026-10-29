@@ -14,6 +14,7 @@ use core::{
 };
 use kernel_core::{user, Frames, Kind, Owner, PAGE};
 #[cfg(feature = "native-keyring")]
+#[cfg_attr(feature = "native-system", allow(dead_code))]
 mod keyring;
 #[cfg(feature = "milestone-m4")]
 mod m4;
@@ -24,9 +25,13 @@ mod qsim_job;
 #[cfg(feature = "native-sdk-app")]
 mod sdk_app;
 #[cfg(feature = "native-supervisor")]
+#[cfg_attr(feature = "native-system", allow(dead_code))]
 mod supervisor;
+#[cfg(feature = "native-system")]
+mod system;
 #[cfg(all(
     feature = "native-keyring",
+    not(feature = "native-system"),
     any(
         feature = "milestone-m5",
         feature = "graphics-g0",
@@ -39,6 +44,7 @@ mod supervisor;
 compile_error!("native-keyring is a separate opt-in M4 profile");
 #[cfg(all(
     feature = "native-supervisor",
+    not(feature = "native-system"),
     any(
         feature = "milestone-m5",
         feature = "graphics-g0",
@@ -86,6 +92,7 @@ mod m5;
 #[path = "m3/m6.rs"]
 mod m5;
 #[cfg(feature = "native-volume")]
+#[cfg_attr(feature = "native-system", allow(dead_code))]
 #[path = "m3/volume.rs"]
 mod m5;
 #[cfg(all(feature = "native-volume", feature = "milestone-m6b"))]
@@ -106,15 +113,15 @@ const ELF: &[u8] = include_bytes!(env!("NOS_QSIM_JOB_ELF"));
 const SDK_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_SDK_SERVICE_ELF"));
 #[cfg(feature = "native-sdk-app")]
 const SDK_APP_ELF: &[u8] = include_bytes!(env!("NOS_SDK_APP_ELF"));
-#[cfg(feature = "native-supervisor")]
+#[cfg(all(feature = "native-supervisor", not(feature = "native-system")))]
 const SUPERVISOR_ELF: &[u8] = include_bytes!(env!("NOS_SUPERVISOR_ELF"));
-#[cfg(feature = "native-supervisor")]
+#[cfg(all(feature = "native-supervisor", not(feature = "native-system")))]
 const WORKER_ELF: &[u8] = include_bytes!(env!("NOS_WORKER_ELF"));
-#[cfg(feature = "native-supervisor")]
+#[cfg(all(feature = "native-supervisor", not(feature = "native-system")))]
 const CLIENT_ELF: &[u8] = include_bytes!(env!("NOS_CLIENT_ELF"));
 #[cfg(feature = "native-keyring")]
 const KEYRING_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_KEYRING_SERVICE_ELF"));
-#[cfg(feature = "native-keyring")]
+#[cfg(all(feature = "native-keyring", not(feature = "native-system")))]
 const KEYRING_APP_ELF: &[u8] = include_bytes!(env!("NOS_KEYRING_APP_ELF"));
 #[cfg(all(
     feature = "milestone-m4",
@@ -135,12 +142,18 @@ const ELF: &[u8] = include_bytes!(env!("NOS_M5_ELF"));
 const ELF: &[u8] = include_bytes!(env!("NOS_M6_ELF"));
 #[cfg(feature = "native-volume")]
 const VOLUME_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_VOLUME_SERVICE_ELF"));
-#[cfg(feature = "native-volume")]
+#[cfg(all(feature = "native-volume", not(feature = "native-system")))]
 const VOLUME_APP_ELF: &[u8] = include_bytes!(env!("NOS_VOLUME_APP_ELF"));
 #[cfg(all(feature = "milestone-m6b", not(feature = "milestone-m6c")))]
 const ELF: &[u8] = include_bytes!(env!("NOS_M6B_ELF"));
 #[cfg(feature = "milestone-m6c")]
 const ELF: &[u8] = include_bytes!(env!("NOS_M6C_ELF"));
+#[cfg(feature = "native-system")]
+const SYSTEM_INIT_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_INIT_ELF"));
+#[cfg(feature = "native-system")]
+const SYSTEM_APP_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_APP_ELF"));
+#[cfg(feature = "native-system")]
+const SYSTEM_WORKER_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_WORKER_ELF"));
 const DATA: u64 = 0x40010000;
 const HEAP: u64 = 0x60000000;
 const STACK: u64 = 0x7ffef000;
@@ -289,7 +302,7 @@ fn process_elf(slot: usize) -> &'static [u8] {
         _ => panic!("native SDK profile has only service and app"),
     }
 }
-#[cfg(feature = "native-volume")]
+#[cfg(all(feature = "native-volume", not(feature = "native-system")))]
 fn process_elf(slot: usize) -> &'static [u8] {
     match slot {
         0 => VOLUME_SERVICE_ELF,
@@ -297,7 +310,7 @@ fn process_elf(slot: usize) -> &'static [u8] {
         _ => panic!("native volume profile has one service and two apps"),
     }
 }
-#[cfg(feature = "native-supervisor")]
+#[cfg(all(feature = "native-supervisor", not(feature = "native-system")))]
 fn process_elf(slot: usize) -> &'static [u8] {
     match slot {
         0 => SUPERVISOR_ELF,
@@ -306,12 +319,22 @@ fn process_elf(slot: usize) -> &'static [u8] {
         }
     }
 }
-#[cfg(feature = "native-keyring")]
+#[cfg(all(feature = "native-keyring", not(feature = "native-system")))]
 fn process_elf(slot: usize) -> &'static [u8] {
     match slot {
         0 | 1 => KEYRING_SERVICE_ELF,
         2 => KEYRING_APP_ELF,
         _ => panic!("native keyring profile has two services and one app"),
+    }
+}
+#[cfg(feature = "native-system")]
+fn process_elf(slot: usize) -> &'static [u8] {
+    match slot {
+        0 => SYSTEM_INIT_ELF,
+        1 => KEYRING_SERVICE_ELF,
+        2 => VOLUME_SERVICE_ELF,
+        3 => SYSTEM_APP_ELF,
+        _ => panic!("system workers are launched by init"),
     }
 }
 #[cfg(not(any(
@@ -412,7 +435,9 @@ impl State {
         } else {
             16
         };
-        let initial = if cfg!(feature = "native-supervisor") {
+        let initial = if cfg!(feature = "native-system") {
+            4
+        } else if cfg!(feature = "native-supervisor") {
             1
         } else {
             self.amount
@@ -455,12 +480,14 @@ impl State {
         m4::manifest(self);
         #[cfg(feature = "native-sdk-app")]
         sdk_app::manifest(self);
-        #[cfg(feature = "native-supervisor")]
+        #[cfg(all(feature = "native-supervisor", not(feature = "native-system")))]
         supervisor::manifest(self);
-        #[cfg(feature = "native-keyring")]
+        #[cfg(all(feature = "native-keyring", not(feature = "native-system")))]
         keyring::manifest(self);
-        #[cfg(feature = "milestone-m5")]
+        #[cfg(all(feature = "milestone-m5", not(feature = "native-system")))]
         m5::manifest(self);
+        #[cfg(feature = "native-system")]
+        system::manifest(self);
         #[cfg(feature = "native-qsim")]
         qsim::manifest(self);
         #[cfg(feature = "native-qsim-job")]
@@ -874,17 +901,22 @@ impl State {
             .count()
     }
     fn observer_exit(&mut self, slot: usize, counter: u64) {
+        #[cfg(feature = "native-system")]
+        {
+            system::observe_exit(self, slot, counter);
+            return;
+        }
         #[cfg(feature = "native-sdk-app")]
         {
             sdk_app::observe_exit(self, slot, counter);
             return;
         }
-        #[cfg(feature = "native-supervisor")]
+        #[cfg(all(feature = "native-supervisor", not(feature = "native-system")))]
         {
             supervisor::observe_exit(self, slot, counter);
             return;
         }
-        #[cfg(feature = "native-keyring")]
+        #[cfg(all(feature = "native-keyring", not(feature = "native-system")))]
         {
             keyring::observe_exit(self, slot, counter);
             return;
@@ -894,7 +926,7 @@ impl State {
             qsim_job::observe_exit(self, slot, counter);
             return;
         }
-        #[cfg(feature = "milestone-m5")]
+        #[cfg(all(feature = "milestone-m5", not(feature = "native-system")))]
         {
             let _ = counter;
             m5::observe_exit(self, slot);
@@ -937,17 +969,22 @@ impl State {
         }
     }
     fn observer_fault(&mut self, slot: usize, context: &[u64; 22], counter: u64) {
+        #[cfg(feature = "native-system")]
+        {
+            system::observe_fault(self, slot, context, counter);
+            return;
+        }
         #[cfg(feature = "native-sdk-app")]
         {
             sdk_app::observe_fault(self, slot, context, counter);
             return;
         }
-        #[cfg(feature = "native-supervisor")]
+        #[cfg(all(feature = "native-supervisor", not(feature = "native-system")))]
         {
             supervisor::observe_fault(self, slot, context, counter);
             return;
         }
-        #[cfg(feature = "native-keyring")]
+        #[cfg(all(feature = "native-keyring", not(feature = "native-system")))]
         {
             keyring::observe_fault(self, slot, context, counter);
             return;
@@ -957,7 +994,7 @@ impl State {
             qsim_job::observe_fault(self, slot, context, counter);
             return;
         }
-        #[cfg(feature = "milestone-m5")]
+        #[cfg(all(feature = "milestone-m5", not(feature = "native-system")))]
         {
             let _ = counter;
             m5::observe_fault(self, slot, context);
@@ -1069,20 +1106,22 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             context[7],
             context[6],
         ];
-        #[cfg(feature = "native-supervisor")]
+        #[cfg(all(feature = "native-supervisor", not(feature = "native-system")))]
         let supervisor_call = matches!(number, 0x30 | 0x50..=0x52);
-        #[cfg(feature = "native-keyring")]
+        #[cfg(all(feature = "native-keyring", not(feature = "native-system")))]
         let supervisor_call = matches!(number, 0x60 | 0x61);
+        #[cfg(feature = "native-system")]
+        let supervisor_call = matches!(number, 0x30 | 0x50..=0x52 | 0x60 | 0x61);
         #[cfg(not(any(feature = "native-supervisor", feature = "native-keyring")))]
         let supervisor_call = false;
         #[cfg(feature = "native-supervisor")]
-        if supervisor_call {
+        if matches!(number, 0x30 | 0x50..=0x52) {
             let (rax, rdx) = supervisor::syscall(state, current, number, args);
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
         }
         #[cfg(feature = "native-keyring")]
-        if supervisor_call {
+        if matches!(number, 0x60 | 0x61) {
             let (rax, rdx) = keyring::syscall(state, current, number, args);
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
@@ -1192,16 +1231,20 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
     if let Some(next) = m4::poll(state) {
         return next;
     }
-    #[cfg(feature = "native-supervisor")]
+    #[cfg(all(feature = "native-supervisor", not(feature = "native-system")))]
     if let Some(next) = supervisor::poll(state) {
         return next;
     }
-    #[cfg(feature = "native-keyring")]
+    #[cfg(all(feature = "native-keyring", not(feature = "native-system")))]
     if let Some(next) = keyring::poll(state) {
         return next;
     }
-    #[cfg(feature = "milestone-m5")]
+    #[cfg(all(feature = "milestone-m5", not(feature = "native-system")))]
     if let Some(next) = m5::poll(state) {
+        return next;
+    }
+    #[cfg(feature = "native-system")]
+    if let Some(next) = system::poll(state) {
         return next;
     }
     #[cfg(feature = "native-sdk-app")]

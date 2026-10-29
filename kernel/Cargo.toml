@@ -27,6 +27,9 @@ test-supervisor-crash = ["native-supervisor"]
 test-supervisor-denied = ["native-supervisor"]
 test-supervisor-parent-exit = ["native-supervisor"]
 test-supervisor-quota = ["native-supervisor"]
+# FR-I01 explicit composed profile; legacy fixture profiles remain separate.
+native-system = ["native-volume", "native-keyring", "native-supervisor"]
+test-system-recover = ["native-system"]
 # B01 entropy broker + Key Service profile: virtio-rng broker, two services, one app.
 native-keyring = ["milestone-m4", "dep:virtio-rng-driver"]
 test-keyring-no-device = ["native-keyring"]

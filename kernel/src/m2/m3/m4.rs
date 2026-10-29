@@ -226,7 +226,7 @@ fn dispatch(
                 engine().send(pid, args[0], &message)?;
                 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
                 super::m5::sent(state, slot, &message);
-                #[cfg(feature = "milestone-m6a")]
+                #[cfg(all(feature = "milestone-m6a", not(feature = "native-system")))]
                 super::m5::sent(state, slot, args[0], &message);
                 Ok(0)
             } else {
@@ -237,7 +237,7 @@ fn dispatch(
                 write_plan(&copy, &bytes);
                 assert_eq!(read_plan(&copy), bytes, "complete receive output mismatch");
                 assert!(bytes[64 + length as usize..].iter().all(|byte| *byte == 0));
-                #[cfg(feature = "milestone-m6a")]
+                #[cfg(all(feature = "milestone-m6a", not(feature = "native-system")))]
                 super::m5::received(state, slot, args[0], &message);
                 Ok(length)
             }

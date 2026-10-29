@@ -151,7 +151,7 @@ fn case() -> u64 {
     }
 }
 fn read_only() -> bool {
-    matches!(case(), 1 | 4 | 5)
+    cfg!(feature = "test-system-recover") || matches!(case(), 1 | 4 | 5)
 }
 fn marker() -> &'static [u8] {
     match case() {
@@ -435,6 +435,7 @@ pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
         Err(code) => {
             // Apps hold no block capability at all: every app block call
             // must fail at the authority check before any device effect.
+            #[cfg(not(feature = "native-system"))]
             if slot > 0 {
                 runtime().app_device_denials[slot - 1] += 1;
             }
@@ -982,4 +983,19 @@ fn finish(s: &mut State) -> ! {
     }
     serial::write(b"VOLUME:RESOURCES:PASS\nVOLUME:PASS\nM1:PASS\n");
     serial::exit(0x10)
+}
+
+/// Device progress only; volume fixture barriers/observers are not product policy.
+#[cfg(feature = "native-system")]
+pub(super) fn broker_tick(s: &State) {
+    advance(s);
+}
+#[cfg(feature = "native-system")]
+pub(super) fn broker_summary() -> ([u64; 3], [u64; 3], bool) {
+    let r = runtime();
+    (
+        r.publications,
+        r.completions,
+        r.offline == 0 && !r.resetting && r.error.is_none() && r.policy.phase() != Phase::Published,
+    )
 }

@@ -34,5 +34,20 @@ fn main() {
             println!("cargo:rerun-if-changed={path}");
         }
     }
+    for name in [
+        "NOS_SYSTEM_INIT_ELF",
+        "NOS_SYSTEM_APP_ELF",
+        "NOS_SYSTEM_WORKER_ELF",
+        "NOS_KEYRING_SERVICE_ELF",
+        "NOS_KEYRING_APP_ELF",
+        "NOS_SUPERVISOR_ELF",
+        "NOS_WORKER_ELF",
+        "NOS_CLIENT_ELF",
+    ] {
+        println!("cargo:rerun-if-env-changed={name}");
+        if let Ok(path) = std::env::var(name) {
+            println!("cargo:rerun-if-changed={path}");
+        }
+    }
     println!("cargo:rerun-if-changed=linker.ld");
 }

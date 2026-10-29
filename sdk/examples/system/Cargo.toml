@@ -1,0 +1,34 @@
+[package]
+name = "nieuw-os-system-example"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+native = []
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../../runtime" }
+keyring-core = { path = "../../../services/keyring" }
+volume-core = { path = "../../../services/volume" }
+
+[[bin]]
+name = "system-init"
+path = "src/init.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[[bin]]
+name = "system-app"
+path = "src/app.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[[bin]]
+name = "system-worker"
+path = "src/worker.rs"
+required-features = ["native"]
+test = false
+bench = false
