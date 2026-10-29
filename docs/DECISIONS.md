@@ -783,3 +783,25 @@ B01-commit reverten. Rechtenbit 1024 wordt bij andere objecttypen met
 
 **Eigenaar:** hoofdagent (driver, engine, kernelbroker, core, SDK, voorbeeld,
 gate, bewijs).
+
+### Aanvulling ADR-043 — monotone herstelstatus en doorlopende bewaking (29 oktober 2026)
+
+Concrete post-merge tegenvoorbeelden uit #52: een oudere recoveryblob wist
+lokale tombstones en iedere reseed maakte een nieuw gezondheidstestvenster.
+De herstelwijziging behoudt Health vanaf startup en verenigt tombstones bij
+herstel van dezelfde master. Een andere master mag uitsluitend naar een nog
+ongebruikte instantie; een gebruikte instantie weigert de wissel zonder
+wijziging. Geen wire-format- of cryptoprimitiefwijziging. Na koude herstart
+blijft rollbackdetectie afhankelijk van toekomstige vertrouwde persistente
+status (B02); een recoveryblob alleen bewijst geen actualiteit.
+
+De broker bevestigt virtio-reset vóór hergebruik; bij ontbrekende reset-ACK
+blijft DMA gepind en de broker offline. Eigenaarsverlies krijgt dezelfde
+begrensde afwikkeling. Twee aparte native fixtures bewijzen een echt stille
+bron en een normale reset/herstart; de oude `stuck` is uitsluitend een
+constante-bytefixture. Geen fysieke entropy- of hardwareherstelclaim.
+
+Eigenaar: hoofdagent; wijzigingen en bewijs in native-recovery-hardening.
+Herziening: persistent antirollback-/recoverycontract in B02, of een concreet
+tegenvoorbeeld tegen de levende-instantie-invariant. Terugdraaien: revert
+herstelcommits en B01 open houden, geen onzeker bewijs accepteren.

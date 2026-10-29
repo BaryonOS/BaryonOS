@@ -10,6 +10,11 @@ oude herstelblob kan intrekking terugdraaien; RCT/APT-status verdwijnt tussen
 reseeds; echt niet-antwoordend apparaat en reset/herstart missen native bewijs.
 B01 daarom tijdelijk **32% → 30%**, zonder rubricwijziging.
 
+**B01-R1 geïntegreerd:** `b0dc3a4` bewaart gezondheidstoestand en monotone
+intrekking. Vijf regressies bewezen rood vóór de reparatie, daarna 15/15 groen;
+fmt/clippy en native gebruikersbuild exit 0. Onafhankelijke agent herhaalde
+15/15 plus twee extra tegenvoorbeelden. Native integratie volgt nog.
+
 **In uitvoering, nog niet geaccepteerd:** aparte worktrees voor B01-R1
 (`services/keyring`), B01-R2 (RNG-driver/broker/harnas) en S08-R
 (catalogus-/volumebrokertiming uit #48, zonder historische docs terug te zetten).

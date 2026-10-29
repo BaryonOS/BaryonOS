@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **30** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`00e6af5d`](https://github.com/simonvanieperen/nieuw-os/commit/00e6af5db4d315d2536471ccbce1cb1f4cf14958) ·
+**Bron:** [`b0dc3a4f`](https://github.com/simonvanieperen/nieuw-os/commit/b0dc3a4f0b31198581cfdbe83cf25dcd3c60f47d) ·
 **Ontwikkelbranch:** `codex/native-recovery-hardening`.
-Deze opdracht: **32% → 30% (-2 procentpunt)**. **Opdracht:** Autonoom hervatten: B01-herstel na post-merge P1-bevindingen en hervatten S08-timing.
-B01 tijdelijk heropend (-2): drie concrete P1-threads op de gemergede PR #52 vereisen herstel van monotone intrekking, doorlopende gezondheidstests en echt nonresponsive RNG-timeout/reset/herstartbewijs. Bestaand bewijs blijft historisch; nieuwe native acceptatie is NIET UITGEVOERD. PR #53 met groene CI en gecontroleerde cachegrenzen is geïntegreerd als 00e6af5; dit geeft geen OS-punten. S08-timing uit #48 wordt zonder historische statusregressie hervat. S09 was alleen lokaal vastgelegd en is niet remote teruggevonden.
+Deze opdracht: **30% → 30% (+0 procentpunt)**. **Opdracht:** B01-R1 hersteld en gericht getest; native timeout/herstart en gecombineerde opslagregressie volgen.
+Score blijft 30. B01-R1 herstelt blijvende Health en monotone intrekking; vijf nieuwe regressies faalden op oude code, 15/15 keyring-tests, clippy/fmt en juiste native gebruikersbuild slagen. Onafhankelijke agentreview en twee extra tegenvoorbeelden slagen. B01 blijft open totdat echte timeout/herstart en gecombineerde native gate voltooid zijn; bestaande B01-bewijs blijft historisch. S08-code behouden uit #48, inclusief Err-completionmeting; twee echte malformed-completioncases groen op agentbron. Geen nieuwe rubricpunten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
