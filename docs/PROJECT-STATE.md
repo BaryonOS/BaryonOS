@@ -8,11 +8,16 @@ M6c-hosttests (21, inclusief 35 groepen/31 VM-invocaties); volume-hosttests
 (49); `volume-core` (28); SDK-runtime (14); `tools/progress.py --write`,
 `--check`; en `sha256sum -c docs/verification/s06/SHA256SUMS`.
 
-De native `tools/test_volume.py`-poort is nog niet uitgevoerd: de eerste poging
-stopte vóór QEMU omdat `x86_64-unknown-none` ontbrak; na installatie daarvan
-stopte de retry vóór QEMU omdat `x86_64-unknown-uefi` ontbreekt. De
-S08-resiliencepoort is op deze merge nog niet opnieuw uitgevoerd. Dit checkpoint
-accepteert geen nieuw criterium; de score blijft 26%.
+De native `tools/test_volume.py`-poort bouwde na installatie van beide Rust-
+targets de loader, kernel en volume-app, maar stopte met exit 1 vóór de eerste
+VM omdat `qemu-system-x86_64` ontbreekt. `python3 tools/preflight.py --strict`
+bevestigde dat ook OVMF ontbreekt (exit 2). Installatie van QEMU/OVMF werd door
+de sandbox geweigerd wegens geen toegang tot de apt-lock. De S08-resiliencepoort
+is daardoor op deze merge niet opnieuw uitgevoerd. GitHub Actions op
+`9c74782` eindigde voor CI, volumepoort en twee acceptance-workflows als
+`action_required`, ieder met nul jobs; er zijn geen logs om inhoudelijk te
+beoordelen. Deze uitkomsten zijn niet groen en accepteren geen nieuw criterium;
+de score blijft 26%.
 
 ## S08-timingonderzoek: brokerdeadline 64 → 500 ticks — 29 oktober 2026
 

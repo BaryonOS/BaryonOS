@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **26** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`2c7291a4`](https://github.com/simonvanieperen/nieuw-os/commit/2c7291a489c4ccd0a6b427303847cccaa80b049d) ·
+**Bron:** [`9c74782e`](https://github.com/simonvanieperen/nieuw-os/commit/9c74782e55850ea6e620abc466d19fe659d925af) ·
 **Ontwikkelbranch:** `ccr-a5fabb06-5mt06m`.
 Deze opdracht: **26% → 26% (+0 procentpunt)**. **Opdracht:** main 8b60354 met S06 in PR #48 geïntegreerd en conflicten opgelost; S08-bewijs behouden.
-Score blijft 26; geen criterium is door deze merge nieuw geaccepteerd. PR #49 (S06 volume v2) staat op main als 8b60354; de onafhankelijke native gateherhaling en de Actions-/CodeRabbit-controles zijn geslaagd. De afzonderlijke roadmapacceptatie staat nog in concept-PR #50, dus S06 blijft hier open. S08-timingbewijs en de wijziging naar 500 ticks blijven behouden; de vermoedelijke relatie tussen completionlatentie en de eerdere CI-fouten is niet bewezen. S04/S05 behouden hun bestaande opgeslagen acceptatiebewijs.
+Score blijft 26; geen criterium is door deze merge nieuw geaccepteerd. PR #49 (S06 volume v2) staat op main als 8b60354; de onafhankelijke native gateherhaling en de Actions-/CodeRabbit-controles op die PR-head waren groen. De roadmapacceptatie blijft een afzonderlijke concept-PR. Op mergecommit 9c74782 slagen formatter, M6c-/volume-hosttests, volume-core (28), SDK-runtime (14), progress-check en S06-hashes. De volume-native build slaagt, maar de poort bereikt geen VM omdat QEMU en OVMF ontbreken; de nieuwe Actions-runs hebben action_required en nul jobs. S08-gate is daarom niet opnieuw uitgevoerd. S08-timingbewijs blijft behouden en de vermoedelijke relatie met eerdere CI-fouten is niet bewezen; S04/S05 behouden hun opgeslagen acceptatiebewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
