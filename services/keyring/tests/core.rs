@@ -10,7 +10,7 @@ use keyring_core::health::{Health, HealthFailure, APT_CUTOFF, APT_WINDOW, RCT_CU
 use keyring_core::wire::{self, Header};
 use keyring_core::{
     Drbg, EntropySource, Service, State, Status, KEYS_PER_DOMAIN, MAX_PLAINTEXT, MAX_SEALED,
-    RECOVERY_BLOB, RESEED_INTERVAL, SECRET_BYTES, STARTUP_ENTROPY,
+    RECOVERY_BLOB, RESEED_ENTROPY, RESEED_INTERVAL, SECRET_BYTES, STARTUP_ENTROPY,
 };
 use sha2::Sha256;
 
@@ -58,6 +58,35 @@ fn ready() -> (Service, Fake) {
     service.start(&mut source).unwrap();
     assert_eq!(service.state(), State::Ready);
     (service, source)
+}
+
+/// Raw test bytes spanning multiple broker requests, including request borders.
+struct Scripted {
+    bytes: std::vec::Vec<u8>,
+    offset: usize,
+}
+impl EntropySource for Scripted {
+    fn read(&mut self, out: &mut [u8]) -> Result<(), Status> {
+        let end = self.offset + out.len();
+        let bytes = self.bytes.get(self.offset..end).ok_or(Status::Entropy)?;
+        out.copy_from_slice(bytes);
+        self.offset = end;
+        Ok(())
+    }
+}
+
+fn healthy_test_bytes(length: usize) -> std::vec::Vec<u8> {
+    (0..length).map(|i| i as u8).collect()
+}
+
+fn reach_reseed(service: &mut Service, source: &mut impl EntropySource) -> Result<u8, Status> {
+    // Even quota-denied calls count against the entropy budget. This reaches
+    // one reseed without depending on key allocation beyond the first 16.
+    let mut result = Err(Status::Invalid);
+    for _ in 0..RESEED_INTERVAL {
+        result = service.generate(0, source);
+    }
+    result
 }
 
 #[test]
@@ -318,6 +347,164 @@ fn recovery_restores_keys_and_revocations_into_another_instance() {
         "revocation state travels with the recovery blob"
     );
     assert_eq!(b.counters.restores, 1);
+}
+
+#[test]
+fn older_recovery_preserves_revocations_and_cannot_reissue_indices() {
+    let (mut service, mut source) = ready();
+    let k0 = service.generate(0, &mut source).unwrap();
+    let k1 = service.generate(0, &mut source).unwrap();
+    let mut sealed = [0u8; MAX_SEALED];
+    let length = service
+        .seal(0, k0, b"revoked after export", &mut source, &mut sealed)
+        .unwrap();
+    service.revoke(0, k1).unwrap();
+    let mut secret = [0u8; SECRET_BYTES];
+    let mut blob = [0u8; RECOVERY_BLOB];
+    service
+        .export_recovery(&mut source, &mut secret, &mut blob)
+        .unwrap();
+    service.revoke(0, k0).unwrap();
+    let issued_after_export = service.generate(0, &mut source).unwrap();
+    assert_eq!(issued_after_export, 2);
+
+    assert_eq!(service.restore(&secret, &blob, &mut source), Ok(2));
+    let mut plain = [0u8; MAX_PLAINTEXT];
+    assert_eq!(
+        service.unseal(0, k0, &sealed[..length], &mut source, &mut plain),
+        Err(Status::Revoked),
+        "the authenticated older blob must not undo a known revocation"
+    );
+    assert_eq!(
+        service.seal(0, k1, b"x", &mut source, &mut sealed),
+        Err(Status::Revoked),
+        "the recovered revocation must remain set too"
+    );
+    assert_eq!(service.generate(0, &mut source), Err(Status::Quota));
+    assert_eq!(service.keys_created(0), KEYS_PER_DOMAIN as u16);
+
+    // Re-exporting the restored state must carry the union to a fresh service.
+    service
+        .export_recovery(&mut source, &mut secret, &mut blob)
+        .unwrap();
+    let (mut fresh, mut other) = ready();
+    fresh.restore(&secret, &blob, &mut other).unwrap();
+    assert_eq!(
+        fresh.seal(0, k0, b"x", &mut other, &mut sealed),
+        Err(Status::Revoked)
+    );
+    assert_eq!(
+        fresh.seal(0, k1, b"x", &mut other, &mut sealed),
+        Err(Status::Revoked)
+    );
+}
+
+#[test]
+fn used_service_rejects_another_master_without_losing_revocation_history() {
+    let (mut a, mut source) = ready();
+    let key = a.generate(0, &mut source).unwrap();
+    let mut secret_a = [0u8; SECRET_BYTES];
+    let mut blob_a = [0u8; RECOVERY_BLOB];
+    a.export_recovery(&mut source, &mut secret_a, &mut blob_a)
+        .unwrap();
+
+    let mut different = Fake::new();
+    different.state ^= 0xdead_beef;
+    let mut c = Service::new();
+    c.start(&mut different).unwrap();
+    let mut secret_c = [0u8; SECRET_BYTES];
+    let mut blob_c = [0u8; RECOVERY_BLOB];
+    c.export_recovery(&mut different, &mut secret_c, &mut blob_c)
+        .unwrap();
+
+    let mut out = [0u8; MAX_SEALED];
+    assert_eq!(
+        a.restore(&secret_c, &blob_c, &mut source),
+        Err(Status::Invalid),
+        "issuing a key binds the service to its master lineage"
+    );
+    a.revoke(0, key).unwrap();
+    assert_eq!(a.restore(&secret_a, &blob_a, &mut source), Ok(2));
+    assert_eq!(
+        a.seal(0, key, b"x", &mut source, &mut out),
+        Err(Status::Revoked)
+    );
+
+    // A fresh service can import A, but cannot then switch to C and back to
+    // A to erase an in-memory revocation that its old blob does not contain.
+    let (mut b, mut other) = ready();
+    b.restore(&secret_a, &blob_a, &mut other).unwrap();
+    b.revoke(0, key).unwrap();
+    assert_eq!(
+        b.restore(&secret_c, &blob_c, &mut other),
+        Err(Status::Invalid)
+    );
+    assert_eq!(
+        b.counters.restores, 1,
+        "rejected imports do not mutate lineage"
+    );
+    b.restore(&secret_a, &blob_a, &mut other).unwrap();
+    assert_eq!(
+        b.seal(0, key, b"x", &mut other, &mut out),
+        Err(Status::Revoked)
+    );
+}
+
+#[test]
+fn continuous_apt_spans_two_reseeds_and_blocks_further_key_operations() {
+    let mut bytes = healthy_test_bytes(STARTUP_ENTROPY);
+    for _ in 0..RESEED_ENTROPY / 8 * 2 {
+        bytes.extend_from_slice(&[17, 1, 2, 3, 4, 5, 6, 7]);
+    }
+    let mut source = Scripted { bytes, offset: 0 };
+    let mut service = Service::new();
+    service.start(&mut source).unwrap();
+    reach_reseed(&mut service, &mut source).ok();
+    assert_eq!(service.state(), State::Ready, "32 occurrences are below 62");
+    assert_eq!(service.counters.reseeds, 1);
+    assert_eq!(
+        reach_reseed(&mut service, &mut source),
+        Err(Status::Degraded)
+    );
+    assert_eq!(service.reason(), HealthFailure::Proportion);
+    assert_eq!(
+        service.counters.reseeds, 1,
+        "failing bytes never reseed the DRBG"
+    );
+    assert_eq!(service.generate(1, &mut source), Err(Status::Degraded));
+}
+
+#[test]
+fn continuous_rct_spans_startup_and_first_reseed() {
+    let mut bytes = healthy_test_bytes(STARTUP_ENTROPY + RESEED_ENTROPY);
+    bytes[STARTUP_ENTROPY - 3..STARTUP_ENTROPY + 3].fill(17);
+    let mut source = Scripted { bytes, offset: 0 };
+    let mut service = Service::new();
+    service.start(&mut source).unwrap();
+    assert_eq!(
+        reach_reseed(&mut service, &mut source),
+        Err(Status::Degraded)
+    );
+    assert_eq!(service.reason(), HealthFailure::Repetition);
+    assert_eq!(service.counters.reseeds, 0);
+}
+
+#[test]
+fn continuous_rct_spans_consecutive_reseeds() {
+    let border = STARTUP_ENTROPY + RESEED_ENTROPY;
+    let mut bytes = healthy_test_bytes(border + RESEED_ENTROPY);
+    bytes[border - 3..border + 3].fill(17);
+    let mut source = Scripted { bytes, offset: 0 };
+    let mut service = Service::new();
+    service.start(&mut source).unwrap();
+    reach_reseed(&mut service, &mut source).ok();
+    assert_eq!(service.state(), State::Ready);
+    assert_eq!(
+        reach_reseed(&mut service, &mut source),
+        Err(Status::Degraded)
+    );
+    assert_eq!(service.reason(), HealthFailure::Repetition);
+    assert_eq!(service.counters.reseeds, 1);
 }
 
 #[test]
