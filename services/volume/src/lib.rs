@@ -1,4 +1,5 @@
-//! Allocator-free M6e copy-on-write document volume (S04/S05 groundwork).
+//! Allocator-free M6e copy-on-write document volume (S04/S05), extended in
+//! v2 with collections, metadata, restorable history and transactions (S06).
 //!
 //! Two alternating table copies describe every live object; content lives in
 //! fixed 4 KiB chunks. A mutation writes new content only into chunks that the
@@ -19,8 +20,8 @@ pub mod wire;
 pub use catalog_core::wire::{checksum_update, valid_name, FNV_OFFSET};
 
 pub const SECTOR: usize = 512;
-/// One header sector plus eight entry sectors (two 240-byte entries each).
-pub const TABLE_SECTORS: u64 = 9;
+/// Header, collections, then two sectors per object (head+current, history).
+pub const TABLE_SECTORS: u64 = 2 + 2 * OBJECTS as u64;
 pub const DATA_START: u64 = 2 * TABLE_SECTORS;
 pub const CHUNK_SECTORS: u64 = 8;
 pub const CHUNK: usize = 4096;
@@ -36,6 +37,12 @@ pub const MAX_LENGTH: usize = MAX_CHUNKS * CHUNK;
 pub const QUOTA: usize = 40;
 pub const NAME: usize = 32;
 pub const NO_CHUNK: u16 = 0xffff;
+/// Earlier versions retained per object (newest first).
+pub const HISTORY: usize = 2;
+/// Named collections per domain (index 1..=COLLECTIONS; 0 = none).
+pub const COLLECTIONS: usize = 4;
+/// Sub-operations in one atomic TRANSACT.
+pub const TRANSACT_MAX: usize = 4;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(i32)]

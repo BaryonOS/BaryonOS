@@ -13,9 +13,9 @@ mod support;
 use nieuw_os_sdk_runtime::{native, BlockDevice, Handle, Outgoing, ReceiveEndpoint, SendEndpoint};
 use volume_core::{
     checksum_update,
-    client::{Client, Stat, Transport},
-    wire::{self, Header, ListEntry},
-    Status, CHUNK, FNV_OFFSET, MAX_LENGTH, NAME, PER_DOMAIN,
+    client::{Client, HistoryInfo, Stat, Transport},
+    wire::{self, Header, ListEntry, SubOp},
+    Status, CHUNK, COLLECTIONS, FNV_OFFSET, MAX_LENGTH, PER_DOMAIN,
 };
 
 const LIMIT: usize = 400_000;
@@ -27,6 +27,7 @@ const CUT_DATA: u64 = 2;
 const CUT_TABLE: u64 = 3;
 const RECOVER_CUT: u64 = 4;
 const CORRUPT: u64 = 5;
+const CUT_TXN: u64 = 6;
 
 fn tick() {
     support::put(8, support::word(8).wrapping_add(1));
@@ -155,43 +156,61 @@ impl App {
             .unwrap_or_else(|_| fail(step))
     }
 
-    /// Read every byte through bounded READ replies and compare against the
-    /// fixture for `content_revision`, plus the service-reported checksum.
-    fn verify(&mut self, index: u64, content_revision: u64, step: u64) -> Stat {
+    /// Read every byte of one retained version through bounded READ replies
+    /// and compare it against the fixture for `content` and the length and
+    /// checksum that STAT reported for it.
+    fn verify_version(
+        &mut self,
+        index: u64,
+        revision: u64,
+        selector: usize,
+        version: HistoryInfo,
+        content: u64,
+        step: u64,
+    ) {
+        let (length, sum_expected) = (version.length, version.content_sum);
         let object = self.object(index);
-        let stat = self.stat(index, step);
         let mut sum = FNV_OFFSET;
         let mut mismatch = false;
         let read = self
             .client
-            .read(object, stat.revision, stat.length, |offset, bytes| {
+            .read_version(object, revision, selector, length, |offset, bytes| {
                 for (index, value) in bytes.iter().enumerate() {
-                    mismatch |= *value != byte(object, content_revision, offset + index);
+                    mismatch |= *value != byte(object, content, offset + index);
                 }
                 sum = checksum_update(sum, bytes);
             });
-        check(
-            read == Ok(stat.length) && !mismatch && sum == stat.content_sum,
-            step + 1,
-        );
+        check(read == Ok(length) && !mismatch && sum == sum_expected, step);
         self.verified_docs += 1;
-        self.verified_bytes += stat.length as u64;
+        self.verified_bytes += length as u64;
+    }
+
+    fn verify(&mut self, index: u64, content: u64, step: u64) -> Stat {
+        let stat = self.stat(index, step);
+        let current = HistoryInfo {
+            revision: stat.version_revision,
+            length: stat.length,
+            content_sum: stat.content_sum,
+        };
+        self.verify_version(index, stat.revision, 0, current, content, step + 1);
         stat
     }
 
-    fn list(&mut self, step: u64) -> ([ListEntry; PER_DOMAIN], usize) {
-        let mut entries = [ListEntry {
-            object: 0,
-            revision: 0,
-            length: 0,
-            name_length: 0,
-            name: [0; NAME],
-        }; PER_DOMAIN];
+    fn list(&mut self, filter: usize, step: u64) -> ([ListEntry; PER_DOMAIN], usize) {
+        let mut entries = [ListEntry::EMPTY; PER_DOMAIN];
         let (count, _) = self
             .client
-            .list(self.domain, &mut entries)
+            .list_filtered(self.domain, filter, &mut entries)
             .unwrap_or_else(|_| fail(step));
         (entries, count)
+    }
+
+    /// Objects (by domain index) listed under `filter`, as a bit mask.
+    fn listed(&mut self, filter: usize, step: u64) -> u8 {
+        let (entries, count) = self.list(filter, step);
+        entries[..count].iter().fold(0u8, |mask, entry| {
+            mask | 1 << (entry.object as usize % PER_DOMAIN)
+        })
     }
 
     fn raw(&mut self, header: &Header, data: &[u8]) -> Header {
@@ -207,10 +226,19 @@ impl App {
         let epoch = self.client.epoch;
         let foreign = ((1 - self.domain) * PER_DOMAIN) as u64;
         let id = self.client.next_request_id() + 10_000;
+        let mut foreign_meta = Header::new(wire::META, id + 6, epoch, foreign);
+        foreign_meta.revision = 1;
+        let mut foreign_collection = Header::new(wire::COLLECTION, id + 7, epoch, foreign);
+        foreign_collection.aux = 1;
+        let mut foreign_restore = Header::new(wire::RESTORE, id + 8, epoch, foreign);
+        foreign_restore.aux = 1;
         for (offset, mut header) in [
             Header::new(wire::STAT, id, epoch, foreign),
             Header::new(wire::LIST, id + 1, epoch, foreign),
             Header::new(wire::DELETE, id + 2, epoch, foreign + 1),
+            foreign_meta,
+            foreign_collection,
+            foreign_restore,
         ]
         .into_iter()
         .enumerate()
@@ -222,13 +250,15 @@ impl App {
             check(reply.status == Status::Access as i32, step + offset as u64);
         }
         let reply = self.raw(&Header::new(wire::STAT, id + 3, epoch, 16), &[]);
-        check(reply.status == Status::Range as i32, step + 3);
+        check(reply.status == Status::Range as i32, step + 10);
         let mut write = Header::new(wire::BEGIN, id + 4, epoch, foreign);
         write.aux = 10;
         write.length = 1;
         write.name_length = 1;
-        let reply = self.raw(&write, b"x");
-        check(reply.status == Status::Access as i32, step + 4);
+        check(
+            self.raw(&write, b"x").status == Status::Access as i32,
+            step + 11,
+        );
         // Malformed: version 4 body; the reply must be a canonical Invalid.
         let mut body = wire::encode(&Header::new(wire::STAT, id + 5, epoch, self.object(0)), &[]);
         body[0] = 4;
@@ -237,16 +267,29 @@ impl App {
                 let h = wire::header(&reply);
                 check(
                     h.status == Status::Invalid as i32 && h.revision == 0,
-                    step + 5,
+                    step + 12,
                 );
-                check(reply[64..].iter().all(|b| *b == 0), step + 6);
+                check(reply[64..].iter().all(|b| *b == 0), step + 13);
             }
-            Err(_) => fail(step + 5),
+            Err(_) => fail(step + 12),
         }
-        let mut read = Header::new(wire::READ, id + 6, epoch, self.object(0));
+        let mut read = Header::new(wire::READ, id + 9, epoch, self.object(0));
         read.count = wire::DATA as u32 + 1;
-        let reply = self.raw(&read, &[]);
-        check(reply.status == Status::Invalid as i32, step + 7);
+        check(
+            self.raw(&read, &[]).status == Status::Invalid as i32,
+            step + 14,
+        );
+        // A transaction naming one object twice is structurally invalid.
+        let mut txn = Header::new(wire::TRANSACT, id + 10, epoch, self.object(0));
+        txn.count = 2;
+        txn.length = 2 * wire::SUBOP as u32;
+        let mut data = [0u8; 2 * wire::SUBOP];
+        data[1] = wire::SUB_PURGE;
+        data[wire::SUBOP + 1] = wire::SUB_PURGE;
+        check(
+            self.raw(&txn, &data).status == Status::Invalid as i32,
+            step + 15,
+        );
     }
 
     fn wait_gate(&self, value: u64) {
@@ -260,9 +303,9 @@ impl App {
         support::put(456, value);
     }
 
+    /// Domain digest over objects (metadata, content checksum, history depth)
+    /// and collections; the host oracle recomputes it from the raw image.
     fn digest(&mut self, step: u64) -> u64 {
-        // Domain digest over every object's metadata and content checksum;
-        // the host oracle recomputes it from the raw disk image.
         let mut digest = FNV_OFFSET;
         for index in 0..PER_DOMAIN as u64 {
             let object = self.object(index);
@@ -273,6 +316,9 @@ impl App {
                     digest = checksum_update(digest, &(stat.length as u64).to_le_bytes());
                     digest = checksum_update(digest, &stat.content_sum.to_le_bytes());
                     digest = checksum_update(digest, &stat.name[..stat.name_length]);
+                    digest = checksum_update(digest, &[stat.collection, stat.history_count as u8]);
+                    digest = checksum_update(digest, &stat.tags.to_le_bytes());
+                    digest = checksum_update(digest, &stat.kind.to_le_bytes());
                 }
                 Err((Status::NotFound, revision)) => {
                     digest = checksum_update(digest, &[index as u8, 0]);
@@ -280,6 +326,12 @@ impl App {
                 }
                 Err(_) => fail(step),
             }
+        }
+        // Collections are observable through LIST filters only; their
+        // membership mask per index enters the digest.
+        for collection in 1..=COLLECTIONS {
+            let mask = self.listed(collection + 1, step + 1);
+            digest = checksum_update(digest, &[0xc0 | collection as u8, mask]);
         }
         digest
     }
@@ -291,27 +343,81 @@ impl App {
         support::put(416, self.commits);
         support::put(448, digest);
     }
+
+    /// COLLECTION_STAT of `domain`'s collection `index`: present with `name`
+    /// at `revision`, or (`None`) absent at `revision` (0 = never created).
+    fn collection_is(
+        &mut self,
+        domain: usize,
+        index: usize,
+        name: Option<&str>,
+        revision: u64,
+        step: u64,
+    ) {
+        let info = self
+            .client
+            .collection_stat(domain, index)
+            .unwrap_or_else(|_| fail(step));
+        let named = match name {
+            Some(name) => info.present && info.name() == name.as_bytes(),
+            None => !info.present && info.name_length == 0,
+        };
+        check(
+            named && info.revision == revision && (revision == 0) == (info.request_id == 0),
+            step + 1,
+        );
+    }
+
+    fn meta(
+        &mut self,
+        index: u64,
+        expected: u64,
+        tags: u32,
+        kind: u16,
+        collection: u8,
+        step: u64,
+    ) -> u64 {
+        let revision = self
+            .client
+            .meta(self.object(index), expected, tags, kind, collection)
+            .unwrap_or_else(|_| fail(step));
+        check(revision == expected + 1, step + 1);
+        revision
+    }
 }
 
-// Final state of the normal fixture, verified again by the cold recovery.
-// (object index, revision, content revision, length, name)
-const FINAL_A: &[(u64, u64, u64, usize, &str)] = &[
-    (1, 2, 1, 129, "Notitie ✓"),
-    (2, 1, 1, 0, "Leeg"),
-    (3, 40, 40, 5 * CHUNK, "Concept"),
-    (4, 1, 1, 5000, "Herstart"),
-    (5, 1, 1, MAX_LENGTH, "Archief"),
+fn sub(index: u8, op: u8, collection: u8, tags: u32, expected: u64) -> SubOp {
+    SubOp {
+        index,
+        op,
+        collection,
+        tags,
+        expected,
+        kind: 0,
+    }
+}
+
+/// Expected final state of the normal fixture, re-verified by the cold
+/// recovery: (index, revision, content revision, length, name, collection,
+/// history depth).
+type Final = (u64, u64, u64, usize, &'static str, u8, usize);
+const FINAL_A: &[Final] = &[
+    (1, 3, 1, 129, "Notitie ✓", 2, 0),
+    (2, 2, 1, 0, "Leeg", 1, 0),
+    (3, 42, 38, 5 * CHUNK, "Concept", 0, 0),
+    (4, 4, 1, 5000, "Herstart", 0, 0),
+    (5, 1, 1, MAX_LENGTH, "Archief", 0, 0),
 ];
-const FINAL_B: &[(u64, u64, u64, usize, &str)] = &[
-    (0, 1, 1, 4 * CHUNK, "Foto-index"),
-    (1, 1, 1, 300, "Lijst"),
-    (2, 20, 20, CHUNK, "Logboek"),
-    (3, 1, 1, MAX_LENGTH, "Groot 1"),
-    (4, 1, 1, MAX_LENGTH, "Groot 2"),
+const FINAL_B: &[Final] = &[
+    (0, 2, 1, 4 * CHUNK, "Foto-index", 1, 0),
+    (1, 1, 1, 300, "Lijst", 0, 0),
+    (2, 21, 20, CHUNK, "Logboek", 0, 0),
+    (3, 1, 1, MAX_LENGTH, "Groot 1", 0, 0),
+    (4, 1, 1, MAX_LENGTH, "Groot 2", 0, 0),
 ];
 
 fn normal_a(app: &mut App) {
-    let (_, count) = app.list(10);
+    let (_, count) = app.list(0, 10);
     check(count == 0, 11);
     // S05: documents far beyond the old 128-byte record, streamed in 160-byte pieces.
     let revision = app.write(0, 0, "Jaarverslag 2026".as_bytes(), MAX_LENGTH, 20);
@@ -330,7 +436,7 @@ fn normal_a(app: &mut App) {
         51,
     );
     app.verify(1, 1, 52);
-    // S04: 40 overwrites alternate 3 and 5 chunks; old chunks are reused.
+    // S04: 40 overwrites alternate 4 and 5 chunks; old chunks are reused.
     let mut revision = 0;
     for round in 0..40 {
         let length = if round % 2 == 0 {
@@ -342,6 +448,27 @@ fn normal_a(app: &mut App) {
         app.verify(3, revision, 65);
     }
     check(revision == 40, 69);
+    // S06 history: the two previous versions are readable and restorable.
+    let stat = app.stat(3, 200);
+    check(stat.history_count == 2, 201);
+    check(
+        stat.history[0].revision == 39 && stat.history[1].revision == 38,
+        202,
+    );
+    for (selector, content) in [(1usize, 39u64), (2, 38)] {
+        let info = stat.history[selector - 1];
+        app.verify_version(3, 40, selector, info, content, 203);
+    }
+    check(app.client.restore(app.object(3), 40, 2) == Ok(41), 205);
+    let restored = app.verify(3, 38, 206);
+    check(
+        restored.version_revision == 41 && restored.length == 5 * CHUNK,
+        208,
+    );
+    check(
+        restored.history[0].revision == 40 && restored.history[1].revision == 39,
+        209,
+    );
     // Abort and an abandoned session replaced by a new BEGIN.
     let object = app.object(4);
     let id = app
@@ -361,37 +488,102 @@ fn normal_a(app: &mut App) {
     check(app.raw(&stale, &[1]).status == Status::Invalid as i32, 78);
     app.verify(4, 1, 79);
     app.boundaries(80);
-    let (entries, count) = app.list(90);
-    check(count == 5, 91);
-    for (index, entry) in entries[..count].iter().enumerate() {
-        check(entry.object == app.object(index as u64), 92);
-    }
+    // S06 collections and metadata.
+    check(app.client.collection(0, 1, 0, b"Werk") == Ok(1), 100);
+    check(
+        app.client.collection(0, 2, 0, "Privé".as_bytes()) == Ok(1),
+        101,
+    );
+    check(
+        app.client.collection(0, 1, 0, b"Oud") == Err((Status::Stale, 0)),
+        102,
+    );
+    // Collections are readable: name, presence and CAS revision.
+    app.collection_is(0, 1, Some("Werk"), 1, 90);
+    app.collection_is(0, 2, Some("Privé"), 1, 92);
+    app.collection_is(0, 3, None, 0, 94);
+    check(
+        app.client.meta(app.object(0), 1, 1, 1, 4) == Err((Status::Range, 0)),
+        103,
+    );
+    app.meta(0, 1, 1, 1, 1, 104);
+    app.meta(1, 2, 0, 2, 2, 106);
+    // A transaction with one stale precondition changes nothing ...
+    let failing = [
+        sub(2, wire::SUB_META, 1, 0, 1),
+        sub(4, wire::SUB_META, 1, 0, 9),
+    ];
+    check(app.client.transact(0, &failing) == Err(Status::Stale), 108);
+    check(
+        app.stat(2, 109).collection == 0 && app.stat(4, 110).revision == 1,
+        111,
+    );
+    // ... and a valid one moves both documents in a single commit.
+    let moving = [
+        sub(2, wire::SUB_META, 1, 0, 1),
+        sub(4, wire::SUB_META, 1, 0, 1),
+    ];
+    check(app.client.transact(0, &moving).is_ok(), 112);
+    app.commits += 1;
+    check(
+        app.stat(2, 113).revision == 2 && app.stat(4, 114).collection == 1,
+        115,
+    );
+    check(app.listed(2, 116) == 0b10101, 117);
+    check(app.listed(3, 118) == 0b10, 119);
+    check(app.listed(1, 120) == 0b1000, 121);
+    check(
+        app.client.collection(0, 1, 1, b"") == Err((Status::Busy, 0)),
+        122,
+    );
+    // Undelete: delete keeps the content as history; RESTORE brings it back.
+    check(app.client.delete(app.object(4), 2) == Ok(3), 125);
+    check(
+        app.client.stat(app.object(4)) == Err((Status::NotFound, 3)),
+        126,
+    );
+    check(app.client.restore(app.object(4), 3, 1) == Ok(4), 127);
+    let back = app.verify(4, 1, 128);
+    // The undeleted version left the history; nothing is held twice.
+    check(back.collection == 0 && back.history_count == 0, 130);
+    let (_, count) = app.list(0, 131);
+    check(count == 5, 132);
     app.phase(1);
     app.wait_gate(1);
-    // Fill exactly to the 40-chunk quota (16 + 1 + 0 + 5 + 2 + 16), then one byte more.
-    app.write(5, 0, b"Archief", MAX_LENGTH, 100);
+    // Quota counts retained history: the archive does not fit until the
+    // older drafts are purged.
+    let object = app.object(5);
+    check(
+        app.client
+            .write(object, 0, b"Archief", MAX_LENGTH, fill(object, 1))
+            == Err(Status::Quota),
+        140,
+    );
+    check(app.client.purge(app.object(3), 41) == Ok(42), 141);
+    app.write(5, 0, b"Archief", MAX_LENGTH, 142);
     let object = app.object(6);
     check(
         app.client.write(object, 0, b"Te veel", 1, fill(object, 1)) == Err(Status::Quota),
-        105,
+        146,
     );
-    check(app.client.stat(object) == Err((Status::NotFound, 0)), 106);
+    check(app.client.stat(object) == Err((Status::NotFound, 0)), 147);
     support::put(424, 1);
     app.phase(2);
     app.wait_gate(2);
-    // Release 16 chunks; domain B then reuses them.
-    check(app.client.delete(app.object(0), 1) == Ok(2), 110);
+    // Release 16 chunks for domain B: delete keeps history, purge frees it.
+    check(app.client.delete(app.object(0), 2) == Ok(3), 150);
+    check(app.client.purge(app.object(0), 3) == Ok(4), 151);
     check(
-        app.client.stat(app.object(0)) == Err((Status::NotFound, 2)),
-        111,
+        app.client.stat(app.object(0)) == Err((Status::NotFound, 4)),
+        152,
     );
     app.phase(3);
-    verify_final(app, FINAL_A, 120);
-    app.report(130);
+    verify_final(app, FINAL_A, 160);
+    app.report(180);
 }
 
 fn normal_b(app: &mut App) {
-    let (_, count) = app.list(10);
+    let (_, count) = app.list(0, 10);
     check(count == 0, 11);
     app.write(0, 0, b"Foto-index", 4 * CHUNK, 20);
     app.verify(0, 1, 25);
@@ -403,39 +595,55 @@ fn normal_b(app: &mut App) {
         revision = app.write(2, revision, b"Logboek", length, 40);
         app.verify(2, revision, 45);
     }
-    app.boundaries(50);
+    let stat = app.stat(2, 46);
+    let info = stat.history[0];
+    app.verify_version(2, 20, 1, info, 19, 47);
+    check(app.client.purge(app.object(2), 20) == Ok(21), 48);
+    check(app.stat(2, 49).history_count == 0, 50);
+    app.boundaries(60);
+    check(app.client.collection(1, 1, 0, b"Fotos") == Ok(1), 80);
+    app.collection_is(1, 1, Some("Fotos"), 1, 82);
+    app.meta(0, 1, 3, 7, 1, 81);
     app.phase(1);
     app.wait_gate(2);
     // Domain A holds 40 chunks and B 6: 18 free. The first 16-chunk upload
     // fits; the second exceeds free space while B stays under its quota.
-    app.write(3, 0, b"Groot 1", MAX_LENGTH, 60);
+    app.write(3, 0, b"Groot 1", MAX_LENGTH, 90);
     let object = app.object(4);
     check(
         app.client
             .write(object, 0, b"Groot 2", MAX_LENGTH, fill(object, 1))
             == Err(Status::Full),
-        65,
+        95,
     );
     support::put(432, 1);
     app.phase(2);
     app.wait_gate(3);
-    app.write(4, 0, b"Groot 2", MAX_LENGTH, 70);
-    app.verify(4, 1, 75);
-    verify_final(app, FINAL_B, 120);
-    app.report(130);
+    app.write(4, 0, b"Groot 2", MAX_LENGTH, 100);
+    app.verify(4, 1, 105);
+    verify_final(app, FINAL_B, 160);
+    app.report(180);
 }
 
-fn verify_final(app: &mut App, expected: &[(u64, u64, u64, usize, &str)], step: u64) {
-    for (index, revision, content, length, name) in expected {
+fn verify_final(app: &mut App, expected: &[Final], step: u64) {
+    for (index, revision, content, length, name, collection, history) in expected {
         let stat = app.verify(*index, *content, step);
         check(
             stat.revision == *revision && stat.length == *length,
             step + 2,
         );
         check(&stat.name[..stat.name_length] == name.as_bytes(), step + 3);
+        check(
+            stat.collection == *collection && stat.history_count == *history,
+            step + 4,
+        );
+        for selector in 1..=stat.history_count {
+            let info = stat.history[selector - 1];
+            app.verify_version(*index, stat.revision, selector, info, *content, step + 5);
+        }
     }
-    let (_, count) = app.list(step + 4);
-    check(count == expected.len(), step + 5);
+    let (_, count) = app.list(0, step + 6);
+    check(count == expected.len(), step + 7);
 }
 
 fn recover(app: &mut App) {
@@ -443,37 +651,83 @@ fn recover(app: &mut App) {
     verify_final(app, expected, 20);
     if app.domain == 0 {
         check(
-            app.client.stat(app.object(0)) == Err((Status::NotFound, 2)),
+            app.client.stat(app.object(0)) == Err((Status::NotFound, 4)),
             40,
         );
+        check(app.listed(2, 41) == 0b100 && app.listed(3, 42) == 0b10, 43);
+    } else {
+        check(app.listed(2, 41) == 0b1, 43);
     }
-    // The cold recovery instance is read-only: mutations are refused.
+    // The cold recovery instance is read-only: every mutation is refused.
     let object = app.object(7);
     check(
         app.client.write(object, 0, b"Nee", 1, fill(object, 1)) == Err(Status::Access),
-        41,
+        44,
     );
     let first = app.object(expected[0].0);
+    let revision = expected[0].1;
     check(
-        app.client.rename(first, expected[0].1, b"Nee") == Err(Status::Access),
-        42,
+        app.client.rename(first, revision, b"Nee") == Err(Status::Access),
+        45,
     );
     check(
-        app.client.delete(first, expected[0].1) == Err((Status::Access, 0)),
-        43,
+        app.client.delete(first, revision) == Err((Status::Access, 0)),
+        46,
     );
+    check(
+        app.client.meta(first, revision, 0, 0, 0) == Err((Status::Access, 0)),
+        47,
+    );
+    check(
+        app.client.collection(app.domain, 3, 0, b"Nee") == Err((Status::Access, 0)),
+        48,
+    );
+    check(
+        app.client.purge(first, revision) == Err((Status::Access, 0)),
+        49,
+    );
+    check(
+        app.client.restore(first, revision, 1) == Err((Status::Access, 0)),
+        60,
+    );
+    check(
+        app.client
+            .transact(app.domain, &[sub(0, wire::SUB_PURGE, 0, 0, 1)])
+            == Err(Status::Access),
+        61,
+    );
+    // Reading collections stays allowed on the read-only mount.
+    if app.domain == 0 {
+        app.collection_is(0, 1, Some("Werk"), 1, 62);
+        app.collection_is(0, 2, Some("Privé"), 1, 64);
+    } else {
+        app.collection_is(1, 1, Some("Fotos"), 1, 62);
+        app.collection_is(1, 2, None, 0, 64);
+    }
     app.report(50);
 }
 
-fn cut(app: &mut App) {
+fn cut(app: &mut App, case: u64) {
     if app.domain == 1 {
-        let (_, count) = app.list(10);
+        let (_, count) = app.list(0, 10);
         check(count == 0, 11);
         return;
     }
     app.write(0, 0, b"Voor de crash", 9000, 20);
     app.verify(0, 1, 25);
-    support::put(456, 1);
+    if case == CUT_TXN {
+        app.write(1, 0, b"Tweede", 300, 30);
+        check(app.client.collection(0, 1, 0, b"Werk") == Ok(1), 35);
+        app.phase(1);
+        // The kernel kills the VM in the middle of this transaction's table.
+        let moving = [
+            sub(0, wire::SUB_META, 1, 5, 1),
+            sub(1, wire::SUB_META, 1, 5, 1),
+        ];
+        let _ = app.client.transact(0, &moving);
+        fail(36);
+    }
+    app.phase(1);
     // The kernel kills the VM in the middle of this second commit.
     let object = app.object(0);
     let _ = app
@@ -482,23 +736,34 @@ fn cut(app: &mut App) {
     fail(30);
 }
 
+/// Report what the cold instance finds; the host oracle decides whether it
+/// is exactly the state before the interrupted commit.
 fn recover_cut(app: &mut App) {
     if app.domain == 1 {
-        let (_, count) = app.list(10);
+        let (_, count) = app.list(0, 10);
         check(count == 0, 11);
         app.report(12);
         return;
     }
-    let stat = app.stat(0, 20);
-    check(stat.revision == 1 || stat.revision == 2, 21);
-    let stat = app.verify(0, stat.revision, 22);
-    let expected_length = if stat.revision == 1 { 9000 } else { MAX_LENGTH };
-    check(stat.length == expected_length, 24);
+    let first = app.stat(0, 20);
+    check(first.revision == 1 || first.revision == 2, 21);
+    let length = if first.revision == 1 {
+        9000
+    } else {
+        MAX_LENGTH
+    };
+    let stat = app.verify(0, first.revision, 22);
+    check(stat.length == length, 24);
     support::put(480, stat.revision);
-    let object = app.object(1);
+    support::put(488, u64::from(stat.collection));
+    if let Ok(second) = app.client.stat(app.object(1)) {
+        app.verify(1, 1, 26);
+        support::put(496, second.revision);
+    }
+    let object = app.object(2);
     check(
         app.client.write(object, 0, b"Nee", 1, fill(object, 1)) == Err(Status::Access),
-        25,
+        28,
     );
     app.report(30);
 }
@@ -545,7 +810,7 @@ fn run() {
         NORMAL if domain == 0 => normal_a(&mut app),
         NORMAL => normal_b(&mut app),
         RECOVER => recover(&mut app),
-        CUT_DATA | CUT_TABLE => cut(&mut app),
+        CUT_DATA | CUT_TABLE | CUT_TXN => cut(&mut app, case),
         RECOVER_CUT => recover_cut(&mut app),
         _ => fail(5),
     }

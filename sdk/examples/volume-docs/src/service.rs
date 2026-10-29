@@ -13,7 +13,7 @@ mod support;
 use nieuw_os_sdk_runtime::{
     block::READ_MAX, native, BlockDevice, Error, Handle, Outgoing, ReceiveEndpoint, SendEndpoint,
 };
-use volume_core::{service::Service, table, wire, Disk, Status, SECTOR};
+use volume_core::{service::Service, wire, Disk, Status, SECTOR};
 
 const POLL_LIMIT: usize = 200_000;
 
@@ -78,6 +78,8 @@ fn evidence(service: &Service) {
         (352, c.rejected),
         (360, c.aborted_sessions),
         (368, c.unknown),
+        (384, c.transactions),
+        (392, c.restores),
     ] {
         support::put(offset, value);
     }
@@ -142,11 +144,10 @@ pub extern "C" fn _start() -> ! {
         startup_error(Status::Invalid);
     }
     let mut disk = NativeDisk { device };
-    let recovered = match table::recover(&mut disk) {
-        Ok(table) => table,
+    let mut service = match Service::recover(epoch, read_only, &mut disk) {
+        Ok(service) => service,
         Err(error) => startup_error(error),
     };
-    let mut service = Service::new(epoch, recovered, read_only);
     evidence(&service);
     support::put(232, 0);
     support::put(192, 1);

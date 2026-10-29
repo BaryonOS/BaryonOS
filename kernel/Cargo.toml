@@ -136,6 +136,7 @@ test-volume-cut-data = ["native-volume"]
 test-volume-cut-table = ["native-volume"]
 test-volume-recover-cut = ["native-volume"]
 test-volume-corrupt = ["native-volume"]
+test-volume-cut-txn = ["native-volume"]
 
 [dependencies]
 boot-protocol = { path = "../crates/boot-protocol" }
