@@ -27,9 +27,13 @@ HOST = [
 
 
 def test_inputs() -> dict[str, str]:
-    """SHA-256 per host test input that the gate's unittest run discovers."""
+    """SHA-256 of every file unittest discovery can load for the gate: the
+    matching test modules at any depth plus every package __init__.py, since
+    discovery also descends into packages under tests/."""
+    tests = ROOT / "tests"
+    paths = set(tests.rglob(TEST_INPUTS)) | set(tests.rglob("__init__.py"))
     return {path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
-            for path in sorted((ROOT / "tests").glob(TEST_INPUTS))}
+            for path in sorted(paths)}
 
 
 PLAN = [("normal", None), ("recover", "normal"), ("cut-data", None), ("recover-cut", "cut-data"),
