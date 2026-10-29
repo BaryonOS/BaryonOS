@@ -37,6 +37,7 @@ const EV_DENIED_MATCHED: u64 = 472;
 const EV_DENIED_TOTAL: u64 = 480;
 const EV_CLIENT_EXIT_SEEN: u64 = 488;
 const EV_DENIED_SELF: u64 = 496;
+const EV_SPARSE_CAP_CHECKS: u64 = 504;
 
 fn tick() {
     support::put(8, support::word(8).wrapping_add(1));
@@ -76,6 +77,27 @@ fn kernel_code<T>(result: Result<T, Error>) -> i64 {
         Err(Error::Kernel(code)) => code,
         Err(_) => 1,
     }
+}
+
+/// Exercise the raw ABI's two independently optional capability positions.
+/// The ordinary SDK slice wrapper deliberately supplies contiguous positions.
+fn spawn_slots(image: LaunchImage, arg: u64, caps: [(u64, u64); 2]) -> Result<ChildProcess, Error> {
+    let mut primary = 0x50u64;
+    let mut secondary = caps[0].0;
+    // SAFETY: K05's checked int80 ABI preserves every GPR except RAX/RDX.
+    // Only scalar words cross this boundary; no pointers or borrowed buffers.
+    // The kernel validates both handles and rights before allocating resources.
+    unsafe {
+        core::arch::asm!("int 0x80", inout("rax") primary,
+            in("rdi") image.handle().raw(), in("rsi") arg,
+            inout("rdx") secondary, in("r10") caps[0].1,
+            in("r8") caps[1].0, in("r9") caps[1].1, options(nostack));
+    }
+    Handle::from_raw(nieuw_os_sdk_runtime::decode_return(
+        primary as i64,
+        secondary,
+    )?)
+    .map(ChildProcess::from_handle)
 }
 
 struct Supervisor {
@@ -128,7 +150,15 @@ impl Supervisor {
         }
         match (f.op, message.cap_count()) {
             (REGISTER, 1) => Some(Incoming::Register(message.cap(0)?, message.sender())),
-            (CLIENT_HELLO, 1) => Some(Incoming::Hello(message.cap(0)?, message.sender())),
+            (CLIENT_HELLO, 1) => {
+                if self.case == CASE_NORMAL {
+                    if f.b != CLIENT_SECOND_CAP || f.c != 3 {
+                        fail(34);
+                    }
+                    support::put(EV_SPARSE_CAP_CHECKS, f.c);
+                }
+                Some(Incoming::Hello(message.cap(0)?, message.sender()))
+            }
             (PROGRESS, 0) if message.sender() == self.client_pid => {
                 self.replies = f.a;
                 self.closed = f.b;
@@ -271,9 +301,16 @@ impl Supervisor {
             WORKER_SERVE
         };
         self.start_worker(worker_mode);
-        let client = self
-            .spawn(self.client_image, CLIENT_RUN_24)
-            .unwrap_or_else(|_| fail(50));
+        let client = if self.case == CASE_NORMAL {
+            spawn_slots(
+                self.client_image,
+                CLIENT_SECOND_CAP | (self.pid << 8),
+                [(0, 0), (self.registry_root.raw(), Rights::SEND.bits())],
+            )
+        } else {
+            self.spawn(self.client_image, CLIENT_RUN_24)
+        }
+        .unwrap_or_else(|_| fail(50));
         bump(EV_SPAWNS_OK);
         let (cap, sender) = self.wait_hello();
         self.client = Some(client);
@@ -345,7 +382,7 @@ impl Supervisor {
         }
     }
 
-    /// Nine negative checks with real authority present: typed handles,
+    /// Thirteen negative checks with real authority present: typed handles,
     /// bad handles, forbidden delegation rights and double kills all fail
     /// with the documented codes and change nothing.
     fn denied_self_checks(&mut self, worker: ChildProcess, client: ChildProcess) -> u64 {
@@ -398,7 +435,40 @@ impl Supervisor {
         if kernel_code(no_transfer) == EACCESS {
             matched += 1;
         }
+        // The second raw position enforces the same delegation rules.
+        if kernel_code(spawn_slots(
+            self.worker_image,
+            0,
+            [(0, 0), (send_only.raw(), Rights::SEND.bits())],
+        )) == EACCESS
+        {
+            matched += 1;
+        }
+        if kernel_code(spawn_slots(
+            self.worker_image,
+            0,
+            [(0, 0), (self.registry_root.raw(), Rights::RECV.bits())],
+        )) == EACCESS
+        {
+            matched += 1;
+        }
         let _ = native::close(send_only);
+        // A missing handle with nonzero rights is invalid in either position,
+        // even when the other position contains a valid delegable endpoint.
+        for caps in [
+            [
+                (0, Rights::SEND.bits()),
+                (self.registry_root.raw(), Rights::SEND.bits()),
+            ],
+            [
+                (self.registry_root.raw(), Rights::SEND.bits()),
+                (0, Rights::SEND.bits()),
+            ],
+        ] {
+            if kernel_code(spawn_slots(self.worker_image, 0, caps)) == EINVAL {
+                matched += 1;
+            }
+        }
         // Kill once (counted), then a second kill of a dead child is closed.
         self.kill_and_confirm_keep(worker, 72);
         if kernel_code(native::kill(worker)) == ECLOSED {
@@ -458,7 +528,7 @@ impl Supervisor {
         let (cap, sender) = self.wait_hello();
         self.client_reply = Some(cap);
         self.client_pid = sender;
-        // Collect both reports (2 + 6 checks) before the own checks (9). The
+        // Collect both reports (2 + 6 checks) before the own checks (13). The
         // worker's report may already have been consumed while waiting for the
         // client's hello; `classify` counts every report wherever it arrives.
         for _ in 0..LIMIT {
@@ -473,7 +543,7 @@ impl Supervisor {
         let own = self.denied_self_checks(worker, client);
         support::put(EV_DENIED_SELF, own);
         self.denied_matched += own;
-        self.denied_total += 9;
+        self.denied_total += 13;
         support::put(EV_DENIED_MATCHED, self.denied_matched);
         support::put(EV_DENIED_TOTAL, self.denied_total);
         if let Some(cap) = self.worker_send.take() {

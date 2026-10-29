@@ -1,5 +1,19 @@
 # K05 — acceptatie algemeen proces- en dienstbeheer
 
+## Aanvullende raw-slotacceptatie — 29 oktober 2026
+
+P2 uit #51 is hersteld op bron56b576b16da1e4503bc5f9167a476474a58c33cf
+(fingerprintcccf0e3e7fcec439428208c4458a0194ec23c6120e1f03d96abe65b0711631b7).
+Een lege cap0 verandert de vaste positie van cap1 niet. Nieuwe native NORMAL
+gebruikt werkelijk alleen cap1, valideert legecap0 en SEND/geen RECV/DERIVE,
+voltooit24IPC-antwoorden en herstart. DENIED is uitgebreid van17 naar21,
+met behoud van alle bestaande negatieve tests en allocatiepreflight.
+Volledige gate5/5 raw33 en65hosttests exit0; clippy/fmt en tweedeagentreview
+zijn groen. Oude kernel faalde met dit nieuwe scenario aantoonbaar; zie
+[k05-startup-slots](k05-startup-slots/README.md) voor compacte exacte rapporten.
+De oorspronkelijke bewijsgegevens hieronder blijven historisch aan hun eigen
+bron gebonden; hun oude deny-tellingen zijn geen actuele telling.
+
 Datum: 29 oktober 2026 (Europe/Amsterdam). Contract:
 [K05-PROCESS-MANAGEMENT](../implementation/K05-PROCESS-MANAGEMENT.md);
 besluit ADR-042. Bewijsmap: [`k05/`](k05/).

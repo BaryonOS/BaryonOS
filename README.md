@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`53e0d57a`](https://github.com/simonvanieperen/nieuw-os/commit/53e0d57af99c9673c97bc900fae15b98e08c8ca3) ·
-**Ontwikkelbranch:** `codex/native-recovery-hardening`.
-Deze opdracht: **30% → 32% (+2 procentpunt)**. **Opdracht:** B01-P1-herstel en hervatting S08 op gezamenlijke native bron geverifieerd.
-B01 na tijdelijk heropenen herbevestigd (+2, 30→32; oorspronkelijke sessiestand32, geen nieuw criterium). Blijvende RCT/APT over reseeds, monotone intrekking en geen masterwissel in gebruikte dienst; native oude-blobtest. Echte stille kernel-RNG-fixture met timeout/reset-ACK en aparte herstart op dezelfde DMA-pool, requester-exit fail-closed. S08-timing uit#48 behouden op actuele main en foutcompletions gemeten. Geïntegreerde bron53e0d57, v3fingerprint60edda79: B01 5/5, S08 13/13, S06-volume9/9 echte VM-runs groen; 615 onafhankelijke hosttests plus lint/fmt/syntax/voortgang groen. Bewijs native-recovery-hardening. Requestercrash/reset-zonder-ACK niet native getest; koude antirollback/persistente sleutels/fysieke RNG/TPM blijven open. Geen rubric- of scopewijziging.
+**Bron:** [`56b576b1`](https://github.com/simonvanieperen/nieuw-os/commit/56b576b16da1e4503bc5f9167a476474a58c33cf) ·
+**Ontwikkelbranch:** `codex/supervisor-startup-slots`.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** K05 vaste startcapabilityposities en raw ABI-negatieve gevallen native geverifieerd.
+De score blijft 32%. Het bestaande P2-randgeval uit PR #51 is opgelost: een lege cap0 behoudt cap1 op offset 64. De nieuwe native regressie faalde vóór het herstel en slaagt erna. De volledige K05-gate op commit 56b576b (bronvingerafdruk cccf0e3e) heeft 5/5 echte VM-runs: normal bewijst één sparse spawn, drie positie-/rechtencontroles en 24 antwoorden; denied matcht 21/21 fouten. Fault-, orphan-, quota- en cleanupcontroles blijven groen. Ook 65 hosttests, Clippy, formattering en een afzonderlijke agentreview slagen. PRs #53 en #54 zijn geïntegreerd; #48 is gesloten en acht reviewthreads zijn opgelost. Geen nieuwe rechten, ABI, afhankelijkheden, criteria of gewichten. B02 en bestaande hardware-/antirollbackgrenzen blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -61,3 +61,8 @@ docs/verification/b01/SHA256SUMS -text
 docs/verification/native-recovery-hardening/**/*.txt -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 docs/verification/native-recovery-hardening/**/*.json -text
 docs/verification/native-recovery-hardening/**/SHA256SUMS -text
+
+# K05-startslots: hashgebonden ruwe firmwarelogs, inclusief CRLF.
+docs/verification/k05-startup-slots/**/*.txt -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/verification/k05-startup-slots/**/*.json -text
+docs/verification/k05-startup-slots/**/SHA256SUMS -text
