@@ -1,0 +1,149 @@
+# B01 — native entropy en sleutelbeheer (profiel `native-keyring`)
+
+Datum: 29 oktober 2026. Status: **ontwerpcontract, daarna geïmplementeerd
+in dezelfde opdracht**; uitgevoerde controles en hun uitkomst staan
+uitsluitend in [B01-ACCEPTANCE](../verification/B01-ACCEPTANCE.md).
+Afwijkingen die tijdens het bouwen nodig bleken, staan in §7.
+Criterium B01 (docs/progress.json): *native cryptografische entropy, key
+lifecycle, bescherming en herstel gebruiken gecontroleerde standaarden en
+geteste failure paths.* Vervult P02 (entropy) uit
+[VERIFIABLE-SECURITY-AND-PQC](VERIFIABLE-SECURITY-AND-PQC.md) §5 en legt de
+Key Service-grens uit [ENCRYPTED-OBJECT-STORAGE](ENCRYPTED-OBJECT-STORAGE.md)
+§5 native vast. Besluit: ADR-043.
+
+## 1. Probleem
+
+Tot nu toe heeft het eigen OS geen entropybron en geen sleutels. Zonder een
+getoetste bron met gereedheid en foutpad mag er geen sleutel worden
+gegenereerd (SECURITY-AND-QUANTUM.md §7). B02 (geauthenticeerde opslag), B03
+(ondertekende updates), N03 en P01 hebben alle een Key Service nodig die
+sleutels nooit aan gewone apps afgeeft.
+
+## 2. Beveiligingsinvarianten (eerst)
+
+1. **Entropy is een capability.** Alleen de Key Service houdt een
+   `Entropy`-capability (recht `ENTROPY` = 1024, objecttype zonder
+   `DERIVE`/`TRANSFER`/`REVOKE`). `entropy_read` zonder die capability geeft
+   `EBADHANDLE`/`ETYPE`/`EACCESS`. De kernel geeft ruwe apparaatbytes door en
+   mengt, cachet of hergebruikt niets.
+2. **Geen sleutel vóór gereedheid.** De dienst wordt pas `READY` na 1024
+   bytes opstartentropy die de SP 800-90B-gezondheidstests doorstaan
+   (Repetition Count en Adaptive Proportion, §3). Een afwezige, mislukkende of
+   vastgelopen bron laat de dienst in `BLOCKED`: iedere sleuteloperatie geeft
+   `NotReady`. Er is geen zwakkere terugvaloptie en geen testseed in het
+   productpad.
+3. **Sleutels verlaten de dienst niet.** Apps krijgen alleen sleutelhandles
+   (domein, index). SEAL/UNSEAL gebeuren in de dienst; de domeinautoriteit komt
+   uitsluitend van het kernelgebonden ingress-endpoint. Een handle van domein A
+   is in domein B ongeldig.
+4. **Geen eigen cryptografie.** Alleen onderhouden RustCrypto-crates met
+   vastgepinde versies: `chacha20poly1305` 0.10.1 (XChaCha20-Poly1305 AEAD,
+   RFC 8439/draft-irtf-cfrg-xchacha), `chacha20` 0.9.1 (keystream voor de
+   DRBG), `hkdf` 0.12.4 + `sha2` 0.10.9 (HKDF-SHA-256, RFC 5869), `zeroize`
+   1.8. Alle x86-SIMD-backends zijn uitgeschakeld
+   (`chacha20_force_soft`, `poly1305_force_soft`, `sha2_backend="soft"`): het
+   profiel heeft `CR0.EM=1` en geen SSE. De DRBG is de
+   fast-key-erasure-constructie op ChaCha20 (Bernstein, 2017): sleutel K,
+   keystream → nieuwe K en uitvoer, oude K gewist.
+5. **Binding.** Iedere AEAD-bewerking bindt formaatversie, domein,
+   sleutelindex en doel (seal/herstel) in de AAD. Een ciphertext van sleutel
+   A onder sleutel B, een gewijzigde byte, tag of nonce geeft `Auth` zonder
+   gedeeltelijke plaintext.
+6. **Herstel zonder escrow.** EXPORT_RECOVERY levert een willekeurig 256-bit
+   herstelgeheim aan de aanvragende app (de gebruikersagent) en een blob die de
+   hoofdsleutel plus intrekkingsstatus onder dat geheim verzegelt. RESTORE in
+   een andere dienstinstantie herleidt daarmee alle domeinsleutels. Zonder het
+   geheim is de blob onbruikbaar; de dienst bewaart het geheim niet.
+7. **Intrekking.** REVOKE wist de afgeleide sleutel en markeert de index; de
+   index wordt niet hergebruikt. Een hersteld domein neemt de intrekkingsstatus
+   uit de blob over.
+8. **Kernel blijft klein.** Geen cryptografie in de kernel; de kernelbroker
+   kent alleen de virtio-rng-wachtrij, DMA-eigendom, timeouts en de
+   `Entropy`-capability (kernel/AGENTS.md).
+
+## 3. Entropybron en gezondheidstests
+
+- Apparaat: virtio-rng-pci (modern, PCI 00:06.0, `-object rng-random,
+  filename=/dev/urandom`), eigen driver `drivers/virtio-rng` op `virtio-core`
+  (capability-parsing, één wachtrij van 8, één apparaat-beschrijfbare buffer
+  van 256 bytes per aanvraag, gepinde DMA-pagina's). Geen interrupts; polling
+  met deadline in ticks zoals de blokbroker.
+- Syscalls `0x60 entropy_request(cap, len)` → ticket en `0x61
+  entropy_poll(cap, ticket, ptr, len)` → bytes: `len` 1..=256; de broker
+  houdt één aanvraag tegelijk (`EAGAIN` voor een tweede) en levert exact de
+  door het apparaat geschreven bytes (kortere levering is `EIO`, nooit
+  opgevuld); `-14 Offline` zonder apparaat, `-13 Timeout` na 64 ticks.
+  Fouten laten de uitvoerbuffer ongewijzigd; na een geslaagde poll wist de
+  kernel zijn kopie. Net als de blokbroker wacht de kernel nooit in een
+  syscall op het apparaat.
+- Opstart: 4 × 256 bytes. Repetition Count Test met cutoff C = 1 +
+  ⌈20 / H⌉ bij een conservatief aangenomen H = 4 bits per byte → C = 6: zes
+  gelijke opeenvolgende bytes falen. Adaptive Proportion Test met venster
+  W = 512 en cutoff 62: de kleinste c met P[Bin(512, 2⁻⁴) ≥ c] ≤ 2⁻²⁰
+  (exact binomiaal herberekend in `tests/test_keyring_harness.py`). Falen →
+  `BLOCKED` met reden; geen herkansing zonder nieuwe start.
+- Continu: iedere latere bijvulling (256 bytes per reseed, na elke 64
+  sleuteloperaties) doorloopt dezelfde tests; falen blokkeert verdere
+  sleuteloperaties met `Degraded`.
+- Testfixture `test-keyring-stuck`: de kernel vervangt de apparaatbytes door
+  een constante vóór de kopie naar de dienst. Dit is een gelabelde
+  foutinjectie om de gezondheidstest te bewijzen, geen productpad.
+
+## 4. Sleutelhiërarchie en bewerkingen (IPC v1, tag `KEY1`)
+
+```text
+master (32 B, uit DRBG)          ──HKDF-SHA-256(info = "nieuw-os key v1" ‖ domein ‖ index)──> DEK[domein][index]
+recovery_secret (32 B, uit DRBG) ──XChaCha20-Poly1305(aad = "nieuw-os recovery v1")──> blob = nonce ‖ enc(master ‖ revoked-bitmap) ‖ tag
+```
+
+| Op | Verzoek | Antwoord | Fouten |
+|---|---|---|---|
+| STATUS | – | state (0 starting, 1 ready, 2 blocked, 3 degraded), reden, aantal sleutels | – |
+| GENERATE | – | handle (index 0..15 binnen het domein) | NotReady, Quota (16 per domein) |
+| SEAL | handle, plaintext ≤ 128 B | nonce ‖ ciphertext ‖ tag (≤ 168 B) | NotReady, BadHandle, Revoked |
+| UNSEAL | handle, nonce ‖ ciphertext ‖ tag | plaintext | NotReady, BadHandle, Revoked, Auth |
+| REVOKE | handle | – | BadHandle |
+| EXPORT_RECOVERY | – | secret (32 B), blob (76 B) | NotReady |
+| RESTORE | secret, blob | aantal herstelde domeinen | NotReady, Auth |
+
+De dienst houdt per domein een teller en de intrekkingsbitmap bij; het
+domeinnummer volgt uit het endpoint waarop het verzoek binnenkomt. Verzoeken
+met een capability, verkeerde tag of lengte worden geweigerd zonder effect.
+
+## 5. Acceptatiegevallen (echte QEMU-runs)
+
+| Geval | Feature | Vereiste observatie |
+|---|---|---|
+| normal | `native-keyring` | dienst A en B worden READY (opstartentropy geslaagd); app in domein 0 en 1: GENERATE, SEAL/UNSEAL rondgang, cross-domain handle geweigerd, gemanipuleerde byte/tag/nonce geweigerd zonder plaintext, REVOKE → Revoked, 17e sleutel → Quota; EXPORT_RECOVERY bij A, UNSEAL van A-ciphertext bij B faalt vóór RESTORE (NoKey/BadHandle), RESTORE met fout geheim → Auth, RESTORE met juist geheim → UNSEAL slaagt, ingetrokken sleutel blijft ingetrokken; kernel: alleen de twee diensten lezen entropy, appverzoeken om entropy → geweigerd |
+| no-device | `test-keyring-no-device` (QEMU zonder virtio-rng) | `entropy_read` → Offline; beide diensten BLOCKED; app: elke GENERATE → NotReady; kernel: 0 geslaagde entropyleveringen, 0 sleutels |
+| stuck | `test-keyring-stuck` | constante bytes; Repetition Count faalt bij de opstart; BLOCKED met reden; geen sleutels |
+
+Markers `KEYRING:MANIFEST:PASS`, `KEYRING:READY`, `KEYRING:CASE:<X>:PASS`,
+`KEYRING:RESOURCES:PASS`, `KEYRING:PASS`, `M1:PASS`; getalsbewijs
+`KEYRING:<NAAM>:<20 cijfers>`. Gate `tools/test_keyring.py`: hosttests
+(`keyring-core` met RFC 8439/draft-xchacha- en RFC 5869-testvectoren, de
+90B-tests met synthetische reeksen, wire-codec), daarna de drie runs op één
+bevroren bron.
+
+## 6. Wat B01 niet bewijst
+
+Geen hardwarebescherming van de hoofdsleutel (TPM), geen wachtwoordherstel
+(Argon2id volgt later met gemeten parameters), geen persistente sleutelopslag
+op schijf (B02), geen SMP, geen fysieke RNG-kwaliteit (QEMU levert
+`/dev/urandom` van de host: de gezondheidstests toetsen gedrag, niet de
+werkelijke minimumentropie van echte hardware), geen zijkanaalweerstand van
+de softwarebackends buiten constante-tijdimplementatie van de crates zelf.
+
+## 7. Afwijkingen tijdens implementatie
+
+- **Asynchrone broker.** Eén syscall die op het apparaat wacht zou de kernel
+  blokkeren; daarom twee syscalls (aanvraag/ticket en poll), zoals de
+  blokbroker. Twee diensten delen één brokerslot en herhalen bij `EAGAIN`.
+- **Telling in de normalcase.** De app genereert 2 + 1 + 14 = 17 sleutels
+  (waarna het quotum van 16 per domein `Quota` geeft), verzegelt één keer en
+  opent twee keer (bij A en na herstel bij B); de kernel eist precies die
+  ondergrenzen.
+- **Codebudget.** De dienst met de portable crypto-backends is 50 KiB code;
+  het voorbeeld gebruikt een eigen linkerscript met 128 KiB code vanaf
+  `0x40020000` en een losse entry-pagina op `0x40000000`, binnen de
+  bestaande gebruikersgrenzen van de kernel (`0x40000000–0x60000000`).

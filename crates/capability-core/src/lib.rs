@@ -28,12 +28,19 @@ pub const OBSERVE: u64 = 256;
 pub const KILL: u64 = 512;
 pub const LAUNCH_RIGHTS: u64 = LAUNCH;
 pub const PROCESS_RIGHTS: u64 = OBSERVE | KILL;
-pub const KNOWN_RIGHTS: u64 = ALL_RIGHTS | BLOCK_RIGHTS | LAUNCH_RIGHTS | PROCESS_RIGHTS;
+/// B01 (ADR-043): read raw bytes from the kernel's entropy device broker.
+/// Only the Key Service holds this; it cannot be derived or transferred.
+pub const ENTROPY: u64 = 1024;
+pub const ENTROPY_RIGHTS: u64 = ENTROPY;
+pub const KNOWN_RIGHTS: u64 =
+    ALL_RIGHTS | BLOCK_RIGHTS | LAUNCH_RIGHTS | PROCESS_RIGHTS | ENTROPY_RIGHTS;
 pub const MAX_LAUNCH_OBJECTS: usize = 8;
 pub const MAX_PROCESS_OBJECTS: usize = MAX_PROCESSES;
+pub const MAX_ENTROPY_OBJECTS: usize = 4;
 const LAUNCH_BASE: usize = MAX_ENDPOINTS + MAX_BLOCK_DEVICES;
 const PROCESS_BASE: usize = LAUNCH_BASE + MAX_LAUNCH_OBJECTS;
-const OBJECT_COUNT: usize = PROCESS_BASE + MAX_PROCESS_OBJECTS;
+const ENTROPY_BASE: usize = PROCESS_BASE + MAX_PROCESS_OBJECTS;
+const OBJECT_COUNT: usize = ENTROPY_BASE + MAX_ENTROPY_OBJECTS;
 /// Lifecycle state of a spawned child as reported through `OBSERVE`.
 pub const PROCESS_RUNNING: u8 = 1;
 pub const PROCESS_EXITED: u8 = 2;
@@ -358,6 +365,25 @@ impl LaunchObject {
     };
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct EntropyObject {
+    generation: u32,
+    live: bool,
+    retired: bool,
+    open: bool,
+    owner: u64,
+    nodes: u32,
+}
+impl EntropyObject {
+    const EMPTY: Self = Self {
+        generation: 1,
+        live: false,
+        retired: false,
+        open: false,
+        owner: 0,
+        nodes: 0,
+    };
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct ProcessObject {
     generation: u32,
     live: bool,
@@ -401,6 +427,8 @@ pub struct Stats {
     pub retired_launch_objects: usize,
     pub process_objects: usize,
     pub retired_process_objects: usize,
+    pub entropy_objects: usize,
+    pub retired_entropy_objects: usize,
     pub state_digest: u64,
 }
 
@@ -412,6 +440,7 @@ pub struct Engine {
     blocks: [BlockObject; MAX_BLOCK_DEVICES],
     launches: [LaunchObject; MAX_LAUNCH_OBJECTS],
     children: [ProcessObject; MAX_PROCESS_OBJECTS],
+    entropy: [EntropyObject; MAX_ENTROPY_OBJECTS],
     last_pid: u64,
 }
 impl Default for Engine {
@@ -429,8 +458,49 @@ impl Engine {
             blocks: [BlockObject::EMPTY; MAX_BLOCK_DEVICES],
             launches: [LaunchObject::EMPTY; MAX_LAUNCH_OBJECTS],
             children: [ProcessObject::EMPTY; MAX_PROCESS_OBJECTS],
+            entropy: [EntropyObject::EMPTY; MAX_ENTROPY_OBJECTS],
             last_pid: 0,
         }
+    }
+    /// Manifest-only: the holder may ask the kernel broker for raw entropy
+    /// bytes. Like `Launch`, the type knows no derive/transfer/revoke.
+    pub fn create_entropy(&mut self, owner: u64) -> Result<u64, Error> {
+        let p = self.process(owner)?;
+        let slot = self.slots(p, 1)?[0];
+        let node = self.free_nodes(1)?[0];
+        let object = self
+            .entropy
+            .iter()
+            .position(|e| !e.live && !e.retired)
+            .ok_or(Error::Quota)?;
+        let generation = self.entropy[object].generation;
+        self.entropy[object] = EntropyObject {
+            generation,
+            live: true,
+            open: true,
+            owner,
+            ..EntropyObject::EMPTY
+        };
+        self.make_node(
+            node,
+            Id {
+                index: (ENTROPY_BASE + object) as u16,
+                generation,
+            },
+            Id::NONE,
+            owner,
+            ENTROPY_RIGHTS,
+            0,
+        );
+        Ok(self.attach(p, slot, self.node_id(node)))
+    }
+    pub fn check_entropy(&self, pid: u64, handle: u64) -> Result<(), Error> {
+        let node = self.resolve(pid, handle)?;
+        let i = self.nodes[node].object.index as usize;
+        if !(ENTROPY_BASE..OBJECT_COUNT).contains(&i) {
+            return Err(Error::Type);
+        }
+        self.require(node, ENTROPY)
     }
     /// Capacity probe for a spawner: true when one more process can register.
     pub fn can_register(&self) -> bool {
@@ -557,7 +627,7 @@ impl Engine {
     ) -> Result<ProcessView, Error> {
         let node = self.resolve(pid, handle)?;
         let i = self.nodes[node].object.index as usize;
-        if !(PROCESS_BASE..OBJECT_COUNT).contains(&i) {
+        if !(PROCESS_BASE..ENTROPY_BASE).contains(&i) {
             return Err(Error::Type);
         }
         self.require(node, required)?;
@@ -954,6 +1024,11 @@ impl Engine {
                 c.open = false;
             }
         }
+        for e in &mut self.entropy {
+            if e.live && e.owner == pid {
+                e.open = false;
+            }
+        }
         self.maintain();
         Ok(())
     }
@@ -1062,9 +1137,12 @@ impl Engine {
         } else if i < PROCESS_BASE {
             let l = self.launches[i - LAUNCH_BASE];
             l.live && l.generation == id.generation
-        } else if i < OBJECT_COUNT {
+        } else if i < ENTROPY_BASE {
             let c = self.children[i - PROCESS_BASE];
             c.live && c.generation == id.generation
+        } else if i < OBJECT_COUNT {
+            let e = self.entropy[i - ENTROPY_BASE];
+            e.live && e.generation == id.generation
         } else {
             false
         }
@@ -1077,8 +1155,10 @@ impl Engine {
             self.blocks[i - MAX_ENDPOINTS].open
         } else if i < PROCESS_BASE {
             self.launches[i - LAUNCH_BASE].open
-        } else {
+        } else if i < ENTROPY_BASE {
             self.children[i - PROCESS_BASE].open
+        } else {
+            self.entropy[i - ENTROPY_BASE].open
         }
     }
     fn allowed_rights(&self, id: Id) -> u64 {
@@ -1089,8 +1169,10 @@ impl Engine {
             BLOCK_RIGHTS
         } else if i < PROCESS_BASE {
             LAUNCH_RIGHTS
-        } else {
+        } else if i < ENTROPY_BASE {
             PROCESS_RIGHTS
+        } else {
+            ENTROPY_RIGHTS
         }
     }
     fn object_refs(&mut self, id: Id) -> &mut u32 {
@@ -1101,8 +1183,10 @@ impl Engine {
             &mut self.blocks[i - MAX_ENDPOINTS].nodes
         } else if i < PROCESS_BASE {
             &mut self.launches[i - LAUNCH_BASE].nodes
-        } else {
+        } else if i < ENTROPY_BASE {
             &mut self.children[i - PROCESS_BASE].nodes
+        } else {
+            &mut self.entropy[i - ENTROPY_BASE].nodes
         }
     }
     fn attach(&mut self, p: usize, s: usize, node: Id) -> u64 {
@@ -1278,6 +1362,16 @@ impl Engine {
                 };
             }
         }
+        for e in &mut self.entropy {
+            if e.live && e.nodes == 0 {
+                let (generation, retired) = advance(e.generation);
+                *e = EntropyObject {
+                    generation,
+                    retired,
+                    ..EntropyObject::EMPTY
+                };
+            }
+        }
     }
     pub fn stats(&self) -> Stats {
         let mut s = Stats {
@@ -1297,6 +1391,8 @@ impl Engine {
             retired_launch_objects: 0,
             process_objects: 0,
             retired_process_objects: 0,
+            entropy_objects: 0,
+            retired_entropy_objects: 0,
             state_digest: self.state_digest(),
         };
         for p in &self.processes {
@@ -1328,6 +1424,10 @@ impl Engine {
         for c in &self.children {
             s.process_objects += usize::from(c.live);
             s.retired_process_objects += usize::from(c.retired);
+        }
+        for e in &self.entropy {
+            s.entropy_objects += usize::from(e.live);
+            s.retired_entropy_objects += usize::from(e.retired);
         }
         s
     }
@@ -1430,6 +1530,18 @@ impl Engine {
                 c.child,
                 u64::from(c.state),
                 c.code,
+            ] {
+                add(&mut h, x);
+            }
+        }
+        for e in &self.entropy {
+            for x in [
+                u64::from(e.generation),
+                u64::from(e.live),
+                u64::from(e.retired),
+                u64::from(e.open),
+                e.owner,
+                u64::from(e.nodes),
             ] {
                 add(&mut h, x);
             }
@@ -1637,6 +1749,17 @@ impl Engine {
                     .filter(|x| x.live && x.child == c.child)
                     .count()
                     != 1
+            {
+                return false;
+            }
+        }
+        for (i, e) in self.entropy.iter().enumerate() {
+            if e.generation == 0
+                || e.retired && (e.live || e.generation != u32::MAX)
+                || e.nodes != objects[ENTROPY_BASE + i]
+                || !e.live && (e.open || e.nodes != 0)
+                || e.live && (e.nodes == 0 || e.owner == 0)
+                || e.open && self.process(e.owner).is_err()
             {
                 return false;
             }

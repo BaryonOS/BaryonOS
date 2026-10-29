@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 30% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 32% van de vaste productroadmap](docs/assets/progress.svg)
 
-**30% — 30 van 100 gewogen acceptatiepunten.** Dit is een
+**32% — 32 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -24,18 +24,18 @@ alleen een nette desktop haalt die eindgrens niet.
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
 | Internet en netwerkdiensten | 10 | 0 |
-| Beveiliging, privacy en updates | 12 | 0 |
+| Beveiliging, privacy en updates | 12 | 2 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **30** |
+| **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`621eeaf3`](https://github.com/simonvanieperen/nieuw-os/commit/621eeaf3a9e736b9c8369b653d044a99eb73c162) ·
+**Bron:** [`c92238b0`](https://github.com/simonvanieperen/nieuw-os/commit/c92238b038088a59c28a496880ca878b34eda8f5) ·
 **Ontwikkelbranch:** `ccr-43832ef7-gi2qlz`.
-Deze opdracht: **28% → 30% (+2 procentpunt)**. **Opdracht:** K05 algemeen proces- en dienstbeheer: profiel native-supervisor met Launch-/Process-capabilities, spawn/kill/status, orphan-reaping en herstartbare dienst native geaccepteerd.
-K05 (+2) geaccepteerd op bronvingerafdruk v3 01735e03 (basis main 621eeaf): capability-core met Launch (128) en Process (256 en 512) zonder derive/transfer/revoke, kernelsyscalls endpoint_create/proc_spawn/proc_kill/proc_status met alle controles vóór toewijzing, dood via het bestaande cleanup-pad en iteratieve beëindiging van wezen; SDK-runtime ABI 1.3 en drie gewone programma's (supervisor, worker, client). Gate tools/test_supervisor.py exit 0: 39 capability-core-, 17 SDK- en 7 Python-hosttests plus 5 echte QEMU-runs: normal (3 spawns, 2 kills, 1 herstart, 24 antwoorden, 1 ECLOSED), crash (echte #UD, herstart, 24 antwoorden), denied (17/17 foutcodes, 2 processen), parent-exit (2 wezen in dezelfde gebeurtenis beëindigd), quota (15 spawns, 16e EQUOTA zonder frameverandering, 16 gelijktijdig, 15 kills). Elke run eindigt met lege engine en framebaseline. GitHub Actions moet dit op de PR-head herhalen. Geen SMP-, hardware- of A02-claim.
+Deze opdracht: **30% → 32% (+2 procentpunt)**. **Opdracht:** B01 native entropy en sleutelbeheer: virtio-rng-broker achter een Entropy-capability, ring-3 Key Service met gezondheidstests, DRBG, HKDF, XChaCha20-Poly1305 en herstel zonder escrow native geaccepteerd.
+B01 (+2) geaccepteerd op bronvingerafdruk v3 202a3e68 (basis main c92238b, K05 gemerged met groene GitHub Actions incl. k05-native-supervisor): eigen virtio-rng-driver, Entropy-objecttype (recht 1024, niet afleidbaar/overdraagbaar), kernelbroker 0x60/0x61 zonder cryptografie of caching, keyring-core met SP 800-90B Repetition Count (6) en Adaptive Proportion (512/62), fast-key-erasure-DRBG op ChaCha20, HKDF-SHA-256-afleiding per domein en index, XChaCha20-Poly1305 met AAD-binding, 16 sleutels per domein, permanente intrekking en herstel via een gebruikersgehouden geheim; alles uit vastgepinde RustCrypto-crates met portable backends (0 SIMD-instructies). Gate tools/test_keyring.py exit 0: 53 root-, 17 SDK- en 7 Python-hosttests (incl. RFC 5869- en XChaCha-testvectoren) plus 3 echte QEMU-runs: normal (beide diensten READY na 1024 bytes, 17 sleutels, manipulatie/verkeerd domein/ingetrokken/quotum geweigerd, herstel van A naar B met behoud van intrekking), no-device (Offline, beide diensten BLOCKED, 0 sleutels), stuck (constante bytes, Repetition Count blokkeert, 0 sleutels). Lege engine en framebaseline na elke run. Geen claim over fysieke RNG-kwaliteit, TPM of persistente sleutelopslag (B02 open).
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -179,9 +179,22 @@ fn checked_bar(config: &[u8; 256], bars: &[Bar; 6], index: u8) -> Result<(), Err
 }
 /// Strict modern virtio-blk PCI profile, fixed header type zero. Discovery/BDF
 /// selection and obtaining BAR size without enabling DMA belong to the kernel.
+/// Modern virtio-pci device IDs (0x1040 + virtio device type).
+pub const DEVICE_ID_BLOCK: u16 = 0x1042;
+pub const DEVICE_ID_ENTROPY: u16 = 0x1044;
 pub fn parse_capabilities(config: &[u8; 256], bars: &[Bar; 6]) -> Result<Regions, Error> {
+    parse_capabilities_for(config, bars, DEVICE_ID_BLOCK)
+}
+/// Same capability walk for another modern virtio device type. The device
+/// configuration region stays mandatory: every QEMU virtio-pci function
+/// exposes one, even for types without device-specific fields.
+pub fn parse_capabilities_for(
+    config: &[u8; 256],
+    bars: &[Bar; 6],
+    device_id: u16,
+) -> Result<Regions, Error> {
     if r16(config, 0) != 0x1af4
-        || r16(config, 2) != 0x1042
+        || r16(config, 2) != device_id
         || config[0x0e] & 0x7f != 0
         || r16(config, 6) & 0x10 == 0
     {

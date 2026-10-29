@@ -26,7 +26,7 @@ pub struct Paging {
     framebuffer: Option<(u64, u64)>,
 }
 impl Paging {
-    #[cfg(feature = "milestone-m5")]
+    #[cfg(any(feature = "milestone-m5", feature = "native-keyring"))]
     pub fn map_mmio(
         &mut self,
         frames: &mut Frames<FRAME_COUNT>,
@@ -72,7 +72,11 @@ impl Paging {
         self.framebuffer = Some((framebuffer.base, length));
         Ok(())
     }
-    #[cfg(any(feature = "milestone-m5", feature = "graphics-g0"))]
+    #[cfg(any(
+        feature = "milestone-m5",
+        feature = "graphics-g0",
+        feature = "native-keyring"
+    ))]
     fn map_device_page(
         &mut self,
         frames: &mut Frames<FRAME_COUNT>,

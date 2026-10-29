@@ -5,7 +5,8 @@ use super::*;
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
     not(feature = "native-sdk-app"),
-    not(feature = "native-supervisor")
+    not(feature = "native-supervisor"),
+    not(feature = "native-keyring")
 ))]
 use capability_core::{Cap, ALL_RIGHTS};
 use capability_core::{Engine, Error, Message, RECV, SEND};
@@ -14,21 +15,24 @@ use kernel_core::user::{CopyPlan, PageAccess};
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
     not(feature = "native-sdk-app"),
-    not(feature = "native-supervisor")
+    not(feature = "native-supervisor"),
+    not(feature = "native-keyring")
 ))]
 const MSG: u64 = 0x40011000;
 #[cfg(all(
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
     not(feature = "native-sdk-app"),
-    not(feature = "native-supervisor")
+    not(feature = "native-supervisor"),
+    not(feature = "native-keyring")
 ))]
 const OUT: u64 = 0x40012000;
 #[cfg(all(
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
     not(feature = "native-sdk-app"),
-    not(feature = "native-supervisor")
+    not(feature = "native-supervisor"),
+    not(feature = "native-keyring")
 ))]
 const ROWS: u64 = DATA + 0x100;
 static mut ENGINE: Engine = Engine::new();
@@ -36,7 +40,8 @@ static mut ENGINE: Engine = Engine::new();
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
     not(feature = "native-sdk-app"),
-    not(feature = "native-supervisor")
+    not(feature = "native-supervisor"),
+    not(feature = "native-keyring")
 ))]
 struct Evidence {
     calls: u64,
@@ -58,7 +63,8 @@ struct Evidence {
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
     not(feature = "native-sdk-app"),
-    not(feature = "native-supervisor")
+    not(feature = "native-supervisor"),
+    not(feature = "native-keyring")
 ))]
 const EMPTY_EVIDENCE: Evidence = Evidence {
     calls: 0,
@@ -80,14 +86,16 @@ const EMPTY_EVIDENCE: Evidence = Evidence {
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
     not(feature = "native-sdk-app"),
-    not(feature = "native-supervisor")
+    not(feature = "native-supervisor"),
+    not(feature = "native-keyring")
 ))]
 static mut EVIDENCE: Evidence = EMPTY_EVIDENCE;
 #[cfg(all(
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
     not(feature = "native-sdk-app"),
-    not(feature = "native-supervisor")
+    not(feature = "native-supervisor"),
+    not(feature = "native-keyring")
 ))]
 static mut LIFECYCLE_ROUNDS: u8 = 0;
 pub(super) fn engine() -> &'static mut Engine {
@@ -98,7 +106,8 @@ pub(super) fn engine() -> &'static mut Engine {
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
     not(feature = "native-sdk-app"),
-    not(feature = "native-supervisor")
+    not(feature = "native-supervisor"),
+    not(feature = "native-keyring")
 ))]
 fn evidence() -> &'static mut Evidence {
     // SAFETY: Same serialized service-stack lifetime as Engine; no IRQ mutates it.
@@ -246,14 +255,16 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
         not(feature = "milestone-m5"),
         not(feature = "native-qsim-job"),
         not(feature = "native-sdk-app"),
-        not(feature = "native-supervisor")
+        not(feature = "native-supervisor"),
+        not(feature = "native-keyring")
     ))]
     let e = evidence();
     #[cfg(all(
         not(feature = "milestone-m5"),
         not(feature = "native-qsim-job"),
         not(feature = "native-sdk-app"),
-        not(feature = "native-supervisor")
+        not(feature = "native-supervisor"),
+        not(feature = "native-keyring")
     ))]
     {
         e.calls += 1;
@@ -266,7 +277,8 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
                 not(feature = "milestone-m5"),
                 not(feature = "native-qsim-job"),
                 not(feature = "native-sdk-app"),
-                not(feature = "native-supervisor")
+                not(feature = "native-supervisor"),
+                not(feature = "native-keyring")
             ))]
             {
                 e.success += 1;
@@ -298,7 +310,8 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
                 not(feature = "milestone-m5"),
                 not(feature = "native-qsim-job"),
                 not(feature = "native-sdk-app"),
-                not(feature = "native-supervisor")
+                not(feature = "native-supervisor"),
+                not(feature = "native-keyring")
             ))]
             {
                 let index = (-error.code()) as usize;
@@ -319,7 +332,8 @@ pub fn process_exit(pid: u64) {
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
     not(feature = "native-sdk-app"),
-    not(feature = "native-supervisor")
+    not(feature = "native-supervisor"),
+    not(feature = "native-keyring")
 ))]
 mod acceptance {
     use super::*;
@@ -930,6 +944,7 @@ mod acceptance {
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
     not(feature = "native-sdk-app"),
-    not(feature = "native-supervisor")
+    not(feature = "native-supervisor"),
+    not(feature = "native-keyring")
 ))]
 pub(super) use acceptance::{manifest, observe_exit, observe_fault, poll};

@@ -13,6 +13,8 @@ use core::{
     ptr,
 };
 use kernel_core::{user, Frames, Kind, Owner, PAGE};
+#[cfg(feature = "native-keyring")]
+mod keyring;
 #[cfg(feature = "milestone-m4")]
 mod m4;
 #[cfg(feature = "native-qsim")]
@@ -23,6 +25,18 @@ mod qsim_job;
 mod sdk_app;
 #[cfg(feature = "native-supervisor")]
 mod supervisor;
+#[cfg(all(
+    feature = "native-keyring",
+    any(
+        feature = "milestone-m5",
+        feature = "graphics-g0",
+        feature = "native-qsim",
+        feature = "native-qsim-job",
+        feature = "native-sdk-app",
+        feature = "native-supervisor"
+    )
+))]
+compile_error!("native-keyring is a separate opt-in M4 profile");
 #[cfg(all(
     feature = "native-supervisor",
     any(
@@ -98,12 +112,17 @@ const SUPERVISOR_ELF: &[u8] = include_bytes!(env!("NOS_SUPERVISOR_ELF"));
 const WORKER_ELF: &[u8] = include_bytes!(env!("NOS_WORKER_ELF"));
 #[cfg(feature = "native-supervisor")]
 const CLIENT_ELF: &[u8] = include_bytes!(env!("NOS_CLIENT_ELF"));
+#[cfg(feature = "native-keyring")]
+const KEYRING_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_KEYRING_SERVICE_ELF"));
+#[cfg(feature = "native-keyring")]
+const KEYRING_APP_ELF: &[u8] = include_bytes!(env!("NOS_KEYRING_APP_ELF"));
 #[cfg(all(
     feature = "milestone-m4",
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),
     not(feature = "native-sdk-app"),
-    not(feature = "native-supervisor")
+    not(feature = "native-supervisor"),
+    not(feature = "native-keyring")
 ))]
 const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
@@ -287,10 +306,19 @@ fn process_elf(slot: usize) -> &'static [u8] {
         }
     }
 }
+#[cfg(feature = "native-keyring")]
+fn process_elf(slot: usize) -> &'static [u8] {
+    match slot {
+        0 | 1 => KEYRING_SERVICE_ELF,
+        2 => KEYRING_APP_ELF,
+        _ => panic!("native keyring profile has two services and one app"),
+    }
+}
 #[cfg(not(any(
     feature = "native-sdk-app",
     feature = "native-volume",
-    feature = "native-supervisor"
+    feature = "native-supervisor",
+    feature = "native-keyring"
 )))]
 fn process_elf(_slot: usize) -> &'static [u8] {
     ELF
@@ -303,6 +331,8 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
     kernel.begin_scratch(frames);
     #[cfg(feature = "milestone-m5")]
     m5::prepare(frames, &mut kernel);
+    #[cfg(feature = "native-keyring")]
+    keyring::prepare(frames, &mut kernel);
     // SAFETY: One CPU, IF=0; permanent state constructed once. The service stack
     // is the retained guarded MAIN stack; no interrupted frame is stored there.
     unsafe {
@@ -365,6 +395,8 @@ impl State {
         self.amount = if cfg!(feature = "native-supervisor") {
             // The whole table is schedulable; only the supervisor boots now.
             MAX
+        } else if cfg!(feature = "native-keyring") {
+            3
         } else if cfg!(any(
             feature = "native-qsim",
             feature = "native-qsim-job",
@@ -394,6 +426,7 @@ impl State {
             || cfg!(feature = "native-qsim-job")
             || cfg!(feature = "native-sdk-app")
             || cfg!(feature = "native-supervisor")
+            || cfg!(feature = "native-keyring")
         {
             0
         } else if mode() == 5 {
@@ -416,13 +449,16 @@ impl State {
             not(feature = "milestone-m5"),
             not(feature = "native-qsim-job"),
             not(feature = "native-sdk-app"),
-            not(feature = "native-supervisor")
+            not(feature = "native-supervisor"),
+            not(feature = "native-keyring")
         ))]
         m4::manifest(self);
         #[cfg(feature = "native-sdk-app")]
         sdk_app::manifest(self);
         #[cfg(feature = "native-supervisor")]
         supervisor::manifest(self);
+        #[cfg(feature = "native-keyring")]
+        keyring::manifest(self);
         #[cfg(feature = "milestone-m5")]
         m5::manifest(self);
         #[cfg(feature = "native-qsim")]
@@ -754,6 +790,8 @@ impl State {
         let mut address = p.paging.take().unwrap();
         #[cfg(feature = "milestone-m5")]
         m5::detach(p.pid);
+        #[cfg(feature = "native-keyring")]
+        keyring::detach(p.pid);
         #[cfg(feature = "milestone-m4")]
         m4::process_exit(p.pid);
         let free_before = self.free_count();
@@ -846,6 +884,11 @@ impl State {
             supervisor::observe_exit(self, slot, counter);
             return;
         }
+        #[cfg(feature = "native-keyring")]
+        {
+            keyring::observe_exit(self, slot, counter);
+            return;
+        }
         #[cfg(feature = "native-qsim-job")]
         {
             qsim_job::observe_exit(self, slot, counter);
@@ -862,7 +905,8 @@ impl State {
             not(feature = "milestone-m5"),
             not(feature = "native-qsim-job"),
             not(feature = "native-sdk-app"),
-            not(feature = "native-supervisor")
+            not(feature = "native-supervisor"),
+            not(feature = "native-keyring")
         ))]
         {
             m4::observe_exit(self, slot, counter);
@@ -903,6 +947,11 @@ impl State {
             supervisor::observe_fault(self, slot, context, counter);
             return;
         }
+        #[cfg(feature = "native-keyring")]
+        {
+            keyring::observe_fault(self, slot, context, counter);
+            return;
+        }
         #[cfg(feature = "native-qsim-job")]
         {
             qsim_job::observe_fault(self, slot, context, counter);
@@ -919,7 +968,8 @@ impl State {
             not(feature = "milestone-m5"),
             not(feature = "native-qsim-job"),
             not(feature = "native-sdk-app"),
-            not(feature = "native-supervisor")
+            not(feature = "native-supervisor"),
+            not(feature = "native-keyring")
         ))]
         {
             m4::observe_fault(self, slot, context, counter);
@@ -1021,11 +1071,19 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         ];
         #[cfg(feature = "native-supervisor")]
         let supervisor_call = matches!(number, 0x30 | 0x50..=0x52);
-        #[cfg(not(feature = "native-supervisor"))]
+        #[cfg(feature = "native-keyring")]
+        let supervisor_call = matches!(number, 0x60 | 0x61);
+        #[cfg(not(any(feature = "native-supervisor", feature = "native-keyring")))]
         let supervisor_call = false;
         #[cfg(feature = "native-supervisor")]
         if supervisor_call {
             let (rax, rdx) = supervisor::syscall(state, current, number, args);
+            state.processes[current].context[14] = rax as u64;
+            state.processes[current].context[12] = rdx;
+        }
+        #[cfg(feature = "native-keyring")]
+        if supervisor_call {
+            let (rax, rdx) = keyring::syscall(state, current, number, args);
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
         }
@@ -1062,7 +1120,9 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                 match number {
                     0 => {
                         p.context[12] = (1 << 32)
-                            | if cfg!(feature = "native-supervisor") {
+                            | if cfg!(feature = "native-keyring") {
+                                4
+                            } else if cfg!(feature = "native-supervisor") {
                                 3
                             } else if cfg!(feature = "milestone-m6a") {
                                 2
@@ -1126,13 +1186,18 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         not(feature = "milestone-m5"),
         not(feature = "native-qsim-job"),
         not(feature = "native-sdk-app"),
-        not(feature = "native-supervisor")
+        not(feature = "native-supervisor"),
+        not(feature = "native-keyring")
     ))]
     if let Some(next) = m4::poll(state) {
         return next;
     }
     #[cfg(feature = "native-supervisor")]
     if let Some(next) = supervisor::poll(state) {
+        return next;
+    }
+    #[cfg(feature = "native-keyring")]
+    if let Some(next) = keyring::poll(state) {
         return next;
     }
     #[cfg(feature = "milestone-m5")]

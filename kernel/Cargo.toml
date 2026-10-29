@@ -27,6 +27,10 @@ test-supervisor-crash = ["native-supervisor"]
 test-supervisor-denied = ["native-supervisor"]
 test-supervisor-parent-exit = ["native-supervisor"]
 test-supervisor-quota = ["native-supervisor"]
+# B01 entropy broker + Key Service profile: virtio-rng broker, two services, one app.
+native-keyring = ["milestone-m4", "dep:virtio-rng-driver"]
+test-keyring-no-device = ["native-keyring"]
+test-keyring-stuck = ["native-keyring"]
 test-m3-peer-read = ["milestone-m3"]
 test-m3-peer-write = ["milestone-m3"]
 test-m3-kernel-write = ["milestone-m3"]
@@ -150,6 +154,7 @@ kernel-core = { path = "../crates/kernel-core" }
 capability-core = { path = "../crates/capability-core" }
 virtio-core = { path = "../crates/virtio-core" }
 virtio-blk-driver = { path = "../drivers/virtio-blk" }
+virtio-rng-driver = { path = "../drivers/virtio-rng", optional = true }
 block-protocol = { path = "../services/block" }
 object-core = { path = "../services/objects", optional = true }
 ui-core = { path = "../crates/ui-core", optional = true }

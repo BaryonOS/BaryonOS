@@ -5,6 +5,7 @@ use core::arch::asm;
 use crate::{
     block::{self, BlockDevice, READ_MAX, SECTOR_SIZE},
     decode_return,
+    entropy::{EntropySource, ENTROPY_MAX},
     process::{spawn_cap_words, ChildProcess, LaunchImage, ProcessStatus},
     validate_abi, zero_return, Capability, Error, Handle, Outgoing, ReceiveEndpoint, Received,
     Rights, SendEndpoint, MESSAGE_SIZE,
@@ -223,4 +224,50 @@ pub fn kill(child: ChildProcess) -> Result<(), Error> {
 /// K05 (ABI 1.3): read the lifecycle state of a child.
 pub fn status(child: ChildProcess) -> Result<ProcessStatus, Error> {
     ProcessStatus::decode(call(0x52, [child.handle().raw(), 0, 0, 0, 0, 0])?)
+}
+
+/// B01 (ABI 1.4): ask the kernel entropy broker for `length` (1..=256) raw
+/// device bytes. Returns the broker ticket; the bytes arrive through
+/// `entropy_wait`. The kernel serializes requests: a second outstanding
+/// request fails with EAGAIN.
+pub fn entropy_request(source: EntropySource, length: usize) -> Result<u64, Error> {
+    if length == 0 || length > ENTROPY_MAX {
+        return Err(Error::MessageSize);
+    }
+    call(0x60, [source.handle().raw(), length as u64, 0, 0, 0, 0])
+}
+
+/// B01: poll one entropy ticket until the device answered, yielding on
+/// EAGAIN, for at most `limit` polls. `out.len()` must equal the requested
+/// length; the kernel writes exactly that many bytes or returns an error and
+/// leaves `out` untouched. A short or empty device answer is an error, never
+/// padded.
+pub fn entropy_wait(
+    source: EntropySource,
+    ticket: u64,
+    out: &mut [u8],
+    limit: usize,
+) -> Result<(), Error> {
+    if out.is_empty() || out.len() > ENTROPY_MAX {
+        return Err(Error::MessageSize);
+    }
+    for _ in 0..limit {
+        match call(
+            0x61,
+            [
+                source.handle().raw(),
+                ticket,
+                out.as_mut_ptr() as u64,
+                out.len() as u64,
+                0,
+                0,
+            ],
+        ) {
+            Ok(written) if written == out.len() as u64 => return Ok(()),
+            Ok(_) => return Err(Error::InvalidReturn),
+            Err(error) if error.is_again() => yield_now()?,
+            Err(error) => return Err(error),
+        }
+    }
+    Err(Error::Kernel(-13))
 }
