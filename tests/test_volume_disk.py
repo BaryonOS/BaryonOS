@@ -154,6 +154,12 @@ class VolumeOracleTests(unittest.TestCase):
         table = vd.encode_table(1, 6, entries_with({}), collections, clocks=[1, 0])
         with self.assertRaisesRegex(ValueError, "domain clock"):
             vd.decode_table(1, table)
+        # Each object bound on its own: generation 2 admits the value, only
+        # the owning domain's clock (1) does not.
+        for field in ("modified", "revision"):
+            table = vd.encode_table(2, 5, entries_with({1: dict(entry, **{field: 2})}), clocks=[1, 1])
+            with self.assertRaisesRegex(ValueError, "domain clock"):
+                vd.decode_table(0, table)
 
     def test_commit_may_be_reflected_by_a_collection_only(self):
         collections = collections_with({0: b"Werk"}, 6)
@@ -225,7 +231,7 @@ class VolumeOracleTests(unittest.TestCase):
     def test_names_follow_the_rust_rules(self):
         for good in ("Café", "Notitie ✓", "a" * 32):
             self.assertTrue(vd.valid_name(good.encode()))
-        for bad in (b"", b".", b"..", b"a/b", b"a\\b", b"\x00", "x‮y".encode(), b"\xff", b"a" * 33):
+        for bad in (b"", b".", b"..", b"a/b", b"a\\b", b"\x00", "x\u202ey".encode(), b"\xff", b"a" * 33):
             self.assertFalse(vd.valid_name(bad))
 
 

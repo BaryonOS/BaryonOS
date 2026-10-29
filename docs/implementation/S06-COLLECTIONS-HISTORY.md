@@ -72,10 +72,25 @@ Gescopete sectoren `[4, 584)`. Iedere tabelkopie telt 34 sectoren
 6. **Iedere commit is herleidbaar.** De request-ID van de header staat bij ten
    minste één gewijzigd object of collectie; COLLECTION_STAT en STAT geven die
    request-ID terug, zodat een `Unknown` uitkomst door lezen op te lossen is.
-7. **Domeinen zien elkaars activiteit niet.** Iedere commit verhoogt precies
-   één domeinklok; de klokken tellen op tot de generatie. Revisies en
-   tijdstempels van een domein overschrijden nooit de eigen klok. Geen antwoord
-   bevat een waarde die door commits van een ander domein verandert.
+   Definitief is dat antwoord pas van een schrijfbare instantie, na haar flush
+   uit invariant 9. Een read-only instantie flusht niets: zij kan een poging
+   zien die nog alleen in de schijfcache staat en na stroomverlies verdwijnt.
+   Haar antwoord is dus voorlopig.
+7. **Domeinen lezen elkaars activiteit niet af.** Iedere commit verhoogt
+   precies één domeinklok; de klokken tellen op tot de generatie. Revisies en
+   tijdstempels van een domein overschrijden nooit de eigen klok. De
+   leesantwoorden (STAT, LIST, COLLECTION_STAT, READ) en de revisies,
+   stempels en tellers in mutatieantwoorden bevatten alleen toestand van het
+   eigen domein. Twee kanalen tussen domeinen blijven bewust bestaan
+   (restrisico):
+   - `Full` hangt af van de gedeelde volumeruimte. De quota's samen
+     (2 × 40 chunks) zijn groter dan het volume (64), dus of BEGIN `Full`
+     geeft, hangt ook af van wat het andere domein vasthoudt.
+   - Mislukt de tabelwrite van één domein, dan sluit de instantie en krijgt
+     ook het andere domein `Unknown` tot een nieuwe instantie start.
+
+   Wie volledige scheiding wil, heeft per domein niet-overboekte ruimte en
+   foutisolatie per domein nodig; dat valt buiten S06.
 8. **RESTORE verliest geen historie.** De teruggezette versie verlaat de
    historie en de vervangen actuele versie neemt haar plaats in.
 9. **Herstel is duurzaam vóór nieuwe writes.** Een schrijfbare instantie

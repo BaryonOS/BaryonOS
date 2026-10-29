@@ -411,9 +411,21 @@ fn corrupted_content_and_tables_fail_closed() {
     bad[(Table::slot(1) * TABLE_SECTORS + 4) as usize][0] = 0xff;
     assert_eq!(recover(bad).map(|table| table.generation), Ok(2));
     // An older copy that is not generation 1 or 3 is an unexplained state.
+    // The forged copy is valid on its own (its clocks add up), so only the
+    // generation rule of `choose` can refuse the pair.
     let mut bad = image;
     let mut foreign = *service.table();
+    foreign.clocks[0] += 5 - foreign.generation;
     foreign.generation = 5;
+    let mut alone = Table::EMPTY;
+    assert_eq!(
+        Table::decode_from(
+            Table::slot(5),
+            |index| Ok(foreign.encode_sector(index)),
+            &mut alone
+        ),
+        Ok(())
+    );
     for index in 0..TABLE_SECTORS {
         bad[(Table::slot(5) * TABLE_SECTORS + index) as usize] = foreign.encode_sector(index);
     }
@@ -550,10 +562,10 @@ fn client_rejects_inconsistent_stat_and_list_replies() {
     let put = |body: &mut [u8; wire::SIZE], at: usize, value: u64| {
         body[64 + at..64 + at + 8].copy_from_slice(&value.to_le_bytes())
     };
-    let tampered: [(&str, usize, u64); 7] = [
+    // Each case breaks exactly one rule; the other checks still hold.
+    let tampered: [(&str, usize, u64); 6] = [
         ("version above object revision", 72, u64::MAX),
-        ("version zero", 72, 0),
-        ("history revision zero", 80, 0),
+        ("oldest history revision zero", 100, 0),
         ("history not older", 80, 3),
         ("history out of order", 100, 2),
         ("created zero", 48, 0),
@@ -571,15 +583,61 @@ fn client_rejects_inconsistent_stat_and_list_replies() {
     let mut bad = reply;
     bad[64 + 88..64 + 92].copy_from_slice(&u32::MAX.to_le_bytes());
     assert_eq!(validate_reply(&stat, &bad, EPOCH), Err(Status::Protocol));
+    // A version of zero, for an object without history (so no ordering rule
+    // applies).
+    client(&mut service, &mut disk, 0)
+        .write(1, 0, b"Los", 10, fill(1, 1))
+        .unwrap();
+    let single = Header::new(wire::STAT, 62, EPOCH, 1);
+    let reply = service.handle(0, &wire::encode(&single, &[]), &mut disk);
+    assert!(validate_reply(&single, &reply, EPOCH).is_ok());
+    let mut bad = reply;
+    put(&mut bad, 72, 0);
+    assert_eq!(validate_reply(&single, &bad, EPOCH), Err(Status::Protocol));
     // A LIST reply with a huge cursor is refused before its entries are
-    // inspected (no overflow, also in debug builds).
+    // inspected (no overflow, also in debug builds). The entry is inside the
+    // requested range, so an unchecked cursor would reach the bound sum.
     let list = Header::new(wire::LIST, 61, EPOCH, PER_DOMAIN as u64);
     let mut forged = Header::new(wire::LIST, 61, EPOCH, PER_DOMAIN as u64);
     forged.count = 1;
     forged.aux = u64::MAX;
     forged.length = wire::LIST_ENTRY as u32;
-    let body = wire::encode(&forged, &[1; wire::LIST_ENTRY]);
+    let mut entry = [0u8; wire::LIST_ENTRY];
+    entry[0] = PER_DOMAIN as u8;
+    let body = wire::encode(&forged, &entry);
     assert_eq!(validate_reply(&list, &body, EPOCH), Err(Status::Protocol));
+}
+
+#[test]
+fn client_rejects_forged_collection_stat_replies() {
+    let request = Header::new(wire::COLLECTION_STAT, 70, EPOCH, 0);
+    let reply = |revision: u64, request_id: u64, count: u32, name: &[u8], name_length: u32| {
+        let mut h = Header::new(wire::COLLECTION_STAT, 70, EPOCH, 0);
+        h.revision = revision;
+        h.aux = request_id;
+        h.count = count;
+        h.length = name.len() as u32;
+        h.name_length = name_length;
+        wire::encode(&h, name)
+    };
+    let check = |body: [u8; wire::SIZE]| validate_reply(&request, &body, EPOCH).map(|_| ());
+    // The three shapes the service produces.
+    assert_eq!(check(reply(0, 0, 0, b"", 0)), Ok(()), "never created");
+    assert_eq!(check(reply(2, 7, 1, b"Werk", 4)), Ok(()), "present");
+    assert_eq!(check(reply(3, 8, 0, b"", 0)), Ok(()), "deleted");
+    // Each forgery breaks one rule.
+    let forged: [(&str, [u8; wire::SIZE]); 7] = [
+        ("present without revision", reply(0, 0, 1, b"Werk", 4)),
+        ("present without name", reply(2, 7, 1, b"", 0)),
+        ("absent with a name", reply(3, 8, 0, b"Werk", 4)),
+        ("count above one", reply(3, 8, 2, b"", 0)),
+        ("revision without request ID", reply(2, 0, 1, b"Werk", 4)),
+        ("name length differs", reply(2, 7, 1, b"Werk", 3)),
+        ("invalid name", reply(2, 7, 1, b"a/b", 3)),
+    ];
+    for (what, body) in forged {
+        assert_eq!(check(body), Err(Status::Protocol), "{what}");
+    }
 }
 
 #[test]
@@ -615,5 +673,27 @@ fn table_sector_layout_is_canonical() {
         let sectors: [[u8; SECTOR]; TABLE_SECTORS as usize] =
             core::array::from_fn(|i| wrong.encode_sector(i as u64));
         assert!(decode(1, &sectors).is_err(), "clocks {clocks:?} accepted");
+    }
+    // Each bound on its own: the clocks add up and every value fits the
+    // generation, only one field exceeds its domain's clock (2).
+    let mut modified = table;
+    modified.clocks = [2, 1];
+    let mut revision = table;
+    revision.clocks = [2, 1];
+    revision.entries[0].revision = 3;
+    revision.entries[0].created = 2;
+    revision.entries[0].modified = 2;
+    let mut collection = table;
+    let foreign = &mut collection.collections[volume_core::COLLECTIONS];
+    foreign.revision = 1;
+    foreign.request_id = 7;
+    for (what, wrong) in [
+        ("modified", modified),
+        ("revision", revision),
+        ("collection", collection),
+    ] {
+        let sectors: [[u8; SECTOR]; TABLE_SECTORS as usize] =
+            core::array::from_fn(|i| wrong.encode_sector(i as u64));
+        assert_eq!(decode(1, &sectors), Err(Status::Corrupt), "{what}");
     }
 }

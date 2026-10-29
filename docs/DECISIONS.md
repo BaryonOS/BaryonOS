@@ -597,9 +597,13 @@ PRODUCT-SPEC §2/§6 voor de takenlijst. Geen nieuwe externe bron nodig.
 endpoint; een transactie kan alleen objectindices binnen het eigen domein
 noemen, en een object kan alleen in een collectie van het eigen domein staan.
 Quota telt behouden historie mee, dus historie kan geen ruimte buiten de quota
-vasthouden. Geen antwoord bevat een waarde die verandert door commits van een
-ander domein (tijdstempels gebruiken de eigen domeinklok; LIST geeft een
-domeinteller). De kernel blijft formaatloos.
+vasthouden. Leesantwoorden (STAT, LIST, COLLECTION_STAT, READ) en de revisies,
+stempels en tellers in mutatieantwoorden bevatten alleen toestand van het eigen
+domein (tijdstempels gebruiken de eigen domeinklok; LIST geeft een
+domeinteller). Twee kanalen tussen domeinen zijn bewust restrisico: `Full`
+hangt af van de gedeelde, overboekte volumeruimte (2 × 40 van 64 chunks), en
+een mislukte tabelwrite van één domein sluit de instantie, waarna ook het
+andere domein `Unknown` krijgt. De kernel blijft formaatloos.
 
 **Weerlegd als:** een gedeeltelijk toegepaste transactie na een crash of fout
 zichtbaar is; RESTORE inhoud wijzigt of andere historie wist; een object naar
@@ -609,7 +613,7 @@ vinden.
 
 **Reviewcorrecties (29 oktober 2026, vóór acceptatie):** een onafhankelijke
 review vond vijf punten die in dit besluit zijn verwerkt, elk met een
-regressietest die zonder de correctie faalt: (1) de globale generatie in STAT
+regressietest: (1) de globale generatie in STAT
 liet een domein de commits van het andere tellen; (2) collecties waren via IPC
 alleen schrijfbaar; (3) RESTORE van de nieuwste versie bij volle historie wiste
 de oudste; (4) een nieuwe instantie kon schrijven terwijl de gekozen kopie nog
@@ -617,12 +621,31 @@ alleen in de schijfcache stond; (5) de gate kon een kill vóór de tabelwrite
 niet onderscheiden van een gescheurde tabelwrite. De runner eist nu een echt
 gescheurde poging (prefix van g+1-sectoren boven de vorige kopie).
 
+Een tweede review (van die correcties) vond geen fout in de productiecode,
+maar wel tests die de bedoelde fout niet vingen en twee te ruime claims. Ook
+die zijn gecorrigeerd:
+- de test op ongerelateerde generaties werd vacuüm door de klokken;
+- de LIST-cursortest bereikte de overloop niet;
+- COLLECTION_STAT had geen negatieve tests;
+- de losse klokgrenzen waren niet afzonderlijk getest;
+- invariant 7 claimde volledige non-interferentie;
+- een read-only antwoord op een `Unknown` commit werd als definitief
+  gepresenteerd.
+
+Sindsdien is de mutatiecontrole herhaalbaar en vastgelegd.
+`tools/mutate_volume.py` schakelt per mutant precies één regel uit in een
+kopie van de bron en eist dat ten minste één test faalt. Het rapport met
+commando, exitstatus en falende tests staat in
+`docs/verification/s06/volume-mutants.json`.
+
 **Gevolgen:** v1-images worden door v2 als corrupt geweigerd (andere magic);
 het M6e-bewijs blijft gebonden aan zijn eigen bron, en de S06-gate herhaalt de
 S04/S05-scenario's op v2.
 
 **Restrisico:** historie is begrensd tot twee versies (de oudste valt weg bij
-een nieuwe versie); geen zoekindex; FNV is geen authenticatie.
+een nieuwe versie); geen zoekindex; FNV is geen authenticatie. `Full` en de
+instantiebrede `Unknown` na een mislukte tabelwrite zijn zichtbaar over
+domeinen heen. Een read-only antwoord op een `Unknown` commit is voorlopig.
 
 **Migratie/rollback:** geen migratie van v1-volumes; terugdraaien = de
 S06-commits gericht reverten (dan geldt weer v1 met zijn eigen bewijs).

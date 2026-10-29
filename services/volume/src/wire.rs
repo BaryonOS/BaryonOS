@@ -4,9 +4,9 @@
 //!
 //! v6 (volume format v2) adds RESTORE, PURGE, META, COLLECTION, TRANSACT and
 //! COLLECTION_STAT, history selectors for READ, collection filters for LIST
-//! and an extended STAT. The generic header field at offset 48 is a per-operation parameter:
-//! the name length for BEGIN/RENAME/COLLECTION and the version selector for
-//! READ (0 = current, 1..=HISTORY = history slot).
+//! and an extended STAT. The generic header field at offset 48 is a
+//! per-operation parameter: the name length for BEGIN/RENAME/COLLECTION and
+//! the version selector for READ (0 = current, 1..=HISTORY = history slot).
 use crate::{
     domain_of, get32, get64, put32, put64, valid_name, Status, COLLECTIONS, HISTORY, MAX_LENGTH,
     NAME, OBJECTS, PER_DOMAIN, TRANSACT_MAX,

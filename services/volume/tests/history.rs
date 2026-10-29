@@ -356,6 +356,28 @@ fn malformed_s06_requests_are_rejected() {
     let mut list = wire::Header::new(wire::LIST, 3, EPOCH, 0);
     list.count = 6;
     cases.push(wire::encode(&list, &[]));
+    // COLLECTION_STAT is canonical only on the base object, with an index
+    // and no other field.
+    let canonical = || {
+        let mut stat = wire::Header::new(wire::COLLECTION_STAT, 3, EPOCH, 0);
+        stat.aux = 1;
+        stat
+    };
+    let mut stat = canonical();
+    stat.object = 1;
+    cases.push(wire::encode(&stat, &[]));
+    let mut stat = canonical();
+    stat.revision = 1;
+    cases.push(wire::encode(&stat, &[]));
+    let mut stat = canonical();
+    stat.count = 1;
+    cases.push(wire::encode(&stat, &[]));
+    let mut stat = canonical();
+    stat.name_length = 1;
+    cases.push(wire::encode(&stat, &[]));
+    let mut stat = canonical();
+    stat.length = 1;
+    cases.push(wire::encode(&stat, b"a"));
     for case in &cases {
         let reply = service.handle(0, case, &mut disk);
         assert_eq!(wire::header(&reply).status, Status::Invalid as i32);
@@ -427,8 +449,9 @@ fn collection_state_is_readable_and_resolves_unknown() {
     c.transport.disk.fail_once_at =
         Some(c.transport.disk.mutating_ops + volume_core::table::TABLE_SECTORS_USIZE);
     assert_eq!(c.collection(0, 2, 0, b"Huis"), Err((Status::Unknown, 0)));
-    // A fresh read-only instance reads the state back and learns that the
-    // commit was applied (the request ID matches).
+    // A fresh read-only instance sees the attempt (the request ID matches),
+    // but that answer is provisional: the copy was never flushed and a
+    // read-only instance flushes nothing, so power loss can still undo it.
     let mut readonly = Service::recover(EPOCH, true, &mut disk).unwrap();
     let mut r = client(&mut readonly, &mut disk, 0);
     let huis = r.collection_stat(0, 2).unwrap();
@@ -437,4 +460,24 @@ fn collection_state_is_readable_and_resolves_unknown() {
         (1, attempt, true, &b"Huis"[..])
     );
     assert_eq!(r.collection(0, 3, 0, b"Nee"), Err((Status::Access, 0)));
+    assert!(!disk.pending.is_empty());
+    let mut lost = SimDisk::from_image(disk.crash_image(0, None));
+    let mut after_loss = Service::recover(EPOCH, true, &mut lost).unwrap();
+    assert_eq!(
+        client(&mut after_loss, &mut lost, 0).collection_stat(0, 2),
+        Ok(Default::default())
+    );
+    // A writable instance makes its chosen copy durable before it answers,
+    // so its answer resolves the Unknown commit for good.
+    let mut writable = Service::recover(EPOCH, false, &mut disk).unwrap();
+    assert!(disk.pending.is_empty());
+    let huis = client(&mut writable, &mut disk, 0)
+        .collection_stat(0, 2)
+        .unwrap();
+    assert_eq!(
+        (huis.revision, huis.request_id, huis.present),
+        (1, attempt, true)
+    );
+    let settled = recover(disk.crash_image(0, None)).unwrap();
+    assert_eq!(settled.collection(0, 2).request_id, attempt);
 }
