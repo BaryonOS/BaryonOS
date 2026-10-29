@@ -210,6 +210,8 @@ name = "nieuw-os-system-example"
 version = "0.1.0"
 dependencies = [
  "keyring-core",
+ "nieuw-os-catalog-client",
+ "nieuw-os-document-session",
  "nieuw-os-sdk-runtime",
  "volume-core",
 ]

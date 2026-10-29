@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from run_system import check_disk, check_esp, check_image, evaluate, expected_markers
+from run_system import check_disk, check_esp, check_image, check_parent, evaluate, expected_markers
 import volume_disk
 
 
@@ -27,6 +27,27 @@ def transcript(case="normal", **changes):
 
 
 class SystemHarnessTests(unittest.TestCase):
+    def test_partial_network_pass_cannot_authorize_cold_recovery(self):
+        previous = dict(case="normal", passed=True, kernel_feature="native-system-net",
+                        source_sha256="source", after_sha256="disk")
+        # The peer wrapper may crash after generic success, or fail to persist
+        # its error. Missing/false/boolean-like flags never authorize recovery.
+        for marker in (None, False, 1, "true"):
+            stage = dict(previous)
+            if marker is not None:
+                stage["network_gate"] = marker
+            with self.subTest(marker=marker), self.assertRaises(ValueError):
+                check_parent(stage, "source", "disk", network=True)
+        previous["network_gate"] = True
+        check_parent(previous, "source", "disk", network=True)
+        for change in (dict(passed=False), dict(source_sha256="other"),
+                       dict(after_sha256="other"), dict(kernel_feature="native-system")):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                check_parent({**previous, **change}, "source", "disk", network=True)
+        base = {**previous, "kernel_feature": "native-system"}
+        base.pop("network_gate")
+        check_parent(base, "source", "disk", network=False)
+
     def test_stale_or_replaced_esp_cannot_use_current_manifest(self):
         with tempfile.TemporaryDirectory() as directory:
             esp = Path(directory)

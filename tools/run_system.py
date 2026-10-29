@@ -45,6 +45,19 @@ def check_image(image: Path) -> None:
         raise ValueError("test disk must be a regular single-link generated image of the exact geometry")
 
 
+def check_parent(previous: dict, frozen: str, image_sha256: str, *, network: bool) -> None:
+    parent_feature = "native-system-net" if network else FEATURE["normal"]
+    if not (previous.get("case") == "normal" and previous.get("passed") is True
+            and previous.get("kernel_feature") == parent_feature
+            and previous.get("source_sha256") == frozen
+            and previous.get("after_sha256") == image_sha256):
+        raise ValueError("recovery needs the unchanged image from a passing normal run")
+    # Generic system assertions precede the peer's final transcript/shutdown
+    # verdict. A process crash in that interval cannot authorize net recovery.
+    if network and previous.get("network_gate") is not True:
+        raise ValueError("network recovery requires the completed network peer gate")
+
+
 def expected_markers(case: str) -> tuple[str, ...]:
     if case not in FEATURE:
         raise ValueError("unknown system case")
@@ -165,12 +178,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         volume_dir.relative_to((BUILD / "run").resolve())
         check_image(volume_dir / "volume.img")
         previous = json.loads((volume_dir / "last-system-stage.json").read_text())
-        parent_feature = "native-system-net" if use_network else FEATURE["normal"]
-        if not (previous.get("case") == "normal" and previous.get("passed") is True
-                and previous.get("kernel_feature") == parent_feature
-                and previous.get("source_sha256") == frozen
-                and previous.get("after_sha256") == sha256(volume_dir / "volume.img")):
-            raise ValueError("recovery needs the unchanged image from a passing normal run")
+        check_parent(previous, frozen, sha256(volume_dir / "volume.img"), network=use_network)
     image = volume_dir / "volume.img"
     check_image(image)
     before = sha256(image)
@@ -210,6 +218,8 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         firmware_sha256={"code": sha256(code), "vars_template": sha256(variables)},
         esp_sha256={p.relative_to(run_dir).as_posix(): sha256(p)
                     for p in (run_dir / "esp").rglob("*") if p.is_file()}, passed=False)
+    if use_network:
+        report["network_gate"] = False
     try:
         report["evidence"] = evaluate(case, stdout, rc, timed_out)
         if case == "recover" and before != after:

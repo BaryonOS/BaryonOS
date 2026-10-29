@@ -36,8 +36,14 @@ jobs:
           sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
       - name: Strict preflight
         run: python3 -B tools/preflight.py --strict
+      - name: Fetch locked build dependencies before offline native builders
+        run: |
+          cargo +1.90.0 fetch --locked
+          cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml
       - name: Real joint-service guest and exact-image cold recovery
         run: python3 -B -u tools/test_system.py
+      - name: Independently revalidate raw images and capture compact evidence
+        run: python3 -B tools/capture_system.py --destination docs/verification/full-release-system-ci
       - name: Preserve evidence and the tested final build
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -52,4 +58,5 @@ jobs:
             build/system-ci/run/system-*/stderr.txt
             build/system-ci/run/system-*/volume.after.img
             build/system-ci/esp/
+            docs/verification/full-release-system-ci/
           if-no-files-found: error

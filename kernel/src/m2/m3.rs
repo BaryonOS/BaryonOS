@@ -689,10 +689,10 @@ impl State {
             let identity = self.kernel.leaf(m.pa);
             assert_eq!(identity & 4, 0);
             assert_ne!(identity & NX, 0);
-            assert_eq!(
-                identity & 2 == 0,
-                m.executable || !m.writable && m.executable
-            );
+            // Executable frames never retain a writable kernel alias. Data
+            // aliases stay writable for controlled copying/zeroing even when
+            // that process's user mapping is read-only.
+            assert_eq!(identity & 2 == 0, m.executable);
             for other in &self.processes[..i] {
                 assert!(other.mappings().iter().all(|x| x.pa != m.pa));
             }

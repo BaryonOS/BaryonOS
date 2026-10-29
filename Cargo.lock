@@ -203,6 +203,7 @@ dependencies = [
  "ui-core",
  "virtio-blk-driver",
  "virtio-core",
+ "virtio-net-driver",
  "virtio-rng-driver",
 ]
 
