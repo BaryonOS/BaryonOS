@@ -1,46 +1,55 @@
 # Actuele projectstatus
 
-## Volledige native testrelease — in uitvoering, 32% — 29 oktober 2026
+## Volledige native testrelease — in uitvoering, 32% — 2026-10-30
 
-Integratiebranch `codex/full-test-release`, gecontroleerde main-basis
-`73ebc1e169b893eb5aba4b4f8ac06d7798136de3`. Geen complete testrelease.
-De bindende volledige opdracht en productmatrix worden vastgelegd in
-[FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md); de
-[werkqueue](WORK-QUEUE.md) verwijst naar die criteria. Onderzoek en historische
-proeven blijven onderscheiden van werkelijk geïntegreerde productacceptatie.
+Integratiebranch `codex/full-test-release`, main-basis `73ebc1e`, actuele
+implementatiecheckpoint `d73d515`. [Concept-PR #56](https://github.com/simonvanieperen/nieuw-os/pull/56).
+De [volledige opdracht/matrix](FULL-TEST-RELEASE.md) is opgeslagen: oorspronkelijke
+veertien secties intact, 62 open productcriteria, providerverduidelijking
+behouden. [Werkqueue](WORK-QUEUE.md) koppelt TASK-werkpakketten aan FR-criteria.
+**Geen complete testrelease; score 32% → 32%.**
 
-**Werkelijk uitgevoerd op de basisbron:** nieuwe K05-gate: vijf echte VM-runs
-(normal/crash/denied/parent-exit/quota), 65 bijbehorende hosttests, exit 0;
-238 root-Rust-hosttests, 21 preflighttests en progresscontrole geslaagd.
-Bewijs en precieze grenzen: [full-release-baseline](verification/full-release-baseline/README.md).
-De standaard toolontdekking miste bestaande QEMU/OVMF-paden; commandolokale
-selectie en `tools/dev.py` herstellen de omgeving zonder installatie.
+**Native tussenbewijs:** op exact `1e0d657` slaagt de gezamenlijke gate met twee
+VM-runs (normal + volledig koude read-only recovery), diskorakel en volledige
+proces-/framecleanup. Hashgebonden archief:
+[full-release-i01-initial](verification/full-release-i01-initial/README.md).
+276 root-Rust-hosttests op die bron slagen. De daaropvolgende invoerreparatie
+`9f8d4c8` slaagt met 30 gerichte tests. Dit oude native bewijs wordt niet naar
+latere record-/upload-/netwerkcode omgelabeld.
 
-**Actief:** zes gescheiden workerworktrees onder `/workspace/nieuw-os-worktrees/`.
-FR-I01 brengt bestaande supervisor-, blok- en entropymechanismen samen met
-ring-3-init, Key Service, volume en echte app. Andere workers bouwen
-contextgebonden beveiligde records, grotere documentsessies, PS/2-invoer en
-ARP/DNS. Host- of corewerk sluit geen native productcriterium.
+**Geïntegreerd daarna:** contextgebonden keyringrecords en native opcodes 8/9;
+recordcaller met twee seals/unseals, negen authenticatieweigeringen en tien
+recordcontextweigeringen (builderbranch twee echte VM's; rootherhaling volgt).
+ARP/DNS en virtio-net-driver hebben hun eigen host/model/targetbewijs, nog geen
+native NIC. De grotere documentsessie is geport naar volume; concrete false
+saved-naam bij twee sessies is met rode proef gereproduceerd en in `d73d515`
+hersteld met v7 diensttokens, kernel-PID en domeinbinding. Native ownerdeath/
+verloren-BEGIN-antwoord-cleanup blijft open; geen fictieve lifecycleclaim.
 
-**32% → 32%:** geen gewichten of producteisen gewijzigd. Optioneel gekozen
-externe opslag van uitsluitend ciphertext blijft op expliciete verduidelijking
-van de gebruiker toegestaan; providers krijgen geen inhoudssleutels of fallback.
-Geen fysieke disks, echte NAS, accounts of firmware gewijzigd.
+Zes onafhankelijke workers werken verder aan echte NIC-integratie, fail-closed
+bewijsarchivering en gerichte verificatie. Alleen eigen VM-images en testdata;
+geen fysieke disks, echte NAS/accounts of firmware gewijzigd. Optionele externe
+opslag blijft uitsluitend expliciet gekozen ciphertext zonder inhoudssleutels.
 
 ### NEXT AGENT HANDOFF
 
-- Controleer actuele `git status`, HEAD, worktrees en workerberichten; verlies
-  geen onafgemaakte wijzigingen. Hoofdagent bezit integratie/status/score.
-- Integreer eerst de volledige opdracht/matrix uit contractworktree; controleer
-  alle veertien opdrachtsecties en de providerverduidelijking.
-- Eerste technische acceptatie: [FR-I01-contract](implementation/NATIVE-SYSTEM-INTEGRATION.md).
-  Kernelworker levert `native-system` en `test-system-recover`; integrator
-  levert build/harnas/orakel en draait nieuwe echte VM's plus regressies.
-- Laatste bruikbare artifacts: `build/plan-baseline-k05/run/` met de vijf
-  K05-images/logs; de eindbuild is M1, geen release. Bron/hash staat in bewijs.
-- Open: alle volledige productrijen; B02 persistente encryptie/ankering,
-  geheugen/FPU, native grafiek/apps/netwerk/NAS/AI, boot/updates/herstel,
-  fysieke ondersteuning en menselijke audit. Geen productafronding claimen.
+- Lees FULL-TEST-RELEASE, deze actuele stand en queue. Controleer HEAD/status/
+  worktrees; behoud onafgemaakt werk. Root bezit gedeelde interfaces/status/Git.
+- Eerste uitvoerbare integratietest na codefreeze, met de bestaande toolomgeving:
+  `python3 -B -u tools/test_system.py` (envselectie in bewijs-README). Daarna
+  `tools/test_supervisor.py`, `tools/test_keyring.py`, `tools/test_volume.py`
+  en `tools/test_storage_resilience.py` in eigen build-/targetmappen.
+- Nog lopende branches onder `/workspace/nieuw-os-worktrees/`: native-net,
+  net-probe en capture. Integreer pas na hun bronreview/tests; shared build.py,
+  memberships/locks en generieke runner blijven rootbezit.
+- Laatste bruikbare lokale gezamenlijke artifact:
+  `build/full-release-i01/esp/`, op geteste bron1e0d657; kernelsha
+  `dd7f277f2616b16d6b7b1d10dc0e78e0ce4d3cd7af1cec90aee6ec51c1979e6c`.
+  Dit is een eindige 256MiB-integratieproef met plaintextdisk/RAMsleutels,
+  geen releaseimage. Alle normale/recoveryfiles staan in de genoemde runmap.
+- Open blijven alle volledige productcriteria, nieuwe native netgate,
+  documentsessie-nativecaller/lifecycle, B02-keypersistentie/vertrouwde ankering,
+  geheugen/FPU, grafiek/sessies/apps/NAS/AI, boot/updates/herstel, hardware en audit.
 
 ## Historische checkpoints
 

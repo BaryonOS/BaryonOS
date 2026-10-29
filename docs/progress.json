@@ -2,12 +2,12 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-10-29",
-    "source_commit": "73ebc1e169b893eb5aba4b4f8ac06d7798136de3",
+    "date": "2026-10-30",
+    "source_commit": "d73d5150e7f633c3d534aca4db96e163fb2938b4",
     "branch": "codex/full-test-release",
-    "task": "Volledige native testrelease in uitvoering; brede acceptatie en eerste dienstenintegratie",
+    "task": "Volledige releaseopdracht vastgelegd; native dienstenintegratie en gerichte correctheidsreparaties",
     "previous_score": 32,
-    "summary": "De score blijft 32%. De huidige main-bron is gecontroleerd: schone checkout, geen open PRs, bestaande K05-gate opnieuw 5/5 echte VM-runs groen en 238 root-Rust-hosttests geslaagd. Dit baselinebewijs staat onder docs/verification/full-release-baseline. De volledige releaseopdracht behoudt alle functies, visuele eisen, beveiliging, herstel en fysieke/menselijke bewijsgrenzen. Zes onafhankelijke workers implementeren releasecontract, gezamenlijke diensten, beveiligde records, native invoer, netwerkprotocollen en streamende documentsessies. Dit zijn nog geen afgeronde nieuwe rubriccriteria; de volledige productacceptatie blijft open."
+    "summary": "De score blijft 32%. De volledige opdracht is onverkort opgeslagen met 62 open productcriteria. Twee echte gecombineerde VM-runs op bron 1e0d657 bewijzen gelijktijdige proces-, opslag- en sleuteldiensten met koude readonly recovery en onafhankelijke diskcontrole; 276 hosttests slagen op die bron. Daarna zijn invoerresetfouten en een concrete twee-sessies false-ACK-bug gerepareerd, en recordcrypto via echte ring-3-IPC aangesloten. Nieuwere code krijgt eigen eindherhaling; historische bewijzen worden niet omgelabeld. Netwerkparser/driver zijn nog geen native netwerkstack. Native desktop, persistente encryptie/ankering, apps, NAS/AI, updates en hardware/audit blijven verplicht open. Geen nieuwe rubriccriteria of gewichten gewijzigd."
   },
   "tracks": [
     {

@@ -1,0 +1,2 @@
+   Compiling nieuw-os-net-protocol v0.1.0 (/workspace/nieuw-os/services/net-protocol)
+    Finished `release` profile [optimized] target(s) in 0.47s

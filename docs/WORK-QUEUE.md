@@ -1,26 +1,31 @@
-# Werkqueue — volledige native testrelease, 29 oktober 2026
+# Werkqueue — volledige native testrelease, 2026-10-30
 
-Integratie-eigenaar root, branch `codex/full-test-release`, basis `73ebc1e`.
-Volledige opdracht en aftekenmatrix: [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md).
-Actuele bron, artifacts en hervatstap: [PROJECT-STATE.md](PROJECT-STATE.md).
-De vaste 100-puntenrubric blijft onveranderd. Deze queue is uitvoering, geen
-alternatieve productroadmap. Elke productrij blijft open tot passend bewijs.
+Integratie-eigenaar root, branch `codex/full-test-release`, main-basis `73ebc1e`.
+[Volledige opdracht/matrix](FULL-TEST-RELEASE.md) → [actuele uitvoering](PROJECT-STATE.md).
+Werkpakketten heten `TASK-*`; de vaste `FR-*`-ID's hieronder zijn productcriteria.
+Een afgeronde deelimplementatie tekent geen volledig productcriterium af.
 
-| Taak | Toestand | Eigenaar / exclusieve writes | Interface en acceptatie |
-|---|---|---|---|
-| FR-DOC | actief | acceptance_contract; FULL-TEST-RELEASE.md | volledige opdracht + providerverduidelijking, stabiele matrix, alle domeinen |
-| FR-I01 | actief | kernel_storage; kernel, nieuwe SDK-systemapps, noodzakelijke serviceadapters | gezamenlijk native manifest, echte crypto/disk/procesherstart, negatieve rechten en cleanup |
-| FR-B02 | actief | security_release; services/keyring, secure-recordcontract | contextgebonden AEAD en exact persistente allocaties/intrekking; coretests + targetbuild, B02 blijft open |
-| FR-U01 | actief | native_ui_apps; crates/ui-core, inputcontract | PS/2-toets/muis-events, bounds/focusgeneratie; native inputintegratie blijft open |
-| FR-N01 | actief | network_nas_ai; services/net-protocol | ARP/DNS-bounds, identiteits-/pointer-/timeoutfouten; NIC/netwerkacceptatie blijft open |
-| FR-A03 | actief | git_build_audit; sdk/document-session | streamende volumeadapter, conceptbehoud/conflict/Unknown/cancel; native caller volgt |
-| FR-INT | actief | root; tools/tests/workspaces/locks/CI/docs/status/Git | brongebonden native gate, onafhankelijke diskcontrole, finale regressies en checkpoint |
+| Werkpakket | Toestand | Eigenaar / exclusieve writes | Acceptatie-ID's | Interface / bewijsgrens |
+|---|---|---|---|---|
+| TASK-DOC | geïntegreerd | root; FULL/status/queue/rubric | alle | opdracht intact, 62 open rijen; 32% ongewijzigd |
+| TASK-I01 | eerste gezamenlijke native gate groen, regressies volgen op nieuwe bron | root; tools/tests/CI + kernel_storage-kern | FR-K02,FR-K03,FR-O04,FR-B01 | 2 echte VM's op1e0d657; diskorakel/koude readonly/cleanup; geen volledige release |
+| TASK-B02/B02N | core en native recordcaller geïntegreerd | root; keyring en systemapp | FR-O05,FR-B01,FR-P02,FR-P06 | AEAD-context en exacte sleutelstatus; geen native keypersistentie of koude ankerclaim |
+| TASK-U01 | resetbugs hersteld en gereviewd | native_ui_apps; ui-core | FR-U01–FR-U05 | 30 tests, rood→groen + onafhankelijke resetherhaling; nog geen native invoerdienst |
+| TASK-N01/NDRV | parser/driver geïntegreerd; echte NIC wordt aangesloten | network_nas_ai; protocol/driver | FR-N01,FR-N02,FR-H03 | 47 protocoltests/15 DMA-registermodeltests; runtimebewijs nog open |
+| TASK-A03/R1 | false-ACK-bug hersteld/geïntegreerd; native caller volgt | git_build_audit; volume/SDK/serviceadapter | FR-A02,FR-A13,FR-O01–FR-O03 | v7 diensttoken+PID/domain, v6 compatibel; requester-exit/lost-BEGIN-ACK-cleanup native nog open |
+| TASK-NATIVE-NET-K | actief, eigen native-networktree | kernel_storage; kernel/capability/runtime | FR-N01,FR-N02,FR-K03,FR-H03 | NetworkSource, gepinde I/O, echte userspacepacketclient in hetzelfde systeemprofiel |
+| TASK-NATIVE-NET-U | actief, eigen net-probeworktree | network_nas_ai; net-probe/peer/runner | FR-N01,FR-N02,FR-H03 | ARP+UDP/DNS via eigen kernel, afgebakende protocoltegenpartij; TCP/TLS/config blijven verplicht open |
+| TASK-CAPTURE | actief, eigen captureworktree | native_ui_apps; capture_system/helpertests | FR-R03 | fail-closed bron/image/readonlycontrole; geen nieuwe productfunctionaliteit |
+| TASK-REVIEW | actief, alleen lezen/eigen targets | acceptance_contract + security_release | alle geraakt | onafhankelijke gerichte core/SDK/harnasreview; geen menselijke audit |
+| TASK-INT | actief | root; gedeelde workspaces/build/status/Git | alle geraakt | brongebonden geïntegreerde native gates en finale regressies |
 
-Volgende golven behouden: echte compositor/sessies, schaalbaar geheugen/FPU,
-virtio-net/audio, volledige apps en engineports, lokale inference, NAS/provider-
-sync, boot/PQC/update/herstel en onafhankelijke verificatie. Deze zijn verplicht;
-planning betekent geen uitstelvrijstelling. Fysieke handelingen en externe
-menselijke audit wachten uitsluitend bij hun concrete autorisatie-/toegangsgrens.
+Volgende verplichte werk blijft zichtbaar: schaalbaar geheugen/FPU, echte
+compositor/sessie/toegankelijkheid, audio en alle apps/engineports, persistente
+beveiligde opslag en TPM-ankering, TCP/TLS/netwerkconfiguratie, NAS/providersync,
+lokale inference, boot/PQC/updates/herstel en complete productvalidatie.
+Fysieke/humane gates blijven releaseblokkerend op hun concrete bewijsniveau;
+onafhankelijk bron-/VM-werk gaat door. Geen actieve capaciteit uit historische
+queues hieronder afleiden.
 
 ## Historische registratie
 

@@ -1,0 +1,22 @@
+    Blocking waiting for file lock on package cache
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling nieuw-os-supervisor-example v0.1.0 (/workspace/nieuw-os/sdk/examples/supervisor)
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+   Compiling volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+   Compiling nieuw-os-document-session v0.1.0 (/workspace/nieuw-os/sdk/document-session)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.32s
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/sdk/debug/deps/nieuw_os_catalog_client-836a492140625437)
+     Running tests/transport.rs (/tmp/nieuw-os-fr-independent-target/sdk/debug/deps/transport-cd996d13aa864dc0)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/sdk/debug/deps/nieuw_os_document_session-3b69367845ba62df)
+     Running tests/editing.rs (/tmp/nieuw-os-fr-independent-target/sdk/debug/deps/editing-aae59d42f09992aa)
+     Running tests/volume.rs (/tmp/nieuw-os-fr-independent-target/sdk/debug/deps/volume-dbb803550439983f)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/sdk/debug/deps/nieuw_os_sdk_runtime-386d65c756f9ada4)
+     Running tests/message.rs (/tmp/nieuw-os-fr-independent-target/sdk/debug/deps/message-dd208ceb8ed54228)
+     Running tests/process.rs (/tmp/nieuw-os-fr-independent-target/sdk/debug/deps/process-52378597489ca977)
+     Running unittests src/protocol.rs (/tmp/nieuw-os-fr-independent-target/sdk/debug/deps/k05_protocol-6a4aad1531e9593a)
+   Doc-tests nieuw_os_catalog_client
+   Doc-tests nieuw_os_document_session
+   Doc-tests nieuw_os_sdk_runtime
+   Doc-tests k05_protocol

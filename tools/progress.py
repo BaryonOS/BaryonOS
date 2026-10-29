@@ -127,6 +127,7 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 
 [Criteria, bewijs en berekening](docs/PROGRESS.md) ·
 [Volledige roadmap](docs/ROADMAP.md) ·
+[Volledige releaseopdracht en acceptatie](docs/FULL-TEST-RELEASE.md) ·
 [Actuele uitvoering](docs/PROJECT-STATE.md).
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).

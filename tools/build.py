@@ -28,7 +28,8 @@ SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota")
 SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES))
 KEYRING_CASES = ("no-device", "stuck", "timeout", "restart")
 KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRING_CASES))
-SYSTEM_FEATURES = ("native-system", "test-system-recover")
+NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
+SYSTEM_FEATURES = ("native-system", "test-system-recover", *NETWORK_SYSTEM_FEATURES)
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
@@ -172,6 +173,11 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
             for name in names:
                 binary = component_target / f"x86_64-unknown-none/release/{component}-{name}"
                 binaries[f"{component}_{name}"] = binary
+        if kernel_feature in NETWORK_SYSTEM_FEATURES:
+            net_target = TARGET / "system-net-probe"
+            run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/net-probe/build.py")],
+                       "build-system-net-probe", extra_env={"CARGO_TARGET_DIR": str(net_target)})
+            binaries["net_probe"] = net_target / "x86_64-unknown-none/release/net-probe"
         qsim_report = {name: {"sha256": sha256(path), "elf": inspect_user(path)}
                        for name, path in binaries.items()}
         extra_env = {f"NOS_{name.upper()}_ELF": str(path.resolve())

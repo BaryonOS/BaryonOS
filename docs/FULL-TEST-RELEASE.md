@@ -122,6 +122,13 @@ persoon/agent en exclusieve bestanden staan alleen in de werkqueue.
 
 ## Acceptatiematrix
 
+Werkpakketten gebruiken in de actuele queue het voorvoegsel `TASK-` en verwijzen
+expliciet naar onderstaande acceptatie-ID's. Oudere ontwikkelcontracten en
+testlogs noemen die werkpakketten soms `FR-I01`, `FR-A03` of `FR-B02`; dat zijn
+geen aftekeningen van gelijknamige matrixrijen. Zo blijft `FR-A03` de
+afbeeldingsviewer en `FR-B02` de boot-/imageauthenticiteit. Een documentadapter
+of recordcodec kan die criteria niet sluiten.
+
 ID's `FR-<domein><nummer>` blijven stabiel bij herplanning. Splitsen voegt nieuwe
 ID's toe en behoudt de oorspronkelijke eis; geen rij verwijderen, verbergen
 of als niet-verplicht markeren om groen te krijgen. Iedere verwijzing in de

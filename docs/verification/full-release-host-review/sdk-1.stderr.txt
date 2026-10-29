@@ -1,0 +1,8 @@
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+    Checking capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+    Checking catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+    Checking volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+    Checking nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+    Checking nieuw-os-document-session v0.1.0 (/workspace/nieuw-os/sdk/document-session)
+    Checking nieuw-os-supervisor-example v0.1.0 (/workspace/nieuw-os/sdk/examples/supervisor)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.76s

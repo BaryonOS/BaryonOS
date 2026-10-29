@@ -120,13 +120,23 @@ def check_disk(oracle: dict) -> None:
         raise ValueError("unexpected volume generation, allocation or domain clock")
 
 
-def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_TIMEOUT):
+def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_TIMEOUT,
+               kernel_feature: str | None = None, network_port: int | None = None):
     if case not in FEATURE or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown case or unbounded timeout")
+    selected = FEATURE[case] if kernel_feature is None else kernel_feature
+    network_feature = {"normal": "native-system-net", "recover": "test-system-net-recover"}[case]
+    if selected not in (FEATURE[case], network_feature):
+        raise ValueError("wrong native system feature for this case")
+    use_network = selected == network_feature
+    if use_network != (type(network_port) is int and 1024 <= network_port <= 65535):
+        raise ValueError("network profile requires a dedicated local test peer port")
+    if not use_network and network_port is not None:
+        raise ValueError("ordinary system profile has no networking")
     frozen = source_hash()
     manifest = json.loads((BUILD / "manifest.json").read_text())
-    if manifest.get("kernel_feature") != FEATURE[case] or manifest.get("source_sha256") != frozen:
-        raise ValueError(f"build {FEATURE[case]} on the current source first")
+    if manifest.get("kernel_feature") != selected or manifest.get("source_sha256") != frozen:
+        raise ValueError(f"build {selected} on the current source first")
     if not manifest.get("system"):
         raise ValueError("missing inspected system-program manifest")
     env = environment()
@@ -155,7 +165,9 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         volume_dir.relative_to((BUILD / "run").resolve())
         check_image(volume_dir / "volume.img")
         previous = json.loads((volume_dir / "last-system-stage.json").read_text())
+        parent_feature = "native-system-net" if use_network else FEATURE["normal"]
         if not (previous.get("case") == "normal" and previous.get("passed") is True
+                and previous.get("kernel_feature") == parent_feature
                 and previous.get("source_sha256") == frozen
                 and previous.get("after_sha256") == sha256(volume_dir / "volume.img")):
             raise ValueError("recovery needs the unchanged image from a passing normal run")
@@ -176,6 +188,11 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
                "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
                "-object", "rng-random,id=rng0,filename=/dev/urandom",
                "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"]
+    if use_network:
+        # An ephemeral port is supplied by the owned synthetic protocol peer.
+        # No TAP, bridge, default user network, host share or public listener.
+        command += ["-netdev", f"socket,id=net0,connect=127.0.0.1:{network_port}",
+                    "-device", "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07"]
     started = datetime.now(timezone.utc).isoformat()
     begin = time.monotonic()
     rc, stdout, stderr, timed_out, _, _ = execute(command, env, timeout=timeout)
@@ -185,7 +202,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     after = sha256(image)
     report = dict(schema_version=1, case=case, source_commit=subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(), source_fingerprint_version=3,
-        source_sha256=frozen, kernel_feature=FEATURE[case], started_utc=started,
+        source_sha256=frozen, kernel_feature=selected, started_utc=started,
         duration_s=duration, timeout_s=timeout, raw_qemu_exit=rc, timed_out=timed_out,
         command=command, qemu_version=subprocess.check_output([qemu, "--version"], env=env, text=True).strip(),
         manifest=manifest, run_directory=str(run_dir), volume_directory=str(volume_dir),

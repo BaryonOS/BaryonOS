@@ -1,0 +1,14 @@
+{
+  "utc": "2026-10-29T23:09:38.681690+00:00",
+  "head": "d73d5150e7f633c3d534aca4db96e163fb2938b4",
+  "status": "M .github/workflows/ci.yml\n M AGENTS.md\n M README.md\n M docs/FULL-TEST-RELEASE.md\n M docs/PROGRESS.md\n M docs/ROADMAP.md\n M tools/progress.py\n?? .github/workflows/native-system.yml\n?? docs/verification/full-release-i01-initial/",
+  "ci_sha256": {
+    ".github/workflows/ci.yml": "f307acf79f8bb563985d9fd38f99308ab49862a786984e35b56d8610da72e3c6",
+    ".github/workflows/entropy-keys.yml": "37cb2c0de609c1986300ac303f63ea6861838454fb6215757c47c96383987b4c",
+    ".github/workflows/native-system.yml": "6f38a039cbd455d1ad58b3ed74e5207b6aa0cfd87612acabc3cec2265768c182",
+    ".github/workflows/process-management.yml": "43bb1e3656abd239a761f69fe3a1e20d848613eaf3e5f831de26b477bf4477b2",
+    ".github/workflows/resource-pressure.yml": "58bf0446b7611729251cc8a27110f32e1fabf6e31538a7e1f5920d19be1c0353",
+    ".github/workflows/storage-resilience.yml": "1e901f09cd1919e7293b76b6062ccf946f61965e841bd18e0baac4b5cd78b246",
+    ".github/workflows/volume-acceptance.yml": "59fdbfc2269eb0c6a9789d51fcdfe0d3af832efcdf0f6c085a9ba8b5fc2c2da5"
+  }
+}

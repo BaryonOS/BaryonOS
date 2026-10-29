@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **32** |
 
-**Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`73ebc1e1`](https://github.com/simonvanieperen/nieuw-os/commit/73ebc1e169b893eb5aba4b4f8ac06d7798136de3) ·
+**Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
+**Bron:** [`d73d5150`](https://github.com/simonvanieperen/nieuw-os/commit/d73d5150e7f633c3d534aca4db96e163fb2938b4) ·
 **Ontwikkelbranch:** `codex/full-test-release`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Volledige native testrelease in uitvoering; brede acceptatie en eerste dienstenintegratie.
-De score blijft 32%. De huidige main-bron is gecontroleerd: schone checkout, geen open PRs, bestaande K05-gate opnieuw 5/5 echte VM-runs groen en 238 root-Rust-hosttests geslaagd. Dit baselinebewijs staat onder docs/verification/full-release-baseline. De volledige releaseopdracht behoudt alle functies, visuele eisen, beveiliging, herstel en fysieke/menselijke bewijsgrenzen. Zes onafhankelijke workers implementeren releasecontract, gezamenlijke diensten, beveiligde records, native invoer, netwerkprotocollen en streamende documentsessies. Dit zijn nog geen afgeronde nieuwe rubriccriteria; de volledige productacceptatie blijft open.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Volledige releaseopdracht vastgelegd; native dienstenintegratie en gerichte correctheidsreparaties.
+De score blijft 32%. De volledige opdracht is onverkort opgeslagen met 62 open productcriteria. Twee echte gecombineerde VM-runs op bron 1e0d657 bewijzen gelijktijdige proces-, opslag- en sleuteldiensten met koude readonly recovery en onafhankelijke diskcontrole; 276 hosttests slagen op die bron. Daarna zijn invoerresetfouten en een concrete twee-sessies false-ACK-bug gerepareerd, en recordcrypto via echte ring-3-IPC aangesloten. Nieuwere code krijgt eigen eindherhaling; historische bewijzen worden niet omgelabeld. Netwerkparser/driver zijn nog geen native netwerkstack. Native desktop, persistente encryptie/ankering, apps, NAS/AI, updates en hardware/audit blijven verplicht open. Geen nieuwe rubriccriteria of gewichten gewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -44,6 +44,7 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 
 [Criteria, bewijs en berekening](docs/PROGRESS.md) ·
 [Volledige roadmap](docs/ROADMAP.md) ·
+[Volledige releaseopdracht en acceptatie](docs/FULL-TEST-RELEASE.md) ·
 [Actuele uitvoering](docs/PROJECT-STATE.md).
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).

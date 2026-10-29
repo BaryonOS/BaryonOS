@@ -2,6 +2,11 @@
 Dit is een zelfstandig OS-onderzoeksproject. Geen bestaande OS-kernel als basis. Eerst x86_64/QEMU/UEFI; geen installatie op echte apparaten. Dit bestand definieert werkwijze, geen bewijs van systeemveiligheid.
 
 ## Leesroute
+De volledige actieve productopdracht en bindende acceptatiematrix staan in
+`docs/FULL-TEST-RELEASE.md`. Lees die bij hervatten naast het actuele checkpoint;
+behoud alle verplichte functies, bewijsniveaus en stop-/hervatregels. Alleen
+booten of een notitie bewaren is niet langer een toereikend einddoel. Een
+deelcommit, groene build of deelproef rondt deze opdracht niet af.
 Begin met branch, HEAD en `git status --short`; behoud onafgemaakt gebruikerswerk. Lees bij een nieuwe sessie README.md, het actuele checkpoint bovenaan docs/PROJECT-STATE.md en docs/LOCAL-PRIVACY-CONTRACT.md. Lees daarna de relevante besluiten in docs/DECISIONS.md, implementatiespecificaties en alle lokale AGENTS.md-bestanden onder de te wijzigen mappen. Breid dit uit wanneer afhankelijkheden of een gewijzigde vertrouwensgrens dat vereisen; een korte leesroute is geen reden om veiligheidscontracten over te slaan.
 Bij vervolgwerk binnen dezelfde sessie: vergelijk de bronversie en lees wijzigingen en ontbrekende context, niet opnieuw de gehele repository of ongewijzigde historische status. START-CODING.md en FIRST-BATCH.md beschrijven de oorspronkelijke implementatiebasis; controleer eerst wat actuele code en acceptatiebewijs al realiseren. Een oude onderzoeksopdracht is geen nieuwe implementatieopdracht.
 Gebruik bij OS-ontwikkeltaken de repositoryskill `.agents/skills/os-dev/SKILL.md`; zoek alleen de relevante OSDev-/boekpassages. Vanuit de root worden geneste instructies niet in iedere client automatisch geladen. Neem bronversies en bestaande code als uitgangspunt; onderzoeksvoorstellen zijn niet automatisch geïmplementeerd. Praktische testkeuze, meting en overdracht staan in CODEX-WORKFLOW.md; lees daarvan alleen het benodigde onderdeel.
