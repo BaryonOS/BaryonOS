@@ -1,0 +1,116 @@
+{
+  "task": "FR-U01",
+  "date": "2026-10-29",
+  "baseline_commit": "73ebc1e169b893eb5aba4b4f8ac06d7798136de3",
+  "commands": [
+    {
+      "name": "format",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "-p",
+        "ui-core"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.092,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "host",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "-p",
+        "ui-core",
+        "--locked",
+        "--offline"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.567,
+      "stdout_sha256": "39bbd0eb030f1c917ed01b4c564a08d59ea1379b17d893506639dd905c62f849",
+      "stderr_sha256": "e4e6b160da0bde3014b89cf340edd9da81a57b0062a51626fbb4c00fc2b49208"
+    },
+    {
+      "name": "clippy",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "-p",
+        "ui-core",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.367,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ec9bc4ad0e1c7cec79a95e7ae2d6d440ee57dedb7106cf2bd0e0d47f3b261c88"
+    },
+    {
+      "name": "native",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "build",
+        "-p",
+        "ui-core",
+        "--lib",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.314,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "f17f91bf63474fc1e402196a0d985a96f831e9f9936349bfd648cc04a437e384"
+    },
+    {
+      "name": "format-check",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "-p",
+        "ui-core",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.069,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diff-check",
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.005,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "boundary": "Hosttests en native librarycompilatie; geen native event/service/compositoracceptatie.",
+  "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8\n",
+  "sources": {
+    "crates/ui-core/src/font.rs": "e233a760b514e14824f63dce64775afc8913af728a4bcd498dcf499336f032fa",
+    "crates/ui-core/src/input.rs": "2ddb4b63a0f9b9917637a05ba9a761a672d3dd6cc5a21cb8ba043405358a5be2",
+    "crates/ui-core/src/keyboard.rs": "6c21b907c17a4980b1b543b5564495c107d9734e5d76042ce16fa7a8044081df",
+    "crates/ui-core/src/lib.rs": "57254e0d28beb340149332672a19c3bd2c4119e582fd3fd176c529b2e84c5471",
+    "crates/ui-core/src/mouse.rs": "1e61fd7a8162a734603a1a9031b034c60d528d2c2a80129b525bb1ee5f7e2b7e",
+    "crates/ui-core/src/routing.rs": "52864e6090533ee1175fd1066359febf63e264b69eb430c09a78173143ff0c59",
+    "crates/ui-core/src/tests.rs": "961c247d9af63db2a9c3b0977268b5f2a26a0de78c22881dafcd61138857a1f4"
+  },
+  "target_artifact_sha256": "12c17d364dff7efd37ac8f0d516da168532c90c8cdb3052356e20a5aa46758bb"
+}

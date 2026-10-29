@@ -5,7 +5,15 @@
 
 mod font;
 mod input;
+mod keyboard;
+mod mouse;
+mod routing;
 pub use input::{EditResult, KeyCode, KeyEvent, Keyboard, Modifiers, TextLine};
+pub use keyboard::{
+    KeyAction, KeyboardError, KeyboardEvent, KeyboardModifiers, PhysicalKey, Set1Keyboard,
+};
+pub use mouse::{Cursor, MouseButtons, MouseError, MouseEvent, Ps2Mouse};
+pub use routing::{FocusError, FocusOwner, FocusToken, InputRouter, Routed};
 
 pub const MAX_WIDTH: u32 = 1920;
 pub const MAX_HEIGHT: u32 = 1080;
