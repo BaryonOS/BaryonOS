@@ -88,7 +88,7 @@ Timeout-fixtures duren hierdoor ~4,4 s langer.
   `passed=True stages=7` met nul timeouts (hostcontroles 17 volume-core-,
   14 SDK- en 11 orakel-/harnastests). GitHub Actions op `c491d9e` en
   `581cac6`: 5/5 workflowjobs groen.
-- Compact, hashgebonden rapport van alle 79 runs (case, bron, HEAD, latentie,
+- Compact, hashgebonden rapport van alle 86 runs (case, bron, HEAD, latentie,
   timeouts, SHA-256 van iedere `result.json`), de meetmethode en de
   lastgenerator: [s08-timing](verification/s08-timing/README.md).
 
