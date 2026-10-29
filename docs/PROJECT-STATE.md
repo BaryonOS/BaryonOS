@@ -1,5 +1,37 @@
 # Actuele projectstatus
 
+## K05 vaste startcapabilityposities hersteld, volledige gate volgt — 29 oktober 2026
+
+Branch `codex/supervisor-startup-slots`, basis `main`
+`383636193faedc65b80c748c5bc4df28676dc2d3` (PR #54 gemerged, alle zes
+GitHub-workflows groen). Workflow-PR #53 is gemerged; #48 is aantoonbaar
+vervangen en gesloten; alle acht B01/S08-reviewthreads zijn opgelost.
+
+De nog open P2 uit #51 betrof een geldig raw `proc_spawn` met lege cap0 en
+SEND-capability in cap1: de kernel compacteerde cap1 naar startup-offset56
+in plaats van64. Verzamelen en installeren behouden nu de vaste argumentindex;
+`count` blijft uitsluitend voor resourcepreflight. Geen rechten/ABI/SDKwijziging.
+Normale native client gebruikt echt cap1, bevestigt cap0nul en weigert
+RECV/DERIVE. Vier extra negatieve rawchecks zijn toegevoegd.
+
+Gericht bewezen: oude kernel + nieuwe test faalt (timeout15s, geen PASS);
+herstelde normalcase raw33/exit0, één sparse spawn, drie slot-/rechtenchecks,
+24 antwoorden, herstart en cleanup groen. Zeven harnastests, fmt en een tweede
+agentreview groen. Volledige vijfgevallenpoort **NIET UITGEVOERD** op rootbron.
+
+### NEXT AGENT HANDOFF
+
+Root bezit docs/bewijs/voortgang; code is gecherry-pickt. Push checkpoint,
+draai `tools/test_supervisor.py` op vaste HEAD met eigen build/target en
+`NOS_QEMU_MACHINE=pc-q35-8.2`, capture nieuw bewijs, herbeoordeel 32→32.
+Vervolgens geschikte concept-PR, eind-CI/review en squash-merge. B02 blijft
+volgende producttaak; bestaande B01-grenzen staan hieronder en blijven gelden.
+
+## Historische checkpoints
+
+Onderstaande blokken zijn versiegebonden geschiedenis; actuele uitvoering
+staat hierboven.
+
 ## B01-herstel en S08 geïntegreerd geverifieerd, 32% — 29 oktober 2026
 
 Branch `codex/native-recovery-hardening`, PR [#54](https://github.com/simonvanieperen/nieuw-os/pull/54),
@@ -64,7 +96,7 @@ firmwareboot en is als mislukt vastgelegd, daarna gericht gecorrigeerd.
   eigen branch. Houd secrets buiten kernel en gewone apps. Geen S09 dubbel
   implementeren zonder eerst eventuele lokale bron terug te vinden.
 
-## Historische checkpoints
+### Oudere historische checkpoints
 
 Alle onderstaande gedateerde blokken zijn historische registraties van hun
 expliciete bron. Oude woorden als “open”, acceptatie in afwachting en oude

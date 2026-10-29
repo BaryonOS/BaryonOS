@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`53e0d57a`](https://github.com/simonvanieperen/nieuw-os/commit/53e0d57af99c9673c97bc900fae15b98e08c8ca3) ·
-**Ontwikkelbranch:** `codex/native-recovery-hardening`.
-Deze opdracht: **30% → 32% (+2 procentpunt)**. **Opdracht:** B01-P1-herstel en hervatting S08 op gezamenlijke native bron geverifieerd.
-B01 na tijdelijk heropenen herbevestigd (+2, 30→32; oorspronkelijke sessiestand32, geen nieuw criterium). Blijvende RCT/APT over reseeds, monotone intrekking en geen masterwissel in gebruikte dienst; native oude-blobtest. Echte stille kernel-RNG-fixture met timeout/reset-ACK en aparte herstart op dezelfde DMA-pool, requester-exit fail-closed. S08-timing uit#48 behouden op actuele main en foutcompletions gemeten. Geïntegreerde bron53e0d57, v3fingerprint60edda79: B01 5/5, S08 13/13, S06-volume9/9 echte VM-runs groen; 615 onafhankelijke hosttests plus lint/fmt/syntax/voortgang groen. Bewijs native-recovery-hardening. Requestercrash/reset-zonder-ACK niet native getest; koude antirollback/persistente sleutels/fysieke RNG/TPM blijven open. Geen rubric- of scopewijziging.
+**Bron:** [`ff19f2f2`](https://github.com/simonvanieperen/nieuw-os/commit/ff19f2f2a31d1a6bc7d47efa460df138c638035b) ·
+**Ontwikkelbranch:** `codex/supervisor-startup-slots`.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** K05 raw ABI-randgeval: vaste cap0/cap1-posities behouden.
+32→32, geen nieuw criterium. #54 op main3836361 geïntegreerd met zes groene workflows; #48 gesloten en acht reviews opgelost. K05-P2 uit#51 hersteld: cap1 schuift bij legecap0 niet naar56 maar blijft64. Gerichte echte native regressie rood vóór herstel, groen erna; 7harnastests/fmt/agentreview groen. Volledige K05-gate en eind-CI volgen, nog niet als geslaagd geclaimd. B01/S08/S06-bewijs uit vorige snapshot blijft historisch geldig; geen crypto-/rechten-/ABIwijziging.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
