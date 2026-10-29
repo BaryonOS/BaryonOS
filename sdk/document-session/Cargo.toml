@@ -8,6 +8,7 @@ publish = false
 nieuw-os-catalog-client = { path = "../catalog-client" }
 nieuw-os-sdk-runtime = { path = "../runtime" }
 catalog-core = { path = "../../services/catalog" }
+volume-core = { path = "../../services/volume" }
 
 [dev-dependencies]
 capability-core = { path = "../../crates/capability-core" }
