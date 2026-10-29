@@ -9,6 +9,8 @@ native = []
 
 [dependencies]
 nieuw-os-sdk-runtime = { path = "../../runtime" }
+nieuw-os-catalog-client = { path = "../../catalog-client" }
+nieuw-os-document-session = { path = "../../document-session" }
 keyring-core = { path = "../../../services/keyring" }
 volume-core = { path = "../../../services/volume" }
 

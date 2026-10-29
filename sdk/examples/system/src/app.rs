@@ -10,6 +10,11 @@ use keyring_core::{
     records::{RecordContext, RecordKind},
     wire as kw, Status as KeyStatus, MAX_PLAINTEXT, MAX_SEALED, NONCE_BYTES, TAG_BYTES,
 };
+use nieuw_os_catalog_client::NativeTransport;
+use nieuw_os_document_session::{
+    volume::{Buffers, DocumentSession, Error as DocumentError, SaveProgress, VolumeSession},
+    EditMode, SaveOutcome,
+};
 use nieuw_os_sdk_runtime::{
     native, BlockDevice, EntropySource, LaunchImage, Outgoing, ReceiveEndpoint, SendEndpoint,
 };
@@ -272,6 +277,126 @@ fn records_after_revoke(
 fn byte(offset: usize) -> u8 {
     (7 + offset * 13 + offset / 251) as u8
 }
+
+/// Three 4-KiB caller buffers live only on the 64-KiB userspace stack. This
+/// ordinary native SDK client owns the volume endpoints until explicit close.
+/// It has no disk/Key-Service secrets, host shortcut or private success path.
+#[inline(never)]
+fn document(recover: bool) -> u64 {
+    let mut draft = [0; 4096];
+    let mut original = [0; 4096];
+    let mut staging = [0; 4096];
+    let session = VolumeSession::new(
+        NativeTransport,
+        1,
+        support::word(168),
+        0,
+        SendEndpoint::from_handle(handle(80)),
+        ReceiveEndpoint::from_handle(handle(72)),
+        LIMIT,
+    )
+    .unwrap_or_else(|_| fail(50));
+    let mut document = DocumentSession::new(
+        session,
+        if recover {
+            EditMode::ReadOnly
+        } else {
+            EditMode::ReadWrite
+        },
+        Buffers {
+            draft: &mut draft,
+            original: &mut original,
+            staging: &mut staging,
+        },
+    )
+    .unwrap_or_else(|_| fail(51));
+    if !recover {
+        check(document.create(0, b"systeemproef").is_ok(), 52);
+        // Build the real fixture through the public edit API, without a fourth
+        // document-sized buffer or aliased access to the borrowed draft.
+        let mut source = [0; vw::DATA];
+        for offset in (0..4096).step_by(source.len()) {
+            let count = source.len().min(4096 - offset);
+            for (index, value) in source[..count].iter_mut().enumerate() {
+                *value = byte(offset + index);
+            }
+            check(
+                document
+                    .replace_range(offset..offset, &source[..count])
+                    .is_ok(),
+                53,
+            );
+        }
+        check(document.is_dirty(), 54);
+        check(document.begin_save().is_ok() && document.is_saving(), 55);
+        // One APPEND is 160 bytes, below the service's 512-byte sector buffer:
+        // cancellation releases the staged token before any content WRITE.
+        check(
+            document.save_next()
+                == Ok(SaveProgress::Writing {
+                    completed: vw::DATA,
+                    total: 4096,
+                }),
+            56,
+        );
+        check(document.cancel_save().is_ok() && !document.is_saving(), 57);
+        check(document.is_dirty() && !document.is_uncertain(), 58);
+        check(
+            document
+                .draft()
+                .is_some_and(|loaded| loaded.loaded_revision == 0),
+            59,
+        );
+        // The successful final BEGIN uses request ID 3, preserving the existing
+        // on-disk request identity and the final fixture's exact disk bytes.
+        check(
+            document.save() == Ok(SaveOutcome::Saved { revision: 1 }),
+            60,
+        );
+        check(
+            !document.is_dirty() && !document.is_saving() && !document.is_uncertain(),
+            61,
+        );
+    }
+    check(document.open(0).is_ok(), 62);
+    let digest = {
+        let loaded = document.draft().unwrap_or_else(|| fail(63));
+        check(
+            loaded.object == 0
+                && loaded.loaded_revision == 1
+                && loaded.name == b"systeemproef"
+                && loaded.contents.len() == 4096,
+            64,
+        );
+        check(
+            loaded
+                .contents
+                .iter()
+                .enumerate()
+                .all(|(offset, value)| *value == byte(offset)),
+            65,
+        );
+        checksum_update(FNV_OFFSET, loaded.contents)
+    };
+    let metadata = document.metadata().unwrap_or_else(|_| fail(66));
+    check(
+        metadata.revision == 1 && metadata.length == 4096 && metadata.content_sum == digest,
+        67,
+    );
+    if recover {
+        check(
+            document.replace_contents(b"read-only must retain the recovered document")
+                == Err(DocumentError::ReadOnly),
+            68,
+        );
+        check(
+            document.save() == Err(DocumentError::ReadOnly) && !document.is_dirty(),
+            69,
+        );
+    }
+    check(document.close().is_ok() && document.is_closed(), 75);
+    digest
+}
 #[no_mangle]
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
@@ -287,31 +412,33 @@ fn main() -> ! {
         peer: support::word(160),
         next: 1,
     };
-    let mut volume = Client::new(
-        Volume {
-            send: SendEndpoint::from_handle(handle(80)),
-            receive: ReceiveEndpoint::from_handle(handle(72)),
-            peer: support::word(168),
-        },
-        1,
-        1,
-    );
     let registry = SendEndpoint::from_handle(handle(88));
     let control = ReceiveEndpoint::from_handle(handle(96));
     let recover = support::word(112) == 1;
     support::put(240, 2);
     let (h, status) = keys.call(kw::STATUS, 0, &[], KeyStatus::Ok);
     check(h.length == 14 && status[kw::HEADER] == 1, 2);
-    let before = volume.stat(0);
-    if recover {
-        check(matches!(before,Ok(s) if s.revision==1 && s.length==4096), 3);
-    } else {
-        check(before == Err((Status::NotFound, 0)), 3);
+    {
+        // Startup-only v6 probe preserves the real cross-domain rejection.
+        // It ends before the v7 DocumentSession becomes the sole owner of
+        // this endpoint pair; no two active sessions share these handles.
+        let mut probe = Client::new(
+            Volume {
+                send: SendEndpoint::from_handle(handle(80)),
+                receive: ReceiveEndpoint::from_handle(handle(72)),
+                peer: support::word(168),
+            },
+            1,
+            1,
+        );
+        let before = probe.stat(0);
+        if recover {
+            check(matches!(before,Ok(s) if s.revision==1 && s.length==4096), 3);
+        } else {
+            check(before == Err((Status::NotFound, 0)), 3);
+        }
+        check(probe.stat(PER_DOMAIN as u64) == Err((Status::Access, 0)), 4);
     }
-    check(
-        volume.stat(PER_DOMAIN as u64) == Err((Status::Access, 0)),
-        4,
-    );
     // Every request crosses the real syscall boundary; endpoint handles cannot
     // be reinterpreted as device, entropy or process-launch authority.
     check(
@@ -347,37 +474,7 @@ fn main() -> ! {
     }
     check(go, 9);
     support::put(240, 10);
-    if !recover {
-        check(
-            volume
-                .write(0, 0, b"systeemproef", 4096, |offset, bytes| {
-                    for (i, b) in bytes.iter_mut().enumerate() {
-                        *b = byte(offset + i);
-                    }
-                })
-                .is_ok_and(|(revision, _)| revision == 1),
-            10,
-        );
-    }
-    let stat = volume.stat(0).unwrap_or_else(|_| fail(11));
-    check(
-        stat.revision == 1
-            && stat.length == 4096
-            && &stat.name[..stat.name_length] == b"systeemproef",
-        12,
-    );
-    let mut digest = FNV_OFFSET;
-    let mut valid = true;
-    check(
-        volume.read(0, 1, 4096, |offset, bytes| {
-            for (i, b) in bytes.iter().enumerate() {
-                valid &= *b == byte(offset + i);
-            }
-            digest = checksum_update(digest, bytes);
-        }) == Ok(4096),
-        13,
-    );
-    check(valid && digest == stat.content_sum, 14);
+    let digest = document(recover);
     support::put(240, 15);
     let (h, created) = keys.call(kw::GENERATE, 0, &[], KeyStatus::Ok);
     check(h.length == 1, 15);
