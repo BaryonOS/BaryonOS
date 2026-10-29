@@ -22,6 +22,8 @@ keyboard correct scheiden en commandoantwoorden buiten de eventstroom houden.
 
 - `Set1Keyboard::feed`: fysieke `KeyboardEvent`s met Press/Repeat/Release en
   links/rechts onderscheid voor modifiers; tekstvertaling blijft afzonderlijk.
+  Echte breakbytes blijven als Release zichtbaar na decoderreset, ook zonder
+  lokale downstaat. De router bezorgt nooit een release zonder geldige eigenaar.
   Onbekende codes en gebroken prefixes geven een expliciete fout. De adapter
   reset decoder én router bij verloren/controllerfoute invoer en meldt inputreset
   aan de betrokken client; geen stil vastzittende modifier.
@@ -36,10 +38,11 @@ keyboard correct scheiden en commandoantwoorden buiten de eventstroom houden.
   eigenaar en monotone generatie; aflevering controleert die opnieuw. Oude
   repeats/releases en al ingedrukte modifiers/knoppen worden niet aan een nieuwe
   focus overgedragen. Generatie-overflow sluit de route en hergebruikt geen token.
-  Ook inputreset bewaart bekende oude down-eigenaars als onderdrukkingsmarkers
-  tot een release is waargenomen; een reset mag geen nieuwe klik of sneltoets
-  verzinnen. Als een release zelf verloren ging kan de eerste volledige nieuwe
-  toetscyclus worden onderdrukt. De adapter meldt de reset begrijpelijk.
+  Fysieke downstaat staat los van optionele aflever-eigenaars: ook een toets
+  ingedrukt zonder focus blijft bekend. Inputreset bewaart die staat en oude
+  eigenaars tot een echte release; een reset verzint geen klik of sneltoets.
+  De echte release ruimt de marker direct op, ook als de decoder zelf geen
+  voorafgaande make meer kent. De adapter meldt de reset begrijpelijk.
   Routertokens zijn geen kernelcapabilities: bron-, proces- en surfaceautoriteit
   moeten bij de uiteindelijke kernel-/dienstgrens worden gecontroleerd.
 
@@ -59,7 +62,7 @@ bewijzen deze scenario's niet.
 
 ## Uitgevoerde controle — 29 oktober 2026
 
-Op basiscommit `73ebc1e`, met de nieuwe bronhashes uit
+Op basiscommit `2409708`, met de herstelde bronhashes uit
 [`input-acceptance.json`](../../crates/ui-core/verification/input-acceptance.json),
 zijn daadwerkelijk uitgevoerd (allemaal exit 0):
 
@@ -71,8 +74,16 @@ cargo +1.90.0 fmt -p ui-core --check
 git diff --check
 ```
 
-Resultaat: **25 hosttests geslaagd** (15 nieuwe invoertests en 10 bestaande
-G0-coretests), native librarycompilatie, Clippy en formattering geslaagd.
+Resultaat na reviewherstel: **30 hosttests geslaagd** (25 coretests en vijf
+publieke-API-resetregressies), native librarycompilatie, Clippy en formattering
+geslaagd. De eerste implementatie op `2409708` faalde aantoonbaar op twee
+nieuwe tegenvoorbeelden (exit 101, 0/2 geslaagd): een zonder focus vastgehouden
+toets werd na decoderreset opnieuw afgeleverd; een echte release direct na
+decoderreset ruimde de oude marker niet op. Dezelfde eerste twee regressies
+slagen na herstel, naast tests voor modifierisolatie, no-focus-release en
+orphan-release/Pause. Het compacte rapport bewaart de exacte rode testbron,
+broncommit en loghashes. Fysieke downstaat en aflevereigenaars zijn nu afzonderlijk;
+echte breakbytes bereiken de router ook na decoderreset.
 Toolselectie via bestaande `tools/common.py::environment()`, met
 `LOCALAPPDATA=/workspace/nieuw-os/.tools` en eigen
 `CARGO_TARGET_DIR=/workspace/nieuw-os-worktrees/ui/build/input-target`.

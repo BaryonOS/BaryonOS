@@ -61,6 +61,9 @@ pub struct InputRouter {
     focus: Option<FocusOwner>,
     generation: u64,
     exhausted: bool,
+    /// Physical down state is independent of delivery ownership: keys pressed
+    /// with no focus must also remain suppressed across a decoder reset.
+    physical_down: [bool; KEY_COUNT],
     keys: [Option<FocusToken>; KEY_COUNT],
     buttons: [Option<FocusToken>; 3],
     device_buttons: u8,
@@ -76,6 +79,7 @@ impl InputRouter {
             focus: None,
             generation: 0,
             exhausted: false,
+            physical_down: [false; KEY_COUNT],
             keys: [None; KEY_COUNT],
             buttons: [None; 3],
             device_buttons: 0,
@@ -121,14 +125,21 @@ impl InputRouter {
         let token = match event.action {
             KeyAction::Press => {
                 // A second Press cannot transfer a still-held physical key.
-                if self.keys[slot].is_some() {
+                if self.physical_down[slot] {
                     return None;
                 }
+                self.physical_down[slot] = true;
                 self.keys[slot] = self.current();
                 self.keys[slot]
             }
-            KeyAction::Repeat => self.keys[slot],
-            KeyAction::Release => self.keys[slot].take(),
+            KeyAction::Repeat => {
+                self.physical_down[slot] = true;
+                self.keys[slot]
+            }
+            KeyAction::Release => {
+                self.physical_down[slot] = false;
+                self.keys[slot].take()
+            }
             KeyAction::Pulse => self.current(),
         }?;
         if !self.is_current(token) {

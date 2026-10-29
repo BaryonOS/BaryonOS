@@ -273,10 +273,9 @@ impl Set1Keyboard {
             *held = true;
             action
         } else {
-            // Lost/foreign releases never acquire focus or create an action.
-            if !*held {
-                return Ok(None);
-            }
+            // A real break must remain observable after decoder reset, even
+            // when this local down table is empty. InputRouter owns delivery
+            // and suppresses releases without a matching current owner.
             *held = false;
             KeyAction::Release
         };
@@ -432,7 +431,7 @@ mod tests {
             let e = k.feed(byte).unwrap().unwrap();
             assert_eq!((e.key, e.action), (PhysicalKey::A, action));
         }
-        assert_eq!(k.feed(0x9e), Ok(None));
+        assert_eq!(k.feed(0x9e).unwrap().unwrap().action, KeyAction::Release);
         for (scan, normal, extended) in [
             (0x1c, PhysicalKey::Enter, PhysicalKey::KeypadEnter),
             (0x48, PhysicalKey::Keypad8, PhysicalKey::Up),
