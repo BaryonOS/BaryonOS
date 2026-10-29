@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 32% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 30% van de vaste productroadmap](docs/assets/progress.svg)
 
-**32% — 32 van 100 gewogen acceptatiepunten.** Dit is een
+**30% — 30 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -24,18 +24,18 @@ alleen een nette desktop haalt die eindgrens niet.
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
 | Internet en netwerkdiensten | 10 | 0 |
-| Beveiliging, privacy en updates | 12 | 2 |
+| Beveiliging, privacy en updates | 12 | 0 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **32** |
+| **Totaal** | **100** | **30** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`c92238b0`](https://github.com/simonvanieperen/nieuw-os/commit/c92238b038088a59c28a496880ca878b34eda8f5) ·
-**Ontwikkelbranch:** `ccr-43832ef7-gi2qlz`.
-Deze opdracht: **30% → 32% (+2 procentpunt)**. **Opdracht:** B01 native entropy en sleutelbeheer: virtio-rng-broker achter een Entropy-capability, ring-3 Key Service met gezondheidstests, DRBG, HKDF, XChaCha20-Poly1305 en herstel zonder escrow native geaccepteerd.
-B01 (+2) geaccepteerd op bronvingerafdruk v3 202a3e68 (basis main c92238b, K05 gemerged met groene GitHub Actions incl. k05-native-supervisor): eigen virtio-rng-driver, Entropy-objecttype (recht 1024, niet afleidbaar/overdraagbaar), kernelbroker 0x60/0x61 zonder cryptografie of caching, keyring-core met SP 800-90B Repetition Count (6) en Adaptive Proportion (512/62), fast-key-erasure-DRBG op ChaCha20, HKDF-SHA-256-afleiding per domein en index, XChaCha20-Poly1305 met AAD-binding, 16 sleutels per domein, permanente intrekking en herstel via een gebruikersgehouden geheim; alles uit vastgepinde RustCrypto-crates met portable backends (0 SIMD-instructies). Gate tools/test_keyring.py exit 0: 53 root-, 17 SDK- en 7 Python-hosttests (incl. RFC 5869- en XChaCha-testvectoren) plus 3 echte QEMU-runs: normal (beide diensten READY na 1024 bytes, 17 sleutels, manipulatie/verkeerd domein/ingetrokken/quotum geweigerd, herstel van A naar B met behoud van intrekking), no-device (Offline, beide diensten BLOCKED, 0 sleutels), stuck (constante bytes, Repetition Count blokkeert, 0 sleutels). Lege engine en framebaseline na elke run. Geen claim over fysieke RNG-kwaliteit, TPM of persistente sleutelopslag (B02 open).
+**Bron:** [`00e6af5d`](https://github.com/simonvanieperen/nieuw-os/commit/00e6af5db4d315d2536471ccbce1cb1f4cf14958) ·
+**Ontwikkelbranch:** `codex/native-recovery-hardening`.
+Deze opdracht: **32% → 30% (-2 procentpunt)**. **Opdracht:** Autonoom hervatten: B01-herstel na post-merge P1-bevindingen en hervatten S08-timing.
+B01 tijdelijk heropend (-2): drie concrete P1-threads op de gemergede PR #52 vereisen herstel van monotone intrekking, doorlopende gezondheidstests en echt nonresponsive RNG-timeout/reset/herstartbewijs. Bestaand bewijs blijft historisch; nieuwe native acceptatie is NIET UITGEVOERD. PR #53 met groene CI en gecontroleerde cachegrenzen is geïntegreerd als 00e6af5; dit geeft geen OS-punten. S08-timing uit #48 wordt zonder historische statusregressie hervat. S09 was alleen lokaal vastgelegd en is niet remote teruggevonden.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

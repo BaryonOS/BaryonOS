@@ -1,24 +1,19 @@
-# Werkqueue — 28 oktober 2026
+# Werkqueue — 29 oktober 2026
 
-Werkelijke capaciteit: vier agents tegelijk, inclusief hoofdagent. Eén schrijver
-per gebied; aparte builds, targets, volumes, VM-processen en logbestemmingen.
-De volledige native acceptatie blijft gebonden aan `3e41bbf9`. Het vervolg op
-`f52ef0a6` bevat de documentsessie, jobcodec, capture en reviewreparaties.
+Actuele basis `00e6af5`; hoofdagent integreert, iedere builder heeft een eigen
+worktree en exclusieve bestanden. Historische status hieronder is geen actieve
+capaciteits- of voortgangsclaim.
 
-| ID | Toestand | Eigenaar / exclusief gebied | Resultaat / kleinste afhankelijkheid |
+| ID | Toestand | Eigenaar / exclusief gebied | Resultaat / afhankelijkheid |
 |---|---|---|---|
-| AUDIT | gereed voor integratie/controle | root: repository, CI, docs en GitHub | PR #25 geïntegreerd op `87e4f04b`; PR #26 timingstabilisatie op `51dc38eb`; volledige afsluitende CI opnieuw vereist |
-| G11/I13 | geïntegreerd/gevalideerd | native_apps/runtime_platform | Echte DocumentSession in ring 3; normal + koude recovery in twee afzonderlijke VM's groen; blijft begrensde headless proef |
-| B11 | geïntegreerd/gevalideerd | native_storage: services/net-protocol/** | Dependencyvrije no_std Ethernet/IPv4/UDP-parser getest en native gecrossbuild; nog geen driver/netwerkdienst/rechten |
-| BR0 | gereed om te bouwen | browser_research: hostbuilds/tests; geen native runtime | Vergelijk Chromium/Gecko volgens BR-01 t/m BR-08; kies pas daarna engine/patchbudget. Native port wacht op volwassen netwerk- en grafische diensten |
-| G1 | wacht op een benoemde afhankelijkheid | Materiaal en display/input | Native interactieve Materiaal-/display-/inputketen is nog geen geaccepteerde productflow |
-| S08 | gereed om te bouwen | volgende bouwer; root bewaakt herstelcontract | Begrensde vervanging/herstart van catalogusdienst zonder mutatiereplay |
-| S04/S05 | wacht op een benoemde afhankelijkheid | root: opslagcontract | Versieerbaar formaat en crashacceptatie voor grotere documenten en ruimtehergebruik |
-| N03/P02/H | wacht op een benoemde afhankelijkheid | nog toe te wijzen | Native netwerkdienst/TLS/entropy, sync/key lifecycle en bredere hardwareondersteuning |
-
-Vier toestanden: gereed om te bouwen; in uitvoering; wacht op een benoemde
-afhankelijkheid; gereed voor integratie/controle. De oude capaciteitsvoorkeuren
-in de historische registratie gelden niet voor deze opdracht.
+| B01-R1 | in uitvoering | keyring_repairs: services/keyring/** | Monotone intrekking en doorlopende RCT/APT; gerichte negatieve regressies |
+| B01-R2 | in uitvoering | entropy_timeout: virtio-rng, keyringbroker, keyringharnas | Echte ontbrekende completion, reset/herstart, cleanup bij eigenaarsexit |
+| B01-V | in uitvoering | security_verifier: alleen lezen | Tegenvoorbeelden en onafhankelijke review van R1/R2 |
+| S08-R | in uitvoering | storage_resume: m6c-/volumebroker, bijbehorende harnastests | #48 hervatten met Err-completionmeting en behoud van actuele main |
+| ENV | in uitvoering | emulator_setup: uitsluitend .tools/** | Officiële lokale QEMU/OVMF zonder systeemprechten |
+| INT | in uitvoering | root: docs/voortgang/build-featurelijsten/GitHub | #53 geïntegreerd; commits en bewijs van gecombineerde bron volgen |
+| S09 | wacht op bron of nieuwe implementatie | niet toegewezen | Historische lokale branch niet remote gevonden; geen bewezen geïntegreerde implementatie |
+| B02 | wacht op B01-R1/R2 | niet toegewezen | Persistente geauthenticeerde opslag vereist hersteld sleutelbeheer |
 
 ## Vroege productvalidatie — consumentenadoptie
 

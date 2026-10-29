@@ -1,5 +1,34 @@
 # Actuele projectstatus
 
+## Hervat: B01-fouten eerst, S08 parallel — 29 oktober 2026
+
+Branch `codex/native-recovery-hardening`, basis `00e6af5` (main; geschikte
+PR #53 na inhoudscontrole en groene CI squash-gemerged). Initiële lokale
+branch `work` op `621eeaf` was schoon en liep achter op main `f63a0c1`.
+De drie P1-reviewthreads op de reeds gemergede B01-PR #52 zijn bevestigd:
+oude herstelblob kan intrekking terugdraaien; RCT/APT-status verdwijnt tussen
+reseeds; echt niet-antwoordend apparaat en reset/herstart missen native bewijs.
+B01 daarom tijdelijk **32% → 30%**, zonder rubricwijziging.
+
+**In uitvoering, nog niet geaccepteerd:** aparte worktrees voor B01-R1
+(`services/keyring`), B01-R2 (RNG-driver/broker/harnas) en S08-R
+(catalogus-/volumebrokertiming uit #48, zonder historische docs terug te zetten).
+Een afzonderlijke reviewer controleert tegenvoorbeelden en integratie.
+Taakcontract en controlelog: [native-recovery-hardening](verification/native-recovery-hardening/README.md).
+
+**Baseline:** `python3 tools/preflight.py --strict` exit 2: Rust 1.90.0 en
+beide targets aanwezig; QEMU/OVMF ontbreken. Lokale installatie van officiële
+pakketten onder `.tools/` loopt. Nieuwe QEMU-tests **NIET UITGEVOERD**.
+
+### NEXT AGENT HANDOFF
+
+- Bron: `codex/native-recovery-hardening`, basis `00e6af5`; exacte checkpoint-HEAD via `git rev-parse HEAD`.
+- Root bezit docs, voortgang, `kernel/Cargo.toml` en `tools/build.py`.
+- Integreer pas na gerichte tests en review de drie agentcommits; draai daarna
+  B01-gate en S08-/volumeregressie op bevroren bron in gescheiden buildmappen.
+- S09 is niet remote bereikbaar: geen hergebruik of acceptatie claimen op basis
+  van alleen de historische vermelding van een lokale branch.
+
 ## B01 native entropy en sleutelbeheer geaccepteerd, 32% — 29 oktober 2026
 
 Branch `ccr-43832ef7-gi2qlz`, basis `main` `c92238b` (squash van
