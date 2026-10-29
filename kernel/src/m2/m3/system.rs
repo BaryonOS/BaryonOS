@@ -10,10 +10,12 @@ const INIT: usize = 0;
 const KEY: usize = 1;
 const VOLUME: usize = 2;
 const APP: usize = 3;
-const WORDS: [u64; 10] = [40, 240, 400, 408, 416, 424, 432, 440, 448, 456];
+const WORDS: [u64; 13] = [
+    40, 240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480,
+];
 struct Evidence {
-    app: Option<[u64; 10]>,
-    init: Option<[u64; 10]>,
+    app: Option<[u64; 13]>,
+    init: Option<[u64; 13]>,
     faults: u64,
     kernel_tables: usize,
 }
@@ -191,7 +193,7 @@ pub(super) fn manifest(s: &mut State) {
 }
 pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
     require(slot == INIT || slot == APP, b"UNEXPECTED_EXIT");
-    let mut words = [0; 10];
+    let mut words = [0; 13];
     for (i, at) in WORDS.iter().enumerate() {
         words[i] = word(s, slot, *at);
     }
@@ -253,6 +255,7 @@ fn finish(s: &mut State) -> ! {
         init[2] == 2 && init[3] == 1 && init[4] == 1 && init[5] == 1,
         b"INIT_EVIDENCE",
     );
+    require(app[9..13] == [1, 1, 10, 2], b"RECORD_EVIDENCE");
     let (entropy, denied, entropy_idle) = keyring::broker_summary();
     let (published, completed, block_idle) = m5::broker_summary();
     require(
@@ -274,7 +277,10 @@ fn finish(s: &mut State) -> ! {
         b"SERVICE_STATE",
     );
     require(
-        word(s, KEY, 224) == 1 && word(s, KEY, 232) == 1 && word(s, KEY, 240) == 1,
+        word(s, KEY, 224) == 2
+            && word(s, KEY, 232) == 2
+            && word(s, KEY, 240) == 9
+            && word(s, KEY, 248) == 1,
         b"CRYPTO_COUNTERS",
     );
     for (label, value) in [
@@ -287,6 +293,10 @@ fn finish(s: &mut State) -> ! {
         (b"SYSTEM:CRYPTO_SEAL:", word(s, KEY, 224)),
         (b"SYSTEM:CRYPTO_UNSEAL:", word(s, KEY, 232)),
         (b"SYSTEM:CRYPTO_TAMPER_DENIED:", word(s, KEY, 240)),
+        (b"SYSTEM:RECORD_SEAL:", app[9]),
+        (b"SYSTEM:RECORD_UNSEAL:", app[10]),
+        (b"SYSTEM:RECORD_CONTEXT_DENIED:", app[11]),
+        (b"SYSTEM:RECORD_REVOKED_DENIED:", app[12]),
         (b"SYSTEM:WORKER_SPAWNS:", spawns),
         (b"SYSTEM:WORKER_FAULTS:", evidence().faults),
         (b"SYSTEM:WORKER_RESTARTS:", init[4]),

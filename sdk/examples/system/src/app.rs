@@ -6,7 +6,10 @@
 #[allow(dead_code)]
 mod protocol;
 mod support;
-use keyring_core::{wire as kw, Status as KeyStatus};
+use keyring_core::{
+    records::{RecordContext, RecordKind},
+    wire as kw, Status as KeyStatus, MAX_PLAINTEXT, MAX_SEALED, NONCE_BYTES, TAG_BYTES,
+};
 use nieuw_os_sdk_runtime::{
     native, BlockDevice, EntropySource, LaunchImage, Outgoing, ReceiveEndpoint, SendEndpoint,
 };
@@ -87,6 +90,21 @@ struct Keys {
     next: u64,
 }
 impl Keys {
+    fn reply(&self, request: &[u8; kw::SIZE], expected: KeyStatus) -> (kw::Header, [u8; kw::SIZE]) {
+        let sent = kw::Header::decode(request).unwrap_or_else(|| fail(70));
+        let reply = exchange(self.send, self.receive, self.peer, kw::TAG, request);
+        let h = kw::Header::decode(&reply).unwrap_or_else(|| fail(71));
+        check(
+            h.op == (sent.op | kw::REPLY)
+                && h.index == sent.index
+                && h.request == sent.request
+                && h.status == expected.code(),
+            72,
+        );
+        check(expected == KeyStatus::Ok || h.length == 0, 73);
+        (h, reply)
+    }
+
     fn call(
         &mut self,
         op: u8,
@@ -97,18 +115,159 @@ impl Keys {
         let id = self.next;
         self.next += 1;
         let request = kw::request(op, index, id, body).unwrap_or_else(|| fail(70));
-        let reply = exchange(self.send, self.receive, self.peer, kw::TAG, &request);
-        let h = kw::Header::decode(&reply).unwrap_or_else(|| fail(71));
-        check(
-            h.op == (op | kw::REPLY)
-                && h.index == index
-                && h.request == id
-                && h.status == expected.code(),
-            72,
-        );
-        check(expected == KeyStatus::Ok || h.length == 0, 73);
-        (h, reply)
+        self.reply(&request, expected)
     }
+
+    fn record(
+        &mut self,
+        op: u8,
+        index: u8,
+        context: RecordContext,
+        data: &[u8],
+        expected: KeyStatus,
+    ) -> (kw::Header, [u8; kw::SIZE]) {
+        let id = self.next;
+        self.next += 1;
+        let request = kw::record_request(op, index, id, context, data).unwrap_or_else(|_| fail(74));
+        self.reply(&request, expected)
+    }
+}
+
+const RECORD_SEAL: u64 = 456;
+const RECORD_UNSEAL: u64 = 464;
+const RECORD_CONTEXT_DENIED: u64 = 472;
+const RECORD_REVOKED_DENIED: u64 = 480;
+
+fn bump(offset: u64) {
+    support::put(offset, support::word(offset) + 1);
+}
+
+/// Exercise the real ring-3 record protocol against the real Key Service.
+/// These are in-memory records under a synthetic volume identity, not encrypted
+/// disk storage: the independent 4096-byte volume fixture stays unchanged.
+#[inline(never)]
+fn records_before_revoke(keys: &mut Keys, index: u8) -> (RecordContext, [u8; MAX_SEALED]) {
+    let context = RecordContext {
+        volume: *b"native-record-v1",
+        domain: 0,
+        object: 0,
+        revision: 1,
+        chunk: 3,
+        length: MAX_PLAINTEXT as u16,
+        kind: RecordKind::Content,
+        schema: 1,
+    };
+    let plaintext = core::array::from_fn::<_, MAX_PLAINTEXT, _>(|i| byte(i + 0x4000));
+    let (header, reply) = keys.record(kw::SEAL_RECORD, index, context, &plaintext, KeyStatus::Ok);
+    check(usize::from(header.length) == MAX_SEALED, 30);
+    let mut sealed = [0; MAX_SEALED];
+    sealed.copy_from_slice(&reply[kw::HEADER..kw::HEADER + MAX_SEALED]);
+    bump(RECORD_SEAL);
+    let (header, reply) = keys.record(kw::UNSEAL_RECORD, index, context, &sealed, KeyStatus::Ok);
+    check(
+        usize::from(header.length) == plaintext.len()
+            && reply[kw::HEADER..kw::HEADER + plaintext.len()] == plaintext,
+        31,
+    );
+    bump(RECORD_UNSEAL);
+
+    let mut corrupted = sealed;
+    corrupted[MAX_SEALED - 1] ^= 1;
+    keys.record(
+        kw::UNSEAL_RECORD,
+        index,
+        context,
+        &corrupted,
+        KeyStatus::Auth,
+    );
+    bump(RECORD_CONTEXT_DENIED);
+    for changed in [
+        RecordContext {
+            volume: [0x53; 16],
+            ..context
+        },
+        RecordContext {
+            object: 1,
+            ..context
+        },
+        RecordContext {
+            revision: 2,
+            ..context
+        },
+        RecordContext {
+            chunk: 4,
+            ..context
+        },
+        RecordContext {
+            kind: RecordKind::Name,
+            ..context
+        },
+        RecordContext {
+            schema: 2,
+            ..context
+        },
+    ] {
+        keys.record(kw::UNSEAL_RECORD, index, changed, &sealed, KeyStatus::Auth);
+        bump(RECORD_CONTEXT_DENIED);
+    }
+
+    // Keep the complete tag but remove the last ciphertext byte. The changed
+    // expected length is structurally valid; authentication must reject it.
+    let shorter_context = RecordContext {
+        length: context.length - 1,
+        ..context
+    };
+    let shorter_end = NONCE_BYTES + MAX_PLAINTEXT - 1;
+    let mut shortened = [0; MAX_SEALED - 1];
+    shortened[..shorter_end].copy_from_slice(&sealed[..shorter_end]);
+    shortened[shorter_end..].copy_from_slice(&sealed[MAX_SEALED - TAG_BYTES..]);
+    keys.record(
+        kw::UNSEAL_RECORD,
+        index,
+        shorter_context,
+        &shortened,
+        KeyStatus::Auth,
+    );
+    bump(RECORD_CONTEXT_DENIED);
+
+    // Malformed requests cannot be made by the checked record builder, so use
+    // the bounded generic KEY1 builder to exercise the native service parser.
+    let mut body = [0; kw::RECORD_CONTEXT + MAX_SEALED];
+    body[..kw::RECORD_CONTEXT]
+        .copy_from_slice(&kw::encode_record_context(context).unwrap_or_else(|_| fail(32)));
+    body[kw::RECORD_CONTEXT..].copy_from_slice(&sealed);
+    body[13] = 1;
+    keys.call(kw::UNSEAL_RECORD, index, &body, KeyStatus::Invalid);
+    bump(RECORD_CONTEXT_DENIED);
+    body[..kw::RECORD_CONTEXT]
+        .copy_from_slice(&kw::encode_record_context(shorter_context).unwrap_or_else(|_| fail(33)));
+    keys.call(kw::UNSEAL_RECORD, index, &body, KeyStatus::Invalid);
+    bump(RECORD_CONTEXT_DENIED);
+    (context, sealed)
+}
+
+fn records_after_revoke(
+    keys: &mut Keys,
+    index: u8,
+    context: RecordContext,
+    sealed: &[u8; MAX_SEALED],
+) {
+    keys.record(
+        kw::UNSEAL_RECORD,
+        index,
+        context,
+        sealed,
+        KeyStatus::Revoked,
+    );
+    bump(RECORD_REVOKED_DENIED);
+    keys.record(
+        kw::SEAL_RECORD,
+        index,
+        context,
+        &[0; MAX_PLAINTEXT],
+        KeyStatus::Revoked,
+    );
+    bump(RECORD_REVOKED_DENIED);
 }
 fn byte(offset: usize) -> u8 {
     (7 + offset * 13 + offset / 251) as u8
@@ -238,8 +397,10 @@ fn main() -> ! {
     blob[length - 1] ^= 1;
     let _ = keys.call(kw::UNSEAL, index, &blob[..length], KeyStatus::Auth);
     blob[length - 1] ^= 1;
+    let (context, record) = records_before_revoke(&mut keys, index);
     let _ = keys.call(kw::REVOKE, index, &[], KeyStatus::Ok);
     let _ = keys.call(kw::UNSEAL, index, &blob[..length], KeyStatus::Revoked);
+    records_after_revoke(&mut keys, index, context, &record);
     for (at, value) in [
         (400, 1),
         (416, 1),
