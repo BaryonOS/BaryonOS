@@ -1,7 +1,8 @@
 # Begrensde documentbewerksessie
 
 De actuele volume-route staat in `nieuw_os_document_session::volume`. Zij
-gebruikt het bestaande streamende v6-protocol voor documenten tot 64 KiB,
+gebruikt de bestaande streamende volumeoperaties met het v7-uploadtoken voor
+documenten tot 64 KiB,
 met door de app beheerde buffers, stapsgewijs bewaren en annuleren. Zie
 [contract en integratie](../../docs/implementation/VOLUME-DOCUMENT-SESSION.md).
 De onderstaande catalogusroute blijft beschikbaar voor bestaande M6c-clients;

@@ -1,4 +1,4 @@
-//! Streaming document editing over the existing volume v6 service.
+//! Streaming document editing over volume v7 upload-bound envelopes.
 //! The caller supplies storage for draft/original/read staging; no allocator,
 //! document-sized stack allocation, block capability or new kernel ABI.
 use core::ops::Range;
@@ -6,7 +6,7 @@ use core::ops::Range;
 use crate::{EditMode, SaveOutcome};
 use nieuw_os_catalog_client::{Delivery, Transport, MAX_POLL_BUDGET};
 use nieuw_os_sdk_runtime::{Error as RuntimeError, Outgoing, ReceiveEndpoint, SendEndpoint};
-use volume_core::{client, wire, NAME, PER_DOMAIN};
+use volume_core::{client, upload, wire, NAME, PER_DOMAIN};
 pub use volume_core::{client::Stat, wire::ListEntry, Status, MAX_LENGTH};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -145,6 +145,15 @@ impl<T: Transport> VolumeSession<T> {
         h: &wire::Header,
         data: &[u8],
     ) -> Result<(wire::Header, [u8; wire::SIZE]), Error> {
+        self.exchange_upload(h, data, 0)
+    }
+
+    fn exchange_upload(
+        &mut self,
+        h: &wire::Header,
+        data: &[u8],
+        token: u32,
+    ) -> Result<(wire::Header, [u8; wire::SIZE]), Error> {
         if self.closed {
             return Err(Error::Closed);
         }
@@ -152,9 +161,9 @@ impl<T: Transport> VolumeSession<T> {
         if data.len() > wire::DATA || h.length as usize != data.len() {
             return Err(Error::InvalidRequest);
         }
-        let request = wire::encode(h, data);
-        wire::validate_request(&request, self.epoch, self.domain).map_err(Error::Service)?;
-        let message = Outgoing::new(wire::TAG, &request).map_err(|_| Error::InvalidRequest)?;
+        let request = upload::encode(h, data, token);
+        upload::validate_request(&request, self.epoch, self.domain).map_err(Error::Service)?;
+        let message = Outgoing::new(upload::TAG, &request).map_err(|_| Error::InvalidRequest)?;
         let mut queued = false;
         for _ in 0..self.budget {
             match self.transport.send(self.send, &message) {
@@ -196,14 +205,14 @@ impl<T: Transport> VolumeSession<T> {
                     }
                     if unexpected_caps
                         || message.sender() != self.service
-                        || message.tag() != wire::TAG
+                        || message.tag() != upload::TAG
                         || message.payload().len() != wire::SIZE
                     {
                         return Err(self.protocol_with(cleanup));
                     }
                     let mut body = [0; wire::SIZE];
                     body.copy_from_slice(message.payload());
-                    let reply = match client::validate_reply(h, &body, self.epoch) {
+                    let reply = match upload::validate_reply(h, token, &body, self.epoch) {
                         Ok(reply) => reply,
                         Err(_) => return Err(self.protocol()),
                     };
@@ -347,6 +356,7 @@ struct Loaded {
 #[derive(Clone, Copy)]
 struct Upload {
     id: u64,
+    token: u32,
     offset: usize,
 }
 
@@ -652,9 +662,10 @@ impl<'a, T: Transport> DocumentSession<'a, T> {
             .session
             .exchange(&h, &loaded.name[..loaded.name_length])
         {
-            Ok(_) => {
+            Ok((_, body)) => {
                 self.upload = Some(Upload {
                     id: h.request_id,
+                    token: upload::token(&body),
                     offset: 0,
                 });
                 Ok(())
@@ -689,7 +700,7 @@ impl<'a, T: Transport> DocumentSession<'a, T> {
             &self.buffers.draft[upload.offset..end]
         };
         h.length = data.len() as u32;
-        match self.session.exchange(&h, data) {
+        match self.session.exchange_upload(&h, data, upload.token) {
             Ok((reply, _)) if committing => {
                 let loaded = self.loaded.as_mut().unwrap();
                 loaded.revision = reply.revision;
@@ -720,7 +731,7 @@ impl<'a, T: Transport> DocumentSession<'a, T> {
         let upload = self.upload.ok_or(Error::InvalidRequest)?;
         let mut h = wire::Header::new(wire::ABORT, upload.id, self.session.epoch, loaded.object);
         h.revision = loaded.revision;
-        match self.session.exchange(&h, &[]) {
+        match self.session.exchange_upload(&h, &[], upload.token) {
             Ok(_) => {
                 self.upload = None;
                 Ok(())

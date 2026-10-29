@@ -1,7 +1,9 @@
-# FR-A03 — streamende documentsessie voor volume v6
+# FR-A03 — streamende documentsessie met volume-uploadbinding
 
 Implementatie boven de bestaande `volume-core`-dienst, zonder nieuwe kernel-ABI,
-opslagengine, capabilities of schijfformaat. De oude `DocumentSession` blijft
+opslagengine, capabilities of schijfformaat. De nieuwe SDK-route gebruikt het
+opt-in v7-envelope met dienstgebonden uploadtokens; de v6-opslagoperaties en
+legacyclient blijven beschikbaar. De oude `DocumentSession` blijft
 byte-/API-compatibel met het catalogusprotocol van M6c. De nieuwe module is
 `nieuw_os_document_session::volume`.
 
@@ -40,15 +42,63 @@ volledige testrelease.
 Tijdens een upload zijn inhoudswijzigingen en andere documentoperaties `Busy`,
 zodat APPEND niet verschillende conceptversies mengt. Een normale annulering
 geeft de bestaande volumereservering vrij. Bij een verloren verbinding kan
-ABORT niet worden bevestigd; de bestaande dienst vervangt een verlaten upload
-bij een volgende geautoriseerde BEGIN in hetzelfde domein. Close is geen
-claim dat staging reeds is vrijgegeven.
+ABORT niet worden bevestigd; een actieve v7-upload blijft dan `Busy` tot
+gecontroleerde opruiming. Close is geen claim dat staging al is vrijgegeven.
+
+## R1 — onderscheid tussen onafhankelijke uploads
+
+De eerste versie startte request-ID's per SDK-sessie bij 1, terwijl v6 de
+actieve upload alleen met domein, object, verwachte revisie en request-ID
+matchte. Twee zelfstandige editors konden daardoor dezelfde upload-ID
+gebruiken: BEGIN van B verving de naam van A, waarna A onder die naam kon
+committen en zijn eigen naam onterecht als bewaard markeerde. De concrete
+regressie met twee echte capability-endpointparen faalt vóór het herstel.
+
+V7 gebruikt tag `0x4d36454c4b000007`, versie 7 en een u32-uploadtoken op
+offset 4 van het bestaande 224-byte-envelope. Overige operaties en velden
+behouden hun v6-betekenis. BEGIN vraagt token 0 en ontvangt na succes een
+door de dienst uitgegeven niet-nul-token. APPEND, COMMIT en ABORT moeten
+dat token echoën; gewone lees-/metadataoperaties gebruiken token 0.
+Antwoorden echoën het token, behalve de succesvolle uitgifte bij BEGIN.
+De client valideert dit vóór hij een ACK accepteert.
+
+De dienst bindt een upload aan token, werkelijk kernel-sender-PID en het
+kernelgebonden domein. `Service::handle_for` krijgt die PID uitsluitend van
+de vertrouwde adapter. De native adapter behoudt zijn controle dat de
+werkelijke sender de voor dat ingress toegewezen client is. Een payloadveld
+of voorspelbaar token verleent geen extra document-/domeinrecht. Het token
+onderscheidt uploads, ook voor twee editors in dezelfde PID.
+
+Er blijft één actieve upload per domein: een nieuwe BEGIN krijgt `Busy` en
+vervangt geen actief werk. De teller is per domein zodat tokenuitgifte geen
+extra activiteit van het andere domein onthult. Zij loopt tijdens deze dienstinstantie niet
+rond; uitputting geeft `Quota` vóór staging of I/O. Na ABORT, commit of
+opruiming krijgt een nieuwe upload een nieuw token. Een oud token, verkeerde
+PID of ander domein kan de nieuwe upload niet afmaken of annuleren. V6
+BEGIN/APPEND/COMMIT/ABORT krijgen `Busy` als een v7-upload actief is; v7 kan
+evenmin een actieve legacy-upload overnemen. `Unknown` blijft in beide
+protocollen de terminale diensttoestand en gaat vóór deze Busy-controle.
+
+`Service::detach(principal)` is uitsluitend een vertrouwde melding dat de
+principal dood is of **al** zijn grants naar deze dienst zijn ingetrokken.
+Een laat sluitbericht voor één oud endpoint mag deze functie niet aanroepen:
+het zou nieuw werk van dezelfde levende PID kunnen annuleren. De functie
+ruimt staging op en laat reeds bevestigde gegevens en de tokenmonotonie
+intact. Zij is geen op afstand aanroepbare beheeroperatie.
+
+De native notificatie van principal-exit of volledige grantretirement is
+nog **open**. Er wordt geen hostnotificatie of timer als native opruiming
+voorgesteld. Een verloren BEGIN-antwoord kan een actieve reservering zonder
+bekend clienttoken achterlaten; tot die lifecycle-integratie vereist dit
+bewezen principalbeëindiging of gecontroleerd dienstherstel met nieuwe
+grants/epoch. Een nieuwe SDK-sessie of willekeurig ander BEGIN mag die
+blokkade niet stil opheffen.
 
 ## Fouten en veiligheidsgrens
 
-- De module gebruikt `volume_core::wire::validate_request` en de bestaande
-  `client::validate_reply`. Versie, epoch, request-ID, object, revisie,
-  lengtes, padding en operaties worden gevalideerd. De buitenste Message320
+- De module gebruikt `volume_core::upload` boven de bestaande v6-validators.
+  Versie, epoch, request-ID, object, revisie, uploadtoken, lengtes, padding en
+  operaties worden gevalideerd. De buitenste Message320
   moet van de verwachte dienst komen, de juiste tag hebben en geen
   capabilities bevatten. Onverwachte ontvangen handles worden gesloten;
   daarna worden beide sessie-endpoints gesloten.
@@ -93,7 +143,7 @@ al aan `catalog-core`. Er zijn geen nieuwe externe packages of buildscripts.
 De integrator werkt uitsluitend de SDK-lockregistratie voor de toegevoegde
 lokale dependency bij; geen protocol- of lockversieomzetting nodig.
 
-### Uitgevoerde deelcontrole
+### Eerste deelcontrole vóór R1 (`b34ff68`)
 
 Op de FR-A03-appbranch slagen 27 tests van deze crate (14 legacy, 12 volume-
 integraties en één request-ID-grens), Clippy met `-D warnings`, formattering en
@@ -116,3 +166,20 @@ Voor alle vier geldt
 `CARGO_HOME`/`RUSTUP_HOME` selecteren de gepinde projecttoolchain. De native
 appaanroep, grafische bediening en koude QEMU-integratie zijn in deze
 deelcontrole **niet uitgevoerd** en blijven bij de hoofdintegrator open.
+
+### R1-hercontrole
+
+De regressie met twee onafhankelijke SDK-sessies faalt vóór herstel met exit
+101: de tweede BEGIN wordt ten onrechte geaccepteerd. Na herstel slagen alle
+28 SDK-tests en 37 `volume-core`-tests, inclusief de bestaande v6-crashsuite,
+acht nieuwe uploadidentiteitsproeven en telleruitputting. SDK en core slagen
+voor Clippy `-D warnings`; root-/SDK-formatchecks, de scalar
+`x86_64-unknown-none` SDK-library en beide native volumeprogramma's bouwen
+offline. Logs en exacte commando's: `/tmp/nieuw-os-a03-r1-final/`; de rode
+controle staat in `/tmp/nieuw-os-a03-verification/r1-before.*`.
+
+Een afzonderlijke agent herhaalde de 28 SDK-tests en de negen gerichte
+coreproeven op een bytegelijke bronkopie: alle geslaagd, geen overgeslagen
+tests. Dit is een tweede AI-controle van host/wiregedrag, geen menselijke
+audit of native uploadacceptatie. De echte v7-appaanroep en native
+principal-exit-/verloren-BEGIN-opruiming blijven zichtbaar open.

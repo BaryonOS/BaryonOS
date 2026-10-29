@@ -13,7 +13,7 @@ mod support;
 use nieuw_os_sdk_runtime::{
     block::READ_MAX, native, BlockDevice, Error, Handle, Outgoing, ReceiveEndpoint, SendEndpoint,
 };
-use volume_core::{service::Service, wire, Disk, Status, SECTOR};
+use volume_core::{service::Service, upload, wire, Disk, Status, SECTOR};
 
 const POLL_LIMIT: usize = 200_000;
 
@@ -100,8 +100,8 @@ fn handle(raw: u64) -> Handle {
     Handle::from_raw(raw).unwrap_or_else(|_| startup_error(Status::Invalid))
 }
 
-fn send(endpoint: SendEndpoint, body: &[u8; wire::SIZE]) {
-    let Ok(message) = Outgoing::new(wire::TAG, body) else {
+fn send(endpoint: SendEndpoint, tag: u64, body: &[u8; wire::SIZE]) {
+    let Ok(message) = Outgoing::new(tag, body) else {
         startup_error(Status::Protocol);
     };
     for _ in 0..POLL_LIMIT {
@@ -167,17 +167,36 @@ pub extern "C" fn _start() -> ! {
             }
             let mut body = [0; wire::SIZE];
             let payload = message.payload();
-            let reply = if had_caps || message.tag() != wire::TAG || payload.len() != wire::SIZE {
+            let token_bound = message.tag() == upload::TAG;
+            let reply = if had_caps
+                || !matches!(message.tag(), wire::TAG | upload::TAG)
+                || payload.len() != wire::SIZE
+            {
                 body[..payload.len().min(wire::SIZE)]
                     .copy_from_slice(&payload[..payload.len().min(wire::SIZE)]);
                 service.counters.rejected += 1;
-                wire::error_reply(&wire::header(&body), epoch, Status::Invalid, 0)
+                let error = wire::error_reply(&wire::header(&body), epoch, Status::Invalid, 0);
+                if token_bound {
+                    upload::wrap(error, upload::token(&body))
+                } else {
+                    error
+                }
             } else {
                 body.copy_from_slice(payload);
-                service.handle(domain, &body, &mut disk)
+                if token_bound {
+                    // Sender is kernel-delivered envelope metadata, already
+                    // matched to this ingress's authorized client above.
+                    service.handle_for(domain, message.sender(), &body, &mut disk)
+                } else {
+                    service.handle(domain, &body, &mut disk)
+                }
             };
             evidence(&service);
-            send(replies[domain], &reply);
+            send(
+                replies[domain],
+                if token_bound { upload::TAG } else { wire::TAG },
+                &reply,
+            );
         }
         let _ = native::yield_now();
     }

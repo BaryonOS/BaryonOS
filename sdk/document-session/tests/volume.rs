@@ -14,7 +14,7 @@ use volume_core::{
     client::{Client, Transport as CoreTransport},
     service::Service,
     table::{self, Table},
-    wire, Disk, Status, PER_DOMAIN, SECTOR, VOLUME_SECTORS,
+    upload, wire, Disk, Status, PER_DOMAIN, SECTOR, VOLUME_SECTORS,
 };
 
 const EPOCH: u64 = 17;
@@ -120,7 +120,9 @@ impl Host {
         let body: [u8; wire::SIZE] = request.data[..wire::SIZE].try_into().unwrap();
         let header = wire::header(&body);
         self.requests.push(header);
-        let mut response = self.service.handle(0, &body, &mut self.disk);
+        let mut response = self
+            .service
+            .handle_for(0, request.sender_pid, &body, &mut self.disk);
         if matches!(self.fault, Fault::DropCommit) && header.operation == wire::COMMIT {
             return;
         }
@@ -131,13 +133,13 @@ impl Host {
             && header.operation == wire::READ
             && header.aux != 0
         {
-            response = wire::error_reply(&header, EPOCH, Status::Access, 0);
+            response = upload::wrap(wire::error_reply(&header, EPOCH, Status::Access, 0), 0);
         }
         let mut message = Message::new();
         message.tag = if matches!(self.fault, Fault::WrongTag) {
-            wire::TAG + 1
+            upload::TAG + 1
         } else {
-            wire::TAG
+            upload::TAG
         };
         message.len = wire::SIZE as u32;
         message.data[..wire::SIZE].copy_from_slice(&response);
@@ -697,5 +699,134 @@ fn empty_document_rename_editing_and_foreign_selector() {
         e.close().unwrap();
         e.replace_contents(b"editable offline").unwrap();
         assert_eq!(e.draft().unwrap().contents, b"editable offline");
+    });
+}
+
+struct IndependentPort {
+    host: Rc<RefCell<Host>>,
+    request_receive: u64,
+    reply_send: u64,
+}
+impl Transport for IndependentPort {
+    fn send(&mut self, endpoint: SendEndpoint, message: &Outgoing) -> Result<(), RuntimeError> {
+        self.host
+            .borrow_mut()
+            .engine
+            .send(
+                1,
+                endpoint.handle().raw(),
+                &Message::decode(message.as_bytes()).unwrap(),
+            )
+            .map_err(|e| RuntimeError::Kernel(e.code()))
+    }
+    fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, RuntimeError> {
+        let mut host = self.host.borrow_mut();
+        let request = host
+            .engine
+            .receive(2, self.request_receive)
+            .map_err(|e| RuntimeError::Kernel(e.code()))?;
+        let body: [u8; wire::SIZE] = request.data[..wire::SIZE].try_into().unwrap();
+        host.requests.push(wire::header(&body));
+        let h = &mut *host;
+        let response = h
+            .service
+            .handle_for(0, request.sender_pid, &body, &mut h.disk);
+        let mut message = Message::new();
+        message.tag = upload::TAG;
+        message.len = wire::SIZE as u32;
+        message.data[..wire::SIZE].copy_from_slice(&response);
+        host.engine.send(2, self.reply_send, &message).unwrap();
+        let message = host
+            .engine
+            .receive(1, endpoint.handle().raw())
+            .map_err(|e| RuntimeError::Kernel(e.code()))?;
+        Received::from_bytes(message.encode(), message.len as u64)
+    }
+    fn yield_now(&mut self) -> Result<(), RuntimeError> {
+        Ok(())
+    }
+    fn close(&mut self, handle: Handle) -> Result<(), RuntimeError> {
+        self.host
+            .borrow_mut()
+            .engine
+            .close(1, handle.raw())
+            .map_err(|e| RuntimeError::Kernel(e.code()))
+    }
+}
+fn independent_editor<'a>(
+    host: &Rc<RefCell<Host>>,
+    buffers: Buffers<'a>,
+) -> DocumentSession<'a, IndependentPort> {
+    let mut h = host.borrow_mut();
+    let root = h.engine.create_endpoint(2).unwrap();
+    let request_receive = h.engine.derive(2, root, capability_core::RECV).unwrap();
+    let app_send = h.engine.bootstrap_delegate(2, root, 1, SEND).unwrap();
+    let app_receive = h.engine.create_endpoint(1).unwrap();
+    let reply_send = h
+        .engine
+        .bootstrap_delegate(1, app_receive, 2, SEND)
+        .unwrap();
+    let session = VolumeSession::new(
+        IndependentPort {
+            host: Rc::clone(host),
+            request_receive,
+            reply_send,
+        },
+        EPOCH,
+        2,
+        0,
+        SendEndpoint::from_handle(Handle::from_raw(app_send).unwrap()),
+        ReceiveEndpoint::from_handle(Handle::from_raw(app_receive).unwrap()),
+        4,
+    )
+    .unwrap();
+    DocumentSession::new(session, EditMode::ReadWrite, buffers).unwrap()
+}
+
+#[test]
+fn independent_sessions_cannot_mix_upload_name_and_contents() {
+    run(|| {
+        let host = Host::new();
+        host.borrow_mut().seed(0, b"old");
+        let (mut ad, mut ao, mut ast) = ([0; 512], [0; 512], [0; 512]);
+        let (mut bd, mut bo, mut bst) = ([0; 512], [0; 512], [0; 512]);
+        let mut a = independent_editor(
+            &host,
+            Buffers {
+                draft: &mut ad,
+                original: &mut ao,
+                staging: &mut ast,
+            },
+        );
+        let mut b = independent_editor(
+            &host,
+            Buffers {
+                draft: &mut bd,
+                original: &mut bo,
+                staging: &mut bst,
+            },
+        );
+        a.open(0).unwrap();
+        b.open(0).unwrap();
+        a.rename_draft(b"NameA").unwrap();
+        b.rename_draft(b"NameB").unwrap();
+        a.replace_contents(b"AAAA").unwrap();
+        b.replace_contents(b"BBBB").unwrap();
+        a.begin_save().unwrap();
+        assert_eq!(b.begin_save(), Err(Error::Service(Status::Busy)));
+        assert!(b.is_dirty());
+        assert_eq!(
+            a.save_next(),
+            Ok(SaveProgress::Writing {
+                completed: 4,
+                total: 4
+            })
+        );
+        assert_eq!(a.save_next(), Ok(SaveProgress::Saved { revision: 2 }));
+        let actual = host.borrow().service.table().entries[0].current;
+        assert_eq!(&actual.name[..actual.name_length], b"NameA");
+        assert!(!a.is_dirty());
+        assert_eq!(b.save(), Err(Error::Conflict));
+        assert_eq!(b.draft().unwrap().contents, b"BBBB");
     });
 }
