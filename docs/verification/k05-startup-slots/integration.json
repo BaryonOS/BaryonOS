@@ -1,0 +1,12 @@
+{
+  "source_commit": "56b576b16da1e4503bc5f9167a476474a58c33cf",
+  "source_sha256": "cccf0e3e7fcec439428208c4458a0194ec23c6120e1f03d96abe65b0711631b7",
+  "base_commit": "383636193faedc65b80c748c5bc4df28676dc2d3",
+  "branch": "codex/supervisor-startup-slots",
+  "passed": true,
+  "vm_invocations": 5,
+  "host_tests": 65,
+  "independent_ai_review": "geen blocker op 2665f68; 7/7 harnas onafhankelijk",
+  "baseline_before": "before/result.json",
+  "scope": "K05 raw startup-slotposities, geen nieuw criterium"
+}

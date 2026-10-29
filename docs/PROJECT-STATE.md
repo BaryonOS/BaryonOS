@@ -1,31 +1,51 @@
 # Actuele projectstatus
 
-## K05 vaste startcapabilityposities hersteld, volledige gate volgt — 29 oktober 2026
+## K05 startcapabilityposities native hersteld, 32% — 29 oktober 2026
 
 Branch `codex/supervisor-startup-slots`, basis `main`
-`383636193faedc65b80c748c5bc4df28676dc2d3` (PR #54 gemerged, alle zes
-GitHub-workflows groen). Workflow-PR #53 is gemerged; #48 is aantoonbaar
-vervangen en gesloten; alle acht B01/S08-reviewthreads zijn opgelost.
+`383636193faedc65b80c748c5bc4df28676dc2d3` (#54 gemerged na zes groene
+workflows). Exact geteste bron `56b576b16da1e4503bc5f9167a476474a58c33cf`,
+bronvingerafdruk `cccf0e3e7fcec439428208c4458a0194ec23c6120e1f03d96abe65b0711631b7`.
+Latere wijzigingen zijn uitsluitend docs/bewijs.
 
-De nog open P2 uit #51 betrof een geldig raw `proc_spawn` met lege cap0 en
-SEND-capability in cap1: de kernel compacteerde cap1 naar startup-offset56
-in plaats van64. Verzamelen en installeren behouden nu de vaste argumentindex;
-`count` blijft uitsluitend voor resourcepreflight. Geen rechten/ABI/SDKwijziging.
-Normale native client gebruikt echt cap1, bevestigt cap0nul en weigert
-RECV/DERIVE. Vier extra negatieve rawchecks zijn toegevoegd.
+**Hersteld:** P2 uit #51: een geldige raw `proc_spawn` met lege cap0 en
+SEND in cap1 gaf cap1 foutief op startup-offset56 in plaats van64.
+Verzamelen/installeren behouden nu beide indices; count blijft voor quota-
+preflight. Geen rechten-, ABI-, SDK-interface- of afhankelijkheidswijziging.
 
-Gericht bewezen: oude kernel + nieuwe test faalt (timeout15s, geen PASS);
-herstelde normalcase raw33/exit0, één sparse spawn, drie slot-/rechtenchecks,
-24 antwoorden, herstart en cleanup groen. Zeven harnastests, fmt en een tweede
-agentreview groen. Volledige vijfgevallenpoort **NIET UITGEVOERD** op rootbron.
+**Uitgevoerd en geslaagd (exit0):** `tools/test_supervisor.py`,5/5 echte
+QEMU-runs normal/crash/denied/parent-exit/quota. Normal bewijst één sparse
+spawn, drie slot-/rechtencontroles,24 echteIPC-antwoorden en herstart;
+denied21/21 gematchte controles,11 geweigerde spawns. Engine-/framecleanup
+in alle gevallen groen. Host40capability/17SDK/1voorbeeldlib/7harnastests;
+voorbeeldclippy, root-/SDKfmt en diffcontrole groen. Oude kernel met nieuwe
+native test faalde aantoonbaar na15s; gerichte herstelde normalcase groen.
+Afzonderlijke agentreview: geen blockers;7harnastests onafhankelijk herhaald.
+Bewijs en exacte commando's: [k05-startup-slots](verification/k05-startup-slots/README.md).
+
+Omgeving: Rust1.90.0, QEMU10.0.13, explicietpc-q35-8.2, qemu64/TCG/1CPU/
+256MiB, OVMF2025.02-8+deb13u1/4M. Geen fysiekehardware- of SMPclaim.
+**Score32→32:** bestaand K05-ABI-randgeval hersteld; geen nieuw criterium.
+Eind-CI/review moet groen zijn vóór de geschikte squash-merge.
+
+Vorige geïntegreerde batch: #53 en #54 gemerged; #48 aantoonbaar vervangen en
+gesloten. Alle acht B01/S08-reviewthreads opgelost. B01/S08/S06 hebben27 echte
+VM-runs op hun eigen bevroren bron53e0d57 (historisch bewijs hieronder).
 
 ### NEXT AGENT HANDOFF
 
-Root bezit docs/bewijs/voortgang; code is gecherry-pickt. Push checkpoint,
-draai `tools/test_supervisor.py` op vaste HEAD met eigen build/target en
-`NOS_QEMU_MACHINE=pc-q35-8.2`, capture nieuw bewijs, herbeoordeel 32→32.
-Vervolgens geschikte concept-PR, eind-CI/review en squash-merge. B02 blijft
-volgende producttaak; bestaande B01-grenzen staan hieronder en blijven gelden.
+- Bron: `codex/supervisor-startup-slots`, geteste commit volledig hierboven.
+  Controleer actuele HEAD/PR-merge; `git fetch origin main` vóór vervolgwerk.
+- Afgerond: K05-slotfix en lokale vijfgevallenacceptatie; productiecode en
+  bewijs gecommit/gepusht, geen losse rootwijzigingen. Integratie uitsluitend
+  na actuele groene PR-checks; los daarna thread PRRT_kwDOVZC91s6xvSPj op.
+- Volgende concrete productstap: B02, persistente geauthenticeerde sleutel-/
+  volumeopslag boven services/keyring en services/volume; begin met record-
+  formaat en negatieve manipulatie-/rollbacktests in een eigen branch.
+- Open grenzen blijven: koude antirollback, requestercrash/reset-zonder-ACK-
+  nativebewijs, TPM/fysieke RNG/hardware. Geen nieuw scorepunt toegekend.
+- S09 historische lokale bron niet remote gevonden; controleer beschikbare
+  lokale bronnen vóór een eventuele dubbele implementatie.
 
 ## Historische checkpoints
 

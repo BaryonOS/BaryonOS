@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`ff19f2f2`](https://github.com/simonvanieperen/nieuw-os/commit/ff19f2f2a31d1a6bc7d47efa460df138c638035b) ·
+**Bron:** [`56b576b1`](https://github.com/simonvanieperen/nieuw-os/commit/56b576b16da1e4503bc5f9167a476474a58c33cf) ·
 **Ontwikkelbranch:** `codex/supervisor-startup-slots`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** K05 raw ABI-randgeval: vaste cap0/cap1-posities behouden.
-32→32, geen nieuw criterium. #54 op main3836361 geïntegreerd met zes groene workflows; #48 gesloten en acht reviews opgelost. K05-P2 uit#51 hersteld: cap1 schuift bij legecap0 niet naar56 maar blijft64. Gerichte echte native regressie rood vóór herstel, groen erna; 7harnastests/fmt/agentreview groen. Volledige K05-gate en eind-CI volgen, nog niet als geslaagd geclaimd. B01/S08/S06-bewijs uit vorige snapshot blijft historisch geldig; geen crypto-/rechten-/ABIwijziging.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** K05 vaste startcapabilityposities en raw ABI-negatieve gevallen native geverifieerd.
+32→32. Bestaand P2-ABI-randgeval uit#51 opgelost: legecap0 behoudt cap1 opoffset64. Native regressie rood vóór herstel, groen erna. Volledige K05-gate op56b576b/fingerprintcccf0e3e:5/5 echte VM-runs, normal sparse-spawn1/slotchecks3/24antwoorden, denied21/21, behoudfault/orphan/quota en cleanup.65hosttests plus clippy/fmt/diff groen; tweedeagentreview geenblocker. #53/#54 geïntegreerd, #48gesloten en8reviewthreads opgelost. Geen nieuwe rechten, ABI, dependencies, criteria of gewichten. B02 en bestaande hardware-/antirollbackgrenzen blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
