@@ -1,0 +1,38 @@
+[package]
+name = "nieuw-os-supervisor-example"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+native = []
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../../runtime" }
+
+[lib]
+name = "k05_protocol"
+path = "src/protocol.rs"
+test = true
+bench = false
+
+[[bin]]
+name = "k05-supervisor"
+path = "src/supervisor.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[[bin]]
+name = "k05-worker"
+path = "src/worker.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[[bin]]
+name = "k05-client"
+path = "src/client.rs"
+required-features = ["native"]
+test = false
+bench = false

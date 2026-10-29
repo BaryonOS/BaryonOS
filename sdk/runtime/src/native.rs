@@ -4,7 +4,9 @@ use core::arch::asm;
 
 use crate::{
     block::{self, BlockDevice, READ_MAX, SECTOR_SIZE},
-    decode_return, validate_abi, zero_return, Error, Handle, Outgoing, ReceiveEndpoint, Received,
+    decode_return,
+    process::{spawn_cap_words, ChildProcess, LaunchImage, ProcessStatus},
+    validate_abi, zero_return, Capability, Error, Handle, Outgoing, ReceiveEndpoint, Received,
     Rights, SendEndpoint, MESSAGE_SIZE,
 };
 
@@ -190,4 +192,35 @@ pub fn block_wait(
         }
     }
     Err(Error::Kernel(-13))
+}
+
+/// K05 (ABI 1.3): create an endpoint this process owns. The returned root
+/// handle carries all endpoint rights; the kernel enforces the quota of four
+/// owned endpoints per process and 64 in total.
+pub fn endpoint_create() -> Result<Handle, Error> {
+    Handle::from_raw(call(0x30, [0; 6])?)
+}
+
+/// K05 (ABI 1.3): start the image named by `image`, passing `arg` as startup
+/// word 0 and at most two reduced capabilities (never RECV). Success returns
+/// the only handle to the child's `Process` object.
+pub fn spawn(image: LaunchImage, arg: u64, caps: &[Capability]) -> Result<ChildProcess, Error> {
+    if caps.len() > 2 {
+        return Err(Error::MessageSize);
+    }
+    let (h0, r0) = spawn_cap_words(caps.first().copied())?;
+    let (h1, r1) = spawn_cap_words(caps.get(1).copied())?;
+    Handle::from_raw(call(0x50, [image.handle().raw(), arg, h0, r0, h1, r1])?)
+        .map(ChildProcess::from_handle)
+}
+
+/// K05 (ABI 1.3): end a running child. The kernel reclaims its memory,
+/// closes its endpoints and revokes what it delegated before returning.
+pub fn kill(child: ChildProcess) -> Result<(), Error> {
+    zero_return(call(0x51, [child.handle().raw(), 0, 0, 0, 0, 0]))
+}
+
+/// K05 (ABI 1.3): read the lifecycle state of a child.
+pub fn status(child: ChildProcess) -> Result<ProcessStatus, Error> {
+    ProcessStatus::decode(call(0x52, [child.handle().raw(), 0, 0, 0, 0, 0])?)
 }

@@ -24,6 +24,8 @@ M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cu
 M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES
 VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "cut-txn")
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
+SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota")
+SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES))
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
@@ -32,7 +34,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "tes
                    "milestone-m6a", *(f"test-m6a-{case}" for case in M6A_CASES),
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
-                   "native-sdk-app", "test-sdk-app-denied", *VOLUME_FEATURES]
+                   "native-sdk-app", "test-sdk-app-denied", *VOLUME_FEATURES, *SUPERVISOR_FEATURES]
 
 
 def inspect_elf(path):
@@ -163,6 +165,16 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
             "NOS_VOLUME_APP_ELF": str(app.resolve()),
             "NOS_VOLUME_SERVICE_ELF": str(service.resolve()),
         }
+    elif kernel_feature in SUPERVISOR_FEATURES:
+        from build_users import inspect_user
+        supervisor_target = TARGET / "supervisor"
+        run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/supervisor/build.py")],
+                   "build-supervisor", extra_env={"CARGO_TARGET_DIR": str(supervisor_target)})
+        binaries = {name: supervisor_target / f"x86_64-unknown-none/release/k05-{name}"
+                    for name in ("supervisor", "worker", "client")}
+        qsim_report = {f"{name}_sha256": sha256(path) for name, path in binaries.items()}
+        qsim_report.update({f"{name}_elf": inspect_user(path) for name, path in binaries.items()})
+        extra_env = {f"NOS_{name.upper()}_ELF": str(path.resolve()) for name, path in binaries.items()}
     if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b", "m6c")):
         from build_users import build_users
         extra_env = {"NOS_USER_ELF": str(build_users("large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
@@ -198,6 +210,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
             manifest["sdk_app"] = qsim_report
         elif kernel_feature in VOLUME_FEATURES:
             manifest["volume_docs"] = qsim_report
+        elif kernel_feature in SUPERVISOR_FEATURES:
+            manifest["supervisor"] = qsim_report
         else:
             manifest["qsim_user"] = qsim_report
     esp = BUILD / "esp"

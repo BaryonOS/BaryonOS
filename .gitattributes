@@ -43,3 +43,9 @@ docs/verification/s06/**/*.txt -text
 docs/verification/s06/**/*.json -text
 docs/verification/s06/*.json -text
 docs/verification/s06/SHA256SUMS -text
+
+# K05 gate evidence: exact serial/report bytes bound by SHA256SUMS.
+docs/verification/k05/**/*.txt -text
+docs/verification/k05/**/*.json -text
+docs/verification/k05/*.json -text
+docs/verification/k05/SHA256SUMS -text

@@ -8,17 +8,20 @@
 
 pub mod block;
 mod message;
+pub mod process;
 pub use block::BlockDevice;
 pub use message::{Outgoing, Received, MAX_CAPS, MAX_PAYLOAD, MESSAGE_SIZE};
+pub use process::{ChildProcess, LaunchImage, ProcessStatus};
 
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]
 pub mod native;
 
 pub const ABI_MAJOR: u64 = 1;
-pub const ABI_MAX_MINOR: u64 = 2;
+pub const ABI_MAX_MINOR: u64 = 3;
 
 /// The common syscall contract is unchanged across the existing 1.0, 1.1,
-/// and 1.2 profiles. Unknown revisions require a separate compatibility check.
+/// 1.2 and 1.3 profiles (1.3 adds the K05 process-management calls). Unknown
+/// revisions require a separate compatibility check.
 pub fn validate_abi(version: u64) -> Result<(), Error> {
     if version >> 32 == ABI_MAJOR && version as u32 as u64 <= ABI_MAX_MINOR {
         Ok(())
@@ -89,8 +92,9 @@ impl ReceiveEndpoint {
     }
 }
 
-/// The currently defined endpoint and block-right bits. Rights are requested
-/// reductions; constructing this value never installs or enlarges authority.
+/// The currently defined endpoint, block, launch and process right bits.
+/// Rights are requested reductions; constructing this value never installs
+/// or enlarges authority.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Rights(u64);
 
@@ -104,9 +108,16 @@ impl Rights {
     pub const BLOCK_READ: Self = Self(1);
     pub const BLOCK_WRITE: Self = Self(32);
     pub const BLOCK_FLUSH: Self = Self(64);
+    /// K05: start the image a `Launch` object names.
+    pub const LAUNCH: Self = Self(128);
+    /// K05: read the lifecycle state of a spawned child.
+    pub const OBSERVE: Self = Self(256);
+    /// K05: end a spawned child.
+    pub const KILL: Self = Self(512);
+    pub const KNOWN_MASK: u64 = 1023;
 
     pub const fn from_bits(bits: u64) -> Result<Self, Error> {
-        if bits & !127 != 0 {
+        if bits & !Self::KNOWN_MASK != 0 {
             Err(Error::InvalidRights)
         } else {
             Ok(Self(bits))

@@ -140,9 +140,20 @@ docs. Alles is gecorrigeerd in `ce181bf`:
 | een read-only antwoord op een `Unknown` commit werd als definitief gepresenteerd | de test toont dat het na stroomverlies kan verdwijnen; een schrijfbare instantie maakt het duurzaam; invariant 6 aangepast |
 | invariant 7 claimde volledige non-interferentie | `Full` (gedeelde, overboekte ruimte) en de instantiebrede `Unknown` staan nu als restrisico in invariant 7 en ADR-041 |
 
-De resterende reviewdimensies (RESTORE/flush, gate-bewijs, merge/docs) en een
-controle van `ce181bf` lopen in een derde ronde. De uitkomst staat in
-PROJECT-STATE.md.
+### Acceptatiebesluit (29 oktober 2026)
+
+PR #49 is als `8b60354` op `main` gesquasht. Op PR-head `eadba7e` waren alle
+GitHub Actions-controles groen (host-quality, qemu-smoke, k07-native,
+m6e-native-volume, s08-native-resilience) en was de CodeRabbit-controle
+geslaagd met alle drie threads opgelost. De Codex-review kon niet draaien
+(gebruikslimiet) en telt dus niet als uitgevoerd.
+
+Onafhankelijke herhaling: in een tweede Linux-container (Rust 1.90.0, QEMU
+8.2.2, `pc-q35-8.2`, OVMF 4M) is `tools/test_volume.py` op een worktree van
+`eadba7e` opnieuw uitgevoerd: exit 0, 28/14/18 hosttests, 9 QEMU-runs,
+dezelfde bronvingerafdruk `528dfe4c…` en alle negen `after_sha256`-imagehashes
+byte-identiek aan `s06/`. Op grond daarvan is S06 in `docs/progress.json` op
+`accepted` gezet (26% → 28%). De bewijsgrenzen hieronder blijven gelden.
 
 ### Mutatiecontrole
 

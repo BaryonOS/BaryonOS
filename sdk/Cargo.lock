@@ -46,6 +46,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "nieuw-os-supervisor-example"
+version = "0.1.0"
+dependencies = [
+ "nieuw-os-sdk-runtime",
+]
+
+[[package]]
 name = "nieuw-os-volume-docs-example"
 version = "0.1.0"
 dependencies = [

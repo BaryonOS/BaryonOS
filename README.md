@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 26% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 30% van de vaste productroadmap](docs/assets/progress.svg)
 
-**26% — 26 van 100 gewogen acceptatiepunten.** Dit is een
+**30% — 30 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -19,8 +19,8 @@ alleen een nette desktop haalt die eindgrens niet.
 
 | Productspoor | Totaal punten | Behaald |
 |---|---:|---:|
-| Eigen kern en procesisolatie | 15 | 11 |
-| Opslag en gegevensherstel | 15 | 11 |
+| Eigen kern en procesisolatie | 15 | 13 |
+| Opslag en gegevensherstel | 15 | 13 |
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
 | Internet en netwerkdiensten | 10 | 0 |
@@ -29,13 +29,13 @@ alleen een nette desktop haalt die eindgrens niet.
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **26** |
+| **Totaal** | **100** | **30** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`9c74782e`](https://github.com/simonvanieperen/nieuw-os/commit/9c74782e55850ea6e620abc466d19fe659d925af) ·
+**Bron:** [`c92238b0`](https://github.com/simonvanieperen/nieuw-os/commit/c92238b038088a59c28a496880ca878b34eda8f5) ·
 **Ontwikkelbranch:** `ccr-a5fabb06-5mt06m`.
-Deze opdracht: **26% → 26% (+0 procentpunt)**. **Opdracht:** main 8b60354 met S06 in PR #48 geïntegreerd en conflicten opgelost; S08-bewijs behouden.
-Score blijft 26; geen criterium is door deze merge nieuw geaccepteerd. PR #49 (S06 volume v2) staat op main als 8b60354; de onafhankelijke native gateherhaling en de Actions-/CodeRabbit-controles op die PR-head waren groen. De roadmapacceptatie blijft een afzonderlijke concept-PR. Op mergecommit 9c74782 slagen formatter, M6c-/volume-hosttests, volume-core (28), SDK-runtime (14), progress-check en S06-hashes. De volume-native build slaagt, maar de poort bereikt geen VM omdat QEMU en OVMF ontbreken; de nieuwe Actions-runs hebben action_required en nul jobs. S08-gate is daarom niet opnieuw uitgevoerd. S08-timingbewijs blijft behouden en de vermoedelijke relatie met eerdere CI-fouten is niet bewezen; S04/S05 behouden hun opgeslagen acceptatiebewijs.
+Deze opdracht: **30% → 30% (+0 procentpunt)**. **Opdracht:** PR #48: actuele main c92238b geïntegreerd; S08-latentiediagnostiek telt ook Io-completions.
+Score blijft 30%; deze merge accepteert geen nieuw criterium. K05 (+2) is al op main geaccepteerd. De correctie in 83589ee meet publish-tot-completion-latentie vóór de Success/Io-splitsing in beide brokers. Op die bron slaagden 49 M6c-harnastests, 21 volume-harnastests, cargo +1.90.0 fmt --all -- --check en de builds van milestone-m6c en native-volume. Native QEMU-gates en Actions op deze mergehead zijn nog niet uitgevoerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

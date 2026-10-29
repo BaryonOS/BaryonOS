@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-29",
-    "source_commit": "9c74782e55850ea6e620abc466d19fe659d925af",
+    "source_commit": "c92238b038088a59c28a496880ca878b34eda8f5",
     "branch": "ccr-a5fabb06-5mt06m",
-    "task": "main 8b60354 met S06 in PR #48 geïntegreerd en conflicten opgelost; S08-bewijs behouden",
-    "previous_score": 26,
-    "summary": "Score blijft 26; geen criterium is door deze merge nieuw geaccepteerd. PR #49 (S06 volume v2) staat op main als 8b60354; de onafhankelijke native gateherhaling en de Actions-/CodeRabbit-controles op die PR-head waren groen. De roadmapacceptatie blijft een afzonderlijke concept-PR. Op mergecommit 9c74782 slagen formatter, M6c-/volume-hosttests, volume-core (28), SDK-runtime (14), progress-check en S06-hashes. De volume-native build slaagt, maar de poort bereikt geen VM omdat QEMU en OVMF ontbreken; de nieuwe Actions-runs hebben action_required en nul jobs. S08-gate is daarom niet opnieuw uitgevoerd. S08-timingbewijs blijft behouden en de vermoedelijke relatie met eerdere CI-fouten is niet bewezen; S04/S05 behouden hun opgeslagen acceptatiebewijs."
+    "task": "PR #48: actuele main c92238b geïntegreerd; S08-latentiediagnostiek telt ook Io-completions",
+    "previous_score": 30,
+    "summary": "Score blijft 30%; deze merge accepteert geen nieuw criterium. K05 (+2) is al op main geaccepteerd. De correctie in 83589ee meet publish-tot-completion-latentie vóór de Success/Io-splitsing in beide brokers. Op die bron slaagden 49 M6c-harnastests, 21 volume-harnastests, cargo +1.90.0 fmt --all -- --check en de builds van milestone-m6c en native-volume. Native QEMU-gates en Actions op deze mergehead zijn nog niet uitgevoerd."
   },
   "tracks": [
     {
@@ -62,9 +62,12 @@
           "id": "K05",
           "title": "Algemeen proces- en dienstbeheer",
           "points": 2,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "Niet-fixture-apps kunnen via begrensde API’s starten, afsluiten en diensten herstarten; afhankelijkheden en resources worden correct vrijgegeven.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/K05-ACCEPTANCE.md",
+            "docs/verification/k05/supervisor-gate.json"
+          ]
         },
         {
           "id": "K06",
@@ -148,9 +151,12 @@
           "id": "S06",
           "title": "Collecties, metadata en bewerkingsgeschiedenis",
           "points": 2,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "Native objectcollecties, persistente metadata en herstelbare revisies ondersteunen dagelijkse Materiaal-taken met consistente transacties.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/S06-ACCEPTANCE.md",
+            "docs/verification/s06/volume-gate.json"
+          ]
         },
         {
           "id": "S07",

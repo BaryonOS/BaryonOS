@@ -1,23 +1,89 @@
 # Actuele projectstatus
 
-## Merge-checkpoint PR #48 — 29 oktober 2026
+## K05 algemeen proces- en dienstbeheer native geaccepteerd, 30% — 29 oktober 2026
 
-`main` `8b60354` is in branch `ccr-a5fabb06-5mt06m` geïntegreerd. Op de
-samengevoegde werkboom slaagden: `cargo +1.90.0 fmt --all -- --check`;
-M6c-hosttests (21, inclusief 35 groepen/31 VM-invocaties); volume-hosttests
-(49); `volume-core` (28); SDK-runtime (14); `tools/progress.py --write`,
-`--check`; en `sha256sum -c docs/verification/s06/SHA256SUMS`.
+Branch `ccr-43832ef7-gi2qlz`, basis `main` `8b60354`. Omgeving: Linux-container,
+Rust 1.90.0, QEMU 8.2.2 (Ubuntu), `pc-q35-8.2`, OVMF 4M.
 
-De native `tools/test_volume.py`-poort bouwde na installatie van beide Rust-
-targets de loader, kernel en volume-app, maar stopte met exit 1 vóór de eerste
-VM omdat `qemu-system-x86_64` ontbreekt. `python3 tools/preflight.py --strict`
-bevestigde dat ook OVMF ontbreekt (exit 2). Installatie van QEMU/OVMF werd door
-de sandbox geweigerd wegens geen toegang tot de apt-lock. De S08-resiliencepoort
-is daardoor op deze merge niet opnieuw uitgevoerd. GitHub Actions op
-`9c74782` eindigde voor CI, volumepoort en twee acceptance-workflows als
-`action_required`, ieder met nul jobs; er zijn geen logs om inhoudelijk te
-beoordelen. Deze uitkomsten zijn niet groen en accepteren geen nieuw criterium;
-de score blijft 26%.
+**Gerealiseerd (native, profiel `native-supervisor`, ADR-042):**
+- `capability-core`: objecttypen `Launch` (rechten `LAUNCH`=128) en `Process`
+  (`OBSERVE`=256, `KILL`=512), zonder `DERIVE`/`TRANSFER`/`REVOKE`; `orphans()`
+  voor kinderen van een gestorven starter; 9 nieuwe hosttests.
+- Kernel `kernel/src/m2/m3/supervisor.rs`: syscalls `endpoint_create` (0x30),
+  `proc_spawn` (0x50), `proc_kill` (0x51), `proc_status` (0x52); alle controles
+  vóór toewijzing; dood via het bestaande `cleanup`-pad; wezen worden iteratief
+  in dezelfde gebeurtenis beëindigd. ABI-minor 1.3.
+- SDK-runtime: `native::endpoint_create/spawn/kill/status`, `LaunchImage`,
+  `ChildProcess`, `ProcessStatus`; drie gewone programma's in
+  `sdk/examples/supervisor` (supervisor, herstartbare worker, client).
+- Gate `tools/test_supervisor.py`: 4 hostcontroles en 5 echte QEMU-runs
+  (normal, crash, denied, parent-exit, quota); runner, capture, 7 harnastests;
+  workflow `K05 process management acceptance`.
+
+**Uitgevoerd en geslaagd:** zie [K05-ACCEPTANCE](verification/K05-ACCEPTANCE.md)
+en `docs/verification/k05/`. Kernelbewijs per run: normal 3 spawns/2 kills/1
+herstart/24 antwoorden; crash 1 echte `#UD`, herstart, 24 antwoorden; denied
+17/17 foutcodes, 2 processen; parent-exit 2 wezen beëindigd zonder kills;
+quota 15 spawns, 16e `EQUOTA` zonder frameverandering, 16 gelijktijdig, 15
+kills. Elke run eindigt met lege engine en framebaseline.
+
+**Roadmap rubric v1: 28% → 30%** (K05 +2).
+
+**Open en niet bewezen:**
+geen SMP, fysieke hardware, gebruikersgeleverde images (A02) of beleid voor wie
+supervisor mag zijn. Tijdens de eerste gate-run is de bronvingerafdruk
+veranderd door een gelijktijdige README-wijziging onder `sdk/`; die run is
+terecht als mislukt afgewezen en volledig herhaald.
+
+## S06 geaccepteerd na merge en onafhankelijke herhaling, 28% — 29 oktober 2026
+
+Branch `ccr-43832ef7-gi2qlz`, basis `main` `8b60354` (squash van
+[PR #49](https://github.com/simonvanieperen/nieuw-os/pull/49)). Omgeving: een
+tweede Linux-container met Rust 1.90.0, QEMU 8.2.2 (Ubuntu-pakket), `pc-q35-8.2`,
+OVMF 4M. Deze container is niet de omgeving waarin PR #49 is gebouwd.
+
+**Uitgevoerd en geslaagd:**
+- `NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_volume.py` op een
+  worktree van PR-head `eadba7e`: exit 0. Hostcontroles 28 volume-core-, 14 SDK-
+  en 18 Python-tests; daarna 9 echte QEMU-runs. Bronvingerafdruk `528dfe4c…`,
+  gelijk aan `docs/verification/s06/volume-gate.json`; alle 9 `after_sha256`-
+  imagehashes zijn byte-identiek aan het vastgelegde PR-bewijs (normal/recover
+  `19e2fdb3…`, cut-data `48dcfcdd…`, cut-table `2d37c7c1…`, cut-txn `ede3a54c…`,
+  corrupt `a19398f1…`).
+- GitHub Actions op `eadba7e`: host-quality, qemu-smoke, k07-native,
+  m6e-native-volume, s08-native-resilience en CodeRabbit alle geslaagd; de drie
+  CodeRabbit-threads zijn opgelost. Codex-review kon niet draaien (gebruikslimiet).
+- Baseline in deze container: `tools/preflight.py --strict`, build
+  `milestone-m6c` en `run_m6c.py --case normal --smoke` exit 0. Zonder
+  `NOS_QEMU_MACHINE=pc-q35-8.2` weigert QEMU 8.2.2 het standaardprofiel
+  `pc-q35-10.0`; dat is de bestaande, vastgelegde ontwikkelkeuze, geen fout.
+
+**Roadmap rubric v1: 26% → 28%** (S06 +2). Dit is de bewijsgrens van
+[S06-ACCEPTANCE](verification/S06-ACCEPTANCE.md): opt-in profiel, emulator-kill
+is geen stroomuitval, geen authenticatie/encryptie (B02), geen back-up/export
+(S09), geen Materiaal-UI.
+
+**Open:** PR [#48](https://github.com/simonvanieperen/nieuw-os/pull/48) bevat
+de S08-timingfix en de vervolgcorrectie voor Io-completions. De native QEMU-gates
+zijn op de nieuwe mergehead nog niet uitgevoerd. De vermoedelijke relatie tussen
+de eerdere CI-fouten en completionlatentie is niet bewezen.
+
+## PR #48 merge-checkpoint — 29 oktober 2026
+
+De actuele `main` (`c92238b`) is in branch `ccr-a5fabb06-5mt06m` geïntegreerd.
+De score blijft **30%**: K05 was al op `main` geaccepteerd; deze merge voegt
+geen roadmappunten toe. S08-bewijs en de Io-latencycorrectie uit `83589ee` zijn
+behouden. Op de samengevoegde werkboom slaagden:
+- `cargo +1.90.0 fmt --all -- --check` (exit 0).
+- `python3 -m unittest discover -s tests -p 'test_m6c_*.py'` (exit 0; 49 tests,
+  35 groepen/31 VM-invocaties).
+- `python3 -m unittest discover -s tests -p 'test_volume_*.py'` (exit 0; 21 tests).
+- `python3 -B tools/build.py --kernel-feature milestone-m6c` en
+  `python3 -B tools/build.py --kernel-feature native-volume` (beide exit 0).
+- `python3 tools/progress.py --write` en `python3 tools/progress.py --check`
+  (beide exit 0).
+De native QEMU-gates en GitHub Actions op deze mergehead zijn nog niet
+uitgevoerd; niet-uitgevoerde controles tellen niet als groen.
 
 ## S08-timingonderzoek: brokerdeadline 64 → 500 ticks — 29 oktober 2026
 
@@ -67,7 +133,8 @@ in `kernel/src/m2/m3/m6c.rs` en `kernel/src/m2/m3/volume.rs` (de normale
 M6e-run doet 140 flushes; het profiel heeft geen native foutfixtures, dus daar
 kost het geen testtijd).
 Beide brokers rapporteren nu de grootste waargenomen publish-tot-completion-
-latentie en het aantal verstreken deadlines (`M6C:BROKER:MAX_COMPLETION_TICKS:`,
+latentie voor zowel succes- als Io-completions, en het aantal verstreken
+deadlines (`M6C:BROKER:MAX_COMPLETION_TICKS:`,
 `M6C:BROKER:TIMEOUTS:`, `VOLUME:BROKER:…`), plus de openstaande ticks van een
 nog niet voltooide aanvraag. Dit staat in de slaagsamenvatting én op de
 faalpaden die door gebruikersgedrag ontstaan (`USER_OR_PROTOCOL`, `USER_STATUS`,
