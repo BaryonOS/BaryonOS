@@ -92,8 +92,12 @@ class SystemCaptureTests(unittest.TestCase):
         self.make_esp(self.build / "esp", "normal")
         put_json(self.build / "manifest.json", self.manifests[0])
         hosts = []
+        host_commands = [
+            [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", "test_system_*.py"],
+            ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
+        ]
         for index in range(2):
-            host = dict(command=["host-fixture-not-executed"], exit=0)
+            host = dict(command=host_commands[index], exit=0)
             for stream in ("stdout", "stderr"):
                 path = self.build / "logs" / f"system-host-{index}.{stream}.txt"
                 path.write_bytes(f"host-only {stream} fixture\r\n".encode())
@@ -264,6 +268,18 @@ class SystemCaptureTests(unittest.TestCase):
         self.gate["host"][0]["exit"] = 1
         self.save_gate()
         self.rejected()
+
+    def test_success_exit_cannot_replace_the_required_host_commands(self):
+        original = copy.deepcopy(self.gate["host"])
+        choices = ((0, ["/bin/true"]), (1, ["/bin/true"]),
+                   (0, original[1]["command"]), (1, original[0]["command"]))
+        for number, (index, command) in enumerate(choices):
+            with self.subTest(index=index, command=command):
+                self.destination = self.root / f"docs/verification/full-release-host-command-{number}"
+                self.gate["host"] = copy.deepcopy(original)
+                self.gate["host"][index]["command"] = command
+                self.save_gate()
+                self.rejected()
 
     def test_input_file_change_after_initial_validation_cannot_escape_snapshot_check(self):
         original = capture.Snapshot.stable

@@ -11,6 +11,7 @@ from pathlib import Path
 import re
 import stat
 import subprocess
+import sys
 
 from common import ROOT, BUILD, QEMU_MACHINES, source_hash
 from run_system import FEATURE, MAX_TIMEOUT, check_disk, check_esp, check_image, evaluate
@@ -170,8 +171,13 @@ def capture(destination: Path) -> Path:
     if len(hosts) != 2:
         raise ValueError("both system host checks are required")
     archive["system-gate.json"] = gate_bytes
+    host_commands = [
+        [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", "test_system_*.py"],
+        ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
+    ]
     for index, host in enumerate(hosts):
-        if type(host.get("exit")) is not int or host["exit"] != 0 or not host.get("command"):
+        if (type(host.get("exit")) is not int or host["exit"] != 0
+                or host.get("command") != host_commands[index]):
             raise ValueError("failed or incomplete host check")
         for stream in ("stdout", "stderr"):
             expected = build / "logs" / f"system-host-{index}.{stream}.txt"

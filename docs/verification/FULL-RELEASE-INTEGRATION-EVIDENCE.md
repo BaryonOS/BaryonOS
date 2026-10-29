@@ -23,7 +23,9 @@ worden geweigerd. Het harnas start geen VM en schrijft geen schijfimage.
 ## Verplichte hercontrole vóór archiveren
 
 - Gate: afgerond en geslaagd; exact normal en recover; huidige bronvingerafdruk
-  v3 en exact de actuele `test_system.inputs()`-hashes; geslaagde hostcontroles.
+  v3 en exact de actuele `test_system.inputs()`-hashes; geslaagde hostcontroles
+  met exact de twee commando's uit `test_system.main`. Gebruik voor gate en
+  capture dezelfde Python-interpreter; een willekeurig exit-0-commando telt niet.
 - Beide runs: eigen gegenereerde run-/imagedirectory, oorspronkelijke rawlogs,
   normale QEMU-exit en volledige herbeoordeling door `run_system.evaluate()`.
   Nieuwe verplichte guestcounters worden daardoor niet door een oude lokale
@@ -58,19 +60,21 @@ python3 -B tools/capture_system.py --help
 git diff --check
 ```
 
-Resultaat: **27 hosttests geslaagd, exit 0**: 18 nieuwe capturetests en negen
+Resultaat: **28 hosttests geslaagd, exit 0**: 19 nieuwe capturetests en negen
 bestaande evaluator-/imageguardtests. Ook Python-AST-syntaxcontrole is geslaagd.
 De negatieve scenario's omvatten verouderde bron/ESP/finalbuild, onvolledige
 gate, verkeerde raw exit, ontbrekende markers, timeout, corrupte echte
 schijfbytes ondanks bijgewerkte sidecarhash, gewijzigd ongebruikt schijfgebied,
 ontbrekende readonly, snapshotopties, bron-/invoerwijziging tijdens capture,
 symlinks/hardlinks/padontsnapping, dubbele JSON-velden en overschrijven.
+De reviewtegenproef `/bin/true` of verwisselde hostcommando's faalt aantoonbaar
+op de eerste captureversie `c4491b5` (vier falende subtests) en slaagt na herstel.
 
 Volledige lokale harnasuitvoer: `build/capture-unit/{stdout,stderr}.txt` en
 `build/capture-unit/result.json`. Gecontroleerde bronhashes:
 
-- `tools/capture_system.py`: `ebfb0f7398e8e6e95ead635b9947c7d6dc3a1ee692adb6874c87fffd28c833f2`
-- `tests/test_system_capture.py`: `d1bbb954a1faa17221493bc8c10f435931c836ee7bd5f5876376439d40b16e33`
+- `tools/capture_system.py`: `e0ab8194cd03008730db8c558eb269082fae99f79208725bc296fe5dfde161ed`
+- `tests/test_system_capture.py`: `4ab3ef7bfdeca3aa805682f71b4889cf922624727d88f7c1918175f033d7e7ca`
 
 De echte FR-I01-gate en capture op de uiteindelijke geïntegreerde bron zijn
 in deze agenttaak **niet uitgevoerd**. De hoofdagent moet die na integratie
