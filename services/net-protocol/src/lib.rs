@@ -8,6 +8,9 @@
 //! Only IPv4 IHL=5, unfragmented UDP is supported. This is not a network stack.
 //! The Internet checksum detects some errors; it does not authenticate a peer.
 
+pub mod arp;
+pub mod dns;
+
 pub const ETHERNET_HEADER_BYTES: usize = 14;
 pub const IPV4_HEADER_BYTES: usize = 20;
 pub const UDP_HEADER_BYTES: usize = 8;
