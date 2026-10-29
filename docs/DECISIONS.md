@@ -475,3 +475,77 @@ kan meetellen.
 opt-in kan worden uitgezet; er is geen migratie van echte gebruikersdata,
 firmware of fysieke apparaten. De headless documentproef is geen Materiaal-GUI,
 algemene appstarter, grotere-documentondersteuning of ruimtehergebruik.
+
+## ADR-040 — Copy-on-write volume (M6e) in plaats van append-only journal
+
+**Datum:** 28 oktober 2026. M6b/M6c/M6d blijven ongewijzigd en afzonderlijk
+bouwbaar.
+
+**Status (gescheiden):** *ontwerp* geaccepteerd voor het opt-in profiel
+`native-volume`. *Implementatie*: `services/volume`, de native dienst/app in
+`sdk/examples/volume-docs`, de SDK-blok-API en kernelprofiel `native-volume` op
+PR #47. *Testbewijs*: zie hieronder; GitHub Actions moet op iedere nieuwe
+PR-head opnieuw groen zijn. *Onbekend/niet getest*: fysieke schijven en
+stroomuitval, authenticatie/encryptie, back-up/export en grotere volumes.
+
+**Onderbouwing/bronnen:** OASIS, *Virtual I/O Device (VIRTIO) Version 1.2*,
+Committee Specification 01, 1 juli 2022, §5.2 Block Device, §5.2.6.2:
+een write is stabiel wanneer na de voltooide write een `VIRTIO_BLK_T_FLUSH`
+wordt verstuurd en zelf voltooid is
+(https://docs.oasis-open.org/virtio/virtio/v1.2/cs01/virtio-v1.2-cs01.html,
+geraadpleegd 28 oktober 2026). De volgorde inhoud → FLUSH → tabel → FLUSH →
+ACK steunt op die garantie; een emulator die haar niet nakomt valt buiten dit
+bewijs.
+
+**Testbewijs:** hosttests `services/volume/tests/` (incl. uitputtende
+crashsimulatie en de test met twee gemengde schrijfpogingen),
+`tests/test_volume_disk.py`, en de native gate `tools/test_volume.py` met
+bewijs in `docs/verification/m6e/` en
+[M6E-ACCEPTANCE](verification/M6E-ACCEPTANCE.md). Wat daar niet staat, is
+niet uitgevoerd.
+
+**Besluit:** grote documenten en ruimtehergebruik (S04/S05) krijgen een nieuw
+userspace-volumeformaat met twee alternerende, per sector verzegelde
+tabelkopieën en 4 KiB-inhoudschunks. Een mutatie schrijft alleen naar chunks
+die de duurzame tabel niet refereert; daarna FLUSH, de volgende tabel in de
+oudere slot, FLUSH, ACK. Vrijgekomen chunks worden door latere commits
+hergebruikt. Er is geen journal en dus geen recordlimiet; een aparte
+compactiestap is niet nodig, omdat er geen append-only log is om te
+compacteren. Crashconsistente vrijgave vervult hier de rol die "compactie" in
+criterium S04 beschrijft. Deze interpretatie wordt hier expliciet vastgelegd,
+niet stilzwijgend toegepast.
+
+**Security-invariant:** de kernel blijft een generieke blokbroker zonder
+formaat- of domeinkennis (kernel/AGENTS.md: geen opslagpolicy in privileged
+code). Domeinautoriteit komt uitsluitend van het kernelgebonden endpoint. Apps
+krijgen geen blokrecht. Read-only recovery wordt afgedwongen door emulator,
+virtio-onderhandeling, capability (alleen READ) en dienst. Een fout tijdens de
+tabelwrite geeft `Unknown` zonder replay. Een niet-canonieke, volledig
+verzegelde nieuwste kopie stopt herstel.
+
+**Weerlegd als:** recovery na een crashpunt een andere staat oplevert dan
+vóór of na de onderbroken stap; een write buiten de scope of naar een
+gerefereerde chunk plaatsvindt; guest en onafhankelijk orakel verschillende
+digests vinden; quota/Full pas ná I/O worden gemeld; of een read-only
+recovery de image wijzigt.
+
+**Reviewcorrectie (CodeRabbit, PR #47):** de oorspronkelijke verzegeling bond
+een sector alleen aan slot, index en generatie. Twee onderbroken pogingen voor
+dezelfde generatie konden daardoor samen een schijnbaar volledige kopie vormen
+en een teruggedraaide mutatie laten herleven. Iedere sector draagt nu ook een
+digest over de payload van alle sectoren van zijn kopie; recovery accepteert
+alleen een kopie waarvan alle sectoren dezelfde, herberekende digest hebben.
+Een gemengde kopie geldt als gescheurd.
+
+**Restrisico:** één onleesbare sector in de nieuwste tabelkopie leidt tot
+terugval naar de vorige generatie (verlies van de laatste commit). FNV is geen
+authenticatie (B02 open). Proefgeometrie: 16 objecten, 64 KiB per document,
+256 KiB inhoud.
+
+**Migratie/rollback:** opt-in feature; geen automatische migratie van M6c-
+volumes en geen gebruik van echte schijven. Terugdraaien = feature niet
+selecteren of de M6e-commits gericht reverten.
+
+**Eigenaar:** hoofdagent voor formaat, contract en integratie
+(`services/volume`, `tools/volume_disk.py`, gate en bewijs); `kernel_m2` voor de
+generieke blokbroker in `kernel/src/m2/m3/volume.rs`.

@@ -6,7 +6,9 @@
 //! check representation; only the kernel checks authority and object lifetime.
 //! Message policy and automatic retries are deliberately left to the caller.
 
+pub mod block;
 mod message;
+pub use block::BlockDevice;
 pub use message::{Outgoing, Received, MAX_CAPS, MAX_PAYLOAD, MESSAGE_SIZE};
 
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]

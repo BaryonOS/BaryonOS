@@ -1,0 +1,189 @@
+#![no_std]
+#![no_main]
+#![deny(unsafe_op_in_unsafe_fn)]
+//! Native M6e volume service. It owns exactly one scoped block capability
+//! and two kernel-bound ingress endpoints; the endpoint a request arrives on
+//! is its only domain authority. All volume policy lives in `volume-core`.
+
+#[cfg(not(all(target_arch = "x86_64", target_os = "none")))]
+compile_error!("volume-service is only for the Nieuw OS x86_64-unknown-none target");
+
+mod support;
+
+use nieuw_os_sdk_runtime::{
+    block::READ_MAX, native, BlockDevice, Error, Handle, Outgoing, ReceiveEndpoint, SendEndpoint,
+};
+use volume_core::{service::Service, table, wire, Disk, Status, SECTOR};
+
+const POLL_LIMIT: usize = 200_000;
+
+fn tick() {
+    support::put(8, support::word(8).wrapping_add(1));
+}
+
+fn status(error: Error) -> Status {
+    match error {
+        Error::Kernel(code) => Status::from_code(code),
+        _ => Status::Protocol,
+    }
+}
+
+struct NativeDisk {
+    device: BlockDevice,
+}
+
+impl Disk for NativeDisk {
+    fn read(&mut self, sector: u64, buffer: &mut [u8; SECTOR]) -> Result<(), Status> {
+        for part in 0..SECTOR / READ_MAX {
+            tick();
+            let ticket = native::block_read(
+                self.device,
+                sector,
+                (part * READ_MAX) as u64,
+                READ_MAX as u64,
+            )
+            .map_err(status)?;
+            native::block_wait(
+                self.device,
+                ticket,
+                &mut buffer[part * READ_MAX..(part + 1) * READ_MAX],
+                POLL_LIMIT,
+            )
+            .map_err(status)?;
+        }
+        Ok(())
+    }
+    fn write(&mut self, sector: u64, buffer: &[u8; SECTOR]) -> Result<(), Status> {
+        tick();
+        let ticket = native::block_write(self.device, sector, buffer).map_err(status)?;
+        native::block_wait(self.device, ticket, &mut [], POLL_LIMIT).map_err(status)
+    }
+    fn flush(&mut self) -> Result<(), Status> {
+        tick();
+        let ticket = native::block_flush(self.device).map_err(status)?;
+        native::block_wait(self.device, ticket, &mut [], POLL_LIMIT).map_err(status)
+    }
+}
+
+fn evidence(service: &Service) {
+    let c = service.counters;
+    support::put(128, service.table().generation);
+    for (offset, value) in [
+        (304, c.commits),
+        (312, c.chunk_allocations),
+        (320, c.data_sectors),
+        (328, c.table_writes),
+        (336, c.flushes),
+        (344, c.read_sectors),
+        (352, c.rejected),
+        (360, c.aborted_sessions),
+        (368, c.unknown),
+    ] {
+        support::put(offset, value);
+    }
+    support::put(376, u64::from(service.uncertain()));
+}
+
+fn startup_error(code: Status) -> ! {
+    support::put(232, code as i32 as i64 as u64);
+    support::put(192, 9);
+    // Keep running without serving: the kernel observes the refusal.
+    loop {
+        tick();
+        let _ = native::yield_now();
+    }
+}
+
+fn handle(raw: u64) -> Handle {
+    Handle::from_raw(raw).unwrap_or_else(|_| startup_error(Status::Invalid))
+}
+
+fn send(endpoint: SendEndpoint, body: &[u8; wire::SIZE]) {
+    let Ok(message) = Outgoing::new(wire::TAG, body) else {
+        startup_error(Status::Protocol);
+    };
+    for _ in 0..POLL_LIMIT {
+        tick();
+        match native::send(endpoint, &message) {
+            Ok(()) => return,
+            Err(error) if error.is_again() => {
+                let _ = native::yield_now();
+            }
+            Err(_) => return,
+        }
+    }
+}
+
+#[no_mangle]
+#[link_section = ".text.entry"]
+pub extern "C" fn _start() -> ! {
+    if native::check_abi().is_err() {
+        startup_error(Status::NoSys);
+    }
+    let epoch = support::word(32);
+    // Explicit mount mode from the bootstrap; the block capability separately
+    // enforces the same boundary (READ only) for read-only mounts.
+    let read_only = match support::word(120) {
+        0 => false,
+        1 => true,
+        _ => startup_error(Status::Invalid),
+    };
+    let device = BlockDevice::from_handle(handle(support::word(48)));
+    let roots = [
+        ReceiveEndpoint::from_handle(handle(support::word(56))),
+        ReceiveEndpoint::from_handle(handle(support::word(80))),
+    ];
+    let replies = [
+        SendEndpoint::from_handle(handle(support::word(88))),
+        SendEndpoint::from_handle(handle(support::word(72))),
+    ];
+    let clients = [support::word(160), support::word(168)];
+    if epoch == 0 || clients.contains(&0) || clients[0] == clients[1] {
+        startup_error(Status::Invalid);
+    }
+    let mut disk = NativeDisk { device };
+    let recovered = match table::recover(&mut disk) {
+        Ok(table) => table,
+        Err(error) => startup_error(error),
+    };
+    let mut service = Service::new(epoch, recovered, read_only);
+    evidence(&service);
+    support::put(232, 0);
+    support::put(192, 1);
+    loop {
+        for domain in 0..2 {
+            tick();
+            let message = match native::receive(roots[domain]) {
+                Ok(message) => message,
+                Err(_) => continue,
+            };
+            let had_caps = message.cap_count() != 0;
+            if had_caps {
+                let _ = native::close_received_caps(&message);
+            }
+            if message.sender() != clients[domain] {
+                continue;
+            }
+            let mut body = [0; wire::SIZE];
+            let payload = message.payload();
+            let reply = if had_caps || message.tag() != wire::TAG || payload.len() != wire::SIZE {
+                body[..payload.len().min(wire::SIZE)]
+                    .copy_from_slice(&payload[..payload.len().min(wire::SIZE)]);
+                service.counters.rejected += 1;
+                wire::error_reply(&wire::header(&body), epoch, Status::Invalid, 0)
+            } else {
+                body.copy_from_slice(payload);
+                service.handle(domain, &body, &mut disk)
+            };
+            evidence(&service);
+            send(replies[domain], &reply);
+        }
+        let _ = native::yield_now();
+    }
+}
+
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo<'_>) -> ! {
+    support::put(232, Status::Protocol as i32 as i64 as u64);
+    native::exit(3)
+}

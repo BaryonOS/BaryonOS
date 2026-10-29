@@ -230,3 +230,26 @@ fn sdk_messages_interoperate_with_actual_capability_engine() {
         .join()
         .unwrap();
 }
+
+#[test]
+fn block_completion_accepts_only_the_canonical_ticket_envelope() {
+    use nieuw_os_sdk_runtime::block::completion;
+    let mut bytes = [0u8; MESSAGE_SIZE];
+    bytes[8..16].copy_from_slice(&42u64.to_le_bytes());
+    bytes[16..20].copy_from_slice(&4u32.to_le_bytes());
+    bytes[64..68].copy_from_slice(b"data");
+    assert_eq!(completion(&bytes, 4, 42, 4), Ok(&b"data"[..]));
+    // Wrong ticket, length, return value, sender, caps or padding.
+    assert!(completion(&bytes, 4, 41, 4).is_err());
+    assert!(completion(&bytes, 3, 42, 4).is_err());
+    assert!(completion(&bytes, 4, 42, 3).is_err());
+    for (at, value) in [(0usize, 1u8), (20, 1), (30, 1), (68, 1), (319, 1)] {
+        let mut bad = bytes;
+        bad[at] ^= value;
+        assert!(completion(&bad, 4, 42, 4).is_err(), "byte {at}");
+    }
+    assert!(completion(&bytes, 129, 42, 129).is_err());
+    let mut flush = [0u8; MESSAGE_SIZE];
+    flush[8..16].copy_from_slice(&9u64.to_le_bytes());
+    assert_eq!(completion(&flush, 0, 9, 0), Ok(&[][..]));
+}

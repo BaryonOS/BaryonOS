@@ -22,6 +22,8 @@ M6B_TIMEOUT_CASES = ("write-timeout", "flush-timeout", "reset-timeout", "write-p
 M6B_FAULT_CASES = ("write-error", "flush-error") + M6B_TIMEOUT_CASES
 M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush") + M6B_FAULT_CASES
 M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES
+VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt")
+VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
@@ -30,7 +32,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "tes
                    "milestone-m6a", *(f"test-m6a-{case}" for case in M6A_CASES),
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
-                   "native-sdk-app", "test-sdk-app-denied"]
+                   "native-sdk-app", "test-sdk-app-denied", *VOLUME_FEATURES]
 
 
 def inspect_elf(path):
@@ -146,6 +148,21 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
             "NOS_SDK_APP_ELF": str(app.resolve()),
             "NOS_SDK_SERVICE_ELF": str(service.resolve()),
         }
+    elif kernel_feature in VOLUME_FEATURES:
+        from build_users import inspect_user
+        volume_target = TARGET / "volume-docs"
+        run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/volume-docs/build.py")],
+                   "build-volume-docs", extra_env={"CARGO_TARGET_DIR": str(volume_target)})
+        app = volume_target / "x86_64-unknown-none/release/volume-app"
+        service = volume_target / "x86_64-unknown-none/release/volume-service"
+        qsim_report = {
+            "app_sha256": sha256(app), "app_elf": inspect_user(app),
+            "service_sha256": sha256(service), "service_elf": inspect_user(service),
+        }
+        extra_env = {
+            "NOS_VOLUME_APP_ELF": str(app.resolve()),
+            "NOS_VOLUME_SERVICE_ELF": str(service.resolve()),
+        }
     if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b", "m6c")):
         from build_users import build_users
         extra_env = {"NOS_USER_ELF": str(build_users("large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
@@ -179,6 +196,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
     if qsim_report is not None:
         if kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
             manifest["sdk_app"] = qsim_report
+        elif kernel_feature in VOLUME_FEATURES:
+            manifest["volume_docs"] = qsim_report
         else:
             manifest["qsim_user"] = qsim_report
     esp = BUILD / "esp"

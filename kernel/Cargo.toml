@@ -129,6 +129,14 @@ test-m6c-bad-descriptor = ["milestone-m6c"]
 test-m6c-used-write = ["milestone-m6c"]
 test-m6c-used-flush = ["milestone-m6c"]
 
+# M6e/S04-S05 scalable volume: separate service/app ELFs, generic broker.
+native-volume = ["milestone-m6a"]
+test-volume-recover = ["native-volume"]
+test-volume-cut-data = ["native-volume"]
+test-volume-cut-table = ["native-volume"]
+test-volume-recover-cut = ["native-volume"]
+test-volume-corrupt = ["native-volume"]
+
 [dependencies]
 boot-protocol = { path = "../crates/boot-protocol" }
 kernel-core = { path = "../crates/kernel-core" }

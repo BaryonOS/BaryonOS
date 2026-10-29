@@ -77,3 +77,10 @@ dependencies = [
 [[package]]
 name = "virtio-core"
 version = "0.1.0"
+
+[[package]]
+name = "volume-core"
+version = "0.1.0"
+dependencies = [
+ "catalog-core",
+]

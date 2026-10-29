@@ -44,3 +44,18 @@ version = "0.1.0"
 dependencies = [
  "capability-core",
 ]
+
+[[package]]
+name = "nieuw-os-volume-docs-example"
+version = "0.1.0"
+dependencies = [
+ "nieuw-os-sdk-runtime",
+ "volume-core",
+]
+
+[[package]]
+name = "volume-core"
+version = "0.1.0"
+dependencies = [
+ "catalog-core",
+]
