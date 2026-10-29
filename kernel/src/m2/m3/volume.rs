@@ -9,7 +9,10 @@ use capability_core::{BlockScope, Message, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE,
 use virtio_blk_driver::{Device, Discovery, DmaPool};
 use virtio_core::{Binding, Completion, Operation, Phase, Policy};
 
-const TIMEOUT: u64 = 64;
+/// Completion budget in 100 Hz timer ticks; see the M6c broker for the
+/// measured host fdatasync latency behind this value. This profile has no
+/// native fault fixtures, so the budget costs no test time.
+const TIMEOUT: u64 = 500;
 const RESET_TIMEOUT: u64 = 10;
 /// Granted scope: four reserved canary sectors precede the volume, which is
 /// 2 x 9 table sectors plus 64 x 8 content sectors (volume-core v1 geometry).
@@ -69,6 +72,8 @@ struct Runtime {
     client_reply: [u64; 2],
     publications: [u64; 3],
     completions: [u64; 3],
+    published_at: u64,
+    max_completion_ticks: u64,
     table_writes: u64,
     data_writes: u64,
     cut_base: Option<(u64, u64)>,
@@ -104,6 +109,8 @@ static mut RUNTIME: Runtime = Runtime {
     client_reply: [0; 2],
     publications: [0; 3],
     completions: [0; 3],
+    published_at: 0,
+    max_completion_ticks: 0,
     table_writes: 0,
     data_writes: 0,
     cut_base: None,
@@ -534,6 +541,7 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     r.policy.publish(request.epoch, request.ticket).unwrap();
     r.device.as_mut().unwrap().publish_prepared(false).unwrap();
     r.publications[operation_index(op)] += 1;
+    r.published_at = s.ticks;
     Ok(request.ticket)
 }
 
@@ -619,6 +627,9 @@ fn advance(s: &State) {
         Ok(Some((data, Completion::Success))) => {
             r.data = data;
             r.completions[operation_index(request.operation)] += 1;
+            r.max_completion_ticks = r
+                .max_completion_ticks
+                .max(now.saturating_sub(r.published_at));
             r.policy
                 .complete(request.epoch, request.ticket, Completion::Success)
                 .unwrap();
@@ -862,6 +873,10 @@ fn finish(s: &mut State) -> ! {
     print_number(b"VOLUME:BROKER:READS:", r.publications[0]);
     print_number(b"VOLUME:BROKER:WRITES:", r.publications[1]);
     print_number(b"VOLUME:BROKER:FLUSHES:", r.publications[2]);
+    print_number(
+        b"VOLUME:BROKER:MAX_COMPLETION_TICKS:",
+        r.max_completion_ticks,
+    );
     print_number(b"VOLUME:BROKER:TABLE_SECTOR_WRITES:", r.table_writes);
     print_number(b"VOLUME:BROKER:DATA_SECTOR_WRITES:", r.data_writes);
     print_number(

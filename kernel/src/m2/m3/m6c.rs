@@ -6,10 +6,15 @@ use capability_core::{BlockScope, Message, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE,
 use catalog_core::{journal, wire};
 use virtio_blk_driver::{Device, Discovery, DmaPool};
 use virtio_core::{Binding, Completion, Operation, Phase, Policy, Request};
-// Keep the normal virtio completion budget comfortably above host/TCG scheduling
-// jitter. Fault fixtures still suppress completion observation until this real
-// deadline, so timeout/Unknown semantics stay exercised rather than retried.
-const TIMEOUT: u64 = 64;
+// Completion budget in 100 Hz timer ticks (wall clock under TCG). A FLUSH is a
+// host fdatasync of the image file; under host I/O load that alone measured
+// 0.16-0.31 s per flush (idle: 6 ms), and two CI runs exceeded the earlier
+// 64-tick (0.64 s) budget before the fault was even injected. Five seconds is
+// still far below ordinary 30 s block-device timeouts. Fault fixtures keep
+// suppressing completion observation until this real deadline, so the
+// timeout/Unknown path is exercised, not retried. The broker reports the
+// largest observed completion latency so the margin is visible per run.
+const TIMEOUT: u64 = 500;
 const RESET_TIMEOUT: u64 = 10;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct IoSnapshot {
@@ -59,6 +64,8 @@ struct Runtime {
     calls: u64,
     publications: [u64; 3],
     completions: [u64; 3],
+    published_at: u64,
+    max_completion_ticks: u64,
     records: [[u8; 512]; 32],
     read_mask: u128,
     current: Option<journal::State>,
@@ -113,6 +120,8 @@ static mut RUNTIME: Runtime = Runtime {
     calls: 0,
     publications: [0; 3],
     completions: [0; 3],
+    published_at: 0,
+    max_completion_ticks: 0,
     records: [[0; 512]; 32],
     read_mask: 0,
     current: None,
@@ -557,6 +566,7 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     // disk oracle must still allow either an old or a newly written record.
     r.hold_completion = suppress;
     r.publications[operation_index(op)] += 1;
+    r.published_at = s.ticks;
     Ok(request.ticket)
 }
 fn reset(r: &mut Runtime, now: u64) {
@@ -654,6 +664,9 @@ fn advance(s: &State) {
         Ok(Some((data, Completion::Success))) => {
             r.data = data;
             r.completions[operation_index(request.operation)] += 1;
+            r.max_completion_ticks = r
+                .max_completion_ticks
+                .max(now.saturating_sub(r.published_at));
             r.policy
                 .complete(request.epoch, request.ticket, Completion::Success)
                 .unwrap();
@@ -1302,6 +1315,9 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         assert!(m4::engine().check_invariants());
         serial::write(marker());
         serial::write(b"M6C:SURVIVOR_PROGRESS:PASS\n");
+        // Diagnostic only: largest publish-to-completion latency in ticks,
+        // to be read against TIMEOUT when a run is slow. Not a pass marker.
+        number(b"M6C:BROKER:MAX_COMPLETION_TICKS:", r.max_completion_ticks);
         if !r.quarantined {
             if let Some(device) = r.device.as_mut() {
                 device.begin_reset();

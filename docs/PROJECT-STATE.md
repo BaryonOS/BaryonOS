@@ -1,5 +1,58 @@
 # Actuele projectstatus
 
+## S08-timingonderzoek: brokerdeadline 64 → 500 ticks — 29 oktober 2026 (tussenstand)
+
+Branch `ccr-a5fabb06-5mt06m`, concept-PR
+[#48](https://github.com/simonvanieperen/nieuw-os/pull/48). Linux-container met
+Rust 1.90.0, QEMU 8.2.2 (Ubuntu-pakket), `pc-q35-8.2`, OVMF 4M, 4 cores.
+
+**Waarneming (CI):** `s08-native-resilience` faalde op `8ae9194`
+(`write-error`) en op `c87f980` (`flush-error`), telkens in de eerste poging en
+geslaagd bij één herhaling. Beide keren meldde de guest `M6C:USER_CODE:33`
+vóór `M6C:FAULT_INJECTED`: de probe kreeg op de eerste PUT een andere status
+dan `Ok`. De logs van die eerste pogingen zijn via de API niet meer op te
+halen; de regels komen uit de PR-opmerkingen van 28/29 oktober.
+
+**Analyse (code):** de M6c-fixturebroker gaf iedere virtio-aanvraag een
+deadline van 64 ticks. De PIT staat op divisor 11932 (100 Hz), dus 64 ticks is
+0,64 s wandkloktijd. Een `FLUSH` is in QEMU een host-`fdatasync` van het
+imagebestand (`cache=writeback`). Verstrijkt de deadline, dan geeft de broker
+`-16`, de dienst antwoordt `Unknown` en de probe faalt met code 33. PR #26
+verhoogde dezelfde constante al van 20 naar 64 voor dezelfde klasse; de klasse
+keerde dus terug.
+
+**Experiment (lokaal, niet gereproduceerd, wel gekwantificeerd):**
+- `fdatasync` op dit bestandssysteem: onbelast 0,19–1,36 ms; onder 4 parallelle
+  fsync-schrijvers + 2 CPU-branders mediaan 136 ms, p99 430 ms.
+- Vijf `flush-error`-runs onder 6 schrijvers + 2 branders, met `strace -T` op
+  QEMU: 162–311 ms per `fdatasync` (onbelast: 6 ms). Alle vijf slaagden; de
+  marge tot 640 ms was dus nog maar ~2×. Een GitHub-runner heeft minder cores
+  en een tragere schijf; dat de CI-fout dezelfde oorzaak had is daarmee
+  aannemelijk, niet bewezen.
+- Een throttle-run met 1 IOPS was onbruikbaar: de 32 init-reads liepen tegen de
+  host-timeout van 60 s.
+- Wachtcapaciteit van de probe (tijdelijke diagnostiek, niet gecommit):
+  `write-timeout` 5607 syscalls in 86 ticks tegenover `flush-error` 1832 in
+  16 ticks, dus ~5,4k syscalls/s tijdens het wachten. De lus van `rt::LIMIT`
+  (1 000 000 iteraties van minimaal twee syscalls) dekt daarmee honderden
+  seconden; een deadline van 5 s past daar ruim in.
+
+**Wijziging (kernelfixturecode, geen productbeleid):** `TIMEOUT` 64 → 500 ticks
+in `kernel/src/m2/m3/m6c.rs` en `kernel/src/m2/m3/volume.rs` (M6e heeft 140
+flushes per run en geen native foutfixtures, dus daar kost het geen testtijd).
+Beide brokers rapporteren nu de grootste waargenomen publish-tot-completion-
+latentie (`M6C:BROKER:MAX_COMPLETION_TICKS:`, `VOLUME:BROKER:MAX_COMPLETION_TICKS:`),
+zodat de marge per run zichtbaar is. Niet gewijzigd: `RESET_TIMEOUT`,
+`rt::LIMIT`, QEMU-cachemodus, foutfixtures (die onderdrukken completions nog
+steeds tot de echte deadline). Timeout-fixtures duren hierdoor ~4,4 s langer.
+
+**Validatie:** `cargo fmt --all -- --check` exit 0. De S08-gate (onbelast en
+onder host-last) en de M6e-gate draaien lokaal na dit checkpoint; GitHub Actions
+op PR #48 moet volgen. Op dit commit: **niet uitgevoerd.**
+
+**Restrisico:** keert de fout terug terwijl de gerapporteerde maximale latentie
+onder 500 blijft, dan ligt de oorzaak elders dan in completionlatentie.
+
 ## PR #47 gemerged: M6e op `main`, 26% ongewijzigd — 29 oktober 2026
 
 Squash-merge van [PR #47](https://github.com/simonvanieperen/nieuw-os/pull/47)
