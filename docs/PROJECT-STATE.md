@@ -2,7 +2,7 @@
 
 ## M6e schaalbare documentopslag native geaccepteerd, 26% — 28 oktober 2026
 
-Branch `ccr-d3fe1610-gl4r8s`, broncommit `68a04a3` (bevat `main` `78a96ae`), concept-PR
+Branch `ccr-d3fe1610-gl4r8s`, broncommit `d9e4b6b` (bevat `main` `78a96ae`), concept-PR
 [#47](https://github.com/simonvanieperen/nieuw-os/pull/47). Uitgevoerd in een
 Linux-container met Rust 1.90.0, QEMU 8.2.2, `pc-q35-8.2` en OVMF 4M uit het
 Ubuntu-pakket.
@@ -19,7 +19,7 @@ Ubuntu-pakket.
 
 **Uitgevoerd en geslaagd:**
 - `python3 -B -u tools/test_volume.py`, exit 0, met 3 hostcontroles (17 volume-core-,
-  14 SDK- en 8 orakeltests) en 7 QEMU-runs op bron `29741962…`.
+  14 SDK- en 8 orakeltests) en 7 QEMU-runs op bron `14fa4d37…`.
 - Reviewcorrectie (CodeRabbit, PR #47): iedere tabelsector draagt nu een
   pogingdigest, zodat sectoren van twee schrijfpogingen voor dezelfde generatie
   nooit samen een geldige kopie vormen. De nieuwe hosttest faalt zonder de
@@ -27,7 +27,8 @@ Ubuntu-pakket.
 - Tweede reviewronde: de gate schrijft zijn verdict pas na de afsluitende build
   (een mislukte build liet eerder `passed: true` achter) en ADR-040 noemt zijn
   eigenaar. Derde ronde: het verdict is nu ook gebonden aan de SHA-256 van de
-  hosttestinputs onder `tests/`. Gate herhaald en bewijs opnieuw vastgelegd.
+  hosttestinputs onder `tests/`; vierde ronde: ook in subpackages, zoals
+  `unittest discover` ze laadt. Gate herhaald en bewijs opnieuw vastgelegd.
 - `python3 -B tools/capture_volume.py`, exit 0, naar `docs/verification/m6e/`.
 - Regressie: `milestone-m6c` normal smoke.
 - Uitslagen en grenzen: [M6E-ACCEPTANCE](verification/M6E-ACCEPTANCE.md).
@@ -37,7 +38,7 @@ Ubuntu-pakket.
 **Roadmap rubric v1: 20% → 26%** (S04 +3, S05 +3).
 
 **Open en niet bewezen:**
-- GitHub Actions slaagden op `1037ee3` en `f9e22c1` (5/5, inclusief
+- GitHub Actions slaagden op `1037ee3`, `f9e22c1` en `bf0bf61` (5/5, inclusief
   `m6e-native-volume`); de herhaling op de eindhead moet nog slagen.
 - Geen native I/O-foutinjectie voor dit profiel; I/O-fouten zijn alleen hostgetest.
 - Geen fysieke schijf, encryptie of authenticatie (B02), back-up (S09),

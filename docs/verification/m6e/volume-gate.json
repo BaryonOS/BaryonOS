@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "source_fingerprint_version": 3,
-  "source_sha256": "297419627ee7720ed577770ff2b6d145aa417ce0e3ef40f54134f0414d0994cc",
+  "source_sha256": "14fa4d3774dd9dde826367020974d4d56a1c924507454a5c966229251166ff2e",
   "test_inputs": {
     "tests/test_volume_disk.py": "35f939604d24837a8b50b25988798eedd1a5f985d1af0db7cb2b9674d8acbe52"
   },
@@ -20,11 +20,11 @@
       "exit": 0,
       "totals": [
         "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
-        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.23s",
-        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.70s",
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s",
         "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
       ],
-      "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 3 tests\ntest mixed_attempts_for_one_generation_are_never_combined ... ok\ntest recovered_instance_continues_after_interrupted_commit ... ok\ntest every_crash_point_recovers_to_before_or_after ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.23s\n\n\nrunning 14 tests\ntest client_rejects_tampered_replies ... ok\ntest certain_io_failures_abort_without_closing ... ok\ntest empty_volume_recovers_as_generation_zero ... ok\ntest delete_rename_and_tombstones ... ok\ntest malformed_requests_are_rejected_without_io ... ok\ntest domains_are_isolated_and_listing_is_paged ... ok\ntest corrupted_content_and_tables_fail_closed ... ok\ntest read_only_instance_refuses_mutations ... ok\ntest large_document_roundtrip_beyond_old_128_byte_limit ... ok\ntest table_sector_layout_is_canonical ... ok\ntest streaming_protocol_rules ... ok\ntest table_write_failure_is_unknown_and_closes_instance ... ok\ntest quota_and_full_are_reported_before_any_io ... ok\ntest space_is_reused_far_beyond_record_and_capacity_limits ... ok\n\ntest result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 3 tests\ntest mixed_attempts_for_one_generation_are_never_combined ... ok\ntest recovered_instance_continues_after_interrupted_commit ... ok\ntest every_crash_point_recovers_to_before_or_after ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.70s\n\n\nrunning 14 tests\ntest client_rejects_tampered_replies ... ok\ntest delete_rename_and_tombstones ... ok\ntest corrupted_content_and_tables_fail_closed ... ok\ntest certain_io_failures_abort_without_closing ... ok\ntest empty_volume_recovers_as_generation_zero ... ok\ntest domains_are_isolated_and_listing_is_paged ... ok\ntest malformed_requests_are_rejected_without_io ... ok\ntest read_only_instance_refuses_mutations ... ok\ntest streaming_protocol_rules ... ok\ntest table_sector_layout_is_canonical ... ok\ntest large_document_roundtrip_beyond_old_128_byte_limit ... ok\ntest table_write_failure_is_unknown_and_closes_instance ... ok\ntest quota_and_full_are_reported_before_any_io ... ok\ntest space_is_reused_far_beyond_record_and_capacity_limits ... ok\n\ntest result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
       "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/lib.rs (target/debug/deps/volume_core-e112b1c1407f7271)\n     Running tests/crash.rs (target/debug/deps/crash-77106d60b28a014e)\n     Running tests/service.rs (target/debug/deps/service-837f7883f53726f4)\n   Doc-tests volume_core\n"
     },
     {
@@ -44,8 +44,8 @@
         "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
         "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
       ],
-      "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 14 tests\ntest abi_check_accepts_only_existing_compatible_versions ... ok\ntest handle_representation_does_not_accept_sentinels_or_slot_overflow ... ok\ntest delegated_cap_descriptors_are_validated_and_preserved ... ok\ntest block_completion_accepts_only_the_canonical_ticket_envelope ... ok\ntest known_rights_do_not_allow_new_permission_bits ... ok\ntest oversized_wire_lengths_never_index_or_truncate ... ok\ntest every_payload_length_matches_the_current_kernel_decoder ... ok\ntest raw_send_rejects_spoofed_sender_and_every_unused_byte ... ok\ntest received_envelope_rejects_missing_sender_reserved_and_padding ... ok\ntest received_message_keeps_kernel_identity_and_exact_payload ... ok\ntest received_length_must_equal_the_syscall_result ... ok\ntest register_errors_remain_errors_and_secondary_errors_are_zero ... ok\ntest refused_cap_append_does_not_modify_the_message ... ok\ntest sdk_messages_interoperate_with_actual_capability_engine ... ok\n\ntest result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
-      "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/lib.rs (sdk/target/debug/deps/nieuw_os_sdk_runtime-2c8a0bd5a7f3e9ca)\n     Running tests/message.rs (sdk/target/debug/deps/message-022c0b00e592cb2d)\n   Doc-tests nieuw_os_sdk_runtime\n"
+      "stdout": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 14 tests\ntest abi_check_accepts_only_existing_compatible_versions ... ok\ntest block_completion_accepts_only_the_canonical_ticket_envelope ... ok\ntest handle_representation_does_not_accept_sentinels_or_slot_overflow ... ok\ntest known_rights_do_not_allow_new_permission_bits ... ok\ntest oversized_wire_lengths_never_index_or_truncate ... ok\ntest raw_send_rejects_spoofed_sender_and_every_unused_byte ... ok\ntest received_envelope_rejects_missing_sender_reserved_and_padding ... ok\ntest delegated_cap_descriptors_are_validated_and_preserved ... ok\ntest received_length_must_equal_the_syscall_result ... ok\ntest refused_cap_append_does_not_modify_the_message ... ok\ntest received_message_keeps_kernel_identity_and_exact_payload ... ok\ntest every_payload_length_matches_the_current_kernel_decoder ... ok\ntest register_errors_remain_errors_and_secondary_errors_are_zero ... ok\ntest sdk_messages_interoperate_with_actual_capability_engine ... ok\n\ntest result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s\n     Running unittests src/lib.rs (sdk/target/debug/deps/nieuw_os_sdk_runtime-2c8a0bd5a7f3e9ca)\n     Running tests/message.rs (sdk/target/debug/deps/message-022c0b00e592cb2d)\n   Doc-tests nieuw_os_sdk_runtime\n"
     },
     {
       "command": [
@@ -61,11 +61,11 @@
       ],
       "exit": 0,
       "totals": [
-        "Ran 8 tests in 0.092s",
+        "Ran 8 tests in 0.079s",
         "OK"
       ],
       "stdout": "",
-      "stderr": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.092s\n\nOK\n"
+      "stderr": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.079s\n\nOK\n"
     }
   ],
   "stages": [
@@ -73,84 +73,84 @@
       "case": "normal",
       "parent": null,
       "passed": true,
-      "run_directory": "/home/user/nieuw-os/build/run/volume-normal-a9ec993521",
-      "volume_identity": "b003ad7d86e344b8a90c0fb8496b06df",
+      "run_directory": "/home/user/nieuw-os/build/run/volume-normal-4faeed99b4",
+      "volume_identity": "c6beef5aa9cc4e9a96d828ca78d09eb9",
       "before_sha256": "b8f331f4579b01c8a397701e5ac7e3c6d698ac427c05171417bf7efca42c6adc",
       "after_sha256": "b3c109a1a0ccf5454cff015d98c0d214f27387e9c2b94142676f64e5abcbaf34",
       "raw_qemu_exit": 33,
-      "duration_s": 80.1457328580002,
+      "duration_s": 68.84738716499999,
       "error": null
     },
     {
       "case": "recover",
       "parent": "normal",
       "passed": true,
-      "run_directory": "/home/user/nieuw-os/build/run/volume-recover-481dd14799",
-      "volume_identity": "b003ad7d86e344b8a90c0fb8496b06df",
+      "run_directory": "/home/user/nieuw-os/build/run/volume-recover-e2a9a31123",
+      "volume_identity": "c6beef5aa9cc4e9a96d828ca78d09eb9",
       "before_sha256": "b3c109a1a0ccf5454cff015d98c0d214f27387e9c2b94142676f64e5abcbaf34",
       "after_sha256": "b3c109a1a0ccf5454cff015d98c0d214f27387e9c2b94142676f64e5abcbaf34",
       "raw_qemu_exit": 33,
-      "duration_s": 44.68520533700007,
+      "duration_s": 37.99029134,
       "error": null
     },
     {
       "case": "cut-data",
       "parent": null,
       "passed": true,
-      "run_directory": "/home/user/nieuw-os/build/run/volume-cut-data-0d4887c3d2",
-      "volume_identity": "8a52ce96b682460ba05e200329a7e733",
+      "run_directory": "/home/user/nieuw-os/build/run/volume-cut-data-9e533907de",
+      "volume_identity": "b32469e7301e4930b8ab83df5a7b8992",
       "before_sha256": "b8f331f4579b01c8a397701e5ac7e3c6d698ac427c05171417bf7efca42c6adc",
       "after_sha256": "0eb98c00aed9deb6ad88ab3c0d749a78cbf3416af6c51c9b0f148dfc4c2eb26a",
       "raw_qemu_exit": -9,
-      "duration_s": 3.839309290000074,
+      "duration_s": 3.2486530029999585,
       "error": null
     },
     {
       "case": "recover-cut",
       "parent": "cut-data",
       "passed": true,
-      "run_directory": "/home/user/nieuw-os/build/run/volume-recover-cut-02f9ccfb97",
-      "volume_identity": "8a52ce96b682460ba05e200329a7e733",
+      "run_directory": "/home/user/nieuw-os/build/run/volume-recover-cut-d4244e4421",
+      "volume_identity": "b32469e7301e4930b8ab83df5a7b8992",
       "before_sha256": "0eb98c00aed9deb6ad88ab3c0d749a78cbf3416af6c51c9b0f148dfc4c2eb26a",
       "after_sha256": "0eb98c00aed9deb6ad88ab3c0d749a78cbf3416af6c51c9b0f148dfc4c2eb26a",
       "raw_qemu_exit": 33,
-      "duration_s": 3.8953459060001023,
+      "duration_s": 3.2672834249999596,
       "error": null
     },
     {
       "case": "cut-table",
       "parent": null,
       "passed": true,
-      "run_directory": "/home/user/nieuw-os/build/run/volume-cut-table-d16781f5fa",
-      "volume_identity": "0e744fd497a0480484afc50c45d45858",
+      "run_directory": "/home/user/nieuw-os/build/run/volume-cut-table-7fb28c2424",
+      "volume_identity": "722527269d4c4e048e37b034ea84e0c1",
       "before_sha256": "b8f331f4579b01c8a397701e5ac7e3c6d698ac427c05171417bf7efca42c6adc",
       "after_sha256": "a59951f765a82e1cbbbc40934f4c669dc12bf51994a66d7d3201851732299639",
       "raw_qemu_exit": -9,
-      "duration_s": 4.44056161200001,
+      "duration_s": 3.668021936000059,
       "error": null
     },
     {
       "case": "recover-cut",
       "parent": "cut-table",
       "passed": true,
-      "run_directory": "/home/user/nieuw-os/build/run/volume-recover-cut-0f67114456",
-      "volume_identity": "0e744fd497a0480484afc50c45d45858",
+      "run_directory": "/home/user/nieuw-os/build/run/volume-recover-cut-68cdb76901",
+      "volume_identity": "722527269d4c4e048e37b034ea84e0c1",
       "before_sha256": "a59951f765a82e1cbbbc40934f4c669dc12bf51994a66d7d3201851732299639",
       "after_sha256": "a59951f765a82e1cbbbc40934f4c669dc12bf51994a66d7d3201851732299639",
       "raw_qemu_exit": 33,
-      "duration_s": 4.256190693000008,
+      "duration_s": 3.4725658800000474,
       "error": null
     },
     {
       "case": "corrupt",
       "parent": null,
       "passed": true,
-      "run_directory": "/home/user/nieuw-os/build/run/volume-corrupt-d0ad8c50d0",
-      "volume_identity": "4c1e2fd17d47454c8189030b5b2cf089",
+      "run_directory": "/home/user/nieuw-os/build/run/volume-corrupt-52782dcf75",
+      "volume_identity": "48b735841ed340b896443132cf5d704e",
       "before_sha256": "c8f750b80fdd4faef75f1ae672a096aa37bbf2a5b3da8ecfb56263eef32e041d",
       "after_sha256": "c8f750b80fdd4faef75f1ae672a096aa37bbf2a5b3da8ecfb56263eef32e041d",
       "raw_qemu_exit": 33,
-      "duration_s": 3.3378568980001546,
+      "duration_s": 3.3209419779999507,
       "error": null
     }
   ]

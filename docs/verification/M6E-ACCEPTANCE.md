@@ -5,17 +5,19 @@ Datum: 28 oktober 2026 (Europe/Amsterdam). Contract:
 
 ## Bronbinding
 
-- Branch `ccr-d3fe1610-gl4r8s`, commit `68a04a3` (drie CodeRabbit-reviewrondes:
+- Branch `ccr-d3fe1610-gl4r8s`, commit `d9e4b6b` (vier CodeRabbit-reviewrondes:
   pogingdigest in `bac9cbb`, gateverdict na de afsluitende build in `e30e10d`,
-  binding aan de hosttestinputs in `68a04a3`; bevat `main` `78a96ae`).
-- Bronvingerafdruk v3: `297419627ee7720e…`; daarnaast de SHA-256 van
-  `tests/test_volume_disk.py` (`35f93960…`), die de gate vóór het verdict
-  opnieuw controleert (beide volledig in `m6e/volume-gate.json`).
+  binding aan de hosttestinputs in `68a04a3`, ook in subpackages in `d9e4b6b`;
+  bevat `main` `78a96ae`).
+- Bronvingerafdruk v3: `14fa4d3774dd9dde…`; daarnaast de SHA-256 van iedere
+  testinput die `unittest discover` kan laden (nu alleen
+  `tests/test_volume_disk.py`, `35f93960…`), die de gate vóór het verdict
+  opnieuw controleert (volledig in `m6e/volume-gate.json`).
   Eerder bewijs van bron `535d672e…` (vóór de reviewcorrecties), `24dbc374…`
-  (`bac9cbb`) en `63c56bc0…` (`e30e10d`) is vervangen; het staat in de
-  Git-geschiedenis (`8ae9194`, `1037ee3`, `f9e22c1`). De runs op `bac9cbb`,
-  `e30e10d` en `68a04a3` gaven byte-identieke images en ELF-hashes; tussen die
-  bronnen verschilde alleen `tools/test_volume.py`.
+  (`bac9cbb`), `63c56bc0…` (`e30e10d`) en `29741962…` (`68a04a3`) is vervangen;
+  het staat in de Git-geschiedenis (`8ae9194`, `1037ee3`, `f9e22c1`, `bf0bf61`).
+  Alle runs vanaf `bac9cbb` gaven byte-identieke images en ELF-hashes; tussen
+  die bronnen verschilde alleen `tools/test_volume.py`.
 - Kernel-ELF (normal) SHA-256 `5ff76ae42ba7bd51…`; `volume-service` `d799ff90f05669a0…`;
   `volume-app` `1924a6b533bfd5ba…` (volledig per stap in `result.json`).
 - Omgeving: Linux-container, Rust 1.90.0, QEMU 8.2.2 (Ubuntu-pakket),
@@ -38,12 +40,12 @@ Daarna volgen zeven echte QEMU-invocaties:
 
 | # | Stap | Image vóór → na | Uitkomst | Raw exit | Duur |
 |---|---|---|---|---|---|
-| 0 | normal (schrijvend) | nieuw `b8f331f4` → `b3c109a1` | geslaagd | 33 | 80,1 s |
-| 1 | recover (read-only, koud) | `b3c109a1` → `b3c109a1` | geslaagd, image byte-identiek | 33 | 44,7 s |
-| 2 | cut-data: kill na 40 inhoudswrites van de 2e upload | nieuw `b8f331f4` → `0eb98c00` | echte hostkill van live guest | −9 | 3,8 s |
-| 3 | recover-cut (read-only, koud) | `0eb98c00` → `0eb98c00` | revisie 1 intact | 33 | 3,9 s |
-| 4 | cut-table: kill na 4 van 9 tabelsectoren | nieuw `b8f331f4` → `a59951f7` | echte hostkill van live guest | −9 | 4,4 s |
-| 5 | recover-cut (read-only, koud) | `a59951f7` → `a59951f7` | revisie 1 intact | 33 | 4,3 s |
+| 0 | normal (schrijvend) | nieuw `b8f331f4` → `b3c109a1` | geslaagd | 33 | 68,8 s |
+| 1 | recover (read-only, koud) | `b3c109a1` → `b3c109a1` | geslaagd, image byte-identiek | 33 | 38,0 s |
+| 2 | cut-data: kill na 40 inhoudswrites van de 2e upload | nieuw `b8f331f4` → `0eb98c00` | echte hostkill van live guest | −9 | 3,2 s |
+| 3 | recover-cut (read-only, koud) | `0eb98c00` → `0eb98c00` | revisie 1 intact | 33 | 3,3 s |
+| 4 | cut-table: kill na 4 van 9 tabelsectoren | nieuw `b8f331f4` → `a59951f7` | echte hostkill van live guest | −9 | 3,7 s |
+| 5 | recover-cut (read-only, koud) | `a59951f7` → `a59951f7` | revisie 1 intact | 33 | 3,5 s |
 | 6 | corrupt (verzegelde, niet-canonieke tabel) | fixture `c8f750b8` → `c8f750b8` | geweigerd vóór READY | 33 | 3,3 s |
 
 Iedere herstelstap is gekoppeld aan de vorige: before-hash = after-hash van de
