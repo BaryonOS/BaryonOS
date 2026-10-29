@@ -1,3 +1,29 @@
+# Werkqueue — volledige native testrelease, 29 oktober 2026
+
+Integratie-eigenaar root, branch `codex/full-test-release`, basis `73ebc1e`.
+Volledige opdracht en aftekenmatrix: [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md).
+Actuele bron, artifacts en hervatstap: [PROJECT-STATE.md](PROJECT-STATE.md).
+De vaste 100-puntenrubric blijft onveranderd. Deze queue is uitvoering, geen
+alternatieve productroadmap. Elke productrij blijft open tot passend bewijs.
+
+| Taak | Toestand | Eigenaar / exclusieve writes | Interface en acceptatie |
+|---|---|---|---|
+| FR-DOC | actief | acceptance_contract; FULL-TEST-RELEASE.md | volledige opdracht + providerverduidelijking, stabiele matrix, alle domeinen |
+| FR-I01 | actief | kernel_storage; kernel, nieuwe SDK-systemapps, noodzakelijke serviceadapters | gezamenlijk native manifest, echte crypto/disk/procesherstart, negatieve rechten en cleanup |
+| FR-B02 | actief | security_release; services/keyring, secure-recordcontract | contextgebonden AEAD en exact persistente allocaties/intrekking; coretests + targetbuild, B02 blijft open |
+| FR-U01 | actief | native_ui_apps; crates/ui-core, inputcontract | PS/2-toets/muis-events, bounds/focusgeneratie; native inputintegratie blijft open |
+| FR-N01 | actief | network_nas_ai; services/net-protocol | ARP/DNS-bounds, identiteits-/pointer-/timeoutfouten; NIC/netwerkacceptatie blijft open |
+| FR-A03 | actief | git_build_audit; sdk/document-session | streamende volumeadapter, conceptbehoud/conflict/Unknown/cancel; native caller volgt |
+| FR-INT | actief | root; tools/tests/workspaces/locks/CI/docs/status/Git | brongebonden native gate, onafhankelijke diskcontrole, finale regressies en checkpoint |
+
+Volgende golven behouden: echte compositor/sessies, schaalbaar geheugen/FPU,
+virtio-net/audio, volledige apps en engineports, lokale inference, NAS/provider-
+sync, boot/PQC/update/herstel en onafhankelijke verificatie. Deze zijn verplicht;
+planning betekent geen uitstelvrijstelling. Fysieke handelingen en externe
+menselijke audit wachten uitsluitend bij hun concrete autorisatie-/toegangsgrens.
+
+## Historische registratie
+
 # Werkqueue — 29 oktober 2026
 
 Actuele geteste bron `53e0d57af99c9673c97bc900fae15b98e08c8ca3`, PR #54.

@@ -1,0 +1,132 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-supervisor-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/plan-baseline/supervisor"}
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling nieuw-os-supervisor-example v0.1.0 (/workspace/nieuw-os/sdk/examples/supervisor)
+warning: fields `0` and `1` are never read
+   --> examples/supervisor/src/supervisor.rs:130:12
+    |
+130 |     Denied(u64, u64),
+    |     ------ ^^^  ^^^
+    |     |
+    |     fields in this variant
+    |
+    = note: `#[warn(dead_code)]` on by default
+help: consider changing the fields to be of unit type to suppress this warning while preserving the field numbering, or remove the fields
+    |
+130 -     Denied(u64, u64),
+130 +     Denied((), ()),
+    |
+
+warning: `nieuw-os-supervisor-example` (bin "k05-supervisor") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.47s
+   Compiling boot-protocol v0.1.0 (/workspace/nieuw-os/crates/boot-protocol)
+   Compiling r-efi v7.1.0
+   Compiling elf-loader-core v0.1.0 (/workspace/nieuw-os/crates/elf-loader-core)
+   Compiling os-loader v0.1.0 (/workspace/nieuw-os/boot/loader)
+    Finished `release` profile [optimized] target(s) in 0.72s
+   Compiling virtio-core v0.1.0 (/workspace/nieuw-os/crates/virtio-core)
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+   Compiling block-protocol v0.1.0 (/workspace/nieuw-os/services/block)
+   Compiling kernel-core v0.1.0 (/workspace/nieuw-os/crates/kernel-core)
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+   Compiling virtio-blk-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-blk)
+   Compiling boot-protocol v0.1.0 (/workspace/nieuw-os/crates/boot-protocol)
+    Finished `release` profile [optimized] target(s) in 1.64s
+Built and inspected native-supervisor: 3 ELF load segments
+K05 normal: passed=True raw=33 duration=2.5s /workspace/nieuw-os/build/plan-baseline-k05/run/supervisor-normal-1bafadba7c
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-supervisor-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/plan-baseline/supervisor"}
+warning: fields `0` and `1` are never read
+   --> examples/supervisor/src/supervisor.rs:130:12
+    |
+130 |     Denied(u64, u64),
+    |     ------ ^^^  ^^^
+    |     |
+    |     fields in this variant
+    |
+    = note: `#[warn(dead_code)]` on by default
+help: consider changing the fields to be of unit type to suppress this warning while preserving the field numbering, or remove the fields
+    |
+130 -     Denied(u64, u64),
+130 +     Denied((), ()),
+    |
+
+warning: `nieuw-os-supervisor-example` (bin "k05-supervisor") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.12s
+Built and inspected test-supervisor-crash: 3 ELF load segments
+K05 crash: passed=True raw=33 duration=2.4s /workspace/nieuw-os/build/plan-baseline-k05/run/supervisor-crash-c280f6bb39
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-supervisor-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/plan-baseline/supervisor"}
+warning: fields `0` and `1` are never read
+   --> examples/supervisor/src/supervisor.rs:130:12
+    |
+130 |     Denied(u64, u64),
+    |     ------ ^^^  ^^^
+    |     |
+    |     fields in this variant
+    |
+    = note: `#[warn(dead_code)]` on by default
+help: consider changing the fields to be of unit type to suppress this warning while preserving the field numbering, or remove the fields
+    |
+130 -     Denied(u64, u64),
+130 +     Denied((), ()),
+    |
+
+warning: `nieuw-os-supervisor-example` (bin "k05-supervisor") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.04s
+Built and inspected test-supervisor-denied: 3 ELF load segments
+K05 denied: passed=True raw=33 duration=2.4s /workspace/nieuw-os/build/plan-baseline-k05/run/supervisor-denied-d85f05d4e8
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-supervisor-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/plan-baseline/supervisor"}
+warning: fields `0` and `1` are never read
+   --> examples/supervisor/src/supervisor.rs:130:12
+    |
+130 |     Denied(u64, u64),
+    |     ------ ^^^  ^^^
+    |     |
+    |     fields in this variant
+    |
+    = note: `#[warn(dead_code)]` on by default
+help: consider changing the fields to be of unit type to suppress this warning while preserving the field numbering, or remove the fields
+    |
+130 -     Denied(u64, u64),
+130 +     Denied((), ()),
+    |
+
+warning: `nieuw-os-supervisor-example` (bin "k05-supervisor") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.09s
+Built and inspected test-supervisor-parent-exit: 3 ELF load segments
+K05 parent-exit: passed=True raw=33 duration=2.3s /workspace/nieuw-os/build/plan-baseline-k05/run/supervisor-parent-exit-5cf841e571
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-supervisor-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/plan-baseline/supervisor"}
+warning: fields `0` and `1` are never read
+   --> examples/supervisor/src/supervisor.rs:130:12
+    |
+130 |     Denied(u64, u64),
+    |     ------ ^^^  ^^^
+    |     |
+    |     fields in this variant
+    |
+    = note: `#[warn(dead_code)]` on by default
+help: consider changing the fields to be of unit type to suppress this warning while preserving the field numbering, or remove the fields
+    |
+130 -     Denied(u64, u64),
+130 +     Denied((), ()),
+    |
+
+warning: `nieuw-os-supervisor-example` (bin "k05-supervisor") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.05s
+Built and inspected test-supervisor-quota: 3 ELF load segments
+K05 quota: passed=True raw=33 duration=2.7s /workspace/nieuw-os/build/plan-baseline-k05/run/supervisor-quota-2a81722a1e
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 0.16s
+Built and inspected normal: 3 ELF load segments
+K05 gate passed=True stages=5

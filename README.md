@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`56b576b1`](https://github.com/simonvanieperen/nieuw-os/commit/56b576b16da1e4503bc5f9167a476474a58c33cf) ·
-**Ontwikkelbranch:** `codex/supervisor-startup-slots`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** K05 vaste startcapabilityposities en raw ABI-negatieve gevallen native geverifieerd.
-De score blijft 32%. Het bestaande P2-randgeval uit PR #51 is opgelost: een lege cap0 behoudt cap1 op offset 64. De nieuwe native regressie faalde vóór het herstel en slaagt erna. De volledige K05-gate op commit 56b576b (bronvingerafdruk cccf0e3e) heeft 5/5 echte VM-runs: normal bewijst één sparse spawn, drie positie-/rechtencontroles en 24 antwoorden; denied matcht 21/21 fouten. Fault-, orphan-, quota- en cleanupcontroles blijven groen. Ook 65 hosttests, Clippy, formattering en een afzonderlijke agentreview slagen. PRs #53 en #54 zijn geïntegreerd; #48 is gesloten en acht reviewthreads zijn opgelost. Geen nieuwe rechten, ABI, afhankelijkheden, criteria of gewichten. B02 en bestaande hardware-/antirollbackgrenzen blijven open.
+**Bron:** [`73ebc1e1`](https://github.com/simonvanieperen/nieuw-os/commit/73ebc1e169b893eb5aba4b4f8ac06d7798136de3) ·
+**Ontwikkelbranch:** `codex/full-test-release`.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Volledige native testrelease in uitvoering; brede acceptatie en eerste dienstenintegratie.
+De score blijft 32%. De huidige main-bron is gecontroleerd: schone checkout, geen open PRs, bestaande K05-gate opnieuw 5/5 echte VM-runs groen en 238 root-Rust-hosttests geslaagd. Dit baselinebewijs staat onder docs/verification/full-release-baseline. De volledige releaseopdracht behoudt alle functies, visuele eisen, beveiliging, herstel en fysieke/menselijke bewijsgrenzen. Zes onafhankelijke workers implementeren releasecontract, gezamenlijke diensten, beveiligde records, native invoer, netwerkprotocollen en streamende documentsessies. Dit zijn nog geen afgeronde nieuwe rubriccriteria; de volledige productacceptatie blijft open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

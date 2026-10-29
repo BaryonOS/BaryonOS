@@ -1,5 +1,51 @@
 # Actuele projectstatus
 
+## Volledige native testrelease — in uitvoering, 32% — 29 oktober 2026
+
+Integratiebranch `codex/full-test-release`, gecontroleerde main-basis
+`73ebc1e169b893eb5aba4b4f8ac06d7798136de3`. Geen complete testrelease.
+De bindende volledige opdracht en productmatrix worden vastgelegd in
+[FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md); de
+[werkqueue](WORK-QUEUE.md) verwijst naar die criteria. Onderzoek en historische
+proeven blijven onderscheiden van werkelijk geïntegreerde productacceptatie.
+
+**Werkelijk uitgevoerd op de basisbron:** nieuwe K05-gate: vijf echte VM-runs
+(normal/crash/denied/parent-exit/quota), 65 bijbehorende hosttests, exit 0;
+238 root-Rust-hosttests, 21 preflighttests en progresscontrole geslaagd.
+Bewijs en precieze grenzen: [full-release-baseline](verification/full-release-baseline/README.md).
+De standaard toolontdekking miste bestaande QEMU/OVMF-paden; commandolokale
+selectie en `tools/dev.py` herstellen de omgeving zonder installatie.
+
+**Actief:** zes gescheiden workerworktrees onder `/workspace/nieuw-os-worktrees/`.
+FR-I01 brengt bestaande supervisor-, blok- en entropymechanismen samen met
+ring-3-init, Key Service, volume en echte app. Andere workers bouwen
+contextgebonden beveiligde records, grotere documentsessies, PS/2-invoer en
+ARP/DNS. Host- of corewerk sluit geen native productcriterium.
+
+**32% → 32%:** geen gewichten of producteisen gewijzigd. Optioneel gekozen
+externe opslag van uitsluitend ciphertext blijft op expliciete verduidelijking
+van de gebruiker toegestaan; providers krijgen geen inhoudssleutels of fallback.
+Geen fysieke disks, echte NAS, accounts of firmware gewijzigd.
+
+### NEXT AGENT HANDOFF
+
+- Controleer actuele `git status`, HEAD, worktrees en workerberichten; verlies
+  geen onafgemaakte wijzigingen. Hoofdagent bezit integratie/status/score.
+- Integreer eerst de volledige opdracht/matrix uit contractworktree; controleer
+  alle veertien opdrachtsecties en de providerverduidelijking.
+- Eerste technische acceptatie: [FR-I01-contract](implementation/NATIVE-SYSTEM-INTEGRATION.md).
+  Kernelworker levert `native-system` en `test-system-recover`; integrator
+  levert build/harnas/orakel en draait nieuwe echte VM's plus regressies.
+- Laatste bruikbare artifacts: `build/plan-baseline-k05/run/` met de vijf
+  K05-images/logs; de eindbuild is M1, geen release. Bron/hash staat in bewijs.
+- Open: alle volledige productrijen; B02 persistente encryptie/ankering,
+  geheugen/FPU, native grafiek/apps/netwerk/NAS/AI, boot/updates/herstel,
+  fysieke ondersteuning en menselijke audit. Geen productafronding claimen.
+
+## Historische checkpoints
+
+Alle onderstaande checkpointteksten beschrijven hun eigen bron en bewijs.
+
 ## K05 startcapabilityposities native hersteld, 32% — 29 oktober 2026
 
 Branch `codex/supervisor-startup-slots`, basis `main`

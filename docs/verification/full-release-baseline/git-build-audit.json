@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "kind": "read-only planning audit",
+  "source_commit": "73ebc1e169b893eb5aba4b4f8ac06d7798136de3",
+  "branch": "work",
+  "source_sha256": "cccf0e3e7fcec439428208c4458a0194ec23c6120e1f03d96abe65b0711631b7",
+  "tracked_changes": false,
+  "checks": [
+    {
+      "command": "git status --short --branch",
+      "exit_code": 0,
+      "result": "clean work"
+    },
+    {
+      "command": "git ls-remote origin HEAD refs/heads/main 'refs/heads/codex/*' 'refs/pull/*/head'",
+      "exit_code": 0,
+      "result": "remote HEAD/main equal local HEAD; origin/main local ref stale5a58a74"
+    },
+    {
+      "command": "python3 -B tools/preflight.py --strict",
+      "exit_code": 2,
+      "result": "default discovery misses existing local QEMU/OVMF"
+    },
+    {
+      "command": "PATH=/workspace/.nieuw-os-env/bin:$PATH OS_OVMF_CODE=/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_VARS_4M.fd python3 -B tools/preflight.py --strict",
+      "exit_code": 0,
+      "result": "baseline_tools_present true; Rust1.90 both required real rlibs; QEMU10.0.13; OVMF matching pair"
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0,
+      "result": "32/100 consistent; no proof content validation"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p test_preflight.py",
+      "exit_code": 0,
+      "tests": 21
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/nieuw-os-plan-git-audit-target python3 -B tools/dev.py cargo +1.90.0 test --locked --offline -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p keyring-core -p virtio-rng-driver",
+      "exit_code": 0,
+      "tests": 238,
+      "notes": "All nonzero-test suites green including exhaustive volume crash tests50.11s; stdout observed in tool transcript, not raw archived"
+    }
+  ],
+  "github_open_prs": [],
+  "github_main_runs": [
+    {
+      "id": 40961987670,
+      "name": "CI",
+      "head_sha": "73ebc1e169b893eb5aba4b4f8ac06d7798136de3",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/40961987670"
+    },
+    {
+      "id": 40961987552,
+      "name": "K05 process management acceptance",
+      "head_sha": "73ebc1e169b893eb5aba4b4f8ac06d7798136de3",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/40961987552"
+    },
+    {
+      "id": 40961987671,
+      "name": "B01 entropy and key management acceptance",
+      "head_sha": "73ebc1e169b893eb5aba4b4f8ac06d7798136de3",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/40961987671"
+    }
+  ],
+  "branch_audit": {
+    "S09": {
+      "remote_source_found": false,
+      "local_source_found": false,
+      "historical_prefix": "06d46151",
+      "conclusion": "No matching refs/commits/PR/code found; do not claim integrated"
+    },
+    "G1": {
+      "remote_source_found": false,
+      "local_source_found": false,
+      "conclusion": "Only G0 integrated; prior G1 owner report not source"
+    },
+    "A03": {
+      "head": "fd90b69a32af450b743093bd866d5812db31a8d1",
+      "conclusion": "Branch name task-grants but tip is A01 scheduler-counter test; no distinct task-grant implementation observed; main has newer corrected observer logic"
+    },
+    "native_documents_network": {
+      "head": "38bdfe6ead463a56f4236241d8a82cb5146ef766",
+      "pr16": "closed unmerged",
+      "replacement_main_commit": "87e4f04",
+      "same_blobs": [
+        "sdk/document-session/src/lib.rs",
+        "tools/build_users.py",
+        "userspace/document_session_probe.rs"
+      ],
+      "net_parser": "main newer includes encoder #46"
+    }
+  },
+  "native_vm_executed": false,
+  "limitations": [
+    "No fetch/checkout/worktree/index/remote mutation performed",
+    "No new native evidence",
+    "Existing build/run logs are historical and do not bind current artifact",
+    "No general build blocker after command-local environment selection"
+  ]
+}
