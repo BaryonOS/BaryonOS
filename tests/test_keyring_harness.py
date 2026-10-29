@@ -2,11 +2,13 @@
 never emulator evidence; they pin that the verdict rejects what it must."""
 from __future__ import annotations
 import sys
+import socket
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import run_keyring as rs  # noqa: E402
+import test_keyring as gate  # noqa: E402
 
 
 def transcript(case: str, values: dict[str, int], extra: str = "") -> str:
@@ -37,6 +39,57 @@ class Numbers(unittest.TestCase):
             self.assertIn(case, rs.EXPECT)
             self.assertIn(case, rs.AT_LEAST)
             self.assertEqual(rs.expected_markers(case)[-1], "M1:PASS")
+
+    def test_gate_requires_every_native_case(self):
+        self.assertEqual(set(gate.PLAN), set(rs.FEATURE))
+
+
+class EntropyFixture(unittest.TestCase):
+    def test_silent_backend_observes_requests_without_answering(self):
+        with rs.SilentEgd() as fixture:
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+                client.settimeout(0.1)
+                client.connect(str(fixture.path))
+                client.sendall(bytes([2, 255, 2, 1]))
+                self.assertTrue(fixture.observed.wait(timeout=2))
+                with self.assertRaises(socket.timeout):
+                    client.recv(1)
+        self.assertEqual(fixture.evidence(), {"backend": "silent-local-egd",
+                         "requested_lengths": [255, 1], "firmware_requested_lengths": [],
+                         "firmware_response_bytes": 0, "response_bytes": 0, "error": None})
+        self.assertFalse(fixture.path.exists())
+
+    def test_firmware_works_but_manifest_stops_entropy_before_next_request(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temporary:
+            serial = Path(temporary) / "serial.txt"
+            with rs.SilentEgd(serial) as fixture:
+                with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+                    client.settimeout(0.1)
+                    client.connect(str(fixture.path))
+                    client.sendall(bytes([2, 32]))
+                    # Real host entropy can bootstrap OVMF. No fixed seed is
+                    # supplied to the device or the cryptographic service.
+                    answer = b""
+                    while len(answer) < 32:
+                        answer += client.recv(32 - len(answer))
+                    self.assertEqual(len(answer), 32)
+                    serial.write_text("KEYRING:MANIFEST:PASS\n", encoding="utf-8")
+                    client.sendall(bytes([2, 255, 2, 1]))
+                    self.assertTrue(fixture.observed.wait(timeout=2))
+                    with self.assertRaises(socket.timeout):
+                        client.recv(1)
+            self.assertEqual(fixture.requests, [255, 1])
+            self.assertEqual(fixture.firmware_requests, [32])
+            self.assertIsNone(fixture.error)
+
+    def test_timeout_arguments_cannot_use_a_responding_backend(self):
+        with self.assertRaisesRegex(ValueError, "silent EGD"):
+            rs.qemu_arguments("timeout", "qemu", "fixture")
+        arguments = rs.qemu_arguments("timeout", "qemu", "fixture", Path("/tmp/egd.sock"))
+        self.assertIn("rng-egd,id=rng0,chardev=rng-channel", arguments)
+        self.assertFalse(any("urandom" in argument for argument in arguments))
+        self.assertIn("none", arguments)  # no guest network
 
 
 class Verdict(unittest.TestCase):
