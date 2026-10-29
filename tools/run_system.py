@@ -77,7 +77,10 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     exact = {"APP_READY": 2, "APP_DOCS": 1, "APP_REVISION": 1, "APP_BYTES": 4096,
              "APP_DENIED": 3, "WORKER_SPAWNS": 2, "WORKER_FAULTS": 1,
              "WORKER_RESTARTS": 1, "WORKER_KILLS": 1,
-             "LIVE_PROCESSES_AFTER": 0, "FRAMES_RECOVERED": 1}
+             "LIVE_PROCESSES_AFTER": 0, "FRAMES_RECOVERED": 1,
+             "CRYPTO_SEAL": 2, "CRYPTO_UNSEAL": 2, "CRYPTO_TAMPER_DENIED": 9,
+             "RECORD_SEAL": 1, "RECORD_UNSEAL": 1,
+             "RECORD_CONTEXT_DENIED": 10, "RECORD_REVOKED_DENIED": 2}
     minimum = {"APP_DENIED": 3, "DISK_READS": 1, "ENTROPY_BYTES": 256,
                "CRYPTO_SEAL": 1, "CRYPTO_UNSEAL": 1, "CRYPTO_TAMPER_DENIED": 1}
     for key, value in exact.items():

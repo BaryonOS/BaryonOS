@@ -19,7 +19,8 @@ def transcript(case="normal", **changes):
                   LIVE_PROCESSES_AFTER=0, FRAMES_RECOVERED=1, DISK_READS=304,
                   DISK_WRITES=42 if case == "normal" else 0,
                   DISK_FLUSHES=3 if case == "normal" else 0, ENTROPY_BYTES=1024,
-                  CRYPTO_SEAL=1, CRYPTO_UNSEAL=1, CRYPTO_TAMPER_DENIED=1)
+                  CRYPTO_SEAL=2, CRYPTO_UNSEAL=2, CRYPTO_TAMPER_DENIED=9,
+                  RECORD_SEAL=1, RECORD_UNSEAL=1, RECORD_CONTEXT_DENIED=10, RECORD_REVOKED_DENIED=2)
     values.update(changes)
     return "\n".join(expected_markers(case)) + "\n" + "\n".join(
         f"SYSTEM:{key}:{value:020d}" for key, value in values.items()) + "\n"
@@ -98,7 +99,8 @@ class SystemHarnessTests(unittest.TestCase):
         for key in ("APP_READY", "APP_DOCS", "APP_REVISION", "APP_BYTES", "APP_DENIED",
                     "APP_CONTENT_SUM", "WORKER_SPAWNS", "WORKER_FAULTS", "WORKER_RESTARTS",
                     "WORKER_KILLS", "FRAMES_RECOVERED", "DISK_READS", "DISK_WRITES", "DISK_FLUSHES",
-                    "ENTROPY_BYTES", "CRYPTO_SEAL", "CRYPTO_UNSEAL", "CRYPTO_TAMPER_DENIED"):
+                    "ENTROPY_BYTES", "CRYPTO_SEAL", "CRYPTO_UNSEAL", "CRYPTO_TAMPER_DENIED",
+                    "RECORD_SEAL", "RECORD_UNSEAL", "RECORD_CONTEXT_DENIED", "RECORD_REVOKED_DENIED"):
             with self.subTest(key=key), self.assertRaises(ValueError):
                 evaluate("normal", transcript(**{key: 0}), 33, False)
         with self.assertRaises(ValueError):

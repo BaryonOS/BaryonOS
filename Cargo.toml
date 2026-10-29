@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["boot/loader", "kernel", "crates/boot-protocol", "crates/elf-loader-core", "crates/kernel-core", "crates/capability-core", "crates/virtio-core", "crates/ui-core", "drivers/virtio-blk", "drivers/virtio-rng", "services/block", "services/objects", "services/catalog", "services/volume", "services/keyring"]
+members = ["boot/loader", "kernel", "crates/boot-protocol", "crates/elf-loader-core", "crates/kernel-core", "crates/capability-core", "crates/virtio-core", "crates/ui-core", "drivers/virtio-blk", "drivers/virtio-rng", "drivers/virtio-net", "services/block", "services/objects", "services/catalog", "services/volume", "services/keyring"]
 exclude = ["experiments/quantum", "ui/prototype"]
 
 [profile.dev]

@@ -287,6 +287,13 @@ name = "virtio-core"
 version = "0.1.0"
 
 [[package]]
+name = "virtio-net-driver"
+version = "0.1.0"
+dependencies = [
+ "virtio-core",
+]
+
+[[package]]
 name = "virtio-rng-driver"
 version = "0.1.0"
 dependencies = [
