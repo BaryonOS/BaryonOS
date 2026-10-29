@@ -4,7 +4,7 @@ import os
 import sys
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
-from run_m6c import BOOT, case_markers, execute, normal_success
+from run_m6c import BOOT, case_markers, execute, normal_success, unique_markers
 
 
 class NativeHarness(unittest.TestCase):
@@ -27,6 +27,20 @@ class NativeHarness(unittest.TestCase):
             self.assertFalse(normal_success(33,bad,False,'normal'))
         self.assertFalse(normal_success(0,output,False,'normal'))
         self.assertFalse(normal_success(33,output,True,'normal'))
+
+    def test_broker_latency_diagnostic_is_tolerated_but_never_a_pass_marker(self):
+        # The kernel prints the largest publish-to-completion latency after
+        # M6C:SURVIVOR_PROGRESS:PASS. It is diagnostic only: the controlled marker
+        # sequence must ignore it, and a PASS-shaped variant must still be rejected.
+        output='\n'.join(case_markers('normal'))+'\n'
+        diagnostic=output.replace('M6C:SURVIVOR_PROGRESS:PASS\n',
+                                  'M6C:SURVIVOR_PROGRESS:PASS\nM6C:BROKER:MAX_COMPLETION_TICKS:3\n')
+        self.assertTrue(normal_success(33,diagnostic,False,'normal'))
+        self.assertFalse(normal_success(33,diagnostic.replace('TICKS:3','TICKS:3:PASS'),False,'normal'))
+        fault='\n'.join(case_markers('flush-error'))+'\n'
+        self.assertTrue(unique_markers(fault.replace('M6C:SURVIVOR_PROGRESS:PASS\n',
+                        'M6C:SURVIVOR_PROGRESS:PASS\nM6C:BROKER:MAX_COMPLETION_TICKS:27\n'),
+                        case_markers('flush-error')))
 
     def test_genuine_live_child_kill_has_distinct_raw_exit(self):
         output='\n'.join(BOOT+('M6C:READY','M6C:CUT:1',))+'\n'

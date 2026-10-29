@@ -1,6 +1,6 @@
 # Actuele projectstatus
 
-## S08-timingonderzoek: brokerdeadline 64 → 500 ticks — 29 oktober 2026 (tussenstand)
+## S08-timingonderzoek: brokerdeadline 64 → 500 ticks — 29 oktober 2026
 
 Branch `ccr-a5fabb06-5mt06m`, concept-PR
 [#48](https://github.com/simonvanieperen/nieuw-os/pull/48). Linux-container met
@@ -46,9 +46,28 @@ zodat de marge per run zichtbaar is. Niet gewijzigd: `RESET_TIMEOUT`,
 `rt::LIMIT`, QEMU-cachemodus, foutfixtures (die onderdrukken completions nog
 steeds tot de echte deadline). Timeout-fixtures duren hierdoor ~4,4 s langer.
 
-**Validatie:** `cargo fmt --all -- --check` exit 0. De S08-gate (onbelast en
-onder host-last) en de M6e-gate draaien lokaal na dit checkpoint; GitHub Actions
-op PR #48 moet volgen. Op dit commit: **niet uitgevoerd.**
+**Validatie op `8ef3a9d` (uitgevoerd, alle exit 0):**
+- `cargo +1.90.0 fmt --all -- --check`.
+- `python3 -B -u tools/test_storage_resilience.py` onbelast: `S08 accepted=True;
+  real VMs=13`. Grootste gerapporteerde completielatentie 1–2 ticks.
+- Dezelfde gate onder host-last (6 fsync-schrijvers + 2 CPU-branders op 4 cores):
+  `accepted=True; real VMs=13`. Grootste latentie per run 15–34 ticks
+  (150–340 ms), dus tot 53% van het oude budget en 7% van het nieuwe.
+- `python3 -B -u tools/test_volume.py` (M6e): `passed=True stages=7`; de
+  normal-run deed 2746 writes en 140 flushes met maximaal 2 ticks latentie.
+  Dit is een nieuwe run op gewijzigde bron; het geaccepteerde S04/S05-bewijs
+  onder `docs/verification/m6e/` blijft dat van `d9e4b6b`.
+- GitHub Actions op `8ef3a9d`: 5/5 groen (`host-quality`, `qemu-smoke`,
+  `k07-native`, `m6e-native-volume` run 40845344037, `s08-native-resilience`
+  run 40845344027). De runner rapporteerde in alle 13 S08-runs 0–1 tick
+  latentie; de belaste momenten van 28/29 oktober zijn dus niet herhaald.
+- Timeout-fixtures duren nu ~10 s per VM (was ~5,5 s), binnen de hostgrens
+  van 60 s.
+- Hosttests toegevoegd die vastleggen dat de parsers de diagnostiekregel
+  tolereren en nooit als pass-marker tellen: `tests/test_m6c_harness.py`
+  (10 tests) en nieuw `tests/test_volume_harness.py` (3 tests, valt onder de
+  `test_volume_*`-binding van de M6e-gate). Alle M6c-/volume-hosttests slagen
+  (49 en 11).
 
 **Restrisico:** keert de fout terug terwijl de gerapporteerde maximale latentie
 onder 500 blijft, dan ligt de oorzaak elders dan in completionlatentie.

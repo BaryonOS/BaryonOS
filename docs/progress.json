@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-29",
-    "source_commit": "092ee525316bae03091fdb7eb6e8c69bfdbb7558",
+    "source_commit": "8ef3a9ded2fdd6de317fa56ca703429d5b8c99f6",
     "branch": "ccr-a5fabb06-5mt06m",
-    "task": "PR #47 (M6e, S04/S05) na groene CI op de exacte head en opgeloste reviewbevindingen squash-gemerged naar main; herbeoordeling zonder nieuwe criteria",
+    "task": "Merge van PR #47 (M6e, S04/S05) vastgelegd; S08-timingonderzoek met deadlineverhoging 64 naar 500 ticks en latentierapportage in beide fixturebrokers; herbeoordeling zonder nieuwe criteria",
     "previous_score": 26,
-    "summary": "Score ongewijzigd op 26. PR #47 is als 092ee52 naar main gesquasht na 6/6 groene GitHub Actions op de eindhead c87f980 (incl. m6e-native-volume run 40793519031), zes opgeloste CodeRabbit-threads en een onafhankelijke herhaling van de hostcontroles in deze sessie (volume-core 17/17, orakel 8/8, 22/22 bewijshashes). S04 en S05 blijven geaccepteerd op het bewijs van d9e4b6b; de native gate is niet opnieuw lokaal gedraaid (geen QEMU in deze sessie). Open: s08-native-resilience faalde twee keer eenmalig (8ae9194 write-error, c87f980 flush-error) vóór de foutinjectie en slaagde na één herhaling; oorzaak onbekend en niet door #47 veroorzaakt. Geen nieuwe criteria; S06, G1/U01-voorwerk en K05-a blijven open tot onafhankelijke native acceptatie."
+    "summary": "Score ongewijzigd op 26. PR #47 is als 092ee52 naar main gesquasht na 6/6 groene GitHub Actions op c87f980 en zes opgeloste CodeRabbit-threads. De eenmalige s08-native-resilience-fouten (USER_CODE:33 voor de foutinjectie) zijn herleid tot een virtio-completiedeadline van 64 ticks (0,64 s bij 100 Hz) tegenover een host-fdatasync per FLUSH die onder last 162-311 ms meet; niet gereproduceerd, wel gekwantificeerd. Beide fixturebrokers gebruiken nu 500 ticks en rapporteren de maximale completielatentie. Validatie op 8ef3a9d: S08-gate onbelast en onder host-last accepted (13 echte VMs elk, latentie tot 34 ticks onder last), M6e-gate passed (7 stappen), GitHub Actions 5/5 groen. S04/S05 blijven geaccepteerd op het bewijs van d9e4b6b; geen nieuwe criteria. S06, G1/U01-voorwerk en K05-a blijven open tot onafhankelijke native acceptatie."
   },
   "tracks": [
     {
