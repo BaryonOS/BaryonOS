@@ -55,3 +55,8 @@ docs/verification/b01/**/*.txt -text
 docs/verification/b01/**/*.json -text
 docs/verification/b01/*.json -text
 docs/verification/b01/SHA256SUMS -text
+
+# Native herstelhardening: behoud exact de vastgelegde seriële bewijsbytes.
+docs/verification/native-recovery-hardening/**/*.txt -text
+docs/verification/native-recovery-hardening/**/*.json -text
+docs/verification/native-recovery-hardening/**/SHA256SUMS -text
