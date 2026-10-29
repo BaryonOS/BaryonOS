@@ -212,6 +212,20 @@ de historische beweringen hierboven gelden voor hun oude bron. Verder herstel
 van lokale poll-LIMIT, echte brokerdeadline en resetquarantaine is de actieve
 vervolgstap K08; uitgevoerde resultaten blijven in PROJECT-STATE.md.
 
+Aanvulling 29 oktober 2026 op ADR-029 (fixturebudget, geen productbeleid): de
+virtio-completiedeadline van de fixturebrokers in `kernel/src/m2/m3/m6c.rs` en
+`kernel/src/m2/m3/volume.rs` gaat van 64 naar 500 ticks (5 s bij 100 Hz),
+omdat een FLUSH een host-`fdatasync` is die onder host-last 0,16–0,31 s meet
+en twee CI-runs vóór de foutinjectie een niet-`Ok`-antwoord gaven dat bij een
+gemiste deadline past (niet gereproduceerd). Beide brokers rapporteren de
+maximale completielatentie en het aantal verstreken deadlines als diagnostiek,
+ook op faalpaden. PR #26 verhoogde dezelfde constante eerder van 20 naar 64
+zonder ADR; deze regel legt het budget en zijn motivering nu wel vast.
+Herzieningscriterium: zodra een productdienst een eigen I/O-deadline krijgt
+(K08) wordt dit budget opnieuw vastgesteld op basis van de gerapporteerde
+latenties; de 30 s die gangbare besturingssystemen als blokapparaat-timeout
+hanteren is een referentie, geen bron voor dit project.
+
 ## ADR-033 — opt-in native grafische bootstrap vóór productintegratie
 
 Datum 28 oktober 2026, aanvaard als begrensde ontwikkelstap; root integreert,

@@ -18,28 +18,35 @@ deadline van 64 ticks. De PIT staat op divisor 11932 (100 Hz), dus 64 ticks is
 0,64 s wandkloktijd. Een `FLUSH` is in QEMU een host-`fdatasync` van het
 imagebestand (`cache=writeback`). Verstrijkt de deadline, dan geeft de broker
 `-16`, de dienst antwoordt `Unknown` en de probe faalt met code 33. PR #26
-verhoogde dezelfde constante al van 20 naar 64 voor dezelfde klasse; de klasse
-keerde dus terug.
+verhoogde dezelfde constante al van 20 naar 64 voor deze klasse; de
+waargenomen symptomen passen bij een terugkeer ervan (vermoeden, niet
+geverifieerd: de logs van de gefaalde pogingen zijn niet meer opvraagbaar).
 
 **Experiment (lokaal, niet gereproduceerd, wel gekwantificeerd):**
 - `fdatasync` op dit bestandssysteem: onbelast 0,19–1,36 ms; onder 4 parallelle
   fsync-schrijvers + 2 CPU-branders mediaan 136 ms, p99 430 ms.
 - Vijf `flush-error`-runs onder 6 schrijvers + 2 branders, met `strace -T` op
   QEMU: 162–311 ms per `fdatasync` (onbelast: 6 ms). Alle vijf slaagden; de
-  marge tot 640 ms was dus nog maar ~2×. Een GitHub-runner heeft minder cores
-  en een tragere schijf; dat de CI-fout dezelfde oorzaak had is daarmee
-  aannemelijk, niet bewezen.
-- Een throttle-run met 1 IOPS was onbruikbaar: de 32 init-reads liepen tegen de
-  host-timeout van 60 s.
+  marge tot 640 ms was dus nog maar ~2×. Over de I/O-prestaties van de
+  gedeelde GitHub-runnerschijf is niets gemeten; aangenomen wordt dat die
+  onder piekbelasting trager kan zijn dan deze container. Dat de CI-fout
+  dezelfde oorzaak had is daarmee aannemelijk, niet bewezen.
+- Een throttle-run met 1 IOPS was onbruikbaar: de 128 init-reads (32 sectoren
+  in 4 segmenten van 128 bytes) liepen tegen de host-timeout van 60 s.
+- Buiten scope gelaten: de historische M6b-fixturebroker (`m6b.rs`) houdt zijn
+  deadline van 20 ticks; die gate draait niet in CI en levert geen roadmap-
+  bewijs meer.
 - Wachtcapaciteit van de probe (tijdelijke diagnostiek, niet gecommit):
   `write-timeout` 5607 syscalls in 86 ticks tegenover `flush-error` 1832 in
-  16 ticks, dus ~5,4k syscalls/s tijdens het wachten. De lus van `rt::LIMIT`
-  (1 000 000 iteraties van minimaal twee syscalls) dekt daarmee honderden
-  seconden; een deadline van 5 s past daar ruim in.
+  16 ticks, dus ~5,4k syscalls/s tijdens het wachten (alle processen samen).
+  De wachtlussen van `rt::LIMIT` (1 000 000 iteraties van één of twee
+  syscalls) dekken daarmee minstens ~185 s; een deadline van 5 s past daar
+  ruim in.
 
 **Wijziging (kernelfixturecode, geen productbeleid):** `TIMEOUT` 64 → 500 ticks
-in `kernel/src/m2/m3/m6c.rs` en `kernel/src/m2/m3/volume.rs` (M6e heeft 140
-flushes per run en geen native foutfixtures, dus daar kost het geen testtijd).
+in `kernel/src/m2/m3/m6c.rs` en `kernel/src/m2/m3/volume.rs` (de normale
+M6e-run doet 140 flushes; het profiel heeft geen native foutfixtures, dus daar
+kost het geen testtijd).
 Beide brokers rapporteren nu de grootste waargenomen publish-tot-completion-
 latentie en het aantal verstreken deadlines (`M6C:BROKER:MAX_COMPLETION_TICKS:`,
 `M6C:BROKER:TIMEOUTS:`, `VOLUME:BROKER:…`), plus de openstaande ticks van een
@@ -71,15 +78,19 @@ Timeout-fixtures duren hierdoor ~4,4 s langer.
   van 60 s.
 - Hosttests toegevoegd die vastleggen dat de parsers de diagnostiekregel
   tolereren en nooit als pass-marker tellen: `tests/test_m6c_harness.py`
-  (10 tests) en nieuw `tests/test_volume_harness.py` (3 tests, valt onder de
+  (7 tests) en nieuw `tests/test_volume_harness.py` (3 tests, valt onder de
   `test_volume_*`-binding van de M6e-gate). Alle M6c-/volume-hosttests slagen
   (49 en 11).
-- Tweede ronde na de uitbreiding van de diagnostiek naar de faalpaden en de
-  timeout-teller (`cargo fmt` exit 0): S08-gate onbelast `accepted=True;
-  real VMs=13`; de drie timeout-fixtures melden `M6C:BROKER:TIMEOUTS:1`, alle
-  overige tien runs `0`. GitHub Actions op `c491d9e` (vorige head): 5/5 groen.
-  De M6e-gate op deze bron **loopt nog**; resultaat volgt in het volgende
-  checkpoint.
+- Tweede en derde ronde na de uitbreiding van de diagnostiek naar de
+  faalpaden en de timeout-teller (`cargo fmt` exit 0): S08-gate onbelast
+  tweemaal `accepted=True; real VMs=13`; de drie timeout-fixtures melden
+  `M6C:BROKER:TIMEOUTS:1`, alle overige tien runs `0`. M6e-gate tweemaal
+  `passed=True stages=7` met nul timeouts (hostcontroles 17 volume-core-,
+  14 SDK- en 11 orakel-/harnastests). GitHub Actions op `c491d9e` en
+  `581cac6`: 5/5 workflowjobs groen.
+- Compact, hashgebonden rapport van alle 79 runs (case, bron, HEAD, latentie,
+  timeouts, SHA-256 van iedere `result.json`), de meetmethode en de
+  lastgenerator: [s08-timing](verification/s08-timing/README.md).
 
 **Restrisico:** keert de fout terug terwijl de gerapporteerde maximale latentie
 onder 500 blijft, dan ligt de oorzaak elders dan in completionlatentie.
@@ -99,8 +110,9 @@ opdracht van 28 oktober. Werkbranch voor deze afronding: `ccr-a5fabb06-5mt06m`.
   was al verworpen na de correcties. Codex kon niet reviewen (gebruikslimiet).
   De CodeRabbit-waarschuwing over docstring-dekking (23,7%) is een stijlmeting,
   geen bevinding.
-- Onafhankelijke herhaling in deze sessie (Linux-container, Rust 1.90.0, geen
-  QEMU): `cargo +1.90.0 test --locked -p volume-core` 17/17 geslaagd,
+- Onafhankelijke herhaling in deze sessie (Linux-container, Rust 1.90.0, op dat
+  moment nog zonder QEMU; zie de sectie hierboven voor de latere QEMU-runs):
+  `cargo +1.90.0 test --locked -p volume-core` 17/17 geslaagd,
   `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'` 8/8,
   `python3 tools/progress.py --check` consistent op 26, en
   `sha256sum -c docs/verification/m6e/SHA256SUMS` 22/22 kloppend.
@@ -119,7 +131,8 @@ bijgewerkt naar de merge-commit.
   (niet geverifieerd): de eerste PUT-completion wordt op een belaste runner niet
   binnen de vaste M6c-brokerdeadline gezien, dezelfde timingklasse als #26.
   "Flake" is geen oorzaak; het onderzoek met lokale herhalingen van
-  `tools/test_storage_resilience.py` staat open en vereist een omgeving met QEMU.
+  `tools/test_storage_resilience.py` stond op dat moment open (uitgevoerd later
+  op dezelfde dag; zie de sectie hierboven).
 
 **Volgende stappen:** S06 (collecties/historie) uit de lokale worktree
 integreren en native gaten; G1 en K05-a onafhankelijk herhalen en accepteren;

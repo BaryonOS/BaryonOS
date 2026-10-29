@@ -804,6 +804,7 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
     runtime().service_startup = state;
     if state == 9 && case() != 5 {
         print_number(b"VOLUME:SERVICE_ERROR:", word(s, 0, 232));
+        broker_diagnostic(runtime());
         fail(b"SERVICE_STARTUP");
     }
     barriers(s);

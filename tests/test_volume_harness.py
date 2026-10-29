@@ -8,14 +8,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import run_volume as rv  # noqa: E402
 
 LATENCY = "VOLUME:BROKER:MAX_COMPLETION_TICKS:"
+DIAGNOSTICS = (LATENCY, "VOLUME:BROKER:TIMEOUTS:", "VOLUME:BROKER:OUTSTANDING_TICKS:")
 
 
 class VolumeEvidenceParsing(unittest.TestCase):
     def test_broker_latency_is_recorded_as_evidence_only(self):
         transcript = "\n".join(rv.expected_markers("normal")) + "\n"
-        with_latency = transcript.replace(
-            "VOLUME:RESOURCES:PASS\n", f"{LATENCY}{7:020d}\nVOLUME:RESOURCES:PASS\n")
-        self.assertEqual(rv.numbers(with_latency)[LATENCY], 7)
+        block = "".join(f"{key}{value:020d}\n" for key, value in zip(DIAGNOSTICS, (7, 1, 34)))
+        with_latency = transcript.replace("VOLUME:RESOURCES:PASS\n", block + "VOLUME:RESOURCES:PASS\n")
+        self.assertEqual([rv.numbers(with_latency)[key] for key in DIAGNOSTICS], [7, 1, 34])
         # The diagnostic never enters the controlled marker sequence.
         self.assertEqual(rv.controlled(with_latency), list(rv.expected_markers("normal")))
         self.assertEqual(rv.controlled(with_latency), rv.controlled(transcript))
@@ -26,8 +27,9 @@ class VolumeEvidenceParsing(unittest.TestCase):
             rv.numbers(f"{LATENCY}{1:020d}\n{LATENCY}{2:020d}\n")
 
     def test_failure_markers_do_not_match_the_diagnostic(self):
-        line = f"{LATENCY}{34:020d}"
-        self.assertFalse(any(marker in line for marker in rv.FAILURES))
+        for key in DIAGNOSTICS:
+            line = f"{key}{34:020d}"
+            self.assertFalse(any(marker in line for marker in rv.FAILURES))
 
 
 if __name__ == "__main__":

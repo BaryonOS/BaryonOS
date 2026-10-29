@@ -6,7 +6,8 @@ use capability_core::{BlockScope, Message, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE,
 use catalog_core::{journal, wire};
 use virtio_blk_driver::{Device, Discovery, DmaPool};
 use virtio_core::{Binding, Completion, Operation, Phase, Policy, Request};
-// Completion budget in 100 Hz timer ticks (wall clock under TCG). A FLUSH is a
+// Completion budget in 100 Hz PIT ticks, which QEMU drives from the host clock
+// (approximately wall time; delivery can lag under heavy host load). A FLUSH is a
 // host fdatasync of the image file; under host I/O load that alone measured
 // 0.16-0.31 s per flush (idle: 6 ms). Two CI runs answered the first PUT with
 // a non-Ok status before any fault was injected, consistent with a missed
@@ -1214,6 +1215,9 @@ fn verify_unknown(s: &State, r: &Runtime) {
 pub fn poll(s: &mut State) -> Option<*const u64> {
     advance(s);
     if s.unexpected {
+        // Kernel-side protocol checks set `unexpected` without a user
+        // diagnostic; print the broker state here as well.
+        broker_diagnostic(runtime(), s.ticks);
         serial::fail(b"M6C:FAIL:USER_OR_PROTOCOL\n");
     }
     observe_ready(s);

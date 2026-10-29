@@ -34,9 +34,12 @@ class NativeHarness(unittest.TestCase):
         # sequence must ignore it, and a PASS-shaped variant must still be rejected.
         output='\n'.join(case_markers('normal'))+'\n'
         diagnostic=output.replace('M6C:SURVIVOR_PROGRESS:PASS\n',
-                                  'M6C:SURVIVOR_PROGRESS:PASS\nM6C:BROKER:MAX_COMPLETION_TICKS:3\n')
+                                  'M6C:SURVIVOR_PROGRESS:PASS\nM6C:BROKER:MAX_COMPLETION_TICKS:3\n'
+                                  'M6C:BROKER:TIMEOUTS:0\nM6C:BROKER:OUTSTANDING_TICKS:12\n')
         self.assertTrue(normal_success(33,diagnostic,False,'normal'))
         self.assertFalse(normal_success(33,diagnostic.replace('TICKS:3','TICKS:3:PASS'),False,'normal'))
+        # Printed before a failure marker, the diagnostic never masks the failure.
+        self.assertFalse(normal_success(33,diagnostic+'M6C:FAIL:USER_OR_PROTOCOL\n',False,'normal'))
         fault='\n'.join(case_markers('flush-error'))+'\n'
         self.assertTrue(unique_markers(fault.replace('M6C:SURVIVOR_PROGRESS:PASS\n',
                         'M6C:SURVIVOR_PROGRESS:PASS\nM6C:BROKER:MAX_COMPLETION_TICKS:27\n'),
