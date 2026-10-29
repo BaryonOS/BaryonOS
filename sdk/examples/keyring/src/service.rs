@@ -149,6 +149,9 @@ fn dispatch(
                 Err(status) => wire::reply(header, status, &[]),
             }
         }
+        wire::SEAL_RECORD | wire::UNSEAL_RECORD => {
+            wire::dispatch_record(service, broker, domain, header, body)
+        }
         wire::REVOKE => match service.revoke(domain, header.index) {
             Ok(()) => wire::reply(header, Status::Ok, &[]),
             Err(status) => wire::reply(header, status, &[]),

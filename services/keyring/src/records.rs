@@ -62,7 +62,7 @@ pub struct RecordContext {
 }
 
 impl RecordContext {
-    fn validate(self, caller_domain: usize) -> Result<(), Status> {
+    pub(crate) fn validate(self, caller_domain: usize) -> Result<(), Status> {
         if caller_domain >= DOMAINS
             || usize::from(self.domain) != caller_domain
             || usize::from(self.length) > MAX_PLAINTEXT

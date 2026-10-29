@@ -3,7 +3,8 @@
 Datum: 29 oktober 2026. Taak FR-B02, voortbouwend op B01/ADR-043 en
 `services/volume`. Status: **core geïmplementeerd, hosttests en no_std-build
 uitgevoerd; native opslagintegratie en volledige B02-acceptatie blijven open**.
-Er is geen nieuwe kernelcryptografie, afhankelijkheid of KEY1-wire-ABI.
+Er is geen nieuwe kernelcryptografie of afhankelijkheid. De bestaande
+KEY1-opcodes/ABI blijven behouden; FR-B02N voegt compatibele recordopcodes toe.
 
 ## Doel en beveiligingsgrens
 
@@ -112,9 +113,10 @@ actuele toestand verandert de generatie niet.
 1. Start de bestaande Key Service met de echte entropybroker. Een aparte
    gebruikers-/herstelagent levert het externe geheim onder een expliciete
    beheerbevoegdheid. Geen ingebouwd fixturegeheim in het productpad.
-2. Geef de adapter versieerbare nieuwe bewerkingen; wijzig de bestaande
-   KEY1-codes, lengtes en foutbetekenissen niet. De nieuwe core past binnen
-   begrensde IPC, maar dit document claimt nog geen aangesloten wireprotocol.
+2. De bestaande native Key Service-adapter dispatcht de nieuwe bewerkingen
+   8/9 via `wire::dispatch_record`. De eerdere KEY1-codes, lengtes en
+   foutbetekenissen blijven intact. Hosttests voeren dezelfde dispatchfunctie
+   uit; native uitvoering via de geïntegreerde app blijft nog te bewijzen.
 3. Haal domein uit het ontvangende capability-endpoint en controleer bij iedere
    recordbewerking het object, de actie en de actuele grant. Haal context en
    revisie uit het geauthenticeerde volume, niet uit onbetrouwbare ciphertext.
@@ -171,3 +173,66 @@ recordsoort-/schemabinding kwam uit afzonderlijke agentreview: vóór integratie
 is de concrete uitwisselbaarheid van gelijklange naam-/inhoudrecords opgelost.
 Geen VM-run, werkelijk opgeslagen versleuteld volume of volledige koude
 antirollback is door deze deelbatch geclaimd.
+
+## FR-B02N — aangesloten KEY1-recordbewerkingen
+
+`SEAL_RECORD = 8` en `UNSEAL_RECORD = 9` gebruiken dezelfde KEY1-tag,
+256-bytepayload, 16-byteheader en normale foutantwoorden. De body is een
+canonieke context van exact 64 bytes gevolgd door plaintext respectievelijk
+`nonce | ciphertext | tag`. SEAL-body: 64..192 bytes; UNSEAL-body:
+104..232 bytes. Beide passen binnen de bestaande 240-bytebody.
+
+De contextprefix heeft deze vorm, onderscheiden van de interne record-AAD:
+
+| Offset | Inhoud |
+|---|---|
+| 0 | `NOSCTX01` (8 bytes) |
+| 8, 10 | Recordformaatversie 1 en suite 1 (u16) |
+| 12 | Recordsoort u8, uitsluitend de vijf genoemde waarden |
+| 13 | Drie gereserveerde nulbytes |
+| 16 | Volume-ID[16] |
+| 32, 40 | Object-ID en revisie (u64) |
+| 48 | Chunkpositie (u32) |
+| 52, 54 | Plaintextlengte en niet-nul encodingschema (u16) |
+| 56 | Acht gereserveerde nulbytes |
+
+Er staat **geen domein in de wirecontext**. De native adapter bepaalt dat
+uitsluitend uit het ontvangende endpoint. `decode_record_context` vult
+`RecordContext.domain` daarmee in. Zo wordt ciphertext onder domein A bij
+ontvangst op domein B met een andere AAD/sleutel beoordeeld en geweigerd.
+De wirecontext is geen objectgrant; de eerder beschreven object-/actiecontrole
+blijft de verantwoordelijkheid van de native toegangsadapter.
+
+Gebruik voor een native aanroeper:
+
+```rust
+let payload = keyring_core::wire::record_request(
+    keyring_core::wire::SEAL_RECORD, key_index, request_id, context, plaintext,
+)?;
+// Verzend payload onder KEY1 via het reeds verleende endpoint.
+// Valideer afzender, tag, nul ontvangen capabilities, headerop|REPLY,
+// key_index, request_id, status, exacte lengte en nul padding van het antwoord.
+```
+
+UNSEAL gebruikt dezelfde builder met opcode 9 en het ontvangen sealed record.
+Een SEAL-antwoord bevat maximaal 168 bodybytes; een UNSEAL-antwoord maximaal
+128 bytes. Iedere fout heeft lengte nul en nulgevulde body. De dispatcher
+controleert exacte context-/datalengte, versie, suite, soorten, schema,
+reserveringen, requeststatus en ingressdomein vóór cryptografische verwerking.
+Er zijn geen persistente snapshotopcodes of nieuwe herstelbevoegdheden voor
+gewone apps toegevoegd.
+
+Uitgevoerd op de uiteindelijke FR-B02N-bron: **46 hosttests (15 legacy,
+23 secure-record en 8 wire/dispatch)**, Clippy met `-D warnings`, formattering
+en de echte native service-/appbuild voor `x86_64-unknown-none`, alle exit 0.
+De bestaande `sdk/examples/keyring/build.py` gebruikt expliciet portable
+crypto-backends en controleert via het linkerscript de native ELF-budgetten.
+Command voor die build:
+
+```sh
+LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-fr-storage-target/native-service python3 -B sdk/examples/keyring/build.py
+```
+
+Dit bouwbewijs voert geen VM uit. De hoofdintegrator moet de nieuwe opcodes
+native aanroepen en cross-domain-/type-/schema-/manipulatiefouten observeren;
+de persistente opslag-/rollbackgates blijven open.
