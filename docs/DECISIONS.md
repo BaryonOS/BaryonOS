@@ -652,3 +652,67 @@ S06-commits gericht reverten (dan geldt weer v1 met zijn eigen bewijs).
 
 **Eigenaar:** hoofdagent voor formaat, contract, orakel en gate; `kernel_m2`
 voor het kernelgeval `test-volume-cut-txn`.
+
+## ADR-042 — Procesbeheer als capabilities: `Launch`- en `Process`-objecten, spawn/kill/status (K05)
+
+**Datum:** 29 oktober 2026. Profiel `native-supervisor`, opt-in; alle
+bestaande profielen blijven ongewijzigd bouwbaar.
+
+**Status (gescheiden):** *ontwerp* vastgelegd in
+[K05-PROCESS-MANAGEMENT](implementation/K05-PROCESS-MANAGEMENT.md).
+*Implementatie*: `crates/capability-core` (objecttypen, rechten 128/256/512),
+`kernel/src/m2/m3/supervisor.rs` (syscalls 0x30, 0x50–0x52, orphan-reaping),
+`sdk/runtime` (ABI 1.3-wrappers), `sdk/examples/supervisor` (supervisor,
+worker, client). *Testbewijs*: hosttests en de gate `tools/test_supervisor.py`;
+zie [K05-ACCEPTANCE](verification/K05-ACCEPTANCE.md). Wat daar niet staat, is
+niet uitgevoerd. *Onbekend*: SMP, fysieke hardware, gebruikersgeleverde images
+(A02), beleid voor een systeembrede dienstbeheerder.
+
+**Besluit:**
+1. Starten van een proces vereist een `Launch`-capability op een ingebouwde
+   image. Zulke objecten maakt alleen het bootmanifest aan. Een proces zonder
+   `Launch` krijgt `EBADHANDLE`, `ETYPE` of `EACCESS` en er ontstaat niets.
+2. `proc_spawn` geeft het kind alleen de maximaal twee expliciet meegegeven,
+   verminderde capabilities (dezelfde regels als IPC-overdracht: `TRANSFER`
+   vereist, nooit `RECV`, geen rechtenvergroting). Alle fallibele controles
+   gaan vooraf aan iedere toewijzing.
+3. De starter ontvangt de enige handle op een `Process`-object met
+   `OBSERVE|KILL`. Het objecttype kent geen `DERIVE`, `TRANSFER` of `REVOKE`:
+   deze autoriteit kan niet worden gedeeld of gestolen.
+4. Dood (exit, fault, kill) loopt via het bestaande `cleanup`-pad; het
+   `Process`-object bewaart toestand en code tot de eigenaar zijn laatste handle
+   sluit. Een lopend kind zonder handles blijft als object bestaan, zodat de
+   kernel de band met de starter kan blijven afdwingen.
+5. Kinderen van een gestorven starter worden in dezelfde kernelgebeurtenis
+   beëindigd, iteratief (hoogstens 16 rondes), nooit recursief op de
+   kernelstack. Er blijft geen proces over zonder verantwoordelijke.
+6. `endpoint_create` (0x30) wordt een gewone syscall binnen de bestaande
+   quota (4 eigen endpoints per proces, 64 totaal). Dit herziet de M4-keuze
+   "alleen het manifest maakt endpoints" bewust, omdat herstartbare diensten
+   een eigen ingress nodig hebben; de RECV-eigendomsregel blijft onveranderd.
+
+**Security-invariant:** autoriteit over processen zit uitsluitend in
+kernelmetadata van het aanroepende proces; een getal uit een ander proces
+levert hoogstens eigen bestaande autoriteit op (KS-12). Geen gedeeltelijke
+staat na een geweigerde of mislukte spawn: de vrije framestand is voor en na
+gelijk, anders stopt de run met `PARTIAL_SPAWN`. `check_invariants` eist dat
+een lopend `Process`-object naar een levend proces wijst en dat ieder kind
+door precies één object wordt genoemd.
+
+**Weerlegd als:** een proces zonder `Launch` een kind kan starten; een
+`Process`-handle via IPC of `derive` bij een ander proces belandt; na exit,
+fault of kill frames, nodes, endpoints of gequeued capabilities achterblijven;
+na de dood van een starter een kind blijft draaien; of een geweigerde spawn de
+vrije framestand verandert.
+
+**Restrisico:** een supervisor kan zijn eigen kinderen misbruiken binnen de
+rechten die hij heeft; er is nog geen beleid voor wie supervisor mag zijn.
+Exitcodes worden modulo 2^56 gerapporteerd. De ABI-minor stijgt naar 1.3;
+oudere profielen melden 1.0–1.2 en kennen de nieuwe syscalls niet (`ENOSYS`).
+
+**Migratie/rollback:** opt-in feature; terugdraaien = profiel niet selecteren
+of de K05-commits gericht reverten. De rechtenbits 128/256/512 zijn in
+`KNOWN_RIGHTS` opgenomen; oudere profielen wijzen ze bij endpoint- en
+blokobjecten met `EINVAL` af, zoals voorheen.
+
+**Eigenaar:** hoofdagent (engine, kernelprofiel, SDK, voorbeeld, gate, bewijs).

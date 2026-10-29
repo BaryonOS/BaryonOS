@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "case": "parent-exit",
+  "kernel_feature": "test-supervisor-parent-exit",
+  "started_utc": "2026-10-29T19:54:36.440627+00:00",
+  "duration_s": 3.784844450000037,
+  "timeout_s": 180,
+  "timed_out": false,
+  "raw_qemu_exit": 33,
+  "command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/run/supervisor-parent-exit-4868964765/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/run/supervisor-parent-exit-4868964765/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/supervisor-parent-exit-4868964765/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04"
+  ],
+  "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
+  "source_fingerprint_version": 3,
+  "source_sha256": "01735e0379a2e646f70cfe636389f59eaf26f22e6f8786752e0683db91f386b2",
+  "run_directory": "/home/user/nieuw-os/build/run/supervisor-parent-exit-4868964765",
+  "kernel_sha256": "bb5e9190079365e5ce1709cc6aca7a08644ddb4d7e3beccc53c657ad72b8950d",
+  "supervisor": {
+    "supervisor_sha256": "62f2737ada54e01ad38c55f978c7285b705ef49ca96acc5ec0d89ae041a4b122",
+    "worker_sha256": "693c981942cf1f76666be6795ca1c31b615fd79ff7cdd7bc0371032c6b680b24",
+    "client_sha256": "57a64734a2300d1012152d847dc62bfd4badf625eb8ef216a66e2b6c75e894cd",
+    "supervisor_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 10823,
+          "memsz": 10823,
+          "page_start": 1073741824,
+          "page_end": 1073754112
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 16384,
+          "filesz": 1160,
+          "memsz": 1160,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 20480,
+          "filesz": 541,
+          "memsz": 541,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ]
+    },
+    "worker_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 6055,
+          "memsz": 6055,
+          "page_start": 1073741824,
+          "page_end": 1073750016
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 12288,
+          "filesz": 1160,
+          "memsz": 1160,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 16384,
+          "filesz": 397,
+          "memsz": 397,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ]
+    },
+    "client_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 7991,
+          "memsz": 7991,
+          "page_start": 1073741824,
+          "page_end": 1073750016
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 12288,
+          "filesz": 1160,
+          "memsz": 1160,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 16384,
+          "filesz": 397,
+          "memsz": 397,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ]
+    }
+  },
+  "esp_sha256": {
+    "esp/kernel.elf": "bb5e9190079365e5ce1709cc6aca7a08644ddb4d7e3beccc53c657ad72b8950d",
+    "esp/EFI/BOOT/BOOTX64.EFI": "ae1c6dbca9a9ca7dd2ba7e6c3e90d79b5a4cb7f0edc74e23f378919c4e597e97"
+  },
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nSUPERVISOR:MANIFEST:PASS\nSUPERVISOR:DIAG:SPAWNS:00000000000000000002\nSUPERVISOR:DIAG:KILLS:00000000000000000000\nSUPERVISOR:DIAG:KILL_ERRORS:00000000000000000000\nSUPERVISOR:DIAG:SPAWN_DENIED:00000000000000000000\nSUPERVISOR:DIAG:CHILD_EXITS:00000000000000000000\nSUPERVISOR:DIAG:SUP_KILLS:00000000000000000000\nSUPERVISOR:DIAG:KILLED_CONFIRMED:00000000000000000000\nSUPERVISOR:DIAG:DENIED_SELF:00000000000000000000\nSUPERVISOR:DIAG:DENIED_MATCHED:00000000000000000000\nSUPERVISOR:DIAG:DENIED_TOTAL:00000000000000000000\nSUPERVISOR:READY\nSUPERVISOR:SPAWNS:00000000000000000002\nSUPERVISOR:KILLS:00000000000000000000\nSUPERVISOR:SPAWN_DENIED:00000000000000000000\nSUPERVISOR:SPAWN_QUOTA:00000000000000000000\nSUPERVISOR:KILL_ERRORS:00000000000000000000\nSUPERVISOR:STATUS_CALLS:00000000000000000008\nSUPERVISOR:ENDPOINT_CREATES:00000000000000000003\nSUPERVISOR:ORPHANS_REAPED:00000000000000000002\nSUPERVISOR:CHILD_EXITS:00000000000000000000\nSUPERVISOR:CHILD_FAULTS:00000000000000000000\nSUPERVISOR:MAX_LIVE:00000000000000000003\nSUPERVISOR:KERNEL_TABLES_GROWN:00000000000000000000\nSUPERVISOR:RESTARTS:00000000000000000000\nSUPERVISOR:CLIENT_REPLIES:00000000000000000004\nSUPERVISOR:CLIENT_CLOSED:00000000000000000000\nSUPERVISOR:WORKER_INSTANCES:00000000000000000001\nSUPERVISOR:DENIED_MATCHED:00000000000000000000\nSUPERVISOR:DENIED_TOTAL:00000000000000000000\nSUPERVISOR:TICKS:00000000000000000006\nSUPERVISOR:CASE:PARENT_EXIT:PASS\nSUPERVISOR:RESOURCES:PASS\nSUPERVISOR:PASS\nM1:PASS\n",
+  "stderr": "",
+  "passed": true,
+  "evidence": {
+    "SPAWNS": 2,
+    "KILLS": 0,
+    "SPAWN_DENIED": 0,
+    "SPAWN_QUOTA": 0,
+    "KILL_ERRORS": 0,
+    "STATUS_CALLS": 8,
+    "ENDPOINT_CREATES": 3,
+    "ORPHANS_REAPED": 2,
+    "CHILD_EXITS": 0,
+    "CHILD_FAULTS": 0,
+    "MAX_LIVE": 3,
+    "KERNEL_TABLES_GROWN": 0,
+    "RESTARTS": 0,
+    "CLIENT_REPLIES": 4,
+    "CLIENT_CLOSED": 0,
+    "WORKER_INSTANCES": 1,
+    "DENIED_MATCHED": 0,
+    "DENIED_TOTAL": 0,
+    "TICKS": 6
+  }
+}

@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 28% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 30% van de vaste productroadmap](docs/assets/progress.svg)
 
-**28% — 28 van 100 gewogen acceptatiepunten.** Dit is een
+**30% — 30 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -19,7 +19,7 @@ alleen een nette desktop haalt die eindgrens niet.
 
 | Productspoor | Totaal punten | Behaald |
 |---|---:|---:|
-| Eigen kern en procesisolatie | 15 | 11 |
+| Eigen kern en procesisolatie | 15 | 13 |
 | Opslag en gegevensherstel | 15 | 13 |
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
@@ -29,13 +29,13 @@ alleen een nette desktop haalt die eindgrens niet.
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **28** |
+| **Totaal** | **100** | **30** |
 
 **Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`8b603549`](https://github.com/simonvanieperen/nieuw-os/commit/8b603549c27e2d0c2247272de53b6fa713a4cb5e) ·
+**Bron:** [`621eeaf3`](https://github.com/simonvanieperen/nieuw-os/commit/621eeaf3a9e736b9c8369b653d044a99eb73c162) ·
 **Ontwikkelbranch:** `ccr-43832ef7-gi2qlz`.
-Deze opdracht: **26% → 28% (+2 procentpunt)**. **Opdracht:** S06 geaccepteerd na squash-merge van PR #49 (8b60354): GitHub Actions 6/6 groen op eadba7e, CodeRabbit-threads opgelost en de native gate onafhankelijk herhaald in een tweede container.
-S06 (+2): collecties, metadata met domeinklokken, twee bewaarde versies met RESTORE/PURGE en alles-of-niets TRANSACT in volume v2 (NOSVOL02, IPC v6). Bewijs op bron 528dfe4c: 28 volume-core-, 14 SDK- en 18 Python-hosttests, 9 echte QEMU-runs (normal, koude read-only recovery, cut-data/cut-table/cut-txn met echte hostkill en koude recovery, corrupte image geweigerd), 24/24 mutanten gevangen. Onafhankelijke herhaling van tools/test_volume.py op PR-head eadba7e in een tweede Linux-container (Rust 1.90.0, QEMU 8.2.2, pc-q35-8.2): exit 0, dezelfde bronvingerafdruk, alle 9 imagehashes byte-identiek aan docs/verification/s06. GitHub Actions op eadba7e: host-quality, qemu-smoke, k07-native, m6e-native-volume (9 runs), s08-native-resilience en CodeRabbit alle geslaagd. Geen Materiaal-UI-, fysieke-schijf-, encryptie- of back-upclaim; S09 en B02 blijven open.
+Deze opdracht: **28% → 30% (+2 procentpunt)**. **Opdracht:** K05 algemeen proces- en dienstbeheer: profiel native-supervisor met Launch-/Process-capabilities, spawn/kill/status, orphan-reaping en herstartbare dienst native geaccepteerd.
+K05 (+2) geaccepteerd op bronvingerafdruk v3 01735e03 (basis main 621eeaf): capability-core met Launch (128) en Process (256 en 512) zonder derive/transfer/revoke, kernelsyscalls endpoint_create/proc_spawn/proc_kill/proc_status met alle controles vóór toewijzing, dood via het bestaande cleanup-pad en iteratieve beëindiging van wezen; SDK-runtime ABI 1.3 en drie gewone programma's (supervisor, worker, client). Gate tools/test_supervisor.py exit 0: 39 capability-core-, 17 SDK- en 7 Python-hosttests plus 5 echte QEMU-runs: normal (3 spawns, 2 kills, 1 herstart, 24 antwoorden, 1 ECLOSED), crash (echte #UD, herstart, 24 antwoorden), denied (17/17 foutcodes, 2 processen), parent-exit (2 wezen in dezelfde gebeurtenis beëindigd), quota (15 spawns, 16e EQUOTA zonder frameverandering, 16 gelijktijdig, 15 kills). Elke run eindigt met lege engine en framebaseline. GitHub Actions moet dit op de PR-head herhalen. Geen SMP-, hardware- of A02-claim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

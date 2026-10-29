@@ -20,7 +20,25 @@ pub const BLOCK_WRITE: u64 = 32;
 pub const BLOCK_FLUSH: u64 = 64;
 pub const BLOCK_READ_RIGHTS: u64 = BLOCK_READ | DERIVE | TRANSFER | REVOKE;
 pub const BLOCK_RIGHTS: u64 = BLOCK_READ_RIGHTS | BLOCK_WRITE | BLOCK_FLUSH;
-pub const KNOWN_RIGHTS: u64 = ALL_RIGHTS | BLOCK_RIGHTS;
+/// K05 process management (ADR-042). A `Launch` object names one built-in
+/// image; a `Process` object names one spawned child. Neither type knows
+/// DERIVE, TRANSFER or REVOKE, so this authority can never leave its holder.
+pub const LAUNCH: u64 = 128;
+pub const OBSERVE: u64 = 256;
+pub const KILL: u64 = 512;
+pub const LAUNCH_RIGHTS: u64 = LAUNCH;
+pub const PROCESS_RIGHTS: u64 = OBSERVE | KILL;
+pub const KNOWN_RIGHTS: u64 = ALL_RIGHTS | BLOCK_RIGHTS | LAUNCH_RIGHTS | PROCESS_RIGHTS;
+pub const MAX_LAUNCH_OBJECTS: usize = 8;
+pub const MAX_PROCESS_OBJECTS: usize = MAX_PROCESSES;
+const LAUNCH_BASE: usize = MAX_ENDPOINTS + MAX_BLOCK_DEVICES;
+const PROCESS_BASE: usize = LAUNCH_BASE + MAX_LAUNCH_OBJECTS;
+const OBJECT_COUNT: usize = PROCESS_BASE + MAX_PROCESS_OBJECTS;
+/// Lifecycle state of a spawned child as reported through `OBSERVE`.
+pub const PROCESS_RUNNING: u8 = 1;
+pub const PROCESS_EXITED: u8 = 2;
+pub const PROCESS_FAULTED: u8 = 3;
+pub const PROCESS_KILLED: u8 = 4;
 pub const MAX_OWNED_ENDPOINTS: usize = 4;
 pub const QUEUE_CAPACITY: usize = 16;
 pub const MAX_DEPTH: u8 = 8;
@@ -64,6 +82,14 @@ impl BlockAuthorization {
     pub fn sector(self, relative: u64) -> Result<u64, Error> {
         self.scope.sector(relative)
     }
+}
+
+/// Read-only view of a `Process` object for the holder of an OBSERVE/KILL node.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ProcessView {
+    pub child: u64,
+    pub state: u8,
+    pub code: u64,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -310,6 +336,52 @@ impl BlockObject {
         },
     };
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct LaunchObject {
+    generation: u32,
+    live: bool,
+    retired: bool,
+    open: bool,
+    owner: u64,
+    nodes: u32,
+    image: u32,
+}
+impl LaunchObject {
+    const EMPTY: Self = Self {
+        generation: 1,
+        live: false,
+        retired: false,
+        open: false,
+        owner: 0,
+        nodes: 0,
+        image: 0,
+    };
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct ProcessObject {
+    generation: u32,
+    live: bool,
+    retired: bool,
+    open: bool,
+    owner: u64,
+    nodes: u32,
+    child: u64,
+    state: u8,
+    code: u64,
+}
+impl ProcessObject {
+    const EMPTY: Self = Self {
+        generation: 1,
+        live: false,
+        retired: false,
+        open: false,
+        owner: 0,
+        nodes: 0,
+        child: 0,
+        state: 0,
+        code: 0,
+    };
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Stats {
@@ -325,6 +397,10 @@ pub struct Stats {
     pub retired_endpoints: usize,
     pub block_objects: usize,
     pub retired_block_objects: usize,
+    pub launch_objects: usize,
+    pub retired_launch_objects: usize,
+    pub process_objects: usize,
+    pub retired_process_objects: usize,
     pub state_digest: u64,
 }
 
@@ -334,6 +410,8 @@ pub struct Engine {
     nodes: [Node; MAX_NODES],
     endpoints: [Endpoint; MAX_ENDPOINTS],
     blocks: [BlockObject; MAX_BLOCK_DEVICES],
+    launches: [LaunchObject; MAX_LAUNCH_OBJECTS],
+    children: [ProcessObject; MAX_PROCESS_OBJECTS],
     last_pid: u64,
 }
 impl Default for Engine {
@@ -349,8 +427,175 @@ impl Engine {
             nodes: [Node::EMPTY; MAX_NODES],
             endpoints: [Endpoint::EMPTY; MAX_ENDPOINTS],
             blocks: [BlockObject::EMPTY; MAX_BLOCK_DEVICES],
+            launches: [LaunchObject::EMPTY; MAX_LAUNCH_OBJECTS],
+            children: [ProcessObject::EMPTY; MAX_PROCESS_OBJECTS],
             last_pid: 0,
         }
+    }
+    /// Capacity probe for a spawner: true when one more process can register.
+    pub fn can_register(&self) -> bool {
+        self.processes.iter().any(|p| !p.live)
+    }
+    /// Free node count, so a caller can check all resources before committing.
+    pub fn available_nodes(&self) -> usize {
+        self.nodes.iter().filter(|n| !n.live && !n.retired).count()
+    }
+    /// Free local slots of a live process (0 for an unknown pid).
+    pub fn available_slots(&self, pid: u64) -> usize {
+        match self.process(pid) {
+            Ok(p) => self.processes[p].slots[1..]
+                .iter()
+                .filter(|s| !s.retired && s.node == Id::NONE)
+                .count(),
+            Err(_) => 0,
+        }
+    }
+    /// Read-only precheck that `bootstrap_delegate(from, handle, _, rights)`
+    /// would pass its authority rules; it reserves nothing.
+    pub fn check_delegation(&self, from: u64, handle: u64, rights: u64) -> Result<(), Error> {
+        let n = self.resolve(from, handle)?;
+        self.require(n, TRANSFER)?;
+        if rights & !KNOWN_RIGHTS != 0 {
+            return Err(Error::Invalid);
+        }
+        self.subset(n, rights, true)?;
+        if self.nodes[n].depth >= MAX_DEPTH {
+            return Err(Error::Quota);
+        }
+        Ok(())
+    }
+    /// Manifest-only: one `Launch` object for a built-in image. Apps cannot
+    /// create, derive, transfer or revoke it; they can only use or close it.
+    pub fn create_launch(&mut self, owner: u64, image: u32) -> Result<u64, Error> {
+        let p = self.process(owner)?;
+        let slot = self.slots(p, 1)?[0];
+        let node = self.free_nodes(1)?[0];
+        let object = self
+            .launches
+            .iter()
+            .position(|l| !l.live && !l.retired)
+            .ok_or(Error::Quota)?;
+        let generation = self.launches[object].generation;
+        self.launches[object] = LaunchObject {
+            generation,
+            live: true,
+            open: true,
+            owner,
+            image,
+            ..LaunchObject::EMPTY
+        };
+        self.make_node(
+            node,
+            Id {
+                index: (LAUNCH_BASE + object) as u16,
+                generation,
+            },
+            Id::NONE,
+            owner,
+            LAUNCH_RIGHTS,
+            0,
+        );
+        Ok(self.attach(p, slot, self.node_id(node)))
+    }
+    pub fn check_launch(&self, pid: u64, handle: u64) -> Result<u32, Error> {
+        let node = self.resolve(pid, handle)?;
+        let i = self.nodes[node].object.index as usize;
+        if !(LAUNCH_BASE..PROCESS_BASE).contains(&i) {
+            return Err(Error::Type);
+        }
+        self.require(node, LAUNCH)?;
+        Ok(self.launches[i - LAUNCH_BASE].image)
+    }
+    /// True when one more `Process` object can be created.
+    pub fn can_create_process(&self) -> bool {
+        self.children.iter().any(|c| !c.live && !c.retired)
+    }
+    /// Kernel-only, after the child is registered: the spawner receives the
+    /// only handle to a fresh `Process` object; the child itself holds none.
+    pub fn create_process(&mut self, owner: u64, child: u64) -> Result<u64, Error> {
+        let p = self.process(owner)?;
+        self.process(child)?;
+        if child == owner || self.children.iter().any(|c| c.live && c.child == child) {
+            return Err(Error::Invalid);
+        }
+        let slot = self.slots(p, 1)?[0];
+        let node = self.free_nodes(1)?[0];
+        let object = self
+            .children
+            .iter()
+            .position(|c| !c.live && !c.retired)
+            .ok_or(Error::Quota)?;
+        let generation = self.children[object].generation;
+        self.children[object] = ProcessObject {
+            generation,
+            live: true,
+            open: true,
+            owner,
+            child,
+            state: PROCESS_RUNNING,
+            code: 0,
+            ..ProcessObject::EMPTY
+        };
+        self.make_node(
+            node,
+            Id {
+                index: (PROCESS_BASE + object) as u16,
+                generation,
+            },
+            Id::NONE,
+            owner,
+            PROCESS_RIGHTS,
+            0,
+        );
+        Ok(self.attach(p, slot, self.node_id(node)))
+    }
+    pub fn check_process(
+        &self,
+        pid: u64,
+        handle: u64,
+        required: u64,
+    ) -> Result<ProcessView, Error> {
+        let node = self.resolve(pid, handle)?;
+        let i = self.nodes[node].object.index as usize;
+        if !(PROCESS_BASE..OBJECT_COUNT).contains(&i) {
+            return Err(Error::Type);
+        }
+        self.require(node, required)?;
+        let c = self.children[i - PROCESS_BASE];
+        Ok(ProcessView {
+            child: c.child,
+            state: c.state,
+            code: c.code,
+        })
+    }
+    /// Record how a child ended. Call before `exit(child)`. Returns whether a
+    /// running `Process` object named this child.
+    pub fn process_died(&mut self, child: u64, state: u8, code: u64) -> bool {
+        if !matches!(state, PROCESS_EXITED | PROCESS_FAULTED | PROCESS_KILLED) {
+            return false;
+        }
+        let mut found = false;
+        for c in &mut self.children {
+            if c.live && c.child == child && c.state == PROCESS_RUNNING {
+                c.state = state;
+                c.code = code;
+                found = true;
+            }
+        }
+        self.maintain();
+        found
+    }
+    /// Running children whose spawner is no longer live; the kernel must end
+    /// them (invariant 5 of K05). Returns the count written into `out`.
+    pub fn orphans(&self, out: &mut [u64; MAX_PROCESS_OBJECTS]) -> usize {
+        let mut n = 0;
+        for c in &self.children {
+            if c.live && c.state == PROCESS_RUNNING && self.process(c.owner).is_err() {
+                out[n] = c.child;
+                n += 1;
+            }
+        }
+        n
     }
     pub fn register(&mut self, pid: u64) -> Result<(), Error> {
         if pid == 0 || pid <= self.last_pid {
@@ -474,7 +719,7 @@ impl Engine {
     ) -> Result<BlockAuthorization, Error> {
         let node = self.resolve(pid, handle)?;
         let object = self.nodes[node].object;
-        if (object.index as usize) < MAX_ENDPOINTS {
+        if !(MAX_ENDPOINTS..LAUNCH_BASE).contains(&(object.index as usize)) {
             return Err(Error::Type);
         }
         self.require(node, required)?;
@@ -699,6 +944,16 @@ impl Engine {
                 b.open = false;
             }
         }
+        for l in &mut self.launches {
+            if l.live && l.owner == pid {
+                l.open = false;
+            }
+        }
+        for c in &mut self.children {
+            if c.live && c.owner == pid {
+                c.open = false;
+            }
+        }
         self.maintain();
         Ok(())
     }
@@ -801,9 +1056,15 @@ impl Engine {
         let i = id.index as usize;
         if i < MAX_ENDPOINTS {
             self.endpoints[i].live && self.endpoints[i].generation == id.generation
-        } else if i < MAX_ENDPOINTS + MAX_BLOCK_DEVICES {
+        } else if i < LAUNCH_BASE {
             let b = self.blocks[i - MAX_ENDPOINTS];
             b.live && b.generation == id.generation
+        } else if i < PROCESS_BASE {
+            let l = self.launches[i - LAUNCH_BASE];
+            l.live && l.generation == id.generation
+        } else if i < OBJECT_COUNT {
+            let c = self.children[i - PROCESS_BASE];
+            c.live && c.generation == id.generation
         } else {
             false
         }
@@ -812,23 +1073,36 @@ impl Engine {
         let i = id.index as usize;
         if i < MAX_ENDPOINTS {
             self.endpoints[i].open
-        } else {
+        } else if i < LAUNCH_BASE {
             self.blocks[i - MAX_ENDPOINTS].open
+        } else if i < PROCESS_BASE {
+            self.launches[i - LAUNCH_BASE].open
+        } else {
+            self.children[i - PROCESS_BASE].open
         }
     }
     fn allowed_rights(&self, id: Id) -> u64 {
-        if (id.index as usize) < MAX_ENDPOINTS {
+        let i = id.index as usize;
+        if i < MAX_ENDPOINTS {
             ALL_RIGHTS
-        } else {
+        } else if i < LAUNCH_BASE {
             BLOCK_RIGHTS
+        } else if i < PROCESS_BASE {
+            LAUNCH_RIGHTS
+        } else {
+            PROCESS_RIGHTS
         }
     }
     fn object_refs(&mut self, id: Id) -> &mut u32 {
         let i = id.index as usize;
         if i < MAX_ENDPOINTS {
             &mut self.endpoints[i].nodes
-        } else {
+        } else if i < LAUNCH_BASE {
             &mut self.blocks[i - MAX_ENDPOINTS].nodes
+        } else if i < PROCESS_BASE {
+            &mut self.launches[i - LAUNCH_BASE].nodes
+        } else {
+            &mut self.children[i - PROCESS_BASE].nodes
         }
     }
     fn attach(&mut self, p: usize, s: usize, node: Id) -> u64 {
@@ -982,6 +1256,28 @@ impl Engine {
                 };
             }
         }
+        for l in &mut self.launches {
+            if l.live && l.nodes == 0 {
+                let (generation, retired) = advance(l.generation);
+                *l = LaunchObject {
+                    generation,
+                    retired,
+                    ..LaunchObject::EMPTY
+                };
+            }
+        }
+        // A running child keeps its object alive even without handles: the
+        // kernel still needs the spawner link to end orphans (K05 invariant 5).
+        for c in &mut self.children {
+            if c.live && c.nodes == 0 && c.state != PROCESS_RUNNING {
+                let (generation, retired) = advance(c.generation);
+                *c = ProcessObject {
+                    generation,
+                    retired,
+                    ..ProcessObject::EMPTY
+                };
+            }
+        }
     }
     pub fn stats(&self) -> Stats {
         let mut s = Stats {
@@ -997,6 +1293,10 @@ impl Engine {
             retired_endpoints: 0,
             block_objects: 0,
             retired_block_objects: 0,
+            launch_objects: 0,
+            retired_launch_objects: 0,
+            process_objects: 0,
+            retired_process_objects: 0,
             state_digest: self.state_digest(),
         };
         for p in &self.processes {
@@ -1020,6 +1320,14 @@ impl Engine {
         for b in &self.blocks {
             s.block_objects += usize::from(b.live);
             s.retired_block_objects += usize::from(b.retired);
+        }
+        for l in &self.launches {
+            s.launch_objects += usize::from(l.live);
+            s.retired_launch_objects += usize::from(l.retired);
+        }
+        for c in &self.children {
+            s.process_objects += usize::from(c.live);
+            s.retired_process_objects += usize::from(c.retired);
         }
         s
     }
@@ -1098,12 +1406,40 @@ impl Engine {
                 add(&mut h, x);
             }
         }
+        for l in &self.launches {
+            for x in [
+                u64::from(l.generation),
+                u64::from(l.live),
+                u64::from(l.retired),
+                u64::from(l.open),
+                l.owner,
+                u64::from(l.nodes),
+                u64::from(l.image),
+            ] {
+                add(&mut h, x);
+            }
+        }
+        for c in &self.children {
+            for x in [
+                u64::from(c.generation),
+                u64::from(c.live),
+                u64::from(c.retired),
+                u64::from(c.open),
+                c.owner,
+                u64::from(c.nodes),
+                c.child,
+                u64::from(c.state),
+                c.code,
+            ] {
+                add(&mut h, x);
+            }
+        }
         h
     }
     /// Full structural/refcount check for observers/tests, not a syscall hook.
     pub fn check_invariants(&self) -> bool {
         let mut refs = [0u32; MAX_NODES];
-        let mut objects = [0u32; MAX_ENDPOINTS + MAX_BLOCK_DEVICES];
+        let mut objects = [0u32; OBJECT_COUNT];
         for p in &self.processes {
             if p.slots[0].node != Id::NONE {
                 return false;
@@ -1259,6 +1595,49 @@ impl Engine {
                 return false;
             }
             if b.open && self.process(b.owner).is_err() {
+                return false;
+            }
+        }
+        for (i, l) in self.launches.iter().enumerate() {
+            if l.generation == 0
+                || l.retired && (l.live || l.generation != u32::MAX)
+                || l.nodes != objects[LAUNCH_BASE + i]
+                || !l.live && (l.open || l.nodes != 0)
+            {
+                return false;
+            }
+            if l.live && (l.nodes == 0 || l.owner == 0) {
+                return false;
+            }
+            if l.open && self.process(l.owner).is_err() {
+                return false;
+            }
+        }
+        for (i, c) in self.children.iter().enumerate() {
+            if c.generation == 0
+                || c.retired && (c.live || c.generation != u32::MAX)
+                || c.nodes != objects[PROCESS_BASE + i]
+                || !c.live && (c.open || c.nodes != 0 || c.state != 0)
+            {
+                return false;
+            }
+            if !c.live {
+                continue;
+            }
+            if c.owner == 0
+                || c.child == 0
+                || c.child == c.owner
+                || !(PROCESS_RUNNING..=PROCESS_KILLED).contains(&c.state)
+                || c.nodes == 0 && c.state != PROCESS_RUNNING
+                || c.state == PROCESS_RUNNING && self.process(c.child).is_err()
+                || c.open && self.process(c.owner).is_err()
+                || self
+                    .children
+                    .iter()
+                    .filter(|x| x.live && x.child == c.child)
+                    .count()
+                    != 1
+            {
                 return false;
             }
         }
