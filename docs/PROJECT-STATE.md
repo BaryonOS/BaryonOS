@@ -26,7 +26,13 @@ De omgevingagent leverde een lokale officiële swtpm0.10.1/libtpms0.10.2-
 prefix en bevestigde QMP-readiness met de juiste ctrl-Unixsocket; zijn
 eerste data-socket/alive-only-proef was onvoldoende en is niet als native
 bewijs gebruikt. Geen agent of testproces meer actief.
-Native TPM **nog niet uitgevoerd**. Eerstvolgend commando na checkpoint:
+Eerste native poging op `8e4e29a` faalde raw35 vóór TPM-I/O: de nieuwe
+caller herhaalde ten onrechte de bootstrap-only `map_tables`, wat bestaande
+leafmappings terecht weigert (pagingregel334). De runtime-MMIO-seam gebruikt
+al het bestaande scratchpad voor nieuwe tabellen, zoals keyring/m5.
+Die dubbele bootstrapaanroep is verwijderd; mapperchecks zijn ongewijzigd.
+Rode run `tpm/run/tpm-normal-ddf088b0dc`; hertoets nog open.
+Eerstvolgend commando na checkpoint:
 `LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR="$PWD/build/native-test-version/tpm" NOS_TARGET_DIR="$PWD/target/native-test-version/tpm" python3 -B tools/dev.py python3 -B tools/run_tpm.py --case normal`
 Daarna dezelfde opdracht met `--case absent`; bij falen echte serial lezen.
 Eerdere GUI/koude proefversie, FPU en zes K05-cases blijven brongebonden

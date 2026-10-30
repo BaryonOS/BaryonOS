@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`cf020559`](https://github.com/simonvanieperen/nieuw-os/commit/cf020559b7771a221713f2fd676c1dbed0081c24) ·
+**Bron:** [`8e4e29a4`](https://github.com/simonvanieperen/nieuw-os/commit/8e4e29a4dc6860cf0c6d0448716f3a4167aaae83) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** TPM-NATIVE-1: vaste supervisor-MMIO-adapter en read-only TPM2-proef gebouwd; native gate volgt.
-34% blijft 34%; minstens50% niet bereikt. Nieuwe onafhankelijke TPM-CRB-bootstrapfixture verbindt de bestaande core met exact begrensde supervisor-RW/NX/UC-MMIO en echte PIT-polls: alleen read-only familyquery, release en absent-geval. Scalarbuild/ELF-inspectie,23 TPM-coretests en4 gerichte harnastests slagen; native nog niet uitgevoerd. Geen keyring/system-overlap met PR64, nieuwe apprechten, NV-mutatie of antirollbackclaim. Eerdere GUI/FPU/K05-bewijzen en lokale proefversie blijven behouden en brongebonden. Geen volledig nieuw criterium, volledige product-/menselijke-/hardwareacceptatie open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** TPM-NATIVE-1: native poging vond dubbele bootstrapmap; caller hersteld, hertoets volgt.
+34% blijft 34%; minstens50% niet bereikt. Eerste echte TPM-VM op8e4e29a faalt raw35 voor TPM-I/O: nieuwe caller herhaalde bootstrap-only map_tables. Dubbele call verwijderd; bestaande scratch-MMIO-seam en alle mapperchecks behouden. Native hertoets volgt.23 TPM-coretests en4 gerichte harnastests groen; eerdere scalarbuild groen is geen runtimebewijs. Geen keyring/system-overlap met PR64, nieuwe apprechten, NV-mutatie of antirollbackclaim. Eerdere GUI/FPU/K05-bewijzen en lokale proefversie blijven brongebonden; volledige product-/menselijke-/hardwareacceptatie open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

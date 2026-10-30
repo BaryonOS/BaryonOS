@@ -169,7 +169,6 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         fail(b"ALREADY_CLAIMED");
     }
     kernel.map_tpm_crb(frames).expect("fixed TPM UC mapping");
-    kernel.map_tables(frames);
     assert_eq!(
         kernel.leaf(WINDOW) & (0x000f_ffff_ffff_f000 | (1 << 63) | 31),
         transport::BASE | (1 << 63) | 27
