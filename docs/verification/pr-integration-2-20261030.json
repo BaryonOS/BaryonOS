@@ -129,6 +129,12 @@
         "f7449ec"
       ],
       "note": "one-line CodeRabbit autofix of a BIOS ROM path in review-7d66 README"
+    },
+    {
+      "pr": 111,
+      "head": "8729ecb084e95220f2a5ea040c3806d78996681c",
+      "picked": "evidence only: docs/verification/pr68-semantic-window-bounds (Dutch text + post96 rerun logs), docs/verification/pr68-74-batch (marked historical), docs/history/integration-2026-10-30/pr73-dce3b05a/docs/DECISIONS.md",
+      "note": "Functional content of #111 is an older subset of #96 + #113 (verified per file); status files (README, PROJECT-STATE, WORK-QUEUE, progress) not taken"
     }
   ],
   "integration_fixes": [

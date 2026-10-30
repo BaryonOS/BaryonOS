@@ -473,7 +473,7 @@
     "exit": 101,
     "seconds": 2.5486339689996385,
     "source_head": "9d538c20cd5924fd9d72b0dd9963de2b9b906e48",
-    "variant": "new assertion on original runtime"
+    "variant": "Nieuwe assertions op de oorspronkelijke runtime."
   },
   "green": [
     {
@@ -542,7 +542,7 @@
   "host_tests_passed": 20,
   "native_execution": false,
   "github_ci_run_for_patch": null,
-  "issue": "Window semantic bounds were scaled twice at 200%; keep physical viewport exact, including odd dimensions803x603. Child rectangles retain existing scaling.",
+  "issue": "De semantische Window-grenzen werden bij 200% tweemaal geschaald. Behoud de exacte fysieke viewport, ook bij oneven afmetingen van 803 × 603. Onderliggende rechthoeken behouden hun bestaande schaalomzetting.",
   "changed_files": [
     {
       "path": "ui/native/src/render.rs",
