@@ -18,12 +18,15 @@ POSIX-hostlinker. De melding benoemt de blokkade, maar installeert geen tools.
 | `python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --workspace` | 101 | Niet geslaagd: linker `cc` ontbreekt; log `/tmp/nieuw-os-infra-root-final.log`, SHA-256 `95e4d7518ea42c507b3d6bb92242cfa2c95ac58ded3890323baf750516cef1b8` |
 | `git diff --check` | 0 | Geen diff-whitespacefouten |
 | `python3 -m py_compile tools/preflight.py tests/test_preflight.py` | 0 | Python-syntaxis geldig |
+| `gh pr checks 62 --repo simonvanieperen/nieuw-os --watch --interval 15` | 0 | 10 GitHub Actions-checks geslaagd op PR-head `1df236f724caf79274b9f7f8fecc91662a75a1c0`; CodeRabbit overgeslagen |
 
 Rustup en Rust 1.90.0 zijn voor deze controle geïnstalleerd in de door
 `.gitignore` uitgesloten `.tools/`-toolmap; `cargo fetch --locked` eindigde
 ook met exit 0. De lokale `cc`-installatie is niet hersteld: `sudo -n true`
 eindigde met exit 1 doordat interactieve authenticatie vereist is. Na installatie
 van een C-toolchain is de exacte root-workspace-test opnieuw uit te voeren.
-Clippy, rustfmt, de volledige CI en QEMU zijn niet uitgevoerd. Een oudere
-HKDF-doctestmelding is op deze bron niet bevestigd, omdat de huidige run al
-bij de ontbrekende linker stopte.
+Clippy en rustfmt zijn niet uitgevoerd. QEMU- en native CI-checks slaagden op
+de PR-run, maar vervangen geen fysieke/human-reviewgate of de lokaal
+geblokkeerde volledige Cargo-workspace-test. Een oudere HKDF-doctestmelding is
+op deze bron niet bevestigd, omdat de huidige run al bij de ontbrekende linker
+stopte.
