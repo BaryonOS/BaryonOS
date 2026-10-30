@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`eabc27ba`](https://github.com/simonvanieperen/nieuw-os/commit/eabc27ba879fd3b5960863ae8eede800c5045a57) ·
-**Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Vaste interactieve bron na CI-fix opnieuw native geaccepteerd voor afzonderlijke Windowsproef.
-34% blijft34%; minstens50% niet bereikt. Op eabc27b beide echte native gates opnieuw groen: referentie133,320s/raw33 en gewone zevenprocessenbediening92,390s/QMP-quit/raw0. Zes exacte volledige native frames en onafhankelijk diskorakel slagen zonder maskers/controllerfallback. Vier concrete CI-formatfouten nu groen, overige checks deels pending. Vaste bron vrij voor afzonderlijke Windows-QEMU-proef; nog geen Windowsbediening/ZIP of volledig rubriccriterium. Product-, menselijke en hardwareacceptatie blijven open.
+**Bron:** [`c532ba88`](https://github.com/simonvanieperen/nieuw-os/commit/c532ba88fbf0f53b960e9dbf77421cee29d97096) ·
+**Ontwikkelbranch:** `simon/native-interactive-cold`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Preview stale-successreviewpunt hersteld op afzonderlijke opvolgbranch.
+34% blijft34%; minstens50% niet bereikt. Concrete runnerreviewfout opgelost: geen oud passed:true-rapport na ongeldige build/firmwarevoorbereiding.52 gerichte en135 tools-hosttests groen, inclusief veilige rapportpadweigering; nieuwe native sourcegates nog niet uitgevoerd. PR66head c532 blijft bevroren voor integratiecoördinator. Eerdere native en afzonderlijke Windowsproef blijven brongebonden; koude experimenten zijn geen volledige acceptatie. Geen nieuw volledig rubriccriterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

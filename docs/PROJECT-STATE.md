@@ -1,6 +1,28 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Vaste interactieve bron groen; Windowsproef volgt
+## NEXT AGENT HANDOFF — Opvolgbranch: oud preview-succes bij voorbereiding geweigerd
+
+Vanaf c532ba88fbf0f53b960e9dbf77421cee29d97096 op
+`simon/native-interactive-cold`; PR #66-branch blijft exact c532ba8 voor review.
+Alleen `tools/run_materiaal_preview.py` en directe tests veranderen runtime-
+tooling: eigen rapportpad via private_path valideren en oud rapport verwijderen
+vóór build-/firmwarevalidatie. 52 gerichte/135 tools-tests exit0; bewijs
+`verification/native-test-version/preview-stale-report.md`.
+Geen nieuw native bewijs op deze v3; oude bewijzen niet omgelabeld.
+Coördinator verbose-sniffle doet overige vijf packagingreviewpunten in eigen
+opvolgcommit; beide previewbestanden expliciet bij deze integrator.
+
+Koude experimenten blijven voorlopig sessieartifacts, geen acceptatierunner:
+eerste lijstvergelijking rood door echte Ready/Saved-statusverschil.
+Tweede experiment volledig reopened-frame bytegelijk en disk onveranderd,
+maar initiële lijst niet gecertificeerd en vaste wachttijd gebruikt.
+Derde experiment moet een vooraf renderer-afgeleid volledig lijstframe
+zonder maskers toetsen; daarna strikt parent/artifact/trace-replay ontwerpen.
+Status/resultaat onder sessiefiles/cold-interactive-result.json.
+Windowspeer archiveert eigen echte zesfaseproef op vaste oude c532-kopie.
+**34% blijft34%; nieuwe gecombineerde sourcegates/50% open.**
+
+## Uitvoeringshistorie — Vaste interactieve bron groen; Windowsproef volgt
 
 Vrij te geven testbron `eabc27ba879fd3b5960863ae8eede800c5045a57`, v3
 `a1998a126a3a1ccc18523925a422912d934c14bab865b3d7df346862a2c251a6`.

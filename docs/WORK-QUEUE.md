@@ -1,5 +1,30 @@
 # Werkqueue — volledige native testrelease, 30 oktober 2026
 
+## Actuele integratie en exclusieve schrijfgebieden
+
+Integrator `simon/native-test-version`: gepusht bewijscheckpoint `c532ba88`,
+geteste code `eabc27ba879fd3b5960863ae8eede800c5045a57`, runtime v3
+`a1998a126a3a1ccc18523925a422912d934c14bab865b3d7df346862a2c251a6`.
+De onderstaande oudere toewijzingen zijn historie, geen actieve reserveringen.
+IPC-wachten/consumenten, B02 en native TPM zijn geïntegreerd; normale GUI,
+save/list/reopen en koude probeheropening zijn op hun eigen bron bewezen.
+Alle zes volledige gewone zevenprocessenframes zijn nu op eabc27b native
+bytegelijk aan de opnieuw uitgevoerde referentie, met diskorakel na raw0.
+Bewijs: `verification/full-release-interactive-fixed/`.
+
+| Taak | Eigenaar / exclusieve writes | Toestand en bewijsgrens |
+|---|---|---|
+| WINDOWS-INTERACTIVE-1 | peer `Keuze native os-functionaliteit`; alleen eigen `docs/verification/windows-qemu-interactive-1/`, eigen tijdelijke adapter/bundel/state | Vaste c532ba8-kopie in eigen worktree. Lokale ZIP en echte Windows CheckOnly/start/readiness gemeld; bediening loopt nog, geen geverifieerde eindclaim of publicatie |
+| INTERACTIVE-COLD-1 | integrator; voorlopig alleen sessieartifacts en eigen gegenereerde cold-experiment-runs, daarna zo nodig `tools/run_materiaal_preview.py` en directe tests | Eerste exacte lijstvergelijking rood: verse Ready-status verschilt terecht van vorige Saved-status. Tweede verkennende run4019c620f8 bewijst volledig bytegelijk reopened-frame en onveranderde disk na QMP-quit/raw0, maar certificeert de initiële lijst niet (expliciete vaste wachttijd). Nog geen volledige koude acceptatie; renderer-afgeleid lijstorakel en strikt parent/artifact/trace-replay vereist. Geen kernel-/app-/SDK-writes |
+
+De Windowspeer heeft de vaste build read-only gekopieerd en alle bron/copy-
+hashes gecontroleerd; verder integratorwerk verandert haar vaste bron niet.
+Geen parallelle schrijvers voor de gedeelde voortgangsmeter/status.
+De integrator heeft de Materiaal-/toegankelijkheidssessie expliciet van deze
+runnerreservering op de hoogte gebracht. Score blijft34%;50% open.
+
+## Uitvoeringshistorie
+
 Afgeronde fundamentstap `TPM-NATIVE-1`, eigenaar `simon/native-test-version`, vanaf
 `cf02055`: alleen vaste supervisor-MMIO-adapter en read-only TPM2-property-
 proef met echte PIT-polls, afzonderlijk absent-geval en bestaande volledige
