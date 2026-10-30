@@ -36,10 +36,19 @@ Invariants (each with a red mutant, `model-mutants.py` → `model-mutants.log`,
 | I5 | rx queue never gets buffers | M5 |
 | I6 | double completion never frees twice (⇒ fence); double RELEASE refused (F19) | M6, M7 |
 
-Gates (logs/exit `model-{fmt,clippy,tests,build,mutants}`): fmt --check,
-clippy `--all-targets -D warnings`, `test --offline --locked` (32 = 11 codec +
-21 model), none release build, `python3 verification/model-mutants.py`; all
-exit 0.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:ee1ce81fcd66e7e008e2285c4761d040c9401eb591b2115a84dbdd72d0bc830a -->
+
+Gates rerun on the review fixes based on `9768d8c502fc9c7f51c7a0a5cf2bdd5b9d171efe` (logs/exit `model-{fmt,clippy,tests,build,mutants}`): fmt --check,
+clippy `--all-targets -D warnings`, `test --offline --locked` (33 = 11 codec +
+22 model, including `i4_invalid_revoke_deadline_quarantines_without_releasing_slots`),
+none release build, `python3 verification/model-mutants.py`; all exit 0. The
+mutant runner first requires passing baseline model tests and accepts only
+confirmed test failures as caught. Its error handling is covered by
+`python3 -m unittest verification/test_model_mutants.py` (6 tests, exit 0).
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 Evidence boundary: status 0 and BME-off read-back are **model assumptions**
 about a conforming device, not proven DMA quiescence or a device fence. No

@@ -1,2 +1,2 @@
-    Checking nieuw-os-virtio-snd v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/hw-virtio-snd/drivers/virtio-snd)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.20s
+    Checking nieuw-os-virtio-snd v0.1.0 (/home/vercel-sandbox/workspace/repos/github.com/simonvanieperen/nieuw-os/drivers/virtio-snd)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.18s

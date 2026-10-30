@@ -168,7 +168,14 @@ fence-ACK.
   hoorbare of fysieke H03/FR-H02/A06-aftekening.
 
 Negatief: F1 (geen device), F13 (broker beëindigd midden in afspelen →
-fence-ACK; WAV groeit daarna alleen met stille frames binnen het eindvenster),
+fence-ACK). Controleer transportquiescentie via de beide read-backs en een
+geordende used-ring-snapshot met vervolgcontrole op verandering, onafhankelijk
+van de WAV-uitvoer. Na de ACK mag nog reeds
+vóór revoke geaccepteerde PCM uit de hostqueue volgen, in oorspronkelijke
+volgorde en zonder replay; leg vast welke frames vóór revoke zijn geaccepteerd
+en waar de ACK in de uitvoer ligt. Die staart en eventuele daaropvolgende
+stilte omvatten samen maximaal 4 800 frames na de ACK. Kan de proef de
+ACK-positie of herkomst niet aantonen, dan is F13 onbeslist, geen pass.
 F14 (slechte buffer), F10 (dubbele RELEASE wordt vóór verzenden geweigerd).
 Vastleggen: broncommit, `tools/common.py`-fingerprint,
 kernel-/loader-/imagehashes, QEMU/OVMF-hashes, exact commando, wall-clock en

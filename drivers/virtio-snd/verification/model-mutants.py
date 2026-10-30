@@ -3,11 +3,13 @@
 
 Each mutant applies one exact, unique text delta, runs the locked test suite,
 records the exit status and restores the original bytes (sha256-verified).
-A mutant is "caught" when `cargo test` exits non-zero. Run from
-drivers/virtio-snd with the pinned toolchain in PATH.
+A mutant is "caught" only when the model tests execute and fail. Build and
+tool errors abort the run. Run from drivers/virtio-snd with the pinned
+toolchain in PATH.
 """
 import hashlib
 import pathlib
+import re
 import subprocess
 import sys
 
@@ -38,6 +40,29 @@ def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def test_outcome(result: subprocess.CompletedProcess) -> tuple[str, list[str]]:
+    """Fail closed unless libtest reports actual model tests and a verdict."""
+    runs = re.findall(r"^running (\d+) tests$", result.stdout, re.MULTILINE)
+    summaries = re.findall(
+        r"^test result: (ok|FAILED)\. (\d+) passed; (\d+) failed;",
+        result.stdout, re.MULTILINE,
+    )
+    failed = re.findall(r"^    (transport_model::tests::\S+)$", result.stdout, re.MULTILINE)
+    errors = [line for line in result.stderr.splitlines() if line.startswith("error:")]
+    if not runs or int(runs[0]) == 0 or not summaries:
+        return "ERROR", failed
+    verdict, passed, failures = summaries[0]
+    if int(passed) + int(failures) != int(runs[0]):
+        return "ERROR", failed
+    if result.returncode == 0 and verdict == "ok" and int(failures) == 0 and not errors:
+        return "PASS", failed
+    if (result.returncode == 101 and verdict == "FAILED" and int(failures) > 0
+            and len(failed) == int(failures) and len(errors) == 1
+            and errors[0].startswith("error: test failed")):
+        return "FAIL", failed
+    return "ERROR", failed
+
+
 def main() -> int:
     original = SRC.read_bytes()
     base = sha(original)
@@ -45,6 +70,12 @@ def main() -> int:
     print(f"command {' '.join(CMD)}")
     caught = 0
     try:
+        baseline = subprocess.run(CMD, capture_output=True, text=True)
+        outcome, _ = test_outcome(baseline)
+        print(f"baseline {outcome} exit={baseline.returncode}")
+        if outcome != "PASS":
+            print(baseline.stdout, baseline.stderr, file=sys.stderr)
+            return 2
         for mid, what, old, new in MUTANTS:
             text = original.decode()
             if text.count(old) != 1:
@@ -52,14 +83,20 @@ def main() -> int:
                 return 2
             SRC.write_text(text.replace(old, new))
             result = subprocess.run(CMD, capture_output=True, text=True)
-            failed = [l for l in result.stdout.splitlines() if l.startswith("    transport_model::tests::")]
-            verdict = "CAUGHT" if result.returncode != 0 else "SURVIVED"
-            caught += result.returncode != 0
+            outcome, failed = test_outcome(result)
+            verdict = {"FAIL": "CAUGHT", "PASS": "SURVIVED", "ERROR": "ERROR"}[outcome]
+            caught += outcome == "FAIL"
             print(f"{mid} {verdict} exit={result.returncode} {what}")
             print(f"  delta: {old!r} -> {new!r}")
             for line in failed:
                 print(f"  red: {line.strip()}")
             SRC.write_bytes(original)
+            if outcome == "ERROR":
+                print(result.stdout, result.stderr, file=sys.stderr)
+                return 2
+    except OSError as error:
+        print(f"ERROR running tests: {error}", file=sys.stderr)
+        return 2
     finally:
         SRC.write_bytes(original)
     restored = sha(SRC.read_bytes())

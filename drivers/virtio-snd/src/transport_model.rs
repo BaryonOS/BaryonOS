@@ -70,7 +70,8 @@ pub struct Model {
     deadline: u64,
     status_zero: bool,
     bme_off: bool,
-    used_snapshot: Option<u16>,
+    acked: bool,
+    used_baseline: Option<u16>,
 }
 
 impl Model {
@@ -84,7 +85,8 @@ impl Model {
             deadline: 0,
             status_zero: false,
             bme_off: false,
-            used_snapshot: None,
+            acked: false,
+            used_baseline: None,
         }
     }
 
@@ -142,7 +144,8 @@ impl Model {
         if lease.epoch != self.lease.epoch || lease.cap_generation <= self.lease.cap_generation {
             return Err(Reject::StaleLease);
         }
-        self.used_snapshot = None;
+        self.acked = false;
+        self.used_baseline = None;
         self.lease = lease;
         self.revoked = false;
         self.released = false;
@@ -216,8 +219,9 @@ impl Model {
         Err(Reject::RxForbidden)
     }
 
-    /// Used-ring entry for `id`. Delivery to the broker re-authorises the
-    /// lease; a stale lease is refused without touching any state.
+    /// Used-ring entry for `id`. Before both ACKs, a stale lease is refused
+    /// without changing state (while fencing, all completions are frozen).
+    /// After both ACKs, any completion quarantines, even with a stale lease.
     pub fn complete(
         &mut self,
         lease: Lease,
@@ -231,7 +235,7 @@ impl Model {
             State::Fencing => return Err(Reject::Frozen),
             _ => {}
         }
-        if self.used_snapshot.is_some() {
+        if self.acked {
             // F11: completion after both ACKs.
             self.state = State::Quarantined;
             return Err(Reject::Quarantined);
@@ -273,6 +277,8 @@ impl Model {
         self.state = State::Fencing;
         self.status_zero = false;
         self.bme_off = false;
+        self.acked = false;
+        self.used_baseline = None;
         self.deadline = 0;
     }
 
@@ -340,10 +346,17 @@ impl Model {
 
     /// Explicitly ordered DMA read of the used index after both ACKs.
     pub fn observe_used_idx(&mut self, used_idx: u16) -> Result<(), Reject> {
-        match self.used_snapshot {
+        if !self.acked {
+            return Ok(());
+        }
+        match self.used_baseline {
             Some(s) if s != used_idx => {
                 self.state = State::Quarantined;
                 Err(Reject::Quarantined)
+            }
+            None => {
+                self.used_baseline = Some(used_idx);
+                Ok(())
             }
             _ => Ok(()),
         }
@@ -379,7 +392,8 @@ impl Model {
         };
         self.slots = [Slot::Free; SLOTS];
         self.lease.epoch = epoch;
-        self.used_snapshot = Some(0);
+        self.acked = true;
+        self.used_baseline = None;
         self.state = State::Offline;
         Ok(())
     }

@@ -1,6 +1,18 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR #70 behoudt main94 en oorspronkelijke bewijsgrenzen — 30 oktober 2026
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:b9d8713e45ee37282db7d9ee0a3d9d3d0b34115d52b9aeaf39764d9d7d0e4ff0 -->
+
+## NEXT AGENT HANDOFF — virtio-snd-reviewherstel — 30 oktober 2026
+
+Basis `9768d8c502fc9c7f51c7a0a5cf2bdd5b9d171efe`, branch `coderabbit/fix-virtio-snd-review-findings/e33c7323`. Het hostmodel bewaakt de ACKs en de eerste used-index afzonderlijk; de mutant-runner onderscheidt testfalen van gereedschapsfouten. F13 staat een controleerbare begrensde audiostaart toe na ACK. Het eerdere criterium stond alleen stilte toe. Details en controleerbaar hostbewijs: `drivers/virtio-snd/verification/`.
+
+33 hosttests, zes Python-tests, zeven gedetecteerde mutanten, fmt, Clippy en freestanding releasebuild: exit 0. Geen native audioproef, DMA-bewijs of hardwaretest; F13 moet nog in de VM worden uitgevoerd. Voortgang blijft 34% → 34%. Eerstvolgend: implementeer de afzonderlijk vrij te geven runtimegate met aantoonbare ACK-positie en PCM-herkomst.
+
+## Historisch checkpoint — PR #70 behoudt main94 en oorspronkelijke bewijsgrenzen — 30 oktober 2026
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 Branch `simonvanieperen-musical-happiness`; mergeouders
 `0078c3b3baeff2dd5914b8f9d1b1e354cb33aea0` (codec/paddingreview) en

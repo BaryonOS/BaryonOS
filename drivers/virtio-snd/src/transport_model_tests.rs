@@ -113,22 +113,34 @@ fn i2_stale_lease_completion_rejected_without_state_change() {
 
 #[test]
 fn i2_completion_after_both_acks_quarantines() {
-    let mut m = running();
-    m.submit(L1).unwrap();
-    m.fence(0, 100).unwrap();
-    ack(&mut m, 1);
-    let l = m.lease();
-    assert_eq!(m.complete(l, 0, 8, OK), Err(Reject::Quarantined));
-    assert_eq!(m.state(), State::Quarantined);
+    for use_pre_ack_lease in [false, true] {
+        let mut m = running();
+        m.submit(L1).unwrap();
+        let pre_ack = m.lease();
+        m.fence(0, 100).unwrap();
+        ack(&mut m, 1);
+        let lease = if use_pre_ack_lease {
+            pre_ack
+        } else {
+            m.lease()
+        };
+        assert_eq!(m.complete(lease, 0, 8, OK), Err(Reject::Quarantined));
+        assert_eq!(m.state(), State::Quarantined);
+    }
 }
 
 #[test]
 fn i2_used_index_moving_after_ack_quarantines() {
     let mut m = running();
+    assert_eq!(m.observe_used_idx(7), Ok(()));
     m.fence(0, 100).unwrap();
-    ack(&mut m, 1);
-    assert_eq!(m.observe_used_idx(0), Ok(()));
-    assert_eq!(m.observe_used_idx(1), Err(Reject::Quarantined));
+    m.observe_status(1, 0).unwrap();
+    assert_eq!(m.observe_used_idx(8), Ok(()));
+    assert_eq!(m.state(), State::Fencing);
+    m.observe_bme(1, false).unwrap();
+    assert_eq!(m.observe_used_idx(17), Ok(()));
+    assert_eq!(m.observe_used_idx(17), Ok(()));
+    assert_eq!(m.observe_used_idx(18), Err(Reject::Quarantined));
     assert_eq!(m.state(), State::Quarantined);
 }
 
@@ -259,9 +271,11 @@ fn i4_reinit_requires_fresh_lease() {
     let old = Lease { epoch: 1, ..L1 };
     assert_eq!(m.init(old), Err(Reject::StaleLease));
     assert_eq!(m.init(L1), Err(Reject::StaleLease));
+    assert_eq!(m.observe_used_idx(17), Ok(()));
     let next = next_lease(&m);
     m.init(next).unwrap();
     assert_eq!(m.state(), State::Ready);
+    assert_eq!(m.observe_used_idx(18), Ok(()));
     assert_eq!(m.complete(L1, 0, 8, OK), Err(Reject::StaleLease));
 }
 
