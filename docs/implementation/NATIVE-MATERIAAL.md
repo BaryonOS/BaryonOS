@@ -56,6 +56,50 @@ completion volgen. De deadline betreft admission vóór blit, geen vsyncbelofte
 over preëmptie of vermeende rollback van geschreven pixels. Bron-/red-/green-
 en onafhankelijke herreview staan bij `ui/surface-protocol/verification/`.
 
+### Afzonderlijke app-adapter en gebouwd ELF
+
+`sdk/examples/materiaal` bevat nu de echte no_std native caller. Alle drie
+taakparen worden eenmaal aan hun typed eigenaar overgedragen; app-startup
+controleert geldige, verschillende handles en onderscheiden verwachte PIDs.
+De app bezit geen hardwarecap en fabriceert geen Received-envelopes. Iedere
+begrensde iteratie doet hoogstens vier PEEK/ACK-paren, één echte uploadstap en
+één tiletransactie. Een snapshot wordt alleen gepresenteerd na alle ACKs van
+dezelfde actuele generatie/epoch. Bij input-/surfaceverlies gaat Ready uit;
+draftbytes blijven bewaard en een verloren COMMIT-reply geeft geen Saved.
+
+Supervisorprotocol blijft het bestaande SYSTEM-tag: READY1 is uitsluitend
+metadata/ELFready, GO2 start servicegebruik, STOP5 is expliciet supervisorverzoek,
+STOP_REFUSED6 antwoordt bij dirty/saving, DONE3 volgt alleen clean/idle plus
+cleanup. Exacte kernelafzender, nul caps en1Bpayload zijn verplicht. Geen stil
+verwerpen, autosave of wijziging van PID-/epochautoriteit via payloads.
+
+Bewijsvelden:400 huidige UIReady (volledig huidig paint + werkelijke INP1-response),
+408 volledige frames,416 echte tileACKs,424 geleverde keys,432 muisevents,
+440 laatst werkelijk bevestigde saveRevision,448 bytes,456 FNVchecksum,
+464 echte inputACKs,472 fouten,480 echte saveCOMMIT-ACKs,488 supersededOffers,
+496 stopweigering. Hartslag8/failure240 blijven; een unchanged-save is geen
+nieuwe COMMIT-ACK. Dit zijn meetvelden, geen autoriteits- of crypto-eigenschappen.
+
+Achttien gecombineerde hostscenario's gebruiken één echte capability-engine,
+de bestaande volume-v7-service, input-core en SUR1. Getest zijn maken/bewerken/
+opslaan/heropenen, annuleren vóór en na APPEND, globaal pointeroffset/outside/
+heldreentry,100/200%, readonly, focusregrant met heldControl, grote invoer, I/O,
+verloren input-/tile-/COMMIT-replies, stale halve frames en expliciete cleanup.
+Ordered RAMsectoren en de displayrecorder zijn hosttegenpartijen; geen native
+input-/scherm-/diskbewijs. Eén extra test past de echte kernel user::parse toe
+op het werkelijk gebouwde x86_64-unknown-none executable, niet een fixtureELF.
+
+Dit ELF heeft vijf monotone W^X LOADs en119 imagepagina's. Drie64KiB-buffers
+staan op0x40071000 in BSS/RW+NX, niet op de stack; readonly inclfontrelro is
+191684B, code84089B op dit checkpoint. De gemonomorfiseerde19781 instructies
+bevatten geen SIMD/FPU of hostmallocbackend. Exacte hashes, commandologs en
+werkelijk gebruikte tijdelijke centrale SDK1.8-input staan in
+`sdk/examples/materiaal/verification/pre-native.json`. De tijdelijke patch wordt
+vóór commit uit gedeelde SDKfiles verwijderd; root moet dezelfde centrale
+SDK1.8-bron echt integreren en opnieuw bouwen. user::parse/Clippy/build bewijzen
+geen native uitvoering, maximale stackdiepte of GUI-latency. QMP, daadwerkelijk
+gerenderde UI, koude heropening en encrypted keypersistentie blijven open.
+
 30 oktober 2026; basis `61ea727`. Eigenaar `native_ui_apps`: uitsluitend
 `ui/native/**` en dit contract. Root bezit kernel/ABI/startupcaps/build/integratie;
 `git_build_audit` onderzoekt display-/PS2-transport; geheugenagent bezit m3.rs.
