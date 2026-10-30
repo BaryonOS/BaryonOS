@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`4fb9a232`](https://github.com/simonvanieperen/nieuw-os/commit/4fb9a2320dd4d5383846507748ea8fdaf9e167cb) ·
+**Bron:** [`c87fd769`](https://github.com/simonvanieperen/nieuw-os/commit/c87fd769223e95fbf3a9423247468a0230ca9de1) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-sniffle`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hosttest-preflight: herstel ontbrekende POSIX-linker- en vendordoctestvereisten.
-34% blijft 34%; infrastructuurherstel accepteert geen productcriterium. `--strict-host-tests` meldt een ontbrekende POSIX-linker afzonderlijk; met een geïsoleerde lokale C-toolchain kwamen drie HKDF- en twee HMAC-README-doctests zonder `sha2`/`hex-literal`-testdependencies aan het licht. De upstream-gedocumenteerde, test-only dependencies zijn in beide vendormanifesten hersteld; gerichte doctests slagen. De volledige locked workspace-test slaagt: 360 passed, 0 failed, 1 ignored. Alle 10 GitHub Actions-workflows (11 jobchecks) op `4fb9a23` slagen; CodeRabbit is overgeslagen. Geen nieuw productcriterium geaccepteerd.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Conflictintegratie PR #62 met main f52dab5: preflight, doctestherstel, RTC en B02 behouden.
+34% blijft 34%; conflictintegratie sluit geen productcriterium. De PR behoudt de afzonderlijke POSIX-hostlinkercontrole en test-only HKDF/HMAC-doctestdependencies; main behoudt de opt-in RTC/UTC-API en persistente sleutelstatus met administratief ingress. Beide historische checkpoints en bewijsgrenzen blijven behouden. Integratiecontroles staan in PROJECT-STATE.md; oude CI- en QEMU-resultaten gelden niet als nieuwe-headacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

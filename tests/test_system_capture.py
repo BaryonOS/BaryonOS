@@ -13,7 +13,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import capture_system as capture
 import test_system as system_gate
-from test_system_harness import transcript
+from test_system_harness import system_image, transcript
 from test_net_peer import completed_fixture
 from test_tcp_harness import fixture as tcp_fixture
 from run_net_system import NET_EXACT
@@ -50,20 +50,10 @@ class SystemCaptureTests(unittest.TestCase):
         self.volume.mkdir()
         image = self.volume / "volume.img"
         empty_hash = disk.create_image(image)["sha256"]
-        raw = bytearray(image.read_bytes())
-        data = disk.fixture(0, 1, 4096)
-        start = (disk.FIRST + disk.DATA_START) * disk.SECTOR
-        raw[start:start + len(data)] = data
-        entries = [disk.empty_entry() for _ in range(disk.OBJECTS)]
-        entries[0] = dict(disk.empty_entry(), revision=1, request_id=1, created=1, modified=1,
-                          present=True, current=dict(revision=1, length=4096, name=b"systeemproef",
-                                                     content_sum=disk.fnv(data), chunks=[0], sums=[disk.fnv(data)]))
-        for index, sector in enumerate(disk.encode_table(1, 1, entries)):
-            start = (disk.FIRST + disk.TABLE_SECTORS + index) * disk.SECTOR
-            raw[start:start + disk.SECTOR] = sector
+        raw = bytearray(system_image())
         image.write_bytes(raw)
         after = capture.digest(raw)
-        oracle = disk.analyse(raw)
+        oracle = disk.analyse(raw, capture.OPAQUE_OBJECTS)
         capture.check_disk(oracle)
         self.reports = []
         self.runs = []
@@ -239,8 +229,8 @@ class SystemCaptureTests(unittest.TestCase):
         raw = bytearray(path.read_bytes())
         # An unallocated chunk is invisible in the document oracle. The exact
         # readonly cold-chain hash must still detect this write.
-        raw[(disk.FIRST + disk.DATA_START + disk.CHUNK_SECTORS) * disk.SECTOR] ^= 1
-        oracle = disk.analyse(raw)
+        raw[(disk.FIRST + disk.DATA_START + 3 * disk.CHUNK_SECTORS) * disk.SECTOR] ^= 1
+        oracle = disk.analyse(raw, capture.OPAQUE_OBJECTS)
         capture.check_disk(oracle)
         path.write_bytes(raw)
         self.reports[1]["after_sha256"] = capture.digest(raw)

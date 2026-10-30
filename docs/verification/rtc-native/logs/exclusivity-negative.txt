@@ -1,0 +1,15 @@
+    Checking virtio-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/crates/virtio-core)
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/kernel)
+    Checking nieuw-os-rtc v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/drivers/rtc)
+    Checking kernel-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/crates/kernel-core)
+    Checking block-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/services/block)
+    Checking boot-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/crates/boot-protocol)
+    Checking capability-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/crates/capability-core)
+    Checking virtio-blk-driver v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/drivers/virtio-blk)
+error: native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap
+  --> kernel/src/main.rs:19:1
+   |
+19 | compile_error!("native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap");
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: could not compile `os-kernel` (bin "os-kernel") due to 1 previous error

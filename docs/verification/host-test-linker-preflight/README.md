@@ -48,3 +48,75 @@ is overgeslagen. Rust fmt/Clippy zijn niet uitgevoerd. Geen fysieke of
 menselijke acceptatiegate of nieuw native QEMU-bewijs is toegevoegd:
 **34% → 34%**. De daaropvolgende voortgangs-/statuscheckpoint is alleen
 documentatie.
+
+## Conflictintegratie met main f52dab5
+
+30 oktober 2026: PR-head `c87fd769223e95fbf3a9423247468a0230ca9de1` met
+actuele `main` `f52dab50af281dab2c94ab2c9e31aaabd299246a`. Alleen
+README, PROJECT-STATE en progress.json conflicteerden. De historische
+preflight-, B02- en RTC-checkpoints zijn behouden; de actuele assessment
+beschrijft de integratie met **34% → 34%**. Criteria en gewichten zijn gelijk.
+De lockfile bevat zowel RTC-core als de oorspronkelijke PR-doctestdependencies.
+Geen runtimebron handmatig aangepast, geen nieuwe dependency toegevoegd.
+
+De onderstaande controles zijn uitgevoerd vanuit
+`/home/runner/work/nieuw-os/nieuw-os` op de samengevoegde werkboom vóór
+de twee-oudermergecommit. Waargenomen eindtijd: 16:21 UTC (17:21 Amsterdam).
+Tests en buildoutput staan lokaal onder `/tmp/` en genegeerde target/buildmappen;
+dit rapport archiveert compacte resultaten en hashes, geen nieuwe VM-acceptatie.
+
+| Exact commando | Exit | Resultaat / lokaal log |
+|---|---:|---|
+| `python3 -B -m unittest discover -s tests -p test_preflight.py -v` | 0 | 22 tests, 0,210 s; `/tmp/pr62-v2-preflight.log` |
+| `python3 -B -m unittest tools.tests.test_rtc tools.tests.test_system_clock -v` | 0 | 12 tests, 0,026 s; `/tmp/pr62-v2-clock.log` |
+| `python3 -B -m unittest discover -s tests -p 'test_system_*.py'` | 0 | 46 tests, 9,235 s; `/tmp/pr62-v2-system.log` |
+| `python3 -B -m unittest discover -s tools/tests` | 0 | 98 tests, 32,204 s; `/tmp/pr62-v2-tools.log` |
+| `cargo +1.90.0 fetch --locked` | 0 | Bestaande locked dependencies lokaal opgehaald; `/tmp/pr62-v2-fetch.log` |
+| `cargo +1.90.0 test --offline --locked -p keyring-core` | 0 | 68 tests, inclusief 5 B02-persistent-wiretests; `/tmp/pr62-v2-keyring.log` |
+| `cargo +1.90.0 test --offline --locked --workspace` | 0 | 365 passed, 0 failed, 1 ignored; inclusief HKDF/HMAC-doctests; `/tmp/pr62-v2-workspace.log` |
+| `cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml` | 0 | SDK-cache hersteld; `/tmp/pr62-v2-sdk-fetch.log` |
+| `cargo +1.90.0 test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime` | 0 | 20 tests; `/tmp/pr62-v2-sdk.log` |
+| `cargo +1.90.0 test --offline --locked --manifest-path drivers/rtc/Cargo.toml` | 0 | 11 tests; `/tmp/pr62-v2-rtc.log` |
+| `cargo +1.90.0 fmt --all -- --check` | 0 | `/tmp/pr62-v2-root-fmt-final.log` |
+| `cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` | 0 | `/tmp/pr62-v2-sdk-fmt-final.log` |
+| `cargo +1.90.0 clippy --offline --locked -p keyring-core --all-targets -- -D warnings` | 0 | `/tmp/pr62-v2-keyring-clippy.log` |
+| `cargo +1.90.0 clippy --offline --locked --manifest-path drivers/rtc/Cargo.toml --all-targets -- -D warnings` | 0 | `/tmp/pr62-v2-rtc-clippy.log` |
+| `python3 -B tools/build.py --kernel-feature native-system-clock` | 0 | Loader, kernel en RTC/B02-systeemimages gebouwd/geïnspecteerd; `/tmp/pr62-v2-build-final.log` |
+| `python3 tools/progress.py --write` en `python3 tools/progress.py --check` | 0 | Beide geslaagd; 34/100 consistent |
+| `git diff --check origin/main` | 0 | Eigen PR-delta zonder witruimtefouten |
+| `python3 -B tools/preflight.py --strict` | 2 | Native vereisten ontbreken; `/tmp/pr62-v2-native-preflight.json` |
+
+Eerste formatteringspogingen eindigden met exit 1 doordat Rust 1.90.0 nog
+geen rustfmt had (`/tmp/pr62-v2-root-fmt.log`, `/tmp/pr62-v2-sdk-fmt.log`);
+de tests zelf waren al geslaagd. De eerste crossbuild eindigde met exit 1
+(onderliggende Cargo exit 101) omdat `x86_64-unknown-none` nog ontbrak
+(`/tmp/pr62-v2-build.log`). `rustup toolchain list` herstelde automatisch de
+repositorytoolchain; `rustup component list --toolchain 1.90.0 --installed`
+bevestigde daarna rustfmt, clippy en beide native targets. De bovenstaande
+herhalingen slagen zonder bronwijziging. Geen QEMU/OVMF geïnstalleerd:
+alle native runtimegates zijn **niet uitgevoerd**.
+
+SHA-256 van de geslaagde lokale controlelogs:
+
+```text
+0b4160ed900c438e622f75b0c8a02e1792c69f3c8b9bb2167f557a0e5001cb00  /tmp/pr62-v2-preflight.log
+3930dfdc67982387dadad07f146a56e18d28d450cc0e0ebb67ee0bbbdf219d07  /tmp/pr62-v2-clock.log
+7ddd1e59858aa83e31650e64b94c65b33a18188e8c6e99b3eea5eab8c4631c1c  /tmp/pr62-v2-system.log
+657a0c217fe0fbab90b096af8c04430d9cd581743d83e6c3f1c03e35797920b6  /tmp/pr62-v2-tools.log
+32605d7aefcfb92dabf4e6a640a3b047ae24914ca92bf3f885ddb8fde917b08d  /tmp/pr62-v2-workspace.log
+760b1405cddf882872a2c1919d30454b28fa9efbbcb5cac8841e5b53ab11cba0  /tmp/pr62-v2-sdk.log
+5e09555bff8a935eed6ad1ae24f67675ce02715f7abb439dd97676204a3e0cf7  /tmp/pr62-v2-keyring.log
+e41a8e173bbbd468d1923769ccccdc0570d37f17523000c6ca123f597338ea41  /tmp/pr62-v2-rtc.log
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /tmp/pr62-v2-root-fmt-final.log
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /tmp/pr62-v2-sdk-fmt-final.log
+e8c4426a52f1322a834c926b379934fff325526b2ebcfefd2a4628bbdcc5dbef  /tmp/pr62-v2-keyring-clippy.log
+1454bfaefd325bc11249ec98cbba417f8bac01575eec45caf434e045d623a7d3  /tmp/pr62-v2-rtc-clippy.log
+95b04ddf0d095db3f94645118766b4141240320cfc61676ce08c8aa25e573049  /tmp/pr62-v2-build-final.log
+```
+
+Inhoudsbehoud gecontroleerd: kernel, SDK, keyringruntime en native runners zijn
+bytegelijk aan main; preflight, regressietest en beide vendormanifesten zijn
+bytegelijk aan de PR-head. Hosted CI van de oude head is via GitHub gecontroleerd:
+de laatste CI-run `41069511112` slaagt, zonder gefaalde jobs. Dit is geen
+nieuwe-head-CI of volledige productacceptatie. B02's rollbackanker/write-ahead,
+RTC-authenticiteit, fysieke hardware en menselijke audit blijven open.

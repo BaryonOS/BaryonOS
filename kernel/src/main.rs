@@ -12,6 +12,11 @@ mod memory;
 mod serial;
 #[cfg(all(feature = "graphics-g0", feature = "milestone-m3"))]
 compile_error!("graphics-g0 is an IF0 bootstrap, not a ring-3/compositor profile");
+#[cfg(all(
+    feature = "native-rtc",
+    any(feature = "milestone-m3", feature = "framebuffer")
+))]
+compile_error!("native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap");
 
 use boot_protocol::{BootInfo, ADDRESS_LIMIT, PAGE_SIZE};
 use core::{arch::asm, ptr};

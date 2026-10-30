@@ -22,6 +22,34 @@ from run_volume import execute
 import volume_disk
 
 FEATURE = {"normal": "native-system", "recover": "test-system-recover"}
+# B02 persistence objects: the app's sealed record (domain 0) and init's
+# encrypted key-state snapshot (domain 1). Both are ciphertext, never fixtures.
+SEALED_OBJECT, SEALED_LENGTH, SEALED_NAME = 1, 168, "verzegeld"
+KEYSTATE_OBJECT, KEYSTATE_LENGTH, KEYSTATE_NAME = 8, 120, "sleutelstatus"
+OPAQUE_OBJECTS = frozenset({SEALED_OBJECT, KEYSTATE_OBJECT})
+VOLUME_ID = b"NOS-SYSTEM-VOL01"
+KEYSTATE_HEADER = b"NOSKEY01" + (1).to_bytes(2, "little") * 2 + VOLUME_ID + bytes(4)
+# Per-case B02 evidence: normal exports/commits before the app commits
+# ciphertext; recover restores from the unchanged image before any key work.
+PERSIST_EXACT = {
+    "normal": {"CRYPTO_SEAL": 3, "CRYPTO_UNSEAL": 2, "CRYPTO_TAMPER_DENIED": 10, "CRYPTO_RESTORES": 1,
+               "KEYSTATE_EXPORTS": 1, "KEYSTATE_RESTORES": 1, "KEYSTATE_WRONG_SECRET_DENIED": 1,
+               "KEYSTATE_FLOOR_DENIED": 1, "KEYSTATE_ADMIN_OP_DENIED": 1, "KEYSTATE_BYTES": 120,
+               "KEYSTATE_GENERATION": 3, "ADMIN_REQUESTS": 5, "ADMIN_DENIED": 3,
+               "RECORD_PERSISTED": 1, "RECORD_RESTORED_UNSEAL": 0, "RECORD_RESTORED_REVOKED_DENIED": 0,
+               "RECORD_RESTORED_TAMPER_DENIED": 0, "RECORD_ADMIN_DENIED": 2, "RECORD_OBJECT_REVISION": 1},
+    "recover": {"CRYPTO_SEAL": 2, "CRYPTO_UNSEAL": 3, "CRYPTO_TAMPER_DENIED": 11, "CRYPTO_RESTORES": 1,
+                "KEYSTATE_EXPORTS": 0, "KEYSTATE_RESTORES": 1, "KEYSTATE_WRONG_SECRET_DENIED": 1,
+                "KEYSTATE_FLOOR_DENIED": 1, "KEYSTATE_ADMIN_OP_DENIED": 1, "KEYSTATE_BYTES": 120,
+                "KEYSTATE_GENERATION": 3, "ADMIN_REQUESTS": 4, "ADMIN_DENIED": 3,
+                "RECORD_PERSISTED": 0, "RECORD_RESTORED_UNSEAL": 1, "RECORD_RESTORED_REVOKED_DENIED": 1,
+                "RECORD_RESTORED_TAMPER_DENIED": 1, "RECORD_ADMIN_DENIED": 2, "RECORD_OBJECT_REVISION": 1},
+}
+
+
+def record_plaintext() -> bytes:
+    """Independent copy of the app's deterministic record plaintext."""
+    return bytes((11 + i * 17 + i // 97) & 0xFF for i in range(128))
 RANDOM_FEATURE = {"raw":"native-system-random", "sdk":"test-system-random-sdk", "unknown":"test-system-random-unknown", "wrong-caller":"test-system-random-wrong-caller"}
 TCP_FEATURE = {"normal": "native-system-tcp", "recover": "test-system-tcp-recover"}
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
@@ -129,9 +157,9 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
              "APP_DENIED": 3, "WORKER_SPAWNS": 2, "WORKER_FAULTS": 1,
              "WORKER_RESTARTS": 1, "WORKER_KILLS": 1,
              "LIVE_PROCESSES_AFTER": 0, "FRAMES_RECOVERED": 1,
-             "CRYPTO_SEAL": 2, "CRYPTO_UNSEAL": 2, "CRYPTO_TAMPER_DENIED": 9,
              "RECORD_SEAL": 1, "RECORD_UNSEAL": 1,
-             "RECORD_CONTEXT_DENIED": 10, "RECORD_REVOKED_DENIED": 2}
+             "RECORD_CONTEXT_DENIED": 10, "RECORD_REVOKED_DENIED": 2,
+             **PERSIST_EXACT[case]}
     minimum = {"APP_DENIED": 3, "DISK_READS": 1, "ENTROPY_BYTES": 256,
                "CRYPTO_SEAL": 1, "CRYPTO_UNSEAL": 1, "CRYPTO_TAMPER_DENIED": 1}
     for key, value in exact.items():
@@ -153,31 +181,64 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     return found
 
 
+def _single_version(item: dict, what: str, expected: dict) -> dict:
+    if not item["present"] or item["revision"] != 1 or len(item["versions"]) != 1:
+        raise ValueError(f"missing or incorrect committed {what}")
+    version = item["versions"][0]
+    if any(version.get(key) != value for key, value in expected.items()):
+        raise ValueError(f"{what} bytes/name/revision differ from oracle")
+    if (item["collection"], item["tags"], item["kind"]) != (0, 0, 0):
+        raise ValueError(f"unexpected {what} metadata")
+    return version
+
+
+def _opaque_bytes(version: dict, length: int, what: str) -> bytes:
+    content = version.get("content_hex")
+    if type(content) is not str:
+        raise ValueError(f"{what} has no independently decoded content")
+    data = bytes.fromhex(content)
+    if len(data) != length or version.get("content_revision") is not None:
+        raise ValueError(f"{what} is not opaque ciphertext of the expected length")
+    return data
+
+
 def check_disk(oracle: dict) -> None:
     objects = oracle["objects"]
-    item = objects[0]
-    expected = {"revision": 1, "length": 4096, "name": "systeemproef", "content_revision": 1}
-    if not item["present"] or item["revision"] != 1 or len(item["versions"]) != 1:
-        raise ValueError("missing or incorrect committed system document")
-    if any(item["versions"][0].get(key) != value for key, value in expected.items()):
-        raise ValueError("system document bytes/name/revision differ from oracle")
-    if (item["collection"], item["tags"], item["kind"]) != (0, 0, 0):
-        raise ValueError("unexpected system document metadata")
-    if any(obj["present"] or obj["revision"] for obj in objects[1:]):
+    _single_version(objects[0], "system document",
+                    {"revision": 1, "length": 4096, "name": "systeemproef", "content_revision": 1})
+    # B02: the sealed record is committed ciphertext (nonce | ciphertext | tag),
+    # never the known plaintext, and the key-state snapshot carries only the
+    # public format/suite/volume header outside its AEAD body.
+    sealed = _opaque_bytes(_single_version(objects[SEALED_OBJECT], "sealed record",
+                                           {"revision": 1, "length": SEALED_LENGTH, "name": SEALED_NAME}),
+                           SEALED_LENGTH, "sealed record")
+    plaintext = record_plaintext()
+    if plaintext in sealed or sealed[24:24 + len(plaintext)] == plaintext or not any(sealed[:24]):
+        raise ValueError("sealed record stores recognizable plaintext or an empty nonce")
+    keystate = _opaque_bytes(_single_version(objects[KEYSTATE_OBJECT], "key-state snapshot",
+                                             {"revision": 1, "length": KEYSTATE_LENGTH, "name": KEYSTATE_NAME}),
+                             KEYSTATE_LENGTH, "key-state snapshot")
+    if keystate[:len(KEYSTATE_HEADER)] != KEYSTATE_HEADER or not any(keystate[32:56]):
+        raise ValueError("key-state snapshot header/volume binding or nonce is wrong")
+    untouched = [obj for index, obj in enumerate(objects) if index not in (0, SEALED_OBJECT, KEYSTATE_OBJECT)]
+    if any(obj["present"] or obj["revision"] for obj in untouched):
         raise ValueError("guest touched another object or domain")
     if any(collection["present"] or collection["revision"] for collection in oracle["collections"]):
         raise ValueError("guest changed an unrelated collection")
-    if (oracle["generation"], oracle["chunks_used"], oracle["clocks"]) != (1, 1, [1, 0]):
+    # Three commits: document and sealed record (domain 0), snapshot (domain 1).
+    if (oracle["generation"], oracle["chunks_used"], oracle["clocks"]) != (3, 3, [2, 1]):
         raise ValueError("unexpected volume generation, allocation or domain clock")
 
 
 def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_TIMEOUT,
-               kernel_feature: str | None = None, network_port: int | None = None):
+               kernel_feature: str | None = None, network_port: int | None = None,
+               rtc_base: str | None = None):
     if case not in FEATURE or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown case or unbounded timeout")
     selected = FEATURE[case] if kernel_feature is None else kernel_feature
     network_feature = {"normal": "native-system-net", "recover": "test-system-net-recover"}[case]
-    diagnostic = case == "normal" and selected in (*RANDOM_FEATURE.values(), "native-system-images")
+    diagnostic = case == "normal" and selected in (
+        *RANDOM_FEATURE.values(), "native-system-images", "native-system-clock")
     if selected not in (FEATURE[case], network_feature, TCP_FEATURE[case]) and not diagnostic:
         raise ValueError("wrong native system feature for this case")
     use_tcp = selected == TCP_FEATURE[case]
@@ -194,6 +255,14 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         raise ValueError(f"build {selected} on the current source first")
     if not manifest.get("system"):
         raise ValueError("missing inspected system-program manifest")
+    rtc_arguments = []
+    if rtc_base is not None:
+        parsed = datetime.strptime(rtc_base, "%Y-%m-%dT%H:%M:%S")
+        if parsed.strftime("%Y-%m-%dT%H:%M:%S") != rtc_base:
+            raise ValueError("RTC base must be a canonical UTC calendar")
+        rtc_arguments = ["-rtc", f"base={rtc_base},clock=vm,driftfix=none"]
+    if (selected == "native-system-clock") != (rtc_base is not None):
+        raise ValueError("the wall-clock acceptance profile requires its explicit UTC RTC base")
     env = environment()
     qemu = shutil.which("qemu-system-x86_64", path=env["PATH"])
     if not qemu:
@@ -241,6 +310,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
                "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
                "-object", "rng-random,id=rng0,filename=/dev/urandom",
                "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"]
+    command += rtc_arguments
     if use_network:
         # An ephemeral port is supplied by the owned synthetic protocol peer.
         # No TAP, bridge, default user network, host share or public listener.
@@ -270,7 +340,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         report["evidence"] = evaluate(case, stdout, rc, timed_out)
         if case == "recover" and before != after:
             raise ValueError("read-only cold recovery changed the disk")
-        oracle = volume_disk.analyse(image.read_bytes())
+        oracle = volume_disk.analyse(image.read_bytes(), OPAQUE_OBJECTS)
         check_disk(oracle)
         report["oracle"] = oracle
         if source_hash() != frozen:

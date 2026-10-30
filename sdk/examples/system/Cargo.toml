@@ -6,6 +6,7 @@ publish = false
 
 [features]
 native = []
+native-clock = []
 
 [dependencies]
 nieuw-os-sdk-runtime = { path = "../../runtime" }

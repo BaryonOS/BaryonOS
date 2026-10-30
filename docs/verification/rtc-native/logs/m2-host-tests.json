@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "test",
+    "--locked",
+    "-p",
+    "kernel-core",
+    "-p",
+    "boot-protocol",
+    "-p",
+    "elf-loader-core"
+  ],
+  "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco",
+  "started_unix": 1793366927.66768,
+  "duration_s": 0.48639416694641113,
+  "returncode": 0
+}

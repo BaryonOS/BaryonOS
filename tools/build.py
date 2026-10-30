@@ -35,8 +35,9 @@ MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "
 MATERIAAL_FEATURES = ("native-system-materiaal", "native-system-materiaal-probe", "test-system-materiaal-recover", "test-system-materiaal-scale200")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
 IMAGE_FEATURES = ("native-system-images",)
-SYSTEM_FEATURES = ("native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES)
-KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
+SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
+SYSTEM_FEATURES = ("native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
+KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
                    "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),
@@ -198,7 +199,10 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             ("volume", "volume-docs", ("service",)),
         ):
             component_target = TARGET / f"system-{component}"
-            run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{package}/build.py")],
+            command = [sys.executable, "-B", str(ROOT / f"sdk/examples/{package}/build.py")]
+            if package == "system" and kernel_feature in SYSTEM_CLOCK_FEATURES:
+                command.append("--native-clock")
+            run_logged(command,
                        f"build-system-{component}",
                        extra_env={"CARGO_TARGET_DIR": str(component_target)})
             for name in names:

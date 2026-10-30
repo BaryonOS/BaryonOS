@@ -329,7 +329,10 @@ def domain_digest(table, domain: int) -> int:
     return digest
 
 
-def analyse(image: bytes):
+def analyse(image: bytes, opaque=frozenset()):
+    """Decode the volume; every object version must be a written app fixture,
+    except the objects listed in `opaque` (encrypted B02 records/snapshots),
+    whose exact bytes are returned as `content_hex` for the caller's checks."""
     if len(image) != IMAGE_SECTORS * SECTOR:
         raise ValueError("image size changed")
     outside = [i for i in range(IMAGE_SECTORS)
@@ -347,11 +350,14 @@ def analyse(image: bytes):
             # version, never later; an empty document matches its own revision.
             written = next((r for r in range(version["revision"], 0, -1)
                             if data == fixture(obj, r, version["length"])), None)
-            if written is None:
+            if written is None and obj not in opaque:
                 raise ValueError(f"object {obj} version {version['revision']} is not a written fixture")
-            versions.append({"revision": version["revision"], "length": version["length"],
-                             "name": version["name"].decode("utf-8"), "content_revision": written,
-                             "chunks": version["chunks"]})
+            decoded = {"revision": version["revision"], "length": version["length"],
+                       "name": version["name"].decode("utf-8"), "content_revision": written,
+                       "chunks": version["chunks"]}
+            if obj in opaque:
+                decoded["content_hex"] = data.hex()
+            versions.append(decoded)
         objects.append({"object": obj, "revision": entry["revision"], "present": entry["present"],
                         "collection": entry["collection"], "tags": entry["tags"], "kind": entry["kind"],
                         "request_id": entry["request_id"], "versions": versions})

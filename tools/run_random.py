@@ -17,7 +17,7 @@ import subprocess
 from common import ROOT, BUILD, TARGET, environment, firmware, qemu_machine, sha256, source_hash
 from build_users import inspect_user
 from run_fpu import private_path, publish_json, load_json
-from run_system import MAX_TIMEOUT, check_disk, check_image, evaluate, run_system
+from run_system import MAX_TIMEOUT, OPAQUE_OBJECTS, check_disk, check_image, evaluate, run_system
 import volume_disk
 
 FEATURE = {"raw": "native-system-random", "sdk": "test-system-random-sdk",
@@ -241,7 +241,7 @@ def validate_artifacts(report: dict, frozen: str, case: str, *, qemu: str,
     data = read(image)
     if digest(data) != hash_value(report.get("after_sha256")) or read(snapshot) != data:
         raise ValueError("RANDOM post-run disk snapshot changed")
-    oracle = volume_disk.analyse(data)
+    oracle = volume_disk.analyse(data, OPAQUE_OBJECTS)
     check_disk(oracle)
     if oracle["objects"][0]["request_id"] != 3:
         raise ValueError("the original document-session abort/save transaction changed")

@@ -83,3 +83,9 @@ docs/verification/full-release-*/**/SHA256SUMS -text
 docs/verification/display-first-geometry-failure/*.txt -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 docs/verification/display-first-geometry-failure/*.json -text
 docs/verification/display-first-geometry-failure/SHA256SUMS -text
+
+# Native RTC: preserve raw firmware CRLF and hash-bound regression evidence.
+docs/verification/rtc-native/**/*.txt -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/verification/rtc-native/**/*.json -text
+docs/verification/rtc-native/*.json -text
+docs/verification/rtc-native/SHA256SUMS -text
