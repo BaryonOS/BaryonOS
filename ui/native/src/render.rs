@@ -6,8 +6,8 @@ use crate::{
 use noto_sans_mono_bitmap::{get_raster, get_raster_width, FontWeight, RasterHeight};
 
 pub const MAX_TEXT_ROWS: usize = 48;
-/// Fixed material nodes plus one entry per object in a volume domain.
-pub const MAX_SEMANTIC_NODES: usize = 6 + volume_core::PER_DOMAIN;
+/// Fixed material nodes, a paging pair, and one node per volume-domain object.
+pub const MAX_SEMANTIC_NODES: usize = 8 + volume_core::PER_DOMAIN;
 
 fn raster_height(scale: Scale) -> RasterHeight {
     match scale {
@@ -524,19 +524,36 @@ impl<'a> Frame<'a> {
     }
 
     pub fn semantics(&self, out: &mut [SemanticNode<'a>]) -> Result<usize, Error> {
-        if out.len() < MAX_SEMANTIC_NODES {
+        let mut required = 0;
+        self.visit_semantics(|_| required += 1);
+        if required > MAX_SEMANTIC_NODES || out.len() < required {
             return Err(Error::Buffer);
         }
+
         let mut count = 0;
+        self.visit_semantics(|node| {
+            out[count] = node;
+            count += 1;
+        });
+        Ok(count)
+    }
+
+    fn visit_semantics(&self, mut visit: impl FnMut(SemanticNode<'a>)) {
         let mut push =
             |id, parent, role, label, value, bounds: Rect, focus: Option<Focus>, enabled| {
-                out[count] = SemanticNode {
+                visit(SemanticNode {
                     id,
                     parent,
                     role,
                     label,
                     value,
-                    bounds: bounds.physical(self.view.viewport.scale()),
+                    bounds: if id == SemanticId::Window {
+                        // The viewport is already in physical pixels; layout
+                        // rectangles below are logical and need one conversion.
+                        bounds
+                    } else {
+                        bounds.physical(self.view.viewport.scale())
+                    },
                     focused: focus == Some(self.view.focus),
                     enabled,
                     actions: SemanticActions {
@@ -558,8 +575,7 @@ impl<'a> Frame<'a> {
                     } else {
                         None
                     },
-                };
-                count += 1;
+                });
             };
         let l = self.layout;
         push(
@@ -768,7 +784,6 @@ impl<'a> Frame<'a> {
             None,
             true,
         );
-        Ok(count)
     }
 }
 

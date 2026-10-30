@@ -594,7 +594,7 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
         let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
         let frame = Frame::new(ui.view());
         let count = frame.semantics(&mut nodes).unwrap();
-        assert_eq!(count, MAX_SEMANTIC_NODES);
+        assert_eq!(count, 14);
         assert_semantic_tree(&nodes, count);
         assert_eq!(
             nodes[..count]
@@ -607,11 +607,10 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
             .iter()
             .filter(|node| node.role == Role::ListItem)
             .all(|node| node.parent == Some(SemanticId::MaterialList) && node.actions.activate));
-        let mut short = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES - 1];
-        assert!(matches!(
-            frame.semantics(&mut short),
-            Err(RenderError::Buffer)
-        ));
+        let mut short = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let short = &mut short[..count - 1];
+        assert!(matches!(frame.semantics(short), Err(RenderError::Buffer)));
+        assert!(short.iter().all(|node| node.id == SemanticId::Empty));
     }
 
     ui.resize(Viewport::new(320, 240, Scale::Percent100, 3).unwrap())
