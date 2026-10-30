@@ -150,7 +150,7 @@
     "kind": "rlib, NOT executable/boot image"
   },
   "native_runtime_performed": false,
-  "source_commit_note": "base + exact leaf hashes above; code commit recorded in handoff",
+  "source_commit_note": "Code is committed at 6b3fbfaf141d4f1b37176b6ffdfa5413c8bfac30; 3f1e37d14244c9ab241f52828735967c29ab28aa changes only archived log tail/hash. Exact source, gate-log and artifact hashes revalidated before this review-only update.",
   "not_run": [
     "native app/portal/launch/focus",
     "QEMU user action/framebuffer oracle",
@@ -162,7 +162,15 @@
     "finding": "Fit treated as100%, causing zoom direction reversal",
     "fix": "ratio-derived next canonical zoom step strictly in requested direction; impossible direction leaves Fit unchanged",
     "regression": "zoom_direction_from_fit_uses_actual_ratio_including_limits_and_ui_scale",
-    "independent_fix_rereview": "requested from SDK owner after commit; not yet performed"
+    "independent_fix_rereview": {
+      "status": "no high-confidence blockers in scoped static fix review",
+      "reviewer": "separate code-review agent r22-zoom-fix-review",
+      "source_head": "3f1e37d14244c9ab241f52828735967c29ab28aa",
+      "scope": "dimensions/command and zoom_direction_from_fit_uses_actual_ratio_including_limits_and_ui_scale",
+      "findings": "400% fit zoom-in selects800%;12.5% fit zoom-out staysFit;UIscale/rational strict-step comparisons and25..800limits inspected",
+      "runtime_repeated_by_reviewer": false,
+      "human_audit": false
+    }
   },
   "progress_proposal": {
     "before": 34,
