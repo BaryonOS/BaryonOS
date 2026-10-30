@@ -1,0 +1,16 @@
+
+/workspace/nieuw-os-worktrees/materiaal-native-app/build/materiaal-fixed-native/x86_64-unknown-none/release/materiaal-app:     file format elf64-x86-64
+
+
+Disassembly of section .text.entry:
+
+0000000040000000 <_start>:
+    40000000:	cld
+    40000001:	mov    %rsp,%rax
+    40000004:	and    $0xf,%eax
+    40000007:	cmp    $0x8,%eax
+    4000000a:	jne    40000011 <_start+0x11>
+    4000000c:	jmp    400b78d0 <materiaal_main>
+    40000011:	ud2
+
+Disassembly of section .text:

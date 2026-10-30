@@ -1,0 +1,9 @@
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/sdk/runtime)
+    Checking nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/sdk/catalog-client)
+    Checking nieuw-os-input-core v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/services/input-core)
+    Checking nieuw-os-document-session v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/sdk/document-session)
+    Checking nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/ui/surface-protocol)
+    Checking nieuw-os-input-client v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/sdk/input-client)
+    Checking nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/ui/native)
+    Checking nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/sdk/examples/materiaal)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.63s
