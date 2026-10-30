@@ -14,12 +14,12 @@ Een afgeronde deelimplementatie tekent geen volledig productcriterium af.
 | TASK-A03/R1 | v7token/PID/domain + native documentsessie geïntegreerd | root | FR-A02,FR-A13,FR-O01–FR-O03 | echte create/edit/abort/save/reopen/cold; lost-BEGIN/ownerdeath open |
 | TASK-N01/NDRV/NATIVE-NET | geïntegreerd, rootpair3879normal/koud groen | root; sharedbuild/kernel | FR-N01,FR-N02,FR-H03 |firmwareMLD309causaalgeïsoleerd;8TX/7RX/7weigeringen; TCP/TLS/N01open |
 | TASK-CAPTURE | basishelper geïntegreerd, archief gecontroleerd | root | FR-R03 | fail-closed bron/ESP/disk/coldcontrole; netcapture nog open |
-| TASK-FPU/CLOCK | actief in fpu-worktree | kernel_storage; arch/m3/fpu/nieuwapp | FR-K02,FR-K03,FR-P02 | echte contextisolatie/fault/slotreuse; klokoptin, geen huidige rootacceptatie |
-| TASK-TCP | actief in tcp-worktree | network_nas_ai; net-stack/tcp-probe | FR-N01,FR-N02 | smoltcp0.14/Rust1.91.1 uitsluitend app, echte monotoneklok; rootnet eerst repareren |
+| TASK-FPU/CLOCK | geïntegreerd, root92native groen | kernel_storage; arch/m3/fpu/nieuwapp | FR-K02,FR-K03,FR-P02 | 3levens/157save=restore/#UD/reuse/klok op92, optin; fullCPU/productgateopen |
+| TASK-TCP | actief in aparte root-tcp integratie | network_nas_ai; net-stack/tcp-probe | FR-N01,FR-N02 | smoltcp0.14/Rust1.91.1 uitsluitend app, echte monotoneklok; rootnet92groen; TCP-nativegate volgt |
 | TASK-NATIVE-INPUT-PREP | onderzoek/implementatie eigen werkgebied | native_ui_apps; nieuwe input-core | FR-U01–FR-U05 | capability/focus/lifecyclecore boven ui-core; kernelhook/nativebewijs blijft afhankelijkheid |
-| TASK-CI-ROOT | actief, alleen lezen | git_build_audit | FR-R03 |CIdependencyreparatiefdb58ec geïntegreerd;32host+2native opbuilderbron; verseCIvereist |
+| TASK-CI-ROOT | actief, alleen lezen | git_build_audit | FR-R03 |CIdependencyreparatiefdb58ec geïntegreerd;32host+2native opbuilderbron; 92alle7CIworkflowsgroen |
 | TASK-REVIEW-NET | actief, alleen lezen | acceptance_contract + security_release | FR-N01,FR-N02,FR-K03 | causale rootframediagnose, geen versoepelde succescriteria |
-| TASK-INT | actief | root; gedeelde interfaces/build/status/Git | alle geraakt | geïntegreerde gate metFPU/TCP uitbreiden en brongebonden herhalen |
+| TASK-INT | actief | root; gedeelde interfaces/build/status/Git | alle geraakt | 92vijfVMs/7CIgroen; volgendeTCPpair metcapture |
 
 Volgende verplichte werk blijft zichtbaar: schaalbaar geheugen/FPU, echte
 compositor/sessie/toegankelijkheid, audio en alle apps/engineports, persistente

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`3879c328`](https://github.com/simonvanieperen/nieuw-os/commit/3879c3288f3b005d9df3ed5e1e40aa99c3791521) ·
+**Bron:** [`92d52d7f`](https://github.com/simonvanieperen/nieuw-os/commit/92d52d7f13553cccdbc341051d87be96bf43dc95) ·
 **Ontwikkelbranch:** `codex/full-test-release`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Gecombineerde native net- en documentsessieacceptatie, causale firmware-isolatie, CI- en bewijsherstel.
-Score32% blijft32%; alle62 volledige productcriteria blijven open. Root3879c32 heeft2baseVMs plus2native netVMs met8TX/7RX, echteARP/UDP/DNS/7weigeringen en koude readonlydiskcontrole. FirmwareMLD-fout is metrawframe en onafhankelijkeoude-kernelA/Bproef causaalherleid en hersteld zonderOSframes te negeren. CI-documentbuilder mistvolume_core; fdb58ec repareert expliciet en builderbewijst32hosttests/2nativeVMs, rootCI volgt. Optionele100HzklokABI1.6 geïntegreerd, FPU/TCP/invoerdienst/keyringSDK parallel inwerk. Volledige desktop/apps/NAS/AI/veiligeopslag/boot/updates/herstel/hardware/audit blijven vereist. Geencriteria/gewichten/scopegewijzigd.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Brongebonden gezamenlijke native diensten/netwerk/FPU en zeven groene CI-workflows; TCPintegratie loopt.
+Score32% blijft32%; alle62 volledige productcriteria blijven open. Op92d52d7 slagen vijf echte lokaleVMs: basepair, netpair8TX/7RX/7weigeringen en koude readonlydisk, FPU/klok3schonelevens/157contextwissels/#UD/slotreuse. Base/netcapture hercontroleertwerkelijkeESP/disk/bron/peer. AllezevenCIworkflowsgroen opdezeexactecommit. TCPmetonderhoudensmoltcp0.14/appcompiler1.91.1 wordtineigenworktree nativeaangesloten; concreteFINACKfalsepassisgecorrigeerd, geenTCPnativeclaim. Invoer/keyringSDKbasisparallel. Full desktop/apps/NAS/AI/persistente encryptie/boot/updates/herstel/hardware/humane gates blijvenopen; geencriteria/gewichten/scopegewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
