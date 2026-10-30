@@ -1,0 +1,5 @@
+#!/bin/sh
+exec /tmp/nieuw-os-qemu-102/root/usr/bin/qemu-system-x86_64 \
+    -L /tmp/nieuw-os-qemu-102/root/usr/share/qemu \
+    -d int,cpu_reset,guest_errors \
+    -D /tmp/nieuw-os-tcp-main94-qemu-int.log "$@"

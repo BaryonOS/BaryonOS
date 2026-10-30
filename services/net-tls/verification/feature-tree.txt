@@ -1,0 +1,37 @@
+nieuw-os-net-tls v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/services/net-tls)
+├── zeroize v1.9.1
+├── nieuw-os-keyring-random-client feature "default"
+│   └── nieuw-os-keyring-random-client v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/sdk/keyring-random-client)
+│       ├── zeroize v1.9.1
+│       └── nieuw-os-sdk-runtime feature "default"
+│           └── nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/sdk/runtime)
+├── nieuw-os-sdk-runtime feature "default" (*)
+├── rustls feature "custom-provider"
+│   └── rustls v0.23.46
+│       ├── subtle v2.6.1
+│       ├── zeroize feature "default"
+│       │   ├── zeroize v1.9.1
+│       │   └── zeroize feature "alloc"
+│       │       └── zeroize v1.9.1
+│       ├── once_cell feature "alloc"
+│       │   ├── once_cell v1.21.4
+│       │   └── once_cell feature "race"
+│       │       └── once_cell v1.21.4
+│       ├── once_cell feature "race" (*)
+│       ├── rustls-pki-types feature "alloc"
+│       │   └── rustls-pki-types v1.15.1
+│       │       └── zeroize feature "default" (*)
+│       ├── rustls-pki-types feature "default"
+│       │   ├── rustls-pki-types v1.15.1 (*)
+│       │   └── rustls-pki-types feature "alloc" (*)
+│       └── rustls-webpki feature "alloc"
+│           ├── rustls-webpki v0.103.16
+│           │   ├── rustls-pki-types v1.15.1 (*)
+│           │   └── untrusted feature "default"
+│           │       └── untrusted v0.9.0
+│           └── rustls-pki-types feature "alloc" (*)
+├── spin feature "mutex"
+│   └── spin v0.12.3
+└── spin feature "spin_mutex"
+    ├── spin v0.12.3
+    └── spin feature "mutex" (*)
