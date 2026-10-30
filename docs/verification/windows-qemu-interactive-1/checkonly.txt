@@ -1,0 +1,1 @@
+Bundle integrity and QEMU 11.1.0 prerequisites passed; no VM started.
