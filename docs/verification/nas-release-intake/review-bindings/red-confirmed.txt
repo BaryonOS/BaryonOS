@@ -1,0 +1,71 @@
+test_artifact_mutation_after_launch_cannot_pass (test_nas_runner.NasLifecycleTests.test_artifact_mutation_after_launch_cannot_pass) ... 
+  test_artifact_mutation_after_launch_cannot_pass (test_nas_runner.NasLifecycleTests.test_artifact_mutation_after_launch_cannot_pass) (relative='esp/kernel.elf') ... FAIL
+  test_artifact_mutation_after_launch_cannot_pass (test_nas_runner.NasLifecycleTests.test_artifact_mutation_after_launch_cannot_pass) (relative='esp/EFI/BOOT/BOOTX64.EFI') ... FAIL
+  test_artifact_mutation_after_launch_cannot_pass (test_nas_runner.NasLifecycleTests.test_artifact_mutation_after_launch_cannot_pass) (relative='OVMF_CODE.fd') ... FAIL
+test_platform_drift_is_rejected_before_cold_launch (test_nas_runner.NasLifecycleTests.test_platform_drift_is_rejected_before_cold_launch) ... 
+  test_platform_drift_is_rejected_before_cold_launch (test_nas_runner.NasLifecycleTests.test_platform_drift_is_rejected_before_cold_launch) (change='firmware') ... FAIL
+  test_platform_drift_is_rejected_before_cold_launch (test_nas_runner.NasLifecycleTests.test_platform_drift_is_rejected_before_cold_launch) (change='qemu') ... FAIL
+  test_platform_drift_is_rejected_before_cold_launch (test_nas_runner.NasLifecycleTests.test_platform_drift_is_rejected_before_cold_launch) (change='machine') ... FAIL
+test_bad_exit_timeout_and_late_failure_rejected (test_nas_runner.NasRunnerTests.test_bad_exit_timeout_and_late_failure_rejected) ... ok
+test_cold_write_and_missing_entropy_or_read_rejected (test_nas_runner.NasRunnerTests.test_cold_write_and_missing_entropy_or_read_rejected) ... ok
+test_exact_normal_and_cold_evidence (test_nas_runner.NasRunnerTests.test_exact_normal_and_cold_evidence) ... ok
+test_missing_duplicated_or_changed_role_assertions_rejected (test_nas_runner.NasRunnerTests.test_missing_duplicated_or_changed_role_assertions_rejected) ... ok
+
+======================================================================
+FAIL: test_artifact_mutation_after_launch_cannot_pass (test_nas_runner.NasLifecycleTests.test_artifact_mutation_after_launch_cannot_pass) (relative='esp/kernel.elf')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/tests/test_nas_runner.py", line 133, in test_artifact_mutation_after_launch_cannot_pass
+    self.assertIs(self.run_silently()["passed"], False)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not False
+
+======================================================================
+FAIL: test_artifact_mutation_after_launch_cannot_pass (test_nas_runner.NasLifecycleTests.test_artifact_mutation_after_launch_cannot_pass) (relative='esp/EFI/BOOT/BOOTX64.EFI')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/tests/test_nas_runner.py", line 133, in test_artifact_mutation_after_launch_cannot_pass
+    self.assertIs(self.run_silently()["passed"], False)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not False
+
+======================================================================
+FAIL: test_artifact_mutation_after_launch_cannot_pass (test_nas_runner.NasLifecycleTests.test_artifact_mutation_after_launch_cannot_pass) (relative='OVMF_CODE.fd')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/tests/test_nas_runner.py", line 133, in test_artifact_mutation_after_launch_cannot_pass
+    self.assertIs(self.run_silently()["passed"], False)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not False
+
+======================================================================
+FAIL: test_platform_drift_is_rejected_before_cold_launch (test_nas_runner.NasLifecycleTests.test_platform_drift_is_rejected_before_cold_launch) (change='firmware')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/tests/test_nas_runner.py", line 148, in test_platform_drift_is_rejected_before_cold_launch
+    with self.assertRaisesRegex(ValueError, "platform"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_platform_drift_is_rejected_before_cold_launch (test_nas_runner.NasLifecycleTests.test_platform_drift_is_rejected_before_cold_launch) (change='qemu')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/tests/test_nas_runner.py", line 148, in test_platform_drift_is_rejected_before_cold_launch
+    with self.assertRaisesRegex(ValueError, "platform"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_platform_drift_is_rejected_before_cold_launch (test_nas_runner.NasLifecycleTests.test_platform_drift_is_rejected_before_cold_launch) (change='machine')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/tests/test_nas_runner.py", line 148, in test_platform_drift_is_rejected_before_cold_launch
+    with self.assertRaisesRegex(ValueError, "platform"):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.052s
+
+FAILED (failures=6)

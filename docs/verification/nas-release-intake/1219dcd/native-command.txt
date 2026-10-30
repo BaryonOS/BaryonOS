@@ -1,0 +1,15 @@
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.04s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/kernel)
+    Finished `release` profile [optimized] target(s) in 0.96s
+Built and inspected native-system-nas-probe: 3 ELF load segments
+NAS normal: passed=True raw=33 /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/nas-release-1219dcd/run/nas-normal-48934263a7ac4f01a07946f0497de294
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/kernel)
+    Finished `release` profile [optimized] target(s) in 0.98s
+Built and inspected test-system-nas-recover: 3 ELF load segments
+NAS recover: passed=True raw=33 /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/nas-release-1219dcd/run/nas-recover-0ce1555ee75c48719cf4a2a2cc6c4b77
+{"passed": true, "error": null, "report": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/nas-release-1219dcd/nas-system-gate.json"}

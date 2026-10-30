@@ -1,0 +1,336 @@
+{
+  "schema_version": 1,
+  "stage": "boot-v2",
+  "sequence": "main",
+  "parent_stage": "install",
+  "started_utc": "2026-10-30T17:26:33.390997+00:00",
+  "duration_s": 2.4423815219997778,
+  "timeout_s": 900,
+  "timed_out": false,
+  "raw_qemu_exit": 33,
+  "host_kill": false,
+  "running_before_kill": false,
+  "command": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/run/update-boot-v2-a973a52c69/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/run/update-state-main-e83f165dc6/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/update-boot-v2-a973a52c69/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=store,format=raw,cache=writeback,file=build/run/update-state-main-e83f165dc6/store.img",
+    "-device",
+    "virtio-blk-pci,drive=store,id=storeblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-B03-STORE"
+  ],
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "source_fingerprint_version": 3,
+  "source_sha256": "c6b90b631f139a4dd307f65bd3ad49e0376e0b1fee63367869dc92c3f50071fa",
+  "state_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-state-main-e83f165dc6",
+  "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-boot-v2-a973a52c69",
+  "loader_sha256": "041c0d94840d737ee91d1224fc4b57aa3f94e85c7a76dc8dd0f8b3bea5936310",
+  "images": {
+    "schema_version": 1,
+    "source_sha256": "c6b90b631f139a4dd307f65bd3ad49e0376e0b1fee63367869dc92c3f50071fa",
+    "files": {
+      "k1": "kernel-v1.elf",
+      "k2": "kernel-v2.elf",
+      "kc": "kernel-v1-cut.elf",
+      "kj": "junk-v2.bin",
+      "m1": "manifest-v1.bin",
+      "m2": "manifest-v2.bin",
+      "mc": "manifest-v1-cut.bin",
+      "mf": "manifest-v2-foreign.bin",
+      "mj": "manifest-v2-junk.bin",
+      "mn": "manifest-v2-next.bin",
+      "mr": "manifest-v2-revoked.bin",
+      "me": "manifest-v2-expired.bin",
+      "mp": "manifest-v1-premature.bin"
+    },
+    "kernels": {
+      "k1": "9923d854b3eaf7567852ca6c5dac93b4d5768d845a472195a4fc5ad2ca3e24f1",
+      "k2": "db6c309002edfd242ee2ec1f4e57cdf4ad0ac08212beec81cc8b6eb8e177e776",
+      "kc": "f9a6c134f8a27411abc560afacf01ea1be7f8396912a8fb4af2f908f19ba5e04",
+      "kj": "d2979f63fc353288130be1837d34f088e378e76c5baa67b8a6077c950db3c286"
+    },
+    "manifests": {
+      "m1": "30f096c519a75a5ebd4243626a97f592c88e67f640514c35f56ad0f5f226da7f",
+      "m2": "8ce5dfc0e6fd690c918b042d7ddc45f485ec4033bc895f25f7ea50a0ea9972a7",
+      "mc": "db10b15125f93f8627ad878a1d678e8a8ee44c1c2d7deeedf6b7c65bcf7540f0",
+      "mf": "c909d982ebbe17747750371d77743639a05fa63c5a73dd5a1fc29ee0779d2b9f",
+      "mj": "103ccd02275f1eb0c5d28800c27a0f044b81a97c7830368825ba2aa62018f112",
+      "mn": "7eeb9ca861f2ac4d8454d0b324985e1f951d5608e17bff891bbb1c896ba45188",
+      "mr": "902c0739f2f72ec732db2c7348266f959c883fddeadfd6af76cf700307369a9f",
+      "me": "5b7cb3b939fba8b6838b4364de2aeed1f9649ddebf8c68b4aaec164e78c57032",
+      "mp": "91ac295bcdb2abf8c880c71cc2516a59609acd27b75454658740ef93d5005740"
+    },
+    "loader_sha256": "041c0d94840d737ee91d1224fc4b57aa3f94e85c7a76dc8dd0f8b3bea5936310",
+    "builds": {
+      "k1": {
+        "kernel_feature": "native-update",
+        "image_version": 1,
+        "kernel_sha256": "9923d854b3eaf7567852ca6c5dac93b4d5768d845a472195a4fc5ad2ca3e24f1",
+        "service": {
+          "service_sha256": "d820ccf9931c41d097356389e3678fb5cfad85e9947a159f2ec009fe92ea4be7",
+          "service_elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 2302,
+                "memsz": 2302,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1224,
+                "memsz": 1224,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 12288,
+                "filesz": 12293,
+                "memsz": 12293,
+                "page_start": 1073823744,
+                "page_end": 1073840128
+              },
+              {
+                "flags": 5,
+                "address": 1073938432,
+                "offset": 28672,
+                "filesz": 104071,
+                "memsz": 104071,
+                "page_start": 1073938432,
+                "page_end": 1074044928
+              }
+            ]
+          },
+          "image_version": 1
+        }
+      },
+      "k2": {
+        "kernel_feature": "native-update",
+        "image_version": 2,
+        "kernel_sha256": "db6c309002edfd242ee2ec1f4e57cdf4ad0ac08212beec81cc8b6eb8e177e776",
+        "service": {
+          "service_sha256": "d820ccf9931c41d097356389e3678fb5cfad85e9947a159f2ec009fe92ea4be7",
+          "service_elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 2302,
+                "memsz": 2302,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1224,
+                "memsz": 1224,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 12288,
+                "filesz": 12293,
+                "memsz": 12293,
+                "page_start": 1073823744,
+                "page_end": 1073840128
+              },
+              {
+                "flags": 5,
+                "address": 1073938432,
+                "offset": 28672,
+                "filesz": 104071,
+                "memsz": 104071,
+                "page_start": 1073938432,
+                "page_end": 1074044928
+              }
+            ]
+          },
+          "image_version": 2
+        }
+      },
+      "kc": {
+        "kernel_feature": "test-update-cut",
+        "image_version": 1,
+        "kernel_sha256": "f9a6c134f8a27411abc560afacf01ea1be7f8396912a8fb4af2f908f19ba5e04",
+        "service": {
+          "service_sha256": "d820ccf9931c41d097356389e3678fb5cfad85e9947a159f2ec009fe92ea4be7",
+          "service_elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 2302,
+                "memsz": 2302,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1224,
+                "memsz": 1224,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 12288,
+                "filesz": 12293,
+                "memsz": 12293,
+                "page_start": 1073823744,
+                "page_end": 1073840128
+              },
+              {
+                "flags": 5,
+                "address": 1073938432,
+                "offset": 28672,
+                "filesz": 104071,
+                "memsz": 104071,
+                "page_start": 1073938432,
+                "page_end": 1074044928
+              }
+            ]
+          },
+          "image_version": 1
+        }
+      }
+    }
+  },
+  "store_before_sha256": "3b7291ed15a81e78c2cd2933f9a703a85fd2ea263ca80cfc56804c13b30814eb",
+  "store_after_sha256": "3b7291ed15a81e78c2cd2933f9a703a85fd2ea263ca80cfc56804c13b30814eb",
+  "vars_sha256": "caa6d4b7483bbf58a8f47e388be048447c81a6866c2fdf043802c1e86f37871c",
+  "stdout": "\u001b[2J\u001b[001;001H\u001b[=3h\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;056;240t\u001b[2J\u001b[001;001HBdsDxe: loading Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:FLOOR:1\nBOOT:SLOT:B:VERSION:2\nBOOT:SIGNED:OK\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nKERNEL:IMAGE_VERSION:00000000000000000002\nUPDATE:MANIFEST:PASS\nUPDATE:READY\nUPDATE:RESULT:00000000000000000002\nUPDATE:HEADER_ACTIVE:00000000000000000001\nUPDATE:HEADER_GENERATION:00000000000000000002\nUPDATE:ACTIVE_VERSION:00000000000000000002\nUPDATE:ACTIVE_REJECT:00000000000000000000\nUPDATE:INBOX_VERSION:00000000000000000002\nUPDATE:INBOX_REJECT:00000000000000000000\nUPDATE:INSTALLED_VERSION:00000000000000000000\nUPDATE:TARGET_SLOT:00000000000000000000\nUPDATE:SERVICE_READS:00000000000000000088\nUPDATE:SERVICE_WRITES:00000000000000000000\nUPDATE:SERVICE_FLUSHES:00000000000000000000\nUPDATE:COPIED_SECTORS:00000000000000000000\nUPDATE:NEW_GENERATION:00000000000000000000\nUPDATE:RESUMED:00000000000000000000\nUPDATE:RUNNING_SLOT:00000000000000000001\nUPDATE:OTHER_VERSION:00000000000000000001\nUPDATE:OTHER_REJECT:00000000000000000000\nUPDATE:CURRENT_VERSION:00000000000000000002\nUPDATE:BROKER:READS:00000000000000000088\nUPDATE:BROKER:WRITES:00000000000000000000\nUPDATE:BROKER:FLUSHES:00000000000000000000\nUPDATE:BROKER:HEADER_WRITES:00000000000000000000\nUPDATE:BROKER:OTHER_WRITES:00000000000000000000\nUPDATE:TICKS:00000000000000000005\nUPDATE:UP_TO_DATE\nUPDATE:RESOURCES:PASS\nUPDATE:PASS\nM1:PASS\n",
+  "stderr": "rom: file kvmvapic.bin        : error Failed to open file “kvmvapic.bin”: No such file or directory\n",
+  "passed": true,
+  "evidence": {
+    "IMAGE_VERSION": 2,
+    "RESULT": 2,
+    "HEADER_ACTIVE": 1,
+    "HEADER_GENERATION": 2,
+    "ACTIVE_VERSION": 2,
+    "ACTIVE_REJECT": 0,
+    "INBOX_VERSION": 2,
+    "INBOX_REJECT": 0,
+    "INSTALLED_VERSION": 0,
+    "TARGET_SLOT": 0,
+    "SERVICE_READS": 88,
+    "SERVICE_WRITES": 0,
+    "SERVICE_FLUSHES": 0,
+    "COPIED_SECTORS": 0,
+    "NEW_GENERATION": 0,
+    "RESUMED": 0,
+    "RUNNING_SLOT": 1,
+    "OTHER_VERSION": 1,
+    "OTHER_REJECT": 0,
+    "CURRENT_VERSION": 2,
+    "BROKER:READS": 88,
+    "BROKER:WRITES": 0,
+    "BROKER:FLUSHES": 0,
+    "BROKER:HEADER_WRITES": 0,
+    "BROKER:OTHER_WRITES": 0,
+    "TICKS": 5
+  },
+  "oracle": {
+    "header": {
+      "active": 1,
+      "generation": 2
+    },
+    "regions": {
+      "A": {
+        "manifest": {
+          "image_length": 1572344,
+          "version": 1,
+          "min_version": 0,
+          "image_sha256": "9923d854b3eaf7567852ca6c5dac93b4d5768d845a472195a4fc5ad2ca3e24f1",
+          "ed25519_key_id": "4bf7d9b716af4045",
+          "mldsa_key_id": "acdf57975753f1eb",
+          "manifest_sha256": "30f096c519a75a5ebd4243626a97f592c88e67f640514c35f56ad0f5f226da7f"
+        },
+        "manifest_error": null,
+        "manifest_region_sha256": "30f096c519a75a5ebd4243626a97f592c88e67f640514c35f56ad0f5f226da7f",
+        "image_region_sha256": "3dc89972e8252734db1a0bf58a703f6d9e9e9454c7154f809a829f34db21baa3",
+        "image_nonzero_sectors": 3023,
+        "image_sha256": "9923d854b3eaf7567852ca6c5dac93b4d5768d845a472195a4fc5ad2ca3e24f1",
+        "image_matches_manifest": true
+      },
+      "B": {
+        "manifest": {
+          "image_length": 1572344,
+          "version": 2,
+          "min_version": 0,
+          "image_sha256": "db6c309002edfd242ee2ec1f4e57cdf4ad0ac08212beec81cc8b6eb8e177e776",
+          "ed25519_key_id": "4bf7d9b716af4045",
+          "mldsa_key_id": "acdf57975753f1eb",
+          "manifest_sha256": "8ce5dfc0e6fd690c918b042d7ddc45f485ec4033bc895f25f7ea50a0ea9972a7"
+        },
+        "manifest_error": null,
+        "manifest_region_sha256": "8ce5dfc0e6fd690c918b042d7ddc45f485ec4033bc895f25f7ea50a0ea9972a7",
+        "image_region_sha256": "6f5878b4189b2e24107a5a410ff1ae937b43de7597570f4efde19a66cfa9a752",
+        "image_nonzero_sectors": 3023,
+        "image_sha256": "db6c309002edfd242ee2ec1f4e57cdf4ad0ac08212beec81cc8b6eb8e177e776",
+        "image_matches_manifest": true
+      },
+      "inbox": {
+        "manifest": {
+          "image_length": 1572344,
+          "version": 2,
+          "min_version": 0,
+          "image_sha256": "db6c309002edfd242ee2ec1f4e57cdf4ad0ac08212beec81cc8b6eb8e177e776",
+          "ed25519_key_id": "4bf7d9b716af4045",
+          "mldsa_key_id": "acdf57975753f1eb",
+          "manifest_sha256": "8ce5dfc0e6fd690c918b042d7ddc45f485ec4033bc895f25f7ea50a0ea9972a7"
+        },
+        "manifest_error": null,
+        "manifest_region_sha256": "8ce5dfc0e6fd690c918b042d7ddc45f485ec4033bc895f25f7ea50a0ea9972a7",
+        "image_region_sha256": "6f5878b4189b2e24107a5a410ff1ae937b43de7597570f4efde19a66cfa9a752",
+        "image_nonzero_sectors": 3023,
+        "image_sha256": "db6c309002edfd242ee2ec1f4e57cdf4ad0ac08212beec81cc8b6eb8e177e776",
+        "image_matches_manifest": true
+      }
+    }
+  }
+}
