@@ -67,6 +67,13 @@ een echte producerfix is geen mergewrite, maar schrijver nog niet vastgesteld.
 Geen gebied vrijmaken door ontbrekende metadata. Directie heeft het voorstel:
 7f blijft enige aangewezen integrator,
 hervat pas na identificatie/stop van extra writer en actuele main/base/gates.
+E8 bevestigt aanvullend20:05: geen lopende/verzonden mutaties, nul shells,
+geen WIP/file-/conflictclaim; eigen merges uitsluitend62/66/70,85 niet
+door hem. Hij meldt24openPR-heads aan7f geleverd, niet door assistent
+herhaald gecontroleerd. Zijn main9a67 is inmiddels achterhaald:
+liveREST20:05 bevestigt d791a342cc3bdb107245692f2f542d88d5fda7f1.
+Deze donorverklaring identificeert de onbekende85/76uitvoerder niet en
+heft de afzonderlijke incidentpauze niet op.
 Geen algemene statusronde, rolterugname of automatische overname.
 Donor8's nieuwe rolvraag is conform het vastgelegde mandaat beantwoord:
 laat7f integreren, overdracht behouden. Onafhankelijk domeinwerk gaat door.
