@@ -31,7 +31,12 @@ exit0; nieuwe capture `b03-key-policy-mainca45/`. Gate-JSON SHA256
 Volledig commandolog `/tmp/nieuw-os-security-update-mainca45.log`, tevens
 ongewijzigd als `native-gate.log`; gerichte
 `/tmp/nieuw-os-security-{update-clippy,preflight}-mainca45.log`.
-De capturehashes worden opnieuw tegen de Git-blobs gecontroleerd.
+Alle56 capturehashes zijn opnieuw tegen de gecommitte Git-blobs gecontroleerd.
+SHA256SUMS SHA256:
+`50e58f7da1a9f9584f63f89ade2e665cf09fdab1ca00d502f916a8415b47e022`.
+De eerste whitespacecontrole signaleerde uitsluitend echte firmware-CRLF
+in de ruwe serialcaptures; de bestaande bronbehoudende `cr-at-eol`-regel
+is ook voor deze nieuwe capturedirectory toegepast, zonder bytes te wijzigen.
 
 Actuele-head-CI en lifecyclebesluit blijven afzonderlijk nodig; oude
 798-CI is geen nieuwe headacceptatie. De eerdere codegerichte AI-peerreview
