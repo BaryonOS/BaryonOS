@@ -21,6 +21,8 @@ waarna bestaande core-authenticatie, epochbinding en CAS worden afgedwongen.
 checkpoint verleent geen recht. `Principal` mag alleen uit vertrouwde ingress
 komen; dit is dezelfde aanname als de core, geen toegevoegde authenticatie.
 Een echte remote adapter moet de gekozen NAS cryptografisch identificeren.
+De bij staging bewaarde caller voorkomt dat een verkeerd gerouteerde
+commit/cancel het ticket wegneemt; deze vergelijking verleent zelf geen recht.
 
 Offline queueing doet geen servicecalls. Een in-memory `Checkpoint` bevat
 geen live Session/Upload. `restore` zet alle niet-afgeronde edits op
@@ -58,6 +60,17 @@ queue/versieankering; remote latest-revisiondiscovery; daadwerkelijke
 Materiaalbediening en native client/NAS-uitvoering. Providerkeuze blijft
 expliciet in de gedeelde contracten; dit model kiest/verandert geen provider,
 krijgt geen providercredentials/inhoudssleutels en heeft geen fallback.
+
+Bronvaste afstemming met de eigenaars:
+
+- NET `4a0ce99ff6b88adcd0e2c6be0571b30390d8d1c8` biedt alleen
+  `KeyServiceRandom` en certificate-timebouwstenen, **geen** native handshake
+  of TLS-peer-naar-NAS-principalinterface.
+- Security `7f67471` biedt intern `RecordContext` en
+  `Service::seal_record/unseal_record`, niet een geautoriseerde NAS-app-API.
+  Mapping van NAS-namespace naar volume/lineage/epoch-authority en herstel/
+  onafhankelijke rollbackankering is niet vastgesteld. De queue leidt deze
+  rechten/context niet uit request-ID, uitnodiging of B02-fixture af.
 
 Gerichte commando's (Rust 1.90; eigen `CARGO_TARGET_DIR`):
 
