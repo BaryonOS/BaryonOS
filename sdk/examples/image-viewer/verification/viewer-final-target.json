@@ -1,0 +1,19 @@
+{
+  "command": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "build",
+    "--locked",
+    "--offline",
+    "--release",
+    "--lib",
+    "--manifest-path",
+    "sdk/examples/image-viewer/Cargo.toml",
+    "--target",
+    "x86_64-unknown-none"
+  ],
+  "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-scaling-disco",
+  "started_unix": 1793383563.2289672,
+  "duration_s": 2.3645217418670654,
+  "returncode": 0
+}
