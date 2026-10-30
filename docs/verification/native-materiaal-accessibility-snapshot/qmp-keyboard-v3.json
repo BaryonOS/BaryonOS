@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "kind": "baseline-native-keyboard-interaction",
+  "result": {
+    "passed": true,
+    "timed_out": false,
+    "duration_seconds": 136.802288905,
+    "raw_qemu_exit": 33,
+    "machine": "pc-q35-10.0",
+    "qemu_version": "10.2.1",
+    "profile": "pc-q35-10.0/qemu64/TCG/1CPU/256MiB/VGA/PS2",
+    "kernel_feature": "native-system-materiaal-probe"
+  },
+  "qemu": {
+    "executable": "qemu-system-x86_64",
+    "arguments": [
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "file:serial.txt",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-device",
+      "VGA,vgamem_mb=16,romfile=VGA.rom",
+      "-qmp",
+      "stdio",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+      "-drive",
+      "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=volume.img",
+      "-device",
+      "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+      "-object",
+      "rng-random,id=rng0,filename=/dev/urandom",
+      "-device",
+      "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04"
+    ],
+    "working_directory": "build/native-materiaal-accessibility-v3/run/materiaal-keyboard-600b3220a1"
+  },
+  "source": {
+    "commit": "74d15ac09ac61c8d47a882c3c982711af1a9d891",
+    "fingerprint_version": 3,
+    "fingerprint_sha256": "24d5f4c112924cfe45681de3fcf3a92f62087e29524f15c74e14d83620891abd",
+    "runner_revision": "a68ade6a1c7f372d1e29c82c79974043fcf563fd",
+    "runner_sha256": "23d21420911c236f80da25ba191516ae0fa62f06f70a78576da98d97d16f59b5",
+    "frozen_render_rs_sha256": "89c7c99010aa1ca284fdf914543d38ffd6ea0c1891f4c07102c78925d13ce2d9",
+    "frozen_source_has_legacy_flat_semantics_method": true,
+    "frozen_source_has_new_semantic_id_parent_action_tree": false,
+    "frozen_source_has_runtime_consumer_for_app_semantics_proven": false
+  },
+  "new_ui_semantics": {
+    "implementation_commit": "f6ec180103779dfdb1f50088c7a9cfd7338fb955",
+    "verification_commit": "02766785356de75fc2f766031f79e49c48839ff0",
+    "current_render_rs_sha256": "fc2682ebedafe92e4c99501f7d2a12a49f145c7bec92208db2e2fc789fea9434",
+    "included_in_guest": false,
+    "linked_or_executed_natively": false,
+    "verification_level": "host tests and scalar cross-build only"
+  },
+  "interaction": {
+    "completed_frames": [
+      "ready",
+      "editor",
+      "dirty",
+      "saved",
+      "list",
+      "reopened"
+    ],
+    "qmp_send_key_requests": 21,
+    "acknowledged_key_events": 42,
+    "pointer_events": 0,
+    "screendumps": 6,
+    "same_session_reopen": true,
+    "cold_restart": false
+  },
+  "disk_oracle": {
+    "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+    "after_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+    "object": 0,
+    "revision": 1,
+    "name": "Nieuw document",
+    "length": 14,
+    "content_sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "canaries_intact": true
+  },
+  "cleanup": {
+    "m1_pass": true,
+    "cleanup_pass": true,
+    "controller_released": true,
+    "live_processes": 0,
+    "live_handles": 0
+  },
+  "artifacts": {
+    "retained_run_directory": "build/native-materiaal-accessibility-v3/run/materiaal-keyboard-600b3220a1",
+    "result_json_sha256": "ff044cf1f1bc74e3ff33b2be63c0d6b4ba3401aa98a94f052095df8ee236b313",
+    "qmp_trace_sha256": "85c6928b1e95fa8d57cc91aa00d6400e27f6827f863b34e4869e39e532da1c80",
+    "serial_sha256": "1745d9abae4bf612867e8b59ed21395a7386d6390e37263451a36459efa67907",
+    "kernel_elf_sha256": "d52680562a5f6378a7ff899f4cb972f5258c8f381c1c1801dff84037fce07b5f",
+    "bootloader_sha256": "b2245a16079e6a3ed93d629f64129cd2b174e7b0998bf1b59d189a608c38fb51",
+    "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+    "ovmf_code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "ovmf_vars_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "vga_rom_sha256": "c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde",
+    "frame_sha256": {
+      "ready.ppm": "89988554c6e93449245ccac8462e1a43af336e0af990affcf59004bb2eaed50f",
+      "editor.ppm": "2a20cf4b4c6abde8e9a3a5f8f6e731ae8d1a6575a367af669d1ee705b80eeac0",
+      "dirty.ppm": "1a1b354de9cf1fc9a35783c059d2b95eee18812240c3571cb73af7db9e111b74",
+      "saved.ppm": "2985ce0c6ff9b0e754c803fec2990be089e92cb2725fd77313cf4d55e6c973a2",
+      "list.ppm": "e2187bfc2c403c7b686ae205f7c1f242e2087b8b30b4be2842f707925ff8ea03",
+      "reopened.ppm": "f966840898397d623f973388add5a92c2c9cba350056c2031e82ecad502663fc"
+    }
+  },
+  "proof_limits": {
+    "screenreader": false,
+    "speech_output": false,
+    "human_user_acceptance": false,
+    "manual_visual_quality_acceptance": false,
+    "cold_restart_or_recovery": false,
+    "encrypted_durable_storage": false,
+    "full_materiaal_acceptance": false
+  }
+}

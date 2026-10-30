@@ -1,0 +1,6 @@
+   Compiling nieuw-os-net-stack v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/services/net-stack)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.39s
+     Running unittests src/lib.rs (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/target/tcp-listen-native/debug/deps/nieuw_os_net_stack-533a77bb6c83be03)
+     Running tests/adapter.rs (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/target/tcp-listen-native/debug/deps/adapter-e5ec65d9171550c5)
+     Running tests/conversation.rs (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/target/tcp-listen-native/debug/deps/conversation-6c056ee11b732e93)
+   Doc-tests nieuw_os_net_stack

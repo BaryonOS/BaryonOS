@@ -1,0 +1,3 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (build/net-broker-worktree/target/net-broker-host/debug/deps/nieuw_os_net_broker-24000d6683f4848b)
+   Doc-tests nieuw_os_net_broker

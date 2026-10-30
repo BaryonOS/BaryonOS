@@ -1,0 +1,18 @@
+
+running 1 test
+test delayed_renewal_ack_applies_new_route_and_dns_even_when_new_t1_is_already_due ... FAILED
+
+failures:
+
+---- delayed_renewal_ack_applies_new_route_and_dns_even_when_new_t1_is_already_due stdout ----
+
+thread 'delayed_renewal_ack_applies_new_route_and_dns_even_when_new_t1_is_already_due' (3690730) panicked at tests/service.rs:462:9:
+assertion failed: service.configuration(4100).unwrap().is_none()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    delayed_renewal_ack_applies_new_route_and_dns_even_when_new_t1_is_already_due
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
