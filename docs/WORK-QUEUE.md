@@ -1,3 +1,26 @@
+# Werkqueue — afhandeling van PR68 tot en met PR74
+
+## Actueel reviewcheckpoint, 30 oktober 2026
+
+Eigenaar: integratiebranch `chatgpt/pr68-74-review-20261030`.
+Deze opdracht betreft uitsluitend de review, noodzakelijke reparaties en
+inhoudsbehoudende verwerking van PR68 tot en met PR74. De bestaande overige
+ontwikkellijnen en hun historische werkverdeling blijven hieronder bewaard.
+
+| Onderdeel | Stand van dit checkpoint | Resterende grens |
+|---|---|---|
+| PR69 en PR70 | Respectievelijk correct gesloten en reeds gemerged | Geen aanvullende wijziging nodig |
+| PR71 | Gemerged met replay-handoff-testdekking, geïsoleerde testmap en gecorrigeerde historische CI-beschrijving | Exacte vorige-boot NAS-replay blijft afhankelijk van private export en startupbinding; geen nieuwe native runner in deze batch |
+| PR68, PR72, PR73 en PR74 | Wijzigingen en gerichte fixes worden op actuele main samengebracht | De gepubliceerde head moet passende CI, branchregels en review doorlopen |
+| Inhoudsbehoud | Originele bewijsbestanden en actuele main blijven behouden; ADR-nummerconflict is expliciet opgelost | Hercontrole van de oorspronkelijke heads vóór afronding |
+| Productroadmap | 34/100, vaste rubric ongewijzigd | Geen nieuwe productacceptatie uit alleen review of hosttests |
+
+## Eerdere werkqueue en uitvoeringshistorie
+
+De tekst hieronder is de ongewijzigde eerdere queue, geen nieuwe reservering
+van deze reviewopdracht. De oorspronkelijke main-versie staat ook onder
+[`history/integration-2026-10-30/main-9a6703d3/docs/WORK-QUEUE.md`](history/integration-2026-10-30/main-9a6703d3/docs/WORK-QUEUE.md).
+
 # Werkqueue — volledige native testrelease, 30 oktober 2026
 
 ## Actuele integratie en exclusieve schrijfgebieden

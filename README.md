@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`0078c3b3`](https://github.com/simonvanieperen/nieuw-os/commit/0078c3b3baeff2dd5914b8f9d1b1e354cb33aea0) ·
-**Ontwikkelbranch:** `simonvanieperen-musical-happiness`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Inhoudsbehoudende PR70-integratie van codecbron 0078c3b met main 94c8908.
-34% blijft 34%; netwerk 0/10. Codecbron 0078c3b is inhoudsbehoudend geïntegreerd met main 94c8908, inclusief IPC-WAIT/TPM/rootlock/Windowsbewijs/preflight/vendors. Alleen bedoelde DHCP-codec en brongebonden documentatie blijven boven main; tracks, gewichten en evidence zijn exact main94. Beide historische kanten volledig behouden; één branchhandoff vervangt geen centrale teamstatus. 58 codec-hosttests, 24 preflighttests, Clippy, fmt en freestanding build zijn op deze samengevoegde bron herhaald: alle exit0. Oude groene head0078 en native ARP/UDP/DNS-bron9ddc6b6 zijn geen bewijs voor nieuwe head of native DHCP/TLS/appgrants. Nieuwe head-CI/review blijven open.
+**Bron:** [`f7b99214`](https://github.com/simonvanieperen/nieuw-os/commit/f7b9921444b5b02b65cbdbef19d70b650260827a) ·
+**Ontwikkelbranch:** `chatgpt/pr68-74-review-20261030`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Beoordeling, gerichte reparaties en inhoudsbehoudende integratie van PR68 tot en met PR74.
+De vaste criteria, gewichten en bestaande bewijsverwijzingen blijven ongewijzigd: 34/100. Deze kandidaat verwerkt de gevraagde UI-, SDK-, apppakket- en updatewijzigingen en behoudt het reeds via PR71 geïntegreerde NAS-werk, de gerichte reviewreparaties en het bestaande main-archief. PR69 blijft de gesloten negatieve rulesettest; PR70 en PR71 zijn al geïntegreerd. Hosttests en freestanding builds leveren geen nieuwe productacceptatie. Exacte vorige-boot NAS-replay blijft geblokkeerd totdat de private export en startupbinding aanwezig zijn. De passende GitHub-controles en inhoudsvergelijking op de uiteindelijke head blijven verplicht vóór afronding. De apppakketwijziging omvat app-package-core en sdk/app-management met protocol, transactiewachter en eigen CI-workflow; hosttests gebruiken fake backends en bewijzen geen duurzaam journaal of native installatie-/launchketen.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
