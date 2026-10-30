@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "c532ba88fbf0f53b960e9dbf77421cee29d97096",
-    "branch": "simon/native-interactive-cold",
-    "task": "Preview stale-successreviewpunt hersteld op afzonderlijke opvolgbranch",
+    "source_commit": "e6eecbc28bb4e74d1b1c7c01b26f2ab249cf4291",
+    "branch": "copilot/windows-review-fixes-20261030",
+    "task": "Gecombineerd herstel van zes concrete Windowsbundel-/previewreviewpunten en actuele issue-/PR-triage",
     "previous_score": 34,
-    "summary": "34% blijft34%; minstens50% niet bereikt. Concrete runnerreviewfout opgelost: geen oud passed:true-rapport na ongeldige build/firmwarevoorbereiding.52 gerichte en135 tools-hosttests groen, inclusief veilige rapportpadweigering; nieuwe native sourcegates nog niet uitgevoerd. PR66head c532 blijft bevroren voor integratiecoördinator. Eerdere native en afzonderlijke Windowsproef blijven brongebonden; koude experimenten zijn geen volledige acceptatie. Geen nieuw volledig rubriccriterium."
+    "summary": "34% blijft 34%; geen nieuw volledig criterium. Op basis e6eecbc zijn zes reviewpunten gecombineerd hersteld: geen oud previewsucces na voorbereidingsfout, genormaliseerd uitvoerpad met symlinkcontroles vóór/na mkdir, taalvaste launcherfout en begrensde Windows-/isolatie-/bronclaims. 55 gerichte hosttests en vijf synthetische launchertests op echte Windows PowerShell/QEMU 11.1 slagen; geen VM gestart in deze launchercontrole. Nieuwe native/CI-gates op de gewijzigde bron staan open; historische Windows-/Linuxbewijzen blijven aan hun eigen bron gebonden. Issues 39-43 blijven open op hun concrete ontbrekende acceptatie; B03 is al in de rubric geaccepteerd maar issue 41 vraagt ook nog onbewezen sleutelrotatie/intrekking. Geen bypass of volledige releaseclaim."
   },
   "tracks": [
     {

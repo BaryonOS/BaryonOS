@@ -167,9 +167,13 @@ def package_bundle(
     build, manifest = validate_build(build_directory, verify_source=verify_source)
     if output.exists():
         raise FileExistsError(f"Refusing to overwrite existing package: {output}")
-    output.parent.mkdir(parents=True, exist_ok=True)
-    if output.parent.resolve() != output.parent.absolute():
+    parent = Path(os.path.abspath(output.parent))
+    if parent.resolve() != parent:
         raise ValueError("Package output parent must not traverse symlinks")
+    parent.mkdir(parents=True, exist_ok=True)
+    if parent.resolve() != parent:
+        raise ValueError("Package output parent must not traverse symlinks")
+    output = parent / output.name
 
     payload: dict[str, bytes] = {}
     hashes: dict[str, dict] = {}
@@ -215,7 +219,8 @@ def package_bundle(
         "kind": "Nieuw OS native Materiaal QEMU test version",
         "scope": (
             "Own x86_64 UEFI kernel; native-system-materiaal; one q35-8.2 CPU, "
-            "TCG, 256 MiB RAM; network disabled; no host files or host disks shared."
+            "TCG, 256 MiB RAM; network disabled; read-only ESP directory exposed "
+            "via fat:esp; no direct host disk or other host directories configured."
         ),
         "source_commit": git_commit(),
         "source_fingerprint_version": manifest["source_fingerprint_version"],
@@ -234,7 +239,7 @@ def package_bundle(
         "files": hashes,
         "limitations": [
             "Not an installer or full release.",
-            "The Windows QEMU launch is not validated on a Windows host.",
+            "Windows validation is specific to the tested source and bundle; packaging does not run a VM acceptance test.",
             "The 256 MiB VM profile is a development test profile, not a supported-hardware claim.",
         ],
     }

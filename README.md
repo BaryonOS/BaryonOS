@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`c532ba88`](https://github.com/simonvanieperen/nieuw-os/commit/c532ba88fbf0f53b960e9dbf77421cee29d97096) ·
-**Ontwikkelbranch:** `simon/native-interactive-cold`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Preview stale-successreviewpunt hersteld op afzonderlijke opvolgbranch.
-34% blijft34%; minstens50% niet bereikt. Concrete runnerreviewfout opgelost: geen oud passed:true-rapport na ongeldige build/firmwarevoorbereiding.52 gerichte en135 tools-hosttests groen, inclusief veilige rapportpadweigering; nieuwe native sourcegates nog niet uitgevoerd. PR66head c532 blijft bevroren voor integratiecoördinator. Eerdere native en afzonderlijke Windowsproef blijven brongebonden; koude experimenten zijn geen volledige acceptatie. Geen nieuw volledig rubriccriterium.
+**Bron:** [`e6eecbc2`](https://github.com/simonvanieperen/nieuw-os/commit/e6eecbc28bb4e74d1b1c7c01b26f2ab249cf4291) ·
+**Ontwikkelbranch:** `copilot/windows-review-fixes-20261030`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Gecombineerd herstel van zes concrete Windowsbundel-/previewreviewpunten en actuele issue-/PR-triage.
+34% blijft 34%; geen nieuw volledig criterium. Op basis e6eecbc zijn zes reviewpunten gecombineerd hersteld: geen oud previewsucces na voorbereidingsfout, genormaliseerd uitvoerpad met symlinkcontroles vóór/na mkdir, taalvaste launcherfout en begrensde Windows-/isolatie-/bronclaims. 55 gerichte hosttests en vijf synthetische launchertests op echte Windows PowerShell/QEMU 11.1 slagen; geen VM gestart in deze launchercontrole. Nieuwe native/CI-gates op de gewijzigde bron staan open; historische Windows-/Linuxbewijzen blijven aan hun eigen bron gebonden. Issues 39-43 blijven open op hun concrete ontbrekende acceptatie; B03 is al in de rubric geaccepteerd maar issue 41 vraagt ook nog onbewezen sleutelrotatie/intrekking. Geen bypass of volledige releaseclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

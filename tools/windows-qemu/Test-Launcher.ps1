@@ -65,8 +65,7 @@ try {
     Remove-Item -LiteralPath $kernel
     $rejected = $false
     try { & $launcher -QemuPath $QemuPath -CheckOnly } catch {
-        if ($_.Exception.Message -notlike "*does not exist*" -and
-            $_.Exception.Message -notlike "*Cannot find path*") { throw }
+        if ($_.Exception.Message -ne "Bundle file does not exist: esp/kernel.elf") { throw }
         $rejected = $true
     }
     if (-not $rejected) { throw "Missing kernel was accepted." }
