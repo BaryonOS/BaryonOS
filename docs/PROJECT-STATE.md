@@ -1,6 +1,139 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — teamleiding en integrale QEMU-route — 30 oktober 2026
+## NEXT AGENT HANDOFF — technische leiding, zelfstandige planning en directie — 30 oktober 2026
+
+**Bron:** branch `simonvanieperen-symmetrical-barnacle`, checkpointbasis
+`caa2c14da15c5ac82b5493b3b2407167163d00d9`; runtimeboom blijft main94
+`94c8908ee363d06a5be51417c5cae635549d566f`, geen nieuwe manager-runtimewrites.
+Bij hervatten `git branch --show-current && git rev-parse HEAD && git status --short`.
+Drie reeds eigen dirtydocs zijn behouden in deze claimherstelstap.
+De actuele, enige taak-/fileverdeling staat bovenaan [WORK-QUEUE.md](WORK-QUEUE.md);
+alle oude registraties hieronder zijn historie, geen actuele schrijfclaims.
+
+**Mandaat:** operationeel teamleider `89f84098...` stuurt technische voortgang,
+afhankelijkheden en samenwerking; behoudt PROJECT-STATE en alle centrale
+scorebestanden. Assistent `5d5f8513-2d31-41af-96ce-81c5ef56ef80`
+heeft eigen rolidentiteit/schone start/geen eerdere writes bevestigd en
+neemt uitsluitend WORK-QUEUE over na deze donorcommit+remotecheck+expliciete
+vrijgave. Donor schrijft daarna niet meer aan de queue; ontvanger bevestigt
+bron/overname. Gewone taken/vrije gebieden binnen prioriteiten mag de
+assistent zelfstandig verdelen, geen routinegoedkeuring van mij of Simon.
+Directeur `ef7a7596-8c3d-4705-ab69-36f8a2a1a1b6` heeft zijn rol bevestigd:
+roadmap/kwaliteit, geen extra PR-/taakpoort, geen centrale writes.
+Alle24 echte rollen, zeven afdelingen en exacte claims staan uitsluitend in
+WORK-QUEUE; geen dubbele agents of gelijktijdige uitvoering geclaimd.
+
+Bestaande opdrachten blijven bij ontbrekende berichten/timeouts geldig.
+Binnen opdracht zelfstandig implementeren/testen/opleveren; geen schrijfgebied
+vrij verklaren door onbereikbaarheid. Nieuwe verzoeken naar assistent.
+Technische conflicten eerst met eigenaars oplossen; uitsluitend
+gebiedsoverstijgende/richtingwijzigende of onoplosbare besluiten naar directeur.
+E8e blijft exclusief operationeel integrator. Intake is bestaande sessie
+f2afe26e, uitsluitend read-only PR-/blokkadedossiers en routering; #76codewerk
+overgedragen/frozen. Voorstel algemene werkverdeling ingetrokken; bewaarde
+registratie kent geen queueoverdracht aan intake, feitelijke bevestiging
+opgevraagd en eventuele eerdere resultaten blijven behouden.
+Release behoudt actieve NAS-runtimeclaim en reeds toegewezen
+ABI-verantwoordelijkheid; na NAS volledige R01–R03/integrale62FR/UC01–09,
+interactieve variant en testpakket. Geen algemene kernel-/domeinovername.
+Native eerst verifieroverdracht, dan concrete K/S-CR3-diagnose read-only,
+daarna onbezet K/S-werk; S09/K06 blijven open. Nieuwe15/16 ontwerpen/assets,
+13 behoudt native UI-code/runtime.17/18/19 onderzoeken/verifiëren/meten;
+4/12/20/21 kwaliteit/slots/onafhankelijke producttest/aflevering.22 bouwt
+alleen de zelfstandige image-viewer-leaf voor11, geen rechten-/SDKomweg.
+12→21Windows-overdracht heeft wederzijdsACK, precies vijf bestaande routefiles,
+geen tweede launcher/packager.
+
+**Actuele blockers en doorwerk:** finale basis via e8 na #74d7b7fcce op
+mainca45;13oude groene #74checks zijn ingehaald door nieuwe ready_for_review-CI.
+Guarded squash correct geweigerd op strict host-quality/qemu-smoke; geen bypass.
+NASconcept#83/032ce744 bewaart code1219/evidence0611: zes rode bindingassertions
+naar15NAS/435toolhost groen, nieuwe pair33/33, B72tweepuntsherreview af.
+Systemregressie e5e2cab33/33+46host/23SDK gearchiveerd; geen gewone GUI-kandidaat.
+Coldtoken[42;40] blijft fixture, geen echte boot1-replayclaim.
+UI-rendererfix0818 is na echte rode regressies host/none groen; slot13 volgt
+op de ene diagnostische VM19, die raw35/runner1 stopte op
+CAPBENCH:FAIL:FOUR_PROCESS_MANIFEST vóór meetcalls. Geen timings; vermoedelijk
+stale B02-countguard, rootowner4 moet exacte invariant afstemmen vóór herhaling.
+13 leverde evidenceleaf62476bbb op0818/v326b41e55: één build/VM,
+132.461s/raw33/runner0, zes800×600-QMPframes+diskorakel,40archiefhashes
+door eigenaar gecontroleerd en dezelfde beelden naar15/16/20.
+16 heeft beelden werkelijk bekeken, geen clipping, geen glyphs aanwezig.
+Geen gewone interactieve build/cold/negatieven/200%/assets/U-aftekening.
+SDK-wrapper-WIP op89e blijft geparkeerd tot expliciete routineheractivering
+door assistent, niet tot een nieuwe managerbereikbaarheidscheck.
+
+Release kiest gewone interactieve DEV1 op door8vrijgegevenca45:
+eigen offlinebuild+same-sourcepixelreferentie, daarna12ACK voor maximaal
+twee seriële bestaande gates/referentie en7procespreview, noggeenVM gemeld.
+Freeze bron/image/tool/firmware/profiel/start-stop/limitations voor20/21.
+Directie bevestigt geïntegreerde maak/bewerk/bewaar/koude-heropenketen
+en apart Windows-getest pakket als richting; gewone DEV1 is een tussenstap,
+geen coldclaim. QMP-quit bewijst geen gast-afsluitpad.
+NET4a-nativeTCP faalt met instructionfetch0x200130c naCR3=1000→DF/triplefault;
+geen NET-kernelwriter. Native is gericht benaderd, nog geen nieuwe teruglevering.
+NAS-resume, AI-rootadapter en app-protocolconsistentie hebben afzonderlijke
+concrete leafclaims; oude afgeronde IPC-WAIT/TPM/TLS-timeclaims blokkeren ze niet.
+
+**Nieuw bewijs, door eigenaren gemeld:** UXd6b4/assetd354 met bekeken
+hostbeelden; onderzoek4ffdde9/vijf primaire bronnen behoudt RTC-failclosed;
+model60bab47 heeft4tests/2380histories/6942calls en RTC-mutanttegenvoorbeeld,
+geen Rust-refinement/handshake/native/audit. Windows0915828 heeft10host/
+5echteWindows-synthetische tests; nog geen OS-package/VM. Producttesta497
+is protocol met NOT RUN/BLOCKED, geen productpass. Alle bronnen/claims in queue.
+R77bffe11 op7d66/v3949
+heeft nieuwe reference133.939s/raw33, parent93.551s/raw0, cold37.543s/raw0
+en16artifactnegatieven; oude66blobs intact, geen cleanstop/powerlossclaim.
+SEC72code df1/head7f heeft36host+echte320bytewipe en12nieuwe nativecases; NETreview
+brongebonden, geen menselijke audit. Catalogusbc27/#80 heeft18+8hosttests/
+lint/fmt/none; R73/R78/R80read-only afgerond, geen nativeinstaller/inference.
+HW e79 heeft22unit+1echte-firmwareparsertest en virtio-snd#85/72f heeft11host/
+lint/fmt/none/mutant; geen OS-power/audio. #79 alleen H05-leaf opnemen, niet
+historische andere domeinwijzigingen. NASresume733-hostmodel geen durablequeue;
+AI#82b51adapter geen echte provider. SECcontractc5fb is document, geen nieuwecrypto;
+NETbroker1a1489 host/none geen issuer/devicelease/native TCP-herstel.
+Viewer#86/f2c875a7 (code6b3fbf)15host/lint/fmt/none; concrete Fit-regressie
+gerepareerd en afzonderlijkeAIherreview af; native object-onlyREAD/bootstrap/
+launch nog open. NASresume87a04d48/code733 freeze/intake, noggeenPR/CIclaim;
+NETbroker#87/0962/code1a1489 host-only. SECissuer/sourcepersistentie nog niet
+toegewezen, bestaande SourceRegistry/verifier hergebruiken; geen tweede core.
+
+**Bewijs/score:** 34% → 34%; tracks/criteria/gewichten/geaccepteerd bewijs
+ongewijzigd. B05/FR-B05 vereist echte externe menselijke deskundigenreview;
+intakepakket voorbereid maar geen reviewer/betaalde opdracht benoemd.
+Directie bewaakt benodigde menselijke/organisatorische voorwaarde,
+geen AI/model als vervanging. Alle62FR en fysieke/menselijke gates blijven open, honderd koude
+starts/24uur onverkort. Manager heeft deze nieuwe owner-VM-runs niet herhaald.
+Eerdere eigen16cold-hosttests op7d66 en oude Windowsbundelinspectie behouden.
+Laatste beschikbare Windowsdeelbundel blijft2.296.965bytes,
+SHA256 `b42be826377afb58f96c8178aa972128abad18ef7f9b4872e102a9e4a7e9ea57`,
+bron eabc27b/c532, niet huidige kandidaat of volledige release. Startpad en
+CRC/12bytegelijke bestanden staan in de bewaarde historische registratie
+en `verification/teamleader-delivery-20261030.json`.
+
+**Controle en hervatten:** `python3 -B tools/progress.py --write`,
+`python3 -B tools/progress.py --check` en `git diff --check` zijn exit0.
+Eigen validator `python3 -B /home/simon/.copilot/session-state/3c9dee7ff8e342deb2a0374357d86212/files/verify-management-handoff.py`
+is exit0: criteria/evidence gelijk aan caa2c14, oude historie in volgorde,
+beide nieuwste PR65-teksten/assessments letterlijk behouden, één actueel
+handoff,24unieke app-ID's en geen runtimeverschil met main94.
+Commandotijden0,031/0,033/0,010s; invariantchecks0,028s. Log
+`/home/simon/.copilot/session-state/3c9dee7ff8e342deb2a0374357d86212/files/teamleader-management-validation.log`,
+compact bewijs `verification/teamleader-management-20261030.json`.
+Publiceer donorcommit, controleer remote-SHA en stuur5d5f8513 expliciet
+bron+queuevrijgave; daarna geen managerqueuewrites, ontvanger bevestigt.
+Geen nieuwe manager-
+Rust-/QEMU-/fysieke/menselijke test. Intake heeft gepagineerde dossiers aangeleverd,
+geen voortdurende uitvoering/CI-monitoring beloofd. Eerstvolgende uitvoerbare
+stap: na bron/statuscontrole verse sessiestatus en uitsluitend nieuwe
+0818artifact/#74-basissignaal/DEVvrijgave bij intake/e8/release lezen;20toetst
+brongebonden gedrag,21packaget alleen vrijgegeven gewone DEVbron. Geen
+duplicaatproducer of onafhankelijke herhaling weglaten waar vereist.
+PR65latest7960 is read-only gehaald; aanvullende ec591dd/7960historie en
+beide assessments hieronder bewaard. Niet sluiten vóór daadwerkelijke
+mainopname/actuele inhoudsbehoudcontrole door8.
+
+## Historische managerregistratie — teamleiding en integrale QEMU-route — 30 oktober 2026
 
 Bronbasis `0ade8014c8179241dcfc68ea0ba8083664691240` (ook remote `main`
 bij controle), schone start op branch
@@ -302,9 +435,139 @@ Owner meldt21 interactietests/fmt/check/Clippy groen; generation-bound
 dispatch wordt nog aangescherpt. #68-head e382a989 is volgens owner een
 legitieme main94-integratie van eerdere4a4, niet nieuwe consumeracceptatie.
 Nieuwe code blijft host-only tot integratie en nativeherhaling.
+Artifact-store is nu concept-PR #78, head `7f4f7bf` op ca45, remote exact
+gemeld; owner heeft zeven hosttests/lint/fmt/none op mergebron53c2f14
+herhaald, dedicated CI en bestaande jobs zijn daadwerkelijk queued.
+Geen groene GitHubclaim of backend/nativeacceptatie.
+
+**Actieve rootwriterclaim TL-REL-NAS-PROFILE:** release2ab is exclusief
+eigenaar van `tools/build.py`,
+`kernel/Cargo.toml`, `kernel/src/m2/m3.rs` en de benodigde opt-in
+profielwiring onder `kernel/src/m2/m3/**`, plus nieuwe build_nas/test_nas,
+directe tests/eigen bewijs. Alleen bestaande launch/IPC/block/RNGgrants,
+geen algemene rechten-, ABI- of schedulerwijziging. Boot/loader/paging,
+SDK-runtime/keyring/volume en NAS-leaf zijn niet vrijgegeven.
+Exacte gebruikte subset meldt release vóór edit; afwijkend buildentrypoint
+vereist een concrete aanvullende fileclaim, geen fictieve kernel/build.rs.
+Security bevestigt NV0041/kernelCargo/tpm_fixture/toolsbuild bevroren;
+AI behoudt oud qsim-WIP maar geen actieve rootwriteclaim. NAS ontvangt de
+concrete reservering en levert endpoint/grant/footprintverwachtingen.
+Normaal/koud guestcaller-, foutrechten- en diskbewijs volgen; geen TLS/E2EE.
+Exacte subset door release bevestigd: twee opt-in normal/cold features in
+kernel/Cargo.toml, cfg-dispatch/incompatibele combinaties in m3.rs,
+nieuwe m3/nas.rs, tools/build.py en nieuwe build_nas/test_nas/tests/bewijs.
+Bestaande ELF-envs volstaan; kernel/build.rs/system.rs/SDK/loader blijven
+bytegelijk. NAS-intake b6ec464 op ca45+ce52 is gepusht; bestaande builder,
+core21/volume9/probe5 en lint/fmt groen gemeld, geen guest gestart.
+
+Lifecycle meldt inmiddels brede GitHub502/504/ongeldige-JSON-fouten bij
+checks; laatste #74-head d7b7fcce heeft geen betrouwbaar leesbare finale
+CI. Geen rood productresultaat of groen verdict verzinnen, geen merge/
+headpush/retest om een API-storing heen. De eerdere beperking om NAS-edits
+tot na74 uit te stellen is daarom uitsluitend voor de aparte ca45-
+integratiebranch opgeheven: release implementeert nu de exacte opt-in
+subset en valideert eigen bron; na74 één inhoudsbehoudende opname plus
+vereiste hergates. Dit verruimt geen rechten en omzeilt geen mergegate.
+
+Apps heeft op aparte branch catalog-leaf `c8c68ee` gepusht: alleen
+nieuwe catalog.rs, module-export en eigen appdoc. Prepare/apply/abort met
+epoch/CAS, Unknown-failclosed en geen capabilityentries; vijftien hosttests,
+lint/fmt/none en drie mutatienegatieven groen gemeld, geen GitHub/native-
+install/persistentieclaim. #73 blijft9d8 bevroren tot basisresolutie.
+Deze extra catalogdelta heeft geen automatische oude reviewgoedkeuring.
+UI-consumer is nu werkelijk gepusht als `89e20045`, remote exact/schoon
+gemeld; 21 interacties plus fmt/check/Clippy exit0. Volgende vrijgegeven
+leafscope: uitsluitend `sdk/examples/materiaal/src/lib.rs` met directe
+semantiekactietests als app-local wrapper van de bestaande controller.
+Generatie/node/actie/read-only opnieuw controleren, geen duplicaatvalidator
+en geen opslag vóór expliciete Save. Geen externe accessibilitybroker,
+IPC-/surfacecapability of schermlezerinterface vrijgegeven. Release en UI
+zijn over de niet-overlappende claims geïnformeerd.
 Eerstvolgend bij hervatten: `git branch --show-current && git rev-parse HEAD
 && git status --short`, daarna verse `get_sessions_status` en actuele
 buildteam/release-rapportages lezen; geen oude groene PR-head overnemen.
+
+## Historische aanvulling PR #65 — ec591dd en 7960e98
+
+Read-only opgehaald: `7960e98a78e054f245ec75a0862f9147bdb53f55`.
+Diff tegenover mainca45 betreft alleen README/PROJECT-STATE/progress.
+De onderstaande aanvullende teksten en assessments zijn letterlijk uit de
+genoemde Git-bronnen behouden; geen nieuwe manageruitvoering of huidige
+assessment. De oudere0e441a9-registratie blijft hierna ongewijzigd.
+Sluiting blijft bij8 na daadwerkelijke mainopname en latestheadcontrole.
+
+### Historische hoofdtekst uit ec591dd8ea01f5b2c50481791789bf5d211ee0ac
+
+PR-head `0e441a9354fd519ebb5583eb52d2a396f452bbf6` en main
+`94c8908ee363d06a5be51417c5cae635549d566f` zijn samengevoegd. Overlappende
+packager-, preview-, launcher- en testbestanden gebruiken de nieuwere main-
+versies, inclusief de pad-/symlinkcontroles en het opruimen van verouderd
+previewbewijs. De PR-eigen interactieve proefnotitie en overige niet-
+conflicterende wijzigingen zijn behouden. Het previewbewijs vermeldt nu
+expliciet dat historische rapporten geen zelfstandige v3-fingerprintversie
+vastleggen.
+
+Validatie van de geïntegreerde werkboom: gerichte Windows-QEMU-tests 35/35,
+alle tooltests 138/138, systeemharnastests 46/46, Rust-workspace-tests en
+root-/SDK-rustfmt slagen; `tools/progress.py --check` en `git diff --check`
+slagen. De eerste offline Cargo-test faalde door een ontbrekende gecachete
+`ed25519-dalek`; na `cargo +1.90.0 fetch --locked` slaagde de herhaling. De
+eerste rustfmt-aanroep trof een gelijktijdige rustup-installatie zonder
+component; na installatie slaagden beide formatterchecks. Geen Windows-gast-
+of releaseacceptatie is met deze integratie opnieuw uitgevoerd. Voortgang
+blijft 34%; geen criterium gesloten.
+
+Historische assessment:
+
+```json
+{
+  "date": "2026-10-30",
+  "source_commit": "5a91062197f26a18b2fb6dd030ad06346d53fd68",
+  "branch": "simon/windows-qemu-test-version",
+  "task": "CONFLICT-MERGE-MAIN-94C8908",
+  "previous_score": 34,
+  "summary": "34% blijft34%; main 94c8908 inhoudsbehoudend geïntegreerd. Overlappende Windows-QEMU-code gebruikt de nieuwere main-implementaties; PR-bewijs en overige branchwijzigingen blijven behouden. Gerichte Windows-QEMU-tests (35), tooltests (138), systeemharnastests (46), Rust-workspace-tests, beide rustfmt-checks, progress-check en diff-check slagen. Geen productcriterium gesloten; geen Windows-gast- of releaseacceptatie opnieuw uitgevoerd."
+}
+```
+
+### Historische hoofdtekst uit 7960e98a78e054f245ec75a0862f9147bdb53f55
+
+PR-head `ec591dd8ea01f5b2c50481791789bf5d211ee0ac` is inhoudsbehoudend
+samengevoegd met main `ca45a7dabe6a040921de03bdc2fad3e5045a75ba`, met beide
+oudergeschiedenissen behouden. Alleen README, deze status en `docs/progress.json`
+botsten; de bijgewerkte main-rubric, PR #70-codec- en netwerkbewijs, queue en
+overige main-wijzigingen zijn behouden. De eerdere PR #65 Windows-QEMU-code,
+eigen interactieve bewijs en checkpoints blijven in de onderstaande historie.
+De integratie verandert geen productclaim of rubricpunten: 34% blijft 34%.
+
+Op de samengevoegde werkboom slagen `cargo +1.90.0 test
+--manifest-path services/net-protocol/Cargo.toml --locked --offline` (58 tests),
+dezelfde crate's Clippy met `--all-targets --locked --offline -- -D warnings`,
+`cargo check --tests`, crate-rustfmt en de `x86_64-unknown-none`-releasebuild.
+Ook slagen `python3 -B -m unittest discover -s tests -p 'test_preflight.py'`
+(24 tests) en `python3 -B tools/progress.py --check`. De eerste format-, Clippy-
+en targetbuildpogingen stopten omdat rustfmt, Clippy en de freestanding target
+niet geïnstalleerd waren; na installatie slaagden de herhalingen. Geen nieuwe
+CI-run, Windows-gast- of releaseacceptatie uitgevoerd. Oude tests en CI uit
+eerdere broncommits gelden niet als bewijs op deze head. `git diff --check`
+op de volledige staged integratie signaleert twee bestaande lege regels aan
+EOF in de nieuw binnengekomen, hashgebonden native bewijslogs
+`docs/verification/full-release-network-dev-9ddc6b6/host/1.stdout.txt` en
+`host/2.stdout.txt`; deze bewijsbytes zijn ongewijzigd behouden. De unstaged
+resolutiecheck is schoon.
+
+Historische assessment:
+
+```json
+{
+  "date": "2026-10-30",
+  "source_commit": "762dca326a97d41cb3c43573abaf48d8c5aae855",
+  "branch": "simon/windows-qemu-test-version",
+  "task": "CONFLICT-MERGE-MAIN-CA45A7D",
+  "previous_score": 34,
+  "summary": "34% blijft 34%; main ca45a7d is inhoudsbehoudend geïntegreerd in PR #65 met beide histories en de volledige main-rubric, DHCP-codec en netwerkbewijzen behouden. De 58 net-protocoltests, 24 preflighttests, Clippy, fmt, cargo check, x86_64-unknown-none-build en progress-check slagen op de geïntegreerde boom. Alleen diff-check meldt twee bestaande lege regels in ongewijzigde hashgebonden bewijslogs; die bytes zijn behouden. Geen nieuw native/Windows- of releasebewijs en geen rubriccriterium gesloten."
+}
+```
 
 ## Historisch branchcheckpoint PR #65 — main748-integratie op 0e441a9
 

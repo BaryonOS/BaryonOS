@@ -1,6 +1,327 @@
 # Werkqueue — volledige native testrelease, 30 oktober 2026
 
-## Actuele teamleiding — bronbasis `0ade8014`, 30 oktober 2026
+## Actueel mandaat- en claimregister — managementwijziging Simon, 30 oktober 2026
+
+Dit register vervangt de **actuele werking** van alle oudere toewijzingen
+hieronder; de historische inhoud en brongebonden bewijzen blijven behouden.
+Managerbron `caa2c14da15c5ac82b5493b3b2407167163d00d9`, runtimebasis
+`94c8908ee363d06a5be51417c5cae635549d566f`. Laatst door intake bevestigde
+main is `ca45a7dabe6a040921de03bdc2fad3e5045a75ba`; finale kandidaatbasis
+volgt van de integrator na #74. **34/100 blijft 34/100; alle 62 FR-rijen open.**
+De volledige ROADMAP/FULL-TEST-RELEASE/CONTEXT en fysieke/menselijke gates
+blijven bindend, inclusief honderd koude starts en 24 uur gecombineerd gebruik.
+
+### Bevoegdheden en overdracht
+
+| Rol | Bevestigde identiteit | Bevoegdheid en schrijfgrens |
+|---|---|---|
+| Directeur Nieuw OS | `ef7a7596-8c3d-4705-ab69-36f8a2a1a1b6`, Directeur nieuw OS; eigen rolbevestiging ontvangen | Roadmap/kwaliteit en aansturing van beide teamleiders; geen extra taak-/PR-poort en geen centrale writes. Alleen richtingwijzigingen, gebiedsoverstijgende of met eigenaars onoplosbare besluiten met bewijs voorleggen |
+| Operationeel teamleider | `89f84098-bd8c-4bc8-aeb2-0695517db26f` | Technische voortgang, afhankelijkheden, samenwerking en kandidaatkwaliteit. Blijft enige schrijver van PROJECT-STATE, progress.json, README, PROGRESS, progress.svg en eigen managerbewijs |
+| Assistent-teamleider | `5d5f8513-2d31-41af-96ce-81c5ef56ef80`, Teamleider werkqueue; eigen rol-/schone-startbevestiging ontvangen | Operationele planning en **enige schrijver van `docs/WORK-QUEUE.md` na onderstaande bronvrijgave**. Mag gewone taken en daadwerkelijk vrije schrijfgebieden binnen vastgelegde prioriteiten zelfstandig toewijzen, testen en oplevering laten doorgaan; geen routinegoedkeuring van teamleider of Simon |
+| PR-intake | `f2afe26e-5d6f-4948-89b8-0e2aeeb96225`, Pull requests binnenhalen | Behoudt oorspronkelijke PR-intake/routering/dossiers. Voorstel algemene werkverdeling ingetrokken; geen queuewriter. Feitelijke eerdere overdracht apart controleren en eventueel werk behouden |
+| Integrator | `e8e471ce-0601-417b-b4fa-a04fd9c7b954` | Enige operationele integrator, conflictopname en guarded merges; branchregels blijven gelden |
+
+**Donorprotocol:** teamleider rondt deze bestaande, nog ongepubliceerde
+queuewijzigingen af in één persistente donorcommit, pusht en controleert
+remote-SHA, en stuurt exacte commit plus expliciete vrijgave aan de assistent.
+De assistent heeft bevestigd voordien geen queuewrites/commits te hebben en
+tot die bronvrijgave niet te schrijven. Vanaf vrijgave schrijft de teamleider
+de queue niet meer; ontvanger bevestigt bron/overname en onderhoudt daarna
+alleen deze queue. Geen branch- of hele-bestandsovername van verouderde main.
+Voor de oude PR-intakeoverdracht bevat het bewaarde register uitsluitend
+PR-bevoegdheid. Aanvullende read-only checkoutcontrole: geen dirtyqueue en
+laatste queuecommits zijn de gedeelde main-integraties94c8908/f52dab5/ad2b981,
+geen eigen planningscommit gevonden. Persoonlijke bevestiging is opgevraagd;
+stilte wordt niet als bewijs gebruikt en eventueel later geleverd werk blijft
+behouden. Er is geen uitgevoerde exclusieve overdracht gevonden die eerst
+moet worden teruggenomen.
+
+**Continuïteit:** onderstaande bestaande taken en fileclaims blijven geldig
+bij stilte, timeout of onbereikbaarheid. Binnen de vastgelegde opdracht mag
+de eigenaar zelfstandig implementeren, testen en opleveren, zonder nieuw
+manager-ACK. Nieuwe gewone verzoeken gaan naar de assistent. Een timeout
+bewijst geen stop en maakt geen schrijfgebied vrij; overdracht vereist
+expliciete vrijgave/ontvangst en behoud van onafgemaakt werk.
+Nieuw bevoegdheids-/ABI-/trustbeleid eerst met betrokken eigenaars en
+technisch teamleider oplossen; alleen de hierboven genoemde uitzonderingen
+gaan naar de directeur. Simon is geen routinefallback.
+
+**Technische prioriteit:** gewone interactieve DEV1 voor Windows/QEMU,
+exact brongebonden bediening/opslag/herstel en eerlijke beperkingen;
+parallel onafhankelijke ontwikkeling binnen bestaande claims.
+Daarna concrete native blockers (TCP-CR3, issuer/provider/object-onlyREAD,
+launch, NAS-lifecycle/persistentie) oplossen, geen tweede verifier/catalog/
+crypto of fixture als productieprovider. Volledige roadmap/release blijft
+bindend, niet vervangen door alleen de DEV-bundel.
+
+Operationele integratie, basissein,
+conflictopname en merges zijn **uitsluitend bij e8e** gedelegeerd. Release
+beoordeelt de gecombineerde kandidaat en behoudt reeds toegewezen runtime-/ABI-
+werk tot expliciete overdracht. Geen algemene domein- of kernelovername.
+Een verdere centrale overdracht vereist opnieuw een expliciete exclusieve afspraak.
+
+### Rollen en precies één primaire taak
+
+**Nummering:** 1 teamleider, 2 beveiliging, 3 intake, 4 release, 5 AI/quantum,
+6 netwerk, 7 review, 8 integratie, 9 hardware, 10 NAS, 11 apps/SDK,
+12 build/test, 13 native UI, 14 native kern/opslag. De acht onderstaande
+specialisten zijn door Simon geopende, via echte berichten geïdentificeerde
+sessies; er is geen dubbele sessie gestart. Gebruik de app-routerings-ID's
+in de tabel, niet een tweede interne project-/context-ID als extra agent.
+Met de bevestigde directeur en assistent zijn er24 geregistreerde rollen;
+dit is **geen** verklaring dat24 agents gelijktijdig uitvoeren.
+
+| Rol / sessie | Primaire taak en actuele stand |
+|---|---|
+| Teamleider / `89f84098-bd8c-4bc8-aeb2-0695517db26f` | TASK-TL-HANDOFF: donorcheckpoint/technische samenhang en centraal scorebeheer; queue na bronvrijgave uitsluitend bij assistent, geen parallelle mergequeue |
+| Assistent / `5d5f8513-2d31-41af-96ce-81c5ef56ef80` | TASK-ASSISTANT-QUEUE: brongebonden queueovername, planning/vrije gebieden en verzoeken zelfstandig afhandelen; geen score-/statuswrites. Startschoneca45/geenwrites door ontvanger bevestigd, wacht donorcommit/vrijgave |
+| Directeur / `ef7a7596-8c3d-4705-ab69-36f8a2a1a1b6` | TASK-DIR-ROADMAP-QUALITY: richting/kwaliteit, alleen noodzakelijke beslisescalaties; rol bevestigd, geen extra bouwer/integrator of routinegoedkeuring |
+| PR-intake / `f2afe26e-5d6f-4948-89b8-0e2aeeb96225` | TASK-PR-INTAKE: uitsluitend read-only dossiers per open PR en één primaire routering. #76 `8a14770d6a719c3a122c54cb774db58ce9b1a728` is overgedragen/frozen; geen producer-, rebase-, merge- of sluitingsclaim |
+| Integratie / `e8e471ce-0601-417b-b4fa-a04fd9c7b954` | TASK-INTEGRATE-74: enige integrator. d7b7 had13groen/0threads; ready_for_review startte nieuwe verplichte CI, guarded squash correct geweigerd. Main blijftca45; alleen nieuwste check per context telt, geen oude allgreen overnemen |
+| Release / `2ab17599-85c8-4409-ba06-a93c27485328` | TASK-REL-CANDIDATE: GEWONE INTERACTIEVE DEV1 gekozen op door8vrijgegevenca45, geenrootseambuildernu. Eigen offlinebuild/same-sourcepixelreferentie, daarna12ACK voor2seriële bestaande gates (referentie+7procespreview, max240s/elk), noggeenVM. Freeze bron/tool/imagehashes+NLbediening/stop/limits voor20/21. NAS#83/032 blijft apart bewijs; object-onlyREAD/provider/launch en CAPBENCHguard blijven rootdependencies |
+| Reparatie/review / `7f895683-fc79-48d0-a98a-aa0a6ccfe8b9` | TASK-PR-REVIEW: R73-v2, R78 en R80 read-only afgerond zonder concrete mergeblokker; R68-v2 vindt twee rendererregressies, primaire reparateur UI. Wacht op diens fixfreeze voor begrensde herreview; geen eigen tests/native/audit/writes |
+| Build/test / `b72f2536-b494-4a6b-a608-b6fd785e18ef` | TASK-RUNNER-POOL-HANDOFF: NAS1219-herreview af, Windowsroute formeel overgedragen aan21. Toolenv geleverd aan13/19/20/22; enige korte slot van4 aan19, daarna13 met headroom/4ACK. R77 FROZEN bffe11, geen coldtool-/packagewriter |
+| Beveiliging / `081d6f31-7de1-4713-b466-d15adf51b2ef` | SEC72 af/frozen7f67471, df1-testhelper zonder proddelta,36host/releasewipe/12native/20locks groen gemeld. TASK-SEC-CRYPTO-AUTHORITY eindfreeze `c5fbb21a0e46e010d5e9b4748ae9b9307a67cef4`, één bestand; NET/NAS/REL-alignment af, geen runtimeprovider. B05menselijk intakepakket voorbereid, geen audit |
+| Netwerk / `039dbef8-bc79-4480-b003-55b8eccba736` | TLS4a0ce99f/#81 frozen; TASK-N04-NET-BROKER geleverd `1a14890506ad62a71853119a8504b0a184df8a9b`,28unit+4negatievecompiletests/Stack15/lint/fmt/none groen gemeld, intake volgt. Issuer/startbinding/devicelease ontbreken; native TCP na CR3 nog fout, geen NET-kernelwriter of herstelbewijs |
+| NAS / `d7636e9c-fe84-4e63-8f37-4d08a5f50d0d` | TASK-NAS-RESUME-1 freeze `87a04d48b6443a33fa62fb20dfcda1679f29b1a8`, code733da709,16clienttests/4crates/33commando's groen gemeld, intakef2; noggeenPR/CIclaim. Typedcheckpoint geen duurzame queue. Voorstel exacte boot1-tokenhandoff nog NIET toegewezen, geenrootclaim; TLS/authority/lineage/persistentie open |
+| Apps/SDK / `9db24a72-2ae7-4807-8e68-2fc88cb235d3` | Catalogusbc27/#80 en protocol `734c8fc587edffba746ef470212bb751e6537b29`/#84 af/frozen; #80 dedicatedquality werkelijk SUCCESS, overige gates apart. #84 op #80base na expliciete8-ghopdracht;11 blijft contract-/reviewafnemer viewer22, geen viewer-/SDK-/rootwriter |
+| AI/quantum / `381d080e-be3d-4c78-ac72-b99b1de2b4e5` | TASK-L01-ROOT-ADAPTER af/frozen b51a8093, concept#82 op #78;4unit+13contract/lint/fmt/default+scalar-none en PR-CI groen door eigenaar gemeld. Geen provider/catalogus/nativeinference; ook #83 mist rootcontract/provider, dus geen integratieclaim. qsim-WIP behouden |
+| Materiaal/toegankelijkheid / `764bc9fb-2036-4b13-bbff-368037f9b2d7` | TASK-UI-IMAGE-0818: eigenaar meldt precies1build/1VM op0818f5ec/v326b41e55,132.461s/raw33/runner0, zes800×600-QMPframes+diskorakel14B/rev1/generation1; slot vrij. Offlinearchief/handoff15/16/20 volgt, geen ordinaryDEV/assets/U-aftekening. SDK-wrapper-WIP op89e geparkeerd |
+| Native kern/opslag / `fbf60554-e98e-40bd-bd48-ee87a6498abe` | TL-VERIFY-SOURCE-RUNTIME eerst expliciet overdragen; laatst trace `79b956e`, nieuw uitvoeringsresultaat niet ontvangen. Concrete volgende K/S-opdracht TASK-KS-CR3-DIAG read-only verstuurd; S09-vervolg vanaf #76 daarna, nog geen producerfiles vrijgegeven |
+| Hardware / `f5b20312-b6c5-46b0-bbf6-76970d3470a2` | H05/#79 en soundcodec#85/72f frozen, host-only. TASK-H03-TRANSPORT-CONTRACT-1 vrijgegeven: uitsluitend nieuw drivers/virtio-snd/TRANSPORT.md, afstemming14/2/4; PCI/queueownership/DMA/reset/epoch/devicelease/fence/negatieven, geen runtimeimplementatie |
+| 15 Productvormgeving/UX / `6117dd21-50d2-4418-b3b6-17048afd1180` | TASK-UX-SAVE-RECOVERY af/gepusht `d6b4e68380e910b0c9b560ffceb1470eb574d81e` na63af, twee spec/designbestanden,12UX-statechecks/bekeken hostrender en uitvoerbaar menselijk taakprotocol. Ontwerpaanspreekpunt15, wacht0818-runtimebeelden; geen native/humanresultaat |
+| 16 Iconen/assets / `1bf8f308-d645-4632-b210-2258428f86b2` | TASK-ASSET-MATERIAL-FLOW af/frozen `d3547639be733aefcc1228edad37114980e5073c`; vier SVG-symbolen, XML/allowlist/hostrender24/48px licht/donker groen,15/13 dezelfde bron/controlebeeld beoordeeld. Geen native assetconsumptie |
+| 17 OS-onderzoek/R&D / `ac0a0e5e-505e-4b77-b933-bcec2c636696` | TASK-RD-TLS-TIME af/frozen `4ffdde9f2762ff39de64eeca9940e8b3548d79e0`; één beslisnotitie/vijf primaire bronnen binnen90min, huidige fail-closed behouden. Aanspreekpunt17 voor18/19, geen zelf vastgestelde tijdbootstrap |
+| 18 Invarianten/formele modellen / `018d2f82-0c7f-4f13-874e-5651c374ad50` | TASK-V18-TLS-TIME-FAILCLOSED af/frozen `60bab47377b45c478d59c47a57b313c12e25ce2a`;4tests,2380histories/6942calls en RTC-promotiemutant tegenvoorbeeld gemeld. Model-only, geen Rust-refinement/handshake/native bewijs; cap-model NIET actief |
+| 19 Prestaties/betrouwbaarheid / `a398bc66-58a8-4ebe-9aa4-ed8ee2134fdb` | TASK-CAP-DIGEST-TCG-2 evidence `b715e362b04fcd65de79c8bf85bfa439add037eb`: preflight/build/18host groen, enige VMca45 raw35/runner1 CAPBENCHmanifestfail vóór meetcalls. Geen timings; slot vrij naar13. StaleB02-countguard hypothese, owner4/kernel; geen herhaling zonder nieuwebron/slot |
+| 20 Onafhankelijke native QEMU-producttest / `1963283b-73f4-4520-83f3-e9cfb93b3693` | TASK-QEMU-PRODUCT-DEV1: vijf-casesprotocol gepusht `a49774beface0f332e9c7afc3931174eca64d2a5`, geen artifact/VM. Verwachte0818-v3/14ASCII-QMP-input onbevestigd tot run; stopcontroller apart. Vaste beperkte DEV mag vóór hele62FR; Full/Unknownfixtures ontbreken |
+| 21 Windows/QEMU-aflevering / `d7cd7dda-ca14-4f03-8adb-275b5884acfb` | TASK-WINDOWS-DELIVERY-TAKEOVER: donor12 en21 wederzijds ACK, vijf bestaande routefiles exclusief overgedragen. Bewijs `0915828fcd40492f873dc9098ee445306f1f0638`:10host+5echteWindows-synthetische tests; nog geen nieuwe OS-kandidaat/ZIP/VM |
+| 22 Extra native-appbouwer / `29d8407c-b3c5-4c7c-ba6b-c37ca39da332` | R22-IMAGE-VIEWER-LEAF-1 freeze concept#86 `f2c875a711f9e2d3d045de160163634bcbc8d80e`,code6b3fbf,15host/lint/fmt/scalar-none groen gemeld. Fit-fixregressie+afzonderlijkeAIherreview af, geen humaanaudit.11handoff gequeueëd na2timeouts; native objectREAD/launch/focus externblocked, geen volgend pakket |
+
+### Afdelingen, aanspreekpunten en samenwerking
+
+| Afdeling | Rollen | Aanspreekpunt en escalatie |
+|---|---|---|
+| Kern/hardware/netwerk | 14,9,6 | 14 (`fbf60554...`); zelf K/S-werk, geen algemene domeinovername |
+| Beveiliging/NAS | 2,10 | 2 (`081d6f31...`); gedeelde crypto/identiteit/foutgrenzen, geen stille nieuwe autoriteit |
+| Productontwerp/native UI | 15,16,13 | Ontwerp15 (`6117dd21...`);13 blijft code-/runtime-eigenaar,16 uitsluitend afgesproken assets |
+| Apps/SDK/lokale intelligentie | 11,5,22 | 11 (`9db24a72...`); extra appbouwers alleen bij zelfstandige pakketten en passende review/integratiecapaciteit |
+| Onderzoek/verificatie | 17,18,19 | 17 (`ac0a0e5e...`); concrete vraag/ronde/resultaat, geen routinebesluiten als centrale R&D-poort |
+| Kwaliteit/aflevering | 4,12,20,21 | 4 (`2ab17599...`);12 plant zware runs,20 onafhankelijk gedrag,21 één Windowsroute |
+| PR/integratie | 3,7,8 | 8 (`e8e471ce...`), uitsluitend operationeel integrator;3intake/7review read-only |
+
+Aanspreekpunten blijven zelf ontwerpen/onderzoeken/bouwen/verifiëren.
+Lees bij het eerstvolgende checkpoint deze samenwerking en de actuele
+fileclaims; deel alleen nieuwe resultaten/bron/PR/bewijs, concrete blocker
+met eigenaar en volgende uitvoerbare stap per afdeling. Details blijven
+bij taak/PR. Nieuwe gewone taken/vrije gebieden gaan naar de assistent; technische
+afhankelijkheidsconflicten naar manager1, alleen onoplosbare/gebiedsoverstijgende
+of richtingwijzigende beslispunten naar de directeur.
+Geen normale voortgangsberichten naar iedere rol tegelijk.
+
+Werkstroom: ontwerp → implementeerbare specificatie/assets → native
+implementatie → gerichte validatie/review → integratie op vaste kandidaat →
+onafhankelijke productcontrole → aflevering met expliciete DEV-/acceptatiestatus.
+Ontwikkelbranches mogen onafhankelijk doorgaan terwijl een vaste kandidaat
+wordt beoordeeld. Eén passende geldige run mag verschillende beoordelaars
+van bewijs voorzien; onafhankelijke herhaling blijft verplicht waar de
+acceptatie die voorschrijft. Een testcontroller is geen gebruikersinvoer.
+
+**Werkelijke middelen:** hostmomentopname32logischeCPU/30,8GiBRAM/
+23,5GiBavailable/8GiBongebruikteswap/925GiBvrij, cgroupcpu/memory/pids
+`max`; gedeelde omgeving, dus geen exclusieve resource- of platformgarantie.
+12 heeft read-only toolenv/versies/firmwarehashes aan13/19/20/22 geleverd.
+Het ene korte slot19 is daadwerkelijk één keer gebruikt en vrijgegeven;
+4ACK voor opvolger13 gemeld,12 blijft headroom/registratie bewaken.
+13 meldt één geslaagde probe en vrijgave;20 wacht definitief gedeeld artifact,
+geen tweedeVM. Eigen targets/builds/disks/vars/swtpm-state.
+Geen extra8GiBVMs of dubbele suites op basis van alleen dit getal.
+
+**Aflevergrens:** volledige VM-FR/62FR/100cold/24uur/fysiek/menselijk blijven
+open. Een bruikbare, expliciet beperkte Windows-DEV-build is wél een geldig
+tussenresultaat, mits4/8 exacte bron/v3/image/kernel/loader/firmware/QEMU/
+profiel/start-stop/limitations vrijgeven.13's0818-probe is alleen een
+renderfixture en vervangt die gewone interactieve DEV-kandidaat niet.
+Geen tweede launcher/packager en geen oude eabc-bundel herlabelen.
+Windows11.1hostbewijs en Linux10.2.1bewijs apart houden.
+
+Bereikbaarheid: directe prioriteitsbezorging aan8 faalde expliciet met
+remote admission timeout; de inhoud is daarna bewust gequeueëd, geen
+verwerking geclaimd.8 heeft inmiddels zijn exclusieve rol en hervatte
+#74-verificatie terugbevestigd.13historische SUCCESS zijn ingehaald door
+nieuwe ready_for_review-CI op dezelfde d7-head; guarded squash faalde correct
+op strict host-quality/qemu-smoke. Definitieve main-/DEV-basis nog niet ontvangen.
+14 is gericht benaderd, maar diens verifieroverdracht/CORE-ack blijft ontbreken;
+dat wordt geen fictieve actieve build of onbeperkte writerclaim.
+
+Iedere normale oplevering gaat compact via intake → integrator/release:
+**taak, resultaatcommit/PR, werkelijk gedrag, bewijslink, blokkade, volgende stap.**
+Intake levert het compacte PR-/blokkadeoverzicht aan de manager, zonder een
+tweede centrale queue te schrijven. Domeinbesluiten en problemen die meerdere
+verticale taken blokkeren komen rechtstreeks bij de teamleider.
+Een sessie-ID, `is_running`, geaccepteerd bericht of `unknown`-activiteit bewijst
+geen draaiende uitvoering. De laatste live snapshot had geen input-/planblokkade;
+native/hardware/intake/reviewer waren toen niet-running. Hardware heeft
+inmiddels de actuele bron en eigen probe teruggeleverd; native nog niet.
+Nieuwe berichten zijn geaccepteerd, geen permanente bewaking of achtergrondwerk
+beloofd. Intake heeft een volledig gepagineerd dossier van de toen tien open
+PRs geleverd (`files/triage-current/dossiers.md` in zijn sessieartifacts);
+#79/#80 zijn latere intakes, geen onderdeel van die oudere tien-PR-snapshot.
+
+### Begrensde implementatiecontracten
+
+**Open planning bij overdracht (geen nieuwe toestemmingseis voor bestaand werk):**
+NET vraagt TASK-N01-NATIVE-CONFIG in `services/net-stack/**` en eventueel
+nieuw `services/net-config/**`; assistent heeft concrete overlap bij REL
+opgevraagd, nog geen nieuwe writes vrijgegeven. Bestaande Stack/DHCP hergebruiken,
+geen root/SDK/HW/issuer/TLS-bypass of tweede stack. De assistent beslist en
+registreert na de bronoverdracht zelfstandig binnen dit mandaat.
+Daarnaast wachten SEC-publisher/sourcepersistentie (geen tweede verifier),
+NAS-exacte boot1-tokenhandoff (REL bezit bootstrap/runner,80B alleen privé
+testartifact), UI-heractivering wrapper versus uitsluitend primairehoverfix,
+en HW-vervolg na transportcontract op één concrete routineallocatie.
+Deze verzoeken gaan niet opnieuw via Simon wegens manageronbereikbaarheid.
+
+Elke rij is één primaire implementatie of expliciet geparkeerde reservering.
+Afgeronde/frozen bron kan worden gelezen/geïntegreerd, niet stil hervat.
+Afzonderlijke worktrees, Cargo-targets, QEMU-images/OVMF/swtpm-state en buildroots
+per uitvoerder; geen gelijktijdige writers van dezelfde testmiddelen.
+
+Voor de coördinerende/read-only rollen gelden aanvullend:
+
+| Eigenaar / opdracht | Schrijfgebied | Afhankelijkheid en acceptatie |
+|---|---|---|
+| Assistent5d5 / TASK-ASSISTANT-QUEUE | Alleen `docs/WORK-QUEUE.md`; eigen sessieartifacts | Exacte gepushte donorbron/vrijgave ontvangen en ACK; vorige schrijver stopt. Voor elke nieuwe uitvoerder vóór implementatie taak/eigenaar/files/dependencies/acceptatie registreren, conflicten/claims controleren. Routinekeuzes zelfstandig, geen score-/status-/ABI-/trustbeleidwrites |
+| Teamleider89f / TASK-TL-HANDOFF | `docs/PROJECT-STATE.md`, `docs/progress.json`, `README.md`, `docs/PROGRESS.md`, `docs/assets/progress.svg`, eigen `docs/verification/teamleader-*`; queue alleen deze laatste donorwijziging | Gepushte bron/remote-SHA/ontvangst vastleggen, technisch geïntegreerde kwaliteit/afhankelijkheden bewaken; progress write/check en onveranderde criteria. Na vrijgave geen queuewrites |
+| Directeuref7 / TASK-DIR-ROADMAP-QUALITY | Repository read-only, eigen sessieartifacts | Onderbouwde uitzonderingsbesluiten, geen routinegoedkeuring of extra bouwer; ontbrekende menselijke B05-reviewer/voorwaarden expliciet open houden, geen betaalde engagement zonder toestemming |
+| Intakef2 / TASK-PR-INTAKE | Eigen sessiedossiers/PRmetadata binnen oorspronkelijke mandaat, geen centrale repositoryfiles | Bestaande taak/werk behouden; één primaire route, exacte head/base/stack/review/gates doorgeven aan8. Geen algemene werkverdeling/mergebevoegdheid |
+| Reviewer7f / TASK-PR-REVIEW | Read-only bron/diff en eigen reviewartifacts | Eén begrensde review op vastgelegde bron, concrete bevindingen naar eigenaar/intake, geen parallelle reparateur of menselijke auditclaim |
+| Integratore8 / TASK-INTEGRATE-74 | Alleen afgestemde integratiebranches/PRmetadata/conflictopname binnen eigenaarsmandaten | Actuele head/base/latest-per-contextgates/review en inhoudsbehoud; geen regels omzeilen. Centrale queue uitsluitend via assistent, score/status via teamleider |
+| Build12 / TASK-RUNNER-POOL-HANDOFF | Eigen sessieartifacts, goedgekeurde lokale toolcache en eigen tijdelijke teststate; geen nieuwe tracked bronclaim | Tool-/firmware-identiteit, verse headroom, exclusief slot en vrijgave; Windowsroute bij21, geen dubbele suite/VM of overname door timeout. Nieuwe codeclaim eerst via assistent |
+
+**Aanvullende vrijgaven en overdrachten (leidend boven afgeronde rijen
+hieronder):**
+
+| Taak / rubric / release / basis / afnemer | Exclusieve bestanden | Contract en observeerbare acceptatie |
+|---|---|---|
+| TASK-H03-TRANSPORT-CONTRACT-1 / H03,A04 / FR-H02,A06,A07 /72f /14,2,4 | Alleen nieuw `drivers/virtio-snd/TRANSPORT.md` | Eén brongebonden state-/failuretabel voor PCI/queue/buffer/DMA/lease/revoke/reset/quiescence/stalecompletion. Eén read-only afstemming14/2/4; bronpins/links/diffcheck en minimale runtime-experimentgate. Geen code/IRQ/MMIO/mic/crypto/ABI; epoch alleen bewijst geen devicefence/DMA-isolatie |
+| TASK-REL-CANDIDATE-DEV1 / R01,R03 / FR-U03,O01,R01,R04(bijdrage) /ca45 /20,21,Simon | Bestaande gewone Materiaalbuild/previewgate alleen uitvoeren, eigen geïsoleerde build/source/target/VMstate en eigen releasebewijs; geen nieuwe rootbronclaim | Eerst offlinebuild/pixelreferentie,12headroom/ACK, maximaal2seriële bestaande gates/referentie en gewone7procespreview met echteQMPinput+diskorakel. Bron/v3/kernel/loader/image/tool/firmware/profiel/start-stop/limits vastzetten; geen13fixture als gewone build, geen volledige FR/Windowsclaim vóór echte uitvoering |
+| TASK-UX-SAVE-RECOVERY / U03,U04,U06,R01 / FR-U03,U05,S04,O01,O04 / ca45 /13,20,21 | `docs/implementation/UX-MATERIAAL-SAVE-RECOVERY.md`, `ui/design/save-recovery.svg` | Maak/bewerk→Save→lijst→zelfdeobject koud/reopen, dirty/saving/confirmed/Unknown/fout/vol/deny/stale/cancel, keyboard/focus en800/1280/1920op100/200%. Geen saved zonder ACK, geen replay bijUnknown, Unchanged geen nieuwe commitclaim.12statechecks en hostrender;63afgeleverd, geen native/human gate |
+| TASK-ASSET-MATERIAL-FLOW / U01,U04,U06 / FR-U01,U05,U06 / ca45 /15,13 | Alleen `ui/assets/material-flow-icons.svg` | Vier document/history/saved/retry-symbolen24×24,currentColor/1.75ronde stroke, metadata als compact manifest/herkomst/licentiegrens. XML/gesloten allowlist/geen externe refs/scripts en bekeken24/48px licht/donker;d354geleverd. Native vector/rasterinput ontbreekt, geen rendererwijziging |
+| TASK-RD-TLS-TIME / N03,B04 / FR-N03 / ca45+CORE9af/NET4a /2,6,4 | Alleen `docs/research/TLS-CERTIFICATE-TIME-BOUNDARY.md` | Max90min/5primairebronnen+gerichte inspectie; uitvoerbare tijdbootstrap/tegenvoorbeeld zonder RTC-upgrade of stille fallback.4ffgeleverd: PKIXtijd, NTSbootstrapcirkel/delay, rawkey-enrollmentgrens, dezelfde keten moet toekomstig interval dekken. Advies is geen aangenomen ADR/productieprovider; vervolgvoorstel eerst besluit |
+| TASK-V18-TLS-TIME-FAILCLOSED / B05,N03 / FR-N03,B05(bijdrage) / eigen ca45, CORE`9afabbd8266cd1230b7b89b6c70a56caa22f88ce`+NET`4a0ce99ff6b88adcd0e2c6be0571b30390d8d1c8` /17,2,6 | Nieuw `experiments/verification/tls-time-gate/{model.py,test_model.py,README.md}` | Alleen MissingSource/UnauthenticatedRtc→geen CertificateTime; bronregels/hashes/modelcorrespondentie, eindige histories en echte negatieve RTC-promotiemutant.60babgeleverd4tests/2380histories/6942calls; geen handshake-entrypoint dus geen authenticated-success/Rust-refinement/nativebewijs. Geen toekomstige trust/freshness/rollbacksemantiek; CORE-ack ontbreekt als gelabelde beperking |
+| TASK-CAP-DIGEST-TCG-2 / K07,R02 / FR-K02,R02(bijdrage) / ca45 /17,12,4 | Alleen `docs/verification/performance-19/**`; bestaande diagnostiek gebruiken, geen sourceoptimalisatie | Bestaand CAP-DIAGNOSTIC-DIGEST REF/DIRECT/ZERO-protocol; één kort4slot door12 geregistreerd. Eerst goedgekeurde env/branchpreflight/eigen target, dan brongebonden begrensde run; TCG-RDTSC geen fysiekeCPU/GUI-/VM-FR-meting. Geen installatie/extraVM/herhalingsbatch of optimalisatie zonder baseline |
+| TASK-QEMU-PRODUCT-DEV1 / U03,U04,R01,R03 / FR-U03,U05,O01,R04 / eigen ca45, kandidaat nog niet vrij /4,Simon | Alleen `docs/verification/product-test-20/**` | Vijf observeerbare cases create/edit/Save/reopen,cold,deny/revoke,Full,Unknown met inputherkomst/provenance/start-stop. EchteUI/QMP-input onderscheiden van testcontroller; faultfixtures vooraf goedkeuren. Protocol voorbereid, uitvoering NOT RUN/BLOCKED tot vaste DEVartifact+12slot/toolroute; geen ongetest gedrag als FAIL/PASS |
+| TASK-WINDOWS-DELIVERY-TAKEOVER / R01,R03 / FR-R01,R04 / ca45, donor bffe11 /4,20,Simon | `tools/package_windows_qemu.py`, `tools/windows-qemu/{Start-NieuwOS.ps1,Test-Launcher.ps1,README.md}`, `tools/tests/test_package_windows_qemu.py`, `docs/verification/windows-delivery-21/**` |12→21formele wederzijdseACK, vijf routeblobs donor/ca45 gelijk. Bestaande route behouden,10host+5echteWindows-synthetische tests op0915828f, geen nieuwe OS-ZIP/VM. Na4/8DEVvrijgave packagen/hashcheck/Windowsstart-bediening/herstel en eerlijke limitations; Linux/Windowsbewijs apart, geen policyverruiming/persoonlijke disks |
+| R22-IMAGE-VIEWER-LEAF-1 / A04,U03 / FR-A03 / ca45 /11 | Alleen nieuw `sdk/examples/image-viewer/**` incl eigen manifest/lock/src/tests/README/verification | Hergebruik image-codec en bestaande input/surfacetypes; decodedImage→checkedviewport/zoom/pan en load/stale/deny/corrupt/cancel/OOM/cleanup. Geen nativeentry/wire/bootstrap/sharedSDK/renderer/rootwrites. ReadOnlywoord112/domain0SEND geen afgedwongen object-onlyREAD; provider moet object/revision/READ+maliciousIPC/LIST/mutatieweigering afdwingen, launch/focus door4/13. Codec19host+nonebaseline is geen viewerresultaat; onafhankelijke leaf mag nu bouwen |
+| TASK-SEC-CRYPTO-AUTHORITY / B01–B06 / FR-B01,B02,B04,N03,P01–P06(afhankelijkheden) / ca45+SEC7f/CORE9af/NET4a /6,10,4,17,18 | Alleen nieuw `docs/contracts/NATIVE-CRYPTO-AUTHORITY.md` | Bestaande crypto/identiteit/tijd/entropy/fout/recoverycontracten en ontbrekende providers/grants brongebonden; geen eigen KDF/signer/tijdbron/policy/ADR/SDK/rootwrites. Eén gerichte read-only afstemming metNET/NAS/release; SEC72 afgerond, geen tweede producer |
+| TASK-H03-VIRTIO-SND-CODEC / H03,A04 / FR-H02,A06,A07 / ca45 /14,4,2,11 | Alleen nieuw `drivers/virtio-snd/**` incl eigen manifest/lock/tests/contract/verification | OASISvirtio1.3§5.14 boundedconfig/PCM_INFO/status, output-onlyS16/48k/stereo; exacte lengte/count/status/features/direction/range/padding/overflow-negatieven. Bestaand6testprototype als gerichte crate-tests, Clippy/fmt/none. DeviceIDdetectie geen audio; geen mic/transportqueues/DMA/MMIO/broker/kernel/root/runners |
+| TASK-UI-IMAGE-0818 / U01,U04,U06 / FR-U01,U05,U06(bijdrage) /0818f5ec /15,16,20,4 | Bestaande probe/runner uitsluitend uitvoeren, eigen build/target/VMstate/eigen bewijs; geen runnerbronwrites | Na12/4slot native-system-materiaal-probe + run_materiaal_probe.py op exact0818; één immutable bron/v3/ELF/ESP/firmware/QEMU/profiel/start-stop/frames voor alle beoordelaars. Alleen echte ondersteunde inputstappen als bediening, testcontroller apart. Geen gewone interactieve/fullVM-FR-/assetconsumptieclaim; geparkeerde AppWIP niet aanraken |
+
+De onderstaande eerdere taakcontracten bewaren hun interfaces/bewijs, maar
+hun **afgeronde** writerstatus wordt uitsluitend door de actuele rolrijen en
+bovenstaande overdrachten bepaald. Geen afgeronde SDK-/lock-/runnerclaim
+blijft stil voor nieuwe taken gereserveerd.
+
+| Taak; rubric; release-ID's | Exacte schrijfgebieden | Afhankelijkheid, interfacecontract en observeerbare acceptatie |
+|---|---|---|
+| TASK-NAS-NATIVE; P01–P04/B01/S08; FR-P01–P06/K03/O01/O04/B01 | `kernel/Cargo.toml`, `kernel/src/m2/m3.rs`, nieuwe `kernel/src/m2/m3/nas.rs`, `tools/build.py`, `tools/build_nas.py`, `tools/test_nas.py`, `tests/test_nas_build.py`, `tests/test_nas_runner.py`, `docs/verification/nas-release-intake/**` | Basis37b09c75, freeze808f5391 op ca45+NASce52+oracle7890ea8. Twee opt-in normal/cold-profielen, bestaande ELF-envs/launch/IPC/block/RNGgrants. Bestaande `system.rs`, `kernel/build.rs`, loader/SDK/keyring/volume bytegelijk. Normaal/koud caller-, deny/stale/exit/poll- en onafhankelijk diskbewijs; root hosttests en relevante native regressies. Geen TLS/E2EE- of volledige P-acceptatie |
+| TASK-SEC72-DROP; B01/B06/A03; FR-B01/B04/K03 | `sdk/runtime/{Cargo.toml,README.md,src/message.rs,src/native.rs}`, `sdk/examples/keyring/src/service.rs`, `sdk/keyring-random-client/src/lib.rs`, `sdk/examples/random-probe/src/main.rs`; precies de onderstaande twintig consumerlocks; eigen IPC-dropbewijs | Geteste coded4677211, bewijs9e7b1b92. RAII-Drop na capabilitycleanup, geen Unknown/no-retry/lease/callerdelta. Eigenaar meldt36host/Clippy/fmt, echte geoptimaliseerde320bytewipe en12native(system2/B015/WAIT1/RANDOM4),66Gitblobhashes. Review/handoff via intake, oud82b-bewijs blijft eigen bron; geen tweede crypto/identiteit/tijdcontract vóór afsluiting en nieuwe fileclaim |
+| TASK-N04-NET-BROKER; N04/A03/B06; FR-N01/N04/K03 | Nieuw `services/net-broker/{Cargo.toml,Cargo.lock,README.md,src/lib.rs,tests/rights.rs,verification/**}` en nieuwe `.github/workflows/net-broker-quality.yml` | Basis4a0ce99f na TLS-handoff. Bestaande Stack hergebruiken; contract in eigen README vóór interfacevastlegging read-only met SEC afstemmen. Authentieke kernel/capabilitymetadata, nooit aanvraag-PID/route/boolean als identiteit; begrensde sockets/bestemmingen/grants, generaties, revoke op bestaande/nieuwe sockets, cleanup/Unknown zonder ACK/replay. Normaal/deny/crosscaller/stale/revoke/helperroute/resource/timeout-tests, locked host/Clippy/fmt/none/echte CI. Ontbrekende issuer/SDK-seam expliciet open; geen tweede wire-ABI of native afdwingingsclaim |
+| TASK-NAS-RESUME-1; P02/P03/S09; FR-P03/P04/P05 | Nieuw `services/nas/native-client/{Cargo.toml,Cargo.lock,README.md,src/lib.rs,tests/resume.rs,verification/**}`; uitsluitend `.github/workflows/nas-core.yml` voor vierde echte crate | Basis86a9600e/ce52. Bestaande opaque authority/ticket/revisie/generatie hergebruiken, geen tweede wire-/crypto-/identiteitscontract of PID/route/boolean als autoriteit. Begrensde offlinequeue; conflict bewaart beide zijden; revoke/stale/Unknown geeft geen ACK/replay zonder expliciete reconcile. Normaal/outage/conflict/revoke/Unknown/crashstate/quota/overflow hostnegatieven, Clippy/fmt/none en echte vierde CI-crate zonder skip. Ontbrekende shared seam eerst melden; hoststate geen duurzame sync/E2EE/native claim |
+| TASK-R73-PROTOCOL-CONSISTENCY; A02/A03; FR-A11/A12/A13 | `sdk/app-management/src/protocol.rs` met inline tests en eigen provenancezin in `docs/implementation/APP-PACKAGES.md`; nieuw extern testpad eerst melden | Aparte leaf/worktree vanaf bc27ed0f, frozen #73/#80-head niet wijzigen. Encoder weigert OKCommit/None/catalogrev0 conform eigen decoder; alle geldige replyvarianten roundtrip en malformednegatieven. Descriptortekst storeRef/len/digest onderscheiden van publisher/source/versiontrust. Eerst rode gevallen, minimale validatorfix, bestaande18+8tests/Clippy/fmt/none. Geen manifests/locks/root/ABI; één definitieve basis-/conflictopname door e8 |
+| TASK-L01-ROOT-ADAPTER; L01; FR-L01/L02/L03 | Uitsluitend `experiments/ai/model-store-contract/**`, incl. eigen manifest/lock voor relatieve root-pathdependency | Basise57e7d70+behouden test/README-vervolg, eigen worktree op PR78-rootcontract7f4f7bfe. RootArtifactStore/ArtifactRef/descriptor/error direct gebruiken, geen tweede trait/ID-afleiding/provider. Bestaande3unit+13contract, rootadapter shortread/exactEOF/stale-na-verify/cleanup/digesttamper, Clippy/fmt/none. Eerdere LLVM-ICE101 bewaren; twee nieuwe default-none Cargo-exits0 melden als non-reproduction, wrapperexit1 niet als Cargo-falen. Geen inference/download/netwerkweigering |
+| TASK-R68-RENDER-FIX; U01/U04/U06; FR-U01/U05/U06 | `ui/native/src/render.rs`, nieuw `ui/native/tests/render_regressions.rs`, `docs/verification/native-semantic-consumer/R68-render-review-fixes.md` | Aparte worktree vanaf exact e382a989d4b28a45a23e31ff4edef2426e9c2616b. Eerst rood:800×720@100/8objecten semantiekbudget, fysieke rootbounds bij100/200%. Minimaal worstcasebudget/vooraf atomiccount en één schaalconversie; regressies/Clippy/fmt/none, daarna7f-herreview. Geen Cargo/locks/kernel. SDKlib+nieuw `sdk/examples/materiaal/tests/semantic_actions.rs` op89e20045 onaangeroerd/geparkeerd; geen screenreader/nativeacceptatie |
+| TASK-H05-PARSER; H05; FR-S04/S05 | `drivers/acpi-power/src/lib.rs`, `drivers/acpi-power/README.md`, `drivers/acpi-power/verification/**`; gerichte inline parsertests | Basis4af90fcd; alleen H05-commits0ce565a/ff6e4c4/50e5954/4af90fc intake, niet de hele #79 met historische USB/display/statusdiff. Bounded FADT/DSDT-S5subset: checksum/lengte/range/overflow/unsupportedAML weigeren, UEFI-pointer en legacy-scanalignment onderscheiden, geen willekeurige I/O-port/caller-powerplan. 22hosttests/Clippy/fmt/none groen gemeld, firmware-only RSDP gevonden maar nog geen volledige DSDT-parserrun. Geen eigen-OS/fysiek/poweroffbewijs. Release behoudt snapshot-ABI; virtio-snd pas na deze overdracht een aparte taak |
+| TL-VERIFY-SOURCE-RUNTIME → TASK-KS-CR3-DIAG; K02/K05/S08; FR-K02/O04/I01 | Alleen lezen in kernel/loader/ABI; eigen bestaande verifierevidence/artifacts, geen runtimewrites | Eerst lopende bron-/hashgebonden verifier expliciet overdragen. Dan NET4a+CORE94-trace en eigen fresh artifacts vergelijken: niet-present instructionfetch0x200130c direct naCR3=1000 → DF/triplefault. Eén concrete oorzaak/repro of ontbrekende voorwaarde+commando, geen brede audit. Exacte minimale patchclaim daarna met release/TL afstemmen, geen parallelle kernelwriter. S09-vervolg vanaf #76/S06 en K06 blijven open, geen domeinovername |
+
+### Gedeelde bestanden en afgeronde claims
+
+- Release bezit alleen bovengenoemde actieve NAS-kernelsubset/`tools/build.py`.
+  Reeds toegewezen runtime-/ABI-verantwoordelijkheid blijft behouden, maar
+  BootInfo/ACPI is nu een geparkeerde vervolgtaak, geen tweede actieve builder.
+  IPC-WAIT, TPM/NV0041 en TLS-time zijn afgeronde bronclaims, geen blokkade.
+- Root `Cargo.toml`/`Cargo.lock` en centrale docs in frozen PR73/78 worden
+  uitsluitend inhoudsbehoudend met e8 afgestemd; geen vrije producerwriter.
+  Na donorbronvrijgave bezit uitsluitend assistent5d5f8513 `docs/WORK-QUEUE.md`;
+  manager houdt `docs/PROJECT-STATE.md`, `docs/progress.json`, `README.md`,
+  `docs/PROGRESS.md`, `docs/assets/progress.svg` en eigen managerbewijs.
+  Directeur/intake/uitvoerders schrijven deze niet als routinecheckpoint.
+- SEC72 is de enige eigenaar van precies deze twintig consumerlocks:
+  `sdk/Cargo.lock`; `experiments/quantum/native/job/Cargo.lock`;
+  `sdk/{display-client,input-client,keyring-client}/Cargo.lock`;
+  `sdk/examples/{calculator,compositor,desktop-init,display-input-probe,image-probe,input-service,ipc-wait-probe,materiaal,memory,net-probe,random-probe,tcp-probe}/Cargo.lock`;
+  `services/input-core/Cargo.lock`; `ui/{native,surface-protocol}/Cargo.lock`.
+  Eigen bewijs: `docs/verification/B02-IPC-ZEROIZATION.md` en de bestaande
+  `ipc-main94-*`, `full-release-ipc-drop-system`, `ipc-drop-keyring`,
+  `ipc-drop-random`-mappen. Geen NV/TPM/kernelCargo/tpm_fixture/buildwriter.
+  NET heeft de twee random-client/probefiles expliciet voor SEC vrijgegeven.
+- R77-coldtools/tests/bewijs zijn frozen op bffe11. B72 schrijft geen
+  NAS-runner/build.py/kernel/SEC-locks; beoordeelt onafhankelijk. Bestaande
+  workflows in PR73/78 zijn frozen; NAS krijgt de genoemde vierde-
+  crate-uitbreiding, NET uitsluitend zijn nieuwe brokerworkflow. Geen generieke
+  runnerclaim. Frozen catalogus#80 geeft zijn producerclaim terug; alleen de
+  nieuwe protocolleaf bezit de eigen documentsectie. UI-App-WIP is geparkeerd,
+  niet opnieuw aan een ander toegewezen.
+
+### Eerdere claimherstelmomentopname vóór specialistentoetreding
+
+De actuele rolrijen, overdrachten en bronnen hierboven gaan voor onderstaande
+eerdere tussenstanden (bijvoorbeeld queued-CI en nog open NAS-herreview).
+
+1. **e8/#74:** d7b7fcce heeft volgens eigenaar18native+15Rust/12harnas/24preflight
+   en56hashgebonden bewijsblobs; laatste finale CI pending/onleesbaar door
+   GitHub502/504. Geen merge/bypass/ready-eventtruc/extra push of VM-herhaling
+   vanwege alleen een API-storing. De definitieve basis komt alleen van e8.
+2. **Release/NAS:** freeze808,8roothosttests/fmt/diff exit0 gemeld, kernel/
+   loaderbuilds op eerdere37b/455 exit0. Oorspronkelijke normale/koude pair
+   positief bewaard/gepusht als5a9e71e3; rapport
+   `build/nas-release-808f539/nas-system-gate.json`, log
+   `/tmp/nieuw-os-nas-808f539-native.log`. B72 vond twee MEDIUM-bindinggaten:
+   geen postexitESP/immutableCODE-herhash en onvolledige parentmachine/QEMU/
+   firmware/werkelijke-implementatiebinding. Release reproduceerde zes
+   assertionfailures exit1, log `/tmp/nieuw-os-nas-review-bindings-red-confirmed.log`;
+   minimale runnerfix, hostregressies en nieuwe echte pair met directe ELF
+   volgen. B72 wacht op fixfreeze, geen eigen VM/reproductie geclaimd.
+   Coldtoken[42;40] is synthetische fixture, geen echte boot1-tokenreplay.
+   Daarna één geïntegreerde kandidaat,
+   gewone interactieve variant en volledig R01–R03-testpakket, geen losse
+   featureimages als totaalbewijs.
+3. **R77 geleverd, geen herreviewloop:** bffe11 op code7d66/v3949ce3:
+   nieuwe echte reference133.939s/raw33, parent93.551s/raw0, cold37.543s/raw0,
+   alle build/runexit0 gemeld. Zestien artifact-/claimnegatieven, waaronder
+   vier firmwarewissels en latePANIC/FAIL met bijgewerkte serialhash;66oude
+   blobs intact. Bewijs `docs/verification/native-cold-acceptance/review-7d66/README.md`,
+   coldreport `db052373c440823fa9954298f81f076eb9a323025deddc3864e11e4e135dbb67`.
+   Beide bronbevindingen gesloten; geen main-, cleanstop-, powerloss-,
+   encryptie-, Windowscold- of volledige-FR-claim.
+4. **Reviewcapaciteit naar afronding:** intake routeerde R73-v2, R78, R68-v2
+   en R80 exclusief/sequentieel naar7f. R68 is **niet mergeklaar**:
+   HIGH-correctheidspanic door14nodes zonder paging/statusruimte
+   (800×720@100,8objecten), MEDIUM-dubbele fysieke rootschaling
+   (800×600@200→1600×1200). Alleen UI repareert, App-wrapperwerk geparkeerd;
+   geen eigen reviewerreproductie of nativefailureclaim.
+   R73 heeft twee
+   niet-blokkerende consistentiepunten (replyencoder accepteert ondecodeerbare
+   Commit/None/catalogrev0; provenance in contracttekst anders dan descriptor).
+   Geen verzonnen client-falsesuccess. Catalogus#80/bc27 heeft18+8hosttests/
+   Clippy/fmt/none exit0 gemeld, dedicatedCI queued; twee rode ABA/cleanup-
+   regressies gefixt, R80 zonder concrete blocker, geen nativeinstall.
+   Afzonderlijke protocolleaf nu vrijgegeven zonder frozenheads te muteren.
+   Na74 één conflictresolutie van de vijf
+   bekende shared paden en echte CI; bronownerapps blijft enige reparateur.
+   #78read-onlycontract zonder backend/nativecallerbinding, CI laatst queued.
+5. **SEC72/AI/UI/NAS-leaf kunnen onafhankelijk door:** concrete claims hierboven,
+   geen wachten op ongerelateerde oude rootclaims. SEC72-review/handoff sluit
+   de huidige stap vóór nieuwe centrale crypto-/identiteitscontractimplementatie.
+   Native levert ontbrekende overdracht en onderzoekt daarna de concrete
+   CR3-fout read-only; hardware heeft actuele bron/firmwareprobe geleverd,
+   geen ontbrekende algemene inventarisatie. TLS4a heeft13host/Clippy/fmt/none
+   exit0 gemeld maar TCPnormal bereikt cold niet door PF/DF; trusted calendar/
+   signer/provider/TLS-procesgrant blijven open. Niet-verifieerbare naam
+   “Copilot A” is aan geen sessie gemapt.
+
+## Historische teamleiding — oorspronkelijke bronbasis `0ade8014`, 30 oktober 2026
 
 Startbasis `0ade8014`; actuele managerintegratiebasis `94c8908` na #66.
 De hieronder genoemde oorspronkelijke branchechecks zijn momentopnamen;
@@ -332,6 +653,40 @@ NAS-probeprofielintegratie, geen backend/authority/productacceptatie.
 UI-consumer op aparte branch met exclusieve controller/interaction/directe
 docsectie, release afgestemd; generation-bound actiondispatch nog in werk.
 Bevroren #68-evidence/main94-merge is niet die nieuwe consumer.
+Artifact-store is nu conceptPR #78/head7f4f7bf, ca45; zeven hosttests/
+lint/fmt/none ook op53c herhaald, eigen en bestaande CI queued.
+
+TL-REL-NAS-PROFILE rootclaim is concreet toegekend:
+release enige schrijver tools/build.py, kernel/Cargo.toml, m3.rs en
+benodigde m3/**-profielwiring, nieuwe build_nas/test_nas/directe tests/bewijs.
+Geen boot/paging/SDK/ABI/grantverruiming; exacte subset vóór edit melden.
+SEC bevestigt geen gelijktijdige NV/kernelCargo/tpm_fixture/buildwrites;
+AI behoudt oudWIP maar geen actieve rootwriter. NAS levert bevroren ce52
+plus endpoints/grants/footprint; concrete normaal/koud guestauthority-/
+diskgate volgt, geenTLS/E2EE. Dit heft de writerblokkade op, geen runtimegate.
+Exacte subset bevestigd: Cargo opt-in normal/cold, m3 cfg-dispatch,
+nieuwe m3/nas.rs en nieuwe build/testtools; bestaande ELF-envs volstaan.
+Geen kernel/build.rs/system.rs/SDK/loaderwijziging. Intakeb6ec464/ca45+ce52
+en bestaande builder/core21/volume9/probe5/lint/fmt groen gemeld, geen guest.
+Door brede GitHub502/504 zijn finale74checks niet betrouwbaar leesbaar.
+Geen merge-/eventbypass of onnodige testrerun. Eerdere wachtgrens voor
+NAS-edits is opgeheven voor alleen deze aparte ca45-integratiebranch:
+lokale opt-inimplementatie/gates nu, één definitieve basisopname/hergates na74.
+
+Apps-catalogleaf c8c68ee apart gepusht met15hosttests/lint/fmt/none en
+drie mutanten gevangen gemeld; geen persistentie/nativeinstall/GitHubCI.
+Nieuwe code apart beoordelen, #73freeze9d8 niet door leafwerk muteren.
+UI89e200workingconsumer gepusht,21interacties/fmt/check/lint groen gemeld;
+nu alleen App-local SDK-Materiaal libwrapper+directe tests vrijgegeven.
+Geen externe broker/IPC/surfacecapability/screenreaderauthority; generatie/
+node/action/read-only hercheck, draftunsavedtotSave, release geïnformeerd.
+
+AIe57e7d70 gepusht, alleen vijf model-store-contractleafbestanden:
+store-issued ArtifactRef/generation direct,3unit+12contract/lint/fmt/scalar-
+none groen gemeld. Defaultsha2-none-build LLVM-ICE exit101 blijft expliciet,
+scalarroute niet als defaultsucces voorstellen. Geen rootprovider/catalog/
+nativeinference/netwerkweigering. Volgende leafstap stale-na-verify/cleanup;
+oude acht qsim-rootWIPfiles behouden/nietgestaged/nietverder als writer.
 
 NAS `ba557473` heeft drie werkelijke matrixcrates, host/target/stackfaultgates
 groen gemeld; GitHub-CI en echte NAS-QEMU blijven open. Security NV

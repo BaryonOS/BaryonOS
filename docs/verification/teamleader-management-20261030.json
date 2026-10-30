@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-30",
+  "source_basis": "caa2c14da15c5ac82b5493b3b2407167163d00d9",
+  "runtime_basis": "94c8908ee363d06a5be51417c5cae635549d566f",
+  "branch": "simonvanieperen-symmetrical-barnacle",
+  "score_before": 34,
+  "score_after": 34,
+  "confirmed_app_roles": {
+    "operational_lead": "89f84098-bd8c-4bc8-aeb2-0695517db26f",
+    "assistant": "5d5f8513-2d31-41af-96ce-81c5ef56ef80",
+    "director": "ef7a7596-8c3d-4705-ab69-36f8a2a1a1b6",
+    "pr_intake": "f2afe26e-5d6f-4948-89b8-0e2aeeb96225"
+  },
+  "handoff": {
+    "file": "docs/WORK-QUEUE.md",
+    "receiver_confirmed_identity_clean_start_no_prior_writes": true,
+    "activation": "Exact pushed donor commit plus explicit release; receiver ACK; donor stops queue writes",
+    "score_and_project_state_owner": "operational_lead",
+    "previous_pr_intake_transfer": "No executed transfer found in preserved register or read-only checkout check; personal confirmation requested, not inferred from silence",
+    "existing_assignments_survive_missing_messages_and_timeouts": true
+  },
+  "commands": [
+    {"command": "python3 -B tools/progress.py --write", "exit": 0, "wall_seconds": 0.031},
+    {"command": "python3 -B tools/progress.py --check", "exit": 0, "wall_seconds": 0.033},
+    {"command": "git diff --check", "exit": 0, "wall_seconds": 0.010},
+    {"command": "python3 -B /home/simon/.copilot/session-state/3c9dee7ff8e342deb2a0374357d86212/files/verify-management-handoff.py", "exit": 0, "assertions_wall_seconds": 0.028}
+  ],
+  "assertions": [
+    "Rubric, weights, criteria and accepted evidence unchanged from source basis",
+    "Baseline documentation bodies retained in order",
+    "Exactly one current NEXT AGENT HANDOFF",
+    "PR65 ec591dd and 7960e98 head checkpoint bodies and both assessments retained literally",
+    "Runtime unchanged from main94",
+    "24 unique actual app role IDs"
+  ],
+  "log": "/home/simon/.copilot/session-state/3c9dee7ff8e342deb2a0374357d86212/files/teamleader-management-validation.log",
+  "not_run_by_manager": ["Rust tests or builds", "QEMU or Windows guest", "Physical hardware", "Human audit"],
+  "limitations": [
+    "Management handoff is not native product acceptance",
+    "Owner-reported runtime artifacts are not new manager runs",
+    "All 62 release rows and physical/human gates remain open"
+  ]
+}

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "59adc5c974f2d53518f89429ee02df26348feba9",
+    "source_commit": "caa2c14da15c5ac82b5493b3b2407167163d00d9",
     "branch": "simonvanieperen-symmetrical-barnacle",
-    "task": "Teamleiding: twaalf sessies toetsen aan de volledige roadmap, exclusieve eigenaren en geïntegreerde QEMU-route bewaken",
+    "task": "Managementoverdracht: operationele technische leiding behouden, werkqueue exclusief aan bevestigde assistent overdragen en directie voor roadmap/kwaliteit registreren",
     "previous_score": 34,
-    "summary": "34% blijft 34%; geen criterium, gewicht of geaccepteerd bewijs gewijzigd. Manager voerde na 14 cold-hosttests op bef9461 nu zelf de 16 bijgewerkte tests op reviewfix7d66dc2 uit: exit0, host-only. De twee serial-/firmwarebevindingen zijn bronmatig gesloten, maar nieuwe v3949ce3 vereist nog nativeherhaling; geen mergevrijgave of nieuwe manager-VM. Nieuwe app-CI-head9d8a119 heeft een via REST vastgesteld mergeconflict; lokale tests zijn geen uitgevoerde GitHub-gates. Main94 is inhoudsbehoudend in de managerbranch opgenomen; latere integraties volgen de enkele lifecyclevolgorde. Byte-reproduceerbaarheid, geïntegreerde UI-semantiek, artifact-store/native NAS/appinstallatie/inference en correcte guestafsluiting blijven open. Alle 62 volledige productcriteria en externe fysieke/menselijke gates blijven gelden."
+    "summary": "34% blijft 34%; criteria, gewichten en geaccepteerd bewijs ongewijzigd. Directeur ef7a7596 en assistent5d5f8513 hebben echte app-identiteit/rol bevestigd;24rollen, geen concurrencyclaim. Assistent neemt uitsluitend werkqueue na exacte donorbronvrijgave over en mag gewone taken/vrije gebieden zelfstandig verdelen; operationeel teamleider houdt technische samenhang/status/score. PR-intake behoudt oorspronkelijke taak, planningsvoorstel ingetrokken; bestaande opdrachten blijven bij stilte/timeout geldig. Windowsroute12→21 blijft exclusief. UI62476bbb meldt één0818nativeprobe met zes QMPframes/diskorakel, geen gewone DEV/cold/assets/U-acceptatie; release bouwt gewone DEV1 op ca45, gedeelde store/READ/issuer/launch blijft prioritair. CAP-DIGEST19/b715 faalde vóór meetcalls, geen timings. Geen nieuwe manager-VM of releaseacceptatie; alle62FR,100cold/24uur en fysieke/menselijke/reproductie-/auditgates blijven open."
   },
   "tracks": [
     {

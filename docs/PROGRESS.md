@@ -85,6 +85,39 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Managementwijziging op managerbasis `caa2c14` (30 oktober 2026):
+**34% → 34%**. Directeur `ef7a7596...` en assistent `5d5f8513...` hebben hun
+werkelijke app-ID en rol bevestigd. De assistent krijgt na donorbronvrijgave
+uitsluitend queuewrites en zelfstandige routineplanning; teamleider houdt
+technische samenhang/status/score, intake zijn oorspronkelijke PR-taak.
+Geen ontbrekend bericht trekt een toewijzing in. De nieuwe UI-probe is
+smal native deelbewijs, geen gewone DEV-/cold-/U-acceptatie; B05 blijft een
+echte menselijke gate. Geen vaste criteria/evidence gewijzigd, geen punten
+voor organisatie of AI-review. Donorbron/ontvangst volgens WORK-QUEUE.
+
+Eerdere specialistentoetreding:
+Specialistenuitbreiding op managerbasis `caa2c14` (30 oktober 2026):
+**34% → 34%**. De bestaande14rollen zijn met acht werkelijk geïdentificeerde
+Simon-sessies en zeven afdelingen uitgebreid;22rollen betekent niet22gelijktijdige
+agents of VM-slots. De Windowsroute is formeel van12 naar21 overgedragen.
+Ontwerp/assets, afgebakend TLS-onderzoek/model en routebewijs zijn geen nieuwe
+native productpunten. Eén diagnostische VM faalde vóór meetcalls op een
+manifestguard: geen prestatiebaseline. Gedeeld0818beeld, vaste gewone DEV-bundel,
+alle62FR en fysieke/menselijke gates blijven open. Criteria/gewichten/evidence
+zijn exact behouden; nieuwe resultaten/owners/overdrachten in WORK-QUEUE.
+
+Eerdere claimherstelmeting:
+Claimherstel op managerbron `caa2c14` (30 oktober 2026): **34% → 34%**.
+Eén actueel rollen-/taakregister vervangt de historische schrijfclaims.
+Operationele integratie is exclusief e8, PR-intake read-only f2, centrale
+bestanden alleen manager; release behoudt runtime-/ABI- en integrale
+acceptatieverantwoordelijkheid. Nieuwe R77/SEC72-native deelproeven en
+catalogus-/firmwarebewijs zijn brongebonden eigenaarrapportages, geen volledige
+productaftekening. Renderer- en NAS-runnerreviewgaten krijgen ieder één
+producer en onafhankelijke hercontrole. Criteria/gewichten/evidence blijven
+gelijk; alle62FR, honderd koude starts/24uur en fysieke/menselijke gates open.
+
+Historische teamleidersmeting:
 Teamleiding (30 oktober 2026), startbasis `0ade8014`, inhoudsbehoudend
 geïntegreerd met `94c8908` na #66: **34% → 34%**.
 De twaalf sessies zijn tegen de volledige roadmap en releaseacceptatie getoetst
