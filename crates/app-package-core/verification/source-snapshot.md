@@ -115,8 +115,32 @@ aan die basis gebonden; zij zijn niet herlabeld als uitvoering van deze API.
 Het latere providerpad moet zowel correcte als kwaadaardige metadata
 behandelen en de afzonderlijke herstelgrens werkelijk afdwingen.
 
-Na commitfreeze volgt de afgesproken gerichte SEC-interfacelezing;
-geen brede audit of automatische backend/publicatierechten. Centrale
+Op codefreeze `0a4e4677764053b3953035a6313c745d89f55a55` zijn alle acht
+host/lint/fmt/targetcommando's hierboven opnieuw uitgevoerd, exit 0:
+15 coretests en 12 SDK-managementtests. Deze herhaling compileert geen
+andere bron; de bovenstaande sourcehash is gelijk gebleven.
+
+De afgesproken gerichte SEC-interfacelezing van die exacte delta en
+bewijsnote is afgerond: geen concrete contract-, interface- of trustgrensfout
+gevonden tegen ontwerp083 en herstelcontract057. De reviewer bevestigde
+dezelfde sourcehash, all-or-nothing, keypairpolicy, eindgeneraties en de
+kandidaat-/autoriteitsgrens. Dit is een scoped AI-bronlezing, geen eigen
+testuitvoering door SEC, brede audit, menselijke acceptatie of automatische
+backend-/publicatierechten. De vervolgcommit wijzigt alleen deze bewijsnote.
+
+Loghashes van de herhaling op codefreeze; prefix
+`nieuw-os-source-snapshot-0a4-`, in hetzelfde sessiearchief:
+
+| Log | SHA-256 |
+|---|---|
+| `core-test.log` | `55bb25dddb67b75a1648222fc95e0bf1e9b4aaa7fe3f41cb720db387a524c9f9` |
+| `sdk-test.log` | `5a71a499ccb966ea3327641cf73dff069f59a797c460168a317e6edabd94b470` |
+| `core-clippy.log` | `02db5a66fa0c60ca8618bd08aac556eac4f3ec863e8630a0d353dba6a0f6e126` |
+| `sdk-clippy.log` | `6d77f64dfc8c5325b90fdbe05d8be367bdd578bcccec24f275c5ffee7d03dd6e` |
+| `core-none.log` | `92434e198f27984c035c376ec77a7cf9e6ebdde782f8ccb1336ae3329b66ddb7` |
+| `sdk-none.log` | `6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f` |
+
+Centrale
 assessment/README/PROJECT-STATE hebben een andere eigenaar. Voorstel:
 30 oktober 2026, Apps 2/8, totaal **34 -> 34**, geen nieuw geaccepteerd
 criterium. De nieuwe API is hostgetest/crosscompiled maar geen duurzame
