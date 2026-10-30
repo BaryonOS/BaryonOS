@@ -16,6 +16,16 @@ Python-syntax en diffcontrole slagen (exit 0), inclusief stale-source-,
 ESP-symlink- en artifactwisselweigering. Alleen synthetische testarchieven
 zijn aangemaakt en door TemporaryDirectory opgeruimd.
 
+Op bron `5b808653c40409a661c5382173da314db1961c11` slaagt daarnaast
+`python3 -B -m unittest discover -s tools/tests -p 'test_*.py'` met
+111 tests (exit 0, 3,843 s); log `/tmp/nieuw-os-windows-qemu-tools-tests.log`.
+Verwachte negatieve testmeldingen in dat log zijn geen echte nieuwe VM-runs.
+Read-only afstemming met de integratiesessie is afgerond: hergebruik de zes
+normale QMP-bedieningsgroepen zonder F12, maar certificeer hun fasen alleen
+met passend bevroren native pixels; niet met de probe-only snapshots.
+Na QMP-quit volgt onafhankelijk `disk_oracle`. Nog geen runneruitbreiding,
+OS-bronvervanging of bundel; integratiesessie bezit de bevroren runtimebron.
+
 **Windows-launchercontrole op basis `19f2d33` met CheckOnly-wijziging:**
 de gekoppelde QEMU-installatie is werkelijk bereikbaar via Windows PowerShell.
 QEMU 11.1.0 biedt `rng-builtin` en SDL. Vijf echte PowerShell-launchertests

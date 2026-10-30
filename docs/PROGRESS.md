@@ -104,6 +104,8 @@ extra punten: **34% → 34%**.
 Op basis `8f4fb3a` met packager-hercontrole slagen 33 hosttests,
 inclusief weigering van een ELF-wissel na initiële validatie. Geen OS-ZIP,
 Windows-gast of extra acceptatie; **34% → 34%** blijft gehandhaafd.
+Op bron `5b80865` slaagt ook de complete tools-hostsuite (111 tests);
+dat is geen native productacceptatie en verandert de score niet.
 
 RTC-NATIVE-1 (30 oktober 2026), basis `5c334f9`: **34% -> 34%**.
 De expliciet opt-in CMOS-bootstrap is een technische tijdproviderafhankelijkheid,
