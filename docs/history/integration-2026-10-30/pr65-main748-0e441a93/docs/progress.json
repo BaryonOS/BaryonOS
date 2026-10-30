@@ -1,0 +1,547 @@
+{
+  "schema_version": 1,
+  "rubric_version": 1,
+  "assessment": {
+    "date": "2026-10-30",
+    "source_commit": "386ae6014e00e093346987859659914f86fce888",
+    "branch": "simon/windows-qemu-test-version",
+    "task": "WINDOWS-QEMU-TEST-VERSION / INTERACTIVE-PROOF-1 / CONFLICT-MERGE-MAIN-748E29",
+    "previous_score": 34,
+    "summary": "34% blijft 34%. De Windows-QEMU/interactive-proof-branch en main-head 748e29b zijn geïntegreerd met behoud van eerdere checkpoints. De preflighttests (24), Rust-workspace-tests inclusief HKDF/HMAC-doctests (365), root-/SDK-rustfmt en progress-check slagen op de geïntegreerde bron. Eerdere 111 tools- en 46 systeemharnastests plus 22 previewtests zijn brongebonden aan de eerdere integratie-/proof-bronnen. Geen native gate, CI op de uiteindelijke mergehead, Windows-gaststart of interactieve referentierun uitgevoerd. Geen rubriccriterium gesloten."
+  },
+  "tracks": [
+    {
+      "id": "K",
+      "title": "Eigen kern en procesisolatie",
+      "points": 15,
+      "gates": [
+        {
+          "id": "K01",
+          "title": "Zelfstandige UEFI-boot",
+          "points": 2,
+          "status": "accepted",
+          "acceptance": "Eigen loader draagt over aan eigen kernel; normale, ontbrekende/corrupte kernel- en timeoutgevallen zijn native gecontroleerd.",
+          "evidence": [
+            "docs/verification/regression-m6b/FINAL-ACCEPTANCE.md"
+          ]
+        },
+        {
+          "id": "K02",
+          "title": "Eigen geheugenbeheer en foutgrenzen",
+          "points": 2,
+          "status": "accepted",
+          "acceptance": "Eigen pagetables/framebeheer, W^X, guardstacks en ongeldige mappings zijn in het vaste QEMU-profiel gecontroleerd.",
+          "evidence": [
+            "docs/verification/m2-m4/ACCEPTANCE.md",
+            "docs/verification/regression-m6b/FINAL-ACCEPTANCE.md"
+          ]
+        },
+        {
+          "id": "K03",
+          "title": "Geïsoleerde, gepreëmpteerde processen",
+          "points": 2,
+          "status": "accepted",
+          "acceptance": "Ring-3-processen hebben afzonderlijke adresruimten; een appfault stopt de andere testprocessen niet.",
+          "evidence": [
+            "docs/verification/m2-m4/ACCEPTANCE.md",
+            "docs/verification/regression-m6b/FINAL-ACCEPTANCE.md"
+          ]
+        },
+        {
+          "id": "K04",
+          "title": "Capabilities en begrensde IPC",
+          "points": 3,
+          "status": "accepted",
+          "acceptance": "Rechtenvermindering, generaties, intrekking, usercopy en begrensde Message320-IPC hebben native negatieve/lifecycleproeven.",
+          "evidence": [
+            "docs/verification/m2-m4/ACCEPTANCE.md",
+            "docs/verification/regression-m6b/FINAL-ACCEPTANCE.md"
+          ]
+        },
+        {
+          "id": "K05",
+          "title": "Algemeen proces- en dienstbeheer",
+          "points": 2,
+          "status": "accepted",
+          "acceptance": "Niet-fixture-apps kunnen via begrensde API’s starten, afsluiten en diensten herstarten; afhankelijkheden en resources worden correct vrijgegeven.",
+          "evidence": [
+            "docs/verification/K05-ACCEPTANCE.md",
+            "docs/verification/k05-startup-slots/gate/supervisor-gate.json",
+            "docs/verification/k05-startup-slots/integration.json"
+          ]
+        },
+        {
+          "id": "K06",
+          "title": "Meerdere processorkernen",
+          "points": 2,
+          "status": "open",
+          "acceptance": "SMP-scheduling, synchronisatie, interrupts en adresruimtewisseling werken onder concurrente belasting op het ondersteunde profiel.",
+          "evidence": []
+        },
+        {
+          "id": "K07",
+          "title": "Resourcebeheer onder druk",
+          "points": 2,
+          "status": "accepted",
+          "acceptance": "Geheugen-, CPU-, IPC- en handle-uitputting blijven per app begrensd; het bruikbare systeem herstelt zonder kerneluitval.",
+          "evidence": [
+            "docs/verification/K07-ACCEPTANCE.md"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S",
+      "title": "Opslag en gegevensherstel",
+      "points": 15,
+      "gates": [
+        {
+          "id": "S01",
+          "title": "Native lezen, schrijven en flush",
+          "points": 1,
+          "status": "accepted",
+          "acceptance": "Dienstgebonden READ/WRITE/FLUSH lopen via echte virtio-I/O; succes volgt pas na gecontroleerde completion.",
+          "evidence": [
+            "docs/verification/m6a-linux/README.md",
+            "docs/verification/m6b/README.md"
+          ]
+        },
+        {
+          "id": "S02",
+          "title": "Journal en koud herstel",
+          "points": 1,
+          "status": "accepted",
+          "acceptance": "Een begrensde objectjournal doorstaat native onderbrekingen, revisiecontrole, volle opslag en koude recovery met onafhankelijk schijforakel.",
+          "evidence": [
+            "docs/verification/m6b/README.md"
+          ]
+        },
+        {
+          "id": "S03",
+          "title": "Namen en domeingebonden catalogus",
+          "points": 1,
+          "status": "accepted",
+          "acceptance": "Native GET/PUT/DELETE/RENAME/LIST bewaren namen, inhoud en domeingrenzen, ook na onderbroken hernoemen.",
+          "evidence": [
+            "docs/verification/M6C-ACCEPTANCE.md"
+          ]
+        },
+        {
+          "id": "S04",
+          "title": "Ruimtehergebruik en schaalbare volumes",
+          "points": 3,
+          "status": "accepted",
+          "acceptance": "Opslag kan verwijderde ruimte veilig hergebruiken en langer dan de huidige 32 records doorwerken; crashconsistente compactie en quota zijn getest.",
+          "evidence": [
+            "docs/verification/M6E-ACCEPTANCE.md",
+            "docs/verification/m6e/volume-gate.json"
+          ]
+        },
+        {
+          "id": "S05",
+          "title": "Documenten van bruikbare omvang",
+          "points": 3,
+          "status": "accepted",
+          "acceptance": "Grote documenten en streams overschrijden de huidige 128-byteproefgrens; begrensde buffers, volle volumes en deelwrites zijn getest.",
+          "evidence": [
+            "docs/verification/M6E-ACCEPTANCE.md",
+            "docs/verification/m6e/volume-gate.json"
+          ]
+        },
+        {
+          "id": "S06",
+          "title": "Collecties, metadata en bewerkingsgeschiedenis",
+          "points": 2,
+          "status": "accepted",
+          "acceptance": "Native objectcollecties, persistente metadata en herstelbare revisies ondersteunen dagelijkse Materiaal-taken met consistente transacties.",
+          "evidence": [
+            "docs/verification/S06-ACCEPTANCE.md",
+            "docs/verification/s06/volume-gate.json"
+          ]
+        },
+        {
+          "id": "S07",
+          "title": "Onzekere I/O zonder kernelpanic",
+          "points": 1,
+          "status": "accepted",
+          "acceptance": "De actuele M6c-catalogusdienst levert bij native WRITE/FLUSH-fouten gecontroleerd Unknown, sluit verdere toegang en herhaalt geen write; geen foutieve ACK of kernelpanic, overige processen blijven leven. Foutinjectie, koude recovery, schijforakel en normale M6c-/M6b-regressie zijn opgeslagen. De historische M6b-observer krijgt hiermee geen nieuwe foutafhandelingsclaim.",
+          "evidence": [
+            "docs/verification/M6D-ACCEPTANCE.md",
+            "docs/verification/m6d/capture.json",
+            "docs/verification/m6d-m6b-regression/capture.json",
+            "docs/verification/m6d-review/m6d-final-native-audit.json"
+          ]
+        },
+        {
+          "id": "S08",
+          "title": "Algemeen opslagherstel bij fouten",
+          "points": 1,
+          "status": "accepted",
+          "acceptance": "Een bruikbaar systeem blijft reageren bij diskuitval, timeouts, corruptie en resource-uitputting; expliciete herstelkeuze voorkomt stille gegevensoverschrijving.",
+          "evidence": [
+            "docs/verification/S08-ACCEPTANCE.md"
+          ]
+        },
+        {
+          "id": "S09",
+          "title": "Back-up, herstel en data-export",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Een gebruiker kan onafhankelijke herstelkopieën maken, controleren, terugzetten en data in gedocumenteerde formaten exporteren; verlies-/conflictscenario’s zijn getest.",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "H",
+      "title": "Hardware, drivers en energie",
+      "points": 12,
+      "gates": [
+        {
+          "id": "H01",
+          "title": "Eerste eigen devicepad",
+          "points": 1,
+          "status": "accepted",
+          "acceptance": "Eigen virtio-bloktransport, begrensde DMA/MMIO-toegang, reset en driver-/dienstcrashes zijn native in QEMU getest.",
+          "evidence": [
+            "docs/verification/m5/ACCEPTANCE.md",
+            "docs/verification/m5/review-repairs.json"
+          ]
+        },
+        {
+          "id": "H02",
+          "title": "Toetsenbord, muis en USB",
+          "points": 3,
+          "status": "open",
+          "acceptance": "Gebruikelijke invoer en USB-apparaten werken op het gedocumenteerde referentieprofiel; hotplug en ongeldige device-antwoorden zijn begrensd.",
+          "evidence": []
+        },
+        {
+          "id": "H03",
+          "title": "Grafische uitvoer en audio",
+          "points": 3,
+          "status": "open",
+          "acceptance": "Native grafische uitvoer, benodigde GPU-functionaliteit en audio voldoen aan vastgelegde bruikbaarheids-/latencybudgetten op fysieke referentiehardware.",
+          "evidence": []
+        },
+        {
+          "id": "H04",
+          "title": "Netwerkhardware en verbindingen",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Ethernet, wifi en de afgesproken Bluetooth-functies werken op ondersteunde hardware, inclusief verbreken, hervatten en driverfouten.",
+          "evidence": []
+        },
+        {
+          "id": "H05",
+          "title": "Energiebeheer en slaap/wek",
+          "points": 2,
+          "status": "open",
+          "acceptance": "ACPI/energiebeheer, slaap/wek, shutdown en thermische/batterijfuncties zijn op ondersteunde apparatuur gemeten en herstelbaar.",
+          "evidence": []
+        },
+        {
+          "id": "H06",
+          "title": "Fysieke ondersteuningsmatrix",
+          "points": 1,
+          "status": "open",
+          "acceptance": "Meerdere vooraf benoemde representatieve pc-configuraties doorstaan de gedocumenteerde hardwarematrix; DMA/IOMMU-grenzen en beperkingen staan expliciet vast.",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "U",
+      "title": "Native Materiaal en toegankelijkheid",
+      "points": 15,
+      "gates": [
+        {
+          "id": "U01",
+          "title": "Native compositor en sessie",
+          "points": 4,
+          "status": "open",
+          "acceptance": "De eigen kernel draait een interactieve grafische sessie met render- en inputketen, venster/surface-isolatie en gecontroleerd compositorherstel.",
+          "evidence": []
+        },
+        {
+          "id": "U02",
+          "title": "Vloeiende dagelijkse bediening",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Toetsenbord, aanwijzer, focus, klembord en appwisseling zijn native bruikbaar en voldoen aan gemeten interactiebudgetten.",
+          "evidence": []
+        },
+        {
+          "id": "U03",
+          "title": "Materiaal van openen tot bewaren",
+          "points": 3,
+          "status": "open",
+          "acceptance": "Gebruikers openen, bewerken, hernoemen en organiseren echte native documenten; rechten, historie en locatie blijven begrijpelijk en correct.",
+          "evidence": []
+        },
+        {
+          "id": "U04",
+          "title": "Native toegankelijkheid",
+          "points": 3,
+          "status": "open",
+          "acceptance": "Toetsenbord-only, schermlezer, schaal/zoom, contrast en verminderde beweging werken in de native keten; taakproeven met gebruikers zijn vastgelegd.",
+          "evidence": []
+        },
+        {
+          "id": "U05",
+          "title": "Instellingen, zoeken en herstel",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Native systeeminstellingen, lokale zoekfunctie, account/sessiebeheer en begrijpelijke fout-/herstelroutes werken consistent.",
+          "evidence": []
+        },
+        {
+          "id": "U06",
+          "title": "Afwerking getoetst met gebruikers",
+          "points": 1,
+          "status": "open",
+          "acceptance": "Representatieve gebruikers voltooien afgesproken kerntaken; frictie, fouten en visuele inconsistenties zijn gemeten en opgelost binnen productbudgetten.",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "N",
+      "title": "Internet en netwerkdiensten",
+      "points": 10,
+      "gates": [
+        {
+          "id": "N01",
+          "title": "Native pakket- en transportstack",
+          "points": 3,
+          "status": "open",
+          "acceptance": "De eigen OS-netwerkdienst verwerkt echte packets en begrensde IP/TCP/UDP-verbindingen; malformed input, backpressure en afsluiten zijn getest.",
+          "evidence": []
+        },
+        {
+          "id": "N02",
+          "title": "Configuratie en dagelijks internet",
+          "points": 3,
+          "status": "open",
+          "acceptance": "Adresconfiguratie, naamresolutie, routes, netwerkovergangen en benodigde internetprotocollen werken op echte toegestane verbindingen.",
+          "evidence": []
+        },
+        {
+          "id": "N03",
+          "title": "Native geauthenticeerd transport",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Onderhouden cryptografie/TLS met de vastgelegde hybride PQC-keuze werkt native, met peercontrole, negatieve handshakes en geen stille onveilige fallback.",
+          "evidence": []
+        },
+        {
+          "id": "N04",
+          "title": "Afdwingbare netwerkrechten",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Proces-/bestemmingsrechten, intrekking en helperroutes worden native afgedwongen en via verkeer waargenomen; geen onbedoelde luisterpoorten.",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Beveiliging, privacy en updates",
+      "points": 12,
+      "gates": [
+        {
+          "id": "B01",
+          "title": "Entropy en sleutelbeheer",
+          "points": 2,
+          "status": "accepted",
+          "acceptance": "Native cryptografische entropy, key lifecycle, bescherming en herstel gebruiken gecontroleerde standaarden en geteste failure paths.",
+          "evidence": [
+            "docs/verification/B01-ACCEPTANCE.md",
+            "docs/verification/native-recovery-hardening/b01/keyring-gate.json",
+            "docs/verification/native-recovery-hardening/integration.json"
+          ]
+        },
+        {
+          "id": "B02",
+          "title": "Geauthenticeerde persoonlijke opslag",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Inhoud en gevoelige metadata worden native beschermd; manipulatie, replay/rollback binnen het dreigingsmodel en sleutelverlies zijn getest.",
+          "evidence": []
+        },
+        {
+          "id": "B03",
+          "title": "Ondertekende updates en rollback",
+          "points": 2,
+          "status": "accepted",
+          "acceptance": "Authentieke updates, onderbreking, downgrade-aanvallen en herstel naar een geldige vorige versie zijn end-to-end getest.",
+          "evidence": [
+            "docs/verification/B03-ACCEPTANCE.md",
+            "docs/verification/b03/update-gate.json"
+          ]
+        },
+        {
+          "id": "B04",
+          "title": "Vertrouwde boot- en distributieketen",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Image-/bootverificatie, sleutelrotatie en dependency-/buildherkomst zijn voor het releaseprofiel afgebakend en onafhankelijk gecontroleerd.",
+          "evidence": []
+        },
+        {
+          "id": "B05",
+          "title": "Gerichte onafhankelijke beveiligingscontrole",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Externe deskundigen onderzoeken kernel-, dienst-, DMA-, parser- en capabilitygrenzen; blokkerende bevindingen zijn opgelost en relevante invarianten machinegecontroleerd waar gekozen.",
+          "evidence": []
+        },
+        {
+          "id": "B06",
+          "title": "Native privacycontract",
+          "points": 2,
+          "status": "open",
+          "acceptance": "De toepasselijke LP-tests slagen op het eigen OS, inclusief geen telemetrie/cloudfallback, lokale AI en gescheiden app-/downloadrechten; resterende risico’s zijn gepubliceerd.",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "A",
+      "title": "Apps, SDK en installatie",
+      "points": 8,
+      "gates": [
+        {
+          "id": "A01",
+          "title": "Publiek gedocumenteerde app-API en SDK",
+          "points": 2,
+          "status": "accepted",
+          "acceptance": "Een reproduceerbare SDK bouwt gewone apps voor het eigen OS; API/ABI-versies, sandbox en foutgedrag zijn gedocumenteerd en getest.",
+          "evidence": [
+            "docs/verification/A01-ACCEPTANCE.md",
+            "sdk/README.md"
+          ]
+        },
+        {
+          "id": "A02",
+          "title": "Apps installeren en bijwerken",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Pakketten uit meerdere bronnen kunnen met herkomstcontrole worden geïnstalleerd, verwijderd en bijgewerkt; installatie verleent geen algemene capabilities.",
+          "evidence": []
+        },
+        {
+          "id": "A03",
+          "title": "Apprechten en gereedschapintegratie",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Native apps gebruiken Materiaal-objecten via zichtbare, intrekbare taakrechten; extensies en hulpprocessen kunnen die grenzen niet omzeilen.",
+          "evidence": []
+        },
+        {
+          "id": "A04",
+          "title": "Nuttige dagelijkse applicaties",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Ten minste internetgebruik, documentbewerking, media en bestandsuitwisseling werken met geschikte native apps of gecontroleerde ports; realistische gebruikstaken zijn getest.",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "P",
+      "title": "Persoonlijke NAS en meerdere apparaten",
+      "points": 5,
+      "gates": [
+        {
+          "id": "P01",
+          "title": "Native end-to-end versleutelde NAS-opslag",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Client en NAS-rol op het eigen OS koppelen met geverifieerde identiteit; namen/inhoud zijn voor de NAS-beheerder niet leesbaar, ook bij fout-/aanvalspaden.",
+          "evidence": []
+        },
+        {
+          "id": "P02",
+          "title": "Automatisch synchroniseren en conflicten",
+          "points": 1,
+          "status": "open",
+          "acceptance": "Eerder toegestane peers hervatten automatisch; offline edits, conflicten en LAN/internetwisseling behouden rechten en geven geen stille dataverliezen.",
+          "evidence": []
+        },
+        {
+          "id": "P03",
+          "title": "Meerdere apparaten en key lifecycle",
+          "points": 1,
+          "status": "open",
+          "acceptance": "Apparaten kunnen veilig worden toegevoegd/ingetrokken; sleutelrotatie, gelijktijdige schrijvers en herstel werken zonder leverancierssleutelbewaring.",
+          "evidence": []
+        },
+        {
+          "id": "P04",
+          "title": "Ruimte aanbieden, intrekken en verwijderen",
+          "points": 1,
+          "status": "open",
+          "acceptance": "De native NAS-beheerder beheert quota en trekt gastautoriteit in/verwijdert eigen kopieën zonder gastconsent of decryptiesleutel; oude sessies herleven niet.",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "L",
+      "title": "Lokale AI en quantum-runtime",
+      "points": 3,
+      "gates": [
+        {
+          "id": "L01",
+          "title": "Bruikbare lokale systeem-AI",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Minstens de afgesproken AI-kerntaken draaien op het eigen apparaat met begrensde context, afzonderlijke modeldownloads en geteste netwerkweigering; beperkte resources leiden niet tot cloudfallback.",
+          "evidence": []
+        },
+        {
+          "id": "L02",
+          "title": "Lokale quantumuitvoering op eigen OS",
+          "points": 1,
+          "status": "accepted",
+          "acceptance": "De lokale simulator/jobinterface draait native met quota, annulering en referentiecircuits; hostsimulatie en fysieke QPU-ondersteuning blijven afzonderlijk gelabeld.",
+          "evidence": [
+            "docs/verification/L02-ACCEPTANCE.md"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "R",
+      "title": "Dagelijks gebruik en onderhoudbare release",
+      "points": 5,
+      "gates": [
+        {
+          "id": "R01",
+          "title": "Installatie en toegankelijk herstel",
+          "points": 1,
+          "status": "open",
+          "acceptance": "Een gebruiker kan het OS op ondersteunde hardware installeren, upgraden en zelfstandig herstellen met gecontroleerde behoud-/wisopties; praktijkproef geslaagd.",
+          "evidence": []
+        },
+        {
+          "id": "R02",
+          "title": "Langdurige stabiliteit en prestatiebudgetten",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Vooraf vastgelegde duur-, workload-, energie-, geheugen-, latency- en dataintegriteitsbudgetten zijn op fysieke hardware gehaald; geen bekende blokkerende gebruiksfouten.",
+          "evidence": []
+        },
+        {
+          "id": "R03",
+          "title": "Reproduceerbare uitgave en onderhoud",
+          "points": 2,
+          "status": "open",
+          "acceptance": "Onafhankelijke reproductie, licenties/SBOM, release-/patchbeleid, verantwoord meldpunt, ondersteuning en geldende toegankelijkheids/privacyverplichtingen zijn concreet geregeld.",
+          "evidence": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/tools/run_fpu.py", line 30, in private_path
+    relative = path.relative_to(ROOT)
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 489, in relative_to
+    raise ValueError(f"{str(self)!r} is not in the subpath of {str(other)!r}")
+ValueError: '/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/target/dev1' is not in the subpath of '/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/tools/build.py", line 361, in <module>
+    build(args.loader_feature, args.kernel_feature, args.loader_feature or args.kernel_feature or "normal",
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          args.image_version)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/tools/build.py", line 148, in build
+    extra_env, qsim_report = build_materiaal_users(probe=kernel_feature != "native-system-materiaal")
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/tools/build_materiaal.py", line 11, in build_users
+    private_path(TARGET)
+    ~~~~~~~~~~~~^^^^^^^^
+  File "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/tools/run_fpu.py", line 32, in private_path
+    raise ValueError("FPU artifact escaped checkout") from error
+ValueError: FPU artifact escaped checkout

@@ -1,0 +1,27 @@
+diff --git a/services/net-config/tests/service.rs b/services/net-config/tests/service.rs
+index 7bde1d6..77faff4 100644
+--- a/services/net-config/tests/service.rs
++++ b/services/net-config/tests/service.rs
+@@ -411,3 +411,22 @@ fn lease_deadlines_beyond_stack_clock_range_fail_closed_before_probing() {
+         assert_eq!(service.poll(ticks), Err(error));
+     });
+ }
++
++#[test]
++fn selecting_request_preserves_discover_secs_without_moving_the_lease_start() {
++    with_service(|service| {
++        service.start(XID, 0, 30).unwrap();
++        service.send_dhcp(100).unwrap();
++        let discover = complete(service, 100);
++        service.receive_frame(&reply(2, XID, 53), 500).unwrap();
++        service.send_dhcp(500).unwrap();
++        let request = complete(service, 500);
++        assert_eq!(
++            &parse(&request).unwrap().payload()[8..10],
++            &parse(&discover).unwrap().payload()[8..10]
++        );
++        service.receive_frame(&reply(5, XID, 53), 500).unwrap();
++        assert_eq!(service.phase(8499), Ok(Phase::CheckingAddress));
++        assert_eq!(service.phase(8500), Ok(Phase::Expired));
++    });
++}

@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "scope": "actual own-kernel CPL3 display/PS2 boundary, two lifetimes; no desktop/inputbroker/physical-hardware acceptance",
+  "passed": true,
+  "checks": {
+    "before_launch_source_unchanged": true,
+    "native_exit_transcript_qmp_pixels_and_snapshots": true,
+    "source_unchanged": true,
+    "qemu_entry_unchanged": true,
+    "qemu_implementation_unchanged": true,
+    "build_artifacts_unchanged": true
+  },
+  "source_fingerprint_version": 3,
+  "source_sha256": "0e6d5cfe425479cae2da51cf7797bfbb28e2c204b280aea5d82f2042f1b18895",
+  "base_commit": "bff1ed76a8ace8617dee040770bcea98bb39fe55",
+  "command": [
+    "/mnt/c/Users/simon/AppData/Local/Temp/nieuw-os-display-input-worktree-bff1ed7/.tools/nieuw-os/qemu/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-qmp",
+    "stdio",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04"
+  ],
+  "cwd": "/mnt/c/Users/simon/AppData/Local/Temp/nieuw-os-display-input-worktree-bff1ed7/build/hardware-native-display/run/display-input-5242d19b9d",
+  "run_directory": "/mnt/c/Users/simon/AppData/Local/Temp/nieuw-os-display-input-worktree-bff1ed7/build/hardware-native-display/run/display-input-5242d19b9d",
+  "build_directory": "/mnt/c/Users/simon/AppData/Local/Temp/nieuw-os-display-input-worktree-bff1ed7/build/hardware-native-display",
+  "machine": "pc-q35-8.2",
+  "qmp_transport": "pipe",
+  "profile": "pc-q35-8.2/qemu64/TCG/1CPU/256MiB/VGA/PS2",
+  "development_profile": "display-input-dev-800x600",
+  "loader_geometry_contract": {
+    "path": "boot/loader/src/graphics.rs",
+    "function": "prepare",
+    "sha256": "85ff56d930a094a648c460c6e9d08b6c89dbdbb72ac25edf9557ae6b3ec7b08a",
+    "width": 800,
+    "height": 600,
+    "selection": "existing bounded QueryMode selection; GOP_800_600 on absence; no geometry fallback"
+  },
+  "qemu_entry_path": "/mnt/c/Users/simon/AppData/Local/Temp/nieuw-os-display-input-worktree-bff1ed7/.tools/nieuw-os/qemu/qemu-system-x86_64",
+  "qemu_entry_sha256": "47d57a6072e0bb3bd98f87926eb129eb1736dfe818c67b3b81ef7ce4edd0b3cd",
+  "qemu_version": "QEMU emulator version 11.1.0 (v11.1.0-12130-ge470268ff4)\nCopyright (c) 2003-2026 Fabrice Bellard and the QEMU Project developers",
+  "firmware_sources": {
+    "OVMF_CODE.fd": "/mnt/c/Program Files/qemu/share/edk2-x86_64-code.fd",
+    "OVMF_VARS.template.fd": "/mnt/c/Program Files/qemu/share/edk2-i386-vars.fd",
+    "VGA.rom": "/mnt/c/Program Files/qemu/share/vgabios-stdvga.bin"
+  },
+  "frozen_artifacts": {
+    "OVMF_CODE.fd": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "VGA.rom": "e8fc9e55790dbe3cb31f019a3deb57206ba6c54f5e581adb2ab2677a9d391472",
+    "esp/kernel.elf": "1b20fd1e487f052cb4e7d2144596c334a2ec923e02c3a5a7eb95daed61ffb1c5",
+    "esp/EFI/BOOT/BOOTX64.EFI": "1c82e84d21bbeead563c16fc123a310ed87e41eab8069a3b33e1d33e19f4be28",
+    "inputs/display-probe.elf": "68dafd59e496f12fb0e9581b1e8e0089262cb8c681ac513afa0074838616555f",
+    "inputs/input-probe.elf": "5ba35ee40a8f76c0cccd3e4094ae519e2cce2cac24a4e21ce673e4b6b23028c2",
+    "inputs/display-intruder-probe.elf": "3c82c4993ff47f3a644f0330a89774d9a0c4e58e5f2f9e4cb6beef5061847bb4",
+    "inputs/build-report.json": "9529d8d1bae30d9eb4bf9b46fc0ecacfeb1e2df79fe1a6fe4f5f8a29fb6bb400",
+    "inputs/build-manifest.json": "e13382ff79fdaa7042a1a6e68d22188a52c7d7bc07b7c8462fca59138a74d9f2"
+  },
+  "raw_qemu_exit": 33,
+  "timed_out": false,
+  "timeout_s": 60,
+  "qemu_implementation_path": "/init",
+  "qemu_implementation_sha256": "e8dedbdd26706c70a8a8a37139a23ec92b8e5c82f666c523adfd3e99fe94df8e",
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x2,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x2,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nDISPINPUT:MANIFEST:PASS\nDISPINPUT:DISPLAY_READY:00000000000000000001\nDISPINPUT:INPUT_READY:00000000000000000001\nDISPINPUT:SEQ:00000000000000000001\nDISPINPUT:RAW:00000000000000007454\nDISPINPUT:SEQ:00000000000000000002\nDISPINPUT:RAW:00000000000000007582\nDISPINPUT:SEQ:00000000000000000003\nDISPINPUT:RAW:00000000000000015625\nDISPINPUT:SEQ:00000000000000000004\nDISPINPUT:RAW:00000000000000015623\nDISPINPUT:SEQ:00000000000000000005\nDISPINPUT:RAW:00000000000000015619\nDISPINPUT:SEQ:00000000000000000006\nDISPINPUT:RAW:00000000000000015624\nDISPINPUT:SEQ:00000000000000000007\nDISPINPUT:RAW:00000000000000015616\nDISPINPUT:SEQ:00000000000000000008\nDISPINPUT:RAW:00000000000000015616\nDISPINPUT:REUSE:PASS\nDISPINPUT:DISPLAY_READY:00000000000000000002\nDISPINPUT:INPUT_READY:00000000000000000002\nDISPINPUT:SEQ:00000000000000000001\nDISPINPUT:RAW:00000000000000007454\nDISPINPUT:SEQ:00000000000000000002\nDISPINPUT:RAW:00000000000000007582\nDISPINPUT:SEQ:00000000000000000003\nDISPINPUT:RAW:00000000000000015625\nDISPINPUT:SEQ:00000000000000000004\nDISPINPUT:RAW:00000000000000015623\nDISPINPUT:SEQ:00000000000000000005\nDISPINPUT:RAW:00000000000000015619\nDISPINPUT:SEQ:00000000000000000006\nDISPINPUT:RAW:00000000000000015624\nDISPINPUT:SEQ:00000000000000000007\nDISPINPUT:RAW:00000000000000015616\nDISPINPUT:SEQ:00000000000000000008\nDISPINPUT:RAW:00000000000000015616\nDISPINPUT:BLITS:00000000000000000002\nDISPINPUT:PIXELS:00000000000000000512\nDISPINPUT:DISPLAY_DENIED:00000000000000000022\nDISPINPUT:CAP_DENIED:00000000000000000044\nDISPINPUT:POINTER_DENIED:00000000000000002364\nDISPINPUT:OUTPUT_UNCHANGED:00000000000000002391\nDISPINPUT:RESETS:00000000000000000002\nDISPINPUT:READY:00000000000000000002\nDISPINPUT:SAMPLES:00000000000000000016\nDISPINPUT:RESET_PENDING:00000000000000000008\nDISPINPUT:RESET_DISCARDED:00000000000000000000\nDISPINPUT:CLOSED:00000000000000000004\nDISPINPUT:OLD_DENIED:00000000000000000002\nDISPINPUT:EXITS:00000000000000000006\nDISPINPUT:SLOT_REUSES:00000000000000000003\nDISPINPUT:DISPLAY_EPOCH:00000000000000000002\nDISPINPUT:INPUT_EPOCH:00000000000000000002\nDISPINPUT:INPUT_TICKET:00000000000000000002\nDISPINPUT:TIMER_IRQS:00000000000000000051\nDISPINPUT:LIVE_PROCESSES:00000000000000000000\nDISPINPUT:FRAMES_RECOVERED:00000000000000000001\nDISPINPUT:DISPLAY:PASS\nDISPINPUT:INPUT:PASS\nDISPINPUT:ISOLATION:PASS\nDISPINPUT:CLEANUP:PASS\nM1:PASS\n",
+  "observed": {
+    "counters": {
+      "BLITS": 2,
+      "PIXELS": 512,
+      "DISPLAY_DENIED": 22,
+      "CAP_DENIED": 44,
+      "POINTER_DENIED": 2364,
+      "OUTPUT_UNCHANGED": 2391,
+      "RESETS": 2,
+      "READY": 2,
+      "SAMPLES": 16,
+      "RESET_PENDING": 8,
+      "RESET_DISCARDED": 0,
+      "CLOSED": 4,
+      "OLD_DENIED": 2,
+      "EXITS": 6,
+      "SLOT_REUSES": 3,
+      "DISPLAY_EPOCH": 2,
+      "INPUT_EPOCH": 2,
+      "INPUT_TICKET": 2,
+      "TIMER_IRQS": 51,
+      "LIVE_PROCESSES": 0,
+      "FRAMES_RECOVERED": 1
+    },
+    "raw_samples": [
+      [
+        {
+          "sequence": 1,
+          "status": 29,
+          "byte": 30
+        },
+        {
+          "sequence": 2,
+          "status": 29,
+          "byte": 158
+        },
+        {
+          "sequence": 3,
+          "status": 61,
+          "byte": 9
+        },
+        {
+          "sequence": 4,
+          "status": 61,
+          "byte": 7
+        },
+        {
+          "sequence": 5,
+          "status": 61,
+          "byte": 3
+        },
+        {
+          "sequence": 6,
+          "status": 61,
+          "byte": 8
+        },
+        {
+          "sequence": 7,
+          "status": 61,
+          "byte": 0
+        },
+        {
+          "sequence": 8,
+          "status": 61,
+          "byte": 0
+        }
+      ],
+      [
+        {
+          "sequence": 1,
+          "status": 29,
+          "byte": 30
+        },
+        {
+          "sequence": 2,
+          "status": 29,
+          "byte": 158
+        },
+        {
+          "sequence": 3,
+          "status": 61,
+          "byte": 9
+        },
+        {
+          "sequence": 4,
+          "status": 61,
+          "byte": 7
+        },
+        {
+          "sequence": 5,
+          "status": 61,
+          "byte": 3
+        },
+        {
+          "sequence": 6,
+          "status": 61,
+          "byte": 8
+        },
+        {
+          "sequence": 7,
+          "status": 61,
+          "byte": 0
+        },
+        {
+          "sequence": 8,
+          "status": 61,
+          "byte": 0
+        }
+      ]
+    ],
+    "framebuffer": {
+      "development_profile": "display-input-dev-800x600",
+      "width": 800,
+      "height": 600,
+      "pixel_comparisons": 768,
+      "unique_native_pixels": 512,
+      "first_tile_preserved": true,
+      "rejected_color_absent": true,
+      "outside_second_tile_unchanged": true
+    }
+  },
+  "duration_s": 11.635549433000051,
+  "artifact_sha256": {
+    "generation-1.ppm": "a5d09f7305cc1501ef4da97a9fbe9576269d4b29f0cc9157413cdf37c78fadc8",
+    "generation-2.ppm": "6c15d898dea5687bce51255d4da04ccf9e6a783e375c51c6c77e5fa119e4880b",
+    "OVMF_CODE.fd": "33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a",
+    "OVMF_VARS.fd": "3768a19a4eb1077e795cb4ea8ccb8180e171b90c631687559b52f9a016eb0f9c",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "qmp-trace.json": "75b25665184ec470144f4c571f5921663dbb56f616e0146beeeba7c102975d71",
+    "serial.txt": "7a45d131d50d728ef83edf0f64a0441771d1f5c8f3556a85fea4d78b023c39ce",
+    "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "VGA.rom": "e8fc9e55790dbe3cb31f019a3deb57206ba6c54f5e581adb2ab2677a9d391472",
+    "esp/kernel.elf": "1b20fd1e487f052cb4e7d2144596c334a2ec923e02c3a5a7eb95daed61ffb1c5",
+    "inputs/build-manifest.json": "e13382ff79fdaa7042a1a6e68d22188a52c7d7bc07b7c8462fca59138a74d9f2",
+    "inputs/build-report.json": "9529d8d1bae30d9eb4bf9b46fc0ecacfeb1e2df79fe1a6fe4f5f8a29fb6bb400",
+    "inputs/display-intruder-probe.elf": "3c82c4993ff47f3a644f0330a89774d9a0c4e58e5f2f9e4cb6beef5061847bb4",
+    "inputs/display-probe.elf": "68dafd59e496f12fb0e9581b1e8e0089262cb8c681ac513afa0074838616555f",
+    "inputs/input-probe.elf": "5ba35ee40a8f76c0cccd3e4094ae519e2cce2cac24a4e21ce673e4b6b23028c2",
+    "esp/EFI/BOOT/BOOTX64.EFI": "1c82e84d21bbeead563c16fc123a310ed87e41eab8069a3b33e1d33e19f4be28"
+  }
+}

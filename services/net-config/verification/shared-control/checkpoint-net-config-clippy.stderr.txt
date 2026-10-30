@@ -1,0 +1,16 @@
+    Checking nieuw-os-net-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-protocol)
+    Checking nieuw-os-net-stack v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-stack)
+    Checking nieuw-os-net-config v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-config)
+error: `assert!(true)` will be optimized out by the compiler
+  --> src/time.rs:53:9
+   |
+53 |         assert!(8100 < 199 + 80 * MONOTONIC_HZ);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: remove it
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#assertions_on_constants
+   = note: `-D clippy::assertions-on-constants` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assertions_on_constants)]`
+
+error: could not compile `nieuw-os-net-config` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

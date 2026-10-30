@@ -1,0 +1,64 @@
+{
+  "passed": true,
+  "scope": "Offline real-artifact replay and temporary-copy negatives; no VM",
+  "source_sha256": "f6d4ca781ac058b7c6eba1d7b1bf49314e07e45828158e28a0afde07b74b2304",
+  "cold_report_sha256": "c3bbc81b9b2a5afc2ee166c1612c0d60cfea4e4d75755888b6d1efb9d1e4eed3",
+  "parent_report_sha256": "22fcf7ca812f02c48ded92e63650ea52ae4e8a0411d96129745739596bd9b0e1",
+  "reference_report_sha256": "ed5cf0c68b756d8e95f19139cd27459a4c7f88fafc5612c6b3c4ac46f83a9cf3",
+  "cold_trace_entries": 405,
+  "original_files_unchanged": 66,
+  "negatives": [
+    {
+      "case": "boolean-exit",
+      "rejected": true,
+      "error": "Parent is not the same-source ordinary exited native run"
+    },
+    {
+      "case": "wrong-source",
+      "rejected": true,
+      "error": "Parent is not the same-source ordinary exited native run"
+    },
+    {
+      "case": "wrong-reference",
+      "rejected": true,
+      "error": "Parent native reference binding differs"
+    },
+    {
+      "case": "failed-response",
+      "rejected": true,
+      "error": "Failed or uncorrelated QMP response"
+    },
+    {
+      "case": "extra-command",
+      "rejected": true,
+      "error": "Missing final quit or extra interactive command"
+    },
+    {
+      "case": "disk-tamper",
+      "rejected": true,
+      "error": "Parent disk bytes or decoded content changed"
+    },
+    {
+      "case": "frame-tamper",
+      "rejected": true,
+      "error": "Parent frame or recorded frame hash differs"
+    },
+    {
+      "case": "kernel-tamper",
+      "rejected": true,
+      "error": "Parent executable changed"
+    }
+  ],
+  "cold_claim_negatives": [
+    {
+      "field": "scope",
+      "rejected": true,
+      "error": "Cold scope/stop-method claim differs"
+    },
+    {
+      "field": "stop_method",
+      "rejected": true,
+      "error": "Cold scope/stop-method claim differs"
+    }
+  ]
+}

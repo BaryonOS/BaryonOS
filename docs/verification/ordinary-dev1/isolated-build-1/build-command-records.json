@@ -1,0 +1,250 @@
+[
+  {
+    "profile": "reference",
+    "record": "build-materiaal-desktop-init.json",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/sdk/examples/desktop-init/build.py"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384923.7196198,
+    "duration_s": 0.6163218021392822,
+    "returncode": 0
+  },
+  {
+    "profile": "reference",
+    "record": "build-materiaal-keyring.json",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/sdk/examples/keyring/build.py"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384924.3369677,
+    "duration_s": 2.282912015914917,
+    "returncode": 0
+  },
+  {
+    "profile": "reference",
+    "record": "build-materiaal-volume-docs.json",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/sdk/examples/volume-docs/build.py"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384926.6208076,
+    "duration_s": 0.8220796585083008,
+    "returncode": 0
+  },
+  {
+    "profile": "reference",
+    "record": "build-materiaal-materiaal.json",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/sdk/examples/materiaal/build.py"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384927.4439073,
+    "duration_s": 2.6377182006835938,
+    "returncode": 0
+  },
+  {
+    "profile": "reference",
+    "record": "build-materiaal-compositor.json",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/sdk/examples/compositor/build.py"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384930.0830374,
+    "duration_s": 1.7531065940856934,
+    "returncode": 0
+  },
+  {
+    "profile": "reference",
+    "record": "build-materiaal-input-service.json",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/sdk/examples/input-service/build.py"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384931.8372295,
+    "duration_s": 0.5342545509338379,
+    "returncode": 0
+  },
+  {
+    "profile": "reference",
+    "record": "build-native-system-materiaal-probe-os-loader.json",
+    "command": [
+      "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/.tools/nieuw-os/cargo/bin/cargo",
+      "+1.90.0",
+      "build",
+      "--locked",
+      "--release",
+      "--target-dir",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/target/dev1",
+      "-p",
+      "os-loader",
+      "--target",
+      "x86_64-unknown-uefi",
+      "--features",
+      "framebuffer"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384932.3739283,
+    "duration_s": 0.6239173412322998,
+    "returncode": 0
+  },
+  {
+    "profile": "reference",
+    "record": "build-native-system-materiaal-probe-os-kernel.json",
+    "command": [
+      "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/.tools/nieuw-os/cargo/bin/cargo",
+      "+1.90.0",
+      "build",
+      "--locked",
+      "--release",
+      "--target-dir",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/target/dev1",
+      "-p",
+      "os-kernel",
+      "--target",
+      "x86_64-unknown-none",
+      "--features",
+      "native-system-materiaal-probe"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384932.9979632,
+    "duration_s": 1.635551929473877,
+    "returncode": 0
+  },
+  {
+    "profile": "ordinary",
+    "record": "build-materiaal-desktop-init.json",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/sdk/examples/desktop-init/build.py"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384934.7623792,
+    "duration_s": 0.10710692405700684,
+    "returncode": 0
+  },
+  {
+    "profile": "ordinary",
+    "record": "build-materiaal-keyring.json",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/sdk/examples/keyring/build.py"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384934.870363,
+    "duration_s": 0.09594511985778809,
+    "returncode": 0
+  },
+  {
+    "profile": "ordinary",
+    "record": "build-materiaal-volume-docs.json",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/sdk/examples/volume-docs/build.py"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384934.9672408,
+    "duration_s": 0.09000396728515625,
+    "returncode": 0
+  },
+  {
+    "profile": "ordinary",
+    "record": "build-materiaal-materiaal.json",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/sdk/examples/materiaal/build.py"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384935.0581336,
+    "duration_s": 0.08506655693054199,
+    "returncode": 0
+  },
+  {
+    "profile": "ordinary",
+    "record": "build-materiaal-compositor.json",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/sdk/examples/compositor/build.py"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384935.1446073,
+    "duration_s": 0.10871458053588867,
+    "returncode": 0
+  },
+  {
+    "profile": "ordinary",
+    "record": "build-materiaal-input-service.json",
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/sdk/examples/input-service/build.py"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384935.2544346,
+    "duration_s": 0.10790252685546875,
+    "returncode": 0
+  },
+  {
+    "profile": "ordinary",
+    "record": "build-native-system-materiaal-os-loader.json",
+    "command": [
+      "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/.tools/nieuw-os/cargo/bin/cargo",
+      "+1.90.0",
+      "build",
+      "--locked",
+      "--release",
+      "--target-dir",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/target/dev1",
+      "-p",
+      "os-loader",
+      "--target",
+      "x86_64-unknown-uefi",
+      "--features",
+      "framebuffer"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384935.364494,
+    "duration_s": 0.04429745674133301,
+    "returncode": 0
+  },
+  {
+    "profile": "ordinary",
+    "record": "build-native-system-materiaal-os-kernel.json",
+    "command": [
+      "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/.tools/nieuw-os/cargo/bin/cargo",
+      "+1.90.0",
+      "build",
+      "--locked",
+      "--release",
+      "--target-dir",
+      "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source/target/dev1",
+      "-p",
+      "os-kernel",
+      "--target",
+      "x86_64-unknown-none",
+      "--features",
+      "native-system-materiaal"
+    ],
+    "cwd": "/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source",
+    "started_unix": 1793384935.4088929,
+    "duration_s": 1.2476098537445068,
+    "returncode": 0
+  }
+]

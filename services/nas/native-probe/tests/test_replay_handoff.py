@@ -8,8 +8,8 @@ import unittest
 from replay_handoff import HandoffError, create_cold_input, load_handoff, verify_cold_input
 
 REPOSITORY = Path(__file__).resolve().parents[4]
-# Structural placeholder bytes only: they are never decoded as tokens,
-# passed to the NAS service, logged or written into the repository.
+# Structural placeholder bytes only: never decoded as tokens, sent to the NAS
+# service or logged. The repository-boundary test removes its private fixture.
 STRUCTURAL_PLACEHOLDER = bytes(range(80))
 
 
@@ -117,11 +117,14 @@ class ReplayHandoffTests(unittest.TestCase):
                 self.load()
 
     def test_artifacts_inside_repository_or_with_broad_permissions_fail_closed(self):
-        repository_artifact = REPOSITORY / "target" / "replay-token-negative-fixture.bin"
-        try:
+        with tempfile.TemporaryDirectory(prefix="nas-replay-negative-", dir=REPOSITORY) as inside:
+            os.chmod(inside, 0o700)
+            repository_artifact = Path(inside) / "replay-token-negative-fixture.bin"
             repository_artifact.write_bytes(STRUCTURAL_PLACEHOLDER)
             repository_artifact.chmod(0o600)
-            with self.assertRaises(HandoffError):
+            with self.assertRaisesRegex(
+                HandoffError, "handoff material must remain outside the repository"
+            ):
                 load_handoff(
                     self.manifest_path,
                     repository_artifact,
@@ -129,8 +132,6 @@ class ReplayHandoffTests(unittest.TestCase):
                     self.manifest["source_commit"],
                     self.manifest["origin_run_id"],
                 )
-        finally:
-            repository_artifact.unlink(missing_ok=True)
         self.payload_path.chmod(0o640)
         with self.assertRaises(HandoffError):
             self.load()

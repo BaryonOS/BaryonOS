@@ -1,0 +1,20 @@
+test_digest_size_and_load_plan_tampering_are_rejected (test_nas_build.NasBuildTests.test_digest_size_and_load_plan_tampering_are_rejected) ... ok
+test_existing_four_slots_bind_only_the_two_inspected_binaries (test_nas_build.NasBuildTests.test_existing_four_slots_bind_only_the_two_inspected_binaries) ... ok
+test_preexisting_symlink_is_rejected_before_builder_runs (test_nas_build.NasBuildTests.test_preexisting_symlink_is_rejected_before_builder_runs) ... ok
+test_unearned_native_claim_or_wrong_gate_is_rejected (test_nas_build.NasBuildTests.test_unearned_native_claim_or_wrong_gate_is_rejected) ... ok
+test_artifact_mutation_after_launch_cannot_pass (test_nas_runner.NasLifecycleTests.test_artifact_mutation_after_launch_cannot_pass) ... ok
+test_mutable_guest_vars_are_not_treated_as_immutable_template (test_nas_runner.NasLifecycleTests.test_mutable_guest_vars_are_not_treated_as_immutable_template) ... ok
+test_platform_drift_is_rejected_before_cold_launch (test_nas_runner.NasLifecycleTests.test_platform_drift_is_rejected_before_cold_launch) ... ok
+test_qemu_and_original_firmware_cannot_change_during_execution (test_nas_runner.NasLifecycleTests.test_qemu_and_original_firmware_cannot_change_during_execution) ... ok
+test_unchanged_platform_accepts_cold_pair (test_nas_runner.NasLifecycleTests.test_unchanged_platform_accepts_cold_pair) ... ok
+test_version_probe_cannot_change_executable_before_vm (test_nas_runner.NasLifecycleTests.test_version_probe_cannot_change_executable_before_vm) ... ok
+test_wrapper_is_setup_failure_before_execute (test_nas_runner.NasLifecycleTests.test_wrapper_is_setup_failure_before_execute) ... ok
+test_bad_exit_timeout_and_late_failure_rejected (test_nas_runner.NasRunnerTests.test_bad_exit_timeout_and_late_failure_rejected) ... ok
+test_cold_write_and_missing_entropy_or_read_rejected (test_nas_runner.NasRunnerTests.test_cold_write_and_missing_entropy_or_read_rejected) ... ok
+test_exact_normal_and_cold_evidence (test_nas_runner.NasRunnerTests.test_exact_normal_and_cold_evidence) ... ok
+test_missing_duplicated_or_changed_role_assertions_rejected (test_nas_runner.NasRunnerTests.test_missing_duplicated_or_changed_role_assertions_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.167s
+
+OK
