@@ -14,6 +14,26 @@ buildscript en is Apache-2.0 OR MIT. Herkomst: crates.io-locksum en
 expliciet beheerde buffers; het bewijst geen opruiming van registers, compiler-
 kopieën, crashgeheugen of kopieën buiten de SDK-eigen envelopes.
 
+### Netwerkdiensten: smoltcp, rustls en spin (30 oktober 2026)
+
+Deze externe crates zitten uitsluitend in de zelfstandige workspaces van
+ring-3-netwerkdiensten, elk met een eigen `Cargo.lock`; niet in kernel, loader
+of root-workspace. Herkomst- en buildscriptcontrole staan bij de component.
+
+| Crate (exacte pin) | Gebruikt door | Herkomst / licentie | no_std / transitief | Detailbron |
+|---|---|---|---|---|
+| `smoltcp =0.14.0` | `services/net-stack`, `services/net-broker` | smoltcp-rs/smoltcp; 0BSD | `default-features = false`, alleen Ethernet/IPv4/TCP; transitief `managed`, `heapless`, `hash32`, `byteorder`, `bitflags`, `cfg-if`, `stable_deref_trait` volgens lockfile | ADR-046 in `DECISIONS.md`, `services/net-stack/THIRD-PARTY.md` |
+| `rustls =0.23.46` | `services/net-tls` | rustls/rustls; Apache-2.0 OR ISC OR MIT | Alleen `custom-provider`, geen `std`/ring/AWS-LC; transitief `rustls-webpki`, `rustls-pki-types`, `once_cell`, `subtle`, `untrusted`, `zeroize` | `services/net-tls/README.md` (dependencycontrole) |
+| `spin =0.12.3` | `services/net-tls` | zesterer/spin; MIT | Alleen `mutex,spin_mutex`; geen dependencies of buildscript | `services/net-tls/README.md` |
+
+Ongekozen optionele of platformpackages (zoals `ring`, `windows-*`) kunnen in
+`services/net-tls/Cargo.lock` staan; alleen de featureboom en compileruitvoer
+bewijzen wat wordt gebouwd. **Updatebeleid:** versies blijven exact gepind en
+`--locked`; een update vraagt een eigen PR met lockfilediff, herhaalde
+licentie-/buildscriptcontrole en de componentgates. **Verwijderplan:** elke
+crate is beperkt tot één dienstworkspace; verwijderen betekent die dienst of
+adapter vervangen, zonder kernel-, ABI- of root-lockwijziging.
+
 De nieuwe Linux-ontwikkelvariant gebruikt Rust 1.90.0, QEMU 10.0.2
 (`1:10.0.2+ds-2+deb13u1~bpo12+1`) en matching OVMF 2025.02-8+deb13u1.
 Rust kwam van static.rust-lang.org; Debian-pakketten zijn via ondertekende

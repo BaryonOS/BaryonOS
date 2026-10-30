@@ -349,5 +349,37 @@
     "job": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41113385741/job/124261588223",
     "conclusion": "success",
     "scope": "Alleen eerste kandidaat; laatste integratiehead moet de gate opnieuw halen"
+  },
+  "review_followup_96": {
+    "date": "2026-10-30",
+    "integrator": "Claude Code desktop session on Simon's explicit instruction",
+    "base_head": "10bc807f94bbee3eb21403f1521b9ebec41b202a",
+    "fixed": [
+      {
+        "thread": "services/net-stack/src/lib.rs withheld TX after withdraw_configuration",
+        "change": "Stack::withheld_transmission and Stack::discard_withheld_transmission(id): explicit adapter route for a never-offered frame; no fake completion, offered frames still require complete_transmission",
+        "regression": "services/net-stack/tests/withheld_transmission.rs failed to compile before the API (red), passes after",
+        "host_tests": 26,
+        "clippy_exit": 0,
+        "fmt_exit": 0,
+        "freestanding_build_exit": 0,
+        "toolchain": "1.91.1",
+        "native_execution": false
+      },
+      {
+        "thread": "docs/WORK-QUEUE.md spacing",
+        "change": "IDs and roles separated in the flagged section"
+      },
+      {
+        "thread": "services/net-tls/Cargo.toml dependency register",
+        "change": "smoltcp, rustls and spin recorded in docs/DEPENDENCIES.md with pointers to existing component provenance"
+      }
+    ],
+    "deferred": [
+      {
+        "thread": "sdk/app-management/src/store.rs duplicate artifact reader contract",
+        "reason": "Trivial/heavy-lift refactor across frozen app-management leaves; tracked as separate issue, not changed during integration"
+      }
+    ]
   }
 }

@@ -33,37 +33,46 @@ Assistent wijst gewone taken en daadwerkelijk vrije gebieden zelfstandig toe.
 Voor nieuwe writes: actuele eigenaar, wijzigingen en afhankelijkheden controleren;
 geen claim zien of een timeout maakt een gebied niet vrij. Bestaande opdrachten
 gaan zonder nieuw ACK door. Frozen werk niet stil hervatten; parked WIP behouden.
-Technische ABI-/trustconflicten met betrokken eigenaar en teamleider89; alleen
+Technische ABI-/trustconflicten met betrokken eigenaar en teamleider 89; alleen
 onoplosbare eigenaars-/prioriteitsconflicten naar directeur. Geen Simon-routinelus.
-Manager89 blijft enige status-/scorewriter. Queueovername is sinds16151b9
+Manager 89 blijft enige status-/scorewriter. Queueovername is sinds `16151b9`
 voltooid; de afzonderlijke integratoroverdracht is nu ook veilig afgerond.
 
 **Exclusieve integratoroverdracht VOLTOOID:** op de nieuwe letterlijke
-Simonopdracht en het directiebesluit volgt7f e8 op als ENIGE operationele
-integrator. Donor8 heeft expliciet alle nieuwe merges/conflictwrites/runtimewrites
-gestopt en vrijgegeven: watch2461 exit124/af, geen mergecommands meer lopend,
-werkboomd104 volgens donor/TL schoon. Alleen read-only advies blijft bij8.
+Simonopdracht en het directiebesluit volgt 7f 8 op als ENIGE operationele
+integrator. Donor 8 heeft expliciet alle nieuwe merges/conflictwrites/runtimewrites
+gestopt en vrijgegeven: watch 2461 exit 124/af, geen mergecommands meer lopend,
+werkboom `d104` volgens donor/TL schoon. Alleen read-only advies blijft bij 8.
 7f bevestigt expliciet ontvangst van het volledige dossier en operatiecheck:
 geen lopende/verzonden mutatie bij donor of ontvanger; conflictclaims/WIP
 overgenomen. Geen activatie op stilte/timeout, geen extra Simon-/TL-poort.
-Overdrachtsmoment: mainca45, #74/4db90e1e, #75/0f8f8dee,
+Overdrachtsmoment: main `ca45`, #74/4db90e1e, #75/0f8f8dee,
 #78/7f4f7bfe, #65/7960e98a, #80/bc27ed0f, #84/734c8fc5,
-#86/f2c875a7; main/74/75 zelf via liveREST gecontroleerd, overige heads door7f.
+#86/f2c875a7; main/74/75 zelf via liveREST gecontroleerd, overige heads door 7f.
 Actuele heads opnieuw toetsen bij iedere werkelijke integratiemutatie.
-Centrale inhoudsclaims blijven bij89/5d en domeineigenaren; integratorschap
-verleent geen nieuwe runtimewriter of m6-claim. Alleen7f voert geschikte
+Centrale inhoudsclaims blijven bij 89/5d en domeineigenaren; integratorschap
+verleent geen nieuwe runtimewriter of m6-claim. Alleen 7f voert geschikte
 guarded merges uit; assistent neemt geen merges over.
 
 **Afzonderlijke mergepauze na de overdracht:** liveREST bevestigt #85
 op 18:38:54Z gesquashmerged naar
 `9a6703d339f9248fc58d470523644193ec92cd45`, door account `simonvanieperen`.
 Dat bewijst geen sessie-identiteit. 7f deed dit niet en pauzeert mergewrites;
-HW9 ontkent eigen/API/automationmerge, donor8 is om de concrete operatie
-gevraagd. Directie heeft het voorstel:7f blijft enige aangewezen integrator,
+HW 9 ontkent eigen/API/automationmerge, donor 8 is om de concrete operatie
+gevraagd. Directie heeft het voorstel: 7f blijft enige aangewezen integrator,
 hervat pas na identificatie/stop van extra writer en actuele main/base/gates.
 Geen algemene statusronde, rolterugname of automatische overname.
-Donor8's nieuwe rolvraag is conform het vastgelegde mandaat beantwoord:
-laat7f integreren, overdracht behouden. Onafhankelijk domeinwerk gaat door.
+Donor 8's nieuwe rolvraag is conform het vastgelegde mandaat beantwoord:
+laat 7f integreren, overdracht behouden. Onafhankelijk domeinwerk gaat door.
+
+**Integratie overgenomen op Simons opdracht (30 oktober 2026, ~21:10 CET):**
+Simon heeft de Claude Code-sessie in de desktopapp expliciet aangewezen om alle
+open pull requests en issues af te handelen, inclusief mergen en sluiten. Deze
+sessie is vanaf dan de enige operationele integrator; 7f en andere sessies
+voeren geen merges, sluitingen of pushes naar integratietakken meer uit.
+Domeineigenaren mogen op eigen takken doorwerken; commits na een vastgelegde
+integratiebron worden als aparte delta beoordeeld, niet stil meegenomen of
+weggegooid. Integratiebesluiten staan per PR als commentaar.
 
 ## Werkelijke sessies en primaire opdracht
 

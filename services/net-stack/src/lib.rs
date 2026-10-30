@@ -489,4 +489,23 @@ impl<'a> Stack<'a> {
         self.withheld_transmission = false;
         Ok(())
     }
+    /// Identity of a pending frame that withdrawal stopped offering. If the
+    /// adapter already handed it to the broker it must await real completion.
+    pub fn withheld_transmission(&self) -> Option<u64> {
+        if !self.withheld_transmission {
+            return None;
+        }
+        self.device.transmission().map(|frame| frame.id)
+    }
+    /// Caller promises the exact withheld frame was never handed to the native
+    /// broker, so no device can still reference it. Drops it unpublished; this is
+    /// no completion and never applies to a frame `transmission` still offers.
+    pub fn discard_withheld_transmission(&mut self, id: u64) -> Result<(), Error> {
+        if self.withheld_transmission() != Some(id) {
+            return Err(Error::StaleTransmission);
+        }
+        self.device.complete(id)?;
+        self.withheld_transmission = false;
+        Ok(())
+    }
 }
