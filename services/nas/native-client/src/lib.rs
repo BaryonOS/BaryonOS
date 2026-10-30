@@ -100,9 +100,16 @@ pub struct Checkpoint {
     edits: [Option<Edit>; PENDING],
 }
 
+#[derive(Clone, Copy)]
+struct Attempt {
+    caller: Principal,
+    session: Session,
+    upload: Upload,
+}
+
 pub struct Client {
     edits: [Option<Edit>; PENDING],
-    tickets: [Option<(Session, Upload)>; PENDING],
+    tickets: [Option<Attempt>; PENDING],
 }
 
 impl Default for Client {
@@ -228,7 +235,11 @@ impl Client {
         ) {
             Ok(upload) => {
                 edit.state = State::Staged;
-                self.tickets[slot] = Some((session, upload));
+                self.tickets[slot] = Some(Attempt {
+                    caller,
+                    session,
+                    upload,
+                });
                 Ok(())
             }
             Err(operation) => {
@@ -247,10 +258,7 @@ impl Client {
         service: &mut Service<'_, S>,
         caller: Principal,
     ) -> Result<u64, Failure> {
-        if self.edit(slot)?.state != State::Staged {
-            return Err(Error::ReopenRequired.into());
-        }
-        let (session, upload) = self.tickets[slot].take().ok_or(Error::ReopenRequired)?;
+        let (session, upload) = self.take_ticket(slot, caller)?;
         let edit = self.edit_mut(slot)?;
         edit.state = State::NeedsReconcile;
         let result = service.commit(caller, session, upload);
@@ -279,10 +287,7 @@ impl Client {
         service: &mut Service<'_, S>,
         caller: Principal,
     ) -> Result<(), Failure> {
-        if self.edit(slot)?.state != State::Staged {
-            return Err(Error::ReopenRequired.into());
-        }
-        let (session, upload) = self.tickets[slot].take().ok_or(Error::ReopenRequired)?;
+        let (session, upload) = self.take_ticket(slot, caller)?;
         let edit = self.edit_mut(slot)?;
         let result = service.cancel(caller, session, upload);
         let cleanup = service.close(caller, session).err();
@@ -305,6 +310,23 @@ impl Client {
                 Err(Failure { operation, cleanup })
             }
         }
+    }
+
+    fn take_ticket(
+        &mut self,
+        slot: usize,
+        caller: Principal,
+    ) -> Result<(Session, Upload), Failure> {
+        if self.edit(slot)?.state != State::Staged {
+            return Err(Error::ReopenRequired.into());
+        }
+        let attempt = self.tickets[slot].as_ref().ok_or(Error::ReopenRequired)?;
+        // A misrouted call must not consume the real caller's live tickets.
+        if attempt.caller != caller {
+            return Err(Error::Denied.into());
+        }
+        let attempt = self.tickets[slot].take().ok_or(Error::ReopenRequired)?;
+        Ok((attempt.session, attempt.upload))
     }
 
     /// Explicit read-only reconciliation. The revision is a hint, NOT trusted

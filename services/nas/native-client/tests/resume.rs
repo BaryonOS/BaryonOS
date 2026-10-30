@@ -464,27 +464,53 @@ fn cancelling_staging_frees_quota_and_sessions_without_deleting_the_local_edit()
     assert_eq!(publish(&mut client, &mut service, slot), 1);
 }
 
-#[test]
-fn wrong_caller_cannot_commit_a_staged_ticket_or_receive_a_success_ack() {
+fn misrouted_calls_preserve_tickets(cancel: bool) {
     let mut work = Box::new(Workspace::new());
     let (mut service, disk, ns) = fixture(&mut work, MAX_QUOTA);
     let mut client = Client::new();
-    let slot = client.enqueue(ns, 0, 0, b"owner retained data").unwrap();
-    client.prepare(slot, &mut service, OWNER).unwrap();
-    let writes = disk.0.borrow().writes;
-    let error = client.commit(slot, &mut service, WRONG).unwrap_err();
-    assert_eq!(error.operation, Error::Stale);
-    assert_eq!(error.cleanup, Some(Error::Stale));
-    assert_eq!(
-        client.edit(slot).unwrap().state(),
-        State::Blocked(Error::Stale)
-    );
-    let retained = client.take(slot).unwrap();
-    assert_eq!(retained.namespace(), &ns);
-    assert_eq!(retained.object(), 0);
-    assert_eq!(retained.base_revision(), 0);
-    assert_eq!(retained.local_ciphertext(), b"owner retained data");
-    assert_eq!(disk.0.borrow().writes, writes);
+    let mut base = 0;
+    for _ in 0..SESSIONS * 2 {
+        let slot = client.enqueue(ns, 0, base, b"owner retained data").unwrap();
+        client.prepare(slot, &mut service, OWNER).unwrap();
+        let writes = disk.0.borrow().writes;
+        let error = if cancel {
+            client.cancel(slot, &mut service, WRONG).unwrap_err()
+        } else {
+            client.commit(slot, &mut service, WRONG).unwrap_err()
+        };
+        assert_eq!(error.operation, Error::Denied);
+        assert_eq!(error.cleanup, None);
+        assert_eq!(client.edit(slot).unwrap().state(), State::Staged);
+        assert_eq!(
+            client.take(slot).unwrap_err().operation,
+            Error::ReopenRequired
+        );
+        assert_eq!(service.usage(ADMIN, &ns).unwrap().reserved, 19);
+        assert_eq!(disk.0.borrow().writes, writes);
+        if cancel {
+            client.cancel(slot, &mut service, OWNER).unwrap();
+            assert_eq!(disk.0.borrow().writes, writes);
+        } else {
+            base += 1;
+            assert_eq!(client.commit(slot, &mut service, OWNER), Ok(base));
+            assert_eq!(disk.0.borrow().writes, writes + 1);
+        }
+        assert_eq!(service.usage(ADMIN, &ns).unwrap().reserved, 0);
+        let retained = client.take(slot).unwrap();
+        assert_eq!(retained.namespace(), &ns);
+        assert_eq!(retained.object(), 0);
+        assert_eq!(retained.local_ciphertext(), b"owner retained data");
+    }
+}
+
+#[test]
+fn wrong_caller_cannot_commit_or_consume_the_authorized_callers_staging() {
+    misrouted_calls_preserve_tickets(false);
+}
+
+#[test]
+fn wrong_caller_cannot_cancel_or_consume_the_authorized_callers_staging() {
+    misrouted_calls_preserve_tickets(true);
 }
 
 #[test]
