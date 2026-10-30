@@ -17,6 +17,12 @@ PROBE_ENV = environment()
 RUST_TOOLCHAIN = "1.90.0"
 REQUIRED_TARGETS = ("x86_64-unknown-uefi", "x86_64-unknown-none")
 REQUIRED_RLIBS = ("core", "alloc", "compiler_builtins")
+def host_test_tools(os_name: str) -> tuple[str, ...]:
+    return ("link.exe",) if os_name == "nt" else ("cc",)
+
+
+HOST_TEST_TOOLS = host_test_tools(os.name)
+
 
 def probe(name: str) -> dict:
     path = shutil.which(name, path=PROBE_ENV["PATH"])
@@ -25,11 +31,12 @@ def probe(name: str) -> dict:
         return result
     pinned = name in ("rustc", "cargo")
     candidates = (["+" + RUST_TOOLCHAIN], []) if pinned else ([],)
+    version_args = ["/?"] if name == "link.exe" else ["--version"]
     result["probe_attempts"] = []
     if pinned:
         result["selected_toolchain"] = RUST_TOOLCHAIN
     for arguments in candidates:
-        attempt = query([path, *arguments, "--version"])
+        attempt = query([path, *arguments, *version_args])
         result["probe_attempts"].append(attempt)
         if "error" in attempt:
             result["probe_error"] = attempt["error"]
@@ -183,11 +190,13 @@ def rust_inventory(rustc: dict, rustup: dict) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--strict", action="store_true", help="Exit 2 if boot tools/firmware are missing.")
+    parser.add_argument("--strict-host-tests", action="store_true",
+                        help="Exit 2 if host test linker tools are missing.")
     parser.add_argument("--firmware", type=Path, help="Explicit OVMF code file, read-only.")
     args = parser.parse_args()
     tools = {name: probe(name) for name in (
         "git", "rustc", "cargo", "rustup", "qemu-system-x86_64",
-        "ld.lld", "clang", "cc", "python3",
+        "ld.lld", "clang", "cc", "link.exe", "python3",
     )}
     known_firmware = [
         Path("/usr/share/OVMF/OVMF_CODE_4M.fd"),
@@ -211,6 +220,7 @@ def main() -> int:
     if not rust["compiler_valid"] and "rustc" not in missing:
         missing.append("Rust 1.90.0 compiler/sysroot")
     missing_targets = [target for target in REQUIRED_TARGETS if target not in installed_targets]
+    missing_host_test_tools = [name for name in HOST_TEST_TOOLS if not usable(tools[name])]
     if not firmware_candidates:
         missing.append("OVMF code firmware (supply --firmware if stored elsewhere)")
     report = {
@@ -229,11 +239,16 @@ def main() -> int:
         "missing_rust_targets": missing_targets,
         "firmware_candidates": firmware_candidates,
         "missing": missing,
+        "host_test_tools": list(HOST_TEST_TOOLS),
+        "missing_host_test_tools": missing_host_test_tools,
         "baseline_tools_present": not missing and not missing_targets,
         "next": "Compare versions against docs/implementation/BOOT-AND-TOOLCHAIN.md; then build and run the real smoke test.",
     }
     print(json.dumps(report, indent=2))
-    return 2 if args.strict and (missing or missing_targets) else 0
+    boot_requirements_missing = bool(missing or missing_targets)
+    host_test_requirements_missing = bool(missing_host_test_tools)
+    return 2 if ((args.strict and boot_requirements_missing)
+                 or (args.strict_host_tests and host_test_requirements_missing)) else 0
 
 if __name__ == "__main__":
     raise SystemExit(main())

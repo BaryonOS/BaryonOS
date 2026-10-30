@@ -22,7 +22,8 @@ def archive_bytes(payload=b'synthetic archive member'):
 
 
 class RequiredToolProbes(unittest.TestCase):
-    def inventory(self, tool=None, strict=True, *, tool_name='cargo', mutate=None,
+    def inventory(self, tool=None, strict=True, *, strict_host_tests=False,
+                  tool_name='cargo', mutate=None,
                   compiler='rustc 1.90.0 (synthetic)', query_fault=None,
                   rustup=None, wrong_target=False, compiler_args=None):
         if compiler_args is None:
@@ -73,7 +74,11 @@ class RequiredToolProbes(unittest.TestCase):
                     result = root / 'lib/rustlib' / preflight.REQUIRED_TARGETS[1] / 'lib'
                 return subprocess.CompletedProcess(command, 0, str(result) + '\n', '')
 
-            command = ['preflight.py', '--firmware', str(code)] + (['--strict'] if strict else [])
+            command = ['preflight.py', '--firmware', str(code)]
+            if strict:
+                command.append('--strict')
+            if strict_host_tests:
+                command.append('--strict-host-tests')
             output = io.StringIO()
             with patch.object(sys, 'argv', command), patch.object(preflight, 'probe', side_effect=probe), \
                     patch.object(preflight.subprocess, 'run', side_effect=run), redirect_stdout(output):
@@ -97,7 +102,46 @@ class RequiredToolProbes(unittest.TestCase):
                 status, report = self.inventory(tool)
                 self.assertEqual(status, 0)
                 self.assertEqual(report['missing'], [])
+                self.assertEqual(report['missing_host_test_tools'], [])
                 self.assertTrue(report['baseline_tools_present'])
+
+    def test_missing_host_linker_is_reported_separately_and_can_be_strict(self):
+        self.assertEqual(preflight.host_test_tools('posix'), ('cc',))
+        for strict_host_tests, expected_status in ((False, 0), (True, 2)):
+            with self.subTest(strict_host_tests=strict_host_tests), \
+                    patch.object(preflight, 'HOST_TEST_TOOLS', preflight.host_test_tools('posix')):
+                status, report = self.inventory(
+                    {'available': False},
+                    strict_host_tests=strict_host_tests,
+                    tool_name='cc',
+                )
+                self.assertEqual(status, expected_status)
+                self.assertEqual(report['missing'], [])
+                self.assertEqual(report['missing_host_test_tools'], ['cc'])
+                self.assertTrue(report['baseline_tools_present'])
+
+    def test_missing_windows_linker_is_reported_separately_and_can_be_strict(self):
+        self.assertEqual(preflight.host_test_tools('nt'), ('link.exe',))
+        with patch.object(preflight, 'HOST_TEST_TOOLS', preflight.host_test_tools('nt')):
+            status, report = self.inventory(
+                {'available': False},
+                strict_host_tests=True,
+                tool_name='link.exe',
+            )
+        self.assertEqual(status, 2)
+        self.assertEqual(report['missing'], [])
+        self.assertEqual(report['missing_host_test_tools'], ['link.exe'])
+        self.assertTrue(report['baseline_tools_present'])
+
+    def test_windows_linker_probe_uses_msvc_help_switch(self):
+        with patch.object(preflight.shutil, 'which', return_value='C:/VS/link.exe'), \
+                patch.object(preflight.subprocess, 'run') as run:
+            run.return_value = subprocess.CompletedProcess(
+                ['C:/VS/link.exe', '/?'], 0, 'Microsoft Incremental Linker', '')
+            result = preflight.probe('link.exe')
+        self.assertTrue(result['available'])
+        self.assertEqual(result['probe_exit'], 0)
+        self.assertEqual(run.call_args.args[0], ['C:/VS/link.exe', '/?'])
 
     def test_probe_exceptions_fail_strict_inventory(self):
         for error in (OSError('synthetic execution failure'),

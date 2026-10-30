@@ -62,6 +62,13 @@ python3 -B -u tools/test_m6b.py
 python3 -B tools/capture_m6b.py --destination "docs/verification/m6b-local-$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
 ```
 
+Op Linux is daarnaast de hostlinker `cc` nodig voor Rust-hosttests; de
+kernelcrossbuild gebruikt de linker uit Rust zelf. Controleer die
+afhankelijkheid apart met `python3 -B tools/preflight.py --strict-host-tests`.
+De bestaande `--strict`-controle blijft uitsluitend de bootgereedschappen en
+firmware afdwingen. Op Debian/Ubuntu levert het pakket `build-essential` de
+standaard `cc`-driver.
+
 Ook deze capture gebruikt per uitvoering een eigen nieuwe map; het bestaande
 `docs/verification/m6b` blijft behouden. In PowerShell zijn de equivalente
 captureopdrachten hieronder bruikbaar, telkens direct na de bijbehorende
