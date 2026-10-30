@@ -26,6 +26,7 @@ const CRASH: u64 = 1;
 const DENIED: u64 = 2;
 const PARENT_EXIT: u64 = 3;
 const QUOTA: u64 = 4;
+const WAIT: u64 = 5;
 
 /// Supervisor evidence words (startup page offsets) copied at its exit.
 const SUP_WORDS: [u64; 16] = [
@@ -52,6 +53,14 @@ struct Evidence {
     supervisor_code: u64,
     sup: [u64; 16],
     image_of: [u32; MAX],
+    #[cfg(feature = "test-supervisor-wait")]
+    waiting_kills: u64,
+    #[cfg(feature = "test-supervisor-wait")]
+    waiting_reuses: u64,
+    #[cfg(feature = "test-supervisor-wait")]
+    last_waiting_slot: Option<usize>,
+    #[cfg(feature = "test-supervisor-wait")]
+    first_waiting_kill_tick: u64,
 }
 static mut EVIDENCE: Evidence = Evidence {
     spawns: 0,
@@ -72,6 +81,14 @@ static mut EVIDENCE: Evidence = Evidence {
     supervisor_code: 0,
     sup: [0; 16],
     image_of: [u32::MAX; MAX],
+    #[cfg(feature = "test-supervisor-wait")]
+    waiting_kills: 0,
+    #[cfg(feature = "test-supervisor-wait")]
+    waiting_reuses: 0,
+    #[cfg(feature = "test-supervisor-wait")]
+    last_waiting_slot: None,
+    #[cfg(feature = "test-supervisor-wait")]
+    first_waiting_kill_tick: 0,
 };
 fn evidence() -> &'static mut Evidence {
     // SAFETY: One CPU, IF=0; every borrow ends before scheduling or cleanup.
@@ -87,6 +104,8 @@ fn case() -> u64 {
         PARENT_EXIT
     } else if cfg!(feature = "test-supervisor-quota") {
         QUOTA
+    } else if cfg!(feature = "test-supervisor-wait") {
+        WAIT
     } else {
         NORMAL
     }
@@ -97,6 +116,7 @@ fn marker() -> &'static [u8] {
         CRASH => b"SUPERVISOR:CASE:CRASH:PASS\n",
         DENIED => b"SUPERVISOR:CASE:DENIED:PASS\n",
         PARENT_EXIT => b"SUPERVISOR:CASE:PARENT_EXIT:PASS\n",
+        WAIT => b"SUPERVISOR:CASE:WAIT:PASS\n",
         _ => b"SUPERVISOR:CASE:QUOTA:PASS\n",
     }
 }
@@ -316,6 +336,16 @@ fn spawn_checked(s: &mut State, pid: u64, a: [u64; 6]) -> Result<u64, i64> {
     // Commit: frames and tables first (prechecked), then authority.
     s.spawn_process_from(free, elf);
     let child = s.processes[free].pid;
+    #[cfg(feature = "test-supervisor-wait")]
+    if let Some(previous) = evidence().last_waiting_slot {
+        require(
+            free == previous
+                && s.processes[free].wait.is_none()
+                && s.processes[free].status == Status::Ready,
+            b"WAIT_REUSE_CLEAN",
+        );
+        evidence().waiting_reuses += 1;
+    }
     let engine = m4::engine();
     engine
         .register(child)
@@ -372,11 +402,38 @@ fn kill(s: &mut State, slot: usize, handle: u64) -> Result<u64, i64> {
     if target == slot {
         fail(b"SELF_KILL");
     }
+    #[cfg(feature = "test-supervisor-wait")]
+    {
+        require(
+            s.processes[target].status == Status::Waiting && s.processes[target].wait.is_some(),
+            b"KILL_WHILE_WAITING",
+        );
+        let ev = evidence();
+        if ev.waiting_kills == 0 {
+            ev.first_waiting_kill_tick = s.ticks;
+        } else {
+            // The first worker registered its 40-tick deadline before kill.
+            // This strict upper bound must pass without waking its successor.
+            require(
+                s.ticks > ev.first_waiting_kill_tick + 40,
+                b"WAIT_OLD_DEADLINE_NOT_CROSSED",
+            );
+        }
+        ev.last_waiting_slot = Some(target);
+    }
     if !m4::engine().process_died(view.child, PROCESS_KILLED, 0) {
         fail(b"KILL_STATE");
     }
     s.processes[target].status = Status::Dying;
     s.cleanup(target);
+    #[cfg(feature = "test-supervisor-wait")]
+    {
+        require(
+            s.processes[target].status == Status::Dead && s.processes[target].wait.is_none(),
+            b"WAIT_KILL_CLEANUP",
+        );
+        evidence().waiting_kills += 1;
+    }
     evidence().kills += 1;
     Ok(0)
 }
@@ -555,6 +612,37 @@ fn finish(s: &mut State) -> ! {
                 b"PARENT_EXIT_ORPHANS",
             );
         }
+        #[cfg(feature = "test-supervisor-wait")]
+        WAIT => {
+            require(
+                ev.spawns == 2 && ev.kills == 2 && sup_kills == 2 && killed_confirmed == 2,
+                b"WAIT_LIFECYCLES",
+            );
+            require(
+                restarts == 1 && instances == 2 && ev.waiting_kills == 2 && ev.waiting_reuses == 1,
+                b"WAIT_FRESH_REUSE",
+            );
+            require(
+                denied_matched == 3 && denied_total == 3 && ev.kill_errors == 2,
+                b"WAIT_DENIALS",
+            );
+            require(
+                ev.orphans_reaped == 0 && ev.child_exits == 0 && ev.child_faults == 0,
+                b"WAIT_ENDINGS",
+            );
+            let m = s.wait_metrics;
+            require(
+                m.calls == 4
+                    && m.blocked == 4
+                    && m.wake_timeout == 2
+                    && m.immediate_ready == 0
+                    && m.immediate_timeout == 0
+                    && m.wake_ready == 0
+                    && m.wake_error == 0
+                    && m.idle_irqs > 40,
+                b"WAIT_REAL_BLOCKING",
+            );
+        }
         _ => {
             require(spawns_ok == 15 && spawn_quota_errors == 1, b"QUOTA_SPAWNS");
             require(ev.spawns == 15 && ev.spawn_quota == 1, b"QUOTA_KERNEL");
@@ -618,6 +706,17 @@ fn finish(s: &mut State) -> ! {
         (b"SUPERVISOR:DENIED_MATCHED:", denied_matched),
         (b"SUPERVISOR:DENIED_TOTAL:", denied_total),
         (b"SUPERVISOR:TICKS:", s.ticks),
+    ] {
+        print_number(label, value);
+    }
+    #[cfg(feature = "test-supervisor-wait")]
+    for (label, value) in [
+        (b"SUPERVISOR:WAITING_KILLS:".as_slice(), ev.waiting_kills),
+        (b"SUPERVISOR:WAITING_REUSES:", ev.waiting_reuses),
+        (b"SUPERVISOR:WAIT_CALLS:", s.wait_metrics.calls),
+        (b"SUPERVISOR:WAIT_BLOCKED:", s.wait_metrics.blocked),
+        (b"SUPERVISOR:WAIT_TIMEOUTS:", s.wait_metrics.wake_timeout),
+        (b"SUPERVISOR:WAIT_IDLE_IRQS:", s.wait_metrics.idle_irqs),
     ] {
         print_number(label, value);
     }

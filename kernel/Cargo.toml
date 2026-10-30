@@ -61,6 +61,7 @@ test-supervisor-crash = ["native-supervisor"]
 test-supervisor-denied = ["native-supervisor"]
 test-supervisor-parent-exit = ["native-supervisor"]
 test-supervisor-quota = ["native-supervisor"]
+test-supervisor-wait = ["native-supervisor", "ipc-wait"]
 # FR-I01 explicit composed profile; legacy fixture profiles remain separate.
 native-cap-digest-bench = ["native-system", "capability-core/diagnostic-bench"]
 native-system = ["native-volume", "native-keyring", "native-supervisor"]

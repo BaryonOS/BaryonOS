@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "36cbd215e03becbc4b495ae1b3a42b844603e0fa",
+    "source_commit": "686e84788256fa2c1c433145b06f7c490a099325",
     "branch": "simon/native-test-version",
-    "task": "NATIVE-TEST-VERSION: echte normale/koude GUI en native IPC/system/RTC/FPU-regressies groen; lokale proefversie gebouwd",
+    "task": "NATIVE-TEST-VERSION: afzonderlijke Waiting-kill/slothergebruikcase geïmplementeerd; native K05-hertoets volgt",
     "previous_score": 34,
-    "summary": "34% blijft 34%; minstens50% is niet bereikt. De definitieve echte GUI edit/save/list/reopen slaagt op36cbd21 in128,857s; een volledig nieuwe readonly-VM heropent exact dezelfde disk in60,679s en weigert writes zonder ACK. Alle processen/handles opgeruimd, canaries/systeemrand intact. System normal/recover, RTC en IPC-wacht zijn op dezelfde runtimebron opnieuw raw33 groen;64 core/wacht- en23 SDK-tests slagen. Ook native FPU/wacht en de aparte yieldbaseline slagen op de identieke bronvingerafdruk. De lokale normale eigen-kernel/UEFI-proefversie is opnieuw gebouwd en haar tien payloads zijn bitgelijk aan de geslaagde normale run. Geen volledig nieuw rubriccriterium gesloten; kill van Waiting, volledige document/GUI/productcriteria, overige native gates en menselijke/hardwareacceptatie blijven open."
+    "summary": "34% blijft 34%; minstens50% is niet bereikt. Normale/koude GUI, IPC/system/RTC en beide FPU-profielen blijven aan hun eerder geslaagde bron gebonden; lokale eigen-kernel/UEFI-proefversie bewaard. Nieuwe afzonderlijke test-supervisor-wait-case gebruikt bestaande K05-rechten voor twee echte Waiting-kills, OBSERVE-weigering, stale handles en schoon PID/slothergebruik voorbij de oude deadline. Geen kill-, scheduler-, cleanup- of publieke ABI-wijziging. Scalarbuild/ELF-inspectie,8 strikte K05-harnas- en1 protocolhosttest slagen; de nieuwe lifecycle-VM en volledige zes-cases native K05-gate zijn nog niet uitgevoerd. Geen extra punten of nieuwe native acceptatie; volledige productcriteria en menselijke/hardwareacceptatie blijven open."
   },
   "tracks": [
     {

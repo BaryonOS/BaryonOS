@@ -162,6 +162,17 @@ performanceacceptatie open, met nul zelfstandige releasepunten.
 
 ## Uitgevoerde componentcontrole
 
+De aparte lifecyclecase `test-supervisor-wait` gebruikt uitsluitend de
+bestaande K05 Launch/Process/SEND/KILL/OBSERVE-rechten. Zij moet twee echte
+Waiting-kinderen beëindigen, een OBSERVE-only-kill weigeren en na schoon
+PID/slothergebruik de oude status-/killhandle weigeren. De nieuwe wacht
+moet voorbij de bovengrens van de oude deadline intact blijven. De observer
+verandert geen processtatus of wake: hij controleert de gewone spawn/kill/
+cleanup-uitkomst en verlangt lege Engine en volledig frameherstel.
+Alle zes K05-cases en hun hostorakels blijven vereist. Native uitvoering
+wordt pas afgetekend met de brongebonden rapporten onder
+`verification/native-test-version/`.
+
 De integratie voegt daarnaast een afzonderlijke `test-fpu-wait`-proef toe:
 de bestaande echte x87/SSE-apps vervangen alleen op ABI1.10 hun yield door
 een begrensde count0-deadlinewait. Alle registervergelijkingen,

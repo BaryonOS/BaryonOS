@@ -3,7 +3,7 @@
 ## NEXT AGENT HANDOFF — GUI/koude proefversie en echte FPU-wacht groen — 30 oktober 2026
 
 Branch `simon/native-test-version`; basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`,
-code `deb7a3d5c1c72a2fc816a5900062f9ed0d554782`, integratiebewijs op
+eerder gevalideerde code `deb7a3d5c1c72a2fc816a5900062f9ed0d554782`, integratiebewijs op
 `36cbd215e03becbc4b495ae1b3a42b844603e0fa`, bron v3
 `31c1f108e52336c222c1a9541dc91edd06c291c05eedbc88dec03d8df658bf9f`.
 **Score 34% → 34%; gevraagde 50% niet bereikt.** Alle agents klaar; geen
@@ -27,11 +27,23 @@ nu opnieuw gebouwd op die code; alle tien loader/kernel/userspace-payloads
 zijn bitgelijk aan de geslaagde normale run. Core: 64 tests en 1 bestaande
 ignored; SDK: 23 tests, beide offline/locked exit0.
 
-Volgend concreet open punt: kill van een nog Waiting proces met de bestaande
+Actieve kleine stap vanaf `686e847`: kill van een nog Waiting proces met de bestaande
 K05-procesrechten, stale-handleweigering en vers slothergebruik. De bestaande
 `supervisor::kill` loopt al via echte KILL-rechten en normale cleanup; lees
 nu uitsluitend die fixture/apps/runner voor een afgebakende native proef.
-Nog geen nieuwe schrijver of achtergrondtaak gestart. Open: overige native/productmatrix,
+Schrijfbestanden: kernel-feature/supervisor-fixture, SDK-supervisorprotocol/
+worker/supervisor, buildkeuze, bestaande K05-runner/gate/hosttest,
+`process-management.yml` en bewijsdocs. Geen wijziging aan kill-afdwinging,
+scheduler, cleanup of publieke ABI. Eén eigenaar, geen achtergrondtaak.
+De nieuwe case vereist twee echte Waiting-kills, OBSERVE-zonder-KILL-weigering,
+stale status/kill na vers PID/slothergebruik, geen overgenomen oude wake,
+lege Engine en volledig frameherstel. Acceptatie: protocol-/harnastests,
+scalarbuild en alle zes echte K05-cases; score blijft zonder nieuw criterium34%.
+De nieuwe scalarbuild/ELF-inspectie, 8 K05-harnastests, 1 protocolhosttest,
+root-formatcheck en diffcheck slagen, exit0. De echte nieuwe lifecycle-VM
+is bij dit codecheckpoint **nog niet uitgevoerd**. Buildlog:
+`/tmp/nieuw-os-native-wait-lifecycle-build.log`.
+Open: overige native/productmatrix,
 fysieke en menselijke acceptatie. Testfixtureplaintext is geen persoonlijke
 opslag-/encryptie-/releaseclaim. Nieuwe concept-PR is niet geopend omdat de
 app-sessie aan de oudere infra-branch is gebonden; geen CLI-omweg gebruikt.

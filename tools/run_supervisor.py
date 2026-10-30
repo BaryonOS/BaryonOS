@@ -18,9 +18,9 @@ BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 FAILURES = ("PANIC", "FAIL")
 FEATURE = {"normal": "native-supervisor", "crash": "test-supervisor-crash",
            "denied": "test-supervisor-denied", "parent-exit": "test-supervisor-parent-exit",
-           "quota": "test-supervisor-quota"}
+           "quota": "test-supervisor-quota", "wait": "test-supervisor-wait"}
 CASE_MARKER = {"normal": "NORMAL", "crash": "CRASH", "denied": "DENIED",
-               "parent-exit": "PARENT_EXIT", "quota": "QUOTA"}
+               "parent-exit": "PARENT_EXIT", "quota": "QUOTA", "wait": "WAIT"}
 MAX_TIMEOUT = 180
 
 # Host-side expectations per case, checked on the kernel's evidence numbers.
@@ -34,6 +34,10 @@ EXPECT = {
                "DENIED_MATCHED": 21, "DENIED_TOTAL": 21},
     "parent-exit": {"SPAWNS": 2, "KILLS": 0, "ORPHANS_REAPED": 2, "CHILD_EXITS": 0, "CHILD_FAULTS": 0},
     "quota": {"SPAWNS": 15, "SPAWN_QUOTA": 1, "KILLS": 15, "MAX_LIVE": 16, "ORPHANS_REAPED": 0},
+    "wait": {"SPAWNS": 2, "KILLS": 2, "KILL_ERRORS": 2, "ORPHANS_REAPED": 0,
+             "CHILD_EXITS": 0, "CHILD_FAULTS": 0, "RESTARTS": 1, "WORKER_INSTANCES": 2,
+             "DENIED_MATCHED": 3, "DENIED_TOTAL": 3, "WAITING_KILLS": 2, "WAITING_REUSES": 1,
+             "WAIT_CALLS": 4, "WAIT_BLOCKED": 4, "WAIT_TIMEOUTS": 2},
 }
 for case in EXPECT:
     if case != "normal":
@@ -41,7 +45,7 @@ for case in EXPECT:
 
 AT_LEAST = {"normal": {"CLIENT_CLOSED": 1}, "crash": {"CLIENT_CLOSED": 1},
             "denied": {"SPAWN_DENIED": 11, "KILL_ERRORS": 3}, "parent-exit": {"CLIENT_REPLIES": 4},
-            "quota": {}}
+            "quota": {}, "wait": {"WAIT_IDLE_IRQS": 41}}
 
 
 def numbers(stdout: str) -> dict[str, int]:
@@ -76,6 +80,8 @@ def check_numbers(case: str, found: dict[str, int]) -> None:
             raise ValueError(f"{key}: expected at least {minimum}, found {found.get(key)}")
     if "TICKS" not in found or found["TICKS"] >= 6000:
         raise ValueError("missing or exhausted tick budget")
+    if case == "wait" and found["WAIT_IDLE_IRQS"] > found["TICKS"]:
+        raise ValueError("wait IRQ count exceeds actual monotonic ticks")
 
 
 def evaluate(case: str, stdout: str, rc, timed_out: bool) -> dict[str, int]:
