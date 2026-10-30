@@ -504,3 +504,42 @@ het runnerslot toe. Beoordeel vervolgens de werkelijk gerenderde modal en
 foutframes plus de bijbehorende bedieningsasserties; geen extra VM door rol 15
 zonder die afstemming. UX-V01–03 zijn concrete productafwijkingen voor dat
 vervolg, geen opdracht om zonder claim de gedeelde tokenbron te wijzigen.
+
+## UX-V01 — gerichte bronreview van de hoverfix
+
+**30 oktober 2026, Europe/Amsterdam.** Beoordeelde leaf:
+`0818f5ec651b72c32b8795ff0d3d9a6ebdc9783d` →
+`29b79eae19de616be415cfbd7b7cc313766546d6`
+(`origin/codex/native-primary-hover`). Alleen de rendererdelta, bijbehorende
+pixelregressies en `UX-V01-primary-hover.md` zijn beoordeeld; geen algemene
+herreview of nieuwe test-/VM-run.
+
+**Uitkomst: geen blokkerende ontwerpafwijking in deze delta.** De primaire
+knop houdt bij hover `ACCENT` als vulling en `SURFACE` als labelkleur; alleen
+de rand verandert naar de bestaande `TEXT`-kleur. Dat voldoet aan de hierboven
+aangescherpte hoverregel, zonder nieuwe tokens of geometriewijziging. De
+disabled-tak blijft vóór de stijlkeuze staan; Secondary en Danger zijn
+ongewijzigd. De bestaande focuscode blijft na het schilderen van de knop staan.
+
+De toegevoegde tests bemonsteren echte tilepixels op 100/200% voor Nieuw,
+Opslaan en de primaire modalbewaaractie: vulling, bovenrand, focusrand en
+ongewijzigde gerenderde labelpixels. De aanwijzer ligt buiten die samples.
+Een afzonderlijke case controleert disabled Nieuw en secondary-hover
+Vernieuwen. Dit is gericht regressiebewijs, geen volledige oppervlakvergelijking
+of native modal-/toegankelijkheidsacceptatie.
+
+Uitgevoerde reviewcontroles: `git diff --name-only 0818f5e 29b79eae`
+toont uitsluitend de drie toegewezen leafbestanden; de volledige renderer-/
+testdiff en bewijsnotitie zijn gelezen. Een read-only Python-stdlibcontrole
+vergeleek alle twaalf SHA-256-vermeldingen uit die notitie: drie bron-/token-
+bestanden tegen Git-objecten en negen logs tegen de aangeleverde logmap.
+Exit 0. `red.log` toont de verwachte oude fout bij Material/100%;
+`regressions.log` toont 4/4 groen. De overige gates zijn door rol 13 uitgevoerd
+en beschreven, niet door rol 15 opnieuw gedraaid. Geen bundelcode uitgevoerd.
+
+**UX-V01 is op bron-/hostregressieniveau afgehandeld; native herbeoordeling
+blijft open.** De zes 0818-beelden worden niet naar 29b79eae herlabeld.
+UX-V02/03, SR05/06/08, native 200%, integratie-CI en menselijke acceptatie
+blijven buiten deze review. Scorevoorstel blijft **34% → 34%**; centrale
+assessment bij de manager. Integratie en passende gecombineerde gates blijven
+bij de toegewezen integrator; rol 15 wijzigt geen runtimebestanden.
