@@ -1,6 +1,33 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — 16 integratie-VM's groen; lokale proefversie gebonden — 30 oktober 2026
+## NEXT AGENT HANDOFF — B02/main gecombineerd; hertoets open — 30 oktober 2026
+
+Integratie vanaf `3f0845b83cdb5bf64386645a288b47ec09c424c5` met main
+`f52dab5` (PR #64). De code is gecombineerd; onderstaande 16 VM's en
+proefversie blijven uitsluitend bewijs van de oude bron. Main voegt apart
+admin-ingress en persistent keystate toe. De Key Service bewaart beide
+gedragingen: alleen legacy-ingress mag quiescent wachten; RANDOM en admin
+behouden hun bestaande yield/poll-pad, zodat werk op die endpoints niet
+achter een legacy-only wachtset blijft liggen. Geen nieuwe rechten buiten
+het main-B02-manifest en geen publieke ABI-wijziging. ADR-051 blijft B02;
+de branchlokale wacht-ADR is bij deze ID-botsing hernummerd tot ADR-053.
+
+Eigen samenvoegresolutie: `sdk/examples/keyring/src/service.rs`, README,
+status/assessment en DECISIONS; alle main-code, tests en brongebonden
+B02-bewijs behouden. Hosthertoets op de gecombineerde werkboom groen:
+`python3 -B -m unittest discover -s tests -p 'test_system_*.py'`
+(46 tests), `python3 -B -m unittest discover -s tools/tests` (102 tests),
+`LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" CARGO_TARGET_DIR="$PWD/target/native-test-version/wait-lifecycle-host" python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --workspace`
+(377 passed, 1 bestaande ignored), rootfmt en gerichte rustfmt van de
+Key Service; alle exit0. Logs `/tmp/nieuw-os-b02-merge-{system-host,tools-host,workspace}.log`.
+Native hertoets **nog niet uitgevoerd** op deze combinatie. Na checkpoint/push:
+`tools/test_system.py`, B01, RANDOM/klok en normale/koude GUI waar passend.
+Geen nieuwe punten: **34% → 34%; 50% blijft open**. Windowsbundel-PR #65
+blijft apart; pas na eigen interactief bewijs bron/image vastleggen.
+Eerstvolgend commando:
+`python3 -B -m unittest discover -s tests -p 'test_system_*.py'`.
+
+## Uitvoeringshistorie — 16 integratie-VM's groen; lokale proefversie gebonden
 
 Branch `simon/native-test-version`; basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`,
 geteste niet-GUI-bron `37a74784f71889d6ea41a230d756be16c1728ae8`,
@@ -277,7 +304,7 @@ de ongewijzigde 20.000-PIT-tickgrens voordat de echte documenthandeling
 voltooid was. In plaats van budgetten te verruimen wordt de al aanwezige
 componentbranch voor begrensde IPC-wacht geïntegreerd (`ae3f022`, `2b286d2`,
 `57b6e93`). De integratie behoudt de nieuwere stackbereikvalidatie en RTC;
-de wacht-ABI wordt 1.10 omdat 1.9 al de RTC-klok betekent (ADR-051).
+de wacht-ABI wordt 1.10 omdat 1.9 al de RTC-klok betekent (nu ADR-053).
 Productprofielen gebruiken de nieuwe wacht nog niet.
 
 Schrijfgebieden hoofdagent: capability-core-hostharnas, kernel-wacht/
@@ -386,7 +413,74 @@ de app-sessie is aan de oudere infrastructuurbranch gebonden, terwijl
 de OS-werkbranch bewust apart staat; de sessie-PR-tool kan geen andere head kiezen.
 Geen nieuwe voortgangspunten, geen menselijke/hardware-/releaseacceptatie.
 
-## Historisch checkpoint — NATIVE-CLOCK-1 afgerond — 30 oktober 2026
+## Historisch checkpoint — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
+
+Basis `ad2b981` (`main` na PR #63), branch
+`codex/b02-persistent-keystate-20261030`, worktree
+`/home/simon/projects/nieuw-os-b02`; doelbranch `main`. Geteste werkboom:
+bronfingerprint v3 `32da9d6159bffc70c9ef60dd2c33c678e4222ba8c6a2cc72b5a54a89d4c74504`.
+De andere zichtbare lokale sessie (worktree `simonvanieperen-studious-sniffle`,
+PR #62) heeft niet-gepushte IPC-WAIT-wijzigingen in `kernel/src/m2/m3.rs`,
+`sdk/runtime` en `tools/build.py`; dit werk raakt die bestanden niet.
+
+Geïmplementeerd (ADR-051, FR-B02P in `implementation/B02-SECURE-RECORDS.md`):
+KEY1-opcodes `EXPORT_PERSISTENT`/`RESTORE_PERSISTENT` (11/12) met
+`wire::dispatch_persistent`; een optioneel derde administratief ingress in de
+native Key Service (startwoorden 96/104/168) dat uitsluitend persistentie
+bedient en alleen de manifest-afzender toelaat; in het FR-I01-profiel is init
+de herstelagent met volumedomein 1. Normale run: app verzegelt in RAM →
+`KEYS_READY` → init exporteert (created [2,0], revoked [1,0], generatie 3),
+weigert verkeerd geheim/generatievloer/GENERATE-op-admin, commit het
+120-byteblob als object 8, importeert idempotent → `PERSISTED` → app commit
+het 168-byterecord als document 1. Koude herstart op dezelfde read-only
+image: init leest object 8, weigert dezelfde negatieven, herstelt vóór `GO`;
+app krijgt index 2 bij GENERATE, ontzegelt document 1 met sleutel 1, sleutel 0
+geeft `Revoked`, een gewijzigde byte `Auth`. Het schijforakel behandelt
+objecten 1 en 8 expliciet als opaque en controleert dat het record de
+bekende plaintext niet bevat en het blob alleen `NOSKEY01`/v1/suite 1/
+volume-ID buiten de AEAD-body draagt. **34% → 34%**: B02 blijft open
+(geen vertrouwd rollbackanker, geen write-ahead per GENERATE in de dienst).
+
+Uitgevoerd vanuit de worktree met de lokale `.tools`-omgeving
+(Rust 1.90.0, QEMU 10.2.1, OVMF 2025.11, `pc-q35-8.2`, TCG, 1 CPU/256 MiB),
+elk exit **0** tenzij vermeld:
+
+| Commando | Resultaat / log |
+|---|---|
+| `cargo +1.90.0 test --offline --locked -p keyring-core` | 15 + 5 nieuwe (`persistent_wire`) + 8 + 23 + random; `target/b02-host` |
+| `cargo +1.90.0 clippy --offline --locked -p keyring-core --all-targets -- -D warnings` | schoon |
+| `cargo +1.90.0 fmt --all -- --check` en `… --manifest-path sdk/Cargo.toml --all -- --check` | schoon |
+| `python3 -B -m unittest discover -s tests -p 'test_system_*.py'` | 46 tests (3 nieuw) |
+| `python3 -B sdk/examples/keyring/build.py`, `sdk/examples/system/build.py` | native ELF's binnen linkerbudget |
+| `python3 -B -u tools/test_system.py` (`NOS_BUILD_DIR=build/b02-system`) | FR-I01 normaal 3,2 s en koude herstart 3,3 s, raw 33; `build/b02-system/system-gate.json` |
+| `python3 -B tools/capture_system.py --destination docs/verification/full-release-b02-keystate-system` | twee runs onafhankelijk hergevalideerd, 120 KiB compact bewijs |
+| `python3 -B -u tools/test_keyring.py` (B01-regressie, `build/b02-keyring`) | 5/5 QEMU-gevallen, 52+15 host; adapter met admin-woorden op 0 ongewijzigd |
+| `tools/run_random.py --case raw/sdk/unknown/wrong-caller` | alle vier native groen (`build/b02-random-raw`) |
+| `tools/run_system_clock.py` | groen (`build/b02-clock`) |
+| `tools/test_net_system.py` | normaal 31,9 s en herstel 32,0 s groen (`build/b02-net`) |
+| `tools/build.py --kernel-feature native-system-images` + `tools/run_images.py --case normal` | groen (`build/b02-images`), na lokaal ophalen van de ontbrekende offline crates `simd-adler32`/`zune-*` |
+| `tools/test_tcp_system.py` | normaal + koude herstart groen (`build/b02-tcp`), na lokale installatie van toolchain 1.91.1 en `cargo fetch` van `smoltcp`/`heapless` |
+
+Baseline vóór de wijziging: `tools/test_system.py` op ongewijzigde `main`
+`ad2b981` groen (generatie 1, 1 chunk, klokken [1, 0]), zodat de nieuwe
+schijfverwachting (generatie 3, 3 chunks, [2, 1]) herleidbaar is tot de twee
+extra commits. Evidence: `docs/verification/full-release-b02-keystate-system/`
+(normal `DISK_WRITES` 112, `DISK_FLUSHES` 7; recover 720 reads, 0 writes;
+image-SHA `742539dd…` vóór en na de koude herstart identiek).
+
+**Niet uitgevoerd/open:** volledige kernel-clippy (bestaande M2-waarschuwingen,
+niet door dit werk), GUI-/Materiaal-keten, CI op de PR-head, menselijke
+review, fysieke hardware. Beperkingen: generatievloer is gedemonstreerd met
+een lokaal gekozen waarde, geen vertrouwd anker; het geheim staat in de
+SDK-ontvangstbuffer tot overschrijving (zoals legacy RESTORE); de
+volume-identiteit is de profielconstante `NOS-SYSTEM-VOL01`; tussen GENERATE
+en export is er geen write-ahead in de dienst; crash tussen `KEYS_READY` en
+`PERSISTED` laat de app zonder commit achter (correct, niet getest).
+Eerstvolgende stap: review van de concept-PR en CI op de head; daarna
+write-ahead van allocaties in de Key Service via de volumetransactie en een
+echt rollbackanker (TPM-CRB-spoor) als volgende B02-stap.
+
+## Historisch checkpoint — NATIVE-CLOCK-1 afgerond; PR blijft draft voor review — 30 oktober 2026
 
 Bronbasis `c057d864e413840644da39b6c8338e883cbe2ff4`, implementatiecheckpoint
 `652cd5d4c9c68afb0b143c0147197aa7fc6f8220`, bewijscheckpoint

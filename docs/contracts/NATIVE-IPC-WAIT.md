@@ -136,6 +136,14 @@ het opzettelijke wachten; dat mag niet als actieve kernelrekentijd worden
 gepresenteerd. De nieuwe interne waitmetrics onderscheiden calls, registratie,
 directe resultaten, wake-resultaten en werkelijk getelde idle-IRQ0's.
 
+Bij de integratie met B02/main (`f52dab5`) behoudt de Key Service het
+bestaande poll/yield-pad wanneer RANDOM of het administratieve ingress
+aanwezig is. Alleen de twee legacy-domeiningangen zijn onderdeel van de
+huidige quiescente wachtset. Slapen op die twee terwijl een adminverzoek
+wacht, zou de bestaande beheerroute onnodig tot de wachtdeadline vertragen.
+De normale Materiaal-dienst zonder deze optionele ingangen behoudt wachten;
+dit voegt geen capability of automatische adminbevoegdheid toe.
+
 ## Verplichte negatieve en native acceptatie
 
 - Pure core- en waittests: leeg/vol/wrap, verkeerde rechten/type/PID/owner,

@@ -1,8 +1,10 @@
 # B02 — geauthenticeerde records en exacte sleutelstatus
 
-Datum: 29 oktober 2026. Taak FR-B02, voortbouwend op B01/ADR-043 en
-`services/volume`. Status: **core geïmplementeerd, hosttests en no_std-build
-uitgevoerd; native opslagintegratie en volledige B02-acceptatie blijven open**.
+Datum: 29 oktober 2026; aangevuld 30 oktober 2026 (FR-B02P). Taak FR-B02,
+voortbouwend op B01/ADR-043 en `services/volume`. Status: **core, wire en
+native persistentieslice geïmplementeerd en in het FR-I01-profiel onder QEMU
+bewezen (zie FR-B02P onderaan); koude rollbackankering, write-ahead in de
+dienst en volledige B02-acceptatie blijven open**.
 Er is geen nieuwe kernelcryptografie of afhankelijkheid. De bestaande
 KEY1-opcodes/ABI blijven behouden; FR-B02N voegt compatibele recordopcodes toe.
 
@@ -236,3 +238,69 @@ LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-fr-storag
 Dit bouwbewijs voert geen VM uit. De hoofdintegrator moet de nieuwe opcodes
 native aanroepen en cross-domain-/type-/schema-/manipulatiefouten observeren;
 de persistente opslag-/rollbackgates blijven open.
+
+## FR-B02P — persistente sleutelstatus en verzegeld record native
+
+30 oktober 2026, ADR-051, branch `codex/b02-persistent-keystate-20261030`.
+Dit voltooit de contractstappen 1–3 en een begrensde vorm van 4–5 hierboven;
+het is geen volledige B02-acceptatie.
+
+### Wire
+
+`EXPORT_PERSISTENT = 11` en `RESTORE_PERSISTENT = 12` gebruiken dezelfde
+KEY1-tag, header en foutantwoorden. Sleutelindex moet 0 zijn.
+
+| Opcode | Aanvraagbody (exact) | Ok-antwoordbody |
+|---|---|---|
+| 11 | volume-ID[16] \| geheim[32] = 48 bytes | blob[120] \| snapshotinfo[16] = 136 bytes |
+| 12 | volume-ID[16] \| geheim[32] \| minimumgeneratie u64 \| blob[120] = 176 bytes | snapshotinfo[16] |
+
+Snapshotinfo is little-endian: generatie u64, daarna per domein created u16 en
+revoked u16. `wire::dispatch_persistent` bedient uitsluitend deze twee opcodes;
+`dispatch_record`, `dispatch_random` en de legacy dispatch van de native dienst
+weigeren 11/12 met `Invalid` vóór enige cryptografische stap. Hosttests:
+`services/keyring/tests/persistent_wire.rs` (5 tests: round-trip naar koude
+instantie met behoud van intrekking en recordsleutels, verkeerd geheim,
+generatievloer, vreemd volume, alle andere opcodes/lengtes/index/status,
+readiness).
+
+### Native adapter
+
+De Key Service leest optioneel een derde ingress uit startwoorden 96 (receive),
+104 (reply-send) en 168 (toegestane afzender-PID). Ontbreekt woord 96, dan
+blijft het B01-profiel exact ongewijzigd. Elke aanvraag wordt op afzender,
+capabilityaantal, tag en header gecontroleerd; bewijswoorden 384–416 tellen
+gezien/exports/restores/geweigerd/verkeerde afzender. Het geheim uit de
+aanvraag wordt in `Zeroizing`-buffers verwerkt; de SDK-ontvangstbuffer van het
+bericht wordt niet actief gewist (bestaande beperking, geldt ook voor legacy
+RESTORE).
+
+### Geïntegreerd profiel (FR-I01, `native-system`/`test-system-recover`)
+
+- Manifest: admin-kanaal Key Service ← init, antwoordkanaal init ← Key
+  Service, volumedomein 1 voor init; de app bezit geen SEND naar het
+  admin-ingress (`APP_ADMIN_HANDLE`) en init's nieuwe handles dragen geen
+  entropy-/blok-/launch-/netwerkrecht (`INIT_AUTHORITY`).
+- Normale run: app genereert sleutel 0, verzegelt/ontzegelt, voert de tien
+  contextweigeringen uit, trekt sleutel 0 in, genereert sleutel 1 en verzegelt
+  een 128-byterecord in RAM (context: volume `NOS-SYSTEM-VOL01`, object 1,
+  revisie 1, chunk 0, schema 1). Na `KEYS_READY` exporteert init de
+  sleutelstatus (created [2,0], revoked [1,0], generatie 3), weigert verkeerd
+  geheim, generatievloer en GENERATE-op-admin, commit het blob als object 8
+  (`sleutelstatus`, 120 bytes) in domein 1, importeert idempotent opnieuw en
+  stuurt `PERSISTED`. Pas dan bewaart de app het record als document 1
+  (`verzegeld`, 168 bytes) via de gewone DocumentSession.
+- Koude herstart (zelfde image, read-only blokrecht): init leest object 8,
+  weigert verkeerd geheim en vloer `u64::MAX`, herstelt met vloer 0 de exacte
+  toestand vóór `GO`. De app krijgt bij GENERATE index 2 (geen heruitgifte),
+  opent document 1 en ontzegelt het met sleutel 1; sleutel 0 geeft `Revoked`,
+  een gewijzigde laatste byte `Auth`.
+- Onafhankelijk schijforakel (`tools/volume_disk.py`, `run_system.check_disk`):
+  object 1 en 8 zijn expliciet opaque; het record bevat de bekende plaintext
+  niet, het blob draagt alleen `NOSKEY01`/versie/suite/volume-ID buiten de
+  AEAD-body; generatie 3, drie chunks, domeinklokken [2, 1].
+
+Exacte uitvoering, hashes en grenzen: PROJECT-STATE.md en
+`docs/verification/full-release-b02-keystate-*`. Niet bewezen: vertrouwde
+generatievloer, write-ahead per GENERATE/REVOKE binnen de dienst, verlies van
+het externe geheim, meerdere schrijvers, fysieke hardware.

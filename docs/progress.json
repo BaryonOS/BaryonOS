@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "4bdc1a26171095f92ce03611b14a78b38706b062",
+    "source_commit": "3f0845b83cdb5bf64386645a288b47ec09c424c5",
     "branch": "simon/native-test-version",
-    "task": "TPM/GUI-integratie:16 echte VM's groen en bitgelijke lokale automatische proefversie",
+    "task": "Main-B02 combineren met native IPC-wacht/TPM; gezamenlijke hertoets open",
     "previous_score": 34,
-    "summary": "34% blijft34%; minstens50% niet bereikt. Op dezelfde runtimebron slagen16 echte VM's:6 K05,2 FPU,system normaal/koud,RTC,IPC,2 TPM en GUI normaal/koud. Nieuwe lokale automatische proefversie heeft tien bitgelijke payloads en hetzelfde manifest als de echte normale GUI-run. Rustworkspace372 passed/1 bestaande ignored;415 Python-,102 tool- en12 FPU-harnastests plus fmt groen. Geen volledig nieuw criterium, persoonlijke-opslagencryptie, Windowsbundel, fysieke hardware, menselijke acceptatie of volledige CI geclaimd. PR64 is inmiddels merged maar nog niet in deze bron opgenomen; volgende integratiestap blijft afzonderlijk brongebonden."
+    "summary": "34% blijft34%; minstens50% niet bereikt. Main f52dab5 bevat PR64-persistentie; gecombineerd met eigen IPC-wachten/TPM vanaf3f0845b. Administratief ingress behoudt bestaande polling, zodat de legacy-only wachtset geen adminwerk vertraagt. Gezamenlijke hostwerkboom:377 Rusttests/1 bestaande ignored,46 system- en102 tooltests plus fmt groen. Native hertoets nog open; eerdere bewijzen blijven brongebonden. Geen criterium gesloten, geen nieuwe release-, Windows-, menselijke of hardwareacceptatie. De tien bitgelijke automatische-proefpayloads blijven op de eerdere a6c4c723-runtimebron en worden niet naar deze integratie omgelabeld."
   },
   "tracks": [
     {
