@@ -1,6 +1,37 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
+## NEXT AGENT HANDOFF — DHCP-CODEC-1 blijft ongetest en niet-native — 30 oktober 2026
+
+Branch `simonvanieperen-musical-happiness`, bronbasis `f52dab50`; opt-in
+DHCPv4-codec in `services/net-protocol/` is werkboomwerk boven die basis.
+Geen kernel-/SDK-ABI-, capability- of netwerkbevoegdheidswijziging. De werkboom
+bevat alleen de DHCP-module/export/tests, codecdocumentatie, queue en dit
+status/progresscheckpoint.
+
+De codec bouwt DISCOVER, selecting REQUEST en renewal REQUEST en begrensd
+parseert OFFER/ACK/NAK met transaction-/MAC-controle, 576-bytegrens,
+subnet-/router-/DNS-/leasevelden en expliciete weigering van overload. Dit is
+geen DHCP-clienttoestandsmachine en past geen interfaceconfiguratie toe.
+Een matching DHCP-identiteit authenticeert de server niet.
+
+**Bewijs op deze tussenstand:** `python3 -B tools/dev.py cargo +1.90.0 fmt
+--manifest-path services/net-protocol/Cargo.toml --all` exit 0;
+`python3 -B tools/dev.py cargo +1.90.0 check --manifest-path
+services/net-protocol/Cargo.toml --tests --locked --offline` exit 0;
+`git diff --check` exit 0. Gerichte `cargo test` exit 101: `linker cc not
+found`; ruwe uitvoer tijdelijk `/tmp/nieuw-os-dhcp-tests.log`. Testcode is dus
+wel typegecontroleerd maar niet uitgevoerd. Nergens native QEMU-netwerkbewijs.
+
+**Rubric:** 34% → 34%; N01–N04 blijven open; de codec is geen geaccepteerd
+productcriterium. Broncommits voor de volgende herbeoordeling volgen na het
+implementatiecheckpoint. **Blokker:** lokale hostlinker ontbreekt. Eerstvolgende
+commando na checkpoint: `python3 -B tools/dev.py cargo +1.90.0 clippy
+--manifest-path services/net-protocol/Cargo.toml --all-targets --locked
+--offline -- -D warnings`, gevolgd door de freestanding `x86_64-unknown-none`
+build. Daarna hosttestuitvoering herstellen of de blokkade exact escaleren;
+vervolgens pas native DHCP-client-/lease-integratie.
+
+## Historisch checkpoint — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
 
 Basis `ad2b981` (`main` na PR #63), branch
 `codex/b02-persistent-keystate-20261030`, worktree
