@@ -10,8 +10,10 @@ mod protocol;
 mod random_contract;
 mod support;
 use keyring_core::{
+    persistent::PERSISTENT_BLOB,
     records::{RecordContext, RecordKind},
-    wire as kw, Status as KeyStatus, MAX_PLAINTEXT, MAX_SEALED, NONCE_BYTES, TAG_BYTES,
+    wire as kw, Status as KeyStatus, MAX_PLAINTEXT, MAX_SEALED, NONCE_BYTES, SECRET_BYTES,
+    TAG_BYTES,
 };
 use nieuw_os_catalog_client::NativeTransport;
 use nieuw_os_document_session::{
@@ -23,78 +25,11 @@ use nieuw_os_keyring_client::{
     Reply as KeyReply, Session as KeySession, State as KeyState,
 };
 use nieuw_os_sdk_runtime::{
-    native, BlockDevice, EntropySource, LaunchImage, Outgoing, ReceiveEndpoint, SendEndpoint,
+    native, BlockDevice, EntropySource, LaunchImage, ReceiveEndpoint, SendEndpoint,
 };
 use protocol::*;
-use volume_core::{
-    checksum_update,
-    client::{Client, Transport},
-    wire as vw, Status, FNV_OFFSET, PER_DOMAIN,
-};
+use volume_core::{checksum_update, client::Client, wire as vw, Status, FNV_OFFSET, PER_DOMAIN};
 
-fn exchange<const N: usize>(
-    send: SendEndpoint,
-    receive: ReceiveEndpoint,
-    peer: u64,
-    tag: u64,
-    request: &[u8; N],
-) -> [u8; N] {
-    let out = Outgoing::new(tag, request).unwrap_or_else(|_| fail(80));
-    let mut sent = false;
-    for _ in 0..LIMIT {
-        tick();
-        match native::send(send, &out) {
-            Ok(()) => {
-                sent = true;
-                break;
-            }
-            Err(e) if e.is_again() => {
-                let _ = native::yield_now();
-            }
-            Err(_) => fail(81),
-        }
-    }
-    check(sent, 82);
-    for _ in 0..LIMIT {
-        tick();
-        match native::receive(receive) {
-            Ok(reply) => {
-                if reply.cap_count() != 0 {
-                    let _ = native::close_received_caps(&reply);
-                    fail(83);
-                }
-                check(
-                    reply.sender() == peer && reply.tag() == tag && reply.payload().len() == N,
-                    84,
-                );
-                let mut bytes = [0; N];
-                bytes.copy_from_slice(reply.payload());
-                return bytes;
-            }
-            Err(e) if e.is_again() => {
-                let _ = native::yield_now();
-            }
-            Err(_) => fail(85),
-        }
-    }
-    fail(86)
-}
-struct Volume {
-    send: SendEndpoint,
-    receive: ReceiveEndpoint,
-    peer: u64,
-}
-impl Transport for Volume {
-    fn call(&mut self, request: &[u8; vw::SIZE]) -> Result<[u8; vw::SIZE], Status> {
-        Ok(exchange(
-            self.send,
-            self.receive,
-            self.peer,
-            vw::TAG,
-            request,
-        ))
-    }
-}
 /// Only this trusted negative-test fixture borrows the session's numeric
 /// handles. Every raw call is serialized between completed typed exchanges;
 /// it never owns/closes the channels or replaces native denials with SDK errors.
@@ -152,11 +87,124 @@ const RECORD_SEAL: u64 = 456;
 const RECORD_UNSEAL: u64 = 464;
 const RECORD_CONTEXT_DENIED: u64 = 472;
 const RECORD_REVOKED_DENIED: u64 = 480;
+// B02 persistence evidence (kernel system.rs PERSIST_WORDS).
+const RECORD_PERSISTED: u64 = 528;
+const RECORD_RESTORED_UNSEAL: u64 = 536;
+const RECORD_RESTORED_REVOKED_DENIED: u64 = 544;
+const RECORD_RESTORED_TAMPER_DENIED: u64 = 552;
+const RECORD_ADMIN_DENIED: u64 = 560;
+const RECORD_OBJECT_REVISION: u64 = 568;
 
-fn bump(offset: u64) {
-    support::put(offset, support::word(offset) + 1);
+/// Context of the persisted record: bound to this volume identity, the exact
+/// domain-0 object and the revision that the commit below creates.
+fn sealed_context() -> RecordContext {
+    RecordContext {
+        volume: VOLUME_ID,
+        domain: 0,
+        object: SEALED_OBJECT,
+        revision: 1,
+        chunk: 0,
+        length: MAX_PLAINTEXT as u16,
+        kind: RecordKind::Content,
+        schema: 1,
+    }
 }
 
+fn record_plaintext() -> [u8; MAX_PLAINTEXT] {
+    core::array::from_fn(record_byte)
+}
+
+/// Persistence opcodes must be unreachable from an ordinary domain endpoint,
+/// whatever secret or volume the app claims. Both exact-length requests are
+/// refused as Invalid before any cryptographic processing.
+fn admin_ops_denied_on_domain_endpoint(probe: &mut RawKeyProbe) {
+    let secret = [0x11u8; SECRET_BYTES];
+    let blob = [0u8; PERSISTENT_BLOB];
+    let id = probe.next;
+    probe.next += 2;
+    let export = kw::export_persistent_request(id, &VOLUME_ID, &secret).unwrap_or_else(|| fail(44));
+    probe.reply(&export, KeyStatus::Invalid);
+    bump(RECORD_ADMIN_DENIED);
+    let restore = kw::restore_persistent_request(id + 1, &VOLUME_ID, &secret, 0, &blob)
+        .unwrap_or_else(|| fail(45));
+    probe.reply(&restore, KeyStatus::Invalid);
+    bump(RECORD_ADMIN_DENIED);
+}
+
+/// Normal run: allocate a second key and seal one record in memory. Init must
+/// durably persist the key state before this app commits any ciphertext, so
+/// the sealed bytes stay in memory until PERSISTED arrives.
+#[inline(never)]
+fn allocate_and_seal(
+    keys: &mut KeySession<NativeKeyTransport>,
+    probe: &mut RawKeyProbe,
+    registry: SendEndpoint,
+    control: ReceiveEndpoint,
+    sealed: &mut [u8; MAX_SEALED],
+) {
+    let key = match keys.exchange(KeyOperation::Generate) {
+        Ok(KeyReply::Generated(key)) => key,
+        _ => fail(40),
+    };
+    check(key.raw() == 1, 41);
+    let plaintext = record_plaintext();
+    match keys.exchange(KeyOperation::SealRecord {
+        key,
+        context: sealed_context(),
+        plaintext: &plaintext,
+    }) {
+        Ok(KeyReply::Sealed(reply)) => {
+            check(reply.as_bytes().len() == MAX_SEALED, 42);
+            sealed.copy_from_slice(reply.as_bytes());
+        }
+        _ => fail(42),
+    }
+    check(!keys.is_busy(), 43);
+    bump(RECORD_PERSISTED);
+    admin_ops_denied_on_domain_endpoint(probe);
+    send(registry, KEYS_READY);
+    let mut persisted = false;
+    for _ in 0..LIMIT {
+        if let Some(m) = receive(control) {
+            check(
+                m.sender() == support::word(184) && m.payload() == [PERSISTED],
+                46,
+            );
+            persisted = true;
+            break;
+        }
+    }
+    check(persisted, 47);
+}
+
+/// Cold restart: the ciphertext read back from the volume decrypts under the
+/// restored key state, the pre-restart revocation still holds and a modified
+/// record is refused.
+#[inline(never)]
+fn restored_record(
+    keys: &mut KeySession<NativeKeyTransport>,
+    probe: &mut RawKeyProbe,
+    sealed: &[u8; MAX_SEALED],
+) {
+    let context = sealed_context();
+    let key = KeyIndex::new(1).unwrap_or_else(|_| fail(52));
+    match keys.exchange(KeyOperation::UnsealRecord {
+        key,
+        context,
+        sealed,
+    }) {
+        Ok(KeyReply::Plaintext(reply)) => check(reply.as_bytes() == record_plaintext(), 53),
+        _ => fail(53),
+    }
+    check(!keys.is_busy(), 54);
+    bump(RECORD_RESTORED_UNSEAL);
+    probe.record(kw::UNSEAL_RECORD, 0, context, sealed, KeyStatus::Revoked);
+    bump(RECORD_RESTORED_REVOKED_DENIED);
+    let mut corrupted = *sealed;
+    corrupted[MAX_SEALED - 1] ^= 1;
+    probe.record(kw::UNSEAL_RECORD, 1, context, &corrupted, KeyStatus::Auth);
+    bump(RECORD_RESTORED_TAMPER_DENIED);
+}
 /// Exercise the real ring-3 record protocol against the real Key Service.
 /// These are in-memory records under a synthetic volume identity, not encrypted
 /// disk storage: the independent 4096-byte volume fixture stays unchanged.
@@ -362,7 +410,7 @@ fn status_after_random_terminal(keys: &mut KeySession<NativeKeyTransport>) {
 /// ordinary native SDK client owns the volume endpoints until explicit close.
 /// It has no disk/Key-Service secrets, host shortcut or private success path.
 #[inline(never)]
-fn document(recover: bool) -> u64 {
+fn document(recover: bool, sealed: &mut [u8; MAX_SEALED]) -> u64 {
     let mut draft = [0; 4096];
     let mut original = [0; 4096];
     let mut staging = [0; 4096];
@@ -473,6 +521,36 @@ fn document(recover: bool) -> u64 {
             document.save() == Err(DocumentError::ReadOnly) && !document.is_dirty(),
             69,
         );
+        // B02: the sealed record committed by the previous run is an ordinary
+        // document; its bytes come back for the restored-key proof.
+        check(document.open(SEALED_OBJECT).is_ok(), 76);
+        let loaded = document.draft().unwrap_or_else(|| fail(77));
+        check(
+            loaded.object == SEALED_OBJECT
+                && loaded.loaded_revision == 1
+                && loaded.name == SEALED_NAME
+                && loaded.contents.len() == MAX_SEALED,
+            77,
+        );
+        sealed.copy_from_slice(loaded.contents);
+        support::put(RECORD_OBJECT_REVISION, loaded.loaded_revision);
+    } else {
+        // B02: commit the sealed record only now, after init confirmed that the
+        // key state is durable. The document path is the same as for plaintext.
+        check(document.create(SEALED_OBJECT, SEALED_NAME).is_ok(), 70);
+        check(document.replace_range(0..0, sealed).is_ok(), 71);
+        check(
+            document.save() == Ok(SaveOutcome::Saved { revision: 1 }),
+            72,
+        );
+        let metadata = document.metadata().unwrap_or_else(|_| fail(73));
+        check(
+            metadata.revision == 1
+                && metadata.length == MAX_SEALED
+                && metadata.content_sum == checksum_update(FNV_OFFSET, sealed),
+            73,
+        );
+        support::put(RECORD_OBJECT_REVISION, metadata.revision);
     }
     check(document.close().is_ok() && document.is_closed(), 75);
     digest
@@ -556,7 +634,7 @@ fn main() -> ! {
         // It ends before the v7 DocumentSession becomes the sole owner of
         // this endpoint pair; no two active sessions share these handles.
         let mut probe = Client::new(
-            Volume {
+            VolumeTransport {
                 send: SendEndpoint::from_handle(handle(80)),
                 receive: ReceiveEndpoint::from_handle(handle(72)),
                 peer: support::word(168),
@@ -606,13 +684,14 @@ fn main() -> ! {
         }
     }
     check(go, 9);
-    support::put(240, 10);
-    let digest = document(recover);
     support::put(240, 15);
     let key = match keys.exchange(KeyOperation::Generate) {
         Ok(KeyReply::Generated(key)) => key,
         _ => fail(15),
     };
+    // A cold restart restores the exact allocation count: the two indices of
+    // the previous run are never reissued.
+    check(key.raw() == if recover { 2 } else { 0 }, 15);
     let plain = b"Nieuw OS: echte lokale cryptografie via ring-3 IPC.";
     let mut blob = [0; MAX_SEALED];
     let length = match keys.exchange(KeyOperation::Seal {
@@ -650,6 +729,19 @@ fn main() -> ! {
     let _ = probe.call(kw::UNSEAL, key.raw(), &blob[..length], KeyStatus::Revoked);
     records_after_revoke(&mut probe, key.raw(), context, &record);
     status_after_random_terminal(&mut keys);
+    support::put(240, 22);
+    let mut sealed = [0; MAX_SEALED];
+    if recover {
+        admin_ops_denied_on_domain_endpoint(&mut probe);
+    } else {
+        allocate_and_seal(&mut keys, &mut probe, registry, control, &mut sealed);
+    }
+    support::put(240, 10);
+    let digest = document(recover, &mut sealed);
+    if recover {
+        support::put(240, 23);
+        restored_record(&mut keys, &mut probe, &sealed);
+    }
     check(keys.close().is_ok() && keys.is_closed(), 21);
     for (at, value) in [
         (400, 1),

@@ -13,8 +13,14 @@ const APP: usize = 3;
 const WORDS: [u64; 13] = [
     40, 240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480,
 ];
+/// B02 persistence evidence of the app: persisted record seals, restored
+/// unseals, revoked/tampered refusals after restart, administrative opcodes
+/// refused on the domain endpoint, committed object revision.
+const PERSIST_WORDS: [u64; 6] = [528, 536, 544, 552, 560, 568];
+const RECOVER: bool = cfg!(feature = "test-system-recover");
 struct Evidence {
     app: Option<[u64; 13]>,
+    persist: Option<[u64; 6]>,
     #[cfg(feature = "native-system-clock")]
     clock: Option<[u64; 4]>,
     init: Option<[u64; 13]>,
@@ -29,6 +35,7 @@ struct Evidence {
 }
 static mut EVIDENCE: Evidence = Evidence {
     app: None,
+    persist: None,
     #[cfg(feature = "native-system-clock")]
     clock: None,
     init: None,
@@ -206,12 +213,16 @@ pub(super) fn manifest(s: &mut State) {
     let key_other_root = e.create_endpoint(key).unwrap();
     let key_other = e.derive(key, key_other_root, RECV).unwrap();
     e.close(key, key_other_root).unwrap();
+    // B02: the persistence-only administrative ingress of the Key Service is
+    // granted to init alone; the app never holds a SEND to it.
+    let (key_admin_ingress, init_key_admin) = channel(e, key, init);
+    let (init_key_reply, key_admin_reply) = channel(e, init, key);
     let entropy = e.create_entropy(key).unwrap();
     let (volume_reply, volume_send_reply) = channel(e, app, volume);
     let (volume_ingress, app_volume) = channel(e, volume, app);
-    // The unused second volume domain belongs to init, never the app.
-    let (volume_other, _) = channel(e, volume, init);
-    let (_, volume_reply_other) = channel(e, init, volume);
+    // The second volume domain belongs to init (key-state snapshot), never the app.
+    let (volume_other, init_volume) = channel(e, volume, init);
+    let (init_volume_reply, volume_reply_other) = channel(e, init, volume);
     let readonly = cfg!(feature = "test-system-recover");
     let block = e
         .create_block_device_with_rights(
@@ -235,7 +246,10 @@ pub(super) fn manifest(s: &mut State) {
         (56, key_ingress),
         (80, key_other),
         (88, key_send_reply),
+        (96, key_admin_ingress),
+        (104, key_admin_reply),
         (160, app),
+        (168, init),
         (176, key),
     ] {
         put(s, KEY, offset, value);
@@ -262,8 +276,15 @@ pub(super) fn manifest(s: &mut State) {
         (64, registry_receive),
         (72, registry),
         (80, init_control),
+        (88, init_volume),
+        (96, init_volume_reply),
+        (104, init_key_admin),
+        (112, init_key_reply),
+        (120, u64::from(readonly)),
         (160, app),
+        (168, key),
         (176, init),
+        (184, volume),
     ] {
         put(s, INIT, offset, value);
     }
@@ -300,6 +321,27 @@ pub(super) fn manifest(s: &mut State) {
             b"APP_AUTHORITY",
         );
     }
+    // Init's recovery-agent endpoints are plain endpoints: no entropy, block,
+    // launch or network authority is hidden behind the administrative ingress.
+    for handle in [
+        init_key_admin,
+        init_key_reply,
+        init_volume,
+        init_volume_reply,
+    ] {
+        require(
+            e.check_entropy(init, handle).is_err()
+                && e.check_block(init, handle, BLOCK_READ).is_err()
+                && e.check_launch(init, handle).is_err()
+                && e.check_network(init, handle).is_err(),
+            b"INIT_AUTHORITY",
+        );
+    }
+    // The app cannot reach the administrative ingress by any handle it owns.
+    require(
+        e.check_endpoint(app, init_key_admin, SEND).is_err(),
+        b"APP_ADMIN_HANDLE",
+    );
     require(e.check_invariants(), b"MANIFEST_ENGINE");
     let releasable: usize = s.processes[..initial]
         .iter()
@@ -346,6 +388,11 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
         evidence().init = Some(words);
     } else if slot == APP {
         evidence().app = Some(words);
+        let mut persist = [0; 6];
+        for (i, at) in PERSIST_WORDS.iter().enumerate() {
+            persist[i] = word(s, slot, *at);
+        }
+        evidence().persist = Some(persist);
         #[cfg(feature = "native-system-clock")]
         {
             let first = word(s, slot, 488);
@@ -459,6 +506,42 @@ fn finish(s: &mut State) -> ! {
         b"INIT_EVIDENCE",
     );
     require(app[9..13] == [1, 1, 10, 2], b"RECORD_EVIDENCE");
+    // B02 persistence: the recovery agent exported once and committed the
+    // 120-byte snapshot before the app committed ciphertext (normal), or read
+    // it back and restored the exact state before any key work (recover). The
+    // wrong secret, the generation floor and a key opcode on the administrative
+    // ingress were refused in both runs; generation 3 = generate, revoke, generate.
+    let persist = evidence()
+        .persist
+        .unwrap_or_else(|| fail(b"PERSIST_SNAPSHOT"));
+    let expected_init: [u64; 7] = if RECOVER {
+        [0, 1, 1, 1, 1, 120, 3]
+    } else {
+        [1, 1, 1, 1, 1, 120, 3]
+    };
+    require(init[6..13] == expected_init, b"KEYSTATE_EVIDENCE");
+    let expected_persist: [u64; 6] = if RECOVER {
+        [0, 1, 1, 1, 2, 1]
+    } else {
+        [1, 0, 0, 0, 2, 1]
+    };
+    require(persist == expected_persist, b"PERSISTED_RECORD_EVIDENCE");
+    // Key Service administrative ingress: every request came from init, each
+    // refusal is counted and no persistence opcode succeeded elsewhere.
+    let admin_seen = word(s, KEY, 384);
+    let admin_exports = word(s, KEY, 392);
+    let admin_restores = word(s, KEY, 400);
+    let admin_denied = word(s, KEY, 408);
+    let admin_bad_caller = word(s, KEY, 416);
+    require(
+        admin_seen == if RECOVER { 4 } else { 5 }
+            && admin_exports == u64::from(!RECOVER)
+            && admin_restores == 1
+            && admin_denied == 3
+            && admin_bad_caller == 0
+            && word(s, KEY, 256) == 1,
+        b"ADMIN_INGRESS_EVIDENCE",
+    );
     #[cfg(feature = "native-system-clock")]
     {
         let [first, second, monotonic_before, monotonic_after] =
@@ -489,10 +572,15 @@ fn finish(s: &mut State) -> ! {
         word(s, KEY, 192) == 1 && word(s, VOLUME, 192) == 1 && word(s, VOLUME, 376) == 0,
         b"SERVICE_STATE",
     );
+    // Seals: legacy 1 + record 1 (+ persisted record in the normal run).
+    // Unseals: legacy 1 + record 1 (+ restored record after the cold start).
+    // Authentication failures: 9 record/legacy tampers + wrong recovery
+    // secret (+ tampered restored record after the cold start).
+    let (seals, unseals, auth_failures) = if RECOVER { (2, 3, 11) } else { (3, 2, 10) };
     require(
-        word(s, KEY, 224) == 2
-            && word(s, KEY, 232) == 2
-            && word(s, KEY, 240) == 9
+        word(s, KEY, 224) == seals
+            && word(s, KEY, 232) == unseals
+            && word(s, KEY, 240) == auth_failures
             && word(s, KEY, 248) == 1,
         b"CRYPTO_COUNTERS",
     );
@@ -510,6 +598,22 @@ fn finish(s: &mut State) -> ! {
         (b"SYSTEM:RECORD_UNSEAL:", app[10]),
         (b"SYSTEM:RECORD_CONTEXT_DENIED:", app[11]),
         (b"SYSTEM:RECORD_REVOKED_DENIED:", app[12]),
+        (b"SYSTEM:CRYPTO_RESTORES:", word(s, KEY, 256)),
+        (b"SYSTEM:KEYSTATE_EXPORTS:", init[6]),
+        (b"SYSTEM:KEYSTATE_RESTORES:", init[7]),
+        (b"SYSTEM:KEYSTATE_WRONG_SECRET_DENIED:", init[8]),
+        (b"SYSTEM:KEYSTATE_FLOOR_DENIED:", init[9]),
+        (b"SYSTEM:KEYSTATE_ADMIN_OP_DENIED:", init[10]),
+        (b"SYSTEM:KEYSTATE_BYTES:", init[11]),
+        (b"SYSTEM:KEYSTATE_GENERATION:", init[12]),
+        (b"SYSTEM:ADMIN_REQUESTS:", admin_seen),
+        (b"SYSTEM:ADMIN_DENIED:", admin_denied),
+        (b"SYSTEM:RECORD_PERSISTED:", persist[0]),
+        (b"SYSTEM:RECORD_RESTORED_UNSEAL:", persist[1]),
+        (b"SYSTEM:RECORD_RESTORED_REVOKED_DENIED:", persist[2]),
+        (b"SYSTEM:RECORD_RESTORED_TAMPER_DENIED:", persist[3]),
+        (b"SYSTEM:RECORD_ADMIN_DENIED:", persist[4]),
+        (b"SYSTEM:RECORD_OBJECT_REVISION:", persist[5]),
         (b"SYSTEM:WORKER_SPAWNS:", spawns),
         (b"SYSTEM:WORKER_FAULTS:", evidence().faults),
         (b"SYSTEM:WORKER_RESTARTS:", init[4]),

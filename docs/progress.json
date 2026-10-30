@@ -5,9 +5,9 @@
     "date": "2026-10-30",
     "source_commit": "5b808653c40409a661c5382173da314db1961c11",
     "branch": "simon/windows-qemu-test-version",
-    "task": "WINDOWS-QEMU-TEST-VERSION: bundel en native Materiaal-preview voor QEMU op Windows",
+    "task": "WINDOWS-QEMU-TEST-VERSION / MERGE-MAIN-PR65: Windows-QEMU-testbundel en integratie van main",
     "previous_score": 34,
-    "summary": "34% blijft 34%. Op bron 5b80865 slagen alle 111 tools-hosttests, inclusief de 33 gerichte/bestaande Materiaal-/packagertests en artifactwisselweigering. Vijf echte Windows PowerShell-launchertests op de eerdere bron slagen zonder VM of state; QEMU 11.1.0 biedt SDL en rng-builtin. Eerder native Linux-QEMU-frame/readinessbewijs blijft aan zijn eigen bron gebonden. Historische CI op f777 faalde op de inmiddels herstelde readinessvolgorde; geen huidige groene CI geclaimd. De interactieve integratiebron wordt nog afzonderlijk getoetst. Geen Windows-gaststart, handmatige UX-acceptatie of OS-ZIP uitgevoerd; deze distributiestap sluit geen productcriterium."
+    "summary": "34% blijft 34%. De Windows-QEMU-branch en main-head 0ade801 zijn geïntegreerd met behoud van beide checkpoints. Op de geïntegreerde werkboom slagen 111 tools-hosttests en 46 systeemharnastests; progress-check is consistent. Windows-launchertests en eerder Linux-QMP-bewijs blijven aan hun eigen bron gebonden. Er is geen native gate of CI op de uiteindelijke mergecommit uitgevoerd; Windows-gaststart, handmatige UX-acceptatie en OS-ZIP blijven open. Geen rubriccriterium gesloten."
   },
   "tracks": [
     {

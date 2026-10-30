@@ -34,8 +34,8 @@ alleen een nette desktop haalt die eindgrens niet.
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
 **Bron:** [`5b808653`](https://github.com/simonvanieperen/nieuw-os/commit/5b808653c40409a661c5382173da314db1961c11) ·
 **Ontwikkelbranch:** `simon/windows-qemu-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** WINDOWS-QEMU-TEST-VERSION: bundel en native Materiaal-preview voor QEMU op Windows.
-34% blijft 34%. Op bron 5b80865 slagen alle 111 tools-hosttests, inclusief de 33 gerichte/bestaande Materiaal-/packagertests en artifactwisselweigering. Vijf echte Windows PowerShell-launchertests op de eerdere bron slagen zonder VM of state; QEMU 11.1.0 biedt SDL en rng-builtin. Eerder native Linux-QEMU-frame/readinessbewijs blijft aan zijn eigen bron gebonden. Historische CI op f777 faalde op de inmiddels herstelde readinessvolgorde; geen huidige groene CI geclaimd. De interactieve integratiebron wordt nog afzonderlijk getoetst. Geen Windows-gaststart, handmatige UX-acceptatie of OS-ZIP uitgevoerd; deze distributiestap sluit geen productcriterium.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** WINDOWS-QEMU-TEST-VERSION / MERGE-MAIN-PR65: Windows-QEMU-testbundel en integratie van main.
+34% blijft 34%. De Windows-QEMU-branch en main-head 0ade801 zijn geïntegreerd met behoud van beide checkpoints. Op de geïntegreerde werkboom slagen 111 tools-hosttests en 46 systeemharnastests; progress-check is consistent. Windows-launchertests en eerder Linux-QMP-bewijs blijven aan hun eigen bron gebonden. Er is geen native gate of CI op de uiteindelijke mergecommit uitgevoerd; Windows-gaststart, handmatige UX-acceptatie en OS-ZIP blijven open. Geen rubriccriterium gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

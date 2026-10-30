@@ -1,0 +1,748 @@
+{
+  "schema_version": 1,
+  "case": "normal",
+  "source_commit": "ad2b981fe1f2bcccb03cb776b2281d32529d2f00",
+  "source_fingerprint_version": 3,
+  "source_sha256": "32da9d6159bffc70c9ef60dd2c33c678e4222ba8c6a2cc72b5a54a89d4c74504",
+  "kernel_feature": "native-system",
+  "started_utc": "2026-10-30T15:09:06.971539+00:00",
+  "duration_s": 3.198772052000095,
+  "timeout_s": 180,
+  "raw_qemu_exit": 33,
+  "timed_out": false,
+  "command": [
+    "/home/simon/projects/nieuw-os-b02/.tools/nieuw-os/qemu/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/b02-system/run/system-normal-8174276ddb8f43e7b35b0dcdadc6382d/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/b02-system/run/system-normal-8174276ddb8f43e7b35b0dcdadc6382d/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/b02-system/run/system-normal-8174276ddb8f43e7b35b0dcdadc6382d/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build/b02-system/run/system-image-a2b3b4b2037147ecb04127416ea42273/volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"
+  ],
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "native-system",
+    "kernel_feature": "native-system",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "32da9d6159bffc70c9ef60dd2c33c678e4222ba8c6a2cc72b5a54a89d4c74504",
+    "loader": {
+      "sha256": "40fc468767e5c35e837bbc509add69a325fc008f4cd1388c5230ec23f8efff04",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "e6354fa56646323bfc3a1590e2e5a93555ac8a28220edb8e9650db9662bfc4e0",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 152583,
+          "memsz": 152583,
+          "page_start": 33554432,
+          "page_end": 33710080
+        },
+        {
+          "flags": 4,
+          "offset": 159744,
+          "address": 33710080,
+          "filesz": 368888,
+          "memsz": 368888,
+          "page_start": 33710080,
+          "page_end": 34082816
+        },
+        {
+          "flags": 6,
+          "offset": 532480,
+          "address": 34082816,
+          "filesz": 1258160,
+          "memsz": 4345208,
+          "page_start": 34082816,
+          "page_end": 38428672
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 152583
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 368888
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1258160
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3083640
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 7944
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 17632
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "system": {
+      "system_init": {
+        "sha256": "78f9fafb4434ce81636f8a397b29fb2852f1e60b1db82abd766fa8d45ad90bd7",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1256,
+              "memsz": 1256,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 1761,
+              "memsz": 1761,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 20514,
+              "memsz": 20514,
+              "page_start": 1073872896,
+              "page_end": 1073897472
+            }
+          ]
+        }
+      },
+      "system_app": {
+        "sha256": "40cbe3343361491fe51db5ffe894709c84c248f73633770d463012066a29c694",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 4213,
+              "memsz": 4213,
+              "page_start": 1073823744,
+              "page_end": 1073831936
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 20480,
+              "filesz": 52962,
+              "memsz": 52962,
+              "page_start": 1073872896,
+              "page_end": 1073926144
+            }
+          ]
+        }
+      },
+      "system_worker": {
+        "sha256": "1e7165d35ed05082a74a8364c7c1aa0273bd94584faace372b584c2ba104e118",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 306,
+              "memsz": 306,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1040,
+              "memsz": 1040,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 519,
+              "memsz": 519,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            }
+          ]
+        }
+      },
+      "keyring_service": {
+        "sha256": "2b7bebe08a57b5b8983e8e7d9e036affe7b50e29f13a67d2df88d6a3f79083b2",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1344,
+              "memsz": 1344,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 3763,
+              "memsz": 3763,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 78807,
+              "memsz": 78807,
+              "page_start": 1073872896,
+              "page_end": 1073954816
+            }
+          ]
+        }
+      },
+      "volume_service": {
+        "sha256": "a9fd9d4f87a07df827ede8445c6f249082d353344bf91b0e88bfed93ed5da5eb",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 56562,
+              "memsz": 56562,
+              "page_start": 1073741824,
+              "page_end": 1073799168
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 61440,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 65536,
+              "filesz": 18074,
+              "memsz": 18074,
+              "page_start": 1073823744,
+              "page_end": 1073844224
+            }
+          ]
+        }
+      }
+    }
+  },
+  "run_directory": "/home/simon/projects/nieuw-os-b02/build/b02-system/run/system-normal-8174276ddb8f43e7b35b0dcdadc6382d",
+  "volume_directory": "/home/simon/projects/nieuw-os-b02/build/b02-system/run/system-image-a2b3b4b2037147ecb04127416ea42273",
+  "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "after_sha256": "742539dd80c7dd76e6f8494156d2606231e315d656a534a897cc43549f997192",
+  "firmware_sha256": {
+    "code": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "esp_sha256": {
+    "esp/kernel.elf": "e6354fa56646323bfc3a1590e2e5a93555ac8a28220edb8e9650db9662bfc4e0",
+    "esp/EFI/BOOT/BOOTX64.EFI": "40fc468767e5c35e837bbc509add69a325fc008f4cd1388c5230ec23f8efff04"
+  },
+  "passed": true,
+  "evidence": {
+    "APP_READY": 2,
+    "APP_DOCS": 1,
+    "APP_DENIED": 3,
+    "APP_REVISION": 1,
+    "APP_BYTES": 4096,
+    "APP_CONTENT_SUM": 287428370566516885,
+    "CRYPTO_SEAL": 3,
+    "CRYPTO_UNSEAL": 2,
+    "CRYPTO_TAMPER_DENIED": 10,
+    "RECORD_SEAL": 1,
+    "RECORD_UNSEAL": 1,
+    "RECORD_CONTEXT_DENIED": 10,
+    "RECORD_REVOKED_DENIED": 2,
+    "CRYPTO_RESTORES": 1,
+    "KEYSTATE_EXPORTS": 1,
+    "KEYSTATE_RESTORES": 1,
+    "KEYSTATE_WRONG_SECRET_DENIED": 1,
+    "KEYSTATE_FLOOR_DENIED": 1,
+    "KEYSTATE_ADMIN_OP_DENIED": 1,
+    "KEYSTATE_BYTES": 120,
+    "KEYSTATE_GENERATION": 3,
+    "ADMIN_REQUESTS": 5,
+    "ADMIN_DENIED": 3,
+    "RECORD_PERSISTED": 1,
+    "RECORD_RESTORED_UNSEAL": 0,
+    "RECORD_RESTORED_REVOKED_DENIED": 0,
+    "RECORD_RESTORED_TAMPER_DENIED": 0,
+    "RECORD_ADMIN_DENIED": 2,
+    "RECORD_OBJECT_REVISION": 1,
+    "WORKER_SPAWNS": 2,
+    "WORKER_FAULTS": 1,
+    "WORKER_RESTARTS": 1,
+    "WORKER_KILLS": 1,
+    "ENTROPY_BYTES": 1024,
+    "DISK_READS": 304,
+    "DISK_WRITES": 112,
+    "DISK_FLUSHES": 7,
+    "LIVE_PROCESSES_AFTER": 0,
+    "FRAMES_RECOVERED": 1
+  },
+  "oracle": {
+    "generation": 3,
+    "clocks": [
+      2,
+      1
+    ],
+    "objects": [
+      {
+        "object": 0,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 3,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 4096,
+            "name": "systeemproef",
+            "content_revision": 1,
+            "chunks": [
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "object": 1,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 33,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 168,
+            "name": "verzegeld",
+            "content_revision": null,
+            "chunks": [
+              2
+            ],
+            "content_hex": "7cacf068920d251f764d904b2f76b0f18067cc6ea6bf8e2ce8914c2189faa0fdf067be52d45f74517370d93a2f7f1d20f95f8668bcf0fe26917afbc5a72fd7f8cb288eeb7327c1e9599f4f5b1471541078ae9a87bd20704d4e31907e28adde645adf4b05fc5f827742ac068cd61b94b422e286bf7daa9da197549776ac1d9c402379cb2f51d99da62ab797ae0be0aeb88726931ff55b20afd216542bebee2321b4bfed9463dd98a7"
+          }
+        ]
+      },
+      {
+        "object": 2,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 3,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 4,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 5,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 6,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 7,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 8,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 512,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 120,
+            "name": "sleutelstatus",
+            "content_revision": null,
+            "chunks": [
+              0
+            ],
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c3031000000002eee2aeea9ab35c455b3186b03e1db33876f4204770c01a4510b0ba52be2529219aca8cb911751240e1a675ea53fc79fca18aa729fccd1956b63fcbdd60c0d795557f8d30c6b7192306729741e1b13d5a2a82fb38b5b7503"
+          }
+        ]
+      },
+      {
+        "object": 9,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 10,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 11,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 12,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 13,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 14,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 15,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      }
+    ],
+    "collections": [
+      {
+        "index": 1,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 1,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      }
+    ],
+    "chunks_used": 3,
+    "slots": [
+      [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ]
+    ],
+    "digests": [
+      3344684764798951098,
+      17495379689566208779
+    ]
+  }
+}

@@ -47,9 +47,32 @@ const EV_RANDOM_REPLY_CLOSED: u64 = 352;
 const EV_RANDOM_REPLY_TIMEOUT: u64 = 360;
 const EV_LEGACY_POLLS: u64 = 368;
 const EV_LEGACY_POLL_ERRORS: u64 = 376;
+// B02 administrative ingress evidence (optional third endpoint).
+const EV_ADMIN_SEEN: u64 = 384;
+const EV_ADMIN_EXPORTS: u64 = 392;
+const EV_ADMIN_RESTORES: u64 = 400;
+const EV_ADMIN_DENIED: u64 = 408;
+const EV_ADMIN_BAD_CALLER: u64 = 416;
 const RANDOM_DESCRIPTOR: u64 = u64::from_le_bytes(*b"NOSRNG01");
 const RANDOM_REPLY_POLLS: usize = 4096;
 const RANDOM_REPLY_TICKS: u64 = 100;
+
+/// Persistence-only administrative ingress. Only the single manifest-named
+/// caller (a supervisor/recovery agent) may use it, and it dispatches
+/// exclusively through `wire::dispatch_persistent`: no key, record, recovery
+/// or RANDOM operation is reachable here, and the domain endpoints never
+/// reach the persistence codec. The caller-held secret arrives in the request
+/// body; the service keeps no copy beyond the dispatch call.
+struct AdminIngress {
+    receive: ReceiveEndpoint,
+    reply: SendEndpoint,
+    caller: u64,
+    seen: u64,
+    exports: u64,
+    restores: u64,
+    denied: u64,
+    bad_caller: u64,
+}
 
 struct RandomIngress {
     receive: ReceiveEndpoint,
@@ -209,6 +232,103 @@ fn random_ingress(legacy: &[ReceiveEndpoint; 2], reply: SendEndpoint) -> Option<
         closed: 0,
         timeout: 0,
     })
+}
+
+fn admin_ingress(legacy: &[ReceiveEndpoint; 2], reply: SendEndpoint) -> Option<AdminIngress> {
+    let words = [support::word(96), support::word(104), support::word(168)];
+    if words[0] == 0 {
+        if words[1] != 0 || words[2] != 0 {
+            startup_error(10);
+        }
+        return None;
+    }
+    if words[1] == 0 || words[2] == 0 {
+        startup_error(10);
+    }
+    let receive = handle(words[0]);
+    let send_reply = handle(words[1]);
+    if receive == send_reply
+        || receive == reply.handle()
+        || send_reply == reply.handle()
+        || legacy
+            .iter()
+            .any(|endpoint| endpoint.handle() == receive || endpoint.handle() == send_reply)
+    {
+        startup_error(10);
+    }
+    Some(AdminIngress {
+        receive: ReceiveEndpoint::from_handle(receive),
+        reply: SendEndpoint::from_handle(send_reply),
+        caller: words[2],
+        seen: 0,
+        exports: 0,
+        restores: 0,
+        denied: 0,
+        bad_caller: 0,
+    })
+}
+
+fn admin_evidence(ingress: &AdminIngress) {
+    for (at, value) in [
+        (EV_ADMIN_SEEN, ingress.seen),
+        (EV_ADMIN_EXPORTS, ingress.exports),
+        (EV_ADMIN_RESTORES, ingress.restores),
+        (EV_ADMIN_DENIED, ingress.denied),
+        (EV_ADMIN_BAD_CALLER, ingress.bad_caller),
+    ] {
+        support::put(at, value);
+    }
+}
+
+/// One administrative request per turn. Sender, capability count, tag and
+/// header are checked before any body byte reaches the persistence codec.
+fn poll_admin(service: &mut Service, broker: &mut Broker, ingress: &mut AdminIngress) {
+    let message = match native::receive(ingress.receive) {
+        Ok(message) => message,
+        Err(_) => return,
+    };
+    ingress.seen = ingress.seen.saturating_add(1);
+    if message.cap_count() != 0 {
+        let _ = native::close_received_caps(&message);
+        ingress.denied = ingress.denied.saturating_add(1);
+        admin_evidence(ingress);
+        return;
+    }
+    if message.sender() != ingress.caller {
+        ingress.bad_caller = ingress.bad_caller.saturating_add(1);
+        admin_evidence(ingress);
+        return;
+    }
+    if message.tag() != wire::TAG {
+        ingress.denied = ingress.denied.saturating_add(1);
+        admin_evidence(ingress);
+        return;
+    }
+    let Some(header) = Header::decode(message.payload()) else {
+        ingress.denied = ingress.denied.saturating_add(1);
+        admin_evidence(ingress);
+        return;
+    };
+    let body = &message.payload()[wire::HEADER..wire::HEADER + usize::from(header.length)];
+    let reply = match header.op {
+        wire::EXPORT_PERSISTENT | wire::RESTORE_PERSISTENT => {
+            wire::dispatch_persistent(service, broker, &header, body)
+        }
+        _ => wire::reply(&header, Status::Invalid, &[]),
+    };
+    let status = Header::decode(&reply).map(|h| h.status);
+    if status == Some(Status::Ok.code()) {
+        if header.op == wire::EXPORT_PERSISTENT {
+            ingress.exports = ingress.exports.saturating_add(1);
+        } else {
+            ingress.restores = ingress.restores.saturating_add(1);
+        }
+    } else {
+        ingress.denied = ingress.denied.saturating_add(1);
+    }
+    evidence(service);
+    admin_evidence(ingress);
+    send(ingress.reply, &reply);
 }
 
 fn random_evidence(ingress: &RandomIngress) {
@@ -396,6 +516,10 @@ fn dispatch(
         wire::SEAL_RECORD | wire::UNSEAL_RECORD => {
             wire::dispatch_record(service, broker, domain, header, body)
         }
+        // Persistence is administrative: never reachable from a domain endpoint.
+        wire::EXPORT_PERSISTENT | wire::RESTORE_PERSISTENT => {
+            wire::reply(header, Status::Invalid, &[])
+        }
         wire::REVOKE => match service.revoke(domain, header.index) {
             Ok(()) => wire::reply(header, Status::Ok, &[]),
             Err(status) => wire::reply(header, status, &[]),
@@ -449,6 +573,7 @@ fn main() -> ! {
     ];
     let reply_to = SendEndpoint::from_handle(handle(support::word(88)));
     let mut random = random_ingress(&ingress, reply_to);
+    let mut admin = admin_ingress(&ingress, reply_to);
     let app = support::word(160);
     if app == 0 {
         startup_error(5);
@@ -494,6 +619,9 @@ fn main() -> ! {
         }
         if let Some(ingress) = &mut random {
             poll_random(&mut service, &mut broker, ingress);
+        }
+        if let Some(ingress) = &mut admin {
+            poll_admin(&mut service, &mut broker, ingress);
         }
         let _ = native::yield_now();
     }

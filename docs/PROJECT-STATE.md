@@ -2,8 +2,10 @@
 
 ## NEXT AGENT HANDOFF — Windows-QEMU-testversie — 30 oktober 2026
 
-Basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00` (`origin/main`), branch
-`simon/windows-qemu-test-version`; codecheckpoint `f777f7a`. De opgegeven
+Oorspronkelijke basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`, branch
+`simon/windows-qemu-test-version`; Windows-codecheckpoint `5b80865`,
+laatste PR-head vóór integratie `99f8ef0`, geïntegreerde main-head `0ade801`.
+De opgegeven
 Windows-map `C:\Program Files\qemu` wordt automatisch herkend door
 `tools/windows-qemu/Start-NieuwOS.ps1`; de instructies tonen ook expliciet
 `-QemuPath "C:\Program Files\qemu\qemu-system-x86_64.exe"`.
@@ -76,6 +78,124 @@ Geslaagd vóór deze overdracht:
 Herhaalcommando (volgende stap: afstemming van de bundelbron):
 `. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
 
+**Conflictintegratie PR #65:** `main` op `0ade8014c8179241dcfc68ea0ba8083664691240`
+is in de branch opgenomen. De overlappende README-/status-/rubricdelen behouden
+de Windows-QEMU-assessment; de hardware- en B02-checkpoints van main staan
+hieronder. `python3 -B -m unittest discover -s tools/tests -p 'test_*.py'`
+(111 tests), `python3 -B -m unittest discover -s tests -p 'test_system_*.py'`
+(46 tests) en `python3 -B tools/progress.py --check` slagen op de geïntegreerde
+werkboom. Er is geen native gate of CI op de uiteindelijke mergecommit uitgevoerd.
+`git diff --check` meldt een extra lege regel aan het einde van
+`verification/full-release-b02-keystate-system/host/1.stdout.txt`, reeds aanwezig
+op main; het hashgebonden bewijs is ongewijzigd behouden.
+## Geïntegreerd main-checkpoint — hardware, drivers en energie — 30 oktober 2026
+
+Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (`main`), branch
+`simonvanieperen-friendly-guacamole`. Opdracht: hardwarepunten H02–H06
+verderbrengen richting 12/12; de vaste meter blijft **34% totaal, hardware
+1/12**. H01 is het enige geaccepteerde hardwarepunt. H02 toetsenbord/muis/USB,
+H03 graphics/audio, H04 netwerkhardware, H05 energie/slaap/wek en H06 de
+fysieke ondersteuningsmatrix blijven open. De code bevat een afgebakende
+native PS/2/QMP-proef, maar geen USB/xHCI-driver of ACPI-energiepad. Criteria
+die fysieke metingen of meerdere fysieke configuraties vragen kunnen niet
+worden afgetekend met QEMU-bewijs.
+
+Uitgevoerd: `python3 -B -m unittest discover -s tools -p
+'test_display_probe.py'` — exit 0, 11 hosttests voor de bewijspoort; dit
+controleert het harnas, niet een guest-driver. De vastgezette Rust 1.90.0-
+toolchain is lokaal onder `.tools/nieuw-os` hersteld met de officieel
+gepubliceerde rustup-installer; SHA-256 gecontroleerd vóór uitvoering en geen
+globale PATH-/systeemwijziging. Op `drivers/ps2` slagen Clippy, fmt en de
+release-librarybuild voor `x86_64-unknown-none` (elk exit 0). De PS/2-hosttest
+faalt met exit 101 omdat de systeem-C-linker `cc` en hostruntimebibliotheken
+ontbreken.
+
+Simon heeft de map `C:\Program Files\qemu` meegestuurd. In WSL is dit
+`/mnt/c/Program Files/qemu`; QEMU 11.1.0 start via WSL-interoperabiliteit,
+QMP via stdin/stdout is bevestigd, en de package bevat
+`edk2-x86_64-code.fd`, `edk2-i386-vars.fd` en `vgabios-stdvga.bin`. De
+projecttoolmap verwijst lokaal naar die binaries/firmware, zonder wijzigingen
+aan de Windows-installatie of tracked source. `python3 -B tools/preflight.py
+--strict` slaagt en rapporteert beide Rust-targets en x86_64-codefirmware
+beschikbaar. Dit is alleen tool-/firmware-inventaris; native guestboot is nog
+niet uitgevoerd. Geen fysiek apparaat gebruikt of gewijzigd.
+
+Eerstvolgend: `python3 -B -u tools/build.py --kernel-feature
+native-display-probe`, daarna de bestaande
+`tools/run_display_probe.py --machine pc-q35-8.2 --qmp-transport pipe` met de
+meegeleverde VGA-ROM. De 11.1-binary verschilt van de 10.0.13-CI-binary; de
+runner moet die exacte versie en hashes vastleggen. Als native poort slaagt,
+is dat afgebakend QEMU-bewijs voor de PS/2-display/input-slice, niet fysieke
+acceptatie van H02. Daarna volgt een afzonderlijke USB/xHCI-stap. H02–H06
+blijven open totdat hun volledige vereiste native/fysieke bewijsniveaus zijn
+aangetoond; geen rubricpunt toegekend.
+
+## Geïntegreerd main-checkpoint — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
+
+Basis `ad2b981` (`main` na PR #63), branch
+`codex/b02-persistent-keystate-20261030`, worktree
+`/home/simon/projects/nieuw-os-b02`; doelbranch `main`. Geteste werkboom:
+bronfingerprint v3 `32da9d6159bffc70c9ef60dd2c33c678e4222ba8c6a2cc72b5a54a89d4c74504`.
+De andere zichtbare lokale sessie (worktree `simonvanieperen-studious-sniffle`,
+PR #62) heeft niet-gepushte IPC-WAIT-wijzigingen in `kernel/src/m2/m3.rs`,
+`sdk/runtime` en `tools/build.py`; dit werk raakt die bestanden niet.
+
+Geïmplementeerd (ADR-051, FR-B02P in `implementation/B02-SECURE-RECORDS.md`):
+KEY1-opcodes `EXPORT_PERSISTENT`/`RESTORE_PERSISTENT` (11/12) met
+`wire::dispatch_persistent`; een optioneel derde administratief ingress in de
+native Key Service (startwoorden 96/104/168) dat uitsluitend persistentie
+bedient en alleen de manifest-afzender toelaat; in het FR-I01-profiel is init
+de herstelagent met volumedomein 1. Normale run: app verzegelt in RAM →
+`KEYS_READY` → init exporteert (created [2,0], revoked [1,0], generatie 3),
+weigert verkeerd geheim/generatievloer/GENERATE-op-admin, commit het
+120-byteblob als object 8, importeert idempotent → `PERSISTED` → app commit
+het 168-byterecord als document 1. Koude herstart op dezelfde read-only
+image: init leest object 8, weigert dezelfde negatieven, herstelt vóór `GO`;
+app krijgt index 2 bij GENERATE, ontzegelt document 1 met sleutel 1, sleutel 0
+geeft `Revoked`, een gewijzigde byte `Auth`. Het schijforakel behandelt
+objecten 1 en 8 expliciet als opaque en controleert dat het record de
+bekende plaintext niet bevat en het blob alleen `NOSKEY01`/v1/suite 1/
+volume-ID buiten de AEAD-body draagt. **34% → 34%**: B02 blijft open
+(geen vertrouwd rollbackanker, geen write-ahead per GENERATE in de dienst).
+
+Uitgevoerd vanuit de worktree met de lokale `.tools`-omgeving
+(Rust 1.90.0, QEMU 10.2.1, OVMF 2025.11, `pc-q35-8.2`, TCG, 1 CPU/256 MiB),
+elk exit **0** tenzij vermeld:
+
+| Commando | Resultaat / log |
+|---|---|
+| `cargo +1.90.0 test --offline --locked -p keyring-core` | 15 + 5 nieuwe (`persistent_wire`) + 8 + 23 + random; `target/b02-host` |
+| `cargo +1.90.0 clippy --offline --locked -p keyring-core --all-targets -- -D warnings` | schoon |
+| `cargo +1.90.0 fmt --all -- --check` en `… --manifest-path sdk/Cargo.toml --all -- --check` | schoon |
+| `python3 -B -m unittest discover -s tests -p 'test_system_*.py'` | 46 tests (3 nieuw) |
+| `python3 -B sdk/examples/keyring/build.py`, `sdk/examples/system/build.py` | native ELF's binnen linkerbudget |
+| `python3 -B -u tools/test_system.py` (`NOS_BUILD_DIR=build/b02-system`) | FR-I01 normaal 3,2 s en koude herstart 3,3 s, raw 33; `build/b02-system/system-gate.json` |
+| `python3 -B tools/capture_system.py --destination docs/verification/full-release-b02-keystate-system` | twee runs onafhankelijk hergevalideerd, 120 KiB compact bewijs |
+| `python3 -B -u tools/test_keyring.py` (B01-regressie, `build/b02-keyring`) | 5/5 QEMU-gevallen, 52+15 host; adapter met admin-woorden op 0 ongewijzigd |
+| `tools/run_random.py --case raw/sdk/unknown/wrong-caller` | alle vier native groen (`build/b02-random-raw`) |
+| `tools/run_system_clock.py` | groen (`build/b02-clock`) |
+| `tools/test_net_system.py` | normaal 31,9 s en herstel 32,0 s groen (`build/b02-net`) |
+| `tools/build.py --kernel-feature native-system-images` + `tools/run_images.py --case normal` | groen (`build/b02-images`), na lokaal ophalen van de ontbrekende offline crates `simd-adler32`/`zune-*` |
+| `tools/test_tcp_system.py` | normaal + koude herstart groen (`build/b02-tcp`), na lokale installatie van toolchain 1.91.1 en `cargo fetch` van `smoltcp`/`heapless` |
+
+Baseline vóór de wijziging: `tools/test_system.py` op ongewijzigde `main`
+`ad2b981` groen (generatie 1, 1 chunk, klokken [1, 0]), zodat de nieuwe
+schijfverwachting (generatie 3, 3 chunks, [2, 1]) herleidbaar is tot de twee
+extra commits. Evidence: `docs/verification/full-release-b02-keystate-system/`
+(normal `DISK_WRITES` 112, `DISK_FLUSHES` 7; recover 720 reads, 0 writes;
+image-SHA `742539dd…` vóór en na de koude herstart identiek).
+
+**Niet uitgevoerd/open:** volledige kernel-clippy (bestaande M2-waarschuwingen,
+niet door dit werk), GUI-/Materiaal-keten, CI op de PR-head, menselijke
+review, fysieke hardware. Beperkingen: generatievloer is gedemonstreerd met
+een lokaal gekozen waarde, geen vertrouwd anker; het geheim staat in de
+SDK-ontvangstbuffer tot overschrijving (zoals legacy RESTORE); de
+volume-identiteit is de profielconstante `NOS-SYSTEM-VOL01`; tussen GENERATE
+en export is er geen write-ahead in de dienst; crash tussen `KEYS_READY` en
+`PERSISTED` laat de app zonder commit achter (correct, niet getest).
+Eerstvolgende stap: review van de concept-PR en CI op de head; daarna
+write-ahead van allocaties in de Key Service via de volumetransactie en een
+echt rollbackanker (TPM-CRB-spoor) als volgende B02-stap.
 ## Historisch checkpoint — NATIVE-CLOCK-1 afgerond; PR blijft draft voor review — 30 oktober 2026
 
 Bronbasis `c057d864e413840644da39b6c8338e883cbe2ff4`, implementatiecheckpoint

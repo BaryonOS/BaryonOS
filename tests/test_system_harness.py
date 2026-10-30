@@ -8,7 +8,9 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from run_system import check_disk, check_esp, check_image, check_parent, evaluate, expected_markers
+from run_system import (KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
+                        SEALED_NAME, SEALED_OBJECT, check_disk, check_esp, check_image, check_parent,
+                        evaluate, expected_markers, record_plaintext)
 import volume_disk
 
 
@@ -19,11 +21,48 @@ def transcript(case="normal", **changes):
                   LIVE_PROCESSES_AFTER=0, FRAMES_RECOVERED=1, DISK_READS=304,
                   DISK_WRITES=42 if case == "normal" else 0,
                   DISK_FLUSHES=3 if case == "normal" else 0, ENTROPY_BYTES=1024,
-                  CRYPTO_SEAL=2, CRYPTO_UNSEAL=2, CRYPTO_TAMPER_DENIED=9,
-                  RECORD_SEAL=1, RECORD_UNSEAL=1, RECORD_CONTEXT_DENIED=10, RECORD_REVOKED_DENIED=2)
+                  RECORD_SEAL=1, RECORD_UNSEAL=1, RECORD_CONTEXT_DENIED=10, RECORD_REVOKED_DENIED=2,
+                  **PERSIST_EXACT[case])
     values.update(changes)
     return "\n".join(expected_markers(case)) + "\n" + "\n".join(
         f"SYSTEM:{key}:{value:020d}" for key, value in values.items()) + "\n"
+
+
+# Host-only opaque fixtures with the committed B02 shapes; no key is involved.
+SEALED_FIXTURE = bytes(range(1, 25)) + bytes((i * 29 + 5) & 0xFF for i in range(144))
+KEYSTATE_FIXTURE = KEYSTATE_HEADER + bytes((i * 31 + 7) & 0xFF for i in range(88))
+
+
+def system_image() -> bytes:
+    """Independent fixture of the normal run's final disk: the plaintext
+    document, the sealed record (domain 0) and the key-state snapshot (domain 1)."""
+    disk = volume_disk
+    with tempfile.TemporaryDirectory() as directory:
+        image = Path(directory) / "volume.img"
+        disk.create_image(image)
+        raw = bytearray(image.read_bytes())
+    document = disk.fixture(0, 1, 4096)
+    entries = [disk.empty_entry() for _ in range(disk.OBJECTS)]
+    placed = [(0, document, b"systeemproef", 0, 1, 1), (SEALED_OBJECT, SEALED_FIXTURE, SEALED_NAME.encode(), 1, 2, 2),
+              (KEYSTATE_OBJECT, KEYSTATE_FIXTURE, KEYSTATE_NAME.encode(), 2, 1, 3)]
+    # Both table copies as the real commit sequence leaves them: generation 2
+    # (document and sealed record) in slot 0, generation 3 (plus the key-state
+    # snapshot) in slot 1.
+    for obj, data, name, chunk, stamp, request in placed:
+        start = (disk.FIRST + disk.DATA_START + chunk * disk.CHUNK_SECTORS) * disk.SECTOR
+        raw[start:start + len(data)] = data
+        entries[obj] = dict(disk.empty_entry(), revision=1, request_id=request, created=stamp, modified=stamp,
+                            present=True, current=dict(revision=1, length=len(data), name=name,
+                                                       content_sum=disk.fnv(data), chunks=[chunk],
+                                                       sums=[disk.fnv(data)]))
+        if obj == SEALED_OBJECT:
+            for index, sector in enumerate(disk.encode_table(2, 2, entries, clocks=[2, 0])):
+                start = (disk.FIRST + index) * disk.SECTOR
+                raw[start:start + disk.SECTOR] = sector
+    for index, sector in enumerate(disk.encode_table(3, 3, entries, clocks=[2, 1])):
+        start = (disk.FIRST + disk.TABLE_SECTORS + index) * disk.SECTOR
+        raw[start:start + disk.SECTOR] = sector
+    return bytes(raw)
 
 
 class SystemHarnessTests(unittest.TestCase):
@@ -160,11 +199,33 @@ class SystemHarnessTests(unittest.TestCase):
                     "APP_CONTENT_SUM", "WORKER_SPAWNS", "WORKER_FAULTS", "WORKER_RESTARTS",
                     "WORKER_KILLS", "FRAMES_RECOVERED", "DISK_READS", "DISK_WRITES", "DISK_FLUSHES",
                     "ENTROPY_BYTES", "CRYPTO_SEAL", "CRYPTO_UNSEAL", "CRYPTO_TAMPER_DENIED",
-                    "RECORD_SEAL", "RECORD_UNSEAL", "RECORD_CONTEXT_DENIED", "RECORD_REVOKED_DENIED"):
+                    "RECORD_SEAL", "RECORD_UNSEAL", "RECORD_CONTEXT_DENIED", "RECORD_REVOKED_DENIED",
+                    "CRYPTO_RESTORES", "KEYSTATE_EXPORTS", "KEYSTATE_RESTORES",
+                    "KEYSTATE_WRONG_SECRET_DENIED", "KEYSTATE_FLOOR_DENIED", "KEYSTATE_ADMIN_OP_DENIED",
+                    "KEYSTATE_BYTES", "KEYSTATE_GENERATION", "ADMIN_REQUESTS", "ADMIN_DENIED",
+                    "RECORD_PERSISTED", "RECORD_ADMIN_DENIED", "RECORD_OBJECT_REVISION"):
             with self.subTest(key=key), self.assertRaises(ValueError):
                 evaluate("normal", transcript(**{key: 0}), 33, False)
         with self.assertRaises(ValueError):
             evaluate("normal", transcript(LIVE_PROCESSES_AFTER=1), 33, False)
+
+    def test_persistence_evidence_is_case_specific(self):
+        # A normal transcript must not pass as a cold recovery and vice versa:
+        # the restored unseal, the post-restart refusals and the export count differ.
+        with self.assertRaises(ValueError):
+            evaluate("recover", transcript("normal").replace("CASE:NORMAL", "CASE:RECOVER")
+                     .replace("00000000000000000042", "00000000000000000000")
+                     .replace("SYSTEM:DISK_FLUSHES:00000000000000000003", "SYSTEM:DISK_FLUSHES:00000000000000000000"),
+                     33, False)
+        for key in ("RECORD_RESTORED_UNSEAL", "RECORD_RESTORED_REVOKED_DENIED", "RECORD_RESTORED_TAMPER_DENIED",
+                    "KEYSTATE_RESTORES"):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                evaluate("recover", transcript("recover", **{key: 0}), 33, False)
+        for key, value in (("KEYSTATE_EXPORTS", 1), ("RECORD_PERSISTED", 1), ("CRYPTO_SEAL", 3)):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                evaluate("recover", transcript("recover", **{key: value}), 33, False)
+        with self.assertRaises(ValueError):
+            evaluate("normal", transcript("normal", KEYSTATE_EXPORTS=2, ADMIN_REQUESTS=6), 33, False)
 
     def test_recovery_rejects_writes_or_flushes(self):
         for key in ("DISK_WRITES", "DISK_FLUSHES"):
@@ -172,21 +233,50 @@ class SystemHarnessTests(unittest.TestCase):
                 evaluate("recover", transcript("recover", **{key: 1}), 33, False)
 
     def test_wrong_disk_object_domain_revision_or_usage_is_not_success(self):
-        obj = dict(present=True, revision=1, collection=0, tags=0, kind=0,
-                   versions=[dict(revision=1, length=4096, name="systeemproef", content_revision=1)])
-        empty = dict(present=False, revision=0, versions=[])
-        good = dict(objects=[obj] + [empty] * 15, generation=1, chunks_used=1, clocks=[1, 0],
-                    collections=[dict(present=False, revision=0)] * 8)
+        good = volume_disk.analyse(system_image(), OPAQUE_OBJECTS)
         check_disk(good)
+        self.assertEqual((good["generation"], good["chunks_used"], good["clocks"]), (3, 3, [2, 1]))
+        plaintext = record_plaintext()
         for mutate in (lambda s: s.update(generation=2), lambda s: s.update(chunks_used=2),
-                       lambda s: s.update(clocks=[0, 1]),
+                       lambda s: s.update(clocks=[3, 0]),
                        lambda s: s["objects"][0]["versions"][0].update(name="ander"),
                        lambda s: s["objects"][0]["versions"][0].update(content_revision=2),
-                       lambda s: s["objects"][1].update(present=True)):
+                       lambda s: s["objects"][2].update(present=True),
+                       lambda s: s["objects"][9].update(present=True),
+                       lambda s: s["objects"][SEALED_OBJECT].update(present=False),
+                       lambda s: s["objects"][KEYSTATE_OBJECT].update(present=False),
+                       lambda s: s["objects"][SEALED_OBJECT]["versions"][0].update(content_hex=plaintext.hex()),
+                       lambda s: s["objects"][SEALED_OBJECT]["versions"][0].update(
+                           content_hex=(bytes(24) + plaintext + bytes(16)).hex()),
+                       lambda s: s["objects"][SEALED_OBJECT]["versions"][0].update(
+                           content_hex=(bytes(24) + SEALED_FIXTURE[24:]).hex()),
+                       lambda s: s["objects"][SEALED_OBJECT]["versions"][0].update(content_revision=1),
+                       lambda s: s["objects"][SEALED_OBJECT]["versions"][0].update(name="ander"),
+                       lambda s: s["objects"][SEALED_OBJECT]["versions"][0].pop("content_hex"),
+                       lambda s: s["objects"][KEYSTATE_OBJECT]["versions"][0].update(
+                           content_hex=(b"NOSKEY02" + KEYSTATE_FIXTURE[8:]).hex()),
+                       lambda s: s["objects"][KEYSTATE_OBJECT]["versions"][0].update(
+                           content_hex=(KEYSTATE_FIXTURE[:12] + b"other-volume-id!" + KEYSTATE_FIXTURE[28:]).hex()),
+                       lambda s: s["objects"][KEYSTATE_OBJECT]["versions"][0].update(
+                           content_hex=(KEYSTATE_FIXTURE[:32] + bytes(24) + KEYSTATE_FIXTURE[56:]).hex()),
+                       lambda s: s["objects"][KEYSTATE_OBJECT]["versions"][0].update(
+                           content_hex=KEYSTATE_FIXTURE[:119].hex(), length=119)):
             bad = copy.deepcopy(good)
             mutate(bad)
             with self.assertRaises(ValueError):
                 check_disk(bad)
+
+    def test_opaque_objects_are_explicit_in_the_oracle(self):
+        image = system_image()
+        with self.assertRaises(ValueError):
+            volume_disk.analyse(image)
+        with self.assertRaises(ValueError):
+            volume_disk.analyse(image, frozenset({SEALED_OBJECT}))
+        oracle = volume_disk.analyse(image, OPAQUE_OBJECTS)
+        sealed = oracle["objects"][SEALED_OBJECT]["versions"][0]
+        self.assertIsNone(sealed["content_revision"])
+        self.assertEqual(bytes.fromhex(sealed["content_hex"]), SEALED_FIXTURE)
+        self.assertNotIn("content_hex", oracle["objects"][0]["versions"][0])
 
 
 if __name__ == "__main__":
