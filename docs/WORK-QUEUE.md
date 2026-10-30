@@ -1,10 +1,14 @@
 # Werkqueue — volledige native testrelease, 30 oktober 2026
 
-Actuele reservering `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
+Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. Eigenaar van de opt-in
 `native-rtc`-bootstrap, `kernel/src/m2/rtc.rs`, RTC-buildkeuze, eigen
 RTC-runner/hosttests/workflow en `RTC-WALLTIME.md`. FR-N03/FR-S03-afhankelijkheid;
-geen vertrouwde tijd, userspaceklok of nieuwe roadmapacceptatie. De andere
+geen vertrouwde tijd, userspaceklok of nieuwe roadmapacceptatie. Uitvoeringsbron
+`c02675e`: vijf RTC-kalenderboots, zeven M2-regressie-VM's, M6c-smoke en
+hostgates slagen; firmware-epoch/2100 blijft expliciet geweigerd.
+[Brongebonden bewijs](verification/rtc-native/README.md); concept-PRreview,
+geen samenvoeging of volledige productrelease geclaimd. De andere
 zichtbare sessie beheert uitsluitend een root-workspace-doctestblokkade.
 De oudere agentnamen hieronder zijn historische toewijzingen, geen actuele
 claim dat hun agents draaien. `main` op deze basis bevat PR #58/#60/#61;

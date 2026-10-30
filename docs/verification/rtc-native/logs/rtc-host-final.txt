@@ -1,0 +1,30 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running unittests src/lib.rs (target/rtc-host/debug/deps/nieuw_os_rtc-6a26bcfe258c9740)
+
+running 1 test
+test tests::conversion_overflow_never_wraps ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/clock.rs (target/rtc-host/debug/deps/clock-2033d0198d30b850)
+
+running 10 tests
+test missing_battery_stopped_divider_set_and_dst_never_make_a_timestamp ... ok
+test invalid_bcd_ranges_calendar_and_leap_seconds_are_rejected ... ok
+test binary_and_bcd_12h_and_24h_have_exact_midnight_and_noon ... ok
+test port_errors_restore_index_and_restore_failure_poison_prevents_more_io ... ok
+test rollback_and_caller_floor_are_visible_and_never_silently_reset ... ok
+test stable_bcd_clock_is_utc_but_never_authenticated_and_nmi_is_preserved ... ok
+test stuck_uip_unstable_snapshots_and_tiny_budgets_terminate ... ok
+test uip_and_midnight_changes_require_two_whole_stable_snapshots ... ok
+test unknown_utc_basis_or_century_never_reads_or_guesses ... ok
+test published_calendar_epoch_vectors_and_full_gregorian_cycle_agree ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests nieuw_os_rtc
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

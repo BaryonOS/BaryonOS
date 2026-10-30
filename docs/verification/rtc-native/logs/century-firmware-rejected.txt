@@ -1,0 +1,29 @@
+[2J[001;001H[=3h[2J[001;001H[2J[001;001H[8;056;240t[2J[001;001HBdsDxe: loading Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+RTC:UTC:951868801
+RTC:DATE:2000,3,1,0,0,1
+RTC:QUALITY:UNAUTHENTICATED
+RTC:NEGATIVE:PASS
+RTC:RESTORE:PASS
+RTC:PASS
+M2:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/rtc-native/run/rtc-century-7b30931217
+Traceback (most recent call last):
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/tools/run_rtc.py", line 109, in <module>
+    raise SystemExit(0 if run(selected)["passed"] else 1)
+                          ~~~^^^^^^^^^^
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/tools/run_rtc.py", line 90, in run
+    item["observed"] = evaluate(guest["stdout"], guest["raw_qemu_exit"],
+                       ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                guest["timed_out"], CASES[case])
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/tools/run_rtc.py", line 56, in evaluate
+    raise ValueError("RTC does not match the controlled VM calendar within 60 seconds")
+ValueError: RTC does not match the controlled VM calendar within 60 seconds

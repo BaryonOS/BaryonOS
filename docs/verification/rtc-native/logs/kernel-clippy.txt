@@ -1,0 +1,52 @@
+    Checking virtio-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/crates/virtio-core)
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/kernel)
+    Checking block-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/services/block)
+    Checking kernel-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/crates/kernel-core)
+    Checking boot-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/crates/boot-protocol)
+    Checking nieuw-os-rtc v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/drivers/rtc)
+    Checking capability-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/crates/capability-core)
+    Checking virtio-blk-driver v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/drivers/virtio-blk)
+error: manual implementation of `.is_multiple_of()`
+   --> kernel/src/m2/paging.rs:309:47
+    |
+309 |         assert!(va != 0 && va < 0x80000000 && va % PAGE == 0 && pa % PAGE == 0);
+    |                                               ^^^^^^^^^^^^^^ help: replace with: `va.is_multiple_of(PAGE)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#manual_is_multiple_of
+    = note: `-D clippy::manual-is-multiple-of` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::manual_is_multiple_of)]`
+
+error: manual implementation of `.is_multiple_of()`
+   --> kernel/src/m2/paging.rs:309:65
+    |
+309 |         assert!(va != 0 && va < 0x80000000 && va % PAGE == 0 && pa % PAGE == 0);
+    |                                                                 ^^^^^^^^^^^^^^ help: replace with: `pa.is_multiple_of(PAGE)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#manual_is_multiple_of
+
+error: this function has too many arguments (9/7)
+   --> kernel/src/m2/paging.rs:506:5
+    |
+506 | /     fn walk(
+507 | |         &self,
+508 | |         frames: &Frames<FRAME_COUNT>,
+509 | |         observed: &mut [Alias; FRAME_COUNT],
+...   |
+515 | |         virtual_base: u64,
+516 | |     ) {
+    | |_____^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#too_many_arguments
+    = note: `-D clippy::too-many-arguments` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::too_many_arguments)]`
+
+error: this public function might dereference a raw pointer but is not marked `unsafe`
+  --> kernel/src/main.rs:38:25
+   |
+38 |     let info = unsafe { info_pointer.read() };
+   |                         ^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#not_unsafe_ptr_arg_deref
+   = note: `#[deny(clippy::not_unsafe_ptr_arg_deref)]` on by default
+
+error: could not compile `os-kernel` (bin "os-kernel") due to 4 previous errors

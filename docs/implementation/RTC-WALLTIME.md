@@ -14,7 +14,7 @@ hier nergens tot een kalenderdatum verheven.
 
 | Eigenschap | Wat deze crate afdwingt | Vereiste aanname/open grens |
 | --- | --- | --- |
-| Afgebakende I/O | Alleen getypeerde indexselectie, settle en dataread; geen CMOS-datawrite. | De latere native backend krijgt uitsluitend poorten 0x70/0x71; geen algemene app-I/O. |
+| Afgebakende I/O | Alleen getypeerde indexselectie, settle en dataread; geen CMOS-datawrite. | De opt-in native backend gebruikt uitsluitend poorten 0x70/0x71; geen algemene app-I/O. |
 | NMI/index | Iedere selectie gebruikt dezelfde expliciete NMI-policy; de oorspronkelijke index wordt op succes en fout hersteld. | De platformeigenaar levert een betrouwbare index/NMI-shadow en sluit alle andere CPU-/IRQ-/NMI-gebruikers uit. |
 | Samenhangende datum | Twee volledige gelijke snapshots, UIP vóór/na, constante mode en geldige velden. | Correct devicegedrag en begrensde adapteroperaties; dit authenticeert de klok niet. |
 | Begrensde uitvoering | Eén globaal register-readbudget en een begrensd aantal snapshotpogingen. | Native I/O en settle zelf moeten begrensd terugkeren; dit is geen gemeten tijdsdeadline. |
@@ -80,8 +80,9 @@ geen gedeelde Cargo-, kernel-, SDK- of buildbestanden gewijzigd.
 
 ## Hardwarecodec en foutpaden
 
-Het voorlopige ondersteunde registerprofiel is het QEMU 10.0.13
-MC146818-model bij het vastgelegde q35-profiel, niet ieder fysiek RTC-model.
+Het oorspronkelijke core-registercontract is het QEMU 10.0.13
+MC146818-model; de native proef hieronder meet expliciet QEMU 10.2.1 bij
+het q35-profiel. Dit is geen steun voor ieder fysiek RTC-model.
 Register A moet de lopende 32,768-kHz-divider aangeven; UIP mag tijdens het
 lezen niet veranderen. SET in B of een gestopte/ononderzochte divider geeft
 een fout. Automatische DST in B wordt geweigerd bij dit UTC-profiel. D moet
@@ -99,8 +100,8 @@ een kleinere configuratie kan terecht al vóór een volledige snapshot falen.
 Elk foutpad probeert het oorspronkelijke index/NMI-woord te herstellen.
 
 Er worden geen alarmen, IRQ-modes, RTC-datum, CMOS-inhoud, firmware of fysieke
-klokken gewijzigd. De huidige implementatie verricht helemaal geen echte
-port-I/O; native I/O blijft een afzonderlijke volgende stap.
+klokken gewijzigd. De pure RTC-core verricht zelf geen echte port-I/O;
+alleen de opt-in bootstrapadapter hieronder voert die uit.
 
 ## Bronnen, hergebruik en licenties
 

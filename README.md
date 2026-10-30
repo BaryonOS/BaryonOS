@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`4c1dbe00`](https://github.com/simonvanieperen/nieuw-os/commit/4c1dbe00384e53973ad9bf1cb39151ccec6d092a) ·
+**Bron:** [`c02675e2`](https://github.com/simonvanieperen/nieuw-os/commit/c02675e21cbbaf32294298f46ce1cb394b360895) ·
 **Ontwikkelbranch:** `simonvanieperen-expert-disco`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** RTC-NATIVE-1: native alleen-lezen kalenderklok als directe tijdproviderafhankelijkheid.
-34% blijft 34%. De opt-in RTC-bootstrap is een technische afhankelijkheid van FR-S03/FR-N03, geen productie-TimeProvider of vertrouwde certificaattijd. Native uitvoering en actuele controles worden brongebonden in PROJECT-STATE vastgelegd; geen volledig rubriccriterium wordt door deze beperkte proef gesloten. Alle 62 productcriteria, fysieke hardware en menselijke acceptatie blijven open.
+34% blijft 34%. RTC-NATIVE-1 heeft vijf echte kalenderboots, zeven M2-regressie-VM's, M6c-smoke en gerichte/brede hostchecks op c02675e; bewijs staat onder docs/verification/rtc-native. OVMF herschrijft de epoch-/2100-eeuw: het orakel weigert beide. Geen productie-TimeProvider, vertrouwde certificaattijd of volledig rubriccriterium door deze beperkte FR-S03/FR-N03-afhankelijkheid gesloten. Alle 62 productcriteria, fysieke hardware en menselijke acceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

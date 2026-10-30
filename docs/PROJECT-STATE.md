@@ -1,6 +1,6 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — RTC-NATIVE-1 — 30 oktober 2026
+## NEXT AGENT HANDOFF — RTC-NATIVE-1 bewezen deelstap — 30 oktober 2026
 
 Basis `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`, branch
 `simonvanieperen-expert-disco`; doelbranch `main`. Schone basis en geen open
@@ -12,18 +12,18 @@ floor-/readbudgetweigering, indexherstel en eigen vijfkalender-QEMU-runner/
 CI-workflow. Contract: `implementation/RTC-WALLTIME.md`. Geen nieuwe apprechten,
 productiekloksyscall, vertrouwde tijd of TLS-integratie. **34% -> 34%**.
 
-Tussencheckpoint na implementatiecommit `4c1dbe0`, nog zonder volledige
-regressie-/productacceptatie: 95 tools-hosttests (waarvan negen RTC-tegenproeven),
-elf bestaande RTC-Rusttests, RTC-clippy en de echte loader/kernelbuild
-slagen (exit 0). Vijf echte kalenderboots slagen met raw33 en echte
-budget-/floor-/restoregevallen: millennium, schrikkeldag 2000, 2026,
-post-i32-2038 en schrikkeldag 2096. De eerste baseline-/buildpogingen faalden door ontbrekende
-hostlinker/runtime; de logs onder `build/rtc-native/logs/` bewaren
-de mislukte pogingen. Pinned Rust 1.90.0, beide targets, QEMU 10.2.1 en een
-matching Ubuntu OVMF-paar zijn zonder sudo/globale PATH-wijziging onder
-`.tools/nieuw-os/` ingericht. De lokale sysroot is aangevuld; geen
-dependencyversie gewijzigd. De rootlockfile voegt uitsluitend de eigen
-dependencyvrije RTC-crate toe.
+Uitvoeringsbron `c02675e21cbbaf32294298f46ce1cb394b360895`; native artifact-,
+firmware- en v3-bronbinding: [bewijs en exacte commando's](verification/rtc-native/README.md).
+Elf RTC-Rusttests, RTC-clippy, rootfmt, 95 tools-hosttests (negen RTC),
+414 bestaande Python-hosttests en loader/kernelbuild slagen met exit 0.
+Vijf echte kalenderboots slagen met raw33: millennium/schrikkeldag 2000,
+2026, post-i32-2038 en schrikkeldag 2096, inclusief echte budget-/floor-/
+restoregevallen. Onafhankelijke verifier: M2 8/8 groepen, zeven VM's
+(vijf raw33, twee verwachte raw35); hoofdagent: M6c CI-smoke raw33.
+Geen nieuwe externe dependencyversie; rootlockfile voegt alleen de eigen
+dependencyvrije RTC-core toe. Lokale Rust/QEMU/GCC/OVMF-omgeving onder `.tools/`
+hersteld zonder sudo/globale configuratiewijziging. Ontwikkelvariant:
+QEMU 10.2.1, OVMF 2025.11-3ubuntu7.3; geen historische binarygelijkheid.
 
 Een echte firmwarebeperking is gereproduceerd: de epoch-/eeuwproeven lezen
 2070 in plaats van 1970 en 2000 in plaats van 2100. Het onverzwakte
@@ -35,10 +35,13 @@ M2/main-waarschuwingen (geen RTC-locatie); niet als geslaagd gemeld en niet
 verstopt met nieuwe lintallows. De nieuwe workflow gebruikt de bestaande
 strikte RTC-crateclippy en echte kernelbuild.
 
-Open: bevroren broncommit herhalen, M2-/M6c-regressies, compact bewijsarchief,
-bronreview en concept-PR.
-Eerstvolgend commando op deze host:
-`. .tools/nieuw-os/rtc-env.sh && python3 -B tools/test_milestones.py --through m2`.
+RTC-NATIVE-1 is als beperkte afhankelijkheid gereed voor concept-PRreview,
+niet als volledige release. Bronreview en bewijscontrole afgerond; geen
+open RTC-codeblocker. Alle artefacts blijven aan de uitvoeringsbron gebonden.
+Eerstvolgend lokaal herhaalcommando:
+`. .tools/nieuw-os/rtc-env.sh && python3 -B tools/run_rtc.py --case all`.
+Productvervolg: minimaal geautoriseerde userspace-TimeProvider/trusted-timeketen;
+geen ongecontroleerde uitbreiding naar IRQ/SMP of TLS.
 Niet uitgevoerd: fysieke hardware, menselijke audit, volledige CI
 en volledige releaseacceptatie. De 62 productcriteria blijven open.
 
