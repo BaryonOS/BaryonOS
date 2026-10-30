@@ -29,11 +29,12 @@ class Capture(unittest.TestCase):
             for name in ('serial.txt', 'stderr.txt'):
                 (run / name).write_text('fixture')
             summary = {'status': 'completed', 'passed': True, 'source_sha256': 'source',
-                       'stages': [{'stage': 'install', 'run_directory': str(run),
+                       'stages': [{'stage': 'install', 'run_directory': run.relative_to(root).as_posix(),
                                    'state_directory': str(build / 'run' / 'state')}],
                        'host': [{'stdout': 'build ' + str(root / 'target')}]}
             (build / 'update-gate.json').write_text(json.dumps(summary))
             with mock.patch.object(capture_update, 'ROOT', root), mock.patch.object(capture_update, 'BUILD', build), \
+                 mock.patch('update_paths.ROOT', root), \
                  mock.patch.object(sys, 'argv', ['capture_update.py', '--destination', str(destination)]):
                 self.assertEqual(capture_update.main(), 0)
             captured = json.loads((destination / 'update-gate.json').read_text())

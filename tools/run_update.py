@@ -21,6 +21,7 @@ import time
 import uuid
 from common import ROOT, BUILD, environment, firmware, qemu_machine, save_json, sha256, source_hash
 import update_disk as disk
+from update_paths import portable
 
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 FAILURES = ("PANIC", "FAIL", "M1:FAIL")
@@ -409,8 +410,8 @@ def run_update(stage: str, state_dir: Path | None = None, *, timeout=MAX_TIMEOUT
                   started_utc=started, duration_s=duration, timeout_s=timeout, timed_out=timed_out,
                   raw_qemu_exit=rc, host_kill=killed, running_before_kill=running, command=args,
                   qemu_version=subprocess.check_output([qemu, "--version"], text=True).strip(),
-                  source_fingerprint_version=3, source_sha256=frozen, state_directory=str(state_dir),
-                  run_directory=str(run_dir), loader_sha256=manifest["loader"]["sha256"],
+                  source_fingerprint_version=3, source_sha256=frozen, state_directory=state_rel,
+                  run_directory=rel, loader_sha256=manifest["loader"]["sha256"],
                   images=images, store_before_sha256=disk.sha256(before), store_after_sha256=disk.sha256(after),
                   vars_sha256=sha256(state_dir / "OVMF_VARS.fd"), stdout=out, stderr=err, passed=False)
     try:
@@ -421,9 +422,10 @@ def run_update(stage: str, state_dir: Path | None = None, *, timeout=MAX_TIMEOUT
             raise ValueError("source changed during run")
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"
+    report = portable(report)
     save_json(run_dir / "result.json", report)
     save_json(state_dir / "last-stage.json", dict(stage=stage, passed=report["passed"],
-              run_directory=str(run_dir), store_sha256=disk.sha256(after), source_sha256=frozen))
+              run_directory=rel, store_sha256=disk.sha256(after), source_sha256=frozen))
     print(f"B03 {stage}: passed={report['passed']} raw={rc} duration={duration:.1f}s {run_dir}")
     if "error" in report:
         print(report["error"])

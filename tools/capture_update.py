@@ -4,32 +4,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import re
 from pathlib import Path
 import shutil
 from common import BUILD, ROOT
-
-
-# Reports include command lines and tool output as well as path fields. Keep
-# paths under ROOT relative and remove machine-specific paths everywhere else.
-HOST_PATH = re.compile(r"(?<![A-Za-z0-9_.:/-])(?:[A-Za-z]:[\\/]|/)[^\s\"'<>]+")
-
-def portable(value):
-    if isinstance(value, dict):
-        return {key: portable(item) for key, item in value.items()}
-    if isinstance(value, list):
-        return [portable(item) for item in value]
-    if not isinstance(value, str):
-        return value
-    def replace(match):
-        path = match.group(0)
-        root = str(ROOT)
-        if path == root:
-            return "."
-        if path.startswith(root + "/"):
-            return path[len(root) + 1:]
-        return "<host-path>"
-    return HOST_PATH.sub(replace, value)
+from update_paths import portable
 
 
 def main() -> int:
@@ -46,7 +24,7 @@ def main() -> int:
         raise ValueError("only a completed, passing B03 gate can be captured")
     destination.mkdir(parents=True)
     for index, stage in enumerate(summary["stages"]):
-        run = Path(stage["run_directory"]).resolve(strict=True)
+        run = (ROOT / stage["run_directory"]).resolve(strict=True)
         run.relative_to((BUILD / "run").resolve())
         report = json.loads((run / "result.json").read_text())
         if report.get("passed") is not True or report["source_sha256"] != summary["source_sha256"]:

@@ -57,7 +57,11 @@ een cut-controle die een hervatte installatie zou afkeuren.
 ondersteund. De oorspronkelijke gate is historisch bewijs voor de eerdere bron. De
 reviewgate voor bron `72518bf` slaagde in 13 QEMU-stages met de TEST-marker;
 zie `docs/verification/b03-review-20261030/`. De terugleesfout is afzonderlijk
-met een synthetische hostschijf getest, niet als QEMU-foutinjectie.
+met een synthetische hostschijf getest, niet als QEMU-foutinjectie. Een
+herhaling op bron `c435850` slaagde met 13 B03- en 9 volumestages;
+M5 en M6a–M6c kregen elk een normale QEMU-rooktest. De oudere M5/M6-brokers
+delen de foutmapping en, voor M6, de invoerkopie; hun profielgebonden
+request-, reset- en voortgangspaden zijn nog niet volledig samengevoegd.
 
 **Roadmap rubric v1: 32% → 34%** (B03 +2).
 

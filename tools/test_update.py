@@ -13,6 +13,7 @@ import sys
 from common import BUILD, ROOT, TARGET, environment, save_json, sha256, source_hash
 from build import build
 import run_update
+from update_paths import portable
 from run_update import ORDER, STAGES
 
 TEST_INPUTS = "test_update_*.py"
@@ -84,7 +85,7 @@ def main() -> int:
                "test_inputs": tests, "status": "running", "passed": False, "host": [], "images": None,
                "stages": []}
     path = BUILD / "update-gate.json"
-    save_json(path, summary)
+    save_json(path, portable(summary))
     for command in HOST:
         result = subprocess.run(command, cwd=ROOT, env=environment(), capture_output=True, text=True)
         totals = [line for line in (result.stdout + result.stderr).splitlines()
@@ -93,11 +94,11 @@ def main() -> int:
                                 "stdout": result.stdout, "stderr": result.stderr})
         if result.returncode != 0:
             summary["status"] = "failed"
-            save_json(path, summary)
+            save_json(path, portable(summary))
             print(f"host check failed: {' '.join(command)}")
             return 1
     summary["images"] = prepare_images(frozen)
-    save_json(path, summary)
+    save_json(path, portable(summary))
     states: dict[str, object] = {}
     for stage in ORDER:
         plan = STAGES[stage]
@@ -106,24 +107,24 @@ def main() -> int:
         states[plan["sequence"]] = state_dir
         summary["stages"].append({"stage": stage, "sequence": plan["sequence"], "passed": report["passed"],
                                   "run_directory": report["run_directory"],
-                                  "state_directory": str(state_dir),
+                                  "state_directory": state_dir.relative_to(ROOT).as_posix(),
                                   "raw_qemu_exit": report["raw_qemu_exit"], "host_kill": report["host_kill"],
                                   "duration_s": report["duration_s"], "evidence": report.get("evidence"),
                                   "store_after_sha256": report["store_after_sha256"],
                                   "error": report.get("error")})
-        save_json(path, summary)
+        save_json(path, portable(summary))
         if not report["passed"]:
             summary["status"] = "failed"
-            save_json(path, summary)
+            save_json(path, portable(summary))
             return 1
     try:
         build()
     except Exception:
         summary["status"] = "failed"
-        save_json(path, summary)
+        save_json(path, portable(summary))
         raise
     summary.update(status="completed", passed=source_hash() == frozen and test_inputs() == tests)
-    save_json(path, summary)
+    save_json(path, portable(summary))
     print(f"B03 gate passed={summary['passed']} stages={len(summary['stages'])}")
     return 0 if summary["passed"] else 1
 
