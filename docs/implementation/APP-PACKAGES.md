@@ -162,6 +162,45 @@ generatie installeert. Die autoritatieve, duurzame bron bestaat nog niet; dit
 model bewijst dus geen persistentie of koude recovery. `N` is een
 compile-time modelgrens, geen productlimiet.
 
+#### Gerichte uitvoering TASK-A02-CATALOG — 30 oktober 2026
+
+Codebron `05e658e58eb69d29a2a800660616308c4cecf2e3`, branch
+`codex/app-management-catalog-leaf`, basis `9d8a119` met eerste cataloguscommit
+`c8c68ee`. SHA-256 van `sdk/app-management/src/catalog.rs`:
+`1ecd0e45bdb7f8690c1784e75428acdcf3f767e4b669f5d709382c334f1e7582`.
+De twee regressietests voor cancel/herprepare en gedeelde image-opruiming
+faalden eerst op de ongewijzigde catalogus van `c8c68ee` (exit 101, vijf
+bestaande catalogustests groen, twee nieuwe rood). Op de codebron hierboven
+slagen alle 18 app-managementtests, waaronder acht catalogustests.
+
+Lokale omgeving voor onderstaande vier commando's:
+
+```sh
+export CC="$PWD/.tools/nieuw-os/dev/cc-wrapper"
+export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="$CC"
+export CARGO_TARGET_DIR=/tmp/nieuw-os-app-management-target
+python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --manifest-path sdk/app-management/Cargo.toml
+python3 -B tools/dev.py cargo +1.90.0 clippy --offline --locked --manifest-path sdk/app-management/Cargo.toml --all-targets -- -D warnings
+python3 -B tools/dev.py cargo +1.90.0 fmt --manifest-path sdk/app-management/Cargo.toml --all -- --check
+CARGO_ENCODED_RUSTFLAGS=$'--cfg\x1fcurve25519_dalek_backend="serial"' \
+  python3 -B tools/dev.py cargo +1.90.0 build --offline --locked --release --manifest-path sdk/app-management/Cargo.toml --target x86_64-unknown-none
+```
+
+Elk commando eindigde met exit 0. De volledige hosttests zijn uitgevoerd,
+niet afgeleid uit een buildcache. Doorlooptijden in deze omgeving:
+test <1 s, Clippy <1 s, fmt 1 s, targetbuild <1 s; dit zijn geen
+runtimeprestatiemetingen. Lokale logs:
+`/tmp/nieuw-os-app-catalog-05e658e-{test,clippy,fmt,none}.log`;
+rode regressie: `/tmp/nieuw-os-app-catalog-regression-before.log`.
+
+Niet uitgevoerd: native installatie/update/remove, echte I/O-/powercutproef,
+gebruikersdatabehoud op disk, rechtenintrekking na update, cold recovery,
+CI op deze bron, fysieke of menselijke acceptatie. De crate voegt geen
+engine, dependency, persistentiebackend, publisherverifier of bevoegdheid toe.
+A01 behoudt zijn eigen historische SDK-bewijs; A02/A03/A04 blijven open.
+Dit catalogusresultaat is geen afronding van FR-A11/A12/A13 of van de overige
+dagelijkse apps en compatibiliteitstaken uit FULL-TEST-RELEASE-CONTEXT.
+
 De gedeelde read-only interface is ook de beoogde ingang voor consumers zoals
 een lokale AI-modelreader. De consumer moet zelf formaat/parsergrenzen en
 toepasselijke modelintegriteit beoordelen; de artifactdigest is geen
