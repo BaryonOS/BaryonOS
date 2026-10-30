@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`61a507ec`](https://github.com/simonvanieperen/nieuw-os/commit/61a507ecec9d57dda6e0b5ff489326151436ba2b) ·
+**Bron:** [`a597db81`](https://github.com/simonvanieperen/nieuw-os/commit/a597db819e949084a68d5195b6f6e21cd016ef55) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: echte user-timerpreemptie in FPU/wachtproef behouden; langere proefworkload, hertoets volgt.
-34% blijft 34%; minstens50% is niet bereikt. Normale en koude Materiaal-keten, systeem- en legacy-FPU-regressies slagen op hun vastgelegde bron; lokale testversie bewaard. FPU/wacht-hertoets op61a507e bereikt echte fault/survivor/slothergebruik, maar blijft terecht rood op user-timerpreemptie. De proef verlengt alleen de gebruikers-busyworkload in de wachtvariant; minstens twee echte timerinterrupts per app blijven vereist, idle-deadlineticks zijn geen vervanging. Nieuwe native run volgt; geen extra punten. IPC-wacht en RTC op a263bef en12 FPU-,100 tools- en414 Python-hostverifier-tests slagen. Native kill van Waiting, volledige productcriteria en menselijke/hardwareacceptatie blijven open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: exacte CPL0-idle versus CPL3-FPU-entrytellers in de combinatieproef; hertoets volgt.
+34% blijft 34%; minstens50% is niet bereikt. Normale/koude Materiaal-, systeem- en legacy-FPU-regressies slagen op hun vastgelegde bron. De FPU/wachtproef op a597db8 bereikt ook de vereiste echte user-timerpreemptie, maar faalt op de oude tellerrelatie die CPL0-idle ten onrechte als user-FPU-save meetelt. Beide orakels controleren nu exact totaal=user-A+user-B+idle en saves=user-A+user-B+syscalls+fault; geen assembly-, scheduler- of rechtenwijziging. Native hertoets volgt, geen extra punten. Native kill van Waiting, volledige productcriteria en menselijke/hardwareacceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

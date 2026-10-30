@@ -45,6 +45,12 @@ Timerpreëmptie per app, de AVX-fault, survivor, verse PID en volledige cleanup
 blijven verplicht. Een nog wachtende survivor is levend, niet ten onrechte
 een fout; hij moet na zijn deadline aantoonbaar verder werken vóór hergebruik.
 Het oorspronkelijke ABI1.6/yieldprofiel blijft afzonderlijk bestaan.
+Alle IRQ0's tellen voor de monotone klok; alleen CPL3-entry's bewaren/herstellen
+een user-FPU-bank. Daarom is het totale IRQ-getal exact user-A + user-B +
+idle-IRQ's, terwijl saves exact user-A + user-B + syscalls + de echte fault
+moeten zijn. CPL0-idle-returns slaan de FXSAVE/FXRSTOR-route bewust over.
+Kernel en host verifiëren beide deze relaties; idle mag geen userpreëmptie
+of extra FPU-save voorstellen.
 
 A veroorzaakt na minstens twaalf PIT-ticks een echte unsupported-AVX #UD.
 CPUID.AVX moet op dit qemu64-profiel afwezig zijn. B moet daarna aantoonbaar

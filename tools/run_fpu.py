@@ -133,11 +133,13 @@ def validate_sequence(stdout: str, *, wait: bool = False) -> dict:
                            "SLOT_REUSES": 1, "CONTEXT_BYTES_WIPED": 8192}.items():
         if numbers[name] != expected:
             raise ValueError(f"Wrong native counter {name}")
+    idle_irqs = numbers["WAIT_IDLE_IRQS"] if wait else 0
+    user_irqs = numbers["TIMER_A"] + numbers["TIMER_B"]
     if (numbers["VERIFIED_LOOPS"] < 24 or numbers["CLOCK_READS"] != numbers["VERIFIED_LOOPS"] + 3
             or numbers["TIMER_A"] < 2 or numbers["TIMER_B"] < 2 or numbers["FREE_FRAMES"] == 0
-            or numbers["TIMER_IRQS"] != numbers["TIMER_A"] + numbers["TIMER_B"]
+            or numbers["TIMER_IRQS"] != user_irqs + idle_irqs
             or numbers["SYSCALL_CALLS"] != 2 * numbers["VERIFIED_LOOPS"] + 26
-            or numbers["SAVES"] != numbers["TIMER_IRQS"] + numbers["SYSCALL_CALLS"] + 1
+            or numbers["SAVES"] != user_irqs + numbers["SYSCALL_CALLS"] + 1
             or numbers["RESTORES"] != numbers["SAVES"]):
         raise ValueError("Inconsistent or incomplete native context/clock evidence")
     if wait and (numbers["WAIT_CALLS"] != numbers["VERIFIED_LOOPS"]

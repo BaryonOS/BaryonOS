@@ -9,14 +9,13 @@ import run_fpu as f
 
 
 def serial(*, wait=False):
-    values = (3, 49, 52, 18, 17, 21, 38, 124, 163, 163, 1, 2, 1, 49263, 8192)
-    fields = f.FIELDS
+    values = dict(zip(f.FIELDS, (3, 49, 52, 18, 17, 21, 38, 124, 163, 163, 1, 2, 1, 49263, 8192)))
     end = f.END
     if wait:
-        fields += f.WAIT_FIELDS
-        values += (49, 47, 47, 2, 31)
+        values["TIMER_IRQS"] += 31
+        values.update(zip(f.WAIT_FIELDS, (49, 47, 47, 2, 31)))
         end = ("FPU:WAIT:PASS",) + end
-    return "\n".join(f.BOOT + f.CASES + tuple(f"FPU:{name}:{value:020d}" for name, value in zip(fields, values)) + end) + "\n"
+    return "\n".join(f.BOOT + f.CASES + tuple(f"FPU:{name}:{value:020d}" for name, value in values.items()) + end) + "\n"
 
 
 class EvidenceTests(unittest.TestCase):
@@ -26,7 +25,8 @@ class EvidenceTests(unittest.TestCase):
     def test_wait_profile_requires_real_blocking_and_exact_counters(self):
         self.assertEqual(f.validate_sequence(serial(wait=True), wait=True)["WAIT_BLOCKED"], 47)
         for label, value in (("WAIT_CALLS", 48), ("WAIT_BLOCKED", 2),
-                             ("WAIT_TIMEOUTS", 46), ("WAIT_IMMEDIATE", 0), ("WAIT_IDLE_IRQS", 0)):
+                             ("WAIT_TIMEOUTS", 46), ("WAIT_IMMEDIATE", 0), ("WAIT_IDLE_IRQS", 0),
+                             ("TIMER_IRQS", 38), ("SAVES", 194), ("RESTORES", 194)):
             text = serial(wait=True)
             line = next(line for line in text.splitlines() if line.startswith(f"FPU:{label}:"))
             with self.subTest(label=label), self.assertRaises(ValueError):

@@ -234,8 +234,15 @@ pub(super) mod fixture {
             let saves = unsafe { ptr::addr_of!(m3_fpu_saves).read() };
             // SAFETY: Same stopped-user/IF=0 counter ownership as above.
             let restores = unsafe { ptr::addr_of!(m3_fpu_restores).read() };
+            let user_timer_irqs = e.timer[0] + e.timer[1];
+            #[cfg(feature = "test-fpu-wait")]
+            let idle_irqs = s.wait_metrics.idle_irqs;
+            #[cfg(not(feature = "test-fpu-wait"))]
+            let idle_irqs = 0;
             require(
-                saves == s.timer_interrupts + s.syscall_calls + 1 && restores == saves,
+                s.timer_interrupts == user_timer_irqs + idle_irqs
+                    && saves == user_timer_irqs + s.syscall_calls + 1
+                    && restores == saves,
                 b"ENTRY_SWITCH_COUNTS",
             );
             for (name, value) in [

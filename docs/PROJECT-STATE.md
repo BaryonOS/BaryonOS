@@ -63,6 +63,13 @@ per lus meer echte userspace-busyinstructies aan (1.000.000 versus de
 ongewijzigde 50.000 in de yield-baseline). De eis van minstens twee echte
 user-timerinterrupts per app blijft intact; nieuwe run volgt. Rode run:
 `fpu-wait/run/test-fpu-wait-922d54455a`.
+Op `a597db8` slaagt die echte userpreëmptie-eis, maar de oudere FPU-tellerrelatie
+was nog onjuist voor idle: totale IRQ0's bevatten ook CPL0-idle, terwijl de
+assembly daarvoor terecht geen user-FXSAVE/FXRSTOR uitvoert. Het orakel eist
+nu exact totaal=user-A+user-B+idle en saves=user-A+user-B+syscalls+fault,
+plus dezelfde restoregelijkheid. Hosttests weigeren ook de foutieve oude
+relatie en ten onrechte toegevoegde idle-saves. Geen assembly gewijzigd.
+Rode run: `fpu-wait/run/test-fpu-wait-1058905b5d`; nieuwe hertoets volgt.
 
 Open: native kill/hergebruik en FPU met wachten, overige native regressies,
 volledige product-/menselijke-/hardwareacceptatie. Eerstvolgende commando:
