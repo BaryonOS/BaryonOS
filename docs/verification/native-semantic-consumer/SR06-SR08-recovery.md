@@ -149,3 +149,38 @@ Zelfde exacte commandoprefix/omgeving als hierboven:
 
 Rendereruitbreiding is aangevraagd, nog niet toegekend bij deze v2.
 Er zijn nog steeds geen productbronwrites of native/menselijke punten.
+
+## V3: beide modale fouten werkelijk bereikt
+
+De modale test verzamelt nu de beschikbaarheidsuitkomst voor conflict én
+revoke voordat de eindassertie faalt. Op beide gevallen is
+`[disabled_after_conflict, disabled_after_revoke] = [false, false]` in plaats
+van `[true, true]`. Hiermee is de eerdere bereikbeperking opgeheven, niet de
+verwachte bescherming versoepeld. De actieve test blijft rood. Een eigen
+Clippy-waarschuwing over indexeren is hersteld naar `iter_mut().enumerate()`;
+het eerdere lintlog blijft `both-modal-clippy.log`.
+
+Actuele testbron SHA-256:
+`43c660e13ca2544a1c3d84981a40e37aaadcf26c3af6a5b4d48a51db5774a3f0`.
+Zelfde exacte commandoprefix/omgeving:
+
+| Exact commando | Exit | Tijd | Actuele uitvoer |
+|---|---:|---:|---|
+| `cargo test --offline --locked --manifest-path ui/native/Cargo.toml` | **101** | 0,687 s | `suite-v3.log`: 26 groen, 1 echte blocker met beide foutgevallen |
+| `cargo test --offline --locked --manifest-path ui/native/Cargo.toml -- --skip sr06_failed_save_blocks_modal_save_actions` | 0 | 0,358 s | `unblocked-v3.log`: 26 groen, 1 uitgefilterd |
+| `cargo fmt --manifest-path ui/native/Cargo.toml -- --check` | 0 | 0,061 s | `fmt-v3.log` |
+| `cargo check --offline --locked --manifest-path ui/native/Cargo.toml --tests` | 0 | 0,145 s | `check-v3.log` |
+| `cargo clippy --offline --locked --manifest-path ui/native/Cargo.toml --all-targets -- -D warnings` | 0 | 0,263 s | `clippy-v3.log` |
+| `cargo build --offline --locked --manifest-path ui/native/Cargo.toml --target x86_64-unknown-none` | 0 | 0,053 s | `none-v3.log`, geen runtimebewijs |
+
+```text
+a79f65fc2935c07b876974b6c248cd7acfb1196e747f26cc0dc7d1cf4c69e7e9  suite-v3.log
+029dd9729181577d6e1e620f92ffa7cdd0279c58cb1cf467cee72f6d307fdd4f  unblocked-v3.log
+cc0bb653ab0d1db422e3aae8ab06f89f128cd6a5b5fa0219226de01a3a19d36b  fmt-v3.log
+0ae0b17a664e277b01a8baaee648a228007efc0b6ae1b1373a87b56e318909ca  check-v3.log
+d9a822a4b05a724b05dd28bdfa50985f6fcd45409576541f7541d624ae6c6f4c  clippy-v3.log
+d9549f427a222d626d6199921fe50cd7a11227c6920fac9f27a13f182ec21a8d  none-v3.log
+```
+
+Geen renderer- of controllerwrites. Nog geen uitbreiding ontvangen bij
+deze v3-checkpoint; oorspronkelijke scope en rode status blijven gelden.
