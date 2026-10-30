@@ -4,9 +4,14 @@ Laatste R77-reviewcheckpoint: beide concrete gaten eerst rood gereproduceerd
 (late PANIC/FAIL en vier immutable parentfirmwaretampergevallen), minimaal
 hersteld, 16 gerichte/154 tools-tests exit0. Nieuwe v3
 `949ce3abc8df4af3ed4cc29fd41e10ee0621e4f270ddf4ac2aafb3bacba9a901`;
-geen nieuwe native run op deze v3. Zie
+nieuwe eigen7d66-native keten inmiddels uitgevoerd: referentie133.939s/raw33,
+parent93.551s/raw0, cold37.543s/raw0. Zie
 `../native-cold-acceptance/review-fixes.md`. Historische420fac5-runs
 niet herlabeld; geen base-/kernel-/preview-/SDK-/lockwijziging.
+Offline nieuwe-ketenreplay en zestien echte artifact-/claimnegatieven
+groen; alle66originele files hashgelijk. Exacte commands/wall/logs/hashes in
+`../native-cold-acceptance/review-7d66/README.md`. Laatste16/154hosttests,
+progresscheck en diffcheck opnieuw exit0. Geen nieuwere-mainacceptatie.
 
 Afzonderlijke branch `simon/native-cold-acceptance`, basis
 `3d2e1aba218feb39e02a1a5d257c5eb63f50e26b`. Geen onderdeel van de bevroren

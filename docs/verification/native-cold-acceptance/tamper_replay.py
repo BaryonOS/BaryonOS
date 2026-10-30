@@ -125,7 +125,9 @@ def verify(build: Path) -> dict:
         publish(baseline)
         cold.replay_parent(clone, *args)
         for case in ("boolean-exit", "wrong-source", "wrong-reference", "failed-response",
-                     "extra-command", "disk-tamper", "frame-tamper", "kernel-tamper"):
+                     "extra-command", "disk-tamper", "frame-tamper", "kernel-tamper",
+                     "ovmf-code-tamper", "ovmf-template-tamper", "bios-tamper", "vga-tamper",
+                     "late-panic", "late-fail"):
             altered = copy.deepcopy(baseline)
             restore = None
             if case == "boolean-exit":
@@ -143,10 +145,21 @@ def verify(build: Path) -> dict:
                     "disk-tamper": "volume.img",
                     "frame-tamper": "reopened.ppm",
                     "kernel-tamper": "esp/kernel.elf",
+                    "ovmf-code-tamper": "OVMF_CODE.fd",
+                    "ovmf-template-tamper": "OVMF_VARS.template.fd",
+                    "bios-tamper": "bios-256k.bin",
+                    "vga-tamper": "VGA.rom",
+                    "late-panic": "serial.txt",
+                    "late-fail": "serial.txt",
                 }[case]
                 raw = target.read_bytes()
                 restore = (target, raw)
-                target.write_bytes(raw[:-1] + bytes([raw[-1] ^ 1]))
+                if case in ("late-panic", "late-fail"):
+                    marker = b"PANIC:late failure" if case == "late-panic" else b"MATERIAAL:FAIL:late failure"
+                    target.write_bytes(raw + b"\n" + marker + b"\n")
+                    altered["serial_sha256"] = preview.sha256(target)
+                else:
+                    target.write_bytes(raw[:-1] + bytes([raw[-1] ^ 1]))
             publish(altered)
             try:
                 cold.replay_parent(clone, *args)

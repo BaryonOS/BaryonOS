@@ -53,3 +53,13 @@ reviewhead. Lifecycle/teamleider bepalen de vervolggate; deze afgebakende
 reviewfix stopt bij gerichte reparatie en controleerbaar checkpoint.
 Clean shutdown, powerloss tijdens write, encryptie en volledige FR blijven
 open. Scorevoorstel **34% -> 34%**, centrale beoordeling bij de teamleider.
+
+Vervolg na expliciete TL-opdracht: op de bevroren code7d66 is daarna een
+nieuwe same-source reference/gewoneparent/coldchild-keten plus offline
+tamperreplay uitgevoerd, alle exit0. Referentie133.939s/raw33,
+parent93.551s/raw0, cold37.543s/raw0. Alle zestien artifact-/claimnegatieven
+geweigerd, waaronder de vier echte firmwaremutaties en late serialFAIL/PANIC.
+Exacte commands/walltimes/hashes/ruwe serial staan afzonderlijk in
+[review-7d66/README.md](review-7d66/README.md). De hierboven beschreven
+niet-uitvoering was de tussenstand vóór deze herhaling, geen actuele blocker.
+Geen baseupdate of herlabeling van420fac5; nieuwere-mainacceptatie blijft open.
