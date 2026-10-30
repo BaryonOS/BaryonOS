@@ -1,5 +1,13 @@
 # INTERACTIVE-COLD-1: codecheckpoint, native acceptatie nog open
 
+Laatste R77-reviewcheckpoint: beide concrete gaten eerst rood gereproduceerd
+(late PANIC/FAIL en vier immutable parentfirmwaretampergevallen), minimaal
+hersteld, 16 gerichte/154 tools-tests exit0. Nieuwe v3
+`949ce3abc8df4af3ed4cc29fd41e10ee0621e4f270ddf4ac2aafb3bacba9a901`;
+geen nieuwe native run op deze v3. Zie
+`../native-cold-acceptance/review-fixes.md`. Historische420fac5-runs
+niet herlabeld; geen base-/kernel-/preview-/SDK-/lockwijziging.
+
 Afzonderlijke branch `simon/native-cold-acceptance`, basis
 `3d2e1aba218feb39e02a1a5d257c5eb63f50e26b`. Geen onderdeel van de bevroren
 PR #66-reviewbron. Nieuwe files `tools/materiaal_cold.py`,

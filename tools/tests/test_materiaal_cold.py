@@ -111,6 +111,16 @@ class ColdParentTests(unittest.TestCase):
                 "report_sha256": "a" * 64, "apps": [], "frames": frames,
                 "qemu_implementation_sha256": "b" * 64,
             }
+            firmware = {}
+            for file, field in (
+                ("OVMF_CODE.fd", "ovmf_code_sha256"),
+                ("OVMF_VARS.template.fd", "ovmf_vars_template_sha256"),
+                ("bios-256k.bin", "seabios_bios_sha256"),
+                ("VGA.rom", "seabios_vga_sha256"),
+            ):
+                (root / file).write_bytes(file.encode())
+                firmware[field] = preview.sha256(root / file)
+            (root / "OVMF_VARS.fd").write_bytes(b"mutable guest firmware state")
             trace, stages = parent_trace(root)
             for stage in stages:
                 stage["screenshot_sha256"] = hashlib.sha256(frames[stage["phase"]]).hexdigest()
@@ -119,7 +129,7 @@ class ColdParentTests(unittest.TestCase):
                 "source_fingerprint_version": 3, "kernel_feature": "native-system-materiaal",
                 "kernel_sha256": manifest["kernel"]["sha256"],
                 "loader_sha256": manifest["loader"]["sha256"], "machine": "pc-q35-10.0",
-                "firmware": {}, "qemu_sha256": "d" * 64,
+                "firmware": firmware, "qemu_sha256": "d" * 64,
                 "qemu_implementation_sha256": "b" * 64,
                 "interactive_reference": {
                     "report_sha256": "a" * 64, "apps": [], "source_sha256": "c" * 64,
@@ -139,9 +149,17 @@ class ColdParentTests(unittest.TestCase):
             ):
                 def replay():
                     return cold.replay_parent(
-                        root, manifest, reference, "c" * 64, "pc-q35-10.0", {}, "d" * 64
+                        root, manifest, reference, "c" * 64, "pc-q35-10.0", firmware, "d" * 64
                     )
 
+                self.assertEqual(replay()["disk"], after)
+                for file in ("OVMF_CODE.fd", "OVMF_VARS.template.fd", "bios-256k.bin", "VGA.rom"):
+                    original = (root / file).read_bytes()
+                    (root / file).write_bytes(original + b"tampered")
+                    with self.subTest(firmware=file), self.assertRaisesRegex(ValueError, "firmware"):
+                        replay()
+                    (root / file).write_bytes(original)
+                (root / "OVMF_VARS.fd").write_bytes(b"changed mutable state")
                 self.assertEqual(replay()["disk"], after)
                 for changes in (
                     {"source_sha256": "e" * 64}, {"raw_qemu_exit": False},
@@ -309,6 +327,29 @@ class ColdLifecycleTests(unittest.TestCase):
             self.run_cold()
         self.assertEqual(self.oracle_calls, 0)
         self.assertEqual(json.loads((self.build / "cold-result.json").read_text())["raw_qemu_exit"], 33)
+
+    def check_late_guest_failure(self, marker):
+        original_command = self.command
+
+        def late_failure(execute, arguments=None):
+            original_command(execute, arguments)
+            if execute == "screendump" and Path(arguments["filename"]).stem == "reopened":
+                with (self.directory / "serial.txt").open("ab") as serial:
+                    serial.write(("\n" + marker + "\n").encode())
+
+        self.control.command.side_effect = late_failure
+        with self.assertRaises(ValueError):
+            self.run_cold()
+        report = json.loads((self.build / "cold-result.json").read_text())
+        self.assertFalse(report["passed"])
+        self.assertEqual(report["raw_qemu_exit"], 0)
+        self.assertEqual(self.oracle_calls, 0)
+
+    def test_late_guest_panic_after_final_frame_cannot_pass(self):
+        self.check_late_guest_failure("PANIC:late failure")
+
+    def test_late_guest_fail_after_final_frame_cannot_pass(self):
+        self.check_late_guest_failure("MATERIAAL:FAIL:late failure")
 
     def test_changed_disk_after_quit_is_rejected(self):
         original = self.inspect

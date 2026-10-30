@@ -131,6 +131,14 @@ def replay_parent(directory: Path, manifest: dict, reference: dict, frozen: str,
     ):
         if preview.sha256(preview.private_path(directory / relative, regular=True)) != expected:
             raise ValueError("Parent executable changed")
+    for relative, field in (
+        ("OVMF_CODE.fd", "ovmf_code_sha256"),
+        ("OVMF_VARS.template.fd", "ovmf_vars_template_sha256"),
+        ("bios-256k.bin", "seabios_bios_sha256"),
+        ("VGA.rom", "seabios_vga_sha256"),
+    ):
+        if preview.sha256(preview.private_path(directory / relative, regular=True)) != firmware[field]:
+            raise ValueError("Parent immutable firmware changed")
     before = preview.private_path(directory / "volume.before.img", regular=True).read_bytes()
     with tempfile.TemporaryDirectory(prefix="nieuw-os-cold-parent-") as name:
         empty_path = Path(name) / "empty.img"

@@ -1,5 +1,13 @@
 # TL-BUILD-COLD: gewone koude herstart na geforceerde hoststop
 
+**Nieuwere reviewfix, native herhaling open:** zie
+[review-fixes.md](review-fixes.md). Late post-frame PANIC/FAIL en gewijzigde
+immutable parentfirmware worden nu geweigerd; rode reproductie en groene
+16/154 hostregressies zijn vastgelegd. Nieuwe v3
+`949ce3abc8df4af3ed4cc29fd41e10ee0621e4f270ddf4ac2aafb3bacba9a901`
+heeft nog geen eigen native keten. Alle native resultaten hieronder blijven
+historisch op hun oorspronkelijke codebron/v3 staan.
+
 Codebron `420fac5783fdf86ed6d6464a8f1498190fdf78ef`,
 branch `simon/native-cold-acceptance`.
 V3 `f6d4ca781ac058b7c6eba1d7b1bf49314e07e45828158e28a0afde07b74b2304`.

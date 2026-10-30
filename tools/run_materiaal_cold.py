@@ -160,6 +160,7 @@ def run_cold(*, build_directory: Path, parent_run: Path, reference_run: Path,
             raw_exit = process.wait(timeout=max(1, deadline - time.monotonic()))
         if raw_exit != 0 or time.monotonic() >= deadline:
             raise ValueError("Cold QEMU did not exit raw0 within deadline")
+        preview.verify_ready_transcript(preview.read_serial(directory / "serial.txt"))
         disk = preview.inspect_stopped_disk(process, directory)
         if (directory / "volume.after.img").read_bytes() != parent["disk"]:
             raise ValueError("Cold interaction changed writable image")
