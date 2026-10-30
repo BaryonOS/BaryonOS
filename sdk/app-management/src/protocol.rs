@@ -151,7 +151,7 @@ pub fn decode_request<'a>(
             } else {
                 UploadAction::Update
             };
-            if data[1..8].iter().any(|byte| *byte != 0) {
+            if data[..8].iter().any(|byte| *byte != 0) {
                 return Err(ProtocolError::InvalidLength);
             }
             let mut source_id = [0; 32];
@@ -591,6 +591,36 @@ mod tests {
         identity[108..112].copy_from_slice(&4u32.to_le_bytes());
         identity[112..144].fill(2);
         identity
+    }
+
+    #[test]
+    fn begin_rejects_every_nonzero_reserved_byte() {
+        let mut data = [0; 80];
+        data[8..40].fill(3);
+        data[40..44].copy_from_slice(&7u32.to_le_bytes());
+        data[44..48].copy_from_slice(&((app_package_core::MANIFEST_LEN + 4) as u32).to_le_bytes());
+        data[48..80].fill(9);
+        for operation in [INSTALL_BEGIN, UPDATE_BEGIN] {
+            assert!(
+                decode_request(&received(44, &payload(operation, 15, 6, &data), &[]), 44, 6)
+                    .is_ok()
+            );
+            for index in 0..8 {
+                for value in 1..=u8::MAX {
+                    data[index] = value;
+                    assert_eq!(
+                        decode_request(
+                            &received(44, &payload(operation, 15, 6, &data), &[]),
+                            44,
+                            6
+                        ),
+                        Err(ProtocolError::InvalidLength),
+                        "operation={operation} reserved_index={index} value={value}"
+                    );
+                }
+                data[index] = 0;
+            }
+        }
     }
 
     #[test]
