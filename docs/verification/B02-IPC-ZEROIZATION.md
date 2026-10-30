@@ -32,3 +32,52 @@ De hosttests zijn gelinkt met Ubuntu GCC 13.4.0 en lokaal uitgepakte
 glibc-ontwikkelbestanden; er is geen systeembreed pakket geïnstalleerd.
 QEMU/OVMF-runtimeproeven en CI op deze commit zijn niet uitgevoerd. Dit rapport
 sluit geen rubriccriterium en verhoogt de roadmapscore niet.
+
+## Vervolg — native Key Service-integratie, 30 oktober 2026
+
+Na de SDK-wijziging bleek dat `sdk/examples/keyring/src/service.rs` de
+`Outgoing`-envelope handmatig overschreef met volatile writes en statisch
+eiste dat het type geen destructor heeft. De nieuwe SDK-destructor maakte die
+oude aanname ongeldig. De workaround is verwijderd; normale scope-exit voert
+nu de SDK-zeroisatie uit. Er is geen keyring-wire-/TPM-/restorecontract
+gewijzigd. Geïntegreerde broncommit `aec3034bb370f290b54331d3ef9694e4d1b7e680`;
+source fingerprint v3 `0ba8e5f110c7c8225f88beabe6f25d8ca0d464726101c4b102059df36ce76aa2`.
+
+De eerste native buildpoging faalde met exit 101 doordat `cc` niet in PATH
+stond. Met de lokaal uitgepakte GCC 13.4.0 vond de compiler vervolgens de
+statische `needs_drop::<Outgoing>()`-assertie (exit 101). Na verwijdering van
+de verouderde handmatige workaround slaagde de native build (exit 0). De
+eerste foutuitvoer is niet als afzonderlijk raw-log bewaard; de foutstatus en
+oorzaak worden hier expliciet vastgelegd. De uiteindelijke logs zijn lokaal
+onder `/tmp` bewaard en niet in Git opgenomen.
+
+De uiteindelijke builds gebruikten de lokale omgeving:
+
+```sh
+export PATH="$PWD/.tools/bootstrap/host-linker/bin:$PWD/.tools/bootstrap/host-linker/usr/bin:$PATH"
+export LD_LIBRARY_PATH="$PWD/.tools/bootstrap/host-linker/usr/lib/x86_64-linux-gnu:/tmp/nieuw-os-dhcp-hostcc/root/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export C_INCLUDE_PATH="$PWD/.tools/bootstrap/host-linker/usr/include:$PWD/.tools/bootstrap/host-linker/usr/include/x86_64-linux-gnu"
+export LIBRARY_PATH="$PWD/.tools/bootstrap/host-linker/usr/lib/x86_64-linux-gnu"
+LOCALAPPDATA="$PWD/.tools" python3 -B sdk/examples/keyring/build.py
+LOCALAPPDATA="$PWD/.tools" python3 -B sdk/examples/system/build.py
+```
+
+Beide uiteindelijke commands eindigden met exit 0 en bouwen release-binaries
+voor `x86_64-unknown-none`; logs:
+`/tmp/nieuw-os-security-keyring-build.log` SHA-256
+`391f37453d56823716d8f24816b8d256ee2bc0bd0fe96a837d68e393df796359` en
+`/tmp/nieuw-os-security-system-build.log` SHA-256
+`3f8a6f007c804fb0cbb5f50a3632b1dc99c9e0a79aea14483acf159a05a19a8e`.
+Runtime-Clippy op SDK-runtime exit 0; log
+`/tmp/nieuw-os-security-sdk-runtime-clippy.log`, SHA-256
+`6648f70bbf70e1e45eb73f26f9eea5fc9fca0964ede7bdd39fe818ba18555104`.
+De opnieuw uitgevoerde preflightinventaris exit 0; rapport
+`/tmp/nieuw-os-security-preflight.json`, SHA-256
+`ff55bfc97f2c5601477ee6266a06485fc7cbcaf613cda29829b2ecd9f45f6090`.
+De inventaris ziet `x86_64-unknown-none`, maar geen QEMU, OVMF of
+`x86_64-unknown-uefi`; dit is geen runtime-/bootbewijs.
+
+Dit vervolg herstelt native buildcompatibiliteit maar sluit geen rubricpunt.
+B02 blijft open: een vertrouwd koud rollbackanker, write-ahead per
+GENERATE/REVOKE, echte volume-identiteit, native cold-recovery-/manipulatietests
+en een vastgesteld multi-writer-/multi-device-contract ontbreken nog.

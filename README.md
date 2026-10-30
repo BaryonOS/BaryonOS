@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`89d8b094`](https://github.com/simonvanieperen/nieuw-os/commit/89d8b0941795d179fa8bb90d692aff0fb74f1f87) ·
+**Bron:** [`aec3034b`](https://github.com/simonvanieperen/nieuw-os/commit/aec3034bb370f290b54331d3ef9694e4d1b7e680) ·
 **Ontwikkelbranch:** `simonvanieperen-solid-waffle`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B02-IPC-HYGIENE-1: wis en redigeer SDK-IPC-envelopes met gevoelige payloads.
-34% blijft 34%. B02-IPC-HYGIENE-1 wist SDK-eigen Message320-stagingbytes bij geldige native receive-overdracht, wist Outgoing/Received-envelopes bij opruimen en redigeert payload uit Debug. Op bron 89d8b09 slagen 22 SDK-runtimehosttests, formattering en de x86_64-unknown-none no_std-check. Er is geen rubriccriterium gesloten: B02 wacht op een vertrouwd rollbackanker, write-ahead per GENERATE/REVOKE en een echte volume-identiteit; B04, B05 en B06 blijven open. QEMU/OVMF-runtime en CI zijn niet uitgevoerd.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B02-IPC-HYGIENE-1: native Key Service compatibiliteit met SDK-envelope-zeroisatie.
+34% blijft 34%. De SDK wist Message320-envelopes en stagingbytes; de native Key Service laat deze nu via de SDK-destructor opruimen in plaats van ze onveilig handmatig te overschrijven. Op bron aec3034 slagen runtimehosttests, no_std-check, Clippy, formattering en native keyring-/systeemdienstbuilds. Er sluit geen criterium: B02 mist een vertrouwd rollbackanker, write-ahead per GENERATE/REVOKE en echte volume-identiteit; B04, B05 en B06 blijven open. QEMU/OVMF-runtime en CI zijn niet uitgevoerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

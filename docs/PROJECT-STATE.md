@@ -2,27 +2,40 @@
 
 ## NEXT AGENT HANDOFF — beveiliging/privacy/updates — 30 oktober 2026
 
-Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (B02-PERSIST-1 geïntegreerd),
-implementatiebron `89d8b0941795d179fa8bb90d692aff0fb74f1f87`, branch
-`simonvanieperen-solid-waffle`. B02-IPC-HYGIENE-1 voegt SDK-eigen
-Message320-geheugenhygiëne toe: stagingbytes worden bij geldige native
-receive-overdracht gewist, `Outgoing`/`Received` wissen hun envelope bij
-opruimen en `Debug` redigeert de payload. Source fingerprint v3:
-`53fc1cdd5448d2bc50aaee32a8fcf0df95d0ca40679eb83a1cf32eb093cb5f4a`.
+Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (B02-PERSIST-1 geïntegreerd);
+implementatiebronnen `89d8b0941795d179fa8bb90d692aff0fb74f1f87` en
+`aec3034bb370f290b54331d3ef9694e4d1b7e680`, branch
+`simonvanieperen-solid-waffle`, remote gecontroleerd op `aec3034`. Source
+fingerprint v3: `0ba8e5f110c7c8225f88beabe6f25d8ca0d464726101c4b102059df36ce76aa2`.
 
+B02-IPC-HYGIENE-1 wist SDK-eigen Message320-stagingbytes bij geldige native
+receive-overdracht, wist `Outgoing`/`Received`-envelopes bij opruimen en
+redigeert payload uit `Debug`. De vervolgfout in de Key Service is hersteld:
+`service.rs` laat de envelope nu normaal vallen; de SDK-destructor zeroizet hem
+en de oude volatile-vervanging die `needs_drop == false` eiste is verwijderd.
 Gericht bewijs: [B02-IPC-ZEROIZATION](verification/B02-IPC-ZEROIZATION.md).
-SDK-runtime: 22 hosttests, no_std `x86_64-unknown-none`-controle,
-formattering en diffcontrole exit 0. De volledige hosttestuitvoer staat lokaal
-op `/tmp/nieuw-os-security-sdk-runtime-tests.log` (SHA-256 in het rapport).
-Geen native QEMU-run of CI op deze commit. **Rubric 34% → 34%; B02 blijft
-open**: er is geen TPM-rollbackanker, write-ahead per sleutelmutatie of echte
-volume-identiteit. B04/B06 blijven open; B05 vereist onafhankelijke menselijke
-deskundigenreview en kan niet door deze implementatie worden afgetekend.
 
-Eerstvolgende controles: runtime-Clippy en echte keyring-/system-servicebuild
-op de no_std-target. Controleer daarna beschikbare native runners; deze
-worktree ontbeerde bij aanvang Cargo/QEMU/OVMF. Volledige B-track blijft
-12 punten en geen criterium wordt door hosttests alleen geaccepteerd.
+Op de relevante bron slagen SDK-runtime: 22 hosttests, `x86_64-unknown-none`
+no_std-check en runtime-Clippy met `-D warnings`; SDK-formattering en
+`git diff --check` slagen. Native Key Service- en systeemdienstbuilds slagen
+op `x86_64-unknown-none`. Toolchaininventaris exit 0, maar QEMU, OVMF en het
+UEFI-target ontbreken; native QEMU-runtime en CI zijn **niet uitgevoerd**.
+De lokale GCC 13.4.0 en glibc-hulpmiddelen zijn uit de repo-/tijdelijke
+toolcache gebruikt, zonder systeembrede installatie.
+
+**Rubric 34% → 34%; beveiligingsspoor 4/12.** Er is geen criterium gesloten:
+B02 mist een onafhankelijk vertrouwd rollbackanker, write-ahead per
+GENERATE/REVOKE in de dienst en een echte volume-identiteit; B04 en B06 blijven
+open; B05 vereist onafhankelijke menselijke deskundigenreview en kan niet
+door AI of hosttests worden afgetekend. Er is nog geen vastgesteld
+multi-device-token-/restorecontract voor de NAS-integratie.
+
+Volgende stap op het kritieke pad: werk B02 verder uit vanaf de bestaande
+record-/persistentiespecificatie en de echte TPM-/volumegrenzen; wijzig geen
+keyring-/TPM-interface zonder eerst te controleren op parallelle eigenaar en
+contractconflict. Eerst ontbrekende lokale VM-runner (QEMU/OVMF) beschikbaar
+maken of de beperking expliciet behouden. Geen hostprototype telt als native
+bewijs; volledige B-track blijft 12 punten.
 
 ## Historisch checkpoint — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
 
