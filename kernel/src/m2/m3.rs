@@ -78,6 +78,8 @@ mod supervisor;
 #[cfg(feature = "native-system")]
 #[cfg_attr(feature = "native-system-materiaal", allow(dead_code))]
 mod system;
+#[cfg(feature = "native-tpm-crb")]
+mod tpm_fixture;
 #[cfg(any(
     all(feature = "native-system-random", feature = "native-system-net"),
     all(feature = "native-system-random", feature = "native-system-images"),
@@ -525,6 +527,8 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
     let image = user::parse(process_elf(0)).expect("embedded user ELF");
     assert_eq!(image.entry, 0x40000000);
     kernel.begin_scratch(frames);
+    #[cfg(feature = "native-tpm-crb")]
+    tpm_fixture::prepare(frames, &mut kernel);
     #[cfg(feature = "milestone-m5")]
     m5::prepare(frames, &mut kernel);
     #[cfg(feature = "native-keyring")]
@@ -980,6 +984,8 @@ impl State {
         'selection: loop {
             #[cfg(feature = "ipc-wait")]
             wait::refresh(self);
+            #[cfg(feature = "native-tpm-crb")]
+            tpm_fixture::poll(self.ticks);
             let start = if self.current < self.amount {
                 (self.current + 1) % self.amount
             } else {

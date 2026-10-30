@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`586c33c2`](https://github.com/simonvanieperen/nieuw-os/commit/586c33c2db2cd3c349612246f81e1470822aef3b) ·
+**Bron:** [`cf020559`](https://github.com/simonvanieperen/nieuw-os/commit/cf020559b7771a221713f2fd676c1dbed0081c24) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: zes echte K05-cases inclusief Waiting-kill en vers slothergebruik groen.
-34% blijft 34%; minstens50% niet bereikt. Op586c33c slagen alle zes echte K05-cases raw33/exit0. Twee kills van werkelijk Waiting kinderen, vier exacte weigeringen, schoon slot/vers PID en geen geerfde oude wake; vier blokkeringen, twee deadlinewakes en84 idle-IRQ's. Volledige Engine/framecleanup; drie rode pogingen behouden. Ook64 core/wachttests (1 bestaande ignored),23 SDK-tests,1 protocol- en8 harnastests groen. Geen gewijzigde productierechten/scheduler/cleanup en geen nieuw rubriccriterium. Eerdere GUI/FPU/system/RTC-bewijzen blijven brongebonden; lokale proefversie bewaard. Volledige product-/menselijke-/hardwareacceptatie open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** TPM-NATIVE-1: vaste supervisor-MMIO-adapter en read-only TPM2-proef gebouwd; native gate volgt.
+34% blijft 34%; minstens50% niet bereikt. Nieuwe onafhankelijke TPM-CRB-bootstrapfixture verbindt de bestaande core met exact begrensde supervisor-RW/NX/UC-MMIO en echte PIT-polls: alleen read-only familyquery, release en absent-geval. Scalarbuild/ELF-inspectie,23 TPM-coretests en4 gerichte harnastests slagen; native nog niet uitgevoerd. Geen keyring/system-overlap met PR64, nieuwe apprechten, NV-mutatie of antirollbackclaim. Eerdere GUI/FPU/K05-bewijzen en lokale proefversie blijven behouden en brongebonden. Geen volledig nieuw criterium, volledige product-/menselijke-/hardwareacceptatie open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

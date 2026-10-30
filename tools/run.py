@@ -44,7 +44,7 @@ def is_success(returncode, stdout, timed_out=False, *, required_markers=MARKERS,
 def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
               expected_exit=33, forbidden_markers=FAIL_MARKERS, m5_case=None, m5_seed=None,
               expected_kernel_sha256=None, expected_loader_sha256=None, memory_mib=256,
-              rtc_base=None):
+              rtc_base=None, tpm_socket=None):
     rtc_arguments = []
     if rtc_base is not None:
         # A controlled UTC calendar, never a host wall-clock fallback.
@@ -97,6 +97,13 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
             "-drive", f"if=virtio,index=0,format=raw,readonly=on,file=fat:{run_rel}/esp",
             "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]
     args += rtc_arguments
+    if tpm_socket is not None:
+        control = Path(tpm_socket).resolve(strict=True)
+        if not control.is_relative_to(BUILD.resolve()) or not control.is_socket():
+            raise ValueError("TPM control must be a generated Unix socket under this build root")
+        args += ["-chardev", f"socket,id=tpmsock,path={control.relative_to(ROOT).as_posix()}",
+                 "-tpmdev", "emulator,id=tpm0,chardev=tpmsock",
+                 "-device", "tpm-crb,tpmdev=tpm0"]
     if m5_case is not None and m5_case != "no-device":
         args += ["-drive", f"if=none,id=m5-test,format=raw,readonly=on,file={run_rel}/test-disk.img",
                  "-device", "virtio-blk-pci,drive=m5-test,id=m5blk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M5-TEST"]

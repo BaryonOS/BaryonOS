@@ -1,5 +1,20 @@
 # Werkqueue — volledige native testrelease, 30 oktober 2026
 
+Actief `TPM-NATIVE-1`, eigenaar `simon/native-test-version`, vanaf
+`cf02055`: alleen vaste supervisor-MMIO-adapter en read-only TPM2-property-
+proef met echte PIT-polls, afzonderlijk absent-geval en bestaande volledige
+CPL3-wachtacceptatie. Exclusieve writes: root/kernel Cargo-manifest/lock,
+exacte pagingseam, M3-TPM-fixture/testhook, waitfixture-observer,
+`tools/build.py`, `tools/run.py`, nieuwe `run_tpm.py`/hosttest en bewijsdocs.
+Geen keyring/system-opslagwijzigingen; actieve PR #64 bezit dat gebied.
+23 coretests, 4 harnastests en scalarbuild/ELF-inspectie groen; native gate
+nog open. ADR-052; afhankelijkheid van FR-B01/FR-O05, geen gesloten criterium.
+Voorafgaande sessiestap: alle zes echte K05-cases, inclusief twee Waiting-
+kills en schoon hergebruik, groen op `586c33c`; brongebonden bewijs in
+`verification/native-test-version/wait-lifecycle-evidence.json`.
+De normale/koude native GUI en FPU/wacht zijn eveneens inmiddels groen op
+hun eigen bron; oude rode queue-omschrijvingen hieronder zijn historisch.
+
 Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De opt-in `native-rtc`-bootstrap,
 `kernel/src/m2/rtc.rs`, RTC-buildkeuze, RTC-runner/hosttests/workflow en

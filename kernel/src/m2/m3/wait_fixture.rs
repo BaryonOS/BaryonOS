@@ -42,6 +42,8 @@ pub fn manifest(state: &mut State) {
     if state.amount != 2 || state.fault || state.exited || state.unexpected {
         fail(b"MANIFEST_STATE");
     }
+    #[cfg(feature = "native-tpm-crb")]
+    super::tpm_fixture::manifest(state);
     let e = m4::engine();
     let pids = [state.processes[0].pid, state.processes[1].pid];
     for pid in pids {
@@ -155,6 +157,8 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
     {
         fail(b"NO_NATIVE_WAIT");
     }
+    #[cfg(feature = "native-tpm-crb")]
+    super::tpm_fixture::finish();
     for slot in 0..2 {
         print_number(b"IPCWAIT:ASSERTIONS:", e.assertions[slot]);
         print_number(b"IPCWAIT:TICKS:", e.ticks[slot]);

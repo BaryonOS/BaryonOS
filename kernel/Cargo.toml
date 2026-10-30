@@ -32,6 +32,8 @@ monotonic-clock = ["milestone-m3"]
 # Optional bounded IPC waits; no legacy profile changes its ABI or idle path.
 ipc-wait = ["milestone-m4", "monotonic-clock"]
 native-ipc-wait = ["native-sdk-app", "ipc-wait"]
+native-tpm-crb = ["native-ipc-wait", "dep:nieuw-os-tpm-crb"]
+test-tpm-crb-absent = ["native-tpm-crb"]
 # Fallible own-process RW/NX heap suffixes; existing total frame quota.
 process-memory = ["monotonic-clock"]
 # Separate architecture acceptance fixture; no product bootstrap policy.
@@ -201,6 +203,7 @@ native-update = ["milestone-m6a"]
 test-update-cut = ["native-update"]
 
 [dependencies]
+nieuw-os-tpm-crb = { path = "../drivers/tpm-crb", optional = true }
 nieuw-os-rtc = { path = "../drivers/rtc", optional = true }
 nieuw-os-display-client = { path = "../sdk/display-client", default-features = false, optional = true }
 nieuw-os-ps2 = { path = "../drivers/ps2", optional = true }

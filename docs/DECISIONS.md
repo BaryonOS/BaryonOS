@@ -1079,3 +1079,34 @@ stale tickets, tijdslimieten en generatie-uitputting mogen geen toegang of vals
 Ready opleveren. Dit is geen algemene driver-/DMA-/IOMMU-garantie. Details en
 uitvoeringsbewijs volgen in het transportcontract en native QMP-bedieningsproef.
 Terugdraaien: opt-in transport revert, G0-regressie behouden en productcriteria open.
+
+## ADR-052 — Afzonderlijke native CRB-apertureproef, geen product-TPM-beleid
+
+**Datum:** 30 oktober 2026. `native-tpm-crb` combineert uitsluitend de bestaande
+echte IPC-wachtproef met de bestaande safe TPM-transport-/commandocore.
+De kernel bezit één vaste supervisor-RW/NX/UC-pagina op VA `0x3f180000`
+voor QEMU locality0 `0xfed40000`; geen willekeurige fysieke mapping, DMA,
+nieuwe gebruikersgrant of publieke syscall. De private niet-Copy-adapter
+doet begrensde volatile-kopieën, expliciete compiler-/CPU-fences en sticky
+quarantaine die geen nieuwe claim toestaat. Alleen de bootstrapfixture
+codeert één read-only GetCapability(TPM_PT_FAMILY_INDICATOR); geen crypto,
+NV-mutatie, sleutels of opslagpolicy in de kernel.
+
+De bestaande scheduler levert echte PIT-ticks aan iedere begrensde poll.
+Geen poll-countklok, drukke verborgen waitlus, automatische replay of
+fallback. Readiness, exacte response, bufferwissen, Idle en relinquish-ACK
+gaan vóór succes. Een aparte absent-case vereist weigering vóór enige
+hardwarewrite. De volledige bestaande CPL3-wacht-/rechten-/cleanupcontrole
+blijft gelden. Beide echte VM-runs zijn bij dit ontwerpcheckpoint nog open.
+
+Dit is een eerste MMIO-integratie, geen kernelgrant voor productapps,
+TPM-discovery, fysieke ondersteuning, vertrouwde boot, persistente
+sleutel-lineage of onafhankelijk rollbackanker. PR #64 houdt zijn eigen
+keyring/system-opslagwrites; dit experiment verandert die interface niet.
+QEMU v10.2.1 `hw/tpm/tpm_crb.c` is als primaire implementatie gelezen:
+https://github.com/qemu/qemu/blob/v10.2.1/hw/tpm/tpm_crb.c
+Register/buffer/Idle/locality-completion passen bij het bestaande contract.
+OSDev: *Memory mapped registers in C/C++*, W003198, revisie30402
+(24 maart2026), is alleen aanvullende uitleg; geen normatieve TCG-controle.
+Herzien vóór een productbroker, andere hardware of NV-commits. Rollback:
+opt-in features/fixture verwijderen; legacy profielen blijven ongewijzigd.

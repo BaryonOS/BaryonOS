@@ -45,7 +45,8 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "tes
                    "milestone-m6a", *(f"test-m6a-{case}" for case in M6A_CASES),
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
-                   "native-sdk-app", "test-sdk-app-denied", "native-ipc-wait", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
+                   "native-sdk-app", "test-sdk-app-denied", "native-ipc-wait",
+                   "native-tpm-crb", "test-tpm-crb-absent", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
                    *KEYRING_FEATURES, *MATERIAAL_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input"]
 
 
@@ -172,7 +173,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         if not qsim_report.get("passed") or sha256(output / "qsim-job-native.elf") != qsim_report["binary_sha256"]:
             raise ValueError("Native qsim job executable failed its artifact gate")
         extra_env = {"NOS_QSIM_JOB_ELF": str((output / "qsim-job-native.elf").resolve())}
-    elif kernel_feature == "native-ipc-wait":
+    elif kernel_feature in ("native-ipc-wait", "native-tpm-crb", "test-tpm-crb-absent"):
         from build_users import inspect_user
         app_target = TARGET / "ipc-wait-app"
         run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/ipc-wait-probe/build.py")],
@@ -316,7 +317,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             manifest["memory"] = qsim_report
         elif kernel_feature in ("native-fpu", "test-fpu-wait"):
             manifest["fpu"] = qsim_report
-        elif kernel_feature == "native-ipc-wait":
+        elif kernel_feature in ("native-ipc-wait", "native-tpm-crb", "test-tpm-crb-absent"):
             manifest["ipc_wait"] = qsim_report
         elif kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
             manifest["sdk_app"] = qsim_report

@@ -1,6 +1,38 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Waiting-kill en schoon slothergebruik native groen — 30 oktober 2026
+## NEXT AGENT HANDOFF — TPM-CRB-MMIO gebouwd, native uitvoering volgt — 30 oktober 2026
+
+Branch `simon/native-test-version`, basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`;
+laatste bewijscheckpoint `cf020559b7771a221713f2fd676c1dbed0081c24`.
+**34% → 34%; minstens 50% niet bereikt.** Nu TPM-NATIVE-1: de bestaande
+TPM-core verbinden met een vaste supervisor-RW/NX/UC-aperture, exact
+begrensde volatile-I/O en echte PIT-polls. Alleen één read-only TPM2-
+familyquery, bevestigde release en een aparte absent-case; geen sleutel-,
+NV-, productgrant-, nieuwe ABI- of antirollbackclaim. ADR-052 en TPM-contract
+leggen de grens vast. PR #64 bezit keyring/system-opslag; niet aangeraakt.
+
+Eigen writes: root/kernel Cargo-manifest/lock, exact pagingseam,
+M3-testhook/nieuwe tpm_fixture, waitfixture-observer, buildkeuze,
+bestaande generieke runner plus nieuwe TPM-runner/hosttest en docs.
+De adapter wordt slechts eenmaal geclaimd; quarantaine blijft sticky.
+De bestaande twee CPL3-wachtapps en hun volledige orakels blijven behouden.
+Scalarbuild/ELF-inspectie exit0 (`/tmp/nieuw-os-native-tpm-build.log`),
+23 bestaande TPM-coretests exit0 (`/tmp/nieuw-os-native-tpm-core.log`),
+4 gerichte TPM/IPC-harnastests exit0. Eerste metadata-aanroep weigerde
+terecht een geneste workspace; tpm-crb nu zoals rtc expliciet uitgesloten,
+alleen één bestaande lokale dependency toegevoegd aan root-lock.
+
+De omgevingagent leverde een lokale officiële swtpm0.10.1/libtpms0.10.2-
+prefix en bevestigde QMP-readiness met de juiste ctrl-Unixsocket; zijn
+eerste data-socket/alive-only-proef was onvoldoende en is niet als native
+bewijs gebruikt. Geen agent of testproces meer actief.
+Native TPM **nog niet uitgevoerd**. Eerstvolgend commando na checkpoint:
+`LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR="$PWD/build/native-test-version/tpm" NOS_TARGET_DIR="$PWD/target/native-test-version/tpm" python3 -B tools/dev.py python3 -B tools/run_tpm.py --case normal`
+Daarna dezelfde opdracht met `--case absent`; bij falen echte serial lezen.
+Eerdere GUI/koude proefversie, FPU en zes K05-cases blijven brongebonden
+hieronder. Volledige product-/menselijke-/hardwareacceptatie en 50% open.
+
+## Uitvoeringshistorie — Waiting-kill en schoon slothergebruik native groen
 
 Branch `simon/native-test-version`, basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`.
 Geteste bron `586c33c2db2cd3c349612246f81e1470822aef3b`, v3
