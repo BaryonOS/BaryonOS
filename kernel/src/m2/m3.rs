@@ -48,7 +48,10 @@ const _: () = assert!(
 
 #[cfg(all(
     feature = "native-fpu",
-    any(feature = "milestone-m4", feature = "native-qsim")
+    any(
+        all(feature = "milestone-m4", not(feature = "test-fpu-wait")),
+        feature = "native-qsim"
+    )
 ))]
 compile_error!("native-fpu is a separate M3 acceptance profile");
 #[cfg(feature = "native-cap-digest-bench")]
@@ -224,7 +227,8 @@ const KEYRING_APP_ELF: &[u8] = include_bytes!(env!("NOS_KEYRING_APP_ELF"));
     not(feature = "native-sdk-app"),
     not(feature = "native-supervisor"),
     not(feature = "native-keyring"),
-    not(feature = "native-display-probe")
+    not(feature = "native-display-probe"),
+    not(feature = "native-fpu")
 ))]
 const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
@@ -679,7 +683,8 @@ impl State {
             not(feature = "native-sdk-app"),
             not(feature = "native-supervisor"),
             not(feature = "native-keyring"),
-            not(feature = "native-display-probe")
+            not(feature = "native-display-probe"),
+            not(feature = "native-fpu")
         ))]
         m4::manifest(self);
         #[cfg(feature = "native-sdk-app")]
@@ -927,7 +932,8 @@ impl State {
             not(feature = "native-sdk-app"),
             not(feature = "native-supervisor"),
             not(feature = "native-keyring"),
-            not(feature = "native-display-probe")
+            not(feature = "native-display-probe"),
+            not(feature = "native-fpu")
         ))]
         if let Some(next) = m4::poll(state) {
             return Some(next);
@@ -1303,7 +1309,8 @@ impl State {
             not(feature = "native-sdk-app"),
             not(feature = "native-supervisor"),
             not(feature = "native-keyring"),
-            not(feature = "native-display-probe")
+            not(feature = "native-display-probe"),
+            not(feature = "native-fpu")
         ))]
         {
             m4::observe_exit(self, slot, counter);
@@ -1396,7 +1403,8 @@ impl State {
             not(feature = "native-sdk-app"),
             not(feature = "native-supervisor"),
             not(feature = "native-keyring"),
-            not(feature = "native-display-probe")
+            not(feature = "native-display-probe"),
+            not(feature = "native-fpu")
         ))]
         {
             m4::observe_fault(self, slot, context, counter);

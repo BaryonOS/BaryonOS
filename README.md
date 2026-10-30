@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`3064b1a3`](https://github.com/simonvanieperen/nieuw-os/commit/3064b1a3504e1f62b3e25a61e46eba42f61a0030) ·
+**Bron:** [`dedeacdd`](https://github.com/simonvanieperen/nieuw-os/commit/dedeacdd4be0b0c4970e0ca42fe2895e357ace45) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: normale en koude GUI groen; afzonderlijke FPU-wachtproef toegevoegd, native controle volgt.
-34% blijft 34%; minstens50% is nog niet bereikt. Echte Materiaal edit/save/list/reopen en koude readonly-heropening slagen op hun vastgelegde bron, zonder versoepelde deadlines of orakels. Een lokale eigen-kernel/UEFI-proefversie is bewaard. Op3064b1a slagen ook de bestaande gezamenlijke normal/recover- en ABI1.6-FPU-regressies. Een aparte test-fpu-wait-variant is toegevoegd voor echte blokkering met behoud van x87/SSE, timerpreemptie, fault/slothergebruik en cleanup;12 gerichte hostverifier-tests slagen, de nieuwe native run is nog niet uitgevoerd. Native kill van Waiting, volledige document/GUI-criteria, overige native regressies en menselijke/hardwareacceptatie blijven open. Geen volledig nieuw rubriccriterium gesloten.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: FPU/wacht-fixtureselectie hersteld na echte buildfout; native controle volgt.
+34% blijft 34%; minstens50% is nog niet bereikt. Echte Materiaal edit/save/list/reopen en koude readonly-heropening slagen op hun vastgelegde bron; een lokale eigen-kernel/UEFI-proefversie is bewaard. De bestaande gezamenlijke normal/recover- en ABI1.6-FPU-regressies slagen op3064b1a. De nieuwe FPU/wacht-build op dedeacd faalde terecht door onverenigbare fixtureselectie; de expliciete testcombinatie scheidt nu generieke M4-fixtures van de ongewijzigde M4-mechanismen. De daaropvolgende scalar-build,12 FPU-verifiertests,100 tools- en414 Python-hosttests slagen. De nieuwe native wacht/FPU-run is nog niet uitgevoerd; geen runtimegoedkeuring of extra punten. Native kill van Waiting, volledige document/GUI-criteria, overige native regressies en menselijke/hardwareacceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

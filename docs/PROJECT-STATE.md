@@ -28,7 +28,7 @@ op `3064b1a`, alle drie VM's raw33. Logs:
 `/tmp/nieuw-os-native-{system,fpu}-regression.log`.
 
 Volgende kleine codeproef: `test-fpu-wait`, afzonderlijk van de bestaande
-FPU-baseline. Schrijfgebied: kernel-feature/FPU-fixture, FPU-assemblyprobe,
+FPU-baseline. Schrijfgebied: kernel-feature/FPU-fixture en M3/M4-fixtureselectie, FPU-assemblyprobe,
 buildselectie, bestaande FPU-runner/hosttests, native workflow en bewijsdocs.
 Vervang uitsluitend in dit profiel de bestaande yield door een echte
 deadlinewait; controleer de volledige x87/SSE-bank vóór/na blokkeren,
@@ -40,6 +40,15 @@ De implementatie en 12 gerichte hostverifier-tests zijn gereed, exit0;
 ook `cargo +1.90.0 fmt --all -- --check` en `git diff --check` slagen.
 Nieuwe native variant **nog niet uitgevoerd** vóór dit codecheckpoint.
 De exacte legacy-regressies staan in `regression-baseline.json`.
+De eerste native build op `dedeacd` is terecht geweigerd: `ipc-wait` activeert
+M4, terwijl FPU nog uitsluitend M3 toeliet; daardoor werd ook de verkeerde
+IPC-fixture-ELF vereist. De expliciete testcombinatie staat nu M4-mechanismen
+toe maar sluit uitsluitend de generieke M4-acceptancefixture uit. Engine,
+IPC-afdwinging en schedulerbody zijn niet gewijzigd. De nieuwe build en
+format/diff-check slagen; runtime blijft nog open bij dit checkpoint.
+Foutlog: `/tmp/nieuw-os-native-fpu-wait-attempt1.log`;
+buildlog: `/tmp/nieuw-os-native-fpu-wait-build.log`.
+Ook 100 tools- en 414 Python-hosttests zijn opnieuw exit0 geslaagd.
 
 Open: native kill/hergebruik en FPU met wachten, overige native regressies,
 volledige product-/menselijke-/hardwareacceptatie. Eerstvolgende commando:
