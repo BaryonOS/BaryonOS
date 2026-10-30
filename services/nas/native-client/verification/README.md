@@ -1,5 +1,49 @@
 # TASK-NAS-RESUME-1 — eigen broncheckpoint
 
+## NEXT AGENT HANDOFF — eigen werk gereed, integratiegrens open
+
+Laatste geteste broncheckpoint:
+`26c88292b9e4775f51598488037dee78ed70bd51`, remote bevestigd op
+`simon/nas-resume-client`; runtime nog exact
+`733da709383ce314cde63dea950125fe859f8c2a`.
+Eigen worktree: `target/nas-client-work` onder de oorspronkelijke
+`simonvanieperen-legendary-broccoli`-worktree. Oorspronkelijke sessiebranch
+en concept-PR71 blijven ce52, geen root/SDK/andere schrijver overgenomen.
+De commit met dit handoffrecord wijzigt uitsluitend bewijsdocumentatie.
+
+Actueel scoped bronmanifestfingerprint:
+`d0968cb11b30c18e3d224aeed8060b7afb4aa98096194a766f62e5f0e7a328fd`.
+Runtime en tests zijn beschreven en gehasht, geen open lokale codewijzigingen.
+Vier crategates en eigen ELF-inspecties: 33 commando's exit0 op733da70;
+daarna client16debug/17release en overige gerichte gates: 8 commando's exit0.
+Ruwe logs staan in `target/nas-client-logs/`; controleerbare kopieen hier.
+Geen NAS-client-QEMU, echte TLS/E2EE, duurzame clientcheckpoint of GitHub-CI
+uitgevoerd. Score blijft 34/100, NAS0/5; centrale bestanden zijn manager-owned.
+
+Eerstvolgende uitvoerbare integratiestap voor intake/lifecycle:
+maak de afzonderlijke concept-PR met deze head en `pr-body.md`, bevestig de
+behouden basisinhoud en voer de vier echte NAS-CI-jobs op die PR-head uit.
+De huidige app-PRtool kan alleen de oorspronkelijke sessiebranch selecteren;
+gebruik hem niet om per ongeluk PR71 bij te werken. Geen oude groene CI
+van ce52 als acceptatie van deze nieuwe head gebruiken.
+
+De echte productketen kan niet met de huidige interfaces worden aangesloten:
+NET bevestigt geen geauthenticeerde native TLS-peerprincipal, Security geen
+geautoriseerde NAS-seal/device/restore-interface. Security's afzonderlijke
+contractbron `c5fbb21a0e46e010d5e9b4748ae9b9307a67cef4` verduidelijkt die
+grens, maar is geen runtimegrant of reeds geintegreerde release-interface.
+Materiaalbericht is niet afgeleverd; geen UI-afstemming claimen.
+
+Een exact boot1-tokenreplayprofiel is **niet toegewezen**. Release bevestigt
+dat zijn huidige rootprofiel geen 80-byte export/coldinputbinding heeft.
+Een nieuw concreet verzoek is vastgelegd bij de teamleider: uitsluitend
+testfixture Session40+Upload40 uit echte normalrol/stage, private artefacten
+zonder tokens in logs/Git, oorsprong/volledigheid/lengte/hash gebonden en
+immutable coldinput. De bevoegde rootwriter en een nieuw leafslot zijn eerst
+nodig. Geen eigen wire/bootstrap of clientpersistentie daarvoor verzinnen.
+Bij onbereikbare coördinatie niet herhaald toestemming vragen: deze exacte
+hervatgrens bewaren en geen actief schrijfgebied overnemen.
+
 Basis `86a9600e4f1366dbd2d9e95f50477ea353fa6dfa`
 (oracle-leaf, runtime ce52). Werkbranch `simon/nas-resume-client`.
 Exclusieve managerclaim: nieuwe `services/nas/native-client/**` en vierde
