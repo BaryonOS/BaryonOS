@@ -41,6 +41,8 @@ def run_cold(*, build_directory: Path, parent_run: Path, reference_run: Path,
         "schema_version": 1, "passed": False,
         "scope": "Ordinary seven-process cold reopen and unchanged disk; no write-denial, "
                  "cleanup, controller, manual UX, production encryption or release acceptance.",
+        "stop_method": "host QMP quit, not guest clean shutdown or abrupt power loss",
+        "guest_clean_shutdown": False,
         "source_sha256": frozen, "source_fingerprint_version": 3,
         "run_directory": str(directory), "machine": machine,
         "source_commit": subprocess.check_output(
@@ -106,6 +108,7 @@ def run_cold(*, build_directory: Path, parent_run: Path, reference_run: Path,
             command=command, firmware=firmware, qemu_entry_sha256=qemu_hash,
             parent_report_sha256=parent["report_sha256"],
             parent_run=str(parent["directory"]), reference_report_sha256=reference["report_sha256"],
+            apps=reference["apps"],
             pixel_masks=[], stages=[],
             initial_list_oracle="Layout::status Ready pixels composed with populated native list",
         )
@@ -119,6 +122,7 @@ def run_cold(*, build_directory: Path, parent_run: Path, reference_run: Path,
             implementation_hash = preview.sha256(implementation)
             if implementation_hash != reference["qemu_implementation_sha256"]:
                 raise ValueError("Cold QEMU implementation differs")
+            report["qemu_implementation_sha256"] = implementation_hash
             while True:
                 raw = preview.read_serial(directory / "serial.txt")
                 lines = raw.decode("utf-8", "strict").splitlines()
@@ -130,15 +134,7 @@ def run_cold(*, build_directory: Path, parent_run: Path, reference_run: Path,
                 if process.poll() is not None or time.monotonic() >= deadline:
                     raise TimeoutError("Cold guest readiness")
                 time.sleep(0.02)
-            groups = preview.interactive_groups(directory)
-            # Move only: put the actual native cursor at the reference location.
-            for request in groups[1][1][:2]:
-                control.command(request["execute"], request["arguments"])
-                time.sleep(0.08)
-            for phase, group in (
-                ("list", [{"execute": "screendump", "arguments": {"filename": str(directory / "list.ppm")}}]),
-                ("reopened", groups[-1][1]),
-            ):
+            for phase, group in cold.cold_groups(directory):
                 for request in group:
                     if request["execute"] != "screendump":
                         if process.poll() is not None or time.monotonic() >= deadline:
@@ -155,6 +151,7 @@ def run_cold(*, build_directory: Path, parent_run: Path, reference_run: Path,
                         if preview.matching_reference_frame(frame, expected[phase]):
                             report["stages"].append({
                                 "phase": phase, "sha256": hashlib.sha256(frame).hexdigest(),
+                                "screenshot_sha256": hashlib.sha256(frame).hexdigest(),
                                 "qmp_index": len(control.trace),
                             })
                             break
@@ -176,6 +173,19 @@ def run_cold(*, build_directory: Path, parent_run: Path, reference_run: Path,
                 or preview.source_hash() != frozen or preview.sha256(Path(qemu)) != qemu_hash
                 or preview.sha256(implementation) != implementation_hash):
             raise ValueError("Cold source, parent, reference or emulator changed")
+        for relative, digest in (
+            ("esp/kernel.elf", manifest["kernel"]["sha256"]),
+            ("esp/EFI/BOOT/BOOTX64.EFI", manifest["loader"]["sha256"]),
+            ("OVMF_CODE.fd", firmware["ovmf_code_sha256"]),
+            ("OVMF_VARS.template.fd", firmware["ovmf_vars_template_sha256"]),
+            ("bios-256k.bin", firmware["seabios_bios_sha256"]),
+            ("VGA.rom", firmware["seabios_vga_sha256"]),
+        ):
+            if preview.sha256(preview.private_path(directory / relative, regular=True)) != digest:
+                raise ValueError("Cold frozen executable or firmware changed")
+        cold.replay_input_trace(control.trace, report["stages"], directory, cold=True)
+        if time.monotonic() >= deadline:
+            raise TimeoutError("Cold proof exceeded shared deadline during final validation")
         report.update(passed=True, raw_qemu_exit=raw_exit, volume_unchanged=True, **disk)
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"
@@ -191,6 +201,10 @@ def run_cold(*, build_directory: Path, parent_run: Path, reference_run: Path,
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait(timeout=5)
+        if process is not None:
+            report["raw_qemu_exit"] = process.poll()
+        if (directory / "serial.txt").is_file():
+            report["serial_sha256"] = preview.sha256(directory / "serial.txt")
         preview.publish_json(directory / "result.json", report)
         preview.publish_json(report_path, report)
     return report

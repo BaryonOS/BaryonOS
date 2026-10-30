@@ -27,7 +27,29 @@ def cold_list_frame(frames: dict[str, bytes]) -> bytes:
     return listed[:-len(pixels)] + result
 
 
-def replay_input_trace(trace: object, stages: object, directory: Path) -> None:
+def cold_groups(directory: Path) -> list:
+    normal = preview.interactive_groups(directory)
+    moves = normal[1][1][:2]
+    expected_moves = [
+        {"execute": "input-send-event", "arguments": {"events": [
+            {"type": "rel", "data": {"axis": "x", "value": 56}},
+            {"type": "rel", "data": {"axis": "y", "value": 96}},
+        ]}},
+        {"execute": "input-send-event", "arguments": {"events": [
+            {"type": "rel", "data": {"axis": "y", "value": 54}},
+        ]}},
+    ]
+    if moves != expected_moves:
+        raise ValueError("Review changed native cold cursor placement contract")
+    return [
+        ("list", [*moves, {"execute": "screendump", "arguments": {
+            "filename": str(directory / "list.ppm"),
+        }}]),
+        normal[-1],
+    ]
+
+
+def replay_input_trace(trace: object, stages: object, directory: Path, *, cold=False) -> None:
     if not isinstance(trace, list) or not isinstance(stages, list) or not trace:
         raise ValueError("Missing interactive trace/stages")
     for index, item in enumerate(trace, 1):
@@ -47,7 +69,7 @@ def replay_input_trace(trace: object, stages: object, directory: Path) -> None:
 
     if request_at(0) != {"execute": "qmp_capabilities"}:
         raise ValueError("Missing QMP handshake")
-    groups = preview.interactive_groups(directory)
+    groups = cold_groups(directory) if cold else preview.interactive_groups(directory)
     if len(stages) != len(groups):
         raise ValueError("Missing or extra parent stage")
     position = 1

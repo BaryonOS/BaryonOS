@@ -1,11 +1,12 @@
 import copy
+from contextlib import ExitStack
 import hashlib
 import json
 from pathlib import Path
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import materiaal_cold as cold
@@ -175,6 +176,191 @@ class ColdParentTests(unittest.TestCase):
                     )
                 self.assertFalse(report.exists())
                 start.assert_not_called()
+
+
+class ColdLifecycleTests(unittest.TestCase):
+    """Host mocks only; never native/cold execution evidence."""
+
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.build = self.root / "build"
+        (self.build / "esp/EFI/BOOT").mkdir(parents=True)
+        (self.build / "esp/kernel.elf").write_bytes(b"kernel")
+        (self.build / "esp/EFI/BOOT/BOOTX64.EFI").write_bytes(b"loader")
+        self.files = {}
+        for name in ("code", "vars", "bios", "vga", "qemu"):
+            self.files[name] = self.root / name
+            self.files[name].write_bytes(name.encode())
+        self.manifest = {
+            "source_sha256": "a" * 64,
+            "kernel": {"sha256": preview.sha256(self.build / "esp/kernel.elf")},
+            "loader": {"sha256": preview.sha256(self.build / "esp/EFI/BOOT/BOOTX64.EFI")},
+        }
+        self.frames = reference_frames()
+        self.expected = {"list": cold.cold_list_frame(self.frames),
+                         "reopened": self.frames["reopened"]}
+        self.reference = {
+            "frames": self.frames, "report_sha256": "b" * 64,
+            "apps": [],
+            "qemu_implementation_sha256": preview.sha256(self.files["qemu"]),
+        }
+        self.parent = {
+            "directory": self.root / "parent", "report_sha256": "c" * 64,
+            "disk": b"HOST_ONLY_MOCK_DISK",
+        }
+        self.process = Mock()
+        self.process.returncode = None
+        self.process.poll.side_effect = lambda: self.process.returncode
+        self.process.wait.side_effect = self.wait
+        self.process.terminate.side_effect = lambda: setattr(self.process, "returncode", -15)
+        self.exit_code = 0
+        self.quit = False
+        self.control = Mock()
+        self.control.trace = []
+        self.control.command.side_effect = self.command
+        self.oracle_calls = 0
+        self.directory = None
+        stack = ExitStack()
+        self.addCleanup(stack.close)
+        for target, name, value in (
+            (run_fpu, "ROOT", self.root),
+            (preview, "validate_build", Mock(return_value=(self.build, self.manifest))),
+            (preview, "source_hash", Mock(return_value="a" * 64)),
+            (preview, "environment", Mock(return_value={"PATH": ""})),
+            (runner.shutil, "which", Mock(return_value=str(self.files["qemu"]))),
+            (preview, "firmware", Mock(return_value=(self.files["code"], self.files["vars"]))),
+            (runner.subprocess, "check_output", Mock(return_value="HOST_ONLY")),
+            (runner.subprocess, "Popen", Mock(side_effect=self.start)),
+            (preview, "QmpPipe", Mock(return_value=self.control)),
+            (runner.os, "readlink", Mock(return_value=str(self.files["qemu"]))),
+            (preview, "load_reference", Mock(return_value=self.reference)),
+            (cold, "replay_parent", Mock(return_value=self.parent)),
+            (preview, "inspect_stopped_disk", Mock(side_effect=self.inspect)),
+            (runner.time, "sleep", Mock()),
+        ):
+            stack.enter_context(patch.object(target, name, value))
+
+    def start(self, command, **kwargs):
+        self.directory = kwargs["cwd"]
+        (self.directory / "serial.txt").write_bytes("\n".join((*preview.BOOT, *preview.READY)).encode())
+        self.assertEqual((self.directory / "OVMF_VARS.fd").read_bytes(), b"vars")
+        self.assertEqual((self.directory / "volume.img").read_bytes(), self.parent["disk"])
+        return self.process
+
+    def command(self, execute, arguments=None):
+        index = len(self.control.trace) + 1
+        request = {"execute": execute, "id": index}
+        if arguments is not None:
+            request["arguments"] = arguments
+        self.control.trace.append({"request": request, "response": {"return": {}, "id": index}})
+        if execute == "screendump":
+            path = Path(arguments["filename"])
+            path.write_bytes(self.expected[path.stem])
+        elif execute == "quit":
+            self.quit = True
+
+    def wait(self, **kwargs):
+        if self.process.returncode == -15:
+            return -15
+        self.assertTrue(self.quit)
+        self.process.returncode = self.exit_code
+        return self.exit_code
+
+    def inspect(self, process, directory):
+        self.assertTrue(self.quit)
+        self.assertEqual(process.poll(), 0)
+        self.oracle_calls += 1
+        (directory / "volume.after.img").write_bytes((directory / "volume.img").read_bytes())
+        return {"disk": {"HOST_ONLY": True}, "before_sha256": "d" * 64, "after_sha256": "d" * 64}
+
+    def run_cold(self):
+        self.control.trace = [
+            {"request": {"execute": "qmp_capabilities", "id": 1},
+             "response": {"return": {}, "id": 1}}
+        ]
+        return runner.run_cold(
+            build_directory=self.build, parent_run=self.parent["directory"],
+            reference_run=self.root / "reference", bios_rom=self.files["bios"],
+            vga_rom=self.files["vga"], machine="pc-q35-10.0",
+        )
+
+    def test_exact_cold_frames_and_disk_only_after_quit_zero(self):
+        result = self.run_cold()
+        self.assertTrue(result["passed"])
+        self.assertEqual(self.oracle_calls, 1)
+        self.assertEqual([stage["phase"] for stage in result["stages"]], ["list", "reopened"])
+        self.assertTrue(result["volume_unchanged"])
+        self.assertEqual(cold.replay_parent.call_count, 2)
+        self.assertEqual(preview.load_reference.call_count, 2)
+        self.process.terminate.assert_not_called()
+
+    def test_invalid_parent_does_not_start_vm(self):
+        cold.replay_parent.side_effect = ValueError("Invalid parent")
+        with self.assertRaisesRegex(ValueError, "Invalid parent"):
+            self.run_cold()
+        runner.subprocess.Popen.assert_not_called()
+        self.assertFalse(json.loads((self.build / "cold-result.json").read_text())["passed"])
+
+    def test_nonzero_exit_never_inspects_disk(self):
+        self.exit_code = 33
+        with self.assertRaisesRegex(ValueError, "raw0"):
+            self.run_cold()
+        self.assertEqual(self.oracle_calls, 0)
+        self.assertEqual(json.loads((self.build / "cold-result.json").read_text())["raw_qemu_exit"], 33)
+
+    def test_changed_disk_after_quit_is_rejected(self):
+        original = self.inspect
+
+        def changed(process, directory):
+            result = original(process, directory)
+            (directory / "volume.after.img").write_bytes(b"changed")
+            return result
+
+        preview.inspect_stopped_disk.side_effect = changed
+        with self.assertRaisesRegex(ValueError, "changed writable"):
+            self.run_cold()
+        self.assertFalse(json.loads((self.build / "cold-result.json").read_text())["passed"])
+
+    def test_changed_source_after_exit_is_rejected(self):
+        preview.source_hash.side_effect = ["a" * 64, "e" * 64]
+        with self.assertRaisesRegex(ValueError, "source, parent, reference"):
+            self.run_cold()
+        self.assertFalse(json.loads((self.build / "cold-result.json").read_text())["passed"])
+
+    def test_wrong_emulator_identity_cannot_send_input(self):
+        self.reference["qemu_implementation_sha256"] = "e" * 64
+        with self.assertRaisesRegex(ValueError, "implementation differs"):
+            self.run_cold()
+        self.control.command.assert_not_called()
+        self.process.terminate.assert_called_once()
+
+    def test_mutated_frozen_executable_is_rejected(self):
+        original = self.inspect
+
+        def mutate(process, directory):
+            result = original(process, directory)
+            (directory / "esp/kernel.elf").write_bytes(b"modified")
+            return result
+
+        preview.inspect_stopped_disk.side_effect = mutate
+        with self.assertRaisesRegex(ValueError, "frozen executable"):
+            self.run_cold()
+        self.assertFalse(json.loads((self.build / "cold-result.json").read_text())["passed"])
+
+    def test_unmatched_list_stops_before_reopen_and_terminates_own_vm(self):
+        ticks = iter([0, 0, 0, 0, 0, 0, 1000, 1000, 1000, 1000])
+        with (
+            patch.object(runner.time, "monotonic", side_effect=lambda: next(ticks, 1000)),
+            patch.object(preview, "matching_reference_frame", return_value=False),
+        ):
+            with self.assertRaises(TimeoutError):
+                self.run_cold()
+        self.assertFalse(self.quit)
+        self.assertFalse(any(item["request"]["execute"] == "send-key" for item in self.control.trace))
+        self.assertEqual(self.oracle_calls, 0)
+        self.process.terminate.assert_called_once()
 
 
 if __name__ == "__main__":
