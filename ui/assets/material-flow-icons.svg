@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <metadata>Nieuw OS Materiaal flow icons. Original paths created for this task; no external assets, fonts, scripts, or dependencies used. Symbols: document, history, saved, retry. Each uses viewBox 0 0 24 24, currentColor, and a 1.75 px rounded stroke. Use document for object identity, history for version history, saved only after confirmed COMMIT, and retry only for a known retryable error; never retry Unknown or Uncertain. UI text and state remain the accessible status cue. Native renderer consumption and visual rendering are not implemented or verified. No independent legal license determination is asserted.</metadata>
+  <symbol id="document" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7.25 3.75h7.5l4 4v12.5a1.75 1.75 0 0 1-1.75 1.75H7.25a1.75 1.75 0 0 1-1.75-1.75V5.5a1.75 1.75 0 0 1 1.75-1.75Z"/>
+    <path d="M14.75 3.75v4h4M9 12h6M9 15.5h6"/>
+  </symbol>
+  <symbol id="history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.9 9.1A7.5 7.5 0 1 1 5 15.3"/>
+    <path d="M3.5 5.9v4h4M12 7.9v4.2l2.8 1.8"/>
+  </symbol>
+  <symbol id="saved" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="8.25"/>
+    <path d="m8.2 12.2 2.5 2.5 5.2-5.4"/>
+  </symbol>
+  <symbol id="retry" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19.25 9a7.5 7.5 0 1 0 .25 5.5"/>
+    <path d="M19.25 4.75V9H15"/>
+  </symbol>
+</svg>
