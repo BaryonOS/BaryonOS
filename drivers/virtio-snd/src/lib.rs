@@ -315,3 +315,6 @@ fn u64_at(bytes: &[u8], offset: usize) -> Result<u64, Error> {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod transport_model;
