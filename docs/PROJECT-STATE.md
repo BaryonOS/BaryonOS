@@ -2,29 +2,37 @@
 
 ## NEXT AGENT HANDOFF — mandaten overgedragen, ontwikkeling loopt door — 30 oktober 2026
 
-**Basis:** `b4545d3d8b71db14c42699bb8be0b4be4e932e16`, branch
+**Basis:** `0f8f8dee0e4000e9585b72f413a7c2cc25a59324`, branch
 `simonvanieperen-symmetrical-barnacle`; manager wijzigt geen runtimecode.
 Start met `git branch --show-current && git rev-parse HEAD && git status --short`.
 
 **Bevoegdheden:** operationeel teamleider89f houdt technische samenhang,
 PROJECT-STATE en scorebestanden. Assistent5d5 heeft queueovername16151b9
-bevestigd; actuele queue6d34fdfe, uitsluitend zijn schrijver,24rollen/
+bevestigd; remotequeue82664b56 bij laatste controle, uitsluitend zijn schrijver,24rollen/
 fileclaims/acceptatie. Hij verdeelt vrije gewone taken zelfstandig;
 NETconfig/UIhover zijn al toegewezen, zeven afdelingen geïnformeerd.
 Directeuref7 bewaakt roadmap/kwaliteit zonder routinepoort; intakef2 blijft
 PR-intake. Bestaande opdrachten blijven bij stilte/timeouts geldig.
 
-**Integratieconflict:**7f meldt nieuwe aanwijzing als enige integrator,
-maar e8→7f-stop/vrijgave/ontvangst is nog niet bevestigd.7f blijft read-only;
-assistent/directie regelen exclusieve overdracht. Berichten aan8 gaven
-priority-timeout en zijn gequeueëd, geen stop geclaimd of gebied overgenomen.
+**Integratoroverdracht:** e8 heeft expliciet stop/vrijgave geleverd:
+geen nieuwe merges/conflict-/runtimewrites, alleen read-only advies.
+Watch2461 af/exit124 en geen actieve mergecommands/shells volgens donor.
+7f heeft volledige dossierontvangst expliciet bevestigd en is nu de enige
+operationele integrator. Geen gebied op timeout overgenomen.
+Binnen bestaande inhoudsbehoudende integratiescope zelfstandig werken,
+geen nieuwe routinegoedkeuring vóór elke conflictwrite; inhoudseigenaren blijven.
 Huidige volgorde74→75→78→82, geen bypass; bij75 mainca45/NET70,74 en
 65ec/796/0e-historie behouden en actuele queue uitsluitend via5d overnemen.
+PR74 blijft open op4db/baseca45. LiveAPI: B03attempt1 failed/job124237913427;
+attempt2 queued/job124244643928, opdrachtgever onbekend. Geen TL/e8-rerun,
+geen oude failure verbergen of nieuwqueued als groen/transientbewijs tellen.
 
 **Productblocker:** release meldt DEV1-referentie-VM exit1/raw0 vóór
 Materiaalmanifest, gewone preview niet gestart. Release meldt herstelc969de24:
 dubbele Cargo-linkerscriptflag, nieuwe hostbuilds/ELF-controle groen; nieuwe
-guestherproef nog niet uitgevoerd,12slotafspraak vereist. Bewijs bij4;
+guestherproef nog niet uitgevoerd,12slotafspraak vereist. B8bd2d7a voegt
+45hosttests/bronmanifest- en oorspronkelijke collapsedELF-negatieven toe,
+geen nieuwe runtimebron of VM volgens4. Bewijs bij4;
 12 beheert slots,20 onafhankelijke producttest,21 bestaande Windowsroute.
 UI0818-probe is smal native deelbewijs, geen gewone DEV/cold/U-acceptatie.
 Store/READ/issuer/launch/TLS/NAS-lifecycle blijven echte productafhankelijkheden.
@@ -35,7 +43,7 @@ uitgesteld, niet een persoonlijk benoemingsbesluit van Simon. Geen externe
 benadering/betaalde opdracht/auditautorisatie. Onafhankelijke ontwikkeling door.
 
 **Hervatten:** assistent beheert allocaties; technisch teamleider bewaakt
-exclusieve integratoroverdracht en echte DEV1-oorzaak, niet nog een algemene
+technische afhankelijkheden en echte DEV1-herproef, niet nog een algemene
 statusronde. Geen nieuwe manager-QEMU/Rust/hardware/menselijke proef.
 Progress write/check, diff en invariantchecks staan in
 [managementbewijs](verification/teamleader-management-20261030.json);

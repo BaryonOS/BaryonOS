@@ -85,6 +85,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Afgeronde bevoegdheidsoverdracht op `0f8f8de`: **34% → 34%**.
+Assistentqueue82664 is remote gecontroleerd; teamleider schrijft haar niet.
+E8 heeft expliciet operationele stop/vrijgave geleverd,7f heeft volledige
+dossierontvangst bevestigd en is enige integrator. Geen timeoutovername
+of routinegoedkeuring per inhoudsbehoudende conflictwrite. B03-runattempt1
+blijft failed; nieuw attempt2queued is geen pass. DEV1hostherstel geen guest-
+acceptatie. Criteria/evidence ongewijzigd; managementtaak geen productpunt.
+
 Vervolg op `b4545d3`: **34% → 34%**. Kort actief checkpoint, oorspronkelijke
 details gelinkt als uitgebreid verslag; cold77-statusscheiding verandert
 geen uitgevoerde test/bron/hash. Nieuwe e8→7f-integratoroverdracht is pas

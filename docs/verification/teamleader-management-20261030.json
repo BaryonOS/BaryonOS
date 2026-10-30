@@ -32,6 +32,31 @@
     "ordinary_allocations_reported": ["NET config", "UI primary hover"],
     "manager_queue_writes_after_release": false
   },
+  "integrator_handoff": {
+    "donor": "e8e471ce-0601-417b-b4fa-a04fd9c7b954",
+    "receiver": "7f895683-fc79-48d0-a98a-aa0a6ccfe8b9",
+    "donor_explicit_stop_release_received": true,
+    "donor_reports_no_active_merge_commands_or_shells": true,
+    "donor_scope_after_release": "Read-only advice and handoff, no new merges/conflict/runtime writes",
+    "receiver_acceptance": "Explicit ACK received from 7f for complete dossier; receiver is sole operational integrator",
+    "base_at_handoff": "ca45a7dabe6a040921de03bdc2fad3e5045a75ba",
+    "pr74_head_at_handoff": "4db90e1e64efc6063943cfa5745efc9077f8496d",
+    "pr74_merged": false,
+    "pr74_run": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41106589363",
+    "attempt1_job": {"id": 124237913427, "status": "completed", "conclusion": "failure"},
+    "attempt2_job": {"id": 124244643928, "status_at_read": "queued", "trigger_owner": "unknown"},
+    "manager_triggered_rerun": false,
+    "donor_reports_triggered_rerun": false,
+    "verification": "gh api repos/simonvanieperen/nieuw-os/pulls/74; gh api repos/simonvanieperen/nieuw-os/actions/runs/41106589363; gh api 'repos/simonvanieperen/nieuw-os/actions/runs/41106589363/jobs?filter=all&per_page=100'",
+    "verification_exit": 0
+  },
+  "latest_queue_verification": {
+    "commit": "82664b56a03dad5f2cdd64314234c406dd74a299",
+    "blob_reported_by_owner": "b54f17507a9e8b536a97c87837ab7fa88fc81325",
+    "command": "git ls-remote --heads origin refs/heads/simonvanieperen-legendary-eureka",
+    "exit": 0,
+    "manager_changed_queue_after_release": false
+  },
   "commands": [
     {"command": "python3 -B tools/progress.py --write", "exit": 0, "wall_seconds": 0.031},
     {"command": "python3 -B tools/progress.py --check", "exit": 0, "wall_seconds": 0.033},
