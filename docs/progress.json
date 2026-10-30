@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "f52dab50af281dab2c94ab2c9e31aaabd299246a",
+    "source_commit": "bff1ed76a8ace8617dee040770bcea98bb39fe55",
     "branch": "simonvanieperen-friendly-guacamole",
-    "task": "Hardware, drivers en energie: inventarisatie H02-H06 en controle van de bestaande native PS/2-bewijspoort",
+    "task": "Hardware, drivers en energie: herstel WSL/QEMU-runner en voer native PS/2/display-proef uit",
     "previous_score": 34,
-    "summary": "34% blijft 34%; hardware blijft 1/12 en H01 is het enige geaccepteerde criterium. De 11 hosttests van de display/PS2-bewijspoort slagen. De gehashte officiële rustup-installer herstelde Rust 1.90.0 projectlokaal; PS/2 targetbuild, Clippy en fmt slagen. De aangehechte `C:\\Program Files\\qemu`-installatie is via lokale WSL-interoperabiliteit aangesloten: QEMU 11.1.0, `pc-q35-8.2`, QMP-pipes en de meegeleverde x86_64 EDK2-code-/vars- en VGA-ROM-bestanden zijn bereikbaar; `python3 -B tools/preflight.py --strict` slaagt. Native imagebouw/QMP-run volgen. Hosttests kunnen nog niet linken (`cc` ontbreekt). H02-H06 blijven open, geen fysieke hardware gebruikt en geen punten geclaimd."
+    "summary": "34% blijft 34%; hardware blijft 1/12 en H01 is het enige geaccepteerde criterium. De WSL/Windows-QEMU runner is hersteld; 13 hostregressies, PS/2 hosttests en de native QEMU-display/PS/2-proef slagen op exact broncommit bff1ed7. QEMU 11.1.0 voerde twee input-/displaygeneraties uit met QMP-toetsenbord/muis, pixel-/framebufferassertions, capabilityweigeringen en slot-hergebruik. Bewijs en hashes staan in `docs/verification/native-display-input-bff1ed7/`. Dit blijft beperkte emulatorvalidatie: USB/xHCI, audio, fysieke netwerk-/energiehardware, slaap/wek, meerdere pc-profielen en fysieke acceptatie ontbreken. H02-H06 blijven open; geen hardwarepunten toegekend."
   },
   "tracks": [
     {
