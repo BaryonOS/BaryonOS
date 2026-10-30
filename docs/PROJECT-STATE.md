@@ -2,7 +2,7 @@
 
 ## NEXT AGENT HANDOFF — hosttest-preflight — 30 oktober 2026
 
-Broncommit `dfc64cdad130b5d0aa9deff4362844829d8bf514`, branch
+Broncommit `2cf5d86204d44d5b95189c8d5f282ffb009d1fef`, branch
 `simonvanieperen-studious-sniffle`, oorspronkelijke taakbasis `main`
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. Concept-PR
 [#62](https://github.com/simonvanieperen/nieuw-os/pull/62). De
@@ -11,17 +11,17 @@ de bestaande `--strict`-betekenis blijft ongewijzigd.
 
 Na het lokaal beschikbaar maken van `cc` zonder systeembrede installatie
 compileren en draaien een minimale C-proef (exit 0). De volledige
-`cargo +1.90.0 test --offline --locked --workspace`-run kwam daarna verder,
-maar faalde op exit 101 in drie HKDF-README-doctests: de runtime-only
-vendormanifest miste `sha2` en `hex-literal` als testdependencies. Deze zijn
-nu test-only toegevoegd volgens de upstream-manifesten; de lockfile bevat
-`hex-literal 1.0.0`. Gerichte HKDF-doctests slagen (3/3). **De volledige
-workspace-test na deze reparatie is nog niet uitgevoerd.** Volgende stap:
-checkpoint committen en pushen, daarna dezelfde volledige workspace-test met
-`LD_LIBRARY_PATH` naar de lokale geïsoleerde GCC-runtime uitvoeren.
+`cargo +1.90.0 test --offline --locked --workspace`-run kwam verder, maar
+toonde achtereenvolgens ontbrekende README-doctestdependencies in de
+runtime-only vendormanifesten van HKDF (3 voorbeelden) en HMAC (2 voorbeelden).
+Beide crates kregen uitsluitend de upstream-gedocumenteerde `sha2`- en
+`hex-literal`-testdependencies; hun runtime-dependencies zijn ongewijzigd.
+Gerichte doctests slagen: HKDF 3/3, HMAC 2/2. **De volledige workspacetest na
+beide reparaties is nog niet uitgevoerd.** Volgende stap: dezelfde volledige
+workspace-test met `LD_LIBRARY_PATH` naar de lokale geïsoleerde GCC-runtime.
 
 De eerdere 22 preflighttests, strikte ontbrekende-`cc`-detectie en CI op
-`00f91e7` zijn groen; CI op `dfc64cd` loopt nog. De
+`00f91e7` zijn groen; CI op de nieuwe kandidaat loopt nog. De
 hostcompiler is uitsluitend uitgepakt onder genegeerde `.tools/`; geen
 systeempakketten zijn geïnstalleerd. **34% → 34%**; geen productcriterium of
 native QEMU-bewijs toegevoegd. Volledige commando's, logs, hashes en grenzen:

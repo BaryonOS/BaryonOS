@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`dfc64cda`](https://github.com/simonvanieperen/nieuw-os/commit/dfc64cdad130b5d0aa9deff4362844829d8bf514) ·
+**Bron:** [`2cf5d862`](https://github.com/simonvanieperen/nieuw-os/commit/2cf5d86204d44d5b95189c8d5f282ffb009d1fef) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-sniffle`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hosttest-preflight: detecteer POSIX-linker en herstel HKDF-doctestdependencies.
-34% blijft 34%; infrastructuurherstel accepteert geen productcriterium. `--strict-host-tests` meldt een ontbrekende POSIX-linker afzonderlijk; met een geïsoleerde lokale C-toolchain kwam de volledige workspacetest verder en onthulde drie HKDF-README-doctests zonder `sha2`/`hex-literal`-testdependencies. De upstream-gedocumenteerde, test-only dependencies zijn hersteld; alle drie gerichte HKDF-doctests slagen. De volledige workspace-test na deze reparatie en CI op de nieuwe kandidaat zijn nog open. Geen nieuw productcriterium geaccepteerd.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hosttest-preflight: herstel ontbrekende POSIX-linker- en vendordoctestvereisten.
+34% blijft 34%; infrastructuurherstel accepteert geen productcriterium. `--strict-host-tests` meldt een ontbrekende POSIX-linker afzonderlijk; met een geïsoleerde lokale C-toolchain kwamen drie HKDF- en daarna twee HMAC-README-doctests zonder `sha2`/`hex-literal`-testdependencies aan het licht. De upstream-gedocumenteerde, test-only dependencies zijn in beide vendormanifesten hersteld; HKDF (3/3) en HMAC (2/2) gerichte doctests slagen. De volledige workspace-test na beide reparaties en CI op de nieuwe kandidaat zijn nog open. Geen nieuw productcriterium geaccepteerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

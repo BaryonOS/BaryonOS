@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "dfc64cdad130b5d0aa9deff4362844829d8bf514",
+    "source_commit": "2cf5d86204d44d5b95189c8d5f282ffb009d1fef",
     "branch": "simonvanieperen-studious-sniffle",
-    "task": "Hosttest-preflight: detecteer POSIX-linker en herstel HKDF-doctestdependencies",
+    "task": "Hosttest-preflight: herstel ontbrekende POSIX-linker- en vendordoctestvereisten",
     "previous_score": 34,
-    "summary": "34% blijft 34%; infrastructuurherstel accepteert geen productcriterium. `--strict-host-tests` meldt een ontbrekende POSIX-linker afzonderlijk; met een geïsoleerde lokale C-toolchain kwam de volledige workspacetest verder en onthulde drie HKDF-README-doctests zonder `sha2`/`hex-literal`-testdependencies. De upstream-gedocumenteerde, test-only dependencies zijn hersteld; alle drie gerichte HKDF-doctests slagen. De volledige workspace-test na deze reparatie en CI op de nieuwe kandidaat zijn nog open. Geen nieuw productcriterium geaccepteerd."
+    "summary": "34% blijft 34%; infrastructuurherstel accepteert geen productcriterium. `--strict-host-tests` meldt een ontbrekende POSIX-linker afzonderlijk; met een geïsoleerde lokale C-toolchain kwamen drie HKDF- en daarna twee HMAC-README-doctests zonder `sha2`/`hex-literal`-testdependencies aan het licht. De upstream-gedocumenteerde, test-only dependencies zijn in beide vendormanifesten hersteld; HKDF (3/3) en HMAC (2/2) gerichte doctests slagen. De volledige workspace-test na beide reparaties en CI op de nieuwe kandidaat zijn nog open. Geen nieuw productcriterium geaccepteerd."
   },
   "tracks": [
     {
