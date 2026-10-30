@@ -2,8 +2,10 @@
 
 **Ontwikkelkandidaat geblokkeerd: eerste referentiegate mislukt, geen bundel.**
 De door integrator e8 aangewezen huidige basis is main
-`ca45a7dabe6a040921de03bdc2fad3e5045a75ba`. De code staat onveranderd in
-de aparte detached worktree `build/release-dev1-source`. Deze bewijsbranch
+`ca45a7dabe6a040921de03bdc2fad3e5045a75ba`. De eerste, mislukte build staat onveranderd in
+de aparte detached worktree `build/release-dev1-source`; de gecorrigeerde
+buildisolatie hieronder gebruikt een tweede onveranderde ca45-worktree
+buiten de Cargo-configuratievoorouders. Deze bewijsbranch
 bevat alleen documentatie/gegenereerde tekstrapporten, geen runtimepatch.
 NAS-intake blijft afzonderlijk bewaard op `simon/native-nas-release-intake`
 en concept-PR #83; die is niet in deze kandidaat opgenomen.
@@ -181,3 +183,63 @@ Geen positieve FR-rij of R01-R03-punt; scoreadvies **34 -> 34, R01-R03 0/5**.
 De manager beheert centrale status/claims/progress en alle 62 criteria
 blijven behouden. Voor een nieuw schrijfgebied gaat een concreet verzoek
 naar de assistent-teamleider; onbereikbaarheid is geen scope-uitbreiding.
+
+## Gecorrigeerde buildisolatie: nieuwe freeze, nog geen nieuwe VM
+
+`isolated-build-1/build-freeze.json` vervangt alleen de kandidaat-artifacts,
+niet het mislukte bewijs hierboven. De bron blijft exact ca45/v3bda485.
+Nieuwe detached source:
+`/home/simon/.copilot/session-state/5d1e3eef9eb44e7faae099eda4e9207d/files/dev1-ca45-source`.
+Deze locatie erft niet de `.cargo/config.toml` van de oorspronkelijke
+repository. Geen bronpatch, dependency-/lockfilewijziging of toolinstallatie.
+
+Een eerste buildaanroep weigerde terecht de oude targetcache buiten deze
+nieuwe checkout: `ValueError: FPU artifact escaped checkout`, exit1, nog
+geen Cargo-build of VM. Het exacte log blijft in `logs/cache-path-rejected.txt`.
+Daarna is alleen de eigen bestaande `target/dev1`-cache verplaatst naar de
+nieuwe checkout; geen symlink, guardomzeiling, `cargo clean` of herinstallatie.
+De eerste mislukte ESP, buildmanifests en run blijven op hun oude plaats.
+
+Beide bestaande buildcommando's, met `NOS_BUILD_DIR` onder deze nieuwe
+source en `NOS_TARGET_DIR/CARGO_TARGET_DIR="$SOURCE/target/dev1"`, eindigen
+nu exit0. De bestaande strict preflight eindigt ook exit0.
+De opgeslagen kernelfingerprints zijn exact gelijk aan **eenmaal** de
+rustflags uit `.cargo/config.toml`, inclusief eenmaal het linkerscript.
+De ELF-grenzen lopen correct op:
+reference `02000000 < 02027000 <= 020f0000 < 0251a000`;
+ordinary `02000000 < 02025000 <= 020e5000 < 0250f000`.
+Dit bevestigt het herstel van de buildfout, nog niet van de gastuitvoering.
+
+| Nieuwe artifact | SHA-256 |
+|---|---|
+| Reference kernel | `cf40deda4f246a60d87361894785d08467ede30b6135ca8fcb2059eb7f84734b` |
+| Ordinary kernel | `98a6a06adc57daea6267fa78bf149b879385c0d37bd70d28a324dfb61877bb87` |
+| Loader beide | `41c2336ec4c71489e235f10dc2feb354359d1d65b53c6a497d19a4d1e29bf5c7` |
+| Reference manifest | `12a8c691aac3cbe588190953e4d85afaffbdf6444e48243dd7359286b36979c1` |
+| Ordinary manifest | `b67d6a7c19715e8e60c85f83d380b628ac5689f26104b68e25fb903502adc393` |
+
+De eerste zeven ELFs zijn exact gelijk tussen beide nieuwe builds.
+Bestaande reference-inspectie en gewone packagerinspectie zijn opnieuw
+uitgevoerd; firmware, ROMs en echte QEMU-ELF behouden hun eerder
+vastgelegde hashes. Alle zestien bestaande commandorecords, beide
+manifests, fingerprints, grenssymbolen en buildlogs zijn opgeslagen.
+De eerste verwerking van inspectie-JSON als commandolog gaf een
+`KeyError: 'returncode'`; deze metadatafout staat apart in de freeze.
+Daarna zijn precies de acht bestaande commandologs per build geselecteerd,
+alle exit0. Daarvoor is geen build of VM herhaald.
+
+**Nieuw slot nog niet vrijgegeven.** De oude voorwaardelijke toestemming
+is vervallen. Pas na deze gepushte freeze en een nieuwe verse
+registrarcapaciteitscontrole mogen opnieuw maximaal twee seriele gates
+worden gestart; geen automatische herhaling.
+Met de eerder beschreven tool-/firmwareomgeving en deze nieuwe
+`SOURCE`/targetpaden zijn de voorgenomen commando's:
+
+```sh
+python3 -B tools/dev.py python3 -B -u tools/run_materiaal_probe.py --build-dir "$SOURCE/build/dev1-reference" --case normal --machine pc-q35-8.2 --vga-rom "$QEMU_TOOLS/usr/share/seabios/vgabios-stdvga.bin" --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde --timeout 240
+python3 -B tools/dev.py python3 -B -u tools/run_materiaal_preview.py --build-dir "$SOURCE/build/dev1-ordinary" --interactive-reference-run <NIEUWE_WERKELIJK_GESLAAGDE_REFERENTIERUN> --machine pc-q35-8.2 --timeout 240 --bios-rom "$QEMU_TOOLS/usr/share/seabios/bios-256k.bin" --vga-rom "$QEMU_TOOLS/usr/share/seabios/vgabios-stdvga.bin"
+```
+
+Geen oude reference gebruiken. Ordinary, cold, Windows, FR en R01-R03
+blijven open; scoreadvies **34 -> 34, R01-R03 0/5**. De centrale eigenaar
+houdt status en assessment bij; deze branch schrijft die bestanden niet.

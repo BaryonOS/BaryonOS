@@ -1,4 +1,16 @@
 d1705a1ac3e72b329d5892f2fe46e61ef6a416141a3136abd58f57a081a6b49a  ./build-freeze.json
+8a1e536a4939397836ee1b3c2bac853ada77a372cf88d834b74e7424cd646119  ./isolated-build-1/build-command-records.json
+5906b3930751d5918e42c4abf4b09bca97d48c32f3b7bca75c7e5abc2bbf0b89  ./isolated-build-1/build-freeze.json
+a6d0f1d131cdb4b6bf24599f4f189a9e2a6f1b1fe24f49a868497343533aa970  ./isolated-build-1/logs/cache-path-rejected.txt
+f457af5bb20293214abc6b5a6b296833f6d5db5a7683855f7a5aab76c2b29648  ./isolated-build-1/logs/ordinary-build.txt
+0c367e61442471729b81575b9b7f693193dd01d4df8d301c759049978109a7b6  ./isolated-build-1/logs/reference-build.txt
+92371d3cdaaad9cff43cdb009a993bf188a100001dfcc39d70a837cbe205e62b  ./isolated-build-1/ordinary-boundary-symbols.txt
+e702807e33679f67002f2c4b64b0ab55c75a80c574ed4151138662e785505b8b  ./isolated-build-1/ordinary-kernel-fingerprint.json
+b67d6a7c19715e8e60c85f83d380b628ac5689f26104b68e25fb903502adc393  ./isolated-build-1/ordinary-manifest.json
+ffca44edc43438827315429a6705d97d748a2d8369fd348cdf6cb92c2ff3cb3a  ./isolated-build-1/preflight.json
+90ecfe4780820d458c8a893beb5d0ad74c475d5cd5d50310b4244b820e72cbfe  ./isolated-build-1/reference-boundary-symbols.txt
+8117e67e5e4e2ab4c219193e19d81209e9f6c606efbdb2c1f4b76990d06db0ea  ./isolated-build-1/reference-kernel-fingerprint.json
+12a8c691aac3cbe588190953e4d85afaffbdf6444e48243dd7359286b36979c1  ./isolated-build-1/reference-manifest.json
 eea7f5cec5f8b89408db2efc7e64ec7c553ef522e5ad7f5a093dc598fd6aca0d  ./logs/ordinary-build.txt
 3302da7aff1ac3d5a2efbc663321f155b979888e66c964b3efa51ee4e3e16e66  ./logs/reference-build-missing-cache.txt
 22add1f18cfbb00a4577872d233ab3919dfd00f10f937a51690baf3694aebae9  ./logs/reference-build.txt
