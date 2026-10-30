@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`2066ae7c`](https://github.com/simonvanieperen/nieuw-os/commit/2066ae7ccb25ac9e5e23eb81ec79a7286699a8ec) ·
+**Bron:** [`de541fab`](https://github.com/simonvanieperen/nieuw-os/commit/de541fab03aba0ed850ba65a8cdaa549e265d521) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: integratie van bestaande begrensde IPC-wacht als voorbereiding op echte Materiaal-testversie.
-34% blijft 34%; minstens 50% is nog niet bereikt. De eerder rode echte Materiaal-QMP-keten slaagt nu op2066ae7 in131,561s/raw33 zonder deadline- of orakelversoepeling: zes echte frames, muis/toetsen, save-ACK, list/reopen,14 werkelijke diskbytes en volledige cleanup. Quiescente services wachten op bestaande IPC-rechten; alle digestchecks en protocoldeadlines blijven. Het lokale eigen-kernel/UEFI-testimage is gebouwd en gedraaid. Koude readonly-heropening, aanvullende wait-lifecycle/FPU-gates, volledige document/GUI-criteria, bredere native regressies en menselijke/hardwareacceptatie blijven open. Deze afgebakende plaintext-fixtureproef sluit geen volledig nieuw rubriccriterium.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: echte Materiaal-testversie met edit/save/reopen en koude readonly-heropening.
+34% blijft 34%; minstens 50% is nog niet bereikt. De eerder rode echte Materiaal-QMP-keten slaagt op2066ae7 in131,561s/raw33: zes frames, muis/toetsen, save/list/reopen en volledige cleanup. Ook een volledig nieuwe readonly-VM slaagt opde541fa in60,769s/raw33: exact dezelfde14 diskbytes, expliciet geweigerde write zonder ACK, nul writes/flushes en ongewijzigde schijf. Geen deadline-, digest-, rechten- of orakelversoepeling. Een herbruikbare lokale eigen-kernel/UEFI-proefversie is gebouwd; loader, kernel en acht userspace-ELFs zijn bitgelijk aan de geslaagde normale run. Aanvullende wait-lifecycle/FPU-gates, volledige document/GUI-criteria, bredere native regressies en menselijke/hardwareacceptatie blijven open. Deze afgebakende plaintext-fixtureproeven sluiten geen volledig nieuw rubriccriterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

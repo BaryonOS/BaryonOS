@@ -55,9 +55,10 @@ frames en de volledige muis/typen/save/list/reopen/F12-keten in 131,561 s
 met raw33, zonder verruimde deadline. Zie `gui-normal-evidence.json`.
 De disk bevat werkelijk de 14 getypte bytes, één save-ACK en revisie1;
 systeemrand/canaries blijven intact en alle processen/handles worden
-vrijgegeven. De eigen-kernel/UEFI-testversie staat lokaal onder
-`build/native-test-version/gui-idle/esp`, met de gebonden run en snapshots
-onder `run/materiaal-normal-4417ddea00`. Alleen synthetische plaintextdata;
+vrijgegeven. De eigen-kernel/UEFI-proefversie staat lokaal onder
+`build/native-test-version/test-version/esp`, met de gebonden normale run
+en snapshots onder `build/native-test-version/gui-idle/run/materiaal-normal-4417ddea00`.
+Alleen synthetische plaintextdata;
 geen persoonlijke data, encryptie- of complete releaseclaim.
 
 De native wachtbuild en runtime zijn inmiddels **geslaagd**:
@@ -72,13 +73,14 @@ poort zonder M2-marker als M1-only behandelde; M2 is nu expliciet vereist.
 De derde volledige build/run slaagt. Dit is geen testversoepeling.
 Een daaropvolgende gerichte AI-review vond een mogelijke extra PIT-tick
 vóór foutwake als de selectiescan een ongeldig userreturnframe opruimt.
-De selectielus herstart nu bij haar waitrefresh na die cleanup; hertoetsing
-van de laatste correctie volgt. Deze review is geen menselijke audit.
+De selectielus herstart nu bij haar waitrefresh na die cleanup; de wachtpoort
+en legacy `test-m3-invalid-rsp` zijn op `ab98d1a` opnieuw raw33 geslaagd.
+Deze review is geen menselijke audit.
 
 **Niet uitgevoerd op deze integratie:** native kill/hergebruik en wachten
-met FPU-context, koude readonly-heropening, bredere native regressies, fysieke
-hardware en menselijke gebruiks-/securityacceptatie. De CPL3-probe is inmiddels als echt scalair ELF gebouwd; de gezamenlijke
-kernelbuild en runtime moeten nog volgen. Probe-hosttests: 3/3, exit 0.
+met FPU-context, bredere native regressies, fysieke hardware en menselijke
+gebruiks-/securityacceptatie. De gezamenlijke CPL3-wachtprobe is als echt
+scalair ELF gebouwd en native uitgevoerd. Probe-hosttests: 3/3, exit 0.
 Gerichte Clippy voor capability-core, SDK-runtime en inputconsumenten:
 ieder exit 0 met `--all-targets -- -D warnings`, via dezelfde lokale
 Cargo-omgeving. Die controle miste aanvankelijk de Clippy-component;
@@ -92,3 +94,48 @@ native VM-uitvoering. Logs: `/tmp/nieuw-os-native-test-{python,tools}.log`.
 De score blijft **34% → 34%**; het gevraagde doel van minstens 50% is
 niet bereikt. Een hosttest, geïntegreerde component of extra PASS-teller
 sluit geen volledig rubriccriterium.
+
+## Koude heropening en lokale proefversie
+
+Op `de541fa` slaagt ook een volledig nieuwe readonly-QEMU-VM, exit0/raw33,
+60,769 s. De parent is de bovenstaande geslaagde normale run: exact dezelfde
+diskbytes, loader, firmware, VGA-ROM en acht userspace-ELFs. Drie echte frames,
+heropenen van `nieuw os werkt`, zichtbaar geweigerde write, geen save-ACK,
+nul disk-writes/flushes en dezelfde diskhash na afloop. Alle processen/handles
+zijn opgeruimd; canaries en systeemrand blijven intact.
+Zie `gui-recover-evidence.json` voor commando, bron-, artifact- en loghashes.
+
+De eerste herstelinvocatie met een aparte buildroot werd vóór gaststart
+geweigerd. De runner verlangt bewust dat de normale parent onder de eigen
+`BUILD/run` staat; die controle is niet veranderd. Bouw het herstelprofiel
+daarom in dezelfde root als de normale run:
+
+```sh
+export LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu"
+export NOS_BUILD_DIR="$PWD/build/native-test-version/gui-idle"
+export NOS_TARGET_DIR="$PWD/target/native-test-version/gui-baseline"
+python3 -B -u tools/build.py --kernel-feature test-system-materiaal-recover
+```
+
+Dit buildcommando en het exacte recover-runcommando uit het JSON-bewijs zijn
+beide werkelijk uitgevoerd, exit0. Buildlog:
+`/tmp/nieuw-os-native-gui-recover-build.log`; runlog:
+`/tmp/nieuw-os-native-gui-recover-run.log`.
+
+Een normale, opnieuw uitvoerbare lokale proefversie is vervolgens gebouwd:
+
+```sh
+LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" \
+NOS_BUILD_DIR="$PWD/build/native-test-version/test-version" \
+NOS_TARGET_DIR="$PWD/target/native-test-version/gui-baseline" \
+python3 -B -u tools/build.py --kernel-feature native-system-materiaal-probe
+```
+
+Exit0; log `/tmp/nieuw-os-native-test-version-build.log`. Afzonderlijke
+SHA-256-vergelijking bevestigt dat loader, kernel en alle acht userspace-ELFs
+bitgelijk zijn aan de geslaagde normale native run. De gekopieerde
+`volume.empty.img` heeft de oorspronkelijke lege-fixturediskhash.
+Dit is een automatische QEMU-proefversie met een begrensde testlevensduur,
+geen installer of dagelijks bruikbaar OS. De oorspronkelijke `gui-idle/esp`
+bevat nu het readonly-profiel; beide runs behouden hun eigen bevroren inputs.
+Geen binaries in Git en geen publieke release.

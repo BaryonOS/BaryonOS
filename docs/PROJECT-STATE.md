@@ -1,6 +1,36 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Native testversie: IPC-wachtintegratie loopt — 30 oktober 2026
+## NEXT AGENT HANDOFF — Native Materiaal-testversie en koude heropening groen — 30 oktober 2026
+
+Branch `simon/native-test-version`, basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`;
+code `2066ae7ccb25ac9e5e23eb81ec79a7286699a8ec`, laatste bewijsbron
+`de541fab03aba0ed850ba65a8cdaa549e265d521` (alleen docs gewijzigd).
+Score **34% → 34%; gevraagde 50% niet bereikt**. Geen criterium versoepeld.
+Alle deelagents zijn klaar; er is geen achtergrondwerk of gedeelde schrijver.
+
+De echte normale QMP-keten slaagt in 131,561 s/raw33: zes frames,
+muis/toetsen, save/list/reopen, 14 werkelijke diskbytes en volledige cleanup.
+Een geheel nieuwe readonly-VM op dezelfde disk slaagt in 60,769 s/raw33:
+document heropend, write zichtbaar geweigerd, nul writes/flushes/ACK's,
+diskhash onveranderd, nul achtergebleven processen/handles.
+Bewijs/commando's: `verification/native-test-version/{gui-normal,gui-recover}-evidence.json`
+en de README aldaar. Synthetische plaintextfixture; geen release-/encryptieclaim.
+
+Lokale normale proefversie: `build/native-test-version/test-version/esp`,
+met manifest en acht ELFs onder dezelfde buildroot. Loader/kernel/acht ELFs
+zijn bitgelijk aan de geslaagde normale run. De oorspronkelijke `gui-idle/esp`
+bevat nu het readonly-herstelprofiel; de normale run houdt eigen bevroren inputs.
+Recovery vereist parent én herstelrun in dezelfde beheerde build/run-root;
+de eerdere poging met aparte root is vóór gaststart geweigerd.
+
+Open: native kill/hergebruik en FPU met wachten, bredere native regressies,
+volledige product-/menselijke-/hardwareacceptatie. Eerstvolgende commando:
+`NOS_BUILD_DIR="$PWD/build/native-test-version/system" NOS_TARGET_DIR="$PWD/target/native-test-version/system" python3 -B -u tools/test_system.py`
+met de bestaande lokale `LD_LIBRARY_PATH`; daarnaast de workflow-FPU-poort.
+Nieuwe concept-PR blijft geblokkeerd door de aan de oude infra-branch gebonden
+app-sessie; de OS-werkbranch is apart gepusht. Geen voltooiingsclaim.
+
+## Uitvoeringshistorie — integratie van de native testversie
 
 Basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00` (main, inclusief RTC-PR #63),
 branch `simon/native-test-version`. De eerdere infrastructuurtaak blijft
@@ -109,14 +139,13 @@ processen/handles en herstelde frames. Geen renderer-, digest-, timeout-
 of orakelversoepeling. Compact bewijs: `gui-normal-evidence.json` onder
 `verification/native-test-version/`. Het betreft een synthetische plaintext-
 fixture, geen versleutelde persoonlijke opslag of volledige GUI-release.
-De lokale ESP/testversie staat in `build/native-test-version/gui-idle/esp`.
+Het normale ESP is bewaard onder `build/native-test-version/test-version/esp`.
 
-**Niet uitgevoerd:** native kill/hergebruik en FPU met wachten,
-koude heropening, brede native gates en complete testreleaseacceptatie.
-Eerstvolgend: `test-system-materiaal-recover` bouwen in
-`build/native-test-version/gui-recover`, dezelfde targetcache gebruiken;
-`run_materiaal_probe.py --case recover` met parent
-`build/native-test-version/gui-idle/run/materiaal-normal-4417ddea00`.
+De daaropvolgende koude readonly-heropening is geslaagd: zie het actuele
+handoff en `gui-recover-evidence.json`. De runner vereist bewust dezelfde
+buildroot als de parent; het aparte `gui-recover`-pad is niet gebruikt voor
+de geslaagde run. Native kill/hergebruik, FPU met wachten, brede native gates
+en complete testreleaseacceptatie blijven open.
 De werkbranch is gepusht. Een nieuwe concept-PR is nog niet geopend:
 de app-sessie is aan de oudere infrastructuurbranch gebonden, terwijl
 de OS-werkbranch bewust apart staat; de sessie-PR-tool kan geen andere head kiezen.
