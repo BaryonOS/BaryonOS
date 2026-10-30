@@ -211,6 +211,81 @@ impl<'a> Service<'a> {
         Ok(self.active)
     }
 
+    /// Trusted service-loop access to the existing transport, not an app
+    /// grant. Every operation observes lease expiry before touching TCP.
+    pub fn add_transport_client(
+        &mut self,
+        rx: &'a mut [u8],
+        tx: &'a mut [u8],
+        ticks: u64,
+    ) -> Result<nieuw_os_net_stack::Client, Error> {
+        self.now(ticks)?;
+        Ok(self.stack.add_client(rx, tx)?)
+    }
+
+    fn configured_transport(&mut self, ticks: u64) -> Result<(), Error> {
+        self.now(ticks)?;
+        if self.active.is_none() {
+            return Err(StackError::NotConfigured.into());
+        }
+        Ok(())
+    }
+
+    pub fn connect(
+        &mut self,
+        client: nieuw_os_net_stack::Client,
+        remote: ([u8; 4], u16),
+        local_port: u16,
+        timeout_ticks: u64,
+        ticks: u64,
+    ) -> Result<(), Error> {
+        self.configured_transport(ticks)?;
+        self.stack
+            .connect(client, remote.0, remote.1, local_port, timeout_ticks)?;
+        Ok(())
+    }
+
+    pub fn send(
+        &mut self,
+        client: nieuw_os_net_stack::Client,
+        bytes: &[u8],
+        ticks: u64,
+    ) -> Result<usize, Error> {
+        self.configured_transport(ticks)?;
+        Ok(self.stack.send(client, bytes)?)
+    }
+
+    pub fn receive(
+        &mut self,
+        client: nieuw_os_net_stack::Client,
+        output: &mut [u8],
+        ticks: u64,
+    ) -> Result<usize, Error> {
+        self.configured_transport(ticks)?;
+        Ok(self.stack.receive(client, output)?)
+    }
+
+    pub fn close(&mut self, client: nieuw_os_net_stack::Client, ticks: u64) -> Result<(), Error> {
+        self.configured_transport(ticks)?;
+        self.stack.close(client)?;
+        Ok(())
+    }
+
+    pub fn cancel(&mut self, client: nieuw_os_net_stack::Client, ticks: u64) -> Result<(), Error> {
+        self.now(ticks)?;
+        self.stack.cancel(client)?;
+        Ok(())
+    }
+
+    pub fn state(
+        &mut self,
+        client: nieuw_os_net_stack::Client,
+        ticks: u64,
+    ) -> Result<nieuw_os_net_stack::State, Error> {
+        self.now(ticks)?;
+        Ok(self.stack.state(client)?)
+    }
+
     pub fn send_dhcp(&mut self, ticks: u64) -> Result<u64, Error> {
         let now = self.now(ticks)?;
         if !self.stack.can_queue_control_frame() {

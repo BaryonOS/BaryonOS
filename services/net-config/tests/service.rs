@@ -31,6 +31,30 @@ fn with_service(f: impl FnOnce(&mut Service<'_>)) {
     f(&mut service);
 }
 
+fn with_transport(f: impl FnOnce(&mut Service<'_>, nieuw_os_net_stack::Client)) {
+    let mut storage = [SocketStorage::EMPTY];
+    let mut rx = [0; FRAME_BYTES];
+    let mut tx = [0; FRAME_BYTES];
+    let mut tcp_rx = [0; 512];
+    let mut tcp_tx = [0; 512];
+    let stack = Stack::new_unconfigured(
+        LinkConfig {
+            mac: MAC,
+            random_seed: 7,
+        },
+        &mut storage,
+        &mut rx,
+        &mut tx,
+        0,
+    )
+    .unwrap();
+    let mut service = Service::new(stack, ProbeTiming::new(0, 100, 100).unwrap(), 0).unwrap();
+    let client = service
+        .add_transport_client(&mut tcp_rx, &mut tcp_tx, 0)
+        .unwrap();
+    f(&mut service, client);
+}
+
 fn reply(kind: u8, xid: u32, dns_last: u8) -> Vec<u8> {
     reply_with_router(kind, xid, dns_last, SERVER)
 }
@@ -520,5 +544,107 @@ fn conflict_decline_waits_for_retired_tx_and_real_own_completion_before_reacquir
         service.complete_transmission(decline_id, 2000).unwrap();
         service.start(XID + 1, 2000, 30).unwrap();
         assert!(service.send_dhcp(2000).unwrap() > decline_id);
+    });
+}
+
+#[test]
+fn configured_transport_uses_the_same_arp_and_tcp_slot_and_expiry_gates_each_operation() {
+    with_transport(|service, client| {
+        assert_eq!(
+            service.connect(client, (SERVER, 443), 40000, 300, 0),
+            Err(Error::Stack(StackError::NotConfigured))
+        );
+        bound(service);
+        service
+            .connect(client, (SERVER, 443), 40000, 300, 602)
+            .unwrap();
+        service.poll(602).unwrap();
+        let arp_request = complete(service, 602);
+        let packet = nieuw_os_net_protocol::arp::parse(&arp_request).unwrap();
+        assert_eq!(packet.target_ipv4(), SERVER);
+        let mut reply = [0; 60];
+        nieuw_os_net_protocol::arp::build_reply(
+            nieuw_os_net_protocol::arp::Interface {
+                mac: SERVER_MAC,
+                ipv4: SERVER,
+            },
+            &packet,
+            &mut reply,
+        )
+        .unwrap();
+        service.receive_frame(&reply, 603).unwrap();
+        service.poll(603).unwrap();
+        let (id, syn) = offered(service, 603);
+        assert_eq!(&syn[12..14], &[8, 0]);
+        assert_eq!(syn[23], 6);
+        assert_eq!(syn[47] & 0x17, 2);
+        assert_eq!(&syn[26..30], &ADDRESS);
+        assert_eq!(
+            service.state(client, 603),
+            Ok(nieuw_os_net_stack::State::SynSent)
+        );
+        assert_eq!(service.send_dhcp(603), Err(Error::Stack(StackError::Busy)));
+        assert_eq!(
+            service.send(client, b"expired", 8000),
+            Err(Error::Stack(StackError::NotConfigured))
+        );
+        assert!(service.transmission(8000).unwrap().is_none());
+        assert_eq!(
+            service.state(client, 8000),
+            Ok(nieuw_os_net_stack::State::Closed)
+        );
+        let mut output = [0xa5; 16];
+        assert_eq!(
+            service.receive(client, &mut output, 8000),
+            Err(Error::Stack(StackError::NotConfigured))
+        );
+        assert_eq!(output, [0xa5; 16]);
+        assert_eq!(
+            service.close(client, 8000),
+            Err(Error::Stack(StackError::NotConfigured))
+        );
+        service.complete_transmission(id, 8000).unwrap();
+        service.cancel(client, 8000).unwrap();
+    });
+}
+
+#[test]
+fn unchanged_lease_renewal_keeps_live_transport_but_new_route_retires_it() {
+    with_transport(|service, client| {
+        bound(service);
+        service
+            .connect(client, (SERVER, 443), 40000, 6000, 602)
+            .unwrap();
+        service.begin_renewal(XID + 1, 4000).unwrap();
+        let old_request = service.send_dhcp(4000).unwrap();
+        service.receive_frame(&reply(5, XID + 1, 54), 4000).unwrap();
+        assert_eq!(
+            service.state(client, 4000),
+            Ok(nieuw_os_net_stack::State::SynSent)
+        );
+        assert_eq!(
+            service.configuration(4000).unwrap().unwrap().dns_servers(),
+            &[[192, 0, 2, 54]]
+        );
+        service.complete_transmission(old_request, 4000).unwrap();
+        service.begin_renewal(XID + 2, 8000).unwrap();
+        let request = service.send_dhcp(8000).unwrap();
+        service
+            .receive_frame(&reply_with_router(5, XID + 2, 55, [192, 0, 2, 254]), 8000)
+            .unwrap();
+        assert_eq!(
+            service.state(client, 8000),
+            Ok(nieuw_os_net_stack::State::Closed)
+        );
+        assert_eq!(
+            service.send(client, b"old route", 8000),
+            Err(Error::Stack(StackError::NotConfigured))
+        );
+        service.complete_transmission(request, 8000).unwrap();
+        service.poll(8000).unwrap();
+        assert_eq!(
+            service.configuration(8000).unwrap().unwrap().routers(),
+            &[[192, 0, 2, 254]]
+        );
     });
 }

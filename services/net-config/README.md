@@ -250,3 +250,22 @@ De eerste APIgate was compile101/E0425 (ontbrekende functie), GEEN runtime.
 Volledige brongebonden eindgates op deze source volgen na het checkpoint.
 Geen nieuwe manifest/lock/dependency/entropybron of netwerkgrant, geen
 native completion/fence/app/netwerkacceptatie en geen nieuwe punten.
+
+## Transport onder de actieve lease
+
+De coordinator bezit de Stack; zonder begrensde transportdoorgifte zou een
+native integrator toch een tweede Stack of ongecontroleerde mutable toegang
+nodig hebben. `add_transport_client`, `connect`, `send`, `receive`, `close`,
+`cancel` en `state` delen daarom de bestaande buffers/handles/Stack.
+Er wordt GEEN mutable Stack/device uitgeleend. Iedere operatie verwerkt eerst
+de werkelijke monotone tick/lease-expiry; gegevensoperaties vereisen ook de
+werkelijk toegepaste actieve configuratie. Status/cancel geven na withdrawal
+alleen de bestaande gesloten toestand terug en herstellen geen lease.
+Dit blijft een trusted-service-broninterface, geen appgrant of brokerpolicy.
+
+Twee nieuwe gekoppelde hostcases tonen echte ARP plus TCP-SYN uit dezelfde
+Stack na DHCP/probes; controlbackpressure bewaart dat SYN-slot, expiry
+sluit de socket/verbergt TX en blokkeert send/receive/close zonder outputwrite.
+Een ongewijzigde renewal behoudt een levende socket; een nieuwe gateway
+retiret die en toont de nieuwe DNS/route pas na oudecompletion.
+Dit bewijst geen native verbinding, applicatieantwoord of rechtenafdwinging.
