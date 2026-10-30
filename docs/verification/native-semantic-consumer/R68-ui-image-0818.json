@@ -1,0 +1,376 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "scope": "partial native GUI/input/document chain on generated plaintext fixture; not full Materiaal, encrypted durable storage, release or physical hardware acceptance",
+  "case": "normal",
+  "source_commit": "0818f5ec651b72c32b8795ff0d3d9a6ebdc9783d",
+  "source_sha256": "26b41e5586434ce51202a4e234ccaa99bad25c5a76ec3efdb3af9d7020c14f5f",
+  "source_fingerprint_version": 3,
+  "kernel_feature": "native-system-materiaal-probe",
+  "run_directory": "/tmp/nieuw-os-render-review-e382/build/ui-image-0818/run/materiaal-normal-ad23a2ee91",
+  "build_directory": "/tmp/nieuw-os-render-review-e382/build/ui-image-0818",
+  "cwd": "/tmp/nieuw-os-render-review-e382/build/ui-image-0818/run/materiaal-normal-ad23a2ee91",
+  "command": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-qmp",
+    "stdio",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04"
+  ],
+  "qemu_entry_path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/bin/qemu-system-x86_64",
+  "qemu_entry_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+  "qemu_implementation_path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/bin/qemu-system-x86_64",
+  "qemu_implementation_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "profile": "pc-q35-10.0/qemu64/TCG/1CPU/256MiB/VGA/PS2",
+  "machine": "pc-q35-10.0",
+  "qmp_transport": "pipe",
+  "duration_s": 132.46060661100273,
+  "timeout_s": 240,
+  "timed_out": false,
+  "raw_qemu_exit": 33,
+  "frozen_artifacts": {
+    "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "VGA.rom": "c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde",
+    "esp/kernel.elf": "48acb20ca8e12e0418f21c3790361c2a3ac8c935cc76de0ad6ddb977bfd10896",
+    "esp/EFI/BOOT/BOOTX64.EFI": "9686ab3b85eaeedc334053cc9f583f6459c99e2779673416eacac319c68aa387",
+    "inputs/desktop-init.elf": "629fb9599a5559d760d9206edf02f6e0f7cbc63c46e4be6d7bfd6e29ee799986",
+    "inputs/keyring-service.elf": "b355d44856c39caa06bdea2e92f750da29f58263dc1f925eb2006b8ba8acd630",
+    "inputs/volume-service.elf": "8503f1a1ccdbb8725ff1f34d9fd19d455971b78c046e2ed6186a8e9be6e94337",
+    "inputs/materiaal-app.elf": "d84f5333ad11d91b44ea822382562d78a508ec12794518cc70a0a47b583c06db",
+    "inputs/native-compositor.elf": "8db32edec59e4e6e330a4fbf1b1360fded5b57b7cf14c5e5908703627b848ce4",
+    "inputs/input-source.elf": "ffc1adac2b03655d5f359a002ab624dceb83d4017b12f0cfe9832c6ebaf153e4",
+    "inputs/input-policy.elf": "24548d09577c9338d464eb969a2e1cbddb9d8951056b26475b903dd8bbcdcf87",
+    "inputs/desktop-controller.elf": "a37e9dd94213a4df6077d42abfc7a0fab98653c272c2659cbaa5cbd9f10b9165",
+    "inputs/manifest.json": "c01e98fa708f34398991ddd01a8acc28ebb7dd06eaf85622e05222c9c0c82b4f",
+    "inputs/build-report.json": "4324726ac65a0b3334c03222012cf3962408b8cd9ac0503894e99604aa031114"
+  },
+  "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "after_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+  "checks": {
+    "native_transcript_qmp_pixels_disk_recomputed": true,
+    "source_unchanged": true,
+    "qemu_entry_unchanged": true,
+    "qemu_implementation_unchanged": true,
+    "current_build_unchanged": true
+  },
+  "stages": [
+    {
+      "phase": "ready",
+      "snapshot": {
+        "READY": 1,
+        "PRESENTED_GEN": 2,
+        "FRAMES": 1,
+        "TILES": 1608,
+        "KEYS": 0,
+        "MOUSE": 0,
+        "INPUT_ACKS": 0,
+        "SAVE_ACKS": 0,
+        "SAVED_REVISION": 0,
+        "SAVED_BYTES": 0,
+        "SAVED_SUM": 0,
+        "SCREEN": 1,
+        "DRAFT_DIRTY": 0,
+        "DRAFT_BYTES": 0,
+        "DRAFT_SUM": 0,
+        "OBJECT": 18446744073709551615,
+        "SCALE": 1,
+        "ERRORS": 0
+      },
+      "serial_size": 1232,
+      "serial_sha256": "69a5f3e6df0564824f3786f9399070716c7db2c7f97365863e0864a39c7eb558",
+      "qmp_index": 2
+    },
+    {
+      "phase": "editor",
+      "snapshot": {
+        "READY": 1,
+        "PRESENTED_GEN": 7,
+        "FRAMES": 2,
+        "TILES": 3231,
+        "KEYS": 0,
+        "MOUSE": 4,
+        "INPUT_ACKS": 4,
+        "SAVE_ACKS": 0,
+        "SAVED_REVISION": 0,
+        "SAVED_BYTES": 0,
+        "SAVED_SUM": 0,
+        "SCREEN": 2,
+        "DRAFT_DIRTY": 1,
+        "DRAFT_BYTES": 0,
+        "DRAFT_SUM": 14695981039346656037,
+        "OBJECT": 0,
+        "SCALE": 1,
+        "ERRORS": 0
+      },
+      "serial_size": 2001,
+      "serial_sha256": "4b62a592206693545d9093bbe5bdd49c05928207e0ad3829ed3762b2c3a5c9d6",
+      "qmp_index": 7
+    },
+    {
+      "phase": "dirty",
+      "snapshot": {
+        "READY": 1,
+        "PRESENTED_GEN": 21,
+        "FRAMES": 3,
+        "TILES": 4899,
+        "KEYS": 28,
+        "MOUSE": 4,
+        "INPUT_ACKS": 32,
+        "SAVE_ACKS": 0,
+        "SAVED_REVISION": 0,
+        "SAVED_BYTES": 0,
+        "SAVED_SUM": 0,
+        "SCREEN": 2,
+        "DRAFT_DIRTY": 1,
+        "DRAFT_BYTES": 14,
+        "DRAFT_SUM": 2786778974461010050,
+        "OBJECT": 0,
+        "SCALE": 1,
+        "ERRORS": 0
+      },
+      "serial_size": 2770,
+      "serial_sha256": "444ffe1f55ed20f112b13efac46f3e457fe2dc0d2df60f2a7505bba7a1699275",
+      "qmp_index": 22
+    },
+    {
+      "phase": "saved",
+      "snapshot": {
+        "READY": 1,
+        "PRESENTED_GEN": 24,
+        "FRAMES": 4,
+        "TILES": 6508,
+        "KEYS": 32,
+        "MOUSE": 4,
+        "INPUT_ACKS": 36,
+        "SAVE_ACKS": 1,
+        "SAVED_REVISION": 1,
+        "SAVED_BYTES": 14,
+        "SAVED_SUM": 2786778974461010050,
+        "SCREEN": 2,
+        "DRAFT_DIRTY": 0,
+        "DRAFT_BYTES": 14,
+        "DRAFT_SUM": 2786778974461010050,
+        "OBJECT": 0,
+        "SCALE": 1,
+        "ERRORS": 0
+      },
+      "serial_size": 3539,
+      "serial_sha256": "d469177e446c17d81397f6c73f51b7aacb49dabc5d89c79adff6d862d6f5f46c",
+      "qmp_index": 24
+    },
+    {
+      "phase": "list",
+      "snapshot": {
+        "READY": 1,
+        "PRESENTED_GEN": 26,
+        "FRAMES": 5,
+        "TILES": 8116,
+        "KEYS": 34,
+        "MOUSE": 4,
+        "INPUT_ACKS": 38,
+        "SAVE_ACKS": 1,
+        "SAVED_REVISION": 1,
+        "SAVED_BYTES": 14,
+        "SAVED_SUM": 2786778974461010050,
+        "SCREEN": 1,
+        "DRAFT_DIRTY": 0,
+        "DRAFT_BYTES": 14,
+        "DRAFT_SUM": 2786778974461010050,
+        "OBJECT": 0,
+        "SCALE": 1,
+        "ERRORS": 0
+      },
+      "serial_size": 4308,
+      "serial_sha256": "c1771f2d6e525409756e621e33ea1e9b1e9511ba71957b51cbcbfd074ee7bbe8",
+      "qmp_index": 26
+    },
+    {
+      "phase": "reopened",
+      "snapshot": {
+        "READY": 1,
+        "PRESENTED_GEN": 29,
+        "FRAMES": 6,
+        "TILES": 9734,
+        "KEYS": 40,
+        "MOUSE": 4,
+        "INPUT_ACKS": 44,
+        "SAVE_ACKS": 1,
+        "SAVED_REVISION": 1,
+        "SAVED_BYTES": 14,
+        "SAVED_SUM": 2786778974461010050,
+        "SCREEN": 2,
+        "DRAFT_DIRTY": 0,
+        "DRAFT_BYTES": 14,
+        "DRAFT_SUM": 2786778974461010050,
+        "OBJECT": 0,
+        "SCALE": 1,
+        "ERRORS": 0
+      },
+      "serial_size": 5077,
+      "serial_sha256": "54f0671c5ed412a50d096a9c473bf096c9dc035faef82a512f40516b973f008e",
+      "qmp_index": 30
+    }
+  ],
+  "task": "TASK-UI-IMAGE-0818",
+  "offline_replay_passed": true,
+  "disk": {
+    "object": 0,
+    "revision": 1,
+    "name": "Nieuw document",
+    "length": 14,
+    "sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "fnv": 2786778974461010050,
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "canaries_intact": true
+  },
+  "frames": {
+    "width": 800,
+    "height": 600,
+    "assigned": [
+      16,
+      48,
+      768,
+      536
+    ],
+    "changed_bounds": {
+      "ready->editor": [
+        35,
+        72,
+        765,
+        550
+      ],
+      "editor->dirty": [
+        48,
+        200,
+        148,
+        216
+      ],
+      "dirty->saved": [
+        40,
+        538,
+        261,
+        550
+      ],
+      "saved->list": [
+        35,
+        72,
+        765,
+        525
+      ],
+      "list->reopened": [
+        35,
+        72,
+        765,
+        550
+      ]
+    },
+    "system_chrome_preserved": true,
+    "manual_visual_quality_review_performed": false
+  },
+  "archive": {
+    "path": "/home/simon/.copilot/session-state/1b87793863ad4dcc8f16a0bd10884654/files/ui-image-0818/native-materiaal-probe-0818f5e-ad23a2ee91.tar.gz",
+    "bytes": 2682413,
+    "sha256": "3c476387f7aa7657207e2a0ee96b7d1b159695de1716305cdbefa795b26447b2",
+    "member_manifest_sha256": "f3d16ff804dec187b01949c1755539ca047b4dcee98e409794a62b3a43185db1",
+    "members_verified": 40
+  },
+  "ui_inputs": {
+    "ui/native/src/render.rs": "52fce85611498d4d33f96a64d83205045ab6ccd9264c291227d3ff27f1a4e234",
+    "ui/native/src/design.rs": "5d61ecf3357685ba074ad66d102f01cd98daa279535e1645bdd6ec522afcf39e",
+    "ui/native/src/controller.rs": "146dccc2b194f73fb44565a08529480cbbf92be2b07e2a8a9d126391b8f0fc97",
+    "ui/prototype/tokens.css": "0c588509e0cb0f94bbda2c6969da8d79d463359bfc9684687a684210a54aadcf",
+    "sdk/examples/materiaal/src/lib.rs": "2820d4b8fa51597a65370c101f7cec24bccce745c7de20bc71fa31529d8ba100"
+  },
+  "screenshots": {
+    "ready": {
+      "ppm_sha256": "89988554c6e93449245ccac8462e1a43af336e0af990affcf59004bb2eaed50f",
+      "png_sha256": "57027b5802aa1a8ccda2e70b8621517da9ec12d61c168dcfb01e3755bbea78a7",
+      "png_path": "/home/simon/.copilot/session-state/1b87793863ad4dcc8f16a0bd10884654/files/ui-image-0818/ready.png"
+    },
+    "editor": {
+      "ppm_sha256": "1e6c9e54ec9d83193fb3e4708822d81775b13f65b470e1478ebf6bb0f000b307",
+      "png_sha256": "0c109bbdbc37a2dc27cd7b5b8180b1d0ff21885380eee5ea5d2f97c1e61cf370",
+      "png_path": "/home/simon/.copilot/session-state/1b87793863ad4dcc8f16a0bd10884654/files/ui-image-0818/editor.png"
+    },
+    "dirty": {
+      "ppm_sha256": "8190ac298424262fac1e34ba24451d745aa28f4221eb2e9817cf24fa03a27dda",
+      "png_sha256": "5a9c1c899ee2fd7f68548bd718536b593723cb77929a7e05600e5ed3cbc1b468",
+      "png_path": "/home/simon/.copilot/session-state/1b87793863ad4dcc8f16a0bd10884654/files/ui-image-0818/dirty.png"
+    },
+    "saved": {
+      "ppm_sha256": "5ec5bba6342fa55247d59ebc71f13c6c7e42b7a2dd96e242bea15248cfbc8488",
+      "png_sha256": "cb2b125474e13952ccaa3b690d99cfc32e2495bd8dede178e301a19ec08f7966",
+      "png_path": "/home/simon/.copilot/session-state/1b87793863ad4dcc8f16a0bd10884654/files/ui-image-0818/saved.png"
+    },
+    "list": {
+      "ppm_sha256": "a29b8342d2d1229b4b6f37a1cf3f0342dc400547e329ec61215312bc4ea3e835",
+      "png_sha256": "ed26211e2812cbb63b4818c9bfe53e3b2833d0a6d164126be0962053a936370e",
+      "png_path": "/home/simon/.copilot/session-state/1b87793863ad4dcc8f16a0bd10884654/files/ui-image-0818/list.png"
+    },
+    "reopened": {
+      "ppm_sha256": "dfca8c62b1e10b99a6561098b56be8749102d69dca390257717935686fb19099",
+      "png_sha256": "ff081b399a6e5f1e9c87651aeacc3d9c77ddbe327980eb13bbfae4a6b26266b3",
+      "png_path": "/home/simon/.copilot/session-state/1b87793863ad4dcc8f16a0bd10884654/files/ui-image-0818/reopened.png"
+    }
+  },
+  "input_fixture": {
+    "text": "nieuw os werkt",
+    "bytes": 14,
+    "encoding": "ASCII subset of UTF-8",
+    "input": "real QMP PS/2 keys and pointer; no guest memory writes",
+    "stop": "F12 barrier then testcontroller InitStopRPC; not product shutdown"
+  },
+  "acceptance": {
+    "ordinary_dev1": false,
+    "screenreader": false,
+    "scale200": false,
+    "cold_reboot": false,
+    "deny_full_unknown": false,
+    "assets_consumed": false,
+    "human_review": false,
+    "physical_hardware": false,
+    "u_points_added": 0
+  }
+}
