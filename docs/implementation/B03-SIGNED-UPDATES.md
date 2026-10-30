@@ -32,7 +32,7 @@ installeert zodat een onderbreking nooit het laatst geldige slot aantast.
    dat het uit het slot leest en vergelijkt met `image_sha256` in het
    manifest vóór één byte wordt uitgevoerd. Lengte, doel-ID, formaatversie en
    slotpositie staan in de canonieke bytes.
-3. **Versievloer.** De loader bewaart de hoogste gestarte versie in de
+3. **Versievloer.** De loader bewaart de hoogste vóór kerneloverdracht geselecteerde versie in de
    UEFI-NV-variabele `NieuwOsMinVersion` (eigen vendor-GUID). Een slot met
    `version < vloer` wordt geweigerd als `DOWNGRADE`, ook als de pointer in de
    header ernaar wijst. De vloer stijgt alleen; zij daalt nooit automatisch.

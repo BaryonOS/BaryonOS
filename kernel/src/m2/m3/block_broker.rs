@@ -1,6 +1,9 @@
 //! Common mappings for the scoped block brokers.
+#[cfg(feature = "milestone-m6a")]
 use super::{paging, user, Owner, State, PAGE};
+#[cfg(feature = "milestone-m6a")]
 use capability_core::{BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE};
+#[cfg(feature = "milestone-m6a")]
 use virtio_core::Operation;
 
 pub(super) fn err(e: virtio_core::Error) -> i64 {
@@ -15,6 +18,7 @@ pub(super) fn err(e: virtio_core::Error) -> i64 {
     }
 }
 
+#[cfg(feature = "milestone-m6a")]
 pub(super) fn operation_index(op: Operation) -> usize {
     match op {
         Operation::Read { .. } => 0,
@@ -23,6 +27,7 @@ pub(super) fn operation_index(op: Operation) -> usize {
     }
 }
 
+#[cfg(feature = "milestone-m6a")]
 pub(super) fn required(op: Operation) -> u64 {
     match op {
         Operation::Read { .. } => BLOCK_READ,
@@ -31,6 +36,7 @@ pub(super) fn required(op: Operation) -> u64 {
     }
 }
 
+#[cfg(feature = "milestone-m6a")]
 pub(super) fn input_plan(s: &State, slot: usize, pointer: u64) -> Result<user::CopyPlan, i64> {
     let p = &s.processes[slot];
     user::sector_input_plan(pointer, p.pid, |va| {
@@ -49,6 +55,7 @@ pub(super) fn input_plan(s: &State, slot: usize, pointer: u64) -> Result<user::C
     .map_err(|_| -3)
 }
 
+#[cfg(feature = "milestone-m6a")]
 pub(super) fn input_bytes(plan: &user::CopyPlan) -> [u8; 512] {
     let mut bytes = [0; 512];
     let mut at = 0;
@@ -68,6 +75,7 @@ pub(super) fn input_bytes(plan: &user::CopyPlan) -> [u8; 512] {
 
 // Generic block broker shared by the volume and update profiles. The hooks
 // retain each profile's accounting, crash fixture and poll/reset policy.
+#[cfg(any(feature = "native-volume", feature = "native-update"))]
 macro_rules! scoped_block_broker {
     ($poll_before_wait:expr, $write_enabled:expr, $write_hook:ident) => {
         fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {

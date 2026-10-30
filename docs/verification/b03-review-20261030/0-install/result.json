@@ -1,0 +1,329 @@
+{
+  "schema_version": 1,
+  "stage": "install",
+  "sequence": "main",
+  "parent_stage": null,
+  "started_utc": "2026-10-30T11:09:51.102346+00:00",
+  "duration_s": 8.680427866999992,
+  "timeout_s": 900,
+  "timed_out": false,
+  "raw_qemu_exit": 33,
+  "host_kill": false,
+  "running_before_kill": false,
+  "command": [
+    "<host-path>",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/run/update-install-983f1037cf/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/run/update-state-main-7f14e642e2/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/update-install-983f1037cf/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=store,format=raw,cache=writeback,file=build/run/update-state-main-7f14e642e2/store.img",
+    "-device",
+    "virtio-blk-pci,drive=store,id=storeblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-B03-STORE"
+  ],
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "source_fingerprint_version": 3,
+  "source_sha256": "83b53e3da5484083ff7812854faed22c8b1be3b261c946af0cd8d87bfeb4211d",
+  "state_directory": "build/run/update-state-main-7f14e642e2",
+  "run_directory": "build/run/update-install-983f1037cf",
+  "loader_sha256": "257a73813eec4c9e80f248c0c52e6ce2ca6177879436c075eab66f393bd073b9",
+  "images": {
+    "schema_version": 1,
+    "source_sha256": "83b53e3da5484083ff7812854faed22c8b1be3b261c946af0cd8d87bfeb4211d",
+    "files": {
+      "k1": "kernel-v1.elf",
+      "k2": "kernel-v2.elf",
+      "kc": "kernel-v1-cut.elf",
+      "kj": "junk-v2.bin",
+      "m1": "manifest-v1.bin",
+      "m2": "manifest-v2.bin",
+      "mc": "manifest-v1-cut.bin",
+      "mf": "manifest-v2-foreign.bin",
+      "mj": "manifest-v2-junk.bin"
+    },
+    "kernels": {
+      "k1": "a13b78368fcc9374c7779ebcdae3e17c8860ecb7665a70c631600275bccd8c39",
+      "k2": "08b5de5e356b945e2eb693b4e5fff364d070829672464a2e1d4e851f65aa865e",
+      "kc": "9dea0972108be053ac045cbdd35db35c53b48d1001bd697bdbe25133b0a1f351",
+      "kj": "d2979f63fc353288130be1837d34f088e378e76c5baa67b8a6077c950db3c286"
+    },
+    "manifests": {
+      "m1": "9d21be3689153c27b1084fa20860460c4a961b4774ff8caa1316cd30cf4827b5",
+      "m2": "b9c9b00536069652d91ecf5797a6976847da659e691bd33389c7522fb9fc2614",
+      "mc": "cde866960c686af5b2f0c4aa097292f386c61e36eaf050ac380c282d79198793",
+      "mf": "8cc4b7721ce5f558e843c216e070a1f0a2542a1f44e49719d2a1f3e8a24a09ae",
+      "mj": "103ccd02275f1eb0c5d28800c27a0f044b81a97c7830368825ba2aa62018f112"
+    },
+    "loader_sha256": "257a73813eec4c9e80f248c0c52e6ce2ca6177879436c075eab66f393bd073b9",
+    "builds": {
+      "k1": {
+        "kernel_feature": "native-update",
+        "image_version": 1,
+        "kernel_sha256": "a13b78368fcc9374c7779ebcdae3e17c8860ecb7665a70c631600275bccd8c39",
+        "service": {
+          "service_sha256": "6528df0f520c7c4cd4b115672ed497d14875d1291ddabc3379db598112c850dc",
+          "service_elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 2195,
+                "memsz": 2195,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1224,
+                "memsz": 1224,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 12288,
+                "filesz": 5629,
+                "memsz": 5629,
+                "page_start": 1073823744,
+                "page_end": 1073831936
+              },
+              {
+                "flags": 5,
+                "address": 1073938432,
+                "offset": 20480,
+                "filesz": 102519,
+                "memsz": 102519,
+                "page_start": 1073938432,
+                "page_end": 1074044928
+              }
+            ]
+          },
+          "image_version": 1
+        }
+      },
+      "k2": {
+        "kernel_feature": "native-update",
+        "image_version": 2,
+        "kernel_sha256": "08b5de5e356b945e2eb693b4e5fff364d070829672464a2e1d4e851f65aa865e",
+        "service": {
+          "service_sha256": "6528df0f520c7c4cd4b115672ed497d14875d1291ddabc3379db598112c850dc",
+          "service_elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 2195,
+                "memsz": 2195,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1224,
+                "memsz": 1224,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 12288,
+                "filesz": 5629,
+                "memsz": 5629,
+                "page_start": 1073823744,
+                "page_end": 1073831936
+              },
+              {
+                "flags": 5,
+                "address": 1073938432,
+                "offset": 20480,
+                "filesz": 102519,
+                "memsz": 102519,
+                "page_start": 1073938432,
+                "page_end": 1074044928
+              }
+            ]
+          },
+          "image_version": 2
+        }
+      },
+      "kc": {
+        "kernel_feature": "test-update-cut",
+        "image_version": 1,
+        "kernel_sha256": "9dea0972108be053ac045cbdd35db35c53b48d1001bd697bdbe25133b0a1f351",
+        "service": {
+          "service_sha256": "6528df0f520c7c4cd4b115672ed497d14875d1291ddabc3379db598112c850dc",
+          "service_elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 2195,
+                "memsz": 2195,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1224,
+                "memsz": 1224,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 12288,
+                "filesz": 5629,
+                "memsz": 5629,
+                "page_start": 1073823744,
+                "page_end": 1073831936
+              },
+              {
+                "flags": 5,
+                "address": 1073938432,
+                "offset": 20480,
+                "filesz": 102519,
+                "memsz": 102519,
+                "page_start": 1073938432,
+                "page_end": 1074044928
+              }
+            ]
+          },
+          "image_version": 1
+        }
+      }
+    }
+  },
+  "store_before_sha256": "808c2ef9c4045e132876935f8c1f797ee92a1d15159772c2d8ea67ac0958de2e",
+  "store_after_sha256": "ba1c089586a90168868c4cbda37d036881f7c11adf90dd50969058698e53198a",
+  "vars_sha256": "56ec4a1b66970d6e315fab2951146d1b61a2165e4ffe0657aea644bc9574cc9b",
+  "stdout": "\u001b[2J\u001b[001;001H\u001b[=3h\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;056;240t\u001b[2J\u001b[001;001HBdsDxe: loading Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)<host-path>\r\nBdsDxe: starting Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)<host-path>\r\nBOOT:ANCHORS:TEST\nBOOT:FLOOR:0\nBOOT:SLOT:B:REJECTED:FORMAT\nBOOT:SLOT:A:VERSION:1\nBOOT:SIGNED:OK\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nKERNEL:IMAGE_VERSION:00000000000000000001\nUPDATE:MANIFEST:PASS\nUPDATE:READY\nUPDATE:RESULT:00000000000000000001\nUPDATE:HEADER_ACTIVE:00000000000000000000\nUPDATE:HEADER_GENERATION:00000000000000000001\nUPDATE:ACTIVE_VERSION:00000000000000000001\nUPDATE:ACTIVE_REJECT:00000000000000000000\nUPDATE:INBOX_VERSION:00000000000000000002\nUPDATE:INBOX_REJECT:00000000000000000000\nUPDATE:INSTALLED_VERSION:00000000000000000002\nUPDATE:TARGET_SLOT:00000000000000000001\nUPDATE:SERVICE_READS:00000000000000036676\nUPDATE:SERVICE_WRITES:00000000000000003056\nUPDATE:SERVICE_FLUSHES:00000000000000000003\nUPDATE:COPIED_SECTORS:00000000000000003048\nUPDATE:NEW_GENERATION:00000000000000000002\nUPDATE:RESUMED:00000000000000000000\nUPDATE:RUNNING_SLOT:00000000000000000000\nUPDATE:OTHER_VERSION:00000000000000000000\nUPDATE:OTHER_REJECT:00000000000000000001\nUPDATE:CURRENT_VERSION:00000000000000000001\nUPDATE:BROKER:READS:00000000000000036676\nUPDATE:BROKER:WRITES:00000000000000003056\nUPDATE:BROKER:FLUSHES:00000000000000000003\nUPDATE:BROKER:HEADER_WRITES:00000000000000000001\nUPDATE:BROKER:OTHER_WRITES:00000000000000003055\nUPDATE:TICKS:00000000000000000517\nUPDATE:INSTALLED:00000000000000000002\nUPDATE:RESOURCES:PASS\nUPDATE:PASS\nM1:PASS\n",
+  "stderr": "",
+  "passed": true,
+  "evidence": {
+    "IMAGE_VERSION": 1,
+    "RESULT": 1,
+    "HEADER_ACTIVE": 0,
+    "HEADER_GENERATION": 1,
+    "ACTIVE_VERSION": 1,
+    "ACTIVE_REJECT": 0,
+    "INBOX_VERSION": 2,
+    "INBOX_REJECT": 0,
+    "INSTALLED_VERSION": 2,
+    "TARGET_SLOT": 1,
+    "SERVICE_READS": 36676,
+    "SERVICE_WRITES": 3056,
+    "SERVICE_FLUSHES": 3,
+    "COPIED_SECTORS": 3048,
+    "NEW_GENERATION": 2,
+    "RESUMED": 0,
+    "RUNNING_SLOT": 0,
+    "OTHER_VERSION": 0,
+    "OTHER_REJECT": 1,
+    "CURRENT_VERSION": 1,
+    "BROKER:READS": 36676,
+    "BROKER:WRITES": 3056,
+    "BROKER:FLUSHES": 3,
+    "BROKER:HEADER_WRITES": 1,
+    "BROKER:OTHER_WRITES": 3055,
+    "TICKS": 517,
+    "INSTALLED": 2
+  },
+  "oracle": {
+    "header": {
+      "active": 1,
+      "generation": 2
+    },
+    "regions": {
+      "A": {
+        "manifest": {
+          "image_length": 1560280,
+          "version": 1,
+          "min_version": 0,
+          "image_sha256": "a13b78368fcc9374c7779ebcdae3e17c8860ecb7665a70c631600275bccd8c39",
+          "ed25519_key_id": "4bf7d9b716af4045",
+          "mldsa_key_id": "acdf57975753f1eb",
+          "manifest_sha256": "9d21be3689153c27b1084fa20860460c4a961b4774ff8caa1316cd30cf4827b5"
+        },
+        "manifest_error": null,
+        "manifest_region_sha256": "9d21be3689153c27b1084fa20860460c4a961b4774ff8caa1316cd30cf4827b5",
+        "image_region_sha256": "e984f10ec518ed1e18242585e11772e3cbcacfcd819d00f8e820a46ffdbf59f7",
+        "image_nonzero_sectors": 3007,
+        "image_sha256": "a13b78368fcc9374c7779ebcdae3e17c8860ecb7665a70c631600275bccd8c39",
+        "image_matches_manifest": true
+      },
+      "B": {
+        "manifest": {
+          "image_length": 1560280,
+          "version": 2,
+          "min_version": 0,
+          "image_sha256": "08b5de5e356b945e2eb693b4e5fff364d070829672464a2e1d4e851f65aa865e",
+          "ed25519_key_id": "4bf7d9b716af4045",
+          "mldsa_key_id": "acdf57975753f1eb",
+          "manifest_sha256": "b9c9b00536069652d91ecf5797a6976847da659e691bd33389c7522fb9fc2614"
+        },
+        "manifest_error": null,
+        "manifest_region_sha256": "b9c9b00536069652d91ecf5797a6976847da659e691bd33389c7522fb9fc2614",
+        "image_region_sha256": "f3c06a1520d4af2e650d03f21d0bf0147f904a976f9736d78609d87e06422150",
+        "image_nonzero_sectors": 3007,
+        "image_sha256": "08b5de5e356b945e2eb693b4e5fff364d070829672464a2e1d4e851f65aa865e",
+        "image_matches_manifest": true
+      },
+      "inbox": {
+        "manifest": {
+          "image_length": 1560280,
+          "version": 2,
+          "min_version": 0,
+          "image_sha256": "08b5de5e356b945e2eb693b4e5fff364d070829672464a2e1d4e851f65aa865e",
+          "ed25519_key_id": "4bf7d9b716af4045",
+          "mldsa_key_id": "acdf57975753f1eb",
+          "manifest_sha256": "b9c9b00536069652d91ecf5797a6976847da659e691bd33389c7522fb9fc2614"
+        },
+        "manifest_error": null,
+        "manifest_region_sha256": "b9c9b00536069652d91ecf5797a6976847da659e691bd33389c7522fb9fc2614",
+        "image_region_sha256": "f3c06a1520d4af2e650d03f21d0bf0147f904a976f9736d78609d87e06422150",
+        "image_nonzero_sectors": 3007,
+        "image_sha256": "08b5de5e356b945e2eb693b4e5fff364d070829672464a2e1d4e851f65aa865e",
+        "image_matches_manifest": true
+      }
+    }
+  }
+}

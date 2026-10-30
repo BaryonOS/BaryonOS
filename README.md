@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`2061863c`](https://github.com/simonvanieperen/nieuw-os/commit/2061863c9226b74d64158f36a3fd1bbbf0bb60df) ·
+**Bron:** [`72518bf5`](https://github.com/simonvanieperen/nieuw-os/commit/72518bf538f1b306a852156e5734c0681f1e2a34) ·
 **Ontwikkelbranch:** `ccr-43832ef7-gi2qlz`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B03-reviewcorrecties en afbakening van terugval.
-B03-terugval betreft selectie van een geldige vorige versie vóór verhoging van NieuwOsMinVersion boven die versie; herstel na kerneloverdracht en post-bootrollback zijn niet ondersteund. De bestaande B03-gate is historisch bewijs; de reviewcorrecties worden afzonderlijk gevalideerd. Score ongewijzigd.
+B03-terugval betreft selectie van een geldige vorige versie vóór verhoging van NieuwOsMinVersion boven die versie; herstel na kerneloverdracht en post-bootrollback zijn niet ondersteund. Reviewgate op bron 72518bf: 13 QEMU-stages geslaagd; corrupte terugleesdata afzonderlijk als hosttest gecontroleerd. Score ongewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

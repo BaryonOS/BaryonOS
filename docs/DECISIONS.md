@@ -812,7 +812,7 @@ schrijven.
    over dezelfde 84 canonieke bytes, en waarvan het image exact de lengte en
    SHA-256 (`sha2` 0.10.9, `force-soft`) uit dat manifest heeft. Eén geldige
    handtekening is onvoldoende; er is geen terugval naar één algoritme.
-2. De loader bewaart de hoogste gestarte versie in de UEFI-NV-variabele
+2. De loader bewaart de hoogste vóór kerneloverdracht geselecteerde versie in de UEFI-NV-variabele
    `NieuwOsMinVersion` (vendor-GUID `50402e54-a387-47bc-8f75-dcd79cd0a603`,
    NV+BS) en weigert ieder slot met een lagere versie als `DOWNGRADE`, ook
    als de header ernaar wijst. De vloer stijgt alleen.
@@ -868,8 +868,9 @@ schrijven.
 
 **Security-invariant:** geen byte van een kernelimage wordt uitgevoerd
 voordat formaat, sleutel-ID's, beide handtekeningen, lengte, digest en de
-versievloer zijn gecontroleerd; het laatst geldig gestarte slot blijft bij
-iedere onderbreking van een installatie ongewijzigd beschikbaar.
+versievloer zijn gecontroleerd; het draaiende slot blijft bij een onderbreking
+van de installatie fysiek ongewijzigd. Een eerder slot onder de verhoogde
+versievloer blijft echter onstartbaar.
 
 **Gevolgen:** de slotopslag kost 6 MiB per apparaat (drie slots van 2 MiB);
 `image_length` is begrensd op 2 MiB. Pakket- en app-updates (A02),

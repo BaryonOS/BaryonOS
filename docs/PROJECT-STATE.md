@@ -54,8 +54,10 @@ vloer verhoogd vóór ELF-validatie (nu pas na een laadbaar image, stage
 een cut-controle die een hervatte installatie zou afkeuren.
 
 **Grenzen:** herstel na kerneloverdracht en post-bootrollback worden niet
-ondersteund. De bestaande gate is historisch bewijs voor de eerdere bron; de
-wijzigingen van deze review vereisen afzonderlijke validatie.
+ondersteund. De oorspronkelijke gate is historisch bewijs voor de eerdere bron. De
+reviewgate voor bron `72518bf` slaagde in 13 QEMU-stages met de TEST-marker;
+zie `docs/verification/b03-review-20261030/`. De terugleesfout is afzonderlijk
+met een synthetische hostschijf getest, niet als QEMU-foutinjectie.
 
 **Roadmap rubric v1: 32% → 34%** (B03 +2).
 

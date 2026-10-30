@@ -356,3 +356,33 @@ fn inspect(options: &Options) -> Result<(), String> {
     );
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn write_new_never_overwrites_an_existing_file() {
+        let dir = std::env::temp_dir().join(format!(
+            "nieuw-os-write-new-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir(&dir).unwrap();
+        let path = dir.join("existing");
+        fs::write(&path, b"original").unwrap();
+        assert!(write_new(&path, b"replacement", 0o600).is_err());
+        assert_eq!(fs::read(&path).unwrap(), b"original");
+        #[cfg(unix)]
+        {
+            let link = dir.join("link");
+            std::os::unix::fs::symlink(&path, &link).unwrap();
+            assert!(write_new(&link, b"replacement", 0o600).is_err());
+            assert_eq!(fs::read(&path).unwrap(), b"original");
+        }
+        fs::remove_dir_all(&dir).unwrap();
+    }
+}

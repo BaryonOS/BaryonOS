@@ -350,7 +350,7 @@ pub fn manifest(s: &mut State) {
 
 scoped_block_broker!(false, !read_only(), completed_write);
 
-fn completed_write(s: &State, r: &mut Runtime, sector: u64) {
+fn completed_write(_s: &State, r: &mut Runtime, sector: u64) {
     let relative = sector - FIRST_SECTOR;
     if relative < TABLE_REGION {
         r.table_writes += 1;
