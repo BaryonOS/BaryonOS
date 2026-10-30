@@ -96,3 +96,33 @@ bevrorenSDK1.9. De hoofdgate meet pas op één geïntegreerd image echte
 QMP-keyboard/mouse, ongewijzigde focus/Save/reopen/cleanup, absolute200s-grens
 en poll-/waitbelasting. Geen hosttest of minder syscallclaims vervangt die
 native uitvoering; alle volledige releasecriteria blijven open.
+
+## Componentcontrole, geen native uitvoering
+
+Bronfreeze `2b286d2837b1a8760865c6c2c39bd2e1ea0389a5`, dependency exact
+`8a8dbe53acf5c8c7882244ddf7f753a8645a1d0a` (lokaal als ongewijzigde
+dependency-cherry-pick `ae3f022`). Bestaande root-/SDK-/kernelbestanden zijn
+uitsluitend uit die dependency overgenomen; de consumercommit schrijft ze niet.
+
+| Controle op deze consumerbron | Uitkomst |
+| --- | --- |
+| `cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/input-service/Cargo.toml` | Exit0,21 scenario's:8 nieuwe waitplancases en13 bestaande boot/daemoncases |
+| `cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/input-service/Cargo.toml --all-targets -- -D warnings` | Exit0 |
+| Zelfde Clippy voor `--release --target x86_64-unknown-none --features native --bins` | Exit0, beide mains werkelijk typechecked |
+| `cargo +1.90.0 fmt --manifest-path sdk/examples/input-service/Cargo.toml -- --check` | Exit0 |
+| `python3 -B sdk/examples/input-service/build.py` met eigen targetmap | Exit0, beide echte scalar-ELFs plus bestaande `inspect_user`-controle |
+| Disassembly van die twee ELFbestanden | Source2936/policy5299 instructies, geen FP/SIMD-instructies gevonden |
+
+De source-ELF heeft SHA256
+`129556644b7edb2862bd02920799d637072da1e7cd110dcecae111c65a25ff6a`;
+policy `0caeab494a672cb628da87c134566aa0df6a26ff585df8269778c6ea085d6fdc`.
+De builder bewaart de bestaande64KiB-stack; de bounded planwaarde is272bytes
+en motiveert de plaatselijke `large_enum_variant`-lintuitzondering zonder
+allocator of algemene uitschakeling van checks.
+
+Exacte commandologs, bron-/ELFhashes en inspectie staan in de eigen
+`build/input-idle-wait/logs/{final-checks.json,component.json}`; binaries
+uitsluitend in `target/input-wait-native`, niet in Git. Twee vroege
+hostpogingen hadden een ongeldige fixture-registratievolgorde (Engine vereist
+monotone PIDs); de fixture is gecorrigeerd, niet de productie-engine.
+Onafhankelijke consumerreview en native wait-/GUI-uitvoering blijven open.
