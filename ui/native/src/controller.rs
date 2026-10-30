@@ -3,7 +3,10 @@
 //! kernel envelope and INP1 reply before calling deliver().
 use crate::{
     design,
-    render::Layout,
+    render::{
+        Error as RenderError, Frame, Layout, SemanticActions, SemanticId, SemanticNode,
+        MAX_SEMANTIC_NODES,
+    },
     text::{self, Position},
     Viewport,
 };
@@ -55,6 +58,7 @@ pub enum Status {
 pub enum Error {
     Storage(StorageError),
     Cleanup(nieuw_os_sdk_runtime::Error),
+    Accessibility(RenderError),
     InvalidUtf8,
     InvalidInput,
     StaleInput,
@@ -357,6 +361,106 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.status = Status::Dirty;
         self.invalidate()
     }
+    fn semantic_actions(
+        &self,
+        id: SemanticId,
+        expected_generation: u64,
+    ) -> Result<(bool, SemanticActions), Error> {
+        if expected_generation != self.generation {
+            return Err(Error::StaleInput);
+        }
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(self.view())
+            .semantics(&mut nodes)
+            .map_err(Error::Accessibility)?;
+        nodes[..count]
+            .iter()
+            .find(|node| node.id == id)
+            .map(|node| (node.enabled, node.actions))
+            .ok_or(Error::InvalidInput)
+    }
+
+    /// Activate an action advertised by this controller's current semantic
+    /// tree. This stays within the owning app and grants no external access.
+    pub fn activate_semantic(
+        &mut self,
+        id: SemanticId,
+        expected_generation: u64,
+    ) -> Result<(), Error> {
+        let (enabled, actions) = self.semantic_actions(id, expected_generation)?;
+        if !enabled || !actions.activate {
+            return Err(Error::InvalidInput);
+        }
+        let focus = match id {
+            SemanticId::NewDocument => Focus::New,
+            SemanticId::Refresh => Focus::Refresh,
+            SemanticId::PreviousPage => Focus::Previous,
+            SemanticId::NextPage => Focus::Next,
+            SemanticId::Object(object) => Focus::Object(
+                self.objects[..self.object_count]
+                    .iter()
+                    .position(|entry| entry.object == object)
+                    .ok_or(Error::InvalidInput)?,
+            ),
+            SemanticId::Back => Focus::Back,
+            SemanticId::Save if self.document.is_saving() => Focus::CancelSave,
+            SemanticId::Save => Focus::Save,
+            SemanticId::SaveAndBack => Focus::SaveAndBack,
+            SemanticId::KeepEditing => Focus::KeepEditing,
+            SemanticId::Discard => Focus::Discard,
+            _ => return Err(Error::InvalidInput),
+        };
+        self.focus = focus;
+        self.activate(focus)
+    }
+
+    fn activate_focus_semantically(&mut self, focus: Focus) -> Result<(), Error> {
+        let id = match focus {
+            Focus::New => SemanticId::NewDocument,
+            Focus::Refresh => SemanticId::Refresh,
+            Focus::Previous => SemanticId::PreviousPage,
+            Focus::Next => SemanticId::NextPage,
+            Focus::Object(index) => SemanticId::Object(
+                self.objects
+                    .get(index)
+                    .filter(|_| index < self.object_count)
+                    .map(|entry| entry.object)
+                    .ok_or(Error::InvalidInput)?,
+            ),
+            Focus::Back => SemanticId::Back,
+            Focus::Save | Focus::CancelSave => SemanticId::Save,
+            Focus::KeepEditing => SemanticId::KeepEditing,
+            Focus::SaveAndBack => SemanticId::SaveAndBack,
+            Focus::Discard => SemanticId::Discard,
+            Focus::Document => return Err(Error::InvalidInput),
+        };
+        self.activate_semantic(id, self.generation)
+    }
+
+    /// Replace the current text-editor value only when the live semantic tree
+    /// advertises that action. Persistent storage still requires an explicit save.
+    pub fn set_semantic_value(
+        &mut self,
+        id: SemanticId,
+        expected_generation: u64,
+        value: &str,
+    ) -> Result<(), Error> {
+        let (enabled, actions) = self.semantic_actions(id, expected_generation)?;
+        if id != SemanticId::Document || !enabled || !actions.set_value {
+            return Err(Error::InvalidInput);
+        }
+        let current_length = self.view().contents.ok_or(Error::InvalidUtf8)?.len();
+        self.document
+            .replace_range(0..current_length, value.as_bytes())
+            .map_err(|error| self.failed(Error::Storage(error)))?;
+        self.focus = Focus::Document;
+        self.caret = value.len();
+        self.anchor = self.caret;
+        self.update_edit_status();
+        self.ensure_caret();
+        self.invalidate()
+    }
+
     pub fn save(&mut self) -> Result<(), Error> {
         if !self.document.is_dirty() {
             // Keep the SDK's available/read-only/uncertainty checks even for
@@ -516,6 +620,11 @@ impl<'a, T: Transport> Controller<'a, T> {
             .map_err(|e| self.failed(Error::Storage(e)))?;
         self.caret = start + replacement.len();
         self.anchor = self.caret;
+        self.update_edit_status();
+        self.ensure_caret();
+        self.invalidate()
+    }
+    fn update_edit_status(&mut self) {
         self.status = if self.document.is_uncertain() {
             Status::Failed(Error::Storage(StorageError::Uncertain))
         } else if self.document.is_conflicted() {
@@ -527,8 +636,6 @@ impl<'a, T: Transport> Controller<'a, T> {
         } else {
             Status::Opened
         };
-        self.ensure_caret();
-        self.invalidate()
     }
     fn move_caret(&mut self, next: usize, extend: bool) -> Result<(), Error> {
         self.caret = next;
@@ -617,10 +724,10 @@ impl<'a, T: Transport> Controller<'a, T> {
             if event.key == PhysicalKey::PageDown
                 && self.list_scroll + Layout::new(self.viewport).list_rows() < self.object_count
             {
-                return self.activate(Focus::Next);
+                return self.activate_focus_semantically(Focus::Next);
             }
             if event.key == PhysicalKey::PageUp && self.list_scroll > 0 {
-                return self.activate(Focus::Previous);
+                return self.activate_focus_semantically(Focus::Previous);
             }
         }
         if event.key == PhysicalKey::Tab && press {
@@ -628,8 +735,8 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
         if event.key == PhysicalKey::Escape && press {
             return match self.screen {
-                Screen::ConfirmClose => self.activate(Focus::KeepEditing),
-                Screen::Editor => self.request_back(),
+                Screen::ConfirmClose => self.activate_focus_semantically(Focus::KeepEditing),
+                Screen::Editor => self.activate_focus_semantically(Focus::Back),
                 _ => Ok(()),
             };
         }
@@ -651,7 +758,7 @@ impl<'a, T: Transport> Controller<'a, T> {
                     PhysicalKey::Enter | PhysicalKey::KeypadEnter | PhysicalKey::Space
                 )
             {
-                return self.activate(self.focus);
+                return self.activate_focus_semantically(self.focus);
             }
             return Ok(());
         }

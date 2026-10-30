@@ -221,13 +221,20 @@ controllerstaat beschikbaar via `App::semantics`. Node-ID's blijven stabiel
 voor schermcontroles en gebruiken het volumeobject-ID voor lijstitems;
 ouderrelaties leggen venster, lijst en dirty-close-dialoog vast. Rollen, labels,
 fysieke bounds, focus, bewerkbaarheid, tekstselectie en echte opslagstatus
-komen uit dezelfde framebron. `activate` en `set_value` zijn beschrijvende
-actievelden, geen dispatch of capability. Een te kleine uitvoerbuffer faalt
-zonder gedeeltelijke snapshot. Dit is een app-lokale API, geen IPC naar een
+komen uit dezelfde framebron. De controller biedt ook `activate_semantic` en
+`set_semantic_value`: vóór iedere bediening bouwen zij de actuele boom opnieuw
+op en weigeren ontbrekende, uitgeschakelde of niet-acteerbare nodes. De caller
+moet ook de controllergeneratie uit de zichtbare momentopname meegeven; een
+verouderde generatie wordt geweigerd vóór dispatch. Bestaande Enter/Space-,
+PageUp/PageDown- en Escape-acties gebruiken dezelfde gecontroleerde route.
+Een semantische tekstvervanging wijzigt alleen het huidige draft; opslaan blijft
+een afzonderlijke expliciete actie. Deze methoden blijven binnen de eigen app
+en verlenen geen capability. Een te kleine uitvoerbuffer faalt zonder
+gedeeltelijke snapshot. Dit is nog steeds een app-lokale API, geen IPC naar een
 schermlezer, spraakuitvoer of OS-brede toegankelijkheidsinterface. Hosttests
-controleren de boomstructuur, maximale lijstpagina, buffergrens, editor en
-dirty-close-dialoog; ze bewijzen geen native schermlezer of
-gebruikersacceptatie.
+controleren keyboarddispatch, stale/uitgeschakelde acties, save/reopen, de
+boomstructuur, maximale lijstpagina, buffergrens, editor en dirty-close-dialoog;
+zij bewijzen geen native schermlezer of gebruikersacceptatie.
 
 De aparte `--case keyboard`-QMP-route is als baseline uitgevoerd op de
 bevroren bron `74d15ac09ac61c8d47a882c3c982711af1a9d891`, fingerprint v3

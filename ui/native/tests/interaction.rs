@@ -684,6 +684,115 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
         .all(|node| node.role == Role::Button && node.actions.activate));
 }
 
+fn semantic_actions_revalidate_current_controls_and_persist_only_on_save_impl() {
+    let host = Host::new();
+    let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.refresh().unwrap();
+    let material_generation = ui.view().generation;
+
+    assert_eq!(
+        ui.activate_semantic(SemanticId::Save, material_generation),
+        Err(Error::InvalidInput)
+    );
+    assert_eq!(
+        ui.set_semantic_value(SemanticId::Document, material_generation, "not open"),
+        Err(Error::InvalidInput)
+    );
+    assert_eq!(ui.view().screen, Screen::Material);
+    assert_eq!(ui.document().draft(), None);
+
+    ui.deliver(envelope(1, 1, key(PhysicalKey::Enter))).unwrap();
+    assert_eq!(
+        ui.activate_semantic(SemanticId::Document, material_generation),
+        Err(Error::StaleInput)
+    );
+    ui.set_semantic_value(
+        SemanticId::Document,
+        ui.view().generation,
+        "Accessible value",
+    )
+    .unwrap();
+    assert_eq!(ui.view().contents, Some("Accessible value"));
+    assert_eq!(ui.view().caret, "Accessible value".len());
+    assert!(ui.document().is_dirty());
+    assert_eq!(
+        host.borrow_mut().recover(),
+        volume_core::table::Table::EMPTY
+    );
+
+    let editor_generation = ui.view().generation;
+    ui.activate_semantic(SemanticId::Save, editor_generation)
+        .unwrap();
+    while !ui.advance_save().unwrap() {}
+    assert_eq!(ui.view().status, Status::Saved { revision: 1 });
+    ui.activate_semantic(SemanticId::Back, ui.view().generation)
+        .unwrap();
+    assert_eq!(ui.view().screen, Screen::Material);
+
+    let list_generation = ui.view().generation;
+    ui.activate_semantic(SemanticId::Object(0), list_generation)
+        .unwrap();
+    assert_eq!(
+        ui.activate_semantic(SemanticId::Object(0), list_generation),
+        Err(Error::StaleInput)
+    );
+    assert_eq!(ui.view().contents, Some("Accessible value"));
+    ui.insert("!").unwrap();
+    ui.activate_semantic(SemanticId::Back, ui.view().generation)
+        .unwrap();
+    assert_eq!(ui.view().screen, Screen::ConfirmClose);
+    assert_eq!(
+        ui.activate_semantic(SemanticId::Save, ui.view().generation),
+        Err(Error::InvalidInput)
+    );
+    ui.activate_semantic(SemanticId::Discard, ui.view().generation)
+        .unwrap();
+    assert_eq!(ui.view().screen, Screen::Material);
+    assert!(!ui.document().is_dirty());
+    assert_eq!(
+        ui.activate_semantic(SemanticId::Discard, ui.view().generation),
+        Err(Error::InvalidInput)
+    );
+    ui.open(0).unwrap();
+    assert_eq!(ui.view().contents, Some("Accessible value"));
+
+    let readonly_host = Host::new();
+    let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+    let mut readonly = controller(
+        &readonly_host,
+        EditMode::ReadOnly,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    readonly.refresh().unwrap();
+    assert!(!readonly.view().editable);
+    assert_eq!(
+        readonly.activate_semantic(SemanticId::NewDocument, readonly.view().generation),
+        Err(Error::InvalidInput)
+    );
+    assert_eq!(
+        readonly.set_semantic_value(
+            SemanticId::Document,
+            readonly.view().generation,
+            "read-only",
+        ),
+        Err(Error::InvalidInput)
+    );
+    assert_eq!(readonly.document().draft(), None);
+}
+
 fn display_epoch_stale_frame_and_failed_present_keep_repaint_pending_impl() {
     let host = Host::new();
     let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
@@ -776,6 +885,10 @@ scenario!(
 scenario!(
     semantic_tree_bounds_maximum_material_page_and_dirty_dialog,
     semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl
+);
+scenario!(
+    semantic_actions_revalidate_current_controls_and_persist_only_on_save,
+    semantic_actions_revalidate_current_controls_and_persist_only_on_save_impl
 );
 scenario!(
     display_epoch_stale_frame_and_failed_present_keep_repaint_pending,
