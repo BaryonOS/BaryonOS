@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "ff51dc01b36d3200fc6a887b03429748e93eb457",
-    "branch": "simonvanieperen-expert-disco",
-    "task": "NATIVE-CLOCK-1: opt-in ring-3 UTC-clock-API met expliciet niet-vertrouwde RTC-kwaliteit",
+    "source_commit": "ad2b981fe1f2bcccb03cb776b2281d32529d2f00",
+    "branch": "codex/b02-persistent-keystate-20261030",
+    "task": "B02-PERSIST-1: persistente sleutelstatus via administratief ingress en verzegeld record over een koude herstart",
     "previous_score": 34,
-    "summary": "34% blijft 34%. NATIVE-CLOCK-1 implementeert een opt-in ABI 1.9-ring-3-API en SDK die RTC-tijd steeds als UnauthenticatedRtc labelen; 3 hostverifier-tests, 20 SDK-runtime-tests, formatting, native build en de echte QEMU-ring-3-gate zijn geslaagd. De gast las 1793361601 tweemaal bij vaste RTC-basis 2026-10-30T12:00:00, behield monotone ticks en weigerde ongeldige argumenten met -22; hashgebonden bewijs staat in docs/verification/system-clock. Dit is een beperkte FR-S03/FR-N03-afhankelijkheid en sluit geen volledig rubriccriterium. Geen vertrouwde TimeProvider, certificaattijd, fysieke hardware of volledige releaseacceptatie geclaimd; alle 62 productcriteria en menselijke acceptatie blijven open."
+    "summary": "34% blijft 34%. KEY1-opcodes 11/12 met persistentie-only dispatcher, een apart administratief ingress in de native Key Service en init als herstelagent in het FR-I01-profiel zijn geïmplementeerd; 5 nieuwe wire-hosttests, 3 nieuwe harnastests, fmt/clippy, de FR-I01-gate (normaal + read-only koude herstart op dezelfde image), B01 5/5, vier RANDOM-gevallen, klok en netwerkgate slagen op fingerprint 32da9d61. Het 120-byte sleutelstatusblob en het 168-byte ciphertextrecord staan onafhankelijk geverifieerd op schijf; na herstart ontzegelt sleutel 1, blijft sleutel 0 ingetrokken en wordt manipulatie geweigerd. B02 blijft open: geen vertrouwd rollbackanker, geen write-ahead per GENERATE in de dienst, synthetische volume-identiteit; geen rubriccriterium gesloten en geen menselijke audit."
   },
   "tracks": [
     {

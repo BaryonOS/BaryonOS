@@ -1,5 +1,39 @@
 # Ontwerpbesluiten
 
+## ADR-051 — Persistente sleutelstatus via een afzonderlijk administratief ingress
+
+30 oktober 2026; uitvoering B02-PERSIST-1, basis `ad2b981`. De bestaande
+B02-codec `export_persistent`/`restore_persistent` krijgt KEY1-opcodes 11/12
+(`EXPORT_PERSISTENT`, `RESTORE_PERSISTENT`). Zij zijn uitsluitend bereikbaar via
+een derde, apart gegrant kernel-endpoint van de Key Service dat alleen de
+supervisor/herstelagent (in het FR-I01-profiel: init) bezit. Domein-endpoints
+en het RANDOM-ingress weigeren deze opcodes vóór cryptografische verwerking;
+het administratieve ingress weigert omgekeerd iedere sleutel-, record-,
+recovery- en RANDOM-bewerking. Het externe 32-bytegeheim reist in de
+aanvraag en wordt door de dienst niet bewaard; een tweede service-adapterpad
+voor "admin" bestaat niet, alleen `wire::dispatch_persistent`.
+
+Het geïntegreerde profiel legt de volgorde vast: de app verzegelt eerst in
+RAM, meldt `KEYS_READY`, init exporteert en commit het 120-byteblob via de
+crashconsistente volumetransactie in volumedomein 1, en pas na `PERSISTED`
+commit de app het ciphertextrecord als gewoon document. Zo komt geen
+ciphertext op schijf onder een niet-duurzaam vastgelegde sleutelallocatie.
+Bij koude herstart op de ongewijzigde read-only image herstelt init de exacte
+toestand vóór enig sleutelwerk; een verkeerd geheim, een hogere generatievloer
+en een sleutelopcode op het admin-ingress worden geweigerd en geteld.
+
+Afgewezen alternatieven: (a) de Key Service zelf blok-/volumerechten geven —
+vergroot de TCB van de sleuteldienst en vermengt opslagherstel met
+sleutelbeheer; (b) persistente opcodes op de bestaande domein-endpoints —
+elke app met een sleutelendpoint zou dan snapshotbevoegdheid krijgen.
+Grenzen: de generatievloer in dit profiel is een gedemonstreerd mechanisme,
+geen vertrouwd anker; koude rollbackankering, write-ahead per GENERATE/REVOKE
+in de dienst zelf, zeroisatie van de SDK-ontvangstbuffer en een echte
+volume-identiteit (nu de profielconstante `NOS-SYSTEM-VOL01`) blijven open.
+B02 blijft daarom open; de score verandert niet. Rollback: verwijder de twee
+opcodes, het admin-ingress en de init-/appstappen; bestaande KEY1-codes,
+formaten en het B01-profiel zijn ongewijzigd.
+
 ## ADR-050 — Opt-in wall-clock syscall blijft zichtbaar niet-vertrouwd
 
 30 oktober 2026; uitvoering NATIVE-CLOCK-1, boven op RTC-NATIVE-1.

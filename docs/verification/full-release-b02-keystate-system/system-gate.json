@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "32da9d6159bffc70c9ef60dd2c33c678e4222ba8c6a2cc72b5a54a89d4c74504",
+  "test_inputs": {
+    "sdk/examples/tcp-probe/test_peer.py": "8bed9ba193b2fb3d41ff0d96d58aebe733e085c1aafa649e96a3f4cc711af919",
+    "tests/test_net_peer.py": "302dd2c127a677c648b5f43e1403e828f6012a774e4d459273f3dd738040cb7e",
+    "tests/test_system_capture.py": "3e0040ae69064f451e03cc725552e287066f8a9fb852378f41d2a53458442f27",
+    "tests/test_system_harness.py": "4089e4a4e3445d07094f312045616b8a286dc95d797736c4e7198fea0312e223",
+    "tests/test_tcp_harness.py": "dd353f61391e579ce5ef53b94ea9514fb2657c09a41c0dd96d33991b6e746303",
+    "tests/test_tcp_transcript.py": "c45082f8eef980c88c4f8694a7a263222db5977fdd9afc177068021521c16ea6"
+  },
+  "status": "completed",
+  "passed": true,
+  "host": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_system_*.py"
+      ],
+      "exit": 0,
+      "stdout": "/home/simon/projects/nieuw-os-b02/build/b02-system/logs/system-host-0.stdout.txt",
+      "stderr": "/home/simon/projects/nieuw-os-b02/build/b02-system/logs/system-host-0.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "stdout": "/home/simon/projects/nieuw-os-b02/build/b02-system/logs/system-host-1.stdout.txt",
+      "stderr": "/home/simon/projects/nieuw-os-b02/build/b02-system/logs/system-host-1.stderr.txt"
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "passed": true,
+      "run_directory": "/home/simon/projects/nieuw-os-b02/build/b02-system/run/system-normal-8174276ddb8f43e7b35b0dcdadc6382d",
+      "raw_qemu_exit": 33,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "742539dd80c7dd76e6f8494156d2606231e315d656a534a897cc43549f997192",
+      "duration_s": 3.198772052000095
+    },
+    {
+      "case": "recover",
+      "passed": true,
+      "run_directory": "/home/simon/projects/nieuw-os-b02/build/b02-system/run/system-recover-f7a0a3bdaf3b4562960e9bc33ff9b620",
+      "raw_qemu_exit": 33,
+      "before_sha256": "742539dd80c7dd76e6f8494156d2606231e315d656a534a897cc43549f997192",
+      "after_sha256": "742539dd80c7dd76e6f8494156d2606231e315d656a534a897cc43549f997192",
+      "duration_s": 3.3378665840000394
+    }
+  ],
+  "final_kernel_sha256": "e6354fa56646323bfc3a1590e2e5a93555ac8a28220edb8e9650db9662bfc4e0",
+  "final_manifest": "/home/simon/projects/nieuw-os-b02/build/b02-system/manifest.json"
+}
