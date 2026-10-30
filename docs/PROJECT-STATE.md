@@ -2,7 +2,8 @@
 
 ## NEXT AGENT HANDOFF — NATIVE-MATERIAAL-ACCESSIBILITY-2 — 30 oktober 2026
 
-Branch `codex/native-materiaal-accessibility-20261030`, geteste bron
+Branch `codex/native-materiaal-accessibility-20261030`, checkpoint `729a506f`;
+geteste native runtimebron
 `1ffd271f413120ccc2c66e6098cd260fdaa7475d`, basis `f52dab50af281dab2c94ab2c9e31aaabd299246a`.
 Bronfingerprint v3 `d9e3c57244904e20bf52f95b2b7d80e3d2d93e22a303b86f179e583f53e80185`.
 De app heeft sinds `56626baf` een begrensde app-lokale `App::semantics`-snapshot
@@ -47,22 +48,67 @@ heeft exclusief `tools/run_materiaal_preview.py`,
 `tools/tests/test_materiaal_preview.py` en bijbehorend bewijs geclaimd voor
 die volgende koude-recovery-stap; deze worktree wijzigt die paden niet.
 
-Voorgaande gerichte Rust-/Python-tests, native probe-build en strikte preflight
-zijn groen op hun eigen geregistreerde bron; zij maken deze runtimeproef niet
-groen. Op het laatste GitHub-controlemoment was PR #66 open met meerdere
-vereiste checks nog in uitvoering; concept-PR #68 blijft open op de oudere
-1ffd271-head en vraagt inhoudsbehoudende integratie van de semantiekwijziging
-op de nieuwe runtimebranch, niet een force-push.
+De gerichte Python-suite slaagt met 28 tests; de diagnostic parser is tegen het
+werkelijke serialbestand gecontroleerd (acht slots × dertien counters, timeout
+blijft failure). Progress `--write`/`--check` en `git diff --check` slagen.
+Native probe-build/preflight zijn groen op hun eigen geregistreerde bron; zij
+maken de runtimeproef op 1ffd271 niet groen. PR #66 op c532ba8 had native-system en m6e-native-volume nog in uitvoering.
+PR #68 stond op 729a506 `DIRTY` ten opzichte van main 0ade801. Die actuele
+main is met een gewone merge in de werkboom opgenomen; de drie inhoudelijke
+documentconflicten zijn opgelost met behoud van beide voortgangsrapporten.
+Mergecommit en push zijn nog niet uitgevoerd; geen history rewrite.
 Voortgang: **34% → 34%**, Materiaal/toegankelijkheid **0/15**; U01–U06 open.
 
-Eerstvolgende stap: voer de nieuwe parsertegenproef en bestaande Materiaal-
-probe-hostsuite uit; commit/push daarna de timeoutdiagnostiek/evidence en
-controleer dat PR #68 het exacte commit bevat. Volg na acceptatie van de
-nieuwe runtimebranch met codebehoud een aparte keyboard-only en native
-semantiek/accessibility-stap: de huidige controller heeft Tab/Shift+Tab,
+Eerstvolgende stap: stage de gecontroleerde conflictoplossingen, maak de
+normale mergecommit en push; verifieer dat de remote PR-branch die commit bevat.
+Daarna volgt op de actuele native bron een aparte keyboard-only en native
+semantiek/accessibility-stap:
+de huidige controller heeft Tab/Shift+Tab,
 maar de native grens naar een accessibility-service/schermlezer/spraak is
 niet gebouwd. Schaal, contrast, reduced motion en gebruikerstaken blijven
 vereist. U01–U06 sluiten niet op alleen een interactieve documentproef.
+
+## Geïntegreerd main-checkpoint — hardware, drivers en energie — 30 oktober 2026
+
+Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (`main`), branch
+`simonvanieperen-friendly-guacamole`. Opdracht: hardwarepunten H02–H06
+verderbrengen richting 12/12; de vaste meter blijft **34% totaal, hardware
+1/12**. H01 is het enige geaccepteerde hardwarepunt. H02 toetsenbord/muis/USB,
+H03 graphics/audio, H04 netwerkhardware, H05 energie/slaap/wek en H06 de
+fysieke ondersteuningsmatrix blijven open. De code bevat een afgebakende
+native PS/2/QMP-proef, maar geen USB/xHCI-driver of ACPI-energiepad. Criteria
+die fysieke metingen of meerdere fysieke configuraties vragen kunnen niet
+worden afgetekend met QEMU-bewijs.
+
+Uitgevoerd: `python3 -B -m unittest discover -s tools -p
+'test_display_probe.py'` — exit 0, 11 hosttests voor de bewijspoort; dit
+controleert het harnas, niet een guest-driver. De vastgezette Rust 1.90.0-
+toolchain is lokaal onder `.tools/nieuw-os` hersteld met de officieel
+gepubliceerde rustup-installer; SHA-256 gecontroleerd vóór uitvoering en geen
+globale PATH-/systeemwijziging. Op `drivers/ps2` slagen Clippy, fmt en de
+release-librarybuild voor `x86_64-unknown-none` (elk exit 0). De PS/2-hosttest
+faalt met exit 101 omdat de systeem-C-linker `cc` en hostruntimebibliotheken
+ontbreken.
+
+Simon heeft de map `C:\Program Files\qemu` meegestuurd. In WSL is dit
+`/mnt/c/Program Files/qemu`; QEMU 11.1.0 start via WSL-interoperabiliteit,
+QMP via stdin/stdout is bevestigd, en de package bevat
+`edk2-x86_64-code.fd`, `edk2-i386-vars.fd` en `vgabios-stdvga.bin`. De
+projecttoolmap verwijst lokaal naar die binaries/firmware, zonder wijzigingen
+aan de Windows-installatie of tracked source. `python3 -B tools/preflight.py
+--strict` slaagt en rapporteert beide Rust-targets en x86_64-codefirmware
+beschikbaar. Dit is alleen tool-/firmware-inventaris; native guestboot is nog
+niet uitgevoerd. Geen fysiek apparaat gebruikt of gewijzigd.
+
+Eerstvolgend: `python3 -B -u tools/build.py --kernel-feature
+native-display-probe`, daarna de bestaande
+`tools/run_display_probe.py --machine pc-q35-8.2 --qmp-transport pipe` met de
+meegeleverde VGA-ROM. De 11.1-binary verschilt van de 10.0.13-CI-binary; de
+runner moet die exacte versie en hashes vastleggen. Als native poort slaagt,
+is dat afgebakend QEMU-bewijs voor de PS/2-display/input-slice, niet fysieke
+acceptatie van H02. Daarna volgt een afzonderlijke USB/xHCI-stap. H02–H06
+blijven open totdat hun volledige vereiste native/fysieke bewijsniveaus zijn
+aangetoond; geen rubricpunt toegekend.
 
 ## Historisch checkpoint — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
 
