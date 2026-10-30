@@ -20,7 +20,8 @@ Actuele integratiebasis is `748e29b7455ca4213a6bf3ba3808c3097458263d`
 (#62). De managermerge had vier uitsluitend centrale documentatieconflicten;
 de teamstand staat bovenaan, alle inkomende preflight-/reviewcheckpoints
 blijven hieronder historisch behouden. Geen handmatige runtimebronwijziging.
-Assessmentbron is de nieuwe basis; geen historisch native bewijs herlabeld.
+Assessmentbron is managercheckpoint `7248fea4307ba9cbb5e6c80012f633066710cd54`
+op die integratiebasis; geen historisch native bewijs herlabeld.
 
 **Score: 34% → 34%.** Geen criterium of gewicht gewijzigd, geen volledige
 release- of fysieke/menselijke gate gesloten. Alle 62 productrijen blijven
@@ -80,12 +81,28 @@ nieuwe v3 `c20a3300…`, referentie 135,971 s/raw 33 en gewone variant
 97,227 s/raw 0. Lifecyclecoördinator heeft de summaries gehasht en koppelt
 deze aan actuele #66-head `c0962e0`; manager heeft die head en lopende CI
 zelf via GitHub gelezen, maar geen nieuwe VM uitgevoerd.
-release owns eventuele runtime-/manifestfixes en neemt de bevroren bron
-inhoudsbehoudend over. Hoofd #66 `c532ba88` blijft vóór nieuwe integratie
-bevroren. Lifecyclecoördinator meldt #62 regulier merged naar `748e29b`;
+Release bezit eventuele runtime-/manifestfixes en neemt de bevroren bron
+inhoudsbehoudend over. Actuele #66-head `c0962e0` blijft voor de
+lifecyclecontrole bevroren; `c532ba88` is uitsluitend de oudere bron.
+Managercontrole op 30 oktober, circa 18:22 Europe/Amsterdam:
+12/13 checks groen, alleen native-system loopt nog. Dit sluit geen
+merge-/postmergegate vooruitlopend af.
+Lifecyclecoördinator meldt #62 regulier merged naar `748e29b`;
 nieuwe main-opname en gezamenlijke gates zijn een herhaalplicht, geen
 automatisch groen uit de vorige bron. UI herhaalt de keyboard/save/reopenketen;
 apps, NAS en hardware wachten voor shared files op een concrete writerafspraak.
+UI meldt inmiddels een keyboard-QMP-pass op `74d15ac`/v3 `24d5f4c1…`;
+de semantiekcode `f6ec180` zit expliciet niet in dat image. Dit is uitsluitend
+baselinebediening, geen native semantiek- of schermlezeracceptatie. Release
+heeft opdracht de leafcode inhoudsbehoudend te integreren en daarna één
+nieuwe bron/artifactbinding voor de UI-herhaling vast te leggen.
+De read-only ABI-reviewer rapporteert op main `748e29b`: BootInfo-prefix
+128 bytes, `reserved0` op headeroffset 120, GOP op 128..192. Bestaande
+minor-1/2-validators weigeren minor 3; alleen de loader bumpen is fout.
+Het snapshotbesluit bepaalt nog geen nieuwe offset. Release moet dispatch
+voor 1.1/1.2/1.3, behoud van GOP, snapshotownership/retained mapping en
+negatieve tests vastleggen vóór code. Rapport rechtstreeks aan release,
+geen nieuwe tests door reviewer of manager uitgevoerd.
 Native DHCP/TLS, veilige persistente keys/rollbackanker, appinstallatie,
 NAS/multidevice en lokale inference ontbreken nog als volledig geïntegreerde
 productfuncties. AI moet na begrensd qsim-WIP naar ontbrekend L01; een al
@@ -125,6 +142,13 @@ oorspronkelijke sessies meldden `is_running=true`, geen input-/planblokkade;
 activiteit blijft niet observeerbaar (`unknown`). Dit is geen bewijs dat
 iedere sessie op dat moment een build uitvoerde. Geen continue of geplande
 achtergrondbewaking ingesteld.
+Latere live steekproef: 11 van 14 sessies running, geen input-/planblokkade;
+buildteam en read-only reviewer niet-running. Buildteam is opnieuw gericht
+op zijn aparte cold-tools, reviewer heeft de begrensde H05-layouttrace
+opgeleverd. Geen claim dat alle sessies onafgebroken draaien. NAS kreeg
+vrijgave zijn eigen nieuwe workflow uit te breiden van twee naar drie
+werkelijk aanwezige crates, inclusief de native-probe; echte QEMU en
+actuele CI op de nog te leveren nieuwe head blijven open.
 Eerstvolgend bij hervatten: `git branch --show-current && git rev-parse HEAD
 && git status --short`, daarna verse `get_sessions_status` en actuele
 buildteam/release-rapportages lezen; geen oude groene PR-head overnemen.

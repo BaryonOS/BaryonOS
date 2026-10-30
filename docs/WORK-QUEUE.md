@@ -213,6 +213,33 @@ beginnen read-only op dit ontwerp; uitsluitend wegwerp-QEMU, geen fysieke
 poweractie of nieuwe H05-acceptatie. Dit is nog een ontwerpbesluit, geen
 geïmplementeerde BootInfo-uitbreiding of clean-shutdownclaim.
 
+Aanvullende gerichte H05-trace door TL-ISSUES op main `748e29b`, zonder
+writes/tests/VM: vaste BootInfo-prefix 128/align8, `reserved0` op offset120,
+GOP-extensie op 128..192. Bestaande minor1/2-validators weigeren minor3.
+Alleen loader-versiebump, snapshot op128 of hergebruik van reserved0
+zou huidige consumenten breken. Release ontving de concrete bronpaden/
+regels en moet eerst producer/consumer-dispatch voor 1.1/1.2/1.3 en
+graphics, snapshotspan/ownership/retained mapping en negatieve fixtures
+vastleggen. Hardware is geïnformeerd; geen nieuw ABI-formaat door manager
+of reviewer geïmplementeerd.
+
+UI bevestigt keyboard-QMP-pass op baseline74d/v324d5; de nieuwe semantiek
+f6ec180 is niet in die guest gelinkt. Release kreeg als volgende integratiestap
+de leafcode inhoudsbehoudend opnemen, daarna nieuwe bron/artifacts bevriezen
+en UI de gate laten herhalen. Geen screenreader/U04-acceptatie afgeleid.
+NAS kreeg expliciete vrijgave native-probe als derde werkelijke crate aan
+zijn eigen `nas-core.yml` toe te voegen, met hosttests/fmt/lint/targetbuild.
+Target-ELFs zijn geen uitgevoerde NAS-guestprobe. Actuele #73 ae9 heeft bij
+managercontrole nog geen checks, oude #71 109 heeft twaalf groene maar
+ongerelateerde checks; de nieuwe standalone jobs blijven een mergegate.
+
+Live hercontrole van #66c096: twaalf van dertien checks SUCCESS,
+native-system nog IN_PROGRESS. Enige lifecyclecoördinator blijft eigenaar
+van de mergeguard; geen andere mainintegratie gestart. Live appsteekproef
+meldde elf van veertien sessies running, geen input-/planblokkades,
+activiteit unknown. Buildteam is gericht hervat op de aparte cold-toolstap;
+de niet-running reviewer heeft de H05-trace inmiddels opgeleverd.
+
 Eerstvolgende manageractie: ontvang de exacte up-to-date buildteambron en
 koude-recovery-/verifiergates, controleer dat release/UI daarop voortbouwen
 en geef de kleinste nog ontbrekende gedeelde interface aan één schrijver.
