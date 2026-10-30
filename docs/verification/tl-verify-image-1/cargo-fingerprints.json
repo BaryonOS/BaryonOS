@@ -1,0 +1,1392 @@
+{
+  "own": {
+    "materiaal": [
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/materiaal-materiaal/x86_64-unknown-none/release/.fingerprint/nieuw-os-materiaal-app-084f0bb971a58bfd/bin-materiaal-app.json",
+        "sha256": "da32623e219164cab95d6631010fbd698a6c56021172cd9ce6fbb02443f147d7",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"native\"]",
+          "declared_features": "[\"native\", \"verify-native-elf\"]",
+          "target": 8341004914002410914,
+          "profile": 12571733361092279615,
+          "path": 4942398508502643691,
+          "deps": [
+            [
+              653081710934221577,
+              "nieuw_os_input_core",
+              false,
+              12374131826869720414
+            ],
+            [
+              1681117622454486147,
+              "nieuw_os_input_client",
+              false,
+              2711929508374323330
+            ],
+            [
+              5651126162458334049,
+              "volume_core",
+              false,
+              3394844026593912322
+            ],
+            [
+              5888366034998193005,
+              "nieuw_os_document_session",
+              false,
+              9037456879982226679
+            ],
+            [
+              8976498094688054406,
+              "nieuw_os_sdk_runtime",
+              false,
+              12369931818805139861
+            ],
+            [
+              9707968886022602124,
+              "nieuw_os_surface_protocol",
+              false,
+              16168328370867136176
+            ],
+            [
+              9856457102468926896,
+              "nieuw_os_catalog_client",
+              false,
+              10296122850205324502
+            ],
+            [
+              10157232988646747716,
+              "nieuw_os_materiaal_app",
+              false,
+              11271781899092277637
+            ],
+            [
+              13470103174648981050,
+              "ui_core",
+              false,
+              9195383417888770281
+            ],
+            [
+              15060347455303044044,
+              "nieuw_os_materiaal",
+              false,
+              3442453998292840337
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/nieuw-os-materiaal-app-084f0bb971a58bfd/dep-bin-materiaal-app",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "linker=rust-lld",
+            "-C",
+            "link-arg=-T/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/materiaal/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000",
+            "-C",
+            "target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2",
+            "--remap-path-prefix=/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco=/nieuw-os"
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      }
+    ],
+    "keyring": [
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/materiaal-keyring/x86_64-unknown-none/release/.fingerprint/nieuw-os-keyring-example-b657d76e5bf3813c/bin-keyring-service.json",
+        "sha256": "83f508125f5748cc929d9dd1ab0cdc3729e88f5381466c5604663b6a3f66d68c",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"native\"]",
+          "declared_features": "[\"native\"]",
+          "target": 8824918452511695187,
+          "profile": 12571733361092279615,
+          "path": 16855987152639551208,
+          "deps": [
+            [
+              145302619500145979,
+              "keyring_core",
+              false,
+              1807371838438831378
+            ],
+            [
+              8976498094688054406,
+              "nieuw_os_sdk_runtime",
+              false,
+              16347849197197285967
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/nieuw-os-keyring-example-b657d76e5bf3813c/dep-bin-keyring-service",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "linker=rust-lld",
+            "-C",
+            "link-arg=-T/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/keyring/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000",
+            "--cfg",
+            "chacha20_force_soft",
+            "--cfg",
+            "chacha20_backend=\"soft\"",
+            "--cfg",
+            "poly1305_force_soft",
+            "--cfg",
+            "sha2_backend=\"soft\""
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      },
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/materiaal-keyring/x86_64-unknown-none/release/.fingerprint/nieuw-os-keyring-example-bedb4988bf762811/bin-keyring-app.json",
+        "sha256": "0fe730c01d4f51832bccf1f8d0712001bb615177835cb04578f36c5be1ce4f33",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"native\"]",
+          "declared_features": "[\"native\"]",
+          "target": 8172309157832043504,
+          "profile": 12571733361092279615,
+          "path": 8338190614324287492,
+          "deps": [
+            [
+              145302619500145979,
+              "keyring_core",
+              false,
+              1807371838438831378
+            ],
+            [
+              8976498094688054406,
+              "nieuw_os_sdk_runtime",
+              false,
+              16347849197197285967
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/nieuw-os-keyring-example-bedb4988bf762811/dep-bin-keyring-app",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "linker=rust-lld",
+            "-C",
+            "link-arg=-T/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/keyring/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000",
+            "--cfg",
+            "chacha20_force_soft",
+            "--cfg",
+            "chacha20_backend=\"soft\"",
+            "--cfg",
+            "poly1305_force_soft",
+            "--cfg",
+            "sha2_backend=\"soft\""
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      }
+    ],
+    "volume": [
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/materiaal-volume-docs/x86_64-unknown-none/release/.fingerprint/nieuw-os-volume-docs-example-dce6f5df350cdb31/bin-volume-app.json",
+        "sha256": "13eeadc584120a50b9e3ae55b2cdda166c46377ffab1496402bbcfc975ce0d47",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"native\"]",
+          "declared_features": "[\"native\"]",
+          "target": 13380691895360748990,
+          "profile": 12571733361092279615,
+          "path": 704221996413681497,
+          "deps": [
+            [
+              5651126162458334049,
+              "volume_core",
+              false,
+              808820515716678119
+            ],
+            [
+              8976498094688054406,
+              "nieuw_os_sdk_runtime",
+              false,
+              401356232445924873
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/nieuw-os-volume-docs-example-dce6f5df350cdb31/dep-bin-volume-app",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "linker=rust-lld",
+            "-C",
+            "link-arg=-T/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/volume-docs/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000"
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      },
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/materiaal-volume-docs/x86_64-unknown-none/release/.fingerprint/nieuw-os-volume-docs-example-b5b98b9d00b34e48/bin-volume-service.json",
+        "sha256": "999b922b1ad5445a2548a71a36f856598a6fd40525ddb8d5d4a40bfa28f476d2",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"native\"]",
+          "declared_features": "[\"native\"]",
+          "target": 13671721335798081798,
+          "profile": 12571733361092279615,
+          "path": 17772787429571124453,
+          "deps": [
+            [
+              5651126162458334049,
+              "volume_core",
+              false,
+              808820515716678119
+            ],
+            [
+              8976498094688054406,
+              "nieuw_os_sdk_runtime",
+              false,
+              401356232445924873
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/nieuw-os-volume-docs-example-b5b98b9d00b34e48/dep-bin-volume-service",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "linker=rust-lld",
+            "-C",
+            "link-arg=-T/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/volume-docs/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000"
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      }
+    ],
+    "loader": [
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/x86_64-unknown-uefi/release/.fingerprint/os-loader-65c2968f8864db99/bin-os-loader.json",
+        "sha256": "f701891eab18060972255c0366d6504d88cb588458b202a02405ebd40f11ae41",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"default\", \"framebuffer\"]",
+          "declared_features": "[\"default\", \"framebuffer\", \"graphics-g0\", \"signed-boot\", \"test-ebs-retry\"]",
+          "target": 13255039624743368878,
+          "profile": 12571733361092279615,
+          "path": 13764773231660971540,
+          "deps": [
+            [
+              7872658449438903,
+              "r_efi",
+              false,
+              10243800977744899498
+            ],
+            [
+              2913295069012151811,
+              "boot_protocol",
+              false,
+              4010949942857242856
+            ],
+            [
+              11165173890624991486,
+              "elf_loader_core",
+              false,
+              9209517903229444862
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-uefi/release/.fingerprint/os-loader-65c2968f8864db99/dep-bin-os-loader",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "--cfg",
+            "curve25519_dalek_backend=\"serial\""
+          ],
+          "config": 2069994364910194474,
+          "compile_kind": 6676622701169626820
+        }
+      }
+    ],
+    "kernel": [
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/x86_64-unknown-none/release/.fingerprint/os-kernel-8ba64e8ee88938b1/bin-os-kernel.json",
+        "sha256": "dbe84f62055a63ba957e1618c02fd159d1c89aed0328c948a959325747f76c46",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"default\", \"display-input\", \"fpu-context\", \"framebuffer\", \"ipc-wait\", \"milestone-m2\", \"milestone-m3\", \"milestone-m4\", \"milestone-m5\", \"milestone-m6a\", \"monotonic-clock\", \"native-keyring\", \"native-supervisor\", \"native-system\", \"native-system-display-input\", \"native-system-materiaal\", \"native-system-materiaal-probe\", \"native-volume\"]",
+          "declared_features": "[\"default\", \"display-input\", \"fpu-context\", \"framebuffer\", \"graphics-g0\", \"ipc-wait\", \"milestone-m2\", \"milestone-m3\", \"milestone-m4\", \"milestone-m5\", \"milestone-m6a\", \"milestone-m6b\", \"milestone-m6c\", \"monotonic-clock\", \"native-cap-digest-bench\", \"native-display-probe\", \"native-fpu\", \"native-ipc-wait\", \"native-keyring\", \"native-memory\", \"native-memory-guard\", \"native-memory-nx\", \"native-memory-oom\", \"native-memory-peer\", \"native-qsim\", \"native-qsim-job\", \"native-rtc\", \"native-sdk-app\", \"native-supervisor\", \"native-system\", \"native-system-clock\", \"native-system-display-input\", \"native-system-images\", \"native-system-materiaal\", \"native-system-materiaal-probe\", \"native-system-net\", \"native-system-net-clock\", \"native-system-random\", \"native-system-tcp\", \"native-tpm-crb\", \"native-update\", \"native-volume\", \"process-memory\", \"test-fpu-wait\", \"test-hang\", \"test-keyring-no-device\", \"test-keyring-restart\", \"test-keyring-stuck\", \"test-keyring-timeout\", \"test-m2-absent\", \"test-m2-double-fault\", \"test-m2-kernel-fault\", \"test-m2-nx\", \"test-m2-ro\", \"test-m3-avx\", \"test-m3-b-exit\", \"test-m3-cli\", \"test-m3-exit\", \"test-m3-guard-high\", \"test-m3-guard-low\", \"test-m3-heap-exec\", \"test-m3-idle\", \"test-m3-invalid-rsp\", \"test-m3-kernel-write\", \"test-m3-large-image\", \"test-m3-peer-read\", \"test-m3-peer-write\", \"test-m3-stack-exec\", \"test-m3-ud\", \"test-m3-x87\", \"test-m3-xmm\", \"test-m4-copy\", \"test-m4-handles\", \"test-m4-lifecycle\", \"test-m4-quotas\", \"test-m4-revoke\", \"test-m4-rights\", \"test-m4-snapshot\", \"test-m4-wire\", \"test-m5-async\", \"test-m5-bad-descriptor\", \"test-m5-cpu-dma\", \"test-m5-cpu-mmio\", \"test-m5-cpu-pci\", \"test-m5-device-rights\", \"test-m5-io-error\", \"test-m5-no-device\", \"test-m5-reset-timeout\", \"test-m5-restart\", \"test-m5-service-errors\", \"test-m5-timeout\", \"test-m5-used-id\", \"test-m5-used-index\", \"test-m5-used-long\", \"test-m5-used-short\", \"test-m5-used-status\", \"test-m6a-bad-descriptor\", \"test-m6a-corrupt-all\", \"test-m6a-device-rights\", \"test-m6a-flush-error\", \"test-m6a-flush-timeout\", \"test-m6a-full\", \"test-m6a-no-device\", \"test-m6a-no-flush\", \"test-m6a-readonly\", \"test-m6a-recover\", \"test-m6a-reset-timeout\", \"test-m6a-service-cut-1\", \"test-m6a-service-cut-2\", \"test-m6a-service-cut-3\", \"test-m6a-service-cut-4\", \"test-m6a-service-cut-5\", \"test-m6a-service-cut-6\", \"test-m6a-service-errors\", \"test-m6a-stale-generation\", \"test-m6a-torn-tail\", \"test-m6a-used-flush\", \"test-m6a-used-write\", \"test-m6a-vm-cut-1\", \"test-m6a-vm-cut-2\", \"test-m6a-vm-cut-3\", \"test-m6a-vm-cut-4\", \"test-m6a-vm-cut-5\", \"test-m6a-vm-cut-6\", \"test-m6a-write-error\", \"test-m6a-write-timeout\", \"test-m6b-corrupt\", \"test-m6b-errors\", \"test-m6b-flush-error\", \"test-m6b-flush-poll-limit\", \"test-m6b-flush-timeout\", \"test-m6b-full\", \"test-m6b-recover\", \"test-m6b-reset-timeout\", \"test-m6b-vm-cut-after-flush\", \"test-m6b-vm-cut-before-ack\", \"test-m6b-write-error\", \"test-m6b-write-poll-limit\", \"test-m6b-write-timeout\", \"test-m6c-bad-descriptor\", \"test-m6c-corrupt\", \"test-m6c-errors\", \"test-m6c-flush-error\", \"test-m6c-flush-timeout\", \"test-m6c-full\", \"test-m6c-legacy\", \"test-m6c-recover\", \"test-m6c-reset-timeout\", \"test-m6c-used-flush\", \"test-m6c-used-write\", \"test-m6c-vm-cut-after-rename\", \"test-m6c-vm-cut-before-rename\", \"test-m6c-write-error\", \"test-m6c-write-timeout\", \"test-panic\", \"test-sdk-app-denied\", \"test-supervisor-crash\", \"test-supervisor-denied\", \"test-supervisor-parent-exit\", \"test-supervisor-quota\", \"test-supervisor-wait\", \"test-system-materiaal-recover\", \"test-system-materiaal-scale200\", \"test-system-net-recover\", \"test-system-random-sdk\", \"test-system-random-unknown\", \"test-system-random-wrong-caller\", \"test-system-recover\", \"test-system-tcp-recover\", \"test-tpm-crb-absent\", \"test-update-cut\", \"test-volume-corrupt\", \"test-volume-cut-data\", \"test-volume-cut-table\", \"test-volume-cut-txn\", \"test-volume-recover\", \"test-volume-recover-cut\"]",
+          "target": 2563674300582142029,
+          "profile": 12571733361092279615,
+          "path": 6082339381467505216,
+          "deps": [
+            [
+              2672590985164857922,
+              "block_protocol",
+              false,
+              13289485895614612402
+            ],
+            [
+              2913295069012151811,
+              "boot_protocol",
+              false,
+              9990236362441133652
+            ],
+            [
+              5193975034185637998,
+              "nieuw_os_display_client",
+              false,
+              8010544956367398898
+            ],
+            [
+              12360265739157128035,
+              "virtio_core",
+              false,
+              2253789976998450666
+            ],
+            [
+              12602428669690415403,
+              "virtio_rng_driver",
+              false,
+              13495623732353041952
+            ],
+            [
+              12755378066224904955,
+              "kernel_core",
+              false,
+              4018660563237423450
+            ],
+            [
+              12865963296513963883,
+              "capability_core",
+              false,
+              7253683359900150253
+            ],
+            [
+              13255507865592602426,
+              "virtio_blk_driver",
+              false,
+              6096379203328531321
+            ],
+            [
+              16707808386635700451,
+              "build_script_build",
+              false,
+              6907989811801135064
+            ],
+            [
+              18084914234867617505,
+              "nieuw_os_ps2",
+              false,
+              15153417579676315204
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/os-kernel-8ba64e8ee88938b1/dep-bin-os-kernel",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "link-arg=-Tkernel/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000"
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      },
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/x86_64-unknown-none/release/.fingerprint/os-kernel-b090ea9e66fe3809/bin-os-kernel.json",
+        "sha256": "0bce24bfa17d010da1dba16f1319f90d53b1f4a37a716c4cc9c16ad6f8b25f73",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"default\", \"display-input\", \"fpu-context\", \"framebuffer\", \"ipc-wait\", \"milestone-m2\", \"milestone-m3\", \"milestone-m4\", \"milestone-m5\", \"milestone-m6a\", \"monotonic-clock\", \"native-keyring\", \"native-supervisor\", \"native-system\", \"native-system-display-input\", \"native-system-materiaal\", \"native-volume\"]",
+          "declared_features": "[\"default\", \"display-input\", \"fpu-context\", \"framebuffer\", \"graphics-g0\", \"ipc-wait\", \"milestone-m2\", \"milestone-m3\", \"milestone-m4\", \"milestone-m5\", \"milestone-m6a\", \"milestone-m6b\", \"milestone-m6c\", \"monotonic-clock\", \"native-cap-digest-bench\", \"native-display-probe\", \"native-fpu\", \"native-ipc-wait\", \"native-keyring\", \"native-memory\", \"native-memory-guard\", \"native-memory-nx\", \"native-memory-oom\", \"native-memory-peer\", \"native-qsim\", \"native-qsim-job\", \"native-rtc\", \"native-sdk-app\", \"native-supervisor\", \"native-system\", \"native-system-clock\", \"native-system-display-input\", \"native-system-images\", \"native-system-materiaal\", \"native-system-materiaal-probe\", \"native-system-net\", \"native-system-net-clock\", \"native-system-random\", \"native-system-tcp\", \"native-tpm-crb\", \"native-update\", \"native-volume\", \"process-memory\", \"test-fpu-wait\", \"test-hang\", \"test-keyring-no-device\", \"test-keyring-restart\", \"test-keyring-stuck\", \"test-keyring-timeout\", \"test-m2-absent\", \"test-m2-double-fault\", \"test-m2-kernel-fault\", \"test-m2-nx\", \"test-m2-ro\", \"test-m3-avx\", \"test-m3-b-exit\", \"test-m3-cli\", \"test-m3-exit\", \"test-m3-guard-high\", \"test-m3-guard-low\", \"test-m3-heap-exec\", \"test-m3-idle\", \"test-m3-invalid-rsp\", \"test-m3-kernel-write\", \"test-m3-large-image\", \"test-m3-peer-read\", \"test-m3-peer-write\", \"test-m3-stack-exec\", \"test-m3-ud\", \"test-m3-x87\", \"test-m3-xmm\", \"test-m4-copy\", \"test-m4-handles\", \"test-m4-lifecycle\", \"test-m4-quotas\", \"test-m4-revoke\", \"test-m4-rights\", \"test-m4-snapshot\", \"test-m4-wire\", \"test-m5-async\", \"test-m5-bad-descriptor\", \"test-m5-cpu-dma\", \"test-m5-cpu-mmio\", \"test-m5-cpu-pci\", \"test-m5-device-rights\", \"test-m5-io-error\", \"test-m5-no-device\", \"test-m5-reset-timeout\", \"test-m5-restart\", \"test-m5-service-errors\", \"test-m5-timeout\", \"test-m5-used-id\", \"test-m5-used-index\", \"test-m5-used-long\", \"test-m5-used-short\", \"test-m5-used-status\", \"test-m6a-bad-descriptor\", \"test-m6a-corrupt-all\", \"test-m6a-device-rights\", \"test-m6a-flush-error\", \"test-m6a-flush-timeout\", \"test-m6a-full\", \"test-m6a-no-device\", \"test-m6a-no-flush\", \"test-m6a-readonly\", \"test-m6a-recover\", \"test-m6a-reset-timeout\", \"test-m6a-service-cut-1\", \"test-m6a-service-cut-2\", \"test-m6a-service-cut-3\", \"test-m6a-service-cut-4\", \"test-m6a-service-cut-5\", \"test-m6a-service-cut-6\", \"test-m6a-service-errors\", \"test-m6a-stale-generation\", \"test-m6a-torn-tail\", \"test-m6a-used-flush\", \"test-m6a-used-write\", \"test-m6a-vm-cut-1\", \"test-m6a-vm-cut-2\", \"test-m6a-vm-cut-3\", \"test-m6a-vm-cut-4\", \"test-m6a-vm-cut-5\", \"test-m6a-vm-cut-6\", \"test-m6a-write-error\", \"test-m6a-write-timeout\", \"test-m6b-corrupt\", \"test-m6b-errors\", \"test-m6b-flush-error\", \"test-m6b-flush-poll-limit\", \"test-m6b-flush-timeout\", \"test-m6b-full\", \"test-m6b-recover\", \"test-m6b-reset-timeout\", \"test-m6b-vm-cut-after-flush\", \"test-m6b-vm-cut-before-ack\", \"test-m6b-write-error\", \"test-m6b-write-poll-limit\", \"test-m6b-write-timeout\", \"test-m6c-bad-descriptor\", \"test-m6c-corrupt\", \"test-m6c-errors\", \"test-m6c-flush-error\", \"test-m6c-flush-timeout\", \"test-m6c-full\", \"test-m6c-legacy\", \"test-m6c-recover\", \"test-m6c-reset-timeout\", \"test-m6c-used-flush\", \"test-m6c-used-write\", \"test-m6c-vm-cut-after-rename\", \"test-m6c-vm-cut-before-rename\", \"test-m6c-write-error\", \"test-m6c-write-timeout\", \"test-panic\", \"test-sdk-app-denied\", \"test-supervisor-crash\", \"test-supervisor-denied\", \"test-supervisor-parent-exit\", \"test-supervisor-quota\", \"test-supervisor-wait\", \"test-system-materiaal-recover\", \"test-system-materiaal-scale200\", \"test-system-net-recover\", \"test-system-random-sdk\", \"test-system-random-unknown\", \"test-system-random-wrong-caller\", \"test-system-recover\", \"test-system-tcp-recover\", \"test-tpm-crb-absent\", \"test-update-cut\", \"test-volume-corrupt\", \"test-volume-cut-data\", \"test-volume-cut-table\", \"test-volume-cut-txn\", \"test-volume-recover\", \"test-volume-recover-cut\"]",
+          "target": 2563674300582142029,
+          "profile": 12571733361092279615,
+          "path": 6082339381467505216,
+          "deps": [
+            [
+              2672590985164857922,
+              "block_protocol",
+              false,
+              13289485895614612402
+            ],
+            [
+              2913295069012151811,
+              "boot_protocol",
+              false,
+              9990236362441133652
+            ],
+            [
+              5193975034185637998,
+              "nieuw_os_display_client",
+              false,
+              8010544956367398898
+            ],
+            [
+              12360265739157128035,
+              "virtio_core",
+              false,
+              2253789976998450666
+            ],
+            [
+              12602428669690415403,
+              "virtio_rng_driver",
+              false,
+              13495623732353041952
+            ],
+            [
+              12755378066224904955,
+              "kernel_core",
+              false,
+              4018660563237423450
+            ],
+            [
+              12865963296513963883,
+              "capability_core",
+              false,
+              7253683359900150253
+            ],
+            [
+              13255507865592602426,
+              "virtio_blk_driver",
+              false,
+              6096379203328531321
+            ],
+            [
+              16707808386635700451,
+              "build_script_build",
+              false,
+              12074338344734409259
+            ],
+            [
+              18084914234867617505,
+              "nieuw_os_ps2",
+              false,
+              15153417579676315204
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/os-kernel-b090ea9e66fe3809/dep-bin-os-kernel",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "link-arg=-Tkernel/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000"
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      }
+    ]
+  },
+  "builder": {
+    "materiaal": [
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/materiaal-materiaal/x86_64-unknown-none/release/.fingerprint/nieuw-os-materiaal-app-e70ecd1a22145980/bin-materiaal-app.json",
+        "sha256": "72c8200ff022cbdc2068977240fb3f2ce053699e5636bf5d0e809a8930a436f8",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"native\"]",
+          "declared_features": "[\"native\", \"verify-native-elf\"]",
+          "target": 8341004914002410914,
+          "profile": 12571733361092279615,
+          "path": 4942398508502643691,
+          "deps": [
+            [
+              653081710934221577,
+              "nieuw_os_input_core",
+              false,
+              8462321211993756326
+            ],
+            [
+              1681117622454486147,
+              "nieuw_os_input_client",
+              false,
+              4307490918451663313
+            ],
+            [
+              5651126162458334049,
+              "volume_core",
+              false,
+              12656075084432790133
+            ],
+            [
+              5888366034998193005,
+              "nieuw_os_document_session",
+              false,
+              6977718172795770790
+            ],
+            [
+              8976498094688054406,
+              "nieuw_os_sdk_runtime",
+              false,
+              9402178516122114023
+            ],
+            [
+              9707968886022602124,
+              "nieuw_os_surface_protocol",
+              false,
+              7207516806645047853
+            ],
+            [
+              9856457102468926896,
+              "nieuw_os_catalog_client",
+              false,
+              5709834916081072280
+            ],
+            [
+              10157232988646747716,
+              "nieuw_os_materiaal_app",
+              false,
+              862077555049135387
+            ],
+            [
+              13470103174648981050,
+              "ui_core",
+              false,
+              1528736531681534086
+            ],
+            [
+              15060347455303044044,
+              "nieuw_os_materiaal",
+              false,
+              18409181122458063330
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/nieuw-os-materiaal-app-e70ecd1a22145980/dep-bin-materiaal-app",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "linker=rust-lld",
+            "-C",
+            "link-arg=-T/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/materiaal/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000",
+            "-C",
+            "target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2",
+            "--remap-path-prefix=/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle=/nieuw-os"
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      }
+    ],
+    "keyring": [
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/materiaal-keyring/x86_64-unknown-none/release/.fingerprint/nieuw-os-keyring-example-9ae0ae3f236cb8ba/bin-keyring-service.json",
+        "sha256": "d00c459558b01729f5f7a14fa6bfceccecde43fcff49fe1ea13a4f7c1b459982",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"native\"]",
+          "declared_features": "[\"native\"]",
+          "target": 8824918452511695187,
+          "profile": 12571733361092279615,
+          "path": 16855987152639551208,
+          "deps": [
+            [
+              145302619500145979,
+              "keyring_core",
+              false,
+              4643859623590024541
+            ],
+            [
+              8976498094688054406,
+              "nieuw_os_sdk_runtime",
+              false,
+              8469136412696303714
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/nieuw-os-keyring-example-9ae0ae3f236cb8ba/dep-bin-keyring-service",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "linker=rust-lld",
+            "-C",
+            "link-arg=-T/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/keyring/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000",
+            "--cfg",
+            "chacha20_force_soft",
+            "--cfg",
+            "chacha20_backend=\"soft\"",
+            "--cfg",
+            "poly1305_force_soft",
+            "--cfg",
+            "sha2_backend=\"soft\""
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      },
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/materiaal-keyring/x86_64-unknown-none/release/.fingerprint/nieuw-os-keyring-example-b22be878af64d0a2/bin-keyring-app.json",
+        "sha256": "f518812c10eff9fe56f8dd95c59d181741bf23f8d50769dc88ca949142197bee",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"native\"]",
+          "declared_features": "[\"native\"]",
+          "target": 8172309157832043504,
+          "profile": 12571733361092279615,
+          "path": 8338190614324287492,
+          "deps": [
+            [
+              145302619500145979,
+              "keyring_core",
+              false,
+              4643859623590024541
+            ],
+            [
+              8976498094688054406,
+              "nieuw_os_sdk_runtime",
+              false,
+              8469136412696303714
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/nieuw-os-keyring-example-b22be878af64d0a2/dep-bin-keyring-app",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "linker=rust-lld",
+            "-C",
+            "link-arg=-T/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/keyring/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000",
+            "--cfg",
+            "chacha20_force_soft",
+            "--cfg",
+            "chacha20_backend=\"soft\"",
+            "--cfg",
+            "poly1305_force_soft",
+            "--cfg",
+            "sha2_backend=\"soft\""
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      }
+    ],
+    "volume": [
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/materiaal-volume-docs/x86_64-unknown-none/release/.fingerprint/nieuw-os-volume-docs-example-91de2df8549dfe56/bin-volume-service.json",
+        "sha256": "26e1dc01637397f3843da6115bc4c25eb561f99e5c809ddbe5b419af55bc3e22",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"native\"]",
+          "declared_features": "[\"native\"]",
+          "target": 13671721335798081798,
+          "profile": 12571733361092279615,
+          "path": 17772787429571124453,
+          "deps": [
+            [
+              5651126162458334049,
+              "volume_core",
+              false,
+              6689099694922662118
+            ],
+            [
+              8976498094688054406,
+              "nieuw_os_sdk_runtime",
+              false,
+              8510637067507860282
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/nieuw-os-volume-docs-example-91de2df8549dfe56/dep-bin-volume-service",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "linker=rust-lld",
+            "-C",
+            "link-arg=-T/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/volume-docs/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000"
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      },
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/materiaal-volume-docs/x86_64-unknown-none/release/.fingerprint/nieuw-os-volume-docs-example-0bf24b2e79a4a562/bin-volume-app.json",
+        "sha256": "bcc4c310e9150dfa07a7dad7129bf84f40966c912d3effcb88a65d83836f75f8",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"native\"]",
+          "declared_features": "[\"native\"]",
+          "target": 13380691895360748990,
+          "profile": 12571733361092279615,
+          "path": 704221996413681497,
+          "deps": [
+            [
+              5651126162458334049,
+              "volume_core",
+              false,
+              6689099694922662118
+            ],
+            [
+              8976498094688054406,
+              "nieuw_os_sdk_runtime",
+              false,
+              8510637067507860282
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/nieuw-os-volume-docs-example-0bf24b2e79a4a562/dep-bin-volume-app",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "linker=rust-lld",
+            "-C",
+            "link-arg=-T/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/volume-docs/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000"
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      }
+    ],
+    "loader": [
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/x86_64-unknown-uefi/release/.fingerprint/os-loader-65c2968f8864db99/bin-os-loader.json",
+        "sha256": "f701891eab18060972255c0366d6504d88cb588458b202a02405ebd40f11ae41",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"default\", \"framebuffer\"]",
+          "declared_features": "[\"default\", \"framebuffer\", \"graphics-g0\", \"signed-boot\", \"test-ebs-retry\"]",
+          "target": 13255039624743368878,
+          "profile": 12571733361092279615,
+          "path": 13764773231660971540,
+          "deps": [
+            [
+              7872658449438903,
+              "r_efi",
+              false,
+              10243800977744899498
+            ],
+            [
+              2913295069012151811,
+              "boot_protocol",
+              false,
+              4010949942857242856
+            ],
+            [
+              11165173890624991486,
+              "elf_loader_core",
+              false,
+              9209517903229444862
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-uefi/release/.fingerprint/os-loader-65c2968f8864db99/dep-bin-os-loader",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "--cfg",
+            "curve25519_dalek_backend=\"serial\""
+          ],
+          "config": 2069994364910194474,
+          "compile_kind": 6676622701169626820
+        }
+      }
+    ],
+    "kernel": [
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/x86_64-unknown-none/release/.fingerprint/os-kernel-8ba64e8ee88938b1/bin-os-kernel.json",
+        "sha256": "da5c9cd12a98cfbf1c23a8f62771c2d145145911bfb31dcb523814e25eed457e",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"default\", \"display-input\", \"fpu-context\", \"framebuffer\", \"ipc-wait\", \"milestone-m2\", \"milestone-m3\", \"milestone-m4\", \"milestone-m5\", \"milestone-m6a\", \"monotonic-clock\", \"native-keyring\", \"native-supervisor\", \"native-system\", \"native-system-display-input\", \"native-system-materiaal\", \"native-system-materiaal-probe\", \"native-volume\"]",
+          "declared_features": "[\"default\", \"display-input\", \"fpu-context\", \"framebuffer\", \"graphics-g0\", \"ipc-wait\", \"milestone-m2\", \"milestone-m3\", \"milestone-m4\", \"milestone-m5\", \"milestone-m6a\", \"milestone-m6b\", \"milestone-m6c\", \"monotonic-clock\", \"native-cap-digest-bench\", \"native-display-probe\", \"native-fpu\", \"native-ipc-wait\", \"native-keyring\", \"native-memory\", \"native-memory-guard\", \"native-memory-nx\", \"native-memory-oom\", \"native-memory-peer\", \"native-qsim\", \"native-qsim-job\", \"native-rtc\", \"native-sdk-app\", \"native-supervisor\", \"native-system\", \"native-system-clock\", \"native-system-display-input\", \"native-system-images\", \"native-system-materiaal\", \"native-system-materiaal-probe\", \"native-system-net\", \"native-system-net-clock\", \"native-system-random\", \"native-system-tcp\", \"native-tpm-crb\", \"native-update\", \"native-volume\", \"process-memory\", \"test-fpu-wait\", \"test-hang\", \"test-keyring-no-device\", \"test-keyring-restart\", \"test-keyring-stuck\", \"test-keyring-timeout\", \"test-m2-absent\", \"test-m2-double-fault\", \"test-m2-kernel-fault\", \"test-m2-nx\", \"test-m2-ro\", \"test-m3-avx\", \"test-m3-b-exit\", \"test-m3-cli\", \"test-m3-exit\", \"test-m3-guard-high\", \"test-m3-guard-low\", \"test-m3-heap-exec\", \"test-m3-idle\", \"test-m3-invalid-rsp\", \"test-m3-kernel-write\", \"test-m3-large-image\", \"test-m3-peer-read\", \"test-m3-peer-write\", \"test-m3-stack-exec\", \"test-m3-ud\", \"test-m3-x87\", \"test-m3-xmm\", \"test-m4-copy\", \"test-m4-handles\", \"test-m4-lifecycle\", \"test-m4-quotas\", \"test-m4-revoke\", \"test-m4-rights\", \"test-m4-snapshot\", \"test-m4-wire\", \"test-m5-async\", \"test-m5-bad-descriptor\", \"test-m5-cpu-dma\", \"test-m5-cpu-mmio\", \"test-m5-cpu-pci\", \"test-m5-device-rights\", \"test-m5-io-error\", \"test-m5-no-device\", \"test-m5-reset-timeout\", \"test-m5-restart\", \"test-m5-service-errors\", \"test-m5-timeout\", \"test-m5-used-id\", \"test-m5-used-index\", \"test-m5-used-long\", \"test-m5-used-short\", \"test-m5-used-status\", \"test-m6a-bad-descriptor\", \"test-m6a-corrupt-all\", \"test-m6a-device-rights\", \"test-m6a-flush-error\", \"test-m6a-flush-timeout\", \"test-m6a-full\", \"test-m6a-no-device\", \"test-m6a-no-flush\", \"test-m6a-readonly\", \"test-m6a-recover\", \"test-m6a-reset-timeout\", \"test-m6a-service-cut-1\", \"test-m6a-service-cut-2\", \"test-m6a-service-cut-3\", \"test-m6a-service-cut-4\", \"test-m6a-service-cut-5\", \"test-m6a-service-cut-6\", \"test-m6a-service-errors\", \"test-m6a-stale-generation\", \"test-m6a-torn-tail\", \"test-m6a-used-flush\", \"test-m6a-used-write\", \"test-m6a-vm-cut-1\", \"test-m6a-vm-cut-2\", \"test-m6a-vm-cut-3\", \"test-m6a-vm-cut-4\", \"test-m6a-vm-cut-5\", \"test-m6a-vm-cut-6\", \"test-m6a-write-error\", \"test-m6a-write-timeout\", \"test-m6b-corrupt\", \"test-m6b-errors\", \"test-m6b-flush-error\", \"test-m6b-flush-poll-limit\", \"test-m6b-flush-timeout\", \"test-m6b-full\", \"test-m6b-recover\", \"test-m6b-reset-timeout\", \"test-m6b-vm-cut-after-flush\", \"test-m6b-vm-cut-before-ack\", \"test-m6b-write-error\", \"test-m6b-write-poll-limit\", \"test-m6b-write-timeout\", \"test-m6c-bad-descriptor\", \"test-m6c-corrupt\", \"test-m6c-errors\", \"test-m6c-flush-error\", \"test-m6c-flush-timeout\", \"test-m6c-full\", \"test-m6c-legacy\", \"test-m6c-recover\", \"test-m6c-reset-timeout\", \"test-m6c-used-flush\", \"test-m6c-used-write\", \"test-m6c-vm-cut-after-rename\", \"test-m6c-vm-cut-before-rename\", \"test-m6c-write-error\", \"test-m6c-write-timeout\", \"test-panic\", \"test-sdk-app-denied\", \"test-supervisor-crash\", \"test-supervisor-denied\", \"test-supervisor-parent-exit\", \"test-supervisor-quota\", \"test-supervisor-wait\", \"test-system-materiaal-recover\", \"test-system-materiaal-scale200\", \"test-system-net-recover\", \"test-system-random-sdk\", \"test-system-random-unknown\", \"test-system-random-wrong-caller\", \"test-system-recover\", \"test-system-tcp-recover\", \"test-tpm-crb-absent\", \"test-update-cut\", \"test-volume-corrupt\", \"test-volume-cut-data\", \"test-volume-cut-table\", \"test-volume-cut-txn\", \"test-volume-recover\", \"test-volume-recover-cut\"]",
+          "target": 2563674300582142029,
+          "profile": 12571733361092279615,
+          "path": 6082339381467505216,
+          "deps": [
+            [
+              2672590985164857922,
+              "block_protocol",
+              false,
+              13289485895614612402
+            ],
+            [
+              2913295069012151811,
+              "boot_protocol",
+              false,
+              9990236362441133652
+            ],
+            [
+              5193975034185637998,
+              "nieuw_os_display_client",
+              false,
+              8010544956367398898
+            ],
+            [
+              12360265739157128035,
+              "virtio_core",
+              false,
+              2253789976998450666
+            ],
+            [
+              12602428669690415403,
+              "virtio_rng_driver",
+              false,
+              13495623732353041952
+            ],
+            [
+              12755378066224904955,
+              "kernel_core",
+              false,
+              4018660563237423450
+            ],
+            [
+              12865963296513963883,
+              "capability_core",
+              false,
+              7253683359900150253
+            ],
+            [
+              13255507865592602426,
+              "virtio_blk_driver",
+              false,
+              6096379203328531321
+            ],
+            [
+              16707808386635700451,
+              "build_script_build",
+              false,
+              15027230805190650137
+            ],
+            [
+              18084914234867617505,
+              "nieuw_os_ps2",
+              false,
+              15153417579676315204
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/os-kernel-8ba64e8ee88938b1/dep-bin-os-kernel",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "link-arg=-Tkernel/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000"
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      },
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/x86_64-unknown-none/release/.fingerprint/os-kernel-6088cf0367c1de75/bin-os-kernel.json",
+        "sha256": "2e51839ee8ac3fe7cd58e4c35a107ae0468c1cea80fa2147e192d9592c9d80d3",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"default\", \"display-input\", \"fpu-context\", \"framebuffer\", \"milestone-m2\", \"milestone-m3\", \"milestone-m4\", \"milestone-m5\", \"milestone-m6a\", \"monotonic-clock\", \"native-keyring\", \"native-supervisor\", \"native-system\", \"native-system-display-input\", \"native-system-materiaal\", \"native-system-materiaal-probe\", \"native-volume\"]",
+          "declared_features": "[\"default\", \"display-input\", \"fpu-context\", \"framebuffer\", \"graphics-g0\", \"ipc-wait\", \"milestone-m2\", \"milestone-m3\", \"milestone-m4\", \"milestone-m5\", \"milestone-m6a\", \"milestone-m6b\", \"milestone-m6c\", \"monotonic-clock\", \"native-cap-digest-bench\", \"native-display-probe\", \"native-fpu\", \"native-ipc-wait\", \"native-keyring\", \"native-memory\", \"native-memory-guard\", \"native-memory-nx\", \"native-memory-oom\", \"native-memory-peer\", \"native-qsim\", \"native-qsim-job\", \"native-rtc\", \"native-sdk-app\", \"native-supervisor\", \"native-system\", \"native-system-clock\", \"native-system-display-input\", \"native-system-images\", \"native-system-materiaal\", \"native-system-materiaal-probe\", \"native-system-net\", \"native-system-net-clock\", \"native-system-random\", \"native-system-tcp\", \"native-update\", \"native-volume\", \"process-memory\", \"test-hang\", \"test-keyring-no-device\", \"test-keyring-restart\", \"test-keyring-stuck\", \"test-keyring-timeout\", \"test-m2-absent\", \"test-m2-double-fault\", \"test-m2-kernel-fault\", \"test-m2-nx\", \"test-m2-ro\", \"test-m3-avx\", \"test-m3-b-exit\", \"test-m3-cli\", \"test-m3-exit\", \"test-m3-guard-high\", \"test-m3-guard-low\", \"test-m3-heap-exec\", \"test-m3-idle\", \"test-m3-invalid-rsp\", \"test-m3-kernel-write\", \"test-m3-large-image\", \"test-m3-peer-read\", \"test-m3-peer-write\", \"test-m3-stack-exec\", \"test-m3-ud\", \"test-m3-x87\", \"test-m3-xmm\", \"test-m4-copy\", \"test-m4-handles\", \"test-m4-lifecycle\", \"test-m4-quotas\", \"test-m4-revoke\", \"test-m4-rights\", \"test-m4-snapshot\", \"test-m4-wire\", \"test-m5-async\", \"test-m5-bad-descriptor\", \"test-m5-cpu-dma\", \"test-m5-cpu-mmio\", \"test-m5-cpu-pci\", \"test-m5-device-rights\", \"test-m5-io-error\", \"test-m5-no-device\", \"test-m5-reset-timeout\", \"test-m5-restart\", \"test-m5-service-errors\", \"test-m5-timeout\", \"test-m5-used-id\", \"test-m5-used-index\", \"test-m5-used-long\", \"test-m5-used-short\", \"test-m5-used-status\", \"test-m6a-bad-descriptor\", \"test-m6a-corrupt-all\", \"test-m6a-device-rights\", \"test-m6a-flush-error\", \"test-m6a-flush-timeout\", \"test-m6a-full\", \"test-m6a-no-device\", \"test-m6a-no-flush\", \"test-m6a-readonly\", \"test-m6a-recover\", \"test-m6a-reset-timeout\", \"test-m6a-service-cut-1\", \"test-m6a-service-cut-2\", \"test-m6a-service-cut-3\", \"test-m6a-service-cut-4\", \"test-m6a-service-cut-5\", \"test-m6a-service-cut-6\", \"test-m6a-service-errors\", \"test-m6a-stale-generation\", \"test-m6a-torn-tail\", \"test-m6a-used-flush\", \"test-m6a-used-write\", \"test-m6a-vm-cut-1\", \"test-m6a-vm-cut-2\", \"test-m6a-vm-cut-3\", \"test-m6a-vm-cut-4\", \"test-m6a-vm-cut-5\", \"test-m6a-vm-cut-6\", \"test-m6a-write-error\", \"test-m6a-write-timeout\", \"test-m6b-corrupt\", \"test-m6b-errors\", \"test-m6b-flush-error\", \"test-m6b-flush-poll-limit\", \"test-m6b-flush-timeout\", \"test-m6b-full\", \"test-m6b-recover\", \"test-m6b-reset-timeout\", \"test-m6b-vm-cut-after-flush\", \"test-m6b-vm-cut-before-ack\", \"test-m6b-write-error\", \"test-m6b-write-poll-limit\", \"test-m6b-write-timeout\", \"test-m6c-bad-descriptor\", \"test-m6c-corrupt\", \"test-m6c-errors\", \"test-m6c-flush-error\", \"test-m6c-flush-timeout\", \"test-m6c-full\", \"test-m6c-legacy\", \"test-m6c-recover\", \"test-m6c-reset-timeout\", \"test-m6c-used-flush\", \"test-m6c-used-write\", \"test-m6c-vm-cut-after-rename\", \"test-m6c-vm-cut-before-rename\", \"test-m6c-write-error\", \"test-m6c-write-timeout\", \"test-panic\", \"test-sdk-app-denied\", \"test-supervisor-crash\", \"test-supervisor-denied\", \"test-supervisor-parent-exit\", \"test-supervisor-quota\", \"test-system-materiaal-recover\", \"test-system-materiaal-scale200\", \"test-system-net-recover\", \"test-system-random-sdk\", \"test-system-random-unknown\", \"test-system-random-wrong-caller\", \"test-system-recover\", \"test-system-tcp-recover\", \"test-update-cut\", \"test-volume-corrupt\", \"test-volume-cut-data\", \"test-volume-cut-table\", \"test-volume-cut-txn\", \"test-volume-recover\", \"test-volume-recover-cut\"]",
+          "target": 2563674300582142029,
+          "profile": 12571733361092279615,
+          "path": 6082339381467505216,
+          "deps": [
+            [
+              2672590985164857922,
+              "block_protocol",
+              false,
+              13289485895614612402
+            ],
+            [
+              2913295069012151811,
+              "boot_protocol",
+              false,
+              9990236362441133652
+            ],
+            [
+              5193975034185637998,
+              "nieuw_os_display_client",
+              false,
+              8010544956367398898
+            ],
+            [
+              12360265739157128035,
+              "virtio_core",
+              false,
+              2253789976998450666
+            ],
+            [
+              12602428669690415403,
+              "virtio_rng_driver",
+              false,
+              13495623732353041952
+            ],
+            [
+              12755378066224904955,
+              "kernel_core",
+              false,
+              4018660563237423450
+            ],
+            [
+              12865963296513963883,
+              "capability_core",
+              false,
+              7253683359900150253
+            ],
+            [
+              13255507865592602426,
+              "virtio_blk_driver",
+              false,
+              6096379203328531321
+            ],
+            [
+              16707808386635700451,
+              "build_script_build",
+              false,
+              14072462826744177332
+            ],
+            [
+              18084914234867617505,
+              "nieuw_os_ps2",
+              false,
+              15153417579676315204
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/os-kernel-6088cf0367c1de75/dep-bin-os-kernel",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "link-arg=-Tkernel/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000"
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      },
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/x86_64-unknown-none/release/.fingerprint/os-kernel-494625c7d84c420e/bin-os-kernel.json",
+        "sha256": "229623a132038d61bbe09db070d9a6bb2846b918585abc1f3ab0570b80e8a476",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"default\", \"display-input\", \"fpu-context\", \"framebuffer\", \"ipc-wait\", \"milestone-m2\", \"milestone-m3\", \"milestone-m4\", \"milestone-m5\", \"milestone-m6a\", \"monotonic-clock\", \"native-keyring\", \"native-supervisor\", \"native-system\", \"native-system-display-input\", \"native-system-materiaal\", \"native-system-materiaal-probe\", \"native-volume\", \"test-system-materiaal-recover\", \"test-system-recover\"]",
+          "declared_features": "[\"default\", \"display-input\", \"fpu-context\", \"framebuffer\", \"graphics-g0\", \"ipc-wait\", \"milestone-m2\", \"milestone-m3\", \"milestone-m4\", \"milestone-m5\", \"milestone-m6a\", \"milestone-m6b\", \"milestone-m6c\", \"monotonic-clock\", \"native-cap-digest-bench\", \"native-display-probe\", \"native-fpu\", \"native-ipc-wait\", \"native-keyring\", \"native-memory\", \"native-memory-guard\", \"native-memory-nx\", \"native-memory-oom\", \"native-memory-peer\", \"native-qsim\", \"native-qsim-job\", \"native-rtc\", \"native-sdk-app\", \"native-supervisor\", \"native-system\", \"native-system-clock\", \"native-system-display-input\", \"native-system-images\", \"native-system-materiaal\", \"native-system-materiaal-probe\", \"native-system-net\", \"native-system-net-clock\", \"native-system-random\", \"native-system-tcp\", \"native-tpm-crb\", \"native-update\", \"native-volume\", \"process-memory\", \"test-fpu-wait\", \"test-hang\", \"test-keyring-no-device\", \"test-keyring-restart\", \"test-keyring-stuck\", \"test-keyring-timeout\", \"test-m2-absent\", \"test-m2-double-fault\", \"test-m2-kernel-fault\", \"test-m2-nx\", \"test-m2-ro\", \"test-m3-avx\", \"test-m3-b-exit\", \"test-m3-cli\", \"test-m3-exit\", \"test-m3-guard-high\", \"test-m3-guard-low\", \"test-m3-heap-exec\", \"test-m3-idle\", \"test-m3-invalid-rsp\", \"test-m3-kernel-write\", \"test-m3-large-image\", \"test-m3-peer-read\", \"test-m3-peer-write\", \"test-m3-stack-exec\", \"test-m3-ud\", \"test-m3-x87\", \"test-m3-xmm\", \"test-m4-copy\", \"test-m4-handles\", \"test-m4-lifecycle\", \"test-m4-quotas\", \"test-m4-revoke\", \"test-m4-rights\", \"test-m4-snapshot\", \"test-m4-wire\", \"test-m5-async\", \"test-m5-bad-descriptor\", \"test-m5-cpu-dma\", \"test-m5-cpu-mmio\", \"test-m5-cpu-pci\", \"test-m5-device-rights\", \"test-m5-io-error\", \"test-m5-no-device\", \"test-m5-reset-timeout\", \"test-m5-restart\", \"test-m5-service-errors\", \"test-m5-timeout\", \"test-m5-used-id\", \"test-m5-used-index\", \"test-m5-used-long\", \"test-m5-used-short\", \"test-m5-used-status\", \"test-m6a-bad-descriptor\", \"test-m6a-corrupt-all\", \"test-m6a-device-rights\", \"test-m6a-flush-error\", \"test-m6a-flush-timeout\", \"test-m6a-full\", \"test-m6a-no-device\", \"test-m6a-no-flush\", \"test-m6a-readonly\", \"test-m6a-recover\", \"test-m6a-reset-timeout\", \"test-m6a-service-cut-1\", \"test-m6a-service-cut-2\", \"test-m6a-service-cut-3\", \"test-m6a-service-cut-4\", \"test-m6a-service-cut-5\", \"test-m6a-service-cut-6\", \"test-m6a-service-errors\", \"test-m6a-stale-generation\", \"test-m6a-torn-tail\", \"test-m6a-used-flush\", \"test-m6a-used-write\", \"test-m6a-vm-cut-1\", \"test-m6a-vm-cut-2\", \"test-m6a-vm-cut-3\", \"test-m6a-vm-cut-4\", \"test-m6a-vm-cut-5\", \"test-m6a-vm-cut-6\", \"test-m6a-write-error\", \"test-m6a-write-timeout\", \"test-m6b-corrupt\", \"test-m6b-errors\", \"test-m6b-flush-error\", \"test-m6b-flush-poll-limit\", \"test-m6b-flush-timeout\", \"test-m6b-full\", \"test-m6b-recover\", \"test-m6b-reset-timeout\", \"test-m6b-vm-cut-after-flush\", \"test-m6b-vm-cut-before-ack\", \"test-m6b-write-error\", \"test-m6b-write-poll-limit\", \"test-m6b-write-timeout\", \"test-m6c-bad-descriptor\", \"test-m6c-corrupt\", \"test-m6c-errors\", \"test-m6c-flush-error\", \"test-m6c-flush-timeout\", \"test-m6c-full\", \"test-m6c-legacy\", \"test-m6c-recover\", \"test-m6c-reset-timeout\", \"test-m6c-used-flush\", \"test-m6c-used-write\", \"test-m6c-vm-cut-after-rename\", \"test-m6c-vm-cut-before-rename\", \"test-m6c-write-error\", \"test-m6c-write-timeout\", \"test-panic\", \"test-sdk-app-denied\", \"test-supervisor-crash\", \"test-supervisor-denied\", \"test-supervisor-parent-exit\", \"test-supervisor-quota\", \"test-supervisor-wait\", \"test-system-materiaal-recover\", \"test-system-materiaal-scale200\", \"test-system-net-recover\", \"test-system-random-sdk\", \"test-system-random-unknown\", \"test-system-random-wrong-caller\", \"test-system-recover\", \"test-system-tcp-recover\", \"test-tpm-crb-absent\", \"test-update-cut\", \"test-volume-corrupt\", \"test-volume-cut-data\", \"test-volume-cut-table\", \"test-volume-cut-txn\", \"test-volume-recover\", \"test-volume-recover-cut\"]",
+          "target": 2563674300582142029,
+          "profile": 12571733361092279615,
+          "path": 6082339381467505216,
+          "deps": [
+            [
+              2672590985164857922,
+              "block_protocol",
+              false,
+              13289485895614612402
+            ],
+            [
+              2913295069012151811,
+              "boot_protocol",
+              false,
+              9990236362441133652
+            ],
+            [
+              5193975034185637998,
+              "nieuw_os_display_client",
+              false,
+              8010544956367398898
+            ],
+            [
+              12360265739157128035,
+              "virtio_core",
+              false,
+              2253789976998450666
+            ],
+            [
+              12602428669690415403,
+              "virtio_rng_driver",
+              false,
+              13495623732353041952
+            ],
+            [
+              12755378066224904955,
+              "kernel_core",
+              false,
+              4018660563237423450
+            ],
+            [
+              12865963296513963883,
+              "capability_core",
+              false,
+              7253683359900150253
+            ],
+            [
+              13255507865592602426,
+              "virtio_blk_driver",
+              false,
+              6096379203328531321
+            ],
+            [
+              16707808386635700451,
+              "build_script_build",
+              false,
+              8994952716251229800
+            ],
+            [
+              18084914234867617505,
+              "nieuw_os_ps2",
+              false,
+              15153417579676315204
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/os-kernel-494625c7d84c420e/dep-bin-os-kernel",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "link-arg=-Tkernel/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000"
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      },
+      {
+        "path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/x86_64-unknown-none/release/.fingerprint/os-kernel-b090ea9e66fe3809/bin-os-kernel.json",
+        "sha256": "551ecee66c5d14b1e56c3ef7c02803415d212c077828c2fe88d2e0abf2c6dd40",
+        "content": {
+          "rustc": 16285725380928457773,
+          "features": "[\"default\", \"display-input\", \"fpu-context\", \"framebuffer\", \"ipc-wait\", \"milestone-m2\", \"milestone-m3\", \"milestone-m4\", \"milestone-m5\", \"milestone-m6a\", \"monotonic-clock\", \"native-keyring\", \"native-supervisor\", \"native-system\", \"native-system-display-input\", \"native-system-materiaal\", \"native-volume\"]",
+          "declared_features": "[\"default\", \"display-input\", \"fpu-context\", \"framebuffer\", \"graphics-g0\", \"ipc-wait\", \"milestone-m2\", \"milestone-m3\", \"milestone-m4\", \"milestone-m5\", \"milestone-m6a\", \"milestone-m6b\", \"milestone-m6c\", \"monotonic-clock\", \"native-cap-digest-bench\", \"native-display-probe\", \"native-fpu\", \"native-ipc-wait\", \"native-keyring\", \"native-memory\", \"native-memory-guard\", \"native-memory-nx\", \"native-memory-oom\", \"native-memory-peer\", \"native-qsim\", \"native-qsim-job\", \"native-rtc\", \"native-sdk-app\", \"native-supervisor\", \"native-system\", \"native-system-clock\", \"native-system-display-input\", \"native-system-images\", \"native-system-materiaal\", \"native-system-materiaal-probe\", \"native-system-net\", \"native-system-net-clock\", \"native-system-random\", \"native-system-tcp\", \"native-tpm-crb\", \"native-update\", \"native-volume\", \"process-memory\", \"test-fpu-wait\", \"test-hang\", \"test-keyring-no-device\", \"test-keyring-restart\", \"test-keyring-stuck\", \"test-keyring-timeout\", \"test-m2-absent\", \"test-m2-double-fault\", \"test-m2-kernel-fault\", \"test-m2-nx\", \"test-m2-ro\", \"test-m3-avx\", \"test-m3-b-exit\", \"test-m3-cli\", \"test-m3-exit\", \"test-m3-guard-high\", \"test-m3-guard-low\", \"test-m3-heap-exec\", \"test-m3-idle\", \"test-m3-invalid-rsp\", \"test-m3-kernel-write\", \"test-m3-large-image\", \"test-m3-peer-read\", \"test-m3-peer-write\", \"test-m3-stack-exec\", \"test-m3-ud\", \"test-m3-x87\", \"test-m3-xmm\", \"test-m4-copy\", \"test-m4-handles\", \"test-m4-lifecycle\", \"test-m4-quotas\", \"test-m4-revoke\", \"test-m4-rights\", \"test-m4-snapshot\", \"test-m4-wire\", \"test-m5-async\", \"test-m5-bad-descriptor\", \"test-m5-cpu-dma\", \"test-m5-cpu-mmio\", \"test-m5-cpu-pci\", \"test-m5-device-rights\", \"test-m5-io-error\", \"test-m5-no-device\", \"test-m5-reset-timeout\", \"test-m5-restart\", \"test-m5-service-errors\", \"test-m5-timeout\", \"test-m5-used-id\", \"test-m5-used-index\", \"test-m5-used-long\", \"test-m5-used-short\", \"test-m5-used-status\", \"test-m6a-bad-descriptor\", \"test-m6a-corrupt-all\", \"test-m6a-device-rights\", \"test-m6a-flush-error\", \"test-m6a-flush-timeout\", \"test-m6a-full\", \"test-m6a-no-device\", \"test-m6a-no-flush\", \"test-m6a-readonly\", \"test-m6a-recover\", \"test-m6a-reset-timeout\", \"test-m6a-service-cut-1\", \"test-m6a-service-cut-2\", \"test-m6a-service-cut-3\", \"test-m6a-service-cut-4\", \"test-m6a-service-cut-5\", \"test-m6a-service-cut-6\", \"test-m6a-service-errors\", \"test-m6a-stale-generation\", \"test-m6a-torn-tail\", \"test-m6a-used-flush\", \"test-m6a-used-write\", \"test-m6a-vm-cut-1\", \"test-m6a-vm-cut-2\", \"test-m6a-vm-cut-3\", \"test-m6a-vm-cut-4\", \"test-m6a-vm-cut-5\", \"test-m6a-vm-cut-6\", \"test-m6a-write-error\", \"test-m6a-write-timeout\", \"test-m6b-corrupt\", \"test-m6b-errors\", \"test-m6b-flush-error\", \"test-m6b-flush-poll-limit\", \"test-m6b-flush-timeout\", \"test-m6b-full\", \"test-m6b-recover\", \"test-m6b-reset-timeout\", \"test-m6b-vm-cut-after-flush\", \"test-m6b-vm-cut-before-ack\", \"test-m6b-write-error\", \"test-m6b-write-poll-limit\", \"test-m6b-write-timeout\", \"test-m6c-bad-descriptor\", \"test-m6c-corrupt\", \"test-m6c-errors\", \"test-m6c-flush-error\", \"test-m6c-flush-timeout\", \"test-m6c-full\", \"test-m6c-legacy\", \"test-m6c-recover\", \"test-m6c-reset-timeout\", \"test-m6c-used-flush\", \"test-m6c-used-write\", \"test-m6c-vm-cut-after-rename\", \"test-m6c-vm-cut-before-rename\", \"test-m6c-write-error\", \"test-m6c-write-timeout\", \"test-panic\", \"test-sdk-app-denied\", \"test-supervisor-crash\", \"test-supervisor-denied\", \"test-supervisor-parent-exit\", \"test-supervisor-quota\", \"test-supervisor-wait\", \"test-system-materiaal-recover\", \"test-system-materiaal-scale200\", \"test-system-net-recover\", \"test-system-random-sdk\", \"test-system-random-unknown\", \"test-system-random-wrong-caller\", \"test-system-recover\", \"test-system-tcp-recover\", \"test-tpm-crb-absent\", \"test-update-cut\", \"test-volume-corrupt\", \"test-volume-cut-data\", \"test-volume-cut-table\", \"test-volume-cut-txn\", \"test-volume-recover\", \"test-volume-recover-cut\"]",
+          "target": 2563674300582142029,
+          "profile": 12571733361092279615,
+          "path": 6082339381467505216,
+          "deps": [
+            [
+              2672590985164857922,
+              "block_protocol",
+              false,
+              13289485895614612402
+            ],
+            [
+              2913295069012151811,
+              "boot_protocol",
+              false,
+              9990236362441133652
+            ],
+            [
+              5193975034185637998,
+              "nieuw_os_display_client",
+              false,
+              8010544956367398898
+            ],
+            [
+              12360265739157128035,
+              "virtio_core",
+              false,
+              2253789976998450666
+            ],
+            [
+              12602428669690415403,
+              "virtio_rng_driver",
+              false,
+              13495623732353041952
+            ],
+            [
+              12755378066224904955,
+              "kernel_core",
+              false,
+              4018660563237423450
+            ],
+            [
+              12865963296513963883,
+              "capability_core",
+              false,
+              7253683359900150253
+            ],
+            [
+              13255507865592602426,
+              "virtio_blk_driver",
+              false,
+              6096379203328531321
+            ],
+            [
+              16707808386635700451,
+              "build_script_build",
+              false,
+              3816659092306775022
+            ],
+            [
+              18084914234867617505,
+              "nieuw_os_ps2",
+              false,
+              15153417579676315204
+            ]
+          ],
+          "local": [
+            {
+              "CheckDepInfo": {
+                "dep_info": "x86_64-unknown-none/release/.fingerprint/os-kernel-b090ea9e66fe3809/dep-bin-os-kernel",
+                "checksum": false
+              }
+            }
+          ],
+          "rustflags": [
+            "-C",
+            "code-model=small",
+            "-C",
+            "relocation-model=static",
+            "-C",
+            "no-redzone=yes",
+            "-C",
+            "link-arg=-Tkernel/linker.ld",
+            "-C",
+            "link-arg=--no-pie",
+            "-C",
+            "link-arg=--build-id=none",
+            "-C",
+            "link-arg=-zmax-page-size=0x1000"
+          ],
+          "config": 9831564650850911284,
+          "compile_kind": 5056187092498294466
+        }
+      }
+    ]
+  }
+}

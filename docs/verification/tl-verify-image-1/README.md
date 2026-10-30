@@ -6,6 +6,13 @@ De bron is correct, maar de onafhankelijk gebouwde executablebytes zijn
 niet gelijk aan het eerder geaccepteerde image. De oorzaak is niet vastgesteld;
 dit rapport noemt geen bewezen compiler-, cache-, bron- of runtimefout.
 
+De daarna afzonderlijk opgedragen **read-only reproduceerbaarheidstrace** staat
+in [REPRODUCIBILITY.md](REPRODUCIBILITY.md). De afwijkingen zijn niet uitsluitend
+onbeladen metadata: drie apps en de kernel hebben verschillende geladen
+code/data. Vier andere apps hebben wel gelijke PT_LOAD-bytes; bij de loader
+zijn alle afwijkingen tot tijdstempel- en CodeView-debugvelden gelokaliseerd.
+Dit verandert geen oude hash, acceptatie-eis of runtimeuitslag.
+
 Eigen branch `simon/tl-verify-image-1`, checkout/bewijsbasis
 `3d2e1aba218feb39e02a1a5d257c5eb63f50e26b`, codebron
 `74d15ac09ac61c8d47a882c3c982711af1a9d891`, bronvingerafdruk v3:

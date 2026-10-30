@@ -1,0 +1,28 @@
+{
+  "rustc": {
+    "command": [
+      "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustc",
+      "-vV"
+    ],
+    "output": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8\n",
+    "sha256": "e6abf55ab1859e7c990be77fd593f51661ea99fb2fde626ae9f4108aaa34e7fa"
+  },
+  "cargo": {
+    "command": [
+      "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo",
+      "-vV"
+    ],
+    "output": "cargo 1.90.0 (840b83a10 2025-07-30)\nrelease: 1.90.0\ncommit-hash: 840b83a10fb0e039a83f4d70ad032892c287570a\ncommit-date: 2025-07-30\nhost: x86_64-unknown-linux-gnu\nlibgit2: 1.9.1 (sys:0.20.2 vendored)\nlibcurl: 8.14.1-DEV (sys:0.4.82+curl-8.14.1 vendored ssl:OpenSSL/3.5.0)\nssl: OpenSSL 3.5.0 8 Apr 2025\nos: Ubuntu 26.4.0 (resolute) [64-bit]\n",
+    "sha256": "51de284e8bb0d03dcee595a0fb1cb3a952fe9e7e4b953a8b1467b7f71725b561"
+  },
+  "linker": {
+    "command": [
+      "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld",
+      "-flavor",
+      "gnu",
+      "--version"
+    ],
+    "output": "LLD 20.1.8 (/checkout/src/llvm-project/llvm e8a2ffcf322f45b8dce82c65ab27a3e2430a6b51) (compatible with GNU linkers)\n",
+    "sha256": "5b224e53ad32986a5bf2e349addbe00c5ef37814a6a5584a9f2e3d03bb524306"
+  }
+}

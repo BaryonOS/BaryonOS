@@ -1,0 +1,234 @@
+{
+  "own": {
+    "build-materiaal-keyring.json": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/keyring/build.py"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco",
+      "started_unix": 1793380203.4963453,
+      "duration_s": 0.10901761054992676,
+      "returncode": 0
+    },
+    "build-materiaal-volume-docs.json": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/volume-docs/build.py"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco",
+      "started_unix": 1793380203.6064384,
+      "duration_s": 0.10531044006347656,
+      "returncode": 0
+    },
+    "build-materiaal-input-service.json": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/input-service/build.py"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco",
+      "started_unix": 1793380203.9436264,
+      "duration_s": 0.1283557415008545,
+      "returncode": 0
+    },
+    "build-materiaal-desktop-init.json": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/desktop-init/build.py"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco",
+      "started_unix": 1793380203.367043,
+      "duration_s": 0.12822937965393066,
+      "returncode": 0
+    },
+    "build-native-system-materiaal-os-loader.json": {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "build",
+        "--locked",
+        "--release",
+        "--target-dir",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1",
+        "-p",
+        "os-loader",
+        "--target",
+        "x86_64-unknown-uefi",
+        "--features",
+        "framebuffer"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco",
+      "started_unix": 1793380204.074029,
+      "duration_s": 0.0512537956237793,
+      "returncode": 0
+    },
+    "build-materiaal-materiaal.json": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/materiaal/build.py"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco",
+      "started_unix": 1793380203.712688,
+      "duration_s": 0.09702944755554199,
+      "returncode": 0
+    },
+    "build-native-system-materiaal-os-kernel.json": {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "build",
+        "--locked",
+        "--release",
+        "--target-dir",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1",
+        "-p",
+        "os-kernel",
+        "--target",
+        "x86_64-unknown-none",
+        "--features",
+        "native-system-materiaal"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco",
+      "started_unix": 1793380204.1253912,
+      "duration_s": 1.2721478939056396,
+      "returncode": 0
+    },
+    "build-materiaal-compositor.json": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/compositor/build.py"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco",
+      "started_unix": 1793380203.8113775,
+      "duration_s": 0.1313314437866211,
+      "returncode": 0
+    },
+    "build-materiaal-materiaal.stdout.txt": "{\"command\": [\"cargo\", \"+1.90.0\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/materiaal/Cargo.toml\", \"--features\", \"native\", \"--bin\", \"materiaal-app\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/materiaal-materiaal\"}",
+    "build-materiaal-volume-docs.stdout.txt": "{\"command\": [\"cargo\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/Cargo.toml\", \"-p\", \"nieuw-os-volume-docs-example\", \"--features\", \"native\", \"--bins\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/materiaal-volume-docs\"}",
+    "build-materiaal-compositor.stdout.txt": "{\"command\": [\"cargo\", \"+1.90.0\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/compositor/Cargo.toml\", \"--features\", \"native\", \"--bins\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/materiaal-compositor\", \"app_toolchain\": \"1.90.0\", \"linker\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld\"}",
+    "build-materiaal-input-service.stdout.txt": "{\"command\": [\"cargo\", \"+1.90.0\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/input-service/Cargo.toml\", \"--features\", \"native\", \"--bins\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/materiaal-input-service\", \"app_toolchain\": \"1.90.0\", \"linker\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld\"}",
+    "build-materiaal-keyring.stdout.txt": "{\"command\": [\"cargo\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/Cargo.toml\", \"-p\", \"nieuw-os-keyring-example\", \"--features\", \"native\", \"--bins\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/materiaal-keyring\"}",
+    "build-materiaal-desktop-init.stdout.txt": "{\"command\": [\"cargo\", \"+1.90.0\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/sdk/examples/desktop-init/Cargo.toml\", \"--features\", \"native\", \"--bins\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/target/tl-verify-image-1/materiaal-desktop-init\", \"app_toolchain\": \"1.90.0\", \"linker\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld\"}"
+  },
+  "builder": {
+    "build-materiaal-keyring.json": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/keyring/build.py"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle",
+      "started_unix": 1793379851.8572624,
+      "duration_s": 0.10569500923156738,
+      "returncode": 0
+    },
+    "build-materiaal-volume-docs.json": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/volume-docs/build.py"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle",
+      "started_unix": 1793379851.9639978,
+      "duration_s": 0.10297036170959473,
+      "returncode": 0
+    },
+    "build-materiaal-input-service.json": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/input-service/build.py"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle",
+      "started_unix": 1793379852.315232,
+      "duration_s": 0.13593196868896484,
+      "returncode": 0
+    },
+    "build-materiaal-desktop-init.json": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/desktop-init/build.py"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle",
+      "started_unix": 1793379851.7283766,
+      "duration_s": 0.12781643867492676,
+      "returncode": 0
+    },
+    "build-native-system-materiaal-os-loader.json": {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "build",
+        "--locked",
+        "--release",
+        "--target-dir",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline",
+        "-p",
+        "os-loader",
+        "--target",
+        "x86_64-unknown-uefi",
+        "--features",
+        "framebuffer"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle",
+      "started_unix": 1793379852.4533226,
+      "duration_s": 0.052347660064697266,
+      "returncode": 0
+    },
+    "build-materiaal-materiaal.json": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/materiaal/build.py"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle",
+      "started_unix": 1793379852.0681338,
+      "duration_s": 0.1005699634552002,
+      "returncode": 0
+    },
+    "build-native-system-materiaal-os-kernel.json": {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "build",
+        "--locked",
+        "--release",
+        "--target-dir",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline",
+        "-p",
+        "os-kernel",
+        "--target",
+        "x86_64-unknown-none",
+        "--features",
+        "native-system-materiaal"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle",
+      "started_unix": 1793379852.5057876,
+      "duration_s": 1.226780652999878,
+      "returncode": 0
+    },
+    "build-materiaal-compositor.json": {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/compositor/build.py"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle",
+      "started_unix": 1793379852.1706245,
+      "duration_s": 0.14354205131530762,
+      "returncode": 0
+    },
+    "build-materiaal-materiaal.stdout.txt": "{\"command\": [\"cargo\", \"+1.90.0\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/materiaal/Cargo.toml\", \"--features\", \"native\", \"--bin\", \"materiaal-app\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/materiaal-materiaal\"}",
+    "build-materiaal-volume-docs.stdout.txt": "{\"command\": [\"cargo\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/Cargo.toml\", \"-p\", \"nieuw-os-volume-docs-example\", \"--features\", \"native\", \"--bins\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/materiaal-volume-docs\"}",
+    "build-materiaal-compositor.stdout.txt": "{\"command\": [\"cargo\", \"+1.90.0\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/compositor/Cargo.toml\", \"--features\", \"native\", \"--bins\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/materiaal-compositor\", \"app_toolchain\": \"1.90.0\", \"linker\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld\"}",
+    "build-materiaal-input-service.stdout.txt": "{\"command\": [\"cargo\", \"+1.90.0\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/input-service/Cargo.toml\", \"--features\", \"native\", \"--bins\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/materiaal-input-service\", \"app_toolchain\": \"1.90.0\", \"linker\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld\"}",
+    "build-materiaal-keyring.stdout.txt": "{\"command\": [\"cargo\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/Cargo.toml\", \"-p\", \"nieuw-os-keyring-example\", \"--features\", \"native\", \"--bins\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/materiaal-keyring\"}",
+    "build-materiaal-desktop-init.stdout.txt": "{\"command\": [\"cargo\", \"+1.90.0\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/sdk/examples/desktop-init/Cargo.toml\", \"--features\", \"native\", \"--bins\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/target/native-test-version/gui-baseline/materiaal-desktop-init\", \"app_toolchain\": \"1.90.0\", \"linker\": \"/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld\"}"
+  }
+}

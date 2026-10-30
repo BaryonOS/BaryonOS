@@ -1,0 +1,1199 @@
+[
+  {
+    "file": "esp/kernel.elf",
+    "first_file_difference": 152,
+    "sizes": [
+      2230376,
+      2230376
+    ],
+    "sections": {
+      "": {
+        "own_offset": 0,
+        "builder_offset": 0,
+        "sizes": [
+          0,
+          0
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "builder_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      ".text": {
+        "own_offset": 4096,
+        "builder_offset": 4096,
+        "sizes": [
+          150679,
+          150679
+        ],
+        "equal": false,
+        "first_relative_difference": 965,
+        "own_sha256": "4245bf0bc16546a1ba95de31611618824d4a0ab39c50db2d2f110a6bcbfb14e5",
+        "builder_sha256": "86527463efc89bb61ab6c4c17204eefee919ea8c1f8ec774de6323525bce9367"
+      },
+      ".rodata": {
+        "own_offset": 155648,
+        "builder_offset": 155648,
+        "sizes": [
+          784752,
+          784776
+        ],
+        "equal": false,
+        "first_relative_difference": 1203,
+        "own_sha256": "5aea6b7d34d92ada96c3f8d7f55c9f3b0f599ba042866b7fb6bbe1d94174d33e",
+        "builder_sha256": "6236fb12c8b9a47ddadc97c60766b11321f01dc875d41e5ca14fd296f8dce565"
+      },
+      ".data": {
+        "own_offset": 942080,
+        "builder_offset": 942080,
+        "sizes": [
+          1258152,
+          1258152
+        ],
+        "equal": false,
+        "first_relative_difference": 1257480,
+        "own_sha256": "eda3e185338f05fbd9ea605361035f1492fddfc45fd5bf159bad57b82feb4e4d",
+        "builder_sha256": "5693558d71de5ca34befe4285cececd0d2e8d2796500b9cf7cbaa1c2bc3e9226"
+      },
+      ".bss": {
+        "own_offset": 2200232,
+        "builder_offset": 2200232,
+        "sizes": [
+          3100856,
+          3100856
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "builder_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      ".symtab": {
+        "own_offset": 2200232,
+        "builder_offset": 2200232,
+        "sizes": [
+          9048,
+          9048
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "0f28c72b7adce23acccb1fa83a915ff09cb997d0528ddbd15d9881c77235c20c",
+        "builder_sha256": "0f28c72b7adce23acccb1fa83a915ff09cb997d0528ddbd15d9881c77235c20c"
+      },
+      ".shstrtab": {
+        "own_offset": 2209280,
+        "builder_offset": 2209280,
+        "sizes": [
+          52,
+          52
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "6c61e4e7374e46f86d342d9a3e1c58f2859f44423cbe92484da8bc54d1d9507f",
+        "builder_sha256": "6c61e4e7374e46f86d342d9a3e1c58f2859f44423cbe92484da8bc54d1d9507f"
+      },
+      ".strtab": {
+        "own_offset": 2209332,
+        "builder_offset": 2209332,
+        "sizes": [
+          20525,
+          20525
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "09458f67195bb25ba7c55446f405d91b680f96d34e9f5cbbd51ef8f78dc7168a",
+        "builder_sha256": "09458f67195bb25ba7c55446f405d91b680f96d34e9f5cbbd51ef8f78dc7168a"
+      }
+    },
+    "load_segments": [
+      {
+        "flags": 5,
+        "vaddr": 33554432,
+        "own_filesz": 150679,
+        "builder_filesz": 150679,
+        "metadata_equal": true,
+        "payload_equal": false,
+        "first_payload_difference": 965
+      },
+      {
+        "flags": 4,
+        "vaddr": 33705984,
+        "own_filesz": 784752,
+        "builder_filesz": 784776,
+        "metadata_equal": false,
+        "payload_equal": false,
+        "first_payload_difference": 1203
+      },
+      {
+        "flags": 6,
+        "vaddr": 34492416,
+        "own_filesz": 1258152,
+        "builder_filesz": 1258152,
+        "metadata_equal": true,
+        "payload_equal": false,
+        "first_payload_difference": 1257480
+      }
+    ]
+  },
+  {
+    "file": "users/materiaal/desktop-init.elf",
+    "first_file_difference": 33312,
+    "sizes": [
+      41528,
+      41528
+    ],
+    "sections": {
+      "": {
+        "own_offset": 0,
+        "builder_offset": 0,
+        "sizes": [
+          0,
+          0
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "builder_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      ".text.entry": {
+        "own_offset": 4096,
+        "builder_offset": 4096,
+        "sizes": [
+          6,
+          6
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "7e640a078f810e79cf0bb8229e1ef216f8aab019e01d6026812e38fec430687e",
+        "builder_sha256": "7e640a078f810e79cf0bb8229e1ef216f8aab019e01d6026812e38fec430687e"
+      },
+      ".app.startup": {
+        "own_offset": 8192,
+        "builder_offset": 8192,
+        "sizes": [
+          1024,
+          1024
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "builder_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+      },
+      ".rodata": {
+        "own_offset": 12288,
+        "builder_offset": 12288,
+        "sizes": [
+          1098,
+          1098
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "38fe28e622c9dae8199c908b5966d3f8568c22f51a7269902d64d7325aef3202",
+        "builder_sha256": "38fe28e622c9dae8199c908b5966d3f8568c22f51a7269902d64d7325aef3202"
+      },
+      ".data": {
+        "own_offset": 16384,
+        "builder_offset": 16384,
+        "sizes": [
+          88,
+          88
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "aa62da0c91809c1d3389caa39e2f3e8e9493b1808b65d6cab5864283b09be753",
+        "builder_sha256": "aa62da0c91809c1d3389caa39e2f3e8e9493b1808b65d6cab5864283b09be753"
+      },
+      ".text": {
+        "own_offset": 20480,
+        "builder_offset": 20480,
+        "sizes": [
+          12711,
+          12711
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e1d5fa24349203a51f6883e7da20897260716f6152414dc0223792d131cf0976",
+        "builder_sha256": "e1d5fa24349203a51f6883e7da20897260716f6152414dc0223792d131cf0976"
+      },
+      ".symtab": {
+        "own_offset": 33192,
+        "builder_offset": 33192,
+        "sizes": [
+          2184,
+          2184
+        ],
+        "equal": false,
+        "first_relative_difference": 120,
+        "own_sha256": "bdadc0ff635208c8f748d6fa4a780a5284365a061f7a7cbe570c04cbaf442dd3",
+        "builder_sha256": "876f53e222c6b25ce91babe24b51d673cdffa53efecb32d39660329f174d9fec"
+      },
+      ".shstrtab": {
+        "own_offset": 35376,
+        "builder_offset": 35376,
+        "sizes": [
+          72,
+          72
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "90da271d9a7eef48882721657fa63d2197d09ee9d1144b2769b9633b2e8ece3f",
+        "builder_sha256": "90da271d9a7eef48882721657fa63d2197d09ee9d1144b2769b9633b2e8ece3f"
+      },
+      ".strtab": {
+        "own_offset": 35448,
+        "builder_offset": 35448,
+        "sizes": [
+          5499,
+          5498
+        ],
+        "equal": false,
+        "first_relative_difference": 14,
+        "own_sha256": "9e607306a300b7c28d9a508ec11f261da4eef4f60a5900fdc0af450faf7c6729",
+        "builder_sha256": "b57460d3aef8554cdac31f1dcbdf4f4a92635022af6cf7a6ecea28b5eef74d01"
+      }
+    },
+    "load_segments": [
+      {
+        "flags": 5,
+        "vaddr": 1073741824,
+        "own_filesz": 6,
+        "builder_filesz": 6,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 6,
+        "vaddr": 1073807360,
+        "own_filesz": 1024,
+        "builder_filesz": 1024,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 4,
+        "vaddr": 1073872896,
+        "own_filesz": 1098,
+        "builder_filesz": 1098,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 6,
+        "vaddr": 1074003968,
+        "own_filesz": 88,
+        "builder_filesz": 88,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 5,
+        "vaddr": 1074135040,
+        "own_filesz": 12711,
+        "builder_filesz": 12711,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      }
+    ]
+  },
+  {
+    "file": "users/materiaal/input-policy.elf",
+    "first_file_difference": 40578,
+    "sizes": [
+      48000,
+      48000
+    ],
+    "sections": {
+      "": {
+        "own_offset": 0,
+        "builder_offset": 0,
+        "sizes": [
+          0,
+          0
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "builder_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      ".text.entry": {
+        "own_offset": 4096,
+        "builder_offset": 4096,
+        "sizes": [
+          6,
+          6
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "a03eda318de49a8947c260c915593af91624542677d98d9d046bed301c442319",
+        "builder_sha256": "a03eda318de49a8947c260c915593af91624542677d98d9d046bed301c442319"
+      },
+      ".data": {
+        "own_offset": 8192,
+        "builder_offset": 8192,
+        "sizes": [
+          1200,
+          1200
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "a74ca224c979d9b42e6e1668ce5af8f72560e955519d6718e3f014d252509dff",
+        "builder_sha256": "a74ca224c979d9b42e6e1668ce5af8f72560e955519d6718e3f014d252509dff"
+      },
+      ".rodata": {
+        "own_offset": 12288,
+        "builder_offset": 12288,
+        "sizes": [
+          2522,
+          2522
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "594f1511c3f4b166f68a896d750851c9e6775da0df7c598f5fc2961dea9f667b",
+        "builder_sha256": "594f1511c3f4b166f68a896d750851c9e6775da0df7c598f5fc2961dea9f667b"
+      },
+      ".text": {
+        "own_offset": 16384,
+        "builder_offset": 16384,
+        "sizes": [
+          21383,
+          21383
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "b61b2a7a3c65ca98fccdf038a12b4dcaa83c3ebba35c4f885d1222a546d2cf40",
+        "builder_sha256": "b61b2a7a3c65ca98fccdf038a12b4dcaa83c3ebba35c4f885d1222a546d2cf40"
+      },
+      ".symtab": {
+        "own_offset": 37768,
+        "builder_offset": 37768,
+        "sizes": [
+          2736,
+          2736
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "800f9ef6d3ab8e8cc1eb9ec5fc5d9eaff02176e17f4ab41bebfe258fe44174ca",
+        "builder_sha256": "800f9ef6d3ab8e8cc1eb9ec5fc5d9eaff02176e17f4ab41bebfe258fe44174ca"
+      },
+      ".shstrtab": {
+        "own_offset": 40504,
+        "builder_offset": 40504,
+        "sizes": [
+          59,
+          59
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e27c9fca1bd82600fd6b298ad181aad960367f3317d52d40e596852a4767535b",
+        "builder_sha256": "e27c9fca1bd82600fd6b298ad181aad960367f3317d52d40e596852a4767535b"
+      },
+      ".strtab": {
+        "own_offset": 40563,
+        "builder_offset": 40563,
+        "sizes": [
+          6923,
+          6923
+        ],
+        "equal": false,
+        "first_relative_difference": 15,
+        "own_sha256": "5d27db9f97d5cd9cd4f7af2747677af4c5aa9c845d6c8b0c7f04ee7c31eae0bf",
+        "builder_sha256": "b33ecd12c3b63a1d343be2aec085a44fc5a14c82b5ef0e72d9311eee56d482f9"
+      }
+    },
+    "load_segments": [
+      {
+        "flags": 5,
+        "vaddr": 1073741824,
+        "own_filesz": 6,
+        "builder_filesz": 6,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 6,
+        "vaddr": 1073807360,
+        "own_filesz": 1200,
+        "builder_filesz": 1200,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 4,
+        "vaddr": 1073872896,
+        "own_filesz": 2522,
+        "builder_filesz": 2522,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 5,
+        "vaddr": 1074003968,
+        "own_filesz": 21383,
+        "builder_filesz": 21383,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      }
+    ]
+  },
+  {
+    "file": "users/materiaal/materiaal-app.elf",
+    "first_file_difference": 278229,
+    "sizes": [
+      310632,
+      310632
+    ],
+    "sections": {
+      "": {
+        "own_offset": 0,
+        "builder_offset": 0,
+        "sizes": [
+          0,
+          0
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "builder_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      ".text.entry": {
+        "own_offset": 4096,
+        "builder_offset": 4096,
+        "sizes": [
+          19,
+          19
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "475fd46295e5f8a4d22a9f50922f316da8e3d5b6af2183be4c772e0ca3b36c6e",
+        "builder_sha256": "475fd46295e5f8a4d22a9f50922f316da8e3d5b6af2183be4c772e0ca3b36c6e"
+      },
+      ".startup": {
+        "own_offset": 8192,
+        "builder_offset": 8192,
+        "sizes": [
+          1024,
+          1024
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "builder_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+      },
+      ".rodata": {
+        "own_offset": 12288,
+        "builder_offset": 12288,
+        "sizes": [
+          191196,
+          191196
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "fe03295ac0add607d02e2bd41073707c52e609f032433ccbcfa7959984987c48",
+        "builder_sha256": "fe03295ac0add607d02e2bd41073707c52e609f032433ccbcfa7959984987c48"
+      },
+      ".data": {
+        "own_offset": 204800,
+        "builder_offset": 204800,
+        "sizes": [
+          176,
+          176
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "0f66df98abc7bc19aaed1319f0b302f910c37dc0c38fab329fca670d86e63757",
+        "builder_sha256": "0f66df98abc7bc19aaed1319f0b302f910c37dc0c38fab329fca670d86e63757"
+      },
+      ".bss": {
+        "own_offset": 204976,
+        "builder_offset": 204976,
+        "sizes": [
+          196608,
+          196608
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "builder_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      ".text": {
+        "own_offset": 208896,
+        "builder_offset": 208896,
+        "sizes": [
+          85769,
+          85769
+        ],
+        "equal": false,
+        "first_relative_difference": 69333,
+        "own_sha256": "bd0b73f7d28c3a90c9b8c5762173ff77723aaebb5ba04c815e1c1cd1e7cae903",
+        "builder_sha256": "68da7e35f766268a670587c619657f3341c42d8d86ab4c30491856b99d602f43"
+      },
+      ".symtab": {
+        "own_offset": 294672,
+        "builder_offset": 294672,
+        "sizes": [
+          4104,
+          4104
+        ],
+        "equal": false,
+        "first_relative_difference": 888,
+        "own_sha256": "54e3c792ad73d5a09ac94064d23e5b259911e2ed943d259fc2e85bb0321c1076",
+        "builder_sha256": "d2f4a5cf717850967c8eaa943191049b30e238bb5fe093b98004f311b2cfbd40"
+      },
+      ".shstrtab": {
+        "own_offset": 298776,
+        "builder_offset": 298776,
+        "sizes": [
+          73,
+          73
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "455a94342aea95732f1e6bdb2e556c9f168dd9d8efd57538e9556bab1a7f158a",
+        "builder_sha256": "455a94342aea95732f1e6bdb2e556c9f168dd9d8efd57538e9556bab1a7f158a"
+      },
+      ".strtab": {
+        "own_offset": 298849,
+        "builder_offset": 298849,
+        "sizes": [
+          11142,
+          11141
+        ],
+        "equal": false,
+        "first_relative_difference": 15,
+        "own_sha256": "1936baf03a163265d61ab0d59f1bbcf5e1ba42f7b7e26028ca68c8edd1355e6c",
+        "builder_sha256": "833cca8293e1bfac871d25e9dc134fbdc5b80844c88578597e84893fbb463797"
+      }
+    },
+    "load_segments": [
+      {
+        "flags": 5,
+        "vaddr": 1073741824,
+        "own_filesz": 19,
+        "builder_filesz": 19,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 6,
+        "vaddr": 1073807360,
+        "own_filesz": 1024,
+        "builder_filesz": 1024,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 4,
+        "vaddr": 1073872896,
+        "own_filesz": 191196,
+        "builder_filesz": 191196,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 6,
+        "vaddr": 1074200576,
+        "own_filesz": 176,
+        "builder_filesz": 176,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 5,
+        "vaddr": 1074462720,
+        "own_filesz": 85769,
+        "builder_filesz": 85769,
+        "metadata_equal": true,
+        "payload_equal": false,
+        "first_payload_difference": 69333
+      }
+    ]
+  },
+  {
+    "file": "users/materiaal/native-compositor.elf",
+    "first_file_difference": 105955,
+    "sizes": [
+      115096,
+      115096
+    ],
+    "sections": {
+      "": {
+        "own_offset": 0,
+        "builder_offset": 0,
+        "sizes": [
+          0,
+          0
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "builder_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      ".text.entry": {
+        "own_offset": 4096,
+        "builder_offset": 4096,
+        "sizes": [
+          6,
+          6
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "4d604946ec04f827a25a085e0f1c67e94377f112d1843813316249f34b272a0c",
+        "builder_sha256": "4d604946ec04f827a25a085e0f1c67e94377f112d1843813316249f34b272a0c"
+      },
+      ".app.startup": {
+        "own_offset": 8192,
+        "builder_offset": 8192,
+        "sizes": [
+          1024,
+          1024
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "builder_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+      },
+      ".rodata": {
+        "own_offset": 12288,
+        "builder_offset": 12288,
+        "sizes": [
+          59755,
+          59755
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "b593c6f1747eceb0608d83eec4bb9ca4e6ca70bcab84321fa26fb10a9aa5c32a",
+        "builder_sha256": "b593c6f1747eceb0608d83eec4bb9ca4e6ca70bcab84321fa26fb10a9aa5c32a"
+      },
+      ".data": {
+        "own_offset": 73728,
+        "builder_offset": 73728,
+        "sizes": [
+          88,
+          88
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "026f78dc81ae34c781dc189a30da0ea2b539d9fec020d7af3f7812ee9a06f8ec",
+        "builder_sha256": "026f78dc81ae34c781dc189a30da0ea2b539d9fec020d7af3f7812ee9a06f8ec"
+      },
+      ".text": {
+        "own_offset": 77824,
+        "builder_offset": 77824,
+        "sizes": [
+          24967,
+          24967
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "8268d21146e78ed04cec137643ef6f9ab26014f86bc972f6023a759d7b45214e",
+        "builder_sha256": "8268d21146e78ed04cec137643ef6f9ab26014f86bc972f6023a759d7b45214e"
+      },
+      ".symtab": {
+        "own_offset": 102792,
+        "builder_offset": 102792,
+        "sizes": [
+          3072,
+          3072
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "105747944578308e9fbe21cc52cc641bead8a08a164f00939d252ca1a4105b2e",
+        "builder_sha256": "105747944578308e9fbe21cc52cc641bead8a08a164f00939d252ca1a4105b2e"
+      },
+      ".shstrtab": {
+        "own_offset": 105864,
+        "builder_offset": 105864,
+        "sizes": [
+          72,
+          72
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "90da271d9a7eef48882721657fa63d2197d09ee9d1144b2769b9633b2e8ece3f",
+        "builder_sha256": "90da271d9a7eef48882721657fa63d2197d09ee9d1144b2769b9633b2e8ece3f"
+      },
+      ".strtab": {
+        "own_offset": 105936,
+        "builder_offset": 105936,
+        "sizes": [
+          8582,
+          8582
+        ],
+        "equal": false,
+        "first_relative_difference": 19,
+        "own_sha256": "13c331941b5a76688aaea69cfb57d7430421c7932eeb1b5d064a697155af132b",
+        "builder_sha256": "0c1f22190c1181af6596abdaf362d3b41d4131646b5962e9640e7f7e0162db66"
+      }
+    },
+    "load_segments": [
+      {
+        "flags": 5,
+        "vaddr": 1073741824,
+        "own_filesz": 6,
+        "builder_filesz": 6,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 6,
+        "vaddr": 1073807360,
+        "own_filesz": 1024,
+        "builder_filesz": 1024,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 4,
+        "vaddr": 1073872896,
+        "own_filesz": 59755,
+        "builder_filesz": 59755,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 6,
+        "vaddr": 1074200576,
+        "own_filesz": 88,
+        "builder_filesz": 88,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 5,
+        "vaddr": 1074462720,
+        "own_filesz": 24967,
+        "builder_filesz": 24967,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      }
+    ]
+  },
+  {
+    "file": "users/materiaal/input-source.elf",
+    "first_file_difference": 30209,
+    "sizes": [
+      36336,
+      36336
+    ],
+    "sections": {
+      "": {
+        "own_offset": 0,
+        "builder_offset": 0,
+        "sizes": [
+          0,
+          0
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "builder_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      ".text.entry": {
+        "own_offset": 4096,
+        "builder_offset": 4096,
+        "sizes": [
+          6,
+          6
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "5a85e8e83468b305d10f89ef28bdd2bf191a7982f7d00059bca477e4706b2d0b",
+        "builder_sha256": "5a85e8e83468b305d10f89ef28bdd2bf191a7982f7d00059bca477e4706b2d0b"
+      },
+      ".data": {
+        "own_offset": 8192,
+        "builder_offset": 8192,
+        "sizes": [
+          1200,
+          1200
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "b5a40ff9f04f92ea7c1573826dacb4dd76e2ed4bf4dcb4e56e3539957a8c9835",
+        "builder_sha256": "b5a40ff9f04f92ea7c1573826dacb4dd76e2ed4bf4dcb4e56e3539957a8c9835"
+      },
+      ".rodata": {
+        "own_offset": 12288,
+        "builder_offset": 12288,
+        "sizes": [
+          754,
+          754
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "13c62e09c4e1eb43363b85e8b02a7ad972effdd8a39aaf1f84ae6464e28e8893",
+        "builder_sha256": "13c62e09c4e1eb43363b85e8b02a7ad972effdd8a39aaf1f84ae6464e28e8893"
+      },
+      ".text": {
+        "own_offset": 16384,
+        "builder_offset": 16384,
+        "sizes": [
+          11591,
+          11591
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "6c51c4d5ce930a3261e4612a1fa5274dec006bb0b2fa139614618a14634b539a",
+        "builder_sha256": "6c51c4d5ce930a3261e4612a1fa5274dec006bb0b2fa139614618a14634b539a"
+      },
+      ".symtab": {
+        "own_offset": 27976,
+        "builder_offset": 27976,
+        "sizes": [
+          2160,
+          2160
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e236d2a5da1f800a4783596a02165af1ca66a946788b2fea97d9750280fd0048",
+        "builder_sha256": "e236d2a5da1f800a4783596a02165af1ca66a946788b2fea97d9750280fd0048"
+      },
+      ".shstrtab": {
+        "own_offset": 30136,
+        "builder_offset": 30136,
+        "sizes": [
+          59,
+          59
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e27c9fca1bd82600fd6b298ad181aad960367f3317d52d40e596852a4767535b",
+        "builder_sha256": "e27c9fca1bd82600fd6b298ad181aad960367f3317d52d40e596852a4767535b"
+      },
+      ".strtab": {
+        "own_offset": 30195,
+        "builder_offset": 30195,
+        "sizes": [
+          5626,
+          5626
+        ],
+        "equal": false,
+        "first_relative_difference": 14,
+        "own_sha256": "f85ccfc6547c6ad7bf64a79bdf6a0700dc94910b6ef5c1e29c34e7cdb41609cb",
+        "builder_sha256": "63d698773cfd04f2609672ec9a852f547c7ff8cff92464196983dfbdb52a79bb"
+      }
+    },
+    "load_segments": [
+      {
+        "flags": 5,
+        "vaddr": 1073741824,
+        "own_filesz": 6,
+        "builder_filesz": 6,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 6,
+        "vaddr": 1073807360,
+        "own_filesz": 1200,
+        "builder_filesz": 1200,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 4,
+        "vaddr": 1073872896,
+        "own_filesz": 754,
+        "builder_filesz": 754,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 5,
+        "vaddr": 1074003968,
+        "own_filesz": 11591,
+        "builder_filesz": 11591,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      }
+    ]
+  },
+  {
+    "file": "users/materiaal/keyring-service.elf",
+    "first_file_difference": 208,
+    "sizes": [
+      113312,
+      113312
+    ],
+    "sections": {
+      "": {
+        "own_offset": 0,
+        "builder_offset": 0,
+        "sizes": [
+          0,
+          0
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "builder_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      ".text.entry": {
+        "own_offset": 4096,
+        "builder_offset": 4096,
+        "sizes": [
+          6,
+          6
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "fef403b485ad191fdc6d6aeadaffc5498c7562f21a6daa56a4dc4e2e4ec918f4",
+        "builder_sha256": "fef403b485ad191fdc6d6aeadaffc5498c7562f21a6daa56a4dc4e2e4ec918f4"
+      },
+      ".data": {
+        "own_offset": 8192,
+        "builder_offset": 8192,
+        "sizes": [
+          1344,
+          1344
+        ],
+        "equal": false,
+        "first_relative_difference": 1024,
+        "own_sha256": "8ad7528f378c169bec3bdf9024c23d0417c642ef89a73f7b37448b679691bc36",
+        "builder_sha256": "fce567c1757ee6ab324f62c796a6c53ddbe99eb2e6d88750a623ff2651c256f3"
+      },
+      ".rodata": {
+        "own_offset": 12288,
+        "builder_offset": 12288,
+        "sizes": [
+          4307,
+          4323
+        ],
+        "equal": false,
+        "first_relative_difference": 327,
+        "own_sha256": "f67d6bbedd4ca0fc23c479852c44005cb0574dcc528d03b43f054621acc5de61",
+        "builder_sha256": "7334586c80637aa4c94a0817cacd0de77c0f1ff1f28143edfb317d0054181f21"
+      },
+      ".text": {
+        "own_offset": 20480,
+        "builder_offset": 20480,
+        "sizes": [
+          78775,
+          78775
+        ],
+        "equal": false,
+        "first_relative_difference": 2219,
+        "own_sha256": "8612132e7d135ff7ed2c053627e59e21a87b3c13f81e69649bd0e604be468ca1",
+        "builder_sha256": "038ec661ca0cde906f3752ddad6a18962f6268848cec5ab0b54ec06578945208"
+      },
+      ".symtab": {
+        "own_offset": 99256,
+        "builder_offset": 99256,
+        "sizes": [
+          3432,
+          3432
+        ],
+        "equal": false,
+        "first_relative_difference": 352,
+        "own_sha256": "64873f775a84d4d83a11a43b40f1498e4bdd689e1af5d759c95df2d8b6cd3498",
+        "builder_sha256": "d659904bfaac90adfc9ad577e3d5017faff753a1558d298a882163f756cd6794"
+      },
+      ".shstrtab": {
+        "own_offset": 102688,
+        "builder_offset": 102688,
+        "sizes": [
+          59,
+          59
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e27c9fca1bd82600fd6b298ad181aad960367f3317d52d40e596852a4767535b",
+        "builder_sha256": "e27c9fca1bd82600fd6b298ad181aad960367f3317d52d40e596852a4767535b"
+      },
+      ".strtab": {
+        "own_offset": 102747,
+        "builder_offset": 102747,
+        "sizes": [
+          10052,
+          10053
+        ],
+        "equal": false,
+        "first_relative_difference": 17,
+        "own_sha256": "ae79ffa4a065d3d747f35ffd59398b36282ed0a4c5b0446bce626867123c2322",
+        "builder_sha256": "61d988fcdfa38f8394e11855688dea15217746b27b8a7226db368b11cd5dfe46"
+      }
+    },
+    "load_segments": [
+      {
+        "flags": 5,
+        "vaddr": 1073741824,
+        "own_filesz": 6,
+        "builder_filesz": 6,
+        "metadata_equal": true,
+        "payload_equal": true,
+        "first_payload_difference": null
+      },
+      {
+        "flags": 6,
+        "vaddr": 1073807360,
+        "own_filesz": 1344,
+        "builder_filesz": 1344,
+        "metadata_equal": true,
+        "payload_equal": false,
+        "first_payload_difference": 1024
+      },
+      {
+        "flags": 4,
+        "vaddr": 1073823744,
+        "own_filesz": 4307,
+        "builder_filesz": 4323,
+        "metadata_equal": false,
+        "payload_equal": false,
+        "first_payload_difference": 327
+      },
+      {
+        "flags": 5,
+        "vaddr": 1073872896,
+        "own_filesz": 78775,
+        "builder_filesz": 78775,
+        "metadata_equal": true,
+        "payload_equal": false,
+        "first_payload_difference": 2219
+      }
+    ]
+  },
+  {
+    "file": "users/materiaal/volume-service.elf",
+    "first_file_difference": 40,
+    "sizes": [
+      97544,
+      97560
+    ],
+    "sections": {
+      "": {
+        "own_offset": 0,
+        "builder_offset": 0,
+        "sizes": [
+          0,
+          0
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "builder_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      ".text": {
+        "own_offset": 4096,
+        "builder_offset": 4096,
+        "sizes": [
+          57346,
+          57346
+        ],
+        "equal": false,
+        "first_relative_difference": 7492,
+        "own_sha256": "69d146d9c96a326d7e49af4c9c02a5dead4f3f8a31c8a3aeb7ee05d815aff9c6",
+        "builder_sha256": "e75f21f1ecb20d1ee77fd7d5f47b85eb7287edc8db1a27f5a1240dc4e5a21900"
+      },
+      ".data": {
+        "own_offset": 65536,
+        "builder_offset": 65536,
+        "sizes": [
+          1304,
+          1304
+        ],
+        "equal": false,
+        "first_relative_difference": 1024,
+        "own_sha256": "e1f793bea8e6bbfa55ed4d2fdcc690c0d5b18a4b661a5e9bafd809f8ce5ace74",
+        "builder_sha256": "c773c467cfa6e942f537667afb26d46e3f050c8ec40670b9d031248b2869ab4d"
+      },
+      ".rodata": {
+        "own_offset": 69632,
+        "builder_offset": 69632,
+        "sizes": [
+          18266,
+          18282
+        ],
+        "equal": false,
+        "first_relative_difference": 12616,
+        "own_sha256": "6a5169026a659f1816f46e16ab502aae248e00b210a35840061dab8064e9bcaa",
+        "builder_sha256": "92cc20558ad4c91dfe413b76712e2aab25d2dca75e32970efe48f4261cc3c302"
+      },
+      ".symtab": {
+        "own_offset": 87904,
+        "builder_offset": 87920,
+        "sizes": [
+          2688,
+          2688
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "035f4cc6369db9cb7a3e53c4bce11619f421faf922223d6dd58081e04b057e57",
+        "builder_sha256": "035f4cc6369db9cb7a3e53c4bce11619f421faf922223d6dd58081e04b057e57"
+      },
+      ".shstrtab": {
+        "own_offset": 90592,
+        "builder_offset": 90608,
+        "sizes": [
+          47,
+          47
+        ],
+        "equal": true,
+        "first_relative_difference": null,
+        "own_sha256": "f79629d8beb933554c50ca44edf8bf69948aebd2bf44540562b7ad8b27c25ed3",
+        "builder_sha256": "f79629d8beb933554c50ca44edf8bf69948aebd2bf44540562b7ad8b27c25ed3"
+      },
+      ".strtab": {
+        "own_offset": 90639,
+        "builder_offset": 90655,
+        "sizes": [
+          6457,
+          6457
+        ],
+        "equal": false,
+        "first_relative_difference": 16,
+        "own_sha256": "1978ea02d71e4779dd7c4d8509b8af8324497d631c654afba8887e7050889da3",
+        "builder_sha256": "896bb381829efc8f6057474c4d0fd86fe9ba0485bbd8af12a32ffe001b2c61af"
+      }
+    },
+    "load_segments": [
+      {
+        "flags": 5,
+        "vaddr": 1073741824,
+        "own_filesz": 57346,
+        "builder_filesz": 57346,
+        "metadata_equal": true,
+        "payload_equal": false,
+        "first_payload_difference": 7492
+      },
+      {
+        "flags": 6,
+        "vaddr": 1073807360,
+        "own_filesz": 1304,
+        "builder_filesz": 1304,
+        "metadata_equal": true,
+        "payload_equal": false,
+        "first_payload_difference": 1024
+      },
+      {
+        "flags": 4,
+        "vaddr": 1073823744,
+        "own_filesz": 18266,
+        "builder_filesz": 18282,
+        "metadata_equal": false,
+        "payload_equal": false,
+        "first_payload_difference": 12616
+      }
+    ]
+  }
+]
