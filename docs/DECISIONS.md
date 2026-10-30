@@ -16,6 +16,13 @@ TEST-paar en pint apart next/revoked/expired-fixtures; deze openbare sleutels
 zijn geen productieankers. Vooraf vastgepinde rotatie bewijst geen veilige
 distributie/rollbackbescherming van nieuwe beleidsversies.
 
+Herzieningscriteria: beoordeel dit besluit opnieuw zodra een productiebeleid
+voor sleuteldistributie of rollbackbescherming van de beleidstabel wordt
+vastgesteld, of een geautoriseerde vertrouwde kalendertijdbron beschikbaar
+komt. Beoordeel dan opnieuw de ankerdistributie, policyversie-/intrekkingsgrens
+en keuze tussen releaseversievensters en eventueel kalenderbeleid; deze
+triggers wijzigen het huidige beleid niet automatisch.
+
 Contract, negatieve gevallen, open productie-/tijdgrenzen en rollback:
 `implementation/B03-SIGNED-UPDATES.md`, B03-KEY-POLICY-1. Terugname is een
 gerichte revert naar het eerdere enkelvoudige TEST-verificatiepad, zonder
