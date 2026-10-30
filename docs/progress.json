@@ -7,7 +7,7 @@
     "branch": "simonvanieperen-friendly-guacamole",
     "task": "Hardware, drivers en energie: inventarisatie H02-H06 en controle van de bestaande native PS/2-bewijspoort",
     "previous_score": 34,
-    "summary": "34% blijft 34%; hardware blijft 1/12. H01 is het enige geaccepteerde hardwarecriterium. De display/PS2-bewijspoort slaagt met 11 host-harnastests (`python3 -B -m unittest discover -s tools -p 'test_display_probe.py'`, exit 0). De gehashte officiële rustup-installer herstelde Rust 1.90.0 alleen onder `.tools/nieuw-os`; PS/2 `x86_64-unknown-none`-releasebuild, Clippy en fmt slagen (exit 0). De PS/2-hosttest faalt (exit 101) omdat `cc` ontbreekt; QEMU/OVMF/SeaBIOS ontbreken, dus native QMP-uitvoering is niet gedaan. H02-H06 blijven open: USB/xHCI ontbreekt; graphics/audio, netwerkhardware, energie/slaap/wek en meerdere fysieke profielen zijn niet geaccepteerd. Geen fysiek apparaat gebruikt en geen nieuw rubricpunt geclaimd."
+    "summary": "34% blijft 34%; hardware blijft 1/12 en H01 is het enige geaccepteerde criterium. De 11 hosttests van de display/PS2-bewijspoort slagen. De gehashte officiële rustup-installer herstelde Rust 1.90.0 projectlokaal; PS/2 targetbuild, Clippy en fmt slagen. De aangehechte `C:\\Program Files\\qemu`-installatie is via lokale WSL-interoperabiliteit aangesloten: QEMU 11.1.0, `pc-q35-8.2`, QMP-pipes en de meegeleverde x86_64 EDK2-code-/vars- en VGA-ROM-bestanden zijn bereikbaar; `python3 -B tools/preflight.py --strict` slaagt. Native imagebouw/QMP-run volgen. Hosttests kunnen nog niet linken (`cc` ontbreekt). H02-H06 blijven open, geen fysieke hardware gebruikt en geen punten geclaimd."
   },
   "tracks": [
     {

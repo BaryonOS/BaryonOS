@@ -15,22 +15,32 @@ worden afgetekend met QEMU-bewijs.
 Uitgevoerd: `python3 -B -m unittest discover -s tools -p
 'test_display_probe.py'` — exit 0, 11 hosttests voor de bewijspoort; dit
 controleert het harnas, niet een guest-driver. De vastgezette Rust 1.90.0-
-toolchain is daarna lokaal onder `.tools/nieuw-os` hersteld met de officieel
+toolchain is lokaal onder `.tools/nieuw-os` hersteld met de officieel
 gepubliceerde rustup-installer; SHA-256 gecontroleerd vóór uitvoering en geen
 globale PATH-/systeemwijziging. Op `drivers/ps2` slagen Clippy, fmt en de
 release-librarybuild voor `x86_64-unknown-none` (elk exit 0). De PS/2-hosttest
-faalt met exit 101 omdat de systeem-C-linker `cc` ontbreekt; een poging met
-gebundelde `rust-lld` faalt eveneens doordat de host `libc`/runtime-linklibs
-ontbreken. De native poort is niet uitgevoerd: `qemu-system-x86_64`, OVMF en
-SeaBIOS zijn niet beschikbaar en er is geen `sudo` voor systeeminstallatie.
-Geen fysiek apparaat gebruikt of gewijzigd.
+faalt met exit 101 omdat de systeem-C-linker `cc` en hostruntimebibliotheken
+ontbreken.
 
-Eerstvolgend: herstel een lokale QEMU 10.x/OVMF/SeaBIOS-uitvoeromgeving en
-host-C-linker (of gebruik de vastgelegde CI-runner); voer daarna de bestaande
-native PS/2/QMP-poort uit en begin een afzonderlijk afgebakende USB/xHCI-
-driverstap. Houd H02–H06 open totdat elk criterium inclusief de vereiste
-native/fysieke bewijsniveaus is aangetoond. Er zijn geen projectdependencies,
-drivercode of hardwareclaims toegevoegd.
+Simon heeft de map `C:\Program Files\qemu` meegestuurd. In WSL is dit
+`/mnt/c/Program Files/qemu`; QEMU 11.1.0 start via WSL-interoperabiliteit,
+QMP via stdin/stdout is bevestigd, en de package bevat
+`edk2-x86_64-code.fd`, `edk2-i386-vars.fd` en `vgabios-stdvga.bin`. De
+projecttoolmap verwijst lokaal naar die binaries/firmware, zonder wijzigingen
+aan de Windows-installatie of tracked source. `python3 -B tools/preflight.py
+--strict` slaagt en rapporteert beide Rust-targets en x86_64-codefirmware
+beschikbaar. Dit is alleen tool-/firmware-inventaris; native guestboot is nog
+niet uitgevoerd. Geen fysiek apparaat gebruikt of gewijzigd.
+
+Eerstvolgend: `python3 -B -u tools/build.py --kernel-feature
+native-display-probe`, daarna de bestaande
+`tools/run_display_probe.py --machine pc-q35-8.2 --qmp-transport pipe` met de
+meegeleverde VGA-ROM. De 11.1-binary verschilt van de 10.0.13-CI-binary; de
+runner moet die exacte versie en hashes vastleggen. Als native poort slaagt,
+is dat afgebakend QEMU-bewijs voor de PS/2-display/input-slice, niet fysieke
+acceptatie van H02. Daarna volgt een afzonderlijke USB/xHCI-stap. H02–H06
+blijven open totdat hun volledige vereiste native/fysieke bewijsniveaus zijn
+aangetoond; geen rubricpunt toegekend.
 
 ## NEXT AGENT HANDOFF — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
 
