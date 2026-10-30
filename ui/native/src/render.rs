@@ -1067,7 +1067,11 @@ impl Paint<'_> {
             (d::LINE, d::LINE, d::MUTED)
         } else {
             match style {
-                ButtonStyle::Primary if !hovered => (d::ACCENT, d::ACCENT, d::SURFACE),
+                ButtonStyle::Primary => (
+                    d::ACCENT,
+                    if hovered { d::TEXT } else { d::ACCENT },
+                    d::SURFACE,
+                ),
                 ButtonStyle::Danger => (d::SURFACE, d::DANGER, d::DANGER),
                 _ => (
                     if hovered { d::ACCENT_SOFT } else { d::SURFACE },
