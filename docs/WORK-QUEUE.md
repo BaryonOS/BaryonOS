@@ -74,6 +74,11 @@ herhaald gecontroleerd. Zijn main9a67 is inmiddels achterhaald:
 liveREST20:05 bevestigt d791a342cc3bdb107245692f2f542d88d5fda7f1.
 Deze donorverklaring identificeert de onbekende85/76uitvoerder niet en
 heft de afzonderlijke incidentpauze niet op.
+E8 beantwoordt20:09 de concrete operatievraag expliciet:85 EN76 niet
+gemerged/verstuurd, geen merge-/automergecommando daarvoor klaargezet;
+eigen merges alleen62/66/70, uitvoerder onbekend. Hij corrigeert ook zijn
+eigen dossier over de door5d beantwoorde rolvraag en blijft read-only donor.
+Dit sluit de gerichte donorvraag, niet de nog open identiteitsdispositie.
 Geen algemene statusronde, rolterugname of automatische overname.
 Donor8's nieuwe rolvraag is conform het vastgelegde mandaat beantwoord:
 laat7f integreren, overdracht behouden. Onafhankelijk domeinwerk gaat door.
