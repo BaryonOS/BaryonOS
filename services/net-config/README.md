@@ -194,10 +194,10 @@ T1/T2/NAK, gewijzigde gateway/DNS,10conflicten,expiry,linkdown en klokoverflow.
 Nog niet: volledige brongebonden eindgates op deze coordinator, native proces,
 echte NICcompletion/DMAfence/driverreset/CR3, gekoppelde broker-policy,
 native RNG/retryscheduler/auto-reconnect of volledige DHCPreleaseacceptatie.
-De huidige codec heeft geen DHCPDECLINE-builder: concrete extra schrijfclaim
-of handoff aan de protocolowner is gevraagd, GEEN protocolwrite overgenomen.
-RFC2131sectie3.1 vereist DECLINE;10s wachten is daar SHOULD en wordt hier
-conservatief toegepast. DECLINE blijft een expliciet open punt, geen stil groen.
+Op bron03277a7 had de codec geen DHCPDECLINE-builder: concrete extra claim
+was toen gevraagd maar niet overgenomen. Die grens is hieronder expliciet
+vrijgegeven. RFC2131sectie3.1 vereist DECLINE;10s wachten is daar SHOULD en
+wordt hier conservatief toegepast.
 
 De gerichte vervolgcase op bron678081c vond een echt wireverschil: selecting
 REQUEST had `secs=5`, DISCOVER `secs=1`. De eigen verplaatste client bewaart nu
@@ -217,3 +217,36 @@ intern al de nieuwe lease gebruikte. Gerichte runtime-reproductie was rood;
 de coordinator past nu geaccepteerde renewal-ACKs in beide fasen coherent toe.
 De case bewaart de nieuwe T1 en expiry; geen leaseverlenging of successfallback.
 Dit is een begrensde tweede AI-review, geen menselijke audit/nativeacceptatie.
+
+## TASK-N01-DHCP-DECLINE-SEAM
+
+Expliciete extra toewijzing:
+queue `dea97f9b57c6fda9549a48072119663fe155a563`,
+blob `53ac59d53fa7daece42b07925d6ecffe852012f6`.
+Uitsluitend `services/net-protocol/src/dhcp.rs` en `tests/dhcp.rs` boven
+de bestaande Stack/configclaim; geen andere protocol-/root-/SDKwrites.
+
+`dhcp::build_decline(out,xid,mac,address,server)` hergebruikt de bestaande
+private requestencoder/validators. Message4, BOOTREQUEST, zero secs/flags/ciaddr,
+requestedIP/serveridentifier en hetzelfde clientidentifier. Alleen statische
+message56 toegevoegd; GEEN parameterlist55, maxsize57, leasetime51 of andere
+REQUEST-onlyopties. Vooraf alle controles, geen outputwijziging bij fout.
+300UDPdatabytes met zeropadding en onaangeraakte tail buiten de retourlengte.
+
+Bij echt geobserveerd conflict trekt de coordinator eerst oude adres/route/DNS
+en TXpublicatie in. Zij bewaart alleen de oude lease/XID voor DECLINE.
+`poll` queueet het nieuwe broadcastframe pas zodra het bestaande PacketDevice
+werkelijk vrij is; geen completion/discard van het retired frame.
+Ook DECLINE gebruikt dezelfde id/storage/completion. Nieuwe acquisitie wacht
+minstens10s (na10conflicten60s) EN op echte DECLINEcompletion. Niet-gepubliceerd
+of EAGAIN blijft hetzelfde pendingframe; Unknown blijft terminaal.
+Linkdown/clockfault behoudt geen geautoriseerde oude lease of herstelshortcut.
+
+Drie nieuwe codeccases controleren exacte packet/header/options/tail,
+ongeldige adressen/MAC en elk van de300tekorte bufferlengtes all-or-nothing.
+Vijftien coordinatorcases groen, inclusief conflict->retired TX->DECLINE->
+matchingcompletion->verse acquisitie en bestaande netwerk-lifecycle.
+De eerste APIgate was compile101/E0425 (ontbrekende functie), GEEN runtime.
+Volledige brongebonden eindgates op deze source volgen na het checkpoint.
+Geen nieuwe manifest/lock/dependency/entropybron of netwerkgrant, geen
+native completion/fence/app/netwerkacceptatie en geen nieuwe punten.

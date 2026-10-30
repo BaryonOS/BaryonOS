@@ -99,6 +99,16 @@ fn complete(service: &mut Service<'_>, ticks: u64) -> Vec<u8> {
     bytes
 }
 
+fn complete_decline(service: &mut Service<'_>, ticks: u64) {
+    service.poll(ticks).unwrap();
+    let bytes = complete(service, ticks);
+    let packet = parse(&bytes).unwrap();
+    assert_eq!(packet.source_address(), [0; 4]);
+    assert_eq!(packet.destination_address(), [255; 4]);
+    assert_eq!(packet.destination_mac(), [255; 6]);
+    assert_eq!(&packet.payload()[240..243], &[53, 1, 4]);
+}
+
 fn candidate(service: &mut Service<'_>) {
     candidate_at(service, XID, 0);
 }
@@ -206,6 +216,7 @@ fn foreign_probe_or_reply_to_zero_target_conflicts_but_own_echo_does_not() {
             assert!(service.configuration(0).unwrap().is_none());
             assert!(service.transmission(0).unwrap().is_none());
             service.complete_transmission(id, 0).unwrap();
+            complete_decline(service, 0);
             assert_eq!(
                 service.start(XID + 1, 999, 30),
                 Err(Error::ConflictRateLimit)
@@ -364,7 +375,8 @@ fn late_probe_window_conflict_and_ongoing_duplicate_claim_both_withdraw() {
             Err(Error::AddressConflict)
         );
         service.poll(400).unwrap();
-        assert!(service.transmission(400).unwrap().is_none());
+        let (_, decline) = offered(service, 400);
+        assert_eq!(&parse(&decline).unwrap().payload()[240..243], &[53, 1, 4]);
         assert!(service.configuration(400).unwrap().is_none());
     });
     with_service(|service| {
@@ -399,6 +411,7 @@ fn ten_conflicts_rate_limit_fresh_acquisition_for_sixty_seconds() {
                 Err(Error::AddressConflict)
             );
             service.complete_transmission(id, ticks).unwrap();
+            complete_decline(service, ticks);
         }
         assert_eq!(
             service.start(XID + 10, 14999, 30),
@@ -468,5 +481,44 @@ fn delayed_renewal_ack_applies_new_route_and_dns_even_when_new_t1_is_already_due
         assert_eq!(lease.dns_servers(), &[[192, 0, 2, 54]]);
         assert_eq!(lease.renew_at, 41);
         assert_eq!(lease.expires_at, 120);
+    });
+}
+
+#[test]
+fn conflict_decline_waits_for_retired_tx_and_real_own_completion_before_reacquiring() {
+    with_service(|service| {
+        candidate(service);
+        service.poll(0).unwrap();
+        let (old_id, mut frame) = offered(service, 0);
+        frame[6..12].copy_from_slice(&SERVER_MAC);
+        frame[22..28].copy_from_slice(&SERVER_MAC);
+        assert_eq!(
+            service.receive_frame(&frame, 0),
+            Err(Error::AddressConflict)
+        );
+        service.poll(0).unwrap();
+        assert!(service.transmission(0).unwrap().is_none());
+        assert_eq!(
+            service.start(XID + 1, 1000, 30),
+            Err(Error::Stack(StackError::Busy))
+        );
+        service.complete_transmission(old_id, 1000).unwrap();
+        service.poll(1000).unwrap();
+        let (decline_id, bytes) = offered(service, 1000);
+        assert!(decline_id > old_id);
+        assert_eq!(&parse(&bytes).unwrap().payload()[240..243], &[53, 1, 4]);
+        service.poll(1000).unwrap();
+        assert_eq!(offered(service, 1000), (decline_id, bytes));
+        assert_eq!(
+            service.start(XID + 1, 2000, 30),
+            Err(Error::Stack(StackError::Busy))
+        );
+        assert_eq!(
+            service.complete_transmission(old_id, 2000),
+            Err(Error::Stack(StackError::StaleTransmission))
+        );
+        service.complete_transmission(decline_id, 2000).unwrap();
+        service.start(XID + 1, 2000, 30).unwrap();
+        assert!(service.send_dhcp(2000).unwrap() > decline_id);
     });
 }
