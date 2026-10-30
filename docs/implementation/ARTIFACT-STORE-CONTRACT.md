@@ -1,7 +1,8 @@
 # Gedeeld artifact-storecontract
 
-**Status:** voorstel voor root-integratie; Apps- en AI-owneraftekening open.
-**Eigenaar:** release-integratie. **Datum:** 31 oktober 2026.
+**Status:** contractvoorstel door Apps- en AI-owners afgestemd; rootintegratie
+en native uitvoering open.
+**Eigenaar:** release-integratie. **Datum:** 30 oktober 2026.
 **Bewijsgrens:** dit document beschrijft een contract, geen native store,
 kernel-ABI, geserialiseerde Message320-operatie, dynamische launcher of
 duurzaamheidsgarantie.
@@ -48,16 +49,18 @@ De gedeelde store-identiteit is los van package-/modelprovenance:
 `ArtifactDescriptor` voegt `length` en `sha256` toe. Dit is een logische
 in-memory vorm, geen `repr(C)`, canonieke bytecodering of IPC-wire-ABI.
 Descriptorvelden zijn onbetrouwbare metadata totdat `open` ze tegen de
-store-authoritatieve descriptor vergelijkt.
+store-authoritatieve descriptor vergelijkt. Dit contract verbiedt
+zero-length artifacts: `length == 0` is `Invalid`. De EOF-regel geldt alleen
+voor een geldige, niet-lege descriptor en `offset == length`.
 
 De huidige Apps-leaf gebruikt een ander 116-byte pakketdescriptor met
 `artifact_id`, `source_id`, `source_generation`, `version`, `length` en
 `sha256`; de AI-leaf gebruikt een lokale numerieke ID en `u64` generatie.
 Deze zijn consumer-/leafmodellen, niet twee gedeelde store-ABI's. De
-storemapping moet de packagebron-/intrekkingsgeneratie en packageversie
-gescheiden houden van de immutable storegeneratie. De ownermapping en
-aftekening zijn open; geen caller- of modelmetadata mag de store authority
-fabriceren.
+storemapping houdt de packagebron-/intrekkingsgeneratie en packageversie
+gescheiden van de immutable storegeneratie. Apps en AI hebben deze scheiding
+afgestemd; hun leaf-adapters zijn nog niet in deze rootbasis geïntegreerd.
+Geen caller- of modelmetadata mag de store authority fabriceren.
 
 `open` vergelijkt de gevraagde descriptor met de store-authoritatieve
 descriptor en opent uitsluitend die immutable generatie. Een digestveld bewijst
@@ -112,7 +115,10 @@ stil laten verdwijnen.
 ## 4. Capaciteit en quota
 
 Een store rapporteert `capacity_bytes`, `used_bytes`, `reserved_bytes` en
-`quota_bytes`, ieder als `u64`. Dit zijn momentopnamen, geen reservering of
+`quota_bytes`, ieder als `u64`, voor dezelfde account/namespace en hetzelfde
+snapshotmoment. Waarden uit verschillende scopes mogen niet worden
+gecombineerd; als de backend geen coherent snapshot kan leveren, geeft hij
+een expliciete fout. Dit zijn momentopnamen, geen reservering of
 commitgarantie. Beschikbare ruimte is:
 
 ```text
@@ -177,9 +183,9 @@ acceptatie bewijzen.
   broker-geverifieerde launchcapability is een afzonderlijk toekomstig
   contract.
 - **AI:** model-pin, formaatvalidatie, volledige streamdigest, publishertrust
-  en geschiktheid voor inferentie zijn afzonderlijke controles. De numerieke
-  leaf-ID moet door een store-assigned `artifact_id`-mapping worden vervangen
-  of verpakt; die mapping is nog niet door de owner bevestigd. Deze reader
+  en geschiktheid voor inferentie zijn afzonderlijke controles. De AI-owner
+  past de numerieke proef-ID aan naar de store-assigned `artifact_id`-vorm;
+  die leaf-wijziging is nog niet in deze rootbasis geïntegreerd. Deze reader
   kent geen netwerk- of persoonlijke-documentrechten toe. AI-inferentie blijft
   zonder netwerkcapability.
 - **Shared store:** beheert immutable bytes, versie en lees-/transactiestatus.
@@ -189,19 +195,22 @@ acceptatie bewijzen.
 ## 7. Implementatie- en acceptatiegrens
 
 De eerste gedeelde code-stap is een dependencyvrije `no_std` contractcrate met
-zuivere descriptor-, range-, capacity-, handle- en transaction-state
-validators plus host-negatieventests. Zij mag geen kernel ABI, syscall,
-Message320-layout, backend, package launch, modeldownload of succesvolle
-install-/inferentieclaim toevoegen.
+zuivere descriptor-, range-, read-handle- en capacity-validators plus
+host-negatieventests. Zij implementeert geen writable transaction engine: de
+write-API hierboven blijft een interfacecontract voor een latere stap. Deze
+slice mag geen kernel ABI, syscall, Message320-layout, backend, package
+launch, modeldownload of succesvolle install-/inferentieclaim toevoegen.
 
-Minimaal te testen: descriptorlengte/canonicaliteit; nul-/verkeerde ID,
-generatie en digest; stale/revoked handle; readbuffer 0/4097; exacte EOF en
-offset voorbij EOF; positieve short read, nul vóór EOF, onmogelijke
-backend-bytecount en checked-add-overflow; capacity add/subtract overflow en
-`used + reserved > limit`; quota/full vóór writes; lege/grote chunk,
-out-of-order/replay/overrun; mismatch-ack; incomplete/digest-foute commit;
-Unknown op begin/chunk/commit/cancel; outcome met verkeerde transactie of
-epoch; en restart-invalidatie zonder automatische retry.
+De huidige read-only tests controleren: nul-/verkeerde ID en generatie;
+descriptor-mismatch bij open; stale/revoked en unauthorized reads;
+readbuffer 0/4097; exacte EOF en offset voorbij EOF; positieve short read,
+nul vóór EOF en onmogelijke backend-bytecount; en capacity overflow plus
+`used + reserved > limit`. Bij een latere writable implementatie zijn
+afzonderlijke negatieve tests nodig voor quota/full vóór writes;
+lege/grote chunk, out-of-order/replay/overrun; mismatch-ack;
+incomplete/digest-foute commit; Unknown op begin/chunk/commit/cancel; outcome
+met verkeerde transactie of epoch; en restart-invalidatie zonder automatische
+retry.
 
 Hosttests controleren alleen de contractlogica. Targetbuild, native store,
 dynamic launch, publishertrust, modelbytes, inferentie, flushduurzaamheid,

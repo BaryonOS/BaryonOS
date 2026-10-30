@@ -2,10 +2,10 @@
 
 # ADR-054 — Gedeeld immutable artifact-storecontract
 
-**Datum/status/eigenaar:** 31 oktober 2026; voorstel van release-integratie.
-Apps- en AI-owneraftekening, security-/integratiereview en native uitvoering
-staan open. De eerste code-uitwerking mag uitsluitend een zuivere
-contractcrate met negatieve hosttests zijn.
+**Datum/status/eigenaar:** 30 oktober 2026; contractvoorstel van
+release-integratie, afgestemd door Apps en AI. Security-/integratiereview en
+native uitvoering staan open. De eerste code-uitwerking mag uitsluitend een
+zuivere contractcrate met negatieve hosttests zijn.
 
 **Context:** Apppakketverificatie en het model-store-experiment hebben beide
 een grote, immutable, bounded-read artifact nodig. Het bestaande
@@ -14,7 +14,7 @@ tot productstore-capaciteit verheven. Apps heeft een kandidaatdescriptor en
 transactie-state-machine; AI gebruikt een afzonderlijke readerproef met 4 KiB
 read-at. Message320 blijft een aparte wiregrens van maximaal 256 payloadbytes.
 
-**Besluitvoorstel:** één provider-onafhankelijk contract met immutable
+**Besluit:** één provider-onafhankelijk contract met immutable
 descriptor, opaque procesgebonden read-handle en read-at van maximaal 4096
 bytes. Stale epoch, revocation, short/zero reads, EOF, out-of-range, overflow,
 corruptie en backendprotocolfouten zijn expliciet. Capacity/quota zijn
@@ -35,7 +35,7 @@ nemen; caller-`verified`-boolean of gedeelde B02/B03-authority gebruiken;
 
 **Gevolgen/herziening:** contractdocument
 `implementation/ARTIFACT-STORE-CONTRACT.md` is leidend voor de gezamenlijke
-interface tot owneraftekening. De descriptorlayout is nog geen gedeelde
+interface na Apps-/AI-ownerafstemming. De descriptorlayout is nog geen gedeelde
 geserialiseerde ABI. Hostcontracttests kunnen alleen reken-/state-machine-
 invarianten toetsen. Een native backend vereist later eigen foutinjectie,
 flush-/duurzaamheidsdefinitie, koude recovery, proces-/capabilitybinding en
