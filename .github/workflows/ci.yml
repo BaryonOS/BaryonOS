@@ -60,6 +60,7 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_document_session_*.py'
           python3 -m unittest discover -s tests -p 'test_volume_*.py'
           python3 -m unittest discover -s tests -p 'test_system_*.py'
+          python3 -m unittest discover -s tools/tests -p 'test_*.py'
           python3 .agents/skills/os-dev/scripts/validate_skill.py
           python3 -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py'
       - name: Root Rust host tests

@@ -1,0 +1,3 @@
+Alle negen CI-workflows op exact `9596abc576fceefe2b3ff2f3bd120bcd914eb04c` slagen, inclusief FR-I01 en de vier RNG-gevallen plus PNG/JPEG daadwerkelijk native. Foundation-run 41016069445, job 123932561331: stappen 12–16 success, geen skip. Artifact 12959322690, 11.238.830 bytes, GitHub-digest `sha256:8d3f8c314a1e295d3e221b2039a0de05aa2992b1d8d975efe6e72b9c82c19d9d`, verloopt 13 november 2026. Het ZIP is niet lokaal gedownload of onafhankelijk gehasht; dit is metadata, geen vervanging van raw artifactvalidatie.
+
+De aparte echte GUI-keten op dezelfde bron blijft rood. CI-groen betekent niet dat de volledige releaseacceptatie is behaald. Alle 62 criteria blijven open; score blijft 32%.

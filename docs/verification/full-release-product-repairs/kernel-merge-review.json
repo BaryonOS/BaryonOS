@@ -1,0 +1,969 @@
+{
+  "schema_version": 1,
+  "task": "PRODUCT-MERGE-REVIEW-1/kernel-cfg-identity-bootstrap",
+  "reviewer_task": "/root/git_build_audit/tpm_codec_review",
+  "recorded_at_utc": "2026-10-30T06:54:46.899572+00:00",
+  "frozen_commit": "c91714ba491589e262f906a1aa2d97235cf01e9a",
+  "comparison_commits": {
+    "c91714ba": "c91714ba491589e262f906a1aa2d97235cf01e9a",
+    "844ec40": "844ec40d0717a51d76f2da3a03fa415633725f6a",
+    "48b51878": "48b51878c03b5b73449f563735c7854b24926fc4"
+  },
+  "review_worktree": "/workspace/nieuw-os-worktrees/product-merge-kernel-review",
+  "worktree_detached": true,
+  "review_worktree_clean_at_start_and_end": true,
+  "repository_source_files_modified": [],
+  "worktree_creation": {
+    "command": "git worktree add --detach /workspace/nieuw-os-worktrees/product-merge-kernel-review c91714ba491589e262f906a1aa2d97235cf01e9a",
+    "cwd": "/workspace/nieuw-os",
+    "exit_code": 0,
+    "authorization": "Explicit parent task; no live root-product source read/writes."
+  },
+  "scope": "Kernel Cargo features and m3.rs plus system/desktop/random_fixture/image_fixture/cap_bench/display/ps2: cfg/profile, actual process slot/PID identity, bootstrap and minimal-grant intersections. Parent owns build.py/workspace/locks/source-copy.",
+  "instructions_read": [
+    "AGENTS.md",
+    "kernel/AGENTS.md",
+    "docs/ARCHITECTURE.md relevant architecture/capability passages",
+    "docs/SECURITY-AND-QUANTUM.md relevant trust-boundary/development passages"
+  ],
+  "conclusion": "One P2 fail-closed feature-composition gap; individual reviewed profiles preserve source routing and existing identity/grant checks. Native behavior not executed.",
+  "findings": [
+    {
+      "id": "PRODUCT-MERGE-KERNEL-CFG-1",
+      "priority": "P2",
+      "title": "Reject mutually displacing diagnostic feature families at compile time",
+      "location": {
+        "path": "kernel/src/m2/m3.rs",
+        "line": 75
+      },
+      "supporting_lines": {
+        "kernel/src/m2/m3.rs": [
+          423,
+          561,
+          623,
+          1513
+        ],
+        "kernel/src/m2/m3/cap_bench.rs": [
+          75
+        ]
+      },
+      "description": "The guard excludes random/images/net from each other only. GUI+random/images/net selects7 desktop processes (8 for GUI probe), assigns slot4 to the compositor and disables system manifest/observer/poll routing, leaving the requested acceptance probe absent. Benchmark mixed with another family likewise lacks compile exclusion; its separate source check requires4 processes and would reject the larger manifest before userscheduling.",
+      "minimal_counterexample": {
+        "features": [
+          "native-system-materiaal",
+          "native-system-random"
+        ],
+        "exact_excerpt_compile_exit": 0,
+        "exact_excerpt_run_exit": 0,
+        "initial_processes": 7,
+        "slot4": "NOS_COMPOSITOR_ELF",
+        "absent": "NOS_RANDOM_PROBE_ELF",
+        "run_log": "/tmp/nieuw-os-product-merge-kernel-review/random-gui.run.stdout.txt"
+      },
+      "reachability": "Direct Cargo feature unions. Parent build.py reviewer confirmed the supported CLI accepts one exact profile and exposes no union route. No complete native-kernel build/VM was performed; the compiler reproduction uses unchanged frozen source excerpts and unique marker files instead of ELF bytes.",
+      "policy_scope": "Only the five families requested by root/parent: random, images, net including TCP, GUI, benchmark. Base native-system/clock/display-input and aliases inside one family stay positive.",
+      "recommendation": "Add compile-time mutual exclusion after feature implication; preserve all individual and same-family alias configurations.",
+      "frozen_status": "Open in c91714ba. Root accepted P2 and reported a planned guard fix outside this frozen commit."
+    }
+  ],
+  "source_sha256": {
+    "kernel/Cargo.toml": {
+      "c91714ba": "e33648d09f589e33738c036d5bcf2326dfd587063905141f83004143e54aa78a",
+      "844ec40": "7fa3e3ba92035f57f1b43b8d89dcab79e3342e583c0fdfcc9577329a0217d84d",
+      "48b51878": "95b9694ed57c44dd4b250d595c981da6ec068726c08c83d5849e00a124b03002"
+    },
+    "kernel/src/m2/m3.rs": {
+      "c91714ba": "834d038688aa019c1922dc3c99e3243fc51d5c77b372009e585ed6af829c533e",
+      "844ec40": "28f14efd1f191c8ab57498fd4df6132abea23b3e63cac4ba26fa3f61c2b11edd",
+      "48b51878": "bc3dfeb3785115923c477c38ee1bb9181468f5db2da41678d1cb3806b995acad"
+    },
+    "kernel/src/m2/m3/system.rs": {
+      "c91714ba": "019a0b7fe523365248e3f4113e4252a1bc4c41d9303246767717939224ecb2a7",
+      "844ec40": "cc38e044d9c821a6f5bc316556866e0286878b5ed655191a5e47d688969cad6d",
+      "48b51878": "0ad93499bee0708bc1a1142367c56270f105852a3c3aadb0fa616d1cfd7e03f9"
+    },
+    "kernel/src/m2/m3/desktop.rs": {
+      "c91714ba": "1ac3072e46d8e24359213607baac9b7c545e47259197f5c47cf309bec14c5505",
+      "844ec40": null,
+      "48b51878": "1ac3072e46d8e24359213607baac9b7c545e47259197f5c47cf309bec14c5505"
+    },
+    "kernel/src/m2/m3/random_fixture.rs": {
+      "c91714ba": "884cb0312f5caa6405e7cb93da18b3afac9968937a08a1cf15a13bae24032596",
+      "844ec40": "884cb0312f5caa6405e7cb93da18b3afac9968937a08a1cf15a13bae24032596",
+      "48b51878": null
+    },
+    "kernel/src/m2/m3/image_fixture.rs": {
+      "c91714ba": "913d1f881828a7488e78ea4608cbc19b87bd3c99d4fde1d439b66abc297ebb3f",
+      "844ec40": "913d1f881828a7488e78ea4608cbc19b87bd3c99d4fde1d439b66abc297ebb3f",
+      "48b51878": null
+    },
+    "kernel/src/m2/m3/cap_bench.rs": {
+      "c91714ba": "d81ab0b7d724b4bf27e6a68f229b319a23ba2a6bf49cdf0c837cb199356fe85d",
+      "844ec40": null,
+      "48b51878": "d81ab0b7d724b4bf27e6a68f229b319a23ba2a6bf49cdf0c837cb199356fe85d"
+    },
+    "kernel/src/m2/m3/display.rs": {
+      "c91714ba": "f2eb518c4e77aaaeba28bd6161d8748dcbfbd649e4317cf17fecc8b4f1918fd9",
+      "844ec40": "f2eb518c4e77aaaeba28bd6161d8748dcbfbd649e4317cf17fecc8b4f1918fd9",
+      "48b51878": "f2eb518c4e77aaaeba28bd6161d8748dcbfbd649e4317cf17fecc8b4f1918fd9"
+    },
+    "kernel/src/m2/m3/ps2.rs": {
+      "c91714ba": "6b3949e393be693f345b1e48437d9f01254b09073b1186d3be71793ae955bfed",
+      "844ec40": "6b3949e393be693f345b1e48437d9f01254b09073b1186d3be71793ae955bfed",
+      "48b51878": "6b3949e393be693f345b1e48437d9f01254b09073b1186d3be71793ae955bfed"
+    }
+  },
+  "exact_source_preservation": {
+    "foundation_844ec40_unchanged": [
+      "random_fixture",
+      "image_fixture",
+      "display",
+      "ps2"
+    ],
+    "GUI_48b51878_unchanged": [
+      "desktop",
+      "cap_bench",
+      "display",
+      "ps2"
+    ]
+  },
+  "source_review_observations": [
+    {
+      "path": "kernel/src/m2/m3.rs",
+      "line": 647,
+      "fact": "Checked newly issued PID is stored in the actual process slot before manifests derive identities."
+    },
+    {
+      "path": "kernel/src/m2/m3.rs",
+      "line": 427,
+      "fact": "Single native-system uses init/key/volume/app at0..3; single random/images/net selects its separate fifth env alias at4."
+    },
+    {
+      "path": "kernel/src/m2/m3/system.rs",
+      "line": 100,
+      "fact": "IDs come from live State processes. Random captures actual key/probe PIDs and delegates two probe endpoint leaves; image probe is registered without service/device grants."
+    },
+    {
+      "path": "kernel/src/m2/m3/random_fixture.rs",
+      "line": 59,
+      "fact": "Saved PIDs resolve to live slots; actual app and probe identities stay separate rather than trusting later slot occupants."
+    },
+    {
+      "path": "kernel/src/m2/m3/image_fixture.rs",
+      "line": 288,
+      "fact": "Observer captures actual PID, boot slot and selected ELF fingerprint, validates startup mapping owner, snapshots before cleanup and matches PID+slot+live state."
+    },
+    {
+      "path": "kernel/src/m2/m3/desktop.rs",
+      "line": 104,
+      "fact": "GUI uses distinct7/8 image map and real PID startup fields; no old SYSTEM_APP alias. Raw display/input grants go to compositor/input source only."
+    },
+    {
+      "path": "kernel/src/m2/m3/system.rs",
+      "line": 61,
+      "fact": "GUI worker lookup returns None, matching no launch authority. Display/PS2 syscalls continue to check current PID and capability object."
+    },
+    {
+      "path": "kernel/src/m2/m3.rs",
+      "line": 517,
+      "fact": "Benchmark runs after real manifest setup and before timer/user scheduling; its four-principal invariant rejects larger manifests at runtime."
+    }
+  ],
+  "host_evidence": {
+    "cfg_matrix_command": "python3 -B /tmp/nieuw-os-product-merge-kernel-review/cfg_matrix.py",
+    "cwd": "/workspace/nieuw-os-worktrees/product-merge-kernel-review",
+    "exit_code": 0,
+    "cases": 43,
+    "positive_single_or_same_family": 21,
+    "negative_family_unions": 22,
+    "current_compile_rejections": 6,
+    "missing_compile_exclusions": 16,
+    "GUI_suppression_cases": [
+      "random-gui",
+      "images-gui",
+      "net-gui",
+      "random-sdk-gui",
+      "random-unknown-gui-recover",
+      "random-wrong-gui-scale",
+      "gui-probe-images",
+      "tcp-gui"
+    ],
+    "benchmark_source_only_rejection_inferences": [
+      "random-benchmark",
+      "images-benchmark",
+      "net-benchmark",
+      "gui-benchmark",
+      "tcp-benchmark",
+      "gui-probe-benchmark",
+      "gui-recover-benchmark",
+      "gui-scale-benchmark"
+    ],
+    "aliases": [
+      "TCP -> native-system-net",
+      "TCP-recover -> TCP",
+      "random SDK/unknown/wrong-caller -> native-system-random",
+      "GUIrecover/scale200 -> GUIprobe -> GUI"
+    ],
+    "matrix": {
+      "path": "/tmp/nieuw-os-product-merge-kernel-review/cfg-results.json",
+      "sha256": "bbd00f8f6a6a67cc5d21752814648a0c652c32432215ce81e69c0184b202803b"
+    },
+    "harness": {
+      "path": "/tmp/nieuw-os-product-merge-kernel-review/cfg_harness.rs",
+      "sha256": "0415628aef80c36fde84c72a826ac28a23bf6de2ae537df44763f15d08b5c916",
+      "exact_excerpt_hashes": {
+        "guards": "b38630ae816da5220da31a440d138ee3d4278169e49f7e030a15bedf008c7f3b",
+        "aliases": "637e7d91e21f1a2c0e40dc66225eb2fd083c638c03d68e41ae284b437205ff40",
+        "process_elf": "a6bf0436d99eace97acdfe25e50ee745c64db68f688aa02c197056b00ef59597",
+        "fallback": "b3a076ecf265ff11e108711abb58bb42b4fbd30959b9bcd1190d214a73f8a6d4",
+        "desktop_slots": "245f89468336d8d35303f7ae52477cfae9120c7fc292229bbda80c9facea4f63",
+        "desktop_process_elf": "c2347a018bb31ad9e3ed2c6e7926da1344c68d0f5ffa428c3699fefd529e9cb9",
+        "initial_expression": "f4b93f541427bba2d3af4664caf05d58735df279147461566132a78a6ab6fa06"
+      },
+      "script_path": "/tmp/nieuw-os-product-merge-kernel-review/cfg_matrix.py",
+      "script_sha256": "ab888d9adc1f787c60c7bcbebe8f651da2f402e1d022eceba6c6ef656b965a73",
+      "method": "Unchanged actual cfg guards/aliases/desktop map/native process_elf/fallback/initial-count expressions in isolated standard host program. Every image env points to unique marker bytes. Checks source routing, not ELF content/native execution. All43 compiler argv and feature closures in cfg-results.json."
+    },
+    "image_observer_commands": [
+      {
+        "command": "LOCALAPPDATA=/workspace/nieuw-os/.tools python3 -B tools/dev.py rustc +1.90.0 --edition=2021 --test kernel/src/m2/m3/image_fixture.rs -o /tmp/nieuw-os-product-merge-kernel-review/image-fixture-tests",
+        "cwd": "/workspace/nieuw-os-worktrees/product-merge-kernel-review",
+        "exit_code": 0
+      },
+      {
+        "command": "/tmp/nieuw-os-product-merge-kernel-review/image-fixture-tests",
+        "cwd": "/workspace/nieuw-os-worktrees/product-merge-kernel-review",
+        "exit_code": 0,
+        "passed": 9,
+        "failed": 0,
+        "source": "Unmodified frozen image_fixture.rs; native module excluded by cfg(test)."
+      }
+    ],
+    "logs": {
+      "benchmark.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/benchmark.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "benchmark.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/benchmark.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "benchmark.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/benchmark.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "benchmark.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/benchmark.run.stdout.txt",
+        "sha256": "a1455e2875fd2e9d0ef3f8030f6bd2886ab70f92c615036bad5ce4ea56db3714"
+      },
+      "cfg-matrix.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/cfg-matrix.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cfg-matrix.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/cfg-matrix.stdout.txt",
+        "sha256": "50cccab234408f1babe3f3ca783b9d753cd0f013b52e1c8b611feebfe5b27977"
+      },
+      "default.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/default.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "default.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/default.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "default.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/default.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "default.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/default.run.stdout.txt",
+        "sha256": "72968c16b4a187b56e8cbe285c6fa42aa9a2c83da6510b7d5484e0233d974670"
+      },
+      "gui-benchmark.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-benchmark.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-benchmark.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-benchmark.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-benchmark.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-benchmark.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-benchmark.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-benchmark.run.stdout.txt",
+        "sha256": "b0a2e5236654821eb01d187216b7d6501351a71e576fa39e68c045bbc8012548"
+      },
+      "gui-images.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-images.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-images.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-images.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-images.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-images.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-images.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-images.run.stdout.txt",
+        "sha256": "b0a2e5236654821eb01d187216b7d6501351a71e576fa39e68c045bbc8012548"
+      },
+      "gui-probe-benchmark.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe-benchmark.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-probe-benchmark.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe-benchmark.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-probe-benchmark.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe-benchmark.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-probe-benchmark.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe-benchmark.run.stdout.txt",
+        "sha256": "7764ea910961ed023e5df2601c451514b71fc4e53c8e188f3766b2bb5241003f"
+      },
+      "gui-probe-images.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe-images.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-probe-images.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe-images.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-probe-images.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe-images.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-probe-images.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe-images.run.stdout.txt",
+        "sha256": "7764ea910961ed023e5df2601c451514b71fc4e53c8e188f3766b2bb5241003f"
+      },
+      "gui-probe-random.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe-random.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-probe-random.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe-random.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-probe-random.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe-random.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-probe-random.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe-random.run.stdout.txt",
+        "sha256": "7764ea910961ed023e5df2601c451514b71fc4e53c8e188f3766b2bb5241003f"
+      },
+      "gui-probe.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-probe.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-probe.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-probe.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-probe.run.stdout.txt",
+        "sha256": "7764ea910961ed023e5df2601c451514b71fc4e53c8e188f3766b2bb5241003f"
+      },
+      "gui-random.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-random.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-random.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-random.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-random.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-random.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-random.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-random.run.stdout.txt",
+        "sha256": "b0a2e5236654821eb01d187216b7d6501351a71e576fa39e68c045bbc8012548"
+      },
+      "gui-recover-benchmark.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-recover-benchmark.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-recover-benchmark.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-recover-benchmark.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-recover-benchmark.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-recover-benchmark.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-recover-benchmark.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-recover-benchmark.run.stdout.txt",
+        "sha256": "7764ea910961ed023e5df2601c451514b71fc4e53c8e188f3766b2bb5241003f"
+      },
+      "gui-recover-scale-same-family.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-recover-scale-same-family.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-recover-scale-same-family.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-recover-scale-same-family.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-recover-scale-same-family.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-recover-scale-same-family.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-recover-scale-same-family.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-recover-scale-same-family.run.stdout.txt",
+        "sha256": "7764ea910961ed023e5df2601c451514b71fc4e53c8e188f3766b2bb5241003f"
+      },
+      "gui-recover.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-recover.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-recover.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-recover.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-recover.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-recover.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-recover.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-recover.run.stdout.txt",
+        "sha256": "7764ea910961ed023e5df2601c451514b71fc4e53c8e188f3766b2bb5241003f"
+      },
+      "gui-scale-benchmark.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-scale-benchmark.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-scale-benchmark.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-scale-benchmark.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-scale-benchmark.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-scale-benchmark.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-scale-benchmark.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-scale-benchmark.run.stdout.txt",
+        "sha256": "7764ea910961ed023e5df2601c451514b71fc4e53c8e188f3766b2bb5241003f"
+      },
+      "gui-scale200.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-scale200.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-scale200.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-scale200.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-scale200.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-scale200.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui-scale200.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui-scale200.run.stdout.txt",
+        "sha256": "7764ea910961ed023e5df2601c451514b71fc4e53c8e188f3766b2bb5241003f"
+      },
+      "gui.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "gui.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/gui.run.stdout.txt",
+        "sha256": "b0a2e5236654821eb01d187216b7d6501351a71e576fa39e68c045bbc8012548"
+      },
+      "image-tests-compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/image-tests-compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "image-tests-compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/image-tests-compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "image-tests.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/image-tests.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "image-tests.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/image-tests.stdout.txt",
+        "sha256": "5674d73803199f73cd12ec69c114b8e06e2aef9055295064ee871aa4a7917a49"
+      },
+      "images-benchmark.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images-benchmark.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "images-benchmark.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images-benchmark.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "images-benchmark.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images-benchmark.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "images-benchmark.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images-benchmark.run.stdout.txt",
+        "sha256": "ae4c8bf6ecdd4eb95d7289a3f6877793c2ffc0e4b078a044222b35567de356b1"
+      },
+      "images-gui.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images-gui.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "images-gui.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images-gui.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "images-gui.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images-gui.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "images-gui.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images-gui.run.stdout.txt",
+        "sha256": "b0a2e5236654821eb01d187216b7d6501351a71e576fa39e68c045bbc8012548"
+      },
+      "images-net.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images-net.compile.stderr.txt",
+        "sha256": "8cf41110c840225414dfb9fad0bb5d775e35c5a8b46e12b42b4b020fc3873368"
+      },
+      "images-net.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images-net.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "images.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "images.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "images.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "images.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/images.run.stdout.txt",
+        "sha256": "ae4c8bf6ecdd4eb95d7289a3f6877793c2ffc0e4b078a044222b35567de356b1"
+      },
+      "net-benchmark.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-benchmark.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net-benchmark.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-benchmark.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net-benchmark.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-benchmark.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net-benchmark.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-benchmark.run.stdout.txt",
+        "sha256": "f4291167f8f27d8deb503eb426ac6cca08695932d2b30bcd83479014ba005144"
+      },
+      "net-clock.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-clock.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net-clock.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-clock.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net-clock.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-clock.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net-clock.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-clock.run.stdout.txt",
+        "sha256": "f4291167f8f27d8deb503eb426ac6cca08695932d2b30bcd83479014ba005144"
+      },
+      "net-gui.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-gui.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net-gui.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-gui.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net-gui.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-gui.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net-gui.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-gui.run.stdout.txt",
+        "sha256": "b0a2e5236654821eb01d187216b7d6501351a71e576fa39e68c045bbc8012548"
+      },
+      "net-recover.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-recover.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net-recover.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-recover.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net-recover.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-recover.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net-recover.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net-recover.run.stdout.txt",
+        "sha256": "f4291167f8f27d8deb503eb426ac6cca08695932d2b30bcd83479014ba005144"
+      },
+      "net.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "net.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/net.run.stdout.txt",
+        "sha256": "f4291167f8f27d8deb503eb426ac6cca08695932d2b30bcd83479014ba005144"
+      },
+      "random-benchmark.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-benchmark.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-benchmark.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-benchmark.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-benchmark.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-benchmark.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-benchmark.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-benchmark.run.stdout.txt",
+        "sha256": "81b79e644fbbbb59b975ed66321bc87624ecd228d5122fa559c864aa2a969e50"
+      },
+      "random-gui.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-gui.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-gui.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-gui.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-gui.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-gui.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-gui.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-gui.run.stdout.txt",
+        "sha256": "b0a2e5236654821eb01d187216b7d6501351a71e576fa39e68c045bbc8012548"
+      },
+      "random-images.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-images.compile.stderr.txt",
+        "sha256": "7fa103aa3f5b6b95ee917812cd5f0f1a15fbb877c091fe698348926cc4caff6f"
+      },
+      "random-images.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-images.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-net.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-net.compile.stderr.txt",
+        "sha256": "6c290819e24b8f8deb064d748919555d4e0f6f9d71370e9238b0a041a38ac348"
+      },
+      "random-net.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-net.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-sdk-gui.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-sdk-gui.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-sdk-gui.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-sdk-gui.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-sdk-gui.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-sdk-gui.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-sdk-gui.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-sdk-gui.run.stdout.txt",
+        "sha256": "b0a2e5236654821eb01d187216b7d6501351a71e576fa39e68c045bbc8012548"
+      },
+      "random-sdk.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-sdk.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-sdk.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-sdk.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-sdk.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-sdk.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-sdk.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-sdk.run.stdout.txt",
+        "sha256": "81b79e644fbbbb59b975ed66321bc87624ecd228d5122fa559c864aa2a969e50"
+      },
+      "random-unknown-gui-recover.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-unknown-gui-recover.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-unknown-gui-recover.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-unknown-gui-recover.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-unknown-gui-recover.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-unknown-gui-recover.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-unknown-gui-recover.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-unknown-gui-recover.run.stdout.txt",
+        "sha256": "7764ea910961ed023e5df2601c451514b71fc4e53c8e188f3766b2bb5241003f"
+      },
+      "random-unknown.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-unknown.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-unknown.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-unknown.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-unknown.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-unknown.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-unknown.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-unknown.run.stdout.txt",
+        "sha256": "81b79e644fbbbb59b975ed66321bc87624ecd228d5122fa559c864aa2a969e50"
+      },
+      "random-wrong-gui-scale.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-wrong-gui-scale.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-wrong-gui-scale.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-wrong-gui-scale.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-wrong-gui-scale.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-wrong-gui-scale.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-wrong-gui-scale.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-wrong-gui-scale.run.stdout.txt",
+        "sha256": "7764ea910961ed023e5df2601c451514b71fc4e53c8e188f3766b2bb5241003f"
+      },
+      "random-wrong.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-wrong.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-wrong.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-wrong.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-wrong.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-wrong.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random-wrong.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random-wrong.run.stdout.txt",
+        "sha256": "81b79e644fbbbb59b975ed66321bc87624ecd228d5122fa559c864aa2a969e50"
+      },
+      "random.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "random.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/random.run.stdout.txt",
+        "sha256": "81b79e644fbbbb59b975ed66321bc87624ecd228d5122fa559c864aa2a969e50"
+      },
+      "system-clock.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/system-clock.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "system-clock.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/system-clock.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "system-clock.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/system-clock.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "system-clock.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/system-clock.run.stdout.txt",
+        "sha256": "a1455e2875fd2e9d0ef3f8030f6bd2886ab70f92c615036bad5ce4ea56db3714"
+      },
+      "system-display-input.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/system-display-input.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "system-display-input.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/system-display-input.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "system-display-input.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/system-display-input.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "system-display-input.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/system-display-input.run.stdout.txt",
+        "sha256": "a1455e2875fd2e9d0ef3f8030f6bd2886ab70f92c615036bad5ce4ea56db3714"
+      },
+      "system.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/system.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "system.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/system.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "system.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/system.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "system.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/system.run.stdout.txt",
+        "sha256": "a1455e2875fd2e9d0ef3f8030f6bd2886ab70f92c615036bad5ce4ea56db3714"
+      },
+      "tcp-benchmark.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-benchmark.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-benchmark.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-benchmark.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-benchmark.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-benchmark.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-benchmark.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-benchmark.run.stdout.txt",
+        "sha256": "f4291167f8f27d8deb503eb426ac6cca08695932d2b30bcd83479014ba005144"
+      },
+      "tcp-gui.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-gui.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-gui.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-gui.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-gui.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-gui.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-gui.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-gui.run.stdout.txt",
+        "sha256": "b0a2e5236654821eb01d187216b7d6501351a71e576fa39e68c045bbc8012548"
+      },
+      "tcp-images.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-images.compile.stderr.txt",
+        "sha256": "8cf41110c840225414dfb9fad0bb5d775e35c5a8b46e12b42b4b020fc3873368"
+      },
+      "tcp-images.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-images.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-net-same-family.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-net-same-family.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-net-same-family.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-net-same-family.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-net-same-family.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-net-same-family.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-net-same-family.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-net-same-family.run.stdout.txt",
+        "sha256": "f4291167f8f27d8deb503eb426ac6cca08695932d2b30bcd83479014ba005144"
+      },
+      "tcp-random.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-random.compile.stderr.txt",
+        "sha256": "6c290819e24b8f8deb064d748919555d4e0f6f9d71370e9238b0a041a38ac348"
+      },
+      "tcp-random.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-random.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-recover-random-sdk.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-recover-random-sdk.compile.stderr.txt",
+        "sha256": "6c290819e24b8f8deb064d748919555d4e0f6f9d71370e9238b0a041a38ac348"
+      },
+      "tcp-recover-random-sdk.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-recover-random-sdk.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-recover.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-recover.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-recover.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-recover.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-recover.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-recover.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp-recover.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp-recover.run.stdout.txt",
+        "sha256": "f4291167f8f27d8deb503eb426ac6cca08695932d2b30bcd83479014ba005144"
+      },
+      "tcp.compile.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp.compile.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp.compile.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp.compile.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp.run.stderr.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp.run.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tcp.run.stdout.txt": {
+        "path": "/tmp/nieuw-os-product-merge-kernel-review/tcp.run.stdout.txt",
+        "sha256": "f4291167f8f27d8deb503eb426ac6cca08695932d2b30bcd83479014ba005144"
+      }
+    }
+  },
+  "known_outside_frozen_commit_excluded": [
+    "Root WIP capbench ZERO -> diagnostic_zero_digest",
+    "Calculator startup word0 documentation fix"
+  ],
+  "not_performed": [
+    "VM/QEMU/native runtime",
+    "New kernel/native builds",
+    "Live mutable root-product source reads",
+    "Parent build.py/workspace/lock/source-copy scope",
+    "General kernel/hardware/security audit",
+    "Actual final ELF payload byte proof or full product acceptance"
+  ]
+}

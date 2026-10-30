@@ -80,6 +80,28 @@ mod system;
 compile_error!(
     "choose one fifth-process acceptance probe; this does not define the product service manifest"
 );
+// These diagnostic manifests assign overlapping process roles. Reject their
+// union instead of silently selecting one fixture and suppressing another.
+#[cfg(any(
+    all(
+        feature = "native-system-materiaal",
+        any(
+            feature = "native-system-random",
+            feature = "native-system-images",
+            feature = "native-system-net",
+            feature = "native-cap-digest-bench"
+        )
+    ),
+    all(
+        feature = "native-cap-digest-bench",
+        any(
+            feature = "native-system-random",
+            feature = "native-system-images",
+            feature = "native-system-net"
+        )
+    )
+))]
+compile_error!("choose one diagnostic process manifest; product services are not excluded");
 #[cfg(feature = "native-system-images")]
 mod image_fixture;
 #[cfg(feature = "native-system-random")]
