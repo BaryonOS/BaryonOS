@@ -226,13 +226,41 @@ actievelden, geen dispatch of capability. Een te kleine uitvoerbuffer faalt
 zonder gedeeltelijke snapshot. Dit is een app-lokale API, geen IPC naar een
 schermlezer, spraakuitvoer of OS-brede toegankelijkheidsinterface. Hosttests
 controleren de boomstructuur, maximale lijstpagina, buffergrens, editor en
-dirty-close-dialoog; ze bewijzen geen native schermlezer, toetsenbordproef of
-gebruikersacceptatie. De keyboard-QMP-route hieronder is nog niet native
-uitgevoerd.
-De probe heeft ook een aparte `--case keyboard`-QMP-route voor create, edit,
-save, list en reopen, uitsluitend met QEMU-key-events. De hostharness controleert
-de verzoektrace en replay, maar deze native route is nog niet uitgevoerd en is
-geen screenreader- of gebruikersacceptatiebewijs.
+dirty-close-dialoog; ze bewijzen geen native schermlezer of
+gebruikersacceptatie.
+
+De aparte `--case keyboard`-QMP-route is als baseline uitgevoerd op de
+bevroren bron `74d15ac09ac61c8d47a882c3c982711af1a9d891`, fingerprint v3
+`24d5f4c112924cfe45681de3fcf3a92f62087e29524f15c74e14d83620891abd`.
+In QEMU 10.2.1 (`pc-q35-10.0`, TCG, `qemu64`, 1 CPU, 256 MiB) voltooide de
+run in 136,8 s zes gerenderde fasen: ready, editor, dirty, saved, list en
+reopened. De QMP-trace bevat 21 `send-key`-verzoeken en zes screendumps; de
+gast bevestigde 42 toetsen en nul pointerevents. Save/reopen bleef in dezelfde
+VM-sessie. Het disk-orakel vond object 0, revisie 1, generation 1, 14 bytes
+met de verwachte hash en intacte canaries. QEMU raw-exit 33 werd als normale
+probe-afsluiting geaccepteerd (`passed=true`, geen timeout, M1 en cleanup
+geslaagd).
+
+Dit is alleen baseline-bediening, geen uitvoering van de nieuwe semantiekboom
+uit `f6ec180103779dfdb1f50088c7a9cfd7338fb955`. De bevroren
+`ui/native/src/render.rs`-hash was
+`89c7c99010aa1ca284fdf914543d38ffd6ea0c1891f4c07102c78925d13ce2d9` en bevat
+de nieuw toegevoegde stabiele `SemanticId`-, ouder- en actievelden niet; de
+huidige leaf heeft hash
+`fc2682ebedafe92e4c99501f7d2a12a49f145c7bec92208db2e2fc789fea9434`.
+Daarom zijn die nieuwe wijzigingen niet in dit guest-image gelinkt of native
+uitgevoerd. De oude bron bevatte wel een flat app-lokale `semantics()`-methode,
+maar geen consumer- of screenreaderroute is met deze run aangetoond.
+Volledige bron-, disk-, QMP- en framehashes staan in
+[`qmp-keyboard-v3.json`](../verification/native-materiaal-accessibility-snapshot/qmp-keyboard-v3.json);
+gegenereerde binaries/images staan alleen in de genegeerde lokale
+`build/native-materiaal-accessibility-v3/`.
+
+Er is geen koude herstart/herstel, screenreader, spraakuitvoer of menselijke
+toegankelijkheids-/UX-acceptatie uitgevoerd. Deze baseline sluit geen U-criterium
+en valideert de nieuwe semantiekboom niet. Eerst moet release de leaf-UI-code
+in één actuele Materiaal-runtime integreren en de exacte bron-/artifactbinding
+aanleveren; daarna moet deze native gate op die bron opnieuw worden uitgevoerd.
 
 De expliciet goedgekeurde backend is `noto-sans-mono-bitmap = 0.3.2`, defaults
 uit; regular, size16/32, Basic Latin, Latin1 Supplement en Specials. Geen

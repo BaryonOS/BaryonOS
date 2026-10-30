@@ -65,3 +65,27 @@ voor schaal/contrast/reduced motion, menselijke gebruikerstest of fysieke
 hardwaretest uitgevoerd. Deze wijziging sluit geen U01–U06-criterium en
 verhoogt de vaste score niet. Zie `docs/PROJECT-STATE.md` voor de eerstvolgende
 hervatstap.
+
+## Semantiekboom en native keyboard-baseline
+
+De leaf-UI-semantiekboom staat op implementatiecommit
+`f6ec180103779dfdb1f50088c7a9cfd7338fb955`; de brongebonden host/scalar-
+verificatie staat op `02766785356de75fc2f766031f79e49c48839ff0`. De volledige
+`ui/native`-hosttests (`20/20`), fmt, check, Clippy en scalar-build slaagden;
+`ui/native/verification/checks.json` vermeldt `native_execution: false`.
+
+De aparte native keyboard-baseline is uitgevoerd op **andere code**:
+`74d15ac09ac61c8d47a882c3c982711af1a9d891`, fingerprint v3
+`24d5f4c112924cfe45681de3fcf3a92f62087e29524f15c74e14d83620891abd`.
+De werkelijke guest voltooide zes frames, 42 toetsen, nul pointerevents en
+save/list/in-sessie-reopen; raw QEMU-exit 33, probe passed, geen timeout.
+Het guest-sourcebestand mist de nieuwe stabiele semantic-ID's, boomrelaties en
+actievelden. Dus dit is geen native bewijs voor de nieuwe leaf-code of een
+screenreaderconsumer. Details en hashes staan in
+[`qmp-keyboard-v3.json`](qmp-keyboard-v3.json); de volledige ruwe run is lokaal
+bewaard onder de genegeerde `build/native-materiaal-accessibility-v3/`.
+
+Open implementatiepoort: release moet de leaf-UI-code integreren in één actuele
+Materiaal-runtime, de sourcefingerprint en gebouwde app/artifacthashes binden,
+en de keyboardgate op exact die guest opnieuw uitvoeren. Koude herstart,
+screenreader/spraak en menselijke UX-acceptatie blijven aparte open bewijzen.
