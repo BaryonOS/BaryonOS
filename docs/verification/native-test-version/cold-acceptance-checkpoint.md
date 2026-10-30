@@ -73,3 +73,14 @@ geen guest clean shutdown en geen abrupte stroomuitval tijdens een write.
 Hier niet ongemerkt een tweede actieve roadmap of groen coldcriterium
 van maken. Centrale status/queue/assessment zijn van de teamleider.
 Voortgangvoorstel **34% → 34%**.
+
+Native mijlpaal op bevroren code `420fac5783fdf86ed6d6464a8f1498190fdf78ef`:
+nieuwe referentie 134.483s/raw33, gewone save/list/reopen-parent
+93.036s/raw0 en cold-child 38.225s/raw0, alle runnercommando's exit0.
+Volledige coldlijst/heropenpixels en onafhankelijke diskdecoder groen,
+diskbytes onveranderd. Exacte commando's, logs, bron-/artifactbinding en
+ruwe serial staan in `../native-cold-acceptance/`. Dit is herstel na
+geforceerde host-QMP-stop na save, geen guest clean shutdown, abrupte
+powerloss, encryptie of volledige FR-acceptatie. De volgende onafhankelijke
+infrastructuurstap is tamper-replay op eigen kopieën van deze echte artifacts;
+originele geslaagde runs worden niet gewijzigd.
