@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "5a91062197f26a18b2fb6dd030ad06346d53fd68",
-    "branch": "simon/windows-qemu-test-version",
-    "task": "CONFLICT-MERGE-MAIN-94C8908",
+    "source_commit": "0078c3b3baeff2dd5914b8f9d1b1e354cb33aea0",
+    "branch": "simonvanieperen-musical-happiness",
+    "task": "Inhoudsbehoudende PR70-integratie van codecbron 0078c3b met main 94c8908",
     "previous_score": 34,
-    "summary": "34% blijft34%; main 94c8908 inhoudsbehoudend geïntegreerd. Overlappende Windows-QEMU-code gebruikt de nieuwere main-implementaties; PR-bewijs en overige branchwijzigingen blijven behouden. Gerichte Windows-QEMU-tests (35), tooltests (138), systeemharnastests (46), Rust-workspace-tests, beide rustfmt-checks, progress-check en diff-check slagen. Geen productcriterium gesloten; geen Windows-gast- of releaseacceptatie opnieuw uitgevoerd."
+    "summary": "34% blijft 34%; netwerk 0/10. Codecbron 0078c3b is inhoudsbehoudend geïntegreerd met main 94c8908, inclusief IPC-WAIT/TPM/rootlock/Windowsbewijs/preflight/vendors. Alleen bedoelde DHCP-codec en brongebonden documentatie blijven boven main; tracks, gewichten en evidence zijn exact main94. Beide historische kanten volledig behouden; één branchhandoff vervangt geen centrale teamstatus. 58 codec-hosttests, 24 preflighttests, Clippy, fmt en freestanding build zijn op deze samengevoegde bron herhaald: alle exit0. Oude groene head0078 en native ARP/UDP/DNS-bron9ddc6b6 zijn geen bewijs voor nieuwe head of native DHCP/TLS/appgrants. Nieuwe head-CI/review blijven open."
   },
   "tracks": [
     {

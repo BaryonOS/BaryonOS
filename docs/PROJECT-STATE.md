@@ -1,27 +1,165 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Main 94c8908 inhoudsbehoudend geïntegreerd in PR #65 — 30 oktober 2026
+## NEXT AGENT HANDOFF — Main ca45a7d geïntegreerd in PR #65 — 30 oktober 2026
 
-PR-head `0e441a9354fd519ebb5583eb52d2a396f452bbf6` en main
-`94c8908ee363d06a5be51417c5cae635549d566f` zijn samengevoegd. Overlappende
-packager-, preview-, launcher- en testbestanden gebruiken de nieuwere main-
-versies, inclusief de pad-/symlinkcontroles en het opruimen van verouderd
-previewbewijs. De PR-eigen interactieve proefnotitie en overige niet-
-conflicterende wijzigingen zijn behouden. Het previewbewijs vermeldt nu
-expliciet dat historische rapporten geen zelfstandige v3-fingerprintversie
-vastleggen.
+PR-head `ec591dd8ea01f5b2c50481791789bf5d211ee0ac` is inhoudsbehoudend
+samengevoegd met main `ca45a7dabe6a040921de03bdc2fad3e5045a75ba`, met beide
+oudergeschiedenissen behouden. Alleen README, deze status en `docs/progress.json`
+botsten; de bijgewerkte main-rubric, PR #70-codec- en netwerkbewijs, queue en
+overige main-wijzigingen zijn behouden. De eerdere PR #65 Windows-QEMU-code,
+eigen interactieve bewijs en checkpoints blijven in de onderstaande historie.
+De integratie verandert geen productclaim of rubricpunten: 34% blijft 34%.
 
-Validatie van de geïntegreerde werkboom: gerichte Windows-QEMU-tests 35/35,
-alle tooltests 138/138, systeemharnastests 46/46, Rust-workspace-tests en
-root-/SDK-rustfmt slagen; `tools/progress.py --check` en `git diff --check`
-slagen. De eerste offline Cargo-test faalde door een ontbrekende gecachete
-`ed25519-dalek`; na `cargo +1.90.0 fetch --locked` slaagde de herhaling. De
-eerste rustfmt-aanroep trof een gelijktijdige rustup-installatie zonder
-component; na installatie slaagden beide formatterchecks. Geen Windows-gast-
-of releaseacceptatie is met deze integratie opnieuw uitgevoerd. Voortgang
-blijft 34%; geen criterium gesloten.
+Op de samengevoegde werkboom slagen `cargo +1.90.0 test
+--manifest-path services/net-protocol/Cargo.toml --locked --offline` (58 tests),
+dezelfde crate's Clippy met `--all-targets --locked --offline -- -D warnings`,
+`cargo check --tests`, crate-rustfmt en de `x86_64-unknown-none`-releasebuild.
+Ook slagen `python3 -B -m unittest discover -s tests -p 'test_preflight.py'`
+(24 tests) en `python3 -B tools/progress.py --check`. De eerste format-, Clippy-
+en targetbuildpogingen stopten omdat rustfmt, Clippy en de freestanding target
+niet geïnstalleerd waren; na installatie slaagden de herhalingen. Geen nieuwe
+CI-run, Windows-gast- of releaseacceptatie uitgevoerd. Oude tests en CI uit
+eerdere broncommits gelden niet als bewijs op deze head. `git diff --check`
+op de volledige staged integratie signaleert twee bestaande lege regels aan
+EOF in de nieuw binnengekomen, hashgebonden native bewijslogs
+`docs/verification/full-release-network-dev-9ddc6b6/host/1.stdout.txt` en
+`host/2.stdout.txt`; deze bewijsbytes zijn ongewijzigd behouden. De unstaged
+resolutiecheck is schoon.
 
-## NEXT AGENT HANDOFF — Zes reviewfixes en Windowsbewijs geïntegreerd; native herhaling volgt
+## Historisch checkpoint — PR #70 behoudt main94 en oorspronkelijke bewijsgrenzen — 30 oktober 2026
+
+Branch `simonvanieperen-musical-happiness`; mergeouders
+`0078c3b3baeff2dd5914b8f9d1b1e354cb33aea0` (codec/paddingreview) en
+`94c8908ee363d06a5be51417c5cae635549d566f` (main na PR #66).
+Gewone twee-oudermerge. Main's IPC-WAIT/TPM, rootlock, Windowsfixes/-bewijs,
+preflight en vendors blijven behouden; geen oude runtimebron teruggezet.
+Alleen bedoelde DHCP-codec en brongebonden documentatie blijven boven main.
+Beide historische kanten blijven hieronder volledig, met één actuele handoff.
+Tracks, gewichten en evidence blijven exact main94; **34% → 34%; netwerk 0/10**.
+
+Gerichte 58 codec-hosttests, 24 preflighttests, fmt, Clippy en
+`x86_64-unknown-none` releasebuild zijn op de samengevoegde bron herhaald:
+alle exit 0. Uitkomst/commando's staan in `verification/dhcpv4-codec/`.
+De oude groene CI op `0078c3b` blijft uitsluitend historisch. De bestaande
+native ARP/UDP/DNS-pair blijft uitsluitend bron `9ddc6b6`; geen native
+DHCP/TLS/appbestemmingsbewijs. DHCP-client, TCP-listen/baselinebootfout en
+TLS-portonderzoek staan los van deze PR en worden niet meegenomen.
+
+Manager `89f84098` gaf uitsluitend deze conflictresolutie vrij; dit vervangt
+geen centrale teamstatus/roadmap. Na commit/push zijn centrale bestanden weer
+manager-owned. Lifecyclecoördinator `e8e471ce` blijft enige merger; PR blijft
+concept tot nieuwe-head-CI en review klaar zijn. Generator `--write`/`--check`
+en diffcheck slagen, tracks/evidence zijn exact main94. Eerstvolgend:
+mergecommit/push/remote-SHA controleren en lifecycle de nieuwe head leveren.
+
+## Historisch checkpoint — PR #70 inhoudsbehoudend met main748 geïntegreerd — 30 oktober 2026
+
+Branch `simonvanieperen-musical-happiness`; bronouders `5d95ea9174927d74ff2a7a4bb26e0df714099330`
+(DHCP-codec, unicast-yiaddr en minimale 300-byte-BOOTP-padding) en
+`748e29b7455ca4213a6bf3ba3808c3097458263d` (main, PR #62).
+Twee-oudermerge; geen rebase, blinde ours/theirs-keuze of lockfilevervanging.
+Alle preflight-, vendor- en lockwijzigingen van main zijn behouden.
+Beide historische netwerk- en preflightcheckpoints staan hieronder volledig.
+
+Op de samengevoegde runtimebron: 58/58 codec-hosttests, Clippy, fmt,
+`x86_64-unknown-none` releasebuild en 24 preflighttests exit 0.
+Exacte commando's, logs, bronhashes en oorspronkelijke rode paddingregressie:
+[`verification/dhcpv4-codec/`](verification/dhcpv4-codec/README.md).
+Geen native DHCP/relay, TLS, algemene configuratie of appbestemmingsafdwinging
+getest. De bestaande native ARP/UDP/DNS-pair blijft uitsluitend bron `9ddc6b6`.
+**34% → 34%; netwerk 0/10; FR-N01–N04 blijven open.**
+
+Deze expliciet vrijgegeven branchgebonden conflictresolutie vervangt geen
+centrale teamstatus/roadmap van manager `89f84098`. Centrale bestanden worden
+na deze merge weer alleen door die eigenaar bijgewerkt. DHCP-client en
+TCP-listen staan op afzonderlijke branches en zijn niet in PR #70 opgenomen.
+Eerstvolgend: mergecommit/push/remote-SHA controleren en lifecyclecoördinator
+`e8e471ce` plus intake de head en het bewijs doorgeven. PR blijft concept;
+nieuwe-head-CI/review/squash zijn aparte gates bij die coördinator.
+
+## Historisch checkpoint — native netwerkbasis opnieuw groen; DHCP-client open — 30 oktober 2026
+
+Branch `simonvanieperen-musical-happiness`; laatste geteste bron
+`9ddc6b6df82fc555ea6d28247a971ea1b09a8b99`. De lokale QEMU/OVMF-blokkade
+hieronder is opgelost zonder globale installatie. QEMU 10.2.1/OVMF 2025.11,
+`pc-q35-10.0`, TCG: `python3 -B -u tools/test_net_system.py` exit 0.
+Normal 32,859 s en koude recovery 32,498 s, beide raw exit 33 en
+`network_gate=true`; `capture_system.py --network` heeft beide opnieuw
+gevalideerd. Bron-/image-/firmwarebewijs:
+[`verification/full-release-network-dev-9ddc6b6/`](verification/full-release-network-dev-9ddc6b6/README.md).
+
+Dit is een herhaling van de bestaande native ARP/UDP/DNS-proef, geen
+DHCP-client, algemene configuratie, TLS of appbestemmingsbeleid. **34% → 34%;
+netwerk 0/10; N01–N04 open.** PR #70 blijft concept tot verplichte CI en
+concrete review rond zijn; integratiecoördinator beheert squashintegratie.
+Eerstvolgend: DHCP-clienttoestanden met lease-/endpointbinding en negatieve
+tests binnen `services/net-protocol/**`, daarna een aparte native koppeling.
+Geen NAS-bestanden of gedeelde ABI wijzigen zonder gecoördineerde scope.
+
+**Reviewfix op basis `6a20b35`:** de actuele codec accepteerde terecht
+geparseerde opties maar controleerde `yiaddr` zelf nog niet. OFFER/ACK met
+nul-, loopback-, multicast- of broadcastadres worden nu geweigerd met
+`InvalidAddress`; NAK met nuladres blijft geldig. Volledige hosttests
+57/57, Clippy, fmt en freestanding releasebuild exit 0. Logs:
+`/tmp/nieuw-os-dhcp-yiaddr-{tests,clippy,target}.log`.
+Geen native herhaling van deze reviewfix geclaimd; de eerdere native pair
+blijft aan `9ddc6b6` gebonden. DHCP-client-WIP is apart bewaard voor de
+vervolgbranch, niet onderdeel van deze codec-reviewfix.
+
+## Historisch DHCP-codec-checkpoint — 30 oktober 2026
+
+Branch `simonvanieperen-musical-happiness`; huidige broncommit
+`30748d6402ee9bf84a5606a8260455b0c05d9e9a`, na behoud van `origin/main`
+(`e1cce29`). De dependencyvrije codec bouwt DISCOVER/selecting DHCPREQUEST/
+renewing DHCPREQUEST en parseert begrensd OFFER/ACK/NAK. Er is geen
+DHCP-toestandsmachine, interface-/routeconfiguratie, leasepersistentie of
+kernel-/SDK-ABI-/capabilitywijziging. DHCP-identiteitsvelden authenticeren de
+server niet; de caller moet beide UDP/IP-endpoints binden.
+
+De parser begrenst berichten op 576 bytes en controleert transaction-ID,
+client-MAC, vaste BOOTP-header, DHCP-cookie, relevante opties en timers. Hij
+weigert option-overload en dubbele relevante opties. De selecting-request
+broadcastvlag wordt afgeleid van de requestsoort en is expliciet getest.
+
+**Huidige bronproef op `30748d6`:** formattering en volledige cratesuite
+slagen; alle 56 tests (2 library, 7 ARP, 9 DHCP, 18 DNS, 20 packettests)
+zijn groen. Clippy met `-D warnings` en de releasebuild voor
+`x86_64-unknown-none` slagen eveneens. Hosttests gebruiken een tijdelijke
+Ubuntu GCC 13.4.0/libc sysroot in `/tmp`; geen globale installatie of
+projectdependency. De Clippy-run op voorganger `d16b44a` wees op 8 argumenten
+in de builder. Commit `30748d6` verwijdert de overtollige vlagparameter en
+voegt selectie-broadcastdekking toe; alle exacte-brongates zijn nu groen.
+Bewijs, commando's, logpaden en bronhashes:
+[`verification/dhcpv4-codec/`](verification/dhcpv4-codec/README.md).
+
+`python3 -B tools/preflight.py --strict` exit 2: deze worktree mist QEMU en
+OVMF. Er is geen native DHCP-peer, lease, configuratie of echte verbinding
+getest. **Rubric 34% → 34%; netwerk 0/10; N01–N04 blijven open.**
+Eerstvolgend: commit en push deze bewijsupdate; daarna QEMU/OVMF-beschikbaarheid
+opnieuw controleren en de kleinste native DHCP-client-/configuratieproef
+voorbereiden. De codec zelf sluit geen netwerkcriterium.
+
+**Historische eerste poging vóór tijdelijke linker:** `python3 -B tools/dev.py cargo +1.90.0
+fmt --manifest-path services/net-protocol/Cargo.toml --all -- --check` en
+`env CARGO_TARGET_DIR=target/dhcp-codec python3 -B tools/dev.py cargo +1.90.0
+check --manifest-path services/net-protocol/Cargo.toml --tests --locked
+--offline` exit 0; `git diff --check` exit 0. Clippy op codecommit `cdfa365`
+faalde (exit 101) op `manual_is_multiple_of`; de lintfix is gecommit, maar
+Clippy en de freestanding targetbuild moeten op `a3830f3` worden herhaald.
+De eerdere targetbuild op `cdfa365` slaagde, niet bewijs voor de lintfix-commit.
+Gerichte `cargo test` exit 101: `linker cc not found`; uitvoer
+`/tmp/nieuw-os-dhcp-tests.log`. Testcode is typegecontroleerd maar niet
+uitgevoerd. Nergens native QEMU-netwerkbewijs.
+
+**Historische rubric-/blockerstatus:** 34% → 34%; N01–N04 bleven open; de codec is geen geaccepteerd
+productcriterium. Broncommits voor de volgende herbeoordeling volgen na het
+implementatiecheckpoint. **Blokker:** lokale hostlinker ontbreekt. Eerstvolgende
+**Eerstvolgend:** commit en push deze assessment; daarna op exact `a3830f3`
+Clippy draaien en de freestanding `x86_64-unknown-none`-build herhalen. Daarna
+hosttestuitvoering herstellen of de linkerblokkade exact escaleren; vervolgens
+pas DHCP-client-/lease-integratie. Geen N01–N04-criterium gesloten; score
+34% → 34%.
+## Historisch checkpoint — Zes reviewfixes en Windowsbewijs geïntegreerd; native herhaling volgt
 
 Vervolgbranch vanaf71c1d5c met d104fd9a7f33b478c3e1b43f8d99c6d65af73fd6
 inhoudsbehoudend geïntegreerd. Alle zes concrete reviewfixes samen; volledige
