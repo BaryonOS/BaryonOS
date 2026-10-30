@@ -50,8 +50,9 @@ Dit voorstel is nog geen uitgevoerde fix of nieuwe schrijftoewijzing.
   Geen retrylabel wordt gepubliceerd. Deze test gebruikt de bestaande
   copy `Opslag onzeker. Je tekst blijft open.`, geen nieuwe doelcopy.
 
-ReadOnly/openen en afzonderlijke IO-/Closed-modale matrix zijn nog niet
-toegevoegd; die dekking wordt niet uit deze twee fixtures afgeleid.
+ReadOnly/openen en IO-editor zijn in de onderstaande v2 toegevoegd.
+Een afzonderlijke IO-/Closed-modale matrix is nog niet toegevoegd;
+die dekking wordt niet uit deze fixtures afgeleid.
 Geen native of menselijke acceptatie.
 
 ## Uitgevoerde commando's
@@ -111,3 +112,40 @@ Scorevoorstel aan centrale eigenaar **34 -> 34 /100; U 0 -> 0 /15**.
 Nieuwe echte blocker verlaagt niet stilzwijgend bewijscriteria; betreffende
 native criteria waren al open. Centrale assessment/status/progressbestanden
 blijven exclusief van hun aangewezen eigenaar.
+
+## V2: onafhankelijk ReadOnly/IO-editorwerk voortgezet
+
+Na rode checkpoint `0b0271c63697ce52eacba5bef91ae1c99ffd6697` is binnen
+dezelfde testscope een vierde test toegevoegd. ReadOnly opent bestaande
+inhoud, weigert semantische Save en Document-set-value zonder nieuwe
+opslagrequests. IO tijdens de save behoudt dirty tekst, Failed-status,
+geen saving en originele disk/revision1. De daadwerkelijk aangeboden
+Save-beschikbaarheid volgt `can_save`; een disabled actie is niet gefocust.
+ReadOnly doet geen COMMIT; IO mag één COMMIT **proberen** dat de dienst weigert.
+Een eerste eigen testaanname “ook IO geen COMMIT-request” was onjuist;
+`io-commit-assumption.log` bewaart die fout. De service-/controllerpolicy
+is niet gewijzigd. Geen claim dat een IO-poging automatisch veilig retrybaar is.
+
+De eerdere commandotabel/hashes blijven historische checkpoint0b0271.
+Actuele v2-testbron:
+`9b21190f1c8125b3c556bb34a23fdc20baee04a056535446c19ebb5a30016909`.
+Zelfde exacte commandoprefix/omgeving als hierboven:
+
+| Exact commando | Exit | Tijd | Actuele uitvoer |
+|---|---:|---:|---|
+| `cargo test --offline --locked --manifest-path ui/native/Cargo.toml` | **101** | 0,729 s | `suite-v2.log`: 26 groen, zelfde 1 actieve modale blocker |
+| `cargo test --offline --locked --manifest-path ui/native/Cargo.toml -- --skip sr06_failed_save_blocks_modal_save_actions` | 0 | 0,368 s | `unblocked-v2.log`: 26 groen, 1 expliciet uitgefilterd |
+| `cargo fmt --manifest-path ui/native/Cargo.toml -- --check` | 0 | 0,063 s | `fmt-v2.log` |
+| `cargo clippy --offline --locked --manifest-path ui/native/Cargo.toml --all-targets -- -D warnings` | 0 | 0,250 s | `clippy-v2.log` |
+| `cargo build --offline --locked --manifest-path ui/native/Cargo.toml --target x86_64-unknown-none` | 0 | 0,057 s | `none-v2.log`, uitvoering exit0, cachehergebruik is geen runtimebewijs |
+
+```text
+8c0116b5febdf711043d4036228339658608afa71912cdaf8be78ae7ecba1855  suite-v2.log
+78192056b38c47dc94a597eb0ee31b7556687bddd976af868de254a63587e818  unblocked-v2.log
+156eccae11d6005c3e059dda8a9aad37d2f18a03cf387b481cc4f6cead7262ae  fmt-v2.log
+03cb5e8e97c7cc56e71a81ce5a2a4abceb53c1ded7992f5c28910b8744bc2524  clippy-v2.log
+2585c9a22accdb18fc58a9f21283521f2b85a29a821f66fb5dac0b1f81ed0e7b  none-v2.log
+```
+
+Rendereruitbreiding is aangevraagd, nog niet toegekend bij deze v2.
+Er zijn nog steeds geen productbronwrites of native/menselijke punten.

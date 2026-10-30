@@ -298,6 +298,84 @@ fn sr06_failed_save_blocks_modal_save_actions_impl() {
     sr06_failed_save_blocks_actions(true);
 }
 
+fn sr06_read_only_and_io_failures_keep_truthful_editor_state_impl() {
+    for read_only in [true, false] {
+        let host = Host::new();
+        host.borrow_mut().seed(0, b"Original");
+        let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+        let mut ui = controller(
+            &host,
+            if read_only {
+                EditMode::ReadOnly
+            } else {
+                EditMode::ReadWrite
+            },
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        ui.open(0).unwrap();
+        if read_only {
+            assert!(!ui.view().can_save);
+            assert_eq!(ui.view().contents, Some("Original"));
+            let requests = host.borrow().requests.len();
+            assert_eq!(
+                ui.activate_semantic(SemanticId::Save, ui.view().generation),
+                Err(Error::InvalidInput)
+            );
+            assert_eq!(
+                ui.set_semantic_value(SemanticId::Document, ui.view().generation, "forbidden"),
+                Err(Error::InvalidInput)
+            );
+            assert_eq!(host.borrow().requests.len(), requests);
+        } else {
+            ui.insert("Mine ").unwrap();
+            host.borrow_mut().disk.fail = true;
+            assert!(ui
+                .save()
+                .and_then(|()| {
+                    while !ui.advance_save()? {}
+                    Ok(())
+                })
+                .is_err());
+            assert_eq!(ui.view().contents, Some("Mine Original"));
+            assert!(ui.document().is_dirty());
+            assert!(matches!(ui.view().status, Status::Failed(_)));
+            assert!(!ui.document().is_saving());
+        }
+        assert!(!matches!(ui.view().status, Status::Saved { .. }));
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        let save = nodes[..count]
+            .iter()
+            .find(|node| node.id == SemanticId::Save)
+            .unwrap();
+        assert_eq!(save.enabled, ui.view().can_save);
+        assert_eq!(save.actions.activate, ui.view().can_save);
+        assert!(!save.focused || save.enabled);
+        let mut h = host.borrow_mut();
+        h.disk.fail = false;
+        assert_eq!(h.recover().entries[0].revision, 1);
+        assert_eq!(h.bytes(0), b"Original");
+        if read_only {
+            assert!(!h
+                .requests
+                .iter()
+                .any(|request| request.operation == wire::COMMIT));
+        } else {
+            assert_eq!(
+                h.requests
+                    .iter()
+                    .filter(|request| request.operation == wire::COMMIT)
+                    .count(),
+                1
+            );
+        }
+    }
+}
+
 fn sr08_uncertain_semantics_never_offer_save_or_replay_impl() {
     let host = Host::new();
     host.borrow_mut().seed(0, b"Old");
@@ -1131,6 +1209,10 @@ macro_rules! scenario {
 scenario!(
     sr06_failed_save_blocks_editor_save_actions,
     sr06_failed_save_blocks_editor_save_actions_impl
+);
+scenario!(
+    sr06_read_only_and_io_failures_keep_truthful_editor_state,
+    sr06_read_only_and_io_failures_keep_truthful_editor_state_impl
 );
 scenario!(
     sr06_failed_save_blocks_modal_save_actions,
