@@ -1,0 +1,24 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/lib.rs (target/debug/deps/nieuw_os_virtio_snd-c3ceaf91838b567f)
+
+running 11 tests
+test tests::all_failed_and_unknown_statuses_are_errors ... ok
+test tests::capture_and_unadvertised_profiles_are_not_playback ... ok
+test tests::config_bounds_and_absent_streams ... ok
+test tests::features_require_modern_and_never_ctls_or_platform_claim ... ok
+test tests::malformed_fields_are_rejected ... ok
+test tests::multi_record_response_assigns_ids_and_fails_on_any_bad_record ... ok
+test tests::qemu_identity_constants_match_observed_device ... ok
+test tests::ranges_are_bounded_and_overflow_checked ... ok
+test tests::readers_never_panic_on_bad_offsets ... ok
+test tests::request_and_output_selection_are_exact ... ok
+test tests::short_and_oversized_success_never_parse ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_virtio_snd
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
