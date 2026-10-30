@@ -21,11 +21,11 @@ managercontrole uitdrukkelijk is vermeld. Geen nieuwe native manager-run.
 | TL-HW / `f5b20312-b6c5-46b0-bbf6-76970d3470a2` | `simonvanieperen-friendly-guacamole`, `6daadbb`; USB-descriptorcore `f8e7490`, 7 hosttests/lint/target groen | Na concrete xHCI-bronblokkade doorgestuurd naar publieke ACPI/QEMU-shutdownslice, uitsluitend nieuwe `drivers/acpi-power/**`, contract/tests/eigen bewijs; release reserveert native broker na v3freeze | Nog geen xHCI-I/O/enumeratie/native profiel; H02–H06 blijven open, fysieke/hostpoweracties niet geautoriseerd |
 | TL-NAS / `d7636e9c-fe84-4e63-8f37-4d08a5f50d0d` | `109c9f0`, concept-PR #71; no_std NAS-core/VolumeStorage host-/targetbewijs | `services/nas/**`: echte ring-3-service/admin-/gastprobe met callerbinding en volume/RNG; native scopevraag beantwoord, gedeelde files vooraf afstemmen | P01–P04 0/5; geen native NAS/transport/multideviceacceptatie; FR-P01–P06 open |
 | TL-APPS / `9db24a72-2ae7-4807-8e68-2fc88cb235d3` | `codex/apps-sdk-packages`, `c7b30f0`, concept-PR #73; 8 hosttests/lint/target groen | `crates/app-package-core/**`, appcontract en eigen bewijs; native installer/persistentie/geautoriseerde launch met release afstemmen | Geen native install/update/remove; FR-A01–A15 en appportalen blijven verplicht |
-| TL-SEC / `081d6f31-7de1-4713-b466-d15adf51b2ef` | `codex/update-key-policy-20261030`, `e357f5f`; 18 echte B03-stages en capture groen gemeld | Update-core/loader/service/tool/keys en updateharnas/eigen bewijs; daarna B02-rollbackanker, gedeelde TPM-grens vooraf melden | Releaseversievenster is geen vertrouwde kalender; beleidsdistributie/antirollback/ceremonie open; #72 is ander IPC-WIP |
-| TL-NET / `039dbef8-bc79-4480-b003-55b8eccba736` | #70 `1bb8acf`; codec 57 hosttests; oudere UDP/DNS normal+cold groen op `9ddc6b6` | Vervolgbranch `simonvanieperen-dhcp-client`, `services/net-protocol/**`: lease-lifecycle, daarna echte DHCP-configuratie; bestaande TLS-port hergebruiken | Geen native DHCP/TLS/app-bestemmingsgrants op deze nieuwe bron; N01–N04 0/10 |
+| TL-SEC / `081d6f31-7de1-4713-b466-d15adf51b2ef` | Nieuwe concept-PR #74 `cad3b55`, definitief geteste bron `fecc4b9`, 18 B03-stages/capture groen; bewijsnotitie door manager uit Git gelezen | Updatepolicycheckpoint persistent; nu B02/NV-rollbackanker, gedeelde TPM-grens vooraf melden. Intake routeert nieuwe #74 naar vrije reviewer | Releaseversievenster is geen vertrouwde kalender; beleidsdistributie/antirollback/ceremonie open; #72 is ander IPC-WIP |
+| TL-NET / `039dbef8-bc79-4480-b003-55b8eccba736` | #70 nu `5d95ea9`, 300-byte-BOOTP-padding gerepareerd; 58 hosttests. DHCP-client `16adfe5`, 69 hosttests incl. 11 lifecyclegevallen groen gemeld | `services/net-protocol/**`-checkpoint persistent; nieuwe onafhankelijke branch `simonvanieperen-tcp-listen`, uitsluitend `services/net-stack/**` voor NAS-passive TCP; native hook met release | Oud UDP/DNS normal+cold blijft op `9ddc6b6`; geen native DHCP/listen/TLS/app-bestemmingsgrants; N01–N04 0/10 |
 | TL-UI / `764bc9fb-2036-4b13-bbff-368037f9b2d7` | #68 `2f41a47`; 29 host-/QMP-replaytests groen; eigen native normal op `1ffd271` rood | `tools/run_materiaal_probe.py`, `tools/tests/test_materiaal_probe.py`, UI-contract/eigen bewijs; keyboardgate na exacte cold-recoveryintegratie, daarna accessibility-servicegrens | App-local semantiek is geen schermlezer; gewone cold recovery op deze bron niet bewezen; U01–U06 0/15 |
-| TL-CORE / `fbf60554-e98e-40bd-bd48-ee87a6498abe` | `simon/tls-time-quality-1`, basis `3f3f99e`; 27 runtimehosttests/3 compile-faildocproeven, lint/target/fmt groen gemeld; SDK-regressie liep nog | NET/SEC/release/apps bevestigen leafscope: `sdk/runtime/src/tls_time.rs`, `sdk/runtime/tests/tls_time.rs`, één export in `src/lib.rs`, `docs/contracts/TLS-TIME-QUALITY.md` | Opaque certificaattijd weigert None/RTC; geen succesconstructor/hostfallback, vertrouwde provider/freshness/anker open; geen native TLS- of scoreclaim |
-| TL-BUILD / `b72f2536-b494-4a6b-a608-b6fd785e18ef` | #66-hoofd `c532ba88` bevroren; vervolg `simon/native-interactive-cold`, laatst gemelde gedrukte HEAD `71c1d5c` vóór lopende integratie | D104-reviewfixes/v3 `24d5f4c1…` op exacte gezamenlijke bron bouwen/testen; eigen buildroots, preview/packagingtools; daarna source/image/manifest aan release | Nieuwe gates liepen volgens eigenaar, nog geen nieuwe groenclaim; oude `eabc27b`/Windowsbundel niet herlabelen |
+| TL-CORE / `fbf60554-e98e-40bd-bd48-ee87a6498abe` | TLS-time leaf `9afabbd` gepusht; 27 runtime-/81 SDK-hosttests en 3 negatieve compileproeven/lint/target/fmt groen gemeld. TL-VERIFY-IMAGE op exact `3d2e1ab`: twee builds exit 0 maar andere ELF-hashes | Native verifier gestopt op bytebindingmismatch; nu begrensde read-only toolchain/flags/ELF-sectie-/padtrace met builderinput, alleen eigen bewijswrites | Geen eigen voltooide native gate. Opaque certificaattijd weigert None/RTC; vertrouwde provider/freshness/anker open. Geen menselijke audit |
+| TL-BUILD / `b72f2536-b494-4a6b-a608-b6fd785e18ef` | #66-hoofd `c532ba88` bevroren; `simon/native-interactive-cold` checkpoint `3d2e1ab`, uitvoeringsbron `74d15ac`, v3 `24d5f4c1…` | Beide echte native gates groen gemeld en bewijsnotitie door manager uit Git gelezen; nu aparte INTERACTIVE-COLD-1-branch met nieuwe `tools/materiaal_cold.py`, `tools/run_materiaal_cold.py`, tests/eigen bewijs | Nieuwe Windowsgast/ZIP en gewone cold recovery nog open; geen oude Windowsbundel herlabelen; release owns eventuele runtime-/manifestfix |
 
 Aanvullend meldt intake `f2afe26e-5d6f-4948-89b8-0e2aeeb96225` een nieuwe
 expliciete opdracht van Simon: PRs vergelijken en naar beide controlesessies
@@ -41,7 +41,9 @@ preflightwijzigingen. Geen PR is op alleen ancestry als duplicaat afgeschreven.
 #71-review op `109c9f0` is zonder high-confidence codebevinding afgerond;
 gerichte CI voor de twee standalone NAS-workspaces ontbreekt en is door de
 lifecyclecoördinator als mergeblokkade gemeld. NAS stemt workflowwrites af.
-#68 is de volgende read-only review. #73-review op `c7b30f0` is zonder
+#68-review op `2f41a47` is nu eveneens zonder high-confidence nieuwe
+codebevinding afgerond; eigen keyboardroute nog niet native uitgevoerd.
+#73-review op `c7b30f0` is zonder
 high-confidence fout in de beperkte packagecore afgerond; geen tests door
 reviewer heruitgevoerd. Actuele reviewbesluiten, CI, echte installtransacties
 en native launch blijven open. VerifiedPackage verleent geen launchcapability;
@@ -104,8 +106,38 @@ geen reviewgoedkeuring, mergebesluit of native productacceptatie.
 Issue39–43 zijn open. Branch-, code-, bewijs- en app-sessienamen kunnen
 verschillen; gebruik de door de eigenaar gemelde werkelijke Git-bron.
 
-Eerstvolgende manageractie: ontvang de exacte nieuwe buildteamcommit en
-normale/koude-recoverygates, controleer dat release/UI daarop voortbouwen
+Actualisatie na de eerste push van managercheckpoint `f404792`: buildteam
+heeft de gewone gates op `74d15ac` afgerond, bewijscheckpoint `3d2e1ab`.
+Referentie 139,078 s/raw 33, gewone variant 94,889 s/raw 0, zes bytegelijke
+frames en post-exit-diskoracle; manager las het brongebonden rapport via
+`git show`. Dit is Linux-QEMU 10.2.1/`pc-q35-10.0`/256 MiB, geen VM-FR of
+nieuwe Windowsacceptatie. De aparte cold-tools zijn buildteameigendom;
+release bezit eventuele runtimefix en finale integratie. TL-VERIFY-IMAGE
+heeft twee eigen builds uitgevoerd (exit 0), maar is conform stopregel
+gestopt op een concrete bytebindingmismatch ondanks gelijke bronvingerafdruk:
+gewone kernel `c91f39aa…` versus builder `f2e9cc4a…`, loader `e7aa259a…`
+versus `7e55ab0f…`; ook de zeven app-ELFs verschillen. De eigen referentie-VM
+is gestopt, gewone VM niet gestart; geen geslaagde onafhankelijke native
+herhaling. De manager heeft een begrensde toolchain/flags/ELF-sectie-/padtrace
+toegewezen. Oorzaak onbekend, geen assertion versoepeld. Dit blokkeert de
+byte-reproduceerbaarheidsclaim, niet de geldigheid van builders eerdere run
+op diens eigen gehashte artifacts of onafhankelijk bronwerk.
+
+Lifecyclecoördinator meldt #62 regulier gesquashmerged naar
+`748e29b7455ca4213a6bf3ba3808c3097458263d`: 12/12 checks op `9f69e1c`,
+9/9 threads opgelost en volledige mergeboom bytegelijk aan de PR-head.
+De manager heeft merge/state/head/SHA met `gh pr view 62` en remote-main
+met `git ls-remote` bevestigd (exit 0); de gerapporteerde volledige
+boomvergelijking niet zelf herhaald. Postmerge-main-CI nog niet aangetoond.
+Buildteam integreert die main met behoud van reviewfixes, locks/preflight
+en Windowsbewijs; nieuwe gezamenlijke gates blijven een herhaalplicht.
+#66 oude head wordt niet op alleen oude groene checks gemerged.
+Verse sessiecontrole: geen wachtende input/plan, activiteit nog `unknown`;
+afgeronde reviewers/intake krijgen alleen concrete nieuwe reviewpakketten.
+#74 is als nieuw pakket naar de vrijgekomen reviewer gerouteerd.
+
+Eerstvolgende manageractie: ontvang de exacte up-to-date buildteambron en
+koude-recovery-/verifiergates, controleer dat release/UI daarop voortbouwen
 en geef de kleinste nog ontbrekende gedeelde interface aan één schrijver.
 Blijf mijlpalen/blockers verwerken; een ontvangen statusrapport is geen
 stopopdracht aan de teams. Er is geen periodieke achtergrondautomatisering

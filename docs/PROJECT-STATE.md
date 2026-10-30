@@ -41,10 +41,27 @@ uit Git op `c532ba88` en `3f3f99e` gelezen, maar de ZIP in Downloads niet zelf
 gelezen of opnieuw gestart; geen lokale artifactverificatie of nieuwe VM-run.
 Fixtureopslag bevat plaintexttestdata, geen persoonlijke data invoeren.
 
-**Kritieke open stap:** buildteam herhaalt na `d104fd9`-reviewfixopname de
-exacte normale referentie-/zevenprocesgates en koude recovery; hoofd #66
-`c532ba88` blijft daarvoor bevroren. Release neemt pas de werkelijke nieuwe
-commit/image/manifest over. UI herhaalt daarop de keyboard/save/reopenketen;
+**Nieuw native deelresultaat:** beide normale gates na `d104fd9` zijn nu
+groen op codebron `74d15ac09ac61c8d47a882c3c982711af1a9d891`, gepusht
+bewijscheckpoint `3d2e1aba218feb39e02a1a5d257c5eb63f50e26b`:
+referentie 139,078 s/raw 33, gewone zevenprocesvariant 94,889 s/raw 0,
+zes bytegelijke frames en onafhankelijke post-exit-diskcontrole.
+Manager las `docs/verification/full-release-interactive-review/README.md`
+rechtstreeks uit Git. Geen nieuwe Windowsgast/ZIP, gewone cold-recovery-,
+VM-FR- of volledige releaseacceptatie. De aparte verifier heeft twee eigen
+builds (exit 0), maar stopte op verschillende kernel-/loader-/app-ELF-hashes
+ondanks dezelfde bronvingerafdruk. Referentie-VM gestopt, gewone VM niet
+gestart; onafhankelijke native acceptatie dus niet geslaagd. Manager heeft
+een begrensde read-only toolchain/flags/ELF-sectie-/padtrace toegewezen;
+oorzaak nog onbekend, geen tests versoepelen. Bouwreproduceerbaarheid blijft
+open; dit is geen bewezen runtimefout of menselijke audit.
+
+**Kritieke open stap:** buildteam bouwt uitsluitend de nieuwe cold-tools;
+release owns eventuele runtime-/manifestfixes en neemt de bevroren bron
+inhoudsbehoudend over. Hoofd #66 `c532ba88` blijft vóór nieuwe integratie
+bevroren. Lifecyclecoördinator meldt #62 regulier merged naar `748e29b`;
+nieuwe main-opname en gezamenlijke gates zijn een herhaalplicht, geen
+automatisch groen uit de vorige bron. UI herhaalt de keyboard/save/reopenketen;
 apps, NAS en hardware wachten voor shared files op een concrete writerafspraak.
 Native DHCP/TLS, veilige persistente keys/rollbackanker, appinstallatie,
 NAS/multidevice en lokale inference ontbreken nog als volledig geïntegreerde
@@ -60,12 +77,27 @@ tools/progress.py --write`, `python3 -B tools/progress.py --check` en
 `git diff --check` zijn uitgevoerd, alle exit 0; de SVG bleef bytegelijk
 omdat score/datum niet veranderden. Volledig lokaal commandolog:
 `/home/simon/.copilot/session-state/3c9dee7ff8e342deb2a0374357d86212/files/teamleader-validation.log`.
-Ook de initiële rubriccheck en het lezen van beide brongebonden bewijsnotities
-via `git show` slaagden (exit 0). Live `gh pr list`, `gh issue list` en
+Ook de initiële rubriccheck en het lezen van beide oudere brongebonden
+bewijsnotities via `git show` slaagden (exit 0). Daarna zijn ook
+`git show 3d2e1aba218feb39e02a1a5d257c5eb63f50e26b:docs/verification/full-release-interactive-review/README.md`
+en
+`git show cad3b55cab20fd3c1f79985c70ac2f91055f89e9:docs/verification/B03-KEY-POLICY-1.md`
+uitgevoerd (exit 0); dit leest rapporten, het herhaalt geen VM.
+De definitieve 18-stage-updatebeleidsproef hoort bij `fecc4b9`, niet bij
+een nieuwe main-/imageclaim. Live `gh pr list`, `gh issue list` en
 `git ls-remote origin refs/heads/main` zijn uitgevoerd (exit 0), met de
 head-/checkafbakening bovenaan WORK-QUEUE; deze lezen metadata, geen gastuitvoering.
-Nieuwe kernelbuilds/native gates/fysieke/menselijke tests: **niet uitgevoerd**
-door de manager. Geen continue of geplande achtergrondbewaking ingesteld.
+Latere directe controle: `GH_PAGER='' gh pr view 62 --json
+number,state,mergedAt,mergeCommit,headRefOid,url` en
+`git ls-remote origin refs/heads/main refs/heads/simon/native-interactive-cold`
+geven exit 0: #62 merged, main `748e29b7455ca4213a6bf3ba3808c3097458263d`,
+buildcheckpoint `3d2e1ab` nog remote. Nieuwe kernelbuilds/native
+gates/fysieke/menselijke tests: **niet uitgevoerd**
+door de manager. Managercheckpoint `f404792a52072f33a1f0dac58af46a7eb20cd3c9`
+is gecommit/gepusht; `git ls-remote` gaf exact dezelfde remote branchhash,
+`git status --short` was leeg (alle commando's exit 0). Opvolgende
+mijlpaalactualisaties blijven op dezelfde managerbranch, geen amendment.
+Geen continue of geplande achtergrondbewaking ingesteld.
 Eerstvolgend bij hervatten: `git branch --show-current && git rev-parse HEAD
 && git status --short`, daarna verse `get_sessions_status` en actuele
 buildteam/release-rapportages lezen; geen oude groene PR-head overnemen.
