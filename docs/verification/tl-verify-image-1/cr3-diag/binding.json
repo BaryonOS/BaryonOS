@@ -1,0 +1,33 @@
+{
+  "artifacts": {
+    "build/ks-cr3-diag-run/esp/kernel.elf": {
+      "sha256": "10619b27ced3a57096817b52af3f11a0283029eebdee2446eda58fbc81659999",
+      "bytes": 1946088
+    },
+    "build/ks-cr3-diag-run/esp/EFI/BOOT/BOOTX64.EFI": {
+      "sha256": "0bfa2cbcccd921146b6de36cd4773e998dc85b0b1f718b5ca7bea5b4014ced59",
+      "bytes": 28672
+    },
+    "build/ks-cr3-diag-run/OVMF_CODE.fd": {
+      "sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+      "bytes": 3653632
+    },
+    "build/ks-cr3-diag-run/serial.txt": {
+      "sha256": "1cb15ba0f29e7dbc93f04317e2e9440dd7b9a8c416e88120c4478b377793ce40",
+      "bytes": 285
+    },
+    "build/ks-cr3-diag-run/exceptions.log": {
+      "sha256": "64f282e7d0e490b75d8a25c911145e0976876716903c2359bb997db55bf07303",
+      "bytes": 173773
+    },
+    "build/ks-cr3-diag-run/volume.img": {
+      "sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "bytes": 1048576
+    }
+  },
+  "original_committed_report_sha256": "bf053748b42c2d9cb72b89b8c2445fc91d130ea15f9a86b97c502883e7615ecf",
+  "source_unchanged": true,
+  "existing_blocker_reports_unchanged": true,
+  "assertions": "missing code/stack/IDT PD entries; duplicate -T; four collapsed boundaries; identical source files",
+  "validation_exit": 0
+}

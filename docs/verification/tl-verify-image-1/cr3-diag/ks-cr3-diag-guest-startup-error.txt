@@ -1,0 +1,3 @@
+qemu-system-x86_64: -gdb unix:/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/ks-cr3-diag-guest/gdb.sock,server=on,wait=off: UNIX socket path '/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/ks-cr3-diag-guest/gdb.sock' is too long
+Path must be less than 108 bytes
+qemu-system-x86_64: -gdb unix:/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/ks-cr3-diag-guest/gdb.sock,server=on,wait=off: gdbstub: couldn't create chardev

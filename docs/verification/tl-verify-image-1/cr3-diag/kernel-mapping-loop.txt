@@ -1,0 +1,21 @@
+
+/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/build/tcp-main94-regression/run/system-normal-a06babbb1f89497ab60b59c514d0ac3c/esp/kernel.elf:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+00000000020186fa <_ZN9os_kernel2m23run17h6c92a4d2aaf9199cE+0x4ca>:
+ 20186fa:	lea    0x8a0(%rsp),%rdi
+ 2018702:	call   20167b0 <_ZN9os_kernel2m26paging6Paging3new17hcff440dec44243c0E>
+ 2018707:	mov    $0x2000000,%eax
+ 201870c:	xor    %ecx,%ecx
+ 201870e:	sub    $0x2000000,%rax
+ 2018714:	cmovae %rax,%rcx
+ 2018718:	mov    %rcx,%rax
+ 201871b:	shr    $0xc,%rax
+ 201871f:	xor    %ebx,%ebx
+ 2018721:	test   $0xfff,%ecx
+ 2018727:	setne  %bl
+ 201872a:	add    %rax,%rbx
+ 201872d:	mov    0x18(%rsp),%rdx
+ 2018732:	jne    2018f43 <_ZN9os_kernel2m23run17h6c92a4d2aaf9199cE+0xd13>
