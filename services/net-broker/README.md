@@ -166,3 +166,32 @@ dataverliesclaim. De eerste onvolledige WIP-fingerprint is niet als
 acceptatiebewijs gebruikt. Met extra grens-/slotproeven zijn nu 28 unit- en vier
 compile-fail tests groen. Definitieve brongebonden gates volgen op het
 broncheckpoint; Clippy/none/CI/native zijn nog niet afgetekend.
+
+## Vervolg: controlepakketten hebben ook bestemmingsrechten
+
+Een afzonderlijke read-only codereview van `0962d02` vond dat ongevraagde
+ingress de Stack een RST of ARP-antwoord naar een niet-geautoriseerde bestemming
+kan laten genereren. De oorspronkelijke `offer` controleerde alleen de lokale
+fence, niet die afgeleide bestemming. Gerichte ARP-regressie bevestigde dit
+op ongewijzigde productiebron `0962d02` met een extra test: exit101.
+
+`offer` controleert nu ieder frame, inclusief transportcontroleverkeer, met
+dezelfde reeds gebruikte smoltcp checked wire-views. IPv4/TCP moet de actieve
+socket, exacte lokale poort en huidige grantbestemming/poort matchen.
+ARP is uitsluitend toegestaan voor eigen lokale adres naar een actieve
+grantpeer. De huidige Stack heeft geen gatewayconfiguratie; een toekomstige
+next-hop-/DHCP-infrastructuuruitzondering vereist een expliciete afzonderlijke
+configuratieautoriteit, geen wildcard-appgrant.
+
+Niet-geautoriseerde of ongeldige egress wordt NIET aangeboden: eerst lokale
+backendfence/retirement, geen synthetische completion/discard, slotbytes blijven
+behouden voor de echte toekomstige device-recoverygrens. Dit kan bij
+ongevraagde ingress de gehele backend quarantaine laten vereisen, een zichtbare
+beschikbaarheidsgrens; geen productclaim of fijnmazige discardfunctie.
+
+smoltcp `=0.14.0` is nu een directe productiedependency voor deze policy-view,
+met dezelfde geselecteerde features/registrygraaf als de bestaande Stack;
+geen nieuwe parser of transportimplementatie. Voorfixbewijs en nieuwe gates
+worden apart opgeslagen: eerdere v3/CI-bronbindings blijven historisch geldig,
+maar zijn geen groen bewijs voor deze vervolgbron.
+Gerichte hostherhaling: 31 unit plus vier compile-fail groen.

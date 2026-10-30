@@ -547,6 +547,93 @@ fn malformed_ingress_is_explicit_and_never_authenticates_a_caller() {
     });
 }
 
+#[test]
+fn unsolicited_arp_cannot_publish_reply_without_destination_authority() {
+    with_broker(|broker| {
+        let mut frame = [0; 42];
+        frame[..6].fill(255);
+        frame[6..12].copy_from_slice(&[2, 0, 0, 0, 0, 3]);
+        frame[12..22].copy_from_slice(&[8, 6, 0, 1, 8, 0, 6, 4, 0, 1]);
+        frame[22..28].copy_from_slice(&[2, 0, 0, 0, 0, 3]);
+        frame[28..32].copy_from_slice(&[192, 0, 2, 3]);
+        frame[38..42].copy_from_slice(&[192, 0, 2, 2]);
+        broker.ingress(&frame, 0).unwrap();
+        broker.poll(0).unwrap();
+        assert!(matches!(broker.offer(0), Err(Error::Denied)));
+        assert_eq!(broker.quarantine(), Some(Quarantine::DeniedEgress));
+        assert!(
+            broker.stack.transmission().is_some(),
+            "no fabricated completion"
+        );
+    });
+}
+
+fn tcp_frame(source: [u8; 4], destination: [u8; 4], sport: u16, dport: u16) -> [u8; 54] {
+    let mut frame = [0; 54];
+    frame[..6].copy_from_slice(&[2, 0, 0, 0, 0, 7]);
+    frame[6..12].copy_from_slice(&[2, 0, 0, 0, 0, 3]);
+    frame[12..14].copy_from_slice(&[8, 0]);
+    frame[14] = 0x45;
+    frame[16..18].copy_from_slice(&40u16.to_be_bytes());
+    frame[22] = 64;
+    frame[23] = 6;
+    frame[26..30].copy_from_slice(&source);
+    frame[30..34].copy_from_slice(&destination);
+    frame[34..36].copy_from_slice(&sport.to_be_bytes());
+    frame[36..38].copy_from_slice(&dport.to_be_bytes());
+    frame[41] = 1;
+    frame[46] = 0x50;
+    frame[47] = 2;
+    frame[48..50].copy_from_slice(&2048u16.to_be_bytes());
+    Ipv4Packet::new_checked(&mut frame[14..])
+        .unwrap()
+        .fill_checksum();
+    TcpPacket::new_checked(&mut frame[34..])
+        .unwrap()
+        .fill_checksum(
+            &Ipv4Address::from(source).into(),
+            &Ipv4Address::from(destination).into(),
+        );
+    frame
+}
+
+#[test]
+fn unsolicited_tcp_cannot_trigger_egress_to_ungranted_source() {
+    with_broker(|broker| {
+        let frame = tcp_frame([192, 0, 2, 3], [192, 0, 2, 2], 45678, 4444);
+        broker.ingress(&frame, 0).unwrap();
+        broker.poll(0).unwrap();
+        assert!(
+            broker.stack.transmission().is_some(),
+            "Stack produced a reply or neighbor lookup"
+        );
+        assert!(matches!(broker.offer(0), Err(Error::Denied)));
+        assert_eq!(broker.quarantine(), Some(Quarantine::DeniedEgress));
+        assert!(broker.stack.transmission().is_some());
+        assert_eq!(broker.offered, None);
+    });
+}
+
+#[test]
+fn control_egress_also_requires_exact_active_destination_port_and_local_socket() {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        let _connection = connect(broker, grant, 2);
+        let allowed = tcp_frame([192, 0, 2, 2], [192, 0, 2, 1], 49152, 8080);
+        assert_eq!(broker.authorize_egress(&allowed), Ok(()));
+        for frame in [
+            tcp_frame([192, 0, 2, 2], [192, 0, 2, 1], 49152, 9090),
+            tcp_frame([192, 0, 2, 2], [192, 0, 2, 3], 49152, 8080),
+            tcp_frame([192, 0, 2, 2], [192, 0, 2, 1], 49153, 8080),
+            tcp_frame([192, 0, 2, 3], [192, 0, 2, 1], 49152, 8080),
+        ] {
+            assert_eq!(broker.authorize_egress(&frame), Err(Error::Denied));
+        }
+        broker.revoke(&authority(), grant).unwrap();
+        assert_eq!(broker.authorize_egress(&allowed), Err(Error::Denied));
+    });
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Conversation {
     Normal,
