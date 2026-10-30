@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "exact_qmp_sequence_recomputed": true,
+  "qmp_commands": 918,
+  "f12_absent": true,
+  "all_six_full_frames_byte_equal": true,
+  "post_quit_raw_exit": 0,
+  "canonical_empty_before": true,
+  "active_disk_equal_after": true,
+  "disk_recomputed": {
+    "object": 0,
+    "revision": 1,
+    "name": "Nieuw document",
+    "length": 14,
+    "sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "fnv": 2786778974461010050,
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "canaries_intact": true
+  },
+  "source_unchanged": true,
+  "executed_adapter_hash_verified": true
+}

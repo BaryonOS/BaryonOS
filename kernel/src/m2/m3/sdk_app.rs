@@ -204,13 +204,15 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
     }
     let e = *evidence();
     if !e.app_exited {
-        return Some(state.select());
+        // The m3 event/select loop alone schedules; idle observers must not recurse.
+        return None;
     }
     if state.processes[1].status != Status::Dead || state.processes[0].status == Status::Dead {
         fail(b"LIFECYCLE");
     }
     if word(state, 0, 8) <= e.service_counter + 4 {
-        return Some(state.select());
+        // The m3 event/select loop alone schedules; idle observers must not recurse.
+        return None;
     }
 
     if cfg!(feature = "test-sdk-app-denied") {

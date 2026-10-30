@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "scope": "Two native CPL3 processes and bounded IPC queue/PIT waits; not GUI, hardware, kill/reuse, or full-release acceptance.",
+  "base_commit": "ab98d1a169f21eca6b5d64d25160462b5c36dc3f",
+  "working_tree_changes": [],
+  "source_fingerprint_version": 3,
+  "source_sha256": "2d598327fcefea03ed97bfa892d69525208f3c4634940170839055ba207172f0",
+  "command": "LD_LIBRARY_PATH=\"$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu\" NOS_BUILD_DIR=\"$PWD/build/native-test-version/wait\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/wait\" python3 -B -u tools/run_ipc_wait.py",
+  "command_exit": 0,
+  "raw_qemu_exit": 33,
+  "timed_out": false,
+  "duration_s": 4.084258004000731,
+  "profile": "pc-q35-10.0/qemu64/TCG/1CPU/256MiB; no network or physical disks",
+  "run_directory": "build/native-test-version/wait/run/native-ipc-wait-efd17801e5",
+  "report_sha256": "dfe7847eafa12ddce300dd6ad12ce5bcf55bf1e4a30ac596ee1b573c440d1393",
+  "serial_sha256": "81c2745489ffecfd6c2a8c7faf12c163bf328aefbef1245aa0d7ba8c1bc6d10e",
+  "artifact_sha256": {
+    "esp/kernel.elf": "7cf94ead0aa1bc9b2fbcb345c5be80ed6d219a0610cf37ddff6565c5bad22dc9",
+    "esp/EFI/BOOT/BOOTX64.EFI": "edc73f268733ee458cda9b6ff012ef55c06f4afa01a5d98ba3b67865ec6ba2e3",
+    "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "role_phase_masks": [63, 60],
+  "native_metrics": {
+    "BLOCKED": 14,
+    "WAKE_READY": 7,
+    "WAKE_TIMEOUT": 6,
+    "WAKE_ERROR": 1,
+    "IDLE_IRQS": 199
+  },
+  "open": [
+    "Native kill/reuse and FPU wait combinations remain untested.",
+    "GUI input/save/cold-reopen and broad regression gates remain untested on this integration."
+  ]
+}

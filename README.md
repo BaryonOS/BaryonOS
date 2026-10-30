@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`5d95ea91`](https://github.com/simonvanieperen/nieuw-os/commit/5d95ea9174927d74ff2a7a4bb26e0df714099330) ·
+**Bron:** [`0078c3b3`](https://github.com/simonvanieperen/nieuw-os/commit/0078c3b3baeff2dd5914b8f9d1b1e354cb33aea0) ·
 **Ontwikkelbranch:** `simonvanieperen-musical-happiness`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Inhoudsbehoudende integratie van DHCP-codec/paddingreview met main 748e29b.
-34% blijft 34%; netwerk 0/10. DHCP-reviewbron 5d95ea9 met 300-bytepadding en de preflight/vendorwijzigingen van main 748e29b zijn inhoudsbehoudend geïntegreerd. Op de samengevoegde runtimebron slagen 58 codec-hosttests, Clippy, fmt, freestanding build en 24 preflighttests. Geen native DHCP/TLS/appbestemmingsbewijs; bestaande ARP/UDP/DNS-pair blijft uitsluitend aan eerdere bron 9ddc6b6 gebonden. Beide historische checkpoints blijven behouden. Verplichte head-CI/review blijven open; criteria en gewichten onveranderd. Deze branchgebonden conflictresolutie vervangt niet de centrale teamstatus van manager 89f84098.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Inhoudsbehoudende PR70-integratie van codecbron 0078c3b met main 94c8908.
+34% blijft 34%; netwerk 0/10. Codecbron 0078c3b is inhoudsbehoudend geïntegreerd met main 94c8908, inclusief IPC-WAIT/TPM/rootlock/Windowsbewijs/preflight/vendors. Alleen bedoelde DHCP-codec en brongebonden documentatie blijven boven main; tracks, gewichten en evidence zijn exact main94. Beide historische kanten volledig behouden; één branchhandoff vervangt geen centrale teamstatus. 58 codec-hosttests, 24 preflighttests, Clippy, fmt en freestanding build zijn op deze samengevoegde bron herhaald: alle exit0. Oude groene head0078 en native ARP/UDP/DNS-bron9ddc6b6 zijn geen bewijs voor nieuwe head of native DHCP/TLS/appgrants. Nieuwe head-CI/review blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

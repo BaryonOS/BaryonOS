@@ -4,7 +4,7 @@ use nieuw_os_sdk_runtime::{
 };
 
 #[test]
-fn abi_1_3_through_1_9_are_accepted_and_1_10_is_not() {
+fn abi_1_3_through_1_10_are_accepted_and_future_minors_are_not() {
     assert_eq!(validate_abi((1 << 32) | 3), Ok(()));
     assert_eq!(validate_abi((1 << 32) | 4), Ok(()));
     assert_eq!(validate_abi((1 << 32) | 5), Ok(()));
@@ -12,6 +12,7 @@ fn abi_1_3_through_1_9_are_accepted_and_1_10_is_not() {
     assert_eq!(validate_abi((1 << 32) | 7), Ok(()));
     assert_eq!(validate_abi((1 << 32) | 8), Ok(()));
     assert_eq!(validate_abi((1 << 32) | 9), Ok(()));
+    assert_eq!(validate_abi((1 << 32) | 10), Ok(()));
     assert_eq!(
         validate_abi((1 << 32) | (nieuw_os_sdk_runtime::ABI_MAX_MINOR + 1)),
         Err(Error::UnsupportedAbi)

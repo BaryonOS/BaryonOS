@@ -1,0 +1,5 @@
+   Compiling capability-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/crates/capability-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.86s
+     Running unittests src/lib.rs (target/native-test-version/system-host/debug/deps/capability_core-e1b8727debf17276)
+     Running tests/native_wait.rs (target/native-test-version/system-host/debug/deps/native_wait-e6ddfeea2f019bee)
+   Doc-tests capability_core

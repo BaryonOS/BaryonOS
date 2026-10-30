@@ -15,7 +15,7 @@ use crate::{
 fn call(number: u64, args: [u64; 6]) -> Result<u64, Error> {
     let mut primary = number;
     let mut secondary = args[2];
-    // SAFETY: Nieuw OS ABI 1.0–1.9 preserves every GPR except RAX/RDX; int80 enters
+    // SAFETY: Nieuw OS ABI 1.0–1.10 preserves every GPR except RAX/RDX; int80 enters
     // a checked kernel gate. No Rust references cross this boundary. Callers
     // below keep local message buffers live for the complete synchronous copy.
     // No nomem/readonly flag: IPC can read or write the supplied memory.
@@ -64,6 +64,23 @@ pub fn heap_grow(pages: u64) -> Result<crate::memory::OwnedHeapPages, Error> {
 
 pub fn yield_now() -> Result<(), Error> {
     zero_return(call(1, [0; 6]))
+}
+
+/// ABI 1.10: wait for authorized IPC queue conditions or an absolute PIT tick.
+/// The kernel copies at most sixteen scalar conditions before scheduling; no
+/// pointer is dereferenced on wake. Ready bits reserve/consume nothing. Zero
+/// means the deadline elapsed without a ready condition. Empty conditions are
+/// a timed sleep, not a raw device/IRQ wait. The future horizon is at most
+/// IPC_WAIT_HORIZON_TICKS; callers retain their own protocol deadlines.
+pub fn ipc_wait(conditions: &[crate::WaitCondition], deadline: u64) -> Result<u16, Error> {
+    let bytes = crate::encode_wait(conditions)?;
+    let pointer = if conditions.is_empty() {
+        0
+    } else {
+        bytes.as_ptr() as u64
+    };
+    let mask = call(0x22, [pointer, conditions.len() as u64, deadline, 0, 0, 0])?;
+    crate::decode_wait_mask(mask, conditions.len())
 }
 
 pub fn exit(code: u64) -> ! {

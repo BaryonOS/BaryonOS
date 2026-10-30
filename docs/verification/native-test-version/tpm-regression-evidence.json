@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "source_commit": "37a74784f71889d6ea41a230d756be16c1728ae8",
+  "source_fingerprint_version": 3,
+  "source_sha256": "a6c4c723fbcc6a5b50eac17b91b77f66161c8555c6d916fd10b7826815acc4b5",
+  "scope": "14 actual non-GUI native regression VMs on combined source; GUI/test-version recheck recorded separately, not full release or 50 percent",
+  "native_profile": "pc-q35-8.2/qemu64/TCG/1CPU/256MiB/OVMF4M; isolated synthetic fixtures",
+  "common_environment": "LD_LIBRARY_PATH=\"$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu\" NOS_QEMU_MACHINE=pc-q35-8.2",
+  "build_root_prefix": "build/native-test-version/",
+  "all_native_commands_exit_status": 0,
+  "all_native_raw_qemu_exit": 33,
+  "native": [
+    {
+      "command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/lifecycle-final\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/wait-lifecycle\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/wait-lifecycle-host\" python3 -B tools/dev.py python3 -B -u tools/test_supervisor.py",
+      "vms": 6,
+      "report": "lifecycle-final/supervisor-gate.json",
+      "sha256": "27965cdfe0d749106f2a03eb982bce2d9a7c9113c96ee6b5223b216ad8115282",
+      "log": "/tmp/nieuw-os-native-tpm-k05-final.log"
+    },
+    {
+      "command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/system-tpm-final\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/system\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/system-host\" python3 -B tools/dev.py python3 -B -u tools/test_system.py",
+      "vms": 2,
+      "report": "system-tpm-final/system-gate.json",
+      "sha256": "737ac471b197299f5e49c217bd81ea4fa92aea82674c74061d2e74122c96e63d",
+      "log": "/tmp/nieuw-os-native-tpm-system-final.log"
+    },
+    {
+      "command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/clock-tpm-final\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/system\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/system-host\" python3 -B tools/dev.py python3 -B -u tools/run_system_clock.py",
+      "vms": 1,
+      "report": "clock-tpm-final/system-clock-report.json",
+      "sha256": "2e4c36d6bb22e99cc7bf653cb92a18f8dd85b654176a4dad37e8b798a271385d",
+      "log": "/tmp/nieuw-os-native-tpm-clock-final.log"
+    },
+    {
+      "command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/wait-tpm-final\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/wait\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/system-host\" python3 -B tools/dev.py python3 -B -u tools/run_ipc_wait.py",
+      "vms": 1,
+      "report": "wait-tpm-final/ipc-wait-report.json",
+      "sha256": "0e52b65f73ead4214bcf543e802c536616329a469de7dc93baaee5921651e02e",
+      "log": "/tmp/nieuw-os-native-tpm-ipc-final.log"
+    },
+    {
+      "commands": [
+        "NOS_BUILD_DIR=\"$PWD/build/native-test-version/fpu-tpm-final\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/fpu\" python3 -B tools/build.py --kernel-feature native-fpu",
+        "NOS_BUILD_DIR=\"$PWD/build/native-test-version/fpu-tpm-final\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/fpu\" python3 -B tools/run_fpu.py"
+      ],
+      "vms": 1,
+      "report": "fpu-tpm-final/fpu-report.json",
+      "sha256": "689175d23c153cdbf6ea059feef280e7955e13cde771bdd31e4b9babc24fb27f",
+      "log": "/tmp/nieuw-os-native-tpm-fpu-run.log"
+    },
+    {
+      "commands": [
+        "NOS_BUILD_DIR=\"$PWD/build/native-test-version/fpu-wait-tpm-final\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/fpu\" python3 -B tools/build.py --kernel-feature test-fpu-wait",
+        "NOS_BUILD_DIR=\"$PWD/build/native-test-version/fpu-wait-tpm-final\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/fpu\" python3 -B tools/run_fpu.py"
+      ],
+      "vms": 1,
+      "report": "fpu-wait-tpm-final/fpu-report.json",
+      "sha256": "6a5b57ce1ace40357668cdfb71e2e4587192573f7d2dc28b17d039d34366fe68",
+      "log": "/tmp/nieuw-os-native-tpm-fpu-wait-run.log"
+    },
+    {
+      "command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/tpm-final\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/tpm\" python3 -B tools/dev.py python3 -B tools/run_tpm.py --case normal",
+      "vms": 1,
+      "report": "tpm-final/tpm-normal-report.json",
+      "sha256": "aa9cd30d093798ac12ee094ae6ea3f241da1be5ede115cae449fabb4f79204cd",
+      "log": "/tmp/nieuw-os-native-tpm-normal-final.log"
+    },
+    {
+      "command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/tpm-final\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/tpm\" python3 -B tools/dev.py python3 -B tools/run_tpm.py --case absent",
+      "vms": 1,
+      "report": "tpm-final/tpm-absent-report.json",
+      "sha256": "1676f2c4d2f21b7c33bf12cb421ef3662d212b5a856c274a11c52b6540f884fb",
+      "log": "/tmp/nieuw-os-native-tpm-absent-final.log"
+    }
+  ],
+  "host": [
+    {
+      "command": "LD_LIBRARY_PATH=\"$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/wait-lifecycle-host\" python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --workspace",
+      "exit_status": 0,
+      "passed": 372,
+      "ignored": 1,
+      "elapsed_s": 27,
+      "log": "/tmp/nieuw-os-native-tpm-workspace-final.log",
+      "sha256": "87fdd941db981ad21e6655c3a9cd1a5305f0b61219361bbb49a6b9d9310f49f7"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests",
+      "exit_status": 0,
+      "passed": 415,
+      "duration_s": 4.778,
+      "log": "/tmp/nieuw-os-native-tpm-python-final.log",
+      "sha256": "cad4199b83914ad8fed3c2b6e886eb4f3af4d12353c5b9f0308a866b77925ac5"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests",
+      "exit_status": 0,
+      "passed": 102,
+      "duration_s": 3.480,
+      "log": "/tmp/nieuw-os-native-tpm-tools-final.log",
+      "sha256": "a94daebe53f428bd9ea5e069df491b5ee38c7466346e7073b6b13dd747178f5c"
+    }
+  ],
+  "known_baseline_failure": {
+    "source_commit": "f61ce3e66e5a92f50fe5112c8fd440171b854837",
+    "command": "same full workspace command",
+    "exit_status": 101,
+    "log": "/tmp/nieuw-os-native-tpm-regression-workspace.log",
+    "cause": "Known pre-existing missing HKDF/HMAC doctest dependencies. Exact pinned host-only manifest fix from PR62 reused; no crypto source or production dependency changed.",
+    "targeted_recheck_command": "LD_LIBRARY_PATH=\"$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/wait-lifecycle-host\" python3 -B tools/dev.py cargo +1.90.0 test --offline --locked -p hkdf@0.13.0 -p hmac@0.13.0 --doc",
+    "targeted_exit_status": 0,
+    "targeted_passed": 5
+  },
+  "score_before": 34,
+  "score_after": 34,
+  "boundary": "No new whole rubric criterion; no full product, physical hardware, human audit, encrypted personal-storage or complete CI acceptance."
+}

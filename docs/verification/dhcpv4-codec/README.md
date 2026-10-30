@@ -144,3 +144,34 @@ geeft exit 0. De generator bevestigt **34/100**, niet OS-testacceptatie.
 Geen nieuwe QEMU/native DHCP/TLS/procesbestemmingsproef uitgevoerd.
 Verplichte CI/review op de nog te publiceren mergehead blijven open; de
 bestaande native pair blijft uitsluitend aan `9ddc6b6` gebonden.
+
+## Inhoudsbehoudende integratie met main94 na PR #66
+
+Mergeouders: `0078c3b3baeff2dd5914b8f9d1b1e354cb33aea0` en
+`94c8908ee363d06a5be51417c5cae635549d566f`. Alleen de bestaande centrale
+statusconflicten zijn met nieuwe beperkte managergoedkeuring opgelost:
+één branchhandoff, beide volledige historieën, assessmentbron0078/taakmain94,
+tracks/gewichten/evidence exact main94, **34 → 34**. Geen oude CI- of native
+sourcefingerprint naar de nieuwe bron omgelabeld.
+
+`git diff --cached origin/main -- Cargo.lock Cargo.toml kernel sdk tools crates services/keyring .github docs/DECISIONS.md docs/DEVELOPMENT.md`
+is leeg. IPC-WAIT/TPM/rootlock/Windowsfixes/preflight/vendors blijven exact
+main94; geen oude runtimebron teruggezet. Runtimeverschillen boven main zijn
+uitsluitend de bedoelde `services/net-protocol`-DHCP-codec/export/tests.
+DHCP-client, TCP-listen en TLS-onderzoek zijn niet meegenomen.
+
+De vier exacte Cargo-commando's uit de padding-/integratietabel zijn op deze
+samengevoegde bron opnieuw uitgevoerd, elk exit0: **58/58** tests (0,11 s),
+Clippy `-D warnings`, fmt-check en freestanding releasebuild.
+`python3 -B -m unittest discover -s tests -p test_preflight.py` geeft
+24/24, exit0, 0,14 s. Logs: `main94-{tests,clippy,fmt,none,preflight}.txt`.
+De codec-SHA256s blijven exact `c51ad2d...` en `f8a11b6...` uit de paddingtabel.
+`python3 -B tools/progress.py --write` gevolgd door `--check` en
+`git diff --check` geven exit0. Een JSON-vergelijking bevestigt dat de volledige
+`tracks`-waarde exact gelijk is aan main94.
+
+Native DHCP/TLS/appgrants zijn niet uitgevoerd of geaccepteerd. Groene CI
+op oude head0078 is uitsluitend historisch; de nieuwe mergehead krijgt
+afzonderlijk CI/review. PR blijft concept, lifecyclecoördinator blijft
+enige merger. Centrale files zijn na deze gerichte resolutie weer
+manager-owned.

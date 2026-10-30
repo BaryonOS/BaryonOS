@@ -19,6 +19,7 @@ END = ("FPU:CONTEXT_ISOLATION:PASS", "FPU:CLOCK:PASS", "FPU:CLEANUP:PASS", "FPU:
 REQUIRED = BOOT + CASES + END
 FORBIDDEN = ("FAIL", "PANIC")
 FIELDS = ("CLEAN_STARTS", "VERIFIED_LOOPS", "CLOCK_READS", "CLOCK_DENIED", "TIMER_A", "TIMER_B", "TIMER_IRQS", "SYSCALL_CALLS", "SAVES", "RESTORES", "FAULTS", "EXITS", "SLOT_REUSES", "FREE_FRAMES", "CONTEXT_BYTES_WIPED")
+WAIT_FIELDS = ("WAIT_CALLS", "WAIT_BLOCKED", "WAIT_TIMEOUTS", "WAIT_IMMEDIATE", "WAIT_IDLE_IRQS")
 NAMES = ("fpu-a", "fpu-b")
 
 
@@ -105,7 +106,7 @@ def build_users() -> tuple[dict, dict]:
             "NOS_FPU_B_ELF": str((output / "fpu-b.elf").resolve())}, report
 
 
-def validate_sequence(stdout: str) -> dict:
+def validate_sequence(stdout: str, *, wait: bool = False) -> dict:
     if not isinstance(stdout, str) or len(stdout) > 128 * 1024 or any(word in stdout for word in FORBIDDEN):
         raise ValueError("Malformed or failed native serial output")
     lines = stdout.splitlines()
@@ -115,12 +116,15 @@ def validate_sequence(stdout: str) -> dict:
     if any(re.search(r"(?:BOOT:|BOOTINFO:|KERNEL:|KS-|M[0-9]+:|FPU:)", line) for line in lines[:start]):
         raise ValueError("Unexpected marker before EBS")
     observed = lines[start:]
-    if len(observed) != len(BOOT) + len(CASES) + len(FIELDS) + len(END):
+    prefix = BOOT + CASES
+    fields = FIELDS + (WAIT_FIELDS if wait else ())
+    end = (("FPU:WAIT:PASS",) if wait else ()) + END
+    if len(observed) != len(prefix) + len(fields) + len(end):
         raise ValueError("Unexpected native output length")
-    if tuple(observed[:11]) != BOOT + CASES or tuple(observed[26:]) != END:
+    if tuple(observed[:len(prefix)]) != prefix or tuple(observed[len(prefix) + len(fields):]) != end:
         raise ValueError("Missing, repeated, reordered or unknown marker")
     numbers = {}
-    for at, name in enumerate(FIELDS, 11):
+    for at, name in enumerate(fields, len(prefix)):
         match = re.fullmatch(re.escape(f"FPU:{name}:") + r"([0-9]{20})", observed[at])
         if not match or int(match.group(1)) > (1 << 64) - 1:
             raise ValueError("Malformed or overflowing native numeric field")
@@ -129,23 +133,31 @@ def validate_sequence(stdout: str) -> dict:
                            "SLOT_REUSES": 1, "CONTEXT_BYTES_WIPED": 8192}.items():
         if numbers[name] != expected:
             raise ValueError(f"Wrong native counter {name}")
+    idle_irqs = numbers["WAIT_IDLE_IRQS"] if wait else 0
+    user_irqs = numbers["TIMER_A"] + numbers["TIMER_B"]
     if (numbers["VERIFIED_LOOPS"] < 24 or numbers["CLOCK_READS"] != numbers["VERIFIED_LOOPS"] + 3
             or numbers["TIMER_A"] < 2 or numbers["TIMER_B"] < 2 or numbers["FREE_FRAMES"] == 0
-            or numbers["TIMER_IRQS"] != numbers["TIMER_A"] + numbers["TIMER_B"]
+            or numbers["TIMER_IRQS"] != user_irqs + idle_irqs
             or numbers["SYSCALL_CALLS"] != 2 * numbers["VERIFIED_LOOPS"] + 26
-            or numbers["SAVES"] != numbers["TIMER_IRQS"] + numbers["SYSCALL_CALLS"] + 1
+            or numbers["SAVES"] != user_irqs + numbers["SYSCALL_CALLS"] + 1
             or numbers["RESTORES"] != numbers["SAVES"]):
         raise ValueError("Inconsistent or incomplete native context/clock evidence")
+    if wait and (numbers["WAIT_CALLS"] != numbers["VERIFIED_LOOPS"]
+                 or numbers["WAIT_BLOCKED"] < 3
+                 or numbers["WAIT_TIMEOUTS"] != numbers["WAIT_BLOCKED"]
+                 or numbers["WAIT_IMMEDIATE"] + numbers["WAIT_BLOCKED"] != numbers["WAIT_CALLS"]
+                 or numbers["WAIT_IDLE_IRQS"] == 0):
+        raise ValueError("Missing or inconsistent native blocking-wait evidence")
     return numbers
 
 
 def validate_build(build: Path, frozen: str) -> dict:
     private_path(build)
     manifest = load_json(private_path(build / "manifest.json", regular=True))
-    if (manifest.get("kernel_feature") != "native-fpu" or manifest.get("loader_feature") is not None
+    if (manifest.get("kernel_feature") not in ("native-fpu", "test-fpu-wait") or manifest.get("loader_feature") is not None
             or manifest.get("source_fingerprint_version") != 3 or manifest.get("source_sha256") != frozen
             or manifest.get("sdk_runtime") is not False or manifest.get("document_session") is not False):
-        raise ValueError("Build the native-fpu profile on the current source first")
+        raise ValueError("Build the native-fpu or test-fpu-wait profile on the current source first")
     artifact = load_json(private_path(build / "users/fpu/build-report.json", regular=True))
     if (manifest.get("fpu") != artifact or artifact.get("passed") is not True
             or artifact.get("native_runtime_performed") is not False
@@ -173,10 +185,12 @@ def validate_build(build: Path, frozen: str) -> dict:
 
 
 def validate_guest(report: dict, bound: dict, frozen: str, machine: str, qemu: str, build: Path) -> dict:
+    wait = bound.get("manifest", {}).get("kernel_feature") == "test-fpu-wait"
+    required = BOOT + CASES + (("FPU:WAIT:PASS",) if wait else ()) + END
     if (type(report.get("raw_qemu_exit")) is not int or report["raw_qemu_exit"] != 33
             or report.get("timed_out") is not False or report.get("passed") is not True
             or report.get("expected_exit") != 33 or report.get("artifact_binding_passed") is not True
-            or report.get("required_markers") != list(REQUIRED) or report.get("forbidden_markers") != list(FORBIDDEN)
+            or report.get("required_markers") != list(required) or report.get("forbidden_markers") != list(FORBIDDEN)
             or report.get("source_fingerprint_version") != 3 or report.get("source_sha256") != frozen):
         raise ValueError("Native exit, expected profile or source binding mismatch")
     directory = private_path(Path(report["run_directory"])).resolve(strict=True)
@@ -205,7 +219,7 @@ def validate_guest(report: dict, bound: dict, frozen: str, machine: str, qemu: s
         raise ValueError("Guest kernel or loader differs from selected build")
     if private_path(directory / "serial.txt", regular=True).read_bytes().decode("utf-8", "replace") != report.get("stdout"):
         raise ValueError("Reported stdout differs from raw serial artifact")
-    return validate_sequence(report["stdout"])
+    return validate_sequence(report["stdout"], wait=wait)
 
 
 def run_fpu() -> dict:
@@ -214,6 +228,8 @@ def run_fpu() -> dict:
         raise ValueError("NOS_BUILD_DIR must be inside the checkout")
     frozen = source_hash()
     bound = validate_build(build, frozen)
+    wait = bound["manifest"]["kernel_feature"] == "test-fpu-wait"
+    required = BOOT + CASES + (("FPU:WAIT:PASS",) if wait else ()) + END
     qemu = shutil.which("qemu-system-x86_64", path=environment()["PATH"])
     if qemu is None:
         raise RuntimeError("Missing QEMU")
@@ -227,12 +243,12 @@ def run_fpu() -> dict:
     save_json(inputs / "build-manifest.json", bound["manifest"])
     checks = {"before_launch_source_unchanged": source_hash() == frozen}
     report = {"schema_version": 1, "scope": "eager x87/SSE state on qemu64, three ring3 lifetimes, actual unsupported-AVX fault, timer/syscall switches, boot-monotonic PIT clock; no AVX support, walltime or physical-CPU claim",
-              "passed": False, "checks": checks, "source_fingerprint_version": 3, "source_sha256": frozen,
+              "passed": False, "blocking_wait_required": wait, "checks": checks, "source_fingerprint_version": 3, "source_sha256": frozen,
               "qemu_entry_path": qemu, "qemu_entry_sha256": qemu_hash, "inputs_directory": str(inputs)}
     try:
         if not all(checks.values()):
             raise ValueError("Source changed while freezing build inputs")
-        guest = run_guest("native-fpu", timeout=60, required_markers=REQUIRED, expected_exit=33,
+        guest = run_guest(bound["manifest"]["kernel_feature"], timeout=60, required_markers=required, expected_exit=33,
                           forbidden_markers=FORBIDDEN, expected_kernel_sha256=bound["expected"]["esp/kernel.elf"],
                           expected_loader_sha256=bound["expected"]["esp/EFI/BOOT/BOOTX64.EFI"])
         report["guest"] = guest
