@@ -67,3 +67,20 @@ bewijs voor de client.
 Eerstvolgend: afzonderlijk codec-reviewherstel voor RFC 1542-minimumpadding
 op PR #70, daarna opt-in native DHCP-integratie afstemmen met de eigenaar van
 manifest/kernel/build. De bestaande exacte netwerkcountergate blijft intact.
+
+## Samengevoegde codec-reviewfix
+
+De geïsoleerde min-300-bytefix van PR #70 (`5d95ea9`) is als `30d791c`
+naar deze branch overgenomen. Op **die samengevoegde bron** zijn dezelfde
+vier exacte Cargo-commando's hierboven opnieuw uitgevoerd:
+volledige suite **69/69**, Clippy `-D warnings`, fmt-check en
+`x86_64-unknown-none` releasebuild alle **exit 0**. De tests duurden 0,60 s;
+overige tijden staan in `combined-{clippy,fmt,none}.txt`. Volledig testlog:
+`combined-tests.txt`. De elf clientmodellen zijn ongewijzigd.
+
+De bronhashes voor clientmodule/tests/lib hierboven blijven gelijk aan
+`35b5ef3`; de codec is nu exact de gehashte paddingbron in
+`../dhcpv4-codec/README.md`. De component-README bevat bovendien de uitleg
+over de nieuwe 300-bytegrens; de eerdere README-hash beschrijft alleen het
+oorspronkelijke clientcheckpoint. Geen native bewijs toegevoegd en geen
+punten toegekend.
