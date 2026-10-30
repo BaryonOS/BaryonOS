@@ -1,0 +1,647 @@
+//! Bounded NAS authority and ciphertext store, independent of host APIs.
+//!
+//! The caller identity must come from an authenticated transport or the kernel,
+//! never from a request body. This core does not authenticate peers, encrypt
+//! documents, grant network access, or provide a native service by itself.
+//! Each published state uses a serialized, atomic storage transaction. No
+//! acknowledgement precedes its completion. An uncertain outcome retires the
+//! instance; only recovery from storage can resume service.
+#![no_std]
+#![forbid(unsafe_code)]
+
+mod snapshot;
+
+pub use snapshot::SNAPSHOT_BYTES;
+
+pub const NAMESPACES: usize = 4;
+pub const OBJECTS: usize = 4;
+pub const SESSIONS: usize = 16;
+pub const UPLOADS: usize = 8;
+pub const MAX_CIPHERTEXT: usize = 1024;
+pub const MAX_QUOTA: u32 = (OBJECTS * MAX_CIPHERTEXT) as u32;
+
+/// Public, cryptographically verified identity fingerprint. Possession of these
+/// bytes is not identity proof. Only the trusted ingress supplies this value.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct Principal(pub [u8; 32]);
+
+impl Principal {
+    fn valid(self) -> bool {
+        self.0 != [0; 32]
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Error {
+    Denied,
+    Invalid,
+    Full,
+    Quota,
+    Conflict,
+    Expired,
+    NotFound,
+    Stale,
+    Entropy,
+    Corrupt,
+    Io,
+    /// Storage may have committed; never automatically replay the operation.
+    Unknown,
+    ReopenRequired,
+}
+
+/// Production adapters must use the existing entropy service, not a clock,
+/// counter, test seed or NAS-supplied randomness.
+pub trait Entropy {
+    fn fill(&mut self, bytes: &mut [u8; 32]) -> Result<(), Error>;
+}
+
+/// Exclusive single-writer storage of one bounded snapshot. `replace` must
+/// atomically retain either the previous snapshot or all of `snapshot`, and
+/// return success only after durable commit. An empty store is `None`, never a
+/// fallback for unreadable/corrupt data. No content keys belong in this store.
+pub trait Storage {
+    fn load(&mut self, out: &mut [u8; SNAPSHOT_BYTES]) -> Result<Option<usize>, Error>;
+    fn replace(&mut self, snapshot: &[u8; SNAPSHOT_BYTES]) -> Result<(), Error>;
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u8)]
+pub enum NamespaceStatus {
+    Offered = 1,
+    Active = 2,
+    Revoked = 3,
+    Evicted = 4,
+}
+
+#[derive(Clone, Copy)]
+struct Object {
+    revision: u64,
+    length: u16,
+    bytes: [u8; MAX_CIPHERTEXT],
+}
+
+impl Object {
+    const EMPTY: Self = Self {
+        revision: 0,
+        length: 0,
+        bytes: [0; MAX_CIPHERTEXT],
+    };
+}
+
+#[derive(Clone, Copy)]
+struct Namespace {
+    id: [u8; 32],
+    status: NamespaceStatus,
+    epoch: u64,
+    quota: u32,
+    owner: Principal,
+    invitation: [u8; 32],
+    expires: u64,
+    objects: [Object; OBJECTS],
+}
+
+impl Namespace {
+    fn used(&self) -> u32 {
+        self.objects.iter().map(|o| u32::from(o.length)).sum()
+    }
+}
+
+#[derive(Clone, Copy)]
+struct State {
+    generation: u64,
+    admin: Principal,
+    namespaces: [Option<Namespace>; NAMESPACES],
+}
+
+/// This is an invitation identifier, not a document key or a reusable login.
+/// It is bound to the intended authenticated recipient as well as the NAS.
+/// No Debug implementation: callers must not log invitation material.
+#[derive(Clone, Copy)]
+pub struct Invitation {
+    pub namespace: [u8; 32],
+    pub nonce: [u8; 32],
+    pub recipient: Principal,
+    pub expires: u64,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct Session {
+    boot: [u8; 32],
+    serial: u64,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct Upload {
+    boot: [u8; 32],
+    serial: u64,
+}
+
+#[derive(Clone, Copy)]
+struct SessionState {
+    token: Session,
+    namespace: usize,
+    epoch: u64,
+    owner: Principal,
+}
+
+#[derive(Clone, Copy)]
+struct UploadState {
+    token: Upload,
+    session: Session,
+    namespace: usize,
+    epoch: u64,
+    object: usize,
+    expected: u64,
+    length: usize,
+    bytes: [u8; MAX_CIPHERTEXT],
+}
+
+/// Administration deliberately exposes no object identifiers or ciphertext.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Usage {
+    pub namespace: [u8; 32],
+    pub status: NamespaceStatus,
+    pub epoch: u64,
+    pub quota: u32,
+    pub used: u32,
+    pub reserved: u32,
+}
+
+pub struct Service<S> {
+    storage: S,
+    state: State,
+    boot: [u8; 32],
+    serial: u64,
+    sessions: [Option<SessionState>; SESSIONS],
+    uploads: [Option<UploadState>; UPLOADS],
+    poisoned: bool,
+}
+
+impl<S: Storage> Service<S> {
+    /// Explicit initialization of an empty, designated store only.
+    pub fn initialize(
+        mut storage: S,
+        admin: Principal,
+        entropy: &mut impl Entropy,
+    ) -> Result<Self, Error> {
+        if !admin.valid() {
+            return Err(Error::Invalid);
+        }
+        let mut bytes = [0; SNAPSHOT_BYTES];
+        if storage.load(&mut bytes)?.is_some() {
+            return Err(Error::Conflict);
+        }
+        let boot = random(entropy)?;
+        let state = State {
+            generation: 1,
+            admin,
+            namespaces: [None; NAMESPACES],
+        };
+        snapshot::encode(&state, &mut bytes);
+        storage.replace(&bytes)?;
+        Ok(Self::new(storage, state, boot))
+    }
+
+    pub fn recover(mut storage: S, entropy: &mut impl Entropy) -> Result<Self, Error> {
+        let mut bytes = [0; SNAPSHOT_BYTES];
+        if storage.load(&mut bytes)? != Some(SNAPSHOT_BYTES) {
+            return Err(Error::Corrupt);
+        }
+        let state = snapshot::decode(&bytes)?;
+        let boot = random(entropy)?;
+        Ok(Self::new(storage, state, boot))
+    }
+
+    fn new(storage: S, state: State, boot: [u8; 32]) -> Self {
+        Self {
+            storage,
+            state,
+            boot,
+            serial: 0,
+            sessions: [None; SESSIONS],
+            uploads: [None; UPLOADS],
+            poisoned: false,
+        }
+    }
+
+    pub fn into_storage(self) -> S {
+        self.storage
+    }
+
+    pub fn is_poisoned(&self) -> bool {
+        self.poisoned
+    }
+
+    fn ready(&self) -> Result<(), Error> {
+        if self.poisoned {
+            Err(Error::ReopenRequired)
+        } else {
+            Ok(())
+        }
+    }
+
+    fn admin(&self, caller: Principal) -> Result<(), Error> {
+        self.ready()?;
+        if caller == self.state.admin {
+            Ok(())
+        } else {
+            Err(Error::Denied)
+        }
+    }
+
+    fn namespace(&self, id: &[u8; 32]) -> Result<usize, Error> {
+        self.state
+            .namespaces
+            .iter()
+            .position(|n| n.as_ref().is_some_and(|n| &n.id == id))
+            .ok_or(Error::NotFound)
+    }
+
+    fn next_serial(&mut self) -> Result<u64, Error> {
+        self.serial = self.serial.checked_add(1).ok_or(Error::Full)?;
+        Ok(self.serial)
+    }
+
+    fn persist(&mut self, mut next: State) -> Result<(), Error> {
+        next.generation = self.state.generation.checked_add(1).ok_or(Error::Full)?;
+        let mut bytes = [0; SNAPSHOT_BYTES];
+        snapshot::encode(&next, &mut bytes);
+        if let Err(error) = self.storage.replace(&bytes) {
+            self.poisoned = true;
+            return Err(error);
+        }
+        self.state = next;
+        Ok(())
+    }
+
+    pub fn invite(
+        &mut self,
+        caller: Principal,
+        recipient: Principal,
+        quota: u32,
+        now: u64,
+        lifetime: u64,
+        entropy: &mut impl Entropy,
+    ) -> Result<Invitation, Error> {
+        self.admin(caller)?;
+        if !recipient.valid()
+            || recipient == self.state.admin
+            || quota == 0
+            || quota > MAX_QUOTA
+            || lifetime == 0
+        {
+            return Err(Error::Invalid);
+        }
+        let expires = now.checked_add(lifetime).ok_or(Error::Invalid)?;
+        let index = self
+            .state
+            .namespaces
+            .iter()
+            .position(Option::is_none)
+            .ok_or(Error::Full)?;
+        let id = random(entropy)?;
+        // Never retry a broken/repeating entropy source indefinitely.
+        if self.namespace(&id).is_ok() {
+            return Err(Error::Entropy);
+        }
+        let nonce = random(entropy)?;
+        if nonce == id {
+            return Err(Error::Entropy);
+        }
+        let mut next = self.state;
+        next.namespaces[index] = Some(Namespace {
+            id,
+            status: NamespaceStatus::Offered,
+            epoch: 1,
+            quota,
+            owner: recipient,
+            invitation: nonce,
+            expires,
+            objects: [Object::EMPTY; OBJECTS],
+        });
+        self.persist(next)?;
+        Ok(Invitation {
+            namespace: id,
+            nonce,
+            recipient,
+            expires,
+        })
+    }
+
+    pub fn accept(
+        &mut self,
+        caller: Principal,
+        invitation: &Invitation,
+        now: u64,
+    ) -> Result<(), Error> {
+        self.ready()?;
+        let index = self.namespace(&invitation.namespace)?;
+        let mut ns = self.state.namespaces[index].ok_or(Error::NotFound)?;
+        if ns.status != NamespaceStatus::Offered
+            || caller != ns.owner
+            || invitation.recipient != caller
+            || invitation.nonce != ns.invitation
+            || invitation.expires != ns.expires
+        {
+            return Err(Error::Denied);
+        }
+        if now >= ns.expires {
+            return Err(Error::Expired);
+        }
+        ns.status = NamespaceStatus::Active;
+        ns.invitation = [0; 32];
+        ns.expires = 0;
+        let mut next = self.state;
+        next.namespaces[index] = Some(ns);
+        self.persist(next)
+    }
+
+    pub fn open(&mut self, caller: Principal, namespace: &[u8; 32]) -> Result<Session, Error> {
+        self.ready()?;
+        let index = self.namespace(namespace)?;
+        let ns = self.state.namespaces[index].ok_or(Error::NotFound)?;
+        if ns.status != NamespaceStatus::Active || ns.owner != caller {
+            return Err(Error::Denied);
+        }
+        let slot = self
+            .sessions
+            .iter()
+            .position(Option::is_none)
+            .ok_or(Error::Full)?;
+        let token = Session {
+            boot: self.boot,
+            serial: self.next_serial()?,
+        };
+        self.sessions[slot] = Some(SessionState {
+            token,
+            namespace: index,
+            epoch: ns.epoch,
+            owner: caller,
+        });
+        Ok(token)
+    }
+
+    fn session(&self, caller: Principal, token: Session) -> Result<SessionState, Error> {
+        self.ready()?;
+        let session = self
+            .sessions
+            .iter()
+            .flatten()
+            .find(|s| s.token == token && s.owner == caller)
+            .copied()
+            .ok_or(Error::Stale)?;
+        let ns = self.state.namespaces[session.namespace].ok_or(Error::Stale)?;
+        if ns.status != NamespaceStatus::Active || ns.epoch != session.epoch {
+            return Err(Error::Stale);
+        }
+        Ok(session)
+    }
+
+    pub fn close(&mut self, caller: Principal, token: Session) -> Result<(), Error> {
+        self.session(caller, token)?;
+        for slot in &mut self.sessions {
+            if slot.is_some_and(|s| s.token == token) {
+                *slot = None;
+            }
+        }
+        for slot in &mut self.uploads {
+            if slot.is_some_and(|u| u.session == token) {
+                *slot = None;
+            }
+        }
+        Ok(())
+    }
+
+    fn reserved(&self, namespace: usize) -> u32 {
+        self.uploads
+            .iter()
+            .flatten()
+            .filter(|u| u.namespace == namespace)
+            .map(|u| u.length as u32)
+            .sum()
+    }
+
+    pub fn stage(
+        &mut self,
+        caller: Principal,
+        token: Session,
+        object: usize,
+        expected: u64,
+        ciphertext: &[u8],
+    ) -> Result<Upload, Error> {
+        let session = self.session(caller, token)?;
+        if object >= OBJECTS || ciphertext.is_empty() || ciphertext.len() > MAX_CIPHERTEXT {
+            return Err(Error::Invalid);
+        }
+        let ns = self.state.namespaces[session.namespace].ok_or(Error::Stale)?;
+        if expected == u64::MAX || ns.objects[object].revision != expected {
+            return Err(Error::Conflict);
+        }
+        // Conservative copy-on-write reservation includes the old object.
+        if ns.used() + self.reserved(session.namespace) + ciphertext.len() as u32 > ns.quota {
+            return Err(Error::Quota);
+        }
+        let slot = self
+            .uploads
+            .iter()
+            .position(Option::is_none)
+            .ok_or(Error::Full)?;
+        let upload = Upload {
+            boot: self.boot,
+            serial: self.next_serial()?,
+        };
+        let mut bytes = [0; MAX_CIPHERTEXT];
+        bytes[..ciphertext.len()].copy_from_slice(ciphertext);
+        self.uploads[slot] = Some(UploadState {
+            token: upload,
+            session: token,
+            namespace: session.namespace,
+            epoch: session.epoch,
+            object,
+            expected,
+            length: ciphertext.len(),
+            bytes,
+        });
+        Ok(upload)
+    }
+
+    fn upload(&self, session: SessionState, upload: Upload) -> Result<(usize, UploadState), Error> {
+        self.uploads
+            .iter()
+            .enumerate()
+            .filter_map(|(i, u)| u.map(|u| (i, u)))
+            .find(|(_, u)| {
+                u.token == upload
+                    && u.session == session.token
+                    && u.namespace == session.namespace
+                    && u.epoch == session.epoch
+            })
+            .ok_or(Error::Stale)
+    }
+
+    pub fn cancel(
+        &mut self,
+        caller: Principal,
+        session: Session,
+        upload: Upload,
+    ) -> Result<(), Error> {
+        let session = self.session(caller, session)?;
+        let (slot, _) = self.upload(session, upload)?;
+        self.uploads[slot] = None;
+        Ok(())
+    }
+
+    pub fn commit(
+        &mut self,
+        caller: Principal,
+        session: Session,
+        upload: Upload,
+    ) -> Result<u64, Error> {
+        let session = self.session(caller, session)?;
+        let (slot, upload) = self.upload(session, upload)?;
+        let mut next = self.state;
+        let ns = next.namespaces[session.namespace]
+            .as_mut()
+            .ok_or(Error::Stale)?;
+        if ns.objects[upload.object].revision != upload.expected {
+            self.uploads[slot] = None;
+            return Err(Error::Conflict);
+        }
+        let revision = upload.expected.checked_add(1).ok_or(Error::Full)?;
+        ns.objects[upload.object] = Object {
+            revision,
+            length: upload.length as u16,
+            bytes: upload.bytes,
+        };
+        self.persist(next)?;
+        self.uploads[slot] = None;
+        Ok(revision)
+    }
+
+    /// Returns only opaque client ciphertext, never document plaintext.
+    pub fn read(
+        &self,
+        caller: Principal,
+        session: Session,
+        object: usize,
+        expected: u64,
+        out: &mut [u8],
+    ) -> Result<usize, Error> {
+        let session = self.session(caller, session)?;
+        let object = self.state.namespaces[session.namespace]
+            .as_ref()
+            .and_then(|n| n.objects.get(object))
+            .ok_or(Error::Invalid)?;
+        if object.length == 0 {
+            return Err(Error::NotFound);
+        }
+        if object.revision != expected {
+            return Err(Error::Conflict);
+        }
+        let length = usize::from(object.length);
+        if out.len() < length {
+            return Err(Error::Invalid);
+        }
+        out[..length].copy_from_slice(&object.bytes[..length]);
+        Ok(length)
+    }
+
+    pub fn usage(&self, caller: Principal, namespace: &[u8; 32]) -> Result<Usage, Error> {
+        self.admin(caller)?;
+        let index = self.namespace(namespace)?;
+        let ns = self.state.namespaces[index].ok_or(Error::NotFound)?;
+        Ok(Usage {
+            namespace: ns.id,
+            status: ns.status,
+            epoch: ns.epoch,
+            quota: ns.quota,
+            used: ns.used(),
+            reserved: self.reserved(index),
+        })
+    }
+
+    pub fn set_quota(
+        &mut self,
+        caller: Principal,
+        namespace: &[u8; 32],
+        quota: u32,
+    ) -> Result<(), Error> {
+        self.admin(caller)?;
+        let index = self.namespace(namespace)?;
+        let mut next = self.state;
+        let ns = next.namespaces[index].as_mut().ok_or(Error::NotFound)?;
+        if matches!(
+            ns.status,
+            NamespaceStatus::Revoked | NamespaceStatus::Evicted
+        ) {
+            return Err(Error::Denied);
+        }
+        if quota == 0 || quota > MAX_QUOTA {
+            return Err(Error::Invalid);
+        }
+        if quota < ns.used() + self.reserved(index) {
+            return Err(Error::Quota);
+        }
+        ns.quota = quota;
+        self.persist(next)
+    }
+
+    fn drop_handles(&mut self, namespace: usize) {
+        for session in &mut self.sessions {
+            if session.is_some_and(|s| s.namespace == namespace) {
+                *session = None;
+            }
+        }
+        for upload in &mut self.uploads {
+            if upload.is_some_and(|u| u.namespace == namespace) {
+                *upload = None;
+            }
+        }
+    }
+
+    /// Revocation commits before cleanup. On failure the instance is retired;
+    /// no old session can continue against uncertain durable authority.
+    pub fn revoke(&mut self, caller: Principal, namespace: &[u8; 32]) -> Result<(), Error> {
+        self.admin(caller)?;
+        let index = self.namespace(namespace)?;
+        let mut next = self.state;
+        let ns = next.namespaces[index].as_mut().ok_or(Error::NotFound)?;
+        if matches!(
+            ns.status,
+            NamespaceStatus::Revoked | NamespaceStatus::Evicted
+        ) {
+            return Ok(());
+        }
+        ns.epoch = ns.epoch.checked_add(1).ok_or(Error::Full)?;
+        ns.status = NamespaceStatus::Revoked;
+        ns.invitation = [0; 32];
+        ns.expires = 0;
+        self.persist(next)?;
+        self.drop_handles(index);
+        Ok(())
+    }
+
+    /// Two durable transactions: revoke first, then purge this store's copies.
+    /// A failed purge leaves a revoked namespace, never false deletion success.
+    pub fn evict(&mut self, caller: Principal, namespace: &[u8; 32]) -> Result<(), Error> {
+        self.revoke(caller, namespace)?;
+        let index = self.namespace(namespace)?;
+        let mut next = self.state;
+        let ns = next.namespaces[index].as_mut().ok_or(Error::NotFound)?;
+        if ns.status == NamespaceStatus::Evicted {
+            return Ok(());
+        }
+        ns.objects = [Object::EMPTY; OBJECTS];
+        ns.status = NamespaceStatus::Evicted;
+        self.persist(next)
+    }
+}
+
+fn random(entropy: &mut impl Entropy) -> Result<[u8; 32], Error> {
+    let mut bytes = [0; 32];
+    entropy.fill(&mut bytes)?;
+    if bytes == [0; 32] {
+        return Err(Error::Entropy);
+    }
+    Ok(bytes)
+}
