@@ -341,6 +341,30 @@ fn builds_discover_selecting_and_renewal_messages() {
 }
 
 #[test]
+fn all_requests_pad_to_300_bytes_without_touching_the_tail() {
+    for (kind, option_end) in [(0, 266), (1, 278), (2, 266)] {
+        let build = |output: &mut [u8]| match kind {
+            0 => dhcp::build_discover(output, XID, MAC, 0),
+            1 => dhcp::build_selecting_request(output, XID, MAC, 0, OFFERED, SERVER),
+            _ => dhcp::build_renewal_request(output, XID, MAC, 0, OFFERED),
+        };
+        let mut too_small = [0xA5; 299];
+        assert_eq!(build(&mut too_small), Err(Error::OutputTooSmall));
+        assert_eq!(too_small, [0xA5; 299]);
+
+        let mut exact = [0xA5; 300];
+        assert_eq!(build(&mut exact), Ok(300));
+        assert_eq!(exact[option_end - 1], 255);
+        assert!(exact[option_end..].iter().all(|byte| *byte == 0));
+
+        let mut longer = [0xA5; MAX_MESSAGE_BYTES];
+        assert_eq!(build(&mut longer), Ok(300));
+        assert_eq!(&longer[..300], &exact);
+        assert!(longer[300..].iter().all(|byte| *byte == 0xA5));
+    }
+}
+
+#[test]
 fn failed_builds_leave_output_unchanged() {
     let mut output = [0xA5; 64];
     assert_eq!(

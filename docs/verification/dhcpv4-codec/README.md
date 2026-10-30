@@ -72,3 +72,42 @@ lint-/targetmap `target/dhcp-codec`. Logs:
 `9ddc6b6` is afzonderlijk vastgelegd onder
 [`../full-release-network-dev-9ddc6b6/`](../full-release-network-dev-9ddc6b6/README.md);
 die run wordt niet als native test van de latere reviewfix voorgesteld.
+
+## Integratiereview: minimale BOOTP-lengte, basis 1bb8acf
+
+RFC 1542, W. Wimer, oktober 1993, §2.1
+(<https://www.rfc-editor.org/rfc/rfc1542.txt>) noemt 300 octets UDP-data als
+minimale BOOTP-lengte voor de consistentiecontrole. RFC 2131 §2 behoudt
+BOOTP-relaygebruik; variabele DHCP-opties zijn geen reden om kortere
+uitgaande berichten als algemeen interoperabel te behandelen. De builder
+gaf inderdaad 266/278/266 bytes terug. Nu vult dezelfde centrale builder
+DISCOVER, selecting REQUEST en renewal REQUEST tot minimaal 300 bytes aan
+met nulbytes na END, zonder de options of parsergrenzen te verruimen.
+
+De nieuwe regressie faalde eerst op de ongewijzigde builder: `Ok(266)` waar
+`OutputTooSmall` voor een 299-bytebuffer werd verwacht, exit 101
+(`padding-red.txt`, 0,45 s). Na herstel controleert hij alle drie builders:
+299 bytes faalt zonder enige mutatie; exact 300 bytes slaagt; END blijft op
+de exacte optiegrens; padding is nul; bytes vanaf offset 300 blijven intact
+bij een grotere buffer.
+
+| Getest bronbestand | SHA-256 |
+|---|---|
+| `services/net-protocol/src/dhcp.rs` | `c51ad2d93e317cd36513668ddba67e13653e57ccb4e67a7e18c240d5b92d681b` |
+| `services/net-protocol/tests/dhcp.rs` | `f8a11b61fba4c9bbcf095f3c5cc2fb8581572c81639c7cf00b4c852b8b9b4bf2` |
+
+Op deze geïsoleerde codec-diff, zonder clientcore, met bovenstaande lokale
+sysroot en `CARGO_TARGET_DIR=target/dhcp-hostcc`:
+
+| Exact commando | Exit | Uitkomst / duurzaam log |
+|---|---:|---|
+| `python3 -B tools/dev.py cargo +1.90.0 test --manifest-path services/net-protocol/Cargo.toml --test dhcp --locked --offline all_requests_pad_to_300_bytes_without_touching_the_tail` | 101 | Verwachte rode reproductie vóór fix; `padding-red.txt` |
+| `python3 -B tools/dev.py cargo +1.90.0 test --manifest-path services/net-protocol/Cargo.toml --locked --offline` | 0 | 58/58, waarvan 11 DHCP; `padding-tests.txt`, 0,49 s |
+| `python3 -B tools/dev.py cargo +1.90.0 clippy --manifest-path services/net-protocol/Cargo.toml --all-targets --locked --offline -- -D warnings` | 0 | `padding-clippy.txt`, 0,37 s |
+| `python3 -B tools/dev.py cargo +1.90.0 fmt --manifest-path services/net-protocol/Cargo.toml --all -- --check` | 0 | `padding-fmt.txt` |
+| `python3 -B tools/dev.py cargo +1.90.0 build --manifest-path services/net-protocol/Cargo.toml --lib --release --target x86_64-unknown-none --locked --offline` | 0 | `padding-none.txt`, 0,30 s |
+| `git diff --check` | 0 | Schoon |
+
+Geen native DHCP/relay getest of FR-N01-acceptatie geclaimd. Netwerk blijft
+0/10; totaal 34/100. Centrale status/assessment zijn nu van teamleider
+`89f84098`; deze brongebonden reviewfix levert geen nieuwe punten op.

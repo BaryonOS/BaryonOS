@@ -165,6 +165,10 @@ kennisoriëntatie: OSDev *Address Resolution Protocol*, W002539, revisie 11170
 DISCOVER, de gekozen OFFER-aanvraag en een bestaande lease-aanvraag. De
 aanroeper levert MAC, transaction-ID en verstreken seconden; deze crate
 genereert geen entropy, verstuurt geen frame en beheert geen timer.
+Alle drie builders retourneren minimaal 300 UDP-payloadbytes, met
+nulvulling na END, voor de BOOTP-consistentiecontrole uit RFC 1542 §2.1.
+Een buffer kleiner dan de volledige berichtlengte geeft `OutputTooSmall`
+zonder wijziging; bytes buiten de teruggegeven lengte blijven intact.
 
 `parse_reply` begrenst de ontvangen BOOTP/DHCP-datagramlengte op 576 bytes en
 controleert BOOTREPLY, Ethernet-type/-lengte, transaction-ID, client-MAC,

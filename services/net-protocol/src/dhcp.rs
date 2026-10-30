@@ -8,6 +8,8 @@ use crate::arp::unicast_ipv4;
 
 const BOOTP_BYTES: usize = 236;
 const OPTIONS_OFFSET: usize = 240;
+// RFC 1542 section 2.1: BOOTP consistency checks require 300 UDP data octets.
+const MIN_REQUEST_BYTES: usize = 300;
 const COOKIE: [u8; 4] = [99, 130, 83, 99];
 pub const MAX_MESSAGE_BYTES: usize = 576;
 pub const MAX_LIST_ADDRESSES: usize = 4;
@@ -349,7 +351,8 @@ fn build_request(
     } else {
         DHCP_OPTION_BYTES
     };
-    let message_bytes = OPTIONS_OFFSET + option_bytes;
+    let option_end = OPTIONS_OFFSET + option_bytes;
+    let message_bytes = option_end.max(MIN_REQUEST_BYTES);
     if output.len() < message_bytes {
         return Err(Error::OutputTooSmall);
     }
@@ -384,7 +387,7 @@ fn build_request(
         &(MAX_MESSAGE_BYTES as u16).to_be_bytes(),
     );
     output[cursor] = 255;
-    debug_assert_eq!(cursor + 1, message_bytes);
+    debug_assert_eq!(cursor + 1, option_end);
     Ok(message_bytes)
 }
 
