@@ -1,8 +1,8 @@
+use artifact_store_core::{ArtifactStore, Error as StoreError, StoreCapacity, READ_CHUNK_MAX};
 use core::cell::Cell;
 use nieuw_os_model_store_contract::{
     open, open_pinned_model, ArtifactDescriptor, ArtifactRef, Cancellation, Error, ReadBudget,
-    ReadError, ReadOnlyArtifactStore, StoreError, PINNED_MODEL, PINNED_MODEL_LENGTH,
-    PINNED_MODEL_SHA256, READ_CHUNK_BYTES,
+    PINNED_MODEL, PINNED_MODEL_LENGTH, PINNED_MODEL_SHA256,
 };
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -35,7 +35,7 @@ struct Store {
     descriptor: ArtifactDescriptor,
     bytes: Vec<u8>,
     open_error: Option<StoreError>,
-    read_error: Option<ReadError>,
+    read_error: Option<StoreError>,
     max_read: Option<usize>,
     reported_count: Option<usize>,
     open_calls: usize,
@@ -94,41 +94,44 @@ fn fixture_descriptor(length: u64, sha256: [u8; 32]) -> ArtifactDescriptor {
     }
 }
 
-impl ReadOnlyArtifactStore for Store {
-    type ReadHandle = TestHandle;
+impl ArtifactStore for Store {
+    type Handle = TestHandle;
 
-    fn open(&mut self, descriptor: ArtifactDescriptor) -> Result<Self::ReadHandle, StoreError> {
+    fn open(
+        &mut self,
+        expected: &ArtifactDescriptor,
+    ) -> Result<(Self::Handle, ArtifactDescriptor), StoreError> {
         self.open_calls += 1;
-        self.last_opened = Some(descriptor);
+        self.last_opened = Some(*expected);
         if let Some(error) = self.open_error {
             return Err(error);
         }
-        if descriptor != self.descriptor {
-            return Err(StoreError::DescriptorMismatch);
-        }
-        Ok(TestHandle {
-            reference: descriptor.reference,
-            closed: self.closed.as_ref().map(Arc::clone),
-        })
+        Ok((
+            TestHandle {
+                reference: self.descriptor.reference,
+                closed: self.closed.as_ref().map(Arc::clone),
+            },
+            self.descriptor,
+        ))
     }
 
     fn read_at(
         &mut self,
-        handle: &mut Self::ReadHandle,
+        handle: &Self::Handle,
         offset: u64,
         output: &mut [u8],
-    ) -> Result<usize, ReadError> {
+    ) -> Result<usize, StoreError> {
         self.read_calls += 1;
         if let Some(error) = self.read_error {
             return Err(error);
         }
         if handle.reference != self.descriptor.reference {
-            return Err(ReadError::Stale);
+            return Err(StoreError::Stale);
         }
         if let Some(count) = self.reported_count.take() {
             return Ok(count);
         }
-        let start = usize::try_from(offset).map_err(|_| ReadError::Unavailable)?;
+        let start = usize::try_from(offset).map_err(|_| StoreError::Io)?;
         if start >= self.bytes.len() {
             return Ok(0);
         }
@@ -139,6 +142,15 @@ impl ReadOnlyArtifactStore for Store {
             .map_or(amount, |limit| core::cmp::min(amount, limit));
         output[..amount].copy_from_slice(&self.bytes[start..start + amount]);
         Ok(amount)
+    }
+
+    fn capacity(&mut self) -> Result<StoreCapacity, StoreError> {
+        Ok(StoreCapacity {
+            capacity_bytes: 0,
+            used_bytes: 0,
+            reserved_bytes: 0,
+            quota_bytes: 0,
+        })
     }
 }
 
@@ -163,22 +175,29 @@ struct CancelDuringRead<'a> {
     cancelled: &'a Cell<bool>,
 }
 
-impl ReadOnlyArtifactStore for CancelDuringRead<'_> {
-    type ReadHandle = TestHandle;
+impl ArtifactStore for CancelDuringRead<'_> {
+    type Handle = TestHandle;
 
-    fn open(&mut self, descriptor: ArtifactDescriptor) -> Result<Self::ReadHandle, StoreError> {
-        self.inner.open(descriptor)
+    fn open(
+        &mut self,
+        expected: &ArtifactDescriptor,
+    ) -> Result<(Self::Handle, ArtifactDescriptor), StoreError> {
+        self.inner.open(expected)
     }
 
     fn read_at(
         &mut self,
-        handle: &mut Self::ReadHandle,
+        handle: &Self::Handle,
         offset: u64,
         output: &mut [u8],
-    ) -> Result<usize, ReadError> {
+    ) -> Result<usize, StoreError> {
         let result = self.inner.read_at(handle, offset, output);
         self.cancelled.set(true);
         result
+    }
+
+    fn capacity(&mut self) -> Result<StoreCapacity, StoreError> {
+        self.inner.capacity()
     }
 }
 
@@ -234,6 +253,18 @@ fn zero_reference_or_generation_is_rejected_before_store_open() {
         );
         assert_eq!(store.open_calls, 0);
     }
+
+    let mut store = Store::pinned();
+    let descriptor = ArtifactDescriptor {
+        reference: MODEL_REFERENCE,
+        length: 0,
+        sha256: PINNED_MODEL_SHA256,
+    };
+    assert_eq!(
+        open(&mut store, descriptor).err(),
+        Some(Error::InvalidDescriptor)
+    );
+    assert_eq!(store.open_calls, 0);
 }
 
 #[test]
@@ -242,7 +273,7 @@ fn store_authority_must_match_requested_model_descriptor() {
     store.descriptor.sha256[0] ^= 1;
     assert_eq!(
         open_pinned_model(&mut store, MODEL_REFERENCE).err(),
-        Some(Error::DescriptorMismatch)
+        Some(Error::Corrupt)
     );
     assert_eq!(store.read_calls, 0);
 
@@ -250,7 +281,7 @@ fn store_authority_must_match_requested_model_descriptor() {
     store.descriptor.length -= 1;
     assert_eq!(
         open_pinned_model(&mut store, MODEL_REFERENCE).err(),
-        Some(Error::DescriptorMismatch)
+        Some(Error::Corrupt)
     );
     assert_eq!(store.read_calls, 0);
 }
@@ -260,8 +291,8 @@ fn stale_generation_fails_closed_during_verification_and_drops_handle() {
     let mut store = Store::pinned();
     let closed = store.track_close();
     let mut verifier = open_pinned_model(&mut store, MODEL_REFERENCE).unwrap();
-    store.read_error = Some(ReadError::Stale);
-    let mut budget = ReadBudget::new(READ_CHUNK_BYTES as u64);
+    store.read_error = Some(StoreError::Stale);
+    let mut budget = ReadBudget::new(READ_CHUNK_MAX as u64);
     assert_eq!(
         verifier.verify_next(&mut store, &mut budget, &NeverCancelled),
         Err(Error::Stale)
@@ -275,13 +306,13 @@ fn stale_generation_fails_closed_during_verification_and_drops_handle() {
 #[test]
 fn corruption_and_storage_truncation_are_not_treated_as_eof_success() {
     for (read_error, expected) in [
-        (ReadError::Corrupt, Error::Corrupt),
-        (ReadError::Truncated, Error::Truncated),
+        (StoreError::Corrupt, Error::Corrupt),
+        (StoreError::Truncated, Error::Truncated),
     ] {
         let mut store = Store::pinned();
         let mut verifier = open_pinned_model(&mut store, MODEL_REFERENCE).unwrap();
         store.read_error = Some(read_error);
-        let mut budget = ReadBudget::new(READ_CHUNK_BYTES as u64);
+        let mut budget = ReadBudget::new(READ_CHUNK_MAX as u64);
         assert_eq!(
             verifier.verify_next(&mut store, &mut budget, &NeverCancelled),
             Err(expected)
@@ -337,13 +368,13 @@ fn zero_before_eof_after_positive_short_read_is_truncated() {
 #[test]
 fn provider_counts_larger_than_buffer_or_remaining_are_protocol_errors() {
     let mut store = Store::fixture(
-        fixture_descriptor(READ_CHUNK_BYTES as u64, [0; 32]),
-        &vec![0; READ_CHUNK_BYTES],
+        fixture_descriptor(READ_CHUNK_MAX as u64, [0; 32]),
+        &vec![0; READ_CHUNK_MAX],
     );
-    store.reported_count = Some(READ_CHUNK_BYTES + 1);
+    store.reported_count = Some(READ_CHUNK_MAX + 1);
     let descriptor = store.descriptor;
     let mut verifier = open(&mut store, descriptor).unwrap();
-    let mut budget = ReadBudget::new(READ_CHUNK_BYTES as u64);
+    let mut budget = ReadBudget::new(READ_CHUNK_MAX as u64);
     assert_eq!(
         verifier.verify_next(&mut store, &mut budget, &NeverCancelled),
         Err(Error::Protocol)
@@ -365,13 +396,13 @@ fn provider_counts_larger_than_buffer_or_remaining_are_protocol_errors() {
 fn byte_budget_and_pre_io_cancellation_block_reads_and_release_handle() {
     let mut store = Store::pinned();
     let mut verifier = open_pinned_model(&mut store, MODEL_REFERENCE).unwrap();
-    let mut budget = ReadBudget::new((READ_CHUNK_BYTES - 1) as u64);
+    let mut budget = ReadBudget::new((READ_CHUNK_MAX - 1) as u64);
     assert_eq!(
         verifier.verify_next(&mut store, &mut budget, &NeverCancelled),
         Err(Error::BudgetExceeded)
     );
     assert_eq!(store.read_calls, 0);
-    assert_eq!(budget.remaining_bytes(), (READ_CHUNK_BYTES - 1) as u64);
+    assert_eq!(budget.remaining_bytes(), (READ_CHUNK_MAX - 1) as u64);
     verifier.abort();
 
     let mut store = Store::pinned();
@@ -379,13 +410,13 @@ fn byte_budget_and_pre_io_cancellation_block_reads_and_release_handle() {
     let mut verifier = open_pinned_model(&mut store, MODEL_REFERENCE).unwrap();
     let cancelled = Cell::new(true);
     let cancellation = Cancelled(&cancelled);
-    budget = ReadBudget::new(READ_CHUNK_BYTES as u64);
+    budget = ReadBudget::new(READ_CHUNK_MAX as u64);
     assert_eq!(
         verifier.verify_next(&mut store, &mut budget, &cancellation),
         Err(Error::Cancelled)
     );
     assert_eq!(store.read_calls, 0);
-    assert_eq!(budget.remaining_bytes(), READ_CHUNK_BYTES as u64);
+    assert_eq!(budget.remaining_bytes(), READ_CHUNK_MAX as u64);
     assert!(closed.load(Ordering::SeqCst));
 }
 
@@ -404,7 +435,7 @@ fn stale_generation_after_verification_fails_read_and_drops_handle() {
     let mut artifact = verifier.finish().unwrap();
     assert!(!closed.load(Ordering::SeqCst));
 
-    store.read_error = Some(ReadError::Stale);
+    store.read_error = Some(StoreError::Stale);
     let mut read_budget = ReadBudget::new(bytes.len() as u64);
     let mut output = [0; 4];
     assert_eq!(
@@ -434,10 +465,10 @@ fn stale_generation_after_verification_fails_read_and_drops_handle() {
 #[test]
 fn cancellation_during_store_io_drops_handle_without_publishing_partial_data() {
     let mut inner = Store::fixture(
-        fixture_descriptor((READ_CHUNK_BYTES * 2) as u64, [0; 32]),
-        &vec![1; READ_CHUNK_BYTES],
+        fixture_descriptor((READ_CHUNK_MAX * 2) as u64, [0; 32]),
+        &vec![1; READ_CHUNK_MAX],
     );
-    inner.max_read = Some(READ_CHUNK_BYTES);
+    inner.max_read = Some(READ_CHUNK_MAX);
     let closed = inner.track_close();
     let cancelled = Cell::new(false);
     let mut store = CancelDuringRead {
@@ -446,7 +477,7 @@ fn cancellation_during_store_io_drops_handle_without_publishing_partial_data() {
     };
     let descriptor = store.inner.descriptor;
     let mut verifier = open(&mut store, descriptor).unwrap();
-    let mut budget = ReadBudget::new(READ_CHUNK_BYTES as u64);
+    let mut budget = ReadBudget::new(READ_CHUNK_MAX as u64);
     assert_eq!(
         verifier.verify_next(&mut store, &mut budget, &Cancelled(&cancelled)),
         Err(Error::Cancelled)
@@ -462,7 +493,7 @@ fn descriptor_open_errors_are_not_hidden() {
         (StoreError::NotFound, Error::NotFound),
         (StoreError::Stale, Error::Stale),
         (StoreError::Unauthorized, Error::Unauthorized),
-        (StoreError::Unavailable, Error::StoreUnavailable),
+        (StoreError::Io, Error::StoreUnavailable),
     ] {
         let mut store = Store::pinned();
         store.open_error = Some(store_error);

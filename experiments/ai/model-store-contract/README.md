@@ -1,7 +1,8 @@
 # Native model artifact reader contract
 
-This isolated `no_std` experiment adapts the shared read-only artifact-store
-contract; it does not define an IPC encoding or kernel ABI. The experimental
+This isolated `no_std` experiment depends directly on the shared
+`artifact-store-core` package at `crates/artifact-store-core`; it does not
+define a second store trait, IPC encoding or kernel ABI. The experimental
 VM-AI candidate is Qwen2.5-0.5B-Instruct from Hugging Face
 revision
 [`7ae557604adf67be50417f59c2c2f167def9a775`](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/tree/7ae557604adf67be50417f59c2c2f167def9a775):
@@ -9,13 +10,17 @@ revision
 `fdf756fa7fcbe7404d5c60e26bff1a0c8b8aa1f72ced49e7dd0210fe288fb7fe`.
 This is a candidate pin, not a download or Dutch-quality approval.
 
-`ArtifactRef` directly uses the store-assigned opaque `[u8; 32]` ID and its
-immutable `u64` generation. The old numeric leaf ID is gone; no cast or
+The leaf re-exports the root `ArtifactRef` and `ArtifactDescriptor` types, so
+callers use the store-assigned opaque `[u8; 32]` ID and immutable `u64`
+generation directly. The old numeric leaf ID is gone; no cast or
 digest-derived identity is used. Model repository/revision/license metadata
 remains separate from `ArtifactDescriptor { reference, length, sha256 }`.
-`open` passes that untrusted descriptor to the store for authoritative
-comparison and receives an opaque handle. There is no caller-supplied
-`integrity=true` field.
+`open` uses root `open_checked` to compare the requested and authoritative
+descriptor and retain the root opaque `ArtifactReadHandle`; there is no
+parallel store ABI or caller-supplied `integrity=true` field. Reads use root
+`read_bounded`, including its 4 KiB bound, positive-short-read, EOF and
+provider-count checks. Dropping the opaque handle delegates cleanup to the
+concrete store adapter; the root contract itself supplies no provider.
 
 Before any bytes are exposed to a parser, the verifier hashes a complete read
 pass with pinned `sha2 0.10.9` (`default-features = false`). A positive
@@ -32,10 +37,10 @@ with no crate build script or optional assembly feature. Its
 version. The bare-metal dependency tree excludes `libc`; the lockfile also
 resolves a target-specific `cpufeatures` edge for OS targets that use it.
 
-Each store read is bounded to 4 KiB and addresses the same opaque handle and
-generation. That is a storage API bound, not a new IPC wire chunk: the existing
-320-byte IPC transport retains its maximum 256-byte data payload, so any future
-IPC adapter must split/stream store reads through that existing layer. The
+Each store read uses the root 4 KiB storage bound and addresses the same opaque
+handle and generation. That is not a new IPC wire chunk: the existing 320-byte
+IPC transport retains its maximum 256-byte data payload, so any future IPC
+adapter must split/stream store reads through that existing layer. The
 caller-supplied byte budget is charged for requested bytes before I/O,
 including failed attempts, and is not refunded; this bounds retries as well
 as successful reads. Output is valid only on success. Stale, corrupt,
@@ -69,7 +74,8 @@ a short tampered synthetic stream to test full-hash rejection and negative
 reader cases; they do not prove model loading, installation, or inference. A
 bare-metal build proves only compilation for `x86_64-unknown-none`.
 
-The bounded gates for this leaf are:
+The bounded gates for this leaf, run against root-contract branch
+`simon/native-artifact-store-contract` at `7f4f7bf`, are:
 
 ```sh
 cargo +1.90.0 test --offline --locked --manifest-path experiments/ai/model-store-contract/Cargo.toml
@@ -82,5 +88,5 @@ An earlier `x86_64-unknown-none` build with default target features exited 101
 with an LLVM internal error in `sha2`. That failure did not reproduce in two
 subsequent isolated default-feature release builds; both and the scalar
 release library build above exited 0. This compile-only evidence does not
-validate a runtime instruction profile. The host test run passed 3 unit tests
+validate a runtime instruction profile. The host test run passed 4 unit tests
 and 13 contract tests; no native OS/QEMU run was performed.

@@ -6,6 +6,7 @@ rust-version = "1.90"
 publish = false
 
 [dependencies]
+artifact-store-core = { path = "../../../crates/artifact-store-core" }
 sha2 = { version = "=0.10.9", default-features = false }
 
 [workspace]

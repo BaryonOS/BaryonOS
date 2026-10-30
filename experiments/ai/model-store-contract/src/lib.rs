@@ -1,11 +1,15 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
+use artifact_store_core::{
+    open_checked, read_bounded, ArtifactReadHandle, ArtifactStore, Error as StoreError,
+    READ_CHUNK_MAX, SHA256_LEN,
+};
+pub use artifact_store_core::{ArtifactDescriptor, ArtifactRef};
 use sha2::{Digest, Sha256};
 
-pub const READ_CHUNK_BYTES: usize = 4096;
 pub const PINNED_MODEL_LENGTH: u64 = 988_097_824;
-pub const PINNED_MODEL_SHA256: [u8; 32] = [
+pub const PINNED_MODEL_SHA256: [u8; SHA256_LEN] = [
     0xfd, 0xf7, 0x56, 0xfa, 0x7f, 0xcb, 0xe7, 0x40, 0x4d, 0x5c, 0x60, 0xe2, 0x6b, 0xff, 0x1a, 0x0c,
     0x8b, 0x8a, 0xa1, 0xf7, 0x2c, 0xed, 0x49, 0xe7, 0xdd, 0x02, 0x10, 0xfe, 0x28, 0x8f, 0xb7, 0xfe,
 ];
@@ -62,40 +66,8 @@ pub const PINNED_MODEL: ModelPin = ModelPin {
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ArtifactRef {
-    pub artifact_id: [u8; 32],
-    pub immutable_generation: u64,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ArtifactDescriptor {
-    pub reference: ArtifactRef,
-    pub length: u64,
-    pub sha256: [u8; 32],
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum StoreError {
-    DescriptorMismatch,
-    NotFound,
-    Stale,
-    Unauthorized,
-    Unavailable,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ReadError {
-    Stale,
-    Unauthorized,
-    Corrupt,
-    Truncated,
-    Unavailable,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {
     InvalidDescriptor,
-    DescriptorMismatch,
     Corrupt,
     Stale,
     Unauthorized,
@@ -109,41 +81,31 @@ pub enum Error {
     EndOfArtifact,
     NotFound,
     StoreUnavailable,
-    ReadUnavailable,
+    StoreFull,
+    StoreQuota,
+    StoreBusy,
+    StoreReplay,
+    StoreOutOfOrder,
+    StoreIncomplete,
+    StoreCancelTooLate,
+    StoreUnknown,
+    StoreInvalid,
     Protocol,
     AlreadyVerified,
     IntegrityPending,
     Aborted,
 }
 
-pub trait ReadOnlyArtifactStore {
-    type ReadHandle;
-
-    /// Opens only the store-authoritative immutable descriptor that was asked
-    /// for. The returned handle is opaque and scoped by its implementation.
-    fn open(&mut self, descriptor: ArtifactDescriptor) -> Result<Self::ReadHandle, StoreError>;
-
-    /// Reads the handle's same immutable generation. The consumer verifies a
-    /// complete pass before obtaining a handle that exposes artifact bytes.
-    fn read_at(
-        &mut self,
-        handle: &mut Self::ReadHandle,
-        offset: u64,
-        output: &mut [u8],
-    ) -> Result<usize, ReadError>;
-}
-
-/// Opens a caller-supplied descriptor after the store has checked it against
-/// its authoritative descriptor. Metadata alone does not establish trust.
-pub fn open<S: ReadOnlyArtifactStore>(
+/// Opens a caller-supplied descriptor through the shared store contract.
+/// Metadata alone does not establish trust.
+pub fn open<S: ArtifactStore>(
     store: &mut S,
     descriptor: ArtifactDescriptor,
-) -> Result<ArtifactVerifier<S::ReadHandle>, Error> {
-    if descriptor.reference.artifact_id == [0; 32] || descriptor.reference.immutable_generation == 0
-    {
+) -> Result<ArtifactVerifier<S>, Error> {
+    if descriptor.validate().is_err() {
         return Err(Error::InvalidDescriptor);
     }
-    let handle = store.open(descriptor).map_err(map_store_error)?;
+    let handle = open_checked(store, &descriptor).map_err(map_store_error)?;
     Ok(ArtifactVerifier {
         descriptor,
         handle: Some(handle),
@@ -155,10 +117,10 @@ pub fn open<S: ReadOnlyArtifactStore>(
 
 /// Resolves no identity itself: the store-issued reference is supplied by the
 /// model catalog and the pinned model metadata supplies expected length/hash.
-pub fn open_pinned_model<S: ReadOnlyArtifactStore>(
+pub fn open_pinned_model<S: ArtifactStore>(
     store: &mut S,
     reference: ArtifactRef,
-) -> Result<ArtifactVerifier<S::ReadHandle>, Error> {
+) -> Result<ArtifactVerifier<S>, Error> {
     open(
         store,
         ArtifactDescriptor {
@@ -198,20 +160,20 @@ enum VerificationState {
     Failed,
 }
 
-pub struct ArtifactVerifier<H> {
+pub struct ArtifactVerifier<S: ArtifactStore> {
     descriptor: ArtifactDescriptor,
-    handle: Option<H>,
+    handle: Option<ArtifactReadHandle<S::Handle>>,
     offset: u64,
     hasher: Option<Sha256>,
     state: VerificationState,
 }
 
-impl<H> ArtifactVerifier<H> {
+impl<S: ArtifactStore> ArtifactVerifier<S> {
     /// Reads one bounded verification chunk into private scratch memory. A
     /// positive short read is accepted and hashed; no artifact bytes are
     /// exposed until the complete stream matches the descriptor SHA-256.
     /// Requested bytes are charged before I/O, even when the attempt fails.
-    pub fn verify_next<S: ReadOnlyArtifactStore<ReadHandle = H>, C: Cancellation>(
+    pub fn verify_next<C: Cancellation>(
         &mut self,
         store: &mut S,
         budget: &mut ReadBudget,
@@ -233,20 +195,20 @@ impl<H> ArtifactVerifier<H> {
         }
 
         let remaining = self.descriptor.length - self.offset;
-        let requested = core::cmp::min(READ_CHUNK_BYTES as u64, remaining) as usize;
+        let requested = core::cmp::min(READ_CHUNK_MAX as u64, remaining) as usize;
         if budget.remaining_bytes < requested as u64 {
             return Err(Error::BudgetExceeded);
         }
         budget.remaining_bytes -= requested as u64;
 
-        let mut scratch = [0; READ_CHUNK_BYTES];
+        let mut scratch = [0; READ_CHUNK_MAX];
         let read_result = match self.handle.as_mut() {
-            Some(handle) => store.read_at(handle, self.offset, &mut scratch[..requested]),
+            Some(handle) => read_bounded(store, handle, self.offset, &mut scratch[..requested]),
             None => return self.fail(Error::Aborted),
         };
         let amount = match read_result {
             Ok(amount) => amount,
-            Err(error) => return self.fail(map_read_error(error)),
+            Err(error) => return self.fail(map_store_error(error)),
         };
         if amount > requested {
             return self.fail(Error::Protocol);
@@ -274,7 +236,7 @@ impl<H> ArtifactVerifier<H> {
     }
 
     /// Transfers the opaque handle only after the full stream matched.
-    pub fn finish(mut self) -> Result<VerifiedArtifact<H>, Error> {
+    pub fn finish(mut self) -> Result<VerifiedArtifact<S::Handle>, Error> {
         if self.state != VerificationState::Verified {
             return Err(if self.state == VerificationState::Failed {
                 Error::Aborted
@@ -298,8 +260,8 @@ impl<H> ArtifactVerifier<H> {
         self.handle.take();
     }
 
-    pub const fn descriptor(&self) -> ArtifactDescriptor {
-        self.descriptor
+    pub const fn descriptor(&self) -> &ArtifactDescriptor {
+        &self.descriptor
     }
 
     pub const fn verified_offset(&self) -> u64 {
@@ -328,7 +290,7 @@ impl<H> ArtifactVerifier<H> {
 
 pub struct VerifiedArtifact<H> {
     descriptor: ArtifactDescriptor,
-    handle: Option<H>,
+    handle: Option<ArtifactReadHandle<H>>,
     active: bool,
 }
 
@@ -336,7 +298,7 @@ impl<H> VerifiedArtifact<H> {
     /// Reads from the verified immutable generation. Positive short reads are
     /// valid; callers advance by the returned count. Output is valid only on
     /// success, and the same opaque handle must remain bound to this generation.
-    pub fn read_at<S: ReadOnlyArtifactStore<ReadHandle = H>, C: Cancellation>(
+    pub fn read_at<S: ArtifactStore<Handle = H>, C: Cancellation>(
         &mut self,
         store: &mut S,
         offset: u64,
@@ -350,7 +312,7 @@ impl<H> VerifiedArtifact<H> {
         if cancellation.is_cancelled() {
             return self.fail(Error::Cancelled);
         }
-        if output.is_empty() || output.len() > READ_CHUNK_BYTES {
+        if output.is_empty() || output.len() > READ_CHUNK_MAX {
             return Err(Error::InvalidBuffer);
         }
         if offset > self.descriptor.length {
@@ -367,13 +329,13 @@ impl<H> VerifiedArtifact<H> {
         }
         budget.remaining_bytes -= requested as u64;
 
-        let read_result = match self.handle.as_mut() {
-            Some(handle) => store.read_at(handle, offset, &mut output[..requested]),
+        let read_result = match self.handle.as_ref() {
+            Some(handle) => read_bounded(store, handle, offset, &mut output[..requested]),
             None => return self.fail(Error::Aborted),
         };
         let amount = match read_result {
             Ok(amount) => amount,
-            Err(error) => return self.fail(map_read_error(error)),
+            Err(error) => return self.fail(map_store_error(error)),
         };
         if amount > requested {
             return self.fail(Error::Protocol);
@@ -417,21 +379,25 @@ fn checked_end(offset: u64, length: usize, total_bytes: u64) -> Result<u64, Erro
 
 fn map_store_error(error: StoreError) -> Error {
     match error {
-        StoreError::DescriptorMismatch => Error::DescriptorMismatch,
+        StoreError::Invalid => Error::StoreInvalid,
+        StoreError::Protocol => Error::Protocol,
         StoreError::NotFound => Error::NotFound,
         StoreError::Stale => Error::Stale,
         StoreError::Unauthorized => Error::Unauthorized,
-        StoreError::Unavailable => Error::StoreUnavailable,
-    }
-}
-
-fn map_read_error(error: ReadError) -> Error {
-    match error {
-        ReadError::Stale => Error::Stale,
-        ReadError::Unauthorized => Error::Unauthorized,
-        ReadError::Corrupt => Error::Corrupt,
-        ReadError::Truncated => Error::Truncated,
-        ReadError::Unavailable => Error::ReadUnavailable,
+        StoreError::Corrupt => Error::Corrupt,
+        StoreError::Truncated => Error::Truncated,
+        StoreError::Overflow => Error::Overflow,
+        StoreError::EndOfArtifact => Error::EndOfArtifact,
+        StoreError::OutOfRange => Error::OutOfRange,
+        StoreError::Full => Error::StoreFull,
+        StoreError::Quota => Error::StoreQuota,
+        StoreError::Busy => Error::StoreBusy,
+        StoreError::Replay => Error::StoreReplay,
+        StoreError::OutOfOrder => Error::StoreOutOfOrder,
+        StoreError::Incomplete => Error::StoreIncomplete,
+        StoreError::CancelTooLate => Error::StoreCancelTooLate,
+        StoreError::Unknown => Error::StoreUnknown,
+        StoreError::Io => Error::StoreUnavailable,
     }
 }
 
@@ -439,28 +405,41 @@ fn map_read_error(error: ReadError) -> Error {
 mod tests {
     use super::*;
 
-    struct NoReadStore {
+    struct SingleByteStore {
         reads: usize,
     }
 
-    impl ReadOnlyArtifactStore for NoReadStore {
-        type ReadHandle = ();
+    impl ArtifactStore for SingleByteStore {
+        type Handle = ();
 
         fn open(
             &mut self,
-            _descriptor: ArtifactDescriptor,
-        ) -> Result<Self::ReadHandle, StoreError> {
-            Ok(())
+            descriptor: &ArtifactDescriptor,
+        ) -> Result<(Self::Handle, ArtifactDescriptor), StoreError> {
+            Ok(((), *descriptor))
         }
 
         fn read_at(
             &mut self,
-            _handle: &mut Self::ReadHandle,
-            _offset: u64,
-            _output: &mut [u8],
-        ) -> Result<usize, ReadError> {
+            _handle: &Self::Handle,
+            offset: u64,
+            output: &mut [u8],
+        ) -> Result<usize, StoreError> {
             self.reads += 1;
-            Ok(0)
+            if offset != 0 || output.is_empty() {
+                return Ok(0);
+            }
+            output[0] = b'a';
+            Ok(1)
+        }
+
+        fn capacity(&mut self) -> Result<artifact_store_core::StoreCapacity, StoreError> {
+            Ok(artifact_store_core::StoreCapacity {
+                capacity_bytes: 0,
+                used_bytes: 0,
+                reserved_bytes: 0,
+                quota_bytes: 0,
+            })
         }
     }
 
@@ -490,22 +469,53 @@ mod tests {
     }
 
     #[test]
-    fn exact_eof_and_out_of_range_never_reach_the_store() {
+    fn shared_store_error_mapping_is_exhaustive() {
+        for (store_error, expected) in [
+            (StoreError::Invalid, Error::StoreInvalid),
+            (StoreError::Unauthorized, Error::Unauthorized),
+            (StoreError::Stale, Error::Stale),
+            (StoreError::Corrupt, Error::Corrupt),
+            (StoreError::Truncated, Error::Truncated),
+            (StoreError::Overflow, Error::Overflow),
+            (StoreError::EndOfArtifact, Error::EndOfArtifact),
+            (StoreError::OutOfRange, Error::OutOfRange),
+            (StoreError::NotFound, Error::NotFound),
+            (StoreError::Full, Error::StoreFull),
+            (StoreError::Quota, Error::StoreQuota),
+            (StoreError::Busy, Error::StoreBusy),
+            (StoreError::Replay, Error::StoreReplay),
+            (StoreError::OutOfOrder, Error::StoreOutOfOrder),
+            (StoreError::Incomplete, Error::StoreIncomplete),
+            (StoreError::CancelTooLate, Error::StoreCancelTooLate),
+            (StoreError::Unknown, Error::StoreUnknown),
+            (StoreError::Io, Error::StoreUnavailable),
+            (StoreError::Protocol, Error::Protocol),
+        ] {
+            assert_eq!(map_store_error(store_error), expected);
+        }
+    }
+
+    #[test]
+    fn exact_eof_and_out_of_range_do_not_reach_the_store() {
+        let mut sha256 = [0; SHA256_LEN];
+        sha256.copy_from_slice(&Sha256::digest(b"a"));
         let descriptor = ArtifactDescriptor {
             reference: ArtifactRef {
                 artifact_id: [0xa5; 32],
                 immutable_generation: 1,
             },
             length: 1,
-            sha256: [0; 32],
+            sha256,
         };
-        let mut artifact = VerifiedArtifact {
-            descriptor,
-            handle: Some(()),
-            active: true,
-        };
-        let mut store = NoReadStore { reads: 0 };
-        let mut budget = ReadBudget::new(READ_CHUNK_BYTES as u64);
+        let mut store = SingleByteStore { reads: 0 };
+        let mut verifier = open(&mut store, descriptor).unwrap();
+        let mut verification_budget = ReadBudget::new(1);
+        assert!(verifier
+            .verify_next(&mut store, &mut verification_budget, &NeverCancelled)
+            .unwrap());
+        let mut artifact = verifier.finish().unwrap();
+        assert_eq!(store.reads, 1);
+        let mut budget = ReadBudget::new(READ_CHUNK_MAX as u64);
         let mut output = [0; 1];
         assert_eq!(
             artifact.read_at(&mut store, 1, &mut budget, &NeverCancelled, &mut output),
@@ -515,6 +525,6 @@ mod tests {
             artifact.read_at(&mut store, 2, &mut budget, &NeverCancelled, &mut output),
             Err(Error::OutOfRange)
         );
-        assert_eq!(store.reads, 0);
+        assert_eq!(store.reads, 1);
     }
 }

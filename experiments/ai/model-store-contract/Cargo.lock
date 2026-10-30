@@ -3,6 +3,10 @@
 version = 4
 
 [[package]]
+name = "artifact-store-core"
+version = "0.1.0"
+
+[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -66,6 +70,7 @@ checksum = "65cd87c9a6d60536580b316ad985726104730a5151c99845f2490428ef91240a"
 name = "nieuw-os-model-store-contract"
 version = "0.1.0"
 dependencies = [
+ "artifact-store-core",
  "sha2",
 ]
 
