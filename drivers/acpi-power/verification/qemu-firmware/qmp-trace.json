@@ -1,0 +1,247 @@
+[
+  {
+    "QMP": {
+      "version": {
+        "qemu": {
+          "micro": 1,
+          "minor": 2,
+          "major": 10
+        },
+        "package": "Debian 1:10.2.1+ds-1ubuntu3.3"
+      },
+      "capabilities": [
+        "oob"
+      ]
+    }
+  },
+  {
+    "execute": "qmp_capabilities"
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "cont"
+  },
+  {
+    "timestamp": {
+      "seconds": 1793382652,
+      "microseconds": 108892
+    },
+    "event": "RESUME"
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "query-status"
+  },
+  {
+    "return": {
+      "status": "running",
+      "running": true
+    }
+  },
+  {
+    "execute": "stop"
+  },
+  {
+    "timestamp": {
+      "seconds": 1793382652,
+      "microseconds": 691157
+    },
+    "event": "RTC_CHANGE",
+    "data": {
+      "offset": 0,
+      "qom-path": "/machine/unattached/device[2]/rtc"
+    }
+  },
+  {
+    "timestamp": {
+      "seconds": 1793382672,
+      "microseconds": 110023
+    },
+    "event": "STOP"
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "query-status"
+  },
+  {
+    "return": {
+      "status": "paused",
+      "running": false
+    }
+  },
+  {
+    "execute": "human-monitor-command",
+    "arguments": {
+      "command-line": "info mtree"
+    }
+  },
+  {
+    "return": "address-space: ich9-ahci\r\n  0000000000000000-ffffffffffffffff (prio 0, i/o): bus master container\r\n    0000000000000000-ffffffffffffffff (prio 0, i/o): alias bus master @system 0000000000000000-ffffffffffffffff\r\n\r\naddress-space: cpu-smm-0\r\n  0000000000000000-ffffffffffffffff (prio 0, i/o): memory\r\n    0000000000000000-00000000ffffffff (prio 1, i/o): alias smram @smram 0000000000000000-00000000ffffffff\r\n    0000000000000000-ffffffffffffffff (prio 0, i/o): alias memory @system 0000000000000000-ffffffffffffffff\r\n\r\naddress-space: ICH9-SMB\r\n  0000000000000000-ffffffffffffffff (prio 0, i/o): bus master container\r\n    0000000000000000-ffffffffffffffff (prio 0, i/o): alias bus master @system 0000000000000000-ffffffffffffffff\r\n\r\naddress-space: cpu-memory-0\r\naddress-space: memory\r\n  0000000000000000-ffffffffffffffff (prio 0, i/o): system\r\n    0000000000000000-000000007fffffff (prio 0, ram): alias ram-below-4g @pc.ram 0000000000000000-000000007fffffff\r\n    0000000000000000-ffffffffffffffff (prio -1, i/o): pci\r\n      00000000000c0000-00000000000dffff (prio 1, rom): pc.rom\r\n      00000000000e0000-00000000000fffff (prio 1, rom): isa-bios\r\n      0000000080000000-0000000080000fff (prio 1, i/o): ahci\r\n    00000000000a0000-00000000000bffff (prio 1, i/o): alias smram-region @pci 00000000000a0000-00000000000bffff\r\n    00000000000c0000-00000000000c3fff (prio 1, i/o): alias pam-pci @pci 00000000000c0000-00000000000c3fff\r\n    00000000000c4000-00000000000c7fff (prio 1, i/o): alias pam-pci @pci 00000000000c4000-00000000000c7fff\r\n    00000000000c8000-00000000000cbfff (prio 1, i/o): alias pam-pci @pci 00000000000c8000-00000000000cbfff\r\n    00000000000cc000-00000000000cffff (prio 1, i/o): alias pam-pci @pci 00000000000cc000-00000000000cffff\r\n    00000000000d0000-00000000000d3fff (prio 1, i/o): alias pam-pci @pci 00000000000d0000-00000000000d3fff\r\n    00000000000d4000-00000000000d7fff (prio 1, i/o): alias pam-pci @pci 00000000000d4000-00000000000d7fff\r\n    00000000000d8000-00000000000dbfff (prio 1, i/o): alias pam-pci @pci 00000000000d8000-00000000000dbfff\r\n    00000000000dc000-00000000000dffff (prio 1, i/o): alias pam-pci @pci 00000000000dc000-00000000000dffff\r\n    00000000000e0000-00000000000e3fff (prio 1, i/o): alias pam-pci @pci 00000000000e0000-00000000000e3fff\r\n    00000000000e4000-00000000000e7fff (prio 1, i/o): alias pam-pci @pci 00000000000e4000-00000000000e7fff\r\n    00000000000e8000-00000000000ebfff (prio 1, i/o): alias pam-pci @pci 00000000000e8000-00000000000ebfff\r\n    00000000000ec000-00000000000effff (prio 1, i/o): alias pam-pci @pci 00000000000ec000-00000000000effff\r\n    00000000000f0000-00000000000fffff (prio 1, i/o): alias pam-pci @pci 00000000000f0000-00000000000fffff\r\n    00000000e0000000-00000000efffffff (prio 0, i/o): pcie-mmcfg-mmio\r\n    00000000fec00000-00000000fec00fff (prio 0, i/o): ioapic\r\n    00000000fed00000-00000000fed003ff (prio 0, i/o): hpet\r\n    00000000fed1c000-00000000fed1ffff (prio 1, i/o): lpc-rcrb-mmio\r\n    00000000fee00000-00000000feefffff (prio 4096, i/o): apic-msi\r\n    00000000ffc00000-00000000ffc83fff (prio 0, romd): system.flash1\r\n    00000000ffc84000-00000000ffffffff (prio 0, romd): system.flash0\r\n    0000000100000000-000000027fffffff (prio 0, ram): alias ram-above-4g @pc.ram 0000000080000000-00000001ffffffff\r\n\r\naddress-space: I/O\r\n  0000000000000000-000000000000ffff (prio 0, i/o): io\r\n    0000000000000000-0000000000000007 (prio 0, i/o): dma-chan\r\n    0000000000000008-000000000000000f (prio 0, i/o): dma-cont\r\n    0000000000000020-0000000000000021 (prio 0, i/o): pic\r\n    0000000000000040-0000000000000043 (prio 0, i/o): pit\r\n    0000000000000060-0000000000000060 (prio 0, i/o): i8042-data\r\n    0000000000000061-0000000000000061 (prio 0, i/o): pcspk\r\n    0000000000000064-0000000000000064 (prio 0, i/o): i8042-cmd\r\n    0000000000000070-0000000000000071 (prio 0, i/o): rtc\r\n      0000000000000070-0000000000000070 (prio 0, i/o): rtc-index\r\n    000000000000007e-000000000000007f (prio 0, i/o): kvmvapic\r\n    0000000000000080-0000000000000080 (prio 0, i/o): ioport80\r\n    0000000000000081-0000000000000083 (prio 0, i/o): dma-page\r\n    0000000000000087-0000000000000087 (prio 0, i/o): dma-page\r\n    0000000000000089-000000000000008b (prio 0, i/o): dma-page\r\n    000000000000008f-000000000000008f (prio 0, i/o): dma-page\r\n    0000000000000092-0000000000000092 (prio 0, i/o): port92\r\n    00000000000000a0-00000000000000a1 (prio 0, i/o): pic\r\n    00000000000000b2-00000000000000b3 (prio 0, i/o): apm-io\r\n    00000000000000c0-00000000000000cf (prio 0, i/o): dma-chan\r\n    00000000000000d0-00000000000000df (prio 0, i/o): dma-cont\r\n    00000000000000f0-00000000000000f0 (prio 0, i/o): ioportF0\r\n    0000000000000378-000000000000037f (prio 0, i/o): parallel\r\n    00000000000004d0-00000000000004d0 (prio 0, i/o): elcr\r\n    00000000000004d1-00000000000004d1 (prio 0, i/o): elcr\r\n    0000000000000510-0000000000000511 (prio 0, i/o): fwcfg\r\n    0000000000000514-000000000000051b (prio 0, i/o): fwcfg.dma\r\n    0000000000000600-000000000000067f (prio 0, i/o): ich9-pm\r\n      0000000000000600-0000000000000603 (prio 0, i/o): acpi-evt\r\n      0000000000000604-0000000000000605 (prio 0, i/o): acpi-cnt\r\n      0000000000000608-000000000000060b (prio 0, i/o): acpi-tmr\r\n      0000000000000620-000000000000062f (prio 0, i/o): acpi-gpe0\r\n      0000000000000630-0000000000000637 (prio 0, i/o): acpi-smi\r\n      0000000000000660-000000000000067f (prio 0, i/o): sm-tco\r\n    0000000000000cc0-0000000000000cd7 (prio 0, i/o): acpi-pci-hotplug\r\n    0000000000000cd8-0000000000000ce3 (prio 0, i/o): acpi-cpu-hotplug\r\n    0000000000000cf8-0000000000000cfb (prio 0, i/o): pci-conf-idx\r\n    0000000000000cf9-0000000000000cf9 (prio 1, i/o): lpc-reset-control\r\n    0000000000000cfc-0000000000000cff (prio 0, i/o): pci-conf-data\r\n    0000000000005658-0000000000005658 (prio 0, i/o): vmport\r\n    0000000000006000-000000000000603f (prio 1, i/o): pm-smbus\r\n    0000000000006040-000000000000605f (prio 1, i/o): ahci-idp\r\n\r\naddress-space: ICH9-LPC\r\n  0000000000000000-ffffffffffffffff (prio 0, i/o): bus master container\r\n    0000000000000000-ffffffffffffffff (prio 0, i/o): alias bus master @system 0000000000000000-ffffffffffffffff\r\n\r\naddress-space: mch\r\n  0000000000000000-ffffffffffffffff (prio 0, i/o): bus master container\r\n    0000000000000000-ffffffffffffffff (prio 0, i/o): alias bus master @system 0000000000000000-ffffffffffffffff\r\n\r\nmemory-region: system\r\n  0000000000000000-ffffffffffffffff (prio 0, i/o): system\r\n    0000000000000000-000000007fffffff (prio 0, ram): alias ram-below-4g @pc.ram 0000000000000000-000000007fffffff\r\n    0000000000000000-ffffffffffffffff (prio -1, i/o): pci\r\n      00000000000c0000-00000000000dffff (prio 1, rom): pc.rom\r\n      00000000000e0000-00000000000fffff (prio 1, rom): isa-bios\r\n      0000000080000000-0000000080000fff (prio 1, i/o): ahci\r\n    00000000000a0000-00000000000bffff (prio 1, i/o): alias smram-region @pci 00000000000a0000-00000000000bffff\r\n    00000000000c0000-00000000000c3fff (prio 1, i/o): alias pam-pci @pci 00000000000c0000-00000000000c3fff\r\n    00000000000c4000-00000000000c7fff (prio 1, i/o): alias pam-pci @pci 00000000000c4000-00000000000c7fff\r\n    00000000000c8000-00000000000cbfff (prio 1, i/o): alias pam-pci @pci 00000000000c8000-00000000000cbfff\r\n    00000000000cc000-00000000000cffff (prio 1, i/o): alias pam-pci @pci 00000000000cc000-00000000000cffff\r\n    00000000000d0000-00000000000d3fff (prio 1, i/o): alias pam-pci @pci 00000000000d0000-00000000000d3fff\r\n    00000000000d4000-00000000000d7fff (prio 1, i/o): alias pam-pci @pci 00000000000d4000-00000000000d7fff\r\n    00000000000d8000-00000000000dbfff (prio 1, i/o): alias pam-pci @pci 00000000000d8000-00000000000dbfff\r\n    00000000000dc000-00000000000dffff (prio 1, i/o): alias pam-pci @pci 00000000000dc000-00000000000dffff\r\n    00000000000e0000-00000000000e3fff (prio 1, i/o): alias pam-pci @pci 00000000000e0000-00000000000e3fff\r\n    00000000000e4000-00000000000e7fff (prio 1, i/o): alias pam-pci @pci 00000000000e4000-00000000000e7fff\r\n    00000000000e8000-00000000000ebfff (prio 1, i/o): alias pam-pci @pci 00000000000e8000-00000000000ebfff\r\n    00000000000ec000-00000000000effff (prio 1, i/o): alias pam-pci @pci 00000000000ec000-00000000000effff\r\n    00000000000f0000-00000000000fffff (prio 1, i/o): alias pam-pci @pci 00000000000f0000-00000000000fffff\r\n    00000000e0000000-00000000efffffff (prio 0, i/o): pcie-mmcfg-mmio\r\n    00000000fec00000-00000000fec00fff (prio 0, i/o): ioapic\r\n    00000000fed00000-00000000fed003ff (prio 0, i/o): hpet\r\n    00000000fed1c000-00000000fed1ffff (prio 1, i/o): lpc-rcrb-mmio\r\n    00000000fee00000-00000000feefffff (prio 4096, i/o): apic-msi\r\n    00000000ffc00000-00000000ffc83fff (prio 0, romd): system.flash1\r\n    00000000ffc84000-00000000ffffffff (prio 0, romd): system.flash0\r\n    0000000100000000-000000027fffffff (prio 0, ram): alias ram-above-4g @pc.ram 0000000080000000-00000001ffffffff\r\n\r\nmemory-region: smram\r\n  0000000000000000-00000000ffffffff (prio 0, i/o): smram\r\n\r\nmemory-region: pc.ram\r\n  0000000000000000-00000001ffffffff (prio 0, ram): pc.ram\r\n\r\nmemory-region: pci\r\n  0000000000000000-ffffffffffffffff (prio -1, i/o): pci\r\n    00000000000c0000-00000000000dffff (prio 1, rom): pc.rom\r\n    00000000000e0000-00000000000fffff (prio 1, rom): isa-bios\r\n    0000000080000000-0000000080000fff (prio 1, i/o): ahci\r\n\r\n"
+  },
+  {
+    "execute": "pmemsave",
+    "arguments": {
+      "val": 0,
+      "size": 1048576,
+      "filename": "/home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05-fw3/low-memory.bin"
+    }
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "pmemsave",
+    "arguments": {
+      "val": 2113929216,
+      "size": 33554432,
+      "filename": "/home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05-fw3/upper-memory.bin"
+    }
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "pmemsave",
+    "arguments": {
+      "val": 2142753000,
+      "size": 36,
+      "filename": "/home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05-fw3/xsdt.header"
+    }
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "pmemsave",
+    "arguments": {
+      "val": 2142753000,
+      "size": 76,
+      "filename": "/home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05-fw3/xsdt.bin"
+    }
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "pmemsave",
+    "arguments": {
+      "val": 2142736384,
+      "size": 36,
+      "filename": "/home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05-fw3/entry-36.header"
+    }
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "pmemsave",
+    "arguments": {
+      "val": 2142732288,
+      "size": 36,
+      "filename": "/home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05-fw3/entry-44.header"
+    }
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "pmemsave",
+    "arguments": {
+      "val": 2142728192,
+      "size": 36,
+      "filename": "/home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05-fw3/entry-52.header"
+    }
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "pmemsave",
+    "arguments": {
+      "val": 2142724096,
+      "size": 36,
+      "filename": "/home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05-fw3/entry-60.header"
+    }
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "pmemsave",
+    "arguments": {
+      "val": 2142720000,
+      "size": 36,
+      "filename": "/home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05-fw3/entry-68.header"
+    }
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "pmemsave",
+    "arguments": {
+      "val": 2142736384,
+      "size": 36,
+      "filename": "/home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05-fw3/fadt.header"
+    }
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "pmemsave",
+    "arguments": {
+      "val": 2142736384,
+      "size": 244,
+      "filename": "/home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05-fw3/fadt.bin"
+    }
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "pmemsave",
+    "arguments": {
+      "val": 2142740480,
+      "size": 36,
+      "filename": "/home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05-fw3/dsdt.header"
+    }
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "pmemsave",
+    "arguments": {
+      "val": 2142740480,
+      "size": 8344,
+      "filename": "/home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05-fw3/dsdt.bin"
+    }
+  },
+  {
+    "return": {}
+  },
+  {
+    "execute": "quit"
+  },
+  {
+    "timestamp": {
+      "seconds": 1793382672,
+      "microseconds": 196048
+    },
+    "event": "SHUTDOWN",
+    "data": {
+      "guest": false,
+      "reason": "host-qmp-quit"
+    }
+  },
+  {
+    "return": {}
+  }
+]

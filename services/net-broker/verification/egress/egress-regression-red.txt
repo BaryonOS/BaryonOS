@@ -1,0 +1,26 @@
+   Compiling nieuw-os-net-stack v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-stack)
+   Compiling nieuw-os-net-broker v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-broker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.56s
+     Running unittests src/lib.rs (build/net-broker-worktree/target/net-broker-host/debug/deps/nieuw_os_net_broker-24000d6683f4848b)
+
+running 1 test
+test rights::unsolicited_arp_cannot_publish_reply_without_destination_authority ... FAILED
+
+failures:
+
+---- rights::unsolicited_arp_cannot_publish_reply_without_destination_authority stdout ----
+
+thread 'rights::unsolicited_arp_cannot_publish_reply_without_destination_authority' (2824367) panicked at src/../tests/rights.rs:562:9:
+assertion failed: matches!(broker.offer(0), Err(Error::Denied))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    rights::unsolicited_arp_cannot_publish_reply_without_destination_authority
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 28 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
+real 0.57
+user 0.43
+sys 0.23

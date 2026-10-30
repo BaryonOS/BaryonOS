@@ -1,0 +1,94 @@
+{
+  "passed": true,
+  "scope": "Offline real-artifact replay and temporary-copy negatives; no VM",
+  "source_sha256": "949ce3abc8df4af3ed4cc29fd41e10ee0621e4f270ddf4ac2aafb3bacba9a901",
+  "cold_report_sha256": "db052373c440823fa9954298f81f076eb9a323025deddc3864e11e4e135dbb67",
+  "parent_report_sha256": "b44fabd0dd3e04859b860fcb2a7ee990a721de7e7f6b07f825835812e93a98a9",
+  "reference_report_sha256": "c3e96478291b954c2fd8cfb37af7ec5d0825094c28fd9acb0d04951d1186b334",
+  "cold_trace_entries": 398,
+  "original_files_unchanged": 66,
+  "negatives": [
+    {
+      "case": "boolean-exit",
+      "rejected": true,
+      "error": "Parent is not the same-source ordinary exited native run"
+    },
+    {
+      "case": "wrong-source",
+      "rejected": true,
+      "error": "Parent is not the same-source ordinary exited native run"
+    },
+    {
+      "case": "wrong-reference",
+      "rejected": true,
+      "error": "Parent native reference binding differs"
+    },
+    {
+      "case": "failed-response",
+      "rejected": true,
+      "error": "Failed or uncorrelated QMP response"
+    },
+    {
+      "case": "extra-command",
+      "rejected": true,
+      "error": "Missing final quit or extra interactive command"
+    },
+    {
+      "case": "disk-tamper",
+      "rejected": true,
+      "error": "Parent disk bytes or decoded content changed"
+    },
+    {
+      "case": "frame-tamper",
+      "rejected": true,
+      "error": "Parent frame or recorded frame hash differs"
+    },
+    {
+      "case": "kernel-tamper",
+      "rejected": true,
+      "error": "Parent executable changed"
+    },
+    {
+      "case": "ovmf-code-tamper",
+      "rejected": true,
+      "error": "Parent immutable firmware changed"
+    },
+    {
+      "case": "ovmf-template-tamper",
+      "rejected": true,
+      "error": "Parent immutable firmware changed"
+    },
+    {
+      "case": "bios-tamper",
+      "rejected": true,
+      "error": "Parent immutable firmware changed"
+    },
+    {
+      "case": "vga-tamper",
+      "rejected": true,
+      "error": "Parent immutable firmware changed"
+    },
+    {
+      "case": "late-panic",
+      "rejected": true,
+      "error": "Native guest reported a failure"
+    },
+    {
+      "case": "late-fail",
+      "rejected": true,
+      "error": "Native guest reported a failure"
+    }
+  ],
+  "cold_claim_negatives": [
+    {
+      "field": "scope",
+      "rejected": true,
+      "error": "Cold scope/stop-method claim differs"
+    },
+    {
+      "field": "stop_method",
+      "rejected": true,
+      "error": "Cold scope/stop-method claim differs"
+    }
+  ]
+}

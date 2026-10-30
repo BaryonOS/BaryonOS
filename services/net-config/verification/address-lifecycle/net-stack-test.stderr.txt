@@ -1,0 +1,7 @@
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running unittests src/lib.rs (target/net-config-host/debug/deps/nieuw_os_net_stack-533a77bb6c83be03)
+     Running tests/adapter.rs (target/net-config-host/debug/deps/adapter-e5ec65d9171550c5)
+     Running tests/configuration.rs (target/net-config-host/debug/deps/configuration-aa722fb907566990)
+     Running tests/conversation.rs (target/net-config-host/debug/deps/conversation-6c056ee11b732e93)
+   Doc-tests nieuw_os_net_stack
