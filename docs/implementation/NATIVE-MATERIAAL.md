@@ -216,14 +216,19 @@ semantische rollen en zichtbare labels, dus kleur is niet de enige betekenis.
 Deze slice animeert niet. Dat respecteert reduced-motion, maar bewijst nog
 geen systeembrede instelling of screenreaderwerking.
 
-De CPL3-Materiaal-app stelt nu een begrensde, read-only semantische snapshot
-van haar eigen actuele controllerstaat beschikbaar via `App::semantics`.
-Dezelfde framebron levert rollen, labels, bounds, focus, bewerkbaarheid,
-tekstselectie en opslagstatus; een te kleine uitvoerbuffer faalt zonder
-gedeeltelijke snapshot. Dit is een app-lokale API, geen IPC naar een
-schermlezer, spraakuitvoer of capabilitygrant. De integratietest controleert
-de Materiaal-knop, documentwaarde, focus en bevestigde opslagstatus. Native
-schermlezer-/toetsenbordproeven en echte gebruikerstaken blijven vereist.
+De CPL3-Materiaal-app stelt een begrensde semantiekboom van haar eigen actuele
+controllerstaat beschikbaar via `App::semantics`. Node-ID's blijven stabiel
+voor schermcontroles en gebruiken het volumeobject-ID voor lijstitems;
+ouderrelaties leggen venster, lijst en dirty-close-dialoog vast. Rollen, labels,
+fysieke bounds, focus, bewerkbaarheid, tekstselectie en echte opslagstatus
+komen uit dezelfde framebron. `activate` en `set_value` zijn beschrijvende
+actievelden, geen dispatch of capability. Een te kleine uitvoerbuffer faalt
+zonder gedeeltelijke snapshot. Dit is een app-lokale API, geen IPC naar een
+schermlezer, spraakuitvoer of OS-brede toegankelijkheidsinterface. Hosttests
+controleren de boomstructuur, maximale lijstpagina, buffergrens, editor en
+dirty-close-dialoog; ze bewijzen geen native schermlezer, toetsenbordproef of
+gebruikersacceptatie. De keyboard-QMP-route hieronder is nog niet native
+uitgevoerd.
 De probe heeft ook een aparte `--case keyboard`-QMP-route voor create, edit,
 save, list en reopen, uitsluitend met QEMU-key-events. De hostharness controleert
 de verzoektrace en replay, maar deze native route is nog niet uitgevoerd en is
