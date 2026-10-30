@@ -61,20 +61,37 @@ per-flow-ownership-/discard-API. NET gaat geen lokale vrijgave vervalsen via
 `complete_transmission`: dat blijft uitsluitend een echte, passende
 devicecompletion van de vertrouwde adapter.
 
-Voorgestelde veilige eerste lifecycle: revoke/expiry/cancel retireert de
-betrokken grant/verbinding direct, abort de socket en vereist vervolgens
-transportreset/quarantaine voordat deze broker slots opnieuw gebruikt.
+Veilige eerste lifecycle na SEC-afstemming: het linearisatiepunt voor
+revoke/expiry/cancel sluit eerst de egressfence: geen nieuwe TX-publicatie,
+inclusief timerretransmissie of controlpakketten door abort/cleanup. Daarna
+worden alle verbindingen van de betreffende grant geretireerd, voordat enige
+backendstap plaatsvindt; gequeue-de RX wordt niet meer aan een caller geleverd.
+Pas daarna mogen sockets lokaal worden geabort. Softwarequeued frames worden
+niet gepubliceerd. Reeds hardwaregepubliceerde frames kunnen nog de wire op:
+intrekking kan die niet terughalen en belooft geen onmiddellijke netwerkstilte.
+Dit vereist transportreset/quarantaine voordat slots opnieuw gebruikt worden.
 Een reeds gequeue-de of mogelijk gepubliceerde frame wordt niet opnieuw
 aangeboden, hergebruikt of als voltooid geboekt. Een onzeker NIC-resultaat
-quarantaineert eveneens de broker. Geen publieke `reset_ok=true`-omweg of
+quarantaineert eveneens de gehele gedeelde backend/device. Geen andere broker,
+producer of nieuwe dienstinstantie mag de fence omzeilen. Geen publieke
+`reset_ok=true`-omweg of
 gefingeerde reset-ACK; herstel vereist een toekomstige echte driver-/issuergrens
-en nieuwe dienstinstantie.
+met bewezen devicequiescence/reset plus vertrouwde epochbinding of aantoonbaar
+afgevoerde oude completions. Alleen een nieuwe issuer/dienstinstantie is
+uitdrukkelijk niet voldoende. De eerste core biedt geen recoveryfunctie.
 
 Deze eerste conservatieve quarantaine kan ook andere sockets op dezelfde
 device-instantie pauzeren. Dat is een zichtbare voorlopige coregrens, geen
 geaccepteerd dagelijks multi-appgedrag of rechtvaardiging voor N04-punten.
 Fijnmazige drain per flow en native reset/cleanup zijn vervolgintegratie, niet
 stil omzeild door een tweede stack of een onbewezen completion.
+
+Een exclusieve Stack-borrow bewijst geen exclusief NIC-eigenaarschap. De
+productie-issuer zou een exclusieve backendlease moeten leveren, zonder
+publieke constructor of duplicatiemogelijkheid; die issuer en devicebrede
+fence bestaan nog niet. Private fixtures modelleren slechts een enige producer.
+Ook het behouden van DMA-/bufferownership over dienstcrash/Drop vereist de
+echte drivergrens: Rust-lifetimes of deze core zijn daarvoor geen bewijs.
 
 De core moet de authentieke grant intrekken voordat cleanup wordt geprobeerd.
 Een cleanupfout kan dus geen oude autoriteit herstellen. Een succesresultaat
@@ -108,9 +125,44 @@ Na interfaceafstemming: Rust 1.91.1 zoals de bestaande stack, dependency alleen
 op die bestaande stack en zo nodig dezelfde al gecontroleerde smoltcp voor
 hosttegenpartijtests. Geen nieuwe registryversie of featureverruiming.
 Exacte commands/results/bronhashes worden onder `verification/` bewaard.
+Productiegates moeten aantonen dat fixtureconstructors niet geexporteerd,
+feature-inschakelbaar of via veilige publieke wrappers bereikbaar zijn.
 Een aparte kwaliteitsworkflow moet alle nieuwe coretests, Clippy, fmt en
 `x86_64-unknown-none` uitvoeren; geen proxy voor native acceptatie.
 
 Geen gate uitgevoerd en geen criteria afgetekend in dit contractvoorstel.
 Scorevoorstel aan centrale manager: netwerk 0/10 -> 0/10, totaal 34 -> 34.
 De manager blijft eigenaar van PROJECT-STATE, progress.json en roadmap.
+
+## Implementatiecheckpoint na contractafstemming
+
+SEC las voorstel `9bef711` read-only en vroeg vijf concrete verduidelijkingen;
+de bovenstaande fence-, backend-, linearisatie-, recovery- en fixturegrenzen
+zijn daarop aangescherpt. Dit is geen menselijke audit of native goedkeuring.
+De core implementeert nu de lokale autoriteitschecks en fence met de bestaande
+Stack. Publieke contexttypen hebben geen productieconstructor; er is nog geen
+bruikbare native issuer. Alle methoden zijn bron-API voor de vertrouwde
+serviceloop, geen aanvraagvelden of extra wire-ABI.
+
+Grantintrekking zonder gebruikte socket laat een generatieveilig grantslot
+vrij. Intrekking met een actieve socket retireert conservatief ALLE sessies
+op deze backend, sluit alle lokale egresspaden en abort daarna pas sockets.
+Geen recovery-/resetfunctie. Een NIC-completion na fence wordt niet als
+corevrijgave verwerkt; echte devicequiescence en crash-/Dropownership blijven
+vereisten aan de toekomstige adapter.
+
+De twee sockets worden vooraf aangelegd. `finish` is expliciet afstand doen
+van een gesloten sessie, inclusief ongelezen RX, en vereist geen aangeboden of
+gequeue-de TX. De volgende echte Stack-connect reset RX/TX voordat een nieuwe
+caller de socket krijgt. Er is geen mutable Stack-bypass in de publieke API.
+Het model test ook deze niet-overerving en generatiebinding.
+
+Eerste hostproef: 21 rechtentests plus vier compile-fail productiegrenzen
+groen. Uitgebreide TCP-modelproef daarna: 23 groen / twee rood, exit101;
+de fixture las slechts 64 van 96 ontvangen bytes doordat zij na Closed niet
+meer las. Fixture hersteld naar drain tot leeg/EOF, inclusief Closed;
+daarna 25 plus vier compile-fail groen. Dit is geen gerepareerde native
+dataverliesclaim. De eerste onvolledige WIP-fingerprint is niet als
+acceptatiebewijs gebruikt. Met extra grens-/slotproeven zijn nu 28 unit- en vier
+compile-fail tests groen. Definitieve brongebonden gates volgen op het
+broncheckpoint; Clippy/none/CI/native zijn nog niet afgetekend.
