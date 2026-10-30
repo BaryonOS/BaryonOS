@@ -251,3 +251,35 @@ geen VM-FR-/Windowsproductimage of werkelijk boot1-tokenreplay.
 R01-R03 blijven **0/5**, totaaladvies **34% naar 34%**; honderd koude
 productstarts, 24 uur productgebruik, fysieke en menselijke acceptatie
 blijven open. Geen actieve tweede ABI-/BootInfoimplementatie.
+
+## Beperkte onafhankelijke verificatie ontvangen
+
+B72 (`b72f2536-b494-4a6b-a608-b6fd785e18ef`) heeft op code `1219dcd`
+en evidence `0611d18` uitsluitend de twee eerder gemelde bindingspunten
+herlezen en afgedaan, zonder aanvullende bevinding binnen die scope.
+De reviewer controleerde read-only de tien nieuwe archiefhashes,
+serialverificatie, gate/result/sourcecommit/v3/manifest/platform/command,
+firmware- en diskbinding en de werkelijk aanwezige QEMU-ELF-hash:
+exit 0 volgens diens eigen rapportage. Geen nieuwe VM of hosttest door
+de reviewer uitgevoerd; de twee echte VM-runs blijven producerbewijs.
+Dit vervangt uitsluitend de hierboven open tweepuntsreview, niet volledige
+NAS-/productacceptatie, menselijke audit of mainintegratie.
+
+De reviewer behield de ruwe logbytes. Een diffcheck vanuit zijn oudere
+checkout miste de nieuwe lokale archiefattributen en gaf daarom exit 2;
+de broncheck en herhaling met de attributen uit `0611d18` gaven exit 0.
+De expliciete `-text`-attributen beschermen exact bewaarde serial/logs;
+dit is geen broncode-uitzondering en geen achteraf genormaliseerde log.
+
+Aanvullend werkelijk uitgevoerd:
+`python3 -B -m unittest discover -s tools/tests -p 'test_*.py'`:
+exit 0, 138 hosttests, `review-bindings/workflow-tools.txt`.
+Dit is de afzonderlijke workflowselector, naast de 435 root-hosttests.
+De daarin gemockte gastlogs zijn geen extra native gastuitvoering.
+
+Volgende begrensde gate: bestaande `tools/test_system.py` normal/recover
+op dezelfde bronvingerafdruk, eigen `build/nas-default-regression` en
+bestaande `target/nas-release-profile`, zonder codewrites of GUI-test.
+De precieze uitslag volgt pas na uitvoering; geen geïntegreerde kandidaat
+of Windowsbundel is hiermee vrijgegeven. Centrale registratie en nieuwe
+rol-/bestandoverdrachten blijven bij de manager.
