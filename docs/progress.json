@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "2cf5d86204d44d5b95189c8d5f282ffb009d1fef",
+    "source_commit": "76fca87407c77da059e1856ec91c0d6e0b68e8f8",
     "branch": "simonvanieperen-studious-sniffle",
     "task": "Hosttest-preflight: herstel ontbrekende POSIX-linker- en vendordoctestvereisten",
     "previous_score": 34,
-    "summary": "34% blijft 34%; infrastructuurherstel accepteert geen productcriterium. `--strict-host-tests` meldt een ontbrekende POSIX-linker afzonderlijk; met een geïsoleerde lokale C-toolchain kwamen drie HKDF- en daarna twee HMAC-README-doctests zonder `sha2`/`hex-literal`-testdependencies aan het licht. De upstream-gedocumenteerde, test-only dependencies zijn in beide vendormanifesten hersteld; HKDF (3/3) en HMAC (2/2) gerichte doctests slagen. De volledige workspace-test na beide reparaties en CI op de nieuwe kandidaat zijn nog open. Geen nieuw productcriterium geaccepteerd."
+    "summary": "34% blijft 34%; infrastructuurherstel accepteert geen productcriterium. `--strict-host-tests` meldt een ontbrekende POSIX-linker afzonderlijk; met een geïsoleerde lokale C-toolchain kwamen drie HKDF- en daarna twee HMAC-README-doctests zonder `sha2`/`hex-literal`-testdependencies aan het licht. De upstream-gedocumenteerde, test-only dependencies zijn in beide vendormanifesten hersteld; HKDF (3/3) en HMAC (2/2) gerichte doctests slagen. De volledige locked workspace-test slaagt daarna: 360 passed, 0 failed, 1 ignored. GitHub Actions op de kandidaat zijn bij de laatste controle pending; geen nieuw productcriterium geaccepteerd."
   },
   "tracks": [
     {

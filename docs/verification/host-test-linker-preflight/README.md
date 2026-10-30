@@ -3,7 +3,7 @@
 Dit rapport registreert de Linux-hosttesttooling voor de taakbasis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De preflightwijziging is eerst
 getest op broncommit `80393b67950c393dfa37336e66df5346ae6a37d7`; de huidige
-kandidaat is `2cf5d86204d44d5b95189c8d5f282ffb009d1fef`.
+geteste kandidaat is `76fca87407c77da059e1856ec91c0d6e0b68e8f8`.
 Dit is geen OS-, kernel-, boot- of QEMU-acceptatie.
 
 `tools/preflight.py --strict` blijft bootvereisten controleren. De aparte
@@ -24,6 +24,7 @@ runtime-dependencies niet.
 | `LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" python3 -B tools/dev.py cargo +1.90.0 test -p hkdf --doc` | 0 | Alle drie HKDF-README-doctests geslaagd; log `/tmp/nieuw-os-infra-hkdf-docs.log`, SHA-256 `efd0780e571efccc60f94a272c9fdcfa7e538cc3462596ec3e91b36b209aa8b9` |
 | `LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --workspace` (na HKDF-fix, vóór HMAC-testdeps) | 101 | HKDF-doctests slagen; de twee HMAC-README-doctests faalden door dezelfde ontbrekende testdependencies; log `/tmp/nieuw-os-infra-root-final.log`, SHA-256 `8721ee2059a3a371641b9338630bb6ccd37a9e92a72dd5f4e64ff5a998712521` |
 | `LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" python3 -B tools/dev.py cargo +1.90.0 test --offline -p hmac --doc` | 0 | Beide HMAC-README-doctests geslaagd; log `/tmp/nieuw-os-infra-hmac-docs.log`, SHA-256 `22202d7d5fb13699e0d503e617eec02976210f245af5b8766692d89d01859954` |
+| `LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --workspace` | 0 | Volledige workspace: 360 passed, 0 failed, 1 ignored over 51 resultaatgroepen; log `/tmp/nieuw-os-infra-root-post-vendor-testdeps.log`, SHA-256 `192ddcaed335916cd18020e4eda41d66c930b5ced2b66b3a50cc808ddcbcee4c` |
 | Lokale C-compileer-/linkproef en uitvoering (exacte opdracht hieronder) | 0 | Geslaagd; geen systeembrede installatie |
 | `python3 -m py_compile tools/preflight.py tests/test_preflight.py` | 0 | Python-syntaxis geldig |
 | `python3 tools/progress.py --write` en `python3 tools/progress.py --check` | 0 | Voortgangsbestanden consistent; 34% blijft ongewijzigd |
@@ -41,9 +42,8 @@ Exacte succesvolle C-smokeopdracht:
 printf 'int main(void) { return 0; }\n' | LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" python3 -B tools/dev.py cc -x c -o /tmp/nieuw-os-cc-test - && LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" /tmp/nieuw-os-cc-test
 ```
 
-**Nog open:** de volledige `cargo +1.90.0 test --offline --locked --workspace`
-is na toevoeging van de HKDF- én HMAC-doctestdependencies nog niet opnieuw
-uitgevoerd. Dit is de eerstvolgende controle. Rust fmt/Clippy zijn niet uitgevoerd. De
-eerder groene QEMU-/native CI-checks op `00f91e7` vervangen geen CI op de nieuwe
-kandidaat en geen fysieke of menselijke acceptatiegate. Geen nieuw
-productcriterium of native QEMU-bewijs is toegevoegd: **34% → 34%**.
+De volledige workspace-test is lokaal geslaagd na herstel van beide
+vendormanifesten. **Nog open:** GitHub Actions op de kandidaat `76fca87` waren
+bij de laatste controle pending; eerdere CI op `00f91e7` vervangt die niet.
+Rust fmt/Clippy zijn niet uitgevoerd. Geen fysieke of menselijke
+acceptatiegate of nieuw native QEMU-bewijs is toegevoegd: **34% → 34%**.

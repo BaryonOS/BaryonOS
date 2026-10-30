@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`2cf5d862`](https://github.com/simonvanieperen/nieuw-os/commit/2cf5d86204d44d5b95189c8d5f282ffb009d1fef) ·
+**Bron:** [`76fca874`](https://github.com/simonvanieperen/nieuw-os/commit/76fca87407c77da059e1856ec91c0d6e0b68e8f8) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-sniffle`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hosttest-preflight: herstel ontbrekende POSIX-linker- en vendordoctestvereisten.
-34% blijft 34%; infrastructuurherstel accepteert geen productcriterium. `--strict-host-tests` meldt een ontbrekende POSIX-linker afzonderlijk; met een geïsoleerde lokale C-toolchain kwamen drie HKDF- en daarna twee HMAC-README-doctests zonder `sha2`/`hex-literal`-testdependencies aan het licht. De upstream-gedocumenteerde, test-only dependencies zijn in beide vendormanifesten hersteld; HKDF (3/3) en HMAC (2/2) gerichte doctests slagen. De volledige workspace-test na beide reparaties en CI op de nieuwe kandidaat zijn nog open. Geen nieuw productcriterium geaccepteerd.
+34% blijft 34%; infrastructuurherstel accepteert geen productcriterium. `--strict-host-tests` meldt een ontbrekende POSIX-linker afzonderlijk; met een geïsoleerde lokale C-toolchain kwamen drie HKDF- en daarna twee HMAC-README-doctests zonder `sha2`/`hex-literal`-testdependencies aan het licht. De upstream-gedocumenteerde, test-only dependencies zijn in beide vendormanifesten hersteld; HKDF (3/3) en HMAC (2/2) gerichte doctests slagen. De volledige locked workspace-test slaagt daarna: 360 passed, 0 failed, 1 ignored. GitHub Actions op de kandidaat zijn bij de laatste controle pending; geen nieuw productcriterium geaccepteerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -2,7 +2,7 @@
 
 ## NEXT AGENT HANDOFF — hosttest-preflight — 30 oktober 2026
 
-Broncommit `2cf5d86204d44d5b95189c8d5f282ffb009d1fef`, branch
+Broncommit `76fca87407c77da059e1856ec91c0d6e0b68e8f8`, branch
 `simonvanieperen-studious-sniffle`, oorspronkelijke taakbasis `main`
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. Concept-PR
 [#62](https://github.com/simonvanieperen/nieuw-os/pull/62). De
@@ -11,17 +11,18 @@ de bestaande `--strict`-betekenis blijft ongewijzigd.
 
 Na het lokaal beschikbaar maken van `cc` zonder systeembrede installatie
 compileren en draaien een minimale C-proef (exit 0). De volledige
-`cargo +1.90.0 test --offline --locked --workspace`-run kwam verder, maar
-toonde achtereenvolgens ontbrekende README-doctestdependencies in de
-runtime-only vendormanifesten van HKDF (3 voorbeelden) en HMAC (2 voorbeelden).
-Beide crates kregen uitsluitend de upstream-gedocumenteerde `sha2`- en
-`hex-literal`-testdependencies; hun runtime-dependencies zijn ongewijzigd.
-Gerichte doctests slagen: HKDF 3/3, HMAC 2/2. **De volledige workspacetest na
-beide reparaties is nog niet uitgevoerd.** Volgende stap: dezelfde volledige
-workspace-test met `LD_LIBRARY_PATH` naar de lokale geïsoleerde GCC-runtime.
+`cargo +1.90.0 test --offline --locked --workspace`-run onthulde ontbrekende
+README-doctestdependencies in de runtime-only vendormanifesten van HKDF (3
+voorbeelden) en HMAC (2 voorbeelden). Beide crates kregen uitsluitend de
+upstream-gedocumenteerde `sha2`- en `hex-literal`-testdependencies; hun
+runtime-dependencies zijn ongewijzigd. De gerichte doctests slagen HKDF 3/3
+en HMAC 2/2. De volledige workspace-test slaagt daarna: 360 tests passed,
+0 failed, 1 ignored, over 51 testresultaatgroepen; log en hash staan in het
+bewijsrapport.
 
 De eerdere 22 preflighttests, strikte ontbrekende-`cc`-detectie en CI op
-`00f91e7` zijn groen; CI op de nieuwe kandidaat loopt nog. De
+`00f91e7` zijn groen; CI op `76fca87` was bij de laatste controle nog pending.
+Controleer de checks opnieuw nadat dit statuscheckpoint is gepusht. De
 hostcompiler is uitsluitend uitgepakt onder genegeerde `.tools/`; geen
 systeempakketten zijn geïnstalleerd. **34% → 34%**; geen productcriterium of
 native QEMU-bewijs toegevoegd. Volledige commando's, logs, hashes en grenzen:
