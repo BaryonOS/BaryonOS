@@ -177,3 +177,32 @@ Score proposal to the central owner remains **34/100 -> 34/100** and
 **U01-U06: 0/15 -> 0/15**. Next: review the same frozen frames and evidence
 with roles 15/16/20; release owns selection of an ordinary DEV candidate.
 No runtime rollback is needed for this evidence-only update.
+
+### Same-artifact reviews received
+
+- Role 15, source review `eb70accf56017b3f795cb4c463d4794811eb2010`:
+  all six PNGs actually viewed; archive members, pixel roundtrips, UI/token
+  source bindings and QMP replies independently checked. No clipping seen
+  in the short text/focus/footer states. Concrete open findings are
+  UX-V01 (Primary loses its accent fill on hover), UX-V02 (limited bitmap
+  typography hierarchy) and UX-V03 (confirmed revision not visible in
+  the shown UI). These are not fixed or waived by this evidence.
+- Role 16, read-only review at
+  `/home/simon/.copilot/session-state/add48d11fd504cf4aba91efd78f5c873/files/native-baseline-0818-review.md`:
+  all six PNGs viewed and hashes checked. Future icons need a real
+  icon/text layout slot, not an overlay on the current text baseline.
+  A saved icon must use the relevant confirmed document status, not a
+  historical global save counter. No supplied SVG is consumed here.
+- Role 20, evidence commit `97b73e496d57c577978671d90aa392fa2c86fa7e`,
+  reported successful read-only verification of the same bundle,
+  40 member hashes, canonical files, tools, existing replay, 31 QMP
+  requests/six phases, PNG/PPM bindings and the independent disk oracle.
+  Four negative report mutations were rejected. Its report, verifier and logs
+  are under `docs/verification/product-test-20/`. The first verifier attempt
+  had a host tuple-versus-JSON-list comparison error after successful
+  replay; role 20 retained that failure and corrected its verifier.
+  This was not attributed to the guest or concealed as a first-pass result.
+
+None of these peers started another VM. Their AI reviews are separate from
+human usability/accessibility acceptance. No ordinary DEV1, cold recovery,
+deny/full/Unknown, screenreader or complete release pass follows from them.
