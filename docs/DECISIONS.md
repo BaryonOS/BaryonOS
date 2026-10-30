@@ -1,5 +1,28 @@
 # Ontwerpbesluiten
 
+## ADR-B03K1 — Gedeelde, vastgepinde sleutelautoriteit per releasevenster
+
+30 oktober 2026; B03-KEY-POLICY-1, basis `0ade8014`. Loader en update-dienst
+gebruiken één `update-core::policy::TrustPolicy` met maximaal acht exacte
+hybride sleutelparen, inclusieve releaseversievensters en onvoorwaardelijke
+intrekking. Ongeldige of dubbele tabelentries geven geen autoriteit. De
+ondertekende versie wordt pas na beide handtekeningcontroles tegen het venster
+getoetst. Geen nieuw cryptoalgoritme, capability of dependency.
+
+Alternatief kalenderverval is niet gekozen: de RTC levert geen vertrouwde
+kalendertijd. Een manifest mag evenmin zijn eigen vertrouwde sleutels of
+intrekkingsbeleid aanleveren. De QEMU-beleidstabel behoudt het bestaande
+TEST-paar en pint apart next/revoked/expired-fixtures; deze openbare sleutels
+zijn geen productieankers. Vooraf vastgepinde rotatie bewijst geen veilige
+distributie/rollbackbescherming van nieuwe beleidsversies.
+
+Contract, negatieve gevallen, open productie-/tijdgrenzen en rollback:
+`implementation/B03-SIGNED-UPDATES.md`, B03-KEY-POLICY-1. Terugname is een
+gerichte revert naar het eerdere enkelvoudige TEST-verificatiepad, zonder
+slot-/manifestformaatmigratie; terugname verwijdert wel lifecycleafdwinging.
+Native resultaat en bronbinding staan afzonderlijk in PROJECT-STATE; B04,
+B05, B06 en de aanvullende gates van #41 blijven open.
+
 ## ADR-051 — Persistente sleutelstatus via een afzonderlijk administratief ingress
 
 30 oktober 2026; uitvoering B02-PERSIST-1, basis `ad2b981`. De bestaande

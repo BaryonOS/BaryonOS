@@ -1,6 +1,36 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — hardware, drivers en energie — 30 oktober 2026
+## NEXT AGENT HANDOFF — B03-KEY-POLICY-1 — 30 oktober 2026
+
+Basis `0ade8014c8179241dcfc68ea0ba8083664691240`; branch
+`codex/update-key-policy-20261030`. B02-IPC-WIP blijft apart op
+`simonvanieperen-solid-waffle`/concept-PR #72 (`56e76b1`), niet geïntegreerd
+in deze updatebranch. De NAS-peer schrijft alleen `services/nas/**`; de
+TPM-native integratie op PR #66 is niet in deze branch geclaimd.
+
+Geïmplementeerd: gedeeld sleutelbeleid voor signed loader en update-dienst,
+maximaal 8 exacte hybride paren, releaseversievensters, onvoorwaardelijke
+intrekking en gesloten foutpad voor ongeldige/ambigue tabellen. TEST-next,
+TEST-revoked en TEST-expired zijn openbare QEMU-fixtures, geen productiesleutels.
+`KEY_EXPIRED` betekent releaseversievenster, niet kalenderverval. Geen
+keyring-/TPM-/NAS-wirewijziging. Contract/ADR: B03-SIGNED-UPDATES en ADR-B03K1.
+
+Gericht: 7 bestaande coretests + 6 nieuwe cryptografische policytests +
+1 signingtoolrondgang en 10 Python-harnastests exit 0. De volledige native
+updatepoort is uitgebreid van 13 naar 18 stages maar **nog niet uitgevoerd**.
+Volgende commando: met `.tools/bootstrap/security-native/env.sh`, de eigen
+Rust-toolchain en lokale hostlinker `python3 -B -u tools/test_update.py`.
+QEMU10.2.1/OVMF2025.11-fixtures zijn uitsluitend read-only van de
+Build-infrastructuurpeer hergebruikt; eigen disks/vars/buildoutput blijven
+in deze worktree. Toolprobes zijn geen bootbewijs.
+
+**34% → 34%; beveiliging 4/12.** B03 was al accepted voor zijn historische
+scope; deze WIP sluit #41 niet. Kalenderverval, veilige verspreiding/
+antirollback van nieuw beleid, productieankerrotatie, B02-rollbackanker,
+B04/B06 en de menselijke deskundigengate B05 blijven open. Nog geen nieuwe
+native/CI-acceptatie of menselijke review.
+
+## Historisch checkpoint — hardware, drivers en energie — 30 oktober 2026
 
 Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (`main`), branch
 `simonvanieperen-friendly-guacamole`. Opdracht: hardwarepunten H02–H06
