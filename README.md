@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ff51dc01`](https://github.com/simonvanieperen/nieuw-os/commit/ff51dc01b36d3200fc6a887b03429748e93eb457) ·
-**Ontwikkelbranch:** `simonvanieperen-expert-disco`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-CLOCK-1: opt-in ring-3 UTC-clock-API met expliciet niet-vertrouwde RTC-kwaliteit.
-34% blijft 34%. NATIVE-CLOCK-1 implementeert een opt-in ABI 1.9-ring-3-API en SDK die RTC-tijd steeds als UnauthenticatedRtc labelen; 3 hostverifier-tests, 20 SDK-runtime-tests, formatting, native build en de echte QEMU-ring-3-gate zijn geslaagd. De gast las 1793361601 tweemaal bij vaste RTC-basis 2026-10-30T12:00:00, behield monotone ticks en weigerde ongeldige argumenten met -22; hashgebonden bewijs staat in docs/verification/system-clock. Dit is een beperkte FR-S03/FR-N03-afhankelijkheid en sluit geen volledig rubriccriterium. Geen vertrouwde TimeProvider, certificaattijd, fysieke hardware of volledige releaseacceptatie geclaimd; alle 62 productcriteria en menselijke acceptatie blijven open.
+**Bron:** [`8becc511`](https://github.com/simonvanieperen/nieuw-os/commit/8becc511a08be128ce0db417f15efa180bfd2eb3) ·
+**Ontwikkelbranch:** `simon/native-test-version`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: integratie van bestaande begrensde IPC-wacht als voorbereiding op echte Materiaal-testversie.
+34% blijft 34%; de gevraagde 50% is nog niet gehaald. De al bestaande IPC-WAIT-1- en inputconsumentencomponenten worden op actuele main geïntegreerd; ABI 1.10 houdt de bestaande RTC-ABI 1.9 en stackbereikvalidatie intact. Core-, echte wachtdecoder-, SDK- en inputconsument-hosttests slagen. De aparte native probe en testversie zijn nog in aanbouw: native runtime, GUI-gebruikersketen en bredere regressies zijn niet uitgevoerd op deze bron. Geen volledig rubriccriterium gesloten; alle 62 volledige productcriteria en menselijke/hardwareacceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

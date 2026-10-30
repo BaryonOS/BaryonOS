@@ -8,8 +8,10 @@ geen native prestatie- of GUIacceptatie; root voert die gate afzonderlijk uit.
 
 ## ABI en eigenaarschap
 
-Alleen de exacte gerapporteerde ABI1.8 en1.9 worden geaccepteerd.1.8 behoudt
-de bestaande nonblocking-IPC/yield-lus. Alleen bekende1.9 gebruikt
+Op integratiebasis `ad2b981` worden alleen de exacte gerapporteerde ABI1.8
+en1.10 geaccepteerd. ABI1.9 is door de bestaande RTC-klok bezet en mag dus
+niet als wachtinterface worden herkend.1.8 behoudt
+de bestaande nonblocking-IPC/yield-lus. Alleen bekende1.10 gebruikt
 `native::ipc_wait(&[WaitCondition], absolute_tick)`. Andere minors/majors en
 onbekende versiewaarden falen; geen numerieke toekomstcompatibiliteitsclaim.
 De SDK en kernel implementeren die boundary elders, niet in de inputdiensten.

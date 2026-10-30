@@ -19,7 +19,7 @@ impl Mode {
     pub const fn from_abi(info: u64) -> Option<Self> {
         match info {
             0x1_0000_0008 => Some(Self::Legacy),
-            0x1_0000_0009 => Some(Self::Wait),
+            0x1_0000_000a => Some(Self::Wait),
             _ => None,
         }
     }
@@ -154,8 +154,15 @@ mod tests {
     #[test]
     fn exact_abi_modes_no_future_or_old_version_guessing() {
         assert_eq!(Mode::from_abi(0x1_0000_0008), Some(Mode::Legacy));
-        assert_eq!(Mode::from_abi(0x1_0000_0009), Some(Mode::Wait));
-        for v in [0, 0x1_0000_0007, 0x1_0000_000a, 0x2_0000_0009, u64::MAX] {
+        assert_eq!(Mode::from_abi(0x1_0000_000a), Some(Mode::Wait));
+        for v in [
+            0,
+            0x1_0000_0007,
+            0x1_0000_0009,
+            0x1_0000_000b,
+            0x2_0000_000a,
+            u64::MAX,
+        ] {
             assert_eq!(Mode::from_abi(v), None);
         }
     }

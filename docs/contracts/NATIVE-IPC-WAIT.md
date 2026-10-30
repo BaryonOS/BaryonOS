@@ -6,7 +6,19 @@ De componentbron is voorbereid voor integratiereview; uitgevoerde controles
 en open poorten staan hieronder. Er is geen native proef uitgevoerd door
 deze componentagent.
 
-## Invariant en ABI 1.9
+## Integratie op actuele main
+
+De integratiebranch `simon/native-test-version` gebruikt basis `ad2b981`.
+De hieronder beschreven historische component is overgenomen, niet opnieuw
+ontworpen. De wachtinterface krijgt **ABI 1.10**: ABI 1.9 is inmiddels door
+ADR-050 aan de niet-vertrouwde RTC-klok toegewezen. Die klok en de uitgebreidere
+userreturn-/stackvalidatie uit main blijven behouden. De historische
+componentmetingen hieronder gelden niet als nieuwe native acceptatie.
+`native-ipc-wait` is een afzonderlijke tweeprocessenproef; productprofielen
+blijven voorlopig ongewijzigd. De integrator voegt een native fixture toe
+alvorens de bestaande GUI-gebruikersketen met wachten te verbinden.
+
+## Invariant en ABI 1.10
 
 Alle bestaande SEND/RECV-, copy-, capability-, generatie-, IPC- en
 digestcontroles blijven behouden. Wachten reserveert of consumeert niets en
@@ -16,8 +28,8 @@ receive valideert opnieuw alles en kan EAGAIN, Quota of een andere fout geven.
 Er ontstaat geen nieuw recht, object, node, fysieke mapping of autoriteit.
 
 Kernelfeature `ipc-wait` is standaard uit en vereist milestone-m4 plus
-monotonic-clock. Alleen die profielen rapporteren ABI 1.9. Bestaande profielen
-behouden hun ABI, gedrag en terminale idleproef. ABI 1.0–1.8 blijven in de SDK
+monotonic-clock. Alleen die profielen rapporteren ABI 1.10. Bestaande profielen
+behouden hun ABI, gedrag en terminale idleproef. ABI 1.0–1.9 blijven in de SDK
 geaccepteerd; een ouder profiel ondersteunt syscall 0x22 niet.
 
 ```text

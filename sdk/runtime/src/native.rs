@@ -15,7 +15,7 @@ use crate::{
 fn call(number: u64, args: [u64; 6]) -> Result<u64, Error> {
     let mut primary = number;
     let mut secondary = args[2];
-    // SAFETY: Nieuw OS ABI 1.0–1.9 preserves every GPR except RAX/RDX; int80 enters
+    // SAFETY: Nieuw OS ABI 1.0–1.10 preserves every GPR except RAX/RDX; int80 enters
     // a checked kernel gate. No Rust references cross this boundary. Callers
     // below keep local message buffers live for the complete synchronous copy.
     // No nomem/readonly flag: IPC can read or write the supplied memory.
@@ -66,7 +66,7 @@ pub fn yield_now() -> Result<(), Error> {
     zero_return(call(1, [0; 6]))
 }
 
-/// ABI 1.9: wait for authorized IPC queue conditions or an absolute PIT tick.
+/// ABI 1.10: wait for authorized IPC queue conditions or an absolute PIT tick.
 /// The kernel copies at most sixteen scalar conditions before scheduling; no
 /// pointer is dereferenced on wake. Ready bits reserve/consume nothing. Zero
 /// means the deadline elapsed without a ready condition. Empty conditions are

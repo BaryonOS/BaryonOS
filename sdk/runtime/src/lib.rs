@@ -253,11 +253,11 @@ mod wait_tests {
         assert_eq!(decode_wait_mask(u64::MAX, 16), Err(Error::InvalidReturn));
     }
     #[test]
-    fn minor_nine_preserves_old_abi_and_return_rules() {
-        for minor in 0..=9 {
+    fn minor_ten_preserves_old_abi_and_return_rules() {
+        for minor in 0..=10 {
             assert_eq!(validate_abi((1 << 32) | minor), Ok(()));
         }
-        assert_eq!(validate_abi((1 << 32) | 10), Err(Error::UnsupportedAbi));
+        assert_eq!(validate_abi((1 << 32) | 11), Err(Error::UnsupportedAbi));
         assert_eq!(decode_return(0, 0xffff), Ok(0xffff));
         assert_eq!(decode_return(-10, 0), Err(Error::Kernel(-10)));
         assert_eq!(decode_return(-10, 1), Err(Error::InvalidReturn));

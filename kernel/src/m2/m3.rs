@@ -67,6 +67,7 @@ mod qsim;
 #[cfg(feature = "native-qsim-job")]
 mod qsim_job;
 #[cfg(feature = "native-sdk-app")]
+#[cfg_attr(feature = "native-ipc-wait", path = "m3/wait_fixture.rs")]
 mod sdk_app;
 #[cfg(feature = "native-supervisor")]
 #[cfg_attr(feature = "native-system", allow(dead_code))]
@@ -981,17 +982,18 @@ impl State {
                 if self.processes[slot].status == Status::Ready {
                     let p = &self.processes[slot];
                     let c = &p.context;
-                    let valid = user::valid_return_layout(c[17], c[20], c[18], c[21], STACK..STACK_END)
-                        && p.paging
-                            .as_ref()
-                            .unwrap()
-                            .permissions(c[17])
-                            .is_some_and(|x| x.2 && x.3)
-                        && p.paging
-                            .as_ref()
-                            .unwrap()
-                            .permissions(c[20])
-                            .is_some_and(|x| x.1 && !x.2 && x.3);
+                    let valid =
+                        user::valid_return_layout(c[17], c[20], c[18], c[21], STACK..STACK_END)
+                            && p.paging
+                                .as_ref()
+                                .unwrap()
+                                .permissions(c[17])
+                                .is_some_and(|x| x.2 && x.3)
+                            && p.paging
+                                .as_ref()
+                                .unwrap()
+                                .permissions(c[20])
+                                .is_some_and(|x| x.1 && !x.2 && x.3);
                     if !valid {
                         // Invalid saved user state is a process failure, never a
                         // kernel assertion or an unchecked iretq to hostile state.

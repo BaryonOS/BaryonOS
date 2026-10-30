@@ -45,6 +45,17 @@ jobs:
           cargo +1.91.1 fetch --locked --manifest-path sdk/examples/tcp-probe/Cargo.toml
           cargo +1.91.1 fetch --locked --manifest-path services/net-stack/Cargo.toml
           cargo +1.90.0 fetch --locked --manifest-path sdk/examples/memory/Cargo.toml
+          cargo +1.90.0 fetch --locked --manifest-path sdk/examples/ipc-wait-probe/Cargo.toml
+      - name: Native IPC queue waits, revocation and resumable PIT idle
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/ipc-wait-ci
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/ipc-wait-ci-native
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/ipc-wait-ci-host
+        run: |
+          python3 -B -m unittest tools.tests.test_ipc_wait
+          cargo +1.90.0 test --offline --locked -p capability-core
+          cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/input-service/Cargo.toml
+          python3 -B -u tools/run_ipc_wait.py
       - name: Real joint-service guest and exact-image cold recovery
         run: python3 -B -u tools/test_system.py
       - name: Independently revalidate raw images and capture compact evidence
@@ -94,6 +105,7 @@ jobs:
         with:
           name: native-system-evidence
           path: |
+            build/ipc-wait-ci/
             build/memory-ci/memory-gate.json
             build/memory-ci/logs/
             build/memory-ci/*/memory-report.json

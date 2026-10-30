@@ -1,6 +1,49 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — NATIVE-CLOCK-1 afgerond; PR blijft draft voor review — 30 oktober 2026
+## NEXT AGENT HANDOFF — Native testversie: IPC-wachtintegratie loopt — 30 oktober 2026
+
+Basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00` (main, inclusief RTC-PR #63),
+branch `simon/native-test-version`. De eerdere infrastructuurtaak blijft
+afzonderlijk in PR #62. Doel: OS-code en een echt gedraaide QEMU-testversie;
+de gevraagde **minstens 50% is niet bereikt; score blijft 34%**.
+
+Concrete blokkade: de bestaande Materiaal-proef overschreed op `9596abc`
+de ongewijzigde 20.000-PIT-tickgrens voordat de echte documenthandeling
+voltooid was. In plaats van budgetten te verruimen wordt de al aanwezige
+componentbranch voor begrensde IPC-wacht geïntegreerd (`ae3f022`, `2b286d2`,
+`57b6e93`). De integratie behoudt de nieuwere stackbereikvalidatie en RTC;
+de wacht-ABI wordt 1.10 omdat 1.9 al de RTC-klok betekent (ADR-051).
+Productprofielen gebruiken de nieuwe wacht nog niet.
+
+Schrijfgebieden hoofdagent: capability-core-hostharnas, kernel-wacht/
+scheduler/fixture/featureselectie, SDK-ABI, bestaande inputconsument,
+`tools/build.py`, nieuwe native wachtgate en status/bewijs. Een builder
+werkt uitsluitend aan `sdk/examples/ipc-wait-probe/**` voor de eigen
+CPL3-proef; geen gedeelde schrijvers. Omgevingsherstel schrijft uitsluitend
+genegeerde `.tools/nieuw-os/**`; strict preflight is inmiddels exit 0.
+
+Gerichte eerste controle, alle exit 0 (Rust 1.90.0, offline/locked):
+`CARGO_TARGET_DIR="$PWD/target/native-wait-checks"`, plus
+`LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu"`,
+voor ieder volgend `python3 -B tools/dev.py cargo +1.90.0`-commando:
+
+- `test --offline --locked -p capability-core`: 57 coretests en 7 tests
+  van de echte kernel-wachtdecoder/evaluator; 1 bestaande benchmark ignored.
+- `test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime`:
+  23 tests; daarna is uitsluitend de aanvullende ABI-1.10-procesassertie
+  toegevoegd en moet die nog opnieuw worden uitgevoerd.
+- `test --offline --locked --manifest-path sdk/examples/input-service/Cargo.toml`:
+  23 tests, inclusief per-app foutisolatie en echte queue-readiness.
+
+Logs: `/tmp/nieuw-os-native-wait-{core,sdk,input}.log`.
+**Niet uitgevoerd op deze integratie:** native wachtbuild/runtime,
+GUI-regressie, brede native gates en testimageacceptatie. De nieuwe
+`native-ipc-wait`-builder verwijst nog naar de in aanbouw zijnde probe.
+Eerstvolgend: probe afronden, formatteren/hercontroleren, gepinde native
+probe bouwen/draaien, vervolgens de GUI-keten meten en gericht aansluiten.
+Geen nieuwe voortgangspunten, geen menselijke/hardware-/releaseacceptatie.
+
+## Historisch checkpoint — NATIVE-CLOCK-1 afgerond — 30 oktober 2026
 
 Bronbasis `c057d864e413840644da39b6c8338e883cbe2ff4`, implementatiecheckpoint
 `652cd5d4c9c68afb0b143c0147197aa7fc6f8220`, bewijscheckpoint

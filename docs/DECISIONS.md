@@ -1,5 +1,32 @@
 # Ontwerpbesluiten
 
+## ADR-051 — Wachten op IPC behoudt bestaande rechten en krijgt ABI 1.10
+
+30 oktober 2026; integratie `NATIVE-TEST-VERSION`, basis `ad2b981`.
+De bestaande component `IPC-WAIT-1` wordt overgenomen voor de rode native
+Materiaal-gebruikersketen. Zestien gekopieerde handle/interestparen met een
+absolute PIT-deadline mogen een proces parkeren; readiness reserveert noch
+consumeert iets. Iedere herbeoordeling controleert opnieuw de volledige
+capability en PID. Geen userpointer, copyplan of objectreferentie blijft
+over een contextwisseling bewaard. Nieuwe rechten worden niet toegekend.
+
+De componentbranch gebruikte nog ABI 1.9, maar main heeft die inmiddels
+aan de expliciet niet-vertrouwde RTC-klok toegewezen. Daarom gebruikt alleen
+`ipc-wait` ABI 1.10; de RTC-syscall en oude profielen behouden hun gedrag.
+De integratie behoudt ook de latere stackbereikcontrole bij userreturn.
+Lege uitvoerbare runqueue plus wachtenden mag via de bestaande permanente
+servicestack een `sti; hlt; cli` uitvoeren; alleen werkelijk getelde IRQ0's
+verhogen de monotone klok. De volledige Engine-digestchecks blijven staan.
+
+Eerst wordt een aparte native tweeprocessenproef gebouwd, inclusief echte
+queue-, intrekkings-, deadline-, pointer- en idlecontroles. Daarna volgt
+de bestaande GUI-gate zonder verruimde deadline. Hosttests of een gebouwde
+ELF bewijzen geen native voortgang, bruikbaarheid of volledige release.
+Herzien vóór SMP of nieuwe IRQ-wakebronnen: het huidige invariant geldt
+uitsluitend voor één CPU en geserialiseerde IF0-kernelmutaties.
+Rollback is het uitschakelen van de opt-in feature en consumenten; ABI
+1.10 blijft een gereserveerde interfaceversie.
+
 ## ADR-050 — Opt-in wall-clock syscall blijft zichtbaar niet-vertrouwd
 
 30 oktober 2026; uitvoering NATIVE-CLOCK-1, boven op RTC-NATIVE-1.
