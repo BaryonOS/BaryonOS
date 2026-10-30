@@ -50,6 +50,7 @@ pub struct CatalogIntent {
     op: CatalogOp,
     service_epoch: u64,
     expected_generation: u64,
+    serial: u64,
     entry: CatalogEntry,
 }
 
@@ -63,9 +64,9 @@ impl CatalogIntent {
     }
 }
 
-/// Result of an applied mutation. `released` names an artifact the caller may
-/// delete from the store after the catalog change is durable; this crate does
-/// not delete bytes.
+/// Result of an applied mutation. `released` is a cleanup candidate with no
+/// remaining reference in this catalog. Cleanup still requires a durable
+/// catalog change and the store's lifetime checks; this is not delete authority.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CatalogChange {
     pub generation: u64,
@@ -82,6 +83,7 @@ pub struct InstallCatalog<const N: usize> {
     entries: [Option<CatalogEntry>; N],
     generation: u64,
     service_epoch: u64,
+    last_intent_serial: u64,
     pending: Option<CatalogIntent>,
     health: Health,
 }
@@ -101,6 +103,7 @@ impl<const N: usize> InstallCatalog<N> {
             entries: [None; N],
             generation: 1,
             service_epoch,
+            last_intent_serial: 0,
             pending: None,
             health: Health::Consistent,
         }
@@ -170,12 +173,18 @@ impl<const N: usize> InstallCatalog<N> {
         self.generation
             .checked_add(1)
             .ok_or(CatalogError::Overflow)?;
+        let serial = self
+            .last_intent_serial
+            .checked_add(1)
+            .ok_or(CatalogError::Overflow)?;
         let intent = CatalogIntent {
             op,
             service_epoch,
             expected_generation,
+            serial,
             entry,
         };
+        self.last_intent_serial = serial;
         self.pending = Some(intent);
         Ok(intent)
     }
@@ -222,6 +231,13 @@ impl<const N: usize> InstallCatalog<N> {
         };
         self.generation = next;
         self.pending = None;
+        let released = released.filter(|reference| {
+            !self
+                .entries
+                .iter()
+                .flatten()
+                .any(|entry| entry.artifact.reference == *reference)
+        });
         Ok(CatalogChange {
             generation: next,
             released,
@@ -590,6 +606,103 @@ mod tests {
             .apply(&fresh, Some(newer.artifact.reference))
             .unwrap();
         assert_eq!(catalog.generation(), 3);
+    }
+
+    #[test]
+    fn cancelled_intent_stays_stale_after_identical_prepare() {
+        for op in [CatalogOp::Install, CatalogOp::Update, CatalogOp::Remove] {
+            let mut catalog = InstallCatalog::<2>::new(EPOCH);
+            let first = entry(b"org.example.notes", 1, 1, 1, 1);
+            if op != CatalogOp::Install {
+                installed(&mut catalog, first);
+            }
+            let candidate = if op == CatalogOp::Update {
+                entry(b"org.example.notes", 1, 1, 2, 2)
+            } else {
+                first
+            };
+            let generation = catalog.generation();
+            let cancelled = catalog.prepare(op, EPOCH, generation, candidate).unwrap();
+            catalog.abort(&cancelled).unwrap();
+            let fresh = catalog.prepare(op, EPOCH, generation, candidate).unwrap();
+
+            assert_ne!(cancelled, fresh);
+            assert_eq!(
+                catalog.apply(&cancelled, Some(candidate.artifact.reference)),
+                Err(CatalogError::Stale)
+            );
+            assert_eq!(catalog.abort(&cancelled), Err(CatalogError::Stale));
+            assert_eq!(catalog.mark_unknown(&cancelled), Err(CatalogError::Stale));
+            assert_eq!(catalog.generation(), generation);
+            assert_eq!(
+                catalog.lookup(first.identity.app_id()).unwrap().copied(),
+                (op != CatalogOp::Install).then_some(first)
+            );
+            catalog
+                .apply(&fresh, Some(candidate.artifact.reference))
+                .unwrap();
+            assert_eq!(catalog.generation(), generation + 1);
+        }
+    }
+
+    #[test]
+    fn shared_image_is_released_only_after_last_catalog_reference() {
+        for op in [CatalogOp::Update, CatalogOp::Remove] {
+            let mut catalog = InstallCatalog::<2>::new(EPOCH);
+            let first = entry(b"org.example.notes", 1, 1, 1, 1);
+            let other = entry(b"org.example.reader", 1, 1, 1, 1);
+            installed(&mut catalog, first);
+            installed(&mut catalog, other);
+            let candidate = if op == CatalogOp::Update {
+                entry(b"org.example.notes", 1, 1, 2, 2)
+            } else {
+                first
+            };
+            let intent = catalog
+                .prepare(op, EPOCH, catalog.generation(), candidate)
+                .unwrap();
+            let change = catalog
+                .apply(&intent, Some(candidate.artifact.reference))
+                .unwrap();
+            assert_eq!(change.released, None);
+            assert_eq!(
+                catalog.lookup(other.identity.app_id()).unwrap(),
+                Some(&other)
+            );
+            let remove = catalog
+                .prepare(CatalogOp::Remove, EPOCH, catalog.generation(), other)
+                .unwrap();
+            assert_eq!(
+                catalog.apply(&remove, None).unwrap().released,
+                Some(first.artifact.reference)
+            );
+        }
+    }
+
+    #[test]
+    fn exhausted_intent_serial_fails_without_pending_or_catalog_mutation() {
+        let mut catalog = InstallCatalog::<2>::new(EPOCH);
+        let first = entry(b"org.example.notes", 1, 1, 1, 1);
+        catalog.last_intent_serial = u64::MAX - 1;
+        let last = catalog
+            .prepare(CatalogOp::Install, EPOCH, 1, first)
+            .unwrap();
+        catalog.abort(&last).unwrap();
+        for _ in 0..2 {
+            assert_eq!(
+                catalog.prepare(CatalogOp::Install, EPOCH, 1, first),
+                Err(CatalogError::Overflow)
+            );
+            assert_eq!(catalog.pending, None);
+            assert_eq!(catalog.generation(), 1);
+            assert_eq!(catalog.lookup(first.identity.app_id()).unwrap(), None);
+            assert_eq!(catalog.abort(&last), Err(CatalogError::Stale));
+        }
+        catalog.restart(EPOCH + 1).unwrap();
+        assert_eq!(
+            catalog.prepare(CatalogOp::Install, EPOCH + 1, 1, first),
+            Err(CatalogError::Overflow)
+        );
     }
 
     #[test]

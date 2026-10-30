@@ -135,13 +135,25 @@ er niet naar.
 `catalog::InstallCatalog<N>` is een begrensd in-memory toestandsmodel boven de
 artifacttransactie. Iedere mutatie is tweefasig (`prepare` → `apply`/`abort`)
 en gebonden aan service-epoch en verwachte cataloggeneratie; een stale,
-herhaalde of gelijktijdige intent faalt zonder mutatie. Het opgeslagen
+herhaalde of gelijktijdige intent faalt zonder mutatie. Een private, monotoon
+oplopende intentserial voorkomt dat een geannuleerde opdracht weer geldig
+wordt wanneer dezelfde handeling opnieuw wordt voorbereid. Uitputting faalt
+met `Overflow` voordat een pending opdracht ontstaat; abort, restart en
+reconcile hergebruiken geen serials binnen dit catalogusobject. Een echte
+dienst moet bij reconstructie een verse service-epoch gebruiken; het model
+levert die epochautoriteit niet. Het opgeslagen
 artifact moet in lengte en SHA-256 gelijk zijn aan de image uit de
 package-identity, en `apply` vereist exact de door de store gecommitte
 `ArtifactRef`. Update vereist dezelfde bron, geen lagere brongeneratie en een
 strikt hogere versie; bronwissel of downgrade is geen update. Remove vereist
-de exact geïnstalleerde entry. `released` meldt welk oud artifact de caller
-ná duurzame catalogwijziging mag opruimen; de catalogus verwijdert geen bytes.
+de exact geïnstalleerde entry. `released` meldt alleen een oud artifact dat
+geen andere entry in deze catalogus meer gebruikt. Het is een opruimkandidaat,
+geen wisrecht: duurzame catalogwijziging en de store-lifetimecontrole
+(waaronder andere consumers en open read-handles) blijven vereist.
+De catalogus verwijdert geen bytes en heeft geen gebruikersdata- of
+capabilityhandle; een pakket verwijderen is geen verzoek gebruikersdocumenten
+te wissen. Behoud van echte gebruikersdata en intrekking van oude taakrechten
+na update/verwijderen moeten nog native worden aangesloten en getest.
 Entries bevatten geen capabilities: installatie verleent niets.
 
 Een `Unknown` storeuitkomst maakt de catalogus onbepaald: mutatie én lookup
