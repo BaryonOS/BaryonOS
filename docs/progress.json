@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "917126f774838d2e53c8fd796b722e308e923d1b",
+    "source_commit": "81b45969442ffd72d386ff9d484b878ff95ae1f4",
     "branch": "codex/apps-sdk-packages",
-    "task": "Apps, SDK en installatie: hybride ondertekende apppakketverificatie als A02-deelstap",
+    "task": "Apps, SDK en installatie: packageverificatie koppelen aan de bestaande user-ELF-policy",
     "previous_score": 34,
-    "summary": "34% blijft 34%; Apps/SDK/installatie blijft 2/8, met uitsluitend A01 geaccepteerd. De nieuwe `app-package-core`-crate valideert een canoniek `NOSAPP01`-pakket met een caller-geselecteerde sleutelbron, Ed25519 én ML-DSA-65, exacte imagehash/-lengte, ABI en nulpadding; pakketten verklaren geen capabilities. Drie hosttests, Clippy, portable `x86_64-unknown-none`-librarybuild, `update-core` (7), SDK-runtime (20), fmt en diffcontrole slagen op commit `917126f`. Geen installer, appimage-loader, meerdere bronnen, appupdate/-verwijdering, native pakketuitvoering of taakrechten; A02/A03/A04 blijven open en er worden geen punten toegekend. QEMU 11.1.0 plus door Simon meegeleverde codefirmware zijn worktree-lokaal aangesloten; strict preflight exit 0 is uitsluitend inventaris, geen VM-run. Bewijs en grenzen: `docs/verification/app-package-core/README.md`."
+    "summary": "34% blijft 34%; Apps/SDK/installatie blijft 2/8, met uitsluitend A01 geaccepteerd. `app-package-core::verify_executable_package` controleert het bestaande hybride ondertekende `NOSAPP01`-formaat en roept daarna de bestaande `kernel_core::user::parse`-policy aan. Een signer-valid W+X-image wordt geweigerd; vijf hosttests, Clippy, portable `x86_64-unknown-none`-librarybuild, fmt en diffcontrole slagen op `81b4596`. Dit maakt geen mappings, proces, `LaunchImage`, installer of rechten. Multi-source trust, transacties/cold recovery, native pakketuitvoering en taakrechten ontbreken; A02/A03/A04 blijven open en er worden geen punten toegekend. Geen guest-VM-proef uitgevoerd. Bewijs en grenzen: `docs/verification/app-package-elf-policy/README.md`."
   },
   "tracks": [
     {

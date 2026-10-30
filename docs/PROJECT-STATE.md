@@ -1,36 +1,33 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — apppakketcontrole, A02-deelstap — 30 oktober 2026
+## NEXT AGENT HANDOFF — package/ELF-beleid verbinden, A02-deelstap — 30 oktober 2026
 
-Bron `917126f774838d2e53c8fd796b722e308e923d1b`, branch
-`codex/apps-sdk-packages`, gepusht en remote-head gecontroleerd. De huidige
-roadmap blijft **34% totaal; Apps/SDK/installatie 2/8**: alleen A01 is
-geaccepteerd. De nieuwe `app-package-core` is uitsluitend een `no_std`
-verificatiekern; geen A02-punt.
+Bron `81b45969442ffd72d386ff9d484b878ff95ae1f4`, branch
+`codex/apps-sdk-packages`, gepusht en remote-head gecontroleerd. De roadmap
+blijft **34% totaal; Apps/SDK/installatie 2/8**: alleen A01 is geaccepteerd.
+Dit werk kent geen A02-punt toe.
 
-`NOSAPP01` versie 1 bindt app-ID, ABI-interval, versienummer en exacte image
-via SHA-256 en beide bestaande handtekeningen (Ed25519 + ML-DSA-65) aan de
-door de caller gekozen bronankers. Geen installerhooks of rechten in het
-pakket. De drie verifierhosttests, Clippy, bare-metal librarybuild,
-`update-core` (7), SDK-runtime (20), beide fmt-checks en diffcontrole slagen.
-Bronbinding, exacte commando's en grenzen:
-[`app-package-core` checkpoint](verification/app-package-core/README.md).
+`app-package-core::verify_executable_package` controleert eerst het bestaande
+`NOSAPP01`-pakket met beide handtekeningen, ABI en imagehash, en geeft de
+image daarna aan `kernel_core::user::parse` door. Zo wordt de bestaande
+user-ELF-policy hergebruikt; een getekende W+X-image wordt geweigerd. De vaste
+laadbeschrijving maakt geen mappings/proces/`LaunchImage` en is geen
+installatie- of launchrecht. Vijf pakkettests, Clippy, `x86_64-unknown-none`,
+fmt en diffcontrole slagen. Exacte binding en bewijsgrenzen:
+[`app-package-elf-policy`](verification/app-package-elf-policy/README.md).
 
-QEMU 11.1.0 en bijpassende x86_64-codefirmware zijn nu alleen via een
-worktree-lokale verwijzing naar de door Simon meegeleverde
-`C:\Program Files\qemu` beschikbaar; `preflight.py --strict --firmware ...`
-slaagde als inventaris. Dit is geen native boot of pakketproef. Nog open:
-installertransacties, meerdere herroepbare bronnen, volledige ELF-loader/
-`LaunchImage`-keten, update/verwijderen en cold recovery (A02), zichtbare en
-intrekbare taakrechten via Materiaal (A03), en de vereiste nuttige apps en
-realistische native taken (A04). Geen automatische capabilities.
+Nog open: meerdere herroepbare bronnen, persistente installatie/update/
+verwijdertransacties en cold recovery, native dynamische `LaunchImage`-keten
+(A02), zichtbare/intrekbare taakrechten via Materiaal (A03), en nuttige apps
+met realistische native taken (A04). Geen guest-VM-pakketproef uitgevoerd.
 
-Eerstvolgende uitvoerbare stap: ontwerp de dynamische appimage-/launchgrens
-tegen `elf-loader-core`, de bestaande supervisor/`LaunchImage`-ABI en
-capability-invarianten; daarna een kleine native positieve/negatieve
-loaderproef op een eigen image. Controleer stack-/resourcebudget voor de
-ML-DSA-verificatie (~200 KiB) vóór service-integratie. De Windows-QEMU binary
-is QEMU 11.1.0; gebruik per run een eigen QEMU buildmap en wegwerpimage.
+Eerstvolgende uitvoerbare stap: ontwerp en implementeer de begrensde
+installatie-/bronregistratie- en cold-recoverytransactie boven de bestaande
+object-/volumediensten, zonder rechten uit het pakket af te leiden. Behoud
+vervolgens de kernelgrens: alleen een geautoriseerde loader mag een
+geverifieerde, ELF-gevalideerde image aan een startcapability binden. QEMU
+11.1.0 en firmware zijn worktree-lokaal beschikbaar; alleen wegwerpimages
+gebruiken.
 
 ## Afgerond checkpoint — hardware, drivers en energie — 30 oktober 2026
 
