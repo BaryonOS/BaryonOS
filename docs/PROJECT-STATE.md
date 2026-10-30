@@ -99,7 +99,10 @@ component ontbrak aanvankelijk; projecttoolchaincomponent is geïnstalleerd en
 beide formatchecks slagen daarna. Twee rustfmt-regelafbrekingen in de al
 gewijzigde `display.rs`/`ps2.rs` zijn exact conform de formatter bijgewerkt.
 De interactieve native-reference-run, Windows-gaststart, ZIP en CI op de
-uiteindelijke mergehead zijn niet uitgevoerd. De vorige integratiecheck op
+uiteindelijke mergehead zijn niet uitgevoerd. Op mergecommit `386ae60` vond
+CodeQL geen alerts in Actions of Python, maar de analyse stopte door timeout
+voordat alle talen gereed waren; er is dus geen volledige CodeQL-goedkeuring.
+De checker adviseerde geen herhaling. De vorige integratiecheck op
 `0ade801` meldde een extra lege regel in
 `verification/full-release-b02-keystate-system/host/1.stdout.txt`; dat
 hashgebonden bewijs is ongewijzigd behouden. De huidige

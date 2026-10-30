@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "0887217360e924f94f3b86a52c3724cfdbe1c9ea",
+    "source_commit": "386ae6014e00e093346987859659914f86fce888",
     "branch": "simon/windows-qemu-test-version",
     "task": "WINDOWS-QEMU-TEST-VERSION / INTERACTIVE-PROOF-1 / CONFLICT-MERGE-MAIN-748E29",
     "previous_score": 34,
