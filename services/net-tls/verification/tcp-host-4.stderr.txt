@@ -1,0 +1,8 @@
+   Compiling capability-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/crates/capability-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/sdk/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.50s
+     Running unittests src/lib.rs (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/target/tcp-listen-native/debug/deps/nieuw_os_sdk_runtime-537b28a70573b9d3)
+     Running tests/message.rs (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/target/tcp-listen-native/debug/deps/message-1e3b00f6642d0c53)
+     Running tests/process.rs (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/target/tcp-listen-native/debug/deps/process-3335944891257fc5)
+     Running tests/tls_time.rs (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/target/tcp-listen-native/debug/deps/tls_time-ccc1dbf42ee6d304)
+   Doc-tests nieuw_os_sdk_runtime

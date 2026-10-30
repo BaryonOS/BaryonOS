@@ -1,0 +1,18 @@
+
+running 1 test
+test configured_address_answers_a_foreign_zero_source_probe_on_the_same_slot ... FAILED
+
+failures:
+
+---- configured_address_answers_a_foreign_zero_source_probe_on_the_same_slot stdout ----
+
+thread 'configured_address_answers_a_foreign_zero_source_probe_on_the_same_slot' (3559548) panicked at tests/service.rs:70:51:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    configured_address_answers_a_foreign_zero_source_probe_on_the_same_slot
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+

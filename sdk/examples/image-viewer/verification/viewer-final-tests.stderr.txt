@@ -1,0 +1,5 @@
+   Compiling nieuw-os-image-viewer v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-scaling-disco/sdk/examples/image-viewer)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.37s
+     Running unittests src/lib.rs (target/r22-viewer/debug/deps/nieuw_os_image_viewer-120495a659f058ac)
+     Running tests/viewer.rs (target/r22-viewer/debug/deps/viewer-e47b0967642ebe5b)
+   Doc-tests nieuw_os_image_viewer

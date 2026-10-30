@@ -1,0 +1,23 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (drivers/acpi-power/target/debug/deps/nieuw_os_acpi_power-7918b70d4f33ef8e)
+
+running 1 test
+test tests::validates_all_pkg_length_widths_and_rejects_reserved_lead_bits ... FAILED
+
+failures:
+
+---- tests::validates_all_pkg_length_widths_and_rejects_reserved_lead_bits stdout ----
+
+thread 'tests::validates_all_pkg_length_widths_and_rejects_reserved_lead_bits' panicked at src/lib.rs:937:17:
+assertion `left == right` failed: follow=1, reserved=0x10
+  left: Ok(S5Plan { pm1a: Pm1Setting { address: 1028, sleep_type: 0 }, pm1b: None })
+ right: Err(MalformedAml)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    tests::validates_all_pkg_length_widths_and_rejects_reserved_lead_bits
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`

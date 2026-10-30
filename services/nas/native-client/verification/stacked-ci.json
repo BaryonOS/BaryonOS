@@ -1,0 +1,38 @@
+{
+  "run_id": 41109586457,
+  "workflow": "NAS host and target (not native acceptance)",
+  "event": "pull_request",
+  "head_sha": "a7f3f62730429a713bccbf39036308e45cccbd1f",
+  "status": "completed",
+  "conclusion": "success",
+  "created_at": "2026-10-30T18:45:17Z",
+  "updated_at": "2026-10-30T18:49:30Z",
+  "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41109586457",
+  "jobs": [
+    {
+      "name": "nas-native-probe-host-target",
+      "conclusion": "success",
+      "job_id": 124248237567,
+      "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41109586457/job/124248237567"
+    },
+    {
+      "name": "nas-native-core-host-target",
+      "conclusion": "success",
+      "job_id": 124248236955,
+      "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41109586457/job/124248236955"
+    },
+    {
+      "name": "nas-native-client-host-target",
+      "conclusion": "success",
+      "job_id": 124248237793,
+      "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41109586457/job/124248237793"
+    },
+    {
+      "name": "nas-native-volume-host-target",
+      "conclusion": "success",
+      "job_id": 124248237518,
+      "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41109586457/job/124248237518"
+    }
+  ],
+  "claim_boundary": "All four NAS host/target jobs passed at the recorded code head. This workflow is not native NAS acceptance."
+}

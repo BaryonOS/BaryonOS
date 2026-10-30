@@ -1,0 +1,62 @@
+name: NAS host and target (not native acceptance)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nas-core-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nas-workspace:
+    name: nas-${{ matrix.crate }}-host-target
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        crate: [native-core, native-volume, native-probe, native-client]
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/nas-ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Rust 1.90.0 and tools
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup component add --toolchain 1.90.0 rustfmt clippy
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none
+      - name: Host policy, failure injection, stack budget and bare-metal builds
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="services/nas/${{ matrix.crate }}/Cargo.toml"
+          cargo +1.90.0 test --offline --locked --manifest-path "$manifest"
+          cargo +1.90.0 test --offline --locked --release --manifest-path "$manifest" -- --nocapture
+          cargo +1.90.0 clippy --offline --locked --manifest-path "$manifest" --all-targets -- -D warnings
+          cargo +1.90.0 clippy --offline --locked --release --manifest-path "$manifest" --all-targets -- -D warnings
+          cargo +1.90.0 fmt --manifest-path "$manifest" --all -- --check
+          cargo +1.90.0 build --offline --locked --release --manifest-path "$manifest" --target x86_64-unknown-none
+          git diff --exit-code
+      - name: Native probe and existing volume ELF inspection (not execution)
+        if: matrix.crate == 'native-probe'
+        env:
+          NOS_BUILD_DIR: build/nas-ci
+        run: |
+          cargo +1.90.0 clippy --offline --locked --release --manifest-path services/nas/native-probe/Cargo.toml --features native --bins --target x86_64-unknown-none -- -D warnings
+          python3 -B services/nas/native-probe/build.py
+          git diff --exit-code
+      - name: Replay handoff validator tests
+        if: matrix.crate == 'native-probe'
+        run: python3 -B -m unittest discover -s services/nas/native-probe/tests -p test_replay_handoff.py -v
+      - name: Evidence boundary
+        run: |
+          echo 'Host tests and crosscompilation only; no native NAS, TLS, E2EE or P01-P04 acceptance.' >> "$GITHUB_STEP_SUMMARY"

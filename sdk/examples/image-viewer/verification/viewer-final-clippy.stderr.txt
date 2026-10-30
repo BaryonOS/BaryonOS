@@ -1,0 +1,2 @@
+    Checking nieuw-os-image-viewer v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-scaling-disco/sdk/examples/image-viewer)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.17s
