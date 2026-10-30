@@ -35,7 +35,7 @@ jobs:
       - name: Disposable emulator and matching firmware package
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf swtpm
       - name: Strict preflight
         run: python3 -B tools/preflight.py --strict
       - name: Fetch locked build dependencies before offline native builders
@@ -58,6 +58,16 @@ jobs:
           python3 -B -u tools/run_ipc_wait.py
       - name: Real joint-service guest and exact-image cold recovery
         run: python3 -B -u tools/test_system.py
+      - name: Actual TPM CRB MMIO property query release and absent-device quarantine
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/tpm-ci
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/tpm-ci
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/tpm-ci-host
+        run: |
+          python3 -B -m unittest tools.tests.test_tpm
+          cargo +1.90.0 test --offline --locked --manifest-path drivers/tpm-crb/Cargo.toml
+          python3 -B -u tools/run_tpm.py --case normal
+          python3 -B -u tools/run_tpm.py --case absent
       - name: Independently revalidate raw images and capture compact evidence
         run: python3 -B tools/capture_system.py --destination docs/verification/full-release-system-ci
       - name: Native ring-3 unauthenticated UTC clock and malformed-call rejection
@@ -108,6 +118,11 @@ jobs:
           name: native-system-evidence
           path: |
             build/ipc-wait-ci/
+            build/tpm-ci/tpm-*-report.json
+            build/tpm-ci/manifest.json
+            build/tpm-ci/logs/
+            build/tpm-ci/run/tpm-*/
+            build/tpm-ci/tpm/*/backend.log
             build/memory-ci/memory-gate.json
             build/memory-ci/logs/
             build/memory-ci/*/memory-report.json

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`8e4e29a4`](https://github.com/simonvanieperen/nieuw-os/commit/8e4e29a4dc6860cf0c6d0448716f3a4167aaae83) ·
+**Bron:** [`4b098691`](https://github.com/simonvanieperen/nieuw-os/commit/4b098691a53fbacc58a2e01d352821fa01545122) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** TPM-NATIVE-1: native poging vond dubbele bootstrapmap; caller hersteld, hertoets volgt.
-34% blijft 34%; minstens50% niet bereikt. Eerste echte TPM-VM op8e4e29a faalt raw35 voor TPM-I/O: nieuwe caller herhaalde bootstrap-only map_tables. Dubbele call verwijderd; bestaande scratch-MMIO-seam en alle mapperchecks behouden. Native hertoets volgt.23 TPM-coretests en4 gerichte harnastests groen; eerdere scalarbuild groen is geen runtimebewijs. Geen keyring/system-overlap met PR64, nieuwe apprechten, NV-mutatie of antirollbackclaim. Eerdere GUI/FPU/K05-bewijzen en lokale proefversie blijven brongebonden; volledige product-/menselijke-/hardwareacceptatie open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** TPM-NATIVE-1: eigen-kernel-CRB-query/release en ontbrekend-devicegeval beide native groen.
+34% blijft 34%; minstens50% niet bereikt. Op4b09869 slagen twee echte TPM-VM's raw33/exit0: eigen-kernel-UC/NX-MMIO, TPM2-familyquery en bevestigde release; zonder TPM exact nul writes/sticky quarantaine. Zeven adapterweigeringen en volledige CPL3-wachtproeven met199 idle-IRQ's blijven groen.23 coretests en4 harnastests groen; eerste rode mapperpoging behouden. CI wired maar nog niet uitgevoerd. Geen keyring/system-overlap met PR64, nieuwe apprechten, NV-mutatie, productkeys of rollbackanker. Geen volledig nieuw criterium; eerdere GUI/FPU/K05-bewijzen en proefversie behouden. Product-/menselijke-/hardwareacceptatie open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

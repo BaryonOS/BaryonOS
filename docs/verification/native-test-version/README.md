@@ -95,6 +95,25 @@ De score blijft **34% → 34%**; het gevraagde doel van minstens 50% is
 niet bereikt. Een hosttest, geïntegreerde component of extra PASS-teller
 sluit geen volledig rubriccriterium.
 
+## Echte TPM-CRB-MMIO
+
+`tpm-evidence.json` bevat beide echte native runs op `4b09869`, raw33/exit0:
+één vaste supervisor-RW/NX/UC-aperture, een read-only TPM2-familyquery
+(`0x322e3000`) en volledige Ready/response/wipe/Idle/relinquish-afhandeling.
+De absent-VM zonder TPM maakt exact nul hardwarewrites en behoudt
+quarantaine. Zeven echte adaptergrensweigeringen; in beide VM's blijven
+de volledige CPL3-wacht-/rechten-/lifecycleproeven groen, met 199 idle-IRQ's.
+De eerste eigen mapperintegratiefout blijft als raw35 bewaard.
+
+Beide exacte commando's, toolversies, bron-, payload-, result- en loghashes
+staan in het JSON-rapport. Alleen officiële lokaal uitgepakte swtpm/libtpms-
+testtools, eigen Unixsocket/wegwerpstate en eigen kernel. Geen echte TPM,
+nieuwe appcapability, NV-mutatie, productkeys of koud rollbackanker.
+23 bestaande TPM-coretests en 4 gerichte harnastests slagen.
+De bestaande native-system-CI draait voortaan beide cases zonder skip of
+genegeerde fouten; CI op deze branch is nog niet uitgevoerd. Dit is een
+native fundamentstap richting B02, geen afgetekend B02- of releasecriterium.
+
 ## Kill van werkelijk wachtende processen
 
 De zes echte K05-cases slagen op `586c33c`, allemaal raw33/exit0:

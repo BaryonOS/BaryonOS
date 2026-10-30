@@ -1,6 +1,30 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — TPM-CRB-MMIO gebouwd, native uitvoering volgt — 30 oktober 2026
+## NEXT AGENT HANDOFF — eigen-kernel-TPM-CRB en absent-case native groen — 30 oktober 2026
+
+Branch `simon/native-test-version`; basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`,
+geteste bron `4b098691a53fbacc58a2e01d352821fa01545122`, v3
+`d526c607b814fc9e9434784d38033a0072872b8e76960ec193f87d70cddf0167`.
+**34% → 34%; minstens 50% niet bereikt.** Beide echte TPM-VM's slagen
+raw33/exit0: vaste supervisor-UC/NX-MMIO, echte TPM2-familyquery, bevestigde
+release; zonder TPM exact nul writes en sticky quarantaine. Zeven
+adaptergrensweigeringen en beide volledige CPL3-wachtproeven blijven groen.
+Geen productgrant, NV-mutatie, sleutelpersistentie of rollbackanker geclaimd.
+Bronnen, exacte commando's, payloads, logs en eerste rode mapperpoging:
+`verification/native-test-version/tpm-evidence.json`.
+
+23 TPM-coretests, 4 gerichte harnastests en scalarbuild/ELF-inspectie groen.
+Native-system-CI krijgt beide echte cases; die CI **nog niet uitgevoerd**.
+PR #64/keyring/system-opslag niet gewijzigd. Geen achtergrondagent of
+testproces actief. Eerdere GUI/koud/FPU/K05-bewijzen blijven brongebonden;
+normale lokale proefversie onder `build/native-test-version/test-version/esp`.
+Volgende stap: gedeelde build/runnerintegratie hertoetsen en de normale
+GUI-proefversie op deze gecombineerde bron herbouwen/herhalen. Eerst:
+`python3 -B -m unittest discover -s tests` en
+`python3 -B -m unittest discover -s tools/tests`.
+Volledige product-/menselijke-/hardwareacceptatie en 50%-opdracht blijven open.
+
+## Uitvoeringshistorie — TPM-CRB-MMIO gebouwd en eerste native herstel
 
 Branch `simon/native-test-version`, basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`;
 laatste bewijscheckpoint `cf020559b7771a221713f2fd676c1dbed0081c24`.

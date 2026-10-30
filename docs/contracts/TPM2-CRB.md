@@ -2,7 +2,7 @@
 
 Status: afzonderlijke safe/no_std-transport- en codeclogica in
 `drivers/tpm-crb`; opt-in MMIO-bootstrapfixture nu in implementatie volgens
-ADR-052, native uitvoering nog open. Geen productkernelgrant of koude
+ADR-052, beide native gevallen nu groen op `4b09869`. Geen productkernelgrant of koude
 rollbackankering. Hostmodellen zijn uitsluitend protocol-/registertests.
 De nog verplichte B02-/boot-/update-eisen blijven open.
 
@@ -20,6 +20,10 @@ Runner: `tools/run_tpm.py --case normal|absent`; swtpm gebruikt uitsluitend
 een beheerde eigen Unixsocket/state, geen echte TPM of netwerkverbinding.
 De code hieronder blijft het transportcontract; oude open-statuszinnen
 zijn geen nieuwe native acceptatie. Actuele uitvoering: PROJECT-STATE.
+Bron-/artifact-/logbinding en de bewaarde eerste mislukking staan in
+`verification/native-test-version/tpm-evidence.json`. Beide VM's raw33;
+absent maakt nul writes, positief geeft family `0x322e3000` en bevestigde
+Idle/relinquish. De bestaande volledige CPL3-wachtproeven blijven groen.
 
 ## Ondersteund interfacecontract
 

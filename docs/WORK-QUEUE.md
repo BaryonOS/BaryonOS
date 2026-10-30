@@ -1,14 +1,18 @@
 # Werkqueue — volledige native testrelease, 30 oktober 2026
 
-Actief `TPM-NATIVE-1`, eigenaar `simon/native-test-version`, vanaf
+Afgeronde fundamentstap `TPM-NATIVE-1`, eigenaar `simon/native-test-version`, vanaf
 `cf02055`: alleen vaste supervisor-MMIO-adapter en read-only TPM2-property-
 proef met echte PIT-polls, afzonderlijk absent-geval en bestaande volledige
 CPL3-wachtacceptatie. Exclusieve writes: root/kernel Cargo-manifest/lock,
 exacte pagingseam, M3-TPM-fixture/testhook, waitfixture-observer,
 `tools/build.py`, `tools/run.py`, nieuwe `run_tpm.py`/hosttest en bewijsdocs.
 Geen keyring/system-opslagwijzigingen; actieve PR #64 bezit dat gebied.
-23 coretests, 4 harnastests en scalarbuild/ELF-inspectie groen; native gate
-nog open. ADR-052; afhankelijkheid van FR-B01/FR-O05, geen gesloten criterium.
+23 coretests, 4 harnastests en scalarbuild/ELF-inspectie groen. Beide echte
+native VM's slagen op `4b09869`: propertyquery/release en nul-write-absent-
+quarantaine, met volledige CPL3-wachtacceptatie. Eerste rode poging behouden;
+`verification/native-test-version/tpm-evidence.json`. ADR-052; fundament
+voor FR-B01/FR-O05, geen gesloten criterium. Integrator herhaalt nu de
+gedeelde gates/proefversie; nieuwe CI-step nog niet uitgevoerd.
 Voorafgaande sessiestap: alle zes echte K05-cases, inclusief twee Waiting-
 kills en schoon hergebruik, groen op `586c33c`; brongebonden bewijs in
 `verification/native-test-version/wait-lifecycle-evidence.json`.
