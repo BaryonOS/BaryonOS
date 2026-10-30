@@ -1,6 +1,24 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Interactieve zevenprocessenrunner geïntegreerd; native gate volgt
+## NEXT AGENT HANDOFF — Interactieve native keten groen; CI-formatfix volgt
+
+Op vaste bron `fc40347b250c544ab9838cf89a62df16b32a797b`, runtime v3
+`61f58e2e7c7a64e911883c64de5b2d416f7085af94123699fd206c7448ea2b5e`,
+slagen referentie `224bfa2ade` (136.326s/raw33) en gewone zevenprocessenrun
+`f07d8d122c` (92.774s/QMP-quit/raw0). Alle zes volledige PPM's bytegelijk,
+zeven apprecords/loader/bron/platform exact gebonden. Onafhankelijke disk
+na exit bevat object0/rev1/14B/generation1/clocks[1,0], canaries intact.
+Bewijs en exacte commando's: `verification/full-release-interactive-native/`.
+Eerste aanroep weigerde automatische firmware voor gaststart; expliciete
+reguliere OVMF met dezelfde hashes slaagt, geen oracle gewijzigd.
+
+CI is NIET groen: vier jobs op fc40347 falen door rustfmt van de drie
+overgenomen cfg-hooks. Eerst formatteerbaar herstel, fmt/hostgates en
+checkpoint/push, daarna dezelfde twee native proeven op nieuwe vaste bron.
+Peer is geïnformeerd: nog geen bundelbron vrijgegeven. Windows/ZIP, gewone
+koudrecovery, visuele/menselijke/hardwareacceptatie en50% blijven open.
+
+## Uitvoeringshistorie — Interactieve runner geïntegreerd; native gate volgt
 
 Integratie vanaf `8b199ad` met de volledige peerbranch
 `0887217360e924f94f3b86a52c3724cfdbe1c9ea`. Packager, launcher,

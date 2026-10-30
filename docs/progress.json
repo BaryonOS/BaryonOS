@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "8b199adc412e44d07accf024eb3abc83e46bb6c2",
+    "source_commit": "fc40347b250c544ab9838cf89a62df16b32a797b",
     "branch": "simon/native-test-version",
-    "task": "Interactieve zevenprocessenrunner en Windowsbundelcode geïntegreerd; native gate volgt",
+    "task": "Zevenprocessenbediening native bewezen; CI-formatfix en nieuwe vaste bundelbron volgen",
     "previous_score": 34,
-    "summary": "34% blijft34%; minstens50% niet bereikt. Volledige onafhankelijke packagingbranch0887217 geïntegreerd vanaf8b199ad. Strikte interactieve zevenprocessenproef vereist nieuwe bronidentieke normale referentierun, alle apphashes, zes exacte native frames en onafhankelijk diskorakel na QMP-quit. Geen pixelmaskers of probe/controllerclaim voor gewone variant. Eerdere bewijzen blijven brongebonden. Gezamenlijke host/native gate en ZIP nog open; geen nieuw criterium, volledige product-, Windows-, menselijke of hardwareacceptatie."
+    "summary": "34% blijft34%; minstens50% niet bereikt. Op fc40347 slagen echte normale referentie en gewone zevenprocessenbediening met zes volledige bytegelijke native frames, zeven appidentiteiten en onafhankelijk diskorakel na QMP-quit/raw0. Geen maskers/controllerfallback. Vier CI-jobs falen op rustfmt van overgenomen cfg-hooks; herstel en nieuwe same-source native gates volgen. Windows/ZIP en volledige product-, menselijke en hardwareacceptatie open; deze deelketen sluit geen volledig rubriccriterium."
   },
   "tracks": [
     {
