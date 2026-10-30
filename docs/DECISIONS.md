@@ -57,8 +57,9 @@ blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
 **Datum/status:** 30 oktober 2026; gebruikersbesluit van Simon, vastgelegd
 in PR #114. Leidend boven de eerdere eisen dat het hoofdscherm geen
 bestaande desktop mag nabootsen en dat er geen dock of taakbalk komt
-(PRODUCT-SPEC §2 en §5, DESIGN-AMBITION, PRODUCT-AND-SOVEREIGNTY §2,
-AGENTS.md *Productambitie*).
+(PRODUCT-SPEC §1 en §5, het verbod op interactioneel nabouwen in
+PRODUCT-SPEC *Aanvulling P3/P4* voor gangbare indeling en bediening,
+DESIGN-AMBITION, PRODUCT-AND-SOVEREIGNTY §2, AGENTS.md *Productambitie*).
 
 **Besluit:** consumenten hoeven Nieuw OS niet opnieuw te leren. Inrichting,
 inloggen, vergrendelen, gebruikersbeheer, bureaublad, taakbalk, startmenu met
@@ -74,6 +75,11 @@ het bekende pad, nooit een vervanging ervan.
   Security Floor blijven ongewijzigd. Herkenbare bediening verleent geen
   bredere rechten: een app krijgt nog steeds alleen expliciet verleende
   capabilities, ook als de interface op bekende platforms lijkt.
+- Herkenbaar inloggen verandert de beveiliging niet: elke gebruiker heeft
+  eigen sleutelmateriaal (geen gedeelde volumesleutel), inloggegevens worden
+  alleen in de sessiedienst ingevoerd via het vergrendelscherm of
+  Ctrl+Alt+Delete, en de pincode beschermt nooit sleutels op schijf
+  (PROFILES-AND-USERS §4).
 - Materiaal blijft het gegevens-, geschiedenis- en rechtenmodel. Het wordt
   zichtbaar via de Bestanden-app, recente items in het startmenu en
   toestemmingsdialogen; het is niet langer het verplichte hoofdscherm.

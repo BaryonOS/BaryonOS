@@ -22,9 +22,14 @@ Regels:
   merknamen of trade dress. De bestaande Materiaal-tokens (minerale
   achtergrond, diepe groentinten, duidelijke typografie) zijn het startpunt.
 - **Rechten blijven rechten.** Een vertrouwd ogend venster of een bekende
-  plek verleent geen capability. Systeemvensters (toestemming,
-  beheerderswachtwoord, Ctrl+Alt+Delete) tekent alleen de vertrouwde shell;
-  apps kunnen ze niet nabootsen of overtekenen.
+  plek verleent geen capability. Toestemmingsvensters tekent de vertrouwde
+  shell in een laag die apps niet kunnen overtekenen. Wachtwoord, pincode
+  en beheerderswachtwoord worden alleen ingevoerd op een oppervlak van de
+  sessiedienst, bereikt via het vergrendelscherm of Ctrl+Alt+Delete; de
+  shell en apps krijgen die toetsaanslagen nooit
+  ([PROFILES-AND-USERS.md](PROFILES-AND-USERS.md) §4, invariant 8). Een app
+  kan pixels nabootsen; daarom vraagt het systeem buiten die route nooit om
+  een geheim.
 
 ## 2. Onderdelen en gekozen conventies
 
@@ -64,8 +69,8 @@ genoemd. Op Mac-toetsenborden geldt Cmd als OS-toets.
 
 | Er is (native, in QEMU getest) | Ontbreekt voor deze shell |
 |---|---|
-| Ring-3-compositor met surfaces, focus en tegelblits ([NATIVE-COMPOSITOR.md](NATIVE-COMPOSITOR.md)) | Vensterbeheer (verplaatsen, vergroten, stapelen, schikken), taakbalk en startmenu als vertrouwde shell |
-| Inputbron/-router met focus via de compositor ([NATIVE-INPUT.md](NATIVE-INPUT.md)) | Zichtbare muisaanwijzer, interruptgestuurde invoer, sneltoetsafhandeling door de shell |
+| Ring-3-compositor met één toegewezen surface voor één app, focus en tegelblits ([NATIVE-COMPOSITOR.md](NATIVE-COMPOSITOR.md)) | Meerdere clients en surfaces, vensterbeheer (verplaatsen, vergroten, stapelen, schikken), een beschermde systeemlaag, taakbalk en startmenu als vertrouwde shell |
+| Native invoerdienst met PS/2-bron en focusroute via de compositor ([NATIVE-INPUT-DAEMON.md](NATIVE-INPUT-DAEMON.md)) | Zichtbare muisaanwijzer, interruptgestuurde invoer, sneltoetsafhandeling door de shell, beveiligde aandachtsreeks naar de sessiedienst |
 | Materiaal en documentsessie ([NATIVE-MATERIAAL.md](NATIVE-MATERIAAL.md)) | Bestanden-app met mappenweergave, zoekindex |
 | Meerdere ring-3-processen ([K05](K05-PROCESS-MANAGEMENT.md)) | Generiek apps starten/stoppen vanuit het startmenu (FR-K02, FR-A-rijen) |
 | UEFI-framebuffer, vast 800×600 ([DISPLAY-INPUT-NATIVE-PROBE.md](DISPLAY-INPUT-NATIVE-PROBE.md)) | Hogere resoluties, schaalfactor, een grafische driver |
@@ -95,9 +100,9 @@ browsermock of schermontwerp is productbewijs, geen systeembewijs.
 |---|---|---|---|
 | D0 | Bediening bruikbaar (= stap 0 van PROFILES-AND-USERS): aanwijzer, toetsenbord, complete frames, IRQ-invoer | Compositor, input | Zie daar |
 | D1 | Schermontwerp in eigen huisstijl voor bureaublad, taakbalk, startmenu, vensters, vergrendel- en inlogscherm; klikbaar prototype, gelabeld als simulatie | ADR-058 | Taakproef met mensen die geen beheerder zijn: app starten, bestand terugvinden, venster schikken, afsluiten zonder uitleg |
-| D2 | Vensterbeheer in de compositor: titelbalk, verplaatsen, vergroten, stapelen, schikken, Alt+Tab | D0 | Twee apps tegelijk; focus, overlap en sluiten; een app kan geen ander venster verplaatsen of overtekenen |
+| D2 | Meerdere clients en surfaces in de compositor; vensterbeheer: titelbalk, verplaatsen, vergroten, stapelen, schikken, Alt+Tab | D0 | Twee apps tegelijk; focus, overlap en sluiten; een app kan geen ander venster verplaatsen of overtekenen |
 | D3 | Taakbalk, startmenu en aan/uit-menu als vertrouwde shell; apps starten vanuit het menu | D2, generiek procesbeheer | Starten, sluiten, crash van een app laat de shell staan; crash van de shell herstelt zonder sessieverlies |
-| D4 | Zoeken over apps, instellingen en eigen bestanden, lokaal | D3, catalogus | Alleen bestanden van de ingelogde gebruiker; geen netwerkverkeer zonder expliciete keuze |
+| D4 | Zoeken over apps, instellingen en eigen bestanden, lokaal | D3, catalogus, PROFILES-AND-USERS stap 3 | Alleen bestanden van de ingelogde gebruiker; geen netwerkverkeer zonder expliciete keuze |
 | D5 | Bestanden-app en Instellingen-app | D3, PROFILES-AND-USERS stap 2 en 6 | FR-U- en FR-S03-acceptatie |
 | D6 | Hogere resolutie en schaal, daarna grafische driver | Driverwerk | Afzonderlijke contracten |
 

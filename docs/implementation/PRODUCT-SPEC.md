@@ -2,7 +2,7 @@
 
 ## Aanvulling ADR-058 — 30 oktober 2026
 
-Gebruikersbesluit, leidend boven de regels hieronder dat het hoofdscherm geen bestaande desktop nabootst (§2) en dat er geen dock of taakbalk komt (§5). De eindervaring krijgt een herkenbaar bureaublad, taakbalk, startmenu met zoeken, vensterbediening, inrichting en inlogscherm volgens [DESKTOP-SHELL.md](DESKTOP-SHELL.md) en [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md). Materiaal blijft het gegevens-, geschiedenis- en rechtenmodel en verschijnt in de Bestanden-app, recente items en toestemmingsdialogen. P2 hieronder blijft historisch productbewijs. Eigen visuele identiteit blijft verplicht; herkenbaar is de bediening, niet de huisstijl.
+Gebruikersbesluit, leidend boven de regels hieronder dat het hoofdscherm geen bestaande desktop nabootst (§1) en dat er geen dock of taakbalk komt (§5), en boven de zin in *Aanvulling P3/P4* dat de ervaring Windows of macOS niet interactioneel mag nabouwen, voor zover het de gangbare indeling, bediening en sneltoetsen betreft. Visueel nabouwen (huisstijl, iconen, trade dress) blijft uitgesloten; de overige P3/P4-eisen aan afwerking en snelheid blijven gelden. De eindervaring krijgt een herkenbaar bureaublad, taakbalk, startmenu met zoeken, vensterbediening, inrichting en inlogscherm volgens [DESKTOP-SHELL.md](DESKTOP-SHELL.md) en [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md). Materiaal blijft het gegevens-, geschiedenis- en rechtenmodel en verschijnt in de Bestanden-app, recente items en toestemmingsdialogen. P2 hieronder blijft historisch productbewijs. Eigen visuele identiteit blijft verplicht; herkenbaar is de bediening, niet de huisstijl.
 
 ## Aanvulling N01 — 27 oktober 2026
 

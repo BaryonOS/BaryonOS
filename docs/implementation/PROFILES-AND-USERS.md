@@ -45,8 +45,10 @@ Op Simons Windows-pc, bundel `eabc27b`, Windows-QEMU 11.1.0, TCG:
   tekenbord"). Dat past bij het bestaande ontwerp: Materiaal doet per
   begrensde iteratie één tiletransactie ([NATIVE-MATERIAAL.md](NATIVE-MATERIAAL.md))
   en de compositor blit iedere tegel via `DisplayClient.blit` naar het
-  scherm ([NATIVE-COMPOSITOR.md](NATIVE-COMPOSITOR.md)). Of tegels in het
-  zichtbare framebuffer landen of in een buffer, is niet gemeten.
+  scherm ([NATIVE-COMPOSITOR.md](NATIVE-COMPOSITOR.md)). De kernel schrijft
+  die tegels direct (volatile) in het zichtbare GOP-framebuffer
+  (`kernel/src/framebuffer.rs`); er is geen backbuffer, pageflip of vsync.
+  Dat verklaart de zichtbare opbouw; de verversingstijd is niet gemeten.
 - Invoer wordt gepolld: IRQ1/12 wekt de inputwacht nog niet
   ([NATIVE-INPUT-IDLE-WAIT.md](../contracts/NATIVE-INPUT-IDLE-WAIT.md)).
 - Een losse proef met `-accel whpx` startte tot `MATERIAAL:FOCUS:READY` en
@@ -61,11 +63,11 @@ gebruikersonderzoek.
 
 | Bouwsteen | Wat er is | Wat ontbreekt voor profielen |
 |---|---|---|
-| [B01 Key Service](B01-ENTROPY-AND-KEYS.md) | Entropy, hoofdsleutel, zestien domeinen, intrekking, herstelgeheim zonder escrow | Geen TPM-bescherming, geen wachtwoord-KDF |
-| [B02 records](B02-SECURE-RECORDS.md) | Geauthenticeerde records; persistent key-state-blob onder een extern 32-bytegeheim; "een aparte gebruikers-/herstelagent levert het externe geheim" | Die agent bestaat niet; koude rollbackankering en write-ahead zijn open |
+| [B01 Key Service](B01-ENTROPY-AND-KEYS.md) | Entropy, hoofdsleutel, twee vaste domeinen met elk zestien sleutelindices (B01-proefgrens), intrekking, herstelgeheim zonder escrow | Geen sleuteldomein of hoofdsleutel per gebruiker, geen TPM-bescherming, geen wachtwoord-KDF |
+| [B02 records](B02-SECURE-RECORDS.md) | Geauthenticeerde records; persistent key-state-blob met één `master[32]` per volume onder een extern 32-bytegeheim; "een aparte gebruikers-/herstelagent levert het externe geheim" | Die agent bestaat niet; geen key-state per gebruiker; koude rollbackankering en write-ahead zijn open |
 | [Versleutelde opslag](ENCRYPTED-OBJECT-STORAGE.md) §5 | Doelmodel DEK per object; Argon2id (RFC 9106) als voorkeurskandidaat voor wachtwoordherstel | Geen implementatie of gemeten parameters |
-| Volume/catalogus (M6) en document-session | Native objecten, catalogus en commit | Geen namespace per gebruiker |
-| Capabilities, compositor, inputrouter | Focus alleen via vertrouwde compositor; apps kunnen geen input injecteren | Geen sessie-eigenaar, slotscherm of gebruikerswissel |
+| Volume/catalogus (M6) en document-session | Native objecten, catalogus en commit | Geen namespace per gebruiker; geen versleuteling at rest (FNV-64 detecteert alleen beschadiging) |
+| Capabilities, compositor, inputrouter | Focus alleen via vertrouwde compositor; apps kunnen geen input injecteren | Compositor bedient één toegewezen surface; geen sessie-eigenaar, beveiligde invoerroute, slotscherm of gebruikerswissel |
 | [TPM-CRB-transport](../contracts/TPM2-CRB.md) | Begrensde transportkern, opt-in fixture | Geen productgrant of sleutelbinding |
 | [NAS-beheermodel](NAS-SHARING-AND-INTERNET.md) | Beheerder mag quota en wissen, niet lezen | Nog niet toegepast op lokale gebruikers |
 
@@ -85,13 +87,13 @@ zij verschillen, staat hieronder de gekozen variant.
 | Eerste account | Wordt beheerder; mag de enige gebruiker blijven | Alle drie |
 | Beheerdershandelingen | Een standaardgebruiker of app vraagt het beheerderswachtwoord in een vertrouwd systeemvenster (gedimde achtergrond) | UAC, macOS-beheerdersvraag, `sudo`/polkit |
 | Wachtwoord | Verplicht bij inrichting; geen wachtwoordhint | Alle drie |
-| Pincode | Optioneel, minimaal 4 cijfers, met oplopende wachttijd na fouten. Zonder TPM-binding ontgrendelt de pincode alleen een vergrendelde sessie; na opnieuw opstarten is het wachtwoord nodig, met die uitleg op het scherm | Windows Hello-pincode; "wachtwoord vereist na herstart" op macOS/telefoons |
+| Pincode | Optioneel, minimaal 4 cijfers, met oplopende wachttijd na fouten. Zonder TPM-binding ontgrendelt de pincode alleen een vergrendelde sessie en beschermt zij nooit sleutels op schijf; na opnieuw opstarten is het wachtwoord nodig, met die uitleg op het scherm | Windows Hello-pincode; "wachtwoord vereist na herstart" op macOS/telefoons |
 | Vergrendelen | Sleutels blijven in het geheugen; afmelden, afsluiten en gastafmelding wissen ze | Alle drie |
 | Automatisch vergrendelen | Standaard na 5 minuten inactiviteit, instelbaar | Alle drie |
-| Gastaccount | Beschikbaar, standaard uit; aan te zetten in Instellingen > Accounts | macOS, Linux |
+| Gastaccount | Beschikbaar, standaard uit; aan te zetten in Instellingen > Accounts. Gastgegevens staan onder een vluchtige sleutel die alleen in het geheugen bestaat | macOS, Linux |
 | Herstel | Herstelsleutel bij inrichting tonen en laten bewaren; later een tweede eigen apparaat. Geen leveranciersaccount, achterdeur of escrow | BitLocker-/FileVault-herstelsleutel |
 | Leveranciersaccount | Nooit verplicht; ook niet stil via netwerk | Lokaal account op alle drie |
-| Sessies | Eerste versie één actieve sessie; wisselen = vergrendelen en andere gebruiker kiezen. Gelijktijdige sessies volgen later | Snelle gebruikerswisseling |
+| Sessies | Eerste versie één actieve sessie; wisselen = vergrendelen en andere gebruiker kiezen. De vergrendelde sessie blijft bestaan en valt onder invariant 9. Zichtbaar gelijktijdig werken volgt later | Snelle gebruikerswisseling |
 
 ### Eerste start (OOBE: out-of-box experience)
 
@@ -103,9 +105,11 @@ zij verschillen, staat hieronder de gekozen variant.
 5. Herstelsleutel tonen; bewaren bevestigen (afdrukken, opslaan op USB of
    overschrijven); doorgaan pas na bevestiging.
 6. Optioneel een pincode instellen.
-7. Privacy: één scherm dat uitlegt dat Nieuw OS geen telemetrie verstuurt;
+7. Opslag: standaard alleen op dit apparaat; een eigen NAS koppelen kan nu
+   of later (FR-S01). Er is geen leveranciersopslag als standaard.
+8. Privacy: één scherm dat uitlegt dat Nieuw OS geen telemetrie verstuurt;
    locatie en vergelijkbare rechten staan standaard uit.
-8. Klaar: het bureaublad verschijnt met een korte, overslaanbare rondleiding.
+9. Klaar: het bureaublad verschijnt met een korte, overslaanbare rondleiding.
 
 Terug kan bij iedere stap. Een onderbreking laat geen half account achter;
 na herstart begint de inrichting bij stap 1 of bij de laatste voltooide stap
@@ -115,7 +119,8 @@ zonder half aangemaakte sleutels.
 
 - **Vergrendelscherm:** achtergrond, klok en datum; geen inhoud van meldingen.
   Een toets, klik of veeg toont het inlogscherm.
-- **Inlogscherm:** de laatst gebruikte gebruiker staat klaar met wachtwoord-
+- **Inlogscherm:** getekend door de sessiedienst, niet door de shell of een
+  app. De laatst gebruikte gebruiker staat klaar met wachtwoord-
   of pincodeveld; andere gebruikers (en gast, indien aan) staan als lijst
   met naam en foto. **Wachtwoord vergeten?** leidt naar herstel met de
   herstelsleutel. Aan/uit-knop met afsluiten en opnieuw opstarten.
@@ -123,15 +128,22 @@ zonder half aangemaakte sleutels.
   wisselen, slaapstand, opnieuw opstarten, afsluiten.
 - **Sneltoetsen:** OS-toets+L vergrendelt; Ctrl+Alt+Delete opent een
   vertrouwd systeemscherm met vergrendelen, gebruiker wisselen, afmelden en
-  taakbeheer. Ctrl+Alt+Delete kan geen app onderscheppen.
+  taakbeheer. Ctrl+Alt+Delete is de beveiligde aandachtsreeks: de
+  inputrouter levert die combinatie uitsluitend aan de sessiedienst, nooit
+  aan een app of de shell. Een beheerderswachtwoord voor een handeling van
+  een standaardgebruiker wordt ook in een oppervlak van de sessiedienst
+  ingevoerd (invariant 8).
 - **Instellingen > Accounts:** wachtwoord en pincode wijzigen,
   profielfoto, automatisch vergrendelen, gebruikers en gast beheren
   (beheerder).
 
 ## 4. Dreigingsmodel en invarianten
 
-Beschermd tegen: een andere lokale gebruiker, een kwaadwillende of
-gecompromitteerde app, en het lezen van een uitgeschakelde pc of losse schijf.
+Beschermd tegen (doel; pas aangetoond na stap 2–5): een andere lokale
+gebruiker, ook een beheerder of iemand met het eigen wachtwoord en de schijf;
+een kwaadwillende of gecompromitteerde app, ook een die een inlogvenster
+nabootst; en het lezen van een uitgeschakelde pc of losse schijf. Vandaag is
+het documentvolume niet versleuteld; die bescherming bestaat dus nog niet.
 Niet beschermd: een gecompromitteerde kernel of vertrouwde systeemdienst,
 fysieke aanvallen op een draaiende pc, en zonder TPM-binding een offline
 brute-force op het wachtwoord met de schijf in handen (Argon2id maakt dat
@@ -143,8 +155,11 @@ Invarianten (eerst ontwerpen, dan interface, dan code en negatieve tests):
    ingelogde gebruiker; een geraden object-ID, catalogusnaam of handle van
    een andere gebruiker levert niets op.
 2. Het wachtwoord verlaat de sessiedienst niet, wordt niet gelogd en is niet
-   rechtstreeks de hoofdsleutel; het ontgrendelt via Argon2id een
-   willekeurig gebruikersgeheim dat de B02-key-state ontsluit.
+   rechtstreeks een sleutel. Het ontgrendelt via Argon2id een willekeurig
+   geheim van **die gebruiker**, dat alleen diens eigen key-state (eigen
+   hoofdsleutel en DEK's) ontsluit. Er is geen gedeelde volumesleutel
+   waarmee het wachtwoord van de ene gebruiker de inhoud van een andere
+   ontsleutelt. De pincode beschermt nooit sleutels op schijf.
 3. Een fout wachtwoord, afgebroken poging of I/O-fout ontgrendelt niets en
    geeft geen gedeeltelijke toegang (fail closed); pogingen worden begrensd.
 4. Tijdens vergrendeling krijgen apps geen invoer en kan geen app over het
@@ -152,6 +167,21 @@ Invarianten (eerst ontwerpen, dan interface, dan code en negatieve tests):
 5. De eigenaar kan een gebruiker wissen zonder diens geheim, maar heeft geen
    bewerking die gebruikersinhoud ontsleutelt.
 6. Een onderbroken inrichting laat geen half profiel achter.
+7. Inhoud en documentnamen van een gebruiker staan op schijf versleuteld met
+   diens eigen sleutels ([ENCRYPTED-OBJECT-STORAGE.md](ENCRYPTED-OBJECT-STORAGE.md)).
+   Wie de schijf en het eigen wachtwoord heeft, kan andermans objecten en
+   namen niet ontsleutelen.
+8. Een wachtwoord, pincode of beheerderswachtwoord wordt uitsluitend
+   ingevoerd op een oppervlak van de sessiedienst, bereikt via het
+   vergrendelscherm of de beveiligde aandachtsreeks (Ctrl+Alt+Delete). Shell
+   en apps ontvangen die toetsaanslagen nooit. Een app kan pixels nabootsen;
+   daarom vraagt het systeem buiten die route nooit om een geheim.
+9. Bij gebruikerswissel krijgen apps van de vergrendelde gebruiker geen
+   invoer, tekenen zij niet op het scherm van de actieve gebruiker en lezen
+   zij diens oppervlakken, klembord of objecten niet.
+10. Gastgegevens staan onder een vluchtige sleutel die alleen in het geheugen
+    bestaat. Na afmelden, crash of stroomverlies zijn zij onleesbaar en de
+    volgende start ruimt ze op.
 
 Geen zelfbedachte cryptografie: hergebruik de bestaande
 XChaCha20-Poly1305/HKDF-SHA-256 uit de Key Service. Een Argon2id-implementatie
@@ -165,13 +195,13 @@ Hosttests, een build of een AI-review zijn geen acceptatie.
 
 | Stap | Resultaat | Afhankelijk van | Acceptatie (native, met negatieve gevallen) |
 |---|---|---|---|
-| 0. Bediening bruikbaar | Zichtbare muisaanwijzer; toetsenbordactivatie op het startscherm; een frame pas tonen als het compleet is; alleen gewijzigde gebieden hertekenen; invoer via IRQ1/12 i.p.v. alleen polling | Bestaande compositor-, input- en Materiaalcontracten | Gemeten tijd van toets tot zichtbaar pixel in het vaste TCG-profiel, vóór en na; geen half getekend frame zichtbaar; bestaande pixel-, focus- en invoergates blijven groen |
+| 0. Bediening bruikbaar | Zichtbare muisaanwijzer; toetsenbordactivatie op het startscherm; een frame pas tonen als het compleet is; alleen gewijzigde gebieden hertekenen; invoer via IRQ1/12 i.p.v. alleen polling | Bestaande input- en Materiaalcontracten; een display-/compositorcontractwijziging voor een backbuffer of complete-framecommit (de kernel schrijft nu direct in het zichtbare framebuffer) | Gemeten tijd van toets tot zichtbaar pixel in het vaste TCG-profiel, vóór en na; geen half getekend frame zichtbaar; bestaande pixel-, focus- en invoergates blijven groen |
 | 1. Besluit gebruikersmodel | ADR-058 en §3–4 van dit document | — | **Besloten** 30 oktober 2026; securityreview van de invarianten volgt bij stap 3 |
-| 2. Fundament | B02 koude rollbackankering en write-ahead; Argon2id met gemeten, versieerbare parameters; persistente instellingenopslag | B01, B02, volume | Herstart behoudt key-state en instellingen; oude snapshot, fout wachtwoord en beschadigd record worden geweigerd |
-| 3. Sessiedienst | Ring-3-dienst die gebruikers versleuteld registreert, wachtwoord controleert en per gebruiker capabilities uitgeeft | Stap 2 | Gebruiker A kan B's catalogus/objecten niet openen, ook niet met geraden ID's; begrensde pogingen; geen geheim in logs of serial |
-| 4. Eerste start (FR-S01) | Native inrichting: taal/bediening, naam, wachtwoord of pincode, herstelcode, opslagkeuze | Stap 0 en 3 | Terug/annuleren, stroomonderbreking tijdens inrichting zonder half profiel, daarna lokaal beginnen |
-| 5. Inloggen, vergrendelen, wisselen (FR-S02) | Inlogscherm, vergrendelen, gebruiker wisselen | Stap 3 en 4 | Herhaald lock/unlock; fout geheim; inputrace; vergrendelde apps krijgen geen invoer en tekenen niet over het slotscherm |
-| 6. Instellingen en beheer (FR-S03) | Instellingen per gebruiker; eigenaar voegt gebruikers toe en verwijdert ze | Stap 2–5 | Instelling overleeft koude herstart; ongeldige waarde, volle opslag en I/O-fout zonder valse bevestiging; wissen door eigenaar zonder leesrecht |
+| 2. Fundament | B02 koude rollbackankering en write-ahead; key-state en hoofdsleutel per gebruiker (meer dan de huidige twee B01-domeinen); versleuteling at rest van objecten en documentnamen per gebruiker; Argon2id met gemeten, versieerbare parameters; persistente instellingenopslag | B01, B02, volume, ENCRYPTED-OBJECT-STORAGE | Herstart behoudt key-state en instellingen; oude snapshot, fout wachtwoord en beschadigd record worden geweigerd; offline proef: met schijfimage en het wachtwoord van A zijn objecten en namen van B niet te ontsleutelen (onafhankelijke oracle) |
+| 3. Sessiedienst | Ring-3-dienst die gebruikers versleuteld registreert, wachtwoord controleert en per gebruiker capabilities uitgeeft | Stap 2 | Gebruiker A kan B's catalogus/objecten niet openen, ook niet met geraden ID's; begrensde pogingen; geen geheim in logs of serial; een app of de shell ontvangt geen toetsaanslagen van een inlog- of beheerdersvraag; een app die een inlogvenster nabootst krijgt geen geheim; een beheerdershandeling van een standaardgebruiker wordt zonder beheerderswachtwoord geweigerd |
+| 4. Eerste start (FR-S01) | Native inrichting: taal/bediening, naam, wachtwoord (verplicht), optionele pincode, herstelsleutel, opslagkeuze | Stap 0 en 3 | Terug/annuleren; foutgevallen (lege of ongelijke wachtwoorden, inrichting zonder wachtwoord geweigerd); stroomonderbreking tijdens inrichting zonder half profiel; daarna lokaal beginnen |
+| 5. Inloggen, vergrendelen, wisselen (FR-S02) | Inlogscherm, vergrendelen, gebruiker wisselen | Stap 3 en 4 | Herhaald lock/unlock; fout geheim; afgebroken poging; inputrace; oplopende wachttijd; pincode na koude herstart geweigerd; vergrendelde apps krijgen geen invoer en tekenen niet over het slotscherm; bij wisselen tekenen en lezen apps van A niets van B (invariant 9); herstel met herstelsleutel: foute of ingetrokken sleutel, sleutel van een andere gebruiker en onderbroken reset geven geen gedeeltelijke toegang |
+| 6. Instellingen en beheer (FR-S03) | Instellingen per gebruiker; eigenaar voegt gebruikers toe en verwijdert ze; gastaccount aan/uit | Stap 2–5 | Instelling overleeft koude herstart; wijzigen en terugzetten; ongeldige waarde, volle opslag en I/O-fout zonder valse bevestiging; wissen door eigenaar zonder leesrecht; gastgegevens na afmelden én na crash/stroomverlies onleesbaar en opgeruimd |
 | Later | TPM-binding op ondersteunde hardware, tweede eigen apparaat, NAS-sync, gelijktijdige sessies, eventueel ouderlijk toezicht | Hardwareprofiel, NAS-dienst | Afzonderlijke contracten |
 
 Stap 0 kan parallel aan stap 2: die raakt andere bestanden en lost de
