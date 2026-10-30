@@ -7,10 +7,12 @@ Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
 RTC-kalenderboots, zeven M2-regressie-VM's, M6c-smoke en hostgates slagen;
 firmware-epoch/2100 blijft expliciet geweigerd.
 
-Actieve vervolgdeelstap `TASK-NATIVE-CLOCK-1`: opt-in ABI 1.9 syscall `0x73`,
+Afgeronde deelstap `TASK-NATIVE-CLOCK-1`: opt-in ABI 1.9 syscall `0x73`,
 SDK-type met expliciet `UnauthenticatedRtc`, en echte ring-3-positief- en
-negatiefproef in de bestaande systeemapp. Implementatie en hosttests zijn
-gebouwd; native QEMU-gate volgt. Het is een directe FR-N03/FR-S03-afhankelijkheid,
+negatiefproef in de bestaande systeemapp. De native QEMU-gate slaagde met
+gecontroleerde UTC-basis, twee echte reads, monotone tickcontrole en
+`-22`-argumentweigering; brongebonden bewijs staat onder
+`verification/system-clock/`. Het is een directe FR-N03/FR-S03-afhankelijkheid,
 geen vertrouwde tijd, TLS-klok of gesloten roadmapcriterium.
 [Brongebonden bewijs](verification/rtc-native/README.md); concept-PRreview,
 geen samenvoeging of volledige productrelease geclaimd. De andere

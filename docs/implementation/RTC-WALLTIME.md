@@ -191,9 +191,9 @@ worden niet gebruikt om wall-clock te schatten of te corrigeren.
 De native proef laat de bestaande ring-3-systeemapp twee tijden lezen,
 controleert hun volgorde en de monotone-ticks, en test een syscall met een
 niet-nulargument. De onafhankelijke runner vergelijkt de gerapporteerde
-seconden met een expliciete QEMU RTC-basistijd. Zie
-`docs/verification/system-clock/README.md` zodra die native uitvoering is
-opgeslagen. Dit sluit geen FR-S03/FR-N03-productcriterium af.
+seconden met een expliciete QEMU RTC-basistijd. De uitgevoerde proef staat in
+`docs/verification/system-clock/README.md`. Dit sluit geen FR-S03/FR-N03-
+productcriterium af.
 
 ```sh
 NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/build.py --kernel-feature native-rtc

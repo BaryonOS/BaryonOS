@@ -18,25 +18,32 @@ met expliciete VM-RTC-tijd. Contract: `implementation/RTC-WALLTIME.md`,
 ADR-050. **Nog niet native uitgevoerd; geen nieuw rubriccriterium gesloten;
 score blijft 34%.**
 
-Geslaagd vóór native-run:
+Geslaagd op broncommit `baeb09aece05a6fb65bfa7178ae1c146d5506b75`:
 
 - `python3 -B -m unittest tools.tests.test_system_clock` — exit 0, 3 hosttests.
 - `PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime` — exit 0, 20 tests.
 - `PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B tools/dev.py cargo +1.90.0 fmt --all -- --check` en `PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B tools/dev.py cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` — beide exit 0.
 - `python3 -B -m py_compile tools/run_system_clock.py tools/tests/test_system_clock.py` en `git diff --check` — beide exit 0.
-- `PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B tools/build.py --kernel-feature native-system-clock` — exit 0; kernel en drie systeem-ELF's gebouwd en geïnspecteerd, uiteindelijke build zonder waarschuwingen.
+- `PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B tools/build.py --kernel-feature native-system-clock` — exit 0; kernel en native systeemimages gebouwd en geïnspecteerd, uiteindelijke build zonder waarschuwingen.
 - Eerste lokale buildpogingen faalden doordat de geïsoleerde `cc`-wrapper niet in `PATH` stond; de expliciete `PATH` hierboven loste dat op. Een waarschuwing over native-only imports is eveneens verholpen en de uiteindelijke build was schoon.
 - Uitvoerlogs voor formattering en gerichte host-/SDK-tests staan tijdelijk in `/tmp/nieuw-os-clock-{root-fmt,sdk-fmt,unit,sdk-tests}.log`; ze bevatten geen native QEMU-resultaat.
 
-De gerichte native gate volgt na het bron-/voortgangscheckpoint:
-`. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B -u tools/run_system_clock.py`.
-Dit start de echte bestaande native systeemdiensten/app in een wegwerp-QEMU-VM
-met expliciete `-rtc base=2026-10-30T12:00:00,clock=vm,driftfix=none`; het
-gebruikt een synthetisch wegwerpvolume en virtio-RNG. Vereist bewijs: raw exit
-33, twee geordende ring-3-timestamps binnen 60 gastseconden, monotone volgorde
-en echte `-22`-weigering; compact rapport onder
-`build/rtc-native/system-clock-report.json`, daarna brongebonden bewijs onder
-`docs/verification/system-clock/`. Deze gate is nog niet uitgevoerd.
+Native gate geslaagd:
+`. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B -u tools/run_system_clock.py`
+— exit 0; QEMU raw exit 33, geen timeout. De echte ring-3-app las
+`1793361601` tweemaal bij vaste RTC-basis `2026-10-30T12:00:00` (basis +1 s),
+zag monotone PIT-ticks `1 -> 1` en passeerde de ongeldige-argumentproef
+`-22`. QEMU 10.2.1, q35-8.2/TCG, qemu64, 1 CPU/256 MiB; synthetisch
+wegwerpvolume en virtio-RNG. Rapport en seriële uitvoer staan lokaal onder
+`build/rtc-native/`; hun hashes en de native ELF-/firmware-hashes zijn bewaard
+in `docs/verification/system-clock/evidence.json`.
+
+De brongebonden bewijsnotitie is opgeslagen onder
+`docs/verification/system-clock/README.md`. Het implementatiecheckpoint
+`652cd5d4c9c68afb0b143c0147197aa7fc6f8220` en assessmentcheckpoint
+`baeb09aece05a6fb65bfa7178ae1c146d5506b75` zijn gepusht; de native
+runtimegate liep op laatstgenoemde bron. Nu evidence en eindassessment
+checkpointen, daarna PR-template bijwerken en de actuele GitHub CI controleren.
 
 Open: RTC blijft niet-geauthenticeerd; onbekende UTC-/eeuwconfiguratie en
 firmwaregedrag zijn niet opgelost door de syscall. Geen persistente
