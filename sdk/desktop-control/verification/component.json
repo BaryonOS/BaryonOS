@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "task": "MULTIAPP-CODEC-1",
+  "source_commit": "25c43c612d578715724c7da574e8b00810772f32",
+  "source_base": "9596abc",
+  "boundary": "Host capability-engine protocol tests and scalar freestanding library build only; no native consumers, quiescence, focus, launcher or rendered-frame acceptance.",
+  "source_sha256": {
+    "sdk/desktop-control/Cargo.lock": "a83179d3f0795563037e76ff06e50926692b206a88153eb113263e87dde31a88",
+    "sdk/desktop-control/Cargo.toml": "efce9e52db3587c219f6f713220918bdf3fee4b0bf8f5263cca7aa899a31953f",
+    "sdk/desktop-control/README.md": "d895184ef67d91b10a0cab6d737e462273c74fa57d8de4c25e612d2456564493",
+    "sdk/desktop-control/src/app.rs": "6893a9212f1322fa79e30f2e65bb98f602c39cabac4ed13e59128a759276ad3d",
+    "sdk/desktop-control/src/lib.rs": "1e57b59a2e689168b8b1191548218ba5cd6a3f5d2e9e497b3a5ed8b86640122a",
+    "sdk/desktop-control/src/switch.rs": "921be4f6f7c769d6cc8250f87087d2c5c94d12562b79e4a9f99c55b472630a19",
+    "sdk/desktop-control/tests/ipc.rs": "d5d93fffb5da0e3ccf30269641e0aefeec6f44bd152200318857be652d0cf413"
+  },
+  "host_scenarios": 16,
+  "host": [
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/desktop-control/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "duration_s": 0.060555738000402926
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/desktop-control/Cargo.toml"
+      ],
+      "exit": 0,
+      "duration_s": 0.2502262570014864
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/desktop-control/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "duration_s": 0.4087046909990022
+    }
+  ],
+  "freestanding": {
+    "command": [
+      "cargo",
+      "+1.90.0",
+      "build",
+      "--offline",
+      "--locked",
+      "--release",
+      "--lib",
+      "--target",
+      "x86_64-unknown-none",
+      "--manifest-path",
+      "sdk/desktop-control/Cargo.toml"
+    ],
+    "exit": 0,
+    "duration_s": 0.42778771099983715
+  },
+  "scalar_flags": "-C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2",
+  "rlib_sha256": "a736b1aa8d21b194a7164e57bf2334612173f95355864e0b26a9f4aac6fa9fe4",
+  "scalar_scan": {
+    "instructions": 1137,
+    "forbidden_fp_simd": [],
+    "host_allocator_symbols": []
+  },
+  "logs_sha256": {
+    "0.txt": "ef74f1b0c870b1e09026b71bf8d9a5b89427abffdadecd2966fbdd0c891919ab",
+    "1.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "2.txt": "1e19753c1155a7fd9078d286e01b27e7e2d07791b4f3343eda47008865ac5d1b",
+    "codec-disassembly.txt": "0ab959856bbba964ff3a78d6d64f3161992a2eac21a00e25f6c67983669c11c3",
+    "codec-symbols.txt": "eb492f6c92da2955e79fba33db4cad83112b532255f37e139be40c88dfeb1524",
+    "fixed-0.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fixed-1.txt": "583e02d95136d76203fbad291009aaa45973a9c435b1c7e2a55efc0325d15229",
+    "fixed-2.txt": "8da4189257069216b9b58eaa4cf99d4f26eb172331fd0547a498bc94f36f4517",
+    "host-fixed.json": "994e8af0678369af33f57926391126acf35303ace5c1237e4aa4452a8c8fb9dc",
+    "host.json": "1411199e727f5f6330fffd176bf4c77bd7cd23c3dded8335c72f141433fe113b",
+    "none.json": "6ae7e9f1d1e406edb351a12cfeb7c038c5ae7119bbb9b7dd5868c113390217f3",
+    "none.txt": "95ed7b28a30960e077ea4c9d4df773c55ce0885966f0c19b8b8df51e0705eb0d"
+  },
+  "review": "Pending independent codec review; contract reviewed with corrected DONE channel lifetime; no codec review pass claimed.",
+  "earlier_host_attempt": "logs host.json / 2.txt preserve an initial red test-fixture expectation: IDMAX was paired with an already-replayed Pause activation. Corrected fixture uses a new valid activation before testing exhaustion. The parser correctly returned Replay before the correction; no implementation fix or native regression claim is made from that attempt."
+}
