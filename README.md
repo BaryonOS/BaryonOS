@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`f777f7ae`](https://github.com/simonvanieperen/nieuw-os/commit/f777f7aea38e75e593d93cb3a976887e7ba4326e) ·
+**Bron:** [`6ec0bac4`](https://github.com/simonvanieperen/nieuw-os/commit/6ec0bac45f6deb1d59791ee724f3997bcb1aa710) ·
 **Ontwikkelbranch:** `simon/windows-qemu-test-version`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** WINDOWS-QEMU-TEST-VERSION: bundel en native Materiaal-preview voor QEMU op Windows.
-34% blijft 34%. De branch voegt een hashvaliderende Windows-QEMU-bundel, launcher, native QMP-previewrunner en CI-artifactjob toe. Negen gerichte hosttests, 29 bestaande/gerichte Materiaal-probetests, strikte preflight en de warning-vrije native-system-materiaal-build slagen. De echte QEMU-preview en Windows-hostlaunch moeten nog worden uitgevoerd; deze distributie-infrastructuur sluit geen productcriterium en levert geen voortgangspunten op.
+34% blijft 34%. Op basis 6ec0bac met brongebonden readinessfix slagen de native Materiaal-herbouw, 31 hosttests en de echte QEMU-preview: alle readinessmarkers, QMP-quit met exit 0 en een niet-leeg 800×600-frame. De eerste run faalde door een onterechte vaste Source/Policy-volgorde in het hostorakel; beide rapporten blijven bewaard onder docs/verification/windows-qemu-preview. Geen Windows-hostlaunch, handmatige UX-acceptatie of ZIP-generatie uitgevoerd; deze distributiestap sluit geen productcriterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

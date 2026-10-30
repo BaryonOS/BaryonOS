@@ -9,10 +9,14 @@ zeven-app `native-system-materiaal`-profiel. De opgegeven map
 `C:\Program Files\qemu` is het ingebouwde standaarddetectiepad. De launcher
 vereist QEMU 10.2.1+, SDL en `rng-builtin`; QEMU zelf wordt niet meegeleverd.
 
-Hosttests (packager, transcript/frame-orakel en bestaande Materiaal-probe),
+Hosttests (31: packager, transcript/frame-orakel en bestaande Materiaal-probe),
 strikte preflight en normale Materiaal-build slagen; de laatste build is
-waarschuwingvrij. De echte QEMU-preview, bundelgeneratie, GitHub-artifactjob en
-Windows-uitvoering staan nog open. De lokale QEMU-build heeft QMP en
+waarschuwingvrij. De eerste QEMU-preview faalde door een onterechte vaste
+Source/Policy-volgorde in het hostorakel. Na correctie slaagt de echte run
+in 3,874 s: QEMU exit 0 na QMP-quit, 800×600 en 310 kleuren.
+Bewijs: `verification/windows-qemu-preview/`. Bundelgeneratie, GitHub-artifactjob en
+Windows-uitvoering staan nog open; de uiteindelijke bron wordt eerst met
+`simon/native-test-version` afgestemd. De lokale QEMU-build heeft QMP en
 `rng-builtin`, maar uitsluitend de `none`-displaybackend, zodat dit geen
 Windows-UI- of SDL-bewijs is. Geen volledige-release- of roadmapcriteria
 afgetekend; rubric blijft 34%.

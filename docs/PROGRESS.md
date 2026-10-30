@@ -89,8 +89,11 @@ WINDOWS-QEMU-TEST-VERSION (30 oktober 2026), implementatiebron `f777f7a`:
 **34% → 34%**. De branch voegt een hashvaliderende Windows-QEMU-bundel,
 launcher, native QMP-previewrunner en CI-artifactjob toe. Hosttests,
 strikte preflight en de warning-vrije native Materiaal-build zijn geslaagd.
-De QEMU-preview en Windows-hostlaunch zijn nog niet uitgevoerd; distributie-
-infrastructuur sluit geen productcriterium.
+Na herstel van een onterechte vaste Source/Policy-readinessvolgorde in het
+hostorakel slaagt de echte QEMU-preview: QMP-quit exit 0, 800×600, 310 kleuren.
+31 hosttests slagen; beide native rapporten blijven brongebonden bewaard in
+`verification/windows-qemu-preview/`. Windows-hostlaunch en ZIP-generatie zijn
+niet uitgevoerd; distributie-infrastructuur sluit geen productcriterium.
 
 RTC-NATIVE-1 (30 oktober 2026), basis `5c334f9`: **34% -> 34%**.
 De expliciet opt-in CMOS-bootstrap is een technische tijdproviderafhankelijkheid,

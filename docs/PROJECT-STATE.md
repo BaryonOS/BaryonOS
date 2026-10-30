@@ -8,6 +8,18 @@ Windows-map `C:\Program Files\qemu` wordt automatisch herkend door
 `tools/windows-qemu/Start-NieuwOS.ps1`; de instructies tonen ook expliciet
 `-QemuPath "C:\Program Files\qemu\qemu-system-x86_64.exe"`.
 
+**Update native preview:** de eerste run faalde na 45 s door een onterechte
+vaste Source/Policy-volgorde in het hostorakel, niet door ontbrekende
+gastmarkers. De runner is hersteld: boot/manifest blijven geordend, alle
+readinessmarkers moeten precies eenmaal verschijnen. Herbouw en herhaling
+slagen met runner exit 0/QEMU exit 0 na QMP-quit, 3,874 s en een echt
+800×600-frame met 310 kleuren. 31 hosttests slagen. Beide oorspronkelijke
+rapporten en seriële logs staan in `verification/windows-qemu-preview/`;
+uitvoeringsbasis `6ec0bac` met readinessfix, exacte v3-bronbinding in rapport.
+De optionele `kvmvapic.bin`-ROM ontbreekt lokaal; boot slaagt, geen claim van
+foutloze firmwareconfiguratie. Geen ZIP gemaakt; de nieuwere GUI-/koudbewijsbron
+`simon/native-test-version` wordt eerst met de andere sessie afgestemd.
+
 Geïmplementeerd: beperkte packager valideert het echte normale
 `native-system-materiaal`-buildmanifest, alle zeven embedded app-ELF's,
 firmware/licentiebestanden en maakt een hashgebonden ZIP. De launcher start
@@ -26,9 +38,9 @@ Geslaagd vóór deze overdracht:
 - Met geïsoleerde `build/windows-qemu` en `target/windows-qemu`: `python3 -B -u tools/build.py --kernel-feature native-system-materiaal` — exit 0, zeven apps en ELF's geïnspecteerd, geen waarschuwingen; volledig log `/tmp/nieuw-os-windows-qemu-build.log`.
 - Lokale QEMU 10.2.1 bevestigt `rng-builtin`; de host biedt alleen de `none`-displaybackend. De previewrunner gebruikt headless QMP; dit bewijst geen SDL/Windows-launch.
 
-**Nog niet uitgevoerd:** native QEMU-previewrunner, ZIP-generatie, GitHub Actions-run/artifactdownload en Windows-hoststart. Het script vereist QEMU 10.2.1+, SDL en `rng-builtin`. Geen nieuw native productcriterium gesloten; score **34% → 34%**. Deze tak is alleen de VM-test/distributiestap en brengt de gevraagde 50% niet dichterbij op de roadmap. Geen volledige release-, hardware- of Windows-compatibiliteitsclaim.
+**Nog niet uitgevoerd:** ZIP-generatie, GitHub Actions-run/artifactdownload en Windows-hoststart. Het script vereist QEMU 10.2.1+, SDL en `rng-builtin`. Geen nieuw native productcriterium gesloten; score **34% → 34%**. Deze tak is alleen de VM-test/distributiestap en sluit het gevraagde 50%-doel niet. Geen volledige release-, hardware- of Windows-compatibiliteitsclaim.
 
-Eerstvolgende gate:
+Herhaalcommando (volgende stap: afstemming van de bundelbron):
 `. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
 
 ## Historisch checkpoint — NATIVE-CLOCK-1 afgerond; PR blijft draft voor review — 30 oktober 2026

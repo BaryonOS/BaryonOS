@@ -38,11 +38,13 @@ def verify_ready_transcript(raw: bytes) -> list[str]:
     lines = raw.decode("utf-8", "strict").splitlines()
     if any("FAIL" in line or "PANIC" in line for line in lines):
         raise ValueError("Native guest reported a failure")
-    expected = (*BOOT, *READY)
-    observed = [line for line in lines if line in expected]
-    if observed != list(expected):
+    observed = [line for line in lines if line in (*BOOT, *READY)]
+    if (observed[:len(BOOT)] != list(BOOT)
+            or observed[len(BOOT):len(BOOT) + 1] != [READY[0]]
+            or len(observed) != len(BOOT) + len(READY)
+            or any(observed.count(marker) != 1 for marker in READY)):
         raise ValueError(f"Native readiness sequence differs: {observed}")
-    return list(expected)
+    return observed
 
 
 def verify_frame(raw: bytes, expected_size: tuple[int, int] = (WIDTH, HEIGHT)) -> dict:
@@ -184,18 +186,17 @@ def run_preview(
                 lines = serial.decode("utf-8", "strict").splitlines()
                 if any("FAIL" in line or "PANIC" in line for line in lines):
                     raise ValueError("Native guest reported a failure")
-                observed = [line for line in lines if line in expected]
-                if observed == list(expected):
+                if all(marker in lines for marker in expected):
                     break
                 if process.poll() is not None or time.monotonic() >= deadline:
                     raise TimeoutError("Native Materiaal session did not reach all readiness gates")
                 time.sleep(0.02)
-            verify_ready_transcript(serial)
+            observed = verify_ready_transcript(serial)
             screenshot = directory / "preview.ppm"
             control.command("screendump", {"filename": str(screenshot)})
             frame = verify_frame(screenshot.read_bytes())
             serial = read_serial(directory / "serial.txt")
-            verify_ready_transcript(serial)
+            observed = verify_ready_transcript(serial)
             serial_hash = sha256(directory / "serial.txt")
             control.command("quit")
             raw_exit = process.wait(timeout=max(1, deadline - time.monotonic()))
@@ -207,7 +208,7 @@ def run_preview(
             passed=True,
             raw_qemu_exit=raw_exit,
             duration_s=time.monotonic() - start,
-            readiness_markers=list(expected),
+            readiness_markers=observed,
             qmp_trace=control.trace if control is not None else [],
             serial_sha256=serial_hash,
             screenshot_sha256=sha256(screenshot),
