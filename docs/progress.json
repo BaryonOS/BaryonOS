@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "d16b44a71e5e959f7a7a9a2530e25daf400dd139",
+    "source_commit": "30748d6402ee9bf84a5606a8260455b0c05d9e9a",
     "branch": "simonvanieperen-musical-happiness",
     "task": "DHCP-CODEC-1: begrensde no_std DHCPv4-codec als voorstap voor native netwerkconfiguratie",
     "previous_score": 34,
-    "summary": "34% blijft 34%. De no_std DHCPv4-codec bouwt DISCOVER/selecting en renewing DHCPREQUEST en parseert begrensd OFFER/ACK/NAK zonder ABI- of rechtenwijziging. De 9 DHCP-hosttests slagen met een tijdelijke GCC/libc sysroot; een negatieve volledige testrun vond een foutieve renewal-message type en die is hersteld. Volledige cratesuite, Clippy en targetbuild moeten nog op d16b44a worden herhaald. QEMU/OVMF ontbreken in deze worktree, dus geen native DHCP-peer/configuratiebewijs; N01–N04 blijven open en geen rubriccriterium is gesloten."
+    "summary": "34% blijft 34%. De no_std DHCPv4-codec bouwt DISCOVER, selecting DHCPREQUEST en renewal DHCPREQUEST en parseert begrensd OFFER/ACK/NAK zonder ABI- of rechtenwijziging. Op 30748d6 slagen 9 DHCP-hosttests met een tijdelijke GCC/libc sysroot; de volledige suite slaagde 56/56 op voorganger d16b44a. Een Clippy-fout over acht builderargumenten is in 30748d6 opgelost door de broadcastvlag uit de interface te verwijderen en het selecting-broadcastveld expliciet te testen. Volledige suite, Clippy en targetbuild moeten op 30748d6 worden herhaald. QEMU/OVMF ontbreken; geen native DHCP-peer/configuratiebewijs. N01–N04 blijven open en geen criterium is gesloten."
   },
   "tracks": [
     {

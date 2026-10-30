@@ -2,9 +2,9 @@
 
 ## NEXT AGENT HANDOFF — DHCP-codec deelproef; client/native werk open — 30 oktober 2026
 
-Branch `simonvanieperen-musical-happiness`; DHCP-broncommit
-`d16b44a71e5e959f7a7a9a2530e25daf400dd139`, na behoud van `origin/main`
-(`e1cce29`). De gecommitte codec bouwt DISCOVER/selecting DHCPREQUEST/
+Branch `simonvanieperen-musical-happiness`; huidige broncommit
+`30748d6402ee9bf84a5606a8260455b0c05d9e9a`, na behoud van `origin/main`
+(`e1cce29`). De dependencyvrije codec bouwt DISCOVER/selecting DHCPREQUEST/
 renewing DHCPREQUEST en parseert begrensd OFFER/ACK/NAK. Er is geen
 DHCP-toestandsmachine, interface-/routeconfiguratie, leasepersistentie of
 kernel-/SDK-ABI-/capabilitywijziging. DHCP-identiteitsvelden authenticeren de
@@ -12,24 +12,25 @@ server niet; de caller moet beide UDP/IP-endpoints binden.
 
 De parser begrenst berichten op 576 bytes en controleert transaction-ID,
 client-MAC, vaste BOOTP-header, DHCP-cookie, relevante opties en timers. Hij
-weigert option-overload en dubbele relevante opties. Een passende XID/MAC is
-geen serverauthenticatie.
+weigert option-overload en dubbele relevante opties. De selecting-request
+broadcastvlag wordt afgeleid van de requestsoort en is expliciet getest.
 
-**Huidige bronproef op `d16b44a`:** de volledige DHCP-testgroep slaagt 9/9
-met een tijdelijke Ubuntu GCC 13.4.0/libc sysroot in `/tmp`; geen globale
-installatie of projectdependency. Formatteringscheck en `git diff --check`
-slagen. Een eerdere volledige cratesuite op `a3830f3` vond een foutieve
-renewal-DISCOVER; de test leidde tot de expliciete DHCPREQUEST-fix en nu 9/9.
-Volledige cratesuite, Clippy en de `x86_64-unknown-none`-build moeten op
-`d16b44a` worden herhaald. Bewijs en bronhashes:
+**Huidige bronproef op `30748d6`:** DHCP-tests 9/9 slagen met een tijdelijke
+Ubuntu GCC 13.4.0/libc sysroot in `/tmp`; geen globale installatie of
+projectdependency. Formatteringscheck en `git diff --check` slagen. De
+volledige cratesuite slaagde 56/56 op voorganger `d16b44a`; de Clippy-run op
+die voorganger wees op 8 argumenten in de builder. Commit `30748d6` verwijdert
+de overtollige vlagparameter en voegt selectie-broadcastdekking toe; volledige
+cratesuite, Clippy en `x86_64-unknown-none`-build op die exacte commit zijn
+nog vereist. Bewijs en bronhashes:
 [`verification/dhcpv4-codec/`](verification/dhcpv4-codec/README.md).
 
 `python3 -B tools/preflight.py --strict` exit 2: deze worktree mist QEMU en
 OVMF. Er is geen native DHCP-peer, lease, configuratie of echte verbinding
 getest. **Rubric 34% → 34%; netwerk 0/10; N01–N04 blijven open.**
-Eerstvolgend: volledige cratesuite, Clippy en freestanding build; daarna
-native DHCP-client-/configuratie-integratie zodra de QEMU/OVMF-gate beschikbaar
-is.
+Eerstvolgend: commit en push deze statuscheckpoint; daarna de volledige
+cratesuite, Clippy en freestanding build op `30748d6`; vervolgens native
+DHCP-client-/configuratie-integratie zodra de QEMU/OVMF-gate beschikbaar is.
 
 **Historische eerste poging vóór tijdelijke linker:** `python3 -B tools/dev.py cargo +1.90.0
 fmt --manifest-path services/net-protocol/Cargo.toml --all -- --check` en
