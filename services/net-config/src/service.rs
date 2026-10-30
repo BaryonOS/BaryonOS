@@ -60,6 +60,7 @@ impl ProbeTiming {
 #[derive(Clone, Copy, Debug)]
 enum Kind {
     Dhcp,
+    Decline,
     Probe,
     Announcement,
     Reply,
@@ -80,6 +81,12 @@ struct Probe {
     due: u64,
 }
 
+#[derive(Clone, Copy, Debug)]
+struct Decline {
+    xid: u32,
+    lease: Lease,
+}
+
 /// One trusted service-loop owner. No raw device, root/SDK ABI, caller issuer,
 /// transport authentication or app authority is created by this source API.
 pub struct Service<'a> {
@@ -92,6 +99,8 @@ pub struct Service<'a> {
     active: Option<Lease>,
     apply_pending: Option<Lease>,
     server_neighbor: Option<([u8; 4], [u8; 6])>,
+    transaction_id: u32,
+    declining: Option<Decline>,
     fenced: bool,
     terminal: Option<Error>,
     conflicts: u8,
@@ -119,6 +128,8 @@ impl<'a> Service<'a> {
             active: None,
             apply_pending: None,
             server_neighbor: None,
+            transaction_id: 0,
+            declining: None,
             fenced: true,
             terminal: None,
             conflicts: 0,
@@ -131,6 +142,7 @@ impl<'a> Service<'a> {
         self.probing = None;
         self.apply_pending = None;
         self.server_neighbor = None;
+        self.declining = None;
         if let Some(pending) = &mut self.pending {
             pending.kind = Kind::Retired;
         }
@@ -171,7 +183,11 @@ impl<'a> Service<'a> {
         if ticks < self.retry_after {
             return Err(Error::ConflictRateLimit);
         }
+        if self.declining.is_some() {
+            return Err(StackError::Busy.into());
+        }
         self.client.start(xid, now, timeout_seconds)?;
+        self.transaction_id = xid;
         self.fenced = false;
         Ok(())
     }
@@ -179,6 +195,7 @@ impl<'a> Service<'a> {
     pub fn begin_renewal(&mut self, xid: u32, ticks: u64) -> Result<(), Error> {
         let now = self.now(ticks)?;
         self.client.begin_renewal(xid, now)?;
+        self.transaction_id = xid;
         Ok(())
     }
 
@@ -192,6 +209,81 @@ impl<'a> Service<'a> {
     pub fn configuration(&mut self, ticks: u64) -> Result<Option<Lease>, Error> {
         self.now(ticks)?;
         Ok(self.active)
+    }
+
+    /// Trusted service-loop access to the existing transport, not an app
+    /// grant. Every operation observes lease expiry before touching TCP.
+    pub fn add_transport_client(
+        &mut self,
+        rx: &'a mut [u8],
+        tx: &'a mut [u8],
+        ticks: u64,
+    ) -> Result<nieuw_os_net_stack::Client, Error> {
+        self.now(ticks)?;
+        Ok(self.stack.add_client(rx, tx)?)
+    }
+
+    fn configured_transport(&mut self, ticks: u64) -> Result<(), Error> {
+        self.now(ticks)?;
+        if self.active.is_none() {
+            return Err(StackError::NotConfigured.into());
+        }
+        Ok(())
+    }
+
+    pub fn connect(
+        &mut self,
+        client: nieuw_os_net_stack::Client,
+        remote: ([u8; 4], u16),
+        local_port: u16,
+        timeout_ticks: u64,
+        ticks: u64,
+    ) -> Result<(), Error> {
+        self.configured_transport(ticks)?;
+        self.stack
+            .connect(client, remote.0, remote.1, local_port, timeout_ticks)?;
+        Ok(())
+    }
+
+    pub fn send(
+        &mut self,
+        client: nieuw_os_net_stack::Client,
+        bytes: &[u8],
+        ticks: u64,
+    ) -> Result<usize, Error> {
+        self.configured_transport(ticks)?;
+        Ok(self.stack.send(client, bytes)?)
+    }
+
+    pub fn receive(
+        &mut self,
+        client: nieuw_os_net_stack::Client,
+        output: &mut [u8],
+        ticks: u64,
+    ) -> Result<usize, Error> {
+        self.configured_transport(ticks)?;
+        Ok(self.stack.receive(client, output)?)
+    }
+
+    pub fn close(&mut self, client: nieuw_os_net_stack::Client, ticks: u64) -> Result<(), Error> {
+        self.configured_transport(ticks)?;
+        self.stack.close(client)?;
+        Ok(())
+    }
+
+    pub fn cancel(&mut self, client: nieuw_os_net_stack::Client, ticks: u64) -> Result<(), Error> {
+        self.now(ticks)?;
+        self.stack.cancel(client)?;
+        Ok(())
+    }
+
+    pub fn state(
+        &mut self,
+        client: nieuw_os_net_stack::Client,
+        ticks: u64,
+    ) -> Result<nieuw_os_net_stack::State, Error> {
+        self.now(ticks)?;
+        Ok(self.stack.state(client)?)
     }
 
     pub fn send_dhcp(&mut self, ticks: u64) -> Result<u64, Error> {
@@ -210,24 +302,13 @@ impl<'a> Service<'a> {
                 .map(|(_, mac)| mac)
                 .ok_or(Error::MissingServerNeighbor)?
         };
-        let mut frame = [0; FRAME_BYTES];
-        let length = build_udp_ipv4(
-            UdpIpv4Tx {
-                source_mac: self.stack.hardware_address(),
-                destination_mac,
-                source_ipv4: outbound.source,
-                destination_ipv4: outbound.destination,
-                source_port: 68,
-                destination_port: 67,
-                identification: 0,
-                ttl: 64,
-                mtu: 1500,
-            },
+        let id = self.queue_dhcp_payload(
             &payload[..outbound.length],
-            &mut frame,
-        )
-        .map_err(Error::Encode)?;
-        let id = self.stack.queue_control_frame(&frame[..length], ticks)?;
+            outbound.source,
+            outbound.destination,
+            destination_mac,
+            ticks,
+        )?;
         self.client = staged;
         self.pending = Some(Pending {
             id,
@@ -236,16 +317,44 @@ impl<'a> Service<'a> {
         Ok(id)
     }
 
+    fn queue_dhcp_payload(
+        &mut self,
+        payload: &[u8],
+        source_ipv4: [u8; 4],
+        destination_ipv4: [u8; 4],
+        destination_mac: [u8; 6],
+        ticks: u64,
+    ) -> Result<u64, Error> {
+        let mut frame = [0; FRAME_BYTES];
+        let length = build_udp_ipv4(
+            UdpIpv4Tx {
+                source_mac: self.stack.hardware_address(),
+                destination_mac,
+                source_ipv4,
+                destination_ipv4,
+                source_port: 68,
+                destination_port: 67,
+                identification: 0,
+                ttl: 64,
+                mtu: 1500,
+            },
+            payload,
+            &mut frame,
+        )
+        .map_err(Error::Encode)?;
+        Ok(self.stack.queue_control_frame(&frame[..length], ticks)?)
+    }
+
     pub fn receive_frame(&mut self, frame: &[u8], ticks: u64) -> Result<(), Error> {
         let now = self.now(ticks)?;
         if frame.get(12..14) == Some(&[8, 6]) {
-            let address = self
+            let monitored = self
                 .probing
-                .map(|probe| probe.lease.address)
-                .or(self.active.map(|lease| lease.address))
-                .or(self.apply_pending.map(|lease| lease.address));
-            if let Some(address) = address {
-                let observation = self.stack.observe_address_arp(frame, address)?;
+                .map(|probe| probe.lease)
+                .or(self.active)
+                .or(self.apply_pending);
+            if let Some(lease) = monitored {
+                let observation = self.stack.observe_address_arp(frame, lease.address)?;
                 let conflict = observation == ArpObservation::ForeignClaim
                     || (observation == ArpObservation::ForeignProbe && self.active.is_none());
                 if conflict {
@@ -258,6 +367,10 @@ impl<'a> Service<'a> {
                     self.retry_after =
                         self.deadline(ticks, if self.conflicts >= 10 { 6000 } else { 1000 })?;
                     self.fence(ticks)?;
+                    self.declining = Some(Decline {
+                        xid: self.transaction_id,
+                        lease,
+                    });
                     return Err(Error::AddressConflict);
                 }
                 if observation == ArpObservation::ForeignProbe && self.active.is_some() {
@@ -366,6 +479,24 @@ impl<'a> Service<'a> {
     pub fn poll(&mut self, ticks: u64) -> Result<(), Error> {
         self.now(ticks)?;
         if self.stack.can_queue_control_frame() {
+            if let Some(decline) = self.declining {
+                let mut payload = [0; crate::dhcp::MAX_MESSAGE_BYTES];
+                let length = crate::dhcp::build_decline(
+                    &mut payload,
+                    decline.xid,
+                    self.stack.hardware_address(),
+                    decline.lease.address,
+                    decline.lease.server,
+                )
+                .map_err(dhcp_client::Error::Codec)?;
+                let id =
+                    self.queue_dhcp_payload(&payload[..length], [0; 4], [255; 4], [255; 6], ticks)?;
+                self.pending = Some(Pending {
+                    id,
+                    kind: Kind::Decline,
+                });
+                return Ok(());
+            }
             if let Some(lease) = self.apply_pending {
                 self.stack
                     .apply_configuration(Self::address(lease), ticks)?;
@@ -400,6 +531,9 @@ impl<'a> Service<'a> {
             assert_eq!(expected, id);
             match kind {
                 Kind::Dhcp | Kind::Reply | Kind::Retired => {}
+                Kind::Decline => {
+                    self.declining = None;
+                }
                 Kind::Probe => {
                     let mut probe = self.probing.ok_or(StackError::InvalidState)?;
                     probe.sent += 1;
