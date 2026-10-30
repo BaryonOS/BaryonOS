@@ -77,8 +77,8 @@ De selectielus herstart nu bij haar waitrefresh na die cleanup; de wachtpoort
 en legacy `test-m3-invalid-rsp` zijn op `ab98d1a` opnieuw raw33 geslaagd.
 Deze review is geen menselijke audit.
 
-**Niet uitgevoerd op deze integratie:** native kill/hergebruik en wachten
-bij nog geblokkeerde processen, alle bredere native regressies, fysieke hardware en menselijke
+**Destijds niet uitgevoerd op die integratie:** native kill/hergebruik en wachten
+bij nog geblokkeerde processen (nu afzonderlijk bewezen hieronder), alle bredere native regressies, fysieke hardware en menselijke
 gebruiks-/securityacceptatie. De gezamenlijke CPL3-wachtprobe is als echt
 scalair ELF gebouwd en native uitgevoerd. Probe-hosttests: 3/3, exit 0.
 Gerichte Clippy voor capability-core, SDK-runtime en inputconsumenten:
@@ -94,6 +94,23 @@ native VM-uitvoering. Logs: `/tmp/nieuw-os-native-test-{python,tools}.log`.
 De score blijft **34% → 34%**; het gevraagde doel van minstens 50% is
 niet bereikt. Een hosttest, geïntegreerde component of extra PASS-teller
 sluit geen volledig rubriccriterium.
+
+## Kill van werkelijk wachtende processen
+
+De zes echte K05-cases slagen op `586c33c`, allemaal raw33/exit0:
+normal, crash, denied, parent-exit, quota en de nieuwe waitcase.
+`wait-lifecycle-evidence.json` bindt bron, gate, alle zes result/serialhashes,
+payloads, het exacte gatecommando en de drie eerdere rode pogingen.
+Die gate voert ook 64 core/wachttests (1 bestaande ignored), 23 SDK-tests,
+1 protocoltest en 8 harnastests uit; alle exit0.
+
+De nieuwe case meet twee geautoriseerde kills van werkelijk Waiting
+kinderen, schoon hergebruik van hetzelfde slot met verse PID, vier precieze
+weigeringen en geen oude wake voorbij de eerste deadline. Vier echte
+blokkeringen, twee ouder-deadlinewakes, 84 idle-IRQ's/87 ticks; volledige
+Engine-/framecleanup. Geen productie-, rechten- of schedulerverruiming.
+De probe is geen nieuw rubriccriterium; eerdere GUI/FPU-bewijzen blijven
+aan hun eigen bron gebonden.
 
 ## Koude heropening en lokale proefversie
 

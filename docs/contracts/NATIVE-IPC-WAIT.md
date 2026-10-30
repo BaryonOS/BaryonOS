@@ -171,8 +171,13 @@ moet voorbij de bovengrens van de oude deadline intact blijven. De observer
 verandert geen processtatus of wake: hij controleert de gewone spawn/kill/
 cleanup-uitkomst en verlangt lege Engine en volledig frameherstel.
 Alle zes K05-cases en hun hostorakels blijven vereist. Native uitvoering
-wordt pas afgetekend met de brongebonden rapporten onder
-`verification/native-test-version/`.
+slaagt op `586c33c`: twee Waiting-kills, schoon slothergebruik, vier
+weigeringen, vier blokkeringen, twee deadlinewakes en 84 idle-IRQ's;
+alle zes cases raw33. Process-derive vereist precies EINVAL (DERIVE is
+ongeldig voor die objectklasse), endpoint-kill ETYPE en beide stale
+Process-acties EBADHANDLE. Bron-/hashbinding en drie bewaarde rode
+fixturepogingen: `verification/native-test-version/wait-lifecycle-evidence.json`.
+Dit sluit geen volledig rubric- of releasecriterium.
 
 De integratie voegt daarnaast een afzonderlijke `test-fpu-wait`-proef toe:
 de bestaande echte x87/SSE-apps vervangen alleen op ABI1.10 hun yield door

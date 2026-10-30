@@ -1,6 +1,29 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — GUI/koude proefversie en echte FPU-wacht groen — 30 oktober 2026
+## NEXT AGENT HANDOFF — Waiting-kill en schoon slothergebruik native groen — 30 oktober 2026
+
+Branch `simon/native-test-version`, basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`.
+Geteste bron `586c33c2db2cd3c349612246f81e1470822aef3b`, v3
+`5414d89744c29995ac028c7e112958404077b93e1561263469928dea027f2c29`.
+**34% → 34%; minstens 50% nog niet bereikt.** Alle zes echte K05-cases
+slagen raw33/exit0; inclusief twee kills van werkelijk Waiting kinderen,
+vier exacte weigeringen, vers PID/hetzelfde slot, geen geërfde deadlinewake
+en volledige cleanup. Vier blokkeringen, twee deadlinewakes, 84 idle-IRQ's.
+De drie eerdere rode pogingen blijven bewaard. Geen gewijzigde productie-
+rechten, kill-, cleanup- of schedulermechanismen. Bewijs en exacte commando:
+`verification/native-test-version/wait-lifecycle-evidence.json`.
+
+Eerder geslaagde normale/koude GUI, IPC, FPU, system en RTC houden hun
+eigen bronbinding; de normale lokale QEMU-proefversie staat in
+`build/native-test-version/test-version/esp`. Geen nieuwe punten, fysieke
+hardware, menselijke acceptatie of volledige productrelease geclaimd.
+Actuele overlapcontrole: PR #64 bezit persistente keyring/system-
+opslagstappen; dat werk niet dupliceren. Geen achtergrondagent of schrijver.
+Volgende stap: onafhankelijke bestaande TPM-CRB-blokkade afbakenen, zonder
+PR #64 te overschrijven; eerst `git status --short` en de TPM-contracten lezen.
+De brede opdracht blijft open; volledige matrix en 50%-doel niet aftekenen.
+
+## Uitvoeringshistorie — GUI/koude proefversie en echte FPU-wacht
 
 Branch `simon/native-test-version`; basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`,
 eerder gevalideerde code `deb7a3d5c1c72a2fc816a5900062f9ed0d554782`, integratiebewijs op

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`1414ca02`](https://github.com/simonvanieperen/nieuw-os/commit/1414ca0218c27a8411ba91af51a7af28ef1c3da9) ·
+**Bron:** [`586c33c2`](https://github.com/simonvanieperen/nieuw-os/commit/586c33c2db2cd3c349612246f81e1470822aef3b) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: exacte Process-weigering passeert; dubbele close in nieuwe waitfixture hersteld.
-34% blijft 34%; minstens50% niet bereikt. Op1414ca0 slagen de vijf bestaande K05-cases opnieuw. De nieuwe waitcase passeert de exacte Process-/endpointweigering en eerste Waiting-kill, maar faalt raw35/step47 op een dubbele handleclose in de nieuwe caller. De caller gebruikt nu de bestaande kill_and_confirm_keep; drop_worker_caps blijft de ene eigenaar die sluit. Geen productie-, rechten- of orakelwijziging; hertoets volgt. Eerdere bewijzen blijven aan hun echte bron gebonden, lokale proefversie bewaard. Geen nieuwe punten; volledige product-/menselijke-/hardwareacceptatie open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: zes echte K05-cases inclusief Waiting-kill en vers slothergebruik groen.
+34% blijft 34%; minstens50% niet bereikt. Op586c33c slagen alle zes echte K05-cases raw33/exit0. Twee kills van werkelijk Waiting kinderen, vier exacte weigeringen, schoon slot/vers PID en geen geerfde oude wake; vier blokkeringen, twee deadlinewakes en84 idle-IRQ's. Volledige Engine/framecleanup; drie rode pogingen behouden. Ook64 core/wachttests (1 bestaande ignored),23 SDK-tests,1 protocol- en8 harnastests groen. Geen gewijzigde productierechten/scheduler/cleanup en geen nieuw rubriccriterium. Eerdere GUI/FPU/system/RTC-bewijzen blijven brongebonden; lokale proefversie bewaard. Volledige product-/menselijke-/hardwareacceptatie open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
