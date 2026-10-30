@@ -302,7 +302,7 @@ impl<'a> Service<'a> {
                     announcements: 0,
                     due: self.deadline(ticks, self.timing.initial)?,
                 });
-            } else if phase == Phase::Bound {
+            } else if matches!(phase, Phase::Bound | Phase::RenewalDue) {
                 let lease = self.client.lease(now)?.ok_or(StackError::InvalidState)?;
                 self.check_lease_times(lease, ticks)?;
                 let desired = Self::address(lease);

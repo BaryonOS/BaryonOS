@@ -36,6 +36,16 @@ fn reply(kind: u8, xid: u32, dns_last: u8) -> Vec<u8> {
 }
 
 fn reply_with_router(kind: u8, xid: u32, dns_last: u8, gateway: [u8; 4]) -> Vec<u8> {
+    reply_with_times(kind, xid, dns_last, gateway, None)
+}
+
+fn reply_with_times(
+    kind: u8,
+    xid: u32,
+    dns_last: u8,
+    gateway: [u8; 4],
+    timers: Option<(u32, u32)>,
+) -> Vec<u8> {
     let mut message = vec![0; 240];
     message[..3].copy_from_slice(&[2, 1, 6]);
     message[4..8].copy_from_slice(&xid.to_be_bytes());
@@ -49,6 +59,12 @@ fn reply_with_router(kind: u8, xid: u32, dns_last: u8, gateway: [u8; 4]) -> Vec<
         message.extend_from_slice(&[3, 4]);
         message.extend_from_slice(&gateway);
         message.extend_from_slice(&[6, 4, 192, 0, 2, dns_last]);
+        if let Some((renew, rebind)) = timers {
+            message.extend_from_slice(&[58, 4]);
+            message.extend_from_slice(&renew.to_be_bytes());
+            message.extend_from_slice(&[59, 4]);
+            message.extend_from_slice(&rebind.to_be_bytes());
+        }
     }
     message.push(255);
     let mut frame = vec![0; FRAME_BYTES];
@@ -428,5 +444,29 @@ fn selecting_request_preserves_discover_secs_without_moving_the_lease_start() {
         service.receive_frame(&reply(5, XID, 53), 500).unwrap();
         assert_eq!(service.phase(8499), Ok(Phase::CheckingAddress));
         assert_eq!(service.phase(8500), Ok(Phase::Expired));
+    });
+}
+
+#[test]
+fn delayed_renewal_ack_applies_new_route_and_dns_even_when_new_t1_is_already_due() {
+    with_service(|service| {
+        bound(service);
+        service.begin_renewal(XID + 1, 4000).unwrap();
+        service.send_dhcp(4000).unwrap();
+        complete(service, 4000);
+        service
+            .receive_frame(
+                &reply_with_times(5, XID + 1, 54, [192, 0, 2, 254], Some((1, 70))),
+                4100,
+            )
+            .unwrap();
+        assert_eq!(service.phase(4100), Ok(Phase::RenewalDue));
+        assert!(service.configuration(4100).unwrap().is_none());
+        service.poll(4100).unwrap();
+        let lease = service.configuration(4100).unwrap().unwrap();
+        assert_eq!(lease.routers(), &[[192, 0, 2, 254]]);
+        assert_eq!(lease.dns_servers(), &[[192, 0, 2, 54]]);
+        assert_eq!(lease.renew_at, 41);
+        assert_eq!(lease.expires_at, 120);
     });
 }

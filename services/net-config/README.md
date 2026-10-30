@@ -208,3 +208,12 @@ oorspronkelijke REQUESTtijd+80s. Dit is een afzonderlijk vastgelegde
 algoritmecorrectie boven de exacte16ad-import, GEEN wijziging van donorbranch
 of de gedeelde protocolcrate. De rode testpatch/log tegenover678081c blijven
 brongebonden bewaard.
+
+Een aparte read-only AI-codecheck op bronf16062b vond een concrete
+vertraagde-renewalcase: na acceptatie van een nieuwe lease kan T1 al voorbij
+zijn en retourneert de pure client meteen RenewalDue in plaats van Bound.
+Alleen Bound afhandelen liet oude gateway/DNS zichtbaar terwijl de client
+intern al de nieuwe lease gebruikte. Gerichte runtime-reproductie was rood;
+de coordinator past nu geaccepteerde renewal-ACKs in beide fasen coherent toe.
+De case bewaart de nieuwe T1 en expiry; geen leaseverlenging of successfallback.
+Dit is een begrensde tweede AI-review, geen menselijke audit/nativeacceptatie.
