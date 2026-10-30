@@ -5,7 +5,8 @@ Status: beperkte implementatiestap, geen aftekening van native toegankelijkheid.
 ## Bron en wijziging
 
 - Basiscommit: `f52dab50af281dab2c94ab2c9e31aaabd299246a`
-- Branch: `simonvanieperen-didactic-spork`
+- Implementatiecommit: `56626baf7f6db7b8a1d0e07787ae4df5997d96f5`
+- Branch: `codex/native-materiaal-accessibility-20261030`
 - Bronfingerprint v3 vóór documentatie/checkpointupdates:
   `d9e3c57244904e20bf52f95b2b7d80e3d2d93e22a303b86f179e583f53e80185`
 - `App::semantics` geeft uitsluitend de huidige semantische view van de eigen

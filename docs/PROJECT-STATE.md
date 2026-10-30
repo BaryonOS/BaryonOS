@@ -3,7 +3,10 @@
 ## NEXT AGENT HANDOFF — NATIVE-MATERIAAL-SEMANTICS-1 — 30 oktober 2026
 
 Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (`origin/main` bij start),
-branch `simonvanieperen-didactic-spork`. Deze stap voegt aan de CPL3-app
+implementatiecheckpoint `56626baf7f6db7b8a1d0e07787ae4df5997d96f5`,
+branch `codex/native-materiaal-accessibility-20261030`. Bronfingerprint v3
+`d9e3c57244904e20bf52f95b2b7d80e3d2d93e22a303b86f179e583f53e80185`.
+Deze stap voegt aan de CPL3-app
 `App::semantics` toe: een read-only snapshot van alleen de eigen actuele
 controllerstaat. De bestaande integratieketen controleert nu de semantische
 kop, focus, documentwaarde, bewerkbaarheid, opgeslagen status, opnieuw geopend

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ad2b981f`](https://github.com/simonvanieperen/nieuw-os/commit/ad2b981fe1f2bcccb03cb776b2281d32529d2f00) ·
-**Ontwikkelbranch:** `codex/b02-persistent-keystate-20261030`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B02-PERSIST-1: persistente sleutelstatus via administratief ingress en verzegeld record over een koude herstart.
-34% blijft 34%. KEY1-opcodes 11/12 met persistentie-only dispatcher, een apart administratief ingress in de native Key Service en init als herstelagent in het FR-I01-profiel zijn geïmplementeerd; 5 nieuwe wire-hosttests, 3 nieuwe harnastests, fmt/clippy, de FR-I01-gate (normaal + read-only koude herstart op dezelfde image), B01 5/5, vier RANDOM-gevallen, klok en netwerkgate slagen op fingerprint 32da9d61. Het 120-byte sleutelstatusblob en het 168-byte ciphertextrecord staan onafhankelijk geverifieerd op schijf; na herstart ontzegelt sleutel 1, blijft sleutel 0 ingetrokken en wordt manipulatie geweigerd. B02 blijft open: geen vertrouwd rollbackanker, geen write-ahead per GENERATE in de dienst, synthetische volume-identiteit; geen rubriccriterium gesloten en geen menselijke audit.
+**Bron:** [`56626baf`](https://github.com/simonvanieperen/nieuw-os/commit/56626baf7f6db7b8a1d0e07787ae4df5997d96f5) ·
+**Ontwikkelbranch:** `codex/native-materiaal-accessibility-20261030`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-MATERIAAL-SEMANTICS-1: app-lokale semantische snapshot en assertions.
+34% blijft 34%; het spoor Native Materiaal en toegankelijkheid blijft 0/15 en U01–U06 blijven open. De CPL3-app biedt een begrensde, read-only snapshot van haar eigen semantische controllerstaat; de bestaande integratieassertions dekken kop, focus, documentwaarde, bewerkbaarheid, opslagstatus, heropenen en weigering van een te kleine buffer. Rust fmt/check/Clippy, 27 Python-harnastests en de echte x86_64-unknown-none-ELF-build slagen. Rust-integratietests konden niet linken doordat cc ontbreekt; strikte preflight bevestigt dat QEMU/OVMF ontbreken. Geen native toegankelijkheidsketen, schermlezer-/spraakproef, echte gebruikerstest of rubricgate is bewezen; daarom geen punten toegekend.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
