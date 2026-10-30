@@ -231,6 +231,340 @@ fn conflict_revocation_and_io_error_keep_unconfirmed_work_visible_impl() {
     }
 }
 
+fn sr06_failed_save_blocks_actions(modal: bool) {
+    let mut modal_save_disabled = [false; 2];
+    for (fault, disabled) in modal_save_disabled.iter_mut().enumerate() {
+        let host = Host::new();
+        host.borrow_mut().seed(0, b"Original");
+        let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+        let mut ui = controller(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        ui.open(0).unwrap();
+        ui.insert("Mine ").unwrap();
+        if fault == 0 {
+            host.borrow_mut().seed(0, b"Their version");
+        } else {
+            let root = host.borrow().request_root;
+            host.borrow_mut().engine.revoke(2, root).unwrap();
+        }
+        assert!(ui
+            .save()
+            .and_then(|()| {
+                while !ui.advance_save()? {}
+                Ok(())
+            })
+            .is_err());
+        assert!(!ui.view().can_save);
+        assert_eq!(ui.view().contents, Some("Mine Original"));
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        let save = nodes[..count]
+            .iter()
+            .find(|node| node.id == SemanticId::Save)
+            .unwrap();
+        assert!(!save.enabled && !save.actions.activate && !save.focused);
+        assert_eq!(
+            ui.activate_semantic(SemanticId::Save, ui.view().generation),
+            Err(Error::InvalidInput)
+        );
+        if !modal {
+            continue;
+        }
+        ui.request_back().unwrap();
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        let save = nodes[..count]
+            .iter()
+            .find(|node| node.id == SemanticId::SaveAndBack)
+            .unwrap();
+        *disabled = !save.enabled && !save.actions.activate && !save.focused;
+        let requests = host.borrow().requests.len();
+        let generation = ui.view().generation;
+        assert_eq!(
+            ui.activate_semantic(SemanticId::SaveAndBack, generation),
+            Err(Error::InvalidInput)
+        );
+        let layout = Frame::new(ui.view()).layout();
+        let mut tile = [0; TILE_PIXELS];
+        let rect = Frame::new(ui.view())
+            .render_tile(
+                layout.modal_save.x + layout.modal_save.width / 2,
+                layout.modal_save.y + layout.modal_save.height - 8,
+                &mut tile,
+            )
+            .unwrap();
+        assert!(rect.width > 0);
+        assert_eq!(tile[0], design::LINE);
+        let mut sequence = 0;
+        for reverse in [false, false, true, true] {
+            sequence += 1;
+            ui.deliver(envelope(
+                sequence,
+                1,
+                Event::Key(KeyboardEvent {
+                    key: PhysicalKey::Tab,
+                    action: KeyAction::Press,
+                    modifiers: KeyboardModifiers {
+                        left_shift: reverse,
+                        ..KeyboardModifiers::default()
+                    },
+                }),
+            ))
+            .unwrap();
+            assert_ne!(ui.view().focus, Focus::SaveAndBack);
+            assert_eq!(ui.view().screen, Screen::ConfirmClose);
+        }
+        assert_eq!(ui.view().focus, Focus::KeepEditing);
+        let mut mouse = Ps2Mouse::new();
+        for flags in [0x09, 0x08] {
+            let mut input = None;
+            for byte in [flags, 0, 0] {
+                input = mouse.feed(byte).unwrap();
+            }
+            sequence += 1;
+            ui.deliver(envelope(
+                sequence,
+                1,
+                Event::Mouse {
+                    input: input.unwrap(),
+                    x: layout.modal_save.x + 8,
+                    y: layout.modal_save.y + 8,
+                },
+            ))
+            .unwrap();
+            assert_eq!(ui.view().focus, Focus::KeepEditing);
+            assert_eq!(ui.view().screen, Screen::ConfirmClose);
+        }
+        assert_eq!(
+            ui.activate_semantic(SemanticId::SaveAndBack, generation),
+            Err(Error::StaleInput)
+        );
+        for id in [SemanticId::KeepEditing, SemanticId::Discard] {
+            let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+            let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+            assert!(nodes[..count]
+                .iter()
+                .any(|node| node.id == id && node.enabled && node.actions.activate));
+        }
+        sequence += 1;
+        ui.deliver(envelope(sequence, 1, key(PhysicalKey::Enter)))
+            .unwrap();
+        assert_eq!(ui.view().screen, Screen::Editor);
+        assert_eq!(ui.view().contents, Some("Mine Original"));
+        assert!(!ui.document().is_saving());
+        assert_eq!(host.borrow().requests.len(), requests);
+    }
+    if modal {
+        assert_eq!(
+            modal_save_disabled, [true; 2],
+            "SR06 unavailable modal SaveAndBack must be disabled after [conflict, revoke]"
+        );
+    }
+}
+
+fn sr06_failed_save_blocks_editor_save_actions_impl() {
+    sr06_failed_save_blocks_actions(false);
+}
+
+fn sr06_failed_save_blocks_modal_save_actions_impl() {
+    sr06_failed_save_blocks_actions(true);
+}
+
+fn sr06_fresh_revoke_during_modal_save_restores_document_focus_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed(0, b"Original");
+    let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.open(0).unwrap();
+    ui.insert("Mine ").unwrap();
+    ui.request_back().unwrap();
+    let generation = ui.view().generation;
+    let root = host.borrow().request_root;
+    host.borrow_mut().engine.revoke(2, root).unwrap();
+    assert!(ui
+        .activate_semantic(SemanticId::SaveAndBack, generation)
+        .is_err());
+    assert_eq!(ui.view().screen, Screen::Editor);
+    assert!(!ui.view().can_save);
+    assert_eq!(ui.view().focus, Focus::Document);
+    assert_eq!(ui.view().contents, Some("Mine Original"));
+    assert!(!ui.document().is_saving());
+}
+
+fn sr06_read_only_and_io_failures_keep_truthful_editor_state_impl() {
+    for read_only in [true, false] {
+        let host = Host::new();
+        host.borrow_mut().seed(0, b"Original");
+        let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+        let mut ui = controller(
+            &host,
+            if read_only {
+                EditMode::ReadOnly
+            } else {
+                EditMode::ReadWrite
+            },
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        ui.open(0).unwrap();
+        if read_only {
+            assert!(!ui.view().can_save);
+            assert_eq!(ui.view().contents, Some("Original"));
+            let requests = host.borrow().requests.len();
+            assert_eq!(
+                ui.activate_semantic(SemanticId::Save, ui.view().generation),
+                Err(Error::InvalidInput)
+            );
+            assert_eq!(
+                ui.set_semantic_value(SemanticId::Document, ui.view().generation, "forbidden"),
+                Err(Error::InvalidInput)
+            );
+            assert_eq!(host.borrow().requests.len(), requests);
+        } else {
+            ui.insert("Mine ").unwrap();
+            host.borrow_mut().disk.fail = true;
+            assert!(ui
+                .save()
+                .and_then(|()| {
+                    while !ui.advance_save()? {}
+                    Ok(())
+                })
+                .is_err());
+            assert_eq!(ui.view().contents, Some("Mine Original"));
+            assert!(ui.document().is_dirty());
+            assert!(matches!(ui.view().status, Status::Failed(_)));
+            assert!(!ui.document().is_saving());
+        }
+        assert!(!matches!(ui.view().status, Status::Saved { .. }));
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        let save = nodes[..count]
+            .iter()
+            .find(|node| node.id == SemanticId::Save)
+            .unwrap();
+        assert_eq!(save.enabled, ui.view().can_save);
+        assert_eq!(save.actions.activate, ui.view().can_save);
+        assert!(!save.focused || save.enabled);
+        let mut h = host.borrow_mut();
+        h.disk.fail = false;
+        assert_eq!(h.recover().entries[0].revision, 1);
+        assert_eq!(h.bytes(0), b"Original");
+        if read_only {
+            assert!(!h
+                .requests
+                .iter()
+                .any(|request| request.operation == wire::COMMIT));
+        } else {
+            assert_eq!(
+                h.requests
+                    .iter()
+                    .filter(|request| request.operation == wire::COMMIT)
+                    .count(),
+                1
+            );
+        }
+    }
+}
+
+fn sr08_uncertain_semantics_never_offer_save_or_replay_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed(0, b"Old");
+    let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.open(0).unwrap();
+    ui.insert("Keep ").unwrap();
+    let old_generation = ui.view().generation;
+    ui.save().unwrap();
+    ui.advance_save().unwrap();
+    host.borrow_mut().drop_commit = true;
+    assert!(ui.advance_save().is_err());
+    let requests = host.borrow().requests.len();
+    for stage in 0..3 {
+        if stage == 1 {
+            ui.rebind_input(99).unwrap();
+        } else if stage == 2 {
+            let mut select = envelope(1, 1, control(PhysicalKey::A));
+            select.epoch = 99;
+            ui.deliver(select).unwrap();
+            ui.insert("Old").unwrap();
+        }
+        assert!(ui.document().is_uncertain());
+        assert!(!ui.document().is_saving());
+        assert!(!ui.view().can_save);
+        assert_eq!(
+            ui.view().status,
+            Status::Failed(Error::Storage(StorageError::Uncertain))
+        );
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        let save = nodes[..count]
+            .iter()
+            .find(|node| node.id == SemanticId::Save)
+            .unwrap();
+        assert!(!save.enabled && !save.actions.activate && !save.focused);
+        let status = nodes[..count]
+            .iter()
+            .find(|node| node.id == SemanticId::Status)
+            .unwrap();
+        assert_eq!(
+            status.label,
+            nieuw_os_materiaal::render::status_label(Status::Failed(Error::Storage(
+                StorageError::Uncertain
+            )))
+        );
+        assert!(status.label.contains("onzeker"));
+        assert!(nodes[..count]
+            .iter()
+            .all(|node| !node.label.contains("Opnieuw")));
+        assert_eq!(
+            ui.activate_semantic(SemanticId::Save, old_generation),
+            Err(Error::StaleInput)
+        );
+        assert_eq!(
+            ui.activate_semantic(SemanticId::Save, ui.view().generation),
+            Err(Error::InvalidInput)
+        );
+        assert_eq!(ui.save(), Err(Error::Storage(StorageError::Uncertain)));
+        assert_eq!(host.borrow().requests.len(), requests);
+    }
+    let mut h = host.borrow_mut();
+    assert_eq!(
+        h.requests
+            .iter()
+            .filter(|request| request.operation == wire::COMMIT)
+            .count(),
+        1
+    );
+    assert_eq!(h.recover().entries[0].revision, 2);
+    assert_eq!(h.bytes(0), b"Keep Old");
+}
+
 fn wrong_reply_identity_cannot_populate_a_fake_object_list_impl() {
     let host = Host::new();
     host.borrow_mut().seed(0, b"Data");
@@ -284,6 +618,180 @@ fn dirty_close_defaults_to_cancel_and_only_explicit_discard_loses_edits_impl() {
         .requests
         .iter()
         .any(|r| r.operation == wire::COMMIT));
+}
+
+fn sr05_escape_preserves_dirty_document_from_every_dialog_focus_impl() {
+    for scale in [Scale::Percent100, Scale::Percent200] {
+        for (tabs, focus, id) in [
+            (0, Focus::KeepEditing, SemanticId::KeepEditing),
+            (1, Focus::Discard, SemanticId::Discard),
+            (2, Focus::SaveAndBack, SemanticId::SaveAndBack),
+        ] {
+            let host = Host::new();
+            host.borrow_mut().seed(0, b"Original");
+            let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+            let mut ui = controller(
+                &host,
+                EditMode::ReadWrite,
+                Buffers {
+                    draft: &mut d,
+                    original: &mut o,
+                    staging: &mut s,
+                },
+            );
+            ui.resize(Viewport::new(800, 600, scale, 2).unwrap())
+                .unwrap();
+            ui.open(0).unwrap();
+            ui.insert("New ").unwrap();
+            let editor_generation = ui.view().generation;
+            let request_count = host.borrow().requests.len();
+            ui.request_back().unwrap();
+            let mut sequence = 0;
+            for _ in 0..tabs {
+                sequence += 1;
+                ui.deliver(envelope(sequence, 1, key(PhysicalKey::Tab)))
+                    .unwrap();
+            }
+            assert_eq!(ui.view().focus, focus);
+            {
+                let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+                let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+                assert_semantic_tree(&nodes, count);
+                let children: Vec<_> = nodes[..count]
+                    .iter()
+                    .filter(|node| node.parent == Some(SemanticId::CloseDialog))
+                    .collect();
+                assert_eq!(
+                    children.iter().map(|node| node.id).collect::<Vec<_>>(),
+                    [
+                        SemanticId::SaveAndBack,
+                        SemanticId::KeepEditing,
+                        SemanticId::Discard
+                    ]
+                );
+                assert!(children.iter().all(|node| {
+                    node.role == Role::Button
+                        && node.enabled
+                        && node.actions.activate
+                        && !node.actions.set_value
+                }));
+                let focused: Vec<_> = nodes[..count]
+                    .iter()
+                    .filter(|node| node.focused)
+                    .map(|node| node.id)
+                    .collect();
+                assert_eq!(focused, [id]);
+                for background in [
+                    SemanticId::NewDocument,
+                    SemanticId::Refresh,
+                    SemanticId::Back,
+                    SemanticId::Save,
+                    SemanticId::Document,
+                    SemanticId::Object(0),
+                ] {
+                    assert!(!nodes[..count].iter().any(|node| node.id == background));
+                }
+            }
+            let dialog_generation = ui.view().generation;
+            assert_eq!(
+                ui.activate_semantic(SemanticId::SaveAndBack, editor_generation),
+                Err(Error::StaleInput)
+            );
+            for background in [
+                SemanticId::NewDocument,
+                SemanticId::Refresh,
+                SemanticId::Back,
+                SemanticId::Save,
+                SemanticId::Document,
+                SemanticId::Object(0),
+            ] {
+                assert_eq!(
+                    ui.activate_semantic(background, dialog_generation),
+                    Err(Error::InvalidInput)
+                );
+            }
+            assert_eq!(
+                ui.set_semantic_value(SemanticId::Document, dialog_generation, "forbidden"),
+                Err(Error::InvalidInput)
+            );
+            assert_eq!(ui.view().focus, focus);
+            assert_eq!(ui.view().generation, dialog_generation);
+            sequence += 1;
+            ui.deliver(envelope(sequence, 1, key(PhysicalKey::Escape)))
+                .unwrap();
+            assert_eq!(ui.view().screen, Screen::Editor);
+            assert_eq!(ui.view().focus, Focus::Document);
+            assert_eq!(ui.view().contents, Some("New Original"));
+            assert!(ui.document().is_dirty());
+            assert!(!ui.document().is_saving());
+            assert_eq!(
+                ui.activate_semantic(SemanticId::Discard, dialog_generation),
+                Err(Error::StaleInput)
+            );
+            let mut h = host.borrow_mut();
+            assert_eq!(h.requests.len(), request_count);
+            assert_eq!(h.bytes(0), b"Original");
+            assert_eq!(h.recover().entries[0].revision, 1);
+            assert!(!h.requests.iter().any(|r| r.operation == wire::COMMIT));
+        }
+    }
+}
+
+fn sr05_dialog_tab_and_shift_tab_wrap_without_leaving_modal_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed(0, b"Original");
+    let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.open(0).unwrap();
+    ui.insert("New ").unwrap();
+    ui.request_back().unwrap();
+    let request_count = host.borrow().requests.len();
+    let mut sequence = 0;
+    for (reverse, expected) in [
+        (false, Focus::Discard),
+        (false, Focus::SaveAndBack),
+        (false, Focus::KeepEditing),
+        (true, Focus::SaveAndBack),
+        (true, Focus::Discard),
+        (true, Focus::KeepEditing),
+    ] {
+        sequence += 1;
+        let event = Event::Key(KeyboardEvent {
+            key: PhysicalKey::Tab,
+            action: KeyAction::Press,
+            modifiers: KeyboardModifiers {
+                left_shift: reverse,
+                ..KeyboardModifiers::default()
+            },
+        });
+        ui.deliver(envelope(sequence, 1, event)).unwrap();
+        assert_eq!(ui.view().focus, expected);
+        assert_eq!(ui.view().screen, Screen::ConfirmClose);
+        assert_eq!(ui.view().contents, Some("New Original"));
+        assert!(ui.document().is_dirty());
+        assert!(!ui.document().is_saving());
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        assert_eq!(nodes[..count].iter().filter(|node| node.focused).count(), 1);
+        assert!(nodes[..count].iter().any(|node| {
+            node.focused
+                && node.parent == Some(SemanticId::CloseDialog)
+                && node.enabled
+                && node.actions.activate
+        }));
+    }
+    let mut h = host.borrow_mut();
+    assert_eq!(h.requests.len(), request_count);
+    assert_eq!(h.bytes(0), b"Original");
+    assert!(!h.requests.iter().any(|r| r.operation == wire::COMMIT));
 }
 
 fn replay_cancel_and_old_focus_cannot_trigger_a_new_edit_impl() {
@@ -529,12 +1037,14 @@ fn real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus_impl() {
         assert_eq!(nodes[..n].iter().filter(|n| n.focused).count(), 1);
         assert_eq!(nodes[0].id, SemanticId::Window);
         assert_eq!(nodes[0].role, Role::Window);
+        assert_eq!(nodes[0].bounds, ui.view().viewport.bounds());
         let editor = nodes[..n]
             .iter()
             .find(|n| n.id == SemanticId::Document)
             .unwrap();
         assert_eq!(editor.parent, Some(SemanticId::Window));
         assert_eq!(editor.role, Role::TextEditor);
+        assert_eq!(editor.bounds, frame.layout().editor.physical(scale));
         assert!(editor.actions.set_value);
         assert!(!editor.actions.activate);
         assert_eq!(editor.value, Some("Café\nabc XYZ\nSelectie blijft UTF-8."));
@@ -607,11 +1117,10 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
             .iter()
             .filter(|node| node.role == Role::ListItem)
             .all(|node| node.parent == Some(SemanticId::MaterialList) && node.actions.activate));
-        let mut short = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES - 1];
-        assert!(matches!(
-            frame.semantics(&mut short),
-            Err(RenderError::Buffer)
-        ));
+        let mut short = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let short = &mut short[..count - 1];
+        assert!(matches!(frame.semantics(short), Err(RenderError::Buffer)));
+        assert!(short.iter().all(|node| node.id == SemanticId::Empty));
     }
 
     // Seven visible entries plus pagination need fifteen nodes, exceeding
@@ -684,6 +1193,115 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
         .all(|node| node.role == Role::Button && node.actions.activate));
 }
 
+fn semantic_actions_revalidate_current_controls_and_persist_only_on_save_impl() {
+    let host = Host::new();
+    let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.refresh().unwrap();
+    let material_generation = ui.view().generation;
+
+    assert_eq!(
+        ui.activate_semantic(SemanticId::Save, material_generation),
+        Err(Error::InvalidInput)
+    );
+    assert_eq!(
+        ui.set_semantic_value(SemanticId::Document, material_generation, "not open"),
+        Err(Error::InvalidInput)
+    );
+    assert_eq!(ui.view().screen, Screen::Material);
+    assert_eq!(ui.document().draft(), None);
+
+    ui.deliver(envelope(1, 1, key(PhysicalKey::Enter))).unwrap();
+    assert_eq!(
+        ui.activate_semantic(SemanticId::Document, material_generation),
+        Err(Error::StaleInput)
+    );
+    ui.set_semantic_value(
+        SemanticId::Document,
+        ui.view().generation,
+        "Accessible value",
+    )
+    .unwrap();
+    assert_eq!(ui.view().contents, Some("Accessible value"));
+    assert_eq!(ui.view().caret, "Accessible value".len());
+    assert!(ui.document().is_dirty());
+    assert_eq!(
+        host.borrow_mut().recover(),
+        volume_core::table::Table::EMPTY
+    );
+
+    let editor_generation = ui.view().generation;
+    ui.activate_semantic(SemanticId::Save, editor_generation)
+        .unwrap();
+    while !ui.advance_save().unwrap() {}
+    assert_eq!(ui.view().status, Status::Saved { revision: 1 });
+    ui.activate_semantic(SemanticId::Back, ui.view().generation)
+        .unwrap();
+    assert_eq!(ui.view().screen, Screen::Material);
+
+    let list_generation = ui.view().generation;
+    ui.activate_semantic(SemanticId::Object(0), list_generation)
+        .unwrap();
+    assert_eq!(
+        ui.activate_semantic(SemanticId::Object(0), list_generation),
+        Err(Error::StaleInput)
+    );
+    assert_eq!(ui.view().contents, Some("Accessible value"));
+    ui.insert("!").unwrap();
+    ui.activate_semantic(SemanticId::Back, ui.view().generation)
+        .unwrap();
+    assert_eq!(ui.view().screen, Screen::ConfirmClose);
+    assert_eq!(
+        ui.activate_semantic(SemanticId::Save, ui.view().generation),
+        Err(Error::InvalidInput)
+    );
+    ui.activate_semantic(SemanticId::Discard, ui.view().generation)
+        .unwrap();
+    assert_eq!(ui.view().screen, Screen::Material);
+    assert!(!ui.document().is_dirty());
+    assert_eq!(
+        ui.activate_semantic(SemanticId::Discard, ui.view().generation),
+        Err(Error::InvalidInput)
+    );
+    ui.open(0).unwrap();
+    assert_eq!(ui.view().contents, Some("Accessible value"));
+
+    let readonly_host = Host::new();
+    let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+    let mut readonly = controller(
+        &readonly_host,
+        EditMode::ReadOnly,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    readonly.refresh().unwrap();
+    assert!(!readonly.view().editable);
+    assert_eq!(
+        readonly.activate_semantic(SemanticId::NewDocument, readonly.view().generation),
+        Err(Error::InvalidInput)
+    );
+    assert_eq!(
+        readonly.set_semantic_value(
+            SemanticId::Document,
+            readonly.view().generation,
+            "read-only",
+        ),
+        Err(Error::InvalidInput)
+    );
+    assert_eq!(readonly.document().draft(), None);
+}
+
 fn display_epoch_stale_frame_and_failed_present_keep_repaint_pending_impl() {
     let host = Host::new();
     let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
@@ -725,6 +1343,34 @@ macro_rules! scenario {
         }
     };
 }
+scenario!(
+    sr06_failed_save_blocks_editor_save_actions,
+    sr06_failed_save_blocks_editor_save_actions_impl
+);
+scenario!(
+    sr06_read_only_and_io_failures_keep_truthful_editor_state,
+    sr06_read_only_and_io_failures_keep_truthful_editor_state_impl
+);
+scenario!(
+    sr06_failed_save_blocks_modal_save_actions,
+    sr06_failed_save_blocks_modal_save_actions_impl
+);
+scenario!(
+    sr06_fresh_revoke_during_modal_save_restores_document_focus,
+    sr06_fresh_revoke_during_modal_save_restores_document_focus_impl
+);
+scenario!(
+    sr08_uncertain_semantics_never_offer_save_or_replay,
+    sr08_uncertain_semantics_never_offer_save_or_replay_impl
+);
+scenario!(
+    sr05_escape_preserves_dirty_document_from_every_dialog_focus,
+    sr05_escape_preserves_dirty_document_from_every_dialog_focus_impl
+);
+scenario!(
+    sr05_dialog_tab_and_shift_tab_wrap_without_leaving_modal,
+    sr05_dialog_tab_and_shift_tab_wrap_without_leaving_modal_impl
+);
 scenario!(
     real_ps2_edit_stream_commit_list_and_reopen,
     real_ps2_edit_stream_commit_list_and_reopen_impl
@@ -776,6 +1422,10 @@ scenario!(
 scenario!(
     semantic_tree_bounds_maximum_material_page_and_dirty_dialog,
     semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl
+);
+scenario!(
+    semantic_actions_revalidate_current_controls_and_persist_only_on_save,
+    semantic_actions_revalidate_current_controls_and_persist_only_on_save_impl
 );
 scenario!(
     display_epoch_stale_frame_and_failed_present_keep_repaint_pending,

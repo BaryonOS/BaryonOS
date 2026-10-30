@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1110" viewBox="0 0 1440 1110" role="img" aria-labelledby="title description">
+  <title id="title">Materiaal — opslaan en herstellen</title>
+  <desc id="description">Schematisch ontwerppakket voor vier echte documentstatussen: wijzigingen niet opgeslagen, opslaan met werkelijke voortgang, bevestiging bij sluiten en onzekere opslaguitkomst. Geen runtime-screenshot.</desc>
+  <metadata>Static design illustration, not a second runtime token source. Palette snapshot: ui/prototype/tokens.css, SHA-256 0c588509e0cb0f94bbda2c6969da8d79d463359bfc9684687a684210a54aadcf. Runtime continues to consume that CSS source through ui/native/src/design.rs. All operation states here are illustrative, not executed.</metadata>
+  <style>
+    text { font-family: system-ui, "Segoe UI", sans-serif; fill: #162B2B; }
+    .muted { fill: #5D6A67; }
+    .accent { fill: #0A5E55; }
+    .danger { fill: #A33625; }
+    .inverse { fill: #FFFFFF; }
+    .warning-text { fill: #8A5200; }
+    .bg { fill: #F4F5F1; }
+    .surface { fill: #FFFFFF; }
+    .line { stroke: #768783; }
+    .hairline { stroke: #DCE2DA; }
+    .soft { fill: #E7EEE7; }
+    .warning { fill: #FFF3DB; }
+    .label { font-size: 13px; font-weight: 600; letter-spacing: 1.1px; }
+    .caption { font-size: 14px; }
+    .body { font-size: 16px; }
+    .title { font-size: 24px; font-weight: 600; }
+    .heading { font-size: 32px; font-weight: 600; }
+    .small { font-size: 12px; }
+  </style>
+
+  <rect class="bg" width="1440" height="1110"/>
+  <text x="64" y="84" class="heading">Opslaan met zekerheid</text>
+  <text x="64" y="120" class="body muted">Zelfde document, aantoonbare status — geen succes vóór bevestigde opslag.</text>
+  <text x="64" y="146" class="caption muted">Materiaal · schematisch ontwerp · geen runtimebeeld of uitgevoerde handeling</text>
+
+  <g transform="translate(64 174)">
+    <rect width="640" height="374" rx="14" class="surface" stroke="#DCE2DA"/>
+    <text x="24" y="32" class="label muted">01 · BEWERKEN · DIRTY</text>
+    <rect x="20" y="52" width="600" height="296" rx="8" fill="#F4F5F1" stroke="#DCE2DA"/>
+    <text x="40" y="83" class="caption muted">← Terug naar materiaal</text>
+    <rect x="492" y="62" width="108" height="44" rx="8" class="accent"/>
+    <text x="516" y="90" class="body inverse">Opslaan</text>
+    <text x="40" y="139" class="title">Tuinplan</text>
+    <rect x="34" y="150" width="572" height="138" rx="11" fill="none" stroke="#0A5E55" stroke-width="3"/>
+    <rect x="40" y="156" width="560" height="126" rx="8" class="surface" stroke="#768783"/>
+    <text x="58" y="190" class="body">Plant kruiden bij het raam.</text>
+    <text x="58" y="222" class="body">Controleer de ochtendzon</text>
+    <text x="58" y="246" class="body">en geef water op vrijdag.</text>
+    <rect x="58" y="259" width="2" height="20" class="accent"/>
+    <text x="40" y="317" class="caption">Wijzigingen nog niet opgeslagen.</text>
+    <text x="40" y="338" class="small muted">Geen “opgeslagen”-markering vóór COMMIT-bevestiging.</text>
+  </g>
+
+  <g transform="translate(736 174)">
+    <rect width="640" height="374" rx="14" class="surface" stroke="#DCE2DA"/>
+    <text x="24" y="32" class="label muted">02 · OPSLAAN · ECHTE APPEND-ACKS</text>
+    <rect x="20" y="52" width="600" height="296" rx="8" fill="#F4F5F1" stroke="#DCE2DA"/>
+    <text x="40" y="83" class="caption muted">← Terug naar materiaal</text>
+    <rect x="440" y="62" width="160" height="44" rx="8" fill="#FFFFFF" stroke="#768783"/>
+    <text x="452" y="90" class="caption">Opslaan annuleren</text>
+    <text x="40" y="139" class="title">Tuinplan</text>
+    <rect x="40" y="156" width="560" height="126" rx="8" class="surface" stroke="#768783"/>
+    <text x="58" y="190" class="body">Plant kruiden bij het raam.</text>
+    <text x="58" y="222" class="body">Controleer de ochtendzon</text>
+    <text x="58" y="246" class="body">en geef water op vrijdag.</text>
+    <text x="40" y="308" class="caption">Opslaan… 160 van 320 bytes verzonden</text>
+    <rect x="40" y="319" width="560" height="5" rx="2.5" fill="#DCE2DA"/>
+    <rect x="40" y="319" width="280" height="5" rx="2.5" class="accent"/>
+    <text x="40" y="341" class="small muted">Voorbeelddata 160/320; géén gemeten opslag of COMMIT-bevestiging.</text>
+  </g>
+
+  <g transform="translate(64 578)">
+    <rect width="640" height="374" rx="14" class="surface" stroke="#DCE2DA"/>
+    <text x="24" y="32" class="label muted">03 · SLUITEN MET ONOPGESLAGEN WIJZIGINGEN</text>
+    <rect x="20" y="52" width="600" height="296" rx="8" fill="#162B2B" fill-opacity=".08"/>
+    <rect x="96" y="92" width="448" height="224" rx="14" class="surface" stroke="#768783"/>
+    <text x="120" y="130" class="title">Nog niet opgeslagen</text>
+    <text x="120" y="163" class="body">Bewaar je wijzigingen of ga terug.</text>
+    <rect x="120" y="184" width="400" height="44" rx="8" class="accent"/>
+    <text x="274" y="212" class="body inverse">Bewaren</text>
+    <rect x="114" y="232" width="206" height="56" rx="11" fill="none" stroke="#0A5E55" stroke-width="3"/>
+    <rect x="120" y="238" width="194" height="44" rx="8" fill="#FFFFFF" stroke="#768783"/>
+    <rect x="326" y="238" width="194" height="44" rx="8" fill="#FFFFFF" stroke="#A33625"/>
+    <text x="158" y="266" class="caption">Verder bewerken</text>
+    <text x="345" y="266" class="caption danger">Wijzigingen verwerpen</text>
+    <text x="120" y="305" class="small muted">Initiële focus: Verder bewerken · Escape behoudt draft</text>
+  </g>
+
+  <g transform="translate(736 578)">
+    <rect width="640" height="374" rx="14" class="surface" stroke="#DCE2DA"/>
+    <text x="24" y="32" class="label muted">04 · ONZEKERE COMMIT · GEEN RETRY</text>
+    <rect x="20" y="52" width="600" height="296" rx="8" fill="#F4F5F1" stroke="#DCE2DA"/>
+    <text x="40" y="91" class="caption muted">Tuinplan · bewerkingsvenster blijft open</text>
+    <rect x="40" y="110" width="560" height="111" rx="8" class="surface" stroke="#768783"/>
+    <text x="58" y="144" class="body">Je tekst blijft op dit scherm.</text>
+    <text x="58" y="173" class="body">Het resultaat van opslaan is onbekend.</text>
+    <rect x="40" y="239" width="560" height="76" rx="8" class="warning"/>
+    <text x="58" y="270" class="body warning-text">Opslaguitkomst onbekend.</text>
+    <text x="58" y="296" class="caption warning-text">Je tekst blijft op dit scherm.</text>
+    <text x="40" y="338" class="small muted">Geen “Opnieuw proberen”; veilig status-opvraagpad is afhankelijkheid.</text>
+  </g>
+
+  <text x="64" y="1000" class="label muted">WERKELIJKE KETEN</text>
+  <text x="64" y="1032" class="body">Draft → APPEND-voortgang → COMMIT-ACK → Saved(revisie) → lijst verversen → hetzelfde object opnieuw openen</text>
+  <text x="64" y="1067" class="caption muted">Statusdata komt van de native DocumentSession. Deze schets toont gewenste UX, niet een gemeten of geïntegreerde build.</text>
+</svg>

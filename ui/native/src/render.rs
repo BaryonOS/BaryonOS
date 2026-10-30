@@ -481,7 +481,7 @@ impl<'a> Frame<'a> {
                 layout.modal_save,
                 "Bewaren",
                 self.view.focus == Focus::SaveAndBack,
-                true,
+                self.view.can_save,
                 ButtonStyle::Primary,
             );
             paint.button(
@@ -524,19 +524,36 @@ impl<'a> Frame<'a> {
     }
 
     pub fn semantics(&self, out: &mut [SemanticNode<'a>]) -> Result<usize, Error> {
-        if out.len() < MAX_SEMANTIC_NODES {
+        let mut required = 0;
+        self.visit_semantics(|_| required += 1);
+        if required > MAX_SEMANTIC_NODES || out.len() < required {
             return Err(Error::Buffer);
         }
+
         let mut count = 0;
+        self.visit_semantics(|node| {
+            out[count] = node;
+            count += 1;
+        });
+        Ok(count)
+    }
+
+    fn visit_semantics(&self, mut visit: impl FnMut(SemanticNode<'a>)) {
         let mut push =
             |id, parent, role, label, value, bounds: Rect, focus: Option<Focus>, enabled| {
-                out[count] = SemanticNode {
+                visit(SemanticNode {
                     id,
                     parent,
                     role,
                     label,
                     value,
-                    bounds: bounds.physical(self.view.viewport.scale()),
+                    bounds: if id == SemanticId::Window {
+                        // The viewport is already in physical pixels; layout
+                        // rectangles below are logical and need one conversion.
+                        bounds
+                    } else {
+                        bounds.physical(self.view.viewport.scale())
+                    },
                     focused: focus == Some(self.view.focus),
                     enabled,
                     actions: SemanticActions {
@@ -558,8 +575,7 @@ impl<'a> Frame<'a> {
                     } else {
                         None
                     },
-                };
-                count += 1;
+                });
             };
         let l = self.layout;
         push(
@@ -734,7 +750,7 @@ impl<'a> Frame<'a> {
                     None,
                     l.modal_save,
                     Some(Focus::SaveAndBack),
-                    true,
+                    self.view.can_save,
                 );
                 push(
                     SemanticId::KeepEditing,
@@ -768,7 +784,6 @@ impl<'a> Frame<'a> {
             None,
             true,
         );
-        Ok(count)
     }
 }
 
@@ -1052,7 +1067,11 @@ impl Paint<'_> {
             (d::LINE, d::LINE, d::MUTED)
         } else {
             match style {
-                ButtonStyle::Primary if !hovered => (d::ACCENT, d::ACCENT, d::SURFACE),
+                ButtonStyle::Primary => (
+                    d::ACCENT,
+                    if hovered { d::TEXT } else { d::ACCENT },
+                    d::SURFACE,
+                ),
                 ButtonStyle::Danger => (d::SURFACE, d::DANGER, d::DANGER),
                 _ => (
                     if hovered { d::ACCENT_SOFT } else { d::SURFACE },

@@ -8,6 +8,10 @@ use nieuw_os_net_stack::{
     Transmission,
 };
 
+#[path = "automatic.rs"]
+mod automatic;
+pub use automatic::{DriveError, DriveOutcome, RandomSource};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {
     Stack(StackError),
@@ -105,6 +109,7 @@ pub struct Service<'a> {
     terminal: Option<Error>,
     conflicts: u8,
     retry_after: u64,
+    automatic: Option<automatic::Schedule>,
 }
 
 impl<'a> Service<'a> {
@@ -134,6 +139,7 @@ impl<'a> Service<'a> {
             terminal: None,
             conflicts: 0,
             retry_after: 0,
+            automatic: None,
         })
     }
 
@@ -571,6 +577,7 @@ impl<'a> Service<'a> {
 
     pub fn link_down(&mut self, ticks: u64) -> Result<(), Error> {
         let now = self.now(ticks)?;
+        self.automatic = None;
         self.client.link_down(now)?;
         self.fence(ticks)?;
         Ok(())

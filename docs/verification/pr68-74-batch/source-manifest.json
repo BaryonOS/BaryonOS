@@ -1,0 +1,690 @@
+{
+  "schema_version": 1,
+  "scope": "Smalle inhoudsbehoudende integratie van PR68–74; geen integratie van de bredere PR96-scope.",
+  "base_commit": "484ac33d644a58f957a56fce2ab526802da81a50",
+  "base_tree": "80688e1455479b7e14d535398ba44426071b8559",
+  "sources": {
+    "68": {
+      "head": "a81ce39849456819219385f7b7bdf184af0b3b6e",
+      "merge_base": "484ac33d644a58f957a56fce2ab526802da81a50",
+      "tree": "47af6f9be50616c0b70f0450d61d8387519848fa"
+    },
+    "71": {
+      "head": "479415e58e0acab50eb455441776dec3f271f3c7",
+      "merge_base": "c210366dd0f40c61c9f06f251bf525bebdbfbf90",
+      "tree": "80688e1455479b7e14d535398ba44426071b8559"
+    },
+    "72": {
+      "head": "1c5c584b310040430bb52cc0168a2af8e67e7e4f",
+      "merge_base": "484ac33d644a58f957a56fce2ab526802da81a50",
+      "tree": "ef7615177823bfe3fe840ea71f6ae8599debe0c7"
+    },
+    "73": {
+      "head": "dce3b05aa358f4dbde6f2349b426217779b40052",
+      "merge_base": "0ade8014c8179241dcfc68ea0ba8083664691240",
+      "tree": "7f351cb0451773036892f8ec44255110539c7594"
+    },
+    "74": {
+      "head": "a6e19f687dd05781c2c63104168b3d6a734c8874",
+      "merge_base": "484ac33d644a58f957a56fce2ab526802da81a50",
+      "tree": "d33d1c47a416783a5c026f5e87458feabc8818b2"
+    }
+  },
+  "already_handled": {
+    "69": "Gesloten negatieve rulesettest; uitgesloten",
+    "70": "Al opgenomen in main",
+    "71": "Main484 heeft exact de gepubliceerde479415e-tree; huidige code behouden"
+  },
+  "source_base_updates": [
+    {
+      "pr": 68,
+      "old": "cb6b94ca629d569c373474da347983043b5e8244",
+      "current": "a81ce39849456819219385f7b7bdf184af0b3b6e",
+      "changes": 38,
+      "exact_main_changes": 38,
+      "non_main_changes": []
+    },
+    {
+      "pr": 72,
+      "old": "65a961ccb9b6edfd16c92d052cf97a5e88e69878",
+      "current": "1c5c584b310040430bb52cc0168a2af8e67e7e4f",
+      "changes": 784,
+      "exact_main_changes": 784,
+      "non_main_changes": []
+    },
+    {
+      "pr": 74,
+      "old": "26f4532108cb6d4a88276bf392622355a1c241c1",
+      "current": "a6e19f687dd05781c2c63104168b3d6a734c8874",
+      "changes": 720,
+      "exact_main_changes": 720,
+      "non_main_changes": []
+    }
+  ],
+  "retention": {
+    "root_lock": "Alle 80 oorspronkelijke main-pakketrecords bytegetrouw; alleen app-package-core toegevoegd.",
+    "workflow": "signed-updates is uitsluitend de unie van72 locked SDK-fetch en74 label18-QEMU-stadia.",
+    "decisions": "Main-besluiten behouden;72 IPC-hygiëneparagraaf, volledige74 ADR-B03K1 en73 ADRs als055/056 met provenance toegevoegd.",
+    "original73_decisions_archive": "docs/history/integration-2026-10-30/pr73-dce3b05a/docs/DECISIONS.md",
+    "original73_status_archive_prefix": "docs/history/integration-2026-10-30/pr73-dce3b05a/",
+    "archive108_unchanged_by_this_candidate": 918,
+    "upstream71_archive_corrections": [
+      {
+        "source_path": "services/nas/native-client/verification/README.md",
+        "retained_path": "services/nas/native-client/verification/README.md",
+        "blob": "2fc044c9563c044f66989afc1e4aaccc9de7ef3e",
+        "mode": "100644",
+        "type": "blob",
+        "status": "already_superseded_by_upstream_pr71_merge_before_this_candidate",
+        "main484_blob": "d3951f33f29fd5f29bfc0af33fc0f8c63a0a91ea",
+        "original_source_url": "https://github.com/simonvanieperen/nieuw-os/blob/c210366dd0f40c61c9f06f251bf525bebdbfbf90/services/nas/native-client/verification/README.md"
+      },
+      {
+        "source_path": "services/nas/native-client/verification/evidence.sha256",
+        "retained_path": "services/nas/native-client/verification/evidence.sha256",
+        "blob": "5fe2462df25a0ac9dc547356d7387d7bee0ff702",
+        "mode": "100644",
+        "type": "blob",
+        "status": "already_superseded_by_upstream_pr71_merge_before_this_candidate",
+        "main484_blob": "c11a0cdb81d12e7b51faecd62b63b3ada81afaed",
+        "original_source_url": "https://github.com/simonvanieperen/nieuw-os/blob/c210366dd0f40c61c9f06f251bf525bebdbfbf90/services/nas/native-client/verification/evidence.sha256"
+      }
+    ]
+  },
+  "targeted_reconciliations": {
+    ".github/workflows/nas-core.yml": "Twee regels voegen locked manifestfetch toe vóór bestaande offlinechecks; verse native-probe-job heeft zeroize uit72 nodig. Alle overige stappen blijven gelijk aan main484.",
+    "sdk/app-management/src/protocol.rs": "73 BEGIN-reservedbytecontrole inclusief regressie behouden; alleen17-regelige replyvalidatie en6 regressies toegevoegd.",
+    "sdk/app-management/Cargo.lock": "Nieuw73-lockbestand verbindt runtime aan zeroize1.9.1 uit72.",
+    "services/nas/native-probe/Cargo.lock": "Bestaand71-lockbestand verbindt runtime aan zeroize1.9.1 uit72.",
+    "ui/native/src/render.rs": "Exacte schaalfix uit actuele68; geen nieuwe UI-runtimewijziging.",
+    "sdk/runtime/README.md": "Exacte72-correctie over zeroize als externe dependency."
+  },
+  "proof_boundary": "Nederlandstalige68/71-bewijsuitleg toegevoegd. post96-logs blijven historisch aan10bc807f gebonden. Geen geslaagde CI, nieuwe gastuitvoering of fysieke test van deze kandidaat geclaimd; vereiste controles volgen op de gepubliceerde commit.",
+  "root_owned_status": [
+    "README.md",
+    "docs/PROJECT-STATE.md",
+    "docs/WORK-QUEUE.md",
+    "docs/progress.json"
+  ],
+  "excluded_scope": [
+    "NAS exact-replay featureprofiel",
+    "NAS native kernel/runner94",
+    "appcatalog80",
+    "artifact-store",
+    "AI",
+    "native netwerk96"
+  ],
+  "implementation_files": [
+    {
+      "path": ".github/workflows/app-management-quality.yml",
+      "mode": "100644",
+      "blob": "62bb8347b3fdb16ae08017148ce1c2502e81230b"
+    },
+    {
+      "path": ".github/workflows/nas-core.yml",
+      "mode": "100644",
+      "blob": "5cdd252ecf04d27f40b40effa5f67a56b943e51c"
+    },
+    {
+      "path": ".github/workflows/signed-updates.yml",
+      "mode": "100644",
+      "blob": "be4bdab8d35b690251a15637802a1ff3197c9b70"
+    },
+    {
+      "path": "Cargo.lock",
+      "mode": "100644",
+      "blob": "22d64167c00331d03cf420c90aefdf879bc1e801"
+    },
+    {
+      "path": "Cargo.toml",
+      "mode": "100644",
+      "blob": "66f063b54b66a311f2d3df86ce6943c50aeff05c"
+    },
+    {
+      "path": "boot/loader/src/signed.rs",
+      "mode": "100644",
+      "blob": "c355ad28bda8471ce351edbda7109b890e6363eb"
+    },
+    {
+      "path": "crates/app-package-core/Cargo.toml",
+      "mode": "100644",
+      "blob": "c1cad72293764b3a538f93f59cbbb35370c0a44f"
+    },
+    {
+      "path": "crates/app-package-core/src/lib.rs",
+      "mode": "100644",
+      "blob": "15c94733fabbc02f910b2a168ee5248a16bd40ee"
+    },
+    {
+      "path": "crates/update-core/src/lib.rs",
+      "mode": "100644",
+      "blob": "3fefb01d1046b95fc23497e44332706707191fab"
+    },
+    {
+      "path": "crates/update-core/src/policy.rs",
+      "mode": "100644",
+      "blob": "5ad65b30b1a25c25e01c27622b786a8383dae649"
+    },
+    {
+      "path": "crates/update-core/src/test_policy.rs",
+      "mode": "100644",
+      "blob": "a8acad02128de7caa2c3e72c05c074bc321ce45c"
+    },
+    {
+      "path": "crates/update-core/tests/key_policy.rs",
+      "mode": "100644",
+      "blob": "ad0d52b5d7d95f6698f1bb88c3f6f34fe172f170"
+    },
+    {
+      "path": "docs/DECISIONS.md",
+      "mode": "100644",
+      "blob": "88f37e21b6555763bc8c6bb8d838b58a07294bf4"
+    },
+    {
+      "path": "docs/DEPENDENCIES.md",
+      "mode": "100644",
+      "blob": "5d6edcffcabe67984f42a692823e9f96336a954f"
+    },
+    {
+      "path": "docs/history/integration-2026-10-30/pr73-dce3b05a/docs/DECISIONS.md",
+      "mode": "100644",
+      "blob": "5f79dc49665dd135cd468646008e1d9c51dde81b"
+    },
+    {
+      "path": "docs/implementation/APP-PACKAGES.md",
+      "mode": "100644",
+      "blob": "a7bd7a22bf82b67bf632fb580a0caa382a3273aa"
+    },
+    {
+      "path": "docs/implementation/B02-SECURE-RECORDS.md",
+      "mode": "100644",
+      "blob": "a51b4ab103ef0ad641f98ceb17f529e424b9f5d9"
+    },
+    {
+      "path": "docs/implementation/B03-SIGNED-UPDATES.md",
+      "mode": "100644",
+      "blob": "db6c74078d10b13dc22940c2756fe3c0b43a5602"
+    },
+    {
+      "path": "docs/implementation/NATIVE-MATERIAAL.md",
+      "mode": "100644",
+      "blob": "5eabaefbf54e544b27bb08eeade0446f8de1000f"
+    },
+    {
+      "path": "docs/verification/ipc-drop-random/logs/nieuw-os-ipc-drop-random-raw-build.log",
+      "mode": "100644",
+      "blob": "1428970354ab73535a13f44f1ec7a95568d4f13e"
+    },
+    {
+      "path": "docs/verification/ipc-drop-random/logs/nieuw-os-ipc-drop-random-sdk-build.log",
+      "mode": "100644",
+      "blob": "dae6e5de2601e2668b592420a6530f0b999acf72"
+    },
+    {
+      "path": "docs/verification/ipc-drop-random/logs/nieuw-os-ipc-drop-random-unknown-build.log",
+      "mode": "100644",
+      "blob": "f71ec48ccee1e48daeed85c71012598e72dde7d1"
+    },
+    {
+      "path": "docs/verification/ipc-drop-random/logs/nieuw-os-ipc-drop-random-wrong-caller-build.log",
+      "mode": "100644",
+      "blob": "433fac4d1f43a137254906f74532bf0b56e35ec2"
+    },
+    {
+      "path": "docs/verification/ipc-provenance-random/logs/nieuw-os-ipc-provenance-random-raw-build.log",
+      "mode": "100644",
+      "blob": "af2f2d6d3f1f01ab3ff35907af78cd8a5ed994fa"
+    },
+    {
+      "path": "docs/verification/ipc-provenance-random/logs/nieuw-os-ipc-provenance-random-sdk-build.log",
+      "mode": "100644",
+      "blob": "e5df5ffe93022fc05c2452fd01098320d55f3d94"
+    },
+    {
+      "path": "docs/verification/ipc-provenance-random/logs/nieuw-os-ipc-provenance-random-unknown-build.log",
+      "mode": "100644",
+      "blob": "3294490b8d1cedac154a102a1733afb025014b19"
+    },
+    {
+      "path": "docs/verification/ipc-provenance-random/logs/nieuw-os-ipc-provenance-random-wrong-caller-build.log",
+      "mode": "100644",
+      "blob": "993e7b7cc6bf77521ab794ea8feb5374787d57fb"
+    },
+    {
+      "path": "docs/verification/pr68-semantic-window-bounds/README.md",
+      "mode": "100644",
+      "blob": "ec27cead5a0c5dc00ae0276aabcf05fc92b4a24e"
+    },
+    {
+      "path": "docs/verification/pr68-semantic-window-bounds/clippy.log",
+      "mode": "100644",
+      "blob": "43e19e96f52a212fe3a2c29db8b37d7f229f42ee"
+    },
+    {
+      "path": "docs/verification/pr68-semantic-window-bounds/fmt.log",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "docs/verification/pr68-semantic-window-bounds/green-regression.log",
+      "mode": "100644",
+      "blob": "637c33619cc4b953bc31595b1c810b47e144d167"
+    },
+    {
+      "path": "docs/verification/pr68-semantic-window-bounds/host-tests.log",
+      "mode": "100644",
+      "blob": "048c246513edafea89d55d9a78f231d6866faf26"
+    },
+    {
+      "path": "docs/verification/pr68-semantic-window-bounds/post96-clippy.log",
+      "mode": "100644",
+      "blob": "212822a4d16744223084a95f562d94c5a5c44e16"
+    },
+    {
+      "path": "docs/verification/pr68-semantic-window-bounds/post96-fmt.log",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "docs/verification/pr68-semantic-window-bounds/post96-green-regression.log",
+      "mode": "100644",
+      "blob": "7153abc501f8bd6b38d3d506bd499b5ac36e5739"
+    },
+    {
+      "path": "docs/verification/pr68-semantic-window-bounds/post96-host-tests.log",
+      "mode": "100644",
+      "blob": "44737fe3175533992b780bd0179fc1b4e53a2b76"
+    },
+    {
+      "path": "docs/verification/pr68-semantic-window-bounds/post96-red.log",
+      "mode": "100644",
+      "blob": "216b1fe6920194784f27c4a79d0cb0f38f436496"
+    },
+    {
+      "path": "docs/verification/pr68-semantic-window-bounds/post96-validation.json",
+      "mode": "100644",
+      "blob": "dd17ce490b551c5078ecb5a897ff14820747c7a6"
+    },
+    {
+      "path": "docs/verification/pr68-semantic-window-bounds/red.log",
+      "mode": "100644",
+      "blob": "96a8e3cff867266a04504b96f0d14f56af46afd7"
+    },
+    {
+      "path": "docs/verification/pr68-semantic-window-bounds/validation.json",
+      "mode": "100644",
+      "blob": "bd06adaec149048a91315cf46b296feb7b84478a"
+    },
+    {
+      "path": "docs/verification/pr71-review-fixes/README.md",
+      "mode": "100644",
+      "blob": "e1e2d1a3cfff1b07bc03747153f37842e659037f"
+    },
+    {
+      "path": "experiments/quantum/native/job/Cargo.lock",
+      "mode": "100644",
+      "blob": "6ca7efa951a2091984b6434ad2576471d4297dac"
+    },
+    {
+      "path": "kernel/src/m2/m3/update.rs",
+      "mode": "100644",
+      "blob": "894ae279d29fa9bfb869846504c4b5d2e5b55076"
+    },
+    {
+      "path": "sdk/Cargo.lock",
+      "mode": "100644",
+      "blob": "e4166424c12dddb59b2a43c9375ac852980e14a9"
+    },
+    {
+      "path": "sdk/app-management/Cargo.lock",
+      "mode": "100644",
+      "blob": "07cf7163d3d7419b2683d21d9769da627980ead2"
+    },
+    {
+      "path": "sdk/app-management/Cargo.toml",
+      "mode": "100644",
+      "blob": "5da361f383c0c750b290339752b47647dfc9b927"
+    },
+    {
+      "path": "sdk/app-management/src/lib.rs",
+      "mode": "100644",
+      "blob": "bce72247cd8f328aad1930fc747d7689a4a90c9e"
+    },
+    {
+      "path": "sdk/app-management/src/protocol.rs",
+      "mode": "100644",
+      "blob": "3fc04faeced154f25c466a27a91af7f5a6467025"
+    },
+    {
+      "path": "sdk/app-management/src/store.rs",
+      "mode": "100644",
+      "blob": "16b4b1270516f74c57f5e44eaf808cb6548a7975"
+    },
+    {
+      "path": "sdk/display-client/Cargo.lock",
+      "mode": "100644",
+      "blob": "7e1381fb6c365d4cbcfe52ec8725cf5e14abd0a6"
+    },
+    {
+      "path": "sdk/examples/calculator/Cargo.lock",
+      "mode": "100644",
+      "blob": "e9d6d591abadc941d878042f53be60740d6d657f"
+    },
+    {
+      "path": "sdk/examples/compositor/Cargo.lock",
+      "mode": "100644",
+      "blob": "527d70fff65cd4992df7662518ee441e72d1865d"
+    },
+    {
+      "path": "sdk/examples/desktop-init/Cargo.lock",
+      "mode": "100644",
+      "blob": "6b02afbfabeaec2e3459d3e828e6bf52a2e6fbe9"
+    },
+    {
+      "path": "sdk/examples/display-input-probe/Cargo.lock",
+      "mode": "100644",
+      "blob": "66e68f51ec94c4a358105e42fdaa1ec2da7715ca"
+    },
+    {
+      "path": "sdk/examples/image-probe/Cargo.lock",
+      "mode": "100644",
+      "blob": "9d631f80504dd075e3402e1c7b487d7a93362b63"
+    },
+    {
+      "path": "sdk/examples/input-service/Cargo.lock",
+      "mode": "100644",
+      "blob": "09545671d1e1c3c51cf939f24976cb2efeb8108d"
+    },
+    {
+      "path": "sdk/examples/ipc-wait-probe/Cargo.lock",
+      "mode": "100644",
+      "blob": "23fbbf2773008c0e8c1f7e6ac5e7f764d8810ed3"
+    },
+    {
+      "path": "sdk/examples/keyring/src/service.rs",
+      "mode": "100644",
+      "blob": "a5a13735f8af6bd0be70bd64e3e0a29b11801e49"
+    },
+    {
+      "path": "sdk/examples/materiaal/Cargo.lock",
+      "mode": "100644",
+      "blob": "a2102f23676c72f32476537ed5ec03c537d78462"
+    },
+    {
+      "path": "sdk/examples/materiaal/src/lib.rs",
+      "mode": "100644",
+      "blob": "28acc8c74af6e872fb2e8a8cbca3ecc1e06efe2a"
+    },
+    {
+      "path": "sdk/examples/materiaal/tests/chain.rs",
+      "mode": "100644",
+      "blob": "b5bca3534b17825e0ede7fca3a2c24232ac15998"
+    },
+    {
+      "path": "sdk/examples/memory/Cargo.lock",
+      "mode": "100644",
+      "blob": "6c26e2715991f464136ebc3c2a4fab1614f243e7"
+    },
+    {
+      "path": "sdk/examples/net-probe/Cargo.lock",
+      "mode": "100644",
+      "blob": "43e280786ba6cb9d9752b417a4777a5936155b97"
+    },
+    {
+      "path": "sdk/examples/random-probe/Cargo.lock",
+      "mode": "100644",
+      "blob": "79ea9b0c54bd539d985aa0f38d2faa16b74f079a"
+    },
+    {
+      "path": "sdk/examples/random-probe/src/main.rs",
+      "mode": "100644",
+      "blob": "e536bfd384e5c20fa37693142a04851abe6c623f"
+    },
+    {
+      "path": "sdk/examples/tcp-probe/Cargo.lock",
+      "mode": "100644",
+      "blob": "ed877c58aabc8e7f352cac2dc6bdcd6521554b96"
+    },
+    {
+      "path": "sdk/examples/update/src/service.rs",
+      "mode": "100644",
+      "blob": "5ed5fb68e5e509fff18b85d4b014a1ed994d0072"
+    },
+    {
+      "path": "sdk/input-client/Cargo.lock",
+      "mode": "100644",
+      "blob": "8f42dccc443b7d5aeaf29e39070312568bdb2878"
+    },
+    {
+      "path": "sdk/keyring-client/Cargo.lock",
+      "mode": "100644",
+      "blob": "1e8dd34bea237ce76a8ab285653c27ca364f1944"
+    },
+    {
+      "path": "sdk/keyring-random-client/src/lib.rs",
+      "mode": "100644",
+      "blob": "3800e31e999919d1470dd3ec9a3e0479a07810bb"
+    },
+    {
+      "path": "sdk/runtime/Cargo.toml",
+      "mode": "100644",
+      "blob": "b9ff0ad281eda4cf500e28f27eb5caea05335a22"
+    },
+    {
+      "path": "sdk/runtime/README.md",
+      "mode": "100644",
+      "blob": "a982ea20a3d2bbfbbd20a830ca4e9e9047b9de85"
+    },
+    {
+      "path": "sdk/runtime/src/message.rs",
+      "mode": "100644",
+      "blob": "05bbb7c12ad7f746e35a3d375227a2f103b87c05"
+    },
+    {
+      "path": "sdk/runtime/src/native.rs",
+      "mode": "100644",
+      "blob": "cacfb6aeeae683f3d7fad084b90b4f53f72e2091"
+    },
+    {
+      "path": "services/input-core/Cargo.lock",
+      "mode": "100644",
+      "blob": "4b9e12d5eed6d7669bebc5a2081e349c6aaaccc8"
+    },
+    {
+      "path": "services/nas/native-probe/Cargo.lock",
+      "mode": "100644",
+      "blob": "04ef73df5b241eb16556c1e39b4c85c55bd65879"
+    },
+    {
+      "path": "tests/test_document_session_harness.py",
+      "mode": "100644",
+      "blob": "838ff5c84063c7122a147215ddc1094388b01a9f"
+    },
+    {
+      "path": "tests/test_update_harness.py",
+      "mode": "100644",
+      "blob": "a525347a3bec2b228ab335674f55b5103a63486d"
+    },
+    {
+      "path": "tools/build_users.py",
+      "mode": "100644",
+      "blob": "3a97d2f7634b7f506951d77b453d271b1fa93074"
+    },
+    {
+      "path": "tools/run_materiaal_probe.py",
+      "mode": "100644",
+      "blob": "1e0680c02f7af6175224528dbd7bac69dc46d21d"
+    },
+    {
+      "path": "tools/run_update.py",
+      "mode": "100644",
+      "blob": "68ca1217d5abf266a52aca54c7eec3f24ce43611"
+    },
+    {
+      "path": "tools/test_document_session.py",
+      "mode": "100644",
+      "blob": "a4bc192b43cbc078709fa5cf408c412bbc74af5e"
+    },
+    {
+      "path": "tools/test_update.py",
+      "mode": "100644",
+      "blob": "169194a45b950d465be67ae5c45dbf4df4b843d2"
+    },
+    {
+      "path": "tools/tests/test_materiaal_probe.py",
+      "mode": "100644",
+      "blob": "73b3b5ca3e8b0f3809a6453bbab5955169dd84fb"
+    },
+    {
+      "path": "tools/update-keys/README.md",
+      "mode": "100644",
+      "blob": "3a1c1c732578eea2d92744b17f2960c8c637ad27"
+    },
+    {
+      "path": "tools/update-keys/TEST-expired-anchors.json",
+      "mode": "100644",
+      "blob": "a0067afbee385c28e4c0e8844393d4a03b48c955"
+    },
+    {
+      "path": "tools/update-keys/TEST-expired-ed25519.pub",
+      "mode": "100644",
+      "blob": "78bc67f98445e26d1f327cc23cdb724f0fc55228"
+    },
+    {
+      "path": "tools/update-keys/TEST-expired-ed25519.seed",
+      "mode": "100644",
+      "blob": "61db40a9729114a412667c60becf2ae02d864537"
+    },
+    {
+      "path": "tools/update-keys/TEST-expired-mldsa65.pub",
+      "mode": "100644",
+      "blob": "cac934a3481f068495e655eb3aaba54d372670d3"
+    },
+    {
+      "path": "tools/update-keys/TEST-expired-mldsa65.seed",
+      "mode": "100644",
+      "blob": "40db2b66ab8bc40eebb4ca99e8f5741d4165b4e2"
+    },
+    {
+      "path": "tools/update-keys/TEST-next-anchors.json",
+      "mode": "100644",
+      "blob": "fcee8bfc22071d688e79c8513f099226d2c3be32"
+    },
+    {
+      "path": "tools/update-keys/TEST-next-ed25519.pub",
+      "mode": "100644",
+      "blob": "2f737545b63cb3524535c7dd2c305c8a1b0af476"
+    },
+    {
+      "path": "tools/update-keys/TEST-next-ed25519.seed",
+      "mode": "100644",
+      "blob": "3929accaa435b620ca74d70007eb02826bd0964a"
+    },
+    {
+      "path": "tools/update-keys/TEST-next-mldsa65.pub",
+      "mode": "100644",
+      "blob": "fc9e66846e880578c761effd29edf4b5cb2ba299"
+    },
+    {
+      "path": "tools/update-keys/TEST-next-mldsa65.seed",
+      "mode": "100644",
+      "blob": "fab680bd49aaff093a01178eee0ad24863f5d20a"
+    },
+    {
+      "path": "tools/update-keys/TEST-revoked-anchors.json",
+      "mode": "100644",
+      "blob": "1b7ed66350b5de431d0b31d2b2ce7c6b90febd13"
+    },
+    {
+      "path": "tools/update-keys/TEST-revoked-ed25519.pub",
+      "mode": "100644",
+      "blob": "2e9b49276e1cb54ad20c33bda50380f7391c0bf8"
+    },
+    {
+      "path": "tools/update-keys/TEST-revoked-ed25519.seed",
+      "mode": "100644",
+      "blob": "6206bd70f1038adc6598c5640e60c28a50989e10"
+    },
+    {
+      "path": "tools/update-keys/TEST-revoked-mldsa65.pub",
+      "mode": "100644",
+      "blob": "afedf672e4369964e3955c3b766928551fff8736"
+    },
+    {
+      "path": "tools/update-keys/TEST-revoked-mldsa65.seed",
+      "mode": "100644",
+      "blob": "f124ffe151e9365bef3259549495f00c00aed2e8"
+    },
+    {
+      "path": "tools/update-tool/src/main.rs",
+      "mode": "100644",
+      "blob": "349387b864521ed42df86b6a808bfe3893d0a261"
+    },
+    {
+      "path": "tools/update-tool/tests/roundtrip.rs",
+      "mode": "100644",
+      "blob": "f984b3c4af264448b51295bf37e83327c97c8be1"
+    },
+    {
+      "path": "ui/native/Cargo.lock",
+      "mode": "100644",
+      "blob": "405c770c53abffd44a5edf66af556a392e0089f9"
+    },
+    {
+      "path": "ui/native/README.md",
+      "mode": "100644",
+      "blob": "78c1fae4bbe6fd8fdede2a9493ddea893f1f9d30"
+    },
+    {
+      "path": "ui/native/src/render.rs",
+      "mode": "100644",
+      "blob": "a221781ecce499b6a1cf8b25399e0b188046ba87"
+    },
+    {
+      "path": "ui/native/tests/interaction.rs",
+      "mode": "100644",
+      "blob": "6d57ddc603e0a2c1a7a40fab9cd4bbe96885cc31"
+    },
+    {
+      "path": "ui/native/verification/checks.json",
+      "mode": "100644",
+      "blob": "bed421a0e467031ce6b0836e24f99a5a8f6a114d"
+    },
+    {
+      "path": "ui/native/verification/clippy.txt",
+      "mode": "100644",
+      "blob": "6d5be5bf3057053a2f340a706401972eb795c367"
+    },
+    {
+      "path": "ui/native/verification/compiler.txt",
+      "mode": "100644",
+      "blob": "4727c3f97eb2c9337182690b1fc947bddb68097c"
+    },
+    {
+      "path": "ui/native/verification/features.txt",
+      "mode": "100644",
+      "blob": "2b70fff521324c51457793d0e34b3cd08e71b20d"
+    },
+    {
+      "path": "ui/native/verification/fmt-check.txt",
+      "mode": "100644",
+      "blob": "9c582b2dff2c24ba249d02c39b2cc845d62d83a8"
+    },
+    {
+      "path": "ui/native/verification/host.txt",
+      "mode": "100644",
+      "blob": "62914500b2ef1a3c5961c3759093adefc69298bf"
+    },
+    {
+      "path": "ui/native/verification/scalar-build.txt",
+      "mode": "100644",
+      "blob": "3357cd2cd29d3e46cf74ad758e38b3047fa12205"
+    },
+    {
+      "path": "ui/surface-protocol/Cargo.lock",
+      "mode": "100644",
+      "blob": "e3eb003098809270aac31dd365d40b6cee0eac85"
+    }
+  ],
+  "self_hash_excluded": "Dit manifest noemt alle implementatiebestanden behalve zichzelf; centrale statusmetadata wordt afzonderlijk door de integrator aan de implementatiecommit gebonden."
+}

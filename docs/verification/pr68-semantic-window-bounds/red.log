@@ -1,0 +1,24 @@
+   Compiling nieuw-os-materiaal v0.1.0 (/workspace/scratch/b38cadb31b5d/review-ui-apps/pr68-fix/snapshot/ui/native)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.39s
+     Running tests/interaction.rs (/workspace/scratch/b38cadb31b5d/review-ui-apps/pr68-fix/target/debug/deps/interaction-485e2f6ffb3cf59a)
+
+running 1 test
+
+thread '<unnamed>' panicked at tests/interaction.rs:532:9:
+assertion `left == right` failed
+  left: Rect { x: 0, y: 0, width: 1606, height: 1206 }
+ right: Rect { x: 0, y: 0, width: 803, height: 603 }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus' panicked at tests/interaction.rs:774:1:
+called `Result::unwrap()` on an `Err` value: Any { .. }
+test real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus ... FAILED
+
+failures:
+
+failures:
+    real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.14s
+
+error: test failed, to rerun pass `--test interaction`
