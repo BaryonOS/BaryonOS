@@ -1,53 +1,39 @@
-# Werkqueue — volledige native testrelease, 2026-10-30
+# Werkqueue — volledige native testrelease, 30 oktober 2026
 
-Integratie-eigenaar root, branch `codex/full-test-release`, main-basis `73ebc1e`.
-[Volledige opdracht/matrix](FULL-TEST-RELEASE.md) → [actuele uitvoering](PROJECT-STATE.md).
-Werkpakketten heten `TASK-*`; de vaste `FR-*`-ID's hieronder zijn productcriteria.
-Een afgeronde deelimplementatie tekent geen volledig productcriterium af.
+Integratie-eigenaar root, branch `codex/full-test-release`; geïntegreerde bron `844ec40`.
+[Volledige opdracht/matrix](FULL-TEST-RELEASE.md) → [actuele uitvoering en exacte hervatstap](PROJECT-STATE.md).
+Werkpakketten zijn implementatiestappen; de 62 vaste `FR-*`-criteria blijven open. De gewogen ontwikkelscore blijft 32%.
 
-| Werkpakket | Toestand | Eigenaar / exclusieve writes | Acceptatie-ID's | Interface / bewijsgrens |
+| Werkpakket | Toestand | Eigenaar / exclusieve writes | Acceptatie | Interface en bewijsgrens |
 |---|---|---|---|---|
-| TASK-DOC | geïntegreerd | root; FULL/status/queue/rubric | alle | opdracht intact, 62 open rijen; 32% ongewijzigd |
-| TASK-I01 | root985 dertien VMs/zeven CI;15e entryfix vijf nieuwe cases+zeven CI groen | root | FR-K02,FR-K03,FR-O04,FR-B01 | bron/hash/ESP/disk gebonden, geen release |
-| TASK-A03/R1 | native v7documentsessie geïntegreerd | root | FR-A02,FR-A13,FR-O01–FR-O03 | lost-BEGIN/ownerdeath-cleanup blijft open |
-| TASK-TCP | root61ea nativepair + strictcapture groen | root; netwerkbuilder leverdecore/app/peer | FR-N01,FR-N02,FR-H03 | 21TX/13RX,HTTP/FIN/refused/reset/retry/300ticktimeout,strictcapture; TLS/config/appgrants open |
-| TASK-KEYSDK-NATIVE | root61ea nativepair + strictcapture groen | root; keyclient/app/Cargo | FR-B01,FR-O05 | crypto2/2/9+record1/1/10/2; veilige disk/keypersistentie blijftopen |
-| TASK-INPUT | core/review+echte PS2transportprobe groen; verbonden daemonketen open | root | FR-U01–FR-U05,FR-H01 |20hosttests/target; geen werkelijk inputservice-/compositorbewijs |
-| TASK-FPU/CLOCK | root61ea native groen | root | FR-K02,FR-K03 |3levens/157save=restore/#UD/reuse/100Hz, geen fullCPU/hardwareclaim |
-| TASK-MEMORY | 15e C-entryfix vijf nieuwe native cases+CI groen | kernel_storage; m3.rs,nieuwheap.rs,paging.rs,SDKmemory/native/tests | FR-K02,FR-K03,FR-L02,FR-N02 | ABI1.7sys4voorstel, atomicfallibleownRW/NXzeroheap8MiBquota; Geenanderewritersruntime-native.rs |
-| TASK-USER-ALLOC | 42d4bc9 geïntegreerd;15 hosttests/collecties en targetbuild groen | native_ui_apps; sdk/heap-allocator/**,USER-ALLOCATOR.md | FR-K02,FR-L02,FR-A05,FR-N02 | gelockte no_stdallocator/eigenarena/align/OOM/stats; geenhostfallback |
-| TASK-TLS-PORT | actief; tls-portworktree | network_nas_ai; services/tls-engine/**,NATIVE-TLS.md | FR-N03,FR-P01–FR-P06 | onderhoudenrustls/no_stdproviderport, exactePQC/CA/name/pin/mTLS; random/signer/heap/trustedtime gates |
-| TASK-KEYRANDOM | actief; keyring-randomworktree | security_release; keyringcore/serviceadapter,nieuwrandomclient/contract | FR-B01,FR-N03 | random-onlyingress/op10, HKDF-opruimreview3299 groen, echte ingress/grants/build aangesloten; runtime volgt, onderhoudenCSPRNG/health/quota/clockfailclosed; vier nativecasesmetnieuwelegacySTATUSgroen; persistenteproductkey/TLSblijvenopen |
-| TASK-RTC | core68dd9f5 geïntegreerd; native adapter open | git_build_audit; drivers/rtc/**,RTC-WALLTIME.md | FR-N03,FR-S03 | 11 hosttests + onafhankelijke14 met17.892datums, target; kwaliteitUnauthenticatedRtc, geen certtijdclaim |
-| TASK-RTC-V | afgerond, alleen lezen/eigentarget | acceptance_contract | FR-N03,FR-B04 | gerichtegrensreview/tegenvoorbeelden; geenmenselijkeaudit |
-| TASK-CONTEXT | aanvullende20secties verwerkt | root; FULL/context/queue/progress | alle | stabiele62IDs, UC/compatmatrix/formaat/100cold/24uur; oorspronkelijkeopdracht intact |
-| TASK-MATERIAAL-NATIVE | component1f36+review; stale-ready/entryreparatie vóórGUI | native_ui_apps; eigen nieuwe UI-worktree/bestanden na contract | FR-U01–FR-U05,FR-A02,FR-O01 | echte userspace renderer/editor; geen hostprototype als nativebewijs |
-| TASK-DISPLAY-INPUT | d528 echte native transportprobe+zeven CI groen | git_build_audit; eigen nieuwe transportworktree/bestanden na contract | FR-U01,FR-K03,FR-H01 | cap04d geïntegreerd/52-reviewtests; GOP hardware los; adapters in uitvoering, root bezit ABI/hooks/build |
-| TASK-INT/GIT | 985/15e/d528 exact gepubliceerd met eigen nativebewijs+zeven CI | root; sharedABI/build/locks/status/Git | allegeraakt | GitData lease/treecontrole; 985 alle13VMs+7CI groen; entryfix, desktop en RANDOM-native vervolg |
+| TASK-DOC / TASK-CONTEXT | opdracht en aanvullende context vastgelegd | root; FULL/status/queue/rubric | alle | oorspronkelijke scope, stabiele ID's, formats/compatibiliteit en 100 cold/24 uur behouden |
+| TASK-I01 / TASK-INT/GIT | foundation geïntegreerd op 844ec40 | root; gedeelde ABI/build/locks/Git | alle geraakt | negen CI groen op exact die bron; geen volledige productacceptatie |
+| TASK-A03/R1 / TASK-KEYSDK-NATIVE | document-v7 en keyclient geïntegreerd | root | FR-A02, FR-A13, FR-O01–FR-O05, FR-B01 | native deelproeven; lost-BEGIN, owner-death en veilige disk-/sleutelpersistentie open |
+| TASK-TCP | eigen native TCP-keten en cold pair groen | root | FR-N01, FR-N03, FR-H03 | HTTP/FIN/refused/reset/retry/timeout en strict capture; configuratie/TLS/appgrants open |
+| TASK-FPU/CLOCK / TASK-MEMORY / TASK-USER-ALLOC | geïntegreerd en native deelproeven groen | root | FR-K02, FR-K03, FR-L02 | eigen heap/guard/NX/OOM/FPU/context/clock; geen SMP- of algemeen hardwarebewijs |
+| TASK-DISPLAY-INPUT / TASK-DISPLAY-PROBE / TASK-DISPLAY-CI | geïntegreerd en native CI groen | root | FR-U01, FR-K03, FR-H01 | echte PS/2/QMP, pixels en negatieve cap/lifetimegevallen; volledige desktop open |
+| TASK-INPUT / TASK-INPUT-DAEMON / TASK-SURFACE/APP / TASK-GUI-INIT | componenten in GUI-branch | root; integratie shared files | FR-U01–FR-U05, FR-A02, FR-H01 | echte Source/Policy/Comp/Init/App-processen, begrensde IPC; brede sessie en crashherstart open |
+| TASK-GUI-QMP / TASK-MATERIAAL-NATIVE | 5e echte Materiaal-/editorframes; 1fd regressie; keten rood | root; root-materiaal | FR-U01–FR-U05, FR-A02, FR-O01 | 200 seconden vast; Save/Reopen/afsluiten nog niet bewezen |
+| TASK-REV-APP | gevonden stale-ready/entryfouten hersteld | gerichte onafhankelijke review afgerond | FR-U01, FR-A02, FR-K03 | host-/bronreview; volledige native GUI-keten blijft vereist |
+| TASK-RANDOM-NATIVE / TASK-KEYRANDOM | geïntegreerd, vier echte gevallen opnieuw in CI op 844 | root | FR-B01, FR-N03 | onderhouden CSPRNG, echte virtio-RNG, quota/clock/cancel/revoke; persistente productkeys/TLS open |
+| TASK-IMAGES | decoder native groen op 844, onafhankelijk hergevalideerd | root; image-codec component ade6 | FR-A03 | PNG/JPEG, heap/stack/pixels/negatieven; viewer, volledige formaten, native OOM en mid-decode cancel open |
+| TASK-FOUNDATION-CI | alle vijf native stappen echt groen, 844 | root | FR-B01, FR-A03 | afzonderlijke builds, geen skips of genegeerde fouten; raw artifactmetadata bewaard |
+| TASK-TPM-CRB | geïntegreerde pure transport-/commandocore | root; component 6bed190 | FR-B01, FR-B03, FR-O05 | host-/targetbewijs; native MMIO, virtuele TPM, ankertransacties en sleutelherstel open |
+| TASK-RTC / TASK-RTC-V | core geïntegreerd, review afgerond | root | FR-N03, FR-S03 | 11 hosttests en onafhankelijke datumvectoren; UnauthenticatedRtc is geen vertrouwde certificaattijd |
+| TASK-TLS-PORT | component 34191bb in eigen tls-port worktree | wachtrij voor verdere integratie | FR-N03, FR-P01–FR-P06 | no_std rustls/ML-KEM/mTLS host en target; native random/signer/trusted-time/TCP-keten open |
+| TASK-BROWSER-PORT | concreet Chromium/Gecko-onderzoek a2085b9 gereed | wachtrij voor rootintegratie | FR-A05 | echte portproeven geblokkeerd, engine_selected null; verplichte browser blijft open |
+| TASK-CAP-PERF / CAP-DIGEST-TCG-2 | echte benchmark groen; productieherstel in uitvoering | kernel_storage; capability-core en digestcontract, basis 952e | FR-K03, FR-U01 | reference sneller dan direct/zero onder TCG; alle controles en bitexacte digest behouden; root herhaalt GUI |
+| GUI-BENCH-REVIEW-1 | actief, alleen lezen | security_release; eigen /tmp-output, bron 48b | FR-K03, FR-U01 | onafhankelijke benchmark/harnascontrole, geen menselijke audit |
+| TASK-CALCULATOR / CALCULATOR-REVIEW-1 | component 0254206 bevroren, review actief | git_build_audit alleen lezen; native-calculator | FR-A08 | 17 hostgroepen/1262 Decimal/target groen; echte multiapp- en QMP-bediening nog open |
+| MULTIAPP-CONTRACT-1 | actief | native_ui_apps; nieuw NATIVE-MULTIAPP.md, basis 48b | FR-U01–FR-U05, FR-A08 | twee echte CPL3-apps, minimale grants, focus/dirty/retire/lifetime; root bezit gedeelde code |
+| NATIVE-TLS-PROBE-1 | wachtrij, threadlimiet verhinderde start | nog niet actief | FR-N03, FR-P01 | volgende vrije worker: echte native TLS-/signerketen, geen voorspelbare RNG of hostsucces |
 
-| TASK-INPUT-DAEMON | in uitvoering; input-daemon | kernel_storage; nieuwe sdk/examples/input-service/** en contract | FR-U01–FR-U05,FR-H01 | twee echte ELF-targetbuilds, hostbackpressure; echte kernel-PID/Ready/PEEK-ACK; native gate open |
-| TASK-SURFACE/APP | in uitvoering; materiaal-native-app | native_ui_apps; nieuwe SUR1/input-client/Materiaalapp en mousechecked-constructor | FR-U01–FR-U05,FR-A02 | gescheiden compositor, geen raw display/input voor app, native verbonden keten open |
-| TASK-DISPLAY-PROBE | d528 echte QMP/PS2/pixelprobe groen; CI-uitbreiding volgt | git_build_audit; nieuwe drie-CPL3-fixture en nieuwe run/testtools | FR-K03,FR-U01,FR-H01 | echte QMP-keys/mouse/pixels, PID/epoch/vollecopycontrole; root integreert en voert uit |
-| TASK-RANDOM-NATIVE | vier echteVMs2b5/9aa raw33; wrapperfixreview groen | security_release; nieuwe fixture en gericht RNG-replypad | FR-B01,FR-N03 | vier native gevallen, echte Virtio-RNG/CSPRNG, revoke/cancel/backpressure; root bootstrap/locks/build |
-| TASK-BROWSER-PORT | component a2085b9 gereed, rootintegratie volgt | network_nas_ai | FR-A05 | echte upstreamconfig/header/linkproeven exit2; port geblokkeerd, geen enginekeuze |
-| TASK-IMAGES | 9ae1c73 component/oracle/stackfix; nativeobserver in uitvoering | network_nas_ai; nieuwe services/image-codec/** +nativeprobe | FR-A03 | echte PNG/JPEGdecode, native heap en pixeloracle; engine/profielen en viewer open |
-
-| TASK-GUI-INIT | in uitvoering; desktop-init | kernel_storage; nieuwe sdk/examples/desktop-init/** | FR-U01–FR-U05,FR-K03 |7 echte processen, Source/SYNC/Policy/Comp/focusgates vóór GO; nativebootstrap root |
-| TASK-GUI-QMP | in uitvoering; materiaal-qmp | native_ui_apps; nieuw runner/tests/contract | FR-U01–FR-U05,FR-A02,FR-O01 | echte key/mouse/edit/save/cold-heropen; geen draftinject; adapterreparatie eerst |
-| TASK-REV-APP | actief; alleenlezen/eigentarget | acceptance_contract | FR-U01,FR-A02,FR-K03 | onafhankelijke tegenvoorbeelden adapters; stale-ready gevonden, hertest nafix |
-| TASK-DISPLAY-CI | in uitvoering; display-ci | git_build_audit; één nieuweworkflow | FR-K03,FR-U01,FR-H01 | echte nativeprobe en standalonehostchecks, behoud overigeCI/cleantree |
-
-| TASK-CALCULATOR | in uitvoering; native-calculator | security_release; nieuweapp/contract | FR-A08 | echte9decimalRustengine+INP1/SUR1; nativecomponenttarget/multiapp/QMPopen |
-| TASK-CAP-PERF | hostbitexactdb04 groen, native1fdregressie; doelbenchmark in uitvoering | kernel_storage; corediagnostic/nieuwebenchhelper | FR-K03,FR-U01 | alleIPCchecksbehouden, geenhostwinstalsnativeclaim; echtevariantmetingnodig |
-| TASK-FOUNDATION-CI | source93e991+TPMchecks geïntegreerd; eersteActionsvolgt | root/native_ui_apps | FR-B01,FR-A03 | alle4RNG+imageverplicht; laterecasesnadermatiefnoguitvoeren, geencontinue-on-error |
-
-Volgende verplichte werk blijft zichtbaar: schaalbaar geheugen, echte
-compositor/sessie/toegankelijkheid, audio en alle apps/engineports, persistente
-beveiligde opslag en TPM-ankering, TLS/netwerkconfiguratie, NAS/providersync,
-lokale inference, boot/PQC/updates/herstel en complete productvalidatie.
-Fysieke/humane gates blijven releaseblokkerend op hun concrete bewijsniveau;
-onafhankelijk bron-/VM-werk gaat door. Geen actieve capaciteit uit historische
-queues hieronder afleiden.
+Volgend verplicht werk blijft zichtbaar: volledige compositor/sessie/toegankelijkheid,
+alle apps en appbeheer, veilige persistente opslag en TPM-ankering, netwerkconfiguratie
+met TLS, NAS/providersynchronisatie, lokale inference, boot/PQC, updates/herstel en
+integrale productvalidatie. Dit zijn geen naar later verplaatste releasevereisten.
+Fysieke en menselijke gates blijven open; onafhankelijk bron-/VM-werk gaat door.
+Uit historische queues hieronder mag geen actieve agentcapaciteit worden afgeleid.
 
 ## Historische registratie
 

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "9aa74870de55387094414c3ec1a909fbeec53c81",
-    "branch": "codex/native-foundation-integration",
-    "task": "Vier native RNG-gevallen en acht CI groen; JPEG-stackherstel en verplichte native CI integreren",
+    "source_commit": "844ec40d0717a51d76f2da3a03fa415633725f6a",
+    "branch": "codex/full-test-release",
+    "task": "Foundation geïntegreerd: negen CI en onafhankelijke native decodercontrole; GUI-doelmeting en rekenmachine-integratie",
     "previous_score": 32,
-    "summary": "De score blijft 32%; alle 62 volledige productcriteria blijven open. Vier echte RNG-gevallen slagen opnieuw op 9aa en alle acht bestaande CI-workflows zijn groen. De native imageproef faalt op een echte 64-KiB-stackguard; een gerichte, onafhankelijk beoordeelde fallible snapshotpatch behoudt de heap, stack, formaten en oracles. De nieuwe CI voert alle vijf native gevallen verplicht uit; TPM-transportcore heeft alleen host/targetbewijs. GUI1fd blijft na 200 seconden rood en een hostoptimalisatie bleek native trager; een echte doelbenchmark volgt. Geen veilige productopslag, volledige apps/NAS/AI/updates/herstel of volledige testrelease geclaimd. Scope en gewichten zijn onveranderd."
+    "summary": "De score blijft 32%; alle 62 volledige productcriteria blijven open. Op exact 844ec40 slagen alle negen CI-workflows, inclusief vier echte RNG-gevallen en de native PNG/JPEG-proef. De lokale decoderproef en onafhankelijke bron-, ELF-, firmware-, pixel-, resource- en schijfcontrole slagen na gericht heap-snapshotherstel met ongewijzigde stack, heap en oracles. GUI blijft binnen 200 seconden rood; een eigen-kernelmeting toont dat de oorspronkelijke digest onder TCG sneller is dan de hostoptimalisatie. Productieherstel en echte GUI-herhaling volgen. De rekenmachine heeft alleen component-/host-/targetbewijs. Geen veilige productopslag, volledige apps/NAS/AI/updates/herstel of volledige testrelease geclaimd. Gewichten, scope en bewijsniveaus zijn onveranderd."
   },
   "tracks": [
     {

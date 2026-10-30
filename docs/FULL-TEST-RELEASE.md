@@ -126,7 +126,13 @@ persoon/agent en exclusieve bestanden staan alleen in de werkqueue.
 
 ## Actuele deelbewijzen behouden de volledige acceptatie
 
-Alle62 verplichte rijen blijven open. FR-B01/FR-O05/FR-N03 hebben nieuw nativeRANDOM-deelbewijs op2b5 (vier echte gevallen; firmware/6ELFs/4096B/canaries onafhankelijkgecontroleerd). Dit levertgeenpersistentesleutelopslag, volledigeTLS ofVM-FR-aftekening. FR-U01/FR-A02 bereiken inGUI5e een echtMateriaal- enEditorframe, maar de200s-keten faalt; Saved/Reopen/afsluiten zijn niet bewezen. FR-A03image9aa faalttegen de echte64KiBstackguard; hetgerichte ade6herstel moet opnieuw native worden uitgevoerd. Devolledigeopdracht, stabieleIDs, vereisteprofielen enbewijsniveaus blijvenongewijzigd. Exacteactueleresultaten staanbovenaanPROJECT-STATE en inWORK-QUEUE; geenbeperktfixtureprofielvervangtVM-FR.
+Alle 62 verplichte rijen blijven open. FR-B01/FR-O05/FR-N03 hebben native RANDOM-deelbewijs: vier echte gevallen op 2b5 en 9aa, opnieuw alle vier uitgevoerd in CI op `844ec40`. Firmware, ELF's, schijfbytes en canaries zijn afzonderlijk gecontroleerd. Dit levert geen persistente sleutels, volledige TLS of VM-FR-aftekening.
+
+FR-U01/FR-A02 tonen in GUI-bron `5e126b7` echte Materiaal- en editorframes; de vaste 200-secondenketen faalt nog vóór Saved/Reopen/afsluiten. Een hostoptimalisatie op `1fd879d` blijkt native trager; de variantkeuze volgt daarom een echte eigen-kernelmeting. Geen veiligheidscontrole of acceptatiegrens wordt verwijderd.
+
+FR-A03 heeft op `844ec40` een geslaagde native PNG/JPEG-decoderproef na een gericht herstel van de echte JPEG-stackguardfout. Stack, heap en pixeloracles zijn behouden; een onafhankelijke artifactcontrole slaagt. Dit tekent geen beeldviewer, volledige formaatdekking of native OOM/herstel af. Alle negen CI-workflows op die exacte bron slagen, inclusief vijf verplichte native foundationstappen. [Decoderbewijs](verification/full-release-images-844ec40/README.md) en [CI-bewijs](verification/full-release-ci-844ec40/README.md).
+
+De volledige opdracht, stabiele ID's, vereiste profielen en bewijsniveaus blijven ongewijzigd. Exacte actuele uitvoering staat bovenaan PROJECT-STATE en in WORK-QUEUE; een beperkt fixtureprofiel vervangt VM-FR niet.
 
 ## Acceptatiematrix
 
