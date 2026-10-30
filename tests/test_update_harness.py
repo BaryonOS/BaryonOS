@@ -6,8 +6,10 @@ from __future__ import annotations
 import re
 import struct
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
@@ -47,6 +49,44 @@ def verdict(stage: str, text: str, rc=33, timed_out=False, killed=False, running
 
 
 class Layout(unittest.TestCase):
+    def test_rotation_oracle_requires_the_successor_manifest(self):
+        image = b"synthetic image" * 400
+        manifest = bytearray(disk.MANIFEST_LEN)
+        manifest[:8] = disk.MANIFEST_MAGIC
+        struct.pack_into("<IIIQQ", manifest, 8, 1, 1, len(image), 2, 0)
+        manifest[36:68] = bytes.fromhex(disk.sha256(image))
+        successor = bytearray(manifest)
+        successor[68:84] = b"\x02" * 16
+        before = bytearray(disk.STORE_SIZE)
+        before[:8] = disk.STORE_MAGIC
+        struct.pack_into("<IIQ", before, 8, 1, 0, 1)
+        struct.pack_into("<9I", before, 24, *disk.TABLE)
+        after = bytearray(before)
+        struct.pack_into("<IIQ", after, 8, 1, 1, 2)
+        at = disk.SLOT_B_MANIFEST * disk.SECTOR
+        after[at:at + len(successor)] = successor
+        start = disk.SLOT_B_IMAGE * disk.SECTOR
+        after[start:start + len(image)] = image
+        with tempfile.TemporaryDirectory() as directory:
+            build = Path(directory)
+            (build / "update").mkdir()
+            (build / "update/kernel-v2.elf").write_bytes(image)
+            (build / "update/legacy.bin").write_bytes(manifest)
+            (build / "update/next.bin").write_bytes(successor)
+            images = {"files": {"m2": "legacy.bin", "mn": "next.bin"},
+                      "kernels": {"k2": disk.sha256(image)},
+                      "manifests": {"m2": disk.sha256(manifest), "mn": disk.sha256(successor)}}
+            with mock.patch.object(ru, "BUILD", build):
+                ru.check_store("rotate-install", before, after, images)
+                with self.assertRaisesRegex(ValueError, "exactly the v2 bundle"):
+                    ru.check_store("install", before, after, images)
+                after[at:at + len(manifest)] = manifest
+                with self.assertRaisesRegex(ValueError, "exactly the v2 bundle"):
+                    ru.check_store("rotate-install", before, after, images)
+                ru.check_store("install", before, after, images)
+                with self.assertRaisesRegex(ValueError, "store changed"):
+                    ru.check_store("key-revoked", before, after, images)
+
     def test_python_table_matches_update_core_and_kernel_scope(self):
         core = (ROOT / "crates/update-core/src/lib.rs").read_text()
         capacity = int(re.search(r"pub const IMAGE_CAPACITY_SECTORS: u32 = (\d+);", core).group(1))
@@ -120,6 +160,22 @@ class Layout(unittest.TestCase):
 
 
 class Verdict(unittest.TestCase):
+    def test_lifecycle_rejections_require_both_consumers_and_zero_writes(self):
+        for stage, reason, code, fixture in [
+            ("key-revoked", "KEY_REVOKED", 7, "mr"),
+            ("key-expired", "KEY_EXPIRED", 8, "me"),
+            ("key-not-yet-valid", "KEY_NOT_YET_VALID", 9, "mp"),
+        ]:
+            plan = ru.STAGES[stage]
+            self.assertEqual(plan["pack"][1]["slot-b"][0], fixture)
+            self.assertEqual(plan["pack"][1]["inbox"][0], fixture)
+            self.assertIn(f"BOOT:SLOT:B:REJECTED:{reason}", plan["loader"])
+            self.assertEqual(plan["outcome"], f"REJECTED:{reason}")
+            self.assertEqual(plan["expect"]["ACTIVE_REJECT"], code)
+            self.assertEqual(plan["expect"]["INBOX_REJECT"], code)
+            self.assertEqual(plan["expect"]["BROKER:WRITES"], 0)
+            self.assertEqual(plan["expect"]["BROKER:FLUSHES"], 0)
+
     def test_every_stage_has_a_plan(self):
         self.assertEqual(set(ru.ORDER), set(ru.STAGES))
         for stage, plan in ru.STAGES.items():

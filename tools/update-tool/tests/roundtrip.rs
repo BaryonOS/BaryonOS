@@ -1,6 +1,6 @@
 //! The tool's keygen/sign/verify/pack round trip, run as a subprocess so the
 //! command line itself is under test. Uses a scratch directory, never the
-//! repository's TEST keys.
+//! repository's TEST keys, except for the explicitly labelled pinned-policy test.
 use std::{
     fs,
     path::PathBuf,
@@ -113,6 +113,9 @@ fn keygen_sign_verify_pack_round_trip() {
     );
     assert!(String::from_utf8_lossy(&out.stdout)
         .contains("OK version=7 min_version=3 image_length=5000"));
+    let out = tool(&["verify-pinned", "--manifest", manifest.to_str().unwrap()]);
+    assert!(!out.status.success());
+    assert!(String::from_utf8_lossy(&out.stderr).contains("REJECTED:UNKNOWN_KEY"));
 
     // One flipped byte in the ML-DSA signature region is a SIGNATURE rejection;
     // one flipped image byte is a DIGEST rejection; a foreign key is UNKNOWN_KEY.
@@ -229,4 +232,62 @@ fn keygen_sign_verify_pack_round_trip() {
     ]);
     assert!(!out.status.success());
     fs::remove_dir_all(&dir).unwrap();
+}
+
+#[test]
+fn pinned_policy_cli_distinguishes_valid_signatures_from_authority() {
+    let dir = scratch("pinned-policy");
+    let keys = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../update-keys");
+    let image = dir.join("image.bin");
+    let manifest = dir.join("manifest.bin");
+    fs::write(&image, b"synthetic pinned-policy fixture").unwrap();
+    for (label, version, rejection) in [
+        ("TEST", "1", None),
+        ("TEST-next", "2", None),
+        ("TEST-next", "1", Some("KEY_NOT_YET_VALID")),
+        ("TEST-revoked", "2", Some("KEY_REVOKED")),
+        ("TEST-expired", "1", None),
+        ("TEST-expired", "2", Some("KEY_EXPIRED")),
+    ] {
+        let out = tool(&[
+            "sign",
+            "--keys",
+            keys.to_str().unwrap(),
+            "--label",
+            label,
+            "--image",
+            image.to_str().unwrap(),
+            "--version",
+            version,
+            "--out",
+            manifest.to_str().unwrap(),
+        ]);
+        assert!(out.status.success(), "{out:?}");
+        let raw = tool(&[
+            "verify",
+            "--keys",
+            keys.to_str().unwrap(),
+            "--label",
+            label,
+            "--manifest",
+            manifest.to_str().unwrap(),
+            "--image",
+            image.to_str().unwrap(),
+        ]);
+        assert!(raw.status.success(), "{raw:?}");
+        let pinned = tool(&[
+            "verify-pinned",
+            "--manifest",
+            manifest.to_str().unwrap(),
+            "--image",
+            image.to_str().unwrap(),
+        ]);
+        if let Some(reason) = rejection {
+            assert!(!pinned.status.success());
+            assert!(String::from_utf8_lossy(&pinned.stderr).contains(&format!("REJECTED:{reason}")));
+        } else {
+            assert!(pinned.status.success(), "{pinned:?}");
+        }
+    }
+    fs::remove_dir_all(dir).unwrap();
 }
