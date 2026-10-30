@@ -1,0 +1,11 @@
+[workspace]
+
+[package]
+name = "nieuw-os-sdk-app-management"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+app-package-core = { path = "../../crates/app-package-core" }
+nieuw-os-sdk-runtime = { path = "../runtime" }

@@ -6,7 +6,8 @@ use crate::{
 use noto_sans_mono_bitmap::{get_raster, get_raster_width, FontWeight, RasterHeight};
 
 pub const MAX_TEXT_ROWS: usize = 48;
-pub const MAX_SEMANTIC_NODES: usize = 18;
+/// Fixed material nodes, pagination controls and one entry per domain object.
+pub const MAX_SEMANTIC_NODES: usize = 8 + volume_core::PER_DOMAIN;
 
 fn raster_height(scale: Scale) -> RasterHeight {
     match scale {
@@ -527,36 +528,55 @@ impl<'a> Frame<'a> {
             return Err(Error::Buffer);
         }
         let mut count = 0;
-        let mut push = |role, label, value, bounds: Rect, focus: Option<Focus>, enabled| {
-            out[count] = SemanticNode {
-                role,
-                label,
-                value,
-                bounds: bounds.physical(self.view.viewport.scale()),
-                focused: focus == Some(self.view.focus),
-                enabled,
-                read_only: role == Role::TextEditor && !self.view.editable,
-                selection: if role == Role::TextEditor {
-                    Some((self.view.anchor, self.view.caret))
-                } else {
-                    None
-                },
-                progress: if role == Role::Status {
-                    if let Status::Saving { completed, total } = self.view.status {
-                        Some((completed, total))
+        let mut push =
+            |id, parent, role, label, value, bounds: Rect, focus: Option<Focus>, enabled| {
+                out[count] = SemanticNode {
+                    id,
+                    parent,
+                    role,
+                    label,
+                    value,
+                    bounds: bounds.physical(self.view.viewport.scale()),
+                    focused: focus == Some(self.view.focus),
+                    enabled,
+                    actions: SemanticActions {
+                        activate: enabled && matches!(role, Role::Button | Role::ListItem),
+                        set_value: enabled && role == Role::TextEditor && self.view.editable,
+                    },
+                    read_only: role == Role::TextEditor && !self.view.editable,
+                    selection: if role == Role::TextEditor {
+                        Some((self.view.anchor, self.view.caret))
                     } else {
                         None
-                    }
-                } else {
-                    None
-                },
+                    },
+                    progress: if role == Role::Status {
+                        if let Status::Saving { completed, total } = self.view.status {
+                            Some((completed, total))
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    },
+                };
+                count += 1;
             };
-            count += 1;
-        };
         let l = self.layout;
+        push(
+            SemanticId::Window,
+            None,
+            Role::Window,
+            "Materiaal",
+            None,
+            self.view.viewport.bounds(),
+            None,
+            true,
+        );
         match self.view.screen {
             Screen::Material => {
                 push(
+                    SemanticId::Heading,
+                    Some(SemanticId::Window),
                     Role::Heading,
                     "Materiaal",
                     None,
@@ -570,6 +590,8 @@ impl<'a> Frame<'a> {
                     true,
                 );
                 push(
+                    SemanticId::NewDocument,
+                    Some(SemanticId::Window),
                     Role::Button,
                     "Nieuw document",
                     None,
@@ -578,6 +600,8 @@ impl<'a> Frame<'a> {
                     self.view.editable,
                 );
                 push(
+                    SemanticId::Refresh,
+                    Some(SemanticId::Window),
                     Role::Button,
                     "Vernieuwen",
                     None,
@@ -585,8 +609,25 @@ impl<'a> Frame<'a> {
                     Some(Focus::Refresh),
                     true,
                 );
+                push(
+                    SemanticId::MaterialList,
+                    Some(SemanticId::Window),
+                    Role::List,
+                    "Materialen",
+                    None,
+                    Rect {
+                        x: d::PAD,
+                        y: l.list_top,
+                        width: l.width - 2 * d::PAD,
+                        height: l.list_bottom.saturating_sub(l.list_top),
+                    },
+                    None,
+                    true,
+                );
                 if self.view.list_scroll > 0 || self.view.objects.len() > l.list_rows() {
                     push(
+                        SemanticId::PreviousPage,
+                        Some(SemanticId::Window),
                         Role::Button,
                         "Vorige materialen",
                         None,
@@ -595,6 +636,8 @@ impl<'a> Frame<'a> {
                         self.view.list_scroll > 0,
                     );
                     push(
+                        SemanticId::NextPage,
+                        Some(SemanticId::Window),
                         Role::Button,
                         "Volgende materialen",
                         None,
@@ -621,6 +664,8 @@ impl<'a> Frame<'a> {
                         .and_then(|b| core::str::from_utf8(b).ok())
                         .unwrap_or("Naam niet leesbaar");
                     push(
+                        SemanticId::Object(entry.object),
+                        Some(SemanticId::MaterialList),
                         Role::ListItem,
                         label,
                         None,
@@ -632,6 +677,8 @@ impl<'a> Frame<'a> {
             }
             Screen::Editor => {
                 push(
+                    SemanticId::Back,
+                    Some(SemanticId::Window),
                     Role::Button,
                     "Terug naar materiaal",
                     None,
@@ -640,6 +687,8 @@ impl<'a> Frame<'a> {
                     true,
                 );
                 push(
+                    SemanticId::Save,
+                    Some(SemanticId::Window),
                     Role::Button,
                     if self.view.saving {
                         "Opslaan annuleren"
@@ -656,6 +705,8 @@ impl<'a> Frame<'a> {
                     self.view.can_save || self.view.saving,
                 );
                 push(
+                    SemanticId::Document,
+                    Some(SemanticId::Window),
                     Role::TextEditor,
                     "Document",
                     self.view.contents,
@@ -666,6 +717,8 @@ impl<'a> Frame<'a> {
             }
             Screen::ConfirmClose => {
                 push(
+                    SemanticId::CloseDialog,
+                    Some(SemanticId::Window),
                     Role::Dialog,
                     "Onopgeslagen wijzigingen",
                     None,
@@ -674,6 +727,8 @@ impl<'a> Frame<'a> {
                     true,
                 );
                 push(
+                    SemanticId::SaveAndBack,
+                    Some(SemanticId::CloseDialog),
                     Role::Button,
                     "Bewaren",
                     None,
@@ -682,6 +737,8 @@ impl<'a> Frame<'a> {
                     true,
                 );
                 push(
+                    SemanticId::KeepEditing,
+                    Some(SemanticId::CloseDialog),
                     Role::Button,
                     "Annuleren",
                     None,
@@ -690,6 +747,8 @@ impl<'a> Frame<'a> {
                     true,
                 );
                 push(
+                    SemanticId::Discard,
+                    Some(SemanticId::CloseDialog),
                     Role::Button,
                     "Wijzigingen verwerpen",
                     None,
@@ -700,6 +759,8 @@ impl<'a> Frame<'a> {
             }
         }
         push(
+            SemanticId::Status,
+            Some(SemanticId::Window),
             Role::Status,
             status_label(self.view.status),
             None,
@@ -739,27 +800,59 @@ impl Iterator for Tiles {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Role {
+    Window,
     Heading,
+    List,
     Button,
     ListItem,
     TextEditor,
     Status,
     Dialog,
 }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum SemanticId {
+    Empty,
+    Window,
+    Heading,
+    NewDocument,
+    Refresh,
+    MaterialList,
+    PreviousPage,
+    NextPage,
+    Object(u64),
+    Back,
+    Save,
+    Document,
+    CloseDialog,
+    SaveAndBack,
+    KeepEditing,
+    Discard,
+    Status,
+}
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct SemanticActions {
+    pub activate: bool,
+    pub set_value: bool,
+}
 #[derive(Clone, Copy, Debug)]
 pub struct SemanticNode<'a> {
+    pub id: SemanticId,
+    pub parent: Option<SemanticId>,
     pub role: Role,
     pub label: &'a str,
     pub value: Option<&'a str>,
     pub bounds: Rect,
     pub focused: bool,
     pub enabled: bool,
+    pub actions: SemanticActions,
     pub read_only: bool,
     pub selection: Option<(usize, usize)>,
     pub progress: Option<(usize, usize)>,
 }
 impl SemanticNode<'_> {
     pub const EMPTY: Self = Self {
+        id: SemanticId::Empty,
+        parent: None,
         role: Role::Status,
         label: "",
         value: None,
@@ -771,6 +864,10 @@ impl SemanticNode<'_> {
         },
         focused: false,
         enabled: false,
+        actions: SemanticActions {
+            activate: false,
+            set_value: false,
+        },
         read_only: false,
         selection: None,
         progress: None,

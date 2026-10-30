@@ -58,6 +58,18 @@ def user_elf(index):
 
 
 class ProbeTests(unittest.TestCase):
+    def test_serial_log_is_qemu_owned_for_both_qmp_transports(self):
+        for transport, qmp in (("pipe", "stdio"), ("unix", "unix:qmp.sock,server=on,wait=off")):
+            with self.subTest(transport=transport):
+                args = d.qemu_arguments("/qemu", "pc-q35-8.2", transport)
+                self.assertEqual(args[args.index("-serial") + 1], "file:serial.txt")
+                self.assertEqual(args[args.index("-qmp") + 1], qmp)
+
+    def test_screendump_uses_cwd_relative_artifacts(self):
+        requests = d.qmp_requests(Path("/tmp/display-run"))
+        filenames = [request["arguments"]["filename"] for request in requests if request["execute"] == "screendump"]
+        self.assertEqual(filenames, ["generation-1.ppm", "generation-2.ppm"])
+
     def checkout(self, root):
         stack = ExitStack()
         self.addCleanup(stack.close)

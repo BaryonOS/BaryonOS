@@ -222,6 +222,9 @@ dependencies = [
 [[package]]
 name = "nieuw-os-sdk-runtime"
 version = "0.1.0"
+dependencies = [
+ "zeroize",
+]
 
 [[package]]
 name = "opaque-debug"

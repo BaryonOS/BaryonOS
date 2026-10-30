@@ -9,6 +9,85 @@ const CLIENT: Client = Client {
     mac: MAC,
 };
 
+#[test]
+fn decline_has_exact_bootp_header_and_only_table5_options() {
+    let mut output = [0xa5; MAX_MESSAGE_BYTES];
+    let length = dhcp::build_decline(&mut output, XID, MAC, OFFERED, SERVER).unwrap();
+    assert_eq!(length, 300);
+    let mut expected = [0; 300];
+    expected[..3].copy_from_slice(&[1, 1, 6]);
+    expected[4..8].copy_from_slice(&XID.to_be_bytes());
+    expected[28..34].copy_from_slice(&MAC);
+    expected[236..240].copy_from_slice(&[99, 130, 83, 99]);
+    let mut encoded_options = vec![53, 1, 4, 61, 7, 1];
+    encoded_options.extend_from_slice(&MAC);
+    encoded_options.extend_from_slice(&[50, 4]);
+    encoded_options.extend_from_slice(&OFFERED);
+    encoded_options.extend_from_slice(&[54, 4]);
+    encoded_options.extend_from_slice(&SERVER);
+    encoded_options.extend_from_slice(&[56, 16]);
+    encoded_options.extend_from_slice(b"Address conflict");
+    encoded_options.push(255);
+    expected[240..240 + encoded_options.len()].copy_from_slice(&encoded_options);
+    assert_eq!(&output[..length], &expected);
+    assert!(output[length..].iter().all(|byte| *byte == 0xa5));
+    assert_eq!(
+        options(&output[..length]),
+        vec![
+            (53, vec![4]),
+            (61, [vec![1], MAC.to_vec()].concat()),
+            (50, OFFERED.to_vec()),
+            (54, SERVER.to_vec()),
+            (56, b"Address conflict".to_vec()),
+        ]
+    );
+}
+
+#[test]
+fn decline_rejects_bad_addresses_and_mac_without_changing_output() {
+    for bad in [
+        [0; 4],
+        [0, 1, 2, 3],
+        [127, 0, 0, 1],
+        [224, 0, 0, 1],
+        [255; 4],
+    ] {
+        for (address, server) in [(bad, SERVER), (OFFERED, bad)] {
+            let mut output = [0xa5; MAX_MESSAGE_BYTES];
+            assert_eq!(
+                dhcp::build_decline(&mut output, XID, MAC, address, server),
+                Err(Error::InvalidAddress)
+            );
+            assert_eq!(output, [0xa5; MAX_MESSAGE_BYTES]);
+        }
+    }
+    for mac in [[0; 6], [1; 6], [255; 6]] {
+        let mut output = [0xa5; MAX_MESSAGE_BYTES];
+        assert_eq!(
+            dhcp::build_decline(&mut output, XID, mac, OFFERED, SERVER),
+            Err(Error::InvalidMac)
+        );
+        assert_eq!(output, [0xa5; MAX_MESSAGE_BYTES]);
+    }
+}
+
+#[test]
+fn every_short_decline_buffer_is_all_or_nothing_and_exact_minimum_succeeds() {
+    for length in 0..300 {
+        let mut output = [0xa5; 300];
+        assert_eq!(
+            dhcp::build_decline(&mut output[..length], XID, MAC, OFFERED, SERVER),
+            Err(Error::OutputTooSmall)
+        );
+        assert_eq!(output, [0xa5; 300]);
+    }
+    let mut output = [0xa5; 300];
+    assert_eq!(
+        dhcp::build_decline(&mut output, XID, MAC, OFFERED, SERVER),
+        Ok(300)
+    );
+}
+
 fn option(message: &mut Vec<u8>, code: u8, value: &[u8]) {
     message.push(code);
     message.push(value.len() as u8);

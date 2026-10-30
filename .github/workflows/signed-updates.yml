@@ -36,6 +36,8 @@ jobs:
           sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
       - name: Strict preflight
         run: python3 -B tools/preflight.py --strict
+      - name: Fetch locked SDK dependencies before offline native builds
+        run: cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml --target x86_64-unknown-none
       - name: B03 signed update gate (18 QEMU stages)
         run: python3 -B -u tools/test_update.py
       - name: Upload B03 reports

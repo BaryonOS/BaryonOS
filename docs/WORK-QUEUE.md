@@ -1,319 +1,229 @@
-# Werkqueue — volledige native testrelease, 30 oktober 2026
+# Operationele werkqueue — 30 oktober 2026
 
-## Actuele integratie en exclusieve schrijfgebieden
+## Mandaat, bron en continuiteit
 
-Integrator `simon/native-test-version`: gepusht bewijscheckpoint `c532ba88`,
-geteste code `eabc27ba879fd3b5960863ae8eede800c5045a57`, runtime v3
-`a1998a126a3a1ccc18523925a422912d934c14bab865b3d7df346862a2c251a6`.
-De onderstaande oudere toewijzingen zijn historie, geen actieve reserveringen.
-IPC-wachten/consumenten, B02 en native TPM zijn geïntegreerd; normale GUI,
-save/list/reopen en koude probeheropening zijn op hun eigen bron bewezen.
-Alle zes volledige gewone zevenprocessenframes zijn nu op eabc27b native
-bytegelijk aan de opnieuw uitgevoerde referentie, met diskorakel na raw0.
-Bewijs: `verification/full-release-interactive-fixed/`.
+**Enige schrijver:** Teamleider werkqueue, app-ID
+`5d5f8513-2d31-41af-96ce-81c5ef56ef80`, branch
+`simonvanieperen-legendary-eureka`. Hostcontext-ID
+`dcb34641-e6d7-483a-8b8b-21598205381f` is geen extra uitvoerder.
+Donor `89f84098` gaf op 30 oktober expliciet exclusief vrij vanaf
+`6e3bc3ff9922d947df8f5aa89a7bcd962da601fa`; remote-SHA gecontroleerd,
+queueblob `7c011de653103dc6614c90be50b61102c8d55af8` eerst bytegelijk
+overgenomen op schone `ca45a7dabe6a040921de03bdc2fad3e5045a75ba`.
+Overname en eerste toewijzingen zijn gepusht als `16151b9c`; donor schrijft
+de queue niet meer. Alleen queueinhoud overgenomen, geen donorstatus/runtime.
 
-| Taak | Eigenaar / exclusieve writes | Toestand en bewijsgrens |
+Dit is het compacte actieve register, geen tweede roadmap of bewijsarchief.
+Volledige eerdere contracten, twintig SEC-lockpaden en uitvoeringshistorie
+blijven onveranderd raadpleegbaar in
+[`b58925f9:docs/WORK-QUEUE.md`](https://github.com/simonvanieperen/nieuw-os/blob/b58925f9ce1a9a4d045ba0753f007e7d070be7c2/docs/WORK-QUEUE.md).
+Die bron bewaart donorhistorie plus de hieronder toegewezen NET/UI/NAS/HW-scopes.
+Geen eerdere opdracht, claim of bewijs wordt door compactie ingetrokken;
+bij een niet hieronder gewijzigde filegrens geldt dat gepinde contract.
+Uitgebreide voortgang blijft bij eigen taak/PR, niet in deze queue.
+
+**Prioriteit:** gewone interactieve DEV1 voor Windows/QEMU op vaste bron,
+bediening/save/reopen/herstel; daarna shared store, object-only READ,
+issuer/devicefence/TCP-CR3, launch en NAS-lifecycle. Onafhankelijk werk gaat door.
+ROADMAP, FULL-TEST-RELEASE en CONTEXT blijven volledig bindend:
+**34/100 → 34/100**, alle 62 FR-rijen open, honderd koude starts/24 uur,
+fysieke en menselijke gates niet vervangen door DEV- of hostbewijs.
+
+Assistent wijst gewone taken en daadwerkelijk vrije gebieden zelfstandig toe.
+Voor nieuwe writes: actuele eigenaar, wijzigingen en afhankelijkheden controleren;
+geen claim zien of een timeout maakt een gebied niet vrij. Bestaande opdrachten
+gaan zonder nieuw ACK door. Frozen werk niet stil hervatten; parked WIP behouden.
+Technische ABI-/trustconflicten met betrokken eigenaar en teamleider 89; alleen
+onoplosbare eigenaars-/prioriteitsconflicten naar directeur. Geen Simon-routinelus.
+Manager 89 blijft enige status-/scorewriter. Queueovername is sinds `16151b9`
+voltooid; de afzonderlijke integratoroverdracht is nu ook veilig afgerond.
+
+**Exclusieve integratoroverdracht VOLTOOID:** op de nieuwe letterlijke
+Simonopdracht en het directiebesluit volgt 7f 8 op als ENIGE operationele
+integrator. Donor 8 heeft expliciet alle nieuwe merges/conflictwrites/runtimewrites
+gestopt en vrijgegeven: watch 2461 exit 124/af, geen mergecommands meer lopend,
+werkboom `d104` volgens donor/TL schoon. Alleen read-only advies blijft bij 8.
+7f bevestigt expliciet ontvangst van het volledige dossier en operatiecheck:
+geen lopende/verzonden mutatie bij donor of ontvanger; conflictclaims/WIP
+overgenomen. Geen activatie op stilte/timeout, geen extra Simon-/TL-poort.
+Overdrachtsmoment: main `ca45`, #74/4db90e1e, #75/0f8f8dee,
+#78/7f4f7bfe, #65/7960e98a, #80/bc27ed0f, #84/734c8fc5,
+#86/f2c875a7; main/74/75 zelf via liveREST gecontroleerd, overige heads door 7f.
+Actuele heads opnieuw toetsen bij iedere werkelijke integratiemutatie.
+Centrale inhoudsclaims blijven bij 89/5d en domeineigenaren; integratorschap
+verleent geen nieuwe runtimewriter of m6-claim. Alleen 7f voert geschikte
+guarded merges uit; assistent neemt geen merges over.
+
+**Afzonderlijke mergepauze na de overdracht:** liveREST bevestigt #85
+op 18:38:54Z gesquashmerged naar
+`9a6703d339f9248fc58d470523644193ec92cd45`, door account `simonvanieperen`.
+Dat bewijst geen sessie-identiteit. 7f deed dit niet en pauzeert mergewrites;
+HW 9 ontkent eigen/API/automationmerge, donor 8 is om de concrete operatie
+gevraagd. Directie heeft het voorstel: 7f blijft enige aangewezen integrator,
+hervat pas na identificatie/stop van extra writer en actuele main/base/gates.
+Geen algemene statusronde, rolterugname of automatische overname.
+Donor 8's nieuwe rolvraag is conform het vastgelegde mandaat beantwoord:
+laat 7f integreren, overdracht behouden. Onafhankelijk domeinwerk gaat door.
+
+**Integratie overgenomen op Simons opdracht (30 oktober 2026, ~21:10 CET):**
+Simon heeft de Claude Code-sessie in de desktopapp expliciet aangewezen om alle
+open pull requests en issues af te handelen, inclusief mergen en sluiten. Deze
+sessie is vanaf dan de enige operationele integrator; 7f en andere sessies
+voeren geen merges, sluitingen of pushes naar integratietakken meer uit.
+Domeineigenaren mogen op eigen takken doorwerken; commits na een vastgelegde
+integratiebron worden als aparte delta beoordeeld, niet stil meegenomen of
+weggegooid. Integratiebesluiten staan per PR als commentaar.
+
+## Werkelijke sessies en primaire opdracht
+
+24 geregistreerde rollen zijn geen claim van 24 actieve agents.
+Bronnen/uitslagen hieronder zijn eigenaarrapportages, tenzij anders vermeld.
+`unknown` activiteit of berichtacceptatie bewijst geen draaiende build.
+
+| Rol / werkelijke sessienaam | App-ID | Primaire taak / toestand | Bewijs / eerstvolgend |
+|---|---|---|---|
+| Directeur nieuw OS | `ef7a7596-8c3d-4705-ab69-36f8a2a1a1b6` | Richting/kwaliteit; read-only | Mandaat bevestigd; alleen echte uitzonderingsbesluiten |
+| Teamleider voortgangsbewaking | `89f84098-bd8c-4bc8-aeb2-0695517db26f` | Technische samenhang, status/score | Donor6e3 vrijgegeven; queuewrites gestopt; assessment34 behouden |
+| Teamleider werkqueue | `5d5f8513-2d31-41af-96ce-81c5ef56ef80` | TASK-ASSISTANT-QUEUE; enige queuewriter | Overname16151b9; gewone verzoeken afhandelen; zeven afdelingscontacten bericht |
+| Pull requests binnenhalen | `f2afe26e-5d6f-4948-89b8-0e2aeeb96225` | PR-intake/routering; geen queuewrites | #76/8a14770 frozen; NAS19c85f34 juiste draftleafhead/base routeren |
+| Issues en pull requests oplossen (donor integratie) | `e8e471ce-0601-417b-b4fa-a04fd9c7b954` | STOP/VRIJGAVE expliciet; alleen read-only advies | Geen lopende mergecommands, watch2461af; dossier/operatie/WIP overgedragen en door7f ontvangen |
+| Issues en pull requests oplossen (actieve integrator) | `7f895683-fc79-48d0-a98a-aa0a6ccfe8b9` | ENIGE operationele integrator, overdracht voltooid; mergewrites gepauzeerd om #85writerincident | Donorrelease/ontvangst/operatiecheck vastgelegd. Read-only voorbereiding door; hervat na incidentoplossing/mainrefresh, #74gates/#75ownerblobs/#65docsovername |
+| Nieuw OS release | `2ab17599-85c8-4409-ba06-a93c27485328` | TASK-REL-CANDIDATE-DEV1 | Herstelde offlinefreezec969de2 opdezelfdeca45; twee builds/preflight0 buiten ancestorconfig gemeld, wacht fresh12-slot. R77coldtools apart intakepunt |
+| Build- en testinfrastructuur | `b72f2536-b494-4a6b-a608-b6fd785e18ef` | Eerst verse RELc969-slotbeslissing binnen bestaand mandaat; daarna begrensde CI74trace read-only | REL draait geenVM/geen oudACK. Geen stille delegatie bij onbereikbaarheid; alleen concrete exclusieve deelvrijgave kan versecheck verplaatsen |
+| Beveiliging, privacy en updates | `081d6f31-7de1-4713-b466-d15adf51b2ef` | TASK-SEC-PUBLISHER-RECOVERY-CONTRACT-1 af/frozen05784243, claim gesloten | Apps+REL gerichte interfacelezingen geen concrete fout; intake3. #74STEP12/flush ROOD; SEC72/7f67471 en authority/c5fbb21a frozen |
+| Internet en netwerkdiensten | `039dbef8-bc79-4480-b003-55b8eccba736` | TASK-N01-NATIVE-CONFIG vrijgegeven | #87reviewfix f9b5988 binnen bestaande brokerclaim, gates/freeze volgen; korte TLS-CI-blokker apart vrij |
+| Nieuw OS voor persoonlijke NAS | `d7636e9c-fe84-4e63-8f37-4d08a5f50d0d` | TASK-NAS-EXACT-REPLAY-PROBE draft#93, acht leafbestanden | TLliveREST pin cebaa6f706d746cd557fbd157776f42ce4247578; basea9cf109/PR71, CI niet als pass geclaimd. Native replay wacht REL-root/privatehandoff |
+| Nieuw os: apps en SDK | `9db24a72-2ae7-4807-8e68-2fc88cb235d3` | Snapshotdoc083af5e af/scopedSEC geen fout; TASK-APP-SOURCE-SNAPSHOT-CORE-1 aparte leaf | #73/dce3:vier native SDK/DocumentSession-VMs gemeld; [exact bewijs](https://github.com/simonvanieperen/nieuw-os/pull/73#issuecomment-6530544604). Lang pad rodatafail/0VM blijft open; Apps2/8, geen install/launchacceptatie;73/80/84 frozen |
+| Lokale AI en quantum-runtime | `381d080e-be3d-4c78-ac72-b99b1de2b4e5` | Modeladapter af; providerafhankelijkheid bijREL | #82/b51 frozen; followup#89/f55f40c5 apart gestapeld; geen native inference; qsim-WIP behouden |
+| Native material en toegankelijkheid | `764bc9fb-2036-4b13-bbff-368037f9b2d7` | SR05 af/frozendca00a3, reviews7/11 geen blocker; TASK-UI-SR06-SR08-REGRESSIONS aparte leaf | SR05owner2gerichte/23suite/fmt/check/Clippy/none0, alleen twee test/bewijsfiles; geen productfix/controller/VM. Externe nativeconsumer OPEN |
+| Keuze native os-functionaliteit | `fbf60554-e98e-40bd-bd48-ee87a6498abe` | TASK-KS-CR3-DIAG read-only na verifierhandoff | Trace79b956e; geen kernelwriter; oorzaak/repro/kleinste vervolgclaim leveren |
+| Nieuw OS en hardware | `f5b20312-b6c5-46b0-bbf6-76970d3470a2` | TASK-H03-TRANSPORT-MODEL-1 af/frozen, claim gesloten | #91/ae9b3996;32tests/lint/fmt/none en7/7mutanten gemeld; geen nativefence/DMA/punten, intake3 |
+| Ontwerppakket materiaal | `6117dd21-50d2-4418-b3b6-17048afd1180` | Productontwerp/gerichte UX-review | UX-V01 reviewa3dd1c7 op29b; UX-V02/03/native/human open |
+| Iconen en assets nieuw OS | `1bf8f308-d645-4632-b210-2258428f86b2` | Assetpakket af/frozen | d3547639; geen native assetconsumptie |
+| Onderzoek os-rol 17 registratie | `ac0a0e5e-505e-4b77-b933-bcec2c636696` | Concrete R&D-afstemming, geen algemene audit | TLS-time4ffdde9f frozen; geen nieuwe tijdtrustbeslissing |
+| Invariantverificatie nieuw OS | `018d2f82-0c7f-4f13-874e-5651c374ad50` | TLS-time-model af/frozen | 60bab473,2380histories/6942calls gemeld; geen Rust-refinement/nativebewijs |
+| Prestatie-meetplan nieuw OS | `a398bc66-58a8-4ebe-9aa4-ed8ee2134fdb` | CAPBENCH geblokkeerd op rootguard | b715e362, raw35/runner1 voor metingen; geen timings/herhaling zonder nieuwebron/slot |
+| Qemu-producttest nieuw OS | `1963283b-73f4-4520-83f3-e9cfb93b3693` | TASK-QEMU-PRODUCT-DEV1 voorbereid | Protocola49774be;0818replay97b73e4 is geen gewoneDEV; wacht exacte kandidaat/slot |
+| Windows/qemu-testpakket nieuw OS | `d7cd7dda-ca14-4f03-8adb-275b5884acfb` | TASK-WINDOWS-DELIVERY-TAKEOVER | Route0915828f:10host+5Windows-synthetisch; nieuwe kandidaat/ZIP/OS-run nog open |
+| Native appbouwer nieuw OS | `29d8407c-b3c5-4c7c-ba6b-c37ca39da332` | Viewerleaf af/frozen, objectREAD/launch blocked | #86/f2c875a7,15host/lint/fmt/none gemeld; geen provider/nativeviewerclaim |
+
+## Vrijgegeven schrijfgebieden en acceptatie
+
+Elke rij is de volledige nieuwe fileclaim; geen impliciete domeinrechten.
+Eigenaar mag binnen de rij zelfstandig uitvoeren/testen/opleveren.
+Alle runners gebruiken afzonderlijke source/build/targets/images/VARS/swtpm-state.
+Geen nieuwe dependencies zonder bestaande dependencycontrole.
+Rapportages in deze tabel en het sessieregister verwijzen naar de
+**compacte bronindex** hieronder; een gelinkte bron is niet automatisch
+een door de assistent herhaalde test of een afgeronde releasegate.
+
+| Taak / eigenaar | Exclusief schrijfgebied | Afhankelijkheid / bewijsgrens / eerstvolgende stap |
 |---|---|---|
-| WINDOWS-INTERACTIVE-1 | peer `Keuze native os-functionaliteit`; alleen eigen `docs/verification/windows-qemu-interactive-1/`, eigen tijdelijke adapter/bundel/state | Vaste c532ba8-kopie in eigen worktree. Lokale ZIP en echte Windows CheckOnly/start/readiness gemeld; bediening loopt nog, geen geverifieerde eindclaim of publicatie |
-| INTERACTIVE-COLD-1 | integrator; voorlopig alleen sessieartifacts en eigen gegenereerde cold-experiment-runs, daarna zo nodig `tools/run_materiaal_preview.py` en directe tests | Eerste exacte lijstvergelijking rood: verse Ready-status verschilt terecht van vorige Saved-status. Tweede verkennende run4019c620f8 bewijst volledig bytegelijk reopened-frame en onveranderde disk na QMP-quit/raw0, maar certificeert de initiële lijst niet (expliciete vaste wachttijd). Nog geen volledige koude acceptatie; renderer-afgeleid lijstorakel en strikt parent/artifact/trace-replay vereist. Geen kernel-/app-/SDK-writes |
+| TASK-ASSISTANT-QUEUE /5d5 | Alleen `docs/WORK-QUEUE.md`, eigen sessieartifacts | Donor6e3 overgenomen; status/score niet aanraken. Compacte besluiten commit/push/remote-SHA; integratie uitsluitend bij7f |
+| TASK-TL-HANDOFF /89 | `docs/PROJECT-STATE.md`, `docs/progress.json`, `README.md`, `docs/PROGRESS.md`, `docs/assets/progress.svg`, eigen managerbewijs | Enige score-/statuswriter; assessment inclusief deze taak34→34; geen queuewrites |
+| TASK-INTEGRATOR-HANDOFF /5d,8→7f | AF: registratie door5d; integratierecht uitsluitend7f,8 alleen read-only advies | Expliciete donorstop/vrijgave + receiverACK/operatiecheck/heads/WIP/claims ontvangen; opvolging geactiveerd. Geen nieuwe toestemming nodig; bestaande domein-/centrale inhoudsclaims ongewijzigd |
+| TASK-INTEGRATOR-85-WRITER /5d,7f,directie | Alleen incidentregistratie/read-only operatietrace; geen nieuwe merger | #85merge9a6703d3 na overdracht,7f niet de uitvoerder/HW9 ontkent; donor8 om exacte operatie gevraagd, directie geïnformeerd. Alleen mergewrites gepauzeerd tot identificatie/stop+head/gatesrefresh; geen verklaring afleiden uit account of auto_merge=null |
+| TASK-CI74-FLUSH-TRACE /BUILD12 | Bron/CI-artifacts read-only, alleen eigen sessieartifacts; GEEN kernel-/runnerwrites of VMslot | SEC meldt4db90e1 ADR-onlyCI raw35 bij install/STEP12 eerste Disk.flush/ERROR-16,v3df5. -16 is Unknown voor timeout/pollErr/completionIO, geen rootcauseclaim. Bestaande logs/driverbranches naar een onderscheidende observatie of exact ontbrekend datapunt herleiden; boundedread-onlytrace, geen brede audit/blindrerun. TL meldt attempt2 reedsqueued/job124244643928: eerste rode poging niet wissen of transient noemen; geen retry door deze taak. Eventuele minimale firstFLUSH-instrumentatie vraagt eigen exacte REL-basis/slot/inputbinding naDEV1freeze; SECvoorstel is GEENm6writerclaim |
+| TASK-SEC-PUBLISHER-RECOVERY-CONTRACT-1 /SEC2 | Af/frozen05784243; alleen `docs/contracts/APP-SOURCE-RECOVERY.md`, claim gesloten | Basisca45, exact211regels. Apps+REL gerichte interfacelezingen zonder concrete fout; geen nieuwe verifier/catalog/crypto/issuer/SDK/rootwrites. Backend/anker/actor/reconstructie blijven OPEN; doc is geen implementatie/nativepunten. Intake3 ontvangt bron/body; Apps ontwerpt ontbrekende snapshotinterface apart |
+| TASK-APP-SOURCE-SNAPSHOT-CONTRACT-1 /Apps11 | Af/frozen083af5e, alleen `docs/contracts/APP-SOURCE-SNAPSHOT.md` | BasisSEC05784243,217regels; scopedSEClezing tegen recovery057/core dce geen concrete fout, geen tests/native/human/codevrijgave. Ontwerp kandidaat-API, publieke keys/generaties/tombstones/Unknown/koudrollback; provider/anker blijft OPEN. Intake uitsluitend docdelta, niet volledige SECparentbranch |
+| TASK-APP-SOURCE-SNAPSHOT-CORE-1 /Apps11 | Alleen `crates/app-package-core/src/lib.rs` met gerichte tests, nieuw `crates/app-package-core/verification/source-snapshot.md`; eigen sessieartifacts | Aparte leaf op exactdce3b05aa358f4dbde6f2349b426217779b40052, frozen73/80/84heads niet wijzigen. Zelfde coreowner; Apps meldt geen overige writes, SEC expliciet geen coreclaim, doc083/scopedSEC akkoord; assistent las API/autoriteitsgrens§3–4. Implementeer SourceRecord/status/SnapshotError/export_snapshot/from_snapshot volgens083; valid_anchors en exactpairuniciteit hergebruiken,0/8/mixed/revoked/maxgen/componentsharedpair/invalidlastentry/bufferunchanged/duplicates toetsen, all-or-nothing. Ok(SourceRegistry) blijft structurele private kandidaat, geen actor/freshness/verified-token/providerpublicatie. Geen manifests/locks/wire/grants/catalog/root/SEC/deps/crypto/unsafe/nieuwe verifier. Host/fmt/Clippy/none en SDKmanagementregressies op hetzelfde exacte head; proof/source/loghashes, gerichteSEC/interfacelezing nafreeze. Geen native/punten of automatische backend/publicatierechten |
+| TASK-U04-APP-CONSUMER /UI13 | Af/frozen70be43d6: `sdk/examples/materiaal/src/lib.rs`, `sdk/examples/materiaal/tests/semantic_actions.rs`, `docs/verification/native-semantic-consumer/U04-app-consumer.md` | WIP integraal bewaard, lib ongewijzigd; staleSave weigeren, nieuw snapshot/actueleSave en errorcount4. Owner2semantic/22suite/fmt/check/Clippy/none0; Apps11+7 exacte bronreview geen concrete blocker, geen eigen testexecutie. Geen externe consumer/ELF/IPC/voltooide save/nativeacceptatie. Freeze behouden; volgende aparte SR05leaf hieronder |
+| TASK-UI-SR05-REGRESSIONS /UI13 | Af/frozendca00a3 op70be43d6; alleen `ui/native/tests/interaction.rs` + `docs/verification/native-semantic-consumer/SR05-dirty-close.md`; conditionele controllerclaim NIET gebruikt en gesloten | Owner: drie focusdoelen × Escape100/200 behouden draft/diskrev1, geen requests/COMMIT/saving; Tab/ShiftTabwrap, drie actieve dialogkinderen/eenfocus/achtergrondweigering/stalegeneraties. Positieve matrix directgroen, geen verzonnen productbug.2gerichte/23suite(21+2)/fmt/check/Clippy/none/diff0 op eigen target; geen product-/render/root/API/manifest/VM of wijziging70head. Bronreviews7f/Apps geen blocker; vervolg alleen aparte SR06/08leaf hieronder. Externe nativeconsumer IPC/protocol/bootstrap blijft REL-afhankelijk, niet actief naastDEV1 |
+| TASK-UI-SR06-SR08-REGRESSIONS /UI13 | Bestaand `ui/native/tests/interaction.rs`, nieuw `docs/verification/native-semantic-consumer/SR06-SR08-recovery.md`; `ui/native/src/controller.rs` alleen minimale fix bij echte contractgebonden rode repro | Aparte leaf opdca00a3ec9eb8eb5120177c4ec4145141c8cd3ee; dezelfde test/controllerowner, SR05claim gesloten/7+Appsbronreviews geen blocker. Bestaande conflict/revoke/IO-fixture en lost_commit hergebruiken: semantische Save/Bewaren-disabled, focus niet opdisabled, geen Saved/retry/replay/staleacties; Uncertain na edit-naaroriginal+inputrebind. Verwachting aan bestaande controller/UXcontract binden, geen nieuwe policy om test groen te krijgen. Gerichte+bestaande UItests/fmt/Clippy/none, eigen target/bewijs. Geen IPC/API/renderer/root/VM/manifest of frozen dca/70/hovermutatie; geen native/humanpunten. Bij semantiek-/trustconflict uitsluitend betrokken case blokkeren met bronrepro |
+| TASK-N01-NATIVE-CONFIG /NET6 | `services/net-stack/**`, eventueel nieuw `services/net-config/**`, eigen bewijs daar | REL expliciet geen actieve/gereserveerde/gedelegeerde writes; bestaande NETtransportclaim behouden. Leaf Stack4a0+DHCP16adfe5+codecmainca45 inhoudsbehoudend, geen legacyrootmerge/nieuwe protocolwrites. Adres/default-route/DNS,T1/T2/expiry/linkdown/reconnect; seconds↔100Hz checked/overflow, een PacketDevice-RX/TX/completionpad. CheckingAddress→Bound uitsluitend na echte RFC5227-probe. Eerst rode lifecyclecases incl malformed/stale/NAK/expiry/conflict/overflow/backpressure, dan locked tests/Clippy/fmt/none. Root/SDK/HW/issuer/fence/TCP-CR3 apart; geen nativeclaim zonder eigen-kernelproef |
+| TASK-N81-TLS-CI /NET6 | Nieuw `.github/workflows/net-tls-quality.yml`, nieuw `services/net-tls/verification/ci-only/**` | Build12 bevestigt geen writer/claim/delegatie; net-tls op4a0 zelf via Git bevestigd. Korte #81opleverblokker naast N01; alleen lockedtest/Clippy/fmt/none/dedicatedCI, correcte triggers/paden, geen skip. Frozen4a0-code/provider/grants ongewijzigd; CI-delta via intake naar7f |
+| TASK-N04-NET-BROKER /NET6 | `services/net-broker/**`, `.github/workflows/net-broker-quality.yml` | Bestaande claim; reviewfixf9b5988 voor ongevraagde ingress→ongeautoriseerde ARP/RST, eerst rood101 gemeld. Definitieve gates/bewijs/freeze naar intake; authentieke caller/grant/epoch, denyfence zonder fakecompletion. Geen issuer/nativeafdwinging veronderstellen |
+| TASK-UI-PRIMARY-HOVER /UI13 | `ui/native/src/render.rs`, bestaande `ui/native/tests/render_regressions.rs`, `docs/verification/native-semantic-consumer/UX-V01-primary-hover.md` | Af/frozen29b79eae op0818, exact drie files. Primary ACCENT/SURFACE/hoverrandTEXT; rood101→4pixel/24suite groen gemeld,7/15bronreviews geen blocker. Geen token/API/runner/kernel/manifest/VM of oudePR68/DEV1mutatie. Intake heeft exacte bron; integratie bij7f; aparte wrapper70be43d6 inmiddels af |
+| TASK-NAS-EXACT-REPLAY-PROBE /NAS10 | `services/nas/native-probe/src/main.rs`, `CONTRACT.md`, `tests/**`, `verification/replay/**` binnen dezelfde crate | Draft#93 headcebaa6f706d746cd557fbd157776f42ce4247578/basea9cf10970889ef10b4fc67df47316b7fc66fa2f2,8files; TLliveREST verifieert metadata, geen testpass. PR71 niet gewijzigd. Payload voor boot1-issued Session40+Upload40coldreplay; native BLOCKED tot REL na profilefreeze root/runner/private80Bhandoff levert. error_replies5 is gewenste fixtureafstemming, niet uitgevoerd runtimebewijs. Originrun/role/stage/complete/lengte/hash/immutablecoldinput vereist; tokens nooit serial/log/Git; geen fictieve tokenbron/nieuwecrypto/wire/ABI/productrestore/duurzaamheidsclaim of VMslot |
+| TASK-H03-TRANSPORT-MODEL-1 /HW9 | Nieuw `drivers/virtio-snd/src/{transport_model.rs,transport_model_tests.rs}`, uitsluitend `#[cfg(test)]`-modulekoppeling in `src/lib.rs`, eigen `verification/{README.md,SHA256SUMS,model-*}` binnen crate | Leaf823cba3/#88, vorige HWcodec/contract frozen. Pure bounded Absent/Probed/Ready/Streaming/Fencing/Quiesced/Quarantined/Released, revoke/checkedepoch/slot/stale/double/RXverbod/timeout. Minimaal een echt rode mutant per I1–I6 incl doublecompletion/release, exacte delta/commando/exit/restore bewaren. Status0+BME-off modelaannames, GEEN echte DMA-quiescentie. Locked tests/fmt/Clippy/none; geen productie-export/deps/Cargo/lock/unsafe/I/O/VM. B1–B9-review14/2/4 apart |
+| TASK-REL-CANDIDATE-DEV1 /REL4 | Eigen releasebewijs/source/build/target/VMstate; bestaande gates uitvoeren, geen nieuwe rootbronclaim | Bronca45/herstelde offlinefreezec969de2, faalbewijsf7f01c; nestedancestor-Cargoconfigduplicatie verklaard, buitenconfigtwee builds/preflight0 gemeld.12freshheadroom/slot, maximaal twee seriele referentie/gewone7procespreviewgates,max240s/elk. EchteQMPinput/frame/diskoracle; source/v3/ELF/ESP/tools/firmware/start-stop/limits vastzetten voor20/21. Gewone gate eerst; daarna save/coldheropen vereist afzonderlijke intake drie R77hosttools opbffe11, ontbrekeninca45;12frozen/geen writer. Geen stille intake/bypass/nieuw hulpmiddel. Geen volledige FR/Windowsclaim |
+| TASK-KS-CR3-DIAG /CORE14 | Kernel/loader/ABI read-only, eigen verifierevidence/artifacts | Lopende verifier eerst expliciet overdragen; instructionfetch0x200130c naCR3=1000→DF/triplefault gericht reproduceren/verklaren of ontbrekende voorwaarde leveren. Geen runtimewriter; minimale patchclaim later metREL/TL |
+| TASK-QEMU-PRODUCT-DEV1 /20 | Alleen `docs/verification/product-test-20/**` | Create/edit/save/reopen,cold,deny/revoke,Full,Unknown met echteinput/provenance; vasteDEVartifact+12slot vereist, niet-uitgevoerd blijft NOT RUN/BLOCKED |
+| TASK-WINDOWS-DELIVERY-TAKEOVER /21 | `tools/package_windows_qemu.py`, `tools/windows-qemu/{Start-NieuwOS.ps1,Test-Launcher.ps1,README.md}`, `tools/tests/test_package_windows_qemu.py`, `docs/verification/windows-delivery-21/**` | Donor12/21ACK; vijf routeblobs gelijk. NaREL/actieveintegrator-kandidaatvrijgave package/hash/Windowsbediening/herstel, Linux/Windowsbewijs apart. Geen tweede route, hostdisk/persoonlijkedata/policyverruiming |
 
-De Windowspeer heeft de vaste build read-only gekopieerd en alle bron/copy-
-hashes gecontroleerd; verder integratorwerk verandert haar vaste bron niet.
-Geen parallelle schrijvers voor de gedeelde voortgangsmeter/status.
-De integrator heeft de Materiaal-/toegankelijkheidssessie expliciet van deze
-runnerreservering op de hoogte gebracht. Score blijft34%;50% open.
+## Overige behouden grenzen en concrete wachtpunten
 
-## Uitvoeringshistorie
-
-Afgeronde fundamentstap `TPM-NATIVE-1`, eigenaar `simon/native-test-version`, vanaf
-`cf02055`: alleen vaste supervisor-MMIO-adapter en read-only TPM2-property-
-proef met echte PIT-polls, afzonderlijk absent-geval en bestaande volledige
-CPL3-wachtacceptatie. Exclusieve writes: root/kernel Cargo-manifest/lock,
-exacte pagingseam, M3-TPM-fixture/testhook, waitfixture-observer,
-`tools/build.py`, `tools/run.py`, nieuwe `run_tpm.py`/hosttest en bewijsdocs.
-Geen keyring/system-opslagwijzigingen; actieve PR #64 bezit dat gebied.
-23 coretests, 4 harnastests en scalarbuild/ELF-inspectie groen. Beide echte
-native VM's slagen op `4b09869`: propertyquery/release en nul-write-absent-
-quarantaine, met volledige CPL3-wachtacceptatie. Eerste rode poging behouden;
-`verification/native-test-version/tpm-evidence.json`. ADR-052; fundament
-voor FR-B01/FR-O05, geen gesloten criterium. Integrator herhaalt nu de
-gedeelde gates/proefversie; nieuwe CI-step nog niet uitgevoerd.
-Voorafgaande sessiestap: alle zes echte K05-cases, inclusief twee Waiting-
-kills en schoon hergebruik, groen op `586c33c`; brongebonden bewijs in
-`verification/native-test-version/wait-lifecycle-evidence.json`.
-De normale/koude native GUI en FPU/wacht zijn eveneens inmiddels groen op
-hun eigen bron; oude rode queue-omschrijvingen hieronder zijn historisch.
-
-## Peerhistorie — Windows-QEMU-testversie, nu geïntegreerd
-
-`simon/windows-qemu-test-version`, basis `ad2b981`; codecheckpoint `f777f7a`.
-`TASK-WINDOWS-QEMU-TEST-VERSION` voegt een gecontroleerde ZIP-packager,
-PowerShell-launcher en bron-/hashgebonden QMP-previewrunner toe voor het echte
-zeven-app `native-system-materiaal`-profiel. De opgegeven map
-`C:\Program Files\qemu` is het ingebouwde standaarddetectiepad. De launcher
-vereist QEMU 10.2.1+, SDL en `rng-builtin`; QEMU zelf wordt niet meegeleverd.
-
-Hosttests (31: packager, transcript/frame-orakel en bestaande Materiaal-probe),
-strikte preflight en normale Materiaal-build slagen; de laatste build is
-waarschuwingvrij. De eerste QEMU-preview faalde door een onterechte vaste
-Source/Policy-volgorde in het hostorakel. Na correctie slaagt de echte run
-in 3,874 s: QEMU exit 0 na QMP-quit, 800×600 en 310 kleuren.
-Bewijs: `verification/windows-qemu-preview/`. Bundelgeneratie, GitHub-artifactjob en
-Windows-uitvoering staan nog open; de uiteindelijke bron wordt eerst met
-`simon/native-test-version` afgestemd. De lokale QEMU-build heeft QMP en
-`rng-builtin`, maar uitsluitend de `none`-displaybackend, zodat dit geen
-Windows-UI- of SDL-bewijs is. Geen volledige-release- of roadmapcriteria
-afgetekend; rubric blijft 34%.
-
-Windows-preflightaanvulling: echte PowerShell bereikt de opgegeven
-QEMU-installatie (11.1.0), met SDL en `rng-builtin`. Vijf launchertests met
-synthetische bestanden slagen zonder VM of state; `-CheckOnly` valideert
-bundelgrootte/SHA-256. Bewijs: `verification/windows-qemu-preview/windows-launcher.md`.
-Dit is geen Windows-gaststart of handmatige bediening. PR #65 is concept.
-
-Packager verifieert ook de ingelezen kernel-/loaderbytes en bron opnieuw
-vlak vóór archivering. 33 hosttests groen, inclusief artifactwissel na
-initiële validatie: fout zonder ZIP. Geen OS-bundel gemaakt.
-Historische CI41089090576 op f777 is rood (herstelde readinessvolgorde);
-huidige-head-CI blijft open.
-
-Eerstvolgende gate:
-`. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
-
-Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
-`5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De opt-in `native-rtc`-bootstrap,
-`kernel/src/m2/rtc.rs`, RTC-buildkeuze, RTC-runner/hosttests/workflow en
-`RTC-WALLTIME.md` zijn op die bron bewezen. Uitvoeringsbron `c02675e`: vijf
-RTC-kalenderboots, zeven M2-regressie-VM's, M6c-smoke en hostgates slagen;
-firmware-epoch/2100 blijft expliciet geweigerd.
-
-Afgeronde deelstap `TASK-NATIVE-CLOCK-1`: opt-in ABI 1.9 syscall `0x73`,
-SDK-type met expliciet `UnauthenticatedRtc`, en echte ring-3-positief- en
-negatiefproef in de bestaande systeemapp. De native QEMU-gate slaagde met
-gecontroleerde UTC-basis, twee echte reads, monotone tickcontrole en
-`-22`-argumentweigering; brongebonden bewijs staat onder
-`verification/system-clock/`. Het is een directe FR-N03/FR-S03-afhankelijkheid,
-geen vertrouwde tijd, TLS-klok of gesloten roadmapcriterium.
-[Brongebonden bewijs](verification/rtc-native/README.md); concept-PRreview,
-geen samenvoeging of volledige productrelease geclaimd. De andere
-zichtbare sessie beheert uitsluitend een root-workspace-doctestblokkade.
-De oudere agentnamen hieronder zijn historische toewijzingen, geen actuele
-claim dat hun agents draaien. `main` op deze basis bevat PR #58/#60/#61;
-de actuele gewogen score is 34%, niet de historische 32% hieronder.
-
-Integratie-eigenaar root, branch `codex/full-test-release`; laatste native foundationbron `844ec40`, gezamenlijke bron `9596abc` (negen CI groen, GUI rood) in `codex/native-product-integration`, PR #60.
-[Volledige opdracht/matrix](FULL-TEST-RELEASE.md) → [actuele uitvoering en exacte hervatstap](PROJECT-STATE.md).
-Werkpakketten zijn implementatiestappen; de 62 vaste `FR-*`-criteria blijven open. De gewogen ontwikkelscore blijft 32%.
-
-| Werkpakket | Toestand | Eigenaar / exclusieve writes | Acceptatie | Interface en bewijsgrens |
-|---|---|---|---|---|
-| B02-PERSIST-1 | geïmplementeerd; native FR-I01-gate (normaal + koude herstart) zie PROJECT-STATE | root; keyring wire/adapter, system init/app/protocol, system.rs manifest, run_system/volume_disk/capture | FR-O05, FR-B02 (deel), FR-O01 | KEY1-opcodes 11/12 alleen via apart admin-ingress (ADR-051); keystate-commit vóór ciphertextcommit; vloer is gedemonstreerd mechanisme, geen vertrouwd anker; B02 blijft open |
-| TASK-NATIVE-CLOCK-1 | implementatie gebouwd; native QEMU-gate volgt | root; RTC-bridge, M3 syscall, SDK, systeem-app en `run_system_clock.py` | FR-S03, FR-N03 | ABI 1.9 syscall 0x73; echte ring-3-reads en foutargument; uitsluitend `UnauthenticatedRtc`, geen TLS-/productklokclaim |
-| TASK-DOC / TASK-CONTEXT | opdracht en aanvullende context vastgelegd | root; FULL/status/queue/rubric | alle | oorspronkelijke scope, stabiele ID's, formats/compatibiliteit en 100 cold/24 uur behouden |
-| TASK-I01 / TASK-INT/GIT | foundation geïntegreerd op 844ec40 | root; gedeelde ABI/build/locks/Git | alle geraakt | negen CI groen op exact die bron; geen volledige productacceptatie |
-| TASK-A03/R1 / TASK-KEYSDK-NATIVE | document-v7 en keyclient geïntegreerd | root | FR-A02, FR-A13, FR-O01–FR-O05, FR-B01 | native deelproeven; lost-BEGIN, owner-death en veilige disk-/sleutelpersistentie open |
-| TASK-TCP | eigen native TCP-keten en cold pair groen | root | FR-N01, FR-N03, FR-H03 | HTTP/FIN/refused/reset/retry/timeout en strict capture; configuratie/TLS/appgrants open |
-| DHCP-CODEC-1 | volledige hostgate op `30748d6`: fmt, 56/56 tests, Clippy en `x86_64-unknown-none`-releasebuild groen | `simonvanieperen-musical-happiness`; alleen `services/net-protocol/**` en statusdocs | FR-N01 | no_std DHCPv4 DISCOVER/selecting REQUEST/renewal REQUEST en begrensde OFFER/ACK/NAK-parser; tijdelijke host-GCC in `/tmp`; geen clienttoestanden, configuratie of native bewijs; 34% blijft staan |
-| TASK-FPU/CLOCK / TASK-MEMORY / TASK-USER-ALLOC | geïntegreerd en native deelproeven groen | root | FR-K02, FR-K03, FR-L02 | eigen heap/guard/NX/OOM/FPU/context/clock; geen SMP- of algemeen hardwarebewijs |
-| TASK-DISPLAY-INPUT / TASK-DISPLAY-PROBE / TASK-DISPLAY-CI | geïntegreerd en native CI groen | root | FR-U01, FR-K03, FR-H01 | echte PS/2/QMP, pixels en negatieve cap/lifetimegevallen; volledige desktop open |
-| TASK-INPUT / TASK-INPUT-DAEMON / TASK-SURFACE/APP / TASK-GUI-INIT | componenten in GUI-branch | root; integratie shared files | FR-U01–FR-U05, FR-A02, FR-H01 | echte Source/Policy/Comp/Init/App-processen, begrensde IPC; brede sessie en crashherstart open |
-| TASK-GUI-QMP / TASK-MATERIAAL-NATIVE | 5e echte Materiaal-/editorframes; 1fd regressie; keten rood | root; root-materiaal | FR-U01–FR-U05, FR-A02, FR-O01 | 200 seconden vast; Save/Reopen/afsluiten nog niet bewezen |
-| TASK-REV-APP | gevonden stale-ready/entryfouten hersteld | gerichte onafhankelijke review afgerond | FR-U01, FR-A02, FR-K03 | host-/bronreview; volledige native GUI-keten blijft vereist |
-| TASK-RANDOM-NATIVE / TASK-KEYRANDOM | geïntegreerd, vier echte gevallen opnieuw in CI op 844 | root | FR-B01, FR-N03 | onderhouden CSPRNG, echte virtio-RNG, quota/clock/cancel/revoke; persistente productkeys/TLS open |
-| TASK-IMAGES | decoder native groen op 844, onafhankelijk hergevalideerd | root; image-codec component ade6 | FR-A03 | PNG/JPEG, heap/stack/pixels/negatieven; viewer, volledige formaten, native OOM en mid-decode cancel open |
-| TASK-FOUNDATION-CI | alle vijf native stappen echt groen, 844 | root | FR-B01, FR-A03 | afzonderlijke builds, geen skips of genegeerde fouten; raw artifactmetadata bewaard |
-| TASK-TPM-CRB | geïntegreerde pure transport-/commandocore | root; component 6bed190 | FR-B01, FR-B03, FR-O05 | host-/targetbewijs; native MMIO, virtuele TPM, ankertransacties en sleutelherstel open |
-| TASK-RTC / TASK-RTC-V | core geïntegreerd, review afgerond | root | FR-N03, FR-S03 | 11 hosttests en onafhankelijke datumvectoren; UnauthenticatedRtc is geen vertrouwde certificaattijd |
-| TASK-TLS-PORT | component 34191bb in eigen tls-port worktree | wachtrij voor verdere integratie | FR-N03, FR-P01–FR-P06 | no_std rustls/ML-KEM/mTLS host en target; native random/signer/trusted-time/TCP-keten open |
-| TASK-BROWSER-PORT | concreet Chromium/Gecko-onderzoek a2085b9 gereed | wachtrij voor rootintegratie | FR-A05 | echte portproeven geblokkeerd, engine_selected null; verplichte browser blijft open |
-| TASK-CAP-PERF / CAP-DIGEST-TCG-2 | productieherstel geïntegreerd; gezamenlijke GUI-keten blijft rood | kernel_storage; capability-core en digestcontract, basis 952e | FR-K03, FR-U01 | 5337500 geïntegreerd: reference sneller onder TCG; alle controles behouden; echte gezamenlijke GUI-herhaling volgt |
-| GUI-BENCH-REVIEW-1 | P2-harnasfix geïntegreerd en onafhankelijk groen | security_release; run_cap_bench.py en test_cap_bench.py, basis 342387e | FR-K03, FR-U01 | exacte native artifacts correct; stale-index/inputdrift/initial-VARS/disk-readorder hersteld; native herhaling volgt |
-| TASK-CALCULATOR / CALCULATOR-REVIEW-1 | component 0254206 geïntegreerd, onafhankelijke review groen | root; shared multiappgrants nog open | FR-A08 | 17+4 IPC-hostgroepen en 26424 exacte oraclecases; target groen; echte multiapp-/QMP-bediening open |
-| MULTIAPP-CONTRACT-1 | actief | native_ui_apps; nieuw NATIVE-MULTIAPP.md, basis 48b | FR-U01–FR-U05, FR-A08 | twee echte CPL3-apps, minimale grants, focus/dirty/retire/lifetime; root bezit gedeelde code |
-| PRODUCT-MERGE-REVIEW-1 | afgerond; configuratie-P2 gericht hersteld | git_build_audit; c91714b | alle gedeelde interfaces | gerichte controle foundation/GUI/build/manifest, geen root-WIP-writes |
-| IPC-WAIT-1 | in uitvoering; WIP nog niet native getest | kernel_storage; core/SDK/m3/waitmodule/feature, basis 9596 | FR-K03, FR-U01 | 16 endpoints, absolute deadline, veilige wake/revoke/lifetime en terugkeerbare IRQ-idle; rootnativegate vereist |
-| WAIT-CONSUMERS-IDLE-1 | in uitvoering; SDK-afhankelijkheid open | security_release; Key/Volume service en nieuw contract | FR-K03, FR-B01, FR-O01 | alleen echte idlepass; oude ABI/devicepolling en no-replay/deadlines behouden |
-| MULTIAPP-CODEC-1 | hostchecks groen, target en integratie volgen | native_ui_apps; nieuw sdk/desktop-control en contract | FR-U01, FR-A08 | APPCTRL2 en beperkte Switch, geen native Pause/Resume-blitclaim |
-| NATIVE-TLS-PROBE-1 | wachtrij, threadlimiet verhinderde start | nog niet actief | FR-N03, FR-P01 | volgende vrije worker: echte native TLS-/signerketen, geen voorspelbare RNG of hostsucces |
-
-Volgend verplicht werk blijft zichtbaar: volledige compositor/sessie/toegankelijkheid,
-alle apps en appbeheer, veilige persistente opslag en TPM-ankering, netwerkconfiguratie
-met TLS, NAS/providersynchronisatie, lokale inference, boot/PQC, updates/herstel en
-integrale productvalidatie. Dit zijn geen naar later verplaatste releasevereisten.
-Fysieke en menselijke gates blijven open; onafhankelijk bron-/VM-werk gaat door.
-Uit historische queues hieronder mag geen actieve agentcapaciteit worden afgeleid.
-
-## Historische registratie
-
-# Werkqueue — 29 oktober 2026
-
-Actuele geteste bron `53e0d57af99c9673c97bc900fae15b98e08c8ca3`, PR #54.
-Root integreert; onafhankelijke worktrees en buildmappen zijn gebruikt.
-Historische registraties hieronder zijn geen actieve capaciteitsclaims.
-
-| ID | Toestand | Eigenaar / exclusief gebied | Resultaat / afhankelijkheid |
-|---|---|---|---|
-| B01-R1 | afgerond, geïntegreerd getest | keyring_repairs: services/keyring/** | Blijvende Health, monotone intrekking; 15 tests en extra tegenvoorbeelden groen |
-| B01-R2 | afgerond, geïntegreerd getest | entropy_timeout: keyringbroker/app/harnas | Echte timeout/reset-ACK, aparte herstart, native oude-blobintrekking; 5/5 gate |
-| B01-V | afgerond | security_verifier: alleen lezen | Geen blocker; 615 hosttests plus lint/fmt/voortgang groen |
-| S08-R | afgerond, geïntegreerd getest | storage_resume: m6c-/volumebroker | Err-completionmeting; 13/13 gezamenlijke gate; aparte targeted cases groen |
-| ENV | afgerond | emulator_setup: uitsluitend .tools/** | Officiële lokale QEMU10.0.13/OVMF, preflight groen |
-| INT | lokale controles afgerond | root: docs/voortgang/bewijs/GitHub | 27 VM-runs groen; geschikte merge uitsluitend na finale PR-checks |
-| K05-SLOTS | lokaal afgerond, eindintegratie volgt | root + storage_resume, security_verifier | 5/5 native, 21 negatieve controles; exact56b576b, geen nieuw punt |
-| B02 | gereed om te bouwen | volgende eigen branch | Persistente geauthenticeerde sleutel-/volumeopslag; live herstel is geen koude antirollback |
-| S09 | wacht op bron of nieuwe implementatie | niet toegewezen | Historische lokale branch niet remote gevonden; geen geïntegreerde implementatie claimen |
-
-## Vroege productvalidatie — consumentenadoptie
-
-De literatuurverkenning in
-[CONSUMER-VALUE-2026-10-28.md](research/CONSUMER-VALUE-2026-10-28.md)
-levert vier onderzoeksstappen naast de native bouw. Deze taken gebruiken geen
-agentcapaciteit totdat zij werkelijk worden uitgevoerd en tellen niet als
-roadmappunt zonder het bewijs van het betreffende acceptatiecriterium.
-
-| ID | Toestand | Onderzoeksdoel | Afhankelijkheid / grens |
-|---|---|---|---|
-| PRX1 | gereed voor onderzoek | 12–18 taakinterviews/-observaties om twee of drie kerntaken en overstapvoorwaarden vast te leggen | Praktische pilotomvang; geen statistische representativiteitsclaim |
-| PRX2 | wacht op PRX1 en bruikbaar DV-01-prototype | circa 24–36 deelnemers; terugvinden, twee gereedschappen, herstel en rechten vergelijken | Taakprestatie en aantrekkelijkheid apart meten; definitieve omvang na pilot/poweranalyse |
-| PRX3 | wacht op stabiele kernflow | eerlijke productbeloftes vergelijken op zelfstandig uitgevoerde taak, niet alleen klikgedrag | Zelfde prototypekwaliteit, prijs-/beschikbaarheidsinformatie en vooraf gekozen primaire uitkomst |
-| PRX4 | wacht op bruikbare afgebakende workflow | vierweekse vroege veldproef met vrijwillig hergebruik, fouten, herstel, hulp en terugvalredenen | Geen claim van langdurige retentie; 90-/180-dagenvalidatie blijft latere marktproef |
-
-DV-01 in [PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md) blijft het
-geïntegreerde Materiaal-scenario. U06 blijft open totdat representatieve
-gebruikers de afgesproken kerntaken daadwerkelijk uitvoeren en relevante
-frictie binnen productbudgetten is opgelost.
-
-## Historische registratie
-
-# Werkqueue — native M6b-opslagfouten
-
-28 oktober 2026, basis `1f24f99`, branch `codex/m6b-storage-errors`.
-
-| ID | Eigenaar | Exclusieve writes | Status |
-|---|---|---|---|
-| K07 | m6a_architect_review | kernel/Cargo.toml, kernel/src/m2/m3/m6b.rs, userspace/m6b_probe.rs | generieke Unknown-observerreparatie en twee statussnapshotinjecties klaar |
-| G07 | root | tools/tests/docs/Git | 31 hosttests, 22 groepen/18 VM en capture exit 0; nieuw bewijs apart gearchiveerd |
-| R07/V07 | m6a_environment | alleen lezen | bronreview geen blockers; onafhankelijke hash-/schijf-/recoveryaudit |
-
-Vereist: geen mutatie-ACK of live-stateclaim na onzekere I/O, geen replay,
-GET/PUT/DELETE fail-closed, canoniek foutantwoord en overlevende processen.
-Twee gerichte native foutcases en de volledige M6b-gate met beide koude
-foutrecoveries slagen. Historisch bewijs behouden. Geen nieuwe rechten,
-dependency, schijfformaat of architectuur. Bron `592dccf`; bewijs en nog open
-backend-/timeout-/LIMIT-grenzen staan in PROJECT-STATE.md.
-
-## Oudere werkqueue — historisch
-# Werkqueue — M6d native foutafhandeling en productvoortgang
-
-## Afgeronde uitvoering M6d — 28 oktober 2026
-
-Uitvoeringsbron `88e6c04be218b8b09ea4f0a226f6b9719da706a6`, branch
-`codex/m6d-io-recovery-roadmap`, PR #11. Contract:
-[M6D-IO-UNCERTAINTY.md](implementation/M6D-IO-UNCERTAINTY.md).
-
-| ID | Werkverdeling | Afgerond resultaat |
+| Werk / eigenaar | Behouden gebied / toestand | Eerstvolgend / afhankelijkheid |
 |---|---|---|
-| A01/A02 | architecture_next_step / kernelobserver, native probe, integratie twee hosttools | Unknown zonder valse ACK; acht native foutfeatures; upstream hostlogbinding behouden |
-| A03 | architecture_next_step / M6b-capture en bijbehorende tests | begrensde alternatieve bestemming; drie negatieve/positieve bestemmingschecks |
-| D01/D02/D03 | progress_roadmap / scoremodel en historische documentintegratie; later alleen advies | vaste 100 punten, bron-/bewijsgrenzen en concreet herstelvervolg |
-| R08/R09 | native_review / aanvankelijk alleen lezen, daarna zelfstandige audit buiten de repo | twee vroege harnasbevindingen hersteld; 31 M6d-runs, 274 artifacthashes en 16 images gecontroleerd |
-| A04 | architecture_next_step / afzonderlijke read-only M6b-bewijsaudit | 14 M6b/M1-runs, 121 artifacthashes, zeven volumes en zes cold-links gecontroleerd |
-| G08/V08 | root / gedeelde interfaces, integratie, uitvoering, score en Git | 35/31 plus 18/14, beide captures en normale eindbuild geslaagd; S07 geaccepteerd, 13% → 14% |
+| Publisher/sourcepersistentie /SEC2, snapshotinterface /Apps11 | Recoverydoc05784243/snapshotdoc083af5e af; alleen aparte AppsCORE-1leaf hierboven vrij | Frozen73head ongewijzigd; geen andere codewriter of adapter/backend/anker/issuer/publicatieclaim. Nativeactualiteit niet door hostfixture vervangen |
+| NAS-resumeclient /NAS10 | `services/nas/native-client/**` en NAS-only `.github/workflows/nas-core.yml`, frozen19c85f34 | 16debug/17release incl64KiBqueue/coreCAS/Unknown/revoke en viercrategates gemeld. Intake3 om correcte drafthead/base gevraagd, niet sessiePR71muteren; typedcheckpoint geen duurzame syncqueue |
+| AI-modeladapter /AI5 | `experiments/ai/model-store-contract/**`, frozen#82/b51; tests-onlybc44 apart | Store-issued opaque Ref+immutablegeneration/aparte pinmetadata, authoritativeopen/boundedread/u64quota/explicietefouten/HandleDrop/catalogusduurzaamheid aanREL+Apps geleverd. Provider blijftREL; geen inference/download/netwerkclaim |
+| Viewer /22 | `sdk/examples/image-viewer/**`, frozen#86/f2c875a7 | Apps11 contract/review; DocumentSession open kiest STATrevisie, gekozen revisie nadien vergelijken. ReadOnly/word112 is clientpolicy, GEEN objectautorisatie. Kernel-authsender/object/revision/READ+LIST/mutatieweigering bijprovider; launch/focus REL/UI |
+| UI-wrapper /13 | U04 af/frozen70be43d6; nieuwe SR05leaf apart | Externe native hulpmiddelenconsumer blijft OPEN; IPC/protocol/rootbootstrap vereist een afzonderlijke REL-ownerhandoff. IMAGE-0818/e37fa17b eigen bron/v326b41e55/1VM132.461s/raw33;15eb70/20replay97b73e4 geen nieuwe ordinaryDEV |
+| UX /15 | `docs/implementation/UX-MATERIAAL-SAVE-RECOVERY.md`, `ui/design/save-recovery.svg` | Reviewa3dd1c7 naeb70, UX-V01bronmatig afgehandeld; native/human/UX-V02/03 blijven open |
+| Assets /16 | `ui/assets/material-flow-icons.svg`, frozend3547639 | Geen native assetconsumptie; afstemming15/13, geen rendererwriter |
+| TLS-time R&D/model /17,18 | Bestaande `docs/research/TLS-CERTIFICATE-TIME-BOUNDARY.md` en `experiments/verification/tls-time-gate/**` frozen |4ffdde9f/60bab473; RTC niet tot vertrouwde certificaattijd promoveren; geen nieuwe trustbootstrap zonder besluit |
+| Prestatiemeting /19 | `docs/verification/performance-19/**`, geen sourceoptimalisatie | CAPBENCHguardroot bijREL; geen nieuwe VM/timings zonder nieuwebron/12slot |
+| Gedeelde root/NAS /REL4, integrator7f | #83kernelsubset/`tools/build.py` volgens gepind contract; runtime/ABI-verantwoordelijkheid behouden | Geen nieuwe actieve rootbuilder naastDEV1. BootInfo/ACPI, native80Bhandoff, provider/READ/issuer/launch/CAPBENCH zijn afzonderlijke nog te plannen rootafhankelijkheden |
+| SEC72 locks /SEC2 | Exact twintig consumerlocks en SDK/keyring/randomfiles volgens gepind contract, frozen7f67471 | Geen andere writer of locked-bypass. Geen stil NV/TPM/kernelCargo/buildrecht; nieuwe runtimewijziging vraagt exacte afbakening |
+| Frozen integraties /7f | RootCargo/locks/centrale conflicten PR73/78 uitsluitend inhoudsbehoudend | #74op4dbADR-only eersteSTEP12/flush ROOD; tweede reedsqueued verandert die oorzaak niet. #75neemt alleen actuele queueblob/delta van5d over; overige centrale inhoud bij89, geen ownerwijziging. Daarna78→82; NET70/main0078+74historiebehoud afzonderlijke gate, geen branchregels omzeilen |
 
-Eén schrijver per bestand en één build/QEMU-slot. Geen nieuwe OS-kernelbasis,
-capabilityverruiming, schijfformaat of externe dependency. Exacte uitslagen en
-bewijs: [M6D-ACCEPTANCE.md](verification/M6D-ACCEPTANCE.md). Iedere volgende
-opdracht herbeoordeelt de vaste meter volgens AGENTS.md.
+## Compacte bronindex
 
-### Eerstvolgende native stap — begrensde catalogusrecovery
+Projectbronnen: **Nieuw OS**, gerapporteerd door de genoemde domeineigenaar;
+de versie is de volledige commit-ID in iedere URL. Titels hieronder duiden
+het betreffende bron-/bewijsdossier aan. Korte hashes in statusblokken zijn
+alleen leeslabels voor deze exacte bronnen. Geen nieuwe testuitvoering door
+de queuewriter; broncode, eigenaarrapportage en native acceptatie blijven
+verschillende bewijsniveaus. Ontbrekend of alleen lokaal bewijs blijft open.
 
-Voorgesteld, nog niet gebouwd of als punt geteld:
+| Statusblok / titel | Exacte primaire projectbron of rapport-URL |
+|---|---|
+| Centrale contracten, eerdere fileclaims en historie | [Volledige queue b58925f9](https://github.com/simonvanieperen/nieuw-os/blob/b58925f9ce1a9a4d045ba0753f007e7d070be7c2/docs/WORK-QUEUE.md); [basis ca45](https://github.com/simonvanieperen/nieuw-os/commit/ca45a7dabe6a040921de03bdc2fad3e5045a75ba) |
+| Overdracht8→7f: bron-/operatiesnapshot en centrale status | [Donorwerkboom d104](https://github.com/simonvanieperen/nieuw-os/commit/d104fd9a7f33b478c3e1b43f8d99c6d65af73fd6), [#65 7960e98a](https://github.com/simonvanieperen/nieuw-os/commit/7960e98a78e054f245ec75a0862f9147bdb53f55), [#78 7f4f7bfe](https://github.com/simonvanieperen/nieuw-os/commit/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb), [manager6419e426](https://github.com/simonvanieperen/nieuw-os/commit/6419e426db894ed0e16e8aa5208ac238c5238673). Expliciete donor/receiververklaringen zijn hierboven geregistreerd, geen afleiding uit Gitmetadata |
+| Afzonderlijk #85-exclusiviteitsincident | [PR85](https://github.com/simonvanieperen/nieuw-os/pull/85), [merge9a6703d3](https://github.com/simonvanieperen/nieuw-os/commit/9a6703d339f9248fc58d470523644193ec92cd45). LiveREST bevestigt merge/tijd/account, niet welke sessie/automation uitvoerde |
+| REL4: DEV1 offlinefreeze en ancestorconfig-faalbewijs | [Herstelde freeze c969de2](https://github.com/simonvanieperen/nieuw-os/commit/c969de2405347881243857e7b475220b46c1b254), [faalbewijs f7f01c](https://github.com/simonvanieperen/nieuw-os/commit/f7f01cd9f63f4d37c753d9d958f56f40561cec8a); vervangt [oude freeze b4a93e43](https://github.com/simonvanieperen/nieuw-os/commit/b4a93e43a0b2f95bc7673f0c64ccb64b76f8bb35) |
+| BUILD12/SEC2: #74 ADR-only bron en mislukte native gate | [Bron 4db90e1](https://github.com/simonvanieperen/nieuw-os/commit/4db90e1e64efc6063943cfa5745efc9077f8496d), [b03-native-update FAILURE, run41106589363/job124237913427](https://github.com/simonvanieperen/nieuw-os/actions/runs/41106589363/job/124237913427). Runstatus eenmalig uitgelezen; ERROR-16-diagnose eigenaarrapportage, oorzaak OPEN |
+| SEC2: source recovery en bestaande securityfreezes | [APP-SOURCE-RECOVERY, 05784243](https://github.com/simonvanieperen/nieuw-os/blob/05784243d3d1ea273b588de82069596648fbde4d/docs/contracts/APP-SOURCE-RECOVERY.md), [#72 7f67471](https://github.com/simonvanieperen/nieuw-os/commit/7f674719d5aa90523c15a5a2b0472e15a923fb5f), [authority c5fbb21a](https://github.com/simonvanieperen/nieuw-os/commit/c5fbb21a0e46e010d5e9b4748ae9b9307a67cef4) |
+| Apps11/SEC2: snapshotontwerp, geen productieprovider | [APP-SOURCE-SNAPSHOT, 083af5e](https://github.com/simonvanieperen/nieuw-os/blob/083af5e567689639b3358e16d75463339b7524b4/docs/contracts/APP-SOURCE-SNAPSHOT.md); SHA256 e0dd916c40e441761fe478aa109cbefc3f18d77edd9f8bf46be3fd254b846199, scopedSECbronlezing zonder concrete fout gerapporteerd |
+| Apps11: #73 SourceRegistry/SDK en hostgates | [Bron dce3b05a](https://github.com/simonvanieperen/nieuw-os/commit/dce3b05aa358f4dbde6f2349b426217779b40052), [exact hostrapport](https://github.com/simonvanieperen/nieuw-os/pull/73#issuecomment-6530422253) |
+| Apps11: vier native SDK-/DocumentSession-gates en lange-padgrens | [Exacte commando's, tools, hashes en foutpad op dce3b05a](https://github.com/simonvanieperen/nieuw-os/pull/73#issuecomment-6530544604); vier beperkte VMs zijn geen install-/catalogus-/launchacceptatie |
+| Apps11: catalogus/protocolfreezes | [#80 bc27ed0f](https://github.com/simonvanieperen/nieuw-os/commit/bc27ed0f20097a68c9bfdfeecc8867c7e7721211), [#84 734c8fc5](https://github.com/simonvanieperen/nieuw-os/commit/734c8fc587edffba746ef470212bb751e6537b29) |
+| NET6: TLS, DHCP en brokerreviewfix | [#81 4a0ce99f](https://github.com/simonvanieperen/nieuw-os/commit/4a0ce99ff6b88adcd0e2c6be0571b30390d8d1c8), [DHCP 16adfe5](https://github.com/simonvanieperen/nieuw-os/commit/16adfe54f3e6539339aad60232f7145c4212e538), [#87 f9b5988](https://github.com/simonvanieperen/nieuw-os/commit/f9b59884d7acb6b56537838969a04cd5b5e52b77) |
+| NAS10: resumeclient, oorspronkelijke probe en aparte replaybasis | [Client 19c85f34](https://github.com/simonvanieperen/nieuw-os/commit/19c85f3451fb81e302a75bddd2109bf12c787720), [#83 bron 1219dcdc](https://github.com/simonvanieperen/nieuw-os/commit/1219dcdc8b7fcc6826ab64d440249f41fa2edf49), [replaybasis ce52](https://github.com/simonvanieperen/nieuw-os/commit/ce52dd6165ba7af3bdcd1533308b556d1927443d); oudere 032-evidence alleen via gepinde volledige queue, geen nieuwe replayclaim |
+| NAS10: draft93-metadata, geen native replaypass | [#93 headcebaa6f7](https://github.com/simonvanieperen/nieuw-os/commit/cebaa6f706d746cd557fbd157776f42ce4247578); TL REST-pins head/base/8files, eerdere cebaaf-spelling was berichttypfout |
+| AI5: modeladapter en tests-only followup | [#82 b51a809](https://github.com/simonvanieperen/nieuw-os/commit/b51a8093320e6182afce9b189e89760fc8c99116), [#89 f55f40c5](https://github.com/simonvanieperen/nieuw-os/commit/f55f40c525d906b87ab31103a4fa23d2be906d26) |
+| UI13: app-local semantic consumer; SR05-basis | [U04 bewijs, 70be43d6](https://github.com/simonvanieperen/nieuw-os/blob/70be43d63b50294a2f40bc2ba431aab557498019/docs/verification/native-semantic-consumer/U04-app-consumer.md); gerichte reviews7/11 zijn AI-bronlezingen, geen onafhankelijke menselijke/native acceptatie |
+| UI13: SR05 dirty-close-regressies en SR06/08-basis | [SR05 bewijs, dca00a3](https://github.com/simonvanieperen/nieuw-os/blob/dca00a3ec9eb8eb5120177c4ec4145141c8cd3ee/docs/verification/native-semantic-consumer/SR05-dirty-close.md); ownerhostgates en twee gerichte AI-bronreviews, geen gast/humanresultaat |
+| UI13/UX15: Primary-hover en gerichte ontwerpbronreview | [UX-V01 bewijs, 29b79eae](https://github.com/simonvanieperen/nieuw-os/blob/29b79eae19de616be415cfbd7b7cc313766546d6/docs/verification/native-semantic-consumer/UX-V01-primary-hover.md), [review a3dd1c7](https://github.com/simonvanieperen/nieuw-os/commit/a3dd1c7cb1b00891a337ac9dc9bd4e7d1df77b73) |
+| UI13/QEMU20: historische IMAGE-0818 en replay, niet gewone DEV1 | [IMAGE-bewijs e37fa17b](https://github.com/simonvanieperen/nieuw-os/commit/e37fa17bf4896b6a67509aee62f1de7db542cc42), [replay 97b73e4](https://github.com/simonvanieperen/nieuw-os/commit/97b73e496d57c577978671d90aa392fa2c86fa7e) |
+| CORE14: CR3-diagnosetrace | [79b956e](https://github.com/simonvanieperen/nieuw-os/commit/79b956e79da7a861da3cb1fc9b42d45138be73c2); oorzaak/patch/native vervolg niet afgeleid uit alleen deze trace |
+| HW9: transporttoestandsmodel | [#91 ae9b3996](https://github.com/simonvanieperen/nieuw-os/commit/ae9b39962b63e7bb8b05ce956793427d2ca39275); tests/mutanten zijn modelbewijs, geen DMA-/fencebewijs |
+| Assets16: pakketfreeze | [d3547639](https://github.com/simonvanieperen/nieuw-os/commit/d3547639be733aefcc1228edad37114980e5073c) |
+| R&D17/verifier18: certificaattijdgrens en model | [TLS-time 4ffdde9f](https://github.com/simonvanieperen/nieuw-os/commit/4ffdde9f2762ff39de64eeca9940e8b3548d79e0), [model 60bab473](https://github.com/simonvanieperen/nieuw-os/commit/60bab47377b45c478d59c47a57b313c12e25ce2a) |
+| Meting19: CAPBENCH-blokkade | [b715e362](https://github.com/simonvanieperen/nieuw-os/commit/b715e362b04fcd65de79c8bf85bfa439add037eb); geen timingsclaim |
+| QEMU20: producttestprotocol | [a49774be](https://github.com/simonvanieperen/nieuw-os/commit/a49774beface0f332e9c7afc3931174eca64d2a5) |
+| Windows21: bestaande overdrachtroute en ontbrekende coldtools | [Route 0915828f](https://github.com/simonvanieperen/nieuw-os/commit/0915828fcd40492f873dc9098ee445306f1f0638), [R77 corrected coldtools bffe11](https://github.com/simonvanieperen/nieuw-os/commit/bffe11fbc8c90d0e43b784c0a4ab580a111c12cc); laatste nog niet in DEV1-basis |
+| Viewer22: bron/eigen gatebewijs, geen objectautorisatie | [#86 f2c875a7](https://github.com/simonvanieperen/nieuw-os/commit/f2c875a711f9e2d3d045de160163634bcbc8d80e) |
+| Intake3: eerder bevroren intake | [#76 8a14770](https://github.com/simonvanieperen/nieuw-os/commit/8a14770d6a719c3a122c54cb774db58ce9b1a728) |
 
-1. Eén geautoriseerde supervisor mag alleen deze catalogusdienst vervangen;
-   gewone apps krijgen geen reset-, processtart- of blokrechten.
-2. Oude servicegeneratie, endpoints en blokhandles intrekken vóór vervanging.
-   DMA-geheugen pas hergebruiken na bevestigde reset; anders quarantaine.
-3. Nieuwe instantie herstelt de echte journal zonder write-replay. Apps blijven
-   actief, krijgen binnen hun bestaande rechten nieuwe endpoints en lezen de
-   actuele revisie terug; Unknown wordt nooit alsnog een verzonnen succes-ACK.
-4. Herstartbudget begrenzen; stale caps, onbevoegde supervisor, corrupte journal,
-   herhaalde uitval en ontbrekende reset-ACK als negatieve gevallen opnemen.
-5. In dezelfde VM testen en de relevante M6d-regressie herhalen. Deze beperkte
-   proef voltooit niet automatisch algemeen dienstbeheer K05 of opslagherstel S08.
+Normatieve NET-bronnen, geen bewijs dat Nieuw OS hier al native aan voldoet:
 
-Native Materiaal, grotere documenten en ruimtehergebruik houden daarnaast hun
-eigen productcriteria. Geen sleutelgeneratie zonder native entropybron.
-
-## Historische M6c-queue
-
-### Historische M6c-uitvoering — 28 oktober 2026
-
-Basis `bb22fdb`, branch `codex/m6c-named-catalog`. M6a en M6b zijn al afgerond
-volgens de versiegebonden bewijsarchieven in PROJECT-STATE.md. De oudere queue
-hieronder bewaart uitsluitend de toenmalige werkverdeling.
-
-| ID | Eigenaar / schrijfgebied | Afgerond resultaat |
-|---|---|---|
-| C07-core | catalog_core / services/catalog core en tests | namen, v4-wire, v2-journal, catalogus; 30 hosttests en no_std groen |
-| C07-native | catalog_native / nieuwe serviceadapter, probe en kernelobserver | finale native gate: 19 groepen / 15 VM-invocaties inclusief M1 |
-| G07 | root / gedeelde config, tools, harnas en docs | onafhankelijk schijforakel; 33 hosttests; checkpoint bc4cd104 vóór lange controles |
-| R07 | context_review / alleen lezen | 15 scenario's van echte adapter via host-ABI-shim; geen native devicefoutinjectie |
-| V07 | root + reviewers | M6c-capture, M6b 18 groepen / 14 VM, acht volumes en 130 artifacthashes geaudit; brongebonden integratiecontrole |
-
-Alle eindgates en captures hebben exit 0. Bron, exacte commando's, host-/native
-grenzen en bewijslinks: [M6C-ACCEPTANCE.md](verification/M6C-ACCEPTANCE.md).
-De M6c-eindbuild is bytegelijk aan de twee normale eindgate-runs. De reviews zijn
-AI-reviews, geen menselijke audit of formeel bewijs.
-
-Vervolg: native Materiaal-koppeling en beveiligingsafhankelijkheden
-uit VERIFIABLE-SECURITY-AND-PQC blijven afzonderlijke stappen; geen automatische
-sleutelgeneratie zonder entropy of grafische/native NAS-claim door deze catalogus.
-
-## Historische queue vóór afgeronde M6b
-
-## Parallel N01 — internet en persoonlijke NAS
-
-Gebruikersuitbreiding 27 oktober 2026; privacycontract revisie 3. Bron vanaf `a96ad45`, branch `codex/nas-private-sharing`.
-
-| ID | Gebied | Status/bewijs |
-|---|---|---|
-| N01-C | services/nas/ | echte hostencryptie, ciphertextstore, quota, revoke/evict en netwerkbeleidsmodel; 50 tests groen |
-| N01-P | ui/prototype/ | drie NAS-flows en afzonderlijke lokale beheerrol; 39 tests groen, nieuwe visuele browsercontrole open |
-| N01-R | alleen-lezen review | vier concrete bevindingen hersteld; gerichte hercontroles groen |
-| N01-G | root/docs/Git | herziene productgrens, ADR-027, integratiebewijs 89 tests + demo |
-| N02 | services/nas/transport.mjs | begrensde echte hybride TLS-hostproef; actuele resultaten onder verification/pqc-transport/ en PROJECT-STATE.md |
-| N03 | toekomstige native integratie | netwerkstack/TLS-port/identiteit, clientkeys/multi-device, NAS-rol en socketcapabilities nog open |
-
-Resultaten tellen niet als M6a-/M8-QEMU- of echte-internetbewijs. Eerste kernelvervolg blijft de hieronder beschreven M6a-poort.
-
-De aangeleverde formele-/PQC-blauwdruk is verwerkt in `implementation/VERIFIABLE-SECURITY-AND-PQC.md`: V01 voor machinegecontroleerde capability-invarianten, P01–P04 voor native build/entropy/image-/opslagintegratie en Q02 voor een afzonderlijke Grover-onderwijsproef. Deze taken zijn gespecificeerd, niet reeds uitgevoerd. N02 voegt geen eigen cryptografische tunnel of bestaande OS-kernel toe.
-
-27 oktober 2026, basis `448974b`, branch `codex/m6a-write-recovery`. Gekozen invariant/ABI/cases vóór implementatie: implementation/M6A-WRITE-RECOVERY.md.
-
-| ID | Eigenaar | Exclusieve writes | Status |
+| Titel | Auteur / organisatie | Versie / datum | Primaire URL |
 |---|---|---|---|
-| K06 | kernel_m2 | kernel/,kernel-core/,drivers/virtio-blk/ | bron bevroren; 16 hosttests en gerichte QEMU/cut/recoveryproeven groen |
-| C06 | quantum_contract | capability-core/,virtio-core/ | 30 + 21 tests/fmt/Clippy/no_std exit 0; bron gepauzeerd |
-| U06 | product_acceptance | services/block/,nieuwe M6-userspace | 20 hosttests + 12 artifacttests exit 0; echte dienstbron gepauzeerd |
-| G06 | root | config/tools/tests/docs/Git | guarded writable image/crashharnas/capture,19 hostcontroles groen; volledige poort gereed |
-| R06 | C06/U06 | alleen lezen | gerichte transport- en zes harnas/capturebevindingen hersteld/gesloten |
-| V06 | later verifier | alleen lezen | finale M1–M6-poorten, echte cuts/recovery en hashbinding |
+| IPv4 Address Conflict Detection | Stuart Cheshire / Apple, IETF | RFC5227, juli2008; echte probe voor adresgebruik | https://www.rfc-editor.org/rfc/rfc5227.html |
+| Dynamic Host Configuration Protocol | Ralph Droms / Bucknell University, IETF | RFC2131, maart1997; lease/T1/T2/lifecycle | https://www.rfc-editor.org/rfc/rfc2131.html |
 
-Eén schrijver per bestand, maximaal drie agents en één gedeeld build/QEMU-slot. Geen nieuwe externe dependency. Na elke afgebakende stap bron/bewijs/open punten privépushen; noreply-afzender alleen per Git-commando, geen globale configwijziging. Gerichte M6-proeven groen; finale 54 groepen / 49 VM-poort en regressie nog uit te voeren. QEMU-procescrash is geen fysieke stroomuitvalclaim.
+PR75-bronindexthread [4427109538](https://github.com/simonvanieperen/nieuw-os/pull/75#discussion_r4427109538)
+is hiermee bronmatig behandeld; pas na opname van deze queueblob in de
+daadwerkelijke PR-head kan de integrator de threaddispositie bepalen.
 
-## M5 — behaalde basis (historisch)
+## Afdelingsroute en voltooiing
 
-27 oktober 2026. Bron `7af544a`, basis `c630c59`, branch `codex/m5-block-service`, concept-PR #3. Definitieve fingerprint v3: c7455ebe2dfcd0e4337d058f440712d60b3ae600d2953c385ee81ba6d69a0307.
+Alle zeven aanspreekpunten zijn na de overdracht gericht bericht:
+14 kern/HW/NET;2 SEC/NAS;15 ontwerp/UI;11 apps/AI/22;17 R&D/18/19;
+4 kwaliteit/12/20/21;8 PR/3/7. Zij blijven zelf uitvoeren, geen extra
+toestemmingslaag. Geen normale voortgangsberichten naar iedereen.
 
-| ID | Eigenaar | Gebied | Status / bewijs |
-|---|---|---|---|
-| G05 | root | config/tools/docs/Git | geïntegreerd; preflight exit 0, private checkpoints, einddocs |
-| K05 | kernel_m2 | kernel/,kernel-core/,drivers/virtio-blk/ | gereed; M5 25 groepen/20 VM exit 0 |
-| C05 | quantum_contract | virtio-core/,capability-core/ | gereed; 12/26 tests, fmt/Clippy/no_std exit 0 |
-| U05 | product_acceptance | services/block/,M5-userspace | gereed; 9 protocol- en 11 artifacttests exit 0, echte gastdienst |
-| R05 | twee reviewers | alleen lezen | herstelpunten gesloten; ongeïnjecteerde randen expliciet |
-| V05 | root/verifier | ruwe evidence/hashbinding | 77 groepen/64 VM plus M5-eindstart; alle 65 VM en 279 artifacthashes geaudit |
+Een taakoplevering bevat exacte basis/head/branch, gewijzigde files, echte
+commando's/exit/log-/hashpaden en eerstvolgende stap. Host/model/target/native/
+geintegreerd/fysiek/menselijk blijven gescheiden. Voor elke nieuwe claim eerst
+registreren; normale bestaande uitvoering wacht niet op queueverwerking.
+Middelen zijn gedeeld: twaalf bewaakt verse headroom en exclusieve VMslots,
+geen capaciteit claimen op een historische CPU/RAM-momentopname.
 
-Opdrachten, resultaten, grenzen en hervatroute: PROJECT-STATE.md en verification/m5/ACCEPTANCE.md. Eerste mislukte gate blijft failed bewaard; de finale bron is opnieuw getest. Bestaande UI/quantum en M1–M4-baseline behouden.
-
-Volgende stap: de M6a-bronpoort en regressie hervatten vanaf deze checkpoint. De M6a-specificatie, huidige teststatus en open punten staan in PROJECT-STATE.md. Geen echte hardware/disks/NAS/keys, betaalde infrastructuur, publieke release of merge zonder passende opdracht. Licentie vóór publicatie blijft open.
+Niet apart bemand betekent niet geschrapt: K06/SMP, S09/import/export/back-up,
+volledige apps/UI/toegankelijkheid, beveiligde opslag/netwerk/NAS/AI,
+boot/updates/herstel en integrale releasegates behouden hun volledige eisen.
+Status en voortgang worden uitsluitend door89 herbeoordeeld; queueonderhoud
+of extra hosttests verdienen geen acceptatiepunten.

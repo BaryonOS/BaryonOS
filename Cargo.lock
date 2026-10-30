@@ -13,6 +13,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "app-package-core"
+version = "0.1.0"
+dependencies = [
+ "ed25519-dalek",
+ "kernel-core",
+ "ml-dsa",
+ "sha2 0.10.9",
+]
+
+[[package]]
+name = "artifact-store-core"
+version = "0.1.0"
+
+[[package]]
 name = "autocfg"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

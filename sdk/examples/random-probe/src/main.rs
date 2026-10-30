@@ -64,15 +64,6 @@ fn phase(value: u64) {
         yield_now();
     }
 }
-fn wipe_received(message: &mut Received) {
-    let mut bytes = [0; nieuw_os_sdk_runtime::MESSAGE_SIZE];
-    bytes[..8].copy_from_slice(&1u64.to_le_bytes());
-    let empty = Received::from_bytes(bytes, 0).unwrap();
-    const { assert!(!core::mem::needs_drop::<Received>()) };
-    // SAFETY: Exclusive envelope, all installed caps already closed; valid empty
-    // typed replacement wipes its current payload without private-layout use.
-    unsafe { core::ptr::write_volatile(message, empty) };
-}
 fn send(endpoint: SendEndpoint, frame: &[u8; wire::SIZE]) {
     let outgoing = Outgoing::new(wire::TAG, frame).unwrap();
     let end = deadline();
@@ -100,10 +91,10 @@ fn exchange(
     for _ in 0..POLLS {
         check(clock() < end, 13);
         match native::receive(receive) {
-            Ok(mut message) => {
+            Ok(message) => {
                 let parsed = wire::reply(&message, support::word(KEY_PID), frame, count);
                 let caps = native::close_received_caps(&message);
-                wipe_received(&mut message);
+                drop(message);
                 check(caps.is_ok(), 14);
                 bump(REPLIES);
                 return parsed.unwrap_or_else(|| fail(15));

@@ -1,6 +1,7 @@
 //! Native-only syscall boundary. This module is unavailable on the host, so a
 //! host test cannot accidentally issue Linux int80 syscalls with the OS ABI.
 use core::arch::asm;
+use zeroize::Zeroizing;
 
 use crate::{
     block::{self, BlockDevice, READ_MAX, SECTOR_SIZE},
@@ -123,7 +124,7 @@ pub fn send(endpoint: SendEndpoint, message: &Outgoing) -> Result<(), Error> {
 /// One nonblocking receive into a private stack buffer. The kernel validates
 /// every output page and copies all bytes before returning to this process.
 pub fn receive(endpoint: ReceiveEndpoint) -> Result<Received, Error> {
-    let mut bytes = [0; MESSAGE_SIZE];
+    let mut bytes = Zeroizing::new([0; MESSAGE_SIZE]);
     let length = call(
         0x21,
         [
@@ -135,7 +136,7 @@ pub fn receive(endpoint: ReceiveEndpoint) -> Result<Received, Error> {
             0,
         ],
     )?;
-    match Received::from_bytes(bytes, length) {
+    match Received::from_bytes_mut(&mut bytes, length) {
         Ok(message) => Ok(message),
         Err(error) => {
             // A successful kernel receive may have installed up to two caps.

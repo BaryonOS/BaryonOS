@@ -1,0 +1,20 @@
+[package]
+name = "nieuw-os-image-viewer"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+resolver = "2"
+
+[dependencies]
+nieuw-os-image-codec = { path = "../../../services/image-codec" }
+nieuw-os-input-core = { path = "../../../services/input-core" }
+nieuw-os-surface-protocol = { path = "../../../ui/surface-protocol" }
+ui-core = { path = "../../../crates/ui-core" }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = false

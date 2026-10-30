@@ -46,6 +46,9 @@ dependencies = [
 [[package]]
 name = "nieuw-os-sdk-runtime"
 version = "0.1.0"
+dependencies = [
+ "zeroize",
+]
 
 [[package]]
 name = "nieuw-os-surface-protocol"
@@ -60,3 +63,9 @@ checksum = "f102c477fd4ec864c149803bf606ecc23bc9329602ec0f99073a728abf454abc"
 [[package]]
 name = "ui-core"
 version = "0.1.0"
+
+[[package]]
+name = "zeroize"
+version = "1.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e13084392c5e4bc371903e2935a5eaeed24905a7511356b883835e18a78f6879"

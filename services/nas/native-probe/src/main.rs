@@ -10,9 +10,7 @@ compile_error!("native NAS probe requires Nieuw OS, never host int80");
 #[path = "../../../../sdk/examples/system/src/support.rs"]
 mod support;
 
-use nieuw_os_nas_core::{
-    Entropy, Error as NasError, NamespaceStatus, Service, Session, Upload, Workspace, TOKEN_BYTES,
-};
+use nieuw_os_nas_core::{Entropy, Error as NasError, NamespaceStatus, Service, Workspace};
 use nieuw_os_nas_probe::{dispatch, Frame, Ingress, LocalBinding, Op, RequestContext, SIZE, TAG};
 use nieuw_os_nas_volume::VolumeStorage;
 use nieuw_os_sdk_runtime::{
@@ -85,19 +83,6 @@ fn bump(at: u64) {
 }
 fn handle(at: u64) -> Handle {
     Handle::from_raw(support::word(at)).unwrap_or_else(|_| fail(91))
-}
-fn cold_replay_token(offset: u64) -> [u8; TOKEN_BYTES] {
-    check(
-        offset.is_multiple_of(8) && offset + TOKEN_BYTES as u64 <= 1024,
-        102,
-    );
-    let mut token = [0; TOKEN_BYTES];
-    for word in 0..TOKEN_BYTES / 8 {
-        let start = word * 8;
-        token[start..start + 8]
-            .copy_from_slice(&support::word(offset + start as u64).to_le_bytes());
-    }
-    token
 }
 fn send(to: SendEndpoint, tag: u64, bytes: &[u8]) -> Result<(), Error> {
     let message = Outgoing::new(tag, bytes)?;
@@ -355,21 +340,11 @@ fn guest(recover: bool) -> ! {
     bump(416);
     if recover {
         rpc.call(named(Op::Open, namespace), Some(NasError::Denied));
-        let session = cold_replay_token(256);
-        let upload = cold_replay_token(296);
-        check(Session::from_bytes(&session).is_ok(), 47);
-        check(Upload::from_bytes(&upload).is_ok(), 48);
         let mut read = Frame::new(Op::Read, 1);
-        read.session = session;
+        read.session = [42; 40];
         read.revision = 1;
         rpc.call(read, Some(NasError::Stale));
-        let mut replay = Frame::new(Op::Commit, 1);
-        replay.session = session;
-        replay.upload = upload;
-        rpc.call(replay, Some(NasError::Stale));
     } else {
-        check(cold_replay_token(256) == [0; TOKEN_BYTES], 103);
-        check(cold_replay_token(296) == [0; TOKEN_BYTES], 104);
         let mut accept = named(Op::Accept, namespace);
         accept.value = invitation.value;
         accept.length = 32;

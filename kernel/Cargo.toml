@@ -68,6 +68,8 @@ test-supervisor-wait = ["native-supervisor", "ipc-wait"]
 native-cap-digest-bench = ["native-system", "capability-core/diagnostic-bench"]
 native-system = ["native-volume", "native-keyring", "native-supervisor"]
 test-system-recover = ["native-system"]
+native-system-nas-probe = ["native-system", "monotonic-clock", "ipc-wait"]
+test-system-nas-recover = ["native-system-nas-probe", "test-system-recover"]
 # Real NIC integration; the base joint profile never probes or maps a NIC.
 native-system-net = ["native-system", "dep:virtio-net-driver"]
 test-system-net-recover = ["native-system-net", "test-system-recover"]

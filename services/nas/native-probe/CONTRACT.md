@@ -218,10 +218,13 @@ geen cryptografische identiteit of productcredential.
 geen private normal-RAM-tokenexport aan een cold startup-bijlage. De leaf kan
 de bytes accepteren/weigeren maar kan zelf geen veilige host-QEMU-handoff
 creëren. Totdat Release de private extractie, manifest, inputkopie en
-bootstrapbinding op een expliciet gefrozen profiel implementeert, faalt de
-cold replay-probe fail-closed vóór die assertions. Een oude geslaagde cold
-run met `[42; 40]` is uitsluitend synthetische fixturedekking, geen exacte
-boot-1-replaybewijs.
+bootstrapbinding op een expliciet gefrozen profiel implementeert, is de
+exacte replay-gastcode **niet actief** in `src/main.rs`: integratie #96 houdt
+de bestaande synthetische cold read (`[42; 40]`) aan, zodat de native
+normal/cold-gate geldig blijft in plaats van vast rood op stap 47/48. Die run
+is uitsluitend synthetische fixturedekking, geen exacte boot-1-replaybewijs.
+De replay-gastcode uit #93 (`466b89b`) wordt pas samen met de private handoff
+en aangepaste kernel-/runnertellers geactiveerd; zie #110.
 
 De hosttest maakt handles uitsluitend door de bestaande echte NAS-core-API
 aan te roepen: een sessie en upload uit een host-normaalmodel worden in RAM

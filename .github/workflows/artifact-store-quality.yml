@@ -1,0 +1,54 @@
+name: Artifact store contract quality
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - crates/artifact-store-core/**
+      - .github/workflows/artifact-store-quality.yml
+  push:
+    branches: [main]
+    paths:
+      - Cargo.toml
+      - Cargo.lock
+      - crates/artifact-store-core/**
+      - .github/workflows/artifact-store-quality.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: artifact-store-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  artifact-store-core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/artifact-store-quality
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain and target
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup component add --toolchain 1.90.0 rustfmt clippy
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none
+      - name: Contract host tests
+        run: cargo +1.90.0 test --locked -p artifact-store-core
+      - name: Contract Clippy
+        run: cargo +1.90.0 clippy --locked -p artifact-store-core --all-targets -- -D warnings
+      - name: Contract formatting
+        run: cargo +1.90.0 fmt --manifest-path crates/artifact-store-core/Cargo.toml -- --check
+      - name: Freestanding library build
+        run: cargo +1.90.0 build --locked --release --lib --target x86_64-unknown-none -p artifact-store-core

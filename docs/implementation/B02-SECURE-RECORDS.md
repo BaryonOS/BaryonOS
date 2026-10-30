@@ -271,9 +271,12 @@ De Key Service leest optioneel een derde ingress uit startwoorden 96 (receive),
 blijft het B01-profiel exact ongewijzigd. Elke aanvraag wordt op afzender,
 capabilityaantal, tag en header gecontroleerd; bewijswoorden 384–416 tellen
 gezien/exports/restores/geweigerd/verkeerde afzender. Het geheim uit de
-aanvraag wordt in `Zeroizing`-buffers verwerkt; de SDK-ontvangstbuffer van het
-bericht wordt niet actief gewist (bestaande beperking, geldt ook voor legacy
-RESTORE).
+aanvraag wordt in `Zeroizing`-buffers verwerkt. De SDK wist de tijdelijke
+native receivebuffer bij geldige envelope-overdracht en wist `Outgoing`- en
+`Received`-envelopes bij opruimen; hun `Debug`-weergave bevat geen payload.
+Dit laat caller-owned arrays, mogelijke compiler-/registerkopieën en
+crashgeheugen buiten de garantie. De onderliggende ontvangen IPC-kopie is
+geheugenhygiëne, geen sleutelopslag- of volledige sleutelisolatiegarantie.
 
 ### Geïntegreerd profiel (FR-I01, `native-system`/`test-system-recover`)
 

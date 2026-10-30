@@ -8,7 +8,7 @@ use nieuw_os_input_client::{AckOutcome, Peek, Session as Input};
 use nieuw_os_input_core::Event;
 use nieuw_os_materiaal::{
     controller::{Controller, InputEnvelope, Screen, Status},
-    render::Frame,
+    render::{Error as RenderError, Frame, SemanticNode},
     TILE_PIXELS,
 };
 use nieuw_os_surface_protocol::{client::Session as Surface, Geometry};
@@ -48,6 +48,7 @@ pub enum Error {
     Input(nieuw_os_input_client::Error),
     Surface(nieuw_os_surface_protocol::client::Error),
     Controller(nieuw_os_materiaal::controller::Error),
+    Accessibility(RenderError),
     Cleanup(nieuw_os_sdk_runtime::Error),
     Unsaved,
 }
@@ -103,6 +104,13 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     }
     pub fn controller(&self) -> &Controller<'a, V> {
         &self.controller
+    }
+    /// Read the current UI semantics from this app's own document state.
+    /// This does not publish the tree to another process or authorize access.
+    pub fn semantics<'s>(&'s self, out: &mut [SemanticNode<'s>]) -> Result<usize, Error> {
+        Frame::new(self.controller.view())
+            .semantics(out)
+            .map_err(Error::Accessibility)
     }
     pub fn evidence(&self) -> Evidence {
         let mut evidence = self.evidence;

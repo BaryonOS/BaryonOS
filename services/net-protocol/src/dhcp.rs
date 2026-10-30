@@ -16,6 +16,8 @@ pub const MAX_LIST_ADDRESSES: usize = 4;
 const PARAMETER_REQUEST_LIST: [u8; 7] = [1, 3, 6, 51, 54, 58, 59];
 const DHCP_OPTION_BYTES: usize = 3 + 9 + 9 + 4 + 1;
 const SELECT_OPTION_BYTES: usize = DHCP_OPTION_BYTES + 6 + 6;
+const DECLINE_MESSAGE: &[u8] = b"Address conflict";
+const DECLINE_OPTION_BYTES: usize = 3 + 9 + 6 + 6 + 2 + DECLINE_MESSAGE.len() + 1;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MessageType {
@@ -28,6 +30,7 @@ pub enum MessageType {
 enum RequestType {
     Discover,
     Request,
+    Decline,
 }
 
 impl RequestType {
@@ -35,6 +38,7 @@ impl RequestType {
         match self {
             Self::Discover => 1,
             Self::Request => 3,
+            Self::Decline => 4,
         }
     }
 }
@@ -346,7 +350,10 @@ fn build_request(
     if !valid_mac(mac) {
         return Err(Error::InvalidMac);
     }
-    let option_bytes = if selected.is_some() {
+    let decline = matches!(request_type, RequestType::Decline);
+    let option_bytes = if decline {
+        DECLINE_OPTION_BYTES
+    } else if selected.is_some() {
         SELECT_OPTION_BYTES
     } else {
         DHCP_OPTION_BYTES
@@ -363,7 +370,7 @@ fn build_request(
     output[2] = 6;
     output[4..8].copy_from_slice(&transaction_id.to_be_bytes());
     output[8..10].copy_from_slice(&elapsed_seconds.to_be_bytes());
-    if matches!(request_type, RequestType::Discover) || selected.is_some() {
+    if !decline && (matches!(request_type, RequestType::Discover) || selected.is_some()) {
         output[10..12].copy_from_slice(&0x8000u16.to_be_bytes());
     }
     output[12..16].copy_from_slice(&client_address);
@@ -379,13 +386,17 @@ fn build_request(
         put_option(output, &mut cursor, 50, &requested_address);
         put_option(output, &mut cursor, 54, &server_identifier);
     }
-    put_option(output, &mut cursor, 55, &PARAMETER_REQUEST_LIST);
-    put_option(
-        output,
-        &mut cursor,
-        57,
-        &(MAX_MESSAGE_BYTES as u16).to_be_bytes(),
-    );
+    if decline {
+        put_option(output, &mut cursor, 56, DECLINE_MESSAGE);
+    } else {
+        put_option(output, &mut cursor, 55, &PARAMETER_REQUEST_LIST);
+        put_option(
+            output,
+            &mut cursor,
+            57,
+            &(MAX_MESSAGE_BYTES as u16).to_be_bytes(),
+        );
+    }
     output[cursor] = 255;
     debug_assert_eq!(cursor + 1, option_end);
     Ok(message_bytes)
@@ -453,5 +464,29 @@ pub fn build_renewal_request(
         client_address,
         RequestType::Request,
         None,
+    )
+}
+
+/// Build DHCPDECLINE after actual address-conflict detection. RFC2131 table5:
+/// zero secs/flags/ciaddr, requested IP/server, same client identifier, no
+/// parameter list, lease or maximum-message-size option. Caller broadcasts it.
+pub fn build_decline(
+    output: &mut [u8],
+    transaction_id: u32,
+    mac: [u8; 6],
+    address: [u8; 4],
+    server: [u8; 4],
+) -> Result<usize, Error> {
+    if !unicast_ipv4(address) || !unicast_ipv4(server) {
+        return Err(Error::InvalidAddress);
+    }
+    build_request(
+        output,
+        transaction_id,
+        mac,
+        0,
+        [0; 4],
+        RequestType::Decline,
+        Some((address, server)),
     )
 }
