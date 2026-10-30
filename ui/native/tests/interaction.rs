@@ -1115,11 +1115,10 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
             .iter()
             .filter(|node| node.role == Role::ListItem)
             .all(|node| node.parent == Some(SemanticId::MaterialList) && node.actions.activate));
-        let mut short = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES - 1];
-        assert!(matches!(
-            frame.semantics(&mut short),
-            Err(RenderError::Buffer)
-        ));
+        let mut short = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let short = &mut short[..count - 1];
+        assert!(matches!(frame.semantics(short), Err(RenderError::Buffer)));
+        assert!(short.iter().all(|node| node.id == SemanticId::Empty));
     }
 
     // Seven visible entries plus pagination need fifteen nodes, exceeding
