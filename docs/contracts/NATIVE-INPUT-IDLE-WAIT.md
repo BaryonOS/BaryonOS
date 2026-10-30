@@ -145,3 +145,13 @@ en nog werkende tweede-app-IPC; een onverklaarde lifetimefout, ander fouttype
 of kapotte kritieke ingress wordt geen pollsuccess. Host- en beide native-
 target-Clippychecks slagen. Nieuwe executablehashes volgen afzonderlijk;
 de bovenstaande2b286-hashes blijven uitsluitend bij hun oorspronkelijke bron.
+
+Hertoetste bron `57b6e931742dcbf834e13cb358dee2d2c91af03a`: dezelfde
+canonical builder bouwt beide ELFbestanden opnieuw met exit0. Source-SHA256
+`c5e1daa2a5fb9bbb86b23a962352a04d006085a2aab6f67e7e7b7c4538108058`,
+policy `3b76bc8e5d934869d9112b719489933f5f407c50e4e3ced2dd0b650c3a7997c8`.
+Disassembly bevat2945/5391instructies en geen FP/SIMD. Exacte uitvoer en
+sourcehashes: `build/input-idle-wait/logs/lifetime-{checks,component}.json` en
+`lifetime-native-build.txt`. De eerste2b286-componentbinaries zijn afzonderlijk
+bewaard in `build/input-idle-wait/artifacts-2b286/`. Geen van beide bronversies
+is binnen deze taak native uitgevoerd of als GUI-/prestatieacceptatie afgetekend.
