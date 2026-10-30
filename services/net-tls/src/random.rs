@@ -176,7 +176,7 @@ mod tests {
 
     #[test]
     fn contention_fails_without_spinning_io_or_cancelling_the_owner() {
-        let handle = |slot| Handle::from_raw((1 << 32) | slot).unwrap();
+        let handle = |slot: u64| Handle::from_raw((1u64 << 32) | slot).unwrap();
         let session = Session::new(
             NoIo,
             SendEndpoint::from_handle(handle(1)),

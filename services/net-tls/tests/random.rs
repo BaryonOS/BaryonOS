@@ -95,7 +95,7 @@ fn rng(
     cleanup_error: bool,
 ) -> (KeyServiceRandom<Fixture, Clock>, Arc<Mutex<Observed>>) {
     let observed = Arc::new(Mutex::new(Observed::default()));
-    let handle = |slot| Handle::from_raw((1 << 32) | slot).unwrap();
+    let handle = |slot: u64| Handle::from_raw((1u64 << 32) | slot).unwrap();
     let session = Session::new(
         Fixture {
             observed: observed.clone(),
