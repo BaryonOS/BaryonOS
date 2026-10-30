@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "ebbfb47001b8fe6ce8fde745282b650581bcfa85",
+    "source_commit": "cc136a3d4a84dc045089ad86f20925ce39e11a72",
     "branch": "simonvanieperen-studious-sniffle",
-    "task": "Documentatieconflicten PR #62 met main 0ade801 oplossen",
+    "task": "Reviewbevindingen en Windows-hostlinkercontrole PR #62 herstellen",
     "previous_score": 34,
-    "summary": "34% blijft 34%; uitsluitend documentatie geïntegreerd. Het hardwarecheckpoint van main en het preflight-/integratiebewijs van de PR blijven behouden. Hardware blijft 1/12, H02-H06 blijven open; er is geen nieuwe native of fysieke acceptatie. Runtimebron, dependencies en criteria zijn ongewijzigd ten opzichte van de PR-head. Documentatievalidatie staat in PROJECT-STATE.md; reviewwerk valt buiten deze ronde."
+    "summary": "34% blijft 34%; de onjuiste reviewclaims zijn gecorrigeerd en de preflight controleert ook de Windows-MSVC-linker met een negatieve regressietest. Dit sluit geen OS-criterium: hardware blijft 1/12, H02-H06 blijven open en er is geen nieuwe native of fysieke acceptatie."
   },
   "tracks": [
     {

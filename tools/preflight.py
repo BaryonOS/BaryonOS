@@ -17,7 +17,12 @@ PROBE_ENV = environment()
 RUST_TOOLCHAIN = "1.90.0"
 REQUIRED_TARGETS = ("x86_64-unknown-uefi", "x86_64-unknown-none")
 REQUIRED_RLIBS = ("core", "alloc", "compiler_builtins")
-HOST_TEST_TOOLS = ("cc",) if os.name != "nt" else ()
+def host_test_tools(os_name: str) -> tuple[str, ...]:
+    return ("link.exe",) if os_name == "nt" else ("cc",)
+
+
+HOST_TEST_TOOLS = host_test_tools(os.name)
+
 
 def probe(name: str) -> dict:
     path = shutil.which(name, path=PROBE_ENV["PATH"])
@@ -26,11 +31,12 @@ def probe(name: str) -> dict:
         return result
     pinned = name in ("rustc", "cargo")
     candidates = (["+" + RUST_TOOLCHAIN], []) if pinned else ([],)
+    version_args = ["/?"] if name == "link.exe" else ["--version"]
     result["probe_attempts"] = []
     if pinned:
         result["selected_toolchain"] = RUST_TOOLCHAIN
     for arguments in candidates:
-        attempt = query([path, *arguments, "--version"])
+        attempt = query([path, *arguments, *version_args])
         result["probe_attempts"].append(attempt)
         if "error" in attempt:
             result["probe_error"] = attempt["error"]
@@ -190,7 +196,7 @@ def main() -> int:
     args = parser.parse_args()
     tools = {name: probe(name) for name in (
         "git", "rustc", "cargo", "rustup", "qemu-system-x86_64",
-        "ld.lld", "clang", "cc", "python3",
+        "ld.lld", "clang", "cc", "link.exe", "python3",
     )}
     known_firmware = [
         Path("/usr/share/OVMF/OVMF_CODE_4M.fd"),

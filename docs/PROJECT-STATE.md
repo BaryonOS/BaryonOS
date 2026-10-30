@@ -1,8 +1,8 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — documentatie-integratie PR #62 — 30 oktober 2026
+## OVERDRACHT AAN VOLGENDE AGENT — PR #62 reviewherstel — 30 oktober 2026
 
-Bronnen: PR-head `ebbfb47001b8fe6ce8fde745282b650581bcfa85` en actuele
+Bronnen: PR-head `f71393398ea5f28f2ce49eae5279673695f06f48` en actuele
 `main` `0ade8014c8179241dcfc68ea0ba8083664691240`; branch
 `simonvanieperen-studious-sniffle`. Gewone twee-oudermerge, geen rebase.
 Main voegt sinds de vorige integratie uitsluitend README-/assessmenttekst en
@@ -76,19 +76,38 @@ compileren en draaien een minimale C-proef (exit 0). De volledige
 `cargo +1.90.0 test --offline --locked --workspace`-run onthulde ontbrekende
 README-doctestdependencies in de runtime-only vendormanifesten van HKDF (3
 voorbeelden) en HMAC (2 voorbeelden). Beide crates kregen uitsluitend de
-upstream-gedocumenteerde `sha2`- en `hex-literal`-testdependencies; hun
+in de meegeleverde originele vendormanifesten vastgelegde `sha2`- en
+`hex-literal`-testdependencies; hun
 runtime-dependencies zijn ongewijzigd. De gerichte doctests slagen HKDF 3/3
 en HMAC 2/2. De volledige workspace-test slaagt daarna: 360 tests passed,
 0 failed, 1 ignored, over 51 testresultaatgroepen; log en hash staan in het
 bewijsrapport.
 
-De eerdere 22 preflighttests en strikte ontbrekende-`cc`-detectie zijn groen.
-Op bron `4fb9a23` slagen alle 10 GitHub Actions-workflows (11 jobchecks),
-inclusief `host-quality`, `qemu-smoke` en `native-system`; CodeRabbit is
-overgeslagen. Dit statuscheckpoint wijzigt alleen documentatie. De
-hostcompiler is uitsluitend uitgepakt onder genegeerde `.tools/`; geen
-systeempakketten zijn geïnstalleerd. **34% → 34%**; geen productcriterium of
-native QEMU-bewijs door lokaal werk toegevoegd. Concept-PR #62 blijft open.
+De eerdere 22 preflighttests en strikte ontbrekende-`cc`-detectie blijven
+brongebonden aan `4fb9a23`; de CodeRabbit-status op die historische head is
+onbekend. reviewfix: Windows selecteert nu `link.exe`, de probe gebruikt `/?`
+en de negatieve foutstatus is synthetisch getest. De reviewdocumentatie noemt
+de opgeslagen manifestpaden, de onbekende toolchainherstelopdracht en het
+historische publicatiecheckpoint expliciet.
+
+Uitgevoerd op PR-basis `f71393398ea5f28f2ce49eae5279673695f06f48` met de
+reviewwijzigingen in de geïsoleerde worktree (exitstatus 0 tenzij vermeld):
+
+- `python3 -B -m unittest discover -s tests -p 'test_preflight.py' -v` —
+  24 tests; `/tmp/pr62-review-preflight-final.log`, SHA-256
+  `e3092a33106096d778c6154365052c0b5df9a93c8d7cf06c9fbd7ed4b9af71b6`.
+- `python3 -B -m py_compile tools/preflight.py tests/test_preflight.py` —
+  geldig.
+- `python3 -B tools/preflight.py --strict-host-tests` — exit 2, verwacht:
+  deze Linux-host mist `cc`; JSON `/tmp/pr62-review-host-preflight-final.json`,
+  SHA-256 `312f1a1c262a05ea3c175d0a64f648ff9308f8912a0c08d20137a11175c0dc9a`.
+- `python3 -B tools/progress.py --write`,
+  `python3 -B tools/progress.py --check` en `git diff --check` — geslaagd.
+
+Windows-native uitvoering en nieuwe-head GitHub Actions zijn niet uitgevoerd
+of nog niet gestart; de tests bewijzen geen Windows-host of OS-feature.
+**34% → 34%**; geen productcriterium of native QEMU-bewijs toegevoegd. PR #62
+blijft open tot actuele CI en reviewstatus zijn afgehandeld.
 Volledige commando's, logs, hashes en grenzen:
 [hosttest-preflight](verification/host-test-linker-preflight/README.md).
 

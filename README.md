@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ebbfb470`](https://github.com/simonvanieperen/nieuw-os/commit/ebbfb47001b8fe6ce8fde745282b650581bcfa85) ·
+**Bron:** [`cc136a3d`](https://github.com/simonvanieperen/nieuw-os/commit/cc136a3d4a84dc045089ad86f20925ce39e11a72) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-sniffle`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Documentatieconflicten PR #62 met main 0ade801 oplossen.
-34% blijft 34%; uitsluitend documentatie geïntegreerd. Het hardwarecheckpoint van main en het preflight-/integratiebewijs van de PR blijven behouden. Hardware blijft 1/12, H02-H06 blijven open; er is geen nieuwe native of fysieke acceptatie. Runtimebron, dependencies en criteria zijn ongewijzigd ten opzichte van de PR-head. Documentatievalidatie staat in PROJECT-STATE.md; reviewwerk valt buiten deze ronde.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Reviewbevindingen en Windows-hostlinkercontrole PR #62 herstellen.
+34% blijft 34%; de onjuiste reviewclaims zijn gecorrigeerd en de preflight controleert ook de Windows-MSVC-linker met een negatieve regressietest. Dit sluit geen OS-criterium: hardware blijft 1/12, H02-H06 blijven open en er is geen nieuwe native of fysieke acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

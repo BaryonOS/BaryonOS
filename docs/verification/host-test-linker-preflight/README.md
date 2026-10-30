@@ -1,4 +1,4 @@
-# Hosttest-preflight: POSIX C-linker
+# Hosttest-preflight: POSIX- en Windows-linker
 
 Dit rapport registreert de Linux-hosttesttooling voor de taakbasis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De preflightwijziging is eerst
@@ -7,13 +7,23 @@ codekandidaat is `4fb9a2320dd4d5383846507748ea8fdaf9e167cb`.
 Dit is geen OS-, kernel-, boot- of QEMU-acceptatie.
 
 `tools/preflight.py --strict` blijft bootvereisten controleren. De aparte
-`--strict-host-tests`-modus meldt ontbrekende POSIX-hostlinkers. Na het
+`--strict-host-tests`-modus meldt ontbrekende POSIX- en Windows-hostlinkers. Na het
 beschikbaar maken van een lokale compiler onthulde dezelfde volledige
 workspace-test een tweede concrete fout: de README-doctests van de vendored
 HKDF-crate misten `sha2` en `hex-literal` in de testdependencies. Die
 test-only dependencies zijn nu in beide vendormanifesten hersteld op basis
-van de meegeleverde upstream `Cargo.toml.orig`; ze wijzigen de
+van de meegeleverde `Cargo.toml.orig`-bestanden in de vendorkopie; zie
+`services/keyring/vendor/hkdf-0.13.0/Cargo.toml.orig` en
+`services/keyring/vendor/hmac-0.13.0/Cargo.toml.orig`. Ze wijzigen de
 runtime-dependencies niet.
+
+Voor Windows selecteert de preflight `link.exe` en gebruikt de gedocumenteerde
+MSVC-helpoptie `/?` in plaats van GNU `--version`. Bron: Microsoft Learn,
+“MSVC Linker options”, MSVC 17.0-documentatie (gecontroleerd 30 oktober 2026),
+<https://learn.microsoft.com/en-us/cpp/build/reference/linker-options?view=msvc-170>.
+De Windows-uitvoering zelf is in deze controle niet uitgevoerd; de
+regressietests controleren de gekozen toolnaam, de probe-argumenten en de
+fail-closed melding wanneer `link.exe` ontbreekt.
 
 | Exacte opdracht | Exit | Uitkomst |
 |---|---:|---|
@@ -28,7 +38,7 @@ runtime-dependencies niet.
 | Lokale C-compileer-/linkproef en uitvoering (exacte opdracht hieronder) | 0 | Geslaagd; geen systeembrede installatie |
 | `python3 -m py_compile tools/preflight.py tests/test_preflight.py` | 0 | Python-syntaxis geldig |
 | `python3 tools/progress.py --write` en `python3 tools/progress.py --check` | 0 | Voortgangsbestanden consistent; 34% blijft ongewijzigd |
-| `gh pr checks 62 --repo simonvanieperen/nieuw-os --watch --interval 15` | 0 | Alle 10 workflows (11 jobchecks) groen op PR-head `4fb9a23`; CodeRabbit overgeslagen |
+| `gh pr checks 62 --repo simonvanieperen/nieuw-os --watch --interval 15` | 0 | Alle 10 workflows (11 jobchecks) groen op PR-head `4fb9a23`; CodeRabbit-status onbekend |
 
 De lokale GCC-driver, libc-devbestanden en runtimebibliotheken zijn alleen
 uitgepakt onder de door `.gitignore` uitgesloten `.tools/`-map. De wrapper
@@ -43,8 +53,8 @@ printf 'int main(void) { return 0; }\n' | LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/
 ```
 
 De volledige workspace-test is lokaal geslaagd na herstel van beide
-vendormanifesten. Alle GitHub Actions-workflows op `4fb9a23` slagen; CodeRabbit
-is overgeslagen. Rust fmt/Clippy zijn niet uitgevoerd. Geen fysieke of
+vendormanifesten. Alle GitHub Actions-workflows op `4fb9a23` slagen;
+CodeRabbit-status is onbekend. Rust fmt/Clippy zijn niet uitgevoerd. Geen fysieke of
 menselijke acceptatiegate of nieuw native QEMU-bewijs is toegevoegd:
 **34% → 34%**. De daaropvolgende voortgangs-/statuscheckpoint is alleen
 documentatie.
@@ -90,10 +100,11 @@ Eerste formatteringspogingen eindigden met exit 1 doordat Rust 1.90.0 nog
 geen rustfmt had (`/tmp/pr62-v2-root-fmt.log`, `/tmp/pr62-v2-sdk-fmt.log`);
 de tests zelf waren al geslaagd. De eerste crossbuild eindigde met exit 1
 (onderliggende Cargo exit 101) omdat `x86_64-unknown-none` nog ontbrak
-(`/tmp/pr62-v2-build.log`). `rustup toolchain list` herstelde automatisch de
-repositorytoolchain; `rustup component list --toolchain 1.90.0 --installed`
-bevestigde daarna rustfmt, clippy en beide native targets. De bovenstaande
-herhalingen slagen zonder bronwijziging. Geen QEMU/OVMF geïnstalleerd:
+(`/tmp/pr62-v2-build.log`). De bewaarde logs leggen de installatie- of
+herstelopdracht voor de Rust-toolchain niet vast. `rustup toolchain list`
+toont alleen geïnstalleerde toolchains; `rustup component list --toolchain
+1.90.0 --installed` bevestigt alleen de aanwezige componenten en targets.
+De bovenstaande herhalingen slagen zonder bronwijziging. Geen QEMU/OVMF geïnstalleerd:
 alle native runtimegates zijn **niet uitgevoerd**.
 
 SHA-256 van de geslaagde lokale controlelogs:
@@ -121,6 +132,8 @@ de laatste CI-run `41069511112` slaagt, zonder gefaalde jobs. Dit is geen
 nieuwe-head-CI of volledige productacceptatie. B02's rollbackanker/write-ahead,
 RTC-authenticiteit, fysieke hardware en menselijke audit blijven open.
 
+### Historisch publicatiecheckpoint
+
 Publicatie bevestigd: `git ls-remote origin
 refs/heads/simonvanieperen-studious-sniffle refs/heads/main` (exit 0) geeft
 mergecommit `cc136a3d4a84dc045089ad86f20925ce39e11a72` en basis
@@ -134,3 +147,26 @@ totale analyse krijgt een timeout vóór alle talen gereed zijn; deze gedeelteli
 uitkomst is geen volledige securitygoedkeuring. Nieuwe-head-CI en menselijke
 review blijven afzonderlijk. Dit afsluitende bewijscheckpoint wijzigt alleen
 documentatie; PR #62 is niet gemergd.
+
+### PR #62 reviewherstel — 30 oktober 2026
+
+De preflight inventariseert nu `link.exe` op Windows, gebruikt voor de MSVC
+linker de gedocumenteerde helpoptie `/?`, en rapporteert ontbrekende linkers
+als `missing_host_test_tools`. Een synthetische regressietest controleert
+zowel die argumentkeuze als de Windows-foutstatus; de bestaande POSIX-`cc`
+negatieve test blijft behouden. Microsoft Learn, “MSVC Linker options”,
+MSVC 17.0 (geraadpleegd 30 oktober 2026):
+<https://learn.microsoft.com/en-us/cpp/build/reference/linker-options?view=msvc-170>.
+De native Windows-uitvoering is **niet uitgevoerd**.
+
+| Exact commando | Exit | Resultaat |
+|---|---:|---|
+| `python3 -B -m unittest discover -s tests -p 'test_preflight.py' -v` | 0 | 24 tests geslaagd; `/tmp/pr62-review-preflight-final.log`, SHA-256 `e3092a33106096d778c6154365052c0b5df9a93c8d7cf06c9fbd7ed4b9af71b6` |
+| `python3 -B -m py_compile tools/preflight.py tests/test_preflight.py` | 0 | Python-syntaxis geldig |
+| `python3 -B tools/preflight.py --strict-host-tests` | 2 | Verwacht op Linux: `cc` ontbreekt; `/tmp/pr62-review-host-preflight-final.json`, SHA-256 `312f1a1c262a05ea3c175d0a64f648ff9308f8912a0c08d20137a11175c0dc9a` |
+| `python3 -B tools/progress.py --write` en `python3 -B tools/progress.py --check` | 0 | Beide geslaagd; score blijft 34/100 |
+| `git diff --check` | 0 | Geen whitespacefouten |
+
+De tests verifiëren de Windows-keuze met synthetische probes, niet een
+daadwerkelijke Windows-host of volledige OS-acceptatie. Actuele PR-CI,
+reviewherhaling en merge blijven afzonderlijke gates.
