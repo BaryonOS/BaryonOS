@@ -1,0 +1,143 @@
+# B03-KEY-POLICY-1 — native signing-key lifecycle
+
+30 oktober 2026. **Afgebakende native proef geslaagd; geen nieuwe rubricpunten
+en geen sluiting van #41.** Dit vult het historische 13-stage B03-bewijs aan,
+zonder dat bewijs achteraf te herlabelen. De beleidsdistributie, kalender-
+geldigheid en productiekeyceremonie zijn nog niet gerealiseerd.
+
+## Bron en schrijfgrens
+
+Basis `0ade8014c8179241dcfc68ea0ba8083664691240`, implementatie
+`e357f5f8ea88f49a20887205a76152c5b7a23a1e`, definitieve testbron
+`fecc4b9202cd247324e3d1f4de173a7bbab1eb55`, branch
+`codex/update-key-policy-20261030`.
+
+V3-bronfingerprint:
+`4970be1dc386af232ecd40d2b39c9db3744f945951480b809adb572878ce5aa1`.
+Het harnas bindt bovendien `tests/test_update_harness.py` apart aan
+`9cbfcb0efd8a5c2887e2c9e3406722780615042bf6567b9ed931b9b01d2d9a3f`.
+Docs en de CI-stapnaam zitten niet in deze runtimefingerprint. De native code
+is sinds e357f5f ongewijzigd; fecc4b9 voegt twee gerichte harnastests en een
+CLI-test toe. De volledige native poort is op beide bronversies echt gedraaid;
+alleen de tweede uitvoering wordt hier als definitief vastgelegd.
+
+Gewijzigd: `crates/update-core/{src/{lib,policy,test_policy}.rs,tests/key_policy.rs}`,
+`boot/loader/src/signed.rs`, `sdk/examples/update/src/service.rs`,
+`kernel/src/m2/m3/update.rs` (alleen rejectnamen), `tools/update-tool`,
+`tools/{test_update,run_update}.py`, `tests/test_update_harness.py`, openbare
+`tools/update-keys`-fixtures en bijbehorende docs/CI-stapnaam. Geen nieuwe
+dependency, unsafe, capability, IPC-wire of TPM/NV-/NAS-interface. Het aparte
+IPC-WIP op concept-PR #72 is niet onderdeel van deze branch.
+
+Contract: `../implementation/B03-SIGNED-UPDATES.md`, B03-KEY-POLICY-1;
+besluit ADR-B03K1. Loader en dienst gebruiken dezelfde `test_policy`, niet
+zelfstandig gekopieerde trustregels.
+
+## Exacte uitvoering
+
+Onderstaande lokale omgeving hergebruikt de reeds aanwezige QEMU/OVMF-fixtures
+van de buildpeer uitsluitend read-only; alle disks, variabelen, Cargo-targets
+en ESP-kopieen worden in deze eigen worktree geschreven. Er is geen fysieke
+schijf, productiekey of fysieke TPM gebruikt.
+
+```sh
+. .tools/bootstrap/security-native/env.sh
+export LOCALAPPDATA="$PWD/.tools"
+export CARGO_HOME="$PWD/.tools/nieuw-os/cargo"
+export RUSTUP_HOME="$PWD/.tools/nieuw-os/rustup"
+export PATH="$PWD/.tools/nieuw-os/cargo/bin:$PWD/.tools/bootstrap/host-linker/bin:$PWD/.tools/bootstrap/host-linker/usr/bin:$PATH"
+export GCC_EXEC_PREFIX="$PWD/.tools/bootstrap/host-linker/usr/lib/gcc/"
+export LIBRARY_PATH="$PWD/.tools/bootstrap/host-linker/usr/lib/x86_64-linux-gnu"
+export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="$PWD/.tools/bootstrap/host-linker/bin/cc"
+python3 -B -u tools/test_update.py > /tmp/nieuw-os-security-update-native-final.log 2>&1
+```
+
+Exit **0**, 18/18 echte QEMU-stages; totale gemeten guesttijd 76,323 seconden.
+Het bestaande script heeft zelf de hosttests, drie native kernels, signed
+UEFI-loader, ring3-update-service en fixturemanifests gebouwd, alle stages
+uitgevoerd en daarna de normale ESP-build hersteld. Die laatste build is
+geen aanvullende normale bootproef.
+
+| Exact commando | Resultaat |
+|---|---|
+| `cargo +1.90.0 test --locked -p update-core -p update-tool` (door de gate) | exit 0; 7 core + 6 key-policy + 2 CLI-tests |
+| `python3 -B -m unittest discover -s tests -p 'test_update_*.py'` | exit 0; 12 harnastests |
+| `cargo +1.90.0 clippy --offline --locked -p update-core -p update-tool --all-targets -- -D warnings` | exit 0; apart `target/security-update` |
+| `cargo +1.90.0 fmt --check -p update-core -p update-tool -p os-loader` | exit 0 |
+| `cargo +1.90.0 fmt --check --manifest-path sdk/Cargo.toml -p nieuw-os-update-example` | exit 0 |
+| `python3 -B tools/capture_update.py --destination docs/verification/b03-key-policy-1` | exit 0; 18 captures |
+| `cd docs/verification/b03-key-policy-1 && sha256sum --check SHA256SUMS` | exit 0; alle 55 capturebestanden |
+| `python3 -B tools/progress.py --write` en `--check` | exit 0 bij implementatiecheckpoint e357f5f; 34/100 onveranderd |
+| `git diff --check` | exit 0 |
+
+De Clippy-uitvoering gebruikt dezelfde lokale hostlinker, met
+`RUSTFLAGS="-C linker=$PWD/.tools/bootstrap/host-linker/bin/cc"` en
+`CARGO_TARGET_DIR="$PWD/target/security-update"`. Deze hostflags zijn bewust
+**niet** aan de native targetbuilds doorgegeven. Formatteringscommando's lopen
+via `LOCALAPPDATA="$PWD/.tools" python3 -B tools/dev.py`.
+
+## Native uitkomsten
+
+| Stages | Gemeten uitkomst |
+|---|---|
+| Oorspronkelijke 13 stages | Alle behouden en groen: install/boot/downgrade, signatures/digest/ELF, echte kill tijdens kopieren en twee herstarts, geen geldig slot, inbox-signature/downgrade/foreign key |
+| `rotate-install` | v1 van TEST installeert v2 van vooraf vastgepind TEST-next; exacte opvolgermanifestbytes + image in B, A/inbox behouden, headergeneratie +1, minstens drie flushes |
+| `rotate-boot` | Koude nieuwe QEMU-process op dezelfde disk/OVMF-state start v2 uit B; nul writes en flushes |
+| `key-revoked` | Correct getekend TEST-revoked-paar geweigerd door loader en dienst; fallback A; nul writes/flushes; gehele slotdisk byte-identiek |
+| `key-expired` | Correct getekend v2 buiten TEST-expired-venster 1..=1; zelfde dubbele weigering en ongewijzigde slotdisk |
+| `key-not-yet-valid` | Correct getekend v1 voor TEST-next dat vanaf v2 mag tekenen; zelfde dubbele weigering en ongewijzigde slotdisk |
+
+Alle normale guestexits zijn 33; `no-valid-slot` eindigt 35 voor kernelentry;
+de cut-stage eindigt -9 nadat het harnas een nog levend QEMU-proces echt heeft
+gedood. Een vermelde verwachte weigering is geen genegeerde testfout.
+
+Hostnegatieven testen daarnaast beide verplichte signatures, gewijzigde
+versiebytes, ongeldige/dubbele beleidsentries in beide volgordes, gemengde
+keyparen, maximale versies en de scheiding tussen cryptografische geldigheid
+en autoriteit. De synthetische Python-orakeltest weigert expliciet het oude
+v2-manifest op de rotatiedisk; die test is geen native bewijs.
+
+## Bewijs en identiteit
+
+`b03-key-policy-1/update-gate.json` en de 18 genummerde submappen bevatten
+brongebonden result/serial/stderr-captures, exacte QEMU-commandoregels,
+disk-/vars-/artifacthashes, getallen en onafhankelijke slotdiskorakels.
+`native-gate.log` en `clippy.log` bewaren de volledige commandologs.
+`SHA256SUMS` bindt de oorspronkelijke 55 capturebestanden; de twee extra logs
+zijn geen invoer voor het native verdict.
+
+| Invoer of rapport | SHA-256 |
+|---|---|
+| definitief `update-gate.json` | `22cfcc241d6ae0580d2214d3679c491fc4b3522b0334b8b80c0351bbe997f743` |
+| capture `SHA256SUMS` | `5c267a337c4d530597f6931ab9bcf12eeaffa285d4ea78a920158cf96af19f5f` |
+| OVMF2025.11 code 4M | `874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7` |
+| OVMF2025.11 schone vars 4M | `5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e` |
+| signed loader | `07fd2931c58ffa9d43b57a167a6c66ebd8664d5374f0bc6351fc104b2c23b6c0` |
+| update-service | `ef985fdb6c67f4381f88bc28f1187a92d3825383b996c724119b1f5e800df12d` |
+
+QEMU10.2.1 (Ubuntu `1:10.2.1+ds-1ubuntu3.3`), TCG single-thread,
+`pc-q35-8.2`, qemu64, 1 CPU, 256 MiB, geen netwerkdevice. Dit is bewijs op
+deze emulator/firmware, geen fysieke hardwareacceptatie.
+
+## Open grenzen en overdracht
+
+**Niet uitgevoerd:** volledige overige native CI-matrix, CI op de uiteindelijke
+integratiecommit, fysieke tests en onafhankelijke menselijke deskundigenreview.
+De integrator moet de eigen samengevoegde bron beoordelen en testen; dit
+rapport maakt main niet automatisch groen.
+
+Geldigheid is uitsluitend op basis van ondertekende releaseversies; geen
+vertrouwde kalenderexpiry. Het oorspronkelijke TEST-paar blijft geldig voor
+bestaande profielen. Intrekking is statisch en de opvolger is vooraf vastgepind;
+de proef toont geen veilige distributie, monotone opslag/antirollback van
+nieuwe beleidsversies, uitschakeling van een gecompromitteerde oude releasekey
+of productiekeyceremonie. Het UEFI-versieanker en firmwarevertrouwen behouden
+hun bestaande beperkingen; B02/NV en B04 blijven open.
+
+Voorstel aan centrale score-eigenaar: **34 → 34 totaal, 4/12 → 4/12
+beveiliging**. B03 was reeds geaccepteerd; deze stap sluit geen nieuw criterium.
+B05 vereist externe menselijke deskundigen, niet een tweede AI.
+
+Rollback: gerichte revert van deze updatepolicycommits, zonder manifest-,
+slotstore- of IPC-formaatmigratie. Dat verwijdert lifecycleafdwinging en mag
+niet als behoud van dezelfde beveiligingsgarantie worden gepresenteerd.
