@@ -46,8 +46,11 @@ acceptatie op zichzelf.
 De eerste native wait-case faalde terecht op een onjuiste proefaanname:
 K05 geeft Process uitsluitend `OBSERVE|KILL`, zonder `DERIVE`. De proef maakt
 daarom geen OBSERVE-only-handle en verruimt geen rechten om dat mogelijk te
-maken. Zij verwacht juist `EACCESS` voor die afleidingspoging en `ETYPE` voor
+maken. Zij verwacht juist `EINVAL` voor die afleidingspoging en `ETYPE` voor
 de endpoint-kill, naast beide stale-handleweigeringen.
+`Engine::require` weigert DERIVE eerst als ongeldig voor het Process-
+objecttype; het is niet slechts een ontbrekend toegestaan recht (`EACCESS`).
+De tweede rode step104-run hield die foutcodes terecht uit elkaar.
 
 ```sh
 python3 -B sdk/examples/supervisor/build.py

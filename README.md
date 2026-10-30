@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`dcb6b121`](https://github.com/simonvanieperen/nieuw-os/commit/dcb6b12190f3438404ddd2fbbe12290bd204e1d4) ·
+**Bron:** [`d4b6ebcb`](https://github.com/simonvanieperen/nieuw-os/commit/d4b6ebcb431c85b2ff9f9cb4ef3f43c7162ae1bf) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: vijf native K05-baselines groen; onjuiste DERIVE-aanname in nieuwe waitfixture gecorrigeerd.
-34% blijft 34%; minstens50% is niet bereikt. De bestaande vijf K05-cases slagen opnieuw native op dcb6b12. De zesde Waiting-lifecyclecase faalt raw35/step104 door een onjuiste proefaanname: Process heeft OBSERVE en KILL, geen DERIVE. De proef verwacht nu juist de bestaande EACCESS-deriveweigering plus ETYPE-endpointkill en beide stale-handleweigeringen; geen rechten verruimd. Native hertoets volgt. Eerdere normale/koude GUI-, IPC/system/RTC- en FPU-bewijzen blijven aan hun eigen bron gebonden; lokale proefversie bewaard.8 strikte K05-harnas- en1 protocolhosttest slagen. Geen extra punten; volledige productcriteria en menselijke/hardwareacceptatie blijven open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: vijf K05-baselines opnieuw groen; waitfixture vereist exacte EINVAL voor Process-derive.
+34% blijft 34%; minstens50% is niet bereikt. Vijf bestaande K05-cases slagen opnieuw op d4b6ebc. De nieuwe waitcase blijft terecht rood op step104: Process-derive wordt als ongeldige objectrechtklasse geweigerd met EINVAL, niet EACCESS. De proef eist nu de precieze bestaande foutcode; geen Engine-, rechten-, scheduler- of cleanupwijziging. ETYPE-endpointkill en beide stale-handleweigeringen blijven vereist; native hertoets volgt. Eerdere GUI/IPC/system/RTC/FPU-bewijzen blijven aan hun eigen bron gebonden en lokale proefversie bewaard. Geen extra punten; volledige productcriteria en menselijke/hardwareacceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

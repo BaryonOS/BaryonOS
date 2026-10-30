@@ -47,12 +47,18 @@ is bij dit codecheckpoint **nog niet uitgevoerd**. Buildlog:
 De zes-casesrun op `dcb6b12` geeft vijf echte groene legacy-VM's, maar de
 nieuwe case faalt raw35/step104: de proef nam ten onrechte aan dat een
 Process-rootcap DERIVE bezat. Het bestaande contract geeft alleen
-`OBSERVE|KILL`. De proef verwacht nu juist EACCESS op die derivepoging en
+`OBSERVE|KILL`. De proef verwacht nu juist EINVAL op die derivepoging en
 ETYPE op een endpoint-kill; beide stale-handleweigeringen blijven.
 Geen rechten verruimd. Hertoets volgt; rode run:
 `wait-lifecycle/run/supervisor-wait-208a0949b3`.
 De bestaande ongebruikte `Incoming::Denied`-payloadwaarschuwing is niet
 onderdrukt of als groene Clippy-controle voorgesteld.
+Ook de hertoets op `d4b6ebc` hield de nieuwe case terecht rood op step104:
+DERIVE is voor Process een ongeldige objectrechtklasse (`EINVAL`), niet
+slechts een ontbrekend toegestaan recht (`EACCESS`). Dit volgt uit de
+ongewijzigde `Engine::require`; de proef eist nu exact EINVAL. Alle vijf
+legacy-VM's slaagden opnieuw. Rode run:
+`wait-lifecycle/run/supervisor-wait-b0dfc7215f`; hertoets volgt.
 Open: overige native/productmatrix,
 fysieke en menselijke acceptatie. Testfixtureplaintext is geen persoonlijke
 opslag-/encryptie-/releaseclaim. Nieuwe concept-PR is niet geopend omdat de

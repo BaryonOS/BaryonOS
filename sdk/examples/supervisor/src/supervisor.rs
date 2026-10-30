@@ -567,7 +567,7 @@ impl Supervisor {
         let old = self.worker.unwrap_or_else(|| fail(103));
         let old_pid = self.worker_pid;
         self.wait_ticks(4);
-        if kernel_code(native::derive(old.handle(), Rights::OBSERVE)) != EACCESS {
+        if kernel_code(native::derive(old.handle(), Rights::OBSERVE)) != EINVAL {
             fail(104);
         }
         if native::kill(ChildProcess::from_handle(self.registry_root)) != Err(Error::Kernel(ETYPE))
