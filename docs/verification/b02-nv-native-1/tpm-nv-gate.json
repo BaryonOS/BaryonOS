@@ -1,0 +1,1149 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "source_sha256": "36944a001df3a8476e1b36fb36c2b347be826702a5c855b6b295af25ece32761",
+  "source_fingerprint_version": 3,
+  "stages": [
+    {
+      "case": "provision",
+      "manifest": {
+        "schema_version": 1,
+        "profile": "test-tpm-nv-provision",
+        "kernel_feature": "test-tpm-nv-provision",
+        "loader_feature": null,
+        "source_fingerprint_version": 3,
+        "source_sha256": "36944a001df3a8476e1b36fb36c2b347be826702a5c855b6b295af25ece32761",
+        "loader": {
+          "sha256": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d",
+          "format": "AMD64 PE32+",
+          "subsystem": "EFI_APPLICATION",
+          "imports": 0
+        },
+        "kernel": {
+          "sha256": "68fb9f3fd2b4a7b51c6f80feafb0bf1b8747afb2c4d9bf21554c915fc11d4a17",
+          "entry": 33554432,
+          "segments": [
+            {
+              "flags": 5,
+              "offset": 4096,
+              "address": 33554432,
+              "filesz": 120279,
+              "memsz": 120279,
+              "page_start": 33554432,
+              "page_end": 33677312
+            },
+            {
+              "flags": 4,
+              "offset": 126976,
+              "address": 33677312,
+              "filesz": 59224,
+              "memsz": 59224,
+              "page_start": 33677312,
+              "page_end": 33738752
+            },
+            {
+              "flags": 6,
+              "offset": 188416,
+              "address": 33738752,
+              "filesz": 1253992,
+              "memsz": 4345688,
+              "page_start": 33738752,
+              "page_end": 38084608
+            }
+          ],
+          "sections": [
+            {
+              "name": "",
+              "type": 0,
+              "flags": 0,
+              "size": 0
+            },
+            {
+              "name": ".text",
+              "type": 1,
+              "flags": 6,
+              "size": 120279
+            },
+            {
+              "name": ".rodata",
+              "type": 1,
+              "flags": 50,
+              "size": 59224
+            },
+            {
+              "name": ".data",
+              "type": 1,
+              "flags": 3,
+              "size": 1253992
+            },
+            {
+              "name": ".bss",
+              "type": 8,
+              "flags": 3,
+              "size": 3088216
+            },
+            {
+              "name": ".symtab",
+              "type": 2,
+              "flags": 0,
+              "size": 7152
+            },
+            {
+              "name": ".shstrtab",
+              "type": 3,
+              "flags": 0,
+              "size": 52
+            },
+            {
+              "name": ".strtab",
+              "type": 3,
+              "flags": 0,
+              "size": 15795
+            }
+          ]
+        },
+        "sdk_runtime": false,
+        "document_session": false,
+        "ipc_wait": {
+          "app_sha256": "ea4188ce4757ffd71c06dbff422dc31734bd0ca6ec5b9ab03d408433cb20e3e8",
+          "app_elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 19,
+                "memsz": 19,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 453,
+                "memsz": 453,
+                "page_start": 1073872896,
+                "page_end": 1073876992
+              },
+              {
+                "flags": 6,
+                "address": 1074200576,
+                "offset": 16384,
+                "filesz": 72,
+                "memsz": 72,
+                "page_start": 1074200576,
+                "page_end": 1074204672
+              },
+              {
+                "flags": 5,
+                "address": 1074462720,
+                "offset": 20480,
+                "filesz": 13991,
+                "memsz": 13991,
+                "page_start": 1074462720,
+                "page_end": 1074479104
+              }
+            ]
+          }
+        }
+      },
+      "backend": {
+        "command": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/swtpm-native/usr/bin/swtpm",
+          "socket",
+          "--tpm2",
+          "--tpmstate",
+          "dir=build/tpm/4e6700e9e0/state",
+          "--ctrl",
+          "type=unixio,path=build/tpm/4e6700e9e0/ctrl.sock,mode=0600",
+          "--flags",
+          "startup-clear"
+        ],
+        "binary_sha256": "1ff9ce32a8c6a60846629fdd6fd0f51eb18a076918dac9574d252afa7a1d1844",
+        "version": "TPM emulator version 0.10.1, Copyright (c) 2014-2022 IBM Corp. and others",
+        "directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/tpm/4e6700e9e0",
+        "state_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/tpm/4e6700e9e0/state",
+        "log": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/tpm/4e6700e9e0/backend.log",
+        "exit_status": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "guest": {
+        "label": "tpm-nv-provision",
+        "started_utc": "2026-10-30T17:17:41.999364+00:00",
+        "duration_s": 4.826975566998954,
+        "timeout_s": 60,
+        "timed_out": false,
+        "raw_qemu_exit": 33,
+        "expected_exit": 33,
+        "required_markers": [
+          "M2:PASS",
+          "TPMCRB:BOUNDS:PASS",
+          "TPMCRB:MAPPING:PASS",
+          "IPCWAIT:MANIFEST:PASS",
+          "IPCWAIT:REVOKED_FULL_QUEUE:PASS",
+          "TPMCRB:RELEASED:PASS",
+          "TPMCRB:PASS",
+          "TPMNV:PASS:provision",
+          "IPCWAIT:NATIVE:PASS",
+          "IPCWAIT:CLEANUP:PASS",
+          "IPCWAIT:PASS",
+          "M1:PASS"
+        ],
+        "forbidden_markers": [
+          "TPMCRB:FAIL:",
+          "IPCWAIT:FAIL:",
+          "PANIC",
+          "M3:FAIL:"
+        ],
+        "passed": true,
+        "command": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/qemu-system-x86_64",
+          "-machine",
+          "pc-q35-8.2",
+          "-accel",
+          "tcg,thread=single",
+          "-cpu",
+          "qemu64",
+          "-smp",
+          "1",
+          "-m",
+          "256M",
+          "-nodefaults",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-nic",
+          "none",
+          "-no-reboot",
+          "-drive",
+          "if=pflash,unit=0,format=raw,readonly=on,file=build/run/tpm-nv-provision-5d5c959de2/OVMF_CODE.fd",
+          "-drive",
+          "if=pflash,unit=1,format=raw,file=build/run/tpm-nv-provision-5d5c959de2/OVMF_VARS.fd",
+          "-drive",
+          "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/tpm-nv-provision-5d5c959de2/esp",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-chardev",
+          "socket,id=tpmsock,path=build/tpm/4e6700e9e0/ctrl.sock",
+          "-tpmdev",
+          "emulator,id=tpm0,chardev=tpmsock",
+          "-device",
+          "tpm-crb,tpmdev=tpm0",
+          "-L",
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/share"
+        ],
+        "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+        "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+        "base_commit": "9ae314deedd1b0aa75a8c84d0d0af299cad50ae2",
+        "source_fingerprint_version": 3,
+        "source_sha256": "36944a001df3a8476e1b36fb36c2b347be826702a5c855b6b295af25ece32761",
+        "artifact_sha256": {
+          "esp/kernel.elf": "68fb9f3fd2b4a7b51c6f80feafb0bf1b8747afb2c4d9bf21554c915fc11d4a17",
+          "esp/EFI/BOOT/BOOTX64.EFI": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d",
+          "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+          "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        "firmware_source": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_VARS_4M.fd"
+        ],
+        "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/tpm-nv-provision-5d5c959de2",
+        "stdout": "\u001b[2J\u001b[001;001H\u001b[=3h\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;056;240t\u001b[2J\u001b[001;001HBdsDxe: loading Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nTPMCRB:BOUNDS:PASS\nTPMCRB:MAPPING:PASS\nIPCWAIT:MANIFEST:PASS\nTPMCRB:FAMILY:00000000000841887744\nTPMNV:PUBLIC:PASS\nTPMNV:BEFORE:00000000000000000001\nTPMNV:AFTER:00000000000000000002\nIPCWAIT:REVOKED_FULL_QUEUE:PASS\nTPMCRB:WRITES:00000000000000059874\nTPMCRB:BOUNDS_REJECTED:00000000000000000007\nTPMCRB:QUARANTINED:00000000000000000000\nTPMCRB:RELEASED:PASS\nTPMCRB:PASS\nTPMNV:PASS:provision\nIPCWAIT:ASSERTIONS:00000000000000000111\nIPCWAIT:TICKS:00000000000000000162\nIPCWAIT:PHASE_MASK:00000000000000000063\nIPCWAIT:ASSERTIONS:00000000000000000083\nIPCWAIT:TICKS:00000000000000000202\nIPCWAIT:PHASE_MASK:00000000000000000060\nIPCWAIT:BLOCKED:00000000000000000014\nIPCWAIT:WAKE_READY:00000000000000000007\nIPCWAIT:WAKE_TIMEOUT:00000000000000000006\nIPCWAIT:WAKE_ERROR:00000000000000000001\nIPCWAIT:IDLE_IRQS:00000000000000000199\nIPCWAIT:NATIVE:PASS\nIPCWAIT:CLEANUP:PASS\nIPCWAIT:PASS\nM1:PASS\n",
+        "stderr": "",
+        "expected_artifact_sha256": {
+          "esp/kernel.elf": "68fb9f3fd2b4a7b51c6f80feafb0bf1b8747afb2c4d9bf21554c915fc11d4a17",
+          "esp/EFI/BOOT/BOOTX64.EFI": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d"
+        },
+        "artifact_binding_passed": true
+      },
+      "observed": {
+        "BLOCKED": 14,
+        "WAKE_READY": 7,
+        "WAKE_TIMEOUT": 6,
+        "WAKE_ERROR": 1,
+        "IDLE_IRQS": 199,
+        "WRITES": 59874,
+        "BOUNDS_REJECTED": 7,
+        "QUARANTINED": 0,
+        "FAMILY": 841887744,
+        "BEFORE": 1,
+        "AFTER": 2
+      },
+      "state_files_after_stop": {
+        ".lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tpm2-00.permall": "1b7999b389eeb20aef4fc6194163c5bad857fefd432211af24367990714e798a"
+      }
+    },
+    {
+      "case": "read",
+      "manifest": {
+        "schema_version": 1,
+        "profile": "test-tpm-nv-read",
+        "kernel_feature": "test-tpm-nv-read",
+        "loader_feature": null,
+        "source_fingerprint_version": 3,
+        "source_sha256": "36944a001df3a8476e1b36fb36c2b347be826702a5c855b6b295af25ece32761",
+        "loader": {
+          "sha256": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d",
+          "format": "AMD64 PE32+",
+          "subsystem": "EFI_APPLICATION",
+          "imports": 0
+        },
+        "kernel": {
+          "sha256": "7aa8bd1d50d0036ef3f959e78ebb8f13429681fce1b1cd19eceea7dfbbe1ab28",
+          "entry": 33554432,
+          "segments": [
+            {
+              "flags": 5,
+              "offset": 4096,
+              "address": 33554432,
+              "filesz": 119943,
+              "memsz": 119943,
+              "page_start": 33554432,
+              "page_end": 33677312
+            },
+            {
+              "flags": 4,
+              "offset": 126976,
+              "address": 33677312,
+              "filesz": 59208,
+              "memsz": 59208,
+              "page_start": 33677312,
+              "page_end": 33738752
+            },
+            {
+              "flags": 6,
+              "offset": 188416,
+              "address": 33738752,
+              "filesz": 1253992,
+              "memsz": 4345688,
+              "page_start": 33738752,
+              "page_end": 38084608
+            }
+          ],
+          "sections": [
+            {
+              "name": "",
+              "type": 0,
+              "flags": 0,
+              "size": 0
+            },
+            {
+              "name": ".text",
+              "type": 1,
+              "flags": 6,
+              "size": 119943
+            },
+            {
+              "name": ".rodata",
+              "type": 1,
+              "flags": 50,
+              "size": 59208
+            },
+            {
+              "name": ".data",
+              "type": 1,
+              "flags": 3,
+              "size": 1253992
+            },
+            {
+              "name": ".bss",
+              "type": 8,
+              "flags": 3,
+              "size": 3088216
+            },
+            {
+              "name": ".symtab",
+              "type": 2,
+              "flags": 0,
+              "size": 7176
+            },
+            {
+              "name": ".shstrtab",
+              "type": 3,
+              "flags": 0,
+              "size": 52
+            },
+            {
+              "name": ".strtab",
+              "type": 3,
+              "flags": 0,
+              "size": 15875
+            }
+          ]
+        },
+        "sdk_runtime": false,
+        "document_session": false,
+        "ipc_wait": {
+          "app_sha256": "ea4188ce4757ffd71c06dbff422dc31734bd0ca6ec5b9ab03d408433cb20e3e8",
+          "app_elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 19,
+                "memsz": 19,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 453,
+                "memsz": 453,
+                "page_start": 1073872896,
+                "page_end": 1073876992
+              },
+              {
+                "flags": 6,
+                "address": 1074200576,
+                "offset": 16384,
+                "filesz": 72,
+                "memsz": 72,
+                "page_start": 1074200576,
+                "page_end": 1074204672
+              },
+              {
+                "flags": 5,
+                "address": 1074462720,
+                "offset": 20480,
+                "filesz": 13991,
+                "memsz": 13991,
+                "page_start": 1074462720,
+                "page_end": 1074479104
+              }
+            ]
+          }
+        }
+      },
+      "backend": {
+        "command": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/swtpm-native/usr/bin/swtpm",
+          "socket",
+          "--tpm2",
+          "--tpmstate",
+          "dir=build/tpm/4e6700e9e0/state",
+          "--ctrl",
+          "type=unixio,path=build/tpm/70578dc882/ctrl.sock,mode=0600",
+          "--flags",
+          "startup-clear"
+        ],
+        "binary_sha256": "1ff9ce32a8c6a60846629fdd6fd0f51eb18a076918dac9574d252afa7a1d1844",
+        "version": "TPM emulator version 0.10.1, Copyright (c) 2014-2022 IBM Corp. and others",
+        "directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/tpm/70578dc882",
+        "state_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/tpm/4e6700e9e0/state",
+        "log": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/tpm/70578dc882/backend.log",
+        "exit_status": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "guest": {
+        "label": "tpm-nv-read",
+        "started_utc": "2026-10-30T17:17:48.214531+00:00",
+        "duration_s": 4.88533351300066,
+        "timeout_s": 60,
+        "timed_out": false,
+        "raw_qemu_exit": 33,
+        "expected_exit": 33,
+        "required_markers": [
+          "M2:PASS",
+          "TPMCRB:BOUNDS:PASS",
+          "TPMCRB:MAPPING:PASS",
+          "IPCWAIT:MANIFEST:PASS",
+          "IPCWAIT:REVOKED_FULL_QUEUE:PASS",
+          "TPMCRB:RELEASED:PASS",
+          "TPMCRB:PASS",
+          "TPMNV:PASS:read",
+          "IPCWAIT:NATIVE:PASS",
+          "IPCWAIT:CLEANUP:PASS",
+          "IPCWAIT:PASS",
+          "M1:PASS"
+        ],
+        "forbidden_markers": [
+          "TPMCRB:FAIL:",
+          "IPCWAIT:FAIL:",
+          "PANIC",
+          "M3:FAIL:"
+        ],
+        "passed": true,
+        "command": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/qemu-system-x86_64",
+          "-machine",
+          "pc-q35-8.2",
+          "-accel",
+          "tcg,thread=single",
+          "-cpu",
+          "qemu64",
+          "-smp",
+          "1",
+          "-m",
+          "256M",
+          "-nodefaults",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-nic",
+          "none",
+          "-no-reboot",
+          "-drive",
+          "if=pflash,unit=0,format=raw,readonly=on,file=build/run/tpm-nv-read-d9086bad16/OVMF_CODE.fd",
+          "-drive",
+          "if=pflash,unit=1,format=raw,file=build/run/tpm-nv-read-d9086bad16/OVMF_VARS.fd",
+          "-drive",
+          "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/tpm-nv-read-d9086bad16/esp",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-chardev",
+          "socket,id=tpmsock,path=build/tpm/70578dc882/ctrl.sock",
+          "-tpmdev",
+          "emulator,id=tpm0,chardev=tpmsock",
+          "-device",
+          "tpm-crb,tpmdev=tpm0",
+          "-L",
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/share"
+        ],
+        "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+        "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+        "base_commit": "9ae314deedd1b0aa75a8c84d0d0af299cad50ae2",
+        "source_fingerprint_version": 3,
+        "source_sha256": "36944a001df3a8476e1b36fb36c2b347be826702a5c855b6b295af25ece32761",
+        "artifact_sha256": {
+          "esp/kernel.elf": "7aa8bd1d50d0036ef3f959e78ebb8f13429681fce1b1cd19eceea7dfbbe1ab28",
+          "esp/EFI/BOOT/BOOTX64.EFI": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d",
+          "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+          "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        "firmware_source": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_VARS_4M.fd"
+        ],
+        "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/tpm-nv-read-d9086bad16",
+        "stdout": "\u001b[2J\u001b[001;001H\u001b[=3h\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;056;240t\u001b[2J\u001b[001;001HBdsDxe: loading Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nTPMCRB:BOUNDS:PASS\nTPMCRB:MAPPING:PASS\nIPCWAIT:MANIFEST:PASS\nTPMCRB:FAMILY:00000000000841887744\nTPMNV:PUBLIC:PASS\nTPMNV:BEFORE:00000000000000000002\nIPCWAIT:REVOKED_FULL_QUEUE:PASS\nTPMCRB:WRITES:00000000000000027880\nTPMCRB:BOUNDS_REJECTED:00000000000000000007\nTPMCRB:QUARANTINED:00000000000000000000\nTPMCRB:RELEASED:PASS\nTPMCRB:PASS\nTPMNV:PASS:read\nIPCWAIT:ASSERTIONS:00000000000000000111\nIPCWAIT:TICKS:00000000000000000161\nIPCWAIT:PHASE_MASK:00000000000000000063\nIPCWAIT:ASSERTIONS:00000000000000000083\nIPCWAIT:TICKS:00000000000000000201\nIPCWAIT:PHASE_MASK:00000000000000000060\nIPCWAIT:BLOCKED:00000000000000000014\nIPCWAIT:WAKE_READY:00000000000000000007\nIPCWAIT:WAKE_TIMEOUT:00000000000000000006\nIPCWAIT:WAKE_ERROR:00000000000000000001\nIPCWAIT:IDLE_IRQS:00000000000000000198\nIPCWAIT:NATIVE:PASS\nIPCWAIT:CLEANUP:PASS\nIPCWAIT:PASS\nM1:PASS\n",
+        "stderr": "",
+        "expected_artifact_sha256": {
+          "esp/kernel.elf": "7aa8bd1d50d0036ef3f959e78ebb8f13429681fce1b1cd19eceea7dfbbe1ab28",
+          "esp/EFI/BOOT/BOOTX64.EFI": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d"
+        },
+        "artifact_binding_passed": true
+      },
+      "observed": {
+        "BLOCKED": 14,
+        "WAKE_READY": 7,
+        "WAKE_TIMEOUT": 6,
+        "WAKE_ERROR": 1,
+        "IDLE_IRQS": 198,
+        "WRITES": 27880,
+        "BOUNDS_REJECTED": 7,
+        "QUARANTINED": 0,
+        "FAMILY": 841887744,
+        "BEFORE": 2
+      },
+      "state_files_after_stop": {
+        ".lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tpm2-00.permall": "7357ca11d668d5b72777e3cabd6a379e4cafe6b682024980efaebbf023bbe173"
+      }
+    },
+    {
+      "case": "auth",
+      "manifest": {
+        "schema_version": 1,
+        "profile": "test-tpm-nv-auth",
+        "kernel_feature": "test-tpm-nv-auth",
+        "loader_feature": null,
+        "source_fingerprint_version": 3,
+        "source_sha256": "36944a001df3a8476e1b36fb36c2b347be826702a5c855b6b295af25ece32761",
+        "loader": {
+          "sha256": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d",
+          "format": "AMD64 PE32+",
+          "subsystem": "EFI_APPLICATION",
+          "imports": 0
+        },
+        "kernel": {
+          "sha256": "2a518d4cf0945bd4850450c5da4b0adc62f93eef2207011ca884c147d506c380",
+          "entry": 33554432,
+          "segments": [
+            {
+              "flags": 5,
+              "offset": 4096,
+              "address": 33554432,
+              "filesz": 120039,
+              "memsz": 120039,
+              "page_start": 33554432,
+              "page_end": 33677312
+            },
+            {
+              "flags": 4,
+              "offset": 126976,
+              "address": 33677312,
+              "filesz": 59232,
+              "memsz": 59232,
+              "page_start": 33677312,
+              "page_end": 33738752
+            },
+            {
+              "flags": 6,
+              "offset": 188416,
+              "address": 33738752,
+              "filesz": 1253992,
+              "memsz": 4345688,
+              "page_start": 33738752,
+              "page_end": 38084608
+            }
+          ],
+          "sections": [
+            {
+              "name": "",
+              "type": 0,
+              "flags": 0,
+              "size": 0
+            },
+            {
+              "name": ".text",
+              "type": 1,
+              "flags": 6,
+              "size": 120039
+            },
+            {
+              "name": ".rodata",
+              "type": 1,
+              "flags": 50,
+              "size": 59232
+            },
+            {
+              "name": ".data",
+              "type": 1,
+              "flags": 3,
+              "size": 1253992
+            },
+            {
+              "name": ".bss",
+              "type": 8,
+              "flags": 3,
+              "size": 3088216
+            },
+            {
+              "name": ".symtab",
+              "type": 2,
+              "flags": 0,
+              "size": 7152
+            },
+            {
+              "name": ".shstrtab",
+              "type": 3,
+              "flags": 0,
+              "size": 52
+            },
+            {
+              "name": ".strtab",
+              "type": 3,
+              "flags": 0,
+              "size": 15795
+            }
+          ]
+        },
+        "sdk_runtime": false,
+        "document_session": false,
+        "ipc_wait": {
+          "app_sha256": "ea4188ce4757ffd71c06dbff422dc31734bd0ca6ec5b9ab03d408433cb20e3e8",
+          "app_elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 19,
+                "memsz": 19,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 453,
+                "memsz": 453,
+                "page_start": 1073872896,
+                "page_end": 1073876992
+              },
+              {
+                "flags": 6,
+                "address": 1074200576,
+                "offset": 16384,
+                "filesz": 72,
+                "memsz": 72,
+                "page_start": 1074200576,
+                "page_end": 1074204672
+              },
+              {
+                "flags": 5,
+                "address": 1074462720,
+                "offset": 20480,
+                "filesz": 13991,
+                "memsz": 13991,
+                "page_start": 1074462720,
+                "page_end": 1074479104
+              }
+            ]
+          }
+        }
+      },
+      "backend": {
+        "command": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/swtpm-native/usr/bin/swtpm",
+          "socket",
+          "--tpm2",
+          "--tpmstate",
+          "dir=build/tpm/4e6700e9e0/state",
+          "--ctrl",
+          "type=unixio,path=build/tpm/f1be819c8c/ctrl.sock,mode=0600",
+          "--flags",
+          "startup-clear"
+        ],
+        "binary_sha256": "1ff9ce32a8c6a60846629fdd6fd0f51eb18a076918dac9574d252afa7a1d1844",
+        "version": "TPM emulator version 0.10.1, Copyright (c) 2014-2022 IBM Corp. and others",
+        "directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/tpm/f1be819c8c",
+        "state_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/tpm/4e6700e9e0/state",
+        "log": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/tpm/f1be819c8c/backend.log",
+        "exit_status": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "guest": {
+        "label": "tpm-nv-auth",
+        "started_utc": "2026-10-30T17:17:54.464450+00:00",
+        "duration_s": 4.811876769999799,
+        "timeout_s": 60,
+        "timed_out": false,
+        "raw_qemu_exit": 33,
+        "expected_exit": 33,
+        "required_markers": [
+          "M2:PASS",
+          "TPMCRB:BOUNDS:PASS",
+          "TPMCRB:MAPPING:PASS",
+          "IPCWAIT:MANIFEST:PASS",
+          "IPCWAIT:REVOKED_FULL_QUEUE:PASS",
+          "TPMCRB:RELEASED:PASS",
+          "TPMCRB:PASS",
+          "TPMNV:PASS:auth",
+          "IPCWAIT:NATIVE:PASS",
+          "IPCWAIT:CLEANUP:PASS",
+          "IPCWAIT:PASS",
+          "M1:PASS"
+        ],
+        "forbidden_markers": [
+          "TPMCRB:FAIL:",
+          "IPCWAIT:FAIL:",
+          "PANIC",
+          "M3:FAIL:"
+        ],
+        "passed": true,
+        "command": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/qemu-system-x86_64",
+          "-machine",
+          "pc-q35-8.2",
+          "-accel",
+          "tcg,thread=single",
+          "-cpu",
+          "qemu64",
+          "-smp",
+          "1",
+          "-m",
+          "256M",
+          "-nodefaults",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-nic",
+          "none",
+          "-no-reboot",
+          "-drive",
+          "if=pflash,unit=0,format=raw,readonly=on,file=build/run/tpm-nv-auth-54c31664fa/OVMF_CODE.fd",
+          "-drive",
+          "if=pflash,unit=1,format=raw,file=build/run/tpm-nv-auth-54c31664fa/OVMF_VARS.fd",
+          "-drive",
+          "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/tpm-nv-auth-54c31664fa/esp",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-chardev",
+          "socket,id=tpmsock,path=build/tpm/f1be819c8c/ctrl.sock",
+          "-tpmdev",
+          "emulator,id=tpm0,chardev=tpmsock",
+          "-device",
+          "tpm-crb,tpmdev=tpm0",
+          "-L",
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/share"
+        ],
+        "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+        "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+        "base_commit": "9ae314deedd1b0aa75a8c84d0d0af299cad50ae2",
+        "source_fingerprint_version": 3,
+        "source_sha256": "36944a001df3a8476e1b36fb36c2b347be826702a5c855b6b295af25ece32761",
+        "artifact_sha256": {
+          "esp/kernel.elf": "2a518d4cf0945bd4850450c5da4b0adc62f93eef2207011ca884c147d506c380",
+          "esp/EFI/BOOT/BOOTX64.EFI": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d",
+          "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+          "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        "firmware_source": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_VARS_4M.fd"
+        ],
+        "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/tpm-nv-auth-54c31664fa",
+        "stdout": "\u001b[2J\u001b[001;001H\u001b[=3h\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;056;240t\u001b[2J\u001b[001;001HBdsDxe: loading Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nTPMCRB:BOUNDS:PASS\nTPMCRB:MAPPING:PASS\nIPCWAIT:MANIFEST:PASS\nTPMCRB:FAMILY:00000000000841887744\nTPMNV:PUBLIC:PASS\nTPMNV:BEFORE:00000000000000000002\nTPMNV:EXPECTED_RC:00000000000000002446\nTPMNV:AFTER:00000000000000000002\nIPCWAIT:REVOKED_FULL_QUEUE:PASS\nTPMCRB:WRITES:00000000000000043870\nTPMCRB:BOUNDS_REJECTED:00000000000000000007\nTPMCRB:QUARANTINED:00000000000000000000\nTPMCRB:RELEASED:PASS\nTPMCRB:PASS\nTPMNV:PASS:auth\nIPCWAIT:ASSERTIONS:00000000000000000111\nIPCWAIT:TICKS:00000000000000000162\nIPCWAIT:PHASE_MASK:00000000000000000063\nIPCWAIT:ASSERTIONS:00000000000000000083\nIPCWAIT:TICKS:00000000000000000202\nIPCWAIT:PHASE_MASK:00000000000000000060\nIPCWAIT:BLOCKED:00000000000000000014\nIPCWAIT:WAKE_READY:00000000000000000007\nIPCWAIT:WAKE_TIMEOUT:00000000000000000006\nIPCWAIT:WAKE_ERROR:00000000000000000001\nIPCWAIT:IDLE_IRQS:00000000000000000199\nIPCWAIT:NATIVE:PASS\nIPCWAIT:CLEANUP:PASS\nIPCWAIT:PASS\nM1:PASS\n",
+        "stderr": "",
+        "expected_artifact_sha256": {
+          "esp/kernel.elf": "2a518d4cf0945bd4850450c5da4b0adc62f93eef2207011ca884c147d506c380",
+          "esp/EFI/BOOT/BOOTX64.EFI": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d"
+        },
+        "artifact_binding_passed": true
+      },
+      "observed": {
+        "BLOCKED": 14,
+        "WAKE_READY": 7,
+        "WAKE_TIMEOUT": 6,
+        "WAKE_ERROR": 1,
+        "IDLE_IRQS": 199,
+        "WRITES": 43870,
+        "BOUNDS_REJECTED": 7,
+        "QUARANTINED": 0,
+        "FAMILY": 841887744,
+        "BEFORE": 2,
+        "AFTER": 2,
+        "EXPECTED_RC": 2446
+      },
+      "state_files_after_stop": {
+        ".lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tpm2-00.permall": "01c41d17b56dc302000182f74b503bd10384c87eb68f77307fa0049579d5fa65"
+      }
+    },
+    {
+      "case": "missing",
+      "manifest": {
+        "schema_version": 1,
+        "profile": "test-tpm-nv-missing",
+        "kernel_feature": "test-tpm-nv-missing",
+        "loader_feature": null,
+        "source_fingerprint_version": 3,
+        "source_sha256": "36944a001df3a8476e1b36fb36c2b347be826702a5c855b6b295af25ece32761",
+        "loader": {
+          "sha256": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d",
+          "format": "AMD64 PE32+",
+          "subsystem": "EFI_APPLICATION",
+          "imports": 0
+        },
+        "kernel": {
+          "sha256": "9f8c242ef52b67156bff36221615538cd2c1fa16079ca2949ccf281a795b689e",
+          "entry": 33554432,
+          "segments": [
+            {
+              "flags": 5,
+              "offset": 4096,
+              "address": 33554432,
+              "filesz": 120151,
+              "memsz": 120151,
+              "page_start": 33554432,
+              "page_end": 33677312
+            },
+            {
+              "flags": 4,
+              "offset": 126976,
+              "address": 33677312,
+              "filesz": 59256,
+              "memsz": 59256,
+              "page_start": 33677312,
+              "page_end": 33738752
+            },
+            {
+              "flags": 6,
+              "offset": 188416,
+              "address": 33738752,
+              "filesz": 1253992,
+              "memsz": 4345688,
+              "page_start": 33738752,
+              "page_end": 38084608
+            }
+          ],
+          "sections": [
+            {
+              "name": "",
+              "type": 0,
+              "flags": 0,
+              "size": 0
+            },
+            {
+              "name": ".text",
+              "type": 1,
+              "flags": 6,
+              "size": 120151
+            },
+            {
+              "name": ".rodata",
+              "type": 1,
+              "flags": 50,
+              "size": 59256
+            },
+            {
+              "name": ".data",
+              "type": 1,
+              "flags": 3,
+              "size": 1253992
+            },
+            {
+              "name": ".bss",
+              "type": 8,
+              "flags": 3,
+              "size": 3088216
+            },
+            {
+              "name": ".symtab",
+              "type": 2,
+              "flags": 0,
+              "size": 7152
+            },
+            {
+              "name": ".shstrtab",
+              "type": 3,
+              "flags": 0,
+              "size": 52
+            },
+            {
+              "name": ".strtab",
+              "type": 3,
+              "flags": 0,
+              "size": 15795
+            }
+          ]
+        },
+        "sdk_runtime": false,
+        "document_session": false,
+        "ipc_wait": {
+          "app_sha256": "ea4188ce4757ffd71c06dbff422dc31734bd0ca6ec5b9ab03d408433cb20e3e8",
+          "app_elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 19,
+                "memsz": 19,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 453,
+                "memsz": 453,
+                "page_start": 1073872896,
+                "page_end": 1073876992
+              },
+              {
+                "flags": 6,
+                "address": 1074200576,
+                "offset": 16384,
+                "filesz": 72,
+                "memsz": 72,
+                "page_start": 1074200576,
+                "page_end": 1074204672
+              },
+              {
+                "flags": 5,
+                "address": 1074462720,
+                "offset": 20480,
+                "filesz": 13991,
+                "memsz": 13991,
+                "page_start": 1074462720,
+                "page_end": 1074479104
+              }
+            ]
+          }
+        }
+      },
+      "backend": {
+        "command": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/swtpm-native/usr/bin/swtpm",
+          "socket",
+          "--tpm2",
+          "--tpmstate",
+          "dir=build/tpm/4e6700e9e0/state",
+          "--ctrl",
+          "type=unixio,path=build/tpm/b689c8dee8/ctrl.sock,mode=0600",
+          "--flags",
+          "startup-clear"
+        ],
+        "binary_sha256": "1ff9ce32a8c6a60846629fdd6fd0f51eb18a076918dac9574d252afa7a1d1844",
+        "version": "TPM emulator version 0.10.1, Copyright (c) 2014-2022 IBM Corp. and others",
+        "directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/tpm/b689c8dee8",
+        "state_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/tpm/4e6700e9e0/state",
+        "log": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/tpm/b689c8dee8/backend.log",
+        "exit_status": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "guest": {
+        "label": "tpm-nv-missing",
+        "started_utc": "2026-10-30T17:18:00.632099+00:00",
+        "duration_s": 4.8862348399998154,
+        "timeout_s": 60,
+        "timed_out": false,
+        "raw_qemu_exit": 33,
+        "expected_exit": 33,
+        "required_markers": [
+          "M2:PASS",
+          "TPMCRB:BOUNDS:PASS",
+          "TPMCRB:MAPPING:PASS",
+          "IPCWAIT:MANIFEST:PASS",
+          "IPCWAIT:REVOKED_FULL_QUEUE:PASS",
+          "TPMCRB:RELEASED:PASS",
+          "TPMCRB:PASS",
+          "TPMNV:PASS:missing",
+          "IPCWAIT:NATIVE:PASS",
+          "IPCWAIT:CLEANUP:PASS",
+          "IPCWAIT:PASS",
+          "M1:PASS"
+        ],
+        "forbidden_markers": [
+          "TPMCRB:FAIL:",
+          "IPCWAIT:FAIL:",
+          "PANIC",
+          "M3:FAIL:"
+        ],
+        "passed": true,
+        "command": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/qemu-system-x86_64",
+          "-machine",
+          "pc-q35-8.2",
+          "-accel",
+          "tcg,thread=single",
+          "-cpu",
+          "qemu64",
+          "-smp",
+          "1",
+          "-m",
+          "256M",
+          "-nodefaults",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-nic",
+          "none",
+          "-no-reboot",
+          "-drive",
+          "if=pflash,unit=0,format=raw,readonly=on,file=build/run/tpm-nv-missing-4e3d897c26/OVMF_CODE.fd",
+          "-drive",
+          "if=pflash,unit=1,format=raw,file=build/run/tpm-nv-missing-4e3d897c26/OVMF_VARS.fd",
+          "-drive",
+          "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/tpm-nv-missing-4e3d897c26/esp",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-chardev",
+          "socket,id=tpmsock,path=build/tpm/b689c8dee8/ctrl.sock",
+          "-tpmdev",
+          "emulator,id=tpm0,chardev=tpmsock",
+          "-device",
+          "tpm-crb,tpmdev=tpm0",
+          "-L",
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/share"
+        ],
+        "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+        "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+        "base_commit": "9ae314deedd1b0aa75a8c84d0d0af299cad50ae2",
+        "source_fingerprint_version": 3,
+        "source_sha256": "36944a001df3a8476e1b36fb36c2b347be826702a5c855b6b295af25ece32761",
+        "artifact_sha256": {
+          "esp/kernel.elf": "9f8c242ef52b67156bff36221615538cd2c1fa16079ca2949ccf281a795b689e",
+          "esp/EFI/BOOT/BOOTX64.EFI": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d",
+          "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+          "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        "firmware_source": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_VARS_4M.fd"
+        ],
+        "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/tpm-nv-missing-4e3d897c26",
+        "stdout": "\u001b[2J\u001b[001;001H\u001b[=3h\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;056;240t\u001b[2J\u001b[001;001HBdsDxe: loading Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nTPMCRB:BOUNDS:PASS\nTPMCRB:MAPPING:PASS\nIPCWAIT:MANIFEST:PASS\nTPMCRB:FAMILY:00000000000841887744\nTPMNV:PUBLIC:PASS\nTPMNV:BEFORE:00000000000000000002\nTPMNV:EXPECTED_RC:00000000000000000395\nTPMNV:AFTER:00000000000000000002\nIPCWAIT:REVOKED_FULL_QUEUE:PASS\nTPMCRB:WRITES:00000000000000043829\nTPMCRB:BOUNDS_REJECTED:00000000000000000007\nTPMCRB:QUARANTINED:00000000000000000000\nTPMCRB:RELEASED:PASS\nTPMCRB:PASS\nTPMNV:PASS:missing\nIPCWAIT:ASSERTIONS:00000000000000000111\nIPCWAIT:TICKS:00000000000000000162\nIPCWAIT:PHASE_MASK:00000000000000000063\nIPCWAIT:ASSERTIONS:00000000000000000083\nIPCWAIT:TICKS:00000000000000000202\nIPCWAIT:PHASE_MASK:00000000000000000060\nIPCWAIT:BLOCKED:00000000000000000014\nIPCWAIT:WAKE_READY:00000000000000000007\nIPCWAIT:WAKE_TIMEOUT:00000000000000000006\nIPCWAIT:WAKE_ERROR:00000000000000000001\nIPCWAIT:IDLE_IRQS:00000000000000000199\nIPCWAIT:NATIVE:PASS\nIPCWAIT:CLEANUP:PASS\nIPCWAIT:PASS\nM1:PASS\n",
+        "stderr": "",
+        "expected_artifact_sha256": {
+          "esp/kernel.elf": "9f8c242ef52b67156bff36221615538cd2c1fa16079ca2949ccf281a795b689e",
+          "esp/EFI/BOOT/BOOTX64.EFI": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d"
+        },
+        "artifact_binding_passed": true
+      },
+      "observed": {
+        "BLOCKED": 14,
+        "WAKE_READY": 7,
+        "WAKE_TIMEOUT": 6,
+        "WAKE_ERROR": 1,
+        "IDLE_IRQS": 199,
+        "WRITES": 43829,
+        "BOUNDS_REJECTED": 7,
+        "QUARANTINED": 0,
+        "FAMILY": 841887744,
+        "BEFORE": 2,
+        "AFTER": 2,
+        "EXPECTED_RC": 395
+      },
+      "state_files_after_stop": {
+        ".lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tpm2-00.permall": "56b1cd3ad17b928a4fca41d2b8195d654cf91b7332ed999242b61887b0f779e0"
+      }
+    }
+  ],
+  "scope": "public disposable NV fixture; no key lineage or B02 acceptance",
+  "test_inputs": {
+    "tools/tests/test_tpm_nv.py": "af7e991eeb74b5d819ba62eff7526a9433ba18b2235766486736aca65adb5038"
+  }
+}

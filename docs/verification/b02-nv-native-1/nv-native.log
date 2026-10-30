@@ -1,0 +1,192 @@
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/examples/ipc-wait-probe/Cargo.toml", "--features", "native", "--bin", "ipc-wait-probe", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/ipc-wait-app"}
+{"passed": true, "native_runtime_performed": false, "extra_env": {"NOS_IPC_WAIT_PROBE_ELF": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/ipc-wait-app/x86_64-unknown-none/release/ipc-wait-probe"}, "ipc_wait_probe": {"sha256": "ea4188ce4757ffd71c06dbff422dc31734bd0ca6ec5b9ab03d408433cb20e3e8", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 19, "memsz": 19, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1024, "memsz": 1024, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073872896, "offset": 12288, "filesz": 453, "memsz": 453, "page_start": 1073872896, "page_end": 1073876992}, {"flags": 6, "address": 1074200576, "offset": 16384, "filesz": 72, "memsz": 72, "page_start": 1074200576, "page_end": 1074204672}, {"flags": 5, "address": 1074462720, "offset": 20480, "filesz": 13991, "memsz": 13991, "page_start": 1074462720, "page_end": 1074479104}]}}}
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/runtime)
+   Compiling nieuw-os-ipc-wait-probe v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/examples/ipc-wait-probe)
+    Finished `release` profile [optimized] target(s) in 0.30s
+   Compiling r-efi v7.1.0
+   Compiling os-loader v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/boot/loader)
+    Finished `release` profile [optimized] target(s) in 0.58s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/kernel)
+   Compiling capability-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/crates/capability-core)
+   Compiling nieuw-os-tpm-crb v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/drivers/tpm-crb)
+    Finished `release` profile [optimized] target(s) in 1.26s
+Built and inspected test-tpm-nv-provision: 3 ELF load segments
+[2J[001;001H[=3h[2J[001;001H[2J[001;001H[8;056;240t[2J[001;001HBdsDxe: loading Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+TPMCRB:BOUNDS:PASS
+TPMCRB:MAPPING:PASS
+IPCWAIT:MANIFEST:PASS
+TPMCRB:FAMILY:00000000000841887744
+TPMNV:PUBLIC:PASS
+TPMNV:BEFORE:00000000000000000001
+TPMNV:AFTER:00000000000000000002
+IPCWAIT:REVOKED_FULL_QUEUE:PASS
+TPMCRB:WRITES:00000000000000059874
+TPMCRB:BOUNDS_REJECTED:00000000000000000007
+TPMCRB:QUARANTINED:00000000000000000000
+TPMCRB:RELEASED:PASS
+TPMCRB:PASS
+TPMNV:PASS:provision
+IPCWAIT:ASSERTIONS:00000000000000000111
+IPCWAIT:TICKS:00000000000000000162
+IPCWAIT:PHASE_MASK:00000000000000000063
+IPCWAIT:ASSERTIONS:00000000000000000083
+IPCWAIT:TICKS:00000000000000000202
+IPCWAIT:PHASE_MASK:00000000000000000060
+IPCWAIT:BLOCKED:00000000000000000014
+IPCWAIT:WAKE_READY:00000000000000000007
+IPCWAIT:WAKE_TIMEOUT:00000000000000000006
+IPCWAIT:WAKE_ERROR:00000000000000000001
+IPCWAIT:IDLE_IRQS:00000000000000000199
+IPCWAIT:NATIVE:PASS
+IPCWAIT:CLEANUP:PASS
+IPCWAIT:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/tpm-nv-provision-5d5c959de2
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/examples/ipc-wait-probe/Cargo.toml", "--features", "native", "--bin", "ipc-wait-probe", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/ipc-wait-app"}
+{"passed": true, "native_runtime_performed": false, "extra_env": {"NOS_IPC_WAIT_PROBE_ELF": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/ipc-wait-app/x86_64-unknown-none/release/ipc-wait-probe"}, "ipc_wait_probe": {"sha256": "ea4188ce4757ffd71c06dbff422dc31734bd0ca6ec5b9ab03d408433cb20e3e8", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 19, "memsz": 19, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1024, "memsz": 1024, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073872896, "offset": 12288, "filesz": 453, "memsz": 453, "page_start": 1073872896, "page_end": 1073876992}, {"flags": 6, "address": 1074200576, "offset": 16384, "filesz": 72, "memsz": 72, "page_start": 1074200576, "page_end": 1074204672}, {"flags": 5, "address": 1074462720, "offset": 20480, "filesz": 13991, "memsz": 13991, "page_start": 1074462720, "page_end": 1074479104}]}}}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/kernel)
+    Finished `release` profile [optimized] target(s) in 0.99s
+Built and inspected test-tpm-nv-read: 3 ELF load segments
+[2J[001;001H[=3h[2J[001;001H[2J[001;001H[8;056;240t[2J[001;001HBdsDxe: loading Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+TPMCRB:BOUNDS:PASS
+TPMCRB:MAPPING:PASS
+IPCWAIT:MANIFEST:PASS
+TPMCRB:FAMILY:00000000000841887744
+TPMNV:PUBLIC:PASS
+TPMNV:BEFORE:00000000000000000002
+IPCWAIT:REVOKED_FULL_QUEUE:PASS
+TPMCRB:WRITES:00000000000000027880
+TPMCRB:BOUNDS_REJECTED:00000000000000000007
+TPMCRB:QUARANTINED:00000000000000000000
+TPMCRB:RELEASED:PASS
+TPMCRB:PASS
+TPMNV:PASS:read
+IPCWAIT:ASSERTIONS:00000000000000000111
+IPCWAIT:TICKS:00000000000000000161
+IPCWAIT:PHASE_MASK:00000000000000000063
+IPCWAIT:ASSERTIONS:00000000000000000083
+IPCWAIT:TICKS:00000000000000000201
+IPCWAIT:PHASE_MASK:00000000000000000060
+IPCWAIT:BLOCKED:00000000000000000014
+IPCWAIT:WAKE_READY:00000000000000000007
+IPCWAIT:WAKE_TIMEOUT:00000000000000000006
+IPCWAIT:WAKE_ERROR:00000000000000000001
+IPCWAIT:IDLE_IRQS:00000000000000000198
+IPCWAIT:NATIVE:PASS
+IPCWAIT:CLEANUP:PASS
+IPCWAIT:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/tpm-nv-read-d9086bad16
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/examples/ipc-wait-probe/Cargo.toml", "--features", "native", "--bin", "ipc-wait-probe", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/ipc-wait-app"}
+{"passed": true, "native_runtime_performed": false, "extra_env": {"NOS_IPC_WAIT_PROBE_ELF": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/ipc-wait-app/x86_64-unknown-none/release/ipc-wait-probe"}, "ipc_wait_probe": {"sha256": "ea4188ce4757ffd71c06dbff422dc31734bd0ca6ec5b9ab03d408433cb20e3e8", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 19, "memsz": 19, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1024, "memsz": 1024, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073872896, "offset": 12288, "filesz": 453, "memsz": 453, "page_start": 1073872896, "page_end": 1073876992}, {"flags": 6, "address": 1074200576, "offset": 16384, "filesz": 72, "memsz": 72, "page_start": 1074200576, "page_end": 1074204672}, {"flags": 5, "address": 1074462720, "offset": 20480, "filesz": 13991, "memsz": 13991, "page_start": 1074462720, "page_end": 1074479104}]}}}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/kernel)
+    Finished `release` profile [optimized] target(s) in 0.97s
+Built and inspected test-tpm-nv-auth: 3 ELF load segments
+[2J[001;001H[=3h[2J[001;001H[2J[001;001H[8;056;240t[2J[001;001HBdsDxe: loading Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+TPMCRB:BOUNDS:PASS
+TPMCRB:MAPPING:PASS
+IPCWAIT:MANIFEST:PASS
+TPMCRB:FAMILY:00000000000841887744
+TPMNV:PUBLIC:PASS
+TPMNV:BEFORE:00000000000000000002
+TPMNV:EXPECTED_RC:00000000000000002446
+TPMNV:AFTER:00000000000000000002
+IPCWAIT:REVOKED_FULL_QUEUE:PASS
+TPMCRB:WRITES:00000000000000043870
+TPMCRB:BOUNDS_REJECTED:00000000000000000007
+TPMCRB:QUARANTINED:00000000000000000000
+TPMCRB:RELEASED:PASS
+TPMCRB:PASS
+TPMNV:PASS:auth
+IPCWAIT:ASSERTIONS:00000000000000000111
+IPCWAIT:TICKS:00000000000000000162
+IPCWAIT:PHASE_MASK:00000000000000000063
+IPCWAIT:ASSERTIONS:00000000000000000083
+IPCWAIT:TICKS:00000000000000000202
+IPCWAIT:PHASE_MASK:00000000000000000060
+IPCWAIT:BLOCKED:00000000000000000014
+IPCWAIT:WAKE_READY:00000000000000000007
+IPCWAIT:WAKE_TIMEOUT:00000000000000000006
+IPCWAIT:WAKE_ERROR:00000000000000000001
+IPCWAIT:IDLE_IRQS:00000000000000000199
+IPCWAIT:NATIVE:PASS
+IPCWAIT:CLEANUP:PASS
+IPCWAIT:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/tpm-nv-auth-54c31664fa
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/examples/ipc-wait-probe/Cargo.toml", "--features", "native", "--bin", "ipc-wait-probe", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/ipc-wait-app"}
+{"passed": true, "native_runtime_performed": false, "extra_env": {"NOS_IPC_WAIT_PROBE_ELF": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/ipc-wait-app/x86_64-unknown-none/release/ipc-wait-probe"}, "ipc_wait_probe": {"sha256": "ea4188ce4757ffd71c06dbff422dc31734bd0ca6ec5b9ab03d408433cb20e3e8", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 19, "memsz": 19, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1024, "memsz": 1024, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073872896, "offset": 12288, "filesz": 453, "memsz": 453, "page_start": 1073872896, "page_end": 1073876992}, {"flags": 6, "address": 1074200576, "offset": 16384, "filesz": 72, "memsz": 72, "page_start": 1074200576, "page_end": 1074204672}, {"flags": 5, "address": 1074462720, "offset": 20480, "filesz": 13991, "memsz": 13991, "page_start": 1074462720, "page_end": 1074479104}]}}}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/kernel)
+    Finished `release` profile [optimized] target(s) in 0.94s
+Built and inspected test-tpm-nv-missing: 3 ELF load segments
+[2J[001;001H[=3h[2J[001;001H[2J[001;001H[8;056;240t[2J[001;001HBdsDxe: loading Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+TPMCRB:BOUNDS:PASS
+TPMCRB:MAPPING:PASS
+IPCWAIT:MANIFEST:PASS
+TPMCRB:FAMILY:00000000000841887744
+TPMNV:PUBLIC:PASS
+TPMNV:BEFORE:00000000000000000002
+TPMNV:EXPECTED_RC:00000000000000000395
+TPMNV:AFTER:00000000000000000002
+IPCWAIT:REVOKED_FULL_QUEUE:PASS
+TPMCRB:WRITES:00000000000000043829
+TPMCRB:BOUNDS_REJECTED:00000000000000000007
+TPMCRB:QUARANTINED:00000000000000000000
+TPMCRB:RELEASED:PASS
+TPMCRB:PASS
+TPMNV:PASS:missing
+IPCWAIT:ASSERTIONS:00000000000000000111
+IPCWAIT:TICKS:00000000000000000162
+IPCWAIT:PHASE_MASK:00000000000000000063
+IPCWAIT:ASSERTIONS:00000000000000000083
+IPCWAIT:TICKS:00000000000000000202
+IPCWAIT:PHASE_MASK:00000000000000000060
+IPCWAIT:BLOCKED:00000000000000000014
+IPCWAIT:WAKE_READY:00000000000000000007
+IPCWAIT:WAKE_TIMEOUT:00000000000000000006
+IPCWAIT:WAKE_ERROR:00000000000000000001
+IPCWAIT:IDLE_IRQS:00000000000000000199
+IPCWAIT:NATIVE:PASS
+IPCWAIT:CLEANUP:PASS
+IPCWAIT:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/tpm-nv-missing-4e3d897c26
+{"passed": true, "stages": 4, "report": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/tpm-nv-gate.json", "source_sha256": "36944a001df3a8476e1b36fb36c2b347be826702a5c855b6b295af25ece32761"}

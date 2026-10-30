@@ -1,7 +1,8 @@
 # B02-NV-NATIVE-1 — onafhankelijke NV-counterbouwsteen
 
 30 oktober 2026, basis `c532ba88fbf0f53b960e9dbf77421cee29d97096`,
-branch `codex/b02-nv-native-20261030`. **Implementatieproef, acceptatie open.**
+branch `codex/b02-nv-native-20261030`. **Afgebakende native proef geslaagd op
+`9ae314d`; volledige B02-acceptatie open.**
 Geen B02-punten of productieankerclaim. Centrale voortgang is eigendom van
 de teamleider; dit contract is geen tweede roadmap.
 
@@ -53,3 +54,9 @@ De bestaande TPM2-CRB-broncontrole/grenzen blijven gelden; geen nieuwe
 cryptografie of TCG-complianceclaim. Terugrol van zowel disk als swtpm-state
 schendt de onafhankelijke-anker-aanname. Ook een geslaagde koude counterproef
 bewijst daarom niet de volledige B02-rollbackbescherming.
+
+Uitvoering en bronbinding:
+[B02-NV-NATIVE-1](../verification/B02-NV-NATIVE-1.md). De vier NV-guests en
+bestaande normal/absentproeven zijn werkelijk uitgevoerd; hostmodellen zijn
+daarvan gescheiden. Voorstel aan centrale assessment-eigenaar: 34→34,
+beveiliging4/12→4/12, geen criterium gesloten.

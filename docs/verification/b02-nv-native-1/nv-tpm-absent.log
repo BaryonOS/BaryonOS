@@ -1,0 +1,41 @@
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/examples/ipc-wait-probe/Cargo.toml", "--features", "native", "--bin", "ipc-wait-probe", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/ipc-wait-app"}
+{"passed": true, "native_runtime_performed": false, "extra_env": {"NOS_IPC_WAIT_PROBE_ELF": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/ipc-wait-app/x86_64-unknown-none/release/ipc-wait-probe"}, "ipc_wait_probe": {"sha256": "ea4188ce4757ffd71c06dbff422dc31734bd0ca6ec5b9ab03d408433cb20e3e8", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 19, "memsz": 19, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1024, "memsz": 1024, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073872896, "offset": 12288, "filesz": 453, "memsz": 453, "page_start": 1073872896, "page_end": 1073876992}, {"flags": 6, "address": 1074200576, "offset": 16384, "filesz": 72, "memsz": 72, "page_start": 1074200576, "page_end": 1074204672}, {"flags": 5, "address": 1074462720, "offset": 20480, "filesz": 13991, "memsz": 13991, "page_start": 1074462720, "page_end": 1074479104}]}}}
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/kernel)
+    Finished `release` profile [optimized] target(s) in 0.98s
+Built and inspected test-tpm-crb-absent: 3 ELF load segments
+[2J[001;001H[=3h[2J[001;001H[2J[001;001H[8;056;240t[2J[001;001HBdsDxe: loading Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BdsDxe: starting Boot0002 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x1,0x0)
+BOOT:EBS_OK
+KERNEL:ENTRY
+BOOTINFO:OK
+KS-01:PASS
+KS-02:PASS
+KS-03:PASS
+M2:PASS
+TPMCRB:BOUNDS:PASS
+TPMCRB:MAPPING:PASS
+IPCWAIT:MANIFEST:PASS
+IPCWAIT:REVOKED_FULL_QUEUE:PASS
+TPMCRB:WRITES:00000000000000000000
+TPMCRB:BOUNDS_REJECTED:00000000000000000007
+TPMCRB:QUARANTINED:00000000000000000001
+TPMCRB:ABSENT:PASS
+IPCWAIT:ASSERTIONS:00000000000000000111
+IPCWAIT:TICKS:00000000000000000161
+IPCWAIT:PHASE_MASK:00000000000000000063
+IPCWAIT:ASSERTIONS:00000000000000000083
+IPCWAIT:TICKS:00000000000000000201
+IPCWAIT:PHASE_MASK:00000000000000000060
+IPCWAIT:BLOCKED:00000000000000000014
+IPCWAIT:WAKE_READY:00000000000000000007
+IPCWAIT:WAKE_TIMEOUT:00000000000000000006
+IPCWAIT:WAKE_ERROR:00000000000000000001
+IPCWAIT:IDLE_IRQS:00000000000000000199
+IPCWAIT:NATIVE:PASS
+IPCWAIT:CLEANUP:PASS
+IPCWAIT:PASS
+M1:PASS
+QEMU raw=33; expected=33; timeout=False; expectation_pass=True; /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/tpm-absent-37d6705f1e
+{"case": "absent", "guest": {"artifact_binding_passed": true, "artifact_sha256": {"OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7", "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e", "esp/EFI/BOOT/BOOTX64.EFI": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d", "esp/kernel.elf": "6f7a60f86b32e9bc241f70a4a34e38522e60d1d2ef7cc1f867c38f2930421cb1"}, "base_commit": "9ae314deedd1b0aa75a8c84d0d0af299cad50ae2", "command": ["/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/qemu-system-x86_64", "-machine", "pc-q35-8.2", "-accel", "tcg,thread=single", "-cpu", "qemu64", "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none", "-serial", "stdio", "-nic", "none", "-no-reboot", "-drive", "if=pflash,unit=0,format=raw,readonly=on,file=build/run/tpm-absent-37d6705f1e/OVMF_CODE.fd", "-drive", "if=pflash,unit=1,format=raw,file=build/run/tpm-absent-37d6705f1e/OVMF_VARS.fd", "-drive", "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/tpm-absent-37d6705f1e/esp", "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04", "-L", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/share"], "duration_s": 4.093766942000002, "expected_artifact_sha256": {"esp/EFI/BOOT/BOOTX64.EFI": "62f7f51183c841f4e7e4b5f83e36a5aba7091e97d1ec62b5ada5ec2ad86e740d", "esp/kernel.elf": "6f7a60f86b32e9bc241f70a4a34e38522e60d1d2ef7cc1f867c38f2930421cb1"}, "expected_exit": 33, "firmware_source": ["/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_CODE_4M.fd", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/OVMF/OVMF_VARS_4M.fd"], "forbidden_markers": ["TPMCRB:FAIL:", "IPCWAIT:FAIL:", "PANIC", "M3:FAIL:"], "label": "tpm-absent", "passed": true, "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB", "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers", "raw_qemu_exit": 33, "required_markers": ["M2:PASS", "TPMCRB:BOUNDS:PASS", "TPMCRB:MAPPING:PASS", "IPCWAIT:MANIFEST:PASS", "IPCWAIT:REVOKED_FULL_QUEUE:PASS", "TPMCRB:ABSENT:PASS", "IPCWAIT:NATIVE:PASS", "IPCWAIT:CLEANUP:PASS", "IPCWAIT:PASS", "M1:PASS"], "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/tpm-absent-37d6705f1e", "source_fingerprint_version": 3, "source_sha256": "36944a001df3a8476e1b36fb36c2b347be826702a5c855b6b295af25ece32761", "started_utc": "2026-10-30T17:18:36.351459+00:00", "stderr": "", "stdout": "\u001b[2J\u001b[001;001H\u001b[=3h\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;056;240t\u001b[2J\u001b[001;001HBdsDxe: loading Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nTPMCRB:BOUNDS:PASS\nTPMCRB:MAPPING:PASS\nIPCWAIT:MANIFEST:PASS\nIPCWAIT:REVOKED_FULL_QUEUE:PASS\nTPMCRB:WRITES:00000000000000000000\nTPMCRB:BOUNDS_REJECTED:00000000000000000007\nTPMCRB:QUARANTINED:00000000000000000001\nTPMCRB:ABSENT:PASS\nIPCWAIT:ASSERTIONS:00000000000000000111\nIPCWAIT:TICKS:00000000000000000161\nIPCWAIT:PHASE_MASK:00000000000000000063\nIPCWAIT:ASSERTIONS:00000000000000000083\nIPCWAIT:TICKS:00000000000000000201\nIPCWAIT:PHASE_MASK:00000000000000000060\nIPCWAIT:BLOCKED:00000000000000000014\nIPCWAIT:WAKE_READY:00000000000000000007\nIPCWAIT:WAKE_TIMEOUT:00000000000000000006\nIPCWAIT:WAKE_ERROR:00000000000000000001\nIPCWAIT:IDLE_IRQS:00000000000000000199\nIPCWAIT:NATIVE:PASS\nIPCWAIT:CLEANUP:PASS\nIPCWAIT:PASS\nM1:PASS\n", "timed_out": false, "timeout_s": 60}, "observed": {"BLOCKED": 14, "BOUNDS_REJECTED": 7, "IDLE_IRQS": 199, "QUARANTINED": 1, "WAKE_ERROR": 1, "WAKE_READY": 7, "WAKE_TIMEOUT": 6, "WRITES": 0}, "passed": true, "schema_version": 1, "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; no product keys or antirollback", "source_fingerprint_version": 3, "source_sha256": "36944a001df3a8476e1b36fb36c2b347be826702a5c855b6b295af25ece32761"}
