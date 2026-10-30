@@ -75,7 +75,30 @@ van de afzonderlijke Release-run. De client zelf is alleen een library.
 `source.sha256` is het expliciete scoped client/core/workflow-bronmanifest;
 `source-fingerprint.sha256` hasht dat manifest, geen globaal imagefingerprint.
 `evidence.sha256` bindt dit verslag, de PR-conceptbody, het bronmanifest,
-de fingerprint, de ongewijzigde commandolog en het ELF-bouwrapport.
+de fingerprint, de ongewijzigde commandologs en het ELF-bouwrapport.
+
+## Vervolg: maximale queue op 64 KiB hoststack
+
+Boven checkpoint `87a04d48b6443a33fa62fb20dfcda1679f29b1a8` is uitsluitend
+een geoptimaliseerde test toegevoegd aan `tests/resume.rs`. De runtime,
+manifests, workflow en alle drie eerdere crates zijn bytegelijk aan733da70;
+de expliciete git-diffcontrole staat in `stack-gates.log`.
+
+Nieuwe bron is gebonden door het actuele `source.sha256` en de daarvan
+afgeleide fingerprint. De oorspronkelijke 33-commandolog blijft historisch
+ongewijzigd. `stack-gates.log` voegt **8 commando's, alle exit 0** toe:
+clienttests debug **16**, release **17**, beide Clippyprofielen, fmt-check,
+unknown-none-librarybuild en twee diffchecks. Deze commando's draaien echt;
+de ongewijzigde librarybuild kan bestaande compilatieartefacts hergebruiken.
+
+De nieuwe release-only test gebruikt 64 KiB hoststack met caller-owned
+heaparena. Vier edits van ieder 1.024 bytes worden gelijktijdig staged
+(4.096 bytes reservering), door een typed RAMcheckpoint/core-recovery gehaald,
+read-only gereconcilieerd en daarna echt via de core gecommit. Resultaat:
+client 9.088 bytes, checkpoint 8.608 bytes; vier commits, used4.096/reserved0.
+Dit is geen native caller/grant-, piekstack-, diskcheckpoint- of E2EE-bewijs.
+De bestaande ELF-buildhashes gelden voor ongewijzigde bron, niet voor een
+nieuw uitgevoerde VM. Nieuwe GitHub-CI blijft nog open.
 
 ```sh
 sha256sum --check services/nas/native-client/verification/source.sha256

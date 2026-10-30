@@ -606,3 +606,54 @@ fn default_debug_never_prints_payloads_or_namespace_identifiers() {
     assert_eq!(text, "Edit { state: Ready, .. }");
     assert!(!text.contains("DO-NOT-LOG-ME"));
 }
+
+#[test]
+#[cfg(not(debug_assertions))]
+fn optimized_maximum_queue_and_recovery_fit_a_64_kib_host_stack() {
+    use nieuw_os_nas_client::Checkpoint;
+
+    let client_bytes = core::mem::size_of::<Client>();
+    let checkpoint_bytes = core::mem::size_of::<Checkpoint>();
+    assert!(client_bytes <= 12 * 1024);
+    assert!(checkpoint_bytes <= 12 * 1024);
+    println!("client={client_bytes} bytes; RAM checkpoint={checkpoint_bytes} bytes");
+    // As with the core's existing stack test, its arena is caller-owned heap.
+    let mut work = Box::new(Workspace::new());
+    std::thread::Builder::new()
+        .stack_size(64 * 1024)
+        .spawn(move || {
+            let (mut service, disk, ns) = fixture(&mut work, MAX_QUOTA);
+            let mut client = Client::new();
+            for object in 0..OBJECTS {
+                let slot = client
+                    .enqueue(ns, object, 0, &[object as u8; MAX_CIPHERTEXT])
+                    .unwrap();
+                client.prepare(slot, &mut service, OWNER).unwrap();
+            }
+            assert_eq!(service.usage(ADMIN, &ns).unwrap().reserved, MAX_QUOTA);
+            let checkpoint = client.checkpoint();
+            let writes = disk.0.borrow().writes;
+            let _old_storage = service.into_storage();
+            let mut recovered =
+                Service::recover(disk.clone(), &mut TestEntropy(100), &mut work).unwrap();
+            let mut restored = Client::restore(checkpoint);
+            for object in 0..OBJECTS {
+                assert_eq!(
+                    restored.reconcile(object, &mut recovered, OWNER, 0),
+                    Ok(State::Ready)
+                );
+                assert_eq!(
+                    restored.edit(object).unwrap().local_ciphertext().len(),
+                    MAX_CIPHERTEXT
+                );
+                assert_eq!(publish(&mut restored, &mut recovered, object), 1);
+            }
+            assert_eq!(disk.0.borrow().writes, writes + OBJECTS);
+            let usage = recovered.usage(ADMIN, &ns).unwrap();
+            assert_eq!(usage.used, MAX_QUOTA);
+            assert_eq!(usage.reserved, 0);
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+}
