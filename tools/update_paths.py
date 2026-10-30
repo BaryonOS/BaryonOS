@@ -24,5 +24,3 @@ def portable(value):
             return path.replace("\\", "/").rsplit("/", 1)[-1] or "<host-path>"
         return "<host-path>"
     return HOST_PATH.sub(replace, value)
-
-
