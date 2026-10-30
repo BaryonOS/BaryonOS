@@ -2851,24 +2851,38 @@ mod digest_differential {
             }
             same(&e);
             let iterations = 1000u32;
-            for reference in [true, false] {
-                let mut samples = Vec::new();
-                let mut digest = 0;
-                for _ in 0..7 {
+            let mut samples = [Vec::new(), Vec::new()];
+            let mut digests = [0; 2];
+            let mut execution_order = Vec::new();
+            for sample in 0..7 {
+                for position in 0..2 {
+                    let variant = (sample + position) % 2;
+                    execution_order.push(if variant == 0 {
+                        "reference"
+                    } else {
+                        "optimized"
+                    });
                     let start = Instant::now();
                     for _ in 0..iterations {
-                        digest = if reference {
+                        digests[variant] = if variant == 0 {
                             black_box(black_box(&e).state_digest_reference())
                         } else {
                             black_box(black_box(&e).state_digest())
                         };
                     }
-                    samples.push(start.elapsed().as_nanos() / u128::from(iterations));
+                    samples[variant].push(start.elapsed().as_nanos() / u128::from(iterations));
                 }
-                samples.sort();
+            }
+            std::println!("execution_order={execution_order:?}");
+            for variant in 0..2 {
+                let mut sorted = samples[variant].clone();
+                sorted.sort();
                 std::println!(
-                    "reference={reference} median_ns={} digest={digest:016x} samples={samples:?}",
-                    samples[3]
+                    "reference={} median_ns={} digest={:016x} samples={:?}",
+                    variant == 0,
+                    sorted[3],
+                    digests[variant],
+                    samples[variant]
                 );
             }
         });

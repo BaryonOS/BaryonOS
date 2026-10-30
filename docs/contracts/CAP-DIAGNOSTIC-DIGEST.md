@@ -59,8 +59,8 @@ De normale manifestdigest is0x31b7de1c7a15245b,
 decimaal3582576242485175387; het programma berekent de werkelijke waarde.
 
 De vaste drie varianten zijn REF, DIRECT en ZERO. Voor iedere variant:
-één prehashcontrole,4 warmupcalls,128 gemeten calls enéén posthashcontrole.
-Gemeten wordt8 rondes×16 calls; de volgorde roteert ABC/BCA/CAB enzovoort.
+één prehashcontrole,4 warmupcalls,144 gemeten calls enéén posthashcontrole.
+Gemeten wordt9 rondes×16 calls; de volgorde roteert ABC/BCA/CAB enzovoort.
 Iedere aanroep gebruikt `black_box` voor de functiepointer, Engine-ref en
 het resultaat. Iedere uitkomst telt mee in een verschilaccumulator en wordt
 na de batch met de verwachte hash vergeleken. Er staat geen Stats- of serial-
@@ -82,11 +82,12 @@ De exacte outputvolgorde is:
 2. Numerieke regels `CAPBENCH:{NAAM}:` met20 decimale cijfers:
    DIGEST,PROCESSES,HANDLES,NODES,ENDPOINTS,WARMUP,ROUNDS,BATCH.
 3. REF_COUNT,REF_TSC_SUM,REF_TSC_MIN,REF_TSC_MAX; dezelfde vier met DIRECT_
-   en daarna ZERO_. COUNT is128 gemeten aanroepen, SUM is de som van8
+   en daarna ZERO_. COUNT is144 gemeten aanroepen, SUM is de som van9
    batchintervallen, MIN/MAX zijn de uiterste **16-call-batchintervallen**.
-4. Acht triples met dezelfde vaste namen ROUND_REF_TSC,ROUND_DIRECT_TSC,
-   ROUND_ZERO_TSC, steeds in variantvolgorde en rondes0..7. De host kan som,
-   minimum en maximum hieruit onafhankelijk controleren.
+4. Per ronde drie ROUND_VARIANT-regels met de werkelijk uitgevoerde indices
+   (0=REF, 1=DIRECT, 2=ZERO), gevolgd door ROUND_REF_TSC, ROUND_DIRECT_TSC
+   en ROUND_ZERO_TSC in vaste variantvolgorde, voor rondes0..8. De host
+   controleert de rotatie, som, minimum en maximum en bewaart de volgorde.
 5. `CAPBENCH:PARITY:PASS`, `CAPBENCH:STATE:PASS`, `CAPBENCH:PASS`, `M1:PASS`;
    exit0x10 geeft rawQEMU33. Iedere afwijking geeft CAPBENCH:FAIL en exit0x11
    (raw35), inclusief hash-, staat-, manifest-, tijdprogressie- of somoverflow.

@@ -7,20 +7,24 @@ import run_cap_bench as gate
 
 
 def fixture():
-    values = dict(zip(gate.HEADER, (1, 4, 21, 29, 9, 4, 8, 16)))
-    rounds = {name: list(range(10 + index, 18 + index)) for index, name in enumerate(gate.VARIANTS)}
+    values = dict(zip(gate.HEADER, (1, 4, 21, 29, 9, 4, 9, 16)))
+    rounds = {name: list(range(10 + index, 19 + index)) for index, name in enumerate(gate.VARIANTS)}
     for name, numbers in rounds.items():
-        values.update({name + "_COUNT": 128, name + "_TSC_SUM": sum(numbers),
+        values.update({name + "_COUNT": 144, name + "_TSC_SUM": sum(numbers),
                        name + "_TSC_MIN": min(numbers), name + "_TSC_MAX": max(numbers)})
     lines = list(gate.BOOT) + [f"CAPBENCH:{name}:{values[name]:020d}" for name in gate.FIELDS]
-    lines += [f"CAPBENCH:ROUND_{name}_TSC:{rounds[name][index]:020d}" for index in range(8) for name in gate.VARIANTS]
+    for index in range(values["ROUNDS"]):
+        lines += [f"CAPBENCH:ROUND_VARIANT:{(index + position) % 3:020d}" for position in range(3)]
+        lines += [f"CAPBENCH:ROUND_{name}_TSC:{rounds[name][index]:020d}" for name in gate.VARIANTS]
     return "\n".join(lines + list(gate.END)) + "\n"
 
 
 class DiagnosticVerifier(unittest.TestCase):
     def test_complete_fixture_only_tests_the_parser(self):
         observed = gate.evaluate(fixture(), 33, False)
-        self.assertEqual(observed["values"]["DIRECT_COUNT"], 128)
+        self.assertEqual(observed["values"]["DIRECT_COUNT"], 144)
+        self.assertEqual(observed["execution_order"],
+                         [[gate.VARIANTS[(r + p) % 3] for p in range(3)] for r in range(9)])
 
     def test_exit_timeout_and_truncation_cannot_pass(self):
         for raw, timeout in [(35, False), (0, False), (33, True), (None, False)]:
@@ -30,10 +34,11 @@ class DiagnosticVerifier(unittest.TestCase):
             gate.evaluate(fixture().removesuffix("M1:PASS\n"), 33, False)
 
     def test_altered_totals_rounds_or_workload_are_rejected(self):
-        for old, new in [("REF_COUNT:00000000000000000128", "REF_COUNT:00000000000000000127"),
-                         ("REF_TSC_SUM:00000000000000000108", "REF_TSC_SUM:00000000000000000109"),
+        for old, new in [("REF_COUNT:00000000000000000144", "REF_COUNT:00000000000000000143"),
+                         ("REF_TSC_SUM:00000000000000000126", "REF_TSC_SUM:00000000000000000127"),
                          ("ROUND_REF_TSC:00000000000000000010", "ROUND_REF_TSC:00000000000000000000"),
-                         ("PROCESSES:00000000000000000004", "PROCESSES:00000000000000000005")]:
+                         ("PROCESSES:00000000000000000004", "PROCESSES:00000000000000000005"),
+                         ("ROUND_VARIANT:00000000000000000000", "ROUND_VARIANT:00000000000000000002")]:
             value = fixture().replace(old, new)
             self.assertNotEqual(value, fixture())
             with self.subTest(old=old), self.assertRaises(ValueError):

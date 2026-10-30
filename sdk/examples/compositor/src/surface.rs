@@ -213,7 +213,12 @@ impl<D: Transport> Surface<D> {
         }
         if let Some(reply) = &self.pending {
             if now.saturating_sub(self.pending_at) > TIMEOUT {
-                return Err(Fatal::Reply);
+                self.retire(io);
+                return if self.display_failed {
+                    Err(Fatal::Display)
+                } else {
+                    Ok(())
+                };
             }
             let message = Outgoing::new(sur::TAG, reply.bytes()).map_err(|_| Fatal::Reply)?;
             match io.send(self.send, &message) {
@@ -221,7 +226,14 @@ impl<D: Transport> Surface<D> {
                 Err(error) if error.is_again() => {
                     self.counts.reply_again = self.counts.reply_again.saturating_add(1)
                 }
-                Err(_) => return Err(Fatal::Reply),
+                Err(_) => {
+                    self.retire(io);
+                    return if self.display_failed {
+                        Err(Fatal::Display)
+                    } else {
+                        Ok(())
+                    };
+                }
             }
         }
         if self.display_failed && self.pending.is_none() {
