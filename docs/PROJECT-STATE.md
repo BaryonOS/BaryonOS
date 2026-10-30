@@ -43,8 +43,14 @@ Bijbehorende bronbewijzen:
 `docs/verification/full-release-interactive-fixed/` op #66 en
 `docs/verification/windows-qemu-interactive-1/` op `3f3f99e`.
 De manager heeft de brongebonden Linux- en Windowsbewijs-README's rechtstreeks
-uit Git op `c532ba88` en `3f3f99e` gelezen, maar de ZIP in Downloads niet zelf
-gelezen of opnieuw gestart; geen lokale artifactverificatie of nieuwe VM-run.
+uit Git op `c532ba88` en `3f3f99e` gelezen. Bij de vervolgronde is de exacte
+ZIP in Downloads vervolgens zelf read-only gecontroleerd: grootte/SHA-256
+kloppen, ZIP-CRC slaagt, alle twaalf uitgepakte bestanden zijn bytegelijk,
+manifestbron/kernel/loader passen bij bovenstaande oude bundel, `state/`
+ontbreekt en de exacte QEMU-executable bestaat. Beide Python-inspecties
+eindigden met exit 0. Compact resultaat:
+`verification/teamleader-delivery-20261030.json`. Geen PowerShell-/VM-start,
+geen gewijzigde Windowsbestanden of uitvoeringspolicy, geen nieuwe bronclaim.
 Fixtureopslag bevat plaintexttestdata, geen persoonlijke data invoeren.
 
 **Nieuw native deelresultaat:** beide normale gates na `d104fd9` zijn nu
@@ -59,10 +65,21 @@ builds (exit 0), maar stopte op verschillende kernel-/loader-/app-ELF-hashes
 ondanks dezelfde bronvingerafdruk. Referentie-VM gestopt, gewone VM niet
 gestart; onafhankelijke native acceptatie dus niet geslaagd. Manager heeft
 een begrensde read-only toolchain/flags/ELF-sectie-/padtrace toegewezen;
-oorzaak nog onbekend, geen tests versoepelen. Bouwreproduceerbaarheid blijft
-open; dit is geen bewezen runtimefout of menselijke audit.
+oorzaak nog onbekend, geen tests versoepelen. Tracecheckpoint `79b956e`
+meldt vier apps met gelijke geladen segmenten maar Materiaal met afwijkende
+geladen instructies, key/volume met absolute bronpaden en geladen verschillen,
+loader met timestamp/debug-ID-verschillen. Volledige historische rustc-env/
+metadata ontbreekt; geen semantische gelijkheid of complete oorzaak bewezen.
+Bouwreproduceerbaarheid blijft open. Afzonderlijke eigen fresh-source-runtime
+is toegestaan met nieuwe eigen artifactbinding en ongewijzigde orakels,
+zonder het mislukte byte-reproduceerbaarheidsverdict te overschrijven.
 
-**Kritieke open stap:** buildteam bouwt uitsluitend de nieuwe cold-tools;
+**Kritieke open stap:** buildteam bouwt de nieuwe cold-tools en heeft tevens
+main `748e29b` met inhoudsbehoud opgenomen: gemelde codebron `d9f8c216`,
+nieuwe v3 `c20a3300…`, referentie 135,971 s/raw 33 en gewone variant
+97,227 s/raw 0. Lifecyclecoördinator heeft de summaries gehasht en koppelt
+deze aan actuele #66-head `c0962e0`; manager heeft die head en lopende CI
+zelf via GitHub gelezen, maar geen nieuwe VM uitgevoerd.
 release owns eventuele runtime-/manifestfixes en neemt de bevroren bron
 inhoudsbehoudend over. Hoofd #66 `c532ba88` blijft vóór nieuwe integratie
 bevroren. Lifecyclecoördinator meldt #62 regulier merged naar `748e29b`;
@@ -103,7 +120,11 @@ door de manager. Managercheckpoint `f404792a52072f33a1f0dac58af46a7eb20cd3c9`
 is gecommit/gepusht; `git ls-remote` gaf exact dezelfde remote branchhash,
 `git status --short` was leeg (alle commando's exit 0). Opvolgende
 mijlpaalactualisaties blijven op dezelfde managerbranch, geen amendment.
-Geen continue of geplande achtergrondbewaking ingesteld.
+Volgende managercontrole na de hernieuwde gebruikersopdracht: alle twaalf
+oorspronkelijke sessies meldden `is_running=true`, geen input-/planblokkade;
+activiteit blijft niet observeerbaar (`unknown`). Dit is geen bewijs dat
+iedere sessie op dat moment een build uitvoerde. Geen continue of geplande
+achtergrondbewaking ingesteld.
 Eerstvolgend bij hervatten: `git branch --show-current && git rev-parse HEAD
 && git status --short`, daarna verse `get_sessions_status` en actuele
 buildteam/release-rapportages lezen; geen oude groene PR-head overnemen.

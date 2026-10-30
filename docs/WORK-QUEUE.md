@@ -2,6 +2,10 @@
 
 ## Actuele teamleiding — bronbasis `0ade8014`, 30 oktober 2026
 
+Startbasis `0ade8014`; actuele managerintegratiebasis `748e29b`.
+De hieronder genoemde oorspronkelijke branchechecks zijn momentopnamen;
+latere expliciete mijlpalen in dit hoofdstuk gaan voor oude headvermeldingen.
+
 Simon heeft de manager opgedragen de twaalf bestaande sessies aan de volledige
 ROADMAP en FULL-TEST-RELEASE te toetsen en uitvoerbaar werk te laten voortzetten.
 Onderstaande verdeling vervangt de historische agentclaims verderop, niet de
@@ -158,6 +162,56 @@ base-update op hun eigen branch, met behoud van beide historische kanten en
 actuele CI nog open. #74-herhaling volgt op zijn nieuwe base. Buildteam heeft
 main opgenomen, nieuwe v3 `c20a3300…` en gerichte hostgates groen gemeld,
 nieuwe native referentiegate liep nog. De oude `74d15ac`-proeven blijven oud.
+
+### Vervolgronde na hernieuwde uitvoeringsopdracht
+
+De manager heeft de werkelijk afgeleverde oudere Windows-ZIP en alle twaalf
+uitgepakte bestanden zelf read-only gecontroleerd; SHA-256/CRC/bytevergelijking
+slagen, geen teststate aanwezig, QEMU-executable bestaat. Compact bewijs:
+`verification/teamleader-delivery-20261030.json`. Geen nieuwe guestuitvoering
+of claim dat die bundel al de latere code bevat.
+
+Actuele #66-head is `c0962e0`, volgens builder code `d9f8c216` met main748
+en v3 `c20a3300…`; beide native gates zijn nu groen gerapporteerd.
+Lifecycle heeft summaryhashes/bronbinding zelf gecontroleerd; manager zag
+actuele head met nog lopende CI. Mergevolgorde: eerst #66 na passende checks/
+review, daarna inhoudsbehoudende base-updates van #70/#74 en standalone
+coverage. Centrale #75 wordt uitsluitend door manager bijgewerkt; oude
+assessments niet boven de teamstand zetten.
+
+Reproduceerbaarheidstrace `79b956e` is opgeleverd: vier apps hebben gelijke
+geladen segmenten maar andere symboltabellen, Materiaal bevat werkelijk
+andere geladen instructies, key/volume onder meer absolute bronpaden en
+verschoven geladen data, loader uitsluitend timestamp/debug-ID-verschillen.
+Geen bewezen complete oorzaak of semantische gelijkheid. TL-CORE mag een
+afzonderlijke fresh-source-runtime uitvoeren met eigen hashes, nieuwe
+referentie en ongewijzigde gates; het open reproduceerbaarheidsverdict blijft
+behouden, geen image-identiteitsclaim.
+
+UI heeft `f6ec180`/bewijs `0276678` gepusht: begrensde app-local semantiekboom,
+host/scalar-/interactiongates groen, native_execution=false; keyboard-QEMU
+volgt op de exacte eigen artifactbinding. Security heeft #74 bijgewerkt naar
+`c5b20b6`, herhaling op `933591d`/main748, 18 echte stages groen gemeld,
+CI nog open. B02/NV-voorloper `9ae314d` is gepusht met 23 driver-/6 harnastests;
+nieuwe native NV-proef was nog niet uitgevoerd. Dit is geen KEY1-lineage/
+write-ahead-/productie-authenticatie.
+
+Apps krijgt exclusief nieuwe `.github/workflows/app-management-quality.yml`
+na buildmelding. Verplicht zowel de bestaande standalone
+`crates/app-package-core/Cargo.toml` als de nieuwe app-managementcode testen
+zodra aanwezig: een workflow alleen voor een toekomstige crate lost de
+actuele #73-dekkingsblokkade niet op. Geen conditionalskip of bestaand
+rootworkflowconflict. NAS houdt zijn eigen nieuwe CI-workflowclaim.
+
+H05-rootbesluit is door manager bevestigd: versiegebonden begrensde,
+gevalideerde ACPI-snapshot via loader/BootInfo, geen langdurige rauwe
+firmwarepointer; oude boot/framebuffer-ABI behouden. Release is enige schrijver
+van dit gedeelde contract/ABI en legt eerst ADR/invarianten/negatieven vast.
+Hardware parsers krijgen alleen begrensde FADT/DSDT en een opaque plan,
+geen willekeurige port-I/O of algemene AML-interpreter. Security/hardware
+beginnen read-only op dit ontwerp; uitsluitend wegwerp-QEMU, geen fysieke
+poweractie of nieuwe H05-acceptatie. Dit is nog een ontwerpbesluit, geen
+geïmplementeerde BootInfo-uitbreiding of clean-shutdownclaim.
 
 Eerstvolgende manageractie: ontvang de exacte up-to-date buildteambron en
 koude-recovery-/verifiergates, controleer dat release/UI daarop voortbouwen
