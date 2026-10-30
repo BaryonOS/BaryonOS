@@ -9,3 +9,9 @@ rustflags = [
   "-C", "link-arg=--build-id=none",
   "-C", "link-arg=-zmax-page-size=0x1000",
 ]
+
+# B03 signed boot: the loader verifies Ed25519 + ML-DSA-65 manifests. The
+# curve25519-dalek SIMD backend both crashes rustc for this target and would
+# need runtime CPU dispatch in firmware; pin the portable serial backend.
+[target.x86_64-unknown-uefi]
+rustflags = ["--cfg", "curve25519_dalek_backend=\"serial\""]

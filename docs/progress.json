@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "48b51878c03b5b73449f563735c7854b24926fc4",
+    "source_commit": "2992ba76f655f9dffc234f76d9ef2c314666f1a3",
     "branch": "codex/native-materiaal-integration",
-    "task": "PR #58: conflictintegratie met main op 6d3bbf0a",
+    "task": "PR #58: conflictintegratie van Materiaal met de B03-updates op main",
     "previous_score": 32,
-    "summary": "De score blijft 32%; alle 62 volledige productcriteria blijven open. Deze conflictintegratie behoudt de Materiaal-processen en digestbenchmark uit 48b5187 naast de RNG-/imageproeven en foundation-bewijsarchieven uit main 6d3bbf0a. Historische groene foundationproeven gelden alleen voor hun oorspronkelijke bron; de volledige GUI-keten blijft onbewezen en de eerdere rode uitvoering blijft bewaard. Deze integratie levert geen nieuwe native productacceptatie op. Gewichten, scope en bewijsniveaus zijn onveranderd; actuele integratiecontroles staan in PROJECT-STATE.md."
+    "summary": "32% → 34% door de bestaande B03-acceptatie van main; deze conflictintegratie voegt geen nieuwe acceptatie toe. Materiaal, digestbenchmark, RNG-/imageproeven en ondertekende updates blijven behouden. Historisch bewijs en eerdere controles blijven aan hun oorspronkelijke bron gebonden; de samengevoegde bron is in deze integratie niet getest. Alle 62 volledige productcriteria blijven open; geen volledige GUI-keten, Secure Boot, releasesleutels, fysieke hardware of menselijke audit geclaimd."
   },
   "tracks": [
     {
@@ -373,9 +373,12 @@
           "id": "B03",
           "title": "Ondertekende updates en rollback",
           "points": 2,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "Authentieke updates, onderbreking, downgrade-aanvallen en herstel naar een geldige vorige versie zijn end-to-end getest.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/B03-ACCEPTANCE.md",
+            "docs/verification/b03/update-gate.json"
+          ]
         },
         {
           "id": "B04",

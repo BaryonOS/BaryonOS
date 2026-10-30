@@ -6,6 +6,8 @@
 mod graphics;
 mod memory;
 mod serial;
+#[cfg(feature = "signed-boot")]
+mod signed;
 
 use boot_protocol::{
     BootInfo, ABI_MAJOR, ABI_MINOR, ADDRESS_LIMIT, KERNEL_LEN, KERNEL_START, MAGIC, MAP_LIMIT,
@@ -49,6 +51,8 @@ fn page_round(n: u64) -> Result<u64> {
 /// Present only before finalization. No Drop implementation or global service pointer.
 struct Firmware {
     services: *mut efi::BootServices,
+    #[cfg_attr(not(feature = "signed-boot"), allow(dead_code))]
+    runtime: *mut efi::RuntimeServices,
 }
 
 impl Firmware {
@@ -65,8 +69,16 @@ impl Firmware {
             || table.hdr.revision < efi::SYSTEM_TABLE_REVISION_2_00
             || (table.hdr.header_size as usize) < size_of::<efi::SystemTable>()
             || !aligned(table.boot_services)
+            || !aligned(table.runtime_services)
         {
             return Err(b"SYSTEM_TABLE");
+        }
+        // SAFETY: Live firmware owns this runtime table; only its header is read here.
+        let runtime = unsafe { &*table.runtime_services };
+        if runtime.hdr.signature != efi::RUNTIME_SERVICES_SIGNATURE
+            || (runtime.hdr.header_size as usize) < size_of::<efi::RuntimeServices>()
+        {
+            return Err(b"RUNTIME_SERVICES_TABLE");
         }
         // SAFETY: Live firmware owns this complete services table before EBS.
         let services = unsafe { &*table.boot_services };
@@ -78,6 +90,7 @@ impl Firmware {
         }
         let fw = Self {
             services: table.boot_services,
+            runtime: table.runtime_services,
         };
         // SAFETY: Live service, disable watchdog; zero data size permits null data.
         check(
@@ -90,6 +103,13 @@ impl Firmware {
     fn services(&self) -> &efi::BootServices {
         // SAFETY: Firmware exists only in live preparatory phase; freeze consumes it.
         unsafe { &*self.services }
+    }
+
+    /// Variable services, used before ExitBootServices only (version floor).
+    #[cfg(feature = "signed-boot")]
+    fn runtime(&self) -> &efi::RuntimeServices {
+        // SAFETY: Validated at construction; the live phase ends at freeze.
+        unsafe { &*self.runtime }
     }
 
     fn pages(&self, pages: usize, kind: efi::MemoryType, address: Option<u64>) -> Result<u64> {
@@ -223,6 +243,7 @@ impl Firmware {
         Ok((li.device_handle, base, end - base))
     }
 
+    #[cfg_attr(feature = "signed-boot", allow(dead_code))]
     fn open_kernel(
         &self,
         device: efi::Handle,
@@ -251,6 +272,7 @@ impl Firmware {
         Ok((root, kernel))
     }
 
+    #[cfg_attr(feature = "signed-boot", allow(dead_code))]
     fn read_kernel(&self, kernel: *mut file::Protocol, address: u64) -> Result<usize> {
         let capacity = elf_loader_core::MAX_FILE_SIZE;
         let mut used = 0;
@@ -292,6 +314,7 @@ impl Firmware {
         }
     }
 
+    #[cfg_attr(feature = "signed-boot", allow(dead_code))]
     fn close(&self, file: *mut file::Protocol) -> Result<()> {
         // SAFETY: Caller passes its live open handle exactly once, before freeze.
         check(unsafe { ((*file).close)(file) }, b"FILE_CLOSE")
@@ -490,12 +513,23 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
         efi::LOADER_CODE,
         Some(KERNEL_START),
     )?;
-    let (root, kernel) = fw.open_kernel(device)?;
     let file_pages = elf_loader_core::MAX_FILE_SIZE / PAGE_SIZE as usize;
     let file_address = fw.pages(file_pages, efi::LOADER_DATA, None)?;
-    let file_length = fw.read_kernel(kernel, file_address)?;
-    fw.close(kernel)?;
-    fw.close(root)?;
+    // B03: with `signed-boot` only a slot store with a verified, loadable,
+    // floor-respecting image supplies the kernel; the ESP file is never read.
+    #[cfg(feature = "signed-boot")]
+    let file_length = {
+        let _ = device;
+        signed::load(&fw, file_address)?
+    };
+    #[cfg(not(feature = "signed-boot"))]
+    let file_length = {
+        let (root, kernel) = fw.open_kernel(device)?;
+        let length = fw.read_kernel(kernel, file_address)?;
+        fw.close(kernel)?;
+        fw.close(root)?;
+        length
+    };
     let entry;
     {
         // SAFETY: Dedicated allocation holds exactly file_length initialized bytes;

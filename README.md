@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 32% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 34% van de vaste productroadmap](docs/assets/progress.svg)
 
-**32% — 32 van 100 gewogen acceptatiepunten.** Dit is een
+**34% — 34 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -24,18 +24,18 @@ alleen een nette desktop haalt die eindgrens niet.
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
 | Internet en netwerkdiensten | 10 | 0 |
-| Beveiliging, privacy en updates | 12 | 2 |
+| Beveiliging, privacy en updates | 12 | 4 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **32** |
+| **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`48b51878`](https://github.com/simonvanieperen/nieuw-os/commit/48b51878c03b5b73449f563735c7854b24926fc4) ·
+**Bron:** [`2992ba76`](https://github.com/simonvanieperen/nieuw-os/commit/2992ba76f655f9dffc234f76d9ef2c314666f1a3) ·
 **Ontwikkelbranch:** `codex/native-materiaal-integration`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** PR #58: conflictintegratie met main op 6d3bbf0a.
-De score blijft 32%; alle 62 volledige productcriteria blijven open. Deze conflictintegratie behoudt de Materiaal-processen en digestbenchmark uit 48b5187 naast de RNG-/imageproeven en foundation-bewijsarchieven uit main 6d3bbf0a. Historische groene foundationproeven gelden alleen voor hun oorspronkelijke bron; de volledige GUI-keten blijft onbewezen en de eerdere rode uitvoering blijft bewaard. Deze integratie levert geen nieuwe native productacceptatie op. Gewichten, scope en bewijsniveaus zijn onveranderd; actuele integratiecontroles staan in PROJECT-STATE.md.
+Deze opdracht: **32% → 34% (+2 procentpunt)**. **Opdracht:** PR #58: conflictintegratie van Materiaal met de B03-updates op main.
+32% → 34% door de bestaande B03-acceptatie van main; deze conflictintegratie voegt geen nieuwe acceptatie toe. Materiaal, digestbenchmark, RNG-/imageproeven en ondertekende updates blijven behouden. Historisch bewijs en eerdere controles blijven aan hun oorspronkelijke bron gebonden; de samengevoegde bron is in deze integratie niet getest. Alle 62 volledige productcriteria blijven open; geen volledige GUI-keten, Secure Boot, releasesleutels, fysieke hardware of menselijke audit geclaimd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

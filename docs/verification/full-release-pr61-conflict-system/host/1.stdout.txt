@@ -1,0 +1,39 @@
+
+running 2 tests
+test memory::tests::fresh_suffix_geometry_and_raw_access_are_preserved ... ok
+test memory::tests::malformed_or_nonprivate_kernel_extents_fail_closed ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 14 tests
+test abi_check_accepts_only_existing_compatible_versions ... ok
+test block_completion_accepts_only_the_canonical_ticket_envelope ... ok
+test delegated_cap_descriptors_are_validated_and_preserved ... ok
+test every_payload_length_matches_the_current_kernel_decoder ... ok
+test handle_representation_does_not_accept_sentinels_or_slot_overflow ... ok
+test oversized_wire_lengths_never_index_or_truncate ... ok
+test raw_send_rejects_spoofed_sender_and_every_unused_byte ... ok
+test received_envelope_rejects_missing_sender_reserved_and_padding ... ok
+test known_rights_do_not_allow_unknown_permission_bits ... ok
+test received_message_keeps_kernel_identity_and_exact_payload ... ok
+test refused_cap_append_does_not_modify_the_message ... ok
+test register_errors_remain_errors_and_secondary_errors_are_zero ... ok
+test received_length_must_equal_the_syscall_result ... ok
+test sdk_messages_interoperate_with_actual_capability_engine ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test abi_1_3_through_1_7_are_accepted_and_1_8_is_not ... ok
+test status_words_round_trip_and_reject_noncanonical_values ... ok
+test typed_handles_keep_their_representation ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

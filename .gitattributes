@@ -55,6 +55,13 @@ docs/verification/b01/**/*.txt -text
 docs/verification/b01/**/*.json -text
 docs/verification/b01/*.json -text
 docs/verification/b01/SHA256SUMS -text
+# B03 TEST signing anchors and gate evidence: exact bytes.
+tools/update-keys/*.seed binary
+tools/update-keys/*.pub binary
+docs/verification/b03/**/*.txt -text
+docs/verification/b03/**/*.json -text
+docs/verification/b03/*.json -text
+docs/verification/b03/SHA256SUMS -text
 
 # Native herstelhardening: behoud exact de vastgelegde seriële bewijsbytes.
 # Firmware gebruikt CRLF; controleer overige whitespace zonder bewijsbytes te wijzigen.

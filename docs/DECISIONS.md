@@ -784,6 +784,91 @@ B01-commit reverten. Rechtenbit 1024 wordt bij andere objecttypen met
 **Eigenaar:** hoofdagent (driver, engine, kernelbroker, core, SDK, voorbeeld,
 gate, bewijs).
 
+## ADR-049 — Hybride ondertekende kernelupdates met slotopslag, versievloer en terugval (B03)
+
+Bij integratie van PR #61 met main `6d3bbf0` hernummerd van ADR-044 naar
+ADR-049: ADR-044 op main beschrijft het netwerk. Beide besluiten blijven
+inhoudelijk behouden; historisch bewijs wordt niet herschreven.
+
+**Datum:** 29 oktober 2026. Loaderfeature `signed-boot` en kernelprofiel
+`native-update`, beide opt-in; loaders zonder de feature (alle andere
+profielen) houden het bestaande ESP-pad (`kernel.elf`) ongewijzigd. Een
+`signed-boot`-loader valt nooit op dat pad terug.
+
+**Status (gescheiden):** *ontwerp* in
+[B03-SIGNED-UPDATES](implementation/B03-SIGNED-UPDATES.md). *Implementatie*:
+`crates/update-core` (manifest `NOSMAN01`, slotopslag `NOSSLOT1`, hybride
+verificatie, selectie- en installatiebeleid), `boot/loader/src/signed.rs`,
+`kernel/src/m2/m3/update.rs` (generieke blokbroker over de slotopslag, één
+gelabelde crashfixture), `sdk/examples/update` (ring-3 update-dienst),
+`tools/update-tool` (keygen/sign/pack/verify), `tools/update_disk.py`
+(onafhankelijk hostorakel), gate `tools/test_update.py`. *Testbewijs*:
+[B03-ACCEPTANCE](verification/B03-ACCEPTANCE.md); wat daar niet staat, is niet
+uitgevoerd. *Onbekend*: firmwareverificatie van de loader zelf (Secure Boot,
+B04), sleutelrotatie en intrekking in productie, netwerkdistributie,
+fysieke schijven en stroomuitval, gedrag met een aanvaller die OVMF_VARS kan
+schrijven.
+
+**Besluit:**
+1. Een kernelimage wordt alleen gestart uit een slot waarvan het manifest
+   met **beide** vastgepinde ankers verifieert, Ed25519 (`ed25519-dalek`
+   2.2.0, serial backend) én ML-DSA-65 (RustCrypto `ml-dsa` 0.1.1, FIPS 204),
+   over dezelfde 84 canonieke bytes, en waarvan het image exact de lengte en
+   SHA-256 (`sha2` 0.10.9, `force-soft`) uit dat manifest heeft. Eén geldige
+   handtekening is onvoldoende; er is geen terugval naar één algoritme.
+2. De loader bewaart de hoogste gestarte versie in de UEFI-NV-variabele
+   `NieuwOsMinVersion` (vendor-GUID `50402e54-a387-47bc-8f75-dcd79cd0a603`,
+   NV+BS) en weigert ieder slot met een lagere versie als `DOWNGRADE`, ook
+   als de header ernaar wijst. De vloer stijgt alleen.
+3. De header van de slotopslag is een onondertekende hint voor de slotvolgorde.
+   Faalt het aangewezen slot (formaat, sleutel-ID, handtekening, digest, vloer,
+   lezen), dan wordt het andere slot geprobeerd; falen beide, dan stopt de
+   boot gecontroleerd (`BOOT:FAIL:NO_VALID_SLOT`, exit 0x11); ontbreekt de
+   slotopslag, dan `BOOT:FAIL:NO_STORE`. Een lege, ongeldige of ontbrekende
+   slotopslag valt nooit terug op een onondertekende ESP-kernel, en de build
+   legt voor dit profiel geen `kernel.elf` op de ESP. Een correct ondertekend
+   maar onlaadbaar image (ELF-parser) is een `FORMAT`-weigering van dat slot;
+   de vloer stijgt pas voor een image dat de loader ook werkelijk kan laden.
+4. De update-dienst schrijft uitsluitend naar het slot dat **niet** draait.
+   Het draaiende slot wordt bepaald door de geverifieerde manifestversie die
+   gelijk is aan de door de kernel gemelde eigen imageversie, niet door de
+   header. Volgorde: image, FLUSH, manifest, FLUSH, header, FLUSH; een
+   onderbreking laat het actieve slot en de header intact en de installatie
+   is idempotent en hervatbaar.
+5. De dienst verifieert de inboxbundel met dezelfde ankers, controleert de
+   digest vóór de eerste schrijfactie en weigert `version ≤ huidige` als
+   up-to-date respectievelijk downgrade. Loader en dienst controleren
+   onafhankelijk; de kernel kent geen manifest- of slotformaat en bevat
+   geen cryptografie (kernel/AGENTS.md).
+6. De ankers in de repository zijn **TEST-ankers** (`tools/update-keys/TEST-*`,
+   gegenereerd met `update-tool keygen`), inclusief seeds, zodat CI
+   reproduceerbaar ondertekent. Zij beschermen niets buiten de gate. Een
+   releaseprofiel vervangt de ankers in een afzonderlijke, buiten CI gehouden
+   ondertekenstap; sleutelrotatie en intrekking horen bij B04.
+7. Dependencycontrole (`cargo tree -p update-core`): `ed25519-dalek` 2.2.0 en
+   `curve25519-dalek` 4.1.3 (BSD-3-Clause), `ml-dsa` 0.1.1, `module-lattice`
+   0.2.3, `hybrid-array` 0.4.15, `keccak`/`shake`/`sponge-cursor`,
+   `signature` 2.2/3.0, `sha2` 0.10.9, `digest`, `crypto-common` (MIT OR
+   Apache-2.0), `subtle` 2.6.1 (BSD-3-Clause). Buildscripts: alleen
+   `curve25519-dalek` (platformdetectie voor de woordbreedte, geen netwerk) en
+   `generic-array` (`version_check`); één proc-macro (`curve25519-dalek-derive`,
+   via `syn`/`quote`). De SIMD-backends zijn uitgeschakeld
+   (`curve25519_dalek_backend="serial"`, sha2 `force-soft`); `objdump` van
+   loader en dienst toont 0 xmm/ymm- en 0 x87-instructies.
+   De ML-DSA-verificatie houdt ongeveer 200 KiB stack vast: de loader draait de
+   selectie op een eigen 1 MiB-allocatie en het profiel `native-update` geeft
+   de dienst 512 KiB gebruikersstack in plaats van 64 KiB.
+
+**Security-invariant:** geen byte van een kernelimage wordt uitgevoerd
+voordat formaat, sleutel-ID's, beide handtekeningen, lengte, digest en de
+versievloer zijn gecontroleerd; het laatst geldig gestarte slot blijft bij
+iedere onderbreking van een installatie ongewijzigd beschikbaar.
+
+**Gevolgen:** de slotopslag kost 6 MiB per apparaat (drie slots van 2 MiB);
+`image_length` is begrensd op 2 MiB. Pakket- en app-updates (A02),
+netwerkdistributie (N-spoor) en de verificatie van de loader door de firmware
+(B04) blijven open. De `KERNEL:IMAGE_VERSION`-marker en de startpagina-
+woorden 120/192–400 zijn profielgebonden testinterfaces, geen OS-ABI.
 ### Aanvulling ADR-043 — monotone herstelstatus en doorlopende bewaking (29 oktober 2026)
 
 Concrete post-merge tegenvoorbeelden uit #52: een oudere recoveryblob wist
