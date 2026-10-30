@@ -28,7 +28,26 @@ MAX_TIMEOUT = 180
 
 
 def check_esp(esp: Path, manifest: dict) -> None:
-    """Bind the exact bytes QEMU will load, rather than trusting a sidecar."""
+    """Check the entire source tree before copying any byte into guest media."""
+    esp = esp.absolute()
+    for parent in (esp, *esp.parents):
+        details = parent.lstat()
+        if not stat.S_ISDIR(details.st_mode):
+            raise ValueError("ESP directory/ancestor must be a real directory")
+    expected = {"kernel.elf", "EFI/BOOT/BOOTX64.EFI"}
+    files = set()
+    for entry in esp.rglob("*"):
+        details = entry.lstat()
+        relative = entry.relative_to(esp).as_posix()
+        if stat.S_ISDIR(details.st_mode):
+            if relative not in {"EFI", "EFI/BOOT"}:
+                raise ValueError("Unexpected ESP directory")
+        elif stat.S_ISREG(details.st_mode) and details.st_nlink == 1:
+            files.add(relative)
+        else:
+            raise ValueError("Linked or special ESP entry")
+    if files != expected:
+        raise ValueError("ESP must contain exactly the inspected loader and kernel")
     for relative, key in (("kernel.elf", "kernel"), ("EFI/BOOT/BOOTX64.EFI", "loader")):
         path = esp / relative
         details = path.lstat()

@@ -1,4 +1,125 @@
-# PERF-CAP-DIGEST-1 — bitexacte diagnostische optimalisatie
+# Capabilitydiagnostiek — bitexacte varianten en native tegenmeting
+
+## Actuele uitkomst: hostwinst voorspelde de TCG-uitkomst niet
+
+De eerste nulreeksvariant staat in db04c385ee8a19c45594b267f5dfa654a9b8919e.
+De hostratio van circa2,48 hieronder is werkelijk gemeten, maar de daarop
+geïntegreerde GUI-proef werd trager en faalde. Dit is geen native
+performanceverbetering of afgetekende GUI-acceptatie. Broncommit
+1fd879dfdde88890a68f0a23901c69acd464b582, bronfingerprintv3
+6f9410a38d6cc1323344489c19c57f4e59c5a858e41f8e0710d7792065081fd3:
+
+- De integrator meldde170,0707855s tot de eerste Ready-capture met1608 tegels,
+  tegenover circa106s bij de eerdere variant. De170,07s komt uit het verschil
+  tussen capture- en inputmanifest-mtime en omvat meer dan alleen digestwerk.
+- Het echte resultaat is `passed:false`, rawQEMUexit35, guest_timeouttrue en
+  duration203,591759599s. De gast bereikte bij zijn deadline1932 tegels en één
+  volledig frame; geen Saved-/STOP-/cleanup-acceptatie.
+- Het resultaat is zelf gelezen op
+  `/workspace/nieuw-os-worktrees/root-materiaal/build/materiaal-digest/run/materiaal-normal-230683c431/result.json`,
+  SHA25668c5cf5dd67d9b63c8b1c03a29bce9ab9a488d33fe1380eac52c9fa9c4504b28.
+  De timeout200s is een gastgrens; de geregistreerde hostwatchdog is240s.
+  Dat rapport bevat de exacte kernel-, ELF-, firmware-, QEMU- en diskhashes.
+
+PERF-NATIVE-BENCH-1 voegt daarom uitsluitend een expliciet meetprofiel toe.
+De gewone productie-`state_digest`, `stats`, rechten en alle voor-/na-checks
+van iedere syscall blijven bytegelijk aan db04. Er wordt in deze stap geen
+nieuwe productievariant gekozen en de GUI-timeout wordt niet verhoogd.
+
+## Opt-in native meetcontract
+
+Cratefeature `capability-core/diagnostic-bench` bouwt twee extra read-only
+methoden: `Engine::diagnostic_reference_digest()` en
+`Engine::diagnostic_direct_digest()`. De eerste gebruikt de letterlijk
+behouden oude body uit3f20; de tweede verschilt daarvan alleen doordat de
+40 Message-wirewoorden direct worden gehasht in plaats van via encode().
+Ieder woord krijgt onvoorwaardelijk dezelfde XOR/multiply; er is geen
+nuldetectie, zerorun of selectie op live/len. Alle bestaande differentiële
+corpora toetsen nu ook deze directe variant. Zonder de feature of cfg(test)
+worden beide extra paden niet gebouwd. Geen defaultfeature of dependency.
+
+De nieuwe module `kernel/src/m2/m3/cap_bench.rs` levert
+`pub(super) fn run(engine: &capability_core::Engine) -> !`.
+Root bezit de moduledeclaratie, featurealias, hook, builder en runner:
+
+```text
+native-cap-digest-bench = [native-system, capability-core/diagnostic-bench]
+State::setup();
+cap_bench::run(m4::engine()); // vóór timer_init, IF=0, één CPU
+```
+
+Dit gebruikt de werkelijk opgebouwde vier-processenmanifestgraaf en de
+bestaande kernelhelpers `clock()->u64`, `print_number(&[u8],u64)` en
+`serial::{write,exit}`. Er wordt geen tweede Engine gemaakt en geen proces
+uitgevoerd. De manifestassertie eist4 processen,21 handles,29 nodes,
+9 open endpoints,0 queued messages,1 block-,1 launch- en1 entropyobject,
+0 process-/network-/display-/inputobjecten en geldige structurele invarianten.
+De8 gesloten parentnodes blijven aanwezig wegens de afgeleide nodes.
+De normale manifestdigest is0x31b7de1c7a15245b,
+decimaal3582576242485175387; het programma berekent de werkelijke waarde.
+
+De vaste drie varianten zijn REF, DIRECT en ZERO. Voor iedere variant:
+één prehashcontrole,4 warmupcalls,128 gemeten calls enéén posthashcontrole.
+Gemeten wordt8 rondes×16 calls; de volgorde roteert ABC/BCA/CAB enzovoort.
+Iedere aanroep gebruikt `black_box` voor de functiepointer, Engine-ref en
+het resultaat. Iedere uitkomst telt mee in een verschilaccumulator en wordt
+na de batch met de verwachte hash vergeleken. Er staat geen Stats- of serial-
+bewerking in het gemeten interval. Alle Statsvelden vóór en na zijn exact
+gelijk vereist; de volledige structurele invarianten worden opnieuw getoetst.
+Geen actor-/devicebewerking, allocatie, Engine-clone of unsafe in de meetmodule.
+
+De bestaande clockhelper gebruikt **ongeserialiseerde RDTSC**. De resultaten
+zijn grove QEMU/TCG-timestampverschillen per batch, inclusief lus-, indirecte
+call-, black_box- en pariteitsrekenwerk. Het zijn geen fysieke CPU-cycli,
+exacte per-calllatenties, hostwallclock- of realtimegaranties. De runner
+registreert QEMU-versie/profiel en de werkelijke totale duur. Doel voor deze
+kleine proef is minder dan5s gastmeetwerk; dat is nog geen gemeten feit.
+Het aantal wordt niet achteraf aangepast om een gewenste winnaar te krijgen.
+
+De exacte outputvolgorde is:
+
+1. `CAPBENCH:MANIFEST:PASS`.
+2. Numerieke regels `CAPBENCH:{NAAM}:` met20 decimale cijfers:
+   DIGEST,PROCESSES,HANDLES,NODES,ENDPOINTS,WARMUP,ROUNDS,BATCH.
+3. REF_COUNT,REF_TSC_SUM,REF_TSC_MIN,REF_TSC_MAX; dezelfde vier met DIRECT_
+   en daarna ZERO_. COUNT is128 gemeten aanroepen, SUM is de som van8
+   batchintervallen, MIN/MAX zijn de uiterste **16-call-batchintervallen**.
+4. Acht triples met dezelfde vaste namen ROUND_REF_TSC,ROUND_DIRECT_TSC,
+   ROUND_ZERO_TSC, steeds in variantvolgorde en rondes0..7. De host kan som,
+   minimum en maximum hieruit onafhankelijk controleren.
+5. `CAPBENCH:PARITY:PASS`, `CAPBENCH:STATE:PASS`, `CAPBENCH:PASS`, `M1:PASS`;
+   exit0x10 geeft rawQEMU33. Iedere afwijking geeft CAPBENCH:FAIL en exit0x11
+   (raw35), inclusief hash-, staat-, manifest-, tijdprogressie- of somoverflow.
+
+Het profiel krijgt een echte lege wegwerpdisk en virtio-blk/rng zoals de
+systemmanifestbouw vereist. Tijdens de meting draaien geen gebruikersapps,
+disk-/entropy-syscalls of andere actoren. Een groene CAPBENCH is daarom
+uitdrukkelijk **geen** functionele app-, GUI-, Saved-, entropy-, disk-,
+cleanup-, beveiligings- of releasetest. De integrator selecteert pas na echte
+meetresultaten een volgende productievariant en herhaalt dan de volledige
+GUI-proef met ongewijzigde syscallcontroles.
+
+### Componentcontroles van het meetpad
+
+Zonder feature:52 tests geslaagd,1 benchmark ignored. Met diagnostic-bench:
+53 tests geslaagd,1 ignored; de extra test bouwt dezelfde manifestgraaf,
+controleert alle drie hashes en vergelijkt de volledige Engine én Stats vóór
+en na. Beide sets behouden alle47 oorspronkelijke coretests. De body van de
+oude referentie is bytegelijk aan3f20 gebleven, SHA256
+29ca84c1172b4c8dffd6f4aa36270ce23fa349075963d287fd0c9b08628cb7ed.
+
+Eigen controles onder `build/cap-native-checks/`: fmt, beide hosttestsets,
+Clippy/all-targets met feature, scalar-none releasebuild/Clippy met én zonder
+feature: alle exit0. Een afzonderlijk no_std compileharnas typecheckt de echte
+cap_bench-module voor scalar-none met externe, nooit uitgevoerde
+clock/serial-symbolen; build en Clippy exit0. Dat compileharnas is geen native
+meetuitvoering. De gewone productie-rlib bevat geen reference/direct-symbolen.
+De eigen componentbronfingerprintv3 is
+8f59dbbc1169ef8b78af3c57f961c0bab518e7b129e918eeb2dddc78d823d49b.
+Native bron-/imagehashes en meetuitkomst volgen uitsluitend uit roots runner;
+deze componentcheck vult die niet in.
+
+## Historische eerste optimalisatie en hostonderzoek
 
 Dit wijzigt uitsluitend de berekening van de bestaande diagnostische
 `Engine::state_digest` in `crates/capability-core/src/lib.rs`. Statsvelden,
@@ -47,7 +168,7 @@ reeksen. Langere reeksen krijgen dezelfde wrapping-factor via binaire
 exponentiatie. Die onverkorte arbitrary-state-fallback staat afzonderlijk
 cold/noinline, zodat zij niet in iedere hot-path-woordbewerking wordt gekopieerd.
 Ongeldige volledig nul gemaakte tabellen blijven door de volledige fallback
-onderzocht. De vaste maximale stroom bevat74669 woorden:1 lastPID,
+onderzocht. De vaste maximale stroom bevat74569 woorden:1 lastPID,
 16×(2+256×4) processen/slots,1024×12 nodes,64×(8+16×44) endpoints/queues,
 4×9 block-,8×7 launch-,16×9 process- en10×6 console/entropy/networkwoorden.
 De lokale usize-nulteller kan onder deze vaste grenzen niet overlopen.
@@ -61,16 +182,17 @@ garantie geclaimd.
 ## Referentie en differentiële controle
 
 De oude state_digest-body is letterlijk uit3f20 overgenomen als
-`#[cfg(test)] state_digest_reference`; alleen de functienaam is anders. De
+`state_digest_reference`; alleen de functienaam is anders. De
 body wordt bytegewijs vergeleken met de bronversie, met opgeslagen SHA hieronder.
-Productiebuilds bevatten deze referentiefunctie niet.
+Reguliere productiebuilds bevatten deze referentiefunctie niet. Het expliciete
+diagnostic-bench-profiel hierboven schakelt haar wel in, naast cfg(test).
 
 Naast alle47 bestaande coretests zijn vijf actieve testgroepen toegevoegd:
 
 - Alle320 wirebytes×8 afzonderlijke bits×5 hashstartwaarden, plus256 volledig
   gemengde berichten; ook verboden sender/reserved, capvelden buiten count,
   grote len/count en iedere trailing-payloadbyte blijven meedoen.
-- Exacte nulreeksfactoren rond0/1/40/64/65 en tot de74669 woorden van een
+- Exacte nulreeksfactoren rond0/1/40/64/65 en tot de74569 woorden van een
   volledig nul gemaakte engine, plus10000 gemengde nul-/niet-nulwoorden.
 - Echte registraties, queuevol/wrap, EAGAIN-equality, captransfer/revoke,
   alle objectklassen, gerapporteerde processterfte, close en exit. Na de
@@ -106,9 +228,9 @@ hieronder apart. Gedeelde hostbelasting veroorzaakt zichtbare spreiding.
 De geselecteerde variant helpt ook het dichte corpus; niets wordt verborgen om
 alleen het lege geval gunstig te maken. Exacte digestwaarden bleven gelijk:
 empty55dcd2dffcdca9c3,7-processen5ff47a6aeb481b3d,
-volle queues0e68e4b80f5acd13. De tempencode-verwijdering helpt de native scalar
-kernel mogelijk sterker dan de host; dat wordt hier niet als gemeten feit
-gepresenteerd. Root moet op de exact geïntegreerde commit/image de GUI200s-
+volle queues0e68e4b80f5acd13. De tempencode-verwijdering gaf geen aangetoonde
+native winst; de werkelijk rode GUI-proef staat bovenaan. Root moet op de
+exact geïntegreerde commit/image de GUI200s-
 gate, echte invoer/frames en de relevante native regressies opnieuw uitvoeren.
 
 Gerichte commando's, eigen CARGO_TARGET_DIR en beheerde LOCALAPPDATA/PATH:

@@ -330,6 +330,26 @@ fn digest_message(h: &mut DiagnosticHasher, m: &Message) {
     }
 }
 
+/// Unconditional typed-wire comparison for the opt-in diagnostic experiment.
+/// There is no zero detection or logical-live/length filtering in this path.
+#[cfg(any(test, feature = "diagnostic-bench"))]
+fn digest_message_direct(h: &mut u64, m: &Message) {
+    fn word(h: &mut u64, value: u64) {
+        *h = (*h ^ value).wrapping_mul(DIAGNOSTIC_PRIME);
+    }
+    word(h, m.sender_pid);
+    word(h, m.tag);
+    word(h, u64::from(m.len) | (u64::from(m.cap_count) << 32));
+    word(h, m.reserved);
+    for cap in &m.caps {
+        word(h, cap.handle);
+        word(h, cap.rights);
+    }
+    for bytes in m.data.chunks_exact(8) {
+        word(h, u64::from_le_bytes(bytes.try_into().unwrap()));
+    }
+}
+
 fn get64(b: &[u8; MESSAGE_SIZE], o: usize) -> u64 {
     u64::from_le_bytes(b[o..o + 8].try_into().unwrap())
 }
@@ -1849,7 +1869,14 @@ impl Engine {
         }
         h.finish()
     }
-    #[cfg(test)]
+    /// Golden pre-optimization fingerprint for the opt-in native experiment.
+    /// This observes the same complete state and never mutates authority.
+    #[cfg(feature = "diagnostic-bench")]
+    #[inline(never)]
+    pub fn diagnostic_reference_digest(&self) -> u64 {
+        self.state_digest_reference()
+    }
+    #[cfg(any(test, feature = "diagnostic-bench"))]
     fn state_digest_reference(&self) -> u64 {
         let mut h = 0xcbf29ce484222325u64;
         fn add(h: &mut u64, v: u64) {
@@ -1904,6 +1931,130 @@ impl Engine {
                 for word in q.message.encode().chunks_exact(8) {
                     add(&mut h, u64::from_le_bytes(word.try_into().unwrap()));
                 }
+                for x in q.caps {
+                    id(&mut h, x);
+                }
+            }
+        }
+        for b in &self.blocks {
+            for x in [
+                u64::from(b.generation),
+                u64::from(b.live),
+                u64::from(b.retired),
+                u64::from(b.open),
+                b.owner,
+                u64::from(b.nodes),
+                u64::from(b.scope.device),
+                b.scope.first_sector,
+                b.scope.sector_count,
+            ] {
+                add(&mut h, x);
+            }
+        }
+        for l in &self.launches {
+            for x in [
+                u64::from(l.generation),
+                u64::from(l.live),
+                u64::from(l.retired),
+                u64::from(l.open),
+                l.owner,
+                u64::from(l.nodes),
+                u64::from(l.image),
+            ] {
+                add(&mut h, x);
+            }
+        }
+        for c in &self.children {
+            for x in [
+                u64::from(c.generation),
+                u64::from(c.live),
+                u64::from(c.retired),
+                u64::from(c.open),
+                c.owner,
+                u64::from(c.nodes),
+                c.child,
+                u64::from(c.state),
+                c.code,
+            ] {
+                add(&mut h, x);
+            }
+        }
+        for e in self
+            .entropy
+            .iter()
+            .chain(self.network.iter())
+            .chain(self.display.iter())
+            .chain(self.input.iter())
+        {
+            for x in [
+                u64::from(e.generation),
+                u64::from(e.live),
+                u64::from(e.retired),
+                u64::from(e.open),
+                e.owner,
+                u64::from(e.nodes),
+            ] {
+                add(&mut h, x);
+            }
+        }
+        h
+    }
+    /// Full typed-wire comparison with unconditional XOR/multiply per word.
+    /// Benchmark/test only; it is not selected as the production digest here.
+    #[cfg(any(test, feature = "diagnostic-bench"))]
+    #[inline(never)]
+    pub fn diagnostic_direct_digest(&self) -> u64 {
+        let mut h = 0xcbf29ce484222325u64;
+        fn add(h: &mut u64, v: u64) {
+            // Fixed typed word boundaries: this is a fast diagnostic mixer,
+            // never an authentication/integrity primitive or a crypto hash.
+            *h = (*h ^ v).wrapping_mul(0x100000001b3);
+        }
+        fn id(h: &mut u64, x: Id) {
+            add(h, u64::from(x.index));
+            add(h, u64::from(x.generation));
+        }
+        add(&mut h, self.last_pid);
+        for p in &self.processes {
+            add(&mut h, p.pid);
+            add(&mut h, u64::from(p.live));
+            for s in &p.slots {
+                add(&mut h, u64::from(s.generation));
+                add(&mut h, u64::from(s.retired));
+                id(&mut h, s.node);
+            }
+        }
+        for n in &self.nodes {
+            for x in [
+                u64::from(n.generation),
+                u64::from(n.live),
+                u64::from(n.retired),
+                u64::from(n.revoked),
+                n.issuer,
+                n.rights,
+                u64::from(n.refs),
+                u64::from(n.depth),
+            ] {
+                add(&mut h, x);
+            }
+            id(&mut h, n.object);
+            id(&mut h, n.parent);
+        }
+        for e in &self.endpoints {
+            for x in [
+                u64::from(e.generation),
+                u64::from(e.live),
+                u64::from(e.retired),
+                u64::from(e.open),
+                e.owner,
+                u64::from(e.nodes),
+                u64::from(e.head),
+                u64::from(e.len),
+            ] {
+                add(&mut h, x);
+            }
+            for q in &e.queue {
+                digest_message_direct(&mut h, &q.message);
                 for x in q.caps {
                     id(&mut h, x);
                 }
@@ -2230,6 +2381,60 @@ mod digest_differential {
     fn same(e: &Engine) {
         assert_eq!(e.state_digest(), e.state_digest_reference());
         assert_eq!(e.stats().state_digest, e.state_digest_reference());
+        assert_eq!(e.diagnostic_direct_digest(), e.state_digest_reference());
+        #[cfg(feature = "diagnostic-bench")]
+        assert_eq!(e.diagnostic_reference_digest(), e.state_digest_reference());
+    }
+    #[cfg(feature = "diagnostic-bench")]
+    #[test]
+    fn benchmark_public_variants_preserve_four_process_manifest_and_stats() {
+        run(|| {
+            fn channel(e: &mut Engine, owner: u64, sender: u64) {
+                let root = e.create_endpoint(owner).unwrap();
+                e.derive(owner, root, RECV).unwrap();
+                e.bootstrap_delegate(owner, root, sender, SEND).unwrap();
+                e.close(owner, root).unwrap();
+            }
+            let mut e = Engine::new();
+            for pid in 1..=4 {
+                e.register(pid).unwrap();
+            }
+            e.create_launch(1, 0).unwrap();
+            let registry = e.create_endpoint(1).unwrap();
+            e.derive(1, registry, RECV).unwrap();
+            e.bootstrap_delegate(1, registry, 4, SEND).unwrap();
+            channel(&mut e, 4, 1);
+            channel(&mut e, 4, 2);
+            channel(&mut e, 2, 4);
+            let other = e.create_endpoint(2).unwrap();
+            e.derive(2, other, RECV).unwrap();
+            e.close(2, other).unwrap();
+            e.create_entropy(2).unwrap();
+            channel(&mut e, 4, 3);
+            channel(&mut e, 3, 4);
+            channel(&mut e, 3, 1);
+            channel(&mut e, 1, 3);
+            e.create_block_device_with_rights(
+                3,
+                BlockScope {
+                    device: 0,
+                    first_sector: 4,
+                    sector_count: 580,
+                },
+                BLOCK_READ | BLOCK_WRITE | BLOCK_FLUSH,
+            )
+            .unwrap();
+            let before = e.clone();
+            let stats = e.stats();
+            assert_eq!(stats.processes, 4);
+            assert_eq!(stats.handles, 21);
+            assert_eq!(stats.nodes, 29);
+            assert_eq!(stats.endpoints, 9);
+            assert_eq!(stats.state_digest, 0x31b7de1c7a15245b);
+            same(&e);
+            assert_eq!(e.stats(), stats);
+            assert_eq!(e, before);
+        });
     }
     fn random(state: &mut u64) -> u64 {
         *state ^= *state << 13;
@@ -2269,6 +2474,9 @@ mod digest_differential {
                     wire[byte] = 1 << bit;
                     let message = raw_message(&wire);
                     assert_eq!(message.encode(), wire);
+                    let mut direct = seed;
+                    digest_message_direct(&mut direct, &message);
+                    assert_eq!(direct, reference_message(seed, &message));
                     let mut h = DiagnosticHasher::new(seed);
                     digest_message(&mut h, &message);
                     assert_eq!(
@@ -2286,6 +2494,9 @@ mod digest_differential {
                 bytes.copy_from_slice(&random(&mut seed).to_le_bytes());
             }
             let message = raw_message(&wire);
+            let mut direct = seed;
+            digest_message_direct(&mut direct, &message);
+            assert_eq!(direct, reference_message(seed, &message));
             let mut h = DiagnosticHasher::new(seed);
             digest_message(&mut h, &message);
             assert_eq!(h.finish(), reference_message(seed, &message));

@@ -49,6 +49,8 @@ const _: () = assert!(
     any(feature = "milestone-m4", feature = "native-qsim")
 ))]
 compile_error!("native-fpu is a separate M3 acceptance profile");
+#[cfg(feature = "native-cap-digest-bench")]
+mod cap_bench;
 #[cfg(feature = "native-system-materiaal")]
 mod desktop;
 #[cfg(feature = "native-keyring")]
@@ -492,9 +494,14 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
             ps2::prepare();
         }
         state.setup();
-        timer_init();
-        let next = state.select();
-        asm!("mov rax, {context}","jmp {restore}",context=in(reg) next,restore=sym m3_restore,options(noreturn));
+        #[cfg(feature = "native-cap-digest-bench")]
+        cap_bench::run(m4::engine());
+        #[cfg(not(feature = "native-cap-digest-bench"))]
+        {
+            timer_init();
+            let next = state.select();
+            asm!("mov rax, {context}","jmp {restore}",context=in(reg) next,restore=sym m3_restore,options(noreturn));
+        }
     }
 }
 
