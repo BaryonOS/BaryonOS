@@ -153,7 +153,7 @@ een door de assistent herhaalde test of een afgeronde releasegate.
 | Werk / eigenaar | Behouden gebied / toestand | Eerstvolgend / afhankelijkheid |
 |---|---|---|
 | Publisher/sourcepersistentie /SEC2, snapshotinterface /Apps11 | Recoverydoc05784243/snapshotdoc083af5e/coreleaf648eebcf af/frozen | Frozen73head ongewijzigd; geen andere codewriter of adapter/backend/anker/issuer/publicatieclaim. Nativeactualiteit niet door hostfixture vervangen; eventuele nieuwe implementatiescope vraagt afzonderlijke allocatie |
-| NAS-resumeclient /NAS10 | `services/nas/native-client/**` en NAS-only `.github/workflows/nas-core.yml`, frozen19c85f34 | 16debug/17release incl64KiBqueue/coreCAS/Unknown/revoke en viercrategates gemeld. Intake3 om correcte drafthead/base gevraagd, niet sessiePR71muteren; typedcheckpoint geen duurzame syncqueue |
+| NAS-resumeclient /NAS10 | `services/nas/native-client/**` en NAS-only `.github/workflows/nas-core.yml`, oorspronkelijke freeze19c85f34; concept#95 aparte stack | LiveREST20:02: draft/open head dd381632995998cbfb810fc30719fdfbd70920b8, basea9cf10970889ef10b4fc67df47316b7fc66fa2f2/PR71. TLmelding9796f83d achterhaald door livehead; geen foutief herschrijven of testpass afleiden. CI volgensTLpending/P01–P04 0/5. Intake/integratie7f,PR71 niet muteren; typedcheckpoint geen duurzame syncqueue |
 | AI-modeladapter /AI5 | `experiments/ai/model-store-contract/**`, frozen#82/b51; tests-onlybc44 apart | Store-issued opaque Ref+immutablegeneration/aparte pinmetadata, authoritativeopen/boundedread/u64quota/explicietefouten/HandleDrop/catalogusduurzaamheid aanREL+Apps geleverd. Provider blijftREL; geen inference/download/netwerkclaim |
 | Viewer /22 | `sdk/examples/image-viewer/**`, frozen#86/f2c875a7 | Apps11 contract/review; DocumentSession open kiest STATrevisie, gekozen revisie nadien vergelijken. ReadOnly/word112 is clientpolicy, GEEN objectautorisatie. Kernel-authsender/object/revision/READ+LIST/mutatieweigering bijprovider; launch/focus REL/UI |
 | UI-wrapper /13 | U04 af/frozen70be43d6; nieuwe SR05leaf apart | Externe native hulpmiddelenconsumer blijft OPEN; IPC/protocol/rootbootstrap vereist een afzonderlijke REL-ownerhandoff. IMAGE-0818/e37fa17b eigen bron/v326b41e55/1VM132.461s/raw33;15eb70/20replay97b73e4 geen nieuwe ordinaryDEV |
@@ -210,6 +210,13 @@ verschillende bewijsniveaus. Ontbrekend of alleen lokaal bewijs blijft open.
 | Windows21: bestaande overdrachtroute en ontbrekende coldtools | [Route 0915828f](https://github.com/simonvanieperen/nieuw-os/commit/0915828fcd40492f873dc9098ee445306f1f0638), [R77 corrected coldtools bffe11](https://github.com/simonvanieperen/nieuw-os/commit/bffe11fbc8c90d0e43b784c0a4ab580a111c12cc); laatste nog niet in DEV1-basis |
 | Viewer22: bron/eigen gatebewijs, geen objectautorisatie | [#86 f2c875a7](https://github.com/simonvanieperen/nieuw-os/commit/f2c875a711f9e2d3d045de160163634bcbc8d80e) |
 | Intake3: eerder bevroren intake | [#76 8a14770](https://github.com/simonvanieperen/nieuw-os/commit/8a14770d6a719c3a122c54cb774db58ce9b1a728) |
+| NAS-resumeclient en DEV1: actuele PRmetadata, geen native gate | [#95](https://github.com/simonvanieperen/nieuw-os/pull/95) livehead dd381632995998cbfb810fc30719fdfbd70920b8; [#94](https://github.com/simonvanieperen/nieuw-os/pull/94) livehead557b85e26372cf3809c0760d40b430ec5ef7cc6b. Beide draft/open viaREST20:02; geen CI-/runtimepass. RELc969 wacht verseBUILD12slotbeslissing |
+
+A02-melding vanTL20:02 noemt catalogusleaf opbasis c8c68ee zonder nieuwe
+exacte head. Het register bevat al frozen#80/bc27: daarom geen nieuwe
+producer/PR of lintfix toewijzen op deze mogelijk historische melding.
+Intake/7f toetsen alleen of er werkelijk een nieuwe bron is; bestaande
+Appsfreeze en code-/fileclaims blijven behouden.
 
 Normatieve NET-bronnen, geen bewijs dat Nieuw OS hier al native aan voldoet:
 
