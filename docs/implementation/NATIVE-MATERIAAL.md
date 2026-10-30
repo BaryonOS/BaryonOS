@@ -1,5 +1,53 @@
 # TASK-NATIVE-MATERIAAL — eerste native frontendketen
 
+## TASK-MATERIAAL-NATIVE-APP — gescheiden native app, SUR1-freeze
+
+31ab300 bouwbasis: main985ed4d plus frontend be0/d5 en display/input b2ad.
+Eigenaar native_ui_apps: ui/surface-protocol, sdk/input-client, nieuw voorbeeld
+sdk/examples/materiaal en dit document. Root bezit afzonderlijke compositor,
+bootstrap/centraleABI/build/workspace-locks. Gericht extra toegewezen:
+ui-core mouse.rs voor een publieke checked buttonconstructor en de eigen
+Controller voor een pointer-only cancelhook. Geen andere bestaande files.
+
+Appslot3 krijgt geen DISPLAY/INPUT/Block/Entropy/Key/Network-cap. Compositor4
+heeft DISPLAY, source5 INPUT en policy6 alleen eigen IPC; echte PIDs blijven
+onderscheiden en komen uit kernelmetadata/startup. Init0 blijft supervisor.
+App heeft drie taak-kanaalparen (volume, INP1, surface) plus bestaande supervisor-
+controlRECV/registrySEND, binnen het bestaande quotum van vier receive-endpoints.
+
+Het afgestemde [SUR1-contract](../../ui/surface-protocol/README.md) is 48B-header,
+208B-chunkdata, maximaal vijf chunks per tile en één transaction-ID voor
+BEGIN/CHUNK/COMMIT. Alleen complete gevalideerde COMMIT plus echte DisplayClient-
+blit mag positief bevestigen. Root bouwt de ring3compositor tegen de pure
+Receiver/CommitReady/commit_with-interface; geen kernel-render-/GUIpolicy.
+INFO meldt publieke schermgeometry en toegewezen Rect, geen fysieke base/stride.
+De app tekent lokaal; compositor valideert/telt de toegewezen offset op en
+beschermt zijn verplichte systeemrand. Canonieke row-major gridindices,
+request/epoch/frame/offset/length/pixelchecks en timeout begrenzen staging.
+
+Input blijft **globaal** op werkelijke GOPwidth/height. Native adapter valideert
+het afzonderlijke 96B INP1-contract, geen 32Bhardware-record. Binnen assignedRect
+trekt hij alleen x/y-offset af; erbuiten wist cancel_pointer alleen pressed,
+drag en hover/cursor, zonder draft/keyboardfocus/generatie te wijzigen. Geen
+clamping van een release buiten Save naar een klik; reentry met buttondown
+maakt geen nieuwe press. MouseButtons::checked weigert onbekende bits, terwijl
+de private bestaande routingconstructor behouden blijft.
+
+Startup blijft compatibel: docEpoch32, docRecv72, docSend80, registrySend88,
+controlRecv96, readonly112, volumePID168, appPID176, initPID184. Nieuwe velden:
+surfaceSend544, reply552, compositorPID560, surfaceEpoch568, inputSend576,
+inputReply584, policyPID592, inputEpoch600, inputClientID608, scale616.
+Counters400..512/failure240 worden uitsluitend na werkelijk waargenomen
+handelingen bijgewerkt, geen vooraf ingevulde Saved/Presented/Ready-proef.
+
+Drie64KiB-callerbuffers komen in eigen BSS/RW en niet op64KiB-stack. De nieuwe
+vijfsegmentlinker houdt startup40010000 en plaatst rodata+.data.rel.ro vóór de
+RWwildcard in afzonderlijk R+NXgebied40020000(max256KiB), RW/BSS40070000 en
+code400b0000. Dit blijft binnen bestaande userimage-/quota-/W^X-grenzen. Werkelijk
+gebouwde ELF en user::parse zijn verplicht; native QMP/image/diskoracle komt
+pas bij rootintegratie. Er is geen claim van persistente encrypted keys/B02,
+volledig Materiaal, schermlezer of volwaardige testrelease.
+
 30 oktober 2026; basis `61ea727`. Eigenaar `native_ui_apps`: uitsluitend
 `ui/native/**` en dit contract. Root bezit kernel/ABI/startupcaps/build/integratie;
 `git_build_audit` onderzoekt display-/PS2-transport; geheugenagent bezit m3.rs.
