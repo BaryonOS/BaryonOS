@@ -124,9 +124,50 @@ STAGES: dict[str, dict] = {
                       expect={"IMAGE_VERSION": 1, "RESULT": 3, "INBOX_REJECT": 2, "INBOX_VERSION": 0,
                               "BROKER:WRITES": 0, "BROKER:FLUSHES": 0},
                       at_least={}),
+    "rotate-install": dict(sequence="rotation", fresh=True,
+                          pack=("A", {"slot-a": ("m1", "k1"), "inbox": ("mn", "k2")}),
+                          mutate=[], installed_manifest="mn",
+                          loader=["BOOT:FLOOR:0", "BOOT:SLOT:B:REJECTED:FORMAT", "BOOT:SLOT:A:VERSION:1"],
+                          outcome="INSTALLED",
+                          expect={"IMAGE_VERSION": 1, "RESULT": 1, "INSTALLED": 2, "INSTALLED_VERSION": 2,
+                                  "TARGET_SLOT": 1, "RUNNING_SLOT": 0, "HEADER_ACTIVE": 0,
+                                  "HEADER_GENERATION": 1, "NEW_GENERATION": 2,
+                                  "BROKER:HEADER_WRITES": 1},
+                          at_least={"BROKER:FLUSHES": 3, "COPIED_SECTORS": 64}),
+    "rotate-boot": dict(sequence="rotation", fresh=False, parent="rotate-install", mutate=[],
+                       loader=["BOOT:FLOOR:1", "BOOT:SLOT:B:VERSION:2"], outcome="UP_TO_DATE",
+                       expect={"IMAGE_VERSION": 2, "RESULT": 2, "HEADER_ACTIVE": 1,
+                               "HEADER_GENERATION": 2, "RUNNING_SLOT": 1,
+                               "BROKER:WRITES": 0, "BROKER:FLUSHES": 0},
+                       at_least={}),
+    "key-revoked": dict(sequence="key-revoked", fresh=True,
+                       pack=("B", {"slot-a": ("m1", "k1"), "slot-b": ("mr", "k2"), "inbox": ("mr", "k2")}),
+                       mutate=[],
+                       loader=["BOOT:FLOOR:0", "BOOT:SLOT:B:REJECTED:KEY_REVOKED", "BOOT:SLOT:A:VERSION:1"],
+                       outcome="REJECTED:KEY_REVOKED",
+                       expect={"IMAGE_VERSION": 1, "RESULT": 3, "ACTIVE_REJECT": 7, "INBOX_REJECT": 7,
+                               "INBOX_VERSION": 0, "BROKER:WRITES": 0, "BROKER:FLUSHES": 0},
+                       at_least={}),
+    "key-expired": dict(sequence="key-expired", fresh=True,
+                       pack=("B", {"slot-a": ("m1", "k1"), "slot-b": ("me", "k2"), "inbox": ("me", "k2")}),
+                       mutate=[],
+                       loader=["BOOT:FLOOR:0", "BOOT:SLOT:B:REJECTED:KEY_EXPIRED", "BOOT:SLOT:A:VERSION:1"],
+                       outcome="REJECTED:KEY_EXPIRED",
+                       expect={"IMAGE_VERSION": 1, "RESULT": 3, "ACTIVE_REJECT": 8, "INBOX_REJECT": 8,
+                               "INBOX_VERSION": 0, "BROKER:WRITES": 0, "BROKER:FLUSHES": 0},
+                       at_least={}),
+    "key-not-yet-valid": dict(sequence="key-not-yet-valid", fresh=True,
+                             pack=("B", {"slot-a": ("m1", "k1"), "slot-b": ("mp", "k1"), "inbox": ("mp", "k1")}),
+                             mutate=[],
+                             loader=["BOOT:FLOOR:0", "BOOT:SLOT:B:REJECTED:KEY_NOT_YET_VALID", "BOOT:SLOT:A:VERSION:1"],
+                             outcome="REJECTED:KEY_NOT_YET_VALID",
+                             expect={"IMAGE_VERSION": 1, "RESULT": 3, "ACTIVE_REJECT": 9, "INBOX_REJECT": 9,
+                                     "INBOX_VERSION": 0, "BROKER:WRITES": 0, "BROKER:FLUSHES": 0},
+                             at_least={}),
 }
 ORDER = ("install", "boot-v2", "downgrade", "bad-signature", "bad-digest", "bad-elf", "cut", "cut-resume",
-         "cut-final", "no-valid-slot", "inbox-signature", "inbox-downgrade", "inbox-key")
+         "cut-final", "no-valid-slot", "inbox-signature", "inbox-downgrade", "inbox-key",
+         "rotate-install", "rotate-boot", "key-revoked", "key-expired", "key-not-yet-valid")
 CONTROLLED_PREFIXES = ("BOOT:", "UPDATE:MANIFEST:PASS", "UPDATE:READY", "UPDATE:UP_TO_DATE",
                        "UPDATE:REJECTED:", "UPDATE:NO_BUNDLE", "UPDATE:CUT:", "UPDATE:RESOURCES:PASS",
                        "UPDATE:PASS", "M1:PASS", "KERNEL:ENTRY", "BOOTINFO:OK")
@@ -218,8 +259,9 @@ def check_store(stage: str, before: bytes, after: bytes, images: dict) -> dict:
     header = oracle["header"]
     prior = disk.analyse(before)["header"]
     k2 = (BUILD / "update" / "kernel-v2.elf").read_bytes()
-    m2 = (BUILD / "update" / "manifest-v2.bin").read_bytes()
-    if disk.sha256(k2) != images["kernels"]["k2"] or disk.sha256(m2) != images["manifests"]["m2"]:
+    installed_manifest = plan.get("installed_manifest", "m2")
+    m2 = (BUILD / "update" / images["files"][installed_manifest]).read_bytes()
+    if disk.sha256(k2) != images["kernels"]["k2"] or disk.sha256(m2) != images["manifests"][installed_manifest]:
         raise ValueError("reference images changed")
     if plan["outcome"] in ("UP_TO_DATE", "NO_VALID_SLOT") or plan["outcome"].startswith("REJECTED"):
         if after != before:

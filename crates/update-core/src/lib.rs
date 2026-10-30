@@ -13,6 +13,9 @@ use ml_dsa::{
 };
 use sha2::{Digest, Sha256};
 
+pub mod policy;
+pub mod test_policy;
+
 pub const SECTOR: usize = 512;
 pub const MANIFEST_MAGIC: [u8; 8] = *b"NOSMAN01";
 pub const MANIFEST_LEN: usize = 3500;
@@ -49,6 +52,10 @@ pub enum Reject {
     Digest,
     Downgrade,
     Read,
+    KeyRevoked,
+    KeyExpired,
+    KeyNotYetValid,
+    KeyPolicy,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -137,8 +144,9 @@ impl TrustAnchors {
     }
 }
 
-/// Full manifest verification: format, key IDs, then BOTH signatures over the
-/// same canonical bytes. Any failure is a rejection with the first reason.
+/// Cryptographic verification against one key pair, without lifecycle policy.
+/// Boot/install callers must use `policy::TrustPolicy::verify_manifest` instead.
+/// Both signatures cover the same canonical bytes.
 pub fn verify_manifest(
     bytes: &[u8; MANIFEST_LEN],
     anchors: &TrustAnchors,
