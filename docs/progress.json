@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "f52dab50af281dab2c94ab2c9e31aaabd299246a",
+    "source_commit": "cdfa365d21421d171ed21680e0cc22a2310e4e27",
     "branch": "simonvanieperen-musical-happiness",
     "task": "DHCP-CODEC-1: begrensde no_std DHCPv4-codec als voorstap voor native netwerkconfiguratie",
     "previous_score": 34,

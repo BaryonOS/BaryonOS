@@ -32,7 +32,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`f52dab50`](https://github.com/simonvanieperen/nieuw-os/commit/f52dab50af281dab2c94ab2c9e31aaabd299246a) ·
+**Bron:** [`cdfa365d`](https://github.com/simonvanieperen/nieuw-os/commit/cdfa365d21421d171ed21680e0cc22a2310e4e27) ·
 **Ontwikkelbranch:** `simonvanieperen-musical-happiness`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** DHCP-CODEC-1: begrensde no_std DHCPv4-codec als voorstap voor native netwerkconfiguratie.
 34% blijft 34%. Een dependencyvrije no_std DHCPv4-codec bouwt DISCOVER/selecting REQUEST/renewal REQUEST en parseert begrensd OFFER/ACK/NAK; de kernel-ABI en netwerkrechten zijn onaangeroerd. `cargo check --tests --locked --offline`, fmt en diffcontrole slagen, maar de volledige hosttests linken niet omdat `cc` ontbreekt. Geen DHCP-toestandsmachine, interface-/routeconfiguratie of native peerproef; N01–N04 blijven open en geen criterium is gesloten.

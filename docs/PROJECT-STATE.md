@@ -2,11 +2,11 @@
 
 ## NEXT AGENT HANDOFF — DHCP-CODEC-1 blijft ongetest en niet-native — 30 oktober 2026
 
-Branch `simonvanieperen-musical-happiness`, bronbasis `f52dab50`; opt-in
-DHCPv4-codec in `services/net-protocol/` is werkboomwerk boven die basis.
-Geen kernel-/SDK-ABI-, capability- of netwerkbevoegdheidswijziging. De werkboom
-bevat alleen de DHCP-module/export/tests, codecdocumentatie, queue en dit
-status/progresscheckpoint.
+Branch `simonvanieperen-musical-happiness`; codecommit `cdfa365` is geïntegreerd
+met `origin/main` via checkpoint `e1cce29`. DHCPv4-codec in
+`services/net-protocol/` is daarmee gecommit. Deze codewijziging raakt alleen de
+module/export/tests, codecdocumentatie en queue; de kernel-/SDK-ABI en
+netwerkbevoegdheden zijn ongewijzigd.
 
 De codec bouwt DISCOVER, selecting REQUEST en renewal REQUEST en begrensd
 parseert OFFER/ACK/NAK met transaction-/MAC-controle, 576-bytegrens,
