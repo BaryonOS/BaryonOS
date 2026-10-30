@@ -288,6 +288,17 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
         self.invalidate()
     }
+    /// Pointer left the assigned surface or its pointer stream was cancelled.
+    /// This changes no keyboard focus, input epoch/generation, selection, draft
+    /// or storage status. A held button on reentry cannot create a new press;
+    /// the adapter passes only actual source changed/down bits, never clamped
+    /// outside coordinates or a synthetic press.
+    pub fn cancel_pointer(&mut self) -> Result<(), Error> {
+        self.dragging = false;
+        self.pressed = None;
+        self.cursor = None;
+        self.invalidate()
+    }
     pub fn refresh(&mut self) -> Result<(), Error> {
         let mut objects = [ListEntry::EMPTY; PER_DOMAIN];
         match self.document.list(&mut objects) {
