@@ -149,7 +149,8 @@ CARGO_ENCODED_RUSTFLAGS=$'--cfg\x1fcurve25519_dalek_backend="serial"' \
 cargo +1.90.0 test --offline --locked --manifest-path sdk/app-management/Cargo.toml
 cargo +1.90.0 clippy --offline --locked --manifest-path sdk/app-management/Cargo.toml --all-targets -- -D warnings
 cargo +1.90.0 fmt --manifest-path sdk/app-management/Cargo.toml --all -- --check
-cargo +1.90.0 build --offline --locked --release --manifest-path sdk/app-management/Cargo.toml --target x86_64-unknown-none
+CARGO_ENCODED_RUSTFLAGS=$'--cfg\x1fcurve25519_dalek_backend="serial"' \
+  cargo +1.90.0 build --offline --locked --release --manifest-path sdk/app-management/Cargo.toml --target x86_64-unknown-none
 ```
 
 De eerste drie commando's testen alleen de bestaande package-core.
