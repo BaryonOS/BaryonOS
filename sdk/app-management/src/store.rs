@@ -561,6 +561,14 @@ mod tests {
                 },
                 ..expected
             },
+            // A different artifact with identical generation, length and digest.
+            ArtifactDescriptor {
+                reference: ArtifactRef {
+                    artifact_id: [2; 32],
+                    immutable_generation: 3,
+                },
+                ..expected
+            },
         ] {
             let mut store = FakeStore::new(authoritative, 8);
             assert!(matches!(
@@ -672,6 +680,37 @@ mod tests {
         transaction
             .begin(writer, 9, request_id, 4, descriptor(length))
             .unwrap();
+    }
+
+    #[test]
+    fn begin_rejects_invalid_descriptors_without_reaching_the_writer() {
+        let valid = descriptor(8);
+        for invalid in [
+            descriptor(0),
+            ArtifactDescriptor {
+                reference: ArtifactRef {
+                    artifact_id: [0; 32],
+                    immutable_generation: 3,
+                },
+                ..valid
+            },
+            ArtifactDescriptor {
+                reference: ArtifactRef {
+                    artifact_id: [1; 32],
+                    immutable_generation: 0,
+                },
+                ..valid
+            },
+        ] {
+            let mut transaction = InstallTransaction::new();
+            let mut writer = FakeWriter::default();
+            assert_eq!(
+                transaction.begin(&mut writer, 9, 1, 4, invalid),
+                Err(StoreError::Invalid)
+            );
+            assert_eq!(transaction.state(), InstallState::Idle);
+            assert!(writer.descriptor.is_none());
+        }
     }
 
     #[test]
