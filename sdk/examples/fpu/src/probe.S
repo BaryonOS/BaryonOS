@@ -258,6 +258,10 @@ schedule_call:
  jne failure
  call verify
  mov ecx,50000
+ cmp qword ptr [app_startup+168],0
+ je busy
+ // Deadline ticks alone do not prove a timer interrupted live FP registers.
+ mov ecx,1000000
 busy:
  pause
  dec ecx

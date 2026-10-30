@@ -56,6 +56,13 @@ te geven, en eist na afloop een volledig lege, consistente Engine.
 Geen wijziging aan process-exit of capability-afdwinging. Hertoets volgt;
 de mislukte run blijft onder `fpu-wait/run/test-fpu-wait-e442556248`.
 De gewone IPC-wachtpoort en native RTC-poort slagen wel op `a263bef`, raw33.
+De hertoets op `61a507e` bereikte echte fault/survivor/slothergebruik, maar
+faalde terecht op `TIMER_PREEMPTION`: deadline-idle alleen bewijst geen
+timerinterrupt op levende user-FP-registers. De wachtvariant houdt daarom
+per lus meer echte userspace-busyinstructies aan (1.000.000 versus de
+ongewijzigde 50.000 in de yield-baseline). De eis van minstens twee echte
+user-timerinterrupts per app blijft intact; nieuwe run volgt. Rode run:
+`fpu-wait/run/test-fpu-wait-922d54455a`.
 
 Open: native kill/hergebruik en FPU met wachten, overige native regressies,
 volledige product-/menselijke-/hardwareacceptatie. Eerstvolgende commando:
