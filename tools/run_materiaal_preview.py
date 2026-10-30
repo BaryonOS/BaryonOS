@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Boot the non-probe Materiaal session and verify its first native frame."""
+"""Boot non-probe Materiaal, optionally checking real input against native frames."""
 from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -14,10 +15,11 @@ import time
 import uuid
 
 from common import BUILD, ROOT, environment, firmware, qemu_machine, sha256, source_hash
-from package_windows_qemu import validate_build
+from package_windows_qemu import APP_NAMES, load_json, validate_build
 from run_graphics import QmpPipe, ppm
 from run_system import check_image
 from run_fpu import private_path, publish, publish_json
+import run_materiaal_probe as probe
 import volume_disk
 
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
@@ -66,6 +68,136 @@ def read_serial(path: Path) -> bytes:
     return path.read_bytes()
 
 
+def reference_binding(report: dict, reference_manifest: dict, manifest: dict,
+                      frozen: str, machine: str) -> None:
+    if (report.get("passed") is not True or report.get("case") != "normal"
+            or report.get("source_sha256") != frozen
+            or reference_manifest.get("source_sha256") != frozen
+            or manifest.get("source_sha256") != frozen
+            or type(report.get("source_fingerprint_version")) is not int
+            or report["source_fingerprint_version"] != 3
+            or report.get("machine") != machine
+            or reference_manifest.get("kernel_feature") != probe.FEATURES["normal"]
+            or manifest.get("kernel_feature") != "native-system-materiaal"):
+        raise ValueError("Reference is not a same-source normal native probe")
+    current_apps = manifest["materiaal"]["apps"]
+    reference_apps = reference_manifest["materiaal"]["apps"]
+    if (len(current_apps) != len(APP_NAMES) or len(reference_apps) != len(APP_NAMES) + 1
+            or any(current.get("name") != name or reference != current
+                   for name, current, reference in
+                   zip(APP_NAMES, current_apps, reference_apps[:len(APP_NAMES)], strict=True))
+            or reference_apps[-1].get("name") != "desktop-controller"):
+        raise ValueError("Reference differs from the seven interactive app identities")
+    if manifest["loader"]["sha256"] != reference_manifest["loader"]["sha256"]:
+        raise ValueError("Reference loader differs from the interactive loader")
+
+
+def load_reference(directory: Path, manifest: dict, frozen: str, machine: str,
+                   firmware_hashes: dict, qemu_hash: str) -> dict:
+    directory = private_path(directory).resolve(strict=True)
+    report_path = private_path(directory / "result.json", regular=True)
+    report_hash = sha256(report_path)
+    report = load_json(report_path, "native reference report", 16 * 1024 * 1024)
+    reference_manifest = load_json(
+        private_path(directory / "inputs/manifest.json", regular=True), "native reference manifest"
+    )
+    reference_binding(report, reference_manifest, manifest, frozen, machine)
+    # Recompute the original eight-process proof before borrowing its images.
+    # This never interprets the interactive guest as a diagnostic/controller run.
+    probe.replay(report, directory, frozen)
+    expected_firmware = {
+        "OVMF_CODE.fd": firmware_hashes["ovmf_code_sha256"],
+        "OVMF_VARS.template.fd": firmware_hashes["ovmf_vars_template_sha256"],
+        "VGA.rom": firmware_hashes["seabios_vga_sha256"],
+    }
+    if (any(report["frozen_artifacts"].get(name) != digest
+            for name, digest in expected_firmware.items())
+            or report.get("qemu_entry_sha256") != qemu_hash):
+        raise ValueError("Reference firmware or QEMU identity differs")
+    frames = {name: probe.frame_bytes(directory, name) for name in probe.PHASES["normal"]}
+    probe.validate_frames(frames, "normal")
+    if sha256(report_path) != report_hash:
+        raise ValueError("Reference report changed during validation")
+    return {
+        "directory": directory,
+        "report_sha256": report_hash,
+        "frames": frames,
+        "source_sha256": frozen,
+        "apps": manifest["materiaal"]["apps"],
+        "qemu_implementation_sha256": report["qemu_implementation_sha256"],
+    }
+
+
+def interactive_groups(directory: Path) -> list:
+    groups = probe.qmp_groups(directory, "normal")
+    expected_close = [{
+        "execute": "send-key",
+        "arguments": {"keys": [{"type": "qcode", "data": "f12"}], "hold-time": 30},
+    }]
+    if (tuple(name for name, _ in groups) != (*probe.PHASES["normal"], "close")
+            or groups[-1][1] != expected_close):
+        raise ValueError("Diagnostic QMP groups changed; review interactive input contract")
+    if any(key.get("data") == "f12"
+           for _, group in groups[:-1] for request in group
+           if request["execute"] == "send-key"
+           for key in request["arguments"]["keys"]):
+        raise ValueError("F12 is forbidden anywhere in the interactive input chain")
+    return groups[:-1]
+
+
+def matching_reference_frame(raw: bytes, reference: bytes) -> bool:
+    if ppm(raw)[:2] != (WIDTH, HEIGHT) or ppm(reference)[:2] != (WIDTH, HEIGHT):
+        raise ValueError("Wrong interactive/reference framebuffer geometry")
+    # No masks: cursor, caret, chrome and every app pixel must match.
+    return raw == reference
+
+
+def run_interactive(control, process, directory: Path, reference: dict, deadline: float) -> dict:
+    probe.validate_frames(reference["frames"], "normal")
+    frames = {}
+    stages = []
+    for name, group in interactive_groups(directory):
+        for request in group:
+            if request["execute"] == "screendump":
+                while True:
+                    if process.poll() is not None or time.monotonic() >= deadline:
+                        raise TimeoutError(f"Interactive native frame did not match reference: {name}")
+                    verify_ready_transcript(read_serial(directory / "serial.txt"))
+                    control.command(request["execute"], request["arguments"])
+                    raw = probe.frame_bytes(directory, name)
+                    if matching_reference_frame(raw, reference["frames"][name]):
+                        frames[name] = raw
+                        stages.append({
+                            "phase": name,
+                            "screenshot_sha256": hashlib.sha256(raw).hexdigest(),
+                            "qmp_index": len(control.trace),
+                        })
+                        break
+                    time.sleep(min(0.08, max(0, deadline - time.monotonic())))
+            else:
+                if not stages or time.monotonic() >= deadline or process.poll() is not None:
+                    raise RuntimeError("Interactive QMP input before ready or after guest exit/deadline")
+                control.command(request["execute"], request["arguments"])
+                time.sleep(min(0.08, max(0, deadline - time.monotonic())))
+    pixels = probe.validate_frames(frames, "normal")
+    return {"stages": stages, "frames": pixels, "pixel_masks": []}
+
+
+def inspect_stopped_disk(process, directory: Path) -> dict:
+    raw_exit = process.poll()
+    if type(raw_exit) is not int or raw_exit != 0:
+        raise ValueError("Independent disk inspection requires an exited QEMU with raw exit 0")
+    check_image(directory / "volume.img")
+    after = (directory / "volume.img").read_bytes()
+    oracle = probe.disk_oracle(after)
+    publish(directory / "volume.after.img", after)
+    return {
+        "disk": oracle,
+        "before_sha256": sha256(directory / "volume.before.img"),
+        "after_sha256": sha256(directory / "volume.after.img"),
+    }
+
+
 def run_preview(
     *,
     build_directory: Path = BUILD,
@@ -73,11 +205,13 @@ def run_preview(
     vga_rom: Path,
     timeout: int = 45,
     machine: str | None = None,
+    interactive_reference_run: Path | None = None,
 ) -> dict:
     if os.name == "nt":
         raise RuntimeError("This evidence runner uses Linux QMP pipes; use the Windows bundle launcher.")
-    if type(timeout) is not int or not 5 <= timeout <= 60:
-        raise ValueError("Preview timeout must be between 5 and 60 seconds")
+    maximum = 240 if interactive_reference_run is not None else 60
+    if type(timeout) is not int or not 5 <= timeout <= maximum:
+        raise ValueError(f"Preview timeout must be between 5 and {maximum} seconds")
     machine = qemu_machine(machine)
     build, manifest = validate_build(Path(build_directory))
     frozen = source_hash()
@@ -116,8 +250,12 @@ def run_preview(
         if not stat.S_ISREG(details.st_mode) or details.st_nlink != 1 or not 0 < details.st_size <= limit:
             raise ValueError(f"Invalid native preview input: {name}")
         publish(directory / name, source.read_bytes())
+    if (directory / "OVMF_VARS.fd").read_bytes() != (directory / "OVMF_VARS.template.fd").read_bytes():
+        raise ValueError("Initial writable firmware differs from its frozen template")
     volume_disk.create_image(directory / "volume.img", "empty")
     check_image(directory / "volume.img")
+    if interactive_reference_run is not None:
+        publish(directory / "volume.before.img", (directory / "volume.img").read_bytes())
 
     command = [
         qemu, "-L", ".", "-machine", machine, "-accel", "tcg,thread=single",
@@ -149,6 +287,7 @@ def run_preview(
             ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, timeout=10
         ).strip(),
         "source_sha256": frozen,
+        "source_fingerprint_version": 3,
         "kernel_sha256": manifest["kernel"]["sha256"],
         "loader_sha256": manifest["loader"]["sha256"],
         "kernel_feature": manifest["kernel_feature"],
@@ -156,19 +295,43 @@ def run_preview(
         "qemu_version": qemu_version,
         "qemu_sha256": sha256(Path(qemu)),
         "firmware": {
-            "ovmf_code_sha256": sha256(code),
-            "ovmf_vars_template_sha256": sha256(variables),
-            "seabios_bios_sha256": sha256(bios_rom),
-            "seabios_vga_sha256": sha256(vga_rom),
+            "ovmf_code_sha256": sha256(directory / "OVMF_CODE.fd"),
+            "ovmf_vars_template_sha256": sha256(directory / "OVMF_VARS.template.fd"),
+            "seabios_bios_sha256": sha256(directory / "bios-256k.bin"),
+            "seabios_vga_sha256": sha256(directory / "VGA.rom"),
         },
         "command": command,
         "run_directory": str(directory),
         "started_utc": started,
     }
+    reference = None
+    if interactive_reference_run is not None:
+        report["scope"] = (
+            "Interactive seven-process native input/save/list/reopen against exact native "
+            "reference pixels and post-quit disk bytes; no controller/snapshot/cleanup, "
+            "cold recovery, manual UX, full release or Windows-host acceptance."
+        )
     publish_json(report_path, report)
 
     process = control = None
     try:
+        if interactive_reference_run is not None:
+            reference = load_reference(
+                interactive_reference_run, manifest, frozen, machine,
+                report["firmware"], report["qemu_sha256"],
+            )
+            report["interactive_reference"] = {
+                "run_directory": str(reference["directory"]),
+                "report_sha256": reference["report_sha256"],
+                "source_sha256": reference["source_sha256"],
+                "apps": reference["apps"],
+                "qemu_implementation_sha256": reference["qemu_implementation_sha256"],
+                "frames_sha256": {
+                    name: hashlib.sha256(raw).hexdigest()
+                    for name, raw in reference["frames"].items()
+                },
+            }
+            publish_json(report_path, report)
         with (directory / "stderr.txt").open("xb") as stderr:
             process = subprocess.Popen(
                 command,
@@ -180,6 +343,11 @@ def run_preview(
                 bufsize=0,
             )
             control = QmpPipe(process, deadline)
+            if reference is not None:
+                implementation = Path(os.readlink(f"/proc/{process.pid}/exe"))
+                report["qemu_implementation_sha256"] = sha256(implementation)
+                if report["qemu_implementation_sha256"] != reference["qemu_implementation_sha256"]:
+                    raise ValueError("Interactive QEMU implementation differs from native reference")
             expected = (*BOOT, *READY)
             while True:
                 serial = read_serial(directory / "serial.txt")
@@ -192,18 +360,42 @@ def run_preview(
                     raise TimeoutError("Native Materiaal session did not reach all readiness gates")
                 time.sleep(0.02)
             observed = verify_ready_transcript(serial)
-            screenshot = directory / "preview.ppm"
-            control.command("screendump", {"filename": str(screenshot)})
+            if reference is not None:
+                report["interactive"] = run_interactive(
+                    control, process, directory, reference, deadline
+                )
+                screenshot = directory / "reopened.ppm"
+            else:
+                screenshot = directory / "preview.ppm"
+                control.command("screendump", {"filename": str(screenshot)})
             frame = verify_frame(screenshot.read_bytes())
             serial = read_serial(directory / "serial.txt")
             observed = verify_ready_transcript(serial)
             serial_hash = sha256(directory / "serial.txt")
             control.command("quit")
             raw_exit = process.wait(timeout=max(1, deadline - time.monotonic()))
+            if time.monotonic() >= deadline:
+                raise TimeoutError("Native preview exceeded its shared VM deadline")
         if raw_exit != 0:
             raise RuntimeError(f"QEMU preview exited unexpectedly: {raw_exit}")
+        observed = verify_ready_transcript(read_serial(directory / "serial.txt"))
+        serial_hash = sha256(directory / "serial.txt")
         if source_hash() != frozen:
             raise ValueError("Source changed during native preview")
+        if reference is not None:
+            report["interactive"].update(inspect_stopped_disk(process, directory))
+            if (sha256(implementation) != report["qemu_implementation_sha256"]
+                    or sha256(Path(qemu)) != report["qemu_sha256"]):
+                raise ValueError("Interactive QEMU identity changed during run")
+            confirmed = load_reference(
+                reference["directory"], manifest, frozen, machine,
+                report["firmware"], report["qemu_sha256"],
+            )
+            if (confirmed["report_sha256"] != reference["report_sha256"]
+                    or confirmed["frames"] != reference["frames"]):
+                raise ValueError("Reference changed during interactive run")
+            if source_hash() != frozen:
+                raise ValueError("Source changed during final reference validation")
         report.update(
             passed=True,
             raw_qemu_exit=raw_exit,
@@ -249,6 +441,10 @@ def main() -> None:
     parser.add_argument("--vga-rom", type=Path, required=True)
     parser.add_argument("--timeout", type=int, default=45)
     parser.add_argument("--machine")
+    parser.add_argument(
+        "--interactive-reference-run", type=Path,
+        help="Replay a completed same-source normal native probe and require its exact phase pixels",
+    )
     args = parser.parse_args()
     run_preview(
         build_directory=args.build_dir,
@@ -256,6 +452,7 @@ def main() -> None:
         vga_rom=args.vga_rom,
         timeout=args.timeout,
         machine=args.machine,
+        interactive_reference_run=args.interactive_reference_run,
     )
 
 
