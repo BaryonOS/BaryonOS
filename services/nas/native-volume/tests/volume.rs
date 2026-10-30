@@ -133,6 +133,83 @@ fn committed_snapshot_survives_cold_volume_recovery_without_history() {
 }
 
 #[test]
+fn actual_core_volume_outcome_matches_independent_python_probe_oracle() {
+    let principal = |pid: u64| {
+        let mut bytes = [0; 32];
+        bytes[..8].copy_from_slice(b"NOSPROC1");
+        bytes[8..16].copy_from_slice(&pid.to_le_bytes());
+        Principal(bytes)
+    };
+    let (admin, guest) = (principal(11), principal(12));
+    let local = Local::fresh();
+    let mut work = Box::new(Workspace::new());
+    let mut entropy = TestEntropy(20);
+    let mut nas = Nas::initialize(local.storage(), admin, &mut entropy, &mut work).unwrap();
+    let invite = nas
+        .invite(admin, guest, 128, 100, 6000, &mut entropy)
+        .unwrap();
+    nas.accept(guest, &invite, 100).unwrap();
+    let session = nas.open(guest, &invite.namespace).unwrap();
+    let upload = nas.stage(guest, session, 0, 0, &[0xA5; 96]).unwrap();
+    nas.commit(guest, session, upload).unwrap();
+    nas.stage(guest, session, 0, 1, &[0x55; 32]).unwrap();
+    assert_eq!(
+        nas.set_quota(admin, &invite.namespace, 127),
+        Err(Error::Quota)
+    );
+    nas.revoke(admin, &invite.namespace).unwrap();
+    nas.evict(admin, &invite.namespace).unwrap();
+    drop(nas);
+    let image = local.image();
+    let cold = Local::recover(image.clone());
+    let mut nas = Nas::recover(cold.storage(), &mut entropy, &mut work).unwrap();
+    assert!(matches!(
+        nas.open(guest, &invite.namespace),
+        Err(Error::Denied)
+    ));
+    nas.evict(admin, &invite.namespace).unwrap();
+    assert_eq!(cold.mutations(), 0);
+    assert_eq!(cold.image(), image);
+
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let directory = std::env::temp_dir().join(format!(
+        "nieuw-os-nas-oracle-{}-{unique}",
+        std::process::id()
+    ));
+    std::fs::create_dir(&directory).unwrap();
+    let raw = directory.join("volume.raw");
+    let bytes: Vec<u8> = image.iter().flatten().copied().collect();
+    std::fs::write(&raw, bytes).unwrap();
+    let output = std::process::Command::new("python3")
+        .arg("-B")
+        .arg(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../native-probe/tests/check_volume_fixture.py"
+        ))
+        .arg(&raw)
+        .output()
+        .unwrap();
+    for path in [
+        raw,
+        directory.join("synthetic.img"),
+        directory.join("synthetic.json"),
+    ] {
+        if path.exists() {
+            std::fs::remove_file(path).unwrap();
+        }
+    }
+    std::fs::remove_dir(directory).unwrap();
+    assert!(
+        output.status.success(),
+        "independent host oracle failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
 fn revoke_and_evict_cold_recover_without_restorable_guest_versions() {
     let mut work = Box::new(Workspace::new());
     for evict in [false, true] {
