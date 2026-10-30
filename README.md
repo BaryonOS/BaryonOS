@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`2b5d69c6`](https://github.com/simonvanieperen/nieuw-os/commit/2b5d69c69eaf4196eb00a8488c88273defe14770) ·
+**Bron:** [`9aa74870`](https://github.com/simonvanieperen/nieuw-os/commit/9aa74870de55387094414c3ec1a909fbeec53c81) ·
 **Ontwikkelbranch:** `codex/native-foundation-integration`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Vier nativeRANDOMgevallen geslaagd; decoder-ABI en ontbrekende standalone lock gericht herstellen.
-32% blijft32%; alle62 volledige releasecriteria blijven open. Vier echteRNGgevallen op2b5raw33 met onafhankelijke serial/STATUS/6ELF/firmware/4096B/canaryhercontrole. Image-op2b5faaltvóórdecodeABIstep1, gerichte echtekernelcheckfixvolgt. CI --lockedlegt ontbrekendestand-alonekeyring-clientclosurebloot; uitsluitend lock wordt bijgewerkt. Nieuwebron/imageuitvoering envolledigeGUI/apps/NAS/AI/opslag/update/herstel/visueleacceptatie blijven vereist. Geenverschovenscope/gewichten ofvolledigtestpakket.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Vier native RNG-gevallen en acht CI groen; JPEG-stackherstel en verplichte native CI integreren.
+De score blijft 32%; alle 62 volledige productcriteria blijven open. Vier echte RNG-gevallen slagen opnieuw op 9aa en alle acht bestaande CI-workflows zijn groen. De native imageproef faalt op een echte 64-KiB-stackguard; een gerichte, onafhankelijk beoordeelde fallible snapshotpatch behoudt de heap, stack, formaten en oracles. De nieuwe CI voert alle vijf native gevallen verplicht uit; TPM-transportcore heeft alleen host/targetbewijs. GUI1fd blijft na 200 seconden rood en een hostoptimalisatie bleek native trager; een echte doelbenchmark volgt. Geen veilige productopslag, volledige apps/NAS/AI/updates/herstel of volledige testrelease geclaimd. Scope en gewichten zijn onveranderd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

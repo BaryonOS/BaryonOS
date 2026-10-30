@@ -1,0 +1,161 @@
+{
+  "checked_utc": "2026-10-30T05:04:30.882080+00:00",
+  "normative_TCG_PTP_read": false,
+  "normative_access": {
+    "url": "https://trustedcomputinggroup.org/resource/pc-client-platform-tpm-profile-ptp-specification/",
+    "result": "URLError: Tunnel connection failed: 403 Forbidden; no normative PTP PDF read, no compliance claim"
+  },
+  "sources": [
+    {
+      "local": "qemu10-crb.c",
+      "repo": "qemu/qemu",
+      "commit": "98f88efe8f07067667b8d9b1a5ce9551d34036c1",
+      "path": "hw/tpm/tpm_crb.c",
+      "url": "https://github.com/qemu/qemu/blob/98f88efe8f07067667b8d9b1a5ce9551d34036c1/hw/tpm/tpm_crb.c",
+      "content_as_read_sha256": "a3e13e0ff43280f0d2adfd9fc7e1ebab8774fd8d2e8024c45e7aef57a64e9228",
+      "line_anchors": {
+        "tpm_crb_mmio_write": [
+          114,
+          120,
+          184
+        ],
+        "tpm_crb_request_completed": [
+          192,
+          329
+        ],
+        "tpm_crb_reset": [
+          234,
+          312,
+          314
+        ]
+      },
+      "scope": "Implementation/reference source, not normative TCG specification or proof of our device execution."
+    },
+    {
+      "local": "qemu10.h",
+      "repo": "qemu/qemu",
+      "commit": "98f88efe8f07067667b8d9b1a5ce9551d34036c1",
+      "path": "include/hw/acpi/tpm.h",
+      "url": "https://github.com/qemu/qemu/blob/98f88efe8f07067667b8d9b1a5ce9551d34036c1/include/hw/acpi/tpm.h",
+      "content_as_read_sha256": "5be5335cd6a322af33eea12e867bb8df19686530beb19094a6ce5333ca41c0c2",
+      "line_anchors": {
+        "REG32(CRB_LOC_STATE": [
+          137
+        ],
+        "REG32(CRB_CTRL_REQ": [
+          165
+        ],
+        "TPM_CRB_ADDR_BASE": [
+          180,
+          182
+        ]
+      },
+      "scope": "Implementation/reference source, not normative TCG specification or proof of our device execution."
+    },
+    {
+      "local": "qemu10-test.c",
+      "repo": "qemu/qemu",
+      "commit": "98f88efe8f07067667b8d9b1a5ce9551d34036c1",
+      "path": "tests/qtest/tpm-crb-test.c",
+      "url": "https://github.com/qemu/qemu/blob/98f88efe8f07067667b8d9b1a5ce9551d34036c1/tests/qtest/tpm-crb-test.c",
+      "content_as_read_sha256": "72d89bcbb9272e394aea144ad4ffe06e68079ec8e1466d70e55bfa4316b983fd",
+      "line_anchors": {
+        "set into ready state": [
+          83
+        ],
+        "set TPM into idle state": [
+          114
+        ]
+      },
+      "scope": "Implementation/reference source, not normative TCG specification or proof of our device execution."
+    },
+    {
+      "local": "edk2-ptp.h",
+      "repo": "tianocore/edk2",
+      "commit": "fbe0805b2091393406952e84724188f8c1941837",
+      "path": "MdePkg/Include/IndustryStandard/TpmPtp.h",
+      "url": "https://github.com/tianocore/edk2/blob/fbe0805b2091393406952e84724188f8c1941837/MdePkg/Include/IndustryStandard/TpmPtp.h",
+      "content_as_read_sha256": "6433fb7bc0ce2980604ef0b3d7324577c25c426e2fdbc9cdd83b324a59658908",
+      "line_anchors": {
+        "PTP CRB definition": [
+          233
+        ],
+        "PTP_CRB_CONTROL_AREA_REQUEST_GO_IDLE": [
+          451
+        ],
+        "PTP_CRB_CONTROL_CANCEL": [
+          489
+        ]
+      },
+      "scope": "Implementation/reference source, not normative TCG specification or proof of our device execution."
+    },
+    {
+      "local": "edk2-tpm20.h",
+      "repo": "tianocore/edk2",
+      "commit": "fbe0805b2091393406952e84724188f8c1941837",
+      "path": "MdePkg/Include/IndustryStandard/Tpm20.h",
+      "url": "https://github.com/tianocore/edk2/blob/fbe0805b2091393406952e84724188f8c1941837/MdePkg/Include/IndustryStandard/Tpm20.h",
+      "content_as_read_sha256": "201ec8881e13df94bdb3715c47a0c621e6742911049b3759c21cac14695dee17",
+      "line_anchors": {
+        "TPM_CC_NV_Increment": [
+          242
+        ],
+        "TPM_PT_MAX_COMMAND_SIZE": [
+          560
+        ],
+        "TPMA_NV Bits": [
+          1695
+        ]
+      },
+      "scope": "Implementation/reference source, not normative TCG specification or proof of our device execution."
+    },
+    {
+      "local": "edk2-nv.c",
+      "repo": "tianocore/edk2",
+      "commit": "fbe0805b2091393406952e84724188f8c1941837",
+      "path": "SecurityPkg/Library/Tpm2CommandLib/Tpm2NVStorage.c",
+      "url": "https://github.com/tianocore/edk2/blob/fbe0805b2091393406952e84724188f8c1941837/SecurityPkg/Library/Tpm2CommandLib/Tpm2NVStorage.c",
+      "content_as_read_sha256": "c88d18b09e69e0fca92466d9c66d2a9e87bcecab32c99d734f3d9f6baa0f692d",
+      "line_anchors": {
+        "TPM2_NV_DEFINESPACE_COMMAND": [
+          55,
+          308
+        ],
+        "TPM2_NV_READ_COMMAND": [
+          85,
+          555
+        ]
+      },
+      "scope": "Implementation/reference source, not normative TCG specification or proof of our device execution."
+    },
+    {
+      "local": "tpm-ref-session.c",
+      "repo": "microsoft/ms-tpm-20-ref",
+      "commit": "ee21db0a941decd3cac67925ea3310873af60ab3",
+      "path": "TPMCmd/tpm/src/main/SessionProcess.c",
+      "url": "https://github.com/microsoft/ms-tpm-20-ref/blob/ee21db0a941decd3cac67925ea3310873af60ab3/TPMCmd/tpm/src/main/SessionProcess.c",
+      "content_as_read_sha256": "147ca3615478380527aa54decddf44f4c01bf7109006e3fd2886672f2be942c0",
+      "line_anchors": {
+        "Make sure that continueSession is SET": [
+          2100
+        ],
+        "responseAuth.t.size = 0": [
+          2106
+        ]
+      },
+      "scope": "Implementation/reference source, not normative TCG specification or proof of our device execution."
+    }
+  ],
+  "licenses": {
+    "qemu": "GPL2 or later (read only, no implementation copied)",
+    "edk2": "BSD-2-Clause-Patent (read only, no implementation copied)",
+    "tpm_reference": {
+      "url": "https://github.com/microsoft/ms-tpm-20-ref/blob/ee21db0a941decd3cac67925ea3310873af60ab3/LICENSE",
+      "title": "LICENSE",
+      "license": "BSD license; patent rights expressly not granted; reference declares 'This code is informative.'"
+    }
+  },
+  "copied_upstream_implementation_into_driver": false,
+  "new_cargo_dependencies": [],
+  "claim": "Own Rust protocol/state-machine implementation; constants and semantics crosschecked against pinned implementation sources. Missing normative specification review and native interoperability remain open."
+}

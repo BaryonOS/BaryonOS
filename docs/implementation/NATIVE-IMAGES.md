@@ -117,6 +117,31 @@ bereikbaarheid, geen uitgevoerde branchtrace of volledige maximale callchain.
 Dit is geen maximale-stackbewijs voor alle branches of native OOM-/guardproef;
 de echte VM-uitvoering blijft verplicht. Alle beeldhashes blijven ongewijzigd.
 
+De volgende echte VM op `9aa74870de55387094414c3ec1a909fbeec53c81` vond een
+andere, eerder niet meegenomen keten: PID5 kreeg een pagefault in
+`capture_scan_header_state`, RIP `0x40118aaa`, adres `0x7ffee9e8` onder de
+stackguard `0x7ffef000`. De grote inline snapshot plus clone reserveerde daar
+ongeveer60KiB vóór de callerframes. De oorspronkelijke fault blijft rood bewijs;
+de eerdere geselecteerde DHT-ketens waren geen volledige maximale-stackanalyse.
+
+De tweede lokale vendorpatch bewaart nu exact vier DC- en vier AC-tabelslots,
+inclusief `None`, in fallible gereserveerde Vec-buffers. Vastgelegde quantisatie,
+arith-conditioning/statistiekvelden, restartinterval, kleurenruimte, Adobe en
+mjpegstatus blijven behouden. Capture en beide replaykopieën geven bij een
+mislukte reservering `AllocationFailed`; de wrapper geeft `OutOfMemory`.
+Alle nieuwe reserveringen slagen vóór hun lokale parser-/checkpointmutatie.
+`headers_decoded` wordt pas na succesvolle snapshot gepubliceerd. Herstel
+kopieert afzonderlijke tabellen; EOF-/annuleringsrollback en SOS-checkpoints
+behouden hun bestaande gedrag. Er is geen nieuwe unsafe of codec-algoritme.
+De bestaande kleine `Box::new`-owners en overige upstreamallocaties zijn hiermee
+niet alle fallible gemaakt; native OOM-isolatie blijft apart verplicht.
+
+[scan-snapshot-codegen.json](../../services/image-codec/verification/scan-snapshot-codegen.json)
+bindt de nieuwe ELF en geselecteerde cumulatieve prologen/callpaden. Dit blijft
+statisch codegenbewijs, geen uitgevoerde stack- of maximale-callchainproef.
+De arena blijft4MiB, de gebruikersstack64KiB en het native fixture-/hashcontract
+ongewijzigd. De volgende geïntegreerde VM moet het echte decoderen nog aftekenen.
+
 ## Uitgevoerd bewijs en echte rode kwaliteitsvraag
 
 Fixtures zijn eigen patronen met uiteenlopende maten, geen vooraf ingevuld
@@ -150,15 +175,29 @@ Rust-code; er is geen C-bron overgenomen. Primaire referentie:
 Er wordt geen upstreamacceptatie geclaimd. Het originele cratearchief, SHA,
 [exacte kleine diff](../../services/image-codec/vendor/upstream/upsample-hv.patch)
 en [alle bronhashes](../../services/image-codec/vendor/upstream/source-verification.json)
-blijven bewaard: één gewijzigd bestand,40 overige bestanden byte-identiek.
+blijven bewaard. Deze eerste patch wijzigt alleen `upsample_hv`. De afzonderlijke
+[snapshotpatch](../../services/image-codec/vendor/upstream/scan-header-heap.patch)
+wijzigt `decoder.rs`, `mcu.rs` en de expliciete allocatiefout in `errors.rs`;
+de overige37 upstreambestanden en alle licentieteksten zijn byte-identiek.
 Alleen deze letterlijke upstreambron en de unified-diff-contextregels hebben
 een lokale whitespace-stijluitzondering; zij worden niet herschreven om
 opmaakwaarschuwingen weg te poetsen. Wrapper/probe/tests blijven normaal getoetst.
 `verify_vendor.py` controleert die volledige bestandsset, archivehash, patchhash
-en ongewijzigde functieprefix/-suffix vóór iedere native build. Drie hostproeven
-weigeren gewijzigde bron, een gewijzigde archive en een extra buildscript.
+en ongewijzigde upsamplerprefix/-suffix vóór iedere native build; de tweede
+patch moet de exacte unified diff van uitsluitend haar drie bronbestanden zijn.
+Vier hostproeven weigeren gewijzigde bron/archive, een extra buildscript en
+een gewijzigde of niet met de bron overeenkomende snapshotpatch.
 
-Het [actuele rapport](../../services/image-codec/verification/host-tests.json)
+Vijf nieuwe hostproeven injecteren echte allocatiefouten in de productie-engine,
+controleren beide publieke OOM-foutpaden en hergebruiken dezelfde decoder na
+snapshot-/checkpointfouten. De synthetische
+[drie-SOS-fixture](../../services/image-codec/fixtures/scan-rollback/oracle.json)
+met DQT/DHT/DRI/COM/APP-wijzigingen is uitsluitend testdata; Pillow/libjpeg dient
+als onafhankelijke hostreferentie. EOF en annulering tussen scans moeten herstel
+met exact dezelfde pixels toelaten. Deze extra hostfixture verandert de tien
+native invoerbeelden, de kwaliteitstolerantie of de verplichte formaatomvang niet.
+
+Het [oorspronkelijke rapport](../../services/image-codec/verification/host-tests.json)
 bevat **14 geslaagde testgroepen,exit0**:11 decodegroepen plus3 groepen op de
 werkelijk gepatchte upsampler. PNG-pixels en volle16bitsamples matchen exact.
 BaselineJPEG maximaal3,grayscale1,progressive nu3; progressive totaalabs1375 en

@@ -53,6 +53,8 @@ pub enum DecodeErrors {
     TooSmallOutput(usize, usize),
 
     IoErrors(ZByteIoError),
+    /// A bounded scan-header snapshot could not reserve its owned table buffers.
+    AllocationFailed,
     /// Decoding was cancelled early by the cancel check.
     ///
     /// See [`JpegDecoder::set_cancel`](crate::JpegDecoder::set_cancel).
@@ -123,6 +125,7 @@ impl Debug for DecodeErrors {
             ),
             Self::TooSmallOutput(expected, found) => write!(f, "Too small output, expected buffer with at least {expected} bytes but got one with {found} bytes"),
             Self::IoErrors(error)=>write!(f,"I/O errors {error:?}"),
+            Self::AllocationFailed => write!(f, "Cannot allocate JPEG scan-header snapshot"),
             Self::Cancelled => write!(f, "Decoding cancelled by the cancel check"),
         }
     }

@@ -124,6 +124,10 @@ een open releasevereiste. Iedere hieronder genoemde eigenaar is een
 verantwoordelijk werkspoor, geen claim van een al actieve agent. De actuele
 persoon/agent en exclusieve bestanden staan alleen in de werkqueue.
 
+## Actuele deelbewijzen behouden de volledige acceptatie
+
+Alle62 verplichte rijen blijven open. FR-B01/FR-O05/FR-N03 hebben nieuw nativeRANDOM-deelbewijs op2b5 (vier echte gevallen; firmware/6ELFs/4096B/canaries onafhankelijkgecontroleerd). Dit levertgeenpersistentesleutelopslag, volledigeTLS ofVM-FR-aftekening. FR-U01/FR-A02 bereiken inGUI5e een echtMateriaal- enEditorframe, maar de200s-keten faalt; Saved/Reopen/afsluiten zijn niet bewezen. FR-A03image9aa faalttegen de echte64KiBstackguard; hetgerichte ade6herstel moet opnieuw native worden uitgevoerd. Devolledigeopdracht, stabieleIDs, vereisteprofielen enbewijsniveaus blijvenongewijzigd. Exacteactueleresultaten staanbovenaanPROJECT-STATE en inWORK-QUEUE; geenbeperktfixtureprofielvervangtVM-FR.
+
 ## Acceptatiematrix
 
 Werkpakketten gebruiken in de actuele queue het voorvoegsel `TASK-` en verwijzen

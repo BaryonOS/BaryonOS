@@ -1383,7 +1383,7 @@ impl<T: ZByteReaderTrait> JpegDecoder<T> {
         let inter_scan_snapshot = if self.scan_checkpoint().is_some() {
             Some((
                 HeaderAppendStateSnapshot::capture(self),
-                self.capture_scan_header_state(),
+                self.capture_scan_header_state()?,
             ))
         } else {
             None

@@ -2,6 +2,10 @@
 
 ## Volledige native testrelease — in uitvoering, 32% — 2026-10-30
 
+**Actueel herstelcheckpoint:** nativeRNG is opnieuw4/4raw33 op9aa74870 en alleachtbestaandeCI-workflows op9aa groen. Image-op9aa faalde naABIcheck met echteJPEGstackguardfault; [origineleuitvoer](verification/full-release-image-stack-failure-9aa/README.md) behouden. Snapshotfixade6+onafhankelijkeOOM/rollbackreview isnugeïntegreerd metongewijzigde64KiB/4MiB. Nieuwe negendeCI-workflow93e991 voertalle4RNGgevallen+imageechtnativeuit; ookTPM6bedpurecorechecks toegevoegd. StandaloneRNG-fmt isgerichthersteld, geencheckuitgeschakeld. Nieuwedecode-VM/9CIenaktuëleRNGherhalingnogvereist.
+
+GUI1fd/db04blijftFAIL200s, eersteReady170s: host2,48×vertaaldenietnaarnativewinst. Bitexactehelpersblijvenveilig, maarvariantkeuzemoetopdoelmetingengebeuren. Er wordt een korte eigenkernelbenchmarkreference/directtyped/zerorunsvoorbereid; géén200s-verruiming, geenrechten-/IPCcheckverwijdering. Calculatorappisinonafhankelijkeuitvoering; code/hostzijngeenappacceptatie. Nativebeeldviewer/NAS/AI/opslag/update/herstel enalle62criteriaopen.
+
 **Vier nativeRNGgevallen op2b5 slagen raw33**, onafhankelijkhercontroleerd: [bewijs](verification/full-release-random-2b5d69c/README.md). Image-opdezelfdebronFAILABIstep1: [rood](verification/full-release-image-abi-failure-2b5/README.md). Fix9d8gebruiktdewerkelijkekernelABIcall; standalonekeyring-clientlockwordtgerichtbijgewerkt voorCI --locked. Huidigeviercasesblijvenexactaan2b5gebonden; volgendeherstelbronvereistnieuweVMs.
 
 **NativeRNG-eersteuitvoering454bf1b is rood:** raw35 vóórSYSTEMMANIFEST, echtekernelweigering bij bootstrapdelegatie uitKey-parent zonderTRANSFER. [Oorspronkelijke rawrapporten](verification/full-release-random-bootstrap-454bf1b/README.md) behouden. Rootcorrectie geeft uitsluitend deinterneKey-parent het bedoeldeTRANSFER, geenprobe-/APP-rechtenverruiming engeencontrolewijziging. Nieuweviercases enimage-uitvoering volgen opbevrorenherstelbron. Harnasreparaties zijn onafhankelijk opnieuwgroen21+20+10tegenvoorbeelden, zie bijgewerktepre-nativearchief.

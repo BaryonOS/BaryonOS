@@ -1,0 +1,43 @@
+   Compiling nieuw-os-tpm-crb v0.1.0 (/workspace/nieuw-os-worktrees/tpm-crb/drivers/tpm-crb)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.38s
+     Running unittests src/lib.rs (target/tpm-crb-host/debug/deps/nieuw_os_tpm_crb-f7b268fced2aa45c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/core.rs (target/tpm-crb-host/debug/deps/core-527cf5c0c33fc9d6)
+
+running 23 tests
+test all_model_buffer_accesses_stay_in_fixed_device_aperture ... ok
+test acknowledged_cancel_still_returns_unknown_effect_without_output ... ok
+test changed_header_or_device_address_is_never_accepted ... ok
+test dropping_an_executing_owner_quarantines_without_hidden_reset ... ok
+test clock_rollback_and_invalid_deadlines_do_not_enable_work ... ok
+test exact_completion_and_release_ack_are_required_before_detach ... ok
+test explicit_commands_are_big_endian_and_errors_preserve_output ... ok
+test failed_cancel_clear_is_not_permission_to_reuse_buffers ... ok
+test instant_completion_does_not_require_observing_busy ... ok
+test locality_and_idle_deadlines_never_fake_ack ... ok
+test nv_encoders_require_explicit_authorization_and_counter_type ... ok
+test lost_locality_and_unacknowledged_reset_never_free_or_complete ... ok
+test nv_increment_success_requires_empty_session_parameters ... ok
+test partial_start_failure_quarantines_and_drop_notifies_only_once ... ok
+test password_response_requires_exact_session_auth_and_counter_size ... ok
+test nv_public_binds_index_counter_attributes_sizes_and_name_algorithm ... ok
+test response_lengths_are_bounded_before_second_read ... ok
+test properties_validate_capability_count_order_and_reserved_more_bit ... ok
+test stale_success_is_poisoned_before_start_and_cannot_complete ... ok
+test stale_ticket_performs_no_io_and_does_not_consume_active_command ... ok
+test timeout_cancel_never_replays_or_wipes_while_tpm_owns_buffer ... ok
+test unsupported_fifo_and_external_buffers_are_never_accessed ... ok
+test tpm_error_is_exposed_without_success_normalization_or_retry ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_tpm_crb
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

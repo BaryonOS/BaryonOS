@@ -2,3 +2,4 @@
 # This exception does not apply to our wrapper, probe, tests or Python tools.
 vendor/zune-jpeg-0.5.16-rc3/** -whitespace
 vendor/upstream/upsample-hv.patch -whitespace
+vendor/upstream/scan-header-heap.patch -whitespace

@@ -446,9 +446,11 @@ fn jpeg<'a>(input: &'a [u8], limits: Limits, cancel: &Cancellation) -> Result<Im
     let callback = cancel.clone();
     decoder.set_cancel(move || callback.is_cancelled());
     decoder.set_cancel_interval(32);
-    decoder.decode_headers().map_err(|_| {
+    decoder.decode_headers().map_err(|error| {
         if cancel.is_cancelled() {
             Error::Cancelled
+        } else if matches!(error, zune_jpeg::errors::DecodeErrors::AllocationFailed) {
+            Error::OutOfMemory
         } else {
             Error::InvalidData
         }
@@ -473,9 +475,11 @@ fn jpeg<'a>(input: &'a [u8], limits: Limits, cancel: &Cancellation) -> Result<Im
         return Err(Error::InvalidData);
     }
     let mut rgba = zeros::<u8>(expected)?;
-    decoder.decode_into(&mut rgba).map_err(|_| {
+    decoder.decode_into(&mut rgba).map_err(|error| {
         if cancel.is_cancelled() {
             Error::Cancelled
+        } else if matches!(error, zune_jpeg::errors::DecodeErrors::AllocationFailed) {
+            Error::OutOfMemory
         } else {
             Error::InvalidData
         }

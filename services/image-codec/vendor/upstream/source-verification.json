@@ -3,9 +3,12 @@
   "upstream_commit": "b71f4180ae2bd8422eb57ce138e8821ad347db5c",
   "archive_sha256": "df4c448e855250a3ffd70f393894383667d049c05eca66dcdb4d3f2f194e90c6",
   "changed_files": [
+    "src/decoder.rs",
+    "src/errors.rs",
+    "src/mcu.rs",
     "src/upsampler/scalar.rs"
   ],
-  "unchanged_files": 40,
+  "unchanged_files": 37,
   "files": {
     ".cargo_vcs_info.json": {
       "upstream_sha256": "59545dfc45d56e9f9869498a13e5bd7f0d862a281319f49a7144ecf0dce45e17",
@@ -85,11 +88,11 @@
     },
     "src/decoder.rs": {
       "upstream_sha256": "e514d27f8e492c1b1a4ee37b37127d1b4e535c70599723205ab0ffef4f6a621d",
-      "local_sha256": "e514d27f8e492c1b1a4ee37b37127d1b4e535c70599723205ab0ffef4f6a621d"
+      "local_sha256": "f37824b88cf0ba2a09e0c5ad8bba9dd6c3c544b9d834483200a51fadba44b9d9"
     },
     "src/errors.rs": {
       "upstream_sha256": "462da4fbaf575b997fd1083baccd4e2a61660d16c3a02207af6e7bc49680e602",
-      "local_sha256": "462da4fbaf575b997fd1083baccd4e2a61660d16c3a02207af6e7bc49680e602"
+      "local_sha256": "93d6b6958e9ac1b585b3af96b5efbb515381ac7df5868dc6100a5a540d664974"
     },
     "src/headers.rs": {
       "upstream_sha256": "abbf3e353e742ad9b4f5036870b711089e3db437e3bb853bde734e84c7f626f4",
@@ -125,7 +128,7 @@
     },
     "src/mcu.rs": {
       "upstream_sha256": "cbe9020873cb5b08adcc76d7de3a5a777ead0b97e6f971bf79c88af08417ced6",
-      "local_sha256": "cbe9020873cb5b08adcc76d7de3a5a777ead0b97e6f971bf79c88af08417ced6"
+      "local_sha256": "43d867d08ef594ba9495329b8e80d9789fcecdef23ba3ec8276f9e860b276c75"
     },
     "src/mcu_prog.rs": {
       "upstream_sha256": "463cc6dc48d092030e0e6081fcd3d5134510a8f984500f4fbb1e911c97bb0bd5",
@@ -175,5 +178,6 @@
   "patch_sha256": "f98b11433d5c975d062fa6e197e0f8a06629589d25abe5d0656fccedc1b4d66e",
   "reference": "https://github.com/libjpeg-turbo/libjpeg-turbo/blob/9217719d3a58633923b096af4c1d50d304768a64/src/jdsample.c#L362",
   "scope": "Original Rust correction of mathematical 9:3:3:1 interpolation and 8/7 tie bias; no C source copied; no upstream-acceptance claim",
-  "unchanged_prefix_suffix": true
+  "unchanged_prefix_suffix": true,
+  "snapshot_patch_sha256": "18addbe8cfabaa990833c2fcb0639b0491f0393c8d4590331e3e029aca9d72aa"
 }

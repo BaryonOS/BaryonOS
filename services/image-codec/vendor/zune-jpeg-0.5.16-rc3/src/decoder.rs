@@ -134,7 +134,6 @@ pub type IDCTPtr = fn(&mut [i32; 64], &mut [i16], usize);
 ///
 /// Full replay starts at the first SOS; `scan_checkpoint` can resume from a
 /// later restart or row boundary when one is still valid.
-#[derive(Clone)]
 pub(crate) struct ScanDecodeState {
     pub(crate) scan_start_position:        usize,
     pub(crate) scan_start_height:          u16,
@@ -154,7 +153,6 @@ pub(crate) struct ScanDecodeState {
 /// Progressive refinement scans update existing coefficients in place, so a
 /// retry must restart at a scan boundary using only completed scans. The
 /// coefficient buffers themselves stay on `JpegDecoder`.
-#[derive(Clone)]
 pub(crate) struct ProgressiveScanCheckpoint {
     pub(crate) stream_position: usize,
     pub(crate) append_snapshot: HeaderAppendStateSnapshot,
@@ -200,14 +198,53 @@ pub(crate) struct SosParamsSnapshot {
 ///
 /// Inter-scan markers may redefine tables or decode configuration, so replay
 /// must restore the values that were active when scan decoding first began.
-#[derive(Clone)]
 pub(crate) struct ScanHeaderStateSnapshot {
     pub(crate) qt_tables:        [Option<[i32; 64]>; MAX_COMPONENTS],
-    pub(crate) entropy_tables:   EntropyTables,
+    // Keep each fixed table slot, including None, without returning/cloning the
+    // complete ~28 KiB entropy aggregate on a small caller stack.
+    dc_huffman:                 Vec<Option<HuffmanTable>>,
+    ac_huffman:                 Vec<Option<HuffmanTable>>,
+    #[cfg(feature = "arith")]
+    dc_arithmetic:              [ArithDCTables; MAX_COMPONENTS],
+    #[cfg(feature = "arith")]
+    ac_arithmetic:              [ArithACTables; MAX_COMPONENTS],
     pub(crate) restart_interval: usize,
     pub(crate) input_colorspace: ColorSpace,
     pub(crate) adobe_transform:  Option<u8>,
     pub(crate) is_mjpeg:         bool
+}
+
+// One table temporary at a time; no full EntropyTables/array clone. Reserve is
+// fallible before publishing any snapshot or mutating the decoder being saved.
+#[inline(never)]
+fn snapshot_huffman(
+    tables: &[Option<HuffmanTable>]
+) -> Result<Vec<Option<HuffmanTable>>, DecodeErrors> {
+    debug_assert_eq!(tables.len(), MAX_COMPONENTS);
+    let mut saved = Vec::new();
+    saved.try_reserve_exact(MAX_COMPONENTS).map_err(|_| DecodeErrors::AllocationFailed)?;
+    for table in tables {
+        saved.push(table.clone());
+    }
+    Ok(saved)
+}
+
+impl ScanHeaderStateSnapshot {
+    fn try_clone(&self) -> Result<Self, DecodeErrors> {
+        Ok(Self {
+            qt_tables: self.qt_tables,
+            dc_huffman: snapshot_huffman(&self.dc_huffman)?,
+            ac_huffman: snapshot_huffman(&self.ac_huffman)?,
+            #[cfg(feature = "arith")]
+            dc_arithmetic: self.dc_arithmetic,
+            #[cfg(feature = "arith")]
+            ac_arithmetic: self.ac_arithmetic,
+            restart_interval: self.restart_interval,
+            input_colorspace: self.input_colorspace,
+            adobe_transform: self.adobe_transform,
+            is_mjpeg: self.is_mjpeg
+        })
+    }
 }
 
 /// Saved state at a restart-interval or MCU-row boundary during scan decoding.
@@ -1212,20 +1249,33 @@ where
         }
     }
 
-    pub(crate) fn capture_scan_header_state(&self) -> ScanHeaderStateSnapshot {
-        ScanHeaderStateSnapshot {
+    pub(crate) fn capture_scan_header_state(&self) -> Result<ScanHeaderStateSnapshot, DecodeErrors> {
+        Ok(ScanHeaderStateSnapshot {
             qt_tables:        self.qt_tables,
-            entropy_tables:   self.entropy_tables.clone(),
+            dc_huffman:       snapshot_huffman(&self.entropy_tables.dc_huffman)?,
+            ac_huffman:       snapshot_huffman(&self.entropy_tables.ac_huffman)?,
+            #[cfg(feature = "arith")]
+            dc_arithmetic:    self.entropy_tables.dc_arithmetic,
+            #[cfg(feature = "arith")]
+            ac_arithmetic:    self.entropy_tables.ac_arithmetic,
             restart_interval: self.restart_interval,
             input_colorspace: self.input_colorspace,
             adobe_transform:  self.adobe_transform,
             is_mjpeg:         self.is_mjpeg
-        }
+        })
     }
 
     pub(crate) fn restore_scan_header_state(&mut self, snapshot: &ScanHeaderStateSnapshot) {
         self.qt_tables = snapshot.qt_tables;
-        self.entropy_tables = snapshot.entropy_tables.clone();
+        for i in 0..MAX_COMPONENTS {
+            self.entropy_tables.dc_huffman[i] = snapshot.dc_huffman[i].clone();
+            self.entropy_tables.ac_huffman[i] = snapshot.ac_huffman[i].clone();
+        }
+        #[cfg(feature = "arith")]
+        {
+            self.entropy_tables.dc_arithmetic = snapshot.dc_arithmetic;
+            self.entropy_tables.ac_arithmetic = snapshot.ac_arithmetic;
+        }
         self.restart_interval = snapshot.restart_interval;
         self.input_colorspace = snapshot.input_colorspace;
         self.adobe_transform = snapshot.adobe_transform;
@@ -1236,7 +1286,7 @@ where
         let scan_start_position = self.stream_position()?;
         let append_snapshot = HeaderAppendStateSnapshot::capture(self);
         let sos_snapshot = self.capture_sos_params();
-        let header_snapshot = self.capture_scan_header_state();
+        let header_snapshot = self.capture_scan_header_state()?;
         self.scan_state = Some(Box::new(ScanDecodeState {
             scan_start_position,
             scan_start_height: self.info.height,
@@ -1351,7 +1401,7 @@ where
         let stream_position = self.stream_position()?;
         let append_snapshot = HeaderAppendStateSnapshot::capture(self);
         let sos_snapshot = self.capture_sos_params();
-        let header_snapshot = self.capture_scan_header_state();
+        let header_snapshot = self.capture_scan_header_state()?;
 
         if let Some(state) = self.scan_state.as_mut() {
             state.progressive_checkpoint = Some(Box::new(ProgressiveScanCheckpoint {
@@ -2273,9 +2323,8 @@ where
         if n == Marker::SOS {
             self.resolve_input_colorspace()?;
             trace!("Input colorspace {:?}", self.input_colorspace);
-            self.headers_decoded = true;
-
             self.enter_scan_state()?;
+            self.headers_decoded = true;
             return Ok(MarkerStep::EnteredScan);
         }
 
@@ -2770,7 +2819,6 @@ where
             pixels_written:  usize,
             dc_predictions:  [(i32, i32); MAX_COMPONENTS]
         }
-        #[derive(Clone)]
         struct ProgressiveCheckpointView {
             append_snapshot: HeaderAppendStateSnapshot,
             sos_snapshot:    SosParamsSnapshot,
@@ -2788,13 +2836,13 @@ where
             todo:            usize,
             dc_predictions:  [(i32, i32); MAX_COMPONENTS]
         }
-        let scan_plan = self.scan_state.as_deref().map(|state| ScanPlan {
+        let scan_plan = self.scan_state.as_deref().map(|state| -> Result<_, DecodeErrors> { Ok(ScanPlan {
             scan_start_position:   state.scan_start_position,
             scan_start_height:     state.scan_start_height,
             scan_start_expects_dnl: state.scan_start_expects_dnl,
             outer_append_snapshot: state.append_snapshot,
             outer_sos_snapshot:    state.sos_snapshot,
-            outer_header_snapshot: state.header_snapshot.clone(),
+            outer_header_snapshot: state.header_snapshot.try_clone()?,
             checkpoint_view:       state.scan_checkpoint.as_deref().map(|checkpoint| {
                 CheckpointView {
                     append_snapshot: checkpoint.append_snapshot,
@@ -2805,15 +2853,15 @@ where
                     dc_predictions:  checkpoint.dc_predictions
                 }
             }),
-            progressive_view:      state.progressive_checkpoint.as_deref().map(|checkpoint| {
-                ProgressiveCheckpointView {
+            progressive_view:      state.progressive_checkpoint.as_deref().map(|checkpoint| -> Result<_, DecodeErrors> {
+                Ok(ProgressiveCheckpointView {
                     append_snapshot: checkpoint.append_snapshot,
                     sos_snapshot:    checkpoint.sos_snapshot,
-                    header_snapshot: checkpoint.header_snapshot.clone(),
+                    header_snapshot: checkpoint.header_snapshot.try_clone()?,
                     stream_position: checkpoint.stream_position,
                     completed_scans: checkpoint.completed_scans
-                }
-            }),
+                })
+            }).transpose()?,
             progressive_fine_view: state.progressive_fine_checkpoint.as_deref().map(|checkpoint| {
                 ProgressiveFineCheckpointView {
                     append_snapshot: checkpoint.append_snapshot,
@@ -2825,7 +2873,7 @@ where
                     dc_predictions:  checkpoint.dc_predictions
                 }
             })
-        });
+        }) }).transpose()?;
         if let Some(plan) = scan_plan {
             let ScanPlan {
                 scan_start_position,

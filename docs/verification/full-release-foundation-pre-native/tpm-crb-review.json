@@ -1,0 +1,106 @@
+{
+  "review": "REV-TPM-CRB-1",
+  "source_commit": "6bed190b50d7aee2727820310cce257538fe9e46",
+  "source_clean_before_and_after": true,
+  "source_files_sha256": {
+    "drivers/tpm-crb/src/transport.rs": "4f1062d4fee56d592cb3627fe1d744d337c29fade5b172d6cf4cf8a3931f29c8",
+    "drivers/tpm-crb/src/codec.rs": "3f528e21e7732f3abfbc1d7e190bcbd78c4f42f55621ca76d2b74eecd898b37e",
+    "drivers/tpm-crb/src/lib.rs": "2bd111b0807b71d67027898aa7368f58f67bcba2fde9d8864b5511d834109f08",
+    "drivers/tpm-crb/tests/core.rs": "0981289a2f67bc48136e8f42459a56e0f0fdccf47820df312a8e15f4d6412f73",
+    "docs/contracts/TPM2-CRB.md": "58b0abcc88a9901efdab0172f9c98eb5903bcf2b9cc09d636fe3ef69c1a683b4"
+  },
+  "result": "No concrete reachable transport/codec safety blocker found in the bounded safe core; host review is not native TPM acceptance",
+  "own_scope": [
+    "state ownership and operation tickets",
+    "START publication effect and no implicit NV retry",
+    "START0 plus CANCEL0 acknowledgement before wipe/reuse",
+    "response/header bounds, repeat-header and late START checks",
+    "sticky quarantine and no adapter detach after uncertain or failed ownership",
+    "fixed locality0/3968-byte MMIO profile and bounded 128-byte buffer copies",
+    "codec authorization borrows, command/response canonical forms and no fabricated default credentials"
+  ],
+  "tests": [
+    {
+      "kind": "existing host model suite independently copied from frozen source",
+      "passed": 23,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "kind": "own additional transport tests in /tmp only",
+      "passed": 4,
+      "failed": 0,
+      "exit_code": 0,
+      "details": [
+        "202 sequential I/O failure positions, including writes that reach hardware before Err; all fail closed with appropriate Unknown/NotStarted, sticky quarantine, one quarantine notification, no replay and no adapter escape",
+        "busy, foreign or seized locality rejected before buffer/locality writes",
+        "u64 cancel-deadline overflow and completion exactly at timeout never acknowledge NV success",
+        "START reasserted after response copy blocks wipe/publication"
+      ]
+    },
+    {
+      "kind": "combined original23+extra4 regression run",
+      "passed": 27,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-tpm-crb-review/host-tests.txt"
+    },
+    {
+      "kind": "independent none-target release library build",
+      "exit_code": 0,
+      "flags": "-C code-model=kernel -C relocation-model=static -C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2"
+    },
+    {
+      "kind": "clippy library -D warnings",
+      "exit_code": 0
+    }
+  ],
+  "delegated_codec_review": {
+    "agent": "/root/git_build_audit/tpm_codec_review",
+    "source_commit": "6bed190b50d7aee2727820310cce257538fe9e46",
+    "finding": "No concrete reachable codec blocker",
+    "passed_existing": 23,
+    "passed_additional": 3,
+    "encoder_boundary_cases": 140481,
+    "decoder_calls": 144240,
+    "additional_session_corruption_cases": true,
+    "scratch": "/tmp/nieuw-os-tpm-codec-review",
+    "native_TPM_claim": false
+  },
+  "primary_implementation_crosscheck": {
+    "repository": "qemu/qemu",
+    "commit": "98f88efe8f07067667b8d9b1a5ce9551d34036c1",
+    "files": [
+      "hw/tpm/tpm_crb.c:110-215",
+      "hw/tpm/tpm_crb.c:234-315",
+      "include/hw/acpi/tpm.h:130-185"
+    ],
+    "result": "Register layout, locality/Ready/Idle, START/completion, fixed buffers and QEMU CANCEL write behavior correspond to selected model. These are implementation references, not normative TCG compliance."
+  },
+  "nonblocking_notes": [
+    {
+      "location": "transport.rs:332-334,411-413,531-533",
+      "description": "Completed/idempotent phase fastpaths acknowledge cached state before clock(now), without I/O or new TPM mutation. The contract no-backward-time-success sentence should distinguish this cached acknowledgement or these branches can also check the clock. Active polling/execute/release still enforce time; no hardware authority or NV false success demonstrated."
+    }
+  ],
+  "open_acceptance": [
+    "Normative TCG PTP/TPM2 Library document verification remains open (recorded proxy403; no compliance claim)",
+    "NativeIo volatile/UC mapping, memory ordering, exact copy and exclusive broker/quarantine enforcement remain unimplemented and unverified",
+    "No linked native transport monomorphisation, no swtpm/TPM backend instance or real guest execution reviewed",
+    "No persistent authenticated key lineage, independent minimum-generation anchor, NV reconciliation, journal/flush/cold rollback or boot/update/PQC acceptance",
+    "Password sessions provide no command encryption/response HMAC; explicit test credential borrows do not define production auth policy"
+  ],
+  "repo_mutations": false,
+  "native_runtime_performed": false,
+  "physical_hardware_accessed": false,
+  "score_change_proposed": 0,
+  "artifact_sha256": {
+    "TPM2-CRB.md": "58b0abcc88a9901efdab0172f9c98eb5903bcf2b9cc09d636fe3ef69c1a683b4",
+    "clippy.txt": "d5158b3a015a8a8bf634bf90ad86e47581bc623ad6ebf3c574350949a993ea41",
+    "host-tests.txt": "881e126aef0d4152876ddd1a61880a0b58bed4fa5e04ff89340e23c4bb486f39",
+    "qemu-source-0.json": "3ee05fa5cfb975923e6660ab17084d4904b5f936c864ed9896fee08dde6f9a5c",
+    "qemu-source-1.json": "2deaf22e65a7abe2c072b633576e03126a22e64e7bdfad5790c4b1523d1bf1bb",
+    "qemu-source-2.json": "69c03af077f441815dd8addc88903be99fa0ed71c97bb514304b5180790cba02",
+    "target-build.txt": "a3d10a13d416e14f786e48ef8c1f02736b96fe9448fa66930dd3c15ef62a0557"
+  }
+}

@@ -16,10 +16,10 @@ Een afgeronde deelimplementatie tekent geen volledig productcriterium af.
 | TASK-FPU/CLOCK | root61ea native groen | root | FR-K02,FR-K03 |3levens/157save=restore/#UD/reuse/100Hz, geen fullCPU/hardwareclaim |
 | TASK-MEMORY | 15e C-entryfix vijf nieuwe native cases+CI groen | kernel_storage; m3.rs,nieuwheap.rs,paging.rs,SDKmemory/native/tests | FR-K02,FR-K03,FR-L02,FR-N02 | ABI1.7sys4voorstel, atomicfallibleownRW/NXzeroheap8MiBquota; Geenanderewritersruntime-native.rs |
 | TASK-USER-ALLOC | 42d4bc9 geïntegreerd;15 hosttests/collecties en targetbuild groen | native_ui_apps; sdk/heap-allocator/**,USER-ALLOCATOR.md | FR-K02,FR-L02,FR-A05,FR-N02 | gelockte no_stdallocator/eigenarena/align/OOM/stats; geenhostfallback |
-| TASK-TLS-PORT | actief; tls-portworktree | network_nas_ai; services/tls-engine/**,NATIVE-TLS.md | FR-N02,FR-P01–FR-P06 | onderhoudenrustls/no_stdproviderport, exactePQC/CA/name/pin/mTLS; random/signer/heap/trustedtime gates |
-| TASK-KEYRANDOM | actief; keyring-randomworktree | security_release; keyringcore/serviceadapter,nieuwrandomclient/contract | FR-B01,FR-N02 | random-onlyingress/op10, HKDF-opruimreview3299 groen, echte ingress/grants/build aangesloten; runtime volgt, onderhoudenCSPRNG/health/quota/clockfailclosed; rootcapbinding/nativebewijsvolgt |
-| TASK-RTC | core68dd9f5 geïntegreerd; native adapter open | git_build_audit; drivers/rtc/**,RTC-WALLTIME.md | FR-N02,FR-S03 | 11 hosttests + onafhankelijke14 met17.892datums, target; kwaliteitUnauthenticatedRtc, geen certtijdclaim |
-| TASK-RTC-V | afgerond, alleen lezen/eigentarget | acceptance_contract | FR-N02,FR-B04 | gerichtegrensreview/tegenvoorbeelden; geenmenselijkeaudit |
+| TASK-TLS-PORT | actief; tls-portworktree | network_nas_ai; services/tls-engine/**,NATIVE-TLS.md | FR-N03,FR-P01–FR-P06 | onderhoudenrustls/no_stdproviderport, exactePQC/CA/name/pin/mTLS; random/signer/heap/trustedtime gates |
+| TASK-KEYRANDOM | actief; keyring-randomworktree | security_release; keyringcore/serviceadapter,nieuwrandomclient/contract | FR-B01,FR-N03 | random-onlyingress/op10, HKDF-opruimreview3299 groen, echte ingress/grants/build aangesloten; runtime volgt, onderhoudenCSPRNG/health/quota/clockfailclosed; vier nativecasesmetnieuwelegacySTATUSgroen; persistenteproductkey/TLSblijvenopen |
+| TASK-RTC | core68dd9f5 geïntegreerd; native adapter open | git_build_audit; drivers/rtc/**,RTC-WALLTIME.md | FR-N03,FR-S03 | 11 hosttests + onafhankelijke14 met17.892datums, target; kwaliteitUnauthenticatedRtc, geen certtijdclaim |
+| TASK-RTC-V | afgerond, alleen lezen/eigentarget | acceptance_contract | FR-N03,FR-B04 | gerichtegrensreview/tegenvoorbeelden; geenmenselijkeaudit |
 | TASK-CONTEXT | aanvullende20secties verwerkt | root; FULL/context/queue/progress | alle | stabiele62IDs, UC/compatmatrix/formaat/100cold/24uur; oorspronkelijkeopdracht intact |
 | TASK-MATERIAAL-NATIVE | component1f36+review; stale-ready/entryreparatie vóórGUI | native_ui_apps; eigen nieuwe UI-worktree/bestanden na contract | FR-U01–FR-U05,FR-A02,FR-O01 | echte userspace renderer/editor; geen hostprototype als nativebewijs |
 | TASK-DISPLAY-INPUT | d528 echte native transportprobe+zeven CI groen | git_build_audit; eigen nieuwe transportworktree/bestanden na contract | FR-U01,FR-K03,FR-H01 | cap04d geïntegreerd/52-reviewtests; GOP hardware los; adapters in uitvoering, root bezit ABI/hooks/build |
@@ -28,7 +28,7 @@ Een afgeronde deelimplementatie tekent geen volledig productcriterium af.
 | TASK-INPUT-DAEMON | in uitvoering; input-daemon | kernel_storage; nieuwe sdk/examples/input-service/** en contract | FR-U01–FR-U05,FR-H01 | twee echte ELF-targetbuilds, hostbackpressure; echte kernel-PID/Ready/PEEK-ACK; native gate open |
 | TASK-SURFACE/APP | in uitvoering; materiaal-native-app | native_ui_apps; nieuwe SUR1/input-client/Materiaalapp en mousechecked-constructor | FR-U01–FR-U05,FR-A02 | gescheiden compositor, geen raw display/input voor app, native verbonden keten open |
 | TASK-DISPLAY-PROBE | d528 echte QMP/PS2/pixelprobe groen; CI-uitbreiding volgt | git_build_audit; nieuwe drie-CPL3-fixture en nieuwe run/testtools | FR-K03,FR-U01,FR-H01 | echte QMP-keys/mouse/pixels, PID/epoch/vollecopycontrole; root integreert en voert uit |
-| TASK-RANDOM-NATIVE | core/probe+harnas incl ledger/ESPfix geïntegreerd; vierVMs volgen | security_release; nieuwe fixture en gericht RNG-replypad | FR-B01,FR-N02 | vier native gevallen, echte Virtio-RNG/CSPRNG, revoke/cancel/backpressure; root bootstrap/locks/build |
+| TASK-RANDOM-NATIVE | vier echteVMs2b5/9aa raw33; wrapperfixreview groen | security_release; nieuwe fixture en gericht RNG-replypad | FR-B01,FR-N03 | vier native gevallen, echte Virtio-RNG/CSPRNG, revoke/cancel/backpressure; root bootstrap/locks/build |
 | TASK-BROWSER-PORT | component a2085b9 gereed, rootintegratie volgt | network_nas_ai | FR-A05 | echte upstreamconfig/header/linkproeven exit2; port geblokkeerd, geen enginekeuze |
 | TASK-IMAGES | 9ae1c73 component/oracle/stackfix; nativeobserver in uitvoering | network_nas_ai; nieuwe services/image-codec/** +nativeprobe | FR-A03 | echte PNG/JPEGdecode, native heap en pixeloracle; engine/profielen en viewer open |
 
@@ -36,6 +36,10 @@ Een afgeronde deelimplementatie tekent geen volledig productcriterium af.
 | TASK-GUI-QMP | in uitvoering; materiaal-qmp | native_ui_apps; nieuw runner/tests/contract | FR-U01–FR-U05,FR-A02,FR-O01 | echte key/mouse/edit/save/cold-heropen; geen draftinject; adapterreparatie eerst |
 | TASK-REV-APP | actief; alleenlezen/eigentarget | acceptance_contract | FR-U01,FR-A02,FR-K03 | onafhankelijke tegenvoorbeelden adapters; stale-ready gevonden, hertest nafix |
 | TASK-DISPLAY-CI | in uitvoering; display-ci | git_build_audit; één nieuweworkflow | FR-K03,FR-U01,FR-H01 | echte nativeprobe en standalonehostchecks, behoud overigeCI/cleantree |
+
+| TASK-CALCULATOR | in uitvoering; native-calculator | security_release; nieuweapp/contract | FR-A08 | echte9decimalRustengine+INP1/SUR1; nativecomponenttarget/multiapp/QMPopen |
+| TASK-CAP-PERF | hostbitexactdb04 groen, native1fdregressie; doelbenchmark in uitvoering | kernel_storage; corediagnostic/nieuwebenchhelper | FR-K03,FR-U01 | alleIPCchecksbehouden, geenhostwinstalsnativeclaim; echtevariantmetingnodig |
+| TASK-FOUNDATION-CI | source93e991+TPMchecks geïntegreerd; eersteActionsvolgt | root/native_ui_apps | FR-B01,FR-A03 | alle4RNG+imageverplicht; laterecasesnadermatiefnoguitvoeren, geencontinue-on-error |
 
 Volgende verplichte werk blijft zichtbaar: schaalbaar geheugen, echte
 compositor/sessie/toegankelijkheid, audio en alle apps/engineports, persistente

@@ -4,6 +4,7 @@ from pathlib import Path
 import hashlib
 import json
 import tarfile
+import difflib
 
 BASE = Path(__file__).resolve().parent
 
@@ -35,10 +36,11 @@ def verify(base: Path = BASE) -> dict:
             raise ValueError(f"vendored JPEG source changed: {name}")
         if hashlib.sha256(original[name]).hexdigest() != expected["upstream_sha256"]:
             raise ValueError("upstream file hash mismatch")
-    changed = [name for name in original if original[name] != actual[name]]
-    if changed != ["src/upsampler/scalar.rs"]:
+    changed = sorted(name for name in original if original[name] != actual[name])
+    snapshot_files = ["src/decoder.rs", "src/errors.rs", "src/mcu.rs"]
+    if changed != snapshot_files + ["src/upsampler/scalar.rs"]:
         raise ValueError("unexpected vendored JPEG changes")
-    name = changed[0]
+    name = "src/upsampler/scalar.rs"
     before, after = original[name], actual[name]
     start, end = b"pub fn upsample_hv(", b"pub fn upsample_generic("
     if (before[:before.index(start)] != after[:after.index(start)] or
@@ -47,8 +49,18 @@ def verify(base: Path = BASE) -> dict:
     patch = base / "vendor/upstream/upsample-hv.patch"
     if hashlib.sha256(patch.read_bytes()).hexdigest() != proof["patch_sha256"]:
         raise ValueError("JPEG patch checksum mismatch")
+    snapshot_patch = base / "vendor/upstream/scan-header-heap.patch"
+    if hashlib.sha256(snapshot_patch.read_bytes()).hexdigest() != proof["snapshot_patch_sha256"]:
+        raise ValueError("JPEG scan snapshot patch checksum mismatch")
+    exact_diff = "".join("".join(difflib.unified_diff(
+        original[name].decode().splitlines(keepends=True),
+        actual[name].decode().splitlines(keepends=True),
+        fromfile="a/" + name, tofile="b/" + name)) for name in snapshot_files).encode()
+    if exact_diff != snapshot_patch.read_bytes():
+        raise ValueError("JPEG snapshot patch does not describe the exact source delta")
     return {"verified": True, "changed_files": changed,
-            "unchanged_files": len(original) - 1, "patch_sha256": proof["patch_sha256"]}
+            "unchanged_files": len(original) - len(changed), "patch_sha256": proof["patch_sha256"],
+            "snapshot_patch_sha256": proof["snapshot_patch_sha256"]}
 
 
 if __name__ == "__main__":
