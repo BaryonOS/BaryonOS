@@ -2,8 +2,8 @@
 
 ## NEXT AGENT HANDOFF — hosttest-preflight — 30 oktober 2026
 
-Werk op branch `simonvanieperen-studious-sniffle`, kandidaat boven
-`00f91e7bd04470be0f32074de9d8d1d975318271`, oorspronkelijke taakbasis `main`
+Broncommit `dfc64cdad130b5d0aa9deff4362844829d8bf514`, branch
+`simonvanieperen-studious-sniffle`, oorspronkelijke taakbasis `main`
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. Concept-PR
 [#62](https://github.com/simonvanieperen/nieuw-os/pull/62). De
 `--strict-host-tests`-controle meldt POSIX-hostlinkers los van bootvereisten;
@@ -21,7 +21,7 @@ checkpoint committen en pushen, daarna dezelfde volledige workspace-test met
 `LD_LIBRARY_PATH` naar de lokale geïsoleerde GCC-runtime uitvoeren.
 
 De eerdere 22 preflighttests, strikte ontbrekende-`cc`-detectie en CI op
-`00f91e7` zijn groen; dit nieuwe candidate heeft nog geen CI-resultaat. De
+`00f91e7` zijn groen; CI op `dfc64cd` loopt nog. De
 hostcompiler is uitsluitend uitgepakt onder genegeerde `.tools/`; geen
 systeempakketten zijn geïnstalleerd. **34% → 34%**; geen productcriterium of
 native QEMU-bewijs toegevoegd. Volledige commando's, logs, hashes en grenzen:

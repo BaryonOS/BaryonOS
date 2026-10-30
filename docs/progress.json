@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "00f91e7bd04470be0f32074de9d8d1d975318271",
+    "source_commit": "dfc64cdad130b5d0aa9deff4362844829d8bf514",
     "branch": "simonvanieperen-studious-sniffle",
     "task": "Hosttest-preflight: detecteer POSIX-linker en herstel HKDF-doctestdependencies",
     "previous_score": 34,

@@ -2,8 +2,8 @@
 
 Dit rapport registreert de Linux-hosttesttooling voor de taakbasis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De preflightwijziging is eerst
-getest op broncommit `80393b67950c393dfa37336e66df5346ae6a37d7`; de kandidaat
-voor verdere controle staat bovenop `00f91e7bd04470be0f32074de9d8d1d975318271`.
+getest op broncommit `80393b67950c393dfa37336e66df5346ae6a37d7`; de huidige
+kandidaat is `dfc64cdad130b5d0aa9deff4362844829d8bf514`.
 Dit is geen OS-, kernel-, boot- of QEMU-acceptatie.
 
 `tools/preflight.py --strict` blijft bootvereisten controleren. De aparte

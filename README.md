@@ -32,7 +32,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`00f91e7b`](https://github.com/simonvanieperen/nieuw-os/commit/00f91e7bd04470be0f32074de9d8d1d975318271) ·
+**Bron:** [`dfc64cda`](https://github.com/simonvanieperen/nieuw-os/commit/dfc64cdad130b5d0aa9deff4362844829d8bf514) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-sniffle`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hosttest-preflight: detecteer POSIX-linker en herstel HKDF-doctestdependencies.
 34% blijft 34%; infrastructuurherstel accepteert geen productcriterium. `--strict-host-tests` meldt een ontbrekende POSIX-linker afzonderlijk; met een geïsoleerde lokale C-toolchain kwam de volledige workspacetest verder en onthulde drie HKDF-README-doctests zonder `sha2`/`hex-literal`-testdependencies. De upstream-gedocumenteerde, test-only dependencies zijn hersteld; alle drie gerichte HKDF-doctests slagen. De volledige workspace-test na deze reparatie en CI op de nieuwe kandidaat zijn nog open. Geen nieuw productcriterium geaccepteerd.
