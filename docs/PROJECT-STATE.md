@@ -1,6 +1,42 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — B02/main gecombineerd; hertoets open — 30 oktober 2026
+## NEXT AGENT HANDOFF — B02/main native groen; TPM-CI-compatibiliteit hersteld — 30 oktober 2026
+
+Bron `344f4972d6db72543dd6c04bf0f28668602a91fd`, v3
+`c03070ddbbe8d233f91512a97927adc54c06da2c480966c68983cc936d5e7341`:
+14 echte VM's groen: system normaal/koud, vijf B01, vier RANDOM, RTC en
+GUI normaal/koud (134,657/62,177 s, volledige cleanup). Eigen B02-capture
+herverifieert de werkelijke diskbytes en koude herstelrun onder
+`verification/full-release-native-wait-b02/`. Exacte commando's, fouten,
+bron-/rapporthashes: `verification/native-test-version/b02-integration-evidence.json`.
+
+Native-system-CI op deze bron faalde vóór de TPM-gast: Ubuntu24.04 heeft
+swtpm0.7.3 en weigert de optionele nieuwe `lock`-optie. PR-veroorzaakt
+runnerprobleem, geen kernel- of transportfalen. Portable dir-only-optie
+behoudt één verse private mode0700-state per eigen child en mode0600-socket.
+Vijf gerichte harnastests groen, inclusief private state/childcleanup.
+Beide echte TPM-VM's opnieuw raw33/exit0, runtime v3
+`4c472a18940ea6cd42a0f0d53d26f8c491c5204274c4b8a6b8d6070b659a79ad`
+(344f497 plus de twee runner/testbestanden). Normaal family0x322e3000,
+11931 writes/release; absent nul writes/sticky quarantaine; beide volledige
+CPL3-wachtacceptatie groen. Nieuwe CI met swtpm0.7.3 **nog niet uitgevoerd**.
+Geen check of assertie overgeslagen. GitHub meldt geen verplichte checks;
+de concrete eigen native-systemfout is desondanks hersteld.
+De capture bewaart ruwe Cargo-uitvoer met een bestaande lege eindregel:
+`git diff --cached --check` meldt die in `host/1.stdout.txt`. Die
+hashgebonden bewijsbytes zijn niet bijgeknipt; staged bytes apart
+vergeleken, overige bron/documentatiewitruimte wel gecontroleerd.
+
+**34% → 34%; 50% blijft open.** Windows-PR #65 blijft afzonderlijk; eigenaar
+bouwt nu alleen een strikte opt-in bedieningsproef voor de zevenprocessen-
+variant in zijn bestaande previewrunner. Nog geen ZIP/interactieve claim.
+Volgende stap: nieuwste CI-fout/status lezen zonder lopende runs af te
+wachten; daarna runnercode inhoudsbehoudend integreren, normale interactieve
+variant bouwen en bedienen op vastgelegde bron met exacte native
+referentieframes/apphashes. De oude automatische testversie blijft apart.
+Eerstvolgend commando: `GH_PAGER="" gh pr checks 66 --watch=false`.
+
+## Uitvoeringshistorie — B02/main gecombineerd; hertoets toen open
 
 Integratie vanaf `3f0845b83cdb5bf64386645a288b47ec09c424c5` met main
 `f52dab5` (PR #64). De code is gecombineerd; onderstaande 16 VM's en

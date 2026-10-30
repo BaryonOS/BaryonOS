@@ -1,6 +1,8 @@
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import run_tpm as probe
@@ -43,6 +45,38 @@ class NativeTpmTranscriptTests(unittest.TestCase):
             ):
                 with self.subTest(case=case, bad=bad), self.assertRaises(ValueError):
                     probe.evaluate(bad, case)
+
+
+class NativeTpmBackendTests(unittest.TestCase):
+    def test_private_state_uses_portable_options_and_terminates_its_child(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            binary = root / "local/swtpm-native/usr/bin/swtpm"
+            binary.parent.mkdir(parents=True)
+            binary.write_bytes(b"test executable identity")
+            report = {}
+            with patch.object(probe, "ROOT", root), \
+                    patch.object(probe, "LOCAL", root / "local"), \
+                    patch.object(probe, "BUILD", root / "build"), \
+                    patch.object(probe, "environment", return_value={"PATH": ""}), \
+                    patch.object(probe.subprocess, "check_output", return_value="swtpm 0.7.3"), \
+                    patch.object(probe.subprocess, "Popen") as start, \
+                    patch.object(Path, "is_socket", return_value=True):
+                child = start.return_value
+                child.poll.return_value = None
+                child.wait.return_value = 0
+                with probe.backend(report) as control:
+                    command = start.call_args.args[0]
+                    state_option = command[command.index("--tpmstate") + 1]
+                    self.assertNotIn(",lock", state_option)
+                    state = root / state_option.removeprefix("dir=")
+                    self.assertEqual(state.stat().st_mode & 0o777, 0o700)
+                    self.assertEqual(control.parent, state.parent)
+                    self.assertIn(f"type=unixio,path={control.relative_to(root)},mode=0600", command)
+                    self.assertEqual(start.call_args.kwargs["cwd"], root)
+                child.terminate.assert_called_once_with()
+                child.wait.assert_called_once_with(timeout=5)
+                self.assertEqual(report["backend"]["exit_status"], 0)
 
 
 if __name__ == "__main__":

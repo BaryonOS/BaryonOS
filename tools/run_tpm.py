@@ -78,7 +78,9 @@ def backend(report):
     state.mkdir(mode=0o700)
     control = directory / "ctrl.sock"
     relative = directory.relative_to(ROOT).as_posix()
-    command = [str(binary), "socket", "--tpm2", "--tpmstate", f"dir={relative}/state,lock",
+    # Each child owns a new private state directory; do not require the optional
+    # `lock` flag that the CI-distributed swtpm 0.7.3 does not support.
+    command = [str(binary), "socket", "--tpm2", "--tpmstate", f"dir={relative}/state",
                "--ctrl", f"type=unixio,path={relative}/ctrl.sock,mode=0600",
                "--flags", "startup-clear"]
     if len(os.fsencode(f"{relative}/ctrl.sock")) > 107:

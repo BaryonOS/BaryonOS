@@ -9,6 +9,18 @@ niet de 20.000-PIT-tickgrens of acceptatievoorwaarden te versoepelen.
 
 ## Nieuwste gecombineerde bron en proefversie
 
+De latere main-B02-integratie op `344f497` slaagt met 14 echte VM's:
+system normaal/koud, vijf B01, vier RANDOM, RTC en GUI normaal/koud.
+`b02-integration-evidence.json` bevat de aparte v3-bronbinding,
+exacte commando's, fouten en rapporthashes; onafhankelijke systemcapture
+staat onder `../full-release-native-wait-b02/`. Daarna is een concrete
+CI-startfout hersteld: swtpm0.7.3 accepteert de optionele `lock`-optie niet.
+De portable dir-only-optie behoudt unieke private state; vijf gerichte
+tests en beide echte TPM-VM's slagen op de afzonderlijke patchbron.
+De CI-hertoets met 0.7.3 en de interactieve zevenprocessenvariant blijven
+open. De hieronder beschreven automatische proefversie blijft aan haar
+werkelijke eerdere bron gebonden en wordt niet omgelabeld.
+
 Op runtimebron v3 `a6c4c723fbcc6a5b50eac17b91b77f66161c8555c6d916fd10b7826815acc4b5`
 slagen **16 echte VM's**. De veertien niet-GUI-runs op `37a7478` staan
 in `tpm-regression-evidence.json`; normale/koude GUI op docscheckpoint

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`3f0845b8`](https://github.com/simonvanieperen/nieuw-os/commit/3f0845b83cdb5bf64386645a288b47ec09c424c5) ·
+**Bron:** [`344f4972`](https://github.com/simonvanieperen/nieuw-os/commit/344f4972d6db72543dd6c04bf0f28668602a91fd) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Main-B02 combineren met native IPC-wacht/TPM; gezamenlijke hertoets open.
-34% blijft34%; minstens50% niet bereikt. Main f52dab5 bevat PR64-persistentie; gecombineerd met eigen IPC-wachten/TPM vanaf3f0845b. Administratief ingress behoudt bestaande polling, zodat de legacy-only wachtset geen adminwerk vertraagt. Gezamenlijke hostwerkboom:377 Rusttests/1 bestaande ignored,46 system- en102 tooltests plus fmt groen. Native hertoets nog open; eerdere bewijzen blijven brongebonden. Geen criterium gesloten, geen nieuwe release-, Windows-, menselijke of hardwareacceptatie. De tien bitgelijke automatische-proefpayloads blijven op de eerdere a6c4c723-runtimebron en worden niet naar deze integratie omgelabeld.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B02/main native integratie groen; concrete swtpm0.7.3-CI-startfout hersteld.
+34% blijft34%; minstens50% niet bereikt. Main-B02-integratie344f497:14 echte VM's groen, waaronder GUI normaal/koud en onafhankelijke diskcapture;377 Rusttests/1ignored,46 system- en102 tooltests groen. Eigen CI-startfout: swtpm0.7.3 kent optionele lock-optie niet. Portable optie met verse private state hersteld;5 gerichte tests en beide echte TPM-VM's groen op patchbron4c472a18. Nieuwe CI met oude backend nog open; geen asserts/skips versoepeld. Interactieve zevenprocessenbediening, Windowsbundel, volledig product en menselijke/hardwareacceptatie blijven open; oude automatische artifacts behouden eigen bron.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
