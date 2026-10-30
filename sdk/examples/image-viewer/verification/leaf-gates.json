@@ -40,7 +40,9 @@
         },
         {
           "path": "sdk/examples/image-viewer/verification/viewer-final-tests.stdout.txt",
-          "sha256": "6fb600f4c1b5411d5d8d1f5a85bcfb4ba72f35176ac0cb82ffb9443f481a942e"
+          "sha256": "b17523474b2556bda14e997d9a4e68d2b2956779c17dad2e2124b8a0d27764da",
+          "raw_sha256": "6fb600f4c1b5411d5d8d1f5a85bcfb4ba72f35176ac0cb82ffb9443f481a942e",
+          "normalization": "Only trailing empty lines removed for git whitespace checks; original log remains in build/r22-viewer/logs."
         },
         {
           "path": "sdk/examples/image-viewer/verification/viewer-final-tests.stderr.txt",
