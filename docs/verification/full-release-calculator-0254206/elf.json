@@ -1,0 +1,61 @@
+{
+  "scope": "Read-only inspection of retained scalar native ELF; no rebuild/native execution",
+  "path": "/tmp/nieuw-os-calculator-none-target/x86_64-unknown-none/release/calculator-app",
+  "sha256": "f045c031f20c740810f983bc9302f1910e5c72a055ac015e3f5463d24a25c3bc",
+  "bytes": 270264,
+  "elf": {
+    "entry": 1073741824,
+    "segments": [
+      {
+        "flags": 5,
+        "address": 1073741824,
+        "offset": 4096,
+        "filesz": 19,
+        "memsz": 19,
+        "page_start": 1073741824,
+        "page_end": 1073745920
+      },
+      {
+        "flags": 6,
+        "address": 1073807360,
+        "offset": 8192,
+        "filesz": 1024,
+        "memsz": 1024,
+        "page_start": 1073807360,
+        "page_end": 1073811456
+      },
+      {
+        "flags": 4,
+        "address": 1073872896,
+        "offset": 12288,
+        "filesz": 189209,
+        "memsz": 189209,
+        "page_start": 1073872896,
+        "page_end": 1074065408
+      },
+      {
+        "flags": 6,
+        "address": 1074200576,
+        "offset": 204800,
+        "filesz": 144,
+        "memsz": 144,
+        "page_start": 1074200576,
+        "page_end": 1074204672
+      },
+      {
+        "flags": 5,
+        "address": 1074462720,
+        "offset": 208896,
+        "filesz": 47110,
+        "memsz": 47110,
+        "page_start": 1074462720,
+        "page_end": 1074511872
+      }
+    ]
+  },
+  "instruction_lines": 12021,
+  "forbidden_instructions": [],
+  "undefined_symbols": [],
+  "start": "\n    40000000:\tcld\n    40000001:\tmov    rax,rsp\n    40000004:\tand    eax,0xf\n    40000007:\tcmp    eax,0x8\n    4000000a:\tjne    40000011 <_start+0x11>\n    4000000c:\tjmp    400b1a90 <calculator_main>\n    40000011:\tud2",
+  "disassembly_sha256": "5e4fd841e1e4d1acf953a0b60e49ba75dc1c5c13aa2b67c37a11cfd44e6fe9d9"
+}

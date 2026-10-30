@@ -1,0 +1,56 @@
+{
+  "source_commit": "48b51878c03b5b73449f563735c7854b24926fc4",
+  "scope": "HOST_ONLY isolated response spies and controlled files. Replayed prior real serial tests the verifier; no VM or new native PASS occurred.",
+  "cases": [
+    {
+      "case": "invalid-timeout",
+      "host_only": true,
+      "error": "Unbounded timeout",
+      "subprocess_calls": 0,
+      "old_top_pass_remains": true
+    },
+    {
+      "case": "bad-target",
+      "host_only": true,
+      "error": "Symlink in FPU artifact path",
+      "subprocess_calls": 0,
+      "old_top_pass_remains": true
+    },
+    {
+      "case": "changed-fw-snapshot",
+      "host_only": true,
+      "real_vm_started": false,
+      "response_spy_calls": 1,
+      "runner_false_accept": true,
+      "changed": [
+        {
+          "path": "OVMF_CODE.fd",
+          "before": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+          "after": "cfce7d1f738bf1059846295de0c502d514658630e1a70aee391b78333b65f63d"
+        }
+      ],
+      "selected_firmware_sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "reported_firmware_sha256": "cfce7d1f738bf1059846295de0c502d514658630e1a70aee391b78333b65f63d",
+      "expected_app_elf_sha256": "530163710c2ae12894afda264b6aa507a15ca3d995fcc58c738bbad446cf400a",
+      "reported_input_app_sha256": "530163710c2ae12894afda264b6aa507a15ca3d995fcc58c738bbad446cf400a"
+    },
+    {
+      "case": "changed-elf-input",
+      "host_only": true,
+      "real_vm_started": false,
+      "response_spy_calls": 1,
+      "runner_false_accept": true,
+      "changed": [
+        {
+          "path": "inputs/system_app.elf",
+          "before": "530163710c2ae12894afda264b6aa507a15ca3d995fcc58c738bbad446cf400a",
+          "after": "e0ca2b5380748377cd8dfa841e77eb7df19e1cf911b518e48ae9a01b8688b0bb"
+        }
+      ],
+      "selected_firmware_sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "reported_firmware_sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "expected_app_elf_sha256": "530163710c2ae12894afda264b6aa507a15ca3d995fcc58c738bbad446cf400a",
+      "reported_input_app_sha256": "e0ca2b5380748377cd8dfa841e77eb7df19e1cf911b518e48ae9a01b8688b0bb"
+    }
+  ]
+}

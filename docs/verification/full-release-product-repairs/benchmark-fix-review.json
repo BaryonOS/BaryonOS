@@ -1,0 +1,129 @@
+{
+  "task": "CAP-BENCH-FIX-VERIFY-1",
+  "result": "Bounded approval of finalaa7 and byte-identical root cherry5ddd34a; no remaining concrete CB01/CB02 blocker found in requested host harness scope",
+  "reviewed_initial_commit": "55e41706ef83d98f08ae0934ccf7183dea8ea12a",
+  "reviewed_final_commit": "aa7ced60c84d34e9c82085aab80085e55db1e72b",
+  "root_cherry_same_owned_files": "5ddd34a",
+  "final_tree_clean": true,
+  "source_sha256": {
+    "342387eb94e99049b0af4ffe06e493cc3a7578e8": {
+      "tools/run_cap_bench.py": "2104b3eb7f1354406f74a6cd2e924d18e3b719ad509d29e5d4d36c1d4c93b11b",
+      "tools/tests/test_cap_bench.py": "8ead171fcd4d0d2d028f3bc00d32d2ae6cf0327a4acbc516f280d144219604f6"
+    },
+    "55e41706ef83d98f08ae0934ccf7183dea8ea12a": {
+      "tools/run_cap_bench.py": "17c06fb602f70e1fc66daf3bcfee0282922c69673e68f8539a34709a5e945a14",
+      "tools/tests/test_cap_bench.py": "e3e4cfca14ff794f867cf4f4d16d3b284ca311762471d844cd1956680b185644"
+    },
+    "e3f033871f17811415aaba9a721ea8128d6f605b": {
+      "tools/run_cap_bench.py": "87630afe874a1779cfa2587d26ddaf788bde942b3ba06497e0805ee8dbb61cd0",
+      "tools/tests/test_cap_bench.py": "eeae7d9c6d9da848c727eded0dbfc0d6a680aa3eaaf6678d33fb09cdd08f8ff0"
+    },
+    "fa12e94f07f7a0350869f4505cb9201a7f5a0df7": {
+      "tools/run_cap_bench.py": "7d958f3497249d3290704a044ab6e13b585df855027d4c1fb78f0c9dd64bc37e",
+      "tools/tests/test_cap_bench.py": "4ff50466a2aeb755148f61e0825d9190bcbf621938803e29c126b7bd6550fc51"
+    },
+    "aa7ced60c84d34e9c82085aab80085e55db1e72b": {
+      "tools/run_cap_bench.py": "89e04386c1f62325bc0bb382d93d39e4dd92dbd611d3201da67ef2df1ca56a7f",
+      "tools/tests/test_cap_bench.py": "5e79cf4db5b8c2b10c5aa32c97a50ffa28dc266d030c9eb1f63b16b3209dc925"
+    }
+  },
+  "independently_executed": [
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_cap_bench.py -v",
+      "source": "55e41706ef83d98f08ae0934ccf7183dea8ea12a",
+      "passed": 15,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-cap-bench-fix-independent/host-tests.txt"
+    },
+    {
+      "command": "python3 -B /tmp/nieuw-os-cap-bench-fix-independent/red_green.py aa7ced60c84d34e9c82085aab80085e55db1e72b",
+      "scope": "Immutable four old-red/new-green host spies, no VM",
+      "old": "342387eb94e99049b0af4ffe06e493cc3a7578e8",
+      "old_expected_assertion_failures": 4,
+      "old_errors": 0,
+      "new_passed": 4,
+      "new_errors": 0,
+      "exit_code": 0,
+      "report": "/tmp/nieuw-os-cap-bench-fix-independent/four-red-green-aa7ced60c84d34e9c82085aab80085e55db1e72b.json"
+    },
+    {
+      "command": "PYTHONPATH=/workspace/nieuw-os-worktrees/cap-bench-fix/tools python3 -B -m unittest discover -s /tmp/nieuw-os-cap-bench-fix-independent/snapshots/aa7ced60c84d34e9c82085aab80085e55db1e72b/tools/tests -p test_cap_bench.py -v",
+      "source": "aa7ced60c84d34e9c82085aab80085e55db1e72b",
+      "passed": 18,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-cap-bench-fix-independent/final-host-tests.txt"
+    },
+    {
+      "command": "python3 -B /tmp/nieuw-os-cap-bench-fix-independent/final_mutations.py",
+      "source": "aa7ced60c84d34e9c82085aab80085e55db1e72b",
+      "passed": 16,
+      "failed": 0,
+      "exit_code": 0,
+      "report": "/tmp/nieuw-os-cap-bench-fix-independent/final-mutations.json",
+      "details": [
+        "Six initial VARS drift/geometry/link/special variants rejected before0execute-spy calls",
+        "Six postexecute disk link/special/geometry variants rejected before0unvalidatedhashreads",
+        "Unexpected ZeroDivisionError and malformed UTF8 publish latestfalse and preserve historical proof; timeout with positive-looking transcript remains false",
+        "Legitimate same-geometry VARS changes after start remain accepted by the host validation model, with initial template hash separately bound"
+      ]
+    }
+  ],
+  "initial_review_findings": [
+    {
+      "id": "CB-02A",
+      "source": "55e41706ef83d98f08ae0934ccf7183dea8ea12a",
+      "proof": "/tmp/nieuw-os-cap-bench-fix-independent/mutable-vars-before-execute.json",
+      "finding": "Initial writable VARS copy could differ before execute while template and immutable artifacts were bound; host spy reached execute and passedtrue.",
+      "remediation": "e3f0338/fa12e94 check private single-link regular size+SHA before execute and record initial_mutable_artifacts; final six-case revalidation passes."
+    },
+    {
+      "id": "CB-02B",
+      "source": "fa12e94f07f7a0350869f4505cb9201a7f5a0df7",
+      "proof": "/tmp/nieuw-os-cap-bench-fix-independent/disk-link-read-order.json",
+      "finding": "Postexecute report construction hashed volume.img before validating its path; controlled external sentinel bytes were actually read through a symlink before eventual passedfalse rejection.",
+      "remediation": "aa7ced6 leaves afterhashnull until guarded copy/path/geometry validation; final link/FIFO/hardlink/directory/size variants perform0unvalidatedhashreads."
+    }
+  ],
+  "separately_delegated_review": {
+    "report": "/tmp/nieuw-os-capbench-frozen-review/review.json",
+    "sha256": "7fe744735d40df320f3980e47f75a854f6da4312d61b6dc00be27c99554aa144",
+    "source": "55e41706ef83d98f08ae0934ccf7183dea8ea12a",
+    "existing_tests_passed": 12,
+    "extra_matrix_cases": 96,
+    "positive_cases": 3,
+    "rejected_mutations": 93,
+    "details": "All5ELF source and archive copies, kernel embedding, manifest hashes/inspection,13direct source files, links/specials/foreignparents and explicit external-link retargets tested independently.",
+    "exact_unchanged_final_blocks": {
+      "FrozenInputs": "bad55596a811de00c33561b679f80e390e0b4ec3431dbf66dd39aa6ba8ca8934",
+      "source manifest/ELF binding": "7e6284a6b9246b399235532f0ad5aa985138aa1066145feb705038f34163b75e"
+    }
+  },
+  "review_claims": [
+    "Current latest is withdrawn safely before invalid timeout/TARGET/preflight; unexpected exceptions retain false current status without rewriting old per-run evidence",
+    "Selected source bytes and the13direct code inputs, manifest, all5actual ELF references/inspections/embedding, kernel/loader ESP, selected QEMU and firmware/template are frozen before copy and rechecked before and after execute",
+    "Only approved frozen payloads are published, no source copytree. The initial writable VARS is bound separately from legitimate later firmware mutations.",
+    "Postexecute source/copy checks precede any successful report; disk path/geometry checks precede hashing and unreadable/linked/special artifacts cannot be promoted to success"
+  ],
+  "historical_scope": "Real48b native artifacts were not used as proof for these commits and were not copied/modified. Only exact Git objects and isolated HOST_ONLY tempfile spies were exercised. The final diff relative to342 contains only the two allowed tool files.",
+  "no_repository_source_writes": true,
+  "no_vm_started": true,
+  "no_native_build": true,
+  "no_native_benchmark_execution": true,
+  "remaining_acceptance": [
+    "Fresh actual native benchmark on the final root-integrated source with exact kernel/ELF/QEMU/firmware hashes remains necessary",
+    "This review does not approve physical TSC timing, full digest semantics or ZERO-dispatch implementation, GUI latency/acceptance, IPCwait safety or complete release readiness"
+  ],
+  "artifacts_sha256": {
+    "host-tests.txt": "347b301133871c8b642fc9ec591afc006e16937b8b02ff3e942c3661de5911b1",
+    "four-red-green-aa7ced60c84d34e9c82085aab80085e55db1e72b.json": "3c622e04c1bbfec670857e20d71ff1e3a20e09c90a96028a1ae1d0ba7e80d61a",
+    "final-mutations.json": "5be3a09ff145d4537c5441c2109f27f65981a4b9017983c411b3e8df153f6ff9",
+    "final-mutations.txt": "a942f51570f8414c4bdde4c4776cb8f1f6831372ba52cf6210c0e7a9cd19d09b",
+    "final-host-tests.txt": "42e1d01889a405a07e926b6cf5e05f100586cd93ccebcdd72df62e55e728e791",
+    "red_green.py": "1c3dfad770a5bea2d93e201d794ae43bcdcf1eaf44fcb08fd0d94c2ac1d1cc44",
+    "final_mutations.py": "1387fa6a464d532884f3b747476eb5bb90d4de2e1d662949806a2466a9851521",
+    "mutable-vars-before-execute.json": "bcf2fe04d7288bf60877ec4116a479103e3f538875d61aeb011bd9bb887fc1d9",
+    "disk-link-read-order.json": "14c417d5c260516db87cb28159ec79a76639893650054c4f46eaac2b5f02cfc1"
+  }
+}

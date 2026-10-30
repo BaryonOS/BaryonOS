@@ -1,0 +1,249 @@
+{
+  "review": "PRODUCT-MERGE-REVIEW-1",
+  "base_commit": "c91714ba491589e262f906a1aa2d97235cf01e9a",
+  "base_frozen_worktree": "/workspace/nieuw-os-worktrees/product-merge-review",
+  "base_source_clean_before_and_after": true,
+  "result": "One P2 feature-admission gap found in immutable c917; exact separately captured root WIP guard resolves it in the same43-case harness. No other concrete merge blocker found within scoped source/host checks.",
+  "source_crossrefs": {
+    "path": "/tmp/nieuw-os-product-merge-review/source-crossrefs.json",
+    "sha256": "790deec64415e227b9ab3e32c670080be82895be0c6b3c0413d67295b6db5110",
+    "facts": [
+      "Root Cargo.lock and sdk/Cargo.lock are byte-identical to foundation844ec40",
+      "run_system.py, run_random.py and run_images.py retain the exact foundation844 hardened source/ESP/failure-publication code",
+      "build_materiaal.py and run_materiaal_probe.py retain the exact GUI48b51878 source",
+      "Merged build.py keeps GUI prior to SYSTEM classification, paired framebuffer loader,7/8 actual desktop inputs and the foundation RANDOM/IMAGE six-program aliases",
+      "Kernel/build.rs tracks all respective current ELF environment inputs; GUI excludes old SYSTEM_INIT/APP/WORKER constants and worker image dispatch"
+    ]
+  },
+  "own_checks": [
+    {
+      "command": "LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-product-merge-review/metadata-target python3 -B tools/dev.py cargo +1.90.0 metadata --offline --locked --format-version 1 --manifest-path <manifest>",
+      "passed_manifests": 9,
+      "summary": "/tmp/nieuw-os-product-merge-review/metadata-summary.json",
+      "details": [
+        {
+          "manifest": "Cargo.toml",
+          "exit_code": 0,
+          "workspace_root": "/workspace/nieuw-os-worktrees/product-merge-review",
+          "members": [
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/boot/loader#os-loader@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/crates/boot-protocol#0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/crates/capability-core#0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/crates/elf-loader-core#0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/crates/kernel-core#0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/crates/ui-core#0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/crates/virtio-core#0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/drivers/virtio-blk#virtio-blk-driver@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/drivers/virtio-net#virtio-net-driver@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/drivers/virtio-rng#virtio-rng-driver@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/kernel#os-kernel@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/services/block#block-protocol@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/services/catalog#catalog-core@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/services/keyring#keyring-core@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/services/keyring/vendor/hkdf-0.13.0#hkdf@0.13.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/services/keyring/vendor/hmac-0.13.0#hmac@0.13.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/services/objects#object-core@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/services/volume#volume-core@0.1.0"
+          ],
+          "packages": 52,
+          "metadata_sha256": "8d3ba4e81927f50a278e26a3ebf46c63a158b9303c6df635261fd140c2807a05",
+          "target_directory": "/tmp/nieuw-os-product-merge-review/metadata-target"
+        },
+        {
+          "manifest": "sdk/Cargo.toml",
+          "exit_code": 0,
+          "workspace_root": "/workspace/nieuw-os-worktrees/product-merge-review/sdk",
+          "members": [
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/catalog-client#nieuw-os-catalog-client@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/document-session#nieuw-os-document-session@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/catalog-read#nieuw-os-catalog-read-example@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/keyring#nieuw-os-keyring-example@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/supervisor#nieuw-os-supervisor-example@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/system#nieuw-os-system-example@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/volume-docs#nieuw-os-volume-docs-example@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/keyring-random-client#nieuw-os-keyring-random-client@0.1.0",
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/runtime#nieuw-os-sdk-runtime@0.1.0"
+          ],
+          "packages": 43,
+          "metadata_sha256": "5796aa0ef7fc5b2eae3eb559a5e346de568cb8c369aedb2fd56819d810f870dd",
+          "target_directory": "/tmp/nieuw-os-product-merge-review/metadata-target"
+        },
+        {
+          "manifest": "sdk/examples/materiaal/Cargo.toml",
+          "exit_code": 0,
+          "workspace_root": "/workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/materiaal",
+          "members": [
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/materiaal#nieuw-os-materiaal-app@0.1.0"
+          ],
+          "packages": 14,
+          "metadata_sha256": "395e80d03986e2d443bc353329940108791556ee66aab581c6c3a387396b7f1c",
+          "target_directory": "/tmp/nieuw-os-product-merge-review/metadata-target"
+        },
+        {
+          "manifest": "sdk/examples/compositor/Cargo.toml",
+          "exit_code": 0,
+          "workspace_root": "/workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/compositor",
+          "members": [
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/compositor#nieuw-os-native-compositor@0.1.0"
+          ],
+          "packages": 9,
+          "metadata_sha256": "c45b2f1761b20ef998c71ad72863c11fdffd56f64bc2d7fcc4b0cb39760d4399",
+          "target_directory": "/tmp/nieuw-os-product-merge-review/metadata-target"
+        },
+        {
+          "manifest": "sdk/examples/desktop-init/Cargo.toml",
+          "exit_code": 0,
+          "workspace_root": "/workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/desktop-init",
+          "members": [
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/desktop-init#nieuw-os-native-desktop-init@0.1.0"
+          ],
+          "packages": 7,
+          "metadata_sha256": "52c74f24c8c0e96fdabb4eeb4033bc03915f843ad659126f1abe2f657b6d0dec",
+          "target_directory": "/tmp/nieuw-os-product-merge-review/metadata-target"
+        },
+        {
+          "manifest": "sdk/examples/input-service/Cargo.toml",
+          "exit_code": 0,
+          "workspace_root": "/workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/input-service",
+          "members": [
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/input-service#nieuw-os-native-input-service@0.1.0"
+          ],
+          "packages": 6,
+          "metadata_sha256": "ee77369871462a44b68c3ce601e1a99228957ecda1170a13b9cdb583df50d925",
+          "target_directory": "/tmp/nieuw-os-product-merge-review/metadata-target"
+        },
+        {
+          "manifest": "sdk/examples/calculator/Cargo.toml",
+          "exit_code": 0,
+          "workspace_root": "/workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/calculator",
+          "members": [
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/calculator#nieuw-os-calculator@0.1.0"
+          ],
+          "packages": 10,
+          "metadata_sha256": "2cc3fa516f6d3e154a4b43e83a68c7a616b96959ee62f95a492463076c1a2ef3",
+          "target_directory": "/tmp/nieuw-os-product-merge-review/metadata-target"
+        },
+        {
+          "manifest": "sdk/examples/random-probe/Cargo.toml",
+          "exit_code": 0,
+          "workspace_root": "/workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/random-probe",
+          "members": [
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/random-probe#nieuw-os-native-random-probe@0.1.0"
+          ],
+          "packages": 34,
+          "metadata_sha256": "08dcccbbb8620c5742af989f72bd21a97a7071ebd688366569df94dfc7011a59",
+          "target_directory": "/tmp/nieuw-os-product-merge-review/metadata-target"
+        },
+        {
+          "manifest": "sdk/examples/image-probe/Cargo.toml",
+          "exit_code": 0,
+          "workspace_root": "/workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/image-probe",
+          "members": [
+            "path+file:///workspace/nieuw-os-worktrees/product-merge-review/sdk/examples/image-probe#nieuw-os-native-image-probe@0.1.0"
+          ],
+          "packages": 10,
+          "metadata_sha256": "8fb0370da7cfd8ad6c5e714018cb092af86349caaf9684243c628f9120ea9eaa",
+          "target_directory": "/tmp/nieuw-os-product-merge-review/metadata-target"
+        }
+      ],
+      "kind": "dependency resolution only; no Rust/native build"
+    },
+    {
+      "command": "python3 -B tools/build.py --help",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-product-merge-review/build-help.txt"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p test_build_paths.py -v",
+      "passed": 3,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-product-merge-review/build-path-tests.txt"
+    },
+    {
+      "kind": "Host orchestration selectors and mismatch rejection; external commands replaced by stop sentinel, no artifact/build proof",
+      "passed_cases": 16,
+      "failed_cases": 0,
+      "report": "/tmp/nieuw-os-product-merge-review/builder-routing.json"
+    },
+    {
+      "command": "python3 -B /tmp/nieuw-os-product-merge-review/negative_paths.py",
+      "kind": "Synthetic host-only source/copy/destination regressions, no actual OS execution",
+      "passed_cases": 13,
+      "failed_cases": 0,
+      "report": "/tmp/nieuw-os-product-merge-review/negative-paths.json"
+    }
+  ],
+  "delegated_kernel_review": {
+    "report": "/tmp/nieuw-os-product-merge-kernel-review/review.json",
+    "sha256": "45e45df0ca95056f94134d88f4d78f14c06781dac8f59e66839efcac23b3e349",
+    "scope": "Exact frozen m3/kernel source profile, process identity/ELF and grant intersections; separate read-only worktree",
+    "positive_feature_cases": 21,
+    "forbidden_family_cases": 22,
+    "original_guard_rejected": 6,
+    "original_missing_exclusion": 16,
+    "GUI_silent_probe_suppression": 8,
+    "benchmark_crossings_source_inferred_pre_schedule_failure": 8,
+    "image_observer_host_tests": 9
+  },
+  "finding": {
+    "id": "PRODUCT-MERGE-P2-1",
+    "location": "kernel/src/m2/m3.rs profile guard",
+    "severity": "P2",
+    "reachability": "Direct public Cargo feature union. Supported build.py CLI selects one exact feature and does not expose a comma-union.",
+    "impact": "GUI selection can silently override an additionally requested RANDOM/IMAGE/NET diagnostic profile. Benchmark unions fail at a different runtime precondition. Existing supported single-profile native PASS evidence is not disproved.",
+    "requested_fix": "Reject mutually overriding diagnostic feature families before compilation. Do not remove any required product function."
+  },
+  "exact_guard_revalidation": {
+    "report": "/tmp/nieuw-os-product-merge-kernel-guard-fix-review/fix-review.json",
+    "sha256": "69dcfa091d463a028bf39851628b1e2f1bedd31fd0dd7e0688a995964c115cc4",
+    "capture_scope": "Only root-authorized live m3.rs lines70\u2013125 were read; actual guard75\u2013104 captured. This is uncommitted source/hash proof, not a reviewed final commit.",
+    "guard_sha256": "0d0aa4e2f23ef0f5abcb6ea5fa9afd651e0bccf7e9f01be0441d6315d8027807",
+    "permitted_capture_sha256": "6c2a70461d9ce2d8b69abd89a3a0e0dc3e225e6cf3a55ff88376ae1afd02a4bf",
+    "same_case_definitions_sha256": "f2b3042b38b7404f8324c01138eb8001616108d4f85f7f88c3398fd62d7634de",
+    "positive_passed": 21,
+    "negative_compile_rejections": 22,
+    "alias_closure": "Includes TCP\u2192native-system-net, random SDK/Unknown/wrong-caller aliases and GUIprobe/recover/scale aliases",
+    "old_immutable_report_preserved": true
+  },
+  "recommendation": "Keep the exact guard correction when committing the combined product source, retain the known calculator word0 documentation correction and separate benchmark ZERO/harness repairs, then validate actual new source/profile artifacts. No request for product-scope reduction or old evidence transfer.",
+  "excluded_known_work": "Root already identified capbench ZERO\u2192diagnostic_zero_digest and calculator startupword0 documentation fixes outside c917; not re-reported as new merge findings. Benchmark-harness fix requires its separately assigned review once frozen.",
+  "repo_source_writes": false,
+  "allowed_setup_mutation": "Created only own detached c917 worktree; scratch metadata/tests/reports under /tmp",
+  "no_vm_started": true,
+  "no_native_build_performed": true,
+  "no_integrated_native_acceptance": true,
+  "limitations": [
+    "Fragment feature-matrix compilation is a scoped host proof, not a kernel/native image build",
+    "No default/system/random/image/GUI/benchmark runtime on c917 is claimed by this review",
+    "GUI execution remained an open native criterion at task assignment; calculator source inclusion alone supplies no grants/launcher/multiapp acceptance",
+    "No entire kernel/security/general architecture audit or full testrelease readiness claim"
+  ],
+  "local_artifacts_sha256": {
+    "source-crossrefs.json": "790deec64415e227b9ab3e32c670080be82895be0c6b3c0413d67295b6db5110",
+    "build-path-tests.txt": "0b9cb2c270722f0e740f43313e1082e83dea8600246b6ea6fd69338a9b1a3b47",
+    "builder-routing.json": "050ab15d9a7bb748cc6186cc640569084fcb0b6b5c2eedfbfa06e38cb6f1991e",
+    "build-help.txt": "4d72c8794e0a326e7a80b58463dd7e86ec6d36464ed395659a91e88f4eddad35",
+    "negative-paths.json": "dd4d37afd7b498424eff7433f8c574088c593a5f4c115d8143c4523119a85a4e",
+    "negative_paths.py": "a0c615e56cfb0c37ee067fa588b6612c18ed000cb42c602768f8823915db3555",
+    "metadata-summary.json": "7385da5ac3b9a34f8ac92a1e78b65a0b1197bc42cf046a0155ffceb68b2fda6c",
+    "sdk_examples_image-probe_Cargo.toml.metadata.json": "8fb0370da7cfd8ad6c5e714018cb092af86349caaf9684243c628f9120ea9eaa",
+    "sdk_examples_image-probe_Cargo.toml.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sdk_examples_random-probe_Cargo.toml.metadata.json": "08dcccbbb8620c5742af989f72bd21a97a7071ebd688366569df94dfc7011a59",
+    "sdk_examples_random-probe_Cargo.toml.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sdk_examples_calculator_Cargo.toml.metadata.json": "2cc3fa516f6d3e154a4b43e83a68c7a616b96959ee62f95a492463076c1a2ef3",
+    "sdk_examples_calculator_Cargo.toml.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sdk_examples_input-service_Cargo.toml.metadata.json": "ee77369871462a44b68c3ce601e1a99228957ecda1170a13b9cdb583df50d925",
+    "sdk_examples_input-service_Cargo.toml.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sdk_examples_desktop-init_Cargo.toml.metadata.json": "52c74f24c8c0e96fdabb4eeb4033bc03915f843ad659126f1abe2f657b6d0dec",
+    "sdk_examples_desktop-init_Cargo.toml.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sdk_examples_compositor_Cargo.toml.metadata.json": "c45b2f1761b20ef998c71ad72863c11fdffd56f64bc2d7fcc4b0cb39760d4399",
+    "sdk_examples_compositor_Cargo.toml.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sdk_examples_materiaal_Cargo.toml.metadata.json": "395e80d03986e2d443bc353329940108791556ee66aab581c6c3a387396b7f1c",
+    "sdk_examples_materiaal_Cargo.toml.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sdk_Cargo.toml.metadata.json": "5796aa0ef7fc5b2eae3eb559a5e346de568cb8c369aedb2fd56819d810f870dd",
+    "sdk_Cargo.toml.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "Cargo.toml.metadata.json": "8d3ba4e81927f50a278e26a3ebf46c63a158b9303c6df635261fd140c2807a05",
+    "Cargo.toml.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

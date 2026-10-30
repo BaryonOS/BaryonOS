@@ -1,0 +1,174 @@
+{
+  "review": "CALCULATOR-REVIEW-1",
+  "source_commit": "0254206f9b44c75499cf55a9c3716fdb363372ce",
+  "source_clean_at_start_and_end": true,
+  "source_sha256": {
+    "docs/contracts/NATIVE-CALCULATOR.md": "802c204423ef2c19f4c7c28159e2190154a815adccb71536ff2242f9983cc110",
+    "sdk/examples/calculator/Cargo.lock": "78707857e1b88521806f828af813650c998e4271b135998c82ccc316e69a098c",
+    "sdk/examples/calculator/Cargo.toml": "8a58a79f27fbe6e43c76b696532a82aba08212e9fe026d9e0ba24499592ec10c",
+    "sdk/examples/calculator/build.py": "13bc43253c5ac552db4d2e3a21e2e4e566831a29bf5b1b1b414ebf5a59fb29d8",
+    "sdk/examples/calculator/linker.ld": "d675f0c262e19ae3efa56c9283460417f9c3063d37d5bc6dba73fa03d6ab9a85",
+    "sdk/examples/calculator/src/app.rs": "cdba83100ae8f674d154b5cfcd61e880ff801edc119a14c700168cbb3fd394d6",
+    "sdk/examples/calculator/src/bin/oracle.rs": "c7a5a5589ccb9a0da3a001805dd4ec34eaa6541f90469abbaaf9e697fadf0efc",
+    "sdk/examples/calculator/src/bootstrap.rs": "b288d7b0a377f52aea913ae25885af5ab99c8a3e8db926dfb0e302a179a1a24c",
+    "sdk/examples/calculator/src/decimal.rs": "acafe4526892bb25de3d60400093bf776874103dea559460b0ea17210833adb2",
+    "sdk/examples/calculator/src/lib.rs": "6d145d3b82f0c9cb7b21b8998ee94736b9918012d302d672a5738bfee0434bd9",
+    "sdk/examples/calculator/src/main.rs": "d57d0fff9b67b4d09ca17b72a991bf74002261f4f9d216396347b9ccab19f27c",
+    "sdk/examples/calculator/src/model.rs": "037d7a8a5464b1ecaa511c779f3d0431a8aab00346744bf3409a47bbd3b24de2",
+    "sdk/examples/calculator/src/render.rs": "27df19ea0314e82325c240a3d6f2e71e6df4ea3b99d37fa2a0821dd84f6ab727",
+    "sdk/examples/calculator/tests/chain.rs": "60ee616d19062142cf8e52b0adc50156883c8c5129bbafc98507497cefdbf98a",
+    "sdk/examples/calculator/tests/decimal.rs": "c3ece2ec64e1d9eb049a250863f4bc48a31e05039021c15ebfc9da88d89ae06b",
+    "sdk/examples/calculator/tests/decimal_oracle.py": "8843551733c9e4fa596abd767067e5d4885bf90948aa60b010c9ec233ffb74ca",
+    "sdk/examples/calculator/tests/model_render.rs": "d73ebbeab8f1eb501fb8c6d09790e9a7abdbbc89ae6db0d26438616046671d7a",
+    "sdk/examples/calculator/verification/component.json": "644df917c65258b1962b6b46a395989a89cb0af1e68188eb6b87ddacf84c8c32"
+  },
+  "result": "Bounded source/host/ELF approval: no concrete reachable code blocker found; one documentation correction requested. NativeGUI acceptance not performed.",
+  "concrete_code_findings": [],
+  "documentation_notes": [
+    {
+      "priority": "P3",
+      "file": "docs/contracts/NATIVE-CALCULATOR.md",
+      "location": "Startupwoord table row0",
+      "finding": "Word0 is called the SDK/kernel ABI, but the existing startup word0 represents boot mode. Native calculator correctly queries native::check_abi() and does not use word0 as ABI.",
+      "requested_fix": "Describe word0 as boot mode and ABI validation as an explicit native syscall query."
+    }
+  ],
+  "own_checks": [
+    {
+      "command": "LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-calculator-integration-review/target python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/calculator/Cargo.toml",
+      "cwd": "/workspace/nieuw-os-worktrees/native-calculator",
+      "exit_code": 0,
+      "passed": 17,
+      "failed": 0,
+      "groups": {
+        "chain": 6,
+        "decimal": 5,
+        "model_render": 6
+      },
+      "log": "/tmp/nieuw-os-calculator-integration-review/original-host-tests.txt"
+    },
+    {
+      "command": "LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-calculator-integration-review/target-extra python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --manifest-path /tmp/nieuw-os-calculator-integration-review/harness/Cargo.toml review_ -- --nocapture",
+      "cwd": "/workspace/nieuw-os-worktrees/native-calculator",
+      "exit_code": 0,
+      "passed": 4,
+      "failed": 0,
+      "log": "/tmp/nieuw-os-calculator-integration-review/extra-chain-tests-rerun.txt",
+      "details": [
+        "Real compositor Focus before current input ACK creates a real input-core StaleAck response; SDK returns Superseded, app cancels capture and does not count a false ACK or process input twice",
+        "Real input ACK consumed by server but reply lost: channels close, InputLost remains visible, no replay and no fake ready/ACK",
+        "Real final tile committed but acknowledgement lost: client retains incomplete frame state, no full-frame count/ready, all four owned channels ultimately close once",
+        "Bad authenticated geometry binding closes both typed channel pairs, Engine invariants retained"
+      ]
+    }
+  ],
+  "native_path_review": [
+    "CLD+entry RSP%16=8 guard+JMP preserves SysV entry alignment; no allocator or host arithmetic path in native entry",
+    "Exactly six described leaf handles; duplicate raw handles, invalid principals/epochs and known legacy document metadata rejected structurally. Actual capability rights and endpoint uniqueness are enforced by future root grants and native service ingress, not these integers.",
+    "SUR1 INFO authenticates current server/epoch geometry; INP1 binds true server/epoch/client and exclusive send/reply handles. App processes at most4 offers and8 acknowledged tile transactions per step.",
+    "Each input offer reaches exactly one ACK attempt; Superseded clears capture without false acknowledgement; loss closes sessions with no automatic replay.",
+    "A model generation is presented only after the last real typed SUR1 commit acknowledgement; input or surface failure cannot certify current ready.",
+    "STOP before GO closes the four untransferred service handles; active stop tries both typed owners even when one close fails, then native DONE is sent before registry/control closure. Failure exits rather than claiming clean DONE.",
+    "Completed/idempotent typed client closes avoid duplicate underlying channel close. Kernel process-exit cleanup remains the final failure path and native integrated lifecycle is still unexecuted."
+  ],
+  "independently_inspected_retained_elf": {
+    "scope": "Read-only inspection of retained scalar native ELF; no rebuild/native execution",
+    "path": "/tmp/nieuw-os-calculator-none-target/x86_64-unknown-none/release/calculator-app",
+    "sha256": "f045c031f20c740810f983bc9302f1910e5c72a055ac015e3f5463d24a25c3bc",
+    "bytes": 270264,
+    "elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 19,
+          "memsz": 19,
+          "page_start": 1073741824,
+          "page_end": 1073745920
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 8192,
+          "filesz": 1024,
+          "memsz": 1024,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073872896,
+          "offset": 12288,
+          "filesz": 189209,
+          "memsz": 189209,
+          "page_start": 1073872896,
+          "page_end": 1074065408
+        },
+        {
+          "flags": 6,
+          "address": 1074200576,
+          "offset": 204800,
+          "filesz": 144,
+          "memsz": 144,
+          "page_start": 1074200576,
+          "page_end": 1074204672
+        },
+        {
+          "flags": 5,
+          "address": 1074462720,
+          "offset": 208896,
+          "filesz": 47110,
+          "memsz": 47110,
+          "page_start": 1074462720,
+          "page_end": 1074511872
+        }
+      ]
+    },
+    "instruction_lines": 12021,
+    "forbidden_instructions": [],
+    "undefined_symbols": [],
+    "start": "\n    40000000:\tcld\n    40000001:\tmov    rax,rsp\n    40000004:\tand    eax,0xf\n    40000007:\tcmp    eax,0x8\n    4000000a:\tjne    40000011 <_start+0x11>\n    4000000c:\tjmp    400b1a90 <calculator_main>\n    40000011:\tud2",
+    "disassembly_sha256": "5e4fd841e1e4d1acf953a0b60e49ba75dc1c5c13aa2b67c37a11cfd44e6fe9d9"
+  },
+  "delegated_math_review": {
+    "report": "/tmp/nieuw-os-calculator-math-review/review.json",
+    "sha256": "4ead6cb42eac5f7b9952cc9bccfeecc7f191dda813f92d64829fbe47581f7a1c",
+    "scope": "Separate pure math/model review by subagent, not claimed as parent-executed tests",
+    "existing_decimal_tests": 5,
+    "new_previous_answer_tests": 3,
+    "fraction_oracle_cases": 26424,
+    "exact_error_boundary_cases": 48,
+    "mismatches": 0,
+    "method": "Independent exact Fraction arithmetic plus shunting-yard parser; checks values, sticky rounding and formatting, and targeted exact refusal kinds."
+  },
+  "interruption": {
+    "external_environment_unavailable": true,
+    "old_session": "42627",
+    "old_log": "/tmp/nieuw-os-calculator-integration-review/extra-chain-tests.txt",
+    "resolution": "After recovery retained log showed all4 tests passed; old session could not resume, so exactly those4 hostcases reran with directly captured exit0. No old unknown outcome counted as success."
+  },
+  "no_repository_writes": true,
+  "no_vm_started": true,
+  "no_shared_build": true,
+  "no_native_GUI_acceptance": true,
+  "no_progress_points_proposed": true,
+  "open_acceptance": [
+    "Correct startupword0 documentation before publishing component contract",
+    "Root integration of actual6 grants, Init/launcher, two app focus routes and compositor assignments",
+    "Real QMP keyboard/mouse100/200%, focus switches/held keys/inflight replies, actual STOP/fault cleanup and supported heap/stack/profile execution on final exact source/ELF/image",
+    "No clipboard, persistence, universal precision, screen-reader, full app-management or full release acceptance from this review"
+  ],
+  "artifacts_sha256": {
+    "original-host-tests.txt": "9819bd9b94fce5080b263baa64dab17e22e7f3826eba9ebaf57908340c36a297",
+    "extra-chain-tests.txt": "7e0babb3cac6fce05650830cc9ca6d69b8e105266737477c5ddac470bfbfa51f",
+    "extra-chain-tests-rerun.txt": "d7f826e3f7d481704e94bb69a8694efa7df25d6a4b73d63a06899db732463b62",
+    "elf.json": "f80abd7b93cd643c92f9b2d160aa064c21e275b665fb108e17616456bbcd5a90",
+    "calculator.disasm.txt": "5e4fd841e1e4d1acf953a0b60e49ba75dc1c5c13aa2b67c37a11cfd44e6fe9d9",
+    "calculator.symbols.txt": "04d55e4988b0bc18481d816c920d4920ce384fb5f051a72e64080325f2f59d4c",
+    "harness/tests/chain.rs": "0b51f458c30f076cf2c57d2ec911ce651a1ab3a86452b06e83f0565d15fa8444",
+    "harness/Cargo.toml": "6b253d89dbe73e675f7a590c2d7b240ed163033f4b9df130ca0b96b31ab6ab0e",
+    "harness/Cargo.lock": "654552b25f58185ca788ae28cd3e2e98ab6b1a167ea72c26125a0c13ae9fac8e"
+  }
+}

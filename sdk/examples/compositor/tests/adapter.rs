@@ -649,6 +649,54 @@ fn retired_focus0_impl() {
         .unwrap_err()
         .is_again());
 }
+fn retire_reply_deadline_starts_after_wipe_impl() {
+    let mut m = Model::new();
+    let mut c = m.coordinator();
+    let msg = m.control(Operation::Retire, 1);
+    assert!(c.accept(0, &msg).unwrap());
+    c.step(0, &mut m.ports[2]).unwrap();
+    m.ack(0);
+    assert!(c.step(1, &mut m.ports[2]).unwrap());
+    assert_eq!(c.state(), State::Retired);
+
+    // Even after a long wipe, no reply can be sent before completion.
+    c.flush(500, send(m.registry_send), &mut m.ports[2])
+        .unwrap();
+    assert!(m.ports[0]
+        .receive(recv(m.registry_recv))
+        .unwrap_err()
+        .is_again());
+    let filler = Outgoing::new(1, &[]).unwrap();
+    for _ in 0..16 {
+        m.ports[2].send(send(m.registry_send), &filler).unwrap();
+    }
+    c.finish_retire_wipe(500);
+    c.flush(500, send(m.registry_send), &mut m.ports[2])
+        .unwrap();
+    // Repeated completion calls must not extend the deadline.
+    c.finish_retire_wipe(600);
+    c.flush(700, send(m.registry_send), &mut m.ports[2])
+        .unwrap();
+    assert_eq!(
+        c.flush(701, send(m.registry_send), &mut m.ports[2]),
+        Err(Status::Uncertain)
+    );
+    assert!(c.is_terminal());
+
+    let mut m = Model::new();
+    let mut c = m.coordinator();
+    let msg = m.control(Operation::Retire, 1);
+    assert!(c.accept(0, &msg).unwrap());
+    c.step(0, &mut m.ports[2]).unwrap();
+    m.ack(0);
+    assert!(c.step(1, &mut m.ports[2]).unwrap());
+    c.finish_retire_wipe(500);
+    c.flush(500, send(m.registry_send), &mut m.ports[2])
+        .unwrap();
+    let reply = m.ports[0].receive(recv(m.registry_recv)).unwrap();
+    assert_eq!(number(reply.payload(), 32), 0);
+    assert_eq!(number(reply.payload(), 40), State::Retired as u64);
+}
 fn wrong_policy_impl() {
     let mut m = Model::new();
     let mut c = m.coordinator();
@@ -681,6 +729,10 @@ scenario!(
 scenario!(
     retire_requests_real_unfocus_and_no_ack_before_reply,
     retired_focus0_impl
+);
+scenario!(
+    retire_reply_deadline_starts_after_wipe,
+    retire_reply_deadline_starts_after_wipe_impl
 );
 scenario!(
     canonical_focus_reply_from_wrong_kernel_sender_is_terminal,

@@ -232,11 +232,14 @@ impl Message {
 /// Hash the same forty little-endian wire words as Message::encode without
 /// materialising a 320-byte temporary. Every field and all 256 payload bytes
 /// participate even when len/cap_count/live metadata are invalid or zero.
+#[cfg(any(test, feature = "diagnostic-bench"))]
 const DIAGNOSTIC_PRIME: u64 = 0x100000001b3;
+#[cfg(any(test, feature = "diagnostic-bench"))]
 struct DiagnosticHasher {
     value: u64,
     zeros: usize,
 }
+#[cfg(any(test, feature = "diagnostic-bench"))]
 impl DiagnosticHasher {
     const FACTORS: [u64; 65] = {
         let mut out = [1u64; 65];
@@ -292,6 +295,7 @@ impl DiagnosticHasher {
         self.value
     }
 }
+#[cfg(any(test, feature = "diagnostic-bench"))]
 fn digest_message(h: &mut DiagnosticHasher, m: &Message) {
     // Exactly forty zero words compose to h * PRIME^40 modulo 2^64. This
     // branch is allowed only after checking every typed header/cap field and
@@ -1749,7 +1753,134 @@ impl Engine {
         s
     }
     /// Diagnostic fingerprint only, not cryptography or proof against collisions.
+    /// The complete original word stream is retained; no cache/live filtering.
     pub fn state_digest(&self) -> u64 {
+        let mut h = 0xcbf29ce484222325u64;
+        fn add(h: &mut u64, v: u64) {
+            // Fixed typed word boundaries: this is a fast diagnostic mixer,
+            // never an authentication/integrity primitive or a crypto hash.
+            *h = (*h ^ v).wrapping_mul(0x100000001b3);
+        }
+        fn id(h: &mut u64, x: Id) {
+            add(h, u64::from(x.index));
+            add(h, u64::from(x.generation));
+        }
+        add(&mut h, self.last_pid);
+        for p in &self.processes {
+            add(&mut h, p.pid);
+            add(&mut h, u64::from(p.live));
+            for s in &p.slots {
+                add(&mut h, u64::from(s.generation));
+                add(&mut h, u64::from(s.retired));
+                id(&mut h, s.node);
+            }
+        }
+        for n in &self.nodes {
+            for x in [
+                u64::from(n.generation),
+                u64::from(n.live),
+                u64::from(n.retired),
+                u64::from(n.revoked),
+                n.issuer,
+                n.rights,
+                u64::from(n.refs),
+                u64::from(n.depth),
+            ] {
+                add(&mut h, x);
+            }
+            id(&mut h, n.object);
+            id(&mut h, n.parent);
+        }
+        for e in &self.endpoints {
+            for x in [
+                u64::from(e.generation),
+                u64::from(e.live),
+                u64::from(e.retired),
+                u64::from(e.open),
+                e.owner,
+                u64::from(e.nodes),
+                u64::from(e.head),
+                u64::from(e.len),
+            ] {
+                add(&mut h, x);
+            }
+            for q in &e.queue {
+                for word in q.message.encode().chunks_exact(8) {
+                    add(&mut h, u64::from_le_bytes(word.try_into().unwrap()));
+                }
+                for x in q.caps {
+                    id(&mut h, x);
+                }
+            }
+        }
+        for b in &self.blocks {
+            for x in [
+                u64::from(b.generation),
+                u64::from(b.live),
+                u64::from(b.retired),
+                u64::from(b.open),
+                b.owner,
+                u64::from(b.nodes),
+                u64::from(b.scope.device),
+                b.scope.first_sector,
+                b.scope.sector_count,
+            ] {
+                add(&mut h, x);
+            }
+        }
+        for l in &self.launches {
+            for x in [
+                u64::from(l.generation),
+                u64::from(l.live),
+                u64::from(l.retired),
+                u64::from(l.open),
+                l.owner,
+                u64::from(l.nodes),
+                u64::from(l.image),
+            ] {
+                add(&mut h, x);
+            }
+        }
+        for c in &self.children {
+            for x in [
+                u64::from(c.generation),
+                u64::from(c.live),
+                u64::from(c.retired),
+                u64::from(c.open),
+                c.owner,
+                u64::from(c.nodes),
+                c.child,
+                u64::from(c.state),
+                c.code,
+            ] {
+                add(&mut h, x);
+            }
+        }
+        for e in self
+            .entropy
+            .iter()
+            .chain(self.network.iter())
+            .chain(self.display.iter())
+            .chain(self.input.iter())
+        {
+            for x in [
+                u64::from(e.generation),
+                u64::from(e.live),
+                u64::from(e.retired),
+                u64::from(e.open),
+                e.owner,
+                u64::from(e.nodes),
+            ] {
+                add(&mut h, x);
+            }
+        }
+        h
+    }
+    /// Exact zero-run comparison retained only for tests/native diagnostics.
+    /// This is not the production digest: it measured slower on QEMU/TCG.
+    #[cfg(any(test, feature = "diagnostic-bench"))]
+    #[inline(never)]
+    pub fn diagnostic_zero_digest(&self) -> u64 {
         let mut h = DiagnosticHasher::new(0xcbf29ce484222325);
         fn add(h: &mut DiagnosticHasher, v: u64) {
             // Fixed typed word boundaries: this is a fast diagnostic mixer,
@@ -2382,6 +2513,7 @@ mod digest_differential {
         assert_eq!(e.state_digest(), e.state_digest_reference());
         assert_eq!(e.stats().state_digest, e.state_digest_reference());
         assert_eq!(e.diagnostic_direct_digest(), e.state_digest_reference());
+        assert_eq!(e.diagnostic_zero_digest(), e.state_digest_reference());
         #[cfg(feature = "diagnostic-bench")]
         assert_eq!(e.diagnostic_reference_digest(), e.state_digest_reference());
     }
@@ -2867,7 +2999,7 @@ mod digest_differential {
                         digests[variant] = if variant == 0 {
                             black_box(black_box(&e).state_digest_reference())
                         } else {
-                            black_box(black_box(&e).state_digest())
+                            black_box(black_box(&e).diagnostic_zero_digest())
                         };
                     }
                     samples[variant].push(start.elapsed().as_nanos() / u128::from(iterations));

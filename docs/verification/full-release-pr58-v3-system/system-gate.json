@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "a27c14d4cd49970efbd7ecfc3998bccda6eae724d1b220d6671d198343a0e761",
+  "test_inputs": {
+    "sdk/examples/tcp-probe/test_peer.py": "8bed9ba193b2fb3d41ff0d96d58aebe733e085c1aafa649e96a3f4cc711af919",
+    "tests/test_net_peer.py": "302dd2c127a677c648b5f43e1403e828f6012a774e4d459273f3dd738040cb7e",
+    "tests/test_system_capture.py": "869b1e0993f09b8d7570330cdde3e060e204437eb6e015f7865ac8435dad87de",
+    "tests/test_system_harness.py": "5401c5458faf8095f1491e5fa33bc2dae2ddcf8bdd09531b2be01511766ff073",
+    "tests/test_tcp_harness.py": "dd353f61391e579ce5ef53b94ea9514fb2657c09a41c0dd96d33991b6e746303",
+    "tests/test_tcp_transcript.py": "c45082f8eef980c88c4f8694a7a263222db5977fdd9afc177068021521c16ea6"
+  },
+  "status": "completed",
+  "passed": true,
+  "host": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_system_*.py"
+      ],
+      "exit": 0,
+      "stdout": "/home/runner/work/nieuw-os/nieuw-os/build/pr58-v3-system/logs/system-host-0.stdout.txt",
+      "stderr": "/home/runner/work/nieuw-os/nieuw-os/build/pr58-v3-system/logs/system-host-0.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "stdout": "/home/runner/work/nieuw-os/nieuw-os/build/pr58-v3-system/logs/system-host-1.stdout.txt",
+      "stderr": "/home/runner/work/nieuw-os/nieuw-os/build/pr58-v3-system/logs/system-host-1.stderr.txt"
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "passed": true,
+      "run_directory": "/home/runner/work/nieuw-os/nieuw-os/build/pr58-v3-system/run/system-normal-8a8ad3c0c2f0496ead7c6d08eca037f9",
+      "raw_qemu_exit": 33,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "duration_s": 6.229090939999992
+    },
+    {
+      "case": "recover",
+      "passed": true,
+      "run_directory": "/home/runner/work/nieuw-os/nieuw-os/build/pr58-v3-system/run/system-recover-c59d95f493d1425291a88543b1c552c4",
+      "raw_qemu_exit": 33,
+      "before_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "duration_s": 6.235307110000008
+    }
+  ],
+  "final_kernel_sha256": "c084e4d38d00d6fdca1775baa66890d4e3c8205800c759b4a3e13b0d2fbfb34b",
+  "final_manifest": "/home/runner/work/nieuw-os/nieuw-os/build/pr58-v3-system/manifest.json"
+}

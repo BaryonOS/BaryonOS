@@ -74,10 +74,10 @@ impl Ps2Mouse {
         }
         self.received = 0;
         let [flags, x, y] = self.packet;
-        // The PS/2 header also carries sign/overflow/header flags. Its three
-        // button bits are deliberately extracted before constructing state.
-        let buttons = MouseButtons(flags & 7);
-        let changed = MouseButtons(buttons.0 ^ self.buttons.0);
+        // The PS/2 header also carries sign/overflow/header flags; from_bits
+        // deliberately extracts only the three button bits.
+        let buttons = MouseButtons::from_bits(flags);
+        let changed = MouseButtons::from_bits(buttons.0 ^ self.buttons.0);
         self.buttons = buttons;
         Ok(Some(MouseEvent {
             dx: if flags & 0x40 != 0 {

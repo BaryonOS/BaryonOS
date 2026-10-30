@@ -1,0 +1,7 @@
+   Compiling capability-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/crates/capability-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.07s
+     Running unittests src/lib.rs (target/pr58-v3-system-host/debug/deps/nieuw_os_sdk_runtime-30c2256bd953c4a2)
+     Running tests/message.rs (target/pr58-v3-system-host/debug/deps/message-baaa12da83b8190b)
+     Running tests/process.rs (target/pr58-v3-system-host/debug/deps/process-1c7d96e32da81985)
+   Doc-tests nieuw_os_sdk_runtime
