@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo",
+    "build",
+    "--offline",
+    "--locked",
+    "--release",
+    "--manifest-path",
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-probe/Cargo.toml",
+    "--features",
+    "native",
+    "--bin",
+    "nas-probe",
+    "--target",
+    "x86_64-unknown-none"
+  ],
+  "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli",
+  "started_unix": 1793381389.1413405,
+  "duration_s": 0.5559258460998535,
+  "returncode": 0
+}

@@ -1,0 +1,245 @@
+{
+  "source_commit": "1a14890506ad62a71853119a8504b0a184df8a9b",
+  "parent_basis": "4a0ce99ff6b88adcd0e2c6be0571b30390d8d1c8",
+  "branch": "simonvanieperen-net-broker",
+  "source_inputs_v3": "4799a328ef1f5d4b19b7cce47d3c9eac5825394cf83b88b3dc409559adff332e",
+  "recorded_at": "2026-10-30T19:08:22.159085+01:00",
+  "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/net-broker-worktree",
+  "toolchain": "1.91.1-x86_64-unknown-linux-gnu",
+  "evidence_level": "host-model plus baremetal library compile; NOT native service or device enforcement",
+  "broker_unit_tests": 28,
+  "production_compile_fail_tests": 4,
+  "existing_stack_tests": 15,
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "services/net-broker/Cargo.toml",
+        "--target-dir",
+        "target/net-broker-host"
+      ],
+      "exit_status": 0,
+      "duration_seconds_time_p": 0.08,
+      "log": "broker-host.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "services/net-broker/Cargo.toml",
+        "--target-dir",
+        "target/net-broker-host",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "duration_seconds_time_p": 1.08,
+      "log": "broker-clippy.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "fmt",
+        "--manifest-path",
+        "services/net-broker/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "duration_seconds_time_p": 0.05,
+      "log": "broker-fmt.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "build",
+        "--locked",
+        "--offline",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--manifest-path",
+        "services/net-broker/Cargo.toml",
+        "--target-dir",
+        "target/net-broker-none"
+      ],
+      "exit_status": 0,
+      "duration_seconds_time_p": 1.55,
+      "log": "broker-none.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml",
+        "--target-dir",
+        "target/net-broker-host"
+      ],
+      "exit_status": 0,
+      "duration_seconds_time_p": 0.38,
+      "log": "stack-host.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml",
+        "--target-dir",
+        "target/net-broker-host",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_status": 0,
+      "duration_seconds_time_p": 0.2,
+      "log": "stack-clippy.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "fmt",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_status": 0,
+      "duration_seconds_time_p": 0.03,
+      "log": "stack-fmt.txt"
+    }
+  ],
+  "registry_graph_identical_to_existing_stack": true,
+  "registry_packages": [
+    {
+      "name": "bitflags",
+      "version": "1.3.2",
+      "checksum": "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
+    },
+    {
+      "name": "byteorder",
+      "version": "1.5.0",
+      "checksum": "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
+    },
+    {
+      "name": "cfg-if",
+      "version": "1.0.5",
+      "checksum": "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
+    },
+    {
+      "name": "hash32",
+      "version": "0.3.1",
+      "checksum": "47d60b12902ba28e2730cd37e95b8c9223af2808df9e902d4df49588d1470606"
+    },
+    {
+      "name": "heapless",
+      "version": "0.9.3",
+      "checksum": "25ba4bd83f9415b58b4ed8dc5714c76e626a105be4646c02630ad730ad3b5aa4"
+    },
+    {
+      "name": "managed",
+      "version": "0.8.0",
+      "checksum": "0ca88d725a0a943b096803bd34e73a4437208b6077654cc4ecb2947a5f91618d"
+    },
+    {
+      "name": "smoltcp",
+      "version": "0.14.0",
+      "checksum": "b6f8b28ad56c6e35524a37dd492af5d1a47e31e1a4d175cd12f89c075f01980f"
+    },
+    {
+      "name": "stable_deref_trait",
+      "version": "1.2.1",
+      "checksum": "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
+    }
+  ],
+  "source_blobs": [
+    {
+      "path": ".github/workflows/net-broker-quality.yml",
+      "sha256": "5e089c3410a2ecda82b81f305fa0f9fe4400ecb5a755e81b4fd3112ea424c8a0"
+    },
+    {
+      "path": "services/net-broker/Cargo.toml",
+      "sha256": "cb2e50138667f16376ac94f3f95b67e33e0ea5fed4e6fc92e56f4de7a4729e4b"
+    },
+    {
+      "path": "services/net-broker/Cargo.lock",
+      "sha256": "7505d58cdb232403a2d2661c92f61862502321a6536f3de3bfa14fb338d4dc00"
+    },
+    {
+      "path": "services/net-broker/README.md",
+      "sha256": "b57f13993f583eff4a5feafddec4c022f00ef841ff4b1b9dd07d71f985cdce71"
+    },
+    {
+      "path": "services/net-broker/src/lib.rs",
+      "sha256": "ca727bbc320e5767a47791303f1b22503547780033ab72b70945b57dae0ba564"
+    },
+    {
+      "path": "services/net-broker/tests/rights.rs",
+      "sha256": "60db5a55e5a2c9ff98727684ccd0b86364b454e3c0ca943a50ecc8e13cf62ed2"
+    },
+    {
+      "path": "services/net-stack/Cargo.toml",
+      "sha256": "2cc4108a19e4150097ae4f1981d378dbcb0d7a383dbd7aed2c048fea41053501"
+    },
+    {
+      "path": "services/net-stack/Cargo.lock",
+      "sha256": "4840bd0bc19fda39bc6742128d63d4bdbdad49541b099bd7a05b97804933e251"
+    },
+    {
+      "path": "services/net-stack/src/lib.rs",
+      "sha256": "e66eca97a69d5b48cc2db00b4e36188f6dbd9f05a1118efe70afe736f3be107a"
+    },
+    {
+      "path": "services/net-stack/src/device.rs",
+      "sha256": "a6577f8f2ce0e08d84fd17f4cc5b261f1679c57d9c5db958cb97fb1d10f55a30"
+    }
+  ],
+  "baremetal_rlib_sha256": "322aa3e6fd8850e2327322b272415e73036c6ab02ab3c370ec9846f616edd541",
+  "historical_wip_failure": {
+    "log": "conversation-host.txt",
+    "exit_status": 101,
+    "passed": 23,
+    "failed": 2,
+    "source_binding": "uncommitted WIP after 9bef711, full source fingerprint NOT preserved; NOT an acceptance gate",
+    "cause": "test fixture stopped receive after Closed before draining 96-byte response; fixed fixture includes Closed and drains until empty/EOF"
+  },
+  "not_executed": [
+    "native broker RPC/SDK/caller issuer",
+    "native NIC backend-wide fence/reset/epoch matching",
+    "native app process/destination revocation/helpers",
+    "native TLS/handshake/provider/certificate calendar",
+    "hardware, human audit, formal proof",
+    "new GitHub Actions run (workflow added, not observed yet)"
+  ],
+  "score_proposal": {
+    "network_old": 0,
+    "network_new": 0,
+    "total_old": 34,
+    "total_new": 34,
+    "central_owner": "manager89f84098"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "reference": {
+    "report": "docs/verification/native-cold-acceptance/reference/summary.json",
+    "sha256": "8fa183196e53edd55ae546623dcbf57b308ed9222bf253887889a4b6cd46f7df",
+    "original_report_sha256": "ed5cf0c68b756d8e95f19139cd27459a4c7f88fafc5612c6b3c4ac46f83a9cf3"
+  },
+  "parent": {
+    "report": "docs/verification/native-cold-acceptance/parent/summary.json",
+    "sha256": "fc481b961f74339e4cbcdca39563a43a6032c933a1a7488ac18e3a42e3f78b05",
+    "original_report_sha256": "22fcf7ca812f02c48ded92e63650ea52ae4e8a0411d96129745739596bd9b0e1"
+  },
+  "cold": {
+    "report": "docs/verification/native-cold-acceptance/cold/summary.json",
+    "sha256": "7eeaeda80f2d3f8e1d4ef31865991002ad2af97330b3f2a787564984fd211385",
+    "original_report_sha256": "c3bbc81b9b2a5afc2ee166c1612c0d60cfea4e4d75755888b6d1efb9d1e4eed3"
+  }
+}

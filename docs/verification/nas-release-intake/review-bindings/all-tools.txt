@@ -1,0 +1,12 @@
+...................................................................................................................................................................................................................................................................................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 435 tests in 5.701s
+
+OK
+Captured m5: 3 groups, 2 verified guest runs
+Captured m2: 2 groups, 1 verified guest runs
+Captured m2: 2 groups, 1 verified guest runs
+Captured M6a: 1 groups, 0 actual guest runs; crash exits preserved
+Captured M6a: 1 groups, 0 actual guest runs; crash exits preserved
+M6c capture passed: 35 groups, 31 distinct actual VM runs
+Native qsim accepted=False; /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/qsim-host-test-yut7e05o/build/qsim-inputs-7ec50cc051

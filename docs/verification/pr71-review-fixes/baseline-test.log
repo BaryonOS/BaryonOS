@@ -1,0 +1,28 @@
+test_artifacts_inside_repository_or_with_broad_permissions_fail_closed (test_replay_handoff.ReplayHandoffTests.test_artifacts_inside_repository_or_with_broad_permissions_fail_closed) ... ERROR
+test_boolean_schema_version_is_not_integer_one (test_replay_handoff.ReplayHandoffTests.test_boolean_schema_version_is_not_integer_one) ... ok
+test_cold_input_is_private_read_only_and_unchanged (test_replay_handoff.ReplayHandoffTests.test_cold_input_is_private_read_only_and_unchanged) ... ok
+test_exact_private_normal_guest_stage_artifact_is_bound (test_replay_handoff.ReplayHandoffTests.test_exact_private_normal_guest_stage_artifact_is_bound) ... ok
+test_missing_extra_or_secret_bearing_manifest_fields_fail_closed (test_replay_handoff.ReplayHandoffTests.test_missing_extra_or_secret_bearing_manifest_fields_fail_closed) ... ok
+test_source_and_origin_are_bound_to_the_run_selected_by_root (test_replay_handoff.ReplayHandoffTests.test_source_and_origin_are_bound_to_the_run_selected_by_root) ... ok
+test_symbolic_link_input_is_never_followed (test_replay_handoff.ReplayHandoffTests.test_symbolic_link_input_is_never_followed) ... ok
+test_truncated_oversized_and_tampered_payload_fail_closed (test_replay_handoff.ReplayHandoffTests.test_truncated_oversized_and_tampered_payload_fail_closed) ... ok
+test_wrong_role_stage_incomplete_or_wrong_digest_fail_closed (test_replay_handoff.ReplayHandoffTests.test_wrong_role_stage_incomplete_or_wrong_digest_fail_closed) ... ok
+
+======================================================================
+ERROR: test_artifacts_inside_repository_or_with_broad_permissions_fail_closed (test_replay_handoff.ReplayHandoffTests.test_artifacts_inside_repository_or_with_broad_permissions_fail_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/b38cadb31b5d/review-nas/pr71-fix/baseline/services/nas/native-probe/tests/test_replay_handoff.py", line 122, in test_artifacts_inside_repository_or_with_broad_permissions_fail_closed
+    repository_artifact.write_bytes(STRUCTURAL_PLACEHOLDER)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py", line 1036, in write_bytes
+    with self.open(mode='wb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/b38cadb31b5d/review-nas/pr71-fix/baseline/target/replay-token-negative-fixture.bin'
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.027s
+
+FAILED (errors=1)

@@ -1,0 +1,11 @@
+--- 16adfe5/services/net-protocol/src/dhcp_client.rs
++++ f6d9f1f/services/net-config/src/dhcp_client.rs
+@@ -1,7 +1,7 @@
+ //! One direct-link DHCPv4 exchange and lease. This is not a network grant.
+ //! The caller owns NIC I/O, randomized retries, entropy and RFC 5227 probing.
+ 
+-use crate::{arp::unicast_ipv4, dhcp, UdpDatagram};
++use crate::{UdpDatagram, dhcp, unicast_ipv4};
+ 
+ const BROADCAST: [u8; 4] = [255; 4];
+ 

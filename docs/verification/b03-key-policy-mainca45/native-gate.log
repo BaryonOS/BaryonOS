@@ -1,0 +1,45 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-update-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/update"}
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/runtime)
+   Compiling update-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/crates/update-core)
+   Compiling nieuw-os-update-example v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/examples/update)
+    Finished `release` profile [optimized] target(s) in 1.10s
+   Compiling update-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/crates/update-core)
+   Compiling os-loader v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/boot/loader)
+    Finished `release` profile [optimized] target(s) in 1.35s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/kernel)
+    Finished `release` profile [optimized] target(s) in 0.70s
+Built and inspected update-k1: 3 ELF load segments
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-update-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/update"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.02s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/kernel)
+    Finished `release` profile [optimized] target(s) in 0.71s
+Built and inspected update-k2: 3 ELF load segments
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-update-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/update"}
+    Finished `release` profile [optimized] target(s) in 0.02s
+    Finished `release` profile [optimized] target(s) in 0.02s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/kernel)
+    Finished `release` profile [optimized] target(s) in 0.71s
+Built and inspected update-kc: 3 ELF load segments
+B03 install: passed=True raw=33 duration=7.2s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-install-4bc37566d0
+B03 boot-v2: passed=True raw=33 duration=2.3s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-boot-v2-18aa4914cc
+B03 downgrade: passed=True raw=33 duration=2.3s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-downgrade-086f050cdd
+B03 bad-signature: passed=True raw=33 duration=7.1s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-bad-signature-ea56246206
+B03 bad-digest: passed=True raw=33 duration=7.2s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-bad-digest-efd42d3134
+B03 bad-elf: passed=True raw=33 duration=7.4s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-bad-elf-181f9a3e6f
+B03 cut: passed=True raw=-9 duration=4.3s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-cut-6872b34826
+B03 cut-resume: passed=True raw=33 duration=7.0s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-cut-resume-62d29abd13
+B03 cut-final: passed=True raw=33 duration=2.4s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-cut-final-e4ecb48f7b
+B03 no-valid-slot: passed=True raw=35 duration=2.1s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-no-valid-slot-52cde46770
+B03 inbox-signature: passed=True raw=33 duration=2.6s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-inbox-signature-5733d71bee
+B03 inbox-downgrade: passed=True raw=33 duration=2.6s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-inbox-downgrade-9680f885f3
+B03 inbox-key: passed=True raw=33 duration=2.6s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-inbox-key-28b73fa9d7
+B03 rotate-install: passed=True raw=33 duration=7.2s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-rotate-install-4e199b4cb8
+B03 rotate-boot: passed=True raw=33 duration=2.4s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-rotate-boot-347f3eabd1
+B03 key-revoked: passed=True raw=33 duration=2.6s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-key-revoked-ee5067186b
+B03 key-expired: passed=True raw=33 duration=2.6s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-key-expired-daf8b64db6
+B03 key-not-yet-valid: passed=True raw=33 duration=2.6s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/update-key-not-yet-valid-71c053892d
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+Built and inspected normal: 3 ELF load segments
+B03 gate passed=True stages=18
