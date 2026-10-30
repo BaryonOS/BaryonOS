@@ -1,0 +1,39 @@
+{
+  "task": "TASK-NATIVE-MATERIAAL short peer review",
+  "commit": "be0dc462c9da877038de2a04dbdf57ce3503405d",
+  "scope": [
+    "controller.rs",
+    "text.rs",
+    "Frame snapshot/presented contract",
+    "real SDKv7 buffers/session ownership and save/error transitions",
+    "input replay/cancel generations and pointer press/release",
+    "UTF8 boundaries and bounded tile outputs"
+  ],
+  "host_tests_passed": 14,
+  "source_test_binding": {
+    "before": {
+      "ui/native/src/controller.rs": "116dbb24e07b9ac27c0a4c5055a5410f15f761542757525dd1f99ce403fe8675",
+      "ui/native/src/text.rs": "d159d4025d7c24db47f1416d6f45aa379b911d05a3b3835aabfe7c514ddcf6cc",
+      "ui/native/src/render.rs": "650e3a2440c75873a4b26202200035dac18e09f47edb8a2adc28eac616b0f0f7",
+      "sdk/document-session/src/volume.rs": "14c116ca13ef4a5fc0e3bc69621ecb5f281e7775e6fb0d85a3e6526d2200687d",
+      "ui/native/tests/interaction.rs": "6eb61ea9bf0845801bb84bde296fbc609263a69298b99e041932f2083babc94c"
+    },
+    "after": {
+      "ui/native/src/controller.rs": "116dbb24e07b9ac27c0a4c5055a5410f15f761542757525dd1f99ce403fe8675",
+      "ui/native/src/text.rs": "d159d4025d7c24db47f1416d6f45aa379b911d05a3b3835aabfe7c514ddcf6cc",
+      "ui/native/src/render.rs": "650e3a2440c75873a4b26202200035dac18e09f47edb8a2adc28eac616b0f0f7",
+      "sdk/document-session/src/volume.rs": "14c116ca13ef4a5fc0e3bc69621ecb5f281e7775e6fb0d85a3e6526d2200687d",
+      "ui/native/tests/interaction.rs": "6eb61ea9bf0845801bb84bde296fbc609263a69298b99e041932f2083babc94c"
+    },
+    "unchanged": true,
+    "native_execution": false
+  },
+  "remaining_concrete_blockers": [],
+  "integration_gaps": [
+    "Controller input_epoch is fixed after construction. A future policy-service epoch restart needs an explicit freshly-authorized reset/rebind API to retain the owned DocumentSession/draft; current old-epoch events correctly fail closed. This is separate from same-epoch focus/source generation cancellation.",
+    "Adapter must verify actual kernel sender and full INP1 binding before deliver; InputEnvelope is not authentication. Duplicate PEEK after failed ACK must be ACKed without redelivery.",
+    "presented requires same generation and display epoch but relies on adapter calling it only after all actual blits were acknowledged.",
+    "Native adapter, fully monomorphized app stack/resource use, real input/display and visual acceptance remain untested in this review."
+  ],
+  "reviewer_writes": "Only isolated /tmp logs/target/report; no repository edits."
+}

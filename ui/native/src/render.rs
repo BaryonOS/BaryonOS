@@ -6,7 +6,7 @@ use crate::{
 use noto_sans_mono_bitmap::{get_raster, get_raster_width, FontWeight, RasterHeight};
 
 pub const MAX_TEXT_ROWS: usize = 48;
-pub const MAX_SEMANTIC_NODES: usize = 16;
+pub const MAX_SEMANTIC_NODES: usize = 18;
 
 fn raster_height(scale: Scale) -> RasterHeight {
     match scale {
@@ -23,6 +23,10 @@ pub struct Layout {
     pub editor: Rect,
     pub status: Rect,
     pub list_bottom: u32,
+    pub list_top: u32,
+    pub title_y: u32,
+    pub list_previous: Rect,
+    pub list_next: Rect,
     pub modal: Rect,
     pub modal_save: Rect,
     pub modal_cancel: Rect,
@@ -34,6 +38,8 @@ impl Layout {
     pub fn new(viewport: Viewport) -> Self {
         let width = viewport.logical_width();
         let height = viewport.logical_height();
+        let compact = height < 360;
+        let controls_y = if compact { 64 } else { 80 };
         let button_width = (width - 2 * d::PAD - 2 * d::SPACE) / 2;
         let modal = Rect {
             x: d::PAD,
@@ -45,13 +51,13 @@ impl Layout {
         Self {
             new: Rect {
                 x: d::PAD,
-                y: 80,
+                y: controls_y,
                 width: button_width,
                 height: d::CONTROL_HEIGHT,
             },
             refresh: Rect {
                 x: d::PAD + button_width + 2 * d::SPACE,
-                y: 80,
+                y: controls_y,
                 width: button_width,
                 height: d::CONTROL_HEIGHT,
             },
@@ -80,6 +86,20 @@ impl Layout {
                 height: 48,
             },
             list_bottom: height - 56,
+            list_top: if compact { 120 } else { 144 },
+            title_y: if compact { 16 } else { 20 },
+            list_previous: Rect {
+                x: width - d::PAD - 96,
+                y: if compact { 8 } else { 20 },
+                width: 44,
+                height: 44,
+            },
+            list_next: Rect {
+                x: width - d::PAD - 44,
+                y: if compact { 8 } else { 20 },
+                width: 44,
+                height: 44,
+            },
             modal,
             modal_save: Rect {
                 x: modal.x + 16,
@@ -114,12 +134,14 @@ impl Layout {
         ((self.editor.height.saturating_sub(16)) / d::LINE_HEIGHT).max(1) as usize
     }
     pub fn list_rows(self) -> usize {
-        (self.list_bottom.saturating_sub(144) / 72).max(1) as usize
+        ((self.list_bottom.saturating_sub(self.list_top) + 8) / 72).max(1) as usize
     }
     pub fn object(self, row: usize) -> Rect {
         Rect {
             x: d::PAD,
-            y: 144u32.saturating_add((row as u32).saturating_mul(72)),
+            y: self
+                .list_top
+                .saturating_add((row as u32).saturating_mul(72)),
             width: self.width - 2 * d::PAD,
             height: 64,
         }
@@ -215,28 +237,48 @@ impl<'a> Frame<'a> {
             rect,
             pixels: &mut out[..count],
             scale: viewport.scale(),
+            cursor: self
+                .view
+                .cursor
+                .map(|(x, y)| (x / viewport.scale().factor(), y / viewport.scale().factor())),
         };
         paint.pixels.fill(d::BACKGROUND);
         let layout = self.layout;
         match self.view.screen {
             Screen::Material => {
-                paint.title(d::PAD, 20, "Materiaal");
+                paint.title(d::PAD, layout.title_y, "Materiaal");
+                if self.view.list_scroll > 0 || self.view.objects.len() > layout.list_rows() {
+                    paint.arrow(
+                        layout.list_previous,
+                        true,
+                        self.view.focus == Focus::Previous,
+                        self.view.list_scroll > 0,
+                    );
+                    paint.arrow(
+                        layout.list_next,
+                        false,
+                        self.view.focus == Focus::Next,
+                        self.view.list_scroll + layout.list_rows() < self.view.objects.len(),
+                    );
+                }
                 paint.button(
                     layout.new,
                     "Nieuw",
                     self.view.focus == Focus::New,
                     self.view.editable,
+                    ButtonStyle::Primary,
                 );
                 paint.button(
                     layout.refresh,
                     "Vernieuwen",
                     self.view.focus == Focus::Refresh,
                     true,
+                    ButtonStyle::Secondary,
                 );
                 if !self.view.list_loaded {
                     paint.wrapped(
                         d::PAD,
-                        144,
+                        layout.list_top,
                         "Open je materiaal met Vernieuwen.",
                         layout.editor.width,
                         d::MUTED,
@@ -244,7 +286,7 @@ impl<'a> Frame<'a> {
                 } else if self.view.objects.is_empty() {
                     paint.wrapped(
                         d::PAD,
-                        144,
+                        layout.list_top,
                         "Hier begint je materiaal. Maak een nieuw document.",
                         layout.editor.width,
                         d::MUTED,
@@ -272,12 +314,25 @@ impl<'a> Frame<'a> {
                             .and_then(|b| core::str::from_utf8(b).ok())
                             .unwrap_or("Naam niet leesbaar");
                         paint.wrapped(row.x + 12, row.y + 8, name, row.width - 24, d::TEXT);
-                        paint.label(row.x + 12, row.y + 36, "Op dit apparaat", d::MUTED);
+                        // Preserve the full bounded title on narrow layouts.
+                        // Location is already stated by the page status; do
+                        // not paint metadata through a wrapped second line.
+                        if name.chars().count() * layout.character_width()
+                            <= (row.width - 24) as usize
+                        {
+                            paint.label(row.x + 12, row.y + 36, "Op dit apparaat", d::MUTED);
+                        }
                     }
                 }
             }
             Screen::Editor | Screen::ConfirmClose => {
-                paint.button(layout.back, "Terug", self.view.focus == Focus::Back, true);
+                paint.button(
+                    layout.back,
+                    "Terug",
+                    self.view.focus == Focus::Back,
+                    true,
+                    ButtonStyle::Secondary,
+                );
                 let label = if self.view.saving {
                     "Annuleren"
                 } else {
@@ -293,11 +348,15 @@ impl<'a> Frame<'a> {
                     label,
                     self.view.focus == focus,
                     self.view.can_save || self.view.saving,
+                    if self.view.saving {
+                        ButtonStyle::Secondary
+                    } else {
+                        ButtonStyle::Primary
+                    },
                 );
                 let title = core::str::from_utf8(self.view.title).unwrap_or("Naam niet leesbaar");
                 paint.wrapped(d::PAD, 80, title, layout.editor.width, d::TEXT);
-                paint.rounded(layout.editor, d::SURFACE, d::CONTROL_RADIUS);
-                paint.border(layout.editor, d::BORDER);
+                paint.outlined(layout.editor, d::SURFACE, d::BORDER, d::CONTROL_RADIUS);
                 if self.view.focus == Focus::Document && self.view.screen == Screen::Editor {
                     paint.focus(layout.editor);
                 }
@@ -399,8 +458,11 @@ impl<'a> Frame<'a> {
             );
         }
         if self.view.screen == Screen::ConfirmClose {
-            paint.rounded(layout.modal, d::SURFACE, d::SURFACE_RADIUS);
-            paint.border(layout.modal, d::BORDER);
+            // Opaque application-local backdrop: no half-obscured controls or
+            // text remain visible behind this modal. This grants no system-
+            // dialog privilege and does not read a framebuffer/backbuffer.
+            paint.pixels.fill(blend(d::TEXT, d::BACKGROUND, 24));
+            paint.outlined(layout.modal, d::SURFACE, d::BORDER, d::SURFACE_RADIUS);
             paint.label(
                 layout.modal.x + 16,
                 layout.modal.y + 16,
@@ -419,18 +481,21 @@ impl<'a> Frame<'a> {
                 "Bewaren",
                 self.view.focus == Focus::SaveAndBack,
                 true,
+                ButtonStyle::Primary,
             );
             paint.button(
                 layout.modal_cancel,
                 "Annuleren",
                 self.view.focus == Focus::KeepEditing,
                 true,
+                ButtonStyle::Secondary,
             );
             paint.button(
                 layout.modal_discard,
                 "Wijzigingen verwerpen",
                 self.view.focus == Focus::Discard,
                 true,
+                ButtonStyle::Danger,
             );
         }
         if let Some((x, y)) = self
@@ -497,7 +562,7 @@ impl<'a> Frame<'a> {
                     None,
                     Rect {
                         x: d::PAD,
-                        y: 20,
+                        y: l.title_y,
                         width: 200,
                         height: 40,
                     },
@@ -520,6 +585,24 @@ impl<'a> Frame<'a> {
                     Some(Focus::Refresh),
                     true,
                 );
+                if self.view.list_scroll > 0 || self.view.objects.len() > l.list_rows() {
+                    push(
+                        Role::Button,
+                        "Vorige materialen",
+                        None,
+                        l.list_previous,
+                        Some(Focus::Previous),
+                        self.view.list_scroll > 0,
+                    );
+                    push(
+                        Role::Button,
+                        "Volgende materialen",
+                        None,
+                        l.list_next,
+                        Some(Focus::Next),
+                        self.view.list_scroll + l.list_rows() < self.view.objects.len(),
+                    );
+                }
                 for (index, entry) in self
                     .view
                     .objects
@@ -732,10 +815,16 @@ fn status_color(status: Status) -> u32 {
     }
 }
 
+enum ButtonStyle {
+    Primary,
+    Secondary,
+    Danger,
+}
 struct Paint<'a> {
     rect: Rect,
     pixels: &'a mut [u32],
     scale: Scale,
+    cursor: Option<(u32, u32)>,
 }
 impl Paint<'_> {
     fn pixel(&mut self, x: i64, y: i64, color: u32) {
@@ -845,24 +934,64 @@ impl Paint<'_> {
             );
         }
     }
-    fn button(&mut self, r: Rect, label: &str, focused: bool, enabled: bool) {
-        self.rounded(
-            r,
-            if enabled { d::ACCENT } else { d::LINE },
-            d::CONTROL_RADIUS,
-        );
+    fn outlined(&mut self, r: Rect, fill: u32, border: u32, radius: u32) {
+        self.rounded(r, border, radius);
+        if r.width > 2 && r.height > 2 {
+            self.rounded(
+                Rect {
+                    x: r.x + 1,
+                    y: r.y + 1,
+                    width: r.width - 2,
+                    height: r.height - 2,
+                },
+                fill,
+                radius.saturating_sub(1),
+            );
+        }
+    }
+    fn button(&mut self, r: Rect, label: &str, focused: bool, enabled: bool, style: ButtonStyle) {
+        let hovered = enabled && self.cursor.is_some_and(|(x, y)| r.contains(x, y));
+        let (background, border, foreground) = if !enabled {
+            (d::LINE, d::LINE, d::MUTED)
+        } else {
+            match style {
+                ButtonStyle::Primary if !hovered => (d::ACCENT, d::ACCENT, d::SURFACE),
+                ButtonStyle::Danger => (d::SURFACE, d::DANGER, d::DANGER),
+                _ => (
+                    if hovered { d::ACCENT_SOFT } else { d::SURFACE },
+                    d::BORDER,
+                    d::TEXT,
+                ),
+            }
+        };
+        self.outlined(r, background, border, d::CONTROL_RADIUS);
         if focused {
             self.focus(r);
         }
         let width = get_raster_width(FontWeight::Regular, raster_height(self.scale))
             .div_ceil(self.scale.factor() as usize) as u32;
         let x = r.x + r.width.saturating_sub(label.chars().count() as u32 * width) / 2;
-        self.label(
-            x,
-            r.y + 14,
-            label,
-            if enabled { d::SURFACE } else { d::MUTED },
-        );
+        self.label(x, r.y + 14, label, foreground);
+    }
+    fn arrow(&mut self, r: Rect, previous: bool, focused: bool, enabled: bool) {
+        self.button(r, "", focused, enabled, ButtonStyle::Secondary);
+        for row in 0..13u32 {
+            let delta = row.abs_diff(6);
+            let x = if previous {
+                r.x + 19 + delta
+            } else {
+                r.x + 25 - delta
+            };
+            self.fill(
+                Rect {
+                    x,
+                    y: r.y + 16 + row,
+                    width: 2,
+                    height: 2,
+                },
+                if enabled { d::TEXT } else { d::MUTED },
+            );
+        }
     }
     fn character(&mut self, x: u32, y: u32, character: char, color: u32) {
         let height = raster_height(self.scale);

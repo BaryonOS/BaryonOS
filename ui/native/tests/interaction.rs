@@ -152,10 +152,17 @@ fn lost_commit_never_becomes_saved_or_automatic_replay_impl() {
     let count = host.borrow().requests.len();
     assert_eq!(ui.save(), Err(Error::Storage(StorageError::Uncertain)));
     assert_eq!(count, host.borrow().requests.len());
+    ui.rebind_input(99).unwrap();
+    assert_eq!(
+        ui.view().status,
+        Status::Failed(Error::Storage(StorageError::Uncertain))
+    );
     assert_eq!(ui.view().contents, Some("Keep Old"));
     // Returning local bytes to the originally loaded value must not turn an
     // unknown commit into a newly confirmed save.
-    ui.deliver(envelope(1, 1, control(PhysicalKey::A))).unwrap();
+    let mut select = envelope(1, 1, control(PhysicalKey::A));
+    select.epoch = 99;
+    ui.deliver(select).unwrap();
     ui.insert("Old").unwrap();
     assert!(!ui.document().is_dirty());
     assert_eq!(
@@ -633,4 +640,253 @@ scenario!(
 scenario!(
     explicit_cleanup_refuses_dirty_and_never_reconfirms_closed_work,
     explicit_cleanup_refuses_dirty_and_never_reconfirms_closed_work_impl
+);
+
+fn actual_raster_scenes_for_manual_host_inspection_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed_named(0,b"Een document met een lange naam","Vandaag in de tuin\n\nCafé onder de appelboom.\nWe bewaren het werk op dit apparaat.\n\nKruiden en bloemen krijgen ruimte.\n".as_bytes());
+    host.borrow_mut()
+        .seed_named(1, b"Boodschappen", b"Brood\nAppels\nThee\n");
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    let output = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../build/native-materiaal-visual");
+    std::fs::create_dir_all(&output).unwrap();
+    assert!(output.canonicalize().unwrap().starts_with(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .unwrap()
+    ));
+    let mut records = Vec::new();
+    let mut record =
+        |name: &str, ui: &nieuw_os_materiaal::controller::Controller<'_, common::Port>| {
+            let frame = Frame::new(ui.view());
+            let viewport = ui.view().viewport;
+            let mut pixels = vec![0u32; (viewport.width() * viewport.height()) as usize];
+            for rect in frame.tiles() {
+                let mut tile = [0; TILE_PIXELS];
+                frame.render_tile(rect.x, rect.y, &mut tile).unwrap();
+                for row in 0..rect.height as usize {
+                    let from = row * rect.width as usize;
+                    let to = (rect.y as usize + row) * viewport.width() as usize + rect.x as usize;
+                    pixels[to..to + rect.width as usize]
+                        .copy_from_slice(&tile[from..from + rect.width as usize]);
+                }
+            }
+            let mut bytes =
+                format!("P6\n{} {}\n255\n", viewport.width(), viewport.height()).into_bytes();
+            for color in pixels {
+                bytes.extend_from_slice(&[(color >> 16) as u8, (color >> 8) as u8, color as u8]);
+            }
+            std::fs::write(output.join(format!("{name}.ppm")), &bytes).unwrap();
+            records.push(format!(
+                "{name}: {}x{}, {} bytes; HOST ONLY",
+                viewport.width(),
+                viewport.height(),
+                bytes.len()
+            ));
+        };
+    ui.refresh().unwrap();
+    record("materiaal-100-host", &ui);
+    ui.resize(Viewport::new(640, 480, Scale::Percent200, 4).unwrap())
+        .unwrap();
+    record("materiaal-320logical-host", &ui);
+    ui.resize(Viewport::new(800, 600, Scale::Percent100, 5).unwrap())
+        .unwrap();
+    ui.open(0).unwrap();
+    ui.insert("Plan voor vandaag\n").unwrap();
+    record("editor-100-host", &ui);
+    ui.resize(Viewport::new(800, 600, Scale::Percent200, 2).unwrap())
+        .unwrap();
+    record("editor-200-host", &ui);
+    ui.request_back().unwrap();
+    record("dirty-close-200-host", &ui);
+    ui.deliver(envelope(1, 1, key(PhysicalKey::Escape)))
+        .unwrap();
+    ui.resize(Viewport::new(640, 480, Scale::Percent200, 3).unwrap())
+        .unwrap();
+    record("editor-320logical-host", &ui);
+    std::fs::write(
+        output.join("HOST-ONLY.txt"),
+        records.join("\n")
+            + "\nNo native display/input transport or product acceptance is demonstrated.\n",
+    )
+    .unwrap();
+}
+scenario!(
+    actual_raster_scenes_for_manual_host_inspection,
+    actual_raster_scenes_for_manual_host_inspection_impl
+);
+
+fn fresh_input_epoch_preserves_draft_and_cannot_inherit_a_pressed_button_impl() {
+    let host = Host::new();
+    let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.create().unwrap();
+    ui.insert("Keep ").unwrap();
+    let save = Frame::new(ui.view()).layout().save;
+    let mut mouse = Ps2Mouse::new();
+    let mut pressed = None;
+    for byte in [0x09, 0, 0] {
+        pressed = mouse.feed(byte).unwrap();
+    }
+    ui.deliver(envelope(
+        100,
+        7,
+        Event::Mouse {
+            input: pressed.unwrap(),
+            x: save.x + 10,
+            y: save.y + 10,
+        },
+    ))
+    .unwrap();
+    assert_eq!(ui.rebind_input(INPUT_EPOCH), Err(Error::InputEpoch));
+    assert_eq!(ui.rebind_input(0), Err(Error::InputEpoch));
+    ui.rebind_input(99).unwrap();
+    assert_eq!(ui.view().contents, Some("Keep "));
+    assert!(ui.document().is_dirty());
+    assert_eq!(ui.view().status, Status::InputLost);
+    let mut released = None;
+    for byte in [0x08, 0, 0] {
+        released = mouse.feed(byte).unwrap();
+    }
+    let event = Event::Mouse {
+        input: released.unwrap(),
+        x: save.x + 10,
+        y: save.y + 10,
+    };
+    assert_eq!(ui.deliver(envelope(101, 7, event)), Err(Error::InputEpoch));
+    let mut bad = envelope(
+        1,
+        1,
+        Event::Mouse {
+            input: released.unwrap(),
+            x: 800,
+            y: 0,
+        },
+    );
+    bad.epoch = 99;
+    assert_eq!(ui.deliver(bad), Err(Error::InvalidInput));
+    assert_eq!(ui.view().status, Status::InputLost);
+    let mut fresh = envelope(1, 1, event);
+    fresh.epoch = 99;
+    ui.deliver(fresh).unwrap();
+    assert!(!host
+        .borrow()
+        .requests
+        .iter()
+        .any(|r| r.operation == wire::BEGIN));
+    fresh.sequence = 2;
+    fresh.event = key(PhysicalKey::A);
+    // The old button focus remains a control focus, not text focus. Tab to
+    // Document, then a new key from the verified fresh epoch edits normally.
+    fresh.event = key(PhysicalKey::Tab);
+    ui.deliver(fresh).unwrap();
+    if ui.view().focus != Focus::Document {
+        fresh.sequence += 1;
+        ui.deliver(fresh).unwrap();
+    }
+    fresh.sequence += 1;
+    fresh.event = key(PhysicalKey::A);
+    ui.deliver(fresh).unwrap();
+    assert_eq!(ui.view().contents, Some("Keep a"));
+}
+scenario!(
+    fresh_input_epoch_preserves_draft_and_cannot_inherit_a_pressed_button,
+    fresh_input_epoch_preserves_draft_and_cannot_inherit_a_pressed_button_impl
+);
+
+#[test]
+fn compact_layout_keeps_a_real_object_and_full_control_targets_visible() {
+    for (w, h, scale) in [
+        (320, 240, Scale::Percent100),
+        (640, 480, Scale::Percent200),
+        (800, 600, Scale::Percent200),
+        (1920, 1080, Scale::Percent100),
+    ] {
+        let viewport = Viewport::new(w, h, scale, 1).unwrap();
+        let layout = nieuw_os_materiaal::render::Layout::new(viewport);
+        let object = layout.object(0);
+        assert!(object.y + object.height <= layout.list_bottom);
+        assert!(layout.new.y + layout.new.height <= object.y);
+        assert_eq!(layout.new.height, 44);
+        assert_eq!(layout.refresh.height, 44);
+        assert!(layout.new.x + layout.new.width <= layout.refresh.x);
+        assert!(layout.list_previous.x + layout.list_previous.width <= layout.list_next.x);
+        assert!(layout.list_next.y + layout.list_next.height <= layout.new.y);
+        assert!(layout.editor.width > 16);
+        assert!(layout.editor.height >= 32);
+    }
+}
+
+fn narrow_list_pointer_paging_reaches_real_objects_in_both_directions_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed_named(0, b"First", b"One");
+    host.borrow_mut().seed_named(1, b"Second", b"Two");
+    let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.refresh().unwrap();
+    ui.resize(Viewport::new(640, 480, Scale::Percent200, 2).unwrap())
+        .unwrap();
+    let layout = Frame::new(ui.view()).layout();
+    assert_eq!(layout.list_rows(), 1);
+    let mut mouse = Ps2Mouse::new();
+    let mut sequence = 0;
+    for (rect, expected) in [(layout.list_next, 1), (layout.list_previous, 0)] {
+        for flags in [0x09, 0x08] {
+            let mut event = None;
+            for byte in [flags, 0, 0] {
+                event = mouse.feed(byte).unwrap();
+            }
+            sequence += 1;
+            ui.deliver(envelope(
+                sequence,
+                1,
+                Event::Mouse {
+                    input: event.unwrap(),
+                    x: (rect.x + 20) * 2,
+                    y: (rect.y + 20) * 2,
+                },
+            ))
+            .unwrap();
+        }
+        assert_eq!(ui.view().list_scroll, expected);
+        assert_eq!(ui.view().focus, Focus::Object(expected));
+    }
+    sequence += 1;
+    ui.deliver(envelope(sequence, 1, key(PhysicalKey::PageDown)))
+        .unwrap();
+    sequence += 1;
+    ui.deliver(envelope(sequence, 1, key(PhysicalKey::Enter)))
+        .unwrap();
+    assert_eq!(ui.view().contents, Some("Two"));
+}
+scenario!(
+    narrow_list_pointer_paging_reaches_real_objects_in_both_directions,
+    narrow_list_pointer_paging_reaches_real_objects_in_both_directions_impl
 );

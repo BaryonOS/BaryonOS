@@ -16,6 +16,12 @@ haalt de echte lijst; `open`/`create` openen een draft. `deliver(InputEnvelope)`
 verwerkt alleen door de adapter geauthenticeerde INP1-events. `save` start;
 `advance_save` doet maximaal één APPEND/COMMIT; `cancel_save` vraagt echte ABORT.
 `close_clean` weigert dirty/busy en probeert expliciet beide endpoints te sluiten.
+`rebind_input(new_epoch)` bewaart document/caret/selectie en annuleert oude
+klik-/dragstaat. De adapter mag dit uitsluitend na nieuwe geauthenticeerde
+inputdienstgrants doen; het is geen capabilitygrant of bewezen hardwarereset.
+Oude PEEK/ACKs blijven bij de oude endpoints en worden nooit naar de nieuwe
+dienst doorgestuurd. De eerste geldige nieuwe input heft de invoerwaarschuwing
+op; een onzekere opslaguitkomst blijft zichtbaar.
 
 `Frame::new(controller.view())` leent een onveranderlijke snapshot. Itereer
 `frame.tiles()`, render elke tile naar een eigen `[u32; 256]` en blit alleen de
@@ -44,11 +50,17 @@ imageharnas moet ui/native en tokens.css apart gaan meenemen vóór native UI-
 acceptatie; de huidige algemene source_hash volgt ui/ nog niet.
 
 De hostharness gebruikt de werkelijke capability-engine en volume Service op
-geordende RAM-sectoren. 14 scenario's behandelen onder meer echte PS2-bytes,
+geordende RAM-sectoren. 18 scenario's behandelen onder meer echte PS2-bytes,
 commit/reopen, ABORT, onbekende commituitkomst, deny/revoke, conflict/I/O, UTF-8,
 vol/capaciteit64KiB, dialogfocus, stale input/epoch en werkelijke rasterbuffers.
 De grote bestaande engine/service-hoststructuren krijgen een expliciete
-16-MiB-testthreadstack; dit verruimt geen native userstack. Native stack/arena-
+16-MiB-testthreadstack; dit verruimt geen native userstack. De rasterfixturetest
+schrijft uitsluitend synthetische hostbeelden onder
+`build/native-materiaal-visual/`; die beelden zijn door deze agent bekeken en
+blijven buiten Git. Zij zijn geen QEMU-screenshots of gebruikerstest. Compacte
+lijstpaginering heeft echte pointer-/keyboardacties, zichtbare focus en
+semantische namen; ook op 320 logische pixels blijft materiaal zichtbaar.
+Native stack/arena-
 budgetten, UI-bediening en koude versleutelde opslag zijn nog niet aangetoond.
 
 Fontbron, gekozen features en notices staan in [THIRD-PARTY.md](THIRD-PARTY.md).

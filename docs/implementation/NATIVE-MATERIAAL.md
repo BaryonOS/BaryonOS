@@ -40,6 +40,13 @@ renderer-/controller-hosttest bewijst geen native input-/displaygrens.
   en selectie. Een nieuwe focusgeneratie erft geen vastgehouden actie. Een
   service- of display-epochwisseling vereist nieuwe grants/volledige repaint;
   een oud gepresenteerd frame mag nieuwe damage niet wissen.
+- `Controller::rebind_input(new_epoch)` is een expliciete adapterstap na nieuwe,
+  onafhankelijk geauthenticeerde inputdienstgrants. Zij behoudt DocumentSession,
+  draft, selectie en display-epoch, wist alleen oude inputnummering/klikdrag en
+  wacht op een werkelijk ontvangen geldig event uit de nieuwe epoch. Geen
+  endpoint/capability wordt hierdoor gemaakt; oude PEEK/ACKs blijven afgesloten.
+  Behoud van fysieke held-keykennis bij een echte dienstherstart blijft de
+  afzonderlijke source-/supervisoracceptatie, niet een claim van deze methode.
 - Een frame leest alleen eigen, onveranderlijk geleende viewdata en maakt
   private tegels. Alleen bevestiging van dezelfde framegeneratie én viewport-
   epoch kan damage aftekenen. Een gefaalde/onderbroken blit houdt damage open.
@@ -135,3 +142,28 @@ De algemene `tools/common.py::source_hash` volgt ui/ nog niet. Eigen bewijs
 bindt ui/native en ui/prototype/tokens.css daarom aanvullend. Root moet de
 native image-/capture-inputbinding uitbreiden vóór UI-acceptatie; anders kan
 oude UIcode onder een ongewijzigde algemene bronhash onterecht actueel lijken.
+
+## Vervolg: werkelijk bekeken rasters en inputherbinding
+
+Na checkpoint `be0dc462` zijn de daadwerkelijke hostpixels van Materiaal,
+bewerken en dirty-close op 100/200% en 320 logische pixels bekeken met view_image.
+Dezelfde renderer voedt daarbij private tegels; de fixture gebruikt echte
+volume-/capability-engine-aanvragen met synthetische testdocumenten. Dit zijn
+geen native screenshots, geen gebruikersproef en geen productacceptatie.
+
+De inspectie vond een verdwenen eerste lijstregel op minimale hoogte en een
+modal met halfbedekte achtergrondtekst. De compacte header laat nu echte
+lijstinhoud zien, lange titels houden ruimte zonder overlappende metadata en
+een opaque lokale backdrop isoleert de bevestiging visueel. Primaire,
+secundaire, gevaar- en hoverstaten gebruiken dezelfde tokenbron. Pointer en
+PageUp/PageDown kunnen echt door de volumelijst pagineren; kleine viewports
+maken latere objecten niet uitsluitend via Tab bereikbaar.
+
+De eerste controller-/text-/snapshotbron is read-only door kernel_storage
+beoordeeld: 14 scenario's in een eigen target herhaald, vijf bronhashes bleven
+gelijk, geen concrete blocker binnen die scope. Zijn rebind-APIbevinding is
+in het hierboven beschreven vervolg verwerkt. Die AI-review op `be0dc462`
+is niet automatisch een review van alle vervolgcode. Nu slagen 18 gerichte
+hostscenario's, Clippy/fmt en de nieuwe scalarbuild; `verification/checks.json`
+bindt de actuele bron. `verification/host-raster-review.json` bevat alleen
+hashes/waarnemingen van de werkelijk bekeken hostbeelden en de bewijsgrens.

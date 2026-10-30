@@ -1,37 +1,28 @@
 {
   "task": "TASK-NATIVE-MATERIAAL",
-  "base_commit": "61ea7278390d5235a8bc024cbf084222a7b0c658",
-  "source_sha256": "57cae88919e88d3d903e78316cc7069900626f6c5d0eeb6b7a93554486918047",
+  "base_commit": "be0dc462c9da877038de2a04dbdf57ce3503405d",
+  "source_sha256": "1b18f71389d7a1cd3674787e39fbe0323465850632867272858b1311301b768b",
   "inputs": {
     "common_source_v3": "2eb46ac69aec5c7d60ed06278705c97f4fd7d67347afc3213b77eac3624cc013",
     "frontend_files": {
       "ui/native/Cargo.lock": "0f4693618c4d3731a47264146889e7d71146d6a1dd38ff1af2796caa66cb190a",
       "ui/native/Cargo.toml": "d7eac0c61171db65a72bb8136cac9c7b5731af581bb9f65da5e1c63ae638de98",
-      "ui/native/README.md": "155f12e5debbccb95233be29dd54a6d6001b1b2724bae26927dc7856183b3874",
+      "ui/native/README.md": "2c41131f4f1643378e3a1243f7069356acb93e89366bdd170114f2a90414fda6",
       "ui/native/THIRD-PARTY.md": "44d9aae4bd1d1e6d21c7172d06253eb53e6114685d3d51ae1a6dafb93bb9b3fa",
       "ui/native/licenses/NotoSansMono-OFL.txt": "e2e177a32561584d4fc13aaa3cd8e53758a12910f013fe9ca125419111722029",
       "ui/native/licenses/noto-sans-mono-bitmap-MIT.txt": "d084589aca58e74853c2d03f8a1f7b6f3a13f1fcc4b0c451f30455da09c624b7",
-      "ui/native/src/controller.rs": "116dbb24e07b9ac27c0a4c5055a5410f15f761542757525dd1f99ce403fe8675",
+      "ui/native/src/controller.rs": "fe6b57fd256642b7bcb73ae4dd421e7d0e4a4bae69623e1baf00756407ee90bc",
       "ui/native/src/design.rs": "5d61ecf3357685ba074ad66d102f01cd98daa279535e1645bdd6ec522afcf39e",
       "ui/native/src/lib.rs": "c4a56d8f6b96e25123dc370486fa5892a543013fd5953b9a1b90a5e2bfeb63ca",
-      "ui/native/src/render.rs": "650e3a2440c75873a4b26202200035dac18e09f47edb8a2adc28eac616b0f0f7",
+      "ui/native/src/render.rs": "89c7c99010aa1ca284fdf914543d38ffd6ea0c1891f4c07102c78925d13ce2d9",
       "ui/native/src/text.rs": "d159d4025d7c24db47f1416d6f45aa379b911d05a3b3835aabfe7c514ddcf6cc",
-      "ui/native/tests/common/mod.rs": "486c1f9d56a727a0e4548b10c739948897cde49d38ede8b49825a6539a020442",
-      "ui/native/tests/interaction.rs": "6eb61ea9bf0845801bb84bde296fbc609263a69298b99e041932f2083babc94c",
+      "ui/native/tests/common/mod.rs": "52b685a72a05438a98e80f6d294375590bd3fa02164351fd46ec82f6f11ae383",
+      "ui/native/tests/interaction.rs": "e2f5cf34665b22bf63cf07be50e84931e801eda4648124324a4c9ee6da7dc109",
       "ui/native/verify.py": "1aa0edd5b10ca312ae641ea1f7861e4a34e883e74954e59139a6b5ce04f87fac",
       "ui/prototype/tokens.css": "0c588509e0cb0f94bbda2c6969da8d79d463359bfc9684687a684210a54aadcf"
     }
   },
   "artifacts": [
-    {
-      "name": "nieuw_os_sdk_runtime",
-      "path": "build/native-materiaal-none-target/x86_64-unknown-none/release/deps/libnieuw_os_sdk_runtime-28298746dff85ded.rlib",
-      "sha256": "5ebd87a4e8fdbd1155a1a83c2e25a2fc625d60b7d17d0319d3b69eed91897430",
-      "bytes": 172814,
-      "instructions_checked": 1088,
-      "forbidden_scalar_matches": [],
-      "features": []
-    },
     {
       "name": "catalog_core",
       "path": "build/native-materiaal-none-target/x86_64-unknown-none/release/deps/libcatalog_core-edb48884326e4d6c.rlib",
@@ -42,20 +33,20 @@
       "features": []
     },
     {
+      "name": "nieuw_os_sdk_runtime",
+      "path": "build/native-materiaal-none-target/x86_64-unknown-none/release/deps/libnieuw_os_sdk_runtime-28298746dff85ded.rlib",
+      "sha256": "5ebd87a4e8fdbd1155a1a83c2e25a2fc625d60b7d17d0319d3b69eed91897430",
+      "bytes": 172814,
+      "instructions_checked": 1088,
+      "forbidden_scalar_matches": [],
+      "features": []
+    },
+    {
       "name": "volume_core",
       "path": "build/native-materiaal-none-target/x86_64-unknown-none/release/deps/libvolume_core-d271ac5be5def2af.rlib",
       "sha256": "23cd3c0dc4645fe54eb62c16d026ad79005f289464590423d186508047792973",
       "bytes": 553260,
       "instructions_checked": 8028,
-      "forbidden_scalar_matches": [],
-      "features": []
-    },
-    {
-      "name": "nieuw_os_catalog_client",
-      "path": "build/native-materiaal-none-target/x86_64-unknown-none/release/deps/libnieuw_os_catalog_client-496b923f4142a554.rlib",
-      "sha256": "3158e25a25c8391bf946edc1bc40a4a09a0ab6faa19020ced1482bb1c5de47a1",
-      "bytes": 48742,
-      "instructions_checked": 71,
       "forbidden_scalar_matches": [],
       "features": []
     },
@@ -85,6 +76,15 @@
       ]
     },
     {
+      "name": "nieuw_os_catalog_client",
+      "path": "build/native-materiaal-none-target/x86_64-unknown-none/release/deps/libnieuw_os_catalog_client-496b923f4142a554.rlib",
+      "sha256": "3158e25a25c8391bf946edc1bc40a4a09a0ab6faa19020ced1482bb1c5de47a1",
+      "bytes": 48742,
+      "instructions_checked": 71,
+      "forbidden_scalar_matches": [],
+      "features": []
+    },
+    {
       "name": "nieuw_os_input_core",
       "path": "build/native-materiaal-none-target/x86_64-unknown-none/release/deps/libnieuw_os_input_core-a816e5fe288fd2f9.rlib",
       "sha256": "dba231357aef66e7dceb580bb7049258c8ff9416b6faa92f378f67026a048908",
@@ -105,9 +105,9 @@
     {
       "name": "nieuw_os_materiaal",
       "path": "build/native-materiaal-none-target/x86_64-unknown-none/release/libnieuw_os_materiaal.rlib",
-      "sha256": "e4e4ee49a3355eddc79dd5073d05081c443f10c9eeaa4fd041d6416881d66b6b",
-      "bytes": 1208800,
-      "instructions_checked": 5876,
+      "sha256": "890f2ad5e047572404aacd2344db13b36f904b22f204a22aad0ed1bebc9b04f3",
+      "bytes": 1229608,
+      "instructions_checked": 6383,
       "forbidden_scalar_matches": [],
       "features": []
     }

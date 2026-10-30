@@ -118,10 +118,13 @@ impl Host {
         self.engine.send(2, self.reply_send, &message).unwrap();
     }
     pub fn seed(&mut self, object: u64, bytes: &[u8]) {
+        self.seed_named(object, b"Document", bytes);
+    }
+    pub fn seed_named(&mut self, object: u64, name: &[u8], bytes: &[u8]) {
         let mut client = Client::new(Direct(&mut self.service, &mut self.disk), EPOCH, 100_000);
         let revision = client.stat(object).map_or(0, |s| s.revision);
         client
-            .write(object, revision, b"Document", bytes.len(), |offset, out| {
+            .write(object, revision, name, bytes.len(), |offset, out| {
                 out.copy_from_slice(&bytes[offset..offset + out.len()])
             })
             .unwrap();

@@ -28,6 +28,8 @@ pub enum Screen {
 pub enum Focus {
     New,
     Refresh,
+    Previous,
+    Next,
     Object(usize),
     Back,
     Document,
@@ -109,6 +111,7 @@ pub struct Controller<'a, T> {
     dirty: bool,
     render_exhausted: bool,
     input_epoch: u64,
+    awaiting_input: bool,
     last_input: u64,
     cancelled_through: u64,
     focus_generation: u64,
@@ -158,6 +161,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             dirty: true,
             render_exhausted: false,
             input_epoch,
+            awaiting_input: false,
             last_input: 0,
             cancelled_through: 0,
             focus_generation: 0,
@@ -256,6 +260,32 @@ impl<'a, T: Transport> Controller<'a, T> {
             .cursor
             .filter(|(x, y)| *x < viewport.width() && *y < viewport.height());
         self.ensure_caret();
+        self.invalidate()
+    }
+    /// The native adapter may call this only after independently obtaining and
+    /// authenticating a fresh input-service epoch and fresh endpoint grants.
+    /// This changes no capabilities and proves no device reset by itself. The
+    /// document session/buffers, draft, selection and display epoch survive.
+    /// Old PEEK/ACK work belongs to the old endpoint pair and must be closed by
+    /// the adapter, never resent to the newly bound service.
+    pub fn rebind_input(&mut self, new_epoch: u64) -> Result<(), Error> {
+        if new_epoch == 0 || new_epoch == self.input_epoch {
+            return Err(Error::InputEpoch);
+        }
+        self.input_epoch = new_epoch;
+        self.last_input = 0;
+        self.cancelled_through = 0;
+        self.focus_generation = 0;
+        self.dragging = false;
+        self.pressed = None;
+        self.cursor = None;
+        self.awaiting_input = true;
+        if !self.document.is_uncertain()
+            && !self.document.is_conflicted()
+            && !self.document.is_closed()
+        {
+            self.status = Status::InputLost;
+        }
         self.invalidate()
     }
     pub fn refresh(&mut self) -> Result<(), Error> {
@@ -393,6 +423,22 @@ impl<'a, T: Transport> Controller<'a, T> {
         match focus {
             Focus::New => self.create(),
             Focus::Refresh => self.refresh(),
+            Focus::Previous | Focus::Next => {
+                let rows = Layout::new(self.viewport).list_rows();
+                self.list_scroll = if focus == Focus::Previous {
+                    self.list_scroll.saturating_sub(rows)
+                } else {
+                    self.list_scroll
+                        .saturating_add(rows)
+                        .min(self.object_count.saturating_sub(1))
+                };
+                self.focus = if self.object_count > 0 {
+                    Focus::Object(self.list_scroll)
+                } else {
+                    Focus::New
+                };
+                self.invalidate()
+            }
             Focus::Object(index) => self
                 .objects
                 .get(index)
@@ -479,10 +525,10 @@ impl<'a, T: Transport> Controller<'a, T> {
         self.invalidate()
     }
     fn tab(&mut self, reverse: bool) -> Result<(), Error> {
-        let mut choices = [Focus::New; PER_DOMAIN + 2];
+        let mut choices = [Focus::New; PER_DOMAIN + 4];
         let count = match self.screen {
             Screen::Material => {
-                let prefix = if self.editable {
+                let mut prefix = if self.editable {
                     choices[0] = Focus::New;
                     choices[1] = Focus::Refresh;
                     2
@@ -490,6 +536,14 @@ impl<'a, T: Transport> Controller<'a, T> {
                     choices[0] = Focus::Refresh;
                     1
                 };
+                if self.list_scroll > 0 {
+                    choices[prefix] = Focus::Previous;
+                    prefix += 1;
+                }
+                if self.list_scroll + Layout::new(self.viewport).list_rows() < self.object_count {
+                    choices[prefix] = Focus::Next;
+                    prefix += 1;
+                }
                 for (i, choice) in choices[prefix..]
                     .iter_mut()
                     .take(self.object_count)
@@ -545,6 +599,16 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Ok(());
         }
         let press = event.action == KeyAction::Press;
+        if self.screen == Screen::Material {
+            if event.key == PhysicalKey::PageDown
+                && self.list_scroll + Layout::new(self.viewport).list_rows() < self.object_count
+            {
+                return self.activate(Focus::Next);
+            }
+            if event.key == PhysicalKey::PageUp && self.list_scroll > 0 {
+                return self.activate(Focus::Previous);
+            }
+        }
         if event.key == PhysicalKey::Tab && press {
             return self.tab(event.modifiers.shift());
         }
@@ -657,6 +721,14 @@ impl<'a, T: Transport> Controller<'a, T> {
                 if layout.refresh.contains(x, y) {
                     return Some(Focus::Refresh);
                 }
+                if self.list_scroll > 0 && layout.list_previous.contains(x, y) {
+                    return Some(Focus::Previous);
+                }
+                if self.list_scroll + layout.list_rows() < self.object_count
+                    && layout.list_next.contains(x, y)
+                {
+                    return Some(Focus::Next);
+                }
                 for index in self.list_scroll..self.object_count {
                     let rect = layout.object(index - self.list_scroll);
                     if rect.y + rect.height <= layout.list_bottom && rect.contains(x, y) {
@@ -718,6 +790,11 @@ impl<'a, T: Transport> Controller<'a, T> {
         if envelope.sequence == 0 || envelope.generation == 0 {
             return Err(Error::InvalidInput);
         }
+        if let Event::Mouse { x, y, .. } = envelope.event {
+            if x >= self.viewport.width() || y >= self.viewport.height() {
+                return Err(Error::InvalidInput);
+            }
+        }
         if envelope.sequence <= self.last_input {
             return Err(Error::StaleInput);
         }
@@ -727,7 +804,12 @@ impl<'a, T: Transport> Controller<'a, T> {
             if envelope.generation >= self.focus_generation {
                 self.dragging = false;
                 self.pressed = None;
-                self.status = Status::InputLost;
+                if !self.document.is_uncertain()
+                    && !self.document.is_conflicted()
+                    && !self.document.is_closed()
+                {
+                    self.status = Status::InputLost;
+                }
                 self.invalidate()?;
             }
             return Ok(());
@@ -742,12 +824,27 @@ impl<'a, T: Transport> Controller<'a, T> {
             self.pressed = None;
             self.focus_generation = envelope.generation;
         }
+        if self.awaiting_input {
+            self.awaiting_input = false;
+            if !self.document.is_uncertain()
+                && !self.document.is_conflicted()
+                && !self.document.is_closed()
+            {
+                self.status = if self.document.is_dirty() {
+                    Status::Dirty
+                } else if self.document.draft().is_some() {
+                    Status::Opened
+                } else if self.editable {
+                    Status::Ready
+                } else {
+                    Status::ReadOnly
+                };
+            }
+            self.invalidate()?;
+        }
         match envelope.event {
             Event::Key(key) => self.key(key),
             Event::Mouse { input, x, y } => {
-                if x >= self.viewport.width() || y >= self.viewport.height() {
-                    return Err(Error::InvalidInput);
-                }
                 self.cursor = Some((x, y));
                 let x = x / self.viewport.scale().factor();
                 let y = y / self.viewport.scale().factor();
