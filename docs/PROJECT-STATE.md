@@ -4,7 +4,7 @@
 
 Oorspronkelijke basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`, branch
 `simon/windows-qemu-test-version`; Windows-codecheckpoint `5b80865`,
-laatste PR-head vóór integratie `99f8ef0`, geïntegreerde main-head `0ade801`.
+interactive-proof-codecheckpoint `0887217`, geïntegreerde main-head `0ade801`.
 De opgegeven
 Windows-map `C:\Program Files\qemu` wordt automatisch herkend door
 `tools/windows-qemu/Start-NieuwOS.ps1`; de instructies tonen ook expliciet
@@ -79,12 +79,16 @@ Herhaalcommando (volgende stap: afstemming van de bundelbron):
 `. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
 
 **Conflictintegratie PR #65:** `main` op `0ade8014c8179241dcfc68ea0ba8083664691240`
-is in de branch opgenomen. De overlappende README-/status-/rubricdelen behouden
-de Windows-QEMU-assessment; de hardware- en B02-checkpoints van main staan
-hieronder. `python3 -B -m unittest discover -s tools/tests -p 'test_*.py'`
-(111 tests), `python3 -B -m unittest discover -s tests -p 'test_system_*.py'`
-(46 tests) en `python3 -B tools/progress.py --check` slagen op de geïntegreerde
-werkboom. Er is geen native gate of CI op de uiteindelijke mergecommit uitgevoerd.
+is opgenomen; de actuele interactieve proof-commit `0887217360e924f94f3b86a52c3724cfdbe1c9ea`
+is daarna zonder conflicten gesynchroniseerd. De overlappende README-/status-/
+rubricdelen behouden de Windows-QEMU-assessment; de hardware- en B02-checkpoints
+van main staan hieronder. Op de eerste geïntegreerde werkboom slagen
+`python3 -B -m unittest discover -s tools/tests -p 'test_*.py'` (111 tests),
+`python3 -B -m unittest discover -s tests -p 'test_system_*.py'` (46 tests)
+en `python3 -B tools/progress.py --check`; op de nieuwste proof-code slagen
+`python3 -B -m unittest tools.tests.test_materiaal_preview` (22 tests).
+De interactieve native-reference-run, Windows-gaststart, ZIP en CI op de
+uiteindelijke mergehead zijn niet uitgevoerd.
 `git diff --check` meldt een extra lege regel aan het einde van
 `verification/full-release-b02-keystate-system/host/1.stdout.txt`, reeds aanwezig
 op main; het hashgebonden bewijs is ongewijzigd behouden.
