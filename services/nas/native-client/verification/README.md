@@ -1,5 +1,12 @@
 # TASK-NAS-RESUME-1 — eigen broncheckpoint
 
+Dit verslag bewaart brongebonden checkpoints van de resumeclient. De sectie
+"Actuele stacked PR-checkpoint" bevat het laatst vastgelegde client-CI-bewijs
+op `a7f3f62730429a713bccbf39036308e45cccbd1f`; zij is geen CI-uitspraak over
+een latere integratiehead. Bronmanifesten, logs en ELF-hashes blijven gebonden
+aan hun genoemde checkpoints. Een latere documentatie- of workflowwijziging
+maakt die historische tests niet opnieuw uitgevoerd.
+
 ## Actuele stacked PR-checkpoint
 
 De huidige PR-branch is `simon/nas-resume-client-stack`, gestapeld op de
@@ -44,7 +51,13 @@ ongewijzigd in `a7f3f62` opgenomen en de tussenliggende commit bevatte alleen
 dit bewijs. Dit is geen native NAS-acceptatie; andere PR-checks en native
 runtime blijven afzonderlijke gates.
 
-## NEXT AGENT HANDOFF — eigen werk gereed, integratiegrens open
+## Historische handoff vóór de stacked PR
+
+De onderstaande handoff beschrijft de oorspronkelijke, nog niet als PR
+geteste clientbranch. De toenmalige CI-status en hervatinstructie zijn
+vervangen door "Actuele stacked PR-checkpoint" hierboven; de brongebonden
+lokale resultaten en nog ontbrekende native interfaces blijven historisch
+gedocumenteerd.
 
 Laatste geteste broncheckpoint:
 `26c88292b9e4775f51598488037dee78ed70bd51`, remote bevestigd op
@@ -165,7 +178,13 @@ van de afzonderlijke Release-run. De client zelf is alleen een library.
 `evidence.sha256` bindt dit verslag, de PR-conceptbody, het bronmanifest,
 de fingerprint, de ongewijzigde commandologs en het ELF-bouwrapport.
 
-## Vervolg: maximale queue op 64 KiB hoststack
+## Historisch vervolg: maximale queue op 64 KiB hoststack
+
+Deze sectie tot het einde van dit bestand is het oorspronkelijke
+pre-PR-checkpoint. Uitspraken dat GitHub-CI nog open was of dat een PR nog
+moest worden geopend gelden uitsluitend voor dat moment. Zij zijn vervangen
+door de geslaagde stacked PR-controles bovenaan; de oorspronkelijke lokale
+testresultaten worden niet naar die latere bron omgelabeld.
 
 Boven checkpoint `87a04d48b6443a33fa62fb20dfcda1679f29b1a8` is uitsluitend
 een geoptimaliseerde test toegevoegd aan `tests/resume.rs`. De runtime,

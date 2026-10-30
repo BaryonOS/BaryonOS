@@ -1,0 +1,81 @@
+{
+  "baseline_head": "3cf2fa9b5b51fdac84c9bd0eed964b5029606a59",
+  "baseline_main": "d791a342cc3bdb107245692f2f542d88d5fda7f1",
+  "changes": [
+    {
+      "path": ".github/workflows/nas-core.yml",
+      "baseline_blob_sha": "f3cd7437651c923dcf0c41de5e0703f804c3e699",
+      "new_blob_sha": "f420c3fcdbaf98768b89d762ae7a8be3a4426f06",
+      "sha256": "67df1b36dc7c165c5688efa1678101c77fa7f052766270f56f54f57ddace51f1",
+      "file": "/workspace/scratch/b38cadb31b5d/review-nas/pr71-fix/after/.github/workflows/nas-core.yml"
+    },
+    {
+      "path": "services/nas/native-probe/tests/test_replay_handoff.py",
+      "baseline_blob_sha": "e3be92f63df1a430cf0397e0a8c9752f020936dc",
+      "new_blob_sha": "987a2a69222c1f608337a75fd621c4d2184919dd",
+      "sha256": "b5f6ce410d8db5a9800d241d13da3ab2cb6c2ccdf0914a8a234048d56da6cc3c",
+      "file": "/workspace/scratch/b38cadb31b5d/review-nas/pr71-fix/after/services/nas/native-probe/tests/test_replay_handoff.py"
+    },
+    {
+      "path": "services/nas/native-client/verification/README.md",
+      "baseline_blob_sha": "2fc044c9563c044f66989afc1e4aaccc9de7ef3e",
+      "new_blob_sha": "d3951f33f29fd5f29bfc0af33fc0f8c63a0a91ea",
+      "sha256": "8865a3f252654a69af1fccaf854dc279b8e45bf1a13dffab7498a3bed01ced87",
+      "file": "/workspace/scratch/b38cadb31b5d/review-nas/pr71-fix/after/services/nas/native-client/verification/README.md"
+    },
+    {
+      "path": "services/nas/native-client/verification/evidence.sha256",
+      "baseline_blob_sha": "5fe2462df25a0ac9dc547356d7387d7bee0ff702",
+      "new_blob_sha": "c11a0cdb81d12e7b51faecd62b63b3ada81afaed",
+      "sha256": "d7b60c70e40946621058af5cb8e45323a5e60684d1c466d889acbfc63fb8c1cc",
+      "file": "/workspace/scratch/b38cadb31b5d/review-nas/pr71-fix/after/services/nas/native-client/verification/evidence.sha256"
+    }
+  ],
+  "tests": [
+    {
+      "stage": "baseline",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "services/nas/native-probe/tests",
+        "-p",
+        "test_replay_handoff.py",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/b38cadb31b5d/review-nas/pr71-fix/baseline",
+      "exit_code": 1,
+      "duration_s": 0.13666602200100897,
+      "target_absent_before_and_after": true,
+      "no_extra_repository_artifacts": true,
+      "log": "/workspace/scratch/b38cadb31b5d/review-nas/pr71-fix/baseline-test.log"
+    },
+    {
+      "stage": "after",
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "services/nas/native-probe/tests",
+        "-p",
+        "test_replay_handoff.py",
+        "-v"
+      ],
+      "cwd": "/workspace/scratch/b38cadb31b5d/review-nas/pr71-fix/after",
+      "exit_code": 0,
+      "duration_s": 0.1310432589998527,
+      "target_absent_before_and_after": true,
+      "no_extra_repository_artifacts": true,
+      "log": "/workspace/scratch/b38cadb31b5d/review-nas/pr71-fix/after-test.log"
+    }
+  ],
+  "evidence_readme_sha256": "8865a3f252654a69af1fccaf854dc279b8e45bf1a13dffab7498a3bed01ced87",
+  "other_evidence_rows_unchanged": true,
+  "native_tests_executed": false
+}

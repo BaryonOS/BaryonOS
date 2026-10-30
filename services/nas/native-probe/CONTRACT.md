@@ -163,8 +163,76 @@ admin de ciphertext, Usage toont
 Koud: service herstelt uitsluitend bestaande canonieke snapshot met verse
 echte entropy; admin enumereert `Evicted`, epoch 2, used/reserved 0; gast
 kan niet openen, geen beheer uitvoeren of een oude/synthetische
-sessiehandle gebruiken. Idempotente eviction/shutdown schrijven niets.
+sessie-/uploadhandle gebruiken. De cold-gastproef leest daarvoor alleen de
+twee onderstaande bounded testinputs; zij worden niet in de NAS-wire,
+snapshot, gewone logs of rapporten opgenomen. Idempotente eviction/shutdown
+schrijven niets.
 Geen inhoudssleutel wordt aan de NAS of beheerder geleverd.
+
+## Exacte boot-1 token replay — leafvereiste, rootbinding nog open
+
+De cold probe accepteert geen ingevulde productcredential of zelfgemaakte
+token. Alleen een private testhandoff met de **exacte** 40-byte
+`Session::to_bytes()` en 40-byte `Upload::to_bytes()` uit een voltooide
+normale native guest-run wordt gebruikt. De bron moet de echte `Stage`-reply
+uit die boot zijn. Een synthetic marker, willekeurige valide tokenvorm,
+andere PID, `Invitation`, request-ID, hash alleen of `PIT`-reset vervangt dit
+bewijs niet.
+
+Cold guest startup gebruikt de bestaande private 1.024-byte startup-pagina;
+dit introduceert geen syscall, endpoint, wire-versie, capability of algemene
+bootstrap-ABI:
+
+| Guest startup bytes | Cold input |
+|---|---|
+| 256..296 | Exacte 40-byte normal-run sessiehandle |
+| 296..336 | Exacte 40-byte normal-run uploadhandle |
+
+De leaf leest uitsluitend tien bestaande aligned 64-bit startupwords en
+reconstrueert hun canonieke little-endian bytes. `Session::from_bytes` en
+`Upload::from_bytes` controleren alleen canonieke vorm, niet identiteit of
+autoriteit. Op een normale run moeten beide cold-inputbereiken nul zijn; op
+cold ontbreken/nul/ongeldig input faalt vóór replay als foutstap 47/48.
+Cold geeft de originele sessie aan `READ` (verwacht `Stale`) en exact
+`(oude sessie, oude upload)` aan `COMMIT` (verwacht `Stale`). De tweede
+native-reply bewijst dat de combinatie na recovery geen commit oplevert; door
+de bestaande core-callvolgorde wordt het oude uploadtoken daar niet los van
+de verlopen sessie geautoriseerd. Een geïsoleerde hostcoreproef gebruikt
+apart een verse actieve sessie om ook het oude uploadtoken zelfstandig te
+weigeren. Die twee uitkomsten blijven als verschillende bewijzen gelabeld.
+
+De cold-runner moet de startup-bijlage uitsluitend uit het private artifact
+van de geslaagde normal guest-run vullen en de cold image niet uitvoeren
+zonder de complete herkomstbinding. Verplicht manifest: schema 1,
+geverifieerde broncommit, normale origin-run-ID, role `guest`, origin stage
+`normal`, capture stage `normal-after-stage`, `completed=true`,
+payloadlengte 80 en SHA-256 van de exacte ruwe payload. Manifest bevat geen
+tokenbytes. Runmap en artifact zijn buiten de Git-checkout, mode 0700/0600,
+geen symlinks of extra hardlinks; artifact wordt niet naar serial, normale
+logs, CI-artifacts of Git gekopieerd. De runner maakt voor de cold boot een
+afzonderlijke read-only 0400 inputkopie, vergelijkt SHA-256 vóór injectie en
+na de run en weigert elke afwijking. Hash is hier provenance/integriteitsbinding,
+geen cryptografische identiteit of productcredential.
+
+**Root-integratie is nog niet beschikbaar:** de huidige Release-runner bindt
+geen private normal-RAM-tokenexport aan een cold startup-bijlage. De leaf kan
+de bytes accepteren/weigeren maar kan zelf geen veilige host-QEMU-handoff
+creëren. Totdat Release de private extractie, manifest, inputkopie en
+bootstrapbinding op een expliciet gefrozen profiel implementeert, is de
+exacte replay-gastcode **niet actief** in `src/main.rs`: integratie #96 houdt
+de bestaande synthetische cold read (`[42; 40]`) aan, zodat de native
+normal/cold-gate geldig blijft in plaats van vast rood op stap 47/48. Die run
+is uitsluitend synthetische fixturedekking, geen exacte boot-1-replaybewijs.
+De replay-gastcode uit #93 (`466b89b`) wordt pas samen met de private handoff
+en aangepaste kernel-/runnertellers geactiveerd; zie #110.
+
+De hosttest maakt handles uitsluitend door de bestaande echte NAS-core-API
+aan te roepen: een sessie en upload uit een host-normaalmodel worden in RAM
+gehouden, daarna doet core recovery een nieuwe boot. Read van de oude sessie
+faalt `Stale`; om de upload afzonderlijk te testen wordt een nieuwe, actieve
+sessie geopend en de oude upload daarmee gecommit. Ook die call faalt
+`Stale`, zonder opslagwrite/ACK. Dit is een hosttest; zij vult geen native
+handoffartifact en levert geen QEMU-resultaat.
 
 Diagnostiek: startupwoord 40 = 1 alleen na volledige rolassertions; 240 =
 foutstap; 400 = geslaagde RPC's, 408 = foutreplies, 416 = verkeerde caller
@@ -176,6 +244,7 @@ levende bestaande volumedienst, alle counters, diskbytes en de koude
 herstelrun onafhankelijk valideren. De volumedienst heeft geen nieuwe
 shutdownopcode en hoeft niet als vierde proces succesvol af te sluiten.
 
-**Open native gates:** geen manifest/VM-run in dit pakket; geen claim van
+**Open native gates:** geen nieuwe manifest/VM-run of private tokenhandoff
+beschikbaar; geen claim van
 stroomuitval, fysieke secure erase, antirollback, netwerk/TLS, E2EE,
 achtergrondsync, apparatenrotatie/herstel, UI of volledige P04-acceptatie.

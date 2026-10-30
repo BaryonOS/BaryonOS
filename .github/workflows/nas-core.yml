@@ -59,6 +59,9 @@ jobs:
       - name: Fixed NAS disk oracle host negatives (not guest execution)
         if: matrix.crate == 'native-probe'
         run: python3 -B -m unittest discover -s services/nas/native-probe/tests -p 'test_disk_oracle.py' -v
+      - name: Replay handoff validator tests (not guest execution)
+        if: matrix.crate == 'native-probe'
+        run: python3 -B -m unittest discover -s services/nas/native-probe/tests -p test_replay_handoff.py -v
       - name: Native build and runner host regressions (not guest execution)
         if: matrix.crate == 'native-probe'
         run: |
