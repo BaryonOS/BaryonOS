@@ -1,0 +1,63 @@
+{
+  "review": "RNG-HARNESS targeted independent read-only review",
+  "source_commit": "290a8224f7b9e0c8c5230b8c4287646ab6147d6e",
+  "source_files_sha256": {
+    "tools/run_random.py": "46d718bcaa25ab56317293946933f840fe4032f4c41d32dec6a2aa5065b831f1",
+    "tools/tests/test_random.py": "a658c4e5bd1b5a8a39927a62ca6bdd1c169c929f2a8af8e69ea0f5499e720bf0",
+    "docs/contracts/NATIVE-RANDOM-GATE.md": "e38c26b0bfe88fd419f9ad2c402d544ee84fb42b42d7608d9f3d3791cb217047"
+  },
+  "review_scope": [
+    "strict serial ordering, denial versus timeout, principal facts and counters",
+    "actual ELF/kernel/loader/disk binding and source drift",
+    "guarded evidence paths and current attempt failure publication",
+    "prelaunch ESP containment with current integrated shared delegate"
+  ],
+  "repo_writes": false,
+  "vm_execution": false,
+  "test_command": "python3 -B -m unittest discover -s tools/tests -p test_random.py",
+  "existing_host_tests": {
+    "passed": 17,
+    "failed": 0,
+    "exit_code": 0,
+    "log": "/tmp/nieuw-os-random-harness-review/host-tests.txt"
+  },
+  "additional_controlled_host_counterexamples": [
+    {
+      "id": "RNG-REVIEW-1",
+      "priority": "P2",
+      "location": "tools/run_random.py:237-256",
+      "title": "A failed current preflight preserves an earlier top-level green report",
+      "observed": "With old passed=true/random_gate=true, malformed current loader_feature rejects before guest_calls=0 but both prior values remain true in BUILD/random-report.json. CLI throws and does not falsely return success.",
+      "proof": "/tmp/nieuw-os-random-harness-review/stale-report.json",
+      "fix": "Publish a guarded atomic false/current-start report before preflight/delegation; publish failure on early exceptions without overwriting historical per-run proof."
+    },
+    {
+      "id": "RNG-REVIEW-2",
+      "priority": "P1",
+      "location": "tools/run_random.py:193-204,256; integrated tools/run_system.py:31,185",
+      "title": "ESP containment is checked after possible exposure to the guest",
+      "observed": "An extra source-ESP symlink to a controlled marker outside synthetic checkout is followed by shared copytree and accepted by check_esp. The actual delegate reaches its execute boundary with the marker copied as regular bytes in its FAT ESP. execute was intercepted before QEMU, no guest launched or personal data used. Post-run validator rejects, but after the exposure boundary.",
+      "proof": "/tmp/nieuw-os-random-harness-review/prelaunch-esp.json",
+      "fix": "Before delegation/copytree require the exact two source ESP files and reject links/special files/foreign ancestors; retain postcopy/postrun hash and set checks."
+    }
+  ],
+  "result": "Changes required for these two evidence/host-containment boundaries; existing 17 host tests pass but do not cover them.",
+  "integration_note": "The original 290 branch intentionally does not include root-owned build/run_system admission hooks; root-foundation has the four RNG normal-only features and actual probe build integration. This is not counted as an owner defect.",
+  "open_acceptance": [
+    "four real VM cases on final clean frozen integration source",
+    "original normal/cold recovery regressions",
+    "EAGAIN/deadline and defective entropy/clock paths",
+    "actual broker permission lifecycle and persistent key entropy state",
+    "TLS certificate identity/time/PQC and physical entropy quality"
+  ],
+  "artifact_sha256": {
+    "host-tests.txt": "11fa88df9fd948930e3897ae62933f6cfd9b99841628a4620609a762bdebcd29",
+    "stale-report.json": "b0793631a1aecc770ea8004df0027eab60e66ba9c8db50a4e0dd21bafd53bb1b",
+    "prelaunch-esp.json": "3bc9efb855a74ea99e25dd8e4212b7146be3178ef0300f39364f4c1fdb981f6e"
+  },
+  "source_state_at_report": {
+    "head": "290a8224f7b9e0c8c5230b8c4287646ab6147d6e",
+    "status_short": ""
+  },
+  "handoff": "Parent and owner security_release received both findings; owner is preparing targeted regression fixes. No score or full release completion proposed."
+}

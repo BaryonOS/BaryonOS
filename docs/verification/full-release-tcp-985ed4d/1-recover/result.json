@@ -1,0 +1,1266 @@
+{
+  "schema_version": 1,
+  "case": "recover",
+  "source_commit": "985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb",
+  "source_fingerprint_version": 3,
+  "source_sha256": "32a4168e9ffe0ccfebb0cae692856ad27f12687a78beb63c63c3e8560f22a3ff",
+  "kernel_feature": "test-system-tcp-recover",
+  "started_utc": "2026-10-30T02:01:47.817900+00:00",
+  "duration_s": 8.462552971999685,
+  "timeout_s": 180,
+  "raw_qemu_exit": 33,
+  "timed_out": false,
+  "command": [
+    "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/full-release-985ed4d-tcp/run/system-recover-c273feaa8a884c94805857a64424694d/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/full-release-985ed4d-tcp/run/system-recover-c273feaa8a884c94805857a64424694d/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/full-release-985ed4d-tcp/run/system-recover-c273feaa8a884c94805857a64424694d/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=on,file=build/full-release-985ed4d-tcp/run/system-image-7edcb22b407049d4aef524f050055e75/volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-fw_cfg",
+    "name=opt/org.tianocore/VirtioNetSupport,string=no",
+    "-fw_cfg",
+    "name=opt/org.tianocore/IPv4Support,string=no",
+    "-fw_cfg",
+    "name=opt/org.tianocore/IPv6Support,string=no",
+    "-netdev",
+    "socket,id=net0,connect=127.0.0.1:34101",
+    "-device",
+    "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile="
+  ],
+  "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "test-system-tcp-recover",
+    "kernel_feature": "test-system-tcp-recover",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "32a4168e9ffe0ccfebb0cae692856ad27f12687a78beb63c63c3e8560f22a3ff",
+    "loader": {
+      "sha256": "2c2ea57ed5c3cbaac158bc19a041120f6555f118087bbe132cb4a8e357dcbf6b",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "907b6d66a46fecce95266998140d8a5b55cefe3c80bb1243abbe02995ed5fdae",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 165223,
+          "memsz": 165223,
+          "page_start": 33554432,
+          "page_end": 33722368
+        },
+        {
+          "flags": 4,
+          "offset": 172032,
+          "address": 33722368,
+          "filesz": 405360,
+          "memsz": 405360,
+          "page_start": 33722368,
+          "page_end": 34127872
+        },
+        {
+          "flags": 6,
+          "offset": 577536,
+          "address": 34127872,
+          "filesz": 1262256,
+          "memsz": 4357624,
+          "page_start": 34127872,
+          "page_end": 38486016
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 165223
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 405360
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1262256
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3091960
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 8640
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 19379
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "system": {
+      "system_init": {
+        "sha256": "24ca6793baf5268622c5044cdab94a9a66f595d05969a5fc9fda77d52ad31efe",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1160,
+              "memsz": 1160,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 453,
+              "memsz": 453,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 6711,
+              "memsz": 6711,
+              "page_start": 1073872896,
+              "page_end": 1073881088
+            }
+          ]
+        }
+      },
+      "system_app": {
+        "sha256": "8cef1d2708b7c95f421a1f5cd0ae0788cacd90e407c3de7b5c3be16835ddfe4e",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 3965,
+              "memsz": 3965,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 45010,
+              "memsz": 45010,
+              "page_start": 1073872896,
+              "page_end": 1073917952
+            }
+          ]
+        }
+      },
+      "system_worker": {
+        "sha256": "64b6fe005cf14b4d200c1e36c2bdec9ce1a90d96a5203557f22eed3dc46ab379",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 306,
+              "memsz": 306,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1040,
+              "memsz": 1040,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 519,
+              "memsz": 519,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            }
+          ]
+        }
+      },
+      "keyring_service": {
+        "sha256": "ae70aeaf01897654b81c9c9d9002fb72862b4a1ec4de9deb2df28064aae8e826",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1288,
+              "memsz": 1288,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 2090,
+              "memsz": 2090,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 53799,
+              "memsz": 53799,
+              "page_start": 1073872896,
+              "page_end": 1073930240
+            }
+          ]
+        }
+      },
+      "volume_service": {
+        "sha256": "489c120e89a137147990a93017b45995b75b89037982fcaa95f50b1fe7ae7184",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 56546,
+              "memsz": 56546,
+              "page_start": 1073741824,
+              "page_end": 1073799168
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 61440,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 65536,
+              "filesz": 18018,
+              "memsz": 18018,
+              "page_start": 1073823744,
+              "page_end": 1073844224
+            }
+          ]
+        }
+      },
+      "net_probe": {
+        "sha256": "df10c4ace5b59ab8c63f41c74a9b591f346e4c9869aa060d6dd3a2c515289683",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1808,
+              "memsz": 1808,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 8592,
+              "memsz": 8592,
+              "page_start": 1073823744,
+              "page_end": 1073836032
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 24576,
+              "filesz": 42596,
+              "memsz": 42596,
+              "page_start": 1073872896,
+              "page_end": 1073917952
+            }
+          ]
+        }
+      }
+    }
+  },
+  "run_directory": "/workspace/nieuw-os/build/full-release-985ed4d-tcp/run/system-recover-c273feaa8a884c94805857a64424694d",
+  "volume_directory": "/workspace/nieuw-os/build/full-release-985ed4d-tcp/run/system-image-7edcb22b407049d4aef524f050055e75",
+  "before_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+  "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+  "firmware_sha256": {
+    "code": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "esp_sha256": {
+    "esp/kernel.elf": "907b6d66a46fecce95266998140d8a5b55cefe3c80bb1243abbe02995ed5fdae",
+    "esp/EFI/BOOT/BOOTX64.EFI": "2c2ea57ed5c3cbaac158bc19a041120f6555f118087bbe132cb4a8e357dcbf6b"
+  },
+  "passed": true,
+  "network_gate": true,
+  "tcp_gate": true,
+  "evidence": {
+    "APP_READY": 2,
+    "APP_DOCS": 1,
+    "APP_DENIED": 3,
+    "APP_REVISION": 1,
+    "APP_BYTES": 4096,
+    "APP_CONTENT_SUM": 287428370566516885,
+    "CRYPTO_SEAL": 2,
+    "CRYPTO_UNSEAL": 2,
+    "CRYPTO_TAMPER_DENIED": 9,
+    "RECORD_SEAL": 1,
+    "RECORD_UNSEAL": 1,
+    "RECORD_CONTEXT_DENIED": 10,
+    "RECORD_REVOKED_DENIED": 2,
+    "WORKER_SPAWNS": 2,
+    "WORKER_FAULTS": 1,
+    "WORKER_RESTARTS": 1,
+    "WORKER_KILLS": 1,
+    "ENTROPY_BYTES": 1024,
+    "DISK_READS": 576,
+    "DISK_WRITES": 0,
+    "DISK_FLUSHES": 0,
+    "TCP_HTTP": 2,
+    "TCP_REFUSED": 1,
+    "TCP_RESET": 1,
+    "TCP_RETRANSMIT": 1,
+    "TCP_TX_COMPLETED": 21,
+    "TCP_RX_DELIVERED": 13,
+    "TCP_TIMEOUT": 1,
+    "TCP_BODY_BYTES": 40,
+    "TCP_START_TICKS": 1,
+    "TCP_END_TICKS": 438,
+    "TCP_STALE_CAP": 1,
+    "TCP_CLOCK_READS": 2333,
+    "TCP_TIMEOUT_TICKS": 300,
+    "NET_TX_SUBMITTED": 21,
+    "NET_TX_COMPLETED": 21,
+    "NET_RX_COMPLETED": 13,
+    "NET_RX_DELIVERED": 13,
+    "NET_DENIED": 1,
+    "NET_TX_TIMEOUTS": 0,
+    "NET_RESETS": 1,
+    "NET_RESET_ACKS": 1,
+    "LIVE_PROCESSES_AFTER": 0,
+    "FRAMES_RECOVERED": 1
+  },
+  "oracle": {
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "objects": [
+      {
+        "object": 0,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 3,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 4096,
+            "name": "systeemproef",
+            "content_revision": 1,
+            "chunks": [
+              0
+            ]
+          }
+        ]
+      },
+      {
+        "object": 1,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 2,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 3,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 4,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 5,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 6,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 7,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 8,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 9,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 10,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 11,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 12,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 13,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 14,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 15,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      }
+    ],
+    "collections": [
+      {
+        "index": 1,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 1,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      }
+    ],
+    "chunks_used": 1,
+    "slots": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    ],
+    "digests": [
+      313834141126213359,
+      10252960164691450465
+    ]
+  },
+  "network_peer": {
+    "complete": true,
+    "counts": {
+      "client_frames": 21,
+      "server_frames": 13,
+      "arp_requests": 1,
+      "arp_replies": 1,
+      "syns": 7,
+      "syn_acks": 3,
+      "refusals": 1,
+      "resets_after_get": 1,
+      "first_syn_dropped": 1,
+      "retry_syns": 1,
+      "blackhole_syns": 2,
+      "blackhole_rsts": 1,
+      "corrupt_data_sent": 1,
+      "valid_data_sent": 2,
+      "http_requests": 3,
+      "valid_data_acks": 2,
+      "fins_sent": 2,
+      "client_fins_acked": 2
+    },
+    "cases": {
+      "8080": {
+        "phase": "closed",
+        "syns": 1,
+        "request_bytes": 72,
+        "request_sha256": "2636f1d0cc5660a4120d78b039cdf1950017568446d33f7a6e9d3c2706c01bd0",
+        "data_acked": true,
+        "fin_sent": true,
+        "closed": true
+      },
+      "8081": {
+        "phase": "refused",
+        "syns": 1,
+        "request_bytes": 0,
+        "request_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "data_acked": false,
+        "fin_sent": false,
+        "closed": false
+      },
+      "8082": {
+        "phase": "reset",
+        "syns": 1,
+        "request_bytes": 72,
+        "request_sha256": "2636f1d0cc5660a4120d78b039cdf1950017568446d33f7a6e9d3c2706c01bd0",
+        "data_acked": false,
+        "fin_sent": false,
+        "closed": false
+      },
+      "8083": {
+        "phase": "closed",
+        "syns": 2,
+        "request_bytes": 72,
+        "request_sha256": "2636f1d0cc5660a4120d78b039cdf1950017568446d33f7a6e9d3c2706c01bd0",
+        "data_acked": true,
+        "fin_sent": true,
+        "closed": true
+      },
+      "8084": {
+        "phase": "blackhole",
+        "syns": 2,
+        "request_bytes": 0,
+        "request_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "data_acked": false,
+        "fin_sent": false,
+        "closed": false
+      }
+    },
+    "response_sha256": "d128fa1924be70f9e1f42e2a466e1e94123182b23b11110d273ced90cefda90b",
+    "corrupt_response_sha256": "b6e4fce18f6898242fd36cb7de9de98aa2bfb088d749dc031d8dbe1c677d0ed5",
+    "response_body_bytes": 20,
+    "events": [
+      {
+        "sequence": 1,
+        "direction": "rx",
+        "event": "arp-request",
+        "frame_sha256": "5caf2d3aa4a720449a268e6a177171f8dcc864e1dabde8060798e45e64d06e1e",
+        "length": 60
+      },
+      {
+        "sequence": 2,
+        "direction": "tx",
+        "event": "arp-reply",
+        "frame_sha256": "de816388cafa8e9b91fde11dc099c4043551a19983c6b41ef2fb852ee2434313",
+        "length": 60
+      },
+      {
+        "sequence": 3,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "b01017600bab5c463d4e90bcb48c244038463965b43cec09ea4b32ff935c4f57",
+        "length": 66,
+        "port": 8080,
+        "seq": 1372052137,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 4,
+        "direction": "tx",
+        "event": "syn-ack",
+        "frame_sha256": "479ef61a0833b4c9650f5d9d5c3b5cffe279aa3cd9d2d2b7e9cc08f275a4ffcc",
+        "length": 60,
+        "port": 8080,
+        "seq": 1852797696,
+        "ack": 1372052138,
+        "flags": 18,
+        "payload_length": 0
+      },
+      {
+        "sequence": 5,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "11af0b03920441a8b2f7ef57d2c020dd713eb123fc8209691aebea4dee0b32f7",
+        "length": 60,
+        "port": 8080,
+        "seq": 1372052138,
+        "ack": 1852797697,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 6,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "f65bdd68566f7dbab44276a4dc4ef5cf091f90c0925ffe757f35417903469b9d",
+        "length": 126,
+        "port": 8080,
+        "seq": 1372052138,
+        "ack": 1852797697,
+        "flags": 24,
+        "payload_length": 72
+      },
+      {
+        "sequence": 7,
+        "direction": "tx",
+        "event": "bad-tcp-checksum",
+        "frame_sha256": "d3f7f0672340dca5b62de02c13a1d5603805f9e9c09ebb82a928a2a5f7daa765",
+        "length": 132,
+        "port": 8080,
+        "seq": 1852797697,
+        "ack": 1372052210,
+        "flags": 24,
+        "payload_length": 78
+      },
+      {
+        "sequence": 8,
+        "direction": "tx",
+        "event": "http-data",
+        "frame_sha256": "a0e54af2f361d29f7043622a3007403f3ad1e340bd7fa552f44d0603dd5b652e",
+        "length": 132,
+        "port": 8080,
+        "seq": 1852797697,
+        "ack": 1372052210,
+        "flags": 24,
+        "payload_length": 78
+      },
+      {
+        "sequence": 9,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "7584fc71e76e07e05f449103d38f7850f22819ac880e8b083185fcc26d5acbc0",
+        "length": 60,
+        "port": 8080,
+        "seq": 1372052210,
+        "ack": 1852797775,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 10,
+        "direction": "tx",
+        "event": "server-fin",
+        "frame_sha256": "3c53595150f340ffc59b00de971d536b1d4e0e413c490078c950147ee089c871",
+        "length": 60,
+        "port": 8080,
+        "seq": 1852797775,
+        "ack": 1372052210,
+        "flags": 17,
+        "payload_length": 0
+      },
+      {
+        "sequence": 11,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "47e046bd852cb3c3caa1bf39a966f6b0a7d57c7059e874835889f7058d22bfea",
+        "length": 60,
+        "port": 8080,
+        "seq": 1372052210,
+        "ack": 1852797776,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 12,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "6a1a8cac6d78fdd3484e961efb4c4864c88f6776bf3e4c0df95d367dd66c447a",
+        "length": 60,
+        "port": 8080,
+        "seq": 1372052210,
+        "ack": 1852797776,
+        "flags": 17,
+        "payload_length": 0
+      },
+      {
+        "sequence": 13,
+        "direction": "tx",
+        "event": "client-fin-ack",
+        "frame_sha256": "139f080abb876c7568101f7df718ec3d9cbfa4aa86b204148b1083f1a9d051b0",
+        "length": 60,
+        "port": 8080,
+        "seq": 1852797776,
+        "ack": 1372052211,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 14,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "05c9f7b82b3ae05d7b65bd9540319329f887c9d21d0b1a62c9f53473622aae09",
+        "length": 66,
+        "port": 8081,
+        "seq": 832171563,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 15,
+        "direction": "tx",
+        "event": "connection-refused",
+        "frame_sha256": "c6b60f00d64bff6397d6c512a4156f1e157dd8298f8e684dd64c247d3aa580d1",
+        "length": 60,
+        "port": 8081,
+        "seq": 0,
+        "ack": 832171564,
+        "flags": 20,
+        "payload_length": 0
+      },
+      {
+        "sequence": 16,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "3977ca2d30b650c8cc64a9367eca284e58f3561c05d999a9126156af7d32e544",
+        "length": 66,
+        "port": 8082,
+        "seq": 294827851,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 17,
+        "direction": "tx",
+        "event": "syn-ack",
+        "frame_sha256": "1e44cac739df1ee6ec9e632790c80fe7af8d1979947bcf00a389d09e69dc0376",
+        "length": 60,
+        "port": 8082,
+        "seq": 1852805888,
+        "ack": 294827852,
+        "flags": 18,
+        "payload_length": 0
+      },
+      {
+        "sequence": 18,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "dcd535694de157684eafcd302e023abf16e6a5b4bb1d3534b9c725488cb4b9a3",
+        "length": 60,
+        "port": 8082,
+        "seq": 294827852,
+        "ack": 1852805889,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 19,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "d37dab1b285c98526f88dc7a3ae6a54d9c9e5c7130017ead2143738ec8edc53d",
+        "length": 126,
+        "port": 8082,
+        "seq": 294827852,
+        "ack": 1852805889,
+        "flags": 24,
+        "payload_length": 72
+      },
+      {
+        "sequence": 20,
+        "direction": "tx",
+        "event": "reset-after-get",
+        "frame_sha256": "8c8ef9d068ca64553e234724fc230c31c6d9ddd230e1bdcb008123f8149e64d6",
+        "length": 60,
+        "port": 8082,
+        "seq": 1852805889,
+        "ack": 294827924,
+        "flags": 20,
+        "payload_length": 0
+      },
+      {
+        "sequence": 21,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "b2e74c70644ed756e6e87f2356c3e61596a8939eae03a741f9a1b772c8178b15",
+        "length": 66,
+        "port": 8083,
+        "seq": 2992272335,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 22,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "b2e74c70644ed756e6e87f2356c3e61596a8939eae03a741f9a1b772c8178b15",
+        "length": 66,
+        "port": 8083,
+        "seq": 2992272335,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 23,
+        "direction": "tx",
+        "event": "syn-ack",
+        "frame_sha256": "cb9f9031c278ea9a6e06a386d79ee2dcc267b303ecac1e7a44f14f61caf30c61",
+        "length": 60,
+        "port": 8083,
+        "seq": 1852809984,
+        "ack": 2992272336,
+        "flags": 18,
+        "payload_length": 0
+      },
+      {
+        "sequence": 24,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "b5ea9b4f7760b9626278e244ec4fd0d53d8e2a003d61fdccb73eca28bd75bba1",
+        "length": 60,
+        "port": 8083,
+        "seq": 2992272336,
+        "ack": 1852809985,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 25,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "9f0c3fc623d56f95a2c8f6fe94208b8d62f5e741692b3ee5cec3e0aa009c5c4b",
+        "length": 126,
+        "port": 8083,
+        "seq": 2992272336,
+        "ack": 1852809985,
+        "flags": 24,
+        "payload_length": 72
+      },
+      {
+        "sequence": 26,
+        "direction": "tx",
+        "event": "http-data",
+        "frame_sha256": "fdc6642623e13fe71c7541dfa5e62267e75e8ffb015ea3b975e64c52e50730a0",
+        "length": 132,
+        "port": 8083,
+        "seq": 1852809985,
+        "ack": 2992272408,
+        "flags": 24,
+        "payload_length": 78
+      },
+      {
+        "sequence": 27,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "d182e5bd7a662b90bbca2794dad104e88526524f0d7444d1bebf58ad179ff5c6",
+        "length": 60,
+        "port": 8083,
+        "seq": 2992272408,
+        "ack": 1852810063,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 28,
+        "direction": "tx",
+        "event": "server-fin",
+        "frame_sha256": "c26a2ce4569e77db377bac0d8e915f68a17178654e8be61af61ccc76c24600ca",
+        "length": 60,
+        "port": 8083,
+        "seq": 1852810063,
+        "ack": 2992272408,
+        "flags": 17,
+        "payload_length": 0
+      },
+      {
+        "sequence": 29,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "fdea8e14a2c71aa441d3faa61538405ff4ed6a34aae290abeb7afaffe50b7429",
+        "length": 60,
+        "port": 8083,
+        "seq": 2992272408,
+        "ack": 1852810064,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 30,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "bda3f2d87803e77c405a927d07e9aab3cec848edc661b300305801f23f78825a",
+        "length": 60,
+        "port": 8083,
+        "seq": 2992272408,
+        "ack": 1852810064,
+        "flags": 17,
+        "payload_length": 0
+      },
+      {
+        "sequence": 31,
+        "direction": "tx",
+        "event": "client-fin-ack",
+        "frame_sha256": "86d74af81d2d45a20572f9dd47e5ba631fe868a9fecccec7d8d2045f87d58842",
+        "length": 60,
+        "port": 8083,
+        "seq": 1852810064,
+        "ack": 2992272409,
+        "flags": 16,
+        "payload_length": 0
+      },
+      {
+        "sequence": 32,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "f60e9b21811078630906984651835bbac08e671620edfd0600bfae7ba083cec3",
+        "length": 66,
+        "port": 8084,
+        "seq": 2463231270,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 33,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "f60e9b21811078630906984651835bbac08e671620edfd0600bfae7ba083cec3",
+        "length": 66,
+        "port": 8084,
+        "seq": 2463231270,
+        "ack": 0,
+        "flags": 2,
+        "payload_length": 0
+      },
+      {
+        "sequence": 34,
+        "direction": "rx",
+        "event": "tcp",
+        "frame_sha256": "508d9fac03d5daeeb4ed96e2136dfc1215bf872a2db4e883d2c4a70c7e257bd4",
+        "length": 60,
+        "port": 8084,
+        "seq": 2463231271,
+        "ack": 0,
+        "flags": 20,
+        "payload_length": 0
+      }
+    ],
+    "kind": "synthetic TCP server only; not OS client or native proof",
+    "connected": true,
+    "error": null,
+    "rejected_frame": null,
+    "wire_frames_sent": 13,
+    "passed": true
+  }
+}

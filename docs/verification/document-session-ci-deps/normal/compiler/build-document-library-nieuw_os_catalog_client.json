@@ -1,0 +1,33 @@
+{
+  "command": [
+    "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/rustc",
+    "+1.90.0",
+    "--edition=2021",
+    "--crate-name=nieuw_os_catalog_client",
+    "--crate-type=rlib",
+    "--target=x86_64-unknown-none",
+    "-C",
+    "panic=abort",
+    "-C",
+    "opt-level=2",
+    "-C",
+    "code-model=small",
+    "-C",
+    "relocation-model=static",
+    "-C",
+    "no-redzone=yes",
+    "-L",
+    "dependency=/workspace/nieuw-os-worktrees/ci-deps/build/ci-document-deps/users",
+    "--extern",
+    "nieuw_os_sdk_runtime=/workspace/nieuw-os-worktrees/ci-deps/build/ci-document-deps/users/libnieuw_os_sdk_runtime.rlib",
+    "--extern",
+    "catalog_core=/workspace/nieuw-os-worktrees/ci-deps/build/ci-document-deps/users/libcatalog_core.rlib",
+    "/workspace/nieuw-os-worktrees/ci-deps/sdk/catalog-client/src/lib.rs",
+    "-o",
+    "/workspace/nieuw-os-worktrees/ci-deps/build/ci-document-deps/users/libnieuw_os_catalog_client.rlib"
+  ],
+  "cwd": "/workspace/nieuw-os-worktrees/ci-deps",
+  "started_unix": 1793318648.2642128,
+  "duration_s": 0.1159355640411377,
+  "returncode": 0
+}

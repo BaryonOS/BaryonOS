@@ -1,0 +1,19 @@
+{
+  "command": [
+    "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "build",
+    "--locked",
+    "--release",
+    "--target-dir",
+    "/workspace/nieuw-os-worktrees/memory-fixture/target/memory-kernel",
+    "-p",
+    "os-loader",
+    "--target",
+    "x86_64-unknown-uefi"
+  ],
+  "cwd": "/workspace/nieuw-os-worktrees/memory-fixture",
+  "started_unix": 1793324086.296615,
+  "duration_s": 0.05721139907836914,
+  "returncode": 0
+}

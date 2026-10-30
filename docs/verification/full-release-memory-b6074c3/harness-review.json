@@ -1,0 +1,76 @@
+{
+  "scope": "TASK-MEMORY-HARNESS-V: read-only host/code review; no native execution by reviewer",
+  "root_candidate_index_tree": "0d2a73cd0ae4e761c568d13df7c9b4e19005628e",
+  "source_sha256": {
+    "tools/run_memory.py": "e46b80120be43f7f446c64c8757a8a9faf2fddf4f94cd69c455633fef67aecf9",
+    "tools/test_memory.py": "8e1dadb9c38e64f3cd2e88ab8434c27cac867d0155c883cae5ba5dc3583a5668",
+    "tools/test_memory_system.py": "e2b997d41d028a4024647a1e7ab46a3e48e03a519d55b4148e63949584c05be9",
+    "tools/run.py": "908abb3dbb26b5aa27417ecde15db8feaf77ba990615bd6e7ecd72a3abbd7880",
+    "tools/build.py": "3385fadae978a6752f9fbfb02538ab622d9b91c0153153e2daef8d86b146f7ee"
+  },
+  "index_matches_worktree": true,
+  "source_unchanged": true,
+  "host_tests": {
+    "exit": 0,
+    "count": 9
+  },
+  "five_real_worker_raw_logs": [
+    {
+      "case": "normal",
+      "image_pages": 6,
+      "fields": 19,
+      "raw_sha256": "e65ad9e4a3e1f6059e901979fd71893907c2355ba1d6396e5fee402a7b6a6fe3",
+      "passed": true
+    },
+    {
+      "case": "nx",
+      "image_pages": 6,
+      "fields": 19,
+      "raw_sha256": "1c69e16932b2a5e074fd6161061afe8837a0bff5752f0360ede6b0254254e5d4",
+      "passed": true
+    },
+    {
+      "case": "guard",
+      "image_pages": 6,
+      "fields": 19,
+      "raw_sha256": "d2dfacfb1f994491e7975a5774eb9d3b72859c0bf4afe95fe92d73ef7a61d03f",
+      "passed": true
+    },
+    {
+      "case": "peer",
+      "image_pages": 6,
+      "fields": 19,
+      "raw_sha256": "3c2c299d0665f8075efef60f2e79edbf4d0bec13066b9a9ccc0c26741067f1bf",
+      "passed": true
+    },
+    {
+      "case": "oom",
+      "image_pages": 6,
+      "fields": 19,
+      "raw_sha256": "414904984ed2dc88ebfeffa67edf5cec2e387886318d483aed0829e5181c8a48",
+      "passed": true
+    }
+  ],
+  "guest_extra_ESP_counterexample_now_refused": "Unexpected file in actual memory guest ESP",
+  "baseline_with_extra_removed_passed": true,
+  "resolved_findings": [
+    "matrix hardlink/symlink output refusal before write/build",
+    "run-directory symlink refusal before snapshot/launch",
+    "bounded finite runtime and identified emulator metadata",
+    "complete guest ESP snapshot file set"
+  ],
+  "other_evidence": [
+    "fixed-revalidation.json",
+    "build-binding-revalidation.json",
+    "matrix-output-counterexamples.json",
+    "run-directory-symlink-counterexample.json",
+    "guest-validator-counterexamples.json",
+    "unexpected-snapshot-esp.json"
+  ],
+  "remaining_concrete_blockers": [],
+  "limits": [
+    "canonical native matrix and all native regressions must still run on the exact final root commit",
+    "offline worker runs do not prove a changed root kernel/image",
+    "host substitutes in containment counterexamples establish only host path validation"
+  ]
+}

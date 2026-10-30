@@ -1,5 +1,13 @@
 # Begrensde documentbewerksessie
 
+De actuele volume-route staat in `nieuw_os_document_session::volume`. Zij
+gebruikt de bestaande streamende volumeoperaties met het v7-uploadtoken voor
+documenten tot 64 KiB,
+met door de app beheerde buffers, stapsgewijs bewaren en annuleren. Zie
+[contract en integratie](../../docs/implementation/VOLUME-DOCUMENT-SESSION.md).
+De onderstaande catalogusroute blijft beschikbaar voor bestaande M6c-clients;
+haar 128-bytegrens is geen nieuwe productkeuze voor Materiaal.
+
 `nieuw-os-document-session` is een allocatorvrije `no_std`-library met
 `forbid(unsafe_code)` boven de bestaande `nieuw_os_catalog_client::Session<T>`.
 Zij beheert één reeds bestaand document en een lokale conceptbuffer van

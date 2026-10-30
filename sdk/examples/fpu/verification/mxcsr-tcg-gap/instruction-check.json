@@ -1,0 +1,32 @@
+{
+  "claim": "QEMU TCG accepted reserved-MXCSR load and app reached failure105; no #GP acceptance",
+  "kernel_sha256": "9c8b61f2efec5588730626f4d77f73851439941d26bdb068be95c3c9cd286915",
+  "embedded_apps": [
+    {
+      "sha256": "11749d7578f4b20d6544bb31a6f54bc046127802a16993eaa455a58e23cfb06c",
+      "size": 19120,
+      "instruction_and_operand": [
+        "    40020265:\t0f ae 14 25 0a 41 01 \tldmxcsr 0x4001410a",
+        "    40020428:\t0f ae 14 25 0e 41 01 \tldmxcsr 0x4001410e",
+        "    40020430:\te9 0c 01 00 00       \tjmp    40020541 <failure>",
+        " 400140d0 0dd00000 00000000 f22fffff ffffffff  ........./......",
+        " 400140e0 0ed00000 00000000 f12fffff ffffffff  ........./......",
+        " 400140f0 0fd00000 00000000 f02fffff ffffffff  ........./......",
+        " 40014100 0d000000 00000000 7f07803f 00000000  ...........?....",
+        " 40014110 0080                                 ..              "
+      ]
+    },
+    {
+      "sha256": "6195de00281eb4e53c25f8707271a51832485d070b02dd1f5485863ca17f4dcb",
+      "size": 19096,
+      "instruction_and_operand": [
+        "    40020265:\t0f ae 14 25 0a 41 01 \tldmxcsr 0x4001410a",
+        " 400140d0 0dd00100 00000000 f22ffeff ffffffff  ........./......",
+        " 400140e0 0ed00100 00000000 f12ffeff ffffffff  ........./......",
+        " 400140f0 0fd00100 00000000 f02ffeff ffffffff  ........./......",
+        " 40014100 1d000000 00000000 7f0b805f 00000000  ..........._....",
+        " 40014110 0080                                 ..              "
+      ]
+    }
+  ]
+}

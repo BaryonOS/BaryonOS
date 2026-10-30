@@ -66,3 +66,13 @@ docs/verification/native-recovery-hardening/**/SHA256SUMS -text
 docs/verification/k05-startup-slots/**/*.txt -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 docs/verification/k05-startup-slots/**/*.json -text
 docs/verification/k05-startup-slots/**/SHA256SUMS -text
+
+# Full-release baseline/integration: preserve raw firmware CRLF and hashes.
+docs/verification/full-release-*/**/*.txt -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/verification/full-release-*/**/*.json -text
+docs/verification/full-release-*/**/SHA256SUMS -text
+
+# First real display/PS2 failure: retain exact firmware serial bytes.
+docs/verification/display-first-geometry-failure/*.txt -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/verification/display-first-geometry-failure/*.json -text
+docs/verification/display-first-geometry-failure/SHA256SUMS -text

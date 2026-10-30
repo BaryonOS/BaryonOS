@@ -1,0 +1,124 @@
+{
+  "scope": "Five pinned production codecs; no std/log/serde/CPU-intrinsic features or build scripts",
+  "review_date": "2026-10-30",
+  "rust_compiler": "1.90.0",
+  "packages": [
+    {
+      "name": "zune-png",
+      "version": "0.5.2",
+      "crate_sha256": "5a321146329f7617ba0a5b26982cba45b7ce78163135aba78be25850aefcea80",
+      "crate_url": "https://static.crates.io/crates/zune-png/zune-png-0.5.2.crate",
+      "source_repository": "https://github.com/etemesi254/zune-image/tree/dev/zune-png",
+      "vcs": {
+        "git": {
+          "sha1": "7d4be6b883a295a367659a583d4f5700ab86bf6c"
+        },
+        "path_in_vcs": "crates/zune-png"
+      },
+      "published": "2026-03-11T10:02:16.765139Z",
+      "declared_msrv": "1.87.0",
+      "license": "MIT OR Apache-2.0 OR Zlib",
+      "features_selected": [],
+      "default_features": false,
+      "build_script": false,
+      "manifest_sha256": "59a16576f11c6d9e6942252083f73878f8fe16d498bfe951cc125e307a6ff8c4"
+    },
+    {
+      "name": "zune-jpeg",
+      "version": "0.5.16-rc3",
+      "crate_sha256": "df4c448e855250a3ffd70f393894383667d049c05eca66dcdb4d3f2f194e90c6",
+      "crate_url": "https://static.crates.io/crates/zune-jpeg/zune-jpeg-0.5.16-rc3.crate",
+      "source_repository": "https://github.com/etemesi254/zune-image/tree/dev/crates/zune-jpeg",
+      "vcs": {
+        "git": {
+          "sha1": "b71f4180ae2bd8422eb57ce138e8821ad347db5c"
+        },
+        "path_in_vcs": "crates/zune-jpeg"
+      },
+      "published": "2026-10-19T21:31:24.620749Z",
+      "declared_msrv": "1.77.1",
+      "license": "MIT OR Apache-2.0 OR Zlib",
+      "features_selected": [],
+      "default_features": false,
+      "build_script": false,
+      "manifest_sha256": "765e8f403d077201adf851ef7ff9702419245d46cf69ff77f12132e5b68499e5"
+    },
+    {
+      "name": "zune-core",
+      "version": "0.5.3",
+      "crate_sha256": "d56377fd46368984a170bc5aac5567e52ca5da874caa60bea39fcbca78fb658b",
+      "crate_url": "https://static.crates.io/crates/zune-core/zune-core-0.5.3.crate",
+      "source_repository": "https://github.com/etemesi254/zune-image",
+      "vcs": {
+        "git": {
+          "sha1": "de5dfc800cfa063116eb695edb6ccd01cb96ea7a"
+        },
+        "path_in_vcs": "crates/zune-core"
+      },
+      "published": "2026-08-07T20:55:44.361773Z",
+      "declared_msrv": "1.75.0",
+      "license": "MIT OR Apache-2.0 OR Zlib",
+      "features_selected": [],
+      "default_features": false,
+      "build_script": false,
+      "manifest_sha256": "c17da79ddd25919908712cdd9a9e7e0273d53bda0b5be554a08270431a325b28"
+    },
+    {
+      "name": "zune-inflate",
+      "version": "0.2.54",
+      "crate_sha256": "73ab332fe2f6680068f3582b16a24f90ad7096d5d39b974d1c0aff0125116f02",
+      "crate_url": "https://static.crates.io/crates/zune-inflate/zune-inflate-0.2.54.crate",
+      "source_repository": null,
+      "vcs": {
+        "git": {
+          "sha1": "69502ce83fdfecdd0beefd677e2abb3781b29d98"
+        },
+        "path_in_vcs": "zune-inflate"
+      },
+      "published": "2023-04-30T12:46:39.401773Z",
+      "declared_msrv": null,
+      "license": "MIT OR Apache-2.0 OR Zlib",
+      "features_selected": [
+        "zlib"
+      ],
+      "default_features": false,
+      "build_script": false,
+      "manifest_sha256": "f3da162dd3818fcdf23c9ce34930d66064106873a692d6994abd49b80e60ea66",
+      "license_notice_url": "https://raw.githubusercontent.com/etemesi254/zune-image/69502ce83fdfecdd0beefd677e2abb3781b29d98/LICENSE.md",
+      "license_notice_sha256": "ab06c4120a17af4c930cde89c9a9087e2b6e8be08ed21652f32d2cbd7d890dc4"
+    },
+    {
+      "name": "simd-adler32",
+      "version": "0.3.10",
+      "crate_sha256": "3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea",
+      "crate_url": "https://static.crates.io/crates/simd-adler32/simd-adler32-0.3.10.crate",
+      "source_repository": "https://github.com/mcountryman/simd-adler32",
+      "vcs": {
+        "git": {
+          "sha1": "d93164f98d7fe2daf883f2e1bec82778dd26199a"
+        },
+        "path_in_vcs": ""
+      },
+      "published": "2026-07-14T17:42:45.047242Z",
+      "declared_msrv": null,
+      "license": "MIT",
+      "features_selected": [],
+      "default_features": false,
+      "build_script": false,
+      "manifest_sha256": "6981052c018f374476e9dd4186c0df3f4f5f0108a6c6b627409a2644b06e925b"
+    }
+  ],
+  "local_patch": {
+    "upstream_version": "0.5.16-rc3",
+    "upstream_commit": "b71f4180ae2bd8422eb57ce138e8821ad347db5c",
+    "archive_sha256": "df4c448e855250a3ffd70f393894383667d049c05eca66dcdb4d3f2f194e90c6",
+    "changed_files": [
+      "src/upsampler/scalar.rs"
+    ],
+    "unchanged_files": 40,
+    "patch_sha256": "f98b11433d5c975d062fa6e197e0f8a06629589d25abe5d0656fccedc1b4d66e",
+    "reference": "https://github.com/libjpeg-turbo/libjpeg-turbo/blob/9217719d3a58633923b096af4c1d50d304768a64/src/jdsample.c#L362",
+    "scope": "Original Rust correction of mathematical 9:3:3:1 interpolation and 8/7 tie bias; no C source copied; no upstream-acceptance claim",
+    "unchanged_prefix_suffix": true
+  }
+}

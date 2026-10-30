@@ -1,0 +1,20 @@
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+   Compiling boot-protocol v0.1.0 (/workspace/nieuw-os-worktrees/ci-deps/crates/boot-protocol)
+   Compiling r-efi v7.1.0
+   Compiling elf-loader-core v0.1.0 (/workspace/nieuw-os-worktrees/ci-deps/crates/elf-loader-core)
+   Compiling os-loader v0.1.0 (/workspace/nieuw-os-worktrees/ci-deps/boot/loader)
+    Finished `release` profile [optimized] target(s) in 0.80s
+   Compiling virtio-core v0.1.0 (/workspace/nieuw-os-worktrees/ci-deps/crates/virtio-core)
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os-worktrees/ci-deps/kernel)
+   Compiling kernel-core v0.1.0 (/workspace/nieuw-os-worktrees/ci-deps/crates/kernel-core)
+   Compiling object-core v0.1.0 (/workspace/nieuw-os-worktrees/ci-deps/services/objects)
+   Compiling virtio-blk-driver v0.1.0 (/workspace/nieuw-os-worktrees/ci-deps/drivers/virtio-blk)
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os-worktrees/ci-deps/services/catalog)
+   Compiling boot-protocol v0.1.0 (/workspace/nieuw-os-worktrees/ci-deps/crates/boot-protocol)
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os-worktrees/ci-deps/crates/capability-core)
+   Compiling block-protocol v0.1.0 (/workspace/nieuw-os-worktrees/ci-deps/services/block)
+    Finished `release` profile [optimized] target(s) in 2.49s
+Built and inspected document-session-normal: 3 ELF load segments

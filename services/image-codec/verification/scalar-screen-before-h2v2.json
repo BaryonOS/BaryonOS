@@ -1,0 +1,12 @@
+{
+  "kind": "Selected instruction-token screen; not exhaustive ISA verification",
+  "elf_sha256": "337dba497d9ce4e9b72fe74900dd0997d9825b4018c8ca3673c684e4102aea6c",
+  "command": [
+    "objdump",
+    "-d",
+    "/tmp/nieuw-os-image-probe-target/x86_64-unknown-none/release/image-probe"
+  ],
+  "instruction_lines": 54317,
+  "selected_fp_simd_matches": [],
+  "native_executed": false
+}

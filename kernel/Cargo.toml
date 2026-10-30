@@ -10,13 +10,38 @@ default = []
 test-panic = []
 test-hang = []
 milestone-m2 = []
-graphics-g0 = ["milestone-m2", "dep:ui-core"]
+framebuffer = ["milestone-m2"]
+# Sole display/input transport; UI policy remains in isolated user services.
+display-input = ["framebuffer", "milestone-m4", "monotonic-clock", "fpu-context", "dep:nieuw-os-display-client", "dep:nieuw-os-ps2"]
+native-display-probe = ["display-input"]
+native-system-display-input = ["native-system", "display-input"]
+graphics-g0 = ["framebuffer", "dep:ui-core"]
 test-m2-ro = ["milestone-m2"]
 test-m2-nx = ["milestone-m2"]
 test-m2-absent = ["milestone-m2"]
 test-m2-kernel-fault = ["milestone-m2"]
 test-m2-double-fault = ["milestone-m2"]
 milestone-m3 = ["milestone-m2"]
+# Optional 100 Hz boot-monotonic clock; legacy ABI profiles stay unchanged.
+monotonic-clock = ["milestone-m3"]
+# Fallible own-process RW/NX heap suffixes; existing total frame quota.
+process-memory = ["monotonic-clock"]
+# Separate architecture acceptance fixture; no product bootstrap policy.
+native-memory = ["process-memory", "fpu-context"]
+native-memory-nx = ["native-memory"]
+native-memory-guard = ["native-memory"]
+native-memory-peer = ["native-memory"]
+native-memory-oom = ["native-memory"]
+native-system-random = ["native-system", "monotonic-clock"]
+test-system-random-sdk = ["native-system-random"]
+test-system-random-unknown = ["native-system-random"]
+test-system-random-wrong-caller = ["native-system-random"]
+native-system-images = ["native-system", "process-memory", "fpu-context"]
+native-system-clock = ["native-system", "monotonic-clock"]
+native-system-net-clock = ["native-system-net", "monotonic-clock"]
+# Eager per-process x87/SSE state. The fixture is separate from the mechanism.
+fpu-context = ["milestone-m3"]
+native-fpu = ["fpu-context", "monotonic-clock"]
 native-qsim = ["milestone-m3"]
 native-qsim-job = ["milestone-m4"]
 native-sdk-app = ["milestone-m4"]
@@ -27,6 +52,15 @@ test-supervisor-crash = ["native-supervisor"]
 test-supervisor-denied = ["native-supervisor"]
 test-supervisor-parent-exit = ["native-supervisor"]
 test-supervisor-quota = ["native-supervisor"]
+# FR-I01 explicit composed profile; legacy fixture profiles remain separate.
+native-system = ["native-volume", "native-keyring", "native-supervisor"]
+test-system-recover = ["native-system"]
+# Real NIC integration; the base joint profile never probes or maps a NIC.
+native-system-net = ["native-system", "dep:virtio-net-driver"]
+test-system-net-recover = ["native-system-net", "test-system-recover"]
+# Bounded native TCP fixture; protocol processing stays in the ring-3 app.
+native-system-tcp = ["native-system-net", "monotonic-clock", "fpu-context"]
+test-system-tcp-recover = ["native-system-tcp", "test-system-recover"]
 # B01 entropy broker + Key Service profile: virtio-rng broker, two services, one app.
 native-keyring = ["milestone-m4", "dep:virtio-rng-driver"]
 test-keyring-no-device = ["native-keyring"]
@@ -151,12 +185,15 @@ test-volume-corrupt = ["native-volume"]
 test-volume-cut-txn = ["native-volume"]
 
 [dependencies]
+nieuw-os-display-client = { path = "../sdk/display-client", default-features = false, optional = true }
+nieuw-os-ps2 = { path = "../drivers/ps2", optional = true }
 boot-protocol = { path = "../crates/boot-protocol" }
 kernel-core = { path = "../crates/kernel-core" }
 capability-core = { path = "../crates/capability-core" }
 virtio-core = { path = "../crates/virtio-core" }
 virtio-blk-driver = { path = "../drivers/virtio-blk" }
 virtio-rng-driver = { path = "../drivers/virtio-rng", optional = true }
+virtio-net-driver = { path = "../drivers/virtio-net", optional = true }
 block-protocol = { path = "../services/block" }
 object-core = { path = "../services/objects", optional = true }
 ui-core = { path = "../crates/ui-core", optional = true }

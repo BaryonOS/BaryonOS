@@ -1,5 +1,13 @@
 # ui-core — grafische bootstrap
 
+FR-U01 voegt aparte fysieke invoerbouwstenen toe: `Set1Keyboard`, `Ps2Mouse`,
+`Cursor` en `InputRouter`. Zij vervangen de onderstaande G0-ASCII-API niet.
+De router bewaart focusgeneraties en voorkomt dat vastgehouden toetsen,
+modifiers of knoppen aan een nieuwe focus worden overgedragen. Dit is pure
+`no_std`-logica; echte apparaat-I/O, capabilityafdwinging en native
+compositoracceptatie blijven afzonderlijke stappen. Contract en reproduceerbare
+controles: [NATIVE-INPUT.md](../../docs/implementation/NATIVE-INPUT.md).
+
 Eigen dependencyvrije, safe Rust `no_std`-code. Geen pointers, firmware, MMIO,
 allocator, bestandstoegang of appbevoegdheden. Dit is een softwarebouwsteen voor
 een grafische OS-proef; geen compositor, desktop, opslaginterface of native M7.

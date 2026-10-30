@@ -1,0 +1,45 @@
+command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path", "sdk/heap-allocator/Cargo.toml"]
+cwd: /workspace/nieuw-os-worktrees/user-allocator
+exit: 0
+duration_s: 0.8129804134368896
+
+stdout:
+
+running 2 tests
+test tests::extreme_search_arithmetic_is_rejected_before_engine_access ... ok
+test tests::historical_counters_saturate_without_wrapping ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 13 tests
+test default_global_zeroed_and_realloc_preserve_contract_on_failure ... ok
+test explicit_init_aligns_extent_and_reinitialization_preserves_live_data ... ok
+test fragmentation_is_visible_and_neighbor_freeing_coalesces ... ok
+test full_arena_failure_preserves_confirmed_allocations ... ok
+test huge_valid_layout_fails_without_panic_or_partial_mutation ... ok
+test invalid_extent_shapes_do_not_dereference_or_initialize ... ok
+test minimum_arena_and_zero_size_have_defined_behavior ... ok
+test missing_init_and_malformed_requests_are_visible ... ok
+test lock_serializes_real_allocations_and_stats_across_host_threads ... ok
+test own_arena_metrics_do_not_include_other_allocator_activity ... ok
+test multiple_alignments_and_extents_stay_disjoint ... ok
+test large_allocation_and_reuse_report_padding_and_high_water ... ok
+test deterministic_mixed_allocations_preserve_live_bytes_extents_and_accounting ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+bounded real Vec/Box/String: passed; capacity=8388608 highwater=1134168 failed=2
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+stderr:
+   Compiling nieuw-os-heap-allocator v0.1.0 (/workspace/nieuw-os-worktrees/user-allocator/sdk/heap-allocator)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.29s
+     Running unittests src/lib.rs (build/user-allocator-target/debug/deps/nieuw_os_heap_allocator-e02de8f01764d7ee)
+     Running tests/arena.rs (build/user-allocator-target/debug/deps/arena-b1054aa08c55a657)
+     Running tests/collections.rs (build/user-allocator-target/debug/deps/collections-90a54ae6aac3b104)
+   Doc-tests nieuw_os_heap_allocator

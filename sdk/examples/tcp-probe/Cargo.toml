@@ -1,0 +1,33 @@
+[package]
+name = "nieuw-os-native-tcp-probe"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.91"
+publish = false
+
+[features]
+native = []
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../../runtime" }
+nieuw-os-net-stack = { path = "../../../services/net-stack" }
+
+[[bin]]
+name = "tcp-probe"
+path = "src/main.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[workspace]
+members = ["."]
+resolver = "3"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+codegen-units = 1
+lto = false

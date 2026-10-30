@@ -1,0 +1,135 @@
+name: FR-I01 joint native system acceptance
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-system-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-system:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/system-ci
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/system-ci
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/system-ci
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Rust and real targets
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+          rustup toolchain install 1.91.1 --profile minimal
+          rustup target add --toolchain 1.91.1 x86_64-unknown-none
+      - name: Disposable emulator and matching firmware package
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+      - name: Strict preflight
+        run: python3 -B tools/preflight.py --strict
+      - name: Fetch locked build dependencies before offline native builders
+        run: |
+          cargo +1.90.0 fetch --locked
+          cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml
+          cargo +1.91.1 fetch --locked --manifest-path sdk/examples/tcp-probe/Cargo.toml
+          cargo +1.91.1 fetch --locked --manifest-path services/net-stack/Cargo.toml
+          cargo +1.90.0 fetch --locked --manifest-path sdk/examples/memory/Cargo.toml
+      - name: Real joint-service guest and exact-image cold recovery
+        run: python3 -B -u tools/test_system.py
+      - name: Independently revalidate raw images and capture compact evidence
+        run: python3 -B tools/capture_system.py --destination docs/verification/full-release-system-ci
+      - name: Real native ARP UDP DNS and same-image cold recovery
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/system-net-ci
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/system-net-ci
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/system-net-ci
+        run: python3 -B -u tools/test_net_system.py
+      - name: Revalidate native counters peer transcript firmware policy and images
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/system-net-ci
+        run: python3 -B tools/capture_system.py --network --destination docs/verification/full-release-network-ci
+      - name: Actual x87 SSE process state and monotonic clock isolation
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/fpu-ci
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/fpu-ci
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/fpu-ci
+        run: |
+          python3 -B tools/test_fpu.py
+          python3 -B tools/build.py --kernel-feature native-fpu
+          python3 -B tools/run_fpu.py
+      - name: Actual native TCP and exact-image cold recovery
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/tcp-ci
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/tcp-ci
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/tcp-ci
+        run: python3 -B -u tools/test_tcp_system.py
+      - name: Revalidate TCP handshake retransmission FIN timeout and raw images
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/tcp-ci
+        run: python3 -B tools/capture_system.py --tcp --destination docs/verification/full-release-tcp-ci
+      - name: Own heap zeroing NX guard peer isolation physical OOM and cleanup
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/memory-ci
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/memory-ci
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/memory-ci-host
+        run: python3 -B -u tools/test_memory_system.py
+      - name: Preserve evidence and the tested final build
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-system-evidence
+          path: |
+            build/memory-ci/memory-gate.json
+            build/memory-ci/logs/
+            build/memory-ci/*/memory-report.json
+            build/memory-ci/*/manifest.json
+            build/memory-ci/*/logs/
+            build/memory-ci/*/users/memory/build-report.json
+            build/memory-ci/*/esp/
+            build/memory-ci/*/run/native-memory-*/
+            build/system-ci/system-gate.json
+            build/system-ci/manifest.json
+            build/system-ci/logs/
+            build/system-ci/run/system-*/result.json
+            build/system-ci/run/system-*/serial.txt
+            build/system-ci/run/system-*/stderr.txt
+            build/system-ci/run/system-*/volume.after.img
+            build/system-ci/esp/
+            docs/verification/full-release-system-ci/
+            build/system-net-ci/net-system-gate.json
+            build/system-net-ci/manifest.json
+            build/system-net-ci/logs/
+            build/system-net-ci/run/system-*/result.json
+            build/system-net-ci/run/system-*/network-peer.json
+            build/system-net-ci/run/system-*/serial.txt
+            build/system-net-ci/run/system-*/stderr.txt
+            build/system-net-ci/run/system-*/volume.after.img
+            build/system-net-ci/esp/
+            docs/verification/full-release-network-ci/
+            build/fpu-ci/fpu-report.json
+            build/fpu-ci/manifest.json
+            build/fpu-ci/logs/
+            build/fpu-ci/run/native-fpu-*/
+            build/fpu-ci/esp/
+            build/tcp-ci/tcp-system-gate.json
+            build/tcp-ci/manifest.json
+            build/tcp-ci/logs/
+            build/tcp-ci/run/system-*/result.json
+            build/tcp-ci/run/system-*/network-peer.json
+            build/tcp-ci/run/system-*/serial.txt
+            build/tcp-ci/run/system-*/stderr.txt
+            build/tcp-ci/run/system-*/volume.after.img
+            build/tcp-ci/esp/
+            docs/verification/full-release-tcp-ci/
+          if-no-files-found: error

@@ -33,6 +33,43 @@ const EV_AUTH_FAILURES: u64 = 240;
 const EV_REVOKED: u64 = 248;
 const EV_RESTORES: u64 = 256;
 const EV_ENTROPY_BYTES: u64 = 264;
+const EV_RANDOM_CALLS: u64 = 272;
+const EV_RANDOM_BYTES: u64 = 280;
+const EV_RANDOM_SEEDS: u64 = 288;
+const EV_RANDOM_SEEN: u64 = 296;
+const EV_RANDOM_BAD_CALLER: u64 = 304;
+const EV_RANDOM_INVALID_OPCODE: u64 = 312;
+const EV_RANDOM_RETIRED: u64 = 320;
+const EV_RANDOM_PENDING: u64 = 328;
+const EV_RANDOM_INVALID_REQUEST: u64 = 336;
+const EV_RANDOM_REPLIES: u64 = 344;
+const EV_RANDOM_REPLY_CLOSED: u64 = 352;
+const EV_RANDOM_REPLY_TIMEOUT: u64 = 360;
+const EV_LEGACY_POLLS: u64 = 368;
+const EV_LEGACY_POLL_ERRORS: u64 = 376;
+const RANDOM_DESCRIPTOR: u64 = u64::from_le_bytes(*b"NOSRNG01");
+const RANDOM_REPLY_POLLS: usize = 4096;
+const RANDOM_REPLY_TICKS: u64 = 100;
+
+struct RandomIngress {
+    receive: ReceiveEndpoint,
+    reply: SendEndpoint,
+    caller: u64,
+    domain: usize,
+    pending: [u8; wire::SIZE],
+    has_pending: bool,
+    polls: usize,
+    deadline: Option<u64>,
+    last_tick: u64,
+    retired: bool,
+    seen: u64,
+    bad_caller: u64,
+    invalid_opcode: u64,
+    invalid_request: u64,
+    replies: u64,
+    closed: u64,
+    timeout: u64,
+}
 
 fn tick() {
     support::put(8, support::word(8).wrapping_add(1));
@@ -77,6 +114,10 @@ fn evidence(service: &Service) {
     support::put(EV_REVOKED, c.revoked);
     support::put(EV_RESTORES, c.restores);
     support::put(EV_ENTROPY_BYTES, c.entropy_bytes);
+    let random = service.random_counters();
+    support::put(EV_RANDOM_CALLS, random.calls);
+    support::put(EV_RANDOM_BYTES, random.bytes);
+    support::put(EV_RANDOM_SEEDS, random.seeds);
 }
 
 fn startup_error(step: u64) -> ! {
@@ -93,19 +134,222 @@ fn handle(raw: u64) -> Handle {
 }
 
 fn send(endpoint: SendEndpoint, body: &[u8; wire::SIZE]) {
-    let Ok(message) = Outgoing::new(wire::TAG, body) else {
+    let Ok(mut message) = Outgoing::new(wire::TAG, body) else {
         startup_error(2);
     };
     for _ in 0..POLL_LIMIT {
         tick();
         match native::send(endpoint, &message) {
-            Ok(()) => return,
+            Ok(()) => break,
             Err(error) if error.is_again() => {
                 let _ = native::yield_now();
             }
-            Err(_) => return,
+            Err(_) => break,
         }
     }
+    wipe_outgoing(&mut message);
+}
+
+fn wipe_outgoing(message: &mut Outgoing) {
+    // SAFETY: Exclusive owned, no-cap envelope; all send borrows have ended.
+    // A valid empty envelope overwrites its current payload with volatile
+    // typed stores, without relying on the SDK's private field layout.
+    // No destructor/resource may be silently skipped by this replacement.
+    const { assert!(!core::mem::needs_drop::<Outgoing>()) };
+    unsafe { core::ptr::write_volatile(message, Outgoing::new(0, &[]).unwrap()) };
+}
+
+fn random_ingress(legacy: &[ReceiveEndpoint; 2], reply: SendEndpoint) -> Option<RandomIngress> {
+    let magic = support::word(120);
+    let words = [
+        support::word(128),
+        support::word(136),
+        support::word(144),
+        support::word(152),
+    ];
+    if magic == 0 {
+        if words.iter().any(|value| *value != 0) {
+            startup_error(7);
+        }
+        return None;
+    }
+    if magic != RANDOM_DESCRIPTOR
+        || words[2] == 0
+        || words[3] >= keyring_core::random::DOMAINS as u64
+    {
+        startup_error(7);
+    }
+    let receive = handle(words[0]);
+    let send_reply = handle(words[1]);
+    if receive == send_reply
+        || receive == reply.handle()
+        || send_reply == reply.handle()
+        || legacy
+            .iter()
+            .any(|endpoint| endpoint.handle() == receive || endpoint.handle() == send_reply)
+    {
+        startup_error(7);
+    }
+    Some(RandomIngress {
+        receive: ReceiveEndpoint::from_handle(receive),
+        reply: SendEndpoint::from_handle(send_reply),
+        caller: words[2],
+        domain: words[3] as usize,
+        pending: [0; wire::SIZE],
+        has_pending: false,
+        polls: 0,
+        deadline: None,
+        last_tick: 0,
+        retired: false,
+        seen: 0,
+        bad_caller: 0,
+        invalid_opcode: 0,
+        invalid_request: 0,
+        replies: 0,
+        closed: 0,
+        timeout: 0,
+    })
+}
+
+fn random_evidence(ingress: &RandomIngress) {
+    for (at, value) in [
+        (EV_RANDOM_SEEN, ingress.seen),
+        (EV_RANDOM_BAD_CALLER, ingress.bad_caller),
+        (EV_RANDOM_INVALID_OPCODE, ingress.invalid_opcode),
+        (EV_RANDOM_RETIRED, u64::from(ingress.retired)),
+        (EV_RANDOM_PENDING, u64::from(ingress.has_pending)),
+        (EV_RANDOM_INVALID_REQUEST, ingress.invalid_request),
+        (EV_RANDOM_REPLIES, ingress.replies),
+        (EV_RANDOM_REPLY_CLOSED, ingress.closed),
+        (EV_RANDOM_REPLY_TIMEOUT, ingress.timeout),
+    ] {
+        support::put(at, value);
+    }
+}
+
+fn retire_random(ingress: &mut RandomIngress) {
+    keyring_core::random::clear_bytes(&mut ingress.pending);
+    ingress.has_pending = false;
+    ingress.retired = true;
+    ingress.deadline = None;
+    random_evidence(ingress);
+}
+
+/// One nonblocking reply attempt per main-loop turn. A full or closed RANDOM
+/// reply endpoint must never hold legacy key/volume RPCs inside a retry loop.
+fn send_random(ingress: &mut RandomIngress) {
+    if !ingress.has_pending || ingress.retired {
+        return;
+    }
+    if let Some(deadline) = ingress.deadline {
+        match native::monotonic_ticks() {
+            Ok(now) if now >= ingress.last_tick && now < deadline => ingress.last_tick = now,
+            _ => {
+                ingress.timeout = ingress.timeout.saturating_add(1);
+                retire_random(ingress);
+                return;
+            }
+        }
+    }
+    let Ok(mut message) = Outgoing::new(wire::TAG, &ingress.pending) else {
+        retire_random(ingress);
+        return;
+    };
+    let result = native::send(ingress.reply, &message);
+    wipe_outgoing(&mut message);
+    match result {
+        Ok(()) => {
+            ingress.replies = ingress.replies.saturating_add(1);
+            keyring_core::random::clear_bytes(&mut ingress.pending);
+            ingress.has_pending = false;
+            ingress.polls = 0;
+            ingress.deadline = None;
+        }
+        Err(error) if error.is_again() => {
+            ingress.polls += 1;
+            if ingress.polls >= RANDOM_REPLY_POLLS {
+                ingress.timeout = ingress.timeout.saturating_add(1);
+                retire_random(ingress);
+                return;
+            }
+            if ingress.deadline.is_none() {
+                let deadline = native::monotonic_ticks().ok().and_then(|now| {
+                    ingress.last_tick = now;
+                    now.checked_add(RANDOM_REPLY_TICKS)
+                });
+                let Some(deadline) = deadline else {
+                    ingress.timeout = ingress.timeout.saturating_add(1);
+                    retire_random(ingress);
+                    return;
+                };
+                ingress.deadline = Some(deadline);
+            }
+        }
+        Err(error) => {
+            if error == Error::Kernel(-9) {
+                ingress.closed = ingress.closed.saturating_add(1);
+            }
+            retire_random(ingress);
+            return;
+        }
+    }
+    random_evidence(ingress);
+}
+
+fn poll_random(service: &mut Service, broker: &mut Broker, ingress: &mut RandomIngress) {
+    if ingress.retired {
+        return;
+    }
+    if ingress.has_pending {
+        send_random(ingress);
+        return;
+    }
+    let message = match native::receive(ingress.receive) {
+        Ok(message) => message,
+        Err(_) => return,
+    };
+    ingress.seen = ingress.seen.saturating_add(1);
+    random_evidence(ingress);
+    if message.cap_count() != 0 {
+        let _ = native::close_received_caps(&message);
+        return;
+    }
+    if message.sender() != ingress.caller {
+        ingress.bad_caller = ingress.bad_caller.saturating_add(1);
+        random_evidence(ingress);
+        return;
+    }
+    if message.tag() != wire::TAG {
+        return;
+    }
+    let Some(header) = Header::decode(message.payload()) else {
+        return;
+    };
+    let body = &message.payload()[wire::HEADER..wire::HEADER + usize::from(header.length)];
+    // Validate all format/opcode fields BEFORE consulting a clock or entropy.
+    // There is no route from this endpoint to the legacy dispatch below.
+    let mut reply = if header.op != wire::RANDOM {
+        ingress.invalid_opcode = ingress.invalid_opcode.saturating_add(1);
+        wire::reply(&header, Status::Invalid, &[])
+    } else if wire::random_length(&header, body).is_err() {
+        ingress.invalid_request = ingress.invalid_request.saturating_add(1);
+        wire::reply(&header, Status::Invalid, &[])
+    } else {
+        match native::monotonic_ticks() {
+            Ok(now) => wire::dispatch_random(service, broker, ingress.domain, now, &header, body),
+            Err(_) => wire::reply(&header, Status::NotReady, &[]),
+        }
+    };
+    ingress.pending.copy_from_slice(&reply);
+    keyring_core::random::clear_bytes(&mut reply);
+    ingress.has_pending = true;
+    ingress.polls = 0;
+    ingress.deadline = None;
+    // Publish pending before updated output counters become observable. The
+    // kernel may preempt between these individual evidence-word stores.
+    random_evidence(ingress);
+    evidence(service);
+    send_random(ingress);
 }
 
 fn dispatch(
@@ -148,6 +392,9 @@ fn dispatch(
                 Ok(length) => wire::reply(header, Status::Ok, &out[..length]),
                 Err(status) => wire::reply(header, status, &[]),
             }
+        }
+        wire::SEAL_RECORD | wire::UNSEAL_RECORD => {
+            wire::dispatch_record(service, broker, domain, header, body)
         }
         wire::REVOKE => match service.revoke(domain, header.index) {
             Ok(()) => wire::reply(header, Status::Ok, &[]),
@@ -201,6 +448,7 @@ fn main() -> ! {
         ReceiveEndpoint::from_handle(handle(support::word(80))),
     ];
     let reply_to = SendEndpoint::from_handle(handle(support::word(88)));
+    let mut random = random_ingress(&ingress, reply_to);
     let app = support::word(160);
     if app == 0 {
         startup_error(5);
@@ -213,10 +461,19 @@ fn main() -> ! {
     if service.state() == State::Starting {
         startup_error(6);
     }
+    let (mut legacy_polls, mut legacy_poll_errors) = (0u64, 0u64);
     loop {
         for (domain, endpoint) in ingress.iter().enumerate() {
             tick();
-            let message = match native::receive(*endpoint) {
+            let received = native::receive(*endpoint);
+            match &received {
+                Ok(_) => legacy_polls = legacy_polls.saturating_add(1),
+                Err(error) if error.is_again() => legacy_polls = legacy_polls.saturating_add(1),
+                Err(_) => legacy_poll_errors = legacy_poll_errors.saturating_add(1),
+            }
+            support::put(EV_LEGACY_POLLS, legacy_polls);
+            support::put(EV_LEGACY_POLL_ERRORS, legacy_poll_errors);
+            let message = match received {
                 Ok(message) => message,
                 Err(_) => continue,
             };
@@ -234,6 +491,9 @@ fn main() -> ! {
             let reply = dispatch(&mut service, &mut broker, domain, &header, body);
             evidence(&service);
             send(reply_to, &reply);
+        }
+        if let Some(ingress) = &mut random {
+            poll_random(&mut service, &mut broker, ingress);
         }
         let _ = native::yield_now();
     }

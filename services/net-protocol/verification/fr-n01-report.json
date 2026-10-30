@@ -1,0 +1,156 @@
+{
+  "task": "FR-N01",
+  "status": "host-and-target-build-passed; native-network-not-run",
+  "basis_commit": "73ebc1e169b893eb5aba4b4f8ac06d7798136de3",
+  "branch": "codex/full-release-network",
+  "completed_at_utc": "2026-10-29T22:49:30.329470+00:00",
+  "compiler": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+  "source_sha256": {
+    "services/net-protocol/Cargo.lock": "54cfb2f81b8d40ba5932d8155ddf5b100d4bf47d37d992354c45dfcf06ef74f5",
+    "services/net-protocol/Cargo.toml": "ff556040e9fb6acd2b52dc543940c513cfb2f4919a055616ef960ea4277aeb8d",
+    "services/net-protocol/README.md": "887a1d0c000f5248552b1f88a455a0786711ebd1546020166a03691350e563dc",
+    "services/net-protocol/src/arp.rs": "9d3a1079166645676b1325be5e3da86e1db239994349b1b511f8fee7390d42ce",
+    "services/net-protocol/src/dns.rs": "a2ccfc20e6374b8fbde063ccd2aa514f39c19dbb5ff9112c6519264760d49aeb",
+    "services/net-protocol/src/lib.rs": "83a8a091bb79c10c24279168909dfc488ca720ba7be51559b5d9d229ef221b77",
+    "services/net-protocol/tests/arp.rs": "689ff3fde889fc4cca29fbca4696c06d277ca679fe44ef6f10a48d28e031682b",
+    "services/net-protocol/tests/dns.rs": "755bb7f24a3338d98e2616589231aaf0d1ca94187f3a2e7b66fff1959c6f65d3",
+    "services/net-protocol/tests/packets.rs": "c7235447a7449dbbe4efc55f85a0537a67b0b667b9c8384140b68958672e191c"
+  },
+  "source_fingerprint_sha256": "e9fb4b364299d929dc31dc0347b222e64e458a1f71371e42f7de972643dccb94",
+  "checks": [
+    {
+      "name": "host-tests",
+      "command": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "services/net-protocol/Cargo.toml",
+        "--locked",
+        "--offline"
+      ],
+      "environment": {
+        "LOCALAPPDATA": "/workspace/nieuw-os/.tools",
+        "CARGO_TARGET_DIR": "/workspace/scratch/fr-n01-target"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 0.157,
+      "log": "/workspace/scratch/fr-n01-logs/host-tests.txt",
+      "log_sha256": "7f8c35f3453de4b667dd92bccc4cc87674c555f35a9851eec77c5022e98c753e",
+      "passed_tests": 47
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "services/net-protocol/Cargo.toml",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "environment": {
+        "LOCALAPPDATA": "/workspace/nieuw-os/.tools",
+        "CARGO_TARGET_DIR": "/workspace/scratch/fr-n01-target"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 0.155,
+      "log": "/workspace/scratch/fr-n01-logs/clippy.txt",
+      "log_sha256": "ee1d3fffa2022e962e63e0dbe4d35c9c198450a20c29fc09030f635dbb38bfcd"
+    },
+    {
+      "name": "format",
+      "command": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "services/net-protocol/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "environment": {
+        "LOCALAPPDATA": "/workspace/nieuw-os/.tools",
+        "CARGO_TARGET_DIR": "/workspace/scratch/fr-n01-target"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 0.162,
+      "log": "/workspace/scratch/fr-n01-logs/format.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "native-target-build",
+      "command": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "build",
+        "--manifest-path",
+        "services/net-protocol/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "environment": {
+        "LOCALAPPDATA": "/workspace/nieuw-os/.tools",
+        "CARGO_TARGET_DIR": "/workspace/scratch/fr-n01-native-target"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 0.093,
+      "log": "/workspace/scratch/fr-n01-logs/native-target-build.txt",
+      "log_sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f"
+    }
+  ],
+  "artifact": {
+    "path": "/workspace/scratch/fr-n01-native-target/x86_64-unknown-none/release/libnieuw_os_net_protocol.rlib",
+    "sha256": "3ce1a6ca3892eee1c9c3960f785cb5587e853f8a755c51b17c2f44ab296ad648",
+    "size_bytes": 308468,
+    "kind": "freestanding library; not an executable OS image"
+  },
+  "development_failures": [
+    {
+      "check": "first host compile",
+      "exit_code": 101,
+      "reason": "ambiguous u32 literal in new TTL test; fixed before tests ran"
+    },
+    {
+      "check": "first clippy",
+      "exit_code": 101,
+      "reason": "nonminimal boolean in ARP validation; simplified"
+    }
+  ],
+  "review": {
+    "agent": "acceptance_contract",
+    "kind": "read-only hostile source review",
+    "result": "no concrete blocker found; not a human audit"
+  },
+  "not_run": [
+    "NIC transmission or reception",
+    "QEMU native networking",
+    "DHCP/IP/TCP stack integration",
+    "native DNS lookup",
+    "TLS or NAS integration",
+    "hardware"
+  ],
+  "progress_gate": "N01/N02/N03 remain open; no native roadmap credit"
+}

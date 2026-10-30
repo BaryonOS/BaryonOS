@@ -1,0 +1,157 @@
+{
+  "task": "FR-U01 input-reset repair",
+  "date": "2026-10-29",
+  "baseline_commit": "24097084da653bd15e7a01b36881c3d643b83922",
+  "commands": [
+    {
+      "name": "format",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "-p",
+        "ui-core"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.191,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "reset-after",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "-p",
+        "ui-core",
+        "--test",
+        "input_reset",
+        "--locked",
+        "--offline"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.663,
+      "stdout_sha256": "53a6cc672eb4a8d260592387772f7d746c357792e183022e25af75601097483d",
+      "stderr_sha256": "566ae0bbb6f0c344c196c6fc8e8d886961cae7da6e5c31fb99d89259ec93afe2"
+    },
+    {
+      "name": "host",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "-p",
+        "ui-core",
+        "--locked",
+        "--offline"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.981,
+      "stdout_sha256": "6482a665d008c4756616c62af88a99d792c07961e52d24a29a57259a0565ded3",
+      "stderr_sha256": "f341d62404a1c8498a01fc68570f2ec6b886eb6a333b4847bfbd1340a6f74bd6"
+    },
+    {
+      "name": "clippy",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "-p",
+        "ui-core",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.113,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "401ea636d5a2841bfbbac57d593d519b4091760a5c7c57312c90a560b9123702"
+    },
+    {
+      "name": "native",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "build",
+        "-p",
+        "ui-core",
+        "--lib",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.755,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "555554b2dc8122f4c6b814f05a695f9cfdabbc7c7e92717bd06df82fe881aa8e"
+    },
+    {
+      "name": "format-check",
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "-p",
+        "ui-core",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.19,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diff-check",
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.011,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "regression_before": {
+    "tested_commit": "24097084da653bd15e7a01b36881c3d643b83922",
+    "test_file": "crates/ui-core/tests/input_reset.rs",
+    "test_sha256": "0c77003cdb5a10fdd9bd6d08f66b50e81bac0f9b894e19b660bf582ca3a67536",
+    "argv": [
+      "cargo",
+      "+1.90.0",
+      "test",
+      "-p",
+      "ui-core",
+      "--test",
+      "input_reset",
+      "--locked",
+      "--offline"
+    ],
+    "exit_code": 101,
+    "elapsed_seconds": 0.2,
+    "expected": "Both independent input reset regressions fail on 2409708 before the repair.",
+    "test_source": "//! Public-API regressions for controller resets while physical keys remain held.\nuse ui_core::{FocusOwner, InputRouter, KeyboardEvent, Routed, Set1Keyboard};\n\nfn key(\n    router: &mut InputRouter,\n    keyboard: &mut Set1Keyboard,\n    byte: u8,\n) -> Option<Routed<KeyboardEvent>> {\n    keyboard\n        .feed(byte)\n        .unwrap()\n        .and_then(|event| router.route_key(event))\n}\n\n#[test]\nfn held_without_focus_cannot_become_new_press_after_decoder_reset() {\n    let mut router = InputRouter::new();\n    let mut keyboard = Set1Keyboard::new();\n    assert!(key(&mut router, &mut keyboard, 0x1e).is_none());\n    router.set_focus(FocusOwner::new(1)).unwrap();\n    router.reset_input().unwrap();\n    keyboard.reset();\n    // This is still a typematic make from the physical key pressed with no\n    // target. Decoder reset must not let it acquire the current focus owner.\n    assert!(key(&mut router, &mut keyboard, 0x1e).is_none());\n    assert!(key(&mut router, &mut keyboard, 0x9e).is_none());\n    assert!(key(&mut router, &mut keyboard, 0x1e).is_some());\n}\n\n#[test]\nfn release_directly_after_decoder_reset_allows_first_fresh_press() {\n    let mut router = InputRouter::new();\n    let mut keyboard = Set1Keyboard::new();\n    router.set_focus(FocusOwner::new(1)).unwrap();\n    let old = key(&mut router, &mut keyboard, 0x1e).unwrap();\n    router.reset_input().unwrap();\n    keyboard.reset();\n    assert!(!router.is_current(old.token()));\n    // There is no intervening repeat to teach the reset decoder that A is\n    // still held. Its real break must nevertheless clear the router marker.\n    assert!(key(&mut router, &mut keyboard, 0x9e).is_none());\n    let fresh = key(&mut router, &mut keyboard, 0x1e)\n        .expect(\"first new physical press after a real release must work\");\n    assert!(router.is_current(fresh.token()));\n}\n",
+    "stdout_sha256": "20c93cc8ad4bcdcda21f01f3ef354f3afbb5e473f0d82d146c01dc8c779a18d6",
+    "stderr_sha256": "e5287ef78d29ccf8e6985041e2f68d6ca5422394436c13b0f3b9a31508694459"
+  },
+  "boundary": "Hosttests en native librarycompilatie; geen native event/service/compositoracceptatie.",
+  "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8\n",
+  "sources": {
+    "crates/ui-core/src/font.rs": "e233a760b514e14824f63dce64775afc8913af728a4bcd498dcf499336f032fa",
+    "crates/ui-core/src/input.rs": "2ddb4b63a0f9b9917637a05ba9a761a672d3dd6cc5a21cb8ba043405358a5be2",
+    "crates/ui-core/src/keyboard.rs": "941a26a2c964dbf5f5344ee0afbda2a6bb9599c1e9d9f7a87081c0d7c07b00ee",
+    "crates/ui-core/src/lib.rs": "57254e0d28beb340149332672a19c3bd2c4119e582fd3fd176c529b2e84c5471",
+    "crates/ui-core/src/mouse.rs": "1e61fd7a8162a734603a1a9031b034c60d528d2c2a80129b525bb1ee5f7e2b7e",
+    "crates/ui-core/src/routing.rs": "9d643b8ee69ae039a77e43668ca93ac92f20b68320cc89d956e74fdf80afeb68",
+    "crates/ui-core/src/tests.rs": "961c247d9af63db2a9c3b0977268b5f2a26a0de78c22881dafcd61138857a1f4",
+    "crates/ui-core/tests/input_reset.rs": "53812053f01ce9bc76fb53a0daf29d66c4d478a6a98a9f8bed2100012c6b1919"
+  },
+  "target_artifact_sha256": "d7b6d10875342050313e6c4b6dc94f1360266efe435801bee6be7e00113cb7ba"
+}

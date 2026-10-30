@@ -1,0 +1,24 @@
+{
+  "source_commit": "844ec40d0717a51d76f2da3a03fa415633725f6a",
+  "artifacts": [
+    {
+      "id": 12957507754,
+      "name": "native-foundation-evidence",
+      "size_in_bytes": 11238889,
+      "url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/artifacts/12957507754",
+      "archive_download_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/artifacts/12957507754/zip",
+      "expired": false,
+      "created_at": "2026-10-30T06:04:43Z",
+      "expires_at": "2026-11-13T06:04:41Z",
+      "updated_at": "2026-10-30T06:04:43Z",
+      "digest": "sha256:99220ec8df800dfe78d9a123bfbedfba13388304c5a537855d69f2b154d147fd",
+      "workflow_run": {
+        "id": 41011737111,
+        "repository_id": 1435549142,
+        "head_repository_id": 1435549142,
+        "head_branch": "codex/native-foundation-integration",
+        "head_sha": "844ec40d0717a51d76f2da3a03fa415633725f6a"
+      }
+    }
+  ]
+}

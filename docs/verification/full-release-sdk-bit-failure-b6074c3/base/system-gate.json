@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "e6ebeb1fd746e4eb0efd5d9d67d052eebdadfbb070c50738307aef2e2f564b26",
+  "test_inputs": {
+    "sdk/examples/tcp-probe/test_peer.py": "8bed9ba193b2fb3d41ff0d96d58aebe733e085c1aafa649e96a3f4cc711af919",
+    "tests/test_net_peer.py": "302dd2c127a677c648b5f43e1403e828f6012a774e4d459273f3dd738040cb7e",
+    "tests/test_system_capture.py": "869b1e0993f09b8d7570330cdde3e060e204437eb6e015f7865ac8435dad87de",
+    "tests/test_system_harness.py": "f6e1a1879dbf67382823cbf5323e34fc275415c44647154450eb87ec7a9f4b0e",
+    "tests/test_tcp_harness.py": "dd353f61391e579ce5ef53b94ea9514fb2657c09a41c0dd96d33991b6e746303",
+    "tests/test_tcp_transcript.py": "c45082f8eef980c88c4f8694a7a263222db5977fdd9afc177068021521c16ea6"
+  },
+  "status": "failed",
+  "passed": false,
+  "host": [
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_system_*.py"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os/build/full-release-b607-base/logs/system-host-0.stdout.txt",
+      "stderr": "/workspace/nieuw-os/build/full-release-b607-base/logs/system-host-0.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 101,
+      "stdout": "/workspace/nieuw-os/build/full-release-b607-base/logs/system-host-1.stdout.txt",
+      "stderr": "/workspace/nieuw-os/build/full-release-b607-base/logs/system-host-1.stderr.txt"
+    }
+  ],
+  "stages": [],
+  "error": "RuntimeError: host check 1 failed; see /workspace/nieuw-os/build/full-release-b607-base/logs/system-host-1"
+}

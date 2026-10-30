@@ -1,0 +1,84 @@
+{
+  "scope": "Host-only intermediate diagnostic; production source frozen/unmodified",
+  "jpeg_sha256": "8443833151b58ed885b31b7e7346a894512306ca17a7eeb52363bcf0ed31c86e",
+  "libjpeg_turbo_version": "3.1.4.1",
+  "pillow_libjpeg_compatibility_version": "6.2",
+  "reference_method": "Pillow JPEG draft(YCbCr, original_size), no RGB roundtrip",
+  "channels": [
+    {
+      "channel": "Y",
+      "max_difference": 1,
+      "sum_abs": 162,
+      "sum_squared": 162,
+      "different": 162
+    },
+    {
+      "channel": "Cb",
+      "max_difference": 2,
+      "sum_abs": 6157,
+      "sum_squared": 6161,
+      "different": 6155
+    },
+    {
+      "channel": "Cr",
+      "max_difference": 2,
+      "sum_abs": 6890,
+      "sum_squared": 6898,
+      "different": 6886
+    }
+  ],
+  "worst_pixels": [
+    {
+      "x": 176,
+      "y": 17,
+      "zune_ycbcr": [
+        43,
+        225,
+        123
+      ],
+      "libjpeg_ycbcr": [
+        43,
+        223,
+        122
+      ],
+      "zune_rgba": [
+        36,
+        13,
+        215,
+        255
+      ],
+      "libjpeg_rgba": [
+        35,
+        15,
+        211,
+        255
+      ]
+    },
+    {
+      "x": 175,
+      "y": 18,
+      "zune_ycbcr": [
+        44,
+        220,
+        122
+      ],
+      "libjpeg_ycbcr": [
+        44,
+        218,
+        122
+      ],
+      "zune_rgba": [
+        36,
+        17,
+        207,
+        255
+      ],
+      "libjpeg_rgba": [
+        36,
+        17,
+        203,
+        255
+      ]
+    }
+  ]
+}

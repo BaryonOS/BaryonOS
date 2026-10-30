@@ -1,0 +1,52 @@
+{
+  "base_commit": "c4667c9df74dd48d72e8367fa8bfefd36b5f9ecd",
+  "source_sha256": "501ee1d8e6aff5ffe3ed054fd7f516a97eb4b42e484b6abdbe7c879d7e4972b4",
+  "inputs_before": {
+    "kernel/src/m2/arch.rs": "e94e9cce59da4a22de63475b5c6398ffbdbb3a7d6a3e7f9983ebf8f20d47a02e",
+    "kernel/src/m2/m3.rs": "4c3f7735df18bcaa081c5e17c18e7b4159ac4cf79d19aecc1273d6f4bde1c70c",
+    "kernel/src/m2/m3/fpu.rs": "18e7031984068769619ea18ca4fded44d1d8cf6b0b1d7a5e79baa147515a2188",
+    "sdk/examples/fpu/src/probe.S": "57d73f88ec1b1af83d7231878714f1f45cea86acfe35e11e2c3b6c15c0d0341e",
+    "sdk/examples/fpu/README.md": "03f19cfd4eb554ccee1ea8bca6112edf70aacec3d4a7905e9957964886bc8959",
+    "tools/run_fpu.py": "bd88de67f844ed691d31339aebbfb45583516768edc672ab1586a120f0667782",
+    "tools/test_fpu.py": "8b6becbe4376b6b06810544b925e85c45e8fde1ef96aaef97106855c6f91d0ee"
+  },
+  "inputs_after": {
+    "kernel/src/m2/arch.rs": "e94e9cce59da4a22de63475b5c6398ffbdbb3a7d6a3e7f9983ebf8f20d47a02e",
+    "kernel/src/m2/m3.rs": "4c3f7735df18bcaa081c5e17c18e7b4159ac4cf79d19aecc1273d6f4bde1c70c",
+    "kernel/src/m2/m3/fpu.rs": "18e7031984068769619ea18ca4fded44d1d8cf6b0b1d7a5e79baa147515a2188",
+    "sdk/examples/fpu/src/probe.S": "57d73f88ec1b1af83d7231878714f1f45cea86acfe35e11e2c3b6c15c0d0341e",
+    "sdk/examples/fpu/README.md": "03f19cfd4eb554ccee1ea8bca6112edf70aacec3d4a7905e9957964886bc8959",
+    "tools/run_fpu.py": "bd88de67f844ed691d31339aebbfb45583516768edc672ab1586a120f0667782",
+    "tools/test_fpu.py": "8b6becbe4376b6b06810544b925e85c45e8fde1ef96aaef97106855c6f91d0ee"
+  },
+  "passed": true,
+  "observed": {
+    "CLEAN_STARTS": 3,
+    "VERIFIED_LOOPS": 54,
+    "CLOCK_READS": 57,
+    "CLOCK_DENIED": 18,
+    "TIMER_A": 26,
+    "TIMER_B": 14,
+    "TIMER_IRQS": 40,
+    "SYSCALL_CALLS": 134,
+    "SAVES": 175,
+    "RESTORES": 175,
+    "FAULTS": 1,
+    "EXITS": 2,
+    "SLOT_REUSES": 1,
+    "FREE_FRAMES": 49263,
+    "CONTEXT_BYTES_WIPED": 8192
+  },
+  "guest": "/workspace/nieuw-os-worktrees/fpu/build/fpu-security-independent/run/native-fpu-4248bbc746",
+  "raw_exit": 33,
+  "duration_s": 2.7969719929997154,
+  "kernel_sha256": "4bfb7b821482c40b726126cd2092c9ecaace4994c597fd79b096ee2c64413959",
+  "loader_sha256": "46d778a3b19c469cf695309a01d79f47e44fd064e12f4d6204657ecf33d45a08",
+  "fp_register_lines": [],
+  "fx_instructions": [
+    " 20004f0:\t48 0f ae 00          \tfxsave64 [rax]",
+    " 2000523:\t48 0f ae 08          \tfxrstor64 [rax]"
+  ],
+  "report_path": "/workspace/nieuw-os-worktrees/fpu/build/fpu-security-independent/fpu-report.json",
+  "unchanged": true
+}

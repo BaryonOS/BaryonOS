@@ -14,11 +14,26 @@ use chacha20poly1305::{
     aead::{AeadInPlace, KeyInit},
     Key, Tag, XChaCha20Poly1305, XNonce,
 };
-use hkdf::Hkdf;
-use sha2::Sha256;
+use hkdf_protected::Hkdf;
+use sha2_kdf::Sha256;
 use zeroize::Zeroize;
 
+// Fail compilation if the actual selected hash/cache/block-buffer drop chain
+// loses its wiping feature. Marker bounds do not replace the source/patch
+// review, or assert anything about deep compression or compiler copies.
+const _: fn() = || {
+    fn require<T: zeroize::ZeroizeOnDrop>() {}
+    require::<Sha256>();
+    require::<hkdf_protected::hmac::block_api::HmacCore<Sha256>>();
+    require::<hkdf_protected::hmac::Hmac<Sha256>>();
+    require::<Hkdf<Sha256>>();
+    require::<hkdf_protected::HkdfExtract<Sha256>>();
+};
+
 pub mod health;
+pub mod persistent;
+pub mod random;
+pub mod records;
 pub mod wire;
 
 pub use health::{Health, HealthFailure};
@@ -176,7 +191,12 @@ pub struct Service {
     drbg: Option<Drbg>,
     master: [u8; KEY_BYTES],
     domains: [Domain; DOMAINS],
+    /// Monotone namespace generation; this is not a trusted cold-boot clock.
+    key_generation: u64,
+    /// A persistent snapshot binds this instance to one volume lineage.
+    persistent_volume: Option<[u8; 16]>,
     operations: u32,
+    random: random::Pool,
     pub counters: Counters,
 }
 
@@ -211,7 +231,10 @@ impl Service {
                 created: 0,
                 revoked: 0,
             }; DOMAINS],
+            key_generation: 0,
+            persistent_volume: None,
             operations: 0,
+            random: random::Pool::new(),
             counters: Counters {
                 entropy_bytes: 0,
                 reseeds: 0,
@@ -266,6 +289,7 @@ impl Service {
         self.reason = reason;
         self.master.zeroize();
         self.drbg = None;
+        self.random.clear_generators();
     }
 
     /// Operation budget: after `RESEED_INTERVAL` key operations the DRBG is
@@ -299,6 +323,7 @@ impl Service {
                 raw.zeroize();
                 self.state = State::Degraded;
                 self.reason = failure;
+                self.random.clear_generators();
                 Err(Status::Degraded)
             }
         }
@@ -329,8 +354,10 @@ impl Service {
         if usize::from(table.created) >= KEYS_PER_DOMAIN {
             return Err(Status::Quota);
         }
+        let generation = self.key_generation.checked_add(1).ok_or(Status::Quota)?;
         let index = table.created as u8;
         table.created += 1;
+        self.key_generation = generation;
         self.counters.generated += 1;
         Ok(index)
     }
@@ -423,7 +450,9 @@ impl Service {
         if table.revoked & (1 << index) != 0 {
             return Err(Status::Revoked);
         }
+        let generation = self.key_generation.checked_add(1).ok_or(Status::Quota)?;
         table.revoked |= 1 << index;
+        self.key_generation = generation;
         self.counters.revoked += 1;
         Ok(())
     }
@@ -490,10 +519,17 @@ impl Service {
             self.counters.auth_failures += 1;
             return Err(Status::Auth);
         }
-        if self.master != body[..KEY_BYTES] && self.domains.iter().any(|table| table.created != 0) {
+        if self.master != body[..KEY_BYTES]
+            && (self.domains.iter().any(|table| table.created != 0)
+                || self.persistent_volume.is_some())
+        {
             body.zeroize();
             return Err(Status::Invalid);
         }
+        let Some(generation) = self.key_generation.checked_add(1) else {
+            body.zeroize();
+            return Err(Status::Quota);
+        };
         self.master.zeroize();
         self.master.copy_from_slice(&body[..KEY_BYTES]);
         for (i, table) in self.domains.iter_mut().enumerate() {
@@ -502,6 +538,7 @@ impl Service {
             table.revoked |= u16::from_le_bytes(word);
             table.created = KEYS_PER_DOMAIN as u16;
         }
+        self.key_generation = generation;
         body.zeroize();
         self.counters.restores += 1;
         Ok(DOMAINS)
@@ -509,6 +546,12 @@ impl Service {
 
     pub fn keys_created(&self, domain: usize) -> u16 {
         self.domains.get(domain).map_or(0, |d| d.created)
+    }
+
+    /// Generation of key allocation/revocation state. Persisting the returned
+    /// value beside the blob does not create an independent rollback anchor.
+    pub const fn key_generation(&self) -> u64 {
+        self.key_generation
     }
 }
 

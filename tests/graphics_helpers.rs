@@ -38,6 +38,10 @@ mod m2 {
 }
 
 #[allow(dead_code)]
+#[path = "../kernel/src/framebuffer.rs"]
+mod framebuffer;
+
+#[allow(dead_code)]
 #[path = "../kernel/src/graphics.rs"]
 mod graphics;
 

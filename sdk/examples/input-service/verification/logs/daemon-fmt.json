@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "fmt",
+    "--manifest-path",
+    "sdk/examples/input-service/Cargo.toml"
+  ],
+  "cwd": "/workspace/nieuw-os-worktrees/input-daemon",
+  "started_unix": 1793328332.3201478,
+  "duration_s": 0.11048030853271484,
+  "returncode": 0
+}

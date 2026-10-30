@@ -1,0 +1,20 @@
+{
+  "kernel_sha256": "4bfb7b821482c40b726126cd2092c9ecaace4994c597fd79b096ee2c64413959",
+  "disassembler": "GNU objdump (GNU Binutils for Debian) 2.44",
+  "command": [
+    "objdump",
+    "-d",
+    "build/fpu-final/esp/kernel.elf"
+  ],
+  "disassembly_sha256": "dd91f3aa636be0a9a217bea2ffdc482a555a2c4bad266d19e7959d6ddd43040b",
+  "context_instructions": [
+    " 20004f0:\t48 0f ae 00          \tfxsave64 (%rax)",
+    " 2000523:\t48 0f ae 08          \tfxrstor64 (%rax)"
+  ],
+  "other_fp_simd_state_instructions": [],
+  "last_x87_loads": {
+    "fpu-a": "    400202c0:\tdf 2c 25 38 41 01 40 \tfildll 0x40014138",
+    "fpu-b": "    400202cb:\tdf 2c 25 40 41 01 40 \tfildll 0x40014140"
+  },
+  "scope": "Static kernel text only; actual native register comparisons are separately recorded in fpu-report.json."
+}

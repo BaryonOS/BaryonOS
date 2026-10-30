@@ -1,0 +1,29 @@
+[package]
+name = "nieuw-os-fpu-example"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[features]
+native = []
+
+[[bin]]
+name = "fpu-a"
+path = "src/a.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[[bin]]
+name = "fpu-b"
+path = "src/b.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = false

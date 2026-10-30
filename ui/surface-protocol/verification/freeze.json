@@ -1,0 +1,90 @@
+{
+  "task": "SUR1 protocol freeze",
+  "base": "31ab300ec34f1242fed5e4184e5ff27a8805ddce",
+  "source_files": {
+    "ui/surface-protocol/Cargo.lock": "bd5c600e7534d02f0943fb37359b189fb5270c209178b424ef5d76eab3454feb",
+    "ui/surface-protocol/Cargo.toml": "1c5b96a16b22ec314cf9798825d77d0e7ffcbe2ce6802b03ef5e1745e66acfed",
+    "ui/surface-protocol/README.md": "a48ed61259273e005001149cf87c7c4a1d70d42e8a51f8bb9272a4c4651f5505",
+    "ui/surface-protocol/src/lib.rs": "c0ae209ceec2639d6b764cab515350b0678ca60c0e83059f4562359b1f897dff",
+    "ui/surface-protocol/tests/protocol.rs": "45e9f5a4b28e75fdd85c373fdf630628ab12dfbf6f76744357014eeae0c35e8d"
+  },
+  "artifact": {
+    "path": "build/surface-protocol-target/x86_64-unknown-none/release/libnieuw_os_surface_protocol.rlib",
+    "sha256": "101fd2f27d628be67d935544fe5916d8afc1dc6a34fdf421630ba4c53e6a7d84",
+    "instructions_checked": 1174,
+    "forbidden_scalar_matches": []
+  },
+  "checks": [
+    {
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793329034.3728461,
+      "duration_s": 0.40919971466064453,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793328800.4580455,
+      "duration_s": 0.38167357444763184,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "build",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--release",
+        "--lib",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793328989.2872808,
+      "duration_s": 0.2658207416534424,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793328989.553241,
+      "duration_s": 0.10348677635192871,
+      "returncode": 0
+    }
+  ],
+  "host_tests": 8,
+  "native_execution": false,
+  "real_display_callback_linked": false
+}

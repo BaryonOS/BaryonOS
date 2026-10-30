@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tools",
+    "-p",
+    "test_memory.py"
+  ],
+  "cwd": "/workspace/nieuw-os",
+  "started_unix": 1793328471.091024,
+  "duration_s": 0.21086478233337402,
+  "returncode": 0
+}

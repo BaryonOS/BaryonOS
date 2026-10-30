@@ -1,0 +1,102 @@
+{
+  "scope": "Host fixtures/oracles only",
+  "pillow_version": "12.3.0",
+  "images": [
+    {
+      "name": "edge-1x1-baseline.jpg",
+      "width": 1,
+      "height": 1,
+      "input_sha256": "b75600195202cddab3ec8ea6dbcb5631282780d8c43dbee24d37a15df4f8d241",
+      "reference_sha256": "e3820096cb82366b860b8a4e668453a7aaaf423af03bdf289fa308ea03a79332",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "edge-1x1-progressive.jpg",
+      "width": 1,
+      "height": 1,
+      "input_sha256": "0d474066d45281ec929361e12e8422290573605a2161aa03418105a8684025a9",
+      "reference_sha256": "e3820096cb82366b860b8a4e668453a7aaaf423af03bdf289fa308ea03a79332",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "edge-1x17-baseline.jpg",
+      "width": 1,
+      "height": 17,
+      "input_sha256": "fdd74f2c7d92b1a4781827ac6816e00cca427f4c09cb3de3970cb55817d5e3b3",
+      "reference_sha256": "d5783ea9c143666a5da17fbab4200a35e7375b4430a5cc044e0dbc0380b8ef8c",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "edge-1x17-progressive.jpg",
+      "width": 1,
+      "height": 17,
+      "input_sha256": "967e231ef3df5ed1b751c12d90d256660f89e5ec37416b76e147c85be9d00672",
+      "reference_sha256": "d5783ea9c143666a5da17fbab4200a35e7375b4430a5cc044e0dbc0380b8ef8c",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "edge-17x1-baseline.jpg",
+      "width": 17,
+      "height": 1,
+      "input_sha256": "de1c3dfcce98bcb5030a1107862148d109c335a5d76e35f99acdd5fbf45bb4d0",
+      "reference_sha256": "27d15c0d7330f15d256b699b1553190082e3d7c1bf0f24cde7016588061e51b0",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "edge-17x1-progressive.jpg",
+      "width": 17,
+      "height": 1,
+      "input_sha256": "ee792d9e18a6d0a3e0c9b927634344030e1470826fb66d812c9467335164a4f6",
+      "reference_sha256": "27d15c0d7330f15d256b699b1553190082e3d7c1bf0f24cde7016588061e51b0",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "edge-3x5-baseline.jpg",
+      "width": 3,
+      "height": 5,
+      "input_sha256": "11714b18e8ad7d016d516624a5415bbbc6eeab823a6105214a1b42f6acd2f3d1",
+      "reference_sha256": "a664ff84aee562fbaddae31a3fd3f8c14c272eb069349f79aaf023184a7fcbc8",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "edge-3x5-progressive.jpg",
+      "width": 3,
+      "height": 5,
+      "input_sha256": "07654ceb05d4ab5c860ada3decc4f99cb303cbcb9304a0cec86a747142c53a0b",
+      "reference_sha256": "a664ff84aee562fbaddae31a3fd3f8c14c272eb069349f79aaf023184a7fcbc8",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "edge-5x3-baseline.jpg",
+      "width": 5,
+      "height": 3,
+      "input_sha256": "59bafe0d02ed44af6a4b5577b009ddb8be3df5c2616033a0449876feb2bd19ba",
+      "reference_sha256": "188f0ed5eda3315abe7786cbc38cd913d5b15957047e5287e0bbb167b61f653b",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "edge-5x3-progressive.jpg",
+      "width": 5,
+      "height": 3,
+      "input_sha256": "744d7765c8a1d9d5fa853452c91b6f65405f93799e03b2b0c86765e011136af5",
+      "reference_sha256": "188f0ed5eda3315abe7786cbc38cd913d5b15957047e5287e0bbb167b61f653b",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "edge-17x19-baseline.jpg",
+      "width": 17,
+      "height": 19,
+      "input_sha256": "4e3d72ddf21effd5fc80a78a3b030a188d27f14c5013e515fffbea80799ee802",
+      "reference_sha256": "e49f3366c9ebc2c8438f2fe5fbe8a97d287ffaa2979642b0a97e148012bb59c0",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "edge-17x19-progressive.jpg",
+      "width": 17,
+      "height": 19,
+      "input_sha256": "0bc74139c80a9930c7a0624e477d7b481998afa07841aad3ad1ebcb24dd16248",
+      "reference_sha256": "e49f3366c9ebc2c8438f2fe5fbe8a97d287ffaa2979642b0a97e148012bb59c0",
+      "reference_tolerance": 3
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+Integratiekandidaat voor echte native display/PS2-capabilities, basis15e8cfced28ad46f15f5f573e5f00e8e87b74215. Kernel en drie normale CPL3-ELFs zijn met de centrale ABI1.8/SDK/dependencyhooks daadwerkelijk voor x86_64-unknown-none gebouwd. tools/build.py --kernel-feature native-display-probe exit0; exacte commandologs in build/display-integration/logs/. Elf/loader/kernel/apphashes staan in manifest.json.
+
+SDK19tests, inputdaemon13, SUR1-assembler8, Materiaal18 en displayharnas11hosttests slagen op de samengevoegde kandidaat. Het onafhankelijke b2ad-adapterreview heeft eigen src-hashes en afgebakende modeltests; het is geen menselijke audit of nativeproef.
+
+Native QMP-, pixel-, port-, lifecycle- en foutuitvoering is nog NIET uitgevoerd op dit checkpoint. De volgende stap is run_display_probe.py met expliciete VGA-ROM in een eigen wegwerp-VM. Materiaal/inputdaemon/SUR1 zijn meegeïntegreerde componenten, niet door deze displayprobe als volledige gebruikersomgeving bewezen. Alle volledige releasecriteria blijven open, 32% ongewijzigd.

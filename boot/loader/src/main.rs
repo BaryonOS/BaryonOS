@@ -2,7 +2,7 @@
 #![no_main]
 #![deny(unsafe_op_in_unsafe_fn)]
 
-#[cfg(feature = "graphics-g0")]
+#[cfg(feature = "framebuffer")]
 mod graphics;
 mod memory;
 mod serial;
@@ -399,10 +399,10 @@ impl Frozen {
                 u32::try_from(state.stride).unwrap_or_else(|_| serial::fail(b"MAP_STRIDE"));
             info.descriptor_version = state.version;
             let mut candidate = info;
-            candidate.flags = if cfg!(feature = "graphics-g0") { 15 } else { 7 };
-            #[cfg(feature = "graphics-g0")]
+            candidate.flags = if cfg!(feature = "framebuffer") { 15 } else { 7 };
+            #[cfg(feature = "framebuffer")]
             let valid_header = candidate.validate_graphics_header(info_address);
-            #[cfg(not(feature = "graphics-g0"))]
+            #[cfg(not(feature = "framebuffer"))]
             let valid_header = candidate.validate_header(info_address);
             if valid_header.is_err() {
                 serial::fail(b"BOOTINFO_HEADER");
@@ -412,14 +412,14 @@ impl Frozen {
             let map = unsafe {
                 core::slice::from_raw_parts(info.memory_map_addr as *const u8, state.length)
             };
-            #[cfg(feature = "graphics-g0")]
+            #[cfg(feature = "framebuffer")]
             let valid_map = boot_protocol::graphics::validate_graphics_memory_map(&candidate, map);
-            #[cfg(not(feature = "graphics-g0"))]
+            #[cfg(not(feature = "framebuffer"))]
             let valid_map = boot_protocol::validate_memory_map(&candidate, map);
             if valid_map.is_err() {
                 serial::fail(b"MEMORY_MAP");
             }
-            #[cfg(feature = "graphics-g0")]
+            #[cfg(feature = "framebuffer")]
             {
                 // SAFETY: Header binds the initialized 64-byte extension to our
                 // retained BootInfo page; it cannot overlap the separate map.
@@ -451,7 +451,7 @@ impl Frozen {
                 unsafe {
                     asm!("cli", "cld", "lidt [{}]", in(reg) EMPTY_IDT.as_ptr(), options(nostack));
                 }
-                info.flags = if cfg!(feature = "graphics-g0") { 15 } else { 7 };
+                info.flags = if cfg!(feature = "framebuffer") { 15 } else { 7 };
                 // SAFETY: Reserved page remains mapped and owned after EBS.
                 unsafe {
                     (info_address as *mut BootInfo).write(info);
@@ -483,7 +483,7 @@ impl Frozen {
 
 fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     let (device, loader_start, loader_len) = fw.loaded_image(image)?;
-    #[cfg(feature = "graphics-g0")]
+    #[cfg(feature = "framebuffer")]
     let framebuffer = graphics::prepare(&fw)?;
     fw.pages(
         (KERNEL_LEN / PAGE_SIZE) as usize,
@@ -528,7 +528,7 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     unsafe {
         ptr::write_bytes(info_address as *mut u8, 0, PAGE_SIZE as usize);
     }
-    #[cfg(feature = "graphics-g0")]
+    #[cfg(feature = "framebuffer")]
     // SAFETY: Our disjoint, zero-initialized page has 3968 bytes after its
     // 128-byte header. The copied scalar extension uses only the first 64.
     unsafe {
@@ -565,13 +565,13 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     let info = BootInfo {
         magic: MAGIC,
         abi_major: ABI_MAJOR,
-        abi_minor: if cfg!(feature = "graphics-g0") {
+        abi_minor: if cfg!(feature = "framebuffer") {
             2
         } else {
             ABI_MINOR
         },
         header_size: 128,
-        flags: if cfg!(feature = "graphics-g0") { 14 } else { 6 },
+        flags: if cfg!(feature = "framebuffer") { 14 } else { 6 },
         memory_map_addr: map_address,
         memory_map_len: 0,
         descriptor_size: 0,
@@ -585,7 +585,7 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
         loader_start,
         loader_len,
         memory_map_capacity: capacity as u64,
-        reserved0: if cfg!(feature = "graphics-g0") {
+        reserved0: if cfg!(feature = "framebuffer") {
             info_address + 128
         } else {
             0

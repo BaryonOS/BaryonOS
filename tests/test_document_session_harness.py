@@ -50,6 +50,7 @@ class CompiledBindingTests(unittest.TestCase):
         for package in gate.PACKAGES:
             for name in ('Cargo.toml', 'src/lib.rs'):
                 self.put(self.root / package / name, ('host crate fixture: ' + package + '/' + name).encode())
+        self.put(self.root / 'services/volume/src/upload.rs', b'host nested volume source fixture')
         for name in gate.LIBRARY_PATHS:
             self.put(self.build / name, ('!<arch>\nhost rlib fixture: ' + name).encode())
         self.put(self.build / 'users/m6c_probe.elf', host_elf())
@@ -164,7 +165,7 @@ class CompiledBindingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'not ELF64'):
             self.validate()
 
-    def test_compiler_must_select_document_session_and_all_four_actual_libraries(self):
+    def test_compiler_must_select_document_session_and_all_five_actual_libraries(self):
         log = 'build-users-m6c_probe'
         original = copy.deepcopy(self.compilers[log])
         for change in ('cfg', 'library'):
@@ -184,6 +185,28 @@ class CompiledBindingTests(unittest.TestCase):
         command[command.index(str(self.root / 'sdk/document-session/src/lib.rs'))] = str(self.root / 'sdk/catalog-client/src/lib.rs')
         write_json(self.build / 'logs' / (log + '.json'), metadata)
         with self.assertRaisesRegex(ValueError, 'Compiler entry source mismatch'):
+            self.validate()
+
+    def test_volume_sources_and_actual_rlib_cannot_be_omitted(self):
+        for name in ('services/volume/src/lib.rs', 'services/volume/src/upload.rs'):
+            digest = self.user['module_sha256'].pop(name)
+            self.sync()
+            with self.subTest(source=name), self.assertRaisesRegex(ValueError, 'selected library/probe source'):
+                self.validate()
+            self.user['module_sha256'][name] = digest
+        self.user['library_sha256'].pop('users/libvolume_core.rlib')
+        self.sync()
+        with self.assertRaisesRegex(ValueError, 'native library artifact'):
+            self.validate()
+
+    def test_document_library_must_link_the_selected_volume_library(self):
+        log = 'build-document-library-nieuw_os_document_session'
+        metadata = self.compilers[log]
+        argument = f'volume_core={self.build / "users/libvolume_core.rlib"}'
+        position = metadata['command'].index(argument)
+        del metadata['command'][position - 1:position + 1]
+        write_json(self.build / 'logs' / (log + '.json'), metadata)
+        with self.assertRaisesRegex(ValueError, 'dependency set mismatch'):
             self.validate()
 
     def test_each_rlib_requires_its_exact_dependency_set(self):

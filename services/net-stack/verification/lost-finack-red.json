@@ -1,0 +1,25 @@
+{
+  "command": [
+    "cargo",
+    "+1.91.1",
+    "test",
+    "--offline",
+    "--locked",
+    "--manifest-path",
+    "services/net-stack/Cargo.toml",
+    "--test",
+    "conversation",
+    "lost_final_ack_cannot_turn_http_eof_into_success_via_timeout"
+  ],
+  "expected_exit_code": 101,
+  "actual_exit_code": 101,
+  "log": "/tmp/nieuw-os-tcp-checkpoint/lost-finack-red.log",
+  "log_sha256": "ea16192b452ef526c9e4670cfe2f7934ee06281138b7a77128c78cedcf38764f",
+  "source_hashes": {
+    "sdk/examples/tcp-probe/src/contract.rs": "a2679812b6d384e03832ece542aa5e1abbd9644806d1c2e5718d81e28cf583ae",
+    "services/net-stack/tests/conversation.rs": "9fad812ea5d1cb44b48f3d9bdc8720f0064fa01dbd0d78311d13298280d76b74",
+    "sdk/examples/tcp-probe/src/main.rs": "8d073e51894ada239acbe459bd82305d9d7a0eaa4cb5353b8452467f31b89c75"
+  },
+  "native_passed": false,
+  "meaning": "Same predicate used by native accepts complete HTTP+EOF after LastAck timeout when all final server ACKs are deliberately withheld in real smoltcp algorithm model."
+}

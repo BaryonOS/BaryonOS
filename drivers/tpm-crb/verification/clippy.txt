@@ -1,0 +1,2 @@
+    Checking nieuw-os-tpm-crb v0.1.0 (/workspace/nieuw-os-worktrees/tpm-crb/drivers/tpm-crb)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.28s

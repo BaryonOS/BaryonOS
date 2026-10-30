@@ -1,0 +1,25 @@
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling subtle v2.6.1
+   Compiling cpufeatures v0.2.17
+   Compiling cfg-if v1.0.5
+   Compiling zeroize v1.9.1
+   Compiling opaque-debug v0.3.1
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os-worktrees/keyring-client/sdk/runtime)
+   Compiling generic-array v0.14.7
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling inout v0.1.4
+   Compiling universal-hash v0.5.1
+   Compiling digest v0.10.7
+   Compiling cipher v0.4.4
+   Compiling aead v0.5.2
+   Compiling poly1305 v0.8.0
+   Compiling hmac v0.12.1
+   Compiling sha2 v0.10.9
+   Compiling chacha20 v0.9.1
+   Compiling hkdf v0.12.4
+   Compiling chacha20poly1305 v0.10.1
+   Compiling keyring-core v0.1.0 (/workspace/nieuw-os-worktrees/keyring-client/services/keyring)
+   Compiling nieuw-os-keyring-client v0.1.0 (/workspace/nieuw-os-worktrees/keyring-client/sdk/keyring-client)
+    Finished `release` profile [optimized] target(s) in 1.98s

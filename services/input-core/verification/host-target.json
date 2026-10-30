@@ -1,0 +1,126 @@
+{
+  "task": "TASK-NATIVE-INPUT-PREP",
+  "date": "2026-10-30",
+  "baseline_commit": "309ff53cd861f26aa37b2615c0276695d9b62f8f",
+  "boundary": "Host authority-engine/IPC model and freestanding library compilation; no native driver/service/UI execution.",
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "services/input-core/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.067,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "services/input-core/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.296,
+      "stdout_sha256": "d45a1b671da5d9f47f154096c642b9f431a644f7696ae7e995f025ba2a832bc9",
+      "stderr_sha256": "54bc8d846b3f26e17b342c2c36f3d28df2e09efcdba849d24da61aa21ae094fc"
+    },
+    {
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "services/input-core/Cargo.toml",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.237,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "3a88c9b9f7c376a95953635169af6f10bb3a2f69e8f21d2b275e3980c422fd23"
+    },
+    {
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "build",
+        "--manifest-path",
+        "services/input-core/Cargo.toml",
+        "--lib",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.077,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "64d0cbd4b7e4c6329fde55978dd3d261407b55f34c21add0feebf7e0575ee531"
+    },
+    {
+      "argv": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "services/input-core/Cargo.toml",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.071,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.005,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8\n",
+  "source_files": {
+    "crates/capability-core/src/lib.rs": "9b9699915e42572c06a7bee878eccd620db7af6b83563831877ef765b3e38203",
+    "crates/ui-core/src/font.rs": "e233a760b514e14824f63dce64775afc8913af728a4bcd498dcf499336f032fa",
+    "crates/ui-core/src/input.rs": "2ddb4b63a0f9b9917637a05ba9a761a672d3dd6cc5a21cb8ba043405358a5be2",
+    "crates/ui-core/src/keyboard.rs": "941a26a2c964dbf5f5344ee0afbda2a6bb9599c1e9d9f7a87081c0d7c07b00ee",
+    "crates/ui-core/src/lib.rs": "57254e0d28beb340149332672a19c3bd2c4119e582fd3fd176c529b2e84c5471",
+    "crates/ui-core/src/mouse.rs": "1e61fd7a8162a734603a1a9031b034c60d528d2c2a80129b525bb1ee5f7e2b7e",
+    "crates/ui-core/src/routing.rs": "9d643b8ee69ae039a77e43668ca93ac92f20b68320cc89d956e74fdf80afeb68",
+    "crates/ui-core/src/tests.rs": "961c247d9af63db2a9c3b0977268b5f2a26a0de78c22881dafcd61138857a1f4",
+    "sdk/runtime/src/block.rs": "3c3d92f178888e3ba6ba2b3da4c6810ec8c9b44f0c29296ad0ab474c91871a1c",
+    "sdk/runtime/src/entropy.rs": "536d4db4bb00067b4697d46eb34da1fb680edcdf6d25569be01ab161c77e1e13",
+    "sdk/runtime/src/lib.rs": "b55ab73361579af2ca517d6e12e8fd6787fb1f7c79785999de62d92f9ed860cf",
+    "sdk/runtime/src/message.rs": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab",
+    "sdk/runtime/src/native.rs": "1f1b548b793c5d396687c42c94b14c5ab981e18f9dd0972253182e93027d0df3",
+    "sdk/runtime/src/network.rs": "9679db5ad9bbf81164e84656650911ba8f508440460c5af2785ca3cf20fc310d",
+    "sdk/runtime/src/process.rs": "998867816fc0f0c88f790b37a12a37536f1d1c29109e7315706abe797f20e202",
+    "services/input-core/Cargo.lock": "6059e11b4d4ae49ea693f33c432b1d0446bda9f87ffadf69ff0a8ee31bead5f8",
+    "services/input-core/Cargo.toml": "811d4238fea873758ec8f035fcd9534249cc1bfbc832dfd842c771a032221f15",
+    "services/input-core/src/lib.rs": "fea76b3362cdb4297c2f7c8d2e0f8b9f690d70ead8a86d228d8e28872504bc7e",
+    "services/input-core/src/wire.rs": "4da9b48bf38a170d6b09e8d46aa72df5d4b10f510675ce092bf2ca0378b09905",
+    "services/input-core/tests/service.rs": "5c44793b0ec6c5b7e70bc73b5d3e38db896677571f53601f71538ff02a624aff"
+  },
+  "target_artifact_sha256": "fe8f5a43c498a586f8dfb90e0bc841986169a34d966f1299bbac3e927f3565e7",
+  "review_followup": "Production code unchanged after e228f0d independent review; docs and two counter/snapshot regressions clarified. Exact kernel EAGAIN asserted."
+}

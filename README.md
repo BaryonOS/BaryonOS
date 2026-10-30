@@ -31,11 +31,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **32** |
 
-**Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`56b576b1`](https://github.com/simonvanieperen/nieuw-os/commit/56b576b16da1e4503bc5f9167a476474a58c33cf) ·
-**Ontwikkelbranch:** `codex/supervisor-startup-slots`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** K05 vaste startcapabilityposities en raw ABI-negatieve gevallen native geverifieerd.
-De score blijft 32%. Het bestaande P2-randgeval uit PR #51 is opgelost: een lege cap0 behoudt cap1 op offset 64. De nieuwe native regressie faalde vóór het herstel en slaagt erna. De volledige K05-gate op commit 56b576b (bronvingerafdruk cccf0e3e) heeft 5/5 echte VM-runs: normal bewijst één sparse spawn, drie positie-/rechtencontroles en 24 antwoorden; denied matcht 21/21 fouten. Fault-, orphan-, quota- en cleanupcontroles blijven groen. Ook 65 hosttests, Clippy, formattering en een afzonderlijke agentreview slagen. PRs #53 en #54 zijn geïntegreerd; #48 is gesloten en acht reviewthreads zijn opgelost. Geen nieuwe rechten, ABI, afhankelijkheden, criteria of gewichten. B02 en bestaande hardware-/antirollbackgrenzen blijven open.
+**Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
+**Bron:** [`844ec40d`](https://github.com/simonvanieperen/nieuw-os/commit/844ec40d0717a51d76f2da3a03fa415633725f6a) ·
+**Ontwikkelbranch:** `codex/full-test-release`.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Foundation geïntegreerd: negen CI en onafhankelijke native decodercontrole; GUI-doelmeting en rekenmachine-integratie.
+De score blijft 32%; alle 62 volledige productcriteria blijven open. Op exact 844ec40 slagen alle negen CI-workflows, inclusief vier echte RNG-gevallen en de native PNG/JPEG-proef. De lokale decoderproef en onafhankelijke bron-, ELF-, firmware-, pixel-, resource- en schijfcontrole slagen na gericht heap-snapshotherstel met ongewijzigde stack, heap en oracles. GUI blijft binnen 200 seconden rood; een eigen-kernelmeting toont dat de oorspronkelijke digest onder TCG sneller is dan de hostoptimalisatie. Productieherstel en echte GUI-herhaling volgen. De rekenmachine heeft alleen component-/host-/targetbewijs. Geen veilige productopslag, volledige apps/NAS/AI/updates/herstel of volledige testrelease geclaimd. Gewichten, scope en bewijsniveaus zijn onveranderd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -44,6 +44,7 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 
 [Criteria, bewijs en berekening](docs/PROGRESS.md) ·
 [Volledige roadmap](docs/ROADMAP.md) ·
+[Volledige releaseopdracht en acceptatie](docs/FULL-TEST-RELEASE.md) ·
 [Actuele uitvoering](docs/PROJECT-STATE.md).
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).

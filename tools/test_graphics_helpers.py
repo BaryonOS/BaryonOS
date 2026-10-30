@@ -171,7 +171,7 @@ def run_helpers(output_root, qmp_source, rustc):
     directory = output_root.resolve() / ('graphics-helpers-' + uuid.uuid4().hex)
     directory.mkdir(parents=True, exist_ok=False)
     binary = directory / ('graphics_helpers.exe' if os.name == 'nt' else 'graphics_helpers')
-    files = {ROOT / 'kernel/src/graphics.rs', ROOT / 'tests/graphics_helpers.rs',
+    files = {ROOT / 'kernel/src/graphics.rs', ROOT / 'kernel/src/framebuffer.rs', ROOT / 'tests/graphics_helpers.rs',
              Path(__file__).resolve(), qmp_source, qmp_source.parent / 'common.py',
              ROOT / 'rust-toolchain.toml'}
     for crate in ('boot-protocol', 'ui-core', 'kernel-core'):

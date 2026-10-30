@@ -1,0 +1,144 @@
+{
+  "review": "CI-FOUNDATION-2 independent read-only workflow review",
+  "result": "PASS in requested workflow scope; no concrete workflow blocker found",
+  "source_commit": "93e99174688eeacc12fe13b2246e2ff4bf690608",
+  "source_clean": true,
+  "workflow": ".github/workflows/native-foundation.yml",
+  "workflow_sha256": "549d6a6a3a60251101ccccf2f6929c5632deb66b702b29d0d8ae33ac9609a5ce",
+  "checks": [
+    "Pinned full-SHA actions and read-only contents permission; checkout does not retain credentials",
+    "Cargo download-only cache, no native images/reports/target cache",
+    "Root, SDK and four standalone lockfile fetch closures cover the selected actual native builder inputs",
+    "All host/scalar/native commands use pinned1.90; offline host/scalar flags and explicit offline native environments",
+    "Explicit discovery includes RNG/image evidence gates and JPEG vendor verifier plus hostile vendor tests",
+    "Exactly four RNG cases and image case, sequential separate build/run paths and mandatory exit handling",
+    "Five status-check expressions permit later native cases after an earlier native failure, provided all host prerequisites reached quality success; cancellation remains respected",
+    "GitHub bash -e -o pipefail preserves failed program status through tee",
+    "Portable crypto scalar cfgs are present; tiny independent rustc none-target metadata guard confirms both chacha20_backend=soft and sha2_backend=soft really enabled",
+    "Standalone formatting checks owned sources; upstream JPEG remains pinned and independently hash/negative checked",
+    "Always clean-tree check and whole build-root upload preserve both successful and failed evidence"
+  ],
+  "bash_syntax_blocks": [
+    {
+      "name": "Pinned Rust, lint tools and real targets",
+      "bash_syntax_exit": 0
+    },
+    {
+      "name": "Disposable QEMU and matching OVMF package",
+      "bash_syntax_exit": 0
+    },
+    {
+      "name": "Strict preflight",
+      "bash_syntax_exit": 0
+    },
+    {
+      "name": "Fetch every locked dependency closure before offline checks",
+      "bash_syntax_exit": 0
+    },
+    {
+      "name": "Real keyring cores, SDK sessions and capability-engine probe tests",
+      "bash_syntax_exit": 0
+    },
+    {
+      "name": "Formatting and scalar freestanding libraries",
+      "bash_syntax_exit": 0
+    },
+    {
+      "name": "Pinned native fixture lint",
+      "bash_syntax_exit": 0
+    },
+    {
+      "name": "Explicit gate discovery and hostile vendor-source checks",
+      "bash_syntax_exit": 0
+    },
+    {
+      "name": "Native RANDOM raw validation, quota, rebind and revoke",
+      "bash_syntax_exit": 0
+    },
+    {
+      "name": "Native RANDOM SDK delivery and actual cancellation",
+      "bash_syntax_exit": 0
+    },
+    {
+      "name": "Native RANDOM uncertain delivery without automatic replay",
+      "bash_syntax_exit": 0
+    },
+    {
+      "name": "Native RANDOM real caller rejection and fresh legacy STATUS",
+      "bash_syntax_exit": 0
+    },
+    {
+      "name": "Native PNG JPEG pixels, bounded heap, stack and hostile inputs",
+      "bash_syntax_exit": 0
+    },
+    {
+      "name": "Preserve clean tracked sources and generated output paths",
+      "bash_syntax_exit": 0
+    }
+  ],
+  "dependency_lockfiles": {
+    "Cargo.lock": {
+      "sha256": "285cd9e66ea3e59e0a277cff5e3b35f0eaefe5893b5a8374cec67444abbfda5e",
+      "resolved_packages": 55
+    },
+    "sdk/Cargo.lock": {
+      "sha256": "d6c65ab29673637228a1b86b5b7bf306db1d55077696b1c5a15365e63b418ae4",
+      "resolved_packages": 43
+    },
+    "sdk/keyring-client/Cargo.lock": {
+      "sha256": "0362d81cba8d081fd2c1da42f3395d1fe18694b16408bfb170fa2e733a3dc57d",
+      "resolved_packages": 33
+    },
+    "sdk/examples/random-probe/Cargo.lock": {
+      "sha256": "3bc05ccc7ee883c0777dede0f6ac433f8cee82168f96cf1c88a07e717f9587d6",
+      "resolved_packages": 34
+    },
+    "sdk/examples/image-probe/Cargo.lock": {
+      "sha256": "1d2df7161acd1ba6496d5c51138bf59cb9549595d4237e89450cb4d34b441443",
+      "resolved_packages": 10
+    },
+    "services/image-codec/Cargo.lock": {
+      "sha256": "5a9251b1b0dd19eabe9d3955fe529d599f8d10d65831de0306f9e826c0e60ad8",
+      "resolved_packages": 6
+    }
+  },
+  "known_external_baseline": "Owner has confirmed the existing long assertion sdk/examples/random-probe/tests/wire.rs:114 fails rustfmt on this base. Workflow retains that required check; root owns the source fix. This review does not claim the candidate will be CI-green before that fix or the still-failing actual image gate is repaired.",
+  "no_github_workflow_execution": true,
+  "no_vm_or_project_build_by_reviewer": true,
+  "no_repo_writes": true,
+  "limitations": [
+    "YAML and bash syntax parsed locally; no actionlint or actual GitHub expression service execution",
+    "Host/scalar/native fixture command execution belongs to workflow owner; review does not transfer older native proof to this commit",
+    "Full image native decode acceptance remains mandatory and may keep this new CI job red until real defect repaired"
+  ],
+  "scalar_cfg_guard": {
+    "scope": "tiny metadata-only cfg guard test; no project build/native VM",
+    "argv": [
+      "rustc",
+      "+1.90.0",
+      "-C",
+      "no-redzone=yes",
+      "-C",
+      "target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2",
+      "--cfg",
+      "chacha20_force_soft",
+      "--cfg",
+      "chacha20_backend=\"soft\"",
+      "--cfg",
+      "poly1305_force_soft",
+      "--cfg",
+      "sha2_backend=\"soft\"",
+      "--crate-type",
+      "lib",
+      "--emit",
+      "metadata",
+      "--target",
+      "x86_64-unknown-none",
+      "-o",
+      "/tmp/nieuw-os-foundation-ci-review/cfg-check.rmeta",
+      "-"
+    ],
+    "exit": 0,
+    "stderr": ""
+  }
+}

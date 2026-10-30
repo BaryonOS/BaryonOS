@@ -1,0 +1,2 @@
+Bron309ff53; compacte ongewijzigde ruwe rapporten en logs. Twee echte VM-runs geslaagd; definitieve normale kernel31de56bb0e884b20c07ad9c25fba18ebd547cd4595a8f36b4bdc64827b29c0ed. Geen volledige productacceptatie.
+Bronvingerafdruk340df67063f60a805e2bce5b4a486f175d211451b7156130003f0d5151731d75. Binaries/disk blijven in de expliciete buildmappen uit de rapporten; niet in Git. Handmatig gekopieerd brongebonden archief; geen claim van capture_system-heracceptatie op nieuwere bron.

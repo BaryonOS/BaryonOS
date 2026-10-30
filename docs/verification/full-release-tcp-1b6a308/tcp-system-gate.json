@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "25a523bbb8b56ee38b0ec18ab223a855e61e54c8cf454578643298c0660971b1",
+  "test_inputs": {
+    "sdk/examples/tcp-probe/test_peer.py": "8bed9ba193b2fb3d41ff0d96d58aebe733e085c1aafa649e96a3f4cc711af919",
+    "tests/test_tcp_harness.py": "dd353f61391e579ce5ef53b94ea9514fb2657c09a41c0dd96d33991b6e746303",
+    "tests/test_tcp_transcript.py": "c45082f8eef980c88c4f8694a7a263222db5977fdd9afc177068021521c16ea6"
+  },
+  "status": "completed",
+  "passed": true,
+  "host": [
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_tcp_*.py"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/logs/tcp-host-0.stdout.txt",
+      "stderr": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/logs/tcp-host-0.stderr.txt"
+    },
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "sdk/examples/tcp-probe",
+        "-p",
+        "test_peer.py"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/logs/tcp-host-1.stdout.txt",
+      "stderr": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/logs/tcp-host-1.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/logs/tcp-host-2.stdout.txt",
+      "stderr": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/logs/tcp-host-2.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "capability-core"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/logs/tcp-host-3.stdout.txt",
+      "stderr": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/logs/tcp-host-3.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/logs/tcp-host-4.stdout.txt",
+      "stderr": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/logs/tcp-host-4.stderr.txt"
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "passed": true,
+      "network_gate": true,
+      "tcp_gate": true,
+      "run_directory": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/run/system-normal-bddf8a42b61e4a7cb5e3eb3b222773b2",
+      "raw_qemu_exit": 33,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "duration_s": 7.613544310000179
+    },
+    {
+      "case": "recover",
+      "passed": true,
+      "network_gate": true,
+      "tcp_gate": true,
+      "run_directory": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/run/system-recover-d80851e67a8349faab2074766f888143",
+      "raw_qemu_exit": 33,
+      "before_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "duration_s": 7.489940671000113
+    }
+  ],
+  "final_kernel_sha256": "bc6c5931777819829ed57de6a2014deece3229f337ddf84d4c61ae0b89583103",
+  "final_manifest": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/manifest.json"
+}

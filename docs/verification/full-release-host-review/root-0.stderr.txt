@@ -1,0 +1,79 @@
+    Blocking waiting for file lock on package cache
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling subtle v2.6.1
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling cpufeatures v0.2.17
+   Compiling virtio-core v0.1.0 (/workspace/nieuw-os/crates/virtio-core)
+   Compiling cfg-if v1.0.5
+   Compiling generic-array v0.14.7
+   Compiling zeroize v1.9.1
+   Compiling opaque-debug v0.3.1
+   Compiling volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+   Compiling hex-literal v0.4.1
+   Compiling boot-protocol v0.1.0 (/workspace/nieuw-os/crates/boot-protocol)
+   Compiling object-core v0.1.0 (/workspace/nieuw-os/services/objects)
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+   Compiling elf-loader-core v0.1.0 (/workspace/nieuw-os/crates/elf-loader-core)
+   Compiling virtio-net-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-net)
+   Compiling virtio-blk-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-blk)
+   Compiling virtio-rng-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-rng)
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling inout v0.1.4
+   Compiling digest v0.10.7
+   Compiling universal-hash v0.5.1
+   Compiling cipher v0.4.4
+   Compiling poly1305 v0.8.0
+   Compiling aead v0.5.2
+   Compiling block-protocol v0.1.0 (/workspace/nieuw-os/services/block)
+   Compiling hmac v0.12.1
+   Compiling chacha20 v0.9.1
+   Compiling hkdf v0.12.4
+   Compiling sha2 v0.10.9
+   Compiling chacha20poly1305 v0.10.1
+   Compiling kernel-core v0.1.0 (/workspace/nieuw-os/crates/kernel-core)
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+   Compiling keyring-core v0.1.0 (/workspace/nieuw-os/services/keyring)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.13s
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/block_protocol-e8a63e80018281f8)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/boot_protocol-0c4756592423435b)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/capability_core-e1b8727debf17276)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/catalog_core-a8070c27aae832d2)
+     Running tests/client.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/client-464e5ab65ef387cf)
+     Running tests/core.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/core-b795e532764d6336)
+     Running tests/wire.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/wire-c87bb83abbd1b5e6)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/elf_loader_core-4ab92dc5239b8964)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/kernel_core-6d6e9fb9453fbf62)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/keyring_core-0f41852c998bb254)
+     Running tests/core.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/core-68dad719c59f4fbc)
+     Running tests/record_wire.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/record_wire-87b5615fd909b41d)
+     Running tests/secure_records.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/secure_records-1fc6b46b24522ea4)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/object_core-bf291d3a0fb76009)
+     Running tests/core.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/core-506762df88e4c801)
+     Running tests/wire.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/wire-5d6f9555fc82ea32)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/ui_core-497c535ffdc1d6cc)
+     Running tests/input_reset.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/input_reset-f72131a2df8cc438)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/virtio_blk_driver-6bd3a907e34f632d)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/virtio_core-56bd066db634f2e3)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/virtio_net_driver-9e93d3040188cfac)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/virtio_rng_driver-78f854322f57483d)
+     Running unittests src/lib.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/volume_core-e112b1c1407f7271)
+     Running tests/crash.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/crash-77106d60b28a014e)
+     Running tests/history.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/history-9717f03d94278a66)
+     Running tests/service.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/service-837f7883f53726f4)
+     Running tests/uploads.rs (/tmp/nieuw-os-fr-independent-target/root/debug/deps/uploads-a8260ad05b75ec58)
+   Doc-tests block_protocol
+   Doc-tests boot_protocol
+   Doc-tests capability_core
+   Doc-tests catalog_core
+   Doc-tests elf_loader_core
+   Doc-tests kernel_core
+   Doc-tests keyring_core
+   Doc-tests object_core
+   Doc-tests ui_core
+   Doc-tests virtio_blk_driver
+   Doc-tests virtio_core
+   Doc-tests virtio_net_driver
+   Doc-tests virtio_rng_driver
+   Doc-tests volume_core

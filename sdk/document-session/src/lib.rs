@@ -10,6 +10,10 @@ use nieuw_os_catalog_client::{
 };
 use nieuw_os_sdk_runtime::Error as RuntimeError;
 
+/// Streaming document sessions for the current volume v6 service. The legacy
+/// catalog session below remains available with its original wire contract.
+pub mod volume;
+
 pub const MAX_CONTENT_BYTES: usize = catalog_core::wire::VALUE;
 const MAX_NAME_BYTES: usize = catalog_core::wire::NAME;
 

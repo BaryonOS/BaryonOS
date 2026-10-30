@@ -1,0 +1,63 @@
+{
+  "task": "TASK-NATIVE-MATERIAAL",
+  "source_sha256": "1b18f71389d7a1cd3674787e39fbe0323465850632867272858b1311301b768b",
+  "inspection": "actual host-raster PPMs opened with view_image by native_ui_apps",
+  "native_execution": false,
+  "human_review": false,
+  "images": [
+    {
+      "path": "build/native-materiaal-visual/dirty-close-200-host.ppm",
+      "sha256": "d89128f0e7cedffa91baed47610852e498b579fa21e1af82c8628cf8e7f3d255",
+      "width": 800,
+      "height": 600,
+      "native": false
+    },
+    {
+      "path": "build/native-materiaal-visual/editor-100-host.ppm",
+      "sha256": "427284de2791a64d223a5e7b5c0ccc29b2dd681e190e56a590c0338e27c1efe2",
+      "width": 800,
+      "height": 600,
+      "native": false
+    },
+    {
+      "path": "build/native-materiaal-visual/editor-200-host.ppm",
+      "sha256": "39fe85ad29a8d5ef298faa8850f4835de876daaff0905699bed59d7f7d3062cd",
+      "width": 800,
+      "height": 600,
+      "native": false
+    },
+    {
+      "path": "build/native-materiaal-visual/editor-320logical-host.ppm",
+      "sha256": "688c8dd483c3dd93f49d7521e3109eb730c0f6c2e349de0b938096a8e03f8ede",
+      "width": 640,
+      "height": 480,
+      "native": false
+    },
+    {
+      "path": "build/native-materiaal-visual/materiaal-100-host.ppm",
+      "sha256": "4d16e3ed7ba020b19fef1fb9c19014f3da96dbdab0bfc38f04856cff7b8befd9",
+      "width": 800,
+      "height": 600,
+      "native": false
+    },
+    {
+      "path": "build/native-materiaal-visual/materiaal-320logical-host.ppm",
+      "sha256": "d00e05b712eef0dbe14bed205221966349bb29846feeed92f7897712f80711c7",
+      "width": 640,
+      "height": 480,
+      "native": false
+    }
+  ],
+  "observed_and_fixed": [
+    "Modal half-covered background labels: opaque local backdrop",
+    "Equal visual priority for primary/secondary/destructive actions: token styles",
+    "At320logicalx240 first real object was absent: compact header and layout regression",
+    "Pointer could not reach later narrow-list objects: real next/previous paging, tested through actual PS2 buttons"
+  ],
+  "remaining": [
+    "Native display/input adapters and real QMP interaction",
+    "Final linked native app footprint/stack and measured latency",
+    "Full Materiaal routes, editor functions and accessibility broker/screenreader",
+    "Persistent encryption keys and cold authenticated storage"
+  ]
+}

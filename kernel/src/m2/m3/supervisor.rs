@@ -141,6 +141,9 @@ fn releasable_frames(s: &State) -> usize {
     total
 }
 fn image_elf(image: u32) -> Option<&'static [u8]> {
+    #[cfg(feature = "native-system")]
+    return system::image_elf(image);
+    #[cfg(not(feature = "native-system"))]
     match image {
         IMAGE_WORKER => Some(WORKER_ELF),
         IMAGE_CLIENT => Some(CLIENT_ELF),
@@ -380,7 +383,7 @@ fn kill(s: &mut State, slot: usize, handle: u64) -> Result<u64, i64> {
 
 /// Children whose spawner is gone end here, iteratively: each round ends at
 /// least one process, so at most `MAX` rounds run on the kernel stack.
-fn reap_orphans(s: &mut State) {
+pub(super) fn reap_orphans(s: &mut State) {
     loop {
         let mut out = [0u64; MAX_PROCESS_OBJECTS];
         let n = m4::engine().orphans(&mut out);
@@ -621,4 +624,16 @@ fn finish(s: &mut State) -> ! {
     serial::write(marker());
     serial::write(b"SUPERVISOR:RESOURCES:PASS\nSUPERVISOR:PASS\nM1:PASS\n");
     serial::exit(0x10)
+}
+
+#[cfg(feature = "native-system")]
+pub(super) fn mechanism_counts() -> (u64, u64, u64) {
+    let e = evidence();
+    (e.spawns, e.kills, e.status_calls)
+}
+
+/// The image was recorded by the checked spawn mechanism, not by user memory.
+#[cfg(feature = "native-system")]
+pub(super) fn is_managed_image(slot: usize, image: u32) -> bool {
+    evidence().image_of[slot] == image
 }

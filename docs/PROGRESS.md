@@ -1,5 +1,9 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+De actieve volledige releaseopdracht en productacceptatie staan in
+[FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
+de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een

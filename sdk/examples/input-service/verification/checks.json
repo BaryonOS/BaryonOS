@@ -1,0 +1,171 @@
+{
+  "task": "TASK-NATIVE-INPUT-SERVICE component checkpoint",
+  "base_commit": "d127e7e324762e55c0a61ccf566b05b5e2b143b4",
+  "dependencies": {
+    "upstream_main": "985ed4da",
+    "raw_driver_client": "b2ad7c184a2d918f57b82f0c50125a5c3906d9a7",
+    "temporary_sdk_patch_sha256": "ea102b11574f6a54b8c4251eb24ea6d3bd11d9efea62b496344b66628e336a43",
+    "temporary_patched_files": {
+      "sdk/Cargo.toml": "74870796991f32f1541e427b06ef082600ceb1893ad9b63f2dffd17b79d61023",
+      "sdk/runtime/src/lib.rs": "0ad4c06a2bacd4371435cfe4e3e4a958cd80b292c52247e8fecd09baa933cf00",
+      "sdk/runtime/src/native.rs": "4ca103796cf88b591023716ce26df3d51257ee975e567e79be84c4ce1cf748b7",
+      "sdk/runtime/tests/message.rs": "67a657fc3b34d23dda3928418af0ddd689758505a146e8e05c24894df88397c0",
+      "sdk/runtime/tests/process.rs": "0e76b383606935e1354ec4d6ffe14f251734a01a211a58f69b2ef0a19e18f578"
+    }
+  },
+  "source_fingerprint_version": 3,
+  "source_sha256_with_temporary_sdk": "af64b7a1ed2055182b95ce3a0c76ab6a5481f21bd79375fe32b6298b9482e74d",
+  "source_sha256_shared_files_restored": "87c96c4f3f2d1e8133413005297ae19684747c3631648f3f3e3b45574b58a7ce",
+  "owned_files": {
+    "sdk/examples/input-service/Cargo.lock": "25136a0331338aa2f011f59c0d2c2a95b0fd4e01bc4f4a618fb907c77730bd5b",
+    "sdk/examples/input-service/Cargo.toml": "7653906ee640a5dc46d96f68f1944dd68b6663c07650a107e12448ba1bcda2bb",
+    "sdk/examples/input-service/build.py": "6f8162dc922365cffc6c20f23159db19ffee15efeefb7f1c0e1699373380899e",
+    "sdk/examples/input-service/linker.ld": "56579c80d08e4de4cf681e3f5fb26c3b4f6c675dab85e4e3ceeb66bcda902025",
+    "sdk/examples/input-service/src/boot.rs": "7af4e2d57d5834bf0159cdf43b758b999be1d514998a8d8130591c862967a25b",
+    "sdk/examples/input-service/src/lib.rs": "c20c620e22333d3a374fbfbd5183921775632ca951f223827abeaa5496a5c5c4",
+    "sdk/examples/input-service/src/policy.rs": "0fcc27cb24ef2a0d8ecea3d7b7e78c7c551ab253e2a8532f99734a38299bf820",
+    "sdk/examples/input-service/src/policy_main.rs": "7ddca654a262625382fa18a93d8190d508ac930fdbbc5e3fc43752fcb8b2e89e",
+    "sdk/examples/input-service/src/protocol.rs": "59678987c65deaf592a6a765cb18f02dbaafe7d4d8be56682d939355dd9cfd71",
+    "sdk/examples/input-service/src/source.rs": "9fe0d3904c6b7b7c98e12c0c6b0c1512ac9d79bf6e8806d850535e6b4d6cda94",
+    "sdk/examples/input-service/src/source_main.rs": "494c8665b0d57fb99093e9827451243f20ebda38a1414137ad1dcca2f6c7f575",
+    "sdk/examples/input-service/tests/boot.rs": "e3beb532190d34b9c57149f214e838ede57db9232d44afad124298a333dbf36d",
+    "sdk/examples/input-service/tests/daemon.rs": "35bd4ed46ed45e0f9a7f46b87d5546ccba7046c18e4c0ba1f439d37ff56e8945",
+    "docs/implementation/NATIVE-INPUT-DAEMON.md": "dd12b984a10c92be670cfe666671091bd8ca9e099285582372b31d7800fb31ba"
+  },
+  "compiler": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8\n",
+  "checks": {
+    "host_tests": 13,
+    "host_clippy_D_warnings": true,
+    "native_clippy_D_warnings": true,
+    "format_check": true,
+    "real_target_binaries_inspected": true,
+    "direct_C_entry_alignment_inspected": true,
+    "linked_scalar_and_no_raw_ports_or_hostsyscalls": true,
+    "undefined_symbols": 0
+  },
+  "native_runtime_performed": false,
+  "build_report": {
+    "passed": true,
+    "native_runtime_performed": false,
+    "extra_env": {
+      "NOS_INPUT_SOURCE_ELF": "/workspace/nieuw-os-worktrees/input-daemon/target/input-final/native/x86_64-unknown-none/release/input-source",
+      "NOS_INPUT_POLICY_ELF": "/workspace/nieuw-os-worktrees/input-daemon/target/input-final/native/x86_64-unknown-none/release/input-policy"
+    },
+    "apps": {
+      "source": {
+        "sha256": "e6e82b8d8605169d0e4c7d5024f500cbc64c72266fcf6b2e22b46dedaa304034",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1160,
+              "memsz": 1160,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 549,
+              "memsz": 549,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 5,
+              "address": 1074003968,
+              "offset": 16384,
+              "filesz": 9239,
+              "memsz": 9239,
+              "page_start": 1074003968,
+              "page_end": 1074016256
+            }
+          ]
+        }
+      },
+      "policy": {
+        "sha256": "96f10430ae9516d4259ac3adbfa9af51f504ba50c864e3daab7f9efa2fb368b4",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1200,
+              "memsz": 1200,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 2386,
+              "memsz": 2386,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            },
+            {
+              "flags": 5,
+              "address": 1074003968,
+              "offset": 16384,
+              "filesz": 18727,
+              "memsz": 18727,
+              "page_start": 1074003968,
+              "page_end": 1074024448
+            }
+          ]
+        }
+      }
+    }
+  },
+  "review": {
+    "scope": "read-only state/IPC/lifetime/bootstrap inspection, AI peer, not human audit",
+    "remaining_concrete_blocker_reported": false,
+    "scope_limits": [
+      "earlier valid queued events cannot be retracted; app generation/cancel remains required",
+      "shared app FIFO admission fairness requires independently revocable grants",
+      "raw loss without sample stops source immediately; core invalidation follows real supervisor lifecycle notification"
+    ]
+  },
+  "open": [
+    "native QEMU brokerReady+Sync+registry from real PIDs/grants",
+    "actual focused Materiaal keyboard/mouse delivery and authenticated client PEEK/ACK",
+    "actual queuefull/knownloss real broker reset and processdeath cases",
+    "whole final image regression and release acceptance"
+  ],
+  "limits": "Host RawInput fixtures prove sequencing only. Production binary binds InputClient<NativeTransport> and NativeIpc. No native execution, hardware, complete input/desktop or release claim.",
+  "full_disassembly": {
+    "source": {
+      "local_path": "/workspace/nieuw-os-worktrees/input-daemon/build/input-final/source-disassembly.txt",
+      "sha256": "5063a667e6d4cb92f93671a58aa90fae7c533730934f7185a6dc6621e497815f"
+    },
+    "policy": {
+      "local_path": "/workspace/nieuw-os-worktrees/input-daemon/build/input-final/policy-disassembly.txt",
+      "sha256": "e1be8f33ba13075c0004c48f35eb9d21cf90e3ac8a68ba794fd4c3a50dfd47e3"
+    }
+  }
+}

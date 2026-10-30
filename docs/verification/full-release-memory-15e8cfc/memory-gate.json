@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "source_commit": "15e8cfced28ad46f15f5f573e5f00e8e87b74215",
+  "source_fingerprint_version": 3,
+  "source_sha256": "a82648f0673ef6c0b37406724fc5512ffadc5b53b4987bf21e96521faa112eaf",
+  "passed": true,
+  "status": "completed",
+  "stages": [
+    {
+      "case": "normal",
+      "passed": true,
+      "report": "/workspace/nieuw-os/build/full-release-15e8cfc-memory/normal/memory-report.json",
+      "report_sha256": "9ebde56a11207f0fa57254fdc2e3e97051a3bef37db828612a3efadedf4f2a92",
+      "kernel_sha256": "d57f8f5f93dce16926abec675320a9837645d3445cdb0f7c1351d219b747266f",
+      "run_directory": "/workspace/nieuw-os/build/full-release-15e8cfc-memory/normal/run/native-memory-normal-3549890837",
+      "duration_s": 2.8012416700003087
+    },
+    {
+      "case": "nx",
+      "passed": true,
+      "report": "/workspace/nieuw-os/build/full-release-15e8cfc-memory/nx/memory-report.json",
+      "report_sha256": "181bb8b7a81d093dc809c200336dd6e0ef0d7a543f6d93bc41371dab4d0ae8c6",
+      "kernel_sha256": "1fdcf1eff4a5bf1a9c78190ea1150ddb845d5b4d965d60470b28d33ba6684fc0",
+      "run_directory": "/workspace/nieuw-os/build/full-release-15e8cfc-memory/nx/run/native-memory-nx-7ba4a223d5",
+      "duration_s": 2.6524667060002685
+    },
+    {
+      "case": "guard",
+      "passed": true,
+      "report": "/workspace/nieuw-os/build/full-release-15e8cfc-memory/guard/memory-report.json",
+      "report_sha256": "dfdb4670cf1af535924cc75ffd298aabe1a8072ee8d67ae0ad0938d512350447",
+      "kernel_sha256": "b58a83d258c6f63eb8718879e39f419933f262c0fcd32e346b3b1c148a1f81ed",
+      "run_directory": "/workspace/nieuw-os/build/full-release-15e8cfc-memory/guard/run/native-memory-guard-bdae511a49",
+      "duration_s": 2.8692017159992247
+    },
+    {
+      "case": "peer",
+      "passed": true,
+      "report": "/workspace/nieuw-os/build/full-release-15e8cfc-memory/peer/memory-report.json",
+      "report_sha256": "8ea1c71348e65e2a97b456f787d74708c22e325a3971f95f4c3e56e8b914b75d",
+      "kernel_sha256": "307fd158aaa4259bf757b7bcfb0d2db4c213e7ef268d64864c2a39a574010efa",
+      "run_directory": "/workspace/nieuw-os/build/full-release-15e8cfc-memory/peer/run/native-memory-peer-ec89818808",
+      "duration_s": 2.666056448000745
+    },
+    {
+      "case": "oom",
+      "passed": true,
+      "report": "/workspace/nieuw-os/build/full-release-15e8cfc-memory/oom/memory-report.json",
+      "report_sha256": "03c13b9d1f2530379d11b9375de0885b01ad1f64ffdc83347c0edbff59aa53b1",
+      "kernel_sha256": "3ba662949a01e0f04bc81600b1412dbbccd0173e4cc2f87193de75551bf6df99",
+      "run_directory": "/workspace/nieuw-os/build/full-release-15e8cfc-memory/oom/run/native-memory-oom-2be9302e6b",
+      "duration_s": 3.533452435998697
+    }
+  ],
+  "scope": "five real private-heap guests; no full product or physical-hardware acceptance"
+}

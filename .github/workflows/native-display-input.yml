@@ -1,0 +1,130 @@
+name: Native display and input acceptance
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-display-input-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  native-display-input:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/display-input-ci
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/display-input-ci
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/display-input-ci-host
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Rust, lint tools and real targets
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup component add --toolchain 1.90.0 rustfmt clippy
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Cache Cargo downloads only
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+          key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Disposable QEMU and explicit OVMF/VGA firmware
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios
+          test -f "$OS_OVMF_CODE"
+          test -f "$OS_OVMF_VARS"
+          test -f /usr/share/seabios/vgabios-stdvga.bin
+          mkdir -p "$NOS_BUILD_DIR/logs"
+          dpkg-query -W qemu-system-x86 ovmf seabios > "$NOS_BUILD_DIR/logs/ci-packages.txt"
+      - name: Strict preflight
+        run: python3 -B tools/preflight.py --strict | tee "$NOS_BUILD_DIR/logs/preflight.json"
+      - name: Fetch locked dependencies before offline component and native builds
+        run: |
+          cargo +1.90.0 fetch --locked
+          for manifest in \
+            drivers/ps2/Cargo.toml \
+            sdk/display-client/Cargo.toml \
+            ui/native/Cargo.toml \
+            ui/surface-protocol/Cargo.toml \
+            sdk/examples/input-service/Cargo.toml \
+            sdk/examples/display-input-probe/Cargo.toml
+          do
+            cargo +1.90.0 fetch --locked --manifest-path "$manifest"
+          done
+      - name: Standalone host tests, lint and formatting
+        run: |
+          for manifest in \
+            drivers/ps2/Cargo.toml \
+            sdk/display-client/Cargo.toml \
+            ui/native/Cargo.toml \
+            ui/surface-protocol/Cargo.toml \
+            sdk/examples/input-service/Cargo.toml
+          do
+            cargo +1.90.0 test --offline --locked --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-host.txt"
+            cargo +1.90.0 clippy --offline --locked --manifest-path "$manifest" --all-targets -- -D warnings 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-host.txt"
+            cargo +1.90.0 fmt --manifest-path "$manifest" --all -- --check 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-host.txt"
+          done
+      - name: Scalar freestanding libraries
+        env:
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/display-input-ci-scalar
+          RUSTFLAGS: -C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2
+        run: |
+          for manifest in \
+            drivers/ps2/Cargo.toml \
+            sdk/display-client/Cargo.toml \
+            ui/native/Cargo.toml \
+            ui/surface-protocol/Cargo.toml
+          do
+            cargo +1.90.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/standalone-scalar.txt"
+          done
+      - name: Cross-build isolated input daemon executables
+        env:
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/display-input-ci-daemon
+        # The raw-source and policy ELFs compile here; their execution is a
+        # separate integration gate, not claimed by the display boundary probe.
+        run: python3 -B sdk/examples/input-service/build.py 2>&1 | tee "$NOS_BUILD_DIR/logs/input-service-build.txt"
+      - name: Native fixture and evidence-gate counterexamples
+        run: |
+          cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/display-input-probe/Cargo.toml 2>&1 | tee "$NOS_BUILD_DIR/logs/display-fixture-host.txt"
+          python3 -B tools/test_display_probe.py 2>&1 | tee "$NOS_BUILD_DIR/logs/display-gate-host.txt"
+      - name: Build the paired native display/input image once
+        # No native image/report cache: all three embedded CPL3 programs and
+        # the current kernel/loader are built by this one existing builder.
+        run: python3 -B -u tools/build.py --kernel-feature native-display-probe
+      - name: Actual QMP pixels, keyboard, mouse, isolation and slot reuse
+        run: |
+          python3 -B -u tools/run_display_probe.py \
+            --qmp-transport pipe \
+            --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
+            2>&1 | tee "$NOS_BUILD_DIR/logs/display-native.txt"
+      - name: Preserve clean tracked sources and standalone output paths
+        run: |
+          git diff --exit-code
+          git status --porcelain
+          test -z "$(git status --porcelain)"
+      - name: Preserve bound inputs, raw frames and failure reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-display-input-evidence
+          path: build/display-input-ci/
+          if-no-files-found: error
+          retention-days: 14

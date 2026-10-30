@@ -1,0 +1,32 @@
+[package]
+name = "nieuw-os-native-memory-probe"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[features]
+native = []
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../../runtime" }
+nieuw-os-heap-allocator = { path = "../../heap-allocator" }
+
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "memory-probe"
+path = "src/main.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+codegen-units = 1
+lto = false

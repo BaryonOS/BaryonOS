@@ -1,0 +1,27 @@
+{
+  "kind": "synthetic protocol counterparty; not OS client",
+  "connected": true,
+  "error": "ProtocolError: unsupported fixture EtherType",
+  "rejected_frame": {
+    "length": 86,
+    "ethertype": "86dd",
+    "prefix_hex": "3333ff00000702000000000786dd600000000020000100000000000000000000000000000000ff0200000000000000000001ff0000073a000502000001008300",
+    "sha256": "be692a3fe1af43be1b1dbd6b5c15124d51367d867d631e0e16c00a268193cb2b"
+  },
+  "counts": {
+    "accepted_frames": 0,
+    "arp_requests": 0,
+    "arp_bad_sender_sent": 0,
+    "arp_wrong_target_sent": 0,
+    "arp_valid_sent": 0,
+    "udp_echo_requests": 0,
+    "udp_echo_replies": 0,
+    "dns_requests": 0,
+    "dns_wrong_id_sent": 0,
+    "dns_bad_name_sent": 0,
+    "dns_answers_sent": 0,
+    "dns_timeouts": 0,
+    "response_frames": 0
+  },
+  "events": []
+}

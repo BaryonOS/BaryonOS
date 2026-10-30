@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "340df67063f60a805e2bce5b4a486f175d211451b7156130003f0d5151731d75",
+  "test_inputs": {
+    "tests/test_system_capture.py": "4ab3ef7bfdeca3aa805682f71b4889cf922624727d88f7c1918175f033d7e7ca",
+    "tests/test_system_harness.py": "f6e1a1879dbf67382823cbf5323e34fc275415c44647154450eb87ec7a9f4b0e"
+  },
+  "status": "completed",
+  "passed": true,
+  "host": [
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_system_*.py"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os/build/full-release-final-base/logs/system-host-0.stdout.txt",
+      "stderr": "/workspace/nieuw-os/build/full-release-final-base/logs/system-host-0.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os/build/full-release-final-base/logs/system-host-1.stdout.txt",
+      "stderr": "/workspace/nieuw-os/build/full-release-final-base/logs/system-host-1.stderr.txt"
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "passed": true,
+      "run_directory": "/workspace/nieuw-os/build/full-release-final-base/run/system-normal-2c79b9b0a3284e21bdf2f74fba9af5fe",
+      "raw_qemu_exit": 33,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "duration_s": 4.480851258999337
+    },
+    {
+      "case": "recover",
+      "passed": true,
+      "run_directory": "/workspace/nieuw-os/build/full-release-final-base/run/system-recover-a85caf982b614e769cfb130bc6093cbc",
+      "raw_qemu_exit": 33,
+      "before_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "duration_s": 4.782069630000478
+    }
+  ],
+  "final_kernel_sha256": "31de56bb0e884b20c07ad9c25fba18ebd547cd4595a8f36b4bdc64827b29c0ed",
+  "final_manifest": "/workspace/nieuw-os/build/full-release-final-base/manifest.json"
+}

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "340df67063f60a805e2bce5b4a486f175d211451b7156130003f0d5151731d75",
+  "test_inputs": {
+    "tests/test_net_peer.py": "b46dabc9f68e8b58ab32ff702bd86360ec23cb4ad1ab959f415a8be6430d3a63"
+  },
+  "status": "failed",
+  "passed": false,
+  "host": [
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_net_*.py"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os/build/full-release-final-net/logs/net-host-0.stdout.txt",
+      "stderr": "/workspace/nieuw-os/build/full-release-final-net/logs/net-host-0.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "capability-core"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os/build/full-release-final-net/logs/net-host-1.stdout.txt",
+      "stderr": "/workspace/nieuw-os/build/full-release-final-net/logs/net-host-1.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os/build/full-release-final-net/logs/net-host-2.stdout.txt",
+      "stderr": "/workspace/nieuw-os/build/full-release-final-net/logs/net-host-2.stderr.txt"
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "passed": false,
+      "network_gate": false,
+      "run_directory": "/workspace/nieuw-os/build/full-release-final-net/run/system-normal-5c8e73b92aa3411e90cac4df60a740ca",
+      "raw_qemu_exit": 35,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "duration_s": 57.382193441000254
+    }
+  ],
+  "error": "RuntimeError: ValueError: the joint-system/disk gate failed"
+}

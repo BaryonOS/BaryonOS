@@ -816,3 +816,18 @@ fn finish(s: &mut State) -> ! {
     serial::write(b"KEYRING:RESOURCES:PASS\nKEYRING:PASS\nM1:PASS\n");
     serial::exit(0x10)
 }
+
+/// Device progress only; no B01 fixture observer or lifecycle policy.
+#[cfg(feature = "native-system")]
+pub(super) fn broker_tick(s: &State) {
+    advance(s);
+}
+#[cfg(feature = "native-system")]
+pub(super) fn broker_summary() -> (u64, u64, bool) {
+    let r = runtime();
+    (
+        r.delivered_bytes,
+        r.denied,
+        r.offline == 0 && r.pending.is_none() && r.completed.is_none() && !r.resetting,
+    )
+}

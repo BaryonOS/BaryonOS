@@ -1,0 +1,528 @@
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling subtle v2.6.1
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling cpufeatures v0.2.17
+   Compiling generic-array v0.14.7
+   Compiling cfg-if v1.0.5
+   Compiling zeroize v1.9.1
+   Compiling virtio-core v0.1.0 (/workspace/nieuw-os/crates/virtio-core)
+   Compiling opaque-debug v0.3.1
+   Compiling volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+   Compiling hex-literal v0.4.1
+   Compiling boot-protocol v0.1.0 (/workspace/nieuw-os/crates/boot-protocol)
+   Compiling object-core v0.1.0 (/workspace/nieuw-os/services/objects)
+   Compiling elf-loader-core v0.1.0 (/workspace/nieuw-os/crates/elf-loader-core)
+   Compiling virtio-rng-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-rng)
+   Compiling virtio-blk-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-blk)
+   Compiling kernel-core v0.1.0 (/workspace/nieuw-os/crates/kernel-core)
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling inout v0.1.4
+   Compiling cipher v0.4.4
+   Compiling universal-hash v0.5.1
+   Compiling digest v0.10.7
+   Compiling poly1305 v0.8.0
+   Compiling chacha20 v0.9.1
+   Compiling hmac v0.12.1
+   Compiling aead v0.5.2
+   Compiling hkdf v0.12.4
+   Compiling sha2 v0.10.9
+   Compiling chacha20poly1305 v0.10.1
+   Compiling block-protocol v0.1.0 (/workspace/nieuw-os/services/block)
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+   Compiling keyring-core v0.1.0 (/workspace/nieuw-os/services/keyring)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.55s
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/block_protocol-e8a63e80018281f8)
+
+running 20 tests
+test journal::tests::cas_full_and_append_preserve_previous_record ... ok
+test journal::tests::every_single_byte_corruption_is_detected_for_this_record ... ok
+test journal::tests::exact_format_and_roundtrip ... ok
+test journal::tests::invalid_tail_can_be_replaced_after_recovery ... ok
+test journal::tests::checksum_does_not_replace_structural_validation ... ok
+test journal::tests::no_implicit_format_for_empty_or_corrupt_volume ... ok
+test m6_wire::tests::get_put_rights_and_zero_request_data ... ok
+test m6_wire::tests::malformed_fields_and_epoch_never_validate ... ok
+test journal::tests::prefix256_tail_recovers_old_while_full_record_recovers_new ... ok
+test m6_wire::tests::put_length_generation_bounds ... ok
+test m6_wire::tests::reply_ack_and_errors_are_zero_and_correlated ... ok
+test wire::tests::error_reply_is_empty_and_cannot_smuggle_old_data ... ok
+test wire::tests::bad_version_flags_status_reserved_and_request_data ... ok
+test wire::tests::four_slices_accumulate_same_diagnostic_checksum_as_one_sector ... ok
+test wire::tests::reply_correlation_epoch_and_tail_are_checked ... ok
+test wire::tests::exact_header_offsets_and_valid_boundary ... ok
+test wire::tests::reply_uses_only_supplied_slice_and_zeroes_all_unused_bytes ... ok
+test wire::tests::stale_epoch_is_rejected_without_returning_a_valid_request ... ok
+test wire::tests::unsupported_write_and_unknown_opcode_have_no_read_request ... ok
+test wire::tests::zero_oversized_overflow_and_cross_scope_ranges ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/boot_protocol-0c4756592423435b)
+
+running 11 tests
+test graphics::tests::framebuffer_cannot_overlap_ram_of_any_ordinary_type ... ok
+test graphics::tests::framebuffer_hole_adjacency_and_rounded_last_page_are_checked ... ok
+test graphics::tests::framebuffer_bounds_formats_and_checked_span ... ok
+test tests::explicit_wire_fixture_and_offsets ... ok
+test graphics::tests::graphics_map_keeps_all_five_owned_retained_allocations ... ok
+test tests::invalid_header_and_received_pointer_are_rejected ... ok
+test graphics::tests::graphics_header_is_exact_opt_in_and_preserves_legacy_rejection ... ok
+test tests::map_shape_and_stride_are_checked ... ok
+test tests::ranges_must_be_aligned_bounded_nonoverlapping ... ok
+test tests::overlap_overflow_and_zero_pages_rejected_unknown_memory_reserved ... ok
+test tests::unsorted_extended_stride_and_adjacent_descriptors_cover_allocations ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/capability_core-e1b8727debf17276)
+
+running 40 tests
+test tests::closed_object_tombstones_hold_global_capacity_without_retargeting ... ok
+test tests::exact_public_error_numbers_match_the_syscall_contract ... ok
+test tests::k05_delegation_precheck_matches_bootstrap_rules ... ok
+test tests::k05_invalid_death_states_and_duplicate_children_are_rejected ... ok
+test tests::b01_entropy_capability_is_typed_exclusive_and_bounded ... ok
+test tests::k05_launch_is_typed_non_derivable_non_transferable_and_closable ... ok
+test tests::endpoint_owner_and_global_quotas_recover_after_close ... ok
+test tests::k05_launch_quota_and_owner_exit_close_objects ... ok
+test tests::k05_rights_constants_and_known_mask ... ok
+test tests::k05_process_quota_and_capacity_probes ... ok
+test tests::k05_spawner_exit_ends_grandchildren_iteratively ... ok
+test tests::k05_running_child_without_handles_stays_an_orphan_candidate ... ok
+test tests::k05_process_object_reports_lifecycle_to_its_spawner_only ... ok
+test tests::ks10_wire_exact_offsets_canonical_fields_and_misaligned_byte_source ... ok
+test tests::ks11_snapshot_fifo_and_queue_quota ... ok
+test tests::ks10_message_rejection_and_endpoint_priority_are_atomic ... ok
+test tests::ks13_all_transfer_authority_precedes_any_depth_resource_failure ... ok
+test tests::ks13_attenuation_transfer_and_zero_rights ... ok
+test tests::ks12_process_local_numeric_collision_and_stale_handles ... ok
+test tests::ks14_revocation_after_delivery_and_close_do_not_recall_bytes ... ok
+test tests::ks14_revoke_is_not_array_order_dependent_and_preserves_own_node ... ok
+test tests::ks14_revoke_cancels_whole_queued_transfer_but_preserves_fifo ... ok
+test tests::ks10_bounded_wire_bit_fuzz_never_panics_or_mutates_on_reject ... ok
+test tests::ks15_depth_eight_parent_retention_and_reclamation ... ok
+test tests::ks15_receive_reserves_both_slots_before_commit ... ok
+test tests::ks15_slot_node_object_max_generation_retire_without_aba ... ok
+test tests::ks15_two_cap_send_global_node_exhaustion_has_no_partial_node ... ok
+test tests::ks16_exit_revokes_received_and_issued_descendants_and_queued_caps ... ok
+test tests::m5_block_scope_invalid_masks_error_order_and_generation_retirement ... ok
+test tests::ks16_last_receive_close_tombstone_and_revoked_before_closed ... ok
+test tests::m5_block_quota_is_separate_from_all_64_endpoint_objects ... ok
+test tests::m5_block_transfer_revoke_and_owner_exit_use_common_lifetimes ... ok
+test tests::m6_explicit_write_flush_roots_preserve_legacy_rights_and_type_boundary ... ok
+test tests::m5_block_type_scope_and_admin_close_are_enforced ... ok
+test tests::m5_revoked_queued_block_cap_cancels_complete_mixed_type_message ... ok
+test tests::m6_queued_write_authority_revoke_exit_and_generation_remain_bounded ... ok
+test tests::monotone_process_identity_quota_and_process_row_reuse ... ok
+test tests::m6_writable_objects_do_not_reduce_endpoint_or_separate_block_quota ... ok
+test tests::bounded_transaction_state_machine_fuzz_preserves_error_atomicity ... ok
+test tests::m6_manifest_masks_and_subset_failures_are_transactional ... ok
+
+test result: ok. 40 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/catalog_core-a8070c27aae832d2)
+
+running 1 test
+test client::tests::request_id_exhaustion_does_not_wrap_or_reopen ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/client.rs (target/full-release-host/debug/deps/client-464e5ab65ef387cf)
+
+running 14 tests
+test catalog_open_edit_save_rename_delete_and_recover_use_existing_core ... ok
+test every_truncated_envelope_and_oversized_envelope_is_rejected_without_panicking ... ok
+test envelope_sender_tag_size_caps_and_all_padding_are_bound ... ok
+test empty_and_maximum_documents_are_not_truncated ... ok
+test invalid_configuration_and_requests_never_start_transport ... ok
+test only_one_request_is_pending_and_duplicate_or_unsolicited_replies_are_not_accepted ... ok
+test invalid_catalog_is_never_an_empty_or_cross_domain_result ... ok
+test outgoing_envelope_is_bounded_and_contains_no_authority ... ok
+test full_core_journal_reports_full_without_changing_the_last_value ... ok
+test timeout_and_transport_error_preserve_mutation_uncertainty_and_reject_late_ack ... ok
+test unknown_and_terminal_service_errors_close_without_replay ... ok
+test wire_version_request_id_epoch_object_operation_status_and_payload_are_bound ... ok
+test ordinary_rejections_allow_an_explicit_fresh_request_with_a_new_id ... ok
+test wrong_ack_revision_cannot_turn_a_save_into_success ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/core.rs (target/full-release-host/debug/deps/core-b795e532764d6336)
+
+running 15 tests
+test duplicate_labels_and_byte_distinct_unicode_keep_id_identity ... ok
+test empty_catalog_has_no_global_activity_or_invalid_domain ... ok
+test catalog_sorted_filtered_and_tombstone_revision_is_local ... ok
+test prepared_commit_is_bound_to_complete_prior_state ... ok
+test mixed_lifecycle_roundtrips_all_records_and_deleted_metadata_is_cleared ... ok
+test full_preserves_latest_name_and_content_without_wrap ... ok
+test recovery_checks_rename_predecessor_and_content_despite_valid_checksum ... ok
+test recovery_rejects_revision_jump_and_invalid_utf8_with_new_checksum ... ok
+test recovery_requires_complete_contiguous_scan_and_stays_failed ... ok
+test rename_is_atomic_preserves_all_content_and_has_no_early_commit ... ok
+test valid_legacy_v1_record_is_rejected_without_modifying_it ... ok
+test stale_mutation_cannot_resurrect_deleted_object ... ok
+test state_rejects_bad_operation_id_bounds_name_and_rename_value ... ok
+test zero_length_content_is_a_live_named_object ... ok
+test recovery_rejects_all_single_byte_damage_and_noncanonical_rehashed_fields ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/wire.rs (target/full-release-host/debug/deps/wire-c87bb83abbd1b5e6)
+
+running 15 tests
+test error_replies_scrub_all_data_and_only_authorized_notfound_keeps_revision ... ok
+test constructors_never_truncate_oversize_values_or_names ... ok
+test all_five_valid_requests_are_accepted_only_in_their_endpoint_domain ... ok
+test get_reply_contains_canonical_name_and_value_including_empty_content ... ok
+test list_empty_zero_generation_and_deleted_generation_are_valid ... ok
+test list_rejects_bad_count_lengths_names_and_all_padding ... ok
+test arbitrary_external_lengths_never_create_out_of_bounds_slices ... ok
+test malformed_catalog_constructor_fails_closed_without_panicking ... ok
+test list_rejects_foreign_ids_unsorted_duplicate_or_forged_revisions ... ok
+test mutation_acks_have_no_data_and_are_bound_to_next_revision ... ok
+test list_roundtrip_preserves_sorted_metadata_and_no_contents ... ok
+test names_validate_bytes_utf8_controls_bidi_and_path_punctuation ... ok
+test replies_bind_request_epoch_operation_object_and_status ... ok
+test operation_specific_fields_reject_impossible_requests ... ok
+test request_identity_epoch_version_and_every_padding_byte_are_checked ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/elf_loader_core-4ab92dc5239b8964)
+
+running 7 tests
+test tests::arithmetic_and_file_bounds_fail_closed ... ok
+test tests::entry_must_be_in_rx_file_bytes_not_bss_or_metadata ... ok
+test tests::nonexecuting_metadata_allowed_executable_stack_denied ... ok
+test tests::permissions_alignment_addresses_and_page_overlap_fail ... ok
+test tests::valid_plan_keeps_bss_and_does_not_modify_input ... ok
+test tests::wrong_headers_and_program_types_fail ... ok
+test tests::every_truncation_before_required_file_end_fails ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/kernel_core-6d6e9fb9453fbf62)
+
+running 16 tests
+test tests::checked_ranges ... ok
+test tests::physical_alias_wx_and_mapped_free ... ok
+test tests::ovmf_cache_capabilities_are_not_special_memory ... ok
+test tests::physical_page_width_and_overflow_fail_closed ... ok
+test tests::reserved_and_special_memory ... ok
+test tests::unmap_mismatched_alias_is_atomic_and_cannot_free_executable ... ok
+test user::tests::copy_plan_checks_entire_range_before_any_copy ... ok
+test tests::unique_exhaustion_ownership_and_zero_order ... ok
+test user::tests::legal_large_image_and_exact_user_mapping_budget ... ok
+test user::tests::overflow_offset_and_page_overlap ... ok
+test user::tests::pids_survive_16bit_boundary_and_never_wrap ... ok
+test user::tests::return_flags_strip_authority ... ok
+test user::tests::user_return_layout_rejects_untrusted_stack_and_noncanonical_alias ... ok
+test user::tests::sector_input_validates_second_page_owner_and_preserves_ipc_limit ... ok
+test user::tests::valid_and_wx_entry_checks ... ok
+test tests::quota_no_partial_allocation ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/keyring_core-0f41852c998bb254)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/core.rs (target/full-release-host/debug/deps/core-68dad719c59f4fbc)
+
+running 15 tests
+test continuous_rct_spans_startup_and_first_reseed ... ok
+test continuous_apt_spans_two_reseeds_and_blocks_further_key_operations ... ok
+test continuous_rct_spans_consecutive_reseeds ... ok
+test health_tests_pass_varied_input_and_catch_stuck_or_biased_sources ... ok
+test hkdf_sha256_rfc5869_test_case_1 ... ok
+test drbg_is_deterministic_per_seed_erases_keys_and_never_repeats_blocks ... ok
+test older_recovery_preserves_revocations_and_cannot_reissue_indices ... ok
+test reseed_after_budget_and_degradation_when_the_source_fails_later ... ok
+test revoke_and_quota_are_permanent_per_domain ... ok
+test seal_unseal_round_trip_binds_domain_index_and_rejects_tampering ... ok
+test service_blocks_without_source_or_with_stuck_source_and_never_makes_keys ... ok
+test used_service_rejects_another_master_without_losing_revocation_history ... ok
+test recovery_restores_keys_and_revocations_into_another_instance ... ok
+test wire_headers_are_canonical_and_bounded ... ok
+test xchacha20poly1305_draft_irtf_cfrg_xchacha_03_a_3_1 ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/secure_records.rs (target/full-release-host/debug/deps/secure_records-1fc6b46b24522ea4)
+
+running 23 tests
+test equally_sized_names_metadata_and_content_are_not_interchangeable ... ok
+test fully_allocated_and_revoked_domain_survives_persistent_restore ... ok
+test authenticated_invalid_allocations_and_unallocated_revocations_fail_atomically ... ok
+test generation_overflow_never_partially_allocates_or_revokes ... ok
+test legacy_and_record_ciphertexts_are_not_interchangeable ... ok
+test merging_divergent_revocations_creates_a_new_generation_without_resurrection ... ok
+test importing_an_older_divergent_branch_advances_the_current_generation ... ok
+test old_persistent_snapshot_cannot_undo_live_allocations_or_revocations ... ok
+test persistence_requires_the_external_generation_floor_to_reject_cold_replay ... ok
+test persistent_calls_do_not_bypass_service_readiness_or_mutate_failed_output ... ok
+test persistent_empty_snapshot_still_binds_volume_and_master_lineage ... ok
+test persistent_lengths_and_volume_are_exactly_validated ... ok
+test persistent_nonce_is_fresh_and_allocation_metadata_is_encrypted ... ok
+test persistent_snapshot_preserves_exact_allocations_revocations_and_record_keys ... ok
+test record_lengths_and_caller_domains_are_checked_before_accounting ... ok
+test record_revision_replay_requires_a_trusted_current_context ... ok
+test records_authenticate_every_identity_field_and_key_handle ... ok
+test records_reject_all_truncations_extra_bytes_and_declared_length_changes ... ok
+test record_operations_obey_key_revocation_and_entropy_failure ... ok
+test union_generation_overflow_does_not_commit_half_of_an_import ... ok
+test records_round_trip_every_supported_length_with_fresh_nonces_and_untouched_tails ... ok
+test every_persistent_bitflip_and_wrong_secret_preserve_the_namespace ... ok
+test every_record_bitflip_is_rejected_without_plaintext_or_namespace_changes ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/object_core-bf291d3a0fb76009)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/core.rs (target/full-release-host/debug/deps/core-506762df88e4c801)
+
+running 13 tests
+test empty_value_is_a_real_object_distinct_from_absent_and_tombstone ... ok
+test every_single_byte_corruption_in_an_occupied_record_is_rejected ... ok
+test four_object_values_and_revisions_survive_complete_streaming_scan ... ok
+test full_log_never_overwrites_an_old_record_or_wraps_revisions ... ok
+test gaps_duplicate_slots_wrong_order_and_incomplete_scan_fail_closed ... ok
+test malformed_commands_and_stale_replays_leave_every_object_unchanged ... ok
+test malformed_tail_poison_is_sticky_and_never_guesses_an_older_success ... ok
+test prepared_mutation_cannot_be_committed_to_a_different_equal_sequence_state ... ok
+test prepared_mutation_does_not_change_live_state_and_cannot_commit_twice ... ok
+test resealed_revision_skip_and_delete_of_never_created_object_are_rejected ... ok
+test tombstone_revision_prevents_replay_and_allows_explicit_cas_recreation ... ok
+test valid_checksum_never_replaces_structure_sequence_or_revision_validation ... ok
+test zero_volume_is_valid_empty_state_but_out_of_range_scan_is_invalid ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/wire.rs (target/full-release-host/debug/deps/wire-5d6f9555fc82ea32)
+
+running 9 tests
+test all_objects_require_the_endpoint_bound_domain_for_every_operation ... ok
+test empty_put_is_valid_but_get_and_delete_cannot_smuggle_payloads ... ok
+test exact_offsets_and_domain_binding_are_canonical ... ok
+test get_can_return_a_present_empty_object_but_never_revision_zero ... ok
+test notfound_exposes_tombstone_revision_only_for_authorized_get_or_delete ... ok
+test reserved_fields_zero_tail_and_epoch_are_enforced ... ok
+test sizes_large_integers_and_invalid_opcodes_are_bounded ... ok
+test successful_replies_bind_object_request_epoch_revision_and_payload ... ok
+test failure_replies_never_leak_object_revision_or_data ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/ui_core-497c535ffdc1d6cc)
+
+running 25 tests
+test keyboard::tests::all_standard_key_positions_emit_unique_physical_events_and_release ... ok
+test keyboard::tests::both_modifier_sides_release_independently_and_locks_ignore_repeat ... ok
+test keyboard::tests::make_repeat_break_and_distinct_extended_keys ... ok
+test keyboard::tests::malformed_input_resets_pressed_state_instead_of_sticking_modifiers ... ok
+test keyboard::tests::printscreen_fake_shifts_and_pause_are_bounded ... ok
+test mouse::tests::cursor_clamps_and_inverts_y_without_unsigned_wrap ... ok
+test mouse::tests::nine_bit_signed_extremes_are_not_truncated_to_i8 ... ok
+test mouse::tests::split_packets_payload_header_bits_and_explicit_resynchronization ... ok
+test routing::tests::button_drag_release_cannot_be_inherited_by_another_focus ... ok
+test routing::tests::device_reset_invalidates_queue_and_clears_held_input ... ok
+test routing::tests::generation_exhaustion_fails_closed_without_token_reuse ... ok
+test routing::tests::previous_focus_modifiers_are_removed_from_new_focus_chords ... ok
+test routing::tests::queued_events_and_held_keys_do_not_cross_focus_even_to_same_owner ... ok
+test routing::tests::reset_does_not_turn_known_held_input_into_new_presses ... ok
+test tests::both_modifier_sides_are_tracked_independently_and_reset_is_safe ... ok
+test mouse::tests::button_transitions_survive_overflow_without_guessed_movement ... ok
+test tests::clipping_preserves_row_padding_and_outer_canaries_in_both_formats ... ok
+test tests::empty_and_offscreen_rects_leave_canvas_untouched ... ok
+test tests::extended_keys_pause_and_printscreen_do_not_leave_fake_shift_pressed ... ok
+test tests::original_glyph_has_expected_pixels_and_clips_safely ... ok
+test tests::release_modifier_chords_and_caps_repeat_do_not_insert_unexpected_text ... ok
+test tests::geometry_rejects_zero_oversize_stride_and_short_buffers ... ok
+test tests::text_limit_backspace_submit_and_zero_capacity_are_explicit ... ok
+test tests::arbitrary_scancode_streams_never_overflow_or_emit_control_sequences ... ok
+test tests::scene_row_and_canvas_keep_padding_and_typed_input_changes_only_input_area ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/virtio_blk_driver-6bd3a907e34f632d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/virtio_core-56bd066db634f2e3)
+
+running 21 tests
+test tests::descriptor_chain_is_fixed_and_confined_to_distinct_pinned_page_plan ... ok
+test tests::feature_negotiation_is_readonly_modern_without_platform_claim ... ok
+test tests::m6_device_failures_are_unknown_and_completed_results_do_not_expire ... ok
+test tests::m6_mutation_epoch_exhaustion_retains_unknown_and_ticket_never_wraps ... ok
+test tests::m6_prepared_rejection_has_no_publication_and_failures_are_atomic ... ok
+test tests::m6_published_unknown_survives_reset_and_cannot_replay ... ok
+test tests::m6_owner_exit_discards_results_without_unquarantining_or_implying_rollback ... ok
+test tests::m6_used_completion_is_operation_specific_never_decodes_unknown ... ok
+test tests::m6_writable_feature_profile_cannot_weaken_m5_or_assume_flush ... ok
+test tests::pci_bar_io_wide_upper_half_and_absolute_overflow ... ok
+test tests::m6_unknown_poll_during_reset_or_quarantine_never_releases_pool ... ok
+test tests::pci_bounded_single_byte_mutations_never_index_outside_snapshot ... ok
+test tests::pci_chain_cycle_alignment_length_and_bounds_fail_closed ... ok
+test tests::m6_exact_operation_chains_headers_and_all_descriptor_mutations ... ok
+test tests::maximum_epoch_and_ticket_do_not_wrap ... ok
+test tests::pci_regions_and_checked_notify_address ... ok
+test tests::pending_bindings_and_consume_are_transactional ... ok
+test tests::used_validation_delta_head_length_and_status ... ok
+test tests::request_bounds_and_overflow_do_not_publish ... ok
+test tests::timeout_requires_reset_ack_and_never_frees_quarantine ... ok
+test tests::software_epoch_separates_old_tickets_after_acknowledged_reset ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/virtio_rng_driver-78f854322f57483d)
+
+running 3 tests
+test tests::used_elements_are_validated_and_empty_answers_are_io_errors ... ok
+test tests::features_accept_only_version_1_without_platform_access ... ok
+test tests::pool_pages_must_be_distinct_aligned_ram_pages ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/volume_core-e112b1c1407f7271)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/crash.rs (target/full-release-host/debug/deps/crash-77106d60b28a014e)
+
+running 4 tests
+test mixed_attempts_for_one_generation_are_never_combined ... ok
+test recovered_instance_continues_after_interrupted_commit ... ok
+test recovery_makes_the_chosen_copy_durable_before_writing ... ok
+test every_crash_point_recovers_to_before_or_after ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 51.33s
+
+     Running tests/history.rs (target/full-release-host/debug/deps/history-9717f03d94278a66)
+
+running 8 tests
+test malformed_s06_requests_are_rejected ... ok
+test read_only_refuses_every_s06_mutation ... ok
+test collection_state_is_readable_and_resolves_unknown ... ok
+test restoring_the_newest_history_version_keeps_the_oldest ... ok
+test collections_metadata_and_filtered_listing ... ok
+test history_restore_undelete_and_purge ... ok
+test stamps_do_not_reveal_other_domain_commits ... ok
+test transactions_are_all_or_nothing ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/service.rs (target/full-release-host/debug/deps/service-837f7883f53726f4)
+
+running 16 tests
+test client_rejects_forged_collection_stat_replies ... ok
+test client_rejects_tampered_replies ... ok
+test client_rejects_inconsistent_stat_and_list_replies ... ok
+test certain_io_failures_abort_without_closing ... ok
+test empty_volume_recovers_as_generation_zero ... ok
+test domains_are_isolated_and_listing_is_paged ... ok
+test malformed_requests_are_rejected_without_io ... ok
+test delete_rename_and_tombstones ... ok
+test read_only_instance_refuses_mutations ... ok
+test large_document_roundtrip_beyond_old_128_byte_limit ... ok
+test streaming_protocol_rules ... ok
+test quota_and_full_are_reported_before_any_io ... ok
+test corrupted_content_and_tables_fail_closed ... ok
+test table_sector_layout_is_canonical ... ok
+test table_write_failure_is_unknown_and_closes_instance ... ok
+test space_is_reused_far_beyond_record_and_capacity_limits ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+   Doc-tests block_protocol
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests boot_protocol
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests capability_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests catalog_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests elf_loader_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests kernel_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests keyring_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests object_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests ui_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests virtio_blk_driver
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests virtio_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests virtio_rng_driver
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests volume_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
