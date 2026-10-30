@@ -1,18 +1,37 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — DHCP-CODEC-1 blijft ongetest en niet-native — 30 oktober 2026
+## NEXT AGENT HANDOFF — DHCP-codec deelproef; client/native werk open — 30 oktober 2026
 
-Branch `simonvanieperen-musical-happiness`; DHCP-codecommit `cdfa365` plus
-Clippy-fix `a3830f3`; `origin/main` is behouden via mergecheckpoint `e1cce29`.
-De branch bevat geen kernel-/SDK-ABI- of netwerkbevoegdheidswijziging.
+Branch `simonvanieperen-musical-happiness`; DHCP-broncommit
+`d16b44a71e5e959f7a7a9a2530e25daf400dd139`, na behoud van `origin/main`
+(`e1cce29`). De gecommitte codec bouwt DISCOVER/selecting DHCPREQUEST/
+renewing DHCPREQUEST en parseert begrensd OFFER/ACK/NAK. Er is geen
+DHCP-toestandsmachine, interface-/routeconfiguratie, leasepersistentie of
+kernel-/SDK-ABI-/capabilitywijziging. DHCP-identiteitsvelden authenticeren de
+server niet; de caller moet beide UDP/IP-endpoints binden.
 
-De codec bouwt DISCOVER, selecting REQUEST en renewal REQUEST en begrensd
-parseert OFFER/ACK/NAK met transaction-/MAC-controle, 576-bytegrens,
-subnet-/router-/DNS-/leasevelden en expliciete weigering van overload. Dit is
-geen DHCP-clienttoestandsmachine en past geen interfaceconfiguratie toe.
-Een matching DHCP-identiteit authenticeert de server niet.
+De parser begrenst berichten op 576 bytes en controleert transaction-ID,
+client-MAC, vaste BOOTP-header, DHCP-cookie, relevante opties en timers. Hij
+weigert option-overload en dubbele relevante opties. Een passende XID/MAC is
+geen serverauthenticatie.
 
-**Bewijs op de huidige codeccommit:** `python3 -B tools/dev.py cargo +1.90.0
+**Huidige bronproef op `d16b44a`:** de volledige DHCP-testgroep slaagt 9/9
+met een tijdelijke Ubuntu GCC 13.4.0/libc sysroot in `/tmp`; geen globale
+installatie of projectdependency. Formatteringscheck en `git diff --check`
+slagen. Een eerdere volledige cratesuite op `a3830f3` vond een foutieve
+renewal-DISCOVER; de test leidde tot de expliciete DHCPREQUEST-fix en nu 9/9.
+Volledige cratesuite, Clippy en de `x86_64-unknown-none`-build moeten op
+`d16b44a` worden herhaald. Bewijs en bronhashes:
+[`verification/dhcpv4-codec/`](verification/dhcpv4-codec/README.md).
+
+`python3 -B tools/preflight.py --strict` exit 2: deze worktree mist QEMU en
+OVMF. Er is geen native DHCP-peer, lease, configuratie of echte verbinding
+getest. **Rubric 34% → 34%; netwerk 0/10; N01–N04 blijven open.**
+Eerstvolgend: volledige cratesuite, Clippy en freestanding build; daarna
+native DHCP-client-/configuratie-integratie zodra de QEMU/OVMF-gate beschikbaar
+is.
+
+**Historische eerste poging vóór tijdelijke linker:** `python3 -B tools/dev.py cargo +1.90.0
 fmt --manifest-path services/net-protocol/Cargo.toml --all -- --check` en
 `env CARGO_TARGET_DIR=target/dhcp-codec python3 -B tools/dev.py cargo +1.90.0
 check --manifest-path services/net-protocol/Cargo.toml --tests --locked
@@ -24,7 +43,7 @@ Gerichte `cargo test` exit 101: `linker cc not found`; uitvoer
 `/tmp/nieuw-os-dhcp-tests.log`. Testcode is typegecontroleerd maar niet
 uitgevoerd. Nergens native QEMU-netwerkbewijs.
 
-**Rubric:** 34% → 34%; N01–N04 blijven open; de codec is geen geaccepteerd
+**Historische rubric-/blockerstatus:** 34% → 34%; N01–N04 bleven open; de codec is geen geaccepteerd
 productcriterium. Broncommits voor de volgende herbeoordeling volgen na het
 implementatiecheckpoint. **Blokker:** lokale hostlinker ontbreekt. Eerstvolgende
 **Eerstvolgend:** commit en push deze assessment; daarna op exact `a3830f3`

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "a3830f3a00bd46053a9fa4dd27de37865272c641",
+    "source_commit": "d16b44a71e5e959f7a7a9a2530e25daf400dd139",
     "branch": "simonvanieperen-musical-happiness",
     "task": "DHCP-CODEC-1: begrensde no_std DHCPv4-codec als voorstap voor native netwerkconfiguratie",
     "previous_score": 34,
-    "summary": "34% blijft 34%. Een dependencyvrije no_std DHCPv4-codec bouwt DISCOVER/selecting REQUEST/renewal REQUEST en parseert begrensd OFFER/ACK/NAK; de kernel-ABI en netwerkrechten zijn onaangeroerd. Na een Clippy-waarschuwing op cdfa365 is de mod-4-check vervangen door `is_multiple_of`; fmt en `cargo check --tests --locked --offline` slagen op de fix. Clippy en targetbuild moeten nog op deze commit worden herhaald; de volledige hosttests linken niet omdat `cc` ontbreekt. Geen DHCP-toestandsmachine, interface-/routeconfiguratie of native peerproef; N01–N04 blijven open en geen criterium is gesloten."
+    "summary": "34% blijft 34%. De no_std DHCPv4-codec bouwt DISCOVER/selecting en renewing DHCPREQUEST en parseert begrensd OFFER/ACK/NAK zonder ABI- of rechtenwijziging. De 9 DHCP-hosttests slagen met een tijdelijke GCC/libc sysroot; een negatieve volledige testrun vond een foutieve renewal-message type en die is hersteld. Volledige cratesuite, Clippy en targetbuild moeten nog op d16b44a worden herhaald. QEMU/OVMF ontbreken in deze worktree, dus geen native DHCP-peer/configuratiebewijs; N01–N04 blijven open en geen rubriccriterium is gesloten."
   },
   "tracks": [
     {

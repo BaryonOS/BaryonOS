@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`a3830f3a`](https://github.com/simonvanieperen/nieuw-os/commit/a3830f3a00bd46053a9fa4dd27de37865272c641) ·
+**Bron:** [`d16b44a7`](https://github.com/simonvanieperen/nieuw-os/commit/d16b44a71e5e959f7a7a9a2530e25daf400dd139) ·
 **Ontwikkelbranch:** `simonvanieperen-musical-happiness`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** DHCP-CODEC-1: begrensde no_std DHCPv4-codec als voorstap voor native netwerkconfiguratie.
-34% blijft 34%. Een dependencyvrije no_std DHCPv4-codec bouwt DISCOVER/selecting REQUEST/renewal REQUEST en parseert begrensd OFFER/ACK/NAK; de kernel-ABI en netwerkrechten zijn onaangeroerd. Na een Clippy-waarschuwing op cdfa365 is de mod-4-check vervangen door `is_multiple_of`; fmt en `cargo check --tests --locked --offline` slagen op de fix. Clippy en targetbuild moeten nog op deze commit worden herhaald; de volledige hosttests linken niet omdat `cc` ontbreekt. Geen DHCP-toestandsmachine, interface-/routeconfiguratie of native peerproef; N01–N04 blijven open en geen criterium is gesloten.
+34% blijft 34%. De no_std DHCPv4-codec bouwt DISCOVER/selecting en renewing DHCPREQUEST en parseert begrensd OFFER/ACK/NAK zonder ABI- of rechtenwijziging. De 9 DHCP-hosttests slagen met een tijdelijke GCC/libc sysroot; een negatieve volledige testrun vond een foutieve renewal-message type en die is hersteld. Volledige cratesuite, Clippy en targetbuild moeten nog op d16b44a worden herhaald. QEMU/OVMF ontbreken in deze worktree, dus geen native DHCP-peer/configuratiebewijs; N01–N04 blijven open en geen rubriccriterium is gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
