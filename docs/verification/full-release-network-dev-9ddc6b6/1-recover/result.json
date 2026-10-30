@@ -1,0 +1,919 @@
+{
+  "schema_version": 1,
+  "case": "recover",
+  "source_commit": "9ddc6b6df82fc555ea6d28247a971ea1b09a8b99",
+  "source_fingerprint_version": 3,
+  "source_sha256": "f5c4968216a35c4fab9f85d3c9c34729c5e667cf5a0066561f067ba5c452789c",
+  "kernel_feature": "test-system-net-recover",
+  "started_utc": "2026-10-30T16:57:06.140611+00:00",
+  "duration_s": 32.498206749998644,
+  "timeout_s": 180,
+  "raw_qemu_exit": 33,
+  "timed_out": false,
+  "command": [
+    "/tmp/nieuw-os-qemu-102/root/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/network-dev/run/system-recover-fbdccf3627154658bcccdf8f33fd94c3/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/network-dev/run/system-recover-fbdccf3627154658bcccdf8f33fd94c3/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/network-dev/run/system-recover-fbdccf3627154658bcccdf8f33fd94c3/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=on,file=build/network-dev/run/system-image-f4ec2569498649288ac8eb3fed008790/volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-fw_cfg",
+    "name=opt/org.tianocore/VirtioNetSupport,string=no",
+    "-fw_cfg",
+    "name=opt/org.tianocore/IPv4Support,string=no",
+    "-fw_cfg",
+    "name=opt/org.tianocore/IPv6Support,string=no",
+    "-netdev",
+    "socket,id=net0,connect=127.0.0.1:40477",
+    "-device",
+    "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile="
+  ],
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "test-system-net-recover",
+    "kernel_feature": "test-system-net-recover",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "f5c4968216a35c4fab9f85d3c9c34729c5e667cf5a0066561f067ba5c452789c",
+    "loader": {
+      "sha256": "9d91a65fa92b1d3ddfd31807dc1d39bdf96854dbdea5436bef451edc9679a901",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "fae244b62d46e3258018fdda3d1b0f6609004fc6013d8148c064019d01afc1c1",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 176359,
+          "memsz": 176359,
+          "page_start": 33554432,
+          "page_end": 33734656
+        },
+        {
+          "flags": 4,
+          "offset": 184320,
+          "address": 33734656,
+          "filesz": 419448,
+          "memsz": 419448,
+          "page_start": 33734656,
+          "page_end": 34156544
+        },
+        {
+          "flags": 6,
+          "offset": 606208,
+          "address": 34156544,
+          "filesz": 1262256,
+          "memsz": 4349424,
+          "page_start": 34156544,
+          "page_end": 38506496
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 176359
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 419448
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1262256
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3083760
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 8376
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 18675
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "system": {
+      "system_init": {
+        "sha256": "2430d839bcb67e8abfa317125495d381e3d87f6a47ef6bd7df6306f191a8613b",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1256,
+              "memsz": 1256,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 1921,
+              "memsz": 1921,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 20514,
+              "memsz": 20514,
+              "page_start": 1073872896,
+              "page_end": 1073897472
+            }
+          ]
+        }
+      },
+      "system_app": {
+        "sha256": "3f21ab2298a7870d798910bedc4b919e7f60bc0311f4d1d30935bd8f15bec7da",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 4525,
+              "memsz": 4525,
+              "page_start": 1073823744,
+              "page_end": 1073831936
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 20480,
+              "filesz": 52962,
+              "memsz": 52962,
+              "page_start": 1073872896,
+              "page_end": 1073926144
+            }
+          ]
+        }
+      },
+      "system_worker": {
+        "sha256": "627fb3bcd78ee0755a342587c9d08368ade357c1a1be8f0cfd628459ec471ea7",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 306,
+              "memsz": 306,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1040,
+              "memsz": 1040,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 519,
+              "memsz": 519,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            }
+          ]
+        }
+      },
+      "keyring_service": {
+        "sha256": "4d9a31e8867239e91f6ca976ac99fcedf2659aeeb44105934901c964c3b057fe",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1344,
+              "memsz": 1344,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 4339,
+              "memsz": 4339,
+              "page_start": 1073823744,
+              "page_end": 1073831936
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 20480,
+              "filesz": 78807,
+              "memsz": 78807,
+              "page_start": 1073872896,
+              "page_end": 1073954816
+            }
+          ]
+        }
+      },
+      "volume_service": {
+        "sha256": "dad45af95028876b77a313680eb6e56237af209b107d570d3a950396fb71e733",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 56562,
+              "memsz": 56562,
+              "page_start": 1073741824,
+              "page_end": 1073799168
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 61440,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 65536,
+              "filesz": 18282,
+              "memsz": 18282,
+              "page_start": 1073823744,
+              "page_end": 1073844224
+            }
+          ]
+        }
+      },
+      "net_probe": {
+        "sha256": "596c4095ccde2613d7b0f1a612305b430b59e83151cf60cdb518b647ff9015d7",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1240,
+              "memsz": 1240,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 1545,
+              "memsz": 1545,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 21463,
+              "memsz": 21463,
+              "page_start": 1073872896,
+              "page_end": 1073897472
+            }
+          ]
+        }
+      }
+    }
+  },
+  "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/network-dev/run/system-recover-fbdccf3627154658bcccdf8f33fd94c3",
+  "volume_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/network-dev/run/system-image-f4ec2569498649288ac8eb3fed008790",
+  "before_sha256": "6f6268c11f1ceba867e7c00f71faeabd2b3100b00a4e044c6e7a24efe275aab2",
+  "after_sha256": "6f6268c11f1ceba867e7c00f71faeabd2b3100b00a4e044c6e7a24efe275aab2",
+  "firmware_sha256": {
+    "code": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "esp_sha256": {
+    "esp/kernel.elf": "fae244b62d46e3258018fdda3d1b0f6609004fc6013d8148c064019d01afc1c1",
+    "esp/EFI/BOOT/BOOTX64.EFI": "9d91a65fa92b1d3ddfd31807dc1d39bdf96854dbdea5436bef451edc9679a901"
+  },
+  "passed": true,
+  "network_gate": true,
+  "evidence": {
+    "APP_READY": 2,
+    "APP_DOCS": 1,
+    "APP_DENIED": 3,
+    "APP_REVISION": 1,
+    "APP_BYTES": 4096,
+    "APP_CONTENT_SUM": 287428370566516885,
+    "CRYPTO_SEAL": 2,
+    "CRYPTO_UNSEAL": 3,
+    "CRYPTO_TAMPER_DENIED": 11,
+    "RECORD_SEAL": 1,
+    "RECORD_UNSEAL": 1,
+    "RECORD_CONTEXT_DENIED": 10,
+    "RECORD_REVOKED_DENIED": 2,
+    "CRYPTO_RESTORES": 1,
+    "KEYSTATE_EXPORTS": 0,
+    "KEYSTATE_RESTORES": 1,
+    "KEYSTATE_WRONG_SECRET_DENIED": 1,
+    "KEYSTATE_FLOOR_DENIED": 1,
+    "KEYSTATE_ADMIN_OP_DENIED": 1,
+    "KEYSTATE_BYTES": 120,
+    "KEYSTATE_GENERATION": 3,
+    "ADMIN_REQUESTS": 4,
+    "ADMIN_DENIED": 3,
+    "RECORD_PERSISTED": 0,
+    "RECORD_RESTORED_UNSEAL": 1,
+    "RECORD_RESTORED_REVOKED_DENIED": 1,
+    "RECORD_RESTORED_TAMPER_DENIED": 1,
+    "RECORD_ADMIN_DENIED": 2,
+    "RECORD_OBJECT_REVISION": 1,
+    "WORKER_SPAWNS": 2,
+    "WORKER_FAULTS": 1,
+    "WORKER_RESTARTS": 1,
+    "WORKER_KILLS": 1,
+    "ENTROPY_BYTES": 1024,
+    "DISK_READS": 720,
+    "DISK_WRITES": 0,
+    "DISK_FLUSHES": 0,
+    "NET_ARP_REPLIES": 1,
+    "NET_UDP_ECHOES": 1,
+    "NET_DNS_ANSWERS": 1,
+    "NET_APP_DENIED": 7,
+    "NET_TX_COMPLETIONS": 8,
+    "NET_RX_FRAMES": 7,
+    "NET_ARP_REJECTS": 2,
+    "NET_DNS_REJECTS": 2,
+    "NET_RX_TIMEOUTS": 1,
+    "NET_CACHE_INTACT": 1,
+    "NET_STALE_CAP": 1,
+    "NET_TX_SUBMITTED": 8,
+    "NET_TX_COMPLETED": 8,
+    "NET_RX_COMPLETED": 7,
+    "NET_RX_DELIVERED": 7,
+    "NET_DENIED": 7,
+    "NET_TX_TIMEOUTS": 0,
+    "NET_RESETS": 1,
+    "NET_RESET_ACKS": 1,
+    "LIVE_PROCESSES_AFTER": 0,
+    "FRAMES_RECOVERED": 1
+  },
+  "oracle": {
+    "generation": 3,
+    "clocks": [
+      2,
+      1
+    ],
+    "objects": [
+      {
+        "object": 0,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 3,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 4096,
+            "name": "systeemproef",
+            "content_revision": 1,
+            "chunks": [
+              1
+            ]
+          }
+        ]
+      },
+      {
+        "object": 1,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 33,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 168,
+            "name": "verzegeld",
+            "content_revision": null,
+            "chunks": [
+              2
+            ],
+            "content_hex": "c3f57349abd3eaeba2d125072dcf40ab625a66fa389e5ee0c7c2762ba61af6e1c1c4919b9cbd26285ee0043fe247f6ae937cdd6cec44923d345cdfd663e72d2c8759e713387839f456153d8d3971222ba27fbfd520246fc3a8e44e1d49f7a1a87e22d119b8ef0f3948461f9d00d6d1397c669faf630d5782d55ad2a96cfbd800d1100b2a485963351aa904a79162f240c9e01822efb2c254b03e8d822a6390df1c69845df19169d4"
+          }
+        ]
+      },
+      {
+        "object": 2,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 3,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 4,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 5,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 6,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 7,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 8,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 512,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 120,
+            "name": "sleutelstatus",
+            "content_revision": null,
+            "chunks": [
+              0
+            ],
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c30310000000007d263b7cf39f70939ce133dc2536dc1ec1eb25aeda599d3abb9462557de5e8f92708b7b59dd4ab139cbdd13a50b6b143c71a4480345ec5e8885504c549c4b51fe7b721b88a3f8121fed2c203f41f4180c1afd4b01751602"
+          }
+        ]
+      },
+      {
+        "object": 9,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 10,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 11,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 12,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 13,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 14,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 15,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      }
+    ],
+    "collections": [
+      {
+        "index": 1,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 1,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      }
+    ],
+    "chunks_used": 3,
+    "slots": [
+      [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ]
+    ],
+    "digests": [
+      10927944806121284063,
+      2900652644438588874
+    ]
+  },
+  "network_peer": {
+    "kind": "synthetic protocol counterparty; not OS client",
+    "connected": true,
+    "error": null,
+    "rejected_frame": null,
+    "counts": {
+      "accepted_frames": 8,
+      "arp_requests": 3,
+      "arp_bad_sender_sent": 1,
+      "arp_wrong_target_sent": 1,
+      "arp_valid_sent": 1,
+      "udp_echo_requests": 1,
+      "udp_echo_replies": 1,
+      "dns_requests": 4,
+      "dns_wrong_id_sent": 1,
+      "dns_bad_name_sent": 1,
+      "dns_answers_sent": 1,
+      "dns_timeouts": 1,
+      "response_frames": 7
+    },
+    "events": [
+      {
+        "sequence": 1,
+        "event": "arp_bad_sender_sent",
+        "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+        "response_sha256": [
+          "ab2fdb3d8fec2bbd3e5861769115b99a8d47c03350a96362e0ba230dd74d1760"
+        ],
+        "requested_ipv4": "192.0.2.1"
+      },
+      {
+        "sequence": 2,
+        "event": "arp_wrong_target_sent",
+        "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+        "response_sha256": [
+          "2d1e92d9a6b28aa97f0489e113e88c9c0e1d95bf43bdd51ed9a22117747b9fd9"
+        ],
+        "requested_ipv4": "192.0.2.1"
+      },
+      {
+        "sequence": 3,
+        "event": "arp_valid_sent",
+        "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+        "response_sha256": [
+          "de816388cafa8e9b91fde11dc099c4043551a19983c6b41ef2fb852ee2434313"
+        ],
+        "requested_ipv4": "192.0.2.1"
+      },
+      {
+        "sequence": 4,
+        "event": "udp_echo_replies",
+        "request_sha256": "b0c0148a928582e5c180016ab3693f5f04491730cef7d46320a8baaf47e8cbf4",
+        "response_sha256": [
+          "dc23edac67c59756e8530cb368c20959b6e3ae70347f612dd2ac0fb57333fc7d"
+        ],
+        "payload_sha256": "9ede2fa4b7b8bc0b3590c4f8f6cf973e1462e9b79ecc2417f6fc3557ca5ff87e"
+      },
+      {
+        "sequence": 5,
+        "event": "dns_wrong_id_sent",
+        "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+        "response_sha256": [
+          "4c41eddd6014f0e7f39840fe780ac97ffd4c3c0ff87fd7f3b9b2b790b64acdd4"
+        ],
+        "question_name": "native.nieuw.test",
+        "transaction_id": 4660
+      },
+      {
+        "sequence": 6,
+        "event": "dns_bad_name_sent",
+        "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+        "response_sha256": [
+          "520539a2c2da37d995bb00c3a75becddf456b41290789586e4e4d2cf5a860e97"
+        ],
+        "question_name": "native.nieuw.test",
+        "transaction_id": 4660
+      },
+      {
+        "sequence": 7,
+        "event": "dns_answers_sent",
+        "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+        "response_sha256": [
+          "1113620ce9e0b84521f4009dd02f8d24a14f3b90a76c6a4764b22e924e4f8a07"
+        ],
+        "question_name": "native.nieuw.test",
+        "transaction_id": 4660
+      },
+      {
+        "sequence": 8,
+        "event": "dns_timeouts",
+        "request_sha256": "f850819241a0ee10d2f1e9e1ece0c43c2c5536cea71df7328fce1bf84365dc05",
+        "response_sha256": [],
+        "question_name": "timeout.nieuw.test",
+        "transaction_id": 22136
+      }
+    ]
+  }
+}

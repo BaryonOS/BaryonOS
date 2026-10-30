@@ -91,8 +91,8 @@ NAS- of bestemmingsrecht bepalen. De nul-checksumstatus moet zichtbaar
 blijven voor een toekomstige expliciete servicekeuze.
 
 Driver, MTU/FCS/offloadbeleid, ontvangstbuffers, route-/subnetbeleid,
-socket-/procesrechten, TCP, DHCP, native DNS-/ARP-integratie, TLS en echte
-verbindingen blijven open.
+socket-/procesrechten, DHCP-clienttoestanden, native DNS-/ARP-integratie, TLS
+en echte verbindingen blijven open.
 Deze beperkte parser is geen volledige IPv4-hostimplementatie en wordt nog
 niet door een native netwerkdienst aangeroepen. Er is geen nieuw
 netwerk-, privacy-, hardware- of roadmapcriterium geaccepteerd.
@@ -158,11 +158,50 @@ Specificatiebasis: RFC 826 (ARP-velden en opcodes), RFC 1035 §§3.1, 4.1 en
 kennisoriëntatie: OSDev *Address Resolution Protocol*, W002539, revisie 11170
 (5 februari 2011). Geen tutorialcode overgenomen; geen dependency toegevoegd.
 
+## DHCPv4 — pakketcodec voor toekomstige configuratiedienst
+
+`dhcp` voegt vaste, allocatorvrije BOOTP/DHCP-berichten toe. `build_discover`,
+`build_selecting_request` en `build_renewal_request` coderen respectievelijk
+DISCOVER, de gekozen OFFER-aanvraag en een bestaande lease-aanvraag. De
+aanroeper levert MAC, transaction-ID en verstreken seconden; deze crate
+genereert geen entropy, verstuurt geen frame en beheert geen timer.
+Alle drie builders retourneren minimaal 300 UDP-payloadbytes, met
+nulvulling na END, voor de BOOTP-consistentiecontrole uit RFC 1542 §2.1.
+Een buffer kleiner dan de volledige berichtlengte geeft `OutputTooSmall`
+zonder wijziging; bytes buiten de teruggegeven lengte blijven intact.
+
+`parse_reply` begrenst de ontvangen BOOTP/DHCP-datagramlengte op 576 bytes en
+controleert BOOTREPLY, Ethernet-type/-lengte, transaction-ID, client-MAC,
+cookie, optiongrenzen, einde/padding, berichttype, server-ID en leasevelden.
+De eerste profielsubset leest subnetmasker, router(s), DNS, leaseduur en
+optionele T1/T2; lijsten zijn begrensd op vier adressen. Ongeldige masks,
+adressen, lease-timers, dubbele relevante opties en DHCP option-overload
+worden geweigerd. RFC 3396-concatenatie en option-overload zijn nog niet
+ondersteund; dit kan compatibiliteit met geldige uitgebreide serverantwoorden
+beperken en is geen volledige DHCP-client.
+
+De parser controleert geen UDP/IP-bron- of bestemmingsendpoint; de caller moet
+dat vóór gebruik doen. Een passende transaction-ID of DHCP-server-ID is geen
+serverauthenticatie: DHCP kan route/DNS-configuratie niet veilig valideren
+tegen een kwaadwillende linkgenoot. De parser activeert geen lease, route of
+DNS-server. Ontdekken, kiezen, ARP-adresconflictcontrole, DHCPDECLINE/NAK-
+herstel, leasepersistentie, T1-renewal, T2-rebinding, linkovergang en
+reconnect zijn nog niet geïmplementeerd. De kernel-ABI en capabilitygrens
+veranderen niet; DHCP krijgt geen zelfstandige bevoegdheid.
+
+Dit is een host-/freestanding-codecbouwsteen voor FR-N01, geen N01-aftekening
+of Internetbewijs. Pas een native test met een protocolconforme DHCP-peer,
+echte virtio-netframes, toegepaste configuratie, leaseverlenging/-verval,
+verkeerde serverantwoorden en koude/hot-linkherstel kan netwerkvoortgang
+onderbouwen.
+
 ## Uitvoering en bewijs
 
 ```sh
 CARGO_TARGET_DIR=/tmp/nieuw-os-net-parser-target \
   cargo +1.90.0 test --manifest-path services/net-protocol/Cargo.toml --locked --offline
+CARGO_TARGET_DIR=/tmp/nieuw-os-net-parser-target \
+  cargo +1.90.0 check --manifest-path services/net-protocol/Cargo.toml --tests --locked --offline
 CARGO_TARGET_DIR=/tmp/nieuw-os-net-parser-target \
   cargo +1.90.0 clippy --manifest-path services/net-protocol/Cargo.toml --all-targets --locked --offline -- -D warnings
 cargo +1.90.0 fmt --manifest-path services/net-protocol/Cargo.toml --all -- --check
@@ -195,3 +234,8 @@ Geraadpleegd 28 oktober 2026:
 - IANA, *IEEE 802 Numbers*, versie 3 november 2024:
   <https://www.iana.org/assignments/ieee-802-numbers/>; labels van de twee
   expliciet geweigerde VLAN-tagtypen.
+- R. Droms, *Dynamic Host Configuration Protocol*, RFC 2131, maart 1997,
+  §§3.1, 3.2, 4.1 en 4.4.5: <https://www.rfc-editor.org/rfc/rfc2131.html>.
+- S. Alexander en R. Droms, *DHCP Options and BOOTP Vendor Extensions*,
+  RFC 2132, maart 1997, §§3.3, 3.9, 3.11 en 9:
+  <https://www.rfc-editor.org/rfc/rfc2132.html>.
