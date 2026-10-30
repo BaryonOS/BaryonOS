@@ -28,10 +28,51 @@ Dezelfde selectie met
 `cargo +1.90.0 clippy --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime -p nieuw-os-keyring-random-client --all-targets -- -D warnings`
 exit0. Logs `/tmp/nieuw-os-security-ipc-random-drop-{host,clippy}.log`.
 
-Checkpoint vóór volledige native herhaling op nieuwe commit/fingerprint.
-De eerdere82b-system/B01/WAIT-uitkomsten hieronder blijven eigen
-historische bron; RANDOM vier gevallen en nieuwe system/B01/WAIT zijn
-nog **niet uitgevoerd** op deze consumerfix. PR blijft concept/WIP;
+Nieuwe echte native herhaling op
+`d4677211edc6b380f2e4f2d5f57ad9d8f0a75e72`, v3
+`8d908a3b08bd99628e6485493600aaec707aa11f8d21da216d761019d249e38d`:
+
+| Exacte opdracht | Resultaat |
+|---|---|
+| `python3 -B -u tools/test_system.py` | exit0,2/2 gasten normaal+koud |
+| `python3 -B -u tools/test_keyring.py` | exit0,5/5 B01-gasten |
+| `python3 -B -u tools/run_ipc_wait.py` | exit0,1/1 WAIT-gast,raw33 |
+| `python3 -B -u tools/build.py --kernel-feature native-system-random` en `python3 -B -u tools/run_random.py --case raw` | beide exit0,1 echte gast,raw33 |
+| `python3 -B -u tools/build.py --kernel-feature test-system-random-sdk` en `python3 -B -u tools/run_random.py --case sdk` | beide exit0,1 echte gast,raw33 |
+| `python3 -B -u tools/build.py --kernel-feature test-system-random-unknown` en `python3 -B -u tools/run_random.py --case unknown` | beide exit0,1 echte gast,raw33 |
+| `python3 -B -u tools/build.py --kernel-feature test-system-random-wrong-caller` en `python3 -B -u tools/run_random.py --case wrong-caller` | beide exit0,1 echte gast,raw33 |
+
+Alle12 gasten gebruiken eigen wegwerpimages/schone firmware; de RANDOM-runner
+hercontroleert de werkelijke IPC/servicecounters, afzenderbinding,
+capabilityweigeringen en Unknown/no-retry vóór een geslaagde gate.
+Geen tijd-/signer-/TLS-grant of entropykwaliteitsclaim toegevoegd.
+
+Brongebonden capturecommands, beide exit0:
+`python3 -B tools/capture_system.py --destination docs/verification/full-release-ipc-drop-system`
+en
+`python3 -B tools/capture_keyring.py --destination docs/verification/ipc-drop-keyring`.
+De prefix `full-release-` is verplicht door de bestaande capturetool,
+geen integrale releaseclaim. WAIT/RANDOM-rapporten en ongewijzigde echte
+serialbytes/logs staan in `ipc-drop-random/`, per geval; de huidige buffers
+en alle12 native-uitkomsten hebben uitsluitend bovenstaande nieuwe bron.
+
+Aanvullend
+`cargo +1.90.0 test --offline --locked --release --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client --lib sdk_owned_envelopes_are_zeroized_by_their_destructors`
+exit0/1: echte320-bytezeroisatie ook met release-optimalisatie.
+Gerichte fmt-checks voor client en probe slagen. Ruwe logs
+`/tmp/nieuw-os-ipc-drop-{system,keyring,wait,random-<case>[-build],release-destructor}.log`
+en de eerder vermelde host-/Clippylogs zijn in de capture opgenomen.
+Alle vier RANDOM-serialorakels zijn bij capture opnieuw berekend en
+vergeleken met de opgeslagen servicecounters. Alle66 capturehashes zijn
+tegen Git-blobs gecontroleerd. De whitespacecontrole vond een lege
+EOF-regel in de ongewijzigde ruwe Cargo-teststdout; die hostlogs behouden
+hun bytes met een uitsluitend capturelokale whitespace-attribuutregel.
+
+De eerdere82b-system/B01/WAIT-uitkomsten en mislukte RANDOM-compile
+hieronder blijven historisch eigen bron; niet omgelabeld of verzwegen.
+PR blijft concept/WIP totdat actuele-mainintegratie/head-CI en lifecycle-
+review zijn afgerond; die controles, volledige overige native matrix,
+fysieke hardware en menselijke externe review zijn **niet uitgevoerd**.
 #74 frozen, geen scopeoverdracht. Score34→34/security4of12, TL eigenaar.
 
 ## Vervolg op main94 — WAIT-behoud en sterkere redactietest
