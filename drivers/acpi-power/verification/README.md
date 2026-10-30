@@ -2,7 +2,7 @@
 
 ## Basis and scope
 
-- Source base for this follow-up: `ff6e4c467720164c59f19c5f8e9fc4a1d16cfc0c`.
+- Source base for this follow-up: `50e5954ceb958b08178f94a77fff02e9fa952feb`.
 - Rust toolchain: `1.90.0`; Cargo ran offline against the existing local
   toolchain/cache.
 - Scope: only `drivers/acpi-power/**`; no kernel, BootInfo, build-profile,
@@ -18,7 +18,7 @@ Run from the repository root with the selected Rust toolchain available:
 | Check | Exact command | Exit | Output |
 |---|---|---:|---|
 | Rust formatting | `cargo +1.90.0 fmt --manifest-path drivers/acpi-power/Cargo.toml -- --check` | 0 | `fmt.log` |
-| Unit and negative tests | `cargo +1.90.0 test --offline --locked --manifest-path drivers/acpi-power/Cargo.toml` | 0; 17 passed | `tests.log` |
+| Unit and negative tests | `cargo +1.90.0 test --offline --locked --manifest-path drivers/acpi-power/Cargo.toml` | 0; 22 passed | `tests.log` |
 | Clippy | `cargo +1.90.0 clippy --offline --locked --manifest-path drivers/acpi-power/Cargo.toml --all-targets -- -D warnings` | 0 | `clippy.log` |
 | `no_std` release build | `cargo +1.90.0 build --target x86_64-unknown-none --release --offline --locked --manifest-path drivers/acpi-power/Cargo.toml` | 0 | `build.log` |
 
@@ -56,6 +56,22 @@ that overlap by either byte are rejected. An incorrect nonzero `X_DSDT`
 address also fails even when the legacy DSDT address matches. This follow-up
 adds negative coverage without changing the public API or register-selection
 behavior.
+
+## QEMU S5 object-shape correction
+
+The QEMU `v10.2.1` table builder places `_S5_` inside literal `Scope(\)` and
+uses four package elements (types A/B, reserved zero/zero). The original
+parser skipped this scope and accepted only two fields. The new bounded
+root-scope traversal and four-element support address that concrete
+compatibility blocker without general AML execution. The public QEMU source
+URL and exact source SHA-256 are in the crate README; no upstream code was
+copied.
+
+Five tests cover that shape, nonzero/truncated reserved fields, scope-boundary
+escapes, resuming after scopes, duplicate definitions across scopes, and the
+eight-level fixed-stack bound. Existing non-root-scope byte-pattern rejection
+remains. A full guest-firmware DSDT, loader handoff and native poweroff remain
+unverified; a synthetic QEMU-shaped fixture is not a native pass.
 
 ## Still open
 

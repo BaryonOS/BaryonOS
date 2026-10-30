@@ -10,6 +10,7 @@ const SDT_HEADER_LEN: usize = 36;
 const FADT_MIN_LEN: usize = 116;
 const MAX_TABLE_LEN: usize = 1024 * 1024;
 const MAX_AML_TERMS: usize = 65_536;
+const MAX_ROOT_SCOPE_DEPTH: usize = 8;
 const PM1_CNT_LEN_OFFSET: usize = 89;
 const FADT_FLAGS_OFFSET: usize = 112;
 const FADT_DSDT_OFFSET: usize = 40;
@@ -317,7 +318,19 @@ fn parse_aml_s5(aml: &[u8]) -> Result<(u8, u8), Error> {
     let mut cursor = 0usize;
     let mut terms = 0usize;
     let mut found = None;
+    let mut scope_ends = [0usize; MAX_ROOT_SCOPE_DEPTH];
+    let mut scope_depth = 0usize;
+    let mut end = aml.len();
     while cursor < aml.len() {
+        if cursor == end {
+            if scope_depth == 0 {
+                break;
+            }
+            scope_depth -= 1;
+            end = scope_ends[scope_depth];
+            continue;
+        }
+        let aml = &aml[..end];
         terms += 1;
         if terms > MAX_AML_TERMS {
             return Err(Error::MalformedAml);
@@ -340,13 +353,24 @@ fn parse_aml_s5(aml: &[u8]) -> Result<(u8, u8), Error> {
                 }
                 let _ = name;
             }
-            AML_SCOPE_OP | AML_METHOD_OP => {
-                let kind = if aml[cursor] == AML_SCOPE_OP {
-                    PackageHeader::Name
+            AML_SCOPE_OP => {
+                let (scope_end, body_start) = package_bounds(aml, cursor + 1)?;
+                let (_, name_len, _) = parse_name_string(&aml[body_start..scope_end])?;
+                let name_end = body_start + name_len;
+                if aml.get(body_start..name_end) == Some(&[0x5c, 0x00][..]) {
+                    if scope_depth == MAX_ROOT_SCOPE_DEPTH {
+                        return Err(Error::MalformedAml);
+                    }
+                    scope_ends[scope_depth] = end;
+                    scope_depth += 1;
+                    end = scope_end;
+                    cursor = name_end;
                 } else {
-                    PackageHeader::NameAndFlags
-                };
-                cursor = skip_namespace_package(aml, cursor + 1, kind)?;
+                    cursor = skip_namespace_package(aml, cursor + 1, PackageHeader::Name)?;
+                }
+            }
+            AML_METHOD_OP => {
+                cursor = skip_namespace_package(aml, cursor + 1, PackageHeader::NameAndFlags)?;
             }
             AML_EXT_OP => {
                 let opcode = *aml.get(cursor + 1).ok_or(Error::MalformedAml)?;
@@ -481,7 +505,7 @@ fn parse_s5_package(bytes: &[u8]) -> Result<((u8, u8), usize), Error> {
     }
     let (end, body_start) = package_bounds(bytes, 1)?;
     let count = *bytes.get(body_start).ok_or(Error::MalformedAml)?;
-    if count != 2 {
+    if count != 2 && count != 4 {
         return Err(Error::InvalidS5Package);
     }
     let mut cursor = body_start + 1;
@@ -489,6 +513,15 @@ fn parse_s5_package(bytes: &[u8]) -> Result<((u8, u8), usize), Error> {
     cursor += first.1;
     let second = parse_integer(bytes.get(cursor..end).ok_or(Error::MalformedAml)?)?;
     cursor += second.1;
+    if count == 4 {
+        for _ in 0..2 {
+            let reserved = parse_integer(bytes.get(cursor..end).ok_or(Error::MalformedAml)?)?;
+            if reserved.0 != 0 {
+                return Err(Error::InvalidS5Package);
+            }
+            cursor += reserved.1;
+        }
+    }
     if cursor != end {
         return Err(Error::InvalidS5Package);
     }
@@ -1081,5 +1114,114 @@ mod tests {
             parse(&firmware, &definition),
             Err(Error::DsdtAddressMismatch)
         );
+    }
+
+    fn root_scope(body: &[u8]) -> Vec<u8> {
+        let body_len = body.len() + 2;
+        let mut bytes = vec![0x10];
+        if body_len + 1 < 64 {
+            bytes.push((body_len + 1) as u8);
+        } else {
+            let length = body_len + 2;
+            assert!(length < 4096);
+            bytes.push(0x40 | (length & 0x0f) as u8);
+            bytes.push((length >> 4) as u8);
+        }
+        bytes.extend_from_slice(&[0x5c, 0x00]);
+        bytes.extend_from_slice(body);
+        bytes
+    }
+
+    fn four_element_s5(first: u8, second: u8, reserved: [u8; 2]) -> Vec<u8> {
+        let mut body = vec![4];
+        for value in [first, second, reserved[0], reserved[1]] {
+            body.extend_from_slice(&integer(value));
+        }
+        let mut bytes = vec![0x08];
+        bytes.extend_from_slice(b"_S5_");
+        bytes.extend_from_slice(&package(&body));
+        bytes
+    }
+
+    #[test]
+    fn accepts_qemu_root_scope_and_four_element_sleep_package() {
+        let firmware = fadt(0x604, 0);
+        let aml = root_scope(&four_element_s5(0, 0, [0, 0]));
+        let plan = parse(&firmware, &dsdt(&aml)).unwrap();
+        assert_eq!(plan.pm1a().address(), 0x604);
+        assert_eq!(plan.pm1a().sleep_type(), 0);
+        assert_eq!(plan.pm1b(), None);
+        assert_eq!(plan.pm1a().apply_to(1), 0x2001);
+    }
+
+    #[test]
+    fn resumes_after_root_scopes_and_rejects_duplicate_s5() {
+        let firmware = fadt(0x604, 0);
+        let mut aml = root_scope(&[]);
+        aml.extend_from_slice(&root_scope(&four_element_s5(5, 6, [0, 0])));
+        aml.extend_from_slice(&[0xa3]);
+        let plan = parse(&firmware, &dsdt(&aml)).unwrap();
+        assert_eq!(plan.pm1a().sleep_type(), 5);
+
+        for duplicate in [root_s5(0, 0), root_scope(&four_element_s5(0, 0, [0, 0]))] {
+            let mut ambiguous = aml.clone();
+            ambiguous.extend_from_slice(&duplicate);
+            assert_eq!(
+                parse(&firmware, &dsdt(&ambiguous)),
+                Err(Error::DuplicateS5Object)
+            );
+        }
+    }
+
+    #[test]
+    fn bounds_nested_root_scopes_without_recursive_stack_growth() {
+        let firmware = fadt(0x604, 0);
+        let mut aml = four_element_s5(0, 0, [0, 0]);
+        for _ in 0..super::MAX_ROOT_SCOPE_DEPTH {
+            aml = root_scope(&aml);
+        }
+        assert!(parse(&firmware, &dsdt(&aml)).is_ok());
+        aml = root_scope(&aml);
+        assert_eq!(parse(&firmware, &dsdt(&aml)), Err(Error::MalformedAml));
+    }
+
+    #[test]
+    fn rejects_s5_package_that_escapes_its_root_scope() {
+        let firmware = fadt(0x604, 0);
+        let aml = root_scope(&four_element_s5(0, 0, [0, 0]));
+        for removed_from_scope in 1..=4 {
+            let mut malformed = aml.clone();
+            malformed[1] -= removed_from_scope;
+            assert!(parse(&firmware, &dsdt(&malformed)).is_err());
+        }
+        let mut unsupported = aml;
+        unsupported.extend_from_slice(&[0x99]);
+        assert_eq!(
+            parse(&firmware, &dsdt(&unsupported)),
+            Err(Error::UnsupportedAml)
+        );
+    }
+
+    #[test]
+    fn rejects_nonzero_or_truncated_reserved_s5_elements() {
+        let firmware = fadt(0x604, 0);
+        for reserved in [[1, 0], [0, 1], [1, 1], [0xff, 0]] {
+            assert_eq!(
+                parse(
+                    &firmware,
+                    &dsdt(&root_scope(&four_element_s5(0, 0, reserved)))
+                ),
+                Err(Error::InvalidS5Package)
+            );
+        }
+        for body in [&[4, 0, 0][..], &[4, 0, 0, 0][..], &[4, 0, 0, 0x0a][..]] {
+            let mut aml = vec![0x08];
+            aml.extend_from_slice(b"_S5_");
+            aml.extend_from_slice(&package(body));
+            assert_eq!(
+                parse(&firmware, &dsdt(&root_scope(&aml))),
+                Err(Error::MalformedAml)
+            );
+        }
     }
 }

@@ -33,16 +33,26 @@ poweroff-capability en de later exact afgebakende QEMU-only write/flush-actie.
 
 ## Begrensde AML-subset
 
-De parser herkent alleen een root-scope `Name(_S5_, Package(...))` met exact
-twee integerconstanten (`Zero`, `One`, `Ones`, `Byte`, `Word`, `DWord` of
-`QWord`-prefix); beide waarden moeten in drie bits passen. De naamsegmenteisen
+De parser herkent een root-scope `Name(_S5_, Package(...))` met twee
+integerconstanten of de vier velden die QEMU gebruikt: twee slaaptypen en
+twee verplichte nulconstanten als gereserveerde velden. Ondersteunde constanten
+zijn `Zero`, `One`, `Ones`, `Byte`, `Word`, `DWord` en `QWord`; beide slaaptypen
+moeten in drie bits passen. Andere aantallen en niet-nulle gereserveerde
+velden worden geweigerd. De naamsegmenteisen
 zijn bewust strikter dan alle AML-varianten: ASCII hoofdletters, cijfers en
 underscore. Root-relatieve en expliciet absolute `_S5_`-namen worden herkend.
 Een tweede rootdefinitie is ambigu en wordt geweigerd.
 
-Scope-, method- en extended namespacepakketobjecten worden alleen overgeslagen
-met een gecontroleerde `PkgLength` en kunnen geen geneste `_S5_`-bytes tot
-rootdefinitie promoveren. Naamobjecten buiten `_S5_` ondersteunen alleen
+Een letterlijke `Scope(\)` wordt structureel doorlopen, met maximaal acht
+geneste root-scopes en een vaste stack, zonder recursie. Alle objectgrenzen
+blijven beperkt tot de huidige scope; na het scope-einde gaat controle van de
+omringende termen door. Dubbele `_S5_`-definities in afzonderlijke root-scopes
+worden eveneens geweigerd. Andere scopes, methoden en extended
+namespacepakketobjecten worden alleen overgeslagen met een gecontroleerde
+`PkgLength` en kunnen geen geneste `_S5_`-bytes tot geselecteerde rootdefinitie
+promoveren. Dit resolveert geen algemene namespace, aliases, dynamische
+definities of methode-effecten; de toekomstige kernelactie blijft daarom aan
+het expliciete QEMU-profiel gebonden. Naamobjecten buiten `_S5_` ondersteunen alleen
 letterlijke dataobjecten, begrensde package/buffer/stringdata of een
 NameString. Top-level Alias, External, Noop, Mutex, Event en OperationRegion
 worden beperkt structureel overgeslagen; onbekende AML-termen, expressions,
@@ -68,6 +78,15 @@ bits is hier een expliciete strikte parserkeuze; ACPICA maskeert ze.
 De UEFI ACPI 6.5 HTML-specificatie gaf bij controle HTTP 403. Geen broncode is
 overgenomen en er is geen specificatieconformiteit van een volledige
 AML-interpreter geclaimd.
+
+QEMU `v10.2.1`, `hw/i386/acpi-build.c`, regels 1157-1184,
+bouwt `_S5_` daadwerkelijk als vier-elementenpakket binnen `Scope(\)`.
+De oudere twee-elementen/root-Name-fixture was dus geen passende QEMU-fixture.
+Deze publieke primaire emulatorbron is gelezen en op SHA-256 vastgelegd:
+`263bcea198131385448fb5827b6a30a5943313712b7caf99ca18343e07ea1b77`.
+Bron: <https://github.com/qemu/qemu/blob/v10.2.1/hw/i386/acpi-build.c#L1157-L1184>.
+De testfixture modelleert deze objectvorm, maar is geen uit een gast
+uitgelezen volledige DSDT en bewijst geen native firmwareoverdracht.
 
 ## Gerichte tests en bewijsgrens
 
