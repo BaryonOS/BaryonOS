@@ -1,0 +1,82 @@
+{
+  "task": "REV-GUI-BOOT-1",
+  "scope": "fixed 7-process / opt-in eighth-controller bootstrap, capabilities, kernel hooks, build input/output boundary; init/controller logic separate review",
+  "reviewed_head": "aa3fe7d5aba181f432a4a0ab17eb69e8dcba79c1",
+  "worktree_status": " M Cargo.toml\n M README.md\n M docs/PROJECT-STATE.md\n M docs/WORK-QUEUE.md\n M docs/progress.json\n M kernel/Cargo.toml\n M kernel/build.rs\n M kernel/src/m2/m3.rs\n M kernel/src/m2/m3/system.rs\n M sdk/Cargo.toml\n M tools/build.py\n?? .github/workflows/native-display-input.yml\n?? docs/verification/full-release-ci-3f20f08/\n?? docs/verification/full-release-gui-component-reviews/\n?? kernel/src/m2/m3/desktop.rs\n?? kernel/src/m2/m3/desktop_gate.rs\n?? tools/build_materiaal.py\n",
+  "source_fingerprint_version": 3,
+  "source_sha256": "d9e0f5ed1970291e0a88c83e2cbd46b379bb349c7aa08ab30d0d5ea9cb3ee258",
+  "source_hashes": {
+    "kernel/src/m2/m3/desktop.rs": "487a3cd71ca9e2ff3de980ee6a1ddbdd4548ae76c6762359f31bc151c813c11c",
+    "kernel/src/m2/m3/desktop_gate.rs": "82b7c063c60dd1133c2c62881f8d493258ac003daf2f4d94393a43d037d730cb",
+    "kernel/src/m2/m3/system.rs": "0ad93499bee0708bc1a1142367c56270f105852a3c3aadb0fa616d1cfd7e03f9",
+    "kernel/src/m2/m3.rs": "7514aa7187dde45d9c7a5fca3ded18cb8e0a5d6a3314f748ccf0c8225c87a816",
+    "kernel/Cargo.toml": "dec149ab4d46a9f11b58109a534a6aa4f5fe6199fb7b4ecfe8538be2bc658e8a",
+    "Cargo.toml": "d3affe2a4a41f4ac543077f0be55a9b4fd8e20480c5673fc505ad947ccfc834b",
+    "Cargo.lock": "3dd7f21364cfac4b6024978c01e551904672b90dbdd3ae6e75dd57bb57cd568e",
+    "kernel/build.rs": "ad4cc1eccb6ae5121984c6edeb0fcf1db472f79d53c9512d0c5c950f75eb3bd5",
+    "tools/build_materiaal.py": "a058ee1c250ce1e1bbdd7593d077c361ee81697680749cd77d7854786e0515b5",
+    "tools/build.py": "817443475401af0f9c0978055d72e2b4f017c84e1c30961e507571c0d99f618d",
+    "sdk/Cargo.toml": "e2b8d83e06225006d89276b2b447555996732efa75b779c1f03c76c0d33fb92c"
+  },
+  "sources_unchanged_during_final_check": true,
+  "resolved_findings": [
+    {
+      "id": "GUI-B01",
+      "path": "tools/build.py",
+      "issue": "NETWORK/MATERIAAL feature assignment typo prevented module import",
+      "verification": "real build import now succeeds; all four declared closures checked without unrelated native profiles"
+    },
+    {
+      "id": "GUI-B02",
+      "path": "kernel/src/m2/m3/desktop.rs",
+      "issue": "SEND-only unused KEY reply became closed when final RECV root closed",
+      "verification": "real Engine old-red/new-green host case; live receive leaf retained wholly in KEY, no new APP grants"
+    },
+    {
+      "id": "GUI-B03",
+      "path": "tools/build_materiaal.py",
+      "issue": "run_logged followed existing output log links outside designated checkout before later path validation",
+      "verification": "old actual logger changed controlled /tmp sentinel; fixed 3 early/late/report cases reject before zero commands"
+    },
+    {
+      "id": "GUI-B04",
+      "path": "kernel/src/m2/m3/desktop.rs",
+      "issue": "probe timeout also stopped non-probe interactive composition after 20000 ticks",
+      "verification": "deadline is now cfg native-system-materiaal-probe only"
+    }
+  ],
+  "remaining_concrete_scoped_blockers": [],
+  "independent_checks": {
+    "capability_graph_tests": 2,
+    "graph_cases": [
+      "base rw",
+      "base ro",
+      "probe rw",
+      "probe ro"
+    ],
+    "app_exact_leaf_handles": 8,
+    "app_owned_endpoint_limit": 4,
+    "policy_owned_endpoint_limit": 4,
+    "all_principals_exit_empty_engine": true,
+    "fixed_output_boundary_cases": 3,
+    "fixed_output_boundary_commands_executed": 0,
+    "real_elfs_inspected": 8,
+    "none_kernel_check_exit": 0,
+    "legacy_system_alias_env_used": false,
+    "final_elf_inputs_unchanged": true
+  },
+  "open_boundaries": [
+    "no native GUI execution by reviewer",
+    "init/controller implementation reviewed separately",
+    "crash notifications, input-policy lifecycle, service restart and DoS acceptance remain open; no hidden lifecycle claim",
+    "full release encryption, larger product profiles and other mandatory criteria unchanged"
+  ],
+  "evidence_files": [
+    "capability-graph.txt",
+    "output-boundary.json",
+    "output-boundary-fixed.json",
+    "profiles.json",
+    "kernel-check-final.json",
+    "kernel-check-final.txt"
+  ]
+}

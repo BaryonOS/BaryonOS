@@ -1,0 +1,13 @@
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/build/materiaal-fix-source-02ab71a1/sdk/runtime)
+    Checking catalog-core v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/build/materiaal-fix-source-02ab71a1/services/catalog)
+    Checking ui-core v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/build/materiaal-fix-source-02ab71a1/crates/ui-core)
+    Checking noto-sans-mono-bitmap v0.3.2
+    Checking nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/build/materiaal-fix-source-02ab71a1/sdk/catalog-client)
+    Checking volume-core v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/build/materiaal-fix-source-02ab71a1/services/volume)
+    Checking nieuw-os-input-core v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/build/materiaal-fix-source-02ab71a1/services/input-core)
+    Checking nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/build/materiaal-fix-source-02ab71a1/ui/surface-protocol)
+    Checking nieuw-os-input-client v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/build/materiaal-fix-source-02ab71a1/sdk/input-client)
+    Checking nieuw-os-document-session v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/build/materiaal-fix-source-02ab71a1/sdk/document-session)
+    Checking nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/build/materiaal-fix-source-02ab71a1/ui/native)
+    Checking nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/build/materiaal-fix-source-02ab71a1/sdk/examples/materiaal)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.31s

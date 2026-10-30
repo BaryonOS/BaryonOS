@@ -1,0 +1,207 @@
+{
+  "task": "TASK-NATIVE-COMPOSITOR component checkpoint",
+  "date_utc": "2026-10-30T04:02:48.117179+00:00",
+  "dependency_head": "179feb9df1f685c648854f2fad78da2a78ff3b6a",
+  "dependencies": {
+    "root": "15e8cfced28ad46f15f5f573e5f00e8e87b74215",
+    "display_client_original": "b2ad7c184a2d918f57b82f0c50125a5c3906d9a7",
+    "native_frontend_original": "be0dc462c9da877038de2a04dbdf57ce3503405d",
+    "SUR1_original": "7ddb3546e34e26dd53d58a94bd652ea1407f4e8a",
+    "SUR1_timing_client_fix_original": "9115cb4ea740fa3dabc507f02c30ada5d7d124a3",
+    "input_daemon_original": "a337167ea420f0bfab7772ff0853e4df3984fccb"
+  },
+  "source_fingerprint_version": 3,
+  "checks": {
+    "native_runtime_performed": false,
+    "commands": [
+      {
+        "name": "fmt",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "fmt",
+          "--manifest-path",
+          "sdk/examples/compositor/Cargo.toml",
+          "--",
+          "--check"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.0736852469999576
+      },
+      {
+        "name": "test",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/examples/compositor/Cargo.toml"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.4991607619995193
+      },
+      {
+        "name": "clippy",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "clippy",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/examples/compositor/Cargo.toml",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.4250382710015401
+      },
+      {
+        "name": "target-build",
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+          "sdk/examples/compositor/build.py"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 1.0414939309994224
+      },
+      {
+        "name": "target-clippy",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "clippy",
+          "--offline",
+          "--locked",
+          "--release",
+          "--manifest-path",
+          "sdk/examples/compositor/Cargo.toml",
+          "--features",
+          "native",
+          "--bin",
+          "native-compositor",
+          "--target",
+          "x86_64-unknown-none",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.6283422509986849
+      }
+    ],
+    "patch_sha256": "ea102b11574f6a54b8c4251eb24ea6d3bd11d9efea62b496344b66628e336a43",
+    "patched_source_sha256": "dce8714206647f0ac6346e962619c97c28a1ab77c47260da9d449ab51bd22c61",
+    "patched_files": {
+      "sdk/Cargo.toml": "74870796991f32f1541e427b06ef082600ceb1893ad9b63f2dffd17b79d61023",
+      "sdk/runtime/src/lib.rs": "0ad4c06a2bacd4371435cfe4e3e4a958cd80b292c52247e8fecd09baa933cf00",
+      "sdk/runtime/src/native.rs": "4ca103796cf88b591023716ce26df3d51257ee975e567e79be84c4ce1cf748b7",
+      "sdk/runtime/tests/message.rs": "67a657fc3b34d23dda3928418af0ddd689758505a146e8e05c24894df88397c0",
+      "sdk/runtime/tests/process.rs": "0e76b383606935e1354ec4d6ffe14f251734a01a211a58f69b2ef0a19e18f578"
+    },
+    "patched_source_after_sha256": "dce8714206647f0ac6346e962619c97c28a1ab77c47260da9d449ab51bd22c61",
+    "shared_files_restored": true,
+    "restored_source_sha256": "dce2cdfe6c8192402295446529e486c47ae7565a19fcfa6f9564243559cc8e64"
+  },
+  "owned_files": {
+    "docs/implementation/NATIVE-COMPOSITOR.md": "551d29d3f4143e2c490ef0ef3b8e36140ff45bec14750c1fc73b836c76725984",
+    "sdk/examples/compositor/Cargo.lock": "397016ba7aded872edc472843e8cc5ebf87c550facc370ee6fa52607bb2cb619",
+    "sdk/examples/compositor/Cargo.toml": "2f86916a9cc855c3325cdf5fa6ebeb895ef54501852672b8e6a735c4f02887ef",
+    "sdk/examples/compositor/README.md": "cde068ba93540bdb743442a6d7577e7f4b7d0aef5773ce95dcd00bf7ed420b3e",
+    "sdk/examples/compositor/THIRD-PARTY.md": "d3f54d6c87525d21d7153f2ffc9033e4d813620efc309f28c95512ef8f6a5405",
+    "sdk/examples/compositor/build.py": "aa4da2640ec5938782326e74abd38dfd5323a2c8e76468779dfa3dc4e357da2e",
+    "sdk/examples/compositor/licenses/NotoSansMono-OFL.txt": "e2e177a32561584d4fc13aaa3cd8e53758a12910f013fe9ca125419111722029",
+    "sdk/examples/compositor/licenses/noto-sans-mono-bitmap-MIT.txt": "d084589aca58e74853c2d03f8a1f7b6f3a13f1fcc4b0c451f30455da09c624b7",
+    "sdk/examples/compositor/linker.ld": "d3ad4c940172e261f8bdf0d8f267e1d6ea522ce3f5d686249408730c8c7c2c35",
+    "sdk/examples/compositor/src/boot.rs": "4cff311455cdd6f2d47dcf2cfccf8dd74dbfd0d34f9a868604b8a1e2c9a08537",
+    "sdk/examples/compositor/src/chrome.rs": "4171f8b9a2154cf10472fed25de1f70e785d1f6445bc6e09b6bef2d22c0853f1",
+    "sdk/examples/compositor/src/control.rs": "36f19d324c0f80c10b3b5afbc4eedc6b3c64af4fa69102cc5603c93555b0e070",
+    "sdk/examples/compositor/src/lib.rs": "a936d5093697a7e70603183e72d39b7bf49cb15e77747c6a43c2dd571153e27a",
+    "sdk/examples/compositor/src/main.rs": "a3b17a8d19696865db7b14f0a8cc368f8cfa9e70b0e93a30bc829935a4f344f4",
+    "sdk/examples/compositor/src/surface.rs": "1c6ff133e693225aed1f8ffb8ce2b5f727c9c809ac7139af2d44a9387443d91b",
+    "sdk/examples/compositor/tests/adapter.rs": "21df714d3ed053785e45d877a954c546d3b80b65787037066f6adf7950d66741"
+  },
+  "dependencies_file_hashes": {
+    "ui/native/src/design.rs": "5d61ecf3357685ba074ad66d102f01cd98daa279535e1645bdd6ec522afcf39e",
+    "ui/prototype/tokens.css": "0c588509e0cb0f94bbda2c6969da8d79d463359bfc9684687a684210a54aadcf",
+    "ui/surface-protocol/src/lib.rs": "fb668725e7fccf108586c198652bf7fddd21a0cbc5fe77b3c977f67f840de411",
+    "ui/surface-protocol/Cargo.toml": "dc969f69cc14ea624a773cabcbc501094419b9dc597a198b5a428149964aec94",
+    "sdk/examples/input-service/src/lib.rs": "c20c620e22333d3a374fbfbd5183921775632ca951f223827abeaa5496a5c5c4",
+    "sdk/examples/input-service/src/protocol.rs": "59678987c65deaf592a6a765cb18f02dbaafe7d4d8be56682d939355dd9cfd71",
+    "sdk/display-client/src/client.rs": "236527eeb2a24f3e01859cc6f30685fc8888e46d3384dc48b51799ee81523604",
+    "sdk/display-client/src/wire.rs": "19209768c6179875b228b0a9d96c4b52cfab8f0e5adcc5f48cc9ae915ae9accc",
+    "crates/kernel-core/src/user.rs": "5a483252894756f97bc1a6c0d755e606427aa6276e982cca403c6fac987e4399"
+  },
+  "elf": {
+    "binary_sha256": "26cc3834d8ed5afe47ba28f0f118eae5aa5a98305cd5dd58b046b4014ae4b6fe",
+    "instructions": 5842,
+    "forbidden_simd_x87_rawports_hostsyscalls": [],
+    "undefined_symbols": 0,
+    "entry": [
+      {
+        "address": "40000000",
+        "instruction": "push   %rax"
+      },
+      {
+        "address": "40000001",
+        "instruction": "call   400b02e9 <_ZN17native_compositor3run17hac6acda252a29588E>"
+      }
+    ],
+    "largest_explicit_stack_reservations": [
+      {
+        "function": "00000000400b02e9 <_ZN17native_compositor3run17hac6acda252a29588E>:",
+        "bytes": 4096
+      },
+      {
+        "function": "00000000400b02e9 <_ZN17native_compositor3run17hac6acda252a29588E>:",
+        "bytes": 2264
+      },
+      {
+        "function": "00000000400b40e5 <_ZN25nieuw_os_surface_protocol8Receiver3new17h7c55ba2599077ca6E>:",
+        "bytes": 1064
+      },
+      {
+        "function": "00000000400b51d8 <_ZN20nieuw_os_sdk_runtime6native7receive17h7a6414202e02c08cE>:",
+        "bytes": 984
+      },
+      {
+        "function": "00000000400b3497 <_ZN26nieuw_os_native_compositor7control11Coordinator6accept17h5a70c05b8b885b1bE>:",
+        "bytes": 840
+      }
+    ],
+    "stack_limit_bytes": 65536,
+    "stack_analysis_limit": "Instruction/prologue inspection only, no formal maximum call-chain proof; native execution remains open.",
+    "native_runtime_performed": false
+  },
+  "kernel_real_parser_passed": true,
+  "host_scenarios": 13,
+  "fake_success_display_transport": false,
+  "native_runtime_performed": false,
+  "review": {
+    "reviewer": "kernel_storage/input_reply_review",
+    "scope": "Read-only current boot/control/surface/main/chrome; no build or hardware audit",
+    "found_and_fixed": [
+      "Ready originally preceded pure constructors; constructors now complete before publication",
+      "Retire originally cleared staging only; now true bounded full assigned-rect writes precede positive RetireACK"
+    ],
+    "remaining_concrete_blockers": [],
+    "limits": [
+      "Native full bootstrap duration and Retire wipe within200ticks unmeasured",
+      "No native compositor/input/Materiaal or processdeath/recovery evidence"
+    ]
+  },
+  "open_acceptance": [
+    "Root must integrate actual init/kernel grants and ABI1.8 wrappers, bind ui source/assets in image source fingerprint",
+    "Native complete bootstrap and controlled peer/pointer input, DisplaySource and rawInput denial against ordinaryapp",
+    "Actual rendered UI and client positiveBlitted only after broker writes",
+    "Native Retire full visible-rect wipe and no late positive pending reply",
+    "Measured boot/wipe bounds with actual GOP profile",
+    "Critical service death/focus cancellation and new epochs",
+    "Whole product fulltestrelease acceptance remains open"
+  ],
+  "score_points_awarded": 0
+}

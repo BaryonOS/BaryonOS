@@ -1,0 +1,1 @@
+Onafhankelijke AI-bron-/host-/ELFreviews van appfix3a856a4 en desktop-init ec15957. Oude rode Ready-tegenproef bleef bewaard; concrete fix daarna groen. F12diagnostic778 en de samengestelde rootkernelmanifesten zijn afzonderlijke vervolgcode. Geen menselijke audit, native uitvoering, maximale-stackbewijs of releaseaftekening.

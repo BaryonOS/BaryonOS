@@ -1,0 +1,2 @@
+   Compiling nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/build/materiaal-fix-source-02ab71a1/sdk/examples/materiaal)
+    Finished `release` profile [optimized] target(s) in 0.78s

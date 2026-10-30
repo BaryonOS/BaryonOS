@@ -49,6 +49,8 @@ const _: () = assert!(
     any(feature = "milestone-m4", feature = "native-qsim")
 ))]
 compile_error!("native-fpu is a separate M3 acceptance profile");
+#[cfg(feature = "native-system-materiaal")]
+mod desktop;
 #[cfg(feature = "native-keyring")]
 #[cfg_attr(feature = "native-system", allow(dead_code))]
 mod keyring;
@@ -66,6 +68,7 @@ mod sdk_app;
 #[cfg_attr(feature = "native-system", allow(dead_code))]
 mod supervisor;
 #[cfg(feature = "native-system")]
+#[cfg_attr(feature = "native-system-materiaal", allow(dead_code))]
 mod system;
 #[cfg(all(
     feature = "native-keyring",
@@ -192,11 +195,11 @@ const VOLUME_APP_ELF: &[u8] = include_bytes!(env!("NOS_VOLUME_APP_ELF"));
 const ELF: &[u8] = include_bytes!(env!("NOS_M6B_ELF"));
 #[cfg(feature = "milestone-m6c")]
 const ELF: &[u8] = include_bytes!(env!("NOS_M6C_ELF"));
-#[cfg(feature = "native-system")]
+#[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
 const SYSTEM_INIT_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_INIT_ELF"));
-#[cfg(feature = "native-system")]
+#[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
 const SYSTEM_APP_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_APP_ELF"));
-#[cfg(feature = "native-system")]
+#[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
 const SYSTEM_WORKER_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_WORKER_ELF"));
 #[cfg(feature = "native-system-net")]
 const NET_PROBE_ELF: &[u8] = include_bytes!(env!("NOS_NET_PROBE_ELF"));
@@ -399,6 +402,9 @@ fn process_elf(slot: usize) -> &'static [u8] {
 }
 #[cfg(feature = "native-system")]
 fn process_elf(slot: usize) -> &'static [u8] {
+    #[cfg(feature = "native-system-materiaal")]
+    return desktop::process_elf(slot);
+    #[cfg(not(feature = "native-system-materiaal"))]
     match slot {
         0 => SYSTEM_INIT_ELF,
         1 => KEYRING_SERVICE_ELF,
@@ -525,7 +531,11 @@ impl State {
         } else {
             16
         };
-        let initial = if cfg!(feature = "native-system-net") {
+        let initial = if cfg!(feature = "native-system-materiaal-probe") {
+            8
+        } else if cfg!(feature = "native-system-materiaal") {
+            7
+        } else if cfg!(feature = "native-system-net") {
             5
         } else if cfg!(feature = "native-system") {
             4
@@ -579,8 +589,10 @@ impl State {
         keyring::manifest(self);
         #[cfg(all(feature = "milestone-m5", not(feature = "native-system")))]
         m5::manifest(self);
-        #[cfg(feature = "native-system")]
+        #[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
         system::manifest(self);
+        #[cfg(feature = "native-system-materiaal")]
+        desktop::manifest(self);
         #[cfg(feature = "native-qsim")]
         qsim::manifest(self);
         #[cfg(feature = "native-qsim-job")]
@@ -1039,7 +1051,12 @@ impl State {
             fpu::fixture::observe_exit(self, slot, counter);
             return;
         }
-        #[cfg(feature = "native-system")]
+        #[cfg(feature = "native-system-materiaal")]
+        {
+            desktop::observe_exit(self, slot, counter);
+            return;
+        }
+        #[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
         {
             system::observe_exit(self, slot, counter);
             return;
@@ -1127,7 +1144,12 @@ impl State {
             fpu::fixture::observe_fault(self, slot, context, counter);
             return;
         }
-        #[cfg(feature = "native-system")]
+        #[cfg(feature = "native-system-materiaal")]
+        {
+            desktop::observe_fault(self, slot, context, counter);
+            return;
+        }
+        #[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
         {
             system::observe_fault(self, slot, context, counter);
             return;
@@ -1457,7 +1479,9 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
     if let Some(next) = m5::poll(state) {
         return next;
     }
-    #[cfg(feature = "native-system")]
+    #[cfg(feature = "native-system-materiaal")]
+    desktop::poll(state);
+    #[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
     if let Some(next) = system::poll(state) {
         return next;
     }

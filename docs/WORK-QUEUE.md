@@ -21,7 +21,7 @@ Een afgeronde deelimplementatie tekent geen volledig productcriterium af.
 | TASK-RTC | core68dd9f5 geïntegreerd; native adapter open | git_build_audit; drivers/rtc/**,RTC-WALLTIME.md | FR-N02,FR-S03 | 11 hosttests + onafhankelijke14 met17.892datums, target; kwaliteitUnauthenticatedRtc, geen certtijdclaim |
 | TASK-RTC-V | afgerond, alleen lezen/eigentarget | acceptance_contract | FR-N02,FR-B04 | gerichtegrensreview/tegenvoorbeelden; geenmenselijkeaudit |
 | TASK-CONTEXT | aanvullende20secties verwerkt | root; FULL/context/queue/progress | alle | stabiele62IDs, UC/compatmatrix/formaat/100cold/24uur; oorspronkelijkeopdracht intact |
-| TASK-MATERIAAL-NATIVE | component1f36+review; stale-ready/entryreparatie vóórGUI | native_ui_apps; eigen nieuwe UI-worktree/bestanden na contract | FR-U01–FR-U05,FR-A02,FR-O01 | echte userspace renderer/editor; geen hostprototype als nativebewijs |
+| TASK-MATERIAAL-NATIVE | appfix3a/e433+F12/56fe geïntegreerd;20host; nativeGUI volgt | native_ui_apps; eigen nieuwe UI-worktree/bestanden na contract | FR-U01–FR-U05,FR-A02,FR-O01 | echte userspace renderer/editor; geen hostprototype als nativebewijs |
 | TASK-DISPLAY-INPUT | d528 echte native transportprobe+zeven CI groen | git_build_audit; eigen nieuwe transportworktree/bestanden na contract | FR-U01,FR-K03,FR-H01 | cap04d geïntegreerd/52-reviewtests; GOP hardware los; adapters in uitvoering, root bezit ABI/hooks/build |
 | TASK-INT/GIT | 985/15e/d528 exact gepubliceerd met eigen nativebewijs+zeven CI | root; sharedABI/build/locks/status/Git | allegeraakt | GitData lease/treecontrole; 985 alle13VMs+7CI groen; entryfix, desktop en RANDOM-native vervolg |
 
@@ -32,10 +32,12 @@ Een afgeronde deelimplementatie tekent geen volledig productcriterium af.
 | TASK-BROWSER-PORT | component a2085b9 gereed, rootintegratie volgt | network_nas_ai | FR-A05 | echte upstreamconfig/header/linkproeven exit2; port geblokkeerd, geen enginekeuze |
 | TASK-IMAGES | 9ae1c73 component/oracle/stackfix; nativeobserver in uitvoering | network_nas_ai; nieuwe services/image-codec/** +nativeprobe | FR-A03 | echte PNG/JPEGdecode, native heap en pixeloracle; engine/profielen en viewer open |
 
-| TASK-GUI-INIT | in uitvoering; desktop-init | kernel_storage; nieuwe sdk/examples/desktop-init/** | FR-U01–FR-U05,FR-K03 |7 echte processen, Source/SYNC/Policy/Comp/focusgates vóór GO; nativebootstrap root |
+| TASK-GUI-INIT | ec159bron/21-reviewcases gereed; root7/8procwiring targetbuild groen | kernel_storage; nieuwe sdk/examples/desktop-init/** | FR-U01–FR-U05,FR-K03 |7 echte processen, Source/SYNC/Policy/Comp/focusgates vóór GO; nativebootstrap root |
 | TASK-GUI-QMP | in uitvoering; materiaal-qmp | native_ui_apps; nieuw runner/tests/contract | FR-U01–FR-U05,FR-A02,FR-O01 | echte key/mouse/edit/save/cold-heropen; geen draftinject; adapterreparatie eerst |
-| TASK-REV-APP | actief; alleenlezen/eigentarget | acceptance_contract | FR-U01,FR-A02,FR-K03 | onafhankelijke tegenvoorbeelden adapters; stale-ready gevonden, hertest nafix |
-| TASK-DISPLAY-CI | in uitvoering; display-ci | git_build_audit; één nieuweworkflow | FR-K03,FR-U01,FR-H01 | echte nativeprobe en standalonehostchecks, behoud overigeCI/cleantree |
+| TASK-REV-APP | app/INIT gericht afgerond; image-review actief | acceptance_contract | FR-U01,FR-A02,FR-K03 | Readyfinding hersteld/22cases, INIT21cases; geen native/stackclaim |
+| TASK-DISPLAY-CI | main3f20 achtCI groen incl echte nieuweworkflow | git_build_audit; één nieuweworkflow | FR-K03,FR-U01,FR-H01 | 52component+2fixture+11gatechecks/nativepixels, trackedcleantree behouden |
+
+| TASK-TPM-CRB | in uitvoering; tpm-crb | kernel_storage; nieuwe driver/contract | FR-O05,FR-B04,FR-S03 | bounded no_stdtransport/NVcounter, geen onzekere mutatieretry of bufferreuse zonder ACK; nativeanker blijft open |
 
 Volgende verplichte werk blijft zichtbaar: schaalbaar geheugen, echte
 compositor/sessie/toegankelijkheid, audio en alle apps/engineports, persistente

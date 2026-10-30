@@ -1,0 +1,37 @@
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os-worktrees/compositor/sdk/runtime)
+   Compiling nieuw-os-display-client v0.1.0 (/workspace/nieuw-os-worktrees/compositor/sdk/display-client)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os-worktrees/compositor/services/input-core)
+   Compiling nieuw-os-native-input-service v0.1.0 (/workspace/nieuw-os-worktrees/compositor/sdk/examples/input-service)
+   Compiling nieuw-os-native-compositor v0.1.0 (/workspace/nieuw-os-worktrees/compositor/sdk/examples/compositor)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.40s
+     Running unittests src/lib.rs (target/compositor-host/debug/deps/nieuw_os_native_compositor-e431d67cd44082a4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/adapter.rs (target/compositor-host/debug/deps/adapter-6b3297308dda86a2)
+
+running 13 tests
+test bootstrap_bindings_reserved_tail_and_epoch_domains ... ok
+test actual_sender_ack_then_registry_backpressure_preserves_reply ... ok
+test focus_publication_is_not_replayed_and_deadline_never_focuses ... ok
+test control_requires_actual_init_pid_and_current_generation ... ok
+test canonical_focus_reply_from_wrong_kernel_sender_is_terminal ... ok
+test negative_focus_ack_never_reports_focused ... ok
+test fresh_commit_clock_expires_before_display_write ... ok
+test noncanonical_pixels_never_reach_display ... ok
+test real_engine_wrong_sender_and_transferred_caps_do_not_blit ... ok
+test real_adapter_display_error_never_positive_ack ... ok
+test retire_closes_routes_once_no_receive_and_failed_clear_not_counted ... ok
+test retire_requests_real_unfocus_and_no_ack_before_reply ... ok
+test trusted_tiles_cover_only_border_and_wipe_only_app ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+   Doc-tests nieuw_os_native_compositor
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

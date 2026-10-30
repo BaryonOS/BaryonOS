@@ -1,0 +1,16 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test independent_current_ready_is_not_stale_after_edit ... FAILED
+
+failures:
+
+failures:
+    independent_current_ready_is_not_stale_after_edit
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.30s
+

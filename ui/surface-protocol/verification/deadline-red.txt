@@ -1,0 +1,25 @@
+command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path", "ui/surface-protocol/Cargo.toml", "--features", "client", "--test", "protocol", "known_expiry_after_malformed_input_never_completes_a_ready_tile"]
+exit: 101
+
+
+running 1 test
+test known_expiry_after_malformed_input_never_completes_a_ready_tile ... FAILED
+
+failures:
+
+---- known_expiry_after_malformed_input_never_completes_a_ready_tile stdout ----
+
+thread 'known_expiry_after_malformed_input_never_completes_a_ready_tile' panicked at tests/protocol.rs:332:5:
+assertion failed: match &completion { Err(_) => true, Ok(reply) => reply.status().is_err(), }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    known_expiry_after_malformed_input_never_completes_a_ready_tile
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/ui/surface-protocol)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running tests/protocol.rs (build/surface-client-target/debug/deps/protocol-cd219603021fa8ad)
+error: test failed, to rerun pass `--test protocol`

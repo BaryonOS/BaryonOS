@@ -1,0 +1,6 @@
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os-worktrees/compositor/sdk/runtime)
+    Checking nieuw-os-display-client v0.1.0 (/workspace/nieuw-os-worktrees/compositor/sdk/display-client)
+    Checking nieuw-os-input-core v0.1.0 (/workspace/nieuw-os-worktrees/compositor/services/input-core)
+    Checking nieuw-os-native-input-service v0.1.0 (/workspace/nieuw-os-worktrees/compositor/sdk/examples/input-service)
+    Checking nieuw-os-native-compositor v0.1.0 (/workspace/nieuw-os-worktrees/compositor/sdk/examples/compositor)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.39s

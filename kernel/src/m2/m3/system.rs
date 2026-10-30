@@ -58,12 +58,17 @@ fn put(s: &State, slot: usize, offset: u64, value: u64) {
 fn word(s: &State, slot: usize, offset: u64) -> u64 {
     read_word(s.processes[slot].physical(DATA + offset))
 }
+#[cfg(not(feature = "native-system-materiaal"))]
 pub(super) fn image_elf(image: u32) -> Option<&'static [u8]> {
     if image == 0 {
         Some(SYSTEM_WORKER_ELF)
     } else {
         None
     }
+}
+#[cfg(feature = "native-system-materiaal")]
+pub(super) fn image_elf(_: u32) -> Option<&'static [u8]> {
+    None
 }
 fn channel(e: &mut capability_core::Engine, owner: u64, sender: u64) -> (u64, u64) {
     let root = e.create_endpoint(owner).unwrap();

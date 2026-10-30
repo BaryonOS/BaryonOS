@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`d5288219`](https://github.com/simonvanieperen/nieuw-os/commit/d52882196da3f38a32bf01edea379ce5300e04e2) ·
+**Bron:** [`3f20f087`](https://github.com/simonvanieperen/nieuw-os/commit/3f20f087a7f0ddf4757af8d3ea110dd0c044a72c) ·
 **Ontwikkelbranch:** `codex/full-test-release`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Native display/PS2 en vijf gecorrigeerde geheugencases plus actuele CI; verbonden Materiaalintegratie.
-32% blijft32%; alle62 volledige releasecriteria blijven open. Vijf nieuwe native geheugencases op15e en echte CPL3-display/PS2/QMP/pixelgrenzen op d528 slagen, elk zeven CI-workflows groen. Afzonderlijke componenten zijn geen verbonden desktop, productopslag, NAS/AI/updates/herstel of volledig testpakket. Appreview vindt stale-ready en C-entry voor reparatie. Root integreert echte7-proces-Materiaal; RNG/decoderproeven en CI-uitbreiding gaan parallel. Scope, gewichten, VM-FR en vereiste bewijsniveaus blijven onveranderd.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Acht CI-workflows groen; doelbuilds van geïsoleerde GUI, RANDOM en PNG/JPEG; native ketens volgen.
+32% blijft32%; alle62 volledige releasecriteria blijven open. Exact3f20 heeft acht groeneCI-workflows inclusief echte display/PS2/QMP/pixelprobe. AppReady/C-entryfix en echteinit hebben afzonderlijke AI-review/host/ELFchecks; de verbonden8-procesGUI, RNG en PNG/JPEG bouwen maar hebben nog geen eigen nativeuitvoeringsbewijs op deze samengestelde nieuwe bron. Builder-/manifestbevindingen worden gericht gerepareerd. Volledige veilige persistente opslag, apps/NAS/AI/updates/herstel en integraal productprofiel blijven verplicht open. Geen gewijzigde scope/gewichten en geen compleet testpakket geclaimd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
