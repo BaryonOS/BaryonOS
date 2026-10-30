@@ -1,12 +1,11 @@
 """Bind the existing frozen NAS leaf builder to an opt-in kernel manifest."""
 from __future__ import annotations
 
-import json
 import sys
 
 from build_users import inspect_user
 from common import ROOT, BUILD, TARGET, run_logged, sha256
-from run_fpu import private_path
+from run_fpu import load_json, private_path
 
 
 def build_users():
@@ -25,7 +24,7 @@ def build_users():
          "--target-dir", str(target), "--output-dir", str(output)],
         "build-nas-users",
     )
-    report = json.loads((output / "build-report.json").read_text())
+    report = load_json(output / "build-report.json")
     if (report.get("gate") != "crosscompile-and-elf-inspection-only"
             or report.get("native_execution") is not False):
         raise ValueError("NAS leaf report must not claim native execution")
