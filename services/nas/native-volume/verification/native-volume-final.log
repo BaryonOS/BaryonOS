@@ -1,0 +1,103 @@
++ cargo test --offline --locked --manifest-path services/nas/native-volume/Cargo.toml
+   Compiling nieuw-os-nas-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-core)
+   Compiling nieuw-os-nas-volume v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-volume)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.30s
+     Running unittests src/lib.rs (target/nas-core/debug/deps/nieuw_os_nas_volume-c790dff98a33befc)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/volume.rs (target/nas-core/debug/deps/volume-7582a94e8a6bd41c)
+
+running 9 tests
+test another_domain_cannot_initialize_read_repair_or_replace_nas_authority ... ok
+test foreign_deleted_and_malformed_objects_are_never_silently_initialized ... ok
+test committed_snapshot_survives_cold_volume_recovery_without_history ... ok
+test missing_purge_reply_never_acks_but_clean_current_state_can_recover ... ok
+test stale_writer_cannot_replace_a_newer_volume_revision_or_retry_implicitly ... ok
+test missing_commit_reply_requires_explicit_history_cleanup_before_recovery ... ok
+test cleanup_never_discards_history_when_current_content_is_corrupt ... ok
+test revoke_and_evict_cold_recover_without_restorable_guest_versions ... ok
+test every_eviction_disk_failure_keeps_a_recoverable_old_or_revoked_state ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.84s
+
+   Doc-tests nieuw_os_nas_volume
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+real	0m1.167s
+user	0m1.036s
+sys	0m0.264s
++ cargo test --offline --locked --release --manifest-path services/nas/native-volume/Cargo.toml -- --nocapture
+   Compiling nieuw-os-nas-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-core)
+   Compiling nieuw-os-nas-volume v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-volume)
+    Finished `release` profile [optimized] target(s) in 1.15s
+     Running unittests src/lib.rs (target/nas-core/release/deps/nieuw_os_nas_volume-c926811e0ee58253)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/volume.rs (target/nas-core/release/deps/volume-7d8404599da9837b)
+
+running 10 tests
+test another_domain_cannot_initialize_read_repair_or_replace_nas_authority ... ok
+test cleanup_never_discards_history_when_current_content_is_corrupt ... ok
+test committed_snapshot_survives_cold_volume_recovery_without_history ... ok
+test foreign_deleted_and_malformed_objects_are_never_silently_initialized ... ok
+test stale_writer_cannot_replace_a_newer_volume_revision_or_retry_implicitly ... ok
+test missing_commit_reply_requires_explicit_history_cleanup_before_recovery ... ok
+test missing_purge_reply_never_acks_but_clean_current_state_can_recover ... ok
+test revoke_and_evict_cold_recover_without_restorable_guest_versions ... ok
+test optimized_nas_and_volume_client_fit_64_kib_with_separate_service_stack ... ok
+210 eviction disk failure points, two crash images each
+test every_eviction_disk_failure_keeps_a_recoverable_old_or_revoked_state ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+   Doc-tests nieuw_os_nas_volume
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+real	0m1.346s
+user	0m1.183s
+sys	0m0.258s
++ cargo clippy --offline --locked --manifest-path services/nas/native-volume/Cargo.toml --all-targets -- -D warnings
+    Checking nieuw-os-nas-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-core)
+    Checking nieuw-os-nas-volume v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-volume)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.25s
+
+real	0m0.275s
+user	0m0.170s
+sys	0m0.120s
++ cargo clippy --offline --locked --release --manifest-path services/nas/native-volume/Cargo.toml --all-targets -- -D warnings
+    Checking catalog-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/catalog)
+    Checking nieuw-os-nas-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-core)
+    Checking volume-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/volume)
+    Checking nieuw-os-nas-volume v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-volume)
+    Finished `release` profile [optimized] target(s) in 0.38s
+
+real	0m0.402s
+user	0m0.623s
+sys	0m0.209s
++ cargo fmt --manifest-path services/nas/native-volume/Cargo.toml --all -- --check
+
+real	0m0.454s
+user	0m0.359s
+sys	0m0.061s
++ cargo build --offline --locked --manifest-path services/nas/native-volume/Cargo.toml --release --target x86_64-unknown-none
+   Compiling nieuw-os-nas-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-core)
+   Compiling nieuw-os-nas-volume v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-volume)
+    Finished `release` profile [optimized] target(s) in 0.16s
+
+real	0m0.169s
+user	0m0.120s
+sys	0m0.074s
