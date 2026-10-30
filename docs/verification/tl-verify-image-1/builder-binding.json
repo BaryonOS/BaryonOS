@@ -1,0 +1,16 @@
+[
+  {
+    "case": "reference",
+    "source_sha256": "24d5f4c112924cfe45681de3fcf3a92f62087e29524f15c74e14d83620891abd",
+    "original_report_path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/build/native-test-version/review-reference/run/materiaal-normal-ea87d6fd9b/result.json",
+    "original_report_sha256": "bb4ac6870ea4f6cb018845dfa760bc3283a810a12ee499afe51e9fc041ba8790",
+    "recorded_artifact_bytes_rehashed": true
+  },
+  {
+    "case": "interactive",
+    "source_sha256": "24d5f4c112924cfe45681de3fcf3a92f62087e29524f15c74e14d83620891abd",
+    "original_report_path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/build/native-test-version/review-interactive/preview-result.json",
+    "original_report_sha256": "d551c84a804f1c98a62be1ea2ac1ee3b07b4418531b19b6d04857c2f6910a4cb",
+    "recorded_artifact_bytes_rehashed": true
+  }
+]

@@ -1,0 +1,86 @@
+{
+  "passed": false,
+  "status": "STOPPED_AT_FIRST_EXECUTABLE_BINDING_MISMATCH",
+  "code_source": "74d15ac09ac61c8d47a882c3c982711af1a9d891",
+  "verifier_checkout": "3d2e1aba218feb39e02a1a5d257c5eb63f50e26b",
+  "source_sha256": "24d5f4c112924cfe45681de3fcf3a92f62087e29524f15c74e14d83620891abd",
+  "manifest_source_sha256": "24d5f4c112924cfe45681de3fcf3a92f62087e29524f15c74e14d83620891abd",
+  "expected_source_sha256": "24d5f4c112924cfe45681de3fcf3a92f62087e29524f15c74e14d83620891abd",
+  "build_exit_status": {
+    "reference": 0,
+    "interactive": 0
+  },
+  "reference_vm": "started, then explicitly stopped before acceptance when ordinary image bytebinding failed",
+  "ordinary_vm": "not started",
+  "mismatch": {
+    "kernel": {
+      "own": "c91f39aafb8bcecd9858bcc2c082f2d22ff3f9179eff15d858f2880a3db12d68",
+      "builder": "f2e9cc4aad87ad2b9fbc8b498ab146db2ab0df4a77b904eecf81c3a9beb198b3"
+    },
+    "loader": {
+      "own": "e7aa259a20b14553a734810c5c254727525756177d4b79d44f6aca10e1b264e5",
+      "builder": "7e55ab0fe6c232380f52dc5be1334b41388b70d80e0ebe2b0072de7e12373a09"
+    }
+  },
+  "app_hashes": [
+    {
+      "name": "desktop-init",
+      "own": "1fa8e8aee7ebe1675eb71c7884bad3012194fe95886d7a843d8662c66bc8df26",
+      "builder": "88ad403c3e970a6f054f108eecd5764fd889c843d8f222c83e2502cad2d926c9",
+      "record_equal": false
+    },
+    {
+      "name": "keyring-service",
+      "own": "3108f4aa1d7d161e624c75e064d94dc680fda8a13a7aa86ecbf45b3b24c8bc98",
+      "builder": "0fccb8d544c5ce38a6bf7a9180832af12e497f970efee53b0b8544a8abad4a96",
+      "record_equal": false
+    },
+    {
+      "name": "volume-service",
+      "own": "33601c5ca9317f5e0b5db473c8ab3d4d6c00f005d0eceb7f64624dc2150144bd",
+      "builder": "ab17bd89eddd6d63b09eb0dc09dc0f87e4e837a5c43088dab3b5d32d4aae5488",
+      "record_equal": false
+    },
+    {
+      "name": "materiaal-app",
+      "own": "8bbdaedb0e3fe32644d228b7100845be2b6300a53a45074950b301151fa5e8d1",
+      "builder": "e2701c6d6a20ba5505002fc41501a6f12cf8078860df342db86b2c6149f93906",
+      "record_equal": false
+    },
+    {
+      "name": "native-compositor",
+      "own": "8b6f6465b84f89513bd89a1f5f058e51f9e00a60442fdee1c0eae0b375b873a2",
+      "builder": "93441e0e422446bae635b55375ddb0ef673ccdf638e31e334aa8b10c28cceb6d",
+      "record_equal": false
+    },
+    {
+      "name": "input-source",
+      "own": "d8259a37e41633136e1f8a846bc2b4e7ad21f1c5669d3acec9b02e019f2894b5",
+      "builder": "2b3cf458852e9934c7877289f110dc9d680303c718540d1e113b110670f08702",
+      "record_equal": false
+    },
+    {
+      "name": "input-policy",
+      "own": "cac517cc02df1757ecf51b254220b01cd8d1b0531915c81b82e7fdcbaa64b6b8",
+      "builder": "628cd1e5be5de38eee5cef3aa07350139f399cb53c1e326872c8b148fefedbd3",
+      "record_equal": false
+    }
+  ],
+  "logs": {
+    "/tmp/nieuw-os-tl-verify-reference-build.log": {
+      "sha256": "0499da62cb2190fb64bdeaaf1835c1df75ffe8927bfecba380dc8a485a46bccf",
+      "size_bytes": 16920
+    },
+    "/tmp/nieuw-os-tl-verify-interactive-build.log": {
+      "sha256": "f59995783cfc1f3582be6d84a56f3fd0a80026f1516f6999c84bbc6ab87bb2ef",
+      "size_bytes": 8977
+    },
+    "/tmp/nieuw-os-tl-verify-reference-run.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    }
+  },
+  "cause": "not established",
+  "safety_assertions_relaxed": false,
+  "new_windows_or_cold_claim": false
+}
