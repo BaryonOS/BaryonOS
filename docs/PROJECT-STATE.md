@@ -1,44 +1,70 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — NATIVE-MATERIAAL-SEMANTICS-1 — 30 oktober 2026
+## NEXT AGENT HANDOFF — NATIVE-MATERIAAL-ACCESSIBILITY-2 — 30 oktober 2026
 
-Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (`origin/main` bij start),
-implementatiecheckpoint `56626baf7f6db7b8a1d0e07787ae4df5997d96f5`,
-statuscheckpoint `8b75fdc6add1aa90f47ed921e0a472119951ec1f`,
-branch `codex/native-materiaal-accessibility-20261030`. Bronfingerprint v3
-`d9e3c57244904e20bf52f95b2b7d80e3d2d93e22a303b86f179e583f53e80185`.
-Deze stap voegt aan de CPL3-app
-`App::semantics` toe: een read-only snapshot van alleen de eigen actuele
-controllerstaat. De bestaande integratieketen controleert nu de semantische
-kop, focus, documentwaarde, bewerkbaarheid, opgeslagen status, opnieuw geopend
-document en atomische weigering bij een te kleine uitvoerbuffer. Geen IPC,
-schermlezer, spraakuitvoer of capabilitygrant toegevoegd.
+Branch `codex/native-materiaal-accessibility-20261030`, geteste bron
+`1ffd271f413120ccc2c66e6098cd260fdaa7475d`, basis `f52dab50af281dab2c94ab2c9e31aaabd299246a`.
+Bronfingerprint v3 `d9e3c57244904e20bf52f95b2b7d80e3d2d93e22a303b86f179e583f53e80185`.
+De app heeft sinds `56626baf` een begrensde app-lokale `App::semantics`-snapshot
+en hostassertions; dit is geen IPC, schermlezer of spraakuitvoer.
 
-De aanvankelijke hostlink-/preflightblokkade is lokaal opgelost zonder
-systeembrede installatie: gepinde Ubuntu-toolpakketten zijn onder genegeerde
-`.tools/nieuw-os/host-tools` uitgepakt, met een lokale GCC/sysroot-wrapper en
-QEMU 10.2.1 / OVMF 2025.11. Cargo-lock/manifesten zijn niet gewijzigd.
-Rust 1.90.0 fmt/check/Clippy, 27 Materiaal-harnastests en alle 20
-Rust-integratiescenario's slagen. De echte `native-system-materiaal-probe`
-build slaagt en bouwt/inspecteert de kernel plus acht userspace-ELF's.
-`tools/preflight.py --strict` slaagt met deze lokale QEMU/OVMF-omgeving.
+De normale echte QMP-proef is uitgevoerd met QEMU 10.2.1, OVMF 2025.11,
+`pc-q35-8.2/qemu64/TCG/1CPU/256MiB`. Uitkomst **FAIL**, raw QEMU-exit 35:
+de kernel bereikt de bestaande limiet van 20.000 PIT-ticks en meldt
+`MATERIAAL:FAIL:TIMEOUT`. Er zijn drie echte frames (1608/3223/4855 tiles),
+vier muis-ACKs, 28 key-events en een draft van 14 bytes; `SAVE_ACKS=0`, dus
+geen Saved/list/reopened/clean-stop. De runnerdeadline bleef 240 s en de
+kernelgrens is niet verruimd. Het rapport, serial, QMP-trace en screenshot-
+hashes staan in [brongebonden rood bewijs](verification/native-materiaal-accessibility-snapshot/qmp-normal-red.json);
+de ruwe bestanden blijven in de genegeerde `build/`-runmap. Visuele inspectie
+van de 800×600 ready/editor/dirty-screenshots is geen toegankelijkheids- of
+gebruikersacceptatie.
 
-De echte QMP-Materiaal-run moet nog starten; dit buildresultaat is geen
-runtime-, zichtbare-frame-, opgeslagen-document- of gebruikersbewijs.
-Concept-PR #68 staat tegen `main` op remote-head
-`8b75fdc6add1aa90f47ed921e0a472119951ec1f`; er zijn nog geen PR-checks of
-reviewgoedkeuring. Voortgang: totaal 34% blijft 34%;
-Materiaal/toegankelijkheid blijft 0/15, alle U01–U06 open.
+De runner bewaarde de gast-timeout als `guest_timeout=true`, maar de
+diagnostiek eindigde ook met `ValueError: Unknown native record:
+MATERIAAL:TIMEOUT_SLOT:00000000000000000000`. Dat rapportageprobleem is nu
+gericht aangepakt: `tools/run_materiaal_probe.py` extraheert failure-only
+TIMEOUT_SLOT/AT/VALUE-counters, terwijl de strikte `transcript`-succespredicate
+dezelfde FAIL/PANIC/unknown-records blijft weigeren. Een nieuwe hosttegenproef
+controleert geldige en malformed diagnostiek en bevestigt dat timeout nooit
+acceptatie wordt.
 
-Eerstvolgende commando: voer met de lokaal gepinde ROM/firmware en
-`NOS_QEMU_MACHINE=pc-q35-8.2` de echte probe uit:
-`python3 -B tools/run_materiaal_probe.py --case normal --build-dir build/materiaal-probe-accessibility --machine pc-q35-8.2 --qmp-transport pipe --vga-rom .tools/nieuw-os/host-tools/usr/share/seabios/vgabios-stdvga.bin --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde`.
-Daarna is een capability-begrensde accessibility-service met echte
-toetsenbord-only-, schermlezer-/spraak- en schaal/contrast/reduced-motion-
-proeven nodig. U04 kan niet sluiten zonder echte gebruikerstaken; U01–U03 en
-U05–U06 hebben daarnaast afzonderlijk bewijs nodig.
+Een latere, afzonderlijke geïntegreerde kandidaat staat op remote-branch
+`simon/native-test-version` (`c532ba88fbf0f53b960e9dbf77421cee29d97096`);
+de gepubliceerde interactieve proof bindt de runtime aan
+`eabc27ba879fd3b5960863ae8e8ede800c5045a57`, fingerprint v3
+`a1998a126a3a1ccc18523925a422912d934c14bab865b3d7df346862a2c251a6`.
+De versieerbare referentie samenvatting
+[`full-release-interactive-fixed`](https://github.com/simonvanieperen/nieuw-os/blob/simon/native-test-version/docs/verification/full-release-interactive-fixed/README.md)
+meldt zes echte frames tot en met save/list/reopen, raw 33, plus een gewone
+7-procesvariant in 92,390 s/QMP-quit/raw 0. De samenvatting geeft een echte
+schijforacle voor object 0/revisie 1/14 bytes/canaries; het is een
+ontwikkelprofiel met plaintext fixture, geen volledige Materiaalacceptatie.
+Die bron is niet deze branch; de eerdere timeout blijft rood bewijs op 1ffd271.
+Koude herstart/recovery van de gewone zevenprocessenketen was nog niet
+aangetoond toen de ontvangende agent dit meldde. De integrator in die worktree
+heeft exclusief `tools/run_materiaal_preview.py`,
+`tools/tests/test_materiaal_preview.py` en bijbehorend bewijs geclaimd voor
+die volgende koude-recovery-stap; deze worktree wijzigt die paden niet.
 
-## NEXT AGENT HANDOFF — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
+Voorgaande gerichte Rust-/Python-tests, native probe-build en strikte preflight
+zijn groen op hun eigen geregistreerde bron; zij maken deze runtimeproef niet
+groen. Op het laatste GitHub-controlemoment was PR #66 open met meerdere
+vereiste checks nog in uitvoering; concept-PR #68 blijft open op de oudere
+1ffd271-head en vraagt inhoudsbehoudende integratie van de semantiekwijziging
+op de nieuwe runtimebranch, niet een force-push.
+Voortgang: **34% → 34%**, Materiaal/toegankelijkheid **0/15**; U01–U06 open.
+
+Eerstvolgende stap: voer de nieuwe parsertegenproef en bestaande Materiaal-
+probe-hostsuite uit; commit/push daarna de timeoutdiagnostiek/evidence en
+controleer dat PR #68 het exacte commit bevat. Volg na acceptatie van de
+nieuwe runtimebranch met codebehoud een aparte keyboard-only en native
+semantiek/accessibility-stap: de huidige controller heeft Tab/Shift+Tab,
+maar de native grens naar een accessibility-service/schermlezer/spraak is
+niet gebouwd. Schaal, contrast, reduced motion en gebruikerstaken blijven
+vereist. U01–U06 sluiten niet op alleen een interactieve documentproef.
+
+## Historisch checkpoint — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
 
 Basis `ad2b981` (`main` na PR #63), branch
 `codex/b02-persistent-keystate-20261030`, worktree

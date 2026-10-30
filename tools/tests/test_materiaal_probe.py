@@ -246,6 +246,33 @@ class ArtifactTests(unittest.TestCase):
         p=Mock();p.poll.return_value=None;d.diagnostic_exit_grace(p,directory);p.wait.assert_not_called()
         with self.assertRaises(ValueError):d.transcript(b"MATERIAAL:FAIL:TIMEOUT\n",final=True)
 
+    def test_guest_timeout_diagnostics_are_structured_but_never_success(self):
+        raw = (
+            b"MATERIAAL:TIMEOUT_SLOT:00000000000000000000\n"
+            b"MATERIAAL:AT:00000000000000000408\n"
+            b"MATERIAAL:VALUE:00000000000000000001\n"
+            b"MATERIAAL:AT:00000000000000000496\n"
+            b"MATERIAAL:VALUE:00000000000000001608\n"
+            b"MATERIAAL:FAIL:TIMEOUT\n"
+        )
+        diagnostics = d.guest_diagnostics(raw)
+        self.assertEqual(diagnostics, {
+            "guest_timeout": True,
+            "guest_failure": True,
+            "slots": [{"slot": 0, "words": [
+                {"offset": 408, "value": 1}, {"offset": 496, "value": 1608},
+            ]}],
+        })
+        with self.assertRaises(ValueError):
+            d.transcript(raw, final=True)
+        with self.assertRaises(ValueError):
+            d.guest_diagnostics(b"MATERIAAL:TIMEOUT_SLOT:00000000000000000008\n")
+        with self.assertRaises(ValueError):
+            d.guest_diagnostics(
+                b"MATERIAAL:TIMEOUT_SLOT:00000000000000000000\n"
+                b"MATERIAAL:AT:00000000000000000041\n"
+            )
+
     def test_symlink_hardlink_and_outside_build_paths_fail(self):
         image=self.build/"users/materiaal/desktop-init.elf";other=self.root/"outside";other.mkdir();os.link(image,other/"hard")
         with self.assertRaises(ValueError):d.validate_build(self.build,"a"*64,"normal")

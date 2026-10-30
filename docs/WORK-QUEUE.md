@@ -2,7 +2,7 @@
 
 | Werkpakket | Toestand | Eigenaar / exclusieve writes | Acceptatie | Interface en bewijsgrens |
 |---|---|---|---|---|
-| NATIVE-MATERIAAL-SEMANTICS-1 | app-lokale read-only semantische snapshot en assertions toegevoegd; native accessibility nog open | root; `sdk/examples/materiaal/src/lib.rs`, `sdk/examples/materiaal/tests/chain.rs`, bijbehorende docs/bewijs | U04; afhankelijk van U01/U02 | alle 20 Rust-integratiescenario's, 27 Python-harnastests en volledige native probe-build groen; QEMU/OVMF lokaal hersteld; echte QMP-run, accessibility IPC/schermlezer/spraak en gebruikerstests nog niet uitgevoerd; alle U-criteria blijven open |
+| NATIVE-MATERIAAL-ACCESSIBILITY-2 | oude QMP-timeout (1ffd271) als FAIL bewaard; runner toont nu bounded timeout-diagnostiek; latere interactieve proof op eabc27b is apart groen t/m save/list/reopen; gewone zevenprocessen koude recovery nog open | root; `tools/run_materiaal_probe.py`, `tools/tests/test_materiaal_probe.py`, `docs/verification/native-materiaal-accessibility-snapshot/`; geen `tools/run_materiaal_preview.py`/tests of kernel/SDK-wait writes | U01–U04; afh. native runtime integratie en echte accessibility interface/tests | oude run: raw35/20.000 PIT ticks, 28 keys, geen save. Nieuwe branch proof is brongebonden in `verification/full-release-interactive-fixed/`, geen koude gewone herstelproef of accessibilitybewijs. Parser/hostsuite na deze wijziging nog uitvoeren; alle U-criteria open |
 
 Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De opt-in `native-rtc`-bootstrap,

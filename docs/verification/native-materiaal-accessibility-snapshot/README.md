@@ -27,8 +27,25 @@ Status: beperkte implementatiestap, geen aftekening van native toegankelijkheid.
 | `sha256sum build/sdk-materiaal/x86_64-unknown-none/release/materiaal-app` | `cb1f73a07e18d35d77db0b0056d4cf4702ef64a9d59b61484a1e9c2ff1d3090c` |
 | `python3 -B tools/dev.py cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml` | exit 0; alleen bestaande lockfile-versies opgehaald; geen manifest/lockfilewijziging |
 | `python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml` met lokale `.tools/nieuw-os/host-tools` GCC/sysroot-omgeving | exit 0; alle 20 `chain`-scenario's slagen |
-| `python3 -B tools/build.py --kernel-feature native-system-materiaal-probe` met lokale Rust/QEMU-tooling en `NOS_QEMU_MACHINE=pc-q35-8.2` | exit 0; kernel en acht userspace-ELF's gebouwd en geïnspecteerd; geen runtime uitgevoerd |
+| `python3 -B tools/build.py --kernel-feature native-system-materiaal-probe` met lokale Rust/QEMU-tooling en `NOS_QEMU_MACHINE=pc-q35-8.2` | exit 0; kernel en acht userspace-ELF's gebouwd en geïnspecteerd |
 | `python3 -B tools/preflight.py --strict` met lokale QEMU/OVMF-paden | exit 0; inventory slaagt; geen boot uitgevoerd |
+| `python3 -B tools/run_materiaal_probe.py --case normal --build-dir build/materiaal-probe-accessibility --machine pc-q35-8.2 --qmp-transport pipe --vga-rom .tools/nieuw-os/host-tools/usr/share/seabios/vgabios-stdvga.bin --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde` | **FAIL**, raw QEMU-exit 35 na 20.000 PIT-ticks; 240 s runnerdeadline niet verruimd; geen save/reopen |
+
+De normale native QMP-proef is brongebonden in
+[`qmp-normal-red.json`](qmp-normal-red.json). Zij bereikte drie echte frames
+(ready/editor/dirty), vier muis-ACKs en 28 key-events; de draft telde 14 bytes.
+Daarna meldde de gast `MATERIAAL:FAIL:TIMEOUT`, met `SAVE_ACKS=0`; de
+opslag-/heropenings-/clean-stopfasen zijn niet bereikt. De runnerdiagnostiek
+wees bovendien het eerste `MATERIAAL:TIMEOUT_SLOT`-record af als onbekend.
+Dat rapportageprobleem wordt apart hersteld; het verandert de timeout nooit in
+een geslaagde proef.
+
+Ready-, editor- en dirty-screenshots (800×600) zijn visueel bekeken. Dat toont
+de werkelijke eigen-kernel-rendering en muis-/toetsbediening in deze beperkte
+run; het bewijst geen keyboard-only taak, screenreader/spraak, menselijke
+toegankelijkheidsproef of visuele eindacceptatie. De latere native
+IPC-wachtintegratie op een andere bron is apart bewijs en maakt deze oude
+run niet groen of bron-equivalent.
 
 De eerstvolgende native probe gebruikt QEMU `10.2.1`,
 `OVMF_CODE_4M.fd` SHA-256
@@ -41,9 +58,9 @@ Deze zijn lokale tool-inputs, geen meegeleverde productonderdelen.
 
 ## Bewijsgrens en open werk
 
-De ELF-build, Rust-typecheck, lint en Python-harnas vervangen geen uitvoering
-van de app of van een accessibility-service. Er is nog geen native QMP-bediening,
-schermlezer-/spraakuitvoer, toetsenbord-only gebruikersproef, instellingen
+De ELF-build, Rust-typecheck en lint vervangen geen uitvoering van de app of
+van een accessibility-service. Er is nog geen native schermlezer-/spraakuitvoer,
+keyboard-only gebruikersproef, instellingen
 voor schaal/contrast/reduced motion, menselijke gebruikerstest of fysieke
 hardwaretest uitgevoerd. Deze wijziging sluit geen U01–U06-criterium en
 verhoogt de vaste score niet. Zie `docs/PROJECT-STATE.md` voor de eerstvolgende

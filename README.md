@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`56626baf`](https://github.com/simonvanieperen/nieuw-os/commit/56626baf7f6db7b8a1d0e07787ae4df5997d96f5) ·
+**Bron:** [`1ffd271f`](https://github.com/simonvanieperen/nieuw-os/commit/1ffd271f413120ccc2c66e6098cd260fdaa7475d) ·
 **Ontwikkelbranch:** `codex/native-materiaal-accessibility-20261030`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-MATERIAAL-SEMANTICS-1: app-lokale semantische snapshot en assertions.
-34% blijft 34%; het spoor Native Materiaal en toegankelijkheid blijft 0/15 en U01–U06 blijven open. De CPL3-app biedt een begrensde, read-only snapshot van haar eigen semantische controllerstaat; bestaande integratieassertions dekken kop, focus, documentwaarde, bewerkbaarheid, opslagstatus, heropenen en atomische bufferweigering. Rust fmt/check/Clippy, 27 Python-harnastests, alle 20 Materiaal-Rust-integratiescenario's en de echte native-system-materiaal-probe-build slagen. Met lokaal geëxtraheerde tools in genegeerde .tools/host-tools slaagt ook strikte preflight; er is nog geen QMP/runtime- of toegankelijkheidsproef uitgevoerd. Geen schermlezer-/spraakuitvoer, echte gebruikerstest of rubricgate bewezen; daarom geen punten toegekend.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-MATERIAAL-ACCESSIBILITY-2: native QMP-evidence, timeoutdiagnostiek en vervolgbewijs.
+34% blijft 34%; Materiaal/toegankelijkheid blijft 0/15 en U01–U06 blijven open. Op exact 1ffd271 faalde de echte QMP-run raw35 na de ongewijzigde 20.000 PIT-ticks: ready/editor/dirty, 28 key-events en 14 draftbytes, maar geen save/reopen/clean-stop. Dit rode bewijs is opgeslagen. De runner krijgt failure-only timeoutdiagnostiek met hosttegenproef; de strikte native succespredicate verandert niet. Een afzonderlijke latere proof op runtimebron eabc27b is in een andere remote branch voor zes frames t/m save/list/reopen en gewone 7-procesruntime geregistreerd; deze vervangt de rode run niet en bewijst nog geen koude gewone recovery, schermlezer/spraak, keyboard-only-gebruikersproef, instellingen of gebruikersacceptatie. Geen U-poort sluit en geen punten toegekend.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -432,6 +432,44 @@ def diagnostic_exit_grace(process, directory: Path) -> None:
         pass
 
 
+def guest_diagnostics(raw: bytes) -> dict:
+    """Extract bounded failure-only timeout counters; never use them as proof."""
+    require(isinstance(raw, bytes) and len(raw) <= SERIAL_LIMIT, "Oversized diagnostic transcript")
+    lines = raw.decode("utf-8", "replace").splitlines()
+    slots = []
+    current = None
+    for line in lines:
+        match = re.fullmatch(r"MATERIAAL:TIMEOUT_SLOT:([0-9]{20})", line)
+        if match:
+            slot = int(match[1])
+            require(slot < 8, "Invalid native timeout diagnostic slot")
+            current = {"slot": slot, "words": []}
+            slots.append(current)
+            continue
+        if current is None:
+            continue
+        match = re.fullmatch(r"MATERIAAL:AT:([0-9]{20})", line)
+        if match:
+            offset = int(match[1])
+            require(offset in (40, 192, 240, 400, 408, 416, 424, 432, 440, 472, 480, 488, 496),
+                    "Invalid native timeout diagnostic offset")
+            current["pending_offset"] = offset
+            continue
+        match = re.fullmatch(r"MATERIAAL:VALUE:([0-9]{20})", line)
+        if match and "pending_offset" in current:
+            current["words"].append({"offset": current.pop("pending_offset"), "value": int(match[1])})
+            continue
+        if line.startswith("MATERIAAL:") and not line.startswith(("MATERIAAL:AT:", "MATERIAAL:VALUE:")):
+            current = None
+    for slot in slots:
+        require("pending_offset" not in slot, "Incomplete native timeout diagnostic")
+    return {
+        "guest_timeout": any(line.startswith("MATERIAAL:TIMEOUT_SLOT:") for line in lines),
+        "guest_failure": "MATERIAAL:FAIL:TIMEOUT" in lines,
+        "slots": slots,
+    }
+
+
 def replay(report: dict, directory: Path, frozen: str) -> dict:
     """Recompute the proof from frozen bytes, never trust a stored passed flag."""
     case=report.get("case");require(case in FEATURES,"Unknown recorded case")
@@ -621,8 +659,11 @@ def run_materiaal_probe(*,case="normal",build_directory=BUILD,run_root=None,pare
     except Exception as error:
         report["error"]=f"{type(error).__name__}: {error}";report["timed_out"]=isinstance(error,(TimeoutError,subprocess.TimeoutExpired)) or time.monotonic()>=deadline
         try:
-            report["guest_timeout"]=b"MATERIAAL:TIMEOUT_SLOT:" in serial_bytes(directory)
-            report["timed_out"] |= report["guest_timeout"]
+            diagnostics = guest_diagnostics(serial_bytes(directory))
+            report["guest_timeout"] = diagnostics["guest_timeout"]
+            if diagnostics["guest_timeout"] or diagnostics["guest_failure"]:
+                report["guest_diagnostics"] = diagnostics
+            report["timed_out"] |= diagnostics["guest_timeout"] or diagnostics["guest_failure"]
         except (OSError,ValueError):
             pass
     finally:
