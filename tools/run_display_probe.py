@@ -200,7 +200,7 @@ def qmp_requests(directory: Path) -> list[dict]:
             {"type": "btn", "data": {"down": True, "button": "left"}}]
     up = [{"type": "btn", "data": {"down": False, "button": "left"}}]
     for generation in (1, 2):
-        actions.extend((("screendump", {"filename": str(directory / f"generation-{generation}.ppm")}),
+        actions.extend((("screendump", {"filename": f"generation-{generation}.ppm"}),
                         ("send-key", {"keys": [{"type": "qcode", "data": "a"}], "hold-time": 30}),
                         ("input-send-event", {"events": down}), ("input-send-event", {"events": up})))
     return [{"execute": name, "id": index, **({"arguments": arguments} if arguments is not None else {})}
@@ -222,7 +222,7 @@ def validate_qmp_trace(trace: object, directory: Path):
 def qemu_arguments(qemu: str, machine: str, transport: str) -> list[str]:
     require(machine == qemu_machine(machine) and transport in ("unix", "pipe"), "Invalid machine/QMP profile")
     return [qemu, "-machine", machine, "-accel", "tcg,thread=single", "-cpu", "qemu64", "-smp", "1", "-m", "256M",
-            "-nodefaults", "-display", "none", "-monitor", "none", "-serial", "file:serial.txt" if transport == "pipe" else "stdio",
+            "-nodefaults", "-display", "none", "-monitor", "none", "-serial", "file:serial.txt",
             "-nic", "none", "-no-reboot", "-device", "VGA,vgamem_mb=16,romfile=VGA.rom",
             "-qmp", "stdio" if transport == "pipe" else "unix:qmp.sock,server=on,wait=off",
             "-drive", "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
@@ -366,8 +366,8 @@ def run_display_probe(*, build_directory=BUILD, run_root=None, machine=None,
     trace = []
     try:
         require(checks["before_launch_source_unchanged"], "Source changed while snapshotting")
-        with (directory / "serial.txt").open("xb") as stdout, (directory / "stderr.txt").open("xb") as stderr:
-            process = subprocess.Popen(arguments, cwd=directory, env=env, stdout=subprocess.PIPE if qmp_transport == "pipe" else stdout,
+        with (directory / "stderr.txt").open("xb") as stderr:
+            process = subprocess.Popen(arguments, cwd=directory, env=env, stdout=subprocess.PIPE if qmp_transport == "pipe" else subprocess.DEVNULL,
                                        stdin=subprocess.PIPE if qmp_transport == "pipe" else subprocess.DEVNULL, stderr=stderr, bufsize=0)
             try:
                 control = QmpPipe(process, deadline) if qmp_transport == "pipe" else Qmp(directory / "qmp.sock", deadline, process)
