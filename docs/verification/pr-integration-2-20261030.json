@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-30",
+  "scope": "Second integration: content committed to open PRs after or outside the #96 integration record; component evidence only, no native product acceptance",
+  "integrator": "Claude Code desktop session on Simon's explicit instruction",
+  "stacked_on": {
+    "pr": 96,
+    "head": "d4e8606b8332e70d509a2449d623152b32e1c1d2"
+  },
+  "inputs": [
+    {
+      "pr": 103,
+      "head": "9217f3b4c92414093f638f2cac9c5aa0bed78c1c",
+      "picked": [
+        "89e200451066f86a1cffb5a8dab4b3dd4089e587",
+        "70be43d63b50294a2f40bc2ba431aab557498019"
+      ]
+    },
+    {
+      "pr": 106,
+      "head": "bc45e280ef9679163e0c065e75047d900b21ad54",
+      "picked": [
+        "dca00a3ec9eb8eb5120177c4ec4145141c8cd3ee"
+      ]
+    },
+    {
+      "pr": 105,
+      "head": "c8f25e38c1bb3e1961d54359ec648a16cc324964",
+      "picked": [
+        "0b0271c63697ce52eacba5bef91ae1c99ffd6697",
+        "02ab9c5298d7b1d4045ed133c6cbdeda19397e6e",
+        "7dc64b3a5a58ce95030f5edd2bb5c6eb184efc57",
+        "8fcfff9738a29ff63a34f84c8a74b8fdab2974c8"
+      ]
+    },
+    {
+      "pr": 107,
+      "head": "438ddeb3808590babfd9dfae5ad7b41fac0deb99",
+      "picked": [
+        "0818f5ec651b72c32b8795ff0d3d9a6ebdc9783d",
+        "29b79eae19de616be415cfbd7b7cc313766546d6"
+      ],
+      "resolution": "semantic capacity and window-bounds hunks already fixed identically in #96; integration side kept"
+    },
+    {
+      "pr": 68,
+      "head": "a81ce39849456819219385f7b7bdf184af0b3b6e",
+      "picked": [
+        "d0f0d28a666ed91984b215f9ba7bca7ca39a7b08"
+      ],
+      "resolution": "window-bounds hunk equal to 0818f5e; integration side kept, evidence files added"
+    },
+    {
+      "pr": 72,
+      "head": "1c5c584b310040430bb52cc0168a2af8e67e7e4f",
+      "picked": [
+        "65a961ccb9b6edfd16c92d052cf97a5e88e69878"
+      ]
+    },
+    {
+      "pr": 92,
+      "head": "a9ac7986c45a8f59ad8c8c6a4a5d7ea1a2c0ae0c",
+      "picked": [
+        "eebd078"
+      ],
+      "resolution": "services/net-config/tests/service.rs: both added tests kept"
+    },
+    {
+      "pr": 97,
+      "head": "648eebcfc78cdaaca86001eb18d4e2985ac333ab",
+      "picked": [
+        "0a4e467",
+        "648eebc"
+      ]
+    },
+    {
+      "pr": 98,
+      "head": "9e9a7e6457b6175fd18edb7aca11f4ab9f9d748d",
+      "picked": [
+        "07f5a95",
+        "0578424",
+        "083af5e"
+      ],
+      "note": "contains #102 byte-identically"
+    },
+    {
+      "pr": 102,
+      "head": "3ac47c38c9e06e598970d598568bda655fbfb5f8",
+      "picked": "via #98"
+    },
+    {
+      "pr": 100,
+      "head": "5f85d132388395bc9bcaa86cce5c0e6378a1166b",
+      "picked": [
+        "0915828",
+        "33adc70"
+      ]
+    },
+    {
+      "pr": 101,
+      "head": "1458a7582850ff3cab602aed29aa4246479b13e4",
+      "picked": [
+        "3d8367d",
+        "a49774b",
+        "1d1b42c",
+        "97b73e4",
+        "f0b1771"
+      ]
+    },
+    {
+      "pr": 104,
+      "head": "d38f5c5dd1a394e6a1e45d1857717945f849cda5",
+      "picked": [
+        "63af0c1",
+        "d6b4e68",
+        "eb70acc",
+        "a3dd1c7"
+      ]
+    },
+    {
+      "pr": 99,
+      "head": "d098bce0a341489e77728fd4997a473edc12b86a",
+      "picked": "docs/WORK-QUEUE.md taken byte-identically from 0cdcdb5, then section spacing fix and integrator takeover note"
+    }
+  ],
+  "integration_fixes": [
+    {
+      "file": "sdk/examples/materiaal/tests/chain.rs",
+      "issue": "0818f5e makes semantics() require the exact visited node count; the chain test still expected MAX-1 to fail (cause of #107 host-quality failure)",
+      "fix": "atomicity check bound to count-1"
+    }
+  ],
+  "local_validation": {
+    "toolchains": {
+      "1.90.0": "ui/native, sdk/examples/materiaal, app-package-core, app-management",
+      "1.91.1": "services/net-config"
+    },
+    "ui_native": {
+      "tests": 32,
+      "clippy_exit": 0,
+      "fmt_exit": 0,
+      "freestanding_build_exit": 0
+    },
+    "sdk_examples_materiaal": {
+      "tests": 22,
+      "clippy_exit": 0,
+      "fmt_exit": 0
+    },
+    "tools_materiaal_probe_python": {
+      "tests": 70,
+      "exit": 0
+    },
+    "net_config": {
+      "tests": 37,
+      "clippy_exit": 0,
+      "fmt_exit": 0,
+      "freestanding_build_exit": 0
+    },
+    "app_package_core": {
+      "tests": 15,
+      "clippy_exit": 0,
+      "fmt_exit": 0,
+      "freestanding_build": "not executed locally: host rustc SIGILL while compiling curve25519-dalek for x86_64-unknown-none; left to CI"
+    },
+    "app_management": {
+      "tests": 26
+    },
+    "guest_execution": false
+  },
+  "docs_review": "Read-only AI review of #98/#100/#101/#104: no secrets, claims correctly labelled; host paths in evidence files noted; not a human audit",
+  "score": {
+    "before": 34,
+    "after": 34,
+    "rubric_changed": false
+  }
+}
