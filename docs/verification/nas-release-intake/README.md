@@ -71,7 +71,8 @@ artifact-/verifiernegatieven, geen native servicebewijs.
 `python3 -B tools/dev.py cargo +1.90.0 fmt --all -- --check` en
 `git diff --check`: exit 0.
 
-**Nog niet uitgevoerd voor de runnercheckpointbron:** normale/koude
+**Op het oorspronkelijke runnercheckpoint nog niet uitgevoerd**
+(zie de werkelijk uitgevoerde brongebonden gates hieronder): normale/koude
 QEMU-run, guestcaller-/grantasserties, stackmeting en onafhankelijke
 diskcontrole op echte guestbytes. De build en gates moeten op deze bron
 worden herhaald. B72 heeft de read-only reviewerrol bevestigd; review
@@ -283,3 +284,51 @@ bestaande `target/nas-release-profile`, zonder codewrites of GUI-test.
 De precieze uitslag volgt pas na uitvoering; geen geïntegreerde kandidaat
 of Windowsbundel is hiermee vrijgegeven. Centrale registratie en nieuwe
 rol-/bestandoverdrachten blijven bij de manager.
+
+## Bestaand defaultprofiel: echte normal/cold-regressie
+
+Werkelijk uitgevoerde bron `e5e2cabb4d43379b2aa9f1c9598a29f10201231b`;
+v3 is nog steeds
+`9c4af2f8838bd87c7c9646ebd93f3efe2e4dd552599dc3aa9a053235d2591492`.
+De twee interveniërende commits bevatten uitsluitend bewijs/documentatie.
+Met dezelfde HOST_TOOLS/QEMU_TOOLS/PATH/LD_LIBRARY_PATH/OVMF-omgeving
+als de 1219-proef is uitgevoerd:
+
+```sh
+export NOS_BUILD_DIR="$PWD/build/nas-default-regression"
+export NOS_TARGET_DIR="$PWD/target/nas-release-profile"
+export CARGO_TARGET_DIR="$PWD/target/nas-release-profile"
+export CARGO_NET_OFFLINE=true
+python3 -B tools/dev.py python3 -B -u tools/test_system.py
+```
+
+Exit **0**, werkelijk twee VM-runs: normal raw 33 / 3,684472 s,
+recover raw 33 / 3,855464 s. Ook de runnerinterne 46 systemhosttests
+en 23 SDK-runtimetests (6 unit, 14 integratie, 3 compilatie-negatieven)
+slaagden. Geen bronwrites tijdens de gate. De normale kernel werd aan het
+eind opnieuw gebouwd en bleef bytegelijk aan de werkelijk geteste kernel:
+`6a5fc8418579d94e545e37bb01a74ebac13ad3c50a0171fe15e699c48dcabdf0`.
+Koude kernel:
+`32d031f262e4fa66cea9f8924c08eb87fd38956006f5ac71991b5b1af54fb795`.
+Loader beide:
+`0746886936b64985240d0061ad03a1fb873683ec371d1d1f9986640c89d7c11c`.
+Normale afterdisk en koude before/afterdisk:
+`d284671fca969ba29d43629fa3e9b311139280a80304639b4950154548ccfe6b`.
+
+Volledige gate, finale manifest, beide result/serial/stderr, hostlogs,
+native commandolog en hashes staan in `default-regression/`.
+Dit controleert het bestaande gezamenlijke niet-interactieve profiel naast
+het opt-in NAS-profiel; het is geen bediende productketen, geen oplossing
+of reproductie van de afzonderlijke TCP-pagingfout en geen 100-startproef.
+Overige native CI-gates en finale mainherhaling blijven open.
+
+**Hervatten:** NAS-code is bevroren op `1219dcd`, positieve native NAS-pair
+op `0611d18`, beperkte tweepuntsreview vastgelegd op `e5e2cab`.
+Alle lokale VM-processen uit deze gates zijn beëindigd. Laat e8 de
+NAS-leaf/dit opt-in profiel inhoudsbehoudend integreren, laat de workflowowner
+de `test_nas*.py`-selector aansluiten en herhaal op de finale bron.
+Er is nog geen geïntegreerde VM-FR-kandidaat vrijgegeven; rollen 20/21
+hebben geen product-/Windowsimage ontvangen. E8-berichtlevering gaf tweemaal
+een remote priority-timeout; de manager is over de niet-verstuurde handoff
+ingelicht en blijft eigenaar van centrale status en taakoverdracht.
+Scores blijven 34/100 en R01-R03 0/5.

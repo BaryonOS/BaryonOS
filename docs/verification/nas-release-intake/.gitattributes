@@ -1,3 +1,4 @@
 **/serial.txt -text whitespace=cr-at-eol
 **/*.log -text
 review-bindings/*.txt -text whitespace=-blank-at-eol
+default-regression/logs/*.txt -text whitespace=-blank-at-eol,-blank-at-eof
