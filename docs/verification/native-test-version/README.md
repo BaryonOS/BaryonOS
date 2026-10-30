@@ -50,7 +50,15 @@ De twee daadwerkelijke GUI-pogingen blijven rood, met ongewijzigd
 Zie `gui-attempts.json` voor bron-/loghashes. De volgende versie voegt
 alleen quiescente servicewachten toe; 100 keyring/volume-hosttests en
 21 desktop-init-tests slagen, plus native Clippy en de samengestelde
-ELF/kernelbuild. Die runtime is nog niet uitgevoerd.
+ELF/kernelbuild. Die native runtime is nu **groen**: op `2066ae7` zes echte
+frames en de volledige muis/typen/save/list/reopen/F12-keten in 131,561 s
+met raw33, zonder verruimde deadline. Zie `gui-normal-evidence.json`.
+De disk bevat werkelijk de 14 getypte bytes, één save-ACK en revisie1;
+systeemrand/canaries blijven intact en alle processen/handles worden
+vrijgegeven. De eigen-kernel/UEFI-testversie staat lokaal onder
+`build/native-test-version/gui-idle/esp`, met de gebonden run en snapshots
+onder `run/materiaal-normal-4417ddea00`. Alleen synthetische plaintextdata;
+geen persoonlijke data, encryptie- of complete releaseclaim.
 
 De native wachtbuild en runtime zijn inmiddels **geslaagd**:
 het exacte commando en compacte hashbinding staan in `wait-evidence.json`.
@@ -68,7 +76,7 @@ De selectielus herstart nu bij haar waitrefresh na die cleanup; hertoetsing
 van de laatste correctie volgt. Deze review is geen menselijke audit.
 
 **Niet uitgevoerd op deze integratie:** native kill/hergebruik en wachten
-met FPU-context, GUI-gebruikersketen, bredere native regressies, fysieke
+met FPU-context, koude readonly-heropening, bredere native regressies, fysieke
 hardware en menselijke gebruiks-/securityacceptatie. De CPL3-probe is inmiddels als echt scalair ELF gebouwd; de gezamenlijke
 kernelbuild en runtime moeten nog volgen. Probe-hosttests: 3/3, exit 0.
 Gerichte Clippy voor capability-core, SDK-runtime en inputconsumenten:

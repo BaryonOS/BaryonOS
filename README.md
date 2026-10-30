@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`acd413c8`](https://github.com/simonvanieperen/nieuw-os/commit/acd413c836568d1a9c437ffd61edd0e4a8e56e22) ·
+**Bron:** [`2066ae7c`](https://github.com/simonvanieperen/nieuw-os/commit/2066ae7ccb25ac9e5e23eb81ec79a7286699a8ec) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: integratie van bestaande begrensde IPC-wacht als voorbereiding op echte Materiaal-testversie.
-34% blijft 34%; minstens 50% is niet bereikt. Wachtpoort en legacy invalid-RSP slagen native, maar zowel GUI-nulmeting als input-only wachten blijven rood na circa202s en drie echte frames. Geen deadline of acceptatie versoepeld. De volgende gebouwde versie laat ook alleen-quiescente keyring/volume/desktop-init wachten; RANDOM-pendingwerk en lokale controllertrigger behouden hun pollpad. 100 keyring/volume- en21 desktop-hosttests, gerichte native Clippy en echte scalar-ELF/kernelbuild slagen. GUI-idle-runtime, koude heropening, brede native regressies en aanvullende lifecycle/FPU-bewijzen blijven open. Geen volledig rubriccriterium of releaseacceptatie geclaimd.
+34% blijft 34%; minstens 50% is nog niet bereikt. De eerder rode echte Materiaal-QMP-keten slaagt nu op2066ae7 in131,561s/raw33 zonder deadline- of orakelversoepeling: zes echte frames, muis/toetsen, save-ACK, list/reopen,14 werkelijke diskbytes en volledige cleanup. Quiescente services wachten op bestaande IPC-rechten; alle digestchecks en protocoldeadlines blijven. Het lokale eigen-kernel/UEFI-testimage is gebouwd en gedraaid. Koude readonly-heropening, aanvullende wait-lifecycle/FPU-gates, volledige document/GUI-criteria, bredere native regressies en menselijke/hardwareacceptatie blijven open. Deze afgebakende plaintext-fixtureproef sluit geen volledig nieuw rubriccriterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

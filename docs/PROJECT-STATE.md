@@ -97,12 +97,26 @@ SUR1, useractie, save-ACK, deadlines of renderer.
 100 keyring/volume-hosttests en 21 desktop-init-tests slagen, inclusief
 6 nieuwe echte Engine-/quiescentiegevallen. Service-native-Clippy,
 desktop-Clippy en scalar-doelbuilds zijn groen. Het samengestelde
-GUI-idle-image is gebouwd/geïnspecteerd, runtime nog niet uitgevoerd.
+GUI-idle-image is gebouwd/geïnspecteerd.
 
-**Niet uitgevoerd:** native kill/hergebruik en FPU met wachten, GUI-idle-
-regressie, koude heropening, brede native gates en complete testimageacceptatie.
-Eerstvolgend:
-`NOS_BUILD_DIR="$PWD/build/native-test-version/gui-idle" python3 -B -u tools/run_materiaal_probe.py --build-dir "$PWD/build/native-test-version/gui-idle" --machine pc-q35-10.0 --vga-rom "$PWD/.tools/nieuw-os/qemu/usr/share/seabios/vgabios-stdvga.bin" --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde`.
+**Native GUI-normaalpad nu geslaagd op `2066ae7ccb25ac9e5e23eb81ec79a7286699a8ec`**:
+exit0/raw33 in 131,561 s binnen het ongewijzigde budget. De echte QMP-keten
+doorloopt ready → editor → dirty → saved → list → reopened: 6 frames,
+9.737 tile-ACK's, 40 key-events, 4 muis-events, 44 input-ACK's, één save-ACK.
+De gast schrijft en herleest werkelijk `nieuw os werkt` (14 bytes), revisie1;
+diskcanaries en systeemrand blijven intact. F12/stopketen eindigt met nul
+processen/handles en herstelde frames. Geen renderer-, digest-, timeout-
+of orakelversoepeling. Compact bewijs: `gui-normal-evidence.json` onder
+`verification/native-test-version/`. Het betreft een synthetische plaintext-
+fixture, geen versleutelde persoonlijke opslag of volledige GUI-release.
+De lokale ESP/testversie staat in `build/native-test-version/gui-idle/esp`.
+
+**Niet uitgevoerd:** native kill/hergebruik en FPU met wachten,
+koude heropening, brede native gates en complete testreleaseacceptatie.
+Eerstvolgend: `test-system-materiaal-recover` bouwen in
+`build/native-test-version/gui-recover`, dezelfde targetcache gebruiken;
+`run_materiaal_probe.py --case recover` met parent
+`build/native-test-version/gui-idle/run/materiaal-normal-4417ddea00`.
 De werkbranch is gepusht. Een nieuwe concept-PR is nog niet geopend:
 de app-sessie is aan de oudere infrastructuurbranch gebonden, terwijl
 de OS-werkbranch bewust apart staat; de sessie-PR-tool kan geen andere head kiezen.
