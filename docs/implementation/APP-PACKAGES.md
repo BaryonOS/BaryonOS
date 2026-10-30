@@ -97,11 +97,13 @@ Een provider moet bij `begin` de volledige objectlengte atomair reserveren of
 falen vóór hij chunks accepteert.
 
 De leeszijde is sinds #109 het gedeelde `artifact-store-core`-contract
-(ADR-054); app-management herdefinieert geen read-types meer. De concrete
-storeadapter implementeert `ArtifactStore` en construeert het opaque
-handle-type; de handle is niet serialiseerbaar of overdraagbaar. De adapter
-bindt hem aan de kernel-geauthenticeerde clientcontext en de actuele
-store-epoch, en controleert beide bij iedere read. `open_checked` weigert een
+(ADR-054, een contractvoorstel; native uitvoering staat open);
+app-management herdefinieert geen read-types meer. **Contracteis, nog niet
+geïmplementeerd:** er is nog geen persistente storeadapter. Een toekomstige
+adapter implementeert `ArtifactStore`, construeert het opaque handle-type
+(niet serialiseerbaar of overdraagbaar), bindt de handle aan de
+kernel-geauthenticeerde clientcontext en de actuele store-epoch, en
+controleert beide bij iedere read; alleen de testadapter doet dat nu. `open_checked` weigert een
 store-autoritatieve descriptor die afwijkt van de verwachte (`Corrupt`);
 `read_bounded` gebruikt de descriptor uit de geopende handle, zodat een
 aanroeper geen andere descriptor kan meegeven. Iedere opslagoperatie is
