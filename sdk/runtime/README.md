@@ -28,7 +28,7 @@ rechtenverruiming weigeren. Dit is dezelfde authoritygrens als vóór de SDK.
 | `native::yield_now/exit` | Bestaand proces afstaan/beëindigen |
 | `native::close/derive/revoke` | Bestaande capabilityoperaties; geen nieuwe objectaanmaak |
 | `native::send` | Eén nonblocking send; `Ok` betekent alleen dat het bericht is gequeued |
-| `native::receive` | Eén nonblocking receive naar een eigen stackbuffer, daarna envelopevalidatie |
+| `native::receive` | Eén nonblocking receive naar een eigen stagingbuffer, daarna gewiste envelope-overdracht |
 | `native::close_received_caps` | Expliciete cleanup van ontvangen caps; probeert alle handles en bewaart de oorspronkelijke berichtbytes |
 | `native::endpoint_create` | K05 (ABI 1.3, profiel `native-supervisor`): eigen endpoint binnen het kernelquotum van 4 per proces |
 | `native::spawn` | K05: start de image van een `LaunchImage` met één argumentwoord en maximaal twee verminderde capabilities (nooit RECV); levert de enige `ChildProcess`-handle |
@@ -41,6 +41,11 @@ capabilities kunnen worden toegevoegd; RECV-overdracht blijft geweigerd.
 
 `Received` bewaart sender, tag, payload en alle oorspronkelijke envelopebytes.
 De constructor controleert ook dat de lengte gelijk is aan het syscallresultaat.
+Native IPC gebruikt één gewiste overdracht naar de envelope; de stagingbuffer
+wordt bij succesvolle overdracht direct gewist en zowel `Received` als
+`Outgoing` wissen hun bytes bij opruimen. Hun `Debug`-weergave bevat geen
+payload. Dit is geheugenhygiëne, geen garantie dat compiler-/registerkopieën,
+crashgeheugen of elders gekopieerde bytes worden gewist.
 De afnemende dienst/app moet nog zijn verwachte peer, tag, request-ID, epoch,
 domein, inhoud en toegestane capabilities controleren. Een geslaagde
 `Received::from_bytes` bewijst op zichzelf geen kernelherkomst. `native::receive`

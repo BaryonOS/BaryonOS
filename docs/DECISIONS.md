@@ -28,8 +28,10 @@ sleutelbeheer; (b) persistente opcodes op de bestaande domein-endpoints —
 elke app met een sleutelendpoint zou dan snapshotbevoegdheid krijgen.
 Grenzen: de generatievloer in dit profiel is een gedemonstreerd mechanisme,
 geen vertrouwd anker; koude rollbackankering, write-ahead per GENERATE/REVOKE
-in de dienst zelf, zeroisatie van de SDK-ontvangstbuffer en een echte
-volume-identiteit (nu de profielconstante `NOS-SYSTEM-VOL01`) blijven open.
+in de dienst zelf en een echte volume-identiteit (nu de profielconstante
+`NOS-SYSTEM-VOL01`) blijven open. De SDK-eigen Message320-envelope-/stagingbytes
+worden sinds de B02-IPC-hygiënecheck wel gewist; caller-owned request-arrays en
+compiler-/registerkopieën vallen daar niet onder.
 B02 blijft daarom open; de score verandert niet. Rollback: verwijder de twee
 opcodes, het admin-ingress en de init-/appstappen; bestaande KEY1-codes,
 formaten en het B01-profiel zijn ongewijzigd.
