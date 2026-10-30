@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`f61ce3e6`](https://github.com/simonvanieperen/nieuw-os/commit/f61ce3e66e5a92f50fe5112c8fd440171b854837) ·
+**Bron:** [`37a74784`](https://github.com/simonvanieperen/nieuw-os/commit/37a74784f71889d6ea41a230d756be16c1728ae8) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** TPM/integratie: Pythonharnassen groen; bestaande PR62-doctestfix hergebruikt, volledige hertoets volgt.
-34% blijft 34%; minstens50% niet bereikt. Twee native TPM-VM's blijven brongebonden groen. Opf61ce3e slagen415 Python- en102 tooltests. Volledige Rustworkspace faalt op bekende HKDF-doctestdeps na367 groene unit/integratietests. Exact bestaande gepinde host-devdeps uit PR62 hergebruikt voor HKDF/HMAC;5 gerichte doctests groen, volledige hertoets volgt. Geen cryptobron, runtimeafhankelijkheid, PR64-wire/systeminterface of productrecht gewijzigd. Eerdere GUI/FPU/K05-bewijzen en proefversie behouden; geen nieuw rubriccriterium. Product-/menselijke-/hardwareacceptatie en CI open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** TPM/integratie: 14 echte VM's,372 Rusttests en517 Python/tooltests groen; GUI-hertoets volgt.
+34% blijft 34%; minstens50% niet bereikt. Op37a7478 slagen14 echte VM's:6 K05,2 FPU,system normaal/koud,RTC,IPC en2 TPM-cases. Alle bronbindingen geverifieerd. Volledige Rustworkspace372 passed/1 bestaande ignored;415 Python-,102 tool- en12 FPU-harnastests plus fmt groen. Eerdere bekende doctestblokkade hersteld met exacte PR62-hostdevdeps; geen cryptobron/productrecht/PR64-opslaginterface gewijzigd. GUI/koude proefversie wordt nu op dezelfde runtimebron herhaald; eerdere versie behouden. Geen volledig nieuw criterium of hogere score. Product-/menselijke-/hardwareacceptatie en CI open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

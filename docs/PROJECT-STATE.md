@@ -1,10 +1,10 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — eigen-kernel-TPM-CRB en absent-case native groen — 30 oktober 2026
+## NEXT AGENT HANDOFF — 14 integratie-VM's groen; GUI-proefversie hertoets volgt — 30 oktober 2026
 
 Branch `simon/native-test-version`; basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`,
-geteste bron `4b098691a53fbacc58a2e01d352821fa01545122`, v3
-`d526c607b814fc9e9434784d38033a0072872b8e76960ec193f87d70cddf0167`.
+geteste integratiebron `37a74784f71889d6ea41a230d756be16c1728ae8`, v3
+`a6c4c723fbcc6a5b50eac17b91b77f66161c8555c6d916fd10b7826815acc4b5`.
 **34% → 34%; minstens 50% niet bereikt.** Beide echte TPM-VM's slagen
 raw33/exit0: vaste supervisor-UC/NX-MMIO, echte TPM2-familyquery, bevestigde
 release; zonder TPM exact nul writes en sticky quarantaine. Zeven
@@ -13,12 +13,17 @@ Geen productgrant, NV-mutatie, sleutelpersistentie of rollbackanker geclaimd.
 Bronnen, exacte commando's, payloads, logs en eerste rode mapperpoging:
 `verification/native-test-version/tpm-evidence.json`.
 
-23 TPM-coretests, 4 gerichte harnastests en scalarbuild/ELF-inspectie groen.
+Op de gecombineerde bron slagen opnieuw 14 echte VM's: zes K05-cases
+(inclusief twee Waiting-kills), beide FPU-profielen, system normaal/koud,
+RTC, IPC-wacht en TPM normaal/absent. Alle acht rapporten hebben dezelfde
+hierboven geverifieerde runtimebron. De volledige Rustworkspace slaagt nu:
+372 tests, 0 failed, 1 bestaande ignored. Ook 415 Python- en 102 tooltests,
+12 FPU-harnastests en root-rustfmt slagen. Geen CI-/hardwareclaim.
 Native-system-CI krijgt beide echte cases; die CI **nog niet uitgevoerd**.
 PR #64/keyring/system-opslag niet gewijzigd. Geen achtergrondagent of
 testproces actief. Eerdere GUI/koud/FPU/K05-bewijzen blijven brongebonden;
 normale lokale proefversie onder `build/native-test-version/test-version/esp`.
-Gedeelde hostharnassen op `f61ce3e`: 415 root-Pythontests en 102
+Eerdere gedeelde hostharnassen op `f61ce3e`: 415 root-Pythontests en 102
 tooltests slagen. De volledige root-Rustworkspace faalde daarna op de
 reeds bekende ontbrekende HKDF-doctestdeps (367 unit/integratietests
 ervoor groen). Exact de bestaande PR #62-fix voor beide vendormanifesten
@@ -27,9 +32,13 @@ runtime-afhankelijkheid of PR #64-wire/systeminterface gewijzigd.
 Alle vijf gerichte HKDF/HMAC-doctests slagen nu. PR #62 is niet gesloten
 of samengevoegd; zijn overige preflightinhoud is niet overgenomen.
 De rode workspace-log blijft `/tmp/nieuw-os-native-tpm-regression-workspace.log`.
-Volgende stap na dit checkpoint: gehele workspace en native integratie
-hertoetsen, daarna de normale GUI-proefversie op de gecombineerde bron
-herbouwen/herhalen. Gerichte doctestlog:
+De volledige workspace en bovengenoemde native integratie zijn inmiddels
+hertoetst; log `/tmp/nieuw-os-native-tpm-workspace-final.log` (27 s/exit0),
+native logs `/tmp/nieuw-os-native-tpm-*-final.log`.
+Volgende stap na dit checkpoint: normale GUI/koude proefversie op deze
+gecombineerde runtimebron herbouwen/herhalen, nieuw buildroot
+`build/native-test-version/gui-tpm-final`, bestaande targetcache
+`target/native-test-version/gui-baseline`. Gerichte doctestlog:
 `/tmp/nieuw-os-native-tpm-vendor-docs.log`.
 Volledige product-/menselijke-/hardwareacceptatie en 50%-opdracht blijven open.
 
