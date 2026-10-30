@@ -1,0 +1,180 @@
+{
+  "task": "R22-IMAGE-VIEWER-LEAF-1",
+  "scope": "host tests and freestanding library only; native integration blocked",
+  "base_commit": "ca45a7dabe6a040921de03bdc2fad3e5045a75ba",
+  "branch": "simonvanieperen-scaling-disco",
+  "session_id": "29d8407c-b3c5-4c7c-ba6b-c37ca39da332",
+  "release": [
+    "FR-A03"
+  ],
+  "rubric": [
+    "A04",
+    "U03"
+  ],
+  "source_inputs_v3_sha256": "440aa989d4017dc10be96900e4d5683210ec3d9a5dc71b7824642afc83adc707",
+  "leaf_inputs": {
+    "sdk/examples/image-viewer/Cargo.lock": "d6c5f69f83e37c96431dd28b038dd44e25aaf109c4ac2a6bd49576105ad55348",
+    "sdk/examples/image-viewer/Cargo.toml": "aab3e32db9f556aa7d85b07eab6d30fa84758e9e9bbf0dfb5f9d393e3be762b8",
+    "sdk/examples/image-viewer/README.md": "2dd54b68069a6c9e1206291d014aacdb6ff23b815f4ea6ddf7278da8b587a59e",
+    "sdk/examples/image-viewer/src/lib.rs": "f0fbdb1bec6c03cb5109821d5dd1c78d660600a5e20daa2fe206ed5d32b241ab",
+    "sdk/examples/image-viewer/tests/viewer.rs": "e12f19e0776d35483bb7d81fb1e2a0cd79b4b67af457670fe5c4a66143796a90"
+  },
+  "gates": [
+    {
+      "name": "viewer-final-tests",
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "sdk/examples/image-viewer/Cargo.toml"
+      ],
+      "exit": 0,
+      "duration_s": 0.44515514373779297,
+      "logs": [
+        {
+          "path": "sdk/examples/image-viewer/verification/viewer-final-tests.json",
+          "sha256": "3fabca650a402616e4bf3719e467dc9f514dd1b64fd22c4e1b231d6a834a11f4"
+        },
+        {
+          "path": "sdk/examples/image-viewer/verification/viewer-final-tests.stdout.txt",
+          "sha256": "b17523474b2556bda14e997d9a4e68d2b2956779c17dad2e2124b8a0d27764da",
+          "raw_sha256": "6fb600f4c1b5411d5d8d1f5a85bcfb4ba72f35176ac0cb82ffb9443f481a942e",
+          "normalization": "Only trailing empty lines removed for git whitespace checks; original log remains in build/r22-viewer/logs."
+        },
+        {
+          "path": "sdk/examples/image-viewer/verification/viewer-final-tests.stderr.txt",
+          "sha256": "9f04106923ff51e3093e0bc36872c3f4e7562379a24f6636fd0688c9ae988626"
+        }
+      ]
+    },
+    {
+      "name": "viewer-final-clippy",
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "sdk/examples/image-viewer/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "duration_s": 0.2290363311767578,
+      "logs": [
+        {
+          "path": "sdk/examples/image-viewer/verification/viewer-final-clippy.json",
+          "sha256": "42f65afb5008ca98191805d5cfe482247ec644ce28842192636ccc7edefc1212"
+        },
+        {
+          "path": "sdk/examples/image-viewer/verification/viewer-final-clippy.stdout.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "sdk/examples/image-viewer/verification/viewer-final-clippy.stderr.txt",
+          "sha256": "ad5946c44f87f5301bdcb34a77a0a397a7b10ad0883c9350ef23cf3c09f514c9"
+        }
+      ]
+    },
+    {
+      "name": "viewer-final-fmt",
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/image-viewer/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "duration_s": 0.0694730281829834,
+      "logs": [
+        {
+          "path": "sdk/examples/image-viewer/verification/viewer-final-fmt.json",
+          "sha256": "e1d9066c3c0d8827b573feaea6c85661dbf7c6e68db4b1d34cb8bae163824d3f"
+        },
+        {
+          "path": "sdk/examples/image-viewer/verification/viewer-final-fmt.stdout.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "sdk/examples/image-viewer/verification/viewer-final-fmt.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "name": "viewer-final-target",
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--release",
+        "--lib",
+        "--manifest-path",
+        "sdk/examples/image-viewer/Cargo.toml",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "exit": 0,
+      "duration_s": 2.3645217418670654,
+      "logs": [
+        {
+          "path": "sdk/examples/image-viewer/verification/viewer-final-target.json",
+          "sha256": "0b816ceb390ebac2f562fe226eb60338b556c6b0f5a819e2fa2b0d72ccd62558"
+        },
+        {
+          "path": "sdk/examples/image-viewer/verification/viewer-final-target.stdout.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "sdk/examples/image-viewer/verification/viewer-final-target.stderr.txt",
+          "sha256": "2122422990f390a17d3d9d77d40aedeac83ace5222f429cb4477829d780bfaed"
+        }
+      ]
+    }
+  ],
+  "host_tests": 15,
+  "artifact": {
+    "path": "target/r22-viewer/x86_64-unknown-none/release/libnieuw_os_image_viewer.rlib",
+    "sha256": "b2ed315c6d023e7474135ec1a21029764ae4ddac779dc9a5b7129d541d164307",
+    "kind": "rlib, NOT executable/boot image"
+  },
+  "native_runtime_performed": false,
+  "source_commit_note": "Code is committed at 6b3fbfaf141d4f1b37176b6ffdfa5413c8bfac30; 3f1e37d14244c9ab241f52828735967c29ab28aa changes only archived log tail/hash. Exact source, gate-log and artifact hashes revalidated before this review-only update.",
+  "not_run": [
+    "native app/portal/launch/focus",
+    "QEMU user action/framebuffer oracle",
+    "native bounded arena/OOM/job-cancel/revoke",
+    "storage/cold-reopen/integrated release/physical/human gates"
+  ],
+  "review": {
+    "kind": "AI read-only code review, not human audit",
+    "finding": "Fit treated as100%, causing zoom direction reversal",
+    "fix": "ratio-derived next canonical zoom step strictly in requested direction; impossible direction leaves Fit unchanged",
+    "regression": "zoom_direction_from_fit_uses_actual_ratio_including_limits_and_ui_scale",
+    "independent_fix_rereview": {
+      "status": "no high-confidence blockers in scoped static fix review",
+      "reviewer": "separate code-review agent r22-zoom-fix-review",
+      "source_head": "3f1e37d14244c9ab241f52828735967c29ab28aa",
+      "scope": "dimensions/command and zoom_direction_from_fit_uses_actual_ratio_including_limits_and_ui_scale",
+      "findings": "400% fit zoom-in selects800%;12.5% fit zoom-out staysFit;UIscale/rational strict-step comparisons and25..800limits inspected",
+      "runtime_repeated_by_reviewer": false,
+      "human_audit": false
+    }
+  },
+  "progress_proposal": {
+    "before": 34,
+    "after": 34,
+    "central_files_modified": false
+  }
+}

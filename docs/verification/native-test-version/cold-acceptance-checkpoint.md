@@ -1,0 +1,107 @@
+# INTERACTIVE-COLD-1: codecheckpoint, native acceptatie nog open
+
+Laatste R77-reviewcheckpoint: beide concrete gaten eerst rood gereproduceerd
+(late PANIC/FAIL en vier immutable parentfirmwaretampergevallen), minimaal
+hersteld, 16 gerichte/154 tools-tests exit0. Nieuwe v3
+`949ce3abc8df4af3ed4cc29fd41e10ee0621e4f270ddf4ac2aafb3bacba9a901`;
+nieuwe eigen7d66-native keten inmiddels uitgevoerd: referentie133.939s/raw33,
+parent93.551s/raw0, cold37.543s/raw0. Zie
+`../native-cold-acceptance/review-fixes.md`. Historische420fac5-runs
+niet herlabeld; geen base-/kernel-/preview-/SDK-/lockwijziging.
+Offline nieuwe-ketenreplay en zestien echte artifact-/claimnegatieven
+groen; alle66originele files hashgelijk. Exacte commands/wall/logs/hashes in
+`../native-cold-acceptance/review-7d66/README.md`. Laatste16/154hosttests,
+progresscheck en diffcheck opnieuw exit0. Geen nieuwere-mainacceptatie.
+
+Afzonderlijke branch `simon/native-cold-acceptance`, basis
+`3d2e1aba218feb39e02a1a5d257c5eb63f50e26b`. Geen onderdeel van de bevroren
+PR #66-reviewbron. Nieuwe files `tools/materiaal_cold.py`,
+`tools/run_materiaal_cold.py`, `tools/tests/test_materiaal_cold.py`.
+Geen bestaande preview/probe/kernel/SDK/manifest gewijzigd.
+
+Doel: een normale zevenprocessen-save/reopen-parent strikt opnieuw
+valideren (bron, kernel/loader, alle appbindings, QMP-inputs, fasebeelden,
+canonical empty before en onafhankelijk gedecodeerde actieve afterdisk).
+Daarna een verse normale VM op een bytekopie van die disk starten.
+Het koude lijstbeeld wordt volledig verwacht: populated-listpixels plus
+de exacte Ready-statuspixels volgens `Layout::status`; geen maskers,
+geen ad-hoc vergelijking die een gebied negeert. Heropenen vereist het
+volledige oorspronkelijke native heropenframe, daarna QMP-quit/raw0,
+onveranderde diskbytes en opnieuw parent/reference/source-emulatorcontrole.
+
+**Geen guest clean shutdown:** de gewone variant heeft geen geaccepteerd
+OS-sessieafsluitpad. Parent en child stoppen via expliciete host-QMP-quit.
+Dit bewijst dus geen cleanup, nul-I/O-counters, writeweigering, versleutelde
+productopslag of volledige gebruikerssessie/recovery. Release-eigenaar is
+van deze ontbrekende runtimefunctionaliteit op de hoogte.
+
+Uitgevoerd:
+
+```sh
+python3 -B -m unittest tools.tests.test_materiaal_cold
+```
+
+Zes hosttests, exit0; log `/tmp/nieuw-os-cold-helper-tests.log`.
+Negatieven: bron/kernel/machine/raw-exittype, getamperde disk en frame,
+QMP-input/response/index/quit, oude successreport bij prep-fout.
+Hostfixtures zijn geen native bewijs.
+De kandidaat-helper is eerder buiten de bron op historische echte artifacts
+geprobeerd; volledige parentreplay en vooraf renderer-afgeleid koud lijstframe
+slagen, maar die verkenning is geen nieuwe bronacceptatie.
+
+## Hervatting TL-BUILD-COLD, 30 oktober 2026
+
+Actuele integratie `c0962e00a1ce6a47bd952c9fea99d437b327e4d4` is uitsluitend
+in deze aparte branch opgenomen (mergebasis `cd5f35fce7ef97d84f91b2f728c06d7d8e53ba79`).
+PR #66 blijft op c096 bevroren. Alleen de drie toegewezen cold-toolbestanden
+en eigen bewijs zijn gewijzigd; bestaande preview/reference-orakels,
+kernel, SDK, workflows en centrale voortgang blijven ongemoeid.
+
+Nieuwe host-lifecycletests controleren post-quit/raw0-diskinspectie,
+ongeldige parent zonder VM-start, nonzero exit, gewijzigde disk/source/
+executable, afwijkende QEMU-implementatie en timeout met eigen procescleanup.
+De coldtrace wordt zelfstandig tegen de volledige vaste invoervolgorde
+herhaald; bron, parent, referentie en gekopieerde onveranderlijke artifacts
+worden na exit opnieuw gecontroleerd. Mutable OVMF-vars zijn daarvan uitgezonderd.
+
+Uitgevoerd, alle exit0:
+
+```sh
+python3 -B -m unittest tools.tests.test_materiaal_cold
+python3 -B -m unittest discover -s tools/tests
+python3 -B tools/run_materiaal_cold.py --help
+git diff --check
+```
+
+14 gerichte hosttests en 152 tools-tests groen.
+Logs `/tmp/nieuw-os-cold-lifecycle-tests.log` en
+`/tmp/nieuw-os-cold-all-tools.log`; de eerdere hosttestmock die bij terminate
+onterecht QMP-quit vereiste is hersteld, geen productieassertie versoepeld.
+
+**Native keten nog niet uitgevoerd op deze nieuwe v3:** eerst broncommit
+bevriezen, daarna nieuwe reference + gewone parent + cold-child met eigen
+`target/native-cold-acceptance/gate1` en `build/native-cold-acceptance/gate1-*`.
+Dit toetst herstel na expliciete geforceerde host-QMP-stop na opslaan,
+geen guest clean shutdown en geen abrupte stroomuitval tijdens een write.
+Hier niet ongemerkt een tweede actieve roadmap of groen coldcriterium
+van maken. Centrale status/queue/assessment zijn van de teamleider.
+Voortgangvoorstel **34% → 34%**.
+
+Native mijlpaal op bevroren code `420fac5783fdf86ed6d6464a8f1498190fdf78ef`:
+nieuwe referentie 134.483s/raw33, gewone save/list/reopen-parent
+93.036s/raw0 en cold-child 38.225s/raw0, alle runnercommando's exit0.
+Volledige coldlijst/heropenpixels en onafhankelijke diskdecoder groen,
+diskbytes onveranderd. Exacte commando's, logs, bron-/artifactbinding en
+ruwe serial staan in `../native-cold-acceptance/`. Dit is herstel na
+geforceerde host-QMP-stop na save, geen guest clean shutdown, abrupte
+powerloss, encryptie of volledige FR-acceptatie. De volgende onafhankelijke
+infrastructuurstap is tamper-replay op eigen kopieën van deze echte artifacts;
+originele geslaagde runs worden niet gewijzigd.
+
+Die vervolgstap is uitgevoerd: echte offline cold-/parent-/referentiereplay
+exit0 en acht gemuteerde-parentnegatieven op tijdelijke kopieën geweigerd.
+Alle 66 originele artifact-/rapportbestanden hashgelijk gebleven.
+Script en resultaten onder `../native-cold-acceptance/`; 14 gerichte en
+152 tools-tests opnieuw exit0. Geen gewijzigde native bron na420fac5,
+geen centrale status/progresswrites. Clean shutdown en de overige boven
+genoemde productgrenzen blijven open.

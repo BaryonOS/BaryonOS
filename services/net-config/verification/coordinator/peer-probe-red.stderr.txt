@@ -1,0 +1,4 @@
+   Compiling nieuw-os-net-config v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-config)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running tests/service.rs (build/native-net-config-worktree/target/net-config-host/debug/deps/service-7d88232ca5caa4ed)
+error: test failed, to rerun pass `--test service`

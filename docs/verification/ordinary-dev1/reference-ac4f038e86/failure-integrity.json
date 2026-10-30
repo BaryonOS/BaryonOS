@@ -1,0 +1,15 @@
+{
+  "archive_integrity_passed": true,
+  "native_passed": false,
+  "source_sha256": "bda48571144d7771bff145cc17b0f0712e271cbc6ee323dec43bee099ea5e89d",
+  "artifact_count": 23,
+  "artifact_hashes_match_original_report": true,
+  "frozen_inputs_match": true,
+  "current_build_and_embedded_elves_reinspected": true,
+  "current_qemu_entry_and_implementation_match": true,
+  "original_archive_bytes_match": true,
+  "disk_byte_equal_canonical_empty_with_canaries": true,
+  "ordinary_gate_executed": false,
+  "rerun_executed": false,
+  "scope": "offline failure preservation and provenance only; no native acceptance"
+}

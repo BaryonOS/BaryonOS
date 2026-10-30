@@ -1,0 +1,3 @@
+09b7d8ab4a583935d449882fcc5fbd73ca76398c4be3a8c0d46108424d5c4b5d  /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/qemu-system-x86_64
+fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb  /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/bin/qemu-system-x86_64
+c473101393afa22d4fd7c6dcfac50bac4458b1a3414948c8316b01f49d99425f  /home/simon/.copilot/session-state/b6c80d1bf5744c2e81c568572bf7c83d/files/h05_firmware_probe.py

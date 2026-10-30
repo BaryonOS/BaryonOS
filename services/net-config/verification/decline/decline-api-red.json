@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.91.1",
+    "test",
+    "--manifest-path",
+    "services/net-protocol/Cargo.toml",
+    "--locked",
+    "--offline",
+    "--target-dir",
+    "build/native-net-config-worktree/target/net-config-host",
+    "--test",
+    "dhcp",
+    "decline"
+  ],
+  "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+  "started_unix": 1793386526.7464883,
+  "duration_s": 0.15719389915466309,
+  "returncode": 101
+}

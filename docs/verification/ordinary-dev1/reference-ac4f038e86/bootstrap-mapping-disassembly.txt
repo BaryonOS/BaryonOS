@@ -1,0 +1,29 @@
+
+build/release-dev1-source/build/dev1-reference/esp/kernel.elf:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000002015f24 <os_kernel::m2::run+0x4a4>:
+ 2015f24:	bf 38 c9 0e 02       	mov    $0x20ec938,%edi
+ 2015f29:	be 0b 00 00 00       	mov    $0xb,%esi
+ 2015f2e:	e8 8d 19 00 00       	call   20178c0 <os_kernel::serial::write>
+ 2015f33:	e8 08 10 00 00       	call   2016f40 <os_kernel::m2::check_frames>
+ 2015f38:	bf 43 c9 0e 02       	mov    $0x20ec943,%edi
+ 2015f3d:	be 0b 00 00 00       	mov    $0xb,%esi
+ 2015f42:	e8 79 19 00 00       	call   20178c0 <os_kernel::serial::write>
+ 2015f47:	48 8d bc 24 b8 08 00 	lea    0x8b8(%rsp),%rdi
+ 2015f4e:	00 
+ 2015f4f:	e8 dc de ff ff       	call   2013e30 <os_kernel::m2::paging::Paging::new>
+ 2015f54:	b8 00 00 00 02       	mov    $0x2000000,%eax
+ 2015f59:	31 c9                	xor    %ecx,%ecx
+ 2015f5b:	48 2d 00 00 00 02    	sub    $0x2000000,%rax
+ 2015f61:	48 0f 43 c8          	cmovae %rax,%rcx
+ 2015f65:	48 89 c8             	mov    %rcx,%rax
+ 2015f68:	48 c1 e8 0c          	shr    $0xc,%rax
+ 2015f6c:	31 db                	xor    %ebx,%ebx
+ 2015f6e:	f7 c1 ff 0f 00 00    	test   $0xfff,%ecx
+ 2015f74:	0f 95 c3             	setne  %bl
+ 2015f77:	48 01 c3             	add    %rax,%rbx
+ 2015f7a:	48 8b 54 24 18       	mov    0x18(%rsp),%rdx
+ 2015f7f:	0f 85 1e 08 00 00    	jne    20167a3 <os_kernel::m2::run+0xd23>

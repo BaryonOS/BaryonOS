@@ -1,0 +1,188 @@
+[
+  {
+    "request": {
+      "execute": "qmp_capabilities",
+      "id": 1
+    },
+    "response": {
+      "return": {},
+      "id": 1
+    }
+  },
+  {
+    "request": {
+      "execute": "screendump",
+      "id": 2,
+      "arguments": {
+        "filename": "generation-1.ppm"
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 2
+    }
+  },
+  {
+    "request": {
+      "execute": "send-key",
+      "id": 3,
+      "arguments": {
+        "keys": [
+          {
+            "type": "qcode",
+            "data": "a"
+          }
+        ],
+        "hold-time": 30
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 3
+    }
+  },
+  {
+    "request": {
+      "execute": "input-send-event",
+      "id": 4,
+      "arguments": {
+        "events": [
+          {
+            "type": "rel",
+            "data": {
+              "axis": "x",
+              "value": 7
+            }
+          },
+          {
+            "type": "rel",
+            "data": {
+              "axis": "y",
+              "value": -3
+            }
+          },
+          {
+            "type": "btn",
+            "data": {
+              "down": true,
+              "button": "left"
+            }
+          }
+        ]
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 4
+    }
+  },
+  {
+    "request": {
+      "execute": "input-send-event",
+      "id": 5,
+      "arguments": {
+        "events": [
+          {
+            "type": "btn",
+            "data": {
+              "down": false,
+              "button": "left"
+            }
+          }
+        ]
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 5
+    }
+  },
+  {
+    "request": {
+      "execute": "screendump",
+      "id": 6,
+      "arguments": {
+        "filename": "generation-2.ppm"
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 6
+    }
+  },
+  {
+    "request": {
+      "execute": "send-key",
+      "id": 7,
+      "arguments": {
+        "keys": [
+          {
+            "type": "qcode",
+            "data": "a"
+          }
+        ],
+        "hold-time": 30
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 7
+    }
+  },
+  {
+    "request": {
+      "execute": "input-send-event",
+      "id": 8,
+      "arguments": {
+        "events": [
+          {
+            "type": "rel",
+            "data": {
+              "axis": "x",
+              "value": 7
+            }
+          },
+          {
+            "type": "rel",
+            "data": {
+              "axis": "y",
+              "value": -3
+            }
+          },
+          {
+            "type": "btn",
+            "data": {
+              "down": true,
+              "button": "left"
+            }
+          }
+        ]
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 8
+    }
+  },
+  {
+    "request": {
+      "execute": "input-send-event",
+      "id": 9,
+      "arguments": {
+        "events": [
+          {
+            "type": "btn",
+            "data": {
+              "down": false,
+              "button": "left"
+            }
+          }
+        ]
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 9
+    }
+  }
+]
