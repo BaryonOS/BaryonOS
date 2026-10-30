@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "accepted": false,
+  "profile": "pc-q35-10.0/qemu64/TCG/1CPU/256MiB/VGA/PS2; no network",
+  "kernel_deadline_ticks": 20000,
+  "host_timeout_s": 240,
+  "vga_rom_sha256": "c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde",
+  "attempts": [
+    {
+      "name": "baseline_without_ipc_wait",
+      "source_commit": "ab98d1a169f21eca6b5d64d25160462b5c36dc3f",
+      "source_sha256": "2d598327fcefea03ed97bfa892d69525208f3c4634940170839055ba207172f0",
+      "passed": false,
+      "raw_qemu_exit": 35,
+      "duration_s": 202.39636466899992,
+      "run_directory": "build/native-test-version/gui-baseline/run/materiaal-normal-f5b3033777",
+      "report_sha256": "81a30699d6940ff7124f839a7e20c8934328753d27d594bc6dcdfe3e0125263b",
+      "serial_sha256": "148d5e582e0df7301928f14fbb07a4821d3c20819d2485c21e12d5d1435d174b",
+      "captured_phases": ["ready", "editor", "dirty"],
+      "last_captured": {"frames": 3, "tiles": 4854, "keys": 28, "mouse": 4, "input_acks": 32, "draft_bytes": 14, "save_acks": 0}
+    },
+    {
+      "name": "input_services_wait_only",
+      "source_commit": "acd413c836568d1a9c437ffd61edd0e4a8e56e22",
+      "source_sha256": "984ad57cd647842020d63c8f1bcc9f4db5aa7d850bf799e83d39690cef621a98",
+      "passed": false,
+      "raw_qemu_exit": 35,
+      "duration_s": 202.36284407200037,
+      "run_directory": "build/native-test-version/gui-wait/run/materiaal-normal-087357a8e2",
+      "report_sha256": "3cebc8c148ff20fe7ab4c3cd3fc7d292ea714a9a22417f279ae0067dd6e3fb64",
+      "serial_sha256": "1f7c486c18a717a998dde2c386c412e46f0f30064b53caa664cd3e228d9c93d1",
+      "captured_phases": ["ready", "editor", "dirty"],
+      "last_captured": {"frames": 3, "tiles": 4850, "keys": 28, "mouse": 4, "input_acks": 32, "draft_bytes": 14, "save_acks": 0}
+    }
+  ],
+  "conclusion": "Input waiting alone does not remove the native GUI deadline blocker. Both actual runs timed out; no GUI acceptance or progress points."
+}

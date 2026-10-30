@@ -36,9 +36,12 @@ manifest.json bindt kernel, loader en firmware aan de bronversie.
    `state\volume.img` en `state\OVMF_VARS.fd`; de launcher maakt ze opnieuw aan.
 
 De VM gebruikt één TCG-vCPU, 256 MiB RAM, een synthetische schrijfbare
-documentimage en een read-only EFI-map. Er is geen netwerkkaart, hostschijf,
-hostmap, USB-doorvoer of clipboardkoppeling geconfigureerd. De gast kan dus
-geen bestanden van de Windows-host openen via deze VM-configuratie.
+documentimage en een read-only EFI-map. Er is geen netwerkkaart, direct
+gekoppelde hostschijf, USB-doorvoer of clipboardkoppeling geconfigureerd. Via `fat:esp` krijgt de
+gast wel read-only toegang tot de bundelbestanden in `esp\`. De map `state\`
+bevat de schrijfbare VM-schijf, OVMF-variabelen en seriële uitvoer, maar wordt
+niet als hostmap gekoppeld. Dit beschrijft alleen de geconfigureerde
+QEMU-kanalen; het is geen garantie tegen kwetsbaarheden in QEMU.
 
 ## Grenzen en bewijsstatus
 
@@ -46,8 +49,11 @@ Dit image is bedoeld om de huidige native Materiaal-sessie te verkennen.
 De profieldimensie is beperkt en de volledige product-/releaseacceptatie is
 niet afgerond. Netwerk, audio, fysieke hardware, volledige desktopbediening,
 toegankelijkheid en de complete opslag-/herstelmatrix zijn niet door deze
-bundle bewezen. Het Windows-QEMU-startscript zelf is nog niet op een
-Windows-host uitgevoerd; de project-QEMU-test op Linux is afzonderlijk bewijs.
+bundle bewezen. `Start-NieuwOS.ps1 -CheckOnly` en de vijf synthetische tests
+van `Test-Launcher.ps1` zijn op echte Windows PowerShell uitgevoerd; daarbij
+start geen VM. VM-bedieningsbewijs op Windows of Linux is afzonderlijk en
+geldt alleen voor de daarin vastgelegde bron, bundel en configuratie, niet
+automatisch voor iedere nieuw verpakte ZIP.
 
 De firmwarebestanden worden met hun bijbehorende `licenses\`-copyrightnotices
 meegeleverd. QEMU zelf wordt niet in deze ZIP opgenomen.

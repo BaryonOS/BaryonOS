@@ -21,7 +21,7 @@ pub extern "C" fn _start() -> ! {
 }
 #[inline(never)]
 fn run() -> ! {
-    if native::abi_info() != Ok((1 << 32) | 8) {
+    if !matches!(native::abi_info(), Ok(0x1_0000_0008 | 0x1_0000_000a)) {
         fail(90, None);
     }
     let words = core::array::from_fn(|i| support::word(i as u64 * 8));

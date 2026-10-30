@@ -16,7 +16,7 @@ mod support;
 use k05_protocol::*;
 use nieuw_os_sdk_runtime::{
     native, Capability, ChildProcess, Error, Handle, Outgoing, ReceiveEndpoint, Rights,
-    SendEndpoint,
+    SendEndpoint, WaitCondition,
 };
 
 const LIMIT: usize = 400_000;
@@ -113,6 +113,16 @@ pub extern "C" fn _start() -> ! {
         {
             fail(8);
         }
+    }
+    if mode == WORKER_WAIT_SHORT || mode == WORKER_WAIT_LONG {
+        let horizon = if mode == WORKER_WAIT_SHORT { 40 } else { 500 };
+        let now = native::monotonic_ticks().unwrap_or_else(|_| fail(20));
+        let deadline = now.checked_add(horizon).unwrap_or_else(|| fail(21));
+        if native::ipc_wait(&[WaitCondition::receive(ingress)], deadline).is_err() {
+            fail(22);
+        }
+        // The authorized parent must kill this lifetime before its deadline.
+        fail(23);
     }
     let mut reply_target: Option<SendEndpoint> = None;
     let mut client_pid = 0u64;

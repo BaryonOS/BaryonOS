@@ -7,7 +7,8 @@ use super::*;
     not(feature = "native-sdk-app"),
     not(feature = "native-supervisor"),
     not(feature = "native-keyring"),
-    not(feature = "native-display-probe")
+    not(feature = "native-display-probe"),
+    not(feature = "native-fpu")
 ))]
 use capability_core::{Cap, ALL_RIGHTS};
 use capability_core::{Engine, Error, Message, RECV, SEND};
@@ -18,7 +19,8 @@ use kernel_core::user::{CopyPlan, PageAccess};
     not(feature = "native-sdk-app"),
     not(feature = "native-supervisor"),
     not(feature = "native-keyring"),
-    not(feature = "native-display-probe")
+    not(feature = "native-display-probe"),
+    not(feature = "native-fpu")
 ))]
 const MSG: u64 = 0x40011000;
 #[cfg(all(
@@ -27,7 +29,8 @@ const MSG: u64 = 0x40011000;
     not(feature = "native-sdk-app"),
     not(feature = "native-supervisor"),
     not(feature = "native-keyring"),
-    not(feature = "native-display-probe")
+    not(feature = "native-display-probe"),
+    not(feature = "native-fpu")
 ))]
 const OUT: u64 = 0x40012000;
 #[cfg(all(
@@ -36,7 +39,8 @@ const OUT: u64 = 0x40012000;
     not(feature = "native-sdk-app"),
     not(feature = "native-supervisor"),
     not(feature = "native-keyring"),
-    not(feature = "native-display-probe")
+    not(feature = "native-display-probe"),
+    not(feature = "native-fpu")
 ))]
 const ROWS: u64 = DATA + 0x100;
 static mut ENGINE: Engine = Engine::new();
@@ -46,7 +50,8 @@ static mut ENGINE: Engine = Engine::new();
     not(feature = "native-sdk-app"),
     not(feature = "native-supervisor"),
     not(feature = "native-keyring"),
-    not(feature = "native-display-probe")
+    not(feature = "native-display-probe"),
+    not(feature = "native-fpu")
 ))]
 struct Evidence {
     calls: u64,
@@ -70,7 +75,8 @@ struct Evidence {
     not(feature = "native-sdk-app"),
     not(feature = "native-supervisor"),
     not(feature = "native-keyring"),
-    not(feature = "native-display-probe")
+    not(feature = "native-display-probe"),
+    not(feature = "native-fpu")
 ))]
 const EMPTY_EVIDENCE: Evidence = Evidence {
     calls: 0,
@@ -94,7 +100,8 @@ const EMPTY_EVIDENCE: Evidence = Evidence {
     not(feature = "native-sdk-app"),
     not(feature = "native-supervisor"),
     not(feature = "native-keyring"),
-    not(feature = "native-display-probe")
+    not(feature = "native-display-probe"),
+    not(feature = "native-fpu")
 ))]
 static mut EVIDENCE: Evidence = EMPTY_EVIDENCE;
 #[cfg(all(
@@ -103,7 +110,8 @@ static mut EVIDENCE: Evidence = EMPTY_EVIDENCE;
     not(feature = "native-sdk-app"),
     not(feature = "native-supervisor"),
     not(feature = "native-keyring"),
-    not(feature = "native-display-probe")
+    not(feature = "native-display-probe"),
+    not(feature = "native-fpu")
 ))]
 static mut LIFECYCLE_ROUNDS: u8 = 0;
 pub(super) fn engine() -> &'static mut Engine {
@@ -116,7 +124,8 @@ pub(super) fn engine() -> &'static mut Engine {
     not(feature = "native-sdk-app"),
     not(feature = "native-supervisor"),
     not(feature = "native-keyring"),
-    not(feature = "native-display-probe")
+    not(feature = "native-display-probe"),
+    not(feature = "native-fpu")
 ))]
 fn evidence() -> &'static mut Evidence {
     // SAFETY: Same serialized service-stack lifetime as Engine; no IRQ mutates it.
@@ -266,7 +275,8 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
         not(feature = "native-sdk-app"),
         not(feature = "native-supervisor"),
         not(feature = "native-keyring"),
-        not(feature = "native-display-probe")
+        not(feature = "native-display-probe"),
+        not(feature = "native-fpu")
     ))]
     let e = evidence();
     #[cfg(all(
@@ -275,7 +285,8 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
         not(feature = "native-sdk-app"),
         not(feature = "native-supervisor"),
         not(feature = "native-keyring"),
-        not(feature = "native-display-probe")
+        not(feature = "native-display-probe"),
+        not(feature = "native-fpu")
     ))]
     {
         e.calls += 1;
@@ -290,7 +301,8 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
                 not(feature = "native-sdk-app"),
                 not(feature = "native-supervisor"),
                 not(feature = "native-keyring"),
-                not(feature = "native-display-probe")
+                not(feature = "native-display-probe"),
+                not(feature = "native-fpu")
             ))]
             {
                 e.success += 1;
@@ -324,7 +336,8 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
                 not(feature = "native-sdk-app"),
                 not(feature = "native-supervisor"),
                 not(feature = "native-keyring"),
-                not(feature = "native-display-probe")
+                not(feature = "native-display-probe"),
+                not(feature = "native-fpu")
             ))]
             {
                 let index = (-error.code()) as usize;
@@ -347,7 +360,8 @@ pub fn process_exit(pid: u64) {
     not(feature = "native-sdk-app"),
     not(feature = "native-supervisor"),
     not(feature = "native-keyring"),
-    not(feature = "native-display-probe")
+    not(feature = "native-display-probe"),
+    not(feature = "native-fpu")
 ))]
 mod acceptance {
     use super::*;
@@ -530,7 +544,8 @@ mod acceptance {
             cleanup_all(state);
             state.round += 1;
             state.setup();
-            return Some(state.select());
+            // The m3 event/select loop alone schedules; idle observers must not recurse.
+            return None;
         }
         serial::write(case_marker());
         serial::write(b"M4:SURVIVOR_PROGRESS:PASS\n");
@@ -960,6 +975,7 @@ mod acceptance {
     not(feature = "native-sdk-app"),
     not(feature = "native-supervisor"),
     not(feature = "native-keyring"),
-    not(feature = "native-display-probe")
+    not(feature = "native-display-probe"),
+    not(feature = "native-fpu")
 ))]
 pub(super) use acceptance::{manifest, observe_exit, observe_fault, poll};

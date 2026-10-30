@@ -207,6 +207,9 @@ def run_preview(
     machine: str | None = None,
     interactive_reference_run: Path | None = None,
 ) -> dict:
+    report_path = private_path(Path(build_directory) / "preview-result.json")
+    if report_path.exists():
+        report_path.unlink()
     if os.name == "nt":
         raise RuntimeError("This evidence runner uses Linux QMP pipes; use the Windows bundle launcher.")
     maximum = 240 if interactive_reference_run is not None else 60
@@ -272,7 +275,6 @@ def run_preview(
         "-drive", "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=volume.img",
         "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
     ]
-    report_path = build / "preview-result.json"
     started = datetime.now(timezone.utc).isoformat()
     start = time.monotonic()
     deadline = start + timeout

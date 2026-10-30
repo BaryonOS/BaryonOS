@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`386ae601`](https://github.com/simonvanieperen/nieuw-os/commit/386ae6014e00e093346987859659914f86fce888) ·
-**Ontwikkelbranch:** `simon/windows-qemu-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** WINDOWS-QEMU-TEST-VERSION / INTERACTIVE-PROOF-1 / CONFLICT-MERGE-MAIN-748E29.
-34% blijft 34%. De Windows-QEMU/interactive-proof-branch en main-head 748e29b zijn geïntegreerd met behoud van eerdere checkpoints. De preflighttests (24), Rust-workspace-tests inclusief HKDF/HMAC-doctests (365), root-/SDK-rustfmt en progress-check slagen op de geïntegreerde bron. Eerdere 111 tools- en 46 systeemharnastests plus 22 previewtests zijn brongebonden aan de eerdere integratie-/proof-bronnen. Geen native gate, CI op de uiteindelijke mergehead, Windows-gaststart of interactieve referentierun uitgevoerd. Geen rubriccriterium gesloten.
+**Bron:** [`d104fd9a`](https://github.com/simonvanieperen/nieuw-os/commit/d104fd9a7f33b478c3e1b43f8d99c6d65af73fd6) ·
+**Ontwikkelbranch:** `simon/native-interactive-cold`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Alle zes packagingreviewfixes en oorspronkelijk Windowsbewijs inhoudsbehoudend gecombineerd.
+34% blijft34%; minstens50% niet bereikt. Zes concrete preview/packaging/launcherreviewpunten inhoudsbehoudend gecombineerd met oorspronkelijk echt Windowsbewijs als identieke blobs. Nieuwe gezamenlijke host/native gates volgen; eerdere Windows-QEMUbediening en lokale testZIP blijven expliciet oudeeabc/c532brongebonden. Koude verkenning heeft volledig renderer-afgeleid lijstframe en exact reopenedframe zonder maskers maar is nog geen complete productacceptatierunner. Geen extra volledig rubriccriterium, menselijke audit of releaseclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -1,0 +1,12 @@
+{
+  "reference": {
+    "report": "docs/verification/full-release-interactive-native/reference/summary.json",
+    "sha256": "28dd876e1d0b52f4d675d9b65ee1f6fbfcdf9416307c1cb5ef810a8adc2b8a17",
+    "original_report_sha256": "4d334c46ff9b5fb5e3020c2dc9edba2a69d31de2ec4bf4a532cee9e91140d07f"
+  },
+  "interactive": {
+    "report": "docs/verification/full-release-interactive-native/interactive/summary.json",
+    "sha256": "12b8e402aa7b0c634bda70b6b33a90fda6350623aee2bc44418323567771956c",
+    "original_report_sha256": "861cce70962fafdde91146514a641ba7a2dc5f350415919b3b39647d71d033f1"
+  }
+}

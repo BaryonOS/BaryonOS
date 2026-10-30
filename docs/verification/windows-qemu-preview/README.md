@@ -2,8 +2,11 @@
 
 30 oktober 2026; branch `simon/windows-qemu-test-version`, basis
 `6ec0bac45f6deb1d59791ee724f3997bcb1aa710` met de bij dit bewijs
-gecommitte readinessfix. De exacte uitvoeringsbron is gebonden aan de
-v3-vingerafdruk in elk rapport; de basiscommit alleen bevat de fix nog niet.
+gecommitte readinessfix. **Historisch testbewijs:** beide rapporten bewaren
+`source_commit` en `source_sha256`, maar geen `source_fingerprint_version`.
+De versie van het hashformaat is daarmee niet zelfstandig in die rapporten
+vastgelegd; een v3-binding wordt hier niet geclaimd. De basiscommit alleen
+bevat de fix nog niet. De oorspronkelijke rapportbytes blijven ongewijzigd.
 
 De eerste native run faalde na 45 seconden (runner exit 1), hoewel de gast
 alle readinessmarkers schreef. Het orakel verwachtte ten onrechte Source

@@ -17,6 +17,58 @@ from run_materiaal_preview import BOOT, READY, verify_frame, verify_ready_transc
 
 
 class MateriaalPreviewTests(unittest.TestCase):
+    def test_invalid_build_removes_previous_success_before_validation(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            report = root / "preview-result.json"
+            report.write_text('{"passed": true}')
+            with (
+                patch.object(run_fpu, "ROOT", root),
+                patch.object(preview, "validate_build", side_effect=ValueError("Invalid build")),
+                patch.object(preview.subprocess, "Popen") as start,
+            ):
+                with self.assertRaisesRegex(ValueError, "Invalid build"):
+                    preview.run_preview(
+                        build_directory=root, bios_rom=root / "bios", vga_rom=root / "vga"
+                    )
+                self.assertFalse(report.exists())
+                start.assert_not_called()
+
+    def test_invalid_firmware_removes_previous_success_before_preparation(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            report = root / "preview-result.json"
+            report.write_text('{"passed": true}')
+            with (
+                patch.object(run_fpu, "ROOT", root),
+                patch.object(preview, "validate_build", return_value=(root, {"source_sha256": "a" * 64})),
+                patch.object(preview, "source_hash", return_value="a" * 64),
+                patch.object(preview, "environment", return_value={"PATH": ""}),
+                patch.object(preview.shutil, "which", return_value="/unused/qemu"),
+                patch.object(preview.subprocess, "check_output", return_value="QEMU"),
+                patch.object(preview, "firmware", side_effect=ValueError("Invalid firmware")),
+                patch.object(preview.subprocess, "Popen") as start,
+            ):
+                with self.assertRaisesRegex(ValueError, "Invalid firmware"):
+                    preview.run_preview(
+                        build_directory=root, bios_rom=root / "bios", vga_rom=root / "vga"
+                    )
+                self.assertFalse(report.exists())
+                start.assert_not_called()
+
+    def test_report_symlink_is_rejected_without_touching_target(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            target = root / "other.json"
+            target.write_text('{"passed": true}')
+            (root / "preview-result.json").symlink_to(target)
+            with patch.object(run_fpu, "ROOT", root):
+                with self.assertRaisesRegex(ValueError, "Symlink"):
+                    preview.run_preview(
+                        build_directory=root, bios_rom=root / "bios", vga_rom=root / "vga"
+                    )
+            self.assertEqual(target.read_text(), '{"passed": true}')
+
     def test_requires_boot_before_manifest_and_each_native_ready_marker(self):
         transcript = "\n".join(("KS-01:PASS", *BOOT, *READY)).encode()
         self.assertEqual(verify_ready_transcript(transcript), list((*BOOT, *READY)))
