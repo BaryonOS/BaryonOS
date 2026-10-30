@@ -1,5 +1,31 @@
 # TASK-NATIVE-MATERIAAL — eerste native frontendketen
 
+## REV-APP-1 — huidige paint en juiste C-entry
+
+De onafhankelijke appreview reproduceerde echt rood dat Ready400 na een
+voltooide paint nog groen bleef bij slechts tile0 van een nieuwere generatie.
+Controller.presented was zelf begrensd, maar de oude meetvlag was onjuist.
+Iedere nieuwe paint trekt Ready nu in; evidence controleert ook de huidige
+dirty/generatie. LastPresentedGeneration verandert uitsluitend nadat dezelfde
+actuele generatie/epoch via alle echte tileACKs Controller.presented bereikt.
+Ready400 wordt als laatste gepubliceerd, na eerst0 en de overige meetwoorden,
+zodat een kernelpreëmptie geen halfgepubliceerde groep groen kan lezen.
+
+De andere gerichte reviewfix vervangt de extra entry-CALL door CLD, een echte
+RSPmod16==8-guard en JMP naar de nonreturning C-functie; de kernel levert al
+SysV C-entryalignment. Het werkelijke ELF wordt op guardbytes en directe JMP
+zonder extra CALL gecontroleerd. Negentien hostscenario's zijn groen, inclusief
+de eerst rode tegenproef. Compilatie/ELFinspectie blijven geen native uitvoering.
+
+Extra observerwoorden504screen(1Materiaal/2Editor/3Confirm),512draftDirty,
+520draftLength,528draftFNV,536objectID(MAXbijgeen),624LastPresentedGeneration,
+632scale(1of2) zijn door root afgestemd en uit werkelijke Controller/DocumentSession
+afgeleid. Dit verandert geen grants, inputpolicy, draftinhoud of opslag.
+Native build gebruikt een private bronkopie met gehashte centrale SDK1.8-inputs;
+geen gedeelde SDKfiles zijn voor deze fix gewijzigd. Het afzonderlijke
+`sdk/examples/materiaal/verification/review-fixed.json` bindt rood/groen/ELF.
+De oudere pre-native.json blijft herkenbaar het vóór-reviewcheckpoint.
+
 ## TASK-MATERIAAL-NATIVE-APP — gescheiden native app, SUR1-freeze
 
 31ab300 bouwbasis: main985ed4d plus frontend be0/d5 en display/input b2ad.

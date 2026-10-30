@@ -13,7 +13,7 @@ use nieuw_os_document_session::{
 };
 use nieuw_os_input_client::{Binding, Session as Input};
 use nieuw_os_materiaal::{controller::Controller, Viewport};
-use nieuw_os_materiaal_app::{bootstrap::Bootstrap, App, Evidence};
+use nieuw_os_materiaal_app::{bootstrap::Bootstrap, App, Evidence, Observation};
 use nieuw_os_sdk_runtime::{native, Outgoing, Received, SendEndpoint};
 use nieuw_os_surface_protocol::client::Session as Surface;
 
@@ -33,7 +33,14 @@ global_asm!(
 .section .text.entry,"ax",@progbits
 .global _start
 _start:
-    call materiaal_main
+    cld
+    // Kernel C-entry RSP is STACK_END-8. Do not push another return address.
+    mov rax, rsp
+    and eax, 15
+    cmp eax, 8
+    jne .Lmateriaal_bad_entry_alignment
+    jmp materiaal_main
+.Lmateriaal_bad_entry_alignment:
     ud2
 "#
 );
@@ -79,9 +86,11 @@ fn control(config: &Bootstrap) -> Option<Received> {
         Err(_) => fail(95),
     }
 }
-fn publish(e: Evidence) {
+fn publish(e: Evidence, observation: Observation) {
+    // Single CPU: the kernel may observe at a preemption boundary. Publish
+    // Ready last, so a partially updated group cannot certify a new snapshot.
+    support::put(400, 0);
     for (offset, value) in [
-        (400, u64::from(e.ready)),
         (408, e.frames),
         (416, e.tiles),
         (424, e.keys),
@@ -93,9 +102,17 @@ fn publish(e: Evidence) {
         (472, e.errors),
         (480, e.save_acks),
         (488, e.superseded),
+        (504, observation.screen),
+        (512, u64::from(observation.dirty)),
+        (520, observation.draft_length),
+        (528, observation.draft_checksum),
+        (536, observation.object),
+        (624, e.presented_generation),
+        (632, observation.scale),
     ] {
         support::put(offset, value);
     }
+    support::put(400, u64::from(e.ready));
 }
 
 #[no_mangle]
@@ -188,7 +205,7 @@ pub extern "C" fn materiaal_main() -> ! {
     loop {
         tick();
         let _ = app.step();
-        publish(app.evidence());
+        publish(app.evidence(), app.observation());
         if let Some(message) = control(&config) {
             // STOP is an explicit supervisor request, never an implicit save or
             // discard. A dirty/busy document refuses; all three owners close

@@ -24,6 +24,26 @@ fn actual_native_elf_has_five_bounded_segments_and_private_bss_buffers() {
         assert!(!(segment.writable && segment.executable));
     }
     assert!(image.segments[0].memory_size <= 4096);
+    let entry = image.segments[0].file_offset as usize;
+    assert_eq!(
+        &bytes[entry..entry + 10],
+        &[0xfc, 0x48, 0x89, 0xe0, 0x83, 0xe0, 0x0f, 0x83, 0xf8, 0x08],
+        "actual CLD/MOV/AND/CMP C-entry guard"
+    );
+    let entrycode = std::process::Command::new("objdump")
+        .args(["-d", "--no-show-raw-insn", "--disassemble=_start"])
+        .arg(&path)
+        .output()
+        .unwrap();
+    assert!(entrycode.status.success());
+    let entrycode = std::str::from_utf8(&entrycode.stdout).unwrap();
+    assert!(entrycode
+        .lines()
+        .any(|line| line.contains("jmp") && line.contains("<materiaal_main>")));
+    assert!(
+        !entrycode.lines().any(|line| line.contains("call")),
+        "entry must tail-jump without extra return address"
+    );
     assert_eq!(image.segments[1].memory_size, 1024);
     assert!(image.segments[2].memory_size <= 256 * 1024);
     let data = image.segments[3];

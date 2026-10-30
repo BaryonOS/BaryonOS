@@ -98,7 +98,7 @@ def main() -> int:
         "actual_shared_sdk_diff_sha256": hashlib.sha256(sdk_diff).hexdigest() if sdk_diff else None,
         "artifact": {"path": str(binary), "bytes": binary.stat().st_size, "sha256": digest(binary),
                      "scalar_instructions": instructions, "simd_fpu": forbidden, "host_backends": host},
-        "host_scenarios": 18, "actual_ELF_loader_policy_tests": 1,
+        "host_scenarios": 19, "actual_ELF_loader_policy_tests": 1,
         "build_claim": "actual x86_64-unknown-none executable; not execution, pixels, hardware input or durable encrypted storage",
     }
     (output / "pre-native.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")

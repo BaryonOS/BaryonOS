@@ -7,7 +7,7 @@ use nieuw_os_catalog_client::Transport;
 use nieuw_os_input_client::{AckOutcome, Peek, Session as Input};
 use nieuw_os_input_core::Event;
 use nieuw_os_materiaal::{
-    controller::{Controller, InputEnvelope, Status},
+    controller::{Controller, InputEnvelope, Screen, Status},
     render::Frame,
     TILE_PIXELS,
 };
@@ -27,6 +27,17 @@ pub struct Evidence {
     pub saved_revision: u64,
     pub saved_bytes: u64,
     pub saved_checksum: u64,
+    /// Last actually completed current-generation paint, never an admission.
+    pub presented_generation: u64,
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct Observation {
+    pub screen: u64,
+    pub dirty: bool,
+    pub draft_length: u64,
+    pub draft_checksum: u64,
+    pub object: u64,
+    pub scale: u64,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Error {
@@ -91,8 +102,29 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     pub fn controller(&self) -> &Controller<'a, V> {
         &self.controller
     }
-    pub const fn evidence(&self) -> Evidence {
-        self.evidence
+    pub fn evidence(&self) -> Evidence {
+        let mut evidence = self.evidence;
+        let view = self.controller.view();
+        evidence.ready &= !view.dirty && evidence.presented_generation == view.generation;
+        evidence
+    }
+    pub fn observation(&self) -> Observation {
+        let view = self.controller.view();
+        let draft = self.controller.document().draft();
+        Observation {
+            screen: match view.screen {
+                Screen::Material => 1,
+                Screen::Editor => 2,
+                Screen::ConfirmClose => 3,
+            },
+            dirty: self.controller.document().is_dirty(),
+            draft_length: draft.map_or(0, |d| d.contents.len() as u64),
+            draft_checksum: draft.map_or(0, |d| {
+                volume_core::checksum_update(volume_core::FNV_OFFSET, d.contents)
+            }),
+            object: draft.map_or(u64::MAX, |d| d.object),
+            scale: u64::from(view.viewport.scale().factor()),
+        }
     }
     pub const fn is_visible(&self) -> bool {
         self.evidence.frames != 0 && !self.surface_failed
@@ -209,6 +241,8 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         if self.surface_failed || !self.controller.view().dirty {
             return Ok(());
         }
+        // A completed old frame never certifies a partial current paint.
+        self.evidence.ready = false;
         let mut view = self.controller.view();
         if view.generation != self.frame {
             self.frame = view.generation;
@@ -260,6 +294,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                 return Err(Error::Binding);
             }
             increment(&mut self.evidence.frames)?;
+            self.evidence.presented_generation = self.frame;
             self.evidence.ready = self.input_responded && !self.input_failed;
         }
         Ok(())

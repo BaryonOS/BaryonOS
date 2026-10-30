@@ -1075,3 +1075,40 @@ fn bootstrap_rejects_aliases_invalid_handles_actors_epochs_and_scale() {
     assert_eq!(b.scale, Scale::Percent200);
     assert!(b.read_only);
 }
+
+fn independent_ready_requires_current_complete_frame() {
+    let h = Host::new();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    finish_paint(&mut a);
+    assert!(a.evidence().ready);
+    let old = a.controller().view().generation;
+    assert_eq!(a.evidence().presented_generation, old);
+    h.borrow_mut().key(0x1c);
+    a.step().unwrap();
+    assert!(a.controller().view().dirty);
+    assert!(a.controller().view().generation > old);
+    assert_eq!(a.evidence().frames, 1);
+    assert!(
+        !a.evidence().ready,
+        "Ready remained true while current generation has only its first tile ACK"
+    );
+    assert_eq!(a.evidence().presented_generation, old);
+    finish_paint(&mut a);
+    assert!(a.evidence().ready);
+    assert_eq!(
+        a.evidence().presented_generation,
+        a.controller().view().generation
+    );
+}
+scenario!(
+    independent_current_ready_is_not_stale_after_edit,
+    independent_ready_requires_current_complete_frame
+);
