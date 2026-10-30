@@ -108,7 +108,11 @@ maximaal 256 payloadbytes. Het app-management-chunkrequest gebruikt maximaal
 224 databytes per bericht.
 
 De schrijftransactie bindt `caller`, `request_id` en `service_epoch` aan de
-descriptor met bron/generatie, versienummer, lengte en digest. Chunks zijn
+storedescriptor: immutable `ArtifactRef`, lengte en digest. `source_id`,
+brongeneratie en packageversie staan apart in `PackageIdentity`; zij zijn niet
+aan `InstallTransaction` gekoppeld en vormen geen store- of publisherautoriteit.
+De pakketpolicy moet de herkomst en toelaatbaarheid afzonderlijk beoordelen;
+een persistente issuer-/sleutellevenscyclus ontbreekt nog. Chunks zijn
 niet-leeg, maximaal 4 KiB en strikt opeenvolgend op de verwachte offset.
 Commit is alleen toegestaan na exact de gedeclareerde lengte en publiceert
 atomair na een volledige lengte-/digestcontrole. Cancel is alleen geldig vóór

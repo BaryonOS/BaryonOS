@@ -360,6 +360,23 @@ pub struct Reply {
 }
 
 pub fn encode_reply(reply: &Reply) -> Result<nieuw_os_sdk_runtime::Outgoing, ProtocolError> {
+    if reply.status == ReplyStatus::Ok {
+        let valid_data = match reply.operation {
+            INSTALL_BEGIN | UPDATE_BEGIN | INSTALL_CHUNK => {
+                matches!(reply.data, ReplyData::UploadProgress { .. })
+            }
+            INSTALL_COMMIT | REMOVE => matches!(
+                reply.data,
+                ReplyData::PackageCommitted { catalog_revision, .. } if catalog_revision != 0
+            ),
+            LAUNCH => matches!(reply.data, ReplyData::Launched { .. }),
+            CANCEL | RESULT => matches!(reply.data, ReplyData::Operation { .. }),
+            _ => return Err(ProtocolError::UnknownOperation),
+        };
+        if !valid_data {
+            return Err(ProtocolError::InvalidReply);
+        }
+    }
     let mut payload = [0u8; MAX_PAYLOAD];
     payload[0..2].copy_from_slice(&VERSION.to_le_bytes());
     payload[2..4].copy_from_slice(&reply.operation.to_le_bytes());
@@ -591,6 +608,290 @@ mod tests {
         identity[108..112].copy_from_slice(&4u32.to_le_bytes());
         identity[112..144].fill(2);
         identity
+    }
+
+    const OPERATIONS: [u16; 8] = [
+        INSTALL_BEGIN,
+        INSTALL_CHUNK,
+        INSTALL_COMMIT,
+        UPDATE_BEGIN,
+        REMOVE,
+        LAUNCH,
+        CANCEL,
+        RESULT,
+    ];
+
+    fn successful_reply(operation: u16) -> Reply {
+        let identity = PackageIdentity::decode(&identity_bytes()).unwrap();
+        let data = match operation {
+            INSTALL_BEGIN | UPDATE_BEGIN | INSTALL_CHUNK => {
+                ReplyData::UploadProgress { next_offset: 4 }
+            }
+            INSTALL_COMMIT | REMOVE => ReplyData::PackageCommitted {
+                identity,
+                catalog_revision: 1,
+            },
+            LAUNCH => ReplyData::Launched {
+                launch_id: 1,
+                identity,
+            },
+            CANCEL | RESULT => ReplyData::Operation {
+                target_request_id: 11,
+                state: OperationState::Succeeded,
+            },
+            _ => panic!("unknown test operation"),
+        };
+        Reply {
+            operation,
+            request_id: 12,
+            service_epoch: 3,
+            status: ReplyStatus::Ok,
+            data,
+        }
+    }
+
+    fn reply_message(outgoing: &Outgoing) -> Received {
+        let mut bytes = *outgoing.as_bytes();
+        bytes[0..8].copy_from_slice(&77u64.to_le_bytes());
+        let length = u32::from_le_bytes(bytes[16..20].try_into().unwrap());
+        Received::from_bytes(bytes, u64::from(length)).unwrap()
+    }
+
+    fn assert_roundtrip(reply: Reply) {
+        let message = reply_message(&encode_reply(&reply).unwrap());
+        assert_eq!(
+            decode_reply(
+                &message,
+                77,
+                reply.service_epoch,
+                reply.operation,
+                reply.request_id
+            ),
+            Ok(reply)
+        );
+    }
+
+    #[test]
+    fn encoder_rejects_successful_commit_without_identity() {
+        let reply = Reply {
+            operation: INSTALL_COMMIT,
+            request_id: 12,
+            service_epoch: 3,
+            status: ReplyStatus::Ok,
+            data: ReplyData::None,
+        };
+        assert!(matches!(
+            encode_reply(&reply),
+            Err(ProtocolError::InvalidReply)
+        ));
+    }
+
+    #[test]
+    fn encoder_rejects_successful_commit_with_zero_catalog_revision() {
+        let reply = Reply {
+            operation: INSTALL_COMMIT,
+            request_id: 12,
+            service_epoch: 3,
+            status: ReplyStatus::Ok,
+            data: ReplyData::PackageCommitted {
+                identity: PackageIdentity::decode(&identity_bytes()).unwrap(),
+                catalog_revision: 0,
+            },
+        };
+        assert!(matches!(
+            encode_reply(&reply),
+            Err(ProtocolError::InvalidReply)
+        ));
+    }
+
+    #[test]
+    fn all_reply_variants_roundtrip_with_operation_and_status_binding() {
+        for operation in OPERATIONS {
+            assert_roundtrip(successful_reply(operation));
+            for status in [
+                ReplyStatus::Invalid,
+                ReplyStatus::Unauthorized,
+                ReplyStatus::Stale,
+                ReplyStatus::Full,
+                ReplyStatus::Busy,
+                ReplyStatus::Unknown,
+                ReplyStatus::NotFound,
+                ReplyStatus::Failed,
+            ] {
+                assert_roundtrip(Reply {
+                    status,
+                    data: ReplyData::None,
+                    ..successful_reply(operation)
+                });
+            }
+        }
+        for operation in [CANCEL, RESULT] {
+            for state in [
+                OperationState::Pending,
+                OperationState::Succeeded,
+                OperationState::Failed,
+                OperationState::Cancelled,
+                OperationState::Unknown,
+            ] {
+                assert_roundtrip(Reply {
+                    data: ReplyData::Operation {
+                        target_request_id: 11,
+                        state,
+                    },
+                    ..successful_reply(operation)
+                });
+            }
+        }
+        for operation in [INSTALL_BEGIN, UPDATE_BEGIN, INSTALL_CHUNK] {
+            for next_offset in [0, u32::MAX] {
+                assert_roundtrip(Reply {
+                    data: ReplyData::UploadProgress { next_offset },
+                    ..successful_reply(operation)
+                });
+            }
+        }
+        assert_roundtrip(Reply {
+            operation: u16::MAX,
+            status: ReplyStatus::Invalid,
+            data: ReplyData::None,
+            ..successful_reply(INSTALL_BEGIN)
+        });
+    }
+
+    #[test]
+    fn encoder_rejects_wrong_success_variants_and_error_data() {
+        let identity = PackageIdentity::decode(&identity_bytes()).unwrap();
+        let variants = [
+            ReplyData::None,
+            ReplyData::UploadProgress { next_offset: 4 },
+            ReplyData::PackageCommitted {
+                identity,
+                catalog_revision: 1,
+            },
+            ReplyData::Launched {
+                launch_id: 1,
+                identity,
+            },
+            ReplyData::Operation {
+                target_request_id: 11,
+                state: OperationState::Succeeded,
+            },
+        ];
+        for operation in OPERATIONS {
+            let valid = successful_reply(operation);
+            for data in variants {
+                if core::mem::discriminant(&data) != core::mem::discriminant(&valid.data) {
+                    assert!(matches!(
+                        encode_reply(&Reply { data, ..valid }),
+                        Err(ProtocolError::InvalidReply)
+                    ));
+                }
+                if data != ReplyData::None {
+                    for status in [
+                        ReplyStatus::Invalid,
+                        ReplyStatus::Unauthorized,
+                        ReplyStatus::Stale,
+                        ReplyStatus::Full,
+                        ReplyStatus::Busy,
+                        ReplyStatus::Unknown,
+                        ReplyStatus::NotFound,
+                        ReplyStatus::Failed,
+                    ] {
+                        assert!(matches!(
+                            encode_reply(&Reply {
+                                data,
+                                status,
+                                ..valid
+                            }),
+                            Err(ProtocolError::InvalidReply)
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn encoder_rejects_zero_or_self_correlated_success_metadata() {
+        let identity = PackageIdentity::decode(&identity_bytes()).unwrap();
+        let invalid = [
+            Reply {
+                request_id: 0,
+                ..successful_reply(INSTALL_BEGIN)
+            },
+            Reply {
+                service_epoch: 0,
+                ..successful_reply(INSTALL_BEGIN)
+            },
+            Reply {
+                data: ReplyData::Launched {
+                    launch_id: 0,
+                    identity,
+                },
+                ..successful_reply(LAUNCH)
+            },
+            Reply {
+                data: ReplyData::Operation {
+                    target_request_id: 0,
+                    state: OperationState::Pending,
+                },
+                ..successful_reply(CANCEL)
+            },
+            Reply {
+                data: ReplyData::Operation {
+                    target_request_id: 12,
+                    state: OperationState::Pending,
+                },
+                ..successful_reply(RESULT)
+            },
+        ];
+        for reply in invalid {
+            assert!(matches!(
+                encode_reply(&reply),
+                Err(ProtocolError::InvalidReply)
+            ));
+        }
+        assert!(matches!(
+            encode_reply(&Reply {
+                operation: u16::MAX,
+                ..successful_reply(INSTALL_BEGIN)
+            }),
+            Err(ProtocolError::UnknownOperation)
+        ));
+    }
+
+    #[test]
+    fn decoder_independently_rejects_malformed_success_wire_data() {
+        for operation in OPERATIONS {
+            let reply = successful_reply(operation);
+            let message = reply_message(&encode_reply(&reply).unwrap());
+            let bytes = message.payload();
+            let header_only = received(77, &bytes[..REPLY_HEADER_LEN], &[]);
+            assert_eq!(
+                decode_reply(&header_only, 77, 3, operation, 12),
+                Err(ProtocolError::InvalidReply)
+            );
+            let mut corrupted = bytes.to_vec();
+            let invalid_range = match operation {
+                INSTALL_COMMIT | REMOVE => Some(24 + IDENTITY_LEN..32 + IDENTITY_LEN),
+                LAUNCH => Some(24..32),
+                CANCEL | RESULT => Some(32..40),
+                _ => None,
+            };
+            if let Some(range) = invalid_range {
+                corrupted[range].fill(0);
+                assert_eq!(
+                    decode_reply(&received(77, &corrupted, &[]), 77, 3, operation, 12),
+                    Err(ProtocolError::InvalidReply)
+                );
+            }
+            let mut error_with_data = bytes.to_vec();
+            error_with_data[4..6].copy_from_slice(&(ReplyStatus::Failed as u16).to_le_bytes());
+            assert_eq!(
+                decode_reply(&received(77, &error_with_data, &[]), 77, 3, operation, 12),
+                Err(ProtocolError::InvalidReply)
+            );
+        }
     }
 
     #[test]
