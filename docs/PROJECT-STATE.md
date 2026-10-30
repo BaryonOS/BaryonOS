@@ -1,6 +1,36 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Native Materiaal-testversie en koude heropening groen — 30 oktober 2026
+## NEXT AGENT HANDOFF — GUI/koude proefversie en echte FPU-wacht groen — 30 oktober 2026
+
+Branch `simon/native-test-version`; basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`,
+code `deb7a3d5c1c72a2fc816a5900062f9ed0d554782`, bron v3
+`31c1f108e52336c222c1a9541dc91edd06c291c05eedbc88dec03d8df658bf9f`.
+**Score 34% → 34%; gevraagde 50% niet bereikt.** Alle agents klaar; geen
+achtergrondwerk of gedeelde schrijver. Werkbranch/codecheckpoints gepusht.
+
+Native `test-fpu-wait` en de aparte legacy-FPU-baseline slagen beide raw33
+op deze code. De combinatie meet 41 echte blokkeringen/deadlinewakes,
+36 idle-IRQ's, 347 echte user-timerinterrupts en exact 456 saves/restores,
+drie schone proceslevensduren, AVX-appfault/survivor/verse PID3, volledig
+frame-/context-/Engineherstel. Vier eerdere failures blijven bewaard;
+geen scheduler-, entryassembly-, rechten- of productdeadlineversoepeling.
+Bewijs/commando's: `verification/native-test-version/fpu-wait-evidence.json`.
+
+Eerder geslaagd: echte GUI-edit/save/list/reopen op `2066ae7`, koude readonly-
+heropening op `de541fa`, system normal/recover op `3064b1a`, RTC en gewone
+IPC-wacht op `a263bef`. Geen van die bronnen naar de nieuwe bron omgelabeld.
+Lokale normale proefversie: `build/native-test-version/test-version/esp`,
+nog op de eerdere GUI-code; nieuwe GUI-integratiehertoets volgt.
+
+Eerstvolgend: normale en koude GUI-keten op de definitieve code, dezelfde
+beheerde root voor parent/recover; `NOS_BUILD_DIR="$PWD/build/native-test-version/gui-final" NOS_TARGET_DIR="$PWD/target/native-test-version/gui-baseline" python3 -B -u tools/build.py --kernel-feature native-system-materiaal-probe`
+met bestaande lokale `LD_LIBRARY_PATH`, daarna `run_materiaal_probe.py`.
+Open: kill van een nog Waiting proces, overige native/productmatrix,
+fysieke en menselijke acceptatie. Testfixtureplaintext is geen persoonlijke
+opslag-/encryptie-/releaseclaim. Nieuwe concept-PR is niet geopend omdat de
+app-sessie aan de oudere infra-branch is gebonden; geen CLI-omweg gebruikt.
+
+## Uitvoeringshistorie — koude GUI en opbouw van de FPU-wachtproef
 
 Branch `simon/native-test-version`, basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`;
 code `2066ae7ccb25ac9e5e23eb81ec79a7286699a8ec`, laatste bewijsbron

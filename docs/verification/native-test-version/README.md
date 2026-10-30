@@ -78,7 +78,7 @@ en legacy `test-m3-invalid-rsp` zijn op `ab98d1a` opnieuw raw33 geslaagd.
 Deze review is geen menselijke audit.
 
 **Niet uitgevoerd op deze integratie:** native kill/hergebruik en wachten
-met FPU-context, bredere native regressies, fysieke hardware en menselijke
+bij nog geblokkeerde processen, alle bredere native regressies, fysieke hardware en menselijke
 gebruiks-/securityacceptatie. De gezamenlijke CPL3-wachtprobe is als echt
 scalair ELF gebouwd en native uitgevoerd. Probe-hosttests: 3/3, exit 0.
 Gerichte Clippy voor capability-core, SDK-runtime en inputconsumenten:
@@ -139,3 +139,26 @@ Dit is een automatische QEMU-proefversie met een begrensde testlevensduur,
 geen installer of dagelijks bruikbaar OS. De oorspronkelijke `gui-idle/esp`
 bevat nu het readonly-profiel; beide runs behouden hun eigen bevroren inputs.
 Geen binaries in Git en geen publieke release.
+
+## Echte FPU-context over blokkeren
+
+Op `deb7a3d` slagen zowel `test-fpu-wait` als de aparte ABI1.6/yieldbaseline:
+exit0/raw33, respectievelijk 5,687 s en 2,162 s. De combinatie verifieert de
+hele x87/SSE-bank rond 41 echte blokkeringen/deadlinewakes, 36 CPL0-idle-IRQ's
+en 347 echte CPL3-timerinterrupts. Exact 456 saves/restores; drie schone
+levensduren, echte AVX-fault, survivor, verse PID3 in slot0 en volledig
+frame-/context-/Engineherstel. Geen extra capabilities toegekend.
+
+`fpu-wait-evidence.json` bevat beide exacte build/runcommando's, profielen,
+bron-/artifact-/loghashes en de vier eerdere failures. Hun oorzaken waren
+fixturecompositie, ontbrekende PID-registratie, onvoldoende echte user-
+preëmptie en een tellerrelatie die idle ten onrechte als user-FPU-save telde.
+Beide orakels controleren nu exact totaal=user-A+user-B+idle en
+saves=user-A+user-B+syscalls+fault, plus restoregelijkheid. De bestaande
+assembly, schedulerbody en IPC-afdwinging zijn daarvoor niet aangepast.
+De negatieve hosttests weigeren ook het verkeerde profiel en foutief
+meegetelde idle-saves; `python3 -B tools/test_fpu.py`: 12 tests, exit0.
+
+Dit sluit de ontbrekende FPU/wachtcombinatieproef, niet kill van een nog
+Waiting proces, volledige GUI- of releaseacceptatie. De normale/koude
+GUI-keten moet op deze definitieve integratiecode nog worden herhaald.

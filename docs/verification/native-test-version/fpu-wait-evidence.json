@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "source_commit": "deb7a3d5c1c72a2fc816a5900062f9ed0d554782",
+  "source_fingerprint_version": 3,
+  "source_sha256": "31c1f108e52336c222c1a9541dc91edd06c291c05eedbc88dec03d8df658bf9f",
+  "scope": "Actual x87/SSE bank isolation over deadline blocking, CPL0 idle, CPL3 timer preemption, unsupported-AVX fault and fresh-PID slot reuse; not kill of a Waiting process, GUI, hardware or full release acceptance.",
+  "profile": "pc-q35-8.2/qemu64/TCG/1CPU/256MiB; no network or disk",
+  "common_environment": "LD_LIBRARY_PATH=\"$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu\" NOS_QEMU_MACHINE=pc-q35-8.2 NOS_TARGET_DIR=\"$PWD/target/native-test-version/fpu\"",
+  "wait": {
+    "environment": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/fpu-wait\"",
+    "commands": [
+      "python3 -B tools/build.py --kernel-feature test-fpu-wait",
+      "python3 -B tools/run_fpu.py"
+    ],
+    "command_exit": 0,
+    "passed": true,
+    "raw_qemu_exit": 33,
+    "duration_s": 5.686618105000889,
+    "report": "build/native-test-version/fpu-wait/fpu-report.json",
+    "report_sha256": "b5e83975bc48176e25245791fe1a278d192ba09e804cb70e5ce06e94ef60e519",
+    "run_directory": "build/native-test-version/fpu-wait/run/test-fpu-wait-31e5ef1364",
+    "serial_sha256": "c767e16f7586083f79052f7c5a6596fc87ea024c5365fadfc38a641fe5d30a8d",
+    "kernel_sha256": "00a7af2af0473e95a3698b5dec69b1bdf40f9553acd6668c95c86d0ba07f4217",
+    "loader_sha256": "bf3a1c91ff22a588f8b2f436f0c156704337327bb4e832e52493024162dce2f2",
+    "clean_starts": 3,
+    "verified_loops": 41,
+    "wait_calls": 41,
+    "wait_blocked": 41,
+    "wait_timeouts": 41,
+    "wait_immediate": 0,
+    "idle_irqs": 36,
+    "user_timer_a": 134,
+    "user_timer_b": 213,
+    "total_timer_irqs": 383,
+    "syscalls": 108,
+    "saves": 456,
+    "restores": 456,
+    "faults": 1,
+    "normal_exits": 2,
+    "fresh_pid_slot_reuses": 1,
+    "context_bytes_wiped": 8192,
+    "process_frames_recovered": true,
+    "authority_engine_empty_and_consistent": true,
+    "all_source_artifact_and_profile_checks": true,
+    "build_log": "/tmp/nieuw-os-native-fpu-wait-build.log",
+    "run_log": "/tmp/nieuw-os-native-fpu-wait-run.log"
+  },
+  "yield_baseline": {
+    "environment": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/fpu-final\"",
+    "commands": [
+      "python3 -B tools/build.py --kernel-feature native-fpu",
+      "python3 -B tools/run_fpu.py"
+    ],
+    "command_exit": 0,
+    "passed": true,
+    "raw_qemu_exit": 33,
+    "duration_s": 2.1619641130000673,
+    "report": "build/native-test-version/fpu-final/fpu-report.json",
+    "report_sha256": "6f16548da26aeaa6ec250cfa2d9d52c5be6a145ddf33e99c549ad2b6ce398d46",
+    "run_directory": "build/native-test-version/fpu-final/run/native-fpu-3ff5628c61",
+    "serial_sha256": "2ac5fc257b2368f392a0049bcaf3ef5630d0d78a447a560126e65dce8f566156",
+    "kernel_sha256": "ff4f01ee0ae910817a437e2ab18d35a488c7ccb8f7172bdfc6a4763fbb1aea50",
+    "loader_sha256": "bf3a1c91ff22a588f8b2f436f0c156704337327bb4e832e52493024162dce2f2",
+    "verified_loops": 70,
+    "all_source_artifact_and_profile_checks": true,
+    "log": "/tmp/nieuw-os-native-fpu-final.log"
+  },
+  "earlier_failures": [
+    {
+      "source_commit": "dedeacdd4be0b0c4970e0ca42fe2895e357ace45",
+      "command_exit": 1,
+      "guest_started": false,
+      "reason": "The original M3 FPU profile correctly rejected implicit M4 activation. The explicit test combination now excludes only generic M4 acceptance fixtures, retaining the authority engine.",
+      "log": "/tmp/nieuw-os-native-fpu-wait-attempt1.log"
+    },
+    {
+      "source_commit": "a263bef347629aedf2162960e8c6982005251a68",
+      "raw_qemu_exit": 35,
+      "reason": "M4 cleanup found unregistered fixture PID after the real AVX fault; fixture now registers all three lifetimes without granting capabilities.",
+      "report": "build/native-test-version/fpu-wait/fpu-attempt2-report.json",
+      "report_sha256": "27a53accb21fd1538ce4fc99a0ec0dc22fc3edf137e484d9055e464ec861babb",
+      "serial_sha256": "ec1cea5e4275aed6dffe9dce980a4a4a84fb5b044eb7170cf11b6702452c60d3"
+    },
+    {
+      "source_commit": "61a507ecec9d57dda6e0b5ff489326151436ba2b",
+      "raw_qemu_exit": 35,
+      "reason": "TIMER_PREEMPTION: idle timeout progress did not supply the required actual user timer entries. Only the wait fixture busy workload increased; minimum actual user preemptions stayed unchanged.",
+      "report": "build/native-test-version/fpu-wait/fpu-attempt3-report.json",
+      "report_sha256": "a2035c66259c785abe3c2e83a36b9b8c2fd28d55999761600af78bab723fdbd5",
+      "serial_sha256": "bb7800313f6e3036848502ab4624468388f62ae63e2c17a93a210367de27d43f"
+    },
+    {
+      "source_commit": "a597db819e949084a68d5195b6f6e21cd016ef55",
+      "raw_qemu_exit": 35,
+      "reason": "ENTRY_SWITCH_COUNTS incorrectly included CPL0 idle in user FPU saves. Both oracles now verify exact user-plus-idle total IRQs and user-only saves/restores, matching unchanged assembly.",
+      "report": "build/native-test-version/fpu-wait/fpu-attempt4-report.json",
+      "report_sha256": "8e416f630b05d4a24adee582b8b1823d846c9dbc1ca774bb2313c7c450169097",
+      "serial_sha256": "2337f4cb133ba16184201914368205bda1ce6c060ac868a599a9625a332cdde5"
+    }
+  ],
+  "host_verifier": {
+    "command": "python3 -B tools/test_fpu.py",
+    "command_exit": 0,
+    "tests_passed": 12,
+    "scope": "Verifier rejection tests only; synthetic transcripts are not native execution."
+  }
+}

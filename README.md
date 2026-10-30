@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`a597db81`](https://github.com/simonvanieperen/nieuw-os/commit/a597db819e949084a68d5195b6f6e21cd016ef55) ·
+**Bron:** [`deb7a3d5`](https://github.com/simonvanieperen/nieuw-os/commit/deb7a3d5c1c72a2fc816a5900062f9ed0d554782) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: exacte CPL0-idle versus CPL3-FPU-entrytellers in de combinatieproef; hertoets volgt.
-34% blijft 34%; minstens50% is niet bereikt. Normale/koude Materiaal-, systeem- en legacy-FPU-regressies slagen op hun vastgelegde bron. De FPU/wachtproef op a597db8 bereikt ook de vereiste echte user-timerpreemptie, maar faalt op de oude tellerrelatie die CPL0-idle ten onrechte als user-FPU-save meetelt. Beide orakels controleren nu exact totaal=user-A+user-B+idle en saves=user-A+user-B+syscalls+fault; geen assembly-, scheduler- of rechtenwijziging. Native hertoets volgt, geen extra punten. Native kill van Waiting, volledige productcriteria en menselijke/hardwareacceptatie blijven open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: native FPU/wachtcombinatie en legacy-baseline groen; definitieve GUI-hertoets volgt.
+34% blijft 34%; minstens50% is niet bereikt. De nieuwe native FPU/wachtcombinatie slaagt op deb7a3d:41 echte blokkeringen/deadlinewakes,36 idle-IRQs,347 echte user-timerinterrupts, exact456 saves/restores en drie schone levensduren met fault/survivor/verse PID3 en volledige cleanup. Ook de aparte yield-FPU-baseline slaagt op die code. Eerdere failures blijven bewaard; geen scheduler-, rechten-, entryassembly- of productdeadlineversoepeling. Normale/koude GUI en overige regressies blijven aan hun eerder geteste bron gebonden; definitieve GUI-hertoets volgt. Kill van een nog Waiting proces, volledige document/GUI-criteria en menselijke/hardwareacceptatie blijven open. Geen volledig nieuw rubriccriterium gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
