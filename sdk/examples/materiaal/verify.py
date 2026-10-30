@@ -17,6 +17,13 @@ from common import BUILD, run_logged
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
+def write_sdk_build_input(output: Path, sdk_diff: bytes) -> None:
+    path = output / "sdk-build-input.json"
+    if sdk_diff:
+        path.write_text(json.dumps({"patch_utf8": sdk_diff.decode("utf-8"), "sha256": hashlib.sha256(sdk_diff).hexdigest()}, indent=2) + "\n")
+    else:
+        path.unlink(missing_ok=True)
+
 def chain_scenario_count(log: str) -> int:
     results = re.findall(r"^test result:.*$", log, re.MULTILINE)
     result = re.fullmatch(r"test result: ok\. (\d+) passed; 0 failed; 0 ignored; 0 measured; 0 filtered out;(?: finished in [0-9.]+s)?", results[0]) if len(results) == 1 else None
@@ -96,8 +103,7 @@ def main() -> int:
     (output / "readelf.txt").write_text(segments)
     patch = Path("/tmp/nieuw-os-desktop-sdk-wrappers.patch")
     sdk_diff = subprocess.check_output(["git", "diff", "--", "sdk/Cargo.toml", "sdk/runtime"], cwd=ROOT)
-    if sdk_diff:
-        (output / "sdk-build-input.json").write_text(json.dumps({"patch_utf8": sdk_diff.decode("utf-8"), "sha256": hashlib.sha256(sdk_diff).hexdigest()}, indent=2) + "\n")
+    write_sdk_build_input(output, sdk_diff)
     report = {
         "kind": "host-contracts-and-built-ELF-only", "native_execution": False,
         "source_version": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
