@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-probable-doodle/docs/verification/product-test-20/verify_0818_bundle.py", line 142, in <module>
+    main()
+    ~~~~^^
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-probable-doodle/docs/verification/product-test-20/verify_0818_bundle.py", line 93, in main
+    require(observed["frames"] == handoff["frames"], "Recomputed frames differ from handoff")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-probable-doodle/docs/verification/product-test-20/verify_0818_bundle.py", line 22, in require
+    raise ValueError(message)
+ValueError: Recomputed frames differ from handoff

@@ -1,0 +1,608 @@
+{
+  "source_head": "10bc807f94bbee3eb21403f1521b9ebec41b202a",
+  "scope": "Afzonderlijke hostregressiecontrole op de geïntegreerde bron van PR96, plus de kleine schaalfix. Oud bewijs blijft aan de oorspronkelijke PR68-bron gebonden.",
+  "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+  "source_files": [
+    {
+      "path": ".cargo/config.toml",
+      "source_blob": "4d01f83931d9c45c3d8ab36ca75fc95e62fa486a",
+      "result_blob": "4d01f83931d9c45c3d8ab36ca75fc95e62fa486a",
+      "modified": false
+    },
+    {
+      "path": "Cargo.lock",
+      "source_blob": "f6b3a3a0553c2646085a7109ed837148f7fe3061",
+      "result_blob": "f6b3a3a0553c2646085a7109ed837148f7fe3061",
+      "modified": false
+    },
+    {
+      "path": "Cargo.toml",
+      "source_blob": "b989903ca664801f521e2d983eaf809f3350291b",
+      "result_blob": "b989903ca664801f521e2d983eaf809f3350291b",
+      "modified": false
+    },
+    {
+      "path": "crates/capability-core/Cargo.toml",
+      "source_blob": "e2eedcfb4ab4697cca263440385e850cdf803598",
+      "result_blob": "e2eedcfb4ab4697cca263440385e850cdf803598",
+      "modified": false
+    },
+    {
+      "path": "crates/capability-core/src/lib.rs",
+      "source_blob": "15ef22518230f2fe07f41f6b78d5a2be40b91cfc",
+      "result_blob": "15ef22518230f2fe07f41f6b78d5a2be40b91cfc",
+      "modified": false
+    },
+    {
+      "path": "crates/capability-core/src/tests.rs",
+      "source_blob": "f83e3f210052741e2daee1c58416193d67e254ed",
+      "result_blob": "f83e3f210052741e2daee1c58416193d67e254ed",
+      "modified": false
+    },
+    {
+      "path": "crates/capability-core/tests/native_wait.rs",
+      "source_blob": "887b99c1365ede903d082ec46073bea42280589b",
+      "result_blob": "887b99c1365ede903d082ec46073bea42280589b",
+      "modified": false
+    },
+    {
+      "path": "crates/ui-core/Cargo.toml",
+      "source_blob": "ec1b82761ab9c5910b484c6e24df31870ffe6a78",
+      "result_blob": "ec1b82761ab9c5910b484c6e24df31870ffe6a78",
+      "modified": false
+    },
+    {
+      "path": "crates/ui-core/src/font.rs",
+      "source_blob": "89a681dc82a8a2d7058d9640e753b0daeccda016",
+      "result_blob": "89a681dc82a8a2d7058d9640e753b0daeccda016",
+      "modified": false
+    },
+    {
+      "path": "crates/ui-core/src/input.rs",
+      "source_blob": "5ae73309dd8f1b84443cebc7f52663111b2e7327",
+      "result_blob": "5ae73309dd8f1b84443cebc7f52663111b2e7327",
+      "modified": false
+    },
+    {
+      "path": "crates/ui-core/src/keyboard.rs",
+      "source_blob": "9cb9d1c7a0bfa7cc0aeddaafe73dca16d1d5568f",
+      "result_blob": "9cb9d1c7a0bfa7cc0aeddaafe73dca16d1d5568f",
+      "modified": false
+    },
+    {
+      "path": "crates/ui-core/src/lib.rs",
+      "source_blob": "5adf81a137aceb55684bdb41d58a546304ab2821",
+      "result_blob": "5adf81a137aceb55684bdb41d58a546304ab2821",
+      "modified": false
+    },
+    {
+      "path": "crates/ui-core/src/mouse.rs",
+      "source_blob": "94c2e3c456567000fabb48520a3322ee4c435b7e",
+      "result_blob": "94c2e3c456567000fabb48520a3322ee4c435b7e",
+      "modified": false
+    },
+    {
+      "path": "crates/ui-core/src/routing.rs",
+      "source_blob": "5cab207cd9637f721ea528de75803df303e644cc",
+      "result_blob": "5cab207cd9637f721ea528de75803df303e644cc",
+      "modified": false
+    },
+    {
+      "path": "crates/ui-core/src/tests.rs",
+      "source_blob": "c85d5768176528a727ac24bec2d4c96d01518992",
+      "result_blob": "c85d5768176528a727ac24bec2d4c96d01518992",
+      "modified": false
+    },
+    {
+      "path": "crates/ui-core/tests/input_reset.rs",
+      "source_blob": "7fcc166c1fa3b1e3c2f13f2bd31a9dae918deb6e",
+      "result_blob": "7fcc166c1fa3b1e3c2f13f2bd31a9dae918deb6e",
+      "modified": false
+    },
+    {
+      "path": "rust-toolchain.toml",
+      "source_blob": "99269eb41f0a1109e52de35d113c95f2297ed43a",
+      "result_blob": "99269eb41f0a1109e52de35d113c95f2297ed43a",
+      "modified": false
+    },
+    {
+      "path": "sdk/Cargo.lock",
+      "source_blob": "e4166424c12dddb59b2a43c9375ac852980e14a9",
+      "result_blob": "e4166424c12dddb59b2a43c9375ac852980e14a9",
+      "modified": false
+    },
+    {
+      "path": "sdk/Cargo.toml",
+      "source_blob": "4332fb714737e1d5bdb1ff5fadeff5b376e2aeb7",
+      "result_blob": "4332fb714737e1d5bdb1ff5fadeff5b376e2aeb7",
+      "modified": false
+    },
+    {
+      "path": "sdk/catalog-client/Cargo.toml",
+      "source_blob": "5bc541d26893f03767dd9536bf6820e146fb4d2c",
+      "result_blob": "5bc541d26893f03767dd9536bf6820e146fb4d2c",
+      "modified": false
+    },
+    {
+      "path": "sdk/catalog-client/src/lib.rs",
+      "source_blob": "300a65ded1a489a2c3b5ed3581ca107d3793c4c6",
+      "result_blob": "300a65ded1a489a2c3b5ed3581ca107d3793c4c6",
+      "modified": false
+    },
+    {
+      "path": "sdk/catalog-client/tests/transport.rs",
+      "source_blob": "2dd6d57f449ab6db794a506a28c39b2f79b3e696",
+      "result_blob": "2dd6d57f449ab6db794a506a28c39b2f79b3e696",
+      "modified": false
+    },
+    {
+      "path": "sdk/document-session/Cargo.toml",
+      "source_blob": "b458314b60f9ed4eceed07713d627471374c26ab",
+      "result_blob": "b458314b60f9ed4eceed07713d627471374c26ab",
+      "modified": false
+    },
+    {
+      "path": "sdk/document-session/src/lib.rs",
+      "source_blob": "5b4f49ce17206b498a46c76ad0aa33f8bf7cbac7",
+      "result_blob": "5b4f49ce17206b498a46c76ad0aa33f8bf7cbac7",
+      "modified": false
+    },
+    {
+      "path": "sdk/document-session/src/volume.rs",
+      "source_blob": "fe0bf648930155a7a208d305221e175cca84052b",
+      "result_blob": "fe0bf648930155a7a208d305221e175cca84052b",
+      "modified": false
+    },
+    {
+      "path": "sdk/document-session/tests/editing.rs",
+      "source_blob": "81935cc449986baa8fd6f14b08f1b1634be6d5da",
+      "result_blob": "81935cc449986baa8fd6f14b08f1b1634be6d5da",
+      "modified": false
+    },
+    {
+      "path": "sdk/document-session/tests/volume.rs",
+      "source_blob": "3dad6b23335efe8d1ccd678886ac4d8a858acfbc",
+      "result_blob": "3dad6b23335efe8d1ccd678886ac4d8a858acfbc",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/Cargo.toml",
+      "source_blob": "b9ff0ad281eda4cf500e28f27eb5caea05335a22",
+      "result_blob": "b9ff0ad281eda4cf500e28f27eb5caea05335a22",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/README.md",
+      "source_blob": "fec274a5821b7631776e3d406b107105fd33d254",
+      "result_blob": "a982ea20a3d2bbfbbd20a830ca4e9e9047b9de85",
+      "modified": true
+    },
+    {
+      "path": "sdk/runtime/src/block.rs",
+      "source_blob": "f1c30e846d4a6664c994f2376e37a09e8c16d9a1",
+      "result_blob": "f1c30e846d4a6664c994f2376e37a09e8c16d9a1",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/src/clock.rs",
+      "source_blob": "6a214c0f17be4793c9a61e44fde81d58b3dd16b3",
+      "result_blob": "6a214c0f17be4793c9a61e44fde81d58b3dd16b3",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/src/entropy.rs",
+      "source_blob": "992be41b552ccc9ff9814c9c5cbffa5ac404bba1",
+      "result_blob": "992be41b552ccc9ff9814c9c5cbffa5ac404bba1",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/src/lib.rs",
+      "source_blob": "6e85b19c4b8cac600f09811a57452739f08a0b05",
+      "result_blob": "6e85b19c4b8cac600f09811a57452739f08a0b05",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/src/memory.rs",
+      "source_blob": "e2fd71f9a0f4816b81753157d239fa8f146f6395",
+      "result_blob": "e2fd71f9a0f4816b81753157d239fa8f146f6395",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/src/message.rs",
+      "source_blob": "05bbb7c12ad7f746e35a3d375227a2f103b87c05",
+      "result_blob": "05bbb7c12ad7f746e35a3d375227a2f103b87c05",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/src/native.rs",
+      "source_blob": "cacfb6aeeae683f3d7fad084b90b4f53f72e2091",
+      "result_blob": "cacfb6aeeae683f3d7fad084b90b4f53f72e2091",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/src/network.rs",
+      "source_blob": "4e159c0933c73be4006ee22817a7df1c8bcc48f3",
+      "result_blob": "4e159c0933c73be4006ee22817a7df1c8bcc48f3",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/src/process.rs",
+      "source_blob": "7278da42b7f1a32ad9c720fe191bf4b2daf5e9ae",
+      "result_blob": "7278da42b7f1a32ad9c720fe191bf4b2daf5e9ae",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/src/tls_time.rs",
+      "source_blob": "7762bf1f13678ae263f095625e9f9737518795ab",
+      "result_blob": "7762bf1f13678ae263f095625e9f9737518795ab",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/tests/message.rs",
+      "source_blob": "9586069c299aa036759f7e814284eefbb2b882a9",
+      "result_blob": "9586069c299aa036759f7e814284eefbb2b882a9",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/tests/process.rs",
+      "source_blob": "957a66a583d9da472b9698f2dac1602fa5824b14",
+      "result_blob": "957a66a583d9da472b9698f2dac1602fa5824b14",
+      "modified": false
+    },
+    {
+      "path": "sdk/runtime/tests/tls_time.rs",
+      "source_blob": "311f4b47cc10d8812f70311d74fa3262fb6966f3",
+      "result_blob": "311f4b47cc10d8812f70311d74fa3262fb6966f3",
+      "modified": false
+    },
+    {
+      "path": "services/catalog/Cargo.toml",
+      "source_blob": "db366d0614b27fc21dc817cffa0c9f2d0b233f98",
+      "result_blob": "db366d0614b27fc21dc817cffa0c9f2d0b233f98",
+      "modified": false
+    },
+    {
+      "path": "services/catalog/src/client.rs",
+      "source_blob": "bcee050ee4c8a49458c2dffee8ab1886c3309532",
+      "result_blob": "bcee050ee4c8a49458c2dffee8ab1886c3309532",
+      "modified": false
+    },
+    {
+      "path": "services/catalog/src/journal.rs",
+      "source_blob": "aac6e6ee9d512124d663b747a0f2f30eaa6ccc2f",
+      "result_blob": "aac6e6ee9d512124d663b747a0f2f30eaa6ccc2f",
+      "modified": false
+    },
+    {
+      "path": "services/catalog/src/lib.rs",
+      "source_blob": "9638d5adc6a20c22097cfaff7012c8e1530e69f5",
+      "result_blob": "9638d5adc6a20c22097cfaff7012c8e1530e69f5",
+      "modified": false
+    },
+    {
+      "path": "services/catalog/src/user_service.rs",
+      "source_blob": "d0794bec47dfd43d5739627cdf4fe8b1b1ab191d",
+      "result_blob": "d0794bec47dfd43d5739627cdf4fe8b1b1ab191d",
+      "modified": false
+    },
+    {
+      "path": "services/catalog/src/wire.rs",
+      "source_blob": "42be2e96cf5bbf9b1b953b0fa0bfc6b81910428f",
+      "result_blob": "42be2e96cf5bbf9b1b953b0fa0bfc6b81910428f",
+      "modified": false
+    },
+    {
+      "path": "services/catalog/tests/client.rs",
+      "source_blob": "3a4c00dde7fad7925619f78156a9e89e05dc1273",
+      "result_blob": "3a4c00dde7fad7925619f78156a9e89e05dc1273",
+      "modified": false
+    },
+    {
+      "path": "services/catalog/tests/core.rs",
+      "source_blob": "d9392668a44fcef68538af131ec33129ca638d27",
+      "result_blob": "d9392668a44fcef68538af131ec33129ca638d27",
+      "modified": false
+    },
+    {
+      "path": "services/catalog/tests/wire.rs",
+      "source_blob": "548d0769602e4ac41371795cb7d3cfe772bb8252",
+      "result_blob": "548d0769602e4ac41371795cb7d3cfe772bb8252",
+      "modified": false
+    },
+    {
+      "path": "services/input-core/Cargo.lock",
+      "source_blob": "4b9e12d5eed6d7669bebc5a2081e349c6aaaccc8",
+      "result_blob": "4b9e12d5eed6d7669bebc5a2081e349c6aaaccc8",
+      "modified": false
+    },
+    {
+      "path": "services/input-core/Cargo.toml",
+      "source_blob": "b25498d2369068906fec8fb8d9a983539dfea7b5",
+      "result_blob": "b25498d2369068906fec8fb8d9a983539dfea7b5",
+      "modified": false
+    },
+    {
+      "path": "services/input-core/src/lib.rs",
+      "source_blob": "0a9cf33afc4e393b68330d42bcade099111199aa",
+      "result_blob": "0a9cf33afc4e393b68330d42bcade099111199aa",
+      "modified": false
+    },
+    {
+      "path": "services/input-core/src/wire.rs",
+      "source_blob": "690644eefd697f153c364fc05b639b35cf1cbd88",
+      "result_blob": "690644eefd697f153c364fc05b639b35cf1cbd88",
+      "modified": false
+    },
+    {
+      "path": "services/input-core/tests/service.rs",
+      "source_blob": "1d75a82f6aeb096cd5a33d782dd9cc3f1e1b68a4",
+      "result_blob": "1d75a82f6aeb096cd5a33d782dd9cc3f1e1b68a4",
+      "modified": false
+    },
+    {
+      "path": "services/volume/Cargo.toml",
+      "source_blob": "b364d73f0e25e0b39fac59308e120047764d9778",
+      "result_blob": "b364d73f0e25e0b39fac59308e120047764d9778",
+      "modified": false
+    },
+    {
+      "path": "services/volume/src/client.rs",
+      "source_blob": "8781fba999ef878b70570a9544c04967c9e47629",
+      "result_blob": "8781fba999ef878b70570a9544c04967c9e47629",
+      "modified": false
+    },
+    {
+      "path": "services/volume/src/lib.rs",
+      "source_blob": "dc697e58b7fcdef07fbd8b8260f32f60a972cc1c",
+      "result_blob": "dc697e58b7fcdef07fbd8b8260f32f60a972cc1c",
+      "modified": false
+    },
+    {
+      "path": "services/volume/src/service.rs",
+      "source_blob": "c1f9ef3f1925c37e2715d5caf386352424c0adc0",
+      "result_blob": "c1f9ef3f1925c37e2715d5caf386352424c0adc0",
+      "modified": false
+    },
+    {
+      "path": "services/volume/src/table.rs",
+      "source_blob": "8ec58ed34892ff3e57ad815015faa7a9043eb6f8",
+      "result_blob": "8ec58ed34892ff3e57ad815015faa7a9043eb6f8",
+      "modified": false
+    },
+    {
+      "path": "services/volume/src/upload.rs",
+      "source_blob": "55a5fd5e77d2e6577934c67f9fdf8a4b18419f40",
+      "result_blob": "55a5fd5e77d2e6577934c67f9fdf8a4b18419f40",
+      "modified": false
+    },
+    {
+      "path": "services/volume/src/wire.rs",
+      "source_blob": "de81b2a4cd207ed14d5d35d68ff3ac494a423a26",
+      "result_blob": "de81b2a4cd207ed14d5d35d68ff3ac494a423a26",
+      "modified": false
+    },
+    {
+      "path": "services/volume/tests/common/mod.rs",
+      "source_blob": "c8d1a87b7ab7ab91cc13132e4e7dec0440e769eb",
+      "result_blob": "c8d1a87b7ab7ab91cc13132e4e7dec0440e769eb",
+      "modified": false
+    },
+    {
+      "path": "services/volume/tests/crash.rs",
+      "source_blob": "fe0d737960abeee0e852ec38ef3625b3e8544114",
+      "result_blob": "fe0d737960abeee0e852ec38ef3625b3e8544114",
+      "modified": false
+    },
+    {
+      "path": "services/volume/tests/history.rs",
+      "source_blob": "584b00a5faef8533e283d26befeb47b11c2778df",
+      "result_blob": "584b00a5faef8533e283d26befeb47b11c2778df",
+      "modified": false
+    },
+    {
+      "path": "services/volume/tests/independent_copy.rs",
+      "source_blob": "a47282fa719b60ccbae8eed9fab1f73284e0ae10",
+      "result_blob": "a47282fa719b60ccbae8eed9fab1f73284e0ae10",
+      "modified": false
+    },
+    {
+      "path": "services/volume/tests/service.rs",
+      "source_blob": "0d7eeee2369cd9bdcea2c19a182967194996d239",
+      "result_blob": "0d7eeee2369cd9bdcea2c19a182967194996d239",
+      "modified": false
+    },
+    {
+      "path": "services/volume/tests/uploads.rs",
+      "source_blob": "827f509325728fb788145ef15e60cf1e066eb93d",
+      "result_blob": "827f509325728fb788145ef15e60cf1e066eb93d",
+      "modified": false
+    },
+    {
+      "path": "ui/native/Cargo.lock",
+      "source_blob": "405c770c53abffd44a5edf66af556a392e0089f9",
+      "result_blob": "405c770c53abffd44a5edf66af556a392e0089f9",
+      "modified": false
+    },
+    {
+      "path": "ui/native/Cargo.toml",
+      "source_blob": "af6200647e8d40d51e6b5ba70b4f5795ca46b850",
+      "result_blob": "af6200647e8d40d51e6b5ba70b4f5795ca46b850",
+      "modified": false
+    },
+    {
+      "path": "ui/native/src/controller.rs",
+      "source_blob": "654f30e8be3e0d4ced07bbe6aef88cb54d686f6c",
+      "result_blob": "654f30e8be3e0d4ced07bbe6aef88cb54d686f6c",
+      "modified": false
+    },
+    {
+      "path": "ui/native/src/design.rs",
+      "source_blob": "43922ac946c51400f002656a4b33e2d1270ffa38",
+      "result_blob": "43922ac946c51400f002656a4b33e2d1270ffa38",
+      "modified": false
+    },
+    {
+      "path": "ui/native/src/lib.rs",
+      "source_blob": "cf1e5fde00d4fe6f636bcf3ff94d06b4e46a341d",
+      "result_blob": "cf1e5fde00d4fe6f636bcf3ff94d06b4e46a341d",
+      "modified": false
+    },
+    {
+      "path": "ui/native/src/render.rs",
+      "source_blob": "63dad5c128f9dd690f2cff1fb952243fd465b418",
+      "result_blob": "a221781ecce499b6a1cf8b25399e0b188046ba87",
+      "modified": true
+    },
+    {
+      "path": "ui/native/src/text.rs",
+      "source_blob": "1176c8e34efe689d58ef983c4e0618f0f1782d27",
+      "result_blob": "1176c8e34efe689d58ef983c4e0618f0f1782d27",
+      "modified": false
+    },
+    {
+      "path": "ui/native/tests/common/mod.rs",
+      "source_blob": "0cde8a90786e3fc938c3a2600d32ce773fc18c03",
+      "result_blob": "0cde8a90786e3fc938c3a2600d32ce773fc18c03",
+      "modified": false
+    },
+    {
+      "path": "ui/native/tests/interaction.rs",
+      "source_blob": "402c4ce8ed6e99e23101807768e0d77a82f41ff5",
+      "result_blob": "6d57ddc603e0a2c1a7a40fab9cd4bbe96885cc31",
+      "modified": true
+    },
+    {
+      "path": "ui/prototype/tokens.css",
+      "source_blob": "3fe7ff8feae37c0b999194b1030757048206381e",
+      "result_blob": "3fe7ff8feae37c0b999194b1030757048206381e",
+      "modified": false
+    }
+  ],
+  "ui_patch_application": "git apply --check en git apply op de exacte96-bron; geen volledige oude bestanden teruggezet.",
+  "red_variant": "Nieuwe assertions met de oorspronkelijke renderer van integratie96.",
+  "green_variant": "Dezelfde assertions met de rendererfix; de geïntegreerde runtime met zeroize blijft behouden.",
+  "checks": [
+    {
+      "name": "red",
+      "command": [
+        "/workspace/scratch/8189ff2c802e/.tooling/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/native/Cargo.toml",
+        "--test",
+        "interaction",
+        "real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus",
+        "--",
+        "--exact",
+        "--nocapture"
+      ],
+      "exit": 101,
+      "expected_exit": 101,
+      "seconds": 7.389215156999853
+    },
+    {
+      "name": "green-regression",
+      "command": [
+        "/workspace/scratch/8189ff2c802e/.tooling/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/native/Cargo.toml",
+        "--test",
+        "interaction",
+        "real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus",
+        "--",
+        "--exact",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "seconds": 1.201853098002175
+    },
+    {
+      "name": "host-tests",
+      "command": [
+        "/workspace/scratch/8189ff2c802e/.tooling/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/native/Cargo.toml"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "seconds": 1.7804412360019342
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "/workspace/scratch/8189ff2c802e/.tooling/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/native/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "seconds": 6.401710377998825
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "/workspace/scratch/8189ff2c802e/.tooling/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/cargo",
+        "fmt",
+        "--manifest-path",
+        "ui/native/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "seconds": 0.10450538700024481
+    }
+  ],
+  "host_tests_passed": 20,
+  "native_execution": false,
+  "github_ci_run_for_patch": null,
+  "logs": {
+    "post96-red.log": {
+      "sha256": "8ef9504d6c98446ab5bac6c6bc6fc67f4243dbf79953ae0ed21faaf3e2cdbb66"
+    },
+    "post96-green-regression.log": {
+      "sha256": "32c8c666a7989c0c53a9458aa0fb8640b2c2fb33580e1c7990a0b059c5292e0c"
+    },
+    "post96-host-tests.log": {
+      "sha256": "dcad75fbe909506928add4c679179d548911c0c938b07207914fe4329d8ea712"
+    },
+    "post96-clippy.log": {
+      "sha256": "88c6e9c809766981f9089fe07658b85b2e949414911e7cdbfa6abd25e387ad61"
+    },
+    "post96-fmt.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "documentation_change": {
+    "path": "sdk/runtime/README.md",
+    "source_blob": "fec274a5821b7631776e3d406b107105fd33d254",
+    "result_blob": "a982ea20a3d2bbfbbd20a830ca4e9e9047b9de85",
+    "scope": "Bytegetrouwe README-correctie uit PR72-head65a961cc; geen runtimewijziging. De oorspronkelijke extra eindnewline is na de controles hersteld voor exact inhoudsbehoud; dit verandert geen gebouwde broncode."
+  },
+  "historical_evidence": {
+    "source_head": "9d538c20cd5924fd9d72b0dd9963de2b9b906e48",
+    "published_commit": "d0f0d28a666ed91984b215f9ba7bca7ca39a7b08",
+    "report": "validation.json",
+    "translation_only_fields": [
+      "red.variant",
+      "issue"
+    ],
+    "scope": "Oude commando’s, resultaten, bron- en loghashes blijven ongewijzigd; historische tests zijn niet naar de nieuwe bron omgelabeld."
+  }
+}

@@ -1,7 +1,7 @@
 //! Real codec/Stack bytes with explicitly modeled NIC completions, not native evidence.
 use nieuw_os_net_config::{
     dhcp_client::{Error as ClientError, Phase},
-    service::{Error, ProbeTiming, Service},
+    service::{DriveError, DriveOutcome, Error, ProbeTiming, RandomSource, Service},
 };
 use nieuw_os_net_protocol::{UdpIpv4Tx, build_udp_ipv4, parse};
 use nieuw_os_net_stack::{Error as StackError, FRAME_BYTES, LinkConfig, SocketStorage, Stack};
@@ -682,4 +682,241 @@ fn foreign_claim_during_pending_gateway_change_cancels_reapplication() {
         assert!(service.configuration(4001).unwrap().is_none());
         assert!(service.transmission(4001).unwrap().is_none());
     });
+}
+
+struct Numbers {
+    values: std::collections::VecDeque<u32>,
+    calls: usize,
+}
+
+impl Numbers {
+    fn new(values: &[u32]) -> Self {
+        Self {
+            values: values.iter().copied().collect(),
+            calls: 0,
+        }
+    }
+}
+
+impl RandomSource for Numbers {
+    type Error = &'static str;
+    fn random_u32(&mut self) -> Result<u32, Self::Error> {
+        self.calls += 1;
+        self.values.pop_front().ok_or("entropy unavailable")
+    }
+}
+
+fn auto_candidate(service: &mut Service<'_>) {
+    let mut random = Numbers::new(&[90100, XID, 10100, 10100, 10100, 20100, 20100]);
+    service.automatic_link_up(0).unwrap();
+    assert_eq!(
+        service.drive(0, &mut random),
+        Ok(DriveOutcome::WaitingUntil(100))
+    );
+    assert!(matches!(
+        service.drive(100, &mut random),
+        Ok(DriveOutcome::Published(_))
+    ));
+    complete(service, 100);
+    service.receive_frame(&reply(2, XID, 53), 100).unwrap();
+    assert!(matches!(
+        service.drive(100, &mut random),
+        Ok(DriveOutcome::Published(_))
+    ));
+    complete(service, 100);
+    service.receive_frame(&reply(5, XID, 53), 100).unwrap();
+}
+
+#[test]
+fn automatic_loop_uses_randomized_exponential_backoff_without_resetting_xid() {
+    with_service(|service| {
+        let mut random = Numbers::new(&[90100, XID, 10100, 10100, 10100, 20100, 20100]);
+        assert_eq!(service.drive(0, &mut random), Ok(DriveOutcome::LinkDown));
+        assert_eq!(random.calls, 0);
+        service.automatic_link_up(0).unwrap();
+        assert_eq!(
+            service.drive(0, &mut random),
+            Ok(DriveOutcome::WaitingUntil(100))
+        );
+        assert_eq!(
+            service.drive(99, &mut random),
+            Ok(DriveOutcome::WaitingUntil(100))
+        );
+        assert_eq!(random.calls, 1);
+        let id = match service.drive(100, &mut random).unwrap() {
+            DriveOutcome::Published(id) => id,
+            other => panic!("unexpected {other:?}"),
+        };
+        let (_, first) = offered(service, 100);
+        service.complete_transmission(id, 100).unwrap();
+        assert_eq!(
+            service.drive(399, &mut random),
+            Ok(DriveOutcome::WaitingUntil(400))
+        );
+        assert!(matches!(
+            service.drive(400, &mut random),
+            Ok(DriveOutcome::Published(_))
+        ));
+        let second = complete(service, 400);
+        assert_eq!(&parse(&first).unwrap().payload()[4..8], &XID.to_be_bytes());
+        assert_eq!(&parse(&second).unwrap().payload()[4..8], &XID.to_be_bytes());
+        assert_eq!(
+            service.drive(1099, &mut random),
+            Ok(DriveOutcome::WaitingUntil(1100))
+        );
+        assert_eq!(random.calls, 7);
+    });
+}
+
+#[test]
+fn automatic_loop_never_treats_backpressure_as_delivery_or_consumes_entropy_for_it() {
+    with_service(|service| {
+        let mut random = Numbers::new(&[90100, XID, 10100, 10100, 10100, 20100]);
+        service.automatic_link_up(0).unwrap();
+        service.drive(0, &mut random).unwrap();
+        service.drive(100, &mut random).unwrap();
+        let (id, frame) = offered(service, 100);
+        let calls = random.calls;
+        for _ in 0..10 {
+            assert_eq!(
+                service.drive(1000, &mut random),
+                Ok(DriveOutcome::Backpressure)
+            );
+            assert_eq!(offered(service, 1000), (id, frame.clone()));
+            assert_eq!(random.calls, calls);
+        }
+        service.link_down(1000).unwrap();
+        assert_eq!(service.drive(1000, &mut random), Ok(DriveOutcome::LinkDown));
+        service.automatic_link_up(1000).unwrap();
+        assert_eq!(
+            service.drive(1000, &mut random),
+            Ok(DriveOutcome::Backpressure)
+        );
+        service.complete_transmission(id, 1000).unwrap();
+        assert_eq!(
+            service.drive(1000, &mut random),
+            Err(DriveError::Random("entropy unavailable"))
+        );
+        assert!(service.configuration(1000).unwrap().is_none());
+    });
+}
+
+#[test]
+fn automatic_loop_rejects_broken_or_missing_entropy_without_publishing_a_frame() {
+    with_service(|service| {
+        service.automatic_link_up(0).unwrap();
+        let mut absent = Numbers::new(&[]);
+        assert_eq!(
+            service.drive(0, &mut absent),
+            Err(DriveError::Random("entropy unavailable"))
+        );
+        assert!(service.transmission(0).unwrap().is_none());
+        let mut stuck = Numbers::new(&[0; 8]);
+        assert_eq!(
+            service.drive(0, &mut stuck),
+            Err(DriveError::RandomRejected)
+        );
+        assert_eq!(stuck.calls, 8);
+        assert!(service.transmission(0).unwrap().is_none());
+        let mut duplicate = Numbers::new(&[90100, 0, 0, 0, 0, 0, 0, 0, 0]);
+        service.drive(0, &mut duplicate).unwrap();
+        assert_eq!(
+            service.drive(100, &mut duplicate),
+            Err(DriveError::RandomRejected)
+        );
+        assert!(service.transmission(100).unwrap().is_none());
+    });
+}
+
+#[test]
+fn automatic_loop_drives_probes_t1_t2_and_reacquires_after_expiry_without_stale_config() {
+    with_service(|service| {
+        auto_candidate(service);
+        let mut random = Numbers::new(&[]);
+        for ticks in [100, 200, 300, 500, 700] {
+            service.drive(ticks, &mut random).unwrap();
+            complete(service, ticks);
+        }
+        assert_eq!(service.phase(700), Ok(Phase::Bound));
+        assert_eq!(random.calls, 0);
+        let mut renewal = Numbers::new(&[XID + 1, 20100, 20100, 90100]);
+        assert!(matches!(
+            service.drive(4100, &mut renewal),
+            Ok(DriveOutcome::Published(_))
+        ));
+        let request = complete(service, 4100);
+        assert_eq!(parse(&request).unwrap().destination_address(), SERVER);
+        assert_eq!(
+            &parse(&request).unwrap().payload()[4..8],
+            &(XID + 1).to_be_bytes()
+        );
+        assert_eq!(
+            service.drive(7100 - 1, &mut renewal),
+            Ok(DriveOutcome::WaitingUntil(7100))
+        );
+        assert!(matches!(
+            service.drive(7100, &mut renewal),
+            Ok(DriveOutcome::Published(_))
+        ));
+        let request = complete(service, 7100);
+        assert_eq!(parse(&request).unwrap().destination_address(), [255; 4]);
+        assert_eq!(
+            service.drive(8100, &mut renewal),
+            Ok(DriveOutcome::WaitingUntil(8200))
+        );
+        assert!(service.configuration(8100).unwrap().is_none());
+        assert!(service.transmission(8100).unwrap().is_none());
+    });
+}
+
+#[test]
+fn automatic_backoff_doubles_to_measured_sixty_four_second_cap_and_timeout_restarts() {
+    with_service(|service| {
+        let mut random = Numbers::new(&[
+            90100, XID, 10100, 10100, 10100, 20100, 20100, 20100, 20100, 10100, 10100, 90100,
+        ]);
+        service.automatic_link_up(0).unwrap();
+        service.drive(0, &mut random).unwrap();
+        let published = [100, 400, 1100, 2600, 5700, 12000];
+        for (index, ticks) in published.into_iter().enumerate() {
+            assert!(matches!(
+                service.drive(ticks, &mut random),
+                Ok(DriveOutcome::Published(_))
+            ));
+            let bytes = complete(service, ticks);
+            assert_eq!(&parse(&bytes).unwrap().payload()[4..8], &XID.to_be_bytes());
+            if let Some(next) = published.get(index + 1) {
+                assert_eq!(
+                    service.drive(*next - 1, &mut random),
+                    Ok(DriveOutcome::WaitingUntil(*next))
+                );
+                assert!(*next - ticks <= 6400);
+            }
+        }
+        assert_eq!(
+            service.drive(12100, &mut random),
+            Ok(DriveOutcome::WaitingUntil(12200))
+        );
+        assert_eq!(service.phase(12100), Ok(Phase::TimedOut));
+        assert!(service.configuration(12100).unwrap().is_none());
+    });
+}
+
+#[test]
+fn automatic_startup_delay_checks_both_exact_uniform_range_endpoints() {
+    for (sample, expected) in [(90100, 100), (900, 1000)] {
+        with_service(|service| {
+            service.automatic_link_up(0).unwrap();
+            let mut random = Numbers::new(&[sample]);
+            assert_eq!(
+                service.drive(0, &mut random),
+                Ok(DriveOutcome::WaitingUntil(expected))
+            );
+            assert_eq!(
+                service.drive(expected - 1, &mut random),
+                Ok(DriveOutcome::WaitingUntil(expected))
+            );
+            assert_eq!(random.calls, 1);
+        });
+    }
 }

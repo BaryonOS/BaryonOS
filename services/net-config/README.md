@@ -269,3 +269,40 @@ sluit de socket/verbergt TX en blokkeert send/receive/close zonder outputwrite.
 Een ongewijzigde renewal behoudt een levende socket; een nieuwe gateway
 retiret die en toont de nieuwe DNS/route pas na oudecompletion.
 Dit bewijst geen native verbinding, applicatieantwoord of rechtenafdwinging.
+
+## Automatische servicestappen met expliciete entropybron
+
+`automatic_link_up(ticks)` trekt eerst de oude lease in en activeert nieuwe
+acquisitie; `link_down` schakelt die stappen weer uit. Het zijn echte
+linkmeldingen van de vertrouwde caller, geen rechten-/device-resetattest.
+`drive(ticks, &mut RandomSource)` levert steeds een expliciet resultaat:
+LinkDown, WaitingUntil, Backpressure, Published of Advanced. Geen busyspin.
+De integrator voedt eerst op die tick ontvangen ingress en echte completions,
+daarna hoogstens een bounded drive-stap. Niet tegelijk handmatig start/send
+laten aanroepen door een andere eigenaar.
+
+Nieuw geactiveerde acquisitie wacht uniform1..10s, levert een verse XID en
+nieuwe probe-intervallen. DISCOVER/REQUESTretry gebruikt gerandomiseerde
+exponentiele backoff4,8,16,32,64s met maximaal1sjitter en absolute64scap.
+Dezelfde XID/REQUESTleaseklok blijft bij retransmissie behouden.
+Renewal/rebinding wacht de aanbevolen helft van de resterende T2-/expiryduur,
+met minimum60s en maximaal1spositieve jitter, maar NOOIT voorbij T2/expiry.
+De lease-overgang heeft voorrang op een oude retrydeadline.
+Timeout/NAK/expiry leidt automatisch weer naar acquire, pas na cooldown en
+eventuele DECLINEcompletion. Reconnect behoudt geen oude configuratie; een
+oude TX blijft echte backpressure, niet gefingeerd afgerond.
+
+`RandomSource` is een expliciete bronpoort met eigen fouttype. Er bestaat
+hier GEEN native implementatie of impliciete RNG/RTC/fixedseed/cloudfallback.
+Uniforme sampling gebruikt rejection sampling (geen modulobias), maximaal
+acht trekkingen; een vastgelopen bron geeft RandomRejected terug.
+Onbeschikbare entropy geeft haar echte fout terug en publiceert geen
+vervangend pakket; een bestaande geldige lease wordt er niet kunstmatig
+verlengd. Een nieuwe XID mag niet gelijk zijn aan de vorige transactie.
+
+Zes aanvullende hostcases controleren exacte1s/10sstartupgrenzen,
+4/8/16/32/64backoff en echte120sexchangetimeout, dezelfde XID, geen nieuwe
+entropytrekking/frames bij backpressure, bounded slechtebronweigering,
+echte modelprobes, automatisch T1/T2 en reacquire na expiry. Geen native
+eventloop-, entropygrant-, sleep/resume- of devicefencebewijs.
+Primair gelezen: RFC2131secties3.7,4.1,4.4.1en4.4.5.

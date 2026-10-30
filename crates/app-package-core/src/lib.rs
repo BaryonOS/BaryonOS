@@ -173,6 +173,32 @@ impl TrustAnchors {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SourceStatus {
+    Active,
+    Revoked,
+}
+
+/// Public source metadata only; neither a trust token nor a storage encoding.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SourceRecord {
+    pub id: SourceId,
+    pub anchors: TrustAnchors,
+    pub generation: u32,
+    pub state: SourceStatus,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SnapshotError {
+    BufferTooSmall,
+    Full,
+    InvalidSourceId,
+    InvalidKeys,
+    DuplicateSource,
+    DuplicateKeys,
+    InvalidGeneration,
+}
+
 pub struct VerifiedPackage<'a> {
     manifest: Manifest,
     image: &'a [u8],
@@ -264,6 +290,84 @@ impl SourceRegistry {
         Self {
             sources: [EMPTY_SOURCE; MAX_SOURCES],
         }
+    }
+
+    /// Copies all occupied slots in order, including tombstones. A short
+    /// buffer is left unchanged; bytes after the returned count are untouched.
+    /// The records establish neither authenticity, freshness nor durability.
+    pub fn export_snapshot(&self, out: &mut [SourceRecord]) -> Result<usize, SnapshotError> {
+        let count = self
+            .sources
+            .iter()
+            .filter(|source| source.state != SourceState::Empty)
+            .count();
+        if out.len() < count {
+            return Err(SnapshotError::BufferTooSmall);
+        }
+        let records = self.sources.iter().filter_map(|source| {
+            let state = match source.state {
+                SourceState::Empty => return None,
+                SourceState::Active => SourceStatus::Active,
+                SourceState::Revoked => SourceStatus::Revoked,
+            };
+            Some(SourceRecord {
+                id: source.id,
+                anchors: source.anchors,
+                generation: source.generation,
+                state,
+            })
+        });
+        for (destination, record) in out.iter_mut().zip(records) {
+            *destination = record;
+        }
+        Ok(count)
+    }
+
+    /// Reconstructs a structural candidate, not an authorized active registry.
+    /// The trusted service must keep it private until authentication, domain,
+    /// freshness/rollback and atomic-publication checks have succeeded.
+    /// No existing registry is replaced and no partial candidate is returned.
+    pub fn from_snapshot(records: &[SourceRecord]) -> Result<Self, SnapshotError> {
+        if records.len() > MAX_SOURCES {
+            return Err(SnapshotError::Full);
+        }
+        for (index, record) in records.iter().enumerate() {
+            if record.id.0.iter().all(|byte| *byte == 0) {
+                return Err(SnapshotError::InvalidSourceId);
+            }
+            if !valid_anchors(&record.anchors) {
+                return Err(SnapshotError::InvalidKeys);
+            }
+            let minimum = match record.state {
+                SourceStatus::Active => 1,
+                SourceStatus::Revoked => 2,
+            };
+            if record.generation < minimum {
+                return Err(SnapshotError::InvalidGeneration);
+            }
+            if records[..index].iter().any(|other| other.id == record.id) {
+                return Err(SnapshotError::DuplicateSource);
+            }
+            if records[..index]
+                .iter()
+                .any(|other| other.anchors == record.anchors)
+            {
+                return Err(SnapshotError::DuplicateKeys);
+            }
+        }
+        let mut candidate = Self::new();
+        for (slot, record) in candidate.sources.iter_mut().zip(records) {
+            *slot = SourceSlot {
+                id: record.id,
+                anchors: record.anchors,
+                generation: record.generation,
+                state: match record.state {
+                    SourceStatus::Active => SourceState::Active,
+                    SourceStatus::Revoked => SourceState::Revoked,
+                },
+            };
+        }
+        Ok(candidate)
     }
 
     /// Add one explicitly selected source. Revoked slots remain tombstones and
@@ -655,6 +759,240 @@ mod tests {
 
     fn keys() -> TestKeys {
         TestKeys::new([7; 32], [9; 32])
+    }
+
+    fn snapshot_record(tag: u8, generation: u32, state: SourceStatus) -> SourceRecord {
+        SourceRecord {
+            id: SourceId::from_bytes([tag; 32]),
+            anchors: TestKeys::new([tag; 32], [tag; 32]).anchors(),
+            generation,
+            state,
+        }
+    }
+
+    fn export(registry: &SourceRegistry) -> Vec<SourceRecord> {
+        let sentinel = snapshot_record(99, 1, SourceStatus::Active);
+        let mut out = vec![sentinel; MAX_SOURCES];
+        let count = registry.export_snapshot(&mut out).unwrap();
+        out.truncate(count);
+        out
+    }
+
+    #[test]
+    fn snapshots_roundtrip_empty_full_and_mixed_records_in_slot_order() {
+        assert!(export(&SourceRegistry::from_snapshot(&[]).unwrap()).is_empty());
+        let mut registry = SourceRegistry::new();
+        for tag in 1..=MAX_SOURCES as u8 {
+            registry
+                .add(
+                    SourceId::from_bytes([tag; 32]),
+                    TestKeys::new([tag; 32], [tag; 32]).anchors(),
+                )
+                .unwrap();
+        }
+        registry
+            .rotate(
+                SourceId::from_bytes([1; 32]),
+                1,
+                TestKeys::new([20; 32], [20; 32]).anchors(),
+            )
+            .unwrap();
+        registry.revoke(SourceId::from_bytes([2; 32]), 1).unwrap();
+        let records = export(&registry);
+        assert_eq!(records.len(), MAX_SOURCES);
+        assert_eq!(records[0].generation, 2);
+        assert_eq!(records[1].state, SourceStatus::Revoked);
+        let mut restored = SourceRegistry::from_snapshot(&records).unwrap();
+        assert_eq!(export(&restored), records);
+        assert_eq!(
+            restored.add(SourceId::from_bytes([2; 32]), records[1].anchors),
+            Err(TrustReject::DuplicateSource)
+        );
+        assert_eq!(
+            restored.add(SourceId::from_bytes([99; 32]), records[1].anchors),
+            Err(TrustReject::DuplicateKeys)
+        );
+        assert_eq!(
+            restored.add(
+                SourceId::from_bytes([99; 32]),
+                TestKeys::new([99; 32], [99; 32]).anchors()
+            ),
+            Err(TrustReject::Full)
+        );
+        assert_eq!(
+            registry.rotate(records[0].id, 2, records[2].anchors),
+            restored.rotate(records[0].id, 2, records[2].anchors)
+        );
+        assert_eq!(
+            registry.revoke(records[1].id, 2),
+            restored.revoke(records[1].id, 2)
+        );
+        let next = TestKeys::new([30; 32], [30; 32]).anchors();
+        assert_eq!(
+            registry.rotate(records[0].id, 2, next),
+            restored.rotate(records[0].id, 2, next)
+        );
+        assert_eq!(export(&registry), export(&restored));
+    }
+
+    #[test]
+    fn snapshot_export_is_all_or_nothing_and_preserves_unused_output() {
+        let records = [
+            snapshot_record(1, 1, SourceStatus::Active),
+            snapshot_record(2, 2, SourceStatus::Revoked),
+        ];
+        let registry = SourceRegistry::from_snapshot(&records).unwrap();
+        let sentinel = snapshot_record(99, 1, SourceStatus::Active);
+        assert_eq!(
+            registry.export_snapshot(&mut []),
+            Err(SnapshotError::BufferTooSmall)
+        );
+        let mut small = [sentinel; 1];
+        assert_eq!(
+            registry.export_snapshot(&mut small),
+            Err(SnapshotError::BufferTooSmall)
+        );
+        assert_eq!(small, [sentinel]);
+        let mut large = [sentinel; 3];
+        assert_eq!(registry.export_snapshot(&mut large), Ok(2));
+        assert_eq!(large[..2], records);
+        assert_eq!(large[2], sentinel);
+        assert_eq!(export(&registry), records);
+        assert_eq!(SourceRegistry::new().export_snapshot(&mut []), Ok(0));
+    }
+
+    #[test]
+    fn snapshot_reconstruction_rejects_complete_invalid_input_without_mutation() {
+        let first = snapshot_record(1, 1, SourceStatus::Active);
+        let second = snapshot_record(2, 2, SourceStatus::Revoked);
+        let registry = SourceRegistry::from_snapshot(&[first, second]).unwrap();
+        let mut invalid_id = second;
+        invalid_id.id = SourceId::from_bytes([0; 32]);
+        let mut invalid_keys = second;
+        invalid_keys.anchors.ed25519 = (0..=u8::MAX)
+            .map(|byte| [byte; ED25519_PUBLIC_LEN])
+            .find(|key| EdKey::from_bytes(key).is_err())
+            .unwrap();
+        let mut duplicate_id = second;
+        duplicate_id.id = first.id;
+        let mut duplicate_keys = second;
+        duplicate_keys.anchors = first.anchors;
+        let mut zero_generation = second;
+        zero_generation.generation = 0;
+        let mut early_revoke = second;
+        early_revoke.generation = 1;
+        let mut zero_active = first;
+        zero_active.generation = 0;
+        for (invalid, expected) in [
+            (invalid_id, SnapshotError::InvalidSourceId),
+            (invalid_keys, SnapshotError::InvalidKeys),
+            (duplicate_id, SnapshotError::DuplicateSource),
+            (duplicate_keys, SnapshotError::DuplicateKeys),
+            (zero_generation, SnapshotError::InvalidGeneration),
+            (early_revoke, SnapshotError::InvalidGeneration),
+            (zero_active, SnapshotError::InvalidGeneration),
+        ] {
+            assert!(matches!(
+                SourceRegistry::from_snapshot(&[first, invalid]),
+                Err(error) if error == expected
+            ));
+            assert_eq!(export(&registry), [first, second]);
+        }
+        assert!(matches!(
+            SourceRegistry::from_snapshot(&[first; MAX_SOURCES + 1]),
+            Err(SnapshotError::Full)
+        ));
+    }
+
+    #[test]
+    fn snapshots_preserve_max_generations_and_revocation_without_wraparound() {
+        let records = [
+            snapshot_record(1, u32::MAX, SourceStatus::Active),
+            snapshot_record(2, u32::MAX, SourceStatus::Revoked),
+        ];
+        let mut registry = SourceRegistry::from_snapshot(&records).unwrap();
+        let next = snapshot_record(3, 1, SourceStatus::Active).anchors;
+        assert_eq!(
+            registry.rotate(records[0].id, u32::MAX, next),
+            Err(TrustReject::GenerationExhausted)
+        );
+        assert_eq!(
+            registry.revoke(records[0].id, u32::MAX),
+            Err(TrustReject::GenerationExhausted)
+        );
+        assert_eq!(
+            registry.rotate(records[1].id, u32::MAX, next),
+            Err(TrustReject::RevokedSource)
+        );
+        assert_eq!(
+            registry.revoke(records[1].id, u32::MAX),
+            Err(TrustReject::RevokedSource)
+        );
+        assert_eq!(
+            registry.revoke(records[0].id, u32::MAX - 1),
+            Err(TrustReject::StaleSourceGeneration)
+        );
+        assert_eq!(export(&registry), records);
+    }
+
+    #[test]
+    fn snapshots_keep_existing_keypair_policy_and_returned_rotation_state() {
+        let first = snapshot_record(1, 1, SourceStatus::Active);
+        let mut shared_ed = snapshot_record(2, 1, SourceStatus::Active);
+        shared_ed.anchors.ed25519 = first.anchors.ed25519;
+        let mut shared_pq = snapshot_record(3, 1, SourceStatus::Active);
+        shared_pq.anchors.mldsa65 = first.anchors.mldsa65;
+        let mut registry = SourceRegistry::new();
+        for record in [first, shared_ed, shared_pq] {
+            registry.add(record.id, record.anchors).unwrap();
+        }
+        let records = export(&registry);
+        assert_eq!(
+            export(&SourceRegistry::from_snapshot(&records).unwrap()),
+            records
+        );
+        let next = snapshot_record(4, 1, SourceStatus::Active).anchors;
+        assert_eq!(registry.rotate(first.id, 1, next), Ok(2));
+        assert_eq!(registry.rotate(first.id, 2, first.anchors), Ok(3));
+        let returned = export(&registry);
+        assert_eq!(returned[0].anchors, first.anchors);
+        assert_eq!(returned[0].generation, 3);
+        assert_eq!(
+            export(&SourceRegistry::from_snapshot(&returned).unwrap()),
+            returned
+        );
+    }
+
+    #[test]
+    fn reconstructed_registry_keeps_verification_and_stale_generation_checks() {
+        let keys = keys();
+        let id = SourceId::from_bytes([1; 32]);
+        let records = [SourceRecord {
+            id,
+            anchors: keys.anchors(),
+            generation: 7,
+            state: SourceStatus::Active,
+        }];
+        let mut registry = SourceRegistry::from_snapshot(&records).unwrap();
+        let image = valid_user_elf();
+        let package = keys.package(&image, 1);
+        let verified = registry
+            .verify_executable(id, 7, &package, abi_version(1, 3))
+            .unwrap();
+        assert_eq!(verified.source_generation(), 7);
+        assert_eq!(verified.executable().image(), image);
+        assert!(matches!(
+            registry.verify_executable(id, 6, &package, abi_version(1, 3)),
+            Err(TrustReject::StaleSourceGeneration)
+        ));
+        registry.revoke(id, 7).unwrap();
+        let revoked = SourceRegistry::from_snapshot(&export(&registry)).unwrap();
+        assert!(matches!(
+            revoked.verify_executable(id, 8, &package, abi_version(1, 3)),
+            Err(TrustReject::RevokedSource)
+        ));
+        // A previously returned value is not proof of current source authority.
+        assert_eq!(verified.source_generation(), 7);
     }
 
     #[test]

@@ -1,6 +1,50 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — centrale documentatie en bronbehoud — 30 oktober 2026
+## NEXT AGENT HANDOFF — PR- en issueafhandeling na integratie 1 en 2 — 30 oktober 2026
+
+**Mandaat:** Simon heeft de Claude Code-sessie in de desktopapp op 30 oktober
+(~21:10 CET) aangewezen als enige operationele integrator voor alle open PR's
+en issues, inclusief mergen en sluiten. Merges naar main lopen via die
+integrator; tussentijdse losse merges (#71 en #74 door Simon zelf) dwingen een
+nieuwe up-to-date-CI-run. Vastgelegd in [WORK-QUEUE.md](WORK-QUEUE.md).
+
+**Broncommits:** #96 (integratie 1) gesquash-merged als `c0b7147`.
+Integratie 2 (#113) heeft implementatiebron `ed63ed259746`. De bronnen en
+oplossingen staan in [pr-integration-20261030.json](verification/pr-integration-20261030.json)
+en [pr-integration-2-20261030.json](verification/pr-integration-2-20261030.json).
+
+**Afgehandeld:**
+- #68, #72–#81, #83, #86, #88, #89, #92, #94 en #97–#107 zijn als overgenomen
+  gesloten. Per PR is gecontroleerd dat elke commit na de vastgelegde bron,
+  exclusief main, aantoonbaar in main zit.
+- #111 is gesloten. Het was een parallelle, oudere subset van #96 en #113; het
+  bewijs en archief ervan zijn behouden. #112 is gesloten als automatisch
+  duplicaat van #113.
+- Reviewfixes in #96:
+  - net-stack heeft een expliciete discard-route voor een nooit aangeboden,
+    ingehouden TX-frame, met regressie (rood en daarna groen);
+  - het dependencyregister is aangevuld;
+  - in het werkregister zijn de spaties hersteld.
+- Integratiefix in #113: de Materiaal-chaintest volgt het nieuwe
+  semantische buffercontract. Dat was de oorzaak van de rode CI op #107.
+
+**Open punten:**
+- #109: app-management-reader naar `artifact-store-core`.
+- #110: exacte boot-1 NAS-replay native activeren. De replay-gastcode uit #93
+  is bewust niet actief, omdat de native normal/cold-gate anders vast faalt.
+- #39–#43: productmilestones; hun criteria zijn niet aangetoond.
+
+**Bewijs en score:** 34/100 → 34/100. Er zijn geen nieuwe native-, FR-,
+fysieke of menselijke acceptaties. Hosttests, freestanding-builds en AI-review
+zijn geen productpunten. Niet lokaal uitgevoerd: de freestanding-build van
+`app-package-core` (lokale rustc gaf SIGILL); CI is de gate.
+
+**Eerstvolgend commando:** `gh pr list --state open`. Beoordeel nieuwe PR's
+tegen main met `docs/verification/pr-integration-2-20261030.json` als
+bronbasis. Een volgende integratie start bij #109 of #110, of bij een
+DEV1-herproef op vastgelegde bron en slot.
+
+## Vorige handoff — centrale documentatie en bronbehoud (#96) — 30 oktober 2026
 
 **Integratieopdracht:** Simon heeft in deze sessie het oplossen, squashen en mergen
 van issues en pull requests opgedragen. Dit actuele mandaat geldt voor deze
