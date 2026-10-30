@@ -483,7 +483,8 @@ fn key_id(public: &[u8]) -> [u8; 8] {
     digest[..8].try_into().unwrap()
 }
 
-fn valid_app_id(bytes: &[u8; APP_ID_LEN]) -> bool {
+/// Checks canonical, zero-padded app-ID syntax, not publisher trust or grants.
+pub fn valid_app_id(bytes: &[u8; APP_ID_LEN]) -> bool {
     let length = match bytes.iter().position(|byte| *byte == 0) {
         Some(0) | None => return false,
         Some(length) => length,
@@ -522,6 +523,41 @@ mod tests {
     extern crate std;
 
     use super::*;
+
+    #[test]
+    fn app_id_syntax_preserves_canonical_and_padding_boundaries() {
+        for (text, expected) in [
+            ("org.example.app", true),
+            ("0.a", true),
+            ("org.some-app", true),
+            ("", false),
+            ("app", false),
+            (".app", false),
+            ("app.", false),
+            ("org..app", false),
+            ("org.-app", false),
+            ("org.app-", false),
+            ("org-.app", false),
+            ("Org.app", false),
+            ("org_app.test", false),
+            ("org/app.test", false),
+        ] {
+            let mut bytes = [0; APP_ID_LEN];
+            bytes[..text.len()].copy_from_slice(text.as_bytes());
+            assert_eq!(valid_app_id(&bytes), expected, "{text}");
+        }
+        let mut maximum = [b'a'; APP_ID_LEN];
+        maximum[1] = b'.';
+        assert!(!valid_app_id(&maximum));
+        maximum[APP_ID_LEN - 1] = 0;
+        assert!(valid_app_id(&maximum));
+        for index in 3..APP_ID_LEN {
+            let mut bytes = [0; APP_ID_LEN];
+            bytes[..3].copy_from_slice(b"a.b");
+            bytes[index] = 1;
+            assert!(!valid_app_id(&bytes));
+        }
+    }
     use ed25519_dalek::{Signer, SigningKey as EdSigningKey};
     use ml_dsa::{MlDsa65, SigningKey as PqSigningKey};
     use std::{vec, vec::Vec};

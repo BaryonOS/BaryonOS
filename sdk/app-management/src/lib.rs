@@ -91,7 +91,7 @@ impl PackageIdentity {
         let image_length = u32::from_le_bytes(input[108..112].try_into().unwrap());
         let mut image_sha256 = [0; 32];
         image_sha256.copy_from_slice(&input[112..144]);
-        if !valid_app_id(&app_id)
+        if !app_package_core::valid_app_id(&app_id)
             || source_id.iter().all(|byte| *byte == 0)
             || source_generation == 0
             || version == 0
@@ -111,36 +111,31 @@ impl PackageIdentity {
     }
 }
 
-fn valid_app_id(bytes: &[u8; app_package_core::APP_ID_LEN]) -> bool {
-    let length = match bytes.iter().position(|byte| *byte == 0) {
-        Some(0) | None => return false,
-        Some(length) => length,
-    };
-    if bytes[length..].iter().any(|byte| *byte != 0) {
-        return false;
-    }
-    let mut segment_start = true;
-    let mut previous = 0;
-    let mut has_separator = false;
-    for (index, byte) in bytes[..length].iter().copied().enumerate() {
-        if byte == b'.' {
-            if segment_start || previous == b'-' {
-                return false;
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn identity_app_id_validation_matches_package_core() {
+        let mut bytes = [0; IDENTITY_LEN];
+        bytes[..3].copy_from_slice(b"a.b");
+        bytes[64..96].fill(1);
+        bytes[96..100].copy_from_slice(&1u32.to_le_bytes());
+        bytes[100..108].copy_from_slice(&1u64.to_le_bytes());
+        bytes[108..112].copy_from_slice(&4u32.to_le_bytes());
+        for index in 0..app_package_core::APP_ID_LEN {
+            let original = bytes[index];
+            for value in 0..=u8::MAX {
+                bytes[index] = value;
+                let app_id: &[u8; app_package_core::APP_ID_LEN] =
+                    bytes[..app_package_core::APP_ID_LEN].try_into().unwrap();
+                assert_eq!(
+                    PackageIdentity::decode(&bytes).is_ok(),
+                    app_package_core::valid_app_id(app_id),
+                    "index={index} value={value}"
+                );
             }
-            segment_start = true;
-            previous = byte;
-            has_separator = true;
-            continue;
+            bytes[index] = original;
         }
-        let alphanumeric = byte.is_ascii_lowercase() || byte.is_ascii_digit();
-        if !(alphanumeric || byte == b'-' && !segment_start) {
-            return false;
-        }
-        if index + 1 == length && byte == b'-' {
-            return false;
-        }
-        segment_start = false;
-        previous = byte;
     }
-    has_separator && !segment_start
 }
