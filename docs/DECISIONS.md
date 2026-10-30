@@ -241,8 +241,11 @@ voor "admin" bestaat niet, alleen `wire::dispatch_persistent`.
 Het geïntegreerde profiel legt de volgorde vast: de app verzegelt eerst in
 RAM, meldt `KEYS_READY`, init exporteert en commit het 120-byteblob via de
 crashconsistente volumetransactie in volumedomein 1, en pas na `PERSISTED`
-commit de app het ciphertextrecord als gewoon document. Zo komt geen
-ciphertext op schijf onder een niet-duurzaam vastgelegde sleutelallocatie.
+commit de app het ciphertextrecord als gewoon document. Zo komt in dit
+profiel geen ciphertext op schijf onder een niet-duurzaam vastgelegde
+sleutelallocatie. Die volgorde wordt door het init/app-protocol geborgd, niet
+door de volume- of Key Service: een niet-coöperatieve app kan nog steeds eerder
+committen. Afdwinging hoort bij de nog open write-ahead in de Key Service.
 Bij koude herstart op de ongewijzigde read-only image herstelt init de exacte
 toestand vóór enig sleutelwerk; een verkeerd geheim, een hogere generatievloer
 en een sleutelopcode op het admin-ingress worden geweigerd en geteld.
@@ -251,12 +254,26 @@ Afgewezen alternatieven: (a) de Key Service zelf blok-/volumerechten geven —
 vergroot de TCB van de sleuteldienst en vermengt opslagherstel met
 sleutelbeheer; (b) persistente opcodes op de bestaande domein-endpoints —
 elke app met een sleutelendpoint zou dan snapshotbevoegdheid krijgen.
+Het herstelgeheim van init is in dit profiel een compile-time testconstante
+in de init-ELF van de geteste wegwerpimage; wie die image heeft, kent het
+geheim. Dat is uitsluitend acceptatiefixture, geen productpad.
+Autoriteit: een SEND naar het admin-ingress is gelijkwaardig aan de hele
+sleutelnamespace, want EXPORT levert de master versleuteld onder een door de
+houder gekozen geheim; het mag uitsluitend aan de supervisor-/herstelprincipal
+toebehoren en nooit worden gedelegeerd. Voor een koude, ongebruikte instantie
+is het externe geheim bovendien de enige lineage-authenticatie: wie het geheim
+kent én object 8 kan schrijven, kiest de master van de volgende start, niet
+alleen een oude snapshot. Een productherstelagent heeft daarom een
+onafhankelijk verankerde lineage-/generatiecontrole nodig.
 Grenzen: de generatievloer in dit profiel is een gedemonstreerd mechanisme,
 geen vertrouwd anker; koude rollbackankering, write-ahead per GENERATE/REVOKE
 in de dienst zelf en een echte volume-identiteit (nu de profielconstante
 `NOS-SYSTEM-VOL01`) blijven open. De SDK-eigen Message320-envelope-/stagingbytes
 worden sinds de B02-IPC-hygiënecheck wel gewist; caller-owned request-arrays en
 compiler-/registerkopieën vallen daar niet onder.
+De afzendercontrole van het admin-ingress heeft in dit profiel geen
+uitgevoerd native tegenvoorbeeld (geen ander proces bezit een SEND); dat is een
+open bewijs, geen impliciete goedkeuring.
 B02 blijft daarom open; de score verandert niet. Rollback: verwijder de twee
 opcodes, het admin-ingress en de init-/appstappen; bestaande KEY1-codes,
 formaten en het B01-profiel zijn ongewijzigd.
