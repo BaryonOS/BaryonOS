@@ -1,5 +1,9 @@
 # Werkqueue — volledige native testrelease, 30 oktober 2026
 
+| Werkpakket | Toestand | Eigenaar / exclusieve writes | Acceptatie | Interface en bewijsgrens |
+|---|---|---|---|---|
+| NATIVE-MATERIAAL-SEMANTICS-1 | app-lokale read-only semantische snapshot en assertions toegevoegd; native toegankelijkheid niet bewezen | root; `sdk/examples/materiaal/src/lib.rs`, `sdk/examples/materiaal/tests/chain.rs`, bijbehorende docs/bewijs | U04; afhankelijk van U01/U02 | echte ELF-build en host-harnas groen; Rust-testlink geblokkeerd door ontbrekende `cc`; geen accessibility IPC, schermlezer, spraak, QEMU-run of gebruikerstest; alle U-criteria blijven open |
+
 Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De opt-in `native-rtc`-bootstrap,
 `kernel/src/m2/rtc.rs`, RTC-buildkeuze, RTC-runner/hosttests/workflow en

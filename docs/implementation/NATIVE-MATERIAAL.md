@@ -216,6 +216,15 @@ semantische rollen en zichtbare labels, dus kleur is niet de enige betekenis.
 Deze slice animeert niet. Dat respecteert reduced-motion, maar bewijst nog
 geen systeembrede instelling of screenreaderwerking.
 
+De CPL3-Materiaal-app stelt nu een begrensde, read-only semantische snapshot
+van haar eigen actuele controllerstaat beschikbaar via `App::semantics`.
+Dezelfde framebron levert rollen, labels, bounds, focus, bewerkbaarheid,
+tekstselectie en opslagstatus; een te kleine uitvoerbuffer faalt zonder
+gedeeltelijke snapshot. Dit is een app-lokale API, geen IPC naar een
+schermlezer, spraakuitvoer of capabilitygrant. De integratietest controleert
+de Materiaal-knop, documentwaarde, focus en bevestigde opslagstatus. Native
+schermlezer-/toetsenbordproeven en echte gebruikerstaken blijven vereist.
+
 De expliciet goedgekeurde backend is `noto-sans-mono-bitmap = 0.3.2`, defaults
 uit; regular, size16/32, Basic Latin, Latin1 Supplement en Specials. Geen
 runtime-dependencies, buildscript, allocator of floats. Rust-MSRV 1.56.1;

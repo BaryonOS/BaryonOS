@@ -1,5 +1,33 @@
 # Actuele projectstatus
 
+## NEXT AGENT HANDOFF — NATIVE-MATERIAAL-SEMANTICS-1 — 30 oktober 2026
+
+Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (`origin/main` bij start),
+branch `simonvanieperen-didactic-spork`. Deze stap voegt aan de CPL3-app
+`App::semantics` toe: een read-only snapshot van alleen de eigen actuele
+controllerstaat. De bestaande integratieketen controleert nu de semantische
+kop, focus, documentwaarde, bewerkbaarheid, opgeslagen status, opnieuw geopend
+document en atomische weigering bij een te kleine uitvoerbuffer. Geen IPC,
+schermlezer, spraakuitvoer of capabilitygrant toegevoegd.
+
+Rust 1.90.0 fmt/check/Clippy en 27 Materiaal-harnastests slagen; de echte
+`x86_64-unknown-none`-Materiaal-ELF bouwt (SHA-256
+`cb1f73a07e18d35d77db0b0056d4cf4702ef64a9d59b61484a1e9c2ff1d3090c`).
+De Rust-integratietests konden niet linken: `cc` ontbreekt (exit 101).
+`tools/preflight.py --strict` exit 2 bevestigt dat ook QEMU/OVMF ontbreken.
+Er is dus geen native UI-run, schermlezer-/spraakproef of gebruikerstest.
+Voortgang: totaal 34% blijft 34%; Materiaal/toegankelijkheid blijft 0/15,
+alle U01–U06 open.
+
+Eerstvolgende stap: herstel een lokale, niet-systeemwijde hostlinker en
+voer `python3 -B tools/dev.py cargo +1.90.0 test --offline --locked
+--manifest-path sdk/examples/materiaal/Cargo.toml` uit; verkrijg daarna een
+bruikbare QEMU/OVMF-omgeving en voer de native Materiaal-/QMP-keten uit.
+Daarna is een capability-begrensde accessibility-service met echte
+toetsenbord-only-, schermlezer-/spraak- en schaal/contrast/reduced-motion-
+proeven nodig. U04 kan niet sluiten zonder echte gebruikerstaken; U01–U03 en
+U05–U06 hebben daarnaast afzonderlijk bewijs nodig.
+
 ## NEXT AGENT HANDOFF — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
 
 Basis `ad2b981` (`main` na PR #63), branch
