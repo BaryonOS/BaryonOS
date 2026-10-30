@@ -57,6 +57,19 @@
     "exit": 0,
     "manager_changed_queue_after_release": false
   },
+  "external_main_change": {
+    "merge_commit": "9a6703d339f9248fc58d470523644193ec92cd45",
+    "parent": "ca45a7dabe6a040921de03bdc2fad3e5045a75ba",
+    "pr": 85,
+    "merged_at": "2026-10-30T18:38:54Z",
+    "github_account_actor": "simonvanieperen",
+    "changed_scope": "drivers/virtio-snd only",
+    "actual_person_or_session": "not established by account identity",
+    "hardware_owner_reports_no_merge_or_automerge": true,
+    "integrator_authority": "7f remains sole agent integrator; check live head/base/gates, no inferred competing writer",
+    "commands": ["gh api repos/simonvanieperen/nieuw-os/pulls/85", "gh api repos/simonvanieperen/nieuw-os/commits/9a6703d3"],
+    "exit": 0
+  },
   "commands": [
     {"command": "python3 -B tools/progress.py --write", "exit": 0, "wall_seconds": 0.031},
     {"command": "python3 -B tools/progress.py --check", "exit": 0, "wall_seconds": 0.033},

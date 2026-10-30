@@ -85,6 +85,12 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Afsluitende controle op `7118bb8`: **34% → 34%**. Live main9a6703d3 bevat
+de via accountsimonvanieperen gemergede soundleaf85; dat identificeert geen
+tweede actieve agentwriter. HW ontkent merge/automerge, e8 blijft gestopt,
+7f behoudt exclusief integratiemandaat met verse head/base-gates. Geen
+routinegoedkeuringslus of nieuwe acceptatiepunten; criteria ongewijzigd.
+
 Afgeronde bevoegdheidsoverdracht op `0f8f8de`: **34% → 34%**.
 Assistentqueue82664 is remote gecontroleerd; teamleider schrijft haar niet.
 E8 heeft expliciet operationele stop/vrijgave geleverd,7f heeft volledige

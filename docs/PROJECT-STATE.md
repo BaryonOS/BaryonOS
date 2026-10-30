@@ -2,7 +2,7 @@
 
 ## NEXT AGENT HANDOFF — mandaten overgedragen, ontwikkeling loopt door — 30 oktober 2026
 
-**Basis:** `0f8f8dee0e4000e9585b72f413a7c2cc25a59324`, branch
+**Basis:** `7118bb8bdca369c42811f136941a1040ef10bcfb`, branch
 `simonvanieperen-symmetrical-barnacle`; manager wijzigt geen runtimecode.
 Start met `git branch --show-current && git rev-parse HEAD && git status --short`.
 
@@ -21,6 +21,10 @@ Watch2461 af/exit124 en geen actieve mergecommands/shells volgens donor.
 operationele integrator. Geen gebied op timeout overgenomen.
 Binnen bestaande inhoudsbehoudende integratiescope zelfstandig werken,
 geen nieuwe routinegoedkeuring vóór elke conflictwrite; inhoudseigenaren blijven.
+Live main is inmiddels9a6703d3 door merge85 via accountsimonvanieperen;
+API toont alleen soundleaf boven ca45, geen bewijs welke persoon/sessie handelde.
+HW ontkent merge/automerge, e8 blijft gestopt; geen bewezen tweede agentwriter.
+7f behoudt mandaat en controleert live head/base/gates bij elke integratie.
 Huidige volgorde74→75→78→82, geen bypass; bij75 mainca45/NET70,74 en
 65ec/796/0e-historie behouden en actuele queue uitsluitend via5d overnemen.
 PR74 blijft open op4db/baseca45. LiveAPI: B03attempt1 failed/job124237913427;
