@@ -85,6 +85,15 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+B02-IPC-HYGIENE-1 (30 oktober 2026), bron `89d8b09`: **34% → 34%**.
+De SDK wist gecontroleerd eigen Message320-bufferkopieën en redigeert
+payloads uit `Debug`; 22 gerichte hosttests, formattering en de
+`x86_64-unknown-none`-controle slagen. Geen rubriccriterium gesloten:
+persistente antirollback/write-ahead (B02), de boot-/distributieketen (B04),
+externe deskundigenreview (B05) en de native privacygates (B06) blijven open.
+QEMU/OVMF-runtime en CI zijn op deze bron niet uitgevoerd.
+Zie [deelbewijs](verification/B02-IPC-ZEROIZATION.md).
+
 RTC-NATIVE-1 (30 oktober 2026), basis `5c334f9`: **34% -> 34%**.
 De expliciet opt-in CMOS-bootstrap is een technische tijdproviderafhankelijkheid,
 geen productieklok of vertrouwde TLS-tijd. Geen rubricpunt of productcriterium

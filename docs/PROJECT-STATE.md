@@ -1,6 +1,30 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
+## NEXT AGENT HANDOFF — beveiliging/privacy/updates — 30 oktober 2026
+
+Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (B02-PERSIST-1 geïntegreerd),
+implementatiebron `89d8b0941795d179fa8bb90d692aff0fb74f1f87`, branch
+`simonvanieperen-solid-waffle`. B02-IPC-HYGIENE-1 voegt SDK-eigen
+Message320-geheugenhygiëne toe: stagingbytes worden bij geldige native
+receive-overdracht gewist, `Outgoing`/`Received` wissen hun envelope bij
+opruimen en `Debug` redigeert de payload. Source fingerprint v3:
+`53fc1cdd5448d2bc50aaee32a8fcf0df95d0ca40679eb83a1cf32eb093cb5f4a`.
+
+Gericht bewijs: [B02-IPC-ZEROIZATION](verification/B02-IPC-ZEROIZATION.md).
+SDK-runtime: 22 hosttests, no_std `x86_64-unknown-none`-controle,
+formattering en diffcontrole exit 0. De volledige hosttestuitvoer staat lokaal
+op `/tmp/nieuw-os-security-sdk-runtime-tests.log` (SHA-256 in het rapport).
+Geen native QEMU-run of CI op deze commit. **Rubric 34% → 34%; B02 blijft
+open**: er is geen TPM-rollbackanker, write-ahead per sleutelmutatie of echte
+volume-identiteit. B04/B06 blijven open; B05 vereist onafhankelijke menselijke
+deskundigenreview en kan niet door deze implementatie worden afgetekend.
+
+Eerstvolgende controles: runtime-Clippy en echte keyring-/system-servicebuild
+op de no_std-target. Controleer daarna beschikbare native runners; deze
+worktree ontbeerde bij aanvang Cargo/QEMU/OVMF. Volledige B-track blijft
+12 punten en geen criterium wordt door hosttests alleen geaccepteerd.
+
+## Historisch checkpoint — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
 
 Basis `ad2b981` (`main` na PR #63), branch
 `codex/b02-persistent-keystate-20261030`, worktree

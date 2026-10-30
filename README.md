@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ad2b981f`](https://github.com/simonvanieperen/nieuw-os/commit/ad2b981fe1f2bcccb03cb776b2281d32529d2f00) ·
-**Ontwikkelbranch:** `codex/b02-persistent-keystate-20261030`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B02-PERSIST-1: persistente sleutelstatus via administratief ingress en verzegeld record over een koude herstart.
-34% blijft 34%. KEY1-opcodes 11/12 met persistentie-only dispatcher, een apart administratief ingress in de native Key Service en init als herstelagent in het FR-I01-profiel zijn geïmplementeerd; 5 nieuwe wire-hosttests, 3 nieuwe harnastests, fmt/clippy, de FR-I01-gate (normaal + read-only koude herstart op dezelfde image), B01 5/5, vier RANDOM-gevallen, klok en netwerkgate slagen op fingerprint 32da9d61. Het 120-byte sleutelstatusblob en het 168-byte ciphertextrecord staan onafhankelijk geverifieerd op schijf; na herstart ontzegelt sleutel 1, blijft sleutel 0 ingetrokken en wordt manipulatie geweigerd. B02 blijft open: geen vertrouwd rollbackanker, geen write-ahead per GENERATE in de dienst, synthetische volume-identiteit; geen rubriccriterium gesloten en geen menselijke audit.
+**Bron:** [`89d8b094`](https://github.com/simonvanieperen/nieuw-os/commit/89d8b0941795d179fa8bb90d692aff0fb74f1f87) ·
+**Ontwikkelbranch:** `simonvanieperen-solid-waffle`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B02-IPC-HYGIENE-1: wis en redigeer SDK-IPC-envelopes met gevoelige payloads.
+34% blijft 34%. B02-IPC-HYGIENE-1 wist SDK-eigen Message320-stagingbytes bij geldige native receive-overdracht, wist Outgoing/Received-envelopes bij opruimen en redigeert payload uit Debug. Op bron 89d8b09 slagen 22 SDK-runtimehosttests, formattering en de x86_64-unknown-none no_std-check. Er is geen rubriccriterium gesloten: B02 wacht op een vertrouwd rollbackanker, write-ahead per GENERATE/REVOKE en een echte volume-identiteit; B04, B05 en B06 blijven open. QEMU/OVMF-runtime en CI zijn niet uitgevoerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
