@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`6a20b35e`](https://github.com/simonvanieperen/nieuw-os/commit/6a20b35e7e94daf423d5c23885ccbc2e11833c16) ·
+**Bron:** [`5d95ea91`](https://github.com/simonvanieperen/nieuw-os/commit/5d95ea9174927d74ff2a7a4bb26e0df714099330) ·
 **Ontwikkelbranch:** `simonvanieperen-musical-happiness`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** DHCP-CODEC-1: begrensde no_std DHCPv4-codec als voorstap voor native netwerkconfiguratie.
-34% blijft 34%. Op basis 6a20b35 is de reviewfix voor ongeldige DHCP-yiaddr toegevoegd: 57 hosttests, Clippy, fmt en freestanding build slagen. De bestaande native ARP/UDP/DNS-pair is uitsluitend op eerdere bron9ddc6b6 bewezen: normal en koude recovery raw exit33/network_gate=true met opnieuw gevalideerde capture. Geen native claim voor de latere reviewfix, DHCP-client, algemene internetconfiguratie, TLS of appbestemmingsafdwinging. N01–N04 blijven open; netwerk0/10.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Inhoudsbehoudende integratie van DHCP-codec/paddingreview met main 748e29b.
+34% blijft 34%; netwerk 0/10. DHCP-reviewbron 5d95ea9 met 300-bytepadding en de preflight/vendorwijzigingen van main 748e29b zijn inhoudsbehoudend geïntegreerd. Op de samengevoegde runtimebron slagen 58 codec-hosttests, Clippy, fmt, freestanding build en 24 preflighttests. Geen native DHCP/TLS/appbestemmingsbewijs; bestaande ARP/UDP/DNS-pair blijft uitsluitend aan eerdere bron 9ddc6b6 gebonden. Beide historische checkpoints blijven behouden. Verplichte head-CI/review blijven open; criteria en gewichten onveranderd. Deze branchgebonden conflictresolutie vervangt niet de centrale teamstatus van manager 89f84098.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

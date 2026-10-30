@@ -111,3 +111,36 @@ sysroot en `CARGO_TARGET_DIR=target/dhcp-hostcc`:
 Geen native DHCP/relay getest of FR-N01-acceptatie geclaimd. Netwerk blijft
 0/10; totaal 34/100. Centrale status/assessment zijn nu van teamleider
 `89f84098`; deze brongebonden reviewfix levert geen nieuwe punten op.
+
+## Inhoudsbehoudende integratie met main 748e29b
+
+Mergeouders: codec-review `5d95ea9174927d74ff2a7a4bb26e0df714099330`
+en main `748e29b7455ca4213a6bf3ba3808c3097458263d` (PR #62).
+Uitsluitend README/PROJECT-STATE/assessment conflicteerden. De teamleider
+gaf een beperkte schrijfvrijgave voor die bestaande conflicten:
+één branchgebonden handoff, beide historische checkpoints volledig behouden,
+geen gewijzigde criteria/gewichten/score. Dit vervangt geen centrale teamstatus.
+
+Behoudscontrole:
+`git diff --cached origin/main -- Cargo.lock services/keyring/vendor/hkdf-0.13.0/Cargo.toml services/keyring/vendor/hmac-0.13.0/Cargo.toml tools/preflight.py tests/test_preflight.py docs/DEVELOPMENT.md`
+levert geen verschil; alle betreffende main-inhoud is behouden.
+Een JSON-vergelijking bevestigt dat `tracks` exact gelijk is aan beide
+mergeouders, inclusief criteria, gewichten, status en bewijsverwijzingen.
+Geen DHCP-client of TCP-listen-WIP in deze merge.
+
+Op de samengevoegde runtimebron zijn de vier Cargo-commando's uit de
+paddingtabel **opnieuw** uitgevoerd: 58/58 tests, Clippy, fmt en freestanding
+releasebuild exit 0. De twee codec-bronhashes uit die tabel zijn gelijk
+gebleven. Duurzame logs: `integration-{tests,clippy,fmt,none}.txt`.
+De 58 tests duurden 0,55 s; overige tijden staan in hun eigen logs.
+
+Daarnaast:
+`python3 -B -m unittest discover -s tests -p test_preflight.py`
+geeft 24/24, exit 0, 0,16 s (`integration-preflight.txt`).
+`python3 -B tools/progress.py --write` en daarna
+`python3 -B tools/progress.py --check` geven exit 0; `git diff --check`
+geeft exit 0. De generator bevestigt **34/100**, niet OS-testacceptatie.
+
+Geen nieuwe QEMU/native DHCP/TLS/procesbestemmingsproef uitgevoerd.
+Verplichte CI/review op de nog te publiceren mergehead blijven open; de
+bestaande native pair blijft uitsluitend aan `9ddc6b6` gebonden.
