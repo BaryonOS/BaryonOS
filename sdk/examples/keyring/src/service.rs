@@ -157,7 +157,7 @@ fn handle(raw: u64) -> Handle {
 }
 
 fn send(endpoint: SendEndpoint, body: &[u8; wire::SIZE]) {
-    let Ok(mut message) = Outgoing::new(wire::TAG, body) else {
+    let Ok(message) = Outgoing::new(wire::TAG, body) else {
         startup_error(2);
     };
     for _ in 0..POLL_LIMIT {
@@ -170,16 +170,6 @@ fn send(endpoint: SendEndpoint, body: &[u8; wire::SIZE]) {
             Err(_) => break,
         }
     }
-    wipe_outgoing(&mut message);
-}
-
-fn wipe_outgoing(message: &mut Outgoing) {
-    // SAFETY: Exclusive owned, no-cap envelope; all send borrows have ended.
-    // A valid empty envelope overwrites its current payload with volatile
-    // typed stores, without relying on the SDK's private field layout.
-    // No destructor/resource may be silently skipped by this replacement.
-    const { assert!(!core::mem::needs_drop::<Outgoing>()) };
-    unsafe { core::ptr::write_volatile(message, Outgoing::new(0, &[]).unwrap()) };
 }
 
 fn random_ingress(legacy: &[ReceiveEndpoint; 2], reply: SendEndpoint) -> Option<RandomIngress> {
@@ -371,12 +361,11 @@ fn send_random(ingress: &mut RandomIngress) {
             }
         }
     }
-    let Ok(mut message) = Outgoing::new(wire::TAG, &ingress.pending) else {
+    let Ok(message) = Outgoing::new(wire::TAG, &ingress.pending) else {
         retire_random(ingress);
         return;
     };
     let result = native::send(ingress.reply, &message);
-    wipe_outgoing(&mut message);
     match result {
         Ok(()) => {
             ingress.replies = ingress.replies.saturating_add(1);
