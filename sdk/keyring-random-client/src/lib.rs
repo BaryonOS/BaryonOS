@@ -350,15 +350,20 @@ mod tests {
     fn sdk_owned_envelopes_are_zeroized_by_their_destructors() {
         fn assert_erased<T>(value: T, view: fn(&T) -> &[u8; nieuw_os_sdk_runtime::MESSAGE_SIZE]) {
             let mut storage = core::mem::MaybeUninit::<T>::uninit();
-            let bytes = view(storage.write(value)).as_ptr();
+            let offset = {
+                let message = storage.write(value);
+                let bytes = view(message);
+                assert!(bytes.iter().any(|byte| *byte != 0));
+                bytes.as_ptr() as usize - core::ptr::from_ref(message) as usize
+            };
             // SAFETY: The envelope is initialized and exclusively owned.
             // MaybeUninit keeps its backing allocation alive without a second
-            // drop; the saved byte slice locates the actual buffer, not a
-            // guessed struct offset. Only initialized buffer bytes are read.
+            // drop. The getter locates the actual buffer before destruction;
+            // subsequent reads derive fresh pointers from the live backing
+            // allocation, not from a shared envelope reference across Drop.
             unsafe {
-                assert!((0..nieuw_os_sdk_runtime::MESSAGE_SIZE)
-                    .any(|i| core::ptr::read_volatile(bytes.add(i)) != 0));
                 core::ptr::drop_in_place(storage.as_mut_ptr());
+                let bytes = storage.as_ptr().cast::<u8>().add(offset);
                 for i in 0..nieuw_os_sdk_runtime::MESSAGE_SIZE {
                     assert_eq!(core::ptr::read_volatile(bytes.add(i)), 0);
                 }

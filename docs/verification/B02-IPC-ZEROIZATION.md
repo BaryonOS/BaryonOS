@@ -1,5 +1,29 @@
 # B02-IPC-HYGIENE-1 — IPC-envelopegeheugenhygiëne
 
+## Actuele testverharding — verse byteprovenance na Drop
+
+De netwerkpeer heeft de productie/controlflow op d467721 afzonderlijk
+read-only beoordeeld: geen concrete bevinding; sender-/capchecks, alle
+capcleanup vóór Drop en owned RandomBytes blijven correct. Hij heeft alle35
+RANDOM-capturehashes uit Git-blobs gecontroleerd en voor ieder geval alle46
+counters opnieuw uit de serialbytes berekend. Dit is geen menselijke audit
+of eigen native herhaling door de peer.
+
+De eerdere destructortest bewaarde een uit een gedeelde envelope-referentie
+afgeleide bytepointer over de muterende Drop heen. Een geoptimaliseerde pass
+is geen bewijs van geldige pointerprovenance. De test bewaart nu vóór Drop
+**uitsluitend de integeroffset** van de echte buffer binnen de allocatie;
+pas ná Drop wordt een verse bytepointer uit de levende MaybeUninit-opslag
+afgeleid. Geen productiegedrag gewijzigd, geen tweede destructor of
+T-referentie na Drop, geen veronderstelde private layout.
+
+Dezelfde36 hosttests, Clippy, fmt en geoptimaliseerde destructortest zijn
+opnieuw groen; logs `/tmp/nieuw-os-ipc-drop-provenance-{host,clippy,release}.log`.
+Miri is **niet uitgevoerd**; stabiele host-/native tests zijn geen formeel
+UB-bewijs. Checkpoint vóór de12 nieuwe native regressiegasten op de komende
+exacte bron/fingerprint. Alle d467/9e7-resultaten hieronder blijven historisch
+eigen bewijs. Geen runtimeclaim op deze gewijzigde fingerprint vóór uitvoering.
+
 ## RANDOM-consumerintegratie na exclusieve eigenaarsafspraak
 
 30 oktober 2026: netwerkowner039dbef8 gaf exclusief
