@@ -34,9 +34,10 @@ herlabeld naar deze stacked head.
 
 De zelfstandige Python disk-oraclebestanden zitten niet in de PR-basis/diff en
 zijn daarom niet opnieuw uitgevoerd of als stacked-PR bewijs geclaimd. De
-historische 8/8 oracle-uitkomst bleef gebonden aan de eerdere bron. De nieuwe
-stacked concept-PR moet zijn eigen NAS-CI-jobs afronden; die zijn nog niet
-uitgevoerd.
+historische 8/8 oracle-uitkomst bleef gebonden aan de eerdere bron. Draft PR
+#95 is geopend op de stacked client-head. De GitHub-checks zijn gestart maar
+stonden bij deze statusopname nog pending; bekijk de PR voor hun actuele
+resultaat.
 
 ## NEXT AGENT HANDOFF — eigen werk gereed, integratiegrens open
 
