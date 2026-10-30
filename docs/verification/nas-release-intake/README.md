@@ -147,3 +147,45 @@ product, volledige P04, TLS/E2EE, echte apparaatidentiteit of abrupte
 stroomuitval tijdens schrijven. Honderd koude productstarts en 24 uur
 gecombineerd productgebruik zijn niet uitgevoerd en niet door deze twee
 smalle VM-runs vervangen. R01-R03 blijven 0/5; totaaladvies 34% naar 34%.
+
+## Onafhankelijke review: artifact- en platformbinding
+
+B72 meldde twee concrete MEDIUM-bevindingen op `808f539`: de runner
+controleerde ESP/immutable firmware niet na gastuitvoering en bond het
+koude platform niet aan het normale platform. De positieve owner-run
+hierboven blijft ongewijzigd bewaard; deze bevindingen maken die run niet
+achteraf mislukt, maar blokkeren onafhankelijke acceptatie.
+
+Eerst werkelijk rood gereproduceerd met
+`python3 -B -m unittest discover -s tests -p test_nas_runner.py -v`:
+exit 1, zes assertion failures, opgeslagen als
+`review-bindings/red-confirmed.txt`. Drie mutaties tijdens de gemockte
+uitvoering (kernel, loader, CODE) lieten ten onrechte `passed=True` over;
+drie platformwijzigingen (firmware, QEMU, machine) startten ten onrechte
+de koude VM. Twee eerdere lokale fixture-setupfouten zijn gecorrigeerd
+voordat dit assertionniveau is bereikt; de rode reproductie is geen
+native VM-proef.
+
+De gerichte fix controleert de gekopieerde ESP, immutable CODE,
+oorspronkelijke CODE/VARS-template en werkelijke QEMU-executable zowel
+vóór als na uitvoering. Het koude platform moet exact hetzelfde
+machineprofiel, absolute QEMU-ELF-pad, binaryhash, versie en oorspronkelijke
+firmwarehashes hebben. Een shellwrapper in PATH is een setupfout, nooit
+skip of succes. De gastkopie van VARS blijft bewust veranderlijk.
+Geen wijziging aan gedeelde common/build-tooling, kernel of service-ABI.
+Hostbibliotheken worden hierdoor niet integraal geauthenticeerd.
+
+Acceptatiecommando:
+`python3 -B -m unittest discover -s tests -p 'test_nas*.py' -v`.
+Werkelijk uitgevoerd: exit 0, 15 tests, `review-bindings/green.txt`.
+Ook `python3 -B -m unittest discover -s tests -p 'test_*.py'`:
+exit 0, 435 hosttests, `review-bindings/all-tools.txt`. Dit zijn uitsluitend
+host-/harnasregressies; synthetische VM-records hierin zijn geen nieuwe
+gastuitvoering. `git diff --check`: exit 0.
+Nieuwe native normal/cold-pair, bredere gates en herlezing van deze twee
+punten door B72 zijn nog open tot een nieuwe brongebonden freeze.
+De cold-case gebruikt een synthetisch canoniek oud token `[42; 40]`,
+niet een werkelijk in boot 1 uitgegeven token. Dit bewijst dus geen
+echte cross-boot-tokenreplay; die verticale keten blijft apart open.
+Scoreadvies ongewijzigd **34% naar 34%; R01-R03 0/5**. De manager houdt
+de centrale assessment, queue en PROJECT-STATE bij.

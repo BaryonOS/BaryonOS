@@ -24,6 +24,15 @@ from disk_oracle import check_image as check_nas_disk
 FEATURES = {"normal": "native-system-nas-probe", "recover": "test-system-nas-recover"}
 
 
+def check_immutable(run, manifest, platform, code, variables):
+    check_esp(run / "esp", manifest)
+    if (sha256(run / "OVMF_CODE.fd") != platform["code_sha256"]
+            or sha256(code) != platform["code_sha256"]
+            or sha256(variables) != platform["vars_template_sha256"]
+            or sha256(Path(platform["qemu_path"])) != platform["qemu_sha256"]):
+        raise ValueError("NAS immutable execution artifacts changed")
+
+
 def evaluate(case, serial, raw_exit, timed_out):
     if case not in FEATURES or type(raw_exit) is not int or raw_exit != 33 or timed_out:
         raise ValueError("NAS guest did not complete successfully")
@@ -105,10 +114,28 @@ def run_case(case, parent=None):
     qemu = shutil.which("qemu-system-x86_64", path=env["PATH"])
     if not qemu:
         raise RuntimeError("qemu-system-x86_64 not found")
+    qemu = str(Path(qemu).resolve(strict=True))
+    with Path(qemu).open("rb") as stream:
+        if stream.read(4) != b"\x7fELF":
+            raise RuntimeError("NAS gate requires the actual QEMU ELF executable in PATH, not a wrapper")
+    platform = {
+        "machine": qemu_machine(),
+        "qemu_path": qemu,
+        "qemu_sha256": sha256(Path(qemu)),
+        "qemu_version": subprocess.check_output([qemu, "--version"], env=env, text=True).strip(),
+        "code_sha256": sha256(code),
+        "vars_template_sha256": sha256(variables),
+    }
+    if parent is not None and parent.get("platform") != platform:
+        raise ValueError("Cold NAS platform differs from the frozen normal parent")
+    if (sha256(run / "OVMF_CODE.fd") != platform["code_sha256"]
+            or sha256(run / "OVMF_VARS.fd") != platform["vars_template_sha256"]):
+        raise ValueError("Copied NAS firmware differs from the frozen platform")
+    check_immutable(run, manifest, platform, code, variables)
     relative = run.relative_to(ROOT).as_posix()
     readonly = "on" if case == "recover" else "off"
     command = [
-        qemu, "-machine", qemu_machine(), "-accel", "tcg,thread=single", "-cpu", "qemu64",
+        qemu, "-machine", platform["machine"], "-accel", "tcg,thread=single", "-cpu", "qemu64",
         "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none",
         "-serial", "stdio", "-nic", "none", "-no-reboot",
         "-drive", f"if=pflash,unit=0,format=raw,readonly=on,file={relative}/OVMF_CODE.fd",
@@ -124,8 +151,8 @@ def run_case(case, parent=None):
                   source_commit=subprocess.check_output(
                       ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   manifest=manifest, command=command, image=image.relative_to(ROOT).as_posix(),
-                  qemu_sha256=sha256(Path(qemu).resolve(strict=True)),
-                  qemu_version=subprocess.check_output([qemu, "--version"], env=env, text=True).strip(),
+                  platform=platform, qemu_sha256=platform["qemu_sha256"],
+                  qemu_version=platform["qemu_version"],
                   firmware_sha256={"code": sha256(run / "OVMF_CODE.fd"),
                                    "vars_template": sha256(run / "OVMF_VARS.fd")},
                   before_sha256=before, run_directory=str(run))
@@ -136,6 +163,7 @@ def run_case(case, parent=None):
     report.update(raw_qemu_exit=raw, timed_out=timed_out,
                   duration_s=time.monotonic() - start, after_sha256=sha256(image))
     try:
+        check_immutable(run, manifest, platform, code, variables)
         evidence = evaluate(case, serial, raw, timed_out)
         if parent and (evidence["admin_pid"], evidence["guest_pid"]) != (
                 parent["evidence"]["admin_pid"], parent["evidence"]["guest_pid"]):

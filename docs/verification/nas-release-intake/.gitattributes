@@ -1,0 +1,3 @@
+**/serial.txt -text whitespace=cr-at-eol
+**/*.log -text
+review-bindings/*.txt -text whitespace=-blank-at-eol
