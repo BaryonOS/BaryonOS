@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "purpose": "synthetic ring-3 acceptance probe",
+  "binary_sha256": "07ef57e6ad7b52020743c2ae2cb9e142dbc46b5fc787e9b4ad6eb8de422eae3c",
+  "source_sha256": "5ecda84b213a0108f7ca1d3b7c84db8ddc1b2cfd6143ba5c7fad59917db9d34a",
+  "linker_sha256": "1abb4e5cc222479a2144db036f756861ae2aaa9edba3fcb5815d9e5acd659f65",
+  "entry": 1073741824,
+  "segments": [
+    {
+      "flags": 5,
+      "address": 1073741824,
+      "offset": 4096,
+      "filesz": 40258,
+      "memsz": 40258,
+      "page_start": 1073741824,
+      "page_end": 1073782784
+    },
+    {
+      "flags": 6,
+      "address": 1073807360,
+      "offset": 45056,
+      "filesz": 16384,
+      "memsz": 16384,
+      "page_start": 1073807360,
+      "page_end": 1073823744
+    },
+    {
+      "flags": 4,
+      "address": 1073823744,
+      "offset": 61440,
+      "filesz": 3675,
+      "memsz": 3675,
+      "page_start": 1073823744,
+      "page_end": 1073827840
+    }
+  ],
+  "module_sha256": {
+    "userspace/m6c_probe.rs": "5ecda84b213a0108f7ca1d3b7c84db8ddc1b2cfd6143ba5c7fad59917db9d34a",
+    "userspace/m6_runtime.rs": "f4af399746e113bbc08ef8b629ebd2ee569ef4bb4aaa0b5ed1ca65644aaa41bf",
+    "services/catalog/src/wire.rs": "9f2a8e9da0608f535bb020effbde425132acd6ce5f1ec9560bcad7103065eb61",
+    "services/catalog/src/journal.rs": "20c72eb6fe5ad3113787a45aaa6b26a7c8e750ead1aa4ffb7e5181e3efb913c9",
+    "services/catalog/src/user_service.rs": "25b13f461942b3ea0ff33ff8bed64a549ad10113ac9cf19adebc9629350c3e0e",
+    "userspace/sdk_probe_runtime.rs": "b21c5e575fbf34589b1aca96afc8d128ac1f57e34d4a5e212b8c0aa27d1dcf76",
+    "sdk/runtime/src/block.rs": "3c3d92f178888e3ba6ba2b3da4c6810ec8c9b44f0c29296ad0ab474c91871a1c",
+    "sdk/runtime/src/entropy.rs": "536d4db4bb00067b4697d46eb34da1fb680edcdf6d25569be01ab161c77e1e13",
+    "sdk/runtime/src/lib.rs": "b55ab73361579af2ca517d6e12e8fd6787fb1f7c79785999de62d92f9ed860cf",
+    "sdk/runtime/src/message.rs": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab",
+    "sdk/runtime/src/native.rs": "1f1b548b793c5d396687c42c94b14c5ab981e18f9dd0972253182e93027d0df3",
+    "sdk/runtime/src/network.rs": "9679db5ad9bbf81164e84656650911ba8f508440460c5af2785ca3cf20fc310d",
+    "sdk/runtime/src/process.rs": "998867816fc0f0c88f790b37a12a37536f1d1c29109e7315706abe797f20e202",
+    "userspace/document_session_probe.rs": "12152c588b8c3730878d8c249cbc379ee9035cae1441a14a195796c9d13f6692",
+    "sdk/Cargo.toml": "5aa02743d5b66e61ee8b924a444e5f1c1228c25099e5c06a47588b8fcf160fa6",
+    "sdk/Cargo.lock": "44d29cfeba8474de56d8f2f5e6e24d078a57724f0671667d4a2f9fe282e9b794",
+    "sdk/runtime/Cargo.toml": "5062f7dc5bd8187c14a91b1127064f8f46741dfd28078a1c82da98e04278c56d",
+    "sdk/catalog-client/Cargo.toml": "37a0182bd118b59ab53e8004309f4d81c9ef16adce8dca58deb897cc7c02d887",
+    "sdk/catalog-client/src/lib.rs": "5ca84b64fc6fc7384a0f92a5eb3c0f7532ba7ce982fe1008b1a9cef27bb34244",
+    "sdk/document-session/Cargo.toml": "6b3237a13ab5f46aba9ed75f89712f613ff1d00a03d9fe1366df90b7ae028fc5",
+    "sdk/document-session/src/lib.rs": "3b09fccb0bd1f0feafc41f0a4497a271138270600f16168054fef2c095b98b8b",
+    "sdk/document-session/src/volume.rs": "14c116ca13ef4a5fc0e3bc69621ecb5f281e7775e6fb0d85a3e6526d2200687d",
+    "services/catalog/Cargo.toml": "e692618da2bec1212b4b8ec1b08037cfbd9df2441b3283efc9ab1d5860a89804",
+    "services/catalog/src/client.rs": "1a1474e3a829a4c247046ee916019e5857a1603efd4620d95e0c4a50ea4f0878",
+    "services/catalog/src/lib.rs": "375921af0dc4e449ede38beae0ebcd5a6b465018a9448585af96119a86b407cd",
+    "services/volume/Cargo.toml": "c089bb75a96bb78adb93693300db46f503f0bc2cc3476d9ec1c3f4b1ad1fa405",
+    "services/volume/src/client.rs": "28d5a5b6b4d693f5425bff21ef5bac662674623c3a579bfdcf7b075e88d0a77f",
+    "services/volume/src/lib.rs": "28f1f73e88a30c891038679f30156f6de1bd66d241d85d8930f10b4902af7806",
+    "services/volume/src/service.rs": "156292754cf57cd561ce9a97d084ae1170b0a1ee6d600578de8b7dfc0a9e8070",
+    "services/volume/src/table.rs": "358d04b6cd66c4411b4944330da939623fa9e9a0a152a7438dc17cd7956b5337",
+    "services/volume/src/upload.rs": "98527d36046926f3370cf19e23a8c2c39250c2e5a944ff1c1b221a0d021a7fa1",
+    "services/volume/src/wire.rs": "afb4f2693711e0aa0034ee6868b338312bf9f2652476c0a5d8c435fc7bb18c74"
+  },
+  "sdk_runtime": true,
+  "document_session": true,
+  "library_sha256": {
+    "users/libnieuw_os_sdk_runtime.rlib": "048208bc7b813b2a74b3f7fe477573d9b2a38176c5edc63e0d0dc01155babdb9",
+    "users/libcatalog_core.rlib": "cfd47f4f6c1ab1c26a62408f202022b901f6f1df89814119a250eacb5a6c81e4",
+    "users/libvolume_core.rlib": "ee5d3903915ddd6f7ded3921ca6274af975bcf59d5e42af57fa40562c244cacf",
+    "users/libnieuw_os_catalog_client.rlib": "9d1167e4b8bd856877a4b9fae973e88c1b1cfc754279e4986a58721447f61a64",
+    "users/libnieuw_os_document_session.rlib": "11f4e6062e27e0a627205ccd89debf6837a8695e78e17373269ba002ed104ca2"
+  }
+}

@@ -1,0 +1,216 @@
+{
+  "label": "document-session-recover",
+  "case": "recover",
+  "started_utc": "2026-10-30T00:04:22.137927+00:00",
+  "duration_s": 2.9894721689997823,
+  "timeout_s": 60,
+  "timed_out": false,
+  "raw_qemu_exit": 33,
+  "expected_exit": 33,
+  "required_markers": [
+    "BOOT:EBS_OK",
+    "KERNEL:ENTRY",
+    "BOOTINFO:OK",
+    "M6C:READY",
+    "M6C:CASE:RECOVER:PASS",
+    "M6C:SURVIVOR_PROGRESS:PASS",
+    "M6C:RESOURCES:PASS",
+    "M6C:PASS",
+    "M1:PASS"
+  ],
+  "forbidden_markers": [
+    "M1:FAIL",
+    "M2:FAIL",
+    "M3:FAIL",
+    "M4:FAIL",
+    "M5:FAIL",
+    "M6A:FAIL",
+    "M6B:FAIL",
+    "M6C:FAIL"
+  ],
+  "passed": true,
+  "command": [
+    "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/ci-document-deps/run/m6c-document-session-recover-f2f5f9541b/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/ci-document-deps/run/m6c-document-session-recover-f2f5f9541b/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/ci-document-deps/run/m6c-document-session-recover-f2f5f9541b/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=m6c-test,format=raw,cache=writeback,readonly=on,file=build/ci-document-deps/run/m6c-volume-document-session-normal-566eb23806/test-disk.img",
+    "-device",
+    "virtio-blk-pci,drive=m6c-test,id=m6cblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6C-TEST"
+  ],
+  "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+  "profile": "M6c pc-q35-8.2/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+  "firmware_source": [
+    "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_VARS_4M.fd"
+  ],
+  "base_commit": "0d70af000f58d2140bc71ad02055dc7486310a8d",
+  "source_fingerprint_version": 3,
+  "source_sha256": "c7f635961e64600c9eebb785fb42025e40efeb8e8c7324a46a8644d9b48d3118",
+  "observed_source_sha256": "c7f635961e64600c9eebb785fb42025e40efeb8e8c7324a46a8644d9b48d3118",
+  "source_unchanged": true,
+  "artifact_sha256": {
+    "esp/kernel.elf": "e87c2a08e592cba873c045ed5e31a84179e20bf6fccb2bd9fe99ca64703c7a2b",
+    "esp/EFI/BOOT/BOOTX64.EFI": "eb47f9a5519879c156aa5329151dafd89eaac04519bb1a2279854bcce7f49e27",
+    "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "OVMF_VARS.fd": "a5cec593169b8c7e74ebd4bcf133d26bf864762bf99ee866c4bbd0eaea1e2ef5",
+    "test-disk.before.img": "9f8e37040d7f3d79fabe2ae28782c538c5e656328b0537002f66738de1df6999",
+    "test-disk.after.img": "9f8e37040d7f3d79fabe2ae28782c538c5e656328b0537002f66738de1df6999",
+    "build-manifest.json": "2b507c4615b3a98937aa39ddf3ef7d509c00b6cab6cd52d34541d99b1bf1d5a0",
+    "volume-manifest.json": "00f177508040a2238ef2235b53571e62afa8c84e9635dd179ea7493d12e64311"
+  },
+  "volume_path": "/workspace/nieuw-os-worktrees/ci-deps/build/ci-document-deps/run/m6c-volume-document-session-normal-566eb23806/test-disk.img",
+  "disk_oracle": {
+    "scope": "independent Python v2 parser over actual synthetic 64KiB volume",
+    "identity": "566eb23806b54919b984c968c3f5ad50",
+    "seed": 10651983780169643632,
+    "variant": "normal",
+    "sha256_initial": "d506b54a69cb15f5bf20567d53397d3cb0b64d7b3c98794c76f5404cbc467855",
+    "sha256_after": "9f8e37040d7f3d79fabe2ae28782c538c5e656328b0537002f66738de1df6999",
+    "state": {
+      "sequence": 10,
+      "objects": [
+        {
+          "revision": 3,
+          "present": true,
+          "length": 128,
+          "digest": "b283dc2e26cecaa5",
+          "name_length": 16,
+          "name_digest": "8b2d238f15d9816a"
+        },
+        {
+          "revision": 2,
+          "present": false,
+          "length": 0,
+          "digest": "cbf29ce484222325",
+          "name_length": 0,
+          "name_digest": "cbf29ce484222325"
+        },
+        {
+          "revision": 3,
+          "present": true,
+          "length": 128,
+          "digest": "7a79c58355bc8925",
+          "name_length": 16,
+          "name_digest": "8b2d228f15d97fb7"
+        },
+        {
+          "revision": 2,
+          "present": false,
+          "length": 0,
+          "digest": "cbf29ce484222325",
+          "name_length": 0,
+          "name_digest": "cbf29ce484222325"
+        }
+      ]
+    },
+    "observed": {
+      "state": {
+        "sequence": 10,
+        "objects": [
+          {
+            "revision": 3,
+            "present": true,
+            "length": 128,
+            "digest": "b283dc2e26cecaa5",
+            "name_length": 16,
+            "name_digest": "8b2d238f15d9816a"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325",
+            "name_length": 0,
+            "name_digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 3,
+            "present": true,
+            "length": 128,
+            "digest": "7a79c58355bc8925",
+            "name_length": 16,
+            "name_digest": "8b2d228f15d97fb7"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325",
+            "name_length": 0,
+            "name_digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "acks": 0,
+      "rejected": 2,
+      "domain_revisions": [
+        5,
+        5
+      ],
+      "catalog_replies": 2
+    },
+    "checks": {
+      "outside_journal_unchanged": true,
+      "case_matches_volume_variant": true,
+      "fresh_mutator_before_image": true,
+      "journal_valid_or_explicit_rejection_case": true,
+      "guest_matches_independent_disk_state": true,
+      "read_only_stage_unchanged": true,
+      "record_payloads_and_names_match_native_scenario": true,
+      "expected_final_state": true,
+      "exact_mutation_ack_count": true,
+      "exact_catalog_reply_count": true,
+      "domain_revisions_exclude_foreign_mutations": true
+    },
+    "passed": true
+  },
+  "host_crash": {
+    "requested_cut": null,
+    "cut_lines": [],
+    "kill_requested": false,
+    "process_id": 76765,
+    "was_running_before_kill": false,
+    "required_live_hold_s": 0.05,
+    "termination_code_expected": -9,
+    "real_process_returncode": 33
+  },
+  "serial_sha256": "a0d0f3ab6c689b6ee8afefc2bf0659d9503122e984830ea78765ad89af760d86",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "previous_stage": "/workspace/nieuw-os-worktrees/ci-deps/build/ci-document-deps/run/m6c-document-session-normal-9c3b015c5d",
+  "outcome_marker_passed": true,
+  "fault_injection_scope": null,
+  "execution_error": null,
+  "oracle_error": null,
+  "run_directory": "/workspace/nieuw-os-worktrees/ci-deps/build/ci-document-deps/run/m6c-document-session-recover-f2f5f9541b",
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6C:READY\nM6C:SEQUENCE:10\nM6C:OBJECT0:REVISION:3\nM6C:OBJECT0:PRESENT:1\nM6C:OBJECT0:LENGTH:128\nM6C:OBJECT0:NAME_LENGTH:16\nM6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a\nM6C:OBJECT0:DIGEST:b283dc2e26cecaa5\nM6C:OBJECT1:REVISION:2\nM6C:OBJECT1:PRESENT:0\nM6C:OBJECT1:LENGTH:0\nM6C:OBJECT1:NAME_LENGTH:0\nM6C:OBJECT1:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT1:DIGEST:cbf29ce484222325\nM6C:OBJECT2:REVISION:3\nM6C:OBJECT2:PRESENT:1\nM6C:OBJECT2:LENGTH:128\nM6C:OBJECT2:NAME_LENGTH:16\nM6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7\nM6C:OBJECT2:DIGEST:7a79c58355bc8925\nM6C:OBJECT3:REVISION:2\nM6C:OBJECT3:PRESENT:0\nM6C:OBJECT3:LENGTH:0\nM6C:OBJECT3:NAME_LENGTH:0\nM6C:OBJECT3:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT3:DIGEST:cbf29ce484222325\nM6C:ACKS:0\nM6C:REJECTED_NO_IO:2\nM6C:CATALOG_REPLIES:2\nM6C:DOMAIN0:REVISION:5\nM6C:DOMAIN1:REVISION:5\nM6C:CASE:RECOVER:PASS\nM6C:SURVIVOR_PROGRESS:PASS\nM6C:BROKER:MAX_COMPLETION_TICKS:1\nM6C:BROKER:TIMEOUTS:0\nM6C:RESOURCES:PASS\nM6C:PASS\nM1:PASS\n",
+  "stderr": ""
+}

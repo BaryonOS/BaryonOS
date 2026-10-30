@@ -1,0 +1,16 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_document_session_*.py"
+  ],
+  "cwd": "/workspace/nieuw-os-worktrees/ci-deps",
+  "exit_code": 0,
+  "duration_s": 0.36060034399997676
+}

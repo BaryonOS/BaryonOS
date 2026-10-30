@@ -1,0 +1,8 @@
+Built own probe ELF: entry=0x40000000, 2 segments
+Built own ipc_probe ELF: entry=0x40000000, 3 segments
+Built own m5_probe ELF: entry=0x40000000, 3 segments
+Built own m6c_probe ELF: entry=0x40000000, 3 segments
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os-worktrees/ci-deps/kernel)
+    Finished `release` profile [optimized] target(s) in 1.63s
+Built and inspected document-session-recover: 3 ELF load segments

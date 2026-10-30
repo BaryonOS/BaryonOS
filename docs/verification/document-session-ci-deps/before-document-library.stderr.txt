@@ -1,0 +1,148 @@
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+  --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:10:9
+   |
+10 | pub use volume_core::{client::Stat, wire::ListEntry, Status, MAX_LENGTH};
+   |         ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+   |
+   = help: you might be missing a crate named `volume_core`
+
+error[E0432]: unresolved import `volume_core`
+ --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:9:5
+  |
+9 | use volume_core::{client, upload, wire, NAME, PER_DOMAIN};
+  |     ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+  |
+  = help: you might be missing a crate named `volume_core`
+
+error[E0432]: unresolved import `volume_core`
+  --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:10:9
+   |
+10 | pub use volume_core::{client::Stat, wire::ListEntry, Status, MAX_LENGTH};
+   |         ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+   |
+   = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+  --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:68:26
+   |
+68 |             || domain >= volume_core::DOMAINS
+   |                          ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+   |
+   = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:254:60
+    |
+254 |         let mut history = [client::HistoryInfo::default(); volume_core::HISTORY];
+    |                                                            ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:259:27
+    |
+259 |                 revision: volume_core::get64(data, at),
+    |                           ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:260:25
+    |
+260 |                 length: volume_core::get32(data, at + 8) as usize,
+    |                         ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:261:30
+    |
+261 |                 content_sum: volume_core::get64(data, at + 12),
+    |                              ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:266:31
+    |
+266 |             version_revision: volume_core::get64(data, 72),
+    |                               ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:270:26
+    |
+270 |             content_sum: volume_core::get64(data, 32),
+    |                          ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:271:25
+    |
+271 |             request_id: volume_core::get64(data, 40),
+    |                         ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:272:22
+    |
+272 |             created: volume_core::get64(data, 48),
+    |                      ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:273:23
+    |
+273 |             modified: volume_core::get64(data, 56),
+    |                       ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:274:19
+    |
+274 |             tags: volume_core::get32(data, 64),
+    |                   ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:499:12
+    |
+499 |         if volume_core::checksum_update(
+    |            ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:500:13
+    |
+500 |             volume_core::FNV_OFFSET,
+    |             ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:536:34
+    |
+536 |         if name.len() > NAME || !volume_core::valid_name(name) {
+    |                                  ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `volume_core`
+   --> /workspace/nieuw-os-worktrees/ci-deps/sdk/document-session/src/volume.rs:606:34
+    |
+606 |         if name.len() > NAME || !volume_core::valid_name(name) {
+    |                                  ^^^^^^^^^^^ use of unresolved module or unlinked crate `volume_core`
+    |
+    = help: you might be missing a crate named `volume_core`
+
+error: aborting due to 18 previous errors
+
+Some errors have detailed explanations: E0432, E0433.
+For more information about an error, try `rustc --explain E0432`.

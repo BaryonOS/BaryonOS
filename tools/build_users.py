@@ -82,6 +82,7 @@ def build_users(kind="probe", *, short_poll=False, sdk_runtime=False, document_s
         libraries["nieuw_os_sdk_runtime"] = runtime
         for crate, library_source in (
             ("catalog_core", "services/catalog/src/lib.rs"),
+            ("volume_core", "services/volume/src/lib.rs"),
             ("nieuw_os_catalog_client", "sdk/catalog-client/src/lib.rs"),
             ("nieuw_os_document_session", "sdk/document-session/src/lib.rs"),
         ):
@@ -90,9 +91,14 @@ def build_users(kind="probe", *, short_poll=False, sdk_runtime=False, document_s
                        "--crate-type=rlib", "--target=x86_64-unknown-none", "-C", "panic=abort",
                        "-C", "opt-level=2", "-C", "code-model=small", "-C", "relocation-model=static",
                        "-C", "no-redzone=yes", "-L", f"dependency={BUILD / 'users'}"]
-            if crate != "catalog_core":
-                for dependency, path in libraries.items():
-                    command += ["--extern", f"{dependency}={path}"]
+            dependencies = {
+                "catalog_core": (),
+                "volume_core": ("catalog_core",),
+                "nieuw_os_catalog_client": ("nieuw_os_sdk_runtime", "catalog_core"),
+                "nieuw_os_document_session": ("nieuw_os_sdk_runtime", "catalog_core", "nieuw_os_catalog_client", "volume_core"),
+            }
+            for dependency in dependencies[crate]:
+                command += ["--extern", f"{dependency}={libraries[dependency]}"]
             command += [str(ROOT / library_source), "-o", str(library)]
             run_logged(command, f"build-document-library-{crate}")
             libraries[crate] = library
@@ -133,7 +139,7 @@ def build_users(kind="probe", *, short_poll=False, sdk_runtime=False, document_s
                 manifest["module_sha256"][module.relative_to(ROOT).as_posix()] = sha256(module)
         if document_session:
             inputs = [ROOT / "userspace/document_session_probe.rs", ROOT / "sdk/Cargo.toml", ROOT / "sdk/Cargo.lock"]
-            for package in ("sdk/runtime", "sdk/catalog-client", "sdk/document-session", "services/catalog"):
+            for package in ("sdk/runtime", "sdk/catalog-client", "sdk/document-session", "services/catalog", "services/volume"):
                 inputs.append(ROOT / package / "Cargo.toml")
                 inputs.extend(sorted((ROOT / package / "src").rglob("*.rs")))
             manifest["module_sha256"].update({path.relative_to(ROOT).as_posix(): sha256(path) for path in inputs})
