@@ -1,5 +1,30 @@
 # Actuele projectstatus
 
+## NEXT AGENT HANDOFF — hardware, drivers en energie — 30 oktober 2026
+
+Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (`main`), branch
+`simonvanieperen-friendly-guacamole`. Opdracht: hardwarepunten H02–H06
+verderbrengen richting 12/12; de vaste meter blijft **34% totaal, hardware
+1/12**. H01 is het enige geaccepteerde hardwarepunt. H02 toetsenbord/muis/USB,
+H03 graphics/audio, H04 netwerkhardware, H05 energie/slaap/wek en H06 de
+fysieke ondersteuningsmatrix blijven open. De code bevat een afgebakende
+native PS/2/QMP-proef, maar geen USB/xHCI-driver of ACPI-energiepad. Criteria
+die fysieke metingen of meerdere fysieke configuraties vragen kunnen niet
+worden afgetekend met QEMU-bewijs.
+
+Uitgevoerd: `python3 -B -m unittest discover -s tools -p
+'test_display_probe.py'` — exit 0, 11 hosttests voor de bewijspoort. Dit
+controleert het harnas, niet een werkende guest-driver. De native poort is
+niet uitgevoerd: `cargo`, `rustc` en `qemu-system-x86_64` ontbreken in deze
+worktree; `python3 -B tools/dev.py cargo +1.90.0 --version` faalt met exit 1
+(`FileNotFoundError: cargo`). Geen fysiek apparaat gebruikt of gewijzigd.
+
+Eerstvolgend: herstel de vastgezette Nieuw OS-toolchain/QEMU-omgeving in deze
+worktree; voer daarna de bestaande native PS/2/QMP-poort uit en begin een
+afzonderlijk afgebakende USB/xHCI-driverstap. Houd H02–H06 open totdat elk
+criterium inclusief zijn vereiste native/fysieke bewijsniveaus is aangetoond.
+Er zijn geen dependencies, drivercode of hardwareclaims toegevoegd.
+
 ## NEXT AGENT HANDOFF — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
 
 Basis `ad2b981` (`main` na PR #63), branch

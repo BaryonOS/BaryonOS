@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ad2b981f`](https://github.com/simonvanieperen/nieuw-os/commit/ad2b981fe1f2bcccb03cb776b2281d32529d2f00) ·
-**Ontwikkelbranch:** `codex/b02-persistent-keystate-20261030`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B02-PERSIST-1: persistente sleutelstatus via administratief ingress en verzegeld record over een koude herstart.
-34% blijft 34%. KEY1-opcodes 11/12 met persistentie-only dispatcher, een apart administratief ingress in de native Key Service en init als herstelagent in het FR-I01-profiel zijn geïmplementeerd; 5 nieuwe wire-hosttests, 3 nieuwe harnastests, fmt/clippy, de FR-I01-gate (normaal + read-only koude herstart op dezelfde image), B01 5/5, vier RANDOM-gevallen, klok en netwerkgate slagen op fingerprint 32da9d61. Het 120-byte sleutelstatusblob en het 168-byte ciphertextrecord staan onafhankelijk geverifieerd op schijf; na herstart ontzegelt sleutel 1, blijft sleutel 0 ingetrokken en wordt manipulatie geweigerd. B02 blijft open: geen vertrouwd rollbackanker, geen write-ahead per GENERATE in de dienst, synthetische volume-identiteit; geen rubriccriterium gesloten en geen menselijke audit.
+**Bron:** [`f52dab50`](https://github.com/simonvanieperen/nieuw-os/commit/f52dab50af281dab2c94ab2c9e31aaabd299246a) ·
+**Ontwikkelbranch:** `simonvanieperen-friendly-guacamole`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hardware, drivers en energie: inventarisatie H02-H06 en controle van de bestaande native PS/2-bewijspoort.
+34% blijft 34%; hardware blijft 1/12. H01 is het enige geaccepteerde hardwarecriterium. De bestaande display/PS2-harnaspoort slaagt met 11 hosttests via `python3 -B -m unittest discover -s tools -p 'test_display_probe.py'`; dit is geen native device-run. Cargo, rustc en qemu-system-x86_64 ontbreken in deze worktree; de vastgezette toolchaincontrole via `python3 -B tools/dev.py cargo +1.90.0 --version` faalt daarom met exit 1. H02-H06 blijven open: USB/xHCI ontbreekt, graphics/audio en netwerk vereisen aanvullende hardwarefuncties, energie/slaap/wek en meerdere fysieke profielen zijn niet gemeten. Geen native QEMU-run, fysieke hardwaretest of nieuw rubricpunt geclaimd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
