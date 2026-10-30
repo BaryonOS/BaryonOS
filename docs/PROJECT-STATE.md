@@ -1,34 +1,41 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — appbronbeheer-policy, A02-deelstap — 30 oktober 2026
+<!-- coderabbit-ai-generated:v1 -->
 
-Bron `be830818bd88a6670d0facb524e8f1f7da3274b6`, branch
-`codex/apps-sdk-packages`, gepusht en remote-head gecontroleerd. PR #73 staat
-terug op concept (`isDraft=true`). De roadmap blijft **34% totaal;
-Apps/SDK/installatie 2/8**: alleen A01 is geaccepteerd. Geen A02-punt.
+<!-- coderabbit-ai-generated-section:v1:f1220049313b6ef23c451d08e0c815e2b0476f4b6ddf964e2689c97ecf2b90b6 -->
 
-`app-package-core` bevat nu:
-- hybride `NOSAPP01`-pakketcontrole en hergebruik van
-  `kernel_core::user::parse`; signer-valid W+X ELF wordt geweigerd;
-- vaste in-memory `SourceRegistry` met expliciete bron-ID, sleutelrotatie op
-  verwachte generatie, intrekking en begrensde/duplicate-key checks;
-- ingetrokken bron verhindert nieuwe packageverificaties; reeds geïnstalleerde
-  apps blijven starten conform Simons besluit van 30 oktober 2026.
+## NEXT AGENT HANDOFF — apppakket en app-management, A02-deelstap — 30 oktober 2026
 
-Acht package-/sourcehosttests, Clippy, `x86_64-unknown-none`-librarybuild,
-fmt en diffcontrole slagen. Exacte commando's, SHA-256 en grenzen:
-[`app-package-source-policy`](verification/app-package-source-policy/README.md).
-Geen guest-VM-proef uitgevoerd. De bronregistry is niet duurzaam, heeft geen
-consent-UI/capabilitygrens en integreert niet met een installer of launchpad.
+Beoordeelde bron `9d8a1196f3ee6eba2fefa14fe8cf22c568dfdbfe`, branch
+`codex/apps-sdk-packages`. Huidige checkout-HEAD is
+`dce3b05aa358f4dbde6f2349b426217779b40052`, met twee latere codecommits;
+onderstaand testbewijs is niet aan die HEAD toegeschreven. De roadmap blijft
+**34% totaal, Apps/SDK/installatie 2/8**; alleen A01 is geaccepteerd.
 
-Nog open: persistente bron-/pakkettransacties, bronintrekking na koude
-herstart, update/verwijderen en cold recovery, native dynamische
-`LaunchImage`-keten (A02), zichtbare/intrekbare taakrechten via Materiaal
-(A03), en nuttige apps met realistische native taken (A04). Eerstvolgende
-stap: werk een beperkte native installer-service uit boven de bestaande
-volume- en supervisorgrenzen, inclusief kernel-geautoriseerde image-start,
-en toets haar met een echte QEMU positieve/negatieve installatieproef.
-QEMU 11.1.0/firmware zijn worktree-lokaal beschikbaar; alleen wegwerpimages.
+`app-package-core` biedt hybride `NOSAPP01`-verificatie, ELF-policy en een
+in-memory bronregistry met generatiegebonden rotatie en intrekking. De
+zelfstandige `sdk/app-management` bevat een begrensd protocol, immutable
+artifact-readcontract en in-memory transactiewachter voor geordende chunks,
+commit, cancel en onbekende uitkomsten. Intrekking van een bron blokkeert
+nieuwe verificatie; bestaande geïnstalleerde apps blijven starten.
+
+Volgens de [eigenaarrapportage](https://github.com/simonvanieperen/nieuw-os/commit/caa2c14da15c5ac82b5493b3b2407167163d00d9)
+slaagden op `9d8a1196`
+acht package-core- en tien app-management-hosttests, Clippy, fmt en de
+`x86_64-unknown-none`-librarybuild. De app-managementtests gebruiken fake
+backends; er is geen duurzaam journaal of bewezen cold recovery. Workflow
+[`app-management-quality.yml`](../.github/workflows/app-management-quality.yml)
+bevat deze controles; op PR-head `9d8a1196` is geen CI-run aangetoond.
+Eerder package-bewijs: [bronpolicy](verification/app-package-source-policy/README.md).
+
+Open blijven onder meer duurzame bron- en pakkettransacties, installer,
+update/verwijderen, native `LaunchImage` en taakrechten (A02/A03/A04).
+Eerstvolgend: werk een native installer boven de volume- en supervisorgrenzen
+uit en toets installatie met positieve en negatieve QEMU-proeven. Controleer
+eerst de huidige code met `cargo +1.90.0 test --locked --manifest-path
+sdk/app-management/Cargo.toml`.
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## Afgerond checkpoint — hardware, drivers en energie — 30 oktober 2026
 
