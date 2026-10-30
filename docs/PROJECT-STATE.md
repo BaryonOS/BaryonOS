@@ -23,7 +23,7 @@ dezelfde expliciete VGA-ROM. Daarna `native-system-materiaal` bouwen onder
 `build/native-test-version/interactive-current` en previewrunner starten met
 `--interactive-reference-run` naar de echte geslaagde referentierun.
 Nog geen native acceptatie/ZIP op deze combinatie; **34% → 34%; 50% open**.
-Nieuwste main-docscommit0ade801 nog apart te integreren; geen runtimecode.
+Main-docscommit0ade801 is eveneens meegenomen; geen runtimecode gewijzigd.
 
 ## Uitvoeringshistorie — B02-netwerk normaal/koud groen; interactieve variant volgt
 
@@ -500,6 +500,48 @@ De werkbranch is gepusht. Een nieuwe concept-PR is nog niet geopend:
 de app-sessie is aan de oudere infrastructuurbranch gebonden, terwijl
 de OS-werkbranch bewust apart staat; de sessie-PR-tool kan geen andere head kiezen.
 Geen nieuwe voortgangspunten, geen menselijke/hardware-/releaseacceptatie.
+
+## Historisch checkpoint — hardware, drivers en energie — 30 oktober 2026
+
+Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (`main`), branch
+`simonvanieperen-friendly-guacamole`. Opdracht: hardwarepunten H02–H06
+verderbrengen richting 12/12; de vaste meter blijft **34% totaal, hardware
+1/12**. H01 is het enige geaccepteerde hardwarepunt. H02 toetsenbord/muis/USB,
+H03 graphics/audio, H04 netwerkhardware, H05 energie/slaap/wek en H06 de
+fysieke ondersteuningsmatrix blijven open. De code bevat een afgebakende
+native PS/2/QMP-proef, maar geen USB/xHCI-driver of ACPI-energiepad. Criteria
+die fysieke metingen of meerdere fysieke configuraties vragen kunnen niet
+worden afgetekend met QEMU-bewijs.
+
+Uitgevoerd: `python3 -B -m unittest discover -s tools -p
+'test_display_probe.py'` — exit 0, 11 hosttests voor de bewijspoort; dit
+controleert het harnas, niet een guest-driver. De vastgezette Rust 1.90.0-
+toolchain is lokaal onder `.tools/nieuw-os` hersteld met de officieel
+gepubliceerde rustup-installer; SHA-256 gecontroleerd vóór uitvoering en geen
+globale PATH-/systeemwijziging. Op `drivers/ps2` slagen Clippy, fmt en de
+release-librarybuild voor `x86_64-unknown-none` (elk exit 0). De PS/2-hosttest
+faalt met exit 101 omdat de systeem-C-linker `cc` en hostruntimebibliotheken
+ontbreken.
+
+Simon heeft de map `C:\Program Files\qemu` meegestuurd. In WSL is dit
+`/mnt/c/Program Files/qemu`; QEMU 11.1.0 start via WSL-interoperabiliteit,
+QMP via stdin/stdout is bevestigd, en de package bevat
+`edk2-x86_64-code.fd`, `edk2-i386-vars.fd` en `vgabios-stdvga.bin`. De
+projecttoolmap verwijst lokaal naar die binaries/firmware, zonder wijzigingen
+aan de Windows-installatie of tracked source. `python3 -B tools/preflight.py
+--strict` slaagt en rapporteert beide Rust-targets en x86_64-codefirmware
+beschikbaar. Dit is alleen tool-/firmware-inventaris; native guestboot is nog
+niet uitgevoerd. Geen fysiek apparaat gebruikt of gewijzigd.
+
+Eerstvolgend: `python3 -B -u tools/build.py --kernel-feature
+native-display-probe`, daarna de bestaande
+`tools/run_display_probe.py --machine pc-q35-8.2 --qmp-transport pipe` met de
+meegeleverde VGA-ROM. De 11.1-binary verschilt van de 10.0.13-CI-binary; de
+runner moet die exacte versie en hashes vastleggen. Als native poort slaagt,
+is dat afgebakend QEMU-bewijs voor de PS/2-display/input-slice, niet fysieke
+acceptatie van H02. Daarna volgt een afzonderlijke USB/xHCI-stap. H02–H06
+blijven open totdat hun volledige vereiste native/fysieke bewijsniveaus zijn
+aangetoond; geen rubricpunt toegekend.
 
 ## Historisch checkpoint — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
 
