@@ -231,6 +231,154 @@ fn conflict_revocation_and_io_error_keep_unconfirmed_work_visible_impl() {
     }
 }
 
+fn sr06_failed_save_blocks_actions(modal: bool) {
+    for fault in 0..2 {
+        let host = Host::new();
+        host.borrow_mut().seed(0, b"Original");
+        let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+        let mut ui = controller(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        ui.open(0).unwrap();
+        ui.insert("Mine ").unwrap();
+        if fault == 0 {
+            host.borrow_mut().seed(0, b"Their version");
+        } else {
+            let root = host.borrow().request_root;
+            host.borrow_mut().engine.revoke(2, root).unwrap();
+        }
+        assert!(ui
+            .save()
+            .and_then(|()| {
+                while !ui.advance_save()? {}
+                Ok(())
+            })
+            .is_err());
+        assert!(!ui.view().can_save);
+        assert_eq!(ui.view().contents, Some("Mine Original"));
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        let save = nodes[..count]
+            .iter()
+            .find(|node| node.id == SemanticId::Save)
+            .unwrap();
+        assert!(!save.enabled && !save.actions.activate && !save.focused);
+        assert_eq!(
+            ui.activate_semantic(SemanticId::Save, ui.view().generation),
+            Err(Error::InvalidInput)
+        );
+        if !modal {
+            continue;
+        }
+        ui.request_back().unwrap();
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        let save = nodes[..count]
+            .iter()
+            .find(|node| node.id == SemanticId::SaveAndBack)
+            .unwrap();
+        assert!(
+            !save.enabled && !save.actions.activate && !save.focused,
+            "SR06 unavailable modal SaveAndBack remains advertised for fault {fault}"
+        );
+    }
+}
+
+fn sr06_failed_save_blocks_editor_save_actions_impl() {
+    sr06_failed_save_blocks_actions(false);
+}
+
+fn sr06_failed_save_blocks_modal_save_actions_impl() {
+    sr06_failed_save_blocks_actions(true);
+}
+
+fn sr08_uncertain_semantics_never_offer_save_or_replay_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed(0, b"Old");
+    let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.open(0).unwrap();
+    ui.insert("Keep ").unwrap();
+    let old_generation = ui.view().generation;
+    ui.save().unwrap();
+    ui.advance_save().unwrap();
+    host.borrow_mut().drop_commit = true;
+    assert!(ui.advance_save().is_err());
+    let requests = host.borrow().requests.len();
+    for stage in 0..3 {
+        if stage == 1 {
+            ui.rebind_input(99).unwrap();
+        } else if stage == 2 {
+            let mut select = envelope(1, 1, control(PhysicalKey::A));
+            select.epoch = 99;
+            ui.deliver(select).unwrap();
+            ui.insert("Old").unwrap();
+        }
+        assert!(ui.document().is_uncertain());
+        assert!(!ui.document().is_saving());
+        assert!(!ui.view().can_save);
+        assert_eq!(
+            ui.view().status,
+            Status::Failed(Error::Storage(StorageError::Uncertain))
+        );
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        let save = nodes[..count]
+            .iter()
+            .find(|node| node.id == SemanticId::Save)
+            .unwrap();
+        assert!(!save.enabled && !save.actions.activate && !save.focused);
+        let status = nodes[..count]
+            .iter()
+            .find(|node| node.id == SemanticId::Status)
+            .unwrap();
+        assert_eq!(
+            status.label,
+            nieuw_os_materiaal::render::status_label(Status::Failed(Error::Storage(
+                StorageError::Uncertain
+            )))
+        );
+        assert!(status.label.contains("onzeker"));
+        assert!(nodes[..count]
+            .iter()
+            .all(|node| !node.label.contains("Opnieuw")));
+        assert_eq!(
+            ui.activate_semantic(SemanticId::Save, old_generation),
+            Err(Error::StaleInput)
+        );
+        assert_eq!(
+            ui.activate_semantic(SemanticId::Save, ui.view().generation),
+            Err(Error::InvalidInput)
+        );
+        assert_eq!(ui.save(), Err(Error::Storage(StorageError::Uncertain)));
+        assert_eq!(host.borrow().requests.len(), requests);
+    }
+    let mut h = host.borrow_mut();
+    assert_eq!(
+        h.requests
+            .iter()
+            .filter(|request| request.operation == wire::COMMIT)
+            .count(),
+        1
+    );
+    assert_eq!(h.recover().entries[0].revision, 2);
+    assert_eq!(h.bytes(0), b"Keep Old");
+}
+
 fn wrong_reply_identity_cannot_populate_a_fake_object_list_impl() {
     let host = Host::new();
     host.borrow_mut().seed(0, b"Data");
@@ -980,6 +1128,18 @@ macro_rules! scenario {
         }
     };
 }
+scenario!(
+    sr06_failed_save_blocks_editor_save_actions,
+    sr06_failed_save_blocks_editor_save_actions_impl
+);
+scenario!(
+    sr06_failed_save_blocks_modal_save_actions,
+    sr06_failed_save_blocks_modal_save_actions_impl
+);
+scenario!(
+    sr08_uncertain_semantics_never_offer_save_or_replay,
+    sr08_uncertain_semantics_never_offer_save_or_replay_impl
+);
 scenario!(
     sr05_escape_preserves_dirty_document_from_every_dialog_focus,
     sr05_escape_preserves_dirty_document_from_every_dialog_focus_impl
