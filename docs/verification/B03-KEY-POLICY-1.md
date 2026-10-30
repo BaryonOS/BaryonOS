@@ -1,6 +1,47 @@
 # B03-KEY-POLICY-1 — native signing-key lifecycle
 
-## Actuele herhaling na main94-integratie
+## Actuele herhaling na mainca45-integratie
+
+30 oktober 2026: main `ca45a7dabe6a040921de03bdc2fad3e5045a75ba`
+(#70, DHCP-codec) inhoudsbehoudend opgenomen op echte nieuwe testbron
+`69d5c3acce8a97e38895f284f13d3de3dbf4a5d9`. De merge was conflictvrij.
+Nieuwe v3-fingerprint
+`df5a6f39dc081340d8d40dd6c1ba1eaa7bc40ecf372e728ba1df67120b3a73b9`;
+geen oud main94-bewijs herlabeld. Updatecode, policy, loader/dienst en
+updateharnas zijn per diff ongewijzigd tegenover798ef70. DHCP-codec en
+reviewfixes, rootlock, vendor/preflight, SDK-WAIT/admin/RANDOM, centrale
+status/score/queue zijn per diff exact mainca45 behouden.
+
+Op deze bron opnieuw uitgevoerd in dezelfde hieronder beschreven omgeving:
+`python3 -B -u tools/test_update.py` exit0:18/18 echte QEMU-stages,
+15 Rusttests en12 Python-harnastests. Ook
+`cargo +1.90.0 clippy --offline --locked -p update-core -p update-tool --all-targets -- -D warnings`
+exit0 (eigen target/security-update en lokale hostlinker),
+`cargo +1.90.0 fmt --check -p update-core -p update-tool -p os-loader`
+exit0,
+`cargo +1.90.0 fmt --check --manifest-path sdk/Cargo.toml -p nieuw-os-update-example`
+exit0,
+`python3 -B -m unittest discover -s tests -p test_preflight.py`
+exit0/24tests, en `python3 -B tools/progress.py --check` exit0/34.
+Geen centrale assessmentwrite of nieuwe punten.
+
+`python3 -B tools/capture_update.py --destination docs/verification/b03-key-policy-mainca45`
+exit0; nieuwe capture `b03-key-policy-mainca45/`. Gate-JSON SHA256
+`f1c711e78d450c828d0b854857409460fadf7b1131ba74f033025f2635318475`.
+Volledig commandolog `/tmp/nieuw-os-security-update-mainca45.log`, tevens
+ongewijzigd als `native-gate.log`; gerichte
+`/tmp/nieuw-os-security-{update-clippy,preflight}-mainca45.log`.
+De capturehashes worden opnieuw tegen de Git-blobs gecontroleerd.
+
+Actuele-head-CI en lifecyclebesluit blijven afzonderlijk nodig; oude
+798-CI is geen nieuwe headacceptatie. De eerdere codegerichte AI-peerreview
+betrof ongewijzigde updatecode, geen menselijke audit of nieuwe integratie.
+Niet uitgevoerd: volledige overige lokale native matrix, fysieke hardware
+en externe menselijke deskundigenreview. #41 en alle eerder beschreven
+beleidsdistributie-/antirollback-/productieceremoniegrenzen blijven open.
+Score34→34/security4of12, centrale eigenaar blijft TL.
+
+## Historische herhaling na main94-integratie
 
 30 oktober 2026: main `94c8908ee363d06a5be51417c5cae635549d566f`
 (squashintegratie #66) inhoudsbehoudend opgenomen op geteste Gitbron
