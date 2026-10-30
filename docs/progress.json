@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "295b4db9ce978d6b020effce08abdc7535554625",
+    "source_commit": "652cd5d4c9c68afb0b143c0147197aa7fc6f8220",
     "branch": "simonvanieperen-expert-disco",
-    "task": "RTC-NATIVE-1: native alleen-lezen kalenderklok als directe tijdproviderafhankelijkheid",
+    "task": "NATIVE-CLOCK-1: opt-in ring-3 UTC-clock-API met expliciet niet-vertrouwde RTC-kwaliteit",
     "previous_score": 34,
-    "summary": "34% blijft 34%. RTC-NATIVE-1 heeft vijf echte kalenderboots, zeven M2-regressie-VM's, M6c-smoke en gerichte/brede hostchecks op c02675e, plus een echte groene RTC-CI-run op 295b4db met dezelfde runtimebron; bewijs staat onder docs/verification/rtc-native. OVMF herschrijft de epoch-/2100-eeuw: het orakel weigert beide. Geen productie-TimeProvider, vertrouwde certificaattijd of volledig rubriccriterium door deze beperkte FR-S03/FR-N03-afhankelijkheid gesloten. Alle 62 productcriteria, fysieke hardware en menselijke acceptatie blijven open."
+    "summary": "34% blijft 34%. NATIVE-CLOCK-1 implementeert een opt-in ABI 1.9-ring-3-API en SDK die RTC-tijd steeds als UnauthenticatedRtc labelen; gerichte host-/SDK-tests en native kernel/ELF-build zijn geslaagd, maar de nieuwe QEMU-runtimegate is nog niet uitgevoerd. Dit is een beperkte FR-S03/FR-N03-afhankelijkheid en sluit geen volledig rubriccriterium. Geen vertrouwde TimeProvider, certificaattijd, fysieke hardware of volledige releaseacceptatie geclaimd; alle 62 productcriteria en menselijke acceptatie blijven open."
   },
   "tracks": [
     {

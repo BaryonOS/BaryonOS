@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`295b4db9`](https://github.com/simonvanieperen/nieuw-os/commit/295b4db9ce978d6b020effce08abdc7535554625) ·
+**Bron:** [`652cd5d4`](https://github.com/simonvanieperen/nieuw-os/commit/652cd5d4c9c68afb0b143c0147197aa7fc6f8220) ·
 **Ontwikkelbranch:** `simonvanieperen-expert-disco`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** RTC-NATIVE-1: native alleen-lezen kalenderklok als directe tijdproviderafhankelijkheid.
-34% blijft 34%. RTC-NATIVE-1 heeft vijf echte kalenderboots, zeven M2-regressie-VM's, M6c-smoke en gerichte/brede hostchecks op c02675e, plus een echte groene RTC-CI-run op 295b4db met dezelfde runtimebron; bewijs staat onder docs/verification/rtc-native. OVMF herschrijft de epoch-/2100-eeuw: het orakel weigert beide. Geen productie-TimeProvider, vertrouwde certificaattijd of volledig rubriccriterium door deze beperkte FR-S03/FR-N03-afhankelijkheid gesloten. Alle 62 productcriteria, fysieke hardware en menselijke acceptatie blijven open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-CLOCK-1: opt-in ring-3 UTC-clock-API met expliciet niet-vertrouwde RTC-kwaliteit.
+34% blijft 34%. NATIVE-CLOCK-1 implementeert een opt-in ABI 1.9-ring-3-API en SDK die RTC-tijd steeds als UnauthenticatedRtc labelen; gerichte host-/SDK-tests en native kernel/ELF-build zijn geslaagd, maar de nieuwe QEMU-runtimegate is nog niet uitgevoerd. Dit is een beperkte FR-S03/FR-N03-afhankelijkheid en sluit geen volledig rubriccriterium. Geen vertrouwde TimeProvider, certificaattijd, fysieke hardware of volledige releaseacceptatie geclaimd; alle 62 productcriteria en menselijke acceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

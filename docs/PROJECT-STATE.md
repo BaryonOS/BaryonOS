@@ -2,9 +2,10 @@
 
 ## NEXT AGENT HANDOFF — NATIVE-CLOCK-1 in uitvoering — 30 oktober 2026
 
-Bronbasis `c057d864e413840644da39b6c8338e883cbe2ff4`, branch
-`simonvanieperen-expert-disco`; doelbranch `main`. De nog niet
-gecommitteerde NATIVE-CLOCK-1-wijzigingen zijn behouden.
+Bronbasis `c057d864e413840644da39b6c8338e883cbe2ff4`, implementatiecheckpoint
+`652cd5d4c9c68afb0b143c0147197aa7fc6f8220`, branch
+`simonvanieperen-expert-disco`; doelbranch `main`. De feature is lokaal
+gecommit; push en remote-headcontrole volgen vóór de native gate.
 De aparte workspace-doctestblokkade blijft buiten deze taak. De bestaande
 RTC-NATIVE-1-proef en concept-PR #63 zijn behouden.
 
