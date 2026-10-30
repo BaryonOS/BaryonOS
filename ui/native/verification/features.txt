@@ -1,0 +1,44 @@
+command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "tree", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "-e", "features"]
+exit: 0
+
+stdout:
+nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os-worktrees/native-materiaal/ui/native)
+├── nieuw-os-catalog-client feature "default"
+│   └── nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os-worktrees/native-materiaal/sdk/catalog-client)
+│       ├── catalog-core feature "default"
+│       │   └── catalog-core v0.1.0 (/workspace/nieuw-os-worktrees/native-materiaal/services/catalog)
+│       └── nieuw-os-sdk-runtime feature "default"
+│           └── nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os-worktrees/native-materiaal/sdk/runtime)
+├── nieuw-os-sdk-runtime feature "default" (*)
+├── nieuw-os-document-session feature "default"
+│   └── nieuw-os-document-session v0.1.0 (/workspace/nieuw-os-worktrees/native-materiaal/sdk/document-session)
+│       ├── nieuw-os-catalog-client feature "default" (*)
+│       ├── catalog-core feature "default" (*)
+│       ├── nieuw-os-sdk-runtime feature "default" (*)
+│       └── volume-core feature "default"
+│           └── volume-core v0.1.0 (/workspace/nieuw-os-worktrees/native-materiaal/services/volume)
+│               └── catalog-core feature "default" (*)
+├── volume-core feature "default" (*)
+├── nieuw-os-input-core feature "default"
+│   └── nieuw-os-input-core v0.1.0 (/workspace/nieuw-os-worktrees/native-materiaal/services/input-core)
+│       ├── nieuw-os-sdk-runtime feature "default" (*)
+│       └── ui-core feature "default"
+│           └── ui-core v0.1.0 (/workspace/nieuw-os-worktrees/native-materiaal/crates/ui-core)
+├── ui-core feature "default" (*)
+├── noto-sans-mono-bitmap feature "regular"
+│   └── noto-sans-mono-bitmap v0.3.2
+├── noto-sans-mono-bitmap feature "size_16"
+│   └── noto-sans-mono-bitmap v0.3.2
+├── noto-sans-mono-bitmap feature "size_32"
+│   └── noto-sans-mono-bitmap v0.3.2
+├── noto-sans-mono-bitmap feature "unicode-basic-latin"
+│   └── noto-sans-mono-bitmap v0.3.2
+├── noto-sans-mono-bitmap feature "unicode-latin-1-supplement"
+│   └── noto-sans-mono-bitmap v0.3.2
+└── noto-sans-mono-bitmap feature "unicode-specials"
+    └── noto-sans-mono-bitmap v0.3.2
+[dev-dependencies]
+└── capability-core feature "default"
+    └── capability-core v0.1.0 (/workspace/nieuw-os-worktrees/native-materiaal/crates/capability-core)
+
+stderr:

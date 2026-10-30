@@ -1,0 +1,8 @@
+command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "clippy", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "--all-targets", "--", "-D", "warnings"]
+exit: 0
+
+stdout:
+
+stderr:
+    Checking nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os-worktrees/native-materiaal/ui/native)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.55s
