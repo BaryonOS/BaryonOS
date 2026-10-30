@@ -37,6 +37,7 @@ pub fn detach(pid: u64) {
         r.owner = None;
     }
 }
+#[cfg(any(feature = "native-display-probe", feature = "native-system-materiaal-probe"))]
 pub fn counts() -> [u64; 3] {
     let r = runtime();
     [r.blits, r.pixels, r.denied]
