@@ -179,6 +179,8 @@ pub(super) fn manifest(s: &mut State) {
         .sum();
     s.free_baseline = s.free_count().checked_add(releasable).unwrap();
     evidence().kernel_tables = s.kernel.owned_table_count();
+    print_number(b"NAS:ADMIN_PID:", admin);
+    print_number(b"NAS:GUEST_PID:", guest);
     serial::write(b"NAS:MANIFEST:PASS\n");
 }
 pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
