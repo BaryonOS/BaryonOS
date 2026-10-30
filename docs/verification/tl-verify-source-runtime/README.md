@@ -133,6 +133,13 @@ originele `result.json`. Ruwe serialbytes zijn apart opgenomen.
 uitsluitend een bewijshercontrole/generator, geen alternatief runorakel.
 De bestaande runners/orakels zijn niet gewijzigd.
 
+Git normaliseerde aanvankelijk twee CRLF-regeleinden in elke serialkopie.
+De eerste committed-bytecontrole gaf daarom exit 1. De lokale
+`.gitattributes` en een expliciete `git add --renormalize` herstellen dit;
+de daarna uitgevoerde vergelijking van `git show HEAD:<serialpad>` met
+de werkelijke runbytes en opgenomen SHA-256 slaagt, exit 0.
+De gastuitvoering en originele runbestanden zijn daarvoor niet veranderd.
+
 ## Open grenzen en overdracht
 
 Deze proef toont begrensde functionele uitvoering van dezelfde bron met
