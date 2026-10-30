@@ -40,6 +40,9 @@ test-system-recover = ["native-system"]
 # Real NIC integration; the base joint profile never probes or maps a NIC.
 native-system-net = ["native-system", "dep:virtio-net-driver"]
 test-system-net-recover = ["native-system-net", "test-system-recover"]
+# Bounded native TCP fixture; protocol processing stays in the ring-3 app.
+native-system-tcp = ["native-system-net", "monotonic-clock", "fpu-context"]
+test-system-tcp-recover = ["native-system-tcp", "test-system-recover"]
 # B01 entropy broker + Key Service profile: virtio-rng broker, two services, one app.
 native-keyring = ["milestone-m4", "dep:virtio-rng-driver"]
 test-keyring-no-device = ["native-keyring"]

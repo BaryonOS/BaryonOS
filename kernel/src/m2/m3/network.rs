@@ -402,7 +402,17 @@ pub(super) fn print_and_check(tx: u64, rx: u64) {
     assert_eq!(r.tx_submitted, r.tx_completed);
     assert_eq!(tx, r.tx_completed);
     assert_eq!(rx, r.rx_delivered);
-    assert!(r.tx_completed >= 4 && r.rx_delivered >= 5 && r.denied >= 7 && r.timeouts == 0);
+    // Only observer expectations differ. Authority checks, owned copy plans,
+    // DMA lifetime, finite TX deadlines and reset/quarantine are unchanged.
+    if cfg!(feature = "native-system-tcp") {
+        assert!(r.tx_completed > 0 && r.rx_delivered > 0 && r.rx_completed >= r.rx_delivered);
+        assert_eq!(r.denied, 1); // Actual receive with the closed NetworkSource.
+        assert_eq!(r.timeouts, 0); // Transport blackhole is not a DMA timeout.
+        assert_eq!(r.resets, 1);
+        assert_eq!(r.reset_acks, 1);
+    } else {
+        assert!(r.tx_completed >= 4 && r.rx_delivered >= 5 && r.denied >= 7 && r.timeouts == 0);
+    }
     for (label, value) in [
         (&b"SYSTEM:NET_TX_SUBMITTED:"[..], r.tx_submitted),
         (b"SYSTEM:NET_TX_COMPLETED:", r.tx_completed),

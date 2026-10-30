@@ -22,6 +22,7 @@ from run_volume import execute
 import volume_disk
 
 FEATURE = {"normal": "native-system", "recover": "test-system-recover"}
+TCP_FEATURE = {"normal": "native-system-tcp", "recover": "test-system-tcp-recover"}
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 MAX_TIMEOUT = 180
 
@@ -58,8 +59,10 @@ def network_arguments(port: int) -> list[str]:
             "-device", "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile="]
 
 
-def check_parent(previous: dict, frozen: str, image_sha256: str, *, network: bool) -> None:
-    parent_feature = "native-system-net" if network else FEATURE["normal"]
+def check_parent(previous: dict, frozen: str, image_sha256: str, *, network: bool, tcp=False) -> None:
+    if tcp and not network:
+        raise ValueError("TCP recovery requires the native network profile")
+    parent_feature = TCP_FEATURE["normal"] if tcp else ("native-system-net" if network else FEATURE["normal"])
     if not (previous.get("case") == "normal" and previous.get("passed") is True
             and previous.get("kernel_feature") == parent_feature
             and previous.get("source_sha256") == frozen
@@ -69,6 +72,8 @@ def check_parent(previous: dict, frozen: str, image_sha256: str, *, network: boo
     # verdict. A process crash in that interval cannot authorize net recovery.
     if network and previous.get("network_gate") is not True:
         raise ValueError("network recovery requires the completed network peer gate")
+    if tcp and previous.get("tcp_gate") is not True:
+        raise ValueError("TCP recovery requires the completed TCP peer gate")
 
 
 def expected_markers(case: str) -> tuple[str, ...]:
@@ -152,9 +157,10 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         raise ValueError("unknown case or unbounded timeout")
     selected = FEATURE[case] if kernel_feature is None else kernel_feature
     network_feature = {"normal": "native-system-net", "recover": "test-system-net-recover"}[case]
-    if selected not in (FEATURE[case], network_feature):
+    if selected not in (FEATURE[case], network_feature, TCP_FEATURE[case]):
         raise ValueError("wrong native system feature for this case")
-    use_network = selected == network_feature
+    use_tcp = selected == TCP_FEATURE[case]
+    use_network = selected == network_feature or use_tcp
     if use_network != (type(network_port) is int and 1024 <= network_port <= 65535):
         raise ValueError("network profile requires a dedicated local test peer port")
     if not use_network and network_port is not None:
@@ -191,7 +197,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         volume_dir.relative_to((BUILD / "run").resolve())
         check_image(volume_dir / "volume.img")
         previous = json.loads((volume_dir / "last-system-stage.json").read_text())
-        check_parent(previous, frozen, sha256(volume_dir / "volume.img"), network=use_network)
+        check_parent(previous, frozen, sha256(volume_dir / "volume.img"), network=use_network, tcp=use_tcp)
     image = volume_dir / "volume.img"
     check_image(image)
     before = sha256(image)
@@ -232,6 +238,8 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
                     for p in (run_dir / "esp").rglob("*") if p.is_file()}, passed=False)
     if use_network:
         report["network_gate"] = False
+    if use_tcp:
+        report["tcp_gate"] = False
     try:
         report["evidence"] = evaluate(case, stdout, rc, timed_out)
         if case == "recover" and before != after:

@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "task": "TASK-TCP",
+  "date_utc": "2026-10-30",
+  "base_commit": "966cd32c9acfe878f267e1eacd3028e86e3753d2",
+  "evidence": "host-model-and-freestanding-build-only",
+  "native_passed": false,
+  "toolchain": "1.91.1",
+  "host_tests": 15,
+  "source_hashes": {
+    "sdk/examples/system/src/support.rs": "413ecb19b093f67c406666fa52bc6a4949cd592b5f463e0400fc2c3d5545b153",
+    "sdk/examples/tcp-probe/Cargo.lock": "1c2d2e996503f4ee28484ca3d3c14a67cd75b4d55cdc96efd9eb53043cf98930",
+    "sdk/examples/tcp-probe/Cargo.toml": "2dbfb964b4303731bf48f3b9c40a07c4f0477041cc262802498db8ae0141fd22",
+    "sdk/examples/tcp-probe/build.py": "4516c8173419fb9e31a4b66b057446b26dee9565328599fa8763acdaa204bc3d",
+    "sdk/examples/tcp-probe/linker.ld": "15ce076fce9d6dd216207ca472217bbc9836878d68c90355513d08a864008c45",
+    "sdk/examples/tcp-probe/src/main.rs": "cec7951deb6b2624dece462c6d39b3f0fa5877438e4fce76bbf306fda2c9f183",
+    "sdk/runtime/Cargo.toml": "5062f7dc5bd8187c14a91b1127064f8f46741dfd28078a1c82da98e04278c56d",
+    "sdk/runtime/src/block.rs": "3c3d92f178888e3ba6ba2b3da4c6810ec8c9b44f0c29296ad0ab474c91871a1c",
+    "sdk/runtime/src/clock.rs": "5783af0be6732ff56f30bcee797f15cb4ce7d4900e3a7d55980d399d1fc33e97",
+    "sdk/runtime/src/entropy.rs": "536d4db4bb00067b4697d46eb34da1fb680edcdf6d25569be01ab161c77e1e13",
+    "sdk/runtime/src/lib.rs": "d082541dbb8a6ca637d581d57b5d84785f2b9a63aac788fa4aff0fae6024a578",
+    "sdk/runtime/src/message.rs": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab",
+    "sdk/runtime/src/native.rs": "bc5b5c8e91726d305e693bfcd050f16c09d1b09793cb6f013418153d57678da7",
+    "sdk/runtime/src/network.rs": "9679db5ad9bbf81164e84656650911ba8f508440460c5af2785ca3cf20fc310d",
+    "sdk/runtime/src/process.rs": "998867816fc0f0c88f790b37a12a37536f1d1c29109e7315706abe797f20e202",
+    "services/net-stack/Cargo.lock": "4840bd0bc19fda39bc6742128d63d4bdbdad49541b099bd7a05b97804933e251",
+    "services/net-stack/Cargo.toml": "2cc4108a19e4150097ae4f1981d378dbcb0d7a383dbd7aed2c048fea41053501",
+    "services/net-stack/src/device.rs": "a6577f8f2ce0e08d84fd17f4cc5b261f1679c57d9c5db958cb97fb1d10f55a30",
+    "services/net-stack/src/lib.rs": "e66eca97a69d5b48cc2db00b4e36188f6dbd9f05a1118efe70afe736f3be107a",
+    "services/net-stack/tests/adapter.rs": "9ffdc4067521e9ede299662635ac2d2658ccb9da1f896f847cc6ba6f1218859e",
+    "services/net-stack/tests/conversation.rs": "aac1eb2d457e83643acc7e45d3d24db9be59e9cf87c990e6e6fcca5c874e565f",
+    "sdk/examples/tcp-probe/src/contract.rs": "70752a15a186f9dd89c7b655a0c9c9c34620c3b0a4cc40a196d8ee9fdfd0d153"
+  },
+  "checks": {
+    "core-test": {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.22,
+      "log": "/tmp/nieuw-os-tcp-checkpoint/core-test.log",
+      "log_sha256": "f6a76e73adae1c2c9fe5cf85c7295c2dbb38e85587e2ac696f1e0290bb8b1d08",
+      "target_dir": "/tmp/nieuw-os-tcp-core"
+    },
+    "core-clippy": {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.141,
+      "log": "/tmp/nieuw-os-tcp-checkpoint/core-clippy.log",
+      "log_sha256": "053a167d439a0e374d37aca1ad6257f1980e3752610b383e7ee391fb8a8387e5",
+      "target_dir": "/tmp/nieuw-os-tcp-core-clippy"
+    },
+    "core-fmt": {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "fmt",
+        "--check",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.058,
+      "log": "/tmp/nieuw-os-tcp-checkpoint/core-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "target_dir": "/tmp/nieuw-os-tcp-core"
+    },
+    "native-fmt": {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "fmt",
+        "--check",
+        "--manifest-path",
+        "sdk/examples/tcp-probe/Cargo.toml",
+        "--",
+        "--config",
+        "skip_children=true"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.06,
+      "log": "/tmp/nieuw-os-tcp-checkpoint/native-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "target_dir": "/tmp/nieuw-os-tcp-core"
+    },
+    "native-clippy": {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/tcp-probe/Cargo.toml",
+        "--features",
+        "native",
+        "--bin",
+        "tcp-probe",
+        "--target",
+        "x86_64-unknown-none",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.124,
+      "log": "/tmp/nieuw-os-tcp-checkpoint/native-clippy.log",
+      "log_sha256": "cfbed1781b51d49fe882b62903062aaf223de3dfc956336286205a0dcbc7ac8b",
+      "target_dir": "/tmp/nieuw-os-tcp-probe-clippy"
+    },
+    "native-build": {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "sdk/examples/tcp-probe/build.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.246,
+      "log": "/tmp/nieuw-os-tcp-checkpoint/native-build.log",
+      "log_sha256": "4ac4af8ac76883ea84374a42218e0586e2632e8164c1e6b841e557c5796e9403",
+      "target_dir": "/tmp/nieuw-os-tcp-probe-rust1911"
+    },
+    "feature-tree": {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "tree",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml",
+        "--target",
+        "x86_64-unknown-none",
+        "--edges",
+        "features"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.035,
+      "log": "/tmp/nieuw-os-tcp-checkpoint/feature-tree.log",
+      "log_sha256": "795a9489e70f3af0416252322f6b2d5aa27af0ca9d84c1dee1113871db99294c",
+      "target_dir": "/tmp/nieuw-os-tcp-core"
+    }
+  },
+  "elf": {
+    "path": "/tmp/nieuw-os-tcp-probe-rust1911/x86_64-unknown-none/release/tcp-probe",
+    "sha256": "4f8b1c2cd6517330a69d31447e196a163c6514f8995ca37542da93ead8b62a59",
+    "entry": 1073741824,
+    "segments": [
+      {
+        "flags": 5,
+        "address": 1073741824,
+        "offset": 4096,
+        "filesz": 6,
+        "memsz": 6,
+        "page_start": 1073741824,
+        "page_end": 1073745920
+      },
+      {
+        "flags": 6,
+        "address": 1073807360,
+        "offset": 8192,
+        "filesz": 1808,
+        "memsz": 1808,
+        "page_start": 1073807360,
+        "page_end": 1073811456
+      },
+      {
+        "flags": 4,
+        "address": 1073823744,
+        "offset": 12288,
+        "filesz": 8736,
+        "memsz": 8736,
+        "page_start": 1073823744,
+        "page_end": 1073836032
+      },
+      {
+        "flags": 5,
+        "address": 1073872896,
+        "offset": 24576,
+        "filesz": 42596,
+        "memsz": 42596,
+        "page_start": 1073872896,
+        "page_end": 1073917952
+      }
+    ]
+  },
+  "disassembly_screen": {
+    "selected_fp_vector_tokens": 0,
+    "sha256": "7ddacafd7be2eb09026c6449e75eb378a52321c3e32d8fe85ec5b0398a6ec657",
+    "full_log": "/tmp/nieuw-os-tcp-checkpoint/disassembly.txt",
+    "limitation": "Text screening of linked code is not native FPU/isolation execution proof."
+  },
+  "open": [
+    "Native TCP profile/observer/peer runs",
+    "Production entropy seed and destination policy",
+    "TLS, DHCP/configuration, NAS and full FR-N01 acceptance"
+  ],
+  "revision_reason": "Reject HTTP success caused by LastAck timeout without final ACK; red regression stored separately."
+}

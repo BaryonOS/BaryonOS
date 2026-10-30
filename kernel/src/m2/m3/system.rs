@@ -22,6 +22,8 @@ struct Evidence {
     net: Option<[u64; 13]>,
     #[cfg(feature = "native-system-net")]
     net_pid: u64,
+    #[cfg(feature = "native-system-tcp")]
+    tcp: Option<([u64; 2], u64)>, // clock reads, blackhole ticks; actual exit tick
 }
 static mut EVIDENCE: Evidence = Evidence {
     app: None,
@@ -32,6 +34,8 @@ static mut EVIDENCE: Evidence = Evidence {
     net: None,
     #[cfg(feature = "native-system-net")]
     net_pid: 0,
+    #[cfg(feature = "native-system-tcp")]
+    tcp: None,
 };
 fn evidence() -> &'static mut Evidence {
     // SAFETY: One CPU, IF=0. Each borrow ends before a syscall or scheduling.
@@ -255,6 +259,12 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
     #[cfg(feature = "native-system-net")]
     if is_net_probe(s, slot) {
         evidence().net = Some(words);
+        #[cfg(feature = "native-system-tcp")]
+        {
+            // Snapshot before process cleanup; these are observer inputs, not
+            // kernel-supplied client results. The exit tick comes from IRQ0.
+            evidence().tcp = Some(([word(s, slot, 488), word(s, slot, 496)], s.ticks));
+        }
     }
 
     m4::engine().process_died(s.processes[slot].pid, PROCESS_EXITED, 0);
@@ -374,24 +384,68 @@ fn finish(s: &mut State) -> ! {
     #[cfg(feature = "native-system-net")]
     {
         let net = evidence().net.unwrap();
-        require(
-            net[2..6] == [1, 1, 1, 7] && net[8..13] == [2, 2, 1, 1, 1],
-            b"NET_PROTOCOL_EVIDENCE",
-        );
-        for (label, value) in [
-            (&b"SYSTEM:NET_ARP_REPLIES:"[..], net[2]),
-            (b"SYSTEM:NET_UDP_ECHOES:", net[3]),
-            (b"SYSTEM:NET_DNS_ANSWERS:", net[4]),
-            (b"SYSTEM:NET_APP_DENIED:", net[5]),
-            (b"SYSTEM:NET_TX_COMPLETIONS:", net[6]),
-            (b"SYSTEM:NET_RX_FRAMES:", net[7]),
-            (b"SYSTEM:NET_ARP_REJECTS:", net[8]),
-            (b"SYSTEM:NET_DNS_REJECTS:", net[9]),
-            (b"SYSTEM:NET_RX_TIMEOUTS:", net[10]),
-            (b"SYSTEM:NET_CACHE_INTACT:", net[11]),
-            (b"SYSTEM:NET_STALE_CAP:", net[12]),
-        ] {
-            print_number(label, value);
+        #[cfg(not(feature = "native-system-tcp"))]
+        {
+            require(
+                net[2..6] == [1, 1, 1, 7] && net[8..13] == [2, 2, 1, 1, 1],
+                b"NET_PROTOCOL_EVIDENCE",
+            );
+            for (label, value) in [
+                (&b"SYSTEM:NET_ARP_REPLIES:"[..], net[2]),
+                (b"SYSTEM:NET_UDP_ECHOES:", net[3]),
+                (b"SYSTEM:NET_DNS_ANSWERS:", net[4]),
+                (b"SYSTEM:NET_APP_DENIED:", net[5]),
+                (b"SYSTEM:NET_TX_COMPLETIONS:", net[6]),
+                (b"SYSTEM:NET_RX_FRAMES:", net[7]),
+                (b"SYSTEM:NET_ARP_REJECTS:", net[8]),
+                (b"SYSTEM:NET_DNS_REJECTS:", net[9]),
+                (b"SYSTEM:NET_RX_TIMEOUTS:", net[10]),
+                (b"SYSTEM:NET_CACHE_INTACT:", net[11]),
+                (b"SYSTEM:NET_STALE_CAP:", net[12]),
+            ] {
+                print_number(label, value);
+            }
+        }
+        #[cfg(feature = "native-system-tcp")]
+        {
+            let (extra, exit_tick) = evidence().tcp.unwrap_or_else(|| fail(b"TCP_SNAPSHOT"));
+            require(
+                net[2..6] == [2, 1, 1, 1] && net[8] == 1 && net[9] == 40 && net[12] == 1,
+                b"TCP_PROTOCOL_EVIDENCE",
+            );
+            // Real boot-monotonic PIT time, independently bounded by the
+            // kernel's observed exit tick. Never substitute loop counts or
+            // claim wall/certificate time. Peer validation proves real packets.
+            let elapsed = net[11]
+                .checked_sub(net[10])
+                .unwrap_or_else(|| fail(b"TCP_CLOCK_ORDER"));
+            require(
+                net[11] <= exit_tick
+                    && exit_tick <= s.ticks
+                    && exit_tick >= 300
+                    && elapsed >= extra[1]
+                    && extra[1] >= 300
+                    && elapsed < 20_000
+                    && extra[0] >= 2,
+                b"TCP_CLOCK_EVIDENCE",
+            );
+            for (label, value) in [
+                (&b"SYSTEM:TCP_HTTP:"[..], net[2]),
+                (b"SYSTEM:TCP_REFUSED:", net[3]),
+                (b"SYSTEM:TCP_RESET:", net[4]),
+                (b"SYSTEM:TCP_RETRANSMIT:", net[5]),
+                (b"SYSTEM:TCP_TX_COMPLETED:", net[6]),
+                (b"SYSTEM:TCP_RX_DELIVERED:", net[7]),
+                (b"SYSTEM:TCP_TIMEOUT:", net[8]),
+                (b"SYSTEM:TCP_BODY_BYTES:", net[9]),
+                (b"SYSTEM:TCP_START_TICKS:", net[10]),
+                (b"SYSTEM:TCP_END_TICKS:", net[11]),
+                (b"SYSTEM:TCP_STALE_CAP:", net[12]),
+                (b"SYSTEM:TCP_CLOCK_READS:", extra[0]),
+                (b"SYSTEM:TCP_TIMEOUT_TICKS:", extra[1]),
+            ] {
+                print_number(label, value);
+            }
         }
         network::print_and_check(net[6], net[7]);
     }
