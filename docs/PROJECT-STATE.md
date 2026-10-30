@@ -1,33 +1,34 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — package/ELF-beleid verbinden, A02-deelstap — 30 oktober 2026
+## NEXT AGENT HANDOFF — appbronbeheer-policy, A02-deelstap — 30 oktober 2026
 
-Bron `81b45969442ffd72d386ff9d484b878ff95ae1f4`, branch
-`codex/apps-sdk-packages`, gepusht en remote-head gecontroleerd. De roadmap
-blijft **34% totaal; Apps/SDK/installatie 2/8**: alleen A01 is geaccepteerd.
-Dit werk kent geen A02-punt toe.
+Bron `be830818bd88a6670d0facb524e8f1f7da3274b6`, branch
+`codex/apps-sdk-packages`, gepusht en remote-head gecontroleerd. PR #73 staat
+terug op concept (`isDraft=true`). De roadmap blijft **34% totaal;
+Apps/SDK/installatie 2/8**: alleen A01 is geaccepteerd. Geen A02-punt.
 
-`app-package-core::verify_executable_package` controleert eerst het bestaande
-`NOSAPP01`-pakket met beide handtekeningen, ABI en imagehash, en geeft de
-image daarna aan `kernel_core::user::parse` door. Zo wordt de bestaande
-user-ELF-policy hergebruikt; een getekende W+X-image wordt geweigerd. De vaste
-laadbeschrijving maakt geen mappings/proces/`LaunchImage` en is geen
-installatie- of launchrecht. Vijf pakkettests, Clippy, `x86_64-unknown-none`,
-fmt en diffcontrole slagen. Exacte binding en bewijsgrenzen:
-[`app-package-elf-policy`](verification/app-package-elf-policy/README.md).
+`app-package-core` bevat nu:
+- hybride `NOSAPP01`-pakketcontrole en hergebruik van
+  `kernel_core::user::parse`; signer-valid W+X ELF wordt geweigerd;
+- vaste in-memory `SourceRegistry` met expliciete bron-ID, sleutelrotatie op
+  verwachte generatie, intrekking en begrensde/duplicate-key checks;
+- ingetrokken bron verhindert nieuwe packageverificaties; reeds geïnstalleerde
+  apps blijven starten conform Simons besluit van 30 oktober 2026.
 
-Nog open: meerdere herroepbare bronnen, persistente installatie/update/
-verwijdertransacties en cold recovery, native dynamische `LaunchImage`-keten
-(A02), zichtbare/intrekbare taakrechten via Materiaal (A03), en nuttige apps
-met realistische native taken (A04). Geen guest-VM-pakketproef uitgevoerd.
+Acht package-/sourcehosttests, Clippy, `x86_64-unknown-none`-librarybuild,
+fmt en diffcontrole slagen. Exacte commando's, SHA-256 en grenzen:
+[`app-package-source-policy`](verification/app-package-source-policy/README.md).
+Geen guest-VM-proef uitgevoerd. De bronregistry is niet duurzaam, heeft geen
+consent-UI/capabilitygrens en integreert niet met een installer of launchpad.
 
-Eerstvolgende uitvoerbare stap: ontwerp en implementeer de begrensde
-installatie-/bronregistratie- en cold-recoverytransactie boven de bestaande
-object-/volumediensten, zonder rechten uit het pakket af te leiden. Behoud
-vervolgens de kernelgrens: alleen een geautoriseerde loader mag een
-geverifieerde, ELF-gevalideerde image aan een startcapability binden. QEMU
-11.1.0 en firmware zijn worktree-lokaal beschikbaar; alleen wegwerpimages
-gebruiken.
+Nog open: persistente bron-/pakkettransacties, bronintrekking na koude
+herstart, update/verwijderen en cold recovery, native dynamische
+`LaunchImage`-keten (A02), zichtbare/intrekbare taakrechten via Materiaal
+(A03), en nuttige apps met realistische native taken (A04). Eerstvolgende
+stap: werk een beperkte native installer-service uit boven de bestaande
+volume- en supervisorgrenzen, inclusief kernel-geautoriseerde image-start,
+en toets haar met een echte QEMU positieve/negatieve installatieproef.
+QEMU 11.1.0/firmware zijn worktree-lokaal beschikbaar; alleen wegwerpimages.
 
 ## Afgerond checkpoint — hardware, drivers en energie — 30 oktober 2026
 

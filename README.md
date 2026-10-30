@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`81b45969`](https://github.com/simonvanieperen/nieuw-os/commit/81b45969442ffd72d386ff9d484b878ff95ae1f4) ·
+**Bron:** [`be830818`](https://github.com/simonvanieperen/nieuw-os/commit/be830818bd88a6670d0facb524e8f1f7da3274b6) ·
 **Ontwikkelbranch:** `codex/apps-sdk-packages`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Apps, SDK en installatie: packageverificatie koppelen aan de bestaande user-ELF-policy.
-34% blijft 34%; Apps/SDK/installatie blijft 2/8, met uitsluitend A01 geaccepteerd. `app-package-core::verify_executable_package` controleert het bestaande hybride ondertekende `NOSAPP01`-formaat en roept daarna de bestaande `kernel_core::user::parse`-policy aan. Een signer-valid W+X-image wordt geweigerd; vijf hosttests, Clippy, portable `x86_64-unknown-none`-librarybuild, fmt en diffcontrole slagen op `81b4596`. Dit maakt geen mappings, proces, `LaunchImage`, installer of rechten. Multi-source trust, transacties/cold recovery, native pakketuitvoering en taakrechten ontbreken; A02/A03/A04 blijven open en er worden geen punten toegekend. Geen guest-VM-proef uitgevoerd. Bewijs en grenzen: `docs/verification/app-package-elf-policy/README.md`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Apps, SDK en installatie: begrensde bronkeuze, keyrotatie en intrekking.
+34% blijft 34%; Apps/SDK/installatie blijft 2/8, met uitsluitend A01 geaccepteerd. De hybride `NOSAPP01`-verificatie hergebruikt `kernel_core::user::parse`; de in-memory `SourceRegistry` ondersteunt expliciete bronselectie, generatiegebonden keyrotatie/intrekking en duplicate/capaciteitschecks. Intrekking blokkeert nieuwe verificatie; reeds geïnstalleerde apps blijven starten, conform Simons keuze. Acht hosttests, Clippy, portable `x86_64-unknown-none`-librarybuild, fmt en diffcontrole slagen op `be83081`. Geen persistente trust store, consent-UI, installer, cold recovery, dynamische `LaunchImage`, of taakrechten; A02/A03/A04 blijven open en er worden geen punten toegekend. Geen guest-VM-proef uitgevoerd. Bewijs en grenzen: `docs/verification/app-package-source-policy/README.md`.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
