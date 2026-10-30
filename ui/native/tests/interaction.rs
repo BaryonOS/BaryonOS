@@ -285,6 +285,81 @@ fn sr06_failed_save_blocks_actions(modal: bool) {
             .find(|node| node.id == SemanticId::SaveAndBack)
             .unwrap();
         *disabled = !save.enabled && !save.actions.activate && !save.focused;
+        let requests = host.borrow().requests.len();
+        let generation = ui.view().generation;
+        assert_eq!(
+            ui.activate_semantic(SemanticId::SaveAndBack, generation),
+            Err(Error::InvalidInput)
+        );
+        let layout = Frame::new(ui.view()).layout();
+        let mut tile = [0; TILE_PIXELS];
+        let rect = Frame::new(ui.view())
+            .render_tile(
+                layout.modal_save.x + layout.modal_save.width / 2,
+                layout.modal_save.y + layout.modal_save.height - 8,
+                &mut tile,
+            )
+            .unwrap();
+        assert!(rect.width > 0);
+        assert_eq!(tile[0], design::LINE);
+        let mut sequence = 0;
+        for reverse in [false, false, true, true] {
+            sequence += 1;
+            ui.deliver(envelope(
+                sequence,
+                1,
+                Event::Key(KeyboardEvent {
+                    key: PhysicalKey::Tab,
+                    action: KeyAction::Press,
+                    modifiers: KeyboardModifiers {
+                        left_shift: reverse,
+                        ..KeyboardModifiers::default()
+                    },
+                }),
+            ))
+            .unwrap();
+            assert_ne!(ui.view().focus, Focus::SaveAndBack);
+            assert_eq!(ui.view().screen, Screen::ConfirmClose);
+        }
+        assert_eq!(ui.view().focus, Focus::KeepEditing);
+        let mut mouse = Ps2Mouse::new();
+        for flags in [0x09, 0x08] {
+            let mut input = None;
+            for byte in [flags, 0, 0] {
+                input = mouse.feed(byte).unwrap();
+            }
+            sequence += 1;
+            ui.deliver(envelope(
+                sequence,
+                1,
+                Event::Mouse {
+                    input: input.unwrap(),
+                    x: layout.modal_save.x + 8,
+                    y: layout.modal_save.y + 8,
+                },
+            ))
+            .unwrap();
+            assert_eq!(ui.view().focus, Focus::KeepEditing);
+            assert_eq!(ui.view().screen, Screen::ConfirmClose);
+        }
+        assert_eq!(
+            ui.activate_semantic(SemanticId::SaveAndBack, generation),
+            Err(Error::StaleInput)
+        );
+        for id in [SemanticId::KeepEditing, SemanticId::Discard] {
+            let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+            let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+            assert!(nodes[..count]
+                .iter()
+                .any(|node| node.id == id && node.enabled && node.actions.activate));
+        }
+        sequence += 1;
+        ui.deliver(envelope(sequence, 1, key(PhysicalKey::Enter)))
+            .unwrap();
+        assert_eq!(ui.view().screen, Screen::Editor);
+        assert_eq!(ui.view().contents, Some("Mine Original"));
+        assert!(!ui.document().is_saving());
+        assert_eq!(host.borrow().requests.len(), requests);
     }
     if modal {
         assert_eq!(
@@ -300,6 +375,35 @@ fn sr06_failed_save_blocks_editor_save_actions_impl() {
 
 fn sr06_failed_save_blocks_modal_save_actions_impl() {
     sr06_failed_save_blocks_actions(true);
+}
+
+fn sr06_fresh_revoke_during_modal_save_restores_document_focus_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed(0, b"Original");
+    let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.open(0).unwrap();
+    ui.insert("Mine ").unwrap();
+    ui.request_back().unwrap();
+    let generation = ui.view().generation;
+    let root = host.borrow().request_root;
+    host.borrow_mut().engine.revoke(2, root).unwrap();
+    assert!(ui
+        .activate_semantic(SemanticId::SaveAndBack, generation)
+        .is_err());
+    assert_eq!(ui.view().screen, Screen::Editor);
+    assert!(!ui.view().can_save);
+    assert_eq!(ui.view().focus, Focus::Document);
+    assert_eq!(ui.view().contents, Some("Mine Original"));
+    assert!(!ui.document().is_saving());
 }
 
 fn sr06_read_only_and_io_failures_keep_truthful_editor_state_impl() {
@@ -1221,6 +1325,10 @@ scenario!(
 scenario!(
     sr06_failed_save_blocks_modal_save_actions,
     sr06_failed_save_blocks_modal_save_actions_impl
+);
+scenario!(
+    sr06_fresh_revoke_during_modal_save_restores_document_focus,
+    sr06_fresh_revoke_during_modal_save_restores_document_focus_impl
 );
 scenario!(
     sr08_uncertain_semantics_never_offer_save_or_replay,
