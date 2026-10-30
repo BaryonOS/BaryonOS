@@ -1,4 +1,4 @@
-command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/rustc", "+1.90.0", "-vV"]
+command: ["/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-didactic-spork/.tools/nieuw-os/cargo/bin/rustc", "+1.90.0", "-vV"]
 exit: 0
 
 stdout:
