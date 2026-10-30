@@ -24,11 +24,11 @@ fn handle_representation_does_not_accept_sentinels_or_slot_overflow() {
 }
 
 #[test]
-fn known_rights_do_not_allow_new_permission_bits() {
-    for value in 0..=4095 {
+fn known_rights_do_not_allow_unknown_permission_bits() {
+    for value in 0..=Rights::KNOWN_MASK {
         assert_eq!(Rights::from_bits(value).unwrap().bits(), value);
     }
-    for value in [4096, 1 << 31, 1 << 63, u64::MAX] {
+    for value in [16384, 1 << 31, 1 << 63, u64::MAX] {
         assert_eq!(Rights::from_bits(value), Err(Error::InvalidRights));
     }
     assert_eq!(Rights::KNOWN_MASK, capability_core::KNOWN_RIGHTS);
@@ -37,6 +37,8 @@ fn known_rights_do_not_allow_new_permission_bits() {
     assert_eq!(Rights::KILL.bits(), capability_core::KILL);
     assert_eq!(Rights::ENTROPY.bits(), capability_core::ENTROPY);
     assert_eq!(Rights::NETWORK.bits(), capability_core::NETWORK);
+    assert_eq!(Rights::DISPLAY.bits(), capability_core::DISPLAY);
+    assert_eq!(Rights::INPUT.bits(), capability_core::INPUT);
 }
 
 #[test]
@@ -185,7 +187,7 @@ fn delegated_cap_descriptors_are_validated_and_preserved() {
     assert_eq!(parsed.cap(0).unwrap().handle, handle(255));
     assert_eq!(parsed.cap(0).unwrap().rights.bits(), 9);
     assert_eq!(parsed.as_bytes(), &bytes);
-    for rights in [2u64, 4096, u64::MAX] {
+    for rights in [2u64, Rights::KNOWN_MASK + 1, u64::MAX] {
         let mut bad = bytes;
         bad[40..48].copy_from_slice(&rights.to_le_bytes());
         assert_eq!(Received::from_bytes(bad, 4), Err(Error::InvalidRights));

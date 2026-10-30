@@ -124,7 +124,11 @@ impl Rights {
     pub const ENTROPY: Self = Self(1024);
     /// Raw NIC transport for the isolated network service, not an app grant.
     pub const NETWORK: Self = Self(2048);
-    pub const KNOWN_MASK: u64 = 4095;
+    /// Manifest-only display transport; this representation grants no authority.
+    pub const DISPLAY: Self = Self(4096);
+    /// Manifest-only raw input transport for the isolated source service.
+    pub const INPUT: Self = Self(8192);
+    pub const KNOWN_MASK: u64 = 16383;
 
     pub const fn from_bits(bits: u64) -> Result<Self, Error> {
         if bits & !Self::KNOWN_MASK != 0 {

@@ -14,7 +14,7 @@ Een afgeronde deelimplementatie tekent geen volledig productcriterium af.
 | TASK-KEYSDK-NATIVE | root61ea nativepair + strictcapture groen | root; keyclient/app/Cargo | FR-B01,FR-O05 | crypto2/2/9+record1/1/10/2; veilige disk/keypersistentie blijftopen |
 | TASK-INPUT | core/review geïntegreerd; nativehook open | root | FR-U01–FR-U05,FR-H01 |20hosttests/target; geen werkelijk inputservice-/compositorbewijs |
 | TASK-FPU/CLOCK | root61ea native groen | root | FR-K02,FR-K03 |3levens/157save=restore/#UD/reuse/100Hz, geen fullCPU/hardwareclaim |
-| TASK-MEMORY | core084/fixture492 geïntegreerd; root vijf native cases volgt | kernel_storage; m3.rs,nieuwheap.rs,paging.rs,SDKmemory/native/tests | FR-K02,FR-K03,FR-L02,FR-N02 | ABI1.7sys4voorstel, atomicfallibleownRW/NXzeroheap8MiBquota; Geenanderewritersruntime-native.rs |
+| TASK-MEMORY | rootb607 vijf native cases groen; SDK-fix krijgt nieuwe matrix | kernel_storage; m3.rs,nieuwheap.rs,paging.rs,SDKmemory/native/tests | FR-K02,FR-K03,FR-L02,FR-N02 | ABI1.7sys4voorstel, atomicfallibleownRW/NXzeroheap8MiBquota; Geenanderewritersruntime-native.rs |
 | TASK-USER-ALLOC | 42d4bc9 geïntegreerd;15 hosttests/collecties en targetbuild groen | native_ui_apps; sdk/heap-allocator/**,USER-ALLOCATOR.md | FR-K02,FR-L02,FR-A05,FR-N02 | gelockte no_stdallocator/eigenarena/align/OOM/stats; geenhostfallback |
 | TASK-TLS-PORT | actief; tls-portworktree | network_nas_ai; services/tls-engine/**,NATIVE-TLS.md | FR-N02,FR-P01–FR-P06 | onderhoudenrustls/no_stdproviderport, exactePQC/CA/name/pin/mTLS; random/signer/heap/trustedtime gates |
 | TASK-KEYRANDOM | actief; keyring-randomworktree | security_release; keyringcore/serviceadapter,nieuwrandomclient/contract | FR-B01,FR-N02 | random-onlyingress/op10, HKDF-opruimreview open, onderhoudenCSPRNG/health/quota/clockfailclosed; rootcapbinding/nativebewijsvolgt |
@@ -23,7 +23,7 @@ Een afgeronde deelimplementatie tekent geen volledig productcriterium af.
 | TASK-CONTEXT | aanvullende20secties verwerkt | root; FULL/context/queue/progress | alle | stabiele62IDs, UC/compatmatrix/formaat/100cold/24uur; oorspronkelijkeopdracht intact |
 | TASK-MATERIAAL-NATIVE | actief: gericht ontwerp | native_ui_apps; eigen nieuwe UI-worktree/bestanden na contract | FR-U01–FR-U05,FR-A02,FR-O01 | echte userspace renderer/editor; geen hostprototype als nativebewijs |
 | TASK-DISPLAY-INPUT | actief: gericht grensontwerp | git_build_audit; eigen nieuwe transportworktree/bestanden na contract | FR-U01,FR-K03,FR-H01 | cap04d geïntegreerd/52-reviewtests; GOP hardware los; adapters in uitvoering, root bezit ABI/hooks/build |
-| TASK-INT/GIT | remote20b exact gepubliceerd/zeven CI groen; nieuwe bronfreeze volgt | root; sharedABI/build/locks/status/Git | allegeraakt | GitData lease/treecontrole; memory/allocator/GOP/cap-kandidaat krijgt nieuwe bevroren gates |
+| TASK-INT/GIT | remote20b exact gepubliceerd/zeven CI groen; nieuwe bronfreeze volgt | root; sharedABI/build/locks/status/Git | allegeraakt | GitData lease/treecontrole; b607 memory/FPU/G0 groen; SDK-bitsfix/herhaling13gasten vereist |
 
 Volgende verplichte werk blijft zichtbaar: schaalbaar geheugen, echte
 compositor/sessie/toegankelijkheid, audio en alle apps/engineports, persistente

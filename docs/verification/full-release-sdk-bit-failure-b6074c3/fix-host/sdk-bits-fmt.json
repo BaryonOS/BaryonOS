@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "fmt",
+    "--manifest-path",
+    "sdk/Cargo.toml",
+    "--all",
+    "--",
+    "--check"
+  ],
+  "cwd": "/workspace/nieuw-os",
+  "started_unix": 1793325438.7094882,
+  "duration_s": 0.5888636112213135,
+  "returncode": 0
+}

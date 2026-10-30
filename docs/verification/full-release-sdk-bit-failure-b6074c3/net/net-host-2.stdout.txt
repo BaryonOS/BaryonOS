@@ -1,0 +1,40 @@
+
+running 2 tests
+test memory::tests::malformed_or_nonprivate_kernel_extents_fail_closed ... ok
+test memory::tests::fresh_suffix_geometry_and_raw_access_are_preserved ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 14 tests
+test delegated_cap_descriptors_are_validated_and_preserved ... ok
+test every_payload_length_matches_the_current_kernel_decoder ... ok
+test abi_check_accepts_only_existing_compatible_versions ... ok
+test oversized_wire_lengths_never_index_or_truncate ... ok
+test handle_representation_does_not_accept_sentinels_or_slot_overflow ... ok
+test known_rights_do_not_allow_new_permission_bits ... FAILED
+test received_length_must_equal_the_syscall_result ... ok
+test received_envelope_rejects_missing_sender_reserved_and_padding ... ok
+test received_message_keeps_kernel_identity_and_exact_payload ... ok
+test refused_cap_append_does_not_modify_the_message ... ok
+test register_errors_remain_errors_and_secondary_errors_are_zero ... ok
+test sdk_messages_interoperate_with_actual_capability_engine ... ok
+test raw_send_rejects_spoofed_sender_and_every_unused_byte ... ok
+test block_completion_accepts_only_the_canonical_ticket_envelope ... ok
+
+failures:
+
+---- known_rights_do_not_allow_new_permission_bits stdout ----
+
+thread 'known_rights_do_not_allow_new_permission_bits' panicked at runtime/tests/message.rs:34:5:
+assertion `left == right` failed
+  left: 4095
+ right: 16383
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    known_rights_do_not_allow_new_permission_bits
+
+test result: FAILED. 13 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

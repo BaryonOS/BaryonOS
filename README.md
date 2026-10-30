@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`20b0d128`](https://github.com/simonvanieperen/nieuw-os/commit/20b0d1286644f04b872741a43da21a8cdb10a944) ·
+**Bron:** [`b6074c31`](https://github.com/simonvanieperen/nieuw-os/commit/b6074c3176db2a6fbe2b6fe42f07f139f153a649) ·
 **Ontwikkelbranch:** `codex/full-test-release`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Eigen heap en allocator geïntegreerd; GOP-hardware gescheiden van G0; canonieke native geheugengate voorbereid.
-De score blijft 32%; alle 62 volledige productcriteria staan open. Checkpoint20b heeft zeven groene CI-workflows na de gerichte buildpadreparatie; bron61ea heeft zeven lokale gezamenlijke VM-proeven. De nieuwe kandidaat integreert atomische eigen Sys4-heapgroei, een onderhouden userspace allocator en vijf echte geheugenfixtures, met onafhankelijke core-/capabilityreview. Workerbewijs voor normale groei, NX, guard, peer, fysieke OOM, hergebruik en onafhankelijk gewiste heapbytes blijft aan de workerbron gebonden; root herhaalt de samengestelde versie. GOP-transport is los van de kernelrenderlus; native Materiaal en PS2-adapters worden verder gebouwd. TLS-clientauthenticatie en expliciete HKDF-secretopruiming krijgen gerichte reparaties. Dit is geen volledige gebruikersomgeving, veilige productopslag, native TLS/NAS/AI of releaseacceptatie; alle functionele, visuele, beveiligings-, herstel- en pakketvereisten blijven behouden.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Vijf canonieke geheugengasten en FPU/G0 uitgevoerd; SDK-capabilitybits gericht hersteld.
+De score blijft32%; alle62volledige productcriteria staanopen. Bronb607 is werkelijk gepubliceerd en de vijf canonieke geheugengasten plus FPU/G0 slagen. Nulvulling, procesquota, echte NX/guard/peer-fouten,16 fysieke OOMweigeringen, aansluitende retry en onafhankelijke fysieke cleanupzero zijn aan die bron/images gebonden. Basis/net/TCP stoppen vóór hun VMs op de gevonden SDK-knownmask-inconsistentie; de mislukte uitkomsten blijven bewaard. De gerichte SDK-bitsreparatie behoudt kerneluitgifte/nondelegatie en19SDKtests/Clippy/fmt slagen. Alle13VMs en actuele CI volgen op de gerepareerde bron. Native Materiaal/display/invoer, TLS, veilige persistente opslag, NAS, AI, boot, updates en volledige product-/menselijke/hardwaregates blijven open; scope en rubric zijn ongewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

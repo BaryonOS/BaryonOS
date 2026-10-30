@@ -41,22 +41,37 @@ CI en qemu-smoke. De twee ontbrekende ignore-regels waren de concrete oorzaak
 van de eerdere clean-treefout; de controle is behouden.
 [Actuele CI-metadata](verification/full-release-ci-20b0d12/workflow-runs.json).
 
-**Nieuwe implementatiekandidaat:** atomische eigen heapgroei (ABI 1.7/Sys4,
-core084dcd8), onderhouden gebruikersallocator42d4bc9 en canonieke memoryfixture492be81
-zijn geïntegreerd. Onafhankelijke core-review: geen concrete blocker onder het
-single-core/IF=0-contract; 20 core-, 19 SDK- en vier aanvullende plannerproeven
-slagen ([review](verification/full-release-memory-review-084dcd8/review.json)).
-De worker voert alle vijf geheugenproeven echt uit: normaal, NX, guard, peer en
-fysieke OOM op128 MiB. Daarbij worden vrijgegeven heapbytes vóór nieuw gebruik
-onafhankelijk fysiek gecontroleerd. Dit workerbewijs is afzonderlijk opgeslagen;
-root herhaalt de vijf cases op de exact gepubliceerde samengestelde bron.
+**Nieuwe gezamenlijke bron b6074c3:**
+`b6074c3176db2a6fbe2b6fe42f07f139f153a649`, v3-source
+`e6ebeb1fd746e4eb0efd5d9d67d052eebdadfbb070c50738307aef2e2f564b26`.
+Atomische Sys4-heapgroei, onderhouden allocator, memoryfixture, GOP-transport-
+scheiding en de twee capabilitytypen zijn werkelijk samengevoegd/gepubliceerd.
 
-GOP-hardwaretransport is losgemaakt van G0: geen GUI in de nieuwe framebuffer-
-module, dezelfde supervisor-RW/NX/UC-mapping. De echte G0-toetsenbord-/pixelproef
-slaagt op de extractiekandidaat (raw33); definitieve bronherhaling volgt. Nieuwe
-DISPLAY-/INPUT-capabilities04d208f hebben 47 tests en een onafhankelijke52-test-
-review zonder concrete blocker; native uitgifte, syscalladapters en gebruikers-
-interface zijn daarmee nog niet uitgevoerd. Root bezit de gedeelde ABI/hooks.
+**Zeven echte gasten geslaagd, zes nog niet uitgevoerd:** alle vijf canonieke
+[geheugencases](verification/full-release-memory-b6074c3/README.md) slagen,
+plus aparte [FPU](verification/full-release-fpu-b6074c3/fpu-report.json) en
+[G0-bediening](verification/full-release-g0-b6074c3/graphics-g0-result.json).
+Normaal/NX/guard/peer controleren per case drie levens,6030nieuwepagina's,
+24698880nulbytes en24895488onafhankelijk gewiste heapbytes. OOM gebruikt echt
+128MiB/16processen:16-16weigeringen,15617pagina's inclusief aansluitende retry,
+63967232nulbytes/65015808cleanupnulbytes en volledig tijdelijk frameherstel.
+Dit blijft een afgebakend single-core ontwikkelprofiel.
+
+Basis/net/TCP stoppen vóór hun VMs op een concrete SDK-inconsistentie: de SDK
+mistte de nieuwe DISPLAY/INPUT-bits uit capability-core. [Mislukte proeven en
+reparatielogs](verification/full-release-sdk-bit-failure-b6074c3/README.md) blijven
+bewaard. De SDK-constanten en onbekende-bitnegatieven zijn gericht gelijkgetrokken;
+19SDKtests,Clippy/fmt slagen. De kerneluitgifte/nondelegatie is niet verruimd.
+Alle dertien VM-runs worden opnieuw op de gerepareerde gepubliceerde bron getest.
+[CI b607](verification/full-release-ci-b6074c3/workflow-runs.json) is gemengd,
+met vijf rode workflows; nieuwe CI blijft vereist, geen oude groene statusovername.
+
+Onafhankelijke core-/capability-/harnasreviews en hun concrete tegenproeven zijn
+bewaard. Het harnas weigert gekoppelde externe outputs, onverwachte ESP-bestanden,
+gewijzigde images, verkeerde bronnen/RAM/netwerk, onjuiste runtime- en zeroingvelden.
+GOP toont nog de oude G0-regressiescène; er is geen volledige Materiaal-desktop.
+Display-/PS2-adapters en native Materiaal hebben afzonderlijke reviewbare worker-
+commits en worden pas na deze bronfreeze in een eigen integratieworktree aangesloten.
 
 **Publicatie:** CLI-push heeft een HTTPS-authenticatieblokkade. Via de reeds
 beschikbare GitHub GitData-koppeling is de volledige boom met verwachte HEAD
@@ -74,17 +89,16 @@ Deze componenten zijn niet als productfeature afgetekend.
 ### NEXT AGENT HANDOFF
 
 - Controleer actuele HEAD/status/worktrees/agents; behoud alle bron en logs.
-  Laatste gepubliceerde checkpoint is20b0d12 met zeven groene CI-workflows.
-- Eerstvolgende uitvoering: deze geheugen-/allocator-/GOP-/capabilitykandidaat
+  Laatste gepubliceerde bron isb6074c3 met zeven nativepassen en zichtbare SDK-regressie; 20b0d12 had zeven groene CI-workflows.
+- Eerstvolgende uitvoering: de gerichte SDK-bitsreparatie met b607-bewijs
   publiceren via de beschikbare GitHub GitData-koppeling met verwachte HEAD en
   exact gelijke tree. Daarna op bevroren commit `tools/test_memory_system.py`
   (vijf echte cases), basis/net/TCP-koude paren, native-fpu en native G0 herhalen;
   bron, beelden, exitstatus en ruwe bytes opnieuw archiveren. Geen source-edits
   tijdens deze proeven. Actuele CI op die nieuwe commit blijft vereist.
-- Laatste zeven bewezen root-VMs/artifacts: `build/full-release-61ea-{base,net,tcp,fpu}/esp/`;
-  hashes en commando's in hun bewijsarchieven. Memoryworker492be81 bewaart vijf
-  eigen brongebonden rapporten in `sdk/examples/memory/verification/`; dit is
-  geen bewijs van de hoofdbranch. Canonieke output gaat naar `build/memory-*`.
+- Laatste gezamenlijk bewezen baselineparenset: `build/full-release-61ea-{base,net,tcp,fpu}/esp/`;
+  hashes en commando's in hun bewijsarchieven. Canonieke vijf memory-artifacts: `build/full-release-b607-memory/{normal,nx,guard,peer,oom}/esp/`.
+  Worker492be81-bewijs blijft daarnaast afzonderlijk bewaard.
 - Behoud worktrees `memory`, `memory-fixture`, `user-allocator`, `tls-port`,
   `keyring-random`, `native-materiaal` en de display/input-worktree. Eigenaarschap
   staat in WORK-QUEUE. TLS en RANDOM krijgen eerst gerichte reviewreparaties.
