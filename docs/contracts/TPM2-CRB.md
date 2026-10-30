@@ -1,9 +1,29 @@
 # TPM-CRB-TRANSPORT-1 — begrensde driverkern
 
 Status: afzonderlijke safe/no_std-transport- en codeclogica in
-`drivers/tpm-crb`; nog geen MMIO-adapter, kernelgrant, native TPM-uitvoering of
-koude rollbackankering. Hostmodellen zijn uitsluitend protocol-/registertests.
+`drivers/tpm-crb`; opt-in MMIO-bootstrapfixture nu in implementatie volgens
+ADR-052, beide native gevallen nu groen op `4b09869`. Geen productkernelgrant of koude
+rollbackankering. Hostmodellen zijn uitsluitend protocol-/registertests.
 De nog verplichte B02-/boot-/update-eisen blijven open.
+
+`native-tpm-crb` houdt uitsluitend een vaste supervisor-RW/NX/UC-mapping
+op VA `0x3f180000`, met typed registeroffsets, checked buffergrenzen,
+maximaal128B-kopieën, volatile accessen en MFENCE/compilerbarrières.
+De ene claim en quarantaine blijven voor de VM-levensduur behouden.
+Geen app krijgt TPM-recht; de bestaande twee echte CPL3-wachtapps blijven
+hun oorspronkelijke rechten en volledige orakels gebruiken. De scheduler
+pollt de bestaande transportkern met echte PIT-ticks; één read-only
+family-propertyquery en volledig bevestigde vrijgave worden geëist.
+`test-tpm-crb-absent` vereist Unsupported/NotStarted/quarantaine en nul
+writes. Zeven adaptergrensweigeringen mogen geen MMIO-write veroorzaken.
+Runner: `tools/run_tpm.py --case normal|absent`; swtpm gebruikt uitsluitend
+een beheerde eigen Unixsocket/state, geen echte TPM of netwerkverbinding.
+De code hieronder blijft het transportcontract; oude open-statuszinnen
+zijn geen nieuwe native acceptatie. Actuele uitvoering: PROJECT-STATE.
+Bron-/artifact-/logbinding en de bewaarde eerste mislukking staan in
+`verification/native-test-version/tpm-evidence.json`. Beide VM's raw33;
+absent maakt nul writes, positief geeft family `0x322e3000` en bevestigde
+Idle/relinquish. De bestaande volledige CPL3-wachtproeven blijven groen.
 
 ## Ondersteund interfacecontract
 

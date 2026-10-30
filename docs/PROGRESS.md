@@ -86,7 +86,7 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 ## Bij iedere opdracht bijwerken
 
 Teamleiding (30 oktober 2026), startbasis `0ade8014`, inhoudsbehoudend
-geïntegreerd met `748e29b`: **34% → 34%**.
+geïntegreerd met `94c8908` na #66: **34% → 34%**.
 De twaalf sessies zijn tegen de volledige roadmap en releaseacceptatie getoetst
 en hebben concrete eigenaars-/voortzettingsafspraken ontvangen. Live PR-checks
 en eigenaarrapportages zijn geen nieuwe native acceptatie. Criteria, gewichten
@@ -94,6 +94,28 @@ en bestaand brongebonden bewijs blijven ongewijzigd; de gewone geïntegreerde
 QEMU-gebruikersketen en alle volledige productrijen blijven open. De centrale
 taakverdeling en ontbrekende implementaties staan in WORK-QUEUE/PROJECT-STATE.
 
+Historische Windows-packagingmijlpalen uit de geïntegreerde #66-bron:
+WINDOWS-QEMU-TEST-VERSION (30 oktober 2026), implementatiebron `f777f7a`:
+**34% → 34%**. De branch voegt een hashvaliderende Windows-QEMU-bundel,
+launcher, native QMP-previewrunner en CI-artifactjob toe. Hosttests,
+strikte preflight en de warning-vrije native Materiaal-build zijn geslaagd.
+Na herstel van een onterechte vaste Source/Policy-readinessvolgorde in het
+hostorakel slaagt de echte QEMU-preview: QMP-quit exit 0, 800×600, 310 kleuren.
+31 hosttests slagen; beide native rapporten blijven brongebonden bewaard in
+`verification/windows-qemu-preview/`. Windows-hostlaunch en ZIP-generatie zijn
+niet uitgevoerd; distributie-infrastructuur sluit geen productcriterium.
+
+Aanvullend op basis `19f2d33` met CheckOnly-wijziging: vijf echte Windows
+PowerShell-launchertests slagen met synthetische bestanden; QEMU 11.1.0,
+SDL en `rng-builtin` zijn aanwezig. Bundelgrootte/hash en profielweigering
+zijn gecontroleerd zonder VM of state. Geen Windows-gastacceptatie of
+extra punten: **34% → 34%**.
+
+Op basis `8f4fb3a` met packager-hercontrole slagen 33 hosttests,
+inclusief weigering van een ELF-wissel na initiële validatie. Geen OS-ZIP,
+Windows-gast of extra acceptatie; **34% → 34%** blijft gehandhaafd.
+Op bron `5b80865` slaagt ook de complete tools-hostsuite (111 tests);
+dat is geen native productacceptatie en verandert de score niet.
 Documentatie-integratie PR #62 (30 oktober 2026), PR-head `ebbfb470` met
 `main` `0ade801`: **34% → 34%**. Het hardwarecheckpoint en eerdere
 PR-integratiebewijzen blijven behouden. Hardware blijft 1/12; H02–H06 blijven

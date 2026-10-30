@@ -1,0 +1,30 @@
+{
+  "scope": "Synthetic mutations of copied host evidence; no guest run",
+  "passed": true,
+  "cases": {
+    "nonzero-exit": {
+      "rejected": true,
+      "error": "Not a passing Windows QMP-quit/raw0 run"
+    },
+    "boolean-qmp-id": {
+      "rejected": true,
+      "error": "Uncorrelated or failed QMP response"
+    },
+    "missing-phase": {
+      "rejected": true,
+      "error": "zip() argument 2 is shorter than argument 1"
+    },
+    "extra-f12": {
+      "rejected": true,
+      "error": "Hardware input differs from specified chain"
+    },
+    "changed-chrome-pixel": {
+      "rejected": true,
+      "error": "Full native reference image mismatch"
+    },
+    "changed-afterimage": {
+      "rejected": true,
+      "error": "Active Windows disk differs from afterimage"
+    }
+  }
+}

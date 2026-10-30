@@ -1,0 +1,14 @@
+   Compiling heapless v0.9.3
+   Compiling byteorder v1.5.0
+   Compiling stable_deref_trait v1.2.1
+   Compiling smoltcp v0.14.0
+   Compiling cfg-if v1.0.5
+   Compiling bitflags v1.3.2
+   Compiling managed v0.8.0
+   Compiling hash32 v0.3.1
+   Compiling nieuw-os-net-stack v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/services/net-stack)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.38s
+     Running unittests src/lib.rs (target/native-test-version/tcp-host/debug/deps/nieuw_os_net_stack-533a77bb6c83be03)
+     Running tests/adapter.rs (target/native-test-version/tcp-host/debug/deps/adapter-e5ec65d9171550c5)
+     Running tests/conversation.rs (target/native-test-version/tcp-host/debug/deps/conversation-6c056ee11b732e93)
+   Doc-tests nieuw_os_net_stack

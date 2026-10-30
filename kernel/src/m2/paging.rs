@@ -167,6 +167,13 @@ impl Paging {
         }
         self.map_device_page(frames, va, pa)
     }
+    #[cfg(feature = "native-tpm-crb")]
+    pub fn map_tpm_crb(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+    ) -> Result<(), kernel_core::Error> {
+        self.map_device_page(frames, 0x3f180000, nieuw_os_tpm_crb::transport::BASE)
+    }
     #[cfg(feature = "framebuffer")]
     pub fn map_framebuffer(
         &mut self,
@@ -200,7 +207,8 @@ impl Paging {
     #[cfg(any(
         feature = "milestone-m5",
         feature = "framebuffer",
-        feature = "native-keyring"
+        feature = "native-keyring",
+        feature = "native-tpm-crb"
     ))]
     fn map_device_page(
         &mut self,

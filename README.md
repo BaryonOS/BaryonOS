@@ -32,7 +32,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`7248fea4`](https://github.com/simonvanieperen/nieuw-os/commit/7248fea4307ba9cbb5e6c80012f633066710cd54) ·
+**Bron:** [`94c8908e`](https://github.com/simonvanieperen/nieuw-os/commit/94c8908ee363d06a5be51417c5cae635549d566f) ·
 **Ontwikkelbranch:** `simonvanieperen-symmetrical-barnacle`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Teamleiding: twaalf sessies toetsen aan de volledige roadmap, exclusieve eigenaren en geïntegreerde QEMU-route bewaken.
 34% blijft 34%; coördinatie, artifactinspectie en rapportages leveren geen native acceptatiepunten. Managercheckpoint 7248fea bevat de eigen hash/CRC/bytecontrole van de oude geleverde Windowsbundel; geen nieuwe VM-run. De reproduceerbaarheidstrace is opgeleverd met werkelijk afwijkende geladen Materiaalcode; volledige oorzaak en byte-reproduceerbaarheid blijven open, afzonderlijke source-runtime mag dit verdict niet overschrijven. UI meldt een geslaagde keyboardbaseline op 74d15ac, maar de nieuwe semantiekcode is daarin niet gelinkt: release-integratie en herhaling blijven verplicht. De gerichte BootInfo-trace toont GOP op 128..192 en exacte minorversievalidators; H05 vereist expliciete compatibele dispatch/ownership vóór implementatie. NAS mag drie werkelijke standalone crates in zijn exclusieve nieuwe CI-workflow opnemen; app-package-core-dekking blijft verplicht. Alle 62 volledige productcriteria en vereiste externe gates blijven open; criteria, gewichten en geaccepteerd bewijs ongewijzigd.

@@ -2,7 +2,7 @@
 
 ## Actuele teamleiding — bronbasis `0ade8014`, 30 oktober 2026
 
-Startbasis `0ade8014`; actuele managerintegratiebasis `748e29b`.
+Startbasis `0ade8014`; actuele managerintegratiebasis `94c8908` na #66.
 De hieronder genoemde oorspronkelijke branchechecks zijn momentopnamen;
 latere expliciete mijlpalen in dit hoofdstuk gaan voor oude headvermeldingen.
 
@@ -233,9 +233,13 @@ Target-ELFs zijn geen uitgevoerde NAS-guestprobe. Actuele #73 ae9 heeft bij
 managercontrole nog geen checks, oude #71 109 heeft twaalf groene maar
 ongerelateerde checks; de nieuwe standalone jobs blijven een mergegate.
 
-Live hercontrole van #66c096: twaalf van dertien checks SUCCESS,
-native-system nog IN_PROGRESS. Enige lifecyclecoördinator blijft eigenaar
-van de mergeguard; geen andere mainintegratie gestart. Live appsteekproef
+Laatste live GitHubcontrole bevestigt #66 merged naar
+`94c8908ee363d06a5be51417c5cae635549d566f` op 17:24:22 UTC.
+Lifecycle rapporteert 13/13 SUCCESS vóór merge en hele boom identiek aan
+c096. De eerdere 12/13-waarneming is daarmee ingehaald; postmerge-CI is
+nog niet als groen vastgesteld. Enige lifecyclecoördinator blijft eigenaar
+van de mergevolgorde; manager integreert uitsluitend zijn centrale #75.
+Live appsteekproef
 meldde elf van veertien sessies running, geen input-/planblokkades,
 activiteit unknown. Buildteam is gericht hervat op de aparte cold-toolstap;
 de niet-running reviewer heeft de H05-trace inmiddels opgeleverd.
@@ -248,7 +252,127 @@ stopopdracht aan de teams. Er is geen periodieke achtergrondautomatisering
 ingesteld en een verzonden bericht garandeert geen blijvende uitvoering na
 sessieonderbreking; hervatten begint met een verse sessie-/GitHub-controle.
 
+Laatste eigenaarsmijlpalen bij main94-integratie:
+Buildteam meldt echte reference/gewone/coldchild-gates groen op
+`420fac5783fdf86ed6d6464a8f1498190fdf78ef`/v3 `f6d4ca78…`, aparte
+cold-toolbranch/buildroots, 14 gerichte en 152 tools-hosttests groen.
+Volledige lijst/heropendbeelden en onveranderd diskoracle, archivering/
+tamper-negatieven volgen. Expliciet QMPquit-na-save, geen guestcleanstop,
+abrupte writepowerloss, Windowscold of byte-reproduceerbaarheid. Release
+heeft de concrete integratie-/herhaalopdracht.
+
+NAS `ba557473` heeft drie werkelijke matrixcrates, host/target/stackfaultgates
+groen gemeld; GitHub-CI en echte NAS-QEMU blijven open. Security NV
+`0041a741` bewaart zes echte proeven op `9ae314d`/c532 inclusief counter2
+na volledige QEMU+swtpm-stop en wrongauth/missing; geen lineage/powercut/
+write-ahead/main94-claim. Security werkt eerst #74 inhoudsbehoudend op main94
+bij en herhaalt daar de policygates.
+
+Netwerk listen `91cda779`/code `c643b2d`: 22 hostmodellen/fmt/lint/target
+groen gemeld, actieve native TCP-gate faalt vóór probe op kandidaat én
+baseline0ade. Geen native listenacceptatie; rootbootblocker bij release.
+TLS/no_std-feasibility gaat onafhankelijk verder, geen fictieve oude port.
+
+TL-INTAKE heeft de ontbrekende S09-vindplaats onderzocht: claim06d46151
+historisch aangetroffen, geen implementatie/capture in geraadpleegde
+actuele boom/refs/gerichte historie. Geen totale-afwezigheidsclaim.
+Concrete vervolgbuildertaak TL-S09-COPY-TEST: exclusief nieuw
+`services/volume/tests/independent_copy.rs`, twee onafhankelijke SimDisk/
+Service-instanties, vaste revisie kopiëren, bron laten vallen, doel koud
+recoveren, stale/vol/quota negatieven. Bestaande Client/SimDisk hergebruiken;
+geen common/client/service/kernel/SDK/format-/voortgangswrites.
+Gerichte cargo-test + bestaande history-/volume-coregates, commit/push
+met host-only bewijsgrens. Echte tweede-volumeportals/grants bij release;
+geen S09-acceptatiepunten voor deze hergebruikregressie.
+Opgeleverd: `8a14770d6a719c3a122c54cb774db58ce9b1a728` op main94,
+uitsluitend deze 181-regelige testleaf, drie nieuwe/40 totale volume-core-
+hosttests en history/Clippy/fmt groen gemeld, remote exact/schoon.
+Manager las de volledige test rechtstreeks uit Git: aparte doeldisk,
+8365 bytes, koude recovery na bronverlies en onveranderde doelbytes bij
+stale/quota/full. Geen eigen testherhaling of native/productclaim.
+Lifecycle routeert dit apart, niet via centrale documentatie-PR #75.
+
 ## Historische uitvoeringsregistratie vóór de managerverdeling
+
+## Historische integratie en schrijfgebieden uit #66
+
+Integrator `simon/native-test-version`: gepusht bewijscheckpoint `c532ba88`,
+geteste code `eabc27ba879fd3b5960863ae8eede800c5045a57`, runtime v3
+`a1998a126a3a1ccc18523925a422912d934c14bab865b3d7df346862a2c251a6`.
+De onderstaande oudere toewijzingen zijn historie, geen actieve reserveringen.
+IPC-wachten/consumenten, B02 en native TPM zijn geïntegreerd; normale GUI,
+save/list/reopen en koude probeheropening zijn op hun eigen bron bewezen.
+Alle zes volledige gewone zevenprocessenframes zijn nu op eabc27b native
+bytegelijk aan de opnieuw uitgevoerde referentie, met diskorakel na raw0.
+Bewijs: `verification/full-release-interactive-fixed/`.
+
+| Taak | Eigenaar / exclusieve writes | Toestand en bewijsgrens |
+|---|---|---|
+| WINDOWS-INTERACTIVE-1 | peer `Keuze native os-functionaliteit`; alleen eigen `docs/verification/windows-qemu-interactive-1/`, eigen tijdelijke adapter/bundel/state | Vaste c532ba8-kopie in eigen worktree. Lokale ZIP en echte Windows CheckOnly/start/readiness gemeld; bediening loopt nog, geen geverifieerde eindclaim of publicatie |
+| INTERACTIVE-COLD-1 | integrator; voorlopig alleen sessieartifacts en eigen gegenereerde cold-experiment-runs, daarna zo nodig `tools/run_materiaal_preview.py` en directe tests | Eerste exacte lijstvergelijking rood: verse Ready-status verschilt terecht van vorige Saved-status. Tweede verkennende run4019c620f8 bewijst volledig bytegelijk reopened-frame en onveranderde disk na QMP-quit/raw0, maar certificeert de initiële lijst niet (expliciete vaste wachttijd). Nog geen volledige koude acceptatie; renderer-afgeleid lijstorakel en strikt parent/artifact/trace-replay vereist. Geen kernel-/app-/SDK-writes |
+
+De Windowspeer heeft de vaste build read-only gekopieerd en alle bron/copy-
+hashes gecontroleerd; verder integratorwerk verandert haar vaste bron niet.
+Geen parallelle schrijvers voor de gedeelde voortgangsmeter/status.
+De integrator heeft de Materiaal-/toegankelijkheidssessie expliciet van deze
+runnerreservering op de hoogte gebracht. Score blijft34%;50% open.
+
+## Uitvoeringshistorie
+
+Afgeronde fundamentstap `TPM-NATIVE-1`, eigenaar `simon/native-test-version`, vanaf
+`cf02055`: alleen vaste supervisor-MMIO-adapter en read-only TPM2-property-
+proef met echte PIT-polls, afzonderlijk absent-geval en bestaande volledige
+CPL3-wachtacceptatie. Exclusieve writes: root/kernel Cargo-manifest/lock,
+exacte pagingseam, M3-TPM-fixture/testhook, waitfixture-observer,
+`tools/build.py`, `tools/run.py`, nieuwe `run_tpm.py`/hosttest en bewijsdocs.
+Geen keyring/system-opslagwijzigingen; actieve PR #64 bezit dat gebied.
+23 coretests, 4 harnastests en scalarbuild/ELF-inspectie groen. Beide echte
+native VM's slagen op `4b09869`: propertyquery/release en nul-write-absent-
+quarantaine, met volledige CPL3-wachtacceptatie. Eerste rode poging behouden;
+`verification/native-test-version/tpm-evidence.json`. ADR-052; fundament
+voor FR-B01/FR-O05, geen gesloten criterium. Integrator herhaalt nu de
+gedeelde gates/proefversie; nieuwe CI-step nog niet uitgevoerd.
+Voorafgaande sessiestap: alle zes echte K05-cases, inclusief twee Waiting-
+kills en schoon hergebruik, groen op `586c33c`; brongebonden bewijs in
+`verification/native-test-version/wait-lifecycle-evidence.json`.
+De normale/koude native GUI en FPU/wacht zijn eveneens inmiddels groen op
+hun eigen bron; oude rode queue-omschrijvingen hieronder zijn historisch.
+
+## Peerhistorie — Windows-QEMU-testversie, nu geïntegreerd
+
+`simon/windows-qemu-test-version`, basis `ad2b981`; codecheckpoint `f777f7a`.
+`TASK-WINDOWS-QEMU-TEST-VERSION` voegt een gecontroleerde ZIP-packager,
+PowerShell-launcher en bron-/hashgebonden QMP-previewrunner toe voor het echte
+zeven-app `native-system-materiaal`-profiel. De opgegeven map
+`C:\Program Files\qemu` is het ingebouwde standaarddetectiepad. De launcher
+vereist QEMU 10.2.1+, SDL en `rng-builtin`; QEMU zelf wordt niet meegeleverd.
+
+Hosttests (31: packager, transcript/frame-orakel en bestaande Materiaal-probe),
+strikte preflight en normale Materiaal-build slagen; de laatste build is
+waarschuwingvrij. De eerste QEMU-preview faalde door een onterechte vaste
+Source/Policy-volgorde in het hostorakel. Na correctie slaagt de echte run
+in 3,874 s: QEMU exit 0 na QMP-quit, 800×600 en 310 kleuren.
+Bewijs: `verification/windows-qemu-preview/`. Bundelgeneratie, GitHub-artifactjob en
+Windows-uitvoering staan nog open; de uiteindelijke bron wordt eerst met
+`simon/native-test-version` afgestemd. De lokale QEMU-build heeft QMP en
+`rng-builtin`, maar uitsluitend de `none`-displaybackend, zodat dit geen
+Windows-UI- of SDL-bewijs is. Geen volledige-release- of roadmapcriteria
+afgetekend; rubric blijft 34%.
+
+Windows-preflightaanvulling: echte PowerShell bereikt de opgegeven
+QEMU-installatie (11.1.0), met SDL en `rng-builtin`. Vijf launchertests met
+synthetische bestanden slagen zonder VM of state; `-CheckOnly` valideert
+bundelgrootte/SHA-256. Bewijs: `verification/windows-qemu-preview/windows-launcher.md`.
+Dit is geen Windows-gaststart of handmatige bediening. PR #65 is concept.
+
+Packager verifieert ook de ingelezen kernel-/loaderbytes en bron opnieuw
+vlak vóór archivering. 33 hosttests groen, inclusief artifactwissel na
+initiële validatie: fout zonder ZIP. Geen OS-bundel gemaakt.
+Historische CI41089090576 op f777 is rood (herstelde readinessvolgorde);
+huidige-head-CI blijft open.
+
+Eerstvolgende gate:
+`. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
 
 Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De opt-in `native-rtc`-bootstrap,

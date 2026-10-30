@@ -35,7 +35,7 @@ jobs:
       - name: Disposable emulator and matching firmware package
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf swtpm
       - name: Strict preflight
         run: python3 -B tools/preflight.py --strict
       - name: Fetch locked build dependencies before offline native builders
@@ -45,8 +45,29 @@ jobs:
           cargo +1.91.1 fetch --locked --manifest-path sdk/examples/tcp-probe/Cargo.toml
           cargo +1.91.1 fetch --locked --manifest-path services/net-stack/Cargo.toml
           cargo +1.90.0 fetch --locked --manifest-path sdk/examples/memory/Cargo.toml
+          cargo +1.90.0 fetch --locked --manifest-path sdk/examples/ipc-wait-probe/Cargo.toml
+      - name: Native IPC queue waits, revocation and resumable PIT idle
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/ipc-wait-ci
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/ipc-wait-ci-native
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/ipc-wait-ci-host
+        run: |
+          python3 -B -m unittest tools.tests.test_ipc_wait
+          cargo +1.90.0 test --offline --locked -p capability-core
+          cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/input-service/Cargo.toml
+          python3 -B -u tools/run_ipc_wait.py
       - name: Real joint-service guest and exact-image cold recovery
         run: python3 -B -u tools/test_system.py
+      - name: Actual TPM CRB MMIO property query release and absent-device quarantine
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/tpm-ci
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/tpm-ci
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/tpm-ci-host
+        run: |
+          python3 -B -m unittest tools.tests.test_tpm
+          cargo +1.90.0 test --offline --locked --manifest-path drivers/tpm-crb/Cargo.toml
+          python3 -B -u tools/run_tpm.py --case normal
+          python3 -B -u tools/run_tpm.py --case absent
       - name: Independently revalidate raw images and capture compact evidence
         run: python3 -B tools/capture_system.py --destination docs/verification/full-release-system-ci
       - name: Native ring-3 unauthenticated UTC clock and malformed-call rejection
@@ -72,6 +93,8 @@ jobs:
           python3 -B tools/test_fpu.py
           python3 -B tools/build.py --kernel-feature native-fpu
           python3 -B tools/run_fpu.py
+          NOS_BUILD_DIR="${NOS_BUILD_DIR}/wait" python3 -B tools/build.py --kernel-feature test-fpu-wait
+          NOS_BUILD_DIR="${NOS_BUILD_DIR}/wait" python3 -B tools/run_fpu.py
       - name: Actual native TCP and exact-image cold recovery
         env:
           NOS_BUILD_DIR: ${{ github.workspace }}/build/tcp-ci
@@ -94,6 +117,12 @@ jobs:
         with:
           name: native-system-evidence
           path: |
+            build/ipc-wait-ci/
+            build/tpm-ci/tpm-*-report.json
+            build/tpm-ci/manifest.json
+            build/tpm-ci/logs/
+            build/tpm-ci/run/tpm-*/
+            build/tpm-ci/tpm/*/backend.log
             build/memory-ci/memory-gate.json
             build/memory-ci/logs/
             build/memory-ci/*/memory-report.json
@@ -127,6 +156,7 @@ jobs:
             build/fpu-ci/logs/
             build/fpu-ci/run/native-fpu-*/
             build/fpu-ci/esp/
+            build/fpu-ci/wait/
             build/tcp-ci/tcp-system-gate.json
             build/tcp-ci/manifest.json
             build/tcp-ci/logs/

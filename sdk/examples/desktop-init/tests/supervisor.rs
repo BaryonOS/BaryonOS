@@ -1,13 +1,16 @@
 //! Host protocol/failure models over actual capability-engine IPC envelopes.
 //! Peer messages are protocol test data, never proof of real focus/display/I/O.
-use capability_core::{Engine, Message, SEND};
+use capability_core::{Engine, Message, RECV, SEND};
 use nieuw_os_native_desktop_init::{
     boot::{self, Bootstrap},
     controller,
     supervisor::{Fatal, Phase, Supervisor, BOOT_TICKS},
     wire::{self, StopRequest, StopStatus},
 };
-use nieuw_os_native_input_service::Ipc;
+use nieuw_os_native_input_service::{
+    source::wait::{Action, Interest, Plan, HORIZON},
+    Ipc,
+};
 use nieuw_os_sdk_runtime::{
     Capability, Error, Handle, Outgoing, ReceiveEndpoint, Received, Rights, SendEndpoint,
 };
@@ -637,4 +640,185 @@ scenario!(
 scenario!(
     missing_retire_ack_reports_failed_without_stopped,
     failed_retire_impl
+);
+fn run(action: Result<Action, Fatal>) {
+    assert_eq!(action, Ok(Action::Run));
+}
+fn park(s: &Supervisor, now: u64) -> Plan {
+    match s.wait_plan(now) {
+        Ok(Action::Park(plan)) => plan,
+        other => panic!("expected park, got {other:?}"),
+    }
+}
+/// Real read-only Engine readiness for each planned RECV, without consuming.
+fn ready(m: &Model, plan: &Plan) -> Vec<bool> {
+    let stats = m.engine.borrow().stats();
+    let result = plan
+        .interests()
+        .map(|i| match i {
+            Interest::Receive(e) => m
+                .engine
+                .borrow()
+                .endpoint_queue_ready(1, e.handle().raw(), RECV)
+                .unwrap(),
+            Interest::Send(_) => panic!("supervisor never parks on SEND"),
+        })
+        .collect();
+    assert_eq!(m.engine.borrow().stats(), stats);
+    result
+}
+fn startup_never_parks_impl() {
+    let mut m = Model::new(true);
+    let mut s = m.supervisor();
+    run(s.wait_plan(0));
+    m.role(2, 1, POLICY, 1, 1);
+    m.role(3, 2, POLICY, 0, 1);
+    m.role(1, 3, SURFACE, 1, 1);
+    assert_eq!(s.step(0, &mut m.ports[0]), Ok(Phase::Boot));
+    run(s.wait_plan(0));
+    m.app(wire::READY);
+    assert_eq!(s.step(1, &mut m.ports[0]), Ok(Phase::Focus));
+    run(s.wait_plan(1));
+    let filler = Outgoing::new(1, &[]).unwrap();
+    for _ in 0..16 {
+        m.ports[0].send(m.config.app_control, &filler).unwrap();
+    }
+    m.ack(false);
+    assert_eq!(s.step(2, &mut m.ports[0]), Ok(Phase::Go));
+    run(s.wait_plan(2));
+    for _ in 0..16 {
+        m.ports[1].receive(recv(m.app_recv)).unwrap();
+    }
+    assert_eq!(s.step(3, &mut m.ports[0]), Ok(Phase::Running));
+    let plan = park(&s, 3);
+    assert_eq!(plan.deadline(), 3 + HORIZON);
+}
+fn startup_deadline_unchanged_impl() {
+    let mut m = Model::new(false);
+    let mut s = m.supervisor();
+    m.ready();
+    s.step(0, &mut m.ports[0]).unwrap();
+    run(s.wait_plan(499));
+    assert_eq!(s.step(500, &mut m.ports[0]), Err(Fatal::Deadline));
+    run(s.wait_plan(500));
+}
+fn running_parks_exactly_on_own_receives_impl() {
+    let mut m = Model::new(true);
+    let mut s = m.supervisor();
+    m.running(&mut s);
+    let controller = m.config.controller.unwrap();
+    let reads = m.ports[0].reads;
+    let plan = park(&s, 7);
+    assert_eq!(
+        plan.interests().collect::<Vec<_>>(),
+        [
+            Interest::Receive(m.config.registry),
+            Interest::Receive(controller.receive)
+        ]
+    );
+    assert_eq!(plan.deadline(), 7 + HORIZON);
+    assert_eq!(ready(&m, &plan), [false, false]);
+    m.app(wire::DONE);
+    assert_eq!(ready(&m, &park(&s, 7)), [true, false]);
+    assert_eq!(m.ports[0].reads, reads);
+    assert_eq!(s.step(8, &mut m.ports[0]), Ok(Phase::Running));
+    assert_eq!(s.counts().app_done, 0);
+    assert_eq!(ready(&m, &park(&s, 8)), [false, false]);
+    let request = StopRequest {
+        id: 1,
+        epoch: SURFACE,
+        generation: 1,
+    };
+    m.ports[5]
+        .send(
+            send(m.controller_send),
+            &Outgoing::new(wire::CONTROL, &request.encode()).unwrap(),
+        )
+        .unwrap();
+    let reads = m.ports[0].reads;
+    assert_eq!(ready(&m, &park(&s, 9)), [false, true]);
+    assert_eq!(m.ports[0].reads, reads);
+    assert_eq!(s.step(9, &mut m.ports[0]), Ok(Phase::Stop));
+    run(s.wait_plan(9));
+    let mut m = Model::new(false);
+    let mut s = m.supervisor();
+    m.running(&mut s);
+    assert_eq!(
+        park(&s, 2).interests().collect::<Vec<_>>(),
+        [Interest::Receive(m.config.registry)]
+    );
+}
+fn stop_reply_and_terminal_never_park_impl() {
+    let mut m = Model::new(true);
+    let mut s = m.supervisor();
+    m.running(&mut s);
+    m.stop(&mut s, 1, 2);
+    run(s.wait_plan(2));
+    m.app(wire::DONE);
+    assert_eq!(s.step(3, &mut m.ports[0]), Ok(Phase::Retire));
+    run(s.wait_plan(3));
+    let filler = Outgoing::new(7, &[]).unwrap();
+    for _ in 0..16 {
+        m.ports[0]
+            .send(m.config.controller.unwrap().reply, &filler)
+            .unwrap();
+    }
+    m.ack(true);
+    assert_eq!(s.step(4, &mut m.ports[0]), Ok(Phase::Reply));
+    run(s.wait_plan(4));
+    for _ in 0..16 {
+        m.ports[5].receive(recv(m.controller_recv)).unwrap();
+    }
+    assert_eq!(s.step(5, &mut m.ports[0]), Ok(Phase::Stopped));
+    run(s.wait_plan(5));
+}
+fn refusal_returns_to_quiescent_running_impl() {
+    let mut m = Model::new(true);
+    let mut s = m.supervisor();
+    m.running(&mut s);
+    m.stop(&mut s, 1, 2);
+    run(s.wait_plan(2));
+    m.app(wire::STOP_REFUSED);
+    assert_eq!(s.step(3, &mut m.ports[0]), Ok(Phase::Running));
+    assert_eq!(s.counts().controller_replies, 1);
+    assert_eq!(park(&s, 3).deadline(), 3 + HORIZON);
+}
+fn failure_and_clock_faults_impl() {
+    let mut m = Model::new(true);
+    let mut s = m.supervisor();
+    m.running(&mut s);
+    assert_eq!(s.wait_plan(0), Err(Fatal::Clock));
+    assert_eq!(s.wait_plan(u64::MAX), Err(Fatal::Clock));
+    assert_eq!(s.wait_plan(u64::MAX - HORIZON).map(|_| ()), Ok(()));
+    m.stop(&mut s, 1, 2);
+    m.app(wire::DONE);
+    s.step(3, &mut m.ports[0]).unwrap();
+    assert_eq!(s.step(503, &mut m.ports[0]), Ok(Phase::Reply));
+    run(s.wait_plan(503));
+    assert_eq!(s.step(504, &mut m.ports[0]), Ok(Phase::Failed));
+    run(s.wait_plan(504));
+}
+scenario!(
+    startup_and_backpressure_never_park,
+    startup_never_parks_impl
+);
+scenario!(
+    startup_protocol_deadline_is_not_renewed_by_wait_plan,
+    startup_deadline_unchanged_impl
+);
+scenario!(
+    quiescent_running_parks_only_on_own_registry_and_controller_receive,
+    running_parks_exactly_on_own_receives_impl
+);
+scenario!(
+    stop_retire_reply_and_stopped_never_park,
+    stop_reply_and_terminal_never_park_impl
+);
+scenario!(
+    refused_stop_reply_returns_to_parkable_running,
+    refusal_returns_to_quiescent_running_impl
+);
+scenario!(
+    wait_plan_fails_closed_on_clock_and_never_parks_after_failure,
+    failure_and_clock_faults_impl
 );
