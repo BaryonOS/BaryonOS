@@ -47,6 +47,23 @@ handtekening bewijst alleen herkomst onder de geselecteerde sleutel en
 integriteit; zij is geen verklaring dat een app veilig of betrouwbaar is en
 verleent geen rechten.
 
+## Meerdere appbronnen — policy-core
+
+`SourceRegistry` houdt maximaal acht expliciet gekozen bronnen bij. Een
+32-byte `SourceId` komt van de vertrouwde bronbeheerder en staat niet in het
+pakket; de aanroeper kiest de bron voor iedere verificatie. Een bron kan
+worden toegevoegd, op een verwachte generatie worden geroteerd of ingetrokken.
+Rotatie en intrekking verhogen de generatie; stale mutaties falen zonder
+toestandswijziging. Ingetrokken slots blijven tombstones en worden niet
+stilzwijgend hergebruikt.
+
+Intrekking blokkeert nieuwe packageverificatie en updates via die bron. Zoals
+door Simon gekozen op 30 oktober 2026 blijven reeds geïnstalleerde apps
+startbaar; data of apps worden niet stil verwijderd. Beheer van bronkeuze en
+rotatie vereist afzonderlijke gebruikersautorisatie. Deze vaste array is
+alleen een in-memory policy-core: geen consent-UI, capabilitycontrole,
+duurzame bronregistratie of transacties. Acht bronnen is geen productlimiet.
+
 ABI-versies zijn twee u16-waarden in één u32: major in de hoge 16 bits, minor
 in de lage. De verifier ontvangt de daadwerkelijk onderhandelde ABI als
 argument; hij raadt geen host- of SDK-versie. De image-limiet van 2 MiB is
@@ -67,10 +84,12 @@ Deze tests bewijzen alleen host-/bare-metal-libraryverificatie. Zij tonen niet
 dat een app kan worden geïnstalleerd, op schijf atomair beheerd, na herstart
 gevonden of via de kernel gestart. De user-ELF-parser gebruikt dezelfde
 adres-/segment-/quota-policy als de huidige kernel loader. Tests tonen dat een
-correct ondertekend maar W+X ELF-image niet launch-klaar wordt verklaard. De
-helper bouwt geen mappings, proces of `LaunchImage`; A02 vereist daarnaast
-meerdere afzonderlijke bronnen, bronintrekking, installertransacties,
-update/verwijderbeleid, een dynamische image-laadketen en echte native
-positieve/negatieve taken. De loaderservice moet bij gebruik rekening houden
-met de circa 200 KiB ML-DSA-verificatiestack en een passende begrensde stack
-hebben.
+correct ondertekend maar W+X ELF-image niet launch-klaar wordt verklaard.
+SourceRegistry-tests controleren onafhankelijke bronkeuze, generatiegebonden
+keyrotatie, intrekking, dubbele sleutels en de vaste capaciteit; de registry
+is niet duurzaam en kent geen rechten toe. De helper bouwt geen mappings,
+proces of `LaunchImage`; A02 vereist daarnaast bronbeheer op disk,
+installertransacties, update/verwijderbeleid, een dynamische image-laadketen
+en echte native positieve/negatieve taken. De loaderservice moet bij gebruik
+rekening houden met de circa 200 KiB ML-DSA-verificatiestack en een passende
+begrensde stack hebben.

@@ -4,7 +4,8 @@
 //! Canonical verifier for a single-image Nieuw OS application package.
 //!
 //! A package contains one signed manifest followed by exact application-image
-//! bytes. The downstream image loader is responsible for executable validation.
+//! bytes. Executable validation reuses the kernel's user-ELF policy; physical
+//! mapping and process launch remain the downstream loader's responsibility.
 //! It has no install hooks, dependencies, or capability declarations. A
 //! successful verification establishes publisher-key provenance and image
 //! integrity only; it does not establish that the program is benign or
@@ -26,6 +27,7 @@ pub const ED25519_PUBLIC_LEN: usize = 32;
 pub const MLDSA65_PUBLIC_LEN: usize = 1952;
 pub const APP_ID_LEN: usize = 64;
 pub const MAX_IMAGE_LEN: usize = 2 * 1024 * 1024;
+pub const MAX_SOURCES: usize = 8;
 const SIGNATURES_END: usize = SIGNED_LEN + ED25519_SIGNATURE_LEN + MLDSA65_SIGNATURE_LEN;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -41,6 +43,33 @@ pub enum Reject {
 pub enum ExecutableReject {
     Package(Reject),
     Image(kernel_core::Error),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SourceId([u8; 32]);
+
+impl SourceId {
+    pub const fn from_bytes(bytes: [u8; 32]) -> Self {
+        Self(bytes)
+    }
+
+    pub const fn as_bytes(&self) -> &[u8; 32] {
+        &self.0
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TrustReject {
+    InvalidSourceId,
+    InvalidKeys,
+    DuplicateSource,
+    DuplicateKeys,
+    Full,
+    UnknownSource,
+    RevokedSource,
+    StaleSourceGeneration,
+    GenerationExhausted,
+    Executable(ExecutableReject),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -178,6 +207,195 @@ impl VerifiedExecutable<'_> {
     }
 }
 
+pub struct SourceVerifiedExecutable<'a> {
+    source_id: SourceId,
+    source_generation: u32,
+    executable: VerifiedExecutable<'a>,
+}
+
+impl SourceVerifiedExecutable<'_> {
+    pub const fn source_id(&self) -> SourceId {
+        self.source_id
+    }
+
+    pub const fn source_generation(&self) -> u32 {
+        self.source_generation
+    }
+
+    pub fn executable(&self) -> &VerifiedExecutable<'_> {
+        &self.executable
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum SourceState {
+    Empty,
+    Active,
+    Revoked,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct SourceSlot {
+    id: SourceId,
+    anchors: TrustAnchors,
+    generation: u32,
+    state: SourceState,
+}
+
+const EMPTY_SOURCE: SourceSlot = SourceSlot {
+    id: SourceId([0; 32]),
+    anchors: TrustAnchors {
+        ed25519: [0; ED25519_PUBLIC_LEN],
+        mldsa65: [0; MLDSA65_PUBLIC_LEN],
+    },
+    generation: 0,
+    state: SourceState::Empty,
+};
+
+/// Bounded source policy. Mutations must be exposed only through a
+/// user-authorized source manager; persistence and capability checks belong
+/// to that service, not this in-memory core.
+pub struct SourceRegistry {
+    sources: [SourceSlot; MAX_SOURCES],
+}
+
+impl SourceRegistry {
+    pub const fn new() -> Self {
+        Self {
+            sources: [EMPTY_SOURCE; MAX_SOURCES],
+        }
+    }
+
+    /// Add one explicitly selected source. Revoked slots remain tombstones and
+    /// cannot be silently reused under the same identity.
+    pub fn add(&mut self, id: SourceId, anchors: TrustAnchors) -> Result<u32, TrustReject> {
+        if id.0.iter().all(|byte| *byte == 0) {
+            return Err(TrustReject::InvalidSourceId);
+        }
+        if !valid_anchors(&anchors) {
+            return Err(TrustReject::InvalidKeys);
+        }
+        if self
+            .sources
+            .iter()
+            .any(|source| source.state != SourceState::Empty && source.id == id)
+        {
+            return Err(TrustReject::DuplicateSource);
+        }
+        if self
+            .sources
+            .iter()
+            .any(|source| source.state != SourceState::Empty && source.anchors == anchors)
+        {
+            return Err(TrustReject::DuplicateKeys);
+        }
+        let slot = self
+            .sources
+            .iter_mut()
+            .find(|source| source.state == SourceState::Empty)
+            .ok_or(TrustReject::Full)?;
+        *slot = SourceSlot {
+            id,
+            anchors,
+            generation: 1,
+            state: SourceState::Active,
+        };
+        Ok(1)
+    }
+
+    /// Replace a source's key pair only against the generation the caller
+    /// inspected. The service must authorize this trust change separately.
+    pub fn rotate(
+        &mut self,
+        id: SourceId,
+        expected_generation: u32,
+        anchors: TrustAnchors,
+    ) -> Result<u32, TrustReject> {
+        let index = self.source_index(id)?;
+        let source = self.sources[index];
+        if source.state == SourceState::Revoked {
+            return Err(TrustReject::RevokedSource);
+        }
+        if source.generation != expected_generation {
+            return Err(TrustReject::StaleSourceGeneration);
+        }
+        if !valid_anchors(&anchors) {
+            return Err(TrustReject::InvalidKeys);
+        }
+        if source.anchors == anchors {
+            return Err(TrustReject::DuplicateKeys);
+        }
+        if self.sources.iter().enumerate().any(|(other, entry)| {
+            other != index && entry.state != SourceState::Empty && entry.anchors == anchors
+        }) {
+            return Err(TrustReject::DuplicateKeys);
+        }
+        let generation = source
+            .generation
+            .checked_add(1)
+            .ok_or(TrustReject::GenerationExhausted)?;
+        self.sources[index].anchors = anchors;
+        self.sources[index].generation = generation;
+        Ok(generation)
+    }
+
+    /// Revoke future package verification for this source. Existing installed
+    /// apps are not removed by this policy operation.
+    pub fn revoke(&mut self, id: SourceId, expected_generation: u32) -> Result<u32, TrustReject> {
+        let index = self.source_index(id)?;
+        let source = self.sources[index];
+        if source.state == SourceState::Revoked {
+            return Err(TrustReject::RevokedSource);
+        }
+        if source.generation != expected_generation {
+            return Err(TrustReject::StaleSourceGeneration);
+        }
+        let generation = source
+            .generation
+            .checked_add(1)
+            .ok_or(TrustReject::GenerationExhausted)?;
+        self.sources[index].generation = generation;
+        self.sources[index].state = SourceState::Revoked;
+        Ok(generation)
+    }
+
+    pub fn verify_executable<'a>(
+        &self,
+        id: SourceId,
+        expected_generation: u32,
+        package: &'a [u8],
+        current_abi: u32,
+    ) -> Result<SourceVerifiedExecutable<'a>, TrustReject> {
+        let source = self.sources[self.source_index(id)?];
+        if source.state == SourceState::Revoked {
+            return Err(TrustReject::RevokedSource);
+        }
+        if source.generation != expected_generation {
+            return Err(TrustReject::StaleSourceGeneration);
+        }
+        let executable = verify_executable_package(package, &source.anchors, current_abi)
+            .map_err(TrustReject::Executable)?;
+        Ok(SourceVerifiedExecutable {
+            source_id: id,
+            source_generation: source.generation,
+            executable,
+        })
+    }
+
+    fn source_index(&self, id: SourceId) -> Result<usize, TrustReject> {
+        self.sources
+            .iter()
+            .position(|source| source.state != SourceState::Empty && source.id == id)
+            .ok_or(TrustReject::UnknownSource)
+    }
+}
+
+impl Default for SourceRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Verify exact framing, current ABI compatibility, both source-selected
 /// signatures, and the complete image digest before exposing the image bytes.
 pub fn verify_package<'a>(
@@ -240,6 +458,11 @@ pub fn verify_package<'a>(
     }
 
     Ok(VerifiedPackage { manifest, image })
+}
+
+fn valid_anchors(anchors: &TrustAnchors) -> bool {
+    EdKey::from_bytes(&anchors.ed25519).is_ok()
+        && EncodedVerifyingKey::<MlDsa65>::try_from(&anchors.mldsa65[..]).is_ok()
 }
 
 /// Verify package provenance and apply the same user-ELF policy used by the
@@ -420,6 +643,113 @@ mod tests {
         assert_eq!(verified.load_plan().entry, 0x4000_0000);
         assert_eq!(verified.load_plan().count, 2);
         assert_eq!(verified.load_plan().pages, 2);
+    }
+
+    #[test]
+    fn source_registry_selects_and_revokes_independent_sources() {
+        let first = keys();
+        let second = TestKeys::new([1; 32], [2; 32]);
+        let first_id = SourceId::from_bytes([1; 32]);
+        let second_id = SourceId::from_bytes([2; 32]);
+        let mut registry = SourceRegistry::new();
+        assert_eq!(registry.add(first_id, first.anchors()), Ok(1));
+        assert_eq!(registry.add(second_id, second.anchors()), Ok(1));
+
+        let image = valid_user_elf();
+        let first_package = first.package(&image, 1);
+        let second_package = second.package(&image, 1);
+        let verified = registry
+            .verify_executable(first_id, 1, &first_package, abi_version(1, 3))
+            .unwrap();
+        assert_eq!(verified.source_id(), first_id);
+        assert_eq!(verified.source_generation(), 1);
+        assert!(matches!(
+            registry.verify_executable(first_id, 1, &second_package, abi_version(1, 3)),
+            Err(TrustReject::Executable(ExecutableReject::Package(
+                Reject::UnknownKey
+            )))
+        ));
+
+        assert_eq!(registry.revoke(first_id, 1), Ok(2));
+        assert!(matches!(
+            registry.verify_executable(first_id, 2, &first_package, abi_version(1, 3)),
+            Err(TrustReject::RevokedSource)
+        ));
+        assert_eq!(
+            registry
+                .verify_executable(second_id, 1, &second_package, abi_version(1, 3))
+                .unwrap()
+                .source_id(),
+            second_id
+        );
+        assert_eq!(
+            registry.add(first_id, first.anchors()),
+            Err(TrustReject::DuplicateSource)
+        );
+    }
+
+    #[test]
+    fn source_rotation_is_generation_checked_and_rejects_old_keys() {
+        let original = keys();
+        let rotated = TestKeys::new([3; 32], [4; 32]);
+        let id = SourceId::from_bytes([9; 32]);
+        let mut registry = SourceRegistry::new();
+        registry.add(id, original.anchors()).unwrap();
+
+        assert_eq!(
+            registry.rotate(id, 1, original.anchors()),
+            Err(TrustReject::DuplicateKeys)
+        );
+        assert_eq!(
+            registry.rotate(id, 0, rotated.anchors()),
+            Err(TrustReject::StaleSourceGeneration)
+        );
+        assert_eq!(registry.rotate(id, 1, rotated.anchors()), Ok(2));
+        let image = valid_user_elf();
+        let old_package = original.package(&image, 1);
+        let new_package = rotated.package(&image, 2);
+        assert!(matches!(
+            registry.verify_executable(id, 2, &old_package, abi_version(1, 3)),
+            Err(TrustReject::Executable(ExecutableReject::Package(
+                Reject::UnknownKey
+            )))
+        ));
+        assert_eq!(
+            registry
+                .verify_executable(id, 2, &new_package, abi_version(1, 3))
+                .unwrap()
+                .executable()
+                .manifest()
+                .version,
+            2
+        );
+    }
+
+    #[test]
+    fn source_registry_rejects_invalid_duplicates_and_capacity_overflow() {
+        let first = keys();
+        let mut registry = SourceRegistry::new();
+        assert_eq!(
+            registry.add(SourceId::from_bytes([0; 32]), first.anchors()),
+            Err(TrustReject::InvalidSourceId)
+        );
+        let first_id = SourceId::from_bytes([1; 32]);
+        assert_eq!(registry.add(first_id, first.anchors()), Ok(1));
+        assert_eq!(
+            registry.add(SourceId::from_bytes([2; 32]), first.anchors()),
+            Err(TrustReject::DuplicateKeys)
+        );
+
+        for slot in 1..MAX_SOURCES {
+            let id = SourceId::from_bytes([slot as u8 + 1; 32]);
+            let keys = TestKeys::new([slot as u8 + 20; 32], [slot as u8 + 40; 32]);
+            assert_eq!(registry.add(id, keys.anchors()), Ok(1));
+        }
+        let overflow_keys = TestKeys::new([101; 32], [102; 32]);
+        assert_eq!(
+            registry.add(SourceId::from_bytes([99; 32]), overflow_keys.anchors()),
+            Err(TrustReject::Full)
+        );
     }
 
     #[test]

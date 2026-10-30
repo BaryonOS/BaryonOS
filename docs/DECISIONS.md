@@ -33,6 +33,23 @@ ABI-policy, opslag-/update-transacties, appimage-loader en herstelgedrag.
 Terugdraaien kan door de nieuwe crate/workspace-entry te verwijderen; B03 en
 bestaande app-launch ABI blijven ongewijzigd. Geen A02-punt toegekend.
 
+## ADR-053 — Bronintrekking blokkeert toekomstige pakketten
+
+30 oktober 2026; bronbeheer-policy-core voor A02.
+De verificatiekern ontvangt bij elke verificatie een expliciete `SourceId` en
+verwachte bron-generatie; de appbundel kiest nooit zelf haar trust anchor.
+Keyrotatie en intrekking zijn compare-and-swap-operaties op die generatie.
+Intrekking blokkeert nieuwe pakketverificaties/updates maar verwijdert of
+blokkeert reeds geïnstalleerde apps niet; Simon koos dat gedrag expliciet.
+Verwijdering van apps/data is een afzonderlijke gebruikershandeling.
+
+`SourceRegistry` is momenteel een vaste in-memory kern van acht slots.
+Gebruikersconsent, capability-afdwinging, duurzame bronstatus, crashherstel en
+de koppeling aan een installer blijven vereist. De acht slots zijn geen
+productlimiet en leveren geen A02-acceptatiebewijs op. Terugdraaien kan de
+registry en haar tests verwijderen zonder het packageformaat of kernel-ABI te
+wijzigen.
+
 ## ADR-051 — Persistente sleutelstatus via een afzonderlijk administratief ingress
 
 30 oktober 2026; uitvoering B02-PERSIST-1, basis `ad2b981`. De bestaande
