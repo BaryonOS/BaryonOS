@@ -37,6 +37,10 @@ impl<'a> PacketDevice<'a> {
         self.rx_len == 0
     }
 
+    pub(crate) fn discard_receive(&mut self) {
+        self.rx_len = 0;
+    }
+
     pub fn push(&mut self, frame: &[u8]) -> Result<(), Error> {
         if !(14..=FRAME_BYTES).contains(&frame.len()) {
             return Err(Error::InvalidFrame);

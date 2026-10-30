@@ -44,6 +44,7 @@ pub enum Error {
     InvalidState,
     Unaddressable,
     Finished,
+    NotConfigured,
 }
 
 /// A process-local index into this engine, not a kernel capability or IPC token.
@@ -61,6 +62,47 @@ pub struct Config {
     pub random_seed: u64,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct LinkConfig {
+    pub mac: [u8; 6],
+    pub random_seed: u64,
+}
+
+/// Trusted configuration-service input, not a network permission or proof of
+/// address-conflict detection. Call only after the actual address probe.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AddressConfiguration {
+    pub ipv4: [u8; 4],
+    pub prefix_len: u8,
+    pub gateway: Option<[u8; 4]>,
+}
+
+impl AddressConfiguration {
+    fn validate(self) -> Result<(), Error> {
+        let unicast = |ip: [u8; 4]| ip[0] != 0 && ip[0] != 127 && ip[0] < 224;
+        if !unicast(self.ipv4) || self.prefix_len == 0 || self.prefix_len > 32 {
+            return Err(Error::InvalidConfiguration);
+        }
+        let mask = u32::MAX << (32 - self.prefix_len);
+        let local = u32::from_be_bytes(self.ipv4);
+        let usable = |ip: u32| self.prefix_len >= 31 || (ip & !mask != 0 && ip & !mask != !mask);
+        if !usable(local) {
+            return Err(Error::InvalidConfiguration);
+        }
+        if let Some(gateway) = self.gateway {
+            let router = u32::from_be_bytes(gateway);
+            if !unicast(gateway)
+                || router == local
+                || router & mask != local & mask
+                || !usable(router)
+            {
+                return Err(Error::InvalidConfiguration);
+            }
+        }
+        Ok(())
+    }
+}
+
 /// All packet and socket bytes are borrowed from caller-owned fixed storage.
 /// At most one ingress packet and one pending egress packet exist at a time.
 pub struct Stack<'a> {
@@ -70,6 +112,8 @@ pub struct Stack<'a> {
     slots: usize,
     clients: usize,
     last_ticks: u64,
+    configuration: Option<AddressConfiguration>,
+    withheld_transmission: bool,
 }
 
 fn instant(ticks: u64) -> Result<Instant, Error> {
@@ -91,19 +135,51 @@ impl<'a> Stack<'a> {
         tx_frame: &'a mut [u8; FRAME_BYTES],
         ticks: u64,
     ) -> Result<Self, Error> {
+        Self::new_inner(config, true, storage, rx_frame, tx_frame, ticks)
+    }
+
+    pub fn new_unconfigured(
+        link: LinkConfig,
+        storage: &'a mut [SocketStorage<'a>],
+        rx_frame: &'a mut [u8; FRAME_BYTES],
+        tx_frame: &'a mut [u8; FRAME_BYTES],
+        ticks: u64,
+    ) -> Result<Self, Error> {
+        Self::new_inner(
+            Config {
+                mac: link.mac,
+                ipv4: [0; 4],
+                prefix_len: 0,
+                random_seed: link.random_seed,
+            },
+            false,
+            storage,
+            rx_frame,
+            tx_frame,
+            ticks,
+        )
+    }
+
+    fn new_inner(
+        config: Config,
+        configured: bool,
+        storage: &'a mut [SocketStorage<'a>],
+        rx_frame: &'a mut [u8; FRAME_BYTES],
+        tx_frame: &'a mut [u8; FRAME_BYTES],
+        ticks: u64,
+    ) -> Result<Self, Error> {
         let mac = EthernetAddress(config.mac);
-        let ip = Ipv4Address::from(config.ipv4);
-        if storage.is_empty()
-            || storage.len() > MAX_CLIENTS
-            || !mac.is_unicast()
-            || mac.0 == [0; 6]
-            || config.ipv4[0] == 0
-            || config.ipv4[0] == 127
-            || config.ipv4[0] >= 224
-            || config.prefix_len == 0
-            || config.prefix_len > 32
+        if storage.is_empty() || storage.len() > MAX_CLIENTS || !mac.is_unicast() || mac.0 == [0; 6]
         {
             return Err(Error::InvalidConfiguration);
+        }
+        let configuration = configured.then_some(AddressConfiguration {
+            ipv4: config.ipv4,
+            prefix_len: config.prefix_len,
+            gateway: None,
+        });
+        if let Some(address) = configuration {
+            address.validate()?;
         }
         let now = instant(ticks)?;
         let slots = storage.len();
@@ -115,12 +191,17 @@ impl<'a> Stack<'a> {
         let mut settings = InterfaceConfig::new(HardwareAddress::Ethernet(mac));
         settings.random_seed = config.random_seed;
         let mut interface = Interface::new(settings, &mut device, now);
-        interface.update_ip_addrs(|addresses| {
-            // Capacity is asserted above at compile time and the list is empty.
-            addresses
-                .push(IpCidr::new(ip.into(), config.prefix_len))
-                .unwrap();
-        });
+        if let Some(address) = configuration {
+            interface.update_ip_addrs(|addresses| {
+                // Capacity is asserted above and the list is empty.
+                addresses
+                    .push(IpCidr::new(
+                        Ipv4Address::from(address.ipv4).into(),
+                        address.prefix_len,
+                    ))
+                    .unwrap();
+            });
+        }
         Ok(Self {
             interface,
             device,
@@ -128,7 +209,102 @@ impl<'a> Stack<'a> {
             slots,
             clients: 0,
             last_ticks: ticks,
+            configuration,
+            withheld_transmission: false,
         })
+    }
+
+    pub fn configuration(&self) -> Option<AddressConfiguration> {
+        self.configuration
+    }
+
+    fn check_ticks(&self, ticks: u64) -> Result<Instant, Error> {
+        if ticks < self.last_ticks {
+            return Err(Error::ClockWentBackwards);
+        }
+        instant(ticks)
+    }
+
+    /// Applying a new epoch requires all old sockets and TX to be quiescent.
+    /// A pending old frame cannot be discarded through a fake completion.
+    pub fn apply_configuration(
+        &mut self,
+        configuration: AddressConfiguration,
+        ticks: u64,
+    ) -> Result<(), Error> {
+        configuration.validate()?;
+        let now = self.check_ticks(ticks)?;
+        if self.device.transmission().is_some()
+            || self
+                .sockets
+                .iter()
+                .any(|(_, smoltcp::socket::Socket::Tcp(socket))| socket.state() != State::Closed)
+        {
+            return Err(Error::Busy);
+        }
+        self.interface.routes_mut().update(|routes| {
+            routes.clear();
+            if let Some(gateway) = configuration.gateway {
+                // Fixed route capacity is asserted above; list is empty.
+                routes
+                    .push(smoltcp::iface::Route::new_ipv4_gateway(Ipv4Address::from(
+                        gateway,
+                    )))
+                    .unwrap();
+            }
+        });
+        self.device.discard_receive();
+        // Updating the address also flushes the existing neighbor cache.
+        self.interface.update_ip_addrs(|addresses| {
+            addresses.clear();
+            addresses
+                .push(IpCidr::new(
+                    Ipv4Address::from(configuration.ipv4).into(),
+                    configuration.prefix_len,
+                ))
+                .unwrap();
+        });
+        self.interface.poll_maintenance(now);
+        self.last_ticks = ticks;
+        self.configuration = Some(configuration);
+        self.withheld_transmission = false;
+        Ok(())
+    }
+
+    /// Withdraw even on a clock fault. Fence first, abort all sockets, remove
+    /// address/routes/RX. Preserve pending TX storage until its real completion.
+    /// No recovery/reset acknowledgement is fabricated for an unpublished frame.
+    pub fn withdraw_configuration(&mut self, ticks: u64) -> Result<(), Error> {
+        let now = self.check_ticks(ticks);
+        self.configuration = None;
+        self.withheld_transmission = self.device.transmission().is_some();
+        for (_, smoltcp::socket::Socket::Tcp(socket)) in self.sockets.iter_mut() {
+            socket.abort();
+        }
+        self.interface
+            .update_ip_addrs(|addresses| addresses.clear());
+        self.interface.routes_mut().update(|routes| routes.clear());
+        self.device.discard_receive();
+        // abort() alone retains an RST tuple. Remove/re-add resets smoltcp's
+        // per-socket neighbor-backoff metadata without changing its storage.
+        // With no local address, upstream TCP dispatch resets each old tuple
+        // before it can emit, even if the old TX slot remains occupied.
+        let mut handles = [None; MAX_CLIENTS];
+        for (index, (handle, _)) in self.sockets.iter().enumerate() {
+            handles[index] = Some(handle);
+        }
+        for handle in handles.into_iter().flatten() {
+            let socket = self.sockets.remove(handle);
+            assert_eq!(self.sockets.add(socket), handle);
+        }
+        let cleanup_time = now.unwrap_or(instant(self.last_ticks).expect("validated stack clock"));
+        self.interface
+            .poll_egress(cleanup_time, &mut self.device, &mut self.sockets);
+        self.withheld_transmission = self.device.transmission().is_some();
+        let now = now?;
+        self.last_ticks = ticks;
+        self.interface.poll_maintenance(now);
+        Ok(())
     }
 
     pub fn add_client(&mut self, rx: &'a mut [u8], tx: &'a mut [u8]) -> Result<Client, Error> {
@@ -160,6 +336,9 @@ impl<'a> Stack<'a> {
         local_port: u16,
         timeout_ticks: u64,
     ) -> Result<(), Error> {
+        if self.configuration.is_none() {
+            return Err(Error::NotConfigured);
+        }
         if timeout_ticks == 0 || timeout_ticks > MAX_TIMEOUT_TICKS {
             return Err(Error::InvalidConfiguration);
         }
@@ -222,12 +401,18 @@ impl<'a> Stack<'a> {
     }
 
     pub fn send(&mut self, client: Client, bytes: &[u8]) -> Result<usize, Error> {
+        if self.configuration.is_none() {
+            return Err(Error::NotConfigured);
+        }
         self.socket_mut(client)?
             .send_slice(bytes)
             .map_err(|_| Error::InvalidState)
     }
 
     pub fn receive(&mut self, client: Client, out: &mut [u8]) -> Result<usize, Error> {
+        if self.configuration.is_none() {
+            return Err(Error::NotConfigured);
+        }
         self.socket_mut(client)?
             .recv_slice(out)
             .map_err(|error| match error {
@@ -257,6 +442,9 @@ impl<'a> Stack<'a> {
         }
         let now = instant(ticks)?;
         self.last_ticks = ticks;
+        if self.configuration.is_none() {
+            return Ok(());
+        }
         self.interface.poll_maintenance(now);
         self.interface
             .poll_ingress_single(now, &mut self.device, &mut self.sockets);
@@ -272,12 +460,17 @@ impl<'a> Stack<'a> {
         self.device.push(frame)
     }
     pub fn transmission(&self) -> Option<Transmission<'_>> {
+        if self.withheld_transmission {
+            return None;
+        }
         self.device.transmission()
     }
     /// Caller promises the exact queued frame completed at the native broker.
     /// No implicit retry/release on timeout; an uncertain device outcome must
     /// terminate/recover the caller rather than reusing a potentially DMA-live slot.
     pub fn complete_transmission(&mut self, id: u64) -> Result<(), Error> {
-        self.device.complete(id)
+        self.device.complete(id)?;
+        self.withheld_transmission = false;
+        Ok(())
     }
 }
