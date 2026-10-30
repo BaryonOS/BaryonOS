@@ -1,3 +1,4 @@
+use crate::source::wait::{Action, Interest, Plan};
 use crate::{discard_caps, Ipc};
 use nieuw_os_input_core::{
     Actor, ClientBinding, Configuration, Error as CoreError, Reply, Route, Service, MAX_CLIENTS,
@@ -26,6 +27,7 @@ pub enum Fatal {
     Cleanup(Error),
     Halted,
     Message,
+    Clock,
 }
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Counts {
@@ -53,6 +55,7 @@ pub struct Policy {
     disabled: [bool; MAX_CLIENTS],
     rotation: usize,
     counts: Counts,
+    waitable: bool,
 }
 impl Policy {
     pub fn new(config: Configuration, replies: Replies, clients: &[Client]) -> Result<Self, Fatal> {
@@ -76,6 +79,7 @@ impl Policy {
             disabled: [false; MAX_CLIENTS],
             rotation: 0,
             counts: Counts::default(),
+            waitable: false,
         })
     }
     pub const fn counts(&self) -> Counts {
@@ -86,6 +90,39 @@ impl Policy {
     }
     pub const fn receive_rights_checked(&self) -> bool {
         self.counts.recv_checked == 15
+    }
+    /// A level-triggered wait checks remaining eligible kernel queues itself.
+    /// Retained replies have all been attempted by the preceding bounded pass.
+    pub fn wait_plan(&self, now: u64) -> Result<Action, Fatal> {
+        if self.core.is_halted() {
+            return Err(Fatal::Halted);
+        }
+        if !self.waitable || !self.receive_rights_checked() {
+            return Ok(Action::Run);
+        }
+        let mut plan = Plan::idle(now).map_err(|_| Fatal::Clock)?;
+        for (slot, endpoint) in [
+            (0, self.config.source.endpoint),
+            (1, self.config.compositor.endpoint),
+            (2, self.config.supervisor.endpoint),
+        ] {
+            if self.pending[slot].is_none() {
+                plan.add(Interest::Receive(endpoint))
+                    .map_err(|_| Fatal::Configuration)?;
+            }
+        }
+        plan.add(Interest::Receive(self.config.applications))
+            .map_err(|_| Fatal::Configuration)?;
+        for (slot, pending) in self.pending.iter().enumerate() {
+            if let Some(pending) = pending {
+                if !self.core.reply_is_current(&pending.reply) {
+                    return Ok(Action::Run);
+                }
+                plan.add(Interest::Send(self.endpoint(slot)))
+                    .map_err(|_| Fatal::Configuration)?;
+            }
+        }
+        Ok(Action::Park(plan))
     }
     fn route(&self, ingress: ReceiveEndpoint, pid: u64) -> Option<usize> {
         for (
@@ -247,6 +284,7 @@ impl Policy {
     /// One bounded pass: protected ingress first, apps at fixed budget, each
     /// retained response attempted once. It never sleeps/retries inside a call.
     pub fn step(&mut self, io: &mut impl Ipc) -> Result<(), Fatal> {
+        self.waitable = false;
         if self.core.is_halted() {
             return Err(Fatal::Halted);
         }
@@ -266,9 +304,11 @@ impl Policy {
             self.flush(io, (self.rotation + offset) % ROUTES)?;
         }
         self.rotation = (self.rotation + 1) % ROUTES;
+        self.waitable = true;
         Ok(())
     }
     pub fn shutdown(&mut self) {
+        self.waitable = false;
         self.core.shutdown();
         self.pending.fill_with(|| None);
     }
