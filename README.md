@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`30748d64`](https://github.com/simonvanieperen/nieuw-os/commit/30748d6402ee9bf84a5606a8260455b0c05d9e9a) ·
+**Bron:** [`9ddc6b6d`](https://github.com/simonvanieperen/nieuw-os/commit/9ddc6b6df82fc555ea6d28247a971ea1b09a8b99) ·
 **Ontwikkelbranch:** `simonvanieperen-musical-happiness`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** DHCP-CODEC-1: begrensde no_std DHCPv4-codec als voorstap voor native netwerkconfiguratie.
-34% blijft 34%. De dependencyvrije no_std DHCPv4-codec bouwt DISCOVER, selecting DHCPREQUEST en renewal DHCPREQUEST en parseert begrensd OFFER/ACK/NAK zonder ABI- of rechtenwijziging. Op broncommit 30748d6 slagen formattering, alle 56 crate-tests, Clippy met -D warnings en de x86_64-unknown-none releasebuild. Hosttests gebruiken alleen een tijdelijke GCC/libc sysroot in /tmp. De codec configureert geen interface, lease of route. QEMU/OVMF ontbreken in deze worktree; er is geen native DHCP-peer/configuratiebewijs. N01–N04 blijven open en geen rubriccriterium is gesloten.
+34% blijft 34%. De DHCPv4-codec heeft 56 geslaagde hosttests, Clippy en freestanding build op 30748d6. Op 9ddc6b6 is de lokale QEMU/OVMF-omgeving hersteld en de bestaande native ARP/UDP/DNS-proef werkelijk herhaald: normal en koude recovery beide raw exit 33 en network_gate=true; capture opnieuw groen. Dit is geen DHCP-client, algemene internetconfiguratie, TLS of appbestemmingsafdwinging. N01–N04 blijven open; netwerk 0/10 en geen nieuw rubriccriterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

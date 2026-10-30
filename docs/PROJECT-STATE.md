@@ -1,6 +1,25 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — DHCP-codec deelproef; client/native werk open — 30 oktober 2026
+## NEXT AGENT HANDOFF — native netwerkbasis opnieuw groen; DHCP-client open — 30 oktober 2026
+
+Branch `simonvanieperen-musical-happiness`; laatste geteste bron
+`9ddc6b6df82fc555ea6d28247a971ea1b09a8b99`. De lokale QEMU/OVMF-blokkade
+hieronder is opgelost zonder globale installatie. QEMU 10.2.1/OVMF 2025.11,
+`pc-q35-10.0`, TCG: `python3 -B -u tools/test_net_system.py` exit 0.
+Normal 32,859 s en koude recovery 32,498 s, beide raw exit 33 en
+`network_gate=true`; `capture_system.py --network` heeft beide opnieuw
+gevalideerd. Bron-/image-/firmwarebewijs:
+[`verification/full-release-network-dev-9ddc6b6/`](verification/full-release-network-dev-9ddc6b6/README.md).
+
+Dit is een herhaling van de bestaande native ARP/UDP/DNS-proef, geen
+DHCP-client, algemene configuratie, TLS of appbestemmingsbeleid. **34% → 34%;
+netwerk 0/10; N01–N04 open.** PR #70 blijft concept tot verplichte CI en
+concrete review rond zijn; integratiecoördinator beheert squashintegratie.
+Eerstvolgend: DHCP-clienttoestanden met lease-/endpointbinding en negatieve
+tests binnen `services/net-protocol/**`, daarna een aparte native koppeling.
+Geen NAS-bestanden of gedeelde ABI wijzigen zonder gecoördineerde scope.
+
+## Historisch DHCP-codec-checkpoint — 30 oktober 2026
 
 Branch `simonvanieperen-musical-happiness`; huidige broncommit
 `30748d6402ee9bf84a5606a8260455b0c05d9e9a`, na behoud van `origin/main`
