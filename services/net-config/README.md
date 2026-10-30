@@ -288,6 +288,20 @@ Dezelfde XID/REQUESTleaseklok blijft bij retransmissie behouden.
 Renewal/rebinding wacht de aanbevolen helft van de resterende T2-/expiryduur,
 met minimum60s en maximaal1spositieve jitter, maar NOOIT voorbij T2/expiry.
 De lease-overgang heeft voorrang op een oude retrydeadline.
+
+Correctie na review van #113: het retryschema (`due`/`backoff`) hing alleen
+aan de fase. Een nieuwe renewaltransactie die na een ACK direct vanuit
+RenewalDue in dezelfde fase (Renewing->Renewing of Rebinding->Rebinding) begon,
+erfde zo de deadline van de vorige lease. Die kon na de nieuwe expiry liggen,
+waardoor een geaccepteerde lease verliep zonder één REQUEST. Het schema is nu
+gebonden aan de XID van de transactie en wordt bij elke nieuwe XID opnieuw
+gezet. Hostbewijs (geen native bewijs) levert
+`renewal_retry_schedule_is_bound_to_the_new_transaction_not_the_old_lease`.
+Vóór de fix gaf `drive(7300)` WaitingUntil(8100) terug, voorbij de nieuwe
+expiry van 8000 (de test faalde). Na de fix publiceert drive(7300) direct
+XID+2 met wachttijd tot 8000. De Renewing-variant in dezelfde test publiceert
+direct en wacht daarna tot de nieuwe T2 (10100); de reviewreproductie zag daar
+vóór de fix de oude deadline 7100.
 Timeout/NAK/expiry leidt automatisch weer naar acquire, pas na cooldown en
 eventuele DECLINEcompletion. Reconnect behoudt geen oude configuratie; een
 oude TX blijft echte backpressure, niet gefingeerd afgerond.
