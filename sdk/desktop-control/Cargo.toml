@@ -1,0 +1,19 @@
+[package]
+name = "nieuw-os-desktop-control"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../runtime" }
+
+[dev-dependencies]
+capability-core = { path = "../../crates/capability-core" }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = false

@@ -167,6 +167,16 @@ Resume-reply vermeldt het werkelijk volledig gepresenteerde nieuwe frame.
 Status0 betekent alleen de hieronder omschreven voltooiing. Gereserveerde
 opcodes/statussen of verkeerd gebonden replies falen. Init en app gebruiken
 hun vooraf verleende control-/registryroute en echte kernelafzender.
+De eerste codecversie reserveert alle APP-statussen buiten0; een adapterfout
+wordt geen positieve completion. Tellers gebruiken1..=u64::MAX-1 en lopen
+niet rond. De typed replyvalidator krijgt de werkelijke eerdere frame- en
+activationwatermarks van deze binding mee en weigert een oude completion,
+ook wanneer de overige velden kloppen. De codec beheert geen transport of
+werkelijke blits; die noodzakelijke adaptervoorwaarden blijven afzonderlijk.
+De gedeelde registry demultiplext eerst op echte kernelafzender/tag/fase;
+een bericht van appB wordt niet bij appA's uitstaande reply ingeleverd.
+Malformed verkeer van de verwachte peer kan diens eigen lane afsluiten,
+maar een andere principal krijgt daarmee geen globale annulering.
 
 De concrete launcherintentcodec voor compositor→Init is eveneens64B, tag
 `DESKSWC1`: `DSW1`@0, versionu16=1@4, opcodeu16=Switch1@6,
@@ -249,8 +259,11 @@ werkelijke gebruikers-/herstelafhandeling.
 Init kan het document via dezelfde focusroute terugbrengen voor de echte
 Save/Discard/Cancel-bediening. Annuleren behoudt het proces en concept. Een
 achtergrond-STOP controleert dezelfde appstatus; geen eigenaarschap uit de
-toevallig actieve app overnemen. Calculator sluit haar eigen twee sessies,
-registry/control en meldt pas na cleanup DONE. Iedere close wordt geprobeerd.
+toevallig actieve app overnemen. Calculator sluit eerst de vier leaves van
+haar twee typed sessies, stuurt DONE via de nog levende registry-SEND en
+sluit daarna registry/control vóór exit0. Iedere close wordt geprobeerd.
+DONE beweert dus geen reeds gesloten registry; definitieve procescleanup
+vereist ook de echte exit en de kernelcontrole op overgebleven handles.
 
 Na echte DONE of geobserveerde death: blokkeer per-app displaycallbacks,
 retire alleen die SUR1-owner, sluit/revoke de betreffende eigen leaves, stuur
