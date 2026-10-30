@@ -7,7 +7,7 @@
     "branch": "simonvanieperen-studious-sniffle",
     "task": "Hosttest-preflight: rapporteer ontbrekende POSIX C-linker apart van bootvereisten",
     "previous_score": 34,
-    "summary": "34% blijft 34%; een betere melding van een ontbrekende hostlinker accepteert geen productcriterium. De lokale root-workspace Rust-test stopte op deze Linux-host bij ontbrekende `cc`; de strikte boot-preflight rapporteerde die hosttestblokkade niet als ontbrekend. `tools/preflight.py --strict-host-tests` meldt de linker nu afzonderlijk. De 22 gerichte preflighttests slagen en de 10 GitHub Actions-checks op PR-head `1df236f` zijn groen; de volledige Cargo-workspace-test blijft lokaal open tot een C-toolchain beschikbaar is. Geen nieuw productcriterium geaccepteerd."
+    "summary": "34% blijft 34%; een betere melding van een ontbrekende hostlinker accepteert geen productcriterium. De lokale root-workspace Rust-test stopte op deze Linux-host bij ontbrekende `cc`; de strikte boot-preflight rapporteerde die hosttestblokkade niet als ontbrekend. `tools/preflight.py --strict-host-tests` meldt de linker nu afzonderlijk. De 22 gerichte preflighttests slagen en 10 GitHub Actions-workflows (11 jobchecks) op PR-head `278750e` zijn groen; de volledige Cargo-workspace-test blijft lokaal open tot een C-toolchain beschikbaar is. Geen nieuw productcriterium geaccepteerd."
   },
   "tracks": [
     {

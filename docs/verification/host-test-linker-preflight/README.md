@@ -18,7 +18,7 @@ POSIX-hostlinker. De melding benoemt de blokkade, maar installeert geen tools.
 | `python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --workspace` | 101 | Niet geslaagd: linker `cc` ontbreekt; log `/tmp/nieuw-os-infra-root-final.log`, SHA-256 `95e4d7518ea42c507b3d6bb92242cfa2c95ac58ded3890323baf750516cef1b8` |
 | `git diff --check` | 0 | Geen diff-whitespacefouten |
 | `python3 -m py_compile tools/preflight.py tests/test_preflight.py` | 0 | Python-syntaxis geldig |
-| `gh pr checks 62 --repo simonvanieperen/nieuw-os --watch --interval 15` | 0 | 10 GitHub Actions-checks geslaagd op PR-head `1df236f724caf79274b9f7f8fecc91662a75a1c0`; CodeRabbit overgeslagen |
+| `gh pr checks 62 --repo simonvanieperen/nieuw-os --watch --interval 15` | 0 | 10 GitHub Actions-workflows (11 jobchecks) geslaagd op PR-head `278750e82ffb51b14faf81ab304c68a7b250a0cb`; CodeRabbit overgeslagen |
 
 Rustup en Rust 1.90.0 zijn voor deze controle geïnstalleerd in de door
 `.gitignore` uitgesloten `.tools/`-toolmap; `cargo fetch --locked` eindigde

@@ -21,8 +21,8 @@ is geïnstalleerd. De eerder vastgelegde HKDF-doctestfout is op deze bron niet
 getest, omdat compileren al vóór doctests stopte. **34% → 34%**; geen
 productcriterium of native QEMU-bewijs toegevoegd. Hervat na installatie van
 een host-C-toolchain met dezelfde root-workspace-test. Concept-PR [#62](https://github.com/simonvanieperen/nieuw-os/pull/62);
-op PR-head `1df236f` zijn de 10 GitHub Actions-checks geslaagd, inclusief
-`host-quality`, `qemu-smoke` en `native-system`. Die CI-suite bewijst niet dat
+op PR-head `278750e` zijn 10 GitHub Actions-workflows (11 jobchecks) geslaagd,
+inclusief `host-quality`, `qemu-smoke` en `native-system`. Die CI-suite bewijst niet dat
 het hier lokaal geblokkeerde volledige `--workspace`-commando is uitgevoerd.
 
 ## Historisch checkpoint — PR #58, integratie met main — 30 oktober 2026

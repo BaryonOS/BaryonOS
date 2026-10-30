@@ -35,7 +35,7 @@ alleen een nette desktop haalt die eindgrens niet.
 **Bron:** [`80393b67`](https://github.com/simonvanieperen/nieuw-os/commit/80393b67950c393dfa37336e66df5346ae6a37d7) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-sniffle`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hosttest-preflight: rapporteer ontbrekende POSIX C-linker apart van bootvereisten.
-34% blijft 34%; een betere melding van een ontbrekende hostlinker accepteert geen productcriterium. De lokale root-workspace Rust-test stopte op deze Linux-host bij ontbrekende `cc`; de strikte boot-preflight rapporteerde die hosttestblokkade niet als ontbrekend. `tools/preflight.py --strict-host-tests` meldt de linker nu afzonderlijk. De 22 gerichte preflighttests slagen en de 10 GitHub Actions-checks op PR-head `1df236f` zijn groen; de volledige Cargo-workspace-test blijft lokaal open tot een C-toolchain beschikbaar is. Geen nieuw productcriterium geaccepteerd.
+34% blijft 34%; een betere melding van een ontbrekende hostlinker accepteert geen productcriterium. De lokale root-workspace Rust-test stopte op deze Linux-host bij ontbrekende `cc`; de strikte boot-preflight rapporteerde die hosttestblokkade niet als ontbrekend. `tools/preflight.py --strict-host-tests` meldt de linker nu afzonderlijk. De 22 gerichte preflighttests slagen en 10 GitHub Actions-workflows (11 jobchecks) op PR-head `278750e` zijn groen; de volledige Cargo-workspace-test blijft lokaal open tot een C-toolchain beschikbaar is. Geen nieuw productcriterium geaccepteerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
