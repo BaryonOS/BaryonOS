@@ -1,7 +1,7 @@
 # TASK-UX-SAVE-RECOVERY — Materiaal: opslaan en herstellen
 
-**Status:** ontwerppakket voor native integratie; geen runtime-implementatie of
-gebruikersproef. **Basis:** checkout `ca45a7d` op
+**Status:** ontwerppakket met uitgevoerde visuele deelbeoordeling van een native
+probe; geen volledige runtime- of gebruikersacceptatie. **Ontwerpbasis:** checkout `ca45a7d` op
 `simonvanieperen-bookish-invention`. De getekende toestanden staan in
 [`ui/design/save-recovery.svg`](../../ui/design/save-recovery.svg).
 
@@ -167,8 +167,10 @@ Focus krijgt aan alle zijden 6 px vrije ruimte (3 stroke + 3 offset).
 Een zichtbare selectie gebruikt de bestaande `--accent-soft`-achtergrond en
 `--text`-tekst; bij focusverlies blijft selectie herkenbaar, maar de actieve
 focusring verhuist. Een disabled control verliest geen label of reden. Hover
-verandert alleen de bestaande surface/accent-soft-weergave en veroorzaakt geen
-layoutverschuiving. Normale tekstcontrastgrens 4,5:1; grote tekst en betekenis-
+verandert alleen bestaande-tokenkleuren of randen en veroorzaakt geen
+layoutverschuiving. Een primaire knop behoudt de accentvulling en haar
+actiehiërarchie; de secundaire surface mag naar accent-soft veranderen.
+Normale tekstcontrastgrens 4,5:1; grote tekst en betekenis-
 dragende UI-randen/staten minimaal 3:1. Beoordeel gerenderde kleurparen, niet
 alleen de vaste waarden in dit pakket.
 
@@ -383,8 +385,122 @@ Bronbinding van deze visuele controle:
 De PNG's blijven sessieartifacts, buiten Git. De SVG bewaart bronvorm en
 expliciet simulatie-/ontwerplabel; geen gegenereerde binaries in deze commit.
 
-**Exacte hervatstap:** rol 4/12 levert één fixed candidate met broncommit,
+**Historische hervatstap vóór ontvangst van de probe:** rol 4/12 levert één fixed candidate met broncommit,
 image-/apphashes, UI-/tokenbronbinding, profiel, bestaande runner en bijbehorende
 13/20-claim. Voer daarop UX-SR02/03/05/06/08/11/12 uit en beoordeel de echte
 frames én invoertransities. Tot dan is runtime-/gebruikersacceptatie open;
 de lokale nieuwe hostrasterrun blijft geblokkeerd door ontbrekende Cargo.
+
+## Native deelbeoordeling — werkelijk bediende probe 0818f5e
+
+**30 oktober 2026, rol 15.** De hiervoor beschreven ontbrekende probe is nu
+ontvangen en read-only beoordeeld. Dit vervangt uitsluitend die oude
+beschikbaarheidsblokkade. Het is geen nieuwe VM-run door rol 15 en geen
+menselijke audit. Ontwerpbron en onderzochte runtimebron blijven verschillend.
+
+| Binding | Exacte waarde / grens |
+|---|---|
+| Native bron | `0818f5ec651b72c32b8795ff0d3d9a6ebdc9783d`, v3 `26b41e5586434ce51202a4e234ccaa99bad25c5a76ec3efdb3af9d7020c14f5f` |
+| Probe | `native-system-materiaal-probe`, normal; `pc-q35-10.0/qemu64/TCG/1CPU/256MiB/VGA/PS2`, 800×600, schaal 100%. Dit is niet VM-FR of de gewone dev1-preview. |
+| Uitgevoerde run door 13/12 | 132,4606 s; ruwe QEMU-exit 33, runner exit 0. Duur van de hele proef is geen meting van interactieve responstijd. |
+| Kernel / loader | `48acb20ca8e12e0418f21c3790361c2a3ac8c935cc76de0ad6ddb977bfd10896` / `9686ab3b85eaeedc334053cc9f583f6459c99e2779673416eacac319c68aa387` |
+| Materiaal-app | `d84f5333ad11d91b44ea822382562d78a508ec12794518cc70a0a47b583c06db` |
+| Tokenbron | `ui/prototype/tokens.css`: `0c588509e0cb0f94bbda2c6969da8d79d463359bfc9684687a684210a54aadcf`, onveranderd |
+| Read-only bundle | `native-materiaal-probe-0818f5e-ad23a2ee91.tar.gz`, 2.682.413 bytes, SHA-256 `3c476387f7aa7657207e2a0ee96b7d1b159695de1716305cdbefa795b26447b2` |
+| Vindplaats | `/home/simon/.copilot/session-state/1b87793863ad4dcc8f16a0bd10884654/files/ui-image-0818/`; naastliggende `handoff.json` bevat runcommando, bron-, tool-, userspace-, firmware-, input- en framebinding |
+
+### Wat werkelijk is bekeken en gecontroleerd
+
+Alle zes weergegeven PNG's (`ready`, `editor`, `dirty`, `saved`, `list`,
+`reopened`) zijn geopend en visueel beoordeeld. Hun hashes zijn tegen het
+handoff gecontroleerd; de gedecodeerde RGB-pixels zijn voor ieder beeld exact
+vergeleken met de oorspronkelijke PPM in de bundle. Alle 40 manifestbestanden,
+15 bevroren artifacts en vijf UI-/tokenbronbestanden zijn hashgecontroleerd;
+de UI-bronnen zijn daarnaast vergeleken met de Git-objecten op `0818f5e`.
+Deze controle certificeert binding en pixelgelijkheid, niet alle gedragsclaims.
+
+De 31 gearchiveerde QMP-verzoeken en hun geslaagde antwoord-ID's zijn
+geïnspecteerd: pointer naar Nieuw en knopdruk/-release, 14 echte ASCII-
+toetsen (`nieuw os werkt`), Ctrl+S, Escape, Tab, Tab, Enter en zes screendumps.
+Geen gastgeheugenwrites in die trace. F12 en de testcontroller verzorgen alleen
+de proefstop: geen gewone productafsluiting, shutdown- of coldreopenbewijs.
+
+De overgedragen snapshots tonen voor `dirty` 14 draftbytes en nul save-ACK's,
+voor `saved` één save-ACK, revisie 1 en een schone draft, en na list/open
+hetzelfde object 0 met dezelfde 14 bytes. De diskoracle-uitkomst in het
+handoff is object 0 / revisie 1 / 14 bytes / canaries intact. De onafhankelijke
+runtime-/diskreplay is door 13/12 aangeleverd als geslaagd; rol 15 heeft de
+opslagoracle hier niet opnieuw uitgevoerd en claimt geen tweede VM-proef.
+
+### Concrete visuele bevindingen voor rol 13
+
+| ID / prioriteit | Waarneming op exact deze frames | Implementeerbare vervolgactie en acceptatie |
+|---|---|---|
+| UX-V01 — verbetering vóór visuele productacceptatie | Op `ready` is Nieuw een diepe groene primaire knop; op `list` verliest diezelfde actie haar accentvulling wanneer de pointer erop staat en lijkt zij op de secundaire Vernieuwen-knop. De focusrand blijft wel zichtbaar. | Behoud de primaire actiehiërarchie bij hover, bijvoorbeeld dezelfde accentvulling met een bestaande-tokenrand/focusbehandeling. Geen nieuw token zonder claim. Vergelijk native ready/list met pointer op en naast dezelfde control; tekstcontrast en focus moeten blijven voldoen. Dit blokkeert de normale saveketen niet. |
+| UX-V02 — open productkwaliteit | Titel “Nieuw document”, documenttekst, knoppen en status gebruiken een gelijkmatige kleine bitmap-monospacepresentatie. De titel van het geopende object krijgt nauwelijks meer nadruk dan metadata; de grote inhoudssurface benadrukt het verschil met de kleine labels. Geen clipping zichtbaar bij deze korte ASCII-inhoud. | Behoud de huidige functionele bitmapbackend als gelabelde tussenstap; plan de vastgelegde body/metadata/titelhiërarchie met echte tekstmetrics en proportionele shaping. Controleer gekozen nominale maten en gerenderde glyphs op de doelprofielen. Deze waarneming bewijst niet dat een specifieke fontgrootte fout is, noch dat tekst voor alle gebruikers leesbaar is. |
+| UX-V03 — open objectcontinuïteit | `saved` zegt alleen “Op dit apparaat opgeslagen”; `list` toont “Nieuw document” / “Op dit apparaat”, en `reopened` zegt “Document geopend”. De nieuwe revisie is correct in de snapshots maar niet zichtbaar in deze UI. | Maak de bevestigde revisie samen met objectidentiteit opvraagbaar/zichtbaar in de status of geschiedeniscontext; `Unchanged` blijft afzonderlijk van een nieuwe commit. Geen nieuwe versie uit alleen tekstwijziging afleiden. Verifieer de uiteindelijke labels tegen de echte documentrespons. |
+| UX-V04 — positieve deelwaarneming | Dirty en Saved zijn tekstueel verschillend; de focusring blijft volledig binnen de toegewezen surface zichtbaar. Documentinhoud `nieuw os werkt` verschijnt in dirty, saved en reopened, met caret/focus op het document. Systeemchrome blijft buiten het appvlak. | Behoud deze status-/focus-/surfacegrenzen bij vervolgwerk. Niet uitbreiden naar grantprompt-authenticiteit, schermlezer, selectiecontrast of crashherstel: die zijn niet bediend in deze proef. |
+
+De betekenisvolle inhoud heeft geen zichtbare overlap met controls/footer op
+deze zes 800×600-beelden. Dit sluit lange tekst, alle fouttoestanden of de
+andere viewports niet af. Geen wijziging aan runtimecode, compositor, glyphs,
+tokens of gedeelde interface door rol 15.
+
+UX-V01 is ook brongebonden: `render.rs` op `0818f5e`, regels 1064–1077,
+geeft Primary alleen bij `!hovered` de accentvulling; hover valt terug op
+dezelfde stijl als Secondary. De gewenste aanpassing is hierboven aangescherpt
+in de hoverregel; de huidige afwijking wordt niet als foutloze uitvoering van
+de eerdere, te algemene surface/accent-soft-regel gepresenteerd.
+
+Rol 16 meldt op dezelfde fixture de nog ontbrekende 24-px-iconenslots bij
+lijst-/editortitel en status. Dat is een toekomstige integratieafhankelijkheid,
+geen defect van de geleverde symbolen: reserveer een gezamenlijk
+icon-/tekstvak met 8 px tussenruimte, meet de volledige 24-px-hoogte en plaats
+het niet op de bestaande tekstbaseline over de editorrand. Schaal beide samen
+op 200%. Alleen de actuele bevestigde documentstatus mag `saved` tonen;
+een oude teller `SAVE_ACKS=1` na heropenen is daarvoor geen grond. Geen
+history-/retry-/200%-assetpresentatie in deze run aftekenen.
+
+### Acceptatie per daadwerkelijk beschikbare case
+
+| UX-SR | Beoordeling op deze ene normale probe |
+|---|---|
+| SR01 | Geslaagde lege lijst zichtbaar. List-error niet uitgevoerd; case niet volledig afgetekend. |
+| SR02 | Nieuw via pointer, ASCII-invoer, Ctrl+S en bevestigde Saved/reopen zichtbaar en aan trace gekoppeld. Tussenliggende saveprogress/CancelSave-focus niet vastgelegd; daarom slechts deelbewijs. |
+| SR03 / SR04 | Geen tussen-APPEND-frame, leeg-documentcommit of ABORT-/cancelrace. Niet uitgevoerd. |
+| SR05 / SR06 / SR07 / SR08 / SR09 / SR10 | Geen dirty-close-modal, deny/read-only/closed/conflict/full/I/O/Unknown/Unchanged of stale-inputcase in deze fixture. Niet uitgevoerd; positieve normal-run vervangt negatieve tests niet. |
+| SR11 | Alleen 800×600 op 100%, korte ASCII-inhoud. Geen 200%, andere maten, lange fout/progress of keyboard-only vanaf eerste start. Niet afgetekend. |
+| SR12 | Zelfde object binnen dezelfde VM opnieuw geopend. Geen koude nieuwe VM; cold-deel niet uitgevoerd. |
+
+De native bron heeft aantoonbaar echte frames én een bedieningsspoor voor dit
+smalle normale pad. Alle samengestelde FR-U03/U05/S04/O01/O04 en
+rubric U03/U04/U06/R01 blijven open; voorstel **34% → 34%**. Assets van rol 16
+zijn in deze runtime niet geconsumeerd. Schermlezer-/menselijke/fysieke
+acceptatie blijft niet uitgevoerd.
+
+### Commando, resultaat en eerstvolgende hervatstap
+
+Vanuit de eigen repositoryroot:
+
+```sh
+python3 -B /home/simon/.copilot/session-state/038b6cdc1bb74465872d0b93e6a6e0cd/files/verify-native-fixture.py /home/simon/.copilot/session-state/1b87793863ad4dcc8f16a0bd10884654/files/ui-image-0818
+```
+
+Exit 0: bundlehash/-grootte, manifestleden, zes lossless pixelroundtrips,
+15 artifacthashes, vijf Git-UI-bronnen en 31 geslaagde begrensde QMP-verzoeken
+gecontroleerd. Geen gast gestart, geen bundelcode uitgevoerd en geen
+bewijsbestand gewijzigd. Het verificatiescript is een sessieartifact; de
+bestaande repositoryhelpers `capture_graphics.decode_png` en
+`run_graphics.ppm` leveren de pixelcontrole. De volledige JSON-uitvoer staat in
+`/home/simon/.copilot/session-state/038b6cdc1bb74465872d0b93e6a6e0cd/files/native-fixture-verification.json`.
+Ook `git diff --check` en `python3 -B tools/progress.py --check` gaven exit 0.
+De hoofdagent/manager blijft eigenaar van de centrale assessmentbestanden;
+rol 15 levert alleen dit 34% → 34%-voorstel met bewijs.
+
+**Volgende afgebakende flow:** dirty-close met alle drie focusdoelen en
+Escape (SR05), gevolgd door de echte fout-/Unknown-presentatie (SR06/08).
+Rol 13 bezit implementatie; 4/12/20 wijzen de nieuwe, brongebonden cases en
+het runnerslot toe. Beoordeel vervolgens de werkelijk gerenderde modal en
+foutframes plus de bijbehorende bedieningsasserties; geen extra VM door rol 15
+zonder die afstemming. UX-V01–03 zijn concrete productafwijkingen voor dat
+vervolg, geen opdracht om zonder claim de gedeelde tokenbron te wijzigen.
