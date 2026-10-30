@@ -1,0 +1,39 @@
+[package]
+name = "nieuw-os-native-compositor"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+members = ["."]
+
+[features]
+native = []
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../../runtime" }
+nieuw-os-display-client = { path = "../../display-client" }
+nieuw-os-input-core = { path = "../../../services/input-core" }
+nieuw-os-native-input-service = { path = "../input-service" }
+nieuw-os-surface-protocol = { path = "../../../ui/surface-protocol" }
+noto-sans-mono-bitmap = { version = "=0.3.2", default-features = false, features = ["regular", "size_16", "size_32", "unicode-basic-latin", "unicode-latin-1-supplement", "unicode-specials"] }
+
+[dev-dependencies]
+capability-core = { path = "../../../crates/capability-core" }
+
+[[bin]]
+name = "native-compositor"
+path = "src/main.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+codegen-units = 1
+lto = false

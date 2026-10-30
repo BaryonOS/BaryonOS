@@ -1,0 +1,24 @@
+{
+  "source_commit": "3f20f087a7f0ddf4757af8d3ea110dd0c044a72c",
+  "artifacts": [
+    {
+      "id": 12953998393,
+      "name": "native-display-input-evidence",
+      "size_in_bytes": 1799825,
+      "url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/artifacts/12953998393",
+      "archive_download_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/artifacts/12953998393/zip",
+      "expired": false,
+      "created_at": "2026-10-30T04:25:04Z",
+      "expires_at": "2026-11-13T04:25:03Z",
+      "updated_at": "2026-10-30T04:25:04Z",
+      "digest": "sha256:ef73eb5a25a1233c3a2047d935378c9fe01e331056dcd3770bab9944fdf856d8",
+      "workflow_run": {
+        "id": 41002665152,
+        "repository_id": 1435549142,
+        "head_repository_id": 1435549142,
+        "head_branch": "codex/full-test-release",
+        "head_sha": "3f20f087a7f0ddf4757af8d3ea110dd0c044a72c"
+      }
+    }
+  ]
+}

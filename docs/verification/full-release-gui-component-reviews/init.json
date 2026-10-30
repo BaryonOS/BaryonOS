@@ -1,0 +1,149 @@
+{
+  "task": "REV-INIT",
+  "reviewer": "acceptance_contract",
+  "commit": "ec15957a302eff0b832db170e776fcdf7a9d7a95",
+  "result": "No concrete reachable blocker found within the fixed7/8-process profile and trusted IPC counterpart contracts.",
+  "boundary": "Read-only independent source review, real capability-Engine envelopes and bounded protocol peer test data, scalar executable build and actual kernel loader parser. No native GUI, focus/wipe, hardware, QMP or full-release acceptance claim.",
+  "source": {
+    "commit": "ec15957a302eff0b832db170e776fcdf7a9d7a95",
+    "frozen_worker_fingerprint_v3": "abdfd77e196123d69b599843610624ad0bc054ff18dfb88f869b60533e549f54",
+    "source_before_after_identical": true,
+    "proof_sha256": "5749af8cad869becd4eb14e8c7884631c2a8d173f7bd6c3f0f6385b84289ac25",
+    "all73_initial_dependencies_plus_main_update_match": true,
+    "all21_worker_owned_and_direct_dependency_hashes_match": true,
+    "private_test_delta_only": "6 additional fault/regression cases appended to tests/supervisor.rs"
+  },
+  "source_map": "/tmp/nieuw-os-rev-init/source-final-inputs.json",
+  "checks": {
+    "host-final": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "/tmp/nieuw-os-rev-init/snapshot/sdk/examples/desktop-init/Cargo.toml",
+        "--offline",
+        "--locked"
+      ],
+      "exit": 0,
+      "seconds": 0.17023068699927535,
+      "target_dir": "/tmp/nieuw-os-rev-init/target-host",
+      "log": "/tmp/nieuw-os-rev-init/host-final.log"
+    },
+    "clippy-library": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "/tmp/nieuw-os-rev-init/snapshot/sdk/examples/desktop-init/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 1.0175934150029207,
+      "target_dir": "/tmp/nieuw-os-rev-init/target-clippy",
+      "log": "/tmp/nieuw-os-rev-init/clippy-library.log"
+    },
+    "native-build": {
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/nieuw-os-rev-init/snapshot/sdk/examples/desktop-init/build.py"
+      ],
+      "exit": 0,
+      "seconds": 1.1941352219982946,
+      "target_dir": "/tmp/nieuw-os-rev-init/target-native",
+      "log": "/tmp/nieuw-os-rev-init/native-build.log"
+    },
+    "actual_kernel_loader_parser": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "run",
+        "--manifest-path",
+        "/tmp/nieuw-os-rev-init/elf-policy/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--",
+        "/tmp/nieuw-os-rev-init/target-native/x86_64-unknown-none/release/desktop-init",
+        "/tmp/nieuw-os-rev-init/target-native/x86_64-unknown-none/release/desktop-controller"
+      ],
+      "exit": 0,
+      "seconds": 0.09300713699849439,
+      "log": "/tmp/nieuw-os-rev-init/elf-policy.log"
+    }
+  },
+  "test_counts": {
+    "existing": 15,
+    "independent_extra": 6,
+    "passed": 21
+  },
+  "independent_counterexamples": [
+    "Actual Focus enqueue followed by Unknown return -> Failed, no focusACK/GO or replay. Actual STOP enqueue followed by Unknown -> Failed controller reply; later AppDONE cannot trigger Retire/Stopped.",
+    "After a real Refused response, replayed ID1 and invalid-generation ID2 do not issue STOP or consume a future valid ID2.",
+    "Actual AppDONE queued while full AppControl queue prevents STOP sendOk is rejected; later STOP still needs a fresh actual DONE and times out without Retire.",
+    "Five independently corrupted actual CompPID Retire replies (request ID, epoch, generation, status, retired-state) produce Failed and never Stopped.",
+    "Full controller reply queue retains the same pending reply and fixed deadline; EAGAIN at deadline cannot renew or enter Stopped.",
+    "Testcontroller actual request enqueue followed by Unknown return is terminal, never replayed, and cannot set validated/Done."
+  ],
+  "reviewed_invariants": [
+    "Bootstrap permits only fixed App4/Comp5/Source6/Policy7 and valid distinct endpoint handles; optional controller triple is all-or-none and separately above7. Native controller requires Init1 and ownPID8.",
+    "Registry receives at most4 messages per step. Actual sender/tag/no-caps/exact length/version/role/epoch/BootGeneration/nativeDisplayEpoch validated; duplicated/stale roles cannot replace missing readiness.",
+    "Native source publishes SourceReady only after real RawReady and canonical policy SYNC ACK in its existing code. Init trusts the authorized role messages, not foreign process RAM or fabricated sender fields.",
+    "All three role reports plus AppStartupReady are required before FocusStart. Real canonical Comp FocusACK precedes GO. AppStartupReady and Init GO counters do not establish painted UI or document success.",
+    "Each pending send retries only known EAGAIN before enqueue, with unchanged bytes and unchanged phase deadline. Successful publication is not replayed. Unknown completion fails closed.",
+    "Controller requests authenticate fixed actual PID, tag, canonical48B body, request ID/epoch/generation and reserved fields. Replays reject before new STOP.",
+    "Refused yields only Refused and Running. Only AppDONE after queued STOP can start Retire; only canonical Comp RetiredACK allows controller Stopped reply; only queued final reply marks init Stopped.",
+    "Controller barrier400 is local test orchestration. It causes no synthetic input/GUI work and Done456 follows only the actual canonical Init Stopped response. Native manifests/observer must enforce the external GUI+QMP+F12 prerequisite.",
+    "All deadlines are real Sys3/PIT ticks, checked without renewal and with rollback/overflow failures. Each step is bounded; main yields. Native exit paths attempt owned handle cleanup, and unexpected delivered caps are closed.",
+    "Direct Rust C entry emits PUSH RAX then CALL run, preserving kernel-entry RSPmod16==8 for callee alignment. Scalar ELF objects have no FP/SIMD, raw ports, host syscall instructions or undefined symbols."
+  ],
+  "artifacts": {
+    "desktop-init": {
+      "path": "/tmp/nieuw-os-rev-init/target-native/x86_64-unknown-none/release/desktop-init",
+      "sha256": "8292681f083fb06d39b8e8c538a5a63e0eca932336666aaadf387135ff76e06e",
+      "instructions": 2787,
+      "forbidden": [],
+      "undefined": "",
+      "entry": "\n/tmp/nieuw-os-rev-init/target-native/x86_64-unknown-none/release/desktop-init:     file format elf64-x86-64\n\n\nDisassembly of section .text.entry:\n\n0000000040000000 <_start>:\n    40000000:\tpush   %rax\n    40000001:\tcall   4006017b <_ZN12desktop_init3run17hdcc7120cdcefc232E>\n\nDisassembly of section .text:\n",
+      "worker_artifact_sha256": "01db3b13675c5d561771a2cea72581925cfe971c2e20e4bba30eb51dd775c8c6",
+      "note": "Separately built in own source/target paths; no byte-identical artifact or native execution claim."
+    },
+    "desktop-controller": {
+      "path": "/tmp/nieuw-os-rev-init/target-native/x86_64-unknown-none/release/desktop-controller",
+      "sha256": "9c1e9ce98b287c6c34b47df3520f0c6a21e5b8c8db572f44518df802183fe75f",
+      "instructions": 1812,
+      "forbidden": [],
+      "undefined": "",
+      "entry": "\n/tmp/nieuw-os-rev-init/target-native/x86_64-unknown-none/release/desktop-controller:     file format elf64-x86-64\n\n\nDisassembly of section .text.entry:\n\n0000000040000000 <_start>:\n    40000000:\tpush   %rax\n    40000001:\tcall   40060067 <_ZN18desktop_controller3run17h86dfa715dabc24a6E>\n\nDisassembly of section .text:\n",
+      "worker_artifact_sha256": "62a6a3428626b11706058a4100643ef88554109cfcf2bca78cac041321579050",
+      "note": "Separately built in own source/target paths; no byte-identical artifact or native execution claim."
+    }
+  },
+  "artifact_scope": "Own rebuilt init/controller each pass actual kernel user::parse with5 W^X segments and1024B startup;7/6 image pages. Own path-dependent hashes are separate from the worker executables and are not substituted for a root native image.",
+  "publication_note": "GO440 is published last, protecting first GO publication ordering. GO is an ever-sent counter, not a coherent whole-group or current UI-ready snapshot barrier for later phases.",
+  "remaining_acceptance": [
+    "Root canonical7-process desktop and8-process controller manifest grants and image execution.",
+    "Actual source hardware/SYNC, compositor chrome/FocusACK and Retire sequence with policy Focus0ACK plus real assigned-rect wipe; host protocol replies do not establish these operations.",
+    "Actual QMP user actions, App current-frame readiness, saved/reopened bytes and testcontroller barrier set only after real GUI/F12 observations.",
+    "Native STOP_REFUSED/clean STOP cleanup, full resource/stack/deadline behavior and final artifact/hash binding on the integrated image.",
+    "Critical-service crash/restart notifications, normal user shutdown policy, full session recovery, screenreader and all full-release acceptance remain open.",
+    "This AI source/model review is not an independent human audit."
+  ],
+  "repository_writes": false,
+  "outputs": "/tmp/nieuw-os-rev-init"
+}

@@ -1,0 +1,2 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running tests/elf.rs (build/materiaal-app-host/debug/deps/elf-4a014312b7d5b5ea)

@@ -1,5 +1,32 @@
 # Actuele projectstatus
 
+De samenvoeging behoudt de native productintegratie en de afzonderlijk geaccepteerde B03-updateproef. De rubric bevat daarmee 34 punten; het B03-bewijs en de productmetingen hieronder blijven aan hun oorspronkelijke bronnen gebonden. Deze samenvoeging is nog niet als gecombineerde bron gevalideerd.
+
+## NEXT AGENT HANDOFF — gezamenlijke native productintegratie, 30 oktober 2026
+
+Op de beschreven productbron bleef de score **32% → 32%**; alle 62 volledige productcriteria blijven open. [Opdracht/matrix](FULL-TEST-RELEASE.md) → [productcontext](FULL-TEST-RELEASE-CONTEXT.md) → [werkqueue](WORK-QUEUE.md).
+Integratiebranch `codex/full-test-release` staat op `faf2c134510ce6c2f1d556efe4e64061558e6474`, concept-PR #56. Gezamenlijke bron `9596abc576fceefe2b3ff2f3bd120bcd914eb04c` staat lokaal én op remote `codex/native-product-integration`, concept-PR [#60](https://github.com/simonvanieperen/nieuw-os/pull/60), worktree `/workspace/nieuw-os-worktrees/root-product`. De huidige vervolgreparatie wordt op deze branch gepubliceerd; geen volledige releaseclaim.
+
+**Werkelijk op dezelfde gezamenlijke bron getest:** alle negen CI-workflows op exact `9596abc` slagen, inclusief vier echte RNG-gevallen en PNG/JPEG, FR-I01, display/input, FPU-/geheugen-/opslag-/procesregressies. [CI-metadata en vijf native foundationstappen](verification/full-release-ci-9596abc/README.md). De afzonderlijke echte GUI-keten faalt raw 35 na de vaste 20.000 PIT-ticks (202,859 seconden): wel Materiaal en editor, 3219 echte tiles en vier mouse/ACK-events; nog geen keyverwerking, Save/Reopen of afsluiten. [Origineel rood bewijs](verification/full-release-gui-9596abc/README.md). Het echte Materiaalframe is bekeken; geen visuele eindacceptatie. Het herstel naar de bitexacte oorspronkelijke digest verbetert de eerste-frame-indicatie van 170 naar circa 100 seconden, maar lost de keten niet op.
+
+**Gerichte vervolgreparaties in deze kandidaat:** onverenigbare diagnostische manifests worden expliciet bij compilatie geweigerd; voorheen kon GUI een tegelijk gevraagde probe stil verdringen. Onafhankelijke matrix: 21 geldige gevallen behouden, 22 verboden combinaties weigeren, inclusief TCP-aliassen. Dit sluit geen productfuncties uit. Het afzonderlijke benchmarkharnas trekt oude groene latest-rapporten vóór preflight in, bindt bron/firmware/ELF/manifestkopieën aan vooraf bevroren bytes, en controleert de initiële writable VARS-copy vóór starten; legitieme firmwarewijzigingen tijdens de run blijven toegestaan. Gerichte hosttegenproeven zijn rood vóór en groen na herstel; onafhankelijke laatste hertoets is groen (18 tests, 16 extra gevallen; [bewijs](verification/full-release-product-repairs/README.md)). CI voert voortaan alle tools-tests verplicht uit. De nieuwe echte native benchmark moet nu op de bevroren reparatiebron worden uitgevoerd.
+
+**Bestaande componenten en bewijsgrenzen:** foundation `844ec40`, GUI `48b5187`, digestherstel `5337500` en calculator `0254206` zijn samengebracht. Nieuwe calculator heeft algemene decimale engine, 17 bestaande hosttests, vier extra echte IPC-tegenproeven en 26.424 onafhankelijke rekengevallen; scalar W^X-target is geïnspecteerd. [Review](verification/full-release-calculator-0254206/README.md). Geen calculator-VM, launcher of multiappacceptatie. De eerdere read-only kernelbenchmark heeft juiste bestaande artifacts, 128 echte calls per variant en bitpariteit; meet alleen relatieve TCG-TSC-eenheden vóór userspace/timer, geen fysieke cycles of GUI-prestaties.
+
+**Actieve uitvoering / één eigenaar per bestand:**
+
+- Root: gezamenlijke bron, ABI/build/manifest/status/Git; bevroren native uitvoering en samengestelde regressies.
+- kernel_storage: `ipc-wait`, basis `9596abc`; eigen core/SDK/m3/waitmodule en feature. ABI 1.9/sys0x22, maximaal 16 gekopieerde endpointcondities, absolute deadline en horizon 1000 PIT-ticks. Nieuwe Waiting-toestand en terugkeerbare idle/PIT-telling moeten nog worden getest en onafhankelijk beoordeeld; geen userpointerretentie of verminderde checks. Bestaand WIP bleef na een tijdelijke modelcapaciteitsfout behouden en de worker is hervat.
+- security_release: `key-volume-wait`, basis `9596abc`; uitsluitend idlehoofdlussen van Key/Volume en nieuw contract. Dezelfde nonblockingoperatie na wake, behoud van protocoldeadlines/unknown/no-replay; oude ABI-profielen en devicepolls behouden. SDK-afhankelijkheid nog in uitvoering.
+- native_ui_apps: `desktop-control`, basis `9596abc`; uitsluitend nieuwe gedeelde no_std APPCTRL2/Switch-codec en multiappcontract. Echte Pause/Resume, focus, appwisseling en frames blijven consumerintegratie, geen codecclaim.
+- git_build_audit: onafhankelijke benchmarkharnas- en mergehertoets; volgende prioriteit is IPC-wait-review zodra de bron bevroren is. Geen menselijke audit.
+
+**Eerstvolgende uitvoerbare stap:** bewaar/publiceer de gerichte reparaties plus de exacte nieuwe CI-/rode GUI-rapporten; controleer remote/tree. Na onafhankelijke harnasgoedkeuring: bouw/run de read-only kernelbenchmark op die bevroren bron, met eigen `build/product-cap-bench` en `target/product-cap-bench`. Integreer daarna de beoordeelde IPC-wachtkern en idleconsumers, sluit de overige Source/Policy/Comp/Init/App-wachtplannen aan en voer eerst echte native wake/deadline/intrekking/all-waiting-idle-tegenproeven uit. Herhaal dan de GUI-keten op één nieuwe bevroren bron met hetzelfde kernelbudget; cold recovery alleen na een werkelijk geslaagde normale parent. Geen hostdraft, fake succes of verruimde deadline.
+
+**Artifacts / omgeving / resterend verplicht werk:** laatste echte GUI-run `root-product/build/product-gui/run/materiaal-normal-c6820ba1f1`, bron `9596abc`; laatste GUI-image `root-product/build/product-gui/esp/` hoort bij die rode keten. Laatste groene decoderimage `root-foundation/build/foundation-stack-images/esp/`, bron `844ec40`. Alle disks zijn eigen wegwerpimages. Deze probes gebruiken qemu64/TCG/één CPU/256 MiB, fixtures, plaintext disk en tijdelijke RAM-sleutels; VM-FR, veilige persistente opslag/TPM, alle apps/sessie/toegankelijkheid, native TLS/NAS/providers/AI, boot/PQC, updates/herstel, 100 koude starts, 24 uur productgebruik en fysieke/menselijke gates blijven open. TLS `34191bb` en browseronderzoek `a2085b9` blijven intact in eigen worktrees. Een extra TLS-worker kon door de werkelijke threadlimiet niet starten. Tijdelijke exec-uitval is hersteld; onderbroken controles tellen alleen met geverifieerde logs/nieuwe exitstatus. Geen persoonlijke disks/NAS of fysieke hardware aangeraakt.
+
+## Historisch B03-integratiecheckpoint
+
 ## PR #61 — conflictintegratie met main — 30 oktober 2026
 
 Bronnen: PR-head `2061863c9226b74d64158f36a3fd1bbbf0bb60df` en
@@ -149,7 +176,7 @@ repository), geen netwerkdistributie, geen pakket-/app-updates (A02), geen
 fysieke schijf of stroomuitval, geen bescherming tegen een schrijver van
 OVMF_VARS. De kernelbroker pollt het apparaat nu één keer direct bij
 `block_wait`; het volumeprofiel is daarin niet gewijzigd.
-## NEXT AGENT HANDOFF — 30 oktober 2026 — volledige testrelease in uitvoering
+## Eerder foundationcheckpoint — 30 oktober 2026 — volledige testrelease in uitvoering
 
 Integratiebranch `codex/full-test-release`, bron `844ec40d0717a51d76f2da3a03fa415633725f6a`, tree `6710e599e6984f69e227367981f9a07b525b1255`.
 Deze exacte bron staat lokaal en op remote; concept-PR [#56](https://github.com/simonvanieperen/nieuw-os/pull/56) blijft de volledige releaseopdracht volgen. Foundation-PR #59 is na gecontroleerde fast-forward opgenomen en gesloten.

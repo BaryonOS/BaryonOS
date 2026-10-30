@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "scope": "host authority/wire tests and freestanding library; no native app execution",
+  "basis": "7ddb3546e34e26dd53d58a94bd652ea1407f4e8a",
+  "mouse_checked_upstream_commit": "5f88764870671c22bba0e19755daea60ed97dd13",
+  "local_dependency_commit": "1fe0b24",
+  "native_runtime_performed": false,
+  "tests": {
+    "unit": 1,
+    "real_engine_input_service_integration": 12,
+    "failed": 0,
+    "log": "/tmp/nieuw-os-input-client-tests.txt"
+  },
+  "checks": {
+    "clippy_all_targets_D_warnings": true,
+    "fmt": true,
+    "x86_64_unknown_none_release_library": true
+  },
+  "scalar_flags": "-C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2",
+  "scalar_artifacts_from_cargo_json": [
+    {
+      "crate": "nieuw_os_sdk_runtime",
+      "artifact": "build/input-client-target/x86_64-unknown-none/release/deps/libnieuw_os_sdk_runtime-0c86b1939504fb98.rlib",
+      "sha256": "6add1184a2f3f3f5a1f2bd38997dfa2f9ed445a6ff5ce99203d3351a2d4304fa",
+      "instructions": 1146,
+      "forbidden": []
+    },
+    {
+      "crate": "catalog_core",
+      "artifact": "build/input-client-target/x86_64-unknown-none/release/deps/libcatalog_core-8ea65e0a1b390594.rlib",
+      "sha256": "e584c1e9bb293bbccfc8f706acaf31399f791b449e4a068a378959a45b1d4102",
+      "instructions": 2795,
+      "forbidden": []
+    },
+    {
+      "crate": "ui_core",
+      "artifact": "build/input-client-target/x86_64-unknown-none/release/deps/libui_core-529b49ed7a00fcd7.rlib",
+      "sha256": "4718181a738dccdf7a16e8a3baa574356919f37b7cebdf4d63fd69027ef3ff19",
+      "instructions": 1768,
+      "forbidden": []
+    },
+    {
+      "crate": "nieuw_os_catalog_client",
+      "artifact": "build/input-client-target/x86_64-unknown-none/release/deps/libnieuw_os_catalog_client-7414595b1f7e0471.rlib",
+      "sha256": "23f4512f1be5b344c50c9c204de7a3597cc637ccb14be6534ffbd6d7ffeba72d",
+      "instructions": 71,
+      "forbidden": []
+    },
+    {
+      "crate": "nieuw_os_input_core",
+      "artifact": "build/input-client-target/x86_64-unknown-none/release/deps/libnieuw_os_input_core-e8bd100722fde490.rlib",
+      "sha256": "e92094e7b12f7dd95c9fa5e0cec61eecbb8798de935748e2575f4d5d97334a3a",
+      "instructions": 2512,
+      "forbidden": []
+    },
+    {
+      "crate": "nieuw_os_input_client",
+      "artifact": "build/input-client-target/x86_64-unknown-none/release/libnieuw_os_input_client.rlib",
+      "sha256": "ea327e2d991aa79d7cfd5c7e458deaef037dabe5cd840b5c4f255aa14c741dc1",
+      "instructions": 361,
+      "forbidden": []
+    }
+  ],
+  "source_sha256": {
+    "sdk/input-client/Cargo.lock": "2c59eb97bc855eeaf4612950d19ac77bdd5573bc510c0030787aa76dcd8f8178",
+    "sdk/input-client/Cargo.toml": "0622be1a17994b0930dcd2d620a07d484572ace03d90dc4a9cc924195471ef86",
+    "sdk/input-client/README.md": "e1f37eeb2df2317baddc3e734d4e6b738ab7531b3e215e9c7f0910dfaacaf19c",
+    "sdk/input-client/src/lib.rs": "e8c0c8fe138cb36f7db8f2f4d7915a52705e594ede6e983e38df8ddd949b2945",
+    "sdk/input-client/src/reply.rs": "12dfb9848bafdd74e71e43c2480c510852d6fc585aa83c16af0f69c012acd9f1",
+    "sdk/input-client/tests/service.rs": "70d77ff22f6d5cc68d71f1e0f6231c931d6e5cad7e7fd3c1d36e8fd15905c4b2"
+  },
+  "open": [
+    "independent client review",
+    "actual native app caller and input-service IPC",
+    "trusted supervisor/broker endpoint and client retirement lifecycle",
+    "native combined image QMP and user interaction"
+  ]
+}

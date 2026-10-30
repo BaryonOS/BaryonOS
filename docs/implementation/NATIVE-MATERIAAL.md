@@ -1,5 +1,39 @@
 # TASK-NATIVE-MATERIAAL — eerste native frontendketen
 
+## REV-APP-1 — huidige paint en juiste C-entry
+
+De onafhankelijke appreview reproduceerde echt rood dat Ready400 na een
+voltooide paint nog groen bleef bij slechts tile0 van een nieuwere generatie.
+Controller.presented was zelf begrensd, maar de oude meetvlag was onjuist.
+Iedere nieuwe paint trekt Ready nu in; evidence controleert ook de huidige
+dirty/generatie. LastPresentedGeneration verandert uitsluitend nadat dezelfde
+actuele generatie/epoch via alle echte tileACKs Controller.presented bereikt.
+Ready400 wordt als laatste gepubliceerd, na eerst0 en de overige meetwoorden,
+zodat een kernelpreëmptie geen halfgepubliceerde groep groen kan lezen.
+
+De andere gerichte reviewfix vervangt de extra entry-CALL door CLD, een echte
+RSPmod16==8-guard en JMP naar de nonreturning C-functie; de kernel levert al
+SysV C-entryalignment. Het werkelijke ELF wordt op guardbytes en directe JMP
+zonder extra CALL gecontroleerd. Negentien hostscenario's zijn groen, inclusief
+de eerst rode tegenproef. Compilatie/ELFinspectie blijven geen native uitvoering.
+
+Extra observerwoorden504screen(1Materiaal/2Editor/3Confirm),512draftDirty,
+520draftLength,528draftFNV,536objectID(MAXbijgeen),624LastPresentedGeneration,
+632scale(1of2) zijn door root afgestemd en uit werkelijke Controller/DocumentSession
+afgeleid. Dit verandert geen grants, inputpolicy, draftinhoud of opslag.
+Native build gebruikt een private bronkopie met gehashte centrale SDK1.8-inputs;
+geen gedeelde SDKfiles zijn voor deze fix gewijzigd. Het afzonderlijke
+`sdk/examples/materiaal/verification/review-fixed.json` bindt rood/groen/ELF.
+De oudere pre-native.json blijft herkenbaar het vóór-reviewcheckpoint.
+
+De afgebakende GUI-proef publiceert tevens640F12PressCount: uitsluitend een echt
+geauthenticeerd INP1-event PhysicalKey::F12/Press verhoogt deze checked teller.
+Repeat/Release of andere keys tellen niet; uitputting geeft een fout en wrapt
+niet. Dit is geen shutdownfunctie of nieuwe grant. De probe mag na werkelijk
+Saved→List→Reopened en een echte QMP-screenshot pas een nieuwe F12Press gebruiken
+om de afzonderlijke CPL3-controller zijn bestaande StopRPC te laten uitvoeren.
+Een late Enterrelease kan de afsluitbarrier daardoor niet voortijdig zetten.
+
 ## TASK-MATERIAAL-NATIVE-APP — gescheiden native app, SUR1-freeze
 
 31ab300 bouwbasis: main985ed4d plus frontend be0/d5 en display/input b2ad.
@@ -19,7 +53,7 @@ Het afgestemde [SUR1-contract](../../ui/surface-protocol/README.md) is 48B-heade
 208B-chunkdata, maximaal vijf chunks per tile en één transaction-ID voor
 BEGIN/CHUNK/COMMIT. Alleen complete gevalideerde COMMIT plus echte DisplayClient-
 blit mag positief bevestigen. Root bouwt de ring3compositor tegen de pure
-Receiver/CommitReady/commit_with-interface; geen kernel-render-/GUIpolicy.
+Receiver/CommitReady/commit_with(token,now_tick,callback)-interface; geen kernel-render-/GUIpolicy.
 INFO meldt publieke schermgeometry en toegewezen Rect, geen fysieke base/stride.
 De app tekent lokaal; compositor valideert/telt de toegewezen offset op en
 beschermt zijn verplichte systeemrand. Canonieke row-major gridindices,
@@ -47,6 +81,58 @@ code400b0000. Dit blijft binnen bestaande userimage-/quota-/W^X-grenzen. Werkeli
 gebouwde ELF en user::parse zijn verplicht; native QMP/image/diskoracle komt
 pas bij rootintegratie. Er is geen claim van persistente encrypted keys/B02,
 volledig Materiaal, schermlezer of volwaardige testrelease.
+
+SUR1-review vond en reproduceerde een bekend verlopen Ready-token na malformed
+traffic. De regressie was rood op oude bron; expiry staat nu vóór decode en
+een verse native monotone tick is verplicht bij commit-admission. Zonder
+geldige deadline mag de callback niet lopen, geen positieve reply of frame-
+completion volgen. De deadline betreft admission vóór blit, geen vsyncbelofte
+over preëmptie of vermeende rollback van geschreven pixels. Bron-/red-/green-
+en onafhankelijke herreview staan bij `ui/surface-protocol/verification/`.
+
+### Afzonderlijke app-adapter en gebouwd ELF
+
+`sdk/examples/materiaal` bevat nu de echte no_std native caller. Alle drie
+taakparen worden eenmaal aan hun typed eigenaar overgedragen; app-startup
+controleert geldige, verschillende handles en onderscheiden verwachte PIDs.
+De app bezit geen hardwarecap en fabriceert geen Received-envelopes. Iedere
+begrensde iteratie doet hoogstens vier PEEK/ACK-paren, één echte uploadstap en
+één tiletransactie. Een snapshot wordt alleen gepresenteerd na alle ACKs van
+dezelfde actuele generatie/epoch. Bij input-/surfaceverlies gaat Ready uit;
+draftbytes blijven bewaard en een verloren COMMIT-reply geeft geen Saved.
+
+Supervisorprotocol blijft het bestaande SYSTEM-tag: READY1 is uitsluitend
+metadata/ELFready, GO2 start servicegebruik, STOP5 is expliciet supervisorverzoek,
+STOP_REFUSED6 antwoordt bij dirty/saving, DONE3 volgt alleen clean/idle plus
+cleanup. Exacte kernelafzender, nul caps en1Bpayload zijn verplicht. Geen stil
+verwerpen, autosave of wijziging van PID-/epochautoriteit via payloads.
+
+Bewijsvelden:400 huidige UIReady (volledig huidig paint + werkelijke INP1-response),
+408 volledige frames,416 echte tileACKs,424 geleverde keys,432 muisevents,
+440 laatst werkelijk bevestigde saveRevision,448 bytes,456 FNVchecksum,
+464 echte inputACKs,472 fouten,480 echte saveCOMMIT-ACKs,488 supersededOffers,
+496 stopweigering. Hartslag8/failure240 blijven; een unchanged-save is geen
+nieuwe COMMIT-ACK. Dit zijn meetvelden, geen autoriteits- of crypto-eigenschappen.
+
+Achttien gecombineerde hostscenario's gebruiken één echte capability-engine,
+de bestaande volume-v7-service, input-core en SUR1. Getest zijn maken/bewerken/
+opslaan/heropenen, annuleren vóór en na APPEND, globaal pointeroffset/outside/
+heldreentry,100/200%, readonly, focusregrant met heldControl, grote invoer, I/O,
+verloren input-/tile-/COMMIT-replies, stale halve frames en expliciete cleanup.
+Ordered RAMsectoren en de displayrecorder zijn hosttegenpartijen; geen native
+input-/scherm-/diskbewijs. Eén extra test past de echte kernel user::parse toe
+op het werkelijk gebouwde x86_64-unknown-none executable, niet een fixtureELF.
+
+Dit ELF heeft vijf monotone W^X LOADs en119 imagepagina's. Drie64KiB-buffers
+staan op0x40071000 in BSS/RW+NX, niet op de stack; readonly inclfontrelro is
+191684B, code84089B op dit checkpoint. De gemonomorfiseerde19781 instructies
+bevatten geen SIMD/FPU of hostmallocbackend. Exacte hashes, commandologs en
+werkelijk gebruikte tijdelijke centrale SDK1.8-input staan in
+`sdk/examples/materiaal/verification/pre-native.json`. De tijdelijke patch wordt
+vóór commit uit gedeelde SDKfiles verwijderd; root moet dezelfde centrale
+SDK1.8-bron echt integreren en opnieuw bouwen. user::parse/Clippy/build bewijzen
+geen native uitvoering, maximale stackdiepte of GUI-latency. QMP, daadwerkelijk
+gerenderde UI, koude heropening en encrypted keypersistentie blijven open.
 
 30 oktober 2026; basis `61ea727`. Eigenaar `native_ui_apps`: uitsluitend
 `ui/native/**` en dit contract. Root bezit kernel/ABI/startupcaps/build/integratie;

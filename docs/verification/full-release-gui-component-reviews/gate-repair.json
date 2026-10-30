@@ -1,0 +1,241 @@
+{
+  "task": "REV-GUI-GATE-1 repair confirmation",
+  "source_commit": "3e2dd3221e265dfcd6364c37453f91944c1c7024",
+  "baseline_commit": "6a9292dd7159e7efc2038677c0c53fb0b0a3bbae",
+  "scope": "Independent focused HOST_ONLY checker regression confirmation; no native/VM/release acceptance",
+  "component_review_passed": true,
+  "native_execution_performed": false,
+  "repository_writes_performed": false,
+  "source_unchanged": true,
+  "closed_findings": [
+    {
+      "id": "GUI-V01",
+      "result": "Fixed on exact source: captures require last complete live snapshot with phase/history match, no partial record/barrier/exits/final, increasing prefix and generation. All three original late/stale models rejected. Valid additional current Ready frame accepted."
+    },
+    {
+      "id": "GUI-V02",
+      "result": "Fixed: attached volume.img private geometry and exact-byte equality with afterimage checked before typed disk oracle; original empty actual disk model specifically rejected."
+    },
+    {
+      "id": "GUI-V03",
+      "result": "Fixed: one bounded normal-parent replay, no normal parent ancestor, exact parent disk/source/profile/tool/loader/firmware/eight-ELF identity checks; missing/recursive/stale/link/outside parents specifically rejected."
+    }
+  ],
+  "commands": [
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_materiaal_probe.py -v",
+      "cwd": "/tmp/nieuw-os-gui-gate-independent/source-3e2dd322",
+      "exit_code": 0,
+      "tests": 19,
+      "log": "host-tests-3e2dd322.log"
+    },
+    {
+      "command": "python3 -B /tmp/nieuw-os-gui-gate-independent/check_repair.py /tmp/nieuw-os-gui-gate-independent/source-3e2dd322",
+      "cwd": "/workspace",
+      "exit_code": 0,
+      "checks": 12,
+      "result": "repair-counterexamples.json"
+    },
+    {
+      "command": "python3 -B /tmp/nieuw-os-gui-gate-independent/check_boundaries.py /tmp/nieuw-os-gui-gate-independent/source-3e2dd322",
+      "cwd": "/workspace",
+      "exit_code": 0,
+      "checks": 9,
+      "result": "repair-boundaries.json"
+    }
+  ],
+  "specific_own_checks": [
+    {
+      "case": "valid_normal",
+      "accepted": true
+    },
+    {
+      "case": "late_final",
+      "rejected": true,
+      "reason": "Capture prefix is after native closure began"
+    },
+    {
+      "case": "all_reopened_before_f12",
+      "rejected": true,
+      "reason": "Capture prefix already contains a later UI phase"
+    },
+    {
+      "case": "ready_after_editor",
+      "rejected": true,
+      "reason": "Capture prefix already contains a later UI phase"
+    },
+    {
+      "case": "ready_prefix_contains_partial_next_snapshot",
+      "rejected": true,
+      "reason": "Stage is not bound to the current live complete serial snapshot"
+    },
+    {
+      "case": "current_ready_after_additional_legitimate_frame",
+      "accepted": true
+    },
+    {
+      "case": "attached_disk_empty_after_snapshot_committed",
+      "rejected": true,
+      "reason": "The active QEMU disk differs from the inspected afterimage"
+    },
+    {
+      "case": "recover_missing_parent",
+      "rejected": true,
+      "reason": "Cold replay requires its actual normal parent"
+    },
+    {
+      "case": "valid_normal_to_cold_readonly_chain",
+      "accepted": true
+    },
+    {
+      "case": "recover_recursive_parent",
+      "rejected": true,
+      "reason": "Cold parent must be a complete passing normal case"
+    },
+    {
+      "case": "recover_changed_emulator",
+      "rejected": true,
+      "reason": "Cold run is not the same-profile byte-exact continuation of its checked normal parent"
+    },
+    {
+      "case": "recover_failed_actual_parent_exit",
+      "rejected": true,
+      "reason": "Recorded VM run/profile/exit differs"
+    },
+    {
+      "case": "parent_outside_generated_run",
+      "rejected": true,
+      "reason": "Cold parent must be an owned generated run"
+    },
+    {
+      "case": "parent_directory_symlink",
+      "rejected": true,
+      "reason": "Symlink in FPU artifact path"
+    },
+    {
+      "case": "parent_report_hardlink",
+      "rejected": true,
+      "reason": "Hardlinked FPU input/output"
+    },
+    {
+      "case": "normal_parent_has_another_parent",
+      "rejected": true,
+      "reason": "Normal replay cannot reference another run"
+    },
+    {
+      "case": "normal_parent_stale_source",
+      "rejected": true,
+      "reason": "Recorded VM run/profile/exit differs"
+    },
+    {
+      "case": "recover_changed_firmware_with_refreshed_hashes",
+      "rejected": true,
+      "reason": "Cold loader/firmware/userspace profile differs from its normal parent"
+    },
+    {
+      "case": "recover_changed_loader_with_refreshed_hashes",
+      "rejected": true,
+      "reason": "Cold loader/firmware/userspace profile differs from its normal parent"
+    },
+    {
+      "case": "captured_generation_replays_old_snapshot",
+      "rejected": true,
+      "reason": "Stage is not bound to the current live complete serial snapshot"
+    },
+    {
+      "case": "recover_claims_commit",
+      "rejected": true,
+      "reason": "Readonly app changed draft or committed"
+    }
+  ],
+  "no_additional_concrete_blocker_found": true,
+  "bounds": [
+    "Real GUI normal and cold VM chain must be rerun by root on its final integrated source/images; reviewer launched no VM.",
+    "Root first 7d230a6 native GUI run remains failed after200s; this checker review does not change it.",
+    "Manual rendered visual quality/full release remains open.",
+    "QMP/serial sampling and screenshot are bounded sequential observations, not a cryptographic or atomic framebuffer attestation.",
+    "This review does not expand to a whole-kernel/service adversarial audit."
+  ],
+  "notes": [
+    "Initial own boundary test expected an overly specific failure reason for forged readonly SAVE_ACK, and correctly received Wrong actual save response. Test fixture was corrected to include otherwise-valid saved metadata so it specifically verifies readonly rejection; source unchanged.",
+    "Original baseline review and failing-checker models retained in review.json and counterexamples.json."
+  ],
+  "source_files_sha256": {
+    "docs/contracts/NATIVE-MATERIAAL-PROBE.md": "4ad3ee3c6400b968a304e20faa54ac0860c94979dd4b7258994a193c1a1c8625",
+    "tools/build.py": "88cb12c5132f1530f35b78c4aaf7ee42dbf8aae7d750b150fbeaf0f118032b36",
+    "tools/build_users.py": "e1e6d720b633fb366d0d3d7f93c6681a4fc8caefe7b357422109523697919980",
+    "tools/capture_gate.py": "8db495bd3c28ab14d1711de4c4685f470593432fed99ab8ae9b2f7bbdc2d5e77",
+    "tools/capture_graphics.py": "6585a357d58f6957616669c4923bd8db377de230d5ccafd08db42506f71f5c43",
+    "tools/capture_keyring.py": "af941a274f64816cf252d28898eb70f6e848a4d2ebcf66affd5eb0935c909175",
+    "tools/capture_m6.py": "1047e48c9aea890d451e4eb1d04108524e92259c6a7c33b636c1ddaa012e1cb3",
+    "tools/capture_m6b.py": "96afe7824e7970b64883e1f4eab856df9404382ee53561a2306af30c09eba1c4",
+    "tools/capture_m6c.py": "30dfa2b9b12603e0a891c088cf64eca3f84204736907f053859d570e4ecc4a79",
+    "tools/capture_supervisor.py": "95d763bf6d172fa99a6d63a0cf6bc348dd8503b94fe6adbb4b9878356f387042",
+    "tools/capture_system.py": "8566dec1497b286c388fe21f7c829e54cb435eedc402f479b3801f0d4e7ee728",
+    "tools/capture_volume.py": "189343eb45fa93c0587e2fdd7361ff2500e9329751c3fa44440ae3d42f6b36c3",
+    "tools/common.py": "ac5cf2f1f576e68571212c85c70d4081b41761c913ecc46562edddccf74a6959",
+    "tools/dev.py": "e085fb382e5b77838346061c25721242a669353c478af0e88b80030abf286ffa",
+    "tools/gate_contract.py": "951c0f914374924d4a3841f9c533f7524d55788e2e696d6986f1cdc8b103addd",
+    "tools/m5_disk.py": "fd2682afaca72a04afcc4435484c4dea5d552db85fb5a09549b459d50cf9d43b",
+    "tools/m5_evidence.py": "5133954d3bc31b096577bf60852eb35246ed5973177770e74e05d15eb609dc30",
+    "tools/m6_disk.py": "213a01d6aef7176f64014225c2dd7be2f1cbd01daf3939857d3482eb49df8e1c",
+    "tools/m6b_disk.py": "70ef0ac2dc158e507639b9a88c34fcf9c7efcac945c6bf061b5422ef8ca1d7e9",
+    "tools/m6c_disk.py": "a7bb1d743f3c19454f28a01095baca0665fea2fdb94486b542a6486454754350",
+    "tools/m6c_faults.py": "c01017395824d7bf223f6d38d3449a0e8b348fc34619631e9764f7262997b6cc",
+    "tools/mutate_volume.py": "becf25a9e1a724b8c373b5722716faa4a2532e1e1ddd0baae1ed572aa0f560ad",
+    "tools/net_test_peer.py": "d8b9f4b175c21a1702c98b30ea95f542a3dbd04eb1fb0c73b5f48d35c3693f38",
+    "tools/preflight.py": "5ac7de1385e61b5cccd06fbb2e1e8d77b3f3b63e5d9b2cebd699cfa27b36f15f",
+    "tools/progress.py": "4f0fcd090b16e2cf1583eb08ad8b7f29b9509d19e9aa014c07fcc4a152fa13ad",
+    "tools/run.py": "908abb3dbb26b5aa27417ecde15db8feaf77ba990615bd6e7ecd72a3abbd7880",
+    "tools/run_display_probe.py": "94c5537f459286d178a87924bdf63ae4d916cf31aa58da72834bd7c7253b2db3",
+    "tools/run_fpu.py": "bd88de67f844ed691d31339aebbfb45583516768edc672ab1586a120f0667782",
+    "tools/run_graphics.py": "fd406d0aebb03b04266793cd9d46cb673c691f4fd6a8659bf85405b58ac3e7bd",
+    "tools/run_keyring.py": "b32d3aa4d4c23f20fc2f7ec8fa05e679643ad751be320590f55ce1dc94e5e3fd",
+    "tools/run_m6.py": "d8a5b05a1f5ade3a2148387dff1dcabc21a1c85b66892249ff55ba81e9adedf1",
+    "tools/run_m6b.py": "3b15f87db47a0be3325800950f7f3d1e51789c908febdc3be631257aa23d4903",
+    "tools/run_m6c.py": "514392302ae2f5a82c558fda0d25be8092215d9fbd5fd9000e5e0217bfe94c47",
+    "tools/run_materiaal_probe.py": "ccaf2a00981f25ba91abaafe626ea2d01fd99262e470ef5f479b03cf50ada39f",
+    "tools/run_memory.py": "e46b80120be43f7f446c64c8757a8a9faf2fddf4f94cd69c455633fef67aecf9",
+    "tools/run_net_system.py": "bc6f0a1461b218ea50759672687cab35981fae60b2ac960d805640b73d2767cf",
+    "tools/run_qsim.py": "ccf67651ce2f3631de7db6315d15d5822733ab06f48b948b90c2685c33e1f972",
+    "tools/run_qsim_job.py": "e9f265e15e56c1fc63d6c87ec96858758137e6e2bb98e66e02a66a363265391b",
+    "tools/run_sdk_app.py": "e96649c1f36fbb6dadd282a7453ce8985f9fdf76e3c3c4928b51719204bff1b9",
+    "tools/run_supervisor.py": "58fcacc86b66a55af338f0c52c3c7272c7af1e41e7cadb61b0dc7a5aa81b40c4",
+    "tools/run_system.py": "eae4f5ad04389621755283192b5cc5514c003b7f0a714c602338c9fd14109e2c",
+    "tools/run_tcp_system.py": "f07ba6d018396811bf89bafa5dc2240ecab874ad7c40a618ceb60af75a8fd51c",
+    "tools/run_volume.py": "c7d6aff212d8c673ad4e89e1d8d7368d04dadb3bad731ec59d1fd890bd2d3990",
+    "tools/tcp_transcript.py": "330a47a0f96d061cedae5f69356f7341c0cb621ce1ef18dfa7ee17060555ab5e",
+    "tools/test.py": "12077da5286c393524574c3c3bd310cad1d3ac4d70a327f9bdeb990824d82a2b",
+    "tools/test_display_probe.py": "806c7347b43397465da7282e15dd3750c8d6ccceb642fd34d412263ca02cbb8c",
+    "tools/test_document_session.py": "ff5243d9ad5d04811418d32a739c88d088c698c3f67f45cf13db867e834195ce",
+    "tools/test_fpu.py": "8b6becbe4376b6b06810544b925e85c45e8fde1ef96aaef97106855c6f91d0ee",
+    "tools/test_graphics_helpers.py": "0e13cc3e30b51672125e1985e4a5081db89a4662b7f100ed84462c388855a54a",
+    "tools/test_keyring.py": "b56feda8ee232466b460ea3f289d91cfa95a020a149e5760d1f55afaf1f3f98e",
+    "tools/test_m5.py": "95cbd825ab11ef02de7c752d94ac0cd5a97d192eadc617dcc358ffc92b30ffaf",
+    "tools/test_m6.py": "7a081d9dda79b5635ca4b8353315fa495245d7a83aec7078616db3e4b3d325b7",
+    "tools/test_m6b.py": "5d8a7bfc8b7ae0a82b586dcf96c08ce6e8a88ff839efdad74ae94f350d87f20b",
+    "tools/test_m6c.py": "58bac60fa7b1482a38c47db7c459cbc32bc31711326bc9016bdaffadd0229bbf",
+    "tools/test_memory.py": "8e1dadb9c38e64f3cd2e88ab8434c27cac867d0155c883cae5ba5dc3583a5668",
+    "tools/test_memory_system.py": "ef95e007199b2b07893415279960adbd8fa4c40ab46b9f9ce5fb2ebd578fdb7d",
+    "tools/test_milestones.py": "cd1f1e8a1b9d46d8f29a4c31497d963c1badfc817d8f82aa64c3b331134fdb95",
+    "tools/test_net_system.py": "0561122db99aa63915cc05121edfc7d49ee7474ea12c8472fe3a8787ae5474cf",
+    "tools/test_resource_pressure.py": "a1a26b38b91b4f0de848fcbe52f06c3603912d2fd19839c54e6b348cd3ed5833",
+    "tools/test_storage_resilience.py": "d2d98be9d44e683098b74f6781ec0e5df282713cd4c6a967807114a720159158",
+    "tools/test_supervisor.py": "3a245065b549688642eccec53f333cf9944e0d48099596335b2f56459a5362b5",
+    "tools/test_system.py": "0b83348208e1562d31f46470b0078fa3d72af1e3649ad6df40226c49c4ebdd87",
+    "tools/test_tcp_system.py": "3cce4e535a3d127b2438ccf4f29b304259888bb801427270d4815732f3a7626d",
+    "tools/test_volume.py": "2104bbec91d530bdf04d45dd2da4a42c38e7cd966ca8b1ac23be0a22ccee1917",
+    "tools/tests/test_materiaal_probe.py": "520c2a339fcf52304902b812bf5c47261da8ad03bd15e3ff996b36bd43abef99",
+    "tools/update_evidence_files.py": "d2c6fa9e9a4179a0ed7d20d7bb3d07d6612554e487c77e30b5fdb6e56407eeb7",
+    "tools/volume_disk.py": "b5d1c92a0af11c869533af32faa02ec864b95e87bb8f72783a5d87d6281c7e9d"
+  },
+  "evidence_sha256": {
+    "check_repair.py": "08e7f329582de2843a134379d3c3e0559965a83dfb9d7e655699cb6c3d2716c9",
+    "check_boundaries.py": "24b86317ee476192208614f8f7de790524fb829c2599efc95b8e4387c24008b1",
+    "repair-counterexamples.json": "8a60b5fb04cad2ed5c789a93b2d8bd79908b403c566d32ab755abec920da9e20",
+    "repair-boundaries.json": "9620b02344f8e2e551f7a661c5ce397877d99574f0351b05381c170fc27cb53c",
+    "host-tests-3e2dd322.log": "e775af776b55a7af78a96e871a245556fc82b4b3c79c257f9a98eaad47e47b34",
+    "repair-before-hashes.json": "dde0b24e3eeb4dcd78ae19afb795ec8f3a2c3b88a639060ffa9c8e3c127a3b0b",
+    "repair-after-hashes.json": "dde0b24e3eeb4dcd78ae19afb795ec8f3a2c3b88a639060ffa9c8e3c127a3b0b"
+  }
+}

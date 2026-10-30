@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/workspace/nieuw-os-worktrees/materiaal-native-app/sdk/examples/materiaal/build.py"
+  ],
+  "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+  "started_unix": 1793332987.566917,
+  "duration_s": 0.12880873680114746,
+  "returncode": 0
+}

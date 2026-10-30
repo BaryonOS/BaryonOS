@@ -1,0 +1,215 @@
+{
+  "task": "REV-APP-1",
+  "reviewer": "acceptance_contract",
+  "initial_commit": "1f36e0f07bd2a89be34750e5703f1561c29bc7c2",
+  "initial_code_commit": "7f8d220c3dac36ac62217b44360c1bfd95d0572c",
+  "fixed_code_commit": "3a856a428601b1864ce324cc0b1e6031984504cc",
+  "result": "One false-current-Ready bug reproduced red and independently verified fixed; no further concrete reachable blocker found in assigned adapter scope.",
+  "boundary": "Source, real-Engine/service host chains and actual scalar executable; no VM/native UI, disk or input execution, physical hardware, screenreader or full-release acceptance.",
+  "finding": {
+    "id": "REV-APP-1-01",
+    "status": "fixed-and-independently-retested",
+    "trigger": "Complete initial paint, then Enter opens Nieuw and only tile0 of the new dirty generation is acknowledged.",
+    "problem": "Evidence.ready retained true from old completed generation, conflicting with the current-complete-paint evidence contract.",
+    "red": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "/tmp/nieuw-os-rev-app-1/snapshot/sdk/examples/materiaal/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--test",
+        "chain",
+        "independent_current_ready",
+        "--",
+        "--nocapture"
+      ],
+      "exit": 101,
+      "seconds": 0.4097323250025511,
+      "source_commit": "1f36e0f07bd2a89be34750e5703f1561c29bc7c2",
+      "expected_failure": "Ready remained true while current generation has only its first tile ACK"
+    },
+    "red_log": "/tmp/nieuw-os-rev-app-1/readiness-red.log",
+    "fix": "Withdraw Ready on dirtypaint; evidence() also requires !dirty and presented_generation==current generation. Advance PresentedGeneration only after all current tile ACKs and Controller.presented. Publish native Ready last.",
+    "green_test": "independent_current_ready_is_not_stale_after_edit: old PresentedGeneration during partial paint; current PresentedGeneration and Ready only after complete repaint."
+  },
+  "input_provenance": {
+    "original_archived_inputs": 96,
+    "original_inputs_sha256": "8a4d753b6cfe807ea36b5738163c1386cabb3e09929910f785b5a3ab6747dc31",
+    "sdk_abi18_patch_sha256": "ea102b11574f6a54b8c4251eb24ea6d3bd11d9efea62b496344b66628e336a43",
+    "sdk_patch": "/tmp/nieuw-os-rev-app-1/sdk-build-input.patch",
+    "fixed_source_inputs": "/tmp/nieuw-os-rev-app-1/fixed-source-inputs.json",
+    "private_noncanonical_source": "Only independent tests/transport fault injection in sdk/examples/materiaal/tests/chain.rs.",
+    "root_desktop_source_used": false,
+    "canonical_worker_code_still_matches": {
+      "sdk/examples/materiaal/src/lib.rs": "9ef75e9c91a3487095c1bc3c4c80844c9332e6c1641be373e998b2bfe9e20a00",
+      "sdk/examples/materiaal/src/main.rs": "c7238d26ebd05302d5aaad01709b5719e55d4a0c6554c1d9a7833d6c32cc7a68",
+      "sdk/examples/materiaal/src/bootstrap.rs": "8e46cc8875adaf984698caa020e3af94f23b861c67b3c0021f0b349949324941",
+      "sdk/examples/materiaal/linker.ld": "d675f0c262e19ae3efa56c9283460417f9c3063d37d5bc6dba73fa03d6ab9a85",
+      "sdk/examples/materiaal/tests/elf.rs": "0883094b2a1d715ed4d1ef1ee0f793333a787eb2add31241d773cda8030d91e7",
+      "sdk/examples/materiaal/verify.py": "29fdb7fed654b871bfc74bf52bc8d1c9c857d287b861a967442838966a6af2bc"
+    }
+  },
+  "checks": {
+    "fixed-host": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "/tmp/nieuw-os-rev-app-1/fixed-snapshot/sdk/examples/materiaal/Cargo.toml",
+        "--locked",
+        "--offline"
+      ],
+      "exit": 0,
+      "seconds": 6.109996410999884,
+      "target_dir": "/tmp/nieuw-os-rev-app-1/target-fixed-host",
+      "log": "/tmp/nieuw-os-rev-app-1/fixed-host.log"
+    },
+    "fixed-clippy-lib": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "/tmp/nieuw-os-rev-app-1/fixed-snapshot/sdk/examples/materiaal/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--lib",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 4.702931859999808,
+      "target_dir": "/tmp/nieuw-os-rev-app-1/target-fixed-clippy",
+      "log": "/tmp/nieuw-os-rev-app-1/fixed-clippy-lib.log"
+    },
+    "fixed-native-build": {
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/nieuw-os-rev-app-1/fixed-snapshot/sdk/examples/materiaal/build.py"
+      ],
+      "exit": 0,
+      "seconds": 5.6464036100005615,
+      "target_dir": "/tmp/nieuw-os-rev-app-1/target-fixed-native",
+      "log": "/tmp/nieuw-os-rev-app-1/fixed-native-build.log"
+    },
+    "ELF_policy": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "/tmp/nieuw-os-rev-app-1/fixed-snapshot/sdk/examples/materiaal/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--features",
+        "verify-native-elf",
+        "--test",
+        "elf",
+        "--",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "seconds": 0.457947750997846,
+      "log": "/tmp/nieuw-os-rev-app-1/fixed-elf-policy.log"
+    }
+  },
+  "host_test_counts": {
+    "original_baseline": 18,
+    "readiness_regression": 1,
+    "additional_causal_faults": 3,
+    "passed": 22,
+    "actual_ELF_policy_passed": 1
+  },
+  "additional_cases": [
+    "Actual delivered input followed by lost ACK reply: one exact draft edit, no extra ACK/effect/replay/save; dirty STOP refused.",
+    "Actual volume COMMIT followed by Unknown send result: modeled sectors contain bytes, draft remains uncertain/dirty, no Saved/COMMIT-ACK evidence and no replay; dirty STOP refused.",
+    "Actual surface COMMIT followed by Unknown send result: one real modeled backend blit, zero accepted tile/frame evidence, no Ready/Presented and no resend."
+  ],
+  "source_review": [
+    "Three separate typed channel owners; native App receives actual kernel messages and has no raw display/input/block/key/network grants.",
+    "Bootstrap checks eight distinct handle representations, five positive distinct actor PIDs, epochs/client ID, readonly boolean and supported scale. These integers are correlation only; actual kernel and service boundaries retain authority.",
+    "Input/volume/surface libraries authenticate sender, epoch, tags, request correlation, body/padding and unexpected capabilities. Unknown or lost completion closes the relevant binding without automatic replay.",
+    "Global mouse coordinates translate only inside assigned surface; outside release is not clamped and held reentry cannot synthesize a fresh press.",
+    "One upload step and one tile transaction per App iteration; validated COMMIT alone increments save evidence. Lost/I/O replies retain draft. Current generation completion is now separately guarded.",
+    "Dirty/saving STOP refused; clean cleanup attempts all three endpoint owners. Native STOP5 accepts only real InitPID/SYSTEM tag/1byte/no caps, and DONE3 follows successful cleanup.",
+    "Caller buffers are three disjoint 64KiB private BSS arrays, acquired once. Actual ELF has five bounded W^X LOADs, readonly font pointer tables and 119 image pages. Entry CLD/RSPmod16==8/JMP is checked in real bytes and disassembly."
+  ],
+  "fixed_actual_executable": {
+    "path": "/tmp/nieuw-os-rev-app-1/target-fixed-native/x86_64-unknown-none/release/materiaal-app",
+    "sha256": "eaadb6b679fe3ba67f1eebdacd84aa6de3446ff4adeebe9d38e7b1849baa8494",
+    "bytes": 310360,
+    "source_commit": "3a856a428601b1864ce324cc0b1e6031984504cc",
+    "explicit_extra_sdk": "archived ABI1.8 patch ea102b11574f6a54b8c4251eb24ea6d3bd11d9efea62b496344b66628e336a43",
+    "instructions": 20044,
+    "forbidden": [],
+    "host_backends": [],
+    "segments": [
+      {
+        "va": 1073741824,
+        "flags": 5,
+        "file_bytes": 19,
+        "memory_bytes": 19,
+        "payload_sha256": "eb215220c7aa510748f8ee79a4e144d44b13f8afe879e3def2464706d1e31cd8"
+      },
+      {
+        "va": 1073807360,
+        "flags": 6,
+        "file_bytes": 1024,
+        "memory_bytes": 1024,
+        "payload_sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+      },
+      {
+        "va": 1073872896,
+        "flags": 4,
+        "file_bytes": 191540,
+        "memory_bytes": 191540,
+        "payload_sha256": "40b527f2b662caa14e3d75dfbaf9ff9c40a2aa954e92fbdab8e13b0878319d1d"
+      },
+      {
+        "va": 1074200576,
+        "flags": 6,
+        "file_bytes": 176,
+        "memory_bytes": 200704,
+        "payload_sha256": "0fa6c138247d81577f8d44228b52b076b99683fffe34c3ec1322efaf310625f7"
+      },
+      {
+        "va": 1074462720,
+        "flags": 5,
+        "file_bytes": 85497,
+        "memory_bytes": 85497,
+        "payload_sha256": "0ad1ca7a723f7a1d05bd6d7587f393d9af8b40d26ce6d708e190dcc1d73494af"
+      }
+    ]
+  },
+  "original_executable_rebuild": {
+    "report": "/tmp/nieuw-os-rev-app-1/native-artifact.json",
+    "note": "Absolute panic-source paths differ between private snapshot and worker, changing readonly bytes and whole ELF hash. Each executable is separately hashed; no byte-identical rebuild or native execution claim."
+  },
+  "open_boundaries": [
+    "Final integrated native manifest/capability/bootstrap wiring, real App/Input/Surface/Volume IPC, QMP user actions and actual rendered pixels.",
+    "Cold durable reopen and encrypted key/storage chain; app readonly send prevention is not proof of service/kernel readonly enforcement.",
+    "Actual 64KiB stack high-water, bounded resource/latency measurements and long combined sessions.",
+    "Native supervisor STOP_REFUSED6/DONE3, cleanup, crash recovery and regrant lifecycle.",
+    "Screenreader, complete Materiaal/program/product scope and all62 full-release acceptance rows.",
+    "Second-AI source/model verification is not an independent human audit."
+  ],
+  "writes": "Only /tmp/nieuw-os-rev-app-1; no worker/main/shared source or Git-index writes."
+}

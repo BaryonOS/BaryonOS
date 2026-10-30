@@ -1,0 +1,24 @@
+[package]
+name = "nieuw-os-input-client"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+members = ["."]
+resolver = "2"
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../runtime" }
+nieuw-os-catalog-client = { path = "../catalog-client" }
+nieuw-os-input-core = { path = "../../services/input-core" }
+ui-core = { path = "../../crates/ui-core" }
+
+[dev-dependencies]
+capability-core = { path = "../../crates/capability-core" }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = false

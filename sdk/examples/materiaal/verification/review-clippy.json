@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+    "clippy",
+    "--offline",
+    "--locked",
+    "--manifest-path",
+    "sdk/examples/materiaal/Cargo.toml",
+    "--all-targets",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+  "started_unix": 1793333756.8027465,
+  "duration_s": 0.7109477519989014,
+  "returncode": 0
+}

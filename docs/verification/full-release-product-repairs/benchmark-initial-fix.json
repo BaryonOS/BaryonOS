@@ -1,0 +1,77 @@
+{
+  "base_commit": "342387eb94e99049b0af4ffe06e493cc3a7578e8",
+  "scope": "Host-only harness regression checks with subprocess response spies. No VM executed and no new native benchmark acceptance.",
+  "source_files": {
+    "tools/run_cap_bench.py": "89e04386c1f62325bc0bb382d93d39e4dd92dbd611d3201da67ef2df1ca56a7f",
+    "tools/tests/test_cap_bench.py": "5e79cf4db5b8c2b10c5aa32c97a50ffa28dc266d030c9eb1f63b16b3209dc925"
+  },
+  "command": "LOCALAPPDATA=/workspace/nieuw-os/.tools python3 -B tools/dev.py python3 -B -m unittest discover -s tools/tests -p test_cap_bench.py",
+  "exit_code": 0,
+  "host_tests": 18,
+  "git_diff_check_exit_code": 0,
+  "red": {
+    "base_commit": "342387eb94e99049b0af4ffe06e493cc3a7578e8",
+    "scope": "Host-only original-source regression; no VM or native acceptance.",
+    "source_sha256": "2104b3eb7f1354406f74a6cd2e924d18e3b719ad509d29e5d4d36c1d4c93b11b",
+    "tests": 4,
+    "failures": 4,
+    "errors": 0,
+    "passed": false,
+    "log": "/tmp/nieuw-os-cap-bench-fix-proof/red.log"
+  },
+  "proof_sha256": {
+    "red.py": "a86026ca944a253724986f9de97ee4e8ddb373a832f15d29343bc6d762b98ce6",
+    "red.log": "ed724dbede2ecb0ced89e2b5ce01643e5677c10a1cd414cc4dea6d68b147c50b",
+    "red.json": "fa4def6d92ed5a8eee87bcf4139d548133e1afbfe9ddf19c6ace25375e09ef3f",
+    "green.log": "c196413e2b2b8fa9d37ccf384314bf8157f4a6f863bc269d46d5c0cb8d83a2ab",
+    "vars-red.log": "8655fe6543d079d981d375f973ffd925e57a8fa8f020a546948ad8e0a6632259",
+    "vars-green.log": "df00dafd6cf68c94d310987f8758ddd731cfec7dfbe63659f753d698af48cd75",
+    "final-green.log": "9795f8a586d10458eaebac1c9654c866f6c0c1c92930b22f1aadcc3375f71255",
+    "disk-red.log": "471877bce249cd16c98702d35655b37d9b15990cf6e112eb5107fce90f08ae93",
+    "disk-green.log": "7dc33fb07d1dd59197d5400ddebe466acfae5c39282a742d8e5291df611d69e8"
+  },
+  "counterexamples": [
+    "stale pass on invalid timeout",
+    "stale pass on unsafe TARGET",
+    "copied firmware changed during controlled response",
+    "archived ELF changed during controlled response"
+  ],
+  "other_checks": [
+    "direct source and QEMU changes rejected independently of patched aggregate source fingerprint",
+    "firmware/ELF/manifest/kernel/loader source and snapshot consistency",
+    "prelaunch drift refuses subprocess",
+    "same-size writable OVMF variables allowed",
+    "unsafe output and source-ESP links rejected without outside writes"
+  ],
+  "native_executed": false,
+  "independent_review": "Pending root-appointed reviewer after commit",
+  "fix_commit": "aa7ced60c84d34e9c82085aab80085e55db1e72b",
+  "worktree_clean": true,
+  "initial_fix_commit": "55e41706ef83d98f08ae0934ccf7183dea8ea12a",
+  "follow_up_commits": [
+    "e3f033871f17811415aaba9a721ea8128d6f605b",
+    "fa12e94f07f7a0350869f4505cb9201a7f5a0df7",
+    "aa7ced60c84d34e9c82085aab80085e55db1e72b"
+  ],
+  "additional_regressions": {
+    "initial_mutable_vars": {
+      "old_commit": "55e41706ef83d98f08ae0934ccf7183dea8ea12a",
+      "red_exit": 1,
+      "red_failures": 1,
+      "green_cases": [
+        "same-size initial drift",
+        "short initial copy",
+        "hardlink initial copy",
+        "symlink initial copy",
+        "legitimate postexecution mutable bytes"
+      ]
+    },
+    "postexecution_disk_guard_order": {
+      "old_commit": "fa12e94f07f7a0350869f4505cb9201a7f5a0df7",
+      "red_exit": 1,
+      "red_failures": 1,
+      "red_external_marker_hashreads": 1,
+      "green_external_marker_hashreads": 0
+    }
+  }
+}

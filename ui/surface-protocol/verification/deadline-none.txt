@@ -1,0 +1,8 @@
+command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "build", "--offline", "--locked", "--manifest-path", "ui/surface-protocol/Cargo.toml", "--features", "client", "--release", "--target", "x86_64-unknown-none"]
+exit: 0
+
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/services/catalog)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/sdk/runtime)
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/sdk/catalog-client)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/ui/surface-protocol)
+    Finished `release` profile [optimized] target(s) in 0.44s

@@ -1,0 +1,40 @@
+[package]
+name = "nieuw-os-materiaal-app"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+resolver = "2"
+
+[features]
+native = []
+verify-native-elf = []
+
+[dependencies]
+nieuw-os-materiaal = { path = "../../../ui/native" }
+nieuw-os-surface-protocol = { path = "../../../ui/surface-protocol", features = ["client"] }
+nieuw-os-input-client = { path = "../../input-client" }
+nieuw-os-input-core = { path = "../../../services/input-core" }
+nieuw-os-document-session = { path = "../../document-session" }
+nieuw-os-catalog-client = { path = "../../catalog-client" }
+nieuw-os-sdk-runtime = { path = "../../runtime" }
+ui-core = { path = "../../../crates/ui-core" }
+volume-core = { path = "../../../services/volume" }
+
+[dev-dependencies]
+capability-core = { path = "../../../crates/capability-core" }
+kernel-core = { path = "../../../crates/kernel-core" }
+
+[[bin]]
+name = "materiaal-app"
+path = "src/main.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = false

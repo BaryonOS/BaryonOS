@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`2061863c`](https://github.com/simonvanieperen/nieuw-os/commit/2061863c9226b74d64158f36a3fd1bbbf0bb60df) ·
-**Ontwikkelbranch:** `ccr-43832ef7-gi2qlz`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR #61: conflicten tussen B03 en main 6d3bbf0 oplossen met behoud van beide ontwikkelsporen.
-34% → 34%: de bestaande B03-acceptatie en de foundation-/systeemwijzigingen van main blijven behouden. Deze integratie verdient geen nieuwe punten; historisch native bewijs wordt niet naar de samengevoegde bron omgelabeld. B03 heet nu ADR-049 om de netwerkbeslissing ADR-044 van main te behouden. Gerichte integratievalidatie en resterende grenzen staan in PROJECT-STATE.md; alle 62 volledige productcriteria blijven open. Geen volledige testrelease, Secure Boot, releasesleutels, fysieke hardware of menselijke audit geclaimd.
+**Bron:** [`1f6a6834`](https://github.com/simonvanieperen/nieuw-os/commit/1f6a6834a89aa3d533b096c5b62a46b3276db6d3) ·
+**Ontwikkelbranch:** `codex/native-product-integration`.
+Deze opdracht: **32% → 34% (+2 procentpunt)**. **Opdracht:** Native productintegratie en eerder geaccepteerde B03-updates samenvoegen.
+De score stijgt van 32% naar 34% door de eerder geaccepteerde B03-proef voor ondertekende updates en rollback. Op exact 9596abc slagen alle negen CI-workflows; de aparte GUI-keten bereikt Materiaal en editor, maar faalt vóór typen, Save/Reopen en afsluiten. De calculator heeft begrensd bron-, host- en ELF-bewijs, geen native appacceptatie. De vermelde bron is de productouder; B03 en de productmetingen blijven aan hun oorspronkelijke bronnen gebonden. Deze samenvoeging is niet als gecombineerde bron gevalideerd. Alle 62 volledige productcriteria blijven open; volledige updates en herstel, veilige persistente opslag, Secure Boot, releasesleutels, fysieke en menselijke gates zijn niet aangetoond.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -1,0 +1,20 @@
+{
+  "source_files": {
+    "ui/surface-protocol/Cargo.lock": "e6254467fea86179550cae38317e8e6a0eeb6815055a031919f6a1dbf39d3fb9",
+    "ui/surface-protocol/Cargo.toml": "dc969f69cc14ea624a773cabcbc501094419b9dc597a198b5a428149964aec94",
+    "ui/surface-protocol/README.md": "6d81d9f64a565069d2b95fbbb53399f50adeba9dc3e84c8158b9fd770d27d8ff",
+    "ui/surface-protocol/src/client.rs": "2d1fe8c2df2b940910dabe2397ef79222540050add0f9595ca0b68f7c0b5f29b",
+    "ui/surface-protocol/src/lib.rs": "fb668725e7fccf108586c198652bf7fddd21a0cbc5fe77b3c977f67f840de411",
+    "ui/surface-protocol/tests/client.rs": "d8f3ab0d65342d3a402571e494d5f84574c523e933a1f379c12841993aaef476",
+    "ui/surface-protocol/tests/protocol.rs": "5df655a2713daed1632184b22ee11d9142c18c757c98256bf504def583c7c3c7"
+  },
+  "red_source": {
+    "lib_sha256": "70042101a2d19fc1eb6e4e7dc1a56b50b5091d6c580d0afb4d49f76f12a68c16",
+    "native_execution": false
+  },
+  "regression_red_exit": 101,
+  "green_tests": 15,
+  "native_execution": false,
+  "deadline": "fresh monotone admission before first blit, not vsync or rollback",
+  "review_report": "peer-surface-review.json"
+}
