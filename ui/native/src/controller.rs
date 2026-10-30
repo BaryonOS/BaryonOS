@@ -294,6 +294,9 @@ impl<'a, T: Transport> Controller<'a, T> {
     /// the adapter passes only actual source changed/down bits, never clamped
     /// outside coordinates or a synthetic press.
     pub fn cancel_pointer(&mut self) -> Result<(), Error> {
+        if !self.dragging && self.pressed.is_none() && self.cursor.is_none() {
+            return Ok(());
+        }
         self.dragging = false;
         self.pressed = None;
         self.cursor = None;

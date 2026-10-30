@@ -588,6 +588,57 @@ fn retired_focus0_impl() {
         .unwrap_err()
         .is_again());
 }
+fn retire_reply_deadline_starts_after_wipe_impl() {
+    let mut m = Model::new();
+    let mut c = m.coordinator();
+    let msg = m.control(Operation::Retire, 1);
+    assert!(c.accept(0, &msg).unwrap());
+    c.step(0, &mut m.ports[2]).unwrap();
+    m.ack(0);
+    assert!(c.step(1, &mut m.ports[2]).unwrap());
+    assert_eq!(c.state(), State::Retired);
+    // Neither a long wipe nor an early flush may publish the reply.
+    c.flush(300, send(m.registry_send), &mut m.ports[2])
+        .unwrap();
+    assert!(m.ports[0]
+        .receive(recv(m.registry_recv))
+        .unwrap_err()
+        .is_again());
+    c.finish_retire_wipe(300);
+    let filler = Outgoing::new(1, &[]).unwrap();
+    for _ in 0..16 {
+        m.ports[2].send(send(m.registry_send), &filler).unwrap();
+    }
+    c.flush(500, send(m.registry_send), &mut m.ports[2])
+        .unwrap();
+    assert!(c.is_busy());
+    // Repeated completion calls cannot extend the deadline.
+    c.finish_retire_wipe(500);
+    assert_eq!(
+        c.flush(501, send(m.registry_send), &mut m.ports[2]),
+        Err(Status::Uncertain)
+    );
+    assert!(c.is_terminal());
+
+    let mut m = Model::new();
+    let mut c = m.coordinator();
+    let msg = m.control(Operation::Retire, 1);
+    c.accept(0, &msg).unwrap();
+    c.step(0, &mut m.ports[2]).unwrap();
+    m.ack(0);
+    c.step(1, &mut m.ports[2]).unwrap();
+    c.finish_retire_wipe(300);
+    c.flush(300, send(m.registry_send), &mut m.ports[2])
+        .unwrap();
+    let reply = m.ports[0].receive(recv(m.registry_recv)).unwrap();
+    assert_eq!(number(reply.payload(), 32), 0);
+    assert_eq!(number(reply.payload(), 40), 2);
+}
+scenario!(
+    retire_reply_deadline_starts_after_wipe,
+    retire_reply_deadline_starts_after_wipe_impl
+);
+
 fn wrong_policy_impl() {
     let mut m = Model::new();
     let mut c = m.coordinator();

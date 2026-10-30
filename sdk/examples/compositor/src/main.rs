@@ -176,6 +176,7 @@ fn run() -> ! {
                 }
             } else {
                 wiping = None;
+                control.finish_retire_wipe(tick(&boot));
                 break;
             }
         }

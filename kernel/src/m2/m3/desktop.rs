@@ -16,9 +16,11 @@ const POLICY: usize = 6;
 const CONTROL: usize = 7;
 const SURFACE_EPOCH: u64 = 0x5355_5200_0000_0001;
 const INPUT_EPOCH: u64 = 0x494e_5000_0000_0001;
+#[cfg(feature = "native-system-materiaal-probe")]
 const SNAPSHOT_WORDS: [u64; 18] = [
     400, 624, 408, 416, 424, 432, 464, 480, 440, 448, 456, 504, 512, 520, 528, 536, 632, 472,
 ];
+#[cfg(feature = "native-system-materiaal-probe")]
 const SNAPSHOT_NAMES: [&[u8]; 18] = [
     b"READY",
     b"PRESENTED_GEN",
@@ -41,6 +43,7 @@ const SNAPSHOT_NAMES: [&[u8]; 18] = [
 ];
 struct Observation {
     ready: u64,
+    #[cfg(feature = "native-system-materiaal-probe")]
     generation: u64,
     baseline: usize,
     kernel_tables: usize,
@@ -53,6 +56,7 @@ struct Observation {
 }
 static mut OBSERVATION: Observation = Observation {
     ready: 0,
+    #[cfg(feature = "native-system-materiaal-probe")]
     generation: 0,
     baseline: 0,
     kernel_tables: 0,
@@ -459,6 +463,7 @@ pub(super) fn poll(s: &mut State) {
                 }
             }
         }
+        #[cfg(feature = "native-system-materiaal-probe")]
         if s.processes[APP].status != Status::Dead {
             let app = metadata(s, APP);
             if app[400 / 8] == 1 {
