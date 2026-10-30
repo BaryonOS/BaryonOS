@@ -257,6 +257,51 @@ fix/review/gates. Geen aantoonbare fout in de opgeslagen native run geclaimd.
 Directe prioritymelding naar lifecycle faalde expliciet als NOTSENT; een
 bewust na huidig mergewerk gequeueëde melding is wel aangenomen, nog geen
 claim dat lifecycle die verwerkt heeft.
+Daarna zijn beide reviewgaten volgens de bouwer eerst rood gereproduceerd
+(3 tests/6 failures), minimaal gerepareerd en door dezelfde reviewer
+bronmatig gesloten op `7d66dc2744604d8119b8366a283dc10ea1a76000`.
+Manager draaide zelf de bijgewerkte suite op die exacte bron in een
+nieuwe aparte checkout: 16 tests, exit0, 3,772s/wall3,87s; schone checkout
+gericht verwijderd, log `files/teamleader-cold77-fix-tests.log`.
+Late PANIC/FAIL en vier immutable firmwaretampergevallen zijn nu gedekt,
+mutable VARS blijft toegestaan. Geen nieuwe manager-VM. De nieuwe v3
+`949ce3ab…` vereist eigen nativeherhaling; build kreeg opdracht
+reference/parent/cold en replay op die bron te herhalen met geldige cache.
+Oude420fac-rapporten blijven ongewijzigd, geen mergevrijgave op alleen tests.
+
+Nieuwe #73-diagnostiek via eigen `gh api .../pulls/73`, exit0:
+head `9d8a1196f3ee6eba2fefa14fe8cf22c568dfdbfe`, `mergeable=false`,
+`mergeable_state=dirty`, `merge_commit_sha=null`. Daarmee is een concreet
+mergeconflict vastgesteld, eerdere UNKNOWN-waarneming ingehaald. Afwezigheid
+van de nieuwe workflow op main is niet als algemene CI-startvoorwaarde
+aangenomen. Apps ontvangt na #74 één actuele basis voor inhoudsbehoudende
+resolutie en echte CI; geen ready-toggle of gatebypass. Owner rapporteert
+8 packagecore-/10 app-management-hosttests, Clippy/fmt/none groen op eigen
+bron, nog geen GitHub-runs. Nieuwe code vereist eigen review.
+Voorbereidende `git merge-tree --write-tree --name-only` op ca45/9d8a119
+bevestigt exit1 met vijf conflictpaden: Cargo.toml, README, DECISIONS,
+PROJECT-STATE en progress.json. Geen branch-/werkboommutatie; log
+`files/teamleader-pr73-merge-tree.log`. Apps krijgt na lifecyclebasis
+begrensde resolutie, behoud van beide ADR-/statushistoriën en echte CI.
+
+Artifact-store-code is nu werkelijk opgeleverd: implementatie `0816a53`,
+bewijs `7ab88e1`, ca45-integratie `53c2f14` op releasebranch gemeld.
+Owner rapporteert zeven hosttests plus Clippy/fmt/none exit0 op0816,
+hergates/remotecontrole53c nog open bij overdracht.
+Manager las op53c de volledige 175-regelige crate, 214-regelige tests
+en workflow, geen concrete bevinding in deze beperkte read-only delta;
+geen eigen Rustuitvoering (`cargo`/`cc` niet op PATH, command-v exit1).
+Nieuwe gerichte CI is bronmatig aanwezig, GitHubresultaat nog niet
+vastgesteld. Geen backend/authority/nativeinstall of nieuwe punten.
+Release gaat na dit checkpoint het concrete NAS-probeprofiel integreren.
+
+UI heeft consumerwerk op aparte `codex/native-semantic-consumer-20261030`,
+niet op bevroren #68 gepusht; exclusief controller.rs, interaction.rs en
+directe NATIVE-MATERIAAL-consumersectie, met release afgestemd.
+Owner meldt21 interactietests/fmt/check/Clippy groen; generation-bound
+dispatch wordt nog aangescherpt. #68-head e382a989 is volgens owner een
+legitieme main94-integratie van eerdere4a4, niet nieuwe consumeracceptatie.
+Nieuwe code blijft host-only tot integratie en nativeherhaling.
 Eerstvolgend bij hervatten: `git branch --show-current && git rev-parse HEAD
 && git status --short`, daarna verse `get_sessions_status` en actuele
 buildteam/release-rapportages lezen; geen oude groene PR-head overnemen.

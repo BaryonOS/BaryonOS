@@ -305,6 +305,33 @@ parentfirmware. Beide direct bij build voor minimale fix+regressies,
 intake bevestigt routering. Mergeblokkade tot herstel/review/gates, geen
 claim van een bewezen fout in de opgeslagen run. Lifecyclemelding bewust
 gequeueëd na lopend mergewerk nadat priorityadmission NOTSENT gaf.
+Opvolging #77: fix `7d66dc2`, producent eerst rood3/6failures, daarna
+16gerichte/154tools groen gemeld; 7f sluit beide bevindingen in de beperkte
+brondelta. Manager draaide zelf de 16 gerichte tests, exit0/3,772s,
+aparte schone checkout daarna verwijderd. Geen nieuwe VM. Build herhaalt
+nu exact nieuwe v3949ce3 reference/parent/cold/replay zonder oude bewijsbron
+te herlabelen; geen mergevrijgave op alleen bronreview/hosttests.
+
+App-CI-diagnose is inmiddels concreet: eigen REST-read van #73 op9d8a119
+geeft mergeable=false/dirty/null-mergecommit; eerdere UNKNOWN ingehaald.
+Eén basisupdate na74 voor echte conflictresolutie/CI, geen event-/ready-
+bypass of aanname dat nieuwe workflow eerst op main moet staan. Owner
+meldt8+10hosttests/lint/fmt/none groen, geen GitHub-run; nieuwe brondelta
+blijft afzonderlijk te reviewen. #72-zeroize is door owner geparkeerd na
+ReceivedDrop/needs_drop compilefout; #74-prioriteit niet verdringen.
+Eigen voorbereidende merge-tree ca45/9d8a119 bevestigt vijf conflicten
+(Cargo.toml, README, DECISIONS, PROJECT-STATE, progress.json), exit1;
+geen branch-/werkboommutatie. Apps heeft de concrete resolutieoppervlakte.
+
+Release levert daadwerkelijke read-only crate0816a53/bewijs7ab88e1/
+ca45-integratie53c2f14, zeven hosttests/lint/fmt/none groen op0816 gemeld.
+Manager las de volledige crate/tests/workflow op53c, geen concrete
+bevinding in beperkte delta; geen eigen Rusttest, cargo/cc niet op PATH.
+Hergates/remote53c en GitHub-CI nog open bij overdracht. Daarna concrete
+NAS-probeprofielintegratie, geen backend/authority/productacceptatie.
+UI-consumer op aparte branch met exclusieve controller/interaction/directe
+docsectie, release afgestemd; generation-bound actiondispatch nog in werk.
+Bevroren #68-evidence/main94-merge is niet die nieuwe consumer.
 
 NAS `ba557473` heeft drie werkelijke matrixcrates, host/target/stackfaultgates
 groen gemeld; GitHub-CI en echte NAS-QEMU blijven open. Security NV

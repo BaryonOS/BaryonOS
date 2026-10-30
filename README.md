@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`d12539c9`](https://github.com/simonvanieperen/nieuw-os/commit/d12539c9cb324bd86330338b48d02ff37a97331d) ·
+**Bron:** [`59adc5c9`](https://github.com/simonvanieperen/nieuw-os/commit/59adc5c974f2d53518f89429ee02df26348feba9) ·
 **Ontwikkelbranch:** `simonvanieperen-symmetrical-barnacle`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Teamleiding: twaalf sessies toetsen aan de volledige roadmap, exclusieve eigenaren en geïntegreerde QEMU-route bewaken.
-34% blijft 34%; geen criterium, gewicht of geaccepteerd bewijs gewijzigd. Manager heeft de oude geleverde Windowsbundel als bestand gecontroleerd en nu zelf 14 cold-harnastests op exact PR77-bef9461 uitgevoerd: exit0, host-only. De gerichte review vond daarnaast twee nog af te dekken serial-/firmwarevalidatiegaten; build heeft een minimale fix-/regressieopdracht, merge blijft geblokkeerd. Geen nieuwe manager-VM of releaseacceptatie. Main94 is inhoudsbehoudend in de managerbranch opgenomen; latere integraties volgen de enkele lifecyclevolgorde om basecarrousels te voorkomen. Byte-reproduceerbaarheid, werkelijk geïntegreerde UI-semantiek, artifact-store/native NAS/appinstallatie/inference en correcte guestafsluiting blijven open. Alle 62 volledige productcriteria en externe fysieke/menselijke gates blijven gelden.
+34% blijft 34%; geen criterium, gewicht of geaccepteerd bewijs gewijzigd. Manager voerde na 14 cold-hosttests op bef9461 nu zelf de 16 bijgewerkte tests op reviewfix7d66dc2 uit: exit0, host-only. De twee serial-/firmwarebevindingen zijn bronmatig gesloten, maar nieuwe v3949ce3 vereist nog nativeherhaling; geen mergevrijgave of nieuwe manager-VM. Nieuwe app-CI-head9d8a119 heeft een via REST vastgesteld mergeconflict; lokale tests zijn geen uitgevoerde GitHub-gates. Main94 is inhoudsbehoudend in de managerbranch opgenomen; latere integraties volgen de enkele lifecyclevolgorde. Byte-reproduceerbaarheid, geïntegreerde UI-semantiek, artifact-store/native NAS/appinstallatie/inference en correcte guestafsluiting blijven open. Alle 62 volledige productcriteria en externe fysieke/menselijke gates blijven gelden.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

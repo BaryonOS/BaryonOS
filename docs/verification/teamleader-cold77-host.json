@@ -16,6 +16,22 @@
   "native_guest_execution": false,
   "full_original_artifact_replay": false,
   "scope": "Existing targeted host tests only, not a code-review approval or release acceptance",
+  "followup_fix_execution": {
+    "source_commit": "7d66dc2744604d8119b8366a283dc10ea1a76000",
+    "command": "python3 -B -m unittest tools.tests.test_materiaal_cold",
+    "exit_status": 0,
+    "test_count": 16,
+    "unittest_seconds": 3.772,
+    "time_real_seconds": 3.87,
+    "time_user_seconds": 3.57,
+    "time_sys_seconds": 0.30,
+    "local_log_basename": "teamleader-cold77-fix-tests.log",
+    "temporary_clean_worktree_removed": true,
+    "native_guest_execution": false,
+    "reviewer_followup": "Both source findings closed in the bounded fix delta; no remaining concrete finding reported, no merge approval",
+    "new_native_source_fingerprint": "949ce3abc8df4af3ed4cc29fd41e10ee0621e4f270ddf4ac2aafb3bacba9a901",
+    "same_source_native_repetition": "assigned to build owner, not yet reported complete"
+  },
   "separate_review_findings": [
     {
       "reviewer_session": "7f895683-fc79-48d0-a98a-aa0a6ccfe8b9",
@@ -23,7 +39,7 @@
       "file": "tools/run_materiaal_cold.py",
       "lines": "148-189,206-207",
       "issue": "Final serial bytes need post-exit PANIC/FAIL validation, not only hashing",
-      "status": "routed to build owner for reproduction, minimal fix and late-failure regression"
+      "status": "source fix reviewed on 7d66dc2; manager ran the updated 16 targeted host tests, new native repetition pending"
     },
     {
       "reviewer_session": "7f895683-fc79-48d0-a98a-aa0a6ccfe8b9",
@@ -31,11 +47,11 @@
       "file": "tools/materiaal_cold.py",
       "lines": "98-108,125-146",
       "issue": "Parent replay needs actual immutable firmware byte hashes, not only firmware dictionary equality",
-      "status": "routed to build owner for reproduction, minimal fix and firmware-tamper regression"
+      "status": "source fix reviewed on 7d66dc2; four immutable-file tamper negatives and mutable-VARS positive included, new native repetition pending"
     }
   ],
   "limitations": [
-    "The existing 14 tests do not establish coverage of the two new findings.",
+    "The original 14-test result did not establish coverage of the two new findings; the followup records the updated suite separately.",
     "Review findings are source traces, not a manager reproduction or proof that the stored guest run failed.",
     "The new findings block merge until owner fixes, regression tests and appropriate source-bound gates.",
     "No native source fingerprint or historical artifact hash was relabeled.",
