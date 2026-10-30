@@ -1,9 +1,10 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — 14 integratie-VM's groen; GUI-proefversie hertoets volgt — 30 oktober 2026
+## NEXT AGENT HANDOFF — 16 integratie-VM's groen; lokale proefversie gebonden — 30 oktober 2026
 
 Branch `simon/native-test-version`; basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`,
-geteste integratiebron `37a74784f71889d6ea41a230d756be16c1728ae8`, v3
+geteste niet-GUI-bron `37a74784f71889d6ea41a230d756be16c1728ae8`,
+GUI-/proefversiebron `4bdc1a26171095f92ce03611b14a78b38706b062`, dezelfde v3
 `a6c4c723fbcc6a5b50eac17b91b77f66161c8555c6d916fd10b7826815acc4b5`.
 **34% → 34%; minstens 50% niet bereikt.** Beide echte TPM-VM's slagen
 raw33/exit0: vaste supervisor-UC/NX-MMIO, echte TPM2-familyquery, bevestigde
@@ -13,16 +14,19 @@ Geen productgrant, NV-mutatie, sleutelpersistentie of rollbackanker geclaimd.
 Bronnen, exacte commando's, payloads, logs en eerste rode mapperpoging:
 `verification/native-test-version/tpm-evidence.json`.
 
-Op de gecombineerde bron slagen opnieuw 14 echte VM's: zes K05-cases
+Op de gecombineerde runtimebron slagen opnieuw 16 echte VM's: zes K05-cases
 (inclusief twee Waiting-kills), beide FPU-profielen, system normaal/koud,
-RTC, IPC-wacht en TPM normaal/absent. Alle acht rapporten hebben dezelfde
-hierboven geverifieerde runtimebron. De volledige Rustworkspace slaagt nu:
+RTC, IPC-wacht, TPM normaal/absent en GUI normaal/koud. Alle rapporten
+hebben dezelfde hierboven geverifieerde runtimebron. De volledige Rustworkspace slaagt nu:
 372 tests, 0 failed, 1 bestaande ignored. Ook 415 Python- en 102 tooltests,
 12 FPU-harnastests en root-rustfmt slagen. Geen CI-/hardwareclaim.
 Native-system-CI krijgt beide echte cases; die CI **nog niet uitgevoerd**.
-PR #64/keyring/system-opslag niet gewijzigd. Geen achtergrondagent of
-testproces actief. Eerdere GUI/koud/FPU/K05-bewijzen blijven brongebonden;
-normale lokale proefversie onder `build/native-test-version/test-version/esp`.
+PR #64/keyring/system-opslag niet gewijzigd; PR #64 is inmiddels merged
+maar nog niet opgenomen in deze branch. Geen achtergrondagent of
+testproces actief. Eerdere GUI/koud/FPU/K05-bewijzen blijven brongebonden.
+Nieuwste normale lokale automatische proefversie:
+`build/native-test-version/test-version-current/esp`. Alle tien payloads
+en het manifest zijn bitgelijk aan de echte geslaagde normale GUI-run.
 Eerdere gedeelde hostharnassen op `f61ce3e`: 415 root-Pythontests en 102
 tooltests slagen. De volledige root-Rustworkspace faalde daarna op de
 reeds bekende ontbrekende HKDF-doctestdeps (367 unit/integratietests
@@ -35,10 +39,20 @@ De rode workspace-log blijft `/tmp/nieuw-os-native-tpm-regression-workspace.log`
 De volledige workspace en bovengenoemde native integratie zijn inmiddels
 hertoetst; log `/tmp/nieuw-os-native-tpm-workspace-final.log` (27 s/exit0),
 native logs `/tmp/nieuw-os-native-tpm-*-final.log`.
-Volgende stap na dit checkpoint: normale GUI/koude proefversie op deze
-gecombineerde runtimebron herbouwen/herhalen, nieuw buildroot
-`build/native-test-version/gui-tpm-final`, bestaande targetcache
-`target/native-test-version/gui-baseline`. Gerichte doctestlog:
+De nieuwe GUI-keten slaagt in 128,979 s: zes frames, edit/save/list/reopen,
+14 echte diskbytes en volledige cleanup. Koude readonly-heropening in een
+nieuwe VM slaagt in 61,100 s: drie frames, zichtbare writeweigering,
+nul writes/flushes en onveranderde disk. Beide raw33/exit0; geen
+deadlineverruiming of menselijke afwerkingsclaim. Bewijs en exacte commando's:
+`verification/native-test-version/gui-tpm-integration-evidence.json`;
+14 overige VM's/hostgates: `tpm-regression-evidence.json`.
+Volgende stap: onafhankelijke Windowsbundel-eigenaar informeren over deze
+exacte automatische variant (niet verwarren met blijvend interactieve
+`native-system-materiaal`), daarna PR #64/main-integratie afzonderlijk
+beoordelen en passende gewijzigde native gates herhalen. Eerstvolgend
+commando: `git fetch origin && git log --oneline HEAD..origin/main`.
+PR #65 bezit packaging/launcher/CI; niet tegelijk wijzigen.
+Gerichte doctestlog:
 `/tmp/nieuw-os-native-tpm-vendor-docs.log`.
 Volledige product-/menselijke-/hardwareacceptatie en 50%-opdracht blijven open.
 

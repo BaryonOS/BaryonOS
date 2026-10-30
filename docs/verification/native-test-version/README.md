@@ -7,6 +7,27 @@ aan de inmiddels gereserveerde RTC-ABI 1.9: wachten gebruikt ABI 1.10.
 Doel is de werkelijk rode native Materiaal-gebruikersketen te herstellen,
 niet de 20.000-PIT-tickgrens of acceptatievoorwaarden te versoepelen.
 
+## Nieuwste gecombineerde bron en proefversie
+
+Op runtimebron v3 `a6c4c723fbcc6a5b50eac17b91b77f66161c8555c6d916fd10b7826815acc4b5`
+slagen **16 echte VM's**. De veertien niet-GUI-runs op `37a7478` staan
+in `tpm-regression-evidence.json`; normale/koude GUI op docscheckpoint
+`4bdc1a2` en de bitgelijke lokale proefversie staan in
+`gui-tpm-integration-evidence.json`. De GUI-runs duren 128,979 en 61,100 s:
+zes echte frames, 14 opgeslagen bytes, koude heropening, zichtbare
+writeweigering, nul recoverywrites/flushes en volledige cleanup.
+Alle tien normale payloads zijn afzonderlijk vergeleken met de bevroren
+geslaagde run; ook het normale manifest is bitgelijk.
+
+De nieuwste lokale **automatische** QEMU-proefversie staat in
+`build/native-test-version/test-version-current`, profiel
+`native-system-materiaal-probe`. Dit is niet de blijvend interactieve
+`native-system-materiaal`-variant. De herstelbuild onder `gui-tpm-final`
+is readonly en is geen normale proefversie. Geen Windows-ZIP, hardware,
+menselijke afwerkingsacceptatie of volledige CI op deze branch bewezen.
+De rubric blijft **34% → 34%**; de volledige opdracht en 50% blijven open.
+Oudere rapporten hieronder behouden hun eigen bronbinding.
+
 ## Eerste hostcontrole
 
 Voor elk Cargo-commando:

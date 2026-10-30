@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`37a74784`](https://github.com/simonvanieperen/nieuw-os/commit/37a74784f71889d6ea41a230d756be16c1728ae8) ·
+**Bron:** [`4bdc1a26`](https://github.com/simonvanieperen/nieuw-os/commit/4bdc1a26171095f92ce03611b14a78b38706b062) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** TPM/integratie: 14 echte VM's,372 Rusttests en517 Python/tooltests groen; GUI-hertoets volgt.
-34% blijft 34%; minstens50% niet bereikt. Op37a7478 slagen14 echte VM's:6 K05,2 FPU,system normaal/koud,RTC,IPC en2 TPM-cases. Alle bronbindingen geverifieerd. Volledige Rustworkspace372 passed/1 bestaande ignored;415 Python-,102 tool- en12 FPU-harnastests plus fmt groen. Eerdere bekende doctestblokkade hersteld met exacte PR62-hostdevdeps; geen cryptobron/productrecht/PR64-opslaginterface gewijzigd. GUI/koude proefversie wordt nu op dezelfde runtimebron herhaald; eerdere versie behouden. Geen volledig nieuw criterium of hogere score. Product-/menselijke-/hardwareacceptatie en CI open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** TPM/GUI-integratie:16 echte VM's groen en bitgelijke lokale automatische proefversie.
+34% blijft34%; minstens50% niet bereikt. Op dezelfde runtimebron slagen16 echte VM's:6 K05,2 FPU,system normaal/koud,RTC,IPC,2 TPM en GUI normaal/koud. Nieuwe lokale automatische proefversie heeft tien bitgelijke payloads en hetzelfde manifest als de echte normale GUI-run. Rustworkspace372 passed/1 bestaande ignored;415 Python-,102 tool- en12 FPU-harnastests plus fmt groen. Geen volledig nieuw criterium, persoonlijke-opslagencryptie, Windowsbundel, fysieke hardware, menselijke acceptatie of volledige CI geclaimd. PR64 is inmiddels merged maar nog niet in deze bron opgenomen; volgende integratiestap blijft afzonderlijk brongebonden.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
