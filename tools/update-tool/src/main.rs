@@ -34,6 +34,7 @@ const USAGE: &str = "usage:
   update-tool keygen --dir DIR --label LABEL
   update-tool sign --keys DIR --label LABEL --image FILE --version N [--min-version M] --out FILE
   update-tool verify --keys DIR --label LABEL --manifest FILE [--image FILE]
+  update-tool verify-pinned --manifest FILE [--image FILE]
   update-tool pack --out FILE --active A|B [--generation N]
        [--slot-a-manifest FILE --slot-a-image FILE] [--slot-b-manifest FILE --slot-b-image FILE]
        [--inbox-manifest FILE --inbox-image FILE]
@@ -49,6 +50,7 @@ fn run(args: Vec<String>) -> Result<(), String> {
         "keygen" => keygen(&options),
         "sign" => sign(&options),
         "verify" => verify(&options),
+        "verify-pinned" => verify_pinned(&options),
         "pack" => pack(&options),
         "header" => header(&options),
         "inspect" => inspect(&options),
@@ -251,6 +253,18 @@ fn verify(options: &Options) -> Result<(), String> {
     let bytes = read_exact(&manifest_path, MANIFEST_LEN)?;
     let manifest = verify_manifest(bytes.as_slice().try_into().unwrap(), &anchors)
         .map_err(|r| format!("REJECTED:{}", reject_name(r)))?;
+    verify_bundle(options, manifest)
+}
+
+fn verify_pinned(options: &Options) -> Result<(), String> {
+    let path = PathBuf::from(required(options, "manifest")?);
+    let bytes = read_exact(&path, MANIFEST_LEN)?;
+    let manifest = update_core::test_policy::verify_manifest(bytes.as_slice().try_into().unwrap())
+        .map_err(|r| format!("REJECTED:{}", reject_name(r)))?;
+    verify_bundle(options, manifest)
+}
+
+fn verify_bundle(options: &Options, manifest: Manifest) -> Result<(), String> {
     if let Some(image_path) = options.get("image") {
         let image = fs::read(image_path).map_err(|e| format!("{image_path}: {e}"))?;
         verify_image(&manifest, &image).map_err(|r| format!("REJECTED:{}", reject_name(r)))?;
@@ -271,6 +285,10 @@ pub fn reject_name(reject: update_core::Reject) -> &'static str {
         Digest => "DIGEST",
         Downgrade => "DOWNGRADE",
         Read => "READ",
+        KeyRevoked => "KEY_REVOKED",
+        KeyExpired => "KEY_EXPIRED",
+        KeyNotYetValid => "KEY_NOT_YET_VALID",
+        KeyPolicy => "KEY_POLICY",
     }
 }
 

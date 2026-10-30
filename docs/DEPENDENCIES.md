@@ -5,6 +5,15 @@ geen allocator of externe dependencies, `forbid(unsafe_code)` in de core.
 De native adapter gebruikt de bestaande vaste syscallbuffers en gemotiveerde
 unsafe-grens. Root-Cargo.lock behoudt `r-efi 7.1.0` met dezelfde checksum.
 
+De SDK-runtime gebruikt nu rechtstreeks `zeroize 1.9.1` (exact gepind,
+`default-features = false`) voor het wissen van IPC-envelopes. Dit is dezelfde
+reeds gebruikte RustCrypto-dependency uit `services/keyring`; de vastgepinde
+crate is `no_std`, heeft voor deze configuratie geen transitieve dependency of
+buildscript en is Apache-2.0 OR MIT. Herkomst: crates.io-locksum en
+<https://github.com/RustCrypto/utils/tree/master/zeroize>. Dit wist alleen
+expliciet beheerde buffers; het bewijst geen opruiming van registers, compiler-
+kopieën, crashgeheugen of kopieën buiten de SDK-eigen envelopes.
+
 De nieuwe Linux-ontwikkelvariant gebruikt Rust 1.90.0, QEMU 10.0.2
 (`1:10.0.2+ds-2+deb13u1~bpo12+1`) en matching OVMF 2025.02-8+deb13u1.
 Rust kwam van static.rust-lang.org; Debian-pakketten zijn via ondertekende
@@ -44,4 +53,3 @@ Per daadwerkelijk opgenomen dependency vastleggen: naam, versie/commit/hash, pri
 Geen bestaande kernelcode overnemen zonder expliciete scopewijziging. Kleine overgenomen algoritmen/voorbeelden blijven externe broncode: behoud herkomst/licentie. Een AI-herschrijving wist die verplichtingen niet.
 
 Toolchain, firmware en buildomgeving horen bij de vertrouwensketen. Reproduceerbare builds tonen overeenstemming tussen builds; ze bewijzen niet dat broncode, compiler of hardware vrij van achterdeuren is.
-

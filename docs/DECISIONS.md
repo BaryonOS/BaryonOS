@@ -1,5 +1,95 @@
 # Ontwerpbesluiten
 
+## ADR-055 — Canoniek app-pakket zonder impliciete rechten
+
+Bij integratie hernummerd vanaf de branchlokale ADR-052 uit PR #73
+(`dce3b05`); ADR-052 over de CRB-apertureproef behoudt zijn bestaande ID.
+
+30 oktober 2026; A02-verificatiekern, boven op `origin/main` na PR #67.
+Een pakket bevat in versie 1 één vast manifest en exact één ELF-image.
+Metadata wordt ondertekend met beide al gebruikte algoritmen uit ADR-049
+(Ed25519 en ML-DSA-65); de caller bindt verificatie aan ankers van de
+geselecteerde bron. De signature bewijst herkomst onder die sleutel, niet
+betrouwbaarheid. App-ID, ABI-interval, versie en image-digest zijn metadata;
+scripts, dependencies en capabilities ontbreken. Installatie verleent dus
+geen algemene rechten.
+
+De packageverificatie is een zelfstandige `no_std`-crate en weigert
+niet-canonieke padding, onbekend formaat, ABI-mismatch, onbekende ankers, een
+van beide ongeldige handtekeningen, trailing pakketbytes, afwijkende
+`image_length`-framing en digestfouten. `verify_package` inspecteert geen
+ELF-structuur. Alleen `verify_executable_package` voert aanvullend
+`kernel_core::user::parse` uit en weigert images die niet aan het bestaande
+user-ELF-beleid voldoen.
+Het pakketformaat hergebruikt geen kernel-update-target of updatebeleid.
+Alternatief: de kernel-update-manifestcode uitbreiden zou applicatiesemantiek
+vermengen met de boot-/slottrustgrens; de bestaande verifier accepteert
+uitsluitend `TARGET_KERNEL`. Dit besluit introduceert geen appinstallatie of
+nieuwe capabilities.
+
+De executable-entrypoint roept aanvullend het bestaande
+`kernel_core::user::parse`-beleid aan in plaats van een tweede user-ELF-policy
+te introduceren. De resulterende laadbeschrijving is preflight, geen
+frameallocatie, processtart of `LaunchImage`-autorisatie. De installer-/launch-
+grens blijft een afzonderlijke open stap.
+
+De 2 MiB imagegrens is een tijdelijke parser-/fixturegrens, geen productlimiet.
+De ML-DSA-stackbehoefte moet vóór native integratie door de service-/stackquota
+worden gedragen. Herzien vóór installerintegratie: bron- en sleutelrotatie,
+ABI-policy, opslag-/update-transacties, appimage-loader en herstelgedrag.
+Terugdraaien kan door de nieuwe crate/workspace-entry te verwijderen; B03 en
+bestaande app-launch ABI blijven ongewijzigd. Geen A02-punt toegekend.
+
+## ADR-056 — Bronintrekking blokkeert toekomstige pakketten
+
+Bij integratie hernummerd vanaf de branchlokale ADR-053 uit PR #73
+(`dce3b05`); ADR-053 over IPC-wachten behoudt zijn bestaande ID.
+
+30 oktober 2026; bronbeheer-policy-core voor A02.
+De verificatiekern ontvangt bij elke verificatie een expliciete `SourceId` en
+verwachte bron-generatie; de appbundel kiest nooit zelf haar trust anchor.
+Keyrotatie en intrekking zijn compare-and-swap-operaties op die generatie.
+Intrekking blokkeert nieuwe pakketverificaties/updates maar verwijdert of
+blokkeert reeds geïnstalleerde apps niet; Simon koos dat gedrag expliciet.
+Verwijdering van apps/data is een afzonderlijke gebruikershandeling.
+
+`SourceRegistry` is momenteel een vaste in-memory kern van acht slots.
+Gebruikersconsent, capability-afdwinging, duurzame bronstatus, crashherstel en
+de koppeling aan een installer blijven vereist. De acht slots zijn geen
+productlimiet en leveren geen A02-acceptatiebewijs op. Terugdraaien kan de
+registry en haar tests verwijderen zonder het packageformaat of kernel-ABI te
+wijzigen.
+
+## ADR-B03K1 — Gedeelde, vastgepinde sleutelautoriteit per releasevenster
+
+30 oktober 2026; B03-KEY-POLICY-1, basis `0ade8014`. Loader en update-dienst
+gebruiken één `update-core::policy::TrustPolicy` met maximaal acht exacte
+hybride sleutelparen, inclusieve releaseversievensters en onvoorwaardelijke
+intrekking. Ongeldige of dubbele tabelentries geven geen autoriteit. De
+ondertekende versie wordt pas na beide handtekeningcontroles tegen het venster
+getoetst. Geen nieuw cryptoalgoritme, capability of dependency.
+
+Alternatief kalenderverval is niet gekozen: de RTC levert geen vertrouwde
+kalendertijd. Een manifest mag evenmin zijn eigen vertrouwde sleutels of
+intrekkingsbeleid aanleveren. De QEMU-beleidstabel behoudt het bestaande
+TEST-paar en pint apart next/revoked/expired-fixtures; deze openbare sleutels
+zijn geen productieankers. Vooraf vastgepinde rotatie bewijst geen veilige
+distributie/rollbackbescherming van nieuwe beleidsversies.
+
+Herzieningscriteria: beoordeel dit besluit opnieuw zodra een productiebeleid
+voor sleuteldistributie of rollbackbescherming van de beleidstabel wordt
+vastgesteld, of een geautoriseerde vertrouwde kalendertijdbron beschikbaar
+komt. Beoordeel dan opnieuw de ankerdistributie, policyversie-/intrekkingsgrens
+en keuze tussen releaseversievensters en eventueel kalenderbeleid; deze
+triggers wijzigen het huidige beleid niet automatisch.
+
+Contract, negatieve gevallen, open productie-/tijdgrenzen en rollback:
+`implementation/B03-SIGNED-UPDATES.md`, B03-KEY-POLICY-1. Terugname is een
+gerichte revert naar het eerdere enkelvoudige TEST-verificatiepad, zonder
+slot-/manifestformaatmigratie; terugname verwijdert wel lifecycleafdwinging.
+Native resultaat en bronbinding staan afzonderlijk in PROJECT-STATE; B04,
+B05, B06 en de aanvullende gates van #41 blijven open.
+
 ## ADR-053 — Wachten op IPC behoudt bestaande rechten en krijgt ABI 1.10
 
 Bij main-integratie hernummerd vanaf de branchlokale ADR-051; de
@@ -63,8 +153,10 @@ sleutelbeheer; (b) persistente opcodes op de bestaande domein-endpoints —
 elke app met een sleutelendpoint zou dan snapshotbevoegdheid krijgen.
 Grenzen: de generatievloer in dit profiel is een gedemonstreerd mechanisme,
 geen vertrouwd anker; koude rollbackankering, write-ahead per GENERATE/REVOKE
-in de dienst zelf, zeroisatie van de SDK-ontvangstbuffer en een echte
-volume-identiteit (nu de profielconstante `NOS-SYSTEM-VOL01`) blijven open.
+in de dienst zelf en een echte volume-identiteit (nu de profielconstante
+`NOS-SYSTEM-VOL01`) blijven open. De SDK-eigen Message320-envelope-/stagingbytes
+worden sinds de B02-IPC-hygiënecheck wel gewist; caller-owned request-arrays en
+compiler-/registerkopieën vallen daar niet onder.
 B02 blijft daarom open; de score verandert niet. Rollback: verwijder de twee
 opcodes, het admin-ingress en de init-/appstappen; bestaande KEY1-codes,
 formaten en het B01-profiel zijn ongewijzigd.

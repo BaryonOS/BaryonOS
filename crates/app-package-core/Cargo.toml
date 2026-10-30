@@ -1,0 +1,11 @@
+[package]
+name = "app-package-core"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+ed25519-dalek = { version = "=2.2.0", default-features = false }
+ml-dsa = { version = "=0.1.1", default-features = false }
+sha2 = { version = "=0.10.9", default-features = false, features = ["force-soft"] }
+kernel-core = { path = "../kernel-core" }

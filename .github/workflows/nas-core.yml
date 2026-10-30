@@ -34,6 +34,8 @@ jobs:
           rustup toolchain install 1.90.0 --profile minimal
           rustup component add --toolchain 1.90.0 rustfmt clippy
           rustup target add --toolchain 1.90.0 x86_64-unknown-none
+      - name: Fetch locked crate dependencies before offline checks
+        run: cargo +1.90.0 fetch --locked --manifest-path "services/nas/${{ matrix.crate }}/Cargo.toml"
       - name: Host policy, failure injection, stack budget and bare-metal builds
         shell: bash
         run: |

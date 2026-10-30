@@ -1,10 +1,11 @@
 # G01 — begrensde native app-runtime
 
 Deze eigen `no_std`-crate bouwt op de bestaande Nieuw OS-ABI. Zij gebruikt geen
-heap, libc, host-I/O, netwerk of externe dependency. De pure berichtlaag bevat
-geen `unsafe`; `native.rs` bevat de kleine `int 0x80`-grens. De hostbuild biedt
-die native module niet aan, zodat een hosttest niet per ongeluk een Linux-
-syscall met Nieuw OS-argumenten uitvoert.
+heap, libc, host-I/O of netwerk. De externe dependency `zeroize` is vastgezet
+op versie 1.9.1 zonder standaardfeatures en wist de eigen IPC-envelopes bij
+opruimen. De pure berichtlaag bevat geen `unsafe`; `native.rs` bevat de kleine
+`int 0x80`-grens. De hostbuild biedt die native module niet aan, zodat een
+hosttest niet per ongeluk een Linux-syscall met Nieuw OS-argumenten uitvoert.
 
 De runtime is een bouwbare SDK-basis. Zij voegt geen appinstallatie,
 compositor of opslagrecht toe. Sinds K05 (ADR-042) kan een proces mét een
@@ -28,7 +29,7 @@ rechtenverruiming weigeren. Dit is dezelfde authoritygrens als vóór de SDK.
 | `native::yield_now/exit` | Bestaand proces afstaan/beëindigen |
 | `native::close/derive/revoke` | Bestaande capabilityoperaties; geen nieuwe objectaanmaak |
 | `native::send` | Eén nonblocking send; `Ok` betekent alleen dat het bericht is gequeued |
-| `native::receive` | Eén nonblocking receive naar een eigen stackbuffer, daarna envelopevalidatie |
+| `native::receive` | Eén nonblocking receive naar een eigen stagingbuffer, daarna gewiste envelope-overdracht |
 | `native::close_received_caps` | Expliciete cleanup van ontvangen caps; probeert alle handles en bewaart de oorspronkelijke berichtbytes |
 | `native::endpoint_create` | K05 (ABI 1.3, profiel `native-supervisor`): eigen endpoint binnen het kernelquotum van 4 per proces |
 | `native::spawn` | K05: start de image van een `LaunchImage` met één argumentwoord en maximaal twee verminderde capabilities (nooit RECV); levert de enige `ChildProcess`-handle |
@@ -41,6 +42,11 @@ capabilities kunnen worden toegevoegd; RECV-overdracht blijft geweigerd.
 
 `Received` bewaart sender, tag, payload en alle oorspronkelijke envelopebytes.
 De constructor controleert ook dat de lengte gelijk is aan het syscallresultaat.
+Native IPC gebruikt één gewiste overdracht naar de envelope; de stagingbuffer
+wordt bij succesvolle overdracht direct gewist en zowel `Received` als
+`Outgoing` wissen hun bytes bij opruimen. Hun `Debug`-weergave bevat geen
+payload. Dit is geheugenhygiëne, geen garantie dat compiler-/registerkopieën,
+crashgeheugen of elders gekopieerde bytes worden gewist.
 De afnemende dienst/app moet nog zijn verwachte peer, tag, request-ID, epoch,
 domein, inhoud en toegestane capabilities controleren. Een geslaagde
 `Received::from_bytes` bewijst op zichzelf geen kernelherkomst. `native::receive`
@@ -90,3 +96,4 @@ de SDK in een echte gastproef heeft een afzonderlijke bewijsbundel.
 De tests bewijzen geen menselijke audit of algemene veiligheid. Native uitvoering,
 bronhashes en beperkingen staan afzonderlijk onder
 [`docs/verification/parallel-g01`](../../docs/verification/parallel-g01/).
+

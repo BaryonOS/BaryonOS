@@ -63,12 +63,30 @@ class CompiledBindingTests(unittest.TestCase):
                      'library_sha256': {name: gate.sha256(self.build / name) for name in gate.LIBRARY_PATHS},
                      'binary_sha256': gate.sha256(self.build / 'users/m6c_probe.elf'),
                      **gate.inspect_user(self.build / 'users/m6c_probe.elf')}
+        self.dependency_artifact = self.build / 'sdk-dependency-target/x86_64-unknown-none/release/libzeroize.rlib'
+        self.user['sdk_dependency'] = {'package_id': gate.SDK_DEPENDENCY_ID,
+                                       'source_artifact': str(self.dependency_artifact),
+                                       'artifact_sha256': gate.sha256(self.build / 'users/libzeroize.rlib')}
         self.manifest = {'document_session': True, 'sdk_runtime': True, 'kernel_feature': 'milestone-m6c',
                          'loader_feature': None, 'source_fingerprint_version': 3, 'source_sha256': SOURCE,
                          'kernel': {'sha256': gate.sha256(self.build / 'esp/kernel.elf')},
                          'loader': {'sha256': gate.sha256(self.build / 'esp/EFI/BOOT/BOOTX64.EFI')}}
         self.sync()
         self.compilers = {}
+        dependency_log = 'build-sdk-zeroize'
+        command = gate.sdk_dependency_command(self.root, self.build)
+        command[0] = '/host-fixture/cargo'
+        metadata = {'command': command, 'cwd': str(self.root), 'returncode': 0}
+        self.compilers[dependency_log] = metadata
+        write_json(self.build / 'logs' / (dependency_log + '.json'), metadata)
+        self.dependency_messages = [
+            {'reason': 'compiler-artifact', 'package_id': gate.SDK_DEPENDENCY_ID,
+             'target': {'name': 'zeroize', 'kind': ['lib'], 'crate_types': ['lib']},
+             'features': [], 'filenames': [str(self.dependency_artifact)]},
+            {'reason': 'build-finished', 'success': True},
+        ]
+        self.dependency_stdout()
+        self.put(self.build / 'logs' / (dependency_log + '.stderr.txt'), b'')
         rows = [(crate, source, log, 'rlib', f'users/lib{crate}.rlib') for crate, (source, log) in gate.LIBRARIES.items()]
         rows.append(('os_user_m6c_probe', 'userspace/m6c_probe.rs', 'build-users-m6c_probe', 'bin', 'users/m6c_probe.elf'))
         for crate, source, log, kind, output in rows:
@@ -90,6 +108,10 @@ class CompiledBindingTests(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(raw)
 
+    def dependency_stdout(self):
+        self.put(self.build / 'logs/build-sdk-zeroize.stdout.txt',
+                 ''.join(json.dumps(item) + '\n' for item in self.dependency_messages).encode())
+
     def sync(self):
         write_json(self.build / 'manifest.json', self.manifest)
         write_json(self.build / 'users/manifest-m6c.json', self.user)
@@ -104,6 +126,45 @@ class CompiledBindingTests(unittest.TestCase):
         self.manifest['kernel_feature'] = 'test-m6c-recover'
         self.sync()
         self.assertEqual(self.validate('recover')['case'], 'recover')
+
+    def test_zeroize_requires_locked_pinned_native_cargo_build(self):
+        original = copy.deepcopy(self.compilers['build-sdk-zeroize'])
+        for change in ('unlocked', 'target', 'failed'):
+            metadata = copy.deepcopy(original)
+            if change == 'unlocked':
+                metadata['command'].remove('--locked')
+            elif change == 'target':
+                metadata['command'][metadata['command'].index('x86_64-unknown-none')] = 'x86_64-unknown-linux-gnu'
+            else:
+                metadata['returncode'] = 101
+            write_json(self.build / 'logs/build-sdk-zeroize.json', metadata)
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, 'zeroize'):
+                self.validate()
+
+    def test_zeroize_cannot_select_foreign_featured_or_ambiguous_artifacts(self):
+        original = copy.deepcopy(self.dependency_messages)
+        for change in ('package', 'features', 'foreign', 'duplicate', 'failed'):
+            self.dependency_messages = copy.deepcopy(original)
+            artifact = self.dependency_messages[0]
+            if change == 'package':
+                artifact['package_id'] = 'registry+https://github.com/rust-lang/crates.io-index#zeroize@1.8.0'
+            elif change == 'features':
+                artifact['features'] = ['alloc']
+            elif change == 'foreign':
+                artifact['filenames'] = ['/foreign/libzeroize.rlib']
+            elif change == 'duplicate':
+                self.dependency_messages.insert(0, copy.deepcopy(artifact))
+            else:
+                self.dependency_messages[-1]['success'] = False
+            self.dependency_stdout()
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                self.validate()
+
+    def test_zeroize_copy_hash_must_bind_the_cargo_artifact(self):
+        self.user['sdk_dependency']['artifact_sha256'] = '0' * 64
+        self.sync()
+        with self.assertRaisesRegex(ValueError, 'selected Cargo output'):
+            self.validate()
 
     def test_document_and_sdk_flags_must_be_explicit_true_in_both_manifests(self):
         original = copy.deepcopy((self.manifest, self.user))

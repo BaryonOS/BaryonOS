@@ -16,16 +16,11 @@ mod support;
 
 use nieuw_os_sdk_runtime::{block::READ_MAX, native, BlockDevice, Error, Handle};
 use update_core::{
-    decide, header_after_install, image_sector, image_sectors, manifest_sector, verify_manifest,
-    Decision, Header, ImageDigest, Manifest, Reject, TrustAnchors, INBOX_IMAGE, INBOX_MANIFEST,
-    MANIFEST_LEN, MANIFEST_SECTORS, SECTOR,
+    decide, header_after_install, image_sector, image_sectors, manifest_sector,
+    test_policy::verify_manifest, Decision, Header, ImageDigest, Manifest, Reject, INBOX_IMAGE,
+    INBOX_MANIFEST, MANIFEST_LEN, MANIFEST_SECTORS, SECTOR,
 };
 
-/// TEST anchors (tools/update-keys); the same bytes the loader pins.
-const ANCHORS: TrustAnchors = TrustAnchors {
-    ed25519: *include_bytes!("../../../../tools/update-keys/TEST-ed25519.pub"),
-    mldsa65: *include_bytes!("../../../../tools/update-keys/TEST-mldsa65.pub"),
-};
 const POLL_LIMIT: usize = 200_000;
 
 // Evidence words in the startup page (kernel update.rs reads these).
@@ -78,6 +73,10 @@ fn reject_code(reject: Reject) -> u64 {
         Reject::Digest => 4,
         Reject::Downgrade => 5,
         Reject::Read => 6,
+        Reject::KeyRevoked => 7,
+        Reject::KeyExpired => 8,
+        Reject::KeyNotYetValid => 9,
+        Reject::KeyPolicy => 10,
     }
 }
 
@@ -267,7 +266,7 @@ pub extern "C" fn _start() -> ! {
         support::put(STEP, 4);
         disk.read_manifest(manifest_sector(slot), &mut manifest_bytes)
             .unwrap_or_else(|code| fail(4, code));
-        match verify_manifest(&manifest_bytes, &ANCHORS) {
+        match verify_manifest(&manifest_bytes) {
             Ok(manifest) => {
                 versions[usize::from(slot)] = Some(manifest.version);
                 support::put(version_word, manifest.version);
@@ -295,7 +294,7 @@ pub extern "C" fn _start() -> ! {
         done(&disk, RESULT_NO_BUNDLE);
     }
     support::put(STEP, 6);
-    let inbox = verify_manifest(&manifest_bytes, &ANCHORS);
+    let inbox = verify_manifest(&manifest_bytes);
     if let Ok(manifest) = inbox {
         support::put(INBOX_VERSION, manifest.version);
     }
