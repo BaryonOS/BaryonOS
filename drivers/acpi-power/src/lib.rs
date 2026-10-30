@@ -744,6 +744,92 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "requires explicit QEMU/OVMF firmware snapshots; see verification/README.md"]
+    fn validates_external_qemu_tables_and_rejects_mutations() {
+        let fadt = std::fs::read(std::env::var("NOS_ACPI_FADT").expect("NOS_ACPI_FADT"))
+            .expect("read external FADT");
+        let dsdt = std::fs::read(std::env::var("NOS_ACPI_DSDT").expect("NOS_ACPI_DSDT"))
+            .expect("read external DSDT");
+        let fadt_address = std::env::var("NOS_ACPI_FADT_ADDRESS")
+            .expect("NOS_ACPI_FADT_ADDRESS")
+            .parse::<u64>()
+            .expect("decimal FADT source address");
+        let dsdt_address = std::env::var("NOS_ACPI_DSDT_ADDRESS")
+            .expect("NOS_ACPI_DSDT_ADDRESS")
+            .parse::<u64>()
+            .expect("decimal DSDT source address");
+        let parse = |fadt: &[u8], dsdt: &[u8]| {
+            parse_s5(AcpiTableSnapshot::new(
+                TableSnapshot::new(fadt, fadt_address),
+                TableSnapshot::new(dsdt, dsdt_address),
+            ))
+        };
+        let plan = parse(&fadt, &dsdt).expect("complete QEMU firmware tables");
+        assert_eq!(plan.pm1a().address(), 0x604);
+        assert_eq!(plan.pm1a().sleep_type(), 0);
+        assert_eq!(plan.pm1b(), None);
+
+        for prefix in 0..fadt.len() {
+            assert!(parse(&fadt[..prefix], &dsdt).is_err());
+        }
+        for prefix in 0..dsdt.len() {
+            assert!(parse(&fadt, &dsdt[..prefix]).is_err());
+        }
+        for is_fadt in [true, false] {
+            let original = if is_fadt { &fadt } else { &dsdt };
+            for (offset, value, expected) in [
+                (0, b'?', Error::InvalidSignature),
+                (9, original[9] ^ 1, Error::InvalidChecksum),
+            ] {
+                let mut bad = original.clone();
+                bad[offset] = value;
+                let result = if is_fadt {
+                    parse(&bad, &dsdt)
+                } else {
+                    parse(&fadt, &bad)
+                };
+                assert_eq!(result, Err(expected));
+            }
+            let mut bad = original.clone();
+            bad[4..8].copy_from_slice(&u32::MAX.to_le_bytes());
+            let result = if is_fadt {
+                parse(&bad, &dsdt)
+            } else {
+                parse(&fadt, &bad)
+            };
+            assert_eq!(result, Err(Error::TableLengthMismatch));
+        }
+
+        let mut bad_fadt = fadt.clone();
+        assert!(bad_fadt.len() >= 184, "fixture must include PM1a GAS");
+        bad_fadt[172..176].copy_from_slice(&[1, 16, 0, 2]);
+        bad_fadt[176..184].copy_from_slice(&u64::MAX.to_le_bytes());
+        assert_eq!(
+            parse(&finish_table(bad_fadt, b"FACP"), &dsdt),
+            Err(Error::InvalidRegisterAddress)
+        );
+        assert_eq!(
+            parse_s5(AcpiTableSnapshot::new(
+                TableSnapshot::new(&fadt, fadt_address),
+                TableSnapshot::new(&dsdt, dsdt_address.checked_add(1).unwrap()),
+            )),
+            Err(Error::DsdtAddressMismatch)
+        );
+        for (suffix, expected) in [
+            (vec![0xfe], Error::UnsupportedAml),
+            (vec![0x10, 0x3f], Error::MalformedAml),
+            (root_s5(0, 0), Error::DuplicateS5Object),
+        ] {
+            let mut bad_dsdt = dsdt.clone();
+            bad_dsdt.extend_from_slice(&suffix);
+            assert_eq!(
+                parse(&fadt, &finish_table(bad_dsdt, b"DSDT")),
+                Err(expected)
+            );
+        }
+    }
+
+    #[test]
     fn extracts_root_s5_and_creates_read_only_register_settings() {
         let plan = parse(&fadt(0x404, 0x408), &dsdt(&root_s5(0, 1))).unwrap();
         assert_eq!(plan.pm1a().address(), 0x404);

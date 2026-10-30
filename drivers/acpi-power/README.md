@@ -85,8 +85,12 @@ De oudere twee-elementen/root-Name-fixture was dus geen passende QEMU-fixture.
 Deze publieke primaire emulatorbron is gelezen en op SHA-256 vastgelegd:
 `263bcea198131385448fb5827b6a30a5943313712b7caf99ca18343e07ea1b77`.
 Bron: <https://github.com/qemu/qemu/blob/v10.2.1/hw/i386/acpi-build.c#L1157-L1184>.
-De testfixture modelleert deze objectvorm, maar is geen uit een gast
-uitgelezen volledige DSDT en bewijst geen native firmwareoverdracht.
+De synthetische testfixture modelleert deze objectvorm. Daarnaast is de
+volledige FADT/DSDT van een afzonderlijke QEMU/OVMF-firmwareguest via QMP
+uitgelezen en op de host geparseerd: PM1a `0x604`, S5-type nul, geen PM1b.
+Dit bewijst compatibiliteit met die concrete firmwarebytes, niet de eigen
+loader/kerneloverdracht of guest-poweroff. Profiel, tabelhashes, commandotrace
+en de expliciet uit te voeren externe-fixturetest staan in `verification/`.
 
 ## Gerichte tests en bewijsgrens
 
@@ -98,7 +102,11 @@ address space, bit width, bit offset, access size en adresgrens terwijl het
 legacy-adres geldig blijft: een aanwezige ongeldige extended beschrijving
 wordt geweigerd, niet vervangen. Extended registeroverlap en een onjuiste
 `X_DSDT`-binding worden eveneens geweigerd ondanks geldige legacyvelden.
-Dit zijn hosttests op synthetische bytes, geen firmware- of
-QEMU-bewijs. De release-integrator beheert BootInfo-integratie, onafhankelijke
+De reguliere suite gebruikt synthetische hostfixtures. Een afzonderlijke,
+standaard genegeerde test accepteert expliciet opgegeven externe
+QEMU-firmwaretabellen en controleert ook mutaties daarvan; ontbrekende
+fixturepaden of adressen laten die test falen, niet stil overslaan.
+Die hosttest voert geen gastcode of shutdown uit.
+De release-integrator beheert BootInfo-integratie, onafhankelijke
 kernelvalidatie, profielmanifest, native broker en de poweroff-proef. Er is
 geen H05-aftekening en geen fysieke hardwareacceptatie.
