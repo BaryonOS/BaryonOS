@@ -18,6 +18,7 @@ use keyring_core::{
 };
 use nieuw_os_sdk_runtime::{
     native, EntropySource as EntropyHandle, Error, Handle, Outgoing, ReceiveEndpoint, SendEndpoint,
+    WaitCondition, IPC_WAIT_HORIZON_TICKS,
 };
 
 const POLL_LIMIT: usize = 200_000;
@@ -449,6 +450,10 @@ fn main() -> ! {
     ];
     let reply_to = SendEndpoint::from_handle(handle(support::word(88)));
     let mut random = random_ingress(&ingress, reply_to);
+    // RANDOM has its own pending reply/cancellation work; retain its poll path.
+    let idle_wait = native::abi_info().unwrap_or_else(|_| startup_error(3)) == (1 << 32) | 10
+        && random.is_none();
+    let conditions = ingress.map(WaitCondition::receive);
     let app = support::word(160);
     if app == 0 {
         startup_error(5);
@@ -463,6 +468,7 @@ fn main() -> ! {
     }
     let (mut legacy_polls, mut legacy_poll_errors) = (0u64, 0u64);
     loop {
+        let mut received_any = false;
         for (domain, endpoint) in ingress.iter().enumerate() {
             tick();
             let received = native::receive(*endpoint);
@@ -474,7 +480,11 @@ fn main() -> ! {
             support::put(EV_LEGACY_POLLS, legacy_polls);
             support::put(EV_LEGACY_POLL_ERRORS, legacy_poll_errors);
             let message = match received {
-                Ok(message) => message,
+                Ok(message) => {
+                    received_any = true;
+                    message
+                }
+                Err(error) if idle_wait && !error.is_again() => startup_error(7),
                 Err(_) => continue,
             };
             if message.cap_count() != 0 {
@@ -495,7 +505,17 @@ fn main() -> ! {
         if let Some(ingress) = &mut random {
             poll_random(&mut service, &mut broker, ingress);
         }
-        let _ = native::yield_now();
+        if idle_wait && !received_any {
+            let deadline = native::monotonic_ticks()
+                .ok()
+                .and_then(|now| now.checked_add(IPC_WAIT_HORIZON_TICKS))
+                .unwrap_or_else(|| startup_error(7));
+            if native::ipc_wait(&conditions, deadline).is_err() {
+                startup_error(7);
+            }
+        } else {
+            let _ = native::yield_now();
+        }
     }
 }
 

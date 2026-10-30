@@ -17,6 +17,11 @@ De integratie behoudt ook de latere stackbereikcontrole bij userreturn.
 Lege uitvoerbare runqueue plus wachtenden mag via de bestaande permanente
 servicestack een `sti; hlt; cli` uitvoeren; alleen werkelijk getelde IRQ0's
 verhogen de monotone klok. De volledige Engine-digestchecks blijven staan.
+Consumenten mogen uitsluitend parkeren zonder lokaal uitvoerbaar werk.
+De legacy-keyringlus wacht daarom niet wanneer RANDOM-ingress bestaat;
+de volume-adapter wacht pas na zijn synchrone disk- en replywerk.
+Desktop-init wacht alleen in rustige Running-fase op registry/controller;
+de aparte testcontroller blijft zijn lokale kerneltrigger pollen.
 
 Eerst wordt een aparte native tweeprocessenproef gebouwd, inclusief echte
 queue-, intrekkings-, deadline-, pointer- en idlecontroles. Daarna volgt

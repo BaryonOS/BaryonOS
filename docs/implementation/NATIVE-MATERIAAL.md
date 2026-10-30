@@ -312,7 +312,10 @@ herkend. De app-, SUR1-, token-, ACK-, focus- en savecontracten veranderen niet.
 
 De onafhankelijke tweeprocessenproef heeft queue-, deadline-, revoke- en
 PIT-idle-uitvoering aangetoond. Dat bewijst nog geen werkende Materiaal-keten:
-de nulmeting zonder wacht overschreed opnieuw de vaste 20.000 PIT-ticks
-na drie echte frames. Het nieuwe image is gebouwd; de volledige QMP-
-gebruikershandeling en koude heropening moeten nog slagen. Geen verruimde
-budgetten, host-renderfallback of nieuwe voortgangspunten.
+de nulmeting zonder wacht en de input-only-wachtproef overschreden beide
+de vaste 20.000 PIT-ticks na drie echte frames. De volgende gebouwde
+versie parkeert ook keyring/volume zonder pendingwerk en desktop-init
+uitsluitend in rustige Running-fase. De lokale controllertrigger wordt
+niet in een lange ontvangstwait verborgen. De volledige QMP-handeling
+en koude heropening moeten nog slagen. Geen verruimde budgetten,
+host-renderfallback of nieuwe voortgangspunten.

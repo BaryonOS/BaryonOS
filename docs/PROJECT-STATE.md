@@ -81,10 +81,28 @@ eerst de reeds vastgepinde fontdependency; `cargo +1.90.0 fetch --locked
 --manifest-path sdk/examples/materiaal/Cargo.toml` via tools/dev.py herstelde
 de lokale downloadcache, zonder manifest- of dependencywijziging.
 
-**Niet uitgevoerd:** native kill/hergebruik en FPU met wachten, GUI-wacht-
-regressie, brede native gates en complete testimageacceptatie.
+De input-only-wachtproef op `acd413c836568d1a9c437ffd61edd0e4a8e56e22`
+faalt eveneens: 202,363 s/raw35, opnieuw drie frames en geen save. Dat is
+geen gemeten performanceherstel. Beide rode runs zijn met bron-/loghashes
+bewaard in `verification/native-test-version/gui-attempts.json`.
+
+Volgende afgebakende stap: ook de werkelijk quiescente keyring-, volume-
+en desktop-init-diensten laten wachten in plaats van lege IPC rondpompen.
+Keyring wacht alleen zonder RANDOM-ingress/pending-randomwerk; volume
+alleen nadat alle synchrone disk-/replyhandelingen klaar zijn; desktop-init
+alleen in Running zonder pending/actieve stop. Controller houdt zijn lokale
+F12-triggerpolling. Nieuwe klok-/waitfouten falen expliciet via bestaande
+servicefoutpaden; ABI1.8 behoudt het oude pad. Geen wijziging aan rechten,
+SUR1, useractie, save-ACK, deadlines of renderer.
+100 keyring/volume-hosttests en 21 desktop-init-tests slagen, inclusief
+6 nieuwe echte Engine-/quiescentiegevallen. Service-native-Clippy,
+desktop-Clippy en scalar-doelbuilds zijn groen. Het samengestelde
+GUI-idle-image is gebouwd/geïnspecteerd, runtime nog niet uitgevoerd.
+
+**Niet uitgevoerd:** native kill/hergebruik en FPU met wachten, GUI-idle-
+regressie, koude heropening, brede native gates en complete testimageacceptatie.
 Eerstvolgend:
-`NOS_BUILD_DIR="$PWD/build/native-test-version/gui-wait" python3 -B -u tools/run_materiaal_probe.py --build-dir "$PWD/build/native-test-version/gui-wait" --machine pc-q35-10.0 --vga-rom "$PWD/.tools/nieuw-os/qemu/usr/share/seabios/vgabios-stdvga.bin" --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde`.
+`NOS_BUILD_DIR="$PWD/build/native-test-version/gui-idle" python3 -B -u tools/run_materiaal_probe.py --build-dir "$PWD/build/native-test-version/gui-idle" --machine pc-q35-10.0 --vga-rom "$PWD/.tools/nieuw-os/qemu/usr/share/seabios/vgabios-stdvga.bin" --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde`.
 De werkbranch is gepusht. Een nieuwe concept-PR is nog niet geopend:
 de app-sessie is aan de oudere infrastructuurbranch gebonden, terwijl
 de OS-werkbranch bewust apart staat; de sessie-PR-tool kan geen andere head kiezen.

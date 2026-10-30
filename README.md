@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ab98d1a1`](https://github.com/simonvanieperen/nieuw-os/commit/ab98d1a169f21eca6b5d64d25160462b5c36dc3f) ·
+**Bron:** [`acd413c8`](https://github.com/simonvanieperen/nieuw-os/commit/acd413c836568d1a9c437ffd61edd0e4a8e56e22) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: integratie van bestaande begrensde IPC-wacht als voorbereiding op echte Materiaal-testversie.
-34% blijft 34%; minstens 50% is niet bereikt. Wachtpoort en bestaande invalid-RSP-isolatie slagen native op ab98d1a. De echte Materiaal-nulmeting zonder wacht blijft rood: 202,396 s/raw35, drie frames, echte muis/toetsen en 14 getypte bytes maar nog geen save binnen 20000 PIT ticks. De bestaande Materiaal-inputplanners zijn nu aangesloten via ABI1.10; 15 compositor- en 15 desktoptests plus de echte ELF/kernelbuild slagen. De volledige GUI-wachtproef, koude heropening, bredere native gates en aanvullende wait-lifecycle/FPU-proeven blijven open. Geen nieuw volledig rubriccriterium gesloten; geen testrelease-, hardware- of menselijke acceptatie geclaimd.
+34% blijft 34%; minstens 50% is niet bereikt. Wachtpoort en legacy invalid-RSP slagen native, maar zowel GUI-nulmeting als input-only wachten blijven rood na circa202s en drie echte frames. Geen deadline of acceptatie versoepeld. De volgende gebouwde versie laat ook alleen-quiescente keyring/volume/desktop-init wachten; RANDOM-pendingwerk en lokale controllertrigger behouden hun pollpad. 100 keyring/volume- en21 desktop-hosttests, gerichte native Clippy en echte scalar-ELF/kernelbuild slagen. GUI-idle-runtime, koude heropening, brede native regressies en aanvullende lifecycle/FPU-bewijzen blijven open. Geen volledig rubriccriterium of releaseacceptatie geclaimd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

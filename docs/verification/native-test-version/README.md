@@ -44,6 +44,14 @@ zonder sudo of systeeminstallatie. Genegeerd herkomstrapport:
 
 ## Open bewijsgrens
 
+De twee daadwerkelijke GUI-pogingen blijven rood, met ongewijzigd
+20.000-PIT-tickbudget: zonder wachten 202,396 s, met alleen inputwachten
+202,363 s; beide drie echte frames, 14 getypte bytes, nog geen save.
+Zie `gui-attempts.json` voor bron-/loghashes. De volgende versie voegt
+alleen quiescente servicewachten toe; 100 keyring/volume-hosttests en
+21 desktop-init-tests slagen, plus native Clippy en de samengestelde
+ELF/kernelbuild. Die runtime is nog niet uitgevoerd.
+
 De native wachtbuild en runtime zijn inmiddels **geslaagd**:
 het exacte commando en compacte hashbinding staan in `wait-evidence.json`.
 Raw 33, exit 0; rolmaskers 63/60, een kernel-gecontroleerde volle queue
