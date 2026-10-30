@@ -2,8 +2,8 @@
 
 Dit rapport registreert de Linux-hosttesttooling voor de taakbasis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De preflightwijziging is eerst
-getest op broncommit `80393b67950c393dfa37336e66df5346ae6a37d7`; de huidige
-geteste kandidaat is `76fca87407c77da059e1856ec91c0d6e0b68e8f8`.
+getest op broncommit `80393b67950c393dfa37336e66df5346ae6a37d7`; de geteste
+codekandidaat is `4fb9a2320dd4d5383846507748ea8fdaf9e167cb`.
 Dit is geen OS-, kernel-, boot- of QEMU-acceptatie.
 
 `tools/preflight.py --strict` blijft bootvereisten controleren. De aparte
@@ -28,7 +28,7 @@ runtime-dependencies niet.
 | Lokale C-compileer-/linkproef en uitvoering (exacte opdracht hieronder) | 0 | Geslaagd; geen systeembrede installatie |
 | `python3 -m py_compile tools/preflight.py tests/test_preflight.py` | 0 | Python-syntaxis geldig |
 | `python3 tools/progress.py --write` en `python3 tools/progress.py --check` | 0 | Voortgangsbestanden consistent; 34% blijft ongewijzigd |
-| `gh pr checks 62 --repo simonvanieperen/nieuw-os --watch --interval 15` | 0 | Alle 10 workflows (11 jobchecks) groen op oudere PR-head `00f91e7`; de huidige kandidaat moet opnieuw door CI |
+| `gh pr checks 62 --repo simonvanieperen/nieuw-os --watch --interval 15` | 0 | Alle 10 workflows (11 jobchecks) groen op PR-head `4fb9a23`; CodeRabbit overgeslagen |
 
 De lokale GCC-driver, libc-devbestanden en runtimebibliotheken zijn alleen
 uitgepakt onder de door `.gitignore` uitgesloten `.tools/`-map. De wrapper
@@ -43,7 +43,8 @@ printf 'int main(void) { return 0; }\n' | LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/
 ```
 
 De volledige workspace-test is lokaal geslaagd na herstel van beide
-vendormanifesten. **Nog open:** GitHub Actions op de kandidaat `76fca87` waren
-bij de laatste controle pending; eerdere CI op `00f91e7` vervangt die niet.
-Rust fmt/Clippy zijn niet uitgevoerd. Geen fysieke of menselijke
-acceptatiegate of nieuw native QEMU-bewijs is toegevoegd: **34% → 34%**.
+vendormanifesten. Alle GitHub Actions-workflows op `4fb9a23` slagen; CodeRabbit
+is overgeslagen. Rust fmt/Clippy zijn niet uitgevoerd. Geen fysieke of
+menselijke acceptatiegate of nieuw native QEMU-bewijs is toegevoegd:
+**34% → 34%**. De daaropvolgende voortgangs-/statuscheckpoint is alleen
+documentatie.

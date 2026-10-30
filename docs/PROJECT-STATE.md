@@ -2,7 +2,7 @@
 
 ## NEXT AGENT HANDOFF — hosttest-preflight — 30 oktober 2026
 
-Broncommit `76fca87407c77da059e1856ec91c0d6e0b68e8f8`, branch
+Broncommit `4fb9a2320dd4d5383846507748ea8fdaf9e167cb`, branch
 `simonvanieperen-studious-sniffle`, oorspronkelijke taakbasis `main`
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. Concept-PR
 [#62](https://github.com/simonvanieperen/nieuw-os/pull/62). De
@@ -20,12 +20,14 @@ en HMAC 2/2. De volledige workspace-test slaagt daarna: 360 tests passed,
 0 failed, 1 ignored, over 51 testresultaatgroepen; log en hash staan in het
 bewijsrapport.
 
-De eerdere 22 preflighttests, strikte ontbrekende-`cc`-detectie en CI op
-`00f91e7` zijn groen; CI op `76fca87` was bij de laatste controle nog pending.
-Controleer de checks opnieuw nadat dit statuscheckpoint is gepusht. De
+De eerdere 22 preflighttests en strikte ontbrekende-`cc`-detectie zijn groen.
+Op bron `4fb9a23` slagen alle 10 GitHub Actions-workflows (11 jobchecks),
+inclusief `host-quality`, `qemu-smoke` en `native-system`; CodeRabbit is
+overgeslagen. Dit statuscheckpoint wijzigt alleen documentatie. De
 hostcompiler is uitsluitend uitgepakt onder genegeerde `.tools/`; geen
 systeempakketten zijn geïnstalleerd. **34% → 34%**; geen productcriterium of
-native QEMU-bewijs toegevoegd. Volledige commando's, logs, hashes en grenzen:
+native QEMU-bewijs door lokaal werk toegevoegd. Concept-PR #62 blijft open.
+Volledige commando's, logs, hashes en grenzen:
 [hosttest-preflight](verification/host-test-linker-preflight/README.md).
 
 ## Historisch checkpoint — PR #58, integratie met main — 30 oktober 2026
