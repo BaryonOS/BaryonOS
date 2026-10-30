@@ -35,6 +35,8 @@ fn main() {
         }
     }
     for name in [
+        "NOS_FPU_A_ELF",
+        "NOS_FPU_B_ELF",
         "NOS_NET_PROBE_ELF",
         "NOS_SYSTEM_INIT_ELF",
         "NOS_SYSTEM_APP_ELF",

@@ -1,0 +1,30 @@
+[
+  {
+    "feature": "test-m3-x87",
+    "passed": true,
+    "source_sha256": "501ee1d8e6aff5ffe3ed054fd7f516a97eb4b42e484b6abdbe7c879d7e4972b4",
+    "kernel_sha256": "c19736f9da7f512a6cfd7b837e2a75138bb74c6940be5dd8fb9b35b8f003356a",
+    "raw_qemu_exit": 33
+  },
+  {
+    "feature": "test-m3-xmm",
+    "passed": true,
+    "source_sha256": "501ee1d8e6aff5ffe3ed054fd7f516a97eb4b42e484b6abdbe7c879d7e4972b4",
+    "kernel_sha256": "8ffc07f63bb3fd5e96861cf26914d8d0f3e9f45dc569ca07c67f5bfdf09f9395",
+    "raw_qemu_exit": 33
+  },
+  {
+    "feature": "test-m3-avx",
+    "passed": true,
+    "source_sha256": "501ee1d8e6aff5ffe3ed054fd7f516a97eb4b42e484b6abdbe7c879d7e4972b4",
+    "kernel_sha256": "dbf2583e46c1637f57ce9c0def5281dfe5b6f68786f430c7eecc1817e79636b2",
+    "raw_qemu_exit": 33
+  },
+  {
+    "feature": "milestone-m3",
+    "passed": true,
+    "source_sha256": "501ee1d8e6aff5ffe3ed054fd7f516a97eb4b42e484b6abdbe7c879d7e4972b4",
+    "kernel_sha256": "718a3e9bbff9d62bd07af848d4c50b91b5062837552ed443133f59254357a28e",
+    "raw_qemu_exit": 33
+  }
+]

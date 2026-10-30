@@ -1,0 +1,7 @@
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os-worktrees/fpu/crates/capability-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os-worktrees/fpu/sdk/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.71s
+     Running unittests src/lib.rs (target/fpu-sdk-host/debug/deps/nieuw_os_sdk_runtime-f65b6764d206b06b)
+     Running tests/message.rs (target/fpu-sdk-host/debug/deps/message-f75373bc959c38cd)
+     Running tests/process.rs (target/fpu-sdk-host/debug/deps/process-84eb811725119659)
+   Doc-tests nieuw_os_sdk_runtime

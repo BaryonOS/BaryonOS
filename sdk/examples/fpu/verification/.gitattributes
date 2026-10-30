@@ -1,0 +1,2 @@
+# Preserve raw VM/host output bytes, including UEFI CRLF and trailing newlines.
+*.txt -text -diff
