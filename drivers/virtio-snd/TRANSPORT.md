@@ -177,19 +177,43 @@ aantal completions. H03 en FR-H02/A06 blijven open.
 ## 8. Open besluiten (gebundeld voor 14/2/4)
 
 Antwoord release (2ab17599), 30 okt 2026, eenmalig gelezen op `5223214`;
-**geen root-integratievrijgave.** Antwoorden van 14 en security: nog open.
+**geen root-integratievrijgave.** Security (081d6f31), 30 okt 2026, eenmalig
+gelezen op `5223214`: contractconsistentie, **geen** fysiek fencebewijs,
+kwetsbaarheidsaudit of implementatiegoedkeuring. Antwoord van 14: nog open.
 
 | # | Besluit | Eigenaar | Stand |
 | --- | --- | --- | --- |
-| B1 | Nieuw manifest-only, niet-delegeerbaar uitvoerrecht in capability-core (waarde/naam) | release/kernel + security | Principe akkoord als ontwerpvoorstel (release). Naam/bit, issuer, check, revoke en cleanup nog met kernel + security; **geen gealloceerde capability**. |
+| B1 | Nieuw manifest-only, niet-delegeerbaar uitvoerrecht in capability-core (waarde/naam) | release/kernel + security | Principe akkoord als ontwerpvoorstel (release). Naam/bit, issuer, check, revoke en cleanup nog met kernel + security; **geen gealloceerde capability**. Security: ja als ontwerp, zonder IPC-, microfoon- of beheerimplicatie; de echte cap-/API-wijziging blijft een aparte REL-/kernelclaim. |
 | B2 | Syscallnummers en ABI-minor (0x73 is bezet door native-clock) | release | **Niet vrijgegeven.** 0x73 bezet; ABI-allocatie pas op bevestigde integratiebron. |
-| B3 | Transport in de kernel (zoals M5/net) bevestigen; geen user-DMA | kernel + security | Open (kernel + security). |
+| B3 | Transport in de kernel (zoals M5/net) bevestigen; geen user-DMA | kernel + security | Security: ja, als gelabeld **vertrouwd** QEMU-kerneltransport met kernelcopy en gepind RAM; **geen isolatie**. Kernel: open. |
 | B4 | Featureprofiel en BDF `00:08.0` vastleggen in VM-FR-manifest | release | `00:08.0` alleen voorlopig voor VM-SND-1; niet gereserveerd in de VM-FR-deviceinventaris. |
 | B5 | rxq configureren zonder buffers of uitschakelen; QEMU-gedrag per runtimeproef | TL-HW | Open (TL-HW, runtimeproef). |
-| B6 | VM-FR `streams=1` (geen invoerstream) in plaats van QEMU-default 2 | release + security | Akkoord voor begrensde output-only VM-SND-1 (release): geen RX-buffers, geen microfoonrecht. Finale VM-FR pas bij integratie. Security open. |
+| B6 | VM-FR `streams=1` (geen invoerstream) in plaats van QEMU-default 2 | release + security | Akkoord voor begrensde output-only VM-SND-1 (release): geen RX-buffers, geen microfoonrecht. Finale VM-FR pas bij integratie. Security: ja voor dit vaste QEMU-profiel, mits native config-/directioncontrole weigert bij een niet-output-only profiel; geen algemene claim dat stream 1 altijd uitvoer is. |
 | B7 | Periode/slotgrootte en latencybudget (pas meetbaar op hardware) | TL-HW + Materiaal/apps | Open. |
 | B8 | WAV-orakel exact of met tolerantie, en of dit als VM-bewijs telt | release/verifier | Besloten (release): exacte PCM, geen tolerantie; vensters in §7. |
-| B9 | IOMMU blijft afwezig: documenteren dat geen DMA-containment wordt geclaimd | security | Open (security). |
+| B9 | IOMMU blijft afwezig: documenteren dat geen DMA-containment wordt geclaimd | security | Security: ja, geen IOMMU- of DMA-containment geclaimd. |
+
+### Securitycorrectie op §5 (bindend vóór transportimplementatie)
+
+- Fence = conjunctie voor een **conform** device: status 0 teruggelezen én PCI
+  BME-off teruggelezen, op dezelfde gehele devicefunctie, met deadline en
+  ordening. De epoch zelf is geen fence.
+- In `Fencing` wordt **vóór** reset en cleanup alle queuepublicatie, control-,
+  timer- en IRQ-werk bevroren. Slotownership blijft onzeker tot beide ACKs;
+  slots worden niet selectief vrijgegeven. Overflow of een fout blijft
+  quarantaine.
+- Na beide ACKs volgt een snapshot van de used ring via een expliciet
+  geordende DMA-read. Elk completionverschil na de ACK leidt tot quarantaine;
+  geen selectieve slotrelease en geen epoch wegstempelen.
+- Init en herinit nemen geen oude completion of lease over, ook niet bij
+  hergebruik van een PID. Capobject-generatie en device-epoch blijven
+  gecontroleerd.
+- VM-SND-1: het orakel "geen verdere WAV-groei" is niet gelijk aan een
+  geannuleerde hostaudioqueue, want die kan al zijn geconsumeerd. Een
+  completion betekent niet "hoorbaar" (§4).
+
+Hostmodel van deze regels (alleen modelbewijs): `src/transport_model.rs`,
+PR #91.
 
 ## 9. Bewijsgrens
 
