@@ -105,6 +105,36 @@ De onderstaande gehashte bestanden zijn de ongewijzigde bestaande route:
 
 ## Open gates en exacte hervatstap
 
+### DEV1-voorbereiding: broncommit is niet de verpakkende bewijscommit
+
+Release-agent meldde op 30 oktober om 19:35 een voorbereide gewone DEV1-build
+op freeze `ce9a894cfa07504b9d99cdfdbadee973b925f1e8`, maar gaf expliciet
+**geen VM-, ZIP- of artifactvrijgave**. De gemelde kernelhash is
+`98a6a06adc57daea6267fa78bf149b879385c0d37bd70d28a324dfb61877bb87`;
+de gemelde loaderhash is
+`41c2336ec4c71489e235f10dc2feb354359d1d65b53c6a497d19a4d1e29bf5c7`.
+Dit zijn ontvangen voorbereidingsgegevens, geen hier gecontroleerde
+artifacthashes. De buildmap is niet gelezen, gekopieerd of verpakt.
+
+Eigen read-only controle: `git diff --exit-code ca45a7d ce9a894 -- boot kernel sdk ui crates tools`
+geeft exit 0. De volledige eigen bronvingerafdruk v3 is
+`bda48571144d7771bff145cc17b0f0712e271cbc6ee323dec43bee099ea5e89d`.
+`package_windows_qemu.git_commit()` rapporteert echter de eigen bewijs-HEAD
+`0915828fcd40492f873dc9098ee445306f1f0638`, niet de gebouwde freeze.
+Het buildmanifest bevat volgens `tools/build.py` een v3-bronvingerafdruk,
+maar geen bouwcommit. Gelijke fingerprints bewijzen geen identieke
+bouwgeschiedenis; een bewijscommit mag niet als werkelijke bouwcommit
+worden voorgesteld.
+
+Verpakkingsvoorwaarde: gebruik na vrijgave de bestaande ongewijzigde packager
+vanuit de bijbehorende exact vastgelegde broncheckout, met eigen uitvoerpad
+en zonder bron-/buildwrites in de produceromgeving. Controleer vooraf de
+werkelijke `git_commit()` en v3 van die checkout. Als de vrijgegeven
+bouwbron en verpakkende checkout niet overeenkomen, stop dan de verpakking;
+gebruik geen `verify_source=False`, manifestbewerking of ongemotiveerde
+commitoverride. Laat de producer de juiste bron-/checkoutbinding leveren.
+De huidige DEV1-voorbereiding vereist geen toolingwijziging.
+
 Eerstvolgend: ontvang van 4/release-agent/integrator 8 een expliciet
 vrijgegeven, onveranderlijke ontwikkelkandidaat met broncommit,
 bronvingerafdruk v3, buildmanifest, kernel-/loader-/imagehashes,
