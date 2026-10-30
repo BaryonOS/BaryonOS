@@ -1,0 +1,715 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "source_sha256": "dfdaf28f742bf95289108cfa4d8c453145b31a1e53833e121d6324619ec1a392",
+  "test_inputs": {
+    "sdk/examples/tcp-probe/test_peer.py": "8bed9ba193b2fb3d41ff0d96d58aebe733e085c1aafa649e96a3f4cc711af919",
+    "tests/test_net_peer.py": "302dd2c127a677c648b5f43e1403e828f6012a774e4d459273f3dd738040cb7e",
+    "tests/test_system_capture.py": "3e0040ae69064f451e03cc725552e287066f8a9fb852378f41d2a53458442f27",
+    "tests/test_system_harness.py": "4089e4a4e3445d07094f312045616b8a286dc95d797736c4e7198fea0312e223",
+    "tests/test_tcp_harness.py": "dd353f61391e579ce5ef53b94ea9514fb2657c09a41c0dd96d33991b6e746303",
+    "tests/test_tcp_transcript.py": "c45082f8eef980c88c4f8694a7a263222db5977fdd9afc177068021521c16ea6"
+  },
+  "capture_commit": "df1ea1d10e50345bb410c985e5994c12f699350b",
+  "boundary": "FR-I01 integration only; not full release acceptance",
+  "stages": [
+    {
+      "case": "normal",
+      "disk_sha256": "88991fa2a63504bba5a4cf65ec3ee3c7585c4b5698e19a57979ee1e17261780a",
+      "esp_sha256": {
+        "esp/kernel.elf": "b7c7c98e5b37a4a7d12f6c1a2fe5699b623566d3e0e3d47508f3f6f5852f8ca0",
+        "esp/EFI/BOOT/BOOTX64.EFI": "df3d968407b1594c39abd3b7a495ad0d81ecee8f2d1753f0319ab5cdf6d36971"
+      },
+      "vars_after_sha256": "59b41bfae0c0152ef8f936a2eb40a5f5939a64f329d0ad7afea722a92cd8e860",
+      "oracle": {
+        "generation": 3,
+        "clocks": [
+          2,
+          1
+        ],
+        "objects": [
+          {
+            "object": 0,
+            "revision": 1,
+            "present": true,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 3,
+            "versions": [
+              {
+                "revision": 1,
+                "length": 4096,
+                "name": "systeemproef",
+                "content_revision": 1,
+                "chunks": [
+                  1
+                ]
+              }
+            ]
+          },
+          {
+            "object": 1,
+            "revision": 1,
+            "present": true,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 33,
+            "versions": [
+              {
+                "revision": 1,
+                "length": 168,
+                "name": "verzegeld",
+                "content_revision": null,
+                "chunks": [
+                  2
+                ],
+                "content_hex": "ba3e1e3abe2f3bf9daac62acdf4326d128710ee6422fa8242a001ef880ca3a24e10e4726d1a034fb5513adee8fe4b4905b93201cbff7420ca87301bc88c78220e82262282af91defb6d0c67717ebcb287397c1d402742d99e12ac7bdf2fd2207b3992c2a596b7268c455afb41460395e9ca5b47d14e1b23fa88d959f5bbe8ce99fbcfcb7f0450b66ff4d7d9bc5613e0b62f75cd4f88f74c875a6dc00c6d7ed89c6d7543728422d78"
+              }
+            ]
+          },
+          {
+            "object": 2,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 3,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 4,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 5,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 6,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 7,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 8,
+            "revision": 1,
+            "present": true,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 512,
+            "versions": [
+              {
+                "revision": 1,
+                "length": 120,
+                "name": "sleutelstatus",
+                "content_revision": null,
+                "chunks": [
+                  0
+                ],
+                "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c303100000000c2662621049de6933f5fd2702e4ed40bec4e26c7b394999fc7561a899878086f69635aea79396c58f7c0c8dc07767cd5dfd43b761fb03a6b24463f7a732158c095328dbe9a978374358dd671320034a37a8eab794ecc6d9a"
+              }
+            ]
+          },
+          {
+            "object": 9,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 10,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 11,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 12,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 13,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 14,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 15,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          }
+        ],
+        "collections": [
+          {
+            "index": 1,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 2,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 3,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 4,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 1,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 2,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 3,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 4,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          }
+        ],
+        "chunks_used": 3,
+        "slots": [
+          [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ]
+        ],
+        "digests": [
+          10411954650507043143,
+          2939799529219922639
+        ]
+      }
+    },
+    {
+      "case": "recover",
+      "disk_sha256": "88991fa2a63504bba5a4cf65ec3ee3c7585c4b5698e19a57979ee1e17261780a",
+      "esp_sha256": {
+        "esp/kernel.elf": "97377868bceea0209d5fff5d2500d936c9eecbb613b74b1f9be0765edde85128",
+        "esp/EFI/BOOT/BOOTX64.EFI": "df3d968407b1594c39abd3b7a495ad0d81ecee8f2d1753f0319ab5cdf6d36971"
+      },
+      "vars_after_sha256": "59b41bfae0c0152ef8f936a2eb40a5f5939a64f329d0ad7afea722a92cd8e860",
+      "oracle": {
+        "generation": 3,
+        "clocks": [
+          2,
+          1
+        ],
+        "objects": [
+          {
+            "object": 0,
+            "revision": 1,
+            "present": true,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 3,
+            "versions": [
+              {
+                "revision": 1,
+                "length": 4096,
+                "name": "systeemproef",
+                "content_revision": 1,
+                "chunks": [
+                  1
+                ]
+              }
+            ]
+          },
+          {
+            "object": 1,
+            "revision": 1,
+            "present": true,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 33,
+            "versions": [
+              {
+                "revision": 1,
+                "length": 168,
+                "name": "verzegeld",
+                "content_revision": null,
+                "chunks": [
+                  2
+                ],
+                "content_hex": "ba3e1e3abe2f3bf9daac62acdf4326d128710ee6422fa8242a001ef880ca3a24e10e4726d1a034fb5513adee8fe4b4905b93201cbff7420ca87301bc88c78220e82262282af91defb6d0c67717ebcb287397c1d402742d99e12ac7bdf2fd2207b3992c2a596b7268c455afb41460395e9ca5b47d14e1b23fa88d959f5bbe8ce99fbcfcb7f0450b66ff4d7d9bc5613e0b62f75cd4f88f74c875a6dc00c6d7ed89c6d7543728422d78"
+              }
+            ]
+          },
+          {
+            "object": 2,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 3,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 4,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 5,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 6,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 7,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 8,
+            "revision": 1,
+            "present": true,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 512,
+            "versions": [
+              {
+                "revision": 1,
+                "length": 120,
+                "name": "sleutelstatus",
+                "content_revision": null,
+                "chunks": [
+                  0
+                ],
+                "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c303100000000c2662621049de6933f5fd2702e4ed40bec4e26c7b394999fc7561a899878086f69635aea79396c58f7c0c8dc07767cd5dfd43b761fb03a6b24463f7a732158c095328dbe9a978374358dd671320034a37a8eab794ecc6d9a"
+              }
+            ]
+          },
+          {
+            "object": 9,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 10,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 11,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 12,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 13,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 14,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 15,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          }
+        ],
+        "collections": [
+          {
+            "index": 1,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 2,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 3,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 4,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 1,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 2,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 3,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 4,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          }
+        ],
+        "chunks_used": 3,
+        "slots": [
+          [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ]
+        ],
+        "digests": [
+          10411954650507043143,
+          2939799529219922639
+        ]
+      }
+    }
+  ],
+  "source_commits": [
+    "df1ea1d10e50345bb410c985e5994c12f699350b",
+    "df1ea1d10e50345bb410c985e5994c12f699350b"
+  ]
+}

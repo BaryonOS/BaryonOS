@@ -13,7 +13,7 @@ use nieuw_os_input_core::{
 };
 use nieuw_os_materiaal::{
     controller::{Controller, Screen, Status},
-    render::Frame,
+    render::{Frame, Role, SemanticNode, MAX_SEMANTIC_NODES},
     Scale, Viewport,
 };
 use nieuw_os_materiaal_app::{bootstrap::Bootstrap, App, Error};
@@ -469,6 +469,38 @@ fn finish_paint(a: &mut App<'_, Port, Port, Port>) {
     panic!("never completed current frame")
 }
 
+fn assert_semantic_node(
+    app: &App<'_, Port, Port, Port>,
+    role: Role,
+    label: &str,
+    value: Option<&str>,
+    focused: bool,
+    enabled: bool,
+    read_only: bool,
+) {
+    let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+    let count = app.semantics(&mut nodes).unwrap();
+    let node = nodes[..count]
+        .iter()
+        .find(|node| node.role == role && node.label == label)
+        .unwrap();
+    assert_eq!(node.value, value);
+    assert_eq!(node.focused, focused);
+    assert_eq!(node.enabled, enabled);
+    assert_eq!(node.read_only, read_only);
+}
+
+fn undersized_semantics_buffer_is_atomic(app: &App<'_, Port, Port, Port>) {
+    let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES - 1];
+    assert_eq!(
+        app.semantics(&mut nodes),
+        Err(Error::Accessibility(
+            nieuw_os_materiaal::render::Error::Buffer
+        ))
+    );
+    assert!(nodes.iter().all(|node| node.label.is_empty()));
+}
+
 fn complete_chain() {
     let h = Host::new();
     let (mut d, mut o, mut s) = ([0; 65536], [0; 65536], [0; 65536]);
@@ -480,6 +512,9 @@ fn complete_chain() {
             staging: &mut s,
         },
     );
+    assert_semantic_node(&a, Role::Heading, "Materiaal", None, false, true, false);
+    assert_semantic_node(&a, Role::Button, "Nieuw document", None, true, true, false);
+    undersized_semantics_buffer_is_atomic(&a);
     finish_paint(&mut a);
     assert!(a.evidence().ready);
     assert_eq!(a.evidence().frames, 1);
@@ -496,6 +531,15 @@ fn complete_chain() {
         assert_eq!(fb[0], 0);
     }
     new_text(&h, &mut a);
+    assert_semantic_node(
+        &a,
+        Role::TextEditor,
+        "Document",
+        Some("hi"),
+        true,
+        true,
+        false,
+    );
     assert_eq!(a.evidence().save_acks, 0);
     assert_eq!(a.stop_clean(), Err(Error::Unsaved));
     keys(&h, &mut a, &[0x1d, 0x1f, 0x9f, 0x9d]);
@@ -509,6 +553,15 @@ fn complete_chain() {
         a.evidence().saved_checksum,
         volume::checksum_update(volume::FNV_OFFSET, b"hi")
     );
+    assert_semantic_node(
+        &a,
+        Role::Status,
+        "Op dit apparaat opgeslagen.",
+        None,
+        false,
+        true,
+        false,
+    );
     assert_eq!(h.borrow_mut().contents(), b"hi");
     let mut table = Table::EMPTY;
     volume::table::recover(&mut h.borrow_mut().disk, &mut table).unwrap();
@@ -520,6 +573,15 @@ fn complete_chain() {
     );
     assert_eq!(a.controller().view().screen, Screen::Editor);
     assert_eq!(a.controller().view().contents, Some("hi"));
+    assert_semantic_node(
+        &a,
+        Role::TextEditor,
+        "Document",
+        Some("hi"),
+        true,
+        true,
+        false,
+    );
     finish_paint(&mut a);
     a.stop_clean().unwrap();
     assert_eq!(h.borrow().closed.len(), 6);

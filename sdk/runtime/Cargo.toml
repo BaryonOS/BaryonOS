@@ -4,5 +4,8 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
+[dependencies]
+zeroize = { version = "=1.9.1", default-features = false }
+
 [dev-dependencies]
 capability-core = { path = "../../crates/capability-core" }

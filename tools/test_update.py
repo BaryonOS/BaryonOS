@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-"""Complete B03 gate: host tests, three kernel builds (v1, v2, v1 with the
-labelled cut fixture) behind the signed-boot loader, TEST-key signing with
-update-tool (plus one signed non-ELF image and one foreign key pair), then
-thirteen real QEMU stages in nine store/variable sequences on one frozen
-source fingerprint. Only the final summary with passed=true counts."""
+"""B03 gate: host tests, three kernel builds, hybrid TEST-key signing, then
+eighteen real QEMU stages including key rotation and lifecycle rejections.
+Only the final summary with passed=true counts."""
 from __future__ import annotations
 import hashlib
 import json
@@ -24,7 +22,11 @@ KERNELS = {"k1": ("native-update", 1, "kernel-v1.elf"), "k2": ("native-update", 
            "kc": ("test-update-cut", 1, "kernel-v1-cut.elf")}
 MANIFESTS = {"m1": ("k1", 1, "TEST", "manifest-v1.bin"), "m2": ("k2", 2, "TEST", "manifest-v2.bin"),
              "mc": ("kc", 1, "TEST", "manifest-v1-cut.bin"), "mf": ("k2", 2, "TEST-foreign", "manifest-v2-foreign.bin"),
-             "mj": ("kj", 2, "TEST", "manifest-v2-junk.bin")}
+             "mj": ("kj", 2, "TEST", "manifest-v2-junk.bin"),
+             "mn": ("k2", 2, "TEST-next", "manifest-v2-next.bin"),
+             "mr": ("k2", 2, "TEST-revoked", "manifest-v2-revoked.bin"),
+             "me": ("k2", 2, "TEST-expired", "manifest-v2-expired.bin"),
+             "mp": ("k1", 1, "TEST-next", "manifest-v1-premature.bin")}
 # Correctly signed but not an ELF: the loader must reject it as FORMAT and
 # fall back without raising the floor.
 JUNK_IMAGE = ("kj", "junk-v2.bin", 200_000)
@@ -66,7 +68,7 @@ def prepare_images(frozen: str) -> dict:
     foreign = out / "foreign-keys"
     run_update.update_tool(env, "keygen", "--dir", str(foreign), "--label", "TEST-foreign")
     for name, (kernel, version, label, filename) in MANIFESTS.items():
-        keys = str(ROOT / "tools/update-keys") if label == "TEST" else str(foreign)
+        keys = str(foreign) if label == "TEST-foreign" else str(ROOT / "tools/update-keys")
         run_update.update_tool(env, "sign", "--keys", keys, "--label", label,
                                "--image", str(out / images["files"][kernel]), "--version", str(version),
                                "--out", str(out / filename))

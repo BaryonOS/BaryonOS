@@ -387,6 +387,7 @@ name = "nieuw-os-sdk-runtime"
 version = "0.1.0"
 dependencies = [
  "capability-core",
+ "zeroize",
 ]
 
 [[package]]

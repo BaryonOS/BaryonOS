@@ -1,0 +1,851 @@
+use super::*;
+extern crate std;
+use self::std::vec::Vec;
+use nieuw_os_net_stack::PacketDevice;
+use smoltcp::{
+    iface::{Config as IfaceConfig, Interface, SocketSet},
+    socket::tcp::{Socket, SocketBuffer},
+    time::Instant,
+    wire::{EthernetAddress, HardwareAddress, IpCidr, Ipv4Address},
+};
+
+// These contexts exist only inside this crate's unit tests, never as an issuer
+// export or a Cargo feature. No test below establishes native authentication.
+fn caller(subject: u64) -> Caller {
+    Caller {
+        instance: 1,
+        subject,
+        incarnation: 7,
+    }
+}
+
+fn authority() -> PolicyAuthority {
+    PolicyAuthority { instance: 1 }
+}
+
+fn destination() -> Destination {
+    Destination::new([192, 0, 2, 1], 8080).unwrap()
+}
+
+fn with_broker(test: impl FnOnce(&mut Broker<'_>)) {
+    let mut storage = [SocketStorage::EMPTY, SocketStorage::EMPTY];
+    let (mut rx, mut tx) = ([0; FRAME_BYTES], [0; FRAME_BYTES]);
+    let (mut rx0, mut tx0, mut rx1, mut tx1) = ([0; 128], [0; 128], [0; 128], [0; 128]);
+    let mut broker = Broker::new(
+        ServiceInstance { instance: 1 },
+        Config {
+            mac: [2, 0, 0, 0, 0, 7],
+            ipv4: [192, 0, 2, 2],
+            prefix_len: 24,
+            random_seed: 7,
+        },
+        Buffers {
+            storage: &mut storage,
+            rx_frame: &mut rx,
+            tx_frame: &mut tx,
+            rx_sockets: [&mut rx0, &mut rx1],
+            tx_sockets: [&mut tx0, &mut tx1],
+        },
+        0,
+    )
+    .unwrap();
+    test(&mut broker);
+}
+
+fn grant(broker: &mut Broker<'_>, subject: u64, rights: Rights) -> Grant {
+    broker
+        .grant(&authority(), caller(subject), destination(), rights, 500, 0)
+        .unwrap()
+}
+
+fn connect(broker: &mut Broker<'_>, grant: Grant, subject: u64) -> Connection {
+    broker
+        .connect(caller(subject), grant, destination(), 300, 0)
+        .unwrap()
+}
+
+#[test]
+fn allowed_connection_uses_existing_stack_and_distinct_local_ports() {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        let first = connect(broker, grant, 2);
+        let second = connect(broker, grant, 2);
+        assert_ne!(first, second);
+        assert_eq!(broker.state(caller(2), first, 0), Ok(State::SynSent));
+        assert_eq!(broker.state(caller(2), second, 0), Ok(State::SynSent));
+        broker.poll(0).unwrap();
+        let frame = broker.offer(0).unwrap().unwrap();
+        assert_eq!(&frame.bytes[12..14], &[8, 6], "real ARP from Stack");
+    });
+}
+
+#[test]
+fn helper_and_wrong_incarnation_cannot_use_another_callers_grant() {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        for caller in [
+            caller(3),
+            Caller {
+                incarnation: 8,
+                ..caller(2)
+            },
+            Caller {
+                instance: 2,
+                ..caller(2)
+            },
+        ] {
+            assert_eq!(
+                broker.connect(caller, grant, destination(), 100, 0),
+                Err(Error::Denied)
+            );
+        }
+        assert!(broker.sockets.iter().all(|slot| slot.session.is_none()));
+        assert!(broker.stack.transmission().is_none());
+    });
+}
+
+#[test]
+fn cross_caller_all_connection_operations_deny_without_output_or_retirement() {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        let connection = connect(broker, grant, 2);
+        let mut out = [0x5a; 32];
+        assert_eq!(
+            broker.send(caller(3), connection, b"x", 0),
+            Err(Error::Denied)
+        );
+        assert_eq!(
+            broker.receive(caller(3), connection, &mut out, 0),
+            Err(Error::Denied)
+        );
+        assert_eq!(broker.state(caller(3), connection, 0), Err(Error::Denied));
+        assert_eq!(broker.close(caller(3), connection, 0), Err(Error::Denied));
+        assert_eq!(broker.cancel(caller(3), connection, 0), Err(Error::Denied));
+        assert_eq!(broker.finish(caller(3), connection, 0), Err(Error::Denied));
+        assert_eq!(out, [0x5a; 32]);
+        assert!(broker.quarantine().is_none());
+        assert!(broker.sockets[connection.slot].session.is_some());
+    });
+}
+
+#[test]
+fn exact_destination_not_ip_or_port_wildcard() {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        for destination in [
+            Destination::new([192, 0, 2, 3], 8080).unwrap(),
+            Destination::new([192, 0, 2, 1], 443).unwrap(),
+        ] {
+            assert_eq!(
+                broker.connect(caller(2), grant, destination, 100, 0),
+                Err(Error::Denied)
+            );
+        }
+        assert!(broker.stack.transmission().is_none());
+    });
+}
+
+#[test]
+fn invalid_destinations_fail_explicitly() {
+    for (ip, port) in [
+        ([0, 1, 2, 3], 443),
+        ([127, 0, 0, 1], 443),
+        ([224, 0, 0, 1], 443),
+        ([255, 255, 255, 255], 443),
+        ([192, 0, 2, 1], 0),
+    ] {
+        assert_eq!(Destination::new(ip, port), Err(Error::InvalidDestination));
+    }
+}
+
+#[test]
+fn local_subnet_network_and_directed_broadcast_are_not_unicast_grants() {
+    with_broker(|broker| {
+        for ipv4 in [[192, 0, 2, 0], [192, 0, 2, 255]] {
+            assert_eq!(
+                broker.grant(
+                    &authority(),
+                    caller(2),
+                    Destination::new(ipv4, 8080).unwrap(),
+                    Rights::Both,
+                    500,
+                    0
+                ),
+                Err(Error::InvalidDestination)
+            );
+        }
+        assert!(broker.grants.iter().all(|slot| slot.policy.is_none()));
+    });
+}
+
+#[test]
+fn foreign_and_out_of_bounds_tokens_never_select_a_slot() {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        for forged in [
+            Grant {
+                instance: 2,
+                ..grant
+            },
+            Grant {
+                slot: usize::MAX,
+                ..grant
+            },
+            Grant {
+                generation: u64::MAX,
+                ..grant
+            },
+        ] {
+            assert_eq!(
+                broker.connect(caller(2), forged, destination(), 100, 0),
+                Err(Error::StaleGrant)
+            );
+        }
+        let connection = connect(broker, grant, 2);
+        for forged in [
+            Connection {
+                instance: 2,
+                ..connection
+            },
+            Connection {
+                slot: usize::MAX,
+                ..connection
+            },
+            Connection {
+                generation: u64::MAX,
+                ..connection
+            },
+        ] {
+            let mut out = [0x5a; 32];
+            assert_eq!(
+                broker.receive(caller(2), forged, &mut out, 0),
+                Err(Error::StaleConnection)
+            );
+            assert_eq!(out, [0x5a; 32]);
+        }
+    });
+}
+
+#[test]
+fn policy_authority_and_target_caller_must_match_instance() {
+    with_broker(|broker| {
+        let wrong = PolicyAuthority { instance: 2 };
+        assert_eq!(
+            broker.grant(&wrong, caller(2), destination(), Rights::Both, 500, 0),
+            Err(Error::Denied)
+        );
+        assert_eq!(
+            broker.grant(
+                &authority(),
+                Caller {
+                    instance: 2,
+                    ..caller(2)
+                },
+                destination(),
+                Rights::Both,
+                500,
+                0
+            ),
+            Err(Error::Denied)
+        );
+        let grant = grant(broker, 2, Rights::Both);
+        assert_eq!(broker.revoke(&wrong, grant), Err(Error::Denied));
+        assert!(broker.policy(caller(2), grant).is_ok());
+    });
+}
+
+#[test]
+fn bounded_grants_and_sockets() {
+    with_broker(|broker| {
+        let first = grant(broker, 2, Rights::Both);
+        for _ in 1..MAX_GRANTS {
+            grant(broker, 2, Rights::Both);
+        }
+        assert_eq!(
+            broker.grant(&authority(), caller(2), destination(), Rights::Both, 500, 0),
+            Err(Error::GrantLimit)
+        );
+        connect(broker, first, 2);
+        connect(broker, first, 2);
+        assert_eq!(
+            broker.connect(caller(2), first, destination(), 300, 0),
+            Err(Error::SocketLimit)
+        );
+    });
+}
+
+#[test]
+fn idle_revoke_reuse_stale_generation_cannot_revoke_new_grant() {
+    with_broker(|broker| {
+        let old = grant(broker, 2, Rights::Both);
+        broker.revoke(&authority(), old).unwrap();
+        let new = grant(broker, 3, Rights::Both);
+        assert_eq!(old.slot, new.slot);
+        assert_ne!(old.generation, new.generation);
+        assert_eq!(broker.revoke(&authority(), old), Err(Error::StaleGrant));
+        assert_eq!(
+            broker.connect(caller(2), old, destination(), 300, 0),
+            Err(Error::StaleGrant)
+        );
+        connect(broker, new, 3);
+    });
+}
+
+#[test]
+fn exhausted_generations_never_wrap() {
+    with_broker(|broker| {
+        for slot in &mut broker.grants {
+            slot.generation = u64::MAX;
+        }
+        assert_eq!(
+            broker.grant(&authority(), caller(2), destination(), Rights::Both, 500, 0),
+            Err(Error::GenerationExhausted)
+        );
+    });
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        for slot in &mut broker.sockets {
+            slot.generation = u64::MAX;
+        }
+        assert_eq!(
+            broker.connect(caller(2), grant, destination(), 100, 0),
+            Err(Error::GenerationExhausted)
+        );
+        assert!(broker.stack.transmission().is_none());
+    });
+}
+
+#[test]
+fn rights_are_independent_and_denial_does_not_change_receive_buffer() {
+    with_broker(|broker| {
+        let send = grant(broker, 2, Rights::Send);
+        let receive = grant(broker, 3, Rights::Receive);
+        let sender = connect(broker, send, 2);
+        let receiver = connect(broker, receive, 3);
+        let mut out = [0x5a; 16];
+        assert_eq!(
+            broker.receive(caller(2), sender, &mut out, 0),
+            Err(Error::Denied)
+        );
+        assert_eq!(out, [0x5a; 16]);
+        assert_eq!(
+            broker.send(caller(3), receiver, b"x", 0),
+            Err(Error::Denied)
+        );
+    });
+}
+
+#[test]
+fn revoke_fences_all_shared_backend_connections_before_any_future_step() {
+    with_broker(|broker| {
+        let first = grant(broker, 2, Rights::Both);
+        let second = grant(broker, 3, Rights::Both);
+        let _first_connection = connect(broker, first, 2);
+        let second_connection = connect(broker, second, 3);
+        broker.poll(0).unwrap();
+        let id = broker.offer(0).unwrap().unwrap().id;
+        let queued = broker.stack.transmission().unwrap().id;
+        broker.revoke(&authority(), first).unwrap();
+        assert_eq!(broker.quarantine(), Some(Quarantine::Revoked));
+        assert!(broker.grants[first.slot].policy.is_none());
+        assert!(broker.sockets.iter().all(|slot| slot.session.is_none()));
+        assert_eq!(broker.stack.transmission().unwrap().id, queued);
+        assert_eq!(broker.offered, Some(id), "no false completion/release");
+        assert_eq!(broker.poll(1), Err(Error::Quarantined(Quarantine::Revoked)));
+        assert!(matches!(
+            broker.offer(1),
+            Err(Error::Quarantined(Quarantine::Revoked))
+        ));
+        assert_eq!(
+            broker.publication_result(id, Publication::Completed),
+            Err(Error::Quarantined(Quarantine::Revoked))
+        );
+        let mut out = [0x5a; 16];
+        assert_eq!(
+            broker.receive(caller(3), second_connection, &mut out, 1),
+            Err(Error::StaleConnection)
+        );
+        assert_eq!(out, [0x5a; 16]);
+    });
+}
+
+#[test]
+fn revoke_retires_every_connection_of_grant_and_denies_new_use() {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        let first = connect(broker, grant, 2);
+        let second = connect(broker, grant, 2);
+        broker.revoke(&authority(), grant).unwrap();
+        for connection in [first, second] {
+            assert_eq!(
+                broker.send(caller(2), connection, b"x", 0),
+                Err(Error::StaleConnection)
+            );
+        }
+        assert_eq!(
+            broker.connect(caller(2), grant, destination(), 100, 0),
+            Err(Error::StaleGrant)
+        );
+    });
+}
+
+#[test]
+fn expiry_inclusive_even_when_egress_offer_would_otherwise_succeed() {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        connect(broker, grant, 2);
+        broker.poll(299).unwrap();
+        assert!(matches!(broker.offer(300), Err(Error::Expired)));
+        assert_eq!(broker.quarantine(), Some(Quarantine::Expired));
+        assert!(broker.sockets.iter().all(|slot| slot.session.is_none()));
+    });
+}
+
+#[test]
+fn idle_expired_grant_never_connects_or_revives_via_slot_reuse() {
+    with_broker(|broker| {
+        let old = grant(broker, 2, Rights::Both);
+        assert_eq!(
+            broker.connect(caller(2), old, destination(), 100, 500),
+            Err(Error::StaleGrant)
+        );
+        assert!(broker.quarantine().is_none());
+        let new = broker
+            .grant(
+                &authority(),
+                caller(2),
+                destination(),
+                Rights::Both,
+                600,
+                500,
+            )
+            .unwrap();
+        assert_eq!(old.slot, new.slot);
+        assert_ne!(old.generation, new.generation);
+    });
+}
+
+#[test]
+fn invalid_deadlines_do_not_allocate_slots() {
+    with_broker(|broker| {
+        for deadline in [0, MAX_TIMEOUT_TICKS + 1, u64::MAX] {
+            assert_eq!(
+                broker.grant(
+                    &authority(),
+                    caller(2),
+                    destination(),
+                    Rights::Both,
+                    deadline,
+                    0
+                ),
+                Err(Error::InvalidDeadline)
+            );
+        }
+        let grant = grant(broker, 2, Rights::Both);
+        for timeout in [0, MAX_TIMEOUT_TICKS + 1, u64::MAX] {
+            assert_eq!(
+                broker.connect(caller(2), grant, destination(), timeout, 0),
+                Err(Error::InvalidDeadline)
+            );
+        }
+        assert!(broker.sockets.iter().all(|slot| slot.session.is_none()));
+    });
+}
+
+#[test]
+fn rollback_and_overflow_fence_and_do_not_advance_stack() {
+    with_broker(|broker| {
+        broker.poll(10).unwrap();
+        assert_eq!(broker.poll(9), Err(Error::ClockWentBackwards));
+        assert_eq!(broker.quarantine(), Some(Quarantine::ClockFault));
+    });
+    with_broker(|broker| {
+        assert_eq!(broker.poll(u64::MAX), Err(Error::ClockOverflow));
+        assert_eq!(broker.last_ticks, 0);
+        assert_eq!(broker.quarantine(), Some(Quarantine::ClockFault));
+    });
+}
+
+#[test]
+fn not_published_backpressure_is_not_a_completion_and_can_be_reoffered() {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        connect(broker, grant, 2);
+        broker.poll(0).unwrap();
+        let id = broker.offer(0).unwrap().unwrap().id;
+        assert!(matches!(broker.offer(0), Err(Error::Busy)));
+        broker
+            .publication_result(id, Publication::NotPublished)
+            .unwrap();
+        assert_eq!(broker.stack.transmission().unwrap().id, id);
+        assert_eq!(broker.offer(0).unwrap().unwrap().id, id);
+        broker
+            .publication_result(id, Publication::Completed)
+            .unwrap();
+        assert!(broker.stack.transmission().is_none());
+        assert_eq!(broker.offered, None);
+    });
+}
+
+#[test]
+fn unknown_is_terminal_without_ack_replay_or_release() {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        connect(broker, grant, 2);
+        broker.poll(0).unwrap();
+        let id = broker.offer(0).unwrap().unwrap().id;
+        assert_eq!(
+            broker.publication_result(id, Publication::Unknown),
+            Err(Error::Quarantined(Quarantine::UnknownPublication))
+        );
+        assert_eq!(broker.offered, Some(id));
+        assert_eq!(broker.stack.transmission().unwrap().id, id);
+        assert!(matches!(broker.offer(1), Err(Error::Quarantined(_))));
+        assert_eq!(
+            broker.publication_result(id, Publication::NotPublished),
+            Err(Error::Quarantined(Quarantine::UnknownPublication))
+        );
+    });
+}
+
+#[test]
+fn mismatched_completion_fences_without_releasing_correct_frame() {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        connect(broker, grant, 2);
+        broker.poll(0).unwrap();
+        let id = broker.offer(0).unwrap().unwrap().id;
+        assert_eq!(
+            broker.publication_result(id + 1, Publication::Completed),
+            Err(Error::Quarantined(Quarantine::CompletionMismatch))
+        );
+        assert_eq!(broker.stack.transmission().unwrap().id, id);
+    });
+}
+
+#[test]
+fn explicit_cancel_fences_and_orderly_finish_requires_closed_drained_state() {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        let connection = connect(broker, grant, 2);
+        assert_eq!(broker.finish(caller(2), connection, 0), Err(Error::Busy));
+        broker.cancel(caller(2), connection, 0).unwrap();
+        assert_eq!(broker.quarantine(), Some(Quarantine::Cancelled));
+        assert!(broker.sockets.iter().all(|slot| slot.session.is_none()));
+    });
+}
+
+#[test]
+fn malformed_ingress_is_explicit_and_never_authenticates_a_caller() {
+    with_broker(|broker| {
+        assert_eq!(
+            broker.ingress(&[0; 10], 0),
+            Err(Error::Backend(StackError::InvalidFrame))
+        );
+        assert!(broker.grants.iter().all(|slot| slot.policy.is_none()));
+        assert!(broker.sockets.iter().all(|slot| slot.session.is_none()));
+    });
+}
+
+#[test]
+fn unsolicited_arp_cannot_publish_reply_without_destination_authority() {
+    with_broker(|broker| {
+        let mut frame = [0; 42];
+        frame[..6].fill(255);
+        frame[6..12].copy_from_slice(&[2, 0, 0, 0, 0, 3]);
+        frame[12..22].copy_from_slice(&[8, 6, 0, 1, 8, 0, 6, 4, 0, 1]);
+        frame[22..28].copy_from_slice(&[2, 0, 0, 0, 0, 3]);
+        frame[28..32].copy_from_slice(&[192, 0, 2, 3]);
+        frame[38..42].copy_from_slice(&[192, 0, 2, 2]);
+        broker.ingress(&frame, 0).unwrap();
+        broker.poll(0).unwrap();
+        assert!(matches!(broker.offer(0), Err(Error::Denied)));
+        assert_eq!(broker.quarantine(), Some(Quarantine::DeniedEgress));
+        assert!(
+            broker.stack.transmission().is_some(),
+            "no fabricated completion"
+        );
+    });
+}
+
+fn tcp_frame(source: [u8; 4], destination: [u8; 4], sport: u16, dport: u16) -> [u8; 54] {
+    let mut frame = [0; 54];
+    frame[..6].copy_from_slice(&[2, 0, 0, 0, 0, 7]);
+    frame[6..12].copy_from_slice(&[2, 0, 0, 0, 0, 3]);
+    frame[12..14].copy_from_slice(&[8, 0]);
+    frame[14] = 0x45;
+    frame[16..18].copy_from_slice(&40u16.to_be_bytes());
+    frame[22] = 64;
+    frame[23] = 6;
+    frame[26..30].copy_from_slice(&source);
+    frame[30..34].copy_from_slice(&destination);
+    frame[34..36].copy_from_slice(&sport.to_be_bytes());
+    frame[36..38].copy_from_slice(&dport.to_be_bytes());
+    frame[41] = 1;
+    frame[46] = 0x50;
+    frame[47] = 2;
+    frame[48..50].copy_from_slice(&2048u16.to_be_bytes());
+    Ipv4Packet::new_checked(&mut frame[14..])
+        .unwrap()
+        .fill_checksum();
+    TcpPacket::new_checked(&mut frame[34..])
+        .unwrap()
+        .fill_checksum(
+            &Ipv4Address::from(source).into(),
+            &Ipv4Address::from(destination).into(),
+        );
+    frame
+}
+
+#[test]
+fn unsolicited_tcp_cannot_trigger_egress_to_ungranted_source() {
+    with_broker(|broker| {
+        let frame = tcp_frame([192, 0, 2, 3], [192, 0, 2, 2], 45678, 4444);
+        broker.ingress(&frame, 0).unwrap();
+        broker.poll(0).unwrap();
+        assert!(
+            broker.stack.transmission().is_some(),
+            "Stack produced a reply or neighbor lookup"
+        );
+        assert!(matches!(broker.offer(0), Err(Error::Denied)));
+        assert_eq!(broker.quarantine(), Some(Quarantine::DeniedEgress));
+        assert!(broker.stack.transmission().is_some());
+        assert_eq!(broker.offered, None);
+    });
+}
+
+#[test]
+fn control_egress_also_requires_exact_active_destination_port_and_local_socket() {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        let _connection = connect(broker, grant, 2);
+        let allowed = tcp_frame([192, 0, 2, 2], [192, 0, 2, 1], 49152, 8080);
+        assert_eq!(broker.authorize_egress(&allowed), Ok(()));
+        for frame in [
+            tcp_frame([192, 0, 2, 2], [192, 0, 2, 1], 49152, 9090),
+            tcp_frame([192, 0, 2, 2], [192, 0, 2, 3], 49152, 8080),
+            tcp_frame([192, 0, 2, 2], [192, 0, 2, 1], 49153, 8080),
+            tcp_frame([192, 0, 2, 3], [192, 0, 2, 1], 49152, 8080),
+        ] {
+            assert_eq!(broker.authorize_egress(&frame), Err(Error::Denied));
+        }
+        broker.revoke(&authority(), grant).unwrap();
+        assert_eq!(broker.authorize_egress(&allowed), Err(Error::Denied));
+    });
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Conversation {
+    Normal,
+    DropFirstSyn,
+    Timeout,
+    RevokeQueuedReceive,
+    FinishUnread,
+}
+
+// Model medium only: no host socket, NIC, native caller or device ACK. The
+// broker side executes the existing Stack, including actual ARP/TCP parsing.
+fn conversation(case: Conversation) {
+    with_broker(|broker| {
+        let grant = grant(broker, 2, Rights::Both);
+        let connection = connect(broker, grant, 2);
+        let (mut rx, mut tx) = ([0; FRAME_BYTES], [0; FRAME_BYTES]);
+        let (mut srx, mut stx) = ([0; 4096], [0; 4096]);
+        let mut storage = [SocketStorage::EMPTY];
+        let mut device = PacketDevice::new(&mut rx, &mut tx);
+        let mut config = IfaceConfig::new(HardwareAddress::Ethernet(EthernetAddress([
+            2, 0, 0, 0, 0, 1,
+        ])));
+        config.random_seed = 1;
+        let mut peer = Interface::new(config, &mut device, Instant::ZERO);
+        peer.update_ip_addrs(|addresses| {
+            addresses
+                .push(IpCidr::new(Ipv4Address::new(192, 0, 2, 1).into(), 24))
+                .unwrap()
+        });
+        let mut sockets = SocketSet::new(&mut storage[..]);
+        let mut socket = Socket::new(
+            SocketBuffer::new(&mut srx[..]),
+            SocketBuffer::new(&mut stx[..]),
+        );
+        socket.set_ack_delay(None);
+        socket.listen(8080).unwrap();
+        let handle = sockets.add(socket);
+        let request = [0x51; 384];
+        let response = [0x72; 96];
+        let mut sent = 0;
+        let mut received_request = Vec::new();
+        let mut received_response = Vec::new();
+        let mut response_sent = false;
+        let mut saw_backpressure = false;
+        let mut syns = 0;
+        let mut syn_sequence = None;
+        for ticks in 0..400 {
+            match broker.poll(ticks) {
+                Ok(()) => {}
+                Err(Error::Expired) if case == Conversation::Timeout => {
+                    assert_eq!(ticks, 300);
+                    assert_eq!(broker.quarantine(), Some(Quarantine::Expired));
+                    assert!(received_request.is_empty());
+                    assert!(received_response.is_empty());
+                    return;
+                }
+                other => panic!("unexpected broker poll: {other:?}"),
+            }
+            if let Some(frame) = broker.offer(ticks).unwrap() {
+                let syn = frame.bytes.len() >= 54
+                    && frame.bytes[12..14] == [8, 0]
+                    && frame.bytes[14] == 0x45
+                    && frame.bytes[23] == 6
+                    && frame.bytes[47] & 0x17 == 2;
+                if syn {
+                    syns += 1;
+                    let sequence = frame.bytes[38..42].to_vec();
+                    match &syn_sequence {
+                        None => syn_sequence = Some(sequence),
+                        Some(first) => assert_eq!(&sequence, first, "same retransmission sequence"),
+                    }
+                }
+                if case != Conversation::Timeout
+                    && !(case == Conversation::DropFirstSyn && syn && syns == 1)
+                {
+                    device.push(frame.bytes).unwrap();
+                }
+                let id = frame.id;
+                // Explicit model-medium completion, not a native NIC claim.
+                broker
+                    .publication_result(id, Publication::Completed)
+                    .unwrap();
+            }
+            let now = Instant::from_micros(ticks as i64 * 10_000);
+            peer.poll_maintenance(now);
+            peer.poll_ingress_single(now, &mut device, &mut sockets);
+            let socket = sockets.get_mut::<Socket>(handle);
+            if socket.can_recv() {
+                let mut out = [0; 64];
+                let count = socket.recv_slice(&mut out).unwrap();
+                received_request.extend_from_slice(&out[..count]);
+            }
+            if received_request.len() == request.len() && !response_sent {
+                assert_eq!(received_request, request);
+                assert_eq!(socket.send_slice(&response).unwrap(), response.len());
+                socket.close();
+                response_sent = true;
+            }
+            peer.poll_egress(now, &mut device, &mut sockets);
+            if let Some(frame) = device.transmission() {
+                broker.ingress(frame.bytes, ticks).unwrap();
+                let id = frame.id;
+                device.complete(id).unwrap();
+            }
+            let state = broker.state(caller(2), connection, ticks).unwrap();
+            if state == State::Established && sent < request.len() {
+                sent += broker
+                    .send(caller(2), connection, &request[sent..], ticks)
+                    .unwrap();
+                if sent < request.len() {
+                    let count = broker
+                        .send(caller(2), connection, &request[sent..], ticks)
+                        .unwrap();
+                    saw_backpressure |= count == 0;
+                    sent += count;
+                }
+            }
+            if case == Conversation::RevokeQueuedReceive && state == State::CloseWait {
+                assert!(response_sent);
+                broker.revoke(&authority(), grant).unwrap();
+                let mut out = [0x5a; 128];
+                assert_eq!(
+                    broker.receive(caller(2), connection, &mut out, ticks),
+                    Err(Error::StaleConnection)
+                );
+                assert_eq!(out, [0x5a; 128]);
+                assert_eq!(broker.quarantine(), Some(Quarantine::Revoked));
+                return;
+            }
+            if case != Conversation::FinishUnread
+                && matches!(
+                    state,
+                    State::Established | State::CloseWait | State::LastAck | State::Closed
+                )
+            {
+                let mut out = [0; 32];
+                loop {
+                    match broker.receive(caller(2), connection, &mut out, ticks) {
+                        Ok(0) | Err(Error::Backend(StackError::Finished)) => break,
+                        Ok(count) => received_response.extend_from_slice(&out[..count]),
+                        other => panic!("unexpected receive: {other:?}"),
+                    }
+                }
+            }
+            if state == State::CloseWait {
+                broker.close(caller(2), connection, ticks).unwrap();
+            }
+            if state == State::Closed && response_sent {
+                assert_eq!(sent, request.len());
+                if case != Conversation::FinishUnread {
+                    assert_eq!(received_response, response);
+                }
+                assert!(saw_backpressure);
+                if case == Conversation::DropFirstSyn {
+                    assert_eq!(syns, 2);
+                    assert!(ticks >= 100);
+                }
+                broker.finish(caller(2), connection, ticks).unwrap();
+                let next_grant = broker
+                    .grant(
+                        &authority(),
+                        caller(3),
+                        destination(),
+                        Rights::Both,
+                        ticks + 500,
+                        ticks,
+                    )
+                    .unwrap();
+                let next = broker
+                    .connect(caller(3), next_grant, destination(), 300, ticks)
+                    .unwrap();
+                assert_eq!(next.slot, connection.slot);
+                assert_ne!(next.generation, connection.generation);
+                let mut out = [0x5a; 128];
+                assert_eq!(
+                    broker.receive(caller(3), next, &mut out, ticks),
+                    Err(Error::Backend(StackError::InvalidState))
+                );
+                assert_eq!(out, [0x5a; 128], "no old queued RX crosses caller");
+                assert_eq!(
+                    broker.send(caller(2), connection, b"x", ticks),
+                    Err(Error::StaleConnection)
+                );
+                assert!(broker.quarantine().is_none());
+                return;
+            }
+        }
+        panic!("model did not complete");
+    });
+}
+
+#[test]
+fn actual_tcp_bytes_backpressure_orderly_close_and_safe_generation_reuse() {
+    conversation(Conversation::Normal);
+}
+
+#[test]
+fn existing_stack_retransmits_without_new_authority_or_synthetic_peer_ack() {
+    conversation(Conversation::DropFirstSyn);
+}
+
+#[test]
+fn link_loss_times_out_and_fences_before_new_publication() {
+    conversation(Conversation::Timeout);
+}
+
+#[test]
+fn real_tcp_receive_queued_before_revoke_is_never_delivered_after_revoke() {
+    conversation(Conversation::RevokeQueuedReceive);
+}
+
+#[test]
+fn explicit_finish_with_unread_rx_never_passes_it_to_reused_caller_slot() {
+    conversation(Conversation::FinishUnread);
+}

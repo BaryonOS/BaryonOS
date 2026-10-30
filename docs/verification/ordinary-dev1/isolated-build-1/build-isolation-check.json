@@ -1,0 +1,27 @@
+{
+  "build_isolation_check_passed": true,
+  "builds": {
+    "reference": {
+      "kernel_sha256": "cf40deda4f246a60d87361894785d08467ede30b6135ca8fcb2059eb7f84734b",
+      "boundary_symbols": {
+        "__kernel_start": "0x2000000",
+        "__kernel_end": "0x251a000",
+        "__rodata_end": "0x20f0000",
+        "__text_end": "0x2027000"
+      }
+    },
+    "ordinary": {
+      "kernel_sha256": "98a6a06adc57daea6267fa78bf149b879385c0d37bd70d28a324dfb61877bb87",
+      "boundary_symbols": {
+        "__kernel_start": "0x2000000",
+        "__kernel_end": "0x250f000",
+        "__rodata_end": "0x20e5000",
+        "__text_end": "0x2025000"
+      }
+    }
+  },
+  "negative_original_duplicate_flags_rejected": 2,
+  "negative_original_collapsed_bounds_rejected": true,
+  "vm_started_by_this_check": false,
+  "native_acceptance_granted": false
+}

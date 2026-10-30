@@ -26,7 +26,9 @@ from run_display_probe import BOOT, external_file, require, SERIAL_LIMIT
 from run_system import check_image
 import volume_disk as volume
 
-FEATURES = {"normal": "native-system-materiaal-probe", "recover": "test-system-materiaal-recover"}
+FEATURES = {"normal": "native-system-materiaal-probe", "keyboard": "native-system-materiaal-probe",
+            "recover": "test-system-materiaal-recover"}
+WRITABLE_CASES = {"normal", "keyboard"}
 NAMES = ("desktop-init", "keyring-service", "volume-service", "materiaal-app", "native-compositor",
          "input-source", "input-policy", "desktop-controller")
 GATES = ("MATERIAAL:SOURCE:READY", "MATERIAAL:POLICY:READY", "MATERIAAL:COMPOSITOR:READY", "MATERIAAL:FOCUS:READY")
@@ -36,6 +38,7 @@ FIELDS = ("READY", "PRESENTED_GEN", "FRAMES", "TILES", "KEYS", "MOUSE", "INPUT_A
 FINAL_FIELDS = ("DISK_READS", "DISK_WRITES", "DISK_FLUSHES", "LIVE_PROCESSES", "LIVE_HANDLES", "FRAMES_RECOVERED")
 END = ("MATERIAAL:CLEANUP:PASS", "MATERIAAL:CASE:PASS", "M1:PASS")
 PHASES = {"normal": ("ready", "editor", "dirty", "saved", "list", "reopened"),
+          "keyboard": ("ready", "editor", "dirty", "saved", "list", "reopened"),
           "recover": ("ready", "reopened", "readonly")}
 TEXT = b"nieuw os werkt"
 TEXT_SUM = volume.fnv(TEXT)
@@ -58,7 +61,7 @@ def snapshot_checks(current: dict, previous: dict | None, case: str) -> None:
             and current["SCREEN"] in (1, 2, 3) and current["DRAFT_DIRTY"] in (0, 1)
             and current["INPUT_ACKS"] >= current["KEYS"] + current["MOUSE"]
             and current["SAVE_ACKS"] in (0, 1), "Invalid actual frame/counter snapshot")
-    require(current["ERRORS"] == 0 if case == "normal" else current["ERRORS"] <= 1,
+    require(current["ERRORS"] == 0 if case in WRITABLE_CASES else current["ERRORS"] <= 1,
             "Unexpected app error")
     if current["SAVE_ACKS"]:
         require((current["SAVED_REVISION"], current["SAVED_BYTES"], current["SAVED_SUM"])
@@ -154,7 +157,7 @@ def transcript(raw: bytes, case="normal", *, final=False) -> dict:
             require(tuple(lines[at + len(FINAL_FIELDS):]) == END, "Wrong or extra final native markers")
             require(values["DISK_READS"] > 0 and values["LIVE_PROCESSES"] == 0 and values["LIVE_HANDLES"] == 0
                     and values["FRAMES_RECOVERED"] == 1, "Incomplete actual native cleanup")
-            require((values["DISK_WRITES"] > 0 and values["DISK_FLUSHES"] >= 2) if case == "normal"
+            require((values["DISK_WRITES"] > 0 and values["DISK_FLUSHES"] >= 2) if case in WRITABLE_CASES
                     else values["DISK_WRITES"] == values["DISK_FLUSHES"] == 0, "Wrong writable/readonly disk activity")
             result["final"] = values
             result["finished"] = True
@@ -175,7 +178,7 @@ def phase_matches(name: str, value: dict, case: str) -> bool:
     if name == "dirty":
         return screen == 2 and dirty == 1 and saves == 0 and same
     if name in ("saved", "reopened"):
-        return screen == 2 and dirty == 0 and saves == (1 if case == "normal" else 0) and same and value["ERRORS"] == 0
+        return screen == 2 and dirty == 0 and saves == (1 if case in WRITABLE_CASES else 0) and same and value["ERRORS"] == 0
     if name == "list":
         return screen == 1 and dirty == 0 and saves == 1 and same
     if name == "readonly":
@@ -215,7 +218,14 @@ def qmp_groups(directory: Path, case: str) -> list[tuple[str, list[dict]]]:
     def shot(name):
         return {"execute": "screendump", "arguments": {"filename": str(directory / f"{name}.ppm")}}
     groups = [("ready", [shot("ready")])]
-    if case == "normal":
+    if case in WRITABLE_CASES:
+        if case == "keyboard":
+            groups += [("editor", [key("ret"), shot("editor")]),
+                       ("dirty", [key("spc" if c == " " else c) for c in TEXT.decode()] + [shot("dirty")]),
+                       ("saved", [key("ctrl", "s"), shot("saved")]),
+                       ("list", [key("esc"), shot("list")]),
+                       ("reopened", [key("tab"), key("tab"), key("ret"), shot("reopened")])]
+            return groups + [("close", [key("f12")])]
         # The source-checked ui-core Cursor::new starts at global (0,0). Move
         # without buttons, in bounded relative steps, before a fresh click.
         x, y = 0, 0
@@ -298,7 +308,7 @@ def validate_frames(frames: dict[str, bytes], case: str) -> dict:
                     "App paint escaped its assigned surface/system chrome changed")
     transitions = {f"{a}->{b}": changed_bounds(frames[a], frames[b]) for a,b in zip(names,names[1:])}
     require(all(bounds is not None for bounds in transitions.values()), "A real UI action changed no actual pixels")
-    if case == "normal":
+    if case in WRITABLE_CASES:
         # Saving must preserve the rendered text/caret area, while the genuine
         # status/control pixels change. Coordinates are the frozen frontend's
         # explicit 100% layout, not a host-rendered replacement UI.
@@ -432,6 +442,44 @@ def diagnostic_exit_grace(process, directory: Path) -> None:
         pass
 
 
+def guest_diagnostics(raw: bytes) -> dict:
+    """Extract bounded failure-only timeout counters; never use them as proof."""
+    require(isinstance(raw, bytes) and len(raw) <= SERIAL_LIMIT, "Oversized diagnostic transcript")
+    lines = raw.decode("utf-8", "replace").splitlines()
+    slots = []
+    current = None
+    for line in lines:
+        match = re.fullmatch(r"MATERIAAL:TIMEOUT_SLOT:([0-9]{20})", line)
+        if match:
+            slot = int(match[1])
+            require(slot < 8, "Invalid native timeout diagnostic slot")
+            current = {"slot": slot, "words": []}
+            slots.append(current)
+            continue
+        if current is None:
+            continue
+        match = re.fullmatch(r"MATERIAAL:AT:([0-9]{20})", line)
+        if match:
+            offset = int(match[1])
+            require(offset in (40, 192, 240, 400, 408, 416, 424, 432, 440, 472, 480, 488, 496),
+                    "Invalid native timeout diagnostic offset")
+            current["pending_offset"] = offset
+            continue
+        match = re.fullmatch(r"MATERIAAL:VALUE:([0-9]{20})", line)
+        if match and "pending_offset" in current:
+            current["words"].append({"offset": current.pop("pending_offset"), "value": int(match[1])})
+            continue
+        if line.startswith("MATERIAAL:") and not line.startswith(("MATERIAAL:AT:", "MATERIAAL:VALUE:")):
+            current = None
+    for slot in slots:
+        require("pending_offset" not in slot, "Incomplete native timeout diagnostic")
+    return {
+        "guest_timeout": any(line.startswith("MATERIAAL:TIMEOUT_SLOT:") for line in lines),
+        "guest_failure": "MATERIAAL:FAIL:TIMEOUT" in lines,
+        "slots": slots,
+    }
+
+
 def replay(report: dict, directory: Path, frozen: str) -> dict:
     """Recompute the proof from frozen bytes, never trust a stored passed flag."""
     case=report.get("case");require(case in FEATURES,"Unknown recorded case")
@@ -533,7 +581,7 @@ def run_materiaal_probe(*,case="normal",build_directory=BUILD,run_root=None,pare
     report_path=private_path(build/"materiaal-probe-report.json")
     publish_json(report_path,{"passed":False,"stage":"preflight","case":case})
     frozen=source_hash();bound=validate_build(build,frozen,case)
-    require((parent is None) == (case == "normal"),"Recover requires one validated normal parent; normal accepts no parent/disk")
+    require((parent is None) == (case in WRITABLE_CASES),"Recover requires one validated normal parent; writable cases accept no parent/disk")
     parent_image,parent_report=parent_run(parent,build,frozen) if case == "recover" else (None,None)
     env=environment();qemu=shutil.which("qemu-system-x86_64",path=env["PATH"]);require(qemu is not None,"Missing existing QEMU")
     entry=external_file(Path(qemu),256*1024*1024);entry_hash=sha256(entry)
@@ -555,11 +603,11 @@ def run_materiaal_probe(*,case="normal",build_directory=BUILD,run_root=None,pare
         require(sha256(directory/f"inputs/{name}.elf") == item["sha256"],"ELF changed during copy");inputs[f"inputs/{name}.elf"]=item["sha256"]
     for name,value in (("manifest.json",bound["manifest"]),("build-report.json",bound["artifact"])):
         publish_json(directory/"inputs"/name,value);inputs["inputs/"+name]=sha256(directory/"inputs"/name)
-    if case == "normal": volume.create_image(directory/"volume.img","empty")
+    if case in WRITABLE_CASES: volume.create_image(directory/"volume.img","empty")
     else: publish(directory/"volume.img",parent_image.read_bytes())
     check_image(directory/"volume.img");publish(directory/"volume.before.img",(directory/"volume.img").read_bytes())
     before=sha256(directory/"volume.before.img")
-    require(case == "normal" or before == parent_report["after_sha256"],"Broken cold disk chain")
+    require(case in WRITABLE_CASES or before == parent_report["after_sha256"],"Broken cold disk chain")
     command=qemu_arguments(qemu,machine,qmp_transport,case)
     report={"schema_version":1,"passed":False,"scope":"partial native GUI/input/document chain on generated plaintext fixture; not full Materiaal, encrypted durable storage, release or physical hardware acceptance",
             "case":case,"source_sha256":frozen,"source_fingerprint_version":3,"kernel_feature":FEATURES[case],
@@ -621,8 +669,11 @@ def run_materiaal_probe(*,case="normal",build_directory=BUILD,run_root=None,pare
     except Exception as error:
         report["error"]=f"{type(error).__name__}: {error}";report["timed_out"]=isinstance(error,(TimeoutError,subprocess.TimeoutExpired)) or time.monotonic()>=deadline
         try:
-            report["guest_timeout"]=b"MATERIAAL:TIMEOUT_SLOT:" in serial_bytes(directory)
-            report["timed_out"] |= report["guest_timeout"]
+            diagnostics = guest_diagnostics(serial_bytes(directory))
+            report["guest_timeout"] = diagnostics["guest_timeout"]
+            if diagnostics["guest_timeout"] or diagnostics["guest_failure"]:
+                report["guest_diagnostics"] = diagnostics
+            report["timed_out"] |= diagnostics["guest_timeout"] or diagnostics["guest_failure"]
         except (OSError,ValueError):
             pass
     finally:

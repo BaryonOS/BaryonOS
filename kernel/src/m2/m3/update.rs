@@ -621,6 +621,10 @@ fn reject_name(code: u64) -> &'static [u8] {
         4 => b"DIGEST",
         5 => b"DOWNGRADE",
         6 => b"READ",
+        7 => b"KEY_REVOKED",
+        8 => b"KEY_EXPIRED",
+        9 => b"KEY_NOT_YET_VALID",
+        10 => b"KEY_POLICY",
         _ => b"UNKNOWN",
     }
 }

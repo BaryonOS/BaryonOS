@@ -8,7 +8,7 @@ use nieuw_os_input_core::{CancelReason, Event};
 use nieuw_os_materiaal::{
     controller::{Error, Focus, InputEnvelope, Screen, Status},
     design,
-    render::{Frame, Role, SemanticNode, MAX_SEMANTIC_NODES},
+    render::{Error as RenderError, Frame, Role, SemanticId, SemanticNode, MAX_SEMANTIC_NODES},
     text, Scale, Viewport, TILE_PIXELS,
 };
 use ui_core::{KeyAction, KeyboardEvent, KeyboardModifiers, PhysicalKey, Ps2Mouse, Set1Keyboard};
@@ -38,6 +38,19 @@ fn control(key: PhysicalKey) -> Event {
             ..KeyboardModifiers::default()
         },
     })
+}
+
+fn assert_semantic_tree(nodes: &[SemanticNode<'_>], count: usize) {
+    assert!(count <= nodes.len());
+    for (index, node) in nodes[..count].iter().enumerate() {
+        assert_ne!(node.id, SemanticId::Empty);
+        if let Some(parent) = node.parent {
+            assert!(nodes[..index].iter().any(|ancestor| ancestor.id == parent));
+        }
+        assert!(nodes[index + 1..count]
+            .iter()
+            .all(|other| other.id != node.id));
+    }
 }
 
 fn real_ps2_edit_stream_commit_list_and_reopen_impl() {
@@ -512,11 +525,18 @@ fn real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus_impl() {
         assert!(nonbackground > 1000);
         let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
         let n = frame.semantics(&mut nodes).unwrap();
+        assert_semantic_tree(&nodes, n);
         assert_eq!(nodes[..n].iter().filter(|n| n.focused).count(), 1);
+        assert_eq!(nodes[0].id, SemanticId::Window);
+        assert_eq!(nodes[0].role, Role::Window);
         let editor = nodes[..n]
             .iter()
-            .find(|n| n.role == Role::TextEditor)
+            .find(|n| n.id == SemanticId::Document)
             .unwrap();
+        assert_eq!(editor.parent, Some(SemanticId::Window));
+        assert_eq!(editor.role, Role::TextEditor);
+        assert!(editor.actions.set_value);
+        assert!(!editor.actions.activate);
         assert_eq!(editor.value, Some("Café\nabc XYZ\nSelectie blijft UTF-8."));
         assert_eq!(
             editor.selection,
@@ -542,6 +562,126 @@ fn real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus_impl() {
         .unwrap()
         .raster()
     );
+}
+
+fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
+    let host = Host::new();
+    for object in 0..volume_core::PER_DOMAIN {
+        host.borrow_mut().seed(object as u64, b"x");
+    }
+    let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.refresh().unwrap();
+    ui.resize(
+        Viewport::new(
+            ui_core::MAX_WIDTH,
+            ui_core::MAX_HEIGHT,
+            Scale::Percent100,
+            2,
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    {
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let frame = Frame::new(ui.view());
+        let count = frame.semantics(&mut nodes).unwrap();
+        assert_eq!(count, 6 + volume_core::PER_DOMAIN);
+        assert_semantic_tree(&nodes, count);
+        assert_eq!(
+            nodes[..count]
+                .iter()
+                .filter(|node| node.role == Role::ListItem)
+                .count(),
+            volume_core::PER_DOMAIN
+        );
+        assert!(nodes[..count]
+            .iter()
+            .filter(|node| node.role == Role::ListItem)
+            .all(|node| node.parent == Some(SemanticId::MaterialList) && node.actions.activate));
+        let mut short = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES - 1];
+        assert!(matches!(
+            frame.semantics(&mut short),
+            Err(RenderError::Buffer)
+        ));
+    }
+
+    // Seven visible entries plus pagination need fifteen nodes, exceeding
+    // the old fourteen-node bound even though all eight objects fit a domain.
+    ui.resize(Viewport::new(800, 720, Scale::Percent100, 3).unwrap())
+        .unwrap();
+    {
+        let frame = Frame::new(ui.view());
+        assert_eq!(frame.layout().list_rows(), 7);
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = frame.semantics(&mut nodes).unwrap();
+        assert_eq!(count, 15);
+        assert_semantic_tree(&nodes, count);
+        assert_eq!(
+            nodes[..count]
+                .iter()
+                .filter(|node| node.role == Role::ListItem)
+                .count(),
+            7
+        );
+        for id in [
+            SemanticId::PreviousPage,
+            SemanticId::NextPage,
+            SemanticId::Status,
+        ] {
+            assert!(nodes[..count].iter().any(|node| node.id == id));
+        }
+        assert_eq!(nodes[count].id, SemanticId::Empty);
+    }
+
+    ui.resize(Viewport::new(320, 240, Scale::Percent100, 4).unwrap())
+        .unwrap();
+    {
+        let frame = Frame::new(ui.view());
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = frame.semantics(&mut nodes).unwrap();
+        assert_semantic_tree(&nodes, count);
+        assert_eq!(count, 9);
+        let previous = nodes[..count]
+            .iter()
+            .find(|node| node.id == SemanticId::PreviousPage)
+            .unwrap();
+        let next = nodes[..count]
+            .iter()
+            .find(|node| node.id == SemanticId::NextPage)
+            .unwrap();
+        assert!(!previous.enabled);
+        assert!(!previous.actions.activate);
+        assert!(next.enabled);
+        assert!(next.actions.activate);
+    }
+
+    ui.open(0).unwrap();
+    ui.insert("y").unwrap();
+    ui.request_back().unwrap();
+    let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+    let frame = Frame::new(ui.view());
+    let count = frame.semantics(&mut nodes).unwrap();
+    assert_semantic_tree(&nodes, count);
+    assert_eq!(count, 6);
+    let dialog = nodes[..count]
+        .iter()
+        .find(|node| node.id == SemanticId::CloseDialog)
+        .unwrap();
+    assert_eq!(dialog.role, Role::Dialog);
+    assert_eq!(dialog.parent, Some(SemanticId::Window));
+    assert!(nodes[..count]
+        .iter()
+        .filter(|node| node.parent == Some(SemanticId::CloseDialog))
+        .all(|node| node.role == Role::Button && node.actions.activate));
 }
 
 fn display_epoch_stale_frame_and_failed_present_keep_repaint_pending_impl() {
@@ -632,6 +772,10 @@ scenario!(
 scenario!(
     real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus,
     real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus_impl
+);
+scenario!(
+    semantic_tree_bounds_maximum_material_page_and_dirty_dialog,
+    semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl
 );
 scenario!(
     display_epoch_stale_frame_and_failed_present_keep_repaint_pending,

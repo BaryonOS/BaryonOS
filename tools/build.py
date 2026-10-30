@@ -33,6 +33,7 @@ NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
 TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
 MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
 MATERIAAL_FEATURES = ("native-system-materiaal", "native-system-materiaal-probe", "test-system-materiaal-recover", "test-system-materiaal-scale200")
+NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
 IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
@@ -47,7 +48,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "tes
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
                    "native-sdk-app", "test-sdk-app-denied", "native-ipc-wait",
                    "native-tpm-crb", "test-tpm-crb-absent", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
-                   *KEYRING_FEATURES, *MATERIAAL_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input"]
+                   *KEYRING_FEATURES, *MATERIAAL_FEATURES, *NAS_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input"]
 
 
 def inspect_elf(path):
@@ -143,7 +144,10 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
                                 ("milestone-m6c", "test-m6c-recover")):
         raise ValueError("Document session requires NOS_SDK_RUNTIME=1 and the M6c normal/recover fixture")
     qsim_report = None
-    if kernel_feature in MATERIAAL_FEATURES:
+    if kernel_feature in NAS_FEATURES:
+        from build_nas import build_users as build_nas_users
+        extra_env, qsim_report = build_nas_users()
+    elif kernel_feature in MATERIAAL_FEATURES:
         from build_materiaal import build_users as build_materiaal_users
         extra_env, qsim_report = build_materiaal_users(probe=kernel_feature != "native-system-materiaal")
     elif kernel_feature == "native-display-probe":
@@ -309,7 +313,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     manifest["sdk_runtime"] = use_sdk
     manifest["document_session"] = use_document_session
     if qsim_report is not None:
-        if kernel_feature in MATERIAAL_FEATURES:
+        if kernel_feature in NAS_FEATURES:
+            manifest["nas_probe"] = qsim_report
+        elif kernel_feature in MATERIAAL_FEATURES:
             manifest["materiaal"] = qsim_report
         elif kernel_feature == "native-display-probe":
             manifest["display_probe"] = qsim_report

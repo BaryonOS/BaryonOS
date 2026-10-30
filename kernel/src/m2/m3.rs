@@ -77,7 +77,20 @@ mod sdk_app;
 mod supervisor;
 #[cfg(feature = "native-system")]
 #[cfg_attr(feature = "native-system-materiaal", allow(dead_code))]
+#[cfg_attr(feature = "native-system-nas-probe", path = "m3/nas.rs")]
 mod system;
+#[cfg(all(
+    feature = "native-system-nas-probe",
+    any(
+        feature = "native-system-materiaal",
+        feature = "native-system-net",
+        feature = "native-system-random",
+        feature = "native-system-images",
+        feature = "native-system-clock",
+        feature = "native-cap-digest-bench"
+    )
+))]
+compile_error!("the local NAS probe requires its own diagnostic process manifest");
 #[cfg(feature = "native-tpm-crb")]
 mod tpm_fixture;
 #[cfg(any(
@@ -256,7 +269,11 @@ const ELF: &[u8] = include_bytes!(env!("NOS_M6C_ELF"));
 const SYSTEM_INIT_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_INIT_ELF"));
 #[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
 const SYSTEM_APP_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_APP_ELF"));
-#[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
+#[cfg(all(
+    feature = "native-system",
+    not(feature = "native-system-materiaal"),
+    not(feature = "native-system-nas-probe")
+))]
 const SYSTEM_WORKER_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_WORKER_ELF"));
 #[cfg(feature = "native-system-random")]
 const RANDOM_PROBE_ELF: &[u8] = include_bytes!(env!("NOS_RANDOM_PROBE_ELF"));

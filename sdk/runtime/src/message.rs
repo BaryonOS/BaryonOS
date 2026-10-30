@@ -1,12 +1,14 @@
 #![forbid(unsafe_code)]
 use crate::{Capability, Error, Handle, Rights};
+use core::fmt;
+use zeroize::Zeroize;
 
 pub const MESSAGE_SIZE: usize = 320;
 pub const MAX_PAYLOAD: usize = 256;
 pub const MAX_CAPS: usize = 2;
 
 /// Canonical send envelope. Sender and reserved fields always remain zero.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Outgoing {
     bytes: [u8; MESSAGE_SIZE],
 }
@@ -55,11 +57,26 @@ impl Outgoing {
     }
 }
 
+impl fmt::Debug for Outgoing {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Outgoing")
+            .field("length", &get32(&self.bytes, 16))
+            .field("cap_count", &get32(&self.bytes, 20))
+            .finish_non_exhaustive()
+    }
+}
+
+impl Drop for Outgoing {
+    fn drop(&mut self) {
+        self.bytes.zeroize();
+    }
+}
+
 /// A structurally valid received envelope. `from_bytes` alone does not prove
 /// provenance: native::receive obtains these bytes directly from the kernel.
 /// Keeping the full original envelope lets services validate sender and reject
 /// unexpected capabilities before the caller explicitly closes them.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 pub struct Received {
     bytes: [u8; MESSAGE_SIZE],
     length: usize,
@@ -68,12 +85,23 @@ pub struct Received {
 
 impl Received {
     pub fn from_bytes(bytes: [u8; MESSAGE_SIZE], returned_length: u64) -> Result<Self, Error> {
-        let (length, cap_count) = validate(&bytes, Some(returned_length))?;
-        if get64(&bytes, 0) == 0 {
-            return Err(Error::InvalidMessage);
-        }
+        let (length, cap_count) = validate_received(&bytes, returned_length)?;
         Ok(Self {
             bytes,
+            length,
+            cap_count,
+        })
+    }
+
+    #[cfg(any(test, all(target_arch = "x86_64", target_os = "none")))]
+    pub(crate) fn from_bytes_mut(
+        bytes: &mut [u8; MESSAGE_SIZE],
+        returned_length: u64,
+    ) -> Result<Self, Error> {
+        let (length, cap_count) = validate_received(bytes, returned_length)?;
+        let owned = core::mem::replace(bytes, [0; MESSAGE_SIZE]);
+        Ok(Self {
+            bytes: owned,
             length,
             cap_count,
         })
@@ -105,6 +133,34 @@ impl Received {
             rights: Rights::from_bits(get64(&self.bytes, 40 + index * 16)).ok()?,
         })
     }
+}
+
+impl fmt::Debug for Received {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Received")
+            .field("sender", &self.sender())
+            .field("tag", &self.tag())
+            .field("length", &self.length)
+            .field("cap_count", &self.cap_count)
+            .finish_non_exhaustive()
+    }
+}
+
+impl Drop for Received {
+    fn drop(&mut self) {
+        self.bytes.zeroize();
+    }
+}
+
+fn validate_received(
+    bytes: &[u8; MESSAGE_SIZE],
+    returned_length: u64,
+) -> Result<(usize, usize), Error> {
+    let parts = validate(bytes, Some(returned_length))?;
+    if get64(bytes, 0) == 0 {
+        return Err(Error::InvalidMessage);
+    }
+    Ok(parts)
 }
 
 fn validate(
@@ -149,4 +205,49 @@ fn get32(bytes: &[u8; MESSAGE_SIZE], offset: usize) -> u32 {
 
 fn put64(bytes: &mut [u8; MESSAGE_SIZE], offset: usize, value: u64) {
     bytes[offset..offset + 8].copy_from_slice(&value.to_le_bytes());
+}
+
+#[cfg(test)]
+mod tests {
+    extern crate std;
+
+    use super::*;
+
+    #[test]
+    fn received_handoff_clears_native_staging_bytes() {
+        let outgoing = Outgoing::new(9, b"secret payload").unwrap();
+        let numeric_payload = "115, 101, 99, 114, 101, 116, 32, 112, 97, 121, 108, 111, 97, 100";
+        assert!(std::format!("{:?}", outgoing.as_bytes()).contains(numeric_payload));
+        let debug = std::format!("{outgoing:?}");
+        assert!(!debug.contains("secret payload"));
+        assert!(!debug.contains(numeric_payload));
+        assert_eq!(debug, "Outgoing { length: 14, cap_count: 0, .. }");
+        let mut bytes = *outgoing.as_bytes();
+        bytes[..8].copy_from_slice(&7u64.to_le_bytes());
+        let original = bytes;
+
+        let received = Received::from_bytes_mut(&mut bytes, 14).unwrap();
+
+        assert_eq!(bytes, [0; MESSAGE_SIZE]);
+        assert_eq!(received.as_bytes(), &original);
+        let debug = std::format!("{received:?}");
+        assert!(!debug.contains("secret payload"));
+        assert!(!debug.contains(numeric_payload));
+        assert_eq!(
+            debug,
+            "Received { sender: 7, tag: 9, length: 14, cap_count: 0, .. }"
+        );
+    }
+
+    #[test]
+    fn refused_native_handoff_preserves_bytes_for_capability_cleanup() {
+        let mut bytes = *Outgoing::new(9, b"secret payload").unwrap().as_bytes();
+        let original = bytes;
+
+        assert_eq!(
+            Received::from_bytes_mut(&mut bytes, 14),
+            Err(Error::InvalidMessage)
+        );
+        assert_eq!(bytes, original);
+    }
 }

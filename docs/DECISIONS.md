@@ -1,5 +1,195 @@
 # Ontwerpbesluiten
 
+## OP-001 — Schrijvers, integratoroverdracht en Windows-afleverroute
+
+30 oktober 2026; vastlegging van de operationele besluiten uit PR #75.
+Dit beschrijft de toen geregistreerde rollen en overdrachten, geen bewezen
+identiteit van huidige sessies. Actuele expliciete opdrachten van Simon gaan
+vóór routineafspraken tussen agents. Zijn huidige opdracht om issues en pull
+requests op te lossen en geschikt werk te squash-mergen geeft het
+integratiemandaat; actuele broncontrole, repositoryregels en relevante gates
+blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
+
+- **Queue-eigenaarschap:** de geregistreerde overdracht van manager
+  `89f84098` aan `5d5f8513` maakt de laatste de enige schrijver van
+  `docs/WORK-QUEUE.md`; centrale status en score bleven bij de manager.
+  Gevolg: één register voor taak- en fileclaims, behoud van bestaande opdrachten
+  en geparkeerd werk; stilte of een timeout maakt een claim niet vrij.
+  Herzien bij een expliciete nieuwe opdracht of aantoonbaar overlappende
+  schrijvers. De oorspronkelijke eigenaarverklaringen blijven historische
+  rapportage. [OP1]
+- **Integratoroverdracht e8→7f:** de queue registreert expliciete donorstop
+  en vrijgave, geen lopende/verzonden mutatie, ontvangst van het volledige
+  dossier met claims en WIP en een operatiecontrole door de ontvanger.
+  Gevolg: één operationele integrator binnen de overgedragen scope; actuele
+  head/base/gates opnieuw controleren bij iedere integratiemutatie en bestaand
+  werk inhoudsbehoudend verenigen. Een accountnaam of verstreken tijd bewijst
+  geen sessie-identiteit of overdracht. Herzien bij een nieuw gebruikersmandaat,
+  een aantoonbare tweede schrijver of een gewijzigde inhoudelijke scope.
+  De afzonderlijke incident-/pauzeregistratie in de bron wordt hier bewaard
+  als historische status, niet opnieuw uitgevaardigd. [OP1] [OP2]
+- **Windows-route 12→21:** de wederzijds bevestigde overdracht betreft
+  uitsluitend `tools/package_windows_qemu.py`,
+  `tools/windows-qemu/{Start-NieuwOS.ps1,Test-Launcher.ps1,README.md}`,
+  `tools/tests/test_package_windows_qemu.py` en eigen Windowsbewijs.
+  Gevolg: de bestaande route blijft leidend; geen tweede launcher/packager of
+  impliciete kernel-, CI- of runtimeclaim. Route- en synthetisch testbewijs
+  leveren geen nieuwe OS-bundel of gastacceptatie op. Een ontwikkelkandidaat
+  moet exact aan bron, manifest, artifacts, beperkingen en slotafspraak zijn
+  gebonden. Herzien bij expliciete wijziging van route-eigenaar/filegrens of
+  kandidaat-/slotcontract. [OP3]
+
+**Primaire bronnen:** Nieuw OS-project, 30 oktober 2026.
+
+- **[OP1]** *Operationele werkqueue — mandaat, bron en continuïteit*,
+  vaste PR #75-bron `c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6`:
+  [werkqueue](https://github.com/simonvanieperen/nieuw-os/blob/c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6/docs/WORK-QUEUE.md).
+- **[OP2]** *Actuele projectstatus — integratoroverdracht en uitgebreid
+  overdrachtsverslag*, dezelfde vaste bron:
+  [projectstatus](https://github.com/simonvanieperen/nieuw-os/blob/c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6/docs/PROJECT-STATE.md).
+- **[OP3]** S.W.J.B.M. van Ieperen, *Rol 21: Windows/QEMU-overdracht en
+  routebewijs*, oorspronkelijke overdrachtbron
+  `0915828fcd40492f873dc9098ee445306f1f0638`:
+  [routeverslag](https://github.com/simonvanieperen/nieuw-os/blob/0915828fcd40492f873dc9098ee445306f1f0638/docs/verification/windows-delivery-21/README.md).
+
+# ADR-054 — Gedeeld immutable artifact-storecontract
+
+**Datum/status/eigenaar:** 30 oktober 2026; contractvoorstel van
+release-integratie, afgestemd door Apps en AI. Security-/integratiereview en
+native uitvoering staan open. De eerste code-uitwerking mag uitsluitend een
+zuivere contractcrate met negatieve hosttests zijn.
+
+**Context:** Apppakketverificatie en het model-store-experiment hebben beide
+een grote, immutable, bounded-read artifact nodig. Het bestaande
+documentvolume is hiervoor aantoonbaar ongeschikt; documentquota worden niet
+tot productstore-capaciteit verheven. Apps heeft een kandidaatdescriptor en
+transactie-state-machine; AI gebruikt een afzonderlijke readerproef met 4 KiB
+read-at. Message320 blijft een aparte wiregrens van maximaal 256 payloadbytes.
+[AS-IPC1] [AS-IPC2]
+
+**Besluit:** één provider-onafhankelijk contract met immutable
+descriptor, opaque procesgebonden read-handle en read-at van maximaal 4096
+bytes. Stale epoch, revocation, short/zero reads, EOF, out-of-range, overflow,
+corruptie en backendprotocolfouten zijn expliciet. Capacity/quota zijn
+providergerapporteerde `u64`-waarden met checked arithmetic. Writable
+install/publish is een aparte transactie: volledige reservering bij `begin`,
+exacte chunks, volledige digest-/lengtecontrole vóór atomische publicatie, en
+expliciete `Unknown`/cancel/outcome-semantiek. Reservering is geen
+duurzaamheidsgarantie. SHA-256 is contentintegriteitsmetadata, geen
+publishervertrouwen of modelveiligheid. Geen dynamic launch volgt uit
+opslagpublicatie.
+
+**Afgewezen:** documentvolume hergebruiken (onvoldoende capaciteit en andere
+semantiek); 4 KiB als Message320-payload behandelen (overschrijdt de
+wirelimiet); AI- en Apps-opslag-ABI's onafhankelijk vastleggen (twee
+incompatibele authorities); vaste model-/app-proefgrootte als productlimiet
+nemen; caller-`verified`-boolean of gedeelde B02/B03-authority gebruiken;
+`Unknown` als mislukking, succes of automatische retry verbergen.
+
+**Gevolgen/herziening:** contractdocument
+`implementation/ARTIFACT-STORE-CONTRACT.md` is leidend voor de gezamenlijke
+interface na Apps-/AI-ownerafstemming. De descriptorlayout is nog geen gedeelde
+geserialiseerde ABI. Hostcontracttests kunnen alleen reken-/state-machine-
+invarianten toetsen. Een native backend vereist later eigen foutinjectie,
+flush-/duurzaamheidsdefinitie, koude recovery, proces-/capabilitybinding en
+afzonderlijke publisher- en modeltrustbesluiten. Herzie vóór wire-encoding,
+kernel/SDK-integratie, persistent store, modeldownload of dynamic launch.
+
+**Primaire bronnen voor de IPC-grens:**
+
+- **[AS-IPC1]** Nieuw OS-project. (2026, 26 oktober). *Uitvoerbaar kernel- en beveiligingscontract M2–M4*, sectie Berichtformaat en transactie (bronversie `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [Kernel- en beveiligingscontract](https://github.com/simonvanieperen/nieuw-os/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
+- **[AS-IPC2]** Nieuw OS-project. (z.d.). *SDK Message320-envelope: MESSAGE_SIZE, MAX_PAYLOAD en lengtevalidatie* (bronversie `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [SDK-implementatie](https://github.com/simonvanieperen/nieuw-os/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/sdk/runtime/src/message.rs).
+
+## ADR-055 — Canoniek app-pakket zonder impliciete rechten
+
+Bij integratie hernummerd vanaf de branchlokale ADR-052 uit PR #73
+(`dce3b05`); ADR-052 over de CRB-apertureproef behoudt zijn bestaande ID.
+
+30 oktober 2026; A02-verificatiekern, boven op `origin/main` na PR #67.
+Een pakket bevat in versie 1 één vast manifest en exact één ELF-image.
+Metadata wordt ondertekend met beide al gebruikte algoritmen uit ADR-049
+(Ed25519 en ML-DSA-65); de caller bindt verificatie aan ankers van de
+geselecteerde bron. De signature bewijst herkomst onder die sleutel, niet
+betrouwbaarheid. App-ID, ABI-interval, versie en image-digest zijn metadata;
+scripts, dependencies en capabilities ontbreken. Installatie verleent dus
+geen algemene rechten.
+
+De packageverificatie is een zelfstandige `no_std`-crate en weigert
+niet-canonieke padding, onbekend formaat, ABI-mismatch, onbekende ankers, een
+van beide ongeldige handtekeningen, trailing pakketbytes, afwijkende
+`image_length`-framing en digestfouten. `verify_package` inspecteert geen
+ELF-structuur. Alleen `verify_executable_package` voert aanvullend
+`kernel_core::user::parse` uit en weigert images die niet aan het bestaande
+user-ELF-beleid voldoen.
+Het pakketformaat hergebruikt geen kernel-update-target of updatebeleid.
+Alternatief: de kernel-update-manifestcode uitbreiden zou applicatiesemantiek
+vermengen met de boot-/slottrustgrens; de bestaande verifier accepteert
+uitsluitend `TARGET_KERNEL`. Dit besluit introduceert geen appinstallatie of
+nieuwe capabilities.
+
+De executable-entrypoint roept aanvullend het bestaande
+`kernel_core::user::parse`-beleid aan in plaats van een tweede user-ELF-policy
+te introduceren. De resulterende laadbeschrijving is preflight, geen
+frameallocatie, processtart of `LaunchImage`-autorisatie. De installer-/launch-
+grens blijft een afzonderlijke open stap.
+
+De 2 MiB imagegrens is een tijdelijke parser-/fixturegrens, geen productlimiet.
+De ML-DSA-stackbehoefte moet vóór native integratie door de service-/stackquota
+worden gedragen. Herzien vóór installerintegratie: bron- en sleutelrotatie,
+ABI-policy, opslag-/update-transacties, appimage-loader en herstelgedrag.
+Terugdraaien kan door de nieuwe crate/workspace-entry te verwijderen; B03 en
+bestaande app-launch ABI blijven ongewijzigd. Geen A02-punt toegekend.
+
+## ADR-056 — Bronintrekking blokkeert toekomstige pakketten
+
+Bij integratie hernummerd vanaf de branchlokale ADR-053 uit PR #73
+(`dce3b05`); ADR-053 over IPC-wachten behoudt zijn bestaande ID.
+
+30 oktober 2026; bronbeheer-policy-core voor A02.
+De verificatiekern ontvangt bij elke verificatie een expliciete `SourceId` en
+verwachte bron-generatie; de appbundel kiest nooit zelf haar trust anchor.
+Keyrotatie en intrekking zijn compare-and-swap-operaties op die generatie.
+Intrekking blokkeert nieuwe pakketverificaties/updates maar verwijdert of
+blokkeert reeds geïnstalleerde apps niet; Simon koos dat gedrag expliciet.
+Verwijdering van apps/data is een afzonderlijke gebruikershandeling.
+
+`SourceRegistry` is momenteel een vaste in-memory kern van acht slots.
+Gebruikersconsent, capability-afdwinging, duurzame bronstatus, crashherstel en
+de koppeling aan een installer blijven vereist. De acht slots zijn geen
+productlimiet en leveren geen A02-acceptatiebewijs op. Terugdraaien kan de
+registry en haar tests verwijderen zonder het packageformaat of kernel-ABI te
+wijzigen.
+
+## ADR-B03K1 — Gedeelde, vastgepinde sleutelautoriteit per releasevenster
+
+30 oktober 2026; B03-KEY-POLICY-1, basis `0ade8014`. Loader en update-dienst
+gebruiken één `update-core::policy::TrustPolicy` met maximaal acht exacte
+hybride sleutelparen, inclusieve releaseversievensters en onvoorwaardelijke
+intrekking. Ongeldige of dubbele tabelentries geven geen autoriteit. De
+ondertekende versie wordt pas na beide handtekeningcontroles tegen het venster
+getoetst. Geen nieuw cryptoalgoritme, capability of dependency.
+
+Alternatief kalenderverval is niet gekozen: de RTC levert geen vertrouwde
+kalendertijd. Een manifest mag evenmin zijn eigen vertrouwde sleutels of
+intrekkingsbeleid aanleveren. De QEMU-beleidstabel behoudt het bestaande
+TEST-paar en pint apart next/revoked/expired-fixtures; deze openbare sleutels
+zijn geen productieankers. Vooraf vastgepinde rotatie bewijst geen veilige
+distributie/rollbackbescherming van nieuwe beleidsversies.
+
+Herzieningscriteria: beoordeel dit besluit opnieuw zodra een productiebeleid
+voor sleuteldistributie of rollbackbescherming van de beleidstabel wordt
+vastgesteld, of een geautoriseerde vertrouwde kalendertijdbron beschikbaar
+komt. Beoordeel dan opnieuw de ankerdistributie, policyversie-/intrekkingsgrens
+en keuze tussen releaseversievensters en eventueel kalenderbeleid; deze
+triggers wijzigen het huidige beleid niet automatisch.
+
+Contract, negatieve gevallen, open productie-/tijdgrenzen en rollback:
+`implementation/B03-SIGNED-UPDATES.md`, B03-KEY-POLICY-1. Terugname is een
+gerichte revert naar het eerdere enkelvoudige TEST-verificatiepad, zonder
+slot-/manifestformaatmigratie; terugname verwijdert wel lifecycleafdwinging.
+Native resultaat en bronbinding staan afzonderlijk in PROJECT-STATE; B04,
+B05, B06 en de aanvullende gates van #41 blijven open.
+
 ## ADR-053 — Wachten op IPC behoudt bestaande rechten en krijgt ABI 1.10
 
 Bij main-integratie hernummerd vanaf de branchlokale ADR-051; de
@@ -63,8 +253,10 @@ sleutelbeheer; (b) persistente opcodes op de bestaande domein-endpoints —
 elke app met een sleutelendpoint zou dan snapshotbevoegdheid krijgen.
 Grenzen: de generatievloer in dit profiel is een gedemonstreerd mechanisme,
 geen vertrouwd anker; koude rollbackankering, write-ahead per GENERATE/REVOKE
-in de dienst zelf, zeroisatie van de SDK-ontvangstbuffer en een echte
-volume-identiteit (nu de profielconstante `NOS-SYSTEM-VOL01`) blijven open.
+in de dienst zelf en een echte volume-identiteit (nu de profielconstante
+`NOS-SYSTEM-VOL01`) blijven open. De SDK-eigen Message320-envelope-/stagingbytes
+worden sinds de B02-IPC-hygiënecheck wel gewist; caller-owned request-arrays en
+compiler-/registerkopieën vallen daar niet onder.
 B02 blijft daarom open; de score verandert niet. Rollback: verwijder de twee
 opcodes, het admin-ingress en de init-/appstappen; bestaande KEY1-codes,
 formaten en het B01-profiel zijn ongewijzigd.
@@ -93,7 +285,11 @@ onzekerheidsmarge en rollbackanker nodig. Rollback: verwijder uitsluitend de
 opt-in feature, syscall, SDK-bindings en acceptatie; ABI 1.9 blijft als
 documenteerde compatibiliteitsrevisie, zonder invloed op oude profielen.
 
-## ADR-049 — Exclusieve native CMOS-bootstrap, geen vertrouwde tijd
+## ADR-057 — Exclusieve native CMOS-bootstrap, geen vertrouwde tijd
+
+Bij integratie hernummerd vanaf het dubbel gebruikte ADR-049 in main
+(`9a6703d`). ADR-049 over hybride kernelupdates behoudt zijn bestaande ID;
+historische verwijzingen naar de CMOS-bootstrap met ADR-049 horen bij ADR-057.
 
 30 oktober 2026; implementatie RTC-NATIVE-1, basis `5c334f9`.
 De bestaande dependencyvrije RTC-codec wordt alleen voor een opt-in

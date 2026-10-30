@@ -19,7 +19,7 @@ import time
 
 from common import ROOT, BUILD, TARGET, sha256, source_hash
 from build import build
-from build_users import inspect_user
+from build_users import inspect_user, sdk_dependency_artifact, sdk_dependency_command, SDK_DEPENDENCY_ID
 from capture_m6c import check_run
 from run_m6c import run_m6c
 
@@ -34,14 +34,14 @@ LIBRARIES = {
     'nieuw_os_catalog_client': ('sdk/catalog-client/src/lib.rs', 'build-document-library-nieuw_os_catalog_client'),
     'nieuw_os_document_session': ('sdk/document-session/src/lib.rs', 'build-document-library-nieuw_os_document_session'),
 }
-LIBRARY_PATHS = frozenset(f'users/lib{crate}.rlib' for crate in LIBRARIES)
+LIBRARY_PATHS = frozenset(f'users/lib{crate}.rlib' for crate in (*LIBRARIES, 'zeroize'))
 DEPENDENCIES = {
-    'nieuw_os_sdk_runtime': (),
+    'nieuw_os_sdk_runtime': ('zeroize',),
     'catalog_core': (),
     'volume_core': ('catalog_core',),
     'nieuw_os_catalog_client': ('nieuw_os_sdk_runtime', 'catalog_core'),
     'nieuw_os_document_session': ('nieuw_os_sdk_runtime', 'catalog_core', 'nieuw_os_catalog_client', 'volume_core'),
-    'os_user_m6c_probe': tuple(LIBRARIES),
+    'os_user_m6c_probe': (*LIBRARIES, 'zeroize'),
 }
 ABI_OPTIONS = {'panic': 'abort', 'code-model': 'small', 'relocation-model': 'static', 'no-redzone': 'yes'}
 FEATURES = {'normal': 'milestone-m6c', 'recover': 'test-m6c-recover'}
@@ -138,6 +138,23 @@ def abi_settings(argv):
 def compiler_binding(snapshot, original_build, root):
     """Bind successful recorded rustc invocations to the selected crate inputs."""
     commands = {}
+    dependency_log = 'build-sdk-zeroize'
+    metadata = read_json(snapshot / 'logs' / (dependency_log + '.json'))
+    command = metadata.get('command')
+    require(isinstance(command, list) and command and Path(command[0]).name in ('cargo', 'cargo.exe')
+            and command[1:] == sdk_dependency_command(root, original_build)[1:],
+            'Locked zeroize Cargo command mismatch')
+    require(type(metadata.get('returncode')) is int and metadata['returncode'] == 0
+            and metadata.get('timed_out', False) is False and metadata.get('cwd') == str(root),
+            'Failed or foreign zeroize build evidence')
+    stdout = regular(snapshot / 'logs' / (dependency_log + '.stdout.txt'), snapshot, MAX_LOG)
+    regular(snapshot / 'logs' / (dependency_log + '.stderr.txt'), snapshot, MAX_LOG)
+    selected = sdk_dependency_artifact(stdout.read_text(encoding='utf-8'), original_build)
+    dependency = read_json(snapshot / 'users/manifest-m6c.json').get('sdk_dependency')
+    require(dependency == {'package_id': SDK_DEPENDENCY_ID, 'source_artifact': str(selected),
+                           'artifact_sha256': sha256(snapshot / 'users/libzeroize.rlib')},
+            'Zeroize artifact does not match selected Cargo output')
+    commands[dependency_log] = sha256(snapshot / 'logs' / (dependency_log + '.json'))
     rows = [(crate, source, log, 'rlib', f'users/lib{crate}.rlib')
             for crate, (source, log) in LIBRARIES.items()]
     rows.append(('os_user_m6c_probe', 'userspace/m6c_probe.rs', 'build-users-m6c_probe', 'bin', 'users/m6c_probe.elf'))
@@ -207,7 +224,7 @@ def snapshot_build(case, root, output, frozen):
     destination = output / 'artifacts' / case
     destination.mkdir(parents=True)
     names = {'manifest.json', 'users/manifest-m6c.json', 'users/m6c_probe.elf'} | set(LIBRARY_PATHS)
-    names.update('logs/' + log + suffix for log in [row[1] for row in LIBRARIES.values()] + ['build-users-m6c_probe']
+    names.update('logs/' + log + suffix for log in [row[1] for row in LIBRARIES.values()] + ['build-users-m6c_probe', 'build-sdk-zeroize']
                  for suffix in ('.json', '.stdout.txt', '.stderr.txt'))
     for name in sorted(names):
         original = regular(BUILD / name, BUILD, MAX_LOG if name.startswith('logs/') else MAX_ARTIFACT)

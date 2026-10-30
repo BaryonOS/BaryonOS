@@ -3,7 +3,8 @@
 `no_std`, allocatorvrij en safe Rust. Eén echte volume-DocumentSession voor
 lijst/open/create/UTF-8-edits en streaming-save; geen browserbroker of nagemaakte
 opslagstatus. Renderer met private 32×8-tegels, echte lowercase bitmapglyphs,
-100/200%-layout, keyboard/muisfocus en semantische rollen/status/selectie.
+100/200%-layout, keyboard/muisfocus en een begrensde app-lokale semantiekboom
+met stabiele node-ID's, ouderrelaties en expliciete actie-beschrijvingen.
 
 Deze library bevat geen native display-/inputtransport, compositorproces,
 schermlezer of volledige Materiaalomgeving. Alleen de kerneladapter mag input-
@@ -31,9 +32,12 @@ van **alle** tiles. Fout/onderbreking/nieuwe generatie laat repaint open. De
 eerste versie tekent het volledige frame opnieuw; er is geen latencyclaim of
 atomische pageflip. Root moet dit op het referentieprofiel meten/integreren.
 
-`Frame::semantics` levert een begrensde tree met rollen, namen, focus,
-read-only/enabled, tekstwaarde, byte-selectie en echte savevoortgang. Dit is
-voorbereiding voor een native toegankelijkheidsbroker, geen werkende schermlezer.
+`Frame::semantics` levert een begrensde tree met rollen, stabiele ID's,
+ouderrelaties, fysieke bounds, focus, read-only/enabled, tekstwaarde,
+byte-selectie en echte savevoortgang. `activate` en `set_value` beschrijven
+alleen welke UI-actie bij een node past; ze roepen niets aan en verlenen geen
+rechten. Dit is voorbereiding voor een native toegankelijkheidsbroker, geen
+IPC, werkende schermlezer of OS-brede toegankelijkheidsinterface.
 Fontfallback verandert nooit opgeslagen UTF-8. Codepointnavigatie is nog geen
 grapheme shaping, IME of algemene taal-/fontondersteuning.
 

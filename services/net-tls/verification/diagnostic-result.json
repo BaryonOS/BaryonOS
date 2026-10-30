@@ -1,0 +1,461 @@
+{
+  "schema_version": 1,
+  "case": "normal",
+  "source_commit": "7af60df90468e47e2c551022b799bed37ea55b96",
+  "source_fingerprint_version": 3,
+  "source_sha256": "e659fbc8117587fccbccfc641e6e3730cf0980a2f665607fea1480a5a1711347",
+  "kernel_feature": "native-system-tcp",
+  "started_utc": "2026-10-30T17:41:56.881405+00:00",
+  "duration_s": 2.5127689719993214,
+  "timeout_s": 30,
+  "raw_qemu_exit": 0,
+  "timed_out": false,
+  "command": [
+    "/home/simon/.copilot/session-state/defc5eed89f145008c39908421516de6/files/qemu-tcp-diagnostic/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/tcp-main94-regression/run/system-normal-a06babbb1f89497ab60b59c514d0ac3c/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/tcp-main94-regression/run/system-normal-a06babbb1f89497ab60b59c514d0ac3c/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/tcp-main94-regression/run/system-normal-a06babbb1f89497ab60b59c514d0ac3c/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build/tcp-main94-regression/run/system-image-6ad370d9124e4b7996b649cda783c7d9/volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-fw_cfg",
+    "name=opt/org.tianocore/VirtioNetSupport,string=no",
+    "-fw_cfg",
+    "name=opt/org.tianocore/IPv4Support,string=no",
+    "-fw_cfg",
+    "name=opt/org.tianocore/IPv6Support,string=no",
+    "-netdev",
+    "socket,id=net0,connect=127.0.0.1:45601",
+    "-device",
+    "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile="
+  ],
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "native-system-tcp",
+    "kernel_feature": "native-system-tcp",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "e659fbc8117587fccbccfc641e6e3730cf0980a2f665607fea1480a5a1711347",
+    "loader": {
+      "sha256": "0bfa2cbcccd921146b6de36cd4773e998dc85b0b1f718b5ca7bea5b4014ced59",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "10619b27ced3a57096817b52af3f11a0283029eebdee2446eda58fbc81659999",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 173735,
+          "memsz": 173735,
+          "page_start": 33554432,
+          "page_end": 33730560
+        },
+        {
+          "flags": 4,
+          "offset": 180224,
+          "address": 33730560,
+          "filesz": 474264,
+          "memsz": 474264,
+          "page_start": 33730560,
+          "page_end": 34205696
+        },
+        {
+          "flags": 6,
+          "offset": 655360,
+          "address": 34205696,
+          "filesz": 1262240,
+          "memsz": 4357680,
+          "page_start": 34205696,
+          "page_end": 38563840
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 173735
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 474264
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1262240
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3092016
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 8616
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 19302
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "system": {
+      "system_init": {
+        "sha256": "f0a750d89f842f5d5e1b6a92f7fb0e078b212c59e7570aea4cb6f814102022c4",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1256,
+              "memsz": 1256,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 1993,
+              "memsz": 1993,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 20514,
+              "memsz": 20514,
+              "page_start": 1073872896,
+              "page_end": 1073897472
+            }
+          ]
+        }
+      },
+      "system_app": {
+        "sha256": "27a22b2fd11771a6809d4341cf3d2fa0b6b8a64d04acb41a78b921f7180c9398",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 4669,
+              "memsz": 4669,
+              "page_start": 1073823744,
+              "page_end": 1073831936
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 20480,
+              "filesz": 52962,
+              "memsz": 52962,
+              "page_start": 1073872896,
+              "page_end": 1073926144
+            }
+          ]
+        }
+      },
+      "system_worker": {
+        "sha256": "79685907c427b779b6c1925fde545d0be7b7012ba4cae86e91bfec4b7e203aa1",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 306,
+              "memsz": 306,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1040,
+              "memsz": 1040,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 519,
+              "memsz": 519,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            }
+          ]
+        }
+      },
+      "keyring_service": {
+        "sha256": "1d80a446854b8ac63303adaebc1431efb14374cba0d54ad5b796f6ab62b4a789",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1344,
+              "memsz": 1344,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 4459,
+              "memsz": 4459,
+              "page_start": 1073823744,
+              "page_end": 1073831936
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 20480,
+              "filesz": 78775,
+              "memsz": 78775,
+              "page_start": 1073872896,
+              "page_end": 1073954816
+            }
+          ]
+        }
+      },
+      "volume_service": {
+        "sha256": "752679b570385ec0682251bcc2c501259c17a63f5bc9d47c5c46509d1ca773e2",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 57346,
+              "memsz": 57346,
+              "page_start": 1073741824,
+              "page_end": 1073803264
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 65536,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 69632,
+              "filesz": 18378,
+              "memsz": 18378,
+              "page_start": 1073823744,
+              "page_end": 1073844224
+            }
+          ]
+        }
+      },
+      "net_probe": {
+        "sha256": "6e278395ebe13f84d1621adc915ae3b2d5a458f920fe63b5da87f12ba538eefc",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1808,
+              "memsz": 1808,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 9728,
+              "memsz": 9728,
+              "page_start": 1073823744,
+              "page_end": 1073836032
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 24576,
+              "filesz": 42596,
+              "memsz": 42596,
+              "page_start": 1073872896,
+              "page_end": 1073917952
+            }
+          ]
+        }
+      }
+    }
+  },
+  "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/build/tcp-main94-regression/run/system-normal-a06babbb1f89497ab60b59c514d0ac3c",
+  "volume_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/build/tcp-main94-regression/run/system-image-6ad370d9124e4b7996b649cda783c7d9",
+  "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "after_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "firmware_sha256": {
+    "code": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "esp_sha256": {
+    "esp/kernel.elf": "10619b27ced3a57096817b52af3f11a0283029eebdee2446eda58fbc81659999",
+    "esp/EFI/BOOT/BOOTX64.EFI": "0bfa2cbcccd921146b6de36cd4773e998dc85b0b1f718b5ca7bea5b4014ced59"
+  },
+  "passed": false,
+  "network_gate": false,
+  "tcp_gate": false,
+  "error": "ValueError: system marker sequence mismatch: ['BOOT:EBS_OK', 'KERNEL:ENTRY', 'BOOTINFO:OK']",
+  "network_peer": {
+    "complete": false,
+    "counts": {
+      "client_frames": 0,
+      "server_frames": 0,
+      "arp_requests": 0,
+      "arp_replies": 0,
+      "syns": 0,
+      "syn_acks": 0,
+      "refusals": 0,
+      "resets_after_get": 0,
+      "first_syn_dropped": 0,
+      "retry_syns": 0,
+      "blackhole_syns": 0,
+      "blackhole_rsts": 0,
+      "corrupt_data_sent": 0,
+      "valid_data_sent": 0,
+      "http_requests": 0,
+      "valid_data_acks": 0,
+      "fins_sent": 0,
+      "client_fins_acked": 0
+    },
+    "cases": {},
+    "response_sha256": "d128fa1924be70f9e1f42e2a466e1e94123182b23b11110d273ced90cefda90b",
+    "corrupt_response_sha256": "b6e4fce18f6898242fd36cb7de9de98aa2bfb088d749dc031d8dbe1c677d0ed5",
+    "response_body_bytes": 20,
+    "events": [],
+    "kind": "synthetic TCP server only; not OS client or native proof",
+    "connected": true,
+    "error": null,
+    "rejected_frame": null,
+    "wire_frames_sent": 0,
+    "passed": false
+  },
+  "network_error": "ValueError: native joint-system/TCP profile did not pass"
+}

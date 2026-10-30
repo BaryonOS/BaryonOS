@@ -1,0 +1,123 @@
+name: NAS host, target and native normal/cold checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nas-core-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nas-workspace:
+    name: nas-${{ matrix.crate }}-host-target
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        crate: [native-core, native-volume, native-probe, native-client]
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/nas-ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Rust 1.90.0 and tools
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup component add --toolchain 1.90.0 rustfmt clippy
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none
+      - name: Fetch locked crate dependencies before offline checks
+        run: cargo +1.90.0 fetch --locked --manifest-path "services/nas/${{ matrix.crate }}/Cargo.toml"
+      - name: Host policy, failure injection, stack budget and bare-metal builds
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="services/nas/${{ matrix.crate }}/Cargo.toml"
+          cargo +1.90.0 test --offline --locked --manifest-path "$manifest"
+          cargo +1.90.0 test --offline --locked --release --manifest-path "$manifest" -- --nocapture
+          cargo +1.90.0 clippy --offline --locked --manifest-path "$manifest" --all-targets -- -D warnings
+          cargo +1.90.0 clippy --offline --locked --release --manifest-path "$manifest" --all-targets -- -D warnings
+          cargo +1.90.0 fmt --manifest-path "$manifest" --all -- --check
+          cargo +1.90.0 build --offline --locked --release --manifest-path "$manifest" --target x86_64-unknown-none
+          git diff --exit-code
+      - name: Native probe and existing volume ELF inspection (not execution)
+        if: matrix.crate == 'native-probe'
+        env:
+          NOS_BUILD_DIR: build/nas-ci
+        run: |
+          cargo +1.90.0 clippy --offline --locked --release --manifest-path services/nas/native-probe/Cargo.toml --features native --bins --target x86_64-unknown-none -- -D warnings
+          python3 -B services/nas/native-probe/build.py
+          git diff --exit-code
+      - name: Fixed NAS disk oracle host negatives (not guest execution)
+        if: matrix.crate == 'native-probe'
+        run: python3 -B -m unittest discover -s services/nas/native-probe/tests -p 'test_disk_oracle.py' -v
+      - name: Native build and runner host regressions (not guest execution)
+        if: matrix.crate == 'native-probe'
+        run: |
+          python3 -B -m unittest discover -s tests -p 'test_nas_build.py' -v
+          python3 -B -m unittest discover -s tests -p 'test_nas_runner.py' -v
+      - name: Evidence boundary
+        run: |
+          echo 'Host tests and crosscompilation only; no native NAS, TLS, E2EE or P01-P04 acceptance.' >> "$GITHUB_STEP_SUMMARY"
+
+  nas-native-normal-cold:
+    name: nas-native-normal-cold
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/nas-native-ci
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/nas-native-ci
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/nas-native-ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Rust 1.90.0 and actual native targets
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Disposable QEMU and matching OVMF package
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+      - name: Strict preflight and exact checkout identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$NOS_BUILD_DIR"
+          git rev-parse HEAD > "$NOS_BUILD_DIR/source-commit.txt"
+          python3 -B tools/preflight.py --strict > "$NOS_BUILD_DIR/preflight.json"
+      - name: Fetch locked dependencies before offline native builders
+        run: |
+          cargo +1.90.0 fetch --locked
+          cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml
+          cargo +1.90.0 fetch --locked --manifest-path services/nas/native-probe/Cargo.toml
+      - name: Actual normal guest and same-source read-only cold recovery
+        env:
+          CARGO_NET_OFFLINE: "true"
+        run: python3 -B -u tools/test_nas.py
+      - name: Preserve source-bound native results and failed-run evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: nas-native-normal-cold-evidence
+          path: |
+            build/nas-native-ci/source-commit.txt
+            build/nas-native-ci/preflight.json
+            build/nas-native-ci/nas-system-gate.json
+            build/nas-native-ci/manifest.json
+            build/nas-native-ci/logs/
+            build/nas-native-ci/users/nas/build-report.json
+            build/nas-native-ci/esp/
+            build/nas-native-ci/run/nas-*/
+          if-no-files-found: error

@@ -1,0 +1,37 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/system-system"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/system-keyring"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/system-volume"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/examples/random-probe/Cargo.toml", "--features", "native", "--bin", "random-probe", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/random-probe-app", "scope": "native target ELF only, not a running RANDOM acceptance"}
+   Compiling zeroize v1.9.1
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/runtime)
+   Compiling nieuw-os-keyring-random-client v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/keyring-random-client)
+error[E0080]: evaluation panicked: assertion failed: !core::mem::needs_drop::<Received>()
+   --> /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/keyring-random-client/src/lib.rs:350:13
+    |
+350 |     const { assert!(!core::mem::needs_drop::<Received>()) };
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `wipe_received::{constant#1}` failed here
+
+note: erroneous constant encountered
+   --> /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/keyring-random-client/src/lib.rs:350:5
+    |
+350 |     const { assert!(!core::mem::needs_drop::<Received>()) };
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0080`.
+error: could not compile `nieuw-os-keyring-random-client` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+Traceback (most recent call last):
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/tools/build.py", line 361, in <module>
+    build(args.loader_feature, args.kernel_feature, args.loader_feature or args.kernel_feature or "normal",
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          args.image_version)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/tools/build.py", line 230, in build
+    run_logged([sys.executable,"-B",str(ROOT / f"sdk/examples/{package}/build.py")],"build-system-"+package,extra_env={"CARGO_TARGET_DIR":str(probe_target)})
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/tools/common.py", line 116, in run_logged
+    raise subprocess.CalledProcessError(result.returncode, args)
+subprocess.CalledProcessError: Command '['/usr/bin/python3', '-B', '/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/examples/random-probe/build.py']' returned non-zero exit status 101.

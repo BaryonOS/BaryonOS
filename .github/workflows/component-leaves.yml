@@ -1,0 +1,81 @@
+name: Component leaf quality
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: component-leaves-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  component-quality:
+    name: component-quality (${{ matrix.component }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: artifact-store
+            manifest: crates/artifact-store-core/Cargo.toml
+            toolchain: "1.90.0"
+          - component: ai-model-reader
+            manifest: experiments/ai/model-store-contract/Cargo.toml
+            toolchain: "1.90.0"
+          - component: image-viewer
+            manifest: sdk/examples/image-viewer/Cargo.toml
+            toolchain: "1.90.0"
+          - component: virtio-snd
+            manifest: drivers/virtio-snd/Cargo.toml
+            toolchain: "1.90.0"
+          - component: acpi-power
+            manifest: drivers/acpi-power/Cargo.toml
+            toolchain: "1.90.0"
+          - component: usb
+            manifest: drivers/usb/Cargo.toml
+            toolchain: "1.90.0"
+          - component: materiaal-ui
+            manifest: ui/native/Cargo.toml
+            toolchain: "1.90.0"
+          - component: net-config
+            manifest: services/net-config/Cargo.toml
+            toolchain: "1.91.1"
+    env:
+      RUST_TOOLCHAIN: ${{ matrix.toolchain }}
+      COMPONENT_MANIFEST: ${{ matrix.manifest }}
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/component-leaves/${{ matrix.component }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain and target
+        run: |
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+          rustup component add --toolchain "$RUST_TOOLCHAIN" rustfmt clippy
+          rustup target add --toolchain "$RUST_TOOLCHAIN" x86_64-unknown-none
+      # net-config and its existing net-stack dependency require Rust 1.91.
+      # net-broker-quality.yml runs net-stack's own host tests and Clippy.
+      # Default tests include virtio-snd's cfg(test) transport model.
+      # ACPI's ignored firmware-fixture test requires a separate QEMU gate.
+      - name: Host unit, integration and documentation tests
+        run: cargo "+$RUST_TOOLCHAIN" test --locked --manifest-path "$COMPONENT_MANIFEST"
+      - name: Clippy for all targets
+        run: cargo "+$RUST_TOOLCHAIN" clippy --locked --manifest-path "$COMPONENT_MANIFEST" --all-targets -- -D warnings
+      - name: Formatting
+        run: cargo "+$RUST_TOOLCHAIN" fmt --manifest-path "$COMPONENT_MANIFEST" -- --check
+      - name: Freestanding scalar library build (not native execution)
+        env:
+          RUSTFLAGS: -C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2
+        run: cargo "+$RUST_TOOLCHAIN" build --locked --release --lib --target x86_64-unknown-none --manifest-path "$COMPONENT_MANIFEST"

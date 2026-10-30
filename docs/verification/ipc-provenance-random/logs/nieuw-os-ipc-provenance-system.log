@@ -1,0 +1,30 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/system-system"}
+    Finished `release` profile [optimized] target(s) in 0.02s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/system-keyring"}
+    Finished `release` profile [optimized] target(s) in 0.02s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/system-volume"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.02s
+    Finished `release` profile [optimized] target(s) in 0.01s
+Built and inspected native-system: 3 ELF load segments
+SYSTEM normal: passed=True raw=33 duration=3.3s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/system-normal-5d10610c4afd423e8b60bffdef0ae847
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/system-system"}
+    Finished `release` profile [optimized] target(s) in 0.02s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/system-keyring"}
+    Finished `release` profile [optimized] target(s) in 0.02s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/system-volume"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+Built and inspected test-system-recover: 3 ELF load segments
+SYSTEM recover: passed=True raw=33 duration=3.5s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/system-recover-0207f75111ed4541a82d9abf0bd9f053
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/system-system"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/system-keyring"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/system-volume"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+Built and inspected native-system: 3 ELF load segments
+FR-I01 gate passed=True stages=2 /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/system-gate.json

@@ -1,0 +1,41 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/keyring"}
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/runtime)
+   Compiling nieuw-os-keyring-example v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/examples/keyring)
+    Finished `release` profile [optimized] target(s) in 0.52s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/kernel)
+    Finished `release` profile [optimized] target(s) in 0.70s
+Built and inspected native-keyring: 3 ELF load segments
+B01 normal: passed=True raw=33 duration=2.1s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/keyring-normal-4353f9eb94
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/keyring"}
+    Finished `release` profile [optimized] target(s) in 0.02s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/kernel)
+    Finished `release` profile [optimized] target(s) in 0.67s
+Built and inspected test-keyring-no-device: 3 ELF load segments
+B01 no-device: passed=True raw=33 duration=2.0s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/keyring-no-device-be08aae69c
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/keyring"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/kernel)
+    Finished `release` profile [optimized] target(s) in 0.74s
+Built and inspected test-keyring-stuck: 3 ELF load segments
+B01 stuck: passed=True raw=33 duration=2.0s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/keyring-stuck-c42c579187
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/keyring"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/kernel)
+    Finished `release` profile [optimized] target(s) in 0.68s
+Built and inspected test-keyring-timeout: 3 ELF load segments
+B01 timeout: passed=True raw=33 duration=2.7s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/keyring-timeout-1597fad84f
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/target/keyring"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/kernel)
+    Finished `release` profile [optimized] target(s) in 0.75s
+Built and inspected test-keyring-restart: 3 ELF load segments
+B01 restart: passed=True raw=33 duration=2.1s /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/build/run/keyring-restart-ee81e260af
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+Built and inspected normal: 3 ELF load segments
+B01 gate passed=True stages=5

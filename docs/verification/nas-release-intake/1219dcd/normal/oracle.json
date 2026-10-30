@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "oracle": "NAS-IPC-PROBE-1-fixed-end-state",
+  "image_sha256": "2970ee1518bc129cc374669b4382dbc0a4880f149b69c0850cd5b92b7ef20d95",
+  "volume_generation": 11,
+  "core_generation": 6,
+  "status": "Evicted",
+  "epoch": 2,
+  "quota": 128,
+  "stored_ciphertext_bytes": 0,
+  "authority_history_versions": 0,
+  "scope_canaries_valid": true,
+  "cold_disk_unchanged": null,
+  "guest_execution": "not-assessed"
+}

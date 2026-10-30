@@ -169,6 +169,50 @@ updates van gebruikersprogramma's of pakketten (A02), geen netwerkdistributie
 (N-spoor), geen fysieke schijf of stroomuitval (een emulator-kill is iets
 anders).
 
+## Vervolg B03-KEY-POLICY-1 — versiegebonden ondertekeningsautoriteit
+
+30 oktober 2026, basis `0ade8014`. Doel: bekende maar ingetrokken,
+te vroeg gebruikte of buiten hun releasevenster gebruikte sleutelparen
+weigeren in loader én update-dienst, en een vooraf vastgepinde opvolger
+installeren/herstarten. Schrijfgebied: `crates/update-core`, signed loader,
+update-service, uitsluitend updatefoutnamen in kernelobserver, signingtool,
+updateharnas/-fixtures, CI-stagenaam en bijbehorende documentatie. Geen
+keyring-/TPM-/NAS-interface of nieuwe dependency.
+
+Invariant: één exact Ed25519/ML-DSA-65-paar moet in de door de vertrouwde
+code geleverde `TrustPolicy` staan, niet ingetrokken zijn, beide handtekeningen
+moeten verifiëren en de geauthenticeerde releaseversie moet binnen het
+inclusieve venster liggen. De tabel bevat 1–8 paren; lege tabellen, ongeldige
+vensters en dubbele ID-paren falen volledig met `KEY_POLICY`. Geen first-match-
+omweg om een ingetrokken paar opnieuw toe te laten. Gewijzigde versiebytes
+falen op handtekening vóór vensteracceptatie. Intrekking is onvoorwaardelijk.
+
+`policy::Signer` bevat `anchors`, `first_version`, `last_version`, `revoked`;
+`TrustPolicy::new(&[Signer])` valideert de tabel; `verify_manifest` retourneert
+alleen volledig geautoriseerde manifests. De oude top-level verifier blijft
+een expliciete cryptografische primitief voor de signingtool/tests, niet
+het native autorisatiepad. Loader en dienst roepen exact dezelfde
+`test_policy::verify_manifest` aan, met de zichtbaar openbare fixtures uit
+`tools/update-keys`. Nieuwe foutnamen/codes: `KEY_REVOKED`/7,
+`KEY_EXPIRED`/8, `KEY_NOT_YET_VALID`/9 en `KEY_POLICY`/10.
+
+Acceptatie: 6 nieuwe echte cryptografische hosttests, bestaande toolrondgang,
+harnasnegatieven en de volledige `tools/test_update.py`-poort (18 stages).
+De vijf extra stages zijn rotatie-installatie, koude boot met het opvolgerpaar
+op dezelfde disk/OVMF-state, en drie gevallen waarin loader én dienst
+respectievelijk revoked/expired/not-yet-valid afwijzen. De drie weigeringen
+vereisen 0 writes/flushes en een byte-identieke slotdisk; de rotatie vereist
+exact het opvolgermanifest op schijf en behoud van het oorspronkelijke slot.
+
+Bewijsgrens: versievensters zijn geen kalenderverval. Er is geen vertrouwde
+kalenderklok, online intrekkingslijst, geauthenticeerde beleidsupdate, automatische
+verwijdering van het bestaande TEST-paar of productieherstel-/rotatieceremonie.
+Een aanvaller met een nog toegestane sleutel kan nog steeds een toegestane
+release ondertekenen. Rollback van de loader/beleidstabel zelf blijft B04;
+de UEFI-vloeraannames van B03 blijven gelden. Geen sluiting van #41 of nieuwe
+rubricpunten op alleen deze implementatie. Uitvoering volgt in het eigen
+brongebonden bewijsrapport; deze sectie is het contract, niet het verdict.
+
 ## 8. Afwijkingen tijdens implementatie
 
 - **Slotgrootte 2 MiB.** Een kernelimage met ingesloten ring-3-programma's is

@@ -17,6 +17,7 @@ pub mod clock;
 pub mod entropy;
 pub mod memory;
 pub mod network;
+pub mod tls_time;
 pub use network::{NetworkSource, NET_FRAME_MAX};
 
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]

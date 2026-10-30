@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-30",
+  "kind": "Door de manager uitgevoerde gerichte hosttests",
+  "source_commit": "bef94615244f639a4df3934f54565551a6f0dc37",
+  "pull_request": 77,
+  "isolation": "Afzonderlijke detached Git-worktree, schoon vóór de gerichte tijdelijke verwijdering",
+  "command": "python3 -B -m unittest tools.tests.test_materiaal_cold",
+  "exit_status": 0,
+  "test_count": 14,
+  "unittest_seconds": 2.776,
+  "time_real_seconds": 2.87,
+  "time_user_seconds": 2.64,
+  "time_sys_seconds": 0.23,
+  "local_log_basename": "teamleader-cold77-tests.log",
+  "native_guest_execution": false,
+  "full_original_artifact_replay": false,
+  "scope": "Alleen bestaande gerichte hosttests; geen code-reviewgoedkeuring of releaseacceptatie",
+  "status_scope": "Historische momentopnamen van managerhosttests; onderstaande eerdere pending-statussen beschrijven die momentopnamen, niet de huidige PR-afhandeling.",
+  "source_fix_status": "Gesloten op 7d66dc2744604d8119b8366a283dc10ea1a76000 na gerichte bronreview en 16 managerhosttests",
+  "native_repetition_status": "Niet uitgevoerd door de manager; later eigenaarsbewijs is gerapporteerd op bffe11fbc8c90d0e43b784c0a4ab580a111c12cc",
+  "merge_approval_status": "Niet verleend door dit rapport; review van de actuele head en de vereiste gates blijven de verantwoordelijkheid van de integrator",
+  "followup_fix_execution": {
+    "source_commit": "7d66dc2744604d8119b8366a283dc10ea1a76000",
+    "command": "python3 -B -m unittest tools.tests.test_materiaal_cold",
+    "exit_status": 0,
+    "test_count": 16,
+    "unittest_seconds": 3.772,
+    "time_real_seconds": 3.87,
+    "time_user_seconds": 3.57,
+    "time_sys_seconds": 0.3,
+    "local_log_basename": "teamleader-cold77-fix-tests.log",
+    "temporary_clean_worktree_removed": true,
+    "native_guest_execution": false,
+    "reviewer_followup": "Beide bronbevindingen zijn gesloten binnen de gerichte fixdelta; geen resterende concrete bevinding gerapporteerd en geen mergegoedkeuring",
+    "new_native_source_fingerprint": "949ce3abc8df4af3ed4cc29fd41e10ee0621e4f270ddf4ac2aafb3bacba9a901",
+    "same_source_native_repetition": "Open ten tijde van deze hosttestmomentopname; later eigenaarsbewijs is gerapporteerd op bffe11fbc8c90d0e43b784c0a4ab580a111c12cc, geen gastrun door de manager"
+  },
+  "separate_review_findings": [
+    {
+      "reviewer_session": "7f895683-fc79-48d0-a98a-aa0a6ccfe8b9",
+      "severity": "medium",
+      "file": "tools/run_materiaal_cold.py",
+      "lines": "148-189,206-207",
+      "issue": "Laatste serial-bytes vereisen PANIC/FAIL-controle na procesexit, naast hashing",
+      "status": "Bronfix gesloten op 7d66dc2; manager voerde 16 gerichte hosttests uit, geen native gate of mergegoedkeuring"
+    },
+    {
+      "reviewer_session": "7f895683-fc79-48d0-a98a-aa0a6ccfe8b9",
+      "severity": "medium",
+      "file": "tools/materiaal_cold.py",
+      "lines": "98-108,125-146",
+      "issue": "Herhaling van de parent-run vereist hashes van de werkelijke onveranderlijke firmwarebytes, naast gelijkheid van de firmwaredictionary",
+      "status": "Bronfix gesloten op 7d66dc2; vier negatieve wijzigingen aan onveranderlijke bestanden en één positieve controle van wijzigbare VARS opgenomen, geen native gate of mergegoedkeuring"
+    }
+  ],
+  "limitations": [
+    "Het oorspronkelijke resultaat van 14 tests bewees geen dekking van de twee nieuwe bevindingen; de vervolgregistratie legt de bijgewerkte suite afzonderlijk vast.",
+    "Reviewbevindingen volgen uit bronlezing; zij zijn geen reproductie door de manager of bewijs dat de opgeslagen gastrun mislukte.",
+    "De twee bronfixes en hun gerichte hostregressies zijn gesloten op 7d66dc2; dit managerhostrapport bewijst geen native uitvoering en mergegoedkeuring blijft afzonderlijk.",
+    "Geen native bronvingerafdruk of historische artifacthash is herlabeld.",
+    "Geen bewijs voor een gecontroleerd gastafsluitpad, stroomuitval tijdens schrijven, koude Windows-herstart, reproduceerbare bytes of volledige productacceptatie."
+  ],
+  "source_metadata": [
+    {
+      "source_commit": "7d66dc2744604d8119b8366a283dc10ea1a76000",
+      "title": "Reject late cold guest failures and changed parent firmware",
+      "author": "S.W.J.B.M. van Ieperen",
+      "source_date": "2026-10-30T17:37:00Z",
+      "url": "https://github.com/simonvanieperen/nieuw-os/commit/7d66dc2744604d8119b8366a283dc10ea1a76000"
+    },
+    {
+      "source_commit": "bffe11fbc8c90d0e43b784c0a4ab580a111c12cc",
+      "title": "Record same-source cold reviewfix native gates and firmware negatives",
+      "author": "S.W.J.B.M. van Ieperen",
+      "source_date": "2026-10-30T17:43:36Z",
+      "url": "https://github.com/simonvanieperen/nieuw-os/commit/bffe11fbc8c90d0e43b784c0a4ab580a111c12cc"
+    }
+  ]
+}

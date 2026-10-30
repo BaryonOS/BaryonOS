@@ -1,0 +1,334 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-30",
+  "repository": "simonvanieperen/nieuw-os",
+  "scope": "Frozen-source pull request integration; component evidence is distinct from native product acceptance",
+  "base_main": "d791a342cc3bdb107245692f2f542d88d5fda7f1",
+  "inputs": [
+    {
+      "pr": 68,
+      "head": "5f8bc2ffde31d47f5b63f0ec0e5e91358c80c113",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/68",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 71,
+      "head": "9923c9b4dbb9848d58cc0be71777f4127648fe2d",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/71",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 72,
+      "head": "10dbefcc44a23e5acffa7abe481b448670c16388",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/72",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 73,
+      "head": "dce3b05aa358f4dbde6f2349b426217779b40052",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/73",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 74,
+      "head": "4db90e1e64efc6063943cfa5745efc9077f8496d",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/74",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 75,
+      "head": "c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/75",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 76,
+      "head": "67dab7419ca89826a461fc32feb77241f1534d19",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/76",
+      "included": true,
+      "disposition": "already squash-merged on main"
+    },
+    {
+      "pr": 77,
+      "head": "bffe11fbc8c90d0e43b784c0a4ab580a111c12cc",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/77",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 78,
+      "head": "8d9e99244ba99499d4296e5df4232023e0f6dcd3",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/78",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 79,
+      "head": "e79e3b17edb48495d68396620ef0fcb1ed551a04",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/79",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 80,
+      "head": "bc27ed0f20097a68c9bfdfeecc8867c7e7721211",
+      "base_branch": "codex/apps-sdk-packages",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/80",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 81,
+      "head": "4a0ce99ff6b88adcd0e2c6be0571b30390d8d1c8",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/81",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 82,
+      "head": "b51a8093320e6182afce9b189e89760fc8c99116",
+      "base_branch": "simon/native-artifact-store-contract",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/82",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 83,
+      "head": "032ce74420fdd7cd56c5165bd49e701f39361841",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/83",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 84,
+      "head": "734c8fc587edffba746ef470212bb751e6537b29",
+      "base_branch": "codex/app-management-catalog-leaf",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/84",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 86,
+      "head": "9175c18948176cfdb76bd68c86b20a3adb6b893c",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/86",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 87,
+      "head": "6ef733a1a2a361f6002dfcac966bbe41fc9f4ca6",
+      "base_branch": "simonvanieperen-native-tls-port",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/87",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 88,
+      "head": "9349fc962a77253a3112f8dbc3b8f06995c71a93",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/88",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 89,
+      "head": "f55f40c525d906b87ab31103a4fa23d2be906d26",
+      "base_branch": "simon/native-ai-root-adapter-20261101",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/89",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 90,
+      "head": "830cdfec88b8fb29cf86fc57e6a10ae33a2532bc",
+      "base_branch": "simonvanieperen-native-tls-port",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/90",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 91,
+      "head": "49b27e3e6a328bf08f465c869a0fe1301e12d83b",
+      "base_branch": "simonvanieperen/h03-virtio-snd-transport-contract",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/91",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 92,
+      "head": "1490b77ac4afe64b87a36a77c29ec50b8d8f301e",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/92",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 93,
+      "head": "cebaa6f706d746cd557fbd157776f42ce4247578",
+      "base_branch": "simonvanieperen-legendary-broccoli",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/93",
+      "included": false,
+      "disposition": "excluded: missing previous-boot native handoff"
+    },
+    {
+      "pr": 94,
+      "head": "557b85e26372cf3809c0760d40b430ec5ef7cc6b",
+      "base_branch": "main",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/94",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    },
+    {
+      "pr": 95,
+      "head": "dd381632995998cbfb810fc30719fdfbd70920b8",
+      "base_branch": "simonvanieperen-legendary-broccoli",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/95",
+      "included": true,
+      "disposition": "included at this exact source; later updates require separate review"
+    }
+  ],
+  "already_merged": [
+    {
+      "pr": 85,
+      "sha": "9a6703d339f9248fc58d470523644193ec92cd45",
+      "head": "72f6668d313ab39a25f952abd6456d5e5e8db95e"
+    },
+    {
+      "pr": 76,
+      "sha": "d791a342cc3bdb107245692f2f542d88d5fda7f1",
+      "head": "67dab7419ca89826a461fc32feb77241f1534d19"
+    }
+  ],
+  "excluded": [
+    {
+      "number": 93,
+      "head": "cebaa6f706d746cd557fbd157776f42ce4247578",
+      "reason": "Native cold replay now requires exact boot-1 Session/Upload at startup words 256..336; the current kernel/runner from PR83 supplies no authenticated private handoff. Including the new guest would fail native cold acceptance. No stub or oracle relaxation."
+    }
+  ],
+  "review_fixes": [
+    {
+      "pr": 68,
+      "issue": "Semantic row capacity could panic at the eighth domain",
+      "regression": "800x720 viewport emits 15 semantic nodes",
+      "source": "5f8bc2ffde31d47f5b63f0ec0e5e91358c80c113"
+    },
+    {
+      "pr": 71,
+      "issue": "NAS verification sizes and historical source binding",
+      "source": "9923c9b4dbb9848d58cc0be71777f4127648fe2d"
+    },
+    {
+      "pr": 72,
+      "issue": "Direct rustc runtime build omitted the exact zeroize dependency and signed-update CI lacked locked prefetch",
+      "source": "10dbefcc44a23e5acffa7abe481b448670c16388"
+    },
+    {
+      "pr": 76,
+      "issue": "Copy regression needed observable premature begin",
+      "source": "67dab7419ca89826a461fc32feb77241f1534d19"
+    },
+    {
+      "pr": 78,
+      "issue": "Read boundary assertion did not prove the final-byte clamp",
+      "source": "8d9e99244ba99499d4296e5df4232023e0f6dcd3"
+    },
+    {
+      "pr": 91,
+      "issue": "Failed revoke fence could retain Running state",
+      "source": "49b27e3e6a328bf08f465c869a0fe1301e12d83b"
+    },
+    {
+      "pr": 92,
+      "source": "1490b77ac4afe64b87a36a77c29ec50b8d8f301e",
+      "issues": [
+        "Geannuleerde verbinding kon bij routewissel oude ARP/TCP-acties publiceren",
+        "Een IP-conflict tijdens een pending DHCP-routewissel werd niet afgewezen"
+      ],
+      "regressions": {
+        "before_exit": [
+          101,
+          101
+        ],
+        "after_config_tests": 28,
+        "after_net_stack_tests": 25,
+        "clippy_exit": 0,
+        "fmt_exit": 0,
+        "freestanding_build_exit": 0
+      },
+      "native_dhcp_execution": false
+    }
+  ],
+  "dependency_integration": {
+    "root": "Preserve all 80 main package records and add the two local component packages",
+    "runtime_locks": [
+      "services/net-tls/Cargo.lock",
+      "services/nas/native-probe/Cargo.lock",
+      "sdk/examples/image-viewer/Cargo.lock",
+      "sdk/app-management/Cargo.lock"
+    ],
+    "sdk_merged_host_tests": 26
+  },
+  "conflict_paths": [
+    "Cargo.lock",
+    "Cargo.toml",
+    "README.md",
+    "docs/DECISIONS.md",
+    "docs/PROJECT-STATE.md",
+    "docs/WORK-QUEUE.md",
+    "docs/progress.json",
+    ".github/workflows/signed-updates.yml",
+    "docs/implementation/APP-PACKAGES.md",
+    "sdk/app-management/src/lib.rs",
+    ".github/workflows/nas-core.yml",
+    "services/nas/native-probe/verification/README.md",
+    "services/nas/native-volume/tests/volume.rs",
+    "services/nas/native-volume/verification/README.md",
+    "sdk/app-management/src/protocol.rs"
+  ],
+  "score": {
+    "before": 34,
+    "after": 34,
+    "rubric_changed": false,
+    "acceptance_changed": false
+  },
+  "acceptance_boundaries": [
+    "No claim of full FR acceptance, 100 cold starts, 24-hour endurance, physical hardware or human audit",
+    "Native NAS normal/cold CI must pass on the actual combined source before merge",
+    "PR93 excluded because real previous-boot token/startup binding is missing",
+    "Historical DEV1 failure and later build-only freeze are retained without a native success claim"
+  ],
+  "review_tools": {
+    "github_coderabbit": "Existing review threads inspected and concrete fixes applied; fresh integration review to be checked",
+    "cli": "Agent authentication unavailable: environment_unsupported; no CLI review claimed"
+  },
+  "checks_at_creation": "Local component tests are source-bound. Full combined GitHub Actions and merge approval are still pending.",
+  "local_sdk_validation": {
+    "source_snapshot": "exacte Git-blobs uit vastgelegde PR-bronnen plus samengevoegde SDK lib/protocol",
+    "tests_passed": 26,
+    "test_exit": 0,
+    "clippy_exit": 0,
+    "fmt_exit": 0,
+    "guest_execution": false,
+    "lock_change": "alleen zeroize 1.9.1 plus runtime-afhankelijkheid; overige pakketrecords gelijk"
+  }
+}

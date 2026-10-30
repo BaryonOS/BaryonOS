@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "9c4af2f8838bd87c7c9646ebd93f3efe2e4dd552599dc3aa9a053235d2591492",
+  "test_inputs": {
+    "sdk/examples/tcp-probe/test_peer.py": "8bed9ba193b2fb3d41ff0d96d58aebe733e085c1aafa649e96a3f4cc711af919",
+    "tests/test_net_peer.py": "302dd2c127a677c648b5f43e1403e828f6012a774e4d459273f3dd738040cb7e",
+    "tests/test_system_capture.py": "3e0040ae69064f451e03cc725552e287066f8a9fb852378f41d2a53458442f27",
+    "tests/test_system_harness.py": "4089e4a4e3445d07094f312045616b8a286dc95d797736c4e7198fea0312e223",
+    "tests/test_tcp_harness.py": "dd353f61391e579ce5ef53b94ea9514fb2657c09a41c0dd96d33991b6e746303",
+    "tests/test_tcp_transcript.py": "c45082f8eef980c88c4f8694a7a263222db5977fdd9afc177068021521c16ea6"
+  },
+  "status": "completed",
+  "passed": true,
+  "host": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_system_*.py"
+      ],
+      "exit": 0,
+      "stdout": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/nas-default-regression/logs/system-host-0.stdout.txt",
+      "stderr": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/nas-default-regression/logs/system-host-0.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "stdout": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/nas-default-regression/logs/system-host-1.stdout.txt",
+      "stderr": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/nas-default-regression/logs/system-host-1.stderr.txt"
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "passed": true,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/nas-default-regression/run/system-normal-39dd85f6767944f2b9b3bc81962fc680",
+      "raw_qemu_exit": 33,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "d284671fca969ba29d43629fa3e9b311139280a80304639b4950154548ccfe6b",
+      "duration_s": 3.6844722969981376
+    },
+    {
+      "case": "recover",
+      "passed": true,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/nas-default-regression/run/system-recover-ce28c60212554d40a7af3065231f08bd",
+      "raw_qemu_exit": 33,
+      "before_sha256": "d284671fca969ba29d43629fa3e9b311139280a80304639b4950154548ccfe6b",
+      "after_sha256": "d284671fca969ba29d43629fa3e9b311139280a80304639b4950154548ccfe6b",
+      "duration_s": 3.855463537001924
+    }
+  ],
+  "final_kernel_sha256": "6a5fc8418579d94e545e37bb01a74ebac13ad3c50a0171fe15e699c48dcabdf0",
+  "final_manifest": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/nas-default-regression/manifest.json"
+}

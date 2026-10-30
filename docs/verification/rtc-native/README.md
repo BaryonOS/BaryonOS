@@ -30,7 +30,7 @@ De D/NMI-Enabled-startselectie is expliciet eigen platformbeleid, geen
 teruggelezen firmwaretoestand. Herstel wordt met de echte D-dataread zonder
 reselectie gecontroleerd; NMI-policy is een code-invariant, geen fysiek gemeten
 garantie. Er is geen algemene I/O-capability of productiekloksyscall toegevoegd.
-Zie [contract](../../implementation/RTC-WALLTIME.md) en ADR-049.
+Zie [contract](../../implementation/RTC-WALLTIME.md) en ADR-057.
 
 ## Werkelijk uitgevoerde controles
 
