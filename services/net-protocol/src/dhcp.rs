@@ -22,6 +22,21 @@ pub enum MessageType {
     Nak,
 }
 
+#[derive(Clone, Copy)]
+enum RequestType {
+    Discover,
+    Request,
+}
+
+impl RequestType {
+    const fn option_code(self) -> u8 {
+        match self {
+            Self::Discover => 1,
+            Self::Request => 3,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {
     Truncated,
@@ -319,6 +334,7 @@ fn build_request(
     elapsed_seconds: u16,
     client_address: [u8; 4],
     broadcast: bool,
+    request_type: RequestType,
     selected: Option<([u8; 4], [u8; 4])>,
 ) -> Result<usize, Error> {
     if !valid_mac(mac) {
@@ -348,12 +364,7 @@ fn build_request(
     output[BOOTP_BYTES..OPTIONS_OFFSET].copy_from_slice(&COOKIE);
 
     let mut cursor = OPTIONS_OFFSET;
-    put_option(
-        output,
-        &mut cursor,
-        53,
-        &[if selected.is_some() { 3 } else { 1 }],
-    );
+    put_option(output, &mut cursor, 53, &[request_type.option_code()]);
     let mut client_identifier = [1; 7];
     client_identifier[1..].copy_from_slice(&mac);
     put_option(output, &mut cursor, 61, &client_identifier);
@@ -388,6 +399,7 @@ pub fn build_discover(
         elapsed_seconds,
         [0; 4],
         true,
+        RequestType::Discover,
         None,
     )
 }
@@ -411,6 +423,7 @@ pub fn build_selecting_request(
         elapsed_seconds,
         [0; 4],
         true,
+        RequestType::Request,
         Some((requested_address, server_identifier)),
     )
 }
@@ -434,6 +447,7 @@ pub fn build_renewal_request(
         elapsed_seconds,
         client_address,
         false,
+        RequestType::Request,
         None,
     )
 }
