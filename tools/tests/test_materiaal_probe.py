@@ -20,7 +20,7 @@ from test_display_probe import user_elf
 def snapshots(case="normal"):
     values=[]
     for i,name in enumerate(d.PHASES[case],1):
-        ready=name == "ready";editor=name == "editor";saved=case == "normal" and name in ("saved","list","reopened")
+        ready=name == "ready";editor=name == "editor";saved=case in d.WRITABLE_CASES and name in ("saved","list","reopened")
         length=0 if ready or editor else len(d.TEXT)
         keycount=i*8;mouse=6 if case == "normal" and i>1 else 0
         v=dict(READY=1,PRESENTED_GEN=i,FRAMES=i,TILES=i*d.TILES,KEYS=keycount,MOUSE=mouse,
@@ -40,7 +40,7 @@ def serial(case="normal"):
         prefixes.append(text.encode())
     text+="MATERIAAL:F12_BARRIER:00000000000000000001\nMATERIAAL:CONTROLLER:RELEASED\n"
     for slot in (3,0,7):text+=f"MATERIAAL:EXIT_SLOT:{slot:020d}\nMATERIAAL:EXIT_CODE:{0:020d}\nMATERIAAL:EXIT_STEP:{0:020d}\n"
-    values=dict(DISK_READS=30,DISK_WRITES=12 if case == "normal" else 0,DISK_FLUSHES=2 if case == "normal" else 0,LIVE_PROCESSES=0,LIVE_HANDLES=0,FRAMES_RECOVERED=1)
+    values=dict(DISK_READS=30,DISK_WRITES=12 if case in d.WRITABLE_CASES else 0,DISK_FLUSHES=2 if case in d.WRITABLE_CASES else 0,LIVE_PROCESSES=0,LIVE_HANDLES=0,FRAMES_RECOVERED=1)
     text+="".join(f"MATERIAAL:{name}:{values[name]:020d}\n" for name in d.FINAL_FIELDS)+"\n".join(d.END)+"\n"
     return text.encode(),prefixes
 
@@ -121,6 +121,16 @@ class GrammarTests(unittest.TestCase):
             bad=copy.deepcopy(trace);bad[-1]["response"]={"error":{"class":"Failure"},"id":len(trace)}
             with self.assertRaises(ValueError):d.validate_qmp(bad,directory,case)
 
+    def test_keyboard_case_reaches_the_same_document_stages_without_pointer_events(self):
+        directory=Path("/owned/generated/run")
+        groups=d.qmp_groups(directory,"keyboard")
+        self.assertEqual([name for name,_ in groups],["ready","editor","dirty","saved","list","reopened","close"])
+        requests=[request for _,group in groups for request in group]
+        self.assertFalse(any(request["execute"] == "input-send-event" for request in requests))
+        self.assertEqual(groups[1][1][0]["arguments"]["keys"],[{"type":"qcode","data":"ret"}])
+        self.assertEqual(d.FEATURES["keyboard"],d.FEATURES["normal"])
+        self.assertEqual(d.PHASES["keyboard"],d.PHASES["normal"])
+
     def test_actual_frame_checks_reject_identical_wrong_geometry_and_chrome(self):
         image=frames();d.validate_frames(image,"normal")
         bad=dict(image);bad["editor"]=bad["ready"]
@@ -168,7 +178,7 @@ class ArtifactTests(unittest.TestCase):
         raw,prefixes=serial(case);(directory/"serial.txt").write_bytes(raw);(directory/"stderr.txt").write_bytes(b"")
         for name,data in frames(case).items():(directory/f"{name}.ppm").write_bytes(data)
         trace=[{"request":r,"response":{"return":{},"id":r["id"]}} for r in d.qmp_requests(directory,case)];d.publish_json(directory/"qmp-trace.json",trace)
-        if case == "normal":d.volume.create_image(directory/"volume.before.img","empty")
+        if case in d.WRITABLE_CASES:d.volume.create_image(directory/"volume.before.img","empty")
         else:text_disk(directory/"volume.before.img")
         text_disk(directory/"volume.after.img");shutil.copyfile(directory/"volume.after.img",directory/"volume.img")
         names={"esp/kernel.elf","esp/EFI/BOOT/BOOTX64.EFI","OVMF_CODE.fd","OVMF_VARS.template.fd","VGA.rom","inputs/manifest.json","inputs/build-report.json"}|{f"inputs/{name}.elf" for name in d.NAMES}
@@ -185,7 +195,10 @@ class ArtifactTests(unittest.TestCase):
         return directory,report
 
     def test_exact_build_and_all_frozen_run_proof_replays(self):
-        d.validate_build(self.build,"a"*64,"normal");directory,report=self.run_fixture();self.assertEqual(d.replay(report,directory,"a"*64)["disk"]["length"],14)
+        d.validate_build(self.build,"a"*64,"normal")
+        for case in ("normal","keyboard"):
+            directory,report=self.run_fixture(case)
+            self.assertEqual(d.replay(report,directory,"a"*64)["disk"]["length"],14)
 
     def test_stale_source_changed_elf_and_nonembedded_binary_fail(self):
         with self.assertRaises(ValueError):d.validate_build(self.build,"b"*64,"normal")
