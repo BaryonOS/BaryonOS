@@ -1,2 +1,5 @@
     Checking nieuw-os-acpi-power v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-friendly-guacamole/drivers/acpi-power)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.13s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.14s
+real 0.18
+user 0.13
+sys 0.09

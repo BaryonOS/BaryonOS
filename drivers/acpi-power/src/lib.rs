@@ -608,6 +608,9 @@ fn skip_nonempty_name(bytes: &[u8], cursor: usize, end: usize) -> Result<usize, 
 fn package_bounds(bytes: &[u8], pkg_length_offset: usize) -> Result<(usize, usize), Error> {
     let lead = *bytes.get(pkg_length_offset).ok_or(Error::MalformedAml)?;
     let follow = usize::from((lead >> 6) & 0x03);
+    if follow != 0 && lead & 0x30 != 0 {
+        return Err(Error::MalformedAml);
+    }
     let encoded_len = 1usize + follow;
     let mut package_len = if follow == 0 {
         usize::from(lead & 0x3f)
@@ -915,5 +918,104 @@ mod tests {
             parse(&fadt(0x404, 0), &dsdt(&bad_length)),
             Err(Error::MalformedAml)
         );
+    }
+
+    #[test]
+    fn validates_all_pkg_length_widths_and_rejects_reserved_lead_bits() {
+        let firmware = fadt(0x404, 0);
+        for follow in 1..=3u8 {
+            let mut aml = vec![0x08];
+            aml.extend_from_slice(b"_S5_");
+            aml.push(0x12);
+            let length_offset = aml.len();
+            aml.push((follow << 6) | (follow + 4));
+            aml.extend_from_slice(&[0; 3][..usize::from(follow)]);
+            aml.extend_from_slice(&[2, 0, 1]);
+            let plan = parse(&firmware, &dsdt(&aml)).unwrap();
+            assert_eq!(plan.pm1a().sleep_type(), 0);
+
+            for reserved in [0x10, 0x20, 0x30] {
+                let mut malformed = aml.clone();
+                malformed[length_offset] |= reserved;
+                assert_eq!(
+                    parse(&firmware, &dsdt(&malformed)),
+                    Err(Error::MalformedAml),
+                    "follow={follow}, reserved={reserved:#x}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn rejects_all_truncated_length_encodings_and_out_of_bounds_packages() {
+        let firmware = fadt(0x404, 0);
+        for follow in 1..=3u8 {
+            for available in 0..usize::from(follow) {
+                let mut aml = vec![0x08];
+                aml.extend_from_slice(b"_S5_");
+                aml.extend_from_slice(&[0x12, follow << 6]);
+                aml.extend_from_slice(&[0xff; 3][..available]);
+                assert_eq!(parse(&firmware, &dsdt(&aml)), Err(Error::MalformedAml));
+            }
+        }
+        for length in [
+            &[0x00][..],
+            &[0x40, 0x00],
+            &[0x81, 0x00, 0x00],
+            &[0xc2, 0x00, 0x00, 0x00],
+            &[0x3f],
+            &[0x4f, 0xff],
+            &[0x8f, 0xff, 0xff],
+            &[0xcf, 0xff, 0xff, 0xff],
+        ] {
+            let mut aml = vec![0x08];
+            aml.extend_from_slice(b"_S5_");
+            aml.push(0x12);
+            aml.extend_from_slice(length);
+            aml.extend_from_slice(&[2, 0, 0]);
+            assert_eq!(parse(&firmware, &dsdt(&aml)), Err(Error::MalformedAml));
+        }
+    }
+
+    #[test]
+    fn rejects_truncated_objects_even_after_a_valid_s5() {
+        let firmware = fadt(0x404, 0);
+        let mut named_string = vec![0x08];
+        named_string.extend_from_slice(b"TEXT");
+        named_string.extend_from_slice(&[0x0d, b'x', 0]);
+        let objects = [
+            root_s5(5, 6),
+            named_string,
+            vec![0x10, 5, b'_', b'S', b'B', b'_'],
+            vec![0x14, 6, b'T', b'E', b'S', b'T', 0],
+            vec![0x5b, 0x82, 5, b'D', b'E', b'V', b'0'],
+            vec![0x5b, 0x01, b'M', b'T', b'X', b'0', 0],
+            vec![0x5b, 0x02, b'E', b'V', b'T', b'0'],
+            vec![0x15, b'E', b'X', b'T', b'0', 1, 0],
+        ];
+        for object in objects {
+            for cut in 1..object.len() {
+                let truncated = &object[..cut];
+                assert!(parse(&firmware, &dsdt(truncated)).is_err());
+                let mut after_s5 = root_s5(0, 0);
+                after_s5.extend_from_slice(truncated);
+                assert!(
+                    parse(&firmware, &dsdt(&after_s5)).is_err(),
+                    "object={object:02x?}, cut={cut}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn rejects_every_truncated_table_slice_without_panicking() {
+        let firmware = fadt(0x404, 0);
+        let definition = dsdt(&root_s5(0, 0));
+        for cut in 0..firmware.len() {
+            assert!(parse(&firmware[..cut], &definition).is_err());
+        }
+        for cut in 0..definition.len() {
+            assert!(parse(&firmware, &definition[..cut]).is_err());
+        }
     }
 }
