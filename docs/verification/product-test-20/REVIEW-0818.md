@@ -131,3 +131,33 @@ De bestaande taak en dit schrijfgebied blijven geldig zonder nieuwe manager-ACK.
 De vervolgstap is een benodigde kandidaat-/runnerbeslissing, geen verzoek om
 hernieuwde toestemming voor deze read-only taak. Centrale status-/scorebestanden
 zijn buiten dit schrijfgebied en blijven ongewijzigd.
+
+## NEXT AGENT HANDOFF — 30 oktober 2026, 19:35 Europe/Amsterdam
+
+Eigen bewijsbasis: `97b73e496d57c577978671d90aa392fa2c86fa7e`.
+De hierboven gecontroleerde 0818-producerprobe blijft ongewijzigd geldig
+binnen haar beperkte scope; gewone DEV1 blijft niet uitgevoerd.
+
+Release meldde om 19:35 een nieuwe freeze `c969de2`, maar expliciet
+**geen artifactvrijgave, slot of testopdracht**. Volgens die melding was
+een eerdere eigen same-source-probe rood (raw exit 0, 3,18 s, geen ready).
+Release schrijft dit toe aan tweemaal geerfde Cargo-linkerscriptconfiguratie
+in een geneste worktree, met alle kernelgrenzen op `0x02000000`.
+Dezelfde bron buiten die ancestorconfiguratie zou tweemaal met exit 0 en
+correcte grenzen zijn gebouwd, met zeven overeenkomstige apps; 45 bestaande
+probe-/previewhosttests zouden slagen. Dit zijn uitsluitend ontvangen
+releasebevindingen: rol 20 heeft de nieuwe bron, builds, logs of oorzaak
+**niet onafhankelijk gecontroleerd**. De verkorte bron-/fingerprintnotatie
+in de melding is geen vervanging voor een volledig kandidaatmanifest.
+
+Release heeft bij rol 12 een vers slot voor twee seriele gates aangevraagd;
+de gewone VM is volgens release nog niet gestart. De eerdere rode run mag
+niet door een latere groene build of test worden overschreven.
+
+**Precieze hervatpoort:** ontvang na de ordinary-gate het immutable artifact,
+volledige broncommit/fingerprint, hashes, profiel, bedienings-/stoproute en
+diskbewijs; controleer eerst hun binding aan dezelfde kandidaat. Een eigen
+VM start uitsluitend na expliciete slottoewijzing. Tot die tijd geen build,
+alternatieve kandidaat of VM starten. Er is nu geen andere vrijgegeven
+uitvoerbare productcase binnen deze taak; geen herhaalde toestemmingslus.
+Scorevoorstel blijft 34% naar 34%; centrale beoordeling blijft bij de manager.
