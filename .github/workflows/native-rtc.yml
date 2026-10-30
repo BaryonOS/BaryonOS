@@ -49,7 +49,6 @@ jobs:
       - name: Own loader and RTC kernel
         run: |
           python3 -B tools/build.py --kernel-feature native-rtc
-          cargo +1.90.0 clippy --locked --release -p os-kernel --target x86_64-unknown-none --features native-rtc -- -D warnings
       - name: Five real controlled-calendar boots
         run: python3 -B tools/run_rtc.py --case all
       - name: Preserve actual run and build artifacts

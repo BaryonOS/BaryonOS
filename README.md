@@ -32,7 +32,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`5c334f9a`](https://github.com/simonvanieperen/nieuw-os/commit/5c334f9ac3100f1c0e503e4f0ac4353a4a35154e) ·
+**Bron:** [`4c1dbe00`](https://github.com/simonvanieperen/nieuw-os/commit/4c1dbe00384e53973ad9bf1cb39151ccec6d092a) ·
 **Ontwikkelbranch:** `simonvanieperen-expert-disco`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** RTC-NATIVE-1: native alleen-lezen kalenderklok als directe tijdproviderafhankelijkheid.
 34% blijft 34%. De opt-in RTC-bootstrap is een technische afhankelijkheid van FR-S03/FR-N03, geen productie-TimeProvider of vertrouwde certificaattijd. Native uitvoering en actuele controles worden brongebonden in PROJECT-STATE vastgelegd; geen volledig rubriccriterium wordt door deze beperkte proef gesloten. Alle 62 productcriteria, fysieke hardware en menselijke acceptatie blijven open.

@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "5c334f9ac3100f1c0e503e4f0ac4353a4a35154e",
+    "source_commit": "4c1dbe00384e53973ad9bf1cb39151ccec6d092a",
     "branch": "simonvanieperen-expert-disco",
     "task": "RTC-NATIVE-1: native alleen-lezen kalenderklok als directe tijdproviderafhankelijkheid",
     "previous_score": 34,

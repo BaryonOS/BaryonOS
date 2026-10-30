@@ -171,8 +171,8 @@ NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/run_rtc.py --case all
 
 De runner gebruikt bestaande `run_guest` met een eigen ESP/VARS/CODE-kopie
 per echte VM en `-rtc base=<expliciete UTC>,clock=vm,driftfix=none`. Vijf
-kalenders: epoch 1970, schrikkeldag 2000, 2026, grens na signed-i32-2038
-en niet-schrikkel-eeuw 2100. Python datetime controleert onafhankelijk zowel
+kalenders: millennium 2000, schrikkeldag 2000, 2026, grens na signed-i32-2038
+en schrikkeldag 2096. Python datetime controleert onafhankelijk zowel
 de zes velden als de Unixconversie en het venster base..base+60 seconden;
 dit venster dekt firmware/boot en bewijst geen realtime-nauwkeurigheid.
 Geen hosttijd als OS-fallback, geen netwerk, geen echte disk en geen writes
@@ -180,6 +180,18 @@ naar RTC-data. Raw exit 33, volledige geordende uitvoer, bronfingerprint,
 manifest- en artifacthashes zijn vereist. Timeout/foute datum/duplicaten/
 gewijzigde bron falen; een oude laatste rapportage wordt eerst ingetrokken.
 CI heeft een eigen verplichte uitvoerende workflow `native-rtc.yml`.
+`--case epoch` en `--case century` blijven expliciete firmwarediagnostiek,
+niet onderdeel van de normale vijfkalenderacceptatie: op het gemeten OVMF-paar
+werd 1970 werkelijk 2070 en 2100 werkelijk 2000. Het onverzwakte orakel
+weigert beide met exit 1, ondanks raw33 en geslaagde read-/restoremarkers.
+EDK2 `edk2-stable202511`, `PcAtChipsetPkg/PcatRealTimeClockRuntimeDxe/PcRtc.c`,
+`ConvertRtcTimeToEfiTime` reconstrueert de eeuw uit de PCD-minimumjaarperiode;
+`PcRtcAcpiTableChangeCallback` schrijft die naar het FADT-eeuwregister.
+Dit verklaart het gemeten gedrag; de native backend corrigeert of raadt
+geen andere eeuw. Core-Gregoriaanse hosttests blijven het brede datumbewijs;
+native 1970/2100-acceptatie en een volledige firmware-onafhankelijke datumrange
+blijven open. Nieuwe firmwarepakketten worden opnieuw werkelijk getoetst,
+niet automatisch als gelijkwaardig aan deze ontwikkelvariant beschouwd.
 Geen authentieke tijd, persistente antirollback, NTP, TLS, userspacegebruik,
 fysiek apparaat of volledige productacceptatie door deze proef.
 

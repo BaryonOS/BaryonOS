@@ -1,7 +1,10 @@
 """HOST_ONLY RTC verifier counterexamples; fixtures are not native evidence."""
 from datetime import datetime, timezone
+import json
 from pathlib import Path
+import subprocess
 import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -37,6 +40,7 @@ class RtcVerifier(unittest.TestCase):
             with self.subTest(marker=marker), self.assertRaises(ValueError):
                 gate.evaluate(text.replace(marker + "\n", ""), 33, False, base)
         for altered in [text + "RTC:PASS\n", text + "M1:FAIL:RTC\n",
+                        "RTC:PASS\n" + text, "BOOT:EBS_OK\n" + text,
                         text.replace("RTC:RESTORE:PASS", "RTC:PASS")]:
             with self.assertRaises(ValueError):
                 gate.evaluate(altered, 33, False, base)
@@ -71,6 +75,104 @@ class RtcVerifier(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     run_guest(rtc_base=base)
                 firmware.assert_not_called()
+
+    def test_commandline_only_adds_vm_clock_for_explicit_calendar(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            build = root / "build"
+            esp = build / "esp"
+            esp.mkdir(parents=True)
+            (esp / "kernel.elf").write_bytes(b"HOST_ONLY fake kernel")
+            code, variables = root / "code.fd", root / "vars.fd"
+            code.write_bytes(b"HOST_ONLY firmware")
+            variables.write_bytes(b"HOST_ONLY vars")
+            for base in (None, gate.CASES["current"]):
+                guest = subprocess.CompletedProcess([], 33, fixture(gate.CASES["current"]).encode(), b"")
+                git = subprocess.CompletedProcess([], 0, "fake-commit", "")
+                with patch("run.ROOT", root), patch("run.BUILD", build), \
+                     patch("run.firmware", return_value=(code, variables)), \
+                     patch("run.environment", return_value={"PATH": ""}), \
+                     patch("run.shutil.which", return_value=str(root / "qemu")), \
+                     patch("run.source_hash", return_value="f" * 64), \
+                     patch("run.subprocess.check_output", return_value="HOST_ONLY QEMU"), \
+                     patch("run.subprocess.run", side_effect=[guest, git]) as execute:
+                    report = run_guest(rtc_base=base, required_markers=gate.REQUIRED)
+                    command = execute.call_args_list[0].args[0]
+                    self.assertTrue(report["passed"])
+                    if base is None:
+                        self.assertNotIn("-rtc", command)
+                    else:
+                        self.assertEqual(command[command.index("-rtc") + 1],
+                                         f"base={base},clock=vm,driftfix=none")
+
+
+class RtcProvenance(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.build = Path(self.temporary.name)
+        self.source = "f" * 64
+        self.manifest = {"kernel_feature": "native-rtc", "loader_feature": None,
+                         "source_fingerprint_version": 3, "source_sha256": self.source,
+                         "kernel": {"sha256": "a" * 64}, "loader": {"sha256": "b" * 64}}
+        self.write_manifest(self.manifest)
+        self.addCleanup(patch.stopall)
+        patch.object(gate, "BUILD", self.build).start()
+        self.hash_source = patch.object(gate, "source_hash", return_value=self.source).start()
+
+    def write_manifest(self, manifest):
+        (self.build / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+    def guest(self):
+        return {"stdout": fixture(gate.CASES["current"]), "raw_qemu_exit": 33,
+                "timed_out": False, "passed": True, "source_sha256": self.source,
+                "artifact_binding_passed": True}
+
+    def test_stale_success_is_removed_before_manifest_source_or_profile_rejection(self):
+        for field, value in [("kernel_feature", "milestone-m2"), ("loader_feature", "test-ebs"),
+                             ("source_fingerprint_version", 2), ("source_sha256", "stale")]:
+            with self.subTest(field=field), patch.object(gate, "run_guest") as boot:
+                self.write_manifest({**self.manifest, field: value})
+                (self.build / "rtc-report.json").write_text('{"passed":true}', encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    gate.run(("current",))
+                self.assertFalse((self.build / "rtc-report.json").exists())
+                boot.assert_not_called()
+
+    def test_each_boot_binds_both_artifacts_and_the_explicit_vm_base(self):
+        with patch.object(gate, "run_guest", return_value=self.guest()) as boot:
+            result = gate.run(("current",))
+            self.assertTrue(result["passed"])
+            self.assertEqual(boot.call_args.kwargs["expected_kernel_sha256"], "a" * 64)
+            self.assertEqual(boot.call_args.kwargs["expected_loader_sha256"], "b" * 64)
+            self.assertEqual(boot.call_args.kwargs["rtc_base"], gate.CASES["current"])
+            self.assertEqual(result["source_sha256"], self.source)
+            self.assertEqual(result["manifest_sha256"], gate.sha256(self.build / "manifest.json"))
+
+    def test_failure_drift_and_bad_artifact_binding_never_publish_success(self):
+        for change in ({"passed": False}, {"source_sha256": "other"},
+                       {"artifact_binding_passed": False}, {"raw_qemu_exit": 35}):
+            with self.subTest(change=change), \
+                 patch.object(gate, "run_guest", return_value={**self.guest(), **change}):
+                with self.assertRaises(ValueError):
+                    gate.run(("current",))
+                report = json.loads((self.build / "rtc-report.json").read_text())
+                self.assertFalse(report["passed"])
+                self.assertFalse(report["cases"][0]["passed"])
+
+        def mutate_manifest(*args, **kwargs):
+            self.write_manifest({**self.manifest, "changed": True})
+            return self.guest()
+
+        with patch.object(gate, "run_guest", side_effect=mutate_manifest):
+            with self.assertRaises(ValueError):
+                gate.run(("current",))
+        self.write_manifest(self.manifest)
+        self.hash_source.side_effect = [self.source, "changed"]
+        with patch.object(gate, "run_guest") as boot:
+            with self.assertRaises(ValueError):
+                gate.run(("current",))
+            boot.assert_not_called()
 
 
 if __name__ == "__main__":

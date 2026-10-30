@@ -12,9 +12,12 @@ floor-/readbudgetweigering, indexherstel en eigen vijfkalender-QEMU-runner/
 CI-workflow. Contract: `implementation/RTC-WALLTIME.md`. Geen nieuwe apprechten,
 productiekloksyscall, vertrouwde tijd of TLS-integratie. **34% -> 34%**.
 
-Tussencheckpoint, **nog niet native geaccepteerd**: vijf gerichte Python-
-oracletests, elf bestaande RTC-Rusttests en de echte loader/kernelbuild
-slagen (exit 0). De eerste baseline-/buildpogingen faalden door ontbrekende
+Tussencheckpoint na implementatiecommit `4c1dbe0`, nog zonder volledige
+regressie-/productacceptatie: 95 tools-hosttests (waarvan negen RTC-tegenproeven),
+elf bestaande RTC-Rusttests, RTC-clippy en de echte loader/kernelbuild
+slagen (exit 0). Vijf echte kalenderboots slagen met raw33 en echte
+budget-/floor-/restoregevallen: millennium, schrikkeldag 2000, 2026,
+post-i32-2038 en schrikkeldag 2096. De eerste baseline-/buildpogingen faalden door ontbrekende
 hostlinker/runtime; de logs onder `build/rtc-native/logs/` bewaren
 de mislukte pogingen. Pinned Rust 1.90.0, beide targets, QEMU 10.2.1 en een
 matching Ubuntu OVMF-paar zijn zonder sudo/globale PATH-wijziging onder
@@ -22,11 +25,21 @@ matching Ubuntu OVMF-paar zijn zonder sudo/globale PATH-wijziging onder
 dependencyversie gewijzigd. De rootlockfile voegt uitsluitend de eigen
 dependencyvrije RTC-crate toe.
 
-Open: RTC-/kernellint, vijf echte RTC-boots en relevante
-regressies op bevroren bron, onafhankelijk AI-bronreview en concept-PR.
+Een echte firmwarebeperking is gereproduceerd: de epoch-/eeuwproeven lezen
+2070 in plaats van 1970 en 2000 in plaats van 2100. Het onverzwakte
+kalenderorakel weigert beide (exit 1, raw33). EDK2's RTC-eeuwcallback
+verklaart dit; de gast schrijft geen tijddatacorrectie. Deze gevallen blijven
+expliciete fail-closed diagnostiek, geen native range-acceptatie.
+Onbeperkte kernelclippy met `-D warnings` faalt op vier bestaande
+M2/main-waarschuwingen (geen RTC-locatie); niet als geslaagd gemeld en niet
+verstopt met nieuwe lintallows. De nieuwe workflow gebruikt de bestaande
+strikte RTC-crateclippy en echte kernelbuild.
+
+Open: bevroren broncommit herhalen, M2-/M6c-regressies, compact bewijsarchief,
+bronreview en concept-PR.
 Eerstvolgend commando op deze host:
-`. .tools/nieuw-os/rtc-env.sh && python3 -B tools/run_rtc.py --case all`.
-Niet uitgevoerd: QEMU-RTC, fysieke hardware, menselijke audit, volledige CI
+`. .tools/nieuw-os/rtc-env.sh && python3 -B tools/test_milestones.py --through m2`.
+Niet uitgevoerd: fysieke hardware, menselijke audit, volledige CI
 en volledige releaseacceptatie. De 62 productcriteria blijven open.
 
 ## Historisch checkpoint — PR #58, integratie met main — 30 oktober 2026
