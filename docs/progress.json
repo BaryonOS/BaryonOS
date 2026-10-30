@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "80393b67950c393dfa37336e66df5346ae6a37d7",
+    "source_commit": "00f91e7bd04470be0f32074de9d8d1d975318271",
     "branch": "simonvanieperen-studious-sniffle",
-    "task": "Hosttest-preflight: rapporteer ontbrekende POSIX C-linker apart van bootvereisten",
+    "task": "Hosttest-preflight: detecteer POSIX-linker en herstel HKDF-doctestdependencies",
     "previous_score": 34,
-    "summary": "34% blijft 34%; een betere melding van een ontbrekende hostlinker accepteert geen productcriterium. De lokale root-workspace Rust-test stopte op deze Linux-host bij ontbrekende `cc`; de strikte boot-preflight rapporteerde die hosttestblokkade niet als ontbrekend. `tools/preflight.py --strict-host-tests` meldt de linker nu afzonderlijk. De 22 gerichte preflighttests slagen en 10 GitHub Actions-workflows (11 jobchecks) op PR-head `278750e` zijn groen; de volledige Cargo-workspace-test blijft lokaal open tot een C-toolchain beschikbaar is. Geen nieuw productcriterium geaccepteerd."
+    "summary": "34% blijft 34%; infrastructuurherstel accepteert geen productcriterium. `--strict-host-tests` meldt een ontbrekende POSIX-linker afzonderlijk; met een geïsoleerde lokale C-toolchain kwam de volledige workspacetest verder en onthulde drie HKDF-README-doctests zonder `sha2`/`hex-literal`-testdependencies. De upstream-gedocumenteerde, test-only dependencies zijn hersteld; alle drie gerichte HKDF-doctests slagen. De volledige workspace-test na deze reparatie en CI op de nieuwe kandidaat zijn nog open. Geen nieuw productcriterium geaccepteerd."
   },
   "tracks": [
     {

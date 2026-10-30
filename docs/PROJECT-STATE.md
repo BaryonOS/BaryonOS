@@ -2,28 +2,30 @@
 
 ## NEXT AGENT HANDOFF — hosttest-preflight — 30 oktober 2026
 
-Broncommit `80393b67950c393dfa37336e66df5346ae6a37d7`, basis `main`
-`5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De afzonderlijke
-`--strict-host-tests`-controle meldt ontbrekende POSIX-hostlinkers los van de
-bootvereisten; de bestaande `--strict`-betekenis blijft ongewijzigd.
-Gewijzigd: `tools/preflight.py`, `tests/test_preflight.py`,
-`docs/DEVELOPMENT.md`. Bewijs en grenzen:
-[hosttest-preflight](verification/host-test-linker-preflight/README.md).
+Werk op branch `simonvanieperen-studious-sniffle`, kandidaat boven
+`00f91e7bd04470be0f32074de9d8d1d975318271`, oorspronkelijke taakbasis `main`
+`5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. Concept-PR
+[#62](https://github.com/simonvanieperen/nieuw-os/pull/62). De
+`--strict-host-tests`-controle meldt POSIX-hostlinkers los van bootvereisten;
+de bestaande `--strict`-betekenis blijft ongewijzigd.
 
-Op deze Linux x86_64-host is de vastgepinde Rust 1.90.0 lokaal onder de
-genegeerde `.tools/` ingericht; `cc` en QEMU ontbreken. De 22 gerichte
-preflighttests slagen. `cargo +1.90.0 test --offline --locked --workspace`
-stopte op exit 101 bij `linker cc not found`
-(`/tmp/nieuw-os-infra-root-final.log`). De hostpreflight eindigde met exit 2
-en rapporteerde `missing_host_test_tools: ["cc"]`. `sudo -n true` eindigde
-met exit 1 doordat interactieve authenticatie vereist is; geen systeempakket
-is geïnstalleerd. De eerder vastgelegde HKDF-doctestfout is op deze bron niet
-getest, omdat compileren al vóór doctests stopte. **34% → 34%**; geen
-productcriterium of native QEMU-bewijs toegevoegd. Hervat na installatie van
-een host-C-toolchain met dezelfde root-workspace-test. Concept-PR [#62](https://github.com/simonvanieperen/nieuw-os/pull/62);
-op PR-head `278750e` zijn 10 GitHub Actions-workflows (11 jobchecks) geslaagd,
-inclusief `host-quality`, `qemu-smoke` en `native-system`. Die CI-suite bewijst niet dat
-het hier lokaal geblokkeerde volledige `--workspace`-commando is uitgevoerd.
+Na het lokaal beschikbaar maken van `cc` zonder systeembrede installatie
+compileren en draaien een minimale C-proef (exit 0). De volledige
+`cargo +1.90.0 test --offline --locked --workspace`-run kwam daarna verder,
+maar faalde op exit 101 in drie HKDF-README-doctests: de runtime-only
+vendormanifest miste `sha2` en `hex-literal` als testdependencies. Deze zijn
+nu test-only toegevoegd volgens de upstream-manifesten; de lockfile bevat
+`hex-literal 1.0.0`. Gerichte HKDF-doctests slagen (3/3). **De volledige
+workspace-test na deze reparatie is nog niet uitgevoerd.** Volgende stap:
+checkpoint committen en pushen, daarna dezelfde volledige workspace-test met
+`LD_LIBRARY_PATH` naar de lokale geïsoleerde GCC-runtime uitvoeren.
+
+De eerdere 22 preflighttests, strikte ontbrekende-`cc`-detectie en CI op
+`00f91e7` zijn groen; dit nieuwe candidate heeft nog geen CI-resultaat. De
+hostcompiler is uitsluitend uitgepakt onder genegeerde `.tools/`; geen
+systeempakketten zijn geïnstalleerd. **34% → 34%**; geen productcriterium of
+native QEMU-bewijs toegevoegd. Volledige commando's, logs, hashes en grenzen:
+[hosttest-preflight](verification/host-test-linker-preflight/README.md).
 
 ## Historisch checkpoint — PR #58, integratie met main — 30 oktober 2026
 
