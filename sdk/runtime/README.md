@@ -1,10 +1,11 @@
 # G01 — begrensde native app-runtime
 
 Deze eigen `no_std`-crate bouwt op de bestaande Nieuw OS-ABI. Zij gebruikt geen
-heap, libc, host-I/O, netwerk of externe dependency. De pure berichtlaag bevat
-geen `unsafe`; `native.rs` bevat de kleine `int 0x80`-grens. De hostbuild biedt
-die native module niet aan, zodat een hosttest niet per ongeluk een Linux-
-syscall met Nieuw OS-argumenten uitvoert.
+heap, libc, host-I/O of netwerk. De externe dependency `zeroize` is vastgezet
+op versie 1.9.1 zonder standaardfeatures en wist de eigen IPC-envelopes bij
+opruimen. De pure berichtlaag bevat geen `unsafe`; `native.rs` bevat de kleine
+`int 0x80`-grens. De hostbuild biedt die native module niet aan, zodat een
+hosttest niet per ongeluk een Linux-syscall met Nieuw OS-argumenten uitvoert.
 
 De runtime is een bouwbare SDK-basis. Zij voegt geen appinstallatie,
 compositor of opslagrecht toe. Sinds K05 (ADR-042) kan een proces mét een
@@ -95,3 +96,4 @@ de SDK in een echte gastproef heeft een afzonderlijke bewijsbundel.
 De tests bewijzen geen menselijke audit of algemene veiligheid. Native uitvoering,
 bronhashes en beperkingen staan afzonderlijk onder
 [`docs/verification/parallel-g01`](../../docs/verification/parallel-g01/).
+
