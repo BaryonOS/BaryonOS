@@ -121,6 +121,14 @@
       "pr": 99,
       "head": "d098bce0a341489e77728fd4997a473edc12b86a",
       "picked": "docs/WORK-QUEUE.md taken byte-identically from 0cdcdb5, then section spacing fix and integrator takeover note"
+    },
+    {
+      "pr": 77,
+      "head": "f7449ecf51cc52c2a312e5337b31231ae05df37c",
+      "picked": [
+        "f7449ec"
+      ],
+      "note": "one-line CodeRabbit autofix of a BIOS ROM path in review-7d66 README"
     }
   ],
   "integration_fixes": [
