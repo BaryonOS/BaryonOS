@@ -16,7 +16,7 @@ import shutil
 from common import ROOT, BUILD, TARGET, environment, firmware, qemu_machine, sha256, source_hash
 from build_users import inspect_user
 from run_fpu import private_path, publish_json, load_json
-from run_system import MAX_TIMEOUT, check_disk, check_image, evaluate, run_system
+from run_system import MAX_TIMEOUT, OPAQUE_OBJECTS, check_disk, check_image, evaluate, run_system
 import volume_disk
 
 FEATURE = "native-system-images"
@@ -223,7 +223,7 @@ def validate_artifacts(report: dict, frozen: str, *, qemu: str, qemu_sha256: str
     data = read(image)
     if digest(data) != hash_value(report.get("after_sha256")) or read(snapshot) != data:
         raise ValueError("image probe post-run disk bytes changed")
-    oracle = volume_disk.analyse(data)
+    oracle = volume_disk.analyse(data, OPAQUE_OBJECTS)
     check_disk(oracle)
     if oracle["objects"][0]["request_id"] != 3 or report.get("oracle") != oracle:
         raise ValueError("image probe oracle/SAVE identity differs from actual original document")

@@ -1,0 +1,5 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running unittests src/lib.rs (target/b02-system-host/debug/deps/nieuw_os_sdk_runtime-97d0cf9fa9b0d2ff)
+     Running tests/message.rs (target/b02-system-host/debug/deps/message-097a17b4b23e0767)
+     Running tests/process.rs (target/b02-system-host/debug/deps/process-d27ac7dc803312c3)
+   Doc-tests nieuw_os_sdk_runtime

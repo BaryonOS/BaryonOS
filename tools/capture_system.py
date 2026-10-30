@@ -14,7 +14,7 @@ import subprocess
 import sys
 
 from common import ROOT, BUILD, QEMU_MACHINES, source_hash
-from run_system import FEATURE, MAX_TIMEOUT, check_disk, check_esp, check_image, evaluate, network_arguments
+from run_system import FEATURE, MAX_TIMEOUT, OPAQUE_OBJECTS, check_disk, check_esp, check_image, evaluate, network_arguments
 from run_net_system import FEATURE as NETWORK_FEATURE, evaluate_network
 from run_tcp_system import FEATURE as TCP_FEATURE, evaluate_tcp
 from test_system import inputs
@@ -256,7 +256,7 @@ def capture(destination: Path, *, network=False, tcp=False) -> Path:
         image_hash = digest(image)
         if _hash(report["after_sha256"]) != image_hash:
             raise ValueError("stage disk bytes differ from report")
-        oracle = volume_disk.analyse(image)
+        oracle = volume_disk.analyse(image, OPAQUE_OBJECTS)
         check_disk(oracle)
         if oracle != report.get("oracle"):
             raise ValueError("stored disk oracle differs from real image bytes")

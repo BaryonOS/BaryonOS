@@ -2,7 +2,10 @@
 //! 256-byte payload: a 16-byte header plus a bounded body. Lengths are
 //! validated before any byte is interpreted; the domain is never carried on
 //! the wire because the ingress endpoint already fixes it.
+use zeroize::Zeroizing;
+
 use crate::{
+    persistent::{SnapshotInfo, PERSISTENT_BLOB},
     records::{RecordContext, RecordKind, RECORD_SUITE, RECORD_VERSION},
     EntropySource, Service, Status, DOMAINS, MAX_PLAINTEXT, MAX_SEALED, NONCE_BYTES, RECOVERY_BLOB,
     SECRET_BYTES, TAG_BYTES,
@@ -23,9 +26,23 @@ pub const RESTORE: u8 = 7;
 pub const SEAL_RECORD: u8 = 8;
 pub const UNSEAL_RECORD: u8 = 9;
 pub const RANDOM: u8 = 10;
+/// B02 persistence opcodes. They are only reachable through a separately
+/// granted administrative ingress; domain endpoints and the RANDOM ingress
+/// reject them. The secret in the body is caller-held and never stored.
+pub const EXPORT_PERSISTENT: u8 = 11;
+pub const RESTORE_PERSISTENT: u8 = 12;
 pub const RANDOM_PREFIX: usize = 16;
 pub const REPLY: u8 = 0x80;
 pub const RECORD_CONTEXT: usize = 64;
+pub const VOLUME_ID: usize = 16;
+/// Nonsecret snapshot information: generation (u64), then created and
+/// revoked counters (u16 each) per domain.
+pub const SNAPSHOT_INFO: usize = 8 + DOMAINS * 4;
+/// EXPORT body: volume id, caller secret. Reply: blob, snapshot info.
+pub const EXPORT_PERSISTENT_BODY: usize = VOLUME_ID + SECRET_BYTES;
+pub const EXPORT_PERSISTENT_REPLY: usize = PERSISTENT_BLOB + SNAPSHOT_INFO;
+/// RESTORE body: volume id, caller secret, minimum generation (u64), blob.
+pub const RESTORE_PERSISTENT_BODY: usize = VOLUME_ID + SECRET_BYTES + 8 + PERSISTENT_BLOB;
 
 /// Header: op (1), key index (1), body length (2 LE), request id (8), reserved (4).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -124,6 +141,8 @@ pub fn body_bounds(op: u8) -> Option<(usize, usize)> {
             RECORD_CONTEXT + MAX_SEALED,
         )),
         RANDOM => Some((RANDOM_PREFIX, RANDOM_PREFIX)),
+        EXPORT_PERSISTENT => Some((EXPORT_PERSISTENT_BODY, EXPORT_PERSISTENT_BODY)),
+        RESTORE_PERSISTENT => Some((RESTORE_PERSISTENT_BODY, RESTORE_PERSISTENT_BODY)),
         _ => None,
     }
 }
@@ -304,6 +323,116 @@ pub fn dispatch_record(
         let mut out = [0; MAX_PLAINTEXT];
         match service.unseal_record(domain, header.index, context, data, source, &mut out) {
             Ok(length) => reply(header, Status::Ok, &out[..length]),
+            Err(status) => reply(header, status, &[]),
+        }
+    }
+}
+
+pub fn encode_snapshot_info(info: SnapshotInfo) -> [u8; SNAPSHOT_INFO] {
+    let mut out = [0u8; SNAPSHOT_INFO];
+    out[..8].copy_from_slice(&info.generation.to_le_bytes());
+    for domain in 0..DOMAINS {
+        let at = 8 + domain * 4;
+        out[at..at + 2].copy_from_slice(&info.created[domain].to_le_bytes());
+        out[at + 2..at + 4].copy_from_slice(&info.revoked[domain].to_le_bytes());
+    }
+    out
+}
+
+pub fn decode_snapshot_info(bytes: &[u8]) -> Option<SnapshotInfo> {
+    if bytes.len() != SNAPSHOT_INFO {
+        return None;
+    }
+    let mut info = SnapshotInfo {
+        generation: u64::from_le_bytes(bytes[..8].try_into().ok()?),
+        created: [0; DOMAINS],
+        revoked: [0; DOMAINS],
+    };
+    for domain in 0..DOMAINS {
+        let at = 8 + domain * 4;
+        info.created[domain] = u16::from_le_bytes([bytes[at], bytes[at + 1]]);
+        info.revoked[domain] = u16::from_le_bytes([bytes[at + 2], bytes[at + 3]]);
+    }
+    Some(info)
+}
+
+/// Build an EXPORT_PERSISTENT request. The caller owns `secret` and must wipe
+/// its own copy of the returned message after sending it.
+pub fn export_persistent_request(
+    request_id: u64,
+    volume: &[u8; VOLUME_ID],
+    secret: &[u8; SECRET_BYTES],
+) -> Option<[u8; SIZE]> {
+    let mut body = Zeroizing::new([0u8; EXPORT_PERSISTENT_BODY]);
+    body[..VOLUME_ID].copy_from_slice(volume);
+    body[VOLUME_ID..].copy_from_slice(secret);
+    request(EXPORT_PERSISTENT, 0, request_id, &*body)
+}
+
+/// Build a RESTORE_PERSISTENT request. `minimum_generation` must come from an
+/// independently trusted source; zero accepts any authentic snapshot.
+pub fn restore_persistent_request(
+    request_id: u64,
+    volume: &[u8; VOLUME_ID],
+    secret: &[u8; SECRET_BYTES],
+    minimum_generation: u64,
+    blob: &[u8; PERSISTENT_BLOB],
+) -> Option<[u8; SIZE]> {
+    let mut body = Zeroizing::new([0u8; RESTORE_PERSISTENT_BODY]);
+    let secret_end = VOLUME_ID + SECRET_BYTES;
+    body[..VOLUME_ID].copy_from_slice(volume);
+    body[VOLUME_ID..secret_end].copy_from_slice(secret);
+    body[secret_end..secret_end + 8].copy_from_slice(&minimum_generation.to_le_bytes());
+    body[secret_end + 8..].copy_from_slice(blob);
+    request(RESTORE_PERSISTENT, 0, request_id, &*body)
+}
+
+/// Persistence-only dispatch for the separately granted administrative
+/// ingress. It never serves key, record, recovery or RANDOM opcodes, and the
+/// legacy/RANDOM dispatchers never reach `export_persistent`/`restore_persistent`.
+/// Every format check precedes the cryptographic work; a failed call leaves the
+/// namespace unchanged (see `Service::restore_persistent`).
+pub fn dispatch_persistent(
+    service: &mut Service,
+    source: &mut impl EntropySource,
+    header: &Header,
+    body: &[u8],
+) -> [u8; SIZE] {
+    let bounds = match header.op {
+        EXPORT_PERSISTENT | RESTORE_PERSISTENT => body_bounds(header.op),
+        _ => None,
+    };
+    let Some((low, high)) = bounds else {
+        return reply(header, Status::Invalid, &[]);
+    };
+    if header.index != 0
+        || header.status != 0
+        || usize::from(header.length) != body.len()
+        || body.len() < low
+        || body.len() > high
+    {
+        return reply(header, Status::Invalid, &[]);
+    }
+    let mut volume = [0u8; VOLUME_ID];
+    volume.copy_from_slice(&body[..VOLUME_ID]);
+    let mut secret = Zeroizing::new([0u8; SECRET_BYTES]);
+    secret.copy_from_slice(&body[VOLUME_ID..VOLUME_ID + SECRET_BYTES]);
+    if header.op == EXPORT_PERSISTENT {
+        let mut out = [0u8; EXPORT_PERSISTENT_REPLY];
+        let (blob, info) = out.split_at_mut(PERSISTENT_BLOB);
+        let blob: &mut [u8; PERSISTENT_BLOB] = blob.try_into().expect("exact blob length");
+        match service.export_persistent(&volume, &secret, source, blob) {
+            Ok(snapshot) => {
+                info.copy_from_slice(&encode_snapshot_info(snapshot));
+                reply(header, Status::Ok, &out)
+            }
+            Err(status) => reply(header, status, &[]),
+        }
+    } else {
+        let at = VOLUME_ID + SECRET_BYTES;
+        let minimum = u64::from_le_bytes(body[at..at + 8].try_into().expect("eight bytes"));
+        match service.restore_persistent(&volume, &secret, &body[at + 8..], minimum, source) {
+            Ok(snapshot) => reply(header, Status::Ok, &encode_snapshot_info(snapshot)),
             Err(status) => reply(header, status, &[]),
         }
     }

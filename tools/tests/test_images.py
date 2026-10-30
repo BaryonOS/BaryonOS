@@ -12,9 +12,13 @@ import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from run_system import KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, SEALED_NAME, SEALED_OBJECT
 import run_images as r
 import run_fpu as guarded
 import volume_disk as disk
+
+SEALED_FIXTURE = bytes(range(1, 25)) + bytes((i * 29 + 5) & 0xFF for i in range(144))
+KEYSTATE_FIXTURE = KEYSTATE_HEADER + bytes((i * 31 + 7) & 0xFF for i in range(88))
 
 
 def transcript(linked_elf=b"host fixture ELF bytes", changes=None):
@@ -22,8 +26,13 @@ def transcript(linked_elf=b"host fixture ELF bytes", changes=None):
                 APP_CONTENT_SUM=disk.fnv(disk.fixture(0, 1, 4096)), WORKER_SPAWNS=2,
                 WORKER_FAULTS=1, WORKER_RESTARTS=1, WORKER_KILLS=1, LIVE_PROCESSES_AFTER=0,
                 FRAMES_RECOVERED=1, DISK_READS=304, DISK_WRITES=42, DISK_FLUSHES=3,
-                CRYPTO_SEAL=2, CRYPTO_UNSEAL=2, CRYPTO_TAMPER_DENIED=9, RECORD_SEAL=1,
-                RECORD_UNSEAL=1, RECORD_CONTEXT_DENIED=10, RECORD_REVOKED_DENIED=2,
+                CRYPTO_SEAL=3, CRYPTO_UNSEAL=2, CRYPTO_TAMPER_DENIED=10, CRYPTO_RESTORES=1,
+                KEYSTATE_EXPORTS=1, KEYSTATE_RESTORES=1, KEYSTATE_WRONG_SECRET_DENIED=1,
+                KEYSTATE_FLOOR_DENIED=1, KEYSTATE_ADMIN_OP_DENIED=1, KEYSTATE_BYTES=120,
+                KEYSTATE_GENERATION=3, ADMIN_REQUESTS=5, ADMIN_DENIED=3,
+                RECORD_SEAL=1, RECORD_UNSEAL=1, RECORD_CONTEXT_DENIED=10, RECORD_REVOKED_DENIED=2,
+                RECORD_PERSISTED=1, RECORD_RESTORED_UNSEAL=0, RECORD_RESTORED_REVOKED_DENIED=0,
+                RECORD_RESTORED_TAMPER_DENIED=0, RECORD_ADMIN_DENIED=2, RECORD_OBJECT_REVISION=1,
                 ENTROPY_BYTES=1024)
     values = dict(r.EXACT, PID=47, ELF_BYTES=len(linked_elf), ELF_FNV64=r.fnv64(linked_elf),
                   ARENA_PEAK=1234567, START_TICKS=4, END_TICKS=17, EXIT_TICKS=18)
@@ -90,7 +99,7 @@ class SequenceTests(unittest.TestCase):
 
     def test_original_system_crypto_storage_privilege_and_cleanup_cannot_disappear(self):
         good=transcript()
-        for old,new in (("SYSTEM:CRYPTO_SEAL:00000000000000000002","SYSTEM:CRYPTO_SEAL:00000000000000000000"),
+        for old,new in (("SYSTEM:CRYPTO_SEAL:00000000000000000003","SYSTEM:CRYPTO_SEAL:00000000000000000000"),
                         ("SYSTEM:APP_BYTES:00000000000000004096","SYSTEM:APP_BYTES:00000000000000000000"),
                         ("SYSTEM:FRAMES_RECOVERED:00000000000000000001","SYSTEM:FRAMES_RECOVERED:00000000000000000000"),
                         ("SYSTEM:ENTROPY_BYTES:00000000000000001024","SYSTEM:ENTROPY_BYTES:00000000000000001280")):
@@ -132,11 +141,24 @@ class ArtifactTests(unittest.TestCase):
         self.json(self.build/"manifest.json",self.manifest)
         (self.run/"OVMF_CODE.fd").write_bytes(b"fixture-code");(self.run/"OVMF_VARS.fd").write_bytes(b"fixture-vars-after-run")
         initial=disk.create_image(self.volume/"volume.img");data=bytearray((self.volume/"volume.img").read_bytes())
-        content=disk.fixture(0,1,4096);start=(disk.FIRST+disk.DATA_START)*disk.SECTOR;data[start:start+4096]=content
+        content=disk.fixture(0,1,4096)
+        for chunk, payload in enumerate((content, SEALED_FIXTURE, KEYSTATE_FIXTURE)):
+            start=(disk.FIRST+disk.DATA_START+chunk*disk.CHUNK_SECTORS)*disk.SECTOR
+            data[start:start+len(payload)]=payload
         entries=[disk.empty_entry()for _ in range(disk.OBJECTS)]
         entries[0]=dict(disk.empty_entry(),revision=1,request_id=3,created=1,modified=1,present=True,
                         current=dict(revision=1,length=4096,name=b"systeemproef",content_sum=disk.fnv(content),chunks=[0],sums=[disk.fnv(content)]))
-        for i,sector in enumerate(disk.encode_table(1,3,entries)):
+        entries[SEALED_OBJECT]=dict(disk.empty_entry(),revision=1,request_id=33,created=2,modified=2,present=True,
+                                    current=dict(revision=1,length=len(SEALED_FIXTURE),name=SEALED_NAME.encode(),
+                                                 content_sum=disk.fnv(SEALED_FIXTURE),chunks=[1],
+                                                 sums=[disk.fnv(SEALED_FIXTURE)]))
+        for i,sector in enumerate(disk.encode_table(2,33,entries,clocks=[2,0])):
+            start=(disk.FIRST+i)*disk.SECTOR;data[start:start+disk.SECTOR]=sector
+        entries[KEYSTATE_OBJECT]=dict(disk.empty_entry(),revision=1,request_id=512,created=1,modified=1,present=True,
+                                      current=dict(revision=1,length=len(KEYSTATE_FIXTURE),name=KEYSTATE_NAME.encode(),
+                                                   content_sum=disk.fnv(KEYSTATE_FIXTURE),chunks=[2],
+                                                   sums=[disk.fnv(KEYSTATE_FIXTURE)]))
+        for i,sector in enumerate(disk.encode_table(3,512,entries,clocks=[2,1])):
             start=(disk.FIRST+disk.TABLE_SECTORS+i)*disk.SECTOR;data[start:start+disk.SECTOR]=sector
         (self.volume/"volume.img").write_bytes(data);(self.run/"volume.after.img").write_bytes(data)
         serial=transcript(self.probe);(self.run/"serial.txt").write_text(serial)
@@ -159,7 +181,8 @@ class ArtifactTests(unittest.TestCase):
                          run_directory=str(self.run),volume_directory=str(self.volume),command=self.command,
                          qemu_version="QEMU emulator version fixture",firmware_sha256=self.firmware,
                          esp_sha256={"esp/kernel.elf":r.digest(kernel),"esp/EFI/BOOT/BOOTX64.EFI":r.digest(b"fixture-loader")},
-                         before_sha256=initial["sha256"],after_sha256=r.digest(data),oracle=disk.analyse(bytes(data)),
+                         before_sha256=initial["sha256"],after_sha256=r.digest(data),
+                         oracle=disk.analyse(bytes(data),r.OPAQUE_OBJECTS),
                          raw_qemu_exit=33,timed_out=False,evidence=r.evaluate("normal",serial,33,False))
 
     @staticmethod
