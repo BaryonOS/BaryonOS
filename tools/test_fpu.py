@@ -8,14 +8,33 @@ from unittest.mock import patch
 import run_fpu as f
 
 
-def serial():
+def serial(*, wait=False):
     values = (3, 49, 52, 18, 17, 21, 38, 124, 163, 163, 1, 2, 1, 49263, 8192)
-    return "\n".join(f.BOOT + f.CASES + tuple(f"FPU:{name}:{value:020d}" for name, value in zip(f.FIELDS, values)) + f.END) + "\n"
+    fields = f.FIELDS
+    end = f.END
+    if wait:
+        fields += f.WAIT_FIELDS
+        values += (49, 47, 47, 2, 31)
+        end = ("FPU:WAIT:PASS",) + end
+    return "\n".join(f.BOOT + f.CASES + tuple(f"FPU:{name}:{value:020d}" for name, value in zip(fields, values)) + end) + "\n"
 
 
 class EvidenceTests(unittest.TestCase):
     def test_valid_numeric_evidence(self):
         self.assertEqual(f.validate_sequence("UEFI banner\n" + serial())["SAVES"], 163)
+
+    def test_wait_profile_requires_real_blocking_and_exact_counters(self):
+        self.assertEqual(f.validate_sequence(serial(wait=True), wait=True)["WAIT_BLOCKED"], 47)
+        for label, value in (("WAIT_CALLS", 48), ("WAIT_BLOCKED", 2),
+                             ("WAIT_TIMEOUTS", 46), ("WAIT_IMMEDIATE", 0), ("WAIT_IDLE_IRQS", 0)):
+            text = serial(wait=True)
+            line = next(line for line in text.splitlines() if line.startswith(f"FPU:{label}:"))
+            with self.subTest(label=label), self.assertRaises(ValueError):
+                f.validate_sequence(text.replace(line, f"FPU:{label}:{value:020d}"), wait=True)
+        for text, wait in ((serial(), True), (serial(wait=True), False),
+                           (serial(wait=True).replace("FPU:WAIT:PASS\n", ""), True)):
+            with self.subTest(wait=wait, text=text), self.assertRaises(ValueError):
+                f.validate_sequence(text, wait=wait)
 
     def test_unknown_missing_duplicate_or_reordered_markers(self):
         text = serial()
@@ -144,6 +163,13 @@ class EvidenceTests(unittest.TestCase):
                 with self.subTest(change=change), self.assertRaises(ValueError):
                     f.validate_guest(report | change, bound, "new", "pc-q35-8.2", "/qemu", build)
             (directory / "esp/kernel.elf").write_bytes(b"changed")
+            with self.assertRaises(ValueError):
+                f.validate_guest(report, bound, "new", "pc-q35-8.2", "/qemu", build)
+
+    def test_wait_profile_cannot_reuse_normal_guest_evidence(self):
+        with tempfile.TemporaryDirectory() as temp, patch.object(f, "ROOT", Path(temp)):
+            build, _, bound, report = self.fixture(Path(temp))
+            bound["manifest"] = {"kernel_feature": "test-fpu-wait"}
             with self.assertRaises(ValueError):
                 f.validate_guest(report, bound, "new", "pc-q35-8.2", "/qemu", build)
 

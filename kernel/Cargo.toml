@@ -50,6 +50,7 @@ native-system-net-clock = ["native-system-net", "monotonic-clock"]
 # Eager per-process x87/SSE state. The fixture is separate from the mechanism.
 fpu-context = ["milestone-m3"]
 native-fpu = ["fpu-context", "monotonic-clock"]
+test-fpu-wait = ["native-fpu", "ipc-wait"]
 native-qsim = ["milestone-m3"]
 native-qsim-job = ["milestone-m4"]
 native-sdk-app = ["milestone-m4"]

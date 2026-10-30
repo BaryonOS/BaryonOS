@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "source_commit": "3064b1a3504e1f62b3e25a61e46eba42f61a0030",
+  "source_fingerprint_version": 3,
+  "source_sha256": "97b35809c9bff193d3200667fea579e136d841969c9047370d03d660efd1a03b",
+  "scope": "Existing normal/cold system and ABI1.6 FPU native regression; not the subsequent blocking-wait FPU variant or full release acceptance.",
+  "profile": "pc-q35-8.2/qemu64/TCG/1CPU/256MiB; no network or physical disk",
+  "environment": "LD_LIBRARY_PATH=\"$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu\" NOS_QEMU_MACHINE=pc-q35-8.2",
+  "system": {
+    "command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/system\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/system\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/system-host\" python3 -B -u tools/test_system.py",
+    "command_exit": 0,
+    "passed": true,
+    "normal_raw_qemu_exit": 33,
+    "recover_raw_qemu_exit": 33,
+    "report": "build/native-test-version/system/system-gate.json",
+    "report_sha256": "489dff0fcaf5971410d3d4ff7d95bcad35346a2f9ad67f86c3481fa786e24a04",
+    "log": "/tmp/nieuw-os-native-system-regression.log"
+  },
+  "fpu": {
+    "commands": [
+      "python3 -B tools/test_fpu.py",
+      "python3 -B tools/build.py --kernel-feature native-fpu",
+      "python3 -B tools/run_fpu.py"
+    ],
+    "environment": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/fpu\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/fpu\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/fpu-host\"",
+    "command_exit": 0,
+    "passed": true,
+    "raw_qemu_exit": 33,
+    "report": "build/native-test-version/fpu/fpu-report.json",
+    "report_sha256": "a7eef71772f288d07c3cad07232d5c5289064a095f89b28a49b28a3888e55d98",
+    "run_directory": "build/native-test-version/fpu/run/native-fpu-ea8abea641",
+    "log": "/tmp/nieuw-os-native-fpu-regression.log"
+  }
+}

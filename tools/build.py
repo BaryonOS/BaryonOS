@@ -46,7 +46,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "tes
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
                    "native-sdk-app", "test-sdk-app-denied", "native-ipc-wait", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
-                   *KEYRING_FEATURES, *MATERIAAL_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "framebuffer", "native-display-probe", "native-system-display-input"]
+                   *KEYRING_FEATURES, *MATERIAAL_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input"]
 
 
 def inspect_elf(path):
@@ -151,7 +151,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     elif kernel_feature in MEMORY_FEATURES:
         from run_memory import build_users as build_memory_users
         extra_env, qsim_report = build_memory_users()
-    elif kernel_feature == "native-fpu":
+    elif kernel_feature in ("native-fpu", "test-fpu-wait"):
         from run_fpu import build_users as build_fpu_users
         extra_env, qsim_report = build_fpu_users()
     elif kernel_feature == "native-qsim":
@@ -314,7 +314,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             manifest["display_probe"] = qsim_report
         elif kernel_feature in MEMORY_FEATURES:
             manifest["memory"] = qsim_report
-        elif kernel_feature == "native-fpu":
+        elif kernel_feature in ("native-fpu", "test-fpu-wait"):
             manifest["fpu"] = qsim_report
         elif kernel_feature == "native-ipc-wait":
             manifest["ipc_wait"] = qsim_report

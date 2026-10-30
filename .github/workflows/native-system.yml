@@ -83,6 +83,8 @@ jobs:
           python3 -B tools/test_fpu.py
           python3 -B tools/build.py --kernel-feature native-fpu
           python3 -B tools/run_fpu.py
+          NOS_BUILD_DIR="${NOS_BUILD_DIR}/wait" python3 -B tools/build.py --kernel-feature test-fpu-wait
+          NOS_BUILD_DIR="${NOS_BUILD_DIR}/wait" python3 -B tools/run_fpu.py
       - name: Actual native TCP and exact-image cold recovery
         env:
           NOS_BUILD_DIR: ${{ github.workspace }}/build/tcp-ci
@@ -139,6 +141,7 @@ jobs:
             build/fpu-ci/logs/
             build/fpu-ci/run/native-fpu-*/
             build/fpu-ci/esp/
+            build/fpu-ci/wait/
             build/tcp-ci/tcp-system-gate.json
             build/tcp-ci/manifest.json
             build/tcp-ci/logs/

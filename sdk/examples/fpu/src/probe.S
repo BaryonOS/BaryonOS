@@ -97,7 +97,12 @@ clean_st:
  jne failure
  mov rax,0x100000006
  cmp rdx,rax
+ je abi_ready
+ mov rax,0x10000000a
+ cmp rdx,rax
  jne failure
+ mov qword ptr [app_startup+168],1
+abi_ready:
  xor edi,edi
  xor esi,esi
  xor edx,edx
@@ -236,9 +241,20 @@ main_loop:
  xor r10d,r10d
  xor r8d,r8d
  xor r9d,r9d
+ cmp qword ptr [app_startup+168],0
+ je yield_call
+ // The previous verified clock value gives an absolute, bounded deadline.
+ mov rdx,[app_startup+104]
+ add rdx,2
+ mov eax,0x22
+ jmp schedule_call
+yield_call:
  mov eax,1
+schedule_call:
  int 0x80
  test rax,rax
+ jne failure
+ test rdx,rdx
  jne failure
  call verify
  mov ecx,50000

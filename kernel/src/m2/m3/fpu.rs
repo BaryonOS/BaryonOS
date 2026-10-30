@@ -195,7 +195,10 @@ pub(super) mod fixture {
         );
         if evidence().faults == 1 && evidence().reuse == 0 && s.processes[0].status == Status::Dead
         {
-            require(s.processes[1].status == Status::Ready, b"SURVIVOR");
+            let survivor = s.processes[1].status == Status::Ready;
+            #[cfg(feature = "test-fpu-wait")]
+            let survivor = survivor || s.processes[1].status == Status::Waiting;
+            require(survivor, b"SURVIVOR");
             if word(s, 1, 88) > evidence().first_b_loops + 8 {
                 s.spawn_process(0);
                 require(s.processes[0].pid == 3, b"FRESH_PID");
@@ -245,6 +248,31 @@ pub(super) mod fixture {
                 (b"FPU:CONTEXT_BYTES_WIPED:", 8192),
             ] {
                 print_number(name, value);
+            }
+            #[cfg(feature = "test-fpu-wait")]
+            {
+                let m = s.wait_metrics;
+                require(
+                    m.calls == e.loops
+                        && m.blocked >= 3
+                        && m.wake_timeout == m.blocked
+                        && m.immediate_timeout + m.blocked == m.calls
+                        && m.immediate_ready == 0
+                        && m.wake_ready == 0
+                        && m.wake_error == 0
+                        && m.idle_irqs > 0,
+                    b"REAL_WAIT_LIFECYCLES",
+                );
+                for (name, value) in [
+                    (b"FPU:WAIT_CALLS:".as_slice(), m.calls),
+                    (b"FPU:WAIT_BLOCKED:", m.blocked),
+                    (b"FPU:WAIT_TIMEOUTS:", m.wake_timeout),
+                    (b"FPU:WAIT_IMMEDIATE:", m.immediate_timeout),
+                    (b"FPU:WAIT_IDLE_IRQS:", m.idle_irqs),
+                ] {
+                    print_number(name, value);
+                }
+                serial::write(b"FPU:WAIT:PASS\n");
             }
             serial::write(b"FPU:CONTEXT_ISOLATION:PASS\nFPU:CLOCK:PASS\nFPU:CLEANUP:PASS\nFPU:PASS\nM1:PASS\n");
             serial::exit(0x10)

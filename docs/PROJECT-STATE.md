@@ -23,7 +23,25 @@ bevat nu het readonly-herstelprofiel; de normale run houdt eigen bevroren inputs
 Recovery vereist parent én herstelrun in dezelfde beheerde build/run-root;
 de eerdere poging met aparte root is vóór gaststart geweigerd.
 
-Open: native kill/hergebruik en FPU met wachten, bredere native regressies,
+De bestaande gezamenlijke normal/recover-poort en legacy-FPU-poort slagen
+op `3064b1a`, alle drie VM's raw33. Logs:
+`/tmp/nieuw-os-native-{system,fpu}-regression.log`.
+
+Volgende kleine codeproef: `test-fpu-wait`, afzonderlijk van de bestaande
+FPU-baseline. Schrijfgebied: kernel-feature/FPU-fixture, FPU-assemblyprobe,
+buildselectie, bestaande FPU-runner/hosttests, native workflow en bewijsdocs.
+Vervang uitsluitend in dit profiel de bestaande yield door een echte
+deadlinewait; controleer de volledige x87/SSE-bank vóór/na blokkeren,
+echte idle-IRQ's, timerpreëmptie, appfault, slothergebruik en cleanup.
+Geen wijziging aan de productie-wacht, scheduler of publieke ABI.
+Acceptatie: `tools/test_fpu.py`, normale én wait-FPU build/run en bestaande
+GUI-keten na integratie; geen hosttest als native bewijs.
+De implementatie en 12 gerichte hostverifier-tests zijn gereed, exit0;
+ook `cargo +1.90.0 fmt --all -- --check` en `git diff --check` slagen.
+Nieuwe native variant **nog niet uitgevoerd** vóór dit codecheckpoint.
+De exacte legacy-regressies staan in `regression-baseline.json`.
+
+Open: native kill/hergebruik en FPU met wachten, overige native regressies,
 volledige product-/menselijke-/hardwareacceptatie. Eerstvolgende commando:
 `NOS_BUILD_DIR="$PWD/build/native-test-version/system" NOS_TARGET_DIR="$PWD/target/native-test-version/system" python3 -B -u tools/test_system.py`
 met de bestaande lokale `LD_LIBRARY_PATH`; daarnaast de workflow-FPU-poort.

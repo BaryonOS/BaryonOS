@@ -33,6 +33,19 @@ onderscheiden. FCW/MXCSR hebben verschillende afrondingsmodi. De apps
 vergelijken deze echte registertoestand herhaald na syscalls en busyloops met
 PIT-preëmptie. Gereserveerde/paddingbytes worden niet als architectuurdata getest.
 
+Het afzonderlijke profiel `test-fpu-wait` combineert dezelfde proef met
+`ipc-wait`/ABI1.10. Alleen daar vervangen de apps iedere yield door syscall0x22
+met nul voorwaarden en een absolute deadline twee ticks na de vorige gemeten
+klok. De hele registerbank wordt ook na terugkeer uit die wacht vergeleken.
+De kernel verlangt minstens drie echte blokkeringen, overeenkomende
+deadline-wakes, werkelijk getelde idle-IRQ's en geen ready-/error-wakes.
+Het aantal wachtcalls moet exact gelijk zijn aan het aantal geverifieerde
+lussen; eventuele reeds verstreken deadlines worden afzonderlijk geteld.
+Timerpreëmptie per app, de AVX-fault, survivor, verse PID en volledige cleanup
+blijven verplicht. Een nog wachtende survivor is levend, niet ten onrechte
+een fout; hij moet na zijn deadline aantoonbaar verder werken vóór hergebruik.
+Het oorspronkelijke ABI1.6/yieldprofiel blijft afzonderlijk bestaan.
+
 A veroorzaakt na minstens twaalf PIT-ticks een echte unsupported-AVX #UD.
 CPUID.AVX moet op dit qemu64-profiel afwezig zijn. B moet daarna aantoonbaar
 verder werken. Pas vervolgens wordt slot0 opnieuw opgebouwd met verse PID3;
@@ -54,6 +67,9 @@ het inspectierapport. `python3 tools/run_fpu.py` valideert de bootsequentie,
 procesresultaten, onafhankelijke tellerrelaties, exacte ELFs in de kernel,
 bronfingerprint, loader/kernel/firmwarehashes, daadwerkelijke QEMU-commandoregel
 en ruwe seriële uitvoer. Hosttests: `python3 -m unittest discover -s tools -p test_fpu.py`.
+Gebruik voor de combinatie `--kernel-feature test-fpu-wait` en dezelfde
+runner met een afzonderlijke `NOS_BUILD_DIR`. De manifestkeuze bepaalt welk
+strikt orakel geldt: normaal bewijs kan de wachtvariant niet goedkeuren.
 
 Een eerdere proef met `LDMXCSR(80000000)` bereikte de opzettelijke failure105:
 dit QEMU/TCG-profiel isoleerde daarbij geen #GP en is daarvoor geen bewijs.

@@ -162,6 +162,16 @@ performanceacceptatie open, met nul zelfstandige releasepunten.
 
 ## Uitgevoerde componentcontrole
 
+De integratie voegt daarnaast een afzonderlijke `test-fpu-wait`-proef toe:
+de bestaande echte x87/SSE-apps vervangen alleen op ABI1.10 hun yield door
+een begrensde count0-deadlinewait. Alle registervergelijkingen,
+timerpreëmpties, AVX-appfault, survivor, PID3/slothergebruik en cleanup blijven
+vereist. Het native orakel eist echte blokkeringen en idle-IRQ's, uitsluitend
+deadlinewakes en exact één wachtcall per geverifieerde lus. Het normale
+ABI1.6-profiel blijft apart. Dit test contextbehoud rond blokkeren; het is
+geen bewijs voor kill van een nog Waiting proces. Uitvoeringsstatus en
+exacte bron staan in `verification/native-test-version/`.
+
 Alle 47 oorspronkelijke coretests blijven behouden. Uitgevoerd:
 
 | Controle | Werkelijke uitkomst |

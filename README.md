@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`de541fab`](https://github.com/simonvanieperen/nieuw-os/commit/de541fab03aba0ed850ba65a8cdaa549e265d521) ·
+**Bron:** [`3064b1a3`](https://github.com/simonvanieperen/nieuw-os/commit/3064b1a3504e1f62b3e25a61e46eba42f61a0030) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: echte Materiaal-testversie met edit/save/reopen en koude readonly-heropening.
-34% blijft 34%; minstens 50% is nog niet bereikt. De eerder rode echte Materiaal-QMP-keten slaagt op2066ae7 in131,561s/raw33: zes frames, muis/toetsen, save/list/reopen en volledige cleanup. Ook een volledig nieuwe readonly-VM slaagt opde541fa in60,769s/raw33: exact dezelfde14 diskbytes, expliciet geweigerde write zonder ACK, nul writes/flushes en ongewijzigde schijf. Geen deadline-, digest-, rechten- of orakelversoepeling. Een herbruikbare lokale eigen-kernel/UEFI-proefversie is gebouwd; loader, kernel en acht userspace-ELFs zijn bitgelijk aan de geslaagde normale run. Aanvullende wait-lifecycle/FPU-gates, volledige document/GUI-criteria, bredere native regressies en menselijke/hardwareacceptatie blijven open. Deze afgebakende plaintext-fixtureproeven sluiten geen volledig nieuw rubriccriterium.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: normale en koude GUI groen; afzonderlijke FPU-wachtproef toegevoegd, native controle volgt.
+34% blijft 34%; minstens50% is nog niet bereikt. Echte Materiaal edit/save/list/reopen en koude readonly-heropening slagen op hun vastgelegde bron, zonder versoepelde deadlines of orakels. Een lokale eigen-kernel/UEFI-proefversie is bewaard. Op3064b1a slagen ook de bestaande gezamenlijke normal/recover- en ABI1.6-FPU-regressies. Een aparte test-fpu-wait-variant is toegevoegd voor echte blokkering met behoud van x87/SSE, timerpreemptie, fault/slothergebruik en cleanup;12 gerichte hostverifier-tests slagen, de nieuwe native run is nog niet uitgevoerd. Native kill van Waiting, volledige document/GUI-criteria, overige native regressies en menselijke/hardwareacceptatie blijven open. Geen volledig nieuw rubriccriterium gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
