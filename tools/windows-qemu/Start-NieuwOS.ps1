@@ -1,0 +1,116 @@
+param(
+    [string]$QemuPath,
+    [switch]$CheckOnly
+)
+
+$ErrorActionPreference = "Stop"
+
+if (-not $QemuPath) {
+    $qemuCommand = Get-Command "qemu-system-x86_64.exe" -ErrorAction SilentlyContinue
+    if ($qemuCommand) {
+        $QemuPath = $qemuCommand.Source
+    } else {
+        $candidate = Join-Path $env:ProgramFiles "qemu\qemu-system-x86_64.exe"
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            $QemuPath = $candidate
+        } else {
+            throw "QEMU for Windows was not found. Pass -QemuPath with qemu-system-x86_64.exe."
+        }
+    }
+}
+
+if (-not (Test-Path -LiteralPath $QemuPath -PathType Leaf)) {
+    throw "QEMU executable does not exist: $QemuPath"
+}
+$QemuPath = (Resolve-Path -LiteralPath $QemuPath).Path
+
+$versionOutput = (& $QemuPath --version 2>&1 | Out-String)
+if ($LASTEXITCODE -ne 0 -or $versionOutput -notmatch "QEMU emulator version ([0-9]+\.[0-9]+\.[0-9]+)") {
+    throw "Could not read the QEMU version."
+}
+$qemuVersion = [version]$Matches[1]
+if ($qemuVersion -lt [version]"10.2.1") {
+    throw "QEMU 10.2.1 or later is required; found $qemuVersion."
+}
+
+$objectTypes = (& $QemuPath -object help 2>&1 | Out-String)
+if ($LASTEXITCODE -ne 0 -or $objectTypes -notmatch "(?m)^\s*rng-builtin\s*$") {
+    throw "This QEMU build does not provide rng-builtin; install a current 64-bit build."
+}
+$displayTypes = (& $QemuPath -display help 2>&1 | Out-String)
+if ($LASTEXITCODE -ne 0 -or $displayTypes -notmatch "(?m)^\s*sdl\s*$") {
+    throw "This QEMU build does not provide the SDL display backend."
+}
+
+$bundle = $PSScriptRoot
+$manifestPath = Join-Path $bundle "manifest.json"
+$manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+if ($manifest.schema_version -ne 1 -or $manifest.kernel_feature -ne "native-system-materiaal") {
+    throw "Not a supported native Materiaal test bundle."
+}
+$requiredFiles = @(
+    "Start-NieuwOS.ps1", "README.md",
+    "OVMF_CODE.fd", "OVMF_VARS.template.fd", "bios-256k.bin", "VGA.rom",
+    "licenses/OVMF-COPYRIGHT", "licenses/SeaBIOS-COPYRIGHT",
+    "volume.empty.img", "esp/kernel.elf", "esp/EFI/BOOT/BOOTX64.EFI"
+)
+foreach ($relative in $requiredFiles) {
+    $entry = $manifest.files.PSObject.Properties[$relative]
+    if (-not $entry -or $entry.Value.sha256 -notmatch "^[0-9a-f]{64}$") {
+        throw "Missing or malformed bundle hash: $relative"
+    }
+    $path = Join-Path $bundle $relative
+    $item = Get-Item -LiteralPath $path -Force
+    if ($item.PSIsContainer -or $item.Length -ne $entry.Value.size_bytes) {
+        throw "Bundle file size differs: $relative"
+    }
+    if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $entry.Value.sha256) {
+        throw "Bundle file hash differs: $relative"
+    }
+}
+if ($CheckOnly) {
+    Write-Output "Bundle integrity and QEMU $qemuVersion prerequisites passed; no VM started."
+    return
+}
+$state = Join-Path $bundle "state"
+New-Item -ItemType Directory -Path $state -Force | Out-Null
+$vars = Join-Path $state "OVMF_VARS.fd"
+$volume = Join-Path $state "volume.img"
+if (-not (Test-Path -LiteralPath $vars -PathType Leaf)) {
+    Copy-Item -LiteralPath (Join-Path $bundle "OVMF_VARS.template.fd") -Destination $vars
+}
+if (-not (Test-Path -LiteralPath $volume -PathType Leaf)) {
+    Copy-Item -LiteralPath (Join-Path $bundle "volume.empty.img") -Destination $volume
+}
+
+Push-Location $bundle
+try {
+    $arguments = @(
+        "-L", ".",
+        "-machine", "pc-q35-8.2",
+        "-accel", "tcg,thread=single",
+        "-cpu", "qemu64",
+        "-smp", "1",
+        "-m", "256M",
+        "-nodefaults",
+        "-display", "sdl",
+        "-monitor", "none",
+        "-serial", "file:state/serial.txt",
+        "-nic", "none",
+        "-no-reboot",
+        "-device", "VGA,vgamem_mb=16,romfile=VGA.rom",
+        "-object", "rng-builtin,id=rng0",
+        "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+        "-drive", "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+        "-drive", "if=pflash,unit=1,format=raw,file=state/OVMF_VARS.fd",
+        "-drive", "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+        "-drive", "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=state/volume.img",
+        "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"
+    )
+    & $QemuPath @arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "QEMU exited with code $LASTEXITCODE. See state/serial.txt for guest output."
+    }
+} finally {
+    Pop-Location
+}

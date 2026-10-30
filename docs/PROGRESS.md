@@ -85,6 +85,28 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+WINDOWS-QEMU-TEST-VERSION (30 oktober 2026), implementatiebron `f777f7a`:
+**34% → 34%**. De branch voegt een hashvaliderende Windows-QEMU-bundel,
+launcher, native QMP-previewrunner en CI-artifactjob toe. Hosttests,
+strikte preflight en de warning-vrije native Materiaal-build zijn geslaagd.
+Na herstel van een onterechte vaste Source/Policy-readinessvolgorde in het
+hostorakel slaagt de echte QEMU-preview: QMP-quit exit 0, 800×600, 310 kleuren.
+31 hosttests slagen; beide native rapporten blijven brongebonden bewaard in
+`verification/windows-qemu-preview/`. Windows-hostlaunch en ZIP-generatie zijn
+niet uitgevoerd; distributie-infrastructuur sluit geen productcriterium.
+
+Aanvullend op basis `19f2d33` met CheckOnly-wijziging: vijf echte Windows
+PowerShell-launchertests slagen met synthetische bestanden; QEMU 11.1.0,
+SDL en `rng-builtin` zijn aanwezig. Bundelgrootte/hash en profielweigering
+zijn gecontroleerd zonder VM of state. Geen Windows-gastacceptatie of
+extra punten: **34% → 34%**.
+
+Op basis `8f4fb3a` met packager-hercontrole slagen 33 hosttests,
+inclusief weigering van een ELF-wissel na initiële validatie. Geen OS-ZIP,
+Windows-gast of extra acceptatie; **34% → 34%** blijft gehandhaafd.
+Op bron `5b80865` slaagt ook de complete tools-hostsuite (111 tests);
+dat is geen native productacceptatie en verandert de score niet.
+
 RTC-NATIVE-1 (30 oktober 2026), basis `5c334f9`: **34% -> 34%**.
 De expliciet opt-in CMOS-bootstrap is een technische tijdproviderafhankelijkheid,
 geen productieklok of vertrouwde TLS-tijd. Geen rubricpunt of productcriterium

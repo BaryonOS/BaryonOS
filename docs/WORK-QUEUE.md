@@ -19,6 +19,42 @@ kills en schoon hergebruik, groen op `586c33c`; brongebonden bewijs in
 De normale/koude native GUI en FPU/wacht zijn eveneens inmiddels groen op
 hun eigen bron; oude rode queue-omschrijvingen hieronder zijn historisch.
 
+## Peerhistorie — Windows-QEMU-testversie, nu geïntegreerd
+
+`simon/windows-qemu-test-version`, basis `ad2b981`; codecheckpoint `f777f7a`.
+`TASK-WINDOWS-QEMU-TEST-VERSION` voegt een gecontroleerde ZIP-packager,
+PowerShell-launcher en bron-/hashgebonden QMP-previewrunner toe voor het echte
+zeven-app `native-system-materiaal`-profiel. De opgegeven map
+`C:\Program Files\qemu` is het ingebouwde standaarddetectiepad. De launcher
+vereist QEMU 10.2.1+, SDL en `rng-builtin`; QEMU zelf wordt niet meegeleverd.
+
+Hosttests (31: packager, transcript/frame-orakel en bestaande Materiaal-probe),
+strikte preflight en normale Materiaal-build slagen; de laatste build is
+waarschuwingvrij. De eerste QEMU-preview faalde door een onterechte vaste
+Source/Policy-volgorde in het hostorakel. Na correctie slaagt de echte run
+in 3,874 s: QEMU exit 0 na QMP-quit, 800×600 en 310 kleuren.
+Bewijs: `verification/windows-qemu-preview/`. Bundelgeneratie, GitHub-artifactjob en
+Windows-uitvoering staan nog open; de uiteindelijke bron wordt eerst met
+`simon/native-test-version` afgestemd. De lokale QEMU-build heeft QMP en
+`rng-builtin`, maar uitsluitend de `none`-displaybackend, zodat dit geen
+Windows-UI- of SDL-bewijs is. Geen volledige-release- of roadmapcriteria
+afgetekend; rubric blijft 34%.
+
+Windows-preflightaanvulling: echte PowerShell bereikt de opgegeven
+QEMU-installatie (11.1.0), met SDL en `rng-builtin`. Vijf launchertests met
+synthetische bestanden slagen zonder VM of state; `-CheckOnly` valideert
+bundelgrootte/SHA-256. Bewijs: `verification/windows-qemu-preview/windows-launcher.md`.
+Dit is geen Windows-gaststart of handmatige bediening. PR #65 is concept.
+
+Packager verifieert ook de ingelezen kernel-/loaderbytes en bron opnieuw
+vlak vóór archivering. 33 hosttests groen, inclusief artifactwissel na
+initiële validatie: fout zonder ZIP. Geen OS-bundel gemaakt.
+Historische CI41089090576 op f777 is rood (herstelde readinessvolgorde);
+huidige-head-CI blijft open.
+
+Eerstvolgende gate:
+`. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
+
 Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De opt-in `native-rtc`-bootstrap,
 `kernel/src/m2/rtc.rs`, RTC-buildkeuze, RTC-runner/hosttests/workflow en

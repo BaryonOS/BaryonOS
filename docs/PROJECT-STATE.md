@@ -1,6 +1,31 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — B02-netwerk normaal/koud groen; interactieve variant volgt — 30 oktober 2026
+## NEXT AGENT HANDOFF — Interactieve zevenprocessenrunner geïntegreerd; native gate volgt
+
+Integratie vanaf `8b199ad` met de volledige peerbranch
+`0887217360e924f94f3b86a52c3724cfdbe1c9ea`. Packager, launcher,
+eerdere raw bewijzen en opt-in strikte interactieve preview behouden.
+Schrijfgebieden zijn niet meer parallel bezet: peer is na oplevering gestopt.
+Huidige code vereist dezelfde nieuwe bron voor een volledige normale
+achtprocessenreferentie en de gewone zevenprocessenvariant. Exacte zes
+native frames en zeven appidentiteiten moeten passen, geen maskers,
+F12/controller of kleurenaantal als bedieningsorakel. Na QMP-quit/raw0
+volgt onafhankelijk diskorakel. Geen koudrecovery-/cleanupclaim voor de
+interactieve run. Kernelwijzigingen zijn uitsluitend correcte cfg-gates
+voor probe-only observatie; geen runtime-/rechtenversoepeling.
+
+49 gerichte hosttests en de volledige toolsuite slagen op deze combinatie
+(exit0; `/tmp/nieuw-os-interactive-integrated-{host,tools}.log`).
+Na checkpoint/push referentie normaal bouwen
+onder `build/native-test-version/interactive-reference` met targetcache
+`target/native-test-version/gui-baseline`, uitvoeren met pc-q35-10.0 en
+dezelfde expliciete VGA-ROM. Daarna `native-system-materiaal` bouwen onder
+`build/native-test-version/interactive-current` en previewrunner starten met
+`--interactive-reference-run` naar de echte geslaagde referentierun.
+Nog geen native acceptatie/ZIP op deze combinatie; **34% → 34%; 50% open**.
+Nieuwste main-docscommit0ade801 nog apart te integreren; geen runtimecode.
+
+## Uitvoeringshistorie — B02-netwerk normaal/koud groen; interactieve variant volgt
 
 Gepushte basis `ec8275579fa07f70180452d325738304b2edb6ab`, runtime v3
 `4c472a18940ea6cd42a0f0d53d26f8c491c5204274c4b8a6b8d6070b659a79ad`.
@@ -542,6 +567,81 @@ en export is er geen write-ahead in de dienst; crash tussen `KEYS_READY` en
 Eerstvolgende stap: review van de concept-PR en CI op de head; daarna
 write-ahead van allocaties in de Key Service via de volumetransactie en een
 echt rollbackanker (TPM-CRB-spoor) als volgende B02-stap.
+## Uitvoeringshistorie — Windows-QEMU-testversie — 30 oktober 2026
+
+Basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00` (`origin/main`), branch
+`simon/windows-qemu-test-version`; codecheckpoint `f777f7a`. De opgegeven
+Windows-map `C:\Program Files\qemu` wordt automatisch herkend door
+`tools/windows-qemu/Start-NieuwOS.ps1`; de instructies tonen ook expliciet
+`-QemuPath "C:\Program Files\qemu\qemu-system-x86_64.exe"`.
+
+**Packageraanvulling op basis `8f4fb3a`:** de packager hercontroleert de
+werkelijk ingelezen kernel-/loaderbytes tegen het native buildmanifest en
+de bronvingerafdruk vlak vóór archivering. Een wijziging tussen validatie
+en kopiëren geeft een fout zonder ZIP. 33 gerichte/bestaande hosttests,
+Python-syntax en diffcontrole slagen (exit 0), inclusief stale-source-,
+ESP-symlink- en artifactwisselweigering. Alleen synthetische testarchieven
+zijn aangemaakt en door TemporaryDirectory opgeruimd.
+
+Op bron `5b808653c40409a661c5382173da314db1961c11` slaagt daarnaast
+`python3 -B -m unittest discover -s tools/tests -p 'test_*.py'` met
+111 tests (exit 0, 3,843 s); log `/tmp/nieuw-os-windows-qemu-tools-tests.log`.
+Verwachte negatieve testmeldingen in dat log zijn geen echte nieuwe VM-runs.
+Read-only afstemming met de integratiesessie is afgerond: hergebruik de zes
+normale QMP-bedieningsgroepen zonder F12, maar certificeer hun fasen alleen
+met passend bevroren native pixels; niet met de probe-only snapshots.
+Na QMP-quit volgt onafhankelijk `disk_oracle`. Nog geen runneruitbreiding,
+OS-bronvervanging of bundel; integratiesessie bezit de bevroren runtimebron.
+
+**Windows-launchercontrole op basis `19f2d33` met CheckOnly-wijziging:**
+de gekoppelde QEMU-installatie is werkelijk bereikbaar via Windows PowerShell.
+QEMU 11.1.0 biedt `rng-builtin` en SDL. Vijf echte PowerShell-launchertests
+slagen met synthetische bestanden: expliciet pad, standaarddetectie, gewijzigde
+kernel, ontbrekende kernel en verkeerd probeprofiel. Geen VM gestart of
+VM-state gemaakt. Directe UNC-uitvoering werd door RemoteSigned geweigerd;
+lokaal gestagede eigen scripts werken zonder policywijziging.
+`verification/windows-qemu-preview/windows-launcher.md` bewaart de scope en
+resultaten. De launcher heeft nu `-CheckOnly` en controleert alle verplichte
+bundelbestanden tegen grootte/SHA-256; dat is geen handtekening. PR #65 blijft
+concept. Volgende stap: afstemming van de afzonderlijk geteste interactieve
+integratiebron, dan bundel bouwen en echte Windows-VM/bediening toetsen.
+
+**Update native preview:** de eerste run faalde na 45 s door een onterechte
+vaste Source/Policy-volgorde in het hostorakel, niet door ontbrekende
+gastmarkers. De runner is hersteld: boot/manifest blijven geordend, alle
+readinessmarkers moeten precies eenmaal verschijnen. Herbouw en herhaling
+slagen met runner exit 0/QEMU exit 0 na QMP-quit, 3,874 s en een echt
+800×600-frame met 310 kleuren. 31 hosttests slagen. Beide oorspronkelijke
+rapporten en seriële logs staan in `verification/windows-qemu-preview/`;
+uitvoeringsbasis `6ec0bac` met readinessfix, exacte v3-bronbinding in rapport.
+De optionele `kvmvapic.bin`-ROM ontbreekt lokaal; boot slaagt, geen claim van
+foutloze firmwareconfiguratie. Geen ZIP gemaakt; de nieuwere GUI-/koudbewijsbron
+`simon/native-test-version` wordt eerst met de andere sessie afgestemd.
+
+Geïmplementeerd: beperkte packager valideert het echte normale
+`native-system-materiaal`-buildmanifest, alle zeven embedded app-ELF's,
+firmware/licentiebestanden en maakt een hashgebonden ZIP. De launcher start
+een netwerkloze QEMU-VM met een lege synthetische schrijfbare documentimage,
+read-only ESP, lokale OVMF-state, zonder hostmappen/-schijven. De CI-workflow
+bouwt en voert de eigen kernel uit, controleert native readiness en echte
+framebufferbytes en bewaart de testbundel als tijdelijk artifact. QEMU zelf
+wordt niet meegeleverd.
+
+Geslaagd vóór deze overdracht:
+
+- `python3 -B -m unittest tools.tests.test_materiaal_preview tools.tests.test_package_windows_qemu` — exit 0, 9 tests.
+- `python3 -B -m unittest tools.tests.test_materiaal_preview tools.tests.test_package_windows_qemu tools.tests.test_materiaal_probe` — exit 0, 29 tests.
+- `python3 -B -m py_compile tools/run_materiaal_preview.py tools/package_windows_qemu.py tools/tests/test_materiaal_preview.py tools/tests/test_package_windows_qemu.py && git diff --check` — exit 0.
+- `. .tools/nieuw-os/rtc-env.sh && python3 -B tools/preflight.py --strict` — exit 0.
+- Met geïsoleerde `build/windows-qemu` en `target/windows-qemu`: `python3 -B -u tools/build.py --kernel-feature native-system-materiaal` — exit 0, zeven apps en ELF's geïnspecteerd, geen waarschuwingen; volledig log `/tmp/nieuw-os-windows-qemu-build.log`.
+- Lokale QEMU 10.2.1 bevestigt `rng-builtin`; de host biedt alleen de `none`-displaybackend. De previewrunner gebruikt headless QMP; dit bewijst geen SDL/Windows-launch.
+
+**CI:** historische run [41089090576](https://github.com/simonvanieperen/nieuw-os/actions/runs/41089090576) op `f777f7a` faalde op dezelfde inmiddels herstelde readinessvolgorde (exit 1). Log: `/tmp/nieuw-os-windows-qemu-ci-failure.log`. Dit is geen herhaling op huidige head; geen actuele groene CI-claim.
+
+**Nog niet uitgevoerd:** OS-ZIP-generatie, artifactdownload en Windows-gaststart/bediening. Windows-launcherpreflight is wel uitgevoerd; het script vereist QEMU 10.2.1+, SDL en `rng-builtin`. Geen nieuw native productcriterium gesloten; score **34% → 34%**. Deze tak is alleen de VM-test/distributiestap en sluit het gevraagde 50%-doel niet. Geen volledige release-, hardware- of Windows-compatibiliteitsclaim.
+
+Herhaalcommando (volgende stap: afstemming van de bundelbron):
+`. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
 
 ## Historisch checkpoint — NATIVE-CLOCK-1 afgerond; PR blijft draft voor review — 30 oktober 2026
 

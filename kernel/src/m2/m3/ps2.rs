@@ -76,6 +76,7 @@ pub fn detach(pid: u64) {
         r.controller.detach();
     }
 }
+#[cfg(any(feature = "native-display-probe", feature = "native-system-materiaal-probe"))]
 pub fn counts() -> [u64; 5] {
     let r = runtime();
     [r.started, r.ready, r.samples, r.denied, r.discarded]

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ec827557`](https://github.com/simonvanieperen/nieuw-os/commit/ec8275579fa07f70180452d325738304b2edb6ab) ·
+**Bron:** [`8b199adc`](https://github.com/simonvanieperen/nieuw-os/commit/8b199adc412e44d07accf024eb3abc83e46bb6c2) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B02-integratie:ARP/UDP/DNS enTCP normaal/koud native herverifieerd.
-34% blijft34%; minstens50% niet bereikt. Op ec82755 slagen vier extra echte netwerk-VM's:ARP/UDP/DNS enTCP normaal/koud, met onafhankelijke frame-/peer-/diskcapture. Bestaande ontbrekende compiler1.91.1/locked crates hersteld na concrete fouten; geen nieuwe dependency of scorecriterium. N01 blijft open: smalle client/probe is niet volledige productnetwerkdienst of dagelijks Internet. B02/GUI/TPM-bewijzen behouden hun exacte eigen bron. Interactieve zevenprocessenketen wordt in afzonderlijke peerbranch gebouwd; Windowsbundel, volledige CI en product-/menselijke-/hardwareacceptatie open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Interactieve zevenprocessenrunner en Windowsbundelcode geïntegreerd; native gate volgt.
+34% blijft34%; minstens50% niet bereikt. Volledige onafhankelijke packagingbranch0887217 geïntegreerd vanaf8b199ad. Strikte interactieve zevenprocessenproef vereist nieuwe bronidentieke normale referentierun, alle apphashes, zes exacte native frames en onafhankelijk diskorakel na QMP-quit. Geen pixelmaskers of probe/controllerclaim voor gewone variant. Eerdere bewijzen blijven brongebonden. Gezamenlijke host/native gate en ZIP nog open; geen nieuw criterium, volledige product-, Windows-, menselijke of hardwareacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
