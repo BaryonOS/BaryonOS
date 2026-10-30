@@ -6,8 +6,8 @@ use crate::{
 use noto_sans_mono_bitmap::{get_raster, get_raster_width, FontWeight, RasterHeight};
 
 pub const MAX_TEXT_ROWS: usize = 48;
-/// Fixed material nodes plus one entry per object in a volume domain.
-pub const MAX_SEMANTIC_NODES: usize = 6 + volume_core::PER_DOMAIN;
+/// Fixed material nodes, pagination controls and one entry per domain object.
+pub const MAX_SEMANTIC_NODES: usize = 8 + volume_core::PER_DOMAIN;
 
 fn raster_height(scale: Scale) -> RasterHeight {
     match scale {
