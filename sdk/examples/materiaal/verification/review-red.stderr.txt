@@ -1,0 +1,19 @@
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/sdk/runtime)
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/sdk/catalog-client)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/services/input-core)
+   Compiling nieuw-os-document-session v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/sdk/document-session)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/ui/surface-protocol)
+   Compiling nieuw-os-input-client v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/sdk/input-client)
+   Compiling nieuw-os-materiaal v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/ui/native)
+   Compiling nieuw-os-materiaal-app v0.1.0 (/workspace/nieuw-os-worktrees/materiaal-native-app/sdk/examples/materiaal)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.72s
+     Running unittests src/lib.rs (build/materiaal-app-host/debug/deps/nieuw_os_materiaal_app-d3a49ce0a3b51122)
+     Running tests/chain.rs (build/materiaal-app-host/debug/deps/chain-7862f653aa660138)
+
+thread '<unnamed>' panicked at tests/chain.rs:1085:5:
+Ready remained true while current generation has only its first tile ACK
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'independent_current_ready_is_not_stale_after_edit' panicked at tests/chain.rs:1087:1:
+called `Result::unwrap()` on an `Err` value: Any { .. }
+error: test failed, to rerun pass `--test chain`

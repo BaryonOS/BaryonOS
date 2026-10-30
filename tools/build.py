@@ -33,7 +33,8 @@ TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
 MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
 IMAGE_FEATURES = ("native-system-images",)
-SYSTEM_FEATURES = ("native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES)
+MATERIAAL_FEATURES = ("native-system-materiaal", "native-system-materiaal-probe", "test-system-materiaal-recover", "test-system-materiaal-scale200")
+SYSTEM_FEATURES = ("native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES)
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
@@ -43,7 +44,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "tes
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
                    "native-sdk-app", "test-sdk-app-denied", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
-                   *KEYRING_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "framebuffer", "native-display-probe", "native-system-display-input"]
+                   *KEYRING_FEATURES, *MATERIAAL_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "framebuffer", "native-display-probe", "native-system-display-input"]
 
 
 def inspect_elf(path):
@@ -111,7 +112,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
         if loader_feature not in (None, "graphics-g0"):
             raise ValueError("G0 requires its paired graphics loader")
         loader_feature = "graphics-g0"
-    elif kernel_feature in ("framebuffer", "native-system-display-input", "native-display-probe"):
+    elif kernel_feature in ("framebuffer", "native-system-display-input", "native-display-probe", *MATERIAAL_FEATURES):
         if loader_feature not in (None, "framebuffer"):
             raise ValueError("Framebuffer transport requires its paired loader")
         loader_feature = "framebuffer"
@@ -130,7 +131,10 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
                                 ("milestone-m6c", "test-m6c-recover")):
         raise ValueError("Document session requires NOS_SDK_RUNTIME=1 and the M6c normal/recover fixture")
     qsim_report = None
-    if kernel_feature == "native-display-probe":
+    if kernel_feature in MATERIAAL_FEATURES:
+        from build_materiaal import build_users as build_materiaal_users
+        extra_env, qsim_report = build_materiaal_users(probe=kernel_feature != "native-system-materiaal")
+    elif kernel_feature == "native-display-probe":
         from run_display_probe import build_users as build_display_users
         extra_env, qsim_report = build_display_users()
     elif kernel_feature in MEMORY_FEATURES:
@@ -271,7 +275,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
     manifest["sdk_runtime"] = use_sdk
     manifest["document_session"] = use_document_session
     if qsim_report is not None:
-        if kernel_feature == "native-display-probe":
+        if kernel_feature in MATERIAAL_FEATURES:
+            manifest["materiaal"] = qsim_report
+        elif kernel_feature == "native-display-probe":
             manifest["display_probe"] = qsim_report
         elif kernel_feature in MEMORY_FEATURES:
             manifest["memory"] = qsim_report

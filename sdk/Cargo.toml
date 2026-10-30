@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-exclude = ["keyring-client", "heap-allocator", "examples/memory", "display-client", "examples/display-input-probe", "examples/input-service", "examples/random-probe", "examples/image-probe"]
+exclude = ["keyring-client", "heap-allocator", "examples/memory", "display-client", "input-client", "examples/display-input-probe", "examples/input-service", "examples/materiaal", "examples/compositor", "examples/desktop-init", "examples/random-probe", "examples/image-probe"]
 members = ["keyring-random-client", "runtime", "catalog-client", "document-session", "examples/catalog-read", "examples/volume-docs", "examples/supervisor", "examples/keyring", "examples/system"]
 
 [profile.dev]

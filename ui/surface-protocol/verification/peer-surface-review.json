@@ -1,0 +1,256 @@
+{
+  "scope": "SUR1 pure receiver/codec and optional typed client; read-only review; no compositor, kernel, boot, GUI or native acceptance",
+  "worktree": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+  "pure_commit": "7ddb3546e34e26dd53d58a94bd652ea1407f4e8a",
+  "head_at_initial_review": "5f88764870671c22bba0e19755daea60ed97dd13",
+  "initial_source_hashes": {
+    "sdk/catalog-client/src/lib.rs": "5ca84b64fc6fc7384a0f92a5eb3c0f7532ba7ce982fe1008b1a9cef27bb34244",
+    "sdk/runtime/src/lib.rs": "51d84342b9d9716e3614b164c8dcefddb39ef68247fe11a9e2742cc5fd1444cb",
+    "sdk/runtime/src/message.rs": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab",
+    "sdk/runtime/src/native.rs": "793f0cd31c0ea05163c4fcebbd1405fd5eab203d2211628f5ea352b183b29e80",
+    "ui/surface-protocol/Cargo.lock": "e6254467fea86179550cae38317e8e6a0eeb6815055a031919f6a1dbf39d3fb9",
+    "ui/surface-protocol/Cargo.toml": "dc969f69cc14ea624a773cabcbc501094419b9dc597a198b5a428149964aec94",
+    "ui/surface-protocol/README.md": "a48ed61259273e005001149cf87c7c4a1d70d42e8a51f8bb9272a4c4651f5505",
+    "ui/surface-protocol/src/client.rs": "2d1fe8c2df2b940910dabe2397ef79222540050add0f9595ca0b68f7c0b5f29b",
+    "ui/surface-protocol/src/lib.rs": "70042101a2d19fc1eb6e4e7dc1a56b50b5091d6c580d0afb4d49f76f12a68c16",
+    "ui/surface-protocol/tests/client.rs": "fa2c042100ab79d0def7be503e627bf5a4a0f39bb62e522cb725c9d48217867a",
+    "ui/surface-protocol/tests/protocol.rs": "45e9f5a4b28e75fdd85c373fdf630628ab12dfbf6f76744357014eeae0c35e8d"
+  },
+  "initial_bound_sources_unchanged": true,
+  "checks": {
+    "host": {
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--features",
+        "client"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793330351.588907,
+      "duration_s": 1.0093910694122314,
+      "returncode": 0
+    },
+    "clippy": {
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--features",
+        "client",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793330606.2622437,
+      "duration_s": 0.7064352035522461,
+      "returncode": 0
+    },
+    "scalar": {
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "build",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--features",
+        "client",
+        "--release",
+        "--lib",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793330606.968809,
+      "duration_s": 0.551255464553833,
+      "returncode": 0
+    },
+    "probe-build": {
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/rustc",
+        "+1.90.0",
+        "--edition",
+        "2021",
+        "/tmp/nieuw-os-surface-review/probe.rs",
+        "--extern",
+        "nieuw_os_surface_protocol=/tmp/nieuw-os-surface-review-target/debug/deps/libnieuw_os_surface_protocol-d380aa74c901cb3f.rlib",
+        "-L",
+        "dependency=/tmp/nieuw-os-surface-review-target/debug/deps",
+        "-o",
+        "/tmp/nieuw-os-surface-review/probe"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793330772.770087,
+      "duration_s": 0.1389162540435791,
+      "returncode": 0
+    },
+    "probe": {
+      "command": [
+        "/tmp/nieuw-os-surface-review/probe"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793330772.9091284,
+      "duration_s": 0.035086870193481445,
+      "returncode": 0
+    }
+  },
+  "native_execution": false,
+  "findings": [
+    {
+      "id": "SUR1-TIMEOUT-01",
+      "status": "fixed_and_independently_verified",
+      "property": "No positive tile completion after staging deadline",
+      "counterexample": "Ready at tick1 with timeout10; correct peer accept at tick12 with malformed bytes advances last_tick but decoder fails before expiry; old token commit_with invokes callback, positive reply and completed_frame Some(1).",
+      "probe": "/tmp/nieuw-os-surface-review/probe.rs",
+      "result": "/tmp/nieuw-os-surface-review/logs/logs/probe.stdout.txt",
+      "reachability": "Public core API; strict immediate native accept->commit adapter may avoid this path. No native reachability claim.",
+      "fix": "Expiry before decode; commit_with requires fresh monotone admission tick and checks staging deadline before mandatory blit callback.",
+      "fixed_probe": "/tmp/nieuw-os-surface-review/probe-fixed.rs",
+      "fixed_result": "/tmp/nieuw-os-surface-review/fixed/logs/probe.stdout.txt"
+    }
+  ],
+  "integration_assumptions": [
+    "Kernel IPC sender/tag/nocaps authentication precedes Receiver invocation.",
+    "Positive callback delegates to real DisplayClient::blit and returns only after actual backend completion.",
+    "Fresh epoch and grants on service lifetime change; no epoch reuse as proof of authority.",
+    "Compositor retains outgoing reply under EAGAIN and processes no new app request until delivered or teardown."
+  ],
+  "other_concrete_blockers": [],
+  "initial_bound_file_count": 11,
+  "fixed_source_hashes": {
+    "sdk/catalog-client/src/lib.rs": "5ca84b64fc6fc7384a0f92a5eb3c0f7532ba7ce982fe1008b1a9cef27bb34244",
+    "sdk/runtime/src/lib.rs": "51d84342b9d9716e3614b164c8dcefddb39ef68247fe11a9e2742cc5fd1444cb",
+    "sdk/runtime/src/message.rs": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab",
+    "sdk/runtime/src/native.rs": "793f0cd31c0ea05163c4fcebbd1405fd5eab203d2211628f5ea352b183b29e80",
+    "ui/surface-protocol/Cargo.lock": "e6254467fea86179550cae38317e8e6a0eeb6815055a031919f6a1dbf39d3fb9",
+    "ui/surface-protocol/Cargo.toml": "dc969f69cc14ea624a773cabcbc501094419b9dc597a198b5a428149964aec94",
+    "ui/surface-protocol/README.md": "a48ed61259273e005001149cf87c7c4a1d70d42e8a51f8bb9272a4c4651f5505",
+    "ui/surface-protocol/src/client.rs": "2d1fe8c2df2b940910dabe2397ef79222540050add0f9595ca0b68f7c0b5f29b",
+    "ui/surface-protocol/src/lib.rs": "fb668725e7fccf108586c198652bf7fddd21a0cbc5fe77b3c977f67f840de411",
+    "ui/surface-protocol/tests/client.rs": "d8f3ab0d65342d3a402571e494d5f84574c523e933a1f379c12841993aaef476",
+    "ui/surface-protocol/tests/protocol.rs": "5df655a2713daed1632184b22ee11d9142c18c757c98256bf504def583c7c3c7"
+  },
+  "fixed_bound_sources_unchanged": true,
+  "fixed_checks": {
+    "host": {
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--features",
+        "client"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793331268.299117,
+      "duration_s": 0.9612352848052979,
+      "returncode": 0
+    },
+    "clippy": {
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--features",
+        "client",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793331269.2604883,
+      "duration_s": 0.5372676849365234,
+      "returncode": 0
+    },
+    "scalar": {
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "build",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--features",
+        "client",
+        "--release",
+        "--lib",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793331269.7978818,
+      "duration_s": 0.4391183853149414,
+      "returncode": 0
+    },
+    "probe-build": {
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/rustc",
+        "+1.90.0",
+        "--test",
+        "--edition",
+        "2021",
+        "/tmp/nieuw-os-surface-review/probe-fixed.rs",
+        "--extern",
+        "nieuw_os_surface_protocol=/tmp/nieuw-os-surface-review-fixed-target/debug/deps/libnieuw_os_surface_protocol-d380aa74c901cb3f.rlib",
+        "-L",
+        "dependency=/tmp/nieuw-os-surface-review-fixed-target/debug/deps",
+        "-o",
+        "/tmp/nieuw-os-surface-review/probe-fixed"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793331315.8033698,
+      "duration_s": 0.15301012992858887,
+      "returncode": 0
+    },
+    "probe": {
+      "command": [
+        "/tmp/nieuw-os-surface-review/probe-fixed"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/materiaal-native-app",
+      "started_unix": 1793331315.9565756,
+      "duration_s": 0.03585624694824219,
+      "returncode": 0
+    }
+  },
+  "fixed_test_counts": {
+    "repository": 15,
+    "independent_scratch": 5
+  },
+  "independent_scratch_cases": [
+    "malformed at known expiry revokes token without callback",
+    "wrong epoch at known expiry revokes token without callback",
+    "exact admission deadline returns Timeout/no callback/zero pixels",
+    "commit clock rollback retires receiver before callback",
+    "unauthorized sender cannot advance clock/cancel legitimate token"
+  ],
+  "scope_result": "PASS scoped read-only review after SUR1-TIMEOUT-01 correction; no remaining concrete blocker found",
+  "revision_note": "Optional client and timeout fix were reviewed as frozen uncommitted source, bound by file hashes; root integration commit and real backend/VM evidence remain separate.",
+  "probe_sources": {
+    "probe.rs": "c264003f8136561e29e1993df9fd9eb1404bdddd1998a4f640c80974eb7b4342",
+    "probe-fixed.rs": "984fc0ede1158c811c0c66dc851041debb197fa72796c7383d13976d1f17cc6b"
+  },
+  "scalar_artifacts": {
+    "/tmp/nieuw-os-surface-review-fixed-target/x86_64-unknown-none/release/deps/libnieuw_os_surface_protocol-62fbd8fa453b4030.rlib": "be0198d1ab150611b45ace82235e3f41102c85d6925297047f0c669004e086fd"
+  }
+}

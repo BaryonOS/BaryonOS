@@ -1,0 +1,433 @@
+{
+  "passed": true,
+  "source_commit": "48b51878c03b5b73449f563735c7854b24926fc4",
+  "source_fingerprint_version": 3,
+  "source_sha256": "d54262733b9e2aca9b6ec1385d2c4ba7f0087d91cabab96d3f2a722edffca60d",
+  "scope": "Read-only CPL0 digest cost in own kernel before userspace/timer; no GUI, app, boot-latency or physical-cycle acceptance",
+  "command": [
+    "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,file=volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"
+  ],
+  "cwd": "/workspace/nieuw-os-worktrees/root-materiaal/build/cap-bench/run/cap-bench-a7629f96c97d43c3abb555497df34bba",
+  "run_directory": "/workspace/nieuw-os-worktrees/root-materiaal/build/cap-bench/run/cap-bench-a7629f96c97d43c3abb555497df34bba",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "native-cap-digest-bench",
+    "kernel_feature": "native-cap-digest-bench",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "d54262733b9e2aca9b6ec1385d2c4ba7f0087d91cabab96d3f2a722edffca60d",
+    "loader": {
+      "sha256": "4520a981c441d396fbb4441c8e2a03089d34a4abca4c40394dc0d9ceb1b24462",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "27c787f021e1e81050b80821907efc2b9fbe7bbf3545caa91961b59fba71eca2",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 163671,
+          "memsz": 163671,
+          "page_start": 33554432,
+          "page_end": 33718272
+        },
+        {
+          "flags": 4,
+          "offset": 167936,
+          "address": 33718272,
+          "filesz": 314304,
+          "memsz": 314304,
+          "page_start": 33718272,
+          "page_end": 34033664
+        },
+        {
+          "flags": 6,
+          "offset": 483328,
+          "address": 34033664,
+          "filesz": 1258160,
+          "memsz": 4345152,
+          "page_start": 34033664,
+          "page_end": 38379520
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 163671
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 314304
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1258160
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3083584
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 7992
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 17794
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "system": {
+      "system_init": {
+        "sha256": "a8fe93c46ae153ee2c23207bdcf79e11accba06a2afe87b49f445a9fad496b70",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1160,
+              "memsz": 1160,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 453,
+              "memsz": 453,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 6727,
+              "memsz": 6727,
+              "page_start": 1073872896,
+              "page_end": 1073881088
+            }
+          ]
+        }
+      },
+      "system_app": {
+        "sha256": "530163710c2ae12894afda264b6aa507a15ca3d995fcc58c738bbad446cf400a",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 4117,
+              "memsz": 4117,
+              "page_start": 1073823744,
+              "page_end": 1073831936
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 20480,
+              "filesz": 45026,
+              "memsz": 45026,
+              "page_start": 1073872896,
+              "page_end": 1073917952
+            }
+          ]
+        }
+      },
+      "system_worker": {
+        "sha256": "21579061a5bc6d179c9a153ef96ff9d7b818a5c792ebc05b3f8de425730bd6a7",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 306,
+              "memsz": 306,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1040,
+              "memsz": 1040,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 519,
+              "memsz": 519,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            }
+          ]
+        }
+      },
+      "keyring_service": {
+        "sha256": "f6abe1b137919ade186d1d00fc875720862800d67f6e19151a16ca7b072ddc8e",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1288,
+              "memsz": 1288,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 2138,
+              "memsz": 2138,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 53767,
+              "memsz": 53767,
+              "page_start": 1073872896,
+              "page_end": 1073930240
+            }
+          ]
+        }
+      },
+      "volume_service": {
+        "sha256": "7e2de8e590f248d149f8cecdc6299a8991bccc1e913ab20df09c63ea319683c4",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 56562,
+              "memsz": 56562,
+              "page_start": 1073741824,
+              "page_end": 1073799168
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 61440,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 65536,
+              "filesz": 18122,
+              "memsz": 18122,
+              "page_start": 1073823744,
+              "page_end": 1073844224
+            }
+          ]
+        }
+      }
+    }
+  },
+  "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+  "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "raw_qemu_exit": 33,
+  "timed_out": false,
+  "duration_s": 3.685136379997857,
+  "disk_before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "disk_after_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "observed": {
+    "values": {
+      "DIGEST": 3582576242485175387,
+      "PROCESSES": 4,
+      "HANDLES": 21,
+      "NODES": 29,
+      "ENDPOINTS": 9,
+      "WARMUP": 4,
+      "ROUNDS": 8,
+      "BATCH": 16,
+      "REF_COUNT": 128,
+      "REF_TSC_SUM": 36998312,
+      "REF_TSC_MIN": 4203914,
+      "REF_TSC_MAX": 5101902,
+      "DIRECT_COUNT": 128,
+      "DIRECT_TSC_SUM": 43931758,
+      "DIRECT_TSC_MIN": 5070624,
+      "DIRECT_TSC_MAX": 6485388,
+      "ZERO_COUNT": 128,
+      "ZERO_TSC_SUM": 77735944,
+      "ZERO_TSC_MIN": 8745048,
+      "ZERO_TSC_MAX": 10404420
+    },
+    "rounds": {
+      "REF": [
+        5101902,
+        4827992,
+        4413422,
+        4475536,
+        4463758,
+        4673838,
+        4837950,
+        4203914
+      ],
+      "DIRECT": [
+        5272410,
+        6485388,
+        5527184,
+        5070624,
+        5375344,
+        5193994,
+        5682690,
+        5324124
+      ],
+      "ZERO": [
+        10014160,
+        9543924,
+        9419774,
+        10404420,
+        9123738,
+        8745048,
+        10315032,
+        10169848
+      ]
+    },
+    "tsc_ratio_reference_over_direct": 0.8421769053721911,
+    "tsc_ratio_reference_over_zero": 0.4759485779191155
+  },
+  "artifact_sha256": {
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+    "serial.txt": "d6a61a5c557d1e78614d373fba4773a0fcf84d828edd4348cbdc9dfcd56e7145",
+    "OVMF_VARS.fd": "a5cec593169b8c7e74ebd4bcf133d26bf864762bf99ee866c4bbd0eaea1e2ef5",
+    "volume.json": "f9b90afb7dd4cb73d7b9e406fcd3d325954094d0ca1d23767e2782edaa1ed2d5",
+    "volume.img": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+    "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "esp/kernel.elf": "27c787f021e1e81050b80821907efc2b9fbe7bbf3545caa91961b59fba71eca2",
+    "inputs/manifest.json": "ff5063ebc1728804635c6fbc4ded296ddc39faef54a04b8960a200a6d774830a",
+    "inputs/system_init.elf": "a8fe93c46ae153ee2c23207bdcf79e11accba06a2afe87b49f445a9fad496b70",
+    "inputs/system_app.elf": "530163710c2ae12894afda264b6aa507a15ca3d995fcc58c738bbad446cf400a",
+    "inputs/system_worker.elf": "21579061a5bc6d179c9a153ef96ff9d7b818a5c792ebc05b3f8de425730bd6a7",
+    "inputs/keyring_service.elf": "f6abe1b137919ade186d1d00fc875720862800d67f6e19151a16ca7b072ddc8e",
+    "inputs/volume_service.elf": "7e2de8e590f248d149f8cecdc6299a8991bccc1e913ab20df09c63ea319683c4",
+    "esp/EFI/BOOT/BOOTX64.EFI": "4520a981c441d396fbb4441c8e2a03089d34a4abca4c40394dc0d9ceb1b24462"
+  }
+}

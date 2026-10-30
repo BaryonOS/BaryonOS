@@ -1,0 +1,35 @@
+[package]
+name = "nieuw-os-native-desktop-init"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+[workspace]
+members = ["."]
+[features]
+native = []
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../../runtime" }
+nieuw-os-native-input-service = { path = "../input-service" }
+[dev-dependencies]
+capability-core = { path = "../../../crates/capability-core" }
+[[bin]]
+name = "desktop-init"
+path = "src/main.rs"
+required-features = ["native"]
+test = false
+bench = false
+[profile.dev]
+panic = "abort"
+[profile.release]
+panic = "abort"
+opt-level = "s"
+codegen-units = 1
+lto = false
+
+[[bin]]
+name = "desktop-controller"
+path = "src/controller_main.rs"
+required-features = ["native"]
+test = false
+bench = false

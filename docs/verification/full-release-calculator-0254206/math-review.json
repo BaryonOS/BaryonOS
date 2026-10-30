@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "task": "CALCULATOR-REVIEW-1/math",
+  "reviewer_task": "/root/git_build_audit/tpm_codec_review",
+  "recorded_at_utc": "2026-10-30T06:36:40.382893+00:00",
+  "repository": "/workspace/nieuw-os-worktrees/native-calculator",
+  "frozen_commit": "0254206f9b44c75499cf55a9c3716fdb363372ce",
+  "repository_clean_at_start_and_end": true,
+  "repository_files_modified": [],
+  "scope": "Decimal math core, expression grammar, previous-answer state, bounded overflow and ties-to-even. Native IPC/input/surface/cleanup and ELF belong to parent review.",
+  "instructions_read": [
+    "AGENTS.md",
+    "ui/AGENTS.md",
+    "docs/contracts/NATIVE-CALCULATOR.md"
+  ],
+  "source_hashes_sha256": {
+    "docs/contracts/NATIVE-CALCULATOR.md": "802c204423ef2c19f4c7c28159e2190154a815adccb71536ff2242f9983cc110",
+    "sdk/examples/calculator/src/decimal.rs": "acafe4526892bb25de3d60400093bf776874103dea559460b0ea17210833adb2",
+    "sdk/examples/calculator/src/model.rs": "037d7a8a5464b1ecaa511c779f3d0431a8aab00346744bf3409a47bbd3b24de2",
+    "sdk/examples/calculator/tests/decimal.rs": "c3ece2ec64e1d9eb049a250863f4bc48a31e05039021c15ebfc9da88d89ae06b"
+  },
+  "source_prefixes_copied_byte_exact": [
+    "sdk/examples/calculator/src/decimal.rs",
+    "sdk/examples/calculator/src/model.rs",
+    "sdk/examples/calculator/tests/decimal.rs"
+  ],
+  "harness": {
+    "path": "/tmp/nieuw-os-calculator-math-review",
+    "description": "Minimal separate no_std review library that exposes only the frozen decimal.rs and model.rs; byte-identical local ui-core dependency copied solely to compile Model. New review-only driver, manifest and tests are not production changes.",
+    "files_sha256": {
+      "Cargo.toml": "415c0023fbeddb9051e485de664e574b9e2f721cff450bb56a0623a42dc758f0",
+      "Cargo.lock": "746c4f931057d0d54c000dca20075023a9b4d823c5c574e4fc71bbfc08853dd0",
+      "src/lib.rs": "dfc9bf5d0790c0370208871639b999a6a022d1d4bcc1760346b8bbca6d251052",
+      "src/bin/math_driver.rs": "d106f62c41fc8c414deec0ca076f1e510bfa7fee1bdd4472b574c826dfca06d1",
+      "tests/previous_answer.rs": "d77852e1c608fbc3699285ea6f419e99273353f3a9282d9c0cb5af7970e71af9",
+      "fraction_oracle.py": "3db571c56eaa8ddac821960cc68df1c9d06bbfdbece1f25143562f0527ec14bc",
+      "fraction-results.json": "c0ed7b0fb35af61ef4647fec988ab75e3799bf73bc8add70fde1fe412d0167fc",
+      "boundary_oracle.py": "03be846076675b8e605becd6ffa538be2818d4ba1e9b5a953ee94d401a16146b",
+      "boundary-results.json": "a4e0708a688ad661b353ab88dcd77d27e2565e20bd45ab7de60fef03d5f27958"
+    }
+  },
+  "commands": [
+    {
+      "command": "LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-calculator-math-review-target python3 -B tools/dev.py cargo +1.90.0 test --offline --manifest-path /tmp/nieuw-os-calculator-math-review/Cargo.toml",
+      "cwd": "/workspace/nieuw-os-worktrees/native-calculator",
+      "exit_code": 0,
+      "logs": {
+        "stdout": {
+          "path": "/tmp/nieuw-os-calculator-math-review/host-tests.stdout.txt",
+          "sha256": "bfd8cd3130dbb5782ef17dd0fa2033b0d2a450aa5d45cc5ba7c93145d8ffe236"
+        },
+        "stderr": {
+          "path": "/tmp/nieuw-os-calculator-math-review/host-tests.stderr.txt",
+          "sha256": "0cd487196e62f5422ce7353b46809efb519b5019ca4ace3f2e151a2c54a8a7d5"
+        }
+      },
+      "log_provenance": "Direct shell redirection from the actual review command."
+    },
+    {
+      "command": "python3 -B /tmp/nieuw-os-calculator-math-review/fraction_oracle.py",
+      "cwd": "/workspace/nieuw-os-worktrees/native-calculator",
+      "exit_code": 0,
+      "logs": {
+        "stdout": {
+          "path": "/tmp/nieuw-os-calculator-math-review/fraction.stdout.txt",
+          "sha256": "ff06f253230891edcd11ad9d81d6aba7293f865ef117f5edb9e15eb9c9d0e08b"
+        },
+        "stderr": {
+          "path": "/tmp/nieuw-os-calculator-math-review/fraction.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "log_provenance": "Direct shell redirection from the actual review command."
+    },
+    {
+      "command": "python3 -B /tmp/nieuw-os-calculator-math-review/boundary_oracle.py",
+      "cwd": "/workspace/nieuw-os-worktrees/native-calculator",
+      "exit_code": 0,
+      "logs": {
+        "stdout": {
+          "path": "/tmp/nieuw-os-calculator-math-review/boundary.stdout.txt",
+          "sha256": "c80a4f89be8dc688c5966c60fe0029b39d498fee5b55919bee1d81d5f4037d62"
+        },
+        "stderr": {
+          "path": "/tmp/nieuw-os-calculator-math-review/boundary.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "log_provenance": "Direct shell redirection from the actual review command."
+    }
+  ],
+  "tests": {
+    "frozen_decimal_tests_passed": 5,
+    "new_previous_answer_tests_passed": 3,
+    "host_tests_total": 8,
+    "previous_answer_checks": "Syntax/divide-by-zero/range errors preserve expression, caret, selection and previous rounded answer; current becomes false; edits and Escape retain previous; C clears it; full-buffer failure preserves source; successful correction replaces previous.",
+    "fraction_oracle_cases": 26424,
+    "fraction_oracle_counts": {
+      "success": 9067,
+      "refused": 17357,
+      "grammar_cases": 16105,
+      "exact_cases": 10319
+    },
+    "fraction_oracle_mismatches": 0,
+    "fraction_oracle_input_sha256": "282fa91cd303e081e816375ea90226f3f7a09f2f47cfd2b913d2513b68e794f1",
+    "fraction_oracle_method": "Python Fraction exact rationals, built-in rational half-even rounding and independently tokenized shunting-yard operator evaluator; checks raw, sticky rounded and canonical formatted string.",
+    "fraction_oracle_error_limit": "Differential corpus checks rejected versus accepted status for all error cases; it does not enforce ordering or exact kind when several subexpressions can fail.",
+    "independent_boundary_cases": 48,
+    "boundary_cases_method": "Targeted independently specified exact error kinds, length/depth boundaries, full 256-byte zero literals, unsupported Unicode/control bytes, rounded-zero division, overflow-before-compensation and signed ties; successful values use Fraction oracle.",
+    "boundary_input_sha256": "d64785747268a0ed40daa9dab40212d20b0c21bbbe106bab715065897aae4bcf"
+  },
+  "source_findings": [],
+  "conclusion": "Bounded pass: no concrete reachable math/grammar/previous-answer finding identified.",
+  "source_checks": [
+    {
+      "path": "sdk/examples/calculator/src/decimal.rs",
+      "line": 120,
+      "observation": "Sign separated for division; exact remainder implements symmetric half-even; bounded raw output checked."
+    },
+    {
+      "path": "sdk/examples/calculator/src/decimal.rs",
+      "line": 189,
+      "observation": "Product precedence and left-associative binary loops; combined unary/parentheses depth limit32 and input byte limit256."
+    },
+    {
+      "path": "sdk/examples/calculator/src/decimal.rs",
+      "line": 224,
+      "observation": "Raw operands <=10^19-1 ensure product<10^38<i128::MAX; checked multiplication and result bounds remain explicit."
+    },
+    {
+      "path": "sdk/examples/calculator/src/decimal.rs",
+      "line": 268,
+      "observation": "Literal scanning is finite, checks integer range and performs ninth-place half-even using sticky discarded digits."
+    },
+    {
+      "path": "sdk/examples/calculator/src/model.rs",
+      "line": 194,
+      "observation": "Arithmetic errors retain previous answer and invalidate current; Reset clears answer, Cancel retains it."
+    }
+  ],
+  "not_performed": [
+    "NativeGUI/VM execution",
+    "Production calculator Cargo dependency graph/app/IPC/native target tests or builds",
+    "Formal exhaustive proof",
+    "App input/surface/cleanup or ELF review"
+  ]
+}

@@ -93,7 +93,7 @@ fn info_and_complete_tile_bind_assigned_bounds_and_only_callback_can_ack() {
     let token = ready(&mut receiver, g, 2, 1, 0, &pixels);
     let mut calls = 0;
     let reply = receiver
-        .commit_with(token, |r, bytes| {
+        .commit_with(token, 1, |r, bytes| {
             calls += 1;
             assert_eq!(
                 r,
@@ -120,7 +120,7 @@ fn failed_blit_cannot_create_positive_ack() {
     let mut receiver = Receiver::new(7, g, 100).unwrap();
     let token = ready(&mut receiver, g, 1, 1, 0, &[0; 1024]);
     let reply = receiver
-        .commit_with(token, |_, _| Err::<(), ()>(()))
+        .commit_with(token, 1, |_, _| Err::<(), ()>(()))
         .unwrap();
     assert_eq!(reply.status(), Err(Error::Blit));
     assert_eq!(reply.pixels(), 0);
@@ -138,7 +138,7 @@ fn wrong_actor_epoch_and_replayed_request_do_not_grant_a_surface() {
     assert!(matches!(receiver.accept(7, 0, &wrong), Err(Error::Epoch)));
     let token = ready(&mut receiver, g, 1, 1, 0, &[0; 1024]);
     receiver
-        .commit_with(token, |_, _| Ok::<(), ()>(()))
+        .commit_with(token, 1, |_, _| Ok::<(), ()>(()))
         .unwrap();
     assert!(matches!(receiver.accept(7, 4, &bytes), Err(Error::Replay)));
 }
@@ -220,7 +220,7 @@ fn grid_has_exact_short_edges_no_overlap_and_new_frame_starts_at_zero() {
         let r = g.rectangle(tile).unwrap();
         let token = ready(&mut receiver, g, tile + 1, 1, tile, &vec![0; r.bytes()]);
         receiver
-            .commit_with(token, |r, _| {
+            .commit_with(token, 1, |r, _| {
                 rectangles.push(r);
                 Ok::<(), ()>(())
             })
@@ -266,7 +266,7 @@ fn grid_has_exact_short_edges_no_overlap_and_new_frame_starts_at_zero() {
     ));
     let token = ready(&mut receiver, g, 5, 2, 0, &[0; 1024]);
     receiver
-        .commit_with(token, |_, _| Ok::<(), ()>(()))
+        .commit_with(token, 1, |_, _| Ok::<(), ()>(()))
         .unwrap();
     assert!(matches!(
         receiver.accept(7, 4, &begin(g, 6, 1, 1)),
@@ -282,7 +282,7 @@ fn timeout_retirement_and_clock_rollback_invalidate_pending_completion() {
     let expired = receiver.expire(11).unwrap().unwrap();
     assert_eq!(expired.status(), Err(Error::Timeout));
     assert!(matches!(
-        receiver.commit_with(token, |_, _| Ok::<(), ()>(())),
+        receiver.commit_with(token, 11, |_, _| Ok::<(), ()>(())),
         Err(Error::Token)
     ));
     assert!(receiver.expire(12).unwrap().is_none());
@@ -321,4 +321,57 @@ fn hostile_header_and_reply_bindings_are_rejected() {
     let mut bytes = reply.bytes().to_vec();
     bytes[64..68].copy_from_slice(&u32::MAX.to_le_bytes());
     assert!(Reply::decode(&bytes, request).unwrap().geometry().is_err());
+}
+
+#[test]
+fn known_expiry_after_malformed_input_never_completes_a_ready_tile() {
+    let g = Geometry {
+        assigned: Rectangle {
+            x: 8,
+            y: 24,
+            width: 32,
+            height: 8,
+        },
+        ..geometry()
+    };
+    let mut receiver = Receiver::new(7, g, 10).unwrap();
+    let token = ready(&mut receiver, g, 1, 1, 0, &[0; 1024]);
+    assert!(receiver.accept(7, 12, b"malformed").is_err());
+    let mut calls = 0;
+    let completion = receiver.commit_with(token, 12, |_, _| {
+        calls += 1;
+        Ok::<(), ()>(())
+    });
+    assert!(match &completion {
+        Err(_) => true,
+        Ok(reply) => reply.status().is_err(),
+    });
+    assert_eq!(calls, 0);
+    assert_eq!(receiver.completed_frame(), None);
+}
+
+#[test]
+fn fresh_commit_admission_clock_rejects_expired_token_without_other_messages() {
+    let g = Geometry {
+        assigned: Rectangle {
+            x: 8,
+            y: 24,
+            width: 32,
+            height: 8,
+        },
+        ..geometry()
+    };
+    let mut receiver = Receiver::new(7, g, 10).unwrap();
+    let token = ready(&mut receiver, g, 1, 1, 0, &[0; 1024]);
+    let mut calls = 0;
+    let response = receiver
+        .commit_with(token, 11, |_, _| {
+            calls += 1;
+            Ok::<(), ()>(())
+        })
+        .unwrap();
+    assert_eq!(response.status(), Err(Error::Timeout));
+    assert_eq!(response.pixels(), 0);
+    assert_eq!(calls, 0);
+    assert_eq!(receiver.completed_frame(), None);
 }

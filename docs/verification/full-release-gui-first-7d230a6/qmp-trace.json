@@ -1,0 +1,116 @@
+[
+  {
+    "request": {
+      "execute": "qmp_capabilities",
+      "id": 1
+    },
+    "response": {
+      "return": {},
+      "id": 1
+    }
+  },
+  {
+    "request": {
+      "execute": "screendump",
+      "id": 2,
+      "arguments": {
+        "filename": "/workspace/nieuw-os-worktrees/root-materiaal/build/materiaal-integration/run/materiaal-normal-7785e8e526/ready.ppm"
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 2
+    }
+  },
+  {
+    "request": {
+      "execute": "input-send-event",
+      "id": 3,
+      "arguments": {
+        "events": [
+          {
+            "type": "rel",
+            "data": {
+              "axis": "x",
+              "value": 56
+            }
+          },
+          {
+            "type": "rel",
+            "data": {
+              "axis": "y",
+              "value": 96
+            }
+          }
+        ]
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 3
+    }
+  },
+  {
+    "request": {
+      "execute": "input-send-event",
+      "id": 4,
+      "arguments": {
+        "events": [
+          {
+            "type": "rel",
+            "data": {
+              "axis": "y",
+              "value": 54
+            }
+          }
+        ]
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 4
+    }
+  },
+  {
+    "request": {
+      "execute": "input-send-event",
+      "id": 5,
+      "arguments": {
+        "events": [
+          {
+            "type": "btn",
+            "data": {
+              "down": true,
+              "button": "left"
+            }
+          }
+        ]
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 5
+    }
+  },
+  {
+    "request": {
+      "execute": "input-send-event",
+      "id": 6,
+      "arguments": {
+        "events": [
+          {
+            "type": "btn",
+            "data": {
+              "down": false,
+              "button": "left"
+            }
+          }
+        ]
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 6
+    }
+  }
+]

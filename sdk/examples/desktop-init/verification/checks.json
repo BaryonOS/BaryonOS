@@ -1,0 +1,242 @@
+{
+  "task": "GUI-BOOT-INIT-1 component checkpoint",
+  "date_utc": "2026-10-30T04:31:12.575025+00:00",
+  "base_commit": "d52882196da3f38a32bf01edea379ce5300e04e2",
+  "source_fingerprint_version": 3,
+  "checks": {
+    "native_runtime_performed": false,
+    "commands": [
+      {
+        "name": "format",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "fmt",
+          "--manifest-path",
+          "sdk/examples/desktop-init/Cargo.toml"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.0806765639972582
+      },
+      {
+        "name": "fmt",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "fmt",
+          "--manifest-path",
+          "sdk/examples/desktop-init/Cargo.toml",
+          "--",
+          "--check"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.07403941200027475
+      },
+      {
+        "name": "test",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/examples/desktop-init/Cargo.toml"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.10571058200002881
+      },
+      {
+        "name": "clippy",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "clippy",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/examples/desktop-init/Cargo.toml",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.10394170099971234
+      },
+      {
+        "name": "target-build",
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+          "sdk/examples/desktop-init/build.py"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.3493011140017188
+      },
+      {
+        "name": "target-clippy",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "clippy",
+          "--offline",
+          "--locked",
+          "--release",
+          "--manifest-path",
+          "sdk/examples/desktop-init/Cargo.toml",
+          "--features",
+          "native",
+          "--bins",
+          "--target",
+          "x86_64-unknown-none",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.17822363899904303
+      },
+      {
+        "name": "kernel-parser",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "run",
+          "--offline",
+          "--manifest-path",
+          "build/desktop-init-parser/Cargo.toml",
+          "--",
+          "target/desktop-init-none/x86_64-unknown-none/release/desktop-init",
+          "target/desktop-init-none/x86_64-unknown-none/release/desktop-controller"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.38448721800159547
+      }
+    ],
+    "source_sha256": "abdfd77e196123d69b599843610624ad0bc054ff18dfb88f869b60533e549f54",
+    "binaries": {
+      "desktop-init": {
+        "sha256": "01db3b13675c5d561771a2cea72581925cfe971c2e20e4bba30eb51dd775c8c6",
+        "instructions": 2848,
+        "entry": [
+          {
+            "address": "40000000",
+            "instruction": "push   %rax"
+          },
+          {
+            "address": "40000001",
+            "instruction": "call   4006017b <_ZN12desktop_init3run17h6d314d83596b07a8E>"
+          }
+        ],
+        "forbidden_simd_x87_rawports_hostsyscalls": [],
+        "undefined_symbols": 0,
+        "largest_explicit_stack_reservations": [
+          {
+            "function": "000000004006017b <_ZN12desktop_init3run17h6d314d83596b07a8E>:",
+            "bytes": 3224
+          },
+          {
+            "function": "00000000400611ba <_ZN28nieuw_os_native_desktop_init10supervisor10Supervisor3app17h9789975f5598df20E>:",
+            "bytes": 984
+          },
+          {
+            "function": "0000000040061f35 <_ZN20nieuw_os_sdk_runtime6native7receive17hbafc5744b31e6b53E>:",
+            "bytes": 984
+          },
+          {
+            "function": "00000000400610ac <_ZN28nieuw_os_native_desktop_init10supervisor10Supervisor5focus17he6048c6f7ffb5378E>:",
+            "bytes": 952
+          },
+          {
+            "function": "00000000400612f8 <_ZN28nieuw_os_native_desktop_init10supervisor10Supervisor5reply17had1a97bfc8122e03E>:",
+            "bytes": 680
+          }
+        ],
+        "stack_limit_bytes": 65536,
+        "stack_analysis_limit": "Instruction/prologue inspection only; native whole-call-chain/resource acceptance remains open."
+      },
+      "desktop-controller": {
+        "sha256": "62a6a3428626b11706058a4100643ef88554109cfcf2bca78cac041321579050",
+        "instructions": 1838,
+        "entry": [
+          {
+            "address": "40000000",
+            "instruction": "push   %rax"
+          },
+          {
+            "address": "40000001",
+            "instruction": "call   40060067 <_ZN18desktop_controller3run17h09b88fa133a62d95E>"
+          }
+        ],
+        "forbidden_simd_x87_rawports_hostsyscalls": [],
+        "undefined_symbols": 0,
+        "largest_explicit_stack_reservations": [
+          {
+            "function": "0000000040060067 <_ZN18desktop_controller3run17h09b88fa133a62d95E>:",
+            "bytes": 2920
+          },
+          {
+            "function": "0000000040060765 <_ZN28nieuw_os_native_desktop_init10controller10Controller3new17h0272aea0fcda7ab3E>:",
+            "bytes": 1048
+          },
+          {
+            "function": "0000000040060f38 <_ZN20nieuw_os_sdk_runtime6native7receive17hbafc5744b31e6b53E>:",
+            "bytes": 984
+          },
+          {
+            "function": "00000000400609cf <_ZN20nieuw_os_sdk_runtime7message8Outgoing3new17h45383d2eaf747dc9E>:",
+            "bytes": 264
+          },
+          {
+            "function": "00000000400608d7 <_ZN28nieuw_os_native_desktop_init4wire11StopRequest6encode17h7894101dfd6eaabeE>:",
+            "bytes": 112
+          }
+        ],
+        "stack_limit_bytes": 65536,
+        "stack_analysis_limit": "Instruction/prologue inspection only; native whole-call-chain/resource acceptance remains open."
+      }
+    },
+    "source_after_sha256": "abdfd77e196123d69b599843610624ad0bc054ff18dfb88f869b60533e549f54"
+  },
+  "owned_files": {
+    "docs/contracts/NATIVE-DESKTOP-INIT.md": "5b652f36e242818a925a651538581a01adf05fa45c3eea430aaf4ed7fa574ef7",
+    "sdk/examples/desktop-init/Cargo.lock": "41629ddcd8eb7e6a00e19c9fa204046ebbc081cdf3c1d7fe87201513a724551a",
+    "sdk/examples/desktop-init/Cargo.toml": "37a485fc92afe185fb737b0cab8bb9ff807dace62d56275789240f9c40de5e48",
+    "sdk/examples/desktop-init/README.md": "ad21eb41c4acbdd18d8219d93b8b2f80c46f0ea3deb82aac4bbc489f77ac3057",
+    "sdk/examples/desktop-init/build.py": "380fcd039c499bfee17762c0bbc40e10576432d9ba31d4252aca523960f1ce48",
+    "sdk/examples/desktop-init/linker.ld": "b5f75a11e0a20b602d20a8c39cecebbdbd422c2d019019167ab613ebe70768dc",
+    "sdk/examples/desktop-init/src/boot.rs": "525e2051fa6d225b811e743f769473a8b0fe821dc3b4189dd7743128b86868b8",
+    "sdk/examples/desktop-init/src/controller.rs": "a1f348c2a3a61da70c36e3d3e68bd496d33cef538629675d297a05e889895d81",
+    "sdk/examples/desktop-init/src/controller_main.rs": "a890adc316f6280995b69062c5af8a7d8647b6631faf49b65637a53064c912de",
+    "sdk/examples/desktop-init/src/lib.rs": "44dce867b369b3d7a9881f2b834c0f9c6b3fc1fae14a8f0436ea3c953f66d6e3",
+    "sdk/examples/desktop-init/src/main.rs": "dec51962d284844d1162c9ee072475cbf027c9dd355bf8b74f831d5be52d94e2",
+    "sdk/examples/desktop-init/src/supervisor.rs": "397238334dad1157835526135a61b748e8abcad8069738d8f12f5d295d6c02bf",
+    "sdk/examples/desktop-init/src/wire.rs": "e275d38611beb4655e7fb0847ec49cb1cb2ce2534406be315b42c0694d94adb6",
+    "sdk/examples/desktop-init/tests/supervisor.rs": "eeba074267286429c39cee1226fade67412aaafc8ea1d1a568e942ba7233b260"
+  },
+  "dependency_files": {
+    "sdk/examples/input-service/src/lib.rs": "c20c620e22333d3a374fbfbd5183921775632ca951f223827abeaa5496a5c5c4",
+    "sdk/examples/input-service/src/protocol.rs": "59678987c65deaf592a6a765cb18f02dbaafe7d4d8be56682d939355dd9cfd71",
+    "sdk/runtime/src/native.rs": "4ca103796cf88b591023716ce26df3d51257ee975e567e79be84c4ce1cf748b7",
+    "sdk/runtime/src/message.rs": "7a87a1c3cd571b92bdc797b76ccf0b709a381c050573b742788b27ed6f8d5eab",
+    "sdk/runtime/src/lib.rs": "0ad4c06a2bacd4371435cfe4e3e4a958cd80b292c52247e8fecd09baa933cf00",
+    "crates/kernel-core/src/user.rs": "5a483252894756f97bc1a6c0d755e606427aa6276e982cca403c6fac987e4399",
+    "crates/capability-core/src/lib.rs": "a53fdad18c503f0e34b24dd43ab9ae4fcec780d6758baa6ac353f5fd54cf720b"
+  },
+  "host_scenarios": 15,
+  "native_runtime_performed": false,
+  "temporary_shared_sdk_patch_used": false,
+  "shared_files_changed": false,
+  "readiness_scope": "AppStartupReady + 3 exact authenticated role-ready messages + real compositor Focused ACK + real GO sendOk. No rendered UI, document-I/O, or current service health claim.",
+  "test_controller_scope": "Separate CPL3 PID8, only initControlSEND/replyRECV. Own kernel-released barrier400 only after independently verified real QMP Saved/Presented; orchestration does not inject UI/document content.",
+  "review_status": "Independent acceptance_contract source/Engine review in progress; six additional counterprobes reported green, final immutable-commit report pending.",
+  "open_acceptance": [
+    "Root7process native GUI bootstrap integration and grants",
+    "Root8process test-controller probe with actual QMP actions, Saved/Presented and real Stop-Retire-Stopped sequence",
+    "Native deadlines and coherent first readiness capture; GOever is not an atomic ongoing-health snapshot",
+    "Actual handle/process cleanup and resource balance on exact image/ELFs",
+    "Critical GUI service death notifications/restart contract remains absent; no automatic recovery claim",
+    "Whole product fulltestrelease remains open"
+  ],
+  "progress_points_awarded": 0
+}

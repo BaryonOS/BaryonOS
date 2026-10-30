@@ -4,4 +4,8 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
+[features]
+# Read-only native measurement only; absent from ordinary production builds.
+diagnostic-bench = []
+
 [dependencies]

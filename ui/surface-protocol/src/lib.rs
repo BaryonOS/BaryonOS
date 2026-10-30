@@ -3,6 +3,9 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
+#[cfg(feature = "client")]
+pub mod client;
+
 pub const TAG: u64 = 0x5355_5246_4143_0001;
 pub const VERSION: u16 = 1;
 pub const HEADER: usize = 48;
@@ -462,13 +465,15 @@ impl Receiver {
             return Err(Error::Closed);
         }
         self.clock(now)?;
-        let header = Header::decode(bytes)?;
-        if header.epoch != self.geometry.epoch {
-            return Err(Error::Epoch);
-        }
+        // Expiry precedes decoding: even malformed traffic must not preserve
+        // a token whose deadline is now known to have elapsed.
         if self.stage.is_some_and(|s| now >= s.deadline) {
             self.clear();
             return Err(Error::Timeout);
+        }
+        let header = Header::decode(bytes)?;
+        if header.epoch != self.geometry.epoch {
+            return Err(Error::Epoch);
         }
         match header.operation {
             Operation::Info | Operation::Begin => {
@@ -560,11 +565,13 @@ impl Receiver {
     pub fn commit_with<E>(
         &mut self,
         token: CommitReady,
+        now: u64,
         blit: impl FnOnce(Rectangle, &[u8]) -> Result<(), E>,
     ) -> Result<Reply, Error> {
         if self.closed {
             return Err(Error::Closed);
         }
+        self.clock(now)?;
         let stage = self.stage.ok_or(Error::Token)?;
         if !stage.ready
             || stage.header.request != token.request
@@ -573,6 +580,20 @@ impl Receiver {
             || stage.header.tile != token.tile
         {
             return Err(Error::Token);
+        }
+        // Fresh native monotone time is required from the trusted adapter at
+        // admission, before the first blit. This is not a vsync/deadline promise
+        // across later preemption, and does not undo already written pixels.
+        if now >= stage.deadline {
+            self.last_rejected = stage.header.request;
+            let header = Header {
+                operation: Operation::Commit,
+                arg0: 0,
+                arg1: 0,
+                ..stage.header
+            };
+            self.clear();
+            return Ok(reply(header, Err(Error::Timeout), None));
         }
         let global = Rectangle {
             x: self.geometry.assigned.x + stage.rectangle.x,

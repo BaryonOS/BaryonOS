@@ -1,0 +1,5 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running unittests src/lib.rs (build/materiaal-app-host/debug/deps/nieuw_os_materiaal_app-d3a49ce0a3b51122)
+     Running tests/chain.rs (build/materiaal-app-host/debug/deps/chain-7862f653aa660138)
+     Running tests/elf.rs (build/materiaal-app-host/debug/deps/elf-baa2837c8d68ea3f)
+   Doc-tests nieuw_os_materiaal_app

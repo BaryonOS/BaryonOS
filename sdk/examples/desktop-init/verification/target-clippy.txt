@@ -1,0 +1,2 @@
+    Checking nieuw-os-native-desktop-init v0.1.0 (/workspace/nieuw-os-worktrees/desktop-init/sdk/examples/desktop-init)
+    Finished `release` profile [optimized] target(s) in 0.13s

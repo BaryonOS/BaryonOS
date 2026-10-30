@@ -890,3 +890,94 @@ scenario!(
     narrow_list_pointer_paging_reaches_real_objects_in_both_directions,
     narrow_list_pointer_paging_reaches_real_objects_in_both_directions_impl
 );
+
+fn pointer_only_cancel_requires_fresh_down_after_outside_release_and_reentry_impl() {
+    let host = Host::new();
+    let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.create().unwrap();
+    ui.insert("Keep").unwrap();
+    let save = Frame::new(ui.view()).layout().save;
+    let mut mouse = Ps2Mouse::new();
+    let mut sequence = 0;
+    let mut event = |flags| {
+        let mut result = None;
+        for byte in [flags, 0, 0] {
+            result = mouse.feed(byte).unwrap();
+        }
+        result.unwrap()
+    };
+    sequence += 1;
+    ui.deliver(envelope(
+        sequence,
+        3,
+        Event::Mouse {
+            input: event(0x09),
+            x: save.x + 10,
+            y: save.y + 10,
+        },
+    ))
+    .unwrap();
+    assert_eq!(ui.view().focus, Focus::Save);
+    let selection = (ui.view().anchor, ui.view().caret);
+    ui.cancel_pointer().unwrap();
+    assert_eq!(ui.view().contents, Some("Keep"));
+    assert_eq!(ui.view().focus, Focus::Save);
+    assert_eq!((ui.view().anchor, ui.view().caret), selection);
+    assert!(ui.view().cursor.is_none());
+    // Reenter while still physically held, then release over Save: no press.
+    for flags in [0x09, 0x08] {
+        sequence += 1;
+        ui.deliver(envelope(
+            sequence,
+            3,
+            Event::Mouse {
+                input: event(flags),
+                x: save.x + 10,
+                y: save.y + 10,
+            },
+        ))
+        .unwrap();
+    }
+    assert!(!host
+        .borrow()
+        .requests
+        .iter()
+        .any(|r| r.operation == wire::BEGIN));
+    // A genuinely new down/up inside may activate. Focus generation3 is still
+    // valid: pointer-only cancellation did not manufacture a focus revoke.
+    for flags in [0x09, 0x08] {
+        sequence += 1;
+        ui.deliver(envelope(
+            sequence,
+            3,
+            Event::Mouse {
+                input: event(flags),
+                x: save.x + 10,
+                y: save.y + 10,
+            },
+        ))
+        .unwrap();
+    }
+    assert!(ui.document().is_saving());
+    assert_eq!(
+        host.borrow()
+            .requests
+            .iter()
+            .filter(|r| r.operation == wire::BEGIN)
+            .count(),
+        1
+    );
+}
+scenario!(
+    pointer_only_cancel_requires_fresh_down_after_outside_release_and_reentry,
+    pointer_only_cancel_requires_fresh_down_after_outside_release_and_reentry_impl
+);

@@ -1,0 +1,17 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running unittests src/lib.rs (/tmp/nieuw-os-calculator-integration-review/target-extra/debug/deps/calculator_integration_review-96ebe37b13eb6f06)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/chain.rs (/tmp/nieuw-os-calculator-integration-review/target-extra/debug/deps/chain-7d72e94394ca1ec5)
+
+running 4 tests
+test review_bad_constructor_binding_closes_both_owned_pairs ... ok
+test review_lost_actual_ack_closes_and_never_replays_delivered_key ... ok
+test review_real_focus_race_returns_superseded_without_double_input_ack ... ok
+test review_lost_final_tile_ack_never_counts_complete_frame ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.44s
+

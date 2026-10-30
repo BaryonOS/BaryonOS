@@ -37,6 +37,12 @@ fn main() {
     for name in [
         "NOS_RANDOM_PROBE_ELF",
         "NOS_IMAGE_PROBE_ELF",
+        "NOS_DESKTOP_INIT_ELF",
+        "NOS_DESKTOP_CONTROLLER_ELF",
+        "NOS_MATERIAAL_ELF",
+        "NOS_COMPOSITOR_ELF",
+        "NOS_INPUT_SOURCE_ELF",
+        "NOS_INPUT_POLICY_ELF",
         "NOS_DISPLAY_PROBE_ELF",
         "NOS_INPUT_PROBE_ELF",
         "NOS_DISPLAY_INTRUDER_ELF",

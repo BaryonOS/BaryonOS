@@ -1,0 +1,41 @@
+{
+  "binary_sha256": "26cc3834d8ed5afe47ba28f0f118eae5aa5a98305cd5dd58b046b4014ae4b6fe",
+  "instructions": 5842,
+  "forbidden_simd_x87_rawports_hostsyscalls": [],
+  "undefined_symbols": 0,
+  "entry": [
+    {
+      "address": "40000000",
+      "instruction": "push   %rax"
+    },
+    {
+      "address": "40000001",
+      "instruction": "call   400b02e9 <_ZN17native_compositor3run17hac6acda252a29588E>"
+    }
+  ],
+  "largest_explicit_stack_reservations": [
+    {
+      "function": "00000000400b02e9 <_ZN17native_compositor3run17hac6acda252a29588E>:",
+      "bytes": 4096
+    },
+    {
+      "function": "00000000400b02e9 <_ZN17native_compositor3run17hac6acda252a29588E>:",
+      "bytes": 2264
+    },
+    {
+      "function": "00000000400b40e5 <_ZN25nieuw_os_surface_protocol8Receiver3new17h7c55ba2599077ca6E>:",
+      "bytes": 1064
+    },
+    {
+      "function": "00000000400b51d8 <_ZN20nieuw_os_sdk_runtime6native7receive17h7a6414202e02c08cE>:",
+      "bytes": 984
+    },
+    {
+      "function": "00000000400b3497 <_ZN26nieuw_os_native_compositor7control11Coordinator6accept17h5a70c05b8b885b1bE>:",
+      "bytes": 840
+    }
+  ],
+  "stack_limit_bytes": 65536,
+  "stack_analysis_limit": "Instruction/prologue inspection only, no formal maximum call-chain proof; native execution remains open.",
+  "native_runtime_performed": false
+}
