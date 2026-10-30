@@ -42,9 +42,34 @@ versies bevestigt uitsluitend zeroize1.9.1 en de nieuwe runtime-edge; geen
 andere packageversie/checksum/edge gewijzigd. Logs
 `/tmp/nieuw-os-security-sdk-lock-update{,-retry}.log`.
 
-Dit lockfilecheckpoint gaat vóór de volledige nieuwe native herhaling.
-De eerdere4de-nativeuitkomst wordt niet naar de gewijzigde fingerprint
-omgelabeld. Actuele-head-CI blijft eveneens open.
+Nieuwe echte herhaling op lockfilebron
+`82b65d86d41a499b5697c999ae9007d6bafa627f`, v3
+`0c324daafefe5b73537771d70c7297a3f868b7568bfe120a25bb1387d5229960`:
+`python3 -B -u tools/test_system.py` exit0/2 native gasten,
+`python3 -B -u tools/test_keyring.py` exit0/5 native gasten,
+`python3 -B -u tools/run_ipc_wait.py` exit0/1 native gast, raw33.
+Brongebonden captures: `full-release-ipc-main94-system82/`,
+`ipc-main94-keyring82/`, `ipc-main94-wait82/`. De verplichte prefix van
+de system-capturetool betekent **geen volledige releaseacceptatie**.
+
+RANDOM blijft **mislukt,0/4 native uitgevoerd**: eerst werd de runner
+terecht afgewezen wegens het nog geladen WAIT-profiel. Daarna faalde
+`python3 -B -u tools/build.py --kernel-feature native-system-random` exit1
+(onderliggende Cargo exit101/E0080): de oude handmatige
+`wipe_received` in `sdk/keyring-random-client/src/lib.rs:350` veronderstelt
+`!needs_drop::<Received>()`, maar de nieuwe SDK heeft juist een destructor.
+De probe heeft dezelfde verouderde aanname. Dit is een gekoppelde
+consumerintegratiefout, geen geslaagde RNG-test. De noodzakelijke
+consumerfix is afzonderlijk af te stemmen; lease/callerbeleid mag niet
+veranderen. Log plus concrete compilerdiagnostiek zijn vastgelegd in de
+WAIT-capturedirectory. Actuele-head-CI en RANDOM-herhaling blijven open.
+
+Voor system-capture is het normale native-system-buildprofiel hersteld met
+`python3 -B tools/build.py --kernel-feature native-system` exit0; de
+bestaande capturevalidator hercontroleerde vervolgens beide echte eerdere
+gasten en hun artefacten. De eerste capturepoging op een ander huidig
+profiel werd terecht geweigerd. Geen nieuwe gast of acceptatie verzonnen.
+De eerdere4de-nativeuitkomst wordt niet naar deze fingerprint omgelabeld.
 Geen nieuw rubricpunt:34→34/security4of12.
 
 ## Historisch bewijs vóór WAIT-integratie
