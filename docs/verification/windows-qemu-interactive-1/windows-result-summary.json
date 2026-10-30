@@ -1,0 +1,691 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "scope": "Real Windows QEMU/SDL hardware inputs, six full reference frames and post-quit disk; not manual UX, cold recovery, cleanup or release acceptance",
+  "source_commit": "eabc27ba879fd3b5960863ae8eede800c5045a57",
+  "source_checkpoint": "c532ba88fbf0f53b960e9dbf77421cee29d97096",
+  "source_sha256": "a1998a126a3a1ccc18523925a422912d934c14bab865b3d7df346862a2c251a6",
+  "source_fingerprint_version": 3,
+  "kernel_sha256": "f2e9cc4aad87ad2b9fbc8b498ab146db2ab0df4a77b904eecf81c3a9beb198b3",
+  "loader_sha256": "7e55ab0fe6c232380f52dc5be1334b41388b70d80e0ebe2b0072de7e12373a09",
+  "started_utc": "2026-10-30T16:52:42.796935+00:00",
+  "platform": "Windows QEMU via WSL interop; SDL; pc-q35-8.2; rng-builtin; TCG; qemu64; 1CPU; 256MiB",
+  "qemu_path": "C:\\Program Files\\qemu\\qemu-system-x86_64.exe",
+  "qemu_sha256": "47d57a6072e0bb3bd98f87926eb129eb1736dfe818c67b3b81ef7ce4edd0b3cd",
+  "qemu_version": "QEMU emulator version 11.1.0 (v11.1.0-12130-ge470268ff4)\nCopyright (c) 2003-2026 Fabrice Bellard and the QEMU Project developers",
+  "command": [
+    "/mnt/c/Program Files/qemu/qemu-system-x86_64.exe",
+    "-L",
+    ".",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "sdl",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:proof-state-windows-run-2/serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-object",
+    "rng-builtin,id=rng0",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=proof-state-windows-run-2/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=proof-state-windows-run-2/volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+    "-qmp",
+    "stdio"
+  ],
+  "cwd": "C:\\Users\\simon\\AppData\\Local\\Temp\\Nieuw OS Interactive 1 7444ffab9ac749d59cd191c53c2dcb2f\\bundle",
+  "launcher_sha256": "a75f23615f789290702d2af6f8effcb6cc3747eedefc06fdac4be12895120b7a",
+  "adapter_sha256": "469c59a66bcd7ab9f7014b4c352a8f98507ce35b56c1b012f5f2125d29290688",
+  "bundle_manifest_sha256": "cc498a26c4d1ab4c6fdf177d2b7ba682c4cdbc70600c59d8a7c3a150aa13e6e4",
+  "native_summary_sha256": "8b49ef585e0c97cc271c2dbcee309e66c550d06c47c23b070a18eb9fac0a68be",
+  "pixel_masks": [],
+  "stages": [
+    {
+      "phase": "ready",
+      "sha256": "89988554c6e93449245ccac8462e1a43af336e0af990affcf59004bb2eaed50f",
+      "full_linux_reference_match": true,
+      "qmp_index": 174,
+      "elapsed_s": 22.181714107000516
+    },
+    {
+      "phase": "editor",
+      "sha256": "1e6c9e54ec9d83193fb3e4708822d81775b13f65b470e1478ebf6bb0f000b307",
+      "full_linux_reference_match": true,
+      "qmp_index": 347,
+      "elapsed_s": 40.76919599100074
+    },
+    {
+      "phase": "dirty",
+      "sha256": "8190ac298424262fac1e34ba24451d745aa28f4221eb2e9817cf24fa03a27dda",
+      "full_linux_reference_match": true,
+      "qmp_index": 417,
+      "elapsed_s": 47.99323293500129
+    },
+    {
+      "phase": "saved",
+      "sha256": "5ec5bba6342fa55247d59ebc71f13c6c7e42b7a2dd96e242bea15248cfbc8488",
+      "full_linux_reference_match": true,
+      "qmp_index": 584,
+      "elapsed_s": 66.2426160160012
+    },
+    {
+      "phase": "list",
+      "sha256": "a29b8342d2d1229b4b6f37a1cf3f0342dc400547e329ec61215312bc4ea3e835",
+      "full_linux_reference_match": true,
+      "qmp_index": 746,
+      "elapsed_s": 83.58195452700056
+    },
+    {
+      "phase": "reopened",
+      "sha256": "dfca8c62b1e10b99a6561098b56be8749102d69dca390257717935686fb19099",
+      "full_linux_reference_match": true,
+      "qmp_index": 917,
+      "elapsed_s": 101.74721907300045
+    }
+  ],
+  "interop_pid": 1017909,
+  "qmp_responsive": true,
+  "frames": {
+    "width": 800,
+    "height": 600,
+    "assigned": [
+      16,
+      48,
+      768,
+      536
+    ],
+    "changed_bounds": {
+      "ready->editor": [
+        35,
+        72,
+        765,
+        550
+      ],
+      "editor->dirty": [
+        48,
+        200,
+        148,
+        216
+      ],
+      "dirty->saved": [
+        40,
+        538,
+        261,
+        550
+      ],
+      "saved->list": [
+        35,
+        72,
+        765,
+        525
+      ],
+      "list->reopened": [
+        35,
+        72,
+        765,
+        550
+      ]
+    },
+    "system_chrome_preserved": true,
+    "manual_visual_quality_review_performed": false
+  },
+  "qmp_quit_sent": true,
+  "raw_qemu_exit": 0,
+  "disk": {
+    "object": 0,
+    "revision": 1,
+    "name": "Nieuw document",
+    "length": 14,
+    "sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "fnv": 2786778974461010050,
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "canaries_intact": true
+  },
+  "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "after_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+  "serial_sha256": "9933b8abe1eef1aedc0b87eeb57e417ee3765e6675939111b62c45a96c4a0308",
+  "duration_s": 102.44451465600105,
+  "qmp_trace_sha256": "2256b71e9ae61f371c23a25038fe23afe640f003de601acac28b0c71e7a7c650",
+  "original_report_path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/windows-interactive-1/windows-run-2/result.json",
+  "original_report_sha256": "5ca206edfbe4dd30729e83007a3589d7dcf9558708fc5640c5a517c747bf3651",
+  "qmp_trace_path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/windows-interactive-1/windows-run-2/qmp-trace.json",
+  "artifacts": {
+    "volume.after.img": {
+      "sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+      "size_bytes": 1048576
+    },
+    "stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    "saved.ppm": {
+      "sha256": "5ec5bba6342fa55247d59ebc71f13c6c7e42b7a2dd96e242bea15248cfbc8488",
+      "size_bytes": 1440015
+    },
+    "checkonly.txt": {
+      "sha256": "e14752c20c9ba97eed2c3b1e10e0154b64c3cdf7fcb8be11462a926cce01edb1",
+      "size_bytes": 71
+    },
+    "ready.ppm": {
+      "sha256": "89988554c6e93449245ccac8462e1a43af336e0af990affcf59004bb2eaed50f",
+      "size_bytes": 1440015
+    },
+    "reopened.ppm": {
+      "sha256": "dfca8c62b1e10b99a6561098b56be8749102d69dca390257717935686fb19099",
+      "size_bytes": 1440015
+    },
+    "dirty.ppm": {
+      "sha256": "8190ac298424262fac1e34ba24451d745aa28f4221eb2e9817cf24fa03a27dda",
+      "size_bytes": 1440015
+    },
+    "list.ppm": {
+      "sha256": "a29b8342d2d1229b4b6f37a1cf3f0342dc400547e329ec61215312bc4ea3e835",
+      "size_bytes": 1440015
+    },
+    "volume.before.img": {
+      "sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "size_bytes": 1048576
+    },
+    "qmp-trace.json": {
+      "sha256": "2256b71e9ae61f371c23a25038fe23afe640f003de601acac28b0c71e7a7c650",
+      "size_bytes": 211476
+    },
+    "serial.txt": {
+      "sha256": "9933b8abe1eef1aedc0b87eeb57e417ee3765e6675939111b62c45a96c4a0308",
+      "size_bytes": 463
+    },
+    "result.json": {
+      "sha256": "5ca206edfbe4dd30729e83007a3589d7dcf9558708fc5640c5a517c747bf3651",
+      "size_bytes": 241219
+    },
+    "editor.ppm": {
+      "sha256": "1e6c9e54ec9d83193fb3e4708822d81775b13f65b470e1478ebf6bb0f000b307",
+      "size_bytes": 1440015
+    }
+  },
+  "hardware_inputs": [
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 175,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 56
+              }
+            },
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 175
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 176,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": 54
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 176
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 177,
+        "arguments": {
+          "events": [
+            {
+              "type": "btn",
+              "data": {
+                "down": true,
+                "button": "left"
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 177
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 178,
+        "arguments": {
+          "events": [
+            {
+              "type": "btn",
+              "data": {
+                "down": false,
+                "button": "left"
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 178
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 348,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "n"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 348
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 349,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "i"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 349
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 350,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "e"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 350
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 351,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "u"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 351
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 352,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "w"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 352
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 353,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "spc"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 353
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 354,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "o"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 354
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 355,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "s"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 355
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 356,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "spc"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 356
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 357,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "w"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 357
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 358,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "e"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 358
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 359,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "r"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 359
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 360,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "k"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 360
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 361,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "t"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 361
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 418,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "s"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 418
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 585,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "esc"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 585
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 747,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "tab"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 747
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 748,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "tab"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 748
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 749,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ret"
+            }
+          ],
+          "hold-time": 30
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 749
+      }
+    }
+  ]
+}
