@@ -1,0 +1,282 @@
+--- upstream/hkdf-0.13.0/src/lib.rs
++++ protected/hkdf-0.13.0/src/lib.rs
+@@ -10,6 +10,7 @@
+     Hmac, SimpleHmac,
+     digest::{Output, OutputSizeUser, array::typenum::Unsigned},
+ };
++use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
+ 
+ mod errors;
+ mod hmac_impl;
+@@ -70,7 +71,8 @@
+     fn derive_key(&self, secret: &[u8], info: &[u8], out: &mut [u8]) -> kdf::Result<()> {
+         let mut extract = self.clone();
+         extract.input_ikm(secret);
+-        let (_, hkdf) = extract.finalize();
++        let (mut prk, hkdf) = extract.finalize();
++        prk.zeroize();
+         hkdf.expand(info, out).map_err(|_| kdf::Error)
+     }
+ }
+@@ -92,7 +94,8 @@
+     /// common constructor.
+     #[must_use]
+     pub fn new(salt: Option<&[u8]>, ikm: &[u8]) -> Self {
+-        let (_, hkdf) = Self::extract(salt, ikm);
++        let (mut prk, hkdf) = Self::extract(salt, ikm);
++        prk.zeroize();
+         hkdf
+     }
+ 
+@@ -132,7 +135,7 @@
+         info_components: &[&[u8]],
+         okm: &mut [u8],
+     ) -> Result<(), InvalidLength> {
+-        let mut prev: Option<Output<H>> = None;
++        let mut prev: Option<Zeroizing<Output<H>>> = None;
+ 
+         let chunk_len = <H as OutputSizeUser>::OutputSize::USIZE;
+         if okm.len() > chunk_len * 255 {
+@@ -154,7 +157,7 @@
+ 
+             hmac.update(&[u8::try_from(block_n).expect("should convert") + 1]);
+ 
+-            let output = hmac.finalize();
++            let output = Zeroizing::new(hmac.finalize());
+ 
+             let block_len = block.len();
+             block.copy_from_slice(&output[..block_len]);
+@@ -175,3 +178,8 @@
+         self.expand_multi_info(&[info], okm)
+     }
+ }
++
++// These markers are conditional on the actual HMAC cached-state drop chain.
++// Public extract outputs are caller-owned and must be protected by the caller.
++impl<H: HmacImpl + ZeroizeOnDrop> ZeroizeOnDrop for GenericHkdf<H> {}
++impl<H: HmacImpl + ZeroizeOnDrop> ZeroizeOnDrop for GenericHkdfExtract<H> {}
+--- upstream/hmac-0.13.0/src/utils.rs
++++ protected/hmac-0.13.0/src/utils.rs
+@@ -2,12 +2,13 @@
+     Digest,
+     block_api::{Block, BlockSizeUser},
+ };
++use zeroize::Zeroizing;
+ 
+ pub(crate) const IPAD: u8 = 0x36;
+ pub(crate) const OPAD: u8 = 0x5C;
+ 
+-pub(crate) fn get_der_key<D: Digest + BlockSizeUser>(key: &[u8]) -> Block<D> {
+-    let mut der_key = Block::<D>::default();
++pub(crate) fn get_der_key<D: Digest + BlockSizeUser>(key: &[u8]) -> Zeroizing<Block<D>> {
++    let mut der_key = Zeroizing::new(Block::<D>::default());
+     // The key that HMAC processes must be the same as the block size of the
+     // underlying hash function. If the provided key is smaller than that,
+     // we just pad it with zeros. If its larger, we hash it and then pad it
+@@ -15,7 +16,7 @@
+     if key.len() <= der_key.len() {
+         der_key[..key.len()].copy_from_slice(key);
+     } else {
+-        let hash = D::digest(key);
++        let hash = Zeroizing::new(D::digest(key));
+         // All commonly used hash functions have block size bigger
+         // than output hash size, but to be extra rigorous we
+         // handle the potential uncommon cases as well.
+--- upstream/hmac-0.13.0/src/simple.rs
++++ protected/hmac-0.13.0/src/simple.rs
+@@ -4,6 +4,7 @@
+     Digest, FixedOutput, KeyInit, MacMarker, Output, OutputSizeUser, Update,
+     common::{Block, BlockSizeUser, InvalidLength, Key, KeySizeUser},
+ };
++use zeroize::{ZeroizeOnDrop, Zeroizing};
+ 
+ /// Simplified HMAC instance able to operate over hash functions
+ /// which do not expose block-level API and hash functions which
+@@ -11,7 +12,7 @@
+ #[derive(Clone)]
+ pub struct SimpleHmac<D: Digest + BlockSizeUser> {
+     digest: D,
+-    opad_key: Block<D>,
++    opad_key: Zeroizing<Block<D>>,
+ }
+ 
+ impl<D: Digest + BlockSizeUser> KeySizeUser for SimpleHmac<D> {
+@@ -31,7 +32,7 @@
+         buf.iter_mut().for_each(|b: &mut u8| *b ^= IPAD);
+ 
+         let mut digest = D::new();
+-        digest.update(&buf);
++        digest.update(&buf[..]);
+ 
+         buf.iter_mut().for_each(|b: &mut u8| *b ^= OPAD ^ IPAD);
+ 
+@@ -56,11 +57,14 @@
+ impl<D: Digest + BlockSizeUser> FixedOutput for SimpleHmac<D> {
+     fn finalize_into(self, out: &mut Output<Self>) {
+         let mut h = D::new();
+-        h.update(&self.opad_key);
+-        h.update(self.digest.finalize());
++        h.update(&self.opad_key[..]);
++        let hash = Zeroizing::new(self.digest.finalize());
++        h.update(&hash[..]);
+         h.finalize_into(out);
+     }
+ }
++
++impl<D: Digest + BlockSizeUser + ZeroizeOnDrop> ZeroizeOnDrop for SimpleHmac<D> {}
+ 
+ impl<D: Digest + BlockSizeUser + fmt::Debug> fmt::Debug for SimpleHmac<D> {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+--- upstream/hmac-0.13.0/src/lib.rs
++++ protected/hmac-0.13.0/src/lib.rs
+@@ -30,6 +30,7 @@
+ 
+ use core::fmt;
+ use digest::block_api::{AlgorithmName, CoreProxy};
++use zeroize::ZeroizeOnDrop;
+ 
+ digest::buffer_fixed!(
+     /// Generic HMAC instance.
+@@ -56,3 +57,8 @@
+         <Self as CoreProxy>::Core::write_alg_name(f)
+     }
+ }
++
++// The core's selected hash states drop themselves and digest/zeroize wipes
++// the wrapper's pending block buffer. No marker for a non-wiping hash core.
++impl<D: EagerHash> ZeroizeOnDrop for Hmac<D> where D::Core: ZeroizeOnDrop {}
++impl<D: EagerHash> ZeroizeOnDrop for HmacReset<D> where D::Core: ZeroizeOnDrop {}
+--- upstream/hmac-0.13.0/src/block_api.rs
++++ protected/hmac-0.13.0/src/block_api.rs
+@@ -9,6 +9,7 @@
+     block_buffer::Eager,
+     common::{Key, KeySizeUser},
+ };
++use zeroize::{ZeroizeOnDrop, Zeroizing};
+ 
+ /// Generic core HMAC instance, which operates over blocks.
+ pub struct HmacCore<D: EagerHash> {
+@@ -55,12 +56,12 @@
+         buf.iter_mut().for_each(|b: &mut u8| *b ^= IPAD);
+ 
+         let mut digest = D::Core::default();
+-        digest.update_blocks(slice::from_ref(&buf));
++        digest.update_blocks(slice::from_ref(&*buf));
+ 
+         buf.iter_mut().for_each(|b: &mut u8| *b ^= IPAD ^ OPAD);
+ 
+         let mut opad_digest = D::Core::default();
+-        opad_digest.update_blocks(slice::from_ref(&buf));
++        opad_digest.update_blocks(slice::from_ref(&*buf));
+ 
+         Ok(Self {
+             opad_digest,
+@@ -79,7 +80,7 @@
+ impl<D: EagerHash> FixedOutputCore for HmacCore<D> {
+     #[inline(always)]
+     fn finalize_fixed_core(&mut self, buffer: &mut Buffer<Self>, out: &mut Output<Self>) {
+-        let mut hash = Output::<D::Core>::default();
++        let mut hash = Zeroizing::new(Output::<D::Core>::default());
+         self.digest.finalize_fixed_core(buffer, &mut hash);
+         // finalize_fixed_core should reset the buffer as well, but
+         // to be extra safe we reset it explicitly again.
+@@ -154,12 +155,12 @@
+         buf.iter_mut().for_each(|b: &mut u8| *b ^= IPAD);
+ 
+         let mut digest = D::Core::default();
+-        digest.update_blocks(slice::from_ref(&buf));
++        digest.update_blocks(slice::from_ref(&*buf));
+ 
+         buf.iter_mut().for_each(|b: &mut u8| *b ^= IPAD ^ OPAD);
+ 
+         let mut opad_digest = D::Core::default();
+-        opad_digest.update_blocks(slice::from_ref(&buf));
++        opad_digest.update_blocks(slice::from_ref(&*buf));
+ 
+         Ok(Self {
+             ipad_digest: digest.clone(),
+@@ -179,7 +180,7 @@
+ impl<D: EagerHash> FixedOutputCore for HmacResetCore<D> {
+     #[inline(always)]
+     fn finalize_fixed_core(&mut self, buffer: &mut Buffer<Self>, out: &mut Output<Self>) {
+-        let mut hash = Output::<D::Core>::default();
++        let mut hash = Zeroizing::new(Output::<D::Core>::default());
+         self.digest.finalize_fixed_core(buffer, &mut hash);
+         // finalize_fixed_core should reset the buffer as well, but
+         // to be extra safe we reset it explicitly again.
+@@ -190,6 +191,9 @@
+     }
+ }
+ 
++impl<D: EagerHash> ZeroizeOnDrop for HmacCore<D> where D::Core: ZeroizeOnDrop {}
++impl<D: EagerHash> ZeroizeOnDrop for HmacResetCore<D> where D::Core: ZeroizeOnDrop {}
++
+ impl<D: EagerHash> Reset for HmacResetCore<D> {
+     #[inline(always)]
+     fn reset(&mut self) {
+--- upstream/hmac-0.13.0/src/simple_reset.rs
++++ protected/hmac-0.13.0/src/simple_reset.rs
+@@ -5,6 +5,7 @@
+     common::{Block, BlockSizeUser, InvalidLength, Key, KeySizeUser},
+ };
+ use digest::{FixedOutputReset, Reset};
++use zeroize::{ZeroizeOnDrop, Zeroizing};
+ 
+ /// Simplified HMAC instance with reset support able to operate
+ /// over hash functions which do not expose block-level API and
+@@ -12,8 +13,8 @@
+ #[derive(Clone)]
+ pub struct SimpleHmacReset<D: Digest + BlockSizeUser> {
+     digest: D,
+-    opad_key: Block<D>,
+-    ipad_key: Block<D>,
++    opad_key: Zeroizing<Block<D>>,
++    ipad_key: Zeroizing<Block<D>>,
+ }
+ 
+ impl<D: Digest + BlockSizeUser> KeySizeUser for SimpleHmacReset<D> {
+@@ -35,7 +36,7 @@
+         ipad_key.iter_mut().for_each(|b: &mut u8| *b ^= IPAD);
+ 
+         let mut digest = D::new();
+-        digest.update(&ipad_key);
++        digest.update(&ipad_key[..]);
+ 
+         let mut opad_key = der_key;
+         opad_key.iter_mut().for_each(|b: &mut u8| *b ^= OPAD);
+@@ -62,8 +63,9 @@
+ impl<D: Digest + BlockSizeUser> FixedOutput for SimpleHmacReset<D> {
+     fn finalize_into(self, out: &mut Output<Self>) {
+         let mut h = D::new();
+-        h.update(&self.opad_key);
+-        h.update(self.digest.finalize());
++        h.update(&self.opad_key[..]);
++        let hash = Zeroizing::new(self.digest.finalize());
++        h.update(&hash[..]);
+         h.finalize_into(out);
+     }
+ }
+@@ -77,16 +79,19 @@
+ impl<D: Digest + BlockSizeUser + Reset> Reset for SimpleHmacReset<D> {
+     fn reset(&mut self) {
+         Reset::reset(&mut self.digest);
+-        self.digest.update(&self.ipad_key);
++        self.digest.update(&self.ipad_key[..]);
+     }
+ }
+ 
+ impl<D: Digest + BlockSizeUser + FixedOutputReset> FixedOutputReset for SimpleHmacReset<D> {
+     fn finalize_into_reset(&mut self, out: &mut Output<Self>) {
+         let mut h = D::new();
+-        Update::update(&mut h, &self.opad_key);
+-        Update::update(&mut h, &self.digest.finalize_reset());
+-        Update::update(&mut self.digest, &self.ipad_key);
++        Update::update(&mut h, &self.opad_key[..]);
++        let hash = Zeroizing::new(self.digest.finalize_reset());
++        Update::update(&mut h, &hash[..]);
++        Update::update(&mut self.digest, &self.ipad_key[..]);
+         Digest::finalize_into(h, out);
+     }
+ }
++
++impl<D: Digest + BlockSizeUser + ZeroizeOnDrop> ZeroizeOnDrop for SimpleHmacReset<D> {}

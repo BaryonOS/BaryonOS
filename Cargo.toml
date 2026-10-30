@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = ["boot/loader", "kernel", "crates/boot-protocol", "crates/elf-loader-core", "crates/kernel-core", "crates/capability-core", "crates/virtio-core", "crates/ui-core", "drivers/virtio-blk", "drivers/virtio-rng", "drivers/virtio-net", "services/block", "services/objects", "services/catalog", "services/volume", "services/keyring"]
-exclude = ["experiments/quantum", "ui/prototype", "ui/native", "drivers/ps2", "sdk/display-client"]
+exclude = ["experiments/quantum", "ui/prototype", "ui/native", "drivers/ps2", "sdk/display-client", "services/image-codec"]
 
 [profile.dev]
 panic = "abort"

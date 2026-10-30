@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`d5288219`](https://github.com/simonvanieperen/nieuw-os/commit/d52882196da3f38a32bf01edea379ce5300e04e2) ·
-**Ontwikkelbranch:** `codex/full-test-release`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Native display/PS2 en vijf gecorrigeerde geheugencases plus actuele CI; verbonden Materiaalintegratie.
-32% blijft32%; alle62 volledige releasecriteria blijven open. Vijf nieuwe native geheugencases op15e en echte CPL3-display/PS2/QMP/pixelgrenzen op d528 slagen, elk zeven CI-workflows groen. Afzonderlijke componenten zijn geen verbonden desktop, productopslag, NAS/AI/updates/herstel of volledig testpakket. Appreview vindt stale-ready en C-entry voor reparatie. Root integreert echte7-proces-Materiaal; RNG/decoderproeven en CI-uitbreiding gaan parallel. Scope, gewichten, VM-FR en vereiste bewijsniveaus blijven onveranderd.
+**Bron:** [`3f20f087`](https://github.com/simonvanieperen/nieuw-os/commit/3f20f087a7f0ddf4757af8d3ea110dd0c044a72c) ·
+**Ontwikkelbranch:** `codex/native-foundation-integration`.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** NativeRANDOM/PNG-JPEG-integratie bevriezen; echte viercases en decoder-VM volgen.
+32% blijft32%; alle62 volledige releasecriteria blijven open. Gekoppelde nativeRNG- en decoderprofielen bouwen; onafhankelijke componentreviews en63+11core/clienthosttests plus44systeem- en21/20harnastests groen. VroegeESP-hostblootstelling en stalegroenledgers zijn gericht gerepareerd vóór nieuweVMs. VorigeGUI7d bereikt één echtframe maar faalt200s; dat sluitgeenproductcriterium. AchtCI opmain3f20 zijn eigen bronbewijs. Nieuwe nativeuitvoering, veilige persistente opslag, completeapps/NAS/AI/update/herstel/visueletoegankelijkheid en geleverdreleasepakket blijven verplicht open; scope/gewichten onveranderd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

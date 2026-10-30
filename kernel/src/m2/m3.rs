@@ -67,6 +67,18 @@ mod sdk_app;
 mod supervisor;
 #[cfg(feature = "native-system")]
 mod system;
+#[cfg(any(
+    all(feature = "native-system-random", feature = "native-system-net"),
+    all(feature = "native-system-random", feature = "native-system-images"),
+    all(feature = "native-system-images", feature = "native-system-net")
+))]
+compile_error!(
+    "choose one fifth-process acceptance probe; this does not define the product service manifest"
+);
+#[cfg(feature = "native-system-images")]
+mod image_fixture;
+#[cfg(feature = "native-system-random")]
+mod random_fixture;
 #[cfg(all(
     feature = "native-keyring",
     not(feature = "native-system"),
@@ -198,6 +210,10 @@ const SYSTEM_INIT_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_INIT_ELF"));
 const SYSTEM_APP_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_APP_ELF"));
 #[cfg(feature = "native-system")]
 const SYSTEM_WORKER_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_WORKER_ELF"));
+#[cfg(feature = "native-system-random")]
+const RANDOM_PROBE_ELF: &[u8] = include_bytes!(env!("NOS_RANDOM_PROBE_ELF"));
+#[cfg(feature = "native-system-images")]
+const IMAGE_PROBE_ELF: &[u8] = include_bytes!(env!("NOS_IMAGE_PROBE_ELF"));
 #[cfg(feature = "native-system-net")]
 const NET_PROBE_ELF: &[u8] = include_bytes!(env!("NOS_NET_PROBE_ELF"));
 const DATA: u64 = 0x40010000;
@@ -406,6 +422,10 @@ fn process_elf(slot: usize) -> &'static [u8] {
         3 => SYSTEM_APP_ELF,
         #[cfg(feature = "native-system-net")]
         4 => NET_PROBE_ELF,
+        #[cfg(feature = "native-system-random")]
+        4 => RANDOM_PROBE_ELF,
+        #[cfg(feature = "native-system-images")]
+        4 => IMAGE_PROBE_ELF,
         _ => panic!("system workers are launched by init"),
     }
 }
@@ -525,7 +545,11 @@ impl State {
         } else {
             16
         };
-        let initial = if cfg!(feature = "native-system-net") {
+        let initial = if cfg!(any(
+            feature = "native-system-net",
+            feature = "native-system-random",
+            feature = "native-system-images"
+        )) {
             5
         } else if cfg!(feature = "native-system") {
             4

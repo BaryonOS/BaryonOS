@@ -1,0 +1,29 @@
+{
+  "kind": "host decoder/oracle tests; no native acceptance",
+  "argv": [
+    "python3",
+    "-B",
+    "tools/dev.py",
+    "cargo",
+    "+1.90.0",
+    "test",
+    "--locked",
+    "--offline",
+    "--manifest-path",
+    "services/image-codec/Cargo.toml",
+    "--test",
+    "decode",
+    "--",
+    "--nocapture"
+  ],
+  "exit_code": 101,
+  "seconds": 2.2387,
+  "passed": false,
+  "stdout": "\nrunning 10 tests\ntest bounds_and_cancel_are_explicit_without_publishing_partial_pixels ... ok\ntest output_extent_checks_preserve_destination_on_mismatch ... ok\ntest oversized_header_and_apng_remain_explicit_open_profiles ... ok\ntest compressed_metadata_bomb_is_rejected_before_upstream_default_inflater ... ok\ntest png16_preserves_every_sample_and_display_conversion_does_not_modify_it ... ok\nFIXTURE baseline.jpg 257x129 pixel_hash=c6b9c5a1c94d9d26 max_difference=3 total_difference=2096\nFIXTURE gray.jpg 113x67 pixel_hash=7a4e3b2178deb211 max_difference=1 total_difference=147\ntest preserved_metadata_is_not_falsely_claimed_as_oriented_or_color_managed ... ok\nFIXTURE rgb.png 231x149 pixel_hash=9e835dc6cac66b1d max_difference=0 total_difference=0\nFIXTURE alpha.png 128x96 pixel_hash=62a32f96525fd225 max_difference=0 total_difference=0\nFIXTURE alpha.png 128x96 pixel_hash=62a32f96525fd225 max_difference=0 total_difference=0\nFIXTURE palette4.png 73x47 pixel_hash=6c049d0ec83edb44 max_difference=0 total_difference=0\nFIXTURE mono1.png 65x33 pixel_hash=37c419a317c8ebe0 max_difference=0 total_difference=0\nFIXTURE progressive.jpg 193x113 pixel_hash=cdd9582524516d2e max_difference=4 total_difference=27763\nFIXTURE gray-alpha.png 97x65 pixel_hash=86d63f4b7cfd3255 max_difference=0 total_difference=0\nQUALITY progressive.jpg beyond=2 squared_difference=43153 channels=87236\nWORST progressive.jpg x=176 y=17 channel=2 actual=215 reference=211\nWORST progressive.jpg x=175 y=18 channel=2 actual=207 reference=203\nFIXTURE adam7.png 129x77 pixel_hash=62078a4803164208 max_difference=0 total_difference=0\ntest jpeg_baseline_progressive_and_grayscale_match_libjpeg_oracle ... FAILED\nFIXTURE rgba16.png 97x65 pixel_hash=5902cbac329821a4 max_difference=0 total_difference=0\ntest png_real_variants_match_independent_pixels_exactly ... ok\nFIXTURE progressive.jpg 193x113 pixel_hash=cdd9582524516d2e max_difference=4 total_difference=27763\nQUALITY progressive.jpg beyond=2 squared_difference=43153 channels=87236\nWORST progressive.jpg x=176 y=17 channel=2 actual=215 reference=211\nWORST progressive.jpg x=175 y=18 channel=2 actual=207 reference=203\ntest truncated_corrupt_and_unknown_inputs_do_not_poison_the_next_decode ... FAILED\ntest deterministic_malformed_mutations_return_or_fail_without_panicking ... ok\n\nfailures:\n\nfailures:\n    jpeg_baseline_progressive_and_grayscale_match_libjpeg_oracle\n    truncated_corrupt_and_unknown_inputs_do_not_poison_the_next_decode\n\ntest result: FAILED. 8 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.71s\n\n",
+  "stderr": "   Compiling nieuw-os-image-codec v0.1.0 (/workspace/nieuw-os-worktrees/image-codec/services/image-codec)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.45s\n     Running tests/decode.rs (/tmp/nieuw-os-image-core-target/debug/deps/decode-f8ed2c197c3c13a9)\n\nthread 'jpeg_baseline_progressive_and_grayscale_match_libjpeg_oracle' panicked at tests/decode.rs:122:5:\nprogressive.jpg: max difference 4, total 27763\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\nthread 'truncated_corrupt_and_unknown_inputs_do_not_poison_the_next_decode' panicked at tests/decode.rs:122:5:\nprogressive.jpg: max difference 4, total 27763\nerror: test failed, to rerun pass `--test decode`\n",
+  "source_sha256": {
+    "services/image-codec/src/lib.rs": "736ab3858988a0834d5b4d3c3b79190b20e00fbe27dbb2eb156a7899a8b6e6bd",
+    "services/image-codec/tests/decode.rs": "573ac587725f57c72b394d12a349f68471f04c65d628bf119813b2a58640e323",
+    "sdk/examples/image-probe/src/main.rs": "1f3635f86cdfbd4282c15174c206855a5cf55f01a4cbf645b3fdf100d96b9918"
+  }
+}

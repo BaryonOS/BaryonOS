@@ -1,0 +1,4 @@
+# Preserve the exact reviewed upstream bytes and unified-diff context lines.
+# This exception does not apply to our wrapper, probe, tests or Python tools.
+vendor/zune-jpeg-0.5.16-rc3/** -whitespace
+vendor/upstream/upsample-hv.patch -whitespace

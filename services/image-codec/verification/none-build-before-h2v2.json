@@ -1,0 +1,16 @@
+{
+  "kind": "Actual static x86_64-unknown-none ELF build only; not native execution",
+  "argv": [
+    "python3",
+    "-B",
+    "sdk/examples/image-probe/build.py"
+  ],
+  "exit_code": 0,
+  "seconds": 2.3567,
+  "stdout": "{\"command\": [\"cargo\", \"+1.90.0\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/workspace/nieuw-os-worktrees/image-codec/sdk/examples/image-probe/Cargo.toml\", \"--features\", \"native\", \"--bin\", \"image-probe\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/tmp/nieuw-os-image-probe-target\", \"app_toolchain\": \"1.90.0\", \"linker\": \"/workspace/nieuw-os/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld\"}\n{\"passed\": true, \"extra_env\": {\"NOS_IMAGE_PROBE_ELF\": \"/tmp/nieuw-os-image-probe-target/x86_64-unknown-none/release/image-probe\"}, \"image_probe\": {\"sha256\": \"337dba497d9ce4e9b72fe74900dd0997d9825b4018c8ca3673c684e4102aea6c\", \"elf\": {\"entry\": 1073741824, \"segments\": [{\"flags\": 5, \"address\": 1073741824, \"offset\": 4096, \"filesz\": 6, \"memsz\": 6, \"page_start\": 1073741824, \"page_end\": 1073745920}, {\"flags\": 6, \"address\": 1073807360, \"offset\": 8192, \"filesz\": 2360, \"memsz\": 2512, \"page_start\": 1073807360, \"page_end\": 1073811456}, {\"flags\": 4, \"address\": 1073823744, \"offset\": 12288, \"filesz\": 172000, \"memsz\": 172000, \"page_start\": 1073823744, \"page_end\": 1073995776}, {\"flags\": 5, \"address\": 1074790400, \"offset\": 184320, \"filesz\": 211097, \"memsz\": 211097, \"page_start\": 1074790400, \"page_end\": 1075003392}]}}}\n",
+  "stderr": "   Compiling nieuw-os-image-codec v0.1.0 (/workspace/nieuw-os-worktrees/image-codec/services/image-codec)\n   Compiling nieuw-os-native-image-probe v0.1.0 (/workspace/nieuw-os-worktrees/image-codec/sdk/examples/image-probe)\n    Finished `release` profile [optimized] target(s) in 2.23s\n",
+  "source_sha256": {
+    "services/image-codec/src/lib.rs": "736ab3858988a0834d5b4d3c3b79190b20e00fbe27dbb2eb156a7899a8b6e6bd",
+    "sdk/examples/image-probe/src/main.rs": "1f3635f86cdfbd4282c15174c206855a5cf55f01a4cbf645b3fdf100d96b9918"
+  }
+}

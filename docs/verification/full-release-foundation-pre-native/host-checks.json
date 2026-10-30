@@ -1,0 +1,46 @@
+{
+  "base_commit": "3f20f087a7f0ddf4757af8d3ea110dd0c044a72c",
+  "checks": [
+    {
+      "name": "keyring",
+      "scope": "host only, no native acceptance",
+      "exit": 0,
+      "test_count": 63,
+      "log_path": "/tmp/nieuw-os-foundation-keyring-tests.log",
+      "log_sha256": "a50df41b0f406a770adf09adb11ecaacc3c0ef4fc95992e8957bc06b1195c6e6"
+    },
+    {
+      "name": "keyrandom-client",
+      "scope": "host only, no native acceptance",
+      "exit": 0,
+      "test_count": 11,
+      "log_path": "/tmp/nieuw-os-foundation-keyrandom-tests.log",
+      "log_sha256": "1c37877999dc3b50e9ea5fe8b2526f47b13196f12c272f6df9209807336fb197"
+    },
+    {
+      "name": "system-harness",
+      "scope": "host only, no native acceptance",
+      "exit": 0,
+      "test_count": 44,
+      "log_path": "/tmp/nieuw-os-foundation-system-host-fixed.log",
+      "log_sha256": "27d07bbb761b8e5c28e1394c8e6274df466207570e9c1131ea32ff701922734b"
+    },
+    {
+      "name": "random-harness-fixed",
+      "scope": "host only, no native acceptance",
+      "exit": 0,
+      "test_count": 21,
+      "log_path": "/tmp/nieuw-os-root-random-gate-fixed-host.log",
+      "log_sha256": "a3f53dc363afa6d90c8b74b765567890ad64bbcd030e5c243f1defbccb03252e"
+    },
+    {
+      "name": "images-harness-fixed",
+      "scope": "host only, no native acceptance",
+      "exit": 0,
+      "test_count": 20,
+      "log_path": "/tmp/nieuw-os-root-images-gate-fixed-host.log",
+      "log_sha256": "d5d021494b80297964bed8b89e146ba4a7999b4c1fc3ab6079c6aae96235e213"
+    }
+  ],
+  "native_runs_performed": false
+}

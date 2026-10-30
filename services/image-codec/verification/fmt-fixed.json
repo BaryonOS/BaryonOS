@@ -1,0 +1,26 @@
+{
+  "kind": "Host component evidence, not native execution",
+  "argv": [
+    "python3",
+    "-B",
+    "tools/dev.py",
+    "cargo",
+    "+1.90.0",
+    "fmt",
+    "--manifest-path",
+    "services/image-codec/Cargo.toml",
+    "--",
+    "--check"
+  ],
+  "exit_code": 0,
+  "passed": true,
+  "seconds": 0.127,
+  "source_sha256": {
+    "services/image-codec/src/lib.rs": "9621b4a3e37c2e9c5559ba22b9dc67569aa79d88c0efc9ba328a393211cea8de",
+    "services/image-codec/tests/upsample.rs": "852175783e82f3d1b3451049ddecd98d126a064b8468e4ac007312d63794ca36",
+    "services/image-codec/tests/decode.rs": "23a2cd92ba1b30c1e1b3ea96972a7a242787cb9c17e04c2420730468afa962a0",
+    "sdk/examples/image-probe/src/main.rs": "4a052e4db628d1c0eed71d1a40fcd4b38f0557e7aea169af124420ecf436a193"
+  },
+  "stdout": "",
+  "stderr": ""
+}

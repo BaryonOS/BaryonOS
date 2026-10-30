@@ -2,6 +2,14 @@
 
 ## Volledige native testrelease — in uitvoering, 32% — 2026-10-30
 
+**Nieuw foundationcheckpoint:** branch `codex/native-foundation-integration`, eigenworktree `root-foundation`, basis `3f20f087a7f0ddf4757af8d3ea110dd0c044a72c` (achtCIgroen inclusief echte display/input). VolledigeRNG- en PNG/JPEG-doelbuilds slagen; [componentreviews/hostchecks/gerichteharnasreparaties](verification/full-release-foundation-pre-native/README.md) zijn vastgelegd. RootsharedABI/bootstrap/locks/buildadmission zijn aangesloten. De vier RNG-gevallen en imageprobe moeten nu op deze bevroren bron werkelijk worden uitgevoerd; tot die tijd geen native acceptatie.
+
+ParallelleGUIbron `7d230a6e8e7d7975f8e3297ff4f2b166c38b1803`, concept-PR[#58](https://github.com/simonvanieperen/nieuw-os/pull/58), heeft een echte8-processenrun met Source/Policy/Comp/Focus en één volledig native geschilderd Materiaalframe. De volledigeproef is FAILna200s: eerste1608tegelframe rond106s en tweede pas1553/1608tegels. Geen Saved/Reopen/afsluitacceptatie. Root onderzoekt uitsluitend observeroverhead (batchedPITsample); functies,veiligheidschecks en de200s-proefgrens blijven staan. Drie GUIreplaybevindingen worden door de eigenaar gerepareerd vóór heracceptatie. Huidigfragment is geen productimage; veilige persistente opslag/NAS/AI/apps/boot/update/herstel en alle62criteria blijven verplicht open.
+
+**Eerstvolgende concrete hervatstap:** controleer HEAD/index/remote en activeworkers; bouw en voer achtereenvolgens `native-system-random`→run_random raw, `test-system-random-sdk`→sdk, `test-system-random-unknown`→unknown, `test-system-random-wrong-caller`→wrong-caller uit, ieder eigen `NOS_BUILD_DIR=build/foundation-<case>` en hergebruik `NOS_TARGET_DIR=target/foundation` uitsluitend sequentieel. Daarna `native-system-images`→run_images normal. Gebruik bestaande LOCALAPPDATA/PATH/QEMU/OVMFenv. Vier RNG-probes en imageprobe zijn deelacceptatie, niet volledige release; toets na laatste bronwijziging opnieuw. Behoud `/workspace/nieuw-os-worktrees/root-materiaal` met eigen GUIWIP en originele nativeFAILartifacts.
+
+Hieronder volgt de behouden voorgeschiedenis van de actuele native regressiebasis; eerdere hervatcommando’s worden door dit foundationcheckpoint vervangen.
+
 Integratiebranch `codex/full-test-release`, concept-PR[#56](https://github.com/simonvanieperen/nieuw-os/pull/56).
 Desktopintegratie `codex/root-desktop-integration`, concept-PR[#57](https://github.com/simonvanieperen/nieuw-os/pull/57).
 [Volledige opdracht/matrix](FULL-TEST-RELEASE.md) → [productcontext](FULL-TEST-RELEASE-CONTEXT.md) → [werkqueue](WORK-QUEUE.md).

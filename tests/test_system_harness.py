@@ -66,6 +66,45 @@ class SystemHarnessTests(unittest.TestCase):
                     check_esp(esp, manifest)
                 path.write_bytes(original)
 
+    def test_unknown_or_linked_source_esp_is_rejected_before_copy(self):
+        # Synthetic marker only. The whole source tree must be checked before
+        # copytree or QEMU sees it, even if the two expected hashes are correct.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            esp = root / "esp"
+            loader = esp / "EFI/BOOT/BOOTX64.EFI"
+            loader.parent.mkdir(parents=True)
+            loader.write_bytes(b"loader")
+            kernel = esp / "kernel.elf"
+            kernel.write_bytes(b"kernel")
+            manifest = {key: {"sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+                        for key, path in (("loader", loader), ("kernel", kernel))}
+            marker = root / "outside-marker"
+            marker.write_bytes(b"host-only test marker")
+            check_esp(esp, manifest)
+            extra = esp / "extra"
+            for kind in ("regular", "symlink", "fifo", "directory"):
+                with self.subTest(kind=kind):
+                    if kind == "regular":
+                        extra.write_bytes(b"unexpected bytes")
+                    elif kind == "symlink":
+                        extra.symlink_to(marker)
+                    elif kind == "fifo":
+                        os.mkfifo(extra)
+                    else:
+                        extra.mkdir()
+                    with self.assertRaises(ValueError):
+                        check_esp(esp, manifest)
+                    extra.rmdir() if kind == "directory" else extra.unlink()
+                    self.assertEqual(marker.read_bytes(), b"host-only test marker")
+            # The two leaf files may be regular while their ancestor is linked.
+            boot = esp / "EFI/BOOT"
+            actual = root / "actual-boot"
+            boot.rename(actual)
+            boot.symlink_to(actual, target_is_directory=True)
+            with self.assertRaises(ValueError):
+                check_esp(esp, manifest)
+
     def test_disk_guard_rejects_wrong_geometry_symlink_hardlink_and_directory(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -1,0 +1,83 @@
+{
+  "scope": "Host static/component checks only; JPEG quality tests separately remain failed",
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "services/image-codec/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 0.188,
+      "stdout": "",
+      "stderr": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s\n"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "services/image-codec/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.1454,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/image-probe/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.1383,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "tree",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "services/image-codec/Cargo.toml",
+        "-e",
+        "features"
+      ],
+      "exit_code": 0,
+      "seconds": 0.1168,
+      "stdout": "nieuw-os-image-codec v0.1.0 (/workspace/nieuw-os-worktrees/image-codec/services/image-codec)\n\u251c\u2500\u2500 simd-adler32 v0.3.10\n\u251c\u2500\u2500 zune-core v0.5.3\n\u251c\u2500\u2500 zune-jpeg v0.5.16-rc3\n\u2502   \u2514\u2500\u2500 zune-core feature \"default\"\n\u2502       \u2514\u2500\u2500 zune-core v0.5.3\n\u251c\u2500\u2500 zune-png v0.5.2\n\u2502   \u251c\u2500\u2500 zune-core feature \"default\" (*)\n\u2502   \u2514\u2500\u2500 zune-inflate feature \"zlib\"\n\u2502       \u251c\u2500\u2500 zune-inflate v0.2.54\n\u2502       \u2502   \u2514\u2500\u2500 simd-adler32 v0.3.10\n\u2502       \u2514\u2500\u2500 zune-inflate feature \"simd-adler32\"\n\u2502           \u2514\u2500\u2500 zune-inflate v0.2.54 (*)\n\u2514\u2500\u2500 zune-inflate feature \"zlib\" (*)\n",
+      "stderr": ""
+    }
+  ]
+}

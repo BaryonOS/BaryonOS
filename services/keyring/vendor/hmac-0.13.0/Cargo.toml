@@ -1,0 +1,23 @@
+# Runtime-only manifest; see Cargo.toml.upstream and ../upstream/ archive.
+[package]
+name = "hmac"
+version = "0.13.0"
+edition = "2024"
+rust-version = "1.85"
+publish = false
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/RustCrypto/MACs"
+description = "Upstream HMAC 0.13.0 with a local memory-hygiene-only patch"
+autotests = false
+autobenches = false
+
+[features]
+zeroize = ["digest/zeroize"]
+
+[dependencies]
+digest = { version = "=0.11.3", features = ["mac", "zeroize"] }
+zeroize = { version = "=1.9.1", default-features = false }
+hybrid-array = { version = "=0.4.15", default-features = false, features = ["zeroize"] }
+
+[lints.rust]
+unsafe_code = "forbid"

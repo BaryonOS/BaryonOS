@@ -31,7 +31,9 @@ KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRI
 NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
 TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
 MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
-SYSTEM_FEATURES = ("native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES)
+RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
+IMAGE_FEATURES = ("native-system-images",)
+SYSTEM_FEATURES = ("native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES)
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
@@ -194,6 +196,11 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
             run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{probe}/build.py")],
                        "build-system-net-probe", extra_env={"CARGO_TARGET_DIR": str(net_target)})
             binaries["net_probe"] = net_target / f"x86_64-unknown-none/release/{probe}"
+        if kernel_feature in RANDOM_FEATURES + IMAGE_FEATURES:
+            package="random-probe" if kernel_feature in RANDOM_FEATURES else "image-probe"
+            probe_target=TARGET / ("random-probe-app" if package=="random-probe" else "system-image-probe")
+            run_logged([sys.executable,"-B",str(ROOT / f"sdk/examples/{package}/build.py")],"build-system-"+package,extra_env={"CARGO_TARGET_DIR":str(probe_target)})
+            binaries[package.replace("-","_")]=probe_target / f"x86_64-unknown-none/release/{package}"
         qsim_report = {name: {"sha256": sha256(path), "elf": inspect_user(path)}
                        for name, path in binaries.items()}
         extra_env = {f"NOS_{name.upper()}_ELF": str(path.resolve())
@@ -278,6 +285,10 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
             manifest["supervisor"] = qsim_report
         elif kernel_feature in SYSTEM_FEATURES:
             manifest["system"] = qsim_report
+            if kernel_feature in RANDOM_FEATURES:
+                manifest["random_probe"] = qsim_report["random_probe"]
+            if kernel_feature in IMAGE_FEATURES:
+                manifest["image_probe"] = qsim_report["image_probe"]
         elif kernel_feature in KEYRING_FEATURES:
             manifest["keyring"] = qsim_report
         else:

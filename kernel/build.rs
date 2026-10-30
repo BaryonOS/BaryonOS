@@ -35,6 +35,8 @@ fn main() {
         }
     }
     for name in [
+        "NOS_RANDOM_PROBE_ELF",
+        "NOS_IMAGE_PROBE_ELF",
         "NOS_DISPLAY_PROBE_ELF",
         "NOS_INPUT_PROBE_ELF",
         "NOS_DISPLAY_INTRUDER_ELF",

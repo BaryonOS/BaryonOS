@@ -1,0 +1,273 @@
+{
+  "task": "TASK-KEYRANDOM",
+  "date_utc": "2026-10-30T01:26:04.627440+00:00",
+  "base_commit": "1b6a3086176a6c0a4e6514bf4d2f7105bef3d480",
+  "branch": "codex/keyring-random",
+  "scope": "Host models and x86_64-none crosscompile only; native RANDOM was NOT run. No release criterion accepted.",
+  "source_sha256": {
+    "services/keyring/Cargo.toml": "ab190a7e686860c58979675e69941f02ab63a61fd9cdcb7ee0582f41f7617847",
+    "services/keyring/src/lib.rs": "3d8b611179a750d4dbb228b3e70fc2929638e1e02c26f0237b8bd1edb3d45a97",
+    "services/keyring/src/wire.rs": "23be15a8cd2b00c1222b2f5a9fda1a9e102286d2a776d844187602f128a920fe",
+    "services/keyring/src/random.rs": "f2ebdb5ddd42b6c46cd888287284465fe149f86546ebefcd890660f2ee78b266",
+    "services/keyring/tests/random.rs": "3ae1ab3922228c3d0fd93ac0000de78388388adfa7ad00f3cd88c77b30f3f5f1",
+    "sdk/examples/keyring/src/service.rs": "8adb3949226c5e83a4bc15ea0e508c352390c550c4a17c1e7e606a07aae9b751",
+    "sdk/keyring-random-client/Cargo.toml": "8d44ec037d093dce78d40d81bedc5c685f18fbdc450974171af8d63e6a8e08e9",
+    "sdk/keyring-random-client/src/lib.rs": "273e5f5a5f747f131d39959ea690c6dc9e95374df7549a953b76a9aaf54b9427",
+    "sdk/keyring-random-client/tests/session.rs": "0432fb5679b8a95d72900b30e4935084de401a0240cca0a7be0a2e3643ec0713"
+  },
+  "copy_equivalence": "Every listed source/manifest matches exact independent scratch copy before and after checks. Shared root/SDK locks not changed.",
+  "scratch_workspace": "/tmp/nieuw-os-keyrandom-integration",
+  "scratch_workspace_manifest_sha256": "e207352e53f956717d6b5b587377abb20f628797ef570352e5a9859353890607",
+  "scratch_lock_sha256": "dd2aa6dd0f3e72ca4296ad20d7f5ffbc0cdd6d7f358b3cd435c763565c2fde94",
+  "target": "/tmp/nieuw-os-keyrandom-target",
+  "toolchain": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+  "environment": {
+    "LOCALAPPDATA": "/workspace/nieuw-os/.tools"
+  },
+  "commands": [
+    {
+      "name": "host-tests",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/tmp/nieuw-os-keyrandom-integration/Cargo.toml",
+        "-p",
+        "keyring-core",
+        "-p",
+        "nieuw-os-keyring-random-client"
+      ],
+      "exit_code": 0,
+      "seconds": 0.282,
+      "log": "/tmp/nieuw-os-keyrandom-integration/final-host-tests.log",
+      "log_sha256": "af30a6459c2176fb73ecb10a602b0a7d6d178232a7404675849d23fc65d10f9d"
+    },
+    {
+      "name": "host-clippy",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/tmp/nieuw-os-keyrandom-integration/Cargo.toml",
+        "-p",
+        "keyring-core",
+        "-p",
+        "nieuw-os-keyring-random-client",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 0.111,
+      "log": "/tmp/nieuw-os-keyrandom-integration/final-host-clippy.log",
+      "log_sha256": "8c233a54790c4800d3dd585436af679aa838da259bfdb129412e2d51cdb75cdc"
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "/tmp/nieuw-os-keyrandom-integration/Cargo.toml",
+        "--all",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.128,
+      "log": "/tmp/nieuw-os-keyrandom-integration/final-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "native",
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/nieuw-os-keyrandom-integration/native-check.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.284,
+      "log": "/tmp/nieuw-os-keyrandom-integration/final-native.log",
+      "log_sha256": "3e91633209c7722ab990fecd0fc41dcff41024af3b136585a124d475023614a6"
+    },
+    {
+      "name": "missing-portable-cfg",
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/nieuw-os-keyrandom-integration/negative-build.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.29,
+      "log": "/tmp/nieuw-os-keyrandom-integration/final-missing-portable-cfg.log",
+      "log_sha256": "66187707100fef52af9d7016a8f9fe7ca266de65c6eef28e443b77f6dc338d3a"
+    }
+  ],
+  "tests": {
+    "core_existing": 46,
+    "core_random": 11,
+    "client": 11,
+    "failed": 0,
+    "ignored": 0
+  },
+  "native": {
+    "kind": "cross-compile only, no native RANDOM run",
+    "flags": [
+      "-C",
+      "code-model=small",
+      "-C",
+      "relocation-model=static",
+      "-C",
+      "no-redzone=yes",
+      "-C",
+      "linker=rust-lld",
+      "-C",
+      "link-arg=-T/tmp/nieuw-os-keyrandom-integration/sdk/examples/keyring/linker.ld",
+      "-C",
+      "link-arg=--no-pie",
+      "-C",
+      "link-arg=--build-id=none",
+      "-C",
+      "link-arg=-zmax-page-size=0x1000",
+      "--cfg",
+      "chacha20_force_soft",
+      "--cfg",
+      "chacha20_backend=\"soft\"",
+      "--cfg",
+      "poly1305_force_soft",
+      "--cfg",
+      "sha2_backend=\"soft\""
+    ],
+    "commands": [
+      {
+        "argv": [
+          "cargo",
+          "+1.90.0",
+          "build",
+          "--offline",
+          "--locked",
+          "--release",
+          "--manifest-path",
+          "/tmp/nieuw-os-keyrandom-integration/Cargo.toml",
+          "-p",
+          "nieuw-os-keyring-example",
+          "--features",
+          "native",
+          "--bins",
+          "--target",
+          "x86_64-unknown-none"
+        ],
+        "exit": 0,
+        "log": "/tmp/nieuw-os-keyrandom-integration/native-0.log"
+      },
+      {
+        "argv": [
+          "cargo",
+          "+1.90.0",
+          "build",
+          "--offline",
+          "--locked",
+          "--release",
+          "--manifest-path",
+          "/tmp/nieuw-os-keyrandom-integration/Cargo.toml",
+          "-p",
+          "nieuw-os-keyring-random-client",
+          "--lib",
+          "--target",
+          "x86_64-unknown-none"
+        ],
+        "exit": 0,
+        "log": "/tmp/nieuw-os-keyrandom-integration/native-1.log"
+      },
+      {
+        "argv": [
+          "cargo",
+          "+1.90.0",
+          "clippy",
+          "--offline",
+          "--locked",
+          "--release",
+          "--manifest-path",
+          "/tmp/nieuw-os-keyrandom-integration/Cargo.toml",
+          "-p",
+          "nieuw-os-keyring-example",
+          "--features",
+          "native",
+          "--bin",
+          "keyring-service",
+          "--target",
+          "x86_64-unknown-none",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "log": "/tmp/nieuw-os-keyrandom-integration/native-2.log"
+      }
+    ],
+    "sha256": {
+      "keyring-service": "ef1dc1769b69c7a71e83c8ece1f351d110a3b089a7fb3d66c64bb0f977468028",
+      "keyring-app": "b2b7271a1a477be35242c179a3090fef36be8e05d886b399bc09988b5f086dcd"
+    }
+  },
+  "portable_cfg_negative": {
+    "argv": [
+      "cargo",
+      "+1.90.0",
+      "check",
+      "--offline",
+      "--locked",
+      "--manifest-path",
+      "/tmp/nieuw-os-keyrandom-integration/Cargo.toml",
+      "-p",
+      "keyring-core",
+      "--target",
+      "x86_64-unknown-none"
+    ],
+    "exit": 101,
+    "expected_failure": true,
+    "compileguard_found": true
+  },
+  "object_inspection": {
+    "command": [
+      "objdump",
+      "-d",
+      "-Mintel",
+      "/tmp/nieuw-os-keyrandom-target/x86_64-unknown-none/release/keyring-service"
+    ],
+    "fp_simd_register_matches": 0,
+    "sha256": "609f5f010339e66027ac51c382269c32b63a83a7e0b9fc0e60836319ddb71bc9"
+  },
+  "native_dependency_tree": {
+    "command": [
+      "cargo",
+      "+1.90.0",
+      "tree",
+      "--offline",
+      "--locked",
+      "--manifest-path",
+      "/tmp/nieuw-os-keyrandom-integration/Cargo.toml",
+      "-p",
+      "nieuw-os-keyring-example",
+      "--target",
+      "x86_64-unknown-none",
+      "--edges",
+      "normal,build"
+    ],
+    "sha256": "349b609396f41744d18263ee838c9b88edfbc380259a8c00e222d459ffb534fa",
+    "no_std_libc_getrandom": true
+  },
+  "open": [
+    "Root workspace/lock and portable build cfg integration",
+    "Trusted RANDOM-only ingress/bootstrap and capability revocation runtime tests",
+    "Native RANDOM and entropy/reseed/clock/quota failure scenarios on integrated image",
+    "TLS identity signer, trusted certificate time and PQC policy remain separate"
+  ]
+}
