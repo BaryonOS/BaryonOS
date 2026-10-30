@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ff51dc01`](https://github.com/simonvanieperen/nieuw-os/commit/ff51dc01b36d3200fc6a887b03429748e93eb457) ·
-**Ontwikkelbranch:** `simonvanieperen-expert-disco`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-CLOCK-1: opt-in ring-3 UTC-clock-API met expliciet niet-vertrouwde RTC-kwaliteit.
-34% blijft 34%. NATIVE-CLOCK-1 implementeert een opt-in ABI 1.9-ring-3-API en SDK die RTC-tijd steeds als UnauthenticatedRtc labelen; 3 hostverifier-tests, 20 SDK-runtime-tests, formatting, native build en de echte QEMU-ring-3-gate zijn geslaagd. De gast las 1793361601 tweemaal bij vaste RTC-basis 2026-10-30T12:00:00, behield monotone ticks en weigerde ongeldige argumenten met -22; hashgebonden bewijs staat in docs/verification/system-clock. Dit is een beperkte FR-S03/FR-N03-afhankelijkheid en sluit geen volledig rubriccriterium. Geen vertrouwde TimeProvider, certificaattijd, fysieke hardware of volledige releaseacceptatie geclaimd; alle 62 productcriteria en menselijke acceptatie blijven open.
+**Bron:** [`f777f7ae`](https://github.com/simonvanieperen/nieuw-os/commit/f777f7aea38e75e593d93cb3a976887e7ba4326e) ·
+**Ontwikkelbranch:** `simon/windows-qemu-test-version`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** WINDOWS-QEMU-TEST-VERSION: bundel en native Materiaal-preview voor QEMU op Windows.
+34% blijft 34%. De branch voegt een hashvaliderende Windows-QEMU-bundel, launcher, native QMP-previewrunner en CI-artifactjob toe. Negen gerichte hosttests, 29 bestaande/gerichte Materiaal-probetests, strikte preflight en de warning-vrije native-system-materiaal-build slagen. De echte QEMU-preview en Windows-hostlaunch moeten nog worden uitgevoerd; deze distributie-infrastructuur sluit geen productcriterium en levert geen voortgangspunten op.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

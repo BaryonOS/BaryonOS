@@ -85,6 +85,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+WINDOWS-QEMU-TEST-VERSION (30 oktober 2026), implementatiebron `f777f7a`:
+**34% → 34%**. De branch voegt een hashvaliderende Windows-QEMU-bundel,
+launcher, native QMP-previewrunner en CI-artifactjob toe. Hosttests,
+strikte preflight en de warning-vrije native Materiaal-build zijn geslaagd.
+De QEMU-preview en Windows-hostlaunch zijn nog niet uitgevoerd; distributie-
+infrastructuur sluit geen productcriterium.
+
 RTC-NATIVE-1 (30 oktober 2026), basis `5c334f9`: **34% -> 34%**.
 De expliciet opt-in CMOS-bootstrap is een technische tijdproviderafhankelijkheid,
 geen productieklok of vertrouwde TLS-tijd. Geen rubricpunt of productcriterium

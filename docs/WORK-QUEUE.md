@@ -1,5 +1,25 @@
 # Werkqueue — volledige native testrelease, 30 oktober 2026
 
+## Actuele branch — Windows-QEMU-testversie
+
+`simon/windows-qemu-test-version`, basis `ad2b981`; codecheckpoint `f777f7a`.
+`TASK-WINDOWS-QEMU-TEST-VERSION` voegt een gecontroleerde ZIP-packager,
+PowerShell-launcher en bron-/hashgebonden QMP-previewrunner toe voor het echte
+zeven-app `native-system-materiaal`-profiel. De opgegeven map
+`C:\Program Files\qemu` is het ingebouwde standaarddetectiepad. De launcher
+vereist QEMU 10.2.1+, SDL en `rng-builtin`; QEMU zelf wordt niet meegeleverd.
+
+Hosttests (packager, transcript/frame-orakel en bestaande Materiaal-probe),
+strikte preflight en normale Materiaal-build slagen; de laatste build is
+waarschuwingvrij. De echte QEMU-preview, bundelgeneratie, GitHub-artifactjob en
+Windows-uitvoering staan nog open. De lokale QEMU-build heeft QMP en
+`rng-builtin`, maar uitsluitend de `none`-displaybackend, zodat dit geen
+Windows-UI- of SDL-bewijs is. Geen volledige-release- of roadmapcriteria
+afgetekend; rubric blijft 34%.
+
+Eerstvolgende gate:
+`. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
+
 Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De opt-in `native-rtc`-bootstrap,
 `kernel/src/m2/rtc.rs`, RTC-buildkeuze, RTC-runner/hosttests/workflow en

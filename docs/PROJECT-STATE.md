@@ -1,6 +1,37 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — NATIVE-CLOCK-1 afgerond; PR blijft draft voor review — 30 oktober 2026
+## NEXT AGENT HANDOFF — Windows-QEMU-testversie — 30 oktober 2026
+
+Basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00` (`origin/main`), branch
+`simon/windows-qemu-test-version`; codecheckpoint `f777f7a`. De opgegeven
+Windows-map `C:\Program Files\qemu` wordt automatisch herkend door
+`tools/windows-qemu/Start-NieuwOS.ps1`; de instructies tonen ook expliciet
+`-QemuPath "C:\Program Files\qemu\qemu-system-x86_64.exe"`.
+
+Geïmplementeerd: beperkte packager valideert het echte normale
+`native-system-materiaal`-buildmanifest, alle zeven embedded app-ELF's,
+firmware/licentiebestanden en maakt een hashgebonden ZIP. De launcher start
+een netwerkloze QEMU-VM met een lege synthetische schrijfbare documentimage,
+read-only ESP, lokale OVMF-state, zonder hostmappen/-schijven. De CI-workflow
+bouwt en voert de eigen kernel uit, controleert native readiness en echte
+framebufferbytes en bewaart de testbundel als tijdelijk artifact. QEMU zelf
+wordt niet meegeleverd.
+
+Geslaagd vóór deze overdracht:
+
+- `python3 -B -m unittest tools.tests.test_materiaal_preview tools.tests.test_package_windows_qemu` — exit 0, 9 tests.
+- `python3 -B -m unittest tools.tests.test_materiaal_preview tools.tests.test_package_windows_qemu tools.tests.test_materiaal_probe` — exit 0, 29 tests.
+- `python3 -B -m py_compile tools/run_materiaal_preview.py tools/package_windows_qemu.py tools/tests/test_materiaal_preview.py tools/tests/test_package_windows_qemu.py && git diff --check` — exit 0.
+- `. .tools/nieuw-os/rtc-env.sh && python3 -B tools/preflight.py --strict` — exit 0.
+- Met geïsoleerde `build/windows-qemu` en `target/windows-qemu`: `python3 -B -u tools/build.py --kernel-feature native-system-materiaal` — exit 0, zeven apps en ELF's geïnspecteerd, geen waarschuwingen; volledig log `/tmp/nieuw-os-windows-qemu-build.log`.
+- Lokale QEMU 10.2.1 bevestigt `rng-builtin`; de host biedt alleen de `none`-displaybackend. De previewrunner gebruikt headless QMP; dit bewijst geen SDL/Windows-launch.
+
+**Nog niet uitgevoerd:** native QEMU-previewrunner, ZIP-generatie, GitHub Actions-run/artifactdownload en Windows-hoststart. Het script vereist QEMU 10.2.1+, SDL en `rng-builtin`. Geen nieuw native productcriterium gesloten; score **34% → 34%**. Deze tak is alleen de VM-test/distributiestap en brengt de gevraagde 50% niet dichterbij op de roadmap. Geen volledige release-, hardware- of Windows-compatibiliteitsclaim.
+
+Eerstvolgende gate:
+`. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
+
+## Historisch checkpoint — NATIVE-CLOCK-1 afgerond; PR blijft draft voor review — 30 oktober 2026
 
 Bronbasis `c057d864e413840644da39b6c8338e883cbe2ff4`, implementatiecheckpoint
 `652cd5d4c9c68afb0b143c0147197aa7fc6f8220`, bewijscheckpoint
