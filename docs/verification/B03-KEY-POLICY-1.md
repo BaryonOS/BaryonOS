@@ -1,5 +1,44 @@
 # B03-KEY-POLICY-1 — native signing-key lifecycle
 
+## Actuele herhaling na main748-integratie
+
+30 oktober 2026: op geteste Gitbron
+`933591d4f9aadca357a3e3a4f1c1fd40c8734712` is main
+`748e29b7455ca4213a6bf3ba3808c3097458263d` inhoudsbehoudend geïntegreerd.
+De main-rootlock, vendor-testdependencies, platformpreflight en centrale
+status-/scorebestanden zijn ongewijzigd behouden; de drie conflicten betroffen
+uitsluitend README, PROJECT-STATE en progressassessment. Geen blind
+runtimebestand gekozen en geen nieuw rubricpunt.
+
+De volledige eerder hieronder beschreven commandoreeks is **opnieuw uitgevoerd**:
+`python3 -B -u tools/test_update.py` exit 0, 18/18 echte QEMU-stages, 15 Rust-
+en 12 Python-harnastests. Nieuwe v3-bronfingerprint:
+`1e38e27ba67c7c6793931cfd59380c1c66210ad25b0a2bd02828bf69252901c1`.
+Zelfde emulator/firmware/profiel; totale guesttijd 77,692 seconden.
+Clippy en beide gerichte fmt-commands hieronder: exit 0.
+`python3 -B -m unittest discover -s tests -p test_preflight.py`: exit 0,
+24 behouden preflighttests. `python3 -B tools/progress.py --check`: exit 0,
+34/100 consistent; geen assessmentwijziging door de securitydeelagent.
+
+Nieuwe capture: `b03-key-policy-main748/`, via
+`python3 -B tools/capture_update.py --destination docs/verification/b03-key-policy-main748`
+(exit 0). Gate-JSON SHA-256
+`105ad0a7ff6aef156fe55610a62314d8956af496ad17ddf00a5fc0d3d8ef3232`;
+SHA256SUMS SHA-256
+`73a0d193a367d2208f83ad680373cffec0ed8baa650fa32f23eca059317b5fa4`.
+Commandolog `/tmp/nieuw-os-security-update-main748.log`, tevens compact
+gearchiveerd als `native-gate.log`; gerichte overige logs
+`/tmp/nieuw-os-security-{preflight,update-clippy}-main748.log`.
+De 55 capturehashes worden opnieuw tegen de Git-blobs gecontroleerd.
+
+De eerdere fecc4b9/cad3b55-resultaten hieronder blijven **historisch eigen
+bronbewijs**, niet naar 933591d omgelabeld. CI en review moeten de actuele
+PR-head beoordelen; native herhaling alleen is geen mergebesluit, externe
+menselijke review of volledige releaseacceptatie. De open grenzen en
+34→34/security4→4 blijven ongewijzigd.
+
+## Historische uitvoering op fecc4b9
+
 30 oktober 2026. **Afgebakende native proef geslaagd; geen nieuwe rubricpunten
 en geen sluiting van #41.** Dit vult het historische 13-stage B03-bewijs aan,
 zonder dat bewijs achteraf te herlabelen. De beleidsdistributie, kalender-
