@@ -111,6 +111,12 @@ fn real_capability_engine_proves_closed_reply_and_narrow_revoke_rebind_without_a
     let _old1 = e.create_endpoint(key).unwrap();
     let root = e.create_endpoint(key).unwrap();
     let receive = e.derive(key, root, RECV).unwrap();
+    // The actual bootstrap must retain TRANSFER only on the Key-owned parent.
+    // A SEND+REVOKE parent cannot delegate; do not weaken the engine check.
+    let nondelegating = e.derive(key, root, SEND | REVOKE).unwrap();
+    assert_eq!(e.bootstrap_delegate(key, nondelegating, probe, SEND), Err(capability_core::Error::Access));
+    e.close(key, nondelegating).unwrap();
+
     let ancestor = e
         .derive(key, root, SEND | DERIVE | TRANSFER | REVOKE)
         .unwrap();

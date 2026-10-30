@@ -1,0 +1,62 @@
+{
+  "review": "RNG ledger/ESP fix independent targeted revalidation",
+  "result": "PASS within requested host-only fix scope; no remaining concrete blocker found",
+  "random": {
+    "head": "3dd95c4f53d8a11ce4f87f77ff8205253ec18848",
+    "status_short": ""
+  },
+  "image": {
+    "head": "a9452f79623e58fb67577d4970d4c191d87cec75",
+    "status_short": ""
+  },
+  "tests": [
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_random.py",
+      "cwd": "/workspace/nieuw-os-worktrees/random-gate",
+      "passed": 21,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_images.py",
+      "cwd": "/workspace/nieuw-os-worktrees/image-gate",
+      "passed": 20,
+      "failed": 0,
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B /tmp/nieuw-os-random-harness-retest/verify_fixed.py",
+      "passed": 10,
+      "failed": 0,
+      "exit_code": 0
+    }
+  ],
+  "fixed_findings": [
+    "RNG-REVIEW-1: current top-level index explicitly false on malformed current preflight; historical per-run evidence retained",
+    "RNG-REVIEW-2: external source ESP marker rejected before delegate and no copied guest media"
+  ],
+  "shared_guard": "Read-only root-foundation run_system.py live hash df0e2de8f8cec3eec1ee9eb1969e46d14d0bad28ce141a40be83294e7a6e273f; no commit-level integrated proof claimed",
+  "additional_scoped_checks": [
+    "shared exact-tree validator rejects extra file, extra empty directory, symlink, hardlink, FIFO and directory symlink before copytree/execute",
+    "shared exact valid ESP passes",
+    "outside-checkout BUILD rejected before source/environment calls or writes"
+  ],
+  "source_files_sha256": {
+    "/workspace/nieuw-os-worktrees/random-gate/tools/run_random.py": "c506203b9fab7d25f267c69d15fcdfd00aa683bd748b6328829731827f55b62f",
+    "/workspace/nieuw-os-worktrees/random-gate/tools/tests/test_random.py": "e8787eb05fbf85b8919b5c879611fad401e03230bfbc957a4ee09a486fa2ab74",
+    "/workspace/nieuw-os-worktrees/root-foundation/tools/run_system.py": "df0e2de8f8cec3eec1ee9eb1969e46d14d0bad28ce141a40be83294e7a6e273f"
+  },
+  "vm_execution": false,
+  "repo_source_writes": false,
+  "limitations": [
+    "No actual RNG or IMAGE guest run by reviewer",
+    "Four RNG cases and final source/image/firmware hashes remain root native acceptance gates",
+    "Review does not establish entropy quality, TLS readiness, persistent protected keys or full release readiness"
+  ],
+  "artifact_sha256": {
+    "independent-cases.json": "c8502e2ed7e4b327df7fd267651b7a24a6a78584d5673f3b4adc4e0cbc45e467",
+    "verify_fixed.py": "6e8949debae78865be6f1d2b543c9fcfcace3391f64b5d3030d54cc474b60967",
+    "random-host-tests.txt": "ddf9bbfe19e87ed39c28341ba8f61142c5677e415ac80a3e1cafca1dd1f4e3b9",
+    "image-host-tests.txt": "287ac4ae0a199ebc9e5d8241f2c253f713943e426a24cb0589819eb58cdb25a2"
+  }
+}

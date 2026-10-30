@@ -124,7 +124,13 @@ pub(super) fn manifest(s: &mut State) {
         e.register(probe).unwrap();
         let root = e.create_endpoint(key).unwrap();
         let receive = e.derive(key, root, RECV).unwrap();
-        let ancestor = e.derive(key, root, SEND | capability_core::REVOKE).unwrap();
+        let ancestor = e
+            .derive(
+                key,
+                root,
+                SEND | capability_core::TRANSFER | capability_core::REVOKE,
+            )
+            .unwrap();
         let leaf = e.bootstrap_delegate(key, ancestor, probe, SEND).unwrap();
         let (reply, reply_send) = channel(e, probe, key);
         let case = if cfg!(feature = "test-system-random-sdk") {
@@ -178,7 +184,7 @@ pub(super) fn manifest(s: &mut State) {
         e.register(probe).unwrap();
         put(s, 4, 176, probe);
         image_fixture::bind(s, probe, IMAGE_PROBE_ELF);
-        print_number(b"SYSTEM:IMAGE_MANIFEST_PID:",probe);
+        print_number(b"SYSTEM:IMAGE_MANIFEST_PID:", probe);
     }
     let launch = e.create_launch(init, 0).unwrap();
     // Init owns the registry so it can delegate only SEND to each worker.
