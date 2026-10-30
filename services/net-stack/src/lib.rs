@@ -17,6 +17,7 @@ use smoltcp::{
 };
 
 pub const MONOTONIC_HZ: u64 = 100;
+pub const MAX_MONOTONIC_TICKS: u64 = (i64::MAX as u64 / 2) / (1_000_000 / MONOTONIC_HZ);
 pub const MAX_CLIENTS: usize = 2;
 pub const MAX_SOCKET_BYTES: usize = 8192;
 const MAX_TIMEOUT_TICKS: u64 = 60 * MONOTONIC_HZ;
@@ -216,6 +217,16 @@ impl<'a> Stack<'a> {
 
     pub fn configuration(&self) -> Option<AddressConfiguration> {
         self.configuration
+    }
+
+    /// Trusted configuration-service egress, including before address apply.
+    /// Not an app API or grant: caller validates DHCP/ARP purpose and identity.
+    /// Shares the TCP slot/id/completion path; Busy never replaces old bytes.
+    pub fn queue_control_frame(&mut self, frame: &[u8], ticks: u64) -> Result<u64, Error> {
+        self.check_ticks(ticks)?;
+        let id = self.device.queue_control(frame)?;
+        self.last_ticks = ticks;
+        Ok(id)
     }
 
     fn check_ticks(&self, ticks: u64) -> Result<Instant, Error> {

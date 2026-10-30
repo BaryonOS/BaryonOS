@@ -60,6 +60,23 @@ impl<'a> PacketDevice<'a> {
         })
     }
 
+    pub(crate) fn queue_control(&mut self, frame: &[u8]) -> Result<u64, Error> {
+        if !(14..=FRAME_BYTES).contains(&frame.len()) {
+            return Err(Error::InvalidFrame);
+        }
+        if self.tx_len != 0 {
+            return Err(Error::Busy);
+        }
+        let generation = self
+            .generation
+            .checked_add(1)
+            .ok_or(Error::IdentifierExhausted)?;
+        self.tx[..frame.len()].copy_from_slice(frame);
+        self.generation = generation;
+        self.tx_len = frame.len();
+        Ok(generation)
+    }
+
     pub fn complete(&mut self, id: u64) -> Result<(), Error> {
         if self.tx_len == 0 || id == 0 || self.generation != id {
             return Err(Error::StaleTransmission);
@@ -152,5 +169,25 @@ impl phy::Device for PacketDevice<'_> {
         capabilities.max_transmission_unit = FRAME_BYTES;
         capabilities.max_burst_size = Some(1);
         capabilities
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn exhausted_identity_cannot_publish_control_or_wrap_to_an_old_id() {
+        let mut rx = [0; FRAME_BYTES];
+        let mut tx = [0xa5; FRAME_BYTES];
+        let mut device = PacketDevice::new(&mut rx, &mut tx);
+        device.generation = u64::MAX;
+        assert_eq!(
+            device.queue_control(&[7; 60]),
+            Err(Error::IdentifierExhausted)
+        );
+        assert!(device.transmission().is_none());
+        assert_eq!(device.tx, &[0xa5; FRAME_BYTES]);
+        assert_eq!(device.complete(u64::MAX), Err(Error::StaleTransmission));
     }
 }

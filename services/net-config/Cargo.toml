@@ -1,0 +1,20 @@
+[package]
+name = "nieuw-os-net-config"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.91"
+publish = false
+
+[dependencies]
+nieuw-os-net-stack = { path = "../net-stack" }
+nieuw-os-net-protocol = { path = "../net-protocol" }
+
+[workspace]
+members = ["."]
+resolver = "3"
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+codegen-units = 1
+lto = false

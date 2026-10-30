@@ -106,5 +106,37 @@ daarom niet op dezelfde tick een nieuw pakket te produceren.
 Gerichte hostuitvoering: zeven nieuwe configuratiecases en alle vijftien
 bestaande transporttests groen. De default-routecase observeert een echte
 ARP voor de gateway bij een offlink TCP-bestemming, geen hostsocket.
-Volledige brongebonden Clippy/fmt/none/codec-gates volgen na dit checkpoint.
+Volledige brongebonden Clippy/fmt/none/codec-gates op bron2c0e37a zijn
+exit0 opgeslagen onder `verification/address-lifecycle/`.
 Geen native DHCP/IP-config-/appacceptatie of punten.
+
+## Vervolg: bestaande client hergebruiken, geen tweede NIC-producer
+
+Dit gebied bevat nu een eigen no_std-crate met alleen bestaande lokale
+Stack-/codecdependencies en exact dezelfde registrylocks/features als Stack.
+De DHCP-client en elf bestaande pakkettests zijn overgenomen uit bron16adfe5;
+oorspronkelijke client-SHA256:
+`1f9e64b272665d1ac43d63ae54fdc539f21d236ef91b636b3c2da39f695fd04c`.
+Geen algoritmewijziging: alleen fmt/imports aangepast voor deze crate.
+De vroegere private `arp::unicast_ipv4`-predicate is exact als private
+compatibiliteitshelper opgenomen, zonder protocol-API/write te verruimen.
+De oorspronkelijke branch blijft behouden; geen oude rootwijzigingen gemerged.
+`dhcp_client` is nog dezelfde pure client, niet de native dienstadapter.
+Zijn `confirm_address_available` mag een uiteindelijke adapter uitsluitend
+zelf aanroepen na echte eigen probe-/completionwaarneming, niet via IPC.
+
+Nieuwe `time`-helpers converteren gecontroleerd tussen 100Hz en DHCP-seconden,
+met dezelfde bovengrens als Stack en rollbackdetectie ook binnen een seconde.
+Floor bij requestseconden kan expiry vroeger maken, nooit later. Geen UTC/RTC.
+
+`Stack::queue_control_frame` is uitsluitend een trusted-service-broninterface,
+geen appgrant of rawsocket-IPC. De toekomstige configuratiedienst valideert
+doel/type/identiteit van DHCP/ARP voordat zij dit aanroept. Frames gebruiken
+hetzelfde PacketDevice-TX-slot, oplopende id en matching completion als TCP.
+Busy/ongeldige lengte/uitgeputte id/klokfout vervangt geen bestaande bytes.
+Withdrawal verbergt ook controleframes maar behoudt storage tot echte completion.
+Unknown/unpublished recovery is nog niet toegevoegd.
+
+De daadwerkelijke DHCP/RFC5227-coordinator, coherente DNS-toepassing en native
+driver/callerkoppeling ontbreken nog. Een geslaagde pure-clientproef is daarvoor
+geen vervanging. N01 en netwerk0/10 blijven open.
