@@ -3,7 +3,7 @@
 ## Volledige native testrelease — in uitvoering, 32% — 2026-10-30
 
 Integratiebranch `codex/full-test-release`, main-basis `73ebc1e`, laatste
-gecommitteerde implementatie `309ff53`. [Concept-PR #56](https://github.com/simonvanieperen/nieuw-os/pull/56).
+gecommitteerde implementatie `c218d04`. [Concept-PR #56](https://github.com/simonvanieperen/nieuw-os/pull/56).
 [Volledige opdracht/matrix](FULL-TEST-RELEASE.md) en [werkqueue](WORK-QUEUE.md)
 blijven leidend: veertien originele secties intact, 62 open productcriteria,
 expliciet gekozen externe ciphertextopslag zonder inhoudssleutels toegestaan.
@@ -17,14 +17,21 @@ met echte v7DocumentSession,4096byte duurzame fixture, recordcrypto en koude
 readonly-herstart. Eindkernelsha31de56bb0e884b20c07ad9c25fba18ebd547cd4595a8f36b4bdc64827b29c0ed.
 Dit zijn begrensde integratieprofielen met plaintextdisk/RAMsleutels, geen releaseimages.
 
-**Actuele integratieblokker:** [netwerk-normal op309ff53 faalt](verification/full-release-net-failure-309ff53/README.md):
-peer weigert eerste EtherType,0 frames geaccepteerd, netprobe stap13/raw35.
-De [causale repro](verification/full-release-net-firmware-diagnosis/README.md)
-toont86byte IPv6/MLDv1 van OVMF. Gedocumenteerde EDK2-fw_cfg schakelt de
-firmwaredriver uit; eigen native NIC en strikte peer blijven intact. Nameting volgt. Builderbranch heeft
-ander brongebonden2VM-netbewijs; dat geldt niet als bewijs voor root309.
-CI op309: zes workflows groen, algemene CI faalt in oudere DocumentSession-gate;
-concrete oorzaak wordt uit het joblog onderzocht.
+**Netintegratiefout causaal hersteld:** de [mislukte309repro](verification/full-release-net-firmware-diagnosis/README.md)
+toont86byte OVMF-IPv6/MLDv1. Gedocumenteerde firmware-isolatie3879c32 behoudt
+NIC/eigen driver/striktepeer. [Beide nieuwe rootnetVM's slagen](verification/full-release-net-3879c32/README.md):
+raw33,8echteTX/7RX perrun,7ABIweigeringen,19netvelden en peertranscript gecontroleerd,
+zelfde4096byte disk bij koude readonlyrecovery. Een onafhankelijke
+[oude-kernelA/Bproef](verification/full-release-fwcfg-causal/README.md) bevestigt
+de oorzaak zonder herbouw. De basepair op3879c32 slaagt ook en is
+[strikt opnieuw gearchiveerd](verification/full-release-base-3879c32/capture-validation.json).
+
+**CI-reparatie geïntegreerd:** fdb58ec bouwt/linkt de ontbrekende volume_core
+in de oudereM6cDocumentSession-builder;32gerichtehosttests en2echteVM's slagen
+op builderbron0d70af0 ([bewijs](verification/document-session-ci-deps/README.md)).
+Nieuwe CI na rootintegratie blijft vereist. Optionele monotone100Hzklok en
+SDKABI1.6 zijn geïntegreerd inc218d04; FPU-context is geïntegreerd alsdbfcc1f na onafhankelijke
+native review; rootherhaling volgt. Nieuwe netcapture en CI-netpair worden brongebonden herhaald.
 
 **Geïntegreerd:** capabilitygebonden virtio-net/RX/TX in kernel, echte ring3
 ARP/UDP/DNS-probe tegen uitsluitend loopback-testpeer; echte SDKdocumentsessie
@@ -40,17 +47,15 @@ geen fysieke disks, echte NAS/accounts of firmware gewijzigd.
 ### NEXT AGENT HANDOFF
 
 - Controleer HEAD/status/worktrees; lees FULL/matrix en deze queue. Behoud alle
-  onafgemaakte worktrees. Root-peerdiagnostiek is nog niet gecommit/afgetekend.
-- Eerstvolgende uitvoer: resultaat van `build/full-release-net-debug/run/`
-  onderzoeken, in het bijzonder `network-peer.json` rejected_frame; logs
-  `/tmp/nieuw-os-fr-net-debug.log`. Repareer de causale fout, verzwak geen gate.
-- Na bronfreeze herhaal `tools/test_system.py` en `tools/test_net_system.py`
-  met afzonderlijke NOS_BUILD_DIR/NOS_TARGET_DIR/CARGO_TARGET_DIR; archiveer
-  definitieve ruwe resultaten/hashbinding. Huidige rootnetfailure blijft bewaard.
-- Laatste bruikbare actuele gezamenlijke artifact: `build/full-release-final-base/esp/`
-  op309ff53, kernelsha hierboven; normal/coldraw33, disksha
+  onafgemaakte worktrees. Rootnetfix3879 is gecommit en native groen; actuelecapture/buildverbeteringen zijn nog in integratie.
+- Eerstvolgende uitvoer: FPU-finalcommit integreren, gezamenlijke buildhelper
+  aansluiten; na bronfreeze tools/test_system.py +tools/test_net_system.py +
+  tools/run_fpu.py op eigenbuild/targets draaien en base/netcapture uitvoeren.
+  Nieuwe TCPobserver/rootprofiel volgt met echte monotoneklok en protocolpeer.
+- Laatste bruikbare actuele gezamenlijke artifact: `build/full-release-base-fixed/esp/`
+  op3879c32, kernelsha hierboven; normal/coldraw33, disksha
   ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea.
-- Nog niet geïntegreerd: clockcommitc4667c9 en FPU in worktreefpu, smoltcp0.14
+- Klok c4667c9 is geïntegreerd als c218d04. Nog niet geïntegreerd: FPU in worktreefpu, smoltcp0.14
   met app-onlyRust1.91.1 in tcp. Gedeelde memberships/build/locks uitsluitend root.
 - Alle62 volledige criteria blijven open: desktop/sessie/apps/media, geheugen,
   veilige opslag/sleutels, netwerk/NAS/AI, boot/PQC/updates/herstel, prestaties,

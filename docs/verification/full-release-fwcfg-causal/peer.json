@@ -1,0 +1,97 @@
+{
+  "kind": "synthetic protocol counterparty; not OS client",
+  "connected": true,
+  "error": null,
+  "rejected_frame": null,
+  "counts": {
+    "accepted_frames": 8,
+    "arp_requests": 3,
+    "arp_bad_sender_sent": 1,
+    "arp_wrong_target_sent": 1,
+    "arp_valid_sent": 1,
+    "udp_echo_requests": 1,
+    "udp_echo_replies": 1,
+    "dns_requests": 4,
+    "dns_wrong_id_sent": 1,
+    "dns_bad_name_sent": 1,
+    "dns_answers_sent": 1,
+    "dns_timeouts": 1,
+    "response_frames": 7
+  },
+  "events": [
+    {
+      "sequence": 1,
+      "event": "arp_bad_sender_sent",
+      "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+      "response_sha256": [
+        "ab2fdb3d8fec2bbd3e5861769115b99a8d47c03350a96362e0ba230dd74d1760"
+      ],
+      "requested_ipv4": "192.0.2.1"
+    },
+    {
+      "sequence": 2,
+      "event": "arp_wrong_target_sent",
+      "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+      "response_sha256": [
+        "2d1e92d9a6b28aa97f0489e113e88c9c0e1d95bf43bdd51ed9a22117747b9fd9"
+      ],
+      "requested_ipv4": "192.0.2.1"
+    },
+    {
+      "sequence": 3,
+      "event": "arp_valid_sent",
+      "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+      "response_sha256": [
+        "de816388cafa8e9b91fde11dc099c4043551a19983c6b41ef2fb852ee2434313"
+      ],
+      "requested_ipv4": "192.0.2.1"
+    },
+    {
+      "sequence": 4,
+      "event": "udp_echo_replies",
+      "request_sha256": "b0c0148a928582e5c180016ab3693f5f04491730cef7d46320a8baaf47e8cbf4",
+      "response_sha256": [
+        "dc23edac67c59756e8530cb368c20959b6e3ae70347f612dd2ac0fb57333fc7d"
+      ],
+      "payload_sha256": "9ede2fa4b7b8bc0b3590c4f8f6cf973e1462e9b79ecc2417f6fc3557ca5ff87e"
+    },
+    {
+      "sequence": 5,
+      "event": "dns_wrong_id_sent",
+      "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+      "response_sha256": [
+        "4c41eddd6014f0e7f39840fe780ac97ffd4c3c0ff87fd7f3b9b2b790b64acdd4"
+      ],
+      "question_name": "native.nieuw.test",
+      "transaction_id": 4660
+    },
+    {
+      "sequence": 6,
+      "event": "dns_bad_name_sent",
+      "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+      "response_sha256": [
+        "520539a2c2da37d995bb00c3a75becddf456b41290789586e4e4d2cf5a860e97"
+      ],
+      "question_name": "native.nieuw.test",
+      "transaction_id": 4660
+    },
+    {
+      "sequence": 7,
+      "event": "dns_answers_sent",
+      "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+      "response_sha256": [
+        "1113620ce9e0b84521f4009dd02f8d24a14f3b90a76c6a4764b22e924e4f8a07"
+      ],
+      "question_name": "native.nieuw.test",
+      "transaction_id": 4660
+    },
+    {
+      "sequence": 8,
+      "event": "dns_timeouts",
+      "request_sha256": "f850819241a0ee10d2f1e9e1ece0c43c2c5536cea71df7328fce1bf84365dc05",
+      "response_sha256": [],
+      "question_name": "timeout.nieuw.test",
+      "transaction_id": 22136
+    }
+  ]
+}

@@ -17,7 +17,9 @@ from run_system import FEATURE, run_system
 
 
 def inputs() -> dict[str, str]:
-    files = sorted((ROOT / "tests").glob("test_system_*.py"))
+    # Capture tests reuse the independent network wire fixtures as well.
+    files = sorted({*(ROOT / "tests").glob("test_system_*.py"),
+                    *(ROOT / "tests").glob("test_net_*.py")})
     return {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
 
 

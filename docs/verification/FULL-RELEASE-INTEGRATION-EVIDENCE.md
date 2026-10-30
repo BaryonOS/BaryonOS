@@ -79,3 +79,17 @@ Volledige lokale harnasuitvoer: `build/capture-unit/{stdout,stderr}.txt` en
 De echte FR-I01-gate en capture op de uiteindelijke geïntegreerde bron zijn
 in deze agenttaak **niet uitgevoerd**. De hoofdagent moet die na integratie
 opnieuw uitvoeren; oudere gates missen deze bron- en testinputhashes.
+
+## Netwerkvariant van de capture
+
+Na `tools/test_net_system.py` geldt dezelfde bewaakte archivering met
+`tools/capture_system.py --network --destination docs/verification/full-release-<uniek>`.
+De drie exacte netwerkhostcommando's, netprofielen en actuele nettesthashes
+zijn verplicht; ook afzonderlijke finalpeerbestanden moeten gelijk zijn aan
+het runrapport. De rawguestcounters,8/7verkeerstranscript/DNSvragen,
+geenrejectedframe, afgeslotenpeer, strikte localhost/fw_cfg/romfile-opdracht,
+werkelijke ESP/diskbytes en normale finale artifacten worden opnieuw getoetst.
+Een basegate kan geen netgate vervangen. De standaardbasecapture behoudt zijn
+bestaande tweehostchecks; diens testinputs omvatten ook de gedeelde netwirefixtures.
+Vijfextra gerichte captureproeven verwerpen onder meer gedeeltelijkwrapperresultaat,
+gewijzigde rawNETcounters, peeraantallen, publiek adres en ingeschakeldefirmware.

@@ -39,7 +39,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "tes
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
                    "native-sdk-app", "test-sdk-app-denied", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
-                   *KEYRING_FEATURES, *SYSTEM_FEATURES]
+                   *KEYRING_FEATURES, *SYSTEM_FEATURES, "native-fpu"]
 
 
 def inspect_elf(path):
@@ -122,7 +122,10 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
                                 ("milestone-m6c", "test-m6c-recover")):
         raise ValueError("Document session requires NOS_SDK_RUNTIME=1 and the M6c normal/recover fixture")
     qsim_report = None
-    if kernel_feature == "native-qsim":
+    if kernel_feature == "native-fpu":
+        from run_fpu import build_users as build_fpu_users
+        extra_env, qsim_report = build_fpu_users()
+    elif kernel_feature == "native-qsim":
         output = BUILD / "users/qsim"
         run_logged([sys.executable, "-B", str(ROOT / "experiments/quantum/native/build.py"),
                     "--output-dir", str(output), "--target-dir", str(TARGET / "qsim-user")],
@@ -248,7 +251,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
     manifest["sdk_runtime"] = use_sdk
     manifest["document_session"] = use_document_session
     if qsim_report is not None:
-        if kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
+        if kernel_feature == "native-fpu":
+            manifest["fpu"] = qsim_report
+        elif kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
             manifest["sdk_app"] = qsim_report
         elif kernel_feature in VOLUME_FEATURES:
             manifest["volume_docs"] = qsim_report

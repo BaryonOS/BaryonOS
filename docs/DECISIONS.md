@@ -805,3 +805,65 @@ Eigenaar: hoofdagent; wijzigingen en bewijs in native-recovery-hardening.
 Herziening: persistent antirollback-/recoverycontract in B02, of een concreet
 tegenvoorbeeld tegen de levende-instantie-invariant. Terugdraaien: revert
 herstelcommits en B01 open houden, geen onzeker bewijs accepteren.
+
+## ADR-044 — Native netwerk via één begrensde capabilitybroker
+
+**Datum:**30oktober2026. In uitvoering als deel van de volledige release;
+geen N01/NAS/TLSacceptatie. NetworkSource is uitsluitend aan het geconfigureerde
+ring3netwerkproces toegekend; apps krijgen geen MMIO/DMA of algemeen netwerkrecht.
+Eigen kernel valideert handles, volledige usercopy en lengtes, beheert gepinde
+RX/TX-buffers, completion/timeout en reset-ACK/quarantaine. ARP/DNS/TCP en later
+TLS/configuratie blijven in userspace. ABI1.5:0x70send/0x71completion/0x72receive;
+sluiten/dood beëindigt de bron. Geen automatische pakket-replay. Ondersteund
+proefapparaat: modern virtio-net00:07.0, één CPU/QEMU256MiB. Werkelijke native
+ARP/UDP/DNS-counters en onafhankelijke8/7testpeer slagen op3879c32, met dezelfde
+koude volumerecovery. Volledige app-/bestemmingsbroker blijft verplicht open.
+
+Testfirmware is geen OS-netwerkclient. Een echte OVMF-MLDrepro leidde tot de
+EDK2-runtimeopties VirtioNetSupport/IPv4Support/IPv6Support=no en romfile=,
+met intacte PCI-NIC en strikte peer. Causale oude-kernelA/Bproef bevestigt dit.
+Terugdraaien: netwerkfeature uit de integratiebranch revert, N01 open houden;
+geen prebootframe negeren of driver-/rechtencontrole uitschakelen.
+
+## ADR-045 — Eager x87/SSE-context en echte boot-monotone tijd
+
+**Datum:**30oktober2026. Opt-inmechanismen fpu-context en monotonic-clock;
+behoud van microkernel/procesisolatie vereist afzonderlijke CPU-status per
+proces. Kernel beheert16uitgelijnde512byte FXSAVE-beelden; save bij CPL3-entry
+vóórRust, restore pas na alleRust/CR3selectie direct vóórGPRpops/iret. Verse
+PID/slot start met gewiste registerpayloads, vaste FCW/MXCSR en lege x87tags;
+cleanup wist alles. CPUIDcontrole, EM/TSuit, MP/NEaan, OSFXSR/OSXMMEXCPTaan,
+AMDFFXSRuit/teruggelezen; XSAVE/AVXblijven uit. Geen GUI/crypto/netpolicy verhuist
+naar de vertrouwde kern. Kernel gebruikt zelf geen FP/SIMD en de disassembly
+wordt gecontroleerd. Eén CPU; fysiekeAMDerrata/uitgebreideFPexcepties open.
+
+Sys3 levert actuele100HzPITticks sinds boot, uitsluitend bij zes nulargumenten,
+met saturatie. SDK kent ABI1.6; oudere profielen behouden hun eerdere ABI.
+Geen wandklok/RTC/hervatcontract of realtimegarantie. De native-fpu-fixture heeft
+echte syscall/timerwissels, drie schone levens, een echte unsupported-AVX#UD,
+overlevend proces en slotreuse. Een afzonderlijke illegale-MXCSRproef onthult
+TCG's ontbrekende#GP; dat falende bewijs blijft bewaard en is niet groen verklaard.
+Hostartifacthelpers mogen geen symlink/hardlink buiten de checkout overschrijven.
+Rootintegratie wordt apart native herhaald. Terugdraaien: opt-inmechanismen
+revert en FP-afhankelijkeproductfuncties zichtbaar open houden.
+
+## ADR-046 — Onderhouden TCP-library in een ring3app
+
+**Datum:**30oktober2026. Ontwerpbesluit, implementatie/nativeacceptatie loopt.
+Gebruik smoltcp=0.14.0(0BSD), minimale no_stdEthernet/IPv4/TCPfeatures,
+integerReno, vaste1RX/1TX1514byte slots en maximaal twee TCP-sockets met8KiB
+perbuffer. Geen std/alloc/libc/TUN, geen pakketparser in de kernel en geen
+kunstmatig voortgezette tijd. TXslot blijft bezet tot echte brokercompletion.
+Timeout/retransmissie gebruikt Sys3, naast hostlifetimebounds.
+
+De actuele library vereist Rust1.91.1: alleen dit apppackage/alle lokale
+Rust-afhankelijkheden worden daarmee gebouwd en als eigen ELF geladen.
+Kernel/loader/oudere apps blijven gepind op1.90; geen gemengde rlibs of globale
+defaultwissel. Matchende rust-lld en gelockte dependencyketen; buildscripts en
+acht registrycrates zijn op herkomst/licentie/buildgedrag gecontroleerd.
+0.12 is afgewezen wegens latere TCP-/IPv4-validatiefixes. Bekende upstreamissues
+voor groteRXwindows en luisteraars blijven zichtbaar; de begrensdeclientproef
+bewijst die algemene server/NASgevallen niet. De vaste proef-ISNseed is alleen
+voor testdata; productie-entropy en TLS blijven releaseblokkerend open.
+EOF, refused/reset, echt verloren eersteSYN/retransmissie en blackholetimeout
+worden tegen een protocolconforme loopbacktegenpartij native getoetst.

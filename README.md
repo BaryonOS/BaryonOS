@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`309ff53c`](https://github.com/simonvanieperen/nieuw-os/commit/309ff53cd861f26aa37b2615c0276695d9b62f8f) ·
+**Bron:** [`3879c328`](https://github.com/simonvanieperen/nieuw-os/commit/3879c3288f3b005d9df3ed5e1e40aa99c3791521) ·
 **Ontwikkelbranch:** `codex/full-test-release`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Volledige release: native documentsessie en NIC geïntegreerd, causale net- en CI-integratiereparatie.
-Score32% blijft32%. Alle62 productcriteria blijven open. Op4a4d658 slagen34 brongebonden native regressieruns; op309ff53 slagen twee echte gezamenlijke diensten- en documentsessieruns met onafhankelijke4096byte diskcontrole en koude readonly-herstart. Rootnetnormal309 faalt eersteEtherType/stap13: open blocker, niet groen verklaard. ZesCIworkflows slagen; oudereDocumentSessiongate faalt in algemeneCI. FPU/klok,TCP,invoerdienst en reviews werken parallel. Volledige desktop,apps,NAS,AI,persistente encryptie/ankering,boot/updates/herstel en hardware/humane acceptatie blijven vereist; geen gewichten of scope gewijzigd.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Gecombineerde native net- en documentsessieacceptatie, causale firmware-isolatie, CI- en bewijsherstel.
+Score32% blijft32%; alle62 volledige productcriteria blijven open. Root3879c32 heeft2baseVMs plus2native netVMs met8TX/7RX, echteARP/UDP/DNS/7weigeringen en koude readonlydiskcontrole. FirmwareMLD-fout is metrawframe en onafhankelijkeoude-kernelA/Bproef causaalherleid en hersteld zonderOSframes te negeren. CI-documentbuilder mistvolume_core; fdb58ec repareert expliciet en builderbewijst32hosttests/2nativeVMs, rootCI volgt. Optionele100HzklokABI1.6 geïntegreerd, FPU/TCP/invoerdienst/keyringSDK parallel inwerk. Volledige desktop/apps/NAS/AI/veiligeopslag/boot/updates/herstel/hardware/audit blijven vereist. Geencriteria/gewichten/scopegewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -1,0 +1,881 @@
+{
+  "schema_version": 1,
+  "case": "recover",
+  "source_commit": "3879c3288f3b005d9df3ed5e1e40aa99c3791521",
+  "source_fingerprint_version": 3,
+  "source_sha256": "d1d1328523a150e5e5b80edee472ff2f3b768039b2757d60cb912ffbf6fb2214",
+  "kernel_feature": "test-system-net-recover",
+  "started_utc": "2026-10-30T00:05:12.958573+00:00",
+  "duration_s": 55.93680529100038,
+  "timeout_s": 180,
+  "raw_qemu_exit": 33,
+  "timed_out": false,
+  "command": [
+    "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/full-release-net-fixed/run/system-recover-f6f216e9e8994963a4f98851dd5354af/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/full-release-net-fixed/run/system-recover-f6f216e9e8994963a4f98851dd5354af/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/full-release-net-fixed/run/system-recover-f6f216e9e8994963a4f98851dd5354af/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=on,file=build/full-release-net-fixed/run/system-image-5c933b572f3f4139bfd48e4689878079/volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-fw_cfg",
+    "name=opt/org.tianocore/VirtioNetSupport,string=no",
+    "-fw_cfg",
+    "name=opt/org.tianocore/IPv4Support,string=no",
+    "-fw_cfg",
+    "name=opt/org.tianocore/IPv6Support,string=no",
+    "-netdev",
+    "socket,id=net0,connect=127.0.0.1:53861",
+    "-device",
+    "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile="
+  ],
+  "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "test-system-net-recover",
+    "kernel_feature": "test-system-net-recover",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "d1d1328523a150e5e5b80edee472ff2f3b768039b2757d60cb912ffbf6fb2214",
+    "loader": {
+      "sha256": "e345c16a0fca25ce59c73b9604b5d3ea8cedf37e313ab27351db34916f875d37",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "b98c749d90ea198b1626046151fdddd39e4d745ace1e54522196f5d2e77cecd3",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 167079,
+          "memsz": 167079,
+          "page_start": 33554432,
+          "page_end": 33722368
+        },
+        {
+          "flags": 4,
+          "offset": 172032,
+          "address": 33722368,
+          "filesz": 344512,
+          "memsz": 344512,
+          "page_start": 33722368,
+          "page_end": 34070528
+        },
+        {
+          "flags": 6,
+          "offset": 520192,
+          "address": 34070528,
+          "filesz": 1262256,
+          "memsz": 4349368,
+          "page_start": 34070528,
+          "page_end": 38420480
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 167079
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 344512
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1262256
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3083704
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 8376
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 18675
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "system": {
+      "system_init": {
+        "sha256": "867fd98d8e3c83887a52686d7145ac9a9cfb0e8f34c20ca2b00396b4337ba98d",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1160,
+              "memsz": 1160,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 453,
+              "memsz": 453,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 6727,
+              "memsz": 6727,
+              "page_start": 1073872896,
+              "page_end": 1073881088
+            }
+          ]
+        }
+      },
+      "system_app": {
+        "sha256": "6c25164db1d0b715d6d57239d1cbb4ee9a5e115d08b9caf9a82db15762edb226",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 3341,
+              "memsz": 3341,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 36210,
+              "memsz": 36210,
+              "page_start": 1073872896,
+              "page_end": 1073909760
+            }
+          ]
+        }
+      },
+      "system_worker": {
+        "sha256": "263b0c6014caf3986f10d7f4807b0fbdeae7484c4bdb0c0c3e6f97944d55a3fb",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 306,
+              "memsz": 306,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1040,
+              "memsz": 1040,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 519,
+              "memsz": 519,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            }
+          ]
+        }
+      },
+      "keyring_service": {
+        "sha256": "ae5929f3372ad85ebc0d40b96aa50a014c0c20c07f85b8af7e002e2b2c7e9e79",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1288,
+              "memsz": 1288,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 2090,
+              "memsz": 2090,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 53767,
+              "memsz": 53767,
+              "page_start": 1073872896,
+              "page_end": 1073930240
+            }
+          ]
+        }
+      },
+      "volume_service": {
+        "sha256": "89dc66b389cec07113a4bd85e8888918ae025a11bec64d99147eaf7139cb5bf6",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 56562,
+              "memsz": 56562,
+              "page_start": 1073741824,
+              "page_end": 1073799168
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 61440,
+              "filesz": 1304,
+              "memsz": 1304,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 65536,
+              "filesz": 18018,
+              "memsz": 18018,
+              "page_start": 1073823744,
+              "page_end": 1073844224
+            }
+          ]
+        }
+      },
+      "net_probe": {
+        "sha256": "75c5df5470e6ae3140828b2f695b8823c366f3172178e8d77f3435d628d8e962",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1240,
+              "memsz": 1240,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 1417,
+              "memsz": 1417,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 21463,
+              "memsz": 21463,
+              "page_start": 1073872896,
+              "page_end": 1073897472
+            }
+          ]
+        }
+      }
+    }
+  },
+  "run_directory": "/workspace/nieuw-os/build/full-release-net-fixed/run/system-recover-f6f216e9e8994963a4f98851dd5354af",
+  "volume_directory": "/workspace/nieuw-os/build/full-release-net-fixed/run/system-image-5c933b572f3f4139bfd48e4689878079",
+  "before_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+  "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+  "firmware_sha256": {
+    "code": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "esp_sha256": {
+    "esp/kernel.elf": "b98c749d90ea198b1626046151fdddd39e4d745ace1e54522196f5d2e77cecd3",
+    "esp/EFI/BOOT/BOOTX64.EFI": "e345c16a0fca25ce59c73b9604b5d3ea8cedf37e313ab27351db34916f875d37"
+  },
+  "passed": true,
+  "network_gate": true,
+  "evidence": {
+    "APP_READY": 2,
+    "APP_DOCS": 1,
+    "APP_DENIED": 3,
+    "APP_REVISION": 1,
+    "APP_BYTES": 4096,
+    "APP_CONTENT_SUM": 287428370566516885,
+    "CRYPTO_SEAL": 2,
+    "CRYPTO_UNSEAL": 2,
+    "CRYPTO_TAMPER_DENIED": 9,
+    "RECORD_SEAL": 1,
+    "RECORD_UNSEAL": 1,
+    "RECORD_CONTEXT_DENIED": 10,
+    "RECORD_REVOKED_DENIED": 2,
+    "WORKER_SPAWNS": 2,
+    "WORKER_FAULTS": 1,
+    "WORKER_RESTARTS": 1,
+    "WORKER_KILLS": 1,
+    "ENTROPY_BYTES": 1024,
+    "DISK_READS": 576,
+    "DISK_WRITES": 0,
+    "DISK_FLUSHES": 0,
+    "NET_ARP_REPLIES": 1,
+    "NET_UDP_ECHOES": 1,
+    "NET_DNS_ANSWERS": 1,
+    "NET_APP_DENIED": 7,
+    "NET_TX_COMPLETIONS": 8,
+    "NET_RX_FRAMES": 7,
+    "NET_ARP_REJECTS": 2,
+    "NET_DNS_REJECTS": 2,
+    "NET_RX_TIMEOUTS": 1,
+    "NET_CACHE_INTACT": 1,
+    "NET_STALE_CAP": 1,
+    "NET_TX_SUBMITTED": 8,
+    "NET_TX_COMPLETED": 8,
+    "NET_RX_COMPLETED": 7,
+    "NET_RX_DELIVERED": 7,
+    "NET_DENIED": 7,
+    "NET_TX_TIMEOUTS": 0,
+    "NET_RESETS": 1,
+    "NET_RESET_ACKS": 1,
+    "LIVE_PROCESSES_AFTER": 0,
+    "FRAMES_RECOVERED": 1
+  },
+  "oracle": {
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "objects": [
+      {
+        "object": 0,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 3,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 4096,
+            "name": "systeemproef",
+            "content_revision": 1,
+            "chunks": [
+              0
+            ]
+          }
+        ]
+      },
+      {
+        "object": 1,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 2,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 3,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 4,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 5,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 6,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 7,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 8,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 9,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 10,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 11,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 12,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 13,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 14,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 15,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      }
+    ],
+    "collections": [
+      {
+        "index": 1,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 1,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      }
+    ],
+    "chunks_used": 1,
+    "slots": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    ],
+    "digests": [
+      313834141126213359,
+      10252960164691450465
+    ]
+  },
+  "network_peer": {
+    "kind": "synthetic protocol counterparty; not OS client",
+    "connected": true,
+    "error": null,
+    "rejected_frame": null,
+    "counts": {
+      "accepted_frames": 8,
+      "arp_requests": 3,
+      "arp_bad_sender_sent": 1,
+      "arp_wrong_target_sent": 1,
+      "arp_valid_sent": 1,
+      "udp_echo_requests": 1,
+      "udp_echo_replies": 1,
+      "dns_requests": 4,
+      "dns_wrong_id_sent": 1,
+      "dns_bad_name_sent": 1,
+      "dns_answers_sent": 1,
+      "dns_timeouts": 1,
+      "response_frames": 7
+    },
+    "events": [
+      {
+        "sequence": 1,
+        "event": "arp_bad_sender_sent",
+        "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+        "response_sha256": [
+          "ab2fdb3d8fec2bbd3e5861769115b99a8d47c03350a96362e0ba230dd74d1760"
+        ],
+        "requested_ipv4": "192.0.2.1"
+      },
+      {
+        "sequence": 2,
+        "event": "arp_wrong_target_sent",
+        "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+        "response_sha256": [
+          "2d1e92d9a6b28aa97f0489e113e88c9c0e1d95bf43bdd51ed9a22117747b9fd9"
+        ],
+        "requested_ipv4": "192.0.2.1"
+      },
+      {
+        "sequence": 3,
+        "event": "arp_valid_sent",
+        "request_sha256": "bf9aa49fb3ec6fbbec50310c3830f1abb08d237d0419c0610d3a300354246cc2",
+        "response_sha256": [
+          "de816388cafa8e9b91fde11dc099c4043551a19983c6b41ef2fb852ee2434313"
+        ],
+        "requested_ipv4": "192.0.2.1"
+      },
+      {
+        "sequence": 4,
+        "event": "udp_echo_replies",
+        "request_sha256": "b0c0148a928582e5c180016ab3693f5f04491730cef7d46320a8baaf47e8cbf4",
+        "response_sha256": [
+          "dc23edac67c59756e8530cb368c20959b6e3ae70347f612dd2ac0fb57333fc7d"
+        ],
+        "payload_sha256": "9ede2fa4b7b8bc0b3590c4f8f6cf973e1462e9b79ecc2417f6fc3557ca5ff87e"
+      },
+      {
+        "sequence": 5,
+        "event": "dns_wrong_id_sent",
+        "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+        "response_sha256": [
+          "4c41eddd6014f0e7f39840fe780ac97ffd4c3c0ff87fd7f3b9b2b790b64acdd4"
+        ],
+        "question_name": "native.nieuw.test",
+        "transaction_id": 4660
+      },
+      {
+        "sequence": 6,
+        "event": "dns_bad_name_sent",
+        "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+        "response_sha256": [
+          "520539a2c2da37d995bb00c3a75becddf456b41290789586e4e4d2cf5a860e97"
+        ],
+        "question_name": "native.nieuw.test",
+        "transaction_id": 4660
+      },
+      {
+        "sequence": 7,
+        "event": "dns_answers_sent",
+        "request_sha256": "338f7e0fb908ef9fcc760edaa61fbb031736890d369c388bd9428d45f08534c4",
+        "response_sha256": [
+          "1113620ce9e0b84521f4009dd02f8d24a14f3b90a76c6a4764b22e924e4f8a07"
+        ],
+        "question_name": "native.nieuw.test",
+        "transaction_id": 4660
+      },
+      {
+        "sequence": 8,
+        "event": "dns_timeouts",
+        "request_sha256": "f850819241a0ee10d2f1e9e1ece0c43c2c5536cea71df7328fce1bf84365dc05",
+        "response_sha256": [],
+        "question_name": "timeout.nieuw.test",
+        "transaction_id": 22136
+      }
+    ]
+  }
+}

@@ -13,6 +13,9 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import capture_system as capture
 from test_system_harness import transcript
+from test_net_peer import completed_fixture
+from run_net_system import NET_EXACT
+from run_system import network_arguments
 import volume_disk as disk
 
 
@@ -345,6 +348,123 @@ class SystemCaptureTests(unittest.TestCase):
         raw = path.read_bytes()
         path.write_bytes(raw.replace(b'"passed": true', b'"passed": false, "passed": true', 1))
         self.rejected()
+
+    def prepare_network(self):
+        p = patch.object(capture, "network_inputs", return_value=self.test_inputs)
+        p.start()
+        self.addCleanup(p.stop)
+        machine = completed_fixture()
+        peer = dict(connected=True, error=None, rejected_frame=None,
+                    counts=machine.counts, events=machine.events)
+        for index, report in enumerate(self.reports):
+            case = report["case"]
+            report["kernel_feature"] = capture.NETWORK_FEATURE[case]
+            report["manifest"]["kernel_feature"] = report["kernel_feature"]
+            report["manifest"]["system"]["net_probe"] = dict(sha256="f" * 64)
+            report["command"] += network_arguments(31337)
+            report["network_gate"] = True
+            report["network_peer"] = copy.deepcopy(peer)
+            serial = (self.runs[index] / "serial.txt").read_text()
+            serial += "".join(f"SYSTEM:{name}:{value:020d}\n" for name, value in NET_EXACT.items())
+            (self.runs[index] / "serial.txt").write_text(serial)
+            report["evidence"] = capture.evaluate(case, serial, 33, False)
+            self.gate["stages"][index]["network_gate"] = True
+            put_json(self.runs[index] / "network-peer.json", peer)
+            self.save_report(index)
+        put_json(self.volume / "last-system-stage.json", self.reports[-1])
+        put_json(self.build / "manifest.json", self.manifests[0])
+        commands = [
+            [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", "test_net_*.py"],
+            ["cargo", "+1.90.0", "test", "--locked", "-p", "capability-core"],
+            ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
+        ]
+        self.gate["host"] = []
+        for index, command in enumerate(commands):
+            host = dict(command=command, exit=0)
+            for stream in ("stdout", "stderr"):
+                path = self.build / "logs" / f"net-host-{index}.{stream}.txt"
+                path.write_text("host-only network fixture\n")
+                host[stream] = str(path)
+            self.gate["host"].append(host)
+        self.save_network_gate()
+
+    def save_network_gate(self):
+        put_json(self.build / "net-system-gate.json", self.gate)
+
+    def network_rejected(self):
+        with self.assertRaises((ValueError, FileNotFoundError)):
+            capture.capture(self.destination, network=True)
+        self.assertFalse(self.destination.exists())
+
+    def test_network_capture_rechecks_raw_guest_peer_and_exact_firmware_policy(self):
+        self.prepare_network()
+        archive = capture.capture(self.destination, network=True)
+        self.assertTrue((archive / "net-system-gate.json").is_file())
+        self.assertFalse((archive / "system-gate.json").exists())
+        self.assertEqual((archive / "0-normal/network-peer.json").read_bytes(),
+                         (self.runs[0] / "network-peer.json").read_bytes())
+        for line in (archive / "SHA256SUMS").read_text().splitlines():
+            value, name = line.split("  ", 1)
+            self.assertEqual(hashlib.sha256((archive / name).read_bytes()).hexdigest(), value)
+
+    def test_network_capture_rejects_partial_wrapper_or_peer_failure(self):
+        self.prepare_network()
+        report = self.reports[0]
+        good = copy.deepcopy(report)
+        for problem in ("stage", "report", "peer-error", "peer-rejected", "peer-differs"):
+            self.reports[0] = report = copy.deepcopy(good)
+            self.gate["stages"][0]["network_gate"] = problem != "stage"
+            if problem == "report":
+                report["network_gate"] = False
+            if problem == "peer-error":
+                report["network_peer"]["error"] = "ProtocolError: unsupported fixture EtherType"
+            if problem == "peer-rejected":
+                report["network_peer"]["rejected_frame"] = dict(ethertype="86dd")
+            peer = copy.deepcopy(report["network_peer"])
+            if problem == "peer-differs":
+                peer["events"] = []
+            put_json(self.runs[0] / "network-peer.json", peer)
+            self.save_report(0)
+            self.save_network_gate()
+            self.network_rejected()
+
+    def test_network_capture_requires_native_counters_and_independent_peer_counts(self):
+        self.prepare_network()
+        path = self.runs[0] / "serial.txt"
+        before = path.read_text()
+        changed = before.replace("SYSTEM:NET_ARP_REPLIES:00000000000000000001", "SYSTEM:NET_ARP_REPLIES:00000000000000000000")
+        path.write_text(changed)
+        self.reports[0]["evidence"] = capture.evaluate("normal", changed, 33, False)
+        self.save_report(0)
+        self.network_rejected()
+        path.write_text(before)
+        self.reports[0]["evidence"] = capture.evaluate("normal", before, 33, False)
+        self.reports[0]["network_peer"]["counts"]["accepted_frames"] = 7
+        put_json(self.runs[0] / "network-peer.json", self.reports[0]["network_peer"])
+        self.save_report(0)
+        self.network_rejected()
+
+    def test_network_capture_rejects_enabled_firmware_or_public_peer(self):
+        self.prepare_network()
+        original = self.reports[0]["command"]
+        for key, replacement in (("VirtioNetSupport,string=no", "VirtioNetSupport,string=yes"),
+                                 ("127.0.0.1:31337", "0.0.0.0:31337"),
+                                 ("IPv6Support,string=no", "IPv6Support,string=yes"),
+                                 (",romfile=", "")):
+            self.reports[0]["command"] = [arg.replace(key, replacement) for arg in original]
+            self.save_report(0)
+            self.network_rejected()
+
+    def test_network_capture_requires_its_own_host_checks_and_test_inputs(self):
+        self.prepare_network()
+        commands = copy.deepcopy(self.gate["host"])
+        self.gate["host"][1]["command"] = ["/bin/true"]
+        self.save_network_gate()
+        self.network_rejected()
+        self.gate["host"] = commands
+        self.gate["test_inputs"] = {}
+        self.save_network_gate()
+        self.network_rejected()
 
 
 if __name__ == "__main__":
