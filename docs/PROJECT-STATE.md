@@ -10,8 +10,10 @@ integratie; de historische queue en bronclaims blijven bewaard.
 management en laatste overgenomen queue: PR #75 op
 `c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6`.
 [Bronindex en volledige historie](history/integration-2026-10-30/README.md)
-scheiden deze basis van oudere branchhandoffs. Nieuwe integratieresultaten
-moeten aan de werkelijk geteste implementatiecommit worden gekoppeld.
+scheiden deze basis van oudere branchhandoffs. De gecombineerde implementatiebron is
+[`77ee763c`](https://github.com/simonvanieperen/nieuw-os/commit/77ee763c1c91139f9153280fea84f8645daa80ad).
+Gerichte SDK- en netwerkregressies zijn groen; volledige kandidaat-CI
+en de native NAS normal/cold-gate blijven vereist vóór merge.
 
 **Eigenaars en claims:** de nieuwste vastgelegde [werkqueue](WORK-QUEUE.md)
 blijft de primaire bron voor taken, fileclaims en acceptatie.

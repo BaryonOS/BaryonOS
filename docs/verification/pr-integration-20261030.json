@@ -330,5 +330,6 @@
     "fmt_exit": 0,
     "guest_execution": false,
     "lock_change": "alleen zeroize 1.9.1 plus runtime-afhankelijkheid; overige pakketrecords gelijk"
-  }
+  },
+  "implementation_commit": "77ee763c1c91139f9153280fea84f8645daa80ad"
 }
