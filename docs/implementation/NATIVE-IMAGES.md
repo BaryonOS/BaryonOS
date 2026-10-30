@@ -173,7 +173,12 @@ hergebruik na fouten; 512 deterministische malformed mutaties veroorzaken
 geen panic. Dit is geen onbeperkte fuzz-/securityaudit. Clippy met `-D warnings`
 is uitgevoerd en slaagt. None-check en een echt statisch native ELF zijn gebouwd.
 Miri is niet uitgevoerd; deze proeven vervangen geen volledige memory-safety-audit.
-**QEMU-uitvoering is bij dit checkpoint nog niet uitgevoerd.**
+**Bij componentcheckpoint `9ae1c73` was QEMU-uitvoering nog niet uitgevoerd.**
+De eerste geïntegreerde imageproef op bron `2b5d69c69eaf4196eb00a8488c88273defe14770`
+stopte met raw exit35 en errorstep1 vóór decode: startupword0 is de bootmodus,
+niet de ABI-versie.
+De probe vraagt de ABI nu via `native::check_abi()` aan de lopende kernel;
+de oude mislukte proef blijft bewaard. Een nieuwe native decodeproef is nog open.
 
 ## Native procescontract voor integratie
 

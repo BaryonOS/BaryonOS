@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`3f20f087`](https://github.com/simonvanieperen/nieuw-os/commit/3f20f087a7f0ddf4757af8d3ea110dd0c044a72c) ·
+**Bron:** [`2b5d69c6`](https://github.com/simonvanieperen/nieuw-os/commit/2b5d69c69eaf4196eb00a8488c88273defe14770) ·
 **Ontwikkelbranch:** `codex/native-foundation-integration`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** NativeRANDOM/PNG-JPEG-integratie bevriezen; echte viercases en decoder-VM volgen.
-32% blijft32%; alle62 volledige releasecriteria blijven open. Gekoppelde nativeRNG- en decoderprofielen bouwen; onafhankelijke componentreviews en63+11core/clienthosttests plus44systeem- en21/20harnastests groen. VroegeESP-hostblootstelling en stalegroenledgers zijn gericht gerepareerd vóór nieuweVMs. VorigeGUI7d bereikt één echtframe maar faalt200s; dat sluitgeenproductcriterium. AchtCI opmain3f20 zijn eigen bronbewijs. Nieuwe nativeuitvoering, veilige persistente opslag, completeapps/NAS/AI/update/herstel/visueletoegankelijkheid en geleverdreleasepakket blijven verplicht open; scope/gewichten onveranderd.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Vier nativeRANDOMgevallen geslaagd; decoder-ABI en ontbrekende standalone lock gericht herstellen.
+32% blijft32%; alle62 volledige releasecriteria blijven open. Vier echteRNGgevallen op2b5raw33 met onafhankelijke serial/STATUS/6ELF/firmware/4096B/canaryhercontrole. Image-op2b5faaltvóórdecodeABIstep1, gerichte echtekernelcheckfixvolgt. CI --lockedlegt ontbrekendestand-alonekeyring-clientclosurebloot; uitsluitend lock wordt bijgewerkt. Nieuwebron/imageuitvoering envolledigeGUI/apps/NAS/AI/opslag/update/herstel/visueleacceptatie blijven vereist. Geenverschovenscope/gewichten ofvolledigtestpakket.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

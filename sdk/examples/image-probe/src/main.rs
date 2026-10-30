@@ -208,10 +208,9 @@ fn negatives() {
 
 #[no_mangle]
 extern "C" fn image_main() -> ! {
-    check(
-        nieuw_os_sdk_runtime::validate_abi(support::word(0)).is_ok(),
-        1,
-    );
+    // Startup word 0 is the boot mode. Query the running kernel's ABI through
+    // the SDK instead of interpreting that unrelated startup value as a version.
+    check(native::check_abi().is_ok(), 1);
     support::put(START, native::monotonic_ticks().unwrap_or_else(|_| fail(2)));
     let pages = native::heap_grow(PAGES).unwrap_or_else(|_| fail(3));
     check(

@@ -2,6 +2,8 @@
 
 ## Volledige native testrelease — in uitvoering, 32% — 2026-10-30
 
+**Vier nativeRNGgevallen op2b5 slagen raw33**, onafhankelijkhercontroleerd: [bewijs](verification/full-release-random-2b5d69c/README.md). Image-opdezelfdebronFAILABIstep1: [rood](verification/full-release-image-abi-failure-2b5/README.md). Fix9d8gebruiktdewerkelijkekernelABIcall; standalonekeyring-clientlockwordtgerichtbijgewerkt voorCI --locked. Huidigeviercasesblijvenexactaan2b5gebonden; volgendeherstelbronvereistnieuweVMs.
+
 **NativeRNG-eersteuitvoering454bf1b is rood:** raw35 vóórSYSTEMMANIFEST, echtekernelweigering bij bootstrapdelegatie uitKey-parent zonderTRANSFER. [Oorspronkelijke rawrapporten](verification/full-release-random-bootstrap-454bf1b/README.md) behouden. Rootcorrectie geeft uitsluitend deinterneKey-parent het bedoeldeTRANSFER, geenprobe-/APP-rechtenverruiming engeencontrolewijziging. Nieuweviercases enimage-uitvoering volgen opbevrorenherstelbron. Harnasreparaties zijn onafhankelijk opnieuwgroen21+20+10tegenvoorbeelden, zie bijgewerktepre-nativearchief.
 
 **Nieuw foundationcheckpoint:** branch `codex/native-foundation-integration`, eigenworktree `root-foundation`, basis `3f20f087a7f0ddf4757af8d3ea110dd0c044a72c` (achtCIgroen inclusief echte display/input). VolledigeRNG- en PNG/JPEG-doelbuilds slagen; [componentreviews/hostchecks/gerichteharnasreparaties](verification/full-release-foundation-pre-native/README.md) zijn vastgelegd. RootsharedABI/bootstrap/locks/buildadmission zijn aangesloten. De vier RNG-gevallen en imageprobe moeten nu op deze bevroren bron werkelijk worden uitgevoerd; tot die tijd geen native acceptatie.

@@ -1,0 +1,379 @@
+{
+  "review": "NATIVE-RNG-VERIFY-1",
+  "result": "PASS: all four actual guest cases independently revalidated",
+  "source_commit": "2b5d69c69eaf4196eb00a8488c88273defe14770",
+  "source_fingerprint_version": 3,
+  "source_sha256": "3fe2f10fee169147d4c4838b7d3fad22fb88d9d9f03e68de0f48e94bcfdc4344",
+  "source_clean_before_and_after": true,
+  "scope": "Read-only review of retained actual native guest artifacts; reviewer launched no VM and performed no build or repository writes",
+  "commands": [
+    "python3 -B /tmp/nieuw-os-native-rng-verify-2b5/verify_case.py raw",
+    "python3 -B /tmp/nieuw-os-native-rng-verify-2b5/verify_case.py sdk",
+    "python3 -B /tmp/nieuw-os-native-rng-verify-2b5/verify_case.py unknown",
+    "python3 -B /tmp/nieuw-os-native-rng-verify-2b5/verify_case.py wrong-caller"
+  ],
+  "cases": [
+    {
+      "case": "raw",
+      "passed": true,
+      "scope": "Actual existing guest evidence independently revalidated; no VM launched by reviewer",
+      "commit": "2b5d69c69eaf4196eb00a8488c88273defe14770",
+      "source_fingerprint_version": 3,
+      "source_sha256": "3fe2f10fee169147d4c4838b7d3fad22fb88d9d9f03e68de0f48e94bcfdc4344",
+      "report": "/workspace/nieuw-os-worktrees/root-foundation/build/foundation-2b5-raw/random-report.json",
+      "report_sha256": "5ddaa979685c9482eaf476b92c1bb443cb6a684219e245386670354dfa82e619",
+      "kernel_sha256": "72395f0d930da89dd26d76bfdf585891c1404d66d44437ae77cc3faa4ea1fc40",
+      "loader_sha256": "91d854e34f7ecb28ec204095072ed3c96d1c41c5f4ac73c03c2e89c00b224801",
+      "image_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "serial_sha256": "fd21db5e30fee4f9249f51cc140d415ebb548028a612744a1129b35d8bd63806",
+      "raw_qemu_exit": 33,
+      "duration_s": 7.037903458000073,
+      "machine": "pc-q35-8.2",
+      "cpu": "qemu64",
+      "ram_mib": 256,
+      "qemu_launcher_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+      "qemu_actual_current_elf_sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067",
+      "firmware_sha256": {
+        "code": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+      },
+      "elfs": {
+        "system_init": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-system/x86_64-unknown-none/release/system-init",
+          "sha256": "294a1cc6d255ac5c10364b904fee15faa34ab875cbc96d6666df4402ffa3c37c",
+          "size": 27640
+        },
+        "system_app": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-system/x86_64-unknown-none/release/system-app",
+          "sha256": "58e3a8703916def18fefc3faf7d20961182ae1389d23705c206221528a072a01",
+          "size": 78088
+        },
+        "system_worker": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-system/x86_64-unknown-none/release/system-worker",
+          "sha256": "b2d483748ab5986d932bb15c6489e7a932f69bcb1ed4551b7d0b06e20ebb72b9",
+          "size": 15088
+        },
+        "keyring_service": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-keyring/x86_64-unknown-none/release/keyring-service",
+          "sha256": "edcd8812bb9c7b34258b7f95c18fe80025c0d59933606876d2fa837e863b741d",
+          "size": 100704
+        },
+        "volume_service": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-volume/x86_64-unknown-none/release/volume-service",
+          "sha256": "ac3d935a2eea8746dfcf81c0f3231e6be7fe273ed07345ab63040c4487b479fd",
+          "size": 93152
+        },
+        "random_probe": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/random-probe-app/x86_64-unknown-none/release/random-probe",
+          "sha256": "1ba47c3334bbcb27c25ba36795981915349eebbf7a90770acdc7fbe0606064a3",
+          "size": 50568
+        }
+      },
+      "clock_order": [
+        1,
+        372,
+        372,
+        373,
+        375
+      ],
+      "legacy_polls_after": 10,
+      "probe_pid": 5,
+      "key_pid": 2,
+      "app_pid": 4,
+      "expected_caller_pid": 5,
+      "service_calls": 90,
+      "service_bytes": 4769,
+      "output_bytes": 4737,
+      "seeds": 3,
+      "entropy_bytes": 1792,
+      "positive_rpc_count": 89,
+      "cancelled": 0,
+      "unknown": 0,
+      "bad_caller": 0,
+      "document_bytes": 4096,
+      "document_content_sha256": "35dc5377150b22d2f4053a706e125ed8f0b36c77f2166f8eaf330db8ca0ab387",
+      "source_unchanged": true
+    },
+    {
+      "case": "sdk",
+      "passed": true,
+      "scope": "Actual existing guest evidence independently revalidated; no VM launched by reviewer",
+      "commit": "2b5d69c69eaf4196eb00a8488c88273defe14770",
+      "source_fingerprint_version": 3,
+      "source_sha256": "3fe2f10fee169147d4c4838b7d3fad22fb88d9d9f03e68de0f48e94bcfdc4344",
+      "report": "/workspace/nieuw-os-worktrees/root-foundation/build/foundation-2b5-sdk/random-report.json",
+      "report_sha256": "c529bb5b2c5f447eced045d98c2745700b98d3293ac6a1e4375d5927e267a5c5",
+      "kernel_sha256": "aabb41ebbd0f242ed988e3bfaa16f6a168cdf37dc75af284c08dcaaa578daffa",
+      "loader_sha256": "91d854e34f7ecb28ec204095072ed3c96d1c41c5f4ac73c03c2e89c00b224801",
+      "image_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "serial_sha256": "b469be140432d779ecfbf9e535f525bab86b16eaae3a5061c454a0199692f39d",
+      "raw_qemu_exit": 33,
+      "duration_s": 4.712744742002542,
+      "machine": "pc-q35-8.2",
+      "cpu": "qemu64",
+      "ram_mib": 256,
+      "qemu_launcher_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+      "qemu_actual_current_elf_sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067",
+      "firmware_sha256": {
+        "code": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+      },
+      "elfs": {
+        "system_init": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-system/x86_64-unknown-none/release/system-init",
+          "sha256": "294a1cc6d255ac5c10364b904fee15faa34ab875cbc96d6666df4402ffa3c37c",
+          "size": 27640
+        },
+        "system_app": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-system/x86_64-unknown-none/release/system-app",
+          "sha256": "58e3a8703916def18fefc3faf7d20961182ae1389d23705c206221528a072a01",
+          "size": 78088
+        },
+        "system_worker": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-system/x86_64-unknown-none/release/system-worker",
+          "sha256": "b2d483748ab5986d932bb15c6489e7a932f69bcb1ed4551b7d0b06e20ebb72b9",
+          "size": 15088
+        },
+        "keyring_service": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-keyring/x86_64-unknown-none/release/keyring-service",
+          "sha256": "edcd8812bb9c7b34258b7f95c18fe80025c0d59933606876d2fa837e863b741d",
+          "size": 100704
+        },
+        "volume_service": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-volume/x86_64-unknown-none/release/volume-service",
+          "sha256": "ac3d935a2eea8746dfcf81c0f3231e6be7fe273ed07345ab63040c4487b479fd",
+          "size": 93152
+        },
+        "random_probe": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/random-probe-app/x86_64-unknown-none/release/random-probe",
+          "sha256": "1ba47c3334bbcb27c25ba36795981915349eebbf7a90770acdc7fbe0606064a3",
+          "size": 50568
+        }
+      },
+      "clock_order": [
+        2,
+        9,
+        121,
+        122,
+        122
+      ],
+      "legacy_polls_after": 683,
+      "probe_pid": 5,
+      "key_pid": 2,
+      "app_pid": 4,
+      "expected_caller_pid": 5,
+      "service_calls": 5,
+      "service_bytes": 257,
+      "output_bytes": 225,
+      "seeds": 1,
+      "entropy_bytes": 1280,
+      "positive_rpc_count": 4,
+      "cancelled": 1,
+      "unknown": 0,
+      "bad_caller": 0,
+      "document_bytes": 4096,
+      "document_content_sha256": "35dc5377150b22d2f4053a706e125ed8f0b36c77f2166f8eaf330db8ca0ab387",
+      "source_unchanged": true
+    },
+    {
+      "case": "unknown",
+      "passed": true,
+      "scope": "Actual existing guest evidence independently revalidated; no VM launched by reviewer",
+      "commit": "2b5d69c69eaf4196eb00a8488c88273defe14770",
+      "source_fingerprint_version": 3,
+      "source_sha256": "3fe2f10fee169147d4c4838b7d3fad22fb88d9d9f03e68de0f48e94bcfdc4344",
+      "report": "/workspace/nieuw-os-worktrees/root-foundation/build/foundation-2b5-unknown/random-report.json",
+      "report_sha256": "214cc337f98934d3213910f6b7ebba46e22c56c43bc265e88f1438ae2017a9ee",
+      "kernel_sha256": "46da5ceafabc99e0a09d6740102dfee56ce41569586028c499886e2256cde203",
+      "loader_sha256": "91d854e34f7ecb28ec204095072ed3c96d1c41c5f4ac73c03c2e89c00b224801",
+      "image_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "serial_sha256": "7dc2c3d44d0ffc23ddd4026c5dc561e345bbf1ad35fbf33cf9fea7ba77adbd9e",
+      "raw_qemu_exit": 33,
+      "duration_s": 4.317071514000418,
+      "machine": "pc-q35-8.2",
+      "cpu": "qemu64",
+      "ram_mib": 256,
+      "qemu_launcher_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+      "qemu_actual_current_elf_sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067",
+      "firmware_sha256": {
+        "code": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+      },
+      "elfs": {
+        "system_init": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-system/x86_64-unknown-none/release/system-init",
+          "sha256": "294a1cc6d255ac5c10364b904fee15faa34ab875cbc96d6666df4402ffa3c37c",
+          "size": 27640
+        },
+        "system_app": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-system/x86_64-unknown-none/release/system-app",
+          "sha256": "58e3a8703916def18fefc3faf7d20961182ae1389d23705c206221528a072a01",
+          "size": 78088
+        },
+        "system_worker": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-system/x86_64-unknown-none/release/system-worker",
+          "sha256": "b2d483748ab5986d932bb15c6489e7a932f69bcb1ed4551b7d0b06e20ebb72b9",
+          "size": 15088
+        },
+        "keyring_service": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-keyring/x86_64-unknown-none/release/keyring-service",
+          "sha256": "edcd8812bb9c7b34258b7f95c18fe80025c0d59933606876d2fa837e863b741d",
+          "size": 100704
+        },
+        "volume_service": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-volume/x86_64-unknown-none/release/volume-service",
+          "sha256": "ac3d935a2eea8746dfcf81c0f3231e6be7fe273ed07345ab63040c4487b479fd",
+          "size": 93152
+        },
+        "random_probe": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/random-probe-app/x86_64-unknown-none/release/random-probe",
+          "sha256": "1ba47c3334bbcb27c25ba36795981915349eebbf7a90770acdc7fbe0606064a3",
+          "size": 50568
+        }
+      },
+      "clock_order": [
+        1,
+        4,
+        106,
+        107,
+        107
+      ],
+      "legacy_polls_after": 690,
+      "probe_pid": 5,
+      "key_pid": 2,
+      "app_pid": 4,
+      "expected_caller_pid": 5,
+      "service_calls": 1,
+      "service_bytes": 64,
+      "output_bytes": 0,
+      "seeds": 1,
+      "entropy_bytes": 1280,
+      "positive_rpc_count": 0,
+      "cancelled": 0,
+      "unknown": 1,
+      "bad_caller": 0,
+      "document_bytes": 4096,
+      "document_content_sha256": "35dc5377150b22d2f4053a706e125ed8f0b36c77f2166f8eaf330db8ca0ab387",
+      "source_unchanged": true
+    },
+    {
+      "case": "wrong-caller",
+      "passed": true,
+      "scope": "Actual existing guest evidence independently revalidated; no VM launched by reviewer",
+      "commit": "2b5d69c69eaf4196eb00a8488c88273defe14770",
+      "source_fingerprint_version": 3,
+      "source_sha256": "3fe2f10fee169147d4c4838b7d3fad22fb88d9d9f03e68de0f48e94bcfdc4344",
+      "report": "/workspace/nieuw-os-worktrees/root-foundation/build/foundation-2b5-wrong-caller/random-report.json",
+      "report_sha256": "3e5f5607421a2748b962208839359ce3bd325e3186df3df8c218582fa5bad4e8",
+      "kernel_sha256": "58669dde6f61a8bf1033acb076bcd96d66d9e42398c373ad79a6650e4c580257",
+      "loader_sha256": "91d854e34f7ecb28ec204095072ed3c96d1c41c5f4ac73c03c2e89c00b224801",
+      "image_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "serial_sha256": "68f3d3b47c9d2b8acaafb9b2d6b47c47531d1e04742e859abbb7d1cd87af59f1",
+      "raw_qemu_exit": 33,
+      "duration_s": 4.926171295999666,
+      "machine": "pc-q35-8.2",
+      "cpu": "qemu64",
+      "ram_mib": 256,
+      "qemu_launcher_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+      "qemu_actual_current_elf_sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067",
+      "firmware_sha256": {
+        "code": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+      },
+      "elfs": {
+        "system_init": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-system/x86_64-unknown-none/release/system-init",
+          "sha256": "294a1cc6d255ac5c10364b904fee15faa34ab875cbc96d6666df4402ffa3c37c",
+          "size": 27640
+        },
+        "system_app": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-system/x86_64-unknown-none/release/system-app",
+          "sha256": "58e3a8703916def18fefc3faf7d20961182ae1389d23705c206221528a072a01",
+          "size": 78088
+        },
+        "system_worker": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-system/x86_64-unknown-none/release/system-worker",
+          "sha256": "b2d483748ab5986d932bb15c6489e7a932f69bcb1ed4551b7d0b06e20ebb72b9",
+          "size": 15088
+        },
+        "keyring_service": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-keyring/x86_64-unknown-none/release/keyring-service",
+          "sha256": "edcd8812bb9c7b34258b7f95c18fe80025c0d59933606876d2fa837e863b741d",
+          "size": 100704
+        },
+        "volume_service": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/system-volume/x86_64-unknown-none/release/volume-service",
+          "sha256": "ac3d935a2eea8746dfcf81c0f3231e6be7fe273ed07345ab63040c4487b479fd",
+          "size": 93152
+        },
+        "random_probe": {
+          "path": "/workspace/nieuw-os-worktrees/root-foundation/target/foundation/random-probe-app/x86_64-unknown-none/release/random-probe",
+          "sha256": "1ba47c3334bbcb27c25ba36795981915349eebbf7a90770acdc7fbe0606064a3",
+          "size": 50568
+        }
+      },
+      "clock_order": [
+        1,
+        3,
+        137,
+        138,
+        149
+      ],
+      "legacy_polls_after": 628,
+      "probe_pid": 5,
+      "key_pid": 2,
+      "app_pid": 4,
+      "expected_caller_pid": 4,
+      "service_calls": 0,
+      "service_bytes": 0,
+      "output_bytes": 0,
+      "seeds": 0,
+      "entropy_bytes": 1024,
+      "positive_rpc_count": 0,
+      "cancelled": 0,
+      "unknown": 0,
+      "bad_caller": 1,
+      "document_bytes": 4096,
+      "document_content_sha256": "35dc5377150b22d2f4053a706e125ed8f0b36c77f2166f8eaf330db8ca0ab387",
+      "source_unchanged": true
+    }
+  ],
+  "checks": [
+    "Existing run_random.validate_artifacts against selected frozen launcher/firmware/current source and actual on-disk inputs",
+    "Exact built and copied ESP file trees, kernel and loader hashes",
+    "Six actual Cargo ELF hashes, fresh ELF segment inspection and full ELF embedding in loaded kernel",
+    "Exact q35-8.2/qemu64/TCG/1CPU/256MiB/no-network/no-snapshot command",
+    "Strict reread of original actual serial, exact counters, raw exit33 and no timeout",
+    "Additional separate serial parser checks STATUS ordering, original crypto2/2/9 and record1/1/10/2, cleanup and true principals",
+    "Independent direct comparison of 4096 actual disk bytes against documented fixture formula, all outside-grant canaries and equality to postrun snapshot",
+    "Stored top-level/per-run/volume reports equal; all hashes and source rechecked at end"
+  ],
+  "rights_change_review": "2b5 adds TRANSFER only to the Key-owned SEND|REVOKE ancestor so bootstrap_delegate can legitimately mint the probe SEND leaf. Probe still receives only RANDOM SEND and its reply RECV; no extra entropy/key/storage/network/lifecycle rights.",
+  "documentation_nit": "NATIVE-RANDOM-PROBE ancestor sentence still mentions DERIVE although actual ancestor is SEND|TRANSFER|REVOKE. Reported to root; no native behavior issue.",
+  "qemu_current_identity": {
+    "selected_launcher": "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "selected_launcher_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+    "current_actual_binary": "/workspace/.nieuw-os-env/sysroot/usr/bin/qemu-system-x86_64",
+    "current_actual_binary_sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067",
+    "current_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "scope": "read-only version query, no VM start"
+  },
+  "interpretation": [
+    "Functional native RANDOM service/SDK cancellation/Unknown/wrong-caller integration evidence, with legacy services and 4096-byte document path retained",
+    "No statistical entropy-quality estimate, physical entropy certification, PQC claim, TLS/certificate-time acceptance, persistent encrypted storage/key restoration or full release readiness"
+  ],
+  "open_acceptance": [
+    "Existing normal\u2192cold recovery regression remains separately mandatory",
+    "EAGAIN/deadline and defective entropy/clock paths remain their own criteria",
+    "Actual product broker permissions/account lifecycle and persistent protected key storage remain open",
+    "Complete product acceptance remains unchanged"
+  ],
+  "local_artifact_sha256": {
+    "qemu-current.json": "6c9c89847c4147d9bb749b969aba564d5f8699bac7ddb8a469b913f623ba2753",
+    "raw.json": "39a68cee0ef627c07a59fb08f9e2fae2a9f9fb0ba0829078c0b03467811d262b",
+    "sdk.json": "e670a20d34d3b25734a6a6c5c541d2361a648bc0303d72ae45fd415327bb3526",
+    "unknown.json": "039d076503f239adef9d9016d2dbaadfbd442ac7e4a6680d9dac1317e279f2eb",
+    "verify_case.py": "30db5bf6608fa047fb4beae812b7c7ef607e60ac3d5736b391a5f36d4a0108e3",
+    "wrong-caller.json": "376d3e04dc24425d6af6ad62761aa09c0a85c95fce7f128c634207bfa5b2a725"
+  }
+}

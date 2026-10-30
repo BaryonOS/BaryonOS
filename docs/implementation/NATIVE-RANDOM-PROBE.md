@@ -22,7 +22,7 @@ sleutelingresses; RANDOM wordt zijn derde van maximaal vier endpoints.
 De probe bezit één reply-endpoint. Geen endpointquota worden verhoogd.
 
 Bootstrap behoudt bij Key een RANDOM-root en een daarvan afgeleide
-SEND|DERIVE|TRANSFER|REVOKE-ancestor. Alleen een SEND-leaf gaat naar de probe.
+SEND|TRANSFER|REVOKE-ancestor. Alleen een SEND-leaf gaat naar de probe.
 De Key-RECV is een afzonderlijke tak. Intrekking van de SEND-ancestor raakt
 die RECV niet; de ancestor zelf wordt wel ingetrokken. De rebindfase gebruikt
 de nog geldige ancestor vóór intrekking. De reply-root wordt na afleiding van
