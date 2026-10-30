@@ -201,8 +201,14 @@ def package_bundle(
     for relative in ("esp/kernel.elf", "esp/EFI/BOOT/BOOTX64.EFI"):
         path = build / relative
         data, record = file_record(path, relative, MAX_FIRMWARE_BYTES)
+        expected = manifest["kernel" if relative == "esp/kernel.elf" else "loader"]["sha256"]
+        if record["sha256"] != expected:
+            raise ValueError(f"Build artifact changed while packaging: {relative}")
         payload[relative] = data
         hashes[relative] = record
+
+    if verify_source and source_hash() != manifest["source_sha256"]:
+        raise ValueError("Source changed while packaging")
 
     package_manifest = {
         "schema_version": 1,

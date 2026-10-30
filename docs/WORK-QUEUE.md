@@ -27,6 +27,12 @@ synthetische bestanden slagen zonder VM of state; `-CheckOnly` valideert
 bundelgrootte/SHA-256. Bewijs: `verification/windows-qemu-preview/windows-launcher.md`.
 Dit is geen Windows-gaststart of handmatige bediening. PR #65 is concept.
 
+Packager verifieert ook de ingelezen kernel-/loaderbytes en bron opnieuw
+vlak vóór archivering. 33 hosttests groen, inclusief artifactwissel na
+initiële validatie: fout zonder ZIP. Geen OS-bundel gemaakt.
+Historische CI41089090576 op f777 is rood (herstelde readinessvolgorde);
+huidige-head-CI blijft open.
+
 Eerstvolgende gate:
 `. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
 

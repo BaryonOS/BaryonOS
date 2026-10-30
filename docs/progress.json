@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "19f2d33fe74f6735c6f727bca0e13472dc615d5e",
+    "source_commit": "8f4fb3a09a023647c18b3afdc49d8206dc0418bb",
     "branch": "simon/windows-qemu-test-version",
     "task": "WINDOWS-QEMU-TEST-VERSION: bundel en native Materiaal-preview voor QEMU op Windows",
     "previous_score": 34,
-    "summary": "34% blijft 34%. Op basis 19f2d33 met CheckOnly-/integriteitswijziging slagen vijf echte Windows PowerShell-launchertests met synthetische bestanden, zonder VM of state. De gekoppelde QEMU 11.1.0 biedt SDL en rng-builtin. Gewijzigde/ontbrekende kernel en automatisch probeprofiel worden geweigerd. Eerder native Linux-QEMU-frame/readinessbewijs blijft aan zijn eigen bron gebonden; 31 hosttests slagen. Geen Windows-gaststart, handmatige UX-acceptatie of ZIP-generatie uitgevoerd; deze distributiestap sluit geen productcriterium."
+    "summary": "34% blijft 34%. Op basis 8f4fb3a met packager-hercontrole slagen 33 hosttests, waaronder stale-source-, ESP-symlink- en artifactwisselweigering. Vijf echte Windows PowerShell-launchertests op de vorige bron slagen zonder VM of state; QEMU 11.1.0 biedt SDL en rng-builtin. Eerder native Linux-QEMU-frame/readinessbewijs blijft aan zijn eigen bron gebonden. Historische CI op f777 faalde op de inmiddels herstelde readinessvolgorde; geen huidige groene CI geclaimd. Geen Windows-gaststart, handmatige UX-acceptatie of OS-ZIP uitgevoerd; deze distributiestap sluit geen productcriterium."
   },
   "tracks": [
     {

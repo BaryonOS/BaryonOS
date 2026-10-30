@@ -101,6 +101,10 @@ SDL en `rng-builtin` zijn aanwezig. Bundelgrootte/hash en profielweigering
 zijn gecontroleerd zonder VM of state. Geen Windows-gastacceptatie of
 extra punten: **34% → 34%**.
 
+Op basis `8f4fb3a` met packager-hercontrole slagen 33 hosttests,
+inclusief weigering van een ELF-wissel na initiële validatie. Geen OS-ZIP,
+Windows-gast of extra acceptatie; **34% → 34%** blijft gehandhaafd.
+
 RTC-NATIVE-1 (30 oktober 2026), basis `5c334f9`: **34% -> 34%**.
 De expliciet opt-in CMOS-bootstrap is een technische tijdproviderafhankelijkheid,
 geen productieklok of vertrouwde TLS-tijd. Geen rubricpunt of productcriterium

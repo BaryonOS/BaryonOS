@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`19f2d33f`](https://github.com/simonvanieperen/nieuw-os/commit/19f2d33fe74f6735c6f727bca0e13472dc615d5e) ·
+**Bron:** [`8f4fb3a0`](https://github.com/simonvanieperen/nieuw-os/commit/8f4fb3a09a023647c18b3afdc49d8206dc0418bb) ·
 **Ontwikkelbranch:** `simon/windows-qemu-test-version`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** WINDOWS-QEMU-TEST-VERSION: bundel en native Materiaal-preview voor QEMU op Windows.
-34% blijft 34%. Op basis 19f2d33 met CheckOnly-/integriteitswijziging slagen vijf echte Windows PowerShell-launchertests met synthetische bestanden, zonder VM of state. De gekoppelde QEMU 11.1.0 biedt SDL en rng-builtin. Gewijzigde/ontbrekende kernel en automatisch probeprofiel worden geweigerd. Eerder native Linux-QEMU-frame/readinessbewijs blijft aan zijn eigen bron gebonden; 31 hosttests slagen. Geen Windows-gaststart, handmatige UX-acceptatie of ZIP-generatie uitgevoerd; deze distributiestap sluit geen productcriterium.
+34% blijft 34%. Op basis 8f4fb3a met packager-hercontrole slagen 33 hosttests, waaronder stale-source-, ESP-symlink- en artifactwisselweigering. Vijf echte Windows PowerShell-launchertests op de vorige bron slagen zonder VM of state; QEMU 11.1.0 biedt SDL en rng-builtin. Eerder native Linux-QEMU-frame/readinessbewijs blijft aan zijn eigen bron gebonden. Historische CI op f777 faalde op de inmiddels herstelde readinessvolgorde; geen huidige groene CI geclaimd. Geen Windows-gaststart, handmatige UX-acceptatie of OS-ZIP uitgevoerd; deze distributiestap sluit geen productcriterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

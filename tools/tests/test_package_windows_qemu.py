@@ -77,6 +77,18 @@ class WindowsQemuPackageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate JSON key"):
             package.validate_build(self.build, verify_source=False)
 
+    def test_rejects_stale_source(self):
+        with patch.object(package, "source_hash", return_value="b" * 64):
+            with self.assertRaisesRegex(ValueError, "source fingerprint"):
+                package.validate_build(self.build)
+
+    def test_rejects_symlink_in_esp(self):
+        target = self.esp / "kernel.elf"
+        target.unlink()
+        target.symlink_to(self.apps_dir / (package.APP_NAMES[0] + ".elf"))
+        with self.assertRaisesRegex(ValueError, "regular"):
+            package.validate_build(self.build, verify_source=False)
+
     def test_creates_hash_bound_bundle_and_refuses_overwrite(self):
         source = self.root / "firmware"
         source.mkdir()
@@ -136,6 +148,30 @@ class WindowsQemuPackageTests(unittest.TestCase):
                     seabios_version="test-seabios",
                     verify_source=False,
                 )
+            raced_output = self.root / "raced.zip"
+            original_record = package.file_record
+
+            def changed_record(path, label, limit):
+                if label == "esp/kernel.elf":
+                    path.write_bytes(b"Changed after initial validation")
+                return original_record(path, label, limit)
+
+            with patch.object(package, "file_record", side_effect=changed_record):
+                with self.assertRaisesRegex(ValueError, "changed while packaging"):
+                    package.package_bundle(
+                        build_directory=self.build,
+                        output=raced_output,
+                        ovmf_code=inputs["ovmf-code.fd"],
+                        ovmf_vars=inputs["ovmf-vars.fd"],
+                        seabios_bios=inputs["seabios.bin"],
+                        vga_rom=inputs["vga.rom"],
+                        ovmf_license=inputs["ovmf-license"],
+                        seabios_license=inputs["seabios-license"],
+                        ovmf_version="test-ovmf",
+                        seabios_version="test-seabios",
+                        verify_source=False,
+                    )
+            self.assertFalse(raced_output.exists())
 
 
 if __name__ == "__main__":

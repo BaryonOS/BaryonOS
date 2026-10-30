@@ -8,6 +8,14 @@ Windows-map `C:\Program Files\qemu` wordt automatisch herkend door
 `tools/windows-qemu/Start-NieuwOS.ps1`; de instructies tonen ook expliciet
 `-QemuPath "C:\Program Files\qemu\qemu-system-x86_64.exe"`.
 
+**Packageraanvulling op basis `8f4fb3a`:** de packager hercontroleert de
+werkelijk ingelezen kernel-/loaderbytes tegen het native buildmanifest en
+de bronvingerafdruk vlak vóór archivering. Een wijziging tussen validatie
+en kopiëren geeft een fout zonder ZIP. 33 gerichte/bestaande hosttests,
+Python-syntax en diffcontrole slagen (exit 0), inclusief stale-source-,
+ESP-symlink- en artifactwisselweigering. Alleen synthetische testarchieven
+zijn aangemaakt en door TemporaryDirectory opgeruimd.
+
 **Windows-launchercontrole op basis `19f2d33` met CheckOnly-wijziging:**
 de gekoppelde QEMU-installatie is werkelijk bereikbaar via Windows PowerShell.
 QEMU 11.1.0 biedt `rng-builtin` en SDL. Vijf echte PowerShell-launchertests
@@ -51,7 +59,9 @@ Geslaagd vóór deze overdracht:
 - Met geïsoleerde `build/windows-qemu` en `target/windows-qemu`: `python3 -B -u tools/build.py --kernel-feature native-system-materiaal` — exit 0, zeven apps en ELF's geïnspecteerd, geen waarschuwingen; volledig log `/tmp/nieuw-os-windows-qemu-build.log`.
 - Lokale QEMU 10.2.1 bevestigt `rng-builtin`; de host biedt alleen de `none`-displaybackend. De previewrunner gebruikt headless QMP; dit bewijst geen SDL/Windows-launch.
 
-**Nog niet uitgevoerd:** ZIP-generatie, GitHub Actions-run/artifactdownload en Windows-gaststart/bediening. Windows-launcherpreflight is wel uitgevoerd; het script vereist QEMU 10.2.1+, SDL en `rng-builtin`. Geen nieuw native productcriterium gesloten; score **34% → 34%**. Deze tak is alleen de VM-test/distributiestap en sluit het gevraagde 50%-doel niet. Geen volledige release-, hardware- of Windows-compatibiliteitsclaim.
+**CI:** historische run [41089090576](https://github.com/simonvanieperen/nieuw-os/actions/runs/41089090576) op `f777f7a` faalde op dezelfde inmiddels herstelde readinessvolgorde (exit 1). Log: `/tmp/nieuw-os-windows-qemu-ci-failure.log`. Dit is geen herhaling op huidige head; geen actuele groene CI-claim.
+
+**Nog niet uitgevoerd:** OS-ZIP-generatie, artifactdownload en Windows-gaststart/bediening. Windows-launcherpreflight is wel uitgevoerd; het script vereist QEMU 10.2.1+, SDL en `rng-builtin`. Geen nieuw native productcriterium gesloten; score **34% → 34%**. Deze tak is alleen de VM-test/distributiestap en sluit het gevraagde 50%-doel niet. Geen volledige release-, hardware- of Windows-compatibiliteitsclaim.
 
 Herhaalcommando (volgende stap: afstemming van de bundelbron):
 `. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
