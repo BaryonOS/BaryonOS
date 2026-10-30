@@ -390,6 +390,48 @@ fn byte_budget_and_pre_io_cancellation_block_reads_and_release_handle() {
 }
 
 #[test]
+fn stale_generation_after_verification_fails_read_and_drops_handle() {
+    let bytes = b"abcd";
+    let descriptor = fixture_descriptor(bytes.len() as u64, SHA256_ABCD);
+    let mut store = Store::fixture(descriptor, bytes);
+    let closed = store.track_close();
+    let mut verifier = open(&mut store, descriptor).unwrap();
+    let mut verification_budget = ReadBudget::new(bytes.len() as u64);
+
+    assert!(verifier
+        .verify_next(&mut store, &mut verification_budget, &NeverCancelled)
+        .unwrap());
+    let mut artifact = verifier.finish().unwrap();
+    assert!(!closed.load(Ordering::SeqCst));
+
+    store.read_error = Some(ReadError::Stale);
+    let mut read_budget = ReadBudget::new(bytes.len() as u64);
+    let mut output = [0; 4];
+    assert_eq!(
+        artifact.read_at(
+            &mut store,
+            0,
+            &mut read_budget,
+            &NeverCancelled,
+            &mut output
+        ),
+        Err(Error::Stale)
+    );
+    assert!(closed.load(Ordering::SeqCst));
+    assert_eq!(
+        artifact.read_at(
+            &mut store,
+            0,
+            &mut read_budget,
+            &NeverCancelled,
+            &mut output
+        ),
+        Err(Error::Aborted)
+    );
+    assert_eq!(store.read_calls, 2);
+}
+
+#[test]
 fn cancellation_during_store_io_drops_handle_without_publishing_partial_data() {
     let mut inner = Store::fixture(
         fixture_descriptor((READ_CHUNK_BYTES * 2) as u64, [0; 32]),
