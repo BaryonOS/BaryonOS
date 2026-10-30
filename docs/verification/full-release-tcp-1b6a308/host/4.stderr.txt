@@ -1,0 +1,5 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running unittests src/lib.rs (target/tcp-native-host/debug/deps/nieuw_os_sdk_runtime-1e86e1a472852df8)
+     Running tests/message.rs (target/tcp-native-host/debug/deps/message-10a22c6c4aa2973c)
+     Running tests/process.rs (target/tcp-native-host/debug/deps/process-d6e13495bd442133)
+   Doc-tests nieuw_os_sdk_runtime

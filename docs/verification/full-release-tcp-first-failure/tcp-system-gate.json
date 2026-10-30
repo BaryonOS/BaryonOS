@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "a4c27f31c95ebbacae9ccab4ba430df9bc5038de3d0e931d129d158c42783348",
+  "test_inputs": {
+    "sdk/examples/tcp-probe/test_peer.py": "ba36ee33acd34c661c51a4c49c57a746239e5c195c60a23afd075ac60b59c12d",
+    "tests/test_tcp_harness.py": "dd353f61391e579ce5ef53b94ea9514fb2657c09a41c0dd96d33991b6e746303",
+    "tests/test_tcp_transcript.py": "c45082f8eef980c88c4f8694a7a263222db5977fdd9afc177068021521c16ea6"
+  },
+  "status": "failed",
+  "passed": false,
+  "host": [
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_tcp_*.py"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native/logs/tcp-host-0.stdout.txt",
+      "stderr": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native/logs/tcp-host-0.stderr.txt"
+    },
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "sdk/examples/tcp-probe",
+        "-p",
+        "test_peer.py"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native/logs/tcp-host-1.stdout.txt",
+      "stderr": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native/logs/tcp-host-1.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.91.1",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native/logs/tcp-host-2.stdout.txt",
+      "stderr": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native/logs/tcp-host-2.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "capability-core"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native/logs/tcp-host-3.stdout.txt",
+      "stderr": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native/logs/tcp-host-3.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native/logs/tcp-host-4.stdout.txt",
+      "stderr": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native/logs/tcp-host-4.stderr.txt"
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "passed": false,
+      "network_gate": false,
+      "tcp_gate": false,
+      "run_directory": "/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native/run/system-normal-0f59050c74e94df981319d1e0d7da07f",
+      "raw_qemu_exit": 35,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "duration_s": 10.085815307000303
+    }
+  ],
+  "error": "RuntimeError: ValueError: native joint-system/TCP profile did not pass"
+}

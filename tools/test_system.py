@@ -17,9 +17,11 @@ from run_system import FEATURE, run_system
 
 
 def inputs() -> dict[str, str]:
-    # Capture tests reuse the independent network wire fixtures as well.
+    # Capture tests reuse both independent network wire fixture families.
     files = sorted({*(ROOT / "tests").glob("test_system_*.py"),
-                    *(ROOT / "tests").glob("test_net_*.py")})
+                    *(ROOT / "tests").glob("test_net_*.py"),
+                    *(ROOT / "tests").glob("test_tcp_*.py"),
+                    ROOT / "sdk/examples/tcp-probe/test_peer.py"})
     return {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
 
 

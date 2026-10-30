@@ -1,0 +1,3 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/tcp-native-host/debug/deps/capability_core-e1b8727debf17276)
+   Doc-tests capability_core

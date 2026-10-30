@@ -2,75 +2,66 @@
 
 ## Volledige native testrelease — in uitvoering, 32% — 2026-10-30
 
-Integratiebranch `codex/full-test-release`, main-basis `73ebc1e`, laatste
-gecommitteerde implementatie `92d52d7`. [Concept-PR #56](https://github.com/simonvanieperen/nieuw-os/pull/56).
-[Volledige opdracht/matrix](FULL-TEST-RELEASE.md) en [werkqueue](WORK-QUEUE.md)
-blijven leidend: veertien originele secties intact, 62 open productcriteria,
-expliciet gekozen externe ciphertextopslag zonder inhoudssleutels toegestaan.
-**Geen complete testrelease; score32% →32%.**
+Branch `codex/full-test-release`, main-basis73ebc1e, laatste checkpointcda42f2,
+[concept-PR56](https://github.com/simonvanieperen/nieuw-os/pull/56).
+[Volledige opdracht/matrix](FULL-TEST-RELEASE.md), [nieuwe productcontext](FULL-TEST-RELEASE-CONTEXT.md)
+en [werkqueue](WORK-QUEUE.md) vormen één voortgangsketen. De twintig aanvullende
+gebruikerssecties zijn verwerkt met behoud van origineleopdracht, `/goal`,62FR-ID's,
+alle bestaande verplichtefuncties en geldige bewijzen. **Geen volledige release;32%→32%.**
 
-**Werkelijk native bewijs:** op4a4d658 slagen34 gecombineerde en regressieruns:
-gezamenlijke diensten2, K055, B015, volume9, S0813; bron/hashgebonden
-[archieven](verification/FULL-RELEASE-CHECKPOINT-4a4d658.md). Daarna op309ff53
-slagen [twee gezamenlijke VM-runs](verification/full-release-base-309ff53/README.md)
-met echte v7DocumentSession,4096byte duurzame fixture, recordcrypto en koude
-readonly-herstart. Eindkernelsha31de56bb0e884b20c07ad9c25fba18ebd547cd4595a8f36b4bdc64827b29c0ed.
-Dit zijn begrensde integratieprofielen met plaintextdisk/RAMsleutels, geen releaseimages.
+**Laatste gezamenlijke rootacceptatie92d52d7:** vijf echteVMs (basepair,ARP/UDP/DNSpair,
+FPU/klok) en allezevenCIworkflowsgroen, op exacte v3source165920659be320b2f635f90952d3f1134e48324bdcae0672495d2828a68e8b3f.
+[Basecapture](verification/full-release-base-92d52d7/capture-validation.json),
+[netcapture](verification/full-release-net-92d52d7/capture-validation.json),
+[FPU](verification/full-release-fpu-92d52d7/README.md).
 
-**Netintegratiefout causaal hersteld:** de [mislukte309repro](verification/full-release-net-firmware-diagnosis/README.md)
-toont86byte OVMF-IPv6/MLDv1. Gedocumenteerde firmware-isolatie3879c32 behoudt
-NIC/eigen driver/striktepeer. [Beide nieuwe rootnetVM's slagen](verification/full-release-net-3879c32/README.md):
-raw33,8echteTX/7RX perrun,7ABIweigeringen,19netvelden en peertranscript gecontroleerd,
-zelfde4096byte disk bij koude readonlyrecovery. Een onafhankelijke
-[oude-kernelA/Bproef](verification/full-release-fwcfg-causal/README.md) bevestigt
-de oorzaak zonder herbouw. De basepair op3879c32 slaagt ook en is
-[strikt opnieuw gearchiveerd](verification/full-release-base-3879c32/capture-validation.json).
+**Nieuwe nativeTCPpair bewezen op1b6a308:** normal7.61s/cold7.49s,raw33/33,
+21TX/13RX perVM exactapp/broker/peer; tweeHTTPantwoorden metEOF/FINACK,
+refused/reset, echteSYNretransmissie,300PITtickblackhole,stalecap/resetACK/cleanup.
+[Strictcapture](verification/full-release-tcp-1b6a308/capture-validation.json)
+hercontroleert echteESP/disk/readonly/bron/semantischpeertranscript/finale normale
+kernelbc6c5931777819829ed57de6a2014deece3229f337ddf84d4c61ae0b89583103.
+MislukteARPtestserverrun en hersteldebroadcastTHA-regressie blijven apart bewaard.
+TCPcombineert5nativeprocessen/diensten+dynamicworkers metmonotoneklok+FPUcontext.
 
-**Huidige bevroren integratie92d52d7 groen:** vijf echte lokaleVM-runs op
-v3bron165920659be320b2f635f90952d3f1134e48324bdcae0672495d2828a68e8b3f:
-[basepair](verification/full-release-base-92d52d7/capture-validation.json),
-[netpair](verification/full-release-net-92d52d7/capture-validation.json) en
-[FPU/klok](verification/full-release-fpu-92d52d7/README.md). Base/netcapture
-hercontroleert werkelijk gebruikte ESP/disk/readonly/peer/bron; FPU strictgate
-controleert drie schone levens,157echte saves/restores,36timerIRQs,#UD en slotreuse.
-Alle zeven actueleCIworkflows slagen op92d52d7, inclusief de gerepareerde oudere
-M6cDocumentSession-proef en nieuwe native net-/FPUstappen. Geen volledige productacceptatie.
+**Getypeerde sleutelclient:** echte systeemapp op schonefd7d9a0 heeft2VMsraw33,
+crypto2/2/9 enrecord1/1/10/2, onveranderdekoudedisk; [bewijs](verification/full-release-keyring-sdk-fd7d9a0/capture-validation.json).
+Inputservicecore heeft20hosttests/targetbuild/gerichteonafhankelijkereview,
+maar nog geen native PS2-bron/compositorservice. Deze bronpakketten zijn nu met
+TCP in mainwerkboom samengevoegd; de volledige unie krijgt eigen rootgates en CI.
+Historische/workerproeven worden niet als acceptatie van de unie omgelabeld.
 
-**Nieuwe uitvoering in aparte worktree:** `/workspace/nieuw-os-worktrees/root-tcp`,
-branchcodex/root-tcp-integration op92basis. Geïntegreerde TCPpackages/protocolpeer,
-rootprofielen/build/runner en eigen observer; nog geen TCP-nativeacceptatie.
-smoltcp0.14/app-onlyRust1.91.1 bewaakt; werkelijke FINACK-timeoutfalsepass is
-rood gereproduceerd en hersteld in37bda12. Rootfreeze/native normal+koud volgt
-na TCPcapture/review. Main92source blijft ongewijzigd tijdens de devintegratie.
+**Actieve vervolgtaken in eigen worktrees:** fallibleheapgroei/pagingpreflight,
+begrensde gebruikersallocator, onderhoudende no_stdTLS-providerport,
+random-onlyKeyService/CSPRNG en ongeauthenticeerdeRTC-input. Root bezit gedeelde
+interfaces/ABI/build/locks/status. TLS/RANDOM/signer/certtijd/heap/nativeinput zijn
+geen afgetekende productfeatures. Bestaande plaintextfixtures/RAMsleutels en vaste
+proefseeds blijven zichtbaar als ontwikkelbeperkingen.
 
-**Geïntegreerd:** capabilitygebonden virtio-net/RX/TX in kernel, echte ring3
-ARP/UDP/DNS-probe tegen uitsluitend loopback-testpeer; echte SDKdocumentsessie
-met diensttoken/PID/domainbinding; keyringrecordopcodes8/9 en contextweigeringen;
-ui-core fysieke PS2/resetcorrecties. Native ownerdeath/lost-BEGIN-ACK-cleanup,
-TPM-ankering/persistente encryptie en volledige netconfig/TCP/TLS blijven open.
-
-Echte agents werken onafhankelijk aan FPU-context/monotone klok, begrensde TCPclient,
-invoerdienstvoorbereiding en gerichte net-/CI-review. Root bezit integratie,
-status, gedeelde interfaces/build/Git. Alleen eigen VM-images/testdata gebruikt;
-geen fysieke disks, echte NAS/accounts of firmware gewijzigd.
+**Externe deelblokkade:** CLIgitpush faalt sinds1b6 op HTTPSauthenticatie. Fetch/read
+werkt, GitHubconnector is beschikbaar; root publiceert de concrete samengevoegde
+boom via GitData met verwachtehead/cda-lease en controleert daarna de remote-tree,
+zonder forcepush/credentialinspectie. Nog niet als geslaagdepublicatie claimen.
 
 ### NEXT AGENT HANDOFF
 
-- Controleer HEAD/status/worktrees; lees FULL/matrix en deze queue. Behoud alle
-  onafgemaakte worktrees. Rootnetfix3879 is gecommit en native groen; actuelecapture/buildverbeteringen zijn nog in integratie.
-- Eerstvolgende uitvoer: root-tcp bron/capture afmaken en freezecommit maken,
-  dan `python3 -B -u tools/test_tcp_system.py` in die worktree met bestaande
-  toolomgeving en eigenbuild/target. Geen huidige TCP-nativeclaim.
-- Laatste bruikbare gezamenlijke artifacts op92d52d7:
-  `build/full-release-root-final/esp/` (basekernel7dcdd7a3b35d39c3862c5c7a1e975d88d524f20cf36c61411e1757e9681d416a),
-  `build/full-release-root-net/esp/` (netkernel7acb9273a3ce08274e0c23ebe55546ca02b2405cdd33ceee2a70f570c70237fd),
-  `build/full-release-root-fpu/esp/` (FPUkernel3612f1e05c072240787468b112240e935f1a77ca9cbeb1720fef0153c64735a0).
-  Alleen integratie-/acceptatieprofielen; plaintextdisk/RAMsleutels, geen releaseimage.
-- Open devbranches: root-tcp/TCPkernel/probe, nieuweinputcore en keyringSDKclient.
-  Root bezit sharedbuild/locks/interfaces; bewaar alle onafgemaakte worktrees.
-- Alle62 volledige criteria blijven open: desktop/sessie/apps/media, geheugen,
-  veilige opslag/sleutels, netwerk/NAS/AI, boot/PQC/updates/herstel, prestaties,
-  herhaalde productscenario's, fysieke/humane gates. Geen voltooiingsclaim.
+- Controleer HEAD/status/worktrees/agents. Rootindex bevat samengevoegdeTCP,
+  typedkeyclient eninputcode plus aanvullendecontext; geen reset/werkverlies.
+- Eerstvolgende uitvoer: rootcandidateboom/metadata afronden, via beschikbare
+  GitHubAPI publiceren met expectedheadcda42f2, terugfetchen/fastforward en
+  exacte tree/sourcehash vergelijken. Daarna frozen `tools/test_system.py`,
+  `tools/test_net_system.py`, `tools/test_tcp_system.py` en native-fpu op aparte
+  build/targetmappen; base/net/TCPcapture. Nieuwste7CIchecks beoordelen.
+- Laatste bewezenTCPartifact: `/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/esp/`,
+  bron1b6a308/v3source25a523bbb8b56ee38b0ec18ab223a855e61e54c8cf454578643298c0660971b1,
+  kernelsha hierboven, echteappfea2154f68682f6403a060a013a39c656b9e4c302b0a41061d2d0a31e8f6bb91.
+  Base/net/FPU92artifacts blijven inbuild/full-release-root-{final,net,fpu}/esp/.
+  Allemaal integratieprofielen, geen volwaardigreleaseimage.
+- Nieuweimplementatiesin memory,user-allocator,tls-port,keyring-random,rtc-walltime;
+  eigenaarschap/interfacevoorwaarden inWORK-QUEUE. Behoud onafgemaaktebron enlogs.
+- Alle62volledigeproductcriteria blijven open. VM-FR8GiB/Nehalem/32GiB, veilige
+  persistenteopslag, desktop/apps/media/accessibility/NAS/AI/boot/PQC/updates/herstel,
+ 100coldstarts/24uur, fysieke/humane/auditgates en volledigepakket ontbrekennog.
 
 ## Historische checkpoints
 

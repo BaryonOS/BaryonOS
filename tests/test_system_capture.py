@@ -12,8 +12,10 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import capture_system as capture
+import test_system as system_gate
 from test_system_harness import transcript
 from test_net_peer import completed_fixture
+from test_tcp_harness import fixture as tcp_fixture
 from run_net_system import NET_EXACT
 from run_system import network_arguments
 import volume_disk as disk
@@ -465,6 +467,198 @@ class SystemCaptureTests(unittest.TestCase):
         self.gate["test_inputs"] = {}
         self.save_network_gate()
         self.network_rejected()
+
+    def prepare_tcp(self):
+        p = patch.object(capture, "tcp_inputs", return_value=self.test_inputs)
+        p.start()
+        self.addCleanup(p.stop)
+        fixture_report, peer = tcp_fixture()
+        for index, report in enumerate(self.reports):
+            case = report["case"]
+            report["kernel_feature"] = capture.TCP_FEATURE[case]
+            report["manifest"]["kernel_feature"] = report["kernel_feature"]
+            report["manifest"]["system"]["net_probe"] = copy.deepcopy(fixture_report["manifest"]["system"]["net_probe"])
+            report["command"] += network_arguments(31337)
+            report.update(network_gate=True, tcp_gate=True, network_peer=copy.deepcopy(peer))
+            serial = (self.runs[index] / "serial.txt").read_text()
+            serial += "".join(f"SYSTEM:{name}:{value:020d}\n" for name, value in fixture_report["evidence"].items())
+            (self.runs[index] / "serial.txt").write_text(serial)
+            report["evidence"] = capture.evaluate(case, serial, 33, False)
+            self.gate["stages"][index].update(network_gate=True, tcp_gate=True)
+            put_json(self.runs[index] / "network-peer.json", peer)
+            self.save_report(index)
+        put_json(self.volume / "last-system-stage.json", self.reports[-1])
+        put_json(self.build / "manifest.json", self.manifests[0])
+        self.gate["host"] = []
+        for index, command in enumerate(capture.tcp_host_commands()):
+            host = dict(command=command, exit=0)
+            for stream in ("stdout", "stderr"):
+                path = self.build / "logs" / f"tcp-host-{index}.{stream}.txt"
+                path.write_text("host-only TCP fixture\n")
+                host[stream] = str(path)
+            self.gate["host"].append(host)
+        self.save_tcp_gate()
+
+    def save_tcp_gate(self):
+        put_json(self.build / "tcp-system-gate.json", self.gate)
+
+    def tcp_rejected(self):
+        with self.assertRaises((ValueError, FileNotFoundError)):
+            capture.capture(self.destination, tcp=True)
+        self.assertFalse(self.destination.exists())
+
+    def test_tcp_capture_revalidates_its_own_pair_and_preserves_exact_peer_bytes(self):
+        self.prepare_tcp()
+        archive = capture.capture(self.destination, tcp=True)
+        self.assertTrue((archive / "tcp-system-gate.json").is_file())
+        self.assertFalse((archive / "net-system-gate.json").exists())
+        self.assertFalse((archive / "system-gate.json").exists())
+        validation = json.loads((archive / "capture-validation.json").read_text())
+        self.assertIn("native TCP", validation["boundary"])
+        self.assertIn("not full release acceptance", validation["boundary"])
+        for index, case in enumerate(("normal", "recover")):
+            self.assertEqual((archive / f"{index}-{case}/network-peer.json").read_bytes(),
+                             (self.runs[index] / "network-peer.json").read_bytes())
+        for line in (archive / "SHA256SUMS").read_text().splitlines():
+            value, name = line.split("  ", 1)
+            self.assertEqual(hashlib.sha256((archive / name).read_bytes()).hexdigest(), value)
+
+    def test_tcp_capture_requires_both_completion_flags_in_both_stages_and_reports(self):
+        self.prepare_tcp()
+        for index in range(2):
+            for scope in ("stage", "report"):
+                target = self.gate["stages"][index] if scope == "stage" else self.reports[index]
+                for flag in ("network_gate", "tcp_gate"):
+                    for value in (None, False, 1):
+                        with self.subTest(index=index, scope=scope, flag=flag, value=value):
+                            if value is None:
+                                target.pop(flag, None)
+                            else:
+                                target[flag] = value
+                            self.save_report(index)
+                            self.save_tcp_gate()
+                            self.tcp_rejected()
+                            target[flag] = True
+                self.save_report(index)
+                self.save_tcp_gate()
+
+    def test_tcp_capture_requires_raw_tcp_evidence_beyond_generic_system_success(self):
+        self.prepare_tcp()
+        path = self.runs[0] / "serial.txt"
+        before = path.read_text()
+        for name, value in (("TCP_HTTP", 0), ("TCP_TIMEOUT_TICKS", 299), ("NET_RX_COMPLETED", 0)):
+            with self.subTest(name=name):
+                old = self.reports[0]["evidence"][name]
+                changed = before.replace(f"SYSTEM:{name}:{old:020d}", f"SYSTEM:{name}:{value:020d}")
+                self.assertNotEqual(changed, before)
+                path.write_text(changed)
+                # Even a matching stored counter map does not satisfy TCP.
+                self.reports[0]["evidence"] = capture.evaluate("normal", changed, 33, False)
+                self.save_report(0)
+                self.tcp_rejected()
+        generic = transcript("normal")
+        path.write_text(generic)
+        self.reports[0]["evidence"] = capture.evaluate("normal", generic, 33, False)
+        self.save_report(0)
+        self.tcp_rejected()
+
+    def test_tcp_capture_binds_the_independent_peer_response_and_close_evidence(self):
+        self.prepare_tcp()
+        good = copy.deepcopy(self.reports[0])
+        for problem in ("mismatch", "response", "partial", "fin", "counts", "event"):
+            with self.subTest(problem=problem):
+                report = self.reports[0] = copy.deepcopy(good)
+                peer = report["network_peer"]
+                if problem == "response":
+                    peer["response_sha256"] = "f" * 64
+                elif problem == "partial":
+                    peer["complete"] = False
+                elif problem == "fin":
+                    peer["cases"]["8080"]["closed"] = False
+                elif problem == "counts":
+                    peer["counts"]["valid_data_sent"] -= 1
+                elif problem == "event":
+                    peer["events"][0]["frame_sha256"] = "invalid"
+                stored = copy.deepcopy(peer)
+                if problem == "mismatch":
+                    stored["response_sha256"] = "f" * 64
+                put_json(self.runs[0] / "network-peer.json", stored)
+                self.save_report(0)
+                self.tcp_rejected()
+
+    def test_tcp_capture_rejects_mixed_profiles_and_untested_normal_artifacts(self):
+        self.prepare_tcp()
+        original = copy.deepcopy(self.reports[0])
+        for feature in (capture.FEATURE["normal"], capture.NETWORK_FEATURE["normal"], capture.TCP_FEATURE["recover"]):
+            self.reports[0] = copy.deepcopy(original)
+            self.reports[0]["kernel_feature"] = feature
+            self.reports[0]["manifest"]["kernel_feature"] = feature
+            self.save_report(0)
+            self.tcp_rejected()
+        self.reports[0] = original
+        self.save_report(0)
+        final = copy.deepcopy(self.manifests[0])
+        final["kernel_feature"] = capture.NETWORK_FEATURE["normal"]
+        put_json(self.build / "manifest.json", final)
+        self.tcp_rejected()
+
+    def test_tcp_capture_requires_its_five_exact_host_commands_slots_and_inputs(self):
+        self.prepare_tcp()
+        good = copy.deepcopy(self.gate)
+        for problem in ("missing", "command", "network-command", "log-slot", "inputs", "exit"):
+            self.gate = copy.deepcopy(good)
+            if problem == "missing":
+                self.gate["host"].pop()
+            elif problem == "command":
+                self.gate["host"][2]["command"] = ["/bin/true"]
+            elif problem == "network-command":
+                self.gate["host"][0]["command"][-1] = "test_net_*.py"
+            elif problem == "log-slot":
+                self.gate["host"][0]["stdout"] = str(self.build / "logs/system-host-0.stdout.txt")
+            elif problem == "inputs":
+                self.gate["test_inputs"] = {}
+            else:
+                self.gate["host"][4]["exit"] = True
+            with self.subTest(problem=problem):
+                self.save_tcp_gate()
+                self.tcp_rejected()
+
+    def test_tcp_capture_preserves_readonly_and_firmware_isolation_guards(self):
+        self.prepare_tcp()
+        original = copy.deepcopy(self.reports[1])
+        for needle, replacement in (("readonly=on,file=build/run/system-image-", "readonly=off,file=build/run/system-image-"),
+                                    ("IPv6Support,string=no", "IPv6Support,string=yes"),
+                                    ("127.0.0.1:31337", "0.0.0.0:31337")):
+            self.reports[1] = copy.deepcopy(original)
+            self.reports[1]["command"] = [arg.replace(needle, replacement) for arg in original["command"]]
+            self.save_report(1)
+            with self.subTest(needle=needle):
+                self.tcp_rejected()
+
+    def test_tcp_and_network_capture_flags_are_mutually_exclusive(self):
+        with self.assertRaises(ValueError):
+            capture.capture(self.destination, network=True, tcp=True)
+        with patch("sys.stderr"):
+            with self.assertRaises(SystemExit) as error:
+                capture.main(["--destination", str(self.destination), "--network", "--tcp"])
+        self.assertEqual(error.exception.code, 2)
+        self.assertFalse(self.destination.exists())
+
+    def test_base_gate_freezes_the_imported_tcp_wire_fixture_sources(self):
+        paths = ("tests/test_system_capture.py", "tests/test_net_peer.py", "tests/test_tcp_harness.py",
+                 "sdk/examples/tcp-probe/test_peer.py")
+        for relative in paths:
+            path = self.root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("host-only imported fixture\n")
+        with patch.object(system_gate, "ROOT", self.root):
+            original = system_gate.inputs()
+            self.assertEqual(set(original), set(paths))
+            (self.root / paths[2]).write_text("changed TCP validator fixture\n")
+            self.assertNotEqual(system_gate.inputs(), original)
+            original = system_gate.inputs()
+            (self.root / paths[3]).write_text("changed TCP wire fixture\n")
+            self.assertNotEqual(system_gate.inputs(), original)
 
 
 if __name__ == "__main__":

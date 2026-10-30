@@ -1,5 +1,6 @@
 [workspace]
 resolver = "2"
+exclude = ["keyring-client"]
 members = ["runtime", "catalog-client", "document-session", "examples/catalog-read", "examples/volume-docs", "examples/supervisor", "examples/keyring", "examples/system"]
 
 [profile.dev]

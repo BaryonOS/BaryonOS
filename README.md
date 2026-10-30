@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`92d52d7f`](https://github.com/simonvanieperen/nieuw-os/commit/92d52d7f13553cccdbc341051d87be96bf43dc95) ·
+**Bron:** [`1b6a3086`](https://github.com/simonvanieperen/nieuw-os/commit/1b6a3086176a6c0a4e6514bf4d2f7105bef3d480) ·
 **Ontwikkelbranch:** `codex/full-test-release`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Brongebonden gezamenlijke native diensten/netwerk/FPU en zeven groene CI-workflows; TCPintegratie loopt.
-Score32% blijft32%; alle62 volledige productcriteria blijven open. Op92d52d7 slagen vijf echte lokaleVMs: basepair, netpair8TX/7RX/7weigeringen en koude readonlydisk, FPU/klok3schonelevens/157contextwissels/#UD/slotreuse. Base/netcapture hercontroleertwerkelijkeESP/disk/bron/peer. AllezevenCIworkflowsgroen opdezeexactecommit. TCPmetonderhoudensmoltcp0.14/appcompiler1.91.1 wordtineigenworktree nativeaangesloten; concreteFINACKfalsepassisgecorrigeerd, geenTCPnativeclaim. Invoer/keyringSDKbasisparallel. Full desktop/apps/NAS/AI/persistente encryptie/boot/updates/herstel/hardware/humane gates blijvenopen; geencriteria/gewichten/scopegewijzigd.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Volledige productcontext behouden; echte TCP- en typedkeyclientketens geïntegreerd voor nieuwe rootvalidatie.
+De score blijft 32%; alle 62 volledige productcriteria staan open. De aanvullende gebruikerscontext is verwerkt zonder wijziging van scope, IDs of rubric: concrete gebruikstaken, compatibiliteit, formats, TCB en de vaste 100 koude starts/24 uur op het 8 GiB/32 GiB/Nehalem-profiel. Root92 heeft vijf echte VM-runs en zeven groene CI-workflows. TCP1b6 bewijst twee VMs met 21 TX/13 RX, twee HTTP-overdrachten, FIN/ACK, retransmissie, een echte 300-ticktime-out en strikte capture. De getypeerde KEY1-client bewijst twee VMs op fd7, met behoud van alle cryptografische en negatieve IPC-controles. De bronunie krijgt eigen native gates en CI. Inputcore en RTC hebben host-/targetbewijs, nog geen native aansluiting. Heap, allocator, TLS en RANDOM lopen parallel. De CLI-pushauthenticatie faalt; publicatie via de beschikbare GitHub-koppeling vereist een exacte remotevergelijking. Desktop, apps, NAS, AI, veilige persistente opslag, boot, updates, hardware en menselijke gates blijven verplicht open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -1,0 +1,37 @@
+{
+  "complete": false,
+  "counts": {
+    "client_frames": 0,
+    "server_frames": 0,
+    "arp_requests": 0,
+    "arp_replies": 0,
+    "syns": 0,
+    "syn_acks": 0,
+    "refusals": 0,
+    "resets_after_get": 0,
+    "first_syn_dropped": 0,
+    "retry_syns": 0,
+    "blackhole_syns": 0,
+    "blackhole_rsts": 0,
+    "corrupt_data_sent": 0,
+    "valid_data_sent": 0,
+    "http_requests": 0,
+    "valid_data_acks": 0,
+    "fins_sent": 0,
+    "client_fins_acked": 0
+  },
+  "cases": {},
+  "response_sha256": "d128fa1924be70f9e1f42e2a466e1e94123182b23b11110d273ced90cefda90b",
+  "corrupt_response_sha256": "b6e4fce18f6898242fd36cb7de9de98aa2bfb088d749dc031d8dbe1c677d0ed5",
+  "response_body_bytes": 20,
+  "events": [],
+  "kind": "synthetic TCP server only; not OS client or native proof",
+  "connected": true,
+  "error": "ProtocolError: invalid ARP request",
+  "rejected_frame": {
+    "length": 60,
+    "prefix_hex": "ffffffffffff02000000000708060001080006040001020000000007c0000202ffffffffffffc0000201000000000000000000000000000000000000"
+  },
+  "wire_frames_sent": 0,
+  "passed": false
+}

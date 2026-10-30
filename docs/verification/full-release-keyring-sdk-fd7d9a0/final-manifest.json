@@ -1,0 +1,303 @@
+{
+  "schema_version": 1,
+  "profile": "native-system",
+  "kernel_feature": "native-system",
+  "loader_feature": null,
+  "source_fingerprint_version": 3,
+  "source_sha256": "b417246fff20a716f0a6f711d5b95613cc7bc2fc715a0c5e8bf0354ea2dd58fc",
+  "loader": {
+    "sha256": "300c68187f2183ffe1edc505bf67e9a4d0640cd683023e3c146bebe060b9caeb",
+    "format": "AMD64 PE32+",
+    "subsystem": "EFI_APPLICATION",
+    "imports": 0
+  },
+  "kernel": {
+    "sha256": "d8d3088ef661fd5a46b717a107a72232d2240a407518f24d27394615f8821cda",
+    "entry": 33554432,
+    "segments": [
+      {
+        "flags": 5,
+        "offset": 4096,
+        "address": 33554432,
+        "filesz": 143175,
+        "memsz": 143175,
+        "page_start": 33554432,
+        "page_end": 33697792
+      },
+      {
+        "flags": 4,
+        "offset": 147456,
+        "address": 33697792,
+        "filesz": 312936,
+        "memsz": 312936,
+        "page_start": 33697792,
+        "page_end": 34013184
+      },
+      {
+        "flags": 6,
+        "offset": 462848,
+        "address": 34013184,
+        "filesz": 1258160,
+        "memsz": 4345152,
+        "page_start": 34013184,
+        "page_end": 38359040
+      }
+    ],
+    "sections": [
+      {
+        "name": "",
+        "type": 0,
+        "flags": 0,
+        "size": 0
+      },
+      {
+        "name": ".text",
+        "type": 1,
+        "flags": 6,
+        "size": 143175
+      },
+      {
+        "name": ".rodata",
+        "type": 1,
+        "flags": 50,
+        "size": 312936
+      },
+      {
+        "name": ".data",
+        "type": 1,
+        "flags": 3,
+        "size": 1258160
+      },
+      {
+        "name": ".bss",
+        "type": 8,
+        "flags": 3,
+        "size": 3083584
+      },
+      {
+        "name": ".symtab",
+        "type": 2,
+        "flags": 0,
+        "size": 7944
+      },
+      {
+        "name": ".shstrtab",
+        "type": 3,
+        "flags": 0,
+        "size": 52
+      },
+      {
+        "name": ".strtab",
+        "type": 3,
+        "flags": 0,
+        "size": 17632
+      }
+    ]
+  },
+  "sdk_runtime": false,
+  "document_session": false,
+  "system": {
+    "system_init": {
+      "sha256": "e27d329843c0f99d0860424f9f5c65f25dc803e6a0222f2f3a9e7c575e75efe7",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1160,
+            "memsz": 1160,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 12288,
+            "filesz": 453,
+            "memsz": 453,
+            "page_start": 1073823744,
+            "page_end": 1073827840
+          },
+          {
+            "flags": 5,
+            "address": 1073872896,
+            "offset": 16384,
+            "filesz": 6727,
+            "memsz": 6727,
+            "page_start": 1073872896,
+            "page_end": 1073881088
+          }
+        ]
+      }
+    },
+    "system_app": {
+      "sha256": "339f8a8748d23111c5c8c87fc10d78947a9a71cd664abcf2367534ad21d71bb2",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1304,
+            "memsz": 1304,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 12288,
+            "filesz": 4141,
+            "memsz": 4141,
+            "page_start": 1073823744,
+            "page_end": 1073831936
+          },
+          {
+            "flags": 5,
+            "address": 1073872896,
+            "offset": 20480,
+            "filesz": 45026,
+            "memsz": 45026,
+            "page_start": 1073872896,
+            "page_end": 1073917952
+          }
+        ]
+      }
+    },
+    "system_worker": {
+      "sha256": "8c7e25f0a75c71ea3eacd3706398dbdc0f6a0dd6a6be191e4095e58fd37d24cf",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 306,
+            "memsz": 306,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1040,
+            "memsz": 1040,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 5,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 519,
+            "memsz": 519,
+            "page_start": 1073872896,
+            "page_end": 1073876992
+          }
+        ]
+      }
+    },
+    "keyring_service": {
+      "sha256": "6bc7995a084f0a9624a2b6dda753763e90d1be34a7dd09e85678ea5c8825321f",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1288,
+            "memsz": 1288,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 12288,
+            "filesz": 2146,
+            "memsz": 2146,
+            "page_start": 1073823744,
+            "page_end": 1073827840
+          },
+          {
+            "flags": 5,
+            "address": 1073872896,
+            "offset": 16384,
+            "filesz": 53767,
+            "memsz": 53767,
+            "page_start": 1073872896,
+            "page_end": 1073930240
+          }
+        ]
+      }
+    },
+    "volume_service": {
+      "sha256": "7af0a169bef8856bde79388335f5d5aeb994c352079df71d8c612a09eab16368",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 56562,
+            "memsz": 56562,
+            "page_start": 1073741824,
+            "page_end": 1073799168
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 61440,
+            "filesz": 1304,
+            "memsz": 1304,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 65536,
+            "filesz": 18138,
+            "memsz": 18138,
+            "page_start": 1073823744,
+            "page_end": 1073844224
+          }
+        ]
+      }
+    }
+  }
+}

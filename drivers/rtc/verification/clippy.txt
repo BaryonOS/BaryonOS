@@ -1,0 +1,2 @@
+    Checking nieuw-os-rtc v0.1.0 (/workspace/nieuw-os-worktrees/rtc-walltime/drivers/rtc)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.31s

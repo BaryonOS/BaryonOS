@@ -184,6 +184,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "nieuw-os-keyring-client"
+version = "0.1.0"
+dependencies = [
+ "keyring-core",
+ "nieuw-os-sdk-runtime",
+ "zeroize",
+]
+
+[[package]]
 name = "nieuw-os-keyring-example"
 version = "0.1.0"
 dependencies = [
@@ -212,6 +221,7 @@ dependencies = [
  "keyring-core",
  "nieuw-os-catalog-client",
  "nieuw-os-document-session",
+ "nieuw-os-keyring-client",
  "nieuw-os-sdk-runtime",
  "volume-core",
 ]

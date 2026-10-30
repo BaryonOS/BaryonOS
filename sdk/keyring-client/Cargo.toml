@@ -1,0 +1,21 @@
+[package]
+name = "nieuw-os-keyring-client"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Standalone until the integrator explicitly adds it to the shared SDK.
+[workspace]
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../runtime" }
+keyring-core = { path = "../../services/keyring" }
+zeroize = { version = "=1.9.1", default-features = false }
+
+[dev-dependencies]
+capability-core = { path = "../../crates/capability-core" }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = false

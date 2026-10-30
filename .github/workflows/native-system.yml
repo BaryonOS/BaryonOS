@@ -30,6 +30,8 @@ jobs:
         run: |
           rustup toolchain install 1.90.0 --profile minimal
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+          rustup toolchain install 1.91.1 --profile minimal
+          rustup target add --toolchain 1.91.1 x86_64-unknown-none
       - name: Disposable emulator and matching firmware package
         run: |
           sudo apt-get update
@@ -40,6 +42,8 @@ jobs:
         run: |
           cargo +1.90.0 fetch --locked
           cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml
+          cargo +1.91.1 fetch --locked --manifest-path sdk/examples/tcp-probe/Cargo.toml
+          cargo +1.91.1 fetch --locked --manifest-path services/net-stack/Cargo.toml
       - name: Real joint-service guest and exact-image cold recovery
         run: python3 -B -u tools/test_system.py
       - name: Independently revalidate raw images and capture compact evidence
@@ -63,6 +67,16 @@ jobs:
           python3 -B tools/test_fpu.py
           python3 -B tools/build.py --kernel-feature native-fpu
           python3 -B tools/run_fpu.py
+      - name: Actual native TCP and exact-image cold recovery
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/tcp-ci
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/tcp-ci
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/tcp-ci
+        run: python3 -B -u tools/test_tcp_system.py
+      - name: Revalidate TCP handshake retransmission FIN timeout and raw images
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/tcp-ci
+        run: python3 -B tools/capture_system.py --tcp --destination docs/verification/full-release-tcp-ci
       - name: Preserve evidence and the tested final build
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -93,4 +107,14 @@ jobs:
             build/fpu-ci/logs/
             build/fpu-ci/run/native-fpu-*/
             build/fpu-ci/esp/
+            build/tcp-ci/tcp-system-gate.json
+            build/tcp-ci/manifest.json
+            build/tcp-ci/logs/
+            build/tcp-ci/run/system-*/result.json
+            build/tcp-ci/run/system-*/network-peer.json
+            build/tcp-ci/run/system-*/serial.txt
+            build/tcp-ci/run/system-*/stderr.txt
+            build/tcp-ci/run/system-*/volume.after.img
+            build/tcp-ci/esp/
+            docs/verification/full-release-tcp-ci/
           if-no-files-found: error

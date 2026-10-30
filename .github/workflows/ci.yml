@@ -74,6 +74,15 @@ jobs:
           cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check
           python3 -B sdk/examples/catalog-read/build.py
           python3 -B sdk/examples/volume-docs/build.py
+      - name: Keyring SDK and isolated input service core
+        run: |
+          cargo +1.90.0 test --locked --manifest-path sdk/keyring-client/Cargo.toml
+          cargo +1.90.0 clippy --locked --manifest-path sdk/keyring-client/Cargo.toml --all-targets -- -D warnings
+          cargo +1.90.0 fmt --manifest-path sdk/keyring-client/Cargo.toml --all -- --check
+          cargo +1.90.0 test --locked --manifest-path services/input-core/Cargo.toml
+          cargo +1.90.0 clippy --locked --manifest-path services/input-core/Cargo.toml --all-targets -- -D warnings
+          cargo +1.90.0 fmt --manifest-path services/input-core/Cargo.toml --all -- --check
+          cargo +1.90.0 build --locked --release --target x86_64-unknown-none --manifest-path services/input-core/Cargo.toml
       - name: Network parser tests and native cross-build
         run: |
           cargo +1.90.0 test --manifest-path services/net-protocol/Cargo.toml --locked

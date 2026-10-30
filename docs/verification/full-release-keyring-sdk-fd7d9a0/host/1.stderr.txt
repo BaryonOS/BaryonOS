@@ -1,0 +1,5 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running unittests src/lib.rs (target/keyring-sdk-native-gate/debug/deps/nieuw_os_sdk_runtime-8efdb06a47f88ea1)
+     Running tests/message.rs (target/keyring-sdk-native-gate/debug/deps/message-7c1fef6887027dc9)
+     Running tests/process.rs (target/keyring-sdk-native-gate/debug/deps/process-db6e05bb28bdc857)
+   Doc-tests nieuw_os_sdk_runtime

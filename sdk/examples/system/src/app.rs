@@ -15,6 +15,10 @@ use nieuw_os_document_session::{
     volume::{Buffers, DocumentSession, Error as DocumentError, SaveProgress, VolumeSession},
     EditMode, SaveOutcome,
 };
+use nieuw_os_keyring_client::{
+    KeyIndex, NativeTransport as NativeKeyTransport, Operation as KeyOperation, Reply as KeyReply,
+    Session as KeySession, State as KeyState,
+};
 use nieuw_os_sdk_runtime::{
     native, BlockDevice, EntropySource, LaunchImage, Outgoing, ReceiveEndpoint, SendEndpoint,
 };
@@ -88,13 +92,16 @@ impl Transport for Volume {
         ))
     }
 }
-struct Keys {
+/// Only this trusted negative-test fixture borrows the session's numeric
+/// handles. Every raw call is serialized between completed typed exchanges;
+/// it never owns/closes the channels or replaces native denials with SDK errors.
+struct RawKeyProbe {
     send: SendEndpoint,
     receive: ReceiveEndpoint,
     peer: u64,
     next: u64,
 }
-impl Keys {
+impl RawKeyProbe {
     fn reply(&self, request: &[u8; kw::SIZE], expected: KeyStatus) -> (kw::Header, [u8; kw::SIZE]) {
         let sent = kw::Header::decode(request).unwrap_or_else(|| fail(70));
         let reply = exchange(self.send, self.receive, self.peer, kw::TAG, request);
@@ -151,7 +158,11 @@ fn bump(offset: u64) {
 /// These are in-memory records under a synthetic volume identity, not encrypted
 /// disk storage: the independent 4096-byte volume fixture stays unchanged.
 #[inline(never)]
-fn records_before_revoke(keys: &mut Keys, index: u8) -> (RecordContext, [u8; MAX_SEALED]) {
+fn records_before_revoke(
+    keys: &mut KeySession<NativeKeyTransport>,
+    probe: &mut RawKeyProbe,
+    key: KeyIndex,
+) -> (RecordContext, [u8; MAX_SEALED]) {
     let context = RecordContext {
         volume: *b"native-record-v1",
         domain: 0,
@@ -163,22 +174,36 @@ fn records_before_revoke(keys: &mut Keys, index: u8) -> (RecordContext, [u8; MAX
         schema: 1,
     };
     let plaintext = core::array::from_fn::<_, MAX_PLAINTEXT, _>(|i| byte(i + 0x4000));
-    let (header, reply) = keys.record(kw::SEAL_RECORD, index, context, &plaintext, KeyStatus::Ok);
-    check(usize::from(header.length) == MAX_SEALED, 30);
     let mut sealed = [0; MAX_SEALED];
-    sealed.copy_from_slice(&reply[kw::HEADER..kw::HEADER + MAX_SEALED]);
+    match keys.exchange(KeyOperation::SealRecord {
+        key,
+        context,
+        plaintext: &plaintext,
+    }) {
+        Ok(KeyReply::Sealed(reply)) => {
+            check(reply.as_bytes().len() == MAX_SEALED, 30);
+            sealed.copy_from_slice(reply.as_bytes());
+        }
+        _ => fail(30),
+    }
     bump(RECORD_SEAL);
-    let (header, reply) = keys.record(kw::UNSEAL_RECORD, index, context, &sealed, KeyStatus::Ok);
-    check(
-        usize::from(header.length) == plaintext.len()
-            && reply[kw::HEADER..kw::HEADER + plaintext.len()] == plaintext,
-        31,
-    );
+    match keys.exchange(KeyOperation::UnsealRecord {
+        key,
+        context,
+        sealed: &sealed,
+    }) {
+        Ok(KeyReply::Plaintext(reply)) => check(reply.as_bytes() == plaintext, 31),
+        _ => fail(31),
+    }
     bump(RECORD_UNSEAL);
 
+    // Keep all real raw negative requests: the service's native boundary,
+    // rather than local client checks, must reject these exact cases.
+    check(!keys.is_busy(), 34);
+    let index = key.raw();
     let mut corrupted = sealed;
     corrupted[MAX_SEALED - 1] ^= 1;
-    keys.record(
+    probe.record(
         kw::UNSEAL_RECORD,
         index,
         context,
@@ -212,7 +237,7 @@ fn records_before_revoke(keys: &mut Keys, index: u8) -> (RecordContext, [u8; MAX
             ..context
         },
     ] {
-        keys.record(kw::UNSEAL_RECORD, index, changed, &sealed, KeyStatus::Auth);
+        probe.record(kw::UNSEAL_RECORD, index, changed, &sealed, KeyStatus::Auth);
         bump(RECORD_CONTEXT_DENIED);
     }
 
@@ -226,7 +251,7 @@ fn records_before_revoke(keys: &mut Keys, index: u8) -> (RecordContext, [u8; MAX
     let mut shortened = [0; MAX_SEALED - 1];
     shortened[..shorter_end].copy_from_slice(&sealed[..shorter_end]);
     shortened[shorter_end..].copy_from_slice(&sealed[MAX_SEALED - TAG_BYTES..]);
-    keys.record(
+    probe.record(
         kw::UNSEAL_RECORD,
         index,
         shorter_context,
@@ -242,17 +267,17 @@ fn records_before_revoke(keys: &mut Keys, index: u8) -> (RecordContext, [u8; MAX
         .copy_from_slice(&kw::encode_record_context(context).unwrap_or_else(|_| fail(32)));
     body[kw::RECORD_CONTEXT..].copy_from_slice(&sealed);
     body[13] = 1;
-    keys.call(kw::UNSEAL_RECORD, index, &body, KeyStatus::Invalid);
+    probe.call(kw::UNSEAL_RECORD, index, &body, KeyStatus::Invalid);
     bump(RECORD_CONTEXT_DENIED);
     body[..kw::RECORD_CONTEXT]
         .copy_from_slice(&kw::encode_record_context(shorter_context).unwrap_or_else(|_| fail(33)));
-    keys.call(kw::UNSEAL_RECORD, index, &body, KeyStatus::Invalid);
+    probe.call(kw::UNSEAL_RECORD, index, &body, KeyStatus::Invalid);
     bump(RECORD_CONTEXT_DENIED);
     (context, sealed)
 }
 
 fn records_after_revoke(
-    keys: &mut Keys,
+    keys: &mut RawKeyProbe,
     index: u8,
     context: RecordContext,
     sealed: &[u8; MAX_SEALED],
@@ -406,18 +431,31 @@ pub extern "C" fn _start() -> ! {
 #[inline(never)]
 fn main() -> ! {
     check(native::check_abi().is_ok(), 1);
-    let mut keys = Keys {
+    let mut keys = KeySession::new(
+        NativeKeyTransport,
+        support::word(160),
+        0,
+        SendEndpoint::from_handle(handle(64)),
+        ReceiveEndpoint::from_handle(handle(56)),
+        LIMIT,
+    )
+    .unwrap_or_else(|_| fail(10));
+    let mut probe = RawKeyProbe {
         send: SendEndpoint::from_handle(handle(64)),
         receive: ReceiveEndpoint::from_handle(handle(56)),
         peer: support::word(160),
-        next: 1,
+        // Disjoint correlation IDs make raw fixture traffic recognizable.
+        // They grant no authority and never overlap a pending typed request.
+        next: 1 << 63,
     };
     let registry = SendEndpoint::from_handle(handle(88));
     let control = ReceiveEndpoint::from_handle(handle(96));
     let recover = support::word(112) == 1;
     support::put(240, 2);
-    let (h, status) = keys.call(kw::STATUS, 0, &[], KeyStatus::Ok);
-    check(h.length == 14 && status[kw::HEADER] == 1, 2);
+    match keys.exchange(KeyOperation::Status) {
+        Ok(KeyReply::Status(status)) => check(status.state == KeyState::Ready, 2),
+        _ => fail(2),
+    }
     {
         // Startup-only v6 probe preserves the real cross-domain rejection.
         // It ends before the v7 DocumentSession becomes the sole owner of
@@ -476,28 +514,47 @@ fn main() -> ! {
     support::put(240, 10);
     let digest = document(recover);
     support::put(240, 15);
-    let (h, created) = keys.call(kw::GENERATE, 0, &[], KeyStatus::Ok);
-    check(h.length == 1, 15);
-    let index = created[kw::HEADER];
+    let key = match keys.exchange(KeyOperation::Generate) {
+        Ok(KeyReply::Generated(key)) => key,
+        _ => fail(15),
+    };
     let plain = b"Nieuw OS: echte lokale cryptografie via ring-3 IPC.";
-    let (h, sealed) = keys.call(kw::SEAL, index, plain, KeyStatus::Ok);
-    let length = usize::from(h.length);
-    check(length == plain.len() + 40, 16);
-    let mut blob = [0; keyring_core::MAX_SEALED];
-    blob[..length].copy_from_slice(&sealed[kw::HEADER..kw::HEADER + length]);
-    let (h, opened) = keys.call(kw::UNSEAL, index, &blob[..length], KeyStatus::Ok);
+    let mut blob = [0; MAX_SEALED];
+    let length = match keys.exchange(KeyOperation::Seal {
+        key,
+        plaintext: plain,
+    }) {
+        Ok(KeyReply::Sealed(reply)) => {
+            let length = reply.as_bytes().len();
+            check(length == plain.len() + NONCE_BYTES + TAG_BYTES, 16);
+            blob[..length].copy_from_slice(reply.as_bytes());
+            length
+        }
+        _ => fail(16),
+    };
+    match keys.exchange(KeyOperation::Unseal {
+        key,
+        sealed: &blob[..length],
+    }) {
+        Ok(KeyReply::Plaintext(reply)) => check(reply.as_bytes() == plain, 17),
+        _ => fail(17),
+    }
+    check(!keys.is_busy(), 18);
+    blob[length - 1] ^= 1;
+    let _ = probe.call(kw::UNSEAL, key.raw(), &blob[..length], KeyStatus::Auth);
+    blob[length - 1] ^= 1;
+    let (context, record) = records_before_revoke(&mut keys, &mut probe, key);
     check(
-        usize::from(h.length) == plain.len()
-            && &opened[kw::HEADER..kw::HEADER + plain.len()] == plain,
-        17,
+        matches!(
+            keys.exchange(KeyOperation::Revoke(key)),
+            Ok(KeyReply::Revoked)
+        ),
+        19,
     );
-    blob[length - 1] ^= 1;
-    let _ = keys.call(kw::UNSEAL, index, &blob[..length], KeyStatus::Auth);
-    blob[length - 1] ^= 1;
-    let (context, record) = records_before_revoke(&mut keys, index);
-    let _ = keys.call(kw::REVOKE, index, &[], KeyStatus::Ok);
-    let _ = keys.call(kw::UNSEAL, index, &blob[..length], KeyStatus::Revoked);
-    records_after_revoke(&mut keys, index, context, &record);
+    check(!keys.is_busy(), 20);
+    let _ = probe.call(kw::UNSEAL, key.raw(), &blob[..length], KeyStatus::Revoked);
+    records_after_revoke(&mut probe, key.raw(), context, &record);
+    check(keys.close().is_ok() && keys.is_closed(), 21);
     for (at, value) in [
         (400, 1),
         (416, 1),

@@ -11,6 +11,7 @@ native = []
 nieuw-os-sdk-runtime = { path = "../../runtime" }
 nieuw-os-catalog-client = { path = "../../catalog-client" }
 nieuw-os-document-session = { path = "../../document-session" }
+nieuw-os-keyring-client = { path = "../../keyring-client" }
 keyring-core = { path = "../../../services/keyring" }
 volume-core = { path = "../../../services/volume" }
 

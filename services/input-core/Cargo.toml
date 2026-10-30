@@ -1,0 +1,17 @@
+[package]
+name = "nieuw-os-input-core"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[dependencies]
+ui-core = { path = "../../crates/ui-core" }
+nieuw-os-sdk-runtime = { path = "../../sdk/runtime" }
+
+[dev-dependencies]
+capability-core = { path = "../../crates/capability-core" }
+
+[workspace]
+members = ["."]
+resolver = "2"
