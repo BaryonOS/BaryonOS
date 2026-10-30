@@ -25,6 +25,8 @@ mod heap;
 mod memory_fixture;
 #[cfg(feature = "display-input")]
 mod ps2;
+#[cfg(feature = "ipc-wait")]
+mod wait;
 #[cfg(all(
     feature = "native-memory",
     any(
@@ -235,6 +237,8 @@ enum Status {
     Ready,
     Running,
     Dying,
+    #[cfg(feature = "ipc-wait")]
+    Waiting,
 }
 #[derive(Clone, Copy)]
 struct Mapping {
@@ -263,6 +267,8 @@ struct Process {
     context: [u64; 22],
     selected: u64,
     pattern: u64,
+    #[cfg(feature = "ipc-wait")]
+    wait: Option<wait::WaitSet>,
     #[cfg(feature = "process-memory")]
     heap_pages: u64,
 }
@@ -279,6 +285,8 @@ impl Process {
             context: [0; 22],
             selected: 0,
             pattern: 0,
+            #[cfg(feature = "ipc-wait")]
+            wait: None,
             #[cfg(feature = "process-memory")]
             heap_pages: 0,
         }
@@ -342,6 +350,8 @@ struct State {
     last_tick: u64,
     max_tick_gap: u64,
     had_syscall_df_entry: bool,
+    #[cfg(feature = "ipc-wait")]
+    wait_metrics: wait::Metrics,
 }
 #[derive(Clone, Copy)]
 #[cfg_attr(
@@ -505,6 +515,8 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
         ptr::addr_of_mut!((*state).last_tick).write(0);
         ptr::addr_of_mut!((*state).max_tick_gap).write(0);
         ptr::addr_of_mut!((*state).had_syscall_df_entry).write(false);
+        #[cfg(feature = "ipc-wait")]
+        ptr::addr_of_mut!((*state).wait_metrics).write(wait::Metrics::EMPTY);
         arch::user_gate(32, m3_timer as *const () as u64, false);
         arch::user_gate(128, m3_syscall as *const () as u64, true);
         let state = (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut();
@@ -844,86 +856,191 @@ impl State {
             }
         }
     }
+    fn progress_observers(&mut self) -> Option<*const u64> {
+        #[allow(unused_variables)] // M3-only profiles have no observer module.
+        let state = self;
+        #[cfg(all(
+            feature = "milestone-m4",
+            not(feature = "milestone-m5"),
+            not(feature = "native-qsim-job"),
+            not(feature = "native-sdk-app"),
+            not(feature = "native-supervisor"),
+            not(feature = "native-keyring"),
+            not(feature = "native-display-probe")
+        ))]
+        if let Some(next) = m4::poll(state) {
+            return Some(next);
+        }
+        #[cfg(all(feature = "native-supervisor", not(feature = "native-system")))]
+        if let Some(next) = supervisor::poll(state) {
+            return Some(next);
+        }
+        #[cfg(all(feature = "native-keyring", not(feature = "native-system")))]
+        if let Some(next) = keyring::poll(state) {
+            return Some(next);
+        }
+        #[cfg(all(feature = "milestone-m5", not(feature = "native-system")))]
+        if let Some(next) = m5::poll(state) {
+            return Some(next);
+        }
+        #[cfg(feature = "native-system-materiaal")]
+        desktop::poll(state);
+        #[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
+        if let Some(next) = system::poll(state) {
+            return Some(next);
+        }
+        #[cfg(feature = "native-sdk-app")]
+        if let Some(next) = sdk_app::poll(state) {
+            return Some(next);
+        }
+        #[cfg(feature = "native-qsim")]
+        if let Some(next) = qsim::poll(state) {
+            return Some(next);
+        }
+        #[cfg(feature = "native-qsim-job")]
+        if let Some(next) = qsim_job::poll(state) {
+            return Some(next);
+        }
+        #[cfg(feature = "native-fpu")]
+        fpu::fixture::poll(state);
+        #[cfg(feature = "native-memory")]
+        memory_fixture::poll(state);
+        #[cfg(feature = "native-display-probe")]
+        display_fixture::poll(state);
+        None
+    }
+    #[cfg_attr(not(feature = "ipc-wait"), allow(clippy::never_loop))]
     fn select(&mut self) -> *const u64 {
-        let start = if self.current < self.amount {
-            (self.current + 1) % self.amount
-        } else {
-            0
-        };
-        for offset in 0..self.amount {
-            let slot = (start + offset) % self.amount;
-            if self.processes[slot].status == Status::Ready {
-                let p = &self.processes[slot];
-                let c = &p.context;
-                let valid = user::valid_return_layout(c[17], c[20], c[18], c[21])
-                    && p.paging
-                        .as_ref()
-                        .unwrap()
-                        .permissions(c[17])
-                        .is_some_and(|x| x.2 && x.3)
-                    && p.paging
-                        .as_ref()
-                        .unwrap()
-                        .permissions(c[20])
-                        .is_some_and(|x| x.1 && !x.2 && x.3);
-                if !valid {
-                    // Invalid saved user state is a process failure, never a
-                    // kernel assertion or an unchecked iretq to hostile state.
-                    let expected = mode() == 16
-                        && slot == 0
-                        && c[20] == 0
-                        && c[18] == 0x23
-                        && c[21] == 0x1b
-                        && (0x40000000..0x60000000).contains(&c[17])
+        loop {
+            #[cfg(feature = "ipc-wait")]
+            wait::refresh(self);
+            let start = if self.current < self.amount {
+                (self.current + 1) % self.amount
+            } else {
+                0
+            };
+            for offset in 0..self.amount {
+                let slot = (start + offset) % self.amount;
+                if self.processes[slot].status == Status::Ready {
+                    let p = &self.processes[slot];
+                    let c = &p.context;
+                    let valid = user::valid_return_layout(c[17], c[20], c[18], c[21])
                         && p.paging
                             .as_ref()
                             .unwrap()
                             .permissions(c[17])
-                            .is_some_and(|x| x.2 && x.3);
-                    self.last_event = EventRecord {
-                        pid: p.pid,
-                        code: 0,
-                        vector: 256,
-                        rip: c[17],
-                        cr2: 0,
-                    };
-                    self.unexpected |= !expected;
-                    if expected {
-                        serial::write(b"M3:INVALID_RSP:PASS\n");
+                            .is_some_and(|x| x.2 && x.3)
+                        && p.paging
+                            .as_ref()
+                            .unwrap()
+                            .permissions(c[20])
+                            .is_some_and(|x| x.1 && !x.2 && x.3);
+                    if !valid {
+                        // Invalid saved user state is a process failure, never a
+                        // kernel assertion or an unchecked iretq to hostile state.
+                        let expected = mode() == 16
+                            && slot == 0
+                            && c[20] == 0
+                            && c[18] == 0x23
+                            && c[21] == 0x1b
+                            && (0x40000000..0x60000000).contains(&c[17])
+                            && p.paging
+                                .as_ref()
+                                .unwrap()
+                                .permissions(c[17])
+                                .is_some_and(|x| x.2 && x.3);
+                        self.last_event = EventRecord {
+                            pid: p.pid,
+                            code: 0,
+                            vector: 256,
+                            rip: c[17],
+                            cr2: 0,
+                        };
+                        self.unexpected |= !expected;
+                        if expected {
+                            serial::write(b"M3:INVALID_RSP:PASS\n");
+                        }
+                        self.observer_survivor(slot);
+                        self.fault = true;
+                        self.processes[slot].status = Status::Dying;
+                        self.cleanup(slot);
+                        continue;
                     }
-                    self.observer_survivor(slot);
-                    self.fault = true;
-                    self.processes[slot].status = Status::Dying;
-                    self.cleanup(slot);
-                    continue;
+                    self.current = slot;
+                    self.selections += 1;
+                    let p = &mut self.processes[slot];
+                    p.status = Status::Running;
+                    p.selected += 1;
+                    if !cfg!(feature = "native-qsim")
+                        && !cfg!(feature = "native-qsim-job")
+                        && !cfg!(feature = "native-sdk-app")
+                        && !cfg!(feature = "native-fpu")
+                        && !cfg!(feature = "native-memory")
+                        && mode() == 0
+                        && self.round < 2
+                        && !self.fault
+                        && !self.exited
+                    {
+                        assert_eq!(slot, ((self.selections - 1) % 16) as usize);
+                    }
+                    let c = &mut p.context;
+                    c[19] = user::return_flags(c[19]);
+                    arch::process_stack(p.kernel_top);
+                    #[cfg(feature = "fpu-context")]
+                    fpu::select(slot);
+                    arch::activate(p.paging.as_ref().unwrap().root);
+                    return c.as_ptr();
                 }
-                self.current = slot;
-                self.selections += 1;
-                let p = &mut self.processes[slot];
-                p.status = Status::Running;
-                p.selected += 1;
-                if !cfg!(feature = "native-qsim")
-                    && !cfg!(feature = "native-qsim-job")
-                    && !cfg!(feature = "native-sdk-app")
-                    && !cfg!(feature = "native-fpu")
-                    && !cfg!(feature = "native-memory")
-                    && mode() == 0
-                    && self.round < 2
-                    && !self.fault
-                    && !self.exited
-                {
-                    assert_eq!(slot, ((self.selections - 1) % 16) as usize);
-                }
-                let c = &mut p.context;
-                c[19] = user::return_flags(c[19]);
-                arch::process_stack(p.kernel_top);
-                #[cfg(feature = "fpu-context")]
-                fpu::select(slot);
-                arch::activate(p.paging.as_ref().unwrap().root);
-                return c.as_ptr();
             }
+            #[cfg(feature = "ipc-wait")]
+            if self.processes[..self.amount]
+                .iter()
+                .any(|p| p.status == Status::Waiting)
+            {
+                if let Some(next) = self.wait_idle_once() {
+                    return next;
+                }
+                continue;
+            }
+            self.idle()
         }
-        self.idle()
+    }
+    #[cfg(feature = "ipc-wait")]
+    fn wait_idle_once(&mut self) -> Option<*const u64> {
+        arch::activate(self.kernel.root);
+        arch::process_stack(arch::service_stack());
+        self.current = MAX;
+        // SAFETY: Single CPU, IF=0 and the permanent MAIN service stack/root.
+        // The existing CPL0 IRQ0 stub touches only its raw counter and saved
+        // interrupt frame, never STATE/Engine or Rust references. No driver IRQ
+        // is enabled by this feature. No user-memory reference is retained.
+        unsafe {
+            ptr::addr_of_mut!(m3_idle_wakeups).write(0);
+            ptr::addr_of_mut!(m3_idle_active).write(1);
+            // STI's interrupt shadow closes the check-to-sleep race. CLI runs
+            // before any Rust state access; omit nomem to keep the barrier.
+            asm!("sti", "hlt", "cli", options(nostack));
+        }
+        // SAFETY: IF=0 again. Clear the idle-only route before scheduler/user
+        // resumption and observe the actual IRQ0 count once, without inferring
+        // missed interrupts or elapsed wall time from RDTSC.
+        let interrupts = unsafe {
+            ptr::addr_of_mut!(m3_idle_active).write(0);
+            ptr::addr_of!(m3_idle_wakeups).read_volatile()
+        };
+        self.ticks = self.ticks.saturating_add(interrupts);
+        self.timer_interrupts = self.timer_interrupts.saturating_add(interrupts);
+        self.wait_metrics.idle_irqs = self.wait_metrics.idle_irqs.saturating_add(interrupts);
+        if interrupts != 0 {
+            let now = clock();
+            if self.last_tick != 0 {
+                self.max_tick_gap = self.max_tick_gap.max(now.saturating_sub(self.last_tick));
+            }
+            self.last_tick = now;
+        }
+        // Even a wake with zero PIT delta must poll actual brokers/observers;
+        // it cannot complete a timer-only wait before the absolute deadline.
+        self.progress_observers()
     }
     fn idle(&mut self) -> ! {
         arch::activate(self.kernel.root);
@@ -1368,6 +1485,14 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
         }
+        #[cfg(feature = "ipc-wait")]
+        let supervisor_call = supervisor_call || number == 0x22;
+        #[cfg(feature = "ipc-wait")]
+        if number == 0x22 {
+            let (rax, rdx) = wait::syscall(state, current, args);
+            state.processes[current].context[14] = rax as u64;
+            state.processes[current].context[12] = rdx;
+        }
         #[cfg(feature = "milestone-m4")]
         if number >= 0x10
             && !supervisor_call
@@ -1412,7 +1537,9 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                 match number {
                     0 => {
                         p.context[12] = (1 << 32)
-                            | if cfg!(feature = "display-input") {
+                            | if cfg!(feature = "ipc-wait") {
+                                9
+                            } else if cfg!(feature = "display-input") {
                                 8
                             } else if cfg!(feature = "process-memory") {
                                 7
@@ -1484,56 +1611,22 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         state.processes[current].status = Status::Dying;
         state.cleanup(current);
     } else {
-        state.processes[current].status = Status::Ready;
+        #[cfg(feature = "ipc-wait")]
+        {
+            state.processes[current].status = if state.processes[current].wait.is_some() {
+                Status::Waiting
+            } else {
+                Status::Ready
+            };
+        }
+        #[cfg(not(feature = "ipc-wait"))]
+        {
+            state.processes[current].status = Status::Ready;
+        }
     }
-    #[cfg(all(
-        feature = "milestone-m4",
-        not(feature = "milestone-m5"),
-        not(feature = "native-qsim-job"),
-        not(feature = "native-sdk-app"),
-        not(feature = "native-supervisor"),
-        not(feature = "native-keyring"),
-        not(feature = "native-display-probe")
-    ))]
-    if let Some(next) = m4::poll(state) {
+    if let Some(next) = state.progress_observers() {
         return next;
     }
-    #[cfg(all(feature = "native-supervisor", not(feature = "native-system")))]
-    if let Some(next) = supervisor::poll(state) {
-        return next;
-    }
-    #[cfg(all(feature = "native-keyring", not(feature = "native-system")))]
-    if let Some(next) = keyring::poll(state) {
-        return next;
-    }
-    #[cfg(all(feature = "milestone-m5", not(feature = "native-system")))]
-    if let Some(next) = m5::poll(state) {
-        return next;
-    }
-    #[cfg(feature = "native-system-materiaal")]
-    desktop::poll(state);
-    #[cfg(all(feature = "native-system", not(feature = "native-system-materiaal")))]
-    if let Some(next) = system::poll(state) {
-        return next;
-    }
-    #[cfg(feature = "native-sdk-app")]
-    if let Some(next) = sdk_app::poll(state) {
-        return next;
-    }
-    #[cfg(feature = "native-qsim")]
-    if let Some(next) = qsim::poll(state) {
-        return next;
-    }
-    #[cfg(feature = "native-qsim-job")]
-    if let Some(next) = qsim_job::poll(state) {
-        return next;
-    }
-    #[cfg(feature = "native-fpu")]
-    fpu::fixture::poll(state);
-    #[cfg(feature = "native-memory")]
-    memory_fixture::poll(state);
-    #[cfg(feature = "native-display-probe")]
-    display_fixture::poll(state);
     #[cfg(all(
         not(feature = "milestone-m4"),
         not(feature = "native-fpu"),

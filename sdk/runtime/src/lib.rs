@@ -23,9 +23,54 @@ pub use network::{NetworkSource, NET_FRAME_MAX};
 pub mod native;
 
 pub const ABI_MAJOR: u64 = 1;
-pub const ABI_MAX_MINOR: u64 = 8;
+pub const ABI_MAX_MINOR: u64 = 9;
 
-/// The common syscall contract is unchanged across the existing 1.0–1.7
+/// ABI 1.9 bounded IPC queue wait. Representations do not grant authority.
+pub const IPC_WAIT_MAX: usize = 16;
+pub const IPC_WAIT_HORIZON_TICKS: u64 = 1000;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct WaitCondition {
+    handle: Handle,
+    interest: u64,
+}
+impl WaitCondition {
+    pub const fn send(endpoint: SendEndpoint) -> Self {
+        Self {
+            handle: endpoint.handle(),
+            interest: 1,
+        }
+    }
+    pub const fn receive(endpoint: ReceiveEndpoint) -> Self {
+        Self {
+            handle: endpoint.handle(),
+            interest: 2,
+        }
+    }
+}
+
+#[cfg(any(test, all(target_arch = "x86_64", target_os = "none")))]
+fn encode_wait(conditions: &[WaitCondition]) -> Result<[u8; 256], Error> {
+    if conditions.len() > IPC_WAIT_MAX {
+        return Err(Error::MessageSize);
+    }
+    let mut bytes = [0; 256];
+    for (condition, entry) in conditions.iter().zip(bytes.chunks_exact_mut(16)) {
+        entry[..8].copy_from_slice(&condition.handle.raw().to_le_bytes());
+        entry[8..].copy_from_slice(&condition.interest.to_le_bytes());
+    }
+    Ok(bytes)
+}
+
+#[cfg(any(test, all(target_arch = "x86_64", target_os = "none")))]
+fn decode_wait_mask(value: u64, count: usize) -> Result<u16, Error> {
+    if count > IPC_WAIT_MAX || value >> count != 0 {
+        return Err(Error::InvalidReturn);
+    }
+    Ok(value as u16)
+}
+
+/// The common syscall contract is unchanged across the existing 1.0–1.9
 /// profiles (1.3 adds the K05 process-management calls, 1.4 the B01 entropy
 /// broker; 1.5 adds the raw NIC broker; 1.6 adds boot-monotonic ticks; 1.7 adds private heap growth). Unknown revisions require a separate compatibility check.
 pub fn validate_abi(version: u64) -> Result<(), Error> {
@@ -166,5 +211,53 @@ pub(crate) fn zero_return(result: Result<u64, Error>) -> Result<(), Error> {
     match result? {
         0 => Ok(()),
         _ => Err(Error::InvalidReturn),
+    }
+}
+
+#[cfg(test)]
+mod wait_tests {
+    use super::*;
+    fn send(raw: u64) -> WaitCondition {
+        WaitCondition::send(SendEndpoint::from_handle(Handle::from_raw(raw).unwrap()))
+    }
+    #[test]
+    fn all_full_handle_bits_and_interests_are_encoded_without_padding() {
+        let first = send(0x1234567800000001);
+        let last = WaitCondition::receive(ReceiveEndpoint::from_handle(
+            Handle::from_raw(0xffffffff000000ff).unwrap(),
+        ));
+        let bytes = encode_wait(&[first, last]).unwrap();
+        assert_eq!(&bytes[..8], &0x1234567800000001u64.to_le_bytes());
+        assert_eq!(&bytes[8..16], &1u64.to_le_bytes());
+        assert_eq!(&bytes[16..24], &0xffffffff000000ffu64.to_le_bytes());
+        assert_eq!(&bytes[24..32], &2u64.to_le_bytes());
+        assert!(bytes[32..].iter().all(|byte| *byte == 0));
+        assert_eq!(encode_wait(&[]), Ok([0; 256]));
+        assert!(encode_wait(&[first; 16]).is_ok());
+        assert_eq!(encode_wait(&[first; 17]), Err(Error::MessageSize));
+    }
+    #[test]
+    fn returned_mask_is_bounded_by_count_including_empty_sleep() {
+        for count in 0..=16 {
+            let allowed = (1u64 << count) - 1;
+            assert_eq!(decode_wait_mask(0, count), Ok(0));
+            assert_eq!(decode_wait_mask(allowed, count), Ok(allowed as u16));
+            assert_eq!(
+                decode_wait_mask(1 << count, count),
+                Err(Error::InvalidReturn)
+            );
+        }
+        assert_eq!(decode_wait_mask(0, 17), Err(Error::InvalidReturn));
+        assert_eq!(decode_wait_mask(u64::MAX, 16), Err(Error::InvalidReturn));
+    }
+    #[test]
+    fn minor_nine_preserves_old_abi_and_return_rules() {
+        for minor in 0..=9 {
+            assert_eq!(validate_abi((1 << 32) | minor), Ok(()));
+        }
+        assert_eq!(validate_abi((1 << 32) | 10), Err(Error::UnsupportedAbi));
+        assert_eq!(decode_return(0, 0xffff), Ok(0xffff));
+        assert_eq!(decode_return(-10, 0), Err(Error::Kernel(-10)));
+        assert_eq!(decode_return(-10, 1), Err(Error::InvalidReturn));
     }
 }
