@@ -1,0 +1,11 @@
+    Blocking waiting for file lock on package cache
+   Compiling heapless v0.9.3
+   Compiling byteorder v1.5.0
+   Compiling smoltcp v0.14.0
+   Compiling stable_deref_trait v1.2.1
+   Compiling bitflags v1.3.2
+   Compiling managed v0.8.0
+   Compiling cfg-if v1.0.5
+   Compiling hash32 v0.3.1
+   Compiling nieuw-os-net-stack v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/native-net-config-worktree/services/net-stack)
+    Finished `release` profile [optimized] target(s) in 1.66s

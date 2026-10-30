@@ -1,0 +1,28 @@
+diff --git a/services/net-broker/tests/rights.rs b/services/net-broker/tests/rights.rs
+index 927b4d3..4fe3021 100644
+--- a/services/net-broker/tests/rights.rs
++++ b/services/net-broker/tests/rights.rs
+@@ -547,6 +547,23 @@ fn malformed_ingress_is_explicit_and_never_authenticates_a_caller() {
+     });
+ }
+ 
++#[test]
++fn unsolicited_arp_cannot_publish_reply_without_destination_authority() {
++    with_broker(|broker| {
++        let mut frame = [0; 42];
++        frame[..6].fill(255);
++        frame[6..12].copy_from_slice(&[2, 0, 0, 0, 0, 3]);
++        frame[12..22].copy_from_slice(&[8, 6, 0, 1, 8, 0, 6, 4, 0, 1]);
++        frame[22..28].copy_from_slice(&[2, 0, 0, 0, 0, 3]);
++        frame[28..32].copy_from_slice(&[192, 0, 2, 3]);
++        frame[38..42].copy_from_slice(&[192, 0, 2, 2]);
++        broker.ingress(&frame, 0).unwrap();
++        broker.poll(0).unwrap();
++        assert!(matches!(broker.offer(0), Err(Error::Denied)));
++        assert!(broker.stack.transmission().is_some(), "no fabricated completion");
++    });
++}
++
+ #[derive(Clone, Copy, PartialEq, Eq)]
+ enum Conversation {
+     Normal,

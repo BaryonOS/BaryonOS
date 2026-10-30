@@ -1,0 +1,59 @@
+   Compiling nieuw-os-net-broker v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/net-broker-worktree/services/net-broker)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.35s
+     Running unittests src/lib.rs (target/net-broker-host/debug/deps/nieuw_os_net_broker-bee5a474ea2b0e05)
+
+running 25 tests
+test rights::allowed_connection_uses_existing_stack_and_distinct_local_ports ... ok
+test rights::bounded_grants_and_sockets ... ok
+test rights::cross_caller_all_connection_operations_deny_without_output_or_retirement ... ok
+test rights::actual_tcp_bytes_backpressure_orderly_close_and_safe_generation_reuse ... FAILED
+test rights::exhausted_generations_never_wrap ... ok
+test rights::exact_destination_not_ip_or_port_wildcard ... ok
+test rights::expiry_inclusive_even_when_egress_offer_would_otherwise_succeed ... ok
+test rights::existing_stack_retransmits_without_new_authority_or_synthetic_peer_ack ... FAILED
+test rights::helper_and_wrong_incarnation_cannot_use_another_callers_grant ... ok
+test rights::explicit_cancel_fences_and_orderly_finish_requires_closed_drained_state ... ok
+test rights::idle_expired_grant_never_connects_or_revives_via_slot_reuse ... ok
+test rights::idle_revoke_reuse_stale_generation_cannot_revoke_new_grant ... ok
+test rights::invalid_destinations_fail_explicitly ... ok
+test rights::invalid_deadlines_do_not_allocate_slots ... ok
+test rights::malformed_ingress_is_explicit_and_never_authenticates_a_caller ... ok
+test rights::mismatched_completion_fences_without_releasing_correct_frame ... ok
+test rights::revoke_retires_every_connection_of_grant_and_denies_new_use ... ok
+test rights::real_tcp_receive_queued_before_revoke_is_never_delivered_after_revoke ... ok
+test rights::rights_are_independent_and_denial_does_not_change_receive_buffer ... ok
+test rights::rollback_and_overflow_fence_and_do_not_advance_stack ... ok
+test rights::unknown_is_terminal_without_ack_replay_or_release ... ok
+test rights::policy_authority_and_target_caller_must_match_instance ... ok
+test rights::link_loss_times_out_and_fences_before_new_publication ... ok
+test rights::revoke_fences_all_shared_backend_connections_before_any_future_step ... ok
+test rights::not_published_backpressure_is_not_a_completion_and_can_be_reoffered ... ok
+
+failures:
+
+---- rights::actual_tcp_bytes_backpressure_orderly_close_and_safe_generation_reuse stdout ----
+
+thread 'rights::actual_tcp_bytes_backpressure_orderly_close_and_safe_generation_reuse' (2485066) panicked at src/../tests/rights.rs:626:17:
+assertion `left == right` failed
+  left: [114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114]
+ right: [114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- rights::existing_stack_retransmits_without_new_authority_or_synthetic_peer_ack stdout ----
+
+thread 'rights::existing_stack_retransmits_without_new_authority_or_synthetic_peer_ack' (2485072) panicked at src/../tests/rights.rs:626:17:
+assertion `left == right` failed
+  left: [114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114]
+ right: [114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114, 114]
+
+
+failures:
+    rights::actual_tcp_bytes_backpressure_orderly_close_and_safe_generation_reuse
+    rights::existing_stack_retransmits_without_new_authority_or_synthetic_peer_ack
+
+test result: FAILED. 23 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`
+real 0.36
+user 0.25
+sys 0.15

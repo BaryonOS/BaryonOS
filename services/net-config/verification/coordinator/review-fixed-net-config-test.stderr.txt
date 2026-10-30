@@ -1,0 +1,6 @@
+   Compiling nieuw-os-net-config v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-config)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s
+     Running unittests src/lib.rs (build/native-net-config-worktree/target/net-config-host/debug/deps/nieuw_os_net_config-537165f8386d6d5f)
+     Running tests/dhcp_client.rs (build/native-net-config-worktree/target/net-config-host/debug/deps/dhcp_client-bf7eccf0b8705b78)
+     Running tests/service.rs (build/native-net-config-worktree/target/net-config-host/debug/deps/service-7d88232ca5caa4ed)
+   Doc-tests nieuw_os_net_config

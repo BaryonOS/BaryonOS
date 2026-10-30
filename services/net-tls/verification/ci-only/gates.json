@@ -1,0 +1,87 @@
+{
+  "source_commit": "1b3c279de491f2fc0000b5c225eb70c2a704ea46",
+  "frozen_code_basis": "4a0ce99ff6b88adcd0e2c6be0571b30390d8d1c8",
+  "code_manifest_lock_sdk_identical_to_basis": true,
+  "source_inputs_v3": "616146a49c144b216ac14c3a4f42b68d93ae9c46122c320ef4d20f85a03e9a3b",
+  "workflow_sha256": "233a4e27588ae3e72e7bdac78b943b265e289e708a4cb7f52135852b26da6662",
+  "commands": [
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "services/net-tls/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--target-dir",
+        "target/tls-ci-host",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-ci-worktree",
+      "started_unix": 1793384737.465773,
+      "duration_s": 1.6125178337097168,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "services/net-tls/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-ci-worktree",
+      "started_unix": 1793384739.078409,
+      "duration_s": 0.5631875991821289,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "build",
+        "--locked",
+        "--offline",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--manifest-path",
+        "services/net-tls/Cargo.toml",
+        "--target-dir",
+        "target/tls-ci-none"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-ci-worktree",
+      "started_unix": 1793384733.947621,
+      "duration_s": 5.689478635787964,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "services/net-tls/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--target-dir",
+        "target/tls-ci-host"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-ci-worktree",
+      "started_unix": 1793384733.9109008,
+      "duration_s": 3.5547499656677246,
+      "returncode": 0
+    }
+  ],
+  "unit_integration_tests": 13,
+  "native_handshake": false,
+  "SEC72_Drop_integration_tested": false,
+  "dedicated_Actions_run": "not yet observed on this head; must be checked independently"
+}

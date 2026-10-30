@@ -1,0 +1,10 @@
+    Checking byteorder v1.5.0
+    Checking stable_deref_trait v1.2.1
+    Checking cfg-if v1.0.5
+    Checking bitflags v1.3.2
+    Checking managed v0.8.0
+    Checking hash32 v0.3.1
+    Checking heapless v0.9.3
+    Checking smoltcp v0.14.0
+    Checking nieuw-os-net-stack v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/native-net-config-worktree/services/net-stack)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.05s

@@ -1,0 +1,73 @@
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/examples/desktop-init/Cargo.toml", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/target/dev1/materiaal-desktop-init", "app_toolchain": "1.90.0", "linker": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld"}
+{"passed": true, "native_runtime_performed": false, "extra_env": {"NOS_DESKTOP_INIT_ELF": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/target/dev1/materiaal-desktop-init/x86_64-unknown-none/release/desktop-init", "NOS_DESKTOP_CONTROLLER_ELF": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/target/dev1/materiaal-desktop-init/x86_64-unknown-none/release/desktop-controller"}, "apps": {"init": {"sha256": "a996d00531a5aa8812ed01b7cf1012216879753d2f9d696a5623882aa786c2b4", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 6, "memsz": 6, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1024, "memsz": 1024, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073872896, "offset": 12288, "filesz": 1098, "memsz": 1098, "page_start": 1073872896, "page_end": 1073876992}, {"flags": 6, "address": 1074003968, "offset": 16384, "filesz": 88, "memsz": 88, "page_start": 1074003968, "page_end": 1074008064}, {"flags": 5, "address": 1074135040, "offset": 20480, "filesz": 12711, "memsz": 12711, "page_start": 1074135040, "page_end": 1074151424}]}}, "controller": {"sha256": "0a7cc9f9121869d7e05fc3317886f02c8e5035093a16b5fcdcfb59e91da8fbee", "elf": {"entry": 1073741824, "segments": [{"flags": 5, "address": 1073741824, "offset": 4096, "filesz": 6, "memsz": 6, "page_start": 1073741824, "page_end": 1073745920}, {"flags": 6, "address": 1073807360, "offset": 8192, "filesz": 1024, "memsz": 1024, "page_start": 1073807360, "page_end": 1073811456}, {"flags": 4, "address": 1073872896, "offset": 12288, "filesz": 605, "memsz": 605, "page_start": 1073872896, "page_end": 1073876992}, {"flags": 6, "address": 1074003968, "offset": 16384, "filesz": 72, "memsz": 72, "page_start": 1074003968, "page_end": 1074008064}, {"flags": 5, "address": 1074135040, "offset": 20480, "filesz": 6727, "memsz": 6727, "page_start": 1074135040, "page_end": 1074143232}]}}}}
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/runtime)
+   Compiling ui-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/crates/ui-core)
+   Compiling nieuw-os-display-client v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/display-client)
+   Compiling nieuw-os-input-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/services/input-core)
+   Compiling nieuw-os-native-input-service v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/examples/input-service)
+   Compiling nieuw-os-native-desktop-init v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/examples/desktop-init)
+    Finished `release` profile [optimized] target(s) in 0.70s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/target/dev1/materiaal-keyring"}
+   Compiling typenum v1.20.1
+   Compiling zeroize v1.9.1
+   Compiling version_check v0.9.5
+   Compiling cmov v0.5.4
+   Compiling cfg-if v1.0.5
+   Compiling subtle v2.6.1
+   Compiling cpufeatures v0.2.17
+   Compiling cpufeatures v0.3.1
+   Compiling opaque-debug v0.3.1
+   Compiling rand_core v0.10.1
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/runtime)
+   Compiling chacha20 v0.10.2
+   Compiling generic-array v0.14.7
+   Compiling ctutils v0.4.7
+   Compiling hybrid-array v0.4.15
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling crypto-common v0.1.7
+   Compiling inout v0.1.4
+   Compiling universal-hash v0.5.1
+   Compiling aead v0.5.2
+   Compiling cipher v0.4.4
+   Compiling poly1305 v0.8.0
+   Compiling chacha20 v0.9.1
+   Compiling chacha20poly1305 v0.10.1
+   Compiling digest v0.11.3
+   Compiling hmac v0.13.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/services/keyring/vendor/hmac-0.13.0)
+   Compiling sha2 v0.11.1
+   Compiling hkdf v0.13.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/services/keyring/vendor/hkdf-0.13.0)
+   Compiling keyring-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/services/keyring)
+   Compiling nieuw-os-keyring-example v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/examples/keyring)
+    Finished `release` profile [optimized] target(s) in 2.13s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/target/dev1/materiaal-volume-docs"}
+   Compiling catalog-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/services/catalog)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/runtime)
+   Compiling volume-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/services/volume)
+   Compiling nieuw-os-volume-docs-example v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/examples/volume-docs)
+    Finished `release` profile [optimized] target(s) in 0.80s
+{"command": ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release", "--manifest-path", "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/examples/materiaal/Cargo.toml", "--features", "native", "--bin", "materiaal-app", "--target", "x86_64-unknown-none"], "target_dir": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/target/dev1/materiaal-materiaal"}
+error: no matching package named `noto-sans-mono-bitmap` found
+location searched: crates.io index
+required by package `nieuw-os-materiaal v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/ui/native)`
+    ... which satisfies path dependency `nieuw-os-materiaal` (locked to 0.1.0) of package `nieuw-os-materiaal-app v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/examples/materiaal)`
+As a reminder, you're using offline mode (--offline) which can sometimes cause surprising resolution failures, if this error is too confusing you may wish to retry without `--offline`.
+Traceback (most recent call last):
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/tools/build.py", line 361, in <module>
+    build(args.loader_feature, args.kernel_feature, args.loader_feature or args.kernel_feature or "normal",
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          args.image_version)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/tools/build.py", line 148, in build
+    extra_env, qsim_report = build_materiaal_users(probe=kernel_feature != "native-system-materiaal")
+                             ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/tools/build_materiaal.py", line 40, in build_users
+    run_logged([sys.executable, "-B", str(ROOT / "sdk/examples" / package / "build.py")],
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+               "build-materiaal-" + package,
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+               extra_env={"CARGO_TARGET_DIR": str(target)})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/tools/common.py", line 116, in run_logged
+    raise subprocess.CalledProcessError(result.returncode, args)
+subprocess.CalledProcessError: Command '['/usr/bin/python3', '-B', '/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/build/release-dev1-source/sdk/examples/materiaal/build.py']' returned non-zero exit status 101.

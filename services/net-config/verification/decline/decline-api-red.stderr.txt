@@ -1,0 +1,33 @@
+   Compiling nieuw-os-net-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-protocol)
+error[E0425]: cannot find function `build_decline` in module `dhcp`
+  --> tests/dhcp.rs:15:24
+   |
+15 |     let length = dhcp::build_decline(&mut output, XID, MAC, OFFERED, SERVER).unwrap();
+   |                        ^^^^^^^^^^^^^ not found in `dhcp`
+
+error[E0425]: cannot find function `build_decline` in module `dhcp`
+  --> tests/dhcp.rs:51:30
+   |
+51 |             assert_eq!(dhcp::build_decline(&mut output, XID, MAC, address, server), Err(Error::InvalidAddress));
+   |                              ^^^^^^^^^^^^^ not found in `dhcp`
+
+error[E0425]: cannot find function `build_decline` in module `dhcp`
+  --> tests/dhcp.rs:57:26
+   |
+57 |         assert_eq!(dhcp::build_decline(&mut output, XID, mac, OFFERED, SERVER), Err(Error::InvalidMac));
+   |                          ^^^^^^^^^^^^^ not found in `dhcp`
+
+error[E0425]: cannot find function `build_decline` in module `dhcp`
+  --> tests/dhcp.rs:67:19
+   |
+67 |             dhcp::build_decline(&mut output[..length], XID, MAC, OFFERED, SERVER),
+   |                   ^^^^^^^^^^^^^ not found in `dhcp`
+
+error[E0425]: cannot find function `build_decline` in module `dhcp`
+  --> tests/dhcp.rs:73:22
+   |
+73 |     assert_eq!(dhcp::build_decline(&mut output, XID, MAC, OFFERED, SERVER), Ok(300));
+   |                      ^^^^^^^^^^^^^ not found in `dhcp`
+
+For more information about this error, try `rustc --explain E0425`.
+error: could not compile `nieuw-os-net-protocol` (test "dhcp") due to 5 previous errors

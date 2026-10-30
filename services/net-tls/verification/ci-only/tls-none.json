@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "build",
+    "--locked",
+    "--offline",
+    "--release",
+    "--target",
+    "x86_64-unknown-none",
+    "--manifest-path",
+    "services/net-tls/Cargo.toml",
+    "--target-dir",
+    "target/tls-ci-none"
+  ],
+  "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-ci-worktree",
+  "started_unix": 1793384733.947621,
+  "duration_s": 5.689478635787964,
+  "returncode": 0
+}
