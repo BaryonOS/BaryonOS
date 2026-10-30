@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        crate: [native-core, native-volume, native-probe]
+        crate: [native-core, native-volume, native-probe, native-client]
     env:
       CARGO_TARGET_DIR: ${{ github.workspace }}/target/nas-ci
     steps:
