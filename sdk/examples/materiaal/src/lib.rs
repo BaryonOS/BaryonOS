@@ -7,8 +7,8 @@ use nieuw_os_catalog_client::Transport;
 use nieuw_os_input_client::{AckOutcome, Peek, Session as Input};
 use nieuw_os_input_core::Event;
 use nieuw_os_materiaal::{
-    controller::{Controller, InputEnvelope, Screen, Status},
-    render::{Error as RenderError, Frame, SemanticNode},
+    controller::{Controller, Error as ControllerError, InputEnvelope, Screen, Status},
+    render::{Error as RenderError, Frame, SemanticId, SemanticNode},
     TILE_PIXELS,
 };
 use nieuw_os_surface_protocol::{client::Session as Surface, Geometry};
@@ -40,6 +40,11 @@ pub struct Observation {
     pub draft_checksum: u64,
     pub object: u64,
     pub scale: u64,
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct SemanticSnapshot {
+    pub node_count: usize,
+    pub generation: u64,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Error {
@@ -108,9 +113,40 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// Read the current UI semantics from this app's own document state.
     /// This does not publish the tree to another process or authorize access.
     pub fn semantics<'s>(&'s self, out: &mut [SemanticNode<'s>]) -> Result<usize, Error> {
-        Frame::new(self.controller.view())
+        self.semantic_snapshot(out)
+            .map(|snapshot| snapshot.node_count)
+    }
+    /// Return the bounded semantic tree together with the generation required
+    /// to bind a later app-local action to this exact controller snapshot.
+    pub fn semantic_snapshot<'s>(
+        &'s self,
+        out: &mut [SemanticNode<'s>],
+    ) -> Result<SemanticSnapshot, Error> {
+        let view = self.controller.view();
+        let generation = view.generation;
+        let node_count = Frame::new(view)
             .semantics(out)
-            .map_err(Error::Accessibility)
+            .map_err(Error::Accessibility)?;
+        Ok(SemanticSnapshot {
+            node_count,
+            generation,
+        })
+    }
+    /// Dispatch an action within this app after the controller revalidates the
+    /// node, action bit, enabled state, and snapshot generation.
+    pub fn activate_semantic(&mut self, id: SemanticId, generation: u64) -> Result<(), Error> {
+        let result = self.controller.activate_semantic(id, generation);
+        self.semantic_operation(result)
+    }
+    /// Update this app's current draft only. Persistence still requires Save.
+    pub fn set_semantic_value(
+        &mut self,
+        id: SemanticId,
+        generation: u64,
+        value: &str,
+    ) -> Result<(), Error> {
+        let result = self.controller.set_semantic_value(id, generation, value);
+        self.semantic_operation(result)
     }
     pub fn evidence(&self) -> Evidence {
         let mut evidence = self.evidence;
@@ -153,6 +189,16 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         // retain the draft and continue serving cancel/back rather than exit.
         Ok(())
     }
+    fn semantic_operation(&mut self, result: Result<(), ControllerError>) -> Result<(), Error> {
+        match result {
+            Ok(()) => Ok(()),
+            Err(error) => {
+                increment(&mut self.evidence.errors)?;
+                Err(Error::Controller(error))
+            }
+        }
+    }
+
     fn input_step(&mut self) -> Result<(), Error> {
         if self.input_failed || self.surface_failed {
             return Ok(());
