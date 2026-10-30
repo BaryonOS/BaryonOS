@@ -1,11 +1,13 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — NATIVE-CLOCK-1 in uitvoering — 30 oktober 2026
+## NEXT AGENT HANDOFF — NATIVE-CLOCK-1 native gate geslaagd; PR-CI volgt — 30 oktober 2026
 
 Bronbasis `c057d864e413840644da39b6c8338e883cbe2ff4`, implementatiecheckpoint
-`652cd5d4c9c68afb0b143c0147197aa7fc6f8220`, branch
-`simonvanieperen-expert-disco`; doelbranch `main`. De feature is lokaal
-gecommit; push en remote-headcontrole volgen vóór de native gate.
+`652cd5d4c9c68afb0b143c0147197aa7fc6f8220`, bewijscheckpoint
+`ff51dc01b36d3200fc6a887b03429748e93eb457`, branch
+`simonvanieperen-expert-disco`; doelbranch `main`. Het nieuwe bewijscheckpoint
+en eindassessment zijn lokaal en worden samen gepusht; de eerdere implementatie-
+en assessmentcommits staan al op de remote.
 De aparte workspace-doctestblokkade blijft buiten deze taak. De bestaande
 RTC-NATIVE-1-proef en concept-PR #63 zijn behouden.
 
@@ -15,7 +17,7 @@ SDK retourneert `WallClockReading` met vaste kwaliteit `UnauthenticatedRtc`.
 De bestaande ring-3-systeemapp voert twee reads, controleert monotone ticks en
 weigert ongeldige syscallargumenten; de nieuwe runner vergelijkt timestamps
 met expliciete VM-RTC-tijd. Contract: `implementation/RTC-WALLTIME.md`,
-ADR-050. **Nog niet native uitgevoerd; geen nieuw rubriccriterium gesloten;
+ADR-050. Native QEMU-gate geslaagd; **geen nieuw rubriccriterium gesloten;
 score blijft 34%.**
 
 Geslaagd op broncommit `baeb09aece05a6fb65bfa7178ae1c146d5506b75`:
@@ -39,11 +41,10 @@ wegwerpvolume en virtio-RNG. Rapport en seriële uitvoer staan lokaal onder
 in `docs/verification/system-clock/evidence.json`.
 
 De brongebonden bewijsnotitie is opgeslagen onder
-`docs/verification/system-clock/README.md`. Het implementatiecheckpoint
-`652cd5d4c9c68afb0b143c0147197aa7fc6f8220` en assessmentcheckpoint
-`baeb09aece05a6fb65bfa7178ae1c146d5506b75` zijn gepusht; de native
-runtimegate liep op laatstgenoemde bron. Nu evidence en eindassessment
-checkpointen, daarna PR-template bijwerken en de actuele GitHub CI controleren.
+`docs/verification/system-clock/README.md`. De native runtimegate liep op
+assessmentcheckpoint `baeb09aece05a6fb65bfa7178ae1c146d5506b75`; evidence-
+en eindassessmentcheckpoint worden nu gepusht. Daarna PR-template bijwerken en
+de actuele GitHub CI controleren.
 
 Open: RTC blijft niet-geauthenticeerd; onbekende UTC-/eeuwconfiguratie en
 firmwaregedrag zijn niet opgelost door de syscall. Geen persistente
