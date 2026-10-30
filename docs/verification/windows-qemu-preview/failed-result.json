@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "passed": false,
+  "scope": "Native boot/readiness and first rendered frame only; no manual UX, full desktop, release, or Windows-host acceptance.",
+  "source_commit": "6ec0bac45f6deb1d59791ee724f3997bcb1aa710",
+  "source_sha256": "1edf0a40de41518eb997a321ad5a940b021d5c8660afeed69c6691c7f17c9565",
+  "kernel_sha256": "e9fb2565fd74c40e9754f2b179806834c59c76177d911812951958d3d084e192",
+  "loader_sha256": "f5b8606b4e092f3eb3f30fea19f87fb38290caca3e76f279dda62d7a08e600c3",
+  "kernel_feature": "native-system-materiaal",
+  "machine": "pc-q35-8.2",
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+  "firmware": {
+    "ovmf_code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "ovmf_vars_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "seabios_bios_sha256": "e26615f9ad430328f49ca105e570b2dc4490a08a34ea73d27cae8b809a30ee06",
+    "seabios_vga_sha256": "c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde"
+  },
+  "command": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/.tools/nieuw-os/qemu/qemu-system-x86_64",
+    "-L",
+    ".",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-qmp",
+    "stdio",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"
+  ],
+  "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/windows-qemu/preview-run/materiaal-d04bd89573",
+  "started_utc": "2026-10-30T16:21:42.051031+00:00",
+  "error": "TimeoutError: Native Materiaal session did not reach all readiness gates",
+  "raw_qemu_exit": null,
+  "duration_s": 45.00397391000115,
+  "qmp_trace": [
+    {
+      "request": {
+        "execute": "qmp_capabilities",
+        "id": 1
+      },
+      "response": {
+        "return": {},
+        "id": 1
+      }
+    }
+  ]
+}

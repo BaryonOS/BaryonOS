@@ -138,7 +138,8 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
         }
     }
     if service[6] != 1 || client[6] != 1 || state.timer_interrupts == 0 {
-        return Some(state.select());
+        // The m3 event/select loop alone schedules; idle observers must not recurse.
+        return None;
     }
 
     if service[0] != 1

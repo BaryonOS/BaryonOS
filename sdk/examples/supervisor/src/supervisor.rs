@@ -554,6 +554,45 @@ impl Supervisor {
         }
     }
 
+    fn wait_ticks(&self, ticks: u64) {
+        let now = native::monotonic_ticks().unwrap_or_else(|_| fail(100));
+        let deadline = now.checked_add(ticks).unwrap_or_else(|| fail(101));
+        if native::ipc_wait(&[], deadline) != Ok(0) {
+            fail(102);
+        }
+    }
+
+    fn run_wait_lifecycle(&mut self) {
+        self.start_worker(WORKER_WAIT_SHORT);
+        let old = self.worker.unwrap_or_else(|| fail(103));
+        let old_pid = self.worker_pid;
+        self.wait_ticks(4);
+        if kernel_code(native::derive(old.handle(), Rights::OBSERVE)) != EINVAL {
+            fail(104);
+        }
+        if native::kill(ChildProcess::from_handle(self.registry_root)) != Err(Error::Kernel(ETYPE))
+        {
+            fail(105);
+        }
+        self.kill_and_confirm_keep(old, 107);
+        self.drop_worker_caps();
+        self.start_worker(WORKER_WAIT_LONG);
+        if self.worker_pid == old_pid
+            || native::status(old) != Err(Error::Kernel(EBADHANDLE))
+            || native::kill(old) != Err(Error::Kernel(EBADHANDLE))
+        {
+            fail(108);
+        }
+        support::put(EV_DENIED_MATCHED, 4);
+        support::put(EV_DENIED_TOTAL, 4);
+        bump(EV_RESTARTS);
+        // Beyond the first lifetime's latest possible deadline, but well
+        // before the fresh lifetime's own 500-tick deadline.
+        self.wait_ticks(80);
+        self.kill_and_confirm_keep(self.worker.unwrap_or_else(|| fail(109)), 110);
+        self.drop_worker_caps();
+    }
+
     fn run_quota(&mut self) {
         let mut workers = [None; QUOTA_WORKERS];
         let mut count = 0;
@@ -644,6 +683,7 @@ pub extern "C" fn _start() -> ! {
         CASE_NORMAL | CASE_CRASH | CASE_PARENT_EXIT => supervisor.run_service(),
         CASE_DENIED => supervisor.run_denied(),
         CASE_QUOTA => supervisor.run_quota(),
+        CASE_WAIT => supervisor.run_wait_lifecycle(),
         _ => fail(6),
     }
     // Launch handles and the registry are closed explicitly; the kernel also

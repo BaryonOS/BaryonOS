@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "task": "NATIVE-TEST-VERSION / Waiting-process lifecycle",
+  "source_commit": "586c33c2db2cd3c349612246f81e1470822aef3b",
+  "source_fingerprint_version": 3,
+  "source_sha256": "5414d89744c29995ac028c7e112958404077b93e1561263469928dea027f2c29",
+  "profile": "VM-B0: pc-q35-8.2, qemu64, TCG, 1 CPU, 256 MiB, UEFI; no network or data disk",
+  "qemu_version": "10.2.1 (Ubuntu 1:10.2.1+ds-1ubuntu3.3)",
+  "qemu_implementation_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+  "loader_sha256": "919d01f2dd0014b2442925afc997041f70abfef8312ae9b6a38494ade17acc6f",
+  "ovmf_code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+  "command": "LD_LIBRARY_PATH=\"$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu\" NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR=\"$PWD/build/native-test-version/wait-lifecycle\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/wait-lifecycle\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/wait-lifecycle-host\" python3 -B tools/dev.py python3 -B -u tools/test_supervisor.py",
+  "exit_status": 0,
+  "passed": true,
+  "gate": "build/native-test-version/wait-lifecycle/supervisor-gate.json",
+  "gate_sha256": "64b85a0a0307fcf6829398735528138fad6913357ebee5f19da5f4d1727c8c85",
+  "log": "/tmp/nieuw-os-native-wait-lifecycle-attempt4.log",
+  "log_sha256": "7a0e448bd993476a40ffafbfa2c31b78f4401a956a49e67b23df7d109916a129",
+  "run_root": "build/native-test-version/wait-lifecycle/run",
+  "stages": [
+    {
+      "case": "normal",
+      "run": "supervisor-normal-85eebbc9f0",
+      "raw_qemu_exit": 33,
+      "duration_s": 2.0492133409989037,
+      "result_sha256": "4a526e4c99f9de31fe74468ff151e3ab32f8e8f99446dea2d84118edff1f6eae",
+      "serial_sha256": "4e09177dba885c4c8532b103889c20fe000bba0f7aef298e1f059c0e448d054f"
+    },
+    {
+      "case": "crash",
+      "run": "supervisor-crash-a8f0e47729",
+      "raw_qemu_exit": 33,
+      "duration_s": 2.0576745569997,
+      "result_sha256": "d669ee757a63cbd2eb9eaebfca70a0e952fefc8928fe76d06020137b5ae7b4c1",
+      "serial_sha256": "964b1b2659a9eb4473a3e85460a05f56adddb9aac7ee1d0feea794accf93a1a2"
+    },
+    {
+      "case": "denied",
+      "run": "supervisor-denied-74307293cd",
+      "raw_qemu_exit": 33,
+      "duration_s": 1.9873183449999487,
+      "result_sha256": "8c6cc217e654737d866080de4453a215da24c82e77185b0f8557f265120078da",
+      "serial_sha256": "6588cb046557aceb9e3ae64898feb55fc96f703faa5c895d5431d74fd4068f03"
+    },
+    {
+      "case": "parent-exit",
+      "run": "supervisor-parent-exit-bffbe52d33",
+      "raw_qemu_exit": 33,
+      "duration_s": 2.0304481359999045,
+      "result_sha256": "8b0fdf817e7b4c1c8db8f71f22b8f75a5fb78fd64820e1a69547ee04f83015ae",
+      "serial_sha256": "c22f712bd837add0e25596d40b47ca848f8bfa68ccb4a529499978f2d10e573c"
+    },
+    {
+      "case": "quota",
+      "run": "supervisor-quota-d5ccff3fc0",
+      "raw_qemu_exit": 33,
+      "duration_s": 2.2035830069999065,
+      "result_sha256": "d4942128c32e8daa0664b37e1e8377f7e3d7a08935901483a2600c950e25fed5",
+      "serial_sha256": "f80cd40391ee453e446881033983ecd6e80ec77357d68cc25edf6a0c661113c6"
+    },
+    {
+      "case": "wait",
+      "run": "supervisor-wait-38c04e9985",
+      "raw_qemu_exit": 33,
+      "duration_s": 2.838399557998855,
+      "result_sha256": "76910762e51c7da53715608eacff9e01da04e369528c825491259dc3d5818359",
+      "serial_sha256": "9fdcce4e3e6b6301fb490466b50e1eeda95d729b3957fec40609722f4d1e4996",
+      "kernel_sha256": "082ac84933556adaa2e22a467ce194c39f62ba9da1631587c7292305d95ca32f",
+      "supervisor_sha256": "995c41f475c0c0ed7f0636cfc4a61a13fa47a9e55226acac3ec31d59cc321b38",
+      "worker_sha256": "5ceef2fa7479a424e44828315f71d40e522a4562213616ae67533cde8e3583d8",
+      "client_sha256": "954c68c3ac3e02c636885beed55d954a84b75c55a7c65456cc047cbbee4162ed",
+      "evidence": {
+        "WAITING_KILLS": 2,
+        "WAITING_REUSES": 1,
+        "WAIT_CALLS": 4,
+        "WAIT_BLOCKED": 4,
+        "WAIT_TIMEOUTS": 2,
+        "WAIT_IDLE_IRQS": 84,
+        "TICKS": 87,
+        "DENIED_MATCHED": 4,
+        "DENIED_TOTAL": 4,
+        "KILL_ERRORS": 2,
+        "RESTARTS": 1,
+        "CHILD_EXITS": 0,
+        "CHILD_FAULTS": 0,
+        "ORPHANS_REAPED": 0
+      }
+    }
+  ],
+  "host_checks": {
+    "capability_core": "exit 0; 57 unit + 7 wait tests, 1 pre-existing ignored benchmark",
+    "sdk_runtime": "exit 0; 23 tests",
+    "supervisor_protocol": "exit 0; 1 test",
+    "supervisor_harness": "exit 0; 8 tests",
+    "commands": [
+      "cargo +1.90.0 test --locked -p capability-core",
+      "cargo +1.90.0 test --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime",
+      "cargo +1.90.0 test --locked --manifest-path sdk/Cargo.toml -p nieuw-os-supervisor-example --lib",
+      "/usr/bin/python3 -B -m unittest discover -s tests -p 'test_supervisor_*.py'"
+    ],
+    "exact_commands_and_output": "host array in the hashed gate report",
+    "format": "LD_LIBRARY_PATH=\"$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu\" python3 -B tools/dev.py cargo +1.90.0 fmt --all -- --check; exit 0"
+  },
+  "preserved_failures": [
+    {
+      "source_commit": "dcb6b12190f3438404ddd2fbbe12290bd204e1d4",
+      "source_sha256": "b7cb255317e8c59620ed30489af04df4b1e3f69ea7ed2cc6bb65acdd399a27f7",
+      "gate": "supervisor-attempt1-gate.json",
+      "gate_sha256": "3ec378bb3a309054aa01ee0bc1bd044ba4bd5f70d028d5f9d899d376259d7288",
+      "run": "supervisor-wait-208a0949b3",
+      "raw_qemu_exit": 35,
+      "step": 104,
+      "serial_sha256": "247d8d2f8fbfa68df44dfd849860eef01067edc98eead62658ba0a44587b0a44",
+      "cause": "Fixture incorrectly assumed Process supported DERIVE."
+    },
+    {
+      "source_commit": "d4b6ebcb431c85b2ff9f9cb4ef3f43c7162ae1bf",
+      "source_sha256": "6731971502b1c5259ac935ff3883be7ef0059877918f93ba84451a5d796147f7",
+      "gate": "supervisor-attempt2-gate.json",
+      "gate_sha256": "c2c9173bf24827da236e625ad86ac8b2ea739470af313ae4d65a10539bbf432b",
+      "run": "supervisor-wait-b0dfc7215f",
+      "raw_qemu_exit": 35,
+      "step": 104,
+      "serial_sha256": "247d8d2f8fbfa68df44dfd849860eef01067edc98eead62658ba0a44587b0a44",
+      "cause": "Precise existing rejection is EINVAL for forbidden object-right class, not EACCESS."
+    },
+    {
+      "source_commit": "1414ca0218c27a8411ba91af51a7af28ef1c3da9",
+      "source_sha256": "8494ceb6914269a9317f63763d70dcf809e66d02eb70a5bd9aa0dbd4b9312f05",
+      "gate": "supervisor-attempt3-gate.json",
+      "gate_sha256": "d8a672b1fe9124415dd15e978dfb8b8c1be718305905ba3ff9f5db0548ec49d6",
+      "run": "supervisor-wait-26d9a193e9",
+      "raw_qemu_exit": 35,
+      "step": 47,
+      "serial_sha256": "364562bc1860186ffd05fef8d7cbdc400e85cf2789c401ad8e6be501f3424261",
+      "cause": "New caller closed Process twice; now reuses existing keep-helper with one close owner."
+    }
+  ],
+  "boundary": "Strict kernel observers verify actual Waiting at authorized kill, cleared waitrecord after cleanup, same-slot fresh PID and crossing the old deadline without inherited wake. Existing rights, kill, cleanup and scheduler mechanisms are unchanged. No new rubric points; not full release, physical hardware or human audit."
+}

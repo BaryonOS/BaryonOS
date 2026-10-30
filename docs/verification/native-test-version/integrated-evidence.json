@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "source_commit": "36cbd215e03becbc4b495ae1b3a42b844603e0fa",
+  "source_fingerprint_version": 3,
+  "source_sha256": "31c1f108e52336c222c1a9541dc91edd06c291c05eedbc88dec03d8df658bf9f",
+  "scope": "Final bounded native GUI/document, IPC, system/cold recovery and RTC regression. Separate FPU proof uses the identical runtime source fingerprint. Not full product, encrypted personal storage, hardware, human audit or 50 percent acceptance.",
+  "common_environment": "LD_LIBRARY_PATH=\"$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu\"",
+  "gui": {
+    "environment": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/gui-final\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/gui-baseline\"",
+    "profile": "pc-q35-10.0/qemu64/TCG/1CPU/256MiB/VGA/PS2; no network or physical disk",
+    "build_commands": [
+      "python3 -B -u tools/build.py --kernel-feature native-system-materiaal-probe",
+      "python3 -B -u tools/build.py --kernel-feature test-system-materiaal-recover"
+    ],
+    "normal_command": "python3 -B -u tools/run_materiaal_probe.py --build-dir \"$PWD/build/native-test-version/gui-final\" --machine pc-q35-10.0 --vga-rom \"$PWD/.tools/nieuw-os/qemu/usr/share/seabios/vgabios-stdvga.bin\" --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde",
+    "recover_command": "python3 -B -u tools/run_materiaal_probe.py --case recover --build-dir \"$PWD/build/native-test-version/gui-final\" --parent \"$PWD/build/native-test-version/gui-final/run/materiaal-normal-02be02a786\" --machine pc-q35-10.0 --vga-rom \"$PWD/.tools/nieuw-os/qemu/usr/share/seabios/vgabios-stdvga.bin\" --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde",
+    "all_command_exits": 0,
+    "normal": {
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 128.85677309600032,
+      "report": "build/native-test-version/gui-final/run/materiaal-normal-02be02a786/result.json",
+      "report_sha256": "0637f1274d54f8750a6033fd13ad3007b527291df371a7d805697699025f9cc5",
+      "kernel_sha256": "e67d4e990de9b3f662b5d7923c52760225a1030d981e7494deef2588e4c1f212",
+      "loader_sha256": "7e55ab0fe6c232380f52dc5be1334b41388b70d80e0ebe2b0072de7e12373a09",
+      "phases": ["ready", "editor", "dirty", "saved", "list", "reopened"],
+      "frames": 6,
+      "save_acks": 1,
+      "disk_writes": 35,
+      "disk_flushes": 3,
+      "disk_after_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e"
+    },
+    "recover": {
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 60.678651518999686,
+      "report": "build/native-test-version/gui-final/run/materiaal-recover-244004f6e4/result.json",
+      "report_sha256": "c45514d8273773c7e22386b380e050ddee5f19bc1ca14fb18965dd07ceaf9c3b",
+      "kernel_sha256": "99d405975858c16053d2b7ba33e1af4934b1ffc7b646e8e17b71e0d84c764155",
+      "loader_sha256": "7e55ab0fe6c232380f52dc5be1334b41388b70d80e0ebe2b0072de7e12373a09",
+      "phases": ["ready", "reopened", "readonly"],
+      "frames": 3,
+      "save_acks": 0,
+      "disk_writes": 0,
+      "disk_flushes": 0,
+      "disk_before_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+      "disk_after_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e"
+    },
+    "both_canaries_system_chrome_and_full_cleanup_pass": true,
+    "all_bound_source_and_input_checks_pass": true,
+    "manual_visual_quality_review_performed": false,
+    "logs": [
+      "/tmp/nieuw-os-native-gui-final-build.log",
+      "/tmp/nieuw-os-native-gui-final-run.log",
+      "/tmp/nieuw-os-native-gui-final-recover-build.log",
+      "/tmp/nieuw-os-native-gui-final-recover-run.log"
+    ]
+  },
+  "system": {
+    "environment": "NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR=\"$PWD/build/native-test-version/system-final\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/system\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/system-host\"",
+    "command": "python3 -B -u tools/test_system.py",
+    "command_exit": 0,
+    "passed": true,
+    "both_raw_qemu_exits": 33,
+    "report": "build/native-test-version/system-final/system-gate.json",
+    "report_sha256": "72725d55a073ff9a031bc7e26dbf8f6adc3c64ff162e308310211c7e233c056f",
+    "log": "/tmp/nieuw-os-native-system-final.log"
+  },
+  "rtc": {
+    "environment": "NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR=\"$PWD/build/native-test-version/clock-final\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/system\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/system-host\"",
+    "command": "python3 -B -u tools/run_system_clock.py",
+    "command_exit": 0,
+    "passed": true,
+    "raw_qemu_exit": 33,
+    "report": "build/native-test-version/clock-final/system-clock-report.json",
+    "report_sha256": "40709f43c13ea382bdca879c818c724fa4853a27d3813dba16d6f96333034d6b",
+    "log": "/tmp/nieuw-os-native-clock-final.log"
+  },
+  "ipc_wait": {
+    "environment": "NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR=\"$PWD/build/native-test-version/wait-integrated\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/wait\"",
+    "command": "python3 -B -u tools/run_ipc_wait.py",
+    "command_exit": 0,
+    "passed": true,
+    "raw_qemu_exit": 33,
+    "report": "build/native-test-version/wait-integrated/ipc-wait-report.json",
+    "report_sha256": "287209971badfc52a0de5d9b8b36221eed56e98aae59345bbad363693a30cdbf",
+    "log": "/tmp/nieuw-os-native-wait-integrated.log"
+  },
+  "test_version": {
+    "build_environment": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/test-version\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/gui-baseline\"",
+    "build_command": "python3 -B -u tools/build.py --kernel-feature native-system-materiaal-probe",
+    "command_exit": 0,
+    "build_root": "build/native-test-version/test-version",
+    "kernel_sha256": "e67d4e990de9b3f662b5d7923c52760225a1030d981e7494deef2588e4c1f212",
+    "loader_sha256": "7e55ab0fe6c232380f52dc5be1334b41388b70d80e0ebe2b0072de7e12373a09",
+    "all_ten_boot_and_userspace_payloads_equal_passing_normal_run": true,
+    "empty_synthetic_disk_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+    "log": "/tmp/nieuw-os-native-test-version-final-build.log"
+  },
+  "host": [
+    {
+      "environment": "CARGO_TARGET_DIR=\"$PWD/target/native-wait-checks\"",
+      "command": "python3 -B tools/dev.py cargo +1.90.0 test --offline --locked -p capability-core",
+      "command_exit": 0,
+      "passed": 64,
+      "ignored": 1,
+      "log": "/tmp/nieuw-os-native-core-final.log"
+    },
+    {
+      "environment": "CARGO_TARGET_DIR=\"$PWD/target/native-wait-checks\"",
+      "command": "python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime",
+      "command_exit": 0,
+      "passed": 23,
+      "log": "/tmp/nieuw-os-native-sdk-final.log"
+    }
+  ],
+  "score_before": 34,
+  "score_after": 34
+}

@@ -1,0 +1,355 @@
+{
+  "source_commit": "eabc27ba879fd3b5960863ae8eede800c5045a57",
+  "checkpoint": "c532ba88fbf0f53b960e9dbf77421cee29d97096",
+  "source_sha256": "a1998a126a3a1ccc18523925a422912d934c14bab865b3d7df346862a2c251a6",
+  "source_build": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/build/native-test-version/interactive-current",
+  "copied_build": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/windows-interactive-1/build",
+  "before_after_copied_hashes": {
+    "manifest.json": "fd088f8e8577d7d9da6fe4ee6956048f9dee0072cb54a09f1685da68693cf46c",
+    "esp/kernel.elf": "f2e9cc4aad87ad2b9fbc8b498ab146db2ab0df4a77b904eecf81c3a9beb198b3",
+    "users/materiaal/desktop-init.elf": "88ad403c3e970a6f054f108eecd5764fd889c843d8f222c83e2502cad2d926c9",
+    "users/materiaal/build-report.json": "24673dee08d8d7aee6c825e90ff3b7f22f29e9c16e83237823138ef9178edbce",
+    "users/materiaal/input-policy.elf": "628cd1e5be5de38eee5cef3aa07350139f399cb53c1e326872c8b148fefedbd3",
+    "users/materiaal/materiaal-app.elf": "e2701c6d6a20ba5505002fc41501a6f12cf8078860df342db86b2c6149f93906",
+    "users/materiaal/native-compositor.elf": "93441e0e422446bae635b55375ddb0ef673ccdf638e31e334aa8b10c28cceb6d",
+    "users/materiaal/input-source.elf": "2b3cf458852e9934c7877289f110dc9d680303c718540d1e113b110670f08702",
+    "users/materiaal/keyring-service.elf": "0fccb8d544c5ce38a6bf7a9180832af12e497f970efee53b0b8544a8abad4a96",
+    "users/materiaal/volume-service.elf": "ab17bd89eddd6d63b09eb0dc09dc0f87e4e837a5c43088dab3b5d32d4aae5488",
+    "esp/EFI/BOOT/BOOTX64.EFI": "7e55ab0fe6c232380f52dc5be1334b41388b70d80e0ebe2b0072de7e12373a09"
+  },
+  "apps": [
+    {
+      "name": "desktop-init",
+      "sha256": "88ad403c3e970a6f054f108eecd5764fd889c843d8f222c83e2502cad2d926c9",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 1098,
+            "memsz": 1098,
+            "page_start": 1073872896,
+            "page_end": 1073876992
+          },
+          {
+            "flags": 6,
+            "address": 1074003968,
+            "offset": 16384,
+            "filesz": 88,
+            "memsz": 88,
+            "page_start": 1074003968,
+            "page_end": 1074008064
+          },
+          {
+            "flags": 5,
+            "address": 1074135040,
+            "offset": 20480,
+            "filesz": 12711,
+            "memsz": 12711,
+            "page_start": 1074135040,
+            "page_end": 1074151424
+          }
+        ]
+      }
+    },
+    {
+      "name": "keyring-service",
+      "sha256": "0fccb8d544c5ce38a6bf7a9180832af12e497f970efee53b0b8544a8abad4a96",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1344,
+            "memsz": 1344,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 12288,
+            "filesz": 4323,
+            "memsz": 4323,
+            "page_start": 1073823744,
+            "page_end": 1073831936
+          },
+          {
+            "flags": 5,
+            "address": 1073872896,
+            "offset": 20480,
+            "filesz": 78775,
+            "memsz": 78775,
+            "page_start": 1073872896,
+            "page_end": 1073954816
+          }
+        ]
+      }
+    },
+    {
+      "name": "volume-service",
+      "sha256": "ab17bd89eddd6d63b09eb0dc09dc0f87e4e837a5c43088dab3b5d32d4aae5488",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 57346,
+            "memsz": 57346,
+            "page_start": 1073741824,
+            "page_end": 1073803264
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 65536,
+            "filesz": 1304,
+            "memsz": 1304,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 69632,
+            "filesz": 18282,
+            "memsz": 18282,
+            "page_start": 1073823744,
+            "page_end": 1073844224
+          }
+        ]
+      }
+    },
+    {
+      "name": "materiaal-app",
+      "sha256": "e2701c6d6a20ba5505002fc41501a6f12cf8078860df342db86b2c6149f93906",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 19,
+            "memsz": 19,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 191196,
+            "memsz": 191196,
+            "page_start": 1073872896,
+            "page_end": 1074065408
+          },
+          {
+            "flags": 6,
+            "address": 1074200576,
+            "offset": 204800,
+            "filesz": 176,
+            "memsz": 200704,
+            "page_start": 1074200576,
+            "page_end": 1074401280
+          },
+          {
+            "flags": 5,
+            "address": 1074462720,
+            "offset": 208896,
+            "filesz": 85769,
+            "memsz": 85769,
+            "page_start": 1074462720,
+            "page_end": 1074548736
+          }
+        ]
+      }
+    },
+    {
+      "name": "native-compositor",
+      "sha256": "93441e0e422446bae635b55375ddb0ef673ccdf638e31e334aa8b10c28cceb6d",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1024,
+            "memsz": 1024,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 59755,
+            "memsz": 59755,
+            "page_start": 1073872896,
+            "page_end": 1073934336
+          },
+          {
+            "flags": 6,
+            "address": 1074200576,
+            "offset": 73728,
+            "filesz": 88,
+            "memsz": 88,
+            "page_start": 1074200576,
+            "page_end": 1074204672
+          },
+          {
+            "flags": 5,
+            "address": 1074462720,
+            "offset": 77824,
+            "filesz": 24967,
+            "memsz": 24967,
+            "page_start": 1074462720,
+            "page_end": 1074491392
+          }
+        ]
+      }
+    },
+    {
+      "name": "input-source",
+      "sha256": "2b3cf458852e9934c7877289f110dc9d680303c718540d1e113b110670f08702",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1200,
+            "memsz": 1200,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 754,
+            "memsz": 754,
+            "page_start": 1073872896,
+            "page_end": 1073876992
+          },
+          {
+            "flags": 5,
+            "address": 1074003968,
+            "offset": 16384,
+            "filesz": 11591,
+            "memsz": 11591,
+            "page_start": 1074003968,
+            "page_end": 1074016256
+          }
+        ]
+      }
+    },
+    {
+      "name": "input-policy",
+      "sha256": "628cd1e5be5de38eee5cef3aa07350139f399cb53c1e326872c8b148fefedbd3",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 6,
+            "memsz": 6,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1200,
+            "memsz": 1200,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073872896,
+            "offset": 12288,
+            "filesz": 2522,
+            "memsz": 2522,
+            "page_start": 1073872896,
+            "page_end": 1073876992
+          },
+          {
+            "flags": 5,
+            "address": 1074003968,
+            "offset": 16384,
+            "filesz": 21383,
+            "memsz": 21383,
+            "page_start": 1074003968,
+            "page_end": 1074028544
+          }
+        ]
+      }
+    }
+  ]
+}

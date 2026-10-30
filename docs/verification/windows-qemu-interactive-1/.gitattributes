@@ -1,0 +1,3 @@
+serial.txt -text -diff
+checkonly.txt -text -diff
+delivery.txt -text -diff

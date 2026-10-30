@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ad2b981f`](https://github.com/simonvanieperen/nieuw-os/commit/ad2b981fe1f2bcccb03cb776b2281d32529d2f00) ·
-**Ontwikkelbranch:** `codex/b02-persistent-keystate-20261030`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B02-PERSIST-1: persistente sleutelstatus via administratief ingress en verzegeld record over een koude herstart.
-34% blijft 34%. KEY1-opcodes 11/12 met persistentie-only dispatcher, een apart administratief ingress in de native Key Service en init als herstelagent in het FR-I01-profiel zijn geïmplementeerd; 5 nieuwe wire-hosttests, 3 nieuwe harnastests, fmt/clippy, de FR-I01-gate (normaal + read-only koude herstart op dezelfde image), B01 5/5, vier RANDOM-gevallen, klok en netwerkgate slagen op fingerprint 32da9d61. Het 120-byte sleutelstatusblob en het 168-byte ciphertextrecord staan onafhankelijk geverifieerd op schijf; na herstart ontzegelt sleutel 1, blijft sleutel 0 ingetrokken en wordt manipulatie geweigerd. B02 blijft open: geen vertrouwd rollbackanker, geen write-ahead per GENERATE in de dienst, synthetische volume-identiteit; geen rubriccriterium gesloten en geen menselijke audit.
+**Bron:** [`d104fd9a`](https://github.com/simonvanieperen/nieuw-os/commit/d104fd9a7f33b478c3e1b43f8d99c6d65af73fd6) ·
+**Ontwikkelbranch:** `simon/native-interactive-cold`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Alle zes packagingreviewfixes en oorspronkelijk Windowsbewijs inhoudsbehoudend gecombineerd.
+34% blijft34%; minstens50% niet bereikt. Zes concrete preview/packaging/launcherreviewpunten inhoudsbehoudend gecombineerd met oorspronkelijk echt Windowsbewijs als identieke blobs. Nieuwe gezamenlijke host/native gates volgen; eerdere Windows-QEMUbediening en lokale testZIP blijven expliciet oudeeabc/c532brongebonden. Koude verkenning heeft volledig renderer-afgeleid lijstframe en exact reopenedframe zonder maskers maar is nog geen complete productacceptatierunner. Geen extra volledig rubriccriterium, menselijke audit of releaseclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

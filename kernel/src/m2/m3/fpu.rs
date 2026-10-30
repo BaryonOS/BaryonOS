@@ -64,6 +64,8 @@ pub(super) fn select(slot: usize) {
 #[cfg(feature = "native-fpu")]
 pub(super) mod fixture {
     use super::*;
+    #[cfg(feature = "test-fpu-wait")]
+    use crate::m2::m3::m4;
     use crate::m2::m3::{print_number, read_word, write_word, State, Status, DATA};
     use crate::serial;
 
@@ -122,6 +124,10 @@ pub(super) mod fixture {
                 .sum::<usize>();
         write_word(s.processes[0].physical(DATA + 64), 1);
         write_word(s.processes[1].physical(DATA + 64), 1);
+        #[cfg(feature = "test-fpu-wait")]
+        for p in &s.processes[..2] {
+            require(m4::engine().register(p.pid).is_ok(), b"WAIT_REGISTER");
+        }
         serial::write(b"FPU:MANIFEST:PASS\n");
     }
     pub(in crate::m2::m3) fn entry(slot: usize, vector: u64) {
@@ -195,10 +201,15 @@ pub(super) mod fixture {
         );
         if evidence().faults == 1 && evidence().reuse == 0 && s.processes[0].status == Status::Dead
         {
-            require(s.processes[1].status == Status::Ready, b"SURVIVOR");
+            let survivor = s.processes[1].status == Status::Ready;
+            #[cfg(feature = "test-fpu-wait")]
+            let survivor = survivor || s.processes[1].status == Status::Waiting;
+            require(survivor, b"SURVIVOR");
             if word(s, 1, 88) > evidence().first_b_loops + 8 {
                 s.spawn_process(0);
                 require(s.processes[0].pid == 3, b"FRESH_PID");
+                #[cfg(feature = "test-fpu-wait")]
+                require(m4::engine().register(3).is_ok(), b"WAIT_REGISTER_REUSE");
                 write_word(s.processes[0].physical(DATA + 64), 2);
                 evidence().reuse = 1;
                 serial::write(b"FPU:SURVIVOR:PASS\nFPU:SLOT_REUSE:PASS\n");
@@ -223,8 +234,15 @@ pub(super) mod fixture {
             let saves = unsafe { ptr::addr_of!(m3_fpu_saves).read() };
             // SAFETY: Same stopped-user/IF=0 counter ownership as above.
             let restores = unsafe { ptr::addr_of!(m3_fpu_restores).read() };
+            let user_timer_irqs = e.timer[0] + e.timer[1];
+            #[cfg(feature = "test-fpu-wait")]
+            let idle_irqs = s.wait_metrics.idle_irqs;
+            #[cfg(not(feature = "test-fpu-wait"))]
+            let idle_irqs = 0;
             require(
-                saves == s.timer_interrupts + s.syscall_calls + 1 && restores == saves,
+                s.timer_interrupts == user_timer_irqs + idle_irqs
+                    && saves == user_timer_irqs + s.syscall_calls + 1
+                    && restores == saves,
                 b"ENTRY_SWITCH_COUNTS",
             );
             for (name, value) in [
@@ -245,6 +263,41 @@ pub(super) mod fixture {
                 (b"FPU:CONTEXT_BYTES_WIPED:", 8192),
             ] {
                 print_number(name, value);
+            }
+            #[cfg(feature = "test-fpu-wait")]
+            {
+                let m = s.wait_metrics;
+                let stats = m4::engine().stats();
+                require(
+                    stats.processes == 0
+                        && stats.handles == 0
+                        && stats.nodes == 0
+                        && stats.endpoints == 0
+                        && stats.queued_messages == 0
+                        && m4::engine().check_invariants(),
+                    b"WAIT_ENGINE_CLEANUP",
+                );
+                require(
+                    m.calls == e.loops
+                        && m.blocked >= 3
+                        && m.wake_timeout == m.blocked
+                        && m.immediate_timeout + m.blocked == m.calls
+                        && m.immediate_ready == 0
+                        && m.wake_ready == 0
+                        && m.wake_error == 0
+                        && m.idle_irqs > 0,
+                    b"REAL_WAIT_LIFECYCLES",
+                );
+                for (name, value) in [
+                    (b"FPU:WAIT_CALLS:".as_slice(), m.calls),
+                    (b"FPU:WAIT_BLOCKED:", m.blocked),
+                    (b"FPU:WAIT_TIMEOUTS:", m.wake_timeout),
+                    (b"FPU:WAIT_IMMEDIATE:", m.immediate_timeout),
+                    (b"FPU:WAIT_IDLE_IRQS:", m.idle_irqs),
+                ] {
+                    print_number(name, value);
+                }
+                serial::write(b"FPU:WAIT:PASS\n");
             }
             serial::write(b"FPU:CONTEXT_ISOLATION:PASS\nFPU:CLOCK:PASS\nFPU:CLEANUP:PASS\nFPU:PASS\nM1:PASS\n");
             serial::exit(0x10)
