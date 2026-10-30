@@ -1,0 +1,18 @@
+[package]
+name = "nieuw-os-nas-client"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[dependencies]
+nieuw-os-nas-core = { version = "=0.1.0", path = "../native-core" }
+
+[workspace]
+members = ["."]
+resolver = "2"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = false

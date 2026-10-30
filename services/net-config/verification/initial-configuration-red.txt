@@ -1,0 +1,53 @@
+   Compiling byteorder v1.5.0
+   Compiling heapless v0.9.3
+   Compiling stable_deref_trait v1.2.1
+   Compiling smoltcp v0.14.0
+   Compiling managed v0.8.0
+   Compiling bitflags v1.3.2
+   Compiling cfg-if v1.0.5
+   Compiling hash32 v0.3.1
+   Compiling nieuw-os-net-stack v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/native-net-config-worktree/services/net-stack)
+error[E0432]: unresolved imports `nieuw_os_net_stack::AddressConfiguration`, `nieuw_os_net_stack::LinkConfig`
+ --> tests/configuration.rs:3:5
+  |
+3 |     AddressConfiguration, Error, LinkConfig, SocketStorage, Stack, State,
+  |     ^^^^^^^^^^^^^^^^^^^^         ^^^^^^^^^^ no `LinkConfig` in the root
+  |     |
+  |     no `AddressConfiguration` in the root
+
+error[E0599]: no function or associated item named `new_unconfigured` found for struct `Stack<'a>` in the current scope
+  --> tests/configuration.rs:17:28
+   |
+17 |     let mut stack = Stack::new_unconfigured(
+   |                            ^^^^^^^^^^^^^^^^ function or associated item not found in `Stack<'_>`
+   |
+note: if you're trying to build a new `Stack<'_>`, consider using `Stack::<'a>::new` which returns `Result<Stack<'_>, nieuw_os_net_stack::Error>`
+  --> /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/native-net-config-worktree/services/net-stack/src/lib.rs:87:5
+   |
+87 | /     pub fn new(
+88 | |         config: Config,
+89 | |         storage: &'a mut [SocketStorage<'a>],
+90 | |         rx_frame: &'a mut [u8; FRAME_BYTES],
+91 | |         tx_frame: &'a mut [u8; FRAME_BYTES],
+92 | |         ticks: u64,
+93 | |     ) -> Result<Self, Error> {
+   | |____________________________^
+
+error[E0599]: no variant or associated item named `NotConfigured` found for enum `nieuw_os_net_stack::Error` in the current scope
+  --> tests/configuration.rs:25:20
+   |
+25 |         Err(Error::NotConfigured)
+   |                    ^^^^^^^^^^^^^ variant or associated item not found in `nieuw_os_net_stack::Error`
+
+error[E0599]: no variant or associated item named `NotConfigured` found for enum `nieuw_os_net_stack::Error` in the current scope
+  --> tests/configuration.rs:36:20
+   |
+36 |         Err(Error::NotConfigured)
+   |                    ^^^^^^^^^^^^^ variant or associated item not found in `nieuw_os_net_stack::Error`
+
+Some errors have detailed explanations: E0432, E0599.
+For more information about an error, try `rustc --explain E0432`.
+error: could not compile `nieuw-os-net-stack` (test "configuration") due to 4 previous errors
+real 1.28
+user 1.38
+sys 0.54

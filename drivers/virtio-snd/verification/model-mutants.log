@@ -1,0 +1,36 @@
+source src/transport_model.rs sha256 d1bec93006e9682039d6f96bec2bd54287b6e34063a68473f8a6a7b75fe0073c
+command cargo +1.90.0 test --offline --locked -q transport_model
+M1 CAUGHT exit=101 I1 fence accepts status 0 without BME-off read-back
+  delta: 'if !(self.status_zero && self.bme_off) {' -> 'if !self.status_zero {'
+  red: transport_model::tests::f18_epoch_overflow_quarantines
+  red: transport_model::tests::i1_status_zero_alone_is_not_a_fence
+  red: transport_model::tests::i2_completion_after_both_acks_quarantines
+  red: transport_model::tests::i2_used_index_moving_after_ack_quarantines
+  red: transport_model::tests::i3_contradicting_read_back_quarantines
+  red: transport_model::tests::i3_fence_timeout_quarantines_and_keeps_pool_pinned
+  red: transport_model::tests::i3_late_read_back_after_deadline_quarantines
+  red: transport_model::tests::i4_no_submit_after_revoke
+  red: transport_model::tests::i4_reinit_requires_fresh_lease
+M2 CAUGHT exit=101 I2 lease/epoch check removed
+  delta: 'if lease == self.lease {' -> 'if true {'
+  red: transport_model::tests::i2_stale_lease_completion_rejected_without_state_change
+  red: transport_model::tests::i4_reinit_requires_fresh_lease
+M3 CAUGHT exit=101 I3 fence timeout goes Offline instead of Quarantined
+  delta: 'now >= self.deadline) {\n            self.state = State::Quarantined;' -> 'now >= self.deadline) {\n            self.state = State::Offline;'
+  red: transport_model::tests::i3_fence_timeout_quarantines_and_keeps_pool_pinned
+M4 CAUGHT exit=101 I4 submit after revoke allowed (revoked check removed)
+  delta: '        if self.revoked {\n            return Err(Reject::Revoked);\n        }\n        self.live()?;' -> '        self.live()?;'
+  red: transport_model::tests::i4_no_submit_after_revoke
+M5 CAUGHT exit=101 I5 rx buffer allowed
+  delta: 'Err(Reject::RxForbidden)' -> 'Ok(())'
+  red: transport_model::tests::i5_rx_never_gets_buffers
+M6 CAUGHT exit=101 I6 double completion accepted (any slot counts as published)
+  delta: '== Some(Slot::Published);' -> '!= None;'
+  red: transport_model::tests::i2_unknown_or_idle_completion_fences
+  red: transport_model::tests::i3_unarmed_internal_fence_quarantines_on_tick
+  red: transport_model::tests::i6_double_completion_rejected
+M7 CAUGHT exit=101 I6/F19 double release accepted
+  delta: 'if self.released {' -> 'if false {'
+  red: transport_model::tests::i6_double_release_rejected
+restored sha256 d1bec93006e9682039d6f96bec2bd54287b6e34063a68473f8a6a7b75fe0073c OK
+caught 7/7

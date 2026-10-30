@@ -1,0 +1,4 @@
+logs/*.txt -text whitespace=-blank-at-eol,-blank-at-eof
+**/serial.txt -text whitespace=cr-at-eol
+reference-ac4f038e86/bootstrap-mapping-disassembly.txt -text whitespace=-blank-at-eol,-blank-at-eof
+isolated-build-1/logs/*.txt -text whitespace=-blank-at-eol,-blank-at-eof

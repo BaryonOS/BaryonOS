@@ -1,0 +1,8 @@
+{
+  "label": "TEST-revoked",
+  "purpose": "test anchors for the B03 gate; never a release key",
+  "ed25519_public": "63d848a071b63e1aa5ca3eefe9e8b518666760784436f6fac027e4c481f2422f",
+  "ed25519_key_id": "bbc8f2ede4b22e50",
+  "mldsa65_public_sha256": "b4e101a6e997ee440e991ca7cc54c47084effe6217545857b0a9910b44095090",
+  "mldsa_key_id": "b4e101a6e997ee44"
+}

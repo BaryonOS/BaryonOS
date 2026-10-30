@@ -1,0 +1,17 @@
+{
+  "reference": {
+    "report": "docs/verification/native-cold-acceptance/review-7d66/reference/summary.json",
+    "sha256": "82419cd87fc3446bffe42f1abb02bf9f4d0c13ea0a2f9562c0fdcba6e4478f85",
+    "original_report_sha256": "c3e96478291b954c2fd8cfb37af7ec5d0825094c28fd9acb0d04951d1186b334"
+  },
+  "parent": {
+    "report": "docs/verification/native-cold-acceptance/review-7d66/parent/summary.json",
+    "sha256": "9e755cec8b5776f5ee61ce1c785867cfc3a3216a84dbb832abc40f2bb2ae090d",
+    "original_report_sha256": "b44fabd0dd3e04859b860fcb2a7ee990a721de7e7f6b07f825835812e93a98a9"
+  },
+  "cold": {
+    "report": "docs/verification/native-cold-acceptance/review-7d66/cold/summary.json",
+    "sha256": "ca30eb81d7f9eb196d86baf6704807018655c7fcdc81ddb927af1c26cbdc769a",
+    "original_report_sha256": "db052373c440823fa9954298f81f076eb9a323025deddc3864e11e4e135dbb67"
+  }
+}

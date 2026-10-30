@@ -1,0 +1,14 @@
+    Checking byteorder v1.5.0
+    Checking stable_deref_trait v1.2.1
+    Checking bitflags v1.3.2
+    Checking managed v0.8.0
+    Checking cfg-if v1.0.5
+    Checking hash32 v0.3.1
+    Checking heapless v0.9.3
+    Checking smoltcp v0.14.0
+    Checking nieuw-os-net-stack v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/net-broker-worktree/services/net-stack)
+    Checking nieuw-os-net-broker v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/net-broker-worktree/services/net-broker)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.05s
+real 1.08
+user 0.94
+sys 0.34

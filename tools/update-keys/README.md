@@ -17,3 +17,22 @@ docs/implementation/B03-SIGNED-UPDATES.md).
 | `TEST-ed25519.pub` | 32-byte publieke sleutel (anker in loader en dienst) |
 | `TEST-mldsa65.pub` | 1952-byte publieke sleutel (anker in loader en dienst) |
 | `TEST-anchors.json` | sleutel-ID's (eerste 8 bytes van SHA-256 over de publieke sleutel) |
+
+Dezelfde vijf bestanden bestaan met labels `TEST-next`, `TEST-revoked` en
+`TEST-expired`. Dit zijn eveneens opzettelijk openbare QEMU-fixtures, geen
+geheimen of productieankers. `update-core::test_policy` is de enige gedeelde
+beleidstabel voor loader en dienst:
+
+| Paar | Toegestane releaseversies | Toestand |
+|---|---|---|
+| `TEST` | 1 tot en met u64::MAX | bestaand paar, behouden voor regressies |
+| `TEST-next` | 2 tot en met u64::MAX | vooraf vastgepinde opvolger |
+| `TEST-revoked` | geen | onvoorwaardelijk ingetrokken |
+| `TEST-expired` | alleen 1 | buiten dit releasevenster geweigerd |
+
+`KEY_EXPIRED` betekent hier **buiten de toegestane releaseversies**, niet
+kalenderverval. De eigen RTC is geen vertrouwde tijdbron. Online sleutel-
+discovery, dynamische truststore-updates en productie-intrekkingsdistributie
+zijn niet geïmplementeerd. Het manifest kan geen anker of beleid toevoegen.
+`update-tool verify` controleert een expliciet gegeven sleutelpaar alleen
+cryptografisch; `verify-pinned` controleert het gedeelde QEMU-beleid.

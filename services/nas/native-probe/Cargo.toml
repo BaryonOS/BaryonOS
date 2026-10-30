@@ -1,0 +1,34 @@
+[package]
+name = "nieuw-os-nas-probe"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[features]
+native = []
+
+[[bin]]
+name = "nas-probe"
+path = "src/main.rs"
+required-features = ["native"]
+
+[[bin]]
+name = "nas-volume"
+path = "../../../sdk/examples/volume-docs/src/service.rs"
+required-features = ["native"]
+
+[dependencies]
+nieuw-os-nas-core = { version = "=0.1.0", path = "../native-core" }
+nieuw-os-nas-volume = { version = "=0.1.0", path = "../native-volume" }
+nieuw-os-sdk-runtime = { version = "=0.1.0", path = "../../../sdk/runtime" }
+volume-core = { version = "=0.1.0", path = "../../volume" }
+
+[workspace]
+members = ["."]
+resolver = "2"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = false
