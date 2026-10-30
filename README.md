@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`4b098691`](https://github.com/simonvanieperen/nieuw-os/commit/4b098691a53fbacc58a2e01d352821fa01545122) ·
+**Bron:** [`f61ce3e6`](https://github.com/simonvanieperen/nieuw-os/commit/f61ce3e66e5a92f50fe5112c8fd440171b854837) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** TPM-NATIVE-1: eigen-kernel-CRB-query/release en ontbrekend-devicegeval beide native groen.
-34% blijft 34%; minstens50% niet bereikt. Op4b09869 slagen twee echte TPM-VM's raw33/exit0: eigen-kernel-UC/NX-MMIO, TPM2-familyquery en bevestigde release; zonder TPM exact nul writes/sticky quarantaine. Zeven adapterweigeringen en volledige CPL3-wachtproeven met199 idle-IRQ's blijven groen.23 coretests en4 harnastests groen; eerste rode mapperpoging behouden. CI wired maar nog niet uitgevoerd. Geen keyring/system-overlap met PR64, nieuwe apprechten, NV-mutatie, productkeys of rollbackanker. Geen volledig nieuw criterium; eerdere GUI/FPU/K05-bewijzen en proefversie behouden. Product-/menselijke-/hardwareacceptatie open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** TPM/integratie: Pythonharnassen groen; bestaande PR62-doctestfix hergebruikt, volledige hertoets volgt.
+34% blijft 34%; minstens50% niet bereikt. Twee native TPM-VM's blijven brongebonden groen. Opf61ce3e slagen415 Python- en102 tooltests. Volledige Rustworkspace faalt op bekende HKDF-doctestdeps na367 groene unit/integratietests. Exact bestaande gepinde host-devdeps uit PR62 hergebruikt voor HKDF/HMAC;5 gerichte doctests groen, volledige hertoets volgt. Geen cryptobron, runtimeafhankelijkheid, PR64-wire/systeminterface of productrecht gewijzigd. Eerdere GUI/FPU/K05-bewijzen en proefversie behouden; geen nieuw rubriccriterium. Product-/menselijke-/hardwareacceptatie en CI open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "4b098691a53fbacc58a2e01d352821fa01545122",
+    "source_commit": "f61ce3e66e5a92f50fe5112c8fd440171b854837",
     "branch": "simon/native-test-version",
-    "task": "TPM-NATIVE-1: eigen-kernel-CRB-query/release en ontbrekend-devicegeval beide native groen",
+    "task": "TPM/integratie: Pythonharnassen groen; bestaande PR62-doctestfix hergebruikt, volledige hertoets volgt",
     "previous_score": 34,
-    "summary": "34% blijft 34%; minstens50% niet bereikt. Op4b09869 slagen twee echte TPM-VM's raw33/exit0: eigen-kernel-UC/NX-MMIO, TPM2-familyquery en bevestigde release; zonder TPM exact nul writes/sticky quarantaine. Zeven adapterweigeringen en volledige CPL3-wachtproeven met199 idle-IRQ's blijven groen.23 coretests en4 harnastests groen; eerste rode mapperpoging behouden. CI wired maar nog niet uitgevoerd. Geen keyring/system-overlap met PR64, nieuwe apprechten, NV-mutatie, productkeys of rollbackanker. Geen volledig nieuw criterium; eerdere GUI/FPU/K05-bewijzen en proefversie behouden. Product-/menselijke-/hardwareacceptatie open."
+    "summary": "34% blijft 34%; minstens50% niet bereikt. Twee native TPM-VM's blijven brongebonden groen. Opf61ce3e slagen415 Python- en102 tooltests. Volledige Rustworkspace faalt op bekende HKDF-doctestdeps na367 groene unit/integratietests. Exact bestaande gepinde host-devdeps uit PR62 hergebruikt voor HKDF/HMAC;5 gerichte doctests groen, volledige hertoets volgt. Geen cryptobron, runtimeafhankelijkheid, PR64-wire/systeminterface of productrecht gewijzigd. Eerdere GUI/FPU/K05-bewijzen en proefversie behouden; geen nieuw rubriccriterium. Product-/menselijke-/hardwareacceptatie en CI open."
   },
   "tracks": [
     {

@@ -18,10 +18,19 @@ Native-system-CI krijgt beide echte cases; die CI **nog niet uitgevoerd**.
 PR #64/keyring/system-opslag niet gewijzigd. Geen achtergrondagent of
 testproces actief. Eerdere GUI/koud/FPU/K05-bewijzen blijven brongebonden;
 normale lokale proefversie onder `build/native-test-version/test-version/esp`.
-Volgende stap: gedeelde build/runnerintegratie hertoetsen en de normale
-GUI-proefversie op deze gecombineerde bron herbouwen/herhalen. Eerst:
-`python3 -B -m unittest discover -s tests` en
-`python3 -B -m unittest discover -s tools/tests`.
+Gedeelde hostharnassen op `f61ce3e`: 415 root-Pythontests en 102
+tooltests slagen. De volledige root-Rustworkspace faalde daarna op de
+reeds bekende ontbrekende HKDF-doctestdeps (367 unit/integratietests
+ervoor groen). Exact de bestaande PR #62-fix voor beide vendormanifesten
+is hergebruikt: alleen gepinde host-devdeps/lock, geen cryptobron,
+runtime-afhankelijkheid of PR #64-wire/systeminterface gewijzigd.
+Alle vijf gerichte HKDF/HMAC-doctests slagen nu. PR #62 is niet gesloten
+of samengevoegd; zijn overige preflightinhoud is niet overgenomen.
+De rode workspace-log blijft `/tmp/nieuw-os-native-tpm-regression-workspace.log`.
+Volgende stap na dit checkpoint: gehele workspace en native integratie
+hertoetsen, daarna de normale GUI-proefversie op de gecombineerde bron
+herbouwen/herhalen. Gerichte doctestlog:
+`/tmp/nieuw-os-native-tpm-vendor-docs.log`.
 Volledige product-/menselijke-/hardwareacceptatie en 50%-opdracht blijven open.
 
 ## Uitvoeringshistorie — TPM-CRB-MMIO gebouwd en eerste native herstel
