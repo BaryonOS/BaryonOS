@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "e6eecbc28bb4e74d1b1c7c01b26f2ab249cf4291",
+    "source_commit": "d104fd9a7f33b478c3e1b43f8d99c6d65af73fd6",
     "branch": "simon/native-interactive-cold",
-    "task": "Windows-testbundel en volledig brongebonden echt Windowsbedieningsbewijs geïntegreerd",
+    "task": "Alle zes packagingreviewfixes en oorspronkelijk Windowsbewijs inhoudsbehoudend gecombineerd",
     "previous_score": 34,
-    "summary": "34% blijft34%; minstens50% niet bereikt. Echte Windows-QEMU11.1/SDL-bediening op vaste eabc27b/c532bron: zes volledige bytegelijke native frames,918 gecorreleerde QMPcommands,quit/raw0 en onafhankelijk diskorakel. Lokale schone testZIP afgeleverd met SHA256/grootte; volledig peerbewijs als identieke Git-blobs geïntegreerd. Preview stale-successfix apart52/135hostgroen, nieuwe native sourcegate nog open. Geen koudherstel-, menselijke UX-, veiligheidsaudit- of volledige productacceptatie; geen volledig extra rubriccriterium."
+    "summary": "34% blijft34%; minstens50% niet bereikt. Zes concrete preview/packaging/launcherreviewpunten inhoudsbehoudend gecombineerd met oorspronkelijk echt Windowsbewijs als identieke blobs. Nieuwe gezamenlijke host/native gates volgen; eerdere Windows-QEMUbediening en lokale testZIP blijven expliciet oudeeabc/c532brongebonden. Koude verkenning heeft volledig renderer-afgeleid lijstframe en exact reopenedframe zonder maskers maar is nog geen complete productacceptatierunner. Geen extra volledig rubriccriterium, menselijke audit of releaseclaim."
   },
   "tracks": [
     {

@@ -89,6 +89,61 @@ class WindowsQemuPackageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "regular"):
             package.validate_build(self.build, verify_source=False)
 
+    def package_to(self, output):
+        firmware = self.root / "test-firmware"
+        firmware.write_bytes(b"synthetic firmware and license")
+        with (
+            patch.object(package, "git_commit", return_value="1" * 40),
+            patch.object(package, "inspect_user", side_effect=lambda path: {"name": path.stem}),
+        ):
+            return package.package_bundle(
+            build_directory=self.build,
+            output=output,
+            ovmf_code=firmware,
+            ovmf_vars=firmware,
+            seabios_bios=firmware,
+            vga_rom=firmware,
+            ovmf_license=firmware,
+            seabios_license=firmware,
+            ovmf_version="test-ovmf",
+            seabios_version="test-seabios",
+            verify_source=False,
+            )
+
+    def test_normalizes_parent_components_before_creating_output(self):
+        output = self.root / "unused" / ".." / "packages" / "bundle.zip"
+        result = self.package_to(output)
+        expected = self.root / "packages" / "bundle.zip"
+        self.assertEqual(result["output"], str(expected))
+        self.assertTrue(expected.is_file())
+        self.assertFalse((self.root / "unused").exists())
+
+    def test_rejects_symlink_before_creating_missing_output_parent(self):
+        target = self.root / "target"
+        target.mkdir()
+        link = self.root / "linked"
+        link.symlink_to(target, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, "must not traverse symlinks"):
+            self.package_to(link / "missing" / "bundle.zip")
+        self.assertFalse((target / "missing").exists())
+
+    def test_rechecks_output_parent_after_mkdir(self):
+        target = self.root / "target"
+        target.mkdir()
+        parent = self.root / "packages"
+        original_mkdir = Path.mkdir
+
+        def redirected_mkdir(path, *args, **kwargs):
+            original_mkdir(path, *args, **kwargs)
+            if path == parent:
+                path.rmdir()
+                path.symlink_to(target, target_is_directory=True)
+
+        with patch.object(Path, "mkdir", autospec=True, side_effect=redirected_mkdir):
+            with self.assertRaisesRegex(ValueError, "must not traverse symlinks"):
+                self.package_to(parent / "bundle.zip")
+        self.assertEqual(list(target.iterdir()), [])
+
     def test_creates_hash_bound_bundle_and_refuses_overwrite(self):
         source = self.root / "firmware"
         source.mkdir()

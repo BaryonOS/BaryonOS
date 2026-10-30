@@ -60,6 +60,9 @@ foreach ($relative in $requiredFiles) {
         throw "Missing or malformed bundle hash: $relative"
     }
     $path = Join-Path $bundle $relative
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        throw "Bundle file does not exist: $relative"
+    }
     $item = Get-Item -LiteralPath $path -Force
     if ($item.PSIsContainer -or $item.Length -ne $entry.Value.size_bytes) {
         throw "Bundle file size differs: $relative"

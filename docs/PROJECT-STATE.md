@@ -1,6 +1,26 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Windows-testversie afgeleverd; previewreviewfix apart
+## NEXT AGENT HANDOFF — Zes reviewfixes en Windowsbewijs geïntegreerd; native herhaling volgt
+
+Vervolgbranch vanaf71c1d5c met d104fd9a7f33b478c3e1b43f8d99c6d65af73fd6
+inhoudsbehoudend geïntegreerd. Alle zes concrete reviewfixes samen; volledige
+Windowsbewijsmap blijft blob-identiek aan3f3f99e, bronoudeeabc/c532.
+Code v3 moet24d5f4c112924cfe45681de3fcf3a92f62087e29524f15c74e14d83620891abd
+blijven; geen experimentele coldhelper in tools opgenomen.
+Gerichte55/volledige138 tools-tests exit0, diff/progresswrite/check0.
+Logs `/tmp/nieuw-os-review-integrated-{targeted,tools}.log`.
+Daarna checkpoint
+push naar eigen vervolgbranch (PR66blijftc532) en echte normale referentie+
+gewone bedieningsproef op deze exacte codebasis. Coördinator krijgt exact
+broncommit/gates vóór mutatie van PR66. Score34;50% open.
+
+Derde koude experiment8096f0533e slaagt: vooraf renderer-afgeleid volledig
+lijstframe (Readyfooter, populatedlist), daarna exact reopenedframe, geen
+maskers of vaste gereedheidsdelay; disk onveranderd+diskoracle naquit0.
+Payload oudeeabc vastgehashd, hosttoolbron0e17… apart geregistreerd.
+Dit blijft sessieonderzoek, geen complete same-source acceptatierunner.
+
+## Uitvoeringshistorie — Windows-testversie afgeleverd; previewreviewfix apart
 
 Vervolgbranch `simon/native-interactive-cold`: previewfix e6eecbc en volledige
 Windowsbewijscommit 3f3f99e inhoudsbehoudend geïntegreerd (identieke Git-blobs)
@@ -30,6 +50,44 @@ Koude experimenten blijven apart, geen volledige acceptatie. Volgende stap:
 reviewfixes op één vaste bron integreren en gerichte+native sourcegates;
 daarna koude normale variant met volledig renderer-afgeleid lijstorakel.
 **34% blijft34%; minstens50%, volledige product- en menselijke/hardwaregates open.**
+## Uitvoeringshistorie — Windowsbundelreview gecombineerd; integratiegates open
+
+Basis `e6eecbc28bb4e74d1b1c7c01b26f2ab249cf4291`, eigen branch
+`copilot/windows-review-fixes-20261030`. De peer-previewfix is inhoudsbehoudend
+fast-forward geïntegreerd; vijf overige concrete PR #65-reviewpunten zijn
+hersteld in packager/directe tests, Windowslauncher/test/README en het
+historische preview-README. Geen kernel-/capabilitywijziging. Uitvoerpad
+normaliseert `..` vóór mkdir en weigert symlinktraversal vóór en na mkdir;
+de launcher geeft een vaste fout voor een ontbrekend bundelbestand.
+Historische JSON-bewijzen blijven bytegelijk; geen ongefundeerde v3-,
+hostisolatie- of algemene Windowsacceptatieclaim.
+
+Uitgevoerd: 55 gecombineerde gerichte Python-tests, exit 0; vijf
+synthetische launchertests op echte Windows PowerShell 5.1/QEMU 11.1,
+exit 0, zonder VM of policywijziging. Eerste Pythonrun faalde door een
+inspringfout in de nieuwe test; na herstel slagen alle drie nieuwe
+padregressies en de bestaande tests. Exacte commando's, logs en grenzen:
+`verification/native-test-version/windows-bundle-review.md`.
+Voortgang **34% → 34%**; nieuwe native/CI-gates op deze gecombineerde
+bron zijn niet uitgevoerd. Linux-/Windows-interactiebewijs op eabc27b/c532
+wordt niet naar deze bron omgelabeld.
+
+GitHubtriage: issues #37/#38/#45 gesloten met bestaand bewijs of echte
+negatieve rulesetproef. #39–#43 blijven open; B03 heeft al native
+updatebewijs maar #41 vraagt ook nog sleutelrotatie/intrekking. Alle twaalf
+CI-checks van PR #62-head `f6d3a108` slagen; de nieuwe review loopt nog en
+de reviewbeslissing blijft `CHANGES_REQUESTED`. Geen reviewbypass.
+PR #66-head `c532ba8` had dertien groene checks, maar deze reviewfixes en
+Windowsbewijscommit `3f3f99e` moeten eerst inhoudsbehoudend worden opgenomen.
+PR #65 niet sluiten voordat zijn volledige inhoud én reviewafhandeling in
+de vervangende integratie zijn aangetoond. #68/#70–#73 hebben hun eigen
+actieve bron-/revieweigenaren; geen gelijktijdige bronwijziging door triage.
+
+Eerstvolgend: checkpoint pushen en remotehash controleren; eigenaar #66
+integreert daarna deze bron en het afzonderlijke Windowsbewijs, voert de
+vereiste nieuwe gates uit en houdt historische bewijsbinding intact.
+Squashmerge alleen op actuele head/base met groene vereiste checks en
+afgehandelde inhoudelijke review. Volledige release en 50%-doel blijven open.
 
 ## Uitvoeringshistorie — Opvolgbranch: oud preview-succes bij voorbereiding geweigerd
 
