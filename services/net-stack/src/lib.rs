@@ -5,7 +5,9 @@
 //! smoltcp writes a local TX slot; only the native caller can observe NIC
 //! completion, and neither event means the remote application accepted data.
 
+mod arp_control;
 mod device;
+pub use arp_control::{AddressArp, ArpObservation};
 pub use device::{FRAME_BYTES, PacketDevice, Transmission};
 pub use smoltcp::iface::SocketStorage;
 pub use smoltcp::socket::tcp::State;

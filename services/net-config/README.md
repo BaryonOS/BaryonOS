@@ -137,6 +137,65 @@ Busy/ongeldige lengte/uitgeputte id/klokfout vervangt geen bestaande bytes.
 Withdrawal verbergt ook controleframes maar behoudt storage tot echte completion.
 Unknown/unpublished recovery is nog niet toegevoegd.
 
-De daadwerkelijke DHCP/RFC5227-coordinator, coherente DNS-toepassing en native
-driver/callerkoppeling ontbreken nog. Een geslaagde pure-clientproef is daarvoor
-geen vervanging. N01 en netwerk0/10 blijven open.
+Dit tussencheckpoint alleen leverde nog geen coordinator; inmiddels volgt
+hieronder de eigenlijke source-implementatie. Native driver/callerkoppeling
+ontbreekt nog. N01 en netwerk0/10 blijven open.
+
+## DHCP-/probe-/DNS-coordinator: hostcore, geen native proces
+
+`service::Service` bezit de bestaande Stack en DHCP-client. `start`,
+`send_dhcp`, `receive_frame`, `poll`, `complete_transmission`, `transmission`,
+`configuration`, `phase`, `begin_renewal`, `link_down` en
+`transport_uncertain` zijn trusted-service-broninterfaces, GEEN nieuwe IPC,
+appcapability, kernelissuer, exclusieve devicelease of authentieke peerbinding.
+Geen publieke probe-succesboolean of constructor voor een succesattest.
+
+ACK laat adres/routes/DNS nog afwezig. `poll` publiceert drie echte RFC5227
+ARP-probebytes via hetzelfde PacketDevice; alleen passende backendcompletions
+verzetten de probevoortgang. Tussenpozen komen uit een gevalideerde
+`ProbeTiming`: init0..100ticks, daarna100..200ticks. De native caller moet deze
+uniform uit geautoriseerde entropy trekken; vaste hostwaarden zijn geen RNG.
+Na de derde completion volgen200ticks wachttijd en twee announcements,
+200ticks uiteen. Pas na completion van de eerste announcement wordt het
+adres/default-route toegepast, de client Bound en DNS samen zichtbaar.
+
+De bestaande gepinde smoltcp wireviews encoderen/decodeerden ARP; geen nieuwe
+dependency of protocolcratewrite. RFC5227-proberesponses met target-IP0 worden
+wel als conflict gezien. De oudere neighborcodec weigert die terecht in haar
+beperkte resolverprofiel en is niet als volledige conflictdetector gebruikt.
+Eigen echo wordt niet als vreemde probe geteld. Vreemde claim tijdens de
+volledige wachtperiode of tijdens Bound trekt de configuratie in; geen
+permanente adresverdediging. Na conflict minstens10s wachten, na tien
+conflicten minstens60s (RFC5227rate-limit); state blijft in deze service.
+Een nieuw object is geen native apparaat-/crash-/persistentielimietbewijs.
+
+Een echte rode runtimecase vond bovendien dat upstream smoltcp zero-source
+peerprobes tijdens Bound niet beantwoordt. De regression en exacte WIP-patch
+tegen4c335d1 zijn bewaard. De configuratieadapter antwoordt nu uitsluitend op
+een gevalideerde vreemde probe voor het werkelijk toegepaste eigen adres,
+zonder0 als neighbor te cachen, via hetzelfde TX-slot/completionpad.
+Busy houdt het huidige frame vast; de ontvangende loop bewaart haar ingress
+tot zij opnieuw kan aanbieden. Geen fake completion of onzichtbare discard.
+
+T1 meldt RenewalDue; de loop levert een verse XID aan `begin_renewal`.
+Renewal gebruikt de server-MAC uit de geaccepteerde directe DHCPuitwisseling,
+alleen als ongeauthenticeerde routeringshint. T2 verandert naar broadcast
+Rebinding; expiry/NAK/linkdown verwijderen adres/route/DNS en verbergen oude
+TX. DNS is de serverconfiguratie, geen resolver/cache of appnaamrecht.
+Bij ongewijzigd adres/prefix/gateway vernieuwt de lease/DNS zonder TCPreset.
+Een gewijzigde route/prefix retiret de oude sockets; pas na oude TXcompletion
+wordt de nieuwe epoch actief. Dat kan verbindingen onderbreken en is geen
+claim van naadloze routewijziging. Clockfault of Unknown is terminaal:
+geen automatische retry/release/herstel of hervatten van een oude lease.
+
+Twaalf gerichte hostcases zijn groen, inclusief probe-/announcementbytes,
+stale completion, TXbackpressure, late conflicten, gewone peerprobeantwoorden,
+T1/T2/NAK, gewijzigde gateway/DNS,10conflicten,expiry,linkdown en klokoverflow.
+Nog niet: volledige brongebonden eindgates op deze coordinator, native proces,
+echte NICcompletion/DMAfence/driverreset/CR3, gekoppelde broker-policy,
+native RNG/retryscheduler/auto-reconnect of volledige DHCPreleaseacceptatie.
+De huidige codec heeft geen DHCPDECLINE-builder: concrete extra schrijfclaim
+of handoff aan de protocolowner is gevraagd, GEEN protocolwrite overgenomen.
+RFC2131sectie3.1 vereist DECLINE;10s wachten is daar SHOULD en wordt hier
+conservatief toegepast. Ook selecting-request `secs`-behoud vraagt nog een
+gerichte vervolgcase. Beide blijven expliciete open punten, geen stil groen.

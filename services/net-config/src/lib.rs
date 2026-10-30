@@ -4,6 +4,7 @@
 
 pub use nieuw_os_net_protocol::{UdpDatagram, dhcp};
 pub mod dhcp_client;
+pub mod service;
 pub mod time;
 
 // Exact predicate from the codec's crate-private arp helper. Moving the client
