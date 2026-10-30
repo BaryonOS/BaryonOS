@@ -1,0 +1,4 @@
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.26s
+     Running unittests src/lib.rs (target/full-release-985ed4d-net-host/debug/deps/capability_core-e1b8727debf17276)
+   Doc-tests capability_core

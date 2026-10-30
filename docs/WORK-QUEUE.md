@@ -1,24 +1,59 @@
-# Werkqueue — 28 oktober 2026
+# Werkqueue — volledige native testrelease, 30 oktober 2026
 
-Werkelijke capaciteit: vier agents tegelijk, inclusief hoofdagent. Eén schrijver
-per gebied; aparte builds, targets, volumes, VM-processen en logbestemmingen.
-De volledige native acceptatie blijft gebonden aan `3e41bbf9`. Het vervolg op
-`f52ef0a6` bevat de documentsessie, jobcodec, capture en reviewreparaties.
+Integratie-eigenaar root, branch `codex/full-test-release`; geïntegreerde bron `844ec40`.
+[Volledige opdracht/matrix](FULL-TEST-RELEASE.md) → [actuele uitvoering en exacte hervatstap](PROJECT-STATE.md).
+Werkpakketten zijn implementatiestappen; de 62 vaste `FR-*`-criteria blijven open. De gewogen ontwikkelscore blijft 32%.
 
-| ID | Toestand | Eigenaar / exclusief gebied | Resultaat / kleinste afhankelijkheid |
+| Werkpakket | Toestand | Eigenaar / exclusieve writes | Acceptatie | Interface en bewijsgrens |
+|---|---|---|---|---|
+| TASK-DOC / TASK-CONTEXT | opdracht en aanvullende context vastgelegd | root; FULL/status/queue/rubric | alle | oorspronkelijke scope, stabiele ID's, formats/compatibiliteit en 100 cold/24 uur behouden |
+| TASK-I01 / TASK-INT/GIT | foundation geïntegreerd op 844ec40 | root; gedeelde ABI/build/locks/Git | alle geraakt | negen CI groen op exact die bron; geen volledige productacceptatie |
+| TASK-A03/R1 / TASK-KEYSDK-NATIVE | document-v7 en keyclient geïntegreerd | root | FR-A02, FR-A13, FR-O01–FR-O05, FR-B01 | native deelproeven; lost-BEGIN, owner-death en veilige disk-/sleutelpersistentie open |
+| TASK-TCP | eigen native TCP-keten en cold pair groen | root | FR-N01, FR-N03, FR-H03 | HTTP/FIN/refused/reset/retry/timeout en strict capture; configuratie/TLS/appgrants open |
+| TASK-FPU/CLOCK / TASK-MEMORY / TASK-USER-ALLOC | geïntegreerd en native deelproeven groen | root | FR-K02, FR-K03, FR-L02 | eigen heap/guard/NX/OOM/FPU/context/clock; geen SMP- of algemeen hardwarebewijs |
+| TASK-DISPLAY-INPUT / TASK-DISPLAY-PROBE / TASK-DISPLAY-CI | geïntegreerd en native CI groen | root | FR-U01, FR-K03, FR-H01 | echte PS/2/QMP, pixels en negatieve cap/lifetimegevallen; volledige desktop open |
+| TASK-INPUT / TASK-INPUT-DAEMON / TASK-SURFACE/APP / TASK-GUI-INIT | componenten in GUI-branch | root; integratie shared files | FR-U01–FR-U05, FR-A02, FR-H01 | echte Source/Policy/Comp/Init/App-processen, begrensde IPC; brede sessie en crashherstart open |
+| TASK-GUI-QMP / TASK-MATERIAAL-NATIVE | 5e echte Materiaal-/editorframes; 1fd regressie; keten rood | root; root-materiaal | FR-U01–FR-U05, FR-A02, FR-O01 | 200 seconden vast; Save/Reopen/afsluiten nog niet bewezen |
+| TASK-REV-APP | gevonden stale-ready/entryfouten hersteld | gerichte onafhankelijke review afgerond | FR-U01, FR-A02, FR-K03 | host-/bronreview; volledige native GUI-keten blijft vereist |
+| TASK-RANDOM-NATIVE / TASK-KEYRANDOM | geïntegreerd, vier echte gevallen opnieuw in CI op 844 | root | FR-B01, FR-N03 | onderhouden CSPRNG, echte virtio-RNG, quota/clock/cancel/revoke; persistente productkeys/TLS open |
+| TASK-IMAGES | decoder native groen op 844, onafhankelijk hergevalideerd | root; image-codec component ade6 | FR-A03 | PNG/JPEG, heap/stack/pixels/negatieven; viewer, volledige formaten, native OOM en mid-decode cancel open |
+| TASK-FOUNDATION-CI | alle vijf native stappen echt groen, 844 | root | FR-B01, FR-A03 | afzonderlijke builds, geen skips of genegeerde fouten; raw artifactmetadata bewaard |
+| TASK-TPM-CRB | geïntegreerde pure transport-/commandocore | root; component 6bed190 | FR-B01, FR-B03, FR-O05 | host-/targetbewijs; native MMIO, virtuele TPM, ankertransacties en sleutelherstel open |
+| TASK-RTC / TASK-RTC-V | core geïntegreerd, review afgerond | root | FR-N03, FR-S03 | 11 hosttests en onafhankelijke datumvectoren; UnauthenticatedRtc is geen vertrouwde certificaattijd |
+| TASK-TLS-PORT | component 34191bb in eigen tls-port worktree | wachtrij voor verdere integratie | FR-N03, FR-P01–FR-P06 | no_std rustls/ML-KEM/mTLS host en target; native random/signer/trusted-time/TCP-keten open |
+| TASK-BROWSER-PORT | concreet Chromium/Gecko-onderzoek a2085b9 gereed | wachtrij voor rootintegratie | FR-A05 | echte portproeven geblokkeerd, engine_selected null; verplichte browser blijft open |
+| TASK-CAP-PERF / CAP-DIGEST-TCG-2 | echte benchmark groen; productieherstel in uitvoering | kernel_storage; capability-core en digestcontract, basis 952e | FR-K03, FR-U01 | reference sneller dan direct/zero onder TCG; alle controles en bitexacte digest behouden; root herhaalt GUI |
+| GUI-BENCH-REVIEW-1 | actief, alleen lezen | security_release; eigen /tmp-output, bron 48b | FR-K03, FR-U01 | onafhankelijke benchmark/harnascontrole, geen menselijke audit |
+| TASK-CALCULATOR / CALCULATOR-REVIEW-1 | component 0254206 bevroren, review actief | git_build_audit alleen lezen; native-calculator | FR-A08 | 17 hostgroepen/1262 Decimal/target groen; echte multiapp- en QMP-bediening nog open |
+| MULTIAPP-CONTRACT-1 | actief | native_ui_apps; nieuw NATIVE-MULTIAPP.md, basis 48b | FR-U01–FR-U05, FR-A08 | twee echte CPL3-apps, minimale grants, focus/dirty/retire/lifetime; root bezit gedeelde code |
+| NATIVE-TLS-PROBE-1 | wachtrij, threadlimiet verhinderde start | nog niet actief | FR-N03, FR-P01 | volgende vrije worker: echte native TLS-/signerketen, geen voorspelbare RNG of hostsucces |
+
+Volgend verplicht werk blijft zichtbaar: volledige compositor/sessie/toegankelijkheid,
+alle apps en appbeheer, veilige persistente opslag en TPM-ankering, netwerkconfiguratie
+met TLS, NAS/providersynchronisatie, lokale inference, boot/PQC, updates/herstel en
+integrale productvalidatie. Dit zijn geen naar later verplaatste releasevereisten.
+Fysieke en menselijke gates blijven open; onafhankelijk bron-/VM-werk gaat door.
+Uit historische queues hieronder mag geen actieve agentcapaciteit worden afgeleid.
+
+## Historische registratie
+
+# Werkqueue — 29 oktober 2026
+
+Actuele geteste bron `53e0d57af99c9673c97bc900fae15b98e08c8ca3`, PR #54.
+Root integreert; onafhankelijke worktrees en buildmappen zijn gebruikt.
+Historische registraties hieronder zijn geen actieve capaciteitsclaims.
+
+| ID | Toestand | Eigenaar / exclusief gebied | Resultaat / afhankelijkheid |
 |---|---|---|---|
-| AUDIT | gereed voor integratie/controle | root: repository, CI, docs en GitHub | PR #25 geïntegreerd op `87e4f04b`; PR #26 timingstabilisatie op `51dc38eb`; volledige afsluitende CI opnieuw vereist |
-| G11/I13 | geïntegreerd/gevalideerd | native_apps/runtime_platform | Echte DocumentSession in ring 3; normal + koude recovery in twee afzonderlijke VM's groen; blijft begrensde headless proef |
-| B11 | geïntegreerd/gevalideerd | native_storage: services/net-protocol/** | Dependencyvrije no_std Ethernet/IPv4/UDP-parser getest en native gecrossbuild; nog geen driver/netwerkdienst/rechten |
-| BR0 | gereed om te bouwen | browser_research: hostbuilds/tests; geen native runtime | Vergelijk Chromium/Gecko volgens BR-01 t/m BR-08; kies pas daarna engine/patchbudget. Native port wacht op volwassen netwerk- en grafische diensten |
-| G1 | wacht op een benoemde afhankelijkheid | Materiaal en display/input | Native interactieve Materiaal-/display-/inputketen is nog geen geaccepteerde productflow |
-| S08 | gereed om te bouwen | volgende bouwer; root bewaakt herstelcontract | Begrensde vervanging/herstart van catalogusdienst zonder mutatiereplay |
-| S04/S05 | wacht op een benoemde afhankelijkheid | root: opslagcontract | Versieerbaar formaat en crashacceptatie voor grotere documenten en ruimtehergebruik |
-| N03/P02/H | wacht op een benoemde afhankelijkheid | nog toe te wijzen | Native netwerkdienst/TLS/entropy, sync/key lifecycle en bredere hardwareondersteuning |
-
-Vier toestanden: gereed om te bouwen; in uitvoering; wacht op een benoemde
-afhankelijkheid; gereed voor integratie/controle. De oude capaciteitsvoorkeuren
-in de historische registratie gelden niet voor deze opdracht.
+| B01-R1 | afgerond, geïntegreerd getest | keyring_repairs: services/keyring/** | Blijvende Health, monotone intrekking; 15 tests en extra tegenvoorbeelden groen |
+| B01-R2 | afgerond, geïntegreerd getest | entropy_timeout: keyringbroker/app/harnas | Echte timeout/reset-ACK, aparte herstart, native oude-blobintrekking; 5/5 gate |
+| B01-V | afgerond | security_verifier: alleen lezen | Geen blocker; 615 hosttests plus lint/fmt/voortgang groen |
+| S08-R | afgerond, geïntegreerd getest | storage_resume: m6c-/volumebroker | Err-completionmeting; 13/13 gezamenlijke gate; aparte targeted cases groen |
+| ENV | afgerond | emulator_setup: uitsluitend .tools/** | Officiële lokale QEMU10.0.13/OVMF, preflight groen |
+| INT | lokale controles afgerond | root: docs/voortgang/bewijs/GitHub | 27 VM-runs groen; geschikte merge uitsluitend na finale PR-checks |
+| K05-SLOTS | lokaal afgerond, eindintegratie volgt | root + storage_resume, security_verifier | 5/5 native, 21 negatieve controles; exact56b576b, geen nieuw punt |
+| B02 | gereed om te bouwen | volgende eigen branch | Persistente geauthenticeerde sleutel-/volumeopslag; live herstel is geen koude antirollback |
+| S09 | wacht op bron of nieuwe implementatie | niet toegewezen | Historische lokale branch niet remote gevonden; geen geïntegreerde implementatie claimen |
 
 ## Vroege productvalidatie — consumentenadoptie
 

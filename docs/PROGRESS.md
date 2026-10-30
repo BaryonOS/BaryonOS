@@ -1,5 +1,9 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+De actieve volledige releaseopdracht en productacceptatie staan in
+[FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). Dit vaste gewogen register blijft
+de ontwikkelmeter; het vervangt de conjunctieve releaseacceptatie niet.
+
 ## Betekenis van het percentage
 
 De README toont **behaalde acceptatiepunten / 100**. De gewichten zijn een
@@ -81,6 +85,11 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Conflictintegratie PR #61 (30 oktober 2026): **34% → 34%**. B03 en de
+foundationwijzigingen van main blijven behouden zonder nieuwe punten; de
+integratiecontroles staan in PROJECT-STATE.md. Bestaand brongebonden bewijs
+wordt niet als een nieuwe productacceptatie aangemerkt.
+
 Doorbouwcheckpoint 28 oktober 2026: integratie van main `391f02e`, vijf gerichte
 M6b-timeout/cancelproeven en opt-in G0-bron veranderen de score niet:
 **14% → 14%**. G0 is geen compositor/sessie en voldoet niet aan U01 of de fysieke
@@ -129,7 +138,7 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **K02 — Eigen geheugenbeheer en foutgrenzen** | 2 | Behaald | Eigen pagetables/framebeheer, W^X, guardstacks en ongeldige mappings zijn in het vaste QEMU-profiel gecontroleerd. [bewijs 1](../docs/verification/m2-m4/ACCEPTANCE.md) · [bewijs 2](../docs/verification/regression-m6b/FINAL-ACCEPTANCE.md) |
 | **K03 — Geïsoleerde, gepreëmpteerde processen** | 2 | Behaald | Ring-3-processen hebben afzonderlijke adresruimten; een appfault stopt de andere testprocessen niet. [bewijs 1](../docs/verification/m2-m4/ACCEPTANCE.md) · [bewijs 2](../docs/verification/regression-m6b/FINAL-ACCEPTANCE.md) |
 | **K04 — Capabilities en begrensde IPC** | 3 | Behaald | Rechtenvermindering, generaties, intrekking, usercopy en begrensde Message320-IPC hebben native negatieve/lifecycleproeven. [bewijs 1](../docs/verification/m2-m4/ACCEPTANCE.md) · [bewijs 2](../docs/verification/regression-m6b/FINAL-ACCEPTANCE.md) |
-| **K05 — Algemeen proces- en dienstbeheer** | 2 | Behaald | Niet-fixture-apps kunnen via begrensde API’s starten, afsluiten en diensten herstarten; afhankelijkheden en resources worden correct vrijgegeven. [bewijs 1](../docs/verification/K05-ACCEPTANCE.md) · [bewijs 2](../docs/verification/k05/supervisor-gate.json) |
+| **K05 — Algemeen proces- en dienstbeheer** | 2 | Behaald | Niet-fixture-apps kunnen via begrensde API’s starten, afsluiten en diensten herstarten; afhankelijkheden en resources worden correct vrijgegeven. [bewijs 1](../docs/verification/K05-ACCEPTANCE.md) · [bewijs 2](../docs/verification/k05-startup-slots/gate/supervisor-gate.json) · [bewijs 3](../docs/verification/k05-startup-slots/integration.json) |
 | **K06 — Meerdere processorkernen** | 2 | Open | SMP-scheduling, synchronisatie, interrupts en adresruimtewisseling werken onder concurrente belasting op het ondersteunde profiel. |
 | **K07 — Resourcebeheer onder druk** | 2 | Behaald | Geheugen-, CPU-, IPC- en handle-uitputting blijven per app begrensd; het bruikbare systeem herstelt zonder kerneluitval. [bewijs 1](../docs/verification/K07-ACCEPTANCE.md) |
 
@@ -182,7 +191,7 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 
 | Criterium | Punten | Status | Acceptatie en bewijs |
 |---|---:|---|---|
-| **B01 — Entropy en sleutelbeheer** | 2 | Behaald | Native cryptografische entropy, key lifecycle, bescherming en herstel gebruiken gecontroleerde standaarden en geteste failure paths. [bewijs 1](../docs/verification/B01-ACCEPTANCE.md) · [bewijs 2](../docs/verification/b01/keyring-gate.json) |
+| **B01 — Entropy en sleutelbeheer** | 2 | Behaald | Native cryptografische entropy, key lifecycle, bescherming en herstel gebruiken gecontroleerde standaarden en geteste failure paths. [bewijs 1](../docs/verification/B01-ACCEPTANCE.md) · [bewijs 2](../docs/verification/native-recovery-hardening/b01/keyring-gate.json) · [bewijs 3](../docs/verification/native-recovery-hardening/integration.json) |
 | **B02 — Geauthenticeerde persoonlijke opslag** | 2 | Open | Inhoud en gevoelige metadata worden native beschermd; manipulatie, replay/rollback binnen het dreigingsmodel en sleutelverlies zijn getest. |
 | **B03 — Ondertekende updates en rollback** | 2 | Behaald | Authentieke updates, onderbreking, downgrade-aanvallen en herstel naar een geldige vorige versie zijn end-to-end getest. [bewijs 1](../docs/verification/B03-ACCEPTANCE.md) · [bewijs 2](../docs/verification/b03/update-gate.json) |
 | **B04 — Vertrouwde boot- en distributieketen** | 2 | Open | Image-/bootverificatie, sleutelrotatie en dependency-/buildherkomst zijn voor het releaseprofiel afgebakend en onafhankelijk gecontroleerd. |

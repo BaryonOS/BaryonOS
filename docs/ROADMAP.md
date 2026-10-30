@@ -1,5 +1,11 @@
 # Route van onderzoeksproject naar bruikbaar systeem
 
+De volledige actieve releaseopdracht en bindende productacceptatie staan in
+[FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md). De actuele uitvoering en eerstvolgende
+stap staan uitsluitend in [PROJECT-STATE.md](PROJECT-STATE.md) en
+[WORK-QUEUE.md](WORK-QUEUE.md); onderstaande route wordt niet tot een bootdemo
+of korte notitieproef versmald.
+
 ## Vaste productroadmap: 0% tot 100%
 
 De [README](../README.md#voortgang-naar-een-volwaardig-zelfstandig-os) toont de

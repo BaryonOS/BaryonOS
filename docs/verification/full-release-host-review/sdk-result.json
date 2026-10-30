@@ -1,0 +1,81 @@
+{
+  "name": "sdk",
+  "base_head": "d73d5150e7f633c3d534aca4db96e163fb2938b4",
+  "input_sha256": "c2bfd97f320b699bf4240e1be834f5efb1e51e65b46ee9b078265d69f94cf3c7",
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--locked",
+        "--offline"
+      ],
+      "exit": 0,
+      "duration_s": 4.840733010999884,
+      "source_unchanged": true,
+      "changed_files": [],
+      "stdout": "/tmp/nieuw-os-fr-independent-target/verification/sdk-0.stdout.txt",
+      "stderr": "/tmp/nieuw-os-fr-independent-target/verification/sdk-0.stderr.txt",
+      "stdout_sha256": "a42d69dd1f944dc816d8cd0a277c87cbdc2b9830db099b9561292bee9959faab",
+      "stderr_sha256": "f29cc1f63d16bad648f612b33db4b7973991948f3c4623dc6ebfb925a223e7cd"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "duration_s": 2.0053594209998664,
+      "source_unchanged": true,
+      "changed_files": [],
+      "stdout": "/tmp/nieuw-os-fr-independent-target/verification/sdk-1.stdout.txt",
+      "stderr": "/tmp/nieuw-os-fr-independent-target/verification/sdk-1.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a70071c5b0a142c966d72ab93f9966b08621d80ba424e7232ffa2a0a13fc3af5"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "duration_s": 0.8904070949997731,
+      "source_unchanged": true,
+      "changed_files": [],
+      "stdout": "/tmp/nieuw-os-fr-independent-target/verification/sdk-2.stdout.txt",
+      "stderr": "/tmp/nieuw-os-fr-independent-target/verification/sdk-2.stderr.txt",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "passed": true,
+  "final_head": "d73d5150e7f633c3d534aca4db96e163fb2938b4",
+  "final_source_unchanged": true
+}

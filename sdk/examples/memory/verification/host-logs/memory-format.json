@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/rustfmt",
+    "+1.90.0",
+    "--edition",
+    "2021",
+    "--config",
+    "skip_children=true",
+    "sdk/examples/memory/src/main.rs",
+    "sdk/examples/memory/src/contract.rs",
+    "kernel/src/m2/m3/memory_fixture.rs"
+  ],
+  "cwd": "/workspace/nieuw-os-worktrees/memory-fixture",
+  "started_unix": 1793323859.8359528,
+  "duration_s": 0.07540774345397949,
+  "returncode": 0
+}

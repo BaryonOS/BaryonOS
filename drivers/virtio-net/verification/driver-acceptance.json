@@ -1,0 +1,159 @@
+{
+  "task": "FR-NDRV",
+  "status": "model-tests-and-freestanding-library-build-passed; native-PCI-not-run",
+  "basis_commit": "9379e8514eb04cfb0727a1495c2b3481d922aaaa",
+  "branch": "codex/full-release-network",
+  "completed_at_utc": "2026-10-29T23:04:13.143563+00:00",
+  "compiler": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+  "source_sha256": {
+    "crates/virtio-core/Cargo.toml": "466f4e1dcaa1a58a136e4bc0fc0a5df1cef607bc8ff0926adb326a9ff2ac17bf",
+    "crates/virtio-core/src/lib.rs": "24dc240458ff4558eac959c0512b11e73ca9b09da28ddd5179bf2b4361cbd293",
+    "docs/implementation/VIRTIO-NET.md": "2114863edb97b2dbe2310ae0b8ccf78ce371839cb6dbe7527821cb97f1787de6",
+    "drivers/virtio-net/Cargo.toml": "aa5d497909b2bc875eab8be6677f561fd74b23c083bef4c0bcda4387e17f4972",
+    "drivers/virtio-net/src/lib.rs": "9d6689a2cc9c02e4ebd2f211b3d4760e95da052b168ec3c30691f99fadf8f7b5",
+    "drivers/virtio-net/src/pci.rs": "cf621dc16210f7e9e697f8dac20aa8baa0b26705b38d9fb76eccdf4e2d57cd81",
+    "drivers/virtio-net/src/tests.rs": "fe3a817c64eaad4fdd4b05bfd579b639721fce0f62536315bf7f156a8a48dca7"
+  },
+  "source_fingerprint_sha256": "050d5d385feba5e591c6f808455a033844490e61f8431813ce47f35d5bb9934e",
+  "workspace_build": {
+    "temporary_member": "drivers/virtio-net",
+    "used_manifest_hashes": {
+      "Cargo.toml": "812aac03681a4d2971d7b4a96edded824d8dbbc7edb260975a51be3e18aa15e1",
+      "Cargo.lock": "cdd44ed27282341a9d6de81c27a7507e483ce3a24b4c2ba29092006b94f865f9"
+    },
+    "root_files_restored_byte_exact": true,
+    "restored_hashes": {
+      "Cargo.toml": "685fdd7b50f3e50d40bc39898e73e7b397b0a0b43fce2583d586e9c32f913597",
+      "Cargo.lock": "ea9e26cfb181af81b3be050636f22f2de01b16ea776b801950ae85efca0be67f"
+    },
+    "integration_requirement": "Integrator adds drivers/virtio-net member and local-only package entry to root Cargo.toml/Cargo.lock; neither temporary file change is part of this agent commit"
+  },
+  "checks": [
+    {
+      "name": "model-tests",
+      "command": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "-p",
+        "virtio-net-driver",
+        "--locked",
+        "--offline"
+      ],
+      "environment": {
+        "LOCALAPPDATA": "/workspace/nieuw-os/.tools",
+        "CARGO_TARGET_DIR": "/workspace/scratch/fr-ndrv-target"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 0.299,
+      "log": "/workspace/scratch/fr-ndrv-logs/model-tests.txt",
+      "log_sha256": "35176847ec9aec326166da47220598d24981701a2b9508a3ca23836e25dd0fd8",
+      "passed_model_tests": 15
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "-p",
+        "virtio-net-driver",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "environment": {
+        "LOCALAPPDATA": "/workspace/nieuw-os/.tools",
+        "CARGO_TARGET_DIR": "/workspace/scratch/fr-ndrv-target"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 0.159,
+      "log": "/workspace/scratch/fr-ndrv-logs/clippy.txt",
+      "log_sha256": "ee1d3fffa2022e962e63e0dbe4d35c9c198450a20c29fc09030f635dbb38bfcd"
+    },
+    {
+      "name": "format",
+      "command": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "-p",
+        "virtio-net-driver",
+        "--check"
+      ],
+      "environment": {
+        "LOCALAPPDATA": "/workspace/nieuw-os/.tools",
+        "CARGO_TARGET_DIR": "/workspace/scratch/fr-ndrv-target"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 0.14,
+      "log": "/workspace/scratch/fr-ndrv-logs/format.txt",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "native-target-build",
+      "command": [
+        "python3",
+        "-B",
+        "tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "build",
+        "-p",
+        "virtio-net-driver",
+        "--lib",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--locked",
+        "--offline"
+      ],
+      "environment": {
+        "LOCALAPPDATA": "/workspace/nieuw-os/.tools",
+        "CARGO_TARGET_DIR": "/workspace/scratch/fr-ndrv-native-target"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 0.099,
+      "log": "/workspace/scratch/fr-ndrv-logs/native-target-build.txt",
+      "log_sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f"
+    }
+  ],
+  "artifact": {
+    "path": "/workspace/scratch/fr-ndrv-native-target/x86_64-unknown-none/release/libvirtio_net_driver.rlib",
+    "sha256": "4d1df55638a4185df1298d07b1015c1e46655d12835c2be771c545b52e5a2326",
+    "size_bytes": 65522,
+    "kind": "freestanding library; not an executed driver or release image"
+  },
+  "reviews": [
+    {
+      "agent": "acceptance_contract",
+      "result": "no concrete blocker in bounded source review",
+      "kind": "AI source review, not human audit"
+    },
+    {
+      "agent": "kernel_storage",
+      "result": "link_up must check DEVICE_NEEDS_RESET; addressed with status check and model regression",
+      "kind": "AI source review, not human audit"
+    }
+  ],
+  "not_run": [
+    "actual PCI discovery",
+    "QEMU NIC RX/TX",
+    "native kernel broker or network service",
+    "network capability enforcement",
+    "hardware or IOMMU validation"
+  ],
+  "progress_gate": "N01/N02/N03 remain open"
+}

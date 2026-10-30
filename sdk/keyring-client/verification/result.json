@@ -1,0 +1,46 @@
+{
+  "task": "TASK-KEYRING-SDK",
+  "date_utc": "2026-10-30",
+  "base_commit": "3879c3288f3b005d9df3ed5e1e40aa99c3791521",
+  "scope": "host integration and freestanding library build; native execution not performed",
+  "source_sha256": {
+    "sdk/keyring-client/Cargo.toml": "e383c3facaa87578cb562512d877f905481c47d1fa402c99e479172ad3274a7d",
+    "sdk/keyring-client/Cargo.lock": "3840fe0b24327d5a08884d65e3067dc5a57e28e6e3b1b32fb683a408d74053be",
+    "sdk/keyring-client/src/lib.rs": "f686fbdc6ff93b4d75dc8374cb54b4e1d08f32b3507c565fe6c21eeba2f3fb0a",
+    "sdk/keyring-client/tests/client.rs": "ea41d233b73aafbacf1f5d0283aca8ad2e496a6f18e79269965d814fc7812925",
+    "docs/implementation/KEYRING-SDK-CLIENT.md": "6c283df6b34ba5a6139f9e83ada40cb46bea63cd9a4d80dc5d003ddfca82559f"
+  },
+  "artifact": {
+    "target": "x86_64-unknown-none",
+    "profile": "release",
+    "path_outside_git": "/tmp/nieuw-os-keyring-client-target/x86_64-unknown-none/release/libnieuw_os_keyring_client.rlib",
+    "bytes": 166370,
+    "sha256": "d18d2deb8654115eaa5db311f38906f4e3c3a18d0d94e0b0a05fa9b95b2ca56a"
+  },
+  "checks": {
+    "test": {
+      "exit": 0,
+      "unit_passed": 3,
+      "integration_passed": 12,
+      "ignored": 0
+    },
+    "clippy_all_targets_deny_warnings": {
+      "exit": 0
+    },
+    "freestanding_library": {
+      "exit": 0
+    },
+    "fmt_check": {
+      "exit": 0
+    },
+    "lock_external_packages_equal_or_subset_of_root": true
+  },
+  "not_executed": [
+    "native client/system app integration",
+    "QEMU runtime of this client",
+    "physical hardware",
+    "durable key snapshot and rollback integration",
+    "full object/action broker"
+  ],
+  "log_normalization": "test.txt omits trailing blank lines from command stdout; other output unchanged"
+}

@@ -69,10 +69,10 @@ extern "C" fn run() -> ! {
             &mut *ptr::addr_of_mut!(FRAMES),
         )
     };
-    #[cfg(feature = "graphics-g0")]
+    #[cfg(feature = "framebuffer")]
     boot_protocol::graphics::validate_graphics_memory_map(info, map_bytes)
         .expect("copied graphics map");
-    #[cfg(not(feature = "graphics-g0"))]
+    #[cfg(not(feature = "framebuffer"))]
     boot_protocol::validate_memory_map(info, map_bytes).expect("copied map");
     let map = MemoryMap::new(map_bytes, info.descriptor_size, info.descriptor_version).unwrap();
     let retained = info.retained_ranges().unwrap().map(|r| Range {
@@ -123,8 +123,8 @@ extern "C" fn run() -> ! {
     }
     #[cfg(feature = "milestone-m3")]
     paging.map(frames, paging::SCRATCH, nx_probe(), true, false);
-    #[cfg(feature = "graphics-g0")]
-    crate::graphics::map(&mut paging, frames, &map);
+    #[cfg(feature = "framebuffer")]
+    crate::framebuffer::map(&mut paging, frames, &map);
     paging.map_tables(frames);
     arch::protection();
     arch::activate(paging.root);

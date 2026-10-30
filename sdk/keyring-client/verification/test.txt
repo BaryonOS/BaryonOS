@@ -1,0 +1,34 @@
+   Compiling nieuw-os-keyring-client v0.1.0 (/workspace/nieuw-os-worktrees/keyring-client/sdk/keyring-client)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.47s
+     Running unittests src/lib.rs (/tmp/nieuw-os-keyring-client-target/debug/deps/nieuw_os_keyring_client-49edc7c5edf976f3)
+
+running 3 tests
+test tests::close_attempts_both_handles_once_even_when_first_close_fails ... ok
+test tests::identifier_exhaustion_closes_both_handles_without_publication_or_wrap ... ok
+test tests::owned_plaintext_request_is_zeroized_immediately_after_enqueue ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/client.rs (/tmp/nieuw-os-keyring-client-target/debug/deps/client-d708762ed3954d8a)
+
+running 12 tests
+test cancelling_published_request_is_not_a_wire_abort ... ok
+test actual_ingress_remains_authoritative_despite_client_expected_domain ... ok
+test canonical_bad_handle_refusal_is_not_plaintext_or_a_terminal_wire_error ... ok
+test local_context_and_length_errors_publish_nothing ... ok
+test every_record_bound_and_legacy_empty_content_round_trip ... ok
+test kernel_revocation_is_not_overridden_by_client_configuration ... ok
+test lost_generate_reply_does_not_repeat_allocation ... ok
+test lost_revoke_reply_keeps_the_real_revocation_and_never_reports_ack ... ok
+test preenqueue_timeout_and_cancellation_do_not_report_completion ... ok
+test malformed_reply_identity_padding_status_and_lengths_never_ack ... ok
+test record_names_and_content_are_not_interchangeable_and_no_key_leaves_service ... ok
+test status_validates_state_reason_counter_bounds_and_monotonicity ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests nieuw_os_keyring_client
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

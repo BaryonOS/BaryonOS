@@ -1,4 +1,4 @@
-//! Host tool for B03 (ADR-044): generate labelled signing keys, sign kernel
+//! Host tool for B03 (ADR-049): generate labelled signing keys, sign kernel
 //! images into `NOSMAN01` manifests, pack a `NOSSLOT1` slot store and verify
 //! bundles. Every byte comes from `update-core`, so what this tool writes is
 //! exactly what the UEFI loader and the ring-3 update service check. Keys

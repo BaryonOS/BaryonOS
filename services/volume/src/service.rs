@@ -17,6 +17,10 @@ use wire::{Header, SIZE};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Session {
+    /// v7 only: actual kernel-authenticated requester, never a payload field.
+    pub principal: u64,
+    /// v7 only: service-issued, never reused during this service instance.
+    pub upload_token: u32,
     pub object: usize,
     pub expected: u64,
     pub request_id: u64,
@@ -88,6 +92,8 @@ pub struct Service {
     cache: Cache,
     read_only: bool,
     uncertain: bool,
+    // Separate counters avoid revealing another domain's upload activity.
+    next_upload_token: [u32; DOMAINS],
     pub counters: Counters,
 }
 
@@ -124,6 +130,7 @@ impl Service {
             },
             read_only,
             uncertain: false,
+            next_upload_token: [1; DOMAINS],
             counters: Counters::default(),
         }
     }
@@ -159,6 +166,111 @@ impl Service {
     /// Handle one already sender-authenticated request. `domain` must come from
     /// the kernel-bound endpoint the request arrived on, never from the body.
     pub fn handle(&mut self, domain: usize, body: &[u8; SIZE], disk: &mut impl Disk) -> [u8; SIZE] {
+        assert!(domain < DOMAINS);
+        // Legacy callers cannot replace, append, commit or cancel an active
+        // token-bound upload, even with a colliding request ID/revision.
+        if let Ok(request) = wire::validate_request(body, self.epoch, domain) {
+            if matches!(
+                request.operation,
+                wire::BEGIN | wire::APPEND | wire::COMMIT | wire::ABORT
+            ) && !self.uncertain
+                && self.sessions[domain].is_some_and(|s| s.upload_token != 0)
+            {
+                self.counters.rejected += 1;
+                return wire::error_reply(&request, self.epoch, Status::Busy, 0);
+            }
+        }
+        self.handle_inner(domain, body, disk)
+    }
+
+    /// v7 entry point. `principal` MUST come from the kernel-delivered sender
+    /// of the already domain-authorized ingress, never the untrusted payload.
+    /// One domain retains its existing single staged upload. A second BEGIN
+    /// is Busy; it cannot silently replace another editor's name/content.
+    pub fn handle_for(
+        &mut self,
+        domain: usize,
+        principal: u64,
+        body: &[u8; SIZE],
+        disk: &mut impl Disk,
+    ) -> [u8; SIZE] {
+        use crate::upload;
+        assert!(domain < DOMAINS);
+        let (request, token, canonical) = match upload::validate_request(body, self.epoch, domain) {
+            Ok(parts) => parts,
+            Err(status) => {
+                self.counters.rejected += 1;
+                return upload::wrap(
+                    wire::error_reply(&wire::header(body), self.epoch, status, 0),
+                    upload::token(body),
+                );
+            }
+        };
+        let rejected =
+            |status| upload::wrap(wire::error_reply(&request, self.epoch, status, 0), token);
+        if principal == 0 {
+            self.counters.rejected += 1;
+            return rejected(Status::Access);
+        }
+        if self.uncertain {
+            return rejected(Status::Unknown);
+        }
+        if request.operation == wire::BEGIN {
+            if self.sessions[domain].is_some() {
+                self.counters.rejected += 1;
+                return rejected(Status::Busy);
+            }
+            let Some(next) = self.next_upload_token[domain].checked_add(1) else {
+                self.counters.rejected += 1;
+                return rejected(Status::Quota);
+            };
+            let response = self.handle_inner(domain, &canonical, disk);
+            if wire::header(&response).status != Status::Ok as i32 {
+                return upload::wrap(response, 0);
+            }
+            let issued = self.next_upload_token[domain];
+            self.next_upload_token[domain] = next;
+            let staged = self.sessions[domain]
+                .as_mut()
+                .expect("successful BEGIN stages upload");
+            staged.principal = principal;
+            staged.upload_token = issued;
+            return upload::wrap(response, issued);
+        }
+        if matches!(request.operation, wire::APPEND | wire::COMMIT | wire::ABORT)
+            && !self.sessions[domain]
+                .is_some_and(|s| s.principal == principal && s.upload_token == token)
+        {
+            self.counters.rejected += 1;
+            return rejected(Status::Access);
+        }
+        upload::wrap(self.handle_inner(domain, &canonical, disk), token)
+    }
+
+    /// Trusted adapter/supervisor notification only, never a wire operation.
+    /// End every staged upload of a requester proven dead, or after ALL its
+    /// service grants have been authoritatively retired. Retirement of one old
+    /// endpoint alone is insufficient: it could cancel a newer upload from the
+    /// same living principal. Tokens are not reset/reused.
+    /// Native owner-death event wiring is a separate integration requirement.
+    pub fn detach(&mut self, principal: u64) -> usize {
+        let mut detached = 0;
+        for staged in &mut self.sessions {
+            if staged.is_some_and(|s| s.upload_token != 0 && s.principal == principal) {
+                *staged = None;
+                self.counters.aborted_sessions += 1;
+                detached += 1;
+            }
+        }
+        detached
+    }
+
+    fn handle_inner(
+        &mut self,
+        domain: usize,
+        body: &[u8; SIZE],
+        disk: &mut impl Disk,
+    ) -> [u8; SIZE] {
         assert!(domain < DOMAINS);
         let request = match wire::validate_request(body, self.epoch, domain) {
             Ok(request) => request,
@@ -266,6 +378,8 @@ impl Service {
             return Err((Status::Quota, 0));
         }
         let mut session = Session {
+            principal: 0,
+            upload_token: 0,
             object,
             expected: request.revision,
             request_id: request.request_id,
@@ -859,5 +973,39 @@ impl Service {
         // Echo the filter so the client can bind pages to one query.
         body[48..52].copy_from_slice(&(filter as u32).to_le_bytes());
         body
+    }
+}
+
+#[cfg(test)]
+mod upload_token_tests {
+    use super::*;
+    struct NoDisk;
+    impl Disk for NoDisk {
+        fn read(&mut self, _: u64, _: &mut [u8; SECTOR]) -> Result<(), Status> {
+            panic!("no I/O before token allocation")
+        }
+        fn write(&mut self, _: u64, _: &[u8; SECTOR]) -> Result<(), Status> {
+            panic!("no I/O before token allocation")
+        }
+        fn flush(&mut self) -> Result<(), Status> {
+            panic!("no I/O before token allocation")
+        }
+    }
+
+    #[test]
+    fn exhausted_token_counter_never_wraps_or_stages_a_new_upload() {
+        let mut service = Service::new(7, Table::EMPTY, false);
+        service.next_upload_token[0] = u32::MAX;
+        let mut h = Header::new(wire::BEGIN, 1, 7, 0);
+        h.length = 4;
+        h.name_length = 4;
+        let request = crate::upload::encode(&h, b"Name", 0);
+        for _ in 0..2 {
+            let response = service.handle_for(0, 10, &request, &mut NoDisk);
+            let reply = crate::upload::validate_reply(&h, 0, &response, 7).unwrap();
+            assert_eq!(reply.status, Status::Quota as i32);
+            assert!(service.session(0).is_none());
+            assert_eq!(service.next_upload_token[0], u32::MAX);
+        }
     }
 }

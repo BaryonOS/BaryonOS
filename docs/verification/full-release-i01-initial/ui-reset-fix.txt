@@ -1,0 +1,50 @@
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.59s
+     Running unittests src/lib.rs (target/full-release-host/debug/deps/ui_core-497c535ffdc1d6cc)
+
+running 25 tests
+test keyboard::tests::all_standard_key_positions_emit_unique_physical_events_and_release ... ok
+test keyboard::tests::both_modifier_sides_release_independently_and_locks_ignore_repeat ... ok
+test keyboard::tests::make_repeat_break_and_distinct_extended_keys ... ok
+test keyboard::tests::malformed_input_resets_pressed_state_instead_of_sticking_modifiers ... ok
+test mouse::tests::button_transitions_survive_overflow_without_guessed_movement ... ok
+test keyboard::tests::printscreen_fake_shifts_and_pause_are_bounded ... ok
+test mouse::tests::cursor_clamps_and_inverts_y_without_unsigned_wrap ... ok
+test routing::tests::button_drag_release_cannot_be_inherited_by_another_focus ... ok
+test mouse::tests::nine_bit_signed_extremes_are_not_truncated_to_i8 ... ok
+test mouse::tests::split_packets_payload_header_bits_and_explicit_resynchronization ... ok
+test routing::tests::device_reset_invalidates_queue_and_clears_held_input ... ok
+test routing::tests::queued_events_and_held_keys_do_not_cross_focus_even_to_same_owner ... ok
+test routing::tests::generation_exhaustion_fails_closed_without_token_reuse ... ok
+test routing::tests::previous_focus_modifiers_are_removed_from_new_focus_chords ... ok
+test routing::tests::reset_does_not_turn_known_held_input_into_new_presses ... ok
+test tests::both_modifier_sides_are_tracked_independently_and_reset_is_safe ... ok
+test tests::clipping_preserves_row_padding_and_outer_canaries_in_both_formats ... ok
+test tests::empty_and_offscreen_rects_leave_canvas_untouched ... ok
+test tests::extended_keys_pause_and_printscreen_do_not_leave_fake_shift_pressed ... ok
+test tests::geometry_rejects_zero_oversize_stride_and_short_buffers ... ok
+test tests::original_glyph_has_expected_pixels_and_clips_safely ... ok
+test tests::release_modifier_chords_and_caps_repeat_do_not_insert_unexpected_text ... ok
+test tests::text_limit_backspace_submit_and_zero_capacity_are_explicit ... ok
+test tests::arbitrary_scancode_streams_never_overflow_or_emit_control_sequences ... ok
+test tests::scene_row_and_canvas_keep_padding_and_typed_input_changes_only_input_area ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/input_reset.rs (target/full-release-host/debug/deps/input_reset-f72131a2df8cc438)
+
+running 5 tests
+test held_without_focus_cannot_become_new_press_after_decoder_reset ... ok
+test nofocus_break_after_reset_clears_physical_marker_without_repeat ... ok
+test nofocus_modifier_repeat_cannot_create_chord_after_reset ... ok
+test orphan_breaks_and_pause_pulses_never_create_held_ownership ... ok
+test release_directly_after_decoder_reset_allows_first_fresh_press ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests ui_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

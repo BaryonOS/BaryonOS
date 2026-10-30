@@ -6,7 +6,7 @@ in [B03-ACCEPTANCE](../verification/B03-ACCEPTANCE.md). Criterium B03
 (docs/progress.json): *authentieke updates, onderbreking, downgrade-aanvallen
 en herstel naar een geldige vorige versie zijn end-to-end getest.* Vervult
 P03 (systeemimage) uit [VERIFIABLE-SECURITY-AND-PQC](VERIFIABLE-SECURITY-AND-PQC.md)
-§5 en EU-07 uit [EUROPE-AND-RELEASE](EUROPE-AND-RELEASE.md). Besluit: ADR-044.
+§5 en EU-07 uit [EUROPE-AND-RELEASE](EUROPE-AND-RELEASE.md). Besluit: ADR-049.
 
 ## 1. Probleem
 
@@ -50,7 +50,7 @@ installeert zodat een onderbreking nooit het laatst geldige slot aantast.
 7. **Geen productiesleutels in de repository.** De ankers in loader en
    dienst zijn expliciet gelabelde TEST-ankers (`tools/update-keys/TEST-*`),
    gegenereerd door `update-tool keygen`. Een releaseprofiel vervangt de
-   ankers via een afzonderlijke, buiten CI gehouden ondertekenstap (ADR-044).
+   ankers via een afzonderlijke, buiten CI gehouden ondertekenstap (ADR-049).
 8. **Firmwaregrens benoemd.** OVMF start de loader zonder Secure Boot; de
    loader zelf wordt niet door de firmware geverifieerd (B04 open). B03
    beschermt de keten vanaf de loader: slotkeuze, manifest, image, vloer.

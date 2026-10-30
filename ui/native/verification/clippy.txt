@@ -1,0 +1,7 @@
+command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "clippy", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml", "--all-targets", "--", "-D", "warnings"]
+exit: 0
+
+stdout:
+
+stderr:
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s

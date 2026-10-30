@@ -1,0 +1,621 @@
+{
+  "schema_version": 1,
+  "case": "recover",
+  "kernel_feature": "test-volume-recover",
+  "started_utc": "2026-10-29T23:20:07.881316+00:00",
+  "duration_s": 45.54336687900013,
+  "timeout_s": 600,
+  "timed_out": false,
+  "raw_qemu_exit": 33,
+  "host_kill": false,
+  "running_before_kill": false,
+  "command": [
+    "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/full-release-volume-regression/run/volume-recover-8ba2a93a5b/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/full-release-volume-regression/run/volume-recover-8ba2a93a5b/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/full-release-volume-regression/run/volume-recover-8ba2a93a5b/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=on,file=build/full-release-volume-regression/run/volume-image-30f8159ab3/volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6E-TEST"
+  ],
+  "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "source_fingerprint_version": 3,
+  "source_sha256": "50c542d75167ff68c28ccd2ba2c85669c135750922310d4849a3daf67f585a32",
+  "volume_identity": "380173240ad64fe58429a41e8bc25436",
+  "parent_case": "normal",
+  "volume_directory": "/workspace/nieuw-os/build/full-release-volume-regression/run/volume-image-30f8159ab3",
+  "before_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+  "after_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+  "run_directory": "/workspace/nieuw-os/build/full-release-volume-regression/run/volume-recover-8ba2a93a5b",
+  "kernel_sha256": "932f66457875d41966b18a03dba15ab9f9857b810b8b4b11e00b86b6701578b0",
+  "volume_docs": {
+    "app_sha256": "94ade765b832622b1adc531830c514324a594fa71e79d2a3dabdc31594990478",
+    "app_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 37426,
+          "memsz": 37426,
+          "page_start": 1073741824,
+          "page_end": 1073782784
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 45056,
+          "filesz": 1248,
+          "memsz": 1248,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 49152,
+          "filesz": 3256,
+          "memsz": 3256,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ]
+    },
+    "service_sha256": "73507e012a85f63dfc93ddb29caccb11c9f08a53e54faf4bcf6a5d6bfbfc3169",
+    "service_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 56562,
+          "memsz": 56562,
+          "page_start": 1073741824,
+          "page_end": 1073799168
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 61440,
+          "filesz": 1304,
+          "memsz": 1304,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 65536,
+          "filesz": 18018,
+          "memsz": 18018,
+          "page_start": 1073823744,
+          "page_end": 1073844224
+        }
+      ]
+    }
+  },
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nVOLUME:MANIFEST:PASS\nVOLUME:BROKER:MAX_COMPLETION_TICKS:00000000000000000002\nVOLUME:BROKER:TIMEOUTS:00000000000000000000\nVOLUME:READY\nVOLUME:A:DOCS:00000000000000000005\nVOLUME:A:BYTES:00000000000000091145\nVOLUME:A:COMMITS:00000000000000000000\nVOLUME:A:DIGEST:05586531168511146659\nVOLUME:A:REQUESTS:00000000000000000611\nVOLUME:A:RECOVERED_REVISION:00000000000000000000\nVOLUME:A:RECOVERED_COLLECTION:00000000000000000000\nVOLUME:A:RECOVERED_SECOND:00000000000000000000\nVOLUME:B:DOCS:00000000000000000005\nVOLUME:B:BYTES:00000000000000151852\nVOLUME:B:COMMITS:00000000000000000000\nVOLUME:B:DIGEST:16427685867521082448\nVOLUME:B:REQUESTS:00000000000000000994\nVOLUME:B:RECOVERED_REVISION:00000000000000000000\nVOLUME:SERVICE:GENERATION:00000000000000000084\nVOLUME:SERVICE:COMMITS:00000000000000000000\nVOLUME:SERVICE:CHUNK_ALLOCATIONS:00000000000000000000\nVOLUME:SERVICE:DATA_SECTORS:00000000000000000000\nVOLUME:SERVICE:TABLE_WRITES:00000000000000000000\nVOLUME:SERVICE:FLUSHES:00000000000000000000\nVOLUME:SERVICE:READ_SECTORS:00000000000000009255\nVOLUME:SERVICE:REJECTED:00000000000000000023\nVOLUME:SERVICE:ABORTED:00000000000000000000\nVOLUME:SERVICE:UNKNOWN:00000000000000000000\nVOLUME:SERVICE:TRANSACTIONS:00000000000000000000\nVOLUME:SERVICE:RESTORES:00000000000000000000\nVOLUME:BROKER:READS:00000000000000037700\nVOLUME:BROKER:WRITES:00000000000000000000\nVOLUME:BROKER:FLUSHES:00000000000000000000\nVOLUME:BROKER:TABLE_SECTOR_WRITES:00000000000000000000\nVOLUME:BROKER:DATA_SECTOR_WRITES:00000000000000000000\nVOLUME:APP_DEVICE_DENIALS:00000000000000000006\nVOLUME:CASE:RECOVER:PASS\nVOLUME:RESOURCES:PASS\nVOLUME:PASS\nM1:PASS\n",
+  "stderr": "",
+  "passed": true,
+  "evidence": {
+    "VOLUME:BROKER:MAX_COMPLETION_TICKS:": 2,
+    "VOLUME:BROKER:TIMEOUTS:": 0,
+    "VOLUME:A:DOCS:": 5,
+    "VOLUME:A:BYTES:": 91145,
+    "VOLUME:A:COMMITS:": 0,
+    "VOLUME:A:DIGEST:": 5586531168511146659,
+    "VOLUME:A:REQUESTS:": 611,
+    "VOLUME:A:RECOVERED_REVISION:": 0,
+    "VOLUME:A:RECOVERED_COLLECTION:": 0,
+    "VOLUME:A:RECOVERED_SECOND:": 0,
+    "VOLUME:B:DOCS:": 5,
+    "VOLUME:B:BYTES:": 151852,
+    "VOLUME:B:COMMITS:": 0,
+    "VOLUME:B:DIGEST:": 16427685867521082448,
+    "VOLUME:B:REQUESTS:": 994,
+    "VOLUME:B:RECOVERED_REVISION:": 0,
+    "VOLUME:SERVICE:GENERATION:": 84,
+    "VOLUME:SERVICE:COMMITS:": 0,
+    "VOLUME:SERVICE:CHUNK_ALLOCATIONS:": 0,
+    "VOLUME:SERVICE:DATA_SECTORS:": 0,
+    "VOLUME:SERVICE:TABLE_WRITES:": 0,
+    "VOLUME:SERVICE:FLUSHES:": 0,
+    "VOLUME:SERVICE:READ_SECTORS:": 9255,
+    "VOLUME:SERVICE:REJECTED:": 23,
+    "VOLUME:SERVICE:ABORTED:": 0,
+    "VOLUME:SERVICE:UNKNOWN:": 0,
+    "VOLUME:SERVICE:TRANSACTIONS:": 0,
+    "VOLUME:SERVICE:RESTORES:": 0,
+    "VOLUME:BROKER:READS:": 37700,
+    "VOLUME:BROKER:WRITES:": 0,
+    "VOLUME:BROKER:FLUSHES:": 0,
+    "VOLUME:BROKER:TABLE_SECTOR_WRITES:": 0,
+    "VOLUME:BROKER:DATA_SECTOR_WRITES:": 0,
+    "VOLUME:APP_DEVICE_DENIALS:": 6
+  },
+  "oracle": {
+    "generation": 84,
+    "clocks": [
+      57,
+      27
+    ],
+    "objects": [
+      {
+        "object": 0,
+        "revision": 4,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 1005176,
+        "versions": []
+      },
+      {
+        "object": 1,
+        "revision": 3,
+        "present": true,
+        "collection": 2,
+        "tags": 0,
+        "kind": 2,
+        "request_id": 1005120,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 129,
+            "name": "Notitie ✓",
+            "content_revision": 1,
+            "chunks": [
+              29
+            ]
+          }
+        ]
+      },
+      {
+        "object": 2,
+        "revision": 2,
+        "present": true,
+        "collection": 1,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 1005124,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 0,
+            "name": "Leeg",
+            "content_revision": 1,
+            "chunks": []
+          }
+        ]
+      },
+      {
+        "object": 3,
+        "revision": 42,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 1005170,
+        "versions": [
+          {
+            "revision": 41,
+            "length": 20480,
+            "name": "Concept",
+            "content_revision": 38,
+            "chunks": [
+              21,
+              22,
+              23,
+              34,
+              35
+            ]
+          }
+        ]
+      },
+      {
+        "object": 4,
+        "revision": 4,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 1005133,
+        "versions": [
+          {
+            "revision": 4,
+            "length": 5000,
+            "name": "Herstart",
+            "content_revision": 1,
+            "chunks": [
+              25,
+              26
+            ]
+          }
+        ]
+      },
+      {
+        "object": 5,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 1005171,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 65536,
+            "name": "Archief",
+            "content_revision": 1,
+            "chunks": [
+              24,
+              27,
+              30,
+              31,
+              32,
+              33,
+              36,
+              37,
+              38,
+              39,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45
+            ]
+          }
+        ]
+      },
+      {
+        "object": 6,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 7,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 8,
+        "revision": 2,
+        "present": true,
+        "collection": 1,
+        "tags": 3,
+        "kind": 7,
+        "request_id": 2001022,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 16384,
+            "name": "Foto-index",
+            "content_revision": 1,
+            "chunks": [
+              16,
+              17,
+              18,
+              19
+            ]
+          }
+        ]
+      },
+      {
+        "object": 9,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 2000109,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 300,
+            "name": "Lijst",
+            "content_revision": 1,
+            "chunks": [
+              20
+            ]
+          }
+        ]
+      },
+      {
+        "object": 10,
+        "revision": 21,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 2001018,
+        "versions": [
+          {
+            "revision": 20,
+            "length": 4096,
+            "name": "Logboek",
+            "content_revision": 20,
+            "chunks": [
+              28
+            ]
+          }
+        ]
+      },
+      {
+        "object": 11,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 2001023,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 65536,
+            "name": "Groot 1",
+            "content_revision": 1,
+            "chunks": [
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ]
+          }
+        ]
+      },
+      {
+        "object": 12,
+        "revision": 1,
+        "present": true,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 2001026,
+        "versions": [
+          {
+            "revision": 1,
+            "length": 65536,
+            "name": "Groot 2",
+            "content_revision": 1,
+            "chunks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ]
+          }
+        ]
+      },
+      {
+        "object": 13,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 14,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 15,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      }
+    ],
+    "collections": [
+      {
+        "index": 1,
+        "domain": 0,
+        "present": true,
+        "revision": 1,
+        "name": "Werk"
+      },
+      {
+        "index": 2,
+        "domain": 0,
+        "present": true,
+        "revision": 1,
+        "name": "Privé"
+      },
+      {
+        "index": 3,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 1,
+        "domain": 1,
+        "present": true,
+        "revision": 1,
+        "name": "Fotos"
+      },
+      {
+        "index": 2,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      }
+    ],
+    "chunks_used": 62,
+    "slots": [
+      [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      [
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83,
+        83
+      ]
+    ],
+    "digests": [
+      5586531168511146659,
+      16427685867521082448
+    ]
+  }
+}

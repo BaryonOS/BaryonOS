@@ -1,0 +1,7 @@
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os-worktrees/input-daemon/sdk/runtime)
+    Checking ui-core v0.1.0 (/workspace/nieuw-os-worktrees/input-daemon/crates/ui-core)
+    Checking capability-core v0.1.0 (/workspace/nieuw-os-worktrees/input-daemon/crates/capability-core)
+    Checking nieuw-os-display-client v0.1.0 (/workspace/nieuw-os-worktrees/input-daemon/sdk/display-client)
+    Checking nieuw-os-input-core v0.1.0 (/workspace/nieuw-os-worktrees/input-daemon/services/input-core)
+    Checking nieuw-os-native-input-service v0.1.0 (/workspace/nieuw-os-worktrees/input-daemon/sdk/examples/input-service)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.75s

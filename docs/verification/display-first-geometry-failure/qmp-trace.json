@@ -1,0 +1,25 @@
+[
+  {
+    "request": {
+      "execute": "qmp_capabilities",
+      "id": 1
+    },
+    "response": {
+      "return": {},
+      "id": 1
+    }
+  },
+  {
+    "request": {
+      "execute": "screendump",
+      "id": 2,
+      "arguments": {
+        "filename": "/workspace/nieuw-os-worktrees/root-desktop/build/display-integration/run/display-input-a0589723ae/generation-1.ppm"
+      }
+    },
+    "response": {
+      "return": {},
+      "id": 2
+    }
+  }
+]

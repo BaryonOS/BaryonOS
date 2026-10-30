@@ -27,16 +27,20 @@ MAX_TIMEOUT = 180
 EXPECT = {
     "normal": {"SPAWNS": 3, "KILLS": 2, "SPAWN_DENIED": 0, "SPAWN_QUOTA": 0, "ORPHANS_REAPED": 0,
                "CHILD_EXITS": 1, "CHILD_FAULTS": 0, "RESTARTS": 1, "CLIENT_REPLIES": 24,
-               "WORKER_INSTANCES": 2},
+               "WORKER_INSTANCES": 2, "SPARSE_SPAWNS": 1, "SPARSE_CAP_CHECKS": 3},
     "crash": {"SPAWNS": 3, "KILLS": 1, "ORPHANS_REAPED": 0, "CHILD_EXITS": 1, "CHILD_FAULTS": 1,
               "RESTARTS": 1, "CLIENT_REPLIES": 24, "WORKER_INSTANCES": 2},
     "denied": {"SPAWNS": 2, "KILLS": 1, "ORPHANS_REAPED": 0, "CHILD_FAULTS": 0, "CHILD_EXITS": 1,
-               "DENIED_MATCHED": 17, "DENIED_TOTAL": 17},
+               "DENIED_MATCHED": 21, "DENIED_TOTAL": 21},
     "parent-exit": {"SPAWNS": 2, "KILLS": 0, "ORPHANS_REAPED": 2, "CHILD_EXITS": 0, "CHILD_FAULTS": 0},
     "quota": {"SPAWNS": 15, "SPAWN_QUOTA": 1, "KILLS": 15, "MAX_LIVE": 16, "ORPHANS_REAPED": 0},
 }
+for case in EXPECT:
+    if case != "normal":
+        EXPECT[case].update(SPARSE_SPAWNS=0, SPARSE_CAP_CHECKS=0)
+
 AT_LEAST = {"normal": {"CLIENT_CLOSED": 1}, "crash": {"CLIENT_CLOSED": 1},
-            "denied": {"SPAWN_DENIED": 7, "KILL_ERRORS": 3}, "parent-exit": {"CLIENT_REPLIES": 4},
+            "denied": {"SPAWN_DENIED": 11, "KILL_ERRORS": 3}, "parent-exit": {"CLIENT_REPLIES": 4},
             "quota": {}}
 
 

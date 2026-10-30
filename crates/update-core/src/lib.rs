@@ -1,6 +1,6 @@
 #![no_std]
 #![forbid(unsafe_code)]
-//! B03 update core (ADR-044): the signed manifest format, hybrid
+//! B03 update core (ADR-049): the signed manifest format, hybrid
 //! Ed25519 + ML-DSA-65 verification against pinned anchors, the slot store
 //! layout, the loader's slot selection policy with a version floor, and the
 //! two-phase install plan. Shared by the UEFI loader, the ring-3 update

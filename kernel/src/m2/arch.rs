@@ -174,13 +174,38 @@ pub fn protection() {
         let (mut lo, hi): (u32, u32);
         asm!("rdmsr",in("ecx") 0xc0000080u32,out("eax") lo,out("edx") hi,options(nostack));
         lo |= 1 << 11;
+        #[cfg(feature = "fpu-context")]
+        {
+            lo &= !(1 << 14);
+        } // AMD EFER.FFXSR must not skip XMM at CPL0.
         asm!("wrmsr",in("ecx") 0xc0000080u32,in("eax") lo,in("edx") hi,options(nostack));
+        #[cfg(feature = "fpu-context")]
+        {
+            let actual: u32;
+            asm!("rdmsr",in("ecx") 0xc0000080u32,out("eax") actual,out("edx") _,options(nostack));
+            assert_eq!(actual & (1 << 14), 0);
+        }
         let mut cr0: u64;
         let mut cr4: u64;
         asm!("mov {}, cr0",out(reg) cr0,options(nomem,nostack));
         asm!("mov {}, cr4",out(reg) cr4,options(nomem,nostack));
         cr0 |= (1 << 16) | (1 << 1) | (1 << 2) | (1 << 3);
+        #[cfg(feature = "fpu-context")]
+        {
+            // Intel SDM CPUID.01H:EDX: FPU, FXSR, SSE and SSE2. Check before
+            // touching OSFXSR or executing an FXSAVE-family instruction.
+            let required = (1 << 0) | (1 << 24) | (1 << 25) | (1 << 26);
+            if core::arch::x86_64::__cpuid(1).edx & required != required {
+                serial::fail(b"M3_FPU_UNAVAILABLE");
+            }
+            cr0 = (cr0 | (1 << 5)) & !((1 << 2) | (1 << 3));
+        }
         cr4 &= !((1 << 7) | (1 << 9) | (1 << 10) | (1 << 16) | (1 << 17) | (1 << 18));
+        #[cfg(feature = "fpu-context")]
+        {
+            // Eager context switching: no lazy TS trap, no XSAVE/AVX state.
+            cr4 |= (1 << 9) | (1 << 10);
+        }
         asm!("mov cr4, {}",in(reg) cr4,options(nostack));
         asm!("mov cr0, {}",in(reg) cr0,options(nostack));
     }
@@ -429,6 +454,13 @@ m3_user_entry:
  and eax,3
  cmp eax,3
  jne m3_terminal
+ .if {fpu_context}
+ // GPRs already saved. The current owned aligned image is supervisor-only
+ // mapped in every user CR3. Save before any Rust or another process runs.
+ mov rax,[rip+m3_fpu_current]
+ fxsave64 [rax]
+ inc qword ptr [rip+m3_fpu_saves]
+ .endif
  mov rdi,rsp
  mov rsp,[rip+m3_service_stack]
  and rsp,-16
@@ -436,6 +468,16 @@ m3_user_entry:
 .global m3_restore
 m3_restore:
  mov rsp,rax
+ .if {fpu_context}
+ cmp qword ptr [rsp+144],0x23
+ jne 9f
+ // Final restore occurs after ALL Rust, under the selected user root. These
+ // pages are supervisor-only and permanent; only GPR pops/iret follow it.
+ mov rax,[rip+m3_fpu_current]
+ fxrstor64 [rax]
+ inc qword ptr [rip+m3_fpu_restores]
+9:
+ .endif
  pop r15
  pop r14
  pop r13
@@ -458,5 +500,6 @@ m3_terminal:
  and rsp,-16
  call m2_exception
  ud2
-"#
+"#,
+    fpu_context = const cfg!(feature = "fpu-context") as u8,
 );

@@ -1,0 +1,8 @@
+Worktree: /workspace/nieuw-os-worktrees/rtc-walltime
+Base: cda42f2d4017e65bd8ba89399cb1633f85a1c2da
+All recorded commands exit 0. The tests use scripted device fixtures, not a host-clock fallback.
+
+LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-rtc-target python3 -B tools/dev.py cargo +1.90.0 test --manifest-path drivers/rtc/Cargo.toml --locked --offline
+LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-rtc-target python3 -B tools/dev.py cargo +1.90.0 clippy --manifest-path drivers/rtc/Cargo.toml --locked --offline --all-targets -- -D warnings
+LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-rtc-none-target python3 -B tools/dev.py cargo +1.90.0 build --manifest-path drivers/rtc/Cargo.toml --locked --offline --release --target x86_64-unknown-none --lib
+LOCALAPPDATA=/workspace/nieuw-os/.tools python3 -B tools/dev.py cargo +1.90.0 fmt --manifest-path drivers/rtc/Cargo.toml -- --check

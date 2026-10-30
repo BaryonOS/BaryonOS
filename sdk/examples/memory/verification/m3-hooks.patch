@@ -1,0 +1,117 @@
+--- a/kernel/src/m2/m3.rs
++++ b/kernel/src/m2/m3.rs
+@@ -17,6 +17,8 @@
+ mod fpu;
+ #[cfg(feature = "process-memory")]
+ mod heap;
++#[cfg(feature = "native-memory")]
++mod memory_fixture;
+ #[cfg(all(
+     feature = "native-fpu",
+     any(feature = "milestone-m4", feature = "native-qsim")
+@@ -117,7 +119,8 @@
+ #[cfg(all(
+     not(feature = "milestone-m4"),
+     not(feature = "native-qsim"),
+-    not(feature = "native-fpu")
++    not(feature = "native-fpu"),
++    not(feature = "native-memory")
+ ))]
+ const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
+ #[cfg(feature = "native-qsim")]
+@@ -371,7 +374,12 @@
+         _ => panic!("system workers are launched by init"),
+     }
+ }
++#[cfg(feature = "native-memory")]
++fn process_elf(_: usize) -> &'static [u8] {
++    include_bytes!(env!("NOS_MEMORY_ELF"))
++}
+ #[cfg(not(any(
++    feature = "native-memory",
+     feature = "native-fpu",
+     feature = "native-sdk-app",
+     feature = "native-volume",
+@@ -452,7 +460,9 @@
+         self.exited = false;
+         self.survivor_slot = 1;
+         self.unexpected = false;
+-        self.amount = if cfg!(feature = "native-fpu") {
++        self.amount = if cfg!(feature = "native-memory-oom") {
++            MAX
++        } else if cfg!(feature = "native-memory") || cfg!(feature = "native-fpu") {
+             2
+         } else if cfg!(feature = "native-supervisor") {
+             // The whole table is schedulable; only the supervisor boots now.
+@@ -535,6 +545,8 @@
+         qsim_job::manifest(self);
+         #[cfg(feature = "native-fpu")]
+         fpu::fixture::manifest(self);
++        #[cfg(feature = "native-memory")]
++        memory_fixture::manifest(self);
+     }
+     fn spawn_process(&mut self, slot: usize) {
+         self.spawn_process_from(slot, process_elf(slot));
+@@ -807,6 +819,7 @@
+                     && !cfg!(feature = "native-qsim-job")
+                     && !cfg!(feature = "native-sdk-app")
+                     && !cfg!(feature = "native-fpu")
++                    && !cfg!(feature = "native-memory")
+                     && mode() == 0
+                     && self.round < 2
+                     && !self.fault
+@@ -962,6 +975,8 @@
+             .count()
+     }
+     fn observer_exit(&mut self, slot: usize, counter: u64) {
++        #[cfg(feature = "native-memory")]
++        { memory_fixture::observe_exit(self, slot, counter); return; }
+         #[cfg(feature = "native-fpu")]
+         {
+             fpu::fixture::observe_exit(self, slot, counter);
+@@ -1010,7 +1025,7 @@
+             m4::observe_exit(self, slot, counter);
+             return;
+         }
+-        #[cfg(all(not(feature = "milestone-m4"), not(feature = "native-fpu")))]
++        #[cfg(all(not(feature = "milestone-m4"), not(feature = "native-fpu"), not(feature = "native-memory")))]
+         {
+             let record = self.last_event;
+             let expected = if mode() == 17 {
+@@ -1035,6 +1050,8 @@
+         }
+     }
+     fn observer_fault(&mut self, slot: usize, context: &[u64; 22], counter: u64) {
++        #[cfg(feature = "native-memory")]
++        { memory_fixture::observe_fault(self, slot, context, counter); return; }
+         #[cfg(feature = "native-fpu")]
+         {
+             fpu::fixture::observe_fault(self, slot, context, counter);
+@@ -1083,7 +1100,7 @@
+             m4::observe_fault(self, slot, context, counter);
+             return;
+         }
+-        #[cfg(all(not(feature = "milestone-m4"), not(feature = "native-fpu")))]
++        #[cfg(all(not(feature = "milestone-m4"), not(feature = "native-fpu"), not(feature = "native-memory")))]
+         {
+             if slot != 0 || self.fault {
+                 self.unexpected = true;
+@@ -1368,7 +1385,9 @@
+     }
+     #[cfg(feature = "native-fpu")]
+     fpu::fixture::poll(state);
+-    #[cfg(all(not(feature = "milestone-m4"), not(feature = "native-fpu")))]
++    #[cfg(feature = "native-memory")]
++    memory_fixture::poll(state);
++    #[cfg(all(not(feature = "milestone-m4"), not(feature = "native-fpu"), not(feature = "native-memory")))]
+     if state.fault || state.exited {
+         if state.survivor_slot == MAX && mode() != 17 {
+             serial::write(b"M3:FAIL:NO_TEST_SURVIVOR\n");
+@@ -1555,6 +1575,6 @@
+ }
+ #[cfg(not(feature = "milestone-m4"))]
+-#[cfg_attr(feature = "native-fpu", allow(dead_code))]
++#[cfg_attr(any(feature = "native-fpu", feature = "native-memory"), allow(dead_code))]
+ fn fault_marker() -> &'static [u8] {
+     match mode() {
+         3 => b"M3:FAULT:PEER_READ:PASS\n",

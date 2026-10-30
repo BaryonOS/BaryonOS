@@ -235,13 +235,30 @@ pub extern "C" fn _start() -> ! {
     let mode = arg & 0xff;
     let supervisor = arg >> 8;
     let pid = support::word(176);
-    if supervisor == 0 || pid == 0 || support::word(32) != 1 || support::word(64) != 0 {
+    let sparse = mode == CLIENT_SECOND_CAP;
+    let (registry_offset, empty_offset) = if sparse { (64, 56) } else { (56, 64) };
+    if supervisor == 0 || pid == 0 || support::word(32) != 1 || support::word(empty_offset) != 0 {
         fail(2);
     }
-    let registry =
-        SendEndpoint::from_handle(Handle::from_raw(support::word(56)).unwrap_or_else(|_| fail(3)));
+    let registry = SendEndpoint::from_handle(
+        Handle::from_raw(support::word(registry_offset)).unwrap_or_else(|_| fail(3)),
+    );
+    let sparse_checks = if sparse {
+        // Correct positions alone do not establish authority: cap1 must be
+        // SEND-only. The following HELLO proves SEND works on that same handle.
+        if kernel_code(native::receive(ReceiveEndpoint::from_handle(
+            registry.handle(),
+        ))) != EACCESS
+            || kernel_code(native::derive(registry.handle(), Rights::SEND)) != EACCESS
+        {
+            fail(8);
+        }
+        3
+    } else {
+        0
+    };
     let reply_root = native::endpoint_create().unwrap_or_else(|_| fail(4));
-    let mut hello = frame(Frame::new(CLIENT_HELLO, pid, mode, 0));
+    let mut hello = frame(Frame::new(CLIENT_HELLO, pid, mode, sparse_checks));
     hello
         .push_cap(Capability {
             handle: reply_root,

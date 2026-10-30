@@ -1,0 +1,145 @@
+{
+  "task": "TASK-USER-ALLOC",
+  "base_commit": "cda42f2d4017e65bd8ba89399cb1633f85a1c2da",
+  "source_sha256": "bfd6164862ccf7d44d1bb68daef3417e50742072936d35529918e59f173af3c5",
+  "source_files": {
+    "sdk/heap-allocator/Cargo.lock": "54cee2a6a78aeb579b0fe5702a5b4614911db45e6ffedf6e00fe47b8a9798a53",
+    "sdk/heap-allocator/Cargo.toml": "d9f1187a9cbb08a18b8667e45e0c180d9522d1087590d2d43b19b91bac097294",
+    "sdk/heap-allocator/THIRD-PARTY.md": "31abb50bca6d56c3f64ebfe66a401b92064ab4e2f7fdff224e1697ae3b53c398",
+    "sdk/heap-allocator/src/lib.rs": "ad6dade87a7b152272ca46778bc10850c6a7519bd46bd173435816a629ce8ef2",
+    "sdk/heap-allocator/tests/arena.rs": "7b15ff3104817f9e3e7022e6fd6493d183bbe7381cf7bc1f2fc461e7f490b92d",
+    "sdk/heap-allocator/tests/collections.rs": "7d53966a0702284263cae0f3f1cc7ec68bc52fcd16fc2d12e9792c8a229fbd9e"
+  },
+  "compiler": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8\n",
+  "host_unit_and_arena_tests": 15,
+  "real_collections_executable": true,
+  "checks": [
+    {
+      "log": "host.txt",
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/heap-allocator/Cargo.toml"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/user-allocator",
+      "started_unix": 1793322418.8696916,
+      "duration_s": 0.8129804134368896,
+      "returncode": 0
+    },
+    {
+      "log": "clippy.txt",
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/heap-allocator/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/user-allocator",
+      "started_unix": 1793322419.6828914,
+      "duration_s": 0.2981882095336914,
+      "returncode": 0
+    },
+    {
+      "log": "fmt-check.txt",
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/heap-allocator/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/user-allocator",
+      "started_unix": 1793322419.981201,
+      "duration_s": 0.12529873847961426,
+      "returncode": 0
+    },
+    {
+      "log": "scalar-build.txt",
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "build",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/heap-allocator/Cargo.toml",
+        "--release",
+        "--lib",
+        "--target",
+        "x86_64-unknown-none",
+        "--message-format=json-render-diagnostics"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/user-allocator",
+      "started_unix": 1793322261.887642,
+      "duration_s": 0.1693105697631836,
+      "returncode": 0
+    },
+    {
+      "log": "features.txt",
+      "command": [
+        "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.90.0",
+        "tree",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/heap-allocator/Cargo.toml",
+        "-e",
+        "features"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/user-allocator",
+      "started_unix": 1793321960.8473024,
+      "duration_s": 0.08147454261779785,
+      "returncode": 0
+    }
+  ],
+  "scalar_scan": {
+    "artifacts": [
+      {
+        "path": "build/user-allocator-none-target/x86_64-unknown-none/release/deps/liblinked_list_allocator-e178a125d863c07b.rlib",
+        "sha256": "e4ef29520e86d35997a303c4671a89c29d9814324e2f1833f4b438d5c49db2fd",
+        "bytes": 49642,
+        "instructions_checked": 663,
+        "forbidden_scalar_matches": [],
+        "host_backend_symbol_matches": 0
+      },
+      {
+        "path": "build/user-allocator-none-target/x86_64-unknown-none/release/libnieuw_os_heap_allocator.rlib",
+        "sha256": "a57b01f251d242b810f5a859a6156ec69c543364bbc3fd1569f527ea5078017a",
+        "bytes": 49282,
+        "instructions_checked": 429,
+        "forbidden_scalar_matches": [],
+        "host_backend_symbol_matches": 0
+      }
+    ],
+    "rustflags": "-C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2",
+    "native_execution": false
+  },
+  "peer_review": {
+    "agent": "git_build_audit",
+    "concrete_blockers": 0,
+    "original_tests_repeated": 14,
+    "additional_mixed_operations": 40000,
+    "library_source_sha256": "ad6dade87a7b152272ca46778bc10850c6a7519bd46bd173435816a629ce8ef2",
+    "human_audit": false,
+    "miri": false
+  },
+  "native_execution": false,
+  "heap_growth": false,
+  "miri": false,
+  "physical_hardware": false,
+  "progress_change": 0
+}

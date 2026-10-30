@@ -1,0 +1,3 @@
+Opb6074c3176db2a6fbe2b6fe42f07f139f153a649 stoppen drie gezamenlijke suites vóór hun eerste VM: runtime Rights::KNOWN_MASK=4095 verschilt van capability-core::KNOWN_RIGHTS=16383 na toevoeging DISPLAY4096/INPUT8192. Dit is een concrete SDK/interface-inconsistentie. De ruwe hostuitvoer en gatebestanden zijn bewaard; géén nativepass voor deze drie suites.
+
+De gerichte reparatie definieert beide bestaande kernelflags ook in de SDK, houdt kernelgebonden uitgifte en nondelegatie intact, en test onbekende bits vanaf16384. Alle19SDKtests,Clippy-Dwarnings enfmt slagen; commandometadata en logs staan in fix-host/. De gerepareerde samengestelde versie krijgt opnieuw alle13VMs en CI.

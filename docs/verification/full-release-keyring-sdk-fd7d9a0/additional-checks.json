@@ -1,0 +1,24 @@
+{
+  "source_commit": "fd7d9a04e34ed6124535512c1627300ce7ee546c",
+  "source_files_sha256": {
+    "sdk/Cargo.toml": "53ce5d0e9a4f0fc517f5b80508ede72b8a55aeb97e0cd7d64fd456ddbbd111c2",
+    "sdk/Cargo.lock": "31f7c7c8f672066ec79491c323e6e8d3d37fb88501aa213d5e40aaa6136f53ef",
+    "sdk/examples/system/Cargo.toml": "4addfcc264424d365cc123152886385067e9ec4c8c4acffdcbbd9e4aa81e74bc",
+    "sdk/examples/system/src/app.rs": "accc748dd091d92c46b1402a16de4c31a731cb30e9adefc1b8ee04e8d09f6dda"
+  },
+  "checks": [
+    {
+      "command": "cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --offline -p nieuw-os-system-example --features native --bins --target x86_64-unknown-none -- -D warnings",
+      "env": {
+        "RUSTFLAGS": "--cfg chacha20_force_soft --cfg poly1305_force_soft --cfg sha2_backend=\"soft\"",
+        "CARGO_TARGET_DIR": "target/keyring-sdk-native-lint"
+      },
+      "exit": 0
+    },
+    {
+      "command": "cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --package nieuw-os-system-example -- --check",
+      "exit": 0
+    }
+  ],
+  "local_source_changes_required": false
+}

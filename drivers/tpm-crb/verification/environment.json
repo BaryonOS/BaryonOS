@@ -1,0 +1,47 @@
+{
+  "path_tools": {
+    "swtpm": null,
+    "swtpm_setup": null,
+    "swtpm_ioctl": null,
+    "dpkg-query": "/usr/bin/dpkg-query",
+    "apt-cache": "/usr/bin/apt-cache",
+    "rpm": null,
+    "apk": null,
+    "nix": null,
+    "qemu-system-x86_64": null
+  },
+  "managed_qemu": "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+  "managed_binary": "/workspace/.nieuw-os-env/sysroot/usr/bin/qemu-system-x86_64",
+  "normative_access": {
+    "url": "https://trustedcomputinggroup.org/resource/pc-client-platform-tpm-profile-ptp-specification/",
+    "result": "URLError: Tunnel connection failed: 403 Forbidden; no normative PTP PDF read, no compliance claim"
+  },
+  "managed_qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+  "managed_binary_sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067",
+  "package_queries": [
+    {
+      "command": [
+        "dpkg-query",
+        "-W",
+        "swtpm",
+        "libtpms0",
+        "swtpm-tools"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "dpkg-query: no packages found matching swtpm\ndpkg-query: no packages found matching libtpms0\ndpkg-query: no packages found matching swtpm-tools\n"
+    },
+    {
+      "command": [
+        "apt-cache",
+        "policy",
+        "swtpm",
+        "libtpms0",
+        "swtpm-tools"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "W: Unable to read /etc/apt/apt.conf.d/80-applied-apt-retries - open (13: Permission denied)\n"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+    Checking typenum v1.20.1
+    Checking subtle v2.6.1
+    Checking catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+    Checking cpufeatures v0.2.17
+    Checking zeroize v1.9.1
+    Checking cfg-if v1.0.5
+    Checking opaque-debug v0.3.1
+    Checking volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+    Checking hex-literal v0.4.1
+    Checking virtio-core v0.1.0 (/workspace/nieuw-os/crates/virtio-core)
+    Checking generic-array v0.14.7
+    Checking object-core v0.1.0 (/workspace/nieuw-os/services/objects)
+    Checking ui-core v0.1.0 (/workspace/nieuw-os/crates/ui-core)
+    Checking boot-protocol v0.1.0 (/workspace/nieuw-os/crates/boot-protocol)
+    Checking crypto-common v0.1.7
+    Checking block-buffer v0.10.4
+    Checking inout v0.1.4
+    Checking universal-hash v0.5.1
+    Checking aead v0.5.2
+    Checking digest v0.10.7
+    Checking cipher v0.4.4
+    Checking poly1305 v0.8.0
+    Checking hmac v0.12.1
+    Checking chacha20 v0.9.1
+    Checking sha2 v0.10.9
+    Checking hkdf v0.12.4
+    Checking chacha20poly1305 v0.10.1
+    Checking keyring-core v0.1.0 (/workspace/nieuw-os/services/keyring)
+    Checking elf-loader-core v0.1.0 (/workspace/nieuw-os/crates/elf-loader-core)
+    Checking virtio-rng-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-rng)
+    Checking virtio-net-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-net)
+    Checking virtio-blk-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-blk)
+    Checking capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+    Checking block-protocol v0.1.0 (/workspace/nieuw-os/services/block)
+    Checking kernel-core v0.1.0 (/workspace/nieuw-os/crates/kernel-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.76s

@@ -1,0 +1,19 @@
+{
+  "kind": "Host/source verification only",
+  "argv": [
+    "python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "services/image-codec/tests",
+    "-p",
+    "test_vendor.py",
+    "-v"
+  ],
+  "exit_code": 0,
+  "seconds": 0.1022,
+  "stdout": "",
+  "stderr": "test_actual_reviewed_source_passes (test_vendor.VendorIntegrity.test_actual_reviewed_source_passes) ... ok\ntest_changed_source_and_archive_are_refused (test_vendor.VendorIntegrity.test_changed_source_and_archive_are_refused) ... ok\ntest_unreviewed_file_is_refused (test_vendor.VendorIntegrity.test_unreviewed_file_is_refused) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.031s\n\nOK\n"
+}

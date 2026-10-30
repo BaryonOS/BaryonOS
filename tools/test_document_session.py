@@ -26,10 +26,11 @@ from run_m6c import run_m6c
 MAX_JSON = 2 * 1024 * 1024
 MAX_ARTIFACT = 16 * 1024 * 1024
 MAX_LOG = 2 * 1024 * 1024
-PACKAGES = ('sdk/runtime', 'sdk/catalog-client', 'sdk/document-session', 'services/catalog')
+PACKAGES = ('sdk/runtime', 'sdk/catalog-client', 'sdk/document-session', 'services/catalog', 'services/volume')
 LIBRARIES = {
     'nieuw_os_sdk_runtime': ('sdk/runtime/src/lib.rs', 'build-sdk-runtime'),
     'catalog_core': ('services/catalog/src/lib.rs', 'build-document-library-catalog_core'),
+    'volume_core': ('services/volume/src/lib.rs', 'build-document-library-volume_core'),
     'nieuw_os_catalog_client': ('sdk/catalog-client/src/lib.rs', 'build-document-library-nieuw_os_catalog_client'),
     'nieuw_os_document_session': ('sdk/document-session/src/lib.rs', 'build-document-library-nieuw_os_document_session'),
 }
@@ -37,8 +38,9 @@ LIBRARY_PATHS = frozenset(f'users/lib{crate}.rlib' for crate in LIBRARIES)
 DEPENDENCIES = {
     'nieuw_os_sdk_runtime': (),
     'catalog_core': (),
+    'volume_core': ('catalog_core',),
     'nieuw_os_catalog_client': ('nieuw_os_sdk_runtime', 'catalog_core'),
-    'nieuw_os_document_session': ('nieuw_os_sdk_runtime', 'catalog_core', 'nieuw_os_catalog_client'),
+    'nieuw_os_document_session': ('nieuw_os_sdk_runtime', 'catalog_core', 'nieuw_os_catalog_client', 'volume_core'),
     'os_user_m6c_probe': tuple(LIBRARIES),
 }
 ABI_OPTIONS = {'panic': 'abort', 'code-model': 'small', 'relocation-model': 'static', 'no-redzone': 'yes'}

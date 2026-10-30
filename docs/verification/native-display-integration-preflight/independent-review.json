@@ -1,0 +1,144 @@
+{
+  "task": "TASK-PS2-DISPLAY-V",
+  "reviewer": "acceptance_contract",
+  "boundary": "Independent source/model review and no_std cross-build; no native hardware/VM execution or full-release acceptance",
+  "root_base": "985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb",
+  "implementation_commit": "b2ad7c184a2d918f57b82f0c50125a5c3906d9a7",
+  "result": "No concrete reachable blocker found within one-CPU IF0 immutable framebuffer and sole manifest capability contracts",
+  "checks": {
+    "ps2-final": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "/tmp/nieuw-os-ps2-display-review/snapshot/drivers/ps2/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "seconds": 0.222,
+      "log": "/tmp/nieuw-os-ps2-display-review/ps2-final.log"
+    },
+    "sdk-final": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "/tmp/nieuw-os-ps2-display-review/snapshot/sdk/display-client/Cargo.toml",
+        "--locked",
+        "--offline"
+      ],
+      "exit": 0,
+      "seconds": 0.202,
+      "log": "/tmp/nieuw-os-ps2-display-review/sdk-final.log"
+    },
+    "adapter-final": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--manifest-path",
+        "/tmp/nieuw-os-ps2-display-review/display-harness/Cargo.toml",
+        "--locked",
+        "--offline"
+      ],
+      "exit": 0,
+      "seconds": 0.207,
+      "log": "/tmp/nieuw-os-ps2-display-review/adapter-final.log"
+    },
+    "ps2-none": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "build",
+        "--manifest-path",
+        "/tmp/nieuw-os-ps2-display-review/snapshot/drivers/ps2/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--lib"
+      ],
+      "exit": 0,
+      "seconds": 0.339,
+      "log": "/tmp/nieuw-os-ps2-display-review/ps2-none.log"
+    },
+    "sdk-none": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "build",
+        "--manifest-path",
+        "/tmp/nieuw-os-ps2-display-review/snapshot/sdk/display-client/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--lib"
+      ],
+      "exit": 0,
+      "seconds": 0.532,
+      "log": "/tmp/nieuw-os-ps2-display-review/sdk-none.log"
+    }
+  },
+  "test_counts": {
+    "original_ps2": 8,
+    "original_sdk": 5,
+    "additional_ps2": 3,
+    "exact_adapter_model": 1
+  },
+  "counterexamples": [
+    "PS2 final keyboard F4 ACK omitted -> Timeout and NeedsReset, no false Ready",
+    "35 status-operation pauses during 69-operation reset -> detach requires new ticket; old tickets perform no I/O; restart completes only after new hardware responses",
+    "Exact STEP_TICKS deadline fails before port operation; empty reads preserve first real sequence number",
+    "Exact display adapter plus actual capability Engine and actual kernel-core usercopy planner rejects final of four payload plans (foreign second page) before copying payload or any framebuffer validation/store",
+    "Final high-alpha pixel and final framebuffer row preflight failure leave zero stores",
+    "Reserved descriptor, epoch, wrong PID/handle and unused arg errors leave zero stores; successful 32x8 tile writes eight modeled rows",
+    "Close/recreate changes capability generation; old handle and old epoch cannot draw; new handle must obtain new info epoch; detach removes owner",
+    "Exact input adapter with only fixed port asm methods replaced by bounded Ports model rejects cross-page foreign output before any reset progress or FIFO status/read",
+    "Bad InputRead output preserves queued byte; next valid read returns actual first sequence; close/recreate, wrong PID, stale ticket and detach perform no port I/O"
+  ],
+  "model_correction": {
+    "initial_test_failure": "Independent extended fixture inherited separate mouse/mode latches and timed out after interruption immediately following D4",
+    "primary_evidence": "QEMU v10.0.13 hw/input/pckbd.c uses one write_cmd overwritten by 0x60/D4 and cleared by data",
+    "sha256": "e48dc36f8ddd165877ac647408dd4f10ab782dc9061e25f78c20a975abb5eaa4",
+    "resolution": "Corrected ONLY private Ports model to use exclusive latches; all 35 interruption cases pass; no production bug inferred"
+  },
+  "shared_wiring_review": [
+    "ABI1.8 wrappers use RDI,RSI,RDX,R10,R8,R9; syscall saved frame reads indexes8,9,12,5,7,6; status/value update indexes14/12",
+    "0x80..0x84 handled before generic M4 fallback and explicitly excluded from it",
+    "display-input enables fpu-context; CR0.EM/TS cleared and MP/NE set; CR4.OSFXSR/OSXMMEXCPT enabled while OSXSAVE clear; eager owned FXSAVE64/FXRSTOR64 around all ring3 entries",
+    "cleanup detaches PS2/display owner on true process death; check_display/check_input derive actual PID and object generation on each call; no usercap creation or raw port command granted"
+  ],
+  "limitations": [
+    "Host MMIO/RAM/page lookup and port behavior modeled; no host raw port I/O performed; actual kernel display module is byte-identical and PS2 module differs only in four fixed hardware methods",
+    "Native QMP key/mouse delivery, actual framebuffer pixels/guard mappings, syscall execution, IF0/FPU lifecycle and integrated native regression gates remain open",
+    "No security-lockscreen, renderer/session recovery, hardware-universal or complete UI/product acceptance claim",
+    "Driver per-call bound is 8 actions / at most16 port operations (stricter than requested32); faulty device state remains failed/needs explicit reset; physical PS2 not covered"
+  ],
+  "source_before": "/tmp/nieuw-os-ps2-display-review/source-before.json",
+  "source_after": "/tmp/nieuw-os-ps2-display-review/source-after.json",
+  "concurrent_shared_changes": {},
+  "writes": "Only /tmp/nieuw-os-ps2-display-review artifacts; no repository or Git-index writes"
+}

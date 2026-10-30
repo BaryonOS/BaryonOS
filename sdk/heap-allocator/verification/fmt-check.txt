@@ -1,0 +1,8 @@
+command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "fmt", "--manifest-path", "sdk/heap-allocator/Cargo.toml", "--", "--check"]
+cwd: /workspace/nieuw-os-worktrees/user-allocator
+exit: 0
+duration_s: 0.12529873847961426
+
+stdout:
+
+stderr:

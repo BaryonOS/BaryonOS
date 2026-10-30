@@ -1,0 +1,16 @@
+[
+  {
+    "artifact": "build/user-allocator-none-target/x86_64-unknown-none/release/deps/liblinked_list_allocator-e178a125d863c07b.rlib",
+    "sha256": "e4ef29520e86d35997a303c4671a89c29d9814324e2f1833f4b438d5c49db2fd",
+    "independent_decoded_instructions": 663,
+    "forbidden_matches": [],
+    "host_backend_matches": []
+  },
+  {
+    "artifact": "build/user-allocator-none-target/x86_64-unknown-none/release/libnieuw_os_heap_allocator.rlib",
+    "sha256": "a57b01f251d242b810f5a859a6156ec69c543364bbc3fd1569f527ea5078017a",
+    "independent_decoded_instructions": 429,
+    "forbidden_matches": [],
+    "host_backend_matches": []
+  }
+]

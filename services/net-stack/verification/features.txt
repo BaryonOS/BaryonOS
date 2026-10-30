@@ -1,0 +1,32 @@
+nieuw-os-net-stack v0.1.0 (/workspace/nieuw-os-worktrees/tcp/services/net-stack)
+├── smoltcp feature "assembler-max-segment-count-4"
+│   └── smoltcp v0.14.0
+│       ├── bitflags v1.3.2
+│       ├── byteorder v1.5.0
+│       ├── cfg-if feature "default"
+│       │   └── cfg-if v1.0.5
+│       ├── heapless feature "default"
+│       │   └── heapless v0.9.3
+│       │       ├── stable_deref_trait v1.2.1
+│       │       └── hash32 feature "default"
+│       │           └── hash32 v0.3.1
+│       │               └── byteorder v1.5.0
+│       └── managed feature "map"
+│           └── managed v0.8.0
+├── smoltcp feature "iface-max-addr-count-1"
+│   └── smoltcp v0.14.0 (*)
+├── smoltcp feature "iface-max-route-count-1"
+│   └── smoltcp v0.14.0 (*)
+├── smoltcp feature "iface-neighbor-cache-count-4"
+│   └── smoltcp v0.14.0 (*)
+├── smoltcp feature "medium-ethernet"
+│   ├── smoltcp v0.14.0 (*)
+│   └── smoltcp feature "socket"
+│       └── smoltcp v0.14.0 (*)
+├── smoltcp feature "proto-ipv4"
+│   └── smoltcp v0.14.0 (*)
+├── smoltcp feature "socket-tcp"
+│   ├── smoltcp v0.14.0 (*)
+│   └── smoltcp feature "socket" (*)
+└── smoltcp feature "socket-tcp-reno"
+    └── smoltcp v0.14.0 (*)

@@ -32,15 +32,37 @@ pub const PROCESS_RIGHTS: u64 = OBSERVE | KILL;
 /// Only the Key Service holds this; it cannot be derived or transferred.
 pub const ENTROPY: u64 = 1024;
 pub const ENTROPY_RIGHTS: u64 = ENTROPY;
-pub const KNOWN_RIGHTS: u64 =
-    ALL_RIGHTS | BLOCK_RIGHTS | LAUNCH_RIGHTS | PROCESS_RIGHTS | ENTROPY_RIGHTS;
+/// Raw NIC transport authority for the isolated native network service.
+/// Manifest-only, non-delegable; closing it or owner exit ends access.
+pub const NETWORK: u64 = 2048;
+pub const NETWORK_RIGHTS: u64 = NETWORK;
+/// Sole manifest-only framebuffer transport holder; no delegation or raw VRAM.
+pub const DISPLAY: u64 = 4096;
+pub const DISPLAY_RIGHTS: u64 = DISPLAY;
+/// Sole manifest-only PS/2 hardware source; no arbitrary port-I/O interface.
+pub const INPUT: u64 = 8192;
+pub const INPUT_RIGHTS: u64 = INPUT;
+pub const KNOWN_RIGHTS: u64 = ALL_RIGHTS
+    | BLOCK_RIGHTS
+    | LAUNCH_RIGHTS
+    | PROCESS_RIGHTS
+    | ENTROPY_RIGHTS
+    | NETWORK_RIGHTS
+    | DISPLAY_RIGHTS
+    | INPUT_RIGHTS;
 pub const MAX_LAUNCH_OBJECTS: usize = 8;
 pub const MAX_PROCESS_OBJECTS: usize = MAX_PROCESSES;
 pub const MAX_ENTROPY_OBJECTS: usize = 4;
+pub const MAX_NETWORK_OBJECTS: usize = 4;
 const LAUNCH_BASE: usize = MAX_ENDPOINTS + MAX_BLOCK_DEVICES;
 const PROCESS_BASE: usize = LAUNCH_BASE + MAX_LAUNCH_OBJECTS;
 const ENTROPY_BASE: usize = PROCESS_BASE + MAX_PROCESS_OBJECTS;
-const OBJECT_COUNT: usize = ENTROPY_BASE + MAX_ENTROPY_OBJECTS;
+const NETWORK_BASE: usize = ENTROPY_BASE + MAX_ENTROPY_OBJECTS;
+pub const MAX_DISPLAY_OBJECTS: usize = 1;
+pub const MAX_INPUT_OBJECTS: usize = 1;
+const DISPLAY_BASE: usize = NETWORK_BASE + MAX_NETWORK_OBJECTS;
+const INPUT_BASE: usize = DISPLAY_BASE + MAX_DISPLAY_OBJECTS;
+const OBJECT_COUNT: usize = INPUT_BASE + MAX_INPUT_OBJECTS;
 /// Lifecycle state of a spawned child as reported through `OBSERVE`.
 pub const PROCESS_RUNNING: u8 = 1;
 pub const PROCESS_EXITED: u8 = 2;
@@ -429,6 +451,12 @@ pub struct Stats {
     pub retired_process_objects: usize,
     pub entropy_objects: usize,
     pub retired_entropy_objects: usize,
+    pub network_objects: usize,
+    pub retired_network_objects: usize,
+    pub display_objects: usize,
+    pub retired_display_objects: usize,
+    pub input_objects: usize,
+    pub retired_input_objects: usize,
     pub state_digest: u64,
 }
 
@@ -441,6 +469,9 @@ pub struct Engine {
     launches: [LaunchObject; MAX_LAUNCH_OBJECTS],
     children: [ProcessObject; MAX_PROCESS_OBJECTS],
     entropy: [EntropyObject; MAX_ENTROPY_OBJECTS],
+    network: [EntropyObject; MAX_NETWORK_OBJECTS],
+    display: [EntropyObject; MAX_DISPLAY_OBJECTS],
+    input: [EntropyObject; MAX_INPUT_OBJECTS],
     last_pid: u64,
 }
 impl Default for Engine {
@@ -459,6 +490,9 @@ impl Engine {
             launches: [LaunchObject::EMPTY; MAX_LAUNCH_OBJECTS],
             children: [ProcessObject::EMPTY; MAX_PROCESS_OBJECTS],
             entropy: [EntropyObject::EMPTY; MAX_ENTROPY_OBJECTS],
+            network: [EntropyObject::EMPTY; MAX_NETWORK_OBJECTS],
+            display: [EntropyObject::EMPTY; MAX_DISPLAY_OBJECTS],
+            input: [EntropyObject::EMPTY; MAX_INPUT_OBJECTS],
             last_pid: 0,
         }
     }
@@ -497,10 +531,115 @@ impl Engine {
     pub fn check_entropy(&self, pid: u64, handle: u64) -> Result<(), Error> {
         let node = self.resolve(pid, handle)?;
         let i = self.nodes[node].object.index as usize;
-        if !(ENTROPY_BASE..OBJECT_COUNT).contains(&i) {
+        if !(ENTROPY_BASE..NETWORK_BASE).contains(&i) {
             return Err(Error::Type);
         }
         self.require(node, ENTROPY)
+    }
+    /// Manifest-only raw network authority. No process can manufacture, derive
+    /// or transfer this handle; closing it and owner exit invalidate it.
+    pub fn create_network(&mut self, owner: u64) -> Result<u64, Error> {
+        let p = self.process(owner)?;
+        let slot = self.slots(p, 1)?[0];
+        let node = self.free_nodes(1)?[0];
+        let object = self
+            .network
+            .iter()
+            .position(|e| !e.live && !e.retired)
+            .ok_or(Error::Quota)?;
+        let generation = self.network[object].generation;
+        self.network[object] = EntropyObject {
+            generation,
+            live: true,
+            open: true,
+            owner,
+            ..EntropyObject::EMPTY
+        };
+        self.make_node(
+            node,
+            Id {
+                index: (NETWORK_BASE + object) as u16,
+                generation,
+            },
+            Id::NONE,
+            owner,
+            NETWORK_RIGHTS,
+            0,
+        );
+        Ok(self.attach(p, slot, self.node_id(node)))
+    }
+    pub fn check_network(&self, pid: u64, handle: u64) -> Result<u64, Error> {
+        let node = self.resolve(pid, handle)?;
+        let i = self.nodes[node].object.index as usize;
+        if !(NETWORK_BASE..DISPLAY_BASE).contains(&i) {
+            return Err(Error::Type);
+        }
+        self.require(node, NETWORK)?;
+        let object = self.nodes[node].object;
+        Ok(u64::from(object.index) | u64::from(object.generation) << 32)
+    }
+    /// Manifest-only display/input creation; neither type knows DERIVE,
+    /// TRANSFER or REVOKE. One live object per physical source globally.
+    pub fn create_display(&mut self, owner: u64) -> Result<u64, Error> {
+        self.create_console_source(owner, true)
+    }
+    pub fn create_input(&mut self, owner: u64) -> Result<u64, Error> {
+        self.create_console_source(owner, false)
+    }
+    fn create_console_source(&mut self, owner: u64, display: bool) -> Result<u64, Error> {
+        let p = self.process(owner)?;
+        let slot = self.slots(p, 1)?[0];
+        let node = self.free_nodes(1)?[0];
+        let (objects, base, rights) = if display {
+            (self.display.as_mut_slice(), DISPLAY_BASE, DISPLAY_RIGHTS)
+        } else {
+            (self.input.as_mut_slice(), INPUT_BASE, INPUT_RIGHTS)
+        };
+        let object = objects
+            .iter()
+            .position(|e| !e.live && !e.retired)
+            .ok_or(Error::Quota)?;
+        let generation = objects[object].generation;
+        objects[object] = EntropyObject {
+            generation,
+            live: true,
+            open: true,
+            owner,
+            ..EntropyObject::EMPTY
+        };
+        self.make_node(
+            node,
+            Id {
+                index: (base + object) as u16,
+                generation,
+            },
+            Id::NONE,
+            owner,
+            rights,
+            0,
+        );
+        Ok(self.attach(p, slot, self.node_id(node)))
+    }
+    pub fn check_display(&self, pid: u64, handle: u64) -> Result<u64, Error> {
+        self.check_console_source(pid, handle, DISPLAY_BASE..INPUT_BASE, DISPLAY)
+    }
+    pub fn check_input(&self, pid: u64, handle: u64) -> Result<u64, Error> {
+        self.check_console_source(pid, handle, INPUT_BASE..OBJECT_COUNT, INPUT)
+    }
+    fn check_console_source(
+        &self,
+        pid: u64,
+        handle: u64,
+        range: core::ops::Range<usize>,
+        right: u64,
+    ) -> Result<u64, Error> {
+        let node = self.resolve(pid, handle)?;
+        let object = self.nodes[node].object;
+        if !range.contains(&(object.index as usize)) {
+            return Err(Error::Type);
+        }
+        self.require(node, right)?;
+        Ok(u64::from(object.index) | u64::from(object.generation) << 32)
     }
     /// Capacity probe for a spawner: true when one more process can register.
     pub fn can_register(&self) -> bool {
@@ -1024,7 +1163,13 @@ impl Engine {
                 c.open = false;
             }
         }
-        for e in &mut self.entropy {
+        for e in self
+            .entropy
+            .iter_mut()
+            .chain(self.network.iter_mut())
+            .chain(self.display.iter_mut())
+            .chain(self.input.iter_mut())
+        {
             if e.live && e.owner == pid {
                 e.open = false;
             }
@@ -1140,9 +1285,18 @@ impl Engine {
         } else if i < ENTROPY_BASE {
             let c = self.children[i - PROCESS_BASE];
             c.live && c.generation == id.generation
-        } else if i < OBJECT_COUNT {
+        } else if i < NETWORK_BASE {
             let e = self.entropy[i - ENTROPY_BASE];
             e.live && e.generation == id.generation
+        } else if i < DISPLAY_BASE {
+            let n = self.network[i - NETWORK_BASE];
+            n.live && n.generation == id.generation
+        } else if i < INPUT_BASE {
+            let n = self.display[i - DISPLAY_BASE];
+            n.live && n.generation == id.generation
+        } else if i < OBJECT_COUNT {
+            let n = self.input[i - INPUT_BASE];
+            n.live && n.generation == id.generation
         } else {
             false
         }
@@ -1157,8 +1311,14 @@ impl Engine {
             self.launches[i - LAUNCH_BASE].open
         } else if i < ENTROPY_BASE {
             self.children[i - PROCESS_BASE].open
-        } else {
+        } else if i < NETWORK_BASE {
             self.entropy[i - ENTROPY_BASE].open
+        } else if i < DISPLAY_BASE {
+            self.network[i - NETWORK_BASE].open
+        } else if i < INPUT_BASE {
+            self.display[i - DISPLAY_BASE].open
+        } else {
+            self.input[i - INPUT_BASE].open
         }
     }
     fn allowed_rights(&self, id: Id) -> u64 {
@@ -1171,8 +1331,14 @@ impl Engine {
             LAUNCH_RIGHTS
         } else if i < ENTROPY_BASE {
             PROCESS_RIGHTS
-        } else {
+        } else if i < NETWORK_BASE {
             ENTROPY_RIGHTS
+        } else if i < DISPLAY_BASE {
+            NETWORK_RIGHTS
+        } else if i < INPUT_BASE {
+            DISPLAY_RIGHTS
+        } else {
+            INPUT_RIGHTS
         }
     }
     fn object_refs(&mut self, id: Id) -> &mut u32 {
@@ -1185,8 +1351,14 @@ impl Engine {
             &mut self.launches[i - LAUNCH_BASE].nodes
         } else if i < ENTROPY_BASE {
             &mut self.children[i - PROCESS_BASE].nodes
-        } else {
+        } else if i < NETWORK_BASE {
             &mut self.entropy[i - ENTROPY_BASE].nodes
+        } else if i < DISPLAY_BASE {
+            &mut self.network[i - NETWORK_BASE].nodes
+        } else if i < INPUT_BASE {
+            &mut self.display[i - DISPLAY_BASE].nodes
+        } else {
+            &mut self.input[i - INPUT_BASE].nodes
         }
     }
     fn attach(&mut self, p: usize, s: usize, node: Id) -> u64 {
@@ -1362,7 +1534,13 @@ impl Engine {
                 };
             }
         }
-        for e in &mut self.entropy {
+        for e in self
+            .entropy
+            .iter_mut()
+            .chain(self.network.iter_mut())
+            .chain(self.display.iter_mut())
+            .chain(self.input.iter_mut())
+        {
             if e.live && e.nodes == 0 {
                 let (generation, retired) = advance(e.generation);
                 *e = EntropyObject {
@@ -1393,6 +1571,12 @@ impl Engine {
             retired_process_objects: 0,
             entropy_objects: 0,
             retired_entropy_objects: 0,
+            network_objects: 0,
+            retired_network_objects: 0,
+            display_objects: 0,
+            retired_display_objects: 0,
+            input_objects: 0,
+            retired_input_objects: 0,
             state_digest: self.state_digest(),
         };
         for p in &self.processes {
@@ -1428,6 +1612,18 @@ impl Engine {
         for e in &self.entropy {
             s.entropy_objects += usize::from(e.live);
             s.retired_entropy_objects += usize::from(e.retired);
+        }
+        for n in &self.network {
+            s.network_objects += usize::from(n.live);
+            s.retired_network_objects += usize::from(n.retired);
+        }
+        for e in &self.display {
+            s.display_objects += usize::from(e.live);
+            s.retired_display_objects += usize::from(e.retired);
+        }
+        for e in &self.input {
+            s.input_objects += usize::from(e.live);
+            s.retired_input_objects += usize::from(e.retired);
         }
         s
     }
@@ -1534,7 +1730,13 @@ impl Engine {
                 add(&mut h, x);
             }
         }
-        for e in &self.entropy {
+        for e in self
+            .entropy
+            .iter()
+            .chain(self.network.iter())
+            .chain(self.display.iter())
+            .chain(self.input.iter())
+        {
             for x in [
                 u64::from(e.generation),
                 u64::from(e.live),
@@ -1753,15 +1955,22 @@ impl Engine {
                 return false;
             }
         }
-        for (i, e) in self.entropy.iter().enumerate() {
-            if e.generation == 0
-                || e.retired && (e.live || e.generation != u32::MAX)
-                || e.nodes != objects[ENTROPY_BASE + i]
-                || !e.live && (e.open || e.nodes != 0)
-                || e.live && (e.nodes == 0 || e.owner == 0)
-                || e.open && self.process(e.owner).is_err()
-            {
-                return false;
+        for (base, device) in [
+            (ENTROPY_BASE, self.entropy.as_slice()),
+            (NETWORK_BASE, self.network.as_slice()),
+            (DISPLAY_BASE, self.display.as_slice()),
+            (INPUT_BASE, self.input.as_slice()),
+        ] {
+            for (i, e) in device.iter().enumerate() {
+                if e.generation == 0
+                    || e.retired && (e.live || e.generation != u32::MAX)
+                    || e.nodes != objects[base + i]
+                    || !e.live && (e.open || e.nodes != 0)
+                    || e.live && (e.nodes == 0 || e.owner == 0)
+                    || e.open && self.process(e.owner).is_err()
+                {
+                    return false;
+                }
             }
         }
         self.nodes.iter().enumerate().all(|(i, n)| {

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`f63a0c1b`](https://github.com/simonvanieperen/nieuw-os/commit/f63a0c1b56fdcd28e43579aa6e9c5a56e1e2cbdb) ·
+**Bron:** [`2061863c`](https://github.com/simonvanieperen/nieuw-os/commit/2061863c9226b74d64158f36a3fd1bbbf0bb60df) ·
 **Ontwikkelbranch:** `ccr-43832ef7-gi2qlz`.
-Deze opdracht: **32% → 34% (+2 procentpunt)**. **Opdracht:** B03 ondertekende kernelupdates en rollback: hybride Ed25519 + ML-DSA-65-manifesten, slotopslag, loaderverificatie met UEFI-versievloer en terugval, ring-3 update-dienst met hervatbare tweefaseninstallatie native geaccepteerd.
-B03 (+2) geaccepteerd op bronvingerafdruk v3 07994d47461a1dd5 (basis main f63a0c1, B01 gemerged met groene GitHub Actions): update-core met manifest NOSMAN01 en slotopslag NOSSLOT1, beide handtekeningen verplicht over dezelfde 84 canonieke bytes, loaderfeature signed-boot (Block I/O, digest en ELF-laadbaarheid voor uitvoering, UEFI-vloer NieuwOsMinVersion, terugval, harde stop zonder geldig slot of zonder slotopslag), kernelprofiel native-update met generieke blokbroker zonder formaatkennis, ring-3 update-dienst die het draaiende slot via versie bepaalt en image-FLUSH-manifest-FLUSH-header-FLUSH installeert, TEST-ankers uit update-tool. Gate tools/test_update.py exit 0: 7 update-core-, 1 update-tool-, 10 Python-hosttests en 13 echte QEMU-stages in 9 reeksen: install v1 naar v2 (3048 sectoren), boot-v2 met vloer 1 naar 2, downgrade geweigerd, bad-signature, bad-digest en bad-elf elk geweigerd met terugval en herstel, cut met echte hostkill zonder header- of slotwijziging gevolgd door cut-resume en cut-final, no-valid-slot stopt zonder kernel, inbox met kapotte handtekening, lagere versie of vreemde sleutel geweigerd zonder write. Vier AI-reviewbevindingen vooraf verwerkt. Geen claim over Secure Boot (B04), releasesleutels, netwerkdistributie of fysieke schijven.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR #61: conflicten tussen B03 en main 6d3bbf0 oplossen met behoud van beide ontwikkelsporen.
+34% → 34%: de bestaande B03-acceptatie en de foundation-/systeemwijzigingen van main blijven behouden. Deze integratie verdient geen nieuwe punten; historisch native bewijs wordt niet naar de samengevoegde bron omgelabeld. B03 heet nu ADR-049 om de netwerkbeslissing ADR-044 van main te behouden. Gerichte integratievalidatie en resterende grenzen staan in PROJECT-STATE.md; alle 62 volledige productcriteria blijven open. Geen volledige testrelease, Secure Boot, releasesleutels, fysieke hardware of menselijke audit geclaimd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -44,6 +44,7 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 
 [Criteria, bewijs en berekening](docs/PROGRESS.md) ·
 [Volledige roadmap](docs/ROADMAP.md) ·
+[Volledige releaseopdracht en acceptatie](docs/FULL-TEST-RELEASE.md) ·
 [Actuele uitvoering](docs/PROJECT-STATE.md).
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).

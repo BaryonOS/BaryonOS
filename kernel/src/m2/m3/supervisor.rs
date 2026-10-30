@@ -28,13 +28,14 @@ const PARENT_EXIT: u64 = 3;
 const QUOTA: u64 = 4;
 
 /// Supervisor evidence words (startup page offsets) copied at its exit.
-const SUP_WORDS: [u64; 15] = [
-    40, 240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496,
+const SUP_WORDS: [u64; 16] = [
+    40, 240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504,
 ];
 
 #[derive(Clone, Copy)]
 struct Evidence {
     spawns: u64,
+    sparse_spawns: u64,
     spawn_denied: u64,
     spawn_quota: u64,
     kills: u64,
@@ -49,11 +50,12 @@ struct Evidence {
     kernel_tables_at_manifest: usize,
     supervisor_exited: bool,
     supervisor_code: u64,
-    sup: [u64; 15],
+    sup: [u64; 16],
     image_of: [u32; MAX],
 }
 static mut EVIDENCE: Evidence = Evidence {
     spawns: 0,
+    sparse_spawns: 0,
     spawn_denied: 0,
     spawn_quota: 0,
     kills: 0,
@@ -68,7 +70,7 @@ static mut EVIDENCE: Evidence = Evidence {
     kernel_tables_at_manifest: 0,
     supervisor_exited: false,
     supervisor_code: 0,
-    sup: [0; 15],
+    sup: [0; 16],
     image_of: [u32::MAX; MAX],
 };
 fn evidence() -> &'static mut Evidence {
@@ -139,6 +141,9 @@ fn releasable_frames(s: &State) -> usize {
     total
 }
 fn image_elf(image: u32) -> Option<&'static [u8]> {
+    #[cfg(feature = "native-system")]
+    return system::image_elf(image);
+    #[cfg(not(feature = "native-system"))]
     match image {
         IMAGE_WORKER => Some(WORKER_ELF),
         IMAGE_CLIENT => Some(CLIENT_ELF),
@@ -286,7 +291,9 @@ fn spawn_checked(s: &mut State, pid: u64, a: [u64; 6]) -> Result<u64, i64> {
             evidence().spawn_denied += 1;
             return Err(error.code());
         }
-        caps[count] = (handle, rights);
+        // Each syscall argument has a fixed startup position, even when the
+        // preceding position is empty. Count only budgets the delegated nodes.
+        caps[i] = (handle, rights);
         count += 1;
     }
     let Some(free) = s.processes.iter().position(|p| p.status == Status::Dead) else {
@@ -317,7 +324,10 @@ fn spawn_checked(s: &mut State, pid: u64, a: [u64; 6]) -> Result<u64, i64> {
         .create_process(pid, child)
         .unwrap_or_else(|_| fail(b"SPAWN_OBJECT"));
     let mut delegated = [0u64; 2];
-    for (i, (source, rights)) in caps[..count].iter().enumerate() {
+    for (i, (source, rights)) in caps.iter().enumerate() {
+        if *source == 0 {
+            continue;
+        }
         delegated[i] = engine
             .bootstrap_delegate(pid, *source, child, *rights)
             .unwrap_or_else(|_| fail(b"SPAWN_DELEGATE"));
@@ -337,6 +347,7 @@ fn spawn_checked(s: &mut State, pid: u64, a: [u64; 6]) -> Result<u64, i64> {
     s.audit_process(free);
     let ev = evidence();
     ev.spawns += 1;
+    ev.sparse_spawns += u64::from(a[2] == 0 && a[4] != 0);
     ev.image_of[free] = image;
     ev.max_live = core::cmp::max(ev.max_live, live_count(s));
     Ok(handle)
@@ -372,7 +383,7 @@ fn kill(s: &mut State, slot: usize, handle: u64) -> Result<u64, i64> {
 
 /// Children whose spawner is gone end here, iteratively: each round ends at
 /// least one process, so at most `MAX` rounds run on the kernel stack.
-fn reap_orphans(s: &mut State) {
+pub(super) fn reap_orphans(s: &mut State) {
     loop {
         let mut out = [0u64; MAX_PROCESS_OBJECTS];
         let n = m4::engine().orphans(&mut out);
@@ -462,7 +473,7 @@ fn require(condition: bool, reason: &[u8]) {
 fn finish(s: &mut State) -> ! {
     let ev = *evidence();
     // Supervisor evidence words: see SUP_WORDS.
-    let [status, step, restarts, replies, closed, instances, sup_kills, spawns_ok, spawn_quota_errors, killed_confirmed, faulted_observed, denied_matched, denied_total, client_exit_seen, denied_self] =
+    let [status, step, restarts, replies, closed, instances, sup_kills, spawns_ok, spawn_quota_errors, killed_confirmed, faulted_observed, denied_matched, denied_total, client_exit_seen, denied_self, sparse_cap_checks] =
         ev.sup;
     if ev.supervisor_code != 0 || status != 1 {
         print_number(b"SUPERVISOR:EXIT_CODE:", ev.supervisor_code);
@@ -487,6 +498,10 @@ fn finish(s: &mut State) -> ! {
     }
     match case() {
         NORMAL => {
+            require(
+                ev.sparse_spawns == 1 && sparse_cap_checks == 3,
+                b"NORMAL_SPARSE_CAPS",
+            );
             require(restarts == 1 && instances == 2, b"NORMAL_RESTART");
             require(replies == 24 && closed >= 1, b"NORMAL_CLIENT");
             require(
@@ -521,10 +536,10 @@ fn finish(s: &mut State) -> ! {
         }
         DENIED => {
             require(
-                denied_total == 17 && denied_matched == denied_total && denied_self == 9,
+                denied_total == 21 && denied_matched == denied_total && denied_self == 13,
                 b"DENIED_CODES",
             );
-            require(ev.spawns == 2 && ev.spawn_denied >= 7, b"DENIED_SPAWNS");
+            require(ev.spawns == 2 && ev.spawn_denied >= 11, b"DENIED_SPAWNS");
             require(ev.kill_errors >= 3, b"DENIED_KILLS");
             require(ev.kills == 1 && killed_confirmed == 1, b"DENIED_LIFECYCLE");
             require(
@@ -546,6 +561,12 @@ fn finish(s: &mut State) -> ! {
             require(ev.kills == 15 && killed_confirmed == 15, b"QUOTA_KILLS");
             require(ev.max_live == 16 && ev.orphans_reaped == 0, b"QUOTA_LIVE");
         }
+    }
+    if case() != NORMAL {
+        require(
+            ev.sparse_spawns == 0 && sparse_cap_checks == 0,
+            b"UNEXPECTED_SPARSE_CAPS",
+        );
     }
     let stats = m4::engine().stats();
     if stats.processes != 0
@@ -577,6 +598,8 @@ fn finish(s: &mut State) -> ! {
     serial::write(b"SUPERVISOR:READY\n");
     for (label, value) in [
         (&b"SUPERVISOR:SPAWNS:"[..], ev.spawns),
+        (b"SUPERVISOR:SPARSE_SPAWNS:", ev.sparse_spawns),
+        (b"SUPERVISOR:SPARSE_CAP_CHECKS:", sparse_cap_checks),
         (b"SUPERVISOR:KILLS:", ev.kills),
         (b"SUPERVISOR:SPAWN_DENIED:", ev.spawn_denied),
         (b"SUPERVISOR:SPAWN_QUOTA:", ev.spawn_quota),
@@ -601,4 +624,16 @@ fn finish(s: &mut State) -> ! {
     serial::write(marker());
     serial::write(b"SUPERVISOR:RESOURCES:PASS\nSUPERVISOR:PASS\nM1:PASS\n");
     serial::exit(0x10)
+}
+
+#[cfg(feature = "native-system")]
+pub(super) fn mechanism_counts() -> (u64, u64, u64) {
+    let e = evidence();
+    (e.spawns, e.kills, e.status_calls)
+}
+
+/// The image was recorded by the checked spawn mechanism, not by user memory.
+#[cfg(feature = "native-system")]
+pub(super) fn is_managed_image(slot: usize, image: u32) -> bool {
+    evidence().image_of[slot] == image
 }

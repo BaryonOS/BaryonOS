@@ -1,5 +1,93 @@
 # Actuele projectstatus
 
+## PR #61 — conflictintegratie met main — 30 oktober 2026
+
+Bronnen: PR-head `2061863c9226b74d64158f36a3fd1bbbf0bb60df` en
+`main` `6d3bbf0aab07bbcf9b36a9bd74d668adc22f9922`. Een gewone merge
+behoudt beide geschiedenissen: B03-updateprofielen en de native
+systeem-/display-/netwerkprofielen van main. Workspaceleden en lockfiles
+worden verenigd; B03 heet ADR-049 omdat main ADR-044 al voor netwerk gebruikt.
+Dit verandert geen beveiligingscontract of capabilityrecht.
+
+**Gevalideerd:** beide native gates slagen op dezelfde gecombineerde
+bronvingerafdruk v3
+`958ff398e14ae01763c1d01fb7d4f555e66f47e039ed502246996be109158cd5`.
+De ontbrekende QEMU/OVMF-tools zijn eenmalig geïnstalleerd
+(`sudo -n apt-get update` en
+`sudo -n apt-get install -y --no-install-recommends qemu-system-x86 ovmf`,
+beide exit 0). Rust 1.90.0 en beide x86_64-targets waren aanwezig.
+De Cargo-cache is aangevuld met `cargo fetch --manifest-path Cargo.toml --locked`
+(exit 0); de lockfiles behouden de versies van beide ouders. QEMU 8.2.2,
+`pc-q35-8.2`, TCG, één CPU, 256 MiB en OVMF 4M; uitsluitend wegwerpimages.
+
+**Gewijzigde integratiebestanden:** `.gitattributes`, root- en SDK-manifests/
+lockfiles, `boot/loader/Cargo.toml`, `kernel/src/m2/m3.rs`, `tools/build.py`;
+ADR-verwijzingen in loader/update-core/SDK/update-tool en B03-documentatie;
+`DECISIONS.md`, dit statusbestand en de vier voortgangsbestanden.
+De overige bronwijzigingen komen ongewijzigd uit main. De twee nieuwe
+bewijsarchieven bevatten tekst/JSON/hashes, geen binaries of geheime sleutels.
+
+**Exact uitgevoerde controles (ieder exit 0):**
+
+```sh
+python3 -B -m unittest discover -s tests -p 'test_update_*.py'
+python3 -B -m unittest discover -s tests -p 'test_system_*.py'
+cargo +1.90.0 test --locked -p kernel-core -p boot-protocol -p elf-loader-core
+cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked
+cargo +1.90.0 clippy --locked -p update-core -p update-tool -p kernel-core -p boot-protocol -p elf-loader-core --all-targets -- -D warnings
+cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings
+cargo +1.90.0 fmt --all -- --check
+cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check
+NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/preflight.py --strict
+NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_update.py
+NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR=/home/runner/work/nieuw-os/nieuw-os/build/pr61-system NOS_TARGET_DIR=/home/runner/work/nieuw-os/nieuw-os/target/pr61-system python3 -B -u tools/test_system.py
+NOS_BUILD_DIR=/home/runner/work/nieuw-os/nieuw-os/build/pr61-display NOS_TARGET_DIR=/home/runner/work/nieuw-os/nieuw-os/target/pr61-display python3 -B tools/build.py --kernel-feature native-display-probe
+NOS_BUILD_DIR=/home/runner/work/nieuw-os/nieuw-os/build/pr61-g0 NOS_TARGET_DIR=/home/runner/work/nieuw-os/nieuw-os/target/pr61-display python3 -B tools/build.py --kernel-feature graphics-g0
+NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/capture_update.py --destination /home/runner/work/nieuw-os/nieuw-os/docs/verification/full-release-pr61-conflict-update
+NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR=/home/runner/work/nieuw-os/nieuw-os/build/pr61-system NOS_TARGET_DIR=/home/runner/work/nieuw-os/nieuw-os/target/pr61-system python3 -B tools/capture_system.py --destination /home/runner/work/nieuw-os/nieuw-os/docs/verification/full-release-pr61-conflict-system
+python3 tools/progress.py --write
+python3 tools/progress.py --check
+git diff --check
+```
+
+Resultaten: 10 Python-updatetests, 44 Python-systeemtests, 38 coretests,
+83 SDK-tests; de updategate herhaalt ook 7 update-core- en 1 update-tooltest.
+Alle 13 B03-stages slagen, inclusief echte kill/hervatting en de verwachte
+weigeringen; systeem normaal en koud read-only herstel slagen beide met raw
+exit 33. [Updatebewijs](verification/full-release-pr61-conflict-update/update-gate.json)
+en [systeembewijs](verification/full-release-pr61-conflict-system/system-gate.json)
+zijn apart bewaard, inclusief seriële logs en SHA256SUMS.
+Lokale volledige commandologs: `/tmp/nieuw-os-pr61-{update,system,display,g0,preflight}.log`;
+builddetail onder `build/logs/`, `build/pr61-system/logs/` en de twee
+displaybuildmappen. G0 compileert met de bestaande `validate_pixels`
+dead-codewaarschuwing; geen waarschuwing onderdrukt.
+
+De eerste systeemcapture met naam `pr61-conflict-system` weigerde terecht
+(exit 1): het bestaande harnas vereist `full-release-<unique>`. De capture
+met de vereiste naam slaagt (exit 0), zonder wijziging van het harnas.
+Een afzonderlijke read-only AI-integratiecontrole vond geen concrete
+integratiefout; dat is geen menselijke audit.
+
+De aanvullende `git diff --cached --check` over de volledige merge meldt
+exit 2 voor ruwe bewijsbestanden: bestaande CRLF-/lege-eindregelbytes uit
+main en de lege eindregel in de nieuw vastgelegde Cargo-stdout. Deze
+hashgebonden logs blijven bytegetrouw; er is geen broncodeformattering
+aangepast of controle verzwakt om ze te verbergen. De gerichte broncontrole
+`git diff --cached --check -- . ':!docs/verification/**'` slaagt afzonderlijk
+(exit 0); de archiefbytes zijn met beide `sha256sum -c SHA256SUMS`
+gecontroleerd (exit 0).
+
+**Roadmap: 34% → 34%.** Geen nieuw criterium geaccepteerd. Historisch bewijs
+hieronder blijft aan zijn oorspronkelijke bron gebonden; de eerdere
+foundationstatus van 32% is geen nieuwe beoordeling van deze integratie.
+Hosted checks moeten na publicatie op de nieuwe head worden beoordeeld.
+Niet uitgevoerd: native display-/G0-bediening, volledige regressiematrix,
+fysieke hardwaretests, menselijke audit of volledige productrelease.
+Geen PR-merge uitgevoerd. De bestaande B03-grenzen (TEST-ankers, geen
+Secure Boot of bescherming tegen wijzigen van OVMF_VARS) blijven gelden.
+
+## Historische bronstatussen vóór deze integratie
+
 ## B03 ondertekende updates en rollback geaccepteerd, 34% — 30 oktober 2026
 
 Branch `ccr-43832ef7-gi2qlz`, basis `main` `f63a0c1` (squash van
@@ -8,7 +96,7 @@ Actions daarop groen inclusief `b01-native-supervisor`). Omgeving:
 Linux-container, Rust 1.90.0, QEMU 8.2.2 (Ubuntu), `pc-q35-8.2`, OVMF 4M,
 slotopslag als `virtio-blk-pci` 00:05.0.
 
-**Gerealiseerd (loaderfeature `signed-boot`, kernelprofiel `native-update`, ADR-044):**
+**Gerealiseerd (loaderfeature `signed-boot`, kernelprofiel `native-update`, ADR-049):**
 - `crates/update-core`: manifest `NOSMAN01` (84 canonieke bytes + Ed25519 +
   ML-DSA-65), slotopslag `NOSSLOT1` (header-hint, twee slots van 2 MiB, inbox),
   hybride verificatie tegen vastgepinde ankers, selectie met versievloer en
@@ -61,6 +149,208 @@ repository), geen netwerkdistributie, geen pakket-/app-updates (A02), geen
 fysieke schijf of stroomuitval, geen bescherming tegen een schrijver van
 OVMF_VARS. De kernelbroker pollt het apparaat nu één keer direct bij
 `block_wait`; het volumeprofiel is daarin niet gewijzigd.
+## NEXT AGENT HANDOFF — 30 oktober 2026 — volledige testrelease in uitvoering
+
+Integratiebranch `codex/full-test-release`, bron `844ec40d0717a51d76f2da3a03fa415633725f6a`, tree `6710e599e6984f69e227367981f9a07b525b1255`.
+Deze exacte bron staat lokaal en op remote; concept-PR [#56](https://github.com/simonvanieperen/nieuw-os/pull/56) blijft de volledige releaseopdracht volgen. Foundation-PR #59 is na gecontroleerde fast-forward opgenomen en gesloten.
+[Volledige opdracht en 62 criteria](FULL-TEST-RELEASE.md) → [aanvullende productcontext](FULL-TEST-RELEASE-CONTEXT.md) → [werkqueue](WORK-QUEUE.md) → [vaste rubric](PROGRESS.md).
+**32% → 32%; alle 62 volledige productcriteria blijven open. Er is geen volwaardige testrelease.**
+
+**Nieuw aantoonbaar resultaat:** alle negen CI-workflows op exact `844ec40` slagen. De foundationjob voert de vier RNG-gevallen en de PNG/JPEG-proef daadwerkelijk native uit, zonder overgeslagen stap. [CI-metadata en bewijsgrens](verification/full-release-ci-844ec40/README.md).
+De lokale decoderproef op dezelfde bron slaagt met raw exit 33: acht PNG's, drie JPEG's, 149.647 pixels, 623.808 samplebytes en tien negatieve gevallen. De oude stackguardfout is gericht hersteld met fallible heap-snapshots; stack 64 KiB, heap 4 MiB en pixeloracles zijn behouden. Een afzonderlijke hercontrole bevestigt bron, zes ELF's, firmware, ESP, counters, 4096 schijfbytes, canaries en cleanup. [Decoderbewijs en onafhankelijke controle](verification/full-release-images-844ec40/README.md).
+De eerdere bootstrap-, ABI- en stackguardmislukkingen blijven in hun oorspronkelijke archieven staan. Dit is geen beeldviewer of bewijs van volledige formaatdekking, native OOM/herstel of veilige persistente productopslag.
+
+**Kritieke GUI-keten blijft rood:** `codex/native-materiaal-integration`, worktree `/workspace/nieuw-os-worktrees/root-materiaal`, concept-PR [#58](https://github.com/simonvanieperen/nieuw-os/pull/58), bron `48b51878c03b5b73449f563735c7854b24926fc4`. De echte acht-processenketen toont Materiaal en de editor op bron `5e126b7`, maar bereikt binnen de vaste 200 seconden nog geen typen → opslaan → heropenen → afsluiten. De digestoptimalisatie op `1fd879d` maakt de eerste volledige frame native trager (170 seconden). Rood bewijs blijft bewaard; de timeout of controles zijn niet verruimd.
+Een echte, read-only kernelmeting op `48b5187` slaagt met 128 aanroepen per variant en bitexacte pariteit: reference 36.998.312, direct 43.931.758, zero-run 77.735.944 opgetelde TCG-TSC-eenheden. Dit zijn relatieve ontwikkelmetingen vóór userspace en timer, geen fysieke cycles of GUI-acceptatie. Root herstelt de snelste gemeten referencevariant en herhaalt daarna de werkelijke GUI-proef.
+
+**Lopende onafhankelijke taken en eigenaarschap:**
+
+- `CAP-DIGEST-TCG-2`: kernel_storage, worktree `cap-digest-opt`, basis `952e9ac`; uitsluitend capability-core en digestcontract. Root bezit kernelhooks, build, ABI en integratie.
+- `MULTIAPP-CONTRACT-1`: native_ui_apps, worktree `multiapp-contract`, basis `48b5187`; afzonderlijk contract voor echte Materiaal-/rekenmachineprocessen, focus, appwisseling en levensduur.
+- `CALCULATOR-REVIEW-1`: git_build_audit, alleen lezen op `0254206f9b44c75499cf55a9c3716fdb363372ce`. Component: 17 Rust-hostgroepen, 1.262 Decimal-vergelijkingen en targetbuild groen; nog geen native appbediening of FR-A08-aftekening.
+- `GUI-BENCH-REVIEW-1`: security_release, alleen lezen op `48b5187`; onafhankelijke controle van echte benchmark en harnas. Geen menselijke veiligheidsaudit.
+
+Beschikbare agentthreads worden gebruikt; een extra TLS-worker kon door de werkelijke threadlimiet niet starten en blijft wachtrij. TLS `34191bb` en browseronderzoek `a2085b9` staan intact in hun eigen worktrees, nog niet geïntegreerd. TPM `6bed190` is geïntegreerde transport-/commandocore met host-/targetbewijs; native MMIO-adapter, TPM-anker en koude rollbackdetectie blijven open.
+
+**Eerstvolgende uitvoerbare stap:** neem de beoordeelde reference-herstelcommit in `root-materiaal` over, wijzig de benchmark-ZERO-pointer expliciet naar `diagnostic_zero_digest`, controleer bitpariteit en bouw/herhaal `tools/run_materiaal_probe.py` op bevroren gepubliceerde bron met eigen buildmap. Gebruik de bestaande LOCALAPPDATA/PATH/OVMF/QEMU-omgeving en dezelfde 200-secondenacceptatie. Integreer daarna de foundation- en GUI-bronnen zonder gebruikerswerk of bewijs te verliezen en test de samengestelde versie. Het rekenmachinecontract wordt parallel voorbereid; geen simulaties of verborgen bediening.
+
+**Artifacts en grenzen:** laatste geslaagde lokale decoderimage: `/workspace/nieuw-os-worktrees/root-foundation/build/foundation-stack-images/esp/`; manifest en runpad staan in het gekoppelde bewijs. Laatste GUI-benchmark: `root-materiaal/build/cap-bench/cap-bench-report.json`; laatste rode GUI-run: `root-materiaal/build/materiaal-digest/run/materiaal-normal-230683c431`. Alle testdisks zijn eigen wegwerpimages. Deze ontwikkelproeven gebruiken qemu64/TCG/één CPU/256 MiB, vaste fixtures, plaintext testdisk en tijdelijke RAM-sleutels. Zij vervangen VM-FR (Nehalem-v1, 8 GiB, 32 GiB disk, resoluties/schalen), fysieke tests of menselijk onderzoek niet. Alle verplichte apps, toegankelijkheid, sessie/instellingen, beveiligde opslag, netwerk/TLS, NAS/providers, lokale AI, boot/PQC, updates en herstel blijven zichtbaar open. Honderd koude starts en 24 uur productgebruik vereisen eerst een stabiel geïntegreerd productimage.
+
+## Historisch checkpoint vóór integratie van 844ec40
+
+Onderstaande tekst bewaart de toenmalige uitvoering. De actuele bron, taken en hervatstap staan uitsluitend hierboven.
+
+## Volledige native testrelease — in uitvoering, 32% — 2026-10-30
+
+**Actueel herstelcheckpoint:** nativeRNG is opnieuw4/4raw33 op9aa74870 en alleachtbestaandeCI-workflows op9aa groen. Image-op9aa faalde naABIcheck met echteJPEGstackguardfault; [origineleuitvoer](verification/full-release-image-stack-failure-9aa/README.md) behouden. Snapshotfixade6+onafhankelijkeOOM/rollbackreview isnugeïntegreerd metongewijzigde64KiB/4MiB. Nieuwe negendeCI-workflow93e991 voertalle4RNGgevallen+imageechtnativeuit; ookTPM6bedpurecorechecks toegevoegd. StandaloneRNG-fmt isgerichthersteld, geencheckuitgeschakeld. Nieuwedecode-VM/9CIenaktuëleRNGherhalingnogvereist.
+
+GUI1fd/db04blijftFAIL200s, eersteReady170s: host2,48×vertaaldenietnaarnativewinst. Bitexactehelpersblijvenveilig, maarvariantkeuzemoetopdoelmetingengebeuren. Er wordt een korte eigenkernelbenchmarkreference/directtyped/zerorunsvoorbereid; géén200s-verruiming, geenrechten-/IPCcheckverwijdering. Calculatorappisinonafhankelijkeuitvoering; code/hostzijngeenappacceptatie. Nativebeeldviewer/NAS/AI/opslag/update/herstel enalle62criteriaopen.
+
+**Vier nativeRNGgevallen op2b5 slagen raw33**, onafhankelijkhercontroleerd: [bewijs](verification/full-release-random-2b5d69c/README.md). Image-opdezelfdebronFAILABIstep1: [rood](verification/full-release-image-abi-failure-2b5/README.md). Fix9d8gebruiktdewerkelijkekernelABIcall; standalonekeyring-clientlockwordtgerichtbijgewerkt voorCI --locked. Huidigeviercasesblijvenexactaan2b5gebonden; volgendeherstelbronvereistnieuweVMs.
+
+**NativeRNG-eersteuitvoering454bf1b is rood:** raw35 vóórSYSTEMMANIFEST, echtekernelweigering bij bootstrapdelegatie uitKey-parent zonderTRANSFER. [Oorspronkelijke rawrapporten](verification/full-release-random-bootstrap-454bf1b/README.md) behouden. Rootcorrectie geeft uitsluitend deinterneKey-parent het bedoeldeTRANSFER, geenprobe-/APP-rechtenverruiming engeencontrolewijziging. Nieuweviercases enimage-uitvoering volgen opbevrorenherstelbron. Harnasreparaties zijn onafhankelijk opnieuwgroen21+20+10tegenvoorbeelden, zie bijgewerktepre-nativearchief.
+
+**Nieuw foundationcheckpoint:** branch `codex/native-foundation-integration`, eigenworktree `root-foundation`, basis `3f20f087a7f0ddf4757af8d3ea110dd0c044a72c` (achtCIgroen inclusief echte display/input). VolledigeRNG- en PNG/JPEG-doelbuilds slagen; [componentreviews/hostchecks/gerichteharnasreparaties](verification/full-release-foundation-pre-native/README.md) zijn vastgelegd. RootsharedABI/bootstrap/locks/buildadmission zijn aangesloten. De vier RNG-gevallen en imageprobe moeten nu op deze bevroren bron werkelijk worden uitgevoerd; tot die tijd geen native acceptatie.
+
+ParallelleGUIbron `7d230a6e8e7d7975f8e3297ff4f2b166c38b1803`, concept-PR[#58](https://github.com/simonvanieperen/nieuw-os/pull/58), heeft een echte8-processenrun met Source/Policy/Comp/Focus en één volledig native geschilderd Materiaalframe. De volledigeproef is FAILna200s: eerste1608tegelframe rond106s en tweede pas1553/1608tegels. Geen Saved/Reopen/afsluitacceptatie. Root onderzoekt uitsluitend observeroverhead (batchedPITsample); functies,veiligheidschecks en de200s-proefgrens blijven staan. Drie GUIreplaybevindingen worden door de eigenaar gerepareerd vóór heracceptatie. Huidigfragment is geen productimage; veilige persistente opslag/NAS/AI/apps/boot/update/herstel en alle62criteria blijven verplicht open.
+
+**Eerstvolgende concrete hervatstap:** controleer HEAD/index/remote en activeworkers; bouw en voer achtereenvolgens `native-system-random`→run_random raw, `test-system-random-sdk`→sdk, `test-system-random-unknown`→unknown, `test-system-random-wrong-caller`→wrong-caller uit, ieder eigen `NOS_BUILD_DIR=build/foundation-<case>` en hergebruik `NOS_TARGET_DIR=target/foundation` uitsluitend sequentieel. Daarna `native-system-images`→run_images normal. Gebruik bestaande LOCALAPPDATA/PATH/QEMU/OVMFenv. Vier RNG-probes en imageprobe zijn deelacceptatie, niet volledige release; toets na laatste bronwijziging opnieuw. Behoud `/workspace/nieuw-os-worktrees/root-materiaal` met eigen GUIWIP en originele nativeFAILartifacts.
+
+Hieronder volgt de behouden voorgeschiedenis van de actuele native regressiebasis; eerdere hervatcommando’s worden door dit foundationcheckpoint vervangen.
+
+Integratiebranch `codex/full-test-release`, concept-PR[#56](https://github.com/simonvanieperen/nieuw-os/pull/56).
+Desktopintegratie `codex/root-desktop-integration`, concept-PR[#57](https://github.com/simonvanieperen/nieuw-os/pull/57).
+[Volledige opdracht/matrix](FULL-TEST-RELEASE.md) → [productcontext](FULL-TEST-RELEASE-CONTEXT.md) → [werkqueue](WORK-QUEUE.md).
+De volledige oorspronkelijke opdracht, `/goal`, rubric en alle62 productcriteria blijven behouden en open. **Geen volledige release;32%→32%.**
+
+**Geteste bronnen en werkelijke grenzen:**
+
+- `985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb`: dertien lokale VM-runs en zeven CI-workflows geslaagd. [Basis/cold](verification/full-release-base-985ed4d/capture-validation.json), [ARP/DNS/cold](verification/full-release-net-985ed4d/capture-validation.json), [TCP/cold](verification/full-release-tcp-985ed4d/capture-validation.json), [geheugen](verification/full-release-memory-985ed4d/README.md), [FPU](verification/full-release-fpu-985ed4d/fpu-report.json), [G0](verification/full-release-g0-985ed4d/graphics-g0-result.json), [CI](verification/full-release-ci-985ed4d/workflow-runs.json).
+- `15e8cfced28ad46f15f5f573e5f00e8e87b74215`: C-entry springt na echte CPL3-uitlijningscontrole direct naar de C-functie; vijf nieuwe geheugencases werkelijk geslaagd, inclusief NX/guard/peerfault en fysieke OOM. [Nieuw bewijs](verification/full-release-memory-15e8cfc/README.md), [zeven CI groen](verification/full-release-ci-15e8cfc/workflow-runs.json). V3-bron `a82648f0673ef6c0b37406724fc5512ffadc5b53b4987bf21e96521faa112eaf`. De historische985-runs bewezen de gecorrigeerde entry niet.
+- `d52882196da3f38a32bf01edea379ce5300e04e2`: **echte display-/PS2-proef geslaagd**, zes CPL3-levens/twee devicegeneraties/drie slothergebruiken. QMP-toetsen en muis, volledige input-/outputpointercontrole, geweigerde rechten,512 unieke native pixels/768 vergelijkingen, cleanup. [Native bewijs](verification/full-release-display-d528821/README.md), [zeven CI groen](verification/full-release-ci-d528821/workflow-runs.json). Raw33/3,387s; bron `eb46a28e25e3c532f0efb5b864f449eae6d9ee4dc59c9eee23c03ffe31fe2406`.
+
+De displayfixture selecteerde eerst ten onrechte1280×720 terwijl de bestaande loader expliciet800×600 selecteert. De [oorspronkelijke mislukking](verification/display-first-geometry-failure/result.json) blijft ongewijzigd bewaard; daarna is uitsluitend de ontwikkelproef strikt aan de bestaande800×600-loadercontractselectie gebonden. VM-FR blijft1280×720/1920×1080/200%. Bij eerste Git-archivering normaliseerde Git twee CRLF-regelafbrekingen in de mislukte serial; deze evidence-only correctie herstelt de originele430bytes/SHAed6e4ce7... en controleert de staged blobs tegen SHA256SUMS. Het werkelijk geteste d528-image verandert daardoor niet.
+
+Dit zijn QEMU-ontwikkelprofielen pc-q35-8.2/qemu64/TCG/1CPU/256MiB (OOM128MiB), geen VM-FR/Nehalem/8GiB/32GiB of fysieke acceptatie. Volumeproeven gebruiken plaintext fixtures en tijdelijke RAM-sleutels. Native transport is geen verbonden Materiaaldesktop of veilige persistente productopslag.
+
+**Volgende integratie:** Materiaal source7f8d220/bewijs1f36e0f, SUR1fix9115cb4, INP1SDK73c8e41, inputdaemons a337167 en compositor aa7df72 zijn afzonderlijke componenten. Appreview heeft stale-ready en C-entry gevonden; reparatie volgt vóór nativeGUI. Root bouwt de7-processenbootstrap; kernel_storage maakt echte init; native_ui_apps maakt QMP-bediening; acceptance_contract reviewt appadapters; git_build_audit voegt echte display-CI toe. Gedeelde ABI/build/grants/status blijven exclusief root.
+
+RANDOM fc2e2a2+KDF-wispatch3299f28 en TLS34191bb hebben componentbewijs, nog geen native uitvoeringsclaim. security_release bouwt vier echte RNG-/revoke/cancel/replycases inclusief nieuwe legacy-STATUS ná terminale RNG-fout. PNG/JPEG9ae1c73 heeft gerichte oracle-/stackcorrecties; netwerkworker maakt de native observer, root bootstrap volgt. Browsera2085b9 documenteert concrete Chromium/Gecko-portblokkades zonder enginekeuze. Alle apps, NAS/providers, inference, veilige opslag, boot/PQC/updates/herstel, toegankelijkheid en duurproeven blijven verplicht.
+
+### NEXT AGENT HANDOFF
+
+- Controleer actuele HEAD/status/worktrees en actieve agents; historische blokken hieronder zijn geen actuele werkstand. Behoud alle eigen worktrees en wijzigingen. Integratie mag alleen als inhoud, passende checks, reviewbevindingen en remote-SHA aantoonbaar kloppen.
+- Laatste bruikbare native displayimage: `/workspace/nieuw-os-worktrees/root-desktop/build/display-geometry-fixed/run/display-input-e6dc2a21c2/esp/`, originele PPMs/inputs/result/serial in dezelfde runmap. Zie exact geteste d528-bron en hashes hierboven. Geheugen15e: `/workspace/nieuw-os/build/full-release-15e8cfc-memory/{normal,nx,guard,peer,oom}/esp/`. Geen volledig releaseimage.
+- Eerstvolgende uitvoering: integreer appreviewreparatie, SUR1fix, typedINP1client, nativeinit/compositor/app in root-desktop; sluit kernelgrants/bootstrap/build aan en voer echte QMPedit/save/heropen uit. Een SourceReady/SYNC, PolicyReady en compositorFocusACK moeten vóór GO bestaan; APPStartupReady is geen volledig geschilderd beeld.
+- Parallel: nativeRANDOM4cases en PNG/JPEGprobe krijgen uitsluitend eigen nieuwe bestanden. Root beheert feature-/SDK-/workspace-/buildwiring. App heeft geen rawDisplay/Input, compositor uitsluitend DISPLAY, bron uitsluitend INPUT, policy vasteIPCkanalen. Geen hostsimulatie als functionaliteit.
+- CLI-push heeft HTTPS-auth401; de beschikbare GitHub-koppeling publiceert met lease/exactetree en fetch/ff-verificatie. Geen credentialinspectie/forcepush. `/tmp/nieuw-os-make-candidate.py` controleert nu ook gewijzigde staged bewijsarchieven tegen hun eigen SHA256SUMS; gebruik fail-fast shells.
+-100 koude starts,24uur gecombineerde sessie, menselijk/hardwarebewijs en compleet testpakket blijven open. Geen uitvoering ná een harde sessiegrens beloven.
+
+## Historische checkpoints
+
+Alle onderstaande checkpointteksten beschrijven hun eigen bron en bewijs.
+
+## K05 startcapabilityposities native hersteld, 32% — 29 oktober 2026
+
+Branch `codex/supervisor-startup-slots`, basis `main`
+`383636193faedc65b80c748c5bc4df28676dc2d3` (#54 gemerged na zes groene
+workflows). Exact geteste bron `56b576b16da1e4503bc5f9167a476474a58c33cf`,
+bronvingerafdruk `cccf0e3e7fcec439428208c4458a0194ec23c6120e1f03d96abe65b0711631b7`.
+Latere wijzigingen zijn uitsluitend docs/bewijs.
+
+**Hersteld:** P2 uit #51: een geldige raw `proc_spawn` met lege cap0 en
+SEND in cap1 gaf cap1 foutief op startup-offset 56 in plaats van 64.
+Verzamelen/installeren behouden nu beide indices; count blijft voor quota-
+preflight. Geen rechten-, ABI-, SDK-interface- of afhankelijkheidswijziging.
+
+**Uitgevoerd en geslaagd (exit 0):** `tools/test_supervisor.py`,5/5 echte
+QEMU-runs: normal, crash, denied, parent-exit en quota. Normal bewijst één sparse
+spawn, drie slot-/rechtencontroles, 24 echte IPC-antwoorden en herstart;
+denied 21/21 gematchte controles, 11 geweigerde spawns. Engine-/framecleanup
+in alle gevallen groen. Host: 40 capability-, 17 SDK-, 1 voorbeeldlib- en 7 harnastests;
+voorbeeldclippy, root-/SDKfmt en diffcontrole groen. Oude kernel met nieuwe
+native test faalde aantoonbaar na 15 seconden; gerichte herstelde normalcase groen.
+Afzonderlijke agentreview: geen blockers; 7 harnastests onafhankelijk herhaald.
+Bewijs en exacte commando's: [k05-startup-slots](verification/k05-startup-slots/README.md).
+
+Omgeving: Rust 1.90.0, QEMU 10.0.13, expliciet pc-q35-8.2, qemu64, TCG, 1 CPU,
+256 MiB, OVMF 2025.02-8+deb13u1 (4M). Geen fysieke hardware- of SMPclaim.
+**Score 32% → 32%:** bestaand K05-ABI-randgeval hersteld; geen nieuw criterium.
+Eind-CI/review moet groen zijn vóór de geschikte squash-merge.
+
+Vorige geïntegreerde batch: #53 en #54 gemerged; #48 aantoonbaar vervangen en
+gesloten. Alle acht B01/S08-reviewthreads opgelost. B01/S08/S06 hebben 27 echte
+VM-runs op hun eigen bevroren bron 53e0d57 (historisch bewijs hieronder).
+
+### NEXT AGENT HANDOFF
+
+- Bron: `codex/supervisor-startup-slots`, geteste commit volledig hierboven.
+  Controleer actuele HEAD/PR-merge; `git fetch origin main` vóór vervolgwerk.
+- Afgerond: K05-slotfix en lokale vijfgevallenacceptatie; productiecode en
+  bewijs gecommit/gepusht, geen losse rootwijzigingen. Integratie uitsluitend
+  na actuele groene PR-checks; los daarna thread PRRT_kwDOVZC91s6xvSPj op.
+- Volgende concrete productstap: B02, persistente geauthenticeerde sleutel-/
+  volumeopslag boven services/keyring en services/volume; begin met record-
+  formaat en negatieve manipulatie-/rollbacktests in een eigen branch.
+- Open grenzen blijven: koude antirollback, requestercrash/reset-zonder-ACK-
+  nativebewijs, TPM/fysieke RNG/hardware. Geen nieuw scorepunt toegekend.
+- S09 historische lokale bron niet remote gevonden; controleer beschikbare
+  lokale bronnen vóór een eventuele dubbele implementatie.
+
+## Historische checkpoints
+
+Onderstaande blokken zijn versiegebonden geschiedenis; actuele uitvoering
+staat hierboven.
+
+## B01-herstel en S08 geïntegreerd geverifieerd, 32% — 29 oktober 2026
+
+Branch `codex/native-recovery-hardening`, PR [#54](https://github.com/simonvanieperen/nieuw-os/pull/54),
+basis `main` `00e6af5` (de gecontroleerde squash van workflow-PR #53).
+Exact geteste gezamenlijke bron: `53e0d57af99c9673c97bc900fae15b98e08c8ca3`;
+bronvingerafdruk v3 `60edda7943e979a8e2c16caf6aa873a8b7d7535cd633e2a10f094d4b0bb6c00f`.
+Latere checkpointwijzigingen betreffen uitsluitend documentatie/bewijs.
+
+**Gerealiseerd:** B01 bewaart RCT/APT-toestand vanaf opstart over alle reseeds.
+Herstel van dezelfde master verenigt intrekkingen; een gebruikte dienst
+weigert een andere master. De native app bewijst oude-blobintrekking. De
+broker begrenst reset-ACK en sluit outstanding I/O bij requester-exit af
+(offline, gepinde quarantaine). Nieuwe afzonderlijke fixtures: werkelijk
+onbeantwoorde kernel-RNG-aanvraag en reset/herinitialisatie van een antwoordende
+driver op dezelfde pool met een nieuwe 32-byteaanvraag. S08-timing uit #48
+is overgenomen met actuele main intact: deadline 500 PIT-ticks, diagnostiek
+ook bij falen en latentie van `Device::poll`-foutcompletions.
+
+**Uitgevoerd en geslaagd (exit 0):**
+- `tools/test_keyring.py`: 5 echte VM-runs; 58 core/driver/capability-, 17 SDK-
+  en 11 harnastests. Timeout: firmware 16 bytes, kernel 255+1 onbeantwoord,
+  geen geleverde kernelbyte/sleutel, 1 timeout en 1 reset-ACK.
+- `tools/test_storage_resilience.py`: 13 echte VM-runs, inclusief zes koude
+  read-only recoveries; orakels, geen replay, overige voortgang en cleanup groen.
+- `tools/test_volume.py`: 9 echte VM-runs met drie echte kill/recovery-paren,
+  corruptieweigering; 28 volume-, 17 SDK- en 21 harnastests.
+- Onafhankelijke hostverificatie: 325 Python-, 6 skill-, 238 root-Rust- en
+  46 SDK-tests; root-/SDK-Clippy, fmt, syntax en voortgangscontrole groen.
+- Afzonderlijke AI-review: geen blockers; vijf nieuwe keyringregressies bewezen
+  rood vóór reparatie en groen erna. Twee extra hersteltegenvoorbeelden groen.
+
+Omgeving: Rust 1.90.0, Debian QEMU 10.0.13, expliciet `pc-q35-8.2`,
+qemu64/TCG/1 CPU/256 MiB, OVMF 2025.02-8+deb13u1 (4M). Alle exacte
+commando's, rapporten, bron-/image-/loghashes en de ontwikkelfouten staan in
+[verification/native-recovery-hardening/](verification/native-recovery-hardening/README.md).
+GitHub eindhead-/reviewstatus: [PR #54](https://github.com/simonvanieperen/nieuw-os/pull/54);
+samenvoegen pas na groene toepasselijke checks. #48 mag pas sluiten nadat de
+vervangende integratie daadwerkelijk is opgenomen.
+
+**Roadmap:** oorspronkelijk 32%, tijdelijk 30% wegens bevestigde P1-fouten;
+na herstel en dezelfde native acceptatie weer **32%**. Geen nieuw criterium
+of gewijzigde gewichten. B01-bewijs is aangevuld, oude bewijsbestanden blijven
+historisch. Requestercrash en reset zonder ACK zijn niet native getest;
+herstartbewijs geldt voor een antwoordend apparaat. Koude antirollback,
+persistente sleutels/geauthenticeerde opslag (B02), TPM, fysieke RNG-kwaliteit
+of hardware worden niet geclaimd. De eerste stille fixture blokkeerde ook
+firmwareboot en is als mislukt vastgelegd, daarna gericht gecorrigeerd.
+
+### NEXT AGENT HANDOFF
+
+- Bron: `codex/native-recovery-hardening`; getest commit volledig hierboven;
+  PR #54 bevat alle drie agentimplementaties en bewijs. Controleer actuele
+  branch/HEAD/PR-merge; `git fetch origin main` vóór vervolgwerk.
+- Afgerond: B01-R1/R2, S08-R, ENV en host/native verificatie; geen onafgemaakte
+  productiecode in de hoofdwerkboom. De entropy-agentworktree bevat alleen
+  lokale kopieën van inmiddels geïntegreerde R1-/featurewijzigingen.
+- Open: B02, requestercrash/reset-zonder-ACK-nativebewijs. S09 staat alleen in
+  een historisch lokaal checkpoint; geen remote branch/commit teruggevonden.
+- Volgende concrete implementatiestap: B02, persistente geauthenticeerde
+  sleutel-/volumeopslag boven `services/keyring` en `services/volume`; begin met
+  versiegebonden recordformaat en negatieve manipulatie-/rollbacktests in een
+  eigen branch. Houd secrets buiten kernel en gewone apps. Geen S09 dubbel
+  implementeren zonder eerst eventuele lokale bron terug te vinden.
+
+### Oudere historische checkpoints
+
+Alle onderstaande gedateerde blokken zijn historische registraties van hun
+expliciete bron. Oude woorden als “open”, acceptatie in afwachting en oude
+percentages beschrijven die bron, niet de actuele toestand bovenaan.
 
 ## B01 native entropy en sleutelbeheer geaccepteerd, 32% — 29 oktober 2026
 

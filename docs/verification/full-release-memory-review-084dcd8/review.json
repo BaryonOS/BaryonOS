@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "task": "TASK-MEMORY-V",
+  "source_commit": "084dcd834c058ba88a56bac3ffcef205c2bc3de5",
+  "base_commit": "1b6a3086176a6c0a4e6514bf4d2f7105bef3d480",
+  "scope": "Independent model/code review; not human audit, canonical native-memory or full-release acceptance",
+  "concrete_reachable_blockers": [],
+  "source_sha256": {
+    "crates/kernel-core/src/lib.rs": "6e6eb4867fd95388fc33f8087147814c8c9a41d48f139fa5ff9b5376fba76db2",
+    "kernel/src/m2/m3.rs": "9ed19afa8e8569c296ab3141c89e8b60e59e44d6e7687e115c9fa3d94400ffb9",
+    "kernel/src/m2/m3/heap.rs": "8977772ae5753136d6887071f535f7af688a61e11a8b2cd88bcbdbe1cda89fa1",
+    "kernel/src/m2/paging.rs": "d0ced8f00758f550df587aec315cbc301adbd0619dd0c933fc0a0c9be6013487",
+    "sdk/runtime/src/lib.rs": "baa0ceb62490e26a6f2119afb89233588b74baa6304558d43c8fd28421e9ca3b",
+    "sdk/runtime/src/memory.rs": "0b88b9a77f6dd2f4bb4433d790320152848ef534ea5cd0329f8d9ea9dd629eb6",
+    "sdk/runtime/src/native.rs": "793f0cd31c0ea05163c4fcebbd1405fd5eab203d2211628f5ea352b183b29e80",
+    "sdk/runtime/tests/message.rs": "64b78bce202be4186c87c0513f5b4e85e7a9cb1b9694f615cbdf6c542bb888ea",
+    "sdk/runtime/tests/process.rs": "2b96eb9e2b57780cc6f910c867971c6238964d5307d01b171f3621507fe1fb45"
+  },
+  "checks": [
+    {
+      "kind": "host",
+      "check": "kernel-core tests",
+      "passed": 20,
+      "exit": 0,
+      "target": "/tmp/nieuw-os-memory-review-tm3w7gld/target-core-084dcd8"
+    },
+    {
+      "kind": "host",
+      "check": "SDK runtime tests",
+      "passed": 19,
+      "exit": 0,
+      "target": "/tmp/nieuw-os-memory-review-tm3w7gld/target-sdk-084dcd8"
+    },
+    {
+      "kind": "host-model",
+      "check": "Exact extracted MapPlan/preflight/scalar-map functions with modeled table I/O",
+      "passed": 4,
+      "exit": 0,
+      "extraction": "/tmp/nieuw-os-memory-review-tm3w7gld/planner-host-model/extraction.json",
+      "cases": [
+        "2013-page deduplication and actual scalar-map table count",
+        "exact metadata ceiling and occupied destination",
+        "parent NX/huge/write/user/owner and nonpresent software entries",
+        "strict destination ordering and fresh-frame/alias requirement"
+      ]
+    }
+  ],
+  "reviewed_invariants": [
+    "allocate_many resource errors preserve owner/alias/output and invoke no zero callback",
+    "heap preflight checks both complete plans, metadata and aggregate table-frame demand before publishing heap PTEs",
+    "all ordinary post-reservation errors release fresh reservations and wipe transaction arena",
+    "heap suffix and count advance only after successful mapping commit",
+    "old mappings stay at existing addresses; ordinary owner cleanup includes appended heap mappings",
+    "SDK OwnedHeapPages is non-Clone raw descriptor with bounded geometry; no safe slices, implicit unmap or uncertain retry"
+  ],
+  "assumptions": [
+    "single CPU and IF=0 throughout transaction",
+    "infallible bounded zero callback with no reentry/allocation",
+    "exclusive scratch mapping and frame/page-table ownership invariants",
+    "future feature definition must compose process-memory with monotonic-clock for advertised ABI1.7"
+  ],
+  "native_existing_artifact_verification": [
+    {
+      "diagnostic": "513+1 pages",
+      "source_sha256": "d41884d462737415c2789b26d1a77b99f491d1d6cac5f58617769d458c323f16",
+      "kernel_sha256": "866249ee14cea6e6e4fc92fa6a490a3fc15b4013940482719a476782c50377fc",
+      "raw_exit": 33,
+      "boundary": "Earlier source; not exact084 proof"
+    },
+    {
+      "diagnostic": "2013+1 pages",
+      "source_sha256": "9efd582b60cb819132eb914ca715c036199af2609dcaa4e4e966c3b7545d2315",
+      "kernel_sha256": "cdbca31767dcdc0d9fa834706c56d8f20f13446cc821df9dcd2b1fcd885d3070",
+      "raw_exit": 33,
+      "boundary": "Temporary feature definition; prerequisite diagnostic, not canonical memory acceptance"
+    }
+  ],
+  "artifact_checks": "Both saved kernel/loader/firmware hashes and raw serial bytes verified against original run directories; all9 handoff source hashes match084",
+  "discarded_checks": "Initial dev.py invocations used main cwd; old/mixed scratch targets were discarded. Only absolute manifests in fresh084-specific targets count above.",
+  "open": [
+    "canonical native-memory fixture",
+    "physical OOM128MiB atomicity",
+    "new heap NX and guard fault proofs",
+    "final integrated commit native regressions",
+    "8GiB product capacity and all full-release criteria"
+  ],
+  "writes": "Only own /tmp snapshot/model/targets/report; no source or Git changes"
+}

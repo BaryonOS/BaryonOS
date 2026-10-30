@@ -2,7 +2,7 @@
 
 Datum: 30 oktober 2026 (Europe/Amsterdam). Contract:
 [B03-SIGNED-UPDATES](../implementation/B03-SIGNED-UPDATES.md); besluit
-ADR-044. Bewijsmap: [`b03/`](b03/).
+ADR-049. Bewijsmap: [`b03/`](b03/).
 
 ## Geaccepteerde eigenschap
 
@@ -37,7 +37,7 @@ orakel controleert na iedere stage de bytes van de slotopslag.
   crashfixture (`test-update-cut`). SHA-256 van loader, kernels, manifesten
   en de ring-3 dienst staan in `b03/update-gate.json` (`images`).
 - Dependencies (nieuw, vastgepind in `Cargo.lock` en `sdk/Cargo.lock`): zie
-  ADR-044 besluit 7 (`ed25519-dalek` 2.2.0, `curve25519-dalek` 4.1.3,
+  ADR-049 besluit 7 (`ed25519-dalek` 2.2.0, `curve25519-dalek` 4.1.3,
   `ml-dsa` 0.1.1, `module-lattice` 0.2.3, `hybrid-array` 0.4.15, `sha2`
   0.10.9 `force-soft`, `signature`, `subtle`); 0 xmm/ymm/x87-instructies in
   loader en dienst (`objdump`). TEST-ankers in `tools/update-keys/`.

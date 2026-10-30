@@ -784,7 +784,11 @@ B01-commit reverten. Rechtenbit 1024 wordt bij andere objecttypen met
 **Eigenaar:** hoofdagent (driver, engine, kernelbroker, core, SDK, voorbeeld,
 gate, bewijs).
 
-## ADR-044 — Hybride ondertekende kernelupdates met slotopslag, versievloer en terugval (B03)
+## ADR-049 — Hybride ondertekende kernelupdates met slotopslag, versievloer en terugval (B03)
+
+Bij integratie van PR #61 met main `6d3bbf0` hernummerd van ADR-044 naar
+ADR-049: ADR-044 op main beschrijft het netwerk. Beide besluiten blijven
+inhoudelijk behouden; historisch bewijs wordt niet herschreven.
 
 **Datum:** 29 oktober 2026. Loaderfeature `signed-boot` en kernelprofiel
 `native-update`, beide opt-in; loaders zonder de feature (alle andere
@@ -865,3 +869,132 @@ iedere onderbreking van een installatie ongewijzigd beschikbaar.
 netwerkdistributie (N-spoor) en de verificatie van de loader door de firmware
 (B04) blijven open. De `KERNEL:IMAGE_VERSION`-marker en de startpagina-
 woorden 120/192–400 zijn profielgebonden testinterfaces, geen OS-ABI.
+### Aanvulling ADR-043 — monotone herstelstatus en doorlopende bewaking (29 oktober 2026)
+
+Concrete post-merge tegenvoorbeelden uit #52: een oudere recoveryblob wist
+lokale tombstones en iedere reseed maakte een nieuw gezondheidstestvenster.
+De herstelwijziging behoudt Health vanaf startup en verenigt tombstones bij
+herstel van dezelfde master. Een andere master mag uitsluitend naar een nog
+ongebruikte instantie; een gebruikte instantie weigert de wissel zonder
+wijziging. Geen wire-format- of cryptoprimitiefwijziging. Na koude herstart
+blijft rollbackdetectie afhankelijk van toekomstige vertrouwde persistente
+status (B02); een recoveryblob alleen bewijst geen actualiteit.
+
+De broker bevestigt virtio-reset vóór hergebruik; bij ontbrekende reset-ACK
+blijft DMA gepind en de broker offline. Eigenaarsverlies stopt het apparaat en sluit de broker af; de DMA-pool
+blijft in quarantaine tot reboot. Twee aparte native fixtures bewijzen een echt stille
+bron en een normale reset/herstart; de oude `stuck` is uitsluitend een
+constante-bytefixture. Geen fysieke entropy- of hardwareherstelclaim.
+
+Eigenaar: hoofdagent; wijzigingen en bewijs in native-recovery-hardening.
+Herziening: persistent antirollback-/recoverycontract in B02, of een concreet
+tegenvoorbeeld tegen de levende-instantie-invariant. Terugdraaien: revert
+herstelcommits en B01 open houden, geen onzeker bewijs accepteren.
+
+## ADR-044 — Native netwerk via één begrensde capabilitybroker
+
+**Datum:**30oktober2026. In uitvoering als deel van de volledige release;
+geen N01/NAS/TLSacceptatie. NetworkSource is uitsluitend aan het geconfigureerde
+ring3netwerkproces toegekend; apps krijgen geen MMIO/DMA of algemeen netwerkrecht.
+Eigen kernel valideert handles, volledige usercopy en lengtes, beheert gepinde
+RX/TX-buffers, completion/timeout en reset-ACK/quarantaine. ARP/DNS/TCP en later
+TLS/configuratie blijven in userspace. ABI1.5:0x70send/0x71completion/0x72receive;
+sluiten/dood beëindigt de bron. Geen automatische pakket-replay. Ondersteund
+proefapparaat: modern virtio-net00:07.0, één CPU/QEMU256MiB. Werkelijke native
+ARP/UDP/DNS-counters en onafhankelijke8/7testpeer slagen op3879c32, met dezelfde
+koude volumerecovery. Volledige app-/bestemmingsbroker blijft verplicht open.
+
+Testfirmware is geen OS-netwerkclient. Een echte OVMF-MLDrepro leidde tot de
+EDK2-runtimeopties VirtioNetSupport/IPv4Support/IPv6Support=no en romfile=,
+met intacte PCI-NIC en strikte peer. Causale oude-kernelA/Bproef bevestigt dit.
+Terugdraaien: netwerkfeature uit de integratiebranch revert, N01 open houden;
+geen prebootframe negeren of driver-/rechtencontrole uitschakelen.
+
+## ADR-045 — Eager x87/SSE-context en echte boot-monotone tijd
+
+**Datum:**30oktober2026. Opt-inmechanismen fpu-context en monotonic-clock;
+behoud van microkernel/procesisolatie vereist afzonderlijke CPU-status per
+proces. Kernel beheert16uitgelijnde512byte FXSAVE-beelden; save bij CPL3-entry
+vóórRust, restore pas na alleRust/CR3selectie direct vóórGPRpops/iret. Verse
+PID/slot start met gewiste registerpayloads, vaste FCW/MXCSR en lege x87tags;
+cleanup wist alles. CPUIDcontrole, EM/TSuit, MP/NEaan, OSFXSR/OSXMMEXCPTaan,
+AMDFFXSRuit/teruggelezen; XSAVE/AVXblijven uit. Geen GUI/crypto/netpolicy verhuist
+naar de vertrouwde kern. Kernel gebruikt zelf geen FP/SIMD en de disassembly
+wordt gecontroleerd. Eén CPU; fysiekeAMDerrata/uitgebreideFPexcepties open.
+
+Sys3 levert actuele100HzPITticks sinds boot, uitsluitend bij zes nulargumenten,
+met saturatie. SDK kent ABI1.6; oudere profielen behouden hun eerdere ABI.
+Geen wandklok/RTC/hervatcontract of realtimegarantie. De native-fpu-fixture heeft
+echte syscall/timerwissels, drie schone levens, een echte unsupported-AVX#UD,
+overlevend proces en slotreuse. Een afzonderlijke illegale-MXCSRproef onthult
+TCG's ontbrekende#GP; dat falende bewijs blijft bewaard en is niet groen verklaard.
+Hostartifacthelpers mogen geen symlink/hardlink buiten de checkout overschrijven.
+Rootintegratie wordt apart native herhaald. Terugdraaien: opt-inmechanismen
+revert en FP-afhankelijkeproductfuncties zichtbaar open houden.
+
+## ADR-046 — Onderhouden TCP-library in een ring3app
+
+**Datum:**30oktober2026. Ontwerpbesluit, implementatie/nativeacceptatie loopt.
+Gebruik smoltcp=0.14.0(0BSD), minimale no_stdEthernet/IPv4/TCPfeatures,
+integerReno, vaste1RX/1TX1514byte slots en maximaal twee TCP-sockets met8KiB
+perbuffer. Geen std/alloc/libc/TUN, geen pakketparser in de kernel en geen
+kunstmatig voortgezette tijd. TXslot blijft bezet tot echte brokercompletion.
+Timeout/retransmissie gebruikt Sys3, naast hostlifetimebounds.
+
+De actuele library vereist Rust1.91.1: alleen dit apppackage/alle lokale
+Rust-afhankelijkheden worden daarmee gebouwd en als eigen ELF geladen.
+Kernel/loader/oudere apps blijven gepind op1.90; geen gemengde rlibs of globale
+defaultwissel. Matchende rust-lld en gelockte dependencyketen; buildscripts en
+acht registrycrates zijn op herkomst/licentie/buildgedrag gecontroleerd.
+0.12 is afgewezen wegens latere TCP-/IPv4-validatiefixes. Bekende upstreamissues
+voor groteRXwindows en luisteraars blijven zichtbaar; de begrensdeclientproef
+bewijst die algemene server/NASgevallen niet. De vaste proef-ISNseed is alleen
+voor testdata; productie-entropy en TLS blijven releaseblokkerend open.
+EOF, refused/reset, echt verloren eersteSYN/retransmissie en blackholetimeout
+worden tegen een protocolconforme loopbacktegenpartij native getoetst.
+
+
+## ADR-047 — Begrensde eigen heap en onderhouden gebruikersallocator
+
+**Datum:** 30 oktober 2026. Implementatie in uitvoering; geen volledige geheugen-,
+engine- of productacceptatie. Sys4 (opt-in ABI 1.7) groeit uitsluitend de eigen
+contigue RW/NX-heap met verse nulgevulde pagina's. Bestaande totale procesquota
+blijft 2048 frames inclusief programma en stack. Geen shrink, fysieke mapping,
+uitvoerbaar heapgeheugen of delegatie. Fallible batchreservering en volledige
+user- én kernelpaginatabelpreflight gaan vóór publicatie; fouten behouden oude
+mappings en ruimen reserveringen op. Het eerste profiel blijft één CPU met IF=0.
+
+De aparte userspace allocator gebruikt exact `linked_list_allocator` 0.10.6
+(MIT/Apache-2.0, defaults uit), een expliciet exclusief arena en eigen begrensde
+administratie. Geen hostfallback of stil automatisch groeien. `OwnedHeapPages`
+bewijst geen veilige Rust-aliasing: de initialisatiecontrole blijft expliciet.
+Onafhankelijke review, native nulvulling, quotum/OOM, NX, isolatie, hergebruik en
+cleanup zijn afzonderlijke gates. De 128 MiB-OOM-proef verandert het bestaande
+256 MiB-regressieprofiel of 8 GiB-productdoel niet. Terugdraaien: opt-in features
+revert; allocator-/engineafhankelijke productcriteria blijven zichtbaar open.
+
+## ADR-048 — Native display en invoer via minimale transportcapabilities
+
+**Datum:** 30 oktober 2026. Contract goedgekeurd, implementatie in uitvoering.
+De bestaande gevalideerde GOP-header/mapping en begrensde pixelhelper worden
+losgemaakt van de G0-kernelrenderlus. De afzonderlijke `framebuffer`-feature
+bevat alleen hardwaremetadata en supervisor-RW/NX/UC-transport. G0 blijft zijn
+aparte IF=0-proef; Materiaal, fonts, documenten en invoerbeleid horen in ring 3.
+Geen VRAM-frame wordt als gebruikers-RAM toegewezen of door heapcleanup vrijgegeven.
+
+ABI 1.8 wordt opt-in gereserveerd: DISPLAY=4096 en INPUT=8192 zijn alleen door
+het manifest uitgegeven, PID-/generatiegebonden en niet overdraagbaar/afleidbaar.
+0x80/0x81 leveren openbare geometrie en een synchrone tileblit van maximaal
+32×8 pixels (LE `0x00RRGGBB`); geen fysieke basis/stride of vsyncgarantie.
+Alle usercopy, descriptorvelden, pixels en volledige doelrijen moeten vóór de
+eerste hardwarewrite geldig zijn. Alleen de vertrouwde compositor krijgt display-
+autoriteit; onbetrouwbare apps krijgen gecontroleerde oppervlakken/portalen.
+
+0x82–0x84 vormen een begrensde PS/2-resetstatusmachine en ruwe bronlezing voor
+uitsluitend de geïsoleerde invoerdienst. Werkelijke ACK/BAT/identiteit en
+Set2→Set1-configuratie gaan vóór Ready; beide kanalen en foutstatus blijven
+zichtbaar. Gevalideerde uitvoer gaat vóór FIFO-consumptie. Intrekking, dood,
+stale tickets, tijdslimieten en generatie-uitputting mogen geen toegang of vals
+Ready opleveren. Dit is geen algemene driver-/DMA-/IOMMU-garantie. Details en
+uitvoeringsbewijs volgen in het transportcontract en native QMP-bedieningsproef.
+Terugdraaien: opt-in transport revert, G0-regressie behouden en productcriteria open.

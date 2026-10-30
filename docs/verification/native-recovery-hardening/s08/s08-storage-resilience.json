@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "criterion": "S08",
+  "status": "completed",
+  "passed": true,
+  "source_commit": "53e0d57af99c9673c97bc900fae15b98e08c8ca3",
+  "source_fingerprint_version": 3,
+  "source_sha256": "60edda7943e979a8e2c16caf6aa873a8b7d7535cd633e2a10f094d4b0bb6c00f",
+  "started_utc": "2026-10-29T21:31:56.403698+00:00",
+  "cases": [
+    {
+      "case": "write-error",
+      "run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-write-error-66058f2f60",
+      "raw_qemu_exit": 33,
+      "image_after_sha256": "c95f122e2b5c761f01eb16d3e1d203b0e2f789d2d52eb374df2d65553a622ee1",
+      "survivor_progress": true,
+      "resource_cleanup": true,
+      "no_replay": true,
+      "quarantine": false
+    },
+    {
+      "case": "flush-error",
+      "run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-flush-error-7d16ef41e9",
+      "raw_qemu_exit": 33,
+      "image_after_sha256": "97df960450d63913e63d59e3be546b73e74229ba240bc0f59b5ad20c05fa035f",
+      "survivor_progress": true,
+      "resource_cleanup": true,
+      "no_replay": true,
+      "quarantine": false
+    },
+    {
+      "case": "write-timeout",
+      "run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-write-timeout-2d5ab6e1e5",
+      "raw_qemu_exit": 33,
+      "image_after_sha256": "cb354b6bf144688d9195093dd9bfb9fad5408525d4dea831b0ead2d81887e039",
+      "survivor_progress": true,
+      "resource_cleanup": true,
+      "no_replay": true,
+      "quarantine": false
+    },
+    {
+      "case": "flush-timeout",
+      "run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-flush-timeout-a93148d543",
+      "raw_qemu_exit": 33,
+      "image_after_sha256": "d6747020710d90916672bc23c8849b7311b631faaa45b6da633259bf8d5c5429",
+      "survivor_progress": true,
+      "resource_cleanup": true,
+      "no_replay": true,
+      "quarantine": false
+    },
+    {
+      "case": "reset-timeout",
+      "run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-reset-timeout-e0cf85328d",
+      "raw_qemu_exit": 33,
+      "image_after_sha256": "517684ff90eefabd51b043a8930f3bb037c09edea230d4d91e50573649cabc47",
+      "survivor_progress": true,
+      "resource_cleanup": true,
+      "no_replay": true,
+      "quarantine": true
+    },
+    {
+      "case": "full",
+      "run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-full-ec1e526951",
+      "raw_qemu_exit": 33,
+      "image_after_sha256": "83f551c1b6683799c2e64520ce3fbd5f9f451a4a88d725169059e85bc5b6cc8f",
+      "survivor_progress": true,
+      "resource_cleanup": true,
+      "no_replay": false,
+      "quarantine": false
+    },
+    {
+      "case": "corrupt",
+      "run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-corrupt-c1defbd974",
+      "raw_qemu_exit": 33,
+      "image_after_sha256": "d02bb901b65c7177a253468ca29651a436bfc7dfb5b97a9c00e8dbdb57b6bbe0",
+      "survivor_progress": true,
+      "resource_cleanup": true,
+      "no_replay": false,
+      "quarantine": false
+    }
+  ],
+  "recoveries": [
+    {
+      "case": "write-error",
+      "run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-write-error-cold-recovery-84f76ee27b",
+      "raw_qemu_exit": 33,
+      "same_exact_image": true,
+      "read_only_recovery": true
+    },
+    {
+      "case": "flush-error",
+      "run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-flush-error-cold-recovery-0f518e1cc7",
+      "raw_qemu_exit": 33,
+      "same_exact_image": true,
+      "read_only_recovery": true
+    },
+    {
+      "case": "write-timeout",
+      "run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-write-timeout-cold-recovery-4cbe1d43a1",
+      "raw_qemu_exit": 33,
+      "same_exact_image": true,
+      "read_only_recovery": true
+    },
+    {
+      "case": "flush-timeout",
+      "run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-flush-timeout-cold-recovery-77fca303d8",
+      "raw_qemu_exit": 33,
+      "same_exact_image": true,
+      "read_only_recovery": true
+    },
+    {
+      "case": "reset-timeout",
+      "run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-reset-timeout-cold-recovery-392a6346de",
+      "raw_qemu_exit": 33,
+      "same_exact_image": true,
+      "read_only_recovery": true
+    },
+    {
+      "case": "full",
+      "run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-full-cold-recovery-62fb692dd4",
+      "raw_qemu_exit": 33,
+      "same_exact_image": true,
+      "read_only_recovery": true
+    }
+  ],
+  "real_vm_invocations": 13,
+  "claim_boundary": "Native QEMU evidence for storage failure responsiveness and explicit cold recovery; no physical disk or power-loss claim.",
+  "last_run_directory": "/workspace/nieuw-os-verify-s08/build/verify-s08/run/m6c-s08-corrupt-c1defbd974",
+  "finished_utc": "2026-10-29T21:33:36.249265+00:00"
+}

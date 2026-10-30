@@ -1,0 +1,65 @@
+{
+  "task": "TASK-RTC",
+  "date_utc": "2026-10-30",
+  "base_commit": "cda42f2d4017e65bd8ba89399cb1633f85a1c2da",
+  "boundary": "host scripted CMOS state and freestanding library only; no native port I/O, secure time or TLS integration",
+  "source_sha256": {
+    "drivers/rtc/Cargo.toml": "5d83c507b2e3eb51ff12f27f9c735fcbd10d768c5ae9a76d922751393790e6dc",
+    "drivers/rtc/Cargo.lock": "d34a7a5f1def94d0c9e8b8978760b5e830ebfef6224f5bbb85b832c89150ae31",
+    "drivers/rtc/src/lib.rs": "eb56e36471ce47f00dd19efc8f0102ff299d0bc3effbdc98f4b942c428068e86",
+    "drivers/rtc/tests/clock.rs": "09c7adb0efa6154a3a237dcbebc6cb263485b1a075058388bd05884f0f96aa60",
+    "docs/implementation/RTC-WALLTIME.md": "8d44766ace3f6e6661c2674b761965b8e740920eb8ea5c9e7ee16227fe73e0a1"
+  },
+  "checks": {
+    "host_test": {
+      "exit": 0,
+      "unit_passed": 1,
+      "integration_passed": 10,
+      "ignored": 0,
+      "consecutive_gregorian_cycle_days": 146097
+    },
+    "clippy_all_targets_deny_warnings": {
+      "exit": 0
+    },
+    "freestanding_release_library": {
+      "exit": 0,
+      "target": "x86_64-unknown-none"
+    },
+    "fmt_check": {
+      "exit": 0
+    }
+  },
+  "artifact": {
+    "path_outside_git": "/tmp/nieuw-os-rtc-none-target/x86_64-unknown-none/release/libnieuw_os_rtc.rlib",
+    "bytes": 147774,
+    "sha256": "837b22a1aed4655e7e9ae5dba1f405ba8f45696e33f0ae1e05a6602c8a385d86"
+  },
+  "upstream_read": [
+    {
+      "url": "https://raw.githubusercontent.com/qemu/qemu/v10.0.13/hw/rtc/mc146818rtc.c",
+      "sha256": "06c24a4a42fecad4560f803fb24b4aca62d5ce91471f39b9b52b1e5690cb24de"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/qemu/qemu/v10.0.13/include/hw/rtc/mc146818rtc_regs.h",
+      "sha256": "a388a08b5f45c7e65ae245e881a84c8199735ec327f8292dc575a96ac01f9255"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/HowardHinnant/HowardHinnant.github.io/master/date_algorithms.html",
+      "sha256": "e5f69ba72b78f7bf82b417283089c3ce0b46d0440f68250c203f52c88d7b8f56"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/acpica/acpica/master/source/include/actbl.h",
+      "sha256": "c985b8b6b189190aca1fc1971dcbc2f2ef85fb5702c8df2e84d9052894031dd3"
+    }
+  ],
+  "dependencies_added": [],
+  "text_normalization": "trailing blank log lines omitted; actual command logs remain under /tmp/nieuw-os-rtc-verification",
+  "not_executed": [
+    "native CMOS I/O and kernel rights adapter",
+    "controlled QEMU RTC profile",
+    "physical clock",
+    "authenticated TimeProvider",
+    "persistent rollback floor",
+    "certificate validity integration"
+  ]
+}

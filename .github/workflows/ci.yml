@@ -34,17 +34,38 @@ jobs:
           rustup toolchain install 1.90.0 --profile minimal
           rustup component add --toolchain 1.90.0 rustfmt clippy
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Cache Cargo downloads
+        id: cargo-downloads
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+          key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache host Rust build intermediates
+        id: host-build-cache
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          # Host-only outputs: never native images, acceptance reports or secrets.
+          path: |
+            target/debug
+            sdk/target/debug
+            services/net-protocol/target/debug
+            experiments/quantum/target/debug
+            experiments/quantum/job-protocol/target/debug
+          key: host-rust-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}
       - name: Python syntax and DocumentSession host tests
         run: |
           python3 -m compileall -q tools tests userspace/tests experiments/quantum/native experiments/quantum/native/job .agents/skills/os-dev
           python3 -m unittest discover -s tests -p 'test_document_session_*.py'
           python3 -m unittest discover -s tests -p 'test_volume_*.py'
+          python3 -m unittest discover -s tests -p 'test_system_*.py'
           python3 .agents/skills/os-dev/scripts/validate_skill.py
           python3 -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py'
       - name: Root Rust host tests
         run: |
-          cargo +1.90.0 test --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core
-          cargo +1.90.0 clippy --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core --all-targets -- -D warnings
+          cargo +1.90.0 test --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver
+          cargo +1.90.0 clippy --locked -p boot-protocol -p elf-loader-core -p kernel-core -p capability-core -p virtio-core -p ui-core -p virtio-blk-driver -p block-protocol -p object-core -p catalog-core -p volume-core -p keyring-core -p virtio-rng-driver -p virtio-net-driver --all-targets -- -D warnings
           cargo +1.90.0 fmt --all -- --check
       - name: SDK tests and lint
         run: |
@@ -53,6 +74,25 @@ jobs:
           cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check
           python3 -B sdk/examples/catalog-read/build.py
           python3 -B sdk/examples/volume-docs/build.py
+      - name: User allocator and RTC core
+        run: |
+          cargo +1.90.0 test --locked --manifest-path sdk/heap-allocator/Cargo.toml
+          cargo +1.90.0 clippy --locked --manifest-path sdk/heap-allocator/Cargo.toml --all-targets -- -D warnings
+          cargo +1.90.0 fmt --manifest-path sdk/heap-allocator/Cargo.toml --all -- --check
+          cargo +1.90.0 build --locked --release --target x86_64-unknown-none --manifest-path sdk/heap-allocator/Cargo.toml
+          cargo +1.90.0 test --locked --manifest-path drivers/rtc/Cargo.toml
+          cargo +1.90.0 clippy --locked --manifest-path drivers/rtc/Cargo.toml --all-targets -- -D warnings
+          cargo +1.90.0 fmt --manifest-path drivers/rtc/Cargo.toml --all -- --check
+          cargo +1.90.0 build --locked --release --target x86_64-unknown-none --manifest-path drivers/rtc/Cargo.toml
+      - name: Keyring SDK and isolated input service core
+        run: |
+          cargo +1.90.0 test --locked --manifest-path sdk/keyring-client/Cargo.toml
+          cargo +1.90.0 clippy --locked --manifest-path sdk/keyring-client/Cargo.toml --all-targets -- -D warnings
+          cargo +1.90.0 fmt --manifest-path sdk/keyring-client/Cargo.toml --all -- --check
+          cargo +1.90.0 test --locked --manifest-path services/input-core/Cargo.toml
+          cargo +1.90.0 clippy --locked --manifest-path services/input-core/Cargo.toml --all-targets -- -D warnings
+          cargo +1.90.0 fmt --manifest-path services/input-core/Cargo.toml --all -- --check
+          cargo +1.90.0 build --locked --release --target x86_64-unknown-none --manifest-path services/input-core/Cargo.toml
       - name: Network parser tests and native cross-build
         run: |
           cargo +1.90.0 test --manifest-path services/net-protocol/Cargo.toml --locked
@@ -73,7 +113,7 @@ jobs:
         run: node --test --test-isolation=none ui/prototype/tests/*.test.mjs
       - name: NAS policy, storage and transport tests
         run: node --test --test-isolation=none services/nas/tests/*.test.mjs
-      - name: Native release build
+      - name: Native M6c regression build
         run: python3 -B tools/build.py --kernel-feature milestone-m6c
       - name: Progress consistency and clean tree
         shell: bash
@@ -83,6 +123,20 @@ jobs:
           python3 tools/progress.py --check
           git status --porcelain
           test -z "$(git status --porcelain)"
+      - name: Cache diagnostics (not test evidence)
+        if: ${{ always() }}
+        shell: bash
+        env:
+          DOWNLOADS_HIT: ${{ steps.cargo-downloads.outputs.cache-hit }}
+          HOST_BUILD_HIT: ${{ steps.host-build-cache.outputs.cache-hit }}
+        run: |
+          {
+            echo '### CI cache diagnostics'
+            printf 'Cargo downloads exact cache-hit: `%s`\n\n' "${DOWNLOADS_HIT:-not-restored}"
+            printf 'Host build exact cache-hit: `%s`\n\n' "${HOST_BUILD_HIT:-not-restored}"
+            echo 'All test/build steps still execute. Native acceptance images are not cached.'
+            echo 'Use job step durations for measurements; no speedup is asserted by a cache hit.'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   qemu-smoke:
     name: qemu-smoke
@@ -102,6 +156,14 @@ jobs:
           rustup toolchain install 1.90.0 --profile minimal
           rustup component add --toolchain 1.90.0 rustfmt clippy
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Cache Cargo downloads
+        id: cargo-downloads
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+          key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Install disposable emulator dependencies
         run: |
           sudo apt-get update

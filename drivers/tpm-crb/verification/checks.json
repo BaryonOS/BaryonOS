@@ -1,0 +1,153 @@
+{
+  "task": "TPM-CRB-TRANSPORT-1",
+  "date_utc": "2026-10-30T05:08:35.392499+00:00",
+  "base_commit": "3f20f087a7f0ddf4757af8d3ea110dd0c044a72c",
+  "source_fingerprint_version": 3,
+  "checks": {
+    "native_runtime_performed": false,
+    "target_flags": [
+      "-C",
+      "code-model=kernel",
+      "-C",
+      "relocation-model=static",
+      "-C",
+      "no-redzone=yes",
+      "-C",
+      "target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2",
+      "--remap-path-prefix=/workspace/nieuw-os-worktrees/tpm-crb=/nieuw-os"
+    ],
+    "target_library_sha256": "4e8a6ae36122a414d1e4ae90696d3fb91379eb7732e7e9e34959e69bc960bfc7",
+    "emitted_instructions_inspected": 837,
+    "forbidden_simd_x87_rawports_hostsyscalls": [],
+    "target_limit": "Freestanding rlib only; generic Transport<Io> is not a native MMIO monomorphisation or a linked executable. Host models exercise its state machine; actual adapter/kernel binary inspection remains open.",
+    "commands": [
+      {
+        "name": "format",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "fmt",
+          "--manifest-path",
+          "drivers/tpm-crb/Cargo.toml"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.0694724729983136
+      },
+      {
+        "name": "fmt",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "fmt",
+          "--manifest-path",
+          "drivers/tpm-crb/Cargo.toml",
+          "--",
+          "--check"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.06787335600165534
+      },
+      {
+        "name": "test",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "drivers/tpm-crb/Cargo.toml"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.4666004040009284
+      },
+      {
+        "name": "clippy",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "clippy",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "drivers/tpm-crb/Cargo.toml",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.3316599990030227
+      },
+      {
+        "name": "target-build",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "build",
+          "--offline",
+          "--locked",
+          "--release",
+          "--target",
+          "x86_64-unknown-none",
+          "--manifest-path",
+          "drivers/tpm-crb/Cargo.toml"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.08163341999897966
+      },
+      {
+        "name": "target-clippy",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "clippy",
+          "--offline",
+          "--locked",
+          "--release",
+          "--target",
+          "x86_64-unknown-none",
+          "--manifest-path",
+          "drivers/tpm-crb/Cargo.toml",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.11141471700102556
+      }
+    ],
+    "source_sha256": "6752c53161c755c08bc23ebbd457527cc6781b64d7aa9ea340d62fa06791bee9",
+    "source_after_sha256": "6752c53161c755c08bc23ebbd457527cc6781b64d7aa9ea340d62fa06791bee9"
+  },
+  "owned_files": {
+    "docs/contracts/TPM2-CRB.md": "58b0abcc88a9901efdab0172f9c98eb5903bcf2b9cc09d636fe3ef69c1a683b4",
+    "drivers/tpm-crb/Cargo.lock": "418f5171a80831217e8d32e5c6599a20c3ad364607808b8a9d8c377096b28f40",
+    "drivers/tpm-crb/Cargo.toml": "ea18314c8a1ca6a039d0a84b0bb811f7c5ac70bdb65ebc026eb08253363377fe",
+    "drivers/tpm-crb/README.md": "169ce13d6db7d9aad3ab10bd7d86853587bcc6a4f0525cce8d1e36f048bb24b4",
+    "drivers/tpm-crb/src/codec.rs": "3f528e21e7732f3abfbc1d7e190bcbd78c4f42f55621ca76d2b74eecd898b37e",
+    "drivers/tpm-crb/src/lib.rs": "2bd111b0807b71d67027898aa7368f58f67bcba2fde9d8864b5511d834109f08",
+    "drivers/tpm-crb/src/transport.rs": "4f1062d4fee56d592cb3627fe1d744d337c29fade5b172d6cf4cf8a3931f29c8",
+    "drivers/tpm-crb/tests/core.rs": "0981289a2f67bc48136e8f42459a56e0f0fdccf47820df312a8e15f4d6412f73"
+  },
+  "host_cases": 23,
+  "new_dependencies": [],
+  "native_runtime_performed": false,
+  "MMIO_adapter_implemented": false,
+  "physical_TPM_accessed": false,
+  "kernel_or_shared_files_changed": false,
+  "normative_TCG_specification_read": false,
+  "native_cold_rollback_anchor_accepted": false,
+  "implementation_boundary": "Typed command/response codecs and safe bounded generic CRB state machine only. Io trait models are not physical/virtual TPM execution; rlib has no native MMIO monomorphisation.",
+  "remaining_acceptance": [
+    "Primary normative TCG PTP/TPM2 Library review (attempt blocked by proxy403)",
+    "Independent immutable-source boundary review",
+    "Guarded swtpm/libtpms backend and independent persistent state; missing locally",
+    "Explicit unsafe MMIO/ordering adapter, ACPI/discovery checks and least-authority broker/grants",
+    "Native QEMU10.0.13/pc-q35-8.2 CRB protocol/error/cancel/lifecycle gates",
+    "Persistent provisioning/auth/lineage plus transactional disk/key-state/counter integration",
+    "Exact cold restart/rollback/fault proof with disk replay but independent actual TPM state retained",
+    "Boot/update/PQC and complete product release acceptance remain open"
+  ],
+  "progress_points_awarded": 0
+}

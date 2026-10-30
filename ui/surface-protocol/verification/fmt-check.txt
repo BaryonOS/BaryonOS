@@ -1,0 +1,2 @@
+command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "fmt", "--manifest-path", "ui/surface-protocol/Cargo.toml", "--", "--check"]
+exit: 0

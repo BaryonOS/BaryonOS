@@ -1,0 +1,428 @@
+{
+  "task": "TASK-RANDOM-NATIVE-PROBE",
+  "base_commit": "985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb",
+  "prerequisites": [
+    "fc2e2a2",
+    "3299f28"
+  ],
+  "scope": "Host component/SDK tests, native target ELF builds and copied real-kernel typecheck ONLY. NO RANDOM VM execution/native acceptance yet. Root owns bootstrap/builds/locks/whole image gate.",
+  "date_utc": "2026-10-30T04:30:19.566552+00:00",
+  "source_sha256": {
+    "sdk/examples/random-probe/Cargo.toml": "452461676a2674b6d12eddfd43e2366dfe665feca1d67d06df7a09b3fdb7a162",
+    "sdk/examples/random-probe/build.py": "d11beb53f9151f8f18ff154ad6493fdd3ba45e170fb57ee811dd9c9e4d7db2df",
+    "sdk/examples/random-probe/linker.ld": "1cf5266a1c6a1a39f66b95996da39750691b6f93e9b5b265c2c576173cbb8e6e",
+    "sdk/examples/random-probe/Cargo.lock": "3bc05ccc7ee883c0777dede0f6ac433f8cee82168f96cf1c88a07e717f9587d6",
+    "sdk/examples/random-probe/tests/wire.rs": "a8baa0f5eddcb3ea952f8257973cc39b4c498c9d02aa18a78f243dbba948d3c4",
+    "sdk/examples/random-probe/src/wire.rs": "2a1a9a8d4a20ea1850b26282e8b0acc3f42de11df540457f741f9c2aa885fb3a",
+    "sdk/examples/random-probe/src/lib.rs": "b62eedefd2365a3292969cc18a25aca678b570abe9ed97dfa3df5307c5f7fe61",
+    "sdk/examples/random-probe/src/contract.rs": "c4477f4458114042fc087bcd297fa627e7d1583f58b9177ffa28a97eee595492",
+    "sdk/examples/random-probe/src/main.rs": "0a289b89ea34d8712223ed872bb928fcb07669a35b17f28d20f8d4624d5af3dd",
+    "sdk/examples/keyring/src/service.rs": "39b98072dfbff708ec503c320ae0936a99f6779196f38f7ac218863912eee24a",
+    "sdk/examples/system/src/app.rs": "f9dc62a9f652ec71e482ee19c682506caaf11b60bd22d5ba95676a2776234d1a",
+    "kernel/src/m2/m3/random_fixture.rs": "e5ccb324e6570834928d6e7f05ddd001e763f88703a5d63cb637b1d2cddff44f"
+  },
+  "source_drift": [],
+  "checks": [
+    {
+      "name": "host",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/workspace/nieuw-os-worktrees/random-native-probe/sdk/examples/random-probe/Cargo.toml"
+      ],
+      "target_dir": "/tmp/nieuw-os-random-native-target",
+      "exit": 0,
+      "seconds": 0.113,
+      "log": "/tmp/nieuw-os-random-native-final/host.log",
+      "log_sha256": "493b5106c91f00915cfd091aef5fe3f754aa00c158b4195132759341ee70c051"
+    },
+    {
+      "name": "host-clippy",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/workspace/nieuw-os-worktrees/random-native-probe/sdk/examples/random-probe/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "target_dir": "/tmp/nieuw-os-random-native-target",
+      "exit": 0,
+      "seconds": 0.116,
+      "log": "/tmp/nieuw-os-random-native-final/host-clippy.log",
+      "log_sha256": "99f71393b9903dca098310bb446022a4bdee195ea9996f351a787195555210a6"
+    },
+    {
+      "name": "probe-build",
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os-worktrees/random-native-probe/sdk/examples/random-probe/build.py"
+      ],
+      "target_dir": "/tmp/nieuw-os-random-native-none-target",
+      "exit": 0,
+      "seconds": 0.177,
+      "log": "/tmp/nieuw-os-random-native-final/probe-build.log",
+      "log_sha256": "9ed6fe85966b958a3d7ad4d9a13b4132f1f926ce6270e2376346aec144ff50b0"
+    },
+    {
+      "name": "probe-clippy",
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os-worktrees/random-native-probe/sdk/examples/random-probe/build.py",
+        "clippy"
+      ],
+      "target_dir": "/tmp/nieuw-os-random-native-none-target",
+      "exit": 0,
+      "seconds": 0.209,
+      "log": "/tmp/nieuw-os-random-native-final/probe-clippy.log",
+      "log_sha256": "44f8f023e015b45de16233f4a8c4db84814c11c62ab7ddd4bc194fac3ac52954"
+    },
+    {
+      "name": "service",
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/nieuw-os-random-service-check/check.py"
+      ],
+      "target_dir": "/tmp/nieuw-os-random-service-target",
+      "exit": 0,
+      "seconds": 0.958,
+      "log": "/tmp/nieuw-os-random-native-final/service.log",
+      "log_sha256": "c3f4c8f6ecfd3c2b59cfc697253cc35522a9eee2ffc34861943002c2949a12d2"
+    },
+    {
+      "name": "system-app",
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/nieuw-os-random-system-check/check.py"
+      ],
+      "target_dir": "/tmp/nieuw-os-random-system-target",
+      "exit": 0,
+      "seconds": 0.87,
+      "log": "/tmp/nieuw-os-random-native-final/system-app.log",
+      "log_sha256": "1da388cc2d59022a8f5af163e4799119efa04a449ab85a8601d1bff967c91bdf"
+    },
+    {
+      "name": "sdk-host",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/tmp/nieuw-os-random-system-check/sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime",
+        "-p",
+        "nieuw-os-document-session",
+        "-p",
+        "nieuw-os-catalog-client"
+      ],
+      "target_dir": "/tmp/nieuw-os-random-system-host-target",
+      "exit": 0,
+      "seconds": 0.204,
+      "log": "/tmp/nieuw-os-random-native-final/sdk-host.log",
+      "log_sha256": "60ffcdfb82618fca4f4ecb9fadfbdc1ecf0e3edd2da5ab1cdc425af4847b51f9"
+    },
+    {
+      "name": "keyring-client-host",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/tmp/nieuw-os-random-system-check/sdk/keyring-client/Cargo.toml"
+      ],
+      "target_dir": "/tmp/nieuw-os-random-system-host-target",
+      "exit": 0,
+      "seconds": 0.086,
+      "log": "/tmp/nieuw-os-random-native-final/keyring-client-host.log",
+      "log_sha256": "f84886174509f8c4452650b0bf2016ffbacf436b19e24dc9f75b6ddff38b70b6"
+    },
+    {
+      "name": "kernel-typecheck",
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/nieuw-os-random-kernel-typecheck/check.py"
+      ],
+      "target_dir": "/tmp/nieuw-os-random-kernel-typecheck/target",
+      "exit": 0,
+      "seconds": 0.208,
+      "log": "/tmp/nieuw-os-random-native-final/kernel-typecheck.log",
+      "log_sha256": "271ec4bd94402c3641f7187b82a8271d006422a3e6e2b32644443ce59e7c408b"
+    }
+  ],
+  "host_tests": {
+    "probe_passed": 4,
+    "sdk_passed": 61,
+    "keyring_client_passed": 15,
+    "failed": 0,
+    "ignored": 0
+  },
+  "fmt": {
+    "command": [
+      "rustfmt",
+      "+1.90.0",
+      "--edition",
+      "2021",
+      "--config",
+      "skip_children=true",
+      "--check",
+      "/workspace/nieuw-os-worktrees/random-native-probe/sdk/examples/random-probe/tests/wire.rs",
+      "/workspace/nieuw-os-worktrees/random-native-probe/sdk/examples/random-probe/src/wire.rs",
+      "/workspace/nieuw-os-worktrees/random-native-probe/sdk/examples/random-probe/src/lib.rs",
+      "/workspace/nieuw-os-worktrees/random-native-probe/sdk/examples/random-probe/src/contract.rs",
+      "/workspace/nieuw-os-worktrees/random-native-probe/sdk/examples/random-probe/src/main.rs",
+      "/workspace/nieuw-os-worktrees/random-native-probe/sdk/examples/keyring/src/service.rs",
+      "/workspace/nieuw-os-worktrees/random-native-probe/sdk/examples/system/src/app.rs",
+      "/workspace/nieuw-os-worktrees/random-native-probe/kernel/src/m2/m3/random_fixture.rs"
+    ],
+    "exit": 0
+  },
+  "artifacts": {
+    "random-probe": {
+      "path": "/tmp/nieuw-os-random-native-none-target/x86_64-unknown-none/release/random-probe",
+      "sha256": "1af6425ec363b841812fa0d656527fb3816ee4d4e1a0de6aac83724504172c0e",
+      "fp_simd_or_cpu_rng_matches": 0,
+      "disassembly_sha256": "e6d52514adb28993ce90af2f4498f3e6c04a3094fa74ccc3de3a8d05dc9b13d6"
+    },
+    "keyring-service": {
+      "path": "/tmp/nieuw-os-random-service-target/x86_64-unknown-none/release/keyring-service",
+      "sha256": "7e73f57d636df59b255a5156584d9a12ee10022b7ff3e246432754e92c10bff7",
+      "fp_simd_or_cpu_rng_matches": 0,
+      "disassembly_sha256": "1b8e55abc818db8a909fe8baa63fba0b1c6a498836008ce9fa4e0bac83089f13"
+    },
+    "system-app": {
+      "path": "/tmp/nieuw-os-random-system-target/x86_64-unknown-none/release/system-app",
+      "sha256": "01955cfc58a7bde84ac245619f79eba1bddfff1c12d7801e7fae739de24a7d22",
+      "fp_simd_or_cpu_rng_matches": 0,
+      "disassembly_sha256": "0b0252f5f64b863652738a21a5af95887aea2e029a921e1085a5036324ab6902"
+    }
+  },
+  "service_build": {
+    "scope": "exact source copy scalar service ELF build only, no VM execution",
+    "flags": [
+      "-C",
+      "code-model=small",
+      "-C",
+      "relocation-model=static",
+      "-C",
+      "no-redzone=yes",
+      "-C",
+      "linker=rust-lld",
+      "-C",
+      "link-arg=-T/tmp/nieuw-os-random-service-check/sdk/examples/keyring/linker.ld",
+      "-C",
+      "link-arg=--no-pie",
+      "-C",
+      "link-arg=--build-id=none",
+      "-C",
+      "link-arg=-zmax-page-size=0x1000",
+      "--cfg",
+      "chacha20_force_soft",
+      "--cfg",
+      "chacha20_backend=\"soft\"",
+      "--cfg",
+      "poly1305_force_soft",
+      "--cfg",
+      "sha2_backend=\"soft\""
+    ],
+    "commands": [
+      {
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "build",
+          "--release",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "/tmp/nieuw-os-random-service-check/Cargo.toml",
+          "-p",
+          "nieuw-os-keyring-example",
+          "--features",
+          "native",
+          "--bin",
+          "keyring-service",
+          "--target",
+          "x86_64-unknown-none"
+        ],
+        "exit": 0,
+        "log": "/tmp/nieuw-os-random-service-check/build.log"
+      },
+      {
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "clippy",
+          "--release",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "/tmp/nieuw-os-random-service-check/Cargo.toml",
+          "-p",
+          "nieuw-os-keyring-example",
+          "--features",
+          "native",
+          "--bin",
+          "keyring-service",
+          "--target",
+          "x86_64-unknown-none",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "log": "/tmp/nieuw-os-random-service-check/clippy.log"
+      }
+    ],
+    "service_sha256": "7e73f57d636df59b255a5156584d9a12ee10022b7ff3e246432754e92c10bff7"
+  },
+  "system_build": {
+    "scope": "Exact-copy opt-in app plus original init/worker scalar target builds ONLY; no baseline/Random VM run.",
+    "flags": [
+      "-C",
+      "code-model=small",
+      "-C",
+      "relocation-model=static",
+      "-C",
+      "no-redzone=yes",
+      "-C",
+      "linker=rust-lld",
+      "-C",
+      "link-arg=-T/tmp/nieuw-os-random-system-check/sdk/examples/system/linker.ld",
+      "-C",
+      "link-arg=--no-pie",
+      "-C",
+      "link-arg=--build-id=none",
+      "-C",
+      "link-arg=-zmax-page-size=0x1000",
+      "--cfg",
+      "chacha20_force_soft",
+      "--cfg",
+      "chacha20_backend=\"soft\"",
+      "--cfg",
+      "poly1305_force_soft",
+      "--cfg",
+      "sha2_backend=\"soft\""
+    ],
+    "commands": [
+      {
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "build",
+          "--release",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "/tmp/nieuw-os-random-system-check/sdk/Cargo.toml",
+          "-p",
+          "nieuw-os-system-example",
+          "--features",
+          "native",
+          "--bins",
+          "--target",
+          "x86_64-unknown-none"
+        ],
+        "exit": 0,
+        "log": "/tmp/nieuw-os-random-system-check/build.log"
+      },
+      {
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "clippy",
+          "--release",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "/tmp/nieuw-os-random-system-check/sdk/Cargo.toml",
+          "-p",
+          "nieuw-os-system-example",
+          "--features",
+          "native",
+          "--bins",
+          "--target",
+          "x86_64-unknown-none",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "log": "/tmp/nieuw-os-random-system-check/clippy.log"
+      }
+    ],
+    "app_sha256": "01955cfc58a7bde84ac245619f79eba1bddfff1c12d7801e7fae739de24a7d22"
+  },
+  "kernel_typecheck": {
+    "command": [
+      "cargo",
+      "+1.90.0",
+      "check",
+      "--offline",
+      "--locked",
+      "--manifest-path",
+      "/tmp/nieuw-os-random-kernel-typecheck/Cargo.toml",
+      "-p",
+      "os-kernel",
+      "--features",
+      "native-system,monotonic-clock",
+      "--target",
+      "x86_64-unknown-none"
+    ],
+    "exit": 0,
+    "scope": "Typechecking only. Exact fixture/contract in copied985 kernel with one module declaration; no random bootstrap, link, boot or runtime acceptance.",
+    "temporary_difference": "Added #[cfg(native-system)] mod random_fixture; old system does not call fixture hooks.",
+    "elf_inputs": {
+      "NOS_SYSTEM_INIT_ELF": {
+        "path": "/workspace/nieuw-os/target/full-release-final-base/system-system/x86_64-unknown-none/release/system-init",
+        "sha256": "24ca6793baf5268622c5044cdab94a9a66f595d05969a5fc9fda77d52ad31efe"
+      },
+      "NOS_SYSTEM_APP_ELF": {
+        "path": "/workspace/nieuw-os/target/full-release-final-base/system-system/x86_64-unknown-none/release/system-app",
+        "sha256": "8cef1d2708b7c95f421a1f5cd0ae0788cacd90e407c3de7b5c3be16835ddfe4e"
+      },
+      "NOS_SYSTEM_WORKER_ELF": {
+        "path": "/workspace/nieuw-os/target/full-release-final-base/system-system/x86_64-unknown-none/release/system-worker",
+        "sha256": "64b6fe005cf14b4d200c1e36c2bdec9ce1a90d96a5203557f22eed3dc46ab379"
+      },
+      "NOS_KEYRING_SERVICE_ELF": {
+        "path": "/workspace/nieuw-os/target/full-release-final-base/system-keyring/x86_64-unknown-none/release/keyring-service",
+        "sha256": "ae70aeaf01897654b81c9c9d9002fb72862b4a1ec4de9deb2df28064aae8e826"
+      },
+      "NOS_VOLUME_SERVICE_ELF": {
+        "path": "/workspace/nieuw-os/target/full-release-final-base/system-volume/x86_64-unknown-none/release/volume-service",
+        "sha256": "489c120e89a137147990a93017b45995b75b89037982fcaa95f50b1fe7ae7184"
+      }
+    }
+  },
+  "native_probe_tree": {
+    "sha256": "c9e2f4619fcf502666ab191dd0f47e8ecb7e3817c499cc9125f06c4e5f5416c8",
+    "normal_dependencies_only_runtime_random_client_zeroize": true,
+    "no_std_libc_getrandom_or_rng_implementation": true
+  },
+  "review": "New adapter/probe/observer/app barrier independent review NOT completed; prior KR/core review does not cover this new source.",
+  "open": [
+    "Root native-system-random feature, exact bootstrap and observer hooks",
+    "All four actual VM cases plus normal/cold/recover chain and original disk/crypto/lifecycle/cleanup assertions",
+    "Native full replyqueue EAGAIN/deadline behavior, clock/source failures",
+    "No physical entropy quality, TLS/PQC identity/time, full erasure or testrelease acceptance claim"
+  ]
+}

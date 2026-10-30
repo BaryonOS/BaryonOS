@@ -1,0 +1,1 @@
+Nativeimageprobe2b5 FAILraw35/3,3s metSYSTEM:IMAGE_ERROR_STEP1; startupword0(mode) werd alsABIgecontroleerd. GeenPNG/JPEGdecode. Fix9d8gebruikt echte native::check_abi()kernelcall metdezelfde afwijzingstep/profielen/oracles/heap/stack. Nieuweuitvoeringvereist; roodbehouden.

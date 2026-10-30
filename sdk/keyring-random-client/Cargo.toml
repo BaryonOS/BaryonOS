@@ -1,0 +1,12 @@
+[package]
+name = "nieuw-os-keyring-random-client"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../runtime" }
+zeroize = { version = "=1.9.1", default-features = false }
+
+[dev-dependencies]
+keyring-core = { path = "../../services/keyring" }

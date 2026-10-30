@@ -1,0 +1,26 @@
+[package]
+name = "nieuw-os-materiaal"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+resolver = "2"
+
+[dependencies]
+ui-core = { path = "../../crates/ui-core" }
+nieuw-os-input-core = { path = "../../services/input-core" }
+nieuw-os-document-session = { path = "../../sdk/document-session" }
+nieuw-os-catalog-client = { path = "../../sdk/catalog-client" }
+nieuw-os-sdk-runtime = { path = "../../sdk/runtime" }
+volume-core = { path = "../../services/volume" }
+noto-sans-mono-bitmap = { version = "=0.3.2", default-features = false, features = ["regular", "size_16", "size_32", "unicode-basic-latin", "unicode-latin-1-supplement", "unicode-specials"] }
+
+[dev-dependencies]
+capability-core = { path = "../../crates/capability-core" }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = false

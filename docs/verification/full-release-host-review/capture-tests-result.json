@@ -1,0 +1,9 @@
+{
+  "exit": 0,
+  "duration_s": 1.0467505629999323,
+  "inputs": {
+    "/workspace/nieuw-os-worktrees/capture/tools/capture_system.py": "ebfb0f7398e8e6e95ead635b9947c7d6dc3a1ee692adb6874c87fffd28c833f2",
+    "/workspace/nieuw-os-worktrees/capture/tests/test_system_capture.py": "d1bbb954a1faa17221493bc8c10f435931c836ee7bd5f5876376439d40b16e33"
+  },
+  "source_unchanged": true
+}

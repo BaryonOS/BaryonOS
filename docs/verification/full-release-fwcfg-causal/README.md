@@ -1,0 +1,1 @@
+Onafhankelijke causaleA/Bproef opdeexactoude309kernel a5e5555a... enprobe75c5df54, zonderherbouw. Alleen gedocumenteerde3EDK2fw_cfgSupport=no +romfile= veranderen; eigenfreshdisk/vars. Zonderflagsraw35/firmwareMLD131; metflagsraw33/alleNET19velden/peer8TX7RX/diskoraclead40c83d... groen59.41s. Resultaat is causale bevestiging, geen aktuellehead/fullreleaseclaim.

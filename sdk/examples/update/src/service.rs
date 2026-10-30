@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 #![deny(unsafe_op_in_unsafe_fn)]
-//! Native B03 update service (ADR-044). It owns exactly one block capability
+//! Native B03 update service (ADR-049). It owns exactly one block capability
 //! over the slot store and nothing else. It verifies the inbox bundle with
 //! both pinned anchors and the image digest BEFORE any write, decides with
 //! the shared `update-core` policy against the kernel-reported current

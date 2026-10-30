@@ -36,9 +36,9 @@ jobs:
           sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
       - name: Strict preflight
         run: python3 -B tools/preflight.py --strict
-      - name: B01 native keyring gate (3 QEMU runs)
+      - name: B01 native keyring gate (5 QEMU runs)
         run: python3 -B -u tools/test_keyring.py
-      - name: Upload K05 reports
+      - name: Upload B01 reports
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

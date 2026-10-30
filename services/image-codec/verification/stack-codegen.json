@@ -1,0 +1,212 @@
+{
+  "scope": "Static codegen evidence only; no executed branch/worst-all-path proof",
+  "elf_sha256": "ac2a0ae22021ae6dda7a37d981b5a049209ee71b669a4644c2fc5eaeec9fbff2",
+  "llvm_ir_sha256": "3992d90e02041e035ca6b7d4343f7c38f35e8bf9bc018a516ea355ff5cff3193",
+  "selected_prologues": [
+    {
+      "symbol": "image_main",
+      "prologue_bytes": 248
+    },
+    {
+      "symbol": "nieuw_os_image_codec::decode",
+      "prologue_bytes": 8
+    },
+    {
+      "symbol": "nieuw_os_image_codec::png",
+      "prologue_bytes": 11960
+    },
+    {
+      "symbol": "nieuw_os_image_codec::owned_jpeg",
+      "prologue_bytes": 30216
+    },
+    {
+      "symbol": "nieuw_os_image_codec::jpeg",
+      "prologue_bytes": 616
+    }
+  ],
+  "jpeg_baseline_DHT_static_call_path": [
+    {
+      "symbol": "nieuw_os_image_codec::decode",
+      "prologue_bytes": 8
+    },
+    {
+      "symbol": "nieuw_os_image_codec::jpeg",
+      "prologue_bytes": 616
+    },
+    {
+      "symbol": "zune_jpeg::decoder::JpegDecoder<T>::decode_into",
+      "prologue_bytes": 312
+    },
+    {
+      "symbol": "zune_jpeg::decoder::JpegDecoder<T>::decode_mcu_output_with_success_cleanup",
+      "prologue_bytes": 72
+    },
+    {
+      "symbol": "zune_jpeg::decoder::JpegDecoder<T>::decode_mcu_output",
+      "prologue_bytes": 8
+    },
+    {
+      "symbol": "zune_jpeg::mcu::<impl zune_jpeg::decoder::JpegDecoder<T>>::decode_mcu_ycbcr_baseline",
+      "prologue_bytes": 264
+    },
+    {
+      "symbol": "zune_jpeg::mcu::<impl zune_jpeg::decoder::JpegDecoder<T>>::decode_mcu_ycbcr_baseline_inner",
+      "prologue_bytes": 840
+    },
+    {
+      "symbol": "zune_jpeg::mcu::<impl zune_jpeg::decoder::JpegDecoder<T>>::advance_to_next_sos",
+      "prologue_bytes": 29096
+    },
+    {
+      "symbol": "zune_jpeg::decoder::JpegDecoder<T>::parse_marker_inner",
+      "prologue_bytes": 40
+    },
+    {
+      "symbol": "zune_jpeg::decoder::JpegDecoder<T>::parse_marker_dispatch",
+      "prologue_bytes": 136
+    },
+    {
+      "symbol": "zune_jpeg::headers::with_marker_body",
+      "prologue_bytes": 7704
+    },
+    {
+      "symbol": "zune_jpeg::huffman::HuffmanTable::new_lossless",
+      "prologue_bytes": 8
+    },
+    {
+      "symbol": "zune_jpeg::huffman::HuffmanTable::new_with_dc_symbol_limit",
+      "prologue_bytes": 7896
+    }
+  ],
+  "static_path_bytes_with_return_addresses": 47104,
+  "stack_limit_bytes": 65536,
+  "ir_functions": {
+    "decode": {
+      "allocas": [],
+      "calls_constructor": false,
+      "contains_30712_byte_slot": false
+    },
+    "jpeg": {
+      "allocas": [
+        "%_8.i55 = alloca [32 x i8], align 8",
+        "%_8.i = alloca [32 x i8], align 8",
+        "%_3.i = alloca [32 x i8], align 8",
+        "%_76 = alloca [32 x i8], align 8",
+        "%_70 = alloca [24 x i8], align 8",
+        "%rgba = alloca [24 x i8], align 8",
+        "%_54 = alloca [24 x i8], align 8",
+        "%_40 = alloca [16 x i8], align 8",
+        "%_30 = alloca [224 x i8], align 8",
+        "%info = alloca [224 x i8], align 8",
+        "%_6 = alloca [16 x i8], align 8",
+        "%owner = alloca [16 x i8], align 8"
+      ],
+      "calls_constructor": true,
+      "contains_30712_byte_slot": false
+    },
+    "owned_jpeg": {
+      "allocas": [
+        "%_8.i = alloca [72 x i8], align 8",
+        "%_22 = alloca [24 x i8], align 8",
+        "%_19 = alloca [72 x i8], align 8",
+        "%_18 = alloca [24 x i8], align 8",
+        "%_17 = alloca [30056 x i8], align 8",
+        "%owned = alloca [24 x i8], align 8"
+      ],
+      "calls_constructor": true,
+      "contains_30712_byte_slot": false
+    },
+    "png": {
+      "allocas": [
+        "%b.i = alloca [40 x i8], align 8",
+        "%_4.i137 = alloca [48 x i8], align 8",
+        "%_4.i129 = alloca [48 x i8], align 8",
+        "%_8.i110 = alloca [48 x i8], align 8",
+        "%_8.i50 = alloca [48 x i8], align 8",
+        "%_5.sroa.13.i = alloca [20 x i8], align 4",
+        "%_8.i = alloca [72 x i8], align 8",
+        "%_8.i.i = alloca [48 x i8], align 8",
+        "%_145.i = alloca [11520 x i8], align 8",
+        "%_143.i = alloca [48 x i8], align 8",
+        "%_142.sroa.9.i = alloca [15 x i8], align 1",
+        "%decoded.i = alloca [24 x i8], align 8",
+        "%opts.i = alloca [24 x i8], align 8",
+        "%_75.i = alloca [16 x i8], align 8",
+        "%_152 = alloca [32 x i8], align 8",
+        "%iter4 = alloca [96 x i8], align 8",
+        "%_144 = alloca [40 x i8], align 8",
+        "%_142 = alloca [96 x i8], align 8",
+        "%_137 = alloca [24 x i8], align 8",
+        "%rgba2 = alloca [24 x i8], align 8",
+        "%sample = alloca [16 x i8], align 8",
+        "%_116 = alloca [32 x i8], align 8",
+        "%iter = alloca [96 x i8], align 8",
+        "%_112 = alloca [40 x i8], align 8",
+        "%_108 = alloca [40 x i8], align 8",
+        "%_101 = alloca [24 x i8], align 8",
+        "%_87 = alloca [48 x i8], align 8",
+        "%_77 = alloca [24 x i8], align 8",
+        "%raw = alloca [24 x i8], align 8",
+        "%color = alloca [8 x i8], align 4",
+        "%_24 = alloca [16 x i8], align 8",
+        "%_13 = alloca [48 x i8], align 8",
+        "%decoder = alloca [392 x i8], align 8"
+      ],
+      "calls_constructor": false,
+      "contains_30712_byte_slot": false
+    }
+  },
+  "native_stack_execution": "pending",
+  "jpeg_progressive_DHT_static_call_path": [
+    {
+      "symbol": "nieuw_os_image_codec::decode",
+      "prologue_bytes": 8
+    },
+    {
+      "symbol": "nieuw_os_image_codec::jpeg",
+      "prologue_bytes": 616
+    },
+    {
+      "symbol": "zune_jpeg::decoder::JpegDecoder<T>::decode_into",
+      "prologue_bytes": 312
+    },
+    {
+      "symbol": "zune_jpeg::decoder::JpegDecoder<T>::decode_mcu_output_with_success_cleanup",
+      "prologue_bytes": 72
+    },
+    {
+      "symbol": "zune_jpeg::decoder::JpegDecoder<T>::decode_mcu_output",
+      "prologue_bytes": 8
+    },
+    {
+      "symbol": "zune_jpeg::mcu_prog::<impl zune_jpeg::decoder::JpegDecoder<T>>::decode_mcu_ycbcr_progressive",
+      "prologue_bytes": 360
+    },
+    {
+      "symbol": "zune_jpeg::mcu_prog::<impl zune_jpeg::decoder::JpegDecoder<T>>::decode_mcu_ycbcr_progressive_inner",
+      "prologue_bytes": 408
+    },
+    {
+      "symbol": "zune_jpeg::decoder::JpegDecoder<T>::parse_marker_inner",
+      "prologue_bytes": 40
+    },
+    {
+      "symbol": "zune_jpeg::decoder::JpegDecoder<T>::parse_marker_dispatch",
+      "prologue_bytes": 136
+    },
+    {
+      "symbol": "zune_jpeg::headers::with_marker_body",
+      "prologue_bytes": 7704
+    },
+    {
+      "symbol": "zune_jpeg::huffman::HuffmanTable::new_lossless",
+      "prologue_bytes": 8
+    },
+    {
+      "symbol": "zune_jpeg::huffman::HuffmanTable::new_with_dc_symbol_limit",
+      "prologue_bytes": 7896
+    }
+  ],
+  "progressive_static_path_bytes_with_return_addresses": 17664,
+  "progressive_margin_before_guest_entry_and_other_unmodeled_frames": 47872
+}

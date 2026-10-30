@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "sdk/examples/input-service/build.py"
+  ],
+  "cwd": "/workspace/nieuw-os-worktrees/input-daemon",
+  "started_unix": 1793328335.0547738,
+  "duration_s": 0.8552145957946777,
+  "returncode": 0
+}

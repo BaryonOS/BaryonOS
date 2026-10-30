@@ -1,0 +1,62 @@
+{
+  "builder_commit": "d94830e9131b564b035a21000641d56287ce0f46",
+  "scope": "Host regressies; 5 nieuwe tests bewezen rood voor de fix en 15/15 groen erna; nativebuild via SDK-builder, geen bootclaim",
+  "logs": {
+    "before": {
+      "sha256": "4ee043eb14d8d818d5532354696ac36c5de192ff9b27efec259e6bbd1a00bfcb",
+      "lines": [
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.39s",
+        "test continuous_apt_spans_two_reseeds_and_blocks_further_key_operations ... FAILED",
+        "test continuous_rct_spans_startup_and_first_reseed ... FAILED",
+        "test continuous_rct_spans_consecutive_reseeds ... FAILED",
+        "test hkdf_sha256_rfc5869_test_case_1 ... ok",
+        "test health_tests_pass_varied_input_and_catch_stuck_or_biased_sources ... ok",
+        "test drbg_is_deterministic_per_seed_erases_keys_and_never_repeats_blocks ... ok",
+        "test reseed_after_budget_and_degradation_when_the_source_fails_later ... ok",
+        "test revoke_and_quota_are_permanent_per_domain ... ok",
+        "test service_blocks_without_source_or_with_stuck_source_and_never_makes_keys ... ok",
+        "test older_recovery_preserves_revocations_and_cannot_reissue_indices ... FAILED",
+        "test wire_headers_are_canonical_and_bounded ... ok",
+        "test recovery_restores_keys_and_revocations_into_another_instance ... ok",
+        "test xchacha20poly1305_draft_irtf_cfrg_xchacha_03_a_3_1 ... ok",
+        "test seal_unseal_round_trip_binds_domain_index_and_rejects_tampering ... ok",
+        "test used_service_rejects_another_master_without_losing_revocation_history ... FAILED",
+        "failures:",
+        "failures:",
+        "test result: FAILED. 10 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "error: test failed, to rerun pass `-p keyring-core --test core`"
+      ]
+    },
+    "verified": {
+      "sha256": "bc517bbe4fa037e0916866566a735d504b82c26b93e0c790d3a2135e1c4216cc",
+      "lines": [
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test continuous_rct_spans_consecutive_reseeds ... ok",
+        "test continuous_rct_spans_startup_and_first_reseed ... ok",
+        "test continuous_apt_spans_two_reseeds_and_blocks_further_key_operations ... ok",
+        "test hkdf_sha256_rfc5869_test_case_1 ... ok",
+        "test health_tests_pass_varied_input_and_catch_stuck_or_biased_sources ... ok",
+        "test drbg_is_deterministic_per_seed_erases_keys_and_never_repeats_blocks ... ok",
+        "test reseed_after_budget_and_degradation_when_the_source_fails_later ... ok",
+        "test revoke_and_quota_are_permanent_per_domain ... ok",
+        "test service_blocks_without_source_or_with_stuck_source_and_never_makes_keys ... ok",
+        "test older_recovery_preserves_revocations_and_cannot_reissue_indices ... ok",
+        "test wire_headers_are_canonical_and_bounded ... ok",
+        "test recovery_restores_keys_and_revocations_into_another_instance ... ok",
+        "test seal_unseal_round_trip_binds_domain_index_and_rejects_tampering ... ok",
+        "test xchacha20poly1305_draft_irtf_cfrg_xchacha_03_a_3_1 ... ok",
+        "test used_service_rejects_another_master_without_losing_revocation_history ... ok",
+        "test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s"
+      ]
+    },
+    "native": {
+      "sha256": "32a47b33bc0536148029ace0d157389fdada66147d75e2ac468f59eb447daec7",
+      "lines": [
+        "    Finished `release` profile [optimized] target(s) in 2.24s"
+      ]
+    }
+  }
+}

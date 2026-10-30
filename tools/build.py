@@ -26,9 +26,15 @@ VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "c
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
 SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota")
 SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES))
-KEYRING_CASES = ("no-device", "stuck")
+KEYRING_CASES = ("no-device", "stuck", "timeout", "restart")
 KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRING_CASES))
 UPDATE_FEATURES = ("native-update", "test-update-cut")
+NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
+TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
+MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
+RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
+IMAGE_FEATURES = ("native-system-images",)
+SYSTEM_FEATURES = ("native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES)
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
@@ -38,7 +44,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "tes
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
                    "native-sdk-app", "test-sdk-app-denied", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
-                   *KEYRING_FEATURES, *UPDATE_FEATURES]
+                   *KEYRING_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "framebuffer", "native-display-probe", "native-system-display-input"]
 
 
 def inspect_elf(path):
@@ -106,8 +112,12 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         if loader_feature not in (None, "graphics-g0"):
             raise ValueError("G0 requires its paired graphics loader")
         loader_feature = "graphics-g0"
-    elif loader_feature == "graphics-g0":
-        raise ValueError("Graphics loader requires the G0 kernel")
+    elif kernel_feature in ("framebuffer", "native-system-display-input", "native-display-probe"):
+        if loader_feature not in (None, "framebuffer"):
+            raise ValueError("Framebuffer transport requires its paired loader")
+        loader_feature = "framebuffer"
+    elif loader_feature in ("graphics-g0", "framebuffer"):
+        raise ValueError("Graphics loader requires a matching framebuffer kernel")
     if kernel_feature in UPDATE_FEATURES:
         # B03: the update kernels only boot from a verified slot store.
         if loader_feature not in (None, "signed-boot"):
@@ -130,7 +140,16 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
                                 ("milestone-m6c", "test-m6c-recover")):
         raise ValueError("Document session requires NOS_SDK_RUNTIME=1 and the M6c normal/recover fixture")
     qsim_report = None
-    if kernel_feature == "native-qsim":
+    if kernel_feature == "native-display-probe":
+        from run_display_probe import build_users as build_display_users
+        extra_env, qsim_report = build_display_users()
+    elif kernel_feature in MEMORY_FEATURES:
+        from run_memory import build_users as build_memory_users
+        extra_env, qsim_report = build_memory_users()
+    elif kernel_feature == "native-fpu":
+        from run_fpu import build_users as build_fpu_users
+        extra_env, qsim_report = build_fpu_users()
+    elif kernel_feature == "native-qsim":
         output = BUILD / "users/qsim"
         run_logged([sys.executable, "-B", str(ROOT / "experiments/quantum/native/build.py"),
                     "--output-dir", str(output), "--target-dir", str(TARGET / "qsim-user")],
@@ -163,6 +182,39 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             "NOS_SDK_APP_ELF": str(app.resolve()),
             "NOS_SDK_SERVICE_ELF": str(service.resolve()),
         }
+    elif kernel_feature in SYSTEM_FEATURES:
+        from build_users import inspect_user
+        binaries = {}
+        # These are ordinary freestanding ring-3 programs. Their existing
+        # builders keep each linker/portable-crypto contract and an isolated
+        # target directory; the kernel receives only the inspected ELFs.
+        for component, package, names in (
+            ("system", "system", ("init", "app", "worker")),
+            ("keyring", "keyring", ("service",)),
+            ("volume", "volume-docs", ("service",)),
+        ):
+            component_target = TARGET / f"system-{component}"
+            run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{package}/build.py")],
+                       f"build-system-{component}",
+                       extra_env={"CARGO_TARGET_DIR": str(component_target)})
+            for name in names:
+                binary = component_target / f"x86_64-unknown-none/release/{component}-{name}"
+                binaries[f"{component}_{name}"] = binary
+        if kernel_feature in NETWORK_SYSTEM_FEATURES + TCP_SYSTEM_FEATURES:
+            probe = "tcp-probe" if kernel_feature in TCP_SYSTEM_FEATURES else "net-probe"
+            net_target = TARGET / f"system-{probe}"
+            run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{probe}/build.py")],
+                       "build-system-net-probe", extra_env={"CARGO_TARGET_DIR": str(net_target)})
+            binaries["net_probe"] = net_target / f"x86_64-unknown-none/release/{probe}"
+        if kernel_feature in RANDOM_FEATURES + IMAGE_FEATURES:
+            package="random-probe" if kernel_feature in RANDOM_FEATURES else "image-probe"
+            probe_target=TARGET / ("random-probe-app" if package=="random-probe" else "system-image-probe")
+            run_logged([sys.executable,"-B",str(ROOT / f"sdk/examples/{package}/build.py")],"build-system-"+package,extra_env={"CARGO_TARGET_DIR":str(probe_target)})
+            binaries[package.replace("-","_")]=probe_target / f"x86_64-unknown-none/release/{package}"
+        qsim_report = {name: {"sha256": sha256(path), "elf": inspect_user(path)}
+                       for name, path in binaries.items()}
+        extra_env = {f"NOS_{name.upper()}_ELF": str(path.resolve())
+                     for name, path in binaries.items()}
     elif kernel_feature in VOLUME_FEATURES:
         from build_users import inspect_user
         volume_target = TARGET / "volume-docs"
@@ -239,12 +291,24 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     manifest["sdk_runtime"] = use_sdk
     manifest["document_session"] = use_document_session
     if qsim_report is not None:
-        if kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
+        if kernel_feature == "native-display-probe":
+            manifest["display_probe"] = qsim_report
+        elif kernel_feature in MEMORY_FEATURES:
+            manifest["memory"] = qsim_report
+        elif kernel_feature == "native-fpu":
+            manifest["fpu"] = qsim_report
+        elif kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
             manifest["sdk_app"] = qsim_report
         elif kernel_feature in VOLUME_FEATURES:
             manifest["volume_docs"] = qsim_report
         elif kernel_feature in SUPERVISOR_FEATURES:
             manifest["supervisor"] = qsim_report
+        elif kernel_feature in SYSTEM_FEATURES:
+            manifest["system"] = qsim_report
+            if kernel_feature in RANDOM_FEATURES:
+                manifest["random_probe"] = qsim_report["random_probe"]
+            if kernel_feature in IMAGE_FEATURES:
+                manifest["image_probe"] = qsim_report["image_probe"]
         elif kernel_feature in KEYRING_FEATURES:
             manifest["keyring"] = qsim_report
         elif kernel_feature in UPDATE_FEATURES:
@@ -268,7 +332,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "signed-boot"])
+    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot"])
     parser.add_argument("--image-version", type=int, help="B03: NOS_IMAGE_VERSION of an update kernel")
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()

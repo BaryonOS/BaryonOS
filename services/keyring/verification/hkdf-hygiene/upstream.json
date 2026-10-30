@@ -1,0 +1,53 @@
+{
+  "upstream": [
+    {
+      "name": "hkdf",
+      "version": "0.13.0",
+      "official_archive_sha256": "4aaa26c720c68b866f2c96ef5c1264b3e6f473fe5d4ce61cd44bbe913e553018",
+      "registry_checksum": "4aaa26c720c68b866f2c96ef5c1264b3e6f473fe5d4ce61cd44bbe913e553018",
+      "archive": "services/keyring/vendor/upstream/hkdf-0.13.0.crate",
+      "rust_version": "1.85",
+      "license": "MIT OR Apache-2.0",
+      "build_script": false,
+      "yanked": false,
+      "original_source_and_license_sha256": {
+        "hkdf-0.13.0/LICENSE-APACHE": "59013a5c8d3a19c26a457579105915a5d51bb0c09d579f8cdedf12e4203c3018",
+        "hkdf-0.13.0/LICENSE-MIT": "d288f9c9b4590446ec18c22ead8f8b5a12a3d4025b68f62dc9015063eb9cca69",
+        "hkdf-0.13.0/src/errors.rs": "3726025c89f0b236ab1c33f9f22ce4765282f77f1aa9117132bb1cad9f9d899b",
+        "hkdf-0.13.0/src/hmac_impl.rs": "bf4a2c9632ce498a8ef3a4b147447c3fd449d7de273c61192311741358cbf6c1",
+        "hkdf-0.13.0/src/lib.rs": "11749cd8d24cd23569770f6b442ab537285139b8b7d103ab2d3abac0e5c892de"
+      },
+      "local_manifest_sha256": "40c61127db6f735cb0049b1dbaacd36ae45016baa3c1e972ea2f7acc5e846a57",
+      "original_normalized_manifest_sha256": "98856c5ab681142c6199ab7c5375731444cb7e0c6b7de54754e60d86ffe81f6a"
+    },
+    {
+      "name": "hmac",
+      "version": "0.13.0",
+      "official_archive_sha256": "6303bc9732ae41b04cb554b844a762b4115a61bfaa81e3e83050991eeb56863f",
+      "registry_checksum": "6303bc9732ae41b04cb554b844a762b4115a61bfaa81e3e83050991eeb56863f",
+      "archive": "services/keyring/vendor/upstream/hmac-0.13.0.crate",
+      "rust_version": "1.85",
+      "license": "MIT OR Apache-2.0",
+      "build_script": false,
+      "yanked": false,
+      "original_source_and_license_sha256": {
+        "hmac-0.13.0/LICENSE-APACHE": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
+        "hmac-0.13.0/LICENSE-MIT": "9e0dfd2dd4173a530e238cb6adb37aa78c34c6bc7444e0e10c1ab5d8881f63ba",
+        "hmac-0.13.0/src/block_api.rs": "168036c0f18746d5b1bbc11e3223d56f90c3b1a0ae1310d65124ec8d251797ad",
+        "hmac-0.13.0/src/lib.rs": "cbac1e22f04ba06017be297e6fa539bb092c2d69ae6f7d549b88644f67751b9f",
+        "hmac-0.13.0/src/simple.rs": "158b1393a95aceb0f827fb6428b7180ee487f06e5d108d3123b0d440b9983aec",
+        "hmac-0.13.0/src/simple_reset.rs": "ff05494d407bdfa1cdc58fec8c7109233b281eecf6ba8fbefef7c50ccd4fbad7",
+        "hmac-0.13.0/src/utils.rs": "c319019fd2a948f0afdab177281136358e423c2d25d2d11740a84d56da529bda"
+      },
+      "local_manifest_sha256": "2dca244f2672e3a37c700c2fc4af3418fcd42ef2d3667cd3747c6f3720b13304",
+      "original_normalized_manifest_sha256": "b4f4b988204282ae1e47df9f4353449afd5f389d588e4445f7c8df8e69586fab"
+    }
+  ],
+  "patch": "hygiene.diff",
+  "patch_sha256": "628eb8e246ae1b65b7e9c01c7de342bbbad2cfd94a17d601f1ad5af9bab02808",
+  "changed_upstream_rust_files": 6,
+  "source_lines_added": 54,
+  "source_lines_removed": 26,
+  "changes": "Zeroizing buffers, explicit PRK clearing, conditional drop-chain marker traits, borrow coercions only; original source archives and MIT/Apache notices retained. No crypto algorithm/keying/wire/snapshot change.",
+  "lifetime_boundary": "Current logical owned buffers/caches on normal returns/drop; deep compression/Rust moves/compiler/register/abort/crash erasure is not claimed."
+}

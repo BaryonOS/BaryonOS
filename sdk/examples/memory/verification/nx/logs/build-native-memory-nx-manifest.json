@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "profile": "native-memory-nx",
+  "kernel_feature": "native-memory-nx",
+  "loader_feature": null,
+  "source_fingerprint_version": 3,
+  "source_sha256": "28edb0aef66a5d197af885a845ae4ea2049f7d599525fc261e8e64be642ce4f1",
+  "loader": {
+    "sha256": "f2a4ff6b562d18585dec41faed23b3a19433a6aa63370d3550dc7c7f93a30ee8",
+    "format": "AMD64 PE32+",
+    "subsystem": "EFI_APPLICATION",
+    "imports": 0
+  },
+  "kernel": {
+    "sha256": "32517c7f9f9b205dcb35781f3db5ed90eb15b05d9f6ef9af002cb0d193dc1649",
+    "entry": 33554432,
+    "segments": [
+      {
+        "flags": 5,
+        "offset": 4096,
+        "address": 33554432,
+        "filesz": 77191,
+        "memsz": 77191,
+        "page_start": 33554432,
+        "page_end": 33632256
+      },
+      {
+        "flags": 4,
+        "offset": 81920,
+        "address": 33632256,
+        "filesz": 46744,
+        "memsz": 46744,
+        "page_start": 33632256,
+        "page_end": 33681408
+      },
+      {
+        "flags": 6,
+        "offset": 131072,
+        "address": 33681408,
+        "filesz": 811488,
+        "memsz": 3927320,
+        "page_start": 33681408,
+        "page_end": 37609472
+      }
+    ],
+    "sections": [
+      {
+        "name": "",
+        "type": 0,
+        "flags": 0,
+        "size": 0
+      },
+      {
+        "name": ".text",
+        "type": 1,
+        "flags": 6,
+        "size": 77191
+      },
+      {
+        "name": ".rodata",
+        "type": 1,
+        "flags": 50,
+        "size": 46744
+      },
+      {
+        "name": ".data",
+        "type": 1,
+        "flags": 3,
+        "size": 811488
+      },
+      {
+        "name": ".bss",
+        "type": 8,
+        "flags": 3,
+        "size": 3112216
+      },
+      {
+        "name": ".symtab",
+        "type": 2,
+        "flags": 0,
+        "size": 5832
+      },
+      {
+        "name": ".shstrtab",
+        "type": 3,
+        "flags": 0,
+        "size": 52
+      },
+      {
+        "name": ".strtab",
+        "type": 3,
+        "flags": 0,
+        "size": 12381
+      }
+    ]
+  },
+  "sdk_runtime": false,
+  "document_session": false
+}

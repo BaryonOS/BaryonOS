@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
-members = ["runtime", "catalog-client", "document-session", "examples/catalog-read", "examples/volume-docs", "examples/supervisor", "examples/keyring", "examples/update"]
+exclude = ["keyring-client", "heap-allocator", "examples/memory", "display-client", "examples/display-input-probe", "examples/input-service", "examples/random-probe", "examples/image-probe"]
+members = ["keyring-random-client", "runtime", "catalog-client", "document-session", "examples/catalog-read", "examples/volume-docs", "examples/supervisor", "examples/keyring", "examples/update", "examples/system"]
 
 [profile.dev]
 panic = "abort"

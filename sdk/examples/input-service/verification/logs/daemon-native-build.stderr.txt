@@ -1,0 +1,6 @@
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os-worktrees/input-daemon/sdk/runtime)
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os-worktrees/input-daemon/crates/ui-core)
+   Compiling nieuw-os-display-client v0.1.0 (/workspace/nieuw-os-worktrees/input-daemon/sdk/display-client)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os-worktrees/input-daemon/services/input-core)
+   Compiling nieuw-os-native-input-service v0.1.0 (/workspace/nieuw-os-worktrees/input-daemon/sdk/examples/input-service)
+    Finished `release` profile [optimized] target(s) in 0.70s

@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "profile": "native-display-probe",
+  "kernel_feature": "native-display-probe",
+  "loader_feature": "framebuffer",
+  "source_fingerprint_version": 3,
+  "source_sha256": "1dfced0616c5319a184c8b3b53c9ec2220ca8240bfeba44b8807d0d472955429",
+  "loader": {
+    "sha256": "c605170cfebae2ec11a573edf84f72c93f7fe072b029475c25a0d30e2ac96ddd",
+    "format": "AMD64 PE32+",
+    "subsystem": "EFI_APPLICATION",
+    "imports": 0
+  },
+  "kernel": {
+    "sha256": "bc453211fb5b9b86413ea97631807dc28e05b58339c4baacc11085b9e3ccdb45",
+    "entry": 33554432,
+    "segments": [
+      {
+        "flags": 5,
+        "offset": 4096,
+        "address": 33554432,
+        "filesz": 113511,
+        "memsz": 113511,
+        "page_start": 33554432,
+        "page_end": 33669120
+      },
+      {
+        "flags": 4,
+        "offset": 118784,
+        "address": 33669120,
+        "filesz": 92064,
+        "memsz": 92064,
+        "page_start": 33669120,
+        "page_end": 33763328
+      },
+      {
+        "flags": 6,
+        "offset": 212992,
+        "address": 33763328,
+        "filesz": 1254072,
+        "memsz": 4353480,
+        "page_start": 33763328,
+        "page_end": 38117376
+      }
+    ],
+    "sections": [
+      {
+        "name": "",
+        "type": 0,
+        "flags": 0,
+        "size": 0
+      },
+      {
+        "name": ".text",
+        "type": 1,
+        "flags": 6,
+        "size": 113511
+      },
+      {
+        "name": ".rodata",
+        "type": 1,
+        "flags": 50,
+        "size": 92064
+      },
+      {
+        "name": ".data",
+        "type": 1,
+        "flags": 3,
+        "size": 1254072
+      },
+      {
+        "name": ".bss",
+        "type": 8,
+        "flags": 3,
+        "size": 3096008
+      },
+      {
+        "name": ".symtab",
+        "type": 2,
+        "flags": 0,
+        "size": 7680
+      },
+      {
+        "name": ".shstrtab",
+        "type": 3,
+        "flags": 0,
+        "size": 52
+      },
+      {
+        "name": ".strtab",
+        "type": 3,
+        "flags": 0,
+        "size": 17186
+      }
+    ]
+  },
+  "sdk_runtime": false,
+  "document_session": false,
+  "display_probe": {
+    "passed": true,
+    "native_runtime_performed": false,
+    "apps": [
+      {
+        "name": "display-probe",
+        "sha256": "348119f352d1499978b74ef1a6785da1cf0fdf2d2830a217fe4cc8002347085e",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1056,
+              "memsz": 1056,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 176,
+              "memsz": 176,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 4629,
+              "memsz": 4629,
+              "page_start": 1073872896,
+              "page_end": 1073881088
+            }
+          ]
+        }
+      },
+      {
+        "name": "input-probe",
+        "sha256": "e244109bce4821c1a7e6384133ab5994a467d94d05917d3ce88c59986b1e6c9e",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1048,
+              "memsz": 1048,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 176,
+              "memsz": 176,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 4149,
+              "memsz": 4149,
+              "page_start": 1073872896,
+              "page_end": 1073881088
+            }
+          ]
+        }
+      },
+      {
+        "name": "display-intruder-probe",
+        "sha256": "95c54a002e5835fae03f6ac082481908458e6999be2f6c4ede898d9228cac023",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1040,
+              "memsz": 1040,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 152,
+              "memsz": 152,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 1285,
+              "memsz": 1285,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

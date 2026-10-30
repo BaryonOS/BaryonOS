@@ -1,5 +1,10 @@
 /target/
 /sdk/target/
+/sdk/keyring-client/target/
+/sdk/heap-allocator/target/
+/sdk/examples/memory/target/
+/services/input-core/target/
+/drivers/rtc/target/
 /services/net-protocol/target/
 /build/
 /out/

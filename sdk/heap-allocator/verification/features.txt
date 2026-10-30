@@ -1,0 +1,10 @@
+command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "tree", "--offline", "--locked", "--manifest-path", "sdk/heap-allocator/Cargo.toml", "-e", "features"]
+cwd: /workspace/nieuw-os-worktrees/user-allocator
+exit: 0
+duration_s: 0.08147454261779785
+
+stdout:
+nieuw-os-heap-allocator v0.1.0 (/workspace/nieuw-os-worktrees/user-allocator/sdk/heap-allocator)
+└── linked_list_allocator v0.10.6
+
+stderr:

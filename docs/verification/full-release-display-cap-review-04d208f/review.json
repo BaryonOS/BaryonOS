@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "task": "TASK-DISPLAY-CAP-V",
+  "base_commit": "61ea7278390d5235a8bc024cbf084222a7b0c658",
+  "source_state": "Uncommitted frozen capability-only slice in native-display-input worktree",
+  "source_sha256": {
+    "src/lib.rs": "a53fdad18c503f0e34b24dd43ab9ae4fcec780d6758baa6ac353f5fd54cf720b",
+    "src/tests.rs": "afc72845a46f8c34135e2aa39a41cf8a41465ff1c63f183673a1de38d5932c78"
+  },
+  "source_unchanged_during_review": true,
+  "boundary": "Independent code/model review and host tests; not human audit, native display/input/physical execution or UI/release acceptance",
+  "concrete_reachable_blockers": [],
+  "host_checks": [
+    {
+      "check": "Original isolated capability-core suite",
+      "tests": 47,
+      "exit": 0
+    },
+    {
+      "check": "Original suite plus5 independent counterexamples",
+      "tests": 52,
+      "exit": 0,
+      "duration_tests_s": 1.9
+    }
+  ],
+  "command": [
+    "cargo",
+    "+1.90.0",
+    "test",
+    "--manifest-path",
+    "/tmp/nieuw-os-display-cap-review/capability-core/Cargo.toml",
+    "--locked",
+    "--offline"
+  ],
+  "target_directory": "/tmp/nieuw-os-display-cap-review/target-frozen",
+  "private_manifest_difference": "Appended empty workspace for isolated host execution; production library/test input hashes preserved before additional temporary tests",
+  "reviewed_paths": [
+    "sole object creation with complete process/slot/node/object preflight",
+    "typed source handle checks and NETWORK upper boundary",
+    "object_live/open/allowed_rights/object_refs",
+    "close/exit/maintain/refcounts/generation advance/retirement",
+    "Stats/state_digest/check_invariants/init",
+    "non-derivable/non-transferable/non-revocable new rights and generic message subset paths"
+  ],
+  "independent_cases": [
+    "all network slots including final index remain separate from DISPLAY and INPUT",
+    "zero-rights derive/transfer/bootstrap cannot smuggle source caps; new globally-known bits cannot be minted from endpoint caps",
+    "simultaneous max slot/node/source generation retires locally without damaging other source or network",
+    "closed internal source tombstone retains sole capacity until last close; reissue gets new object key",
+    "200 alternating source-owner cycles preserve existing network key and exact source cleanup; stale generations fail atomically"
+  ],
+  "atomicity_check": "Supplementary rejected calls compare the complete Engine value and check all structural invariants; lifecycle iteration checks resource counts",
+  "limitations": [
+    "Engine creation methods are trusted manifest APIs, not user syscalls",
+    "Numeric handles are process-local and may collide across processes; caller identity must be supplied by kernel",
+    "Future native display/input operations must revalidate caller PID+source handle/object generation and enforce real buffer/hardware teardown",
+    "No public live-engine reset contract or persistent authority epoch is added",
+    "No DMA, framebuffer, PS2, DisplaySource, native renderer or user interaction acceptance from this review"
+  ],
+  "counterexamples_source": "/tmp/nieuw-os-display-cap-review/capability-core/src/tests.rs",
+  "logs": "Exact commands/results in tool transcript; original builder47-test log exists in build/display-input/capability-tests.txt",
+  "writes": "Own temporary crate/manifest/tests/target/report only; no repository source or Git changes"
+}

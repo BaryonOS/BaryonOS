@@ -2,7 +2,14 @@
 Dit is een zelfstandig OS-onderzoeksproject. Geen bestaande OS-kernel als basis. Eerst x86_64/QEMU/UEFI; geen installatie op echte apparaten. Dit bestand definieert werkwijze, geen bewijs van systeemveiligheid.
 
 ## Leesroute
-Lees README.md, docs/PROJECT-STATE.md, docs/implementation/START-CODING.md, docs/implementation/FIRST-BATCH.md, docs/DECISIONS.md en docs/LOCAL-PRIVACY-CONTRACT.md. Gebruik bij OS-ontwikkeltaken daarnaast de repositoryskill `.agents/skills/os-dev/SKILL.md`; raadpleeg via de lokale zoekhelper alleen de relevante OSDev-/boekpassages. De vijf specificaties in docs/implementation/ zijn de gekozen basis; oudere onderzoeksopdrachten zijn hiermee voor de eerste fase afgehandeld. Lees daarna alleen de relevante kennisbestanden en lokale AGENTS.md-bestanden. Vanuit de root: lees expliciet alle AGENTS.md-bestanden onder de mappen die je gaat wijzigen; veronderstel niet dat iedere client alle submappen automatisch laadt. Neem bronversies en bestaande code als uitgangspunt; onderzoeksvoorstellen zijn niet automatisch geïmplementeerd.
+De volledige actieve productopdracht en bindende acceptatiematrix staan in
+`docs/FULL-TEST-RELEASE.md`. Lees die bij hervatten naast het actuele checkpoint;
+behoud alle verplichte functies, bewijsniveaus en stop-/hervatregels. Alleen
+booten of een notitie bewaren is niet langer een toereikend einddoel. Een
+deelcommit, groene build of deelproef rondt deze opdracht niet af.
+Begin met branch, HEAD en `git status --short`; behoud onafgemaakt gebruikerswerk. Lees bij een nieuwe sessie README.md, het actuele checkpoint bovenaan docs/PROJECT-STATE.md en docs/LOCAL-PRIVACY-CONTRACT.md. Lees daarna de relevante besluiten in docs/DECISIONS.md, implementatiespecificaties en alle lokale AGENTS.md-bestanden onder de te wijzigen mappen. Breid dit uit wanneer afhankelijkheden of een gewijzigde vertrouwensgrens dat vereisen; een korte leesroute is geen reden om veiligheidscontracten over te slaan.
+Bij vervolgwerk binnen dezelfde sessie: vergelijk de bronversie en lees wijzigingen en ontbrekende context, niet opnieuw de gehele repository of ongewijzigde historische status. START-CODING.md en FIRST-BATCH.md beschrijven de oorspronkelijke implementatiebasis; controleer eerst wat actuele code en acceptatiebewijs al realiseren. Een oude onderzoeksopdracht is geen nieuwe implementatieopdracht.
+Gebruik bij OS-ontwikkeltaken de repositoryskill `.agents/skills/os-dev/SKILL.md`; zoek alleen de relevante OSDev-/boekpassages. Vanuit de root worden geneste instructies niet in iedere client automatisch geladen. Neem bronversies en bestaande code als uitgangspunt; onderzoeksvoorstellen zijn niet automatisch geïmplementeerd. Praktische testkeuze, meting en overdracht staan in CODEX-WORKFLOW.md; lees daarvan alleen het benodigde onderdeel.
 
 ## Productambitie
 
@@ -33,9 +40,19 @@ Werk in korte branches/worktrees met kleine beoordeelbare diffs. Behoud gebruike
 Voer routineonderzoek, lokale bestanden en geschikte tests zelfstandig uit. Publiceren, betaalde infrastructuur, releases ondertekenen, echte schijven wissen of apparaten flashen vereist een concrete expliciete opdracht daarvoor.
 Voeg afhankelijkheden pas toe na controle van herkomst, licentie, onderhoud, no_std-geschiktheid en build scripts. Pin versies; leg uitzonderingen vast.
 
+
+## Korte ontwikkellus
+- Kies één direct uitvoerbaar resultaat op het kritieke pad. Leg vooraf doel, schrijfbestanden, afhankelijkheden, acceptatiecommando's en bewijsgrens vast; geen nieuwe algemene audit zonder aanleiding.
+- Implementeer en draai eerst de passende gerichte tests. Bij gedeelde interfaces, kernel-/rechtenwijzigingen of integratie volgen de relevante bredere en native gates. Gerichte tests vervangen geen verplichte CI-controle.
+- De hoofdagent houdt de integratieverantwoordelijkheid. Geef deelagents alleen de noodzakelijke context en een begrensde taak; meet nuttige opleveringen, niet het aantal agents. Gebruik gescheiden worktrees en buildmappen; geen gedeelde schrijfbestanden of gelijktijdige Cargo-writers in dezelfde targetmap.
+- Hergebruik dezelfde geldige ontwikkelomgeving en buildcache; geen routine-`cargo clean`, herinstallatie of nieuwe sessie bij iedere kleine stap. Native acceptatie behoudt de voorgeschreven schone images, profielen en doelmappen.
+- Houd commandologs buiten de gesprekscontext; lees bij falen de relevante fout en verwijs naar het volledige log. Meet doorlooptijd en exitstatus, en meld niet-uitgevoerde controles expliciet. Een cache-hit is nooit bewijs dat een test is geslaagd.
+- Werk status en de bestaande voortgangsmeter bij volgens onderstaande regels. Zet bij overdracht één compacte `NEXT AGENT HANDOFF` bovenaan PROJECT-STATE.md met broncommit, open werk, bewijs, blocker en eerstvolgend commando; onderhoud geen tweede concurrerende roadmap.
+- Ga na een afgeronde stap door met het volgende onafhankelijke resultaat binnen de beschikbare uitvoering. Vermijd herplanning zonder nieuwe informatie; meld echte grenzen zonder achtergrondwerk te suggereren.
+
 ## Definitie van klaar
 Vermeld commit/basisversie, gewijzigde bestanden, exacte uitgevoerde commando's, exitstatus, relevante logpaden, nieuwe aannames en resterende risico's. 'Niet uitgevoerd' is geen groen testresultaat.
-Werk docs/PROJECT-STATE.md bij na elke mijlpaal. Noteer architectuurwijzigingen in docs/DECISIONS.md. Voeg alleen betekenisvolle tests toe. Het inventarisatiescript tools/preflight.py bestaat. De overige build- en testcommando's staan gespecificeerd en moeten worden geïmplementeerd; rapporteer geen verzonnen uitvoering.
+Werk docs/PROJECT-STATE.md bij na elke mijlpaal. Noteer architectuurwijzigingen in docs/DECISIONS.md. Voeg alleen betekenisvolle tests toe. Gebruik bestaande scripts zoals tools/preflight.py en tools/build.py en de actuele commando's uit .github/workflows/; controleer beschikbaarheid en toepasselijkheid voordat je ze uitvoert. Implementeer bestaande tooling niet opnieuw; rapporteer geen verzonnen uitvoering.
 
 ## Code Review Rules
 Blokkeer wijzigingen die capability-rechten verruimen zonder expliciet ontwerp, onbetrouwbare pointers/IPC-lengtes vertrouwen, ongecontroleerde DMA toelaten, secrets loggen, authenticatie bij fouten laten slagen of testresultaten vervalsen. Een ontbrekend bewijs wordt een open punt, nooit een impliciete goedkeuring.

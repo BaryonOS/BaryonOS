@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "test",
+    "--offline",
+    "--locked",
+    "--manifest-path",
+    "sdk/examples/input-service/Cargo.toml",
+    "--target-dir",
+    "/workspace/nieuw-os-worktrees/input-daemon/target/input-final/host"
+  ],
+  "cwd": "/workspace/nieuw-os-worktrees/input-daemon",
+  "started_unix": 1793328332.4308815,
+  "duration_s": 1.226123332977295,
+  "returncode": 0
+}

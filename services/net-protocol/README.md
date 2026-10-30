@@ -1,4 +1,4 @@
-# Begrensd Ethernet/IPv4/UDP-protocol
+# Begrensde Ethernet/IPv4/UDP-, ARP- en DNS-protocollen
 
 `nieuw-os-net-protocol` is een zelfstandige Rust-workspace met één
 allocatorvrije `no_std`-library, `forbid(unsafe_code)` en geen dependencies.
@@ -90,11 +90,73 @@ verlenen geen capability. Ook een `Valid` checksum mag geen socket-, app-,
 NAS- of bestemmingsrecht bepalen. De nul-checksumstatus moet zichtbaar
 blijven voor een toekomstige expliciete servicekeuze.
 
-Driver, MTU/FCS/offloadbeleid, ontvangstbuffers, ARP, routes/TTL-beleid,
-socket-/procesrechten, TCP, DNS, TLS en echte verbindingen blijven open.
+Driver, MTU/FCS/offloadbeleid, ontvangstbuffers, route-/subnetbeleid,
+socket-/procesrechten, TCP, DHCP, native DNS-/ARP-integratie, TLS en echte
+verbindingen blijven open.
 Deze beperkte parser is geen volledige IPv4-hostimplementatie en wordt nog
 niet door een native netwerkdienst aangeroepen. Er is geen nieuw
 netwerk-, privacy-, hardware- of roadmapcriterium geaccepteerd.
+
+## FR-N01: ARP en DNS als echte protocolbouwstenen
+
+Taakcontract: bouw boven de bestaande codec een dependencyvrije, allocatorvrije
+ARP-/DNS-basis voor de toekomstige native netwerkdienst. Alleen deze zelfstandige
+workspace verandert; geen kernel-ABI, nieuwe bevoegdheid of rootlockfile. De
+hoofdagent bezit NIC-/kernelintegratie. Er zijn geen hostnetwerkoperaties of
+gesimuleerde verbindingssuccessen. Dit sluit N01/N02/N03 **niet** af.
+
+| Interface | Gedrag en grens |
+|---|---|
+| `arp::parse` | Ethernet/IPv4 request/reply, bron-MAC gebonden aan Ethernet-header; replydoel in beide headers gelijk; 42 bytes zonder padding of volledig 60-byteframe, geen FCS. |
+| `arp::build_request/build_reply` | Schrijft een echt RFC 826-frame met nulpadding; alle fouten vóór schrijven; reply alleen voor de geconfigureerde lokale interface. |
+| `arp::NeighborSlot` | Eén expliciet gestarte aanvraag; alleen passend reply vóór de monotone deadline vult de slot. Annulering, exclusieve vervaltijd en gecontroleerde klokoverflow. |
+| `dns::Name/Question/build_query` | Canonieke ASCII-hostnaam, IN/A of IN/AAAA, één vraag en RD; maximaal 255 wirebytes. Unicode/IDNA-conversie blijft een afzonderlijke invoerlaag. |
+| `dns::parse_response` | Exact transaction-ID, vraagnaam/type/class, QR/opcode/flags, foutcode en alle gedeclareerde recordlengtes. TC is een expliciete fout, geen gedeeltelijk succes. |
+| `dns::Response::resolve` | Alleen IN-antwoorden voor de gevraagde naam of haar gecontroleerde CNAME-keten; aanvullende glue en vreemde namen leveren geen adres. CNAME-cycli, tegenstrijdige alias/adresantwoorden en te grote sets worden geweigerd. |
+| `dns::PendingQuery` | Bindt de aanvraag aan beide IPv4-adres-/poortparen, checksum en deadline. Geaccepteerde antwoorden consumeren de aanvraag; vreemde/malformed antwoorden niet. Annuleren en verlopen geven geen antwoord. |
+
+DNS verwerkt maximaal 4.096 berichtbytes, 32 records over alle secties,
+32 achterwaartse compressionpointers per naam, acht aliasstappen en acht unieke
+adressen. Pointers naar de header, zichzelf, vooruit of buiten het bericht,
+label/pointercycli en namen boven 255 wirebytes worden geweigerd. Een CNAME
+mag niet buiten zijn RDLENGTH doorlezen. TTLs met de hoge bit gezet gelden
+volgens RFC 2181 als nul; de cacheduur is maximaal 86.400 seconden en het
+minimum van relevante alias-/adres-TTLs. Een nul-TTL mag niet worden gecachet.
+Er wordt geen OPT/EDNS gevraagd; een ongevraagd OPT-record wordt expliciet
+geweigerd, zodat een uitgebreide foutcode niet als gewone succesvolle DNS geldt.
+
+Deze grenzen zijn een expliciet initieel codecprofiel, geen verlaagde
+release-eisen. DNS-over-TCP na TC, EDNS, DNSSEC-validatie, volledige resolver-
+cache en IPv6-transport blijven zichtbaar open. Een AAAA-record decoderen
+bewijst geen werkende IPv6-stack.
+
+ARP verwerkt probes met bron-IP nul als herkenbare verzoeken, maar voert nog
+geen RFC 5227-adresconflictdetectie uit en antwoordt die niet via `build_reply`.
+De resolver bewaart geen ongevraagde of gratuitous ARP-replies. ARP is
+**niet geauthenticeerd**: een aanvaller op hetzelfde linksegment kan een passend
+solicited reply vervalsen. Geen MAC/IP-paar verleent identiteit, TLS-vertrouwen
+of apprechten. De netwerkdienst moet interface, netmasker, route en broadcast-
+beleid afdwingen; DNS kan evenmin bestemmingscapabilities verlenen.
+
+Acceptatie voor deze bouwsteen: onafhankelijke vaste request/reply-/DNS-wire-
+fixtures, truncatie op iedere offset, ongeldige headers/identiteiten, verkeerde
+doelen, expiratie, annulering, overflow, DNS-pointer- en aliasaanvallen,
+RDLENGTH-grenzen, TTL en endpoint/ID-weigering; daarnaast Clippy, fmt en echte
+freestanding targetcompilatie. Uitvoering en hashes:
+[`verification/fr-n01-report.json`](verification/fr-n01-report.json).
+Dit zijn hosttests en een targetbuild; **geen NIC-, VM- of internetbewijs**.
+
+Eerstvolgende native koppeling: modern `virtio-net-pci` met gepinde RX/TX-
+queues, expliciete bufferownership en rechten; een geïsoleerde netwerkdienst
+gebruikt deze codecs met geconfigureerde interface en monotone tijd. De kernel
+mag alleen begrensde I/O/capabilitygrenzen bemiddelen. Een eigen testpeer kan
+op een afgebakend VM-netwerk ARP beantwoorden en DNS-fouten leveren. Pas echte
+frames door de Nieuw-OS-client tellen voor native netwerkacceptatie.
+
+Specificatiebasis: RFC 826 (ARP-velden en opcodes), RFC 1035 §§3.1, 4.1 en
+4.1.4 (DNS-vragen, records en compressie), RFC 2181 §8 (TTL). Lokale
+kennisoriëntatie: OSDev *Address Resolution Protocol*, W002539, revisie 11170
+(5 februari 2011). Geen tutorialcode overgenomen; geen dependency toegevoegd.
 
 ## Uitvoering en bewijs
 

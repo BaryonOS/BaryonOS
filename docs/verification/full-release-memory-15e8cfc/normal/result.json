@@ -1,0 +1,83 @@
+{
+  "label": "native-memory-normal",
+  "started_utc": "2026-10-30T02:47:53.169752+00:00",
+  "duration_s": 2.8012416700003087,
+  "timeout_s": 60,
+  "timed_out": false,
+  "raw_qemu_exit": 33,
+  "expected_exit": 33,
+  "required_markers": [
+    "BOOT:EBS_OK",
+    "KERNEL:ENTRY",
+    "BOOTINFO:OK",
+    "KS-01:PASS",
+    "KS-02:PASS",
+    "KS-03:PASS",
+    "M2:PASS",
+    "MEMORY:MANIFEST:PASS",
+    "MEMORY:GROWTH:PASS",
+    "MEMORY:ISOLATION:PASS",
+    "MEMORY:CLEANUP:PASS",
+    "MEMORY:CASE:NORMAL:PASS",
+    "M1:PASS"
+  ],
+  "forbidden_markers": [
+    ":FAIL",
+    "PANIC"
+  ],
+  "passed": true,
+  "command": [
+    "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/full-release-15e8cfc-memory/normal/run/native-memory-normal-3549890837/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/full-release-15e8cfc-memory/normal/run/native-memory-normal-3549890837/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/full-release-15e8cfc-memory/normal/run/native-memory-normal-3549890837/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04"
+  ],
+  "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+  "base_commit": "15e8cfced28ad46f15f5f573e5f00e8e87b74215",
+  "source_fingerprint_version": 3,
+  "source_sha256": "a82648f0673ef6c0b37406724fc5512ffadc5b53b4987bf21e96521faa112eaf",
+  "artifact_sha256": {
+    "esp/kernel.elf": "d57f8f5f93dce16926abec675320a9837645d3445cdb0f7c1351d219b747266f",
+    "esp/EFI/BOOT/BOOTX64.EFI": "878a2dd0f8233f6f102a7d6dccf7e5f5d0935a45c23abb064205095ca524c08e",
+    "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "firmware_source": [
+    "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_VARS_4M.fd"
+  ],
+  "run_directory": "/workspace/nieuw-os/build/full-release-15e8cfc-memory/normal/run/native-memory-normal-3549890837",
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nMEMORY:MANIFEST:PASS\nMEMORY:CLEAN_STARTS:00000000000000000003\nMEMORY:GROWN_PAGES:00000000000000006030\nMEMORY:ZERO_BYTES:00000000000024698880\nMEMORY:ARG_DENIED:00000000000000000021\nMEMORY:QUOTA_DENIED:00000000000000000006\nMEMORY:PRIVATE_CHECKS:00000000000000000003\nMEMORY:COLLECTION_RUNS:00000000000000000003\nMEMORY:ALLOC_OOM_DENIED:00000000000000000003\nMEMORY:FAULTS:00000000000000000000\nMEMORY:EXITS:00000000000000000003\nMEMORY:SLOT_REUSES:00000000000000000001\nMEMORY:OOM_FAILURES:00000000000000000000\nMEMORY:OOM_RECOVERIES:00000000000000000000\nMEMORY:RETRY_ZERO_BYTES:00000000000000000000\nMEMORY:TIMER_IRQS:00000000000000000017\nMEMORY:LIVE_PROCESSES:00000000000000000000\nMEMORY:FRAMES_RECOVERED:00000000000000000001\nMEMORY:KERNEL_TABLES_RETAINED:00000000000000000010\nMEMORY:CLEANUP_ZERO_BYTES:00000000000024895488\nMEMORY:GROWTH:PASS\nMEMORY:ISOLATION:PASS\nMEMORY:CLEANUP:PASS\nMEMORY:CASE:NORMAL:PASS\nM1:PASS\n",
+  "stderr": "",
+  "expected_artifact_sha256": {
+    "esp/kernel.elf": "d57f8f5f93dce16926abec675320a9837645d3445cdb0f7c1351d219b747266f",
+    "esp/EFI/BOOT/BOOTX64.EFI": "878a2dd0f8233f6f102a7d6dccf7e5f5d0935a45c23abb064205095ca524c08e"
+  },
+  "artifact_binding_passed": true
+}

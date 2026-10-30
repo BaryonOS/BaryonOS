@@ -7,8 +7,9 @@ publish = false
 [features]
 default = []
 test-ebs-retry = []
-graphics-g0 = []
-# B03: verify a hybrid-signed kernel from the slot store (ADR-044).
+framebuffer = []
+graphics-g0 = ["framebuffer"]
+# B03: verify a hybrid-signed kernel from the slot store (ADR-049).
 signed-boot = ["dep:update-core"]
 
 [dependencies]

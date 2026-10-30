@@ -1,0 +1,97 @@
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/full-release-i01/system-system"}
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling subtle v2.6.1
+   Compiling cpufeatures v0.2.17
+   Compiling zeroize v1.9.1
+   Compiling cfg-if v1.0.5
+   Compiling opaque-debug v0.3.1
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling generic-array v0.14.7
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling inout v0.1.4
+   Compiling universal-hash v0.5.1
+   Compiling aead v0.5.2
+   Compiling cipher v0.4.4
+   Compiling digest v0.10.7
+   Compiling poly1305 v0.8.0
+   Compiling chacha20 v0.9.1
+   Compiling hmac v0.12.1
+   Compiling sha2 v0.10.9
+   Compiling chacha20poly1305 v0.10.1
+   Compiling hkdf v0.12.4
+   Compiling keyring-core v0.1.0 (/workspace/nieuw-os/services/keyring)
+   Compiling nieuw-os-system-example v0.1.0 (/workspace/nieuw-os/sdk/examples/system)
+    Finished `release` profile [optimized] target(s) in 5.74s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/full-release-i01/system-keyring"}
+   Compiling version_check v0.9.5
+   Compiling typenum v1.20.1
+   Compiling subtle v2.6.1
+   Compiling cpufeatures v0.2.17
+   Compiling cfg-if v1.0.5
+   Compiling zeroize v1.9.1
+   Compiling opaque-debug v0.3.1
+   Compiling generic-array v0.14.7
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling inout v0.1.4
+   Compiling cipher v0.4.4
+   Compiling digest v0.10.7
+   Compiling universal-hash v0.5.1
+   Compiling aead v0.5.2
+   Compiling poly1305 v0.8.0
+   Compiling chacha20 v0.9.1
+   Compiling hmac v0.12.1
+   Compiling sha2 v0.10.9
+   Compiling chacha20poly1305 v0.10.1
+   Compiling hkdf v0.12.4
+   Compiling keyring-core v0.1.0 (/workspace/nieuw-os/services/keyring)
+   Compiling nieuw-os-keyring-example v0.1.0 (/workspace/nieuw-os/sdk/examples/keyring)
+    Finished `release` profile [optimized] target(s) in 3.08s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/full-release-i01/system-volume"}
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+   Compiling volume-core v0.1.0 (/workspace/nieuw-os/services/volume)
+   Compiling nieuw-os-volume-docs-example v0.1.0 (/workspace/nieuw-os/sdk/examples/volume-docs)
+    Finished `release` profile [optimized] target(s) in 1.28s
+   Compiling boot-protocol v0.1.0 (/workspace/nieuw-os/crates/boot-protocol)
+   Compiling r-efi v7.1.0
+   Compiling elf-loader-core v0.1.0 (/workspace/nieuw-os/crates/elf-loader-core)
+   Compiling os-loader v0.1.0 (/workspace/nieuw-os/boot/loader)
+    Finished `release` profile [optimized] target(s) in 0.76s
+   Compiling virtio-core v0.1.0 (/workspace/nieuw-os/crates/virtio-core)
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+   Compiling block-protocol v0.1.0 (/workspace/nieuw-os/services/block)
+   Compiling boot-protocol v0.1.0 (/workspace/nieuw-os/crates/boot-protocol)
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+   Compiling virtio-blk-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-blk)
+   Compiling virtio-rng-driver v0.1.0 (/workspace/nieuw-os/drivers/virtio-rng)
+   Compiling kernel-core v0.1.0 (/workspace/nieuw-os/crates/kernel-core)
+    Finished `release` profile [optimized] target(s) in 2.27s
+Built and inspected native-system: 3 ELF load segments
+SYSTEM normal: passed=True raw=33 duration=4.2s /workspace/nieuw-os/build/full-release-i01/run/system-normal-69453e5e2b8b4354bf0c50d0652c12b0
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/full-release-i01/system-system"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/full-release-i01/system-keyring"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/full-release-i01/system-volume"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+   Compiling os-kernel v0.1.0 (/workspace/nieuw-os/kernel)
+    Finished `release` profile [optimized] target(s) in 1.52s
+Built and inspected test-system-recover: 3 ELF load segments
+SYSTEM recover: passed=True raw=33 duration=4.2s /workspace/nieuw-os/build/full-release-i01/run/system-recover-e3cbdafde5e545babeb84b8926515870
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-system-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/full-release-i01/system-system"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-keyring-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/full-release-i01/system-keyring"}
+    Finished `release` profile [optimized] target(s) in 0.02s
+{"command": ["cargo", "build", "--offline", "--locked", "--release", "--manifest-path", "/workspace/nieuw-os/sdk/Cargo.toml", "-p", "nieuw-os-volume-docs-example", "--features", "native", "--bins", "--target", "x86_64-unknown-none"], "target_dir": "/workspace/nieuw-os/target/full-release-i01/system-volume"}
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.01s
+    Finished `release` profile [optimized] target(s) in 0.02s
+Built and inspected native-system: 3 ELF load segments
+FR-I01 gate passed=True stages=2 /workspace/nieuw-os/build/full-release-i01/system-gate.json

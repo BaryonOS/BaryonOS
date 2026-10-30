@@ -6,6 +6,7 @@ use crate::{
     block::{self, BlockDevice, READ_MAX, SECTOR_SIZE},
     decode_return,
     entropy::{EntropySource, ENTROPY_MAX},
+    network::{NetworkSource, NET_FRAME_MAX},
     process::{spawn_cap_words, ChildProcess, LaunchImage, ProcessStatus},
     validate_abi, zero_return, Capability, Error, Handle, Outgoing, ReceiveEndpoint, Received,
     Rights, SendEndpoint, MESSAGE_SIZE,
@@ -14,7 +15,7 @@ use crate::{
 fn call(number: u64, args: [u64; 6]) -> Result<u64, Error> {
     let mut primary = number;
     let mut secondary = args[2];
-    // SAFETY: Nieuw OS ABI 1.0–1.2 preserves every GPR except RAX/RDX; int80 enters
+    // SAFETY: Nieuw OS ABI 1.0–1.8 preserves every GPR except RAX/RDX; int80 enters
     // a checked kernel gate. No Rust references cross this boundary. Callers
     // below keep local message buffers live for the complete synchronous copy.
     // No nomem/readonly flag: IPC can read or write the supplied memory.
@@ -33,6 +34,22 @@ pub fn check_abi() -> Result<(), Error> {
 
 pub fn abi_info() -> Result<u64, Error> {
     call(0, [0; 6])
+}
+
+/// ABI 1.6: monotone PIT interrupt count since this boot, nominally 100 Hz.
+/// Available only with the explicit clock feature; older profiles return ENOSYS.
+/// This is not a wall clock and cannot validate TLS certificate dates.
+pub fn monotonic_ticks() -> Result<u64, Error> {
+    call(3, [0; 6])
+}
+
+/// ABI1.7: atomically grow this process's private, zeroed RW/NX heap suffix.
+/// Physical exhaustion returns Kernel(memory::OUT_OF_MEMORY); quota/metadata
+/// exhaustion returns Kernel(-7). Normal errors allocate nothing. InvalidReturn
+/// signals a kernel ABI violation: do not automatically retry an uncertain call.
+/// Older profiles return ENOSYS. No shrink, delegation or implicit allocator.
+pub fn heap_grow(pages: u64) -> Result<crate::memory::OwnedHeapPages, Error> {
+    crate::memory::decode_growth(call(4, [pages, 0, 0, 0, 0, 0])?, pages)
 }
 
 pub fn yield_now() -> Result<(), Error> {
@@ -270,4 +287,134 @@ pub fn entropy_wait(
         }
     }
     Err(Error::Kernel(-13))
+}
+
+/// Publish one raw Ethernet frame. Success is a ticket, not device completion
+/// or peer delivery. The timeout is 1..=500 monotone 100 Hz ticks; never replay
+/// a failed/uncertain transmission automatically.
+pub fn net_send(source: NetworkSource, frame: &[u8], timeout_ticks: u64) -> Result<u64, Error> {
+    if !(14..=NET_FRAME_MAX).contains(&frame.len()) {
+        return Err(Error::MessageSize);
+    }
+    if !(1..=500).contains(&timeout_ticks) {
+        return Err(Error::Kernel(-1));
+    }
+    let ticket = call(
+        0x70,
+        [
+            source.handle().raw(),
+            frame.as_ptr() as u64,
+            frame.len() as u64,
+            timeout_ticks,
+            0,
+            0,
+        ],
+    )?;
+    if ticket == 0 {
+        Err(Error::InvalidReturn)
+    } else {
+        Ok(ticket)
+    }
+}
+
+/// Poll a previously published TX ticket. EAGAIN leaves it pending; completion
+/// confirms only device processing, never acknowledgement by a remote peer.
+pub fn net_poll_tx(source: NetworkSource, ticket: u64) -> Result<usize, Error> {
+    let count = call(0x71, [source.handle().raw(), ticket, 0, 0, 0, 0])?;
+    if !(14..=NET_FRAME_MAX as u64).contains(&count) {
+        Err(Error::InvalidReturn)
+    } else {
+        Ok(count as usize)
+    }
+}
+
+/// Receive at most one complete raw frame. EAGAIN means no frame is queued.
+/// The kernel validates the complete writable output before consumption or
+/// copying; errors leave it untouched. Caller supplies its own bounded wait.
+pub fn net_receive(source: NetworkSource, out: &mut [u8]) -> Result<usize, Error> {
+    if !(14..=NET_FRAME_MAX).contains(&out.len()) {
+        return Err(Error::MessageSize);
+    }
+    let count = call(
+        0x72,
+        [
+            source.handle().raw(),
+            out.as_mut_ptr() as u64,
+            out.len() as u64,
+            0,
+            0,
+            0,
+        ],
+    )?;
+    if count < 14 || count > out.len() as u64 {
+        Err(Error::InvalidReturn)
+    } else {
+        Ok(count as usize)
+    }
+}
+
+/// ABI1.8: public geometry only; a Handle value never grants display authority.
+pub fn display_info(source: Handle, out: &mut [u8; 32]) -> Result<u64, Error> {
+    let count = call(0x80, [source.raw(), out.as_mut_ptr() as u64, 32, 0, 0, 0])?;
+    if count == 32 {
+        Ok(count)
+    } else {
+        Err(Error::InvalidReturn)
+    }
+}
+
+/// Synchronous bounded tile transfer, without a vsync/presentation guarantee.
+pub fn display_blit(source: Handle, descriptor: &[u8; 32], pixels: &[u8]) -> Result<u64, Error> {
+    if pixels.is_empty() || pixels.len() > 1024 || !pixels.len().is_multiple_of(4) {
+        return Err(Error::MessageSize);
+    }
+    let count = call(
+        0x81,
+        [
+            source.raw(),
+            descriptor.as_ptr() as u64,
+            pixels.as_ptr() as u64,
+            pixels.len() as u64,
+            0,
+            0,
+        ],
+    )?;
+    if count == pixels.len() as u64 / 4 {
+        Ok(count)
+    } else {
+        Err(Error::InvalidReturn)
+    }
+}
+
+/// Start the fixed polled PS/2 initialization. A ticket is not Ready.
+pub fn input_reset_begin(source: Handle) -> Result<u64, Error> {
+    let ticket = call(0x82, [source.raw(), 0, 0, 0, 0, 0])?;
+    if ticket != 0 {
+        Ok(ticket)
+    } else {
+        Err(Error::InvalidReturn)
+    }
+}
+
+/// One bounded reset step. EAGAIN leaves the output unchanged and is not Ready.
+pub fn input_reset_poll(source: Handle, ticket: u64, out: &mut [u8; 32]) -> Result<u64, Error> {
+    let count = call(
+        0x83,
+        [source.raw(), ticket, out.as_mut_ptr() as u64, 32, 0, 0],
+    )?;
+    if count == 32 {
+        Ok(count)
+    } else {
+        Err(Error::InvalidReturn)
+    }
+}
+
+/// One raw status/data sample. Only the isolated source service owns this cap.
+pub fn input_read(source: Handle, out: &mut [u8; 32]) -> Result<u64, Error> {
+    let count = call(0x84, [source.raw(), out.as_mut_ptr() as u64, 32, 0, 0, 0])?;
+    if count == 32 {
+        Ok(count)
+    } else {
+        Err(Error::InvalidReturn)
+    }
 }

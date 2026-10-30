@@ -1,7 +1,7 @@
 # B03-voorbeeld: update-dienst
 
 Eén gewoon `no_std`-programma voor de Nieuw OS-ABI (profiel `native-update`,
-ADR-044). Alle formaat- en beleidskennis zit in [`update-core`](../../../crates/update-core/);
+ADR-049). Alle formaat- en beleidskennis zit in [`update-core`](../../../crates/update-core/);
 dit voorbeeld verplaatst alleen sectoren tussen de kernelbroker en die core.
 
 | Programma | Autoriteit bij start | Gedrag |
