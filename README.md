@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`f6d3a108`](https://github.com/simonvanieperen/nieuw-os/commit/f6d3a108c8b53debd5a8d5415a46ce0772794020) ·
-**Ontwikkelbranch:** `simonvanieperen-studious-sniffle`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Platformafhankelijkheid in synthetische POSIX-linkertest en historische bronclaim PR #62 herstellen.
-34% blijft 34%; de synthetische POSIX-linkertest kiest nu expliciet het POSIX-beleid, zodat het Windowsbeleid de cc-negatieven niet ongemerkt ongeldig maakt. Geen test overgeslagen of assertion verwijderd; een afzonderlijke Windowstest blijft behouden. Historische integratiebron is niet langer als actuele PR-head gelabeld. Dit sluit geen OS-criterium en wijzigt geen productiepreflight of rechten; nieuwe-head-CI en review blijven aparte gates.
+**Bron:** [`d104fd9a`](https://github.com/simonvanieperen/nieuw-os/commit/d104fd9a7f33b478c3e1b43f8d99c6d65af73fd6) ·
+**Ontwikkelbranch:** `simon/native-interactive-cold`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Alle zes packagingreviewfixes en oorspronkelijk Windowsbewijs inhoudsbehoudend gecombineerd.
+34% blijft34%; minstens50% niet bereikt. Zes concrete preview/packaging/launcherreviewpunten inhoudsbehoudend gecombineerd met oorspronkelijk echt Windowsbewijs als identieke blobs. Nieuwe gezamenlijke host/native gates volgen; eerdere Windows-QEMUbediening en lokale testZIP blijven expliciet oudeeabc/c532brongebonden. Koude verkenning heeft volledig renderer-afgeleid lijstframe en exact reopenedframe zonder maskers maar is nog geen complete productacceptatierunner. Geen extra volledig rubriccriterium, menselijke audit of releaseclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

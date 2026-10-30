@@ -16,7 +16,7 @@ framebuffer = ["milestone-m2"]
 display-input = ["framebuffer", "milestone-m4", "monotonic-clock", "fpu-context", "dep:nieuw-os-display-client", "dep:nieuw-os-ps2"]
 native-display-probe = ["display-input"]
 native-system-display-input = ["native-system", "display-input"]
-native-system-materiaal = ["native-system-display-input"]
+native-system-materiaal = ["native-system-display-input", "ipc-wait"]
 native-system-materiaal-probe = ["native-system-materiaal"]
 test-system-materiaal-recover = ["native-system-materiaal-probe", "test-system-recover"]
 test-system-materiaal-scale200 = ["native-system-materiaal-probe"]
@@ -29,6 +29,11 @@ test-m2-double-fault = ["milestone-m2"]
 milestone-m3 = ["milestone-m2"]
 # Optional 100 Hz boot-monotonic clock; legacy ABI profiles stay unchanged.
 monotonic-clock = ["milestone-m3"]
+# Optional bounded IPC waits; no legacy profile changes its ABI or idle path.
+ipc-wait = ["milestone-m4", "monotonic-clock"]
+native-ipc-wait = ["native-sdk-app", "ipc-wait"]
+native-tpm-crb = ["native-ipc-wait", "dep:nieuw-os-tpm-crb"]
+test-tpm-crb-absent = ["native-tpm-crb"]
 # Fallible own-process RW/NX heap suffixes; existing total frame quota.
 process-memory = ["monotonic-clock"]
 # Separate architecture acceptance fixture; no product bootstrap policy.
@@ -47,6 +52,7 @@ native-system-net-clock = ["native-system-net", "monotonic-clock"]
 # Eager per-process x87/SSE state. The fixture is separate from the mechanism.
 fpu-context = ["milestone-m3"]
 native-fpu = ["fpu-context", "monotonic-clock"]
+test-fpu-wait = ["native-fpu", "ipc-wait"]
 native-qsim = ["milestone-m3"]
 native-qsim-job = ["milestone-m4"]
 native-sdk-app = ["milestone-m4"]
@@ -57,6 +63,7 @@ test-supervisor-crash = ["native-supervisor"]
 test-supervisor-denied = ["native-supervisor"]
 test-supervisor-parent-exit = ["native-supervisor"]
 test-supervisor-quota = ["native-supervisor"]
+test-supervisor-wait = ["native-supervisor", "ipc-wait"]
 # FR-I01 explicit composed profile; legacy fixture profiles remain separate.
 native-cap-digest-bench = ["native-system", "capability-core/diagnostic-bench"]
 native-system = ["native-volume", "native-keyring", "native-supervisor"]
@@ -196,6 +203,7 @@ native-update = ["milestone-m6a"]
 test-update-cut = ["native-update"]
 
 [dependencies]
+nieuw-os-tpm-crb = { path = "../drivers/tpm-crb", optional = true }
 nieuw-os-rtc = { path = "../drivers/rtc", optional = true }
 nieuw-os-display-client = { path = "../sdk/display-client", default-features = false, optional = true }
 nieuw-os-ps2 = { path = "../drivers/ps2", optional = true }

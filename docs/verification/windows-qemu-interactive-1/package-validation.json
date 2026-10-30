@@ -1,0 +1,12 @@
+{
+  "source_unchanged": true,
+  "build_revalidated": true,
+  "all_seven_apprecords_equal": true,
+  "four_firmware_hashes_equal_linux_acceptance": true,
+  "zip_crc_pass": true,
+  "pinned_versions": {
+    "ovmf_package_version": "2025.11-3ubuntu7.3",
+    "seabios_package_version": "1.17.0-1ubuntu1"
+  },
+  "zip_sha256": "b42be826377afb58f96c8178aa972128abad18ef7f9b4872e102a9e4a7e9ea57"
+}

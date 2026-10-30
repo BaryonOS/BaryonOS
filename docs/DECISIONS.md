@@ -23,6 +23,41 @@ slot-/manifestformaatmigratie; terugname verwijdert wel lifecycleafdwinging.
 Native resultaat en bronbinding staan afzonderlijk in PROJECT-STATE; B04,
 B05, B06 en de aanvullende gates van #41 blijven open.
 
+## ADR-053 — Wachten op IPC behoudt bestaande rechten en krijgt ABI 1.10
+
+Bij main-integratie hernummerd vanaf de branchlokale ADR-051; de
+main-ADR-051 over sleutelstatus hieronder behoudt zijn bestaande ID.
+
+30 oktober 2026; integratie `NATIVE-TEST-VERSION`, basis `ad2b981`.
+De bestaande component `IPC-WAIT-1` wordt overgenomen voor de rode native
+Materiaal-gebruikersketen. Zestien gekopieerde handle/interestparen met een
+absolute PIT-deadline mogen een proces parkeren; readiness reserveert noch
+consumeert iets. Iedere herbeoordeling controleert opnieuw de volledige
+capability en PID. Geen userpointer, copyplan of objectreferentie blijft
+over een contextwisseling bewaard. Nieuwe rechten worden niet toegekend.
+
+De componentbranch gebruikte nog ABI 1.9, maar main heeft die inmiddels
+aan de expliciet niet-vertrouwde RTC-klok toegewezen. Daarom gebruikt alleen
+`ipc-wait` ABI 1.10; de RTC-syscall en oude profielen behouden hun gedrag.
+De integratie behoudt ook de latere stackbereikcontrole bij userreturn.
+Lege uitvoerbare runqueue plus wachtenden mag via de bestaande permanente
+servicestack een `sti; hlt; cli` uitvoeren; alleen werkelijk getelde IRQ0's
+verhogen de monotone klok. De volledige Engine-digestchecks blijven staan.
+Consumenten mogen uitsluitend parkeren zonder lokaal uitvoerbaar werk.
+De legacy-keyringlus wacht daarom niet wanneer RANDOM-ingress bestaat;
+de volume-adapter wacht pas na zijn synchrone disk- en replywerk.
+Desktop-init wacht alleen in rustige Running-fase op registry/controller;
+de aparte testcontroller blijft zijn lokale kerneltrigger pollen.
+
+Eerst wordt een aparte native tweeprocessenproef gebouwd, inclusief echte
+queue-, intrekkings-, deadline-, pointer- en idlecontroles. Daarna volgt
+de bestaande GUI-gate zonder verruimde deadline. Hosttests of een gebouwde
+ELF bewijzen geen native voortgang, bruikbaarheid of volledige release.
+Herzien vóór SMP of nieuwe IRQ-wakebronnen: het huidige invariant geldt
+uitsluitend voor één CPU en geserialiseerde IF0-kernelmutaties.
+Rollback is het uitschakelen van de opt-in feature en consumenten; ABI
+1.10 blijft een gereserveerde interfaceversie.
+
 ## ADR-051 — Persistente sleutelstatus via een afzonderlijk administratief ingress
 
 30 oktober 2026; uitvoering B02-PERSIST-1, basis `ad2b981`. De bestaande
@@ -1104,3 +1139,34 @@ stale tickets, tijdslimieten en generatie-uitputting mogen geen toegang of vals
 Ready opleveren. Dit is geen algemene driver-/DMA-/IOMMU-garantie. Details en
 uitvoeringsbewijs volgen in het transportcontract en native QMP-bedieningsproef.
 Terugdraaien: opt-in transport revert, G0-regressie behouden en productcriteria open.
+
+## ADR-052 — Afzonderlijke native CRB-apertureproef, geen product-TPM-beleid
+
+**Datum:** 30 oktober 2026. `native-tpm-crb` combineert uitsluitend de bestaande
+echte IPC-wachtproef met de bestaande safe TPM-transport-/commandocore.
+De kernel bezit één vaste supervisor-RW/NX/UC-pagina op VA `0x3f180000`
+voor QEMU locality0 `0xfed40000`; geen willekeurige fysieke mapping, DMA,
+nieuwe gebruikersgrant of publieke syscall. De private niet-Copy-adapter
+doet begrensde volatile-kopieën, expliciete compiler-/CPU-fences en sticky
+quarantaine die geen nieuwe claim toestaat. Alleen de bootstrapfixture
+codeert één read-only GetCapability(TPM_PT_FAMILY_INDICATOR); geen crypto,
+NV-mutatie, sleutels of opslagpolicy in de kernel.
+
+De bestaande scheduler levert echte PIT-ticks aan iedere begrensde poll.
+Geen poll-countklok, drukke verborgen waitlus, automatische replay of
+fallback. Readiness, exacte response, bufferwissen, Idle en relinquish-ACK
+gaan vóór succes. Een aparte absent-case vereist weigering vóór enige
+hardwarewrite. De volledige bestaande CPL3-wacht-/rechten-/cleanupcontrole
+blijft gelden. Beide echte VM-runs zijn bij dit ontwerpcheckpoint nog open.
+
+Dit is een eerste MMIO-integratie, geen kernelgrant voor productapps,
+TPM-discovery, fysieke ondersteuning, vertrouwde boot, persistente
+sleutel-lineage of onafhankelijk rollbackanker. PR #64 houdt zijn eigen
+keyring/system-opslagwrites; dit experiment verandert die interface niet.
+QEMU v10.2.1 `hw/tpm/tpm_crb.c` is als primaire implementatie gelezen:
+https://github.com/qemu/qemu/blob/v10.2.1/hw/tpm/tpm_crb.c
+Register/buffer/Idle/locality-completion passen bij het bestaande contract.
+OSDev: *Memory mapped registers in C/C++*, W003198, revisie30402
+(24 maart2026), is alleen aanvullende uitleg; geen normatieve TCG-controle.
+Herzien vóór een productbroker, andere hardware of NV-commits. Rollback:
+opt-in features/fixture verwijderen; legacy profielen blijven ongewijzigd.

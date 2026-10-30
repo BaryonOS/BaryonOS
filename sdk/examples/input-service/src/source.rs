@@ -6,6 +6,10 @@ use nieuw_os_display_client::{
 use nieuw_os_input_core::wire::{self, Operation, Request};
 use nieuw_os_sdk_runtime::{Error, Outgoing, ReceiveEndpoint, SendEndpoint};
 
+#[path = "wait.rs"]
+pub mod wait;
+use wait::{Action, Interest, Plan};
+
 pub const EXCHANGE_TICKS: u64 = 200;
 pub const RESET_TICKS: u64 = 500;
 pub trait RawInput {
@@ -75,6 +79,13 @@ enum State {
     Reading,
     Failed,
 }
+#[derive(Clone, Copy)]
+enum Blocked {
+    Local,
+    Send,
+    Receive,
+    RawIdle,
+}
 pub struct Source {
     config: Configuration,
     next_request: u64,
@@ -83,6 +94,7 @@ pub struct Source {
     state: State,
     pending: Option<Exchange>,
     counts: Counts,
+    blocked: Blocked,
 }
 impl Source {
     pub fn new(config: Configuration) -> Result<Self, Fatal> {
@@ -100,10 +112,40 @@ impl Source {
             state: State::Begin,
             pending: None,
             counts: Counts::default(),
+            blocked: Blocked::Local,
         })
     }
     pub const fn counts(&self) -> Counts {
         self.counts
+    }
+    /// Call after step. An EAGAIN/Idle observation permits a wait; newly
+    /// created local work, reset polling and completed replies never do.
+    pub fn wait_plan(&self, now: u64) -> Result<Action, Fatal> {
+        if now < self.last_tick {
+            return Err(Fatal::Clock);
+        }
+        let mut plan = match self.blocked {
+            Blocked::Local => return Ok(Action::Run),
+            Blocked::RawIdle => Plan::until(self.last_tick.checked_add(1).ok_or(Fatal::Clock)?),
+            Blocked::Send | Blocked::Receive => {
+                let exchange = self.pending.as_ref().ok_or(Fatal::Protocol)?;
+                Plan::until(
+                    wait::expires_after(exchange.started, EXCHANGE_TICKS)
+                        .map_err(|_| Fatal::Clock)?,
+                )
+            }
+        }
+        .map_err(|_| Fatal::Clock)?;
+        if now >= plan.deadline() {
+            return Ok(Action::Run);
+        }
+        match self.blocked {
+            Blocked::Send => plan.add(Interest::Send(self.config.request)),
+            Blocked::Receive => plan.add(Interest::Receive(self.config.response)),
+            _ => Ok(()),
+        }
+        .map_err(|_| Fatal::Configuration)?;
+        Ok(Action::Park(plan))
     }
     fn exchange(
         &mut self,
@@ -167,7 +209,10 @@ impl Source {
                 }
             }
             State::Reading => match raw.read().map_err(Fatal::Raw)? {
-                None => Ok(Progress::Idle),
+                None => {
+                    self.blocked = Blocked::RawIdle;
+                    Ok(Progress::Idle)
+                }
                 Some(sample) => {
                     if sample.epoch != self.raw_epoch {
                         return Err(Fatal::Protocol);
@@ -193,6 +238,7 @@ impl Source {
                         Ok(()) => exchange.sent = true,
                         Err(error) if error.is_again() => {
                             self.counts.send_again = self.counts.send_again.saturating_add(1);
+                            self.blocked = Blocked::Send;
                             return Ok(Progress::Pending);
                         }
                         Err(error) => return Err(Fatal::Transport(error)),
@@ -200,7 +246,10 @@ impl Source {
                 }
                 let message = match io.receive(self.config.response) {
                     Ok(message) => message,
-                    Err(error) if error.is_again() => return Ok(Progress::Pending),
+                    Err(error) if error.is_again() => {
+                        self.blocked = Blocked::Receive;
+                        return Ok(Progress::Pending);
+                    }
                     Err(error) => return Err(Fatal::Transport(error)),
                 };
                 if message.cap_count() != 0 {
@@ -250,6 +299,7 @@ impl Source {
         raw: &mut impl RawInput,
         io: &mut impl Ipc,
     ) -> Result<Progress, Fatal> {
+        self.blocked = Blocked::Local;
         let result = self.advance(now, raw, io);
         if result.is_err() {
             self.pending = None;

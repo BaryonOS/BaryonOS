@@ -1,6 +1,677 @@
 # Actuele projectstatus
 
-## OVERDRACHT AAN VOLGENDE AGENT — PR #62 platformbeleidtest hersteld — 30 oktober 2026
+## NEXT AGENT HANDOFF — Zes reviewfixes en Windowsbewijs geïntegreerd; native herhaling volgt
+
+Vervolgbranch vanaf71c1d5c met d104fd9a7f33b478c3e1b43f8d99c6d65af73fd6
+inhoudsbehoudend geïntegreerd. Alle zes concrete reviewfixes samen; volledige
+Windowsbewijsmap blijft blob-identiek aan3f3f99e, bronoudeeabc/c532.
+Code v3 moet24d5f4c112924cfe45681de3fcf3a92f62087e29524f15c74e14d83620891abd
+blijven; geen experimentele coldhelper in tools opgenomen.
+Gerichte55/volledige138 tools-tests exit0, diff/progresswrite/check0.
+Logs `/tmp/nieuw-os-review-integrated-{targeted,tools}.log`.
+Daarna checkpoint
+push naar eigen vervolgbranch (PR66blijftc532) en echte normale referentie+
+gewone bedieningsproef op deze exacte codebasis. Coördinator krijgt exact
+broncommit/gates vóór mutatie van PR66. Score34;50% open.
+
+Derde koude experiment8096f0533e slaagt: vooraf renderer-afgeleid volledig
+lijstframe (Readyfooter, populatedlist), daarna exact reopenedframe, geen
+maskers of vaste gereedheidsdelay; disk onveranderd+diskoracle naquit0.
+Payload oudeeabc vastgehashd, hosttoolbron0e17… apart geregistreerd.
+Dit blijft sessieonderzoek, geen complete same-source acceptatierunner.
+
+## Uitvoeringshistorie — Windows-testversie afgeleverd; previewreviewfix apart
+
+Vervolgbranch `simon/native-interactive-cold`: previewfix e6eecbc en volledige
+Windowsbewijscommit 3f3f99e inhoudsbehoudend geïntegreerd (identieke Git-blobs)
+als e280311. PR #66-head blijft voorlopig c532ba8 voor coördinatorintegratie.
+Windowsbewijs: `verification/windows-qemu-interactive-1/README.md`.
+Werkelijk Windows-QEMU11.1/SDL/pc-q35-8.2/rng-builtin, 102.445s/raw0,
+zes volledige bytegelijke frames en zelfstandig diskorakel na QMP-quit.
+918 QMP-commando's opnieuw gecorreleerd door peer; geen menselijke audit.
+Bron blijft eabc27b/c532, v3a1998a12, NIET nieuwe previewfixbron.
+
+Lokale schone ZIP:
+`C:\Users\simon\Downloads\NieuwOS-testversie-eabc27b-20261030\NieuwOS-Windows-Interactive-1.zip`,
+2296965 bytes, SHA256
+b42be826377afb58f96c8178aa972128abad18ef7f9b4872e102a9e4a7e9ea57.
+Start: uitgepakt `NieuwOS\Start-NieuwOS.ps1` in dezelfde map, eigen state
+wordt pas door launcher gemaakt. Alleen synthetische ontwikkeldata; geen
+persoonlijke gegevens in deze plaintextfixture bewaren. Geen publicatie.
+De gast heeft expliciet read-only toegang tot de gebundelde ESP-directory
+via QEMU fat:esp en eigen statebacking; "geen hostmap" in het historische
+peerbewijs betekent geen algemene hostfileshare, niet afwezigheid van ESP.
+Coördinator herstelt die formulering in actuele packagingdocs.
+
+Preview stale-reportfix is lokaal52/135hostgroen, nog geen nieuwe native
+acceptatie op die gewijzigde v3. Coördinator doet vijf andere concrete
+packagingreviewpunten in eigen branch; geen gelijktijdige previewwriter.
+Koude experimenten blijven apart, geen volledige acceptatie. Volgende stap:
+reviewfixes op één vaste bron integreren en gerichte+native sourcegates;
+daarna koude normale variant met volledig renderer-afgeleid lijstorakel.
+**34% blijft34%; minstens50%, volledige product- en menselijke/hardwaregates open.**
+## Uitvoeringshistorie — Windowsbundelreview gecombineerd; integratiegates open
+
+Basis `e6eecbc28bb4e74d1b1c7c01b26f2ab249cf4291`, eigen branch
+`copilot/windows-review-fixes-20261030`. De peer-previewfix is inhoudsbehoudend
+fast-forward geïntegreerd; vijf overige concrete PR #65-reviewpunten zijn
+hersteld in packager/directe tests, Windowslauncher/test/README en het
+historische preview-README. Geen kernel-/capabilitywijziging. Uitvoerpad
+normaliseert `..` vóór mkdir en weigert symlinktraversal vóór en na mkdir;
+de launcher geeft een vaste fout voor een ontbrekend bundelbestand.
+Historische JSON-bewijzen blijven bytegelijk; geen ongefundeerde v3-,
+hostisolatie- of algemene Windowsacceptatieclaim.
+
+Uitgevoerd: 55 gecombineerde gerichte Python-tests, exit 0; vijf
+synthetische launchertests op echte Windows PowerShell 5.1/QEMU 11.1,
+exit 0, zonder VM of policywijziging. Eerste Pythonrun faalde door een
+inspringfout in de nieuwe test; na herstel slagen alle drie nieuwe
+padregressies en de bestaande tests. Exacte commando's, logs en grenzen:
+`verification/native-test-version/windows-bundle-review.md`.
+Voortgang **34% → 34%**; nieuwe native/CI-gates op deze gecombineerde
+bron zijn niet uitgevoerd. Linux-/Windows-interactiebewijs op eabc27b/c532
+wordt niet naar deze bron omgelabeld.
+
+GitHubtriage: issues #37/#38/#45 gesloten met bestaand bewijs of echte
+negatieve rulesetproef. #39–#43 blijven open; B03 heeft al native
+updatebewijs maar #41 vraagt ook nog sleutelrotatie/intrekking. Alle twaalf
+CI-checks van PR #62-head `f6d3a108` slagen; de nieuwe review loopt nog en
+de reviewbeslissing blijft `CHANGES_REQUESTED`. Geen reviewbypass.
+PR #66-head `c532ba8` had dertien groene checks, maar deze reviewfixes en
+Windowsbewijscommit `3f3f99e` moeten eerst inhoudsbehoudend worden opgenomen.
+PR #65 niet sluiten voordat zijn volledige inhoud én reviewafhandeling in
+de vervangende integratie zijn aangetoond. #68/#70–#73 hebben hun eigen
+actieve bron-/revieweigenaren; geen gelijktijdige bronwijziging door triage.
+
+Eerstvolgend: checkpoint pushen en remotehash controleren; eigenaar #66
+integreert daarna deze bron en het afzonderlijke Windowsbewijs, voert de
+vereiste nieuwe gates uit en houdt historische bewijsbinding intact.
+Squashmerge alleen op actuele head/base met groene vereiste checks en
+afgehandelde inhoudelijke review. Volledige release en 50%-doel blijven open.
+
+## Uitvoeringshistorie — Opvolgbranch: oud preview-succes bij voorbereiding geweigerd
+
+Vanaf c532ba88fbf0f53b960e9dbf77421cee29d97096 op
+`simon/native-interactive-cold`; PR #66-branch blijft exact c532ba8 voor review.
+Alleen `tools/run_materiaal_preview.py` en directe tests veranderen runtime-
+tooling: eigen rapportpad via private_path valideren en oud rapport verwijderen
+vóór build-/firmwarevalidatie. 52 gerichte/135 tools-tests exit0; bewijs
+`verification/native-test-version/preview-stale-report.md`.
+Geen nieuw native bewijs op deze v3; oude bewijzen niet omgelabeld.
+Coördinator verbose-sniffle doet overige vijf packagingreviewpunten in eigen
+opvolgcommit; beide previewbestanden expliciet bij deze integrator.
+
+Koude experimenten blijven voorlopig sessieartifacts, geen acceptatierunner:
+eerste lijstvergelijking rood door echte Ready/Saved-statusverschil.
+Tweede experiment volledig reopened-frame bytegelijk en disk onveranderd,
+maar initiële lijst niet gecertificeerd en vaste wachttijd gebruikt.
+Derde experiment moet een vooraf renderer-afgeleid volledig lijstframe
+zonder maskers toetsen; daarna strikt parent/artifact/trace-replay ontwerpen.
+Status/resultaat onder sessiefiles/cold-interactive-result.json.
+Windowspeer archiveert eigen echte zesfaseproef op vaste oude c532-kopie.
+**34% blijft34%; nieuwe gecombineerde sourcegates/50% open.**
+
+## Uitvoeringshistorie — Vaste interactieve bron groen; Windowsproef volgt
+
+Vrij te geven testbron `eabc27ba879fd3b5960863ae8eede800c5045a57`, v3
+`a1998a126a3a1ccc18523925a422912d934c14bab865b3d7df346862a2c251a6`.
+Na rustfmt beide echte gates opnieuw groen: referentie73611f4dbf
+133.320s/raw33; gewone zevenprocessenvariantc6f2a045aa
+92.390s/QMP-quit/raw0. Zes volledige frames exact bytegelijk en onafhankelijke
+diskcontrole na exit groen. Alle zeven appidentiteiten/platform gebonden.
+Bewijs/commando's: `verification/full-release-interactive-fixed/`.
+Gewone build: `build/native-test-version/interactive-current`;
+kernelhash f2e9cc4aad87ad2b9fbc8b498ab146db2ab0df4a77b904eecf81c3a9beb198b3.
+Geen bronwijziging nodig voor Windowspackaging; uitsluitend gewone variant,
+geen controller/probe-image. Peer krijgt aparte Windows-QEMU-opdracht met
+eigen artifact-/statepaden en expliciete Windowsbewijsgrens.
+
+CI-formatfouten hersteld: host-quality/display/foundation/RTC op eabc27b
+groen; meerdere andere jobs nog pending. Required-set nu host-quality
+groen en qemu-smoke pending; geen complete CI/mergeclaim.
+**34% blijft34%; Windows/ZIP, product-/menselijke-/hardwaregates en50% open.**
+Blijf onafhankelijk OS-werk doen zonder de vrijgegeven runtimebron te muteren.
+
+## Uitvoeringshistorie — CI-formatfix lokaal groen; nieuwe native bron vastzetten
+
+Vanaf bewijscheckpoint `8a401b9`: `cargo +1.90.0 fmt --all` wijzigt alleen
+de twee `cfg(any(...))`-attributen in `kernel/src/m2/m3/{display,ps2}.rs`.
+De derde probe-hook in desktop.rs was al correct geformatteerd.
+Geen gedrag/interface/rechten gewijzigd. Vier concrete CI-fouten waren
+PR-veroorzaakte rustfmt-fouten, geen transient infra of genegeerde gates.
+`LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu"
+python3 -B tools/dev.py cargo +1.90.0 fmt --all -- --check`: exit0.
+Zelfde omgeving met `CARGO_TARGET_DIR="$PWD/target/native-test-version/interactive-host"`
+en `python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --workspace`:
+exit0; log `/tmp/nieuw-os-interactive-format-workspace.log`.
+`python3 -B -m unittest discover -s tools/tests`: 132 tests, exit0,
+log `/tmp/nieuw-os-interactive-format-tools.log`.
+
+Na push beide native gates opnieuw uitvoeren, met expliciete reguliere
+OVMF CODE/VARS uit `.tools/nieuw-os/qemu/usr/share/OVMF`, de bestaande
+buildroots en dezelfde machine/VGA-ROM. Formatteren wijzigt bronhash v3;
+oud bewijs hieronder blijft geldig voor zijn oude bron, niet voor deze.
+Geen complete CI-succesclaim. **34% blijft34%; Windows/ZIP/50% open.**
+
+## Uitvoeringshistorie — Interactieve native keten groen; CI-formatfix volgt
+
+Op vaste bron `fc40347b250c544ab9838cf89a62df16b32a797b`, runtime v3
+`61f58e2e7c7a64e911883c64de5b2d416f7085af94123699fd206c7448ea2b5e`,
+slagen referentie `224bfa2ade` (136.326s/raw33) en gewone zevenprocessenrun
+`f07d8d122c` (92.774s/QMP-quit/raw0). Alle zes volledige PPM's bytegelijk,
+zeven apprecords/loader/bron/platform exact gebonden. Onafhankelijke disk
+na exit bevat object0/rev1/14B/generation1/clocks[1,0], canaries intact.
+Bewijs en exacte commando's: `verification/full-release-interactive-native/`.
+Eerste aanroep weigerde automatische firmware voor gaststart; expliciete
+reguliere OVMF met dezelfde hashes slaagt, geen oracle gewijzigd.
+
+CI is NIET groen: vier jobs op fc40347 falen door rustfmt van de drie
+overgenomen cfg-hooks. Eerst formatteerbaar herstel, fmt/hostgates en
+checkpoint/push, daarna dezelfde twee native proeven op nieuwe vaste bron.
+Peer is geïnformeerd: nog geen bundelbron vrijgegeven. Windows/ZIP, gewone
+koudrecovery, visuele/menselijke/hardwareacceptatie en50% blijven open.
+
+## Uitvoeringshistorie — Interactieve runner geïntegreerd; native gate volgt
+
+Integratie vanaf `8b199ad` met de volledige peerbranch
+`0887217360e924f94f3b86a52c3724cfdbe1c9ea`. Packager, launcher,
+eerdere raw bewijzen en opt-in strikte interactieve preview behouden.
+Schrijfgebieden zijn niet meer parallel bezet: peer is na oplevering gestopt.
+Huidige code vereist dezelfde nieuwe bron voor een volledige normale
+achtprocessenreferentie en de gewone zevenprocessenvariant. Exacte zes
+native frames en zeven appidentiteiten moeten passen, geen maskers,
+F12/controller of kleurenaantal als bedieningsorakel. Na QMP-quit/raw0
+volgt onafhankelijk diskorakel. Geen koudrecovery-/cleanupclaim voor de
+interactieve run. Kernelwijzigingen zijn uitsluitend correcte cfg-gates
+voor probe-only observatie; geen runtime-/rechtenversoepeling.
+
+49 gerichte hosttests en de volledige toolsuite slagen op deze combinatie
+(exit0; `/tmp/nieuw-os-interactive-integrated-{host,tools}.log`).
+Na checkpoint/push referentie normaal bouwen
+onder `build/native-test-version/interactive-reference` met targetcache
+`target/native-test-version/gui-baseline`, uitvoeren met pc-q35-10.0 en
+dezelfde expliciete VGA-ROM. Daarna `native-system-materiaal` bouwen onder
+`build/native-test-version/interactive-current` en previewrunner starten met
+`--interactive-reference-run` naar de echte geslaagde referentierun.
+Nog geen native acceptatie/ZIP op deze combinatie; **34% → 34%; 50% open**.
+Main-docscommit0ade801 is eveneens meegenomen; geen runtimecode gewijzigd.
+
+## Uitvoeringshistorie — B02-netwerk normaal/koud groen; interactieve variant volgt
+
+Gepushte basis `ec8275579fa07f70180452d325738304b2edb6ab`, runtime v3
+`4c472a18940ea6cd42a0f0d53d26f8c491c5204274c4b8a6b8d6070b659a79ad`.
+Op deze bron slagen nu ook vier echte netwerk-VM's: ARP/UDP/DNS normaal/koud
+(37,085/37,138 s) en TCP normaal/koud (7,148/6,971 s), allemaal raw33/exit0.
+Werkelijke peers/brokertellers, HTTP/EOF/refused/reset/checksumweigering/
+retransmissie/guesttimeout en ongewijzigde koude disk zijn onafhankelijk
+herverifieerd. Gates, exacte commando's, fouten en logs:
+`verification/native-test-version/b02-network-evidence.json`; captures
+`verification/full-release-native-wait-b02-{net,tcp}/`.
+
+Rust1.91.1 ontbrak aantoonbaar; daarna ontbraken gepinde smoltcp-crates bij
+offline retry. Alleen bestaande projectlokale compiler/none-target en
+locked dependencies hersteld, geen manifest/lock/defaultcompiler gewijzigd.
+**34% → 34%; N01/50% open.** Deze smalle clientproeven zijn geen volledige
+productnetwerkdienst of dagelijks Internet. Geen extra onderhoudscode.
+De peer bezit exclusief zijn previewrunner/directe tests voor de opt-in
+interactieve zevenprocessenketen; geen gelijktijdige schrijver.
+Volgende stap: zijn gepushte code integraal lezen/integreren, eigen native
+referentierun op dezelfde nieuwe bron bouwen en vervolgens echte
+interactieve edit/save/reopen met exacte app-/framebinding uitvoeren.
+Daarna Windowsbundel afzonderlijk toetsen; geen probe-image omnoemen.
+CI op ec82755 was bij laatste read nog gedeeltelijk pending; niet groen
+geclaimd of geblokkeerd afgewacht. Eerstvolgend commando:
+`git fetch origin && git log -3 --oneline origin/simon/windows-qemu-test-version`.
+
+## Uitvoeringshistorie — B02/main native groen; TPM-CI-compatibiliteit hersteld
+
+Bron `344f4972d6db72543dd6c04bf0f28668602a91fd`, v3
+`c03070ddbbe8d233f91512a97927adc54c06da2c480966c68983cc936d5e7341`:
+14 echte VM's groen: system normaal/koud, vijf B01, vier RANDOM, RTC en
+GUI normaal/koud (134,657/62,177 s, volledige cleanup). Eigen B02-capture
+herverifieert de werkelijke diskbytes en koude herstelrun onder
+`verification/full-release-native-wait-b02/`. Exacte commando's, fouten,
+bron-/rapporthashes: `verification/native-test-version/b02-integration-evidence.json`.
+
+Native-system-CI op deze bron faalde vóór de TPM-gast: Ubuntu24.04 heeft
+swtpm0.7.3 en weigert de optionele nieuwe `lock`-optie. PR-veroorzaakt
+runnerprobleem, geen kernel- of transportfalen. Portable dir-only-optie
+behoudt één verse private mode0700-state per eigen child en mode0600-socket.
+Vijf gerichte harnastests groen, inclusief private state/childcleanup.
+Beide echte TPM-VM's opnieuw raw33/exit0, runtime v3
+`4c472a18940ea6cd42a0f0d53d26f8c491c5204274c4b8a6b8d6070b659a79ad`
+(344f497 plus de twee runner/testbestanden). Normaal family0x322e3000,
+11931 writes/release; absent nul writes/sticky quarantaine; beide volledige
+CPL3-wachtacceptatie groen. Nieuwe CI met swtpm0.7.3 **nog niet uitgevoerd**.
+Geen check of assertie overgeslagen. GitHub meldt geen verplichte checks;
+de concrete eigen native-systemfout is desondanks hersteld.
+De capture bewaart ruwe Cargo-uitvoer met een bestaande lege eindregel:
+`git diff --cached --check` meldt die in `host/1.stdout.txt`. Die
+hashgebonden bewijsbytes zijn niet bijgeknipt; staged bytes apart
+vergeleken, overige bron/documentatiewitruimte wel gecontroleerd.
+
+**34% → 34%; 50% blijft open.** Windows-PR #65 blijft afzonderlijk; eigenaar
+bouwt nu alleen een strikte opt-in bedieningsproef voor de zevenprocessen-
+variant in zijn bestaande previewrunner. Nog geen ZIP/interactieve claim.
+Volgende stap: nieuwste CI-fout/status lezen zonder lopende runs af te
+wachten; daarna runnercode inhoudsbehoudend integreren, normale interactieve
+variant bouwen en bedienen op vastgelegde bron met exacte native
+referentieframes/apphashes. De oude automatische testversie blijft apart.
+Eerstvolgend commando: `GH_PAGER="" gh pr checks 66 --watch=false`.
+
+## Uitvoeringshistorie — B02/main gecombineerd; hertoets toen open
+
+Integratie vanaf `3f0845b83cdb5bf64386645a288b47ec09c424c5` met main
+`f52dab5` (PR #64). De code is gecombineerd; onderstaande 16 VM's en
+proefversie blijven uitsluitend bewijs van de oude bron. Main voegt apart
+admin-ingress en persistent keystate toe. De Key Service bewaart beide
+gedragingen: alleen legacy-ingress mag quiescent wachten; RANDOM en admin
+behouden hun bestaande yield/poll-pad, zodat werk op die endpoints niet
+achter een legacy-only wachtset blijft liggen. Geen nieuwe rechten buiten
+het main-B02-manifest en geen publieke ABI-wijziging. ADR-051 blijft B02;
+de branchlokale wacht-ADR is bij deze ID-botsing hernummerd tot ADR-053.
+
+Eigen samenvoegresolutie: `sdk/examples/keyring/src/service.rs`, README,
+status/assessment en DECISIONS; alle main-code, tests en brongebonden
+B02-bewijs behouden. Hosthertoets op de gecombineerde werkboom groen:
+`python3 -B -m unittest discover -s tests -p 'test_system_*.py'`
+(46 tests), `python3 -B -m unittest discover -s tools/tests` (102 tests),
+`LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" CARGO_TARGET_DIR="$PWD/target/native-test-version/wait-lifecycle-host" python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --workspace`
+(377 passed, 1 bestaande ignored), rootfmt en gerichte rustfmt van de
+Key Service; alle exit0. Logs `/tmp/nieuw-os-b02-merge-{system-host,tools-host,workspace}.log`.
+Native hertoets **nog niet uitgevoerd** op deze combinatie. Na checkpoint/push:
+`tools/test_system.py`, B01, RANDOM/klok en normale/koude GUI waar passend.
+Geen nieuwe punten: **34% → 34%; 50% blijft open**. Windowsbundel-PR #65
+blijft apart; pas na eigen interactief bewijs bron/image vastleggen.
+Eerstvolgend commando:
+`python3 -B -m unittest discover -s tests -p 'test_system_*.py'`.
+
+## Uitvoeringshistorie — 16 integratie-VM's groen; lokale proefversie gebonden
+
+Branch `simon/native-test-version`; basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`,
+geteste niet-GUI-bron `37a74784f71889d6ea41a230d756be16c1728ae8`,
+GUI-/proefversiebron `4bdc1a26171095f92ce03611b14a78b38706b062`, dezelfde v3
+`a6c4c723fbcc6a5b50eac17b91b77f66161c8555c6d916fd10b7826815acc4b5`.
+**34% → 34%; minstens 50% niet bereikt.** Beide echte TPM-VM's slagen
+raw33/exit0: vaste supervisor-UC/NX-MMIO, echte TPM2-familyquery, bevestigde
+release; zonder TPM exact nul writes en sticky quarantaine. Zeven
+adaptergrensweigeringen en beide volledige CPL3-wachtproeven blijven groen.
+Geen productgrant, NV-mutatie, sleutelpersistentie of rollbackanker geclaimd.
+Bronnen, exacte commando's, payloads, logs en eerste rode mapperpoging:
+`verification/native-test-version/tpm-evidence.json`.
+
+Op de gecombineerde runtimebron slagen opnieuw 16 echte VM's: zes K05-cases
+(inclusief twee Waiting-kills), beide FPU-profielen, system normaal/koud,
+RTC, IPC-wacht, TPM normaal/absent en GUI normaal/koud. Alle rapporten
+hebben dezelfde hierboven geverifieerde runtimebron. De volledige Rustworkspace slaagt nu:
+372 tests, 0 failed, 1 bestaande ignored. Ook 415 Python- en 102 tooltests,
+12 FPU-harnastests en root-rustfmt slagen. Geen CI-/hardwareclaim.
+Native-system-CI krijgt beide echte cases; die CI **nog niet uitgevoerd**.
+PR #64/keyring/system-opslag niet gewijzigd; PR #64 is inmiddels merged
+maar nog niet opgenomen in deze branch. Geen achtergrondagent of
+testproces actief. Eerdere GUI/koud/FPU/K05-bewijzen blijven brongebonden.
+Nieuwste normale lokale automatische proefversie:
+`build/native-test-version/test-version-current/esp`. Alle tien payloads
+en het manifest zijn bitgelijk aan de echte geslaagde normale GUI-run.
+Eerdere gedeelde hostharnassen op `f61ce3e`: 415 root-Pythontests en 102
+tooltests slagen. De volledige root-Rustworkspace faalde daarna op de
+reeds bekende ontbrekende HKDF-doctestdeps (367 unit/integratietests
+ervoor groen). Exact de bestaande PR #62-fix voor beide vendormanifesten
+is hergebruikt: alleen gepinde host-devdeps/lock, geen cryptobron,
+runtime-afhankelijkheid of PR #64-wire/systeminterface gewijzigd.
+Alle vijf gerichte HKDF/HMAC-doctests slagen nu. PR #62 is niet gesloten
+of samengevoegd; zijn overige preflightinhoud is niet overgenomen.
+De rode workspace-log blijft `/tmp/nieuw-os-native-tpm-regression-workspace.log`.
+De volledige workspace en bovengenoemde native integratie zijn inmiddels
+hertoetst; log `/tmp/nieuw-os-native-tpm-workspace-final.log` (27 s/exit0),
+native logs `/tmp/nieuw-os-native-tpm-*-final.log`.
+De nieuwe GUI-keten slaagt in 128,979 s: zes frames, edit/save/list/reopen,
+14 echte diskbytes en volledige cleanup. Koude readonly-heropening in een
+nieuwe VM slaagt in 61,100 s: drie frames, zichtbare writeweigering,
+nul writes/flushes en onveranderde disk. Beide raw33/exit0; geen
+deadlineverruiming of menselijke afwerkingsclaim. Bewijs en exacte commando's:
+`verification/native-test-version/gui-tpm-integration-evidence.json`;
+14 overige VM's/hostgates: `tpm-regression-evidence.json`.
+Volgende stap: onafhankelijke Windowsbundel-eigenaar informeren over deze
+exacte automatische variant (niet verwarren met blijvend interactieve
+`native-system-materiaal`), daarna PR #64/main-integratie afzonderlijk
+beoordelen en passende gewijzigde native gates herhalen. Eerstvolgend
+commando: `git fetch origin && git log --oneline HEAD..origin/main`.
+PR #65 bezit packaging/launcher/CI; niet tegelijk wijzigen.
+Gerichte doctestlog:
+`/tmp/nieuw-os-native-tpm-vendor-docs.log`.
+Volledige product-/menselijke-/hardwareacceptatie en 50%-opdracht blijven open.
+
+## Uitvoeringshistorie — TPM-CRB-MMIO gebouwd en eerste native herstel
+
+Branch `simon/native-test-version`, basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`;
+laatste bewijscheckpoint `cf020559b7771a221713f2fd676c1dbed0081c24`.
+**34% → 34%; minstens 50% niet bereikt.** Nu TPM-NATIVE-1: de bestaande
+TPM-core verbinden met een vaste supervisor-RW/NX/UC-aperture, exact
+begrensde volatile-I/O en echte PIT-polls. Alleen één read-only TPM2-
+familyquery, bevestigde release en een aparte absent-case; geen sleutel-,
+NV-, productgrant-, nieuwe ABI- of antirollbackclaim. ADR-052 en TPM-contract
+leggen de grens vast. PR #64 bezit keyring/system-opslag; niet aangeraakt.
+
+Eigen writes: root/kernel Cargo-manifest/lock, exact pagingseam,
+M3-testhook/nieuwe tpm_fixture, waitfixture-observer, buildkeuze,
+bestaande generieke runner plus nieuwe TPM-runner/hosttest en docs.
+De adapter wordt slechts eenmaal geclaimd; quarantaine blijft sticky.
+De bestaande twee CPL3-wachtapps en hun volledige orakels blijven behouden.
+Scalarbuild/ELF-inspectie exit0 (`/tmp/nieuw-os-native-tpm-build.log`),
+23 bestaande TPM-coretests exit0 (`/tmp/nieuw-os-native-tpm-core.log`),
+4 gerichte TPM/IPC-harnastests exit0. Eerste metadata-aanroep weigerde
+terecht een geneste workspace; tpm-crb nu zoals rtc expliciet uitgesloten,
+alleen één bestaande lokale dependency toegevoegd aan root-lock.
+
+De omgevingagent leverde een lokale officiële swtpm0.10.1/libtpms0.10.2-
+prefix en bevestigde QMP-readiness met de juiste ctrl-Unixsocket; zijn
+eerste data-socket/alive-only-proef was onvoldoende en is niet als native
+bewijs gebruikt. Geen agent of testproces meer actief.
+Eerste native poging op `8e4e29a` faalde raw35 vóór TPM-I/O: de nieuwe
+caller herhaalde ten onrechte de bootstrap-only `map_tables`, wat bestaande
+leafmappings terecht weigert (pagingregel334). De runtime-MMIO-seam gebruikt
+al het bestaande scratchpad voor nieuwe tabellen, zoals keyring/m5.
+Die dubbele bootstrapaanroep is verwijderd; mapperchecks zijn ongewijzigd.
+Rode run `tpm/run/tpm-normal-ddf088b0dc`; hertoets nog open.
+Eerstvolgend commando na checkpoint:
+`LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR="$PWD/build/native-test-version/tpm" NOS_TARGET_DIR="$PWD/target/native-test-version/tpm" python3 -B tools/dev.py python3 -B tools/run_tpm.py --case normal`
+Daarna dezelfde opdracht met `--case absent`; bij falen echte serial lezen.
+Eerdere GUI/koude proefversie, FPU en zes K05-cases blijven brongebonden
+hieronder. Volledige product-/menselijke-/hardwareacceptatie en 50% open.
+
+## Uitvoeringshistorie — Waiting-kill en schoon slothergebruik native groen
+
+Branch `simon/native-test-version`, basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`.
+Geteste bron `586c33c2db2cd3c349612246f81e1470822aef3b`, v3
+`5414d89744c29995ac028c7e112958404077b93e1561263469928dea027f2c29`.
+**34% → 34%; minstens 50% nog niet bereikt.** Alle zes echte K05-cases
+slagen raw33/exit0; inclusief twee kills van werkelijk Waiting kinderen,
+vier exacte weigeringen, vers PID/hetzelfde slot, geen geërfde deadlinewake
+en volledige cleanup. Vier blokkeringen, twee deadlinewakes, 84 idle-IRQ's.
+De drie eerdere rode pogingen blijven bewaard. Geen gewijzigde productie-
+rechten, kill-, cleanup- of schedulermechanismen. Bewijs en exacte commando:
+`verification/native-test-version/wait-lifecycle-evidence.json`.
+
+Eerder geslaagde normale/koude GUI, IPC, FPU, system en RTC houden hun
+eigen bronbinding; de normale lokale QEMU-proefversie staat in
+`build/native-test-version/test-version/esp`. Geen nieuwe punten, fysieke
+hardware, menselijke acceptatie of volledige productrelease geclaimd.
+Actuele overlapcontrole: PR #64 bezit persistente keyring/system-
+opslagstappen; dat werk niet dupliceren. Geen achtergrondagent of schrijver.
+Volgende stap: onafhankelijke bestaande TPM-CRB-blokkade afbakenen, zonder
+PR #64 te overschrijven; eerst `git status --short` en de TPM-contracten lezen.
+De brede opdracht blijft open; volledige matrix en 50%-doel niet aftekenen.
+
+## Uitvoeringshistorie — GUI/koude proefversie en echte FPU-wacht
+
+Branch `simon/native-test-version`; basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`,
+eerder gevalideerde code `deb7a3d5c1c72a2fc816a5900062f9ed0d554782`, integratiebewijs op
+`36cbd215e03becbc4b495ae1b3a42b844603e0fa`, bron v3
+`31c1f108e52336c222c1a9541dc91edd06c291c05eedbc88dec03d8df658bf9f`.
+**Score 34% → 34%; gevraagde 50% niet bereikt.** Alle agents klaar; geen
+achtergrondwerk of gedeelde schrijver. Werkbranch/codecheckpoints gepusht.
+
+Native `test-fpu-wait` en de aparte legacy-FPU-baseline slagen beide raw33
+op deze code. De combinatie meet 41 echte blokkeringen/deadlinewakes,
+36 idle-IRQ's, 347 echte user-timerinterrupts en exact 456 saves/restores,
+drie schone proceslevensduren, AVX-appfault/survivor/verse PID3, volledig
+frame-/context-/Engineherstel. Vier eerdere failures blijven bewaard;
+geen scheduler-, entryassembly-, rechten- of productdeadlineversoepeling.
+Bewijs/commando's: `verification/native-test-version/fpu-wait-evidence.json`.
+
+Definitieve hertoets op `36cbd21`: echte GUI-edit/save/list/reopen raw33 in
+128,857 s; koude readonly-heropening raw33 in 60,679 s met bytegelijke disk,
+zichtbare weigering en nul writes/flushes. Ook system normal/recover, RTC
+en gewone IPC-wacht zijn op die bron opnieuw raw33 geslaagd. Alle bronnen,
+commando's en hashes staan in `verification/native-test-version/integrated-evidence.json`.
+Lokale normale proefversie: `build/native-test-version/test-version/esp`,
+nu opnieuw gebouwd op die code; alle tien loader/kernel/userspace-payloads
+zijn bitgelijk aan de geslaagde normale run. Core: 64 tests en 1 bestaande
+ignored; SDK: 23 tests, beide offline/locked exit0.
+
+Actieve kleine stap vanaf `686e847`: kill van een nog Waiting proces met de bestaande
+K05-procesrechten, stale-handleweigering en vers slothergebruik. De bestaande
+`supervisor::kill` loopt al via echte KILL-rechten en normale cleanup; lees
+nu uitsluitend die fixture/apps/runner voor een afgebakende native proef.
+Schrijfbestanden: kernel-feature/supervisor-fixture, SDK-supervisorprotocol/
+worker/supervisor, buildkeuze, bestaande K05-runner/gate/hosttest,
+`process-management.yml` en bewijsdocs. Geen wijziging aan kill-afdwinging,
+scheduler, cleanup of publieke ABI. Eén eigenaar, geen achtergrondtaak.
+De nieuwe case vereist twee echte Waiting-kills, Process-derive zonder DERIVE
+en endpoint-killweigering,
+stale status/kill na vers PID/slothergebruik, geen overgenomen oude wake,
+lege Engine en volledig frameherstel. Acceptatie: protocol-/harnastests,
+scalarbuild en alle zes echte K05-cases; score blijft zonder nieuw criterium34%.
+De nieuwe scalarbuild/ELF-inspectie, 8 K05-harnastests, 1 protocolhosttest,
+root-formatcheck en diffcheck slagen, exit0. De echte nieuwe lifecycle-VM
+is bij dit codecheckpoint **nog niet uitgevoerd**. Buildlog:
+`/tmp/nieuw-os-native-wait-lifecycle-build.log`.
+De zes-casesrun op `dcb6b12` geeft vijf echte groene legacy-VM's, maar de
+nieuwe case faalt raw35/step104: de proef nam ten onrechte aan dat een
+Process-rootcap DERIVE bezat. Het bestaande contract geeft alleen
+`OBSERVE|KILL`. De proef verwacht nu juist EINVAL op die derivepoging en
+ETYPE op een endpoint-kill; beide stale-handleweigeringen blijven.
+Geen rechten verruimd. Hertoets volgt; rode run:
+`wait-lifecycle/run/supervisor-wait-208a0949b3`.
+De bestaande ongebruikte `Incoming::Denied`-payloadwaarschuwing is niet
+onderdrukt of als groene Clippy-controle voorgesteld.
+Ook de hertoets op `d4b6ebc` hield de nieuwe case terecht rood op step104:
+DERIVE is voor Process een ongeldige objectrechtklasse (`EINVAL`), niet
+slechts een ontbrekend toegestaan recht (`EACCESS`). Dit volgt uit de
+ongewijzigde `Engine::require`; de proef eist nu exact EINVAL. Alle vijf
+legacy-VM's slaagden opnieuw. Rode run:
+`wait-lifecycle/run/supervisor-wait-b0dfc7215f`; hertoets volgt.
+Op `1414ca0` passeert de proef die exacte negatieve checks en de eerste
+Waiting-kill, maar faalt vervolgens raw35/step47: de nieuwe caller sloot de
+Process-handle zowel in `kill_and_confirm` als in `drop_worker_caps`.
+Zij gebruikt nu de bestaande `kill_and_confirm_keep`; alleen de bestaande
+eigenaar `drop_worker_caps` sluit de handle. Geen productie- of
+orakelversoepeling; rode run `supervisor-wait-26d9a193e9`, hertoets volgt.
+Open: overige native/productmatrix,
+fysieke en menselijke acceptatie. Testfixtureplaintext is geen persoonlijke
+opslag-/encryptie-/releaseclaim. Nieuwe concept-PR is niet geopend omdat de
+app-sessie aan de oudere infra-branch is gebonden; geen CLI-omweg gebruikt.
+
+## Uitvoeringshistorie — koude GUI en opbouw van de FPU-wachtproef
+
+Branch `simon/native-test-version`, basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`;
+code `2066ae7ccb25ac9e5e23eb81ec79a7286699a8ec`, laatste bewijsbron
+`de541fab03aba0ed850ba65a8cdaa549e265d521` (alleen docs gewijzigd).
+Score **34% → 34%; gevraagde 50% niet bereikt**. Geen criterium versoepeld.
+Alle deelagents zijn klaar; er is geen achtergrondwerk of gedeelde schrijver.
+
+De echte normale QMP-keten slaagt in 131,561 s/raw33: zes frames,
+muis/toetsen, save/list/reopen, 14 werkelijke diskbytes en volledige cleanup.
+Een geheel nieuwe readonly-VM op dezelfde disk slaagt in 60,769 s/raw33:
+document heropend, write zichtbaar geweigerd, nul writes/flushes/ACK's,
+diskhash onveranderd, nul achtergebleven processen/handles.
+Bewijs/commando's: `verification/native-test-version/{gui-normal,gui-recover}-evidence.json`
+en de README aldaar. Synthetische plaintextfixture; geen release-/encryptieclaim.
+
+Lokale normale proefversie: `build/native-test-version/test-version/esp`,
+met manifest en acht ELFs onder dezelfde buildroot. Loader/kernel/acht ELFs
+zijn bitgelijk aan de geslaagde normale run. De oorspronkelijke `gui-idle/esp`
+bevat nu het readonly-herstelprofiel; de normale run houdt eigen bevroren inputs.
+Recovery vereist parent én herstelrun in dezelfde beheerde build/run-root;
+de eerdere poging met aparte root is vóór gaststart geweigerd.
+
+De bestaande gezamenlijke normal/recover-poort en legacy-FPU-poort slagen
+op `3064b1a`, alle drie VM's raw33. Logs:
+`/tmp/nieuw-os-native-{system,fpu}-regression.log`.
+
+Volgende kleine codeproef: `test-fpu-wait`, afzonderlijk van de bestaande
+FPU-baseline. Schrijfgebied: kernel-feature/FPU-fixture en M3/M4-fixtureselectie, FPU-assemblyprobe,
+buildselectie, bestaande FPU-runner/hosttests, native workflow en bewijsdocs.
+Vervang uitsluitend in dit profiel de bestaande yield door een echte
+deadlinewait; controleer de volledige x87/SSE-bank vóór/na blokkeren,
+echte idle-IRQ's, timerpreëmptie, appfault, slothergebruik en cleanup.
+Geen wijziging aan de productie-wacht, scheduler of publieke ABI.
+Acceptatie: `tools/test_fpu.py`, normale én wait-FPU build/run en bestaande
+GUI-keten na integratie; geen hosttest als native bewijs.
+De implementatie en 12 gerichte hostverifier-tests zijn gereed, exit0;
+ook `cargo +1.90.0 fmt --all -- --check` en `git diff --check` slagen.
+Nieuwe native variant **nog niet uitgevoerd** vóór dit codecheckpoint.
+De exacte legacy-regressies staan in `regression-baseline.json`.
+De eerste native build op `dedeacd` is terecht geweigerd: `ipc-wait` activeert
+M4, terwijl FPU nog uitsluitend M3 toeliet; daardoor werd ook de verkeerde
+IPC-fixture-ELF vereist. De expliciete testcombinatie staat nu M4-mechanismen
+toe maar sluit uitsluitend de generieke M4-acceptancefixture uit. Engine,
+IPC-afdwinging en schedulerbody zijn niet gewijzigd. De nieuwe build en
+format/diff-check slagen; runtime blijft nog open bij dit checkpoint.
+Foutlog: `/tmp/nieuw-os-native-fpu-wait-attempt1.log`;
+buildlog: `/tmp/nieuw-os-native-fpu-wait-build.log`.
+Ook 100 tools- en 414 Python-hosttests zijn opnieuw exit0 geslaagd.
+De eerste daadwerkelijke wait/FPU-run op `a263bef` faalde raw35 na de echte
+AVX-fault: de nieuwe M4-compositie miste PID-registratie voor de algemene
+cleanup. De fixture registreert nu PID1/2 en de verse PID3, zonder rechten
+te geven, en eist na afloop een volledig lege, consistente Engine.
+Geen wijziging aan process-exit of capability-afdwinging. Hertoets volgt;
+de mislukte run blijft onder `fpu-wait/run/test-fpu-wait-e442556248`.
+De gewone IPC-wachtpoort en native RTC-poort slagen wel op `a263bef`, raw33.
+De hertoets op `61a507e` bereikte echte fault/survivor/slothergebruik, maar
+faalde terecht op `TIMER_PREEMPTION`: deadline-idle alleen bewijst geen
+timerinterrupt op levende user-FP-registers. De wachtvariant houdt daarom
+per lus meer echte userspace-busyinstructies aan (1.000.000 versus de
+ongewijzigde 50.000 in de yield-baseline). De eis van minstens twee echte
+user-timerinterrupts per app blijft intact; nieuwe run volgt. Rode run:
+`fpu-wait/run/test-fpu-wait-922d54455a`.
+Op `a597db8` slaagt die echte userpreëmptie-eis, maar de oudere FPU-tellerrelatie
+was nog onjuist voor idle: totale IRQ0's bevatten ook CPL0-idle, terwijl de
+assembly daarvoor terecht geen user-FXSAVE/FXRSTOR uitvoert. Het orakel eist
+nu exact totaal=user-A+user-B+idle en saves=user-A+user-B+syscalls+fault,
+plus dezelfde restoregelijkheid. Hosttests weigeren ook de foutieve oude
+relatie en ten onrechte toegevoegde idle-saves. Geen assembly gewijzigd.
+Rode run: `fpu-wait/run/test-fpu-wait-1058905b5d`; nieuwe hertoets volgt.
+
+Open: native kill/hergebruik en FPU met wachten, overige native regressies,
+volledige product-/menselijke-/hardwareacceptatie. Eerstvolgende commando:
+`NOS_BUILD_DIR="$PWD/build/native-test-version/system" NOS_TARGET_DIR="$PWD/target/native-test-version/system" python3 -B -u tools/test_system.py`
+met de bestaande lokale `LD_LIBRARY_PATH`; daarnaast de workflow-FPU-poort.
+Nieuwe concept-PR blijft geblokkeerd door de aan de oude infra-branch gebonden
+app-sessie; de OS-werkbranch is apart gepusht. Geen voltooiingsclaim.
+
+## Uitvoeringshistorie — integratie van de native testversie
+
+Basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00` (main, inclusief RTC-PR #63),
+branch `simon/native-test-version`. De eerdere infrastructuurtaak blijft
+afzonderlijk in PR #62. Doel: OS-code en een echt gedraaide QEMU-testversie;
+de gevraagde **minstens 50% is niet bereikt; score blijft 34%**.
+
+Concrete blokkade: de bestaande Materiaal-proef overschreed op `9596abc`
+de ongewijzigde 20.000-PIT-tickgrens voordat de echte documenthandeling
+voltooid was. In plaats van budgetten te verruimen wordt de al aanwezige
+componentbranch voor begrensde IPC-wacht geïntegreerd (`ae3f022`, `2b286d2`,
+`57b6e93`). De integratie behoudt de nieuwere stackbereikvalidatie en RTC;
+de wacht-ABI wordt 1.10 omdat 1.9 al de RTC-klok betekent (nu ADR-053).
+Productprofielen gebruiken de nieuwe wacht nog niet.
+
+Schrijfgebieden hoofdagent: capability-core-hostharnas, kernel-wacht/
+scheduler/fixture/featureselectie, SDK-ABI, bestaande inputconsument,
+`tools/build.py`, nieuwe native wachtgate en status/bewijs. Een builder
+werkt uitsluitend aan `sdk/examples/ipc-wait-probe/**` voor de eigen
+CPL3-proef; geen gedeelde schrijvers. Omgevingsherstel schrijft uitsluitend
+genegeerde `.tools/nieuw-os/**`; strict preflight is inmiddels exit 0.
+
+Gerichte eerste controle, alle exit 0 (Rust 1.90.0, offline/locked):
+`CARGO_TARGET_DIR="$PWD/target/native-wait-checks"`, plus
+`LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu"`,
+voor ieder volgend `python3 -B tools/dev.py cargo +1.90.0`-commando:
+
+- `test --offline --locked -p capability-core`: 57 coretests en 7 tests
+  van de echte kernel-wachtdecoder/evaluator; 1 bestaande benchmark ignored.
+- `test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime`:
+  23 tests; daarna is uitsluitend de aanvullende ABI-1.10-procesassertie
+  toegevoegd en moet die nog opnieuw worden uitgevoerd.
+- `test --offline --locked --manifest-path sdk/examples/input-service/Cargo.toml`:
+  23 tests, inclusief per-app foutisolatie en echte queue-readiness.
+
+Logs: `/tmp/nieuw-os-native-wait-{core,sdk,input}.log`.
+Probecheckpoint op `76a8a1e16dad4a04841eeb745546a9bca91d1e4a`: de aparte
+tweeprocessen-ELF is gereed en crosscompiled (door builder, nog geen boot).
+De hoofdagent herhaalde de 3 probe-hosttests en 2 verifier-tests: exit 0.
+414 bestaande Python-harnastests en 100 tools-tests slagen, evenals gerichte
+Clippy voor capability-core, SDK-runtime en inputconsumenten (`-D warnings`).
+De kernel verlangt exacte rolmaskers `0x3f`/`0x3c`, werkelijke wake-/idle-
+counters en de nog volle 16-berichtenqueue na revoke; geen alleen-PASS-orakel.
+
+Native wachtpoort **geslaagd**, exit 0/raw 33, 4,142 s:
+`LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" NOS_BUILD_DIR="$PWD/build/native-test-version/wait" NOS_TARGET_DIR="$PWD/target/native-test-version/wait" python3 -B -u tools/run_ipc_wait.py`.
+Echte queue-/revoke-/FIFO-/pointer-/deadlinegevallen; 14 blokkeringen,
+7 ready-wakes, 6 deadline-wakes, 1 revoke-wake en 199 echte idle-IRQ0's.
+De probe vond een bestaande lifecyclebug: audit_process las mappings van
+een reeds vrijgegeven eerder processlot. Alleen levende slots worden nu
+op overlap gecontroleerd; alle overige ownership/W^X-checks blijven staan.
+Eerste poging raw 35 faalde daarop; tweede raw 33 werd terecht door de
+hostpoort geweigerd wegens ontbrekende M2-bootstrapverwachting; de derde
+eist ook die echte markering en slaagt. Logs/fingerprints staan in
+`verification/native-test-version/wait-evidence.json`; geen foutpoging is
+als geslaagd voorgesteld. QEMU meldde nog een ontbrekende optionele
+kvmvapic-ROM-zoekpadinput; die stderr is bewaard.
+De lokale ROM-zoekpadlinks en officiële Ubuntu VGA-ROM zijn daarna hersteld,
+zonder tracked toolwijziging. Een gerichte AI-review vond bovendien dat
+invalid-return-cleanup na de eerste waitrefresh een foutwake één PIT-tick
+kon uitstellen. De selectielus herstart nu onmiddellijk bij refresh na
+zulke cleanup; deze laatste correctie moet nog native worden herhaald.
+Het specifieke owner-invalidreturn/blockedSEND-scenario blijft apart open.
+
+Hertoets op gepushte `ab98d1a169f21eca6b5d64d25160462b5c36dc3f`:
+de wachtpoort en bestaande native `test-m3-invalid-rsp` slagen beide raw33.
+De legacyproef behoudt survivor-progress, cleanup en DF-entrybewijs.
+De GUI-nulmeting op die bron faalt zoals verwacht na 202,396 s/raw35 op
+de ongewijzigde 20.000-PIT-tickgrens: drie echte frames, 4 muis-events,
+28 key-events, 32 input-ACK's, 14 getypte bytes, nog geen save.
+Run: `build/native-test-version/gui-baseline/run/materiaal-normal-f5b3033777`.
+
+Vervolgens alleen de bestaande Materiaal-profielen op `ipc-wait` gezet en
+de drie GUI-daemon-entrychecks compatibel gemaakt met exact ABI1.8/1.10.
+Inputplanners/tokens, SUR1, appgedrag, kernelbudget en runner blijven intact.
+15 compositor- en 15 desktop-init-hosttests slagen; de nieuwe echte
+Materiaal-ELFs en kernel zijn gebouwd/geïnspecteerd. De offline build miste
+eerst de reeds vastgepinde fontdependency; `cargo +1.90.0 fetch --locked
+--manifest-path sdk/examples/materiaal/Cargo.toml` via tools/dev.py herstelde
+de lokale downloadcache, zonder manifest- of dependencywijziging.
+
+De input-only-wachtproef op `acd413c836568d1a9c437ffd61edd0e4a8e56e22`
+faalt eveneens: 202,363 s/raw35, opnieuw drie frames en geen save. Dat is
+geen gemeten performanceherstel. Beide rode runs zijn met bron-/loghashes
+bewaard in `verification/native-test-version/gui-attempts.json`.
+
+Volgende afgebakende stap: ook de werkelijk quiescente keyring-, volume-
+en desktop-init-diensten laten wachten in plaats van lege IPC rondpompen.
+Keyring wacht alleen zonder RANDOM-ingress/pending-randomwerk; volume
+alleen nadat alle synchrone disk-/replyhandelingen klaar zijn; desktop-init
+alleen in Running zonder pending/actieve stop. Controller houdt zijn lokale
+F12-triggerpolling. Nieuwe klok-/waitfouten falen expliciet via bestaande
+servicefoutpaden; ABI1.8 behoudt het oude pad. Geen wijziging aan rechten,
+SUR1, useractie, save-ACK, deadlines of renderer.
+100 keyring/volume-hosttests en 21 desktop-init-tests slagen, inclusief
+6 nieuwe echte Engine-/quiescentiegevallen. Service-native-Clippy,
+desktop-Clippy en scalar-doelbuilds zijn groen. Het samengestelde
+GUI-idle-image is gebouwd/geïnspecteerd.
+
+**Native GUI-normaalpad nu geslaagd op `2066ae7ccb25ac9e5e23eb81ec79a7286699a8ec`**:
+exit0/raw33 in 131,561 s binnen het ongewijzigde budget. De echte QMP-keten
+doorloopt ready → editor → dirty → saved → list → reopened: 6 frames,
+9.737 tile-ACK's, 40 key-events, 4 muis-events, 44 input-ACK's, één save-ACK.
+De gast schrijft en herleest werkelijk `nieuw os werkt` (14 bytes), revisie1;
+diskcanaries en systeemrand blijven intact. F12/stopketen eindigt met nul
+processen/handles en herstelde frames. Geen renderer-, digest-, timeout-
+of orakelversoepeling. Compact bewijs: `gui-normal-evidence.json` onder
+`verification/native-test-version/`. Het betreft een synthetische plaintext-
+fixture, geen versleutelde persoonlijke opslag of volledige GUI-release.
+Het normale ESP is bewaard onder `build/native-test-version/test-version/esp`.
+
+De daaropvolgende koude readonly-heropening is geslaagd: zie het actuele
+handoff en `gui-recover-evidence.json`. De runner vereist bewust dezelfde
+buildroot als de parent; het aparte `gui-recover`-pad is niet gebruikt voor
+de geslaagde run. Native kill/hergebruik, FPU met wachten, brede native gates
+en complete testreleaseacceptatie blijven open.
+De werkbranch is gepusht. Een nieuwe concept-PR is nog niet geopend:
+de app-sessie is aan de oudere infrastructuurbranch gebonden, terwijl
+de OS-werkbranch bewust apart staat; de sessie-PR-tool kan geen andere head kiezen.
+Geen nieuwe voortgangspunten, geen menselijke/hardware-/releaseacceptatie.
+## Historisch checkpoint — PR #62 platformbeleidtest hersteld — 30 oktober 2026
 
 Basis `f6d3a108c8b53debd5a8d5415a46ce0772794020`; branch
 `simonvanieperen-studious-sniffle`. De nieuwe review vond terecht dat de
@@ -238,6 +909,81 @@ en export is er geen write-ahead in de dienst; crash tussen `KEYS_READY` en
 Eerstvolgende stap: review van de concept-PR en CI op de head; daarna
 write-ahead van allocaties in de Key Service via de volumetransactie en een
 echt rollbackanker (TPM-CRB-spoor) als volgende B02-stap.
+## Uitvoeringshistorie — Windows-QEMU-testversie — 30 oktober 2026
+
+Basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00` (`origin/main`), branch
+`simon/windows-qemu-test-version`; codecheckpoint `f777f7a`. De opgegeven
+Windows-map `C:\Program Files\qemu` wordt automatisch herkend door
+`tools/windows-qemu/Start-NieuwOS.ps1`; de instructies tonen ook expliciet
+`-QemuPath "C:\Program Files\qemu\qemu-system-x86_64.exe"`.
+
+**Packageraanvulling op basis `8f4fb3a`:** de packager hercontroleert de
+werkelijk ingelezen kernel-/loaderbytes tegen het native buildmanifest en
+de bronvingerafdruk vlak vóór archivering. Een wijziging tussen validatie
+en kopiëren geeft een fout zonder ZIP. 33 gerichte/bestaande hosttests,
+Python-syntax en diffcontrole slagen (exit 0), inclusief stale-source-,
+ESP-symlink- en artifactwisselweigering. Alleen synthetische testarchieven
+zijn aangemaakt en door TemporaryDirectory opgeruimd.
+
+Op bron `5b808653c40409a661c5382173da314db1961c11` slaagt daarnaast
+`python3 -B -m unittest discover -s tools/tests -p 'test_*.py'` met
+111 tests (exit 0, 3,843 s); log `/tmp/nieuw-os-windows-qemu-tools-tests.log`.
+Verwachte negatieve testmeldingen in dat log zijn geen echte nieuwe VM-runs.
+Read-only afstemming met de integratiesessie is afgerond: hergebruik de zes
+normale QMP-bedieningsgroepen zonder F12, maar certificeer hun fasen alleen
+met passend bevroren native pixels; niet met de probe-only snapshots.
+Na QMP-quit volgt onafhankelijk `disk_oracle`. Nog geen runneruitbreiding,
+OS-bronvervanging of bundel; integratiesessie bezit de bevroren runtimebron.
+
+**Windows-launchercontrole op basis `19f2d33` met CheckOnly-wijziging:**
+de gekoppelde QEMU-installatie is werkelijk bereikbaar via Windows PowerShell.
+QEMU 11.1.0 biedt `rng-builtin` en SDL. Vijf echte PowerShell-launchertests
+slagen met synthetische bestanden: expliciet pad, standaarddetectie, gewijzigde
+kernel, ontbrekende kernel en verkeerd probeprofiel. Geen VM gestart of
+VM-state gemaakt. Directe UNC-uitvoering werd door RemoteSigned geweigerd;
+lokaal gestagede eigen scripts werken zonder policywijziging.
+`verification/windows-qemu-preview/windows-launcher.md` bewaart de scope en
+resultaten. De launcher heeft nu `-CheckOnly` en controleert alle verplichte
+bundelbestanden tegen grootte/SHA-256; dat is geen handtekening. PR #65 blijft
+concept. Volgende stap: afstemming van de afzonderlijk geteste interactieve
+integratiebron, dan bundel bouwen en echte Windows-VM/bediening toetsen.
+
+**Update native preview:** de eerste run faalde na 45 s door een onterechte
+vaste Source/Policy-volgorde in het hostorakel, niet door ontbrekende
+gastmarkers. De runner is hersteld: boot/manifest blijven geordend, alle
+readinessmarkers moeten precies eenmaal verschijnen. Herbouw en herhaling
+slagen met runner exit 0/QEMU exit 0 na QMP-quit, 3,874 s en een echt
+800×600-frame met 310 kleuren. 31 hosttests slagen. Beide oorspronkelijke
+rapporten en seriële logs staan in `verification/windows-qemu-preview/`;
+uitvoeringsbasis `6ec0bac` met readinessfix, exacte v3-bronbinding in rapport.
+De optionele `kvmvapic.bin`-ROM ontbreekt lokaal; boot slaagt, geen claim van
+foutloze firmwareconfiguratie. Geen ZIP gemaakt; de nieuwere GUI-/koudbewijsbron
+`simon/native-test-version` wordt eerst met de andere sessie afgestemd.
+
+Geïmplementeerd: beperkte packager valideert het echte normale
+`native-system-materiaal`-buildmanifest, alle zeven embedded app-ELF's,
+firmware/licentiebestanden en maakt een hashgebonden ZIP. De launcher start
+een netwerkloze QEMU-VM met een lege synthetische schrijfbare documentimage,
+read-only ESP, lokale OVMF-state, zonder hostmappen/-schijven. De CI-workflow
+bouwt en voert de eigen kernel uit, controleert native readiness en echte
+framebufferbytes en bewaart de testbundel als tijdelijk artifact. QEMU zelf
+wordt niet meegeleverd.
+
+Geslaagd vóór deze overdracht:
+
+- `python3 -B -m unittest tools.tests.test_materiaal_preview tools.tests.test_package_windows_qemu` — exit 0, 9 tests.
+- `python3 -B -m unittest tools.tests.test_materiaal_preview tools.tests.test_package_windows_qemu tools.tests.test_materiaal_probe` — exit 0, 29 tests.
+- `python3 -B -m py_compile tools/run_materiaal_preview.py tools/package_windows_qemu.py tools/tests/test_materiaal_preview.py tools/tests/test_package_windows_qemu.py && git diff --check` — exit 0.
+- `. .tools/nieuw-os/rtc-env.sh && python3 -B tools/preflight.py --strict` — exit 0.
+- Met geïsoleerde `build/windows-qemu` en `target/windows-qemu`: `python3 -B -u tools/build.py --kernel-feature native-system-materiaal` — exit 0, zeven apps en ELF's geïnspecteerd, geen waarschuwingen; volledig log `/tmp/nieuw-os-windows-qemu-build.log`.
+- Lokale QEMU 10.2.1 bevestigt `rng-builtin`; de host biedt alleen de `none`-displaybackend. De previewrunner gebruikt headless QMP; dit bewijst geen SDL/Windows-launch.
+
+**CI:** historische run [41089090576](https://github.com/simonvanieperen/nieuw-os/actions/runs/41089090576) op `f777f7a` faalde op dezelfde inmiddels herstelde readinessvolgorde (exit 1). Log: `/tmp/nieuw-os-windows-qemu-ci-failure.log`. Dit is geen herhaling op huidige head; geen actuele groene CI-claim.
+
+**Nog niet uitgevoerd:** OS-ZIP-generatie, artifactdownload en Windows-gaststart/bediening. Windows-launcherpreflight is wel uitgevoerd; het script vereist QEMU 10.2.1+, SDL en `rng-builtin`. Geen nieuw native productcriterium gesloten; score **34% → 34%**. Deze tak is alleen de VM-test/distributiestap en sluit het gevraagde 50%-doel niet. Geen volledige release-, hardware- of Windows-compatibiliteitsclaim.
+
+Herhaalcommando (volgende stap: afstemming van de bundelbron):
+`. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
 
 ## Historisch checkpoint — NATIVE-CLOCK-1 afgerond; PR blijft draft voor review — 30 oktober 2026
 

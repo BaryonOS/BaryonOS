@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Complete K05 gate: host tests, then five real QEMU invocations (normal,
-crash, denied, parent-exit, quota) on one frozen source fingerprint. The host
+"""Complete K05 gate: host tests, then six real QEMU invocations (normal,
+crash, denied, parent-exit, quota, wait) on one frozen source fingerprint. The host
 test inputs under tests/ are frozen separately and re-checked before the
 verdict. Only the final summary with passed=true counts as a green gate."""
 from __future__ import annotations
@@ -18,7 +18,7 @@ HOST = [
     ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-supervisor-example", "--lib"],
     [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", TEST_INPUTS],
 ]
-PLAN = ("normal", "crash", "denied", "parent-exit", "quota")
+PLAN = ("normal", "crash", "denied", "parent-exit", "quota", "wait")
 
 
 def test_inputs() -> dict[str, str]:
