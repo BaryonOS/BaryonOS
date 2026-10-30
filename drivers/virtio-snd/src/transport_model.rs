@@ -304,7 +304,13 @@ impl Model {
             return Err(Reject::Quarantined);
         }
         self.revoked = true;
-        self.fence(now, budget)
+        if let Err(error) = self.fence(now, budget) {
+            // Revocation cannot leave a running transport when its deadline
+            // is invalid. Keep every published slot pinned without a fence.
+            self.state = State::Quarantined;
+            return Err(error);
+        }
+        Ok(())
     }
 
     /// Read-back of the device status register.

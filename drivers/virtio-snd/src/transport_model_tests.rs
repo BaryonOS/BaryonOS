@@ -265,6 +265,28 @@ fn i4_reinit_requires_fresh_lease() {
     assert_eq!(m.complete(L1, 0, 8, OK), Err(Reject::StaleLease));
 }
 
+#[test]
+fn i4_invalid_revoke_deadline_quarantines_without_releasing_slots() {
+    for (now, budget, expected) in [
+        (0, 0, Reject::BadBudget),
+        (0, MAX_FENCE_BUDGET + 1, Reject::BadBudget),
+        (u64::MAX, 1, Reject::Quarantined),
+    ] {
+        let mut m = running();
+        m.submit(L1).unwrap();
+        assert_eq!(m.revoke(now, budget), Err(expected));
+        assert_eq!(m.state(), State::Quarantined);
+        assert_eq!(m.slot(0), Some(Slot::Published));
+        assert_eq!(m.published(), 1);
+        assert_eq!(m.lease(), L1);
+        assert_eq!(m.complete(L1, 0, 8, OK), Err(Reject::Quarantined));
+        assert_eq!(m.submit(L1), Err(Reject::Revoked));
+        assert_eq!(m.observe_status(now, 0), Err(Reject::Quarantined));
+        assert_eq!(m.observe_bme(now, false), Err(Reject::Quarantined));
+        assert_eq!(m.init(next_lease(&m)), Err(Reject::Quarantined));
+    }
+}
+
 // I5
 #[test]
 fn i5_rx_never_gets_buffers() {
