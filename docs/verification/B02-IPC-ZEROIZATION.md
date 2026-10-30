@@ -25,10 +25,27 @@ main-WAIT-tests. Log `/tmp/nieuw-os-security-ipc-main94-host.log`.
 De SDK-formattering en scoreconsistentiecheck slagen; centrale score-/status-
 bestanden zijn exact main94 behouden in overleg met TL89f84098.
 
-Dit checkpoint gaat vóór de langdurige native integratieproeven. Nieuwe
-native system/B01/RANDOM/WAIT-proeven en actuele-head-CI zijn **nog niet
-uitgevoerd**; de oude onderliggende buildresultaten worden niet naar de
-nieuwe bron omgelabeld. Geen nieuw rubricpunt:34→34/security4of12.
+Eerste native integratie op `4de7e5644bdb1e72e1a5e3bb8453b0851729f39d`:
+system normaal/koud2/2 en B01 vijf gevallen5/5 slagen. De volgende echte
+IPC-WAIT-build faalde met exit101: de zelfstandige probe-lockfile miste de
+nieuwe SDK-runtime→zeroize-edge; `--locked` weigerde terecht te bouwen.
+De runner eindigde daardoor exit1; RANDOM was door de commandoketen nog
+**niet uitgevoerd**. Logs `/tmp/nieuw-os-security-ipc-{system,keyring,wait}.log`.
+
+Alle20 getrackte lockfiles die SDK-runtime consumeren zijn vervolgens met
+`cargo +1.90.0 update --offline --manifest-path <consumer>/Cargo.toml -p nieuw-os-sdk-runtime`
+gecontroleerd;19 veranderden, de SDK-workspace had de edge al. Na concrete
+ontbrekende registrymetadata voor bestaande dependencies is dezelfde
+gerichte update zonder `--offline` herhaald; geen brede update of versoepeling
+van `--locked`. Een gestructureerde vergelijking van alle20 voor-/nagraaf-
+versies bevestigt uitsluitend zeroize1.9.1 en de nieuwe runtime-edge; geen
+andere packageversie/checksum/edge gewijzigd. Logs
+`/tmp/nieuw-os-security-sdk-lock-update{,-retry}.log`.
+
+Dit lockfilecheckpoint gaat vóór de volledige nieuwe native herhaling.
+De eerdere4de-nativeuitkomst wordt niet naar de gewijzigde fingerprint
+omgelabeld. Actuele-head-CI blijft eveneens open.
+Geen nieuw rubricpunt:34→34/security4of12.
 
 ## Historisch bewijs vóór WAIT-integratie
 
