@@ -1,5 +1,32 @@
 # Ontwerpbesluiten
 
+## ADR-052 — Canoniek app-pakket zonder impliciete rechten
+
+30 oktober 2026; A02-verificatiekern, boven op `origin/main` na PR #67.
+Een pakket bevat in versie 1 één vast manifest en exact één ELF-image.
+Metadata wordt ondertekend met beide al gebruikte algoritmen uit ADR-049
+(Ed25519 en ML-DSA-65); de caller bindt verificatie aan ankers van de
+geselecteerde bron. De signature bewijst herkomst onder die sleutel, niet
+betrouwbaarheid. App-ID, ABI-interval, versie en image-digest zijn metadata;
+scripts, dependencies en capabilities ontbreken. Installatie verleent dus
+geen algemene rechten.
+
+De verifier is een zelfstandige `no_std`-crate en weigert niet-canonieke
+padding, onbekend formaat, ABI-mismatch, onbekende ankers, een van beide
+ongeldige handtekeningen, bytes buiten de exact beschreven ELF en digestfouten.
+Het pakketformaat hergebruikt geen kernel-update-target of updatebeleid.
+Alternatief: de kernel-update-manifestcode uitbreiden zou applicatiesemantiek
+vermengen met de boot-/slottrustgrens; de bestaande verifier accepteert
+uitsluitend `TARGET_KERNEL`. Dit besluit introduceert geen appinstallatie of
+nieuwe capabilities.
+
+De 2 MiB imagegrens is een tijdelijke parser-/fixturegrens, geen productlimiet.
+De ML-DSA-stackbehoefte moet vóór native integratie door de service-/stackquota
+worden gedragen. Herzien vóór installerintegratie: bron- en sleutelrotatie,
+ABI-policy, opslag-/update-transacties, appimage-loader en herstelgedrag.
+Terugdraaien kan door de nieuwe crate/workspace-entry te verwijderen; B03 en
+bestaande app-launch ABI blijven ongewijzigd. Geen A02-punt toegekend.
+
 ## ADR-051 — Persistente sleutelstatus via een afzonderlijk administratief ingress
 
 30 oktober 2026; uitvoering B02-PERSIST-1, basis `ad2b981`. De bestaande
