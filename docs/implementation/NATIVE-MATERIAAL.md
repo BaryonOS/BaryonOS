@@ -224,6 +224,10 @@ gedeeltelijke snapshot. Dit is een app-lokale API, geen IPC naar een
 schermlezer, spraakuitvoer of capabilitygrant. De integratietest controleert
 de Materiaal-knop, documentwaarde, focus en bevestigde opslagstatus. Native
 schermlezer-/toetsenbordproeven en echte gebruikerstaken blijven vereist.
+De probe heeft ook een aparte `--case keyboard`-QMP-route voor create, edit,
+save, list en reopen, uitsluitend met QEMU-key-events. De hostharness controleert
+de verzoektrace en replay, maar deze native route is nog niet uitgevoerd en is
+geen screenreader- of gebruikersacceptatiebewijs.
 
 De expliciet goedgekeurde backend is `noto-sans-mono-bitmap = 0.3.2`, defaults
 uit; regular, size16/32, Basic Latin, Latin1 Supplement en Specials. Geen

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "729a506f6dc3e00affd304555e3e391beb005f2a",
+    "source_commit": "a68ade6a1c7f372d1e29c82c79974043fcf563fd",
     "branch": "codex/native-materiaal-accessibility-20261030",
-    "task": "NATIVE-MATERIAAL-ACCESSIBILITY-2: native QMP-evidence, timeoutdiagnostiek en vervolgbewijs",
+    "task": "NATIVE-MATERIAAL-ACCESSIBILITY-3: keyboard-only native QMP-route en timeoutdiagnostiek",
     "previous_score": 34,
-    "summary": "34% blijft 34%; Materiaal/toegankelijkheid blijft 0/15 en U01–U06 blijven open. Op exact 1ffd271 faalde de echte QMP-run raw35 na de ongewijzigde 20.000 PIT-ticks: ready/editor/dirty, 28 key-events en 14 draftbytes, maar geen save/reopen/clean-stop. Dit rode bewijs is opgeslagen. De runner extraheert nu failure-only timeoutdiagnostiek; de strikte succespredicate verandert niet. De gerichte suite slaagt met 28 tests en de parser las het echte serialbestand als 8 slots × 13 counters, met failure behouden. Een afzonderlijke latere proof op runtimebron eabc27b in een andere branch rapporteert zes frames t/m save/list/reopen plus een gewone 7-procesruntime; dit vervangt de rode run niet en bewijst geen koude recovery, schermlezer/spraak, keyboard-only-gebruikersproef, instellingen of gebruikersacceptatie. Geen U-poort sluit en geen punten toegekend."
+    "summary": "34% blijft 34%; Materiaal/toegankelijkheid blijft 0/15 en U01–U06 blijven open. Op exact 1ffd271 faalde de echte normale QMP-run raw35 na de bestaande 20.000 PIT-ticks: ready/editor/dirty, 28 key-events en 14 draftbytes, maar geen save/reopen/clean-stop. Dit rode bewijs blijft staan. Failure-only timeoutdiagnostiek is toegevoegd. Een aparte keyboard-only QMP-route gebruikt alleen send-key voor create/edit/save/list/reopen; 29 hosttests inclusief QMP-trace en fixture-replay slagen. Die route is nog niet native uitgevoerd; geen screenreader/spraak, schaal/contrast/reduced-motion, gebruikersproef of U-criterium is bewezen. De aparte runtimebron eabc27b rapporteert interactieve frames t/m save/list/reopen, maar gewone koude recovery is nog de lopende externe blokkade."
   },
   "tracks": [
     {

@@ -1,8 +1,9 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — NATIVE-MATERIAAL-ACCESSIBILITY-2 — 30 oktober 2026
+## NEXT AGENT HANDOFF — NATIVE-MATERIAAL-ACCESSIBILITY-3 — 30 oktober 2026
 
-Branch `codex/native-materiaal-accessibility-20261030`, checkpoint `729a506f`;
+Branch `codex/native-materiaal-accessibility-20261030`, branch-HEAD `a68ade6a`;
+laatste actuele-main merge `d0f7f553` met tweede ouder `0ade8014`;
 geteste native runtimebron
 `1ffd271f413120ccc2c66e6098cd260fdaa7475d`, basis `f52dab50af281dab2c94ab2c9e31aaabd299246a`.
 Bronfingerprint v3 `d9e3c57244904e20bf52f95b2b7d80e3d2d93e22a303b86f179e583f53e80185`.
@@ -30,6 +31,13 @@ dezelfde FAIL/PANIC/unknown-records blijft weigeren. Een nieuwe hosttegenproef
 controleert geldige en malformed diagnostiek en bevestigt dat timeout nooit
 acceptatie wordt.
 
+De probe ondersteunt `--case keyboard`: hetzelfde writable Materiaalprofiel
+doorloopt ready/editor/dirty/saved/list/reopened met uitsluitend echte QEMU
+`send-key`-verzoeken; creëren begint met Enter op de initiële New-focus. Geen
+`input-send-event` of muisklik wordt toegestaan. De hosttest verifieert de
+QMP-reeks en volledige fixture-replay, maar dit is nog geen uitgevoerde native
+run en zegt niets over een screenreader of gebruikerstaken.
+
 Een latere, afzonderlijke geïntegreerde kandidaat staat op remote-branch
 `simon/native-test-version` (`c532ba88fbf0f53b960e9dbf77421cee29d97096`);
 de gepubliceerde interactieve proof bindt de runtime aan
@@ -48,22 +56,24 @@ heeft exclusief `tools/run_materiaal_preview.py`,
 `tools/tests/test_materiaal_preview.py` en bijbehorend bewijs geclaimd voor
 die volgende koude-recovery-stap; deze worktree wijzigt die paden niet.
 
-De gerichte Python-suite slaagt met 28 tests; de diagnostic parser is tegen het
+De gerichte Python-suite slaagt nu met 29 tests; de diagnostic parser is tegen het
 werkelijke serialbestand gecontroleerd (acht slots × dertien counters, timeout
 blijft failure). Progress `--write`/`--check` en `git diff --check` slagen.
 Native probe-build/preflight zijn groen op hun eigen geregistreerde bron; zij
-maken de runtimeproef op 1ffd271 niet groen. PR #66 op c532ba8 had native-system en m6e-native-volume nog in uitvoering.
-PR #68 stond op 729a506 `DIRTY` ten opzichte van main 0ade801. Die actuele
-main is met een gewone merge in de werkboom opgenomen; de drie inhoudelijke
-documentconflicten zijn opgelost met behoud van beide voortgangsrapporten.
-Mergecommit en push zijn nog niet uitgevoerd; geen history rewrite.
+maken de runtimeproef op 1ffd271 niet groen. PR #66 op c532ba8 heeft alle
+zichtbare checks groen maar blijft open terwijl de gewone zevenprocessen-
+koudeherstelstap bij de andere integrator loopt. PR #68 staat op a68ade6; de
+mergeconflicten met main 0ade801 zijn inhoudsbehoudend opgelost in d0f7f553,
+zonder rebase of force-push. De nieuwe PR #68-CI staat queued/in progress.
 Voortgang: **34% → 34%**, Materiaal/toegankelijkheid **0/15**; U01–U06 open.
 
-Eerstvolgende stap: stage de gecontroleerde conflictoplossingen, maak de
-normale mergecommit en push; verifieer dat de remote PR-branch die commit bevat.
-Daarna volgt op de actuele native bron een aparte keyboard-only en native
-semantiek/accessibility-stap:
-de huidige controller heeft Tab/Shift+Tab,
+Eerstvolgende stap: zodra de actuele geïntegreerde native runtime met gewone
+koude recovery is opgenomen, bouw die exacte bron opnieuw en voer
+`tools/run_materiaal_probe.py --case keyboard` uit met eigen build-/targetmap.
+Voer geen zinloze retry op 1ffd271 uit: de echte normale proef bereikt daar de
+bestaande limiet van 20.000 PIT-ticks niet voorbij. Daarna is een echte OS-grens
+nodig van semantiekdienst naar geautoriseerde schermlezer/spraak; de huidige
+controller heeft Tab/Shift+Tab,
 maar de native grens naar een accessibility-service/schermlezer/spraak is
 niet gebouwd. Schaal, contrast, reduced motion en gebruikerstaken blijven
 vereist. U01–U06 sluiten niet op alleen een interactieve documentproef.
