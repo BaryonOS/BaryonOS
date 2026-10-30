@@ -1,5 +1,154 @@
 # Actuele projectstatus
 
+## PR #61 — conflictintegratie met main — 30 oktober 2026
+
+Bronnen: PR-head `2061863c9226b74d64158f36a3fd1bbbf0bb60df` en
+`main` `6d3bbf0aab07bbcf9b36a9bd74d668adc22f9922`. Een gewone merge
+behoudt beide geschiedenissen: B03-updateprofielen en de native
+systeem-/display-/netwerkprofielen van main. Workspaceleden en lockfiles
+worden verenigd; B03 heet ADR-049 omdat main ADR-044 al voor netwerk gebruikt.
+Dit verandert geen beveiligingscontract of capabilityrecht.
+
+**Gevalideerd:** beide native gates slagen op dezelfde gecombineerde
+bronvingerafdruk v3
+`958ff398e14ae01763c1d01fb7d4f555e66f47e039ed502246996be109158cd5`.
+De ontbrekende QEMU/OVMF-tools zijn eenmalig geïnstalleerd
+(`sudo -n apt-get update` en
+`sudo -n apt-get install -y --no-install-recommends qemu-system-x86 ovmf`,
+beide exit 0). Rust 1.90.0 en beide x86_64-targets waren aanwezig.
+De Cargo-cache is aangevuld met `cargo fetch --manifest-path Cargo.toml --locked`
+(exit 0); de lockfiles behouden de versies van beide ouders. QEMU 8.2.2,
+`pc-q35-8.2`, TCG, één CPU, 256 MiB en OVMF 4M; uitsluitend wegwerpimages.
+
+**Gewijzigde integratiebestanden:** `.gitattributes`, root- en SDK-manifests/
+lockfiles, `boot/loader/Cargo.toml`, `kernel/src/m2/m3.rs`, `tools/build.py`;
+ADR-verwijzingen in loader/update-core/SDK/update-tool en B03-documentatie;
+`DECISIONS.md`, dit statusbestand en de vier voortgangsbestanden.
+De overige bronwijzigingen komen ongewijzigd uit main. De twee nieuwe
+bewijsarchieven bevatten tekst/JSON/hashes, geen binaries of geheime sleutels.
+
+**Exact uitgevoerde controles (ieder exit 0):**
+
+```sh
+python3 -B -m unittest discover -s tests -p 'test_update_*.py'
+python3 -B -m unittest discover -s tests -p 'test_system_*.py'
+cargo +1.90.0 test --locked -p kernel-core -p boot-protocol -p elf-loader-core
+cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked
+cargo +1.90.0 clippy --locked -p update-core -p update-tool -p kernel-core -p boot-protocol -p elf-loader-core --all-targets -- -D warnings
+cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings
+cargo +1.90.0 fmt --all -- --check
+cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check
+NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/preflight.py --strict
+NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_update.py
+NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR=/home/runner/work/nieuw-os/nieuw-os/build/pr61-system NOS_TARGET_DIR=/home/runner/work/nieuw-os/nieuw-os/target/pr61-system python3 -B -u tools/test_system.py
+NOS_BUILD_DIR=/home/runner/work/nieuw-os/nieuw-os/build/pr61-display NOS_TARGET_DIR=/home/runner/work/nieuw-os/nieuw-os/target/pr61-display python3 -B tools/build.py --kernel-feature native-display-probe
+NOS_BUILD_DIR=/home/runner/work/nieuw-os/nieuw-os/build/pr61-g0 NOS_TARGET_DIR=/home/runner/work/nieuw-os/nieuw-os/target/pr61-display python3 -B tools/build.py --kernel-feature graphics-g0
+NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/capture_update.py --destination /home/runner/work/nieuw-os/nieuw-os/docs/verification/full-release-pr61-conflict-update
+NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR=/home/runner/work/nieuw-os/nieuw-os/build/pr61-system NOS_TARGET_DIR=/home/runner/work/nieuw-os/nieuw-os/target/pr61-system python3 -B tools/capture_system.py --destination /home/runner/work/nieuw-os/nieuw-os/docs/verification/full-release-pr61-conflict-system
+python3 tools/progress.py --write
+python3 tools/progress.py --check
+git diff --check
+```
+
+Resultaten: 10 Python-updatetests, 44 Python-systeemtests, 38 coretests,
+83 SDK-tests; de updategate herhaalt ook 7 update-core- en 1 update-tooltest.
+Alle 13 B03-stages slagen, inclusief echte kill/hervatting en de verwachte
+weigeringen; systeem normaal en koud read-only herstel slagen beide met raw
+exit 33. [Updatebewijs](verification/full-release-pr61-conflict-update/update-gate.json)
+en [systeembewijs](verification/full-release-pr61-conflict-system/system-gate.json)
+zijn apart bewaard, inclusief seriële logs en SHA256SUMS.
+Lokale volledige commandologs: `/tmp/nieuw-os-pr61-{update,system,display,g0,preflight}.log`;
+builddetail onder `build/logs/`, `build/pr61-system/logs/` en de twee
+displaybuildmappen. G0 compileert met de bestaande `validate_pixels`
+dead-codewaarschuwing; geen waarschuwing onderdrukt.
+
+De eerste systeemcapture met naam `pr61-conflict-system` weigerde terecht
+(exit 1): het bestaande harnas vereist `full-release-<unique>`. De capture
+met de vereiste naam slaagt (exit 0), zonder wijziging van het harnas.
+Een afzonderlijke read-only AI-integratiecontrole vond geen concrete
+integratiefout; dat is geen menselijke audit.
+
+De aanvullende `git diff --cached --check` over de volledige merge meldt
+exit 2 voor ruwe bewijsbestanden: bestaande CRLF-/lege-eindregelbytes uit
+main en de lege eindregel in de nieuw vastgelegde Cargo-stdout. Deze
+hashgebonden logs blijven bytegetrouw; er is geen broncodeformattering
+aangepast of controle verzwakt om ze te verbergen. De gerichte broncontrole
+`git diff --cached --check -- . ':!docs/verification/**'` slaagt afzonderlijk
+(exit 0); de archiefbytes zijn met beide `sha256sum -c SHA256SUMS`
+gecontroleerd (exit 0).
+
+**Roadmap: 34% → 34%.** Geen nieuw criterium geaccepteerd. Historisch bewijs
+hieronder blijft aan zijn oorspronkelijke bron gebonden; de eerdere
+foundationstatus van 32% is geen nieuwe beoordeling van deze integratie.
+Hosted checks moeten na publicatie op de nieuwe head worden beoordeeld.
+Niet uitgevoerd: native display-/G0-bediening, volledige regressiematrix,
+fysieke hardwaretests, menselijke audit of volledige productrelease.
+Geen PR-merge uitgevoerd. De bestaande B03-grenzen (TEST-ankers, geen
+Secure Boot of bescherming tegen wijzigen van OVMF_VARS) blijven gelden.
+
+## Historische bronstatussen vóór deze integratie
+
+## B03 ondertekende updates en rollback geaccepteerd, 34% — 30 oktober 2026
+
+Branch `ccr-43832ef7-gi2qlz`, basis `main` `f63a0c1` (squash van
+[PR #52](https://github.com/simonvanieperen/nieuw-os/pull/52), B01; GitHub
+Actions daarop groen inclusief `b01-native-supervisor`). Omgeving:
+Linux-container, Rust 1.90.0, QEMU 8.2.2 (Ubuntu), `pc-q35-8.2`, OVMF 4M,
+slotopslag als `virtio-blk-pci` 00:05.0.
+
+**Gerealiseerd (loaderfeature `signed-boot`, kernelprofiel `native-update`, ADR-049):**
+- `crates/update-core`: manifest `NOSMAN01` (84 canonieke bytes + Ed25519 +
+  ML-DSA-65), slotopslag `NOSSLOT1` (header-hint, twee slots van 2 MiB, inbox),
+  hybride verificatie tegen vastgepinde ankers, selectie met versievloer en
+  terugval, installatiebeslissing.
+- Loader `boot/loader/src/signed.rs`: zoekt de slotopslag via Block I/O,
+  verifieert beide handtekeningen, digest én ELF-laadbaarheid vóór één byte
+  wordt uitgevoerd, leest en verhoogt de UEFI-vloer `NieuwOsMinVersion`, valt
+  terug op het andere slot, stopt met `BOOT:FAIL:NO_VALID_SLOT` of
+  `BOOT:FAIL:NO_STORE` (nooit terugval naar een onondertekende ESP-kernel);
+  selectie op een eigen 1 MiB-stack.
+- Kernel `kernel/src/m2/m3/update.rs`: dezelfde generieke blokbroker als het
+  volumeprofiel over de hele slotopslag, zonder formaatkennis of
+  cryptografie; gelabelde crashfixture `test-update-cut`;
+  `KERNEL:IMAGE_VERSION`; 512 KiB gebruikersstack in dit profiel
+  (`kernel-core::user::valid_return_layout` kreeg de stackgrens als parameter).
+- Ring-3 update-dienst `sdk/examples/update`: verifieert de inboxbundel met
+  beide TEST-ankers en de digest vóór de eerste write, bepaalt het draaiende
+  slot via geverifieerde versie = kernelversie (nooit via de header),
+  installeert image → FLUSH → manifest → FLUSH → header → FLUSH, hervat een
+  onderbroken installatie.
+- `tools/update-tool` (keygen/sign/verify/pack), TEST-ankers en -seeds in
+  `tools/update-keys/`, Python-orakel `tools/update_disk.py`, runner
+  `tools/run_update.py` (13 stages in 9 reeksen), gate `tools/test_update.py`,
+  capture, 10 harnastests, workflow `B03 signed updates acceptance`.
+
+**Uitgevoerd en geslaagd:** zie [B03-ACCEPTANCE](verification/B03-ACCEPTANCE.md)
+en `docs/verification/b03/`. Loader- en kernelbewijs: installatie v1→v2 (3 048
+sectoren, 3 flushes, 1 headerwrite), herstart in slot B met vloer 1→2,
+downgrade van een geldig ouder slot geweigerd, geflipte ML-DSA-byte, geflipte
+imagebyte en ondertekend niet-ELF-image elk als slot geweigerd met terugval en
+herstel van slot B, echte hostkill midden in de kopie zonder header- of slot-
+A-wijziging gevolgd door hervatting en start van v2, beide slots ongeldig →
+gecontroleerde stop zonder kernel, inboxbundel met kapotte handtekening,
+lagere versie of vreemde sleutel geweigerd zonder één write. Hosttests: 7
+`update-core`, 1 `update-tool`, 16 `kernel-core`, 10 Python.
+
+**Onafhankelijke review (AI, geen menselijke audit):** een adversariële
+reviewronde over loader, kernel en dienst leverde vier bevindingen die vóór de
+gate zijn verwerkt: terugval naar de ESP zonder slotopslag (nu harde stop),
+vloer verhoogd vóór ELF-validatie (nu pas na een laadbaar image, stage
+`bad-elf`), hardgepinde 64 KiB-stackgrens in `kernel-core` (nu parameter) en
+een cut-controle die een hervatte installatie zou afkeuren.
+
+**Roadmap rubric v1: 32% → 34%** (B03 +2).
+
+**Open en niet bewezen:** GitHub Actions op de PR-head moet de gate herhalen;
+geen firmwareverificatie van de loader (Secure Boot, B04), geen
+sleutelrotatie/intrekking of releaseankers (TEST-ankers met seeds in de
+repository), geen netwerkdistributie, geen pakket-/app-updates (A02), geen
+fysieke schijf of stroomuitval, geen bescherming tegen een schrijver van
+OVMF_VARS. De kernelbroker pollt het apparaat nu één keer direct bij
+`block_wait`; het volumeprofiel is daarin niet gewijzigd.
 ## NEXT AGENT HANDOFF — 30 oktober 2026 — volledige testrelease in uitvoering
 
 Integratiebranch `codex/full-test-release`, bron `844ec40d0717a51d76f2da3a03fa415633725f6a`, tree `6710e599e6984f69e227367981f9a07b525b1255`.

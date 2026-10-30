@@ -85,6 +85,11 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Conflictintegratie PR #61 (30 oktober 2026): **34% → 34%**. B03 en de
+foundationwijzigingen van main blijven behouden zonder nieuwe punten; de
+integratiecontroles staan in PROJECT-STATE.md. Bestaand brongebonden bewijs
+wordt niet als een nieuwe productacceptatie aangemerkt.
+
 Doorbouwcheckpoint 28 oktober 2026: integratie van main `391f02e`, vijf gerichte
 M6b-timeout/cancelproeven en opt-in G0-bron veranderen de score niet:
 **14% → 14%**. G0 is geen compositor/sessie en voldoet niet aan U01 of de fysieke
@@ -182,13 +187,13 @@ Het script voert geen OS-tests uit en beoordeelt de bewijsinhoud niet.
 | **N03 — Native geauthenticeerd transport** | 2 | Open | Onderhouden cryptografie/TLS met de vastgelegde hybride PQC-keuze werkt native, met peercontrole, negatieve handshakes en geen stille onveilige fallback. |
 | **N04 — Afdwingbare netwerkrechten** | 2 | Open | Proces-/bestemmingsrechten, intrekking en helperroutes worden native afgedwongen en via verkeer waargenomen; geen onbedoelde luisterpoorten. |
 
-### B — Beveiliging, privacy en updates (2/12)
+### B — Beveiliging, privacy en updates (4/12)
 
 | Criterium | Punten | Status | Acceptatie en bewijs |
 |---|---:|---|---|
 | **B01 — Entropy en sleutelbeheer** | 2 | Behaald | Native cryptografische entropy, key lifecycle, bescherming en herstel gebruiken gecontroleerde standaarden en geteste failure paths. [bewijs 1](../docs/verification/B01-ACCEPTANCE.md) · [bewijs 2](../docs/verification/native-recovery-hardening/b01/keyring-gate.json) · [bewijs 3](../docs/verification/native-recovery-hardening/integration.json) |
 | **B02 — Geauthenticeerde persoonlijke opslag** | 2 | Open | Inhoud en gevoelige metadata worden native beschermd; manipulatie, replay/rollback binnen het dreigingsmodel en sleutelverlies zijn getest. |
-| **B03 — Ondertekende updates en rollback** | 2 | Open | Authentieke updates, onderbreking, downgrade-aanvallen en herstel naar een geldige vorige versie zijn end-to-end getest. |
+| **B03 — Ondertekende updates en rollback** | 2 | Behaald | Authentieke updates, onderbreking, downgrade-aanvallen en herstel naar een geldige vorige versie zijn end-to-end getest. [bewijs 1](../docs/verification/B03-ACCEPTANCE.md) · [bewijs 2](../docs/verification/b03/update-gate.json) |
 | **B04 — Vertrouwde boot- en distributieketen** | 2 | Open | Image-/bootverificatie, sleutelrotatie en dependency-/buildherkomst zijn voor het releaseprofiel afgebakend en onafhankelijk gecontroleerd. |
 | **B05 — Gerichte onafhankelijke beveiligingscontrole** | 2 | Open | Externe deskundigen onderzoeken kernel-, dienst-, DMA-, parser- en capabilitygrenzen; blokkerende bevindingen zijn opgelost en relevante invarianten machinegecontroleerd waar gekozen. |
 | **B06 — Native privacycontract** | 2 | Open | De toepasselijke LP-tests slagen op het eigen OS, inclusief geen telemetrie/cloudfallback, lokale AI en gescheiden app-/downloadrechten; resterende risico’s zijn gepubliceerd. |

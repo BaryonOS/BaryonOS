@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 32% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 34% van de vaste productroadmap](docs/assets/progress.svg)
 
-**32% — 32 van 100 gewogen acceptatiepunten.** Dit is een
+**34% — 34 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -24,18 +24,18 @@ alleen een nette desktop haalt die eindgrens niet.
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
 | Internet en netwerkdiensten | 10 | 0 |
-| Beveiliging, privacy en updates | 12 | 2 |
+| Beveiliging, privacy en updates | 12 | 4 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **32** |
+| **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`844ec40d`](https://github.com/simonvanieperen/nieuw-os/commit/844ec40d0717a51d76f2da3a03fa415633725f6a) ·
-**Ontwikkelbranch:** `codex/full-test-release`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Foundation geïntegreerd: negen CI en onafhankelijke native decodercontrole; GUI-doelmeting en rekenmachine-integratie.
-De score blijft 32%; alle 62 volledige productcriteria blijven open. Op exact 844ec40 slagen alle negen CI-workflows, inclusief vier echte RNG-gevallen en de native PNG/JPEG-proef. De lokale decoderproef en onafhankelijke bron-, ELF-, firmware-, pixel-, resource- en schijfcontrole slagen na gericht heap-snapshotherstel met ongewijzigde stack, heap en oracles. GUI blijft binnen 200 seconden rood; een eigen-kernelmeting toont dat de oorspronkelijke digest onder TCG sneller is dan de hostoptimalisatie. Productieherstel en echte GUI-herhaling volgen. De rekenmachine heeft alleen component-/host-/targetbewijs. Geen veilige productopslag, volledige apps/NAS/AI/updates/herstel of volledige testrelease geclaimd. Gewichten, scope en bewijsniveaus zijn onveranderd.
+**Bron:** [`2061863c`](https://github.com/simonvanieperen/nieuw-os/commit/2061863c9226b74d64158f36a3fd1bbbf0bb60df) ·
+**Ontwikkelbranch:** `ccr-43832ef7-gi2qlz`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR #61: conflicten tussen B03 en main 6d3bbf0 oplossen met behoud van beide ontwikkelsporen.
+34% → 34%: de bestaande B03-acceptatie en de foundation-/systeemwijzigingen van main blijven behouden. Deze integratie verdient geen nieuwe punten; historisch native bewijs wordt niet naar de samengevoegde bron omgelabeld. B03 heet nu ADR-049 om de netwerkbeslissing ADR-044 van main te behouden. Gerichte integratievalidatie en resterende grenzen staan in PROJECT-STATE.md; alle 62 volledige productcriteria blijven open. Geen volledige testrelease, Secure Boot, releasesleutels, fysieke hardware of menselijke audit geclaimd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

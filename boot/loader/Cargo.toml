@@ -9,11 +9,14 @@ default = []
 test-ebs-retry = []
 framebuffer = []
 graphics-g0 = ["framebuffer"]
+# B03: verify a hybrid-signed kernel from the slot store (ADR-049).
+signed-boot = ["dep:update-core"]
 
 [dependencies]
 r-efi = { version = "=7.1.0", default-features = false }
 boot-protocol = { path = "../../crates/boot-protocol" }
 elf-loader-core = { path = "../../crates/elf-loader-core" }
+update-core = { path = "../../crates/update-core", optional = true }
 
 [[bin]]
 name = "os-loader"

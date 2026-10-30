@@ -137,7 +137,8 @@ mod m5;
 #[cfg(all(
     feature = "milestone-m6a",
     not(feature = "milestone-m6b"),
-    not(feature = "native-volume")
+    not(feature = "native-volume"),
+    not(feature = "native-update")
 ))]
 #[path = "m3/m6.rs"]
 mod m5;
@@ -147,6 +148,14 @@ mod m5;
 mod m5;
 #[cfg(all(feature = "native-volume", feature = "milestone-m6b"))]
 compile_error!("native-volume is a separate opt-in M6a-based profile");
+#[cfg(feature = "native-update")]
+#[path = "m3/update.rs"]
+mod m5;
+#[cfg(all(
+    feature = "native-update",
+    any(feature = "milestone-m6b", feature = "native-volume")
+))]
+compile_error!("native-update is a separate opt-in M6a-based profile");
 #[cfg(all(feature = "milestone-m6b", not(feature = "milestone-m6c")))]
 #[path = "m3/m6b.rs"]
 mod m5;
@@ -193,9 +202,12 @@ const ELF: &[u8] = include_bytes!(env!("NOS_M5_ELF"));
 #[cfg(all(
     feature = "milestone-m6a",
     not(feature = "milestone-m6b"),
-    not(feature = "native-volume")
+    not(feature = "native-volume"),
+    not(feature = "native-update")
 ))]
 const ELF: &[u8] = include_bytes!(env!("NOS_M6_ELF"));
+#[cfg(feature = "native-update")]
+const UPDATE_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_UPDATE_SERVICE_ELF"));
 #[cfg(feature = "native-volume")]
 const VOLUME_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_VOLUME_SERVICE_ELF"));
 #[cfg(all(feature = "native-volume", not(feature = "native-system")))]
@@ -218,7 +230,14 @@ const IMAGE_PROBE_ELF: &[u8] = include_bytes!(env!("NOS_IMAGE_PROBE_ELF"));
 const NET_PROBE_ELF: &[u8] = include_bytes!(env!("NOS_NET_PROBE_ELF"));
 const DATA: u64 = 0x40010000;
 const HEAP: u64 = 0x60000000;
-const STACK: u64 = 0x7ffef000;
+// B03: ML-DSA-65 verification in the ring-3 update service needs about
+// 200 KiB of stack; this profile maps 512 KiB instead of the usual 64 KiB.
+// The unmapped guard below the stack stays.
+const STACK: u64 = if cfg!(feature = "native-update") {
+    0x7ff7f000
+} else {
+    0x7ffef000
+};
 const STACK_END: u64 = 0x7ffff000;
 const MAX: usize = 16;
 const MAPS: usize = 2048;
@@ -388,6 +407,13 @@ fn process_elf(slot: usize) -> &'static [u8] {
         _ => panic!("native SDK profile has only service and app"),
     }
 }
+#[cfg(feature = "native-update")]
+fn process_elf(slot: usize) -> &'static [u8] {
+    match slot {
+        0 => UPDATE_SERVICE_ELF,
+        _ => panic!("native update profile boots only the update service"),
+    }
+}
 #[cfg(all(feature = "native-volume", not(feature = "native-system")))]
 fn process_elf(slot: usize) -> &'static [u8] {
     match slot {
@@ -439,6 +465,7 @@ fn process_elf(_: usize) -> &'static [u8] {
     feature = "native-fpu",
     feature = "native-sdk-app",
     feature = "native-volume",
+    feature = "native-update",
     feature = "native-supervisor",
     feature = "native-keyring"
 )))]
@@ -530,6 +557,10 @@ impl State {
             MAX
         } else if cfg!(feature = "native-keyring") {
             3
+        } else if cfg!(feature = "native-update") {
+            // One ring-3 update service; the loader and the host oracle are
+            // the other two independent parties of the acceptance.
+            1
         } else if cfg!(any(
             feature = "native-qsim",
             feature = "native-qsim-job",
@@ -790,8 +821,8 @@ impl State {
         assert_ne!(tables.root, self.kernel.root);
         assert!(!tables.permissions(text_start()).unwrap().3);
         assert_eq!(tables.leaf(0), 0);
-        assert_eq!(tables.leaf(0x7ffee000), 0);
-        assert_eq!(tables.leaf(0x7ffff000), 0);
+        assert_eq!(tables.leaf(STACK - PAGE), 0);
+        assert_eq!(tables.leaf(STACK_END), 0);
         for m in p.mappings() {
             assert_eq!(self.frames.owner(m.pa), Ok(Owner::User(p.pid, m.kind)));
             let leaf = tables.leaf(m.va);
@@ -836,7 +867,7 @@ impl State {
             if self.processes[slot].status == Status::Ready {
                 let p = &self.processes[slot];
                 let c = &p.context;
-                let valid = user::valid_return_layout(c[17], c[20], c[18], c[21])
+                let valid = user::valid_return_layout(c[17], c[20], c[18], c[21], STACK..STACK_END)
                     && p.paging
                         .as_ref()
                         .unwrap()

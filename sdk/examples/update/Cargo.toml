@@ -1,0 +1,19 @@
+[package]
+name = "nieuw-os-update-example"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+native = []
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../../runtime" }
+update-core = { path = "../../../crates/update-core" }
+
+[[bin]]
+name = "update-service"
+path = "src/service.rs"
+required-features = ["native"]
+test = false
+bench = false
