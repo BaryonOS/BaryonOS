@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`8a401b9d`](https://github.com/simonvanieperen/nieuw-os/commit/8a401b9d68c3f14de46a858a2fbaf1d3a16b4426) ·
+**Bron:** [`eabc27ba`](https://github.com/simonvanieperen/nieuw-os/commit/eabc27ba879fd3b5960863ae8eede800c5045a57) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Concrete rustfmt-CI-fout hersteld; hostgates groen, herhaalde native bron volgt.
-34% blijft34%; minstens50% niet bereikt. Twee overgenomen cfg-attributen volgens rustfmt geformatteerd als herstel voor vier concrete PR-veroorzaakte CI-fouten. Fmt, root-workspace en132 tooltests lokaal groen; nieuwe CI nog niet geclaimd. Echte interactieve native keten op fc40347 blijft brongebonden; vanwege nieuwe v3 volgen beide gates opnieuw voor vrijgave van vaste Windowsbundelbron. Geen nieuw volledig rubriccriterium of menselijke/hardwareacceptatie.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Vaste interactieve bron na CI-fix opnieuw native geaccepteerd voor afzonderlijke Windowsproef.
+34% blijft34%; minstens50% niet bereikt. Op eabc27b beide echte native gates opnieuw groen: referentie133,320s/raw33 en gewone zevenprocessenbediening92,390s/QMP-quit/raw0. Zes exacte volledige native frames en onafhankelijk diskorakel slagen zonder maskers/controllerfallback. Vier concrete CI-formatfouten nu groen, overige checks deels pending. Vaste bron vrij voor afzonderlijke Windows-QEMU-proef; nog geen Windowsbediening/ZIP of volledig rubriccriterium. Product-, menselijke en hardwareacceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

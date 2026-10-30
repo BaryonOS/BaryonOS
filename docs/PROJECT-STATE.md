@@ -1,6 +1,27 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — CI-formatfix lokaal groen; nieuwe native bron vastzetten
+## NEXT AGENT HANDOFF — Vaste interactieve bron groen; Windowsproef volgt
+
+Vrij te geven testbron `eabc27ba879fd3b5960863ae8eede800c5045a57`, v3
+`a1998a126a3a1ccc18523925a422912d934c14bab865b3d7df346862a2c251a6`.
+Na rustfmt beide echte gates opnieuw groen: referentie73611f4dbf
+133.320s/raw33; gewone zevenprocessenvariantc6f2a045aa
+92.390s/QMP-quit/raw0. Zes volledige frames exact bytegelijk en onafhankelijke
+diskcontrole na exit groen. Alle zeven appidentiteiten/platform gebonden.
+Bewijs/commando's: `verification/full-release-interactive-fixed/`.
+Gewone build: `build/native-test-version/interactive-current`;
+kernelhash f2e9cc4aad87ad2b9fbc8b498ab146db2ab0df4a77b904eecf81c3a9beb198b3.
+Geen bronwijziging nodig voor Windowspackaging; uitsluitend gewone variant,
+geen controller/probe-image. Peer krijgt aparte Windows-QEMU-opdracht met
+eigen artifact-/statepaden en expliciete Windowsbewijsgrens.
+
+CI-formatfouten hersteld: host-quality/display/foundation/RTC op eabc27b
+groen; meerdere andere jobs nog pending. Required-set nu host-quality
+groen en qemu-smoke pending; geen complete CI/mergeclaim.
+**34% blijft34%; Windows/ZIP, product-/menselijke-/hardwaregates en50% open.**
+Blijf onafhankelijk OS-werk doen zonder de vrijgegeven runtimebron te muteren.
+
+## Uitvoeringshistorie — CI-formatfix lokaal groen; nieuwe native bron vastzetten
 
 Vanaf bewijscheckpoint `8a401b9`: `cargo +1.90.0 fmt --all` wijzigt alleen
 de twee `cfg(any(...))`-attributen in `kernel/src/m2/m3/{display,ps2}.rs`.
