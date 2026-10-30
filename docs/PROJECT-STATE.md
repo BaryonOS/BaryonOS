@@ -13,17 +13,24 @@ die fysieke metingen of meerdere fysieke configuraties vragen kunnen niet
 worden afgetekend met QEMU-bewijs.
 
 Uitgevoerd: `python3 -B -m unittest discover -s tools -p
-'test_display_probe.py'` — exit 0, 11 hosttests voor de bewijspoort. Dit
-controleert het harnas, niet een werkende guest-driver. De native poort is
-niet uitgevoerd: `cargo`, `rustc` en `qemu-system-x86_64` ontbreken in deze
-worktree; `python3 -B tools/dev.py cargo +1.90.0 --version` faalt met exit 1
-(`FileNotFoundError: cargo`). Geen fysiek apparaat gebruikt of gewijzigd.
+'test_display_probe.py'` — exit 0, 11 hosttests voor de bewijspoort; dit
+controleert het harnas, niet een guest-driver. De vastgezette Rust 1.90.0-
+toolchain is daarna lokaal onder `.tools/nieuw-os` hersteld met de officieel
+gepubliceerde rustup-installer; SHA-256 gecontroleerd vóór uitvoering en geen
+globale PATH-/systeemwijziging. Op `drivers/ps2` slagen Clippy, fmt en de
+release-librarybuild voor `x86_64-unknown-none` (elk exit 0). De PS/2-hosttest
+faalt met exit 101 omdat de systeem-C-linker `cc` ontbreekt; een poging met
+gebundelde `rust-lld` faalt eveneens doordat de host `libc`/runtime-linklibs
+ontbreken. De native poort is niet uitgevoerd: `qemu-system-x86_64`, OVMF en
+SeaBIOS zijn niet beschikbaar en er is geen `sudo` voor systeeminstallatie.
+Geen fysiek apparaat gebruikt of gewijzigd.
 
-Eerstvolgend: herstel de vastgezette Nieuw OS-toolchain/QEMU-omgeving in deze
-worktree; voer daarna de bestaande native PS/2/QMP-poort uit en begin een
-afzonderlijk afgebakende USB/xHCI-driverstap. Houd H02–H06 open totdat elk
-criterium inclusief zijn vereiste native/fysieke bewijsniveaus is aangetoond.
-Er zijn geen dependencies, drivercode of hardwareclaims toegevoegd.
+Eerstvolgend: herstel een lokale QEMU 10.x/OVMF/SeaBIOS-uitvoeromgeving en
+host-C-linker (of gebruik de vastgelegde CI-runner); voer daarna de bestaande
+native PS/2/QMP-poort uit en begin een afzonderlijk afgebakende USB/xHCI-
+driverstap. Houd H02–H06 open totdat elk criterium inclusief de vereiste
+native/fysieke bewijsniveaus is aangetoond. Er zijn geen projectdependencies,
+drivercode of hardwareclaims toegevoegd.
 
 ## NEXT AGENT HANDOFF — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
 

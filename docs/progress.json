@@ -7,7 +7,7 @@
     "branch": "simonvanieperen-friendly-guacamole",
     "task": "Hardware, drivers en energie: inventarisatie H02-H06 en controle van de bestaande native PS/2-bewijspoort",
     "previous_score": 34,
-    "summary": "34% blijft 34%; hardware blijft 1/12. H01 is het enige geaccepteerde hardwarecriterium. De bestaande display/PS2-harnaspoort slaagt met 11 hosttests via `python3 -B -m unittest discover -s tools -p 'test_display_probe.py'`; dit is geen native device-run. Cargo, rustc en qemu-system-x86_64 ontbreken in deze worktree; de vastgezette toolchaincontrole via `python3 -B tools/dev.py cargo +1.90.0 --version` faalt daarom met exit 1. H02-H06 blijven open: USB/xHCI ontbreekt, graphics/audio en netwerk vereisen aanvullende hardwarefuncties, energie/slaap/wek en meerdere fysieke profielen zijn niet gemeten. Geen native QEMU-run, fysieke hardwaretest of nieuw rubricpunt geclaimd."
+    "summary": "34% blijft 34%; hardware blijft 1/12. H01 is het enige geaccepteerde hardwarecriterium. De display/PS2-bewijspoort slaagt met 11 host-harnastests (`python3 -B -m unittest discover -s tools -p 'test_display_probe.py'`, exit 0). De gehashte officiële rustup-installer herstelde Rust 1.90.0 alleen onder `.tools/nieuw-os`; PS/2 `x86_64-unknown-none`-releasebuild, Clippy en fmt slagen (exit 0). De PS/2-hosttest faalt (exit 101) omdat `cc` ontbreekt; QEMU/OVMF/SeaBIOS ontbreken, dus native QMP-uitvoering is niet gedaan. H02-H06 blijven open: USB/xHCI ontbreekt; graphics/audio, netwerkhardware, energie/slaap/wek en meerdere fysieke profielen zijn niet geaccepteerd. Geen fysiek apparaat gebruikt en geen nieuw rubricpunt geclaimd."
   },
   "tracks": [
     {
