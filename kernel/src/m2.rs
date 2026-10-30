@@ -4,7 +4,7 @@ mod arch;
 #[cfg(feature = "milestone-m3")]
 mod m3;
 pub(crate) mod paging;
-#[cfg(feature = "native-rtc")]
+#[cfg(any(feature = "native-rtc", feature = "native-system-clock"))]
 mod rtc;
 use crate::serial;
 use boot_protocol::{BootInfo, MemoryMap, MAP_LIMIT};

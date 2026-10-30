@@ -1,10 +1,12 @@
 //! Exclusive read-only CMOS acceptance in the single-CPU IF0 bootstrap.
+#[cfg(feature = "native-rtc")]
 use crate::serial;
 use core::{arch::asm, convert::Infallible};
 use nieuw_os_rtc::{
-    CenturyRegister, CmosIo, Configuration, Failure, Fault, FloorSource, IndexSelection, NmiState,
-    Quality, RollbackCheck, Rtc, Source, TimeBasis, UnixUtc,
+    CenturyRegister, CmosIo, Configuration, IndexSelection, NmiState, Rtc, TimeBasis,
 };
+#[cfg(feature = "native-rtc")]
+use nieuw_os_rtc::{Failure, Fault, FloorSource, Quality, RollbackCheck, Source, UnixUtc};
 
 struct Ports {
     selected: IndexSelection,
@@ -60,14 +62,23 @@ fn configuration() -> Configuration {
     }
 }
 
-fn restored(mut ports: Ports, initial: IndexSelection) -> Ports {
-    assert_eq!(ports.selected, initial);
-    // Read without reselecting: register D must actually remain selected after
-    // restoration, including the read-budget and rollback error paths.
-    assert_eq!(ports.read_data(), Ok(0x80));
-    ports
+fn restored(mut ports: Ports, initial: IndexSelection) -> Result<Ports, ()> {
+    if ports.selected != initial || ports.read_data() != Ok(0x80) {
+        return Err(());
+    }
+    Ok(ports)
 }
 
+fn interrupts_disabled() -> bool {
+    let flags: u64;
+    // SAFETY: Reads RFLAGS on the current mapped kernel stack; no state changes.
+    unsafe {
+        asm!("pushfq", "pop {}", out(reg) flags, options(preserves_flags));
+    }
+    flags & (1 << 9) == 0
+}
+
+#[cfg(feature = "native-rtc")]
 fn number(value: i64) {
     let mut digits = [0u8; 20];
     let mut n = value.unsigned_abs();
@@ -86,13 +97,31 @@ fn number(value: i64) {
     serial::write(&digits[at..]);
 }
 
-pub fn run() {
-    let flags: u64;
-    // SAFETY: Balanced stack access on our mapped kernel stack; read only.
-    unsafe {
-        asm!("pushfq", "pop {}", out(reg) flags, options(preserves_flags));
+#[cfg(feature = "native-system-clock")]
+pub(super) fn read_current_utc() -> Result<i64, ()> {
+    if !interrupts_disabled() {
+        return Err(());
     }
-    assert_eq!(flags & (1 << 9), 0);
+    let initial = IndexSelection::new(13, NmiState::Enabled).ok_or(())?;
+    let mut ports = Ports {
+        selected: initial,
+        reads: 0,
+        selections: 0,
+    };
+    ports.select(initial).map_err(|_| ())?;
+    ports.settle().map_err(|_| ())?;
+    let mut clock = Rtc::new(ports, initial, configuration()).map_err(|_| ())?;
+    let reading = clock.read_utc();
+    let restored = restored(clock.into_io(), initial);
+    match (reading, restored) {
+        (Ok(reading), Ok(_)) => Ok(reading.utc.seconds()),
+        _ => Err(()),
+    }
+}
+
+#[cfg(feature = "native-rtc")]
+pub fn run() {
+    assert!(interrupts_disabled());
     let initial = IndexSelection::new(13, NmiState::Enabled).unwrap();
     let mut ports = Ports {
         selected: initial,
@@ -138,7 +167,7 @@ pub fn run() {
         number(value);
     }
     serial::write(b"\nRTC:QUALITY:UNAUTHENTICATED\n");
-    let mut ports = restored(clock.into_io(), initial);
+    let mut ports = restored(clock.into_io(), initial).expect("RTC index restored");
 
     for (config, fault) in [
         (
@@ -182,12 +211,12 @@ pub fn run() {
             if fault == Fault::ReadBudgetExhausted {
                 assert_eq!(ports.reads - before.0, 1);
             }
-            ports = restored(ports, initial);
+            ports = restored(ports, initial).expect("RTC index restored after error");
         }
     }
     serial::write(b"RTC:NEGATIVE:PASS\n");
     let mut clock = Rtc::new(ports, initial, configuration()).unwrap();
     assert!(clock.read_utc().expect("read after errors").utc >= second.utc);
-    let _ = restored(clock.into_io(), initial);
+    let _ = restored(clock.into_io(), initial).expect("RTC index restored after read");
     serial::write(b"RTC:RESTORE:PASS\nRTC:PASS\n");
 }

@@ -15,7 +15,7 @@ use crate::{
 fn call(number: u64, args: [u64; 6]) -> Result<u64, Error> {
     let mut primary = number;
     let mut secondary = args[2];
-    // SAFETY: Nieuw OS ABI 1.0–1.8 preserves every GPR except RAX/RDX; int80 enters
+    // SAFETY: Nieuw OS ABI 1.0–1.9 preserves every GPR except RAX/RDX; int80 enters
     // a checked kernel gate. No Rust references cross this boundary. Callers
     // below keep local message buffers live for the complete synchronous copy.
     // No nomem/readonly flag: IPC can read or write the supplied memory.
@@ -41,6 +41,16 @@ pub fn abi_info() -> Result<u64, Error> {
 /// This is not a wall clock and cannot validate TLS certificate dates.
 pub fn monotonic_ticks() -> Result<u64, Error> {
     call(3, [0; 6])
+}
+
+/// ABI 1.9 opt-in profile: return a current UTC Unix timestamp read from CMOS.
+/// The result is explicitly unauthenticated and must not validate TLS
+/// certificates, authorize expiry, or replace a trusted time provider.
+pub fn wall_clock_utc() -> Result<crate::clock::WallClockReading, Error> {
+    let raw = call(0x73, [0; 6])?;
+    Ok(crate::clock::WallClockReading::unauthenticated_rtc(
+        raw as i64,
+    ))
 }
 
 /// ABI1.7: atomically grow this process's private, zeroed RW/NX heap suffix.

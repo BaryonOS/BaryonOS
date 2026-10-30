@@ -15,6 +15,8 @@ const WORDS: [u64; 13] = [
 ];
 struct Evidence {
     app: Option<[u64; 13]>,
+    #[cfg(feature = "native-system-clock")]
+    clock: Option<[u64; 4]>,
     init: Option<[u64; 13]>,
     faults: u64,
     kernel_tables: usize,
@@ -27,6 +29,8 @@ struct Evidence {
 }
 static mut EVIDENCE: Evidence = Evidence {
     app: None,
+    #[cfg(feature = "native-system-clock")]
+    clock: None,
     init: None,
     faults: 0,
     kernel_tables: 0,
@@ -342,6 +346,23 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
         evidence().init = Some(words);
     } else if slot == APP {
         evidence().app = Some(words);
+        #[cfg(feature = "native-system-clock")]
+        {
+            let first = word(s, slot, 488);
+            let second = word(s, slot, 496);
+            let quality = word(s, slot, 504);
+            let monotonic_before = word(s, slot, 512);
+            let monotonic_after = word(s, slot, 520);
+            require(
+                s.system_clock_calls == 2
+                    && first > 0
+                    && second >= first
+                    && quality == 1
+                    && monotonic_after >= monotonic_before,
+                b"CLOCK_EVIDENCE",
+            );
+            evidence().clock = Some([first, second, monotonic_before, monotonic_after]);
+        }
     }
     #[cfg(feature = "native-system-net")]
     if is_net_probe(s, slot) {
@@ -438,6 +459,16 @@ fn finish(s: &mut State) -> ! {
         b"INIT_EVIDENCE",
     );
     require(app[9..13] == [1, 1, 10, 2], b"RECORD_EVIDENCE");
+    #[cfg(feature = "native-system-clock")]
+    {
+        let [first, second, monotonic_before, monotonic_after] =
+            evidence().clock.unwrap_or_else(|| fail(b"CLOCK_SNAPSHOT"));
+        print_number(b"SYSTEM:CLOCK:UTC_FIRST:", first);
+        print_number(b"SYSTEM:CLOCK:UTC_SECOND:", second);
+        print_number(b"SYSTEM:CLOCK:MONOTONIC_BEFORE:", monotonic_before);
+        print_number(b"SYSTEM:CLOCK:MONOTONIC_AFTER:", monotonic_after);
+        serial::write(b"SYSTEM:CLOCK:INVALID_ARGS:PASS\n");
+    }
     let (entropy, denied, entropy_idle) = keyring::broker_summary();
     let (published, completed, block_idle) = m5::broker_summary();
     require(

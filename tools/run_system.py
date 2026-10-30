@@ -172,12 +172,14 @@ def check_disk(oracle: dict) -> None:
 
 
 def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_TIMEOUT,
-               kernel_feature: str | None = None, network_port: int | None = None):
+               kernel_feature: str | None = None, network_port: int | None = None,
+               rtc_base: str | None = None):
     if case not in FEATURE or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown case or unbounded timeout")
     selected = FEATURE[case] if kernel_feature is None else kernel_feature
     network_feature = {"normal": "native-system-net", "recover": "test-system-net-recover"}[case]
-    diagnostic = case == "normal" and selected in (*RANDOM_FEATURE.values(), "native-system-images")
+    diagnostic = case == "normal" and selected in (
+        *RANDOM_FEATURE.values(), "native-system-images", "native-system-clock")
     if selected not in (FEATURE[case], network_feature, TCP_FEATURE[case]) and not diagnostic:
         raise ValueError("wrong native system feature for this case")
     use_tcp = selected == TCP_FEATURE[case]
@@ -194,6 +196,14 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         raise ValueError(f"build {selected} on the current source first")
     if not manifest.get("system"):
         raise ValueError("missing inspected system-program manifest")
+    rtc_arguments = []
+    if rtc_base is not None:
+        parsed = datetime.strptime(rtc_base, "%Y-%m-%dT%H:%M:%S")
+        if parsed.strftime("%Y-%m-%dT%H:%M:%S") != rtc_base:
+            raise ValueError("RTC base must be a canonical UTC calendar")
+        rtc_arguments = ["-rtc", f"base={rtc_base},clock=vm,driftfix=none"]
+    if (selected == "native-system-clock") != (rtc_base is not None):
+        raise ValueError("the wall-clock acceptance profile requires its explicit UTC RTC base")
     env = environment()
     qemu = shutil.which("qemu-system-x86_64", path=env["PATH"])
     if not qemu:
@@ -241,6 +251,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
                "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
                "-object", "rng-random,id=rng0,filename=/dev/urandom",
                "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"]
+    command += rtc_arguments
     if use_network:
         # An ephemeral port is supplied by the owned synthetic protocol peer.
         # No TAP, bridge, default user network, host share or public listener.

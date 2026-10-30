@@ -4,11 +4,13 @@
 `forbid(unsafe_code)` en zonder dependencies. Basiscommit:
 `cda42f2d4017e65bd8ba89399cb1633f85a1c2da`. De crate levert alleen de
 CMOS-leesprocedure, datumcodec en expliciete bronkwaliteit. Het opt-in
-`native-rtc`-profiel voegt een native portbackend en bootstrap-acceptatie toe
-(uitvoering/bewijs staat in PROJECT-STATE); er is geen productie-kernelbroker,
-dienst, kloksyscall of certificaatintegratie.
-Sys3 blijft uitsluitend de bestaande boot-monotone deadlineklok; ticks worden
-hier nergens tot een kalenderdatum verheven.
+`native-rtc`-profiel voegt een native portbackend en bootstrap-acceptatie toe.
+Het aparte profiel `native-system-clock` voegt ABI 1.9-syscall `0x73` toe:
+een ring-3-app vraagt een actuele UTC/Unix-secondewaarde op, die de kernel
+rechtstreeks en alleen-lezen uit CMOS leest. De SDK markeert elk resultaat
+`UnauthenticatedRtc`. Dit is geen vertrouwde TimeProvider of
+certificaatintegratie. Sys3 blijft daarnaast de afzonderlijke boot-monotone
+deadlineklok; ticks worden niet in een kalenderdatum omgerekend.
 
 ## Eigenschappen en vertrouwensbasis
 
@@ -21,7 +23,7 @@ hier nergens tot een kalenderdatum verheven.
 | UTC en eeuw | Alleen expliciete UTC-platformbasis plus expliciet eeuwregister. | De RTC bevat werkelijk UTC; geen detectie van lokale tijd of authenticatie van configuratie. |
 | Unixconversie | Geldige Gregoriaanse datum, jaar 1–9999, gecontroleerde i64-bewerkingen. | Geen leap-secondrepresentatie; seconde 60 wordt geweigerd. |
 | Terugloop | Vergelijking met eerdere geaccepteerde lezing of callerfloor; een lagere tijd geeft fout. | In-memory toestand gaat verloren bij herstart. De crate authenticeert of bewaart een externe floor niet. |
-| Vertrouwde certificaattijd | **Niet geleverd**: kwaliteit is altijd `UnauthenticatedRtc`. | Een geautoriseerde TimeProvider, versheid, onzekerheidsmarge en rollbackanker moeten nog worden geïntegreerd. |
+| Vertrouwde certificaattijd | **Niet geleverd**: de SDK geeft altijd `UnauthenticatedRtc` terug. | Een geautoriseerde TimeProvider, versheid, onzekerheidsmarge en rollbackanker ontbreken. |
 
 Een stabiele klok kan verkeerd zijn, stilstaan of door een aanvaller worden
 teruggezet. Een gelijke waarde wordt geaccepteerd; grote sprongen vooruit
@@ -140,8 +142,7 @@ pagetables en M2-geheugencontrole, op de ene CPU met IF=0. Combineren met
 ring 3 of framebuffer wordt bij compilatie geweigerd. Geen productieprofiel
 schakelt de feature impliciet in; geen proces krijgt nieuwe I/O-rechten.
 De kleine codec draait in deze terminale proef in de kernel om de echte
-hardwareadapter te toetsen. Een productie-TimeProvider blijft een afzonderlijke
-geisoleerde dienst met minimaal brokercontract; geen algemene app-I/O toevoegen.
+hardwareadapter te toetsen.
 
 Platformbezit wordt expliciet gevestigd door register D met NMI Enabled te
 selecteren. Dit is een eigen bekende startselectie, **geen reconstructie van
@@ -165,9 +166,40 @@ code-/platforminvariant, geen onafhankelijk gemeten hardwaregarantie.
 De pure hosttests behouden de corrupte/offline/UIP-/mode-/poison-tegenproeven;
 de native negatieve gevallen injecteren geen fictieve device-antwoorden.
 
+## ABI 1.9-proef NATIVE-CLOCK-1
+
+`native-system-clock` is een afzonderlijk opt-in single-CPU systeemprofiel,
+geen algemene hardwareondersteuning. De app roept syscall `0x73` aan zonder
+argumenten of pointers. Bij succes retourneert `RAX=0` en `RDX` de signed
+Unixseconden als two's-complementwaarde; ongeldige extra argumenten geven
+`-22`, een onbruikbare RTC geeft `-5`, en profielen zonder de syscall blijven
+de normale onbekende-syscallfout geven (`-2`). De SDK biedt
+`native::wall_clock_utc()` als `WallClockReading { unix_seconds, quality }`;
+de enige kwaliteit is `UnauthenticatedRtc`.
+
+Iedere aanroep doet een begrensde, read-only snapshot, controleert de RTC-kern
+en het register-D-herstel en geeft de oorspronkelijke indexselectie terug.
+De aanroep heeft geen gebruikerspointer, capability of bestandstoegang.
+Dit is een publiek lokaal tijdgegeven, geen nieuw recht op andere resources.
+De adapter veronderstelt nog steeds exclusief CMOS-bezit op één CPU met IF=0,
+een expliciete UTC-basis, eeuwregister 0x32, geen IRQ-/NMI-/andere
+CMOS-gebruiker en een NMI-handler die zelf geen CMOS leest. Er is geen
+persistente antirollback, authenticatie, versheids-/onzekerheidsbewijs,
+time-sync, suspendcorrectie of TLS-certificaatbeleid. De monotone PIT-ticks
+worden niet gebruikt om wall-clock te schatten of te corrigeren.
+
+De native proef laat de bestaande ring-3-systeemapp twee tijden lezen,
+controleert hun volgorde en de monotone-ticks, en test een syscall met een
+niet-nulargument. De onafhankelijke runner vergelijkt de gerapporteerde
+seconden met een expliciete QEMU RTC-basistijd. Zie
+`docs/verification/system-clock/README.md` zodra die native uitvoering is
+opgeslagen. Dit sluit geen FR-S03/FR-N03-productcriterium af.
+
 ```sh
 NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/build.py --kernel-feature native-rtc
 NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/run_rtc.py --case all
+python3 -B -m unittest tools.tests.test_system_clock
+python3 -B -u tools/run_system_clock.py
 ```
 
 De runner gebruikt bestaande `run_guest` met een eigen ESP/VARS/CODE-kopie

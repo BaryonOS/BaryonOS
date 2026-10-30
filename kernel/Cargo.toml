@@ -42,7 +42,7 @@ test-system-random-sdk = ["native-system-random"]
 test-system-random-unknown = ["native-system-random"]
 test-system-random-wrong-caller = ["native-system-random"]
 native-system-images = ["native-system", "process-memory", "fpu-context"]
-native-system-clock = ["native-system", "monotonic-clock"]
+native-system-clock = ["native-system", "monotonic-clock", "dep:nieuw-os-rtc"]
 native-system-net-clock = ["native-system-net", "monotonic-clock"]
 # Eager per-process x87/SSE state. The fixture is separate from the mechanism.
 fpu-context = ["milestone-m3"]

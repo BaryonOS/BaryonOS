@@ -1,12 +1,17 @@
 # Werkqueue — volledige native testrelease, 30 oktober 2026
 
 Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
-`5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. Eigenaar van de opt-in
-`native-rtc`-bootstrap, `kernel/src/m2/rtc.rs`, RTC-buildkeuze, eigen
-RTC-runner/hosttests/workflow en `RTC-WALLTIME.md`. FR-N03/FR-S03-afhankelijkheid;
-geen vertrouwde tijd, userspaceklok of nieuwe roadmapacceptatie. Uitvoeringsbron
-`c02675e`: vijf RTC-kalenderboots, zeven M2-regressie-VM's, M6c-smoke en
-hostgates slagen; firmware-epoch/2100 blijft expliciet geweigerd.
+`5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De opt-in `native-rtc`-bootstrap,
+`kernel/src/m2/rtc.rs`, RTC-buildkeuze, RTC-runner/hosttests/workflow en
+`RTC-WALLTIME.md` zijn op die bron bewezen. Uitvoeringsbron `c02675e`: vijf
+RTC-kalenderboots, zeven M2-regressie-VM's, M6c-smoke en hostgates slagen;
+firmware-epoch/2100 blijft expliciet geweigerd.
+
+Actieve vervolgdeelstap `TASK-NATIVE-CLOCK-1`: opt-in ABI 1.9 syscall `0x73`,
+SDK-type met expliciet `UnauthenticatedRtc`, en echte ring-3-positief- en
+negatiefproef in de bestaande systeemapp. Implementatie en hosttests zijn
+gebouwd; native QEMU-gate volgt. Het is een directe FR-N03/FR-S03-afhankelijkheid,
+geen vertrouwde tijd, TLS-klok of gesloten roadmapcriterium.
 [Brongebonden bewijs](verification/rtc-native/README.md); concept-PRreview,
 geen samenvoeging of volledige productrelease geclaimd. De andere
 zichtbare sessie beheert uitsluitend een root-workspace-doctestblokkade.
@@ -20,6 +25,7 @@ Werkpakketten zijn implementatiestappen; de 62 vaste `FR-*`-criteria blijven ope
 
 | Werkpakket | Toestand | Eigenaar / exclusieve writes | Acceptatie | Interface en bewijsgrens |
 |---|---|---|---|---|
+| TASK-NATIVE-CLOCK-1 | implementatie gebouwd; native QEMU-gate volgt | root; RTC-bridge, M3 syscall, SDK, systeem-app en `run_system_clock.py` | FR-S03, FR-N03 | ABI 1.9 syscall 0x73; echte ring-3-reads en foutargument; uitsluitend `UnauthenticatedRtc`, geen TLS-/productklokclaim |
 | TASK-DOC / TASK-CONTEXT | opdracht en aanvullende context vastgelegd | root; FULL/status/queue/rubric | alle | oorspronkelijke scope, stabiele ID's, formats/compatibiliteit en 100 cold/24 uur behouden |
 | TASK-I01 / TASK-INT/GIT | foundation geïntegreerd op 844ec40 | root; gedeelde ABI/build/locks/Git | alle geraakt | negen CI groen op exact die bron; geen volledige productacceptatie |
 | TASK-A03/R1 / TASK-KEYSDK-NATIVE | document-v7 en keyclient geïntegreerd | root | FR-A02, FR-A13, FR-O01–FR-O05, FR-B01 | native deelproeven; lost-BEGIN, owner-death en veilige disk-/sleutelpersistentie open |

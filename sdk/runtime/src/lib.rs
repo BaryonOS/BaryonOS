@@ -23,11 +23,13 @@ pub use network::{NetworkSource, NET_FRAME_MAX};
 pub mod native;
 
 pub const ABI_MAJOR: u64 = 1;
-pub const ABI_MAX_MINOR: u64 = 8;
+pub const ABI_MAX_MINOR: u64 = 9;
 
-/// The common syscall contract is unchanged across the existing 1.0–1.7
-/// profiles (1.3 adds the K05 process-management calls, 1.4 the B01 entropy
-/// broker; 1.5 adds the raw NIC broker; 1.6 adds boot-monotonic ticks; 1.7 adds private heap growth). Unknown revisions require a separate compatibility check.
+/// The common syscall contract is unchanged across the existing 1.0–1.9
+/// profiles (1.3 adds K05 process management, 1.4 the B01 entropy broker,
+/// 1.5 the raw NIC broker, 1.6 boot-monotonic ticks, 1.7 private heap growth,
+/// 1.8 display/input, and 1.9 opt-in unauthenticated RTC UTC). Unknown
+/// revisions require a separate compatibility check.
 pub fn validate_abi(version: u64) -> Result<(), Error> {
     if version >> 32 == ABI_MAJOR && version as u32 as u64 <= ABI_MAX_MINOR {
         Ok(())

@@ -1,5 +1,29 @@
 # Ontwerpbesluiten
 
+## ADR-050 — Opt-in wall-clock syscall blijft zichtbaar niet-vertrouwd
+
+30 oktober 2026; uitvoering NATIVE-CLOCK-1, boven op RTC-NATIVE-1.
+`native-system-clock` voegt ABI 1.9 syscall `0x73` toe voor een directe,
+read-only UTC-snapshot uit CMOS. De gebruikers-SDK retourneert een expliciet
+`UnauthenticatedRtc`-type. De klok is openbare procesmetadata; er worden geen
+CMOS-poorten, capabilities, pointers, opslag- of netwerkrechten aan apps
+gegeven. Ongeldige niet-nulargumenten geven `-22`, mislukte of onbruikbare
+hardware geeft `-5`, zonder fallback of verzonnen tijd.
+
+Deze scope kiest voor een werkende, testbare systeemfunctie in het bestaande
+single-CPU IF0-profiel, niet voor een vertrouwde productie-TimeProvider. De
+adapter verifieert de native RTC-invarianten en indexherstel per aanroep.
+Unix-tijd en boot-monotone PIT-ticks blijven gescheiden. Geen
+certificaatvalidatie, persistente antirollback, synchronisatie, slaap-/wekcorrectie,
+fysiek hardwarebewijs of nieuwe voortgangspunten. De echte ring-3-app en
+onafhankelijke QEMU-basistijd-orakel zijn de acceptatiepoort.
+
+Herzien vóór SMP, andere firmware/hardware of TLS-gebruik: dan zijn
+geserialiseerd apparaatbezit, geautoriseerde TimeProvider, versheid,
+onzekerheidsmarge en rollbackanker nodig. Rollback: verwijder uitsluitend de
+opt-in feature, syscall, SDK-bindings en acceptatie; ABI 1.9 blijft als
+documenteerde compatibiliteitsrevisie, zonder invloed op oude profielen.
+
 ## ADR-049 — Exclusieve native CMOS-bootstrap, geen vertrouwde tijd
 
 30 oktober 2026; implementatie RTC-NATIVE-1, basis `5c334f9`.

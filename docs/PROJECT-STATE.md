@@ -1,6 +1,48 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — RTC-NATIVE-1 bewezen deelstap — 30 oktober 2026
+## NEXT AGENT HANDOFF — NATIVE-CLOCK-1 in uitvoering — 30 oktober 2026
+
+Bronbasis `c057d864e413840644da39b6c8338e883cbe2ff4`, branch
+`simonvanieperen-expert-disco`; doelbranch `main`. De nog niet
+gecommitteerde NATIVE-CLOCK-1-wijzigingen zijn behouden.
+De aparte workspace-doctestblokkade blijft buiten deze taak. De bestaande
+RTC-NATIVE-1-proef en concept-PR #63 zijn behouden.
+
+Nieuw werk: opt-in ABI 1.9 `native-system-clock`; syscall `0x73` voert
+alleen-lezen CMOS UTC uit bij IF=0, zonder user pointer of nieuwe capability.
+SDK retourneert `WallClockReading` met vaste kwaliteit `UnauthenticatedRtc`.
+De bestaande ring-3-systeemapp voert twee reads, controleert monotone ticks en
+weigert ongeldige syscallargumenten; de nieuwe runner vergelijkt timestamps
+met expliciete VM-RTC-tijd. Contract: `implementation/RTC-WALLTIME.md`,
+ADR-050. **Nog niet native uitgevoerd; geen nieuw rubriccriterium gesloten;
+score blijft 34%.**
+
+Geslaagd vóór native-run:
+
+- `python3 -B -m unittest tools.tests.test_system_clock` — exit 0, 3 hosttests.
+- `PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime` — exit 0, 20 tests.
+- `PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B tools/dev.py cargo +1.90.0 fmt --all -- --check` en `PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B tools/dev.py cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` — beide exit 0.
+- `python3 -B -m py_compile tools/run_system_clock.py tools/tests/test_system_clock.py` en `git diff --check` — beide exit 0.
+- `PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B tools/build.py --kernel-feature native-system-clock` — exit 0; kernel en drie systeem-ELF's gebouwd en geïnspecteerd, uiteindelijke build zonder waarschuwingen.
+- Eerste lokale buildpogingen faalden doordat de geïsoleerde `cc`-wrapper niet in `PATH` stond; de expliciete `PATH` hierboven loste dat op. Een waarschuwing over native-only imports is eveneens verholpen en de uiteindelijke build was schoon.
+- Uitvoerlogs voor formattering en gerichte host-/SDK-tests staan tijdelijk in `/tmp/nieuw-os-clock-{root-fmt,sdk-fmt,unit,sdk-tests}.log`; ze bevatten geen native QEMU-resultaat.
+
+De gerichte native gate volgt na het bron-/voortgangscheckpoint:
+`. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B -u tools/run_system_clock.py`.
+Dit start de echte bestaande native systeemdiensten/app in een wegwerp-QEMU-VM
+met expliciete `-rtc base=2026-10-30T12:00:00,clock=vm,driftfix=none`; het
+gebruikt een synthetisch wegwerpvolume en virtio-RNG. Vereist bewijs: raw exit
+33, twee geordende ring-3-timestamps binnen 60 gastseconden, monotone volgorde
+en echte `-22`-weigering; compact rapport onder
+`build/rtc-native/system-clock-report.json`, daarna brongebonden bewijs onder
+`docs/verification/system-clock/`. Deze gate is nog niet uitgevoerd.
+
+Open: RTC blijft niet-geauthenticeerd; onbekende UTC-/eeuwconfiguratie en
+firmwaregedrag zijn niet opgelost door de syscall. Geen persistente
+antirollback, trusted certificate time, NTP, suspend, physical hardware,
+SMP-serialisatie, TLS-integratie of volledige FR-S03/FR-N03-releaseacceptatie.
+
+## Historisch checkpoint — RTC-NATIVE-1 bewezen deelstap — 30 oktober 2026
 
 Basis `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`, branch
 `simonvanieperen-expert-disco`; doelbranch `main`. Schone basis en geen open
