@@ -1,6 +1,6 @@
 # Gewone interactieve DEV1: bron- en artifactfreeze
 
-**Ontwikkelkandidaat in voorbereiding, nog geen gastacceptatie of bundel.**
+**Ontwikkelkandidaat geblokkeerd: eerste referentiegate mislukt, geen bundel.**
 De door integrator e8 aangewezen huidige basis is main
 `ca45a7dabe6a040921de03bdc2fad3e5045a75ba`. De code staat onveranderd in
 de aparte detached worktree `build/release-dev1-source`. Deze bewijsbranch
@@ -73,7 +73,7 @@ verse synthetische 1 MiB-disk. Alle tool-/ROM-/firmwarepaden en hashes staan
 in `build-freeze.json`, inclusief werkelijk QEMU-ELF
 `fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb`.
 
-## Exacte omgeving en volgende commando's
+## Exacte oorspronkelijke omgeving en commando's
 
 Vanuit de bevroren source-worktree, met bestaande read-only hosttools:
 
@@ -94,7 +94,8 @@ export CARGO_NET_OFFLINE=true
 cd "$SOURCE"
 ```
 
-Na slotvrijgave, nog **niet uitgevoerd op dit checkpoint**:
+Deze commando's waren bij freeze `b4a93e43` nog niet uitgevoerd.
+Daarna is alleen het eerste commando eenmaal uitgevoerd; het tweede niet:
 
 ```sh
 python3 -B tools/dev.py python3 -B -u tools/run_materiaal_probe.py --build-dir "$SOURCE/build/dev1-reference" --case normal --machine pc-q35-8.2 --vga-rom "$QEMU_TOOLS/usr/share/seabios/vgabios-stdvga.bin" --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde --timeout 240
@@ -104,6 +105,65 @@ python3 -B tools/dev.py python3 -B -u tools/run_materiaal_preview.py --build-dir
 De tweede opdracht krijgt pas het concrete runpad na de eerste echte gate.
 Niet vervangen door een historische run of UI0818: source-/app-/firmware-/
 QEMU-binding moet op deze eigen artifacts slagen.
+
+## Eerste native gate: mislukt en behouden
+
+Registrar12 gaf na een verse hostcontrole expliciet hetzelfde ene slot vrij
+voor maximaal twee seriele gates, de tweede uitsluitend na een echte PASS
+van de eerste. De referentie eindigde na **3,180991606 s**, CLI exit **1**,
+QEMU raw **0**, `passed:false`, `timed_out:false`, `guest_timeout:false`.
+Fout: `ValueError: Guest did not complete actual UI phase ready`.
+Run: `build/release-dev1-source/build/dev1-reference/run/materiaal-normal-ac4f038e86`.
+Exacte CLI-uitvoer: `logs/reference-run.txt`; oorspronkelijk
+`/tmp/nieuw-os-dev1-ca45-reference-run.log`.
+
+Serial bereikt `BOOT:EBS_OK`, `KERNEL:ENTRY`, `BOOTINFO:OK`, `KS-01:PASS`,
+`KS-02:PASS`; geen `KS-03`, Materiaal-manifest, screenshot of UI-fase.
+QMP bevat alleen de geslaagde `qmp_capabilities`-onderhandeling, geen
+gebruikersinvoer. Stderr meldt een ontbrekende `kvmvapic.bin`; dat is
+vastgesteld, maar niet als oorzaak bewezen. Er is **geen gewone preview**
+gestart en geen automatische herhaling, cold-VM of andere VM. Postexit waren
+geen `qemu-system`-processen zichtbaar; het slot is expliciet teruggegeven
+en door12 als `FREE_OWNER_REPORTED` bevestigd. De voorwaardelijke tweede
+toestemming is daarmee vervallen.
+
+`reference-ac4f038e86/` bewaart result, serial, stderr, QMP en diskmetadata
+bytegelijk. De offline integriteitscontrole is exit0: alle23 gerapporteerde
+artifacthashes, bevroren inputs, huidige QEMU-identiteiten en opnieuw
+geinspecteerde build/ingesloten ELFs kloppen. De drie diskbeelden zijn
+bytegelijk aan de canonieke lege synthetische disk, inclusief canaries.
+Dit is **integriteitsbewijs van een mislukking**, geen geslaagde native gate.
+Grote binaries/disks blijven uitsluitend in de oorspronkelijke buildboom;
+hun hashes staan in het oorspronkelijke result. `build-freeze.json` blijft
+het ongewijzigde historische pre-VM-record.
+
+### Offline oorzaak en begrensde hervatstap
+
+Beide nieuwe kernels hebben ongeldige bootstrapgrenzen:
+`__kernel_start == __text_end == __rodata_end == __kernel_end == 0x02000000`,
+terwijl hun ELF-secties wel degelijk code/data erboven bevatten.
+De reference-disassembly berekent bij `0x02015f54` een kernelbereik met
+lengte nul. Daardoor wordt de eigen kernel niet in zijn nieuwe pagetabel
+opgenomen. Dit is een concrete buildfout die de waargenomen vroege stop
+verklaart; een exacte CPU-exceptiontrace is niet opgenomen.
+
+De bewaarde Cargo-fingerprints van beide kernels tonen de volledige
+`rustflags`-reeks **tweemaal**, inclusief tweemaal `-Tkernel/linker.ld`.
+De nieuwe worktree staat onder de oorspronkelijke repository en Cargo
+combineert de `.cargo/config.toml` van beide voorouders. Het linkerscript
+wordt zo tweemaal toegepast; de tweede lege sectiepassage overschrijft de
+grenssymbolen. De eerder werkelijk geteste NAS/default-kernels hebben wel
+oplopende grenssymbolen. Dit bewijst geen algemene compilerfout en zegt
+niets over de afzonderlijk onderzochte TCP-CR3-fout.
+
+Volgende onafhankelijke stap: dezelfde onveranderde bronca45 buiten deze
+Cargo-configuratievoorouders uitchecken, bestaande toolchains/caches
+hergebruiken en beide builds opnieuw uitvoeren. Voor een nieuwe freeze
+eerst precies een kernelflagreeks en geordende ELF-grenzen aantonen.
+Geen bron-/kernelpatch, Cargo-clean, nieuwe dependency of verzwakking van
+de gate. Nieuwe artifacts krijgen nieuwe hashes; deze mislukte artifacts
+worden niet herlabeld. Pas na die nieuwe freeze volgt een nieuwe
+registrarcapaciteitsaanvraag; dit checkpoint geeft **geen VM-vrijgave**.
 
 ## Overdracht en open acceptatie
 
