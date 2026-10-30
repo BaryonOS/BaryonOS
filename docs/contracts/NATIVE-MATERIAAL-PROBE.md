@@ -222,3 +222,40 @@ Nog uit te voeren na de eerste native keten, zichtbaar open:
 Op dit broncheckpoint zijn de rootbootstrap/observer/controller nog externe
 integratieafhankelijkheden. De runner heeft geen native VM-PASS geclaimd. Alle62
 releasecriteria en de bestaande voortgangsrubric blijven onverminderd gelden.
+
+## Gerichte hertoets na kandidaat6a9292d
+
+Eigen en onafhankelijke hosttegenproeven vonden drie gaten in het herberekenen
+van bewaard bewijs. Een geldige afterimage werd niet opnieuw aan de actieve
+QEMU-volume.img gekoppeld; te late geldige seriële prefixes konden een oude
+fase certificeren; offline recover-replay vereiste geen herberekende normalparent.
+Dit waren bewijsvalidatorfouten, geen bewijs dat de echte runner hostfuncties
+als OS-functies uitvoerde. De eerste twee regressies zijn werkelijk rood op de
+oude runner vastgelegd en na de gerichte fix groen.
+
+Replay vereist nu bytegelijkheid van actieve QEMU-disk en afterimage. Iedere
+camera-prefix is strikt langer dan de vorige, ligt vóór F12/controllerrelease/
+exits/eindrecords en bindt de laatste complete actuele snapshot in de juiste
+fase. Een halfvolgende record of historisch passende fase geeft geen capture.
+Dit weigert zowel alle prefixes op volledig eindserial, alle op Reopened vóór
+F12 als een Ready-prefix waarvan de laatste snapshot al Editor is.
+
+Cold-replay accepteert uitsluitend één owned normalparent uit dezelfde BUILD/run,
+herberekent diens raw33/serial/QMP/pixels/disk/inputhashes volledig en bindt diens
+afterbytes aan de recover-beforebytes. Een recoverparent of een normalparent
+met eigen parent wordt geweigerd: de controle kan niet onbeperkt recursief worden.
+Bronhash, machine/QEMU-entry/implementatie, loader, firmware/ROM en alle acht
+userspaceimages moeten overeenkomen; de kernel mag uitsluitend het vastgelegde
+recoverfeature hebben. De schijf blijft in QEMU én de bytecontrole readonly.
+
+Bij herkenbare native TIMEOUT/FAIL/PANIC-diagnostiek krijgt de reeds mislukte VM
+hoogstens1s om zijn echte dump en rawexit te schrijven vóór QMP-sluiting/kill.
+Dit verlengt geen acceptatietijd en verandert geen fout in een PASS. De gemeten
+eerste native kandidaat mislukte rond203s: Ready-frame na ongeveer106s, één
+volledig frame en3161 tileACKs vóór de vaste PIT-grens. Er is geen tolerantie
+verlaagd om deze run groen te maken. Root onderzoekt de gemeten diagnostische
+observer-overhead; APP/UI-bron blijft voor die gerichte herhaling gelijk.
+
+Negentien hosttegenproeven slagen na deze fixes. Exacte commando's/logs staan
+onder de eigen build/logs/materiaal-qmp; native herhaling en onafhankelijke
+review van de herstelde runner blijven aparte bewijsstappen.
