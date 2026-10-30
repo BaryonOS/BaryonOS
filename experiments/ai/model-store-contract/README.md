@@ -78,8 +78,9 @@ cargo +1.90.0 fmt --manifest-path experiments/ai/model-store-contract/Cargo.toml
 RUSTFLAGS='-C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2' CARGO_TARGET_DIR=target/ai-model-store-contract-none-sha2-scalar cargo +1.90.0 build --offline --locked --manifest-path experiments/ai/model-store-contract/Cargo.toml --release --lib --target x86_64-unknown-none
 ```
 
-In this Rust 1.90.0 environment the `x86_64-unknown-none` build with default
-target features exited 101 with an LLVM internal error in `sha2`; the scalar
-release library build above exited 0. That is a restricted compile check, not
-an accepted runtime instruction profile. The host test run passed 3 unit
-tests and 12 contract tests; no native OS/QEMU run was performed.
+An earlier `x86_64-unknown-none` build with default target features exited 101
+with an LLVM internal error in `sha2`. That failure did not reproduce in two
+subsequent isolated default-feature release builds; both and the scalar
+release library build above exited 0. This compile-only evidence does not
+validate a runtime instruction profile. The host test run passed 3 unit tests
+and 13 contract tests; no native OS/QEMU run was performed.
