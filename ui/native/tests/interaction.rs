@@ -286,6 +286,180 @@ fn dirty_close_defaults_to_cancel_and_only_explicit_discard_loses_edits_impl() {
         .any(|r| r.operation == wire::COMMIT));
 }
 
+fn sr05_escape_preserves_dirty_document_from_every_dialog_focus_impl() {
+    for scale in [Scale::Percent100, Scale::Percent200] {
+        for (tabs, focus, id) in [
+            (0, Focus::KeepEditing, SemanticId::KeepEditing),
+            (1, Focus::Discard, SemanticId::Discard),
+            (2, Focus::SaveAndBack, SemanticId::SaveAndBack),
+        ] {
+            let host = Host::new();
+            host.borrow_mut().seed(0, b"Original");
+            let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+            let mut ui = controller(
+                &host,
+                EditMode::ReadWrite,
+                Buffers {
+                    draft: &mut d,
+                    original: &mut o,
+                    staging: &mut s,
+                },
+            );
+            ui.resize(Viewport::new(800, 600, scale, 2).unwrap())
+                .unwrap();
+            ui.open(0).unwrap();
+            ui.insert("New ").unwrap();
+            let editor_generation = ui.view().generation;
+            let request_count = host.borrow().requests.len();
+            ui.request_back().unwrap();
+            let mut sequence = 0;
+            for _ in 0..tabs {
+                sequence += 1;
+                ui.deliver(envelope(sequence, 1, key(PhysicalKey::Tab)))
+                    .unwrap();
+            }
+            assert_eq!(ui.view().focus, focus);
+            {
+                let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+                let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+                assert_semantic_tree(&nodes, count);
+                let children: Vec<_> = nodes[..count]
+                    .iter()
+                    .filter(|node| node.parent == Some(SemanticId::CloseDialog))
+                    .collect();
+                assert_eq!(
+                    children.iter().map(|node| node.id).collect::<Vec<_>>(),
+                    [
+                        SemanticId::SaveAndBack,
+                        SemanticId::KeepEditing,
+                        SemanticId::Discard
+                    ]
+                );
+                assert!(children.iter().all(|node| {
+                    node.role == Role::Button
+                        && node.enabled
+                        && node.actions.activate
+                        && !node.actions.set_value
+                }));
+                let focused: Vec<_> = nodes[..count]
+                    .iter()
+                    .filter(|node| node.focused)
+                    .map(|node| node.id)
+                    .collect();
+                assert_eq!(focused, [id]);
+                for background in [
+                    SemanticId::NewDocument,
+                    SemanticId::Refresh,
+                    SemanticId::Back,
+                    SemanticId::Save,
+                    SemanticId::Document,
+                    SemanticId::Object(0),
+                ] {
+                    assert!(!nodes[..count].iter().any(|node| node.id == background));
+                }
+            }
+            let dialog_generation = ui.view().generation;
+            assert_eq!(
+                ui.activate_semantic(SemanticId::SaveAndBack, editor_generation),
+                Err(Error::StaleInput)
+            );
+            for background in [
+                SemanticId::NewDocument,
+                SemanticId::Refresh,
+                SemanticId::Back,
+                SemanticId::Save,
+                SemanticId::Document,
+                SemanticId::Object(0),
+            ] {
+                assert_eq!(
+                    ui.activate_semantic(background, dialog_generation),
+                    Err(Error::InvalidInput)
+                );
+            }
+            assert_eq!(
+                ui.set_semantic_value(SemanticId::Document, dialog_generation, "forbidden"),
+                Err(Error::InvalidInput)
+            );
+            assert_eq!(ui.view().focus, focus);
+            assert_eq!(ui.view().generation, dialog_generation);
+            sequence += 1;
+            ui.deliver(envelope(sequence, 1, key(PhysicalKey::Escape)))
+                .unwrap();
+            assert_eq!(ui.view().screen, Screen::Editor);
+            assert_eq!(ui.view().focus, Focus::Document);
+            assert_eq!(ui.view().contents, Some("New Original"));
+            assert!(ui.document().is_dirty());
+            assert!(!ui.document().is_saving());
+            assert_eq!(
+                ui.activate_semantic(SemanticId::Discard, dialog_generation),
+                Err(Error::StaleInput)
+            );
+            let mut h = host.borrow_mut();
+            assert_eq!(h.requests.len(), request_count);
+            assert_eq!(h.bytes(0), b"Original");
+            assert_eq!(h.recover().entries[0].revision, 1);
+            assert!(!h.requests.iter().any(|r| r.operation == wire::COMMIT));
+        }
+    }
+}
+
+fn sr05_dialog_tab_and_shift_tab_wrap_without_leaving_modal_impl() {
+    let host = Host::new();
+    host.borrow_mut().seed(0, b"Original");
+    let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+    let mut ui = controller(
+        &host,
+        EditMode::ReadWrite,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    ui.open(0).unwrap();
+    ui.insert("New ").unwrap();
+    ui.request_back().unwrap();
+    let request_count = host.borrow().requests.len();
+    let mut sequence = 0;
+    for (reverse, expected) in [
+        (false, Focus::Discard),
+        (false, Focus::SaveAndBack),
+        (false, Focus::KeepEditing),
+        (true, Focus::SaveAndBack),
+        (true, Focus::Discard),
+        (true, Focus::KeepEditing),
+    ] {
+        sequence += 1;
+        let event = Event::Key(KeyboardEvent {
+            key: PhysicalKey::Tab,
+            action: KeyAction::Press,
+            modifiers: KeyboardModifiers {
+                left_shift: reverse,
+                ..KeyboardModifiers::default()
+            },
+        });
+        ui.deliver(envelope(sequence, 1, event)).unwrap();
+        assert_eq!(ui.view().focus, expected);
+        assert_eq!(ui.view().screen, Screen::ConfirmClose);
+        assert_eq!(ui.view().contents, Some("New Original"));
+        assert!(ui.document().is_dirty());
+        assert!(!ui.document().is_saving());
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        assert_eq!(nodes[..count].iter().filter(|node| node.focused).count(), 1);
+        assert!(nodes[..count].iter().any(|node| {
+            node.focused
+                && node.parent == Some(SemanticId::CloseDialog)
+                && node.enabled
+                && node.actions.activate
+        }));
+    }
+    let mut h = host.borrow_mut();
+    assert_eq!(h.requests.len(), request_count);
+    assert_eq!(h.bytes(0), b"Original");
+    assert!(!h.requests.iter().any(|r| r.operation == wire::COMMIT));
+}
+
 fn replay_cancel_and_old_focus_cannot_trigger_a_new_edit_impl() {
     let host = Host::new();
     let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
@@ -834,6 +1008,14 @@ macro_rules! scenario {
         }
     };
 }
+scenario!(
+    sr05_escape_preserves_dirty_document_from_every_dialog_focus,
+    sr05_escape_preserves_dirty_document_from_every_dialog_focus_impl
+);
+scenario!(
+    sr05_dialog_tab_and_shift_tab_wrap_without_leaving_modal,
+    sr05_dialog_tab_and_shift_tab_wrap_without_leaving_modal_impl
+);
 scenario!(
     real_ps2_edit_stream_commit_list_and_reopen,
     real_ps2_edit_stream_commit_list_and_reopen_impl
