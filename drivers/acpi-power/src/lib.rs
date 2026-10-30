@@ -1018,4 +1018,68 @@ mod tests {
             assert!(parse(&firmware, &definition[..cut]).is_err());
         }
     }
+
+    fn extended_fadt() -> Vec<u8> {
+        let mut bytes = fadt(0x404, 0x408);
+        bytes.resize(196, 0);
+        bytes[140..148].copy_from_slice(&DSDT_ADDRESS.to_le_bytes());
+        for (offset, address) in [(172, 0x504u64), (184, 0x508u64)] {
+            bytes[offset] = 1;
+            bytes[offset + 1] = 16;
+            bytes[offset + 3] = 2;
+            bytes[offset + 4..offset + 12].copy_from_slice(&address.to_le_bytes());
+        }
+        finish_table(bytes, b"FACP")
+    }
+
+    #[test]
+    fn rejects_each_invalid_pm1_gas_field_without_legacy_fallback() {
+        let definition = dsdt(&root_s5(0, 0));
+        for gas_offset in [172, 184] {
+            for (field, invalid_values) in [
+                (0, &[0, 2, 0x7f, 0xff][..]),
+                (1, &[0, 8, 15, 17, 32, 0xff][..]),
+                (2, &[1, 8, 16, 0xff][..]),
+                (3, &[1, 3, 4, 0xff][..]),
+            ] {
+                for value in invalid_values {
+                    let mut firmware = extended_fadt();
+                    firmware[gas_offset + field] = *value;
+                    let firmware = finish_table(firmware, b"FACP");
+                    assert_eq!(
+                        parse(&firmware, &definition),
+                        Err(Error::InvalidGas),
+                        "GAS={gas_offset}, field={field}, value={value}"
+                    );
+                }
+            }
+            for address in [0xffffu64, 0x1_0000, u64::MAX] {
+                let mut firmware = extended_fadt();
+                firmware[gas_offset + 4..gas_offset + 12].copy_from_slice(&address.to_le_bytes());
+                let firmware = finish_table(firmware, b"FACP");
+                assert_eq!(
+                    parse(&firmware, &definition),
+                    Err(Error::InvalidRegisterAddress)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn rejects_extended_pm1_overlap_and_wrong_extended_dsdt_binding() {
+        let definition = dsdt(&root_s5(0, 0));
+        for pm1b in [0x503u64, 0x504, 0x505] {
+            let mut firmware = extended_fadt();
+            firmware[188..196].copy_from_slice(&pm1b.to_le_bytes());
+            let firmware = finish_table(firmware, b"FACP");
+            assert_eq!(parse(&firmware, &definition), Err(Error::AliasedRegisters));
+        }
+        let mut firmware = extended_fadt();
+        firmware[140..148].copy_from_slice(&(DSDT_ADDRESS + 1).to_le_bytes());
+        let firmware = finish_table(firmware, b"FACP");
+        assert_eq!(
+            parse(&firmware, &definition),
+            Err(Error::DsdtAddressMismatch)
+        );
+    }
 }

@@ -2,7 +2,7 @@
 
 ## Basis and scope
 
-- Source base for this follow-up: `0ce565a718eae5b5c9be11b053c92b8e25bc0119`.
+- Source base for this follow-up: `ff6e4c467720164c59f19c5f8e9fc4a1d16cfc0c`.
 - Rust toolchain: `1.90.0`; Cargo ran offline against the existing local
   toolchain/cache.
 - Scope: only `drivers/acpi-power/**`; no kernel, BootInfo, build-profile,
@@ -18,7 +18,7 @@ Run from the repository root with the selected Rust toolchain available:
 | Check | Exact command | Exit | Output |
 |---|---|---:|---|
 | Rust formatting | `cargo +1.90.0 fmt --manifest-path drivers/acpi-power/Cargo.toml -- --check` | 0 | `fmt.log` |
-| Unit and negative tests | `cargo +1.90.0 test --offline --locked --manifest-path drivers/acpi-power/Cargo.toml` | 0; 15 passed | `tests.log` |
+| Unit and negative tests | `cargo +1.90.0 test --offline --locked --manifest-path drivers/acpi-power/Cargo.toml` | 0; 17 passed | `tests.log` |
 | Clippy | `cargo +1.90.0 clippy --offline --locked --manifest-path drivers/acpi-power/Cargo.toml --all-targets -- -D warnings` | 0 | `clippy.log` |
 | `no_std` release build | `cargo +1.90.0 build --target x86_64-unknown-none --release --offline --locked --manifest-path drivers/acpi-power/Cargo.toml` | 0 | `build.log` |
 
@@ -45,6 +45,17 @@ length encodings, undersized/oversized packages, every proper prefix of eight
 AML object fixtures both alone and after a valid S5, and every proper prefix
 of both input tables. No panic is intercepted: one would fail the host test.
 This is bounded fixture coverage, not exhaustive fuzzing or native proof.
+
+## PM1 GAS no-fallback matrix
+
+The next two tests independently mutate every interpreted GAS field for PM1a
+and PM1b with valid legacy addresses retained. Invalid address spaces, widths,
+offsets, access sizes, overflowing 16-bit I/O addresses and `u64::MAX` must
+fail rather than fall back to those legacy fields. Extended register ranges
+that overlap by either byte are rejected. An incorrect nonzero `X_DSDT`
+address also fails even when the legacy DSDT address matches. This follow-up
+adds negative coverage without changing the public API or register-selection
+behavior.
 
 ## Still open
 

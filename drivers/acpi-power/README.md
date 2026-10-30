@@ -74,7 +74,12 @@ AML-interpreter geclaimd.
 De unitfixtures dekken SDT-signature/lengte/checksum, bronadresbinding,
 PM1-GAS/ranges/overlap, hardware-reduced mode, AML-constanten, ontbrekende,
 dubbele en niet-root `_S5_`, foutieve `PkgLength`, verkeerde packagegrootte en
-onbekende AML. Ze zijn hosttests op synthetische bytes, geen firmware- of
+onbekende AML. De GAS-matrix muteert voor zowel PM1a als PM1b afzonderlijk de
+address space, bit width, bit offset, access size en adresgrens terwijl het
+legacy-adres geldig blijft: een aanwezige ongeldige extended beschrijving
+wordt geweigerd, niet vervangen. Extended registeroverlap en een onjuiste
+`X_DSDT`-binding worden eveneens geweigerd ondanks geldige legacyvelden.
+Dit zijn hosttests op synthetische bytes, geen firmware- of
 QEMU-bewijs. De release-integrator beheert BootInfo-integratie, onafhankelijke
 kernelvalidatie, profielmanifest, native broker en de poweroff-proef. Er is
 geen H05-aftekening en geen fysieke hardwareacceptatie.

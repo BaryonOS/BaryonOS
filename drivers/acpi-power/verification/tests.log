@@ -1,8 +1,8 @@
    Compiling nieuw-os-acpi-power v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-friendly-guacamole/drivers/acpi-power)
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.23s
      Running unittests src/lib.rs (drivers/acpi-power/target/debug/deps/nieuw_os_acpi_power-7918b70d4f33ef8e)
 
-running 15 tests
+running 17 tests
 test tests::accepts_the_legacy_pm1a_register_without_pm1b ... ok
 test tests::extracts_root_s5_and_creates_read_only_register_settings ... ok
 test tests::prefers_valid_extended_pm1_gas_and_dsdt_address ... ok
@@ -10,8 +10,10 @@ test tests::rejects_all_truncated_length_encodings_and_out_of_bounds_packages ..
 test tests::rejects_bad_pm1_ranges_lengths_aliases_and_hw_reduced_mode ... ok
 test tests::rejects_duplicate_or_non_root_s5_declarations ... ok
 test tests::rejects_every_truncated_table_slice_without_panicking ... ok
+test tests::rejects_each_invalid_pm1_gas_field_without_legacy_fallback ... ok
 test tests::rejects_invalid_extended_gas_and_partial_fadt_extensions ... ok
 test tests::rejects_malformed_and_ambiguous_s5_packages ... ok
+test tests::rejects_extended_pm1_overlap_and_wrong_extended_dsdt_binding ... ok
 test tests::rejects_non_package_s5_and_malformed_pkg_length ... ok
 test tests::rejects_unsupported_aml_and_sleep_types_outside_three_bits ... ok
 test tests::rejects_wrong_dsdt_address_and_missing_aml_s5 ... ok
@@ -19,7 +21,7 @@ test tests::rejects_truncated_objects_even_after_a_valid_s5 ... ok
 test tests::validates_all_pkg_length_widths_and_rejects_reserved_lead_bits ... ok
 test tests::validates_sdt_signatures_lengths_and_checksums ... ok
 
-test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
    Doc-tests nieuw_os_acpi_power
 
@@ -27,6 +29,6 @@ running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-real 0.24
+real 0.26
 user 0.15
-sys 0.15
+sys 0.17
