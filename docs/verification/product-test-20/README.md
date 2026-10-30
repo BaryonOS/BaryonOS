@@ -1,7 +1,10 @@
 # Rol 20 — beperkte native producttest DEV1
 
-**Status: testontwerp gereed; uitvoering geblokkeerd op artifact- en
-runnervrijgave.** Dit document specificeert een kleine, observeerbare
+**Status: testontwerp gereed; aangeleverde probe onafhankelijk read-only
+gecontroleerd; eigen bediening geblokkeerd op artifact- en runnervrijgave.**
+Zie [bewijscontrole van 0818f5e](REVIEW-0818.md): bundel/transcript/QMP/frames/
+schijfbytes zijn herberekend, zonder nieuwe VM of volledige productaftekening.
+Dit document specificeert een kleine, observeerbare
 ontwikkeltest. Het is geen volledige releaseacceptatie en kent geen
 voortgangspunten toe.
 
@@ -143,9 +146,11 @@ de afgesproken intake/release-eigenaar. Dit bewijs sluit geen volledige
 | Item | Status | Bewijs / eerstvolgende voorwaarde |
 |---|---|---|
 | Testmatrix en stopregels | Gereed als ontwerp | Dit document; geen native uitvoering |
-| Kandidaatartifact | `BLOCKED` | Release/agent 4 moet dezelfde immutable artifact en exacte hashes vrijgeven |
+| Aangeleverde 0818f5e-probe | Read-only gecontroleerd | [REVIEW-0818.md](REVIEW-0818.md); exacte bundel en oorspronkelijke run, geen gewone DEV1-image |
+| Gewone interactieve kandidaatartifact | `BLOCKED` | Release/agent 4 moet dezelfde immutable artifact en exacte hashes vrijgeven |
 | Goedgekeurde toolroute/runner-slot | `BLOCKED` | Rol 12 kent een bestaande toolroute toe; het enige vrijgegeven VM-slot is bij rol 19 gereserveerd |
-| Normale create/edit/save/reopen | `NOT RUN` | Artifact + runner + normale interactieve route |
+| Create/edit/save/reopen in producerprobe | Bewijsreplay PASS | Geen eigen VM; exacte QMP- en afterimagecontrole, zie review |
+| Gewone create/edit/save/reopen | `NOT RUN` | Artifact + runner + normale interactieve route |
 | Cold reopen | `NOT RUN` | Geslaagde normale run; nieuw proces/VM, zelfde wegwerp-diskbytes |
 | Deny/revoke, Full, Unknown | `NOT RUN` | Werkelijke kandidaatbediening en afzonderlijk goedgekeurde fixtures |
 | Volledige product-/menselijke acceptatie | `OPEN` | Buiten DEV1-scope; geen aftekening door deze taak |
