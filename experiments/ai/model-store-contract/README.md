@@ -70,8 +70,10 @@ candidate file is about 942 MiB; full FP32 expansion would be about 1.84 GiB,
 before activations, tokenizer, workspace, and runtime overhead. The 8 GiB
 profile's remaining margin is therefore unproven. No model bytes were
 downloaded and no resource or inference measurement was made. Host tests use
-a short tampered synthetic stream to test full-hash rejection and negative
-reader cases; they do not prove model loading, installation, or inference. A
+small synthetic streams to test complete short-read verification, full-hash
+rejection and handle cleanup on incomplete verification, descriptor mismatch,
+revocation, quota/I/O errors and cancellation before or during a verified read.
+These fixtures do not prove model loading, installation, or inference. A
 bare-metal build proves only compilation for `x86_64-unknown-none`.
 
 The bounded gates for this leaf, run against root-contract branch
@@ -89,4 +91,18 @@ with an LLVM internal error in `sha2`. That failure did not reproduce in two
 subsequent isolated default-feature release builds; both and the scalar
 release library build above exited 0. This compile-only evidence does not
 validate a runtime instruction profile. The host test run passed 4 unit tests
-and 13 contract tests; no native OS/QEMU run was performed.
+and 18 contract tests; no native OS/QEMU run was performed.
+
+The lifecycle follow-up starts from frozen adapter commit
+`b51a8093320e6182afce9b189e89760fc8c99116`; it changes tests and this README
+only. Production provider/catalog integration remains unassigned to this leaf.
+The next native dependency is a store-issued reference and generation bound to
+an authorized read handle with provider-owned cleanup and durable catalog data.
+It must not be replaced with a test-generated identity or a model download.
+
+Lifecycle follow-up, 30 October 2026: the `test`, `clippy` and `fmt -- --check`
+commands above and `git diff --check` exited 0 (4 unit and 18 contract tests).
+An initial formatting check exited 1; rustfmt corrected it before the successful
+rerun. Bare-metal compilation and native/QEMU execution were not repeated for
+this tests/documentation-only change. The earlier compile results remain bound
+to the adapter source, not a new inference or runtime acceptance claim.

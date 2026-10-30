@@ -322,6 +322,169 @@ fn corruption_and_storage_truncation_are_not_treated_as_eof_success() {
 }
 
 #[test]
+fn positive_short_reads_verify_then_read_the_complete_fixture() {
+    let descriptor = fixture_descriptor(4, SHA256_ABCD);
+    let mut store = Store::fixture(descriptor, b"abcd");
+    store.max_read = Some(1);
+    let closed = store.track_close();
+    let mut verifier = open(&mut store, descriptor).unwrap();
+    let mut budget = ReadBudget::new(10);
+
+    for offset in 1..=4 {
+        assert_eq!(
+            verifier
+                .verify_next(&mut store, &mut budget, &NeverCancelled)
+                .unwrap(),
+            offset == 4
+        );
+        assert_eq!(verifier.verified_offset(), offset);
+    }
+    assert_eq!(budget.remaining_bytes(), 0);
+    assert_eq!(store.read_calls, 4);
+    let mut artifact = verifier.finish().unwrap();
+    assert_eq!(artifact.descriptor(), descriptor);
+    assert!(!closed.load(Ordering::SeqCst));
+
+    let mut output = [0; 4];
+    let mut budget = ReadBudget::new(10);
+    for offset in 0..4 {
+        assert_eq!(
+            artifact.read_at(
+                &mut store,
+                offset as u64,
+                &mut budget,
+                &NeverCancelled,
+                &mut output[offset..]
+            ),
+            Ok(1)
+        );
+    }
+    assert_eq!(&output, b"abcd");
+    assert_eq!(budget.remaining_bytes(), 0);
+    assert_eq!(
+        artifact.read_at(&mut store, 4, &mut budget, &NeverCancelled, &mut output),
+        Err(Error::EndOfArtifact)
+    );
+    assert_eq!(store.read_calls, 8);
+    artifact.abort();
+    assert!(closed.load(Ordering::SeqCst));
+}
+
+#[test]
+fn unfinished_verification_never_publishes_a_handle_and_releases_it() {
+    for read_first_chunk in [false, true] {
+        let descriptor = fixture_descriptor(4, SHA256_ABCD);
+        let mut store = Store::fixture(descriptor, b"abcd");
+        store.max_read = Some(1);
+        let closed = store.track_close();
+        let mut verifier = open(&mut store, descriptor).unwrap();
+        if read_first_chunk {
+            assert!(!verifier
+                .verify_next(&mut store, &mut ReadBudget::new(4), &NeverCancelled)
+                .unwrap());
+        }
+        assert_eq!(verifier.finish().err(), Some(Error::IntegrityPending));
+        assert!(closed.load(Ordering::SeqCst));
+        assert_eq!(store.read_calls, usize::from(read_first_chunk));
+    }
+}
+
+#[test]
+fn descriptor_mismatch_drops_the_root_handle_without_reading() {
+    let mut store = Store::pinned();
+    let closed = store.track_close();
+    store.descriptor.sha256[0] ^= 1;
+    assert_eq!(
+        open_pinned_model(&mut store, MODEL_REFERENCE).err(),
+        Some(Error::Corrupt)
+    );
+    assert!(closed.load(Ordering::SeqCst));
+    assert_eq!(store.read_calls, 0);
+}
+
+#[test]
+fn verified_reads_fail_closed_on_revocation_and_quota_errors() {
+    for (store_error, expected) in [
+        (StoreError::Unauthorized, Error::Unauthorized),
+        (StoreError::Quota, Error::StoreQuota),
+        (StoreError::Io, Error::StoreUnavailable),
+    ] {
+        let descriptor = fixture_descriptor(4, SHA256_ABCD);
+        let mut store = Store::fixture(descriptor, b"abcd");
+        let closed = store.track_close();
+        let mut verifier = open(&mut store, descriptor).unwrap();
+        assert!(verifier
+            .verify_next(&mut store, &mut ReadBudget::new(4), &NeverCancelled)
+            .unwrap());
+        let mut artifact = verifier.finish().unwrap();
+        store.read_error = Some(store_error);
+        let mut budget = ReadBudget::new(4);
+        let mut output = [0; 4];
+        assert_eq!(
+            artifact.read_at(&mut store, 0, &mut budget, &NeverCancelled, &mut output),
+            Err(expected)
+        );
+        assert_eq!(budget.remaining_bytes(), 0);
+        assert!(closed.load(Ordering::SeqCst));
+        store.read_error = None;
+        assert_eq!(
+            artifact.read_at(&mut store, 0, &mut budget, &NeverCancelled, &mut output),
+            Err(Error::Aborted)
+        );
+        assert_eq!(store.read_calls, 2);
+    }
+}
+
+#[test]
+fn cancellation_after_verification_before_or_during_io_releases_handle() {
+    for cancel_during_io in [false, true] {
+        let descriptor = fixture_descriptor(4, SHA256_ABCD);
+        let mut store = Store::fixture(descriptor, b"abcd");
+        let closed = store.track_close();
+        let mut verifier = open(&mut store, descriptor).unwrap();
+        assert!(verifier
+            .verify_next(&mut store, &mut ReadBudget::new(4), &NeverCancelled)
+            .unwrap());
+        let mut artifact = verifier.finish().unwrap();
+        let cancelled = Cell::new(!cancel_during_io);
+        let mut store = CancelDuringRead {
+            inner: store,
+            cancelled: &cancelled,
+        };
+        let mut budget = ReadBudget::new(4);
+        let mut output = [0; 4];
+        assert_eq!(
+            artifact.read_at(
+                &mut store,
+                0,
+                &mut budget,
+                &Cancelled(&cancelled),
+                &mut output
+            ),
+            Err(Error::Cancelled)
+        );
+        assert!(closed.load(Ordering::SeqCst));
+        assert_eq!(
+            budget.remaining_bytes(),
+            if cancel_during_io { 0 } else { 4 }
+        );
+        assert_eq!(store.inner.read_calls, if cancel_during_io { 2 } else { 1 });
+        cancelled.set(false);
+        assert_eq!(
+            artifact.read_at(
+                &mut store,
+                0,
+                &mut budget,
+                &Cancelled(&cancelled),
+                &mut output
+            ),
+            Err(Error::Aborted)
+        );
+        assert_eq!(store.inner.read_calls, if cancel_during_io { 2 } else { 1 });
+    }
+}
+
+#[test]
 fn positive_short_reads_hash_the_complete_tampered_stream_and_reject_it() {
     let expected = b"abcd";
     let mut store = Store::fixture(fixture_descriptor(4, SHA256_ABCD), b"abce");
