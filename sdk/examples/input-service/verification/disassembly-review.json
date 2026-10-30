@@ -1,0 +1,16 @@
+[
+  {
+    "role": "source",
+    "instructions_checked": 2370,
+    "forbidden_simd_fpu_ports_hostsyscalls": [],
+    "undefined_symbols": "",
+    "direct_c_entry": "compiler push before call, preserving SysV mod16=8"
+  },
+  {
+    "role": "policy",
+    "instructions_checked": 4719,
+    "forbidden_simd_fpu_ports_hostsyscalls": [],
+    "undefined_symbols": "",
+    "direct_c_entry": "compiler push before call, preserving SysV mod16=8"
+  }
+]

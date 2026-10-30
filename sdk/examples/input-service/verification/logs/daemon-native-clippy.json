@@ -1,0 +1,26 @@
+{
+  "command": [
+    "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "clippy",
+    "--offline",
+    "--locked",
+    "--release",
+    "--manifest-path",
+    "sdk/examples/input-service/Cargo.toml",
+    "--features",
+    "native",
+    "--bins",
+    "--target",
+    "x86_64-unknown-none",
+    "--target-dir",
+    "/workspace/nieuw-os-worktrees/input-daemon/target/input-final/clippy",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "cwd": "/workspace/nieuw-os-worktrees/input-daemon",
+  "started_unix": 1793328334.4933426,
+  "duration_s": 0.5612049102783203,
+  "returncode": 0
+}

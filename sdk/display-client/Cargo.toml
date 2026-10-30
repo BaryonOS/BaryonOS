@@ -1,0 +1,18 @@
+[package]
+name = "nieuw-os-display-client"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+
+[features]
+default = ["client"]
+client = ["dep:nieuw-os-sdk-runtime"]
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../runtime", optional = true }
+
+[profile.release]
+panic = "abort"

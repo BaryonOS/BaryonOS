@@ -1,0 +1,43 @@
+command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "test", "--offline", "--locked", "--manifest-path", "ui/native/Cargo.toml"]
+exit: 0
+
+stdout:
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 18 tests
+test compact_layout_keeps_a_real_object_and_full_control_targets_visible ... ok
+test abort_retains_draft_and_does_not_publish_an_unsaved_revision ... ok
+test dirty_close_defaults_to_cancel_and_only_explicit_discard_loses_edits ... ok
+test conflict_revocation_and_io_error_keep_unconfirmed_work_visible ... ok
+test display_epoch_stale_frame_and_failed_present_keep_repaint_pending ... ok
+test fresh_input_epoch_preserves_draft_and_cannot_inherit_a_pressed_button ... ok
+test explicit_cleanup_refuses_dirty_and_never_reconfirms_closed_work ... ok
+test mouse_click_uses_real_ps2_buttons_and_release_must_match ... ok
+test lost_commit_never_becomes_saved_or_automatic_replay ... ok
+test narrow_list_pointer_paging_reaches_real_objects_in_both_directions ... ok
+test readonly_and_unsupported_utf8_do_not_corrupt_bytes ... ok
+test real_ps2_edit_stream_commit_list_and_reopen ... ok
+test replay_cancel_and_old_focus_cannot_trigger_a_new_edit ... ok
+test utf8_navigation_wrap_crlf_tabs_and_range_boundaries_are_checked ... ok
+test wrong_reply_identity_cannot_populate_a_fake_object_list ... ok
+test bounded_buffers_full_input_and_64kib_document_are_not_silent_truncation ... ok
+test real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus ... ok
+test actual_raster_scenes_for_manual_host_inspection ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.67s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+stderr:
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running unittests src/lib.rs (build/native-materiaal-target/debug/deps/nieuw_os_materiaal-2db06dacbf2666ca)
+     Running tests/interaction.rs (build/native-materiaal-target/debug/deps/interaction-437b17f79457c2f2)
+   Doc-tests nieuw_os_materiaal

@@ -12,7 +12,7 @@ from run_fpu import private_path, publish_json, load_json
 SOURCE_PATHS = ("boot", "kernel", "crates", "drivers", "services", "userspace", "sdk",
                 "experiments/quantum/qsim-core", "experiments/quantum/native",
                 "experiments/quantum/job-protocol", "tools", ".cargo", "Cargo.toml",
-                "Cargo.lock", "rust-toolchain.toml", "experiments/quantum/Cargo.toml")
+                "Cargo.lock", "rust-toolchain.toml", "experiments/quantum/Cargo.toml", "ui/native", "ui/surface-protocol", "ui/prototype/tokens.css")
 
 
 def main() -> int:

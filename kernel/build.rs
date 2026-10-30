@@ -35,6 +35,9 @@ fn main() {
         }
     }
     for name in [
+        "NOS_DISPLAY_PROBE_ELF",
+        "NOS_INPUT_PROBE_ELF",
+        "NOS_DISPLAY_INTRUDER_ELF",
         "NOS_MEMORY_ELF",
         "NOS_FPU_A_ELF",
         "NOS_FPU_B_ELF",

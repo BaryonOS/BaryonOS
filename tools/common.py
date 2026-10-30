@@ -69,13 +69,13 @@ def source_hash() -> str:
     """Fingerprint source inputs without traversing generated artifacts or caches."""
     digest = hashlib.sha256()
     digest.update(b"nieuw-os source inputs v3\n")
-    for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "drivers", ROOT / "services", ROOT / "userspace", ROOT / "sdk", ROOT / "experiments/quantum/qsim-core", ROOT / "experiments/quantum/native", ROOT / "experiments/quantum/job-protocol", ROOT / "tools", ROOT / ".cargo"):
+    for folder in (ROOT / "boot", ROOT / "kernel", ROOT / "crates", ROOT / "drivers", ROOT / "services", ROOT / "userspace", ROOT / "sdk", ROOT / "ui/native", ROOT / "ui/surface-protocol", ROOT / "experiments/quantum/qsim-core", ROOT / "experiments/quantum/native", ROOT / "experiments/quantum/job-protocol", ROOT / "tools", ROOT / ".cargo"):
         if folder.exists():
             for path in sorted(folder.rglob("*")):
                 if path.is_file() and not {"__pycache__", "verification", "target", "build", ".git"}.intersection(path.relative_to(folder).parts):
                     digest.update(path.relative_to(ROOT).as_posix().encode())
                     digest.update(path.read_bytes())
-    for name in ("Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "experiments/quantum/Cargo.toml"):
+    for name in ("Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "experiments/quantum/Cargo.toml", "ui/prototype/tokens.css"):
         if (ROOT / name).exists():
             digest.update(name.encode())
             digest.update((ROOT / name).read_bytes())

@@ -23,7 +23,7 @@ pub use network::{NetworkSource, NET_FRAME_MAX};
 pub mod native;
 
 pub const ABI_MAJOR: u64 = 1;
-pub const ABI_MAX_MINOR: u64 = 7;
+pub const ABI_MAX_MINOR: u64 = 8;
 
 /// The common syscall contract is unchanged across the existing 1.0–1.7
 /// profiles (1.3 adds the K05 process-management calls, 1.4 the B01 entropy

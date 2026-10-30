@@ -13,12 +13,18 @@ use core::{
     ptr,
 };
 use kernel_core::{user, Frames, Kind, Owner, PAGE};
+#[cfg(feature = "display-input")]
+mod display;
+#[cfg(feature = "native-display-probe")]
+mod display_fixture;
 #[cfg(feature = "fpu-context")]
 mod fpu;
 #[cfg(feature = "process-memory")]
 mod heap;
 #[cfg(feature = "native-memory")]
 mod memory_fixture;
+#[cfg(feature = "display-input")]
+mod ps2;
 #[cfg(all(
     feature = "native-memory",
     any(
@@ -166,7 +172,8 @@ const KEYRING_APP_ELF: &[u8] = include_bytes!(env!("NOS_KEYRING_APP_ELF"));
     not(feature = "native-qsim-job"),
     not(feature = "native-sdk-app"),
     not(feature = "native-supervisor"),
-    not(feature = "native-keyring")
+    not(feature = "native-keyring"),
+    not(feature = "native-display-probe")
 ))]
 const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
@@ -340,6 +347,15 @@ extern "C" {
     fn m3_restore();
 }
 
+#[cfg(feature = "native-display-probe")]
+fn process_elf(slot: usize) -> &'static [u8] {
+    match slot {
+        0 => include_bytes!(env!("NOS_DISPLAY_PROBE_ELF")),
+        1 => include_bytes!(env!("NOS_INPUT_PROBE_ELF")),
+        2 => include_bytes!(env!("NOS_DISPLAY_INTRUDER_ELF")),
+        _ => panic!("display/input acceptance has three processes"),
+    }
+}
 #[cfg(feature = "native-fpu")]
 fn process_elf(slot: usize) -> &'static [u8] {
     match slot {
@@ -398,6 +414,7 @@ fn process_elf(_: usize) -> &'static [u8] {
     include_bytes!(env!("NOS_MEMORY_ELF"))
 }
 #[cfg(not(any(
+    feature = "native-display-probe",
     feature = "native-memory",
     feature = "native-fpu",
     feature = "native-sdk-app",
@@ -463,6 +480,11 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
         arch::user_gate(32, m3_timer as *const () as u64, false);
         arch::user_gate(128, m3_syscall as *const () as u64, true);
         let state = (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut();
+        #[cfg(feature = "display-input")]
+        {
+            display::prepare();
+            ps2::prepare();
+        }
         state.setup();
         timer_init();
         let next = state.select();
@@ -545,7 +567,8 @@ impl State {
             not(feature = "native-qsim-job"),
             not(feature = "native-sdk-app"),
             not(feature = "native-supervisor"),
-            not(feature = "native-keyring")
+            not(feature = "native-keyring"),
+            not(feature = "native-display-probe")
         ))]
         m4::manifest(self);
         #[cfg(feature = "native-sdk-app")]
@@ -566,6 +589,8 @@ impl State {
         fpu::fixture::manifest(self);
         #[cfg(feature = "native-memory")]
         memory_fixture::manifest(self);
+        #[cfg(feature = "native-display-probe")]
+        display_fixture::manifest(self);
     }
     fn spawn_process(&mut self, slot: usize) {
         self.spawn_process_from(slot, process_elf(slot));
@@ -906,6 +931,11 @@ impl State {
         let mut address = p.paging.take().unwrap();
         #[cfg(feature = "fpu-context")]
         fpu::clear(slot);
+        #[cfg(feature = "display-input")]
+        {
+            display::detach(p.pid);
+            ps2::detach(p.pid);
+        }
         #[cfg(feature = "milestone-m5")]
         m5::detach(p.pid);
         #[cfg(feature = "native-keyring")]
@@ -994,6 +1024,11 @@ impl State {
             .count()
     }
     fn observer_exit(&mut self, slot: usize, counter: u64) {
+        #[cfg(feature = "native-display-probe")]
+        {
+            display_fixture::observe_exit(self, slot, counter);
+            return;
+        }
         #[cfg(feature = "native-memory")]
         {
             memory_fixture::observe_exit(self, slot, counter);
@@ -1041,7 +1076,8 @@ impl State {
             not(feature = "native-qsim-job"),
             not(feature = "native-sdk-app"),
             not(feature = "native-supervisor"),
-            not(feature = "native-keyring")
+            not(feature = "native-keyring"),
+            not(feature = "native-display-probe")
         ))]
         {
             m4::observe_exit(self, slot, counter);
@@ -1076,6 +1112,11 @@ impl State {
         }
     }
     fn observer_fault(&mut self, slot: usize, context: &[u64; 22], counter: u64) {
+        #[cfg(feature = "native-display-probe")]
+        {
+            display_fixture::observe_fault(self, slot, context, counter);
+            return;
+        }
         #[cfg(feature = "native-memory")]
         {
             memory_fixture::observe_fault(self, slot, context, counter);
@@ -1123,7 +1164,8 @@ impl State {
             not(feature = "native-qsim-job"),
             not(feature = "native-sdk-app"),
             not(feature = "native-supervisor"),
-            not(feature = "native-keyring")
+            not(feature = "native-keyring"),
+            not(feature = "native-display-probe")
         ))]
         {
             m4::observe_fault(self, slot, context, counter);
@@ -1243,6 +1285,8 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         #[cfg(not(any(feature = "native-supervisor", feature = "native-keyring")))]
         #[allow(unused_variables)]
         let supervisor_call = false;
+        #[cfg(feature = "display-input")]
+        let supervisor_call = supervisor_call || matches!(number, 0x80..=0x84);
         #[cfg(feature = "native-supervisor")]
         if matches!(number, 0x30 | 0x50..=0x52) {
             let (rax, rdx) = supervisor::syscall(state, current, number, args);
@@ -1252,6 +1296,16 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         #[cfg(feature = "native-keyring")]
         if matches!(number, 0x60 | 0x61) {
             let (rax, rdx) = keyring::syscall(state, current, number, args);
+            state.processes[current].context[14] = rax as u64;
+            state.processes[current].context[12] = rdx;
+        }
+        #[cfg(feature = "display-input")]
+        if matches!(number, 0x80..=0x84) {
+            let (rax, rdx) = if number <= 0x81 {
+                display::syscall(state, current, number, args)
+            } else {
+                ps2::syscall(state, current, number, args)
+            };
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
         }
@@ -1305,7 +1359,9 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                 match number {
                     0 => {
                         p.context[12] = (1 << 32)
-                            | if cfg!(feature = "process-memory") {
+                            | if cfg!(feature = "display-input") {
+                                8
+                            } else if cfg!(feature = "process-memory") {
                                 7
                             } else if cfg!(feature = "monotonic-clock") {
                                 6
@@ -1383,7 +1439,8 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         not(feature = "native-qsim-job"),
         not(feature = "native-sdk-app"),
         not(feature = "native-supervisor"),
-        not(feature = "native-keyring")
+        not(feature = "native-keyring"),
+        not(feature = "native-display-probe")
     ))]
     if let Some(next) = m4::poll(state) {
         return next;
@@ -1420,6 +1477,8 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
     fpu::fixture::poll(state);
     #[cfg(feature = "native-memory")]
     memory_fixture::poll(state);
+    #[cfg(feature = "native-display-probe")]
+    display_fixture::poll(state);
     #[cfg(all(
         not(feature = "milestone-m4"),
         not(feature = "native-fpu"),

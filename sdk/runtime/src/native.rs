@@ -15,7 +15,7 @@ use crate::{
 fn call(number: u64, args: [u64; 6]) -> Result<u64, Error> {
     let mut primary = number;
     let mut secondary = args[2];
-    // SAFETY: Nieuw OS ABI 1.0–1.7 preserves every GPR except RAX/RDX; int80 enters
+    // SAFETY: Nieuw OS ABI 1.0–1.8 preserves every GPR except RAX/RDX; int80 enters
     // a checked kernel gate. No Rust references cross this boundary. Callers
     // below keep local message buffers live for the complete synchronous copy.
     // No nomem/readonly flag: IPC can read or write the supplied memory.
@@ -350,5 +350,71 @@ pub fn net_receive(source: NetworkSource, out: &mut [u8]) -> Result<usize, Error
         Err(Error::InvalidReturn)
     } else {
         Ok(count as usize)
+    }
+}
+
+/// ABI1.8: public geometry only; a Handle value never grants display authority.
+pub fn display_info(source: Handle, out: &mut [u8; 32]) -> Result<u64, Error> {
+    let count = call(0x80, [source.raw(), out.as_mut_ptr() as u64, 32, 0, 0, 0])?;
+    if count == 32 {
+        Ok(count)
+    } else {
+        Err(Error::InvalidReturn)
+    }
+}
+
+/// Synchronous bounded tile transfer, without a vsync/presentation guarantee.
+pub fn display_blit(source: Handle, descriptor: &[u8; 32], pixels: &[u8]) -> Result<u64, Error> {
+    if pixels.is_empty() || pixels.len() > 1024 || !pixels.len().is_multiple_of(4) {
+        return Err(Error::MessageSize);
+    }
+    let count = call(
+        0x81,
+        [
+            source.raw(),
+            descriptor.as_ptr() as u64,
+            pixels.as_ptr() as u64,
+            pixels.len() as u64,
+            0,
+            0,
+        ],
+    )?;
+    if count == pixels.len() as u64 / 4 {
+        Ok(count)
+    } else {
+        Err(Error::InvalidReturn)
+    }
+}
+
+/// Start the fixed polled PS/2 initialization. A ticket is not Ready.
+pub fn input_reset_begin(source: Handle) -> Result<u64, Error> {
+    let ticket = call(0x82, [source.raw(), 0, 0, 0, 0, 0])?;
+    if ticket != 0 {
+        Ok(ticket)
+    } else {
+        Err(Error::InvalidReturn)
+    }
+}
+
+/// One bounded reset step. EAGAIN leaves the output unchanged and is not Ready.
+pub fn input_reset_poll(source: Handle, ticket: u64, out: &mut [u8; 32]) -> Result<u64, Error> {
+    let count = call(
+        0x83,
+        [source.raw(), ticket, out.as_mut_ptr() as u64, 32, 0, 0],
+    )?;
+    if count == 32 {
+        Ok(count)
+    } else {
+        Err(Error::InvalidReturn)
+    }
+}
+
+/// One raw status/data sample. Only the isolated source service owns this cap.
+pub fn input_read(source: Handle, out: &mut [u8; 32]) -> Result<u64, Error> {
+    let count = call(0x84, [source.raw(), out.as_mut_ptr() as u64, 32, 0, 0, 0])?;
+    if count == 32 {
+        Ok(count)
+    } else {
+        Err(Error::InvalidReturn)
     }
 }

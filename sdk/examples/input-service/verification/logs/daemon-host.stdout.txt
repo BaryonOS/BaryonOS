@@ -1,0 +1,33 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test source_bootstrap_rejects_unknown_generation_reserved_state_and_handle_shape ... ok
+test ready_is_exactly_bound_to_role_service_boot_and_real_raw_epoch ... ok
+test policy_bootstrap_geometry_bindings_four_endpoints_and_unused_triplets_are_checked ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 10 tests
+test actual_wrong_sender_on_source_ingress_cannot_initialize_input ... ok
+test canonical_ack_from_wrong_kernel_sender_cannot_report_source_ready ... ok
+test no_request_replay_while_real_reply_waits ... ok
+test physical_error_ack_requires_real_reset_and_monotone_inp1_ids ... ok
+test pending_peek_survives_backpressure_and_focus_replaces_stale_reply ... ok
+test raw_loss_and_native_clock_deadline_are_terminal_without_fake_sync ... ok
+test policy_state_is_bounded_and_checks_all_four_actual_recv_rights ... ok
+test pipelined_app_cannot_overwrite_pending_or_mutate_protected_routes ... ok
+test real_send_again_retains_same_source_request_without_reading_samples ... ok
+test unexpected_actual_delegated_caps_are_closed_once_without_core_mutation ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,21 @@
+{
+  "task": "TASK-NATIVE-DISPLAY-INPUT",
+  "base_commit": "61ea7278390d5235a8bc024cbf084222a7b0c658",
+  "boundary": "pure driver/codec host tests and library target build; kernel hooks/native hardware not yet executed",
+  "source_sha256": {
+    "drivers/ps2/Cargo.toml": "be5b0554ff1eaa873bc3f29634c0c892e92b208bda24f98db9561d7441adb963",
+    "drivers/ps2/Cargo.lock": "5c4cd5fee9125b6c5c3dc0413b59ec11daf6901b9c392448c55c88436af25a08",
+    "drivers/ps2/src/lib.rs": "9970321b1735edc4dd525075f2c5a63b8c6181eac6b70e071f2ea93c4aa3a19f",
+    "drivers/ps2/tests/controller.rs": "6e4b83c72dfe5417749ab2661548aab48fa5831a718a7f0655825e37f88f4ecf"
+  },
+  "checks": {
+    "host_passed": 8,
+    "clippy": 0,
+    "freestanding_library": 0
+  },
+  "not_executed": [
+    "new kernel adapter typecheck",
+    "native display/input execution",
+    "QMP keyboard and mouse and framebuffer validation"
+  ]
+}
