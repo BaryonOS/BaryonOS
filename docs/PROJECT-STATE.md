@@ -2,86 +2,33 @@
 
 ## Volledige native testrelease — in uitvoering, 32% — 2026-10-30
 
-Branch `codex/full-test-release`, laatst gezamenlijk uitgevoerde bron
-`985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb`,
-[concept-PR #56](https://github.com/simonvanieperen/nieuw-os/pull/56).
-[Volledige opdracht/matrix](FULL-TEST-RELEASE.md),
-[aanvullende productcontext](FULL-TEST-RELEASE-CONTEXT.md) en
-[werkqueue](WORK-QUEUE.md) vormen één voortgangsketen. De oorspronkelijke opdracht,
-`/goal`, rubric en alle 62 verplichte criteria blijven behouden en open.
-**Geen volledige release; score 32% → 32%.**
+Integratiebranch `codex/full-test-release`, concept-PR[#56](https://github.com/simonvanieperen/nieuw-os/pull/56).
+Desktopintegratie `codex/root-desktop-integration`, concept-PR[#57](https://github.com/simonvanieperen/nieuw-os/pull/57).
+[Volledige opdracht/matrix](FULL-TEST-RELEASE.md) → [productcontext](FULL-TEST-RELEASE-CONTEXT.md) → [werkqueue](WORK-QUEUE.md).
+De volledige oorspronkelijke opdracht, `/goal`, rubric en alle62 productcriteria blijven behouden en open. **Geen volledige release;32%→32%.**
 
-**Dertien lokale VM-runs en zeven CI-workflows geslaagd op 985ed4d.**
-V3-bronvingerafdruk:
-`32a4168e9ffe0ccfebb0cae692856ad27f12687a78beb63c63c3e8560f22a3ff`.
+**Geteste bronnen en werkelijke grenzen:**
 
-- [Basisketen en koude readonly-herstart](verification/full-release-base-985ed4d/capture-validation.json).
-- [ARP/UDP/DNS en koude herstart](verification/full-release-net-985ed4d/capture-validation.json).
-- [TCP en koude herstart](verification/full-release-tcp-985ed4d/capture-validation.json):
-  echte handshake, HTTP/FIN/ACK, geweigerde poort, reset, retransmissie en time-out;
-  bron, peertranscript, opgeslagen bytes en images onafhankelijk hergecontroleerd.
-- [Vijf geheugencases](verification/full-release-memory-985ed4d/README.md):
-  normale groei, echte NX/guard/peer-fouten en fysieke OOM met 16 processen;
-  eigen heap, nulvulling, quotum, hergebruik en onafhankelijke fysieke cleanupzero.
-- [FPU/klok](verification/full-release-fpu-985ed4d/fpu-report.json) en
-  [G0-toetsenbord/pixelregressie](verification/full-release-g0-985ed4d/graphics-g0-result.json).
-- [Alle zeven CI-workflows](verification/full-release-ci-985ed4d/workflow-runs.json)
-  op exact dezelfde bron, inclusief herstelde SDK-rechtenmaskercontrole.
+- `985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb`: dertien lokale VM-runs en zeven CI-workflows geslaagd. [Basis/cold](verification/full-release-base-985ed4d/capture-validation.json), [ARP/DNS/cold](verification/full-release-net-985ed4d/capture-validation.json), [TCP/cold](verification/full-release-tcp-985ed4d/capture-validation.json), [geheugen](verification/full-release-memory-985ed4d/README.md), [FPU](verification/full-release-fpu-985ed4d/fpu-report.json), [G0](verification/full-release-g0-985ed4d/graphics-g0-result.json), [CI](verification/full-release-ci-985ed4d/workflow-runs.json).
+- `15e8cfced28ad46f15f5f573e5f00e8e87b74215`: C-entry springt na echte CPL3-uitlijningscontrole direct naar de C-functie; vijf nieuwe geheugencases werkelijk geslaagd, inclusief NX/guard/peerfault en fysieke OOM. [Nieuw bewijs](verification/full-release-memory-15e8cfc/README.md), [zeven CI groen](verification/full-release-ci-15e8cfc/workflow-runs.json). V3-bron `a82648f0673ef6c0b37406724fc5512ffadc5b53b4987bf21e96521faa112eaf`. De historische985-runs bewezen de gecorrigeerde entry niet.
+- `d52882196da3f38a32bf01edea379ce5300e04e2`: **echte display-/PS2-proef geslaagd**, zes CPL3-levens/twee devicegeneraties/drie slothergebruiken. QMP-toetsen en muis, volledige input-/outputpointercontrole, geweigerde rechten,512 unieke native pixels/768 vergelijkingen, cleanup. [Native bewijs](verification/full-release-display-d528821/README.md), [zeven CI groen](verification/full-release-ci-d528821/workflow-runs.json). Raw33/3,387s; bron `eb46a28e25e3c532f0efb5b864f449eae6d9ee4dc59c9eee23c03ffe31fe2406`.
 
-De voorgaande SDK-bitregressie op b607 blijft met ruwe mislukkingen bewaard;
-DISPLAY/INPUT zijn nu ook in de SDK correct beschreven. De kerneluitgifte,
-PID-/generatiebinding en nondelegatie blijven afgedwongen. Dit zijn QEMU-
-ontwikkelprofielen (q35-8.2/qemu64/TCG/1 CPU/256 MiB; OOM-negatief 128 MiB),
-geen VM-FR-productprofiel of fysieke hardware. Volumeproeven gebruiken nog
-plaintext testdisks en tijdelijke RAM-sleutels; geen veilige productopslagclaim.
+De displayfixture selecteerde eerst ten onrechte1280×720 terwijl de bestaande loader expliciet800×600 selecteert. De [oorspronkelijke mislukking](verification/display-first-geometry-failure/result.json) blijft ongewijzigd bewaard; daarna is uitsluitend de ontwikkelproef strikt aan de bestaande800×600-loadercontractselectie gebonden. VM-FR blijft1280×720/1920×1080/200%. Bij eerste Git-archivering normaliseerde Git twee CRLF-regelafbrekingen in de mislukte serial; deze evidence-only correctie herstelt de originele430bytes/SHAed6e4ce7... en controleert de staged blobs tegen SHA256SUMS. Het werkelijk geteste d528-image verandert daardoor niet.
 
-**Gerichte vervolgcorrectie vóór nieuwe uitvoering:** de geheugenfixture gebruikte
-bij entry een extra CALL die de C-stackuitlijning veranderde. De entry springt nu
-na een echte CPL3-uitlijningscontrole rechtstreeks naar de C-functie. De feitelijke
-985-runs blijven als historische uitvoer bewaard; zij tekenden deze ABI-eigenschap
-niet af. De gecorrigeerde fixture krijgt vijf nieuwe native cases op een bevroren
-bron, plus actuele CI. Geen kernel-/rechtenbeleid veranderd.
+Dit zijn QEMU-ontwikkelprofielen pc-q35-8.2/qemu64/TCG/1CPU/256MiB (OOM128MiB), geen VM-FR/Nehalem/8GiB/32GiB of fysieke acceptatie. Volumeproeven gebruiken plaintext fixtures en tijdelijke RAM-sleutels. Native transport is geen verbonden Materiaaldesktop of veilige persistente productopslag.
 
-**Parallelle productintegratie:** root-worktree `root-desktop`, basis 985ed4d,
-bevat display-/PS2-transport b2ad en Materiaal be0 plus centrale ABI1.8/wrappers,
-feature-/dependencywiring en uitgebreide UI-sourcebinding. Kernel en volledige
-SDK-client zijn werkelijk naar x86_64-none getypecheckt; native transportbewijs
-volgt met drie CPL3-probes en QMP/pixeloracle. Workerfixtures 739c/43435c en de
-nieuwe runner worden nog samengevoegd. Materiaal d5c6069, twee echte inputdaemon-
-ELFs en een afzonderlijke frontend/compositor met SUR1-oppervlakken gaan verder;
-geen raw display-/inputrechten voor de gewone app.
+**Volgende integratie:** Materiaal source7f8d220/bewijs1f36e0f, SUR1fix9115cb4, INP1SDK73c8e41, inputdaemons a337167 en compositor aa7df72 zijn afzonderlijke componenten. Appreview heeft stale-ready en C-entry gevonden; reparatie volgt vóór nativeGUI. Root bouwt de7-processenbootstrap; kernel_storage maakt echte init; native_ui_apps maakt QMP-bediening; acceptance_contract reviewt appadapters; git_build_audit voegt echte display-CI toe. Gedeelde ABI/build/grants/status blijven exclusief root.
 
-RANDOM fc2e2a2 + gerichte KDF-wispatch 3299f28 en TLS34191bb hebben component-
-bewijs en onafhankelijke review, nog geen native uitvoering. Een native RANDOM-
-probe met echte intrekking/cancel/replybackpressure wordt voorbereid. Chromium/
-Gecko zijn concreet vergeleken op a2085b9; echte portproeven blijven terecht
-geblokkeerd, geen enginekeuze. PNG/JPEG-engines krijgen gerichte veiligheids- en
-targetcontrole. Complete apps, NAS/providers, inference en herstel blijven verplicht.
+RANDOM fc2e2a2+KDF-wispatch3299f28 en TLS34191bb hebben componentbewijs, nog geen native uitvoeringsclaim. security_release bouwt vier echte RNG-/revoke/cancel/replycases inclusief nieuwe legacy-STATUS ná terminale RNG-fout. PNG/JPEG9ae1c73 heeft gerichte oracle-/stackcorrecties; netwerkworker maakt de native observer, root bootstrap volgt. Browsera2085b9 documenteert concrete Chromium/Gecko-portblokkades zonder enginekeuze. Alle apps, NAS/providers, inference, veilige opslag, boot/PQC/updates/herstel, toegankelijkheid en duurproeven blijven verplicht.
 
 ### NEXT AGENT HANDOFF
 
-- Controleer HEAD/status/worktrees en werkelijk actieve agents. De werkboom bevat
-  de entrycorrectie en nieuwe 985-bewijsarchieven; behoud alle wijzigingen.
-- Eerstvolgende uitvoering: publiceer dit concrete checkpoint via GitData met
-  verwachte HEAD985ed4d en exact gelijke tree, fetch/fast-forward; voer vervolgens
-  `tools/test_memory_system.py` uit op die bevroren bron en controleer nieuwe CI.
-- Laatste bruikbare artifacts: `build/full-release-985ed4d-{base,net,tcp,fpu,g0}/esp/`
-  en `build/full-release-985ed4d-memory/{normal,nx,guard,peer,oom}/esp/`.
-  Exacte loader/kernel/app/firmwarehashes, profielen, opdrachten en exits staan in
-  de bijbehorende 985-bewijsarchieven. Dit is geen volledig releaseimage.
-- Root-desktop heeft onafgemaakte, nog niet gecommitteerde centrale wiring en
-  geselecteerde workerbron. Neem d5c6069 en displayprobe/runner op, voer echte
-  QMP-invoer/pixelcontrole uit en sluit daarna inputdaemon + SUR1-frontend/compositor
-  aan. SDKpatch voor workers: `/tmp/nieuw-os-desktop-sdk-wrappers.patch`.
-- Behoud ook worktrees `input-daemon`, `materiaal-native-app`, `display-input-native-probe`, `random-native-probe`,
-  `browser-port`, `image-codec`, `tls-port` en `keyring-random` met eigen bron/logs.
-  Root bezit gedeelde build/ABI/locks/status; uitsluitend afgebakende workerwrites.
-- CLI-push blijft HTTPS-authgeblokkeerd; beschikbare GitHub-koppeling publiceert
-  met lease en exacte treecontrole. Geen forcepush/credentialinspectie nodig.
-- Alle 62 productcriteria blijven open: veilige duurzame opslag, volledige
-  Materiaal/apps/media/toegankelijkheid, netwerk/NAS/providers, lokale AI,
-  boot/PQC/updates/herstel, 8 GiB/32 GiB/Nehalem-productprofiel, 100 koude starts/
-  24 uur, fysieke en menselijke gates en compleet Nederlands testpakket.
+- Controleer actuele HEAD/status/worktrees en actieve agents; historische blokken hieronder zijn geen actuele werkstand. Behoud alle eigen worktrees en wijzigingen. Integratie mag alleen als inhoud, passende checks, reviewbevindingen en remote-SHA aantoonbaar kloppen.
+- Laatste bruikbare native displayimage: `/workspace/nieuw-os-worktrees/root-desktop/build/display-geometry-fixed/run/display-input-e6dc2a21c2/esp/`, originele PPMs/inputs/result/serial in dezelfde runmap. Zie exact geteste d528-bron en hashes hierboven. Geheugen15e: `/workspace/nieuw-os/build/full-release-15e8cfc-memory/{normal,nx,guard,peer,oom}/esp/`. Geen volledig releaseimage.
+- Eerstvolgende uitvoering: integreer appreviewreparatie, SUR1fix, typedINP1client, nativeinit/compositor/app in root-desktop; sluit kernelgrants/bootstrap/build aan en voer echte QMPedit/save/heropen uit. Een SourceReady/SYNC, PolicyReady en compositorFocusACK moeten vóór GO bestaan; APPStartupReady is geen volledig geschilderd beeld.
+- Parallel: nativeRANDOM4cases en PNG/JPEGprobe krijgen uitsluitend eigen nieuwe bestanden. Root beheert feature-/SDK-/workspace-/buildwiring. App heeft geen rawDisplay/Input, compositor uitsluitend DISPLAY, bron uitsluitend INPUT, policy vasteIPCkanalen. Geen hostsimulatie als functionaliteit.
+- CLI-push heeft HTTPS-auth401; de beschikbare GitHub-koppeling publiceert met lease/exactetree en fetch/ff-verificatie. Geen credentialinspectie/forcepush. `/tmp/nieuw-os-make-candidate.py` controleert nu ook gewijzigde staged bewijsarchieven tegen hun eigen SHA256SUMS; gebruik fail-fast shells.
+-100 koude starts,24uur gecombineerde sessie, menselijk/hardwarebewijs en compleet testpakket blijven open. Geen uitvoering ná een harde sessiegrens beloven.
 
 ## Historische checkpoints
 

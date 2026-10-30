@@ -1,0 +1,77 @@
+{
+  "source_commit": "d52882196da3f38a32bf01edea379ce5300e04e2",
+  "query_utc": "2026-10-30T04:15:08.054Z",
+  "scope": "GitHub PR workflow metadata for this exact source commit; no claim of desktop/product acceptance",
+  "workflow_runs": [
+    {
+      "id": 40999549175,
+      "name": "B01 entropy and key management acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 30,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549175/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549175/logs",
+      "workflow_id": 401062482
+    },
+    {
+      "id": 40999549230,
+      "name": "Resource pressure acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 77,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549230/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549230/logs",
+      "workflow_id": 399752273
+    },
+    {
+      "id": 40999549349,
+      "name": "K05 process management acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 34,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549349/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549349/logs",
+      "workflow_id": 401041660
+    },
+    {
+      "id": 40999549340,
+      "name": "Storage resilience acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 55,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549340/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549340/logs",
+      "workflow_id": 399756123
+    },
+    {
+      "id": 40999549279,
+      "name": "M6e scalable volume acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 42,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549279/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549279/logs",
+      "workflow_id": 399997984
+    },
+    {
+      "id": 40999549171,
+      "name": "FR-I01 joint native system acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 13,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549171/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549171/logs",
+      "workflow_id": 401194164
+    },
+    {
+      "id": 40999549243,
+      "name": "CI",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 139,
+      "jobs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549243/jobs",
+      "logs_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/40999549243/logs",
+      "workflow_id": 399693409
+    }
+  ]
+}

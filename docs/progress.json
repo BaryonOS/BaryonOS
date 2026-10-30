@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb",
+    "source_commit": "d52882196da3f38a32bf01edea379ce5300e04e2",
     "branch": "codex/full-test-release",
-    "task": "Dertien native VM-runs en zeven CI-workflows groen; C-entryfixture gericht gecorrigeerd",
+    "task": "Native display/PS2 en vijf gecorrigeerde geheugencases plus actuele CI; verbonden Materiaalintegratie",
     "previous_score": 32,
-    "summary": "De score blijft 32%; alle 62 volledige productcriteria blijven open. Exacte bron985ed4d doorstaat dertien lokale VM-runs en alle zeven CI-workflows: basis-, ARP/DNS- en TCP-koude paren, vijf geheugencases, FPU en G0. Bron/image/ruwe bytes en opgeslagen data zijn hergecontroleerd; de eerdere SDK-bitregressie blijft zichtbaar bewaard. De geheugenentry krijgt een gerichte C-stackuitlijningscorrectie en nieuwe vijfcase-uitvoering. Echte display-/PS2-probes, afzonderlijke inputdiensten, Materiaalfrontend en compositor, native RANDOM, TLS en beelddecoders worden verder geïntegreerd. Browserportpoorten geven concrete blokkades; er is geen enginekeuze. Geen veilige productopslag, volledig desktop/apps/NAS/AI/boot/update/herstel, productprofiel, menselijk/hardwarebewijs of compleet releasepakket geclaimd. Rubric, eindscope en oorspronkelijke opdracht zijn onveranderd."
+    "summary": "32% blijft32%; alle62 volledige releasecriteria blijven open. Vijf nieuwe native geheugencases op15e en echte CPL3-display/PS2/QMP/pixelgrenzen op d528 slagen, elk zeven CI-workflows groen. Afzonderlijke componenten zijn geen verbonden desktop, productopslag, NAS/AI/updates/herstel of volledig testpakket. Appreview vindt stale-ready en C-entry voor reparatie. Root integreert echte7-proces-Materiaal; RNG/decoderproeven en CI-uitbreiding gaan parallel. Scope, gewichten, VM-FR en vereiste bewijsniveaus blijven onveranderd."
   },
   "tracks": [
     {
