@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`b6074c31`](https://github.com/simonvanieperen/nieuw-os/commit/b6074c3176db2a6fbe2b6fe42f07f139f153a649) ·
+**Bron:** [`985ed4da`](https://github.com/simonvanieperen/nieuw-os/commit/985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb) ·
 **Ontwikkelbranch:** `codex/full-test-release`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Vijf canonieke geheugengasten en FPU/G0 uitgevoerd; SDK-capabilitybits gericht hersteld.
-De score blijft32%; alle62volledige productcriteria staanopen. Bronb607 is werkelijk gepubliceerd en de vijf canonieke geheugengasten plus FPU/G0 slagen. Nulvulling, procesquota, echte NX/guard/peer-fouten,16 fysieke OOMweigeringen, aansluitende retry en onafhankelijke fysieke cleanupzero zijn aan die bron/images gebonden. Basis/net/TCP stoppen vóór hun VMs op de gevonden SDK-knownmask-inconsistentie; de mislukte uitkomsten blijven bewaard. De gerichte SDK-bitsreparatie behoudt kerneluitgifte/nondelegatie en19SDKtests/Clippy/fmt slagen. Alle13VMs en actuele CI volgen op de gerepareerde bron. Native Materiaal/display/invoer, TLS, veilige persistente opslag, NAS, AI, boot, updates en volledige product-/menselijke/hardwaregates blijven open; scope en rubric zijn ongewijzigd.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Dertien native VM-runs en zeven CI-workflows groen; C-entryfixture gericht gecorrigeerd.
+De score blijft 32%; alle 62 volledige productcriteria blijven open. Exacte bron985ed4d doorstaat dertien lokale VM-runs en alle zeven CI-workflows: basis-, ARP/DNS- en TCP-koude paren, vijf geheugencases, FPU en G0. Bron/image/ruwe bytes en opgeslagen data zijn hergecontroleerd; de eerdere SDK-bitregressie blijft zichtbaar bewaard. De geheugenentry krijgt een gerichte C-stackuitlijningscorrectie en nieuwe vijfcase-uitvoering. Echte display-/PS2-probes, afzonderlijke inputdiensten, Materiaalfrontend en compositor, native RANDOM, TLS en beelddecoders worden verder geïntegreerd. Browserportpoorten geven concrete blokkades; er is geen enginekeuze. Geen veilige productopslag, volledig desktop/apps/NAS/AI/boot/update/herstel, productprofiel, menselijk/hardwarebewijs of compleet releasepakket geclaimd. Rubric, eindscope en oorspronkelijke opdracht zijn onveranderd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

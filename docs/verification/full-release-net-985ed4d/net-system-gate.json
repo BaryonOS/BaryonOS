@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "source_fingerprint_version": 3,
+  "source_sha256": "32a4168e9ffe0ccfebb0cae692856ad27f12687a78beb63c63c3e8560f22a3ff",
+  "test_inputs": {
+    "tests/test_net_peer.py": "302dd2c127a677c648b5f43e1403e828f6012a774e4d459273f3dd738040cb7e"
+  },
+  "status": "completed",
+  "passed": true,
+  "host": [
+    {
+      "command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_net_*.py"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os/build/full-release-985ed4d-net/logs/net-host-0.stdout.txt",
+      "stderr": "/workspace/nieuw-os/build/full-release-985ed4d-net/logs/net-host-0.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "capability-core"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os/build/full-release-985ed4d-net/logs/net-host-1.stdout.txt",
+      "stderr": "/workspace/nieuw-os/build/full-release-985ed4d-net/logs/net-host-1.stderr.txt"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "-p",
+        "nieuw-os-sdk-runtime"
+      ],
+      "exit": 0,
+      "stdout": "/workspace/nieuw-os/build/full-release-985ed4d-net/logs/net-host-2.stdout.txt",
+      "stderr": "/workspace/nieuw-os/build/full-release-985ed4d-net/logs/net-host-2.stderr.txt"
+    }
+  ],
+  "stages": [
+    {
+      "case": "normal",
+      "passed": true,
+      "network_gate": true,
+      "run_directory": "/workspace/nieuw-os/build/full-release-985ed4d-net/run/system-normal-19f2d45936e74fd097f110cb39b738dc",
+      "raw_qemu_exit": 33,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "duration_s": 65.73551324099935
+    },
+    {
+      "case": "recover",
+      "passed": true,
+      "network_gate": true,
+      "run_directory": "/workspace/nieuw-os/build/full-release-985ed4d-net/run/system-recover-3a6190762bcf4a2f88a883cbcb17a6ed",
+      "raw_qemu_exit": 33,
+      "before_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "after_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "duration_s": 62.384943682000085
+    }
+  ],
+  "final_kernel_sha256": "e028d53ca1280e0ca708bcd283740a34e4d4d9530b16097fc1fde23a333f1a56",
+  "final_manifest": "/workspace/nieuw-os/build/full-release-985ed4d-net/manifest.json"
+}

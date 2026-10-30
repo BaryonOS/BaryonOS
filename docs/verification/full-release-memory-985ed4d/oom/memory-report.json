@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "case": "oom",
+  "passed": true,
+  "scope": "own RW/NX heap and process isolation on one QEMU CPU; 128 MiB physical OOM is a negative profile, not the product profile",
+  "source_fingerprint_version": 3,
+  "source_sha256": "32a4168e9ffe0ccfebb0cae692856ad27f12687a78beb63c63c3e8560f22a3ff",
+  "qemu_entry_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+  "build_manifest": {
+    "schema_version": 1,
+    "profile": "native-memory-oom",
+    "kernel_feature": "native-memory-oom",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "32a4168e9ffe0ccfebb0cae692856ad27f12687a78beb63c63c3e8560f22a3ff",
+    "loader": {
+      "sha256": "fe84792cb5fb2cea255b9919faba0be594eab3bae0c4d4593152f756f0a2f261",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "bd4a215709fb10bf5dcc73fb3162828c6f53662dc4a2689554997c0505ec9e1d",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 78391,
+          "memsz": 78391,
+          "page_start": 33554432,
+          "page_end": 33636352
+        },
+        {
+          "flags": 4,
+          "offset": 86016,
+          "address": 33636352,
+          "filesz": 46784,
+          "memsz": 46784,
+          "page_start": 33636352,
+          "page_end": 33685504
+        },
+        {
+          "flags": 6,
+          "offset": 135168,
+          "address": 33685504,
+          "filesz": 811488,
+          "memsz": 3927320,
+          "page_start": 33685504,
+          "page_end": 37613568
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 78391
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 46784
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 811488
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3112216
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 5784
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 12253
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "memory": {
+      "passed": true,
+      "native_runtime_performed": false,
+      "sha256": "ec608e34703d4cc2beb423fc79eba4911a9ac42711dc0ad5b3d92555f34fbd10",
+      "elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 8,
+            "memsz": 8,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1304,
+            "memsz": 1456,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 12288,
+            "filesz": 1454,
+            "memsz": 1454,
+            "page_start": 1073823744,
+            "page_end": 1073827840
+          },
+          {
+            "flags": 5,
+            "address": 1073872896,
+            "offset": 16384,
+            "filesz": 11011,
+            "memsz": 11011,
+            "page_start": 1073872896,
+            "page_end": 1073885184
+          }
+        ]
+      }
+    }
+  },
+  "guest": {
+    "label": "native-memory-oom",
+    "started_utc": "2026-10-30T02:01:51.207824+00:00",
+    "duration_s": 3.8119912309994106,
+    "timeout_s": 60,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "KS-01:PASS",
+      "KS-02:PASS",
+      "KS-03:PASS",
+      "M2:PASS",
+      "MEMORY:MANIFEST:PASS",
+      "MEMORY:GROWTH:PASS",
+      "MEMORY:ISOLATION:PASS",
+      "MEMORY:OOM:PASS",
+      "MEMORY:CLEANUP:PASS",
+      "MEMORY:CASE:OOM:PASS",
+      "M1:PASS"
+    ],
+    "forbidden_markers": [
+      ":FAIL",
+      "PANIC"
+    ],
+    "passed": true,
+    "command": [
+      "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+      "-machine",
+      "pc-q35-8.2",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "128M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "stdio",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=build/full-release-985ed4d-memory/oom/run/native-memory-oom-f6820b49c1/OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=build/full-release-985ed4d-memory/oom/run/native-memory-oom-f6820b49c1/OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:build/full-release-985ed4d-memory/oom/run/native-memory-oom-f6820b49c1/esp",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04"
+    ],
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/128MiB",
+    "base_commit": "985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb",
+    "source_fingerprint_version": 3,
+    "source_sha256": "32a4168e9ffe0ccfebb0cae692856ad27f12687a78beb63c63c3e8560f22a3ff",
+    "artifact_sha256": {
+      "esp/kernel.elf": "bd4a215709fb10bf5dcc73fb3162828c6f53662dc4a2689554997c0505ec9e1d",
+      "esp/EFI/BOOT/BOOTX64.EFI": "fe84792cb5fb2cea255b9919faba0be594eab3bae0c4d4593152f756f0a2f261",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    "firmware_source": [
+      "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_CODE_4M.fd",
+      "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_VARS_4M.fd"
+    ],
+    "run_directory": "/workspace/nieuw-os/build/full-release-985ed4d-memory/oom/run/native-memory-oom-f6820b49c1",
+    "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nMEMORY:MANIFEST:PASS\nMEMORY:CLEAN_STARTS:00000000000000000016\nMEMORY:GROWN_PAGES:00000000000000015617\nMEMORY:ZERO_BYTES:00000000000063967232\nMEMORY:ARG_DENIED:00000000000000000112\nMEMORY:QUOTA_DENIED:00000000000000000000\nMEMORY:PRIVATE_CHECKS:00000000000000000016\nMEMORY:COLLECTION_RUNS:00000000000000000016\nMEMORY:ALLOC_OOM_DENIED:00000000000000000016\nMEMORY:FAULTS:00000000000000000000\nMEMORY:EXITS:00000000000000000016\nMEMORY:SLOT_REUSES:00000000000000000000\nMEMORY:OOM_FAILURES:00000000000000000016\nMEMORY:OOM_RECOVERIES:00000000000000000001\nMEMORY:RETRY_ZERO_BYTES:00000000000000004096\nMEMORY:TIMER_IRQS:00000000000000000071\nMEMORY:LIVE_PROCESSES:00000000000000000000\nMEMORY:FRAMES_RECOVERED:00000000000000000001\nMEMORY:KERNEL_TABLES_RETAINED:00000000000000000033\nMEMORY:CLEANUP_ZERO_BYTES:00000000000065015808\nMEMORY:GROWTH:PASS\nMEMORY:ISOLATION:PASS\nMEMORY:OOM:PASS\nMEMORY:CLEANUP:PASS\nMEMORY:CASE:OOM:PASS\nM1:PASS\n",
+    "stderr": "",
+    "expected_artifact_sha256": {
+      "esp/kernel.elf": "bd4a215709fb10bf5dcc73fb3162828c6f53662dc4a2689554997c0505ec9e1d",
+      "esp/EFI/BOOT/BOOTX64.EFI": "fe84792cb5fb2cea255b9919faba0be594eab3bae0c4d4593152f756f0a2f261"
+    },
+    "artifact_binding_passed": true
+  },
+  "observed": {
+    "CLEAN_STARTS": 16,
+    "GROWN_PAGES": 15617,
+    "ZERO_BYTES": 63967232,
+    "ARG_DENIED": 112,
+    "QUOTA_DENIED": 0,
+    "PRIVATE_CHECKS": 16,
+    "COLLECTION_RUNS": 16,
+    "ALLOC_OOM_DENIED": 16,
+    "FAULTS": 0,
+    "EXITS": 16,
+    "SLOT_REUSES": 0,
+    "OOM_FAILURES": 16,
+    "OOM_RECOVERIES": 1,
+    "RETRY_ZERO_BYTES": 4096,
+    "TIMER_IRQS": 71,
+    "LIVE_PROCESSES": 0,
+    "FRAMES_RECOVERED": 1,
+    "KERNEL_TABLES_RETAINED": 33,
+    "CLEANUP_ZERO_BYTES": 65015808
+  },
+  "checks": {
+    "source_unchanged": true,
+    "qemu_unchanged": true,
+    "strict_guest_and_image_binding": true
+  }
+}

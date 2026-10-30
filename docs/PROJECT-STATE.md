@@ -2,110 +2,86 @@
 
 ## Volledige native testrelease — in uitvoering, 32% — 2026-10-30
 
-Branch `codex/full-test-release`, laatste gepubliceerde checkpoint
-`20b0d1286644f04b872741a43da21a8cdb10a944`; gezamenlijke uitvoeringsbron
-`61ea7278390d5235a8bc024cbf084222a7b0c658`;
+Branch `codex/full-test-release`, laatst gezamenlijk uitgevoerde bron
+`985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb`,
 [concept-PR #56](https://github.com/simonvanieperen/nieuw-os/pull/56).
-[Opdracht en 62 acceptatiecriteria](FULL-TEST-RELEASE.md),
+[Volledige opdracht/matrix](FULL-TEST-RELEASE.md),
 [aanvullende productcontext](FULL-TEST-RELEASE-CONTEXT.md) en
-[werkqueue](WORK-QUEUE.md) blijven één voortgangsketen. Alle volledige
-productcriteria blijven open. **Geen volledige release; score 32% → 32%.**
+[werkqueue](WORK-QUEUE.md) vormen één voortgangsketen. De oorspronkelijke opdracht,
+`/goal`, rubric en alle 62 verplichte criteria blijven behouden en open.
+**Geen volledige release; score 32% → 32%.**
 
-**Samengevoegde bron werkelijk uitgevoerd:** zeven lokale VM-runs op exact
-61ea727, alle geslaagd met QEMU raw 33. Basis en koude readonly-herstart
-5,40/5,20 s; ARP/UDP/DNS en koude herstart 59,55/58,36 s; TCP en koude herstart
-7,65/7,76 s; aparte FPU/klok-proef 3,68 s. Gemeenschappelijke v3-bronvingerafdruk
-`2eb46ac69aec5c7d60ed06278705c97f4fd7d67347afc3213b77eac3624cc013`.
+**Dertien lokale VM-runs en zeven CI-workflows geslaagd op 985ed4d.**
+V3-bronvingerafdruk:
+`32a4168e9ffe0ccfebb0cae692856ad27f12687a78beb63c63c3e8560f22a3ff`.
 
-- [Basisketen](verification/full-release-base-61ea727/capture-validation.json):
-  typed KEY1-client, v7 documentsessie, opslag en onafhankelijke koude controle.
-- [ARP/UDP/DNS](verification/full-release-net-61ea727/capture-validation.json):
-  echte virtio-net-client en afgebakende protocoltegenpartij.
-- [TCP](verification/full-release-tcp-61ea727/capture-validation.json):
-  per VM 21 TX/13 RX; twee HTTP-overdrachten met echte FIN/ACK, geweigerde poort,
-  reset, SYN-retransmissie en 300 PIT-ticks blackhole. Strikte bron-, image-,
-  disk-, proces- en semantische transcriptcontrole.
-- [FPU en klok](verification/full-release-fpu-61ea727/README.md): drie schone
-  proceslevens, 48 registercontroles, 51 kloklezingen, 18 weigeringen,
-  49 timerinterrupts, 172 contextopslagen/herstellingen, echte unsupported-AVX-fout,
-  hergebruik en 8192 gewiste contextbytes.
+- [Basisketen en koude readonly-herstart](verification/full-release-base-985ed4d/capture-validation.json).
+- [ARP/UDP/DNS en koude herstart](verification/full-release-net-985ed4d/capture-validation.json).
+- [TCP en koude herstart](verification/full-release-tcp-985ed4d/capture-validation.json):
+  echte handshake, HTTP/FIN/ACK, geweigerde poort, reset, retransmissie en time-out;
+  bron, peertranscript, opgeslagen bytes en images onafhankelijk hergecontroleerd.
+- [Vijf geheugencases](verification/full-release-memory-985ed4d/README.md):
+  normale groei, echte NX/guard/peer-fouten en fysieke OOM met 16 processen;
+  eigen heap, nulvulling, quotum, hergebruik en onafhankelijke fysieke cleanupzero.
+- [FPU/klok](verification/full-release-fpu-985ed4d/fpu-report.json) en
+  [G0-toetsenbord/pixelregressie](verification/full-release-g0-985ed4d/graphics-g0-result.json).
+- [Alle zeven CI-workflows](verification/full-release-ci-985ed4d/workflow-runs.json)
+  op exact dezelfde bron, inclusief herstelde SDK-rechtenmaskercontrole.
 
-De drie koude leesproeven behouden dezelfde diskhash
-`ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea`.
-Dit zijn pc-q35-8.2/qemu64/TCG/1 CPU/256 MiB-integratieprofielen met plaintext
-proefvolume en tijdelijke RAM-sleutels. Zij bewijzen geen persistente versleutelde
-productopslag, volledige gebruikersomgeving of VM-FR-productprofiel.
+De voorgaande SDK-bitregressie op b607 blijft met ruwe mislukkingen bewaard;
+DISPLAY/INPUT zijn nu ook in de SDK correct beschreven. De kerneluitgifte,
+PID-/generatiebinding en nondelegatie blijven afgedwongen. Dit zijn QEMU-
+ontwikkelprofielen (q35-8.2/qemu64/TCG/1 CPU/256 MiB; OOM-negatief 128 MiB),
+geen VM-FR-productprofiel of fysieke hardware. Volumeproeven gebruiken nog
+plaintext testdisks en tijdelijke RAM-sleutels; geen veilige productopslagclaim.
 
-**CI hersteld op 20b0d12:** alle zeven workflows geslaagd, inclusief de algemene
-CI en qemu-smoke. De twee ontbrekende ignore-regels waren de concrete oorzaak
-van de eerdere clean-treefout; de controle is behouden.
-[Actuele CI-metadata](verification/full-release-ci-20b0d12/workflow-runs.json).
+**Gerichte vervolgcorrectie vóór nieuwe uitvoering:** de geheugenfixture gebruikte
+bij entry een extra CALL die de C-stackuitlijning veranderde. De entry springt nu
+na een echte CPL3-uitlijningscontrole rechtstreeks naar de C-functie. De feitelijke
+985-runs blijven als historische uitvoer bewaard; zij tekenden deze ABI-eigenschap
+niet af. De gecorrigeerde fixture krijgt vijf nieuwe native cases op een bevroren
+bron, plus actuele CI. Geen kernel-/rechtenbeleid veranderd.
 
-**Nieuwe gezamenlijke bron b6074c3:**
-`b6074c3176db2a6fbe2b6fe42f07f139f153a649`, v3-source
-`e6ebeb1fd746e4eb0efd5d9d67d052eebdadfbb070c50738307aef2e2f564b26`.
-Atomische Sys4-heapgroei, onderhouden allocator, memoryfixture, GOP-transport-
-scheiding en de twee capabilitytypen zijn werkelijk samengevoegd/gepubliceerd.
+**Parallelle productintegratie:** root-worktree `root-desktop`, basis 985ed4d,
+bevat display-/PS2-transport b2ad en Materiaal be0 plus centrale ABI1.8/wrappers,
+feature-/dependencywiring en uitgebreide UI-sourcebinding. Kernel en volledige
+SDK-client zijn werkelijk naar x86_64-none getypecheckt; native transportbewijs
+volgt met drie CPL3-probes en QMP/pixeloracle. Workerfixtures 739c/43435c en de
+nieuwe runner worden nog samengevoegd. Materiaal d5c6069, twee echte inputdaemon-
+ELFs en een afzonderlijke frontend/compositor met SUR1-oppervlakken gaan verder;
+geen raw display-/inputrechten voor de gewone app.
 
-**Zeven echte gasten geslaagd, zes nog niet uitgevoerd:** alle vijf canonieke
-[geheugencases](verification/full-release-memory-b6074c3/README.md) slagen,
-plus aparte [FPU](verification/full-release-fpu-b6074c3/fpu-report.json) en
-[G0-bediening](verification/full-release-g0-b6074c3/graphics-g0-result.json).
-Normaal/NX/guard/peer controleren per case drie levens,6030nieuwepagina's,
-24698880nulbytes en24895488onafhankelijk gewiste heapbytes. OOM gebruikt echt
-128MiB/16processen:16-16weigeringen,15617pagina's inclusief aansluitende retry,
-63967232nulbytes/65015808cleanupnulbytes en volledig tijdelijk frameherstel.
-Dit blijft een afgebakend single-core ontwikkelprofiel.
-
-Basis/net/TCP stoppen vóór hun VMs op een concrete SDK-inconsistentie: de SDK
-mistte de nieuwe DISPLAY/INPUT-bits uit capability-core. [Mislukte proeven en
-reparatielogs](verification/full-release-sdk-bit-failure-b6074c3/README.md) blijven
-bewaard. De SDK-constanten en onbekende-bitnegatieven zijn gericht gelijkgetrokken;
-19SDKtests,Clippy/fmt slagen. De kerneluitgifte/nondelegatie is niet verruimd.
-Alle dertien VM-runs worden opnieuw op de gerepareerde gepubliceerde bron getest.
-[CI b607](verification/full-release-ci-b6074c3/workflow-runs.json) is gemengd,
-met vijf rode workflows; nieuwe CI blijft vereist, geen oude groene statusovername.
-
-Onafhankelijke core-/capability-/harnasreviews en hun concrete tegenproeven zijn
-bewaard. Het harnas weigert gekoppelde externe outputs, onverwachte ESP-bestanden,
-gewijzigde images, verkeerde bronnen/RAM/netwerk, onjuiste runtime- en zeroingvelden.
-GOP toont nog de oude G0-regressiescène; er is geen volledige Materiaal-desktop.
-Display-/PS2-adapters en native Materiaal hebben afzonderlijke reviewbare worker-
-commits en worden pas na deze bronfreeze in een eigen integratieworktree aangesloten.
-
-**Publicatie:** CLI-push heeft een HTTPS-authenticatieblokkade. Via de reeds
-beschikbare GitHub GitData-koppeling is de volledige boom met verwachte HEAD
-gepubliceerd, teruggehaald en exact vergeleken; lokale en remote bron zijn gelijk.
-Geen forcepush of credentialinspectie. Nieuwe checkpoints volgen dezelfde route.
-
-**Parallel werk:** echte Materiaal-renderer/editor en display-/PS2-adapters zijn
-in eigen worktrees in uitvoering. De TLS-port heeft echte scalaire targetcode en
-OpenSSL-hybride hostinterop, nog geen native TLS. De review vond ontbrekende
-clientauthenticatie; een per-verbinding-CertificateVerify-controle wordt met
-negatieve regressie herbeoordeeld. RANDOM-only Key Service heeft host-/targetbewijs;
-review van de expliciete HKDF-secretopruiming is open en wordt gericht gerepareerd.
-Deze componenten zijn niet als productfeature afgetekend.
+RANDOM fc2e2a2 + gerichte KDF-wispatch 3299f28 en TLS34191bb hebben component-
+bewijs en onafhankelijke review, nog geen native uitvoering. Een native RANDOM-
+probe met echte intrekking/cancel/replybackpressure wordt voorbereid. Chromium/
+Gecko zijn concreet vergeleken op a2085b9; echte portproeven blijven terecht
+geblokkeerd, geen enginekeuze. PNG/JPEG-engines krijgen gerichte veiligheids- en
+targetcontrole. Complete apps, NAS/providers, inference en herstel blijven verplicht.
 
 ### NEXT AGENT HANDOFF
 
-- Controleer actuele HEAD/status/worktrees/agents; behoud alle bron en logs.
-  Laatste gepubliceerde bron isb6074c3 met zeven nativepassen en zichtbare SDK-regressie; 20b0d12 had zeven groene CI-workflows.
-- Eerstvolgende uitvoering: de gerichte SDK-bitsreparatie met b607-bewijs
-  publiceren via de beschikbare GitHub GitData-koppeling met verwachte HEAD en
-  exact gelijke tree. Daarna op bevroren commit `tools/test_memory_system.py`
-  (vijf echte cases), basis/net/TCP-koude paren, native-fpu en native G0 herhalen;
-  bron, beelden, exitstatus en ruwe bytes opnieuw archiveren. Geen source-edits
-  tijdens deze proeven. Actuele CI op die nieuwe commit blijft vereist.
-- Laatste gezamenlijk bewezen baselineparenset: `build/full-release-61ea-{base,net,tcp,fpu}/esp/`;
-  hashes en commando's in hun bewijsarchieven. Canonieke vijf memory-artifacts: `build/full-release-b607-memory/{normal,nx,guard,peer,oom}/esp/`.
-  Worker492be81-bewijs blijft daarnaast afzonderlijk bewaard.
-- Behoud worktrees `memory`, `memory-fixture`, `user-allocator`, `tls-port`,
-  `keyring-random`, `native-materiaal` en de display/input-worktree. Eigenaarschap
-  staat in WORK-QUEUE. TLS en RANDOM krijgen eerst gerichte reviewreparaties.
-- Alle62productcriteria blijven open: onder meer veilige duurzame opslag,
-  desktop/apps/media/toegankelijkheid, NAS/providers, echte lokale inference,
-  boot/PQC/updates/herstel, productprofiel,100koude starts/24uur, fysieke en
-  menselijke gates en het complete pakket. Score32% →32%; scope onveranderd.
+- Controleer HEAD/status/worktrees en werkelijk actieve agents. De werkboom bevat
+  de entrycorrectie en nieuwe 985-bewijsarchieven; behoud alle wijzigingen.
+- Eerstvolgende uitvoering: publiceer dit concrete checkpoint via GitData met
+  verwachte HEAD985ed4d en exact gelijke tree, fetch/fast-forward; voer vervolgens
+  `tools/test_memory_system.py` uit op die bevroren bron en controleer nieuwe CI.
+- Laatste bruikbare artifacts: `build/full-release-985ed4d-{base,net,tcp,fpu,g0}/esp/`
+  en `build/full-release-985ed4d-memory/{normal,nx,guard,peer,oom}/esp/`.
+  Exacte loader/kernel/app/firmwarehashes, profielen, opdrachten en exits staan in
+  de bijbehorende 985-bewijsarchieven. Dit is geen volledig releaseimage.
+- Root-desktop heeft onafgemaakte, nog niet gecommitteerde centrale wiring en
+  geselecteerde workerbron. Neem d5c6069 en displayprobe/runner op, voer echte
+  QMP-invoer/pixelcontrole uit en sluit daarna inputdaemon + SUR1-frontend/compositor
+  aan. SDKpatch voor workers: `/tmp/nieuw-os-desktop-sdk-wrappers.patch`.
+- Behoud ook worktrees `input-daemon`, `materiaal-native-app`, `display-input-native-probe`, `random-native-probe`,
+  `browser-port`, `image-codec`, `tls-port` en `keyring-random` met eigen bron/logs.
+  Root bezit gedeelde build/ABI/locks/status; uitsluitend afgebakende workerwrites.
+- CLI-push blijft HTTPS-authgeblokkeerd; beschikbare GitHub-koppeling publiceert
+  met lease en exacte treecontrole. Geen forcepush/credentialinspectie nodig.
+- Alle 62 productcriteria blijven open: veilige duurzame opslag, volledige
+  Materiaal/apps/media/toegankelijkheid, netwerk/NAS/providers, lokale AI,
+  boot/PQC/updates/herstel, 8 GiB/32 GiB/Nehalem-productprofiel, 100 koude starts/
+  24 uur, fysieke en menselijke gates en compleet Nederlands testpakket.
 
 ## Historische checkpoints
 

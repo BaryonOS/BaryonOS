@@ -24,7 +24,14 @@ global_asm!(
 .global _start
 _start:
     cld
-    call memory_main
+    // The kernel enters at STACK_END-8, exactly the SysV C-entry alignment.
+    // Tail-jump to the noreturn C function: an extra CALL would shift RSP by8.
+    mov rax, rsp
+    and eax, 15
+    cmp eax, 8
+    jne .Lmemory_bad_entry_alignment
+    jmp memory_main
+.Lmemory_bad_entry_alignment:
     ud2
 .section .text.memory_faults,"ax",@progbits
 .global memory_guard_fault
