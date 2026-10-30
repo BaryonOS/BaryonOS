@@ -54,6 +54,9 @@ jobs:
           cargo +1.90.0 clippy --offline --locked --release --manifest-path services/nas/native-probe/Cargo.toml --features native --bins --target x86_64-unknown-none -- -D warnings
           python3 -B services/nas/native-probe/build.py
           git diff --exit-code
+      - name: Fixed NAS disk oracle host negatives (not guest execution)
+        if: matrix.crate == 'native-probe'
+        run: python3 -B -m unittest discover -s services/nas/native-probe/tests -p 'test_disk_oracle.py' -v
       - name: Evidence boundary
         run: |
           echo 'Host tests and crosscompilation only; no native NAS, TLS, E2EE or P01-P04 acceptance.' >> "$GITHUB_STEP_SUMMARY"
