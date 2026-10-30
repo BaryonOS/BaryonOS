@@ -1,4 +1,4 @@
-1bc96e05a4e33d9e1c1af7ab38afb4cded7ea53a1c56c6eb12d31f2ab6c4aef7  .github/workflows/nas-core.yml
+a84458ffb68b98cdc740c062ea6a4331d42ae2161315edf8cfad4b7b9ba88a4c  .github/workflows/nas-core.yml
 265df1a74ca28045923c2cb7b9c81d2ef4174363906ad64119ae55f10b2e7a5c  services/nas/native-client/Cargo.toml
 2e997b52c6d012371189361dd1cb11fcddec90e998e628f90573dd30227252b9  services/nas/native-client/Cargo.lock
 9891b724b4a49e8eb8f3a964d6dd95d723cb4917819a084abd1c2d7f2f00ad8d  services/nas/native-client/README.md

@@ -1,5 +1,43 @@
 # TASK-NAS-RESUME-1 — eigen broncheckpoint
 
+## Actuele stacked PR-checkpoint
+
+De huidige PR-branch is `simon/nas-resume-client-stack`, gestapeld op de
+actuele NAS-core/probe-branch `simonvanieperen-legendary-broccoli` en diens
+head `a9cf10970889ef10b4fc67df47316b7fc66fa2f2`. Alleen de nieuwe
+`native-client` crate en de vierde `nas-core.yml` matrixentry vormen de PR-diff;
+de core/probe/oracle commits worden niet opnieuw meegestuurd.
+
+De resume-client source en runtime commits zijn overgenomen zonder broncode-
+aanpassing. Het source manifest is opnieuw aan de workflowbytes op deze
+stacked basis gebonden; alle andere vermelde bronhashes zijn bevestigd. Exact
+op deze stacked checkout zijn opnieuw gedraaid:
+
+| Gate | Resultaat |
+|---|---|
+| Client `cargo fmt --check` | exit 0 |
+| Client debug tests | exit 0, 16 tests |
+| Client release tests | exit 0, 17 tests, inclusief 64-KiB/max-queue-herstel |
+| Client debug/release Clippy met `-D warnings` | exit 0 |
+| Client `x86_64-unknown-none` release library build | exit 0; geen guestrun |
+| NAS probe/volume ELF build en inspectie | exit 0; rapport zegt `native_execution=false` |
+| Source-manifestcontrole en `git diff --check` | exit 0 |
+
+Exacte output staat in `stacked-gates.log`; de nieuwe ELF-inspectie staat in
+`stacked-build-report.json`. Deze rapporteert `nas-probe` 95.784 bytes
+(SHA-256 `8f438d9c6b29f74404a9ef8ddb4cfe85e342f5ae667ac9cd83bac869ee1fd56e`)
+en `nas-volume` 98.176 bytes
+(SHA-256 `6b8c743866630960fba38c568c0b6fcbb90c31984b39d838e241f81aa04a8b9f`).
+De eerdere `checks.log`, `build-report.json` en `stack-gates.log` blijven
+historische outputs van de oorspronkelijke oracle86a/ce52-bron; ze worden niet
+herlabeld naar deze stacked head.
+
+De zelfstandige Python disk-oraclebestanden zitten niet in de PR-basis/diff en
+zijn daarom niet opnieuw uitgevoerd of als stacked-PR bewijs geclaimd. De
+historische 8/8 oracle-uitkomst bleef gebonden aan de eerdere bron. De nieuwe
+stacked concept-PR moet zijn eigen NAS-CI-jobs afronden; die zijn nog niet
+uitgevoerd.
+
 ## NEXT AGENT HANDOFF — eigen werk gereed, integratiegrens open
 
 Laatste geteste broncheckpoint:
@@ -20,12 +58,12 @@ Ruwe logs staan in `target/nas-client-logs/`; controleerbare kopieen hier.
 Geen NAS-client-QEMU, echte TLS/E2EE, duurzame clientcheckpoint of GitHub-CI
 uitgevoerd. Score blijft 34/100, NAS0/5; centrale bestanden zijn manager-owned.
 
-Eerstvolgende uitvoerbare integratiestap voor intake/lifecycle:
-maak de afzonderlijke concept-PR met deze head en `pr-body.md`, bevestig de
-behouden basisinhoud en voer de vier echte NAS-CI-jobs op die PR-head uit.
-De huidige app-PRtool kan alleen de oorspronkelijke sessiebranch selecteren;
-gebruik hem niet om per ongeluk PR71 bij te werken. Geen oude groene CI
-van ce52 als acceptatie van deze nieuwe head gebruiken.
+Oorspronkelijke integratiestap voor intake/lifecycle (vervangen door de
+stacked branch hierboven): maak de afzonderlijke concept-PR met deze head en
+`pr-body.md`, bevestig de behouden basisinhoud en voer de echte NAS-CI-jobs op
+die PR-head uit. De huidige app-PRtool kan alleen de oorspronkelijke
+sessiebranch selecteren; gebruik hem niet om per ongeluk PR71 bij te werken.
+Geen oude groene CI van ce52 als acceptatie van een nieuwe head gebruiken.
 
 De echte productketen kan niet met de huidige interfaces worden aangesloten:
 NET bevestigt geen geauthenticeerde native TLS-peerprincipal, Security geen
