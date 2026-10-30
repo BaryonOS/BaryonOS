@@ -238,7 +238,7 @@ impl<T: Transport> Session<T> {
             };
         }
         match self.transport.receive(self.receive) {
-            Ok(mut message) => {
+            Ok(message) => {
                 let result = decode(&message, self.service_pid, pending.id, pending.length);
                 let mut cap_error = None;
                 for i in 0..message.cap_count() {
@@ -248,7 +248,7 @@ impl<T: Transport> Session<T> {
                         }
                     }
                 }
-                wipe_received(&mut message);
+                drop(message);
                 if let Some(error) = cap_error {
                     return Err(self.fail(Failure::Transport(error), Delivery::Enqueued));
                 }
@@ -343,29 +343,36 @@ fn decode(message: &Received, sender: u64, id: u64, length: usize) -> Option<Out
     Some(Outcome::Bytes(output))
 }
 
-fn wipe_received(message: &mut Received) {
-    let mut empty = [0u8; nieuw_os_sdk_runtime::MESSAGE_SIZE];
-    empty[..8].copy_from_slice(&1u64.to_le_bytes());
-    let replacement = Received::from_bytes(empty, 0).expect("valid empty received envelope");
-    const { assert!(!core::mem::needs_drop::<Received>()) };
-    // SAFETY: Exclusive owned envelope, no outstanding references. Callers have
-    // already closed every installed cap. A valid empty replacement overwrites
-    // the current bytes via volatile typed stores, without private layout use.
-    unsafe { core::ptr::write_volatile(message, replacement) };
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
-    fn current_owned_received_payload_is_overwritten() {
+    fn sdk_owned_envelopes_are_zeroized_by_their_destructors() {
+        fn assert_erased<T>(value: T, view: fn(&T) -> &[u8; nieuw_os_sdk_runtime::MESSAGE_SIZE]) {
+            let mut storage = core::mem::MaybeUninit::<T>::uninit();
+            let bytes = view(storage.write(value)).as_ptr();
+            // SAFETY: The envelope is initialized and exclusively owned.
+            // MaybeUninit keeps its backing allocation alive without a second
+            // drop; the saved byte slice locates the actual buffer, not a
+            // guessed struct offset. Only initialized buffer bytes are read.
+            unsafe {
+                assert!((0..nieuw_os_sdk_runtime::MESSAGE_SIZE)
+                    .any(|i| core::ptr::read_volatile(bytes.add(i)) != 0));
+                core::ptr::drop_in_place(storage.as_mut_ptr());
+                for i in 0..nieuw_os_sdk_runtime::MESSAGE_SIZE {
+                    assert_eq!(core::ptr::read_volatile(bytes.add(i)), 0);
+                }
+            }
+        }
+
         let mut bytes = *Outgoing::new(TAG, &[0xa5; SIZE]).unwrap().as_bytes();
         bytes[..8].copy_from_slice(&7u64.to_le_bytes());
-        let mut message = Received::from_bytes(bytes, SIZE as u64).unwrap();
-        wipe_received(&mut message);
-        assert_eq!(message.sender(), 1);
-        assert!(message.as_bytes()[8..].iter().all(|b| *b == 0));
-        assert!(message.payload().is_empty());
+        let message = Received::from_bytes(bytes, SIZE as u64).unwrap();
+        assert_erased(message, Received::as_bytes);
+        assert_erased(
+            Outgoing::new(TAG, &[0xa5; SIZE]).unwrap(),
+            Outgoing::as_bytes,
+        );
     }
     #[test]
     fn exhausted_request_ids_close_before_any_publication() {

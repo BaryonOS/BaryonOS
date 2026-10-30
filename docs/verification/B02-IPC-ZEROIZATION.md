@@ -1,5 +1,39 @@
 # B02-IPC-HYGIENE-1 — IPC-envelopegeheugenhygiëne
 
+## RANDOM-consumerintegratie na exclusieve eigenaarsafspraak
+
+30 oktober 2026: netwerkowner039dbef8 gaf exclusief
+`sdk/keyring-random-client/src/lib.rs` en
+`sdk/examples/random-probe/src/main.rs` vrij voor de gekoppelde Drop-fix.
+Beide oude `wipe_received`-helpers en hun foutieve `!needs_drop`-aanname zijn
+verwijderd. Bestaande afzender-/capabilityvalidatie en **alle capcleanup
+vóór `drop(message)`** blijven staan, ook wanneer een close mislukt.
+Unknown/no-retry, retirement, lease-/caller-/wirebeleid zijn ongewijzigd.
+Geen nieuwe productie-unsafe; twee oude unsafe-vervangingen verwijderd.
+
+De oude helpertest is vervangen door een echte destructortest voor zowel
+Received als Outgoing. Deze bewaart de allocatie met `MaybeUninit`, roept
+eenmaal de werkelijke destructor aan en leest daarna de huidige320
+bufferbytes via volatile reads. De bufferlocatie komt uit `as_bytes`,
+niet een veronderstelde structlayout. Uitsluitend test-unsafe, onderbouwd
+bij de test; geen tweede destructor of lezen van vrijgegeven opslag.
+Dit controleert daadwerkelijke zeroisatie, niet alleen compilatie of
+`needs_drop`; geen claim over eerdere compiler-/registerkopieën.
+
+Gericht uitgevoerd in de bestaande lokale hostlinkeromgeving:
+`cargo +1.90.0 test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime -p nieuw-os-keyring-random-client`
+exit0/36 tests:25 SDK-runtime en11 RANDOM-client, waaronder capcleanup bij
+een mislukte close en de nieuwe echte destructortest.
+Dezelfde selectie met
+`cargo +1.90.0 clippy --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime -p nieuw-os-keyring-random-client --all-targets -- -D warnings`
+exit0. Logs `/tmp/nieuw-os-security-ipc-random-drop-{host,clippy}.log`.
+
+Checkpoint vóór volledige native herhaling op nieuwe commit/fingerprint.
+De eerdere82b-system/B01/WAIT-uitkomsten hieronder blijven eigen
+historische bron; RANDOM vier gevallen en nieuwe system/B01/WAIT zijn
+nog **niet uitgevoerd** op deze consumerfix. PR blijft concept/WIP;
+#74 frozen, geen scopeoverdracht. Score34→34/security4of12, TL eigenaar.
+
 ## Vervolg op main94 — WAIT-behoud en sterkere redactietest
 
 30 oktober 2026: main `94c8908ee363d06a5be51417c5cae635549d566f`
