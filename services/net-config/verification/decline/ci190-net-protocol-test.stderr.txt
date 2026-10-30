@@ -1,0 +1,8 @@
+   Compiling nieuw-os-net-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-protocol)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.64s
+     Running unittests src/lib.rs (build/native-net-config-worktree/target/net-config-host/debug/deps/nieuw_os_net_protocol-decde2498304b97e)
+     Running tests/arp.rs (build/native-net-config-worktree/target/net-config-host/debug/deps/arp-535337b0ddd5ed15)
+     Running tests/dhcp.rs (build/native-net-config-worktree/target/net-config-host/debug/deps/dhcp-46daa2dc447f0974)
+     Running tests/dns.rs (build/native-net-config-worktree/target/net-config-host/debug/deps/dns-98423347cfe910d6)
+     Running tests/packets.rs (build/native-net-config-worktree/target/net-config-host/debug/deps/packets-7a8f55e1fcf6cfc7)
+   Doc-tests nieuw_os_net_protocol

@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.91.1",
+    "test",
+    "--manifest-path",
+    "services/net-config/Cargo.toml",
+    "--locked",
+    "--offline",
+    "--target-dir",
+    "build/native-net-config-worktree/target/net-config-host",
+    "--test",
+    "service",
+    "delayed_renewal_ack_applies_new_route_and_dns_even_when_new_t1_is_already_due"
+  ],
+  "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+  "started_unix": 1793386381.3780792,
+  "duration_s": 0.29025697708129883,
+  "returncode": 101
+}

@@ -1,0 +1,30 @@
+   Compiling zeroize v1.9.1
+   Compiling untrusted v0.9.0
+   Compiling rustls v0.23.46
+   Compiling subtle v2.6.1
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/sdk/runtime)
+   Compiling once_cell v1.21.4
+   Compiling spin v0.12.3
+   Compiling rustls-pki-types v1.15.1
+   Compiling nieuw-os-keyring-random-client v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/sdk/keyring-random-client)
+   Compiling rustls-webpki v0.103.16
+   Compiling nieuw-os-net-tls v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tls-port-worktree/services/net-tls)
+error[E0271]: type mismatch resolving `<i32 as BitOr>::Output == u64`
+   --> src/random.rs:179:56
+    |
+179 |         let handle = |slot| Handle::from_raw((1 << 32) | slot).unwrap();
+    |                                                        ^ expected `u64`, found `i32`
+
+error[E0271]: type mismatch resolving `<i32 as BitOr>::Output == u64`
+  --> tests/random.rs:98:52
+   |
+98 |     let handle = |slot| Handle::from_raw((1 << 32) | slot).unwrap();
+   |                                                    ^ expected `u64`, found `i32`
+
+For more information about this error, try `rustc --explain E0271`.
+error: could not compile `nieuw-os-net-tls` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `nieuw-os-net-tls` (test "random") due to 1 previous error
+real 2.33
+user 3.26
+sys 0.99

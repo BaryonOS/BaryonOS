@@ -1,0 +1,12 @@
+   Compiling simd-adler32 v0.3.10
+   Compiling zune-core v0.5.3
+   Compiling ui-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-scaling-disco/crates/ui-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-scaling-disco/sdk/runtime)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-scaling-disco/ui/surface-protocol)
+   Compiling zune-inflate v0.2.54
+   Compiling zune-jpeg v0.5.16-rc3 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-scaling-disco/services/image-codec/vendor/zune-jpeg-0.5.16-rc3)
+   Compiling nieuw-os-input-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-scaling-disco/services/input-core)
+   Compiling zune-png v0.5.2
+   Compiling nieuw-os-image-codec v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-scaling-disco/services/image-codec)
+   Compiling nieuw-os-image-viewer v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-scaling-disco/sdk/examples/image-viewer)
+    Finished `release` profile [optimized] target(s) in 2.33s

@@ -1,0 +1,3 @@
+    Checking nieuw-os-net-stack v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-stack)
+    Checking nieuw-os-net-broker v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-broker)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.31s

@@ -1,0 +1,234 @@
+{
+  "source_commit": "f16062b920a84d76599c4a089f8b79a6b4cfb925",
+  "branch": "simonvanieperen-native-net-config",
+  "source_inputs_v3": "331af359595218719246889265e129e5554876ae0a5648855aa37922c6a4d04a",
+  "test_counts": {
+    "net-config": 26,
+    "net-stack": 24,
+    "net-protocol": 58
+  },
+  "gates": [
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "clippy",
+        "--manifest-path",
+        "services/net-config/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--target-dir",
+        "build/native-net-config-worktree/target/net-config-host",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793386269.3115737,
+      "duration_s": 0.25554895401000977,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "fmt",
+        "--manifest-path",
+        "services/net-config/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793386269.5672352,
+      "duration_s": 0.11243009567260742,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "build",
+        "--locked",
+        "--offline",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--manifest-path",
+        "services/net-config/Cargo.toml",
+        "--target-dir",
+        "build/native-net-config-worktree/target/net-config-none"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793386268.975556,
+      "duration_s": 0.2887229919433594,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "test",
+        "--manifest-path",
+        "services/net-config/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--target-dir",
+        "build/native-net-config-worktree/target/net-config-host"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793386269.0123692,
+      "duration_s": 0.29906678199768066,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "clippy",
+        "--manifest-path",
+        "services/net-protocol/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--target-dir",
+        "build/native-net-config-worktree/target/net-config-host",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793386270.5049677,
+      "duration_s": 0.07492470741271973,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "fmt",
+        "--manifest-path",
+        "services/net-protocol/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793386270.5799963,
+      "duration_s": 0.0677022933959961,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "test",
+        "--manifest-path",
+        "services/net-protocol/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--target-dir",
+        "build/native-net-config-worktree/target/net-config-host"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793386270.4103007,
+      "duration_s": 0.09443235397338867,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "clippy",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--target-dir",
+        "build/native-net-config-worktree/target/net-config-host",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793386270.1079729,
+      "duration_s": 0.234511137008667,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "fmt",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793386270.342586,
+      "duration_s": 0.06759142875671387,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "test",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--target-dir",
+        "build/native-net-config-worktree/target/net-config-host"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793386269.6797898,
+      "duration_s": 0.42807674407958984,
+      "returncode": 0
+    }
+  ],
+  "files_sha256": {
+    "services/net-config/src/time.rs": "f19494aaa3ae39fb37489d59bff238e287d030df6294df53271bc247a023988e",
+    "services/net-config/src/service.rs": "43bbf172d2769a245f0076f58ba28d0515ec538cd5aed95f7c94e40e55e85d66",
+    "services/net-config/src/lib.rs": "f76f7c06a4d77d4c0f7dec9fb96c7f4f3b0242bf615b902743a7c2fb3df3ce64",
+    "services/net-config/src/dhcp_client.rs": "58ebd4a01530c4272c4b1def0a565b775a6af6fc99fba6e7fd429391cb9c5172",
+    "services/net-config/tests/service.rs": "8b32b7abe70295fc6e6b28e46ca373ffb85fb5adf170a4e7296b40a742ece123",
+    "services/net-config/tests/dhcp_client.rs": "13b2a1ebbd75d84d0b5c07c90f4fe2cb986ea112b8aed7720107a65e591b828a",
+    "services/net-stack/src/lib.rs": "384f7ea769b1a16094471e9d080fe6df3f19fdfe91e6ad6fe20c0424ee342c63",
+    "services/net-stack/src/arp_control.rs": "f88c23526898cda0460237661a0e816c2056c472a4d8c13889f6a6de53d5d961",
+    "services/net-stack/src/device.rs": "06fd1d54d95e2d20863d7cf35cf18c0ee7302a73a926e00c49e929f0456b798f",
+    "services/net-config/README.md": "2a02004e7b51825ca3a7e5040eb76cd0569169dc2e371ba87c2b1f2d069d39e7",
+    "services/net-config/Cargo.lock": "c8d4bf4f1d3f4b7fca02428574c50b6f60bd4d38fe3f8e53d718fa188e7eb70d"
+  },
+  "rlib_sha256": "b979cc51744261db02c7545cb55e1faff2dfedb9457f3cb4791fa63f64847d3d",
+  "red_peer_probe": {
+    "basis": "4c335d10f8c1a46dd68e5eda46fda147dc2d26f6",
+    "exact_wip_patch": "peer-probe-red.patch",
+    "patch_sha256": "b0c16022a08b7ba2850d4692360b4759193ff24c9cb17bdf61260c87a8cc8533",
+    "log": "peer-probe-red.stdout.txt",
+    "exit_status": 101,
+    "cause": "upstream ignores zero-source peerprobe; new bounded reply on same TXslot after bind"
+  },
+  "red_selecting_secs": {
+    "production_basis": "678081c9bae9436c0b393635e2f8096e6187eeaf",
+    "test_only_patch": "selecting-secs-red.patch",
+    "patch_sha256": "82fef79157941baf52705e719c172f5749ec78a368d6cc76014759887f0bcbe1",
+    "log": "selecting-secs-red.stdout.txt",
+    "exit_status": 101,
+    "cause": "selectingREQUESTsecs5vsDISCOVERsecs1; own imported client now retains discoversecs without moving request_at/expiry"
+  },
+  "not_executed": [
+    "DHCPDECLINE (protocolscope requested)",
+    "native caller/driver/DMAfence/reset/epoch/CR3",
+    "native entropy/retries/autoreconnect",
+    "broker-policy integration",
+    "native app/resolver/permissions",
+    "new dedicated CI",
+    "physicalhardware/human audit"
+  ],
+  "score": "network0/10 total34 unchanged; manager centralowner"
+}

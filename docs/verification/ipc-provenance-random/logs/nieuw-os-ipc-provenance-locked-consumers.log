@@ -1,0 +1,40 @@
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path experiments/quantum/native/job/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/display-client/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/examples/calculator/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/examples/compositor/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/examples/desktop-init/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/examples/display-input-probe/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/examples/image-probe/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/examples/input-service/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/examples/ipc-wait-probe/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/examples/materiaal/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/examples/memory/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/examples/net-probe/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/examples/random-probe/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/examples/tcp-probe/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/input-client/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path sdk/keyring-client/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path services/input-core/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path ui/native/Cargo.toml
+exit0
+cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path ui/surface-protocol/Cargo.toml
+exit0

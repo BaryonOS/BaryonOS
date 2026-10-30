@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.91.1",
+    "fmt",
+    "--manifest-path",
+    "services/net-config/Cargo.toml",
+    "--all",
+    "--",
+    "--check"
+  ],
+  "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+  "started_unix": 1793385486.294326,
+  "duration_s": 0.13631224632263184,
+  "returncode": 0
+}
