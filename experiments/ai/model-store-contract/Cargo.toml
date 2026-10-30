@@ -1,0 +1,11 @@
+[package]
+name = "nieuw-os-model-store-contract"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[dependencies]
+sha2 = { version = "=0.10.9", default-features = false }
+
+[workspace]
