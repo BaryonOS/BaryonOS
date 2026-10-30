@@ -146,7 +146,7 @@ fn address_list<const N: usize>(
     output: &mut [[u8; 4]; N],
     count: &mut usize,
 ) -> Result<(), Error> {
-    if value.is_empty() || value.len() % 4 != 0 {
+    if value.is_empty() || !value.len().is_multiple_of(4) {
         return Err(Error::InvalidOptionLength(code));
     }
     let entries = value.len() / 4;
