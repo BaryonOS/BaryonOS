@@ -1,0 +1,57 @@
+   Compiling nieuw-os-net-stack v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/build/tcp-listen-worktree/services/net-stack)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.40s
+     Running unittests src/lib.rs (target/tcp-listen-host/debug/deps/nieuw_os_net_stack-533a77bb6c83be03)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/adapter.rs (target/tcp-listen-host/debug/deps/adapter-e5ec65d9171550c5)
+
+running 12 tests
+test bounds_and_invalid_initial_identity_are_rejected ... ok
+test duplicate_tuple_cannot_take_first_clients_replies_and_cancel_closes ... ok
+test actual_syn_is_generated_only_after_arp_and_tx_is_completion_gated ... ok
+test listener_bounds_duplicates_cancel_and_relisten_preserve_other_sockets ... ok
+test listener_deadline_overflow_does_not_open_a_socket ... ok
+test listener_deadline_uses_monotonic_time_and_expires_at_exact_boundary ... ok
+test rejected_clock_does_not_mutate_time_and_equal_ticks_do_not_timeout ... ok
+test rx_is_not_consumed_while_tx_cannot_answer ... ok
+test socket_buffers_and_count_remain_bounded_after_rejection ... ok
+test malformed_or_busy_rx_does_not_overwrite_queued_frame ... ok
+test tx_backpressure_and_stale_completions_preserve_current_packet ... ok
+test malformed_ethernet_corpus_never_creates_socket_data ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/conversation.rs (target/tcp-listen-host/debug/deps/conversation-6c056ee11b732e93)
+
+running 6 tests
+test actual_tcp_http_bytes_and_orderly_eof ... ok
+test dropped_syn_retransmits_same_sequence_after_real_model_elapsed_time ... ok
+test refusal_is_observed_before_timeout ... ok
+test lost_final_ack_cannot_turn_http_eof_into_success_via_timeout ... ok
+test reset_after_request_does_not_produce_http_success ... ok
+test unreachable_server_times_out_only_after_model_clock_advances ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/listen.rs (target/tcp-listen-host/debug/deps/listen-f1fb83d1b04f12ec)
+
+running 4 tests
+test syn_after_accept_deadline_cannot_reopen_expired_listener ... ok
+test missing_handshake_ack_expires_half_open_at_absolute_deadline ... ok
+test wrong_destination_port_does_not_consume_listener ... ok
+test passive_connection_transfers_exact_bytes_under_backpressure_and_closes ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_net_stack
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+real 0.47
+user 0.55
+sys 0.49

@@ -271,3 +271,75 @@ fn duplicate_tuple_cannot_take_first_clients_replies_and_cancel_closes() {
     assert_eq!(engine.state(first).unwrap(), State::Closed);
     assert_eq!(engine.state(second).unwrap(), State::SynSent);
 }
+
+#[test]
+fn listener_bounds_duplicates_cancel_and_relisten_preserve_other_sockets() {
+    let (mut rx, mut tx, mut arx, mut atx, mut brx, mut btx) =
+        ([0; 1514], [0; 1514], [0; 64], [0; 64], [0; 64], [0; 64]);
+    let mut storage = [SocketStorage::EMPTY, SocketStorage::EMPTY];
+    let mut engine = Stack::new(CONFIG, &mut storage, &mut rx, &mut tx, 0).unwrap();
+    let first = engine.add_client(&mut arx, &mut atx).unwrap();
+    let second = engine.add_client(&mut brx, &mut btx).unwrap();
+    assert_eq!(
+        engine.listen(first, 8080, 0),
+        Err(Error::InvalidConfiguration)
+    );
+    assert_eq!(
+        engine.listen(first, 8080, 6001),
+        Err(Error::InvalidConfiguration)
+    );
+    assert_eq!(engine.listen(first, 0, 100), Err(Error::Unaddressable));
+    assert_eq!(engine.state(first), Ok(State::Closed));
+    engine.listen(first, 8080, 100).unwrap();
+    assert_eq!(engine.remote_endpoint(first), Ok(None));
+    assert_eq!(engine.listen(first, 8081, 100), Err(Error::InvalidState));
+    assert_eq!(engine.listen(second, 8080, 100), Err(Error::Busy));
+    assert_eq!(engine.state(second), Ok(State::Closed));
+    assert_eq!(
+        engine.send(first, b"not connected"),
+        Err(Error::InvalidState)
+    );
+    assert_eq!(engine.receive(first, &mut [0; 8]), Err(Error::InvalidState));
+    engine.listen(second, 8081, 200).unwrap();
+    engine.cancel(first).unwrap();
+    assert_eq!(engine.state(first), Ok(State::Closed));
+    assert_eq!(engine.state(second), Ok(State::Listen));
+    engine.listen(first, 8080, 100).unwrap();
+    engine.close(first).unwrap();
+    engine.listen(first, 8080, 100).unwrap();
+    engine.poll(100).unwrap();
+    assert_eq!(engine.state(first), Ok(State::Closed));
+    assert_eq!(engine.state(second), Ok(State::Listen));
+}
+
+#[test]
+fn listener_deadline_uses_monotonic_time_and_expires_at_exact_boundary() {
+    let (mut rx, mut tx, mut srx, mut stx) = ([0; 1514], [0; 1514], [0; 64], [0; 64]);
+    let mut storage = [SocketStorage::EMPTY];
+    let mut engine = Stack::new(CONFIG, &mut storage, &mut rx, &mut tx, 10).unwrap();
+    let socket = engine.add_client(&mut srx, &mut stx).unwrap();
+    engine.listen(socket, 8080, 100).unwrap();
+    assert_eq!(engine.poll(9), Err(Error::ClockWentBackwards));
+    assert_eq!(engine.poll(u64::MAX), Err(Error::ClockOverflow));
+    for _ in 0..1000 {
+        engine.poll(10).unwrap();
+    }
+    assert_eq!(engine.state(socket), Ok(State::Listen));
+    engine.poll(109).unwrap();
+    assert_eq!(engine.state(socket), Ok(State::Listen));
+    engine.poll(110).unwrap();
+    assert_eq!(engine.state(socket), Ok(State::Closed));
+    engine.listen(socket, 8080, 100).unwrap();
+    assert_eq!(engine.state(socket), Ok(State::Listen));
+}
+
+#[test]
+fn listener_deadline_overflow_does_not_open_a_socket() {
+    let (mut rx, mut tx, mut srx, mut stx) = ([0; 1514], [0; 1514], [0; 64], [0; 64]);
+    let mut storage = [SocketStorage::EMPTY];
+    let limit = (i64::MAX / 2 / 10_000) as u64;
+    let mut engine = Stack::new(CONFIG, &mut storage, &mut rx, &mut tx, limit).unwrap();
+    let socket = engine.add_client(&mut srx, &mut stx).unwrap();
+    assert_eq!(engine.listen(socket, 8080, 1), Err(Error::ClockOverflow));
+    assert_eq!(engine.state(socket), Ok(State::Closed));
+}
