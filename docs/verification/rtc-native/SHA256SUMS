@@ -1,4 +1,4 @@
-03079d9581f2c25d91197aa262aa8ee298ddd92dd665580be62c8cb1e90aaefb  docs/verification/rtc-native/README.md
+ac1eff95f8e879e94145d1e85ead505de3620d0a0907ed1a0c0f646103405fe0  docs/verification/rtc-native/README.md
 ebf7b1d44e451e86a926d77a83d90c34e01e487a79476e81bc33281148948a70  docs/verification/rtc-native/build-m2-double-fault-manifest.json
 47e664c04e6281293ef6679601d968661a66772bea5211fb3092b75ede415fd2  docs/verification/rtc-native/build-m2-kernel-fault-manifest.json
 97028a6d609e2516f9048ed259bb19df1ff81bfe00ea50b0da128a706e05a7a2  docs/verification/rtc-native/build-m2-manifest.json
@@ -8,6 +8,7 @@ d57f4e96e8b59cee665ab42bf2a8567b9e529c8709a8a2ff37886dcba55b785f  docs/verificat
 38576dd7511a5a628a95733db196b804b71b3de8ba7c3481e03b75c324e126f9  docs/verification/rtc-native/build-test-m2-nx-manifest.json
 6a5b62e9863e479ab10ced12c9dd99db997ea2e096fe5bf8cb5334a7e02543f2  docs/verification/rtc-native/build-test-m2-ro-manifest.json
 21e7cf7db1849f142e51ae7cad484ba64cecbed0a446ab30b023eb2eb4b2cd2e  docs/verification/rtc-native/century-rejected-report.json
+8316309319fb2c10180c86dd2d0ad748bb9351cffcefa531f9743b0479487b05  docs/verification/rtc-native/ci-native-rtc.json
 1236fa5455ed4815c73fba9ba67ccd1dd3af944eb841e9c91e314928f4dc8df6  docs/verification/rtc-native/epoch-rejected-report.json
 cab2080ca94a5980ea7f767297d0438a51fe0fb5a94f5a954170c269b97e5643  docs/verification/rtc-native/logs/build-rtc-final.txt
 a81618b4084b29f035a4bbb56ba971796a51f885434add7ef7eb07b0e582b52a  docs/verification/rtc-native/logs/century-firmware-rejected.txt

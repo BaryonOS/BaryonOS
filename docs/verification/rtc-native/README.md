@@ -174,6 +174,15 @@ tegen de lokale werkboom.
 De nieuwe workflow voert de vijfkalenderpoort bij PR-uitvoering opnieuw uit;
 een lokale test vervangt geen verplichte CI-check.
 
+Na openen is de echte GitHub-RTC-workflow uitgevoerd en groen op
+`295b4db9ce978d6b020effce08abdc7535554625` (de runtimebron is gelijk aan
+`c02675e`): job 47 s, hosttests/codec/formatter, eigen loader/kernel,
+vijf echte kalenderboots en artifactupload allemaal success.
+`ci-native-rtc.json` bewaart de API-run-/stepstatus; controlecommando:
+`gh run watch 41064380898 --exit-status --interval 10`, exit 0.
+De overige verplichte PR-checks liepen bij overdracht nog, niet als groen
+aangemerkt. Dit bewijscheckpoint wijzigt geen uitvoerbare code.
+
 Vervolg blijft de geautoriseerde geisoleerde TimeProvider en een expliciet
 vertrouwd tijdpad voor certificaatvalidatie. Rollback: revert de opt-in
 feature/adapter/runner/workflow met dependencytoevoeging. Standaard M1/M2,

@@ -20,6 +20,11 @@ Vijf echte kalenderboots slagen met raw33: millennium/schrikkeldag 2000,
 2026, post-i32-2038 en schrikkeldag 2096, inclusief echte budget-/floor-/
 restoregevallen. Onafhankelijke verifier: M2 8/8 groepen, zeven VM's
 (vijf raw33, twee verwachte raw35); hoofdagent: M6c CI-smoke raw33.
+Concept-PR geopend. De echte `native-rtc`-GitHub-job slaagt op `295b4db`
+in 47 s, inclusief alle vijf kalenderboots en artifactupload;
+`verification/rtc-native/ci-native-rtc.json` bewaart de runbinding.
+Overige PR-checks liepen bij deze overdracht nog; geen merge of volledige
+CI-goedkeuring geclaimd. Dit laatste checkpoint verandert geen runtimebron.
 Geen nieuwe externe dependencyversie; rootlockfile voegt alleen de eigen
 dependencyvrije RTC-core toe. Lokale Rust/QEMU/GCC/OVMF-omgeving onder `.tools/`
 hersteld zonder sudo/globale configuratiewijziging. Ontwikkelvariant:
@@ -42,7 +47,7 @@ Eerstvolgend lokaal herhaalcommando:
 `. .tools/nieuw-os/rtc-env.sh && python3 -B tools/run_rtc.py --case all`.
 Productvervolg: minimaal geautoriseerde userspace-TimeProvider/trusted-timeketen;
 geen ongecontroleerde uitbreiding naar IRQ/SMP of TLS.
-Niet uitgevoerd: fysieke hardware, menselijke audit, volledige CI
+Niet afgerond/geaccepteerd: fysieke hardware, menselijke audit, volledige CI
 en volledige releaseacceptatie. De 62 productcriteria blijven open.
 
 ## Historisch checkpoint — PR #58, integratie met main — 30 oktober 2026

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "c02675e21cbbaf32294298f46ce1cb394b360895",
+    "source_commit": "295b4db9ce978d6b020effce08abdc7535554625",
     "branch": "simonvanieperen-expert-disco",
     "task": "RTC-NATIVE-1: native alleen-lezen kalenderklok als directe tijdproviderafhankelijkheid",
     "previous_score": 34,
-    "summary": "34% blijft 34%. RTC-NATIVE-1 heeft vijf echte kalenderboots, zeven M2-regressie-VM's, M6c-smoke en gerichte/brede hostchecks op c02675e; bewijs staat onder docs/verification/rtc-native. OVMF herschrijft de epoch-/2100-eeuw: het orakel weigert beide. Geen productie-TimeProvider, vertrouwde certificaattijd of volledig rubriccriterium door deze beperkte FR-S03/FR-N03-afhankelijkheid gesloten. Alle 62 productcriteria, fysieke hardware en menselijke acceptatie blijven open."
+    "summary": "34% blijft 34%. RTC-NATIVE-1 heeft vijf echte kalenderboots, zeven M2-regressie-VM's, M6c-smoke en gerichte/brede hostchecks op c02675e, plus een echte groene RTC-CI-run op 295b4db met dezelfde runtimebron; bewijs staat onder docs/verification/rtc-native. OVMF herschrijft de epoch-/2100-eeuw: het orakel weigert beide. Geen productie-TimeProvider, vertrouwde certificaattijd of volledig rubriccriterium door deze beperkte FR-S03/FR-N03-afhankelijkheid gesloten. Alle 62 productcriteria, fysieke hardware en menselijke acceptatie blijven open."
   },
   "tracks": [
     {

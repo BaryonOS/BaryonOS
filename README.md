@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`c02675e2`](https://github.com/simonvanieperen/nieuw-os/commit/c02675e21cbbaf32294298f46ce1cb394b360895) ·
+**Bron:** [`295b4db9`](https://github.com/simonvanieperen/nieuw-os/commit/295b4db9ce978d6b020effce08abdc7535554625) ·
 **Ontwikkelbranch:** `simonvanieperen-expert-disco`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** RTC-NATIVE-1: native alleen-lezen kalenderklok als directe tijdproviderafhankelijkheid.
-34% blijft 34%. RTC-NATIVE-1 heeft vijf echte kalenderboots, zeven M2-regressie-VM's, M6c-smoke en gerichte/brede hostchecks op c02675e; bewijs staat onder docs/verification/rtc-native. OVMF herschrijft de epoch-/2100-eeuw: het orakel weigert beide. Geen productie-TimeProvider, vertrouwde certificaattijd of volledig rubriccriterium door deze beperkte FR-S03/FR-N03-afhankelijkheid gesloten. Alle 62 productcriteria, fysieke hardware en menselijke acceptatie blijven open.
+34% blijft 34%. RTC-NATIVE-1 heeft vijf echte kalenderboots, zeven M2-regressie-VM's, M6c-smoke en gerichte/brede hostchecks op c02675e, plus een echte groene RTC-CI-run op 295b4db met dezelfde runtimebron; bewijs staat onder docs/verification/rtc-native. OVMF herschrijft de epoch-/2100-eeuw: het orakel weigert beide. Geen productie-TimeProvider, vertrouwde certificaattijd of volledig rubriccriterium door deze beperkte FR-S03/FR-N03-afhankelijkheid gesloten. Alle 62 productcriteria, fysieke hardware en menselijke acceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
