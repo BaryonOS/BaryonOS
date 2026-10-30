@@ -229,6 +229,107 @@ impl Message {
         Ok(())
     }
 }
+/// Hash the same forty little-endian wire words as Message::encode without
+/// materialising a 320-byte temporary. Every field and all 256 payload bytes
+/// participate even when len/cap_count/live metadata are invalid or zero.
+const DIAGNOSTIC_PRIME: u64 = 0x100000001b3;
+struct DiagnosticHasher {
+    value: u64,
+    zeros: usize,
+}
+impl DiagnosticHasher {
+    const FACTORS: [u64; 65] = {
+        let mut out = [1u64; 65];
+        let mut i = 1;
+        while i < 65 {
+            out[i] = out[i - 1].wrapping_mul(DIAGNOSTIC_PRIME);
+            i += 1;
+        }
+        out
+    };
+    fn new(value: u64) -> Self {
+        Self { value, zeros: 0 }
+    }
+    #[inline(always)]
+    fn flush(&mut self) {
+        if self.zeros != 0 {
+            let factor = if self.zeros < 65 {
+                Self::FACTORS[self.zeros]
+            } else {
+                Self::long_factor(self.zeros)
+            };
+            self.value = self.value.wrapping_mul(factor);
+            self.zeros = 0;
+        }
+    }
+    // Canonical empty-message runs fit the small table. Keep the exact
+    // arbitrary-state fallback out of each inlined hot-path word operation.
+    #[cold]
+    #[inline(never)]
+    fn long_factor(mut n: usize) -> u64 {
+        let mut base = DIAGNOSTIC_PRIME;
+        let mut factor = 1u64;
+        while n != 0 {
+            if n & 1 != 0 {
+                factor = factor.wrapping_mul(base);
+            }
+            n >>= 1;
+            base = base.wrapping_mul(base);
+        }
+        factor
+    }
+    #[inline(always)]
+    fn word(&mut self, value: u64) {
+        if value == 0 {
+            self.zeros += 1;
+        } else {
+            self.flush();
+            self.value = (self.value ^ value).wrapping_mul(DIAGNOSTIC_PRIME);
+        }
+    }
+    fn finish(mut self) -> u64 {
+        self.flush();
+        self.value
+    }
+}
+fn digest_message(h: &mut DiagnosticHasher, m: &Message) {
+    // Exactly forty zero words compose to h * PRIME^40 modulo 2^64. This
+    // branch is allowed only after checking every typed header/cap field and
+    // all payload words; inactive/noncanonical data are never assumed empty.
+    let header = m.sender_pid
+        | m.tag
+        | u64::from(m.len)
+        | u64::from(m.cap_count)
+        | m.reserved
+        | m.caps[0].handle
+        | m.caps[0].rights
+        | m.caps[1].handle
+        | m.caps[1].rights;
+    if header == 0
+        && m.data
+            .chunks_exact(8)
+            .all(|bytes| u64::from_le_bytes(bytes.try_into().unwrap()) == 0)
+    {
+        h.zeros += MESSAGE_SIZE / 8;
+        return;
+    }
+
+    fn word(h: &mut DiagnosticHasher, value: u64) {
+        h.word(value);
+    }
+    word(h, m.sender_pid);
+    word(h, m.tag);
+    word(h, u64::from(m.len) | (u64::from(m.cap_count) << 32));
+    word(h, m.reserved);
+    for cap in &m.caps {
+        word(h, cap.handle);
+        word(h, cap.rights);
+    }
+    for bytes in m.data.chunks_exact(8) {
+        word(h, u64::from_le_bytes(bytes.try_into().unwrap()));
+    }
+}
+
 fn get64(b: &[u8; MESSAGE_SIZE], o: usize) -> u64 {
     u64::from_le_bytes(b[o..o + 8].try_into().unwrap())
 }
@@ -1629,6 +1730,127 @@ impl Engine {
     }
     /// Diagnostic fingerprint only, not cryptography or proof against collisions.
     pub fn state_digest(&self) -> u64 {
+        let mut h = DiagnosticHasher::new(0xcbf29ce484222325);
+        fn add(h: &mut DiagnosticHasher, v: u64) {
+            // Fixed typed word boundaries: this is a fast diagnostic mixer,
+            // never an authentication/integrity primitive or a crypto hash.
+            h.word(v);
+        }
+        fn id(h: &mut DiagnosticHasher, x: Id) {
+            add(h, u64::from(x.index));
+            add(h, u64::from(x.generation));
+        }
+        add(&mut h, self.last_pid);
+        for p in &self.processes {
+            add(&mut h, p.pid);
+            add(&mut h, u64::from(p.live));
+            for s in &p.slots {
+                add(&mut h, u64::from(s.generation));
+                add(&mut h, u64::from(s.retired));
+                id(&mut h, s.node);
+            }
+        }
+        for n in &self.nodes {
+            for x in [
+                u64::from(n.generation),
+                u64::from(n.live),
+                u64::from(n.retired),
+                u64::from(n.revoked),
+                n.issuer,
+                n.rights,
+                u64::from(n.refs),
+                u64::from(n.depth),
+            ] {
+                add(&mut h, x);
+            }
+            id(&mut h, n.object);
+            id(&mut h, n.parent);
+        }
+        for e in &self.endpoints {
+            for x in [
+                u64::from(e.generation),
+                u64::from(e.live),
+                u64::from(e.retired),
+                u64::from(e.open),
+                e.owner,
+                u64::from(e.nodes),
+                u64::from(e.head),
+                u64::from(e.len),
+            ] {
+                add(&mut h, x);
+            }
+            for q in &e.queue {
+                digest_message(&mut h, &q.message);
+                for x in q.caps {
+                    id(&mut h, x);
+                }
+            }
+        }
+        for b in &self.blocks {
+            for x in [
+                u64::from(b.generation),
+                u64::from(b.live),
+                u64::from(b.retired),
+                u64::from(b.open),
+                b.owner,
+                u64::from(b.nodes),
+                u64::from(b.scope.device),
+                b.scope.first_sector,
+                b.scope.sector_count,
+            ] {
+                add(&mut h, x);
+            }
+        }
+        for l in &self.launches {
+            for x in [
+                u64::from(l.generation),
+                u64::from(l.live),
+                u64::from(l.retired),
+                u64::from(l.open),
+                l.owner,
+                u64::from(l.nodes),
+                u64::from(l.image),
+            ] {
+                add(&mut h, x);
+            }
+        }
+        for c in &self.children {
+            for x in [
+                u64::from(c.generation),
+                u64::from(c.live),
+                u64::from(c.retired),
+                u64::from(c.open),
+                c.owner,
+                u64::from(c.nodes),
+                c.child,
+                u64::from(c.state),
+                c.code,
+            ] {
+                add(&mut h, x);
+            }
+        }
+        for e in self
+            .entropy
+            .iter()
+            .chain(self.network.iter())
+            .chain(self.display.iter())
+            .chain(self.input.iter())
+        {
+            for x in [
+                u64::from(e.generation),
+                u64::from(e.live),
+                u64::from(e.retired),
+                u64::from(e.open),
+                e.owner,
+                u64::from(e.nodes),
+            ] {
+                add(&mut h, x);
+            }
+        }
+        h.finish()
+    }
+    #[cfg(test)]
+    fn state_digest_reference(&self) -> u64 {
         let mut h = 0xcbf29ce484222325u64;
         fn add(h: &mut u64, v: u64) {
             // Fixed typed word boundaries: this is a fast diagnostic mixer,
@@ -1991,3 +2213,453 @@ fn advance(g: u32) -> (u32, bool) {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod digest_differential {
+    extern crate std;
+    use super::*;
+    use std::{hint::black_box, thread, time::Instant, vec::Vec};
+    fn run(f: impl FnOnce() + Send + 'static) {
+        thread::Builder::new()
+            .stack_size(32 * 1024 * 1024)
+            .spawn(f)
+            .unwrap()
+            .join()
+            .unwrap();
+    }
+    fn same(e: &Engine) {
+        assert_eq!(e.state_digest(), e.state_digest_reference());
+        assert_eq!(e.stats().state_digest, e.state_digest_reference());
+    }
+    fn random(state: &mut u64) -> u64 {
+        *state ^= *state << 13;
+        *state ^= *state >> 7;
+        *state ^= *state << 17;
+        *state
+    }
+    fn raw_message(bytes: &[u8; MESSAGE_SIZE]) -> Message {
+        let mut m = Message::new();
+        m.sender_pid = get64(bytes, 0);
+        m.tag = get64(bytes, 8);
+        m.len = get32(bytes, 16);
+        m.cap_count = get32(bytes, 20);
+        m.reserved = get64(bytes, 24);
+        for (i, cap) in m.caps.iter_mut().enumerate() {
+            cap.handle = get64(bytes, 32 + i * 16);
+            cap.rights = get64(bytes, 40 + i * 16);
+        }
+        m.data.copy_from_slice(&bytes[64..]);
+        m
+    }
+    fn reference_message(mut h: u64, message: &Message) -> u64 {
+        for bytes in message.encode().chunks_exact(8) {
+            h = (h ^ u64::from_le_bytes(bytes.try_into().unwrap())).wrapping_mul(0x100000001b3);
+        }
+        h
+    }
+    #[test]
+    fn every_message_wire_bit_including_invalid_and_trailing_bytes_is_preserved() {
+        for seed in [0, 1, u64::MAX, 0xcbf29ce484222325, 0x123456789abcdef0] {
+            let mut empty = DiagnosticHasher::new(seed);
+            digest_message(&mut empty, &Message::new());
+            assert_eq!(empty.finish(), reference_message(seed, &Message::new()));
+            for byte in 0..MESSAGE_SIZE {
+                for bit in 0..8 {
+                    let mut wire = [0; MESSAGE_SIZE];
+                    wire[byte] = 1 << bit;
+                    let message = raw_message(&wire);
+                    assert_eq!(message.encode(), wire);
+                    let mut h = DiagnosticHasher::new(seed);
+                    digest_message(&mut h, &message);
+                    assert_eq!(
+                        h.finish(),
+                        reference_message(seed, &message),
+                        "byte={byte} bit={bit}"
+                    );
+                }
+            }
+        }
+        let mut seed = 0x5a8279993c6ef372;
+        for _ in 0..256 {
+            let mut wire = [0; MESSAGE_SIZE];
+            for bytes in wire.chunks_exact_mut(8) {
+                bytes.copy_from_slice(&random(&mut seed).to_le_bytes());
+            }
+            let message = raw_message(&wire);
+            let mut h = DiagnosticHasher::new(seed);
+            digest_message(&mut h, &message);
+            assert_eq!(h.finish(), reference_message(seed, &message));
+        }
+    }
+    #[test]
+    fn zero_runs_compose_exactly_across_boundaries_for_all_table_lengths() {
+        for seed in [0, 1, u64::MAX, 0xcbf29ce484222325, 0x8000000000000000] {
+            for count in [
+                0, 1, 2, 7, 8, 31, 32, 39, 40, 41, 63, 64, 65, 66, 127, 128, 255, 1024, 4096,
+                65535, 74669,
+            ] {
+                let mut h = DiagnosticHasher::new(seed);
+                h.zeros = count;
+                let mut reference = seed;
+                for _ in 0..count {
+                    reference = reference.wrapping_mul(0x100000001b3);
+                }
+                assert_eq!(h.finish(), reference, "count={count}");
+            }
+        }
+        let mut seed = 17;
+        let mut h = DiagnosticHasher::new(seed);
+        let mut reference = seed;
+        for _ in 0..10000 {
+            let value = if random(&mut seed) & 15 < 13 { 0 } else { seed };
+            h.word(value);
+            reference = (reference ^ value).wrapping_mul(0x100000001b3);
+        }
+        assert_eq!(h.finish(), reference);
+    }
+    #[test]
+    fn real_lifecycle_failures_revoke_transfer_and_queue_wrap_match_reference() {
+        run(|| {
+            let mut e = Engine::new();
+            same(&e);
+            for pid in 1..=7 {
+                e.register(pid).unwrap();
+                same(&e);
+            }
+            let registry = e.create_endpoint(1).unwrap();
+            let delegated = e.bootstrap_delegate(1, registry, 2, SEND).unwrap();
+            same(&e);
+            let root = e.create_endpoint(2).unwrap();
+            let child = e.derive(2, root, SEND | DERIVE | TRANSFER).unwrap();
+            let grandchild = e.derive(2, child, SEND).unwrap();
+            same(&e);
+            for round in 0..4 {
+                for i in 0..QUEUE_CAPACITY {
+                    let mut message = Message::new();
+                    message.tag = (round * QUEUE_CAPACITY + i) as u64;
+                    message.len = 3;
+                    message.data[..3].copy_from_slice(&[1, 2, 3]);
+                    e.send(2, delegated, &message).unwrap();
+                    same(&e);
+                }
+                let before = e.clone();
+                assert_eq!(e.send(2, delegated, &Message::new()), Err(Error::Again));
+                assert!(e == before);
+                same(&e);
+                for _ in 0..QUEUE_CAPACITY {
+                    e.receive(1, registry).unwrap();
+                    same(&e);
+                }
+                assert!(e.check_invariants());
+            }
+            let mut m = Message::new();
+            m.cap_count = 1;
+            m.caps[0] = Cap {
+                handle: child,
+                rights: SEND,
+            };
+            e.send(2, delegated, &m).unwrap();
+            same(&e);
+            let message = e.receive(1, registry).unwrap();
+            same(&e);
+            e.close(1, message.caps[0].handle).unwrap();
+            same(&e);
+            e.revoke(2, root).unwrap();
+            same(&e);
+            assert_eq!(e.send(2, grandchild, &Message::new()), Err(Error::Revoked));
+            same(&e);
+            e.close(2, grandchild).unwrap();
+            e.close(2, child).unwrap();
+            e.close(2, root).unwrap();
+            same(&e);
+            let block = e
+                .create_block_device_with_rights(
+                    3,
+                    BlockScope {
+                        device: 9,
+                        first_sector: 64,
+                        sector_count: 100,
+                    },
+                    BLOCK_RIGHTS,
+                )
+                .unwrap();
+            let entropy = e.create_entropy(4).unwrap();
+            let network = e.create_network(5).unwrap();
+            let display = e.create_display(6).unwrap();
+            let input = e.create_input(7).unwrap();
+            let launch = e.create_launch(1, 3).unwrap();
+            let process = e.create_process(1, 7).unwrap();
+            same(&e);
+            let before = e.clone();
+            assert_eq!(e.derive(4, entropy, ENTROPY), Err(Error::Invalid));
+            assert!(e == before);
+            same(&e);
+            assert!(e.process_died(7, PROCESS_FAULTED, 6));
+            same(&e);
+            for (pid, handle) in [
+                (3, block),
+                (4, entropy),
+                (5, network),
+                (6, display),
+                (7, input),
+                (1, launch),
+                (1, process),
+            ] {
+                e.close(pid, handle).unwrap();
+                same(&e);
+            }
+            for pid in (1..=7).rev() {
+                e.exit(pid).unwrap();
+                same(&e);
+            }
+            assert!(e.check_invariants());
+        });
+    }
+    fn id(seed: &mut u64) -> Id {
+        Id {
+            index: random(seed) as u16,
+            generation: random(seed) as u32,
+        }
+    }
+    fn bit(seed: &mut u64) -> bool {
+        random(seed) & 1 != 0
+    }
+    #[test]
+    fn dense_private_corruptions_cover_every_table_field_and_inactive_queue() {
+        run(|| {
+            for initial in [1, 0x123456789abcdef, 0xfedcba9876543210] {
+                let mut seed = initial;
+                let mut e = Engine::new();
+                e.last_pid = random(&mut seed);
+                for p in &mut e.processes {
+                    p.pid = random(&mut seed);
+                    p.live = bit(&mut seed);
+                    for s in &mut p.slots {
+                        s.generation = random(&mut seed) as u32;
+                        s.retired = bit(&mut seed);
+                        s.node = id(&mut seed);
+                    }
+                }
+                for n in &mut e.nodes {
+                    n.generation = random(&mut seed) as u32;
+                    n.live = bit(&mut seed);
+                    n.retired = bit(&mut seed);
+                    n.revoked = bit(&mut seed);
+                    n.object = id(&mut seed);
+                    n.parent = id(&mut seed);
+                    n.issuer = random(&mut seed);
+                    n.rights = random(&mut seed);
+                    n.refs = random(&mut seed) as u32;
+                    n.depth = random(&mut seed) as u8;
+                }
+                for ep in &mut e.endpoints {
+                    ep.generation = random(&mut seed) as u32;
+                    ep.live = bit(&mut seed);
+                    ep.retired = bit(&mut seed);
+                    ep.open = bit(&mut seed);
+                    ep.owner = random(&mut seed);
+                    ep.nodes = random(&mut seed) as u32;
+                    ep.head = random(&mut seed) as u8;
+                    ep.len = random(&mut seed) as u8;
+                    for q in &mut ep.queue {
+                        let mut bytes = [0; MESSAGE_SIZE];
+                        for word in bytes.chunks_exact_mut(8) {
+                            word.copy_from_slice(&random(&mut seed).to_le_bytes());
+                        }
+                        q.message = raw_message(&bytes);
+                        q.caps = [id(&mut seed), id(&mut seed)];
+                    }
+                }
+                for b in &mut e.blocks {
+                    b.generation = random(&mut seed) as u32;
+                    b.live = bit(&mut seed);
+                    b.retired = bit(&mut seed);
+                    b.open = bit(&mut seed);
+                    b.owner = random(&mut seed);
+                    b.nodes = random(&mut seed) as u32;
+                    b.scope = BlockScope {
+                        device: random(&mut seed) as u32,
+                        first_sector: random(&mut seed),
+                        sector_count: random(&mut seed),
+                    };
+                }
+                for l in &mut e.launches {
+                    l.generation = random(&mut seed) as u32;
+                    l.live = bit(&mut seed);
+                    l.retired = bit(&mut seed);
+                    l.open = bit(&mut seed);
+                    l.owner = random(&mut seed);
+                    l.nodes = random(&mut seed) as u32;
+                    l.image = random(&mut seed) as u32;
+                }
+                for c in &mut e.children {
+                    c.generation = random(&mut seed) as u32;
+                    c.live = bit(&mut seed);
+                    c.retired = bit(&mut seed);
+                    c.open = bit(&mut seed);
+                    c.owner = random(&mut seed);
+                    c.nodes = random(&mut seed) as u32;
+                    c.child = random(&mut seed);
+                    c.state = random(&mut seed) as u8;
+                    c.code = random(&mut seed);
+                }
+                for x in e
+                    .entropy
+                    .iter_mut()
+                    .chain(e.network.iter_mut())
+                    .chain(e.display.iter_mut())
+                    .chain(e.input.iter_mut())
+                {
+                    x.generation = random(&mut seed) as u32;
+                    x.live = bit(&mut seed);
+                    x.retired = bit(&mut seed);
+                    x.open = bit(&mut seed);
+                    x.owner = random(&mut seed);
+                    x.nodes = random(&mut seed) as u32;
+                }
+                // Deliberately do not call authority methods/invariant walkers on
+                // corrupt indices/counts: the diagnostic itself must hash them.
+                same(&e);
+            }
+        });
+    }
+    #[test]
+    fn zero_corrupt_states_and_single_inactive_trailing_bytes_match_reference() {
+        run(|| {
+            let mut e = Engine::new();
+            e.last_pid = 0;
+            for p in &mut e.processes {
+                p.pid = 0;
+                p.live = false;
+                for s in &mut p.slots {
+                    s.generation = 0;
+                    s.retired = false;
+                    s.node = Id {
+                        index: 0,
+                        generation: 0,
+                    };
+                }
+            }
+            for n in &mut e.nodes {
+                *n = Node {
+                    generation: 0,
+                    live: false,
+                    retired: false,
+                    revoked: false,
+                    object: Id {
+                        index: 0,
+                        generation: 0,
+                    },
+                    parent: Id {
+                        index: 0,
+                        generation: 0,
+                    },
+                    issuer: 0,
+                    rights: 0,
+                    refs: 0,
+                    depth: 0,
+                };
+            }
+            for ep in &mut e.endpoints {
+                ep.generation = 0;
+                for q in &mut ep.queue {
+                    q.caps = [Id {
+                        index: 0,
+                        generation: 0,
+                    }; 2];
+                }
+            }
+            for b in &mut e.blocks {
+                b.generation = 0;
+            }
+            for l in &mut e.launches {
+                l.generation = 0;
+            }
+            for c in &mut e.children {
+                c.generation = 0;
+            }
+            for x in e
+                .entropy
+                .iter_mut()
+                .chain(e.network.iter_mut())
+                .chain(e.display.iter_mut())
+                .chain(e.input.iter_mut())
+            {
+                x.generation = 0;
+            }
+            same(&e);
+            let baseline = e.state_digest();
+            for ep in [0, 31, 63] {
+                for q in [0, 7, 15] {
+                    for at in [0, 7, 8, 127, 128, 247, 248, 255] {
+                        e.endpoints[ep].queue[q].message.data[at] = 0x80;
+                        same(&e);
+                        assert_ne!(e.state_digest(), baseline);
+                        e.endpoints[ep].queue[q].message.data[at] = 0;
+                    }
+                }
+            }
+            let snapshot = e.clone();
+            for set in 0..18 {
+                e = snapshot.clone();
+                match set {
+                    0 => e.processes[15].slots[255].generation = u32::MAX,
+                    1 => e.processes[0].slots[0].retired = true,
+                    2 => e.nodes[1023].generation = u32::MAX,
+                    3 => e.nodes[512].depth = u8::MAX,
+                    4 => e.nodes[0].object = Id::NONE,
+                    5 => e.nodes[0].parent = Id::NONE,
+                    6 => e.endpoints[63].head = u8::MAX,
+                    7 => e.endpoints[31].len = u8::MAX,
+                    8 => e.endpoints[0].queue[0].message.reserved = u64::MAX,
+                    9 => e.endpoints[63].queue[15].message.len = u32::MAX,
+                    10 => e.endpoints[63].queue[15].message.cap_count = u32::MAX,
+                    11 => e.endpoints[63].queue[15].caps[1] = Id::NONE,
+                    12 => e.blocks[3].scope.sector_count = u64::MAX,
+                    13 => e.launches[7].image = u32::MAX,
+                    14 => e.children[15].state = u8::MAX,
+                    15 => e.entropy[3].owner = u64::MAX,
+                    16 => e.display[0].retired = true,
+                    _ => e.input[0].nodes = u32::MAX,
+                };
+                same(&e);
+                assert_ne!(e.state_digest(), baseline);
+            }
+        });
+    }
+    #[test]
+    #[ignore = "host cost/ratio only; invoke explicitly, never native performance evidence"]
+    fn host_microbenchmark_reference_and_optimized() {
+        run(|| {
+            let mut e = Engine::new();
+            for pid in 1..=7 {
+                e.register(pid).unwrap();
+                for _ in 0..3 {
+                    e.create_endpoint(pid).unwrap();
+                }
+            }
+            same(&e);
+            let iterations = 1000u32;
+            for reference in [true, false] {
+                let mut samples = Vec::new();
+                let mut digest = 0;
+                for _ in 0..7 {
+                    let start = Instant::now();
+                    for _ in 0..iterations {
+                        digest = if reference {
+                            black_box(black_box(&e).state_digest_reference())
+                        } else {
+                            black_box(black_box(&e).state_digest())
+                        };
+                    }
+                    samples.push(start.elapsed().as_nanos() / u128::from(iterations));
+                }
+                samples.sort();
+                std::println!(
+                    "reference={reference} median_ns={} digest={digest:016x} samples={samples:?}",
+                    samples[3]
+                );
+            }
+        });
+    }
+}
