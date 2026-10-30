@@ -80,3 +80,70 @@ Geen TLS, E2EE, apparaatidentiteit, stroomuitval- of volledige P04-claim.
 R01-R03, P01-P04 en volledige VM-FR blijven open; scoreadvies **34% → 34%**.
 De definitieve mainbasis na PR #74 en herhaalde gates blijven verplicht.
 Centrale PROJECT-STATE/assessment blijven bij de manager.
+
+## Echte normale en koude NAS-proef op 808f539
+
+Exacte bron `808f5391a604b6c03f18c712aa2ab3a8929abfa4`, v3
+`f7b6f26be1a70a5a702095ee56458b888af562b1a01f579810206f194e52602e`.
+Werkboom was schoon; geen bronwijziging tijdens de volledige gate.
+`808f539/gate.json`, beide volledige `result.json`-bestanden, raw serial,
+stderr en commandolog zijn ongewijzigd gearchiveerd met `SHA256SUMS`.
+
+Werkelijk uitgevoerd in de bestaande read-only hostomgeving:
+
+```sh
+HOST_TOOLS=/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-didactic-spork/.tools/nieuw-os/host-tools
+QEMU_TOOLS=/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu
+export PATH="$QEMU_TOOLS:$HOST_TOOLS/usr/bin:$PATH"
+export LD_LIBRARY_PATH="$HOST_TOOLS/usr/lib/x86_64-linux-gnu:$HOST_TOOLS/lib/x86_64-linux-gnu"
+export OS_OVMF_CODE="$HOST_TOOLS/usr/share/OVMF/OVMF_CODE_4M.fd"
+export OS_OVMF_VARS="$HOST_TOOLS/usr/share/OVMF/OVMF_VARS_4M.fd"
+export NOS_BUILD_DIR="$PWD/build/nas-release-808f539"
+export NOS_TARGET_DIR="$PWD/target/nas-release-profile"
+python3 -B tools/dev.py python3 -B -u tools/test_nas.py
+```
+
+Exit **0**. QEMU 10.2.1, pc-q35-10.0, qemu64, TCG, 1 CPU/256 MiB,
+geen netwerk. Dit is een lokaal acceptatieprofiel, niet VM-FR of een
+interactief productimage. De QEMU-launcher staat buiten deze checkout en
+wordt alleen uitgevoerd/gelezen; de rapporthash bindt die launcher, geen
+claim dat daarmee alle dynamische hostbibliotheken zijn geauthenticeerd.
+De exacte QEMU-argumenten en firmwarehashes staan in de rapporten.
+
+| Proef | Raw exit / duur | Block READ / WRITE / FLUSH | Entropy |
+|---|---|---|---|
+| Normaal | 33 / 4,497 s | 272 / 578 / 18 | 96 B |
+| Koud, verse VM en vars | 33 / 3,402 s | 816 / 0 / 0 | 32 B |
+
+Werkelijke manifest-PIDs: admin 1, gast 4. Alle drie rollen sloten met
+exit 0 en hun eigen assertions af; de bestaande volumedienst bleef levend
+en gereed tot gecontroleerde proefcleanup. Normale RPC-counters admin
+6/1, NAS 12/6, gast 6/5; koud 4/0, 4/4, 0/4 (succes/foutreply).
+De gast zag beide keren kernelweigering bij RECV op zijn SEND-only
+ingress. Gemeten aangeraakte stack: admin 3672 B, gast 4760 B,
+NAS normaal 30912 B en koud 25184 B. Dit zijn gemeten uitgevoerde paden,
+geen formele stackbovengrens voor andere workloads.
+
+De onafhankelijk geschreven NAS-diskoracle controleert volume-generatie 11,
+NAS-generatie 6, Evicted/epoch 2/quota 128, identiteit, geen authorityhistory
+en intacte scope-canaries. Na normale verwerking en vóór/na koude run:
+`318cfbaaeb41a7b8cc4abc1364452ab550ab1d4a0f354090d16b5a34e67035cd`.
+De koude disk bleef volledig bytegelijk.
+
+| Artifact | SHA-256 |
+|---|---|
+| Normale kernel | `5c79fdcbc25c81d16d89b88b01e094505c787a8fb40ba6b040f0cf98d49db7c6` |
+| Koude kernel | `057da654fc769258d1fe46b5b00ec458727ba2883c3bfd28b710f92be7800ef3` |
+| Loader beide | `0746886936b64985240d0061ad03a1fb873683ec371d1d1f9986640c89d7c11c` |
+
+De bestaande oracle-negatieven zijn hier opnieuw uitgevoerd:
+`python3 -B -m unittest discover -s services/nas/native-probe/tests -p 'test_disk_oracle.py'`:
+exit 0, 8 tests, `/tmp/nieuw-os-nas-oracle-intake-tests.log`.
+
+**Open:** onafhankelijke rootprofiel-/runnerreview door B72, bredere native
+regressies, definitieve mainbasis na #74, actuele CI en eventuele reviewfixes.
+Dit is positief lokaal native NAS-deelbewijs, geen geaccepteerd interactief
+product, volledige P04, TLS/E2EE, echte apparaatidentiteit of abrupte
+stroomuitval tijdens schrijven. Honderd koude productstarts en 24 uur
+gecombineerd productgebruik zijn niet uitgevoerd en niet door deze twee
+smalle VM-runs vervangen. R01-R03 blijven 0/5; totaaladvies 34% naar 34%.
