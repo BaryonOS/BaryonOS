@@ -463,12 +463,11 @@ pub(super) fn poll(s: &mut State) {
                 }
             }
         }
+        #[cfg(feature = "native-system-materiaal-probe")]
         if s.processes[APP].status != Status::Dead {
             let app = metadata(s, APP);
             if app[400 / 8] == 1 {
-                #[cfg(feature = "native-system-materiaal-probe")]
                 let generation = app[624 / 8];
-                #[cfg(feature = "native-system-materiaal-probe")]
                 if generation > observation().generation {
                     observation().generation = generation;
                     serial::write(b"MATERIAAL:SNAPSHOT:BEGIN\n");
@@ -479,7 +478,6 @@ pub(super) fn poll(s: &mut State) {
                     }
                     serial::write(b"MATERIAAL:SNAPSHOT:END\n");
                 }
-                #[cfg(feature = "native-system-materiaal-probe")]
                 if !observation().stop_triggered && observation().ready == 15 {
                     let frame = gate::Frame {
                         generation,

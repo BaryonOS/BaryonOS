@@ -19,16 +19,20 @@ def digest(path: Path) -> str:
 
 EXPECTED_HOST_SCENARIOS = 20
 
-def host_scenarios(path: Path) -> int:
+def host_scenario_count(path: Path) -> int:
     output = path.read_text(encoding="utf-8")
     runs = re.findall(r"^running (\d+) tests?$", output, re.MULTILINE)
-    results = re.findall(
-        r"^test result: ok\. (\d+) passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in .+$",
-        output, re.MULTILINE,
-    )
-    if not runs or len(runs) != len(results) or runs != results:
+    lines = [line for line in output.splitlines() if line.startswith("test result:")]
+    results = [re.fullmatch(
+        r"test result: ok\. (\d+) passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in \d+(?:\.\d+)?s",
+        line,
+    ) for line in lines]
+    if not runs or len(runs) != len(results) or any(result is None for result in results):
         raise RuntimeError("invalid or incomplete Materiaal host test output")
-    count = sum(map(int, results))
+    counts = [result[1] for result in results if result is not None]
+    if runs != counts:
+        raise RuntimeError("Materiaal host test counts do not match the executed suites")
+    count = sum(map(int, counts))
     if count != EXPECTED_HOST_SCENARIOS:
         raise RuntimeError(f"expected {EXPECTED_HOST_SCENARIOS} Materiaal host scenarios, got {count}")
     return count
@@ -55,7 +59,7 @@ def main() -> int:
         selected = {**extra, "CARGO_ENCODED_RUSTFLAGS": flags} if name == "native-clippy" else extra
         run_logged(args, f"materiaal-app/{name}", extra_env=selected if name != "native-elf" else None)
         logs.append(name)
-    scenario_count = host_scenarios(BUILD / "logs/materiaal-app/host.stdout.txt")
+    scenario_count = host_scenario_count(BUILD / "logs/materiaal-app/host.stdout.txt")
     native_target = Path(os.environ.get("CARGO_TARGET_DIR", ROOT / "build/sdk-materiaal"))
     binary = native_target / "x86_64-unknown-none/release/materiaal-app"
     run_logged(["cargo", "test", "--offline", "--locked", "--manifest-path", manifest,

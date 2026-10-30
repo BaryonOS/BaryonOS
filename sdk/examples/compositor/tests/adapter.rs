@@ -609,11 +609,11 @@ fn retire_reply_deadline_starts_after_wipe_impl() {
     for _ in 0..16 {
         m.ports[2].send(send(m.registry_send), &filler).unwrap();
     }
-    c.wipe_complete(500);
+    c.finish_retire_wipe(500);
     c.flush(500, send(m.registry_send), &mut m.ports[2])
         .unwrap();
     // Repeated completion calls must not extend the deadline.
-    c.wipe_complete(600);
+    c.finish_retire_wipe(600);
     c.flush(700, send(m.registry_send), &mut m.ports[2])
         .unwrap();
     assert_eq!(
@@ -629,7 +629,7 @@ fn retire_reply_deadline_starts_after_wipe_impl() {
     c.step(0, &mut m.ports[2]).unwrap();
     m.ack(0);
     assert!(c.step(1, &mut m.ports[2]).unwrap());
-    c.wipe_complete(500);
+    c.finish_retire_wipe(500);
     c.flush(500, send(m.registry_send), &mut m.ports[2])
         .unwrap();
     let reply = m.ports[0].receive(recv(m.registry_recv)).unwrap();

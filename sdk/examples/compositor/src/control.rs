@@ -293,8 +293,8 @@ impl Coordinator {
         Ok(true)
     }
     /// Start the Retire reply deadline only once the surface wipe has completed.
-    pub fn wipe_complete(&mut self, now: u64) {
-        if self.reply.is_some() && self.reply_at.is_none() {
+    pub fn finish_retire_wipe(&mut self, now: u64) {
+        if self.state == State::Retired && self.reply.is_some() && self.reply_at.is_none() {
             self.reply_at = Some(now);
         }
     }

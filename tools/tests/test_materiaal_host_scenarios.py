@@ -20,7 +20,7 @@ class HostScenariosTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "host.stdout.txt"
             path.write_text(output)
-            return verify.host_scenarios(path)
+            return verify.host_scenario_count(path)
 
     def test_counts_multiple_complete_harnesses(self):
         output = "running 0 tests\n" + result(0) + "running 20 tests\n" + result(20)
