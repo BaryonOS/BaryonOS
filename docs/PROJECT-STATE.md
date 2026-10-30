@@ -1,6 +1,76 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — hardware, drivers en energie — 30 oktober 2026
+## NEXT AGENT HANDOFF — teamleiding en integrale QEMU-route — 30 oktober 2026
+
+Bronbasis `0ade8014c8179241dcfc68ea0ba8083664691240` (ook remote `main`
+bij controle), schone start op branch
+`simonvanieperen-symmetrical-barnacle`. Opdracht: toets en coördineer de
+twaalf door Simon aangewezen sessies tegen de volledige roadmap en
+FULL-TEST-RELEASE, richting een hoogwaardige daadwerkelijk testbare
+QEMU-versie. De actuele taak-/fileverdeling en brongebonden rapportages staan
+bovenaan [WORK-QUEUE.md](WORK-QUEUE.md), niet in een tweede roadmap.
+Alle twaalf sessies zijn benaderd en hebben hun stand teruggeleverd; NAS is
+uit een scopevraag vrijgemaakt voor afgestemde native integratie. De twee
+PR-oplossers hebben verschillende verantwoordelijkheden. Nieuw gemelde
+PR-intake van Simon wordt naar beide reviewers geleid; één mergecoördinator.
+Manager bezit centrale status/queue/assessment; release finale productintegratie,
+buildteam eerst zijn lopende technische #66-overdracht.
+
+**Score: 34% → 34%.** Geen criterium of gewicht gewijzigd, geen volledige
+release- of fysieke/menselijke gate gesloten. Alle 62 productrijen blijven
+open. De manager heeft roadmap, bindende matrix/context/privacy, rubric,
+live sessiestatus en open issues/PR-heads/checks getoetst. Activiteit was
+`unknown`; `is_running`, berichtacceptatie en eigenaarrapportage zijn niet
+hetzelfde als een door de manager waargenomen draaiende build. Concrete
+deelbewijzen en nog niet uitgevoerde native gates zijn in de queue gescheiden.
+
+**Beschikbare deelbundel, door buildteam/Windowsverifier gerapporteerd:**
+`C:\Users\simon\Downloads\NieuwOS-testversie-eabc27b-20261030\NieuwOS-Windows-Interactive-1.zip`,
+2.296.965 bytes, SHA-256
+`b42be826377afb58f96c8178aa972128abad18ef7f9b4872e102a9e4a7e9ea57`.
+Start vanuit PowerShell:
+`& "C:\Users\simon\Downloads\NieuwOS-testversie-eabc27b-20261030\NieuwOS\Start-NieuwOS.ps1"`.
+Dit is de oude geteste `eabc27b`/`c532ba88`-deelversie, niet de nieuwe
+reviewfixbron en niet de volledige testrelease. Eigenaren rapporteren echte
+Windows-QEMU 11.1/SDL-invoer, zes Linux-bytegelijke frames en een diskoracle.
+Bijbehorende bronbewijzen:
+`docs/verification/full-release-interactive-fixed/` op #66 en
+`docs/verification/windows-qemu-interactive-1/` op `3f3f99e`.
+De manager heeft de brongebonden Linux- en Windowsbewijs-README's rechtstreeks
+uit Git op `c532ba88` en `3f3f99e` gelezen, maar de ZIP in Downloads niet zelf
+gelezen of opnieuw gestart; geen lokale artifactverificatie of nieuwe VM-run.
+Fixtureopslag bevat plaintexttestdata, geen persoonlijke data invoeren.
+
+**Kritieke open stap:** buildteam herhaalt na `d104fd9`-reviewfixopname de
+exacte normale referentie-/zevenprocesgates en koude recovery; hoofd #66
+`c532ba88` blijft daarvoor bevroren. Release neemt pas de werkelijke nieuwe
+commit/image/manifest over. UI herhaalt daarop de keyboard/save/reopenketen;
+apps, NAS en hardware wachten voor shared files op een concrete writerafspraak.
+Native DHCP/TLS, veilige persistente keys/rollbackanker, appinstallatie,
+NAS/multidevice en lokale inference ontbreken nog als volledig geïntegreerde
+productfuncties. AI moet na begrensd qsim-WIP naar ontbrekend L01; een al
+geaccepteerd quantumcriterium verder harden vervangt dat niet. K06/SMP en
+S09/import/export/back-up hebben nog geen afzonderlijke actuele builder.
+Fysieke tests en menselijke/audit-/duur-/reproductiegates blijven open,
+zonder de VM-implementatie te blokkeren.
+
+**Uitvoering op deze managerbranch:** alleen documentatie/assessment;
+geen kernel-, SDK-, driver-, app- of toolcodewijziging. `python3 -B
+tools/progress.py --write`, `python3 -B tools/progress.py --check` en
+`git diff --check` zijn uitgevoerd, alle exit 0; de SVG bleef bytegelijk
+omdat score/datum niet veranderden. Volledig lokaal commandolog:
+`/home/simon/.copilot/session-state/3c9dee7ff8e342deb2a0374357d86212/files/teamleader-validation.log`.
+Ook de initiële rubriccheck en het lezen van beide brongebonden bewijsnotities
+via `git show` slaagden (exit 0). Live `gh pr list`, `gh issue list` en
+`git ls-remote origin refs/heads/main` zijn uitgevoerd (exit 0), met de
+head-/checkafbakening bovenaan WORK-QUEUE; deze lezen metadata, geen gastuitvoering.
+Nieuwe kernelbuilds/native gates/fysieke/menselijke tests: **niet uitgevoerd**
+door de manager. Geen continue of geplande achtergrondbewaking ingesteld.
+Eerstvolgend bij hervatten: `git branch --show-current && git rev-parse HEAD
+&& git status --short`, daarna verse `get_sessions_status` en actuele
+buildteam/release-rapportages lezen; geen oude groene PR-head overnemen.
+
+## Historisch checkpoint — hardware, drivers en energie — 30 oktober 2026
 
 Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (`main`), branch
 `simonvanieperen-friendly-guacamole`. Opdracht: hardwarepunten H02–H06

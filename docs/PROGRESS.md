@@ -85,6 +85,14 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Teamleiding (30 oktober 2026), basis `0ade8014`: **34% → 34%**.
+De twaalf sessies zijn tegen de volledige roadmap en releaseacceptatie getoetst
+en hebben concrete eigenaars-/voortzettingsafspraken ontvangen. Live PR-checks
+en eigenaarrapportages zijn geen nieuwe native acceptatie. Criteria, gewichten
+en bestaand brongebonden bewijs blijven ongewijzigd; de gewone geïntegreerde
+QEMU-gebruikersketen en alle volledige productrijen blijven open. De centrale
+taakverdeling en ontbrekende implementaties staan in WORK-QUEUE/PROJECT-STATE.
+
 RTC-NATIVE-1 (30 oktober 2026), basis `5c334f9`: **34% -> 34%**.
 De expliciet opt-in CMOS-bootstrap is een technische tijdproviderafhankelijkheid,
 geen productieklok of vertrouwde TLS-tijd. Geen rubricpunt of productcriterium

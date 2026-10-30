@@ -1,5 +1,119 @@
 # Werkqueue — volledige native testrelease, 30 oktober 2026
 
+## Actuele teamleiding — bronbasis `0ade8014`, 30 oktober 2026
+
+Simon heeft de manager opgedragen de twaalf bestaande sessies aan de volledige
+ROADMAP en FULL-TEST-RELEASE te toetsen en uitvoerbaar werk te laten voortzetten.
+Onderstaande verdeling vervangt de historische agentclaims verderop, niet de
+62 productcriteria, vaste rubric of bewijsniveaus. **34/100 blijft 34/100.**
+Alle twaalf eigenaren hebben een concrete voortzettingsopdracht ontvangen en
+hun stand teruggestuurd. Berichtacceptatie is geen bewijs van een draaiende
+build: de app meldde activiteit `unknown`, geen observeerbare `busy`-status.
+Alle hieronder genoemde deelresultaten zijn eigenaarrapportages, tenzij de
+managercontrole uitdrukkelijk is vermeld. Geen nieuwe native manager-run.
+
+| Taak / sessie | Bevestigde bron en stand | Exclusieve uitvoering / eerstvolgend resultaat | Open bewijsgrens |
+|---|---|---|---|
+| TL-REL / `2ab17599-85c8-4409-ba06-a93c27485328` | `simonvanieperen-refactored-pancake`, `0ade8014`; 10 updateharnastests groen, nog geen native run | Finale productintegratie, gedeelde manifest-/kernelinterfaces en gecombineerde image; ontvangt buildteambron en herhaalt bediende gebruikers-/herstelketen | Geen tweede B03-herhaling als hoofdtaak; FR-R01–R04 en finale VM-FR open |
+| TL-AIQ / `381d080e-be3d-4c78-ac72-b99b1de2b4e5` | `simonvanieperen-crispy-tribble`, basis `0ade8014`, nog ongecommit; 9 buildgatetests en 6 qsim-hosttests groen; FPU-artifactgate exit 1 op `xorpd`, geen VM-run | FPU-WIP als mislukt checkpoint behouden, niet als geaccepteerde integratie; daarna L01-model/licentie/resource-/native-interfacestap. Toolroute/preflight nu groen | `kernel/Cargo.toml`/`tools/build.py`-WIP gemeld aan release; allowlist niet versoepeld; L02 al accepted, FR-L01–L04 open |
+| TL-ISSUES / `7f895683-fc79-48d0-a98a-aa0a6ccfe8b9` | `simonvanieperen-urban-robot`, `0ade8014`, schoon; read-only #66-waitreview en issue39–43-triage geleverd | Gerichte read-only PR-controles van intake, issue/bewijskoppeling; geen merges of gedeelde writes | Geen eigen nieuwe tests/audit; issues #39–43 blijven open |
+| TL-PRS / `e8e471ce-0601-417b-b4fa-a04fd9c7b954` | Reviewfixbranch `d104fd9`; #62 nu `9f69e1c`, Windows-linkertestregressie hersteld | Enige PR-lifecycle-/mergecoördinator; #62 actuele CI/review, #66-fixopname met buildteam | Oud groen op `f6d3a10` is historisch; #65 pas sluiten na aantoonbaar inhoudsbehoud |
+| TL-HW / `f5b20312-b6c5-46b0-bbf6-76970d3470a2` | `simonvanieperen-friendly-guacamole`, `6daadbb`; USB-descriptorcore `f8e7490`, 7 hosttests/lint/target groen | Na concrete xHCI-bronblokkade doorgestuurd naar publieke ACPI/QEMU-shutdownslice, uitsluitend nieuwe `drivers/acpi-power/**`, contract/tests/eigen bewijs; release reserveert native broker na v3freeze | Nog geen xHCI-I/O/enumeratie/native profiel; H02–H06 blijven open, fysieke/hostpoweracties niet geautoriseerd |
+| TL-NAS / `d7636e9c-fe84-4e63-8f37-4d08a5f50d0d` | `109c9f0`, concept-PR #71; no_std NAS-core/VolumeStorage host-/targetbewijs | `services/nas/**`: echte ring-3-service/admin-/gastprobe met callerbinding en volume/RNG; native scopevraag beantwoord, gedeelde files vooraf afstemmen | P01–P04 0/5; geen native NAS/transport/multideviceacceptatie; FR-P01–P06 open |
+| TL-APPS / `9db24a72-2ae7-4807-8e68-2fc88cb235d3` | `codex/apps-sdk-packages`, `c7b30f0`, concept-PR #73; 8 hosttests/lint/target groen | `crates/app-package-core/**`, appcontract en eigen bewijs; native installer/persistentie/geautoriseerde launch met release afstemmen | Geen native install/update/remove; FR-A01–A15 en appportalen blijven verplicht |
+| TL-SEC / `081d6f31-7de1-4713-b466-d15adf51b2ef` | `codex/update-key-policy-20261030`, `e357f5f`; 18 echte B03-stages en capture groen gemeld | Update-core/loader/service/tool/keys en updateharnas/eigen bewijs; daarna B02-rollbackanker, gedeelde TPM-grens vooraf melden | Releaseversievenster is geen vertrouwde kalender; beleidsdistributie/antirollback/ceremonie open; #72 is ander IPC-WIP |
+| TL-NET / `039dbef8-bc79-4480-b003-55b8eccba736` | #70 `1bb8acf`; codec 57 hosttests; oudere UDP/DNS normal+cold groen op `9ddc6b6` | Vervolgbranch `simonvanieperen-dhcp-client`, `services/net-protocol/**`: lease-lifecycle, daarna echte DHCP-configuratie; bestaande TLS-port hergebruiken | Geen native DHCP/TLS/app-bestemmingsgrants op deze nieuwe bron; N01–N04 0/10 |
+| TL-UI / `764bc9fb-2036-4b13-bbff-368037f9b2d7` | #68 `2f41a47`; 29 host-/QMP-replaytests groen; eigen native normal op `1ffd271` rood | `tools/run_materiaal_probe.py`, `tools/tests/test_materiaal_probe.py`, UI-contract/eigen bewijs; keyboardgate na exacte cold-recoveryintegratie, daarna accessibility-servicegrens | App-local semantiek is geen schermlezer; gewone cold recovery op deze bron niet bewezen; U01–U06 0/15 |
+| TL-CORE / `fbf60554-e98e-40bd-bd48-ee87a6498abe` | `simon/tls-time-quality-1`, basis `3f3f99e`; 27 runtimehosttests/3 compile-faildocproeven, lint/target/fmt groen gemeld; SDK-regressie liep nog | NET/SEC/release/apps bevestigen leafscope: `sdk/runtime/src/tls_time.rs`, `sdk/runtime/tests/tls_time.rs`, één export in `src/lib.rs`, `docs/contracts/TLS-TIME-QUALITY.md` | Opaque certificaattijd weigert None/RTC; geen succesconstructor/hostfallback, vertrouwde provider/freshness/anker open; geen native TLS- of scoreclaim |
+| TL-BUILD / `b72f2536-b494-4a6b-a608-b6fd785e18ef` | #66-hoofd `c532ba88` bevroren; vervolg `simon/native-interactive-cold`, laatst gemelde gedrukte HEAD `71c1d5c` vóór lopende integratie | D104-reviewfixes/v3 `24d5f4c1…` op exacte gezamenlijke bron bouwen/testen; eigen buildroots, preview/packagingtools; daarna source/image/manifest aan release | Nieuwe gates liepen volgens eigenaar, nog geen nieuwe groenclaim; oude `eabc27b`/Windowsbundel niet herlabelen |
+
+Aanvullend meldt intake `f2afe26e-5d6f-4948-89b8-0e2aeeb96225` een nieuwe
+expliciete opdracht van Simon: PRs vergelijken en naar beide controlesessies
+doorzetten. TL-INTAKE doet daarom uitsluitend read-only vergelijking en
+niet-overlappende reviewoverdracht naar TL-ISSUES/TL-PRS; geen concurrerende
+merge-/code-eigenaar. Dit is een aanvulling op de twaalf opgegeven sessies.
+
+Intake heeft alle acht open PRs met echte Git-bestandssets/ancestry vergeleken:
+de API-bestandenlijst van #66 stopt op 100, maar de volledige diff bevat
+171 bestanden. #72 overlapt #66 in SDK-native/keyring-service (wait versus
+zeroisatie); #73/#66 delen Cargo-manifest/lock, #62 heeft bovendien eigen
+preflightwijzigingen. Geen PR is op alleen ancestry als duplicaat afgeschreven.
+#71-review op `109c9f0` is zonder high-confidence codebevinding afgerond;
+gerichte CI voor de twee standalone NAS-workspaces ontbreekt en is door de
+lifecyclecoördinator als mergeblokkade gemeld. NAS stemt workflowwrites af.
+#68 is de volgende read-only review. #73-review op `c7b30f0` is zonder
+high-confidence fout in de beperkte packagecore afgerond; geen tests door
+reviewer heruitgevoerd. Actuele reviewbesluiten, CI, echte installtransacties
+en native launch blijven open. VerifiedPackage verleent geen launchcapability;
+de consument moet brongeneratie bij gebruik opnieuw controleren.
+Eigenaren actualiseren hun PR-templatebody, niet meerdere schrijvers tegelijk.
+
+### Integratieafspraken en ontbrekende roadmapdekking
+
+- De manager bezit de centrale WORK-QUEUE/PROJECT-STATE en
+  progress.json/README/PROGRESS/SVG. Alle twaalf eigenaren zijn geïnformeerd;
+  reeds gecommitteerde branchcheckpoints blijven historisch behouden bij
+  integratie. Geen twee schrijvers van deze bestanden.
+- Release is productintegrator en eigenaar van de finale manifest-/kernel-/
+  ABI-besluiten. Buildteam voltooit eerst zijn al lopende #66-integratie;
+  die technische verantwoordelijkheid wordt met exacte bron/hashes
+  overgedragen. Apps bezit app/SDK-contracten, netwerk transport, NAS de
+  NAS-dienst, security sleutel-/updatebeleid, hardware input/devices en UI
+  de gebruikersomgeving. Gedeelde filewijzigingen vragen een concrete
+  writerafspraak, geen algemene claim op elkaars domein.
+- Kritiek pad: reviewfixes en gewone zevenprocesbron → werkelijk bediende
+  create/edit/save/reopen/afsluitketen → koude recovery met onafhankelijk
+  diskoracle → verticale integratie van veilige opslag, configuratie/TLS,
+  appinstallatie, NAS en lokale inference → finaal VM-FR-image met alle
+  gebruikstaken. Deze tussenstappen verlagen de volledige eindscope niet.
+- K06/SMP en S09/import/export/back-up hebben nog geen afzonderlijke actuele
+  builder. Release houdt deze gaten én FR-O01–O08 zichtbaar en wijst een
+  concrete kern-/opslagstap toe zodra een niet-overlappend schrijfgebied
+  beschikbaar is. Geen implementatie of actieve capaciteit verzinnen.
+  De TLS-tijdstap vervangt SMP niet.
+- Apps heeft de concrete opslagblokkade gemeld: pakketfixtures tot 2 MiB
+  passen niet in de huidige 64 KiB/object, 256 KiB-volume en 8 objecten/domein.
+  Een kleine A/B-installerfixture mag tussenbewijs leveren, maar is geen
+  productcapaciteit. Release heeft geautoriseerde dynamic launch en het
+  package-storecapaciteitscontract na v3freeze op zijn kritieke pad gezet.
+  Appteam werkt onafhankelijk aan install/update/remove-transacties en
+  Full/Unknown/afbreek/herstartgevallen. De RAM-only SourceRegistry mag niet
+  als onbeveiligde publishertrust worden gepersisteerd; B02/B04-anker blijft
+  een securityafhankelijkheid.
+- Apps behoudt ook de nog niet begonnen browser/PDF/audio/video/tabel-/
+  presentatietaken; UI eerste gebruik/sessie/lock/instellingen/capture en
+  volledige toegankelijkheid; hardware audio/energie en concrete devices.
+  Netwerk behoudt DNS/TLS/grants naast DHCP; NAS ook provider/conflicten/
+  multidevice; security persistente keys/ankers/boot/privacy naast updates.
+  Release bewaakt duurtest (100 cold boots/24 uur), reproduceerbaarheid,
+  licenties/onderhoud/hulp en finale acceptatie. Eigenaarschap is geen
+  bewijs dat al deze nog ontbrekende implementaties gelijktijdig draaien.
+- M0–M8/P2–P4 en Q1-native blijven verbonden met bovenstaande werkpakketten.
+  M9/fysieke profieltests en menselijke toegankelijkheids-/expertreview
+  blijven expliciet open tot passende toestemming/uitvoering. M10/extra
+  ISA, CHERI en fysieke QPU/Q2–Q4 behouden hun afzonderlijke onderzoeksspoor;
+  zij worden niet stilzwijgend geschrapt of als VM-productbewijs opgevoerd.
+
+### Managercontrole en hervatten
+
+Live GitHub-controle op basis `0ade8014`: #66 `c532ba88` heeft 13 groene
+checks; #71 `109c9f0` 12 groen; #65 alleen CodeRabbit groen. #62 `9f69e1c`,
+#68 `2f41a47`, #70 `1bb8acf` en #73 `c7b30f0` hadden nog lopende checks.
+#72 `56e76b1` had geen checks. Dit is een tijdgebonden remote-waarneming,
+geen reviewgoedkeuring, mergebesluit of native productacceptatie.
+Issue39–43 zijn open. Branch-, code-, bewijs- en app-sessienamen kunnen
+verschillen; gebruik de door de eigenaar gemelde werkelijke Git-bron.
+
+Eerstvolgende manageractie: ontvang de exacte nieuwe buildteamcommit en
+normale/koude-recoverygates, controleer dat release/UI daarop voortbouwen
+en geef de kleinste nog ontbrekende gedeelde interface aan één schrijver.
+Blijf mijlpalen/blockers verwerken; een ontvangen statusrapport is geen
+stopopdracht aan de teams. Er is geen periodieke achtergrondautomatisering
+ingesteld en een verzonden bericht garandeert geen blijvende uitvoering na
+sessieonderbreking; hervatten begint met een verse sessie-/GitHub-controle.
+
+## Historische uitvoeringsregistratie vóór de managerverdeling
+
 Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De opt-in `native-rtc`-bootstrap,
 `kernel/src/m2/rtc.rs`, RTC-buildkeuze, RTC-runner/hosttests/workflow en
