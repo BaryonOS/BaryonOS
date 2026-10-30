@@ -1,0 +1,27 @@
+   Compiling nieuw-os-net-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-protocol)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.39s
+     Running tests/dhcp.rs (target/dhcp-hostcc/debug/deps/dhcp-46daa2dc447f0974)
+
+running 1 test
+test all_requests_pad_to_300_bytes_without_touching_the_tail ... FAILED
+
+failures:
+
+---- all_requests_pad_to_300_bytes_without_touching_the_tail stdout ----
+
+thread 'all_requests_pad_to_300_bytes_without_touching_the_tail' panicked at tests/dhcp.rs:352:9:
+assertion `left == right` failed
+  left: Ok(266)
+ right: Err(OutputTooSmall)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    all_requests_pad_to_300_bytes_without_touching_the_tail
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--test dhcp`
+real 0.45
+user 0.27
+sys 0.20

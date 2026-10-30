@@ -9,6 +9,7 @@
 //! The Internet checksum detects some errors; it does not authenticate a peer.
 
 pub mod arp;
+pub mod dhcp;
 pub mod dns;
 
 pub const ETHERNET_HEADER_BYTES: usize = 14;
