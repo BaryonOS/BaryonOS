@@ -1,5 +1,47 @@
 # Ontwerpbesluiten
 
+# ADR-054 — Gedeeld immutable artifact-storecontract
+
+**Datum/status/eigenaar:** 31 oktober 2026; voorstel van release-integratie.
+Apps- en AI-owneraftekening, security-/integratiereview en native uitvoering
+staan open. De eerste code-uitwerking mag uitsluitend een zuivere
+contractcrate met negatieve hosttests zijn.
+
+**Context:** Apppakketverificatie en het model-store-experiment hebben beide
+een grote, immutable, bounded-read artifact nodig. Het bestaande
+documentvolume is hiervoor aantoonbaar ongeschikt; documentquota worden niet
+tot productstore-capaciteit verheven. Apps heeft een kandidaatdescriptor en
+transactie-state-machine; AI gebruikt een afzonderlijke readerproef met 4 KiB
+read-at. Message320 blijft een aparte wiregrens van maximaal 256 payloadbytes.
+
+**Besluitvoorstel:** één provider-onafhankelijk contract met immutable
+descriptor, opaque procesgebonden read-handle en read-at van maximaal 4096
+bytes. Stale epoch, revocation, short/zero reads, EOF, out-of-range, overflow,
+corruptie en backendprotocolfouten zijn expliciet. Capacity/quota zijn
+providergerapporteerde `u64`-waarden met checked arithmetic. Writable
+install/publish is een aparte transactie: volledige reservering bij `begin`,
+exacte chunks, volledige digest-/lengtecontrole vóór atomische publicatie, en
+expliciete `Unknown`/cancel/outcome-semantiek. Reservering is geen
+duurzaamheidsgarantie. SHA-256 is contentintegriteitsmetadata, geen
+publishervertrouwen of modelveiligheid. Geen dynamic launch volgt uit
+opslagpublicatie.
+
+**Afgewezen:** documentvolume hergebruiken (onvoldoende capaciteit en andere
+semantiek); 4 KiB als Message320-payload behandelen (overschrijdt de
+wirelimiet); AI- en Apps-opslag-ABI's onafhankelijk vastleggen (twee
+incompatibele authorities); vaste model-/app-proefgrootte als productlimiet
+nemen; caller-`verified`-boolean of gedeelde B02/B03-authority gebruiken;
+`Unknown` als mislukking, succes of automatische retry verbergen.
+
+**Gevolgen/herziening:** contractdocument
+`implementation/ARTIFACT-STORE-CONTRACT.md` is leidend voor de gezamenlijke
+interface tot owneraftekening. De descriptorlayout is nog geen gedeelde
+geserialiseerde ABI. Hostcontracttests kunnen alleen reken-/state-machine-
+invarianten toetsen. Een native backend vereist later eigen foutinjectie,
+flush-/duurzaamheidsdefinitie, koude recovery, proces-/capabilitybinding en
+afzonderlijke publisher- en modeltrustbesluiten. Herzie vóór wire-encoding,
+kernel/SDK-integratie, persistent store, modeldownload of dynamic launch.
+
 ## ADR-053 — Wachten op IPC behoudt bestaande rechten en krijgt ABI 1.10
 
 Bij main-integratie hernummerd vanaf de branchlokale ADR-051; de
