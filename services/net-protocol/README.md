@@ -180,9 +180,10 @@ De parser controleert geen UDP/IP-bron- of bestemmingsendpoint; de caller moet
 dat vóór gebruik doen. Een passende transaction-ID of DHCP-server-ID is geen
 serverauthenticatie: DHCP kan route/DNS-configuratie niet veilig valideren
 tegen een kwaadwillende linkgenoot. De parser activeert geen lease, route of
-DNS-server. Ontdekken, kiezen, ARP-adresconflictcontrole, DHCPDECLINE/NAK-
-herstel, leasepersistentie, T1-renewal, T2-rebinding, linkovergang en
-reconnect zijn nog niet geïmplementeerd. De kernel-ABI en capabilitygrens
+DNS-server. De afzonderlijke `dhcp_client`-core hieronder beheert nu een
+uitwisseling en lease, maar echte ARP-adresconflictcontrole, DHCPDECLINE,
+leasepersistentie, driver-/routekoppeling en reconnect blijven open.
+De kernel-ABI en capabilitygrens
 veranderen niet; DHCP krijgt geen zelfstandige bevoegdheid.
 
 Dit is een host-/freestanding-codecbouwsteen voor FR-N01, geen N01-aftekening
@@ -190,6 +191,57 @@ of Internetbewijs. Pas een native test met een protocolconforme DHCP-peer,
 echte virtio-netframes, toegepaste configuratie, leaseverlenging/-verval,
 verkeerde serverantwoorden en koude/hot-linkherstel kan netwerkvoortgang
 onderbouwen.
+
+## DHCP-clientcore — nog geen native configuratiedienst
+
+`dhcp_client::Client` voegt zonder dependencies één interfacegebonden,
+begrensde DHCP-uitwisseling toe: Selecting → Requesting → CheckingAddress →
+Bound, met T1-renewal, T2-rebinding, verval, NAK, conflict en linkverlies.
+De caller levert een verse entropy-afgeleide transaction-ID, monotone
+**seconden**, NIC-I/O en gerandomiseerde retryplanning. Een vervallende lease
+wordt op de exacte grens verwijderd; dezelfde tijd herhalen verlengt niets.
+De kernel, routes, resolver en apprechten veranderen niet door deze core.
+
+`start` begint een begrensde acquisitie (1..120 seconden); `build` encodeert
+een payload en geeft de IP-eindpunten terug voor UDP 68 → 67. Dit is geen
+transmissie of devicecompletion. De eerste succesvolle request-encoding
+start een conservatieve leaseklok; wacht op NIC-publicatie verkort dus de
+bruikbare lease, nooit andersom. Retries verschuiven die basis niet.
+`accept` gebruikt uitsluitend een al gevalideerd `UdpDatagram`, bindt beide
+UDP-poorten, bestemmings-IP/MAC, XID, client-MAC en server-ID en laat een
+verkeerd antwoord de uitwisseling niet consumeren. Een verlopen deadline
+blijft wel verlopen, ook als het aankomende pakket onjuist is.
+
+Na een geldig initiëel ACK is alleen `candidate` beschikbaar; `lease` geeft
+nog niets. De caller moet **werkelijk** adresconflictdetectie uitvoeren en
+pas daarna `confirm_address_available` aanroepen. Bij conflict moet hij
+`reject_address_conflict` gebruiken en DHCPDECLINE/backoff afhandelen; de
+core verstuurt dat nog niet. Bij T1 geeft `tick` `RenewalDue`; de caller
+start met `begin_renewal` een nieuwe XID. Renewal is unicast, rebinding
+broadcast met `ciaddr` en zonder requested-IP/server-ID-opties. Een NAK,
+expiratie of `link_down` verwijdert de lease; de integrerende dienst moet
+dan ook de **werkelijke** interface, routes, resolvercache en verbindingen
+intrekken. Een eerder gekopieerde `Lease` vervalt niet magisch: controleer
+de deadline vóór gebruik en koppel configuratie aan de interfacegeneratie.
+
+Dit eerste profiel ondersteunt uitsluitend directe servers zonder relay;
+bron-IP moet gelijk zijn aan server-ID en `giaddr` moet nul zijn.
+OFFER/ACK moeten expliciet een subnetmasker bevatten; een ontbrekende
+configuratie wordt geweigerd in plaats van met verzonnen waarden aangevuld.
+Off-link/self-/netwerk-/broadcastgateways worden geweigerd. `/31` en `/32`
+behouden hun eigen hostsemantiek. Oneindige leases geven expliciet
+`InfiniteLeaseUnsupported` en worden niet stil als een tijdelijke lease
+geïnterpreteerd. INIT-REBOOT, DHCPINFORM, RELEASE, DECLINE, option-overload,
+RFC 3396 en productie-retry-/fuzzplanning blijven open compatibiliteitswerk.
+De bestaande parsergrenzen blijven ongewijzigd.
+
+Een directe server, valide checksum of passend XID is **geen authenticatie**.
+DHCP mag geen TLS-/NAS-identiteit of internetcapability verlenen. DHCP
+staat een ontbrekende UDP-checksum toe; de core blijft dan alle endpoint-
+en berichtidentiteitscontroles uitvoeren. De huidige tests gebruiken
+synthetische Ethernetframes en modeltijd, niet de eigen kernel/NIC.
+RFC 2131 §§4.4.1/4.4.5 en tabel 4 onderbouwen de toestanden en termijnen;
+de lokale OSDev-route `Network Stack` (W002538) is alleen oriëntatie.
 
 ## Uitvoering en bewijs
 

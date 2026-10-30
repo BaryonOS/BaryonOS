@@ -10,6 +10,7 @@
 
 pub mod arp;
 pub mod dhcp;
+pub mod dhcp_client;
 pub mod dns;
 
 pub const ETHERNET_HEADER_BYTES: usize = 14;

@@ -1,0 +1,5 @@
+   Compiling nieuw-os-net-protocol v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-protocol)
+    Finished `release` profile [optimized] target(s) in 0.27s
+real 0.33
+user 0.34
+sys 0.08
