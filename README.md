@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`c87fd769`](https://github.com/simonvanieperen/nieuw-os/commit/c87fd769223e95fbf3a9423247468a0230ca9de1) ·
+**Bron:** [`ebbfb470`](https://github.com/simonvanieperen/nieuw-os/commit/ebbfb47001b8fe6ce8fde745282b650581bcfa85) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-sniffle`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Conflictintegratie PR #62 met main f52dab5: preflight, doctestherstel, RTC en B02 behouden.
-34% blijft 34%; conflictintegratie sluit geen productcriterium. De PR behoudt de afzonderlijke POSIX-hostlinkercontrole en test-only HKDF/HMAC-doctestdependencies; main behoudt de opt-in RTC/UTC-API en persistente sleutelstatus met administratief ingress. Beide historische checkpoints en bewijsgrenzen blijven behouden. Integratiecontroles staan in PROJECT-STATE.md; oude CI- en QEMU-resultaten gelden niet als nieuwe-headacceptatie.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Documentatieconflicten PR #62 met main 0ade801 oplossen.
+34% blijft 34%; uitsluitend documentatie geïntegreerd. Het hardwarecheckpoint van main en het preflight-/integratiebewijs van de PR blijven behouden. Hardware blijft 1/12, H02-H06 blijven open; er is geen nieuwe native of fysieke acceptatie. Runtimebron, dependencies en criteria zijn ongewijzigd ten opzichte van de PR-head. Documentatievalidatie staat in PROJECT-STATE.md; reviewwerk valt buiten deze ronde.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
