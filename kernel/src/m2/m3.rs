@@ -901,7 +901,10 @@ impl State {
             // aliases stay writable for controlled copying/zeroing even when
             // that process's user mapping is read-only.
             assert_eq!(identity & 2 == 0, m.executable);
-            for other in &self.processes[..i] {
+            for other in self.processes[..i]
+                .iter()
+                .filter(|other| other.status != Status::Dead)
+            {
                 assert!(other.mappings().iter().all(|x| x.pa != m.pa));
             }
         }
@@ -967,9 +970,8 @@ impl State {
         display_fixture::poll(state);
         None
     }
-    #[cfg_attr(not(feature = "ipc-wait"), allow(clippy::never_loop))]
     fn select(&mut self) -> *const u64 {
-        loop {
+        'selection: loop {
             #[cfg(feature = "ipc-wait")]
             wait::refresh(self);
             let start = if self.current < self.amount {
@@ -1023,7 +1025,7 @@ impl State {
                         self.fault = true;
                         self.processes[slot].status = Status::Dying;
                         self.cleanup(slot);
-                        continue;
+                        continue 'selection;
                     }
                     self.current = slot;
                     self.selections += 1;

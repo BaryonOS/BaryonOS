@@ -11,6 +11,7 @@ from run import run_guest
 
 FEATURE = "native-ipc-wait"
 MARKERS = (
+    "M2:PASS",
     "IPCWAIT:MANIFEST:PASS",
     "IPCWAIT:REVOKED_FULL_QUEUE:PASS",
     "IPCWAIT:NATIVE:PASS",

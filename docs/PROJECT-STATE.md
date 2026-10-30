@@ -44,11 +44,33 @@ Clippy voor capability-core, SDK-runtime en inputconsumenten (`-D warnings`).
 De kernel verlangt exacte rolmaskers `0x3f`/`0x3c`, werkelijke wake-/idle-
 counters en de nog volle 16-berichtenqueue na revoke; geen alleen-PASS-orakel.
 
-**Niet uitgevoerd op deze integratie:** gezamenlijke native wachtbuild/runtime,
-GUI-regressie, brede native gates en testimageacceptatie.
-Eerstvolgend:
-`LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" NOS_BUILD_DIR="$PWD/build/native-test-version/wait" NOS_TARGET_DIR="$PWD/target/native-test-version/wait" python3 -B -u tools/run_ipc_wait.py`;
-daarna de GUI-keten meten en gericht aansluiten.
+Native wachtpoort **geslaagd**, exit 0/raw 33, 4,142 s:
+`LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" NOS_BUILD_DIR="$PWD/build/native-test-version/wait" NOS_TARGET_DIR="$PWD/target/native-test-version/wait" python3 -B -u tools/run_ipc_wait.py`.
+Echte queue-/revoke-/FIFO-/pointer-/deadlinegevallen; 14 blokkeringen,
+7 ready-wakes, 6 deadline-wakes, 1 revoke-wake en 199 echte idle-IRQ0's.
+De probe vond een bestaande lifecyclebug: audit_process las mappings van
+een reeds vrijgegeven eerder processlot. Alleen levende slots worden nu
+op overlap gecontroleerd; alle overige ownership/W^X-checks blijven staan.
+Eerste poging raw 35 faalde daarop; tweede raw 33 werd terecht door de
+hostpoort geweigerd wegens ontbrekende M2-bootstrapverwachting; de derde
+eist ook die echte markering en slaagt. Logs/fingerprints staan in
+`verification/native-test-version/wait-evidence.json`; geen foutpoging is
+als geslaagd voorgesteld. QEMU meldde nog een ontbrekende optionele
+kvmvapic-ROM-zoekpadinput; die stderr is bewaard.
+De lokale ROM-zoekpadlinks en officiële Ubuntu VGA-ROM zijn daarna hersteld,
+zonder tracked toolwijziging. Een gerichte AI-review vond bovendien dat
+invalid-return-cleanup na de eerste waitrefresh een foutwake één PIT-tick
+kon uitstellen. De selectielus herstart nu onmiddellijk bij refresh na
+zulke cleanup; deze laatste correctie moet nog native worden herhaald.
+Het specifieke owner-invalidreturn/blockedSEND-scenario blijft apart open.
+
+**Niet uitgevoerd:** native kill/hergebruik en FPU met wachten, GUI-regressie,
+brede native gates en testimageacceptatie. De GUI-basis gebruikt nog geen
+wachten. Eerstvolgend: bestaande Materiaal-proef op deze bron meten,
+daarna alleen de werkelijk benodigde consumenten aansluiten.
+De werkbranch is gepusht. Een nieuwe concept-PR is nog niet geopend:
+de app-sessie is aan de oudere infrastructuurbranch gebonden, terwijl
+de OS-werkbranch bewust apart staat; de sessie-PR-tool kan geen andere head kiezen.
 Geen nieuwe voortgangspunten, geen menselijke/hardware-/releaseacceptatie.
 
 ## Historisch checkpoint — NATIVE-CLOCK-1 afgerond — 30 oktober 2026

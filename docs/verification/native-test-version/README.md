@@ -44,9 +44,24 @@ zonder sudo of systeeminstallatie. Genegeerd herkomstrapport:
 
 ## Open bewijsgrens
 
-**Niet uitgevoerd op deze integratie:** native-wachtbuild en runtime,
-GUI-gebruikersketen, bredere native regressies, fysieke hardware en menselijke
-gebruiks-/securityacceptatie. De CPL3-probe is inmiddels als echt scalair ELF gebouwd; de gezamenlijke
+De native wachtbuild en runtime zijn inmiddels **geslaagd**:
+het exacte commando en compacte hashbinding staan in `wait-evidence.json`.
+Raw 33, exit 0; rolmaskers 63/60, een kernel-gecontroleerde volle queue
+na intrekking, 14 blokkeringen, 7 ready-wakes, 6 deadline-wakes,
+1 intrekkingswake en 199 werkelijk getelde PIT-idle-interrupts.
+De eerste echte run faalde met raw 35 door audit van mappings van een reeds
+overleden eerder processlot. Die audit slaat nu uitsluitend Dead slots over.
+Een tweede raw-33-run bleef host-rood omdat de generieke runner de nieuwe
+poort zonder M2-marker als M1-only behandelde; M2 is nu expliciet vereist.
+De derde volledige build/run slaagt. Dit is geen testversoepeling.
+Een daaropvolgende gerichte AI-review vond een mogelijke extra PIT-tick
+vóór foutwake als de selectiescan een ongeldig userreturnframe opruimt.
+De selectielus herstart nu bij haar waitrefresh na die cleanup; hertoetsing
+van de laatste correctie volgt. Deze review is geen menselijke audit.
+
+**Niet uitgevoerd op deze integratie:** native kill/hergebruik en wachten
+met FPU-context, GUI-gebruikersketen, bredere native regressies, fysieke
+hardware en menselijke gebruiks-/securityacceptatie. De CPL3-probe is inmiddels als echt scalair ELF gebouwd; de gezamenlijke
 kernelbuild en runtime moeten nog volgen. Probe-hosttests: 3/3, exit 0.
 Gerichte Clippy voor capability-core, SDK-runtime en inputconsumenten:
 ieder exit 0 met `--all-targets -- -D warnings`, via dezelfde lokale

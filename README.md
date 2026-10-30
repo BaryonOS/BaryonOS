@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`76a8a1e1`](https://github.com/simonvanieperen/nieuw-os/commit/76a8a1e16dad4a04841eeb745546a9bca91d1e4a) ·
+**Bron:** [`a00a2afb`](https://github.com/simonvanieperen/nieuw-os/commit/a00a2afb18aab5373abb87930fcf89f39098987f) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: integratie van bestaande begrensde IPC-wacht als voorbereiding op echte Materiaal-testversie.
-34% blijft 34%; de gevraagde 50% is nog niet gehaald. Bestaande IPC-wacht en inputconsumenten zijn op actuele main geïntegreerd met RTC-compatibele ABI 1.10. Core-, echte wachtdecoder-, SDK-, input- en drie nieuwe probe-hosttests slagen; 414 Python-harnas- en 100 tools-tests, gerichte Clippy en probe-crosscompile slagen eveneens. De nieuwe kernelprobe eist echte queue-, wake-, revoke-, deadline- en idleobservaties. Gezamenlijke native runtime, GUI-gebruikersketen en bredere native regressies zijn nog niet uitgevoerd. Geen volledig rubriccriterium gesloten; volledige product-, menselijke en hardwareacceptatie blijven open.
+34% blijft 34%; minstens 50% is nog niet bereikt. De echte tweeprocessen-wachtpoort slaagt met raw33: queue/FIFO, revoke zonder drain, ongeldige argumenten/pointers, deadlines en hervatbare PIT-idle; 14 blokkeringen, 7 ready-wakes, 6 timer-wakes, 1 revoke-wake en 199 idle-IRQ0's. Een native ontdekte auditbug bij een eerder overleden processlot is gericht hersteld. Hosttests en gerichte Clippy slagen. Native kill/hergebruik, FPU-wachtcombinatie, GUI-gebruikersketen en brede native regressies blijven open. Dit sluit geen nieuw volledig rubriccriterium en bewijst geen volledige testrelease, hardware- of menselijke acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
