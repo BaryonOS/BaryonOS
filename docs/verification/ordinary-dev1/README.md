@@ -260,3 +260,56 @@ python3 -B tools/dev.py python3 -B -u tools/run_materiaal_preview.py --build-dir
 Geen oude reference gebruiken. Ordinary, cold, Windows, FR en R01-R03
 blijven open; scoreadvies **34 -> 34, R01-R03 0/5**. De centrale eigenaar
 houdt status en assessment bij; deze branch schrijft die bestanden niet.
+
+## Nederlandse bediening voor de nog vrij te geven kandidaat
+
+Dit is een brongeleide taakbeschrijving, **nog geen uitgevoerde
+gebruikersproef** en geen startvrijgave. Er bestaat nog geen vrijgegeven
+ZIP of bewezen Windowsgast voor deze artifacts. Lever deze stappen pas
+met de concrete bundelhash en werkelijk geslaagde ordinary-gate mee.
+De Windowslauncher en het verpakken blijven eigendom van21; onderstaande
+commando's gebruiken uitsluitend de bestaande route, geen tweede launcher.
+
+Voor de latere uitgepakte bundel, vanuit PowerShell in die bundelmap:
+
+```powershell
+.\Start-NieuwOS.ps1 -QemuPath "C:\Program Files\qemu\qemu-system-x86_64.exe" -CheckOnly
+.\Start-NieuwOS.ps1 -QemuPath "C:\Program Files\qemu\qemu-system-x86_64.exe"
+```
+
+`-CheckOnly` controleert bundelhashes en QEMU-vereisten zonder VM.
+Een hash is geen afzenderhandtekening. Het tweede commando start wel een
+gast en vereist in de gedeelde testomgeving een toegewezen slot.
+Deze bronroute verwacht QEMU >=10.2.1, SDL en `rng-builtin`; de werkelijke
+Windowsversie moet apart worden bewezen. Geen uitvoeringpolicy wijzigen
+of integriteitscontrole overslaan wanneer starten faalt.
+
+| Stap | Bediening | Te observeren, niet vooraf als PASS ingevuld |
+|---|---|---|
+| Eerste scherm | Wacht op Materiaal; voer nog niets in als alleen firmware/zwart beeld zichtbaar is | Native lijstscherm met knop `Nieuw`; geen controller of seriele testopdracht nodig |
+| Document maken | Klik `Nieuw`; de automatische gate gebruikt positie56,150 op het vaste800x600-scherm | Editor met een nieuw document |
+| Schrijven | Typ exact `nieuw os werkt`, zonder Enter | Alle14 ASCII-tekens zichtbaar; dit is geen algemene Unicode-/toetsenbordclaim |
+| Bewaren | Druk Ctrl+S en wacht op de zichtbare uitkomst | `Op dit apparaat opgeslagen.`; geen succes aannemen bij `Opslaan...` of fout |
+| Terug naar lijst | Druk Escape na bevestigde opslag | Document zichtbaar in de lijst |
+| Heropenen in dezelfde sessie | Vanuit deze vaste eerste flow Tab, Tab, Enter; anders selecteer de zichtbare documentregel | Exact dezelfde tekst zichtbaar; dit alleen bewijst nog geen koude duurzaamheid |
+
+De diagnostic F12-afsluitbarriere is **geen** gewone afsluitknop en hoort
+niet in deze gebruikersflow. Sluiten van het QEMU-venster is een hoststop,
+geen bewezen guest clean shutdown. Niet sluiten tijdens een lopende save.
+De Linuxgate gebruikt QMP-quit pas na de heropenfase en controleert daarna
+de werkelijke diskbytes; Windowsbediening moet afzonderlijk worden gemeten.
+
+De bestaande launcher bewaart VM-state onder `state\`. Gebruik voor een
+latere koude-heropenproef dezelfde state, sluit de eerste QEMU volledig
+en start pas na een nieuw toegewezen slot opnieuw; deze proef is nu
+**niet vrijgegeven of uitgevoerd**. Verwijderen van `state\volume.img`
+vernietigt de testdocumenten en maakt geen herstelbewijs. Geen reset,
+statevervanging of gewone coldboot als crash-/stroomuitvalbewijs tellen.
+
+Bij zwart beeld, ontbrekende bevestiging, hang of verloren tekst:
+bewaar de eerste fout, de bundel-/kernel-/loaderhash, exacte QEMU-versie,
+het gebruikte startcommando en `state\serial.txt`; geen secrets of
+persoonlijke documenten toevoegen. Noteer de laatst voltooide stap.
+Geen oude screenshots/reference gebruiken, stille rebuild uitvoeren of
+dezelfde run als geslaagd herlabelen. De aangewezen producttester20 en
+Windowsroute21 krijgen dezelfde immutable kandidaat zodra die vrijgegeven is.
