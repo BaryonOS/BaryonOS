@@ -232,7 +232,8 @@ fn conflict_revocation_and_io_error_keep_unconfirmed_work_visible_impl() {
 }
 
 fn sr06_failed_save_blocks_actions(modal: bool) {
-    for fault in 0..2 {
+    let mut modal_save_disabled = [false; 2];
+    for (fault, disabled) in modal_save_disabled.iter_mut().enumerate() {
         let host = Host::new();
         host.borrow_mut().seed(0, b"Original");
         let (mut d, mut o, mut s) = ([0; 1024], [0; 1024], [0; 1024]);
@@ -283,9 +284,12 @@ fn sr06_failed_save_blocks_actions(modal: bool) {
             .iter()
             .find(|node| node.id == SemanticId::SaveAndBack)
             .unwrap();
-        assert!(
-            !save.enabled && !save.actions.activate && !save.focused,
-            "SR06 unavailable modal SaveAndBack remains advertised for fault {fault}"
+        *disabled = !save.enabled && !save.actions.activate && !save.focused;
+    }
+    if modal {
+        assert_eq!(
+            modal_save_disabled, [true; 2],
+            "SR06 unavailable modal SaveAndBack must be disabled after [conflict, revoke]"
         );
     }
 }
