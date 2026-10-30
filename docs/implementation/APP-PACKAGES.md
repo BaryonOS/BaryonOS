@@ -130,6 +130,26 @@ installerrecht. De documentvolumeclient is geen autoritatieve appstore zolang
 zijn huidige authenticatie-/rollbackgrens onvoldoende is; deze crate schrijft
 er niet naar.
 
+### Install-/update-/remove-catalogus (contractmodel)
+
+`catalog::InstallCatalog<N>` is een begrensd in-memory toestandsmodel boven de
+artifacttransactie. Iedere mutatie is tweefasig (`prepare` → `apply`/`abort`)
+en gebonden aan service-epoch en verwachte cataloggeneratie; een stale,
+herhaalde of gelijktijdige intent faalt zonder mutatie. Het opgeslagen
+artifact moet in lengte en SHA-256 gelijk zijn aan de image uit de
+package-identity, en `apply` vereist exact de door de store gecommitte
+`ArtifactRef`. Update vereist dezelfde bron, geen lagere brongeneratie en een
+strikt hogere versie; bronwissel of downgrade is geen update. Remove vereist
+de exact geïnstalleerde entry. `released` meldt welk oud artifact de caller
+ná duurzame catalogwijziging mag opruimen; de catalogus verwijdert geen bytes.
+Entries bevatten geen capabilities: installatie verleent niets.
+
+Een `Unknown` storeuitkomst maakt de catalogus onbepaald: mutatie én lookup
+falen gesloten, ook na herstart, tot `reconcile` een snapshot met hogere
+generatie installeert. Die autoritatieve, duurzame bron bestaat nog niet; dit
+model bewijst dus geen persistentie of koude recovery. `N` is een
+compile-time modelgrens, geen productlimiet.
+
 De gedeelde read-only interface is ook de beoogde ingang voor consumers zoals
 een lokale AI-modelreader. De consumer moet zelf formaat/parsergrenzen en
 toepasselijke modelintegriteit beoordelen; de artifactdigest is geen

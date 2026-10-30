@@ -11,6 +11,7 @@
 #[cfg(test)]
 extern crate std;
 
+pub mod catalog;
 pub mod protocol;
 pub mod store;
 
