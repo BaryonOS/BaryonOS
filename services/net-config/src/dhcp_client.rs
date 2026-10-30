@@ -75,6 +75,7 @@ pub struct Client {
     last_now: u64,
     started_at: u64,
     request_at: Option<u64>,
+    discover_seconds: Option<u16>,
     timeout_at: u64,
     offer: Option<dhcp::Reply>,
     lease: Option<Lease>,
@@ -95,6 +96,7 @@ impl Client {
             last_now: now,
             started_at: now,
             request_at: None,
+            discover_seconds: None,
             timeout_at: now,
             offer: None,
             lease: None,
@@ -136,6 +138,7 @@ impl Client {
         self.offer = None;
         self.lease = None;
         self.request_at = None;
+        self.discover_seconds = None;
         self.sent = false;
     }
 
@@ -201,7 +204,7 @@ impl Client {
                         output,
                         id.transaction_id,
                         id.mac,
-                        elapsed,
+                        self.discover_seconds.ok_or(Error::InvalidState)?,
                         offer.offered_address,
                         offer.server_identifier,
                     ),
@@ -228,6 +231,9 @@ impl Client {
             _ => return Err(Error::InvalidState),
         };
         let length = length.map_err(Error::Codec)?;
+        if self.phase == Phase::Selecting {
+            self.discover_seconds = Some(elapsed);
+        }
         if self.phase != Phase::Selecting && self.request_at.is_none() {
             self.request_at = Some(now);
         }

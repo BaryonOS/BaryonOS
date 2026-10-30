@@ -117,7 +117,7 @@ Stack-/codecdependencies en exact dezelfde registrylocks/features als Stack.
 De DHCP-client en elf bestaande pakkettests zijn overgenomen uit bron16adfe5;
 oorspronkelijke client-SHA256:
 `1f9e64b272665d1ac43d63ae54fdc539f21d236ef91b636b3c2da39f695fd04c`.
-Geen algoritmewijziging: alleen fmt/imports aangepast voor deze crate.
+Op bronf6d9f1f geen algoritmewijziging: alleen fmt/imports aangepast voor deze crate.
 De vroegere private `arp::unicast_ipv4`-predicate is exact als private
 compatibiliteitshelper opgenomen, zonder protocol-API/write te verruimen.
 De oorspronkelijke branch blijft behouden; geen oude rootwijzigingen gemerged.
@@ -197,5 +197,14 @@ native RNG/retryscheduler/auto-reconnect of volledige DHCPreleaseacceptatie.
 De huidige codec heeft geen DHCPDECLINE-builder: concrete extra schrijfclaim
 of handoff aan de protocolowner is gevraagd, GEEN protocolwrite overgenomen.
 RFC2131sectie3.1 vereist DECLINE;10s wachten is daar SHOULD en wordt hier
-conservatief toegepast. Ook selecting-request `secs`-behoud vraagt nog een
-gerichte vervolgcase. Beide blijven expliciete open punten, geen stil groen.
+conservatief toegepast. DECLINE blijft een expliciet open punt, geen stil groen.
+
+De gerichte vervolgcase op bron678081c vond een echt wireverschil: selecting
+REQUEST had `secs=5`, DISCOVER `secs=1`. De eigen verplaatste client bewaart nu
+de `secs` van de laatst gecodeerde DISCOVER voor selecting REQUEST
+(RFC2131sectie3.1stap3), zonder de conservatieve leaseklok naar voren/achter
+te schuiven. De nieuwe regression controleert ook echte expiry op de
+oorspronkelijke REQUESTtijd+80s. Dit is een afzonderlijk vastgelegde
+algoritmecorrectie boven de exacte16ad-import, GEEN wijziging van donorbranch
+of de gedeelde protocolcrate. De rode testpatch/log tegenover678081c blijven
+brongebonden bewaard.
