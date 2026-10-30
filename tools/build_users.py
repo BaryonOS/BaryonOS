@@ -2,8 +2,47 @@
 """Build the project's static user probe without Cargo's kernel linker script."""
 from __future__ import annotations
 import argparse
+import json
+from pathlib import Path
+import shutil
 import struct
 from common import ROOT, BUILD, run_logged, save_json, sha256
+
+
+SDK_DEPENDENCY_ID = "registry+https://github.com/rust-lang/crates.io-index#zeroize@1.9.1"
+
+
+def sdk_dependency_command(root, build):
+    """Select the runtime's locked graph without features from other SDK apps."""
+    return ["cargo", "+1.90.0", "rustc", "--locked", "--release", "--no-default-features",
+            "--manifest-path", str(root / "sdk/Cargo.toml"), "-p", "nieuw-os-sdk-runtime", "--lib",
+            "--target", "x86_64-unknown-none", "--target-dir", str(build / "sdk-dependency-target"),
+            "--message-format=json", "--", "-C", "panic=abort", "-C", "opt-level=2",
+            "-C", "code-model=small", "-C", "relocation-model=static", "-C", "no-redzone=yes"]
+
+
+def sdk_dependency_artifact(stdout, build):
+    """Select only this Cargo invocation's exact scalar/no-feature rlib."""
+    messages = [json.loads(line) for line in stdout.splitlines() if line.strip()]
+    artifacts = [item for item in messages if item.get("reason") == "compiler-artifact"
+                 and item.get("package_id") == SDK_DEPENDENCY_ID]
+    if len(artifacts) != 1 or not any(item.get("reason") == "build-finished"
+                                    and item.get("success") is True for item in messages):
+        raise ValueError("Missing or ambiguous locked zeroize build artifact")
+    artifact = artifacts[0]
+    if artifact.get("features") != [] or artifact.get("target", {}).get("name") != "zeroize":
+        raise ValueError("Unexpected zeroize target or features")
+    paths = [Path(name) for name in artifact.get("filenames", []) if name.endswith(".rlib")]
+    if len(paths) != 1:
+        raise ValueError("Missing or ambiguous zeroize rlib")
+    library = paths[0]
+    release = build / "sdk-dependency-target/x86_64-unknown-none/release"
+    if library.parent not in (release, release / "deps") or ".." in library.parts:
+        raise ValueError("Zeroize artifact escaped the isolated target")
+    if library.name != "libzeroize.rlib" and not (library.name.startswith("libzeroize-")
+                                                 and library.name.endswith(".rlib")):
+        raise ValueError("Unexpected zeroize artifact name")
+    return library
 
 
 def inspect_user(path):
@@ -70,16 +109,27 @@ def build_users(kind="probe", *, short_poll=False, sdk_runtime=False, document_s
     if short_poll:
         args.append("--cfg=nos_m6b_poll_limit")
     if sdk_runtime:
+        result = run_logged(sdk_dependency_command(ROOT, BUILD), "build-sdk-zeroize")
+        selected = sdk_dependency_artifact(result.stdout, BUILD)
+        if selected.is_symlink() or not selected.is_file():
+            raise ValueError("Missing or nonregular zeroize artifact")
+        zeroize_library = BUILD / "users/libzeroize.rlib"
+        shutil.copyfile(selected, zeroize_library)
+        if sha256(selected) != sha256(zeroize_library):
+            raise ValueError("Zeroize artifact changed while copying")
         runtime = BUILD / "users/libnieuw_os_sdk_runtime.rlib"
         run_logged(["rustc", "+1.90.0", "--edition=2021", "--crate-name=nieuw_os_sdk_runtime",
                     "--crate-type=rlib", "--target=x86_64-unknown-none", "-C", "panic=abort",
                     "-C", "opt-level=2", "-C", "code-model=small", "-C", "relocation-model=static",
-                    "-C", "no-redzone=yes", str(ROOT / "sdk/runtime/src/lib.rs"),
+                    "-C", "no-redzone=yes", "--extern", f"zeroize={zeroize_library}",
+                    str(ROOT / "sdk/runtime/src/lib.rs"),
                     "-o", str(runtime)], "build-sdk-runtime")
-        args += ["--cfg=nos_sdk_runtime", "--extern", f"nieuw_os_sdk_runtime={runtime}"]
+        args += ["--cfg=nos_sdk_runtime", "--extern", f"nieuw_os_sdk_runtime={runtime}",
+                 "-L", f"dependency={BUILD / 'users'}"]
     libraries = {}
     if document_session:
         libraries["nieuw_os_sdk_runtime"] = runtime
+        libraries["zeroize"] = zeroize_library
         for crate, library_source in (
             ("catalog_core", "services/catalog/src/lib.rs"),
             ("volume_core", "services/volume/src/lib.rs"),
@@ -134,6 +184,9 @@ def build_users(kind="probe", *, short_poll=False, sdk_runtime=False, document_s
         manifest["sdk_runtime"] = sdk_runtime
         manifest["document_session"] = document_session
         if sdk_runtime:
+            manifest["sdk_dependency"] = {"package_id": SDK_DEPENDENCY_ID,
+                                          "source_artifact": str(selected),
+                                          "artifact_sha256": sha256(zeroize_library)}
             manifest["module_sha256"]["userspace/sdk_probe_runtime.rs"] = sha256(ROOT / "userspace/sdk_probe_runtime.rs")
             for module in sorted((ROOT / "sdk/runtime/src").glob("*.rs")):
                 manifest["module_sha256"][module.relative_to(ROOT).as_posix()] = sha256(module)
