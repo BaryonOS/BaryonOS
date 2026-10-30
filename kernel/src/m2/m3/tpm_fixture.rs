@@ -6,12 +6,23 @@ use core::{
     sync::atomic::{AtomicBool, AtomicU64, Ordering},
 };
 use nieuw_os_tpm_crb::{
-    codec::{self, Request, Response},
+    codec::{self, NvIndex, Password, Request, Response},
     transport::{self, Effect, Failure, Fault, Io, IoError, Poll, Register, Ticket, Transport},
 };
 
 const WINDOW: u64 = 0x3f180000;
 const LIMIT: u64 = 50;
+const NV_INDEX: u32 = 0x0180_4e56;
+const NV_AUTH: &[u8] = b"PUBLIC-TPM-NV-FIXTURE-ONLY";
+const NV_PROVISION: bool = cfg!(feature = "test-tpm-nv-provision");
+const NV_READ: bool = cfg!(feature = "test-tpm-nv-read");
+const NV_AUTH_TEST: bool = cfg!(feature = "test-tpm-nv-auth");
+const NV_MISSING: bool = cfg!(feature = "test-tpm-nv-missing");
+const NV_ENABLED: bool = NV_PROVISION || NV_READ || NV_AUTH_TEST || NV_MISSING;
+const _: () = assert!(
+    (NV_PROVISION as u8 + NV_READ as u8 + NV_AUTH_TEST as u8 + NV_MISSING as u8) <= 1
+        && !(NV_ENABLED && cfg!(feature = "test-tpm-crb-absent"))
+);
 static CLAIMED: AtomicBool = AtomicBool::new(false);
 static QUARANTINED: AtomicBool = AtomicBool::new(false);
 static WRITES: AtomicU64 = AtomicU64::new(0);
@@ -110,14 +121,132 @@ enum Step {
     Fresh,
     Acquire(Ticket),
     Execute(Ticket),
+    Nv(Ticket, NvStep),
     Release(Ticket),
     Complete,
     Absent,
 }
 
+#[derive(Clone, Copy)]
+enum NvStep {
+    Define,
+    Public,
+    Increment,
+    FirstRead,
+    Advance,
+    FinalRead,
+    WrongAuth,
+    Missing,
+}
+
 struct Runtime {
     transport: Transport<NativeIo>,
     step: Step,
+    counter: Option<u64>,
+}
+
+fn nv_request(step: NvStep) -> Request<'static> {
+    let index = NvIndex::new(NV_INDEX).unwrap_or_else(|_| fail(b"NV_INDEX"));
+    let auth = Password::new(NV_AUTH).unwrap_or_else(|_| fail(b"NV_AUTH"));
+    match step {
+        NvStep::Define => Request::NvDefineCounter {
+            index,
+            owner_auth: Password::new(b"").unwrap_or_else(|_| fail(b"NV_OWNER_AUTH")),
+            index_auth: auth,
+        },
+        NvStep::Public => Request::NvReadPublic { index },
+        NvStep::Increment | NvStep::Advance => Request::NvIncrement { index, auth },
+        NvStep::FirstRead | NvStep::FinalRead => Request::NvReadCounter { index, auth },
+        NvStep::WrongAuth => Request::NvReadCounter {
+            index,
+            auth: Password::new(b"WRONG-PUBLIC-FIXTURE").unwrap_or_else(|_| fail(b"NV_BAD_AUTH")),
+        },
+        NvStep::Missing => Request::NvReadPublic {
+            index: NvIndex::new(NV_INDEX + 1).unwrap_or_else(|_| fail(b"NV_MISSING_INDEX")),
+        },
+    }
+}
+
+fn nv_start(r: &mut Runtime, step: NvStep, now: u64, deadline: u64) -> Step {
+    let mut bytes = [0; codec::MAX_COMMAND];
+    let command =
+        codec::encode(nv_request(step), &mut bytes).unwrap_or_else(|_| fail(b"NV_ENCODE"));
+    let ticket = r
+        .transport
+        .execute(&command, now, deadline, 10)
+        .unwrap_or_else(|error| failure(error));
+    Step::Nv(ticket, step)
+}
+
+fn nv_poll(
+    r: &mut Runtime,
+    ticket: Ticket,
+    step: NvStep,
+    now: u64,
+    deadline: u64,
+) -> Result<Step, Failure> {
+    let response = match r.transport.poll(ticket, now) {
+        Ok(Poll::Pending) => return Ok(Step::Nv(ticket, step)),
+        Ok(Poll::Complete(response)) => response,
+        Err(error) if error.effect == Effect::Completed && !r.transport.is_quarantined() => {
+            let expected = match step {
+                NvStep::WrongAuth => matches!(error.fault, Fault::Tpm(0x98e | 0x9a2)),
+                NvStep::Missing => error.fault == Fault::Tpm(0x18b),
+                _ => false,
+            };
+            if !expected {
+                return Err(error);
+            }
+            if let Fault::Tpm(code) = error.fault {
+                print_number(b"TPMNV:EXPECTED_RC:", u64::from(code));
+            }
+            return Ok(nv_start(r, NvStep::FinalRead, now, deadline));
+        }
+        Err(error) => return Err(error),
+    };
+    let next = match (step, response) {
+        (NvStep::Define, Response::Empty) => NvStep::Public,
+        (NvStep::Public, Response::NvPublic { index, .. }) if index.raw() == NV_INDEX => {
+            serial::write(b"TPMNV:PUBLIC:PASS\n");
+            if NV_PROVISION {
+                NvStep::Increment
+            } else {
+                NvStep::FirstRead
+            }
+        }
+        (NvStep::Increment, Response::Empty) => NvStep::FirstRead,
+        (NvStep::Advance, Response::Empty) => NvStep::FinalRead,
+        (NvStep::FirstRead, Response::Counter(value)) => {
+            r.counter = Some(value);
+            print_number(b"TPMNV:BEFORE:", value);
+            if NV_PROVISION {
+                NvStep::Advance
+            } else if NV_AUTH_TEST {
+                NvStep::WrongAuth
+            } else if NV_MISSING {
+                NvStep::Missing
+            } else {
+                return Ok(Step::Release(r.transport.release(now, deadline)?));
+            }
+        }
+        (NvStep::FinalRead, Response::Counter(value)) => {
+            let before = r.counter.unwrap_or_else(|| fail(b"NV_NO_BASELINE"));
+            let expected = if NV_PROVISION {
+                before
+                    .checked_add(1)
+                    .unwrap_or_else(|| fail(b"NV_OVERFLOW"))
+            } else {
+                before
+            };
+            if value != expected {
+                fail(b"NV_COUNTER_CHANGED");
+            }
+            print_number(b"TPMNV:AFTER:", value);
+            return Ok(Step::Release(r.transport.release(now, deadline)?));
+        }
+        _ => fail(b"NV_UNEXPECTED_RESPONSE"),
+    };
+    Ok(nv_start(r, next, now, deadline))
 }
 
 fn runtime() -> &'static mut Runtime {
@@ -196,6 +325,7 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
         ptr::addr_of_mut!(RUNTIME).write(Some(Runtime {
             transport: Transport::new(io),
             step: Step::Fresh,
+            counter: None,
         }));
     }
     serial::write(b"TPMCRB:BOUNDS:PASS\n");
@@ -251,20 +381,37 @@ pub fn poll(now: u64) {
                 Step::Acquire(ticket)
             }
         }),
-        Step::Execute(ticket) => r.transport.poll(ticket, now).map(|poll| match poll {
-            Poll::Pending => Step::Execute(ticket),
-            Poll::Complete(Response::Properties {
-                count: 1, values, ..
-            }) if values[0].property == 0x100 && values[0].value == 0x322e3000 => {
-                print_number(b"TPMCRB:FAMILY:", u64::from(values[0].value));
-                Step::Release(
-                    r.transport
-                        .release(now, deadline)
-                        .unwrap_or_else(|error| failure(error)),
-                )
-            }
-            Poll::Complete(_) => fail(b"FAMILY_RESPONSE"),
-        }),
+        Step::Execute(ticket) => match r.transport.poll(ticket, now) {
+            Ok(poll) => Ok(match poll {
+                Poll::Pending => Step::Execute(ticket),
+                Poll::Complete(Response::Properties {
+                    count: 1, values, ..
+                }) if values[0].property == 0x100 && values[0].value == 0x322e3000 => {
+                    print_number(b"TPMCRB:FAMILY:", u64::from(values[0].value));
+                    if NV_ENABLED {
+                        nv_start(
+                            r,
+                            if NV_PROVISION {
+                                NvStep::Define
+                            } else {
+                                NvStep::Public
+                            },
+                            now,
+                            deadline,
+                        )
+                    } else {
+                        Step::Release(
+                            r.transport
+                                .release(now, deadline)
+                                .unwrap_or_else(|error| failure(error)),
+                        )
+                    }
+                }
+                Poll::Complete(_) => fail(b"FAMILY_RESPONSE"),
+            }),
+            Err(error) => Err(error),
+        },
+        Step::Nv(ticket, step) => nv_poll(r, ticket, step, now, deadline),
         Step::Release(ticket) => r.transport.poll_released(ticket, now).map(|released| {
             if released {
                 let _io = r.transport.detach().unwrap_or_else(|error| failure(error));
@@ -292,6 +439,20 @@ pub fn finish() {
                 && WRITES.load(Ordering::Relaxed) > 0 =>
         {
             serial::write(b"TPMCRB:RELEASED:PASS\nTPMCRB:PASS\n");
+            if NV_ENABLED {
+                let marker: &[u8] = if NV_PROVISION {
+                    b"provision"
+                } else if NV_READ {
+                    b"read"
+                } else if NV_AUTH_TEST {
+                    b"auth"
+                } else {
+                    b"missing"
+                };
+                serial::write(b"TPMNV:PASS:");
+                serial::write(marker);
+                serial::write(b"\n");
+            }
         }
         Step::Absent if cfg!(feature = "test-tpm-crb-absent") => {
             serial::write(b"TPMCRB:ABSENT:PASS\n");

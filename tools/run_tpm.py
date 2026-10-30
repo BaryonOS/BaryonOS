@@ -55,7 +55,7 @@ def evaluate(stdout, case):
 
 
 @contextmanager
-def backend(report):
+def backend(report, *, state_directory=None):
     prefix = LOCAL / "swtpm-native"
     env = environment()
     binary = prefix / "usr/bin/swtpm"
@@ -74,13 +74,24 @@ def backend(report):
         raise ValueError("TPM state must be generated inside the checkout")
     directory = BUILD / "tpm" / uuid.uuid4().hex[:10]
     directory.mkdir(parents=True)
-    state = directory / "state"
-    state.mkdir(mode=0o700)
+    if state_directory is None:
+        state = directory / "state"
+        state.mkdir(mode=0o700)
+    else:
+        requested = Path(state_directory)
+        if requested.is_symlink():
+            raise ValueError("TPM state cannot be a symlink")
+        state = requested.resolve(strict=True)
+        state.relative_to((BUILD / "tpm").resolve(strict=True))
+        if (not state.is_dir() or state.stat().st_mode & 0o777 != 0o700
+                or state.stat().st_uid != os.getuid() or not any(state.iterdir())):
+            raise ValueError("TPM restart requires nonempty private caller-owned fixture state")
     control = directory / "ctrl.sock"
     relative = directory.relative_to(ROOT).as_posix()
     # Each child owns a new private state directory; do not require the optional
     # `lock` flag that the CI-distributed swtpm 0.7.3 does not support.
-    command = [str(binary), "socket", "--tpm2", "--tpmstate", f"dir={relative}/state",
+    state_relative = state.relative_to(ROOT).as_posix()
+    command = [str(binary), "socket", "--tpm2", "--tpmstate", f"dir={state_relative}",
                "--ctrl", f"type=unixio,path={relative}/ctrl.sock,mode=0600",
                "--flags", "startup-clear"]
     if len(os.fsencode(f"{relative}/ctrl.sock")) > 107:
@@ -88,7 +99,8 @@ def backend(report):
     report["backend"] = {
         "command": command, "binary_sha256": sha256(binary),
         "version": subprocess.check_output([str(binary), "--version"], env=env, text=True).strip(),
-        "directory": str(directory), "log": str(directory / "backend.log"),
+        "directory": str(directory), "state_directory": str(state),
+        "log": str(directory / "backend.log"),
     }
     with (directory / "backend.log").open("wb") as stream:
         process = subprocess.Popen(command, cwd=ROOT, env=env, stdout=stream, stderr=subprocess.STDOUT)

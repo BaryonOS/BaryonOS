@@ -34,6 +34,10 @@ ipc-wait = ["milestone-m4", "monotonic-clock"]
 native-ipc-wait = ["native-sdk-app", "ipc-wait"]
 native-tpm-crb = ["native-ipc-wait", "dep:nieuw-os-tpm-crb"]
 test-tpm-crb-absent = ["native-tpm-crb"]
+test-tpm-nv-provision = ["native-tpm-crb"]
+test-tpm-nv-read = ["native-tpm-crb"]
+test-tpm-nv-auth = ["native-tpm-crb"]
+test-tpm-nv-missing = ["native-tpm-crb"]
 # Fallible own-process RW/NX heap suffixes; existing total frame quota.
 process-memory = ["monotonic-clock"]
 # Separate architecture acceptance fixture; no product bootstrap policy.
