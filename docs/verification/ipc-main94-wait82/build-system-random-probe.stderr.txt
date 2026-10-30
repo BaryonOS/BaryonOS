@@ -1,0 +1,18 @@
+   Compiling zeroize v1.9.1
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/runtime)
+   Compiling nieuw-os-keyring-random-client v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/keyring-random-client)
+error[E0080]: evaluation panicked: assertion failed: !core::mem::needs_drop::<Received>()
+   --> /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/keyring-random-client/src/lib.rs:350:13
+    |
+350 |     const { assert!(!core::mem::needs_drop::<Received>()) };
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `wipe_received::{constant#1}` failed here
+
+note: erroneous constant encountered
+   --> /home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-solid-waffle/sdk/keyring-random-client/src/lib.rs:350:5
+    |
+350 |     const { assert!(!core::mem::needs_drop::<Received>()) };
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0080`.
+error: could not compile `nieuw-os-keyring-random-client` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

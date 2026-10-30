@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "kind": "read-only delivered Windows QEMU artifact inspection",
+  "date": "2026-10-30",
+  "manager_base_commit": "748e29b7455ca4213a6bf3ba3808c3097458263d",
+  "artifact_source_commit": "c532ba88fbf0f53b960e9dbf77421cee29d97096",
+  "artifact_source_fingerprint_version": 3,
+  "artifact_source_sha256": "a1998a126a3a1ccc18523925a422912d934c14bab865b3d7df346862a2c251a6",
+  "zip": {
+    "windows_path": "C:\\Users\\simon\\Downloads\\NieuwOS-testversie-eabc27b-20261030\\NieuwOS-Windows-Interactive-1.zip",
+    "size_bytes": 2296965,
+    "sha256": "b42be826377afb58f96c8178aa972128abad18ef7f9b4872e102a9e4a7e9ea57",
+    "expected_sha256_match": true,
+    "crc_check_passed": true,
+    "member_count": 12,
+    "all_member_paths_relative_without_parent_traversal": true
+  },
+  "extracted_bundle": {
+    "windows_path": "C:\\Users\\simon\\Downloads\\NieuwOS-testversie-eabc27b-20261030\\NieuwOS",
+    "all_12_files_equal_zip_bytes": true,
+    "state_directory_present": false,
+    "launcher_sha256": "a75f23615f789290702d2af6f8effcb6cc3747eedefc06fdac4be12895120b7a",
+    "loader_sha256": "7e55ab0fe6c232380f52dc5be1334b41388b70d80e0ebe2b0072de7e12373a09",
+    "kernel_sha256": "f2e9cc4aad87ad2b9fbc8b498ab146db2ab0df4a77b904eecf81c3a9beb198b3"
+  },
+  "qemu_executable": {
+    "windows_path": "C:\\Program Files\\qemu\\qemu-system-x86_64.exe",
+    "is_file": true,
+    "version_or_execution_checked_in_this_inspection": false
+  },
+  "checks": [
+    {
+      "operation": "Python pathlib streaming SHA-256, zipfile.testzip, launcher/manifest inventory and exact QEMU path existence",
+      "exit_status": 0
+    },
+    {
+      "operation": "Python zipfile member path validation, byte-for-byte comparison of every extracted file and manifest source/hash inspection",
+      "exit_status": 0
+    }
+  ],
+  "not_performed": [
+    "PowerShell launcher execution",
+    "new QEMU guest execution",
+    "cold restart or guest-initiated clean shutdown",
+    "validation of a bundle for source 74d15ac or later",
+    "full release acceptance",
+    "physical hardware or human usability review"
+  ],
+  "limitations": [
+    "This checks the delivered older artifact, not byte reproducibility of a new build.",
+    "The artifact is a restricted plaintext-fixture development profile, not personal storage.",
+    "The frozen manifest still contains the historical pre-Windows-test limitation; later Windows evidence is separate.",
+    "The manager did not modify the ZIP, extracted files, Windows execution policy or QEMU installation."
+  ]
+}

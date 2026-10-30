@@ -1,0 +1,86 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running unittests src/lib.rs (target/nas-client-stack-host/debug/deps/nieuw_os_nas_client-a3aa75c17860af3d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/resume.rs (target/nas-client-stack-host/debug/deps/resume-4919618f56dae89f)
+
+running 16 tests
+test default_debug_never_prints_payloads_or_namespace_identifiers ... ok
+test concurrent_writers_preserve_both_sides_without_automatic_overwrite ... ok
+test cancelling_staging_frees_quota_and_sessions_without_deleting_the_local_edit ... ok
+test invalid_lengths_indices_and_revision_overflow_are_explicit_and_nonmutating ... ok
+test lost_ack_with_a_pre_dispatch_checkpoint_does_not_duplicate_a_committed_write ... ok
+test offline_queue_has_no_server_calls_and_preserves_every_rejected_edit ... ok
+test normal_publish_is_acknowledged_only_after_the_existing_core_commit ... ok
+test older_observed_revision_blocks_retry_without_erasing_either_version ... ok
+test quota_failures_release_sessions_and_keep_the_pending_local_bytes ... ok
+test partial_upload_and_offline_edits_survive_host_model_recovery_without_live_tickets ... ok
+test revocation_and_cold_core_recovery_never_restore_old_client_authority ... ok
+test separate_namespaces_do_not_inherit_the_other_queued_objects_session ... ok
+test wrong_caller_and_revision_hints_never_become_authority ... ok
+test wrong_caller_cannot_cancel_or_consume_the_authorized_callers_staging ... ok
+test wrong_caller_cannot_commit_or_consume_the_authorized_callers_staging ... ok
+test every_storage_error_before_and_after_commit_blocks_replay_until_reconcile ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests nieuw_os_nas_client
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `release` profile [optimized] target(s) in 0.00s
+     Running unittests src/lib.rs (target/nas-client-stack-host/release/deps/nieuw_os_nas_client-0ff543b5f8598e05)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/resume.rs (target/nas-client-stack-host/release/deps/resume-8d232e4ab6cb1de0)
+
+running 17 tests
+test cancelling_staging_frees_quota_and_sessions_without_deleting_the_local_edit ... ok
+test concurrent_writers_preserve_both_sides_without_automatic_overwrite ... ok
+test default_debug_never_prints_payloads_or_namespace_identifiers ... ok
+test invalid_lengths_indices_and_revision_overflow_are_explicit_and_nonmutating ... ok
+test lost_ack_with_a_pre_dispatch_checkpoint_does_not_duplicate_a_committed_write ... ok
+test normal_publish_is_acknowledged_only_after_the_existing_core_commit ... ok
+test every_storage_error_before_and_after_commit_blocks_replay_until_reconcile ... ok
+test offline_queue_has_no_server_calls_and_preserves_every_rejected_edit ... ok
+test older_observed_revision_blocks_retry_without_erasing_either_version ... ok
+test partial_upload_and_offline_edits_survive_host_model_recovery_without_live_tickets ... ok
+test optimized_maximum_queue_and_recovery_fit_a_64_kib_host_stack ... ok
+test revocation_and_cold_core_recovery_never_restore_old_client_authority ... ok
+test quota_failures_release_sessions_and_keep_the_pending_local_bytes ... ok
+test separate_namespaces_do_not_inherit_the_other_queued_objects_session ... ok
+test wrong_caller_and_revision_hints_never_become_authority ... ok
+test wrong_caller_cannot_cancel_or_consume_the_authorized_callers_staging ... ok
+test wrong_caller_cannot_commit_or_consume_the_authorized_callers_staging ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_nas_client
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.04s
+    Finished `release` profile [optimized] target(s) in 0.00s
+    Finished `release` profile [optimized] target(s) in 0.00s
+.github/workflows/nas-core.yml: OK
+services/nas/native-client/Cargo.toml: OK
+services/nas/native-client/Cargo.lock: OK
+services/nas/native-client/README.md: OK
+services/nas/native-client/src/lib.rs: OK
+services/nas/native-client/tests/resume.rs: OK
+services/nas/native-core/Cargo.toml: OK
+services/nas/native-core/Cargo.lock: OK
+services/nas/native-core/src/lib.rs: OK
+services/nas/native-core/src/snapshot.rs: OK

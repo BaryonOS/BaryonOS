@@ -1,0 +1,1 @@
+qemu-system-x86_64: warning: global VGA.romfile=/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu/usr/share/seabios/vgabios-stdvga.bin not used

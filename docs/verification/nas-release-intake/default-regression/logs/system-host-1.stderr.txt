@@ -1,0 +1,7 @@
+   Compiling capability-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/crates/capability-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-refactored-pancake/sdk/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.52s
+     Running unittests src/lib.rs (target/nas-release-profile/debug/deps/nieuw_os_sdk_runtime-bb83bdf6ece003ad)
+     Running tests/message.rs (target/nas-release-profile/debug/deps/message-9f79ab41584b368e)
+     Running tests/process.rs (target/nas-release-profile/debug/deps/process-ec652b521e78d5e3)
+   Doc-tests nieuw_os_sdk_runtime
