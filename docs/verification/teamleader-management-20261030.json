@@ -20,6 +20,18 @@
     "previous_pr_intake_transfer": "No executed transfer found in preserved register or read-only checkout check; personal confirmation requested, not inferred from silence",
     "existing_assignments_survive_missing_messages_and_timeouts": true
   },
+  "receiver_acceptance": {
+    "donor_commit": "6e3bc3ff9922d947df8f5aa89a7bcd962da601fa",
+    "donor_queue_blob": "7c011de653103dc6614c90be50b61102c8d55af8",
+    "receiver_commit": "16151b9c28a766c47f900e4a3e9f99b642cc3fe5",
+    "receiver_reported_exact_blob_only_import": true,
+    "receiver_remote_verified_by_manager": true,
+    "verification_command": "git ls-remote --heads origin refs/heads/simonvanieperen-legendary-eureka",
+    "verification_exit": 0,
+    "seven_department_contacts_informed_by_receiver": true,
+    "ordinary_allocations_reported": ["NET config", "UI primary hover"],
+    "manager_queue_writes_after_release": false
+  },
   "commands": [
     {"command": "python3 -B tools/progress.py --write", "exit": 0, "wall_seconds": 0.031},
     {"command": "python3 -B tools/progress.py --check", "exit": 0, "wall_seconds": 0.033},

@@ -85,6 +85,15 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Ontvangstcheckpoint op donorbron `6e3bc3f`: **34% → 34%**.
+Assistent bevestigde uitsluitend queueblob7c011de te hebben overgenomen en
+checkpoint16151b9 te hebben gepusht; remotehead door teamleider gecontroleerd.
+Zelfstandige NETconfig/UIhover-allocatie en bericht aan zeven afdelingen
+zijn uitgevoerd. Teamleider schrijft de queue niet meer. DEV1-referentie-VM
+faalde vóór Materiaalmanifest, gewone preview niet gestart; geen scorepunt
+of oorzaakclaim. B05 blijft menselijke gate, onafhankelijke SEC-docsfix
+kan na uitstel van reviewerbenoeming doorgaan. Criteria/evidence ongewijzigd.
+
 Managementwijziging op managerbasis `caa2c14` (30 oktober 2026):
 **34% → 34%**. Directeur `ef7a7596...` en assistent `5d5f8513...` hebben hun
 werkelijke app-ID en rol bevestigd. De assistent krijgt na donorbronvrijgave
