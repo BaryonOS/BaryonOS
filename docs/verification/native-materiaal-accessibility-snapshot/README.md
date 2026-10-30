@@ -25,13 +25,24 @@ Status: beperkte implementatiestap, geen aftekening van native toegankelijkheid.
 | `python3 -B -m unittest tools.tests.test_materiaal_probe tools.tests.test_materiaal_host_scenarios tools.tests.test_materiaal_host_count` | exit 0; 27 tests |
 | `LOCALAPPDATA="$PWD/.tools" python3 -B sdk/examples/materiaal/build.py` | exit 0; echte `x86_64-unknown-none`-ELF gebouwd |
 | `sha256sum build/sdk-materiaal/x86_64-unknown-none/release/materiaal-app` | `cb1f73a07e18d35d77db0b0056d4cf4702ef64a9d59b61484a1e9c2ff1d3090c` |
-| `python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml` | exit 101; hostlinker `cc` niet gevonden; tests zijn niet uitgevoerd |
-| `python3 -B tools/preflight.py --strict` | exit 2; QEMU en OVMF ontbreken; inventory bewijst geen build of boot |
+| `python3 -B tools/dev.py cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml` | exit 0; alleen bestaande lockfile-versies opgehaald; geen manifest/lockfilewijziging |
+| `python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml` met lokale `.tools/nieuw-os/host-tools` GCC/sysroot-omgeving | exit 0; alle 20 `chain`-scenario's slagen |
+| `python3 -B tools/build.py --kernel-feature native-system-materiaal-probe` met lokale Rust/QEMU-tooling en `NOS_QEMU_MACHINE=pc-q35-8.2` | exit 0; kernel en acht userspace-ELF's gebouwd en geïnspecteerd; geen runtime uitgevoerd |
+| `python3 -B tools/preflight.py --strict` met lokale QEMU/OVMF-paden | exit 0; inventory slaagt; geen boot uitgevoerd |
+
+De eerstvolgende native probe gebruikt QEMU `10.2.1`,
+`OVMF_CODE_4M.fd` SHA-256
+`874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7`,
+`OVMF_VARS_4M.fd` SHA-256
+`5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e`, en
+`vgabios-stdvga.bin` SHA-256
+`c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde`.
+Deze zijn lokale tool-inputs, geen meegeleverde productonderdelen.
 
 ## Bewijsgrens en open werk
 
 De ELF-build, Rust-typecheck, lint en Python-harnas vervangen geen uitvoering
-van de app of de Rust-integratietests. Er is geen native QMP-bediening,
+van de app of van een accessibility-service. Er is nog geen native QMP-bediening,
 schermlezer-/spraakuitvoer, toetsenbord-only gebruikersproef, instellingen
 voor schaal/contrast/reduced motion, menselijke gebruikerstest of fysieke
 hardwaretest uitgevoerd. Deze wijziging sluit geen U01–U06-criterium en

@@ -2,7 +2,7 @@
 
 | Werkpakket | Toestand | Eigenaar / exclusieve writes | Acceptatie | Interface en bewijsgrens |
 |---|---|---|---|---|
-| NATIVE-MATERIAAL-SEMANTICS-1 | app-lokale read-only semantische snapshot en assertions toegevoegd; native toegankelijkheid niet bewezen | root; `sdk/examples/materiaal/src/lib.rs`, `sdk/examples/materiaal/tests/chain.rs`, bijbehorende docs/bewijs | U04; afhankelijk van U01/U02 | echte ELF-build en host-harnas groen; Rust-testlink geblokkeerd door ontbrekende `cc`; geen accessibility IPC, schermlezer, spraak, QEMU-run of gebruikerstest; alle U-criteria blijven open |
+| NATIVE-MATERIAAL-SEMANTICS-1 | app-lokale read-only semantische snapshot en assertions toegevoegd; native accessibility nog open | root; `sdk/examples/materiaal/src/lib.rs`, `sdk/examples/materiaal/tests/chain.rs`, bijbehorende docs/bewijs | U04; afhankelijk van U01/U02 | alle 20 Rust-integratiescenario's, 27 Python-harnastests en volledige native probe-build groen; QEMU/OVMF lokaal hersteld; echte QMP-run, accessibility IPC/schermlezer/spraak en gebruikerstests nog niet uitgevoerd; alle U-criteria blijven open |
 
 Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
 `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De opt-in `native-rtc`-bootstrap,

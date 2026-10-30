@@ -4,6 +4,7 @@
 
 Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (`origin/main` bij start),
 implementatiecheckpoint `56626baf7f6db7b8a1d0e07787ae4df5997d96f5`,
+statuscheckpoint `8b75fdc6add1aa90f47ed921e0a472119951ec1f`,
 branch `codex/native-materiaal-accessibility-20261030`. Bronfingerprint v3
 `d9e3c57244904e20bf52f95b2b7d80e3d2d93e22a303b86f179e583f53e80185`.
 Deze stap voegt aan de CPL3-app
@@ -13,24 +14,25 @@ kop, focus, documentwaarde, bewerkbaarheid, opgeslagen status, opnieuw geopend
 document en atomische weigering bij een te kleine uitvoerbuffer. Geen IPC,
 schermlezer, spraakuitvoer of capabilitygrant toegevoegd.
 
-Rust 1.90.0 fmt/check/Clippy en 27 Materiaal-harnastests slagen; de echte
-`x86_64-unknown-none`-Materiaal-ELF bouwt (SHA-256
-`cb1f73a07e18d35d77db0b0056d4cf4702ef64a9d59b61484a1e9c2ff1d3090c`).
-De Rust-integratietests konden niet linken: `cc` ontbreekt (exit 101).
-`tools/preflight.py --strict` exit 2 bevestigt dat ook QEMU/OVMF ontbreken.
-Er is dus geen native UI-run, schermlezer-/spraakproef of gebruikerstest.
-Voortgang: totaal 34% blijft 34%; Materiaal/toegankelijkheid blijft 0/15,
-alle U01–U06 open.
+De aanvankelijke hostlink-/preflightblokkade is lokaal opgelost zonder
+systeembrede installatie: gepinde Ubuntu-toolpakketten zijn onder genegeerde
+`.tools/nieuw-os/host-tools` uitgepakt, met een lokale GCC/sysroot-wrapper en
+QEMU 10.2.1 / OVMF 2025.11. Cargo-lock/manifesten zijn niet gewijzigd.
+Rust 1.90.0 fmt/check/Clippy, 27 Materiaal-harnastests en alle 20
+Rust-integratiescenario's slagen. De echte `native-system-materiaal-probe`
+build slaagt en bouwt/inspecteert de kernel plus acht userspace-ELF's.
+`tools/preflight.py --strict` slaagt met deze lokale QEMU/OVMF-omgeving.
 
+De echte QMP-Materiaal-run moet nog starten; dit buildresultaat is geen
+runtime-, zichtbare-frame-, opgeslagen-document- of gebruikersbewijs.
 Concept-PR #68 staat tegen `main` op remote-head
-`f22b0f4ab6b047d666d7a63fb8df3c8d09effe4f`. `gh pr checks 68` meldde alleen
-CodeRabbit pending; `gh run list --workflow CI` toonde nog geen CI-run voor
-deze branch. Er is geen reviewgoedkeuring.
+`8b75fdc6add1aa90f47ed921e0a472119951ec1f`; er zijn nog geen PR-checks of
+reviewgoedkeuring. Voortgang: totaal 34% blijft 34%;
+Materiaal/toegankelijkheid blijft 0/15, alle U01–U06 open.
 
-Eerstvolgende stap: herstel een lokale, niet-systeemwijde hostlinker en
-voer `python3 -B tools/dev.py cargo +1.90.0 test --offline --locked
---manifest-path sdk/examples/materiaal/Cargo.toml` uit; verkrijg daarna een
-bruikbare QEMU/OVMF-omgeving en voer de native Materiaal-/QMP-keten uit.
+Eerstvolgende commando: voer met de lokaal gepinde ROM/firmware en
+`NOS_QEMU_MACHINE=pc-q35-8.2` de echte probe uit:
+`python3 -B tools/run_materiaal_probe.py --case normal --build-dir build/materiaal-probe-accessibility --machine pc-q35-8.2 --qmp-transport pipe --vga-rom .tools/nieuw-os/host-tools/usr/share/seabios/vgabios-stdvga.bin --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde`.
 Daarna is een capability-begrensde accessibility-service met echte
 toetsenbord-only-, schermlezer-/spraak- en schaal/contrast/reduced-motion-
 proeven nodig. U04 kan niet sluiten zonder echte gebruikerstaken; U01–U03 en
