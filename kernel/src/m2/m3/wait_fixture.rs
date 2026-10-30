@@ -7,11 +7,13 @@ struct Evidence {
     exited: [bool; 2],
     assertions: [u64; 2],
     ticks: [u64; 2],
+    masks: [u64; 2],
 }
 static mut EVIDENCE: Evidence = Evidence {
     exited: [false; 2],
     assertions: [0; 2],
     ticks: [0; 2],
+    masks: [0; 2],
 };
 fn evidence() -> &'static mut Evidence {
     // SAFETY: One CPU, IF=0; this borrow ends before scheduling.
@@ -75,23 +77,48 @@ pub fn manifest(state: &mut State) {
         exited: [false; 2],
         assertions: [0; 2],
         ticks: [0; 2],
+        masks: [0; 2],
     };
     serial::write(b"IPCWAIT:MANIFEST:PASS\n");
 }
 pub fn observe_exit(state: &mut State, slot: usize, _counter: u64) {
-    if slot >= 2 || evidence().exited[slot] || state.last_event.code != 0 {
+    if slot >= 2 {
+        fail(b"EXIT_SLOT");
+    }
+    if evidence().exited[slot] || state.last_event.code != 0 {
         print_number(b"IPCWAIT:EXIT_SLOT:", slot as u64);
         print_number(b"IPCWAIT:EXIT_CODE:", state.last_event.code);
         print_number(b"IPCWAIT:APP_FAILURE:", word(state, slot, 416));
+        print_number(b"IPCWAIT:APP_PHASE:", word(state, slot, 448));
         fail(b"EXIT");
     }
-    if word(state, slot, 400) != 1 || word(state, slot, 408) == 0 || word(state, slot, 416) != 0 {
+    if word(state, slot, 400) != 1
+        || word(state, slot, 408) == 0
+        || word(state, slot, 416) != 0
+        || word(state, slot, 432) != [0x3f, 0x3c][slot]
+        || word(state, slot, 448) != 7
+        || word(state, slot, 480) == 0
+    {
         fail(b"APP_EVIDENCE");
+    }
+    if slot == 0 {
+        if word(state, slot, 464) == 0
+            || word(state, slot, 472) == 0
+            || word(state, slot, 488) == 0
+            || state.processes[1].status == Status::Dead
+            || m4::engine().stats().queued_messages != 16
+        {
+            fail(b"QUEUE_WAKE_EVIDENCE");
+        }
+        serial::write(b"IPCWAIT:REVOKED_FULL_QUEUE:PASS\n");
+    } else if word(state, slot, 496) != 17 || word(state, slot, 504) != 16 {
+        fail(b"FIFO_OR_REVOKE");
     }
     let e = evidence();
     e.exited[slot] = true;
     e.assertions[slot] = word(state, slot, 408);
     e.ticks[slot] = word(state, slot, 424);
+    e.masks[slot] = word(state, slot, 432);
     state.audit_process(slot);
 }
 pub fn observe_fault(_state: &mut State, _slot: usize, _context: &[u64; 22], _counter: u64) {
@@ -120,12 +147,18 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
         fail(b"CLEANUP");
     }
     let m = state.wait_metrics;
-    if m.blocked == 0 || m.wake_ready == 0 || m.wake_timeout == 0 || m.idle_irqs == 0 {
+    if m.blocked == 0
+        || m.wake_ready == 0
+        || m.wake_timeout == 0
+        || m.wake_error == 0
+        || m.idle_irqs == 0
+    {
         fail(b"NO_NATIVE_WAIT");
     }
     for slot in 0..2 {
         print_number(b"IPCWAIT:ASSERTIONS:", e.assertions[slot]);
         print_number(b"IPCWAIT:TICKS:", e.ticks[slot]);
+        print_number(b"IPCWAIT:PHASE_MASK:", e.masks[slot]);
     }
     print_number(b"IPCWAIT:BLOCKED:", m.blocked);
     print_number(b"IPCWAIT:WAKE_READY:", m.wake_ready);

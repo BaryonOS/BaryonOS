@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`8becc511`](https://github.com/simonvanieperen/nieuw-os/commit/8becc511a08be128ce0db417f15efa180bfd2eb3) ·
+**Bron:** [`76a8a1e1`](https://github.com/simonvanieperen/nieuw-os/commit/76a8a1e16dad4a04841eeb745546a9bca91d1e4a) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: integratie van bestaande begrensde IPC-wacht als voorbereiding op echte Materiaal-testversie.
-34% blijft 34%; de gevraagde 50% is nog niet gehaald. De al bestaande IPC-WAIT-1- en inputconsumentencomponenten worden op actuele main geïntegreerd; ABI 1.10 houdt de bestaande RTC-ABI 1.9 en stackbereikvalidatie intact. Core-, echte wachtdecoder-, SDK- en inputconsument-hosttests slagen. De aparte native probe en testversie zijn nog in aanbouw: native runtime, GUI-gebruikersketen en bredere regressies zijn niet uitgevoerd op deze bron. Geen volledig rubriccriterium gesloten; alle 62 volledige productcriteria en menselijke/hardwareacceptatie blijven open.
+34% blijft 34%; de gevraagde 50% is nog niet gehaald. Bestaande IPC-wacht en inputconsumenten zijn op actuele main geïntegreerd met RTC-compatibele ABI 1.10. Core-, echte wachtdecoder-, SDK-, input- en drie nieuwe probe-hosttests slagen; 414 Python-harnas- en 100 tools-tests, gerichte Clippy en probe-crosscompile slagen eveneens. De nieuwe kernelprobe eist echte queue-, wake-, revoke-, deadline- en idleobservaties. Gezamenlijke native runtime, GUI-gebruikersketen en bredere native regressies zijn nog niet uitgevoerd. Geen volledig rubriccriterium gesloten; volledige product-, menselijke en hardwareacceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

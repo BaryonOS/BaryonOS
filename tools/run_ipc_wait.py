@@ -12,6 +12,7 @@ from run import run_guest
 FEATURE = "native-ipc-wait"
 MARKERS = (
     "IPCWAIT:MANIFEST:PASS",
+    "IPCWAIT:REVOKED_FULL_QUEUE:PASS",
     "IPCWAIT:NATIVE:PASS",
     "IPCWAIT:CLEANUP:PASS",
     "IPCWAIT:PASS",
@@ -26,9 +27,12 @@ def evaluate(stdout: str) -> dict[str, int]:
         if len(matches) != 1:
             raise ValueError(f"expected exactly one native {name} counter")
         result[name] = int(matches[0])
-    for name in ("BLOCKED", "WAKE_READY", "WAKE_TIMEOUT", "IDLE_IRQS"):
+    for name in ("BLOCKED", "WAKE_READY", "WAKE_TIMEOUT", "WAKE_ERROR", "IDLE_IRQS"):
         if result[name] == 0:
             raise ValueError(f"native {name} was not exercised")
+    masks = re.findall(r"^IPCWAIT:PHASE_MASK:([0-9]{20})$", stdout, re.M)
+    if [int(mask) for mask in masks] != [0x3f, 0x3c]:
+        raise ValueError("native role phase coverage is incomplete or duplicated")
     for marker in MARKERS:
         if stdout.splitlines().count(marker) != 1:
             raise ValueError(f"expected exactly one {marker}")

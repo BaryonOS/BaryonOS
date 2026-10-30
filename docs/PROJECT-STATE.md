@@ -36,11 +36,19 @@ voor ieder volgend `python3 -B tools/dev.py cargo +1.90.0`-commando:
   23 tests, inclusief per-app foutisolatie en echte queue-readiness.
 
 Logs: `/tmp/nieuw-os-native-wait-{core,sdk,input}.log`.
-**Niet uitgevoerd op deze integratie:** native wachtbuild/runtime,
-GUI-regressie, brede native gates en testimageacceptatie. De nieuwe
-`native-ipc-wait`-builder verwijst nog naar de in aanbouw zijnde probe.
-Eerstvolgend: probe afronden, formatteren/hercontroleren, gepinde native
-probe bouwen/draaien, vervolgens de GUI-keten meten en gericht aansluiten.
+Probecheckpoint op `76a8a1e16dad4a04841eeb745546a9bca91d1e4a`: de aparte
+tweeprocessen-ELF is gereed en crosscompiled (door builder, nog geen boot).
+De hoofdagent herhaalde de 3 probe-hosttests en 2 verifier-tests: exit 0.
+414 bestaande Python-harnastests en 100 tools-tests slagen, evenals gerichte
+Clippy voor capability-core, SDK-runtime en inputconsumenten (`-D warnings`).
+De kernel verlangt exacte rolmaskers `0x3f`/`0x3c`, werkelijke wake-/idle-
+counters en de nog volle 16-berichtenqueue na revoke; geen alleen-PASS-orakel.
+
+**Niet uitgevoerd op deze integratie:** gezamenlijke native wachtbuild/runtime,
+GUI-regressie, brede native gates en testimageacceptatie.
+Eerstvolgend:
+`LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" NOS_BUILD_DIR="$PWD/build/native-test-version/wait" NOS_TARGET_DIR="$PWD/target/native-test-version/wait" python3 -B -u tools/run_ipc_wait.py`;
+daarna de GUI-keten meten en gericht aansluiten.
 Geen nieuwe voortgangspunten, geen menselijke/hardware-/releaseacceptatie.
 
 ## Historisch checkpoint — NATIVE-CLOCK-1 afgerond — 30 oktober 2026

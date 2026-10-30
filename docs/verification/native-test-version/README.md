@@ -46,7 +46,18 @@ zonder sudo of systeeminstallatie. Genegeerd herkomstrapport:
 
 **Niet uitgevoerd op deze integratie:** native-wachtbuild en runtime,
 GUI-gebruikersketen, bredere native regressies, fysieke hardware en menselijke
-gebruiks-/securityacceptatie. De CPL3-probe en eerste testimage zijn in aanbouw.
+gebruiks-/securityacceptatie. De CPL3-probe is inmiddels als echt scalair ELF gebouwd; de gezamenlijke
+kernelbuild en runtime moeten nog volgen. Probe-hosttests: 3/3, exit 0.
+Gerichte Clippy voor capability-core, SDK-runtime en inputconsumenten:
+ieder exit 0 met `--all-targets -- -D warnings`, via dezelfde lokale
+Cargo-omgeving. Die controle miste aanvankelijk de Clippy-component;
+na `python3 -B tools/dev.py rustup component add clippy --toolchain 1.90.0`
+zijn de drie controles daadwerkelijk herhaald.
+
+`python3 -B -m unittest discover -s tests` slaagt met 414 tests (4,719 s);
+`python3 -B -m unittest discover -s tools/tests` met 100 tests (3,496 s).
+Deze zijn hostharnastests; hun gesimuleerde transcriptuitvoer is geen nieuwe
+native VM-uitvoering. Logs: `/tmp/nieuw-os-native-test-{python,tools}.log`.
 De score blijft **34% → 34%**; het gevraagde doel van minstens 50% is
 niet bereikt. Een hosttest, geïntegreerde component of extra PASS-teller
 sluit geen volledig rubriccriterium.
