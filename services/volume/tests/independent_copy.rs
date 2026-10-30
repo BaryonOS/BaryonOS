@@ -3,13 +3,28 @@ mod common;
 
 use common::{fill, pattern, recover, Local, SimDisk};
 use volume_core::{
-    client::{Client, Stat},
+    client::{Client, Stat, Transport},
     service::Service,
     table::Table,
-    Status, CHUNK, MAX_LENGTH,
+    wire, Status, CHUNK, MAX_LENGTH,
 };
 
 const EPOCH: u64 = 9;
+
+/// Observe protocol requests even when they do not cause block-device I/O.
+struct CountBegins<T> {
+    inner: T,
+    begins: usize,
+}
+
+impl<T: Transport> Transport for CountBegins<T> {
+    fn call(&mut self, request: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
+        if wire::header(request).operation == wire::BEGIN {
+            self.begins += 1;
+        }
+        self.inner.call(request)
+    }
+}
 
 fn client<'a>(service: &'a mut Service, disk: &'a mut SimDisk, domain: usize) -> Client<Local<'a>> {
     Client::new(
@@ -23,7 +38,7 @@ fn client<'a>(service: &'a mut Service, disk: &'a mut SimDisk, domain: usize) ->
     )
 }
 
-fn read(c: &mut Client<Local<'_>>, object: u64, stat: &Stat) -> Result<Vec<u8>, Status> {
+fn read<T: Transport>(c: &mut Client<T>, object: u64, stat: &Stat) -> Result<Vec<u8>, Status> {
     let mut bytes = vec![0; stat.length];
     let count = c.read(object, stat.revision, stat.length, |offset, chunk| {
         bytes[offset..offset + chunk.len()].copy_from_slice(chunk);
@@ -32,9 +47,9 @@ fn read(c: &mut Client<Local<'_>>, object: u64, stat: &Stat) -> Result<Vec<u8>, 
     Ok(bytes)
 }
 
-fn copy(
-    source: &mut Client<Local<'_>>,
-    destination: &mut Client<Local<'_>>,
+fn copy<S: Transport, D: Transport>(
+    source: &mut Client<S>,
+    destination: &mut Client<D>,
     pinned: &Stat,
     target: u64,
     expected: u64,
@@ -107,17 +122,31 @@ fn stale_source_does_not_start_or_overwrite_destination() {
 
     let mut disk = SimDisk::new();
     let mut service = Service::new(EPOCH, Table::EMPTY, false);
-    let mut destination = client(&mut service, &mut disk, 1);
+    let mut destination = Client::new(
+        CountBegins {
+            inner: Local {
+                service: &mut service,
+                disk: &mut disk,
+                domain: 1,
+            },
+            begins: 0,
+        },
+        EPOCH,
+        1500,
+    );
     destination.write(8, 0, b"Keep", 71, fill(8, 1)).unwrap();
-    let before = destination.transport.disk.durable.clone();
-    let operations = destination.transport.disk.log.len();
+    let before = destination.transport.inner.disk.durable.clone();
+    let operations = destination.transport.inner.disk.log.len();
+    let begins = destination.transport.begins;
+    assert_eq!(begins, 1);
     assert_eq!(
         copy(&mut source, &mut destination, &pinned, 8, 1),
         Err(Status::Stale)
     );
-    assert_eq!(destination.transport.disk.log.len(), operations);
-    assert_eq!(destination.transport.disk.durable, before);
-    assert!(destination.transport.disk.pending.is_empty());
+    assert_eq!(destination.transport.begins, begins);
+    assert_eq!(destination.transport.inner.disk.log.len(), operations);
+    assert_eq!(destination.transport.inner.disk.durable, before);
+    assert!(destination.transport.inner.disk.pending.is_empty());
     let stat = destination.stat(8).unwrap();
     assert_eq!(&stat.name[..stat.name_length], b"Keep");
     assert_eq!(stat.revision, 1);
