@@ -26,7 +26,7 @@ AI-modellen bedienen, maar hun trust authorities blijven afzonderlijk.
 - Read-API-chunks zijn maximaal 4096 bytes. Dat is geen IPC-wireformaat en
   geen productlimiet voor artifactgrootte. De bestaande Message320-payload
   blijft maximaal 256 bytes; een toekomstige adapter moet grote reads
-  opsplitsen zonder de IPC-limiet of capabilitygrens te omzeilen.
+  opsplitsen zonder de IPC-limiet of capabilitygrens te omzeilen. [AS-IPC1] [AS-IPC2]
 - Storagecapaciteit en quota zijn provider-/namespacegegevens in bytes.
   Een waarde van een kandidaatmodel, appfixture of documentvolume wordt geen
   globale OS-capaciteit.
@@ -215,3 +215,8 @@ retry.
 Hosttests controleren alleen de contractlogica. Targetbuild, native store,
 dynamic launch, publishertrust, modelbytes, inferentie, flushduurzaamheid,
 herstel, performance en volledige FR-/rubricacceptatie blijven open.
+
+## 8. Primaire bronnen voor de IPC-grens
+
+- **[AS-IPC1]** Nieuw OS-project. (2026, 26 oktober). *Uitvoerbaar kernel- en beveiligingscontract M2–M4*, sectie Berichtformaat en transactie (bronversie `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [Kernel- en beveiligingscontract](https://github.com/simonvanieperen/nieuw-os/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
+- **[AS-IPC2]** Nieuw OS-project. (z.d.). *SDK Message320-envelope: MESSAGE_SIZE, MAX_PAYLOAD en lengtevalidatie* (bronversie `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [SDK-implementatie](https://github.com/simonvanieperen/nieuw-os/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/sdk/runtime/src/message.rs).

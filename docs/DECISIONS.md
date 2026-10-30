@@ -13,6 +13,7 @@ documentvolume is hiervoor aantoonbaar ongeschikt; documentquota worden niet
 tot productstore-capaciteit verheven. Apps heeft een kandidaatdescriptor en
 transactie-state-machine; AI gebruikt een afzonderlijke readerproef met 4 KiB
 read-at. Message320 blijft een aparte wiregrens van maximaal 256 payloadbytes.
+[AS-IPC1] [AS-IPC2]
 
 **Besluit:** één provider-onafhankelijk contract met immutable
 descriptor, opaque procesgebonden read-handle en read-at van maximaal 4096
@@ -41,6 +42,11 @@ invarianten toetsen. Een native backend vereist later eigen foutinjectie,
 flush-/duurzaamheidsdefinitie, koude recovery, proces-/capabilitybinding en
 afzonderlijke publisher- en modeltrustbesluiten. Herzie vóór wire-encoding,
 kernel/SDK-integratie, persistent store, modeldownload of dynamic launch.
+
+**Primaire bronnen voor de IPC-grens:**
+
+- **[AS-IPC1]** Nieuw OS-project. (2026, 26 oktober). *Uitvoerbaar kernel- en beveiligingscontract M2–M4*, sectie Berichtformaat en transactie (bronversie `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [Kernel- en beveiligingscontract](https://github.com/simonvanieperen/nieuw-os/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
+- **[AS-IPC2]** Nieuw OS-project. (z.d.). *SDK Message320-envelope: MESSAGE_SIZE, MAX_PAYLOAD en lengtevalidatie* (bronversie `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [SDK-implementatie](https://github.com/simonvanieperen/nieuw-os/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/sdk/runtime/src/message.rs).
 
 ## ADR-053 — Wachten op IPC behoudt bestaande rechten en krijgt ABI 1.10
 

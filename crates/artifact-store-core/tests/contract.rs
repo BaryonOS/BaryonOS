@@ -12,6 +12,7 @@ struct Store {
     opened_descriptor: Option<ArtifactDescriptor>,
     read_result: Result<usize, Error>,
     read_calls: usize,
+    last_read_len: usize,
     epoch: u64,
 }
 
@@ -22,6 +23,7 @@ impl Store {
             opened_descriptor: None,
             read_result: Ok(1),
             read_calls: 0,
+            last_read_len: 0,
             epoch: 1,
         }
     }
@@ -47,6 +49,7 @@ impl ArtifactStore for Store {
         output: &mut [u8],
     ) -> Result<usize, Error> {
         self.read_calls += 1;
+        self.last_read_len = output.len();
         if handle.epoch != self.epoch {
             return Err(Error::Stale);
         }
@@ -122,10 +125,12 @@ fn bounded_read_accepts_positive_short_reads_and_clamps_at_eof() {
         1
     );
     assert_eq!(buffer[0], 0x5a);
+    assert_eq!(store.last_read_len, READ_CHUNK_MAX);
     assert_eq!(
         read_bounded(&mut store, &handle, 4999, &mut buffer).unwrap(),
         1
     );
+    assert_eq!(store.last_read_len, 1);
     assert_eq!(store.read_calls, 2);
 }
 
