@@ -39,8 +39,10 @@ resolves a target-specific `cpufeatures` edge for OS targets that use it.
 
 Each store read uses the root 4 KiB storage bound and addresses the same opaque
 handle and generation. That is not a new IPC wire chunk: the existing 320-byte
-IPC transport retains its maximum 256-byte data payload, so any future IPC
-adapter must split/stream store reads through that existing layer. The
+IPC transport retains its maximum 256-byte payload, including any protocol
+headers. A future adapter must subtract its headers from that bound and
+split/stream store reads through the existing transport; this leaf defines
+neither an IPC header nor a wire chunk size. The
 caller-supplied byte budget is charged for requested bytes before I/O,
 including failed attempts, and is not refunded; this bounds retries as well
 as successful reads. Output is valid only on success. Stale, corrupt,
