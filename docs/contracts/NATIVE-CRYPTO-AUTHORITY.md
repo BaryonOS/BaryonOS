@@ -38,6 +38,10 @@ gebruikerssleutels zijn afzonderlijke autoriteitsdomeinen. B03 `TrustPolicy`
 beoordeelt releaseversies; die versies zijn geen kalender of PKI-truststore.
 Een proces-PID of zelf opgegeven identityveld is geen duurzame device-identiteit.
 Er bestaat hier nog geen vastgesteld multi-device-token/restorecontract.
+Afzonderlijke NAS-entropy-/cold-tokenfixtures bewijzen geen geïntegreerde
+Key Service-RANDOM-lease, TLS-grant of tokenreplay over boots heen.
+Een rootstorecontract met read-only helpers is evenmin een geïmplementeerde
+provider, pakketuitgever-truststore of signer.
 
 Een geautoriseerde normale herhaling binnen bestaande rechten hoeft niet
 opnieuw om toestemming te vragen. Een nieuwe identiteit, vertrouwensgrens of
@@ -141,6 +145,11 @@ vereisen hun eigen toegestane actie; dezelfde lengte maakt ze niet uitwisselbaar
 Een nieuwe revisie vraagt opnieuw geautoriseerd sealen onder nieuwe context;
 ciphertext herlabelen is geen rebase. De bestaande formaten en API's staan in
 [`B02-SECURE-RECORDS.md`](../implementation/B02-SECURE-RECORDS.md).
+NAS-core gebruikt een 32-byte namespace
+(`733da709383ce314cde63dea950125fe859f8c2a`,
+`services/nas/native-core/src/lib.rs`); `RecordContext.volume` is 16 bytes.
+Er is geen vastgestelde automatische mapping: niet afkappen, herlabelen of
+objectautoriteit uit RequestID, Invitation of PID afleiden.
 
 `Service::export_persistent`/`restore_persistent`
 (`services/keyring/src/persistent.rs`) zijn geen wachtwoord-KDF,
@@ -195,6 +204,11 @@ SEC72 heeft 36 hosttests, een geoptimaliseerde echte envelope-Destructorproef,
 Dat bewijst geen TLS-provider, vertrouwde tijd, NAS-onboarding of alle LP01–31.
 Menselijke review en eventuele formele invarianten blijven aparte gates.
 Ruimere privacykeuzes schakelen de Security Floor niet uit.
+
+NET, NAS en release hebben afzonderlijk een read-only interfaceafstemming
+geleverd. Verwerkt: foutbuffer/Busy-semantiek (NET), namespace-/volumeverschil
+(NAS) en grenzen van NAS-/rootstorefixtures (release). Dit is afnemersafstemming,
+geen brede bronreview, nieuwe native herhaling of menselijke audit.
 
 ## Primaire referenties
 
