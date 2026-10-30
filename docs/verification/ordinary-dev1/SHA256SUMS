@@ -1,6 +1,7 @@
 d1705a1ac3e72b329d5892f2fe46e61ef6a416141a3136abd58f57a081a6b49a  ./build-freeze.json
 8a1e536a4939397836ee1b3c2bac853ada77a372cf88d834b74e7424cd646119  ./isolated-build-1/build-command-records.json
 5906b3930751d5918e42c4abf4b09bca97d48c32f3b7bca75c7e5abc2bbf0b89  ./isolated-build-1/build-freeze.json
+6936dc626d09834d35aef00900a90a01765d03661b2f8c25f10f97990a6ce099  ./isolated-build-1/build-isolation-check.json
 a6d0f1d131cdb4b6bf24599f4f189a9e2a6f1b1fe24f49a868497343533aa970  ./isolated-build-1/logs/cache-path-rejected.txt
 f457af5bb20293214abc6b5a6b296833f6d5db5a7683855f7a5aab76c2b29648  ./isolated-build-1/logs/ordinary-build.txt
 0c367e61442471729b81575b9b7f693193dd01d4df8d301c759049978109a7b6  ./isolated-build-1/logs/reference-build.txt
@@ -30,3 +31,4 @@ b71f148863072fc8c54fbf83ed4a62a182cffd367d25f323104b74f039e89372  ./reference-ac
 b5319852fac78e3f4765c32bd54b3fcc78efbab607f40404c38870a9c269dddf  ./reference-ac4f038e86/stderr.txt
 26f2009e7c27a9391e7bf88b566c173e0b88a96814f361a692b0b0c9e1b886cf  ./reference-ac4f038e86/volume.json
 8bd341451db3e5811f6c2ba979a5834568ba4bc5b8293f44499daab07369d164  ./reference-manifest.json
+dda561c2b288a51e2cc28412afcc688df88319befd32c63f7e10c1bca63a909b  ./verify_isolated_freeze.py

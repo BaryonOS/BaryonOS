@@ -234,6 +234,17 @@ Aanvullend op dezelfde onveranderde geisoleerde bron uitgevoerd:
 `isolated-build-1/logs/runner-hosttests.txt`. Dit controleert de bestaande
 runnerlogica; het is geen vervanging van de nieuwe native gates.
 
+De specifieke buildisolatiecontrole is reproduceerbaar met
+`python3 -B docs/verification/ordinary-dev1/verify_isolated_freeze.py`:
+**exit0**. Zij hergebruikt de bestaande build-/packagerinspecties en
+controleert de echte bron, manifests, executables, Cargo-fingerprints,
+ELF-grenzen, zeven gedeelde apps en externe tool-/firmwarehashes.
+Als negatieve controles weigert dezelfde checker de beide oorspronkelijke
+dubbele rustflags en de oorspronkelijke samengevallen ELF-grenzen.
+Uitvoer: `isolated-build-1/build-isolation-check.json`.
+Dit script staat uitsluitend bij het releasebewijs, verandert geen
+runtime-/gedeelde buildtool en start geen VM.
+
 **Nieuw slot nog niet vrijgegeven.** De oude voorwaardelijke toestemming
 is vervallen. Pas na deze gepushte freeze en een nieuwe verse
 registrarcapaciteitscontrole mogen opnieuw maximaal twee seriele gates
