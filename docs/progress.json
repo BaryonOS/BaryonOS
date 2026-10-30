@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "8365f14e1c3fae90a781b836405836906ee785ab",
-    "branch": "codex/native-materiaal-integration",
-    "task": "PR #58: conflictintegratie met main 970c7713 met behoud van beide reparatiesporen",
+    "source_commit": "80393b67950c393dfa37336e66df5346ae6a37d7",
+    "branch": "simonvanieperen-studious-sniffle",
+    "task": "Hosttest-preflight: rapporteer ontbrekende POSIX C-linker apart van bootvereisten",
     "previous_score": 34,
-    "summary": "34% blijft 34%; deze conflictintegratie verdient geen nieuwe punten. De productintegratie, oorspronkelijke productiedigest, manifestguards en benchmarkbronbinding van main blijven behouden naast de PR-reparaties voor surface-isolatie, pointerannulering, gebalanceerde meetvolgorde en afgeleide hostscenarioaantallen. B03 en eerder rood GUI-bewijs blijven brongebonden. Actuele integratiecontroles en beperkingen staan in PROJECT-STATE.md; alle 62 volledige productcriteria blijven open. Geen volledige GUI-, multiapp-, veilige opslag-, fysieke hardware- of menselijke auditacceptatie geclaimd."
+    "summary": "34% blijft 34%; een betere melding van een ontbrekende hostlinker accepteert geen productcriterium. De lokale root-workspace Rust-test stopte op deze Linux-host bij ontbrekende `cc`; de strikte boot-preflight rapporteerde die hosttestblokkade niet als ontbrekend. `tools/preflight.py --strict-host-tests` meldt de linker nu afzonderlijk. De 22 gerichte preflighttests slagen; de volledige Cargo-test blijft open tot een C-toolchain beschikbaar is. Geen native OS-criterium of QEMU-bewijs toegevoegd."
   },
   "tracks": [
     {

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`8365f14e`](https://github.com/simonvanieperen/nieuw-os/commit/8365f14e1c3fae90a781b836405836906ee785ab) ·
-**Ontwikkelbranch:** `codex/native-materiaal-integration`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR #58: conflictintegratie met main 970c7713 met behoud van beide reparatiesporen.
-34% blijft 34%; deze conflictintegratie verdient geen nieuwe punten. De productintegratie, oorspronkelijke productiedigest, manifestguards en benchmarkbronbinding van main blijven behouden naast de PR-reparaties voor surface-isolatie, pointerannulering, gebalanceerde meetvolgorde en afgeleide hostscenarioaantallen. B03 en eerder rood GUI-bewijs blijven brongebonden. Actuele integratiecontroles en beperkingen staan in PROJECT-STATE.md; alle 62 volledige productcriteria blijven open. Geen volledige GUI-, multiapp-, veilige opslag-, fysieke hardware- of menselijke auditacceptatie geclaimd.
+**Bron:** [`80393b67`](https://github.com/simonvanieperen/nieuw-os/commit/80393b67950c393dfa37336e66df5346ae6a37d7) ·
+**Ontwikkelbranch:** `simonvanieperen-studious-sniffle`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hosttest-preflight: rapporteer ontbrekende POSIX C-linker apart van bootvereisten.
+34% blijft 34%; een betere melding van een ontbrekende hostlinker accepteert geen productcriterium. De lokale root-workspace Rust-test stopte op deze Linux-host bij ontbrekende `cc`; de strikte boot-preflight rapporteerde die hosttestblokkade niet als ontbrekend. `tools/preflight.py --strict-host-tests` meldt de linker nu afzonderlijk. De 22 gerichte preflighttests slagen; de volledige Cargo-test blijft open tot een C-toolchain beschikbaar is. Geen native OS-criterium of QEMU-bewijs toegevoegd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

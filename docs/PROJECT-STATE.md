@@ -1,6 +1,28 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR #58, integratie met main — 30 oktober 2026
+## NEXT AGENT HANDOFF — hosttest-preflight — 30 oktober 2026
+
+Broncommit `80393b67950c393dfa37336e66df5346ae6a37d7`, basis `main`
+`5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De afzonderlijke
+`--strict-host-tests`-controle meldt ontbrekende POSIX-hostlinkers los van de
+bootvereisten; de bestaande `--strict`-betekenis blijft ongewijzigd.
+Gewijzigd: `tools/preflight.py`, `tests/test_preflight.py`,
+`docs/DEVELOPMENT.md`. Bewijs en grenzen:
+[hosttest-preflight](verification/host-test-linker-preflight/README.md).
+
+Op deze Linux x86_64-host is de vastgepinde Rust 1.90.0 lokaal onder de
+genegeerde `.tools/` ingericht; `cc` en QEMU ontbreken. De 22 gerichte
+preflighttests slagen. `cargo +1.90.0 test --offline --locked --workspace`
+stopte op exit 101 bij `linker cc not found`
+(`/tmp/nieuw-os-infra-root-final.log`). De hostpreflight eindigde met exit 2
+en rapporteerde `missing_host_test_tools: ["cc"]`. `sudo -n true` eindigde
+met exit 1 doordat interactieve authenticatie vereist is; geen systeempakket
+is geïnstalleerd. De eerder vastgelegde HKDF-doctestfout is op deze bron niet
+getest, omdat compileren al vóór doctests stopte. **34% → 34%**; geen
+productcriterium of native QEMU-bewijs toegevoegd. Hervat na installatie van
+een host-C-toolchain met dezelfde root-workspace-test.
+
+## Historisch checkpoint — PR #58, integratie met main — 30 oktober 2026
 
 Bronnen: PR-head `8365f14e1c3fae90a781b836405836906ee785ab` en
 `main` `970c7713e0c40adc50b4ae5ac665602b2d44d6c2`, op
