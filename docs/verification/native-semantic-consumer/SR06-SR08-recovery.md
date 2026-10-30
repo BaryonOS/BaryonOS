@@ -1,6 +1,9 @@
 # SR06/SR08: recoveryregressies en rode modale blocker
 
-Status: **gedeeltelijk geblokkeerd, NIET mergeklaar**.
+Status: **rode modale blocker hersteld na expliciete scopeuitbreiding;
+hostgates groen, gerichte review/integratie/nativeacceptatie nog open**.
+De onderstaande rode checkpoints blijven ongewijzigd historisch bewijs;
+de actuele fix en hashbinding staan onder V4.
 Assessment 30 oktober 2026, Europe/Amsterdam. Taak
 TASK-UI-SR06-SR08-REGRESSIONS, queue
 `e6e382cb7a02e0f36951842df04993277ee3a6cd`, blob
@@ -184,3 +187,75 @@ d9549f427a222d626d6199921fe50cd7a11227c6920fac9f27a13f182ec21a8d  none-v3.log
 
 Geen renderer- of controllerwrites. Nog geen uitbreiding ontvangen bij
 deze v3-checkpoint; oorspronkelijke scope en rode status blijven gelden.
+
+## V4: expliciet vrijgegeven modale consistentiefix
+
+Scopeuitbreiding queue `dea97f9b57c6fda9549a48072119663fe155a563`, blob
+`53ac59d53fa7daece42b07925d6ecffe852012f6`, ontvangen vóór productwrites.
+Rode bron `7dc64b3a5a58ce95030f5edd2bb5c6eb184efc57` blijft ancestor.
+Vier toegestane bestanden: bestaande tests en deze note, plus modal-only
+renderer en conditionele controllerfocus/inputconsistentie.
+
+`render.rs` gebruikt nu bestaande `view.can_save` voor zowel het schilderen
+van Bewaren als de enabled/action-state van SaveAndBack. Geen hover-, token-,
+algemene layout- of nieuwe beleidswijziging. Controller modal-Tab/ShiftTab
+beperkt de cyclus tot KeepEditing/Discard wanneer Save niet beschikbaar is.
+Pointer-hit-testing sluit dezelfde disabled knop uit. Keyboard en semantische
+activatie hergebruiken de ongewijzigde actuele-boom/action/generationguards.
+Opslagguards en capabilities blijven ongewijzigd.
+
+De uitgebreide conflict/revoke-test controleert nu naast enabled/action:
+werkelijke disabled pixel (`LINE`), beide Tab-richtingen zonder disabled focus,
+pointerpress/release op Bewaren zonder activatie of focusverlies, oude generatie
+geweigerd, KeepEditing/Discard beide beschikbaar en Enter op KeepEditing
+behoudt de draft zonder nieuwe opslagrequests. Beide oorspronkelijke
+reprogevallen zijn groen; er wordt geen case meer uitgefilterd.
+
+Een aanvullende echte rode case toonde een nauw verbonden focusfout:
+de grant wordt pas **na** het openen van de dialoog ingetrokken; SaveAndBack
+was toen terecht beschikbaar, maar de daadwerkelijk geweigerde save liet
+focus op de inmiddels afwezige SaveAndBack staan in Editor.
+`focus-red.log`, exit101: SaveAndBack in plaats van Document.
+De bestaande `failed`-focusherstelroute verplaatst nu ook Save/SaveAndBack
+naar Document als er geen save meer loopt en `can_save=false`. Geen fout
+wordt verborgen; de oorspronkelijke storagefout blijft geretourneerd.
+
+### Actuele volledige gates
+
+Zelfde exacte toolchain/omgeving/target/logmap. Dit zijn controles op de
+werkelijk gecombineerde fix/testbron met onderstaande hashes; oude groene
+of rode resultaten worden niet naar de nieuwe bron herlabeld.
+
+| Exact commando (`cargo` = `cargo +1.90.0`) | Exit | Tijd | Log |
+|---|---:|---:|---|
+| `cargo test --offline --locked --manifest-path ui/native/Cargo.toml --test interaction sr06_` | 0 | 0,430 s | `fix-targeted-v2.log`, 4/4 |
+| `cargo test --offline --locked --manifest-path ui/native/Cargo.toml` | 0 | 0,552 s | `fix-suite.log`, **28/28**, geen skip/ignore |
+| `cargo fmt --manifest-path ui/native/Cargo.toml -- --check` | 0 | 0,060 s | `fix-fmt.log` |
+| `cargo check --offline --locked --manifest-path ui/native/Cargo.toml --tests` | 0 | 0,240 s | `fix-check.log` |
+| `cargo clippy --offline --locked --manifest-path ui/native/Cargo.toml --all-targets -- -D warnings` | 0 | 0,420 s | `fix-clippy.log` |
+| `cargo build --offline --locked --manifest-path ui/native/Cargo.toml --target x86_64-unknown-none` | 0 | 0,198 s | `fix-none.log`, alleen crosscompile |
+| `git diff --check` | 0 | 0,007 s | `fix-diff.log` |
+
+SHA-256 van exacte geteste product-/testbron en logs:
+
+```text
+4210c82fd2436f22ec520f0eed8d110fc59af9f1ae8b35b6da84d6a4f1a8615b  ui/native/src/controller.rs
+898366f8ea3fe9ad965915c78148a320773a05df8ea0182e00bacfff9b977d16  ui/native/src/render.rs
+77c42c0466e87fc781ee172e68ba9d9803c6c9ea7ef0f61a3f1d10d094cc8980  ui/native/tests/interaction.rs
+05c7a04e16e590d950628250abc1901b7584d026aeaff4c954031db09f846c57  fix-targeted-v2.log
+403cc58dfcb16b64b807036c0d6ccc3be1d0076d90eb28fa1c1ebcbde009308b  fix-suite.log
+a0caceb5e4af72c716a4ad0b514482308f3e04935f852d3f933915ff7ba9bbc2  fix-fmt.log
+54beadcd3422d92e117cd5ad6777c1fb3309d5d934207fa451f5d0d2fec8bdae  fix-check.log
+a3b98d50032906d640fb236d2d9eb1d4de701aa56c42fa7392a881ddd31d36e9  fix-clippy.log
+a6f8dca32c4df9c12f970a437b214bf0f09cbe64afd65fcec9d6c75c10fa9293  fix-none.log
+aaaec055204f4742ef3b8130164dcc63e629905a1d9cf13f2c05b73a6b6bcd87  fix-diff.log
+b08514502e211c952b5bf4ad5fc8f4e30a322d93b6fa968bc747529fb5829972  focus-red.log
+```
+
+Bronfreeze voor begrensde7f/Appsreview; hun uitkomst is hier nog niet
+verondersteld. Geen merges uitgevoerd. De aparte integratorpauze geldt nog
+onafhankelijk van deze domeinfix. Frozen dca/70/hoverheads zijn niet gewijzigd.
+**Niet uitgevoerd:** VM, externe nativeconsumer/screenreader, menselijke
+acceptatie, koude opslagproef of gezamenlijke image-CI. Nieuwe assessment:
+34 -> 34 /100, U0 -> U0 /15. Alleen de hostmatige defect/recoverygrens is
+hersteld; geen native criterium gesloten.

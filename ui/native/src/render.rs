@@ -481,7 +481,7 @@ impl<'a> Frame<'a> {
                 layout.modal_save,
                 "Bewaren",
                 self.view.focus == Focus::SaveAndBack,
-                true,
+                self.view.can_save,
                 ButtonStyle::Primary,
             );
             paint.button(
@@ -734,7 +734,7 @@ impl<'a> Frame<'a> {
                     None,
                     l.modal_save,
                     Some(Focus::SaveAndBack),
-                    true,
+                    self.view.can_save,
                 );
                 push(
                     SemanticId::KeepEditing,

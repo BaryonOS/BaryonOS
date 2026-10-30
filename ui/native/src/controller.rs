@@ -186,7 +186,11 @@ impl<'a, T: Transport> Controller<'a, T> {
         Ok(())
     }
     fn failed(&mut self, error: Error) -> Error {
-        if self.focus == Focus::CancelSave && !self.document.is_saving() {
+        if !self.document.is_saving()
+            && (self.focus == Focus::CancelSave
+                || (!self.view().can_save
+                    && matches!(self.focus, Focus::Save | Focus::SaveAndBack)))
+        {
             self.focus = Focus::Document;
         }
         self.status = Status::Failed(if self.document.is_uncertain() {
@@ -689,10 +693,16 @@ impl<'a, T: Transport> Controller<'a, T> {
                 }
             }
             Screen::ConfirmClose => {
-                choices[0] = Focus::SaveAndBack;
-                choices[1] = Focus::KeepEditing;
-                choices[2] = Focus::Discard;
-                3
+                if self.view().can_save {
+                    choices[0] = Focus::SaveAndBack;
+                    choices[1] = Focus::KeepEditing;
+                    choices[2] = Focus::Discard;
+                    3
+                } else {
+                    choices[0] = Focus::KeepEditing;
+                    choices[1] = Focus::Discard;
+                    2
+                }
             }
         };
         let at = choices[..count]
@@ -881,7 +891,10 @@ impl<'a, T: Transport> Controller<'a, T> {
                 (layout.modal_discard, Focus::Discard),
             ]
             .into_iter()
-            .find_map(|(rect, focus)| rect.contains(x, y).then_some(focus)),
+            .find_map(|(rect, focus)| {
+                (rect.contains(x, y) && (focus != Focus::SaveAndBack || self.view().can_save))
+                    .then_some(focus)
+            }),
         }
     }
     fn point_caret(&mut self, x: u32, y: u32, extend: bool) {
