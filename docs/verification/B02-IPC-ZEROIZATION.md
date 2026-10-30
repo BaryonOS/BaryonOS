@@ -1,6 +1,6 @@
 # B02-IPC-HYGIENE-1 — IPC-envelopegeheugenhygiëne
 
-## Actuele testverharding — verse byteprovenance na Drop
+## Actuele herhaling — verse byteprovenance na Drop
 
 De netwerkpeer heeft de productie/controlflow op d467721 afzonderlijk
 read-only beoordeeld: geen concrete bevinding; sender-/capchecks, alle
@@ -20,9 +20,40 @@ T-referentie na Drop, geen veronderstelde private layout.
 Dezelfde36 hosttests, Clippy, fmt en geoptimaliseerde destructortest zijn
 opnieuw groen; logs `/tmp/nieuw-os-ipc-drop-provenance-{host,clippy,release}.log`.
 Miri is **niet uitgevoerd**; stabiele host-/native tests zijn geen formeel
-UB-bewijs. Checkpoint vóór de12 nieuwe native regressiegasten op de komende
-exacte bron/fingerprint. Alle d467/9e7-resultaten hieronder blijven historisch
-eigen bewijs. Geen runtimeclaim op deze gewijzigde fingerprint vóór uitvoering.
+UB-bewijs.
+
+Na checkpoint/push opnieuw alle12 native regressiegasten echt uitgevoerd op
+`df1ea1d10e50345bb410c985e5994c12f699350b`, nieuwe v3
+`dfdaf28f742bf95289108cfa4d8c453145b31a1e53833e121d6324619ec1a392`:
+dezelfde exacte system/B01/WAIT-commands en vier RANDOM-build/runparen
+uit onderstaande tabel, allemaal exit0. System2, B015, WAIT1 en RANDOM4;
+iedere guest raw33. Geen productie- of caller-/lease-/Unknown-semantiekdelta.
+
+Nieuwe brongebonden capturecommands, beide exit0:
+`python3 -B tools/capture_system.py --destination docs/verification/full-release-ipc-provenance-system`
+en
+`python3 -B tools/capture_keyring.py --destination docs/verification/ipc-provenance-keyring`.
+WAIT/RANDOM-gasten met echte serialbytes en alle gerichte ruwe logs:
+`ipc-provenance-random/`. Vier RANDOM-serialorakels bij capture opnieuw
+herberekend; alle63 capturehashes zijn tegen Git-blobs gecontroleerd.
+SHA256SUMS-hashes: system
+`721406934ccdbba6e64da3555863937e001489138e5515e421dd3d80de75e933`,
+keyring
+`cba4308993955fd268d83b10926512efc0393aaf49a8b68768a3eaf1b5cc74f9`,
+WAIT/RANDOM
+`b60b569d2a44e1719c7f7252ea1e5362c6463442a240bd22f1ad75b3787aafab`.
+Lokale commandologs `/tmp/nieuw-os-ipc-provenance-*.log` en genoemde
+host-/Clippy-/releaseprovenancelogs zijn ongewijzigd meegearchiveerd.
+Alle20 SDK-runtimeconsumentgrafen zijn bovendien echt opnieuw gecontroleerd
+met `cargo +1.90.0 metadata --offline --locked --no-deps --format-version 1 --manifest-path <consumer>/Cargo.toml`,
+elk exit0. Het compacte commandolog staat eveneens in de capture; dit is
+lock-/graafvalidatie, geen20 extra builds of runtimeacceptaties.
+
+Alle d467/9e7-resultaten hieronder blijven historisch eigen bewijs.
+De peerreview van productie/controlflow blijft broninhoudelijk toepasbaar
+op ongewijzigde productiecode; nieuwe testprovenance is apart te beoordelen.
+Geen actuele-mainintegratie/head-CI, Miri, menselijke externe review,
+fysiek hardwarebewijs of nieuwe rubricpunten door deze herhaling.
 
 ## RANDOM-consumerintegratie na exclusieve eigenaarsafspraak
 
