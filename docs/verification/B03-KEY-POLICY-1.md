@@ -105,6 +105,8 @@ disk-/vars-/artifacthashes, getallen en onafhankelijke slotdiskorakels.
 `native-gate.log` en `clippy.log` bewaren de volledige commandologs.
 `SHA256SUMS` bindt de oorspronkelijke 55 capturebestanden; de twee extra logs
 zijn geen invoer voor het native verdict.
+De lokale `.gitattributes` bewaart de ruwe firmware-CRLF-bytes; de hashes
+moeten ook tegen de Git-blobs slagen, niet alleen tegen de lokale werkboom.
 
 | Invoer of rapport | SHA-256 |
 |---|---|
