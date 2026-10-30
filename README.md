@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`cdfa365d`](https://github.com/simonvanieperen/nieuw-os/commit/cdfa365d21421d171ed21680e0cc22a2310e4e27) ·
+**Bron:** [`a3830f3a`](https://github.com/simonvanieperen/nieuw-os/commit/a3830f3a00bd46053a9fa4dd27de37865272c641) ·
 **Ontwikkelbranch:** `simonvanieperen-musical-happiness`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** DHCP-CODEC-1: begrensde no_std DHCPv4-codec als voorstap voor native netwerkconfiguratie.
-34% blijft 34%. Een dependencyvrije no_std DHCPv4-codec bouwt DISCOVER/selecting REQUEST/renewal REQUEST en parseert begrensd OFFER/ACK/NAK; de kernel-ABI en netwerkrechten zijn onaangeroerd. `cargo check --tests --locked --offline`, fmt en diffcontrole slagen, maar de volledige hosttests linken niet omdat `cc` ontbreekt. Geen DHCP-toestandsmachine, interface-/routeconfiguratie of native peerproef; N01–N04 blijven open en geen criterium is gesloten.
+34% blijft 34%. Een dependencyvrije no_std DHCPv4-codec bouwt DISCOVER/selecting REQUEST/renewal REQUEST en parseert begrensd OFFER/ACK/NAK; de kernel-ABI en netwerkrechten zijn onaangeroerd. Na een Clippy-waarschuwing op cdfa365 is de mod-4-check vervangen door `is_multiple_of`; fmt en `cargo check --tests --locked --offline` slagen op de fix. Clippy en targetbuild moeten nog op deze commit worden herhaald; de volledige hosttests linken niet omdat `cc` ontbreekt. Geen DHCP-toestandsmachine, interface-/routeconfiguratie of native peerproef; N01–N04 blijven open en geen criterium is gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -2,11 +2,9 @@
 
 ## NEXT AGENT HANDOFF — DHCP-CODEC-1 blijft ongetest en niet-native — 30 oktober 2026
 
-Branch `simonvanieperen-musical-happiness`; codecommit `cdfa365` is geïntegreerd
-met `origin/main` via checkpoint `e1cce29`. DHCPv4-codec in
-`services/net-protocol/` is daarmee gecommit. Deze codewijziging raakt alleen de
-module/export/tests, codecdocumentatie en queue; de kernel-/SDK-ABI en
-netwerkbevoegdheden zijn ongewijzigd.
+Branch `simonvanieperen-musical-happiness`; DHCP-codecommit `cdfa365` plus
+Clippy-fix `a3830f3`; `origin/main` is behouden via mergecheckpoint `e1cce29`.
+De branch bevat geen kernel-/SDK-ABI- of netwerkbevoegdheidswijziging.
 
 De codec bouwt DISCOVER, selecting REQUEST en renewal REQUEST en begrensd
 parseert OFFER/ACK/NAK met transaction-/MAC-controle, 576-bytegrens,
@@ -14,22 +12,26 @@ subnet-/router-/DNS-/leasevelden en expliciete weigering van overload. Dit is
 geen DHCP-clienttoestandsmachine en past geen interfaceconfiguratie toe.
 Een matching DHCP-identiteit authenticeert de server niet.
 
-**Bewijs op deze tussenstand:** `python3 -B tools/dev.py cargo +1.90.0 fmt
---manifest-path services/net-protocol/Cargo.toml --all` exit 0;
-`python3 -B tools/dev.py cargo +1.90.0 check --manifest-path
-services/net-protocol/Cargo.toml --tests --locked --offline` exit 0;
-`git diff --check` exit 0. Gerichte `cargo test` exit 101: `linker cc not
-found`; ruwe uitvoer tijdelijk `/tmp/nieuw-os-dhcp-tests.log`. Testcode is dus
-wel typegecontroleerd maar niet uitgevoerd. Nergens native QEMU-netwerkbewijs.
+**Bewijs op de huidige codeccommit:** `python3 -B tools/dev.py cargo +1.90.0
+fmt --manifest-path services/net-protocol/Cargo.toml --all -- --check` en
+`env CARGO_TARGET_DIR=target/dhcp-codec python3 -B tools/dev.py cargo +1.90.0
+check --manifest-path services/net-protocol/Cargo.toml --tests --locked
+--offline` exit 0; `git diff --check` exit 0. Clippy op codecommit `cdfa365`
+faalde (exit 101) op `manual_is_multiple_of`; de lintfix is gecommit, maar
+Clippy en de freestanding targetbuild moeten op `a3830f3` worden herhaald.
+De eerdere targetbuild op `cdfa365` slaagde, niet bewijs voor de lintfix-commit.
+Gerichte `cargo test` exit 101: `linker cc not found`; uitvoer
+`/tmp/nieuw-os-dhcp-tests.log`. Testcode is typegecontroleerd maar niet
+uitgevoerd. Nergens native QEMU-netwerkbewijs.
 
 **Rubric:** 34% → 34%; N01–N04 blijven open; de codec is geen geaccepteerd
 productcriterium. Broncommits voor de volgende herbeoordeling volgen na het
 implementatiecheckpoint. **Blokker:** lokale hostlinker ontbreekt. Eerstvolgende
-commando na checkpoint: `python3 -B tools/dev.py cargo +1.90.0 clippy
---manifest-path services/net-protocol/Cargo.toml --all-targets --locked
---offline -- -D warnings`, gevolgd door de freestanding `x86_64-unknown-none`
-build. Daarna hosttestuitvoering herstellen of de blokkade exact escaleren;
-vervolgens pas native DHCP-client-/lease-integratie.
+**Eerstvolgend:** commit en push deze assessment; daarna op exact `a3830f3`
+Clippy draaien en de freestanding `x86_64-unknown-none`-build herhalen. Daarna
+hosttestuitvoering herstellen of de linkerblokkade exact escaleren; vervolgens
+pas DHCP-client-/lease-integratie. Geen N01–N04-criterium gesloten; score
+34% → 34%.
 
 ## Historisch checkpoint — hardware, drivers en energie — 30 oktober 2026
 
