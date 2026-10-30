@@ -85,6 +85,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Vervolg op `b4545d3`: **34% → 34%**. Kort actief checkpoint, oorspronkelijke
+details gelinkt als uitgebreid verslag; cold77-statusscheiding verandert
+geen uitgevoerde test/bron/hash. Nieuwe e8→7f-integratoroverdracht is pas
+actief na expliciete stop/vrijgave/ontvangst, niet door timeout. Assistent
+blijft enige queuewriter. Release meldt hostherstel na DEV1-referentiefout;
+guestherproef open. Geen criteria/evidence gewijzigd.
+
 Ontvangstcheckpoint op donorbron `6e3bc3f`: **34% → 34%**.
 Assistent bevestigde uitsluitend queueblob7c011de te hebben overgenomen en
 checkpoint16151b9 te hebben gepusht; remotehead door teamleider gecontroleerd.

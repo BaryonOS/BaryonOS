@@ -1,6 +1,52 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — technische leiding, zelfstandige planning en directie — 30 oktober 2026
+## NEXT AGENT HANDOFF — mandaten overgedragen, ontwikkeling loopt door — 30 oktober 2026
+
+**Basis:** `b4545d3d8b71db14c42699bb8be0b4be4e932e16`, branch
+`simonvanieperen-symmetrical-barnacle`; manager wijzigt geen runtimecode.
+Start met `git branch --show-current && git rev-parse HEAD && git status --short`.
+
+**Bevoegdheden:** operationeel teamleider89f houdt technische samenhang,
+PROJECT-STATE en scorebestanden. Assistent5d5 heeft queueovername16151b9
+bevestigd; actuele queue6d34fdfe, uitsluitend zijn schrijver,24rollen/
+fileclaims/acceptatie. Hij verdeelt vrije gewone taken zelfstandig;
+NETconfig/UIhover zijn al toegewezen, zeven afdelingen geïnformeerd.
+Directeuref7 bewaakt roadmap/kwaliteit zonder routinepoort; intakef2 blijft
+PR-intake. Bestaande opdrachten blijven bij stilte/timeouts geldig.
+
+**Integratieconflict:**7f meldt nieuwe aanwijzing als enige integrator,
+maar e8→7f-stop/vrijgave/ontvangst is nog niet bevestigd.7f blijft read-only;
+assistent/directie regelen exclusieve overdracht. Berichten aan8 gaven
+priority-timeout en zijn gequeueëd, geen stop geclaimd of gebied overgenomen.
+Huidige volgorde74→75→78→82, geen bypass; bij75 mainca45/NET70,74 en
+65ec/796/0e-historie behouden en actuele queue uitsluitend via5d overnemen.
+
+**Productblocker:** release meldt DEV1-referentie-VM exit1/raw0 vóór
+Materiaalmanifest, gewone preview niet gestart. Release meldt herstelc969de24:
+dubbele Cargo-linkerscriptflag, nieuwe hostbuilds/ELF-controle groen; nieuwe
+guestherproef nog niet uitgevoerd,12slotafspraak vereist. Bewijs bij4;
+12 beheert slots,20 onafhankelijke producttest,21 bestaande Windowsroute.
+UI0818-probe is smal native deelbewijs, geen gewone DEV/cold/U-acceptatie.
+Store/READ/issuer/launch/TLS/NAS-lifecycle blijven echte productafhankelijkheden.
+
+**Bewijs/score:**34→34, criteria/evidence ongewijzigd; alle62FR en100cold/
+24uur/fysieke/menselijke gates open. B05: geen bevestigde auditor; operationeel
+uitgesteld, niet een persoonlijk benoemingsbesluit van Simon. Geen externe
+benadering/betaalde opdracht/auditautorisatie. Onafhankelijke ontwikkeling door.
+
+**Hervatten:** assistent beheert allocaties; technisch teamleider bewaakt
+exclusieve integratoroverdracht en echte DEV1-oorzaak, niet nog een algemene
+statusronde. Geen nieuwe manager-QEMU/Rust/hardware/menselijke proef.
+Progress write/check, diff en invariantchecks staan in
+[managementbewijs](verification/teamleader-management-20261030.json);
+[uitgebreid bron-/overdrachtsverslag en logs](#uitgebreid-verslag-manageroverdracht-30-oktober-2026)
+hieronder bewaart alle eerdere details, geen tweede actuele roadmap.
+
+## Uitgebreid verslag manageroverdracht 30 oktober 2026
+
+Onderstaande uitgebreide registratie bewaart de eerdere momentopname en
+brongebonden historie. Voor actuele acties geldt uitsluitend het checkpoint
+hierboven en de werkqueue bij de bevestigde assistent.
 
 **Bron:** branch `simonvanieperen-symmetrical-barnacle`, checkpointbasis
 `6e3bc3ff9922d947df8f5aa89a7bcd962da601fa`; runtimeboom blijft main94

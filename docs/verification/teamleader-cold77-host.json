@@ -16,6 +16,10 @@
   "native_guest_execution": false,
   "full_original_artifact_replay": false,
   "scope": "Existing targeted host tests only, not a code-review approval or release acceptance",
+  "status_scope": "Historical manager host-test snapshots; pending phrases below describe those snapshots, not the current PR lifecycle.",
+  "source_fix_status": "closed on 7d66dc2744604d8119b8366a283dc10ea1a76000 after bounded source review and 16 manager host tests",
+  "native_repetition_status": "not executed by manager; later owner evidence reported on bffe11fbc8c90d0e43b784c0a4ab580a111c12cc",
+  "merge_approval_status": "not granted by this report; current head review and required gates remain the integrator's responsibility",
   "followup_fix_execution": {
     "source_commit": "7d66dc2744604d8119b8366a283dc10ea1a76000",
     "command": "python3 -B -m unittest tools.tests.test_materiaal_cold",
@@ -30,7 +34,7 @@
     "native_guest_execution": false,
     "reviewer_followup": "Both source findings closed in the bounded fix delta; no remaining concrete finding reported, no merge approval",
     "new_native_source_fingerprint": "949ce3abc8df4af3ed4cc29fd41e10ee0621e4f270ddf4ac2aafb3bacba9a901",
-    "same_source_native_repetition": "assigned to build owner, not yet reported complete"
+    "same_source_native_repetition": "pending at this host-test snapshot; later owner evidence reported on bffe11fbc8c90d0e43b784c0a4ab580a111c12cc, not a manager guest run"
   },
   "separate_review_findings": [
     {
@@ -39,7 +43,7 @@
       "file": "tools/run_materiaal_cold.py",
       "lines": "148-189,206-207",
       "issue": "Final serial bytes need post-exit PANIC/FAIL validation, not only hashing",
-      "status": "source fix reviewed on 7d66dc2; manager ran the updated 16 targeted host tests, new native repetition pending"
+      "status": "source fix closed on 7d66dc2; manager ran 16 targeted host tests, not a native gate or merge approval"
     },
     {
       "reviewer_session": "7f895683-fc79-48d0-a98a-aa0a6ccfe8b9",
@@ -47,13 +51,13 @@
       "file": "tools/materiaal_cold.py",
       "lines": "98-108,125-146",
       "issue": "Parent replay needs actual immutable firmware byte hashes, not only firmware dictionary equality",
-      "status": "source fix reviewed on 7d66dc2; four immutable-file tamper negatives and mutable-VARS positive included, new native repetition pending"
+      "status": "source fix closed on 7d66dc2; four immutable-file tamper negatives and mutable-VARS positive included, not a native gate or merge approval"
     }
   ],
   "limitations": [
     "The original 14-test result did not establish coverage of the two new findings; the followup records the updated suite separately.",
     "Review findings are source traces, not a manager reproduction or proof that the stored guest run failed.",
-    "The new findings block merge until owner fixes, regression tests and appropriate source-bound gates.",
+    "The two source fixes and their targeted host regressions are closed on 7d66dc2; native execution is not established by this manager host report and merge approval is separate.",
     "No native source fingerprint or historical artifact hash was relabeled.",
     "No clean guest shutdown, write-time power loss, Windows cold restart, byte reproducibility or full product acceptance."
   ]
