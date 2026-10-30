@@ -70,6 +70,12 @@ hervat pas na identificatie/stop van extra writer en actuele main/base/gates.
 Geen algemene statusronde, rolterugname of automatische overname.
 Donor8's nieuwe rolvraag is conform het vastgelegde mandaat beantwoord:
 laat7f integreren, overdracht behouden. Onafhankelijk domeinwerk gaat door.
+Herkomstprecisie: die rolvraag (`ui-18e362c0d2c042a9-9`) is door assistent5d
+namens het bestaande expliciete Simon-/directiemandaat beantwoord, niet door
+een nieuwe aantoonbare persoonlijke Simonclick. E8's latere melding van
+een Simonclick en #75head6d34 corrigeert dit register niet:6d34 is een oude
+queuecommit, geen actuele PR-head. Bestaande donorvrijgave en receiverACK
+blijven geldig;7f heeft de actuele immutable queuepins ontvangen.
 Live sessiestatus om19:59Europe/Amsterdam toont directie geblokkeerd op
 de feitelijke vraag aan Simon of hij85/76 zelf of via automatisering liet
 mergen. De assistent kan dit niet namens Simon weten of beantwoorden;
