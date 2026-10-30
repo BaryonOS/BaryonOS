@@ -3,7 +3,8 @@
 ## NEXT AGENT HANDOFF — GUI/koude proefversie en echte FPU-wacht groen — 30 oktober 2026
 
 Branch `simon/native-test-version`; basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`,
-code `deb7a3d5c1c72a2fc816a5900062f9ed0d554782`, bron v3
+code `deb7a3d5c1c72a2fc816a5900062f9ed0d554782`, integratiebewijs op
+`36cbd215e03becbc4b495ae1b3a42b844603e0fa`, bron v3
 `31c1f108e52336c222c1a9541dc91edd06c291c05eedbc88dec03d8df658bf9f`.
 **Score 34% → 34%; gevraagde 50% niet bereikt.** Alle agents klaar; geen
 achtergrondwerk of gedeelde schrijver. Werkbranch/codecheckpoints gepusht.
@@ -16,16 +17,21 @@ frame-/context-/Engineherstel. Vier eerdere failures blijven bewaard;
 geen scheduler-, entryassembly-, rechten- of productdeadlineversoepeling.
 Bewijs/commando's: `verification/native-test-version/fpu-wait-evidence.json`.
 
-Eerder geslaagd: echte GUI-edit/save/list/reopen op `2066ae7`, koude readonly-
-heropening op `de541fa`, system normal/recover op `3064b1a`, RTC en gewone
-IPC-wacht op `a263bef`. Geen van die bronnen naar de nieuwe bron omgelabeld.
+Definitieve hertoets op `36cbd21`: echte GUI-edit/save/list/reopen raw33 in
+128,857 s; koude readonly-heropening raw33 in 60,679 s met bytegelijke disk,
+zichtbare weigering en nul writes/flushes. Ook system normal/recover, RTC
+en gewone IPC-wacht zijn op die bron opnieuw raw33 geslaagd. Alle bronnen,
+commando's en hashes staan in `verification/native-test-version/integrated-evidence.json`.
 Lokale normale proefversie: `build/native-test-version/test-version/esp`,
-nog op de eerdere GUI-code; nieuwe GUI-integratiehertoets volgt.
+nu opnieuw gebouwd op die code; alle tien loader/kernel/userspace-payloads
+zijn bitgelijk aan de geslaagde normale run. Core: 64 tests en 1 bestaande
+ignored; SDK: 23 tests, beide offline/locked exit0.
 
-Eerstvolgend: normale en koude GUI-keten op de definitieve code, dezelfde
-beheerde root voor parent/recover; `NOS_BUILD_DIR="$PWD/build/native-test-version/gui-final" NOS_TARGET_DIR="$PWD/target/native-test-version/gui-baseline" python3 -B -u tools/build.py --kernel-feature native-system-materiaal-probe`
-met bestaande lokale `LD_LIBRARY_PATH`, daarna `run_materiaal_probe.py`.
-Open: kill van een nog Waiting proces, overige native/productmatrix,
+Volgend concreet open punt: kill van een nog Waiting proces met de bestaande
+K05-procesrechten, stale-handleweigering en vers slothergebruik. De bestaande
+`supervisor::kill` loopt al via echte KILL-rechten en normale cleanup; lees
+nu uitsluitend die fixture/apps/runner voor een afgebakende native proef.
+Nog geen nieuwe schrijver of achtergrondtaak gestart. Open: overige native/productmatrix,
 fysieke en menselijke acceptatie. Testfixtureplaintext is geen persoonlijke
 opslag-/encryptie-/releaseclaim. Nieuwe concept-PR is niet geopend omdat de
 app-sessie aan de oudere infra-branch is gebonden; geen CLI-omweg gebruikt.

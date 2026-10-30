@@ -160,5 +160,38 @@ De negatieve hosttests weigeren ook het verkeerde profiel en foutief
 meegetelde idle-saves; `python3 -B tools/test_fpu.py`: 12 tests, exit0.
 
 Dit sluit de ontbrekende FPU/wachtcombinatieproef, niet kill van een nog
-Waiting proces, volledige GUI- of releaseacceptatie. De normale/koude
-GUI-keten moet op deze definitieve integratiecode nog worden herhaald.
+Waiting proces, volledige GUI- of releaseacceptatie.
+
+## Definitieve geïntegreerde proefversie
+
+De normale én koude GUI-keten zijn op `36cbd21` werkelijk opnieuw uitgevoerd:
+exit0/raw33 in 128,857 s en 60,679 s. Zelfde zes/drie echte frames,
+werkelijke edit/save/list/reopen, exacte 14 opgeslagen bytes, zichtbare
+readonly-weigering, ongewijzigde koude disk en volledige cleanup.
+System normaal/koud, native RTC en IPC-wacht slagen op diezelfde bron
+opnieuw raw33. Core/wacht: 64 tests en 1 bestaande ignored; SDK: 23 tests,
+offline/locked exit0. `integrated-evidence.json` bevat de exacte commando's,
+logpaden, bron- en artifacthashes. De FPU-runs hebben dezelfde runtime-
+bronvingerafdruk; hun oorspronkelijke commitbinding blijft behouden.
+
+`build/native-test-version/test-version` is opnieuw als normaal proefprofiel
+gebouwd. Een aparte hashvergelijking bevestigt dat de loader, kernel en alle
+acht userspace-ELFs bitgelijk zijn aan de geslaagde normale run. De
+`volume.empty.img` is de bytegelijke synthetische lege schijf.
+Het profiel is automatisch opnieuw te bedienen met:
+
+```sh
+LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu" \
+NOS_BUILD_DIR="$PWD/build/native-test-version/test-version" \
+python3 -B -u tools/run_materiaal_probe.py \
+  --build-dir "$PWD/build/native-test-version/test-version" \
+  --machine pc-q35-10.0 \
+  --vga-rom "$PWD/.tools/nieuw-os/qemu/usr/share/seabios/vgabios-stdvga.bin" \
+  --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde
+```
+
+Dit laatste padcommando is de herhaalprocedure, **niet nog een uitgevoerde VM**:
+de werkelijk uitgevoerde normale run gebruikte `gui-final`, zoals hierboven
+en in het JSON-rapport staat. De geleverde payloads zijn er bitgelijk aan.
+Dit blijft een begrensde automatische QEMU-proef, geen installer/dagelijks OS.
+Score **34% → 34%**; het 50%-doel en de volledige productmatrix blijven open.

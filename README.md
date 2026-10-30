@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`deb7a3d5`](https://github.com/simonvanieperen/nieuw-os/commit/deb7a3d5c1c72a2fc816a5900062f9ed0d554782) ·
+**Bron:** [`36cbd215`](https://github.com/simonvanieperen/nieuw-os/commit/36cbd215e03becbc4b495ae1b3a42b844603e0fa) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: native FPU/wachtcombinatie en legacy-baseline groen; definitieve GUI-hertoets volgt.
-34% blijft 34%; minstens50% is niet bereikt. De nieuwe native FPU/wachtcombinatie slaagt op deb7a3d:41 echte blokkeringen/deadlinewakes,36 idle-IRQs,347 echte user-timerinterrupts, exact456 saves/restores en drie schone levensduren met fault/survivor/verse PID3 en volledige cleanup. Ook de aparte yield-FPU-baseline slaagt op die code. Eerdere failures blijven bewaard; geen scheduler-, rechten-, entryassembly- of productdeadlineversoepeling. Normale/koude GUI en overige regressies blijven aan hun eerder geteste bron gebonden; definitieve GUI-hertoets volgt. Kill van een nog Waiting proces, volledige document/GUI-criteria en menselijke/hardwareacceptatie blijven open. Geen volledig nieuw rubriccriterium gesloten.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: echte normale/koude GUI en native IPC/system/RTC/FPU-regressies groen; lokale proefversie gebouwd.
+34% blijft 34%; minstens50% is niet bereikt. De definitieve echte GUI edit/save/list/reopen slaagt op36cbd21 in128,857s; een volledig nieuwe readonly-VM heropent exact dezelfde disk in60,679s en weigert writes zonder ACK. Alle processen/handles opgeruimd, canaries/systeemrand intact. System normal/recover, RTC en IPC-wacht zijn op dezelfde runtimebron opnieuw raw33 groen;64 core/wacht- en23 SDK-tests slagen. Ook native FPU/wacht en de aparte yieldbaseline slagen op de identieke bronvingerafdruk. De lokale normale eigen-kernel/UEFI-proefversie is opnieuw gebouwd en haar tien payloads zijn bitgelijk aan de geslaagde normale run. Geen volledig nieuw rubriccriterium gesloten; kill van Waiting, volledige document/GUI/productcriteria, overige native gates en menselijke/hardwareacceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
