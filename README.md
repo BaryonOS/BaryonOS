@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`3f20f087`](https://github.com/simonvanieperen/nieuw-os/commit/3f20f087a7f0ddf4757af8d3ea110dd0c044a72c) ·
-**Ontwikkelbranch:** `codex/full-test-release`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Acht CI-workflows groen; doelbuilds van geïsoleerde GUI, RANDOM en PNG/JPEG; native ketens volgen.
-32% blijft32%; alle62 volledige releasecriteria blijven open. Exact3f20 heeft acht groeneCI-workflows inclusief echte display/PS2/QMP/pixelprobe. AppReady/C-entryfix en echteinit hebben afzonderlijke AI-review/host/ELFchecks; de verbonden8-procesGUI, RNG en PNG/JPEG bouwen maar hebben nog geen eigen nativeuitvoeringsbewijs op deze samengestelde nieuwe bron. Builder-/manifestbevindingen worden gericht gerepareerd. Volledige veilige persistente opslag, apps/NAS/AI/updates/herstel en integraal productprofiel blijven verplicht open. Geen gewijzigde scope/gewichten en geen compleet testpakket geclaimd.
+**Bron:** [`7d230a6e`](https://github.com/simonvanieperen/nieuw-os/commit/7d230a6e8e7d7975f8e3297ff4f2b166c38b1803) ·
+**Ontwikkelbranch:** `codex/native-materiaal-integration`.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Behoud eerste nativeGUI-mislukking; batch observer en sluit drie replaybevindingen.
+32% blijft32%; alle62 volledige productcriteria open. EchteGUI7d bereikt Source/Policy/Comp/Focus en één volledig native1608tegelframe, maar faalt200s vóórvolledigegebruikersketen. Die rodeuitvoer wordt behouden. Observerkosten worden metboundedPIT-batchcopy verminderd zonderveiligheids-/IPCwijziging of timeoutverruiming;7gerichtechecks groen. Harnas3e2 sluit3bewijsleemten met19+21hostchecks; nieuwe nativeuitvoering vereist. FoundationRNG/imageproeven gaan parallel, sourcecode/gates zijn geenreleaseacceptatie. Volledige scope, rubricgewichten en productprofiel blijven behouden.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

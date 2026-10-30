@@ -1,0 +1,119 @@
+{
+  "task": "GUI-OBSERVER-PERF-V",
+  "base_commit": "7d230a6e8e7d7975f8e3297ff4f2b166c38b1803",
+  "review_target": "Root WIP delta in kernel/src/m2/m3/desktop.rs, exact hashes below; not a new committed/native accepted image.",
+  "result": "No remaining concrete blocker found after correcting the cadence guard to exclude final completion/resource cleanup.",
+  "finding": {
+    "id": "GUI-OBSERVER-PERF-V01",
+    "status": "corrected-and-source-rechecked",
+    "initial_WIP_blob_prefix": "7d17661",
+    "initial_code": "if sample_tick == ticks { return; } ahead of both metadata sampling and final all-done cleanup.",
+    "concrete_counterexample": "A previous sample occurred in PITtick19999. APP/INIT/CONTROL complete later within the same tick and their exit callbacks set all3 done flags. Original code could validate/cleanup in that entry; initial cadence WIP returned. Next PITtick20000 reached unchanged TIMEOUT before cleanup, causing a new false-negative despite completed prerequisites.",
+    "validation_method": "Control-flow proof against actual source; no invented native reproduction or timing measurement.",
+    "correction": "sample_tick guard encloses only metadata/snapshot/FrameGate. Final all-done checks and resource cleanup are outside the cadence block and run on every entry again.",
+    "structural_recheck": {
+      "cadence_block_end_offset": 17862,
+      "completion_block_start_offset": 17918,
+      "brokers_and20000tick_timeout_precede_guard": true,
+      "no_early_return_inside_guard": true
+    }
+  },
+  "source_sha256": {
+    "kernel/src/m2/m3/desktop.rs": "1ac3072e46d8e24359213607baac9b7c545e47259197f5c47cf309bec14c5505",
+    "kernel/src/m2/m3/desktop_gate.rs": "82b7c063c60dd1133c2c62881f8d493258ac003daf2f4d94393a43d037d730cb",
+    "kernel/src/m2/m3.rs": "7514aa7187dde45d9c7a5fca3ded18cb8e0a5d6a3314f748ccf0c8225c87a816",
+    "kernel/src/m2/paging.rs": "0275444d017272caaef4b72899e1cba5ab6daffc01d4acb2afd2c5ee9a7d3281"
+  },
+  "patch_sha256": "7a031fd11c892f817a337e946198001303653c9145f084317fdbaf26109c41da",
+  "gate_source_unchanged_from7d230a6": true,
+  "checks": {
+    "metadata": {
+      "compile_command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "rustc",
+        "+1.90.0",
+        "--edition=2021",
+        "--test",
+        "/tmp/nieuw-os-gui-observer-perf-review/metadata_helper.rs",
+        "-o",
+        "/tmp/nieuw-os-gui-observer-perf-review/metadata-tests"
+      ],
+      "compile_exit": 0,
+      "run_command": [
+        "/tmp/nieuw-os-gui-observer-perf-review/metadata-tests",
+        "--nocapture"
+      ],
+      "run_exit": 0,
+      "seconds": 0.1878521520011418,
+      "log": "/tmp/nieuw-os-gui-observer-perf-review/metadata-tests.log"
+    },
+    "gate": {
+      "compile_command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "rustc",
+        "+1.90.0",
+        "--edition=2021",
+        "--test",
+        "/tmp/nieuw-os-gui-observer-perf-review/desktop_gate.rs",
+        "-o",
+        "/tmp/nieuw-os-gui-observer-perf-review/gate-tests"
+      ],
+      "compile_exit": 0,
+      "run_command": [
+        "/tmp/nieuw-os-gui-observer-perf-review/gate-tests",
+        "--nocapture"
+      ],
+      "run_exit": 0,
+      "seconds": 0.1948492979972798,
+      "log": "/tmp/nieuw-os-gui-observer-perf-review/gate-tests.log"
+    },
+    "git_diff_check": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/workspace/nieuw-os-worktrees/root-materiaal",
+      "exit": 0
+    }
+  },
+  "host_test_counts": {
+    "exact_new_metadata_helper_fixed_page_model": 1,
+    "unchanged_actual_gate_regressions": 6,
+    "total": 7
+  },
+  "memory_and_lifetime_notes": [
+    "DATA is fixed0x40010000 and page-aligned. Process::physical(DATA) returns the retained mapped frame base without a user-controlled offset. Existing loader/private-frame ownership and live-process invariants are assumed exactly as for old read_word calls.",
+    "128 aligned volatile u64 loads cover exactly1024 bytes in one live4096B startup frame; every u64 bitpattern is valid. Snapshot is an owned value on kernel stack, not a user reference.",
+    "Same singleCPU/IF0 event-loop path as old observer: no user execution, scheduling or startup-buffer DMA occurs during the copy. Closure contains only bounded reads/local writes and makes no nested scratch or broker call.",
+    "paging::physical asserts aligned/ranged PA, no writable alias to executable frames and an empty scratch PTE. It installs supervisorRW/NX, invalidates, runs callback, clears PTE and invalidates before return. This is the same helper/permission model used by existing read_word.",
+    "APP/INIT copies occur only while the corresponding process is not Dead. Cleanup completes before desktop::poll and marks processes Dead; no stored pointer survives callback, scheduling, snapshot printing or cleanup.",
+    "Host helper test executes the exact extracted metadata function and verifies all128 values, untouched entire source page, exactly one modeled scratch callback and no retained active mapping. It is not hardware PTE/IF0 proof."
+  ],
+  "gate_and_cadence_notes": [
+    "Broker ticks and unexpected-event/time limit checks still run on every kernel entry; actual IPC/capability checks, drivers, renderer, scheduler and deadline20000 PITticks are unchanged.",
+    "Only supporting metadata sampling/logging/FrameGate now runs once per observed real PITtick. INIT role bits were already sticky and actual critical-service exits remain fatal; avoiding further INIT copies after all4 bits adds no new authority.",
+    "Ready and all Frame fields now come from one coherent owned APP snapshot. Saved/list/reopen/F12 criteria and expected14-byte checksum are unchanged; old standalone word reads were already serialized under IF0.",
+    "FrameGate code/hash is unchanged. Coarser sampling can miss a short-lived valid intermediate frame and delay/fail a probe; it cannot manufacture a missing actual Ready, qualifying saved/list/reopened state or increased F12 counter. Harness pacing and native operation still require measurement.",
+    "Snapshot log generation remains monotone; Gate.observe still runs for Ready frames even if PresentedGeneration is unchanged, preserving the intended later real F12 press on the already-complete reopened frame.",
+    "STOP barrier is still written only after coherent Ready1, all4 actual role/focus reports and unchanged FrameGate accepts. No ACK, successful paint or current phase is synthesized by sampling.",
+    "All-done proof, true device progress, idle brokers, real disk operation counts,5-service cleanup, zero engine resources and exact frame recovery remain byte-for-byte unchanged below the cadence block."
+  ],
+  "performance_evidence": {
+    "first_run": "7d230a6 actual GUI VM failed at200s; parent reports first full1608tile frame around106s and3161tiles by timeout.",
+    "failed_run_archive": "docs/verification/full-release-gui-first-7d230a6",
+    "new_VM_measurement": "Not performed by this reviewer; pending root repeat with frozen source/harness.",
+    "performance_gain_claimed": false
+  },
+  "remaining": [
+    "Root typecheck/build and fresh actual GUI VM operation, both required runs and hashes, with unchanged200s deadline/profile.",
+    "Measured impact on first frame/throughput, real user actions, saved/list/reopened current frames, genuine F12 and complete STOP/resource cleanup.",
+    "Actual kernel scratch-PTE/IF0/runtime stack behavior is not established by the host page model.",
+    "No full Materiaal/UI acceptance, product completion or human audit claim."
+  ],
+  "writes": "Only /tmp/nieuw-os-gui-observer-perf-review; no root/worker source or Git-index writes."
+}

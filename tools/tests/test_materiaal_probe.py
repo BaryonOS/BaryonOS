@@ -9,7 +9,7 @@ import shutil
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import run_materiaal_probe as d
@@ -158,24 +158,28 @@ class ArtifactTests(unittest.TestCase):
                        "kernel":{"sha256":d.sha256(self.build/"esp/kernel.elf")},"loader":{"sha256":d.sha256(self.build/"esp/EFI/BOOT/BOOTX64.EFI")}}
         d.publish_json(self.build/"manifest.json",self.manifest);d.publish_json(self.build/"users/materiaal/build-report.json",self.artifact)
 
-    def run_fixture(self):
-        directory=self.build/"run/materiaal-normal-fixture";(directory/"inputs").mkdir(parents=True)
+    def run_fixture(self,case="normal"):
+        directory=self.build/f"run/materiaal-{case}-fixture";(directory/"inputs").mkdir(parents=True)
         shutil.copytree(self.build/"esp",directory/"esp")
         for name in d.NAMES:shutil.copyfile(self.build/f"users/materiaal/{name}.elf",directory/f"inputs/{name}.elf")
-        d.publish_json(directory/"inputs/manifest.json",self.manifest);d.publish_json(directory/"inputs/build-report.json",self.artifact)
+        manifest=copy.deepcopy(self.manifest);manifest["kernel_feature"]=d.FEATURES[case]
+        d.publish_json(directory/"inputs/manifest.json",manifest);d.publish_json(directory/"inputs/build-report.json",self.artifact)
         for name in ("OVMF_CODE.fd","OVMF_VARS.template.fd","OVMF_VARS.fd","VGA.rom"):(directory/name).write_bytes(b"HOST_ONLY_FIRMWARE")
-        raw,prefixes=serial();(directory/"serial.txt").write_bytes(raw);(directory/"stderr.txt").write_bytes(b"")
-        for name,data in frames().items():(directory/f"{name}.ppm").write_bytes(data)
-        trace=[{"request":r,"response":{"return":{},"id":r["id"]}} for r in d.qmp_requests(directory,"normal")];d.publish_json(directory/"qmp-trace.json",trace)
-        d.volume.create_image(directory/"volume.before.img","empty");text_disk(directory/"volume.after.img");shutil.copyfile(directory/"volume.after.img",directory/"volume.img")
+        raw,prefixes=serial(case);(directory/"serial.txt").write_bytes(raw);(directory/"stderr.txt").write_bytes(b"")
+        for name,data in frames(case).items():(directory/f"{name}.ppm").write_bytes(data)
+        trace=[{"request":r,"response":{"return":{},"id":r["id"]}} for r in d.qmp_requests(directory,case)];d.publish_json(directory/"qmp-trace.json",trace)
+        if case == "normal":d.volume.create_image(directory/"volume.before.img","empty")
+        else:text_disk(directory/"volume.before.img")
+        text_disk(directory/"volume.after.img");shutil.copyfile(directory/"volume.after.img",directory/"volume.img")
         names={"esp/kernel.elf","esp/EFI/BOOT/BOOTX64.EFI","OVMF_CODE.fd","OVMF_VARS.template.fd","VGA.rom","inputs/manifest.json","inputs/build-report.json"}|{f"inputs/{name}.elf" for name in d.NAMES}
-        report={"scope":"HOST_ONLY_FIXTURE","passed":True,"case":"normal","source_sha256":"a"*64,"source_fingerprint_version":3,"raw_qemu_exit":33,"timed_out":False,
-                "kernel_feature":d.FEATURES["normal"],"profile":"pc-q35-8.2/qemu64/TCG/1CPU/256MiB/VGA/PS2",
+        report={"scope":"HOST_ONLY_FIXTURE","passed":True,"case":case,"source_sha256":"a"*64,"source_fingerprint_version":3,"raw_qemu_exit":33,"timed_out":False,
+                "kernel_feature":d.FEATURES[case],"profile":"pc-q35-8.2/qemu64/TCG/1CPU/256MiB/VGA/PS2",
+                "qemu_entry_sha256":"b"*64,"qemu_implementation_sha256":"c"*64,"parent_run":None,
                 "cwd":str(directory),"qemu_entry_path":"qemu","machine":"pc-q35-8.2","qmp_transport":"pipe","frozen_artifacts":{name:d.sha256(directory/name) for name in names},
                 "stdout":raw.decode(),"before_sha256":d.sha256(directory/"volume.before.img"),"after_sha256":d.sha256(directory/"volume.after.img"),"stages":[]}
-        report["command"]=d.qemu_arguments("qemu","pc-q35-8.2","pipe","normal")
-        for name,prefix,snapshot in zip(d.PHASES["normal"],prefixes,snapshots()):
-            qmp_index=next(r["id"] for r in d.qmp_requests(directory,"normal") if r["execute"] == "screendump" and r["arguments"]["filename"] == str(directory/f"{name}.ppm"))
+        report["command"]=d.qemu_arguments("qemu","pc-q35-8.2","pipe",case)
+        for name,prefix,snapshot in zip(d.PHASES[case],prefixes,snapshots(case)):
+            qmp_index=next(r["id"] for r in d.qmp_requests(directory,case) if r["execute"] == "screendump" and r["arguments"]["filename"] == str(directory/f"{name}.ppm"))
             report["stages"].append({"phase":name,"snapshot":snapshot,"serial_size":len(prefix),"serial_sha256":hashlib.sha256(prefix).hexdigest(),"qmp_index":qmp_index})
         report["artifact_sha256"]=d.artifact_hashes(directory);d.publish_json(directory/"result.json",report)
         return directory,report
@@ -203,6 +207,44 @@ class ArtifactTests(unittest.TestCase):
         (directory/"serial.txt").write_bytes(b"MATERIAAL:CASE:PASS\n")
         with self.assertRaises(ValueError):d.parent_run(directory,self.build,"a"*64)
         with self.assertRaises(ValueError):d.parent_run(self.root,self.build,"a"*64)
+
+    def test_active_qemu_disk_cannot_differ_from_checked_after_image(self):
+        directory,report=self.run_fixture()
+        image=directory/"volume.img";image.write_bytes(b"X"+image.read_bytes()[1:])
+        # Even a refreshed generic file-hash sidecar cannot substitute a good
+        # afterimage for the file named in QEMU's actual disk argument.
+        report["artifact_sha256"]=d.artifact_hashes(directory)
+        with self.assertRaises(ValueError):d.replay(report,directory,"a"*64)
+
+    def test_capture_cannot_use_validly_hashed_final_serial_as_old_phase(self):
+        directory,report=self.run_fixture();raw,prefixes=serial()
+        for late in (raw,prefixes[-1],prefixes[1]):
+            bad=copy.deepcopy(report)
+            for stage in bad["stages"]:
+                stage["serial_size"]=len(late);stage["serial_sha256"]=hashlib.sha256(late).hexdigest()
+            with self.subTest(length=len(late)),self.assertRaises(ValueError):d.replay(bad,directory,"a"*64)
+
+    def test_cold_offline_replay_requires_recomputed_normal_byte_chain(self):
+        parent,_=self.run_fixture();directory,report=self.run_fixture("recover")
+        with self.assertRaises(ValueError):d.replay(report,directory,"a"*64)
+        report["parent_run"]=str(parent);d.replay(report,directory,"a"*64)
+        bad=copy.deepcopy(report);bad["parent_run"]=str(directory)
+        with self.assertRaises(ValueError):d.replay(bad,directory,"a"*64)
+        bad=copy.deepcopy(report);bad["qemu_entry_sha256"]="d"*64
+        with self.assertRaises(ValueError):d.replay(bad,directory,"a"*64)
+        (parent/"volume.after.img").write_bytes(b"X"+(parent/"volume.after.img").read_bytes()[1:])
+        with self.assertRaises(ValueError):d.replay(report,directory,"a"*64)
+
+    def test_fatal_diagnostics_get_only_one_second_grace_and_no_success(self):
+        directory=self.build/"run/diagnostic";directory.mkdir(parents=True)
+        p=Mock();p.poll.return_value=None
+        (directory/"serial.txt").write_bytes(b"MATERIAAL:TIMEOUT_SLOT:00000000000000000000\n")
+        d.diagnostic_exit_grace(p,directory);p.wait.assert_called_once_with(timeout=1.0)
+        p=Mock();p.poll.return_value=None;p.wait.side_effect=d.subprocess.TimeoutExpired("qemu",1)
+        d.diagnostic_exit_grace(p,directory);p.wait.assert_called_once_with(timeout=1.0)
+        (directory/"serial.txt").write_bytes(b"BOOT:EBS_OK\n")
+        p=Mock();p.poll.return_value=None;d.diagnostic_exit_grace(p,directory);p.wait.assert_not_called()
+        with self.assertRaises(ValueError):d.transcript(b"MATERIAAL:FAIL:TIMEOUT\n",final=True)
 
     def test_symlink_hardlink_and_outside_build_paths_fail(self):
         image=self.build/"users/materiaal/desktop-init.elf";other=self.root/"outside";other.mkdir();os.link(image,other/"hard")

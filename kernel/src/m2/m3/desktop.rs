@@ -49,6 +49,7 @@ struct Observation {
     init_done: bool,
     app_done: bool,
     gate: gate::Gate,
+    sample_tick: u64,
 }
 static mut OBSERVATION: Observation = Observation {
     ready: 0,
@@ -60,6 +61,7 @@ static mut OBSERVATION: Observation = Observation {
     init_done: false,
     app_done: false,
     gate: gate::Gate::new(),
+    sample_tick: u64::MAX,
 };
 fn observation() -> &'static mut Observation {
     // SAFETY: Single CPU, IF=0, nonreentrant scheduler callbacks. No borrow is
@@ -82,6 +84,22 @@ fn put(s: &State, slot: usize, at: u64, value: u64) {
 }
 fn word(s: &State, slot: usize, at: u64) -> u64 {
     read_word(s.processes[slot].physical(DATA + at))
+}
+fn metadata(s: &State, slot: usize) -> [u64; 128] {
+    let physical = s.processes[slot].physical(DATA);
+    let mut snapshot = [0u64; 128];
+    // DATA is a fixed page-aligned, mapped private startup region. This sole
+    // CPU has IF=0: the process cannot mutate it during this bounded copy. The
+    // scratch mapping and all raw access end inside this callback; no pointer
+    // or reference escapes it or survives scheduling/cleanup.
+    paging::physical(physical, |page| {
+        for (index, value) in snapshot.iter_mut().enumerate() {
+            // SAFETY: 128 aligned u64s occupy 1024 bytes within this live 4KiB
+            // frame. Read-only volatile access; no concurrent user execution.
+            *value = unsafe { page.add(index * 8).cast::<u64>().read_volatile() };
+        }
+    });
+    snapshot
 }
 pub(super) fn process_elf(slot: usize) -> &'static [u8] {
     match slot {
@@ -420,61 +438,72 @@ pub(super) fn poll(s: &mut State) {
         }
         fail(b"TIMEOUT");
     }
-    if s.processes[INIT].status != Status::Dead {
-        for (bit, (at, label)) in [
-            (400, &b"MATERIAAL:SOURCE:READY\n"[..]),
-            (408, b"MATERIAAL:POLICY:READY\n"),
-            (416, b"MATERIAAL:COMPOSITOR:READY\n"),
-            (432, b"MATERIAAL:FOCUS:READY\n"),
-        ]
-        .iter()
-        .enumerate()
-        {
-            if word(s, INIT, *at) == 1 && observation().ready & (1 << bit) == 0 {
-                observation().ready |= 1 << bit;
-                serial::write(label);
-            }
-        }
-    }
-    if s.processes[APP].status != Status::Dead && word(s, APP, 400) == 1 {
-        let generation = word(s, APP, 624);
-        if generation > observation().generation {
-            observation().generation = generation;
-            serial::write(b"MATERIAAL:SNAPSHOT:BEGIN\n");
-            for (at, label) in SNAPSHOT_WORDS.into_iter().zip(SNAPSHOT_NAMES) {
-                serial::write(b"MATERIAAL:");
-                serial::write(label);
-                print_number(b":", word(s, APP, at));
-            }
-            serial::write(b"MATERIAAL:SNAPSHOT:END\n");
-        }
-        #[cfg(feature = "native-system-materiaal-probe")]
-        if !observation().stop_triggered && observation().ready == 15 {
-            let frame = gate::Frame {
-                generation,
-                screen: word(s, APP, 504),
-                dirty: word(s, APP, 512),
-                save_acks: word(s, APP, 480),
-                revision: word(s, APP, 440),
-                saved_bytes: word(s, APP, 448),
-                saved_sum: word(s, APP, 456),
-                draft_bytes: word(s, APP, 520),
-                draft_sum: word(s, APP, 528),
-                object: word(s, APP, 536),
-                f12: word(s, APP, 640),
-            };
-            let mut sum = 0xcbf29ce484222325u64;
-            for byte in b"nieuw os werkt" {
-                sum = (sum ^ u64::from(*byte)).wrapping_mul(0x100000001b3);
-            }
-            if observation()
-                .gate
-                .observe(frame, cfg!(feature = "test-system-recover"), 14, sum)
+    // Observer-only cadence. Device brokers still run on every kernel entry;
+    // security checks, IPC and rendering retain their original semantics.
+    if observation().sample_tick != s.ticks {
+        observation().sample_tick = s.ticks;
+        if observation().ready != 15 && s.processes[INIT].status != Status::Dead {
+            let init = metadata(s, INIT);
+            for (bit, (at, label)) in [
+                (400, &b"MATERIAAL:SOURCE:READY\n"[..]),
+                (408, b"MATERIAAL:POLICY:READY\n"),
+                (416, b"MATERIAAL:COMPOSITOR:READY\n"),
+                (432, b"MATERIAAL:FOCUS:READY\n"),
+            ]
+            .iter()
+            .enumerate()
             {
-                observation().stop_triggered = true;
-                print_number(b"MATERIAAL:F12_BARRIER:", word(s, APP, 640));
-                put(s, CONTROL, 400, 1);
-                serial::write(b"MATERIAAL:CONTROLLER:RELEASED\n");
+                if init[*at as usize / 8] == 1 && observation().ready & (1 << bit) == 0 {
+                    observation().ready |= 1 << bit;
+                    serial::write(label);
+                }
+            }
+        }
+        if s.processes[APP].status != Status::Dead {
+            let app = metadata(s, APP);
+            if app[400 / 8] == 1 {
+                let generation = app[624 / 8];
+                if generation > observation().generation {
+                    observation().generation = generation;
+                    serial::write(b"MATERIAAL:SNAPSHOT:BEGIN\n");
+                    for (at, label) in SNAPSHOT_WORDS.into_iter().zip(SNAPSHOT_NAMES) {
+                        serial::write(b"MATERIAAL:");
+                        serial::write(label);
+                        print_number(b":", app[at as usize / 8]);
+                    }
+                    serial::write(b"MATERIAAL:SNAPSHOT:END\n");
+                }
+                #[cfg(feature = "native-system-materiaal-probe")]
+                if !observation().stop_triggered && observation().ready == 15 {
+                    let frame = gate::Frame {
+                        generation,
+                        screen: app[504 / 8],
+                        dirty: app[512 / 8],
+                        save_acks: app[480 / 8],
+                        revision: app[440 / 8],
+                        saved_bytes: app[448 / 8],
+                        saved_sum: app[456 / 8],
+                        draft_bytes: app[520 / 8],
+                        draft_sum: app[528 / 8],
+                        object: app[536 / 8],
+                        f12: app[640 / 8],
+                    };
+                    let mut sum = 0xcbf29ce484222325u64;
+                    for byte in b"nieuw os werkt" {
+                        sum = (sum ^ u64::from(*byte)).wrapping_mul(0x100000001b3);
+                    }
+                    if observation().gate.observe(
+                        frame,
+                        cfg!(feature = "test-system-recover"),
+                        14,
+                        sum,
+                    ) {
+                        observation().stop_triggered = true;
+                        print_number(b"MATERIAAL:F12_BARRIER:", app[640 / 8]);
+                        put(s, CONTROL, 400, 1);
+                        serial::write(b"MATERIAAL:CONTROLLER:RELEASED\n");
+                    }
+                }
             }
         }
     }

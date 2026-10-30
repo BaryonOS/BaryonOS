@@ -81,10 +81,12 @@ def transcript(raw: bytes, case="normal", *, final=False) -> dict:
             and not any(word in raw for word in (b"FAIL", b"PANIC", b"\0")), "Failed/oversized native transcript")
     text = raw.decode("utf-8", "strict")
     lines = text.splitlines()
+    pending_record = bool(text and not text.endswith("\n"))
     if text and not text.endswith("\n"):
         require(not final, "Truncated final native record")
         lines = lines[:-1]
-    result = {"gates": [], "snapshots": [], "exits": [], "barrier": None, "controller_released": False, "final": {}, "finished": False}
+    result = {"gates": [], "snapshots": [], "exits": [], "barrier": None, "controller_released": False,
+              "final": {}, "finished": False, "pending_record": pending_record}
     if BOOT[0] not in lines:
         require(not final and not any(re.search(r"(?:BOOT:|BOOTINFO:|KERNEL:|KS-|M[0-9]+:|MATERIAAL:)", s) for s in lines),
                 "Native marker before boot handoff or missing boot")
@@ -114,6 +116,7 @@ def transcript(raw: bytes, case="normal", *, final=False) -> dict:
             values = {name: numeric(lines[at + 1 + i], name) for i, name in enumerate(FIELDS[:available])}
             if len(lines) < at + len(FIELDS) + 2:
                 require(not final, "Truncated snapshot")
+                result["pending_record"] = True
                 break
             require(lines[at + len(FIELDS) + 1] == "MATERIAAL:SNAPSHOT:END", "Missing or altered snapshot end")
             snapshot_checks(values, result["snapshots"][-1] if result["snapshots"] else None, case)
@@ -190,6 +193,19 @@ def phases(parsed: dict, case: str, *, complete=False) -> dict:
             name = next(wanted, None)
     require(not complete or name is None, "Missing actual ordered UI phase")
     return selected
+
+
+def capture_snapshot(parsed: dict, case: str, phase: str) -> dict | None:
+    """A camera observes the current live frame, never a historical match."""
+    require(parsed["barrier"] is None and not parsed["controller_released"] and not parsed["exits"]
+            and not parsed["final"] and not parsed["finished"], "Capture prefix is after native closure began")
+    selected=phases(parsed,case)
+    expected=PHASES[case][:PHASES[case].index(phase)+1]
+    require(len(selected) <= len(expected), "Capture prefix already contains a later UI phase")
+    if parsed["pending_record"] or list(selected) != list(expected) or not parsed["snapshots"]:
+        return None
+    current=parsed["snapshots"][-1]
+    return current if phase_matches(phase,current,case) else None
 
 
 def qmp_groups(directory: Path, case: str) -> list[tuple[str, list[dict]]]:
@@ -398,9 +414,32 @@ def frame_bytes(directory: Path, name: str) -> bytes:
     return raw
 
 
+def diagnostic_exit_grace(process, directory: Path) -> None:
+    """At most one second to preserve native fatal diagnostics and raw exit.
+    This never changes a failure into success or extends the acceptance timer.
+    """
+    if process.poll() is not None:
+        return
+    try:
+        raw=serial_bytes(directory)
+    except (OSError,ValueError):
+        return
+    if not any(marker in raw for marker in (b"MATERIAAL:TIMEOUT_SLOT:",b"MATERIAAL:FAIL:",b"PANIC")):
+        return
+    try:
+        process.wait(timeout=1.0)
+    except subprocess.TimeoutExpired:
+        pass
+
+
 def replay(report: dict, directory: Path, frozen: str) -> dict:
     """Recompute the proof from frozen bytes, never trust a stored passed flag."""
     case=report.get("case");require(case in FEATURES,"Unknown recorded case")
+    require(isinstance(frozen,str) and HEX.fullmatch(frozen)
+            and isinstance(report.get("qemu_entry_path"),str) and report["qemu_entry_path"]
+            and all(isinstance(report.get(name),str) and HEX.fullmatch(report[name])
+                    for name in ("qemu_entry_sha256","qemu_implementation_sha256")),
+            "Missing source/tool identities")
     actual_hashes=artifact_hashes(directory)
     require(report.get("artifact_sha256") == actual_hashes,"Captured artifact hash set changed")
     require(report.get("source_sha256") == frozen and report.get("source_fingerprint_version") == 3
@@ -427,30 +466,45 @@ def replay(report: dict, directory: Path, frozen: str) -> dict:
     validate_qmp(load_json(private_path(directory/"qmp-trace.json",regular=True)),directory,case)
     stages=report.get("stages")
     require(isinstance(stages,list) and [s.get("phase") for s in stages] == list(PHASES[case]),"Missing/extra captured stages")
-    requests=qmp_requests(directory,case);previous=0
+    requests=qmp_requests(directory,case);previous=0;previous_generation=0
     for stage,name in zip(stages,PHASES[case]):
         require(set(stage) == {"phase","snapshot","serial_size","serial_sha256","qmp_index"}
-                and type(stage["serial_size"]) is int and previous <= stage["serial_size"] <= len(raw)
+                and type(stage["serial_size"]) is int and previous < stage["serial_size"] <= len(raw)
                 and hashlib.sha256(raw[:stage["serial_size"]]).hexdigest() == stage["serial_sha256"],"Changed stage serial prefix")
         prefix=transcript(raw[:stage["serial_size"]],case)
-        observed=phases(prefix,case).get(name)
+        observed=capture_snapshot(prefix,case,name)
         require(json.dumps(observed,sort_keys=True) == json.dumps(stage["snapshot"],sort_keys=True)
-                and observed == selected[name],"Stage is not bound to a real complete serial snapshot")
+                and observed is not None and observed["PRESENTED_GEN"] > previous_generation,
+                "Stage is not bound to the current live complete serial snapshot")
         require(type(stage["qmp_index"]) is int and 1 <= stage["qmp_index"] <= len(requests)
                 and requests[stage["qmp_index"]-1] == {"execute":"screendump","arguments":{"filename":str(directory/f"{name}.ppm")},"id":stage["qmp_index"]},
                 "Captured stage is not bound to its actual screendump")
         previous=stage["serial_size"]
+        previous_generation=observed["PRESENTED_GEN"]
     pixels=validate_frames({name:frame_bytes(directory,name) for name in PHASES[case]},case)
     before=private_path(directory/"volume.before.img",regular=True);after=private_path(directory/"volume.after.img",regular=True)
     check_image(before);check_image(after)
     require(sha256(before) == report.get("before_sha256") and sha256(after) == report.get("after_sha256"),"Disk snapshot hash mismatch")
+    active=private_path(directory/"volume.img",regular=True);check_image(active)
+    require(active.read_bytes() == after.read_bytes(), "The active QEMU disk differs from the inspected afterimage")
     oracle=disk_oracle(after.read_bytes())
     if case == "recover":
         require(before.read_bytes() == after.read_bytes(),"Cold readonly run changed disk bytes")
+        require(isinstance(report.get("parent_run"),str), "Cold replay requires its actual normal parent")
+        parent_image,parent=parent_run(Path(report["parent_run"]),directory.parent.parent,frozen)
+        require(parent["after_sha256"] == report["before_sha256"] and parent_image.read_bytes() == before.read_bytes()
+                and parent.get("machine") == report.get("machine") and parent.get("profile") == report.get("profile")
+                and parent.get("qemu_entry_sha256") == report.get("qemu_entry_sha256")
+                and parent.get("qemu_implementation_sha256") == report.get("qemu_implementation_sha256"),
+                "Cold run is not the same-profile byte-exact continuation of its checked normal parent")
+        same_inputs=("esp/EFI/BOOT/BOOTX64.EFI","OVMF_CODE.fd","OVMF_VARS.template.fd","VGA.rom",*[f"inputs/{name}.elf" for name in NAMES])
+        require(all(parent["frozen_artifacts"][name] == frozen_files[name] for name in same_inputs),
+                "Cold loader/firmware/userspace profile differs from its normal parent")
     else:
+        require(report.get("parent_run") is None,"Normal replay cannot reference another run")
         data=before.read_bytes()
         require(all(data[i*volume.SECTOR:(i+1)*volume.SECTOR] == (bytes(volume.SECTOR) if volume.FIRST <= i < volume.FIRST+volume.VOLUME_SECTORS else volume.canary(i)) for i in range(volume.IMAGE_SECTORS)),"Normal run was not the canonical empty generated image")
-    return {"native":parsed,"phases":selected,"frames":pixels,"disk":oracle}
+    return {"native":parsed,"phases":{stage["phase"]:stage["snapshot"] for stage in stages},"frames":pixels,"disk":oracle}
 
 
 def artifact_hashes(directory: Path) -> dict:
@@ -532,13 +586,13 @@ def run_materiaal_probe(*,case="normal",build_directory=BUILD,run_root=None,pare
                         if request["execute"] == "screendump":
                             while True:
                                 raw=serial_bytes(directory);parsed=transcript(raw,case)
-                                selected=phases(parsed,case)
-                                if name in selected: break
+                                current=capture_snapshot(parsed,case,name)
+                                if current is not None: break
                                 require(time.monotonic() < deadline and process.poll() is None,"Guest did not complete actual UI phase "+name)
                                 time.sleep(0.01)
                             control.command(request["execute"],request["arguments"])
                             frame_bytes(directory,name)
-                            report["stages"].append({"phase":name,"snapshot":selected[name],"serial_size":len(raw),
+                            report["stages"].append({"phase":name,"snapshot":current,"serial_size":len(raw),
                                                      "serial_sha256":hashlib.sha256(raw).hexdigest(),"qmp_index":len(control.trace)})
                         else:
                             # The first input follows an observed ready frame;
@@ -550,6 +604,8 @@ def run_materiaal_probe(*,case="normal",build_directory=BUILD,run_root=None,pare
                 report["raw_qemu_exit"]=process.wait(timeout=max(0.01,deadline-time.monotonic()))
                 require(time.monotonic()<deadline,"Native run exceeded its deadline")
             finally:
+                if sys.exc_info()[0] is not None:
+                    diagnostic_exit_grace(process,directory)
                 if control is not None:trace=control.trace;control.close()
                 if process.poll() is None:process.kill();process.wait(timeout=10)
                 if report["raw_qemu_exit"] is None:report["raw_qemu_exit"]=process.returncode
@@ -564,6 +620,11 @@ def run_materiaal_probe(*,case="normal",build_directory=BUILD,run_root=None,pare
         report["passed"]=all(report["checks"].values())
     except Exception as error:
         report["error"]=f"{type(error).__name__}: {error}";report["timed_out"]=isinstance(error,(TimeoutError,subprocess.TimeoutExpired)) or time.monotonic()>=deadline
+        try:
+            report["guest_timeout"]=b"MATERIAAL:TIMEOUT_SLOT:" in serial_bytes(directory)
+            report["timed_out"] |= report["guest_timeout"]
+        except (OSError,ValueError):
+            pass
     finally:
         if process is not None and process.poll() is None:process.kill();process.wait(timeout=10)
         publish_json(directory/"qmp-trace.json",trace)
