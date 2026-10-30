@@ -46,9 +46,13 @@ uitvoer zijn vastgelegd in `verification/README.md` en `stack-gates.log`.
 De debug-/releasetests omvatten conflicten, offline behoud, quota, revoke,
 onzekere commituitkomsten, misrouted callers en bounded queueherstel.
 
+De NAS-matrix op code-head
+`a7f3f62730429a713bccbf39036308e45cccbd1f` is in GitHub Actions-run
+`41109586457` volledig geslaagd: core, volume, probe en client; zie
+`verification/stacked-ci.json`. Dit is host/target CI, geen native NAS-acceptatie.
+
 **Niet uitgevoerd / geen resultaat geclaimd:** disk-oracletest op deze stacked
-head (de oraclebron is geen onderdeel van deze PR-diff), GitHub-CI (raadpleeg
-de live PR-checks voor status), QEMU/native clientuitvoering, duurzame clientqueue,
+head (de oraclebron is geen onderdeel van deze PR-diff), QEMU/native clientuitvoering, duurzame clientqueue,
 geauthenticeerde TLS/E2EE, multi-deviceherstel en Materiaalbediening. Geen
 historische check van een andere source tree wordt als deze PR-headbewijs
 opgevoerd.

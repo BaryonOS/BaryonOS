@@ -35,12 +35,14 @@ herlabeld naar deze stacked head.
 De zelfstandige Python disk-oraclebestanden zitten niet in de PR-basis/diff en
 zijn daarom niet opnieuw uitgevoerd of als stacked-PR bewijs geclaimd. De
 historische 8/8 oracle-uitkomst bleef gebonden aan de eerdere bron. Draft PR
-#95 is geopend op de stacked client-head. NAS-workflow run `41109084071` is op
-exact deze code-head `9796f83d12237a57921edcf670119ff04e5fb79f` voltooid met
+#95 is geopend op de stacked client-head. NAS-workflow run `41109586457` is op
+exact code-head `a7f3f62730429a713bccbf39036308e45cccbd1f` voltooid met
 conclusie `success`: probe-, core-, client- en volume-host/targetjob zijn alle
-geslaagd. De exacte run- en job-ID's staan in `stacked-ci.json`. Dit is geen
-native NAS-acceptatie; andere PR-checks en native runtime blijven afzonderlijke
-gates.
+geslaagd. De exacte run- en job-ID's staan in `stacked-ci.json`. Een eerdere
+run `41109084071` slaagde eveneens op code-head `9796f83d`; die code is
+ongewijzigd in `a7f3f62` opgenomen en de tussenliggende commit bevatte alleen
+dit bewijs. Dit is geen native NAS-acceptatie; andere PR-checks en native
+runtime blijven afzonderlijke gates.
 
 ## NEXT AGENT HANDOFF — eigen werk gereed, integratiegrens open
 
