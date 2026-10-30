@@ -1,0 +1,51 @@
+name: B03 signed updates acceptance
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: b03-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  b03-native-update:
+    name: b03-native-update
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Rust 1.90.0 and targets
+        shell: bash
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Disposable QEMU and OVMF
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+      - name: Strict preflight
+        run: python3 -B tools/preflight.py --strict
+      - name: B03 signed update gate (12 QEMU stages)
+        run: python3 -B -u tools/test_update.py
+      - name: Upload B03 reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: b03-update-reports
+          path: |
+            build/update-gate.json
+            build/update/images.json
+            build/run/update-*/result.json
+            build/run/update-*/serial.txt
+          if-no-files-found: error

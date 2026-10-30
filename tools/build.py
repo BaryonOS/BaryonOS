@@ -28,6 +28,7 @@ SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota")
 SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES))
 KEYRING_CASES = ("no-device", "stuck")
 KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRING_CASES))
+UPDATE_FEATURES = ("native-update", "test-update-cut")
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
@@ -37,7 +38,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "tes
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
                    "native-sdk-app", "test-sdk-app-denied", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
-                   *KEYRING_FEATURES]
+                   *KEYRING_FEATURES, *UPDATE_FEATURES]
 
 
 def inspect_elf(path):
@@ -100,13 +101,22 @@ def inspect_pe(path):
     return {"format": "AMD64 PE32+", "subsystem": "EFI_APPLICATION", "imports": 0}
 
 
-def build(loader_feature=None, kernel_feature=None, label="normal"):
+def build(loader_feature=None, kernel_feature=None, label="normal", image_version=None):
     if kernel_feature == "graphics-g0":
         if loader_feature not in (None, "graphics-g0"):
             raise ValueError("G0 requires its paired graphics loader")
         loader_feature = "graphics-g0"
     elif loader_feature == "graphics-g0":
         raise ValueError("Graphics loader requires the G0 kernel")
+    if kernel_feature in UPDATE_FEATURES:
+        # B03: the update kernels only boot from a verified slot store.
+        if loader_feature not in (None, "signed-boot"):
+            raise ValueError("update kernels require the signed-boot loader")
+        loader_feature = "signed-boot"
+        if image_version is None or not 1 <= image_version <= 2**32:
+            raise ValueError("update kernels need an explicit --image-version")
+    elif image_version is not None:
+        raise ValueError("--image-version applies to update kernels only")
     extra_env = None
     sdk_selection = os.environ.get("NOS_SDK_RUNTIME", "0")
     if sdk_selection not in ("0", "1"):
@@ -178,6 +188,16 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
         qsim_report = {f"{name}_sha256": sha256(path) for name, path in binaries.items()}
         qsim_report.update({f"{name}_elf": inspect_user(path) for name, path in binaries.items()})
         extra_env = {f"NOS_{name.upper()}_ELF": str(path.resolve()) for name, path in binaries.items()}
+    elif kernel_feature in UPDATE_FEATURES:
+        from build_users import inspect_user
+        update_target = TARGET / "update"
+        run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/update/build.py")],
+                   "build-update-service", extra_env={"CARGO_TARGET_DIR": str(update_target)})
+        service = update_target / "x86_64-unknown-none/release/update-service"
+        qsim_report = {"service_sha256": sha256(service), "service_elf": inspect_user(service),
+                       "image_version": image_version}
+        extra_env = {"NOS_UPDATE_SERVICE_ELF": str(service.resolve()),
+                     "NOS_IMAGE_VERSION": str(image_version)}
     elif kernel_feature in KEYRING_FEATURES:
         from build_users import inspect_user
         keyring_target = TARGET / "keyring"
@@ -227,6 +247,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
             manifest["supervisor"] = qsim_report
         elif kernel_feature in KEYRING_FEATURES:
             manifest["keyring"] = qsim_report
+        elif kernel_feature in UPDATE_FEATURES:
+            manifest["update"] = qsim_report
         else:
             manifest["qsim_user"] = qsim_report
     esp = BUILD / "esp"
@@ -241,7 +263,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0"])
+    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "signed-boot"])
+    parser.add_argument("--image-version", type=int, help="B03: NOS_IMAGE_VERSION of an update kernel")
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()
-    build(args.loader_feature, args.kernel_feature, args.loader_feature or args.kernel_feature or "normal")
+    build(args.loader_feature, args.kernel_feature, args.loader_feature or args.kernel_feature or "normal",
+          args.image_version)

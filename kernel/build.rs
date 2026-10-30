@@ -28,7 +28,8 @@ fn main() {
     if let Ok(path) = std::env::var("NOS_IPC_ELF") {
         println!("cargo:rerun-if-changed={path}");
     }
-    for name in ["NOS_VOLUME_SERVICE_ELF", "NOS_VOLUME_APP_ELF"] {
+    println!("cargo:rerun-if-env-changed=NOS_IMAGE_VERSION");
+    for name in ["NOS_VOLUME_SERVICE_ELF", "NOS_VOLUME_APP_ELF", "NOS_UPDATE_SERVICE_ELF"] {
         println!("cargo:rerun-if-env-changed={name}");
         if let Ok(path) = std::env::var(name) {
             println!("cargo:rerun-if-changed={path}");

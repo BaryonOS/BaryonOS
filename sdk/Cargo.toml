@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["runtime", "catalog-client", "document-session", "examples/catalog-read", "examples/volume-docs", "examples/supervisor", "examples/keyring"]
+members = ["runtime", "catalog-client", "document-session", "examples/catalog-read", "examples/volume-docs", "examples/supervisor", "examples/keyring", "examples/update"]
 
 [profile.dev]
 panic = "abort"
