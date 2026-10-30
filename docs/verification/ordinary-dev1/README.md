@@ -1,7 +1,7 @@
 # Gewone interactieve DEV1: bron- en artifactfreeze
 
 **Ontwikkelkandidaat geblokkeerd: eerste referentiegate mislukt, geen bundel.**
-De door integrator e8 aangewezen huidige basis is main
+De door toenmalig integrator e8 aangewezen kandidaatbasis is
 `ca45a7dabe6a040921de03bdc2fad3e5045a75ba`. De eerste, mislukte build staat onveranderd in
 de aparte detached worktree `build/release-dev1-source`; de gecorrigeerde
 buildisolatie hieronder gebruikt een tweede onveranderde ca45-worktree
@@ -169,7 +169,13 @@ registrarcapaciteitsaanvraag; dit checkpoint geeft **geen VM-vrijgave**.
 
 ## Overdracht en open acceptatie
 
-4 bezit deze kandidaatfreeze; e8 blijft enige operationele integrator.
+4 bezit deze kandidaatfreeze. De operationele integratierol is daarna
+expliciet van e8 overgedragen aan7f
+(`7f895683-fc79-48d0-a98a-aa0a6ccfe8b9`): teamleidercheckpoint
+`6419e426db894ed0e16e8aa5208ac238c5238673` bevestigt donorstop/vrijgave en
+ontvangst. Alleen7f is nu integrator; de nieuwere main9a67 is **niet** de
+bron van deze ongewijzigde ca45-artifacts. Het concrete coldtool-intakepunt
+is aan7f doorgegeven; dat is geen uitgevoerde intake of nieuwe runvrijgave.
 12 regelt het ene runnerslot; 20 doet begrensde producttest; 21 bezit de
 bestaande Windowspackager/launcherroute. Geen tweede kernel-/ABIbuilder.
 Er is nog geen artifactvrijgave voor 20/21 zolang de gewone gate niet is
