@@ -120,3 +120,17 @@ bytegelijk aan de PR-head. Hosted CI van de oude head is via GitHub gecontroleer
 de laatste CI-run `41069511112` slaagt, zonder gefaalde jobs. Dit is geen
 nieuwe-head-CI of volledige productacceptatie. B02's rollbackanker/write-ahead,
 RTC-authenticiteit, fysieke hardware en menselijke audit blijven open.
+
+Publicatie bevestigd: `git ls-remote origin
+refs/heads/simonvanieperen-studious-sniffle refs/heads/main` (exit 0) geeft
+mergecommit `cc136a3d4a84dc045089ad86f20925ce39e11a72` en basis
+`f52dab50af281dab2c94ab2c9e31aaabd299246a`. De merge heeft exact twee ouders:
+`c87fd769` en `f52dab5`. Finale `python3 tools/progress.py --check` en
+`git diff --check origin/main HEAD` slagen (exit 0); werkboom schoon.
+De PR-delta is beperkt tot de oorspronkelijke preflight-/doctestwijzigingen,
+assessment/status en dit bewijsrapport; geen gegenereerde binaries toegevoegd.
+Secretscan vindt niets. CodeQL Actions/Python vindt nul alerts, maar de
+totale analyse krijgt een timeout vóór alle talen gereed zijn; deze gedeeltelijke
+uitkomst is geen volledige securitygoedkeuring. Nieuwe-head-CI en menselijke
+review blijven afzonderlijk. Dit afsluitende bewijscheckpoint wijzigt alleen
+documentatie; PR #62 is niet gemergd.

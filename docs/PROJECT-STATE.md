@@ -28,9 +28,13 @@ native runtimegates niet uitgevoerd, geen nieuw QEMU-bewijs geclaimd.
 Exacte commando's, exits, logs en hashes:
 [integratiebewijs](verification/host-test-linker-preflight/README.md#conflictintegratie-met-main-f52dab5).
 
-Publicatie en nieuwe-head-CI moeten nog worden bevestigd. Historische CI- en
-native resultaten zijn geen acceptatie van de nieuwe mergehead.
-Eerstvolgend controlecommando:
+Mergecommit `cc136a3d4a84dc045089ad86f20925ce39e11a72` is gepubliceerd;
+`git ls-remote` bevestigt exact deze PR-head en ongewijzigde basis `f52dab5`.
+Secretscan zonder bevindingen. CodeQL Actions/Python: nul alerts; de totale
+analyse eindigde met een timeout voordat alle talen gereed waren, dus geen
+volledige CodeQL-goedkeuring. Nieuwe-head-CI blijft afzonderlijk te beoordelen;
+historische CI-/native resultaten bewijzen die niet. PR niet gemergd.
+Eerstvolgend lokaal controlecommando:
 `python3 tools/progress.py --check`.
 
 ## Historisch checkpoint — hosttest-preflight — 30 oktober 2026
