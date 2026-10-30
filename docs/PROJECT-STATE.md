@@ -1,6 +1,38 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — hardware, drivers en energie — 30 oktober 2026
+## NEXT AGENT HANDOFF — apppakketcontrole, A02-deelstap — 30 oktober 2026
+
+Bron `917126f774838d2e53c8fd796b722e308e923d1b`, branch
+`codex/apps-sdk-packages`, gepusht en remote-head gecontroleerd. De huidige
+roadmap blijft **34% totaal; Apps/SDK/installatie 2/8**: alleen A01 is
+geaccepteerd. De nieuwe `app-package-core` is uitsluitend een `no_std`
+verificatiekern; geen A02-punt.
+
+`NOSAPP01` versie 1 bindt app-ID, ABI-interval, versienummer en exacte image
+via SHA-256 en beide bestaande handtekeningen (Ed25519 + ML-DSA-65) aan de
+door de caller gekozen bronankers. Geen installerhooks of rechten in het
+pakket. De drie verifierhosttests, Clippy, bare-metal librarybuild,
+`update-core` (7), SDK-runtime (20), beide fmt-checks en diffcontrole slagen.
+Bronbinding, exacte commando's en grenzen:
+[`app-package-core` checkpoint](verification/app-package-core/README.md).
+
+QEMU 11.1.0 en bijpassende x86_64-codefirmware zijn nu alleen via een
+worktree-lokale verwijzing naar de door Simon meegeleverde
+`C:\Program Files\qemu` beschikbaar; `preflight.py --strict --firmware ...`
+slaagde als inventaris. Dit is geen native boot of pakketproef. Nog open:
+installertransacties, meerdere herroepbare bronnen, volledige ELF-loader/
+`LaunchImage`-keten, update/verwijderen en cold recovery (A02), zichtbare en
+intrekbare taakrechten via Materiaal (A03), en de vereiste nuttige apps en
+realistische native taken (A04). Geen automatische capabilities.
+
+Eerstvolgende uitvoerbare stap: ontwerp de dynamische appimage-/launchgrens
+tegen `elf-loader-core`, de bestaande supervisor/`LaunchImage`-ABI en
+capability-invarianten; daarna een kleine native positieve/negatieve
+loaderproef op een eigen image. Controleer stack-/resourcebudget voor de
+ML-DSA-verificatie (~200 KiB) vóór service-integratie. De Windows-QEMU binary
+is QEMU 11.1.0; gebruik per run een eigen QEMU buildmap en wegwerpimage.
+
+## Afgerond checkpoint — hardware, drivers en energie — 30 oktober 2026
 
 Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (`main`), branch
 `simonvanieperen-friendly-guacamole`. Opdracht: hardwarepunten H02–H06
@@ -42,7 +74,7 @@ acceptatie van H02. Daarna volgt een afzonderlijke USB/xHCI-stap. H02–H06
 blijven open totdat hun volledige vereiste native/fysieke bewijsniveaus zijn
 aangetoond; geen rubricpunt toegekend.
 
-## NEXT AGENT HANDOFF — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
+## Historisch checkpoint — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
 
 Basis `ad2b981` (`main` na PR #63), branch
 `codex/b02-persistent-keystate-20261030`, worktree

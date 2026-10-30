@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`f52dab50`](https://github.com/simonvanieperen/nieuw-os/commit/f52dab50af281dab2c94ab2c9e31aaabd299246a) ·
-**Ontwikkelbranch:** `simonvanieperen-friendly-guacamole`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hardware, drivers en energie: inventarisatie H02-H06 en controle van de bestaande native PS/2-bewijspoort.
-34% blijft 34%; hardware blijft 1/12 en H01 is het enige geaccepteerde criterium. De 11 hosttests van de display/PS2-bewijspoort slagen. De gehashte officiële rustup-installer herstelde Rust 1.90.0 projectlokaal; PS/2 targetbuild, Clippy en fmt slagen. De aangehechte `C:\Program Files\qemu`-installatie is via lokale WSL-interoperabiliteit aangesloten: QEMU 11.1.0, `pc-q35-8.2`, QMP-pipes en de meegeleverde x86_64 EDK2-code-/vars- en VGA-ROM-bestanden zijn bereikbaar; `python3 -B tools/preflight.py --strict` slaagt. Native imagebouw/QMP-run volgen. Hosttests kunnen nog niet linken (`cc` ontbreekt). H02-H06 blijven open, geen fysieke hardware gebruikt en geen punten geclaimd.
+**Bron:** [`917126f7`](https://github.com/simonvanieperen/nieuw-os/commit/917126f774838d2e53c8fd796b722e308e923d1b) ·
+**Ontwikkelbranch:** `codex/apps-sdk-packages`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Apps, SDK en installatie: hybride ondertekende apppakketverificatie als A02-deelstap.
+34% blijft 34%; Apps/SDK/installatie blijft 2/8, met uitsluitend A01 geaccepteerd. De nieuwe `app-package-core`-crate valideert een canoniek `NOSAPP01`-pakket met een caller-geselecteerde sleutelbron, Ed25519 én ML-DSA-65, exacte imagehash/-lengte, ABI en nulpadding; pakketten verklaren geen capabilities. Drie hosttests, Clippy, portable `x86_64-unknown-none`-librarybuild, `update-core` (7), SDK-runtime (20), fmt en diffcontrole slagen op commit `917126f`. Geen installer, appimage-loader, meerdere bronnen, appupdate/-verwijdering, native pakketuitvoering of taakrechten; A02/A03/A04 blijven open en er worden geen punten toegekend. QEMU 11.1.0 plus door Simon meegeleverde codefirmware zijn worktree-lokaal aangesloten; strict preflight exit 0 is uitsluitend inventaris, geen VM-run. Bewijs en grenzen: `docs/verification/app-package-core/README.md`.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
