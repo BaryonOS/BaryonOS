@@ -26,6 +26,14 @@ geen gedeelde SDKfiles zijn voor deze fix gewijzigd. Het afzonderlijke
 `sdk/examples/materiaal/verification/review-fixed.json` bindt rood/groen/ELF.
 De oudere pre-native.json blijft herkenbaar het vóór-reviewcheckpoint.
 
+De afgebakende GUI-proef publiceert tevens640F12PressCount: uitsluitend een echt
+geauthenticeerd INP1-event PhysicalKey::F12/Press verhoogt deze checked teller.
+Repeat/Release of andere keys tellen niet; uitputting geeft een fout en wrapt
+niet. Dit is geen shutdownfunctie of nieuwe grant. De probe mag na werkelijk
+Saved→List→Reopened en een echte QMP-screenshot pas een nieuwe F12Press gebruiken
+om de afzonderlijke CPL3-controller zijn bestaande StopRPC te laten uitvoeren.
+Een late Enterrelease kan de afsluitbarrier daardoor niet voortijdig zetten.
+
 ## TASK-MATERIAAL-NATIVE-APP — gescheiden native app, SUR1-freeze
 
 31ab300 bouwbasis: main985ed4d plus frontend be0/d5 en display/input b2ad.

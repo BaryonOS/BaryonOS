@@ -60,7 +60,7 @@ STOP_REFUSED6, geen autosave/verwerpen/DONE. Alleen clean/idle plus expliciete
 cleanup van de drie kanaaleigenaren geeft DONE3. Volledig sessieherstel, opnieuw
 grants ontvangen en veilige persistente encrypted keys blijven afzonderlijk open.
 
-De negentien hostketenproeven plus één echte ELFpolicytest staan in verification/.
+De twintig hostketenproeven plus één echte ELFpolicytest staan in verification/.
 De reviewfix heeft afzonderlijk rood/groenbewijs: Ready is uit tijdens iedere
 nieuwe paint; PresentedGeneration verandert uitsluitend na alle actuele ACKs.
 De gebouwde entry controleert RSPmod16==8 en springt rechtstreeks naar C.

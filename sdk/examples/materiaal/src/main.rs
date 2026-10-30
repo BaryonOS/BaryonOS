@@ -109,6 +109,7 @@ fn publish(e: Evidence, observation: Observation) {
         (536, observation.object),
         (624, e.presented_generation),
         (632, observation.scale),
+        (640, e.f12_presses),
     ] {
         support::put(offset, value);
     }

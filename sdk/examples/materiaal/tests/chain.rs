@@ -1112,3 +1112,27 @@ scenario!(
     independent_current_ready_is_not_stale_after_edit,
     independent_ready_requires_current_complete_frame
 );
+
+fn diagnostic_f12_only_actual_press() {
+    let h = Host::new();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    assert_eq!(a.evidence().f12_presses, 0);
+    keys(&h, &mut a, &[0x57, 0xd7, 0x58, 0x58, 0xd8]);
+    assert_eq!(a.evidence().f12_presses, 1);
+    keys(&h, &mut a, &[0x58, 0xd8]);
+    assert_eq!(a.evidence().f12_presses, 2);
+    assert_eq!(a.evidence().save_acks, 0);
+    assert_eq!(a.controller().view().screen, Screen::Material);
+}
+scenario!(
+    diagnostic_f12_counts_press_without_repeat_release_or_action,
+    diagnostic_f12_only_actual_press
+);

@@ -29,6 +29,8 @@ pub struct Evidence {
     pub saved_checksum: u64,
     /// Last actually completed current-generation paint, never an admission.
     pub presented_generation: u64,
+    /// Diagnostic only: authenticated INP1 F12 Press, never Repeat/Release.
+    pub f12_presses: u64,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Observation {
@@ -195,7 +197,12 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                         self.controller.cancel_pointer()
                     }
                 }
-                Event::Key(_) => {
+                Event::Key(key) => {
+                    if key.key == ui_core::PhysicalKey::F12
+                        && key.action == ui_core::KeyAction::Press
+                    {
+                        increment(&mut self.evidence.f12_presses)?;
+                    }
                     increment(&mut self.evidence.keys)?;
                     self.controller.deliver(envelope)
                 }
