@@ -150,11 +150,17 @@ pub fn issue_pid(next: u64) -> Result<(u64, u64), Error> {
     }
     Ok((next, next.checked_add(1).ok_or(Error::Quota)?))
 }
-pub fn valid_return_layout(rip: u64, rsp: u64, cs: u64, ss: u64) -> bool {
-    cs == 0x23
-        && ss == 0x1b
-        && (0x40000000..0x60000000).contains(&rip)
-        && (0x7ffef000..0x7ffff000).contains(&rsp)
+/// A saved ring-3 frame may only be resumed with the user selectors, a code
+/// pointer in the user image window and a stack pointer inside the profile's
+/// mapped user stack `stack` (the kernel passes its own `STACK..STACK_END`).
+pub fn valid_return_layout(
+    rip: u64,
+    rsp: u64,
+    cs: u64,
+    ss: u64,
+    stack: core::ops::Range<u64>,
+) -> bool {
+    cs == 0x23 && ss == 0x1b && (0x40000000..0x60000000).contains(&rip) && stack.contains(&rsp)
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PageAccess {
@@ -390,13 +396,28 @@ mod tests {
     }
     #[test]
     fn user_return_layout_rejects_untrusted_stack_and_noncanonical_alias() {
-        assert!(valid_return_layout(0x40000000, 0x7fffeff8, 0x23, 0x1b));
+        const STACK: core::ops::Range<u64> = 0x7ffef000..0x7ffff000;
+        assert!(valid_return_layout(
+            0x40000000, 0x7fffeff8, 0x23, 0x1b, STACK
+        ));
         for rsp in [0, 0x7ffeefff, 0x7ffff000, u64::MAX] {
-            assert!(!valid_return_layout(0x40000000, rsp, 0x23, 0x1b));
+            assert!(!valid_return_layout(0x40000000, rsp, 0x23, 0x1b, STACK));
         }
         for rip in [0, 0x2000000, 0x60000000, 0x0001000040000000] {
-            assert!(!valid_return_layout(rip, 0x7fffeff8, 0x23, 0x1b));
+            assert!(!valid_return_layout(rip, 0x7fffeff8, 0x23, 0x1b, STACK));
         }
-        assert!(!valid_return_layout(0x40000000, 0x7fffeff8, 8, 0x1b));
+        assert!(!valid_return_layout(0x40000000, 0x7fffeff8, 8, 0x1b, STACK));
+        // A profile with a deeper mapped stack (B03 update service) accepts a
+        // pointer below the default window only because its range says so.
+        const DEEP: core::ops::Range<u64> = 0x7ff7f000..0x7ffff000;
+        assert!(valid_return_layout(
+            0x40000000, 0x7ffb0000, 0x23, 0x1b, DEEP
+        ));
+        assert!(!valid_return_layout(
+            0x40000000, 0x7ffb0000, 0x23, 0x1b, STACK
+        ));
+        assert!(!valid_return_layout(
+            0x40000000, 0x7ff7eff8, 0x23, 0x1b, DEEP
+        ));
     }
 }

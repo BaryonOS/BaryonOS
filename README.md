@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 32% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 34% van de vaste productroadmap](docs/assets/progress.svg)
 
-**32% — 32 van 100 gewogen acceptatiepunten.** Dit is een
+**34% — 34 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -24,18 +24,18 @@ alleen een nette desktop haalt die eindgrens niet.
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
 | Internet en netwerkdiensten | 10 | 0 |
-| Beveiliging, privacy en updates | 12 | 2 |
+| Beveiliging, privacy en updates | 12 | 4 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **32** |
+| **Totaal** | **100** | **34** |
 
-**Herbeoordeeld:** 2026-10-29 · **Rubric:** v1 ·
-**Bron:** [`c92238b0`](https://github.com/simonvanieperen/nieuw-os/commit/c92238b038088a59c28a496880ca878b34eda8f5) ·
+**Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
+**Bron:** [`f63a0c1b`](https://github.com/simonvanieperen/nieuw-os/commit/f63a0c1b56fdcd28e43579aa6e9c5a56e1e2cbdb) ·
 **Ontwikkelbranch:** `ccr-43832ef7-gi2qlz`.
-Deze opdracht: **30% → 32% (+2 procentpunt)**. **Opdracht:** B01 native entropy en sleutelbeheer: virtio-rng-broker achter een Entropy-capability, ring-3 Key Service met gezondheidstests, DRBG, HKDF, XChaCha20-Poly1305 en herstel zonder escrow native geaccepteerd.
-B01 (+2) geaccepteerd op bronvingerafdruk v3 202a3e68 (basis main c92238b, K05 gemerged met groene GitHub Actions incl. k05-native-supervisor): eigen virtio-rng-driver, Entropy-objecttype (recht 1024, niet afleidbaar/overdraagbaar), kernelbroker 0x60/0x61 zonder cryptografie of caching, keyring-core met SP 800-90B Repetition Count (6) en Adaptive Proportion (512/62), fast-key-erasure-DRBG op ChaCha20, HKDF-SHA-256-afleiding per domein en index, XChaCha20-Poly1305 met AAD-binding, 16 sleutels per domein, permanente intrekking en herstel via een gebruikersgehouden geheim; alles uit vastgepinde RustCrypto-crates met portable backends (0 SIMD-instructies). Gate tools/test_keyring.py exit 0: 53 root-, 17 SDK- en 7 Python-hosttests (incl. RFC 5869- en XChaCha-testvectoren) plus 3 echte QEMU-runs: normal (beide diensten READY na 1024 bytes, 17 sleutels, manipulatie/verkeerd domein/ingetrokken/quotum geweigerd, herstel van A naar B met behoud van intrekking), no-device (Offline, beide diensten BLOCKED, 0 sleutels), stuck (constante bytes, Repetition Count blokkeert, 0 sleutels). Lege engine en framebaseline na elke run. Geen claim over fysieke RNG-kwaliteit, TPM of persistente sleutelopslag (B02 open).
+Deze opdracht: **32% → 34% (+2 procentpunt)**. **Opdracht:** B03 ondertekende kernelupdates en rollback: hybride Ed25519 + ML-DSA-65-manifesten, slotopslag, loaderverificatie met UEFI-versievloer en terugval, ring-3 update-dienst met hervatbare tweefaseninstallatie native geaccepteerd.
+B03 (+2) geaccepteerd op bronvingerafdruk v3 07994d47461a1dd5 (basis main f63a0c1, B01 gemerged met groene GitHub Actions): update-core met manifest NOSMAN01 en slotopslag NOSSLOT1, beide handtekeningen verplicht over dezelfde 84 canonieke bytes, loaderfeature signed-boot (Block I/O, digest en ELF-laadbaarheid voor uitvoering, UEFI-vloer NieuwOsMinVersion, terugval, harde stop zonder geldig slot of zonder slotopslag), kernelprofiel native-update met generieke blokbroker zonder formaatkennis, ring-3 update-dienst die het draaiende slot via versie bepaalt en image-FLUSH-manifest-FLUSH-header-FLUSH installeert, TEST-ankers uit update-tool. Gate tools/test_update.py exit 0: 7 update-core-, 1 update-tool-, 10 Python-hosttests en 13 echte QEMU-stages in 9 reeksen: install v1 naar v2 (3048 sectoren), boot-v2 met vloer 1 naar 2, downgrade geweigerd, bad-signature, bad-digest en bad-elf elk geweigerd met terugval en herstel, cut met echte hostkill zonder header- of slotwijziging gevolgd door cut-resume en cut-final, no-valid-slot stopt zonder kernel, inbox met kapotte handtekening, lagere versie of vreemde sleutel geweigerd zonder write. Vier AI-reviewbevindingen vooraf verwerkt. Geen claim over Secure Boot (B04), releasesleutels, netwerkdistributie of fysieke schijven.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

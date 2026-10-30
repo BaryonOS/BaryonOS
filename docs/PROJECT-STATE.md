@@ -1,5 +1,67 @@
 # Actuele projectstatus
 
+## B03 ondertekende updates en rollback geaccepteerd, 34% — 30 oktober 2026
+
+Branch `ccr-43832ef7-gi2qlz`, basis `main` `f63a0c1` (squash van
+[PR #52](https://github.com/simonvanieperen/nieuw-os/pull/52), B01; GitHub
+Actions daarop groen inclusief `b01-native-supervisor`). Omgeving:
+Linux-container, Rust 1.90.0, QEMU 8.2.2 (Ubuntu), `pc-q35-8.2`, OVMF 4M,
+slotopslag als `virtio-blk-pci` 00:05.0.
+
+**Gerealiseerd (loaderfeature `signed-boot`, kernelprofiel `native-update`, ADR-044):**
+- `crates/update-core`: manifest `NOSMAN01` (84 canonieke bytes + Ed25519 +
+  ML-DSA-65), slotopslag `NOSSLOT1` (header-hint, twee slots van 2 MiB, inbox),
+  hybride verificatie tegen vastgepinde ankers, selectie met versievloer en
+  terugval, installatiebeslissing.
+- Loader `boot/loader/src/signed.rs`: zoekt de slotopslag via Block I/O,
+  verifieert beide handtekeningen, digest én ELF-laadbaarheid vóór één byte
+  wordt uitgevoerd, leest en verhoogt de UEFI-vloer `NieuwOsMinVersion`, valt
+  terug op het andere slot, stopt met `BOOT:FAIL:NO_VALID_SLOT` of
+  `BOOT:FAIL:NO_STORE` (nooit terugval naar een onondertekende ESP-kernel);
+  selectie op een eigen 1 MiB-stack.
+- Kernel `kernel/src/m2/m3/update.rs`: dezelfde generieke blokbroker als het
+  volumeprofiel over de hele slotopslag, zonder formaatkennis of
+  cryptografie; gelabelde crashfixture `test-update-cut`;
+  `KERNEL:IMAGE_VERSION`; 512 KiB gebruikersstack in dit profiel
+  (`kernel-core::user::valid_return_layout` kreeg de stackgrens als parameter).
+- Ring-3 update-dienst `sdk/examples/update`: verifieert de inboxbundel met
+  beide TEST-ankers en de digest vóór de eerste write, bepaalt het draaiende
+  slot via geverifieerde versie = kernelversie (nooit via de header),
+  installeert image → FLUSH → manifest → FLUSH → header → FLUSH, hervat een
+  onderbroken installatie.
+- `tools/update-tool` (keygen/sign/verify/pack), TEST-ankers en -seeds in
+  `tools/update-keys/`, Python-orakel `tools/update_disk.py`, runner
+  `tools/run_update.py` (13 stages in 9 reeksen), gate `tools/test_update.py`,
+  capture, 10 harnastests, workflow `B03 signed updates acceptance`.
+
+**Uitgevoerd en geslaagd:** zie [B03-ACCEPTANCE](verification/B03-ACCEPTANCE.md)
+en `docs/verification/b03/`. Loader- en kernelbewijs: installatie v1→v2 (3 048
+sectoren, 3 flushes, 1 headerwrite), herstart in slot B met vloer 1→2,
+downgrade van een geldig ouder slot geweigerd, geflipte ML-DSA-byte, geflipte
+imagebyte en ondertekend niet-ELF-image elk als slot geweigerd met terugval en
+herstel van slot B, echte hostkill midden in de kopie zonder header- of slot-
+A-wijziging gevolgd door hervatting en start van v2, beide slots ongeldig →
+gecontroleerde stop zonder kernel, inboxbundel met kapotte handtekening,
+lagere versie of vreemde sleutel geweigerd zonder één write. Hosttests: 7
+`update-core`, 1 `update-tool`, 16 `kernel-core`, 10 Python.
+
+**Onafhankelijke review (AI, geen menselijke audit):** een adversariële
+reviewronde over loader, kernel en dienst leverde vier bevindingen die vóór de
+gate zijn verwerkt: terugval naar de ESP zonder slotopslag (nu harde stop),
+vloer verhoogd vóór ELF-validatie (nu pas na een laadbaar image, stage
+`bad-elf`), hardgepinde 64 KiB-stackgrens in `kernel-core` (nu parameter) en
+een cut-controle die een hervatte installatie zou afkeuren.
+
+**Roadmap rubric v1: 32% → 34%** (B03 +2).
+
+**Open en niet bewezen:** GitHub Actions op de PR-head moet de gate herhalen;
+geen firmwareverificatie van de loader (Secure Boot, B04), geen
+sleutelrotatie/intrekking of releaseankers (TEST-ankers met seeds in de
+repository), geen netwerkdistributie, geen pakket-/app-updates (A02), geen
+fysieke schijf of stroomuitval, geen bescherming tegen een schrijver van
+OVMF_VARS. De kernelbroker pollt het apparaat nu één keer direct bij
+`block_wait`; het volumeprofiel is daarin niet gewijzigd.
+
 ## B01 native entropy en sleutelbeheer geaccepteerd, 32% — 29 oktober 2026
 
 Branch `ccr-43832ef7-gi2qlz`, basis `main` `c92238b` (squash van

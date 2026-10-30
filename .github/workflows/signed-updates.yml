@@ -36,7 +36,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
       - name: Strict preflight
         run: python3 -B tools/preflight.py --strict
-      - name: B03 signed update gate (12 QEMU stages)
+      - name: B03 signed update gate (13 QEMU stages)
         run: python3 -B -u tools/test_update.py
       - name: Upload B03 reports
         if: ${{ always() }}

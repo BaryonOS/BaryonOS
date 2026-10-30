@@ -141,7 +141,10 @@ fn keygen(options: &Options) -> Result<(), String> {
     fs::create_dir_all(&dir).map_err(|e| format!("{}: {e}", dir.display()))?;
     let paths = key_paths(&dir, label);
     if let Some(existing) = paths.iter().find(|p| p.exists()) {
-        return Err(format!("{} exists; choose another label", existing.display()));
+        return Err(format!(
+            "{} exists; choose another label",
+            existing.display()
+        ));
     }
     let mut seeds = [0u8; 64];
     fs::File::open("/dev/urandom")
@@ -218,8 +221,12 @@ fn sign(options: &Options) -> Result<(), String> {
     let version = number(options, "version", None)?;
     let min_version = number(options, "min-version", Some(0))?;
     let anchors = keys.anchors();
-    let manifest = manifest_for(&image, version, min_version, &anchors)
-        .map_err(|r| format!("manifest rejected: {r:?} (image {} bytes, max {MAX_IMAGE_LEN})", image.len()))?;
+    let manifest = manifest_for(&image, version, min_version, &anchors).map_err(|r| {
+        format!(
+            "manifest rejected: {r:?} (image {} bytes, max {MAX_IMAGE_LEN})",
+            image.len()
+        )
+    })?;
     let bytes = keys
         .sign(&manifest)
         .map_err(|r| format!("signing failed: {r:?}"))?;

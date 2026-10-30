@@ -31,7 +31,10 @@ const fn parse_version(text: &str) -> u64 {
     let mut value = 0u64;
     let mut index = 0;
     while index < bytes.len() {
-        assert!(bytes[index] >= b'0' && bytes[index] <= b'9', "NOS_IMAGE_VERSION must be decimal");
+        assert!(
+            bytes[index] >= b'0' && bytes[index] <= b'9',
+            "NOS_IMAGE_VERSION must be decimal"
+        );
         value = value * 10 + (bytes[index] - b'0') as u64;
         index += 1;
     }
@@ -467,8 +470,9 @@ fn advance(s: &State) {
         if r.device.as_ref().is_some_and(Device::reset_acknowledged) {
             // SAFETY: Real reset acknowledgement permits reuse of the same
             // pinned owned RAM pages and permanent validated supervisor MMIO.
-            match unsafe { Device::initialize_profile(r.info.unwrap(), r.mapped, r.pool, true, false) }
-            {
+            match unsafe {
+                Device::initialize_profile(r.info.unwrap(), r.mapped, r.pool, true, false)
+            } {
                 Ok(device) => {
                     r.device = Some(device);
                     r.policy.reset_completed(true).unwrap();
@@ -623,7 +627,9 @@ fn reject_name(code: u64) -> &'static [u8] {
 
 fn finish(s: &mut State) -> ! {
     let r = runtime();
-    if case() == 1 && !r.cut_done {
+    // The cut fixture must have fired on a first attempt; a resumed install
+    // (service word 368) deliberately runs to completion on the same kernel.
+    if case() == 1 && !r.cut_done && word(s, 0, 368) == 0 {
         fail(b"CUT_NOT_OBSERVED");
     }
     if r.publications != r.completions {

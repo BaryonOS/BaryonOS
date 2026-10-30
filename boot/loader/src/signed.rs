@@ -5,8 +5,9 @@
 //! buffer, raises the floor and only then returns the image length to the
 //! existing ELF path. The store header is a hint for slot order, never an
 //! authority; a failing slot falls back to the other; two failing slots stop
-//! the boot with `BOOT:FAIL:NO_VALID_SLOT`. Without any store the loader
-//! returns `None` and the unsigned ESP path of the other profiles is used.
+//! the boot with `BOOT:FAIL:NO_VALID_SLOT`; no store at all stops it with
+//! `BOOT:FAIL:NO_STORE`. A `signed-boot` loader never falls back to the
+//! unsigned ESP kernel of the other profiles.
 use super::{aligned, check, serial, Firmware, Result, PAGE_SIZE};
 use core::{arch::asm, ffi::c_void, ptr};
 use r_efi::{efi, protocols::block_io};
@@ -184,10 +185,14 @@ fn image(
     let sectors = image_sectors(manifest.image_length);
     store.read(image_sector(slot), sectors, file_address)?;
     let length = manifest.image_length as usize;
-    // SAFETY: The file buffer is a dedicated MAX_FILE_SIZE allocation (>= 1 MiB);
+    // SAFETY: The file buffer is a dedicated MAX_FILE_SIZE allocation (>= 2 MiB);
     // the firmware wrote sectors * 512 >= length bytes; no other view exists.
     let bytes = unsafe { core::slice::from_raw_parts(file_address as *const u8, length) };
     verify_image(manifest, bytes)?;
+    // A correctly signed image the loader cannot load is still not a valid
+    // slot: reject it here so the other slot is tried and the floor is only
+    // raised for an image that will actually run.
+    elf_loader_core::parse(bytes).map_err(|_| Reject::Format)?;
     Ok(length)
 }
 
@@ -238,7 +243,7 @@ struct Context {
     fw: *const Firmware,
     scratch: u64,
     file_address: u64,
-    result: Result<Option<usize>>,
+    result: Result<usize>,
 }
 
 extern "efiapi" fn trampoline(context: *mut Context) {
@@ -250,16 +255,18 @@ extern "efiapi" fn trampoline(context: *mut Context) {
     context.result = select(fw, context.scratch, context.file_address);
 }
 
-/// `Ok(None)`: no store, use the ESP. `Ok(Some(len))`: a verified image of
-/// `len` bytes is in the file buffer. Structural firmware errors propagate.
-pub fn load(fw: &Firmware, file_address: u64) -> Result<Option<usize>> {
+/// `Ok(len)`: a verified, loadable image of `len` bytes is in the file
+/// buffer and the floor covers its version. Every other outcome stops the
+/// boot: structural firmware errors propagate, missing or invalid stores
+/// end in `BOOT:FAIL:*`.
+pub fn load(fw: &Firmware, file_address: u64) -> Result<usize> {
     let scratch = fw.pages(1, efi::LOADER_DATA, None)?;
     let stack = fw.pages(STACK_PAGES, efi::LOADER_DATA, None)?;
     let mut context = Context {
         fw,
         scratch,
         file_address,
-        result: Ok(None),
+        result: Err(b"SIGNED_SELECT"),
     };
     let top = stack + STACK_PAGES as u64 * PAGE_SIZE;
     // SAFETY: Switch to the fresh page-aligned allocation for exactly one
@@ -285,11 +292,11 @@ pub fn load(fw: &Firmware, file_address: u64) -> Result<Option<usize>> {
     context.result
 }
 
-fn select(fw: &Firmware, scratch: u64, file_address: u64) -> Result<Option<usize>> {
+fn select(fw: &Firmware, scratch: u64, file_address: u64) -> Result<usize> {
     serial::init();
     let Some(store) = locate(fw, scratch)? else {
-        serial::write(b"BOOT:STORE:NONE\n");
-        return Ok(None);
+        // An unsigned ESP kernel is never an alternative for this loader.
+        fail(b"NO_STORE");
     };
     // SAFETY: `locate` left the matching header sector in the scratch page.
     let header_bytes = unsafe { &*(scratch as *const [u8; SECTOR]) };
@@ -307,10 +314,7 @@ fn select(fw: &Firmware, scratch: u64, file_address: u64) -> Result<Option<usize
     serial::write(b"BOOT:FLOOR:");
     serial::decimal(floor);
     serial::write(b"\n");
-    let mut slots: [SlotResult; 2] = [
-        manifest(&store, 0, scratch),
-        manifest(&store, 1, scratch),
-    ];
+    let mut slots: [SlotResult; 2] = [manifest(&store, 0, scratch), manifest(&store, 1, scratch)];
     let mut printed = [false; 2];
     loop {
         let (choice, reasons) = choose(&header, slots, floor);
@@ -336,7 +340,7 @@ fn select(fw: &Firmware, scratch: u64, file_address: u64) -> Result<Option<usize
                     raise_floor(fw, manifest.version)?;
                 }
                 serial::write(b"BOOT:SIGNED:OK\n");
-                return Ok(Some(length));
+                return Ok(length);
             }
             Err(reject) => {
                 report(slot, reject, &mut printed);

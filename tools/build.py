@@ -254,7 +254,12 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     esp = BUILD / "esp"
     (esp / "EFI/BOOT").mkdir(parents=True, exist_ok=True)
     shutil.copy2(loader, esp / "EFI/BOOT/BOOTX64.EFI")
-    shutil.copy2(kernel, esp / "kernel.elf")
+    if loader_feature == "signed-boot":
+        # B03: the signed loader only boots from the slot store; leave no
+        # unsigned fallback target on the ESP at all.
+        (esp / "kernel.elf").unlink(missing_ok=True)
+    else:
+        shutil.copy2(kernel, esp / "kernel.elf")
     save_json(BUILD / "manifest.json", manifest)
     save_json(BUILD / f"logs/build-{label}-manifest.json", manifest)
     print(f"Built and inspected {label}: {len(manifest['kernel']['segments'])} ELF load segments")

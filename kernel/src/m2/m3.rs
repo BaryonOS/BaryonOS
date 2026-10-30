@@ -711,7 +711,7 @@ impl State {
             if self.processes[slot].status == Status::Ready {
                 let p = &self.processes[slot];
                 let c = &p.context;
-                let valid = user::valid_return_layout(c[17], c[20], c[18], c[21])
+                let valid = user::valid_return_layout(c[17], c[20], c[18], c[21], STACK..STACK_END)
                     && p.paging
                         .as_ref()
                         .unwrap()

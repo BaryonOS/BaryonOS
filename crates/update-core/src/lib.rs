@@ -139,7 +139,10 @@ impl TrustAnchors {
 
 /// Full manifest verification: format, key IDs, then BOTH signatures over the
 /// same canonical bytes. Any failure is a rejection with the first reason.
-pub fn verify_manifest(bytes: &[u8; MANIFEST_LEN], anchors: &TrustAnchors) -> Result<Manifest, Reject> {
+pub fn verify_manifest(
+    bytes: &[u8; MANIFEST_LEN],
+    anchors: &TrustAnchors,
+) -> Result<Manifest, Reject> {
     let manifest = Manifest::decode(bytes)?;
     if manifest.ed25519_key_id != anchors.ed25519_key_id()
         || manifest.mldsa_key_id != anchors.mldsa_key_id()
@@ -163,8 +166,9 @@ pub fn verify_manifest(bytes: &[u8; MANIFEST_LEN], anchors: &TrustAnchors) -> Re
         .map_err(|_| Reject::UnknownKey)?;
     let pq_key = PqKey::<MlDsa65>::decode(&encoded_key);
     let start = SIGNED_LEN + ED25519_SIGNATURE;
-    let encoded_sig = EncodedSignature::<MlDsa65>::try_from(&bytes[start..start + MLDSA65_SIGNATURE])
-        .map_err(|_| Reject::Signature)?;
+    let encoded_sig =
+        EncodedSignature::<MlDsa65>::try_from(&bytes[start..start + MLDSA65_SIGNATURE])
+            .map_err(|_| Reject::Signature)?;
     let Some(pq_sig) = PqSignature::<MlDsa65>::decode(&encoded_sig) else {
         return Err(Reject::Signature);
     };
@@ -262,8 +266,17 @@ impl SigningKeys {
 }
 
 /// Build the manifest for an image under the given anchors.
-pub fn manifest_for(image: &[u8], version: u64, min_version: u64, anchors: &TrustAnchors) -> Result<Manifest, Reject> {
-    if image.is_empty() || image.len() > MAX_IMAGE_LEN as usize || version == 0 || min_version > version {
+pub fn manifest_for(
+    image: &[u8],
+    version: u64,
+    min_version: u64,
+    anchors: &TrustAnchors,
+) -> Result<Manifest, Reject> {
+    if image.is_empty()
+        || image.len() > MAX_IMAGE_LEN as usize
+        || version == 0
+        || min_version > version
+    {
         return Err(Reject::Format);
     }
     let digest = Sha256::digest(image);
@@ -369,7 +382,11 @@ pub struct Choice {
     pub manifest: Manifest,
 }
 
-pub fn choose(header: &Header, slots: [SlotResult; 2], floor: u64) -> (Option<Choice>, [Option<Reject>; 2]) {
+pub fn choose(
+    header: &Header,
+    slots: [SlotResult; 2],
+    floor: u64,
+) -> (Option<Choice>, [Option<Reject>; 2]) {
     let mut reasons = [None; 2];
     let mut chosen = None;
     for candidate in [header.active, other(header.active)] {
@@ -395,7 +412,10 @@ pub fn choose(header: &Header, slots: [SlotResult; 2], floor: u64) -> (Option<Ch
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Decision {
     /// Install into this slot (the inactive one) and then switch the pointer.
-    Install { target: u8, version: u64 },
+    Install {
+        target: u8,
+        version: u64,
+    },
     UpToDate,
     Rejected(Reject),
 }
@@ -450,10 +470,17 @@ mod tests {
             "5fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"
         );
         let key = EdKey::from_bytes(&public).unwrap();
-        assert!(key.verify_strict(b"", &EdSignature::from_bytes(&signature)).is_ok());
-        assert!(key.verify_strict(b"x", &EdSignature::from_bytes(&signature)).is_err());
+        assert!(key
+            .verify_strict(b"", &EdSignature::from_bytes(&signature))
+            .is_ok());
+        assert!(key
+            .verify_strict(b"x", &EdSignature::from_bytes(&signature))
+            .is_err());
         let seed = hex!("9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60");
-        assert_eq!(EdSigningKey::from_bytes(&seed).verifying_key().to_bytes(), public);
+        assert_eq!(
+            EdSigningKey::from_bytes(&seed).verifying_key().to_bytes(),
+            public
+        );
     }
 
     #[test]
@@ -461,9 +488,19 @@ mod tests {
         let keys = keys();
         let anchors = keys.anchors();
         assert_eq!(anchors.mldsa65.len(), 1952);
-        let sig = keys.mldsa65.expanded_key().sign_deterministic(b"m", b"").unwrap().encode();
+        let sig = keys
+            .mldsa65
+            .expanded_key()
+            .sign_deterministic(b"m", b"")
+            .unwrap()
+            .encode();
         assert_eq!(sig.len(), 3309);
-        let again = keys.mldsa65.expanded_key().sign_deterministic(b"m", b"").unwrap().encode();
+        let again = keys
+            .mldsa65
+            .expanded_key()
+            .sign_deterministic(b"m", b"")
+            .unwrap()
+            .encode();
         assert_eq!(sig, again);
     }
 
@@ -479,28 +516,42 @@ mod tests {
             (40, Reject::Signature),
             (SIGNED_LEN + 3, Reject::Signature),
             (SIGNED_LEN + ED25519_SIGNATURE + 100, Reject::Signature),
-            (SIGNED_LEN + ED25519_SIGNATURE + MLDSA65_SIGNATURE - 1, Reject::Signature),
+            (
+                SIGNED_LEN + ED25519_SIGNATURE + MLDSA65_SIGNATURE - 1,
+                Reject::Signature,
+            ),
             (MANIFEST_LEN - 1, Reject::Format),
         ] {
             let mut bad = bytes;
             bad[position] ^= 0x01;
-            assert_eq!(verify_manifest(&bad, &anchors), Err(expected), "position {position}");
+            assert_eq!(
+                verify_manifest(&bad, &anchors),
+                Err(expected),
+                "position {position}"
+            );
         }
         // A manifest signed by other keys is unknown here, even if well-formed.
         let others = SigningKeys::from_seeds(&[1u8; 32], &[2u8; 32]);
         let foreign = manifest_for(&image(), 3, 1, &others.anchors()).unwrap();
         let foreign_bytes = others.sign(&foreign).unwrap();
-        assert_eq!(verify_manifest(&foreign_bytes, &anchors), Err(Reject::UnknownKey));
+        assert_eq!(
+            verify_manifest(&foreign_bytes, &anchors),
+            Err(Reject::UnknownKey)
+        );
         // Mixed: our Ed25519 key id with foreign ML-DSA signature bytes.
         let mut mixed = bytes;
         let start = SIGNED_LEN + ED25519_SIGNATURE;
-        mixed[start..start + MLDSA65_SIGNATURE].copy_from_slice(&foreign_bytes[start..start + MLDSA65_SIGNATURE]);
+        mixed[start..start + MLDSA65_SIGNATURE]
+            .copy_from_slice(&foreign_bytes[start..start + MLDSA65_SIGNATURE]);
         assert_eq!(verify_manifest(&mixed, &anchors), Err(Reject::Signature));
         // Image binding.
         let mut changed = image();
         changed[12345] ^= 0x80;
         assert_eq!(verify_image(&manifest, &changed), Err(Reject::Digest));
-        assert_eq!(verify_image(&manifest, &image()[..69_999]), Err(Reject::Digest));
+        assert_eq!(
+            verify_image(&manifest, &image()[..69_999]),
+            Err(Reject::Digest)
+        );
         let mut incremental = ImageDigest::new(&manifest);
         for chunk in image().chunks(SECTOR) {
             let mut sector = [0u8; SECTOR];
@@ -521,7 +572,10 @@ mod tests {
         assert_eq!(verify_manifest(&target, &anchors), Err(Reject::Format));
         let mut zero_version = bytes;
         zero_version[20..28].fill(0);
-        assert_eq!(verify_manifest(&zero_version, &anchors), Err(Reject::Format));
+        assert_eq!(
+            verify_manifest(&zero_version, &anchors),
+            Err(Reject::Format)
+        );
         let mut too_big = bytes;
         too_big[16..20].copy_from_slice(&(MAX_IMAGE_LEN + 1).to_le_bytes());
         assert_eq!(verify_manifest(&too_big, &anchors), Err(Reject::Format));
@@ -555,15 +609,27 @@ mod tests {
         assert_eq!(STORE_SECTORS, 12310);
         assert_eq!(image_sectors(1), 1);
         assert_eq!(image_sectors(70_000), 137);
-        assert_eq!(header_after_install(&header, 0), Header { active: 0, generation: 8 });
+        assert_eq!(
+            header_after_install(&header, 0),
+            Header {
+                active: 0,
+                generation: 8
+            }
+        );
     }
 
     #[test]
     fn selection_prefers_active_falls_back_and_enforces_the_floor() {
         let (_, v1, _) = signed(1);
         let (_, v2, _) = signed(2);
-        let header_a = Header { active: 0, generation: 1 };
-        let header_b = Header { active: 1, generation: 2 };
+        let header_a = Header {
+            active: 0,
+            generation: 1,
+        };
+        let header_b = Header {
+            active: 1,
+            generation: 2,
+        };
         // Normal: active A with v1 and B empty.
         let (choice, reasons) = choose(&header_a, [Ok(v1), Err(Reject::Format)], 0);
         assert_eq!(choice.map(|c| (c.slot, c.manifest.version)), Some((0, 1)));
@@ -592,12 +658,36 @@ mod tests {
     #[test]
     fn install_decisions_never_target_the_active_slot_or_go_backwards() {
         let (_, v2, _) = signed(2);
-        let header = Header { active: 0, generation: 1 };
-        assert_eq!(decide(&header, 1, 1, Ok(v2)), Decision::Install { target: 1, version: 2 });
+        let header = Header {
+            active: 0,
+            generation: 1,
+        };
+        assert_eq!(
+            decide(&header, 1, 1, Ok(v2)),
+            Decision::Install {
+                target: 1,
+                version: 2
+            }
+        );
         assert_eq!(decide(&header, 2, 2, Ok(v2)), Decision::UpToDate);
-        assert_eq!(decide(&header, 3, 3, Ok(v2)), Decision::Rejected(Reject::Downgrade));
-        assert_eq!(decide(&header, 1, 1, Err(Reject::Signature)), Decision::Rejected(Reject::Signature));
-        let header_b = Header { active: 1, generation: 5 };
-        assert_eq!(decide(&header_b, 1, 0, Ok(v2)), Decision::Install { target: 0, version: 2 });
+        assert_eq!(
+            decide(&header, 3, 3, Ok(v2)),
+            Decision::Rejected(Reject::Downgrade)
+        );
+        assert_eq!(
+            decide(&header, 1, 1, Err(Reject::Signature)),
+            Decision::Rejected(Reject::Signature)
+        );
+        let header_b = Header {
+            active: 1,
+            generation: 5,
+        };
+        assert_eq!(
+            decide(&header_b, 1, 0, Ok(v2)),
+            Decision::Install {
+                target: 0,
+                version: 2
+            }
+        );
     }
 }

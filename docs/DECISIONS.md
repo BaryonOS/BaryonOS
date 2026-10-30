@@ -787,8 +787,9 @@ gate, bewijs).
 ## ADR-044 — Hybride ondertekende kernelupdates met slotopslag, versievloer en terugval (B03)
 
 **Datum:** 29 oktober 2026. Loaderfeature `signed-boot` en kernelprofiel
-`native-update`, beide opt-in; zonder slotopslag blijft het bestaande
-ESP-pad (`kernel.elf`) van alle andere profielen ongewijzigd.
+`native-update`, beide opt-in; loaders zonder de feature (alle andere
+profielen) houden het bestaande ESP-pad (`kernel.elf`) ongewijzigd. Een
+`signed-boot`-loader valt nooit op dat pad terug.
 
 **Status (gescheiden):** *ontwerp* in
 [B03-SIGNED-UPDATES](implementation/B03-SIGNED-UPDATES.md). *Implementatie*:
@@ -818,8 +819,12 @@ schrijven.
 3. De header van de slotopslag is een onondertekende hint voor de slotvolgorde.
    Faalt het aangewezen slot (formaat, sleutel-ID, handtekening, digest, vloer,
    lezen), dan wordt het andere slot geprobeerd; falen beide, dan stopt de
-   boot gecontroleerd (`BOOT:FAIL:NO_VALID_SLOT`, exit 0x11). Een lege of
-   ongeldige slotopslag valt nooit stil terug op een onondertekende ESP-kernel.
+   boot gecontroleerd (`BOOT:FAIL:NO_VALID_SLOT`, exit 0x11); ontbreekt de
+   slotopslag, dan `BOOT:FAIL:NO_STORE`. Een lege, ongeldige of ontbrekende
+   slotopslag valt nooit terug op een onondertekende ESP-kernel, en de build
+   legt voor dit profiel geen `kernel.elf` op de ESP. Een correct ondertekend
+   maar onlaadbaar image (ELF-parser) is een `FORMAT`-weigering van dat slot;
+   de vloer stijgt pas voor een image dat de loader ook werkelijk kan laden.
 4. De update-dienst schrijft uitsluitend naar het slot dat **niet** draait.
    Het draaiende slot wordt bepaald door de geverifieerde manifestversie die
    gelijk is aan de door de kernel gemelde eigen imageversie, niet door de

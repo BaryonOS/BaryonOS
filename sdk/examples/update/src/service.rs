@@ -246,7 +246,8 @@ pub extern "C" fn _start() -> ! {
     };
     let mut sector = [0u8; SECTOR];
     support::put(STEP, 2);
-    disk.read(0, &mut sector).unwrap_or_else(|code| fail(2, code));
+    disk.read(0, &mut sector)
+        .unwrap_or_else(|code| fail(2, code));
     // The header is a hint for the active slot; it carries no signature.
     let header = Header::decode(&sector).unwrap_or_else(|_| fail(3, -18));
     support::put(HEADER_ACTIVE, u64::from(header.active));
@@ -258,7 +259,10 @@ pub extern "C" fn _start() -> ! {
     let mut versions: [Option<u64>; 2] = [None, None];
     for (slot, (version_word, reject_word)) in [
         (header.active, (ACTIVE_VERSION, ACTIVE_REJECT)),
-        (update_core::other(header.active), (OTHER_VERSION, OTHER_REJECT)),
+        (
+            update_core::other(header.active),
+            (OTHER_VERSION, OTHER_REJECT),
+        ),
     ] {
         support::put(STEP, 4);
         disk.read_manifest(manifest_sector(slot), &mut manifest_bytes)

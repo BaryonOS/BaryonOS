@@ -100,18 +100,22 @@ header-offsets buiten het bereik van het apparaat).
 ## 4. Loader (`boot/loader`, feature `signed-boot`)
 
 1. Zoek via `LocateHandleBuffer(BLOCK_IO)` het eerste blokapparaat waarvan
-   sector 0 de slotmagic draagt (≤ 8 handles). Geen apparaat → bestaand
-   M1-pad (`kernel.elf` van de ESP), zodat alle bestaande profielen ongewijzigd
-   blijven.
+   sector 0 de slotmagic draagt (≤ 32 handles). Geen apparaat → `BOOT:FAIL:NO_STORE`:
+   een `signed-boot`-loader valt nooit terug op een onondertekende
+   ESP-kernel. Alleen loaders zonder de feature (alle andere profielen)
+   gebruiken het bestaande M1-pad; de build legt voor `signed-boot` geen
+   `kernel.elf` op de ESP.
 2. Lees header, lees de vloer uit `NieuwOsMinVersion` (ontbreekt → 0).
 3. Voor het aangewezen slot en daarna het andere: lees manifest, controleer
    magic/versie/doel/lengte, `key_id`'s, beide handtekeningen, lees het image
-   (`image_length` bytes), SHA-256, vergelijk; weiger `version < vloer`.
+   (`image_length` bytes), SHA-256, vergelijk, en controleer dat het image een
+   laadbare ELF is (dezelfde parser als het M1-pad; een correct ondertekend
+   maar onlaadbaar image is `REJECTED:FORMAT`); weiger `version < vloer`.
    Serieel: `BOOT:SLOT:<A|B>:VERSION:<n>` of
    `BOOT:SLOT:<A|B>:REJECTED:<SIGNATURE|DIGEST|DOWNGRADE|FORMAT|READ>`.
-4. Verhoog de vloer naar `version` van het gekozen slot (`SetVariable`,
-   NV+BS). Laad het image zoals `kernel.elf` (zelfde ELF-validatie), druk
-   `BOOT:SIGNED:OK` af en ga door met de bestaande overdracht.
+4. Verhoog pas daarna de vloer naar `version` van het gekozen slot
+   (`SetVariable`, NV+BS), druk `BOOT:SIGNED:OK` af en ga door met de
+   bestaande overdracht van het al gevalideerde image.
 
 Cryptografie in de loader: `ed25519-dalek` 2.2.0 (serial backend) en
 `ml-dsa` 0.1.1 (RustCrypto, pure Rust), `sha2` 0.10.9. Geen allocaties
@@ -194,13 +198,26 @@ anders).
   gebruikersstack.
 - **Loadermarkers.** Naast `BOOT:SLOT:<X>:VERSION:<n>` en
   `BOOT:SLOT:<X>:REJECTED:<reden>` print de loader `BOOT:FLOOR:<n>` (gelezen
-  vloer) en meldt een leeg slot als `REJECTED:FORMAT`. `BOOT:STORE:NONE`
-  markeert het terugvalpad naar de ESP zonder slotopslag.
-- **Twaalf stages in vier reeksen** in plaats van acht runs: de reeks
+  vloer) en meldt een leeg slot als `REJECTED:FORMAT`. Zonder slotopslag
+  stopt de `signed-boot`-loader met `BOOT:FAIL:NO_STORE` (reviewbevinding:
+  een terugval naar de ESP zou handtekeningen en vloer omzeilen; §4 is
+  daarop aangepast).
+- **ELF-validiteit hoort bij slotacceptatie.** Een correct ondertekend
+  image dat de ELF-parser weigert, is `REJECTED:FORMAT`, zodat het andere
+  slot wordt geprobeerd en de vloer nooit stijgt voor een image dat niet
+  kan draaien (reviewbevinding; stage `bad-elf`).
+- **Dertien stages in negen reeksen** in plaats van acht runs: de reeks
   install → boot-v2 → downgrade deelt slotopslag en OVMF_VARS; bad-signature,
-  bad-digest en no-valid-slot zijn verse reeksen; cut → cut-resume →
+  bad-digest, bad-elf en no-valid-slot zijn verse reeksen; cut → cut-resume →
   cut-final deelt de slotopslag; de inboxgevallen (handtekening, downgrade,
   vreemde sleutel) zijn elk een verse reeks. Het gate-script bouwt drie
-  kernels (v1, v2, v1 met cutfixture), ondertekent met de TEST-ankers en
-  één ad-hoc vreemd sleutelpaar, en controleert na iedere stage de schijf
-  met het Python-orakel.
+  kernels (v1, v2, v1 met cutfixture), ondertekent met de TEST-ankers, maakt
+  één ondertekend niet-ELF-image en één ad-hoc vreemd sleutelpaar, en
+  controleert na iedere stage de schijf met het Python-orakel.
+- **Gebruikersstackgrens als parameter.** `kernel-core::user::valid_return_layout`
+  pinde de stack hard op 0x7ffef000–0x7ffff000; de kernel geeft nu zijn eigen
+  `STACK..STACK_END` door, zodat het 512 KiB-profiel geldige frames niet
+  afkeurt (dat deed de eerste run vastlopen in `idle()`).
+- **Directe apparaatpoll.** De broker pollt het apparaat één keer
+  niet-blokkerend bij `block_wait` (0x41) voordat hij EAGAIN geeft; de
+  installatie van 3 048 sectoren duurt daarmee ca. 10 s in TCG.

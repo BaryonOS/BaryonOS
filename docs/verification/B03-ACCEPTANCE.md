@@ -24,7 +24,7 @@ orakel controleert na iedere stage de bytes van de slotopslag.
 
 - Branch `ccr-43832ef7-gi2qlz`, basis `main` `f63a0c1` (squash van PR #52,
   B01). De gate draaide op de werkboom die als PR-head is gecommit;
-  bronvingerafdruk v3 staat in `b03/update-gate.json`. De hosttestinputs
+  bronvingerafdruk v3 `07994d47461a1dd5…` (`b03/update-gate.json`). De hosttestinputs
   `tests/test_update_*.py` zijn apart vastgelegd en vóór het verdict opnieuw
   gecontroleerd.
 - Omgeving: Linux-container, Rust 1.90.0, QEMU 8.2.2 (Ubuntu-pakket
@@ -59,13 +59,41 @@ python3 -B tools/capture_update.py                            # exit 0 -> docs/v
 
 ## QEMU-stages
 
-ZIE-RESULTATEN
+Alle stages op één bevroren bron (vingerafdruk `07994d47461a1dd5…`, loader `299acb684e45d60c…`), één
+`signed-boot`-loader, kernels v1/v2/v1-cut en één ondertekend niet-ELF-image.
+Reeksen delen slotopslag en OVMF_VARS: main (0–2), cut (6–8); de overige stages
+starten elk een verse store en verse variabelen.
+
+| # | Stage | Loader (serieel) | Kernel en dienst | Hostorakel |
+|---|---|---|---|---|
+| 0 | install | `FLOOR:0`, `SLOT:B:REJECTED:FORMAT`, `SLOT:A:VERSION:1`, `SIGNED:OK` | v1; `INSTALLED:2`; 24 484 reads, 3 056 writes, 3 flushes, 3 048 sectoren gekopieerd, 1 headerwrite, 475 ticks | slot B = exact manifest v2 + image v2, header active=B gen 2, slot A en inbox byte-identiek |
+| 1 | boot-v2 | `FLOOR:1`, `SLOT:B:VERSION:2`, `SIGNED:OK` | v2; `UP_TO_DATE`; 0 writes | store ongewijzigd |
+| 2 | downgrade (host zet header op A) | `FLOOR:2`, `SLOT:A:REJECTED:DOWNGRADE`, `SLOT:B:VERSION:2`, `SIGNED:OK` | v2; `UP_TO_DATE`; 0 writes | store ongewijzigd |
+| 3 | bad-signature (ML-DSA-byte slot B geflipt, header B) | `FLOOR:0`, `SLOT:B:REJECTED:SIGNATURE`, `SLOT:A:VERSION:1` | v1; draaiend slot A ondanks header B (`ACTIVE_REJECT` 3); `INSTALLED:2` | slot B hersteld naar v2, header active=B gen 2 |
+| 4 | bad-digest (imagebyte slot B geflipt, header B) | `FLOOR:0`, `SLOT:B:REJECTED:DIGEST`, `SLOT:A:VERSION:1` | v1; manifest B geldig (`ACTIVE_VERSION` 2) maar niet draaiend; `INSTALLED:2` | slot B hersteld |
+| 5 | bad-elf (ondertekend niet-ELF-image in B, header B) | `FLOOR:0`, `SLOT:B:REJECTED:FORMAT`, `SLOT:A:VERSION:1` | v1; `INSTALLED:2` | slot B hersteld; vloer niet verhoogd (volgende reeksen starten vers) |
+| 6 | cut (`test-update-cut`) | `FLOOR:0`, `SLOT:A:VERSION:1` | v1-cut; `UPDATE:CUT:IMAGE` na 64 niet-headerwrites, echte hostkill (raw −9) | header en slot A ongewijzigd, slot B zonder manifest met een prefix van ≥64 sectoren van image v2 en niets daarbuiten |
+| 7 | cut-resume | `FLOOR:1`, `SLOT:B:REJECTED:FORMAT`, `SLOT:A:VERSION:1` | v1-cut; `RESUMED` 1, geen cut; `INSTALLED:2`; 3 048 sectoren, 1 headerwrite | slot B = v2, header active=B gen 2 |
+| 8 | cut-final | `FLOOR:1`, `SLOT:B:VERSION:2` | v2; `UP_TO_DATE`; 0 writes | store ongewijzigd |
+| 9 | no-valid-slot (Ed25519-byte A en ML-DSA-byte B geflipt) | `FLOOR:0`, `SLOT:A:REJECTED:SIGNATURE`, `SLOT:B:REJECTED:SIGNATURE`, `BOOT:FAIL:NO_VALID_SLOT` | geen `KERNEL:ENTRY`; raw exit 35 (0x11) | store ongewijzigd |
+| 10 | inbox-signature | `FLOOR:0`, `SLOT:B:REJECTED:FORMAT`, `SLOT:A:VERSION:1` | v1; `UPDATE:REJECTED:SIGNATURE` (`INBOX_REJECT` 3); 0 writes, 0 flushes | store ongewijzigd |
+| 11 | inbox-downgrade (A = v2, inbox = v1) | `FLOOR:0`, `SLOT:B:REJECTED:FORMAT`, `SLOT:A:VERSION:2` | v2; `UPDATE:REJECTED:DOWNGRADE` (`INBOX_REJECT` 5); 0 writes | store ongewijzigd |
+| 12 | inbox-key (inbox met vreemd sleutelpaar) | `FLOOR:0`, `SLOT:B:REJECTED:FORMAT`, `SLOT:A:VERSION:1` | v1; `UPDATE:REJECTED:UNKNOWN_KEY` (`INBOX_REJECT` 2); 0 writes | store ongewijzigd |
+
+Elke kernelrun eindigt met `UPDATE:RESOURCES:PASS` (lege capability-engine,
+framebaseline, kernel-eigen DMA-pool) en `M1:PASS` (raw exit 33); de
+hostrunner controleert markervolgorde, exitcode, `FAIL`/`PANIC`, de getallen
+en de bytes van de slotopslag onafhankelijk (`tools/run_update.py`,
+`tools/update_disk.py`). De loader-, kernel- en dienstbinaries zijn per stage in
+`b03/<n>-<stage>/result.json` gehasht.
 
 ## Negatieve tests
 
 - Loader: `REJECTED:SIGNATURE` bij één geflipte ML-DSA-byte (bad-signature,
   no-valid-slot B) en bij één geflipte Ed25519-byte (no-valid-slot A);
   `REJECTED:DIGEST` bij één geflipte imagebyte (bad-digest);
+  `REJECTED:FORMAT` voor een correct ondertekend image dat geen laadbare ELF
+  is (bad-elf), waarna het andere slot start en de vloer niet stijgt;
   `REJECTED:DOWNGRADE` voor een geldig maar ouder slot onder de vloer
   (downgrade); `REJECTED:FORMAT` voor een leeg slot; `BOOT:FAIL:NO_VALID_SLOT`
   met exit 0x11 en zonder `KERNEL:ENTRY` als beide slots falen.

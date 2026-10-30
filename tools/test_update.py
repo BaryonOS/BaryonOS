@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Complete B03 gate: host tests, three kernel builds (v1, v2, v1 with the
 labelled cut fixture) behind the signed-boot loader, TEST-key signing with
-update-tool, then twelve real QEMU stages in four store/variable sequences on
-one frozen source fingerprint. Only the final summary with passed=true counts."""
+update-tool (plus one signed non-ELF image and one foreign key pair), then
+thirteen real QEMU stages in nine store/variable sequences on one frozen
+source fingerprint. Only the final summary with passed=true counts."""
 from __future__ import annotations
 import hashlib
 import json
@@ -22,7 +23,11 @@ HOST = [
 KERNELS = {"k1": ("native-update", 1, "kernel-v1.elf"), "k2": ("native-update", 2, "kernel-v2.elf"),
            "kc": ("test-update-cut", 1, "kernel-v1-cut.elf")}
 MANIFESTS = {"m1": ("k1", 1, "TEST", "manifest-v1.bin"), "m2": ("k2", 2, "TEST", "manifest-v2.bin"),
-             "mc": ("kc", 1, "TEST", "manifest-v1-cut.bin"), "mf": ("k2", 2, "TEST-foreign", "manifest-v2-foreign.bin")}
+             "mc": ("kc", 1, "TEST", "manifest-v1-cut.bin"), "mf": ("k2", 2, "TEST-foreign", "manifest-v2-foreign.bin"),
+             "mj": ("kj", 2, "TEST", "manifest-v2-junk.bin")}
+# Correctly signed but not an ELF: the loader must reject it as FORMAT and
+# fall back without raising the floor.
+JUNK_IMAGE = ("kj", "junk-v2.bin", 200_000)
 
 
 def test_inputs() -> dict[str, str]:
@@ -54,6 +59,10 @@ def prepare_images(frozen: str) -> dict:
             images["loader_sha256"] = manifest["loader"]["sha256"]
         elif images["loader_sha256"] != manifest["loader"]["sha256"]:
             raise ValueError("the signed-boot loader differed between builds")
+    name, filename, length = JUNK_IMAGE
+    (out / filename).write_bytes(bytes((index * 7 + 3) % 251 for index in range(length)))
+    images["files"][name] = filename
+    images["kernels"][name] = sha256(out / filename)
     foreign = out / "foreign-keys"
     run_update.update_tool(env, "keygen", "--dir", str(foreign), "--label", "TEST-foreign")
     for name, (kernel, version, label, filename) in MANIFESTS.items():

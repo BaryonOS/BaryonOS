@@ -73,6 +73,15 @@ STAGES: dict[str, dict] = {
                                "ACTIVE_VERSION": 2, "OTHER_VERSION": 1, "RUNNING_SLOT": 0, "TARGET_SLOT": 1,
                                "BROKER:HEADER_WRITES": 1},
                        at_least={"BROKER:FLUSHES": 3}),
+    "bad-elf": dict(sequence="elf", fresh=True,
+                    pack=("B", {"slot-a": ("m1", "k1"), "slot-b": ("mj", "kj"), "inbox": ("m2", "k2")}),
+                    mutate=[],
+                    loader=["BOOT:FLOOR:0", "BOOT:SLOT:B:REJECTED:FORMAT", "BOOT:SLOT:A:VERSION:1"],
+                    outcome="INSTALLED",
+                    expect={"IMAGE_VERSION": 1, "RESULT": 1, "INSTALLED": 2, "HEADER_ACTIVE": 1,
+                            "ACTIVE_VERSION": 2, "OTHER_VERSION": 1, "RUNNING_SLOT": 0, "TARGET_SLOT": 1,
+                            "BROKER:HEADER_WRITES": 1},
+                    at_least={"BROKER:FLUSHES": 3}),
     "cut": dict(sequence="cut", fresh=True, pack=("A", {"slot-a": ("mc", "kc"), "inbox": ("m2", "k2")}),
                 mutate=[], loader=["BOOT:FLOOR:0", "BOOT:SLOT:B:REJECTED:FORMAT", "BOOT:SLOT:A:VERSION:1"], outcome="CUT",
                 expect={"IMAGE_VERSION": 1}, at_least={}),
@@ -116,7 +125,7 @@ STAGES: dict[str, dict] = {
                               "BROKER:WRITES": 0, "BROKER:FLUSHES": 0},
                       at_least={}),
 }
-ORDER = ("install", "boot-v2", "downgrade", "bad-signature", "bad-digest", "cut", "cut-resume",
+ORDER = ("install", "boot-v2", "downgrade", "bad-signature", "bad-digest", "bad-elf", "cut", "cut-resume",
          "cut-final", "no-valid-slot", "inbox-signature", "inbox-downgrade", "inbox-key")
 CONTROLLED_PREFIXES = ("BOOT:", "UPDATE:MANIFEST:PASS", "UPDATE:READY", "UPDATE:UP_TO_DATE",
                        "UPDATE:REJECTED:", "UPDATE:NO_BUNDLE", "UPDATE:CUT:", "UPDATE:RESOURCES:PASS",
@@ -232,13 +241,20 @@ def check_store(stage: str, before: bytes, after: bytes, images: dict) -> dict:
         b = oracle["regions"]["B"]
         if b["manifest"] is not None or b["manifest_error"] is not None:
             raise ValueError("cut wrote a slot B manifest")
-        written = b["image_nonzero_sectors"]
-        total = disk.nonzero_sectors(k2)
+        # The interrupted copy must have left exactly a prefix of the v2 image
+        # (the image itself contains all-zero sectors, so a non-zero count
+        # would undercount) of at least the fixture's 64 writes, and nothing
+        # beyond that prefix.
+        image_region = disk.region(after, disk.SLOT_B_IMAGE, disk.MAX_IMAGE_LEN)
+        total = (len(k2) + disk.SECTOR - 1) // disk.SECTOR
+        written = 0
+        while written < total and image_region[written * disk.SECTOR:(written + 1) * disk.SECTOR] == \
+                k2[written * disk.SECTOR:(written + 1) * disk.SECTOR].ljust(disk.SECTOR, b"\0"):
+            written += 1
         if not 64 <= written < total:
-            raise ValueError(f"cut left {written} of {total} image sectors")
-        prefix = disk.region(after, disk.SLOT_B_IMAGE, 64 * disk.SECTOR)
-        if prefix != k2[:64 * disk.SECTOR]:
-            raise ValueError("partial slot B image is not a prefix of the v2 image")
+            raise ValueError(f"cut left a matching prefix of {written} of {total} image sectors")
+        if any(image_region[written * disk.SECTOR:]):
+            raise ValueError("cut wrote beyond the matching prefix of the v2 image")
     return oracle
 
 

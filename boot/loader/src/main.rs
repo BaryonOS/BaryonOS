@@ -243,6 +243,7 @@ impl Firmware {
         Ok((li.device_handle, base, end - base))
     }
 
+    #[cfg_attr(feature = "signed-boot", allow(dead_code))]
     fn open_kernel(
         &self,
         device: efi::Handle,
@@ -271,6 +272,7 @@ impl Firmware {
         Ok((root, kernel))
     }
 
+    #[cfg_attr(feature = "signed-boot", allow(dead_code))]
     fn read_kernel(&self, kernel: *mut file::Protocol, address: u64) -> Result<usize> {
         let capacity = elf_loader_core::MAX_FILE_SIZE;
         let mut used = 0;
@@ -312,6 +314,7 @@ impl Firmware {
         }
     }
 
+    #[cfg_attr(feature = "signed-boot", allow(dead_code))]
     fn close(&self, file: *mut file::Protocol) -> Result<()> {
         // SAFETY: Caller passes its live open handle exactly once, before freeze.
         check(unsafe { ((*file).close)(file) }, b"FILE_CLOSE")
@@ -512,21 +515,20 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     )?;
     let file_pages = elf_loader_core::MAX_FILE_SIZE / PAGE_SIZE as usize;
     let file_address = fw.pages(file_pages, efi::LOADER_DATA, None)?;
-    // B03: a slot store with a verified, floor-respecting manifest supplies
-    // the image; without a store the original ESP path stays in force.
+    // B03: with `signed-boot` only a slot store with a verified, loadable,
+    // floor-respecting image supplies the kernel; the ESP file is never read.
     #[cfg(feature = "signed-boot")]
-    let signed_length = signed::load(&fw, file_address)?;
+    let file_length = {
+        let _ = device;
+        signed::load(&fw, file_address)?
+    };
     #[cfg(not(feature = "signed-boot"))]
-    let signed_length: Option<usize> = None;
-    let file_length = match signed_length {
-        Some(length) => length,
-        None => {
-            let (root, kernel) = fw.open_kernel(device)?;
-            let length = fw.read_kernel(kernel, file_address)?;
-            fw.close(kernel)?;
-            fw.close(root)?;
-            length
-        }
+    let file_length = {
+        let (root, kernel) = fw.open_kernel(device)?;
+        let length = fw.read_kernel(kernel, file_address)?;
+        fw.close(kernel)?;
+        fw.close(root)?;
+        length
     };
     let entry;
     {
