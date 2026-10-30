@@ -1,0 +1,3 @@
+Bundle integrity and QEMU 11.1.0 prerequisites passed; no VM started.
+Bundle integrity and QEMU 11.1.0 prerequisites passed; no VM started.
+PASS: 5 Windows launcher tests; synthetic files only; no VM started.
