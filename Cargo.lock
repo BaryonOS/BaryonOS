@@ -298,7 +298,9 @@ name = "hmac"
 version = "0.13.0"
 dependencies = [
  "digest 0.11.3",
+ "hex-literal 1.0.0",
  "hybrid-array",
+ "sha2 0.11.1",
  "zeroize",
 ]
 
