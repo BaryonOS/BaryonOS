@@ -34,3 +34,19 @@ The GitHub Actions workflow was added but has not yet run on GitHub. No QEMU
 guest, kernel caller binding, native NAS/app integration, writable store,
 durability, cryptographic trust, or full-release criterion was tested or
 accepted by these gates.
+
+## Herhaling na main-integratie
+
+Main `ca45a7dabe6a040921de03bdc2fad3e5045a75ba` is zonder conflicten
+inhoudsbehoudend gemerged naar
+`53c2f147ad299b16d8dc0136afefe7f845cd0117`. De remote branch wees na push naar
+dezelfde commit. Alle vier bovenstaande Cargo-commando's en `git diff --check`
+zijn op deze mergebron opnieuw uitgevoerd: ieder exit 0, opnieuw 7 hosttests
+geslaagd. Dezelfde bestaande host-toolsbundel en eigen targetmappen zijn
+hergebruikt; geen installatie of `cargo clean`.
+
+Logs van deze herhaling:
+`/tmp/nieuw-os-artifact-store-53c2-{tests,clippy,fmt,none}.log`.
+Dit voegt geen native runtimebewijs of rubricpunten toe; advies blijft
+34% naar 34%, met A02, L01 en R01-R03 open. Centrale assessment en
+PROJECT-STATE blijven bij de manager.
