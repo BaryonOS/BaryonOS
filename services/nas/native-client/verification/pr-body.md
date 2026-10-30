@@ -7,7 +7,9 @@ RAMtickets en vereist expliciete geautoriseerde reconciliatie; een waargenomen
 exacte remote versie is `Observed`, niet de oorspronkelijke commit-ACK.
 
 Aparte branch `simon/nas-resume-client`, basis oracle86a/runtimece52, geteste
-bron `733da709383ce314cde63dea950125fe859f8c2a`. PR71 en de root-NAS-integratie
+runtimebron `733da709383ce314cde63dea950125fe859f8c2a`, aangevuld met een
+gemeten maximale-queue-stackregressie (actueel bronmanifest in verification).
+PR71 en de root-NAS-integratie
 blijven behouden. Nieuwe vierde standalone crate staat echt in nas-core.yml.
 Deze concept-PR is niet mergeklaar zonder nieuwe-head CI/integratiebesluit.
 
@@ -39,12 +41,18 @@ cargo fmt --manifest-path "services/nas/$crate/Cargo.toml" --all -- --check
 cargo build --offline --locked --release --manifest-path "services/nas/$crate/Cargo.toml" --target x86_64-unknown-none
 ```
 
-Debug/release: core21/22, volume10/11, probe5/5, client16/16. De volledig
+Debug/release: core21/22, volume10/11, probe5/5, client16/17. De volledig
 uitgeschreven commando's en resultaten staan in `verification/checks.log`.
-De 16 clienttests omvatten 52 before/after-commit/checkpointfoutbeelden,
+De clienttests omvatten 52 before/after-commit/checkpointfoutbeelden,
 CAS-conflictbewaring, caller/namespacebinding, cancel/quota/limieten en
 coreherstel na revoke. Twee aparte 32-cycli-regressies bewaken de geteste en
 gerepareerde AI-reviewbevinding: verkeerde caller consumeert geen tickets.
+De nieuwe release-only test doorloopt de maximale 4x1.024-bytequeue,
+staging/RAMcheckpoint/coreherstel/reconcile/commit op 64 KiB hoststack;
+Client9.088/Checkpoint8.608 bytes met afzonderlijke heaparena.
+De zes clientgates en twee diffchecks zijn na die testtoevoeging opnieuw
+uitgevoerd, alle exit 0: zie `verification/stack-gates.log`. Runtime,
+manifests, workflow en de bestaande drie crates zijn bytegelijk gebleven.
 
 Ook alle exit 0:
 

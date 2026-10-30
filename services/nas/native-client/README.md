@@ -50,6 +50,11 @@ wordt hier niet met een nieuwe wire of een onbetrouwbare status vervangen.
 
 Hosttests gebruiken echte core-CAS/authority/storage recovery en synthetische
 opaque bytes. Crosscompile is librarybewijs, geen runtime in Nieuw OS.
+De geoptimaliseerde maximale queue (vier objecten van ieder 1.024 bytes)
+doorloopt staging, RAMcheckpoint, coreherstel, reconciliatie en publicatie op
+een hostthread met 64 KiB stack. Hostgrootten: `Client` 9.088 bytes,
+`Checkpoint` 8.608 bytes; de core-arena staat apart op caller-owned heap.
+Dit meet geen native stack-high-water of volledige native callketen.
 P02/P03/S09 en FR-P03/P04/P05 blijven open. Geen E2EE, echte netwerkuitval,
 LAN/internetovergang, native sync, apparaatkoppeling of productclaim.
 De bevroren probe ce52 en het afzonderlijke schijforakel zijn niet gewijzigd.
