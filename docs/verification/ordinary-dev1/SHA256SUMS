@@ -4,6 +4,7 @@ d1705a1ac3e72b329d5892f2fe46e61ef6a416141a3136abd58f57a081a6b49a  ./build-freeze
 a6d0f1d131cdb4b6bf24599f4f189a9e2a6f1b1fe24f49a868497343533aa970  ./isolated-build-1/logs/cache-path-rejected.txt
 f457af5bb20293214abc6b5a6b296833f6d5db5a7683855f7a5aab76c2b29648  ./isolated-build-1/logs/ordinary-build.txt
 0c367e61442471729b81575b9b7f693193dd01d4df8d301c759049978109a7b6  ./isolated-build-1/logs/reference-build.txt
+c21b8ebbdb1c9f218b520e111ff4eae0f91dbd3e13cf536671890c730510736b  ./isolated-build-1/logs/runner-hosttests.txt
 92371d3cdaaad9cff43cdb009a993bf188a100001dfcc39d70a837cbe205e62b  ./isolated-build-1/ordinary-boundary-symbols.txt
 e702807e33679f67002f2c4b64b0ab55c75a80c574ed4151138662e785505b8b  ./isolated-build-1/ordinary-kernel-fingerprint.json
 b67d6a7c19715e8e60c85f83d380b628ac5689f26104b68e25fb903502adc393  ./isolated-build-1/ordinary-manifest.json

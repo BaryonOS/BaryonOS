@@ -228,6 +228,12 @@ De eerste verwerking van inspectie-JSON als commandolog gaf een
 Daarna zijn precies de acht bestaande commandologs per build geselecteerd,
 alle exit0. Daarvoor is geen build of VM herhaald.
 
+Aanvullend op dezelfde onveranderde geisoleerde bron uitgevoerd:
+`python3 -B tools/dev.py python3 -B -m unittest tools.tests.test_materiaal_probe tools.tests.test_materiaal_preview`:
+**exit0, 45 hosttests, 4,093 s**. Uitvoer:
+`isolated-build-1/logs/runner-hosttests.txt`. Dit controleert de bestaande
+runnerlogica; het is geen vervanging van de nieuwe native gates.
+
 **Nieuw slot nog niet vrijgegeven.** De oude voorwaardelijke toestemming
 is vervallen. Pas na deze gepushte freeze en een nieuwe verse
 registrarcapaciteitscontrole mogen opnieuw maximaal twee seriele gates
