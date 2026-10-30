@@ -301,3 +301,18 @@ is niet automatisch een review van alle vervolgcode. Nu slagen 18 gerichte
 hostscenario's, Clippy/fmt en de nieuwe scalarbuild; `verification/checks.json`
 bindt de actuele bron. `verification/host-raster-review.json` bevat alleen
 hashes/waarnemingen van de werkelijk bekeken hostbeelden en de bewijsgrens.
+# Integratieaanvulling 30 oktober 2026: native IPC-wacht
+
+De experimentele `native-system-materiaal`-profielen activeren nu
+`ipc-wait` (ABI 1.10). De bestaande inputsource en inputpolicy parkeren
+alleen bij aantoonbaar ontbrekend werk, met behoud van hun oorspronkelijke
+absolute deadlines. Desktop-init, controller en compositor herkennen exact
+ABI 1.8 en 1.10; ABI 1.9 blijft de aparte RTC-klok en wordt niet als wacht
+herkend. De app-, SUR1-, token-, ACK-, focus- en savecontracten veranderen niet.
+
+De onafhankelijke tweeprocessenproef heeft queue-, deadline-, revoke- en
+PIT-idle-uitvoering aangetoond. Dat bewijst nog geen werkende Materiaal-keten:
+de nulmeting zonder wacht overschreed opnieuw de vaste 20.000 PIT-ticks
+na drie echte frames. Het nieuwe image is gebouwd; de volledige QMP-
+gebruikershandeling en koude heropening moeten nog slagen. Geen verruimde
+budgetten, host-renderfallback of nieuwe voortgangspunten.

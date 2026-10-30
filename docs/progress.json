@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "a00a2afb18aab5373abb87930fcf89f39098987f",
+    "source_commit": "ab98d1a169f21eca6b5d64d25160462b5c36dc3f",
     "branch": "simon/native-test-version",
     "task": "NATIVE-TEST-VERSION: integratie van bestaande begrensde IPC-wacht als voorbereiding op echte Materiaal-testversie",
     "previous_score": 34,
-    "summary": "34% blijft 34%; minstens 50% is nog niet bereikt. De echte tweeprocessen-wachtpoort slaagt met raw33: queue/FIFO, revoke zonder drain, ongeldige argumenten/pointers, deadlines en hervatbare PIT-idle; 14 blokkeringen, 7 ready-wakes, 6 timer-wakes, 1 revoke-wake en 199 idle-IRQ0's. Een native ontdekte auditbug bij een eerder overleden processlot is gericht hersteld. Hosttests en gerichte Clippy slagen. Native kill/hergebruik, FPU-wachtcombinatie, GUI-gebruikersketen en brede native regressies blijven open. Dit sluit geen nieuw volledig rubriccriterium en bewijst geen volledige testrelease, hardware- of menselijke acceptatie."
+    "summary": "34% blijft 34%; minstens 50% is niet bereikt. Wachtpoort en bestaande invalid-RSP-isolatie slagen native op ab98d1a. De echte Materiaal-nulmeting zonder wacht blijft rood: 202,396 s/raw35, drie frames, echte muis/toetsen en 14 getypte bytes maar nog geen save binnen 20000 PIT ticks. De bestaande Materiaal-inputplanners zijn nu aangesloten via ABI1.10; 15 compositor- en 15 desktoptests plus de echte ELF/kernelbuild slagen. De volledige GUI-wachtproef, koude heropening, bredere native gates en aanvullende wait-lifecycle/FPU-proeven blijven open. Geen nieuw volledig rubriccriterium gesloten; geen testrelease-, hardware- of menselijke acceptatie geclaimd."
   },
   "tracks": [
     {

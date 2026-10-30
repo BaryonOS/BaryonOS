@@ -64,10 +64,27 @@ kon uitstellen. De selectielus herstart nu onmiddellijk bij refresh na
 zulke cleanup; deze laatste correctie moet nog native worden herhaald.
 Het specifieke owner-invalidreturn/blockedSEND-scenario blijft apart open.
 
-**Niet uitgevoerd:** native kill/hergebruik en FPU met wachten, GUI-regressie,
-brede native gates en testimageacceptatie. De GUI-basis gebruikt nog geen
-wachten. Eerstvolgend: bestaande Materiaal-proef op deze bron meten,
-daarna alleen de werkelijk benodigde consumenten aansluiten.
+Hertoets op gepushte `ab98d1a169f21eca6b5d64d25160462b5c36dc3f`:
+de wachtpoort en bestaande native `test-m3-invalid-rsp` slagen beide raw33.
+De legacyproef behoudt survivor-progress, cleanup en DF-entrybewijs.
+De GUI-nulmeting op die bron faalt zoals verwacht na 202,396 s/raw35 op
+de ongewijzigde 20.000-PIT-tickgrens: drie echte frames, 4 muis-events,
+28 key-events, 32 input-ACK's, 14 getypte bytes, nog geen save.
+Run: `build/native-test-version/gui-baseline/run/materiaal-normal-f5b3033777`.
+
+Vervolgens alleen de bestaande Materiaal-profielen op `ipc-wait` gezet en
+de drie GUI-daemon-entrychecks compatibel gemaakt met exact ABI1.8/1.10.
+Inputplanners/tokens, SUR1, appgedrag, kernelbudget en runner blijven intact.
+15 compositor- en 15 desktop-init-hosttests slagen; de nieuwe echte
+Materiaal-ELFs en kernel zijn gebouwd/geïnspecteerd. De offline build miste
+eerst de reeds vastgepinde fontdependency; `cargo +1.90.0 fetch --locked
+--manifest-path sdk/examples/materiaal/Cargo.toml` via tools/dev.py herstelde
+de lokale downloadcache, zonder manifest- of dependencywijziging.
+
+**Niet uitgevoerd:** native kill/hergebruik en FPU met wachten, GUI-wacht-
+regressie, brede native gates en complete testimageacceptatie.
+Eerstvolgend:
+`NOS_BUILD_DIR="$PWD/build/native-test-version/gui-wait" python3 -B -u tools/run_materiaal_probe.py --build-dir "$PWD/build/native-test-version/gui-wait" --machine pc-q35-10.0 --vga-rom "$PWD/.tools/nieuw-os/qemu/usr/share/seabios/vgabios-stdvga.bin" --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde`.
 De werkbranch is gepusht. Een nieuwe concept-PR is nog niet geopend:
 de app-sessie is aan de oudere infrastructuurbranch gebonden, terwijl
 de OS-werkbranch bewust apart staat; de sessie-PR-tool kan geen andere head kiezen.
