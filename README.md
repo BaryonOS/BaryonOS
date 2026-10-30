@@ -32,7 +32,7 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`0ade8014`](https://github.com/simonvanieperen/nieuw-os/commit/0ade8014c8179241dcfc68ea0ba8083664691240) ·
+**Bron:** [`748e29b7`](https://github.com/simonvanieperen/nieuw-os/commit/748e29b7455ca4213a6bf3ba3808c3097458263d) ·
 **Ontwikkelbranch:** `simonvanieperen-symmetrical-barnacle`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Teamleiding: twaalf sessies toetsen aan de volledige roadmap, exclusieve eigenaren en geïntegreerde QEMU-route bewaken.
 34% blijft 34%; coördinatie en rapportages leveren geen native acceptatiepunten. Alle twaalf sessies zijn benaderd en hebben hun stand teruggeleverd. NAS is vrijgemaakt voor afgestemde native integratie, PR-intake/review/merge zijn gescheiden en één eigenaar beheert gedeelde voortgangsbestanden. Release en buildteam krijgen het geïntegreerde image en echte bedienings-/koude-herstelketen als kritiek pad; AI gaat na begrensd qsim-WIP naar ontbrekende native inference. De oude Windows-QEMU-deelbundel en nieuwe reviewfixgates blijven brongebonden gescheiden. De onafhankelijke imageverifier stopte op afwijkende ELF-hashes bij gelijke bron; een begrensde reproduceerbaarheidstrace loopt, geen nieuwe acceptatie geclaimd. Geen nieuwe VM-run op de managerbranch; alle 62 volledige productcriteria en vereiste externe gates blijven open. Actuele verdeling, bewijsgrenzen en ontbrekende implementaties staan in WORK-QUEUE en PROJECT-STATE.

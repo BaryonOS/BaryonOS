@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "0ade8014c8179241dcfc68ea0ba8083664691240",
+    "source_commit": "748e29b7455ca4213a6bf3ba3808c3097458263d",
     "branch": "simonvanieperen-symmetrical-barnacle",
     "task": "Teamleiding: twaalf sessies toetsen aan de volledige roadmap, exclusieve eigenaren en geïntegreerde QEMU-route bewaken",
     "previous_score": 34,

@@ -136,6 +136,29 @@ Verse sessiecontrole: geen wachtende input/plan, activiteit nog `unknown`;
 afgeronde reviewers/intake krijgen alleen concrete nieuwe reviewpakketten.
 #74 is als nieuw pakket naar de vrijgekomen reviewer gerouteerd.
 
+Laatste interfacebesluiten: TLS-component `34191bb` uit de historische queue
+is niet beschikbaar (`git show`: exit 128; GitHub-lookup: HTTP 422/exit 1).
+Remote TLS-branchinventaris toont alleen tijdpoort `9afabbd`. Netwerk is
+gecorrigeerd: geen bestaande native TLS-port claimen of erop blijven wachten;
+na TCP-listen volgt een gecontroleerde onderhouden-libraryportproef.
+AI mag alleen het experimentele, gepinde Qwen2.5-0.5B-kandidaatprofiel en
+nieuwe `experiments/ai`-reader-/loadernegatieven uitwerken; modeldownload,
+echte inference en Nederlandse taakkwaliteit zijn niet bewezen. De circa
+988 MB-modelartifact en appfixtures vereisen een gezamenlijk door release
+gecoördineerd streaming artifact-storecontract buiten het kleine documentvolume.
+Packagepublishertrust blijft een afzonderlijke authority, geen hergebruik van
+B03-updatekeys of een caller-`verified`-boolean.
+
+NAS krijgt een begrensde nieuwe NAS-specifieke workflow na filenameafstemming
+met buildteam, voor de twee standalone workspaces; geen native NAS-CI-claim.
+Tijdelijke centrale conflictvrijgave voor #70/#74 geldt alleen de noodzakelijke
+base-update op hun eigen branch, met behoud van beide historische kanten en
+34 punten, niet als overdracht van de teamroadmap. #70 meldt nu mergehead
+`0078c3b` (padding `5d95ea9` + main `748e29b`), eigen gerichte gates groen,
+actuele CI nog open. #74-herhaling volgt op zijn nieuwe base. Buildteam heeft
+main opgenomen, nieuwe v3 `c20a3300…` en gerichte hostgates groen gemeld,
+nieuwe native referentiegate liep nog. De oude `74d15ac`-proeven blijven oud.
+
 Eerstvolgende manageractie: ontvang de exacte up-to-date buildteambron en
 koude-recovery-/verifiergates, controleer dat release/UI daarop voortbouwen
 en geef de kleinste nog ontbrekende gedeelde interface aan één schrijver.
