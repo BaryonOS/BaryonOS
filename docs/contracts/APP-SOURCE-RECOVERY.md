@@ -196,6 +196,10 @@ Vereiste gerichte tegenproeven op de uiteindelijke implementatie:
 Hostmodel, crosscompile, AI-review en documentatie zijn geen native, duurzaam
 herstel- of menselijke-auditbewijs. Bron-/artifactbinding en vereiste
 QEMU-/menselijke gates blijven apart; dit contract kent geen punten toe.
+Apps en release hebben ieder één gerichte read-only interfacelezing gedaan:
+geen concrete interface-/beleidsfout gevonden binnen hun bestaande
+SourceRegistry/catalogus respectievelijk store/launchgrens. Dit is geen
+brede audit, nieuwe testuitvoering of productieacceptatie.
 Rollback van alleen dit document vergt geen datamigratie en verandert geen code.
 
 ## 9. Projectreferenties
