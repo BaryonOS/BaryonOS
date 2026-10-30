@@ -22,6 +22,11 @@ Er is dus geen native UI-run, schermlezer-/spraakproef of gebruikerstest.
 Voortgang: totaal 34% blijft 34%; Materiaal/toegankelijkheid blijft 0/15,
 alle U01–U06 open.
 
+Concept-PR #68 staat tegen `main` op remote-head
+`f22b0f4ab6b047d666d7a63fb8df3c8d09effe4f`. `gh pr checks 68` meldde alleen
+CodeRabbit pending; `gh run list --workflow CI` toonde nog geen CI-run voor
+deze branch. Er is geen reviewgoedkeuring.
+
 Eerstvolgende stap: herstel een lokale, niet-systeemwijde hostlinker en
 voer `python3 -B tools/dev.py cargo +1.90.0 test --offline --locked
 --manifest-path sdk/examples/materiaal/Cargo.toml` uit; verkrijg daarna een
