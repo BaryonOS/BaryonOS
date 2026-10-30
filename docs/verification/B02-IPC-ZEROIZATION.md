@@ -1,5 +1,37 @@
 # B02-IPC-HYGIENE-1 — IPC-envelopegeheugenhygiëne
 
+## Vervolg op main94 — WAIT-behoud en sterkere redactietest
+
+30 oktober 2026: main `94c8908ee363d06a5be51417c5cae635549d566f`
+inhoudsbehoudend in de eigen IPC-branch geïntegreerd. De twee gevoelige
+runtimebestanden zijn per diff beoordeeld: alle ABI1.10-IPC-WAIT-code blijft
+behouden; Key Service gebruikt idle_wait uitsluitend als random én admin
+ontbreken. De enige servicedelta tegenover main is het verwijderen van
+handmatige envelopevervanging, vervangen door de SDK-destructor.
+De native receive-delta gebruikt Zeroizing-staging en dezelfde bestaande
+capabilitycleanupfoutweg. Geen blind bestand van één branch gekozen.
+
+De concrete reviewbevinding bij `message.rs` was terecht: alleen zoeken
+naar `"secret payload"` detecteert een afgeleide Debug-implementatie met
+decimale byteweergave niet. De test bewaart nu beide tekstcontroles, weigert
+ook de exacte decimale byteprefix en vereist de volledige geredigeerde
+Outgoing/Received-vorm. Een positieve controle toont dat de onderliggende
+bytearray de bedoelde decimale fixture werkelijk bevat.
+
+Gerichte hostcontrole met de hieronder beschreven lokale linkeromgeving:
+`cargo +1.90.0 test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime`
+exit0, nu 8 unit +14 message +3 process =25 tests, inclusief de nieuwe
+main-WAIT-tests. Log `/tmp/nieuw-os-security-ipc-main94-host.log`.
+De SDK-formattering en scoreconsistentiecheck slagen; centrale score-/status-
+bestanden zijn exact main94 behouden in overleg met TL89f84098.
+
+Dit checkpoint gaat vóór de langdurige native integratieproeven. Nieuwe
+native system/B01/RANDOM/WAIT-proeven en actuele-head-CI zijn **nog niet
+uitgevoerd**; de oude onderliggende buildresultaten worden niet naar de
+nieuwe bron omgelabeld. Geen nieuw rubricpunt:34→34/security4of12.
+
+## Historisch bewijs vóór WAIT-integratie
+
 Datum: 30 oktober 2026. Implementatiebron: `89d8b0941795d179fa8bb90d692aff0fb74f1f87`
 op branch `simonvanieperen-solid-waffle`; source fingerprint v3:
 `53fc1cdd5448d2bc50aaee32a8fcf0df95d0ca40679eb83a1cf32eb093cb5f4a`.

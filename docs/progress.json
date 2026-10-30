@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "aec3034bb370f290b54331d3ef9694e4d1b7e680",
-    "branch": "simonvanieperen-solid-waffle",
-    "task": "B02-IPC-HYGIENE-1: native Key Service compatibiliteit met SDK-envelope-zeroisatie",
+    "source_commit": "d104fd9a7f33b478c3e1b43f8d99c6d65af73fd6",
+    "branch": "simon/native-interactive-cold",
+    "task": "Alle zes packagingreviewfixes en oorspronkelijk Windowsbewijs inhoudsbehoudend gecombineerd",
     "previous_score": 34,
-    "summary": "34% blijft 34%. De SDK wist Message320-envelopes en stagingbytes; de native Key Service laat deze nu via de SDK-destructor opruimen in plaats van ze onveilig handmatig te overschrijven. Op bron aec3034 slagen runtimehosttests, no_std-check, Clippy, formattering en native keyring-/systeemdienstbuilds. Er sluit geen criterium: B02 mist een vertrouwd rollbackanker, write-ahead per GENERATE/REVOKE en echte volume-identiteit; B04, B05 en B06 blijven open. QEMU/OVMF-runtime en CI zijn niet uitgevoerd."
+    "summary": "34% blijft34%; minstens50% niet bereikt. Zes concrete preview/packaging/launcherreviewpunten inhoudsbehoudend gecombineerd met oorspronkelijk echt Windowsbewijs als identieke blobs. Nieuwe gezamenlijke host/native gates volgen; eerdere Windows-QEMUbediening en lokale testZIP blijven expliciet oudeeabc/c532brongebonden. Koude verkenning heeft volledig renderer-afgeleid lijstframe en exact reopenedframe zonder maskers maar is nog geen complete productacceptatierunner. Geen extra volledig rubriccriterium, menselijke audit of releaseclaim."
   },
   "tracks": [
     {

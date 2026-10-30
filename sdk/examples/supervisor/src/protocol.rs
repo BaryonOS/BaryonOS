@@ -25,6 +25,8 @@ pub const WORKER_SERVE: u64 = 0;
 pub const WORKER_CRASH_AFTER_8: u64 = 1;
 pub const WORKER_IDLE: u64 = 2;
 pub const WORKER_DENIED_CHECKS: u64 = 3;
+pub const WORKER_WAIT_SHORT: u64 = 4;
+pub const WORKER_WAIT_LONG: u64 = 5;
 pub const CLIENT_RUN_24: u64 = 0;
 /// Same workload, with the registry supplied only in startup cap1.
 pub const CLIENT_SECOND_CAP: u64 = 4;
@@ -36,6 +38,7 @@ pub const CASE_CRASH: u64 = 1;
 pub const CASE_DENIED: u64 = 2;
 pub const CASE_PARENT_EXIT: u64 = 3;
 pub const CASE_QUOTA: u64 = 4;
+pub const CASE_WAIT: u64 = 5;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Frame {

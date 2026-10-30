@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`aec3034b`](https://github.com/simonvanieperen/nieuw-os/commit/aec3034bb370f290b54331d3ef9694e4d1b7e680) ·
-**Ontwikkelbranch:** `simonvanieperen-solid-waffle`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B02-IPC-HYGIENE-1: native Key Service compatibiliteit met SDK-envelope-zeroisatie.
-34% blijft 34%. De SDK wist Message320-envelopes en stagingbytes; de native Key Service laat deze nu via de SDK-destructor opruimen in plaats van ze onveilig handmatig te overschrijven. Op bron aec3034 slagen runtimehosttests, no_std-check, Clippy, formattering en native keyring-/systeemdienstbuilds. Er sluit geen criterium: B02 mist een vertrouwd rollbackanker, write-ahead per GENERATE/REVOKE en echte volume-identiteit; B04, B05 en B06 blijven open. QEMU/OVMF-runtime en CI zijn niet uitgevoerd.
+**Bron:** [`d104fd9a`](https://github.com/simonvanieperen/nieuw-os/commit/d104fd9a7f33b478c3e1b43f8d99c6d65af73fd6) ·
+**Ontwikkelbranch:** `simon/native-interactive-cold`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Alle zes packagingreviewfixes en oorspronkelijk Windowsbewijs inhoudsbehoudend gecombineerd.
+34% blijft34%; minstens50% niet bereikt. Zes concrete preview/packaging/launcherreviewpunten inhoudsbehoudend gecombineerd met oorspronkelijk echt Windowsbewijs als identieke blobs. Nieuwe gezamenlijke host/native gates volgen; eerdere Windows-QEMUbediening en lokale testZIP blijven expliciet oudeeabc/c532brongebonden. Koude verkenning heeft volledig renderer-afgeleid lijstframe en exact reopenedframe zonder maskers maar is nog geen complete productacceptatierunner. Geen extra volledig rubriccriterium, menselijke audit of releaseclaim.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

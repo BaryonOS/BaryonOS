@@ -7,7 +7,10 @@ use nieuw_os_native_desktop_init::{
     boot::Bootstrap,
     supervisor::{Phase, Supervisor},
 };
-use nieuw_os_native_input_service::NativeIpc;
+use nieuw_os_native_input_service::{
+    source::wait::{self, Action, Mode},
+    NativeIpc,
+};
 use nieuw_os_sdk_runtime::native;
 fn fail(code: u64, config: Option<&Bootstrap>) -> ! {
     support::put(488, code);
@@ -25,9 +28,10 @@ pub extern "C" fn _start() -> ! {
 }
 #[inline(never)]
 fn run() -> ! {
-    if native::abi_info() != Ok((1 << 32) | 8) {
-        fail(90, None);
-    }
+    let mode = native::abi_info()
+        .ok()
+        .and_then(Mode::from_abi)
+        .unwrap_or_else(|| fail(90, None));
     let words = core::array::from_fn(|i| support::word(i as u64 * 8));
     let config = Bootstrap::decode(&words).unwrap_or_else(|_| fail(91, None));
     let now = native::monotonic_ticks().unwrap_or_else(|_| fail(92, Some(&config)));
@@ -72,8 +76,27 @@ fn run() -> ! {
             Err(error) => fail(error as u64, Some(&config)),
             _ => {}
         }
-        if native::yield_now().is_err() {
-            fail(95, Some(&config));
+        // ABI 1.8 keeps the original loop. On 1.10 only a quiescent Running
+        // supervisor parks; clock/wait/mask faults fail closed, never yield.
+        let action = if mode == Mode::Wait {
+            supervisor
+                .wait_plan(now)
+                .unwrap_or_else(|_| fail(94, Some(&config)))
+        } else {
+            Action::Run
+        };
+        match action {
+            Action::Run => {
+                if native::yield_now().is_err() {
+                    fail(95, Some(&config));
+                }
+            }
+            Action::Park(plan) => match wait::park(&plan) {
+                Ok(()) => {}
+                Err(wait::ParkError::Mask) => fail(97, Some(&config)),
+                Err(wait::ParkError::Clock(_)) => fail(94, Some(&config)),
+                Err(_) => fail(96, Some(&config)),
+            },
         }
     }
 }

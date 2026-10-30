@@ -216,7 +216,12 @@ mod tests {
     #[test]
     fn received_handoff_clears_native_staging_bytes() {
         let outgoing = Outgoing::new(9, b"secret payload").unwrap();
-        assert!(!std::format!("{outgoing:?}").contains("secret payload"));
+        let numeric_payload = "115, 101, 99, 114, 101, 116, 32, 112, 97, 121, 108, 111, 97, 100";
+        assert!(std::format!("{:?}", outgoing.as_bytes()).contains(numeric_payload));
+        let debug = std::format!("{outgoing:?}");
+        assert!(!debug.contains("secret payload"));
+        assert!(!debug.contains(numeric_payload));
+        assert_eq!(debug, "Outgoing { length: 14, cap_count: 0, .. }");
         let mut bytes = *outgoing.as_bytes();
         bytes[..8].copy_from_slice(&7u64.to_le_bytes());
         let original = bytes;
@@ -225,7 +230,13 @@ mod tests {
 
         assert_eq!(bytes, [0; MESSAGE_SIZE]);
         assert_eq!(received.as_bytes(), &original);
-        assert!(!std::format!("{received:?}").contains("secret payload"));
+        let debug = std::format!("{received:?}");
+        assert!(!debug.contains("secret payload"));
+        assert!(!debug.contains(numeric_payload));
+        assert_eq!(
+            debug,
+            "Received { sender: 7, tag: 9, length: 14, cap_count: 0, .. }"
+        );
     }
 
     #[test]
