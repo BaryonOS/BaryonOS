@@ -15,7 +15,7 @@ use crate::{
 fn call(number: u64, args: [u64; 6]) -> Result<u64, Error> {
     let mut primary = number;
     let mut secondary = args[2];
-    // SAFETY: Nieuw OS ABI 1.0–1.2 preserves every GPR except RAX/RDX; int80 enters
+    // SAFETY: Nieuw OS ABI 1.0–1.6 preserves every GPR except RAX/RDX; int80 enters
     // a checked kernel gate. No Rust references cross this boundary. Callers
     // below keep local message buffers live for the complete synchronous copy.
     // No nomem/readonly flag: IPC can read or write the supplied memory.
@@ -34,6 +34,13 @@ pub fn check_abi() -> Result<(), Error> {
 
 pub fn abi_info() -> Result<u64, Error> {
     call(0, [0; 6])
+}
+
+/// ABI 1.6: monotone PIT interrupt count since this boot, nominally 100 Hz.
+/// Available only with the explicit clock feature; older profiles return ENOSYS.
+/// This is not a wall clock and cannot validate TLS certificate dates.
+pub fn monotonic_ticks() -> Result<u64, Error> {
+    call(3, [0; 6])
 }
 
 pub fn yield_now() -> Result<(), Error> {

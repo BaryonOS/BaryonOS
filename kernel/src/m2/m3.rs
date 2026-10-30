@@ -1172,13 +1172,18 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             p.context[12] = 0;
             if (number <= 1 && args.iter().any(|x| *x != 0))
                 || (number == 2 && args[1..].iter().any(|x| *x != 0))
+                || (number == 3
+                    && cfg!(feature = "monotonic-clock")
+                    && args.iter().any(|x| *x != 0))
             {
                 p.context[14] = (-1i64) as u64;
             } else {
                 match number {
                     0 => {
                         p.context[12] = (1 << 32)
-                            | if cfg!(feature = "native-system-net") {
+                            | if cfg!(feature = "monotonic-clock") {
+                                6
+                            } else if cfg!(feature = "native-system-net") {
                                 5
                             } else if cfg!(feature = "native-keyring") {
                                 4
@@ -1191,6 +1196,11 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                             }
                     }
                     1 => {}
+                    3 if cfg!(feature = "monotonic-clock") => {
+                        // Boot-monotonic PIT IRQ count, nominally 100 Hz.
+                        // No walltime, suspend accounting or certificate clock.
+                        p.context[12] = state.ticks;
+                    }
                     2 => {
                         // Generic syscall semantics: every process may exit with any code.
                         // The code is retained metadata; fixture expectations are separate.

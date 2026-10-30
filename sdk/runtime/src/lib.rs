@@ -13,6 +13,7 @@ pub use block::BlockDevice;
 pub use entropy::{EntropySource, ENTROPY_MAX};
 pub use message::{Outgoing, Received, MAX_CAPS, MAX_PAYLOAD, MESSAGE_SIZE};
 pub use process::{ChildProcess, LaunchImage, ProcessStatus};
+pub mod clock;
 pub mod entropy;
 pub mod network;
 pub use network::{NetworkSource, NET_FRAME_MAX};
@@ -21,11 +22,11 @@ pub use network::{NetworkSource, NET_FRAME_MAX};
 pub mod native;
 
 pub const ABI_MAJOR: u64 = 1;
-pub const ABI_MAX_MINOR: u64 = 5;
+pub const ABI_MAX_MINOR: u64 = 6;
 
-/// The common syscall contract is unchanged across the existing 1.0–1.5
+/// The common syscall contract is unchanged across the existing 1.0–1.6
 /// profiles (1.3 adds the K05 process-management calls, 1.4 the B01 entropy
-/// broker; 1.5 adds the raw NIC broker). Unknown revisions require a separate compatibility check.
+/// broker; 1.5 adds the raw NIC broker; 1.6 adds boot-monotonic ticks). Unknown revisions require a separate compatibility check.
 pub fn validate_abi(version: u64) -> Result<(), Error> {
     if version >> 32 == ABI_MAJOR && version as u32 as u64 <= ABI_MAX_MINOR {
         Ok(())
