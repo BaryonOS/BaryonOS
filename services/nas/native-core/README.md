@@ -16,10 +16,24 @@ transport en kernelafgedwongen endpoints halen. De constructor en publieke
 Rust-methoden vormen geen kernelbeveiligingsgrens.
 
 Beheer en gast zijn afzonderlijke principals. Een uitnodiging bindt een
-verse namespace en eenmalige nonce aan de bedoelde ontvanger, capaciteit en
-vervaltijd. Aanmaken en accepteren zijn duurzame transacties. De adapter
+verse namespace en eenmalige nonce aan de bedoelde ontvanger en vervaltijd.
+De beheerder stelt het quotum afzonderlijk in en mag dat aanpassen.
+Aanmaken en accepteren zijn duurzame transacties. De adapter
 controleert bovendien de NAS-identiteit, gekozen LAN/internetrechten en
 betrouwbare tijd; die zaken worden niet door deze core gesimuleerd.
+`Invitation` is alleen de lokale store-tuple, geen vastgesteld interoperabel
+NAS-token, ondertekend netwerkbericht of multideviceherstelcontract.
+De transport-envelop moet de gekozen NAS-identiteit afzonderlijk binden.
+Het B02-keyringfixture wordt hier niet als NAS-contract gebruikt.
+
+De aanroeper reserveert vooraf een `Workspace` buiten de native stack,
+bijvoorbeeld in exclusief statisch of toegewezen procesgeheugen. Zowel
+`initialize` als `recover` lenen dat werkgeheugen exclusief. State,
+transactiekopie, snapshot en tijdelijke uploads leven daar; de core voegt
+geen allocator of `unsafe` toe. `validate_snapshot` controleert uitsluitend
+schema, niet authenticiteit of actualiteit. De geoptimaliseerde hostproef
+met 64 KiB stack controleert het bestaande native stackbudget als
+vooronderzoek; daadwerkelijke kerneluitvoering blijft afzonderlijk vereist.
 
 Sessies en uploads zijn aan caller, namespace, epoch en een verse boot-ID
 gebonden. Ze worden nooit opgeslagen of na herstart hersteld. Staging kopieert
@@ -80,6 +94,7 @@ Met de bestaande Rust 1.90.0-toolchain en een eigen targetmap:
 
 ```sh
 cargo test --offline --locked --manifest-path services/nas/native-core/Cargo.toml
+cargo test --offline --locked --release --manifest-path services/nas/native-core/Cargo.toml
 cargo clippy --offline --locked --manifest-path services/nas/native-core/Cargo.toml --all-targets -- -D warnings
 cargo fmt --manifest-path services/nas/native-core/Cargo.toml --all -- --check
 cargo build --offline --locked --manifest-path services/nas/native-core/Cargo.toml --release --target x86_64-unknown-none

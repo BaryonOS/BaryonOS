@@ -39,7 +39,7 @@ fn u64_at(bytes: &[u8], at: usize) -> u64 {
     u64::from_le_bytes(bytes[at..at + 8].try_into().unwrap())
 }
 
-pub(super) fn decode(bytes: &[u8; SNAPSHOT_BYTES]) -> Result<State, Error> {
+pub(super) fn decode(bytes: &[u8; SNAPSHOT_BYTES], state: &mut State) -> Result<(), Error> {
     if &bytes[..8] != b"NOSNAS01"
         || bytes[8..10] != 1u16.to_le_bytes()
         || bytes[10..16] != [0; 6]
@@ -47,7 +47,7 @@ pub(super) fn decode(bytes: &[u8; SNAPSHOT_BYTES]) -> Result<State, Error> {
     {
         return Err(Error::Corrupt);
     }
-    let mut state = State {
+    *state = State {
         generation: u64_at(bytes, 16),
         admin: Principal(bytes[24..56].try_into().unwrap()),
         namespaces: [None; NAMESPACES],
@@ -132,5 +132,5 @@ pub(super) fn decode(bytes: &[u8; SNAPSHOT_BYTES]) -> Result<State, Error> {
         }
         state.namespaces[i] = Some(ns);
     }
-    Ok(state)
+    Ok(())
 }

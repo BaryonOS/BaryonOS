@@ -1,8 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
 use nieuw_os_nas_core::{
-    Entropy, Error, Invitation, NamespaceStatus, Principal, Service, Storage, MAX_CIPHERTEXT,
-    MAX_QUOTA, NAMESPACES, SESSIONS, SNAPSHOT_BYTES, UPLOADS,
+    Entropy, Error, Invitation, NamespaceStatus, Principal, Service, Storage, Workspace,
+    MAX_CIPHERTEXT, MAX_QUOTA, NAMESPACES, SESSIONS, SNAPSHOT_BYTES, UPLOADS,
 };
 
 const ADMIN: Principal = Principal([1; 32]);
@@ -56,14 +56,18 @@ impl Storage for Memory {
     }
 }
 
-fn fixture() -> (Service<Memory>, Memory, TestEntropy) {
+fn fixture(work: &mut Workspace) -> (Service<'_, Memory>, Memory, TestEntropy) {
     let disk = Memory::default();
     let mut entropy = TestEntropy(10);
-    let service = Service::initialize(disk.clone(), ADMIN, &mut entropy).unwrap();
+    let service = Service::initialize(disk.clone(), ADMIN, &mut entropy, work).unwrap();
     (service, disk, entropy)
 }
 
-fn pair(service: &mut Service<Memory>, entropy: &mut TestEntropy, peer: Principal) -> Invitation {
+fn pair(
+    service: &mut Service<'_, Memory>,
+    entropy: &mut TestEntropy,
+    peer: Principal,
+) -> Invitation {
     let invitation = service
         .invite(ADMIN, peer, MAX_QUOTA, 100, 10, entropy)
         .unwrap();
@@ -79,19 +83,20 @@ fn fail_next(disk: &Memory, later: usize, commit: bool) {
 
 #[test]
 fn explicit_initialization_never_replaces_existing_or_corrupt_storage() {
-    let (_, disk, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (_, disk, mut entropy) = fixture(&mut work);
     let writes = disk.0.borrow().writes;
     assert!(matches!(
-        Service::initialize(disk.clone(), ADMIN, &mut entropy),
+        Service::initialize(disk.clone(), ADMIN, &mut entropy, &mut work),
         Err(Error::Conflict)
     ));
     disk.0.borrow_mut().bytes = Some(vec![0xff; SNAPSHOT_BYTES]);
     assert!(matches!(
-        Service::initialize(disk.clone(), ADMIN, &mut entropy),
+        Service::initialize(disk.clone(), ADMIN, &mut entropy, &mut work),
         Err(Error::Conflict)
     ));
     assert!(matches!(
-        Service::recover(disk.clone(), &mut entropy),
+        Service::recover(disk.clone(), &mut entropy, &mut work),
         Err(Error::Corrupt)
     ));
     assert_eq!(disk.0.borrow().writes, writes);
@@ -99,24 +104,26 @@ fn explicit_initialization_never_replaces_existing_or_corrupt_storage() {
 
 #[test]
 fn absent_truncated_and_oversized_storage_are_not_empty_authority() {
+    let mut work = Box::new(Workspace::new());
     for length in [0, 1, SNAPSHOT_BYTES - 1, SNAPSHOT_BYTES + 1] {
         let disk = Memory::default();
         disk.0.borrow_mut().bytes = Some(vec![0; length]);
         assert!(matches!(
-            Service::recover(disk.clone(), &mut TestEntropy(1)),
+            Service::recover(disk.clone(), &mut TestEntropy(1), &mut work),
             Err(Error::Corrupt)
         ));
         assert_eq!(disk.0.borrow().writes, 0);
     }
     assert!(matches!(
-        Service::recover(Memory::default(), &mut TestEntropy(1)),
+        Service::recover(Memory::default(), &mut TestEntropy(1), &mut work),
         Err(Error::Corrupt)
     ));
 }
 
 #[test]
 fn invitation_is_bound_to_recipient_and_expires_at_exact_boundary() {
-    let (mut service, disk, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (mut service, disk, mut entropy) = fixture(&mut work);
     let invitation = service
         .invite(ADMIN, ALICE, 100, 100, 10, &mut entropy)
         .unwrap();
@@ -137,17 +144,19 @@ fn invitation_is_bound_to_recipient_and_expires_at_exact_boundary() {
 
 #[test]
 fn accepted_invitation_cannot_replay_even_after_recovery() {
-    let (mut service, _, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (mut service, _, mut entropy) = fixture(&mut work);
     let invitation = pair(&mut service, &mut entropy, ALICE);
     assert_eq!(service.accept(ALICE, &invitation, 100), Err(Error::Denied));
-    let mut service = Service::recover(service.into_storage(), &mut entropy).unwrap();
+    let mut service = Service::recover(service.into_storage(), &mut entropy, &mut work).unwrap();
     assert_eq!(service.accept(ALICE, &invitation, 100), Err(Error::Denied));
     assert!(service.open(ALICE, &invitation.namespace).is_ok());
 }
 
 #[test]
 fn admin_and_guest_authorities_do_not_substitute_for_each_other() {
-    let (mut service, _, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (mut service, _, mut entropy) = fixture(&mut work);
     let invitation = pair(&mut service, &mut entropy, ALICE);
     assert!(matches!(
         service.open(ADMIN, &invitation.namespace),
@@ -177,7 +186,8 @@ fn admin_and_guest_authorities_do_not_substitute_for_each_other() {
 
 #[test]
 fn sessions_uploads_and_reads_are_bound_to_actual_caller_and_namespace() {
-    let (mut service, _, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (mut service, _, mut entropy) = fixture(&mut work);
     let alice = pair(&mut service, &mut entropy, ALICE);
     let bob = pair(&mut service, &mut entropy, BOB);
     let a = service.open(ALICE, &alice.namespace).unwrap();
@@ -197,7 +207,8 @@ fn sessions_uploads_and_reads_are_bound_to_actual_caller_and_namespace() {
 
 #[test]
 fn quota_counts_all_reservations_and_cancel_releases_only_its_upload() {
-    let (mut service, _, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (mut service, _, mut entropy) = fixture(&mut work);
     let invite = pair(&mut service, &mut entropy, ALICE);
     service.set_quota(ADMIN, &invite.namespace, 16).unwrap();
     let session = service.open(ALICE, &invite.namespace).unwrap();
@@ -225,7 +236,8 @@ fn quota_counts_all_reservations_and_cancel_releases_only_its_upload() {
 
 #[test]
 fn commit_copies_input_and_rejects_competing_writer_without_losing_winner() {
-    let (mut service, _, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (mut service, _, mut entropy) = fixture(&mut work);
     let invite = pair(&mut service, &mut entropy, ALICE);
     let a = service.open(ALICE, &invite.namespace).unwrap();
     let b = service.open(ALICE, &invite.namespace).unwrap();
@@ -244,7 +256,8 @@ fn commit_copies_input_and_rejects_competing_writer_without_losing_winner() {
 
 #[test]
 fn close_releases_reservations_and_cannot_be_used_to_close_another_session() {
-    let (mut service, _, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (mut service, _, mut entropy) = fixture(&mut work);
     let invite = pair(&mut service, &mut entropy, ALICE);
     let a = service.open(ALICE, &invite.namespace).unwrap();
     let b = service.open(ALICE, &invite.namespace).unwrap();
@@ -258,7 +271,8 @@ fn close_releases_reservations_and_cannot_be_used_to_close_another_session() {
 
 #[test]
 fn revoke_is_durable_without_guest_consent_and_full_quota_cannot_block_it() {
-    let (mut service, _, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (mut service, _, mut entropy) = fixture(&mut work);
     let invite = pair(&mut service, &mut entropy, ALICE);
     service.set_quota(ADMIN, &invite.namespace, 8).unwrap();
     let session = service.open(ALICE, &invite.namespace).unwrap();
@@ -269,7 +283,7 @@ fn revoke_is_durable_without_guest_consent_and_full_quota_cannot_block_it() {
         service.read(ALICE, session, 0, 1, &mut [0; 8]),
         Err(Error::Stale)
     );
-    let mut service = Service::recover(service.into_storage(), &mut entropy).unwrap();
+    let mut service = Service::recover(service.into_storage(), &mut entropy, &mut work).unwrap();
     assert!(matches!(
         service.open(ALICE, &invite.namespace),
         Err(Error::Denied)
@@ -283,7 +297,8 @@ fn revoke_is_durable_without_guest_consent_and_full_quota_cannot_block_it() {
 
 #[test]
 fn eviction_removes_committed_and_pending_bytes_and_preserves_tombstone() {
-    let (mut service, disk, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (mut service, disk, mut entropy) = fixture(&mut work);
     let invite = pair(&mut service, &mut entropy, ALICE);
     let session = service.open(ALICE, &invite.namespace).unwrap();
     let bytes = b"synthetic-opaque-ciphertext-for-purge";
@@ -300,7 +315,7 @@ fn eviction_removes_committed_and_pending_bytes_and_preserves_tombstone() {
         .unwrap()
         .windows(bytes.len())
         .any(|w| w == bytes));
-    let mut service = Service::recover(service.into_storage(), &mut entropy).unwrap();
+    let mut service = Service::recover(service.into_storage(), &mut entropy, &mut work).unwrap();
     let usage = service.usage(ADMIN, &invite.namespace).unwrap();
     assert_eq!(usage.status, NamespaceStatus::Evicted);
     assert_eq!((usage.used, usage.reserved), (0, 0));
@@ -315,13 +330,14 @@ fn eviction_removes_committed_and_pending_bytes_and_preserves_tombstone() {
 
 #[test]
 fn restart_preserves_ciphertext_but_never_sessions_staging_or_old_uploads() {
-    let (mut service, _, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (mut service, _, mut entropy) = fixture(&mut work);
     let invite = pair(&mut service, &mut entropy, ALICE);
     let session = service.open(ALICE, &invite.namespace).unwrap();
     let committed = service.stage(ALICE, session, 0, 0, &[8; 100]).unwrap();
     service.commit(ALICE, session, committed).unwrap();
     let pending = service.stage(ALICE, session, 0, 1, &[9; 50]).unwrap();
-    let mut service = Service::recover(service.into_storage(), &mut entropy).unwrap();
+    let mut service = Service::recover(service.into_storage(), &mut entropy, &mut work).unwrap();
     assert_eq!(service.commit(ALICE, session, pending), Err(Error::Stale));
     assert_eq!(
         service.read(ALICE, session, 0, 1, &mut [0; 100]),
@@ -336,8 +352,9 @@ fn restart_preserves_ciphertext_but_never_sessions_staging_or_old_uploads() {
 
 #[test]
 fn uncertain_publication_never_acks_replays_or_keeps_serving() {
+    let mut work = Box::new(Workspace::new());
     for committed in [false, true] {
-        let (mut service, disk, mut entropy) = fixture();
+        let (mut service, disk, mut entropy) = fixture(&mut work);
         let invite = pair(&mut service, &mut entropy, ALICE);
         let session = service.open(ALICE, &invite.namespace).unwrap();
         let upload = service.stage(ALICE, session, 0, 0, &[5; 30]).unwrap();
@@ -354,7 +371,8 @@ fn uncertain_publication_never_acks_replays_or_keeps_serving() {
             Err(Error::ReopenRequired)
         ));
         assert_eq!(disk.0.borrow().writes, writes);
-        let mut service = Service::recover(service.into_storage(), &mut entropy).unwrap();
+        let mut service =
+            Service::recover(service.into_storage(), &mut entropy, &mut work).unwrap();
         let session = service.open(ALICE, &invite.namespace).unwrap();
         assert_eq!(
             service.read(ALICE, session, 0, 1, &mut [0; 30]),
@@ -369,9 +387,10 @@ fn uncertain_publication_never_acks_replays_or_keeps_serving() {
 
 #[test]
 fn crash_at_each_eviction_commit_preserves_only_possible_durable_outcome() {
+    let mut work = Box::new(Workspace::new());
     for step in [1, 2] {
         for committed in [false, true] {
-            let (mut service, disk, mut entropy) = fixture();
+            let (mut service, disk, mut entropy) = fixture(&mut work);
             let invite = pair(&mut service, &mut entropy, ALICE);
             let session = service.open(ALICE, &invite.namespace).unwrap();
             let upload = service.stage(ALICE, session, 0, 0, &[4; 80]).unwrap();
@@ -382,7 +401,8 @@ fn crash_at_each_eviction_commit_preserves_only_possible_durable_outcome() {
                 service.read(ALICE, session, 0, 1, &mut [0; 80]),
                 Err(Error::ReopenRequired)
             );
-            let mut service = Service::recover(service.into_storage(), &mut entropy).unwrap();
+            let mut service =
+                Service::recover(service.into_storage(), &mut entropy, &mut work).unwrap();
             let expected = match (step, committed) {
                 (1, false) => NamespaceStatus::Active,
                 (2, true) => NamespaceStatus::Evicted,
@@ -411,7 +431,8 @@ fn crash_at_each_eviction_commit_preserves_only_possible_durable_outcome() {
 
 #[test]
 fn resource_limits_and_invalid_inputs_leave_durable_state_unchanged() {
-    let (mut service, disk, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (mut service, disk, mut entropy) = fixture(&mut work);
     for (quota, now, lifetime) in [
         (0, 0, 1),
         (MAX_QUOTA + 1, 0, 1),
@@ -467,7 +488,8 @@ fn resource_limits_and_invalid_inputs_leave_durable_state_unchanged() {
 
 #[test]
 fn read_errors_never_modify_output_and_revision_is_checked() {
-    let (mut service, _, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (mut service, _, mut entropy) = fixture(&mut work);
     let invite = pair(&mut service, &mut entropy, ALICE);
     let session = service.open(ALICE, &invite.namespace).unwrap();
     let upload = service
@@ -491,7 +513,8 @@ fn read_errors_never_modify_output_and_revision_is_checked() {
 
 #[test]
 fn malformed_snapshot_fields_are_rejected_without_writes_or_panics() {
-    let (mut service, disk, mut entropy) = fixture();
+    let mut work = Box::new(Workspace::new());
+    let (mut service, disk, mut entropy) = fixture(&mut work);
     pair(&mut service, &mut entropy, ALICE);
     let original = disk.0.borrow().bytes.clone().unwrap();
     // Magic/version/reserved, generation/admin, namespace ID/status/epoch/
@@ -513,7 +536,7 @@ fn malformed_snapshot_fields_are_rejected_without_writes_or_panics() {
         corrupt[offset] = replacement;
         disk.0.borrow_mut().bytes = Some(corrupt);
         assert!(matches!(
-            Service::recover(disk.clone(), &mut entropy),
+            Service::recover(disk.clone(), &mut entropy, &mut work),
             Err(Error::Corrupt)
         ));
     }
@@ -522,7 +545,7 @@ fn malformed_snapshot_fields_are_rejected_without_writes_or_panics() {
         corrupt[range].fill(0);
         disk.0.borrow_mut().bytes = Some(corrupt);
         assert!(matches!(
-            Service::recover(disk.clone(), &mut entropy),
+            Service::recover(disk.clone(), &mut entropy, &mut work),
             Err(Error::Corrupt)
         ));
     }
@@ -530,6 +553,7 @@ fn malformed_snapshot_fields_are_rejected_without_writes_or_panics() {
 
 #[test]
 fn entropy_failure_or_repeating_namespace_never_publishes_an_invitation() {
+    let mut work = Box::new(Workspace::new());
     struct Broken;
     impl Entropy for Broken {
         fn fill(&mut self, _: &mut [u8; 32]) -> Result<(), Error> {
@@ -537,10 +561,10 @@ fn entropy_failure_or_repeating_namespace_never_publishes_an_invitation() {
         }
     }
     assert!(matches!(
-        Service::initialize(Memory::default(), ADMIN, &mut Broken),
+        Service::initialize(Memory::default(), ADMIN, &mut Broken, &mut work),
         Err(Error::Entropy)
     ));
-    let (mut service, disk, mut entropy) = fixture();
+    let (mut service, disk, mut entropy) = fixture(&mut work);
     let invitation = pair(&mut service, &mut entropy, ALICE);
     struct Repeated([u8; 32]);
     impl Entropy for Repeated {
@@ -557,4 +581,37 @@ fn entropy_failure_or_repeating_namespace_never_publishes_an_invitation() {
         ));
     }
     assert_eq!(disk.0.borrow().writes, writes);
+}
+
+#[test]
+#[cfg(not(debug_assertions))]
+fn optimized_core_fits_the_existing_64_kib_native_stack() {
+    println!(
+        "caller workspace={} bytes; service={} bytes",
+        core::mem::size_of::<Workspace>(),
+        core::mem::size_of::<Service<'_, Memory>>()
+    );
+    let mut work = Box::new(Workspace::new());
+    std::thread::Builder::new()
+        .stack_size(64 * 1024)
+        .spawn(move || {
+            let (mut service, _, mut entropy) = fixture(&mut work);
+            let invite = pair(&mut service, &mut entropy, ALICE);
+            let session = service.open(ALICE, &invite.namespace).unwrap();
+            let upload = service
+                .stage(ALICE, session, 0, 0, &[7; MAX_CIPHERTEXT])
+                .unwrap();
+            service.commit(ALICE, session, upload).unwrap();
+            service.revoke(ADMIN, &invite.namespace).unwrap();
+            service.evict(ADMIN, &invite.namespace).unwrap();
+            let service =
+                Service::recover(service.into_storage(), &mut entropy, &mut work).unwrap();
+            assert_eq!(
+                service.usage(ADMIN, &invite.namespace).unwrap().status,
+                NamespaceStatus::Evicted
+            );
+        })
+        .unwrap()
+        .join()
+        .unwrap();
 }

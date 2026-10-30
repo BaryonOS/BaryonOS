@@ -13,6 +13,12 @@ mod snapshot;
 
 pub use snapshot::SNAPSHOT_BYTES;
 
+/// Validate the canonical storage schema, not its authenticity or freshness.
+pub fn validate_snapshot(bytes: &[u8; SNAPSHOT_BYTES]) -> Result<(), Error> {
+    let mut state = State::EMPTY;
+    snapshot::decode(bytes, &mut state)
+}
+
 pub const NAMESPACES: usize = 4;
 pub const OBJECTS: usize = 4;
 pub const SESSIONS: usize = 16;
@@ -113,8 +119,17 @@ struct State {
     namespaces: [Option<Namespace>; NAMESPACES],
 }
 
-/// This is an invitation identifier, not a document key or a reusable login.
-/// It is bound to the intended authenticated recipient as well as the NAS.
+impl State {
+    const EMPTY: Self = Self {
+        generation: 0,
+        admin: Principal([0; 32]),
+        namespaces: [None; NAMESPACES],
+    };
+}
+
+/// This is a local invitation identifier, not a document key or reusable login.
+/// It matches the intended authenticated recipient in this authority store.
+/// The transport envelope must separately bind the selected NAS identity.
 /// No Debug implementation: callers must not log invitation material.
 #[derive(Clone, Copy)]
 pub struct Invitation {
@@ -167,9 +182,12 @@ pub struct Usage {
     pub reserved: u32,
 }
 
-pub struct Service<S> {
-    storage: S,
+/// Caller-owned arena: reserve outside the native stack (static or scoped
+/// mapped memory). The exclusive borrow prevents sharing live service state.
+pub struct Workspace {
     state: State,
+    next: State,
+    snapshot: [u8; SNAPSHOT_BYTES],
     boot: [u8; 32],
     serial: u64,
     sessions: [Option<SessionState>; SESSIONS],
@@ -177,51 +195,77 @@ pub struct Service<S> {
     poisoned: bool,
 }
 
-impl<S: Storage> Service<S> {
-    /// Explicit initialization of an empty, designated store only.
-    pub fn initialize(
-        mut storage: S,
-        admin: Principal,
-        entropy: &mut impl Entropy,
-    ) -> Result<Self, Error> {
-        if !admin.valid() {
-            return Err(Error::Invalid);
-        }
-        let mut bytes = [0; SNAPSHOT_BYTES];
-        if storage.load(&mut bytes)?.is_some() {
-            return Err(Error::Conflict);
-        }
-        let boot = random(entropy)?;
-        let state = State {
-            generation: 1,
-            admin,
-            namespaces: [None; NAMESPACES],
-        };
-        snapshot::encode(&state, &mut bytes);
-        storage.replace(&bytes)?;
-        Ok(Self::new(storage, state, boot))
-    }
-
-    pub fn recover(mut storage: S, entropy: &mut impl Entropy) -> Result<Self, Error> {
-        let mut bytes = [0; SNAPSHOT_BYTES];
-        if storage.load(&mut bytes)? != Some(SNAPSHOT_BYTES) {
-            return Err(Error::Corrupt);
-        }
-        let state = snapshot::decode(&bytes)?;
-        let boot = random(entropy)?;
-        Ok(Self::new(storage, state, boot))
-    }
-
-    fn new(storage: S, state: State, boot: [u8; 32]) -> Self {
+impl Workspace {
+    pub const fn new() -> Self {
         Self {
-            storage,
-            state,
-            boot,
+            state: State::EMPTY,
+            next: State::EMPTY,
+            snapshot: [0; SNAPSHOT_BYTES],
+            boot: [0; 32],
             serial: 0,
             sessions: [None; SESSIONS],
             uploads: [None; UPLOADS],
             poisoned: false,
         }
+    }
+}
+
+impl Default for Workspace {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+pub struct Service<'a, S> {
+    storage: S,
+    work: &'a mut Workspace,
+}
+
+impl<'a, S: Storage> Service<'a, S> {
+    /// Explicit initialization of an empty, designated store only.
+    pub fn initialize(
+        mut storage: S,
+        admin: Principal,
+        entropy: &mut impl Entropy,
+        work: &'a mut Workspace,
+    ) -> Result<Self, Error> {
+        if !admin.valid() {
+            return Err(Error::Invalid);
+        }
+        if storage.load(&mut work.snapshot)?.is_some() {
+            return Err(Error::Conflict);
+        }
+        let boot = random(entropy)?;
+        work.state = State {
+            generation: 1,
+            admin,
+            namespaces: [None; NAMESPACES],
+        };
+        snapshot::encode(&work.state, &mut work.snapshot);
+        storage.replace(&work.snapshot)?;
+        Ok(Self::new(storage, work, boot))
+    }
+
+    pub fn recover(
+        mut storage: S,
+        entropy: &mut impl Entropy,
+        work: &'a mut Workspace,
+    ) -> Result<Self, Error> {
+        if storage.load(&mut work.snapshot)? != Some(SNAPSHOT_BYTES) {
+            return Err(Error::Corrupt);
+        }
+        snapshot::decode(&work.snapshot, &mut work.state)?;
+        let boot = random(entropy)?;
+        Ok(Self::new(storage, work, boot))
+    }
+
+    fn new(storage: S, work: &'a mut Workspace, boot: [u8; 32]) -> Self {
+        work.boot = boot;
+        work.serial = 0;
+        work.sessions.fill(None);
+        work.uploads.fill(None);
+        work.poisoned = false;
+        Self { storage, work }
     }
 
     pub fn into_storage(self) -> S {
@@ -229,11 +273,11 @@ impl<S: Storage> Service<S> {
     }
 
     pub fn is_poisoned(&self) -> bool {
-        self.poisoned
+        self.work.poisoned
     }
 
     fn ready(&self) -> Result<(), Error> {
-        if self.poisoned {
+        if self.work.poisoned {
             Err(Error::ReopenRequired)
         } else {
             Ok(())
@@ -242,7 +286,7 @@ impl<S: Storage> Service<S> {
 
     fn admin(&self, caller: Principal) -> Result<(), Error> {
         self.ready()?;
-        if caller == self.state.admin {
+        if caller == self.work.state.admin {
             Ok(())
         } else {
             Err(Error::Denied)
@@ -250,7 +294,8 @@ impl<S: Storage> Service<S> {
     }
 
     fn namespace(&self, id: &[u8; 32]) -> Result<usize, Error> {
-        self.state
+        self.work
+            .state
             .namespaces
             .iter()
             .position(|n| n.as_ref().is_some_and(|n| &n.id == id))
@@ -258,19 +303,23 @@ impl<S: Storage> Service<S> {
     }
 
     fn next_serial(&mut self) -> Result<u64, Error> {
-        self.serial = self.serial.checked_add(1).ok_or(Error::Full)?;
-        Ok(self.serial)
+        self.work.serial = self.work.serial.checked_add(1).ok_or(Error::Full)?;
+        Ok(self.work.serial)
     }
 
-    fn persist(&mut self, mut next: State) -> Result<(), Error> {
-        next.generation = self.state.generation.checked_add(1).ok_or(Error::Full)?;
-        let mut bytes = [0; SNAPSHOT_BYTES];
-        snapshot::encode(&next, &mut bytes);
-        if let Err(error) = self.storage.replace(&bytes) {
-            self.poisoned = true;
+    fn persist(&mut self) -> Result<(), Error> {
+        self.work.next.generation = self
+            .work
+            .state
+            .generation
+            .checked_add(1)
+            .ok_or(Error::Full)?;
+        snapshot::encode(&self.work.next, &mut self.work.snapshot);
+        if let Err(error) = self.storage.replace(&self.work.snapshot) {
+            self.work.poisoned = true;
             return Err(error);
         }
-        self.state = next;
+        core::mem::swap(&mut self.work.state, &mut self.work.next);
         Ok(())
     }
 
@@ -285,7 +334,7 @@ impl<S: Storage> Service<S> {
     ) -> Result<Invitation, Error> {
         self.admin(caller)?;
         if !recipient.valid()
-            || recipient == self.state.admin
+            || recipient == self.work.state.admin
             || quota == 0
             || quota > MAX_QUOTA
             || lifetime == 0
@@ -294,6 +343,7 @@ impl<S: Storage> Service<S> {
         }
         let expires = now.checked_add(lifetime).ok_or(Error::Invalid)?;
         let index = self
+            .work
             .state
             .namespaces
             .iter()
@@ -308,8 +358,8 @@ impl<S: Storage> Service<S> {
         if nonce == id {
             return Err(Error::Entropy);
         }
-        let mut next = self.state;
-        next.namespaces[index] = Some(Namespace {
+        self.work.next = self.work.state;
+        self.work.next.namespaces[index] = Some(Namespace {
             id,
             status: NamespaceStatus::Offered,
             epoch: 1,
@@ -319,7 +369,7 @@ impl<S: Storage> Service<S> {
             expires,
             objects: [Object::EMPTY; OBJECTS],
         });
-        self.persist(next)?;
+        self.persist()?;
         Ok(Invitation {
             namespace: id,
             nonce,
@@ -336,7 +386,10 @@ impl<S: Storage> Service<S> {
     ) -> Result<(), Error> {
         self.ready()?;
         let index = self.namespace(&invitation.namespace)?;
-        let mut ns = self.state.namespaces[index].ok_or(Error::NotFound)?;
+        self.work.next = self.work.state;
+        let ns = self.work.next.namespaces[index]
+            .as_mut()
+            .ok_or(Error::NotFound)?;
         if ns.status != NamespaceStatus::Offered
             || caller != ns.owner
             || invitation.recipient != caller
@@ -351,31 +404,33 @@ impl<S: Storage> Service<S> {
         ns.status = NamespaceStatus::Active;
         ns.invitation = [0; 32];
         ns.expires = 0;
-        let mut next = self.state;
-        next.namespaces[index] = Some(ns);
-        self.persist(next)
+        self.persist()
     }
 
     pub fn open(&mut self, caller: Principal, namespace: &[u8; 32]) -> Result<Session, Error> {
         self.ready()?;
         let index = self.namespace(namespace)?;
-        let ns = self.state.namespaces[index].ok_or(Error::NotFound)?;
+        let ns = self.work.state.namespaces[index]
+            .as_ref()
+            .ok_or(Error::NotFound)?;
         if ns.status != NamespaceStatus::Active || ns.owner != caller {
             return Err(Error::Denied);
         }
         let slot = self
+            .work
             .sessions
             .iter()
             .position(Option::is_none)
             .ok_or(Error::Full)?;
+        let epoch = ns.epoch;
         let token = Session {
-            boot: self.boot,
+            boot: self.work.boot,
             serial: self.next_serial()?,
         };
-        self.sessions[slot] = Some(SessionState {
+        self.work.sessions[slot] = Some(SessionState {
             token,
             namespace: index,
-            epoch: ns.epoch,
+            epoch,
             owner: caller,
         });
         Ok(token)
@@ -384,13 +439,16 @@ impl<S: Storage> Service<S> {
     fn session(&self, caller: Principal, token: Session) -> Result<SessionState, Error> {
         self.ready()?;
         let session = self
+            .work
             .sessions
             .iter()
             .flatten()
             .find(|s| s.token == token && s.owner == caller)
             .copied()
             .ok_or(Error::Stale)?;
-        let ns = self.state.namespaces[session.namespace].ok_or(Error::Stale)?;
+        let ns = self.work.state.namespaces[session.namespace]
+            .as_ref()
+            .ok_or(Error::Stale)?;
         if ns.status != NamespaceStatus::Active || ns.epoch != session.epoch {
             return Err(Error::Stale);
         }
@@ -399,12 +457,12 @@ impl<S: Storage> Service<S> {
 
     pub fn close(&mut self, caller: Principal, token: Session) -> Result<(), Error> {
         self.session(caller, token)?;
-        for slot in &mut self.sessions {
+        for slot in &mut self.work.sessions {
             if slot.is_some_and(|s| s.token == token) {
                 *slot = None;
             }
         }
-        for slot in &mut self.uploads {
+        for slot in &mut self.work.uploads {
             if slot.is_some_and(|u| u.session == token) {
                 *slot = None;
             }
@@ -413,7 +471,8 @@ impl<S: Storage> Service<S> {
     }
 
     fn reserved(&self, namespace: usize) -> u32 {
-        self.uploads
+        self.work
+            .uploads
             .iter()
             .flatten()
             .filter(|u| u.namespace == namespace)
@@ -433,7 +492,9 @@ impl<S: Storage> Service<S> {
         if object >= OBJECTS || ciphertext.is_empty() || ciphertext.len() > MAX_CIPHERTEXT {
             return Err(Error::Invalid);
         }
-        let ns = self.state.namespaces[session.namespace].ok_or(Error::Stale)?;
+        let ns = self.work.state.namespaces[session.namespace]
+            .as_ref()
+            .ok_or(Error::Stale)?;
         if expected == u64::MAX || ns.objects[object].revision != expected {
             return Err(Error::Conflict);
         }
@@ -442,17 +503,18 @@ impl<S: Storage> Service<S> {
             return Err(Error::Quota);
         }
         let slot = self
+            .work
             .uploads
             .iter()
             .position(Option::is_none)
             .ok_or(Error::Full)?;
         let upload = Upload {
-            boot: self.boot,
+            boot: self.work.boot,
             serial: self.next_serial()?,
         };
         let mut bytes = [0; MAX_CIPHERTEXT];
         bytes[..ciphertext.len()].copy_from_slice(ciphertext);
-        self.uploads[slot] = Some(UploadState {
+        self.work.uploads[slot] = Some(UploadState {
             token: upload,
             session: token,
             namespace: session.namespace,
@@ -466,7 +528,8 @@ impl<S: Storage> Service<S> {
     }
 
     fn upload(&self, session: SessionState, upload: Upload) -> Result<(usize, UploadState), Error> {
-        self.uploads
+        self.work
+            .uploads
             .iter()
             .enumerate()
             .filter_map(|(i, u)| u.map(|u| (i, u)))
@@ -487,7 +550,7 @@ impl<S: Storage> Service<S> {
     ) -> Result<(), Error> {
         let session = self.session(caller, session)?;
         let (slot, _) = self.upload(session, upload)?;
-        self.uploads[slot] = None;
+        self.work.uploads[slot] = None;
         Ok(())
     }
 
@@ -499,12 +562,12 @@ impl<S: Storage> Service<S> {
     ) -> Result<u64, Error> {
         let session = self.session(caller, session)?;
         let (slot, upload) = self.upload(session, upload)?;
-        let mut next = self.state;
-        let ns = next.namespaces[session.namespace]
+        self.work.next = self.work.state;
+        let ns = self.work.next.namespaces[session.namespace]
             .as_mut()
             .ok_or(Error::Stale)?;
         if ns.objects[upload.object].revision != upload.expected {
-            self.uploads[slot] = None;
+            self.work.uploads[slot] = None;
             return Err(Error::Conflict);
         }
         let revision = upload.expected.checked_add(1).ok_or(Error::Full)?;
@@ -513,8 +576,8 @@ impl<S: Storage> Service<S> {
             length: upload.length as u16,
             bytes: upload.bytes,
         };
-        self.persist(next)?;
-        self.uploads[slot] = None;
+        self.persist()?;
+        self.work.uploads[slot] = None;
         Ok(revision)
     }
 
@@ -528,7 +591,7 @@ impl<S: Storage> Service<S> {
         out: &mut [u8],
     ) -> Result<usize, Error> {
         let session = self.session(caller, session)?;
-        let object = self.state.namespaces[session.namespace]
+        let object = self.work.state.namespaces[session.namespace]
             .as_ref()
             .and_then(|n| n.objects.get(object))
             .ok_or(Error::Invalid)?;
@@ -549,7 +612,9 @@ impl<S: Storage> Service<S> {
     pub fn usage(&self, caller: Principal, namespace: &[u8; 32]) -> Result<Usage, Error> {
         self.admin(caller)?;
         let index = self.namespace(namespace)?;
-        let ns = self.state.namespaces[index].ok_or(Error::NotFound)?;
+        let ns = self.work.state.namespaces[index]
+            .as_ref()
+            .ok_or(Error::NotFound)?;
         Ok(Usage {
             namespace: ns.id,
             status: ns.status,
@@ -568,8 +633,11 @@ impl<S: Storage> Service<S> {
     ) -> Result<(), Error> {
         self.admin(caller)?;
         let index = self.namespace(namespace)?;
-        let mut next = self.state;
-        let ns = next.namespaces[index].as_mut().ok_or(Error::NotFound)?;
+        let reserved = self.reserved(index);
+        self.work.next = self.work.state;
+        let ns = self.work.next.namespaces[index]
+            .as_mut()
+            .ok_or(Error::NotFound)?;
         if matches!(
             ns.status,
             NamespaceStatus::Revoked | NamespaceStatus::Evicted
@@ -579,20 +647,20 @@ impl<S: Storage> Service<S> {
         if quota == 0 || quota > MAX_QUOTA {
             return Err(Error::Invalid);
         }
-        if quota < ns.used() + self.reserved(index) {
+        if quota < ns.used() + reserved {
             return Err(Error::Quota);
         }
         ns.quota = quota;
-        self.persist(next)
+        self.persist()
     }
 
     fn drop_handles(&mut self, namespace: usize) {
-        for session in &mut self.sessions {
+        for session in &mut self.work.sessions {
             if session.is_some_and(|s| s.namespace == namespace) {
                 *session = None;
             }
         }
-        for upload in &mut self.uploads {
+        for upload in &mut self.work.uploads {
             if upload.is_some_and(|u| u.namespace == namespace) {
                 *upload = None;
             }
@@ -604,8 +672,10 @@ impl<S: Storage> Service<S> {
     pub fn revoke(&mut self, caller: Principal, namespace: &[u8; 32]) -> Result<(), Error> {
         self.admin(caller)?;
         let index = self.namespace(namespace)?;
-        let mut next = self.state;
-        let ns = next.namespaces[index].as_mut().ok_or(Error::NotFound)?;
+        self.work.next = self.work.state;
+        let ns = self.work.next.namespaces[index]
+            .as_mut()
+            .ok_or(Error::NotFound)?;
         if matches!(
             ns.status,
             NamespaceStatus::Revoked | NamespaceStatus::Evicted
@@ -616,7 +686,7 @@ impl<S: Storage> Service<S> {
         ns.status = NamespaceStatus::Revoked;
         ns.invitation = [0; 32];
         ns.expires = 0;
-        self.persist(next)?;
+        self.persist()?;
         self.drop_handles(index);
         Ok(())
     }
@@ -626,14 +696,16 @@ impl<S: Storage> Service<S> {
     pub fn evict(&mut self, caller: Principal, namespace: &[u8; 32]) -> Result<(), Error> {
         self.revoke(caller, namespace)?;
         let index = self.namespace(namespace)?;
-        let mut next = self.state;
-        let ns = next.namespaces[index].as_mut().ok_or(Error::NotFound)?;
+        self.work.next = self.work.state;
+        let ns = self.work.next.namespaces[index]
+            .as_mut()
+            .ok_or(Error::NotFound)?;
         if ns.status == NamespaceStatus::Evicted {
             return Ok(());
         }
         ns.objects = [Object::EMPTY; OBJECTS];
         ns.status = NamespaceStatus::Evicted;
-        self.persist(next)
+        self.persist()
     }
 }
 

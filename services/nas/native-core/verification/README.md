@@ -3,7 +3,10 @@
 Datum: 30 oktober 2026, Europe/Amsterdam. Basis:
 `f52dab50af281dab2c94ab2c9e31aaabd299246a`, branch
 `simonvanieperen-legendary-broccoli`. De bijgevoegde hashes binden de
-implementatie en tests; dit checkpoint is uitsluitend host-/crosscompilebewijs.
+implementatie en tests op implementatiecheckpoint
+`de8ff67ffbd44207024895afeb470c43fbced298`; dit is uitsluitend
+host-/crosscompilebewijs. Controleer de hashes tegen die commit, niet tegen
+latere vervolgwijzigingen. Het vervolg staat bij `../../native-volume/verification/`.
 
 | Uitgevoerd commando | Exit | Uitkomst / wandtijd |
 |---|---|---|

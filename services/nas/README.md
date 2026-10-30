@@ -4,6 +4,21 @@
 
 Deze implementatie volgt de gewijzigde opdracht van 27 oktober 2026: een NAS kan thuis staan of bij vrienden/familie, met afzonderlijk toegestane directe internettoegang. De NAS-beheerder mag zijn opgeslagen kopieën zelfstandig verwijderen of de opslagruimte intrekken, zonder gebruikerssleutel of handtekening. Die beheerbevoegdheid geeft geen decryptiesleutel. Oudere teksten met uitsluitend eigen LAN zijn voor deze afgebakende opdracht herzien door de nieuwe gebruikersinstructie; de hoofdagent beheert de gedeelde contractdocumenten.
 
+## Rust-bouwstenen voor native integratie
+
+[NAS-CORE-1](native-core/README.md) voegt een allocatorvrije `no_std`-core toe
+voor ontvangergebonden uitnodigingen, sessies, quotumreservering,
+revisieconflicten, duurzame intrekking en logische verwijdering van ciphertext.
+[NAS-VOLUME-1](native-volume/README.md) sluit die core aan op de bestaande
+Rust-volumeclient en ruimt ook diens herstelbare versiegeschiedenis op vóór
+succes. De tijdelijke Rust-capaciteitsgrenzen staan bij de crate; de
+N01-grenzen hieronder horen uitsluitend bij het Node-hostprototype.
+
+De Rust-hostproeven en bare-metalbuild zijn **geen draaiende native NAS**.
+Transportidentiteit, kernel-IPC, clientencryptie, automatische sync en
+multidevice-key-lifecycle blijven open. [Controlebewijs](native-volume/verification/README.md):
+P01–P04 **0/5 → 0/5**, geen nieuwe rubricpunten.
+
 ## Uitvoeren
 
 Vanaf de projectroot, met Node.js 24:
