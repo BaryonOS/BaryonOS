@@ -1,6 +1,33 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — B02/main native groen; TPM-CI-compatibiliteit hersteld — 30 oktober 2026
+## NEXT AGENT HANDOFF — B02-netwerk normaal/koud groen; interactieve variant volgt — 30 oktober 2026
+
+Gepushte basis `ec8275579fa07f70180452d325738304b2edb6ab`, runtime v3
+`4c472a18940ea6cd42a0f0d53d26f8c491c5204274c4b8a6b8d6070b659a79ad`.
+Op deze bron slagen nu ook vier echte netwerk-VM's: ARP/UDP/DNS normaal/koud
+(37,085/37,138 s) en TCP normaal/koud (7,148/6,971 s), allemaal raw33/exit0.
+Werkelijke peers/brokertellers, HTTP/EOF/refused/reset/checksumweigering/
+retransmissie/guesttimeout en ongewijzigde koude disk zijn onafhankelijk
+herverifieerd. Gates, exacte commando's, fouten en logs:
+`verification/native-test-version/b02-network-evidence.json`; captures
+`verification/full-release-native-wait-b02-{net,tcp}/`.
+
+Rust1.91.1 ontbrak aantoonbaar; daarna ontbraken gepinde smoltcp-crates bij
+offline retry. Alleen bestaande projectlokale compiler/none-target en
+locked dependencies hersteld, geen manifest/lock/defaultcompiler gewijzigd.
+**34% → 34%; N01/50% open.** Deze smalle clientproeven zijn geen volledige
+productnetwerkdienst of dagelijks Internet. Geen extra onderhoudscode.
+De peer bezit exclusief zijn previewrunner/directe tests voor de opt-in
+interactieve zevenprocessenketen; geen gelijktijdige schrijver.
+Volgende stap: zijn gepushte code integraal lezen/integreren, eigen native
+referentierun op dezelfde nieuwe bron bouwen en vervolgens echte
+interactieve edit/save/reopen met exacte app-/framebinding uitvoeren.
+Daarna Windowsbundel afzonderlijk toetsen; geen probe-image omnoemen.
+CI op ec82755 was bij laatste read nog gedeeltelijk pending; niet groen
+geclaimd of geblokkeerd afgewacht. Eerstvolgend commando:
+`git fetch origin && git log -3 --oneline origin/simon/windows-qemu-test-version`.
+
+## Uitvoeringshistorie — B02/main native groen; TPM-CI-compatibiliteit hersteld
 
 Bron `344f4972d6db72543dd6c04bf0f28668602a91fd`, v3
 `c03070ddbbe8d233f91512a97927adc54c06da2c480966c68983cc936d5e7341`:

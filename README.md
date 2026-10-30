@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`344f4972`](https://github.com/simonvanieperen/nieuw-os/commit/344f4972d6db72543dd6c04bf0f28668602a91fd) ·
+**Bron:** [`ec827557`](https://github.com/simonvanieperen/nieuw-os/commit/ec8275579fa07f70180452d325738304b2edb6ab) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B02/main native integratie groen; concrete swtpm0.7.3-CI-startfout hersteld.
-34% blijft34%; minstens50% niet bereikt. Main-B02-integratie344f497:14 echte VM's groen, waaronder GUI normaal/koud en onafhankelijke diskcapture;377 Rusttests/1ignored,46 system- en102 tooltests groen. Eigen CI-startfout: swtpm0.7.3 kent optionele lock-optie niet. Portable optie met verse private state hersteld;5 gerichte tests en beide echte TPM-VM's groen op patchbron4c472a18. Nieuwe CI met oude backend nog open; geen asserts/skips versoepeld. Interactieve zevenprocessenbediening, Windowsbundel, volledig product en menselijke/hardwareacceptatie blijven open; oude automatische artifacts behouden eigen bron.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B02-integratie:ARP/UDP/DNS enTCP normaal/koud native herverifieerd.
+34% blijft34%; minstens50% niet bereikt. Op ec82755 slagen vier extra echte netwerk-VM's:ARP/UDP/DNS enTCP normaal/koud, met onafhankelijke frame-/peer-/diskcapture. Bestaande ontbrekende compiler1.91.1/locked crates hersteld na concrete fouten; geen nieuwe dependency of scorecriterium. N01 blijft open: smalle client/probe is niet volledige productnetwerkdienst of dagelijks Internet. B02/GUI/TPM-bewijzen behouden hun exacte eigen bron. Interactieve zevenprocessenketen wordt in afzonderlijke peerbranch gebouwd; Windowsbundel, volledige CI en product-/menselijke-/hardwareacceptatie open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
