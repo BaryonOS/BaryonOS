@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "purpose": "native display/input fixture preparation; no VM execution yet",
+  "purpose": "fixed development-profile preparation; retained native failure on prior fc951; current corrected source awaits native rerun",
   "base_commit": "985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb",
   "display_transport_commit": "b2ad7c184a2d918f57b82f0c50125a5c3906d9a7",
   "temporary_sdk_patch_sha256": "ea102b11574f6a54b8c4251eb24ea6d3bd11d9efea62b496344b66628e336a43",
@@ -47,12 +47,18 @@
       "name": "host test Clippy all-targets -D warnings",
       "exit": 0,
       "log": "/tmp/nieuw-os-display-probe-host-clippy.txt"
+    },
+    {
+      "name": "strict named 800x600 development gate host counterexamples incl old1280x720 rejected",
+      "passed": 11,
+      "failed": 0,
+      "log": "/tmp/nieuw-os-display-probe-geometry-tests.txt"
     }
   ],
   "scalar_scan": {
     "display_probe": {
-      "elf_sha256": "22da85e51cc6d248d9e0250c7226b0daf65c527214da376847abd489a2b29828",
-      "instructions": 1119,
+      "elf_sha256": "baaba6d98bfacf04de50046f119334f32d277cf3205076d183eec50691fe3105",
+      "instructions": 1114,
       "forbidden": [],
       "entry_stack_alignment": "compiler push rax before call main"
     },
@@ -70,16 +76,18 @@
     }
   },
   "source_sha256": {
-    "kernel/src/m2/m3/display_fixture.rs": "598c3932c1a65777202e6bd27b16191ffa75ff57b4f16a62858b6b9ffe00d951",
-    "docs/implementation/DISPLAY-INPUT-NATIVE-PROBE.md": "c79b4bdaa61966333585340b942ca0948c71aa0b29b46fb9893d239f14aff03f",
+    "kernel/src/m2/m3/display_fixture.rs": "598db5c64eff394ee0170fff1404238f68e927bb07a46da1f46da8e4e9274add",
+    "docs/implementation/DISPLAY-INPUT-NATIVE-PROBE.md": "b23ad24ad08c03e09f8b6a5355f6abf189e30be91350b2acdca63971f622b8e1",
     "sdk/examples/system/src/support.rs": "413ecb19b093f67c406666fa52bc6a4949cd592b5f463e0400fc2c3d5545b153",
+    "tools/run_display_probe.py": "94c5537f459286d178a87924bdf63ae4d916cf31aa58da72834bd7c7253b2db3",
+    "tools/test_display_probe.py": "806c7347b43397465da7282e15dd3750c8d6ccceb642fd34d412263ca02cbb8c",
     "sdk/examples/display-input-probe/Cargo.lock": "13f0e3d8c1705574b99d6fce82d9779a04b382e8d718597c9cf2dc39e2089bc7",
     "sdk/examples/display-input-probe/Cargo.toml": "2232d493bf2194c481c4eeeeb01dbb8fba0dbab03db4b89bdf344b0c92b82a7d",
     "sdk/examples/display-input-probe/build.py": "921652bc3d52eadd09139f249f6b7839b2ec02ff26bf3b15cdb521d75ec4bb4c",
     "sdk/examples/display-input-probe/linker.ld": "fd86707b73b71b3b08f1cc79b56bd80419f4569565e7d6582689106c1de1cedc",
     "sdk/examples/display-input-probe/src/common.rs": "86d80c9e48865a7330325ef1d929417f61f417b610fdfacc8a9f6951af6c021c",
-    "sdk/examples/display-input-probe/src/contract.rs": "22fe34d42366474810375085187e18ad06153250743a1d9f9299422fb8b539c3",
-    "sdk/examples/display-input-probe/src/display.rs": "81152a3803a76ab7d0361f29a0dbfca4d558668a47517a638931c144978b2a76",
+    "sdk/examples/display-input-probe/src/contract.rs": "21137307ea97195347458e0f7dbccd65bbde38c079a5dfcb248ce201276289ad",
+    "sdk/examples/display-input-probe/src/display.rs": "b0ba452232e6a7900253abfbe2873035caf3eff4a3ffd477ae8581fe7ad01620",
     "sdk/examples/display-input-probe/src/input.rs": "be5465ed2532fcc88be8a646c524b49a3df602599c73852c9991105c507d5e02",
     "sdk/examples/display-input-probe/src/intruder.rs": "6ed92e738c107744481661c5ffb8f9ee09221a798e00f1f5c7d6ea3d28e08d88",
     "sdk/examples/display-input-probe/src/lib.rs": "c62642092a4c1b6efc22fb9e134e9f740f75753f54d1e1066cb1070a85f0e19f",
@@ -90,5 +98,33 @@
     "QMP actual reset/raw keyboard+mouse with explicit Sample.sequence logs in both lifetimes",
     "independent screenshot pixel equality before/after failed blits",
     "final actual VM counters/exit and exact commit/image hashes"
-  ]
+  ],
+  "development_profile": {
+    "name": "display-input-dev-800x600",
+    "width": 800,
+    "height": 600,
+    "ram_mib": 256,
+    "loader_source": "boot/loader/src/graphics.rs::prepare",
+    "loader_source_sha256": "85ff56d930a094a648c460c6e9d08b6c89dbdbb72ac25edf9557ae6b3ec7b08a"
+  },
+  "causal_native_failure": {
+    "commit": "fc9515d66d6d65662de14860f7dc1e3173d05465",
+    "source_sha256": "1dfced0616c5319a184c8b3b53c9ec2220ca8240bfeba44b8807d0d472955429",
+    "run_directory": "/workspace/nieuw-os-worktrees/root-desktop/build/display-integration/run/display-input-a0589723ae",
+    "passed": false,
+    "raw_qemu_exit": -9,
+    "error": "ValueError: Wrong actual framebuffer geometry",
+    "observed_ppm_geometry": [
+      800,
+      600
+    ],
+    "actual_first_display_ready": true,
+    "actual_first_input_ready": true,
+    "artifacts_sha256": {
+      "result.json": "658a39da3ddfea0bd34fb576735b9b4f774d5b9336d59a29be36631e6e410422",
+      "serial.txt": "ed6e4ce7b23b5df38316ba841aa718516758a88c83427c332d8e3dfdef463ddd",
+      "generation-1.ppm": "a5d09f7305cc1501ef4da97a9fbe9576269d4b29f0cc9157413cdf37c78fadc8"
+    },
+    "interpretation": "host geometry precondition was wrong; no QMP input/whole-run acceptance inferred"
+  }
 }

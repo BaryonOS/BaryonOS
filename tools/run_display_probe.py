@@ -33,6 +33,8 @@ FIELDS = ("BLITS", "PIXELS", "DISPLAY_DENIED", "CAP_DENIED", "POINTER_DENIED", "
           "EXITS", "SLOT_REUSES", "DISPLAY_EPOCH", "INPUT_EPOCH", "INPUT_TICKET", "TIMER_IRQS",
           "LIVE_PROCESSES", "FRAMES_RECOVERED")
 INPUT_BYTES = (0x1e, 0x9e, 0x09, 0x07, 0x03, 0x08, 0, 0)
+DEV_PROFILE = "display-input-dev-800x600"
+DEV_WIDTH, DEV_HEIGHT = 800, 600
 SERIAL_LIMIT = 128 * 1024
 HEX = re.compile(r"[0-9a-f]{64}")
 
@@ -165,7 +167,7 @@ def validate_frames(first: bytes, second: bytes) -> dict:
     frames = []
     for generation, raw in ((1, first), (2, second)):
         width, height, pixels = ppm(raw)
-        require((width, height) == (1280, 720), "Wrong screenshot geometry")
+        require((width, height) == (DEV_WIDTH, DEV_HEIGHT), "Wrong development-profile screenshot geometry")
         require(not any(pixels[at:at + 3] == b"\xee\xee\xee" for at in range(0, len(pixels), 3)),
                 "Rejected payload reached visible framebuffer")
         for tile_generation in range(1, generation + 1):
@@ -179,15 +181,15 @@ def validate_frames(first: bytes, second: bytes) -> dict:
     old, new = frames
     # The second valid tile is the only permitted framebuffer change. This
     # checks addressing/stride and rejected blits outside either known tile.
-    for y in range(720):
-        start = y * 1280 * 3
+    for y in range(DEV_HEIGHT):
+        start = y * DEV_WIDTH * 3
         if 80 <= y < 88:
             left, right = start + 112 * 3, start + 144 * 3
-            require(old[start:left] == new[start:left] and old[right:start + 1280 * 3] == new[right:start + 1280 * 3],
+            require(old[start:left] == new[start:left] and old[right:start + DEV_WIDTH * 3] == new[right:start + DEV_WIDTH * 3],
                     "Framebuffer changed outside second authorized rectangle")
         else:
-            require(old[start:start + 1280 * 3] == new[start:start + 1280 * 3], "Framebuffer changed outside authorized rows")
-    return {"width": 1280, "height": 720, "pixel_comparisons": 768, "unique_native_pixels": 512,
+            require(old[start:start + DEV_WIDTH * 3] == new[start:start + DEV_WIDTH * 3], "Framebuffer changed outside authorized rows")
+    return {"development_profile": DEV_PROFILE, "width": DEV_WIDTH, "height": DEV_HEIGHT, "pixel_comparisons": 768, "unique_native_pixels": 512,
             "first_tile_preserved": True, "rejected_color_absent": True, "outside_second_tile_unchanged": True}
 
 
@@ -243,6 +245,12 @@ def serial_bytes(directory: Path) -> bytes:
     return raw
 
 
+def geometry_contract() -> dict:
+    return {"path": "boot/loader/src/graphics.rs", "function": "prepare",
+            "sha256": sha256(ROOT / "boot/loader/src/graphics.rs"), "width": DEV_WIDTH, "height": DEV_HEIGHT,
+            "selection": "existing bounded QueryMode selection; GOP_800_600 on absence; no geometry fallback"}
+
+
 def frame_bytes(directory: Path, generation: int) -> bytes:
     path = private_path(directory / f"generation-{generation}.ppm", regular=True)
     maximum = 1920 * 1080 * 3 + 128
@@ -256,7 +264,9 @@ def frame_bytes(directory: Path, generation: int) -> bytes:
 def validate_execution(report: dict, bound: dict, directory: Path, qemu: str, machine: str, transport: str) -> dict:
     require(type(report.get("raw_qemu_exit")) is int and report["raw_qemu_exit"] == 33
             and report.get("timed_out") is False and report.get("command") == qemu_arguments(qemu, machine, transport)
-            and report.get("cwd") == str(directory) and report.get("profile") == f"{machine}/qemu64/TCG/1CPU/256MiB/VGA/PS2",
+            and report.get("cwd") == str(directory) and report.get("profile") == f"{machine}/qemu64/TCG/1CPU/256MiB/VGA/PS2"
+            and report.get("development_profile") == DEV_PROFILE
+            and report.get("loader_geometry_contract") == geometry_contract(),
             "VM exit/timeout/machine/CPU/RAM/device profile mismatch")
     frozen = report.get("frozen_artifacts")
     expected_names = set(bound["expected"]) | {"OVMF_CODE.fd", "OVMF_VARS.template.fd", "VGA.rom"}
@@ -343,6 +353,8 @@ def run_display_probe(*, build_directory=BUILD, run_root=None, machine=None,
               "base_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, timeout=10).strip(),
               "command": arguments, "cwd": str(directory), "run_directory": str(directory), "build_directory": str(build),
               "machine": machine, "qmp_transport": qmp_transport, "profile": f"{machine}/qemu64/TCG/1CPU/256MiB/VGA/PS2",
+              "development_profile": DEV_PROFILE,
+              "loader_geometry_contract": geometry_contract(),
               "qemu_entry_path": qemu, "qemu_entry_sha256": qemu_hash, "qemu_version": qemu_version,
               "firmware_sources": {name: str(source) for source, name in firmware_sources},
               "frozen_artifacts": inputs, "raw_qemu_exit": None, "timed_out": False, "timeout_s": timeout}
@@ -382,7 +394,7 @@ def run_display_probe(*, build_directory=BUILD, run_root=None, machine=None,
                         control.command(request["execute"], request.get("arguments"))
                         if request["execute"] == "screendump":
                             raw = frame_bytes(directory, generation)
-                            require(ppm(raw)[:2] == (1280, 720), "Wrong actual framebuffer geometry")
+                            require(ppm(raw)[:2] == (DEV_WIDTH, DEV_HEIGHT), "Wrong actual development-profile framebuffer geometry")
                         else:
                             remaining = deadline - time.monotonic()
                             require(remaining > 0, "Shared QMP deadline exceeded")

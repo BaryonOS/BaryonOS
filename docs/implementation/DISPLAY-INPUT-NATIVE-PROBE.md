@@ -1,10 +1,26 @@
 # Native grensproef voor display en PS/2
 
-Deze afzonderlijke fixture is een uitvoeringstoets voor ABI 1.8 op VM-FR:
-QEMU 10.0.13, `pc-q35-8.2`, UEFI-framebuffer 1280×720, eigen kernel en drie
+Deze afzonderlijke fixture is een uitvoeringstoets voor ABI 1.8 op het benoemde
+ontwikkelprofiel `display-input-dev-800x600`: QEMU 10.0.13, `pc-q35-8.2`,
+qemu64/TCG/1CPU/256MiB, UEFI-framebuffer strikt 800×600, eigen kernel en drie
 werkelijke CPL3-programma's. Het is geen acceptatie van de Materiaal-desktop,
 inputdaemon, focusbroker of basisprogramma's. De productomvang en alle open
 criteria uit `FULL-TEST-RELEASE.md` blijven gelden.
+
+De primaire geometriebron is de al bestaande
+`boot/loader/src/graphics.rs::prepare`: de begrensde GOP-QueryMode-selectie
+vereist `horizontal_resolution == 800`, `vertical_resolution == 600` en
+`pixel_format <= 1`; ontbreekt die modus, dan volgt `GOP_800_600`.
+De runner legt dit bronpad en de werkelijke bronhash vast. Dit kleine
+ontwikkelprofiel verlaagt de verplichte volledige releaseprofielen (VM-FR,
+1280×720 en 1920×1080/200%, met hun eigen resource-eisen) niet.
+
+De eerste echte run op `fc9515d66d6d65662de14860f7dc1e3173d05465`
+bereikte beide werkelijke Ready-markers van generatie 1 en leverde een echte
+800×600-PPM. Het oorspronkelijke harnas verwachtte foutief 1280×720 en brak
+de hostrun af met raw -9/`passed=false` vóór QMP-invoer. Dat was een
+harnasfout. Dat mislukte bewijs wordt bewaard; een nieuwe run moet de volledige
+pixel-, invoer-, rechten-, sequence- en cleanupcontrole alsnog doorstaan.
 
 ## Eigenaarschap en integratie
 

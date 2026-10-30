@@ -1,4 +1,8 @@
 //! Private fixture startup/evidence page, not an application bootstrap ABI.
+// Existing loader QueryMode selection: boot/loader/src/graphics.rs::prepare.
+// This 256MiB development fixture is separate from the full release VM-FR.
+pub const DEV_WIDTH: u64 = 800;
+pub const DEV_HEIGHT: u64 = 600;
 pub const SOURCE: u64 = 48;
 pub const WRONG_TYPE: u64 = 56;
 pub const PEER_DISPLAY: u64 = 64;

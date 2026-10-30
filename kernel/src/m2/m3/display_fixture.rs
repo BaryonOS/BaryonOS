@@ -170,8 +170,8 @@ pub(super) fn observe_exit(s: &State, slot: usize, _: u64) {
                 b"DISPLAY_BOUNDARY_COUNTERS",
             );
             require(
-                word(s, slot, WIDTH) == 1280
-                    && word(s, slot, HEIGHT) == 720
+                word(s, slot, WIDTH) == DEV_WIDTH
+                    && word(s, slot, HEIGHT) == DEV_HEIGHT
                     && word(s, slot, EPOCH) > evidence().display_epoch,
                 b"ACTUAL_GEOMETRY_NEW_EPOCH",
             );

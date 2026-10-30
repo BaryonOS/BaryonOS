@@ -34,15 +34,15 @@ def serial():
 
 
 def frames():
-    pixels = bytearray(1280 * 720 * 3)
+    pixels = bytearray(800 * 600 * 3)
     result = []
     for generation in (1, 2):
         left, top = (64, 64) if generation == 1 else (112, 80)
         for y in range(8):
             for x in range(32):
-                at = ((top + y) * 1280 + left + x) * 3
+                at = ((top + y) * 800 + left + x) * 3
                 pixels[at:at + 3] = bytes((0x20 + generation * 0x20 + x * 3, 0x30 + y * 0x13, 0x70 + x + y))
-        result.append(b"P6\n1280 720\n255\n" + pixels)
+        result.append(b"P6\n800 600\n255\n" + pixels)
     return result
 
 
@@ -65,6 +65,8 @@ class ProbeTests(unittest.TestCase):
         stack.enter_context(patch.object(f, "ROOT", root))
 
     def build_fixture(self, root):
+        (root / "boot/loader/src").mkdir(parents=True)
+        (root / "boot/loader/src/graphics.rs").write_text("host-only loader identity fixture")
         build = root / "build"
         (build / "users/display-probe").mkdir(parents=True)
         (build / "esp/EFI/BOOT").mkdir(parents=True)
@@ -116,7 +118,8 @@ class ProbeTests(unittest.TestCase):
         for generation, raw in enumerate(frames(), 1):
             (directory / f"generation-{generation}.ppm").write_bytes(raw)
         report = {"raw_qemu_exit": 33, "timed_out": False, "stdout": serial(), "cwd": str(directory),
-                  "profile": "pc-q35-8.2/qemu64/TCG/1CPU/256MiB/VGA/PS2", "frozen_artifacts": frozen,
+                  "profile": "pc-q35-8.2/qemu64/TCG/1CPU/256MiB/VGA/PS2", "development_profile": d.DEV_PROFILE, "frozen_artifacts": frozen,
+                  "loader_geometry_contract": d.geometry_contract(),
                   "command": d.qemu_arguments("/qemu", "pc-q35-8.2", "pipe")}
         return directory, report
 
@@ -150,16 +153,20 @@ class ProbeTests(unittest.TestCase):
         self.assertTrue(d.validate_frames(first, second)["outside_second_tile_unchanged"])
         width, height, pixels = d.ppm(second)
         header = f"P6\n{width} {height}\n255\n".encode()
-        for at, color in ((((80 * 1280 + 112) * 3), b"\xee\xee\xee"),
-                          (((64 * 1280 + 64) * 3), b"\x01\x02\x03"), (0, b"\x01\x02\x03"),
-                          (((81 * 1280 + 112) * 3), pixels[(80 * 1280 + 112) * 3:(80 * 1280 + 112) * 3 + 3])):
+        for at, color in ((((80 * 800 + 112) * 3), b"\xee\xee\xee"),
+                          (((64 * 800 + 64) * 3), b"\x01\x02\x03"), (0, b"\x01\x02\x03"),
+                          (((81 * 800 + 112) * 3), pixels[(80 * 800 + 112) * 3:(80 * 800 + 112) * 3 + 3])):
             changed = bytearray(pixels)
             changed[at:at + 3] = color
             with self.subTest(at=at), self.assertRaises(ValueError):
                 d.validate_frames(first, header + changed)
-        for changed in (second[:-1], second.replace(b"1280 720", b"1279 720", 1), b"P6\n1921 720\n255\n" + pixels):
+        for changed in (second[:-1], second.replace(b"800 600", b"799 600", 1), b"P6\n1921 600\n255\n" + pixels):
             with self.assertRaises(ValueError):
                 d.validate_frames(first, changed)
+        # A complete PPM at the old mistaken geometry is still forbidden;
+        # this development gate never falls back to any available resolution.
+        with self.assertRaises(ValueError):
+            d.validate_frames(first, b"P6\n1280 720\n255\n" + bytes(1280 * 720 * 3))
 
     def test_qmp_cannot_substitute_other_keys_input_or_success_responses(self):
         directory = Path("/private/run")
@@ -212,6 +219,8 @@ class ProbeTests(unittest.TestCase):
             wrong_ram = list(report["command"]); wrong_ram[wrong_ram.index("256M")] = "8G"
             for change in ({"raw_qemu_exit": True}, {"timed_out": True}, {"raw_qemu_exit": 0},
                            {"stdout": serial() + "M1:PASS\n"}, {"command": wrong_ram},
+                           {"development_profile": "display-input-any-geometry"},
+                           {"loader_geometry_contract": d.geometry_contract() | {"width": 1280}},
                            {"command": report["command"] + ["-net", "user"]}):
                 with self.subTest(change=change), self.assertRaises(ValueError):
                     d.validate_execution(report | {"passed": True} | change, bound, directory, "/qemu", "pc-q35-8.2", "pipe")

@@ -27,6 +27,10 @@ fn main() -> ! {
     cap_restrictions(source, 4096);
     let mut client = DisplayClient::new(NativeTransport, DisplaySource::from_handle(source));
     let geometry = client.geometry().unwrap_or_else(|_| fail(40));
+    check(
+        u64::from(geometry.width) == DEV_WIDTH && u64::from(geometry.height) == DEV_HEIGHT,
+        39,
+    );
     put(WIDTH, u64::from(geometry.width));
     put(HEIGHT, u64::from(geometry.height));
     put(EPOCH, geometry.epoch);
