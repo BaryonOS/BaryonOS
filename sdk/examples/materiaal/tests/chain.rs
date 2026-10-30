@@ -491,9 +491,13 @@ fn assert_semantic_node(
 }
 
 fn undersized_semantics_buffer_is_atomic(app: &App<'_, Port, Port, Port>) {
-    let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES - 1];
+    // The renderer needs exactly the visited node count, not the maximum.
+    let mut full = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+    let count = app.semantics(&mut full).unwrap();
+    let mut storage = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+    let nodes = &mut storage[..count - 1];
     assert_eq!(
-        app.semantics(&mut nodes),
+        app.semantics(nodes),
         Err(Error::Accessibility(
             nieuw_os_materiaal::render::Error::Buffer
         ))
