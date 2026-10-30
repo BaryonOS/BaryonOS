@@ -289,6 +289,56 @@ leg uit wat wel/niet is opgeslagen.” Noteer taakvoltooiing, hulp, begrip van
 opslagstatus, foutverwachting en herstelsucces; verzin geen deelnemer of
 resultaat.
 
+### Uitvoerbaar draaiboek voor de menselijke taakproef
+
+Dit is een voorbereid protocol, geen werving, deelnemersregistratie of
+uitgevoerde proef. Rol 20/21 gebruikt uitsluitend een vastgelegde synthetische
+wegwerpimage. Deelnemers werken niet met persoonlijke documenten, accounts,
+NAS of sleutels. Deelnemerstoestemming en een geschikte lokale opslagplaats
+voor notities worden vóór de proef geregeld; geen automatische opname,
+telemetrie of publicatie. Vooraf wordt expliciet uitgelegd dat dit een
+ontwikkelversie is en dat wij het systeem, niet de deelnemer, beoordelen.
+
+**Startvoorwaarden:** exact broncommit, kernel/app-/diskhashes, profiel,
+runner en inputmethode invullen. De checker bevestigt dat de taak en
+foutinjectie werkelijk werken, zonder het resultaat vooraf aan de deelnemer te
+tonen. Geen mens laten beoordelen of niet-geïmplementeerde bediening “werkt”.
+Wanneer de native taak niet beschikbaar is, mag een gelabelde ontwerpstudie
+worden uitgevoerd, maar die krijgt geen native gebruiksacceptatie.
+
+| Stap / neutrale opdracht | Te observeren zonder antwoord voor te zeggen | Onafhankelijke controle |
+|---|---|---|
+| “Maak een korte notitie over een afspraak en zorg dat je haar later terugvindt.” | Vindt de deelnemer maken, schrijven en bewaren? Welke zichtbare status geeft volgens hem/haar zekerheid? | Echte commit, object-ID, revisie en bytes vastleggen; geen taaksucces op basis van alleen vertrouwen of een klik. |
+| “Ga terug naar je materiaal en ga verder met dezelfde notitie.” | Wordt hetzelfde object gevonden, zonder onbedoelde kopie? Blijft de relatie tussen object en gereedschap duidelijk? | Echte list/open, zelfde ID en bevestigde bytes; geen vorige draft als bewijs. |
+| “Voeg iets toe en ga terug. Je wilt die toevoeging toch niet bewaren.” | Begrip van Bewaren / Verder bewerken / Wijzigingen verwerpen, standaardfocus en Escape; onbedoeld verlies of hulp tellen. | Alleen expliciete discard verwijdert de toevoeging; eerdere bevestigde revisie blijft intact. |
+| “Bewaar deze langere notitie, maar stop de opslag terwijl die bezig is.” | Vindt en begrijpt de deelnemer annuleren? Verwacht die tekstverlies, ongedaan maken of alleen stoppen? | Echte ABORT en behoud dirty draft; als commit eerder voltooid is, die uitkomst eerlijk registreren en niet als annuleerfout classificeren. |
+| Gecontroleerde onzekere uitkomst: “Wat is er volgens jou gebeurd, en wat zou je nu doen?” | Begrip van onbekend tegenover mislukt/opgeslagen; gevaarlijke verwachting van retry, afsluiten of back-up noteren. Geen herstel beloven dat niet bestaat. | Fault/COMMIT-binding en no-replay door checker bevestigd; open herstelafhankelijkheid blijft zichtbaar. |
+| “Ga na het opnieuw starten verder met dezelfde notitie.” | Kan de deelnemer het bevestigde werk terugvinden? Onderscheidt die vorige onopgeslagen wijziging van de laatste opgeslagen versie? | Koude nieuwe VM, zelfstandig diskorakel en geopende objectbytes; alleen uitvoeren wanneer die native route beschikbaar is. |
+
+Herhaal de relevante taken keyboard-only en op 200% met geschikte deelnemers
+voor die bediening; een ziende muisgebruiker die een schermlezer beluistert
+vervangt geen toets met daadwerkelijke hulptechnologiegebruikers. Forceer geen
+tweede ronde als vermoeidheid of de ontwikkelbuild de resultaten vertekent.
+De probeleider geeft tijdens de primaire poging geen navigatiehint; gevraagde
+hulp wordt pas gegeven nadat het hulpmoment en de oorspronkelijke uitkomst
+zijn vastgelegd.
+
+Per taak registreert de tester: begonnen/voltooid/geblokkeerd/afgebroken,
+start/eindtijd, aantal en aard van hints, onbedoelde acties/kopieën,
+verwachte versus werkelijke opgeslagen versie, focus-/leesbaarheidsprobleem,
+gebruikersuitleg in eigen woorden en hersteluitkomst. Tijd en subjectieve
+waardering apart rapporteren; geen gemiddelden gebruiken om verlies,
+onbegrepen Unknown, ontbrekende accessibility of een niet-uitvoerbare taak
+te verbergen. Stop de taak bij onverwacht gegevensverlies, onveilige
+retry/rechtenverruiming of niet-herstelbare focusval; bewaar het defect en
+herhaal pas na herstel op een nieuwe gebonden kandidaat.
+
+Steekproefomvang en taaktijd-/hulpbudget worden vóór de echte proef door het
+onderzoeksspoor vastgelegd volgens PRX/DV-01, niet achteraf uit gunstige
+uitkomsten gekozen. Dit pakket claimt geen representativiteit, tevredenheid,
+adoptie of conformiteit. Native technische assertions, AI-ontwerpreview en
+menselijke observaties houden elk een eigen resultaatkolom.
+
 ## Assetoverdracht en lokale controle
 
 Rol 16 leverde alleen `ui/assets/material-flow-icons.svg`, definitieve
