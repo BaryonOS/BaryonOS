@@ -28,17 +28,18 @@ Met `LD_LIBRARY_PATH`, `GCC_EXEC_PREFIX`, `COMPILER_PATH`, `LIBRARY_PATH`,
 | Commando | Exit | Resultaat |
 |---|---:|---|
 | `python3 -B tools/dev.py cargo +1.90.0 fmt --manifest-path services/net-protocol/Cargo.toml --all -- --check` | 0 | Op `30748d6` formattering schoon |
-| `python3 -B tools/dev.py cargo +1.90.0 test --manifest-path services/net-protocol/Cargo.toml --test dhcp --locked --offline` | 0 | Op `30748d6`: 9 DHCP-tests geslaagd; log is de tooluitvoer van deze sessie |
+| `python3 -B tools/dev.py cargo +1.90.0 test --manifest-path services/net-protocol/Cargo.toml --test dhcp --locked --offline` | 0 | Op `30748d6`: 9 DHCP-tests geslaagd; log: `/tmp/nieuw-os-dhcp-307-targeted.log` |
 | `git diff --check` | 0 | Op `30748d6` geen whitespacefouten |
-| `python3 -B tools/dev.py cargo +1.90.0 test --manifest-path services/net-protocol/Cargo.toml --locked --offline` | 0 | Op voorganger `d16b44a`: 56 tests geslaagd; log: `/tmp/nieuw-os-dhcp-tests-final.log` |
-| `env CARGO_TARGET_DIR=target/dhcp-codec python3 -B tools/dev.py cargo +1.90.0 clippy --manifest-path services/net-protocol/Cargo.toml --all-targets --locked --offline -- -D warnings` | 101 | Op voorganger `d16b44a` meldde Clippy `too_many_arguments` (8/7) in `build_request`; commit `30748d6` verwijderde de losse broadcast-parameter. Clippy moet op de nieuwe bron worden herhaald; log: `/tmp/nieuw-os-dhcp-clippy-final.log` |
+| `python3 -B tools/dev.py cargo +1.90.0 test --manifest-path services/net-protocol/Cargo.toml --locked --offline` | 0 | Op `30748d6`: 56 tests geslaagd; log: `/tmp/nieuw-os-dhcp-307-tests.log` |
+| `env CARGO_TARGET_DIR=target/dhcp-codec python3 -B tools/dev.py cargo +1.90.0 clippy --manifest-path services/net-protocol/Cargo.toml --all-targets --locked --offline -- -D warnings` | 0 | Op `30748d6`: geen waarschuwingen; log: `/tmp/nieuw-os-dhcp-307-clippy.log` |
+| `env CARGO_TARGET_DIR=target/dhcp-codec python3 -B tools/dev.py cargo +1.90.0 build --manifest-path services/net-protocol/Cargo.toml --lib --release --target x86_64-unknown-none --locked --offline` | 0 | Op `30748d6`: freestanding releasebuild geslaagd; log: `/tmp/nieuw-os-dhcp-307-target.log` |
 
 Een eerdere volledige crate-run op `a3830f3` vond terecht dat
 `build_renewal_request` DHCPDISCOVER in plaats van DHCPREQUEST bouwde. De
 builder gebruikt nu een expliciete requestsoort; de volledige run op
-`d16b44a` slaagde 56/56 en de 9/9-proef op `30748d6` controleert ook dat
-selecting DHCPREQUEST broadcast gebruikt. De volledige crate-testgroep, Clippy
-en de freestanding targetbuild moeten nog op `30748d6` worden uitgevoerd.
+`30748d6` slaagde 56/56 en de DHCP-groep controleert ook dat selecting
+DHCPREQUEST broadcast gebruikt. Clippy en de freestanding targetbuild slaagden
+eveneens op die exacte commit; er is nog geen native netwerkbewijs.
 
 `python3 -B tools/preflight.py --strict` eindigde met exit 2: deze worktree
 mist `qemu-system-x86_64` en OVMF. Dit was alleen tool-inventarisatie; geen

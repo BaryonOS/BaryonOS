@@ -35,7 +35,7 @@ alleen een nette desktop haalt die eindgrens niet.
 **Bron:** [`30748d64`](https://github.com/simonvanieperen/nieuw-os/commit/30748d6402ee9bf84a5606a8260455b0c05d9e9a) ·
 **Ontwikkelbranch:** `simonvanieperen-musical-happiness`.
 Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** DHCP-CODEC-1: begrensde no_std DHCPv4-codec als voorstap voor native netwerkconfiguratie.
-34% blijft 34%. De no_std DHCPv4-codec bouwt DISCOVER, selecting DHCPREQUEST en renewal DHCPREQUEST en parseert begrensd OFFER/ACK/NAK zonder ABI- of rechtenwijziging. Op 30748d6 slagen 9 DHCP-hosttests met een tijdelijke GCC/libc sysroot; de volledige suite slaagde 56/56 op voorganger d16b44a. Een Clippy-fout over acht builderargumenten is in 30748d6 opgelost door de broadcastvlag uit de interface te verwijderen en het selecting-broadcastveld expliciet te testen. Volledige suite, Clippy en targetbuild moeten op 30748d6 worden herhaald. QEMU/OVMF ontbreken; geen native DHCP-peer/configuratiebewijs. N01–N04 blijven open en geen criterium is gesloten.
+34% blijft 34%. De dependencyvrije no_std DHCPv4-codec bouwt DISCOVER, selecting DHCPREQUEST en renewal DHCPREQUEST en parseert begrensd OFFER/ACK/NAK zonder ABI- of rechtenwijziging. Op broncommit 30748d6 slagen formattering, alle 56 crate-tests, Clippy met -D warnings en de x86_64-unknown-none releasebuild. Hosttests gebruiken alleen een tijdelijke GCC/libc sysroot in /tmp. De codec configureert geen interface, lease of route. QEMU/OVMF ontbreken in deze worktree; er is geen native DHCP-peer/configuratiebewijs. N01–N04 blijven open en geen rubriccriterium is gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -15,22 +15,23 @@ client-MAC, vaste BOOTP-header, DHCP-cookie, relevante opties en timers. Hij
 weigert option-overload en dubbele relevante opties. De selecting-request
 broadcastvlag wordt afgeleid van de requestsoort en is expliciet getest.
 
-**Huidige bronproef op `30748d6`:** DHCP-tests 9/9 slagen met een tijdelijke
+**Huidige bronproef op `30748d6`:** formattering en volledige cratesuite
+slagen; alle 56 tests (2 library, 7 ARP, 9 DHCP, 18 DNS, 20 packettests)
+zijn groen. Clippy met `-D warnings` en de releasebuild voor
+`x86_64-unknown-none` slagen eveneens. Hosttests gebruiken een tijdelijke
 Ubuntu GCC 13.4.0/libc sysroot in `/tmp`; geen globale installatie of
-projectdependency. Formatteringscheck en `git diff --check` slagen. De
-volledige cratesuite slaagde 56/56 op voorganger `d16b44a`; de Clippy-run op
-die voorganger wees op 8 argumenten in de builder. Commit `30748d6` verwijdert
-de overtollige vlagparameter en voegt selectie-broadcastdekking toe; volledige
-cratesuite, Clippy en `x86_64-unknown-none`-build op die exacte commit zijn
-nog vereist. Bewijs en bronhashes:
+projectdependency. De Clippy-run op voorganger `d16b44a` wees op 8 argumenten
+in de builder. Commit `30748d6` verwijdert de overtollige vlagparameter en
+voegt selectie-broadcastdekking toe; alle exacte-brongates zijn nu groen.
+Bewijs, commando's, logpaden en bronhashes:
 [`verification/dhcpv4-codec/`](verification/dhcpv4-codec/README.md).
 
 `python3 -B tools/preflight.py --strict` exit 2: deze worktree mist QEMU en
 OVMF. Er is geen native DHCP-peer, lease, configuratie of echte verbinding
 getest. **Rubric 34% → 34%; netwerk 0/10; N01–N04 blijven open.**
-Eerstvolgend: commit en push deze statuscheckpoint; daarna de volledige
-cratesuite, Clippy en freestanding build op `30748d6`; vervolgens native
-DHCP-client-/configuratie-integratie zodra de QEMU/OVMF-gate beschikbaar is.
+Eerstvolgend: commit en push deze bewijsupdate; daarna QEMU/OVMF-beschikbaarheid
+opnieuw controleren en de kleinste native DHCP-client-/configuratieproef
+voorbereiden. De codec zelf sluit geen netwerkcriterium.
 
 **Historische eerste poging vóór tijdelijke linker:** `python3 -B tools/dev.py cargo +1.90.0
 fmt --manifest-path services/net-protocol/Cargo.toml --all -- --check` en
