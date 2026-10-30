@@ -267,6 +267,7 @@ class EthernetPeer:
         self.timeout = timeout
         self.machine = PeerMachine()
         self.error: str | None = None
+        self.rejected_frame: dict | None = None
         self.connected = False
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind(("127.0.0.1", 0))
@@ -300,7 +301,16 @@ class EthernetPeer:
                     decoder.finish()
                     break
                 for frame in decoder.feed(data):
-                    for response in self.machine.handle(frame):
+                    try:
+                        responses = self.machine.handle(frame)
+                    except ProtocolError:
+                        # Synthetic test traffic only. Preserve bounded diagnostics;
+                        # an unknown frame remains a failing protocol observation.
+                        self.rejected_frame = dict(length=len(frame), ethertype=frame[12:14].hex(),
+                                                   prefix_hex=frame[:64].hex(),
+                                                   sha256=hashlib.sha256(frame).hexdigest())
+                        raise
+                    for response in responses:
                         connection.sendall(framed(response))
             decoder.finish()
             if time.monotonic() >= deadline:
@@ -323,7 +333,8 @@ class EthernetPeer:
         if self.thread.is_alive():
             raise RuntimeError("stop the testpeer before reading final evidence")
         return dict(kind="synthetic protocol counterparty; not OS client", connected=self.connected,
-                    error=self.error, counts=dict(self.machine.counts), events=list(self.machine.events))
+                    error=self.error, rejected_frame=self.rejected_frame,
+                    counts=dict(self.machine.counts), events=list(self.machine.events))
 
     def __enter__(self):
         return self

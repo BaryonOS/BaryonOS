@@ -105,3 +105,19 @@ van deze run. Path-remapping blijft een aparte bouwverbetering.
 Deze pair gebruikte de toen bevroren gezamenlijke ontwikkelbron. De definitief
 samengevoegde rootbron en het aangescherpte harnas moeten opnieuw native worden
 uitgevoerd; oude logs of een hostherbeoordeling sluiten die integratiepoort niet.
+
+## Firmware-isolatie na geïntegreerde foutrepro
+
+Op root309ff53 sloot de strikte peer vóór OS-ARP wegens echt OVMF-IPv6verkeer
+(EtherType86dd, MLDv1-membershipreport). De mislukte repro en begrensde
+framebytes/hashes blijven [opgeslagen](../verification/full-release-net-firmware-diagnosis/README.md).
+Het testprofiel schakelt uitsluitend de prebootfirmwaredrivers uit via
+`-fw_cfg name=opt/org.tianocore/VirtioNetSupport,string=no`, `IPv4Support,string=no`
+en `IPv6Support,string=no`, plus `romfile=`. Dit zijn gedocumenteerde
+[EDK2-runtimeopties](https://github.com/tianocore/edk2/blob/edk2-stable202502/OvmfPkg/RUNTIME_CONFIG.md);
+[de stabiele202502-driverconfig](https://github.com/tianocore/edk2/blob/edk2-stable202502/OvmfPkg/Include/Dsc/NetworkComponents.dsc.inc)
+bindt deze aan de entrypointwrapper. De PCI-NIC blijft aanwezig en de eigen
+Nieuw OS-driver voert alle native TX/RX uit. De peer blijft ieder onbekend
+EtherType weigeren; geen whitelist, nagebootst netwerk of gewijzigde8/7acceptatie.
+Dit is uitsluitend een afgebakend VM-profiel, geen claim dat fysieke firmware
+op andere apparaten geen prebootverkeer kan versturen.

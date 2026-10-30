@@ -1,0 +1,216 @@
+{
+  "label": "s08-write-error-cold-recovery",
+  "case": "recover",
+  "started_utc": "2026-10-29T23:20:59.600291+00:00",
+  "duration_s": 3.723050419000174,
+  "timeout_s": 60,
+  "timed_out": false,
+  "raw_qemu_exit": 33,
+  "expected_exit": 33,
+  "required_markers": [
+    "BOOT:EBS_OK",
+    "KERNEL:ENTRY",
+    "BOOTINFO:OK",
+    "M6C:READY",
+    "M6C:CASE:RECOVER:PASS",
+    "M6C:SURVIVOR_PROGRESS:PASS",
+    "M6C:RESOURCES:PASS",
+    "M6C:PASS",
+    "M1:PASS"
+  ],
+  "forbidden_markers": [
+    "M1:FAIL",
+    "M2:FAIL",
+    "M3:FAIL",
+    "M4:FAIL",
+    "M5:FAIL",
+    "M6A:FAIL",
+    "M6B:FAIL",
+    "M6C:FAIL"
+  ],
+  "passed": true,
+  "command": [
+    "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/full-release-resilience-regression/run/m6c-s08-write-error-cold-recovery-e6a813358e/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/full-release-resilience-regression/run/m6c-s08-write-error-cold-recovery-e6a813358e/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/full-release-resilience-regression/run/m6c-s08-write-error-cold-recovery-e6a813358e/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=m6c-test,format=raw,cache=writeback,readonly=on,file=build/full-release-resilience-regression/run/m6c-volume-s08-write-error-7a65074494/test-disk.img",
+    "-device",
+    "virtio-blk-pci,drive=m6c-test,id=m6cblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6C-TEST"
+  ],
+  "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+  "profile": "M6c pc-q35-8.2/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+  "firmware_source": [
+    "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_VARS_4M.fd"
+  ],
+  "base_commit": "4a4d65871b31e9a28e0b1350f3cb4a90c93d6cd9",
+  "source_fingerprint_version": 3,
+  "source_sha256": "50c542d75167ff68c28ccd2ba2c85669c135750922310d4849a3daf67f585a32",
+  "observed_source_sha256": "50c542d75167ff68c28ccd2ba2c85669c135750922310d4849a3daf67f585a32",
+  "source_unchanged": true,
+  "artifact_sha256": {
+    "esp/kernel.elf": "84d84542f0168a22d2ea3ea7df87448309749cf0e99eedd08e4c2b0c05e7349f",
+    "esp/EFI/BOOT/BOOTX64.EFI": "c236972897ab4509b8c0aee03c9025154951c9f58e0240baaa1f1c7333d2e90f",
+    "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "OVMF_VARS.fd": "a5cec593169b8c7e74ebd4bcf133d26bf864762bf99ee866c4bbd0eaea1e2ef5",
+    "test-disk.before.img": "c7e36e14aad6ef93ce6f2d4971672cb34cf720a8ea2db85366b238dda2e93bfc",
+    "test-disk.after.img": "c7e36e14aad6ef93ce6f2d4971672cb34cf720a8ea2db85366b238dda2e93bfc",
+    "build-manifest.json": "1a971615e5b6fffedac83f21901cec96c2d88134c67dd4725de8a9a966b02249",
+    "volume-manifest.json": "45918fc55f50497ff8ef8557d8659da130d18d5a7abc84879284119554e093b6"
+  },
+  "volume_path": "/workspace/nieuw-os/build/full-release-resilience-regression/run/m6c-volume-s08-write-error-7a65074494/test-disk.img",
+  "disk_oracle": {
+    "scope": "independent Python v2 parser over actual synthetic 64KiB volume",
+    "identity": "7a650744949d418aba9552b1d67d01cd",
+    "seed": 13085881356220853270,
+    "variant": "normal",
+    "sha256_initial": "9c88934e05221e40f26fa266a15804a99c3d10b83a519b4bc10c728d197c911b",
+    "sha256_after": "c7e36e14aad6ef93ce6f2d4971672cb34cf720a8ea2db85366b238dda2e93bfc",
+    "state": {
+      "sequence": 2,
+      "objects": [
+        {
+          "revision": 2,
+          "present": true,
+          "length": 128,
+          "digest": "6afd46d48f832825",
+          "name_length": 16,
+          "name_digest": "8b2d238f15d9816a"
+        },
+        {
+          "revision": 0,
+          "present": false,
+          "length": 0,
+          "digest": "cbf29ce484222325",
+          "name_length": 0,
+          "name_digest": "cbf29ce484222325"
+        },
+        {
+          "revision": 0,
+          "present": false,
+          "length": 0,
+          "digest": "cbf29ce484222325",
+          "name_length": 0,
+          "name_digest": "cbf29ce484222325"
+        },
+        {
+          "revision": 0,
+          "present": false,
+          "length": 0,
+          "digest": "cbf29ce484222325",
+          "name_length": 0,
+          "name_digest": "cbf29ce484222325"
+        }
+      ]
+    },
+    "observed": {
+      "state": {
+        "sequence": 2,
+        "objects": [
+          {
+            "revision": 2,
+            "present": true,
+            "length": 128,
+            "digest": "6afd46d48f832825",
+            "name_length": 16,
+            "name_digest": "8b2d238f15d9816a"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325",
+            "name_length": 0,
+            "name_digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325",
+            "name_length": 0,
+            "name_digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 0,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325",
+            "name_length": 0,
+            "name_digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "acks": 0,
+      "rejected": 3,
+      "domain_revisions": [
+        2,
+        0
+      ],
+      "catalog_replies": 2
+    },
+    "checks": {
+      "outside_journal_unchanged": true,
+      "case_matches_volume_variant": true,
+      "fresh_mutator_before_image": true,
+      "journal_valid_or_explicit_rejection_case": true,
+      "guest_matches_independent_disk_state": true,
+      "read_only_stage_unchanged": true,
+      "record_payloads_and_names_match_native_scenario": true,
+      "expected_final_state": true,
+      "exact_mutation_ack_count": true,
+      "exact_catalog_reply_count": true,
+      "domain_revisions_exclude_foreign_mutations": true
+    },
+    "passed": true
+  },
+  "host_crash": {
+    "requested_cut": null,
+    "cut_lines": [],
+    "kill_requested": false,
+    "process_id": 53625,
+    "was_running_before_kill": false,
+    "required_live_hold_s": 0.05,
+    "termination_code_expected": -9,
+    "real_process_returncode": 33
+  },
+  "serial_sha256": "5362a35004581be6aea9e0c0072d81d32e47ff1b0966ab63e8222585abbc7ac4",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "previous_stage": "/workspace/nieuw-os/build/full-release-resilience-regression/run/m6c-s08-write-error-38b4a6f774",
+  "outcome_marker_passed": true,
+  "fault_injection_scope": null,
+  "execution_error": null,
+  "oracle_error": null,
+  "run_directory": "/workspace/nieuw-os/build/full-release-resilience-regression/run/m6c-s08-write-error-cold-recovery-e6a813358e",
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6C:READY\nM6C:SEQUENCE:2\nM6C:OBJECT0:REVISION:2\nM6C:OBJECT0:PRESENT:1\nM6C:OBJECT0:LENGTH:128\nM6C:OBJECT0:NAME_LENGTH:16\nM6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a\nM6C:OBJECT0:DIGEST:6afd46d48f832825\nM6C:OBJECT1:REVISION:0\nM6C:OBJECT1:PRESENT:0\nM6C:OBJECT1:LENGTH:0\nM6C:OBJECT1:NAME_LENGTH:0\nM6C:OBJECT1:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT1:DIGEST:cbf29ce484222325\nM6C:OBJECT2:REVISION:0\nM6C:OBJECT2:PRESENT:0\nM6C:OBJECT2:LENGTH:0\nM6C:OBJECT2:NAME_LENGTH:0\nM6C:OBJECT2:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT2:DIGEST:cbf29ce484222325\nM6C:OBJECT3:REVISION:0\nM6C:OBJECT3:PRESENT:0\nM6C:OBJECT3:LENGTH:0\nM6C:OBJECT3:NAME_LENGTH:0\nM6C:OBJECT3:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT3:DIGEST:cbf29ce484222325\nM6C:ACKS:0\nM6C:REJECTED_NO_IO:3\nM6C:CATALOG_REPLIES:2\nM6C:DOMAIN0:REVISION:2\nM6C:DOMAIN1:REVISION:0\nM6C:CASE:RECOVER:PASS\nM6C:SURVIVOR_PROGRESS:PASS\nM6C:BROKER:MAX_COMPLETION_TICKS:1\nM6C:BROKER:TIMEOUTS:0\nM6C:RESOURCES:PASS\nM6C:PASS\nM1:PASS\n",
+  "stderr": ""
+}

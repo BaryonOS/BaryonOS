@@ -1,0 +1,21 @@
+{
+  "kind": "synthetic protocol counterparty; not OS client",
+  "connected": true,
+  "error": "ProtocolError: unsupported fixture EtherType",
+  "counts": {
+    "accepted_frames": 0,
+    "arp_requests": 0,
+    "arp_bad_sender_sent": 0,
+    "arp_wrong_target_sent": 0,
+    "arp_valid_sent": 0,
+    "udp_echo_requests": 0,
+    "udp_echo_replies": 0,
+    "dns_requests": 0,
+    "dns_wrong_id_sent": 0,
+    "dns_bad_name_sent": 0,
+    "dns_answers_sent": 0,
+    "dns_timeouts": 0,
+    "response_frames": 0
+  },
+  "events": []
+}

@@ -2,54 +2,59 @@
 
 ## Volledige native testrelease — in uitvoering, 32% — 2026-10-30
 
-Integratiebranch `codex/full-test-release`, main-basis `73ebc1e`, actuele
-implementatiecheckpoint `d73d515`. [Concept-PR #56](https://github.com/simonvanieperen/nieuw-os/pull/56).
-De [volledige opdracht/matrix](FULL-TEST-RELEASE.md) is opgeslagen: oorspronkelijke
-veertien secties intact, 62 open productcriteria, providerverduidelijking
-behouden. [Werkqueue](WORK-QUEUE.md) koppelt TASK-werkpakketten aan FR-criteria.
-**Geen complete testrelease; score 32% → 32%.**
+Integratiebranch `codex/full-test-release`, main-basis `73ebc1e`, laatste
+gecommitteerde implementatie `309ff53`. [Concept-PR #56](https://github.com/simonvanieperen/nieuw-os/pull/56).
+[Volledige opdracht/matrix](FULL-TEST-RELEASE.md) en [werkqueue](WORK-QUEUE.md)
+blijven leidend: veertien originele secties intact, 62 open productcriteria,
+expliciet gekozen externe ciphertextopslag zonder inhoudssleutels toegestaan.
+**Geen complete testrelease; score32% →32%.**
 
-**Native tussenbewijs:** op exact `1e0d657` slaagt de gezamenlijke gate met twee
-VM-runs (normal + volledig koude read-only recovery), diskorakel en volledige
-proces-/framecleanup. Hashgebonden archief:
-[full-release-i01-initial](verification/full-release-i01-initial/README.md).
-276 root-Rust-hosttests op die bron slagen. De daaropvolgende invoerreparatie
-`9f8d4c8` slaagt met 30 gerichte tests. Dit oude native bewijs wordt niet naar
-latere record-/upload-/netwerkcode omgelabeld.
+**Werkelijk native bewijs:** op4a4d658 slagen34 gecombineerde en regressieruns:
+gezamenlijke diensten2, K055, B015, volume9, S0813; bron/hashgebonden
+[archieven](verification/FULL-RELEASE-CHECKPOINT-4a4d658.md). Daarna op309ff53
+slagen [twee gezamenlijke VM-runs](verification/full-release-base-309ff53/README.md)
+met echte v7DocumentSession,4096byte duurzame fixture, recordcrypto en koude
+readonly-herstart. Eindkernelsha31de56bb0e884b20c07ad9c25fba18ebd547cd4595a8f36b4bdc64827b29c0ed.
+Dit zijn begrensde integratieprofielen met plaintextdisk/RAMsleutels, geen releaseimages.
 
-**Geïntegreerd daarna:** contextgebonden keyringrecords en native opcodes 8/9;
-recordcaller met twee seals/unseals, negen authenticatieweigeringen en tien
-recordcontextweigeringen (builderbranch twee echte VM's; rootherhaling volgt).
-ARP/DNS en virtio-net-driver hebben hun eigen host/model/targetbewijs, nog geen
-native NIC. De grotere documentsessie is geport naar volume; concrete false
-saved-naam bij twee sessies is met rode proef gereproduceerd en in `d73d515`
-hersteld met v7 diensttokens, kernel-PID en domeinbinding. Native ownerdeath/
-verloren-BEGIN-antwoord-cleanup blijft open; geen fictieve lifecycleclaim.
+**Actuele integratieblokker:** [netwerk-normal op309ff53 faalt](verification/full-release-net-failure-309ff53/README.md):
+peer weigert eerste EtherType,0 frames geaccepteerd, netprobe stap13/raw35.
+De [causale repro](verification/full-release-net-firmware-diagnosis/README.md)
+toont86byte IPv6/MLDv1 van OVMF. Gedocumenteerde EDK2-fw_cfg schakelt de
+firmwaredriver uit; eigen native NIC en strikte peer blijven intact. Nameting volgt. Builderbranch heeft
+ander brongebonden2VM-netbewijs; dat geldt niet als bewijs voor root309.
+CI op309: zes workflows groen, algemene CI faalt in oudere DocumentSession-gate;
+concrete oorzaak wordt uit het joblog onderzocht.
 
-Zes onafhankelijke workers werken verder aan echte NIC-integratie, fail-closed
-bewijsarchivering en gerichte verificatie. Alleen eigen VM-images en testdata;
-geen fysieke disks, echte NAS/accounts of firmware gewijzigd. Optionele externe
-opslag blijft uitsluitend expliciet gekozen ciphertext zonder inhoudssleutels.
+**Geïntegreerd:** capabilitygebonden virtio-net/RX/TX in kernel, echte ring3
+ARP/UDP/DNS-probe tegen uitsluitend loopback-testpeer; echte SDKdocumentsessie
+met diensttoken/PID/domainbinding; keyringrecordopcodes8/9 en contextweigeringen;
+ui-core fysieke PS2/resetcorrecties. Native ownerdeath/lost-BEGIN-ACK-cleanup,
+TPM-ankering/persistente encryptie en volledige netconfig/TCP/TLS blijven open.
+
+Echte agents werken onafhankelijk aan FPU-context/monotone klok, begrensde TCPclient,
+invoerdienstvoorbereiding en gerichte net-/CI-review. Root bezit integratie,
+status, gedeelde interfaces/build/Git. Alleen eigen VM-images/testdata gebruikt;
+geen fysieke disks, echte NAS/accounts of firmware gewijzigd.
 
 ### NEXT AGENT HANDOFF
 
-- Lees FULL-TEST-RELEASE, deze actuele stand en queue. Controleer HEAD/status/
-  worktrees; behoud onafgemaakt werk. Root bezit gedeelde interfaces/status/Git.
-- Eerste uitvoerbare integratietest na codefreeze, met de bestaande toolomgeving:
-  `python3 -B -u tools/test_system.py` (envselectie in bewijs-README). Daarna
-  `tools/test_supervisor.py`, `tools/test_keyring.py`, `tools/test_volume.py`
-  en `tools/test_storage_resilience.py` in eigen build-/targetmappen.
-- Nog lopende branches onder `/workspace/nieuw-os-worktrees/`: native-net,
-  net-probe en capture. Integreer pas na hun bronreview/tests; shared build.py,
-  memberships/locks en generieke runner blijven rootbezit.
-- Laatste bruikbare lokale gezamenlijke artifact:
-  `build/full-release-i01/esp/`, op geteste bron1e0d657; kernelsha
-  `dd7f277f2616b16d6b7b1d10dc0e78e0ce4d3cd7af1cec90aee6ec51c1979e6c`.
-  Dit is een eindige 256MiB-integratieproef met plaintextdisk/RAMsleutels,
-  geen releaseimage. Alle normale/recoveryfiles staan in de genoemde runmap.
-- Open blijven alle volledige productcriteria, nieuwe native netgate,
-  documentsessie-nativecaller/lifecycle, B02-keypersistentie/vertrouwde ankering,
-  geheugen/FPU, grafiek/sessies/apps/NAS/AI, boot/updates/herstel, hardware en audit.
+- Controleer HEAD/status/worktrees; lees FULL/matrix en deze queue. Behoud alle
+  onafgemaakte worktrees. Root-peerdiagnostiek is nog niet gecommit/afgetekend.
+- Eerstvolgende uitvoer: resultaat van `build/full-release-net-debug/run/`
+  onderzoeken, in het bijzonder `network-peer.json` rejected_frame; logs
+  `/tmp/nieuw-os-fr-net-debug.log`. Repareer de causale fout, verzwak geen gate.
+- Na bronfreeze herhaal `tools/test_system.py` en `tools/test_net_system.py`
+  met afzonderlijke NOS_BUILD_DIR/NOS_TARGET_DIR/CARGO_TARGET_DIR; archiveer
+  definitieve ruwe resultaten/hashbinding. Huidige rootnetfailure blijft bewaard.
+- Laatste bruikbare actuele gezamenlijke artifact: `build/full-release-final-base/esp/`
+  op309ff53, kernelsha hierboven; normal/coldraw33, disksha
+  ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea.
+- Nog niet geïntegreerd: clockcommitc4667c9 en FPU in worktreefpu, smoltcp0.14
+  met app-onlyRust1.91.1 in tcp. Gedeelde memberships/build/locks uitsluitend root.
+- Alle62 volledige criteria blijven open: desktop/sessie/apps/media, geheugen,
+  veilige opslag/sleutels, netwerk/NAS/AI, boot/PQC/updates/herstel, prestaties,
+  herhaalde productscenario's, fysieke/humane gates. Geen voltooiingsclaim.
 
 ## Historische checkpoints
 

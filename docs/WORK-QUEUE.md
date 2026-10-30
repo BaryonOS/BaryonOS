@@ -8,16 +8,18 @@ Een afgeronde deelimplementatie tekent geen volledig productcriterium af.
 | Werkpakket | Toestand | Eigenaar / exclusieve writes | Acceptatie-ID's | Interface / bewijsgrens |
 |---|---|---|---|---|
 | TASK-DOC | geïntegreerd | root; FULL/status/queue/rubric | alle | opdracht intact, 62 open rijen; 32% ongewijzigd |
-| TASK-I01 | eerste gezamenlijke native gate groen, regressies volgen op nieuwe bron | root; tools/tests/CI + kernel_storage-kern | FR-K02,FR-K03,FR-O04,FR-B01 | 2 echte VM's op1e0d657; diskorakel/koude readonly/cleanup; geen volledige release |
-| TASK-B02/B02N | core en native recordcaller geïntegreerd | root; keyring en systemapp | FR-O05,FR-B01,FR-P02,FR-P06 | AEAD-context en exacte sleutelstatus; geen native keypersistentie of koude ankerclaim |
-| TASK-U01 | resetbugs hersteld en gereviewd | native_ui_apps; ui-core | FR-U01–FR-U05 | 30 tests, rood→groen + onafhankelijke resetherhaling; nog geen native invoerdienst |
-| TASK-N01/NDRV | parser/driver geïntegreerd; echte NIC wordt aangesloten | network_nas_ai; protocol/driver | FR-N01,FR-N02,FR-H03 | 47 protocoltests/15 DMA-registermodeltests; runtimebewijs nog open |
-| TASK-A03/R1 | false-ACK-bug hersteld/geïntegreerd; native caller volgt | git_build_audit; volume/SDK/serviceadapter | FR-A02,FR-A13,FR-O01–FR-O03 | v7 diensttoken+PID/domain, v6 compatibel; requester-exit/lost-BEGIN-ACK-cleanup native nog open |
-| TASK-NATIVE-NET-K | actief, eigen native-networktree | kernel_storage; kernel/capability/runtime | FR-N01,FR-N02,FR-K03,FR-H03 | NetworkSource, gepinde I/O, echte userspacepacketclient in hetzelfde systeemprofiel |
-| TASK-NATIVE-NET-U | actief, eigen net-probeworktree | network_nas_ai; net-probe/peer/runner | FR-N01,FR-N02,FR-H03 | ARP+UDP/DNS via eigen kernel, afgebakende protocoltegenpartij; TCP/TLS/config blijven verplicht open |
-| TASK-CAPTURE | actief, eigen captureworktree | native_ui_apps; capture_system/helpertests | FR-R03 | fail-closed bron/image/readonlycontrole; geen nieuwe productfunctionaliteit |
-| TASK-REVIEW | actief, alleen lezen/eigen targets | acceptance_contract + security_release | alle geraakt | onafhankelijke gerichte core/SDK/harnasreview; geen menselijke audit |
-| TASK-INT | actief | root; gedeelde workspaces/build/status/Git | alle geraakt | brongebonden geïntegreerde native gates en finale regressies |
+| TASK-I01 | 34 native regressies groen op4a; nieuwe basepair groen op309 | root | FR-K02,FR-K03,FR-O04,FR-B01 | raw/hasharchieven; geen volledige release |
+| TASK-B02/B02N | core/recordcaller geïntegreerd | root; keyring/systemapp | FR-O05,FR-B01,FR-P02,FR-P06 | echte native recordweigeringen; persistente sleutels/ankering open |
+| TASK-U01 | resetbugs hersteld | native_ui_apps; ui-core | FR-U01–FR-U05 |30hosttests; native input/compositor open |
+| TASK-A03/R1 | v7token/PID/domain + native documentsessie geïntegreerd | root | FR-A02,FR-A13,FR-O01–FR-O03 | echte create/edit/abort/save/reopen/cold; lost-BEGIN/ownerdeath open |
+| TASK-N01/NDRV/NATIVE-NET | geïntegreerd, rootpair faalt eerste frame | root; sharedbuild/kernel | FR-N01,FR-N02,FR-H03 |0peerframes, EtherTypefout309; diagnose loopt; geen netacceptatie |
+| TASK-CAPTURE | basishelper geïntegreerd, archief gecontroleerd | root | FR-R03 | fail-closed bron/ESP/disk/coldcontrole; netcapture nog open |
+| TASK-FPU/CLOCK | actief in fpu-worktree | kernel_storage; arch/m3/fpu/nieuwapp | FR-K02,FR-K03,FR-P02 | echte contextisolatie/fault/slotreuse; klokoptin, geen huidige rootacceptatie |
+| TASK-TCP | actief in tcp-worktree | network_nas_ai; net-stack/tcp-probe | FR-N01,FR-N02 | smoltcp0.14/Rust1.91.1 uitsluitend app, echte monotoneklok; rootnet eerst repareren |
+| TASK-NATIVE-INPUT-PREP | onderzoek/implementatie eigen werkgebied | native_ui_apps; nieuwe input-core | FR-U01–FR-U05 | capability/focus/lifecyclecore boven ui-core; kernelhook/nativebewijs blijft afhankelijkheid |
+| TASK-CI-ROOT | actief, alleen lezen | git_build_audit | FR-R03 |309 zes workflows groen, CI-documentgate foutlog; archief113hashes kloppen |
+| TASK-REVIEW-NET | actief, alleen lezen | acceptance_contract + security_release | FR-N01,FR-N02,FR-K03 | causale rootframediagnose, geen versoepelde succescriteria |
+| TASK-INT | actief | root; gedeelde interfaces/build/status/Git | alle geraakt | geïntegreerde nativegate repareren en herhalen |
 
 Volgende verplichte werk blijft zichtbaar: schaalbaar geheugen/FPU, echte
 compositor/sessie/toegankelijkheid, audio en alle apps/engineports, persistente

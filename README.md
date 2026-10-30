@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`d73d5150`](https://github.com/simonvanieperen/nieuw-os/commit/d73d5150e7f633c3d534aca4db96e163fb2938b4) ·
+**Bron:** [`309ff53c`](https://github.com/simonvanieperen/nieuw-os/commit/309ff53cd861f26aa37b2615c0276695d9b62f8f) ·
 **Ontwikkelbranch:** `codex/full-test-release`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Volledige releaseopdracht vastgelegd; native dienstenintegratie en gerichte correctheidsreparaties.
-De score blijft 32%. De volledige opdracht is onverkort opgeslagen met 62 open productcriteria. Twee echte gecombineerde VM-runs op bron 1e0d657 bewijzen gelijktijdige proces-, opslag- en sleuteldiensten met koude readonly recovery en onafhankelijke diskcontrole; 276 hosttests slagen op die bron. Daarna zijn invoerresetfouten en een concrete twee-sessies false-ACK-bug gerepareerd, en recordcrypto via echte ring-3-IPC aangesloten. Nieuwere code krijgt eigen eindherhaling; historische bewijzen worden niet omgelabeld. Netwerkparser/driver zijn nog geen native netwerkstack. Native desktop, persistente encryptie/ankering, apps, NAS/AI, updates en hardware/audit blijven verplicht open. Geen nieuwe rubriccriteria of gewichten gewijzigd.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Volledige release: native documentsessie en NIC geïntegreerd, causale net- en CI-integratiereparatie.
+Score32% blijft32%. Alle62 productcriteria blijven open. Op4a4d658 slagen34 brongebonden native regressieruns; op309ff53 slagen twee echte gezamenlijke diensten- en documentsessieruns met onafhankelijke4096byte diskcontrole en koude readonly-herstart. Rootnetnormal309 faalt eersteEtherType/stap13: open blocker, niet groen verklaard. ZesCIworkflows slagen; oudereDocumentSessiongate faalt in algemeneCI. FPU/klok,TCP,invoerdienst en reviews werken parallel. Volledige desktop,apps,NAS,AI,persistente encryptie/ankering,boot/updates/herstel en hardware/humane acceptatie blijven vereist; geen gewichten of scope gewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -17,6 +17,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import net_test_peer as peer
 import run_net_system as runner
+from run_system import network_arguments
 
 ARP = bytes.fromhex("ffffffffffff02000000000708060001080006040001020000000007c0000202000000000000c0000201").ljust(60, b"\0")
 
@@ -187,6 +188,30 @@ class PacketTests(unittest.TestCase):
 
 
 class GateTests(unittest.TestCase):
+    def test_firmware_network_is_disabled_while_native_nic_remains_present(self):
+        arguments = network_arguments(31337)
+        for driver in ("VirtioNetSupport", "IPv4Support", "IPv6Support"):
+            self.assertIn(f"name=opt/org.tianocore/{driver},string=no", arguments)
+        self.assertIn("socket,id=net0,connect=127.0.0.1:31337", arguments)
+        self.assertIn("virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile=", arguments)
+        for value in (True, 0, 1023, 65536, "31337"):
+            with self.assertRaises(ValueError):
+                network_arguments(value)
+
+    def test_rejected_frame_diagnostics_preserve_failure_and_are_bounded(self):
+        unknown = ARP[:12] + b"\x86\xdd" + b"\xab" * (peer.MAX_FRAME - 14)
+        with peer.EthernetPeer(timeout=5) as server:
+            with socket.create_connection(("127.0.0.1", server.port), timeout=2) as connection:
+                connection.sendall(peer.framed(unknown))
+                self.assertEqual(connection.recv(1), b"")
+        evidence = server.evidence()
+        self.assertEqual(evidence["error"], "ProtocolError: unsupported fixture EtherType")
+        self.assertEqual(evidence["counts"]["accepted_frames"], 0)
+        self.assertEqual(evidence["rejected_frame"]["ethertype"], "86dd")
+        self.assertEqual(evidence["rejected_frame"]["length"], peer.MAX_FRAME)
+        self.assertEqual(evidence["rejected_frame"]["prefix_hex"], unknown[:64].hex())
+        self.assertEqual(len(evidence["rejected_frame"]["sha256"]), 64)
+
     def test_exact_native_and_independent_peer_evidence_required(self):
         machine = completed_fixture()
         report = native_report()

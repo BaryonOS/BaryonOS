@@ -45,6 +45,19 @@ def check_image(image: Path) -> None:
         raise ValueError("test disk must be a regular single-link generated image of the exact geometry")
 
 
+def network_arguments(port: int) -> list[str]:
+    if type(port) is not int or not 1024 <= port <= 65535:
+        raise ValueError("network test peer requires an ephemeral local port")
+    # OVMF can transmit IPv6 during boot, before our driver exists. Disable its
+    # network drivers via the documented EDK2 runtime policy, plus the NIC ROM.
+    # The PCI NIC remains present for the real Nieuw OS driver and strict peer.
+    return ["-fw_cfg", "name=opt/org.tianocore/VirtioNetSupport,string=no",
+            "-fw_cfg", "name=opt/org.tianocore/IPv4Support,string=no",
+            "-fw_cfg", "name=opt/org.tianocore/IPv6Support,string=no",
+            "-netdev", f"socket,id=net0,connect=127.0.0.1:{port}",
+            "-device", "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07,romfile="]
+
+
 def check_parent(previous: dict, frozen: str, image_sha256: str, *, network: bool) -> None:
     parent_feature = "native-system-net" if network else FEATURE["normal"]
     if not (previous.get("case") == "normal" and previous.get("passed") is True
@@ -199,8 +212,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     if use_network:
         # An ephemeral port is supplied by the owned synthetic protocol peer.
         # No TAP, bridge, default user network, host share or public listener.
-        command += ["-netdev", f"socket,id=net0,connect=127.0.0.1:{network_port}",
-                    "-device", "virtio-net-pci,netdev=net0,id=net,addr=0x7,disable-legacy=on,mac=02:00:00:00:00:07"]
+        command += network_arguments(network_port)
     started = datetime.now(timezone.utc).isoformat()
     begin = time.monotonic()
     rc, stdout, stderr, timed_out, _, _ = execute(command, env, timeout=timeout)

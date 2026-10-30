@@ -1,0 +1,2 @@
+Bron309ff53; compacte ongewijzigde ruwe rapporten en logs. MISLUKT: eerste normale netrun raw35, netprobe stap13, testpeer weigert onbekend EtherType. Dit is foutbewijs; geen netwerkacceptatie.
+Bronvingerafdruk340df67063f60a805e2bce5b4a486f175d211451b7156130003f0d5151731d75. Binaries/disk blijven in de expliciete buildmappen uit de rapporten; niet in Git. Handmatig gekopieerd brongebonden archief; geen claim van capture_system-heracceptatie op nieuwere bron.

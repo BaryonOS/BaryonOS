@@ -1,0 +1,667 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "source_sha256": "50c542d75167ff68c28ccd2ba2c85669c135750922310d4849a3daf67f585a32",
+  "test_inputs": {
+    "tests/test_system_capture.py": "4ab3ef7bfdeca3aa805682f71b4889cf922624727d88f7c1918175f033d7e7ca",
+    "tests/test_system_harness.py": "e06091e7810d1eb0be4c562052cca4ff7d0adfa7ebe431980177e4d9c3918843"
+  },
+  "capture_commit": "4a4d65871b31e9a28e0b1350f3cb4a90c93d6cd9",
+  "boundary": "FR-I01 integration only; not full release acceptance",
+  "stages": [
+    {
+      "case": "normal",
+      "disk_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "esp_sha256": {
+        "esp/kernel.elf": "06f12fa0d7983612735763de6508943f4db6fc3363b5fbd7e1477f764ef396dd",
+        "esp/EFI/BOOT/BOOTX64.EFI": "2e52458cd66977ad11b707907140c0a6382e0f84f804a348c0d7fdddcf661a78"
+      },
+      "vars_after_sha256": "a5cec593169b8c7e74ebd4bcf133d26bf864762bf99ee866c4bbd0eaea1e2ef5",
+      "oracle": {
+        "generation": 1,
+        "clocks": [
+          1,
+          0
+        ],
+        "objects": [
+          {
+            "object": 0,
+            "revision": 1,
+            "present": true,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 3,
+            "versions": [
+              {
+                "revision": 1,
+                "length": 4096,
+                "name": "systeemproef",
+                "content_revision": 1,
+                "chunks": [
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "object": 1,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 2,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 3,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 4,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 5,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 6,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 7,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 8,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 9,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 10,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 11,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 12,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 13,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 14,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 15,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          }
+        ],
+        "collections": [
+          {
+            "index": 1,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 2,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 3,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 4,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 1,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 2,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 3,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 4,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          }
+        ],
+        "chunks_used": 1,
+        "slots": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        ],
+        "digests": [
+          313834141126213359,
+          10252960164691450465
+        ]
+      }
+    },
+    {
+      "case": "recover",
+      "disk_sha256": "ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea",
+      "esp_sha256": {
+        "esp/kernel.elf": "32bdc3bfb9b3a7a2434e391343aa143f601e9d042de8d792d3a69f20ffa88fce",
+        "esp/EFI/BOOT/BOOTX64.EFI": "2e52458cd66977ad11b707907140c0a6382e0f84f804a348c0d7fdddcf661a78"
+      },
+      "vars_after_sha256": "a5cec593169b8c7e74ebd4bcf133d26bf864762bf99ee866c4bbd0eaea1e2ef5",
+      "oracle": {
+        "generation": 1,
+        "clocks": [
+          1,
+          0
+        ],
+        "objects": [
+          {
+            "object": 0,
+            "revision": 1,
+            "present": true,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 3,
+            "versions": [
+              {
+                "revision": 1,
+                "length": 4096,
+                "name": "systeemproef",
+                "content_revision": 1,
+                "chunks": [
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "object": 1,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 2,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 3,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 4,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 5,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 6,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 7,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 8,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 9,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 10,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 11,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 12,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 13,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 14,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          },
+          {
+            "object": 15,
+            "revision": 0,
+            "present": false,
+            "collection": 0,
+            "tags": 0,
+            "kind": 0,
+            "request_id": 0,
+            "versions": []
+          }
+        ],
+        "collections": [
+          {
+            "index": 1,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 2,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 3,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 4,
+            "domain": 0,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 1,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 2,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 3,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          },
+          {
+            "index": 4,
+            "domain": 1,
+            "present": false,
+            "revision": 0,
+            "name": ""
+          }
+        ],
+        "chunks_used": 1,
+        "slots": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        ],
+        "digests": [
+          313834141126213359,
+          10252960164691450465
+        ]
+      }
+    }
+  ],
+  "source_commits": [
+    "4a4d65871b31e9a28e0b1350f3cb4a90c93d6cd9",
+    "4a4d65871b31e9a28e0b1350f3cb4a90c93d6cd9"
+  ]
+}

@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "case": "crash",
+  "kernel_feature": "test-supervisor-crash",
+  "started_utc": "2026-10-29T23:17:56.923140+00:00",
+  "duration_s": 2.6011246729999584,
+  "timeout_s": 180,
+  "timed_out": false,
+  "raw_qemu_exit": 33,
+  "command": [
+    "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/full-release-process-regression/run/supervisor-crash-e88e06617d/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/full-release-process-regression/run/supervisor-crash-e88e06617d/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/full-release-process-regression/run/supervisor-crash-e88e06617d/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04"
+  ],
+  "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "source_fingerprint_version": 3,
+  "source_sha256": "50c542d75167ff68c28ccd2ba2c85669c135750922310d4849a3daf67f585a32",
+  "run_directory": "/workspace/nieuw-os/build/full-release-process-regression/run/supervisor-crash-e88e06617d",
+  "kernel_sha256": "b1410491241a60e1f819c63af8f536d6a6f92108c94d44430ea7b39932934bde",
+  "supervisor": {
+    "supervisor_sha256": "2c39f435b7d6c9266a38cac479020e0751c4339ec38c8a54ba5576672c68437b",
+    "worker_sha256": "c875f4fff7b57708556144684216791b6e9485b42cf0ce2c7225fc85fb16bec4",
+    "client_sha256": "601b41a8282fdc840bad30334dc3a4fe0ecc409e77d9fd9f5cfef4d72851dbda",
+    "supervisor_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 11223,
+          "memsz": 11223,
+          "page_start": 1073741824,
+          "page_end": 1073754112
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 16384,
+          "filesz": 1160,
+          "memsz": 1160,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 20480,
+          "filesz": 541,
+          "memsz": 541,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ]
+    },
+    "worker_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 6103,
+          "memsz": 6103,
+          "page_start": 1073741824,
+          "page_end": 1073750016
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 12288,
+          "filesz": 1160,
+          "memsz": 1160,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 16384,
+          "filesz": 397,
+          "memsz": 397,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ]
+    },
+    "client_elf": {
+      "entry": 1073741824,
+      "segments": [
+        {
+          "flags": 5,
+          "address": 1073741824,
+          "offset": 4096,
+          "filesz": 8375,
+          "memsz": 8375,
+          "page_start": 1073741824,
+          "page_end": 1073754112
+        },
+        {
+          "flags": 6,
+          "address": 1073807360,
+          "offset": 16384,
+          "filesz": 1160,
+          "memsz": 1160,
+          "page_start": 1073807360,
+          "page_end": 1073811456
+        },
+        {
+          "flags": 4,
+          "address": 1073823744,
+          "offset": 20480,
+          "filesz": 397,
+          "memsz": 397,
+          "page_start": 1073823744,
+          "page_end": 1073827840
+        }
+      ]
+    }
+  },
+  "esp_sha256": {
+    "esp/kernel.elf": "b1410491241a60e1f819c63af8f536d6a6f92108c94d44430ea7b39932934bde",
+    "esp/EFI/BOOT/BOOTX64.EFI": "264a35a1447a7934d50478366a92337b9dbfc0ff1a27dc4da63ca826c9db9714"
+  },
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nSUPERVISOR:MANIFEST:PASS\nSUPERVISOR:DIAG:SPAWNS:00000000000000000003\nSUPERVISOR:DIAG:KILLS:00000000000000000001\nSUPERVISOR:DIAG:KILL_ERRORS:00000000000000000000\nSUPERVISOR:DIAG:SPAWN_DENIED:00000000000000000000\nSUPERVISOR:DIAG:CHILD_EXITS:00000000000000000001\nSUPERVISOR:DIAG:SUP_KILLS:00000000000000000001\nSUPERVISOR:DIAG:KILLED_CONFIRMED:00000000000000000001\nSUPERVISOR:DIAG:DENIED_SELF:00000000000000000000\nSUPERVISOR:DIAG:DENIED_MATCHED:00000000000000000000\nSUPERVISOR:DIAG:DENIED_TOTAL:00000000000000000000\nSUPERVISOR:READY\nSUPERVISOR:SPAWNS:00000000000000000003\nSUPERVISOR:SPARSE_SPAWNS:00000000000000000000\nSUPERVISOR:SPARSE_CAP_CHECKS:00000000000000000000\nSUPERVISOR:KILLS:00000000000000000001\nSUPERVISOR:SPAWN_DENIED:00000000000000000000\nSUPERVISOR:SPAWN_QUOTA:00000000000000000000\nSUPERVISOR:KILL_ERRORS:00000000000000000000\nSUPERVISOR:STATUS_CALLS:00000000000000000052\nSUPERVISOR:ENDPOINT_CREATES:00000000000000000004\nSUPERVISOR:ORPHANS_REAPED:00000000000000000000\nSUPERVISOR:CHILD_EXITS:00000000000000000001\nSUPERVISOR:CHILD_FAULTS:00000000000000000001\nSUPERVISOR:MAX_LIVE:00000000000000000003\nSUPERVISOR:KERNEL_TABLES_GROWN:00000000000000000000\nSUPERVISOR:RESTARTS:00000000000000000001\nSUPERVISOR:CLIENT_REPLIES:00000000000000000024\nSUPERVISOR:CLIENT_CLOSED:00000000000000000001\nSUPERVISOR:WORKER_INSTANCES:00000000000000000002\nSUPERVISOR:DENIED_MATCHED:00000000000000000000\nSUPERVISOR:DENIED_TOTAL:00000000000000000000\nSUPERVISOR:TICKS:00000000000000000014\nSUPERVISOR:CASE:CRASH:PASS\nSUPERVISOR:RESOURCES:PASS\nSUPERVISOR:PASS\nM1:PASS\n",
+  "stderr": "",
+  "passed": true,
+  "evidence": {
+    "SPAWNS": 3,
+    "SPARSE_SPAWNS": 0,
+    "SPARSE_CAP_CHECKS": 0,
+    "KILLS": 1,
+    "SPAWN_DENIED": 0,
+    "SPAWN_QUOTA": 0,
+    "KILL_ERRORS": 0,
+    "STATUS_CALLS": 52,
+    "ENDPOINT_CREATES": 4,
+    "ORPHANS_REAPED": 0,
+    "CHILD_EXITS": 1,
+    "CHILD_FAULTS": 1,
+    "MAX_LIVE": 3,
+    "KERNEL_TABLES_GROWN": 0,
+    "RESTARTS": 1,
+    "CLIENT_REPLIES": 24,
+    "CLIENT_CLOSED": 1,
+    "WORKER_INSTANCES": 2,
+    "DENIED_MATCHED": 0,
+    "DENIED_TOTAL": 0,
+    "TICKS": 14
+  }
+}

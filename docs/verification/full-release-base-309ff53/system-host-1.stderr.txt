@@ -1,0 +1,7 @@
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os/crates/capability-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.92s
+     Running unittests src/lib.rs (target/full-release-final-base/debug/deps/nieuw_os_sdk_runtime-386d65c756f9ada4)
+     Running tests/message.rs (target/full-release-final-base/debug/deps/message-dd208ceb8ed54228)
+     Running tests/process.rs (target/full-release-final-base/debug/deps/process-52378597489ca977)
+   Doc-tests nieuw_os_sdk_runtime
