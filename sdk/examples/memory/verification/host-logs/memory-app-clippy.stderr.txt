@@ -1,0 +1,5 @@
+    Checking linked_list_allocator v0.10.6
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os-worktrees/memory-fixture/sdk/runtime)
+    Checking nieuw-os-heap-allocator v0.1.0 (/workspace/nieuw-os-worktrees/memory-fixture/sdk/heap-allocator)
+    Checking nieuw-os-native-memory-probe v0.1.0 (/workspace/nieuw-os-worktrees/memory-fixture/sdk/examples/memory)
+    Finished `release` profile [optimized] target(s) in 0.27s

@@ -152,6 +152,68 @@ impl<const N: usize> Frames<N> {
         self.owners[i] = owner;
         Ok(address)
     }
+    /// Reserve a batch of noncontiguous frames in ascending physical order.
+    /// Resource errors leave owners, aliases, output and zero-callback untouched.
+    /// For User owners: at most three bounded N-entry scans, rather than one
+    /// quota/first-free scan for every page. Existing allocate() is unchanged.
+    ///
+    /// The callback must zero exactly this valid unpublished frame, return
+    /// infallibly, and neither allocate from this pool nor re-enter the allocator.
+    /// A fatal zeroing/hardware failure is outside resource-error atomicity.
+    pub fn allocate_many(
+        &mut self,
+        owner: Owner,
+        output: &mut [u64],
+        mut zero: impl FnMut(u64),
+    ) -> Result<(), Error> {
+        if matches!(owner, Owner::Free | Owner::Reserved) {
+            return Err(Error::Owner);
+        }
+        if output.is_empty() {
+            return Err(Error::Range);
+        }
+        if let Owner::User(pid, _) = owner {
+            if pid == 0 {
+                return Err(Error::Owner);
+            }
+            let owned = self
+                .owners
+                .iter()
+                .filter(|entry| matches!(entry,Owner::User(p,_) if *p==pid))
+                .count();
+            if owned
+                .checked_add(output.len())
+                .is_none_or(|count| count > USER_QUOTA)
+            {
+                return Err(Error::Quota);
+            }
+        }
+        if self
+            .owners
+            .iter()
+            .filter(|entry| **entry == Owner::Free)
+            .count()
+            < output.len()
+        {
+            return Err(Error::Exhausted);
+        }
+        // Commit cannot exhaust after the complete quota/free preflight. Safe
+        // exclusive borrows forbid the callback from mutating this pool/output.
+        let mut at = 0;
+        for (i, entry) in self.owners.iter_mut().enumerate() {
+            if *entry == Owner::Free {
+                let pa = i as u64 * PAGE;
+                zero(pa);
+                *entry = owner;
+                output[at] = pa;
+                at += 1;
+                if at == output.len() {
+                    break;
+                }
+            }
+        }
+        Ok(())
+    }
     pub fn free(
         &mut self,
         address: u64,
@@ -367,5 +429,123 @@ mod tests {
             Err(Error::Quota)
         );
         assert!(p.allocate(Owner::User(2, Kind::Data), |_| {}).is_ok());
+    }
+    #[test]
+    fn batch_resource_errors_preserve_owners_aliases_output_and_zero_count() {
+        let mut p = pool::<4>();
+        let held = p.allocate(Owner::User(1, Kind::Data), |_| {}).unwrap();
+        p.map(held, true, false, true).unwrap();
+        let owners = p.owners;
+        let aliases = p.aliases;
+        let mut output = [0xdead; 3];
+        assert_eq!(
+            p.allocate_many(Owner::User(2, Kind::Data), &mut output, |_| panic!(
+                "error must not zero"
+            )),
+            Err(Error::Exhausted)
+        );
+        assert_eq!(output, [0xdead; 3]);
+        assert_eq!(p.owners, owners);
+        assert_eq!(p.aliases, aliases);
+        for owner in [Owner::Free, Owner::Reserved, Owner::User(0, Kind::Data)] {
+            let mut output = [0xbeef; 1];
+            assert_eq!(
+                p.allocate_many(owner, &mut output, |_| panic!("bad owner must not zero")),
+                Err(Error::Owner)
+            );
+            assert_eq!(output, [0xbeef]);
+            assert_eq!(p.owners, owners);
+            assert_eq!(p.aliases, aliases);
+        }
+        assert_eq!(
+            p.allocate_many(Owner::Kernel, &mut [], |_| panic!(
+                "empty batch must not zero"
+            )),
+            Err(Error::Range)
+        );
+        assert_eq!(p.owners, owners);
+        assert_eq!(p.aliases, aliases);
+    }
+    #[test]
+    fn batch_quota_is_total_per_pid_and_failure_is_atomic() {
+        extern crate std;
+        let mut p = std::boxed::Box::new(pool::<2051>());
+        let mut output = [0; USER_QUOTA];
+        let mut zeros = 0;
+        p.allocate_many(Owner::User(1, Kind::Data), &mut output, |_| zeros += 1)
+            .unwrap();
+        assert_eq!(zeros, USER_QUOTA);
+        let owners = p.owners;
+        let aliases = p.aliases;
+        let mut denied = [0xdead; 1];
+        assert_eq!(
+            p.allocate_many(Owner::User(1, Kind::Stack), &mut denied, |_| panic!(
+                "quota must not zero"
+            )),
+            Err(Error::Quota)
+        );
+        assert_eq!(denied, [0xdead]);
+        assert_eq!(p.owners, owners);
+        assert_eq!(p.aliases, aliases);
+        p.allocate_many(Owner::User(2, Kind::Data), &mut denied, |_| zeros += 1)
+            .unwrap();
+        assert_eq!(zeros, USER_QUOTA + 1);
+    }
+    #[test]
+    fn fragmented_batch_is_sorted_zeroed_once_and_rollback_reclaims_every_frame() {
+        let mut p = Frames::<8>::new();
+        p.admit(
+            Range::pages(0, 8).unwrap(),
+            7,
+            8,
+            &[
+                Range::pages(3 * PAGE, 1).unwrap(),
+                Range::pages(5 * PAGE, 1).unwrap(),
+                Range::pages(7 * PAGE, 1).unwrap(),
+            ],
+        );
+        p.allocate(Owner::Kernel, |_| {}).unwrap();
+        let owners = p.owners;
+        let aliases = p.aliases;
+        let mut output = [0; 3];
+        let mut zeroed = [0; 3];
+        let mut count = 0;
+        p.allocate_many(Owner::User(7, Kind::Data), &mut output, |pa| {
+            zeroed[count] = pa;
+            count += 1;
+        })
+        .unwrap();
+        assert_eq!(output, [2 * PAGE, 4 * PAGE, 6 * PAGE]);
+        assert_eq!(zeroed, output);
+        assert_eq!(count, 3);
+        for pa in output {
+            p.free(pa, Owner::User(7, Kind::Data), |_| count += 1)
+                .unwrap();
+        }
+        assert_eq!(count, 6);
+        assert_eq!(p.owners, owners);
+        assert_eq!(p.aliases, aliases);
+    }
+    #[test]
+    fn batch_scan_cost_is_measured_separately_from_native_performance() {
+        extern crate std;
+        let mut single = std::boxed::Box::new(pool::<4096>());
+        let mut batch = std::boxed::Box::new(pool::<4096>());
+        let mut old = [0; 512];
+        let mut new = [0; 512];
+        let start = std::time::Instant::now();
+        for pa in &mut old {
+            *pa = single.allocate(Owner::User(1, Kind::Data), |_| {}).unwrap();
+        }
+        let single_time = start.elapsed();
+        let start = std::time::Instant::now();
+        batch
+            .allocate_many(Owner::User(1, Kind::Data), &mut new, |_| {})
+            .unwrap();
+        let batch_time = start.elapsed();
+        assert_eq!(old, new);
+        assert_eq!(single.owners, batch.owners);
+        assert_eq!(single.aliases, batch.aliases);
+        std::println!("HOST_ONLY allocate512/PFN4096: repeated={single_time:?}, batch={batch_time:?}; userbatch scan bound <=3*4096 vs repeated quota scans512*4096");
     }
 }

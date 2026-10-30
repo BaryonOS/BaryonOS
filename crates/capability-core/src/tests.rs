@@ -914,7 +914,9 @@ fn k05_rights_constants_and_known_mask() {
     assert_eq!(KILL, 512);
     assert_eq!(ENTROPY, 1024);
     assert_eq!(NETWORK, 2048);
-    assert_eq!(KNOWN_RIGHTS, 4095);
+    assert_eq!(DISPLAY, 4096);
+    assert_eq!(INPUT, 8192);
+    assert_eq!(KNOWN_RIGHTS, 16383);
     assert_eq!(NETWORK_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(ENTROPY_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(LAUNCH_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
@@ -1223,5 +1225,141 @@ fn raw_network_close_exit_and_reissue_do_not_resurrect_authority() {
         assert_eq!(e.stats().network_objects, 0);
         assert_eq!(e.stats().nodes, 0);
         assert_eq!(e.stats().handles, 0);
+    });
+}
+
+#[test]
+fn display_input_sources_are_sole_typed_manifest_authorities() {
+    run(|e| {
+        setup(e, 2);
+        let display = e.create_display(1).unwrap();
+        let input = e.create_input(1).unwrap();
+        assert_ne!(
+            e.check_display(1, display).unwrap(),
+            e.check_input(1, input).unwrap()
+        );
+        assert_atomic(e, Error::Quota, |e| e.create_display(2));
+        assert_atomic(e, Error::Quota, |e| e.create_input(2));
+        assert_atomic(e, Error::BadHandle, |e| e.check_display(2, display));
+        assert_atomic(e, Error::BadHandle, |e| e.check_input(2, input));
+        assert_atomic(e, Error::Type, |e| e.check_display(1, input));
+        assert_atomic(e, Error::Type, |e| e.check_input(1, display));
+        for source in [display, input] {
+            assert_atomic(e, Error::Type, |e| e.check_entropy(1, source));
+            assert_atomic(e, Error::Type, |e| e.check_network(1, source));
+            assert_atomic(e, Error::Type, |e| e.check_endpoint(1, source, SEND));
+            assert_atomic(e, Error::Type, |e| e.check_block(1, source, BLOCK_READ));
+            assert_atomic(e, Error::Type, |e| e.check_launch(1, source));
+            assert_atomic(e, Error::Type, |e| e.check_process(1, source, OBSERVE));
+        }
+        let network = e.create_network(1).unwrap();
+        assert_atomic(e, Error::Type, |e| e.check_display(1, network));
+        assert_atomic(e, Error::Type, |e| e.check_input(1, network));
+        assert!(e.check_network(1, network).is_ok());
+        assert_eq!(e.stats().display_objects, 1);
+        assert_eq!(e.stats().input_objects, 1);
+    });
+}
+
+#[test]
+fn display_input_sources_cannot_derive_transfer_revoke_or_escalate() {
+    run(|e| {
+        setup(e, 2);
+        let display = e.create_display(1).unwrap();
+        let input = e.create_input(1).unwrap();
+        let (_, send) = destination(e);
+        for (handle, right) in [(display, DISPLAY), (input, INPUT)] {
+            for rights in [
+                right,
+                right | DERIVE,
+                right | TRANSFER,
+                right | REVOKE,
+                SEND,
+                ALL_RIGHTS,
+            ] {
+                assert_atomic(e, Error::Invalid, |e| e.derive(1, handle, rights));
+                assert_atomic(e, Error::Invalid, |e| {
+                    e.bootstrap_delegate(1, handle, 2, rights)
+                });
+                assert_atomic(e, Error::Invalid, |e| {
+                    e.send(1, send, &cap_message(handle, rights))
+                });
+            }
+            assert_atomic(e, Error::Invalid, |e| e.revoke(1, handle));
+        }
+    });
+}
+
+#[test]
+fn display_input_close_reuse_exit_never_restore_stale_source() {
+    run(|e| {
+        setup(e, 2);
+        let d = e.create_display(1).unwrap();
+        let i = e.create_input(1).unwrap();
+        let dk = e.check_display(1, d).unwrap();
+        let ik = e.check_input(1, i).unwrap();
+        e.close(1, d).unwrap();
+        e.close(1, i).unwrap();
+        assert_atomic(e, Error::BadHandle, |e| e.check_display(1, d));
+        assert_atomic(e, Error::BadHandle, |e| e.check_input(1, i));
+        assert_eq!(e.stats().nodes, 0);
+        assert_eq!(e.stats().handles, 0);
+        assert_eq!(e.stats().display_objects, 0);
+        assert_eq!(e.stats().input_objects, 0);
+        let d2 = e.create_display(2).unwrap();
+        let i2 = e.create_input(2).unwrap();
+        assert_ne!(dk, e.check_display(2, d2).unwrap());
+        assert_ne!(ik, e.check_input(2, i2).unwrap());
+        e.exit(2).unwrap();
+        assert_eq!(e.stats().display_objects, 0);
+        assert_eq!(e.stats().input_objects, 0);
+        assert_eq!(e.stats().nodes, 0);
+        assert_eq!(e.stats().handles, 0);
+        assert!(e.create_display(1).is_ok());
+        assert!(e.create_input(1).is_ok());
+    });
+}
+
+#[test]
+fn display_input_generation_exhaustion_retires_sole_object_without_wrap() {
+    run(|e| {
+        setup(e, 1);
+        e.display[0].generation = u32::MAX;
+        e.input[0].generation = u32::MAX;
+        let display = e.create_display(1).unwrap();
+        let input = e.create_input(1).unwrap();
+        e.close(1, display).unwrap();
+        e.close(1, input).unwrap();
+        assert!(e.display[0].retired && e.input[0].retired);
+        assert_atomic(e, Error::Quota, |e| e.create_display(1));
+        assert_atomic(e, Error::Quota, |e| e.create_input(1));
+        assert_atomic(e, Error::BadHandle, |e| e.check_display(1, display));
+        assert_atomic(e, Error::BadHandle, |e| e.check_input(1, input));
+        assert_eq!(e.stats().retired_display_objects, 1);
+        assert_eq!(e.stats().retired_input_objects, 1);
+    });
+}
+
+#[test]
+fn display_input_creation_checks_slot_node_and_pid_quota_atomically() {
+    run(|e| {
+        setup(e, 1);
+        assert_atomic(e, Error::BadHandle, |e| e.create_display(2));
+        assert_atomic(e, Error::BadHandle, |e| e.create_input(2));
+        for slot in &mut e.processes[0].slots[1..] {
+            slot.retired = true;
+            slot.generation = u32::MAX;
+        }
+        assert_atomic(e, Error::Quota, |e| e.create_display(1));
+        assert_atomic(e, Error::Quota, |e| e.create_input(1));
+    });
+    run(|e| {
+        setup(e, 1);
+        for node in &mut e.nodes {
+            node.retired = true;
+            node.generation = u32::MAX;
+        }
+        assert_atomic(e, Error::Quota, |e| e.create_display(1));
+        assert_atomic(e, Error::Quota, |e| e.create_input(1));
     });
 }

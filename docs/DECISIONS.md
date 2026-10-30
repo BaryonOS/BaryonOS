@@ -867,3 +867,49 @@ bewijst die algemene server/NASgevallen niet. De vaste proef-ISNseed is alleen
 voor testdata; productie-entropy en TLS blijven releaseblokkerend open.
 EOF, refused/reset, echt verloren eersteSYN/retransmissie en blackholetimeout
 worden tegen een protocolconforme loopbacktegenpartij native getoetst.
+
+
+## ADR-047 — Begrensde eigen heap en onderhouden gebruikersallocator
+
+**Datum:** 30 oktober 2026. Implementatie in uitvoering; geen volledige geheugen-,
+engine- of productacceptatie. Sys4 (opt-in ABI 1.7) groeit uitsluitend de eigen
+contigue RW/NX-heap met verse nulgevulde pagina's. Bestaande totale procesquota
+blijft 2048 frames inclusief programma en stack. Geen shrink, fysieke mapping,
+uitvoerbaar heapgeheugen of delegatie. Fallible batchreservering en volledige
+user- én kernelpaginatabelpreflight gaan vóór publicatie; fouten behouden oude
+mappings en ruimen reserveringen op. Het eerste profiel blijft één CPU met IF=0.
+
+De aparte userspace allocator gebruikt exact `linked_list_allocator` 0.10.6
+(MIT/Apache-2.0, defaults uit), een expliciet exclusief arena en eigen begrensde
+administratie. Geen hostfallback of stil automatisch groeien. `OwnedHeapPages`
+bewijst geen veilige Rust-aliasing: de initialisatiecontrole blijft expliciet.
+Onafhankelijke review, native nulvulling, quotum/OOM, NX, isolatie, hergebruik en
+cleanup zijn afzonderlijke gates. De 128 MiB-OOM-proef verandert het bestaande
+256 MiB-regressieprofiel of 8 GiB-productdoel niet. Terugdraaien: opt-in features
+revert; allocator-/engineafhankelijke productcriteria blijven zichtbaar open.
+
+## ADR-048 — Native display en invoer via minimale transportcapabilities
+
+**Datum:** 30 oktober 2026. Contract goedgekeurd, implementatie in uitvoering.
+De bestaande gevalideerde GOP-header/mapping en begrensde pixelhelper worden
+losgemaakt van de G0-kernelrenderlus. De afzonderlijke `framebuffer`-feature
+bevat alleen hardwaremetadata en supervisor-RW/NX/UC-transport. G0 blijft zijn
+aparte IF=0-proef; Materiaal, fonts, documenten en invoerbeleid horen in ring 3.
+Geen VRAM-frame wordt als gebruikers-RAM toegewezen of door heapcleanup vrijgegeven.
+
+ABI 1.8 wordt opt-in gereserveerd: DISPLAY=4096 en INPUT=8192 zijn alleen door
+het manifest uitgegeven, PID-/generatiegebonden en niet overdraagbaar/afleidbaar.
+0x80/0x81 leveren openbare geometrie en een synchrone tileblit van maximaal
+32×8 pixels (LE `0x00RRGGBB`); geen fysieke basis/stride of vsyncgarantie.
+Alle usercopy, descriptorvelden, pixels en volledige doelrijen moeten vóór de
+eerste hardwarewrite geldig zijn. Alleen de vertrouwde compositor krijgt display-
+autoriteit; onbetrouwbare apps krijgen gecontroleerde oppervlakken/portalen.
+
+0x82–0x84 vormen een begrensde PS/2-resetstatusmachine en ruwe bronlezing voor
+uitsluitend de geïsoleerde invoerdienst. Werkelijke ACK/BAT/identiteit en
+Set2→Set1-configuratie gaan vóór Ready; beide kanalen en foutstatus blijven
+zichtbaar. Gevalideerde uitvoer gaat vóór FIFO-consumptie. Intrekking, dood,
+stale tickets, tijdslimieten en generatie-uitputting mogen geen toegang of vals
+Ready opleveren. Dit is geen algemene driver-/DMA-/IOMMU-garantie. Details en
+uitvoeringsbewijs volgen in het transportcontract en native QMP-bedieningsproef.
+Terugdraaien: opt-in transport revert, G0-regressie behouden en productcriteria open.

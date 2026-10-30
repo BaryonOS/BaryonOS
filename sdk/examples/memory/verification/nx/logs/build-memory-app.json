@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/workspace/nieuw-os-worktrees/memory-fixture/sdk/examples/memory/build.py"
+  ],
+  "cwd": "/workspace/nieuw-os-worktrees/memory-fixture",
+  "started_unix": 1793324072.8576145,
+  "duration_s": 0.17626261711120605,
+  "returncode": 0
+}

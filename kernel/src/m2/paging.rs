@@ -17,15 +17,139 @@ static mut OBSERVED: [Alias; FRAME_COUNT] = [Alias {
     executable: 0,
     total: 0,
 }; FRAME_COUNT];
+/// Read-only plan for strictly increasing RW/NX mappings. Keys identify absent
+/// intermediate table paths, not frames or authority. One IF=0 transaction owns
+/// each plan until commit/rollback; no user pointer is retained here.
+#[cfg(feature = "process-memory")]
+pub(super) struct MapPlan {
+    keys: [u64; MAX_TABLES],
+    count: usize,
+    last_va: u64,
+}
+#[cfg(feature = "process-memory")]
+impl MapPlan {
+    pub const fn new() -> Self {
+        Self {
+            keys: [0; MAX_TABLES],
+            count: 0,
+            last_va: 0,
+        }
+    }
+    pub fn clear(&mut self) {
+        self.keys[..self.count].fill(0);
+        self.count = 0;
+        self.last_va = 0;
+    }
+    pub fn tables(&self) -> usize {
+        self.count
+    }
+    pub fn is_clear(&self) -> bool {
+        self.count == 0 && self.last_va == 0 && self.keys.iter().all(|key| *key == 0)
+    }
+    fn add(&mut self, va: u64, shift: u8) -> Result<(), kernel_core::Error> {
+        let key = (va & !((1u64 << shift) - 1)) | u64::from(shift);
+        if self.keys[..self.count].contains(&key) {
+            return Ok(());
+        }
+        if self.count == MAX_TABLES {
+            return Err(kernel_core::Error::Quota);
+        }
+        self.keys[self.count] = key;
+        self.count += 1;
+        Ok(())
+    }
+}
 pub struct Paging {
     pub root: u64,
     tables: [u64; MAX_TABLES],
     count: usize,
     asid: u16,
-    #[cfg(feature = "graphics-g0")]
+    #[cfg(feature = "framebuffer")]
     framebuffer: Option<(u64, u64)>,
 }
 impl Paging {
+    /// Fallible read-only seam before existing scalar map commit. The caller
+    /// supplies fresh owned data frames, ordered unique VAs and one exclusive
+    /// plan. Every missing path is deduplicated across the complete batch.
+    #[cfg(feature = "process-memory")]
+    pub(super) fn preflight_private_rw(
+        &self,
+        frames: &Frames<FRAME_COUNT>,
+        plan: &mut MapPlan,
+        va: u64,
+        pa: u64,
+        user: bool,
+    ) -> Result<(), kernel_core::Error> {
+        use kernel_core::Error;
+        if va == 0
+            || va >= 0x80000000
+            || !va.is_multiple_of(PAGE)
+            || pa == 0
+            || !pa.is_multiple_of(PAGE)
+            || pa >= PAGE * FRAME_COUNT as u64
+            || va <= plan.last_va
+            || user != (self.asid != 0)
+            || user && va < 0x40000000
+            || !user && va >= 0x40000000
+        {
+            return Err(Error::Range);
+        }
+        if !matches!(frames.owner(pa)?, Owner::User(_, kernel_core::Kind::Data))
+            || frames.alias(pa)?
+                != (Alias {
+                    writable: 0,
+                    executable: 0,
+                    total: 0,
+                })
+        {
+            return Err(Error::Owner);
+        }
+        let mut table = self.root;
+        let mut missing = false;
+        for shift in [39u8, 30, 21] {
+            if missing {
+                plan.add(va, shift)?;
+                continue;
+            }
+            if frames.owner(table)? != Owner::PageTable(self.asid)
+                || !self.tables[..self.count].contains(&table)
+            {
+                return Err(Error::Owner);
+            }
+            let entry = read(table, ((va >> shift) & 511) as usize);
+            if entry & PRESENT == 0 {
+                if entry != 0 {
+                    return Err(Error::Overlap);
+                }
+                missing = true;
+                plan.add(va, shift)?;
+            } else if entry & (128 | NX) == 0 && entry & WRITE != 0 && (!user || entry & USER != 0)
+            {
+                table = entry & ADDRESS;
+            } else {
+                return Err(Error::Permission);
+            }
+        }
+        if !missing {
+            if frames.owner(table)? != Owner::PageTable(self.asid)
+                || !self.tables[..self.count].contains(&table)
+            {
+                return Err(Error::Owner);
+            }
+            if read(table, ((va >> 12) & 511) as usize) != 0 {
+                return Err(Error::Overlap);
+            }
+        }
+        if self
+            .count
+            .checked_add(plan.count)
+            .is_none_or(|count| count > MAX_TABLES)
+        {
+            return Err(Error::Quota);
+        }
+        plan.last_va = va;
+        Ok(())
+    }
     #[cfg(any(feature = "milestone-m5", feature = "native-keyring"))]
     pub fn map_mmio(
         &mut self,
@@ -43,7 +167,7 @@ impl Paging {
         }
         self.map_device_page(frames, va, pa)
     }
-    #[cfg(feature = "graphics-g0")]
+    #[cfg(feature = "framebuffer")]
     pub fn map_framebuffer(
         &mut self,
         frames: &mut Frames<FRAME_COUNT>,
@@ -75,7 +199,7 @@ impl Paging {
     }
     #[cfg(any(
         feature = "milestone-m5",
-        feature = "graphics-g0",
+        feature = "framebuffer",
         feature = "native-keyring"
     ))]
     fn map_device_page(
@@ -136,7 +260,7 @@ impl Paging {
             tables: [0; MAX_TABLES],
             count: 1,
             asid: 0,
-            #[cfg(feature = "graphics-g0")]
+            #[cfg(feature = "framebuffer")]
             framebuffer: None,
         };
         result.tables[0] = root;
@@ -238,7 +362,7 @@ impl Paging {
             tables: [0; MAX_TABLES],
             count: 2,
             asid,
-            #[cfg(feature = "graphics-g0")]
+            #[cfg(feature = "framebuffer")]
             framebuffer: kernel.framebuffer,
         };
         result.tables[0] = root;
@@ -408,7 +532,7 @@ impl Paging {
                 self.walk(frames, observed, pa, level - 1, user, writable, nx, va);
             } else {
                 assert!(!user, "M2 has no user mappings");
-                #[cfg(feature = "graphics-g0")]
+                #[cfg(feature = "framebuffer")]
                 if let Some((base, length)) = self.framebuffer {
                     let start = boot_protocol::graphics::FRAMEBUFFER_WINDOW;
                     if (start..start + length).contains(&va) {

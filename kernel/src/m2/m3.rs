@@ -15,6 +15,29 @@ use core::{
 use kernel_core::{user, Frames, Kind, Owner, PAGE};
 #[cfg(feature = "fpu-context")]
 mod fpu;
+#[cfg(feature = "process-memory")]
+mod heap;
+#[cfg(feature = "native-memory")]
+mod memory_fixture;
+#[cfg(all(
+    feature = "native-memory",
+    any(
+        feature = "milestone-m4",
+        feature = "native-fpu",
+        feature = "native-qsim"
+    )
+))]
+compile_error!("native-memory is a separate M3 architecture acceptance profile");
+#[cfg(feature = "native-memory")]
+const _: () = assert!(
+    (cfg!(feature = "native-memory-nx") as u8)
+        + (cfg!(feature = "native-memory-guard") as u8)
+        + (cfg!(feature = "native-memory-peer") as u8)
+        + (cfg!(feature = "native-memory-oom") as u8)
+        <= 1,
+    "choose one native-memory fault case"
+);
+
 #[cfg(all(
     feature = "native-fpu",
     any(feature = "milestone-m4", feature = "native-qsim")
@@ -115,7 +138,8 @@ mod m5;
 #[cfg(all(
     not(feature = "milestone-m4"),
     not(feature = "native-qsim"),
-    not(feature = "native-fpu")
+    not(feature = "native-fpu"),
+    not(feature = "native-memory")
 ))]
 const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
 #[cfg(feature = "native-qsim")]
@@ -211,6 +235,8 @@ struct Process {
     context: [u64; 22],
     selected: u64,
     pattern: u64,
+    #[cfg(feature = "process-memory")]
+    heap_pages: u64,
 }
 impl Process {
     const fn new() -> Self {
@@ -225,6 +251,8 @@ impl Process {
             context: [0; 22],
             selected: 0,
             pattern: 0,
+            #[cfg(feature = "process-memory")]
+            heap_pages: 0,
         }
     }
     fn physical(&self, va: u64) -> u64 {
@@ -365,7 +393,12 @@ fn process_elf(slot: usize) -> &'static [u8] {
         _ => panic!("system workers are launched by init"),
     }
 }
+#[cfg(feature = "native-memory")]
+fn process_elf(_: usize) -> &'static [u8] {
+    include_bytes!(env!("NOS_MEMORY_ELF"))
+}
 #[cfg(not(any(
+    feature = "native-memory",
     feature = "native-fpu",
     feature = "native-sdk-app",
     feature = "native-volume",
@@ -446,7 +479,9 @@ impl State {
         self.exited = false;
         self.survivor_slot = 1;
         self.unexpected = false;
-        self.amount = if cfg!(feature = "native-fpu") {
+        self.amount = if cfg!(feature = "native-memory-oom") {
+            MAX
+        } else if cfg!(feature = "native-memory") || cfg!(feature = "native-fpu") {
             2
         } else if cfg!(feature = "native-supervisor") {
             // The whole table is schedulable; only the supervisor boots now.
@@ -529,6 +564,8 @@ impl State {
         qsim_job::manifest(self);
         #[cfg(feature = "native-fpu")]
         fpu::fixture::manifest(self);
+        #[cfg(feature = "native-memory")]
+        memory_fixture::manifest(self);
     }
     fn spawn_process(&mut self, slot: usize) {
         self.spawn_process_from(slot, process_elf(slot));
@@ -610,6 +647,10 @@ impl State {
         }
         for va in (HEAP..HEAP + 65536).step_by(PAGE as usize) {
             self.add_user(&mut p, va, Kind::Data, true, false, true);
+        }
+        #[cfg(feature = "process-memory")]
+        {
+            p.heap_pages = 16;
         }
         for va in (STACK..STACK_END).step_by(PAGE as usize) {
             self.add_user(&mut p, va, Kind::Stack, true, false, true);
@@ -797,6 +838,7 @@ impl State {
                     && !cfg!(feature = "native-qsim-job")
                     && !cfg!(feature = "native-sdk-app")
                     && !cfg!(feature = "native-fpu")
+                    && !cfg!(feature = "native-memory")
                     && mode() == 0
                     && self.round < 2
                     && !self.fault
@@ -854,6 +896,11 @@ impl State {
         }
     }
     fn cleanup(&mut self, slot: usize) {
+        #[cfg(feature = "process-memory")]
+        assert!(
+            heap::clean_boundary(),
+            "heap reservations cannot outlive a syscall"
+        );
         let mut p = replace(&mut self.processes[slot], Process::new());
         assert!(p.status == Status::Dying || p.status == Status::Dead);
         let mut address = p.paging.take().unwrap();
@@ -947,6 +994,11 @@ impl State {
             .count()
     }
     fn observer_exit(&mut self, slot: usize, counter: u64) {
+        #[cfg(feature = "native-memory")]
+        {
+            memory_fixture::observe_exit(self, slot, counter);
+            return;
+        }
         #[cfg(feature = "native-fpu")]
         {
             fpu::fixture::observe_exit(self, slot, counter);
@@ -995,7 +1047,11 @@ impl State {
             m4::observe_exit(self, slot, counter);
             return;
         }
-        #[cfg(all(not(feature = "milestone-m4"), not(feature = "native-fpu")))]
+        #[cfg(all(
+            not(feature = "milestone-m4"),
+            not(feature = "native-fpu"),
+            not(feature = "native-memory")
+        ))]
         {
             let record = self.last_event;
             let expected = if mode() == 17 {
@@ -1020,6 +1076,11 @@ impl State {
         }
     }
     fn observer_fault(&mut self, slot: usize, context: &[u64; 22], counter: u64) {
+        #[cfg(feature = "native-memory")]
+        {
+            memory_fixture::observe_fault(self, slot, context, counter);
+            return;
+        }
         #[cfg(feature = "native-fpu")]
         {
             fpu::fixture::observe_fault(self, slot, context, counter);
@@ -1068,7 +1129,11 @@ impl State {
             m4::observe_fault(self, slot, context, counter);
             return;
         }
-        #[cfg(all(not(feature = "milestone-m4"), not(feature = "native-fpu")))]
+        #[cfg(all(
+            not(feature = "milestone-m4"),
+            not(feature = "native-fpu"),
+            not(feature = "native-memory")
+        ))]
         {
             if slot != 0 || self.fault {
                 self.unexpected = true;
@@ -1217,7 +1282,15 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
         }
-        if number < 0x10 || !cfg!(feature = "milestone-m4") {
+        #[cfg(feature = "process-memory")]
+        if number == 4 {
+            let (status, base) = heap::syscall(state, current, args);
+            state.processes[current].context[14] = status as u64;
+            state.processes[current].context[12] = base;
+        }
+        if (number < 0x10 || !cfg!(feature = "milestone-m4"))
+            && !(cfg!(feature = "process-memory") && number == 4)
+        {
             let p = &mut state.processes[current];
             p.context[14] = 0;
             p.context[12] = 0;
@@ -1232,7 +1305,9 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                 match number {
                     0 => {
                         p.context[12] = (1 << 32)
-                            | if cfg!(feature = "monotonic-clock") {
+                            | if cfg!(feature = "process-memory") {
+                                7
+                            } else if cfg!(feature = "monotonic-clock") {
                                 6
                             } else if cfg!(feature = "native-system-net") {
                                 5
@@ -1343,7 +1418,13 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
     }
     #[cfg(feature = "native-fpu")]
     fpu::fixture::poll(state);
-    #[cfg(all(not(feature = "milestone-m4"), not(feature = "native-fpu")))]
+    #[cfg(feature = "native-memory")]
+    memory_fixture::poll(state);
+    #[cfg(all(
+        not(feature = "milestone-m4"),
+        not(feature = "native-fpu"),
+        not(feature = "native-memory")
+    ))]
     if state.fault || state.exited {
         if state.survivor_slot == MAX && mode() != 17 {
             serial::write(b"M3:FAIL:NO_TEST_SURVIVOR\n");
@@ -1530,7 +1611,10 @@ fn m5_case() -> u8 {
     }
 }
 #[cfg(not(feature = "milestone-m4"))]
-#[cfg_attr(feature = "native-fpu", allow(dead_code))]
+#[cfg_attr(
+    any(feature = "native-fpu", feature = "native-memory"),
+    allow(dead_code)
+)]
 fn fault_marker() -> &'static [u8] {
     match mode() {
         3 => b"M3:FAULT:PEER_READ:PASS\n",

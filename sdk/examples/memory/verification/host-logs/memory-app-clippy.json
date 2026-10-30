@@ -1,0 +1,25 @@
+{
+  "command": [
+    "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "clippy",
+    "--offline",
+    "--locked",
+    "--release",
+    "--manifest-path",
+    "/workspace/nieuw-os-worktrees/memory-fixture/sdk/examples/memory/Cargo.toml",
+    "--features",
+    "native",
+    "--target",
+    "x86_64-unknown-none",
+    "--target-dir",
+    "/workspace/nieuw-os-worktrees/memory-fixture/target/memory-clippy",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "cwd": "/workspace/nieuw-os-worktrees/memory-fixture",
+  "started_unix": 1793323859.9115968,
+  "duration_s": 0.37133216857910156,
+  "returncode": 0
+}

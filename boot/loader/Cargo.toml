@@ -7,7 +7,8 @@ publish = false
 [features]
 default = []
 test-ebs-retry = []
-graphics-g0 = []
+framebuffer = []
+graphics-g0 = ["framebuffer"]
 
 [dependencies]
 r-efi = { version = "=7.1.0", default-features = false }

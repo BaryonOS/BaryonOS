@@ -2,9 +2,9 @@
 
 ## Volledige native testrelease — in uitvoering, 32% — 2026-10-30
 
-Branch `codex/full-test-release`, gepubliceerde bron
-`61ea7278390d5235a8bc024cbf084222a7b0c658`, boom
-`d54c6ad0f32c2187ee94e0f2780c45c1da994253`;
+Branch `codex/full-test-release`, laatste gepubliceerde checkpoint
+`20b0d1286644f04b872741a43da21a8cdb10a944`; gezamenlijke uitvoeringsbron
+`61ea7278390d5235a8bc024cbf084222a7b0c658`;
 [concept-PR #56](https://github.com/simonvanieperen/nieuw-os/pull/56).
 [Opdracht en 62 acceptatiecriteria](FULL-TEST-RELEASE.md),
 [aanvullende productcontext](FULL-TEST-RELEASE-CONTEXT.md) en
@@ -36,45 +36,62 @@ Dit zijn pc-q35-8.2/qemu64/TCG/1 CPU/256 MiB-integratieprofielen met plaintext
 proefvolume en tijdelijke RAM-sleutels. Zij bewijzen geen persistente versleutelde
 productopslag, volledige gebruikersomgeving of VM-FR-productprofiel.
 
-**CI op 61ea727:** zes workflows geslaagd, waaronder gezamenlijke native
-acceptatie, K05, entropy/sleutels, opslagherstel, schaalbaar volume en resource-
-uitputting. De algemene CI faalt na geslaagde hosttests en builds bij de
-clean-treecontrole: twee standalone Cargo-targetmappen werden niet genegeerd.
-De huidige reparatie voegt uitsluitend de concrete buildpaden aan `.gitignore`
-toe; de clean-treecontrole blijft verplicht. De daardoor overgeslagen
-qemu-smoke wordt niet als geslaagd opgevoerd. Nieuwe CI moet de reparatie testen.
+**CI hersteld op 20b0d12:** alle zeven workflows geslaagd, inclusief de algemene
+CI en qemu-smoke. De twee ontbrekende ignore-regels waren de concrete oorzaak
+van de eerdere clean-treefout; de controle is behouden.
+[Actuele CI-metadata](verification/full-release-ci-20b0d12/workflow-runs.json).
+
+**Nieuwe implementatiekandidaat:** atomische eigen heapgroei (ABI 1.7/Sys4,
+core084dcd8), onderhouden gebruikersallocator42d4bc9 en canonieke memoryfixture492be81
+zijn geïntegreerd. Onafhankelijke core-review: geen concrete blocker onder het
+single-core/IF=0-contract; 20 core-, 19 SDK- en vier aanvullende plannerproeven
+slagen ([review](verification/full-release-memory-review-084dcd8/review.json)).
+De worker voert alle vijf geheugenproeven echt uit: normaal, NX, guard, peer en
+fysieke OOM op128 MiB. Daarbij worden vrijgegeven heapbytes vóór nieuw gebruik
+onafhankelijk fysiek gecontroleerd. Dit workerbewijs is afzonderlijk opgeslagen;
+root herhaalt de vijf cases op de exact gepubliceerde samengestelde bron.
+
+GOP-hardwaretransport is losgemaakt van G0: geen GUI in de nieuwe framebuffer-
+module, dezelfde supervisor-RW/NX/UC-mapping. De echte G0-toetsenbord-/pixelproef
+slaagt op de extractiekandidaat (raw33); definitieve bronherhaling volgt. Nieuwe
+DISPLAY-/INPUT-capabilities04d208f hebben 47 tests en een onafhankelijke52-test-
+review zonder concrete blocker; native uitgifte, syscalladapters en gebruikers-
+interface zijn daarmee nog niet uitgevoerd. Root bezit de gedeelde ABI/hooks.
 
 **Publicatie:** CLI-push heeft een HTTPS-authenticatieblokkade. Via de reeds
 beschikbare GitHub GitData-koppeling is de volledige boom met verwachte HEAD
 gepubliceerd, teruggehaald en exact vergeleken; lokale en remote bron zijn gelijk.
 Geen forcepush of credentialinspectie. Nieuwe checkpoints volgen dezelfde route.
 
-**Parallel werk:** heapgroei/pagingtransacties en SDK, no_std TLS-port en
-random-only Key Service zijn hervat in hun bestaande worktrees. De gebruikers-
-allocator is gereed op workercommit 42d4bc9 en wordt nog geïntegreerd. RTC en
-inputcore zijn geïntegreerde host-/targetimplementaties zonder native aansluiting.
-Twee workers onderzoeken nu de echte Materiaal-renderer/editor en de minimale
-GOP-/PS2-transportgrenzen; root beheert ABI, bootstrap, build en integratie.
+**Parallel werk:** echte Materiaal-renderer/editor en display-/PS2-adapters zijn
+in eigen worktrees in uitvoering. De TLS-port heeft echte scalaire targetcode en
+OpenSSL-hybride hostinterop, nog geen native TLS. De review vond ontbrekende
+clientauthenticatie; een per-verbinding-CertificateVerify-controle wordt met
+negatieve regressie herbeoordeeld. RANDOM-only Key Service heeft host-/targetbewijs;
+review van de expliciete HKDF-secretopruiming is open en wordt gericht gerepareerd.
+Deze componenten zijn niet als productfeature afgetekend.
 
 ### NEXT AGENT HANDOFF
 
-- Controleer actuele HEAD, status, worktrees en werkelijk actieve agents;
-  behoud onafgemaakte wijzigingen. Laatste gezamenlijke bron is 61ea727 hierboven.
-- Eerstvolgende stap: checkpoint met deze zeven VM-bewijzen en gerichte
-  CI-ignorefix publiceren; controleer nieuwe CI inclusief qemu-smoke. Integreer
-  daarna de beoordeelde allocator en heapgroei; maak de canonieke native-memory-
-  proef met echte nulvulling, NX/guard, procesisolatie, quota en OOM op wegwerpimage.
-- Bruikbare artifacts: `build/full-release-61ea-{base,net,tcp,fpu}/esp/`;
-  exacte loader/kernel/app/firmwarehashes en commando's staan in de bewijsarchieven.
-  Definitieve normale kernelhashes: base `3cdf285cc4d70c547121d51f8d0903a24aca0902c538522b1fee6dad6abd5970`,
-  net `49574862b2012a36da6180485ef6430f2d2bd443ee96629eb713c422585d6f87`,
-  TCP `03c1ab07885d598c1930a0065051c281fdd268e9fb97fe41d58008687f2d5b02`.
-- Behoud worktrees `memory`, `user-allocator`, `tls-port`, `keyring-random` en
-  hun tests/logs. Nieuwe UI-/transportworktrees worden door hun eigenaars aangemaakt.
-- Alle 62 productcriteria blijven open: onder meer veilige duurzame opslag,
+- Controleer actuele HEAD/status/worktrees/agents; behoud alle bron en logs.
+  Laatste gepubliceerde checkpoint is20b0d12 met zeven groene CI-workflows.
+- Eerstvolgende uitvoering: deze geheugen-/allocator-/GOP-/capabilitykandidaat
+  publiceren via de beschikbare GitHub GitData-koppeling met verwachte HEAD en
+  exact gelijke tree. Daarna op bevroren commit `tools/test_memory_system.py`
+  (vijf echte cases), basis/net/TCP-koude paren, native-fpu en native G0 herhalen;
+  bron, beelden, exitstatus en ruwe bytes opnieuw archiveren. Geen source-edits
+  tijdens deze proeven. Actuele CI op die nieuwe commit blijft vereist.
+- Laatste zeven bewezen root-VMs/artifacts: `build/full-release-61ea-{base,net,tcp,fpu}/esp/`;
+  hashes en commando's in hun bewijsarchieven. Memoryworker492be81 bewaart vijf
+  eigen brongebonden rapporten in `sdk/examples/memory/verification/`; dit is
+  geen bewijs van de hoofdbranch. Canonieke output gaat naar `build/memory-*`.
+- Behoud worktrees `memory`, `memory-fixture`, `user-allocator`, `tls-port`,
+  `keyring-random`, `native-materiaal` en de display/input-worktree. Eigenaarschap
+  staat in WORK-QUEUE. TLS en RANDOM krijgen eerst gerichte reviewreparaties.
+- Alle62productcriteria blijven open: onder meer veilige duurzame opslag,
   desktop/apps/media/toegankelijkheid, NAS/providers, echte lokale inference,
-  boot/PQC/updates/herstel, productprofiel, 100 koude starts/24 uur, fysieke en
-  menselijke gates en het complete pakket. Ontwikkelbeperkingen zijn geen vrijstelling.
+  boot/PQC/updates/herstel, productprofiel,100koude starts/24uur, fysieke en
+  menselijke gates en het complete pakket. Score32% →32%; scope onveranderd.
 
 ## Historische checkpoints
 

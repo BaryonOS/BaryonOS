@@ -53,10 +53,10 @@ fn register_errors_remain_errors_and_secondary_errors_are_zero() {
 
 #[test]
 fn abi_check_accepts_only_existing_compatible_versions() {
-    for minor in 0..=6 {
+    for minor in 0..=7 {
         assert_eq!(validate_abi((1 << 32) | minor), Ok(()));
     }
-    for version in [0, 1, 1 << 31, (1 << 32) | 7, 2 << 32, u64::MAX] {
+    for version in [0, 1, 1 << 31, (1 << 32) | 8, 2 << 32, u64::MAX] {
         assert_eq!(validate_abi(version), Err(Error::UnsupportedAbi));
     }
 }

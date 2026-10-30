@@ -1,0 +1,26 @@
+//! Fixture-only private startup/evidence page; no additional kernel ABI.
+pub const GENERATION: u64 = 64;
+pub const SLOT: u64 = 72;
+pub const CASE: u64 = 80;
+pub const INITIAL_MAPPINGS: u64 = 88;
+pub const CONTROL: u64 = 136; // 1 exit; 2 fault; 3 retry after OOM peers reclaimed.
+pub const HEARTBEAT: u64 = 144;
+pub const TARGET: u64 = 160;
+pub const FAULT_RIP: u64 = 184;
+pub const FAILURE: u64 = 240;
+pub const CLEAN: u64 = 400;
+pub const PAGES: u64 = 408;
+pub const ZERO_BYTES: u64 = 416;
+pub const ARG_DENIED: u64 = 424;
+pub const QUOTA_DENIED: u64 = 432;
+pub const PRIVATE: u64 = 440;
+pub const COLLECTIONS: u64 = 448;
+pub const ALLOC_OOM: u64 = 456;
+pub const SUFFIX_END: u64 = 464;
+pub const PATTERN: u64 = 472;
+pub const DONE: u64 = 480;
+pub const OOM: u64 = 488;
+pub const RETRY: u64 = 496;
+pub const RETRY_BASE: u64 = 504;
+pub const RETRY_ZERO_BYTES: u64 = 512;
+pub const STARTUP_PAGES: u64 = 520;

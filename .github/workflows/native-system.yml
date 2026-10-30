@@ -44,6 +44,7 @@ jobs:
           cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml
           cargo +1.91.1 fetch --locked --manifest-path sdk/examples/tcp-probe/Cargo.toml
           cargo +1.91.1 fetch --locked --manifest-path services/net-stack/Cargo.toml
+          cargo +1.90.0 fetch --locked --manifest-path sdk/examples/memory/Cargo.toml
       - name: Real joint-service guest and exact-image cold recovery
         run: python3 -B -u tools/test_system.py
       - name: Independently revalidate raw images and capture compact evidence
@@ -77,12 +78,26 @@ jobs:
         env:
           NOS_BUILD_DIR: ${{ github.workspace }}/build/tcp-ci
         run: python3 -B tools/capture_system.py --tcp --destination docs/verification/full-release-tcp-ci
+      - name: Own heap zeroing NX guard peer isolation physical OOM and cleanup
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/memory-ci
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/memory-ci
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/memory-ci-host
+        run: python3 -B -u tools/test_memory_system.py
       - name: Preserve evidence and the tested final build
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: native-system-evidence
           path: |
+            build/memory-ci/memory-gate.json
+            build/memory-ci/logs/
+            build/memory-ci/*/memory-report.json
+            build/memory-ci/*/manifest.json
+            build/memory-ci/*/logs/
+            build/memory-ci/*/users/memory/build-report.json
+            build/memory-ci/*/esp/
+            build/memory-ci/*/run/native-memory-*/
             build/system-ci/system-gate.json
             build/system-ci/manifest.json
             build/system-ci/logs/

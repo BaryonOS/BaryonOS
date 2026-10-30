@@ -30,6 +30,7 @@ KEYRING_CASES = ("no-device", "stuck", "timeout", "restart")
 KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRING_CASES))
 NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
 TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
+MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
 SYSTEM_FEATURES = ("native-system", "test-system-recover", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES)
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
@@ -40,7 +41,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "test-m2-ro", "tes
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
                    "native-sdk-app", "test-sdk-app-denied", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
-                   *KEYRING_FEATURES, *SYSTEM_FEATURES, "native-fpu"]
+                   *KEYRING_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "framebuffer"]
 
 
 def inspect_elf(path):
@@ -108,8 +109,12 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
         if loader_feature not in (None, "graphics-g0"):
             raise ValueError("G0 requires its paired graphics loader")
         loader_feature = "graphics-g0"
-    elif loader_feature == "graphics-g0":
-        raise ValueError("Graphics loader requires the G0 kernel")
+    elif kernel_feature == "framebuffer":
+        if loader_feature not in (None, "framebuffer"):
+            raise ValueError("Framebuffer transport requires its paired loader")
+        loader_feature = "framebuffer"
+    elif loader_feature in ("graphics-g0", "framebuffer"):
+        raise ValueError("Graphics loader requires a matching framebuffer kernel")
     extra_env = None
     sdk_selection = os.environ.get("NOS_SDK_RUNTIME", "0")
     if sdk_selection not in ("0", "1"):
@@ -123,7 +128,10 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
                                 ("milestone-m6c", "test-m6c-recover")):
         raise ValueError("Document session requires NOS_SDK_RUNTIME=1 and the M6c normal/recover fixture")
     qsim_report = None
-    if kernel_feature == "native-fpu":
+    if kernel_feature in MEMORY_FEATURES:
+        from run_memory import build_users as build_memory_users
+        extra_env, qsim_report = build_memory_users()
+    elif kernel_feature == "native-fpu":
         from run_fpu import build_users as build_fpu_users
         extra_env, qsim_report = build_fpu_users()
     elif kernel_feature == "native-qsim":
@@ -253,7 +261,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
     manifest["sdk_runtime"] = use_sdk
     manifest["document_session"] = use_document_session
     if qsim_report is not None:
-        if kernel_feature == "native-fpu":
+        if kernel_feature in MEMORY_FEATURES:
+            manifest["memory"] = qsim_report
+        elif kernel_feature == "native-fpu":
             manifest["fpu"] = qsim_report
         elif kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
             manifest["sdk_app"] = qsim_report
@@ -279,7 +289,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0"])
+    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer"])
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()
     build(args.loader_feature, args.kernel_feature, args.loader_feature or args.kernel_feature or "normal")

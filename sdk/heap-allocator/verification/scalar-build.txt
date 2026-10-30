@@ -1,0 +1,13 @@
+command: ["/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo", "+1.90.0", "build", "--offline", "--locked", "--manifest-path", "sdk/heap-allocator/Cargo.toml", "--release", "--lib", "--target", "x86_64-unknown-none", "--message-format=json-render-diagnostics"]
+cwd: /workspace/nieuw-os-worktrees/user-allocator
+exit: 0
+duration_s: 0.1693105697631836
+
+stdout:
+{"reason":"compiler-artifact","package_id":"registry+https://github.com/rust-lang/crates.io-index#linked_list_allocator@0.10.6","manifest_path":"/workspace/nieuw-os/.tools/nieuw-os/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/linked_list_allocator-0.10.6/Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"linked_list_allocator","src_path":"/workspace/nieuw-os/.tools/nieuw-os/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/linked_list_allocator-0.10.6/src/lib.rs","edition":"2015","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["/workspace/nieuw-os-worktrees/user-allocator/build/user-allocator-none-target/x86_64-unknown-none/release/deps/liblinked_list_allocator-e178a125d863c07b.rlib","/workspace/nieuw-os-worktrees/user-allocator/build/user-allocator-none-target/x86_64-unknown-none/release/deps/liblinked_list_allocator-e178a125d863c07b.rmeta"],"executable":null,"fresh":true}
+{"reason":"compiler-artifact","package_id":"path+file:///workspace/nieuw-os-worktrees/user-allocator/sdk/heap-allocator#nieuw-os-heap-allocator@0.1.0","manifest_path":"/workspace/nieuw-os-worktrees/user-allocator/sdk/heap-allocator/Cargo.toml","target":{"kind":["lib"],"crate_types":["lib"],"name":"nieuw_os_heap_allocator","src_path":"/workspace/nieuw-os-worktrees/user-allocator/sdk/heap-allocator/src/lib.rs","edition":"2021","doc":true,"doctest":true,"test":true},"profile":{"opt_level":"3","debuginfo":0,"debug_assertions":false,"overflow_checks":false,"test":false},"features":[],"filenames":["/workspace/nieuw-os-worktrees/user-allocator/build/user-allocator-none-target/x86_64-unknown-none/release/libnieuw_os_heap_allocator.rlib","/workspace/nieuw-os-worktrees/user-allocator/build/user-allocator-none-target/x86_64-unknown-none/release/deps/libnieuw_os_heap_allocator-2f9a66128160a5a5.rmeta"],"executable":null,"fresh":false}
+{"reason":"build-finished","success":true}
+
+stderr:
+   Compiling nieuw-os-heap-allocator v0.1.0 (/workspace/nieuw-os-worktrees/user-allocator/sdk/heap-allocator)
+    Finished `release` profile [optimized] target(s) in 0.11s

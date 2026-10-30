@@ -15,7 +15,7 @@ use crate::{
 fn call(number: u64, args: [u64; 6]) -> Result<u64, Error> {
     let mut primary = number;
     let mut secondary = args[2];
-    // SAFETY: Nieuw OS ABI 1.0–1.6 preserves every GPR except RAX/RDX; int80 enters
+    // SAFETY: Nieuw OS ABI 1.0–1.7 preserves every GPR except RAX/RDX; int80 enters
     // a checked kernel gate. No Rust references cross this boundary. Callers
     // below keep local message buffers live for the complete synchronous copy.
     // No nomem/readonly flag: IPC can read or write the supplied memory.
@@ -41,6 +41,15 @@ pub fn abi_info() -> Result<u64, Error> {
 /// This is not a wall clock and cannot validate TLS certificate dates.
 pub fn monotonic_ticks() -> Result<u64, Error> {
     call(3, [0; 6])
+}
+
+/// ABI1.7: atomically grow this process's private, zeroed RW/NX heap suffix.
+/// Physical exhaustion returns Kernel(memory::OUT_OF_MEMORY); quota/metadata
+/// exhaustion returns Kernel(-7). Normal errors allocate nothing. InvalidReturn
+/// signals a kernel ABI violation: do not automatically retry an uncertain call.
+/// Older profiles return ENOSYS. No shrink, delegation or implicit allocator.
+pub fn heap_grow(pages: u64) -> Result<crate::memory::OwnedHeapPages, Error> {
+    crate::memory::decode_growth(call(4, [pages, 0, 0, 0, 0, 0])?, pages)
 }
 
 pub fn yield_now() -> Result<(), Error> {

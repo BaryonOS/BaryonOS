@@ -8,22 +8,22 @@ Een afgeronde deelimplementatie tekent geen volledig productcriterium af.
 | Werkpakket | Toestand | Eigenaar / exclusieve writes | Acceptatie-ID's | Interface / bewijsgrens |
 |---|---|---|---|---|
 | TASK-DOC | geïntegreerd | root; FULL/status/queue/rubric | alle | opdracht intact, 62 open rijen; 32% ongewijzigd |
-| TASK-I01 | root61ea: zeven lokale VMs groen; zes CI groen, algemene CI-ignorefix volgt | root | FR-K02,FR-K03,FR-O04,FR-B01 | bron/hash/ESP/disk gebonden, geen release |
+| TASK-I01 | root61ea zeven lokale VMs; checkpoint20b alle zeven CI groen; nieuwe kandidaat volgt | root | FR-K02,FR-K03,FR-O04,FR-B01 | bron/hash/ESP/disk gebonden, geen release |
 | TASK-A03/R1 | native v7documentsessie geïntegreerd | root | FR-A02,FR-A13,FR-O01–FR-O03 | lost-BEGIN/ownerdeath-cleanup blijft open |
 | TASK-TCP | root61ea nativepair + strictcapture groen | root; netwerkbuilder leverdecore/app/peer | FR-N01,FR-N02,FR-H03 | 21TX/13RX,HTTP/FIN/refused/reset/retry/300ticktimeout,strictcapture; TLS/config/appgrants open |
 | TASK-KEYSDK-NATIVE | root61ea nativepair + strictcapture groen | root; keyclient/app/Cargo | FR-B01,FR-O05 | crypto2/2/9+record1/1/10/2; veilige disk/keypersistentie blijftopen |
 | TASK-INPUT | core/review geïntegreerd; nativehook open | root | FR-U01–FR-U05,FR-H01 |20hosttests/target; geen werkelijk inputservice-/compositorbewijs |
 | TASK-FPU/CLOCK | root61ea native groen | root | FR-K02,FR-K03 |3levens/157save=restore/#UD/reuse/100Hz, geen fullCPU/hardwareclaim |
-| TASK-MEMORY | actief; worktreememory | kernel_storage; m3.rs,nieuwheap.rs,paging.rs,SDKmemory/native/tests | FR-K02,FR-K03,FR-L02,FR-N02 | ABI1.7sys4voorstel, atomicfallibleownRW/NXzeroheap8MiBquota; Geenanderewritersruntime-native.rs |
-| TASK-USER-ALLOC | worker42d4bc9 gereed/beoordeeld; rootintegratie volgt | native_ui_apps; sdk/heap-allocator/**,USER-ALLOCATOR.md | FR-K02,FR-L02,FR-A05,FR-N02 | gelockte no_stdallocator/eigenarena/align/OOM/stats; geenhostfallback |
+| TASK-MEMORY | core084/fixture492 geïntegreerd; root vijf native cases volgt | kernel_storage; m3.rs,nieuwheap.rs,paging.rs,SDKmemory/native/tests | FR-K02,FR-K03,FR-L02,FR-N02 | ABI1.7sys4voorstel, atomicfallibleownRW/NXzeroheap8MiBquota; Geenanderewritersruntime-native.rs |
+| TASK-USER-ALLOC | 42d4bc9 geïntegreerd;15 hosttests/collecties en targetbuild groen | native_ui_apps; sdk/heap-allocator/**,USER-ALLOCATOR.md | FR-K02,FR-L02,FR-A05,FR-N02 | gelockte no_stdallocator/eigenarena/align/OOM/stats; geenhostfallback |
 | TASK-TLS-PORT | actief; tls-portworktree | network_nas_ai; services/tls-engine/**,NATIVE-TLS.md | FR-N02,FR-P01–FR-P06 | onderhoudenrustls/no_stdproviderport, exactePQC/CA/name/pin/mTLS; random/signer/heap/trustedtime gates |
-| TASK-KEYRANDOM | actief; keyring-randomworktree | security_release; keyringcore/serviceadapter,nieuwrandomclient/contract | FR-B01,FR-N02 | random-onlyingress/op10voorstel, onderhoudenCSPRNG/health/quota/clockfailclosed; rootcapbinding/nativebewijsvolgt |
+| TASK-KEYRANDOM | actief; keyring-randomworktree | security_release; keyringcore/serviceadapter,nieuwrandomclient/contract | FR-B01,FR-N02 | random-onlyingress/op10, HKDF-opruimreview open, onderhoudenCSPRNG/health/quota/clockfailclosed; rootcapbinding/nativebewijsvolgt |
 | TASK-RTC | core68dd9f5 geïntegreerd; native adapter open | git_build_audit; drivers/rtc/**,RTC-WALLTIME.md | FR-N02,FR-S03 | 11 hosttests + onafhankelijke14 met17.892datums, target; kwaliteitUnauthenticatedRtc, geen certtijdclaim |
 | TASK-RTC-V | afgerond, alleen lezen/eigentarget | acceptance_contract | FR-N02,FR-B04 | gerichtegrensreview/tegenvoorbeelden; geenmenselijkeaudit |
 | TASK-CONTEXT | aanvullende20secties verwerkt | root; FULL/context/queue/progress | alle | stabiele62IDs, UC/compatmatrix/formaat/100cold/24uur; oorspronkelijkeopdracht intact |
 | TASK-MATERIAAL-NATIVE | actief: gericht ontwerp | native_ui_apps; eigen nieuwe UI-worktree/bestanden na contract | FR-U01–FR-U05,FR-A02,FR-O01 | echte userspace renderer/editor; geen hostprototype als nativebewijs |
-| TASK-DISPLAY-INPUT | actief: gericht grensontwerp | git_build_audit; eigen nieuwe transportworktree/bestanden na contract | FR-U01,FR-K03,FR-H01 | GOP metadata, bounded blit, PS2 bron; root bezit ABI/hooks/build |
-| TASK-INT/GIT | remote61ea exact gepubliceerd; CI-ignorefix/checkpoint volgt | root; sharedABI/build/locks/status/Git | allegeraakt | CLI-authblok omzeild via beschikbare GitData; lease/treecontrole geslaagd, zeven nieuwe native runs groen |
+| TASK-DISPLAY-INPUT | actief: gericht grensontwerp | git_build_audit; eigen nieuwe transportworktree/bestanden na contract | FR-U01,FR-K03,FR-H01 | cap04d geïntegreerd/52-reviewtests; GOP hardware los; adapters in uitvoering, root bezit ABI/hooks/build |
+| TASK-INT/GIT | remote20b exact gepubliceerd/zeven CI groen; nieuwe bronfreeze volgt | root; sharedABI/build/locks/status/Git | allegeraakt | GitData lease/treecontrole; memory/allocator/GOP/cap-kandidaat krijgt nieuwe bevroren gates |
 
 Volgende verplichte werk blijft zichtbaar: schaalbaar geheugen, echte
 compositor/sessie/toegankelijkheid, audio en alle apps/engineports, persistente
