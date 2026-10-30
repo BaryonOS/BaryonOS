@@ -13,6 +13,9 @@ use core::{
     ptr,
 };
 use kernel_core::{user, Frames, Kind, Owner, PAGE};
+#[cfg(feature = "milestone-m5")]
+#[macro_use]
+mod block_broker;
 #[cfg(feature = "native-keyring")]
 mod keyring;
 #[cfg(feature = "milestone-m4")]

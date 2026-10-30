@@ -56,6 +56,8 @@ pub struct Manifest {
     pub target: u32,
     pub image_length: u32,
     pub version: u64,
+    /// Signed informational metadata; it does not set the installation floor.
+    /// The wire format still requires this value to be at most `version`.
     pub min_version: u64,
     pub image_sha256: [u8; 32],
     pub ed25519_key_id: [u8; 8],
@@ -423,9 +425,7 @@ pub enum Decision {
 pub fn decide(header: &Header, current_version: u64, floor: u64, inbox: SlotResult) -> Decision {
     match inbox {
         Err(reject) => Decision::Rejected(reject),
-        Ok(manifest) if manifest.version < floor || manifest.version < manifest.min_version => {
-            Decision::Rejected(Reject::Downgrade)
-        }
+        Ok(manifest) if manifest.version < floor => Decision::Rejected(Reject::Downgrade),
         Ok(manifest) if manifest.version <= current_version => Decision::UpToDate,
         Ok(manifest) => Decision::Install {
             target: other(header.active),
@@ -668,6 +668,21 @@ mod tests {
                 target: 1,
                 version: 2
             }
+        );
+        // Direct callers can supply an already-constructed manifest. The
+        // informational field does not become an installation floor.
+        let mut metadata = v2;
+        metadata.min_version = 99;
+        assert_eq!(
+            decide(&header, 1, 1, Ok(metadata)),
+            Decision::Install {
+                target: 1,
+                version: 2
+            }
+        );
+        assert_eq!(
+            decide(&header, 1, 3, Ok(metadata)),
+            Decision::Rejected(Reject::Downgrade)
         );
         assert_eq!(decide(&header, 2, 2, Ok(v2)), Decision::UpToDate);
         assert_eq!(

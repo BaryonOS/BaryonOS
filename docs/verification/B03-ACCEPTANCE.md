@@ -1,4 +1,4 @@
-# B03 — acceptatie ondertekende updates en rollback
+# B03 — acceptatie ondertekende updates en terugval vóór vloerverhoging
 
 Datum: 30 oktober 2026 (Europe/Amsterdam). Contract:
 [B03-SIGNED-UPDATES](../implementation/B03-SIGNED-UPDATES.md); besluit
@@ -7,13 +7,15 @@ ADR-044. Bewijsmap: [`b03/`](b03/).
 ## Geaccepteerde eigenschap
 
 Criterium B03: *authentieke updates, onderbreking, downgrade-aanvallen en
-herstel naar een geldige vorige versie zijn end-to-end getest.* Op het eigen
+terugval naar een geldige vorige versie vóór verhoging van
+`NieuwOsMinVersion` boven die versie zijn end-to-end getest.* Op het eigen
 OS in het QEMU-referentieprofiel start de eigen UEFI-loader alleen een
 kernelimage uit een slot waarvan het manifest met beide vastgepinde TEST-
 ankers (Ed25519 én ML-DSA-65) verifieert en waarvan het image lengte en
 SHA-256 uit dat manifest heeft; een firmwaregebonden versievloer weigert
-oudere slots; een falend slot valt terug op het andere slot en twee falende
-slots stoppen de boot. De ring-3 update-dienst verifieert een inboxbundel
+oudere slots; een falend slot valt vóór kerneloverdracht terug op het andere
+slot als dit aan de huidige vloer voldoet. Twee falende slots stoppen de boot.
+Herstel na de kerneloverdracht en post-bootrollback zijn niet ondersteund. De ring-3 update-dienst verifieert een inboxbundel
 onafhankelijk vóór één schrijfactie, installeert in het niet-draaiende slot
 (image, FLUSH, manifest, FLUSH, header, FLUSH), overleeft een echte kill
 midden in de installatie zonder het actieve slot of de header te raken en

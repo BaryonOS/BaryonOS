@@ -10,6 +10,7 @@ test-ebs-retry = []
 graphics-g0 = []
 # B03: verify a hybrid-signed kernel from the slot store (ADR-044).
 signed-boot = ["dep:update-core"]
+test-anchors = []
 
 [dependencies]
 r-efi = { version = "=7.1.0", default-features = false }

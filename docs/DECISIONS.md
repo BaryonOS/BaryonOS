@@ -784,7 +784,7 @@ B01-commit reverten. Rechtenbit 1024 wordt bij andere objecttypen met
 **Eigenaar:** hoofdagent (driver, engine, kernelbroker, core, SDK, voorbeeld,
 gate, bewijs).
 
-## ADR-044 — Hybride ondertekende kernelupdates met slotopslag, versievloer en terugval (B03)
+## ADR-044 — Hybride ondertekende kernelupdates met slotopslag, versievloer en terugval vóór vloerverhoging (B03)
 
 **Datum:** 29 oktober 2026. Loaderfeature `signed-boot` en kernelprofiel
 `native-update`, beide opt-in; loaders zonder de feature (alle andere
@@ -818,7 +818,11 @@ schrijven.
    als de header ernaar wijst. De vloer stijgt alleen.
 3. De header van de slotopslag is een onondertekende hint voor de slotvolgorde.
    Faalt het aangewezen slot (formaat, sleutel-ID, handtekening, digest, vloer,
-   lezen), dan wordt het andere slot geprobeerd; falen beide, dan stopt de
+   lezen), dan wordt het andere slot geprobeerd zolang diens versie aan de
+   huidige vloer voldoet; terugval naar een vorige versie is dus alleen
+   mogelijk vóór verhoging van `NieuwOsMinVersion` boven die versie. Na de
+   kerneloverdracht is geen herstel of post-bootrollback geïmplementeerd;
+   falen beide slots, dan stopt de
    boot gecontroleerd (`BOOT:FAIL:NO_VALID_SLOT`, exit 0x11); ontbreekt de
    slotopslag, dan `BOOT:FAIL:NO_STORE`. Een lege, ongeldige of ontbrekende
    slotopslag valt nooit terug op een onondertekende ESP-kernel, en de build
@@ -832,13 +836,20 @@ schrijven.
    onderbreking laat het actieve slot en de header intact en de installatie
    is idempotent en hervatbaar.
 5. De dienst verifieert de inboxbundel met dezelfde ankers, controleert de
-   digest vóór de eerste schrijfactie en weigert `version ≤ huidige` als
+   digest vóór de eerste schrijfactie en controleert het teruggelezen doelimage
+   vóór manifest en header. `min_version` is ondertekende metadata en bepaalt
+   geen installatiebeleid; het formaat vereist `min_version ≤ version`.
+   De dienst weigert `version ≤ huidige` als
    up-to-date respectievelijk downgrade. Loader en dienst controleren
    onafhankelijk; de kernel kent geen manifest- of slotformaat en bevat
    geen cryptografie (kernel/AGENTS.md).
 6. De ankers in de repository zijn **TEST-ankers** (`tools/update-keys/TEST-*`,
    gegenereerd met `update-tool keygen`), inclusief seeds, zodat CI
-   reproduceerbaar ondertekent. Zij beschermen niets buiten de gate. Een
+   reproduceerbaar ondertekent. De loader gebruikt ze alleen met expliciete
+   feature `test-anchors` en meldt `BOOT:ANCHORS:TEST`. Zonder die feature
+   vereist hij externe releaseankers en weigert hij de bekende TEST-ankers.
+   De huidige dienst gebruikt nog TEST-ankers. Zij beschermen niets buiten
+   de gate. Een
    releaseprofiel vervangt de ankers in een afzonderlijke, buiten CI gehouden
    ondertekenstap; sleutelrotatie en intrekking horen bij B04.
 7. Dependencycontrole (`cargo tree -p update-core`): `ed25519-dalek` 2.2.0 en

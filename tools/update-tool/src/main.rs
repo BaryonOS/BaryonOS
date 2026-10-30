@@ -8,7 +8,7 @@
 use std::{
     collections::BTreeMap,
     env, fs,
-    io::Read,
+    io::{Read, Write},
     path::{Path, PathBuf},
     process::ExitCode,
 };
@@ -115,11 +115,21 @@ fn hex(bytes: &[u8]) -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
 
-fn write_new(path: &Path, bytes: &[u8]) -> Result<(), String> {
-    if path.exists() {
-        return Err(format!("{} exists; refusing to overwrite", path.display()));
+fn write_new(path: &Path, bytes: &[u8], mode: u32) -> Result<(), String> {
+    let mut options = fs::OpenOptions::new();
+    options.write(true).create_new(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(mode);
     }
-    fs::write(path, bytes).map_err(|e| format!("{}: {e}", path.display()))
+    #[cfg(not(unix))]
+    let _ = mode;
+    let mut file = options
+        .open(path)
+        .map_err(|e| format!("{}: {e}", path.display()))?;
+    file.write_all(bytes)
+        .map_err(|e| format!("{}: {e}", path.display()))
 }
 
 fn key_paths(dir: &Path, label: &str) -> [PathBuf; 5] {
@@ -156,10 +166,10 @@ fn keygen(options: &Options) -> Result<(), String> {
     );
     let keys = SigningKeys::from_seeds(ed_seed, pq_seed);
     let anchors = keys.anchors();
-    write_new(&paths[0], ed_seed)?;
-    write_new(&paths[1], pq_seed)?;
-    write_new(&paths[2], &anchors.ed25519)?;
-    write_new(&paths[3], &anchors.mldsa65)?;
+    write_new(&paths[0], ed_seed, 0o600)?;
+    write_new(&paths[1], pq_seed, 0o600)?;
+    write_new(&paths[2], &anchors.ed25519, 0o644)?;
+    write_new(&paths[3], &anchors.mldsa65, 0o644)?;
     let json = format!(
         "{{\n  \"label\": \"{label}\",\n  \"purpose\": \"{purpose}\",\n  \"ed25519_public\": \"{ed}\",\n  \"ed25519_key_id\": \"{edid}\",\n  \"mldsa65_public_sha256\": \"{pqhash}\",\n  \"mldsa_key_id\": \"{pqid}\"\n}}\n",
         purpose = if label.starts_with("TEST") {
@@ -172,7 +182,7 @@ fn keygen(options: &Options) -> Result<(), String> {
         pqhash = hex(&update_core::sha256(&anchors.mldsa65)),
         pqid = hex(&anchors.mldsa_key_id()),
     );
-    write_new(&paths[4], json.as_bytes())?;
+    write_new(&paths[4], json.as_bytes(), 0o644)?;
     println!("generated {label} keys in {}", dir.display());
     Ok(())
 }

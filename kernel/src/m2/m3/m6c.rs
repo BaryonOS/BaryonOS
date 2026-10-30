@@ -1,6 +1,7 @@
 //! M6c object-service fixture and bounded block broker. Object policy lives in
 //! ring 3; the observer below checks the fixed native acceptance fixture only.
 //! Single CPU, IF0; owned snapshots, no retained userspace pointer or DMA alias.
+use super::block_broker::{err, input_bytes, input_plan, operation_index, required};
 use super::*;
 use capability_core::{BlockScope, Message, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE, RECV, SEND};
 use catalog_core::{journal, wire};
@@ -208,65 +209,6 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
             r.quarantined = true;
         }
     }
-}
-
-fn err(e: virtio_core::Error) -> i64 {
-    use virtio_core::Error::*;
-    match e {
-        Busy | Pending => -8,
-        Range | Invalid | WrongTicket | StaleEpoch => -1,
-        Protocol => -15,
-        Io | Unsupported => -12,
-        Timeout => -13,
-        Offline | Exhausted => -14,
-    }
-}
-fn operation_index(op: Operation) -> usize {
-    match op {
-        Operation::Read { .. } => 0,
-        Operation::Write { .. } => 1,
-        Operation::Flush => 2,
-    }
-}
-fn required(op: Operation) -> u64 {
-    match op {
-        Operation::Read { .. } => BLOCK_READ,
-        Operation::Write { .. } => BLOCK_WRITE,
-        Operation::Flush => BLOCK_FLUSH,
-    }
-}
-fn input_plan(s: &State, slot: usize, pointer: u64) -> Result<user::CopyPlan, i64> {
-    let p = &s.processes[slot];
-    user::sector_input_plan(pointer, p.pid, |va| {
-        let (physical, writable, _, user) = p.paging.as_ref()?.permissions(va)?;
-        let page = physical & !(PAGE - 1);
-        let Owner::User(owner, _) = s.frames.owner(page).ok()? else {
-            return None;
-        };
-        Some(user::PageAccess {
-            physical: page,
-            owner,
-            user,
-            writable,
-        })
-    })
-    .map_err(|_| -3)
-}
-fn input_bytes(plan: &user::CopyPlan) -> [u8; 512] {
-    let mut bytes = [0; 512];
-    let mut at = 0;
-    for c in &plan.chunks[..plan.count] {
-        paging::physical_read(c.physical, |source| {
-            for i in 0..c.length {
-                // SAFETY: Whole plan was validated caller-owned/effectively USER;
-                // RO scratch reads exact bytes, without a writable text alias.
-                bytes[at + i] = unsafe { source.add(c.offset + i).read_volatile() };
-            }
-        });
-        at += c.length;
-    }
-    assert_eq!(at, 512);
-    bytes
 }
 
 fn put(s: &State, slot: usize, offset: u64, value: u64) {

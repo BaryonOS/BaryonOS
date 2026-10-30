@@ -1,6 +1,6 @@
 # Actuele projectstatus
 
-## B03 ondertekende updates en rollback geaccepteerd, 34% — 30 oktober 2026
+## B03 ondertekende updates en terugval vóór vloerverhoging geaccepteerd, 34% — 30 oktober 2026
 
 Branch `ccr-43832ef7-gi2qlz`, basis `main` `f63a0c1` (squash van
 [PR #52](https://github.com/simonvanieperen/nieuw-os/pull/52), B01; GitHub
@@ -12,11 +12,12 @@ slotopslag als `virtio-blk-pci` 00:05.0.
 - `crates/update-core`: manifest `NOSMAN01` (84 canonieke bytes + Ed25519 +
   ML-DSA-65), slotopslag `NOSSLOT1` (header-hint, twee slots van 2 MiB, inbox),
   hybride verificatie tegen vastgepinde ankers, selectie met versievloer en
-  terugval, installatiebeslissing.
+  terugval vóór vloerverhoging naar een geldige vorige versie, installatiebeslissing.
 - Loader `boot/loader/src/signed.rs`: zoekt de slotopslag via Block I/O,
   verifieert beide handtekeningen, digest én ELF-laadbaarheid vóór één byte
   wordt uitgevoerd, leest en verhoogt de UEFI-vloer `NieuwOsMinVersion`, valt
-  terug op het andere slot, stopt met `BOOT:FAIL:NO_VALID_SLOT` of
+  vóór de kerneloverdracht terug op het andere slot als het aan de vloer
+  voldoet, stopt met `BOOT:FAIL:NO_VALID_SLOT` of
   `BOOT:FAIL:NO_STORE` (nooit terugval naar een onondertekende ESP-kernel);
   selectie op een eigen 1 MiB-stack.
 - Kernel `kernel/src/m2/m3/update.rs`: dezelfde generieke blokbroker als het
@@ -38,8 +39,8 @@ slotopslag als `virtio-blk-pci` 00:05.0.
 en `docs/verification/b03/`. Loader- en kernelbewijs: installatie v1→v2 (3 048
 sectoren, 3 flushes, 1 headerwrite), herstart in slot B met vloer 1→2,
 downgrade van een geldig ouder slot geweigerd, geflipte ML-DSA-byte, geflipte
-imagebyte en ondertekend niet-ELF-image elk als slot geweigerd met terugval en
-herstel van slot B, echte hostkill midden in de kopie zonder header- of slot-
+imagebyte en ondertekend niet-ELF-image elk als slot geweigerd met terugval
+naar v1 vóór verhoging van de vloer en herinstallatie van slot B, echte hostkill midden in de kopie zonder header- of slot-
 A-wijziging gevolgd door hervatting en start van v2, beide slots ongeldig →
 gecontroleerde stop zonder kernel, inboxbundel met kapotte handtekening,
 lagere versie of vreemde sleutel geweigerd zonder één write. Hosttests: 7
@@ -51,6 +52,10 @@ gate zijn verwerkt: terugval naar de ESP zonder slotopslag (nu harde stop),
 vloer verhoogd vóór ELF-validatie (nu pas na een laadbaar image, stage
 `bad-elf`), hardgepinde 64 KiB-stackgrens in `kernel-core` (nu parameter) en
 een cut-controle die een hervatte installatie zou afkeuren.
+
+**Grenzen:** herstel na kerneloverdracht en post-bootrollback worden niet
+ondersteund. De bestaande gate is historisch bewijs voor de eerdere bron; de
+wijzigingen van deze review vereisen afzonderlijke validatie.
 
 **Roadmap rubric v1: 32% → 34%** (B03 +2).
 

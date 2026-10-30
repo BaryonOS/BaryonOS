@@ -1,5 +1,6 @@
 //! Trusted, bounded block broker; user processes see typed READ + IPC only.
 //! No user frame/address is ever a DMA target or retained across device I/O.
+use super::block_broker::err;
 use super::*;
 use block_protocol::wire;
 use capability_core::{BlockScope, Message, BLOCK_READ};
@@ -324,17 +325,7 @@ fn bind_service(s: &mut State) {
         put(s, 0, offset, value);
     }
 }
-fn err(error: virtio_core::Error) -> i64 {
-    use virtio_core::Error::*;
-    match error {
-        Pending | Busy => -8,
-        Range | Invalid | WrongTicket | StaleEpoch => -1,
-        Protocol => -15,
-        Io | Unsupported => -12,
-        Timeout => -13,
-        Offline | Exhausted => -14,
-    }
-}
+
 pub fn syscall(s: &mut State, slot: usize, number: u64, a: [u64; 6]) -> (i64, u64) {
     if slot == 0 {
         runtime().service_calls += 1;

@@ -44,6 +44,26 @@ fn keygen_sign_verify_pack_round_trip() {
         "{}",
         String::from_utf8_lossy(&out.stderr)
     );
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        for name in ["TEST-scratch-ed25519.seed", "TEST-scratch-mldsa65.seed"] {
+            assert_eq!(
+                fs::metadata(keys.join(name)).unwrap().permissions().mode() & 0o077,
+                0
+            );
+        }
+        for name in [
+            "TEST-scratch-ed25519.pub",
+            "TEST-scratch-mldsa65.pub",
+            "TEST-scratch-anchors.json",
+        ] {
+            assert_eq!(
+                fs::metadata(keys.join(name)).unwrap().permissions().mode() & 0o133,
+                0
+            );
+        }
+    }
     // Refuses to overwrite an existing label.
     let again = tool(&[
         "keygen",

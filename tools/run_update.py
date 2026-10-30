@@ -158,7 +158,7 @@ def controlled(stdout: str) -> list[str]:
 
 def expected_markers(stage: str) -> tuple[str, ...]:
     plan = STAGES[stage]
-    lines = list(plan["loader"])
+    lines = ["BOOT:ANCHORS:TEST", *plan["loader"]]
     if plan["outcome"] == "NO_VALID_SLOT":
         return tuple(lines + ["BOOT:FAIL:NO_VALID_SLOT"])
     lines += ["BOOT:SIGNED:OK", *BOOT, "UPDATE:MANIFEST:PASS"]

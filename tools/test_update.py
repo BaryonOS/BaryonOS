@@ -10,7 +10,7 @@ import json
 import shutil
 import subprocess
 import sys
-from common import BUILD, ROOT, environment, save_json, sha256, source_hash
+from common import BUILD, ROOT, TARGET, environment, save_json, sha256, source_hash
 from build import build
 import run_update
 from run_update import ORDER, STAGES
@@ -18,6 +18,7 @@ from run_update import ORDER, STAGES
 TEST_INPUTS = "test_update_*.py"
 HOST = [
     ["cargo", "+1.90.0", "test", "--locked", "-p", "update-core", "-p", "update-tool"],
+    ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-update-example", "--lib"],
     [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", TEST_INPUTS],
 ]
 KERNELS = {"k1": ("native-update", 1, "kernel-v1.elf"), "k2": ("native-update", 2, "kernel-v2.elf"),
@@ -47,8 +48,8 @@ def prepare_images(frozen: str) -> dict:
     images = {"schema_version": 1, "source_sha256": frozen, "files": {}, "kernels": {}, "manifests": {},
               "loader_sha256": None, "builds": {}}
     for name, (feature, version, filename) in KERNELS.items():
-        manifest = build("signed-boot", feature, f"update-{name}", image_version=version)
-        kernel = ROOT / "target" / "x86_64-unknown-none/release/os-kernel"
+        manifest = build("signed-boot", feature, f"update-{name}", image_version=version, test_anchors=True)
+        kernel = TARGET / "x86_64-unknown-none/release/os-kernel"
         shutil.copy2(kernel, out / filename)
         images["files"][name] = filename
         images["kernels"][name] = sha256(out / filename)
@@ -85,7 +86,7 @@ def main() -> int:
     path = BUILD / "update-gate.json"
     save_json(path, summary)
     for command in HOST:
-        result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
+        result = subprocess.run(command, cwd=ROOT, env=environment(), capture_output=True, text=True)
         totals = [line for line in (result.stdout + result.stderr).splitlines()
                   if line.startswith(("test result:", "Ran ", "OK", "FAILED"))]
         summary["host"].append({"command": command, "exit": result.returncode, "totals": totals,

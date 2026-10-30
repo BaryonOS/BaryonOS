@@ -17,7 +17,7 @@ import update_disk as disk  # noqa: E402
 
 def transcript(stage: str, values: dict[str, int], extra: str = "") -> str:
     plan = ru.STAGES[stage]
-    lines = list(plan["loader"])
+    lines = ["BOOT:ANCHORS:TEST", *plan["loader"]]
     if plan["outcome"] == "NO_VALID_SLOT":
         lines.append("BOOT:FAIL:NO_VALID_SLOT")
         return "\n".join(lines) + "\n"

@@ -4,9 +4,32 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 import shutil
 from common import BUILD, ROOT
+
+
+# Reports include command lines and tool output as well as path fields. Keep
+# paths under ROOT relative and remove machine-specific paths everywhere else.
+HOST_PATH = re.compile(r"(?<![A-Za-z0-9_.:/-])(?:[A-Za-z]:[\\/]|/)[^\s\"'<>]+")
+
+def portable(value):
+    if isinstance(value, dict):
+        return {key: portable(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [portable(item) for item in value]
+    if not isinstance(value, str):
+        return value
+    def replace(match):
+        path = match.group(0)
+        root = str(ROOT)
+        if path == root:
+            return "."
+        if path.startswith(root + "/"):
+            return path[len(root) + 1:]
+        return "<host-path>"
+    return HOST_PATH.sub(replace, value)
 
 
 def main() -> int:
@@ -22,17 +45,21 @@ def main() -> int:
     if summary.get("status") != "completed" or summary.get("passed") is not True:
         raise ValueError("only a completed, passing B03 gate can be captured")
     destination.mkdir(parents=True)
-    shutil.copy2(summary_path, destination / "update-gate.json")
     for index, stage in enumerate(summary["stages"]):
         run = Path(stage["run_directory"]).resolve(strict=True)
         run.relative_to((BUILD / "run").resolve())
         report = json.loads((run / "result.json").read_text())
         if report.get("passed") is not True or report["source_sha256"] != summary["source_sha256"]:
             raise ValueError(f"stage {index} is not a passing run of the frozen source")
+        relative_run = run.relative_to(ROOT).as_posix()
+        stage["run_directory"] = relative_run
+        report["run_directory"] = relative_run
         target = destination / f"{index}-{stage['stage']}"
         target.mkdir()
-        for name in ("result.json", "serial.txt", "stderr.txt"):
+        (target / "result.json").write_text(json.dumps(portable(report), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        for name in ("serial.txt", "stderr.txt"):
             shutil.copy2(run / name, target / name)
+    (destination / "update-gate.json").write_text(json.dumps(portable(summary), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     sums = [f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(destination).as_posix()}"
             for path in sorted(destination.rglob("*")) if path.is_file()]
     (destination / "SHA256SUMS").write_text("\n".join(sums) + "\n", encoding="utf-8")

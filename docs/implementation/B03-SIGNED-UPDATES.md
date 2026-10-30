@@ -1,10 +1,12 @@
-# B03 — ondertekende updates en rollback (profiel `native-update`, loader `signed-boot`)
+# B03 — ondertekende updates en terugval vóór vloerverhoging (profiel `native-update`, loader `signed-boot`)
 
 Datum: 29 oktober 2026. Status: **ontwerpcontract, daarna geïmplementeerd in
 dezelfde opdracht**; uitgevoerde controles en hun uitkomst staan uitsluitend
 in [B03-ACCEPTANCE](../verification/B03-ACCEPTANCE.md). Criterium B03
 (docs/progress.json): *authentieke updates, onderbreking, downgrade-aanvallen
-en herstel naar een geldige vorige versie zijn end-to-end getest.* Vervult
+en terugval naar een geldige vorige versie vóór verhoging van
+`NieuwOsMinVersion` boven die versie zijn end-to-end getest.* Herstel na
+kerneloverdracht en post-bootrollback worden niet ondersteund. Vervult
 P03 (systeemimage) uit [VERIFIABLE-SECURITY-AND-PQC](VERIFIABLE-SECURITY-AND-PQC.md)
 §5 en EU-07 uit [EUROPE-AND-RELEASE](EUROPE-AND-RELEASE.md). Besluit: ADR-044.
 
@@ -34,9 +36,12 @@ installeert zodat een onderbreking nooit het laatst geldige slot aantast.
    UEFI-NV-variabele `NieuwOsMinVersion` (eigen vendor-GUID). Een slot met
    `version < vloer` wordt geweigerd als `DOWNGRADE`, ook als de pointer in de
    header ernaar wijst. De vloer stijgt alleen; zij daalt nooit automatisch.
-4. **Terugval naar de vorige geldige versie.** De header-pointer is een hint,
+4. **Terugval naar de vorige geldige versie vóór vloerverhoging.** De header-pointer is een hint,
    geen autoriteit. Faalt het aangewezen slot (handtekening, digest, vloer,
-   lengte, lezen), dan probeert de loader het andere slot. Pas als beide
+   lengte, lezen), dan probeert de loader het andere slot, mits dat aan de
+   vloer voldoet. Na verhoging van `NieuwOsMinVersion` boven de vorige
+   versie is terugval naar die versie niet mogelijk; na kerneloverdracht
+   bestaat geen herstel of post-bootrollback. Pas als beide
    falen eindigt de boot gecontroleerd met `BOOT:FAIL:NO_VALID_SLOT`.
 5. **Onderbreking laat het actieve slot intact.** De update-dienst schrijft
    uitsluitend naar het niet-actieve slot: eerst image, FLUSH, dan manifest,
@@ -66,7 +71,7 @@ installeert zodat een onderbreking nooit het laatst geldige slot aantast.
 | 12 | `target` u32 (1 = kernel) |
 | 16 | `image_length` u32 (≤ 2 MiB) |
 | 20 | `version` u64 |
-| 28 | `min_version` u64 (door de ondertekenaar beweerde ondergrens) |
+| 28 | `min_version` u64 (ondertekende informatieve metadata; geen installatievloer, moet ≤ `version` zijn) |
 | 36 | `image_sha256` [32] |
 | 68 | `ed25519_key_id` [8] (eerste 8 bytes van SHA-256 over de publieke sleutel) |
 | 76 | `mldsa_key_id` [8] |

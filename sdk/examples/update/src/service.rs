@@ -12,13 +12,13 @@
 #[cfg(not(all(target_arch = "x86_64", target_os = "none")))]
 compile_error!("update-service is only for the Nieuw OS x86_64-unknown-none target");
 
+mod install;
 mod support;
 
 use nieuw_os_sdk_runtime::{block::READ_MAX, native, BlockDevice, Error, Handle};
 use update_core::{
-    decide, header_after_install, image_sector, image_sectors, manifest_sector, verify_manifest,
-    Decision, Header, ImageDigest, Manifest, Reject, TrustAnchors, INBOX_IMAGE, INBOX_MANIFEST,
-    MANIFEST_LEN, MANIFEST_SECTORS, SECTOR,
+    decide, manifest_sector, verify_manifest, Decision, Header, Reject, TrustAnchors,
+    INBOX_MANIFEST, MANIFEST_LEN, MANIFEST_SECTORS, SECTOR,
 };
 
 /// TEST anchors (tools/update-keys); the same bytes the loader pins.
@@ -44,12 +44,6 @@ const TARGET_SLOT: u64 = 320;
 const READS: u64 = 328;
 const WRITES: u64 = 336;
 const FLUSHES: u64 = 344;
-const COPIED: u64 = 352;
-const NEW_GENERATION: u64 = 360;
-/// 1 when a partial install of this bundle was already present in the target
-/// slot (image prefix without manifest): the install is being resumed. The
-/// kernel's labelled cut fixture reads this word to cut only a first attempt.
-const RESUMED: u64 = 368;
 const RUNNING_SLOT: u64 = 384;
 const OTHER_VERSION: u64 = 392;
 const OTHER_REJECT: u64 = 400;
@@ -174,58 +168,22 @@ fn done(disk: &Disk, result: u64) -> ! {
     }
 }
 
-/// Two-phase install: digest pass over the inbox image without writing,
-/// then image copy, FLUSH, manifest, FLUSH, header, FLUSH.
-fn install(
-    disk: &mut Disk,
-    header: &Header,
-    manifest_bytes: &[u8; MANIFEST_LEN],
-    manifest: &Manifest,
-    target: u8,
-) -> Result<Result<(), Reject>, i64> {
-    let sectors = image_sectors(manifest.image_length);
-    let mut sector = [0u8; SECTOR];
-    // Resume detection: the target already carries this image's first
-    // sector but no manifest yet, so an earlier attempt was interrupted
-    // between the image writes and the manifest write.
-    let mut first = [0u8; SECTOR];
-    support::put(STEP, 9);
-    disk.read(INBOX_IMAGE, &mut first)?;
-    disk.read(image_sector(target), &mut sector)?;
-    let same_prefix = first == sector && first.iter().any(|byte| *byte != 0);
-    disk.read(manifest_sector(target), &mut sector)?;
-    let no_manifest = sector.iter().all(|byte| *byte == 0);
-    support::put(RESUMED, u64::from(same_prefix && no_manifest));
-    let mut digest = ImageDigest::new(manifest);
-    for index in 0..sectors {
-        support::put(STEP, 10);
-        disk.read(INBOX_IMAGE + index, &mut sector)?;
-        digest.update(&sector);
+impl install::Storage for Disk {
+    fn read(&mut self, sector: u32, buffer: &mut [u8; SECTOR]) -> Result<(), i64> {
+        Disk::read(self, sector, buffer)
     }
-    if let Err(reject) = digest.finish(manifest) {
-        return Ok(Err(reject));
+    fn write(&mut self, sector: u32, buffer: &[u8; SECTOR]) -> Result<(), i64> {
+        Disk::write(self, sector, buffer)
     }
-    let mut copied = 0u64;
-    for index in 0..sectors {
-        support::put(STEP, 11);
-        disk.read(INBOX_IMAGE + index, &mut sector)?;
-        disk.write(image_sector(target) + index, &sector)?;
-        copied += 1;
-        support::put(COPIED, copied);
+    fn flush(&mut self) -> Result<(), i64> {
+        Disk::flush(self)
     }
-    support::put(STEP, 12);
-    disk.flush()?;
-    support::put(STEP, 13);
-    disk.write_manifest(manifest_sector(target), manifest_bytes)?;
-    support::put(STEP, 14);
-    disk.flush()?;
-    support::put(STEP, 15);
-    let next = header_after_install(header, target);
-    disk.write(0, &next.encode())?;
-    support::put(STEP, 16);
-    disk.flush()?;
-    support::put(NEW_GENERATION, next.generation);
-    Ok(Ok(()))
+    fn write_manifest(&mut self, first: u32, bytes: &[u8; MANIFEST_LEN]) -> Result<(), i64> {
+        Disk::write_manifest(self, first, bytes)
+    }
+    fn mark(&mut self, offset: u64, value: u64) {
+        support::put(offset, value);
+    }
 }
 
 #[no_mangle]
@@ -310,7 +268,7 @@ pub extern "C" fn _start() -> ! {
         Decision::Install { target, version } => {
             let manifest = inbox.unwrap_or_else(|_| fail(7, -1));
             support::put(TARGET_SLOT, u64::from(target));
-            match install(&mut disk, &effective, &manifest_bytes, &manifest, target) {
+            match install::install(&mut disk, &effective, &manifest_bytes, &manifest, target) {
                 Err(code) => fail(support::word(STEP), code),
                 Ok(Err(reject)) => {
                     support::put(INBOX_REJECT, reject_code(reject));

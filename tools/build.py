@@ -101,7 +101,9 @@ def inspect_pe(path):
     return {"format": "AMD64 PE32+", "subsystem": "EFI_APPLICATION", "imports": 0}
 
 
-def build(loader_feature=None, kernel_feature=None, label="normal", image_version=None):
+def build(loader_feature=None, kernel_feature=None, label="normal", image_version=None, test_anchors=False):
+    if test_anchors and loader_feature not in (None, "signed-boot"):
+        raise ValueError("test-anchors requires the signed-boot loader")
     if kernel_feature == "graphics-g0":
         if loader_feature not in (None, "graphics-g0"):
             raise ValueError("G0 requires its paired graphics loader")
@@ -117,6 +119,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             raise ValueError("update kernels need an explicit --image-version")
     elif image_version is not None:
         raise ValueError("--image-version applies to update kernels only")
+    if test_anchors and loader_feature != "signed-boot":
+        raise ValueError("test-anchors requires the signed-boot loader")
     extra_env = None
     sdk_selection = os.environ.get("NOS_SDK_RUNTIME", "0")
     if sdk_selection not in ("0", "1"):
@@ -228,7 +232,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     for package, target, feature in (("os-loader", "x86_64-unknown-uefi", loader_feature), ("os-kernel", "x86_64-unknown-none", kernel_feature)):
         args = ["cargo", "+1.90.0", "build", "--locked", "--release", "--target-dir", str(TARGET), "-p", package, "--target", target]
         if feature:
-            args += ["--features", feature]
+            features = feature + (",test-anchors" if package == "os-loader" and feature == "signed-boot" and test_anchors else "")
+            args += ["--features", features]
         run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
     loader = TARGET / "x86_64-unknown-uefi/release/os-loader.efi"
     kernel = TARGET / "x86_64-unknown-none/release/os-kernel"
@@ -269,8 +274,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "signed-boot"])
+    parser.add_argument("--test-anchors", action="store_true", help="explicitly build signed boot with repository TEST anchors")
     parser.add_argument("--image-version", type=int, help="B03: NOS_IMAGE_VERSION of an update kernel")
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()
     build(args.loader_feature, args.kernel_feature, args.loader_feature or args.kernel_feature or "normal",
-          args.image_version)
+          args.image_version, args.test_anchors)
