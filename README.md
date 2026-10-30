@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`cc136a3d`](https://github.com/simonvanieperen/nieuw-os/commit/cc136a3d4a84dc045089ad86f20925ce39e11a72) ·
+**Bron:** [`f6d3a108`](https://github.com/simonvanieperen/nieuw-os/commit/f6d3a108c8b53debd5a8d5415a46ce0772794020) ·
 **Ontwikkelbranch:** `simonvanieperen-studious-sniffle`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Reviewbevindingen en Windows-hostlinkercontrole PR #62 herstellen.
-34% blijft 34%; de onjuiste reviewclaims zijn gecorrigeerd en de preflight controleert ook de Windows-MSVC-linker met een negatieve regressietest. Dit sluit geen OS-criterium: hardware blijft 1/12, H02-H06 blijven open en er is geen nieuwe native of fysieke acceptatie.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Platformafhankelijkheid in synthetische POSIX-linkertest en historische bronclaim PR #62 herstellen.
+34% blijft 34%; de synthetische POSIX-linkertest kiest nu expliciet het POSIX-beleid, zodat het Windowsbeleid de cc-negatieven niet ongemerkt ongeldig maakt. Geen test overgeslagen of assertion verwijderd; een afzonderlijke Windowstest blijft behouden. Historische integratiebron is niet langer als actuele PR-head gelabeld. Dit sluit geen OS-criterium en wijzigt geen productiepreflight of rechten; nieuwe-head-CI en review blijven aparte gates.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

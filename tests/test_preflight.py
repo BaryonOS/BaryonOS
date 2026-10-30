@@ -105,10 +105,11 @@ class RequiredToolProbes(unittest.TestCase):
                 self.assertEqual(report['missing_host_test_tools'], [])
                 self.assertTrue(report['baseline_tools_present'])
 
-    @unittest.skipUnless(preflight.HOST_TEST_TOOLS, 'host C linker check applies to POSIX')
     def test_missing_host_linker_is_reported_separately_and_can_be_strict(self):
+        self.assertEqual(preflight.host_test_tools('posix'), ('cc',))
         for strict_host_tests, expected_status in ((False, 0), (True, 2)):
-            with self.subTest(strict_host_tests=strict_host_tests):
+            with self.subTest(strict_host_tests=strict_host_tests), \
+                    patch.object(preflight, 'HOST_TEST_TOOLS', preflight.host_test_tools('posix')):
                 status, report = self.inventory(
                     {'available': False},
                     strict_host_tests=strict_host_tests,

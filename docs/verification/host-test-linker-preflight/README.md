@@ -170,3 +170,39 @@ De native Windows-uitvoering is **niet uitgevoerd**.
 De tests verifiëren de Windows-keuze met synthetische probes, niet een
 daadwerkelijke Windows-host of volledige OS-acceptatie. Actuele PR-CI,
 reviewherhaling en merge blijven afzonderlijke gates.
+
+### Vervolgreview: platformbeleid van de synthetische test
+
+Basis `f6d3a108c8b53debd5a8d5415a46ce0772794020`. De bestaande
+POSIX-`cc`-test gebruikte impliciet `HOST_TEST_TOOLS` van de echte host.
+Met het Windowsbeleid `('link.exe',)` faalden daardoor twee assertions
+(één testcase, exit 1), terwijl de productiepreflight correct alleen de
+Windowslinker controleerde.
+
+De testcase kiest nu expliciet `host_test_tools('posix')`, met behoud van
+alle assertions en beide strict-scenario's. Geen skip: de synthetische
+POSIX-proef blijft ook op een Windows-host uitvoerbaar. De afzonderlijke
+Windowsproef blijft haar eigen Windowsbeleid kiezen.
+
+| Exact commando vanuit de PR-worktree | Exit | Resultaat |
+|---|---:|---|
+| `python3 -B -m unittest discover -s tests -p test_preflight.py -v` | 0 | 24 tests geslaagd onder normaal Linux/POSIX-beleid |
+| Onderstaand Pythoncommando | 0 | Dezelfde 24 tests geslaagd met synthetisch Windows-hostbeleid |
+| `python3 -B tools/progress.py --write` en `python3 -B tools/progress.py --check` | 0 | Score blijft 34/100 |
+| `git diff --check` | 0 | Geen whitespacefouten |
+
+```sh
+python3 -B -c 'import sys,unittest; sys.path[:0]=["tests","tools"]; import test_preflight; from unittest.mock import patch; suite=unittest.defaultTestLoader.loadTestsFromModule(test_preflight); context=patch.object(test_preflight.preflight,"HOST_TEST_TOOLS",("link.exe",)); context.start(); result=unittest.TextTestRunner(verbosity=2).run(suite); context.stop(); sys.exit(not result.wasSuccessful())'
+```
+
+Logs onder
+`/home/simon/.copilot/session-state/d7a153299dbd45d7ab72b2596483b441/files/`:
+`pr62-windows-policy-before.log` (reproductie vóór herstel, exit 1),
+`pr62-platform-policy-normal.log` en `pr62-platform-policy-windows.log`.
+De voorafgaande reproductie gebruikte dezelfde policy-patch, maar draaide
+uitsluitend `RequiredToolProbes("test_missing_host_linker_is_reported_separately_and_can_be_strict")`.
+Geen productiecodewijziging, nieuwe toolinstallatie of Windows-hostuitvoering
+voor deze testcase; dit is uitsluitend host-/mockbewijs.
+Alle CI-checks op f6d3a108 waren groen, maar nieuwe-head-CI en review blijven
+vereist. De vorige bronclaim in PROJECT-STATE is expliciet als historische
+integratiebron gelabeld. Geen native-/hardware- of nieuw rubricpunt.

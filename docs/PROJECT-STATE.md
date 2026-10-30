@@ -1,8 +1,27 @@
 # Actuele projectstatus
 
-## OVERDRACHT AAN VOLGENDE AGENT — PR #62 reviewherstel — 30 oktober 2026
+## OVERDRACHT AAN VOLGENDE AGENT — PR #62 platformbeleidtest hersteld — 30 oktober 2026
 
-Bronnen: PR-head `f71393398ea5f28f2ce49eae5279673695f06f48` en actuele
+Basis `f6d3a108c8b53debd5a8d5415a46ce0772794020`; branch
+`simonvanieperen-studious-sniffle`. De nieuwe review vond terecht dat de
+synthetische `cc`-test impliciet het hostbeleid gebruikte. Op Windows
+controleert de preflight `link.exe`, waardoor die `cc`-asserties falen.
+Gereproduceerd met het Windowsbeleid op de Linux-host: één test, twee
+assertiefouten, exit 1. De test kiest nu expliciet het synthetische
+POSIX-beleid, net als de afzonderlijke Windowstest expliciet haar beleid
+kiest. Geen test overgeslagen of assertion verwijderd; beide platformpaden
+blijven op iedere host controleerbaar. Productiepreflight niet gewijzigd.
+
+De bronvermelding van het vorige checkpoint is als historische
+integratiebron gelabeld. **34% → 34%**; geen nieuw rubriccriterium.
+Gerichte controlecommando's en resultaten staan in
+`verification/host-test-linker-preflight/README.md`.
+CI op de oude head f6d3a108 was volledig groen; nieuwe-head-CI en de nieuwe
+reviewbeslissing blijven afzonderlijk nodig vóór squashmerge.
+
+## Historisch checkpoint — PR #62 reviewherstel — 30 oktober 2026
+
+Bronnen: vorige PR-head (integratiebron) `f71393398ea5f28f2ce49eae5279673695f06f48` en toenmalige
 `main` `0ade8014c8179241dcfc68ea0ba8083664691240`; branch
 `simonvanieperen-studious-sniffle`. Gewone twee-oudermerge, geen rebase.
 Main voegt sinds de vorige integratie uitsluitend README-/assessmenttekst en
