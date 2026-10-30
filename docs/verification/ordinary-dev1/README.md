@@ -234,6 +234,12 @@ Aanvullend op dezelfde onveranderde geisoleerde bron uitgevoerd:
 `isolated-build-1/logs/runner-hosttests.txt`. Dit controleert de bestaande
 runnerlogica; het is geen vervanging van de nieuwe native gates.
 
+Aanvullend `python3 -B tools/dev.py python3 -B -m unittest tools.tests.test_package_windows_qemu`:
+**exit0, 10 hosttests, 0,035 s**. Uitvoer:
+`isolated-build-1/logs/packager-hosttests.txt`.
+Dit controleert de bestaande verpakkingsgrens; geen scriptwijziging,
+geproduceerde ZIP, PowerShell- of Windowsgastuitvoering.
+
 De specifieke buildisolatiecontrole is reproduceerbaar met
 `python3 -B docs/verification/ordinary-dev1/verify_isolated_freeze.py`:
 **exit0**. Zij hergebruikt de bestaande build-/packagerinspecties en
