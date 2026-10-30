@@ -19,7 +19,7 @@ Het afgestemde [SUR1-contract](../../ui/surface-protocol/README.md) is 48B-heade
 208B-chunkdata, maximaal vijf chunks per tile en één transaction-ID voor
 BEGIN/CHUNK/COMMIT. Alleen complete gevalideerde COMMIT plus echte DisplayClient-
 blit mag positief bevestigen. Root bouwt de ring3compositor tegen de pure
-Receiver/CommitReady/commit_with-interface; geen kernel-render-/GUIpolicy.
+Receiver/CommitReady/commit_with(token,now_tick,callback)-interface; geen kernel-render-/GUIpolicy.
 INFO meldt publieke schermgeometry en toegewezen Rect, geen fysieke base/stride.
 De app tekent lokaal; compositor valideert/telt de toegewezen offset op en
 beschermt zijn verplichte systeemrand. Canonieke row-major gridindices,
@@ -47,6 +47,14 @@ code400b0000. Dit blijft binnen bestaande userimage-/quota-/W^X-grenzen. Werkeli
 gebouwde ELF en user::parse zijn verplicht; native QMP/image/diskoracle komt
 pas bij rootintegratie. Er is geen claim van persistente encrypted keys/B02,
 volledig Materiaal, schermlezer of volwaardige testrelease.
+
+SUR1-review vond en reproduceerde een bekend verlopen Ready-token na malformed
+traffic. De regressie was rood op oude bron; expiry staat nu vóór decode en
+een verse native monotone tick is verplicht bij commit-admission. Zonder
+geldige deadline mag de callback niet lopen, geen positieve reply of frame-
+completion volgen. De deadline betreft admission vóór blit, geen vsyncbelofte
+over preëmptie of vermeende rollback van geschreven pixels. Bron-/red-/green-
+en onafhankelijke herreview staan bij `ui/surface-protocol/verification/`.
 
 30 oktober 2026; basis `61ea727`. Eigenaar `native_ui_apps`: uitsluitend
 `ui/native/**` en dit contract. Root bezit kernel/ABI/startupcaps/build/integratie;

@@ -7,6 +7,17 @@ publish = false
 
 [workspace]
 
+[features]
+default = []
+client = ["dep:nieuw-os-sdk-runtime", "dep:nieuw-os-catalog-client"]
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../../sdk/runtime", optional = true }
+nieuw-os-catalog-client = { path = "../../sdk/catalog-client", optional = true }
+
+[dev-dependencies]
+capability-core = { path = "../../crates/capability-core" }
+
 [profile.release]
 panic = "abort"
 codegen-units = 1

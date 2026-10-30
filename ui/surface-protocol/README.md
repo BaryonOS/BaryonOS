@@ -44,6 +44,11 @@ tile-reply maken en voert die callback verplicht uit met het gevalideerde
 globale rect/de volledige pixels. Root gebruikt hier **de echte**
 `DisplayClient::blit`; een hostrecorder/foutcallback is uitsluitend een test,
 geen native bewijs. Er is geen publieke positieve responsebuilder.
+De exacte signature is `commit_with(token, now_tick, callback)`: de vertrouwde
+native adapter samplet direct bij commit de werkelijke monotone SDK-tick, geen
+payload-/host-/wallclockwaarde. Expiry gebeurt vóór payloaddecode en nogmaals
+bij commit-admission vóór de eerste blit. Dit belooft geen vsyncdeadline over
+latere preëmptie en maakt geschreven pixels niet met terugwerkende kracht ongedaan.
 
 Nieuwere framegeneratie begint alleen op tile0 en vervangt een onaf frame;
 oudere/overlappende tiles zijn verboden. `completed_frame()` is alleen Some
@@ -72,3 +77,21 @@ cargo +1.90.0 build --offline --locked --manifest-path ui/surface-protocol/Cargo
 Hosttests controleren werkelijk deze state machine, malformed payloads,
 actor/epoch/replay, chunkvolgorde, randen, callbackfalen en timeout. Zij bewijzen
 geen kernelafzender, capabilityafdwinging, pixels op GOP of native input/appwerking.
+
+## Optionele appclient
+
+Feature `client` voegt alleen de bestaande SDK-runtime/catalog-Transport toe;
+default blijft de pure dependencyvrije assembler. `client::Session::new` neemt
+één Surface-SEND/reply-RECV-paar in eigendom na geldige constructie. `geometry`
+verifieert de echte compositorreply; `blit(frame,tile,rect,pixels)` publiceert
+BEGIN/vijf geordende chunks/COMMIT en accepteert uitsluitend een volledig
+gebonden reply met exact pixelcount. Alleen nog-niet-gepubliceerde sends mogen
+na kernel-EAGAIN opnieuw. Lostreply/unknownsend/protocolfout sluit beide eigen
+channels zonder een tile opnieuw te publiceren. `close` is expliciet en
+idempotent. Draft/dirty/presented blijven verantwoordelijkheid van de app;
+een error mag nooit die toestand als bevestigd aftekenen.
+
+`verification/freeze.json` bewaart de oorspronkelijke8test-freeze. Het actuele
+timeout-/clientbewijs staat afzonderlijk in `verification/deadline-fixed.json`:
+de nieuwe regressie faalde daadwerkelijk op de oude bron, de correctie heeft
+15 hosttests en onafhankelijke gerichte herreview. Geen native compositorclaim.
