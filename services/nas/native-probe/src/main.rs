@@ -10,7 +10,9 @@ compile_error!("native NAS probe requires Nieuw OS, never host int80");
 #[path = "../../../../sdk/examples/system/src/support.rs"]
 mod support;
 
-use nieuw_os_nas_core::{Entropy, Error as NasError, NamespaceStatus, Service, Workspace};
+use nieuw_os_nas_core::{
+    Entropy, Error as NasError, NamespaceStatus, Service, Session, Upload, Workspace, TOKEN_BYTES,
+};
 use nieuw_os_nas_probe::{dispatch, Frame, Ingress, LocalBinding, Op, RequestContext, SIZE, TAG};
 use nieuw_os_nas_volume::VolumeStorage;
 use nieuw_os_sdk_runtime::{
@@ -83,6 +85,36 @@ fn bump(at: u64) {
 }
 fn handle(at: u64) -> Handle {
     Handle::from_raw(support::word(at)).unwrap_or_else(|_| fail(91))
+}
+/// Startup bytes 256..296 and 296..336: the exact boot-1 session and upload
+/// handles (see CONTRACT.md). The normal guest publishes them here for the
+/// kernel's private test handoff; the cold guest receives them here from it.
+const REPLAY_SESSION: u64 = 256;
+const REPLAY_UPLOAD: u64 = 296;
+fn cold_replay_token(offset: u64) -> [u8; TOKEN_BYTES] {
+    check(
+        offset.is_multiple_of(8) && offset + TOKEN_BYTES as u64 <= 1024,
+        102,
+    );
+    let mut token = [0; TOKEN_BYTES];
+    for word in 0..TOKEN_BYTES / 8 {
+        let start = word * 8;
+        token[start..start + 8]
+            .copy_from_slice(&support::word(offset + start as u64).to_le_bytes());
+    }
+    token
+}
+fn publish_replay_token(offset: u64, token: &[u8; TOKEN_BYTES]) {
+    check(
+        offset.is_multiple_of(8) && offset + TOKEN_BYTES as u64 <= 1024,
+        105,
+    );
+    for word in 0..TOKEN_BYTES / 8 {
+        let start = word * 8;
+        let mut bytes = [0; 8];
+        bytes.copy_from_slice(&token[start..start + 8]);
+        support::put(offset + start as u64, u64::from_le_bytes(bytes));
+    }
 }
 fn send(to: SendEndpoint, tag: u64, bytes: &[u8]) -> Result<(), Error> {
     let message = Outgoing::new(tag, bytes)?;
@@ -340,11 +372,23 @@ fn guest(recover: bool) -> ! {
     bump(416);
     if recover {
         rpc.call(named(Op::Open, namespace), Some(NasError::Denied));
+        // Exact boot-1 handles from the kernel's private handoff; absent, zero
+        // or non-canonical input fails here before any replay request.
+        let session = cold_replay_token(REPLAY_SESSION);
+        let upload = cold_replay_token(REPLAY_UPLOAD);
+        check(Session::from_bytes(&session).is_ok(), 47);
+        check(Upload::from_bytes(&upload).is_ok(), 48);
         let mut read = Frame::new(Op::Read, 1);
-        read.session = [42; 40];
+        read.session = session;
         read.revision = 1;
         rpc.call(read, Some(NasError::Stale));
+        let mut replay = Frame::new(Op::Commit, 1);
+        replay.session = session;
+        replay.upload = upload;
+        rpc.call(replay, Some(NasError::Stale));
     } else {
+        check(cold_replay_token(REPLAY_SESSION) == [0; TOKEN_BYTES], 103);
+        check(cold_replay_token(REPLAY_UPLOAD) == [0; TOKEN_BYTES], 104);
         let mut accept = named(Op::Accept, namespace);
         accept.value = invitation.value;
         accept.length = 32;
@@ -380,6 +424,10 @@ fn guest(recover: bool) -> ! {
         pending.length = 32;
         pending.data[..32].fill(0x55);
         let pending = rpc.call(pending, None).upload;
+        // The exact Stage-reply pair of this boot, published for the private
+        // handoff only after both handles were issued by the real NAS core.
+        publish_replay_token(REPLAY_SESSION, &session);
+        publish_replay_token(REPLAY_UPLOAD, &pending);
         notify(1);
         wait(2);
         let mut old = Frame::new(Op::Commit, 1);
