@@ -9,8 +9,8 @@ use chacha20poly1305::{
     aead::{AeadInPlace, KeyInit},
     Key, Tag, XChaCha20Poly1305, XNonce,
 };
-use hkdf::Hkdf;
-use sha2::Sha256;
+use hkdf_protected::Hkdf;
+use sha2_kdf::Sha256;
 use zeroize::Zeroizing;
 
 use crate::{

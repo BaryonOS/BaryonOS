@@ -14,12 +14,25 @@ use chacha20poly1305::{
     aead::{AeadInPlace, KeyInit},
     Key, Tag, XChaCha20Poly1305, XNonce,
 };
-use hkdf::Hkdf;
-use sha2::Sha256;
+use hkdf_protected::Hkdf;
+use sha2_kdf::Sha256;
 use zeroize::Zeroize;
+
+// Fail compilation if the actual selected hash/cache/block-buffer drop chain
+// loses its wiping feature. Marker bounds do not replace the source/patch
+// review, or assert anything about deep compression or compiler copies.
+const _: fn() = || {
+    fn require<T: zeroize::ZeroizeOnDrop>() {}
+    require::<Sha256>();
+    require::<hkdf_protected::hmac::block_api::HmacCore<Sha256>>();
+    require::<hkdf_protected::hmac::Hmac<Sha256>>();
+    require::<Hkdf<Sha256>>();
+    require::<hkdf_protected::HkdfExtract<Sha256>>();
+};
 
 pub mod health;
 pub mod persistent;
+pub mod random;
 pub mod records;
 pub mod wire;
 
@@ -183,6 +196,7 @@ pub struct Service {
     /// A persistent snapshot binds this instance to one volume lineage.
     persistent_volume: Option<[u8; 16]>,
     operations: u32,
+    random: random::Pool,
     pub counters: Counters,
 }
 
@@ -220,6 +234,7 @@ impl Service {
             key_generation: 0,
             persistent_volume: None,
             operations: 0,
+            random: random::Pool::new(),
             counters: Counters {
                 entropy_bytes: 0,
                 reseeds: 0,
@@ -274,6 +289,7 @@ impl Service {
         self.reason = reason;
         self.master.zeroize();
         self.drbg = None;
+        self.random.clear_generators();
     }
 
     /// Operation budget: after `RESEED_INTERVAL` key operations the DRBG is
@@ -307,6 +323,7 @@ impl Service {
                 raw.zeroize();
                 self.state = State::Degraded;
                 self.reason = failure;
+                self.random.clear_generators();
                 Err(Status::Degraded)
             }
         }

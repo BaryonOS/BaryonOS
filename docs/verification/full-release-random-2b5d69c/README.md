@@ -1,0 +1,5 @@
+Vier echte nativeRANDOMgevallen op2b5d69c69eaf4196eb00a8488c88273defe14770, bronv3 3fe2f10fee169147d4c4838b7d3fad22fb88d9d9f03e68de0f48e94bcfdc4344. Alle4 raw33/strictgatePASS; onafhankelijkhercontroleerd zonderextraVM. q35-8.2/qemu64/TCG/1CPU/256MiB/eigen1MiBplaintextfixture/RAMkeys, geennet ofsnapshotherstel. Volledigeopdrachten/tool/image/firmware/6ELF-hashes/counters inrapporten.
+
+RAW90corecalls/4769servicebytes/4737output/1792entropy; SDKcancel5/257/225/1280; Unknown1/64/0/1280 zonderretry; wrongcallerééningress+badcaller/core0/output0/entropy1024. Werkelijk nieuweReadySTATUS na terminaleRNGtoestand, oude4096Bdocumentketen/crypto2/2/9/lifecycle/cleanup groen. Alle4 afterimagesad40c83d... wegensdezelfde gecontroleerdefixture, geen snapshotkopie. Bytes/canaries/serials onafhankelijkgelezen.
+
+Artifacts: build/foundation-2b5-{raw,sdk,unknown,wrong-caller}/esp/ enbijbehorenderun-/volumemappen. GeenstatistischeRNGkwaliteit/PQC/TLS/persistentesleutel/productprofiel/fullreleaseclaim. Oude454manifestweigeringapartrood; images-op2b5faaltABIstep1 enisgeenPASS.

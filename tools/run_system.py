@@ -22,6 +22,7 @@ from run_volume import execute
 import volume_disk
 
 FEATURE = {"normal": "native-system", "recover": "test-system-recover"}
+RANDOM_FEATURE = {"raw":"native-system-random", "sdk":"test-system-random-sdk", "unknown":"test-system-random-unknown", "wrong-caller":"test-system-random-wrong-caller"}
 TCP_FEATURE = {"normal": "native-system-tcp", "recover": "test-system-tcp-recover"}
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 MAX_TIMEOUT = 180
@@ -176,7 +177,8 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         raise ValueError("unknown case or unbounded timeout")
     selected = FEATURE[case] if kernel_feature is None else kernel_feature
     network_feature = {"normal": "native-system-net", "recover": "test-system-net-recover"}[case]
-    if selected not in (FEATURE[case], network_feature, TCP_FEATURE[case]):
+    diagnostic = case == "normal" and selected in (*RANDOM_FEATURE.values(), "native-system-images")
+    if selected not in (FEATURE[case], network_feature, TCP_FEATURE[case]) and not diagnostic:
         raise ValueError("wrong native system feature for this case")
     use_tcp = selected == TCP_FEATURE[case]
     use_network = selected == network_feature or use_tcp
@@ -184,6 +186,8 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         raise ValueError("network profile requires a dedicated local test peer port")
     if not use_network and network_port is not None:
         raise ValueError("ordinary system profile has no networking")
+    from run_fpu import private_path
+    private_path(BUILD)
     frozen = source_hash()
     manifest = json.loads((BUILD / "manifest.json").read_text())
     if manifest.get("kernel_feature") != selected or manifest.get("source_sha256") != frozen:
@@ -195,7 +199,10 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     if not qemu:
         raise RuntimeError("qemu-system-x86_64 not found")
     code, variables = firmware()
-    run_dir = BUILD / "run" / f"system-{case}-{uuid.uuid4().hex}"
+    # Reject unknown files/links in the source before copytree can follow them.
+    # Checking only the copied known files would expose extra host data to FAT.
+    check_esp(BUILD / "esp", manifest)
+    run_dir = private_path(BUILD / "run" / f"system-{case}-{uuid.uuid4().hex}")
     run_dir.mkdir(parents=True, exist_ok=False)
     # Runners only support generated paths inside this checkout.
     run_dir.resolve().relative_to(ROOT.resolve())

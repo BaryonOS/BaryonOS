@@ -1,6 +1,113 @@
 # Actuele projectstatus
 
+## NEXT AGENT HANDOFF — 30 oktober 2026 — PR #58 conflictintegratie
+
+Werkbranch `codex/native-materiaal-integration`; bron-HEAD
+`48b51878c03b5b73449f563735c7854b24926fc4`, actuele PR-basis `main`
+`6d3bbf0aab07bbcf9b36a9bd74d668adc22f9922`. Alleen conflictresolutie
+is in deze Agent Merge-tick toegestaan; geen PR-merge of verdere productbouw.
+De eerdere integratie tegen `faf2c134` is afgebroken na de app-update.
+`main` en die oude basis hebben dezelfde tree
+`fd8c8269a915f0c8cc6fdddeb98d3d1769f00a40`, maar verschillende historie
+door squash-PR #56. De huidige integratie is opnieuw berekend met
+`git merge-tree --write-tree --merge-base=3f20f087a7f0ddf4757af8d3ea110dd0c044a72c HEAD origin/main`;
+die inhoudsvoorouder voorkomt dat al opgenomen werk als nieuwe add/add-wijziging
+wordt behandeld. De uiteindelijke merge behoudt `main` als tweede ouder.
+
+De echte conflicten zijn verenigd in `Cargo.toml`, `sdk/Cargo.toml`,
+`kernel/build.rs`, `kernel/src/m2/m3.rs` en `tools/build.py`: alle bestaande
+workspace-uitsluitingen, ELF-invoer en afzonderlijke Materiaal-, benchmark-,
+RNG- en imageprofielen blijven behouden, inclusief hun procesaantallen.
+`docs/WORK-QUEUE.md` behoudt het nieuwere foundationcheckpoint;
+`docs/progress.json`, README en gegenereerde voortgang blijven **32% → 32%**.
+Geen criterium, gewicht, recht, timeout of testassertie is versoepeld.
+
+Op de opnieuw samengevoegde werkboom uitgevoerd, elk commando exit **0**:
+
+| Commando vanuit de repositoryroot | Resultaat / lokaal volledig log |
+|---|---|
+| `python3 -m unittest discover -s tools/tests -v` | 63 tests, 16,810 s; `/tmp/pr58-probe-tests.log` |
+| `python3 -m unittest discover -s tests -p 'test_system_*.py' -v` | 44 tests, 8,632 s; `/tmp/pr58-system-tests.log` |
+| `python3 -m unittest discover -s tests -p 'test_build_paths.py' -v` | 3 tests, 0,004 s; `/tmp/pr58-build-path-tests.log` |
+| `CARGO_TARGET_DIR=/tmp/pr58-root-target cargo +1.90.0 test --locked -p capability-core -p ui-core -p keyring-core` | 146 geslaagd, één bestaande genegeerde test; `/tmp/pr58-root-tests.log` |
+| `CARGO_TARGET_DIR=/tmp/pr58-root-target cargo +1.90.0 clippy --locked -p capability-core -p ui-core -p keyring-core --all-targets -- -D warnings` | `/tmp/pr58-root-clippy.log` |
+| `CARGO_TARGET_DIR=/tmp/pr58-sdk-target cargo +1.90.0 test --locked --manifest-path sdk/Cargo.toml` | 83 geslaagd; `/tmp/pr58-sdk-tests.log` |
+| `CARGO_TARGET_DIR=/tmp/pr58-sdk-target cargo +1.90.0 clippy --locked --manifest-path sdk/Cargo.toml --all-targets -- -D warnings` | `/tmp/pr58-sdk-clippy.log` |
+| `cargo +1.90.0 fmt --all -- --check` | root/kernel formattering groen |
+| `cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` | SDK-formattering groen |
+| `python3 -B tools/build.py --kernel-feature native-system-materiaal-probe` | cross-build, geen gastuitvoering; `/tmp/pr58-materiaal-build.log` |
+| `python3 -B tools/build.py --kernel-feature native-system-random` | cross-build; `/tmp/pr58-random-build.log` |
+| `python3 -B tools/build.py --kernel-feature native-system-images` | cross-build; `/tmp/pr58-images-build.log` |
+| `python3 -B tools/build.py --kernel-feature native-cap-digest-bench` | cross-build; `/tmp/pr58-benchmark-build.log` |
+| `python3 tools/progress.py --write` en daarna `python3 tools/progress.py --check` | 32/100 consistent; geen nieuwe acceptatie |
+| `git diff --check` | geen witruimtefouten |
+
+Rust 1.90.0 met de vastgelegde targets en bestaande gelockte dependencies is
+hersteld; geen dependencyversie of lockfile hiervoor gewijzigd. Een eerste
+Materiaal-build miste cache-inhoud; na `cargo fetch --locked` zijn de
+bovenstaande volledige builds opnieuw geslaagd. Een leeshelper wijzigde
+onterecht de werkboom; die helper is gestopt, de integratie is opnieuw
+opgebouwd en alle bovenstaande controles zijn daarna herhaald. De gerichte
+read-only code-review van het eindresultaat vond geen significante fout;
+dit is geen menselijke audit.
+
+**Bewijsgrens/open werk:** QEMU/OVMF ontbreken in deze omgeving; native
+gastproeven en volledige CI zijn hier **niet uitgevoerd**. Historische groene
+foundationresultaten en rode GUI-resultaten hieronder blijven aan hun eigen
+bron gebonden. Geen volledige GUI-keten, productopslag of release geclaimd.
+Na publicatie volgen evaluatie van de nieuwe HEAD en de bestaande native gates
+in een ingerichte omgeving. Eerstvolgend inventariscommando:
+`python3 -B tools/preflight.py --strict`; in deze omgeving nog geen groene
+native inventaris. PROJECT-STATE en de bestaande queue blijven de overdracht.
+
+## Vorig checkpoint — volledige testrelease in uitvoering
+
+Integratiebranch `codex/full-test-release`, bron `844ec40d0717a51d76f2da3a03fa415633725f6a`, tree `6710e599e6984f69e227367981f9a07b525b1255`.
+Deze exacte bron staat lokaal en op remote; concept-PR [#56](https://github.com/simonvanieperen/nieuw-os/pull/56) blijft de volledige releaseopdracht volgen. Foundation-PR #59 is na gecontroleerde fast-forward opgenomen en gesloten.
+[Volledige opdracht en 62 criteria](FULL-TEST-RELEASE.md) → [aanvullende productcontext](FULL-TEST-RELEASE-CONTEXT.md) → [werkqueue](WORK-QUEUE.md) → [vaste rubric](PROGRESS.md).
+**32% → 32%; alle 62 volledige productcriteria blijven open. Er is geen volwaardige testrelease.**
+
+**Nieuw aantoonbaar resultaat:** alle negen CI-workflows op exact `844ec40` slagen. De foundationjob voert de vier RNG-gevallen en de PNG/JPEG-proef daadwerkelijk native uit, zonder overgeslagen stap. [CI-metadata en bewijsgrens](verification/full-release-ci-844ec40/README.md).
+De lokale decoderproef op dezelfde bron slaagt met raw exit 33: acht PNG's, drie JPEG's, 149.647 pixels, 623.808 samplebytes en tien negatieve gevallen. De oude stackguardfout is gericht hersteld met fallible heap-snapshots; stack 64 KiB, heap 4 MiB en pixeloracles zijn behouden. Een afzonderlijke hercontrole bevestigt bron, zes ELF's, firmware, ESP, counters, 4096 schijfbytes, canaries en cleanup. [Decoderbewijs en onafhankelijke controle](verification/full-release-images-844ec40/README.md).
+De eerdere bootstrap-, ABI- en stackguardmislukkingen blijven in hun oorspronkelijke archieven staan. Dit is geen beeldviewer of bewijs van volledige formaatdekking, native OOM/herstel of veilige persistente productopslag.
+
+**Kritieke GUI-keten blijft rood:** `codex/native-materiaal-integration`, worktree `/workspace/nieuw-os-worktrees/root-materiaal`, concept-PR [#58](https://github.com/simonvanieperen/nieuw-os/pull/58), bron `48b51878c03b5b73449f563735c7854b24926fc4`. De echte acht-processenketen toont Materiaal en de editor op bron `5e126b7`, maar bereikt binnen de vaste 200 seconden nog geen typen → opslaan → heropenen → afsluiten. De digestoptimalisatie op `1fd879d` maakt de eerste volledige frame native trager (170 seconden). Rood bewijs blijft bewaard; de timeout of controles zijn niet verruimd.
+Een echte, read-only kernelmeting op `48b5187` slaagt met 128 aanroepen per variant en bitexacte pariteit: reference 36.998.312, direct 43.931.758, zero-run 77.735.944 opgetelde TCG-TSC-eenheden. Dit zijn relatieve ontwikkelmetingen vóór userspace en timer, geen fysieke cycles of GUI-acceptatie. Root herstelt de snelste gemeten referencevariant en herhaalt daarna de werkelijke GUI-proef.
+
+**Lopende onafhankelijke taken en eigenaarschap:**
+
+- `CAP-DIGEST-TCG-2`: kernel_storage, worktree `cap-digest-opt`, basis `952e9ac`; uitsluitend capability-core en digestcontract. Root bezit kernelhooks, build, ABI en integratie.
+- `MULTIAPP-CONTRACT-1`: native_ui_apps, worktree `multiapp-contract`, basis `48b5187`; afzonderlijk contract voor echte Materiaal-/rekenmachineprocessen, focus, appwisseling en levensduur.
+- `CALCULATOR-REVIEW-1`: git_build_audit, alleen lezen op `0254206f9b44c75499cf55a9c3716fdb363372ce`. Component: 17 Rust-hostgroepen, 1.262 Decimal-vergelijkingen en targetbuild groen; nog geen native appbediening of FR-A08-aftekening.
+- `GUI-BENCH-REVIEW-1`: security_release, alleen lezen op `48b5187`; onafhankelijke controle van echte benchmark en harnas. Geen menselijke veiligheidsaudit.
+
+Beschikbare agentthreads worden gebruikt; een extra TLS-worker kon door de werkelijke threadlimiet niet starten en blijft wachtrij. TLS `34191bb` en browseronderzoek `a2085b9` staan intact in hun eigen worktrees, nog niet geïntegreerd. TPM `6bed190` is geïntegreerde transport-/commandocore met host-/targetbewijs; native MMIO-adapter, TPM-anker en koude rollbackdetectie blijven open.
+
+**Eerstvolgende uitvoerbare stap:** neem de beoordeelde reference-herstelcommit in `root-materiaal` over, wijzig de benchmark-ZERO-pointer expliciet naar `diagnostic_zero_digest`, controleer bitpariteit en bouw/herhaal `tools/run_materiaal_probe.py` op bevroren gepubliceerde bron met eigen buildmap. Gebruik de bestaande LOCALAPPDATA/PATH/OVMF/QEMU-omgeving en dezelfde 200-secondenacceptatie. Integreer daarna de foundation- en GUI-bronnen zonder gebruikerswerk of bewijs te verliezen en test de samengestelde versie. Het rekenmachinecontract wordt parallel voorbereid; geen simulaties of verborgen bediening.
+
+**Artifacts en grenzen:** laatste geslaagde lokale decoderimage: `/workspace/nieuw-os-worktrees/root-foundation/build/foundation-stack-images/esp/`; manifest en runpad staan in het gekoppelde bewijs. Laatste GUI-benchmark: `root-materiaal/build/cap-bench/cap-bench-report.json`; laatste rode GUI-run: `root-materiaal/build/materiaal-digest/run/materiaal-normal-230683c431`. Alle testdisks zijn eigen wegwerpimages. Deze ontwikkelproeven gebruiken qemu64/TCG/één CPU/256 MiB, vaste fixtures, plaintext testdisk en tijdelijke RAM-sleutels. Zij vervangen VM-FR (Nehalem-v1, 8 GiB, 32 GiB disk, resoluties/schalen), fysieke tests of menselijk onderzoek niet. Alle verplichte apps, toegankelijkheid, sessie/instellingen, beveiligde opslag, netwerk/TLS, NAS/providers, lokale AI, boot/PQC, updates en herstel blijven zichtbaar open. Honderd koude starts en 24 uur productgebruik vereisen eerst een stabiel geïntegreerd productimage.
+
+## Historisch checkpoint vóór integratie van 844ec40
+
+Onderstaande tekst bewaart de toenmalige uitvoering. De actuele bron, taken en hervatstap staan uitsluitend hierboven.
+
 ## Volledige native testrelease — in uitvoering, 32% — 2026-10-30
+
+**Actueel herstelcheckpoint:** nativeRNG is opnieuw4/4raw33 op9aa74870 en alleachtbestaandeCI-workflows op9aa groen. Image-op9aa faalde naABIcheck met echteJPEGstackguardfault; [origineleuitvoer](verification/full-release-image-stack-failure-9aa/README.md) behouden. Snapshotfixade6+onafhankelijkeOOM/rollbackreview isnugeïntegreerd metongewijzigde64KiB/4MiB. Nieuwe negendeCI-workflow93e991 voertalle4RNGgevallen+imageechtnativeuit; ookTPM6bedpurecorechecks toegevoegd. StandaloneRNG-fmt isgerichthersteld, geencheckuitgeschakeld. Nieuwedecode-VM/9CIenaktuëleRNGherhalingnogvereist.
+
+GUI1fd/db04blijftFAIL200s, eersteReady170s: host2,48×vertaaldenietnaarnativewinst. Bitexactehelpersblijvenveilig, maarvariantkeuzemoetopdoelmetingengebeuren. Er wordt een korte eigenkernelbenchmarkreference/directtyped/zerorunsvoorbereid; géén200s-verruiming, geenrechten-/IPCcheckverwijdering. Calculatorappisinonafhankelijkeuitvoering; code/hostzijngeenappacceptatie. Nativebeeldviewer/NAS/AI/opslag/update/herstel enalle62criteriaopen.
+
+**Vier nativeRNGgevallen op2b5 slagen raw33**, onafhankelijkhercontroleerd: [bewijs](verification/full-release-random-2b5d69c/README.md). Image-opdezelfdebronFAILABIstep1: [rood](verification/full-release-image-abi-failure-2b5/README.md). Fix9d8gebruiktdewerkelijkekernelABIcall; standalonekeyring-clientlockwordtgerichtbijgewerkt voorCI --locked. Huidigeviercasesblijvenexactaan2b5gebonden; volgendeherstelbronvereistnieuweVMs.
+
+**NativeRNG-eersteuitvoering454bf1b is rood:** raw35 vóórSYSTEMMANIFEST, echtekernelweigering bij bootstrapdelegatie uitKey-parent zonderTRANSFER. [Oorspronkelijke rawrapporten](verification/full-release-random-bootstrap-454bf1b/README.md) behouden. Rootcorrectie geeft uitsluitend deinterneKey-parent het bedoeldeTRANSFER, geenprobe-/APP-rechtenverruiming engeencontrolewijziging. Nieuweviercases enimage-uitvoering volgen opbevrorenherstelbron. Harnasreparaties zijn onafhankelijk opnieuwgroen21+20+10tegenvoorbeelden, zie bijgewerktepre-nativearchief.
+
+**Nieuw foundationcheckpoint:** branch `codex/native-foundation-integration`, eigenworktree `root-foundation`, basis `3f20f087a7f0ddf4757af8d3ea110dd0c044a72c` (achtCIgroen inclusief echte display/input). VolledigeRNG- en PNG/JPEG-doelbuilds slagen; [componentreviews/hostchecks/gerichteharnasreparaties](verification/full-release-foundation-pre-native/README.md) zijn vastgelegd. RootsharedABI/bootstrap/locks/buildadmission zijn aangesloten. De vier RNG-gevallen en imageprobe moeten nu op deze bevroren bron werkelijk worden uitgevoerd; tot die tijd geen native acceptatie.
+
+ParallelleGUIbron `7d230a6e8e7d7975f8e3297ff4f2b166c38b1803`, concept-PR[#58](https://github.com/simonvanieperen/nieuw-os/pull/58), heeft een echte8-processenrun met Source/Policy/Comp/Focus en één volledig native geschilderd Materiaalframe. De volledigeproef is FAILna200s: eerste1608tegelframe rond106s en tweede pas1553/1608tegels. Geen Saved/Reopen/afsluitacceptatie. Root onderzoekt uitsluitend observeroverhead (batchedPITsample); functies,veiligheidschecks en de200s-proefgrens blijven staan. Drie GUIreplaybevindingen worden door de eigenaar gerepareerd vóór heracceptatie. Huidigfragment is geen productimage; veilige persistente opslag/NAS/AI/apps/boot/update/herstel en alle62criteria blijven verplicht open.
+
+**Eerstvolgende concrete hervatstap:** controleer HEAD/index/remote en activeworkers; bouw en voer achtereenvolgens `native-system-random`→run_random raw, `test-system-random-sdk`→sdk, `test-system-random-unknown`→unknown, `test-system-random-wrong-caller`→wrong-caller uit, ieder eigen `NOS_BUILD_DIR=build/foundation-<case>` en hergebruik `NOS_TARGET_DIR=target/foundation` uitsluitend sequentieel. Daarna `native-system-images`→run_images normal. Gebruik bestaande LOCALAPPDATA/PATH/QEMU/OVMFenv. Vier RNG-probes en imageprobe zijn deelacceptatie, niet volledige release; toets na laatste bronwijziging opnieuw. Behoud `/workspace/nieuw-os-worktrees/root-materiaal` met eigen GUIWIP en originele nativeFAILartifacts.
+
+Hieronder volgt de behouden voorgeschiedenis van de actuele native regressiebasis; eerdere hervatcommando’s worden door dit foundationcheckpoint vervangen.
 
 Integratiebranch `codex/full-test-release`, concept-PR[#56](https://github.com/simonvanieperen/nieuw-os/pull/56).
 Desktopintegratie `codex/root-desktop-integration`, concept-PR[#57](https://github.com/simonvanieperen/nieuw-os/pull/57).

@@ -78,7 +78,11 @@ fn channel(e: &mut capability_core::Engine, owner: u64, sender: u64) -> (u64, u6
     (receive, send)
 }
 pub(super) fn manifest(s: &mut State) {
-    let initial = if cfg!(feature = "native-system-net") {
+    let initial = if cfg!(any(
+        feature = "native-system-net",
+        feature = "native-system-random",
+        feature = "native-system-images"
+    )) {
         5
     } else {
         4
@@ -118,6 +122,74 @@ pub(super) fn manifest(s: &mut State) {
             put(s, 4, offset, value);
         }
         network::bind(pid, cap, key);
+    }
+    #[cfg(feature = "native-system-random")]
+    {
+        let probe = s.processes[4].pid;
+        e.register(probe).unwrap();
+        let root = e.create_endpoint(key).unwrap();
+        let receive = e.derive(key, root, RECV).unwrap();
+        let ancestor = e
+            .derive(
+                key,
+                root,
+                SEND | capability_core::TRANSFER | capability_core::REVOKE,
+            )
+            .unwrap();
+        let leaf = e.bootstrap_delegate(key, ancestor, probe, SEND).unwrap();
+        let (reply, reply_send) = channel(e, probe, key);
+        let case = if cfg!(feature = "test-system-random-sdk") {
+            1
+        } else if cfg!(feature = "test-system-random-unknown") {
+            2
+        } else if cfg!(feature = "test-system-random-wrong-caller") {
+            3
+        } else {
+            0
+        };
+        for (offset, value) in [
+            (32, 1),
+            (48, leaf),
+            (56, reply),
+            (112, case),
+            (160, key),
+            (176, probe),
+        ] {
+            put(s, 4, offset, value);
+        }
+        for (offset, value) in [
+            (120, u64::from_le_bytes(*b"NOSRNG01")),
+            (128, receive),
+            (136, reply_send),
+            (144, if case == 3 { app } else { probe }),
+            (152, 0),
+        ] {
+            put(s, KEY, offset, value);
+        }
+        random_fixture::bind(
+            s,
+            e,
+            random_fixture::Binding {
+                case,
+                key_pid: key,
+                probe_pid: probe,
+                random_root: receive,
+                send_ancestor: ancestor,
+                send_leaf: leaf,
+                reply_receive: reply,
+            },
+        );
+        // Root authority is no longer needed. Its live receive/REVOKE/SEND
+        // leaves keep the object alive and provide the exact test subtree.
+        e.close(key, root).unwrap();
+    }
+    #[cfg(feature = "native-system-images")]
+    {
+        let probe = s.processes[4].pid;
+        e.register(probe).unwrap();
+        put(s, 4, 176, probe);
+        image_fixture::bind(s, probe, IMAGE_PROBE_ELF);
+        print_number(b"SYSTEM:IMAGE_MANIFEST_PID:", probe);
     }
     let launch = e.create_launch(init, 0).unwrap();
     // Init owns the registry so it can delegate only SEND to each worker.
@@ -243,6 +315,16 @@ fn is_net_probe(s: &State, slot: usize) -> bool {
     }
 }
 pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
+    #[cfg(feature = "native-system-random")]
+    if random_fixture::observe_exit(s, slot) {
+        return;
+    }
+    #[cfg(feature = "native-system-images")]
+    if image_fixture::is_probe(s, slot) {
+        image_fixture::observe_exit(s, slot);
+        m4::engine().process_died(s.processes[slot].pid, PROCESS_EXITED, 0);
+        return;
+    }
     require(
         slot == INIT || slot == APP || is_net_probe(s, slot),
         b"UNEXPECTED_EXIT",
@@ -275,6 +357,14 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
     m4::engine().process_died(s.processes[slot].pid, PROCESS_EXITED, 0);
 }
 pub(super) fn observe_fault(s: &mut State, slot: usize, context: &[u64; 22], _counter: u64) {
+    #[cfg(feature = "native-system-images")]
+    if image_fixture::is_probe(s, slot) {
+        image_fixture::fault(s, slot, context);
+    }
+    #[cfg(feature = "native-system-random")]
+    if random_fixture::is_probe(s, slot) {
+        fail(b"RANDOM_PROBE_FAULT");
+    }
     require(
         supervisor::is_managed_image(slot, 0)
             && !is_net_probe(s, slot)
@@ -289,6 +379,8 @@ pub(super) fn observe_fault(s: &mut State, slot: usize, context: &[u64; 22], _co
     );
 }
 pub(super) fn poll(s: &mut State) -> Option<*const u64> {
+    #[cfg(feature = "native-system-random")]
+    random_fixture::poll(s);
     keyring::broker_tick(s);
     m5::broker_tick(s);
     #[cfg(feature = "native-system-net")]
@@ -296,7 +388,11 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     supervisor::reap_orphans(s);
     require(!s.unexpected, b"UNEXPECTED_EVENT");
     if s.ticks >= 20_000 {
-        for slot in 0..if cfg!(feature = "native-system-net") {
+        for slot in 0..if cfg!(any(
+            feature = "native-system-net",
+            feature = "native-system-random",
+            feature = "native-system-images"
+        )) {
             5
         } else {
             4
@@ -313,6 +409,14 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     }
     #[cfg(feature = "native-system-net")]
     if evidence().net.is_none() || !network::finished() {
+        return None;
+    }
+    #[cfg(feature = "native-system-random")]
+    if !random_fixture::finished() {
+        return None;
+    }
+    #[cfg(feature = "native-system-images")]
+    if !image_fixture::finished() {
         return None;
     }
     finish(s)
@@ -454,6 +558,10 @@ fn finish(s: &mut State) -> ! {
         }
         network::print_and_check(net[6], net[7]);
     }
+    #[cfg(feature = "native-system-random")]
+    random_fixture::check_and_print(s);
+    #[cfg(feature = "native-system-images")]
+    image_fixture::check_and_print(s);
     serial::write(b"SYSTEM:BROKERS:PASS\n");
     for slot in [KEY, VOLUME] {
         s.processes[slot].status = Status::Dying;

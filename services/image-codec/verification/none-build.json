@@ -1,0 +1,18 @@
+{
+  "kind": "Static x86_64-unknown-none ELF build, native execution pending",
+  "argv": [
+    "python3",
+    "-B",
+    "sdk/examples/image-probe/build.py"
+  ],
+  "exit_code": 0,
+  "seconds": 0.2045,
+  "source_sha256": {
+    "services/image-codec/src/lib.rs": "9621b4a3e37c2e9c5559ba22b9dc67569aa79d88c0efc9ba328a393211cea8de",
+    "services/image-codec/tests/upsample.rs": "852175783e82f3d1b3451049ddecd98d126a064b8468e4ac007312d63794ca36",
+    "services/image-codec/tests/decode.rs": "23a2cd92ba1b30c1e1b3ea96972a7a242787cb9c17e04c2420730468afa962a0",
+    "sdk/examples/image-probe/src/main.rs": "4a052e4db628d1c0eed71d1a40fcd4b38f0557e7aea169af124420ecf436a193"
+  },
+  "stdout": "{\"verified\": true, \"changed_files\": [\"src/upsampler/scalar.rs\"], \"unchanged_files\": 40, \"patch_sha256\": \"f98b11433d5c975d062fa6e197e0f8a06629589d25abe5d0656fccedc1b4d66e\"}\n{\"command\": [\"cargo\", \"+1.90.0\", \"build\", \"--offline\", \"--locked\", \"--release\", \"--manifest-path\", \"/workspace/nieuw-os-worktrees/image-codec/sdk/examples/image-probe/Cargo.toml\", \"--features\", \"native\", \"--bin\", \"image-probe\", \"--target\", \"x86_64-unknown-none\"], \"target_dir\": \"/tmp/nieuw-os-image-probe-target\", \"app_toolchain\": \"1.90.0\", \"linker\": \"/workspace/nieuw-os/.tools/nieuw-os/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld\"}\n{\"passed\": true, \"extra_env\": {\"NOS_IMAGE_PROBE_ELF\": \"/tmp/nieuw-os-image-probe-target/x86_64-unknown-none/release/image-probe\"}, \"image_probe\": {\"sha256\": \"ac2a0ae22021ae6dda7a37d981b5a049209ee71b669a4644c2fc5eaeec9fbff2\", \"elf\": {\"entry\": 1073741824, \"segments\": [{\"flags\": 5, \"address\": 1073741824, \"offset\": 4096, \"filesz\": 6, \"memsz\": 6, \"page_start\": 1073741824, \"page_end\": 1073745920}, {\"flags\": 6, \"address\": 1073807360, \"offset\": 8192, \"filesz\": 2360, \"memsz\": 2512, \"page_start\": 1073807360, \"page_end\": 1073811456}, {\"flags\": 4, \"address\": 1073823744, \"offset\": 12288, \"filesz\": 171808, \"memsz\": 171808, \"page_start\": 1073823744, \"page_end\": 1073995776}, {\"flags\": 5, \"address\": 1074790400, \"offset\": 184320, \"filesz\": 212457, \"memsz\": 212457, \"page_start\": 1074790400, \"page_end\": 1075003392}]}}}\n",
+  "stderr": "    Finished `release` profile [optimized] target(s) in 0.01s\n"
+}

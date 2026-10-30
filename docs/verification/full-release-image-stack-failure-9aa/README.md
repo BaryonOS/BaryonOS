@@ -1,0 +1,3 @@
+Echte imageVM op9aa74870de55387094414c3ec1a909fbeec53c81: FAIL raw35/3,1s. KernelABIcheck nuwerkelijkgeslaagd; daarna #PF PID5 RIP0x40118aaa in zune_jpeg::capture_scan_header_state, CR2=0x7ffee9e8 onder64KiBstackguard0x7ffef000. Werkelijkeproloog0xe000+0xaf8 circa60KiB+callerframes. Heap/stackguards blijven onveranderd.
+
+Gerichteade6d33 snapshotfix vervangt inlineHuffmantabellen door fallibleheapbuffers, houdt parser/rollback/alleformaat-oracles gelijk en kentAllocationFailed→OutOfMemory. Allecapture/try_clone vóór mutatie; headers_decodedpasnageslaagdeenterScan. GeennativePASSafgeleiduit19codec/4vendor/202extraerrorreviews ofkleinere1272Bproloog: nieuweVMvereist. Originelefault/imagehashesinditarchief; 4MiB/64KiBbehouden.

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "7d230a6e8e7d7975f8e3297ff4f2b166c38b1803",
+    "source_commit": "48b51878c03b5b73449f563735c7854b24926fc4",
     "branch": "codex/native-materiaal-integration",
-    "task": "Behoud eerste nativeGUI-mislukking; batch observer en sluit drie replaybevindingen",
+    "task": "PR #58: conflictintegratie met main op 6d3bbf0a",
     "previous_score": 32,
-    "summary": "32% blijft32%; alle62 volledige productcriteria open. EchteGUI7d bereikt Source/Policy/Comp/Focus en één volledig native1608tegelframe, maar faalt200s vóórvolledigegebruikersketen. Die rodeuitvoer wordt behouden. Observerkosten worden metboundedPIT-batchcopy verminderd zonderveiligheids-/IPCwijziging of timeoutverruiming;7gerichtechecks groen. Harnas3e2 sluit3bewijsleemten met19+21hostchecks; nieuwe nativeuitvoering vereist. FoundationRNG/imageproeven gaan parallel, sourcecode/gates zijn geenreleaseacceptatie. Volledige scope, rubricgewichten en productprofiel blijven behouden."
+    "summary": "De score blijft 32%; alle 62 volledige productcriteria blijven open. Deze conflictintegratie behoudt de Materiaal-processen en digestbenchmark uit 48b5187 naast de RNG-/imageproeven en foundation-bewijsarchieven uit main 6d3bbf0a. Historische groene foundationproeven gelden alleen voor hun oorspronkelijke bron; de volledige GUI-keten blijft onbewezen en de eerdere rode uitvoering blijft bewaard. Deze integratie levert geen nieuwe native productacceptatie op. Gewichten, scope en bewijsniveaus zijn onveranderd; actuele integratiecontroles staan in PROJECT-STATE.md."
   },
   "tracks": [
     {

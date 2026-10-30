@@ -1,0 +1,22 @@
+[package]
+name = "nieuw-os-image-codec"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+exclude = ["vendor/zune-jpeg-0.5.16-rc3"]
+
+[dependencies]
+zune-core = { version = "=0.5.3", default-features = false }
+zune-png = { version = "=0.5.2", default-features = false }
+zune-jpeg = { version = "=0.5.16-rc3", path = "vendor/zune-jpeg-0.5.16-rc3", default-features = false }
+zune-inflate = { version = "=0.2.54", default-features = false, features = ["zlib"] }
+simd-adler32 = { version = "=0.3.10", default-features = false }
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+codegen-units = 1
+lto = false

@@ -1,0 +1,36 @@
+[package]
+name = "nieuw-os-native-random-probe"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+native = []
+
+[dependencies]
+nieuw-os-sdk-runtime = { path = "../../runtime" }
+nieuw-os-keyring-random-client = { path = "../../keyring-random-client" }
+zeroize = { version = "=1.9.1", default-features = false }
+
+[dev-dependencies]
+keyring-core = { path = "../../../services/keyring" }
+capability-core = { path = "../../../crates/capability-core" }
+
+[[bin]]
+name = "random-probe"
+path = "src/main.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[workspace]
+members = ["."]
+resolver = "2"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = false

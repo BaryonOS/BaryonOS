@@ -7,9 +7,19 @@ publish = false
 [dependencies]
 chacha20poly1305 = { version = "0.10.1", default-features = false }
 chacha20 = { version = "0.9.1", default-features = false }
-hkdf = { version = "0.12.4", default-features = false }
-sha2 = { version = "0.10.9", default-features = false }
+hkdf-protected = { package = "hkdf", path = "vendor/hkdf-0.13.0", default-features = false, features = ["zeroize"] }
+sha2-kdf = { package = "sha2", version = "=0.11.1", default-features = false, features = ["zeroize"] }
 zeroize = { version = "1.8.1", default-features = false }
+# Separate maintained RNG API; the existing AEAD/legacy DRBG keeps 0.9.1.
+chacha20-rng = { package = "chacha20", version = "=0.10.2", default-features = false, features = ["rng", "zeroize"] }
+rand-core-rng = { package = "rand_core", version = "=0.10.1", default-features = false }
 
 [dev-dependencies]
 hex-literal = "0.4.1"
+# Byte-for-byte compatibility oracles only, never a production KDF path.
+hkdf = { version = "=0.12.4", default-features = false }
+sha2 = { version = "=0.10.9", default-features = false }
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = ['cfg(chacha20_backend, values("soft"))']

@@ -22,6 +22,8 @@ pub const EXPORT_RECOVERY: u8 = 6;
 pub const RESTORE: u8 = 7;
 pub const SEAL_RECORD: u8 = 8;
 pub const UNSEAL_RECORD: u8 = 9;
+pub const RANDOM: u8 = 10;
+pub const RANDOM_PREFIX: usize = 16;
 pub const REPLY: u8 = 0x80;
 pub const RECORD_CONTEXT: usize = 64;
 
@@ -121,8 +123,73 @@ pub fn body_bounds(op: u8) -> Option<(usize, usize)> {
             RECORD_CONTEXT + NONCE_BYTES + TAG_BYTES,
             RECORD_CONTEXT + MAX_SEALED,
         )),
+        RANDOM => Some((RANDOM_PREFIX, RANDOM_PREFIX)),
         _ => None,
     }
+}
+
+/// RANDOM v1 has no caller-selected principal, seed or crypto/key operation.
+/// The eight reserved bytes must remain zero. Its authority comes exclusively
+/// from a separately granted RANDOM-only ingress, not these requested bytes.
+pub fn random_request(request_id: u64, length: usize) -> Result<[u8; SIZE], Status> {
+    if request_id == 0 || !(1..=crate::random::MAX_BYTES).contains(&length) {
+        return Err(Status::Invalid);
+    }
+    let mut body = [0u8; RANDOM_PREFIX];
+    body[..4].copy_from_slice(b"RND1");
+    body[4..6].copy_from_slice(&crate::random::VERSION.to_le_bytes());
+    body[6..8].copy_from_slice(&(length as u16).to_le_bytes());
+    request(RANDOM, 0, request_id, &body).ok_or(Status::Invalid)
+}
+
+pub fn random_length(header: &Header, body: &[u8]) -> Result<usize, Status> {
+    if header.op != RANDOM
+        || header.index != 0
+        || header.status != 0
+        || header.request == 0
+        || usize::from(header.length) != RANDOM_PREFIX
+        || body.len() != RANDOM_PREFIX
+        || &body[..4] != b"RND1"
+        || body[4..6] != crate::random::VERSION.to_le_bytes()
+        || body[8..].iter().any(|byte| *byte != 0)
+    {
+        return Err(Status::Invalid);
+    }
+    let length = usize::from(u16::from_le_bytes([body[6], body[7]]));
+    if !(1..=crate::random::MAX_BYTES).contains(&length) {
+        return Err(Status::Invalid);
+    }
+    Ok(length)
+}
+
+/// Separate dispatch for the native RANDOM-only ingress. Passing a legacy
+/// opcode here never invokes key generation, sealing, recovery or export.
+pub fn dispatch_random(
+    service: &mut Service,
+    source: &mut impl EntropySource,
+    domain: usize,
+    now: u64,
+    header: &Header,
+    body: &[u8],
+) -> [u8; SIZE] {
+    let length = match random_length(header, body) {
+        Ok(length) => length,
+        Err(status) => return reply(header, status, &[]),
+    };
+    let mut bytes = [0u8; crate::random::MAX_BYTES];
+    let result = match service.random_at(domain, header.request, length, now, source, &mut bytes) {
+        Ok(length) => {
+            let mut body_out = [0u8; BODY];
+            body_out[..RANDOM_PREFIX].copy_from_slice(body);
+            body_out[RANDOM_PREFIX..RANDOM_PREFIX + length].copy_from_slice(&bytes[..length]);
+            let answer = reply(header, Status::Ok, &body_out[..RANDOM_PREFIX + length]);
+            crate::random::clear_bytes(&mut body_out);
+            answer
+        }
+        Err(status) => reply(header, status, &[]),
+    };
+    crate::random::clear_bytes(&mut bytes);
+    result
 }
 
 /// Canonical context prefix for record requests. There is deliberately no

@@ -1,0 +1,76 @@
+--- a/src/upsampler/scalar.rs
++++ b/src/upsampler/scalar.rs
+@@ -75,43 +75,38 @@
+ }
+ 
+ pub fn upsample_hv(
+-    input: &[i16], in_near: &[i16], in_far: &[i16], scratch_space: &mut [i16], output: &mut [i16]
++    input: &[i16],
++    in_near: &[i16],
++    in_far: &[i16],
++    scratch_space: &mut [i16],
++    output: &mut [i16],
+ ) {
++    assert!(!input.is_empty());
++    assert_eq!(input.len(), in_near.len());
++    assert_eq!(input.len(), in_far.len());
++    assert_eq!(input.len() * 4, output.len());
++    assert!(input.len() * 2 <= scratch_space.len());
+ 
+-    assert_eq!(input.len() * 4, output.len());
+-
+-    assert!(input.len() * 2 <= scratch_space.len());
+-    let scratch_space = &mut scratch_space[..input.len() * 2];
+-
+-
+-    let mut t = [0];
+-    upsample_vertical(input, in_near, in_far, &mut t, scratch_space);
+-    // horizontal upsampling must be done separate for every line
+-    // Otherwise it introduces artifacts that may cause the edge colors
+-    // to appear on the other line.
+-
+-    // Since this is called for two scanlines/widths currently
+-    // splitting the inputs and outputs into half ensures we only handle
+-    // one scanline per iteration
+-    let scratch_half = scratch_space.len() / 2;
+-
+-    let output_half = output.len() / 2;
+-
+-    upsample_horizontal(
+-        &scratch_space[..scratch_half],
+-        &[],
+-        &[],
+-        &mut t,
+-        &mut output[..output_half]
+-    );
+-
+-    upsample_horizontal(
+-        &scratch_space[scratch_half..],
+-        &[],
+-        &[],
+-        &mut t,
+-        &mut output[output_half..]
+-    );
++    // Nieuw OS local correction, not an upstream-accepted change.
++    // Apply the standard separable 3:1 triangle weights without rounding the
++    // vertical intermediate. The combined weights are 9:3:3:1; a single final
++    // shift avoids the old two-stage upward rounding bias. Alternate half-tie
++    // bias 8/7 as in libjpeg-turbo 3.1.4.1 jdsample.c:h2v2_fancy_upsample
++    // (commit 9217719d3a58633923b096af4c1d50d304768a64). This is an original Rust
++    // expression of that mathematical interpolation, not copied C source.
++    let width = input.len();
++    let (top, bottom) = output.split_at_mut(width * 2);
++    for (far, row) in [(in_near, top), (in_far, bottom)] {
++        for (x, pair) in row.chunks_exact_mut(2).enumerate() {
++            let previous = x.saturating_sub(1);
++            let next = (x + 1).min(width - 1);
++            let middle = 3 * i32::from(input[x]) + i32::from(far[x]);
++            let left = 3 * i32::from(input[previous]) + i32::from(far[previous]);
++            let right = 3 * i32::from(input[next]) + i32::from(far[next]);
++            pair[0] = ((3 * middle + left + 8) >> 4) as i16;
++            pair[1] = ((3 * middle + right + 7) >> 4) as i16;
++        }
++    }
+ }
+ 
+ pub fn upsample_generic(

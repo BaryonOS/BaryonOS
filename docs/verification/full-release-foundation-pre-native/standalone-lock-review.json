@@ -1,0 +1,176 @@
+{
+  "task": "CI-FOUNDATION-TRIAGE",
+  "source_commit": "2b5d69c69eaf4196eb00a8488c88273defe14770",
+  "run": {
+    "id": 41006382164,
+    "name": "CI",
+    "event": "pull_request",
+    "head_sha": "2b5d69c69eaf4196eb00a8488c88273defe14770",
+    "branch": "codex/native-foundation-integration",
+    "attempt": 1,
+    "status": "completed",
+    "conclusion": "failure",
+    "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41006382164",
+    "pr": [
+      {
+        "number": 59,
+        "head": "2b5d69c69eaf4196eb00a8488c88273defe14770",
+        "base": "3f20f087a7f0ddf4757af8d3ea110dd0c044a72c"
+      }
+    ]
+  },
+  "actual_checkout_merge_commit": "ed4c9d8bd377a141fbd6dacbab00032a56e27402",
+  "failed_job": {
+    "id": 123902113494,
+    "name": "host-quality"
+  },
+  "failed_step": {
+    "number": 11,
+    "name": "Keyring SDK and isolated input service core"
+  },
+  "actual_failing_command": "cargo +1.90.0 test --locked --manifest-path sdk/keyring-client/Cargo.toml",
+  "actual_exit_code": 101,
+  "actual_error": "the lock file /home/runner/work/nieuw-os/nieuw-os/sdk/keyring-client/Cargo.lock needs to be updated but --locked was passed to prevent this",
+  "cause": "Standalone sdk/keyring-client/Cargo.lock still resolves the old production HKDF/HMAC0.12/SHA2.10 graph after keyring-core production moved to protected vendored HKDF/HMAC0.13, SHA2.11 and ChaChaRng0.10. The root and shared SDK locks were updated, but this independent workspace lock was not.",
+  "minimum_patch": {
+    "only_repository_file": "sdk/keyring-client/Cargo.lock",
+    "generation_command": "cargo +1.90.0 update --offline --manifest-path sdk/keyring-client/Cargo.toml -p keyring-core",
+    "private_verified_command": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "update",
+        "--offline",
+        "--manifest-path",
+        "/tmp/nieuw-os-ci-foundation-triage/snapshot/sdk/keyring-client/Cargo.toml",
+        "-p",
+        "keyring-core"
+      ],
+      "exit": 0,
+      "seconds": 0.11862314300014987,
+      "log": "/tmp/nieuw-os-ci-foundation-triage/update.log"
+    },
+    "proposed_lock": "/tmp/nieuw-os-ci-foundation-triage/Cargo.lock.proposed",
+    "patch": "/tmp/nieuw-os-ci-foundation-triage/proposed.patch",
+    "before_sha256": "3840fe0b24327d5a08884d65e3067dc5a57e28e6e3b1b32fb683a408d74053be",
+    "after_sha256": "0362d81cba8d081fd2c1da42f3395d1fe18694b16408bfb170fa2e733a3dc57d",
+    "patch_sha256": "35194d689a79f672fb62a0117440afc0e3f0253df95c87ff7bf64df5b3dfbf83",
+    "pins": {
+      "all_proposed_registry_versions_and_checksums_already_in_root_Cargo_lock": true,
+      "new_unreviewed_registry_pins": [],
+      "root_lock_source_commit": "2b5d69c69eaf4196eb00a8488c88273defe14770"
+    },
+    "keep_CI_locked_checks": true,
+    "do_not_disable_or_weaken_tests": true
+  },
+  "independent_validation": {
+    "source": "Exact git archive of published2b5d69c into private /tmp snapshot; own Cargo target.",
+    "red": {
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os/tools/dev.py",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "/tmp/nieuw-os-ci-foundation-triage/snapshot/sdk/keyring-client/Cargo.toml"
+      ],
+      "exit": 101,
+      "seconds": 0.12469976500142366,
+      "log": "/tmp/nieuw-os-ci-foundation-triage/red.log"
+    },
+    "green": {
+      "green-test": {
+        "command": [
+          "python3",
+          "-B",
+          "/workspace/nieuw-os/tools/dev.py",
+          "cargo",
+          "+1.90.0",
+          "test",
+          "--locked",
+          "--offline",
+          "--manifest-path",
+          "/tmp/nieuw-os-ci-foundation-triage/snapshot/sdk/keyring-client/Cargo.toml"
+        ],
+        "exit": 0,
+        "seconds": 3.5264269369981776,
+        "log": "/tmp/nieuw-os-ci-foundation-triage/green-test.log"
+      },
+      "green-clippy": {
+        "command": [
+          "python3",
+          "-B",
+          "/workspace/nieuw-os/tools/dev.py",
+          "cargo",
+          "+1.90.0",
+          "clippy",
+          "--locked",
+          "--offline",
+          "--manifest-path",
+          "/tmp/nieuw-os-ci-foundation-triage/snapshot/sdk/keyring-client/Cargo.toml",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "seconds": 2.657001019000745,
+        "log": "/tmp/nieuw-os-ci-foundation-triage/green-clippy.log"
+      },
+      "green-fmt": {
+        "command": [
+          "python3",
+          "-B",
+          "/workspace/nieuw-os/tools/dev.py",
+          "cargo",
+          "+1.90.0",
+          "fmt",
+          "--manifest-path",
+          "/tmp/nieuw-os-ci-foundation-triage/snapshot/sdk/keyring-client/Cargo.toml",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit": 0,
+        "seconds": 0.2760179290016822,
+        "log": "/tmp/nieuw-os-ci-foundation-triage/green-fmt.log"
+      }
+    },
+    "tests_passed": {
+      "unit": 3,
+      "actual_keyring_service_protocol": 12,
+      "total": 15
+    },
+    "only_private_source_delta": {
+      "sdk/keyring-client/Cargo.lock": {
+        "before": "3840fe0b24327d5a08884d65e3067dc5a57e28e6e3b1b32fb683a408d74053be",
+        "after": "0362d81cba8d081fd2c1da42f3395d1fe18694b16408bfb170fa2e733a3dc57d"
+      }
+    },
+    "all_proposed_registry_versions_and_checksums_already_in_published_root_lock": true
+  },
+  "CI_scope": {
+    "earlier_steps": "Root Rust host, shared SDK, user allocator and RTC steps passed on this run.",
+    "unexecuted_in_failed_step": "Input-core commands follow the failing first keyring-client command and were not reached.",
+    "later_steps": "Network/quantum/product/NAS/native M6c/progress-clean-tree skipped after this failure.",
+    "qemu_smoke_same_run": "Skipped because host-quality failed; not green.",
+    "other_workflows": "No reruns or edits performed; no inference beyond this CI run."
+  },
+  "logs": {
+    "full_job": "/tmp/nieuw-os-ci-foundation-triage/host-quality.log",
+    "full_job_sha256": "dccc30e933724eacf7091df3a7e12932fb0d217e34c7b3a2f04da25cf2c5669d",
+    "failure_excerpt": "/tmp/nieuw-os-ci-foundation-triage/failure-excerpt.log",
+    "jobs": "/tmp/nieuw-os-ci-foundation-triage/jobs.json"
+  },
+  "next_step": "Root applies the one-file lock update, commits it, then evaluates CI on that new source SHA. Re-running this unchanged old SHA does not repair the lock mismatch.",
+  "limits": "Local targeted red/green validates this first failure only; full CI/new source, later skipped steps and native/image gates are not promoted to passed.",
+  "repository_writes": false,
+  "GitHub_mutations_or_reruns": false
+}

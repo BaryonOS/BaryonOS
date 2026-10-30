@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **32** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`7d230a6e`](https://github.com/simonvanieperen/nieuw-os/commit/7d230a6e8e7d7975f8e3297ff4f2b166c38b1803) ·
+**Bron:** [`48b51878`](https://github.com/simonvanieperen/nieuw-os/commit/48b51878c03b5b73449f563735c7854b24926fc4) ·
 **Ontwikkelbranch:** `codex/native-materiaal-integration`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Behoud eerste nativeGUI-mislukking; batch observer en sluit drie replaybevindingen.
-32% blijft32%; alle62 volledige productcriteria open. EchteGUI7d bereikt Source/Policy/Comp/Focus en één volledig native1608tegelframe, maar faalt200s vóórvolledigegebruikersketen. Die rodeuitvoer wordt behouden. Observerkosten worden metboundedPIT-batchcopy verminderd zonderveiligheids-/IPCwijziging of timeoutverruiming;7gerichtechecks groen. Harnas3e2 sluit3bewijsleemten met19+21hostchecks; nieuwe nativeuitvoering vereist. FoundationRNG/imageproeven gaan parallel, sourcecode/gates zijn geenreleaseacceptatie. Volledige scope, rubricgewichten en productprofiel blijven behouden.
+Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** PR #58: conflictintegratie met main op 6d3bbf0a.
+De score blijft 32%; alle 62 volledige productcriteria blijven open. Deze conflictintegratie behoudt de Materiaal-processen en digestbenchmark uit 48b5187 naast de RNG-/imageproeven en foundation-bewijsarchieven uit main 6d3bbf0a. Historische groene foundationproeven gelden alleen voor hun oorspronkelijke bron; de volledige GUI-keten blijft onbewezen en de eerdere rode uitvoering blijft bewaard. Deze integratie levert geen nieuwe native productacceptatie op. Gewichten, scope en bewijsniveaus zijn onveranderd; actuele integratiecontroles staan in PROJECT-STATE.md.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

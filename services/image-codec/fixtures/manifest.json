@@ -1,0 +1,108 @@
+{
+  "purpose": "Synthetic host fixtures/oracles; no native decoding by Pillow",
+  "generator": "generate.py",
+  "pillow_version": "12.3.0",
+  "zlib_version": "1.3.2",
+  "images": [
+    {
+      "name": "rgb.png",
+      "width": 231,
+      "height": 149,
+      "format": "PNG",
+      "input_sha256": "c6ff06a0da19f46c8bdaa4b4aed04b34806912181557ed8809004cf473320287",
+      "reference_rgba_sha256": "451f341fbc8dd4de7d467e15aac83da3975e0966adea94ff41de96b1f58d8b06",
+      "reference_tolerance": 0
+    },
+    {
+      "name": "alpha.png",
+      "width": 128,
+      "height": 96,
+      "format": "PNG",
+      "input_sha256": "aeb89596eb31af544e1d42d1a99acb314d0fb5ca81f9465e8729f9e2a67f0e75",
+      "reference_rgba_sha256": "6ab2410cdbfb764e2be83b56cef00a333954b88e7e79cf9a14325c5881f08033",
+      "reference_tolerance": 0
+    },
+    {
+      "name": "palette4.png",
+      "width": 73,
+      "height": 47,
+      "format": "PNG",
+      "input_sha256": "d45243c0523bbdc53911a89a661fb2871591eba3b1109cfc9567c44bc1f51ed6",
+      "reference_rgba_sha256": "ce638be24b20b63cf82a4a04c9a5c85096e58b4a217d529b69d0f9cb71716455",
+      "reference_tolerance": 0
+    },
+    {
+      "name": "mono1.png",
+      "width": 65,
+      "height": 33,
+      "format": "PNG",
+      "input_sha256": "48d08bfa344529ba86dc11c8dfa923fd94ae6fb8818a2c16780222313c94e7a3",
+      "reference_rgba_sha256": "cb6872d4f0acf75058f400c57ac3dcb64bce42a6522a3824d0ed0b62a0044872",
+      "reference_tolerance": 0
+    },
+    {
+      "name": "gray-alpha.png",
+      "width": 97,
+      "height": 65,
+      "format": "PNG",
+      "input_sha256": "56a229ff0353bce8b2ad562bfafb11f830edea9794467b7e2b957864abf8a6be",
+      "reference_rgba_sha256": "5a4f2aab69b8fd5aacfd5db2c60fa880b8175dac28384bf77a864799a793c06b",
+      "reference_tolerance": 0
+    },
+    {
+      "name": "adam7.png",
+      "width": 129,
+      "height": 77,
+      "format": "PNG",
+      "input_sha256": "3c170be853055b6ae742a3673d728d7086fd69d4781c1732316ddc17345477ad",
+      "reference_rgba_sha256": "8b60e3a442540e852d7423c56fd466425e25aafe0b377ed93bdee2e8f49c3f1f",
+      "reference_tolerance": 0
+    },
+    {
+      "name": "rgba16.png",
+      "width": 97,
+      "height": 65,
+      "format": "PNG",
+      "input_sha256": "7af70c588644c3ebcaf1ae16efebd39435d752f350cfde4284de9c9945b1acb9",
+      "reference_rgba_sha256": "ff82511d227664a99b119fcd5f37a25bcfe8ffc105b617458e7356989962c5a4",
+      "reference_tolerance": 0,
+      "reference_rgba16be_sha256": "e4e5fff5f628c48399ad5de0061ecbd83669923a02cb44bc455ff1a95b81ba96"
+    },
+    {
+      "name": "baseline.jpg",
+      "width": 257,
+      "height": 129,
+      "format": "JPEG",
+      "input_sha256": "acf36b484e25ac88a9c92ff0b5455684550480e41d004282d90174347128d012",
+      "reference_rgba_sha256": "f8a7de1b17e8f0311b8fa4ad018024c65e5c6d2f0c0ab4f13eec2b13b0b640c9",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "progressive.jpg",
+      "width": 193,
+      "height": 113,
+      "format": "JPEG",
+      "input_sha256": "8443833151b58ed885b31b7e7346a894512306ca17a7eeb52363bcf0ed31c86e",
+      "reference_rgba_sha256": "55fbfc3233ab50e37bbf8162a38945dab9977a5cef3affb3b700d20673be218e",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "gray.jpg",
+      "width": 113,
+      "height": 67,
+      "format": "JPEG",
+      "input_sha256": "1d22bd1141c168cc913d94588f9930abc4444c2b91edab3181177bd586baa137",
+      "reference_rgba_sha256": "d3710604ff17a78084ad596fba4e38ef8f4d32e761e78cd38b60bb31e200ecf5",
+      "reference_tolerance": 3
+    },
+    {
+      "name": "cmyk.jpg",
+      "width": 61,
+      "height": 43,
+      "format": "JPEG",
+      "input_sha256": "dd945e01b619bde3143d5ab01781f1bacc4756615efa736a68008fa8fc0ca479",
+      "reference_rgba_sha256": "0eca19e2fd9f912e33b6c1536dec88b17e8be4bc9404c17b99bd48c3a2c3e27e",
+      "reference_tolerance": 3
+    }
+  ]
+}

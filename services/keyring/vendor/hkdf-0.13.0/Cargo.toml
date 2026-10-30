@@ -1,0 +1,25 @@
+# Runtime-only manifest for exact upstream 0.13.0 plus the documented hygiene patch.
+# Original normalized/original manifests, source archives and licenses are retained.
+[package]
+name = "hkdf"
+version = "0.13.0"
+edition = "2024"
+rust-version = "1.85"
+publish = false
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/RustCrypto/KDFs/"
+description = "Upstream HKDF 0.13.0 with a local memory-hygiene-only patch"
+autotests = false
+autobenches = false
+
+[features]
+zeroize = ["hmac/zeroize"]
+
+[dependencies]
+hmac = { path = "../hmac-0.13.0", version = "=0.13.0", default-features = false, features = ["zeroize"] }
+zeroize = { version = "=1.9.1", default-features = false }
+hybrid-array = { version = "=0.4.15", default-features = false, features = ["zeroize"] }
+kdf = { version = "0.1", optional = true }
+
+[lints.rust]
+unsafe_code = "forbid"

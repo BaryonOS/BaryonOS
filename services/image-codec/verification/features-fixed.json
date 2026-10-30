@@ -1,0 +1,23 @@
+{
+  "kind": "Host/source verification only",
+  "argv": [
+    "python3",
+    "-B",
+    "tools/dev.py",
+    "cargo",
+    "+1.90.0",
+    "tree",
+    "--locked",
+    "--offline",
+    "--manifest-path",
+    "services/image-codec/Cargo.toml",
+    "-e",
+    "features",
+    "--target",
+    "x86_64-unknown-none"
+  ],
+  "exit_code": 0,
+  "seconds": 0.1364,
+  "stdout": "nieuw-os-image-codec v0.1.0 (/workspace/nieuw-os-worktrees/image-codec/services/image-codec)\n\u251c\u2500\u2500 simd-adler32 v0.3.10\n\u251c\u2500\u2500 zune-core v0.5.3\n\u251c\u2500\u2500 zune-jpeg v0.5.16-rc3 (/workspace/nieuw-os-worktrees/image-codec/services/image-codec/vendor/zune-jpeg-0.5.16-rc3)\n\u2502   \u2514\u2500\u2500 zune-core feature \"default\"\n\u2502       \u2514\u2500\u2500 zune-core v0.5.3\n\u251c\u2500\u2500 zune-png v0.5.2\n\u2502   \u251c\u2500\u2500 zune-core feature \"default\" (*)\n\u2502   \u2514\u2500\u2500 zune-inflate feature \"zlib\"\n\u2502       \u251c\u2500\u2500 zune-inflate v0.2.54\n\u2502       \u2502   \u2514\u2500\u2500 simd-adler32 v0.3.10\n\u2502       \u2514\u2500\u2500 zune-inflate feature \"simd-adler32\"\n\u2502           \u2514\u2500\u2500 zune-inflate v0.2.54 (*)\n\u2514\u2500\u2500 zune-inflate feature \"zlib\" (*)\n",
+  "stderr": ""
+}

@@ -5,6 +5,9 @@
 //! data is deliberately plaintext; this is not B02 encrypted storage evidence.
 #[allow(dead_code)]
 mod protocol;
+#[allow(dead_code)]
+#[path = "../../random-probe/src/contract.rs"]
+mod random_contract;
 mod support;
 use keyring_core::{
     records::{RecordContext, RecordKind},
@@ -16,8 +19,8 @@ use nieuw_os_document_session::{
     EditMode, SaveOutcome,
 };
 use nieuw_os_keyring_client::{
-    KeyIndex, NativeTransport as NativeKeyTransport, Operation as KeyOperation, Reply as KeyReply,
-    Session as KeySession, State as KeyState,
+    KeyIndex, NativeTransport as NativeKeyTransport, Operation as KeyOperation, Poll as KeyPoll,
+    Reply as KeyReply, Session as KeySession, State as KeyState,
 };
 use nieuw_os_sdk_runtime::{
     native, BlockDevice, EntropySource, LaunchImage, Outgoing, ReceiveEndpoint, SendEndpoint,
@@ -303,6 +306,58 @@ fn byte(offset: usize) -> u8 {
     (7 + offset * 13 + offset / 251) as u8
 }
 
+/// Opt-in fault-isolation acceptance only. This uses the same sole live KEY
+/// session; no reply alias, new authority, cached STATUS or host result.
+fn status_after_random_terminal(keys: &mut KeySession<NativeKeyTransport>) {
+    use random_contract as r;
+    let magic = support::word(r::APP_MAGIC_AT);
+    if magic == 0 {
+        return;
+    } // Every old profile retains its old ABI/flow.
+    check(magic == r::APP_MAGIC, 90);
+    let start = native::monotonic_ticks().unwrap_or_else(|_| fail(91));
+    let end = start
+        .checked_add(r::REQUEST_TICKS)
+        .unwrap_or_else(|| fail(92));
+    let mut last = start;
+    while support::word(r::APP_RELEASE) != 1 {
+        let now = native::monotonic_ticks().unwrap_or_else(|_| fail(91));
+        check(now >= last && now < end, 93);
+        last = now;
+        native::yield_now().unwrap_or_else(|_| fail(94));
+    }
+    check(!keys.is_busy() && !keys.is_closed(), 95);
+    let begin = native::monotonic_ticks().unwrap_or_else(|_| fail(91));
+    check(begin >= last, 97);
+    support::put(r::APP_STATUS_BEGIN, begin);
+    let deadline = begin
+        .checked_add(r::REQUEST_TICKS)
+        .unwrap_or_else(|| fail(92));
+    keys.begin(KeyOperation::Status)
+        .unwrap_or_else(|_| fail(96));
+    last = begin;
+    loop {
+        let now = native::monotonic_ticks().unwrap_or_else(|_| fail(91));
+        if now < last || now >= deadline {
+            let _ = keys.close();
+            fail(93);
+        }
+        last = now;
+        match keys.poll() {
+            Ok(KeyPoll::Pending { .. }) => {}
+            Ok(KeyPoll::Ready(KeyReply::Status(status))) => {
+                check(status.state == KeyState::Ready, 96);
+                break;
+            }
+            _ => fail(96),
+        }
+    }
+    let done = native::monotonic_ticks().unwrap_or_else(|_| fail(91));
+    check(done >= last, 97);
+    support::put(r::APP_STATUS_END, done);
+    support::put(r::APP_STATUS_ACK, 1);
+}
+
 /// Three 4-KiB caller buffers live only on the 64-KiB userspace stack. This
 /// ordinary native SDK client owns the volume endpoints until explicit close.
 /// It has no disk/Key-Service secrets, host shortcut or private success path.
@@ -554,6 +609,7 @@ fn main() -> ! {
     check(!keys.is_busy(), 20);
     let _ = probe.call(kw::UNSEAL, key.raw(), &blob[..length], KeyStatus::Revoked);
     records_after_revoke(&mut probe, key.raw(), context, &record);
+    status_after_random_terminal(&mut keys);
     check(keys.close().is_ok() && keys.is_closed(), 21);
     for (at, value) in [
         (400, 1),

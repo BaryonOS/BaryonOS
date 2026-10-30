@@ -1,0 +1,92 @@
+{
+  "review": "REV-IMAGE-SNAPSHOT-1",
+  "result": "No concrete transactional snapshot/OOM retry blocker found within the frozen slice",
+  "source_commit": "ade6d33aa550780131a5c83395560224de918c72",
+  "previous_commit": "9d8d206bfd48f8a12707da700b5d6e58683dde22",
+  "source_clean_before_and_after": true,
+  "source_files": {
+    "services/image-codec/src/lib.rs": {
+      "new_sha256": "404a7149c4adb738cd9c0db2e9992a1d8bb1cf6a8217d1a699d24adb0bc09edc",
+      "previous_sha256": "9621b4a3e37c2e9c5559ba22b9dc67569aa79d88c0efc9ba328a393211cea8de"
+    },
+    "services/image-codec/vendor/zune-jpeg-0.5.16-rc3/src/decoder.rs": {
+      "new_sha256": "f37824b88cf0ba2a09e0c5ad8bba9dd6c3c544b9d834483200a51fadba44b9d9",
+      "previous_sha256": "e514d27f8e492c1b1a4ee37b37127d1b4e535c70599723205ab0ffef4f6a621d"
+    },
+    "services/image-codec/vendor/zune-jpeg-0.5.16-rc3/src/errors.rs": {
+      "new_sha256": "93d6b6958e9ac1b585b3af96b5efbb515381ac7df5868dc6100a5a540d664974",
+      "previous_sha256": "462da4fbaf575b997fd1083baccd4e2a61660d16c3a02207af6e7bc49680e602"
+    },
+    "services/image-codec/vendor/zune-jpeg-0.5.16-rc3/src/mcu.rs": {
+      "new_sha256": "43d867d08ef594ba9495329b8e80d9789fcecdef23ba3ec8276f9e860b276c75",
+      "previous_sha256": "cbe9020873cb5b08adcc76d7de3a5a777ead0b97e6f971bf79c88af08417ced6"
+    },
+    "services/image-codec/vendor/zune-jpeg-0.5.16-rc3/src/upsampler/scalar.rs": {
+      "new_sha256": "0d964ee9404af1260c3b06428159d33ec83fc69e1c1318ebd87840668aa8bf27",
+      "previous_sha256": "0d964ee9404af1260c3b06428159d33ec83fc69e1c1318ebd87840668aa8bf27"
+    },
+    "services/image-codec/vendor/upstream/scan-header-heap.patch": {
+      "new_sha256": "18addbe8cfabaa990833c2fcb0639b0491f0393c8d4590331e3e029aca9d72aa",
+      "previous_sha256": null
+    },
+    "services/image-codec/verify_vendor.py": {
+      "new_sha256": "66264b87837bf9e4cfbc99ac36824417380818f04ffd1fb58a4d0e568fe6b3ba",
+      "previous_sha256": "0fe3ae11aae4569934e062b056947cf6d6d670213bf589c128d4ecbd02fb447f"
+    }
+  },
+  "code_review": [
+    "Snapshot owns exactly four DC and four AC slots; try_reserve_exact precedes pushes and retains None slots. The copied HuffmanTable consists only of fixed arrays, so its per-slot clone/restore does not allocate.",
+    "capture and try_clone borrow existing decoder state; temporary partially built vectors drop on a later reserve error. Scan-plan outer/progressive snapshot cloning completes before any parser/seek/restore mutation.",
+    "headers_decoded becomes true only after successful enter_scan_state; an allocation failure therefore cannot publish headers/info/output size.",
+    "Progressive checkpoint is replaced only after capturing its full new snapshot; old checkpoint remains available on reserve failure. Inter-scan snapshot capture happens before parsing following markers.",
+    "AllocationFailed maps to public OutOfMemory in both header and pixel decode paths; cancellation keeps its existing explicit priority. No hidden successful image or automatic retry is added.",
+    "No new input format/oracle/tolerance/stack size/heap grant or permission change was found. Existing infallible upstream allocations outside the snapshot buffers were not converted or comprehensively fault-audited by this slice."
+  ],
+  "independently_executed": [
+    {
+      "command": "LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-image-snapshot-review/target python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --manifest-path /tmp/nieuw-os-image-snapshot-review/source/Cargo.toml -- --nocapture",
+      "passed": 19,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-image-snapshot-review/original-host-tests.txt"
+    },
+    {
+      "command": "LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-image-snapshot-review/target python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --manifest-path /tmp/nieuw-os-image-snapshot-review/source/Cargo.toml --test snapshot_oom review_ -- --nocapture",
+      "passed": 3,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-image-snapshot-review/compound-retry-tests.txt",
+      "additional_detail": [
+        "Three actual images each tolerate four successive header-reserve OOMs, then same-decoder exact pixel retry (12 failures)",
+        "46 actual recoverable-EOF parser states each followed by four successive snapshot OOMs; each failure leaves output bytes and retained snapshot allocation count unchanged; same decoder finally yields exact full pixels (184 failures)",
+        "Nonincremental default mode retries each of six observed snapshot reserve failures on the same decoder with exact full pixels"
+      ],
+      "additional_injected_allocation_failures": 202
+    }
+  ],
+  "separately_delegated_source_integrity": {
+    "report": "/tmp/nieuw-os-image-integrity-review/review.json",
+    "sha256": "149c33be95fcf8d8bee65ba58f0409f520302729f1865bb8bd15a28acf9e3dfc",
+    "scope": "Actual head verifier+4 tests and old9d8 verifier+3 tests, all41 archive members,37 unchanged vendor files, both exact generated patch diffs and37 separately rejected mutations",
+    "result": "No concrete source-integrity finding; original scalar patch/archive/source remain byte-identical"
+  },
+  "worker_codegen_report": {
+    "path": "/workspace/nieuw-os-worktrees/image-codec/services/image-codec/verification/scan-snapshot-codegen.json",
+    "sha256": "7706a2e876d45b6f521ffa46172ab0ceff05170780397057db8506053e55e6a3",
+    "scope": "Read as worker evidence only; reviewer did not rerun native codegen or measure total maximum stack. Report itself disclaims complete max-stack/native proof."
+  },
+  "no_repository_writes": true,
+  "no_native_vm_started": true,
+  "no_native_claim": true,
+  "score_change_proposed": 0,
+  "remaining_acceptance": [
+    "Actual rebuilt guest on the final combined source must pass the unchanged64KiB stack/4MiB heap/profile/pixel/resource/error gates",
+    "Host compound-retry and source-integrity tests do not prove a native fix, all possible upstream allocation failures, maximum stack consumption, full format compatibility or a complete viewer",
+    "Native source/image/kernel/ELF/firmware binding and cold joint regressions remain root-owned"
+  ],
+  "local_artifact_sha256": {
+    "original-host-tests.txt": "4c19ee17605adc4179912503b11e3c8fd4bbbafc39985780de7b76806686a049",
+    "compound-retry-tests.txt": "8aa7346c7119e473f14a62cb0a8f00b8fd0f9397d4a6fa09c9d47c906f194bef",
+    "source/tests/snapshot_oom.rs": "3ab034dccaf1affc21374a3bc32a1165fd4ef86bdac67a862576af7ea122acce"
+  }
+}
