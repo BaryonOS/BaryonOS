@@ -70,6 +70,13 @@ hervat pas na identificatie/stop van extra writer en actuele main/base/gates.
 Geen algemene statusronde, rolterugname of automatische overname.
 Donor8's nieuwe rolvraag is conform het vastgelegde mandaat beantwoord:
 laat7f integreren, overdracht behouden. Onafhankelijk domeinwerk gaat door.
+Live sessiestatus om19:59Europe/Amsterdam toont directie geblokkeerd op
+de feitelijke vraag aan Simon of hij85/76 zelf of via automatisering liet
+mergen. De assistent kan dit niet namens Simon weten of beantwoorden;
+geen duplicaatvraag of herhaalberichten. Alleen de merge-identiteitsdispositie
+wacht hierop, niet bestaande domeintoewijzingen. BUILD12 heeft geen open
+gebruikersvraag; onbekende activiteit/berichtacceptatie bewijst nog geen
+uitgevoerde verse headroomcheck of slotvrijgave.
 
 ## Werkelijke sessies en primaire opdracht
 
