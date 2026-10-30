@@ -1,0 +1,43 @@
+{
+  "scope": "same-source functional runtime only; byte reproducibility remains blocked",
+  "source_sha256": "24d5f4c112924cfe45681de3fcf3a92f62087e29524f15c74e14d83620891abd",
+  "passed": true,
+  "frames": {
+    "ready": "89988554c6e93449245ccac8462e1a43af336e0af990affcf59004bb2eaed50f",
+    "editor": "1e6c9e54ec9d83193fb3e4708822d81775b13f65b470e1478ebf6bb0f000b307",
+    "dirty": "8190ac298424262fac1e34ba24451d745aa28f4221eb2e9817cf24fa03a27dda",
+    "saved": "5ec5bba6342fa55247d59ebc71f13c6c7e42b7a2dd96e242bea15248cfbc8488",
+    "list": "a29b8342d2d1229b4b6f37a1cf3f0342dc400547e329ec61215312bc4ea3e835",
+    "reopened": "dfca8c62b1e10b99a6561098b56be8749102d69dca390257717935686fb19099"
+  },
+  "disk": {
+    "object": 0,
+    "revision": 1,
+    "name": "Nieuw document",
+    "length": 14,
+    "sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+    "fnv": 2786778974461010050,
+    "generation": 1,
+    "clocks": [
+      1,
+      0
+    ],
+    "canaries_intact": true
+  },
+  "reference_report_sha256": "59482914b7ac50c19ae19a4c66b20b7f73d3ed57ed0e00d587bc566a30c391a3",
+  "ordinary_report_sha256": "5608ef37440cf33e5972c50eae2ee03f174c10fb335589b04b7159faaacab130",
+  "logs": {
+    "/tmp/nieuw-os-tl-verify-source-runtime-reference.log": {
+      "sha256": "04e7f80730cf96d5b585a07bafeaeadaf0488093d0d84253b8142e4263df18c8",
+      "bytes": 1045
+    },
+    "/tmp/nieuw-os-tl-verify-source-runtime-reference-canonical.log": {
+      "sha256": "ee5b129d642236f668d91c121fb32ea79904b1f88bf380b6069b72b856691e3e",
+      "bytes": 186
+    },
+    "/tmp/nieuw-os-tl-verify-source-runtime-interactive.log": {
+      "sha256": "5608ef37440cf33e5972c50eae2ee03f174c10fb335589b04b7159faaacab130",
+      "bytes": 418011
+    }
+  }
+}
