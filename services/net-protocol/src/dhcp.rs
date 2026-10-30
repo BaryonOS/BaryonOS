@@ -333,7 +333,6 @@ fn build_request(
     mac: [u8; 6],
     elapsed_seconds: u16,
     client_address: [u8; 4],
-    broadcast: bool,
     request_type: RequestType,
     selected: Option<([u8; 4], [u8; 4])>,
 ) -> Result<usize, Error> {
@@ -356,7 +355,7 @@ fn build_request(
     output[2] = 6;
     output[4..8].copy_from_slice(&transaction_id.to_be_bytes());
     output[8..10].copy_from_slice(&elapsed_seconds.to_be_bytes());
-    if broadcast {
+    if matches!(request_type, RequestType::Discover) || selected.is_some() {
         output[10..12].copy_from_slice(&0x8000u16.to_be_bytes());
     }
     output[12..16].copy_from_slice(&client_address);
@@ -398,7 +397,6 @@ pub fn build_discover(
         mac,
         elapsed_seconds,
         [0; 4],
-        true,
         RequestType::Discover,
         None,
     )
@@ -422,7 +420,6 @@ pub fn build_selecting_request(
         mac,
         elapsed_seconds,
         [0; 4],
-        true,
         RequestType::Request,
         Some((requested_address, server_identifier)),
     )
@@ -446,7 +443,6 @@ pub fn build_renewal_request(
         mac,
         elapsed_seconds,
         client_address,
-        false,
         RequestType::Request,
         None,
     )

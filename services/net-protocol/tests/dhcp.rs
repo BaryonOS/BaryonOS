@@ -305,6 +305,7 @@ fn builds_discover_selecting_and_renewal_messages() {
     let requested = [192, 0, 2, 42];
     let length =
         dhcp::build_selecting_request(&mut output, XID, MAC, 9, requested, SERVER).unwrap();
+    assert_eq!(&output[10..12], &[0x80, 0]);
     let selecting = options(&output[..length]);
     assert_eq!(selecting[0], (53, vec![3]));
     assert_eq!(selecting[2], (50, requested.to_vec()));
