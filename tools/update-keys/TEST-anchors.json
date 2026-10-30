@@ -1,0 +1,8 @@
+{
+  "label": "TEST",
+  "purpose": "test anchors for the B03 gate; never a release key",
+  "ed25519_public": "a4494af8b360b9e61a618739251b4c7ed0c1fe547855335a89c203507afa3d2f",
+  "ed25519_key_id": "4bf7d9b716af4045",
+  "mldsa65_public_sha256": "acdf57975753f1eb3969c7542ef234e2e9f34f2075280a6fdd523d3930bb3fd3",
+  "mldsa_key_id": "acdf57975753f1eb"
+}

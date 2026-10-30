@@ -3,9 +3,9 @@
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
-![Nieuw OS: 32% van de vaste productroadmap](docs/assets/progress.svg)
+![Nieuw OS: 34% van de vaste productroadmap](docs/assets/progress.svg)
 
-**32% — 32 van 100 gewogen acceptatiepunten.** Dit is een
+**34% — 34 van 100 gewogen acceptatiepunten.** Dit is een
 planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
 percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
 met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
@@ -24,18 +24,18 @@ alleen een nette desktop haalt die eindgrens niet.
 | Hardware, drivers en energie | 12 | 1 |
 | Native Materiaal en toegankelijkheid | 15 | 0 |
 | Internet en netwerkdiensten | 10 | 0 |
-| Beveiliging, privacy en updates | 12 | 2 |
+| Beveiliging, privacy en updates | 12 | 4 |
 | Apps, SDK en installatie | 8 | 2 |
 | Persoonlijke NAS en meerdere apparaten | 5 | 0 |
 | Lokale AI en quantum-runtime | 3 | 1 |
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **32** |
+| **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`9596abc5`](https://github.com/simonvanieperen/nieuw-os/commit/9596abc576fceefe2b3ff2f3bd120bcd914eb04c) ·
+**Bron:** [`1f6a6834`](https://github.com/simonvanieperen/nieuw-os/commit/1f6a6834a89aa3d533b096c5b62a46b3276db6d3) ·
 **Ontwikkelbranch:** `codex/native-product-integration`.
-Deze opdracht: **32% → 32% (+0 procentpunt)**. **Opdracht:** Negen gezamenlijke CI groen, GUI-keten rood; harnas/configuratie herstellen en begrensde IPC-wachtfunctie uitvoeren.
-De score blijft 32%; alle 62 volledige productcriteria blijven open. Op exact 9596abc slagen alle negen CI-workflows, inclusief vier echte RNG-gevallen en de native PNG/JPEG-proef. De aparte GUI-keten op dezelfde gezamenlijke bron bereikt Materiaal en editor, maar faalt na de vaste 20.000 PIT-ticks vóór typen/Save/Reopen/afsluiten. Gerichte configuratie- en benchmarkharnasbevindingen worden zonder controledaling hersteld. IPC-wait en consumerintegratie zijn in uitvoering, nog zonder native acceptatie. De calculator heeft positief begrensd bron-/host-/ELF-bewijs, geen native appacceptatie. Veilige persistente productopslag, volledige apps/NAS/AI/updates/herstel, fysieke en menselijke gates blijven open. Scope, gewichten en bewijsniveaus zijn onveranderd.
+Deze opdracht: **32% → 34% (+2 procentpunt)**. **Opdracht:** Native productintegratie en eerder geaccepteerde B03-updates samenvoegen.
+De score stijgt van 32% naar 34% door de eerder geaccepteerde B03-proef voor ondertekende updates en rollback. Op exact 9596abc slagen alle negen CI-workflows; de aparte GUI-keten bereikt Materiaal en editor, maar faalt vóór typen, Save/Reopen en afsluiten. De calculator heeft begrensd bron-, host- en ELF-bewijs, geen native appacceptatie. De vermelde bron is de productouder; B03 en de productmetingen blijven aan hun oorspronkelijke bronnen gebonden. Deze samenvoeging is niet als gecombineerde bron gevalideerd. Alle 62 volledige productcriteria blijven open; volledige updates en herstel, veilige persistente opslag, Secure Boot, releasesleutels, fysieke en menselijke gates zijn niet aangetoond.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

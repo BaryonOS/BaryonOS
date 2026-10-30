@@ -57,6 +57,22 @@ pub fn hex(value: u64) {
     write(&bytes);
 }
 
+/// Decimal without leading zeros; evidence lines carry plain versions.
+#[cfg_attr(not(feature = "signed-boot"), allow(dead_code))]
+pub fn decimal(mut value: u64) {
+    let mut digits = [b'0'; 20];
+    let mut index = digits.len();
+    loop {
+        index -= 1;
+        digits[index] = b'0' + (value % 10) as u8;
+        value /= 10;
+        if value == 0 {
+            break;
+        }
+    }
+    write(&digits[index..]);
+}
+
 pub fn fail(code: &'static [u8]) -> ! {
     init();
     write(b"M1:FAIL:");

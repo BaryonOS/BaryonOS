@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "9596abc576fceefe2b3ff2f3bd120bcd914eb04c",
+    "source_commit": "1f6a6834a89aa3d533b096c5b62a46b3276db6d3",
     "branch": "codex/native-product-integration",
-    "task": "Negen gezamenlijke CI groen, GUI-keten rood; harnas/configuratie herstellen en begrensde IPC-wachtfunctie uitvoeren",
+    "task": "Native productintegratie en eerder geaccepteerde B03-updates samenvoegen",
     "previous_score": 32,
-    "summary": "De score blijft 32%; alle 62 volledige productcriteria blijven open. Op exact 9596abc slagen alle negen CI-workflows, inclusief vier echte RNG-gevallen en de native PNG/JPEG-proef. De aparte GUI-keten op dezelfde gezamenlijke bron bereikt Materiaal en editor, maar faalt na de vaste 20.000 PIT-ticks vóór typen/Save/Reopen/afsluiten. Gerichte configuratie- en benchmarkharnasbevindingen worden zonder controledaling hersteld. IPC-wait en consumerintegratie zijn in uitvoering, nog zonder native acceptatie. De calculator heeft positief begrensd bron-/host-/ELF-bewijs, geen native appacceptatie. Veilige persistente productopslag, volledige apps/NAS/AI/updates/herstel, fysieke en menselijke gates blijven open. Scope, gewichten en bewijsniveaus zijn onveranderd."
+    "summary": "De score stijgt van 32% naar 34% door de eerder geaccepteerde B03-proef voor ondertekende updates en rollback. Op exact 9596abc slagen alle negen CI-workflows; de aparte GUI-keten bereikt Materiaal en editor, maar faalt vóór typen, Save/Reopen en afsluiten. De calculator heeft begrensd bron-, host- en ELF-bewijs, geen native appacceptatie. De vermelde bron is de productouder; B03 en de productmetingen blijven aan hun oorspronkelijke bronnen gebonden. Deze samenvoeging is niet als gecombineerde bron gevalideerd. Alle 62 volledige productcriteria blijven open; volledige updates en herstel, veilige persistente opslag, Secure Boot, releasesleutels, fysieke en menselijke gates zijn niet aangetoond."
   },
   "tracks": [
     {
@@ -373,9 +373,12 @@
           "id": "B03",
           "title": "Ondertekende updates en rollback",
           "points": 2,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "Authentieke updates, onderbreking, downgrade-aanvallen en herstel naar een geldige vorige versie zijn end-to-end getest.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/B03-ACCEPTANCE.md",
+            "docs/verification/b03/update-gate.json"
+          ]
         },
         {
           "id": "B04",

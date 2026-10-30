@@ -189,6 +189,11 @@ test-volume-recover-cut = ["native-volume"]
 test-volume-corrupt = ["native-volume"]
 test-volume-cut-txn = ["native-volume"]
 
+# B03 signed updates: generic broker over the slot store, one ring-3 update
+# service; the kernel's own version comes from the build env NOS_IMAGE_VERSION.
+native-update = ["milestone-m6a"]
+test-update-cut = ["native-update"]
+
 [dependencies]
 nieuw-os-display-client = { path = "../sdk/display-client", default-features = false, optional = true }
 nieuw-os-ps2 = { path = "../drivers/ps2", optional = true }
