@@ -2,66 +2,79 @@
 
 ## Volledige native testrelease — in uitvoering, 32% — 2026-10-30
 
-Branch `codex/full-test-release`, main-basis73ebc1e, laatste checkpointcda42f2,
-[concept-PR56](https://github.com/simonvanieperen/nieuw-os/pull/56).
-[Volledige opdracht/matrix](FULL-TEST-RELEASE.md), [nieuwe productcontext](FULL-TEST-RELEASE-CONTEXT.md)
-en [werkqueue](WORK-QUEUE.md) vormen één voortgangsketen. De twintig aanvullende
-gebruikerssecties zijn verwerkt met behoud van origineleopdracht, `/goal`,62FR-ID's,
-alle bestaande verplichtefuncties en geldige bewijzen. **Geen volledige release;32%→32%.**
+Branch `codex/full-test-release`, gepubliceerde bron
+`61ea7278390d5235a8bc024cbf084222a7b0c658`, boom
+`d54c6ad0f32c2187ee94e0f2780c45c1da994253`;
+[concept-PR #56](https://github.com/simonvanieperen/nieuw-os/pull/56).
+[Opdracht en 62 acceptatiecriteria](FULL-TEST-RELEASE.md),
+[aanvullende productcontext](FULL-TEST-RELEASE-CONTEXT.md) en
+[werkqueue](WORK-QUEUE.md) blijven één voortgangsketen. Alle volledige
+productcriteria blijven open. **Geen volledige release; score 32% → 32%.**
 
-**Laatste gezamenlijke rootacceptatie92d52d7:** vijf echteVMs (basepair,ARP/UDP/DNSpair,
-FPU/klok) en allezevenCIworkflowsgroen, op exacte v3source165920659be320b2f635f90952d3f1134e48324bdcae0672495d2828a68e8b3f.
-[Basecapture](verification/full-release-base-92d52d7/capture-validation.json),
-[netcapture](verification/full-release-net-92d52d7/capture-validation.json),
-[FPU](verification/full-release-fpu-92d52d7/README.md).
+**Samengevoegde bron werkelijk uitgevoerd:** zeven lokale VM-runs op exact
+61ea727, alle geslaagd met QEMU raw 33. Basis en koude readonly-herstart
+5,40/5,20 s; ARP/UDP/DNS en koude herstart 59,55/58,36 s; TCP en koude herstart
+7,65/7,76 s; aparte FPU/klok-proef 3,68 s. Gemeenschappelijke v3-bronvingerafdruk
+`2eb46ac69aec5c7d60ed06278705c97f4fd7d67347afc3213b77eac3624cc013`.
 
-**Nieuwe nativeTCPpair bewezen op1b6a308:** normal7.61s/cold7.49s,raw33/33,
-21TX/13RX perVM exactapp/broker/peer; tweeHTTPantwoorden metEOF/FINACK,
-refused/reset, echteSYNretransmissie,300PITtickblackhole,stalecap/resetACK/cleanup.
-[Strictcapture](verification/full-release-tcp-1b6a308/capture-validation.json)
-hercontroleert echteESP/disk/readonly/bron/semantischpeertranscript/finale normale
-kernelbc6c5931777819829ed57de6a2014deece3229f337ddf84d4c61ae0b89583103.
-MislukteARPtestserverrun en hersteldebroadcastTHA-regressie blijven apart bewaard.
-TCPcombineert5nativeprocessen/diensten+dynamicworkers metmonotoneklok+FPUcontext.
+- [Basisketen](verification/full-release-base-61ea727/capture-validation.json):
+  typed KEY1-client, v7 documentsessie, opslag en onafhankelijke koude controle.
+- [ARP/UDP/DNS](verification/full-release-net-61ea727/capture-validation.json):
+  echte virtio-net-client en afgebakende protocoltegenpartij.
+- [TCP](verification/full-release-tcp-61ea727/capture-validation.json):
+  per VM 21 TX/13 RX; twee HTTP-overdrachten met echte FIN/ACK, geweigerde poort,
+  reset, SYN-retransmissie en 300 PIT-ticks blackhole. Strikte bron-, image-,
+  disk-, proces- en semantische transcriptcontrole.
+- [FPU en klok](verification/full-release-fpu-61ea727/README.md): drie schone
+  proceslevens, 48 registercontroles, 51 kloklezingen, 18 weigeringen,
+  49 timerinterrupts, 172 contextopslagen/herstellingen, echte unsupported-AVX-fout,
+  hergebruik en 8192 gewiste contextbytes.
 
-**Getypeerde sleutelclient:** echte systeemapp op schonefd7d9a0 heeft2VMsraw33,
-crypto2/2/9 enrecord1/1/10/2, onveranderdekoudedisk; [bewijs](verification/full-release-keyring-sdk-fd7d9a0/capture-validation.json).
-Inputservicecore heeft20hosttests/targetbuild/gerichteonafhankelijkereview,
-maar nog geen native PS2-bron/compositorservice. Deze bronpakketten zijn nu met
-TCP in mainwerkboom samengevoegd; de volledige unie krijgt eigen rootgates en CI.
-Historische/workerproeven worden niet als acceptatie van de unie omgelabeld.
+De drie koude leesproeven behouden dezelfde diskhash
+`ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea`.
+Dit zijn pc-q35-8.2/qemu64/TCG/1 CPU/256 MiB-integratieprofielen met plaintext
+proefvolume en tijdelijke RAM-sleutels. Zij bewijzen geen persistente versleutelde
+productopslag, volledige gebruikersomgeving of VM-FR-productprofiel.
 
-**Actieve vervolgtaken in eigen worktrees:** fallibleheapgroei/pagingpreflight,
-begrensde gebruikersallocator, onderhoudende no_stdTLS-providerport,
-random-onlyKeyService/CSPRNG en ongeauthenticeerdeRTC-input. Root bezit gedeelde
-interfaces/ABI/build/locks/status. TLS/RANDOM/signer/certtijd/heap/nativeinput zijn
-geen afgetekende productfeatures. Bestaande plaintextfixtures/RAMsleutels en vaste
-proefseeds blijven zichtbaar als ontwikkelbeperkingen.
+**CI op 61ea727:** zes workflows geslaagd, waaronder gezamenlijke native
+acceptatie, K05, entropy/sleutels, opslagherstel, schaalbaar volume en resource-
+uitputting. De algemene CI faalt na geslaagde hosttests en builds bij de
+clean-treecontrole: twee standalone Cargo-targetmappen werden niet genegeerd.
+De huidige reparatie voegt uitsluitend de concrete buildpaden aan `.gitignore`
+toe; de clean-treecontrole blijft verplicht. De daardoor overgeslagen
+qemu-smoke wordt niet als geslaagd opgevoerd. Nieuwe CI moet de reparatie testen.
 
-**Externe deelblokkade:** CLIgitpush faalt sinds1b6 op HTTPSauthenticatie. Fetch/read
-werkt, GitHubconnector is beschikbaar; root publiceert de concrete samengevoegde
-boom via GitData met verwachtehead/cda-lease en controleert daarna de remote-tree,
-zonder forcepush/credentialinspectie. Nog niet als geslaagdepublicatie claimen.
+**Publicatie:** CLI-push heeft een HTTPS-authenticatieblokkade. Via de reeds
+beschikbare GitHub GitData-koppeling is de volledige boom met verwachte HEAD
+gepubliceerd, teruggehaald en exact vergeleken; lokale en remote bron zijn gelijk.
+Geen forcepush of credentialinspectie. Nieuwe checkpoints volgen dezelfde route.
+
+**Parallel werk:** heapgroei/pagingtransacties en SDK, no_std TLS-port en
+random-only Key Service zijn hervat in hun bestaande worktrees. De gebruikers-
+allocator is gereed op workercommit 42d4bc9 en wordt nog geïntegreerd. RTC en
+inputcore zijn geïntegreerde host-/targetimplementaties zonder native aansluiting.
+Twee workers onderzoeken nu de echte Materiaal-renderer/editor en de minimale
+GOP-/PS2-transportgrenzen; root beheert ABI, bootstrap, build en integratie.
 
 ### NEXT AGENT HANDOFF
 
-- Controleer HEAD/status/worktrees/agents. Rootindex bevat samengevoegdeTCP,
-  typedkeyclient eninputcode plus aanvullendecontext; geen reset/werkverlies.
-- Eerstvolgende uitvoer: rootcandidateboom/metadata afronden, via beschikbare
-  GitHubAPI publiceren met expectedheadcda42f2, terugfetchen/fastforward en
-  exacte tree/sourcehash vergelijken. Daarna frozen `tools/test_system.py`,
-  `tools/test_net_system.py`, `tools/test_tcp_system.py` en native-fpu op aparte
-  build/targetmappen; base/net/TCPcapture. Nieuwste7CIchecks beoordelen.
-- Laatste bewezenTCPartifact: `/workspace/nieuw-os-worktrees/root-tcp/build/tcp-native-fixed/esp/`,
-  bron1b6a308/v3source25a523bbb8b56ee38b0ec18ab223a855e61e54c8cf454578643298c0660971b1,
-  kernelsha hierboven, echteappfea2154f68682f6403a060a013a39c656b9e4c302b0a41061d2d0a31e8f6bb91.
-  Base/net/FPU92artifacts blijven inbuild/full-release-root-{final,net,fpu}/esp/.
-  Allemaal integratieprofielen, geen volwaardigreleaseimage.
-- Nieuweimplementatiesin memory,user-allocator,tls-port,keyring-random,rtc-walltime;
-  eigenaarschap/interfacevoorwaarden inWORK-QUEUE. Behoud onafgemaaktebron enlogs.
-- Alle62volledigeproductcriteria blijven open. VM-FR8GiB/Nehalem/32GiB, veilige
-  persistenteopslag, desktop/apps/media/accessibility/NAS/AI/boot/PQC/updates/herstel,
- 100coldstarts/24uur, fysieke/humane/auditgates en volledigepakket ontbrekennog.
+- Controleer actuele HEAD, status, worktrees en werkelijk actieve agents;
+  behoud onafgemaakte wijzigingen. Laatste gezamenlijke bron is 61ea727 hierboven.
+- Eerstvolgende stap: checkpoint met deze zeven VM-bewijzen en gerichte
+  CI-ignorefix publiceren; controleer nieuwe CI inclusief qemu-smoke. Integreer
+  daarna de beoordeelde allocator en heapgroei; maak de canonieke native-memory-
+  proef met echte nulvulling, NX/guard, procesisolatie, quota en OOM op wegwerpimage.
+- Bruikbare artifacts: `build/full-release-61ea-{base,net,tcp,fpu}/esp/`;
+  exacte loader/kernel/app/firmwarehashes en commando's staan in de bewijsarchieven.
+  Definitieve normale kernelhashes: base `3cdf285cc4d70c547121d51f8d0903a24aca0902c538522b1fee6dad6abd5970`,
+  net `49574862b2012a36da6180485ef6430f2d2bd443ee96629eb713c422585d6f87`,
+  TCP `03c1ab07885d598c1930a0065051c281fdd268e9fb97fe41d58008687f2d5b02`.
+- Behoud worktrees `memory`, `user-allocator`, `tls-port`, `keyring-random` en
+  hun tests/logs. Nieuwe UI-/transportworktrees worden door hun eigenaars aangemaakt.
+- Alle 62 productcriteria blijven open: onder meer veilige duurzame opslag,
+  desktop/apps/media/toegankelijkheid, NAS/providers, echte lokale inference,
+  boot/PQC/updates/herstel, productprofiel, 100 koude starts/24 uur, fysieke en
+  menselijke gates en het complete pakket. Ontwikkelbeperkingen zijn geen vrijstelling.
 
 ## Historische checkpoints
 

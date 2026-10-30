@@ -1,5 +1,8 @@
 /target/
 /sdk/target/
+/sdk/keyring-client/target/
+/services/input-core/target/
+/drivers/rtc/target/
 /services/net-protocol/target/
 /build/
 /out/

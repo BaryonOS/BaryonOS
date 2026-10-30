@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "1b6a3086176a6c0a4e6514bf4d2f7105bef3d480",
+    "source_commit": "61ea7278390d5235a8bc024cbf084222a7b0c658",
     "branch": "codex/full-test-release",
-    "task": "Volledige productcontext behouden; echte TCP- en typedkeyclientketens geïntegreerd voor nieuwe rootvalidatie",
+    "task": "Samengevoegde native bron gepubliceerd en zeven VM-proeven uitgevoerd; gerichte CI-buildpadreparatie",
     "previous_score": 32,
-    "summary": "De score blijft 32%; alle 62 volledige productcriteria staan open. De aanvullende gebruikerscontext is verwerkt zonder wijziging van scope, IDs of rubric: concrete gebruikstaken, compatibiliteit, formats, TCB en de vaste 100 koude starts/24 uur op het 8 GiB/32 GiB/Nehalem-profiel. Root92 heeft vijf echte VM-runs en zeven groene CI-workflows. TCP1b6 bewijst twee VMs met 21 TX/13 RX, twee HTTP-overdrachten, FIN/ACK, retransmissie, een echte 300-ticktime-out en strikte capture. De getypeerde KEY1-client bewijst twee VMs op fd7, met behoud van alle cryptografische en negatieve IPC-controles. De bronunie krijgt eigen native gates en CI. Inputcore en RTC hebben host-/targetbewijs, nog geen native aansluiting. Heap, allocator, TLS en RANDOM lopen parallel. De CLI-pushauthenticatie faalt; publicatie via de beschikbare GitHub-koppeling vereist een exacte remotevergelijking. Desktop, apps, NAS, AI, veilige persistente opslag, boot, updates, hardware en menselijke gates blijven verplicht open."
+    "summary": "De score blijft 32%; alle 62 volledige productcriteria staan open. Exact gepubliceerde bron 61ea727 is in zeven lokale VMs uitgevoerd: basis, ARP/DNS en TCP ieder met koude readonly-herstart, plus FPU/klok-isolatie. Strikte captures binden bron, images, opgeslagen bytes en protocoltranscripten. Zes CI-workflows slagen; de algemene CI faalt uitsluitend op twee niet-genegeerde Cargo-buildmappen na geslaagde hosttests/builds. De clean-treecontrole blijft behouden en de gerichte ignorefix krijgt nieuwe CI. Plaintext proefdisks en tijdelijke sleutels zijn geen veilige productopslag. Allocator, heapgroei, TLS, RANDOM en echte native Materiaal/invoerintegratie gaan verder; volledige functionaliteit, visuele kwaliteit, beveiliging, herstel, productprofiel en menselijke/fysieke gates blijven verplicht open."
   },
   "tracks": [
     {
