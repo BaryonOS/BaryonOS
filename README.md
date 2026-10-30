@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`ad2b981f`](https://github.com/simonvanieperen/nieuw-os/commit/ad2b981fe1f2bcccb03cb776b2281d32529d2f00) ·
-**Ontwikkelbranch:** `codex/b02-persistent-keystate-20261030`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** B02-PERSIST-1: persistente sleutelstatus via administratief ingress en verzegeld record over een koude herstart.
-34% blijft 34%. KEY1-opcodes 11/12 met persistentie-only dispatcher, een apart administratief ingress in de native Key Service en init als herstelagent in het FR-I01-profiel zijn geïmplementeerd; 5 nieuwe wire-hosttests, 3 nieuwe harnastests, fmt/clippy, de FR-I01-gate (normaal + read-only koude herstart op dezelfde image), B01 5/5, vier RANDOM-gevallen, klok en netwerkgate slagen op fingerprint 32da9d61. Het 120-byte sleutelstatusblob en het 168-byte ciphertextrecord staan onafhankelijk geverifieerd op schijf; na herstart ontzegelt sleutel 1, blijft sleutel 0 ingetrokken en wordt manipulatie geweigerd. B02 blijft open: geen vertrouwd rollbackanker, geen write-ahead per GENERATE in de dienst, synthetische volume-identiteit; geen rubriccriterium gesloten en geen menselijke audit.
+**Bron:** [`f52dab50`](https://github.com/simonvanieperen/nieuw-os/commit/f52dab50af281dab2c94ab2c9e31aaabd299246a) ·
+**Ontwikkelbranch:** `simonvanieperen-friendly-guacamole`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hardware, drivers en energie: inventarisatie H02-H06 en controle van de bestaande native PS/2-bewijspoort.
+34% blijft 34%; hardware blijft 1/12 en H01 is het enige geaccepteerde criterium. De 11 hosttests van de display/PS2-bewijspoort slagen. De gehashte officiële rustup-installer herstelde Rust 1.90.0 projectlokaal; PS/2 targetbuild, Clippy en fmt slagen. De aangehechte `C:\Program Files\qemu`-installatie is via lokale WSL-interoperabiliteit aangesloten: QEMU 11.1.0, `pc-q35-8.2`, QMP-pipes en de meegeleverde x86_64 EDK2-code-/vars- en VGA-ROM-bestanden zijn bereikbaar; `python3 -B tools/preflight.py --strict` slaagt. Native imagebouw/QMP-run volgen. Hosttests kunnen nog niet linken (`cc` ontbreekt). H02-H06 blijven open, geen fysieke hardware gebruikt en geen punten geclaimd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
