@@ -1,0 +1,7 @@
+   Compiling capability-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/crates/capability-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/sdk/runtime)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.32s
+     Running unittests src/lib.rs (target/network-dev/debug/deps/nieuw_os_sdk_runtime-c5c9c06351ea4259)
+     Running tests/message.rs (target/network-dev/debug/deps/message-07351a96c9042b2c)
+     Running tests/process.rs (target/network-dev/debug/deps/process-dd69e665a246348e)
+   Doc-tests nieuw_os_sdk_runtime
