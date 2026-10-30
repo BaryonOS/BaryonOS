@@ -89,7 +89,7 @@ Deze tijden zijn geen end-to-end productperformanceclaim.
 
 | Artefact | ELF-bestand | Gemapte ELF-pagina's | `.data` | `.bss`/zero-fill |
 |---|---:|---:|---:|---:|
-| nas-probe.elf | 91.688 B | 81.920 B | 1.296 B | 0 B |
+| nas-probe.elf | 91.688 B | 81.920 B | 1.256 B | 0 B |
 | nas-volume.elf | 93.568 B | 81.920 B | 1.304 B | 0 B |
 
 Beide images vragen de bestaande gereserveerde 64-KiB-userstack en

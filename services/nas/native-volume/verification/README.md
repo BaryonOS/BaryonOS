@@ -1,12 +1,18 @@
-# NAS-VOLUME-1 — volume- en stackcheckpoint
+# NAS-VOLUME-1 — historisch volume- en stackcheckpoint
 
 30 oktober 2026, Europe/Amsterdam. Branch
 `simonvanieperen-legendary-broccoli`; oorspronkelijke basis
 `f52dab50af281dab2c94ab2c9e31aaabd299246a`, oudercheckpoint
-`de8ff67ffbd44207024895afeb470c43fbced298`. De geteste vervolgwerkboom
-is gebonden met `source.sha256`, inclusief de hergebruikte volume-/catalogcode
-en blockdevice-testhelper. De commit die dit rapport toevoegt bevat die bron.
-Er zijn uitsluitend bestanden onder `services/nas/**` gewijzigd.
+`de8ff67ffbd44207024895afeb470c43fbced298`. Dit historische rapport en
+`source.sha256` horen uitsluitend bij checkpoint
+`560507ff6ccc6ae9bebdd4f0f4c8521a6321c270`, inclusief de hergebruikte
+volume-/catalogcode en blockdevice-testhelper. Controleer de hashes tegen
+die commit, niet tegen een latere PR-head. De hashes en onderstaande
+18/19 core-testresultaten blijven ongewijzigd historisch bewijs; zij zijn
+niet opnieuw gelabeld voor de latere replace-Unknown-fix.
+Er zijn op dit checkpoint uitsluitend bestanden onder `services/nas/**`
+gewijzigd. De latere controles, 21/22 core-tests en gerichte GitHub-CI staan in
+[het main94-checkpoint](../../native-probe/verification/main94/README.md).
 
 ## Resultaat en uitgevoerde controles
 
@@ -31,9 +37,12 @@ Dezelfde lokale logs staan onder `target/nas-core/logs/`.
 
 `python3 tools/progress.py --check` en `git diff --check`: exit 0.
 De voortgangscontrole meldt 34/100, rubric v1 consistent; zij valideert geen
-OS-gedrag. De twee nieuwe workspaces zijn nog **niet** aangesloten op CI:
-`.github/**` valt buiten het afgesproken schrijfgebied. Een groene bestaande
-CI-run mag hun controles dus niet impliciet vervangen.
+OS-gedrag. **Op dit historische checkpoint** waren de twee nieuwe workspaces
+nog niet aangesloten op CI: `.github/**` viel toen buiten het afgesproken
+schrijfgebied. Later is `.github/workflows/nas-core.yml` toegevoegd voor drie
+NAS-crates; de bijbehorende brongebonden uitvoering staat in het hierboven
+genoemde main94-checkpoint. Dat latere bewijs vervangt de historische
+controles in dit rapport niet.
 
 De volume-integratie hergebruikt de echte `volume_core::client::Client`,
 volumedienst, canonieke wirevalidator en het bestaande blockdevice-model.
