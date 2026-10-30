@@ -19,6 +19,16 @@ Eerstvolgend: DHCP-clienttoestanden met lease-/endpointbinding en negatieve
 tests binnen `services/net-protocol/**`, daarna een aparte native koppeling.
 Geen NAS-bestanden of gedeelde ABI wijzigen zonder gecoördineerde scope.
 
+**Reviewfix op basis `6a20b35`:** de actuele codec accepteerde terecht
+geparseerde opties maar controleerde `yiaddr` zelf nog niet. OFFER/ACK met
+nul-, loopback-, multicast- of broadcastadres worden nu geweigerd met
+`InvalidAddress`; NAK met nuladres blijft geldig. Volledige hosttests
+57/57, Clippy, fmt en freestanding releasebuild exit 0. Logs:
+`/tmp/nieuw-os-dhcp-yiaddr-{tests,clippy,target}.log`.
+Geen native herhaling van deze reviewfix geclaimd; de eerdere native pair
+blijft aan `9ddc6b6` gebonden. DHCP-client-WIP is apart bewaard voor de
+vervolgbranch, niet onderdeel van deze codec-reviewfix.
+
 ## Historisch DHCP-codec-checkpoint — 30 oktober 2026
 
 Branch `simonvanieperen-musical-happiness`; huidige broncommit

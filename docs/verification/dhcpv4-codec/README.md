@@ -46,3 +46,29 @@ mist `qemu-system-x86_64` en OVMF. Dit was alleen tool-inventarisatie; geen
 QEMU-boot, DHCP-peer, native lease, routeconfiguratie of internetverbinding
 getest. De codec is geen FR-N01-aftekening. N01–N04 blijven open en de vaste
 score blijft 34%.
+
+## Reviewherstel: aangeboden adres, basis 6a20b35
+
+De reviewbevinding over ontbrekende `yiaddr`-controle is tegen de code
+bevestigd. `parse_reply` weigert nu een niet-unicast `yiaddr` bij OFFER/ACK
+met `InvalidAddress`. NAK met `yiaddr=0.0.0.0` blijft toegestaan. De nieuwe
+test controleert nul-, loopback-, multicast- en broadcastadressen voor beide
+berichttypen en apart het nuladres bij NAK.
+
+Alle onderstaande commando's zijn uitgevoerd op uitsluitend deze codec-diff,
+zonder de apart bewaarde DHCP-client-WIP:
+
+| Commando | Exit | Uitkomst |
+|---|---:|---|
+| `python3 -B tools/dev.py cargo +1.90.0 test --manifest-path services/net-protocol/Cargo.toml --locked --offline` | 0 | 57 tests, waarvan 10 DHCP |
+| `python3 -B tools/dev.py cargo +1.90.0 clippy --manifest-path services/net-protocol/Cargo.toml --all-targets --locked --offline -- -D warnings` | 0 | Geen waarschuwingen |
+| `python3 -B tools/dev.py cargo +1.90.0 build --manifest-path services/net-protocol/Cargo.toml --lib --release --target x86_64-unknown-none --locked --offline` | 0 | Freestanding build |
+| `python3 -B tools/dev.py cargo +1.90.0 fmt --manifest-path services/net-protocol/Cargo.toml --all -- --check` | 0 | Schoon |
+| `git diff --check` | 0 | Schoon |
+
+Zelfde lokale GCC-sysroot als boven; hosttargetmap `target/dhcp-hostcc`,
+lint-/targetmap `target/dhcp-codec`. Logs:
+`/tmp/nieuw-os-dhcp-yiaddr-{tests,clippy,target}.log`. De echte native pair op
+`9ddc6b6` is afzonderlijk vastgelegd onder
+[`../full-release-network-dev-9ddc6b6/`](../full-release-network-dev-9ddc6b6/README.md);
+die run wordt niet als native test van de latere reviewfix voorgesteld.

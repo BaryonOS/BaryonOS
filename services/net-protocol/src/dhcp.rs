@@ -301,9 +301,14 @@ pub fn parse_reply(message: &[u8], client: Client) -> Result<Reply, Error> {
         }
     }
 
+    let offered_address: [u8; 4] = message[16..20].try_into().unwrap();
+    if message_type != MessageType::Nak && !unicast_ipv4(offered_address) {
+        return Err(Error::InvalidAddress);
+    }
+
     Ok(Reply {
         message_type,
-        offered_address: message[16..20].try_into().unwrap(),
+        offered_address,
         server_identifier,
         lease_seconds,
         subnet_mask: options.subnet_mask,

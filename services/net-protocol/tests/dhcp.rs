@@ -100,6 +100,26 @@ fn insert_before_end(message: &mut Vec<u8>, code: u8, value: &[u8]) {
 }
 
 #[test]
+fn offer_and_ack_require_unicast_yiaddr_but_nak_allows_unspecified() {
+    for kind in [2, 5] {
+        for address in [[0; 4], [127, 0, 0, 1], [224, 0, 0, 1], [255; 4]] {
+            let mut message = reply(kind);
+            message[16..20].copy_from_slice(&address);
+            assert_eq!(
+                dhcp::parse_reply(&message, CLIENT),
+                Err(Error::InvalidAddress)
+            );
+        }
+    }
+    let mut nak = reply(6);
+    nak[16..20].fill(0);
+    assert_eq!(
+        dhcp::parse_reply(&nak, CLIENT).unwrap().message_type,
+        MessageType::Nak
+    );
+}
+
+#[test]
 fn parses_offer_and_bounded_network_options() {
     let parsed = dhcp::parse_reply(&reply(2), CLIENT).unwrap();
     assert_eq!(parsed.message_type, MessageType::Offer);
