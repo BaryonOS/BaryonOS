@@ -1,5 +1,26 @@
 # Actuele projectstatus
 
+## NEXT AGENT HANDOFF — Main 94c8908 inhoudsbehoudend geïntegreerd in PR #65 — 30 oktober 2026
+
+PR-head `0e441a9354fd519ebb5583eb52d2a396f452bbf6` en main
+`94c8908ee363d06a5be51417c5cae635549d566f` zijn samengevoegd. Overlappende
+packager-, preview-, launcher- en testbestanden gebruiken de nieuwere main-
+versies, inclusief de pad-/symlinkcontroles en het opruimen van verouderd
+previewbewijs. De PR-eigen interactieve proefnotitie en overige niet-
+conflicterende wijzigingen zijn behouden. Het previewbewijs vermeldt nu
+expliciet dat historische rapporten geen zelfstandige v3-fingerprintversie
+vastleggen.
+
+Validatie van de geïntegreerde werkboom: gerichte Windows-QEMU-tests 35/35,
+alle tooltests 138/138, systeemharnastests 46/46, Rust-workspace-tests en
+root-/SDK-rustfmt slagen; `tools/progress.py --check` en `git diff --check`
+slagen. De eerste offline Cargo-test faalde door een ontbrekende gecachete
+`ed25519-dalek`; na `cargo +1.90.0 fetch --locked` slaagde de herhaling. De
+eerste rustfmt-aanroep trof een gelijktijdige rustup-installatie zonder
+component; na installatie slaagden beide formatterchecks. Geen Windows-gast-
+of releaseacceptatie is met deze integratie opnieuw uitgevoerd. Voortgang
+blijft 34%; geen criterium gesloten.
+
 ## NEXT AGENT HANDOFF — Zes reviewfixes en Windowsbewijs geïntegreerd; native herhaling volgt
 
 Vervolgbranch vanaf71c1d5c met d104fd9a7f33b478c3e1b43f8d99c6d65af73fd6

@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`d104fd9a`](https://github.com/simonvanieperen/nieuw-os/commit/d104fd9a7f33b478c3e1b43f8d99c6d65af73fd6) ·
-**Ontwikkelbranch:** `simon/native-interactive-cold`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Alle zes packagingreviewfixes en oorspronkelijk Windowsbewijs inhoudsbehoudend gecombineerd.
-34% blijft34%; minstens50% niet bereikt. Zes concrete preview/packaging/launcherreviewpunten inhoudsbehoudend gecombineerd met oorspronkelijk echt Windowsbewijs als identieke blobs. Nieuwe gezamenlijke host/native gates volgen; eerdere Windows-QEMUbediening en lokale testZIP blijven expliciet oudeeabc/c532brongebonden. Koude verkenning heeft volledig renderer-afgeleid lijstframe en exact reopenedframe zonder maskers maar is nog geen complete productacceptatierunner. Geen extra volledig rubriccriterium, menselijke audit of releaseclaim.
+**Bron:** [`5a910621`](https://github.com/simonvanieperen/nieuw-os/commit/5a91062197f26a18b2fb6dd030ad06346d53fd68) ·
+**Ontwikkelbranch:** `simon/windows-qemu-test-version`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** CONFLICT-MERGE-MAIN-94C8908.
+34% blijft34%; main 94c8908 inhoudsbehoudend geïntegreerd. Overlappende Windows-QEMU-code gebruikt de nieuwere main-implementaties; PR-bewijs en overige branchwijzigingen blijven behouden. Gerichte Windows-QEMU-tests (35), tooltests (138), systeemharnastests (46), Rust-workspace-tests, beide rustfmt-checks, progress-check en diff-check slagen. Geen productcriterium gesloten; geen Windows-gast- of releaseacceptatie opnieuw uitgevoerd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
