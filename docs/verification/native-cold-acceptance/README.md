@@ -111,7 +111,7 @@ is de keten opnieuw offline uit de originele artifacts berekend:
 python3 -B docs/verification/native-cold-acceptance/tamper_replay.py --build-dir "$PWD/build/native-cold-acceptance/gate1-parent"
 ```
 
-Exit0, walltime 1.11s, resultaten `tamper-results.json`.
+Exit0, laatste walltime 1.12s, resultaten `tamper-results.json`.
 Volledige coldtrace, frames, diskorakel, executable-/firmware-/bronbinding,
 referentie en parent opnieuw gecontroleerd zonder een VM te starten.
 Een verse tijdelijke bytekopie van de echte parent is eerst positief
@@ -130,6 +130,15 @@ runner en zijn v3 zijn niet gewijzigd. Geen native mislukking verhuld.
 Logs `/tmp/nieuw-os-cold-gate1-tamper-replay.{json,log,time}`.
 Gerichte 14 tests en alle 152 tools-tests zijn daarna opnieuw exit0
 uitgevoerd; voortgangcheck/diffcheck eveneens exit0.
+
+Een afzonderlijke read-only AI-code-review vond dat de offline verifier
+de `scope`- en `stop_method`-tekst niet vast controleerde. De bewijshelper
+weigert nu beide afwijkende claims expliciet en vereist tevens identieke
+build-/per-runrapportbytes. Twee extra negatieve claimtests zijn uitgevoerd
+naast de acht artifactnegatieven; alle tien afgewezen en originele
+artifacts opnieuw ongewijzigd. Alleen docs-bewijscode gewijzigd, geen
+nieuwe native v3 of herlabeling van de bestaande runs. Dit is geen menselijke
+audit en sluit de open native productcriteria niet.
 
 ## Open acceptatie
 

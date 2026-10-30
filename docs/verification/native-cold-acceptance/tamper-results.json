@@ -48,5 +48,17 @@
       "rejected": true,
       "error": "Parent executable changed"
     }
+  ],
+  "cold_claim_negatives": [
+    {
+      "field": "scope",
+      "rejected": true,
+      "error": "Cold scope/stop-method claim differs"
+    },
+    {
+      "field": "stop_method",
+      "rejected": true,
+      "error": "Cold scope/stop-method claim differs"
+    }
   ]
 }

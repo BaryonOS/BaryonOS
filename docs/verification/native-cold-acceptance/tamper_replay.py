@@ -16,12 +16,25 @@ import materiaal_cold as cold
 import run_materiaal_preview as preview
 
 
+def verify_claims(report: dict) -> None:
+    if (report.get("scope") !=
+            "Ordinary seven-process cold reopen and unchanged disk; no write-denial, "
+            "cleanup, controller, manual UX, production encryption or release acceptance."
+            or report.get("stop_method") !=
+            "host QMP quit, not guest clean shutdown or abrupt power loss"
+            or report.get("guest_clean_shutdown") is not False):
+        raise ValueError("Cold scope/stop-method claim differs")
+
+
 def verify(build: Path) -> dict:
     build, manifest = preview.validate_build(build)
     frozen = preview.source_hash()
     report_path = preview.private_path(build / "cold-result.json", regular=True)
     report = preview.load_json(report_path, "cold report", 16 * 1024 * 1024)
+    verify_claims(report)
     directory = preview.private_path(Path(report["run_directory"])).resolve(strict=True)
+    if preview.private_path(directory / "result.json", regular=True).read_bytes() != report_path.read_bytes():
+        raise ValueError("Cold per-run and build reports differ")
     parent_directory = Path(report["parent_run"])
     reference_directory = Path(preview.load_json(
         parent_directory / "result.json", "parent", 16 * 1024 * 1024
@@ -89,6 +102,16 @@ def verify(build: Path) -> dict:
             return [relocate(item, old, new) for item in value]
         return value
 
+    rejected_claims = []
+    for field in ("scope", "stop_method"):
+        changed = copy.deepcopy(report)
+        changed[field] = "guest clean shutdown and abrupt power-loss acceptance"
+        try:
+            verify_claims(changed)
+        except ValueError as error:
+            rejected_claims.append({"field": field, "rejected": True, "error": str(error)})
+        else:
+            raise AssertionError("Forged cold scope accepted: " + field)
     rejected = []
     with tempfile.TemporaryDirectory(prefix="cold-negative-", dir=build) as name:
         clone = Path(name) / "parent"
@@ -146,6 +169,7 @@ def verify(build: Path) -> dict:
         "reference_report_sha256": reference["report_sha256"],
         "cold_trace_entries": len(report["qmp_trace"]),
         "original_files_unchanged": len(before), "negatives": rejected,
+        "cold_claim_negatives": rejected_claims,
     }
 
 
