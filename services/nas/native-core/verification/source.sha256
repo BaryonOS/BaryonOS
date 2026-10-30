@@ -1,0 +1,5 @@
+a2eeb7f0a240afd41e3a8d885421fe46ddbe73fa47ef589bdfa9fca2116147b9  services/nas/native-core/Cargo.toml
+3a2e09d2eb9190a371c6a8d286d1573e5c1ce11f1c1d70d6d41e7f6627ad387b  services/nas/native-core/Cargo.lock
+6f1ae23efe2924e7552b45132d572c6d0857c5bdbb582b2567c761fad6bc451c  services/nas/native-core/src/lib.rs
+d94907a7e97e30e99c56ec56f1d24634188d60cfc2cc13bb12689b7089669cbf  services/nas/native-core/src/snapshot.rs
+397452a5bc37328fd04958540ae9e2cc8988c2348fcc7feec7758692ce671f3b  services/nas/native-core/tests/authority.rs

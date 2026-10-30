@@ -1,0 +1,92 @@
+COMMAND cargo test --offline --locked --manifest-path services/nas/native-volume/Cargo.toml
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/lib.rs (target/nas-host/debug/deps/nieuw_os_nas_volume-55778a76f5b8cac9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/volume.rs (target/nas-host/debug/deps/volume-ad0f6125bba94a5d)
+
+running 10 tests
+test another_domain_cannot_initialize_read_repair_or_replace_nas_authority ... ok
+test foreign_deleted_and_malformed_objects_are_never_silently_initialized ... ok
+test committed_snapshot_survives_cold_volume_recovery_without_history ... ok
+test stale_writer_cannot_replace_a_newer_volume_revision_or_retry_implicitly ... ok
+test cleanup_never_discards_history_when_current_content_is_corrupt ... ok
+test missing_commit_reply_requires_explicit_history_cleanup_before_recovery ... ok
+test missing_purge_reply_never_acks_but_clean_current_state_can_recover ... ok
+test revoke_and_evict_cold_recover_without_restorable_guest_versions ... ok
+test actual_core_volume_outcome_matches_independent_python_probe_oracle ... ok
+test every_eviction_disk_failure_keeps_a_recoverable_old_or_revoked_state ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.89s
+
+   Doc-tests nieuw_os_nas_volume
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+RESULT exit=0 elapsed=1s
+COMMAND cargo test --offline --locked --release --manifest-path services/nas/native-volume/Cargo.toml
+    Finished `release` profile [optimized] target(s) in 0.00s
+     Running unittests src/lib.rs (target/nas-host/release/deps/nieuw_os_nas_volume-fe5d287e237bca07)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/volume.rs (target/nas-host/release/deps/volume-64c45bf15e680df4)
+
+running 11 tests
+test another_domain_cannot_initialize_read_repair_or_replace_nas_authority ... ok
+test cleanup_never_discards_history_when_current_content_is_corrupt ... ok
+test committed_snapshot_survives_cold_volume_recovery_without_history ... ok
+test foreign_deleted_and_malformed_objects_are_never_silently_initialized ... ok
+test missing_commit_reply_requires_explicit_history_cleanup_before_recovery ... ok
+test stale_writer_cannot_replace_a_newer_volume_revision_or_retry_implicitly ... ok
+test missing_purge_reply_never_acks_but_clean_current_state_can_recover ... ok
+test revoke_and_evict_cold_recover_without_restorable_guest_versions ... ok
+test optimized_nas_and_volume_client_fit_64_kib_with_separate_service_stack ... ok
+test actual_core_volume_outcome_matches_independent_python_probe_oracle ... ok
+test every_eviction_disk_failure_keeps_a_recoverable_old_or_revoked_state ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+   Doc-tests nieuw_os_nas_volume
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+RESULT exit=0 elapsed=0s
+COMMAND cargo clippy --offline --locked --manifest-path services/nas/native-volume/Cargo.toml --all-targets -- -D warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+RESULT exit=0 elapsed=0s
+COMMAND cargo clippy --offline --locked --release --manifest-path services/nas/native-volume/Cargo.toml --all-targets -- -D warnings
+    Finished `release` profile [optimized] target(s) in 0.00s
+RESULT exit=0 elapsed=0s
+COMMAND cargo fmt --manifest-path services/nas/native-volume/Cargo.toml --all -- --check
+RESULT exit=0 elapsed=1s
+COMMAND python3 -B -m unittest discover -s services/nas/native-probe/tests -p test_disk_oracle.py -v
+test_canaries_chunk_integrity_and_changed_cold_disk_fail (test_disk_oracle.DiskOracleTests.test_canaries_chunk_integrity_and_changed_cold_disk_fail) ... ok
+test_cli_is_read_only_and_refuses_bad_image (test_disk_oracle.DiskOracleTests.test_cli_is_read_only_and_refuses_bad_image) ... ok
+test_every_cleared_object_byte_is_required_zero (test_disk_oracle.DiskOracleTests.test_every_cleared_object_byte_is_required_zero) ... ok
+test_exact_final_state_and_unchanged_cold_image_pass_without_payload_report (test_disk_oracle.DiskOracleTests.test_exact_final_state_and_unchanged_cold_image_pass_without_payload_report) ... ok
+test_huge_canonical_revisions_cannot_enter_fixture_search (test_disk_oracle.DiskOracleTests.test_huge_canonical_revisions_cannot_enter_fixture_search) ... ok
+test_retained_history_and_unrelated_mutations_are_rejected (test_disk_oracle.DiskOracleTests.test_retained_history_and_unrelated_mutations_are_rejected) ... ok
+test_schema_metadata_identity_and_extra_namespace_are_not_ignored (test_disk_oracle.DiskOracleTests.test_schema_metadata_identity_and_extra_namespace_are_not_ignored) ... ok
+test_valid_volume_checksums_do_not_hide_wrong_nas_state (test_disk_oracle.DiskOracleTests.test_valid_volume_checksums_do_not_hide_wrong_nas_state) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.313s
+
+OK
+RESULT exit=0 elapsed=0s
+COMMAND git diff --check
+RESULT exit=0 elapsed=0s
+COMMAND python3 tools/progress.py --check
+Nieuw OS: 34/100 punten (34%); rubric v1; consistent.
+Dit controleert berekening, verwijzingen en weergave; geen nieuwe native tests of beoordeling van bewijsinhoud.
+RESULT exit=0 elapsed=0s

@@ -1,0 +1,20 @@
+
+running 1 test
+test selecting_request_preserves_discover_secs_without_moving_the_lease_start ... FAILED
+
+failures:
+
+---- selecting_request_preserves_discover_secs_without_moving_the_lease_start stdout ----
+
+thread 'selecting_request_preserves_discover_secs_without_moving_the_lease_start' (3645898) panicked at tests/service.rs:424:9:
+assertion `left == right` failed
+  left: [0, 5]
+ right: [0, 1]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    selecting_request_preserves_discover_secs_without_moving_the_lease_start
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.00s
+

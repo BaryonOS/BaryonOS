@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "status": "FAIL",
+  "source_commit": "1ffd271f413120ccc2c66e6098cd260fdaa7475d",
+  "source_fingerprint_version": 3,
+  "source_sha256": "d9e3c57244904e20bf52f95b2b7d80e3d2d93e22a303b86f179e583f53e80185",
+  "kernel_feature": "native-system-materiaal-probe",
+  "case": "normal",
+  "profile": "pc-q35-8.2/qemu64/TCG/1CPU/256MiB/VGA/PS2",
+  "qemu_version": "10.2.1",
+  "firmware_sha256": {
+    "OVMF_CODE_4M.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "VGA.rom": "c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde"
+  },
+  "kernel_deadline_ticks": 20000,
+  "runner_timeout_seconds": 240,
+  "raw_qemu_exit": 35,
+  "timed_out": true,
+  "guest_failure": "MATERIAAL:FAIL:TIMEOUT",
+  "captured_phases": [
+    {
+      "phase": "ready",
+      "frames": 1,
+      "tiles": 1608,
+      "keys": 0,
+      "mouse": 0,
+      "save_acks": 0,
+      "draft_bytes": 0
+    },
+    {
+      "phase": "editor",
+      "frames": 2,
+      "tiles": 3223,
+      "keys": 0,
+      "mouse": 4,
+      "input_acks": 4,
+      "save_acks": 0,
+      "draft_bytes": 0
+    },
+    {
+      "phase": "dirty",
+      "frames": 3,
+      "tiles": 4855,
+      "keys": 28,
+      "mouse": 4,
+      "input_acks": 32,
+      "save_acks": 0,
+      "draft_bytes": 14
+    }
+  ],
+  "not_reached": ["saved", "list", "reopened", "clean-stop"],
+  "failure_report_diagnostic": "ValueError: Unknown native record: MATERIAAL:TIMEOUT_SLOT:00000000000000000000",
+  "artifact_sha256": {
+    "serial.txt": "98bae1fa5649173058187b88cc4500ea827bfba30f03ca795e75dcc2e66f15b5",
+    "qmp-trace.json": "8fb9ee0e66471dfde90d7957204bc05963a0087ba79e2cd0895df9a0540abc2d",
+    "ready.ppm": "89988554c6e93449245ccac8462e1a43af336e0af990affcf59004bb2eaed50f",
+    "editor.ppm": "1e6c9e54ec9d83193fb3e4708822d81775b13f65b470e1478ebf6bb0f000b307",
+    "dirty.ppm": "8190ac298424262fac1e34ba24451d745aa28f4221eb2e9817cf24fa03a27dda"
+  },
+  "raw_artifacts": "build/materiaal-probe-accessibility/run/materiaal-normal-4bf2fa61a2/",
+  "evidence_boundary": "Partial native interactive proof on a generated plaintext fixture. Not a completed save/reopen chain, accessibility acceptance, encrypted durable storage, physical test or full release."
+}

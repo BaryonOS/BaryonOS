@@ -1,0 +1,3 @@
+   Compiling nieuw-os-net-stack v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-stack)
+   Compiling nieuw-os-net-config v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/services/net-config)
+    Finished `release` profile [optimized] target(s) in 0.25s
