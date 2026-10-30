@@ -80,6 +80,65 @@ uitsluitend deze eerste fixturegrens en geen vastgesteld productbudget.
 De manifestdecoder weigert onbekende versies, nul-/te grote images,
 oncanonieke padding, ongeldige IDs en ongeldige ABI-intervallen.
 
+## Streaming artifact-store en app-managementcontract
+
+De zelfstandige `sdk/app-management`-crate scheidt het immutable
+read-handlecontract van de schrijftransactie. Beide zijn host-/targetcontracten;
+er is nog geen persistent store-adapter of native installer.
+
+`ArtifactRef` bevat `artifact_id[32]` en `immutable_generation:u64`.
+`ArtifactDescriptor` combineert die ref met `length:u64` en `sha256[32]`.
+Publishermetadata (`source_id`, bron-generatie, packageversie en
+app-identiteit) blijft apart in package-provenance; storegeneratie is geen
+publisher-epoch. Dit zijn Rust-records, geen vastgelegde serialized opslag-ABI.
+De `u64`-capaciteitsmelding rapporteert totale capaciteit, gebruikte bytes,
+gereserveerde bytes en quota; er is geen globale productcap in dit contract.
+Een provider moet bij `begin` de volledige objectlengte atomair reserveren of
+falen vóór hij chunks accepteert.
+
+`ArtifactReader` heeft een geassocieerd opaque handle-type dat alleen de
+concrete storeadapter kan construeren; de handle zelf is niet serializeerbaar
+of overdraagbaar. De service bindt hem aan de kernel-geauthenticeerde
+clientcontext en valideert die context en store-epoch bij iedere read. De
+`read_at`-helper begrenst iedere opslagoperatie tot 4 KiB en geeft fouten
+expliciet terug: stale epoch, corruptie, truncatie vóór de gedeclareerde
+lengte, overflow, EOF (`EndOfArtifact`) en een offset buiten het object
+(`OutOfRange`). Dit is een storagelaaggrens; de bestaande Message320-IPC blijft
+maximaal 256 payloadbytes. Het app-management-chunkrequest gebruikt maximaal
+224 databytes per bericht.
+
+De schrijftransactie bindt `caller`, `request_id` en `service_epoch` aan de
+descriptor met bron/generatie, versienummer, lengte en digest. Chunks zijn
+niet-leeg, maximaal 4 KiB en strikt opeenvolgend op de verwachte offset.
+Commit is alleen toegestaan na exact de gedeclareerde lengte en publiceert
+atomair na een volledige lengte-/digestcontrole. Cancel is alleen geldig vóór
+commit. `Unknown` blokkeert replay en automatisch opnieuw committen; een
+uitkomst mag alleen binnen dezelfde service-epoch worden opgevraagd. Na een
+herstart moeten oude requests stale worden en moet herstel de duurzame
+catalogus raadplegen. De huidige implementatie is alleen een in-memory
+transactiewachter met fake-storetests: geen duurzaam journaal of bewezen
+cold recovery.
+
+Een digest is uitsluitend content-integriteitsmetadata; hij bewijst geen
+publisher of modelgeschiktheid. `SourceRegistry` blijft in-memory. De
+beveiligings-/B02-/B03-eigenaren hebben geen bestaande issuer-/trust-root-
+levenscyclus-API vrijgegeven, en B02- of B03-ankers zijn niet herbruikbaar als
+appuitgeversbeleid. Er wordt dus geen `verified`-boolean, neppe publisher-epoch
+of claim van persistente signertrust toegevoegd. Een geldige pakketverificatie
+onder een tijdelijke, gekozen sleutel maakt op zichzelf nog geen persistent
+installerrecht. De documentvolumeclient is geen autoritatieve appstore zolang
+zijn huidige authenticatie-/rollbackgrens onvoldoende is; deze crate schrijft
+er niet naar.
+
+De gedeelde read-only interface is ook de beoogde ingang voor consumers zoals
+een lokale AI-modelreader. De consumer moet zelf formaat/parsergrenzen en
+toepasselijke modelintegriteit beoordelen; de artifactdigest is geen
+publishertrust of veiligheidsverklaring. Een dynamische launcher, one-use
+`AuthorizedImage`-handle, kernel-copy/preflightpad en app-/catalogus-
+persistency zijn niet geïmplementeerd. Het huidige launchbericht draagt een
+package identity, maximaal twee door de policybroker gereduceerde capabilities
+(standaard nul), en epochs; manifestrechten creëren geen capabilities.
+
 ## Test en bewijsgrens
 
 ```sh
@@ -87,9 +146,20 @@ cargo +1.90.0 test --offline --locked -p app-package-core
 cargo +1.90.0 clippy --offline --locked -p app-package-core --all-targets -- -D warnings
 CARGO_ENCODED_RUSTFLAGS=$'--cfg\x1fcurve25519_dalek_backend="serial"' \
   cargo +1.90.0 build --offline --locked -p app-package-core --target x86_64-unknown-none
+cargo +1.90.0 test --offline --locked --manifest-path sdk/app-management/Cargo.toml
+cargo +1.90.0 clippy --offline --locked --manifest-path sdk/app-management/Cargo.toml --all-targets -- -D warnings
+cargo +1.90.0 fmt --manifest-path sdk/app-management/Cargo.toml --all -- --check
+cargo +1.90.0 build --offline --locked --release --manifest-path sdk/app-management/Cargo.toml --target x86_64-unknown-none
 ```
 
-Deze tests bewijzen alleen host-/bare-metal-libraryverificatie. Zij tonen niet
+De eerste drie commando's testen alleen de bestaande package-core.
+App-managementtests controleren bounded wire decode, zero-grant launch,
+capability-/epochbinding, readgrenzen en transaction-state met fake backends;
+ze bewijzen geen echte provider, install/update/remove, trustpersistency,
+native uitvoering of koude recovery. De cross-build bewijst alleen dat de
+library voor de freestanding target compileert.
+
+Deze package-core-tests bewijzen alleen host-/bare-metal-libraryverificatie. Zij tonen niet
 dat een app kan worden geïnstalleerd, op schijf atomair beheerd, na herstart
 gevonden of via de kernel gestart. De user-ELF-parser gebruikt dezelfde
 adres-/segment-/quota-policy als de huidige kernel loader. Tests tonen dat een
