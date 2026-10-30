@@ -928,7 +928,12 @@ fn pointer_only_cancel_requires_fresh_down_after_outside_release_and_reentry_imp
     .unwrap();
     assert_eq!(ui.view().focus, Focus::Save);
     let selection = (ui.view().anchor, ui.view().caret);
+    let before_cancel = ui.view().generation;
     ui.cancel_pointer().unwrap();
+    assert_eq!(ui.view().generation, before_cancel + 1);
+    let after_cancel = ui.view().generation;
+    ui.cancel_pointer().unwrap();
+    assert_eq!(ui.view().generation, after_cancel);
     assert_eq!(ui.view().contents, Some("Keep"));
     assert_eq!(ui.view().focus, Focus::Save);
     assert_eq!((ui.view().anchor, ui.view().caret), selection);

@@ -17,6 +17,22 @@ from common import BUILD, run_logged
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
+EXPECTED_HOST_SCENARIOS = 20
+
+def host_scenarios(path: Path) -> int:
+    output = path.read_text(encoding="utf-8")
+    runs = re.findall(r"^running (\d+) tests?$", output, re.MULTILINE)
+    results = re.findall(
+        r"^test result: ok\. (\d+) passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in .+$",
+        output, re.MULTILINE,
+    )
+    if not runs or len(runs) != len(results) or runs != results:
+        raise RuntimeError("invalid or incomplete Materiaal host test output")
+    count = sum(map(int, results))
+    if count != EXPECTED_HOST_SCENARIOS:
+        raise RuntimeError(f"expected {EXPECTED_HOST_SCENARIOS} Materiaal host scenarios, got {count}")
+    return count
+
 def main() -> int:
     # A successful old ABI build is insufficient: check_abi would reject the
     # actual desktop kernel. Never silently patch shared SDK sources here.
@@ -39,6 +55,7 @@ def main() -> int:
         selected = {**extra, "CARGO_ENCODED_RUSTFLAGS": flags} if name == "native-clippy" else extra
         run_logged(args, f"materiaal-app/{name}", extra_env=selected if name != "native-elf" else None)
         logs.append(name)
+    scenario_count = host_scenarios(BUILD / "logs/materiaal-app/host.stdout.txt")
     native_target = Path(os.environ.get("CARGO_TARGET_DIR", ROOT / "build/sdk-materiaal"))
     binary = native_target / "x86_64-unknown-none/release/materiaal-app"
     run_logged(["cargo", "test", "--offline", "--locked", "--manifest-path", manifest,
@@ -98,7 +115,7 @@ def main() -> int:
         "actual_shared_sdk_diff_sha256": hashlib.sha256(sdk_diff).hexdigest() if sdk_diff else None,
         "artifact": {"path": str(binary), "bytes": binary.stat().st_size, "sha256": digest(binary),
                      "scalar_instructions": instructions, "simd_fpu": forbidden, "host_backends": host},
-        "host_scenarios": 20, "actual_ELF_loader_policy_tests": 1,
+        "host_scenarios": scenario_count, "actual_ELF_loader_policy_tests": 1,
         "build_claim": "actual x86_64-unknown-none executable; not execution, pixels, hardware input or durable encrypted storage",
     }
     (output / "pre-native.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")

@@ -71,6 +71,11 @@ jobs:
       - name: SDK tests and lint
         run: |
           cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked
+          cargo +1.90.0 test --manifest-path sdk/examples/calculator/Cargo.toml --locked
+          cargo +1.90.0 test --manifest-path sdk/examples/materiaal/Cargo.toml --locked
+          cargo +1.90.0 test --manifest-path sdk/examples/compositor/Cargo.toml --locked
+          cargo +1.90.0 test --manifest-path sdk/examples/desktop-init/Cargo.toml --locked
+          cargo +1.90.0 test --manifest-path sdk/input-client/Cargo.toml --locked
           cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings
           cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check
           python3 -B sdk/examples/catalog-read/build.py

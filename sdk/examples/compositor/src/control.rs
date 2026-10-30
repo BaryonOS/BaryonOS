@@ -121,7 +121,7 @@ pub struct Coordinator {
     state: State,
     pending: Option<Focus>,
     reply: Option<Outgoing>,
-    reply_at: u64,
+    reply_at: Option<u64>,
     terminal: bool,
     retire_requested: bool,
     sent: u64,
@@ -151,7 +151,7 @@ impl Coordinator {
             state: State::Inactive,
             pending: None,
             reply: None,
-            reply_at: 0,
+            reply_at: None,
             terminal: false,
             retire_requested: false,
             sent: 0,
@@ -202,7 +202,7 @@ impl Coordinator {
         self.last_control = request.id;
         if self.state == State::Retired {
             self.reply = Some(request.reply(Status::Retired, self.state)?);
-            self.reply_at = now;
+            self.reply_at = Some(now);
             return Ok(false);
         }
         let focus = self.next_focus;
@@ -283,10 +283,20 @@ impl Coordinator {
             Operation::Retire => State::Retired,
         };
         self.reply = Some(focus.control.reply(Status::Ok, self.state)?);
-        self.reply_at = now;
+        self.reply_at = if focus.control.operation == Operation::Retire {
+            None
+        } else {
+            Some(now)
+        };
         self.pending = None;
         self.acked = self.acked.saturating_add(1);
         Ok(true)
+    }
+    /// Start the Retire reply deadline only once the surface wipe has completed.
+    pub fn wipe_complete(&mut self, now: u64) {
+        if self.reply.is_some() && self.reply_at.is_none() {
+            self.reply_at = Some(now);
+        }
     }
     pub fn flush(
         &mut self,
@@ -294,14 +304,20 @@ impl Coordinator {
         registry: SendEndpoint,
         io: &mut impl Ipc,
     ) -> Result<(), Status> {
-        if self.reply.is_some() && now.saturating_sub(self.reply_at) > DEADLINE {
+        let Some(reply_at) = self.reply_at else {
+            return Ok(());
+        };
+        if self.reply.is_some() && now.saturating_sub(reply_at) > DEADLINE {
             self.terminal = true;
             self.reply = None;
             return Err(Status::Uncertain);
         }
         if let Some(reply) = &self.reply {
             match io.send(registry, reply) {
-                Ok(()) => self.reply = None,
+                Ok(()) => {
+                    self.reply = None;
+                    self.reply_at = None;
+                }
                 Err(error) if error.is_again() => {}
                 Err(_) => {
                     self.terminal = true;

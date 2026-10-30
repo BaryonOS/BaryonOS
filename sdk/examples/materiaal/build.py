@@ -17,10 +17,11 @@ def main() -> int:
              "-C", "no-redzone=yes", "-C", "linker=rust-lld",
              "-C", f"link-arg=-T{EXAMPLE / 'linker.ld'}", "-C", "link-arg=--no-pie",
              "-C", "link-arg=--build-id=none", "-C", "link-arg=-zmax-page-size=0x1000",
-             "-C", "target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2"]
+             "-C", "target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2",
+             f"--remap-path-prefix={ROOT}=/nieuw-os"]
     environment["CARGO_ENCODED_RUSTFLAGS"] = "\x1f".join(flags)
     environment.setdefault("CARGO_TARGET_DIR", str(ROOT / "build/sdk-materiaal"))
-    command = ["cargo", "build", "--offline", "--locked", "--release",
+    command = ["cargo", "+1.90.0", "build", "--offline", "--locked", "--release",
                "--manifest-path", str(EXAMPLE / "Cargo.toml"), "--features", "native",
                "--bin", "materiaal-app", "--target", "x86_64-unknown-none"]
     print(json.dumps({"command": command, "target_dir": environment["CARGO_TARGET_DIR"]}), flush=True)
