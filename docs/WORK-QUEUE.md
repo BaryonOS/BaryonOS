@@ -296,6 +296,15 @@ testbestanden en eigen bewijs, main94 inhoudsbehoudend opgenomen.
 Offline replay plus acht parenttamper-/twee scope-stopnegatieven slagen
 volgens eigenaar, 66 bewijsfiles hashgelijk. CI blijft afzonderlijk;
 native uitvoeringsbron420fac en alle genoemde bewijsgrenzen behouden.
+Manager draaide aanvullend zelf exact bef9461 in aparte checkout:
+14 gerichte cold-hosttests exit0/2,776s, schone checkout daarna verwijderd;
+geen VM/artifactreplay. Rapport `teamleader-cold77-host.json`.
+R77-review door7f vond twee MEDIUM-brongaten buiten die testdekking:
+late post-exitserial PANIC/FAIL-validatie en opnieuw hashen van immutable
+parentfirmware. Beide direct bij build voor minimale fix+regressies,
+intake bevestigt routering. Mergeblokkade tot herstel/review/gates, geen
+claim van een bewezen fout in de opgeslagen run. Lifecyclemelding bewust
+gequeueëd na lopend mergewerk nadat priorityadmission NOTSENT gaf.
 
 NAS `ba557473` heeft drie werkelijke matrixcrates, host/target/stackfaultgates
 groen gemeld; GitHub-CI en echte NAS-QEMU blijven open. Security NV

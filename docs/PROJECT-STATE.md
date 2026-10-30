@@ -243,6 +243,20 @@ native uitvoeringsbron420fac onveranderd. Offline ketenreplay en
 hashgelijk; eigen volledige commands/logs onder native-cold-acceptance.
 CI nog niet als groen vastgesteld; eerder genoemde cleanstop/powerloss/
 Windows-/reproduceerbaarheidsgrenzen blijven ongewijzigd.
+Manager heeft nu zelf exact #77-head `bef9461` in een aparte detached
+worktree getest: `python3 -B -m unittest tools.tests.test_materiaal_cold`,
+14 tests, exit0, 2,776s (wall2,87s). Tijdelijke schone checkout daarna
+gericht verwijderd, geen VM of volledige originele artifactreplay.
+Compact resultaat: `verification/teamleader-cold77-host.json`, lokaal log
+`files/teamleader-cold77-tests.log`.
+De afzonderlijke reviewer meldt twee MEDIUM-gaten: post-exit-PANIC/FAIL
+wordt niet finaal gevalideerd en parent-replay hasht immutable firmwarebytes
+niet opnieuw. De bestaande groene tests dekken dit niet af. Build ontving
+minimale fix-/regressieopdracht; #77 blijft geblokkeerd tot gerichte
+fix/review/gates. Geen aantoonbare fout in de opgeslagen native run geclaimd.
+Directe prioritymelding naar lifecycle faalde expliciet als NOTSENT; een
+bewust na huidig mergewerk gequeueëde melding is wel aangenomen, nog geen
+claim dat lifecycle die verwerkt heeft.
 Eerstvolgend bij hervatten: `git branch --show-current && git rev-parse HEAD
 && git status --short`, daarna verse `get_sessions_status` en actuele
 buildteam/release-rapportages lezen; geen oude groene PR-head overnemen.

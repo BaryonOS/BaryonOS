@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "41885e75d4bf32593fcaee280318c6a14785134a",
+    "source_commit": "d12539c9cb324bd86330338b48d02ff37a97331d",
     "branch": "simonvanieperen-symmetrical-barnacle",
     "task": "Teamleiding: twaalf sessies toetsen aan de volledige roadmap, exclusieve eigenaren en geïntegreerde QEMU-route bewaken",
     "previous_score": 34,
-    "summary": "34% blijft 34%; coördinatie, artifactinspectie en rapportages leveren geen native acceptatiepunten. Managercheckpoint 7248fea bevat de eigen hash/CRC/bytecontrole van de oude geleverde Windowsbundel; geen nieuwe VM-run. De reproduceerbaarheidstrace is opgeleverd met werkelijk afwijkende geladen Materiaalcode; volledige oorzaak en byte-reproduceerbaarheid blijven open, afzonderlijke source-runtime mag dit verdict niet overschrijven. UI meldt een geslaagde keyboardbaseline op 74d15ac, maar de nieuwe semantiekcode is daarin niet gelinkt: release-integratie en herhaling blijven verplicht. De gerichte BootInfo-trace toont GOP op 128..192 en exacte minorversievalidators; H05 vereist expliciete compatibele dispatch/ownership vóór implementatie. NAS mag drie werkelijke standalone crates in zijn exclusieve nieuwe CI-workflow opnemen; app-package-core-dekking blijft verplicht. Alle 62 volledige productcriteria en vereiste externe gates blijven open; criteria, gewichten en geaccepteerd bewijs ongewijzigd."
+    "summary": "34% blijft 34%; geen criterium, gewicht of geaccepteerd bewijs gewijzigd. Manager heeft de oude geleverde Windowsbundel als bestand gecontroleerd en nu zelf 14 cold-harnastests op exact PR77-bef9461 uitgevoerd: exit0, host-only. De gerichte review vond daarnaast twee nog af te dekken serial-/firmwarevalidatiegaten; build heeft een minimale fix-/regressieopdracht, merge blijft geblokkeerd. Geen nieuwe manager-VM of releaseacceptatie. Main94 is inhoudsbehoudend in de managerbranch opgenomen; latere integraties volgen de enkele lifecyclevolgorde om basecarrousels te voorkomen. Byte-reproduceerbaarheid, werkelijk geïntegreerde UI-semantiek, artifact-store/native NAS/appinstallatie/inference en correcte guestafsluiting blijven open. Alle 62 volledige productcriteria en externe fysieke/menselijke gates blijven gelden."
   },
   "tracks": [
     {

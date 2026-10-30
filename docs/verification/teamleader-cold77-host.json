@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-30",
+  "kind": "manager-executed targeted host tests",
+  "source_commit": "bef94615244f639a4df3934f54565551a6f0dc37",
+  "pull_request": 77,
+  "isolation": "separate detached Git worktree, clean before targeted removal",
+  "command": "python3 -B -m unittest tools.tests.test_materiaal_cold",
+  "exit_status": 0,
+  "test_count": 14,
+  "unittest_seconds": 2.776,
+  "time_real_seconds": 2.87,
+  "time_user_seconds": 2.64,
+  "time_sys_seconds": 0.23,
+  "local_log_basename": "teamleader-cold77-tests.log",
+  "native_guest_execution": false,
+  "full_original_artifact_replay": false,
+  "scope": "Existing targeted host tests only, not a code-review approval or release acceptance",
+  "separate_review_findings": [
+    {
+      "reviewer_session": "7f895683-fc79-48d0-a98a-aa0a6ccfe8b9",
+      "severity": "medium",
+      "file": "tools/run_materiaal_cold.py",
+      "lines": "148-189,206-207",
+      "issue": "Final serial bytes need post-exit PANIC/FAIL validation, not only hashing",
+      "status": "routed to build owner for reproduction, minimal fix and late-failure regression"
+    },
+    {
+      "reviewer_session": "7f895683-fc79-48d0-a98a-aa0a6ccfe8b9",
+      "severity": "medium",
+      "file": "tools/materiaal_cold.py",
+      "lines": "98-108,125-146",
+      "issue": "Parent replay needs actual immutable firmware byte hashes, not only firmware dictionary equality",
+      "status": "routed to build owner for reproduction, minimal fix and firmware-tamper regression"
+    }
+  ],
+  "limitations": [
+    "The existing 14 tests do not establish coverage of the two new findings.",
+    "Review findings are source traces, not a manager reproduction or proof that the stored guest run failed.",
+    "The new findings block merge until owner fixes, regression tests and appropriate source-bound gates.",
+    "No native source fingerprint or historical artifact hash was relabeled.",
+    "No clean guest shutdown, write-time power loss, Windows cold restart, byte reproducibility or full product acceptance."
+  ]
+}
