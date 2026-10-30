@@ -34,8 +34,8 @@ alleen een nette desktop haalt die eindgrens niet.
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
 **Bron:** [`08872173`](https://github.com/simonvanieperen/nieuw-os/commit/0887217360e924f94f3b86a52c3724cfdbe1c9ea) ·
 **Ontwikkelbranch:** `simon/windows-qemu-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** WINDOWS-QEMU-TEST-VERSION / INTERACTIVE-PROOF-1 / MERGE-MAIN-PR65.
-34% blijft 34%. De Windows-QEMU-branch, main-head 0ade801 en interactive-proof-1 bron 0887217 zijn inhoudsbehoudend geïntegreerd. Op de eerste geïntegreerde werkboom slagen 111 tools-hosttests en 46 systeemharnastests; op de nieuwe proof-code slagen 22 gerichte previewtests. De voortgangscontrole blijft consistent. Eerder native Linux-QMP- en Windows-launcherbewijs blijven aan hun eigen bron gebonden. De interactieve native-reference-run, Windows-gaststart, handmatige UX-acceptatie, OS-ZIP en CI op de uiteindelijke mergehead zijn niet uitgevoerd. Geen rubriccriterium gesloten.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** WINDOWS-QEMU-TEST-VERSION / INTERACTIVE-PROOF-1 / CONFLICT-MERGE-MAIN-748E29.
+34% blijft 34%. De Windows-QEMU/interactive-proof-branch en main-head 748e29b zijn geïntegreerd met behoud van eerdere checkpoints. De preflighttests (24), Rust-workspace-tests inclusief HKDF/HMAC-doctests (365), root-/SDK-rustfmt en progress-check slagen op de geïntegreerde bron. Eerdere 111 tools- en 46 systeemharnastests plus 22 previewtests zijn brongebonden aan de eerdere integratie-/proof-bronnen. Geen native gate, CI op de uiteindelijke mergehead, Windows-gaststart of interactieve referentierun uitgevoerd. Geen rubriccriterium gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

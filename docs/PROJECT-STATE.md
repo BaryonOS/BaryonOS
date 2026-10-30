@@ -4,7 +4,7 @@
 
 Oorspronkelijke basis `ad2b981fe1f2bcccb03cb776b2281d32529d2f00`, branch
 `simon/windows-qemu-test-version`; Windows-codecheckpoint `5b80865`,
-interactive-proof-codecheckpoint `0887217`, geïntegreerde main-head `0ade801`.
+interactive-proof-codecheckpoint `0887217`, geïntegreerde main-head `748e29b`.
 De opgegeven
 Windows-map `C:\Program Files\qemu` wordt automatisch herkend door
 `tools/windows-qemu/Start-NieuwOS.ps1`; de instructies tonen ook expliciet
@@ -78,20 +78,162 @@ Geslaagd vóór deze overdracht:
 Herhaalcommando (volgende stap: afstemming van de bundelbron):
 `. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" NOS_BUILD_DIR="$PWD/build/windows-qemu" NOS_TARGET_DIR="$PWD/target/windows-qemu" CARGO_TARGET_DIR="$PWD/target/windows-qemu" python3 -B -u tools/run_materiaal_preview.py --bios-rom .tools/nieuw-os/emulator/usr/share/seabios/bios-256k.bin --vga-rom .tools/nieuw-os/emulator/usr/share/seabios/vgabios-stdvga.bin`.
 
-**Conflictintegratie PR #65:** `main` op `0ade8014c8179241dcfc68ea0ba8083664691240`
-is opgenomen; de actuele interactieve proof-commit `0887217360e924f94f3b86a52c3724cfdbe1c9ea`
-is daarna zonder conflicten gesynchroniseerd. De overlappende README-/status-/
-rubricdelen behouden de Windows-QEMU-assessment; de hardware- en B02-checkpoints
-van main staan hieronder. Op de eerste geïntegreerde werkboom slagen
+**Conflictintegratie PR #65:** main `0ade8014c8179241dcfc68ea0ba8083664691240`
+is eerder opgenomen; deze ronde is bijgewerkt tot main
+`748e29b7455ca4213a6bf3ba3808c3097458263d`. De interactieve proof-commit
+`0887217360e924f94f3b86a52c3724cfdbe1c9ea` blijft behouden. De overlappende
+README-/status-/rubricdelen behouden de Windows-QEMU-assessment; de PR #62-
+checkpointen van main staan hieronder. Op de eerste geïntegreerde werkboom slagen
 `python3 -B -m unittest discover -s tools/tests -p 'test_*.py'` (111 tests),
 `python3 -B -m unittest discover -s tests -p 'test_system_*.py'` (46 tests)
 en `python3 -B tools/progress.py --check`; op de nieuwste proof-code slagen
 `python3 -B -m unittest tools.tests.test_materiaal_preview` (22 tests).
+Voor de nieuwe basewijzigingen slagen `python3 -B -m unittest discover -s tests
+-p 'test_preflight.py'` (24 tests), `cargo +1.90.0 test --offline --locked
+--workspace` (365 tests in 31 groepen, waaronder HKDF 3/3 en HMAC 2/2 doctests),
+`cargo +1.90.0 fmt --all -- --check` en
+`cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check`.
+De eerste workspacepoging miste offline `ed25519-dalek`; `cargo +1.90.0 fetch
+--locked` herstelde de gecachete lockfile-dependencies. De pinned rustfmt-
+component ontbrak aanvankelijk; projecttoolchaincomponent is geïnstalleerd en
+beide formatchecks slagen daarna. Twee rustfmt-regelafbrekingen in de al
+gewijzigde `display.rs`/`ps2.rs` zijn exact conform de formatter bijgewerkt.
 De interactieve native-reference-run, Windows-gaststart, ZIP en CI op de
-uiteindelijke mergehead zijn niet uitgevoerd.
-`git diff --check` meldt een extra lege regel aan het einde van
-`verification/full-release-b02-keystate-system/host/1.stdout.txt`, reeds aanwezig
-op main; het hashgebonden bewijs is ongewijzigd behouden.
+uiteindelijke mergehead zijn niet uitgevoerd. De vorige integratiecheck op
+`0ade801` meldde een extra lege regel in
+`verification/full-release-b02-keystate-system/host/1.stdout.txt`; dat
+hashgebonden bewijs is ongewijzigd behouden. De huidige
+`git diff --cached --check` slaagt.
+## Geïntegreerd main-checkpoint — PR #62 platformbeleidtest hersteld — 30 oktober 2026
+
+Basis `f6d3a108c8b53debd5a8d5415a46ce0772794020`; branch
+`simonvanieperen-studious-sniffle`. De nieuwe review vond terecht dat de
+synthetische `cc`-test impliciet het hostbeleid gebruikte. Op Windows
+controleert de preflight `link.exe`, waardoor die `cc`-asserties falen.
+Gereproduceerd met het Windowsbeleid op de Linux-host: één test, twee
+assertiefouten, exit 1. De test kiest nu expliciet het synthetische
+POSIX-beleid, net als de afzonderlijke Windowstest expliciet haar beleid
+kiest. Geen test overgeslagen of assertion verwijderd; beide platformpaden
+blijven op iedere host controleerbaar. Productiepreflight niet gewijzigd.
+
+De bronvermelding van het vorige checkpoint is als historische
+integratiebron gelabeld. **34% → 34%**; geen nieuw rubriccriterium.
+Gerichte controlecommando's en resultaten staan in
+`verification/host-test-linker-preflight/README.md`.
+CI op de oude head f6d3a108 was volledig groen; nieuwe-head-CI en de nieuwe
+reviewbeslissing blijven afzonderlijk nodig vóór squashmerge.
+
+## Geïntegreerd main-checkpoint — PR #62 reviewherstel — 30 oktober 2026
+
+Bronnen: vorige PR-head (integratiebron) `f71393398ea5f28f2ce49eae5279673695f06f48` en toenmalige
+`main` `0ade8014c8179241dcfc68ea0ba8083664691240`; branch
+`simonvanieperen-studious-sniffle`. Gewone twee-oudermerge, geen rebase.
+Main voegt sinds de vorige integratie uitsluitend README-/assessmenttekst en
+het hardwarecheckpoint toe. Beide kanten blijven hieronder historisch behouden;
+er is één actuele overdracht en één gegenereerde voortgangsmeter.
+
+**34% → 34%**; hardware blijft 1/12, H02–H06 blijven open. Geen runtimebron,
+dependency, criterium, native bewijs of bevoegdheidsgrens gewijzigd.
+Alleen conflictintegratie is deze ronde geautoriseerd: open reviewfeedback
+blijft ongemoeid en vereist een afzonderlijk geautoriseerde behandeling.
+
+Uitgevoerd vanuit `/home/runner/work/nieuw-os/nieuw-os`:
+`python3 tools/progress.py --write`, daarna
+`python3 tools/progress.py --check` en `git diff --check HEAD`: elk exit 0.
+Diffinspectie bevestigt dat alleen README, PROGRESS, PROJECT-STATE en
+progress.json wijzigen; de SVG blijft bytegelijk en het criteriumregister
+verandert buiten assessment niet. Geen tijdelijke logs of binaries toegevoegd.
+Geen nieuwe build-/runtimeproeven nodig voor deze documentatie-only integratie;
+eerdere resultaten blijven aan hun eigen bron gebonden. Nieuwe-headchecks en
+reviewstatus worden na publicatie afzonderlijk beoordeeld. Eerstvolgend commando:
+`python3 tools/progress.py --check`.
+
+## Geïntegreerd main-checkpoint — conflictintegratie PR #62 — 30 oktober 2026
+
+Bronnen: PR-head `c87fd769223e95fbf3a9423247468a0230ca9de1` met actuele
+`main` `f52dab50af281dab2c94ab2c9e31aaabd299246a`; branch
+`simonvanieperen-studious-sniffle`. Gewone twee-oudermerge, geen rebase.
+Conflicten in README, PROJECT-STATE en progress.json zijn inhoudelijk
+samengevoegd: beide historische checkpoints blijven behouden met één actuele
+overdracht en assessment. De lockfile behoudt RTC-core én de PR-testdependencies.
+Geen runtimebron handmatig aangepast; main's RTC/UTC en B02 blijven intact.
+
+De eerdere lokale merge `6fe70fd` met basis `ad2b981` kon niet worden gepusht
+door een serverfout en is niet beschikbaar in deze verse clone. Daarom is
+opnieuw geïntegreerd tegen de inmiddels actuele basis, inclusief B02.
+De schone werkboom bevatte geen IPC-WAIT-gebruikerswijzigingen; de vermelding
+daarvan in het historische B02-checkpoint beschrijft een andere lokale sessie.
+**34% → 34%**; geen criteria of gewichten gewijzigd.
+
+Integratiecontroles op de samengevoegde werkboom slagen (exit 0): 22 preflight-,
+12 RTC/UTC-verifier-, 46 systeemharnas- en 98 tooltests; rootworkspace
+365 geslaagd en één bestaande ignored benchmark; SDK-runtime 20 en RTC-core
+11 geslaagd; root-/SDK-formattering, keyring-/RTC-clippy en de
+`native-system-clock`-crossbuild. De vijf extra workspacetests ten opzichte
+van de oude PR-head komen uit B02. Eerste fmt/buildpogingen misten lokaal
+Rust-componenten/targets; na herstel slagen ze. QEMU/OVMF ontbreken:
+native runtimegates niet uitgevoerd, geen nieuw QEMU-bewijs geclaimd.
+Exacte commando's, exits, logs en hashes:
+[integratiebewijs](verification/host-test-linker-preflight/README.md#conflictintegratie-met-main-f52dab5).
+
+Mergecommit `cc136a3d4a84dc045089ad86f20925ce39e11a72` is gepubliceerd;
+`git ls-remote` bevestigt exact deze PR-head en ongewijzigde basis `f52dab5`.
+Secretscan zonder bevindingen. CodeQL Actions/Python: nul alerts; de totale
+analyse eindigde met een timeout voordat alle talen gereed waren, dus geen
+volledige CodeQL-goedkeuring. Nieuwe-head-CI blijft afzonderlijk te beoordelen;
+historische CI-/native resultaten bewijzen die niet. PR niet gemergd.
+Eerstvolgend lokaal controlecommando:
+`python3 tools/progress.py --check`.
+
+## Geïntegreerd main-checkpoint — hosttest-preflight — 30 oktober 2026
+
+Broncommit `4fb9a2320dd4d5383846507748ea8fdaf9e167cb`, branch
+`simonvanieperen-studious-sniffle`, oorspronkelijke taakbasis `main`
+`5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. Concept-PR
+[#62](https://github.com/simonvanieperen/nieuw-os/pull/62). De
+`--strict-host-tests`-controle meldt POSIX-hostlinkers los van bootvereisten;
+de bestaande `--strict`-betekenis blijft ongewijzigd.
+
+Na het lokaal beschikbaar maken van `cc` zonder systeembrede installatie
+compileren en draaien een minimale C-proef (exit 0). De volledige
+`cargo +1.90.0 test --offline --locked --workspace`-run onthulde ontbrekende
+README-doctestdependencies in de runtime-only vendormanifesten van HKDF (3
+voorbeelden) en HMAC (2 voorbeelden). Beide crates kregen uitsluitend de
+in de meegeleverde originele vendormanifesten vastgelegde `sha2`- en
+`hex-literal`-testdependencies; hun
+runtime-dependencies zijn ongewijzigd. De gerichte doctests slagen HKDF 3/3
+en HMAC 2/2. De volledige workspace-test slaagt daarna: 360 tests passed,
+0 failed, 1 ignored, over 51 testresultaatgroepen; log en hash staan in het
+bewijsrapport.
+
+De eerdere 22 preflighttests en strikte ontbrekende-`cc`-detectie blijven
+brongebonden aan `4fb9a23`; de CodeRabbit-status op die historische head is
+onbekend. reviewfix: Windows selecteert nu `link.exe`, de probe gebruikt `/?`
+en de negatieve foutstatus is synthetisch getest. De reviewdocumentatie noemt
+de opgeslagen manifestpaden, de onbekende toolchainherstelopdracht en het
+historische publicatiecheckpoint expliciet.
+
+Uitgevoerd op PR-basis `f71393398ea5f28f2ce49eae5279673695f06f48` met de
+reviewwijzigingen in de geïsoleerde worktree (exitstatus 0 tenzij vermeld):
+
+- `python3 -B -m unittest discover -s tests -p 'test_preflight.py' -v` —
+  24 tests; `/tmp/pr62-review-preflight-final.log`, SHA-256
+  `e3092a33106096d778c6154365052c0b5df9a93c8d7cf06c9fbd7ed4b9af71b6`.
+- `python3 -B -m py_compile tools/preflight.py tests/test_preflight.py` —
+  geldig.
+- `python3 -B tools/preflight.py --strict-host-tests` — exit 2, verwacht:
+  deze Linux-host mist `cc`; JSON `/tmp/pr62-review-host-preflight-final.json`,
+  SHA-256 `312f1a1c262a05ea3c175d0a64f648ff9308f8912a0c08d20137a11175c0dc9a`.
+- `python3 -B tools/progress.py --write`,
+  `python3 -B tools/progress.py --check` en `git diff --check` — geslaagd.
+
+Windows-native uitvoering en nieuwe-head GitHub Actions zijn niet uitgevoerd
+of nog niet gestart; de tests bewijzen geen Windows-host of OS-feature.
+**34% → 34%**; geen productcriterium of native QEMU-bewijs toegevoegd. PR #62
+blijft open tot actuele CI en reviewstatus zijn afgehandeld.
+Volledige commando's, logs, hashes en grenzen:
+[hosttest-preflight](verification/host-test-linker-preflight/README.md).
+
 ## Geïntegreerd main-checkpoint — hardware, drivers en energie — 30 oktober 2026
 
 Basis `f52dab50af281dab2c94ab2c9e31aaabd299246a` (`main`), branch

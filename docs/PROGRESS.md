@@ -85,6 +85,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+PR #65 conflictintegratie met `main` `748e29b7` (30 oktober 2026):
+**34% → 34%**. De Windows-QEMU- en interactive-proof-checkpoints blijven
+leidend voor deze branch; de PR #62 preflight-/vendorwijzigingen en bijbehorende
+bewijspaden uit `main` zijn behouden. Geen nieuw productcriterium of native
+bewijs toegevoegd. De integratiecontroles en hun grenzen staan in
+`PROJECT-STATE.md`.
+
 WINDOWS-QEMU-TEST-VERSION (30 oktober 2026), implementatiebron `f777f7a`:
 **34% → 34%**. De branch voegt een hashvaliderende Windows-QEMU-bundel,
 launcher, native QMP-previewrunner en CI-artifactjob toe. Hosttests,
@@ -106,6 +113,19 @@ inclusief weigering van een ELF-wissel na initiële validatie. Geen OS-ZIP,
 Windows-gast of extra acceptatie; **34% → 34%** blijft gehandhaafd.
 Op bron `5b80865` slaagt ook de complete tools-hostsuite (111 tests);
 dat is geen native productacceptatie en verandert de score niet.
+
+### Geïntegreerde main-checkpoints (PR #62)
+
+Documentatie-integratie PR #62 (30 oktober 2026), PR-head `ebbfb470` met
+`main` `0ade801`: **34% → 34%**. Het hardwarecheckpoint en eerdere
+PR-integratiebewijzen blijven behouden. Hardware blijft 1/12; H02–H06 blijven
+open. Geen runtime- of criteriumwijziging en geen nieuwe native acceptatie.
+
+Conflictintegratie PR #62 (30 oktober 2026), PR-head `c87fd769` met
+`main` `f52dab5`: **34% → 34%**. Hosttest-preflight, vendordoctestherstel,
+RTC/UTC en B02-persistentie blijven samen behouden. De integratie accepteert
+geen productcriterium; historisch bewijs blijft aan zijn oorspronkelijke bron
+gebonden. Uitgevoerde integratiecontroles staan in PROJECT-STATE.md.
 
 RTC-NATIVE-1 (30 oktober 2026), basis `5c334f9`: **34% -> 34%**.
 De expliciet opt-in CMOS-bootstrap is een technische tijdproviderafhankelijkheid,
