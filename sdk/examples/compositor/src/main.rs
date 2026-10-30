@@ -42,7 +42,7 @@ pub extern "C" fn _start() -> ! {
 #[inline(never)]
 fn run() -> ! {
     let boot = Bootstrap::decode(&words()).unwrap_or_else(|_| fail(1, None));
-    if native::abi_info() != Ok((1 << 32) | 8) {
+    if !matches!(native::abi_info(), Ok(0x1_0000_0008 | 0x1_0000_000a)) {
         fail(2, Some(&boot));
     }
     let mut display = DisplayClient::new(NativeTransport, boot.display);

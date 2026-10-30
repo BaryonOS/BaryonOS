@@ -12,6 +12,7 @@ mod support;
 
 use nieuw_os_sdk_runtime::{
     block::READ_MAX, native, BlockDevice, Error, Handle, Outgoing, ReceiveEndpoint, SendEndpoint,
+    WaitCondition, IPC_WAIT_HORIZON_TICKS,
 };
 use volume_core::{service::Service, upload, wire, Disk, Status, SECTOR};
 
@@ -122,6 +123,8 @@ pub extern "C" fn _start() -> ! {
     if native::check_abi().is_err() {
         startup_error(Status::NoSys);
     }
+    let idle_wait =
+        native::abi_info().unwrap_or_else(|_| startup_error(Status::NoSys)) == (1 << 32) | 10;
     let epoch = support::word(32);
     // Explicit mount mode from the bootstrap; the block capability separately
     // enforces the same boundary (READ only) for read-only mounts.
@@ -135,6 +138,7 @@ pub extern "C" fn _start() -> ! {
         ReceiveEndpoint::from_handle(handle(support::word(56))),
         ReceiveEndpoint::from_handle(handle(support::word(80))),
     ];
+    let conditions = roots.map(WaitCondition::receive);
     let replies = [
         SendEndpoint::from_handle(handle(support::word(88))),
         SendEndpoint::from_handle(handle(support::word(72))),
@@ -152,10 +156,15 @@ pub extern "C" fn _start() -> ! {
     support::put(232, 0);
     support::put(192, 1);
     loop {
+        let mut received_any = false;
         for domain in 0..2 {
             tick();
             let message = match native::receive(roots[domain]) {
-                Ok(message) => message,
+                Ok(message) => {
+                    received_any = true;
+                    message
+                }
+                Err(error) if idle_wait && !error.is_again() => startup_error(status(error)),
                 Err(_) => continue,
             };
             let had_caps = message.cap_count() != 0;
@@ -198,7 +207,18 @@ pub extern "C" fn _start() -> ! {
                 &reply,
             );
         }
-        let _ = native::yield_now();
+        if idle_wait && !received_any {
+            // All disk operations and replies above completed synchronously.
+            let deadline = native::monotonic_ticks()
+                .ok()
+                .and_then(|now| now.checked_add(IPC_WAIT_HORIZON_TICKS))
+                .unwrap_or_else(|| startup_error(Status::Protocol));
+            if let Err(error) = native::ipc_wait(&conditions, deadline) {
+                startup_error(status(error));
+            }
+        } else {
+            let _ = native::yield_now();
+        }
     }
 }
 

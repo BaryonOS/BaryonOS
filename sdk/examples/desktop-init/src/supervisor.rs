@@ -3,7 +3,11 @@ use crate::{
     boot::Bootstrap,
     wire::{self, StopRequest, StopStatus},
 };
-use nieuw_os_native_input_service::{discard_caps, Ipc};
+use nieuw_os_native_input_service::{
+    discard_caps,
+    source::wait::{Action, Interest, Plan},
+    Ipc,
+};
 use nieuw_os_sdk_runtime::{Outgoing, Received, SendEndpoint};
 pub const BOOT_TICKS: u64 = 5_000;
 pub const CMP_TICKS: u64 = 500;
@@ -101,6 +105,33 @@ impl Supervisor {
     }
     pub const fn start_tick(&self) -> u64 {
         self.started
+    }
+    /// Read-only ABI 1.10 scheduling plan; consumes, sends and renews nothing.
+    /// Only a quiescent Running supervisor (startup completed, no pending
+    /// send/ACK, no active stop request, no fatal) may park, and then only on
+    /// its own registry RECV plus the optional controller RECV. Running has no
+    /// protocol deadline, so the bounded kernel horizon only re-polls. Every
+    /// other phase keeps the unchanged yield loop and its absolute deadlines.
+    pub fn wait_plan(&self, now: u64) -> Result<Action, Fatal> {
+        if now < self.last_tick {
+            return Err(Fatal::Clock);
+        }
+        if self.phase != Phase::Running
+            || self.pending.is_some()
+            || self.active.is_some()
+            || self.fatal.is_some()
+            || self.counts.go_sent == 0
+        {
+            return Ok(Action::Run);
+        }
+        let mut plan = Plan::idle(now).map_err(|_| Fatal::Clock)?;
+        plan.add(Interest::Receive(self.config.registry))
+            .map_err(|_| Fatal::Protocol)?;
+        if let Some(controller) = self.config.controller {
+            plan.add(Interest::Receive(controller.receive))
+                .map_err(|_| Fatal::Protocol)?;
+        }
+        Ok(Action::Park(plan))
     }
     fn transition(
         &mut self,

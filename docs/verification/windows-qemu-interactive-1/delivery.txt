@@ -1,0 +1,20 @@
+Bundle integrity and QEMU 11.1.0 prerequisites passed; no VM started.
+
+
+Algorithm : SHA256
+Hash      : B42BE826377AFB58F96C8178AA972128ABAD18EF7F9B4872E102A9E4A7E9EA57
+Path      : C:\Users\simon\Downloads\NieuwOS-testversie-eabc27b-20261030\NieuwOS-Windows-Interactive-1.zip
+
+
+
+C:\Users\simon\Downloads\NieuwOS-testversie-eabc27b-20261030
+
+        Scope ExecutionPolicy
+        ----- ---------------
+MachinePolicy       Undefined
+   UserPolicy       Undefined
+      Process       Undefined
+  CurrentUser    RemoteSigned
+ LocalMachine       Undefined
+
+

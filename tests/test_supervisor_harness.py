@@ -89,6 +89,14 @@ class Verdict(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "DENIED_TOTAL"):
             rs.evaluate("denied", transcript("denied", values), 33, False)
 
+    def test_wait_cannot_reuse_normal_evidence_or_invent_idle_ticks(self):
+        with self.assertRaises(ValueError):
+            rs.evaluate("wait", transcript("normal", good("normal")), 33, False)
+        values = good("wait")
+        values["WAIT_IDLE_IRQS"] = values["TICKS"] + 1
+        with self.assertRaisesRegex(ValueError, "IRQ count"):
+            rs.evaluate("wait", transcript("wait", values), 33, False)
+
 
 if __name__ == "__main__":
     unittest.main()

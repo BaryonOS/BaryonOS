@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "source_commit": "344f4972d6db72543dd6c04bf0f28668602a91fd",
+  "source_fingerprint_version": 3,
+  "source_sha256": "c03070ddbbe8d233f91512a97927adc54c06da2c480966c68983cc936d5e7341",
+  "scope": "Fourteen real native VMs after merging main f52dab5 B02 persistence with IPC waits. Not a complete release or interactive seven-process acceptance.",
+  "common_environment": {
+    "LD_LIBRARY_PATH": "$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu",
+    "NOS_QEMU_MACHINE": "pc-q35-8.2",
+    "NOS_TARGET_DIR": "$PWD/target/native-test-version/system",
+    "CARGO_TARGET_DIR": "$PWD/target/native-test-version/system-host"
+  },
+  "non_gui": [
+    {
+      "command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/b02-system\" python3 -B tools/dev.py python3 -B -u tools/test_system.py",
+      "vms": 2,
+      "exit_status": 0,
+      "report": "build/native-test-version/b02-system/system-gate.json",
+      "sha256": "179c55a82fd0410edc1494a9b54222c092a711c1a6c75a5c0972523f82f8c69b",
+      "log": "/tmp/nieuw-os-b02-merge-system-native.log"
+    },
+    {
+      "command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/b02-keyring\" NOS_TARGET_DIR=\"$PWD/target/native-test-version/b02-keyring\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/b02-keyring-host\" python3 -B tools/dev.py python3 -B -u tools/test_keyring.py",
+      "vms": 5,
+      "exit_status": 0,
+      "report": "build/native-test-version/b02-keyring/keyring-gate.json",
+      "sha256": "82f58e0bd8653d7769f0b90b16b2c2ed88a4230747c947f4a87a1a846f1cff03",
+      "log": "/tmp/nieuw-os-b02-merge-keyring-native.log"
+    },
+    {
+      "environment": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/b02-random\" plus common environment",
+      "build_command_per_case": "python3 -B tools/dev.py python3 -B tools/build.py --kernel-feature FEATURE",
+      "run_command_per_case": "python3 -B tools/dev.py python3 -B -u tools/run_random.py --case CASE",
+      "features": {
+        "raw": "native-system-random",
+        "sdk": "test-system-random-sdk",
+        "unknown": "test-system-random-unknown",
+        "wrong-caller": "test-system-random-wrong-caller"
+      },
+      "vms": 4,
+      "all_exit_status": 0,
+      "result_paths_relative_to_build_run_and_sha256": {
+        "system-normal-ab20c85b3d164f4d85ab8f92a11cb158/result.json": "4c9fc305b23fad4dd7ad4c699d97f866e58bf0f20c1c2813f349f86d5b44cce1",
+        "system-normal-27fb9ecef4d6481389f50db9a3b2a17e/result.json": "7967bed06c300bc46020548cb94bf5590f6afb4d7050825efb0dab9aad901293",
+        "system-normal-fe90bd1cd86d4017b2294c2b22fe2775/result.json": "af29df8af4484444faad986c1786b57c2ba4343f5c4ebe12425232f73d2c5bcb",
+        "system-normal-37b7626bff534aefa26588d4adf31bb7/result.json": "6a4c2654f62690c157ab93ef6d2acb9c655a51877dc0358da81be137f1ad38c0"
+      },
+      "log_pattern": "/tmp/nieuw-os-b02-merge-random-CASE.log",
+      "initial_invocation_failure": "Runner invoked before building its required manifest; failed before any guest. Then each exact feature was built before its run. No runner assertion changed."
+    },
+    {
+      "command": "NOS_BUILD_DIR=\"$PWD/build/native-test-version/b02-clock\" python3 -B tools/dev.py python3 -B -u tools/run_system_clock.py",
+      "vms": 1,
+      "exit_status": 0,
+      "report": "build/native-test-version/b02-clock/system-clock-report.json",
+      "sha256": "f26388eec866bb50cccf6c6bb43563591e39b8052f261151f10df5e54fe67bc3",
+      "log": "/tmp/nieuw-os-b02-merge-clock-native.log"
+    }
+  ],
+  "gui": {
+    "environment": {
+      "LD_LIBRARY_PATH": "$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu",
+      "NOS_BUILD_DIR": "$PWD/build/native-test-version/b02-gui",
+      "NOS_TARGET_DIR": "$PWD/target/native-test-version/gui-baseline"
+    },
+    "build_commands": [
+      "python3 -B -u tools/build.py --kernel-feature native-system-materiaal-probe",
+      "python3 -B -u tools/build.py --kernel-feature test-system-materiaal-recover"
+    ],
+    "normal_command": "python3 -B -u tools/run_materiaal_probe.py --build-dir \"$PWD/build/native-test-version/b02-gui\" --machine pc-q35-10.0 --vga-rom \"$PWD/.tools/nieuw-os/qemu/usr/share/seabios/vgabios-stdvga.bin\" --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde",
+    "recover_command": "python3 -B -u tools/run_materiaal_probe.py --case recover --build-dir \"$PWD/build/native-test-version/b02-gui\" --parent \"$PWD/build/native-test-version/b02-gui/run/materiaal-normal-8cbef1919b\" --machine pc-q35-10.0 --vga-rom \"$PWD/.tools/nieuw-os/qemu/usr/share/seabios/vgabios-stdvga.bin\" --vga-rom-sha256 c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde",
+    "all_exit_status": 0,
+    "normal_result": "build/native-test-version/b02-gui/run/materiaal-normal-8cbef1919b/result.json",
+    "normal_sha256": "402412493e77b5d8ca0c08ed5d4dff850d922c0b74f337b690e08e9d66b60a88",
+    "normal_duration_s": 134.6568072150003,
+    "recover_result": "build/native-test-version/b02-gui/run/materiaal-recover-43c7421b5b/result.json",
+    "recover_sha256": "984da7413982ddaf9e7487a699b15398438ce74039fad7fae0999c10944d4930",
+    "recover_duration_s": 62.17725562600026,
+    "normal_frames": 6,
+    "recover_frames": 3,
+    "saved_and_reopened_bytes": 14,
+    "recover_disk_writes_and_flushes": 0,
+    "all_live_processes_and_handles_after": 0,
+    "log_pattern": "/tmp/nieuw-os-b02-merge-gui-*.log"
+  },
+  "all_native_raw_qemu_exit": 33,
+  "independent_system_capture": {
+    "command": "LD_LIBRARY_PATH=\"$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu\" NOS_BUILD_DIR=\"$PWD/build/native-test-version/b02-system\" python3 -B tools/capture_system.py --destination docs/verification/full-release-native-wait-b02",
+    "exit_status": 0,
+    "log": "/tmp/nieuw-os-b02-merge-capture.log",
+    "boundary": "Revalidates actual image bytes and source-bound normal/cold results; not a human audit. First destination rejected before capture because it did not match the existing full-release-<unique> constraint."
+  },
+  "host": {
+    "workspace_command": "LD_LIBRARY_PATH=\"$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu\" CARGO_TARGET_DIR=\"$PWD/target/native-test-version/wait-lifecycle-host\" python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --workspace",
+    "workspace_passed": 377,
+    "workspace_ignored": 1,
+    "system_command": "python3 -B -m unittest discover -s tests -p 'test_system_*.py'",
+    "system_tests": 46,
+    "tools_command": "python3 -B -m unittest discover -s tools/tests",
+    "tools_tests": 102,
+    "all_exit_status": 0,
+    "log_pattern": "/tmp/nieuw-os-b02-merge-{workspace,system-host,tools-host}.log"
+  },
+  "ci_failure_and_narrow_fix": {
+    "run": 41089871591,
+    "source_commit": "344f4972d6db72543dd6c04bf0f28668602a91fd",
+    "classification": "PR-caused runner compatibility defect, not kernel TPM failure",
+    "backend_version": "swtpm 0.7.3",
+    "backend_error": "swtpm: Error parsing tpmstate options: Unknown option 'lock'",
+    "backend_log_sha256": "020ce78162ac1857a832c3c9939eddc503436ef535af9478ffd7ff874830df14",
+    "failure_log": "/tmp/nieuw-os-native-system-ci-344f497-failed.log",
+    "fix": "Use portable --tpmstate dir=... without optional version-specific lock flag. Each child retains an exclusively generated mode0700 state directory and mode0600 ctrl socket; no shared TPM state, skipped case or weakened guest oracle.",
+    "targeted_command": "python3 -B -m unittest tools.tests.test_tpm tools.tests.test_ipc_wait",
+    "targeted_tests": 5,
+    "targeted_exit_status": 0,
+    "native_recheck_source": "344f497 plus tools/run_tpm.py and tools/tests/test_tpm.py portable-backend patch",
+    "native_recheck_source_sha256": "4c472a18940ea6cd42a0f0d53d26f8c491c5204274c4b8a6b8d6070b659a79ad",
+    "native_recheck_environment": "common LD_LIBRARY_PATH and NOS_QEMU_MACHINE; NOS_BUILD_DIR=$PWD/build/native-test-version/tpm-portable NOS_TARGET_DIR=$PWD/target/native-test-version/tpm",
+    "native_recheck_commands": [
+      "python3 -B tools/dev.py python3 -B tools/run_tpm.py --case normal",
+      "python3 -B tools/dev.py python3 -B tools/run_tpm.py --case absent"
+    ],
+    "native_recheck_all_exit_status": 0,
+    "native_recheck_raw_qemu_exit": 33,
+    "native_recheck_normal_report_sha256": "92e6f083fca52488872e94325b1690a59a602ede910744db5ed414ab3fad90c7",
+    "native_recheck_absent_report_sha256": "7d6cd0aa2b553a09e9d277b0e6b98b5d677f8cba7267d55bf68aaa8bb5d14cdd",
+    "native_recheck_local_backend": "swtpm 0.10.1; CI swtpm 0.7.3 recheck remains pending",
+    "native_recheck_logs": "/tmp/nieuw-os-tpm-portable-{normal,absent}.log"
+  },
+  "score_before": 34,
+  "score_after": 34,
+  "remaining": "50 percent; interactive seven-process proof and Windows bundle; complete CI on fixed head; product key write-ahead and trusted rollback anchor; full product, physical and human acceptance."
+}

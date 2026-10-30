@@ -1,0 +1,10 @@
+{
+  "reference": {
+    "report": "docs/verification/full-release-interactive-review/reference/summary.json",
+    "sha256": "cef5e8fe619a8c5fc6b32da93571fec7f44fa82a95d926c1502e9f69a9e5677c"
+  },
+  "interactive": {
+    "report": "docs/verification/full-release-interactive-review/interactive/summary.json",
+    "sha256": "ab8e2c42c0546c6726edaebacaaa791ff6bb854029ee1cd4bb87be39342f69af"
+  }
+}
