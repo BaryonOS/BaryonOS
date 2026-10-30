@@ -12,6 +12,11 @@ voortgangspunten toe.
   (`simonvanieperen-probable-doodle`).
 - Toegestane schrijfmap: uitsluitend `docs/verification/product-test-20/**`.
 - Afnemer: agent 4 / kwaliteitsafdeling; uitkomsten via intake/release.
+- Afstemming: rol 15 Productvormgeving/UX (`6117dd21-50d2-4418-b3b6-17048afd1180`)
+  en rol 16 Iconen/assets (`1bf8f308-d645-4632-b210-2258428f86b2`) leveren
+  ontwerp-/assetcontext; zij zijn geen artifact-, runner- of fixture-eigenaren.
+- UI-testartifact-eigenaar: rol 13 (`764bc9fb-2036-4b13-bbff-368037f9b2d7`),
+  uitsluitend na vrijgave door rollen 4/8 en runnerafstemming met rol 12.
 - Beoogde dekking: delen van `FR-U03`, `FR-U05`, `FR-O01`, `FR-O04`,
   `FR-O05` en `FR-R04`, en de bestaande rubricverwijzingen
   `U03`, `U04`, `R01`, `R03`.
@@ -47,7 +52,9 @@ of runhash.
 ## Startpoort: één onveranderlijk artifact
 
 Geen run begint voordat release/agent 4 én runner-eigenaar 12 dezelfde
-artifactspecificatie en runroute hebben bevestigd. De producttester ontvangt
+artifactspecificatie en runroute hebben bevestigd; rol 13 levert daarna de
+read-only kopie van datzelfde artifact. Rollen 15/16 leveren uitsluitend
+ontwerp-/assetcontext en kennen geen artifact- of runner-vrijgave toe. De producttester ontvangt
 een read-only kopie van dat artifact. Vereist in het kandidaatmanifest:
 
 1. volledige Git-broncommit en bronfingerprint;
