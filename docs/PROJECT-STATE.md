@@ -1,8 +1,171 @@
 # Actuele projectstatus
 
+## NEXT AGENT HANDOFF — PR #58, integratie met main — 30 oktober 2026
+
+Bronnen: PR-head `8365f14e1c3fae90a781b836405836906ee785ab` en
+`main` `970c7713e0c40adc50b4ae5ac665602b2d44d6c2`, op
+`codex/native-materiaal-integration`. Gewone twee-oudermerge, zonder rebase.
+De integratie behoudt de oorspronkelijke productiedigest, manifestguards,
+benchmarkbronbinding, calculator en retire-wisdeadline van main, naast
+de PR-reparaties voor gescheiden surfacehandles, lokale replyuitval,
+herhaalde pointerannulering en gebalanceerde meetvolgorde. Beide
+hostscenarioverifiers en beide compositorregressiesets blijven behouden.
+
+De geteste samengevoegde bron heeft fingerprint-v3
+`a27c14d4cd49970efbd7ecfc3998bccda6eae724d1b220d6671d198343a0e761`.
+De hieronder opgeslagen runtime-rapporten noemen de toenmalige HEAD als
+historische ouder; de fingerprint bindt de daadwerkelijk geteste werkboom.
+**34% → 34%**: geen nieuw geaccepteerd productcriterium of versoepelde gate.
+
+Uitgevoerd vanuit `/home/runner/work/nieuw-os/nieuw-os`, elk commando exit **0**:
+
+| Commando | Resultaat en lokaal log |
+|---|---|
+| `NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/preflight.py --strict` | omgeving compleet; `/tmp/pr58-v3-preflight.log` |
+| `python3 -B -m unittest discover -s tools/tests` | 84 tests, 12,005 s; `/tmp/pr58-v3-python.log` |
+| `python3 -B -m unittest discover -s tests -p 'test_system_*.py'` | 44 tests, 3,333 s; `/tmp/pr58-v3-system-host.log` |
+| `python3 -B -m unittest discover -s tests -p 'test_update_*.py'` | 10 tests, 0,416 s; `/tmp/pr58-v3-update-host.log` |
+| `python3 -B tools/build.py --kernel-feature native-cap-digest-bench` | scalar kernel/ELF-build; `/tmp/pr58-v3-bench-build.log` |
+| `python3 -B tools/run_cap_bench.py` | echte QEMU-run, pariteit, staat en 9×16 calls per variant; `/tmp/pr58-v3-bench-run.log` |
+| `python3 -B -u tools/test_system.py` | FR-I01: normaal en koude readonly recovery, raw33, elk circa 6,2 s; `/tmp/pr58-v3-system-native.log` |
+| `python3 -B sdk/examples/materiaal/verify.py` | beide hosttellingen 20, scalar ELF en echte loaderpolicytest; `/tmp/pr58-v3-materiaal-verify.log` |
+| `python3 -B tools/build.py --kernel-feature native-system-materiaal` | volledig desktop/compositor/Materiaal-profiel gebouwd; `/tmp/pr58-v3-materiaal-build.log` |
+| `python3 -B tools/capture_system.py --destination /home/runner/work/nieuw-os/nieuw-os/docs/verification/full-release-pr58-v3-system` | twee runs opnieuw gecontroleerd en gearchiveerd; `/tmp/pr58-v3-system-capture.log` |
+| `cargo +1.90.0 test --offline --locked -p capability-core -p ui-core -p kernel-core -p keyring-core` | 166 geslaagd, één bestaande ignored benchmark; `/tmp/pr58-v3-core-targeted.log` |
+| `cargo +1.90.0 test --offline --locked --workspace --manifest-path sdk/Cargo.toml` | 73 tests; `/tmp/pr58-v3-sdk-confirm.log` |
+| `cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/compositor/Cargo.toml` | 15 tests, inclusief beide reply-/wisregressies; `/tmp/pr58-v3-host-logs/12-test-compositor.log` |
+| `cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml` | 20 tests; `/tmp/pr58-v3-host-logs/13-test-materiaal.log` |
+| `cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml` | 19 tests; `/tmp/pr58-v3-host-logs/14-test-ui-native.log` |
+| `cargo +1.90.0 fmt --all -- --check` | root; `/tmp/pr58-v3-host-logs/20-fmt-root.log` |
+| `cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` | SDK; `/tmp/pr58-v3-sdk-fmt-confirm.log` |
+| `cargo +1.90.0 fmt --manifest-path sdk/examples/compositor/Cargo.toml -- --check` | `/tmp/pr58-v3-host-logs/22-fmt-compositor.log` |
+| `cargo +1.90.0 fmt --manifest-path sdk/examples/materiaal/Cargo.toml -- --check` | `/tmp/pr58-v3-host-logs/23-fmt-materiaal.log` |
+| `cargo +1.90.0 fmt --manifest-path ui/native/Cargo.toml -- --check` | `/tmp/pr58-v3-host-logs/24-fmt-ui-native.log` |
+| `cargo +1.90.0 clippy --offline --locked -p capability-core --all-targets -- -D warnings` | `/tmp/pr58-v3-host-logs/30-clippy-capability-core.log` |
+| `cargo +1.90.0 clippy --offline --locked -p ui-core --all-targets -- -D warnings` | `/tmp/pr58-v3-host-logs/31-clippy-ui-core.log` |
+| `cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/compositor/Cargo.toml --all-targets -- -D warnings` | `/tmp/pr58-v3-host-logs/32-clippy-compositor.log` |
+| `cargo +1.90.0 clippy --offline --locked --manifest-path sdk/examples/materiaal/Cargo.toml --all-targets -- -D warnings` | `/tmp/pr58-v3-host-logs/33-clippy-materiaal.log` |
+| `cargo +1.90.0 clippy --offline --locked --manifest-path ui/native/Cargo.toml --all-targets -- -D warnings` | `/tmp/pr58-v3-host-logs/34-clippy-ui-native.log` |
+| `python3 tools/progress.py --write` en `python3 tools/progress.py --check` | 34/100 consistent |
+| `sha256sum --check SHA256SUMS` | beide nieuwe bewijsarchieven intact |
+
+Alle bovenstaande host-Cargocommando's gebruiken
+`CARGO_TARGET_DIR=/tmp/pr58-v3-host-target`. De volledige
+`cargo +1.90.0 test --offline --locked --workspace` is óók uitgevoerd:
+**exit 101**, drie hkdf-vendordoctests kunnen `sha2`/`hex_literal` niet
+importeren (`/tmp/pr58-v3-host-logs/10-test-root.log`). De betrokken
+vendorbestanden, rootmanifest en lockfile zijn ongewijzigd tussen beide
+ouders. Geen dependency of test is aangepast om dit te verbergen; de
+afzonderlijke relevante corecommando's hierboven slagen volledig.
+`git diff --check` slaagt voor de eigen wijzigingen. De volledige staged
+mergecontrole meldt exit 2 voor twee van main overgenomen calculatorlogs
+met een lege eindregel. De finale controle tegen main meldt dezelfde soort
+waarschuwing in vier nieuwe ruwe host-stdoutbestanden. Alle bewijsbytes en
+bijbehorende hashes blijven ongewijzigd; dit zijn geen broncodefouten.
+
+De benchmark gebruikt `NOS_BUILD_DIR=.../build/pr58-v3-bench` en
+`NOS_TARGET_DIR=.../target/pr58-v3-bench`; de systemgate overeenkomstig
+`pr58-v3-system` en daarnaast `CARGO_TARGET_DIR=.../target/pr58-v3-system-host`.
+De Materiaal-ELF-verifier gebruikt `NOS_BUILD_DIR=.../build/pr58-v3-materiaal`
+en `CARGO_TARGET_DIR=.../build/pr58-v3-materiaal-native`; de desktopbuild
+gebruikt build-/targetmappen `pr58-v3-materiaal-system`. Alle native runs
+gebruiken `NOS_QEMU_MACHINE=pc-q35-8.2` en eigen wegwerpimages.
+Compact exact-bytebewijs staat onder
+`docs/verification/full-release-pr58-v3-system/` en
+`docs/verification/full-release-pr58-v3-components/`. Historische Materiaal-
+verificatielogs zijn niet overschreven.
+
+Een tweede AI heeft de samengevoegde reparaties alleen-lezen beoordeeld
+zonder significante bevinding; dit is geen menselijke audit.
+De secretscan vindt geen secrets in de gewijzigde/nieuwe bestanden.
+CodeQL is uitgevoerd na de lokale mergecommit: Python voltooid met nul
+alerts, analyse van overige talen afgebroken door timeout. Die overige
+analyse is niet groen; de tool verbiedt opnieuw starten. Dit beperkt de
+automatische securitycontrole, naast de geslaagde gerichte tests en bronreview.
+**Niet uitgevoerd:** volledige GUI-keten, calculator-VM, alle 13 native
+updategevallen, fysieke hardware en menselijke productacceptatie.
+Het eerdere rode GUI-bewijs blijft dus rood en brongebonden. De hosttests
+voor surface-isolatie bewijzen geen native multiapp-bediening.
+
+**Open/blocker:** deze ronde mag uitsluitend conflicten oplossen. De door de
+app gemelde review/change-request vereist een afzonderlijk geautoriseerde
+reviewronde; er zijn nu geen reviewtargets meegeleverd. Geen PR-merge.
+Na publicatie moeten de nieuwe HEAD en bijbehorende CI worden beoordeeld.
+Eerstvolgende actie: de app laat actuele reviews/mergevoorwaarden bepalen;
+bij een volgende productopdracht blijft de volledige acceptatiematrix
+`docs/FULL-TEST-RELEASE.md` leidend, niet alleen deze gerichte regressies.
+
+## Historisch checkpoint — merge van Materiaal en B03 — 30 oktober 2026
+
+De werkbranch `codex/native-materiaal-integration` op `2992ba76` is
+samengevoegd met `main` op `9f017354`. De Materiaal- en updateprofielen,
+workspaceleden en historische bewijsstukken blijven behouden. De B03-acceptatie
+komt uit main; deze conflictresolutie levert geen nieuwe acceptatie op.
+De eerdere controles hieronder gelden alleen voor hun oorspronkelijke bron.
+Voor deze samengevoegde werkboom zijn geen projectcontroles uitgevoerd.
+
+## Vorig checkpoint — 30 oktober 2026 — PR #58 conflictintegratie
+
+Werkbranch `codex/native-materiaal-integration`; bron-HEAD
+`48b51878c03b5b73449f563735c7854b24926fc4`, actuele PR-basis `main`
+`6d3bbf0aab07bbcf9b36a9bd74d668adc22f9922`. Alleen conflictresolutie
+is in deze Agent Merge-tick toegestaan; geen PR-merge of verdere productbouw.
+De eerdere integratie tegen `faf2c134` is afgebroken na de app-update.
+`main` en die oude basis hebben dezelfde tree
+`fd8c8269a915f0c8cc6fdddeb98d3d1769f00a40`, maar verschillende historie
+door squash-PR #56. De huidige integratie is opnieuw berekend met
+`git merge-tree --write-tree --merge-base=3f20f087a7f0ddf4757af8d3ea110dd0c044a72c HEAD origin/main`;
+die inhoudsvoorouder voorkomt dat al opgenomen werk als nieuwe add/add-wijziging
+wordt behandeld. De uiteindelijke merge behoudt `main` als tweede ouder.
+
+De echte conflicten zijn verenigd in `Cargo.toml`, `sdk/Cargo.toml`,
+`kernel/build.rs`, `kernel/src/m2/m3.rs` en `tools/build.py`: alle bestaande
+workspace-uitsluitingen, ELF-invoer en afzonderlijke Materiaal-, benchmark-,
+RNG- en imageprofielen blijven behouden, inclusief hun procesaantallen.
+`docs/WORK-QUEUE.md` behoudt het nieuwere foundationcheckpoint;
+`docs/progress.json`, README en gegenereerde voortgang blijven **32% → 32%**.
+Geen criterium, gewicht, recht, timeout of testassertie is versoepeld.
+
+Op de opnieuw samengevoegde werkboom uitgevoerd, elk commando exit **0**:
+
+| Commando vanuit de repositoryroot | Resultaat / lokaal volledig log |
+|---|---|
+| `python3 -m unittest discover -s tools/tests -v` | 63 tests, 16,810 s; `/tmp/pr58-probe-tests.log` |
+| `python3 -m unittest discover -s tests -p 'test_system_*.py' -v` | 44 tests, 8,632 s; `/tmp/pr58-system-tests.log` |
+| `python3 -m unittest discover -s tests -p 'test_build_paths.py' -v` | 3 tests, 0,004 s; `/tmp/pr58-build-path-tests.log` |
+| `CARGO_TARGET_DIR=/tmp/pr58-root-target cargo +1.90.0 test --locked -p capability-core -p ui-core -p keyring-core` | 146 geslaagd, één bestaande genegeerde test; `/tmp/pr58-root-tests.log` |
+| `CARGO_TARGET_DIR=/tmp/pr58-root-target cargo +1.90.0 clippy --locked -p capability-core -p ui-core -p keyring-core --all-targets -- -D warnings` | `/tmp/pr58-root-clippy.log` |
+| `CARGO_TARGET_DIR=/tmp/pr58-sdk-target cargo +1.90.0 test --locked --manifest-path sdk/Cargo.toml` | 83 geslaagd; `/tmp/pr58-sdk-tests.log` |
+| `CARGO_TARGET_DIR=/tmp/pr58-sdk-target cargo +1.90.0 clippy --locked --manifest-path sdk/Cargo.toml --all-targets -- -D warnings` | `/tmp/pr58-sdk-clippy.log` |
+| `cargo +1.90.0 fmt --all -- --check` | root/kernel formattering groen |
+| `cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` | SDK-formattering groen |
+| `python3 -B tools/build.py --kernel-feature native-system-materiaal-probe` | cross-build, geen gastuitvoering; `/tmp/pr58-materiaal-build.log` |
+| `python3 -B tools/build.py --kernel-feature native-system-random` | cross-build; `/tmp/pr58-random-build.log` |
+| `python3 -B tools/build.py --kernel-feature native-system-images` | cross-build; `/tmp/pr58-images-build.log` |
+| `python3 -B tools/build.py --kernel-feature native-cap-digest-bench` | cross-build; `/tmp/pr58-benchmark-build.log` |
+| `python3 tools/progress.py --write` en daarna `python3 tools/progress.py --check` | 32/100 consistent; geen nieuwe acceptatie |
+| `git diff --check` | geen witruimtefouten |
+
+Rust 1.90.0 met de vastgelegde targets en bestaande gelockte dependencies is
+hersteld; geen dependencyversie of lockfile hiervoor gewijzigd. Een eerste
+Materiaal-build miste cache-inhoud; na `cargo fetch --locked` zijn de
+bovenstaande volledige builds opnieuw geslaagd. Een leeshelper wijzigde
+onterecht de werkboom; die helper is gestopt, de integratie is opnieuw
+opgebouwd en alle bovenstaande controles zijn daarna herhaald. De gerichte
+read-only code-review van het eindresultaat vond geen significante fout;
+dit is geen menselijke audit.
+
+**Bewijsgrens/open werk:** QEMU/OVMF ontbreken in deze omgeving; native
+gastproeven en volledige CI zijn hier **niet uitgevoerd**. Historische groene
+foundationresultaten en rode GUI-resultaten hieronder blijven aan hun eigen
+bron gebonden. Geen volledige GUI-keten, productopslag of release geclaimd.
+Na publicatie volgen evaluatie van de nieuwe HEAD en de bestaande native gates
+in een ingerichte omgeving. Eerstvolgend inventariscommando:
+`python3 -B tools/preflight.py --strict`; in deze omgeving nog geen groene
+native inventaris. PROJECT-STATE en de bestaande queue blijven de overdracht.
 De samenvoeging behoudt de native productintegratie en de afzonderlijk geaccepteerde B03-updateproef. De rubric bevat daarmee 34 punten; het B03-bewijs en de productmetingen hieronder blijven aan hun oorspronkelijke bronnen gebonden. Deze samenvoeging is nog niet als gecombineerde bron gevalideerd.
 
-## NEXT AGENT HANDOFF — gezamenlijke native productintegratie, 30 oktober 2026
+## Historisch checkpoint — gezamenlijke native productintegratie, 30 oktober 2026
 
 Op de beschreven productbron bleef de score **32% → 32%**; alle 62 volledige productcriteria blijven open. [Opdracht/matrix](FULL-TEST-RELEASE.md) → [productcontext](FULL-TEST-RELEASE-CONTEXT.md) → [werkqueue](WORK-QUEUE.md).
 Integratiebranch `codex/full-test-release` staat op `faf2c134510ce6c2f1d556efe4e64061558e6474`, concept-PR #56. Gezamenlijke bron `9596abc576fceefe2b3ff2f3bd120bcd914eb04c` staat lokaal én op remote `codex/native-product-integration`, concept-PR [#60](https://github.com/simonvanieperen/nieuw-os/pull/60), worktree `/workspace/nieuw-os-worktrees/root-product`. De huidige vervolgreparatie wordt op deze branch gepubliceerd; geen volledige releaseclaim.
@@ -230,6 +393,20 @@ Desktopintegratie `codex/root-desktop-integration`, concept-PR[#57](https://gith
 [Volledige opdracht/matrix](FULL-TEST-RELEASE.md) → [productcontext](FULL-TEST-RELEASE-CONTEXT.md) → [werkqueue](WORK-QUEUE.md).
 De volledige oorspronkelijke opdracht, `/goal`, rubric en alle62 productcriteria blijven behouden en open. **Geen volledige release;32%→32%.**
 
+**TweedeGUI5e iseveneensFAIL raw35/202,866s:** [bewaarbewijs](verification/full-release-gui-second-5e126b7/README.md). CompleteMateriaal énEditorframes zijn échtbereikt/bekeken, maargeenSaved/Reopen/cleanSTOP. Deobserververbeteringalleenisevidentnietgenoeg. GerichtebitexacteIPCdiagnosticoptimalisatiedb04wordtnugeïntegreerd:52coretests/Clippy/scalartargetgroen, host2,48×geenNativeclaim. Alleveiligheids-/IPCchecks/deadlineblijven, onafhankelijkehashreviewloopt; nieuweVMvereist.
+
+**GUI7d eerste native uitvoering is FAIL, niet afgetekend.** [Originelelogs](verification/full-release-gui-first-7d230a6/README.md): Source/Policy/Comp/Focus en echtvolledig Materiaalframe1608tegels; eerste frame rond106s, totale3161tegels bij200s. Geen Saved/Reopen/STOP. De huidige gerichte observercorrectie leest één metadataframe per echtePITtick via éénbounded1024B-scratchkopie; brokers blijveniederentry, alleIPC-/cap-/FPU-/pagingchecks en200sdeadline blijven. Eindcleanup staatbuitencadence (max1tickfalse-negative hersteld). Onafhankelijkehelper/Gate7cases groen, geen nieuweprestatiemeting of nativeclaim.
+
+GUIharnasfix3e2dd322 voorkomt stale/latecapturen, bindtactievedisk aan afterimage en herberekent de ene concrete koudeNormalouderketen.19repo+21onafhankelijkechecks groen; oude rode tegenvoorbeeldenbewaard. De nieuwe bron wordt nu gepubliceerd en daarna nativeherhaald; oudeGUI7d-run blijft rood. Foundationbron2b5d69c repareert internRNGTRANSFER na een terechtekernelweigering; eigen4RNG/imageVMs lopen onafhankelijk in root-foundation, geenresultaat geclaimd.
+
+**Actuele integratie:** mainbranch staat op `3f20f087a7f0ddf4757af8d3ea110dd0c044a72c`, alleachtCI-workflows groen inclusief de echte display/input-CI. [Metadata, jobstappen en ruwe uitvoerselectie](verification/full-release-ci-3f20f08/README.md). De lokale overdracht van het CI-ZIP is proxy403-geblokkeerd; lokale eigenimages zijn beschikbaar. Bron `907d6ce` had eerder allezevenbestaandeCI groen.
+
+**Nieuwe GUI-integratie in eigenworktree `root-materiaal`:** SUR1deadlinefix6066645, typedINP1client4c0ddef, compositor0390f70, appReady/entryfix18155b0+F12uitbreiding8037a84 en echte init/controllerba5b83e zijn opgenomen met oorspronkelijke workerbewijzen. Onafhankelijke [app-/initreviews](verification/full-release-gui-component-reviews/README.md) vinden na de Ready-reparatie geen concrete componentblocker; zij zijn geen menselijke audit. De werkelijk gekoppelde8ELFs en kernel hebben een eerste volledige targetbuild doorstaan; root herhaalt20 app- en15 init-hostcases op de samengestelde bron. Noggeen nativeGUI-run.
+
+Root bezit de nieuwe desktopmanifesten, buildhook en een pureproefgate die Saved→latereList→latereReopen→nieuwe echteF12Press vereist. De8eCPL3controller heeft slechts tweeIPC-leaves en een eigen testbarrier; hij voert de echte initSTOP-RPC uit. APPgeen rawapparaatrechten; compositorDisplay; SourceInput; policyvierontvangstkanalen. Eerste targetedreview vond en herstelde een builderimportfout, ontbrekendeRECV voor een ongebruiktKey-replyendpoint en logsymlinkwrites. Alleoutputpaden worden nu vóór het eerste commando gevalideerd. De200s-timeout geldt uitsluitend voor de opt-inproef, niet de7-processeninteractievevariant. Alle gegevens blijven plaintextfixtures met RAMkeys; dienstcrashnotificaties/herstart, productopslag en overigeGUI/releasescope zijn open.
+
+Parallelle rootworktree `root-foundation` bevat nativeRANDOMfc2/3299/651+c01/e7 plus PNG/JPEG9ae en imageobserver474. Canonieke key/systembuilders hebben beide portableChaCha-configuraties; echte volledigeRNG- en imageprofielen bouwen. Hostkeyring/clientchecks slagen. VierRNG-VMs en decoder-VM moeten nog op hun finale bevroren bron worden uitgevoerd; nieuwe onafhankelijke adapters-/decodereviews enRNGharnas lopen. Geen uitvoering geclaimd vanuit deze builds. TPM-CRB-transportcore is nu een nieuw concreet onafhankelijk spoor; ankerclient/native/persistente sleutels blijven open.
+
 **Geteste bronnen en werkelijke grenzen:**
 
 - `985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb`: dertien lokale VM-runs en zeven CI-workflows geslaagd. [Basis/cold](verification/full-release-base-985ed4d/capture-validation.json), [ARP/DNS/cold](verification/full-release-net-985ed4d/capture-validation.json), [TCP/cold](verification/full-release-tcp-985ed4d/capture-validation.json), [geheugen](verification/full-release-memory-985ed4d/README.md), [FPU](verification/full-release-fpu-985ed4d/fpu-report.json), [G0](verification/full-release-g0-985ed4d/graphics-g0-result.json), [CI](verification/full-release-ci-985ed4d/workflow-runs.json).
@@ -248,7 +425,7 @@ RANDOM fc2e2a2+KDF-wispatch3299f28 en TLS34191bb hebben componentbewijs, nog gee
 
 - Controleer actuele HEAD/status/worktrees en actieve agents; historische blokken hieronder zijn geen actuele werkstand. Behoud alle eigen worktrees en wijzigingen. Integratie mag alleen als inhoud, passende checks, reviewbevindingen en remote-SHA aantoonbaar kloppen.
 - Laatste bruikbare native displayimage: `/workspace/nieuw-os-worktrees/root-desktop/build/display-geometry-fixed/run/display-input-e6dc2a21c2/esp/`, originele PPMs/inputs/result/serial in dezelfde runmap. Zie exact geteste d528-bron en hashes hierboven. Geheugen15e: `/workspace/nieuw-os/build/full-release-15e8cfc-memory/{normal,nx,guard,peer,oom}/esp/`. Geen volledig releaseimage.
-- Eerstvolgende uitvoering: integreer appreviewreparatie, SUR1fix, typedINP1client, nativeinit/compositor/app in root-desktop; sluit kernelgrants/bootstrap/build aan en voer echte QMPedit/save/heropen uit. Een SourceReady/SYNC, PolicyReady en compositorFocusACK moeten vóór GO bestaan; APPStartupReady is geen volledig geschilderd beeld.
+- Eerstvolgende uitvoering: voeg de concrete GUI-QMPrunner toe aan root-materiaal, leg de gedeelde bron/index plus checkpoint vast en publiceer de eigenbranch zonder lokale workercommits te verliezen; bouw op die exact bevroren bron `tools/build.py --kernel-feature native-system-materiaal-probe` met eigen `NOS_BUILD_DIR=build/materiaal-integration` en `NOS_TARGET_DIR=target/materiaal-integration`. Voer daarna echte QMPedit/save/heropen/F12/cleanSTOP uit, inspecteer echte screenshots en herhaal koude readonly-heropening. InitialSource/SYNC/Policy/CompFocusgates zijn vereist; APPStartupReady is geen paintReady. Native proeven nog niet uitgevoerd.
 - Parallel: nativeRANDOM4cases en PNG/JPEGprobe krijgen uitsluitend eigen nieuwe bestanden. Root beheert feature-/SDK-/workspace-/buildwiring. App heeft geen rawDisplay/Input, compositor uitsluitend DISPLAY, bron uitsluitend INPUT, policy vasteIPCkanalen. Geen hostsimulatie als functionaliteit.
 - CLI-push heeft HTTPS-auth401; de beschikbare GitHub-koppeling publiceert met lease/exactetree en fetch/ff-verificatie. Geen credentialinspectie/forcepush. `/tmp/nieuw-os-make-candidate.py` controleert nu ook gewijzigde staged bewijsarchieven tegen hun eigen SHA256SUMS; gebruik fail-fast shells.
 -100 koude starts,24uur gecombineerde sessie, menselijk/hardwarebewijs en compleet testpakket blijven open. Geen uitvoering ná een harde sessiegrens beloven.

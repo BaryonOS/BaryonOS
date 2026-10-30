@@ -17,6 +17,20 @@ from common import BUILD, run_logged
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
+def write_sdk_build_input(output: Path, sdk_diff: bytes) -> None:
+    path = output / "sdk-build-input.json"
+    if sdk_diff:
+        path.write_text(json.dumps({"patch_utf8": sdk_diff.decode("utf-8"), "sha256": hashlib.sha256(sdk_diff).hexdigest()}, indent=2) + "\n")
+    else:
+        path.unlink(missing_ok=True)
+
+def chain_scenario_count(log: str) -> int:
+    results = re.findall(r"^test result:.*$", log, re.MULTILINE)
+    result = re.fullmatch(r"test result: ok\. (\d+) passed; 0 failed; 0 ignored; 0 measured; 0 filtered out;(?: finished in [0-9.]+s)?", results[0]) if len(results) == 1 else None
+    if result is None or int(result[1]) == 0:
+        raise RuntimeError("host chain log must contain exactly one successful, unfiltered test result")
+    return int(result[1])
+
 EXPECTED_HOST_SCENARIOS = 20
 
 def host_scenario_count(path: Path) -> int:
@@ -50,7 +64,8 @@ def main() -> int:
     logs = []
     for name, args in [
         ("fmt", ["cargo", "fmt", "--manifest-path", manifest, "--", "--check"]),
-        ("host", ["cargo", "test", "--offline", "--locked", "--manifest-path", manifest]),
+        ("host-all", ["cargo", "test", "--offline", "--locked", "--manifest-path", manifest]),
+        ("host", ["cargo", "test", "--offline", "--locked", "--manifest-path", manifest, "--test", "chain"]),
         ("clippy", ["cargo", "clippy", "--offline", "--locked", "--manifest-path", manifest, "--all-targets", "--", "-D", "warnings"]),
         ("native-clippy", ["cargo", "clippy", "--offline", "--locked", "--manifest-path", manifest, "--features", "native", "--bin", "materiaal-app", "--target", "x86_64-unknown-none", "--", "-D", "warnings"]),
         ("native-elf", [sys.executable, "-B", str(EXAMPLE / "build.py")]),
@@ -59,7 +74,8 @@ def main() -> int:
         selected = {**extra, "CARGO_ENCODED_RUSTFLAGS": flags} if name == "native-clippy" else extra
         run_logged(args, f"materiaal-app/{name}", extra_env=selected if name != "native-elf" else None)
         logs.append(name)
-    scenario_count = host_scenario_count(BUILD / "logs/materiaal-app/host.stdout.txt")
+    host_scenarios = chain_scenario_count((BUILD / "logs/materiaal-app/host.stdout.txt").read_text())
+    full_host_scenarios = host_scenario_count(BUILD / "logs/materiaal-app/host-all.stdout.txt")
     native_target = Path(os.environ.get("CARGO_TARGET_DIR", ROOT / "build/sdk-materiaal"))
     binary = native_target / "x86_64-unknown-none/release/materiaal-app"
     run_logged(["cargo", "test", "--offline", "--locked", "--manifest-path", manifest,
@@ -108,8 +124,7 @@ def main() -> int:
     (output / "readelf.txt").write_text(segments)
     patch = Path("/tmp/nieuw-os-desktop-sdk-wrappers.patch")
     sdk_diff = subprocess.check_output(["git", "diff", "--", "sdk/Cargo.toml", "sdk/runtime"], cwd=ROOT)
-    if sdk_diff:
-        (output / "sdk-build-input.json").write_text(json.dumps({"patch_utf8": sdk_diff.decode("utf-8"), "sha256": hashlib.sha256(sdk_diff).hexdigest()}, indent=2) + "\n")
+    write_sdk_build_input(output, sdk_diff)
     report = {
         "kind": "host-contracts-and-built-ELF-only", "native_execution": False,
         "source_version": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
@@ -119,7 +134,8 @@ def main() -> int:
         "actual_shared_sdk_diff_sha256": hashlib.sha256(sdk_diff).hexdigest() if sdk_diff else None,
         "artifact": {"path": str(binary), "bytes": binary.stat().st_size, "sha256": digest(binary),
                      "scalar_instructions": instructions, "simd_fpu": forbidden, "host_backends": host},
-        "host_scenarios": scenario_count, "actual_ELF_loader_policy_tests": 1,
+        "host_scenarios": host_scenarios, "full_host_scenarios": full_host_scenarios,
+        "actual_ELF_loader_policy_tests": 1,
         "build_claim": "actual x86_64-unknown-none executable; not execution, pixels, hardware input or durable encrypted storage",
     }
     (output / "pre-native.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")

@@ -6,7 +6,7 @@ use capability_core::Engine;
 use core::hint::black_box;
 
 const WARMUP: u64 = 4;
-const ROUNDS: usize = 8;
+const ROUNDS: usize = 9;
 const BATCH: u64 = 16;
 type Digest = fn(&Engine) -> u64;
 
@@ -108,10 +108,12 @@ pub(super) fn run(engine: &Engine) -> ! {
     }
     let mut measurements = [Measurement::EMPTY; 3];
     let mut round_ticks = [[0u64; 3]; ROUNDS];
+    let mut execution_order = [[0u64; 3]; ROUNDS];
     for (round, ticks) in round_ticks.iter_mut().enumerate() {
         // ABC, BCA, CAB, ...; totals count actual invocations per variant.
         for position in 0..3 {
             let variant = (round + position) % 3;
+            execution_order[round][position] = variant as u64;
             let elapsed = batch(engine, variants[variant], expected);
             ticks[variant] = elapsed;
             measurements[variant].record(elapsed);
@@ -160,9 +162,11 @@ pub(super) fn run(engine: &Engine) -> ! {
         print_number(labels[2], measurement.min);
         print_number(labels[3], measurement.max);
     }
-    // Fixed ordered triples REF/DIRECT/ZERO for rounds 0..7, not execution
-    // order; the host can independently recompute sums and extrema from these.
-    for ticks in round_ticks {
+    // Record actual variant positions and fixed REF/DIRECT/ZERO batch times.
+    for (order, ticks) in execution_order.into_iter().zip(round_ticks) {
+        for variant in order {
+            print_number(b"CAPBENCH:ROUND_VARIANT:", variant);
+        }
         print_number(b"CAPBENCH:ROUND_REF_TSC:", ticks[0]);
         print_number(b"CAPBENCH:ROUND_DIRECT_TSC:", ticks[1]);
         print_number(b"CAPBENCH:ROUND_ZERO_TSC:", ticks[2]);

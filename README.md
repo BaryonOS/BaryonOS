@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`1f6a6834`](https://github.com/simonvanieperen/nieuw-os/commit/1f6a6834a89aa3d533b096c5b62a46b3276db6d3) ·
-**Ontwikkelbranch:** `codex/native-product-integration`.
-Deze opdracht: **32% → 34% (+2 procentpunt)**. **Opdracht:** Native productintegratie en eerder geaccepteerde B03-updates samenvoegen.
-De score stijgt van 32% naar 34% door de eerder geaccepteerde B03-proef voor ondertekende updates en rollback. Op exact 9596abc slagen alle negen CI-workflows; de aparte GUI-keten bereikt Materiaal en editor, maar faalt vóór typen, Save/Reopen en afsluiten. De calculator heeft begrensd bron-, host- en ELF-bewijs, geen native appacceptatie. De vermelde bron is de productouder; B03 en de productmetingen blijven aan hun oorspronkelijke bronnen gebonden. Deze samenvoeging is niet als gecombineerde bron gevalideerd. Alle 62 volledige productcriteria blijven open; volledige updates en herstel, veilige persistente opslag, Secure Boot, releasesleutels, fysieke en menselijke gates zijn niet aangetoond.
+**Bron:** [`8365f14e`](https://github.com/simonvanieperen/nieuw-os/commit/8365f14e1c3fae90a781b836405836906ee785ab) ·
+**Ontwikkelbranch:** `codex/native-materiaal-integration`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR #58: conflictintegratie met main 970c7713 met behoud van beide reparatiesporen.
+34% blijft 34%; deze conflictintegratie verdient geen nieuwe punten. De productintegratie, oorspronkelijke productiedigest, manifestguards en benchmarkbronbinding van main blijven behouden naast de PR-reparaties voor surface-isolatie, pointerannulering, gebalanceerde meetvolgorde en afgeleide hostscenarioaantallen. B03 en eerder rood GUI-bewijs blijven brongebonden. Actuele integratiecontroles en beperkingen staan in PROJECT-STATE.md; alle 62 volledige productcriteria blijven open. Geen volledige GUI-, multiapp-, veilige opslag-, fysieke hardware- of menselijke auditacceptatie geclaimd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

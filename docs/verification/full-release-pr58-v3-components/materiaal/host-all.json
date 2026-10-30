@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/home/runner/.cargo/bin/cargo",
+    "test",
+    "--offline",
+    "--locked",
+    "--manifest-path",
+    "/home/runner/work/nieuw-os/nieuw-os/sdk/examples/materiaal/Cargo.toml"
+  ],
+  "cwd": "/home/runner/work/nieuw-os/nieuw-os",
+  "started_unix": 1793360747.8176918,
+  "duration_s": 13.887579202651978,
+  "returncode": 0
+}

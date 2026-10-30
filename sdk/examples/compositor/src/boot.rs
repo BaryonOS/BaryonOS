@@ -63,6 +63,16 @@ impl Bootstrap {
         {
             return Err(Invalid);
         }
+        // Retiring a surface closes both handles; neither may be shared with
+        // the display, focus or control routes or with each other.
+        let handles = result.handles();
+        if handles[1] == handles[2]
+            || [1, 2]
+                .iter()
+                .any(|&i| [0, 3, 4, 5, 6].iter().any(|&j| handles[i] == handles[j]))
+        {
+            return Err(Invalid);
+        }
         Ok(result)
     }
     pub fn ready(&self, native_epoch: u64) -> Result<Outgoing, Invalid> {

@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "1f6a6834a89aa3d533b096c5b62a46b3276db6d3",
-    "branch": "codex/native-product-integration",
-    "task": "Native productintegratie en eerder geaccepteerde B03-updates samenvoegen",
-    "previous_score": 32,
-    "summary": "De score stijgt van 32% naar 34% door de eerder geaccepteerde B03-proef voor ondertekende updates en rollback. Op exact 9596abc slagen alle negen CI-workflows; de aparte GUI-keten bereikt Materiaal en editor, maar faalt vóór typen, Save/Reopen en afsluiten. De calculator heeft begrensd bron-, host- en ELF-bewijs, geen native appacceptatie. De vermelde bron is de productouder; B03 en de productmetingen blijven aan hun oorspronkelijke bronnen gebonden. Deze samenvoeging is niet als gecombineerde bron gevalideerd. Alle 62 volledige productcriteria blijven open; volledige updates en herstel, veilige persistente opslag, Secure Boot, releasesleutels, fysieke en menselijke gates zijn niet aangetoond."
+    "source_commit": "8365f14e1c3fae90a781b836405836906ee785ab",
+    "branch": "codex/native-materiaal-integration",
+    "task": "PR #58: conflictintegratie met main 970c7713 met behoud van beide reparatiesporen",
+    "previous_score": 34,
+    "summary": "34% blijft 34%; deze conflictintegratie verdient geen nieuwe punten. De productintegratie, oorspronkelijke productiedigest, manifestguards en benchmarkbronbinding van main blijven behouden naast de PR-reparaties voor surface-isolatie, pointerannulering, gebalanceerde meetvolgorde en afgeleide hostscenarioaantallen. B03 en eerder rood GUI-bewijs blijven brongebonden. Actuele integratiecontroles en beperkingen staan in PROJECT-STATE.md; alle 62 volledige productcriteria blijven open. Geen volledige GUI-, multiapp-, veilige opslag-, fysieke hardware- of menselijke auditacceptatie geclaimd."
   },
   "tracks": [
     {

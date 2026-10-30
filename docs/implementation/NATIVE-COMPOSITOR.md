@@ -23,6 +23,8 @@ De compositor controleert de werkelijk ontvangen kernelafzender, tag en nul
 caps vóór SUR1 of control wordt verwerkt. Onverwachte ontvangen caps worden
 op alle paden eenmaal gesloten. Replybestemmingen zijn vast gebootstrapt.
 Een verkeerde app of een request kan geen eigen replycap kiezen.
+De twee sluitbare surfacehandles mogen elkaar noch de display-, focus- of
+controlroutes aliasen; bootstrap weigert zo'n overlap.
 
 NativeDisplayEpoch komt uitsluitend uit de echte DisplayClient geometrycall
 en blijft intern. SUR1 INFO toont publieke GOP-breedte/hoogte, SurfaceEpoch en
@@ -43,6 +45,9 @@ Blit-status en wordt niet als succesvolle pixels/frame geteld.
 Er is maximaal één pending surfacereply. IPC-EAGAIN bewaart exact dat antwoord
 en stopt nieuwe SurfaceRECV, maar niet control/focusverwerking. Iedere ronde
 expireert staging vóór accept; een timeoutreply krijgt dezelfde bewaarplicht.
+Als de replydeadline verstrijkt of de replyroute gesloten is, wordt alleen
+de betreffende surface ingetrokken. Control/focus blijven beschikbaar; een
+displayfout blijft wel terminaal.
 Commit start alleen na een verse echte monotone tickcheck; geen token wordt
 over wachtrondes of willekeurige callbacks bewaard. Eerdere bevestigde tiles
 zijn zichtbare writes, geen atomische pageflip/vsync of rollbackgarantie.

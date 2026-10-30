@@ -507,9 +507,9 @@ def replay(report: dict, directory: Path, frozen: str) -> dict:
     return {"native":parsed,"phases":{stage["phase"]:stage["snapshot"] for stage in stages},"frames":pixels,"disk":oracle}
 
 
-def artifact_hashes(directory: Path) -> dict:
+def artifact_hashes(directory: Path, *, exclude: tuple[Path, ...] = ()) -> dict:
     return {p.relative_to(directory).as_posix():sha256(private_path(p,regular=True))
-            for p in directory.rglob("*") if p.is_file() and p.name != "result.json"}
+            for p in directory.rglob("*") if p not in exclude and p.is_file() and p.name != "result.json"}
 
 
 def parent_run(path: Path, build: Path, frozen: str) -> tuple[Path, dict]:
@@ -634,11 +634,18 @@ def run_materiaal_probe(*,case="normal",build_directory=BUILD,run_root=None,pare
                 report["passed"]=False
                 report["serial_error"]=str(error)
         image=directory/"volume.img"
-        if image.is_file():check_image(image);publish(directory/"volume.after.img",image.read_bytes());report["after_sha256"]=sha256(directory/"volume.after.img")
+        if image.is_file():
+            try:
+                check_image(image)
+            except (OSError,ValueError) as error:
+                report["passed"]=False
+                report["disk_error"]=str(error)
+            else:
+                publish(directory/"volume.after.img",image.read_bytes());report["after_sha256"]=sha256(directory/"volume.after.img")
         socket=directory/"qmp.sock"
         if socket.exists() and stat.S_ISSOCK(socket.lstat().st_mode):socket.unlink()
         report["duration_s"]=time.monotonic()-start
-        report["artifact_sha256"]=artifact_hashes(directory)
+        report["artifact_sha256"]=artifact_hashes(directory,exclude=(image,) if "disk_error" in report else ())
         publish_json(directory/"result.json",report);publish_json(report_path,report)
     return report
 

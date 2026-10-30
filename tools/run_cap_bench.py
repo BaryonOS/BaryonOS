@@ -46,18 +46,26 @@ def evaluate(serial: str, raw_exit: int, timed_out: bool) -> dict:
         match = re.fullmatch(re.escape("CAPBENCH:" + name + ":") + r"([0-9]{20})", lines[at] if at < len(lines) else "")
         require(match is not None and int(match[1]) < 1 << 64, "Missing/altered numeric field " + name)
         values[name] = int(match[1]); at += 1
-    require([values[n] for n in HEADER[1:]] == [4, 21, 29, 9, 4, 8, 16], "Wrong native manifest or measurement workload")
+    require([values[n] for n in HEADER[1:]] == [4, 21, 29, 9, 4, 9, 16], "Wrong native manifest or measurement workload")
     rounds = {v: [] for v in VARIANTS}
-    for _ in range(8):
+    execution_order = []
+    for round_index in range(values["ROUNDS"]):
+        order = []
+        for position in range(len(VARIANTS)):
+            match = re.fullmatch(r"CAPBENCH:ROUND_VARIANT:([0-9]{20})", lines[at] if at < len(lines) else "")
+            expected = (round_index + position) % len(VARIANTS)
+            require(match is not None and int(match[1]) == expected, "Missing/altered execution order")
+            order.append(VARIANTS[expected]); at += 1
+        execution_order.append(order)
         for name in VARIANTS:
             match = re.fullmatch(f"CAPBENCH:ROUND_{name}_TSC:([0-9]{{20}})", lines[at] if at < len(lines) else "")
             require(match is not None and 0 < int(match[1]) < 1 << 64, "Missing/zero/reordered batch")
             rounds[name].append(int(match[1])); at += 1
     require(tuple(lines[at:]) == END, "Unexpected benchmark trailer")
     for name in VARIANTS:
-        require(values[name + "_COUNT"] == 128 and values[name + "_TSC_SUM"] == sum(rounds[name])
+        require(values[name + "_COUNT"] == values["ROUNDS"] * values["BATCH"] and values[name + "_TSC_SUM"] == sum(rounds[name])
                 and values[name + "_TSC_MIN"] == min(rounds[name]) and values[name + "_TSC_MAX"] == max(rounds[name]), "Totals do not match measured batches")
-    return {"values": values, "rounds": rounds,
+    return {"values": values, "rounds": rounds, "execution_order": execution_order,
             "tsc_ratio_reference_over_direct": values["REF_TSC_SUM"] / values["DIRECT_TSC_SUM"],
             "tsc_ratio_reference_over_zero": values["REF_TSC_SUM"] / values["ZERO_TSC_SUM"]}
 

@@ -253,6 +253,49 @@ class ArtifactTests(unittest.TestCase):
         link=self.build/"linked";link.symlink_to(other,target_is_directory=True)
         with self.assertRaises(ValueError):d.build_path(link)
 
+    def test_final_image_errors_publish_failed_reports(self):
+        firmware=self.root/"firmware";firmware.write_bytes(b"HOST_ONLY_FIRMWARE")
+        qemu=self.root/"qemu";qemu.write_bytes(b"HOST_ONLY_QEMU")
+        real_check=d.check_image
+        for failure in ("geometry", "hardlink", "oserror"):
+            with self.subTest(failure=failure), ExitStack() as stack:
+                stack.enter_context(patch.object(d,"source_hash",return_value="a"*64))
+                stack.enter_context(patch.object(d,"qemu_machine",return_value="pc-q35-8.2"))
+                stack.enter_context(patch.object(d,"environment",return_value={"PATH":""}))
+                stack.enter_context(patch.object(d.shutil,"which",return_value=str(qemu)))
+                stack.enter_context(patch.object(d,"firmware",return_value=(firmware,firmware)))
+                stack.enter_context(patch.object(d,"external_file",side_effect=lambda path,limit:path))
+                stack.enter_context(patch.object(d.subprocess,"check_output",return_value="HOST_ONLY"))
+                checks=[];reports=[]
+                real_publish_json=d.publish_json
+                def capture_report(path,value):
+                    if path.name == "result.json":reports.append(value)
+                    real_publish_json(path,value)
+                stack.enter_context(patch.object(d,"publish_json",side_effect=capture_report))
+                def check(image):
+                    checks.append(image)
+                    if failure == "oserror" and len(checks) == 2:
+                        raise OSError("image unavailable")
+                    real_check(image)
+                stack.enter_context(patch.object(d,"check_image",side_effect=check))
+                def launch(*args,**kwargs):
+                    # Model a late error after an earlier passing result.
+                    reports[-1]["passed"]=True
+                    image=Path(kwargs["cwd"])/"volume.img"
+                    if failure == "geometry":image.write_bytes(b"invalid")
+                    if failure == "hardlink":
+                        outside=self.root/"linked-image";os.link(image,outside)
+                    raise OSError("launch failed")
+                stack.enter_context(patch.object(d.subprocess,"Popen",side_effect=launch))
+                report=d.run_materiaal_probe(build_directory=self.build,vga_rom=firmware)
+                self.assertFalse(report["passed"])
+                self.assertIn("disk_error",report)
+                self.assertNotIn("volume.img",report["artifact_sha256"])
+                self.assertEqual(d.load_json(Path(report["run_directory"])/"result.json"),report)
+                self.assertEqual(d.load_json(self.build/"materiaal-probe-report.json"),report)
+                if failure == "oserror":self.assertEqual(report["disk_error"],"image unavailable")
+                if failure == "hardlink":(self.root/"linked-image").unlink()
+
     def test_failed_preflight_retires_old_pass_without_launch(self):
         d.publish_json(self.build/"materiaal-probe-report.json",{"passed":True})
         with patch.object(d,"source_hash",return_value="b"*64),patch.object(d.subprocess,"Popen") as launch:

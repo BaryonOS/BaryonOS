@@ -286,6 +286,19 @@ fn bootstrap_bindings_reserved_tail_and_epoch_domains() {
         bad[at / 8] = 0;
         assert!(Bootstrap::decode(&bad).is_err());
     }
+    for retired in [56, 64] {
+        for shared in [48, 88, 96, 120, 128] {
+            let mut bad = w;
+            bad[retired / 8] = bad[shared / 8];
+            assert!(
+                Bootstrap::decode(&bad).is_err(),
+                "{retired} aliases {shared}"
+            );
+        }
+    }
+    let mut bad = w;
+    bad[56 / 8] = bad[64 / 8];
+    assert!(Bootstrap::decode(&bad).is_err());
     let mut bad = w;
     bad[19] = 1;
     assert!(Bootstrap::decode(&bad).is_err());
@@ -503,6 +516,54 @@ macro_rules! scenario {
         }
     };
 }
+fn lost_reply_retires_only_surface_impl() {
+    let mut m = Model::new();
+    let (mut surface, _) = m.surface();
+    let filler = Outgoing::new(1, &[]).unwrap();
+    for _ in 0..16 {
+        m.ports[2].send(send(m.comp_reply), &filler).unwrap();
+    }
+    let mut info = h(sur::Operation::Info);
+    info.frame = 0;
+    m.push(&info.encode());
+    surface.step(0, &mut m.ports[2], || Ok(0)).unwrap();
+    assert_eq!(surface.counts().reply_again, 1);
+    surface.step(201, &mut m.ports[2], || panic!()).unwrap();
+    assert!(surface.is_retired());
+    assert_eq!(m.ports[2].closed, vec![m.surface, m.comp_reply]);
+    m.ports[2].send(send(m.focus_send), &filler).unwrap();
+    m.ports[2].send(send(m.registry_send), &filler).unwrap();
+
+    let mut m = Model::new();
+    let (mut surface, _) = m.surface();
+    m.ports[2].close(handle(m.comp_reply)).unwrap();
+    let mut info = h(sur::Operation::Info);
+    info.frame = 0;
+    m.push(&info.encode());
+    surface.step(0, &mut m.ports[2], || Ok(0)).unwrap();
+    assert!(surface.is_retired());
+    m.ports[2].send(send(m.focus_send), &filler).unwrap();
+    m.ports[2].send(send(m.registry_send), &filler).unwrap();
+
+    // A failed display remains fatal even if its error reply also times out.
+    let mut m = Model::new();
+    let (mut surface, _) = m.surface();
+    for _ in 0..16 {
+        m.ports[2].send(send(m.comp_reply), &filler).unwrap();
+    }
+    m.stage(&mut surface, &[0; 1024]);
+    m.push(&h(sur::Operation::Commit).encode());
+    surface.step(0, &mut m.ports[2], || Ok(0)).unwrap();
+    assert_eq!(
+        surface.step(201, &mut m.ports[2], || panic!()),
+        Err(Fatal::Display)
+    );
+    assert!(surface.is_retired());
+}
+scenario!(
+    lost_reply_retires_only_surface,
+    lost_reply_retires_only_surface_impl
+);
 scenario!(
     focus_publication_is_not_replayed_and_deadline_never_focuses,
     control_wait_impl

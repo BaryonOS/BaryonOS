@@ -114,7 +114,7 @@ Bewijsvelden:400 huidige UIReady (volledig huidig paint + werkelijke INP1-respon
 496 stopweigering. Hartslag8/failure240 blijven; een unchanged-save is geen
 nieuwe COMMIT-ACK. Dit zijn meetvelden, geen autoriteits- of crypto-eigenschappen.
 
-Achttien gecombineerde hostscenario's gebruiken één echte capability-engine,
+Twintig gecombineerde hostscenario's gebruiken één echte capability-engine,
 de bestaande volume-v7-service, input-core en SUR1. Getest zijn maken/bewerken/
 opslaan/heropenen, annuleren vóór en na APPEND, globaal pointeroffset/outside/
 heldreentry,100/200%, readonly, focusregrant met heldControl, grote invoer, I/O,
