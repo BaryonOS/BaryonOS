@@ -49,8 +49,9 @@ mod tests {
     #[test]
     fn conversion_never_rounds_expiry_up_or_wraps() {
         assert_eq!(seconds(199), Ok(1));
-        assert_eq!(ticks(seconds(199).unwrap() + 80), Ok(8100));
-        assert!(8100 < 199 + 80 * MONOTONIC_HZ);
+        let expires_at = ticks(seconds(199).unwrap() + 80).unwrap();
+        assert_eq!(expires_at, 8100);
+        assert!(expires_at < 199 + 80 * MONOTONIC_HZ);
         assert_eq!(seconds(MAX_MONOTONIC_TICKS), Ok(MAX_MONOTONIC_TICKS / 100));
         assert_eq!(seconds(MAX_MONOTONIC_TICKS + 1), Err(Error::ClockOverflow));
         assert_eq!(ticks(u64::MAX), Err(Error::ClockOverflow));
