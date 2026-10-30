@@ -32,9 +32,9 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`7118bb8b`](https://github.com/simonvanieperen/nieuw-os/commit/7118bb8bdca369c42811f136941a1040ef10bcfb) ·
+**Bron:** [`28b98820`](https://github.com/simonvanieperen/nieuw-os/commit/28b98820957989628e49628ce4377cf8f91748d8) ·
 **Ontwikkelbranch:** `simonvanieperen-symmetrical-barnacle`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Managementmandaten uitgevoerd: exclusieve zelfstandige planning en integratie bevestigd; externe mainwijziging feitelijk onderscheiden van onbewezen tweede agentwriter.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Bevestigde managementmandaten inhoudsbehoudend samengevoegd met integrator28b988/main9a67; queue uitsluitend ongewijzigd uit assistentblob.
 34% blijft 34%; criteria, gewichten en geaccepteerd bewijs ongewijzigd. Assistent5d5f8513 is enige queuewriter, remote82664 gecontroleerd,24rollen/7afdelingen/zelfstandige gewone taakallocaties; teamleider houdt technische samenhang/status/score en schrijft geen queue. Directeur roadmap/kwaliteit zonder routinepoort; PR-intake oorspronkelijke taak. E8 heeft expliciet alle operationele integratie vrijgegeven en stop/no-active-merge gemeld;7f heeft volledig dossier ontvangen en is nu enige integrator. Geen timeout als stop of stille claimovername, geen extra routinegoedkeuring per conflictwrite binnen vastgelegde behoudsscope. PR74 blijft open4db/baseca45; B03attempt1 failed,attempt2queued, opdrachtgever onbekend, geen TL/e8-rerun. DEV1hostbuildherstelc969/b8bd is nog geen geslaagde guestherproef. Nieuwe ontwikkeling binnen bestaande opdrachten loopt door; geen nieuwe manager-VM of releaseacceptatie. B05geen auditor/autorisatie, geen persoonlijkSimonsbesluit. Alle62FR,100cold/24uur en fysieke/menselijke/reproductie-/auditgates blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een

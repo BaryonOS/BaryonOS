@@ -85,6 +85,15 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Gecombineerde bron op integrator `28b9882`/main `9a6703d`: **34% → 34%**.
+Na een terecht geweigerde non-fast-forwardpush is de lokale managerdelta
+normaal met de gepushte integratie samengevoegd, zonder force of verloren
+geschiedenis. Nieuwe validator bevestigt rubric/runtime gelijk aan main9a67,
+queue exact assistentblob b54f1750 (geen managerinhoudswrites),65ec/796 én
+NET70-hoofdteksten/assessments en volledige integratorhistorie behouden.
+`python3 -B tools/progress.py --write`, `--check`, diff-check tegenover28b988
+en invariantvalidator slagen. Geen nieuwe native/productacceptatie.
+
 Afsluitende controle op `7118bb8`: **34% → 34%**. Live main9a6703d3 bevat
 de via accountsimonvanieperen gemergede soundleaf85; dat identificeert geen
 tweede actieve agentwriter. HW ontkent merge/automerge, e8 blijft gestopt,

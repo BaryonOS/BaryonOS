@@ -70,6 +70,16 @@
     "commands": ["gh api repos/simonvanieperen/nieuw-os/pulls/85", "gh api repos/simonvanieperen/nieuw-os/commits/9a6703d3"],
     "exit": 0
   },
+  "final_integration": {
+    "integrator_commit": "28b98820957989628e49628ce4377cf8f91748d8",
+    "main": "9a6703d339f9248fc58d470523644193ec92cd45",
+    "local_manager_delta": "bbc4342",
+    "first_push": "Rejected non-fast-forward; no force push",
+    "strategy": "Normal merge preserving both parents and exact integrator queue blob",
+    "queue_blob": "b54f17507a9e8b536a97c87837ab7fa88fc81325",
+    "validation_command": "python3 -B /home/simon/.copilot/session-state/3c9dee7ff8e342deb2a0374357d86212/files/verify-integrated-management.py",
+    "validation_scope": "Rubric/runtime equal main9a67; queue exact integrator blob; NET70 and both new PR65 bodies/assessments preserved; complete integrator historical section and cold report unchanged"
+  },
   "commands": [
     {"command": "python3 -B tools/progress.py --write", "exit": 0, "wall_seconds": 0.031},
     {"command": "python3 -B tools/progress.py --check", "exit": 0, "wall_seconds": 0.033},

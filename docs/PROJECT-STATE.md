@@ -2,7 +2,7 @@
 
 ## NEXT AGENT HANDOFF — mandaten overgedragen, ontwikkeling loopt door — 30 oktober 2026
 
-**Basis:** `7118bb8bdca369c42811f136941a1040ef10bcfb`, branch
+**Basis:** integratie `28b98820957989628e49628ce4377cf8f91748d8`, branch
 `simonvanieperen-symmetrical-barnacle`; manager wijzigt geen runtimecode.
 Start met `git branch --show-current && git rev-parse HEAD && git status --short`.
 
@@ -27,6 +27,8 @@ HW ontkent merge/automerge, e8 blijft gestopt; geen bewezen tweede agentwriter.
 7f behoudt mandaat en controleert live head/base/gates bij elke integratie.
 Huidige volgorde74→75→78→82, geen bypass; bij75 mainca45/NET70,74 en
 65ec/796/0e-historie behouden en actuele queue uitsluitend via5d overnemen.
+28b988 nam main9a67 en queueblob b54f1750 over; managerdelta normaal
+samengevoegd na geweigerde non-fast-forwardpush, geen force of verloren historie.
 PR74 blijft open op4db/baseca45. LiveAPI: B03attempt1 failed/job124237913427;
 attempt2 queued/job124244643928, opdrachtgever onbekend. Geen TL/e8-rerun,
 geen oude failure verbergen of nieuwqueued als groen/transientbewijs tellen.
@@ -696,6 +698,154 @@ Historische assessment, datum `2026-10-30`, vorige score 34, taak
 `WINDOWS-QEMU-TEST-VERSION / INTERACTIVE-PROOF-1 / CONFLICT-MERGE-MAIN-748E29`:
 
 > 34% blijft 34%. De Windows-QEMU/interactive-proof-branch en main-head 748e29b zijn geïntegreerd met behoud van eerdere checkpoints. De preflighttests (24), Rust-workspace-tests inclusief HKDF/HMAC-doctests (365), root-/SDK-rustfmt en progress-check slagen op de geïntegreerde bron. Eerdere 111 tools- en 46 systeemharnastests plus 22 previewtests zijn brongebonden aan de eerdere integratie-/proof-bronnen. Geen native gate, CI op de uiteindelijke mergehead, Windows-gaststart of interactieve referentierun uitgevoerd. Geen rubriccriterium gesloten.
+
+## Historische handoff uit main ca45 (#70, bron 0078c3b3) — PR #70 behoudt main94 en oorspronkelijke bewijsgrenzen — 30 oktober 2026
+
+Branch `simonvanieperen-musical-happiness`; mergeouders
+`0078c3b3baeff2dd5914b8f9d1b1e354cb33aea0` (codec/paddingreview) en
+`94c8908ee363d06a5be51417c5cae635549d566f` (main na PR #66).
+Gewone twee-oudermerge. Main's IPC-WAIT/TPM, rootlock, Windowsfixes/-bewijs,
+preflight en vendors blijven behouden; geen oude runtimebron teruggezet.
+Alleen bedoelde DHCP-codec en brongebonden documentatie blijven boven main.
+Beide historische kanten blijven hieronder volledig, met één actuele handoff.
+Tracks, gewichten en evidence blijven exact main94; **34% → 34%; netwerk 0/10**.
+
+Gerichte 58 codec-hosttests, 24 preflighttests, fmt, Clippy en
+`x86_64-unknown-none` releasebuild zijn op de samengevoegde bron herhaald:
+alle exit 0. Uitkomst/commando's staan in `verification/dhcpv4-codec/`.
+De oude groene CI op `0078c3b` blijft uitsluitend historisch. De bestaande
+native ARP/UDP/DNS-pair blijft uitsluitend bron `9ddc6b6`; geen native
+DHCP/TLS/appbestemmingsbewijs. DHCP-client, TCP-listen/baselinebootfout en
+TLS-portonderzoek staan los van deze PR en worden niet meegenomen.
+
+Manager `89f84098` gaf uitsluitend deze conflictresolutie vrij; dit vervangt
+geen centrale teamstatus/roadmap. Na commit/push zijn centrale bestanden weer
+manager-owned. Lifecyclecoördinator `e8e471ce` blijft enige merger; PR blijft
+concept tot nieuwe-head-CI en review klaar zijn. Generator `--write`/`--check`
+en diffcheck slagen, tracks/evidence zijn exact main94. Eerstvolgend:
+mergecommit/push/remote-SHA controleren en lifecycle de nieuwe head leveren.
+
+## Historisch checkpoint — PR #70 inhoudsbehoudend met main748 geïntegreerd — 30 oktober 2026
+
+Branch `simonvanieperen-musical-happiness`; bronouders `5d95ea9174927d74ff2a7a4bb26e0df714099330`
+(DHCP-codec, unicast-yiaddr en minimale 300-byte-BOOTP-padding) en
+`748e29b7455ca4213a6bf3ba3808c3097458263d` (main, PR #62).
+Twee-oudermerge; geen rebase, blinde ours/theirs-keuze of lockfilevervanging.
+Alle preflight-, vendor- en lockwijzigingen van main zijn behouden.
+Beide historische netwerk- en preflightcheckpoints staan hieronder volledig.
+
+Op de samengevoegde runtimebron: 58/58 codec-hosttests, Clippy, fmt,
+`x86_64-unknown-none` releasebuild en 24 preflighttests exit 0.
+Exacte commando's, logs, bronhashes en oorspronkelijke rode paddingregressie:
+[`verification/dhcpv4-codec/`](verification/dhcpv4-codec/README.md).
+Geen native DHCP/relay, TLS, algemene configuratie of appbestemmingsafdwinging
+getest. De bestaande native ARP/UDP/DNS-pair blijft uitsluitend bron `9ddc6b6`.
+**34% → 34%; netwerk 0/10; FR-N01–N04 blijven open.**
+
+Deze expliciet vrijgegeven branchgebonden conflictresolutie vervangt geen
+centrale teamstatus/roadmap van manager `89f84098`. Centrale bestanden worden
+na deze merge weer alleen door die eigenaar bijgewerkt. DHCP-client en
+TCP-listen staan op afzonderlijke branches en zijn niet in PR #70 opgenomen.
+Eerstvolgend: mergecommit/push/remote-SHA controleren en lifecyclecoördinator
+`e8e471ce` plus intake de head en het bewijs doorgeven. PR blijft concept;
+nieuwe-head-CI/review/squash zijn aparte gates bij die coördinator.
+
+## Historisch checkpoint — native netwerkbasis opnieuw groen; DHCP-client open — 30 oktober 2026
+
+Branch `simonvanieperen-musical-happiness`; laatste geteste bron
+`9ddc6b6df82fc555ea6d28247a971ea1b09a8b99`. De lokale QEMU/OVMF-blokkade
+hieronder is opgelost zonder globale installatie. QEMU 10.2.1/OVMF 2025.11,
+`pc-q35-10.0`, TCG: `python3 -B -u tools/test_net_system.py` exit 0.
+Normal 32,859 s en koude recovery 32,498 s, beide raw exit 33 en
+`network_gate=true`; `capture_system.py --network` heeft beide opnieuw
+gevalideerd. Bron-/image-/firmwarebewijs:
+[`verification/full-release-network-dev-9ddc6b6/`](verification/full-release-network-dev-9ddc6b6/README.md).
+
+Dit is een herhaling van de bestaande native ARP/UDP/DNS-proef, geen
+DHCP-client, algemene configuratie, TLS of appbestemmingsbeleid. **34% → 34%;
+netwerk 0/10; N01–N04 open.** PR #70 blijft concept tot verplichte CI en
+concrete review rond zijn; integratiecoördinator beheert squashintegratie.
+Eerstvolgend: DHCP-clienttoestanden met lease-/endpointbinding en negatieve
+tests binnen `services/net-protocol/**`, daarna een aparte native koppeling.
+Geen NAS-bestanden of gedeelde ABI wijzigen zonder gecoördineerde scope.
+
+**Reviewfix op basis `6a20b35`:** de actuele codec accepteerde terecht
+geparseerde opties maar controleerde `yiaddr` zelf nog niet. OFFER/ACK met
+nul-, loopback-, multicast- of broadcastadres worden nu geweigerd met
+`InvalidAddress`; NAK met nuladres blijft geldig. Volledige hosttests
+57/57, Clippy, fmt en freestanding releasebuild exit 0. Logs:
+`/tmp/nieuw-os-dhcp-yiaddr-{tests,clippy,target}.log`.
+Geen native herhaling van deze reviewfix geclaimd; de eerdere native pair
+blijft aan `9ddc6b6` gebonden. DHCP-client-WIP is apart bewaard voor de
+vervolgbranch, niet onderdeel van deze codec-reviewfix.
+
+## Historisch DHCP-codec-checkpoint — 30 oktober 2026
+
+Branch `simonvanieperen-musical-happiness`; huidige broncommit
+`30748d6402ee9bf84a5606a8260455b0c05d9e9a`, na behoud van `origin/main`
+(`e1cce29`). De dependencyvrije codec bouwt DISCOVER/selecting DHCPREQUEST/
+renewing DHCPREQUEST en parseert begrensd OFFER/ACK/NAK. Er is geen
+DHCP-toestandsmachine, interface-/routeconfiguratie, leasepersistentie of
+kernel-/SDK-ABI-/capabilitywijziging. DHCP-identiteitsvelden authenticeren de
+server niet; de caller moet beide UDP/IP-endpoints binden.
+
+De parser begrenst berichten op 576 bytes en controleert transaction-ID,
+client-MAC, vaste BOOTP-header, DHCP-cookie, relevante opties en timers. Hij
+weigert option-overload en dubbele relevante opties. De selecting-request
+broadcastvlag wordt afgeleid van de requestsoort en is expliciet getest.
+
+**Huidige bronproef op `30748d6`:** formattering en volledige cratesuite
+slagen; alle 56 tests (2 library, 7 ARP, 9 DHCP, 18 DNS, 20 packettests)
+zijn groen. Clippy met `-D warnings` en de releasebuild voor
+`x86_64-unknown-none` slagen eveneens. Hosttests gebruiken een tijdelijke
+Ubuntu GCC 13.4.0/libc sysroot in `/tmp`; geen globale installatie of
+projectdependency. De Clippy-run op voorganger `d16b44a` wees op 8 argumenten
+in de builder. Commit `30748d6` verwijdert de overtollige vlagparameter en
+voegt selectie-broadcastdekking toe; alle exacte-brongates zijn nu groen.
+Bewijs, commando's, logpaden en bronhashes:
+[`verification/dhcpv4-codec/`](verification/dhcpv4-codec/README.md).
+
+`python3 -B tools/preflight.py --strict` exit 2: deze worktree mist QEMU en
+OVMF. Er is geen native DHCP-peer, lease, configuratie of echte verbinding
+getest. **Rubric 34% → 34%; netwerk 0/10; N01–N04 blijven open.**
+Eerstvolgend: commit en push deze bewijsupdate; daarna QEMU/OVMF-beschikbaarheid
+opnieuw controleren en de kleinste native DHCP-client-/configuratieproef
+voorbereiden. De codec zelf sluit geen netwerkcriterium.
+
+**Historische eerste poging vóór tijdelijke linker:** `python3 -B tools/dev.py cargo +1.90.0
+fmt --manifest-path services/net-protocol/Cargo.toml --all -- --check` en
+`env CARGO_TARGET_DIR=target/dhcp-codec python3 -B tools/dev.py cargo +1.90.0
+check --manifest-path services/net-protocol/Cargo.toml --tests --locked
+--offline` exit 0; `git diff --check` exit 0. Clippy op codecommit `cdfa365`
+faalde (exit 101) op `manual_is_multiple_of`; de lintfix is gecommit, maar
+Clippy en de freestanding targetbuild moeten op `a3830f3` worden herhaald.
+De eerdere targetbuild op `cdfa365` slaagde, niet bewijs voor de lintfix-commit.
+Gerichte `cargo test` exit 101: `linker cc not found`; uitvoer
+`/tmp/nieuw-os-dhcp-tests.log`. Testcode is typegecontroleerd maar niet
+uitgevoerd. Nergens native QEMU-netwerkbewijs.
+
+**Historische rubric-/blockerstatus:** 34% → 34%; N01–N04 bleven open; de codec is geen geaccepteerd
+productcriterium. Broncommits voor de volgende herbeoordeling volgen na het
+implementatiecheckpoint. **Blokker:** lokale hostlinker ontbreekt. Eerstvolgende
+**Eerstvolgend:** commit en push deze assessment; daarna op exact `a3830f3`
+Clippy draaien en de freestanding `x86_64-unknown-none`-build herhalen. Daarna
+hosttestuitvoering herstellen of de linkerblokkade exact escaleren; vervolgens
+pas DHCP-client-/lease-integratie. Geen N01–N04-criterium gesloten; score
+34% → 34%.
+## Historische voortgangsassessment uit main ca45 (`docs/progress.json`, bron 0078c3b3)
+
+Letterlijk bewaard uit `origin/main` 9a6703d3/ca45a7da bij integratie in #75; de actieve assessment staat in `docs/progress.json`.
+
+```json
+{
+  "date": "2026-10-30",
+  "source_commit": "0078c3b3baeff2dd5914b8f9d1b1e354cb33aea0",
+  "branch": "simonvanieperen-musical-happiness",
+  "task": "Inhoudsbehoudende PR70-integratie van codecbron 0078c3b met main 94c8908",
+  "previous_score": 34,
+  "summary": "34% blijft 34%; netwerk 0/10. Codecbron 0078c3b is inhoudsbehoudend geïntegreerd met main 94c8908, inclusief IPC-WAIT/TPM/rootlock/Windowsbewijs/preflight/vendors. Alleen bedoelde DHCP-codec en brongebonden documentatie blijven boven main; tracks, gewichten en evidence zijn exact main94. Beide historische kanten volledig behouden; één branchhandoff vervangt geen centrale teamstatus. 58 codec-hosttests, 24 preflighttests, Clippy, fmt en freestanding build zijn op deze samengevoegde bron herhaald: alle exit0. Oude groene head0078 en native ARP/UDP/DNS-bron9ddc6b6 zijn geen bewijs voor nieuwe head of native DHCP/TLS/appgrants. Nieuwe head-CI/review blijven open."
+}
+```
 
 ## Historisch checkpoint uit #66 — Zes reviewfixes en Windowsbewijs geïntegreerd; native herhaling volgt
 
