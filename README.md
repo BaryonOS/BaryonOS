@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`0078c3b3`](https://github.com/simonvanieperen/nieuw-os/commit/0078c3b3baeff2dd5914b8f9d1b1e354cb33aea0) ·
-**Ontwikkelbranch:** `simonvanieperen-musical-happiness`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Inhoudsbehoudende PR70-integratie van codecbron 0078c3b met main 94c8908.
-34% blijft 34%; netwerk 0/10. Codecbron 0078c3b is inhoudsbehoudend geïntegreerd met main 94c8908, inclusief IPC-WAIT/TPM/rootlock/Windowsbewijs/preflight/vendors. Alleen bedoelde DHCP-codec en brongebonden documentatie blijven boven main; tracks, gewichten en evidence zijn exact main94. Beide historische kanten volledig behouden; één branchhandoff vervangt geen centrale teamstatus. 58 codec-hosttests, 24 preflighttests, Clippy, fmt en freestanding build zijn op deze samengevoegde bron herhaald: alle exit0. Oude groene head0078 en native ARP/UDP/DNS-bron9ddc6b6 zijn geen bewijs voor nieuwe head of native DHCP/TLS/appgrants. Nieuwe head-CI/review blijven open.
+**Bron:** [`762dca32`](https://github.com/simonvanieperen/nieuw-os/commit/762dca326a97d41cb3c43573abaf48d8c5aae855) ·
+**Ontwikkelbranch:** `simon/windows-qemu-test-version`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** CONFLICT-MERGE-MAIN-CA45A7D.
+34% blijft 34%; main ca45a7d is inhoudsbehoudend geïntegreerd in PR #65 met beide histories en de volledige main-rubric, DHCP-codec en netwerkbewijzen behouden. De 58 net-protocoltests, 24 preflighttests, Clippy, fmt, cargo check, x86_64-unknown-none-build en progress-check slagen op de geïntegreerde boom. Alleen diff-check meldt twee bestaande lege regels in ongewijzigde hashgebonden bewijslogs; die bytes zijn behouden. Geen nieuw native/Windows- of releasebewijs en geen rubriccriterium gesloten.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
