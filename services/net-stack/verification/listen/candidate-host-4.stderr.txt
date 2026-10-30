@@ -1,0 +1,5 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running unittests src/lib.rs (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/target/tcp-listen-native/debug/deps/nieuw_os_sdk_runtime-ac951edfc0ffa01f)
+     Running tests/message.rs (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/target/tcp-listen-native/debug/deps/message-386bf99bd054cef4)
+     Running tests/process.rs (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/target/tcp-listen-native/debug/deps/process-7bc572f84c1c994a)
+   Doc-tests nieuw_os_sdk_runtime

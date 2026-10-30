@@ -51,7 +51,79 @@ daadwerkelijk uitgevoerde suites.
 **Niet uitgevoerd in dit checkpoint:** native passieve TCP-proef, echte
 NIC/klok voor listen, native NAS, peer-/clientauthenticatie, TLS, per-app-/
 bestemmingsgrants of revoke bij queued TX. Geen native artifact of
-geauthenticeerde principal verzonnen. De eerstvolgende controle is de
+geauthenticeerde principal verzonnen. De eerstvolgende controle was de
 bestaande native actieve TCP normal/cold-pair als regressie van de gedeelde
-engine, daarna een eigen luisterprobe met releaseowner-manifestkoppeling.
+engine; die is inmiddels geprobeerd, met onderstaande fout en baseline.
+Daarna blijft een eigen luisterprobe met releaseowner-manifestkoppeling nodig.
 Een groene actieve clientgate wordt niet als passief acceptbewijs gelabeld.
+
+## Echte native regressiepoging: bootgate faalt ook op baseline
+
+Geteste listenerbron: `c643b2d6627d62654560e92ee4a0955e53e039db`,
+v3 `96c371de1d635ad7d2c713417050ffcbd8b2c823616f4a51a1d7e3f01dd7560a`.
+Er is tijdens de gates geen bron gewijzigd. Omgeving: QEMU 10.2.1,
+`pc-q35-10.0`, TCG single thread, `qemu64`, 256 MiB, dezelfde OVMF
+2025.11-code/template als de eerdere ARP/UDP/DNS-proef.
+Eerdere resultaten worden niet naar deze bron overgezet.
+
+De eerste uitvoering stopte op de bestaande veilige-padcontrole:
+`ValueError: FPU artifact escaped checkout`, exit 1, 13,31 s
+(`path-guard-failure.json`). De buildmap stond in de primaire werkboom,
+buiten de geïsoleerde TCP-checkout. De guard is **niet** aangepast:
+alle runimages zijn daarna onder de eigen checkout gebouwd.
+
+Exacte vervolgcommando's, vanuit de primaire werkboom, met de beschreven
+lokale linker/firmware en `LOCALAPPDATA=<primaire werkboom>/.tools`:
+
+| Commando | Exit | Uitkomst |
+|---|---:|---|
+| `cd build/tcp-listen-worktree && python3 -B -u tools/test_tcp_system.py` | 1 | Vijf hostgates groen, native normal faalt; 4,90 s totale gate |
+| `cd build/tcp-baseline-worktree && python3 -B -u tools/test_tcp_system.py` | 1 | Ongewijzigde baseline `0ade8014`, dezelfde native bootfout; 14,65 s totale gate |
+
+`NOS_BUILD_DIR` was per checkout `<checkout>/build/native-tcp-regression`;
+`NOS_TARGET_DIR` en `CARGO_TARGET_DIR` waren de gedeelde, sequentieel
+gebruikte primaire `target/tcp-listen-native`. Geen globale `RUSTFLAGS`.
+De baseline is een schone detached worktree op de expliciete broncommit,
+niet een handmatig teruggedraaide versie van de listener.
+
+| Bron | Raw QEMU-exit | Normalduur | Laatste serial | Native gate |
+|---|---:|---:|---|---|
+| `c643b2d` | 0 | 2,606 s | `KS-01:PASS`, `KS-02:PASS` | `passed=false`, `tcp_gate=false` |
+| baseline `0ade8014` | 0 | 2,588 s | `KS-01:PASS`, `KS-02:PASS` | `passed=false`, `tcp_gate=false` |
+
+Beide bereiken BOOTINFO maar **geen KS-03, ring-3-probe of netwerkverkeer**.
+Cold recovery wordt niet bereikt. Beide wegwerpvolumes blijven bytegelijk.
+De runner verwerpt raw 0 terecht; dit is geen geslaagde boot.
+De identieke fout is dus ook zonder listenerwijziging aanwezig; de precieze
+kernel-/omgevingsrootcause is **niet vastgesteld**. Stderr meldt een
+ontbrekende `kvmvapic.bin`; dat is niet bewezen als oorzaak.
+Releaseowner `2ab17599` heeft deze gerichte open kernelbootgate ontvangen;
+geen kernelwrite of omzeiling van de gate uitgevoerd.
+
+Kernel-SHA256 candidate:
+`d66785d3a0ce696d6daaaf9a59846b99ebcc28468921b51bd10c26775b30e10e`;
+baseline:
+`efa3efc8b3a7a7d900d66d5f5a37f538681cc198f7143d66ed00eba86456d66c`.
+Baseline-v3:
+`25b38722c1e748ad8877bab95bd88551b6b047138dc8dd6ce194da11987c29d2`.
+Firmwarehashes, QEMU-argv en de overige input/outputhashes zijn rechtstreeks
+uit de runresultaten overgenomen in `*-result-extract.json`; de hash van het
+volledige originele resultaat is daar eveneens vastgelegd.
+`*-gate.json`, `*-serial.txt` en `*-stderr.txt` zijn ongewijzigde kopieën.
+`SHA256SUMS` dekt de JSON-/tekstbewijzen; geen binaries/images in Git.
+
+De vijf kandidaat-hostgates zijn daadwerkelijk uitgevoerd, elk exit 0:
+16 Python-harnastests, 16 packetpeertests, 22 stackmodellen,
+52 capabilitytests (één bestaande ignored benchmark) en 20 runtime-/procestests.
+Exacte commando's, stdout/stderr en exitcodes staan in
+`candidate-gate.json` en `candidate-host-*`. Baseline gebruikt dezelfde
+checks maar de bestaande 15 stacktests.
+Volledige commandologs lokaal:
+`/tmp/nieuw-os-tcp-listen-native-active{,-retry}.log`,
+`/tmp/nieuw-os-tcp-baseline-native-active.log`.
+
+**Niet geaccepteerd:** native TCP-clientregressie, passief luisteren, TLS,
+NAS of N01–N04. Score blijft 34/100 en netwerk 0/10. Eerstvolgend:
+kernelbootafbakening bij de releaseowner en een eigen passive-probeartifact;
+parallel kan een begrensde onderhouden TLS-portproef worden voorbereid,
+maar nooit met hostbewijs als native handshake gelabeld.
