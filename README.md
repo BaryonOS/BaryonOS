@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`c532ba88`](https://github.com/simonvanieperen/nieuw-os/commit/c532ba88fbf0f53b960e9dbf77421cee29d97096) ·
+**Bron:** [`e6eecbc2`](https://github.com/simonvanieperen/nieuw-os/commit/e6eecbc28bb4e74d1b1c7c01b26f2ab249cf4291) ·
 **Ontwikkelbranch:** `simon/native-interactive-cold`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Preview stale-successreviewpunt hersteld op afzonderlijke opvolgbranch.
-34% blijft34%; minstens50% niet bereikt. Concrete runnerreviewfout opgelost: geen oud passed:true-rapport na ongeldige build/firmwarevoorbereiding.52 gerichte en135 tools-hosttests groen, inclusief veilige rapportpadweigering; nieuwe native sourcegates nog niet uitgevoerd. PR66head c532 blijft bevroren voor integratiecoördinator. Eerdere native en afzonderlijke Windowsproef blijven brongebonden; koude experimenten zijn geen volledige acceptatie. Geen nieuw volledig rubriccriterium.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Windows-testbundel en volledig brongebonden echt Windowsbedieningsbewijs geïntegreerd.
+34% blijft34%; minstens50% niet bereikt. Echte Windows-QEMU11.1/SDL-bediening op vaste eabc27b/c532bron: zes volledige bytegelijke native frames,918 gecorreleerde QMPcommands,quit/raw0 en onafhankelijk diskorakel. Lokale schone testZIP afgeleverd met SHA256/grootte; volledig peerbewijs als identieke Git-blobs geïntegreerd. Preview stale-successfix apart52/135hostgroen, nieuwe native sourcegate nog open. Geen koudherstel-, menselijke UX-, veiligheidsaudit- of volledige productacceptatie; geen volledig extra rubriccriterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -1,6 +1,37 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Opvolgbranch: oud preview-succes bij voorbereiding geweigerd
+## NEXT AGENT HANDOFF — Windows-testversie afgeleverd; previewreviewfix apart
+
+Vervolgbranch `simon/native-interactive-cold`: previewfix e6eecbc en volledige
+Windowsbewijscommit 3f3f99e inhoudsbehoudend geïntegreerd (identieke Git-blobs)
+als e280311. PR #66-head blijft voorlopig c532ba8 voor coördinatorintegratie.
+Windowsbewijs: `verification/windows-qemu-interactive-1/README.md`.
+Werkelijk Windows-QEMU11.1/SDL/pc-q35-8.2/rng-builtin, 102.445s/raw0,
+zes volledige bytegelijke frames en zelfstandig diskorakel na QMP-quit.
+918 QMP-commando's opnieuw gecorreleerd door peer; geen menselijke audit.
+Bron blijft eabc27b/c532, v3a1998a12, NIET nieuwe previewfixbron.
+
+Lokale schone ZIP:
+`C:\Users\simon\Downloads\NieuwOS-testversie-eabc27b-20261030\NieuwOS-Windows-Interactive-1.zip`,
+2296965 bytes, SHA256
+b42be826377afb58f96c8178aa972128abad18ef7f9b4872e102a9e4a7e9ea57.
+Start: uitgepakt `NieuwOS\Start-NieuwOS.ps1` in dezelfde map, eigen state
+wordt pas door launcher gemaakt. Alleen synthetische ontwikkeldata; geen
+persoonlijke gegevens in deze plaintextfixture bewaren. Geen publicatie.
+De gast heeft expliciet read-only toegang tot de gebundelde ESP-directory
+via QEMU fat:esp en eigen statebacking; "geen hostmap" in het historische
+peerbewijs betekent geen algemene hostfileshare, niet afwezigheid van ESP.
+Coördinator herstelt die formulering in actuele packagingdocs.
+
+Preview stale-reportfix is lokaal52/135hostgroen, nog geen nieuwe native
+acceptatie op die gewijzigde v3. Coördinator doet vijf andere concrete
+packagingreviewpunten in eigen branch; geen gelijktijdige previewwriter.
+Koude experimenten blijven apart, geen volledige acceptatie. Volgende stap:
+reviewfixes op één vaste bron integreren en gerichte+native sourcegates;
+daarna koude normale variant met volledig renderer-afgeleid lijstorakel.
+**34% blijft34%; minstens50%, volledige product- en menselijke/hardwaregates open.**
+
+## Uitvoeringshistorie — Opvolgbranch: oud preview-succes bij voorbereiding geweigerd
 
 Vanaf c532ba88fbf0f53b960e9dbf77421cee29d97096 op
 `simon/native-interactive-cold`; PR #66-branch blijft exact c532ba8 voor review.

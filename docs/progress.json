@@ -3,11 +3,11 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-10-30",
-    "source_commit": "c532ba88fbf0f53b960e9dbf77421cee29d97096",
+    "source_commit": "e6eecbc28bb4e74d1b1c7c01b26f2ab249cf4291",
     "branch": "simon/native-interactive-cold",
-    "task": "Preview stale-successreviewpunt hersteld op afzonderlijke opvolgbranch",
+    "task": "Windows-testbundel en volledig brongebonden echt Windowsbedieningsbewijs geïntegreerd",
     "previous_score": 34,
-    "summary": "34% blijft34%; minstens50% niet bereikt. Concrete runnerreviewfout opgelost: geen oud passed:true-rapport na ongeldige build/firmwarevoorbereiding.52 gerichte en135 tools-hosttests groen, inclusief veilige rapportpadweigering; nieuwe native sourcegates nog niet uitgevoerd. PR66head c532 blijft bevroren voor integratiecoördinator. Eerdere native en afzonderlijke Windowsproef blijven brongebonden; koude experimenten zijn geen volledige acceptatie. Geen nieuw volledig rubriccriterium."
+    "summary": "34% blijft34%; minstens50% niet bereikt. Echte Windows-QEMU11.1/SDL-bediening op vaste eabc27b/c532bron: zes volledige bytegelijke native frames,918 gecorreleerde QMPcommands,quit/raw0 en onafhankelijk diskorakel. Lokale schone testZIP afgeleverd met SHA256/grootte; volledig peerbewijs als identieke Git-blobs geïntegreerd. Preview stale-successfix apart52/135hostgroen, nieuwe native sourcegate nog open. Geen koudherstel-, menselijke UX-, veiligheidsaudit- of volledige productacceptatie; geen volledig extra rubriccriterium."
   },
   "tracks": [
     {
