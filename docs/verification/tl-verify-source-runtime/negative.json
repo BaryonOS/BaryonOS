@@ -1,0 +1,28 @@
+{
+  "scope": "host integration negatives on copies of real runtime evidence; no new VM",
+  "source_sha256": "24d5f4c112924cfe45681de3fcf3a92f62087e29524f15c74e14d83620891abd",
+  "passed": true,
+  "unmodified_controls_passed": true,
+  "mutations": {
+    "source": {
+      "rejected": true,
+      "reason": "Reference is not a same-source normal native probe"
+    },
+    "app_hash": {
+      "rejected": true,
+      "reason": "Reference differs from the seven interactive app identities"
+    },
+    "loader_hash": {
+      "rejected": true,
+      "reason": "Reference loader differs from the interactive loader"
+    },
+    "one_pixel_bit": {
+      "rejected": true,
+      "reason": "Full frame comparison false"
+    },
+    "empty_disk": {
+      "rejected": true,
+      "reason": "Write outside granted test volume"
+    }
+  }
+}

@@ -142,6 +142,23 @@ De gastuitvoering en originele runbestanden zijn daarvoor niet veranderd.
 
 ## Open grenzen en overdracht
 
+Na runtimecheckpoint `929d4dbc5f7e869a8b3d18cd796058a4387a06f6`
+is een kleine onafhankelijke integratienegatief uitgevoerd op kopieen van
+de echte bewijsdata, niet op synthetische succesfixtures:
+
+```sh
+python3 -B docs/verification/tl-verify-source-runtime/negative.py
+python3 -B docs/verification/tl-verify-source-runtime/recheck.py
+git diff --check
+```
+
+Alle drie exit 0. De ongewijzigde acceptatiehelpers weigeren een verkeerde
+bronhash, apphash, loaderhash, een gewijzigd pixelbit in het heropende frame
+en een volledig lege disk. De ongemuteerde controledata worden geaccepteerd.
+Exacte foutredenen staan in `negative.json`; bron en originele artifacts
+zijn niet gewijzigd. Dit zijn vijf host-integratienegatieven, geen vijf
+extra VM's of bewijs dat iedere mogelijke manipulatie wordt gedetecteerd.
+
 Deze proef toont begrensde functionele uitvoering van dezelfde bron met
 eigen binaries. Geen byte-reproduceerbaarheid, menselijke UX/securityaudit,
 algemene correctheid, controller-/procescleanup voor de gewone variant,
