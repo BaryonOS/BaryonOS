@@ -62,3 +62,8 @@ docs/verification/b03/**/*.txt -text
 docs/verification/b03/**/*.json -text
 docs/verification/b03/*.json -text
 docs/verification/b03/SHA256SUMS -text
+# Preserve review captures byte-for-byte across checkout and hash verification.
+docs/verification/b03-review-*/**/*.txt -text
+docs/verification/b03-review-*/**/*.json -text
+docs/verification/b03-review-*/*.json -text
+docs/verification/b03-review-*/SHA256SUMS -text
