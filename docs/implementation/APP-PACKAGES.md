@@ -1,13 +1,17 @@
 # Apppakketformaat — verificatiekern (A02-deelstap)
 
-Status: geïmplementeerde `no_std`-verificatiekern; geen installer, catalogus,
-appimage-loader of native acceptatie.
+Status: geïmplementeerde `no_std`-verificatiekern en aansluiting op het
+bestaande user-ELF-beleid; geen installer, catalogus, dynamische
+appimage-laadketen of native acceptatie.
 
 `app-package-core` verwerkt één pakket als een vaste manifestheader van 3.584
 bytes gevolgd door precies één application image. Het manifest is versieerbaar,
-little-endian en gebruikt `NOSAPP01` als domeinlabel. Deze kern parseert geen
-ELF; de toekomstige image-loader moet de executable volledig valideren
-vóór installatie/start. Beide bestaande
+little-endian en gebruikt `NOSAPP01` als domeinlabel. `verify_executable_package`
+verifieert eerst het pakket en geeft de image daarna door aan
+`kernel_core::user::parse`, hetzelfde bestaande ELF-beleid dat de kernel vóór
+procesbouw gebruikt. De geretourneerde vaste laadbeschrijving bevat geen
+gealloceerde frames of proces-/launchcapability en verleent op zichzelf geen
+startrecht. Beide bestaande
 standaardverificaties uit ADR-049 zijn vereist: Ed25519 en ML-DSA-65 over
 dezelfde canonieke metadata. De caller kiest de uitgeversankers uit de
 expliciet gekozen bron; de bundel kan zelf geen vertrouwde sleutel aanwijzen.
@@ -61,8 +65,12 @@ CARGO_ENCODED_RUSTFLAGS=$'--cfg\x1fcurve25519_dalek_backend="serial"' \
 
 Deze tests bewijzen alleen host-/bare-metal-libraryverificatie. Zij tonen niet
 dat een app kan worden geïnstalleerd, op schijf atomair beheerd, na herstart
-gevonden of via de kernel gestart. A02 vereist daarnaast meerdere afzonderlijke
-bronnen, bronintrekking, installertransacties, update/verwijderbeleid, een
-dynamische image-laadketen en echte native positieve/negatieve taken. De
-loaderservice moet bij gebruik rekening houden met de circa 200 KiB
-ML-DSA-verificatiestack en een passende begrensde stack hebben.
+gevonden of via de kernel gestart. De user-ELF-parser gebruikt dezelfde
+adres-/segment-/quota-policy als de huidige kernel loader. Tests tonen dat een
+correct ondertekend maar W+X ELF-image niet launch-klaar wordt verklaard. De
+helper bouwt geen mappings, proces of `LaunchImage`; A02 vereist daarnaast
+meerdere afzonderlijke bronnen, bronintrekking, installertransacties,
+update/verwijderbeleid, een dynamische image-laadketen en echte native
+positieve/negatieve taken. De loaderservice moet bij gebruik rekening houden
+met de circa 200 KiB ML-DSA-verificatiestack en een passende begrensde stack
+hebben.

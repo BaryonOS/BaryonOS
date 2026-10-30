@@ -38,6 +38,12 @@ pub enum Reject {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ExecutableReject {
+    Package(Reject),
+    Image(kernel_core::Error),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AppId([u8; APP_ID_LEN]);
 
 impl AppId {
@@ -153,6 +159,25 @@ impl VerifiedPackage<'_> {
     }
 }
 
+pub struct VerifiedExecutable<'a> {
+    package: VerifiedPackage<'a>,
+    load_plan: kernel_core::user::Image,
+}
+
+impl VerifiedExecutable<'_> {
+    pub fn manifest(&self) -> &Manifest {
+        self.package.manifest()
+    }
+
+    pub fn image(&self) -> &[u8] {
+        self.package.image()
+    }
+
+    pub fn load_plan(&self) -> &kernel_core::user::Image {
+        &self.load_plan
+    }
+}
+
 /// Verify exact framing, current ABI compatibility, both source-selected
 /// signatures, and the complete image digest before exposing the image bytes.
 pub fn verify_package<'a>(
@@ -215,6 +240,19 @@ pub fn verify_package<'a>(
     }
 
     Ok(VerifiedPackage { manifest, image })
+}
+
+/// Verify package provenance and apply the same user-ELF policy used by the
+/// kernel before a verified image can be considered launchable.
+pub fn verify_executable_package<'a>(
+    package: &'a [u8],
+    anchors: &TrustAnchors,
+    current_abi: u32,
+) -> Result<VerifiedExecutable<'a>, ExecutableReject> {
+    let package =
+        verify_package(package, anchors, current_abi).map_err(ExecutableReject::Package)?;
+    let load_plan = kernel_core::user::parse(package.image()).map_err(ExecutableReject::Image)?;
+    Ok(VerifiedExecutable { package, load_plan })
 }
 
 fn key_id(public: &[u8]) -> [u8; 8] {
@@ -326,6 +364,36 @@ mod tests {
         (0..4096u32).map(|i| (i % 251) as u8).collect()
     }
 
+    fn valid_user_elf() -> Vec<u8> {
+        let mut bytes = vec![0; 0x2010];
+        bytes[..7].copy_from_slice(b"\x7fELF\x02\x01\x01");
+        bytes[16..18].copy_from_slice(&2u16.to_le_bytes());
+        bytes[18..20].copy_from_slice(&62u16.to_le_bytes());
+        bytes[20..24].copy_from_slice(&1u32.to_le_bytes());
+        bytes[24..32].copy_from_slice(&0x4000_0000u64.to_le_bytes());
+        bytes[32..40].copy_from_slice(&64u64.to_le_bytes());
+        bytes[52..54].copy_from_slice(&64u16.to_le_bytes());
+        bytes[54..56].copy_from_slice(&56u16.to_le_bytes());
+        bytes[56..58].copy_from_slice(&2u16.to_le_bytes());
+        for (index, (flags, offset, address, memory_size)) in [
+            (5u32, 0x1000u64, 0x4000_0000u64, 16u64),
+            (6u32, 0x2000u64, 0x4000_1000u64, 128u64),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let header = 64 + index * 56;
+            bytes[header..header + 4].copy_from_slice(&1u32.to_le_bytes());
+            bytes[header + 4..header + 8].copy_from_slice(&flags.to_le_bytes());
+            bytes[header + 8..header + 16].copy_from_slice(&offset.to_le_bytes());
+            bytes[header + 16..header + 24].copy_from_slice(&address.to_le_bytes());
+            bytes[header + 32..header + 40].copy_from_slice(&16u64.to_le_bytes());
+            bytes[header + 40..header + 48].copy_from_slice(&memory_size.to_le_bytes());
+            bytes[header + 48..header + 56].copy_from_slice(&4096u64.to_le_bytes());
+        }
+        bytes
+    }
+
     fn keys() -> TestKeys {
         TestKeys::new([7; 32], [9; 32])
     }
@@ -338,6 +406,33 @@ mod tests {
         assert_eq!(verified.manifest().app_id.as_str(), "org.example.notes");
         assert_eq!(verified.manifest().version, 1);
         assert_eq!(verified.image(), image());
+    }
+
+    #[test]
+    fn verified_executable_uses_kernel_user_elf_policy() {
+        let keys = keys();
+        let image = valid_user_elf();
+        let package = keys.package(&image, 1);
+        let verified =
+            verify_executable_package(&package, &keys.anchors(), abi_version(1, 3)).unwrap();
+        assert_eq!(verified.image(), image);
+        assert_eq!(verified.manifest().version, 1);
+        assert_eq!(verified.load_plan().entry, 0x4000_0000);
+        assert_eq!(verified.load_plan().count, 2);
+        assert_eq!(verified.load_plan().pages, 2);
+    }
+
+    #[test]
+    fn signed_package_with_invalid_user_elf_is_not_launchable() {
+        let keys = keys();
+        let mut image = valid_user_elf();
+        image[68..72].copy_from_slice(&7u32.to_le_bytes());
+        let package = keys.package(&image, 1);
+        assert!(verify_package(&package, &keys.anchors(), abi_version(1, 3)).is_ok());
+        assert!(matches!(
+            verify_executable_package(&package, &keys.anchors(), abi_version(1, 3)),
+            Err(ExecutableReject::Image(kernel_core::Error::Permission))
+        ));
     }
 
     #[test]

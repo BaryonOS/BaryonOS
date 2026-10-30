@@ -20,6 +20,12 @@ vermengen met de boot-/slottrustgrens; de bestaande verifier accepteert
 uitsluitend `TARGET_KERNEL`. Dit besluit introduceert geen appinstallatie of
 nieuwe capabilities.
 
+De executable-entrypoint roept aanvullend het bestaande
+`kernel_core::user::parse`-beleid aan in plaats van een tweede user-ELF-policy
+te introduceren. De resulterende laadbeschrijving is preflight, geen
+frameallocatie, processtart of `LaunchImage`-autorisatie. De installer-/launch-
+grens blijft een afzonderlijke open stap.
+
 De 2 MiB imagegrens is een tijdelijke parser-/fixturegrens, geen productlimiet.
 De ML-DSA-stackbehoefte moet vóór native integratie door de service-/stackquota
 worden gedragen. Herzien vóór installerintegratie: bron- en sleutelrotatie,
