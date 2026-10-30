@@ -25,7 +25,7 @@ Integratiebranch `codex/full-test-release` staat op `faf2c134510ce6c2f1d556efe4e
 
 ## Behouden foundationcheckpoint — vóór gezamenlijke bron
 
-## NEXT AGENT HANDOFF — 30 oktober 2026 — volledige testrelease in uitvoering
+## Eerder foundationcheckpoint — 30 oktober 2026 — volledige testrelease in uitvoering
 
 Integratiebranch `codex/full-test-release`, bron `844ec40d0717a51d76f2da3a03fa415633725f6a`, tree `6710e599e6984f69e227367981f9a07b525b1255`.
 Deze exacte bron staat lokaal en op remote; concept-PR [#56](https://github.com/simonvanieperen/nieuw-os/pull/56) blijft de volledige releaseopdracht volgen. Foundation-PR #59 is na gecontroleerde fast-forward opgenomen en gesloten.
