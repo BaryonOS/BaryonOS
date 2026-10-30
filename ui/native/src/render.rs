@@ -536,7 +536,13 @@ impl<'a> Frame<'a> {
                     role,
                     label,
                     value,
-                    bounds: bounds.physical(self.view.viewport.scale()),
+                    // The window already spans the physical viewport; child
+                    // layout rectangles still need logical-to-physical scaling.
+                    bounds: if role == Role::Window {
+                        bounds
+                    } else {
+                        bounds.physical(self.view.viewport.scale())
+                    },
                     focused: focus == Some(self.view.focus),
                     enabled,
                     actions: SemanticActions {

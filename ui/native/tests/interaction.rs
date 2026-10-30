@@ -529,12 +529,14 @@ fn real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus_impl() {
         assert_eq!(nodes[..n].iter().filter(|n| n.focused).count(), 1);
         assert_eq!(nodes[0].id, SemanticId::Window);
         assert_eq!(nodes[0].role, Role::Window);
+        assert_eq!(nodes[0].bounds, ui.view().viewport.bounds());
         let editor = nodes[..n]
             .iter()
             .find(|n| n.id == SemanticId::Document)
             .unwrap();
         assert_eq!(editor.parent, Some(SemanticId::Window));
         assert_eq!(editor.role, Role::TextEditor);
+        assert_eq!(editor.bounds, frame.layout().editor.physical(scale));
         assert!(editor.actions.set_value);
         assert!(!editor.actions.activate);
         assert_eq!(editor.value, Some("Café\nabc XYZ\nSelectie blijft UTF-8."));

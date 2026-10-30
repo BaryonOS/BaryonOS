@@ -1,0 +1,11 @@
+    Checking catalog-core v0.1.0 (/workspace/scratch/b38cadb31b5d/review-ui-apps/pr68-fix/snapshot/services/catalog)
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/scratch/b38cadb31b5d/review-ui-apps/pr68-fix/snapshot/sdk/runtime)
+    Checking ui-core v0.1.0 (/workspace/scratch/b38cadb31b5d/review-ui-apps/pr68-fix/snapshot/crates/ui-core)
+    Checking noto-sans-mono-bitmap v0.3.2
+    Checking capability-core v0.1.0 (/workspace/scratch/b38cadb31b5d/review-ui-apps/pr68-fix/snapshot/crates/capability-core)
+    Checking nieuw-os-catalog-client v0.1.0 (/workspace/scratch/b38cadb31b5d/review-ui-apps/pr68-fix/snapshot/sdk/catalog-client)
+    Checking volume-core v0.1.0 (/workspace/scratch/b38cadb31b5d/review-ui-apps/pr68-fix/snapshot/services/volume)
+    Checking nieuw-os-input-core v0.1.0 (/workspace/scratch/b38cadb31b5d/review-ui-apps/pr68-fix/snapshot/services/input-core)
+    Checking nieuw-os-document-session v0.1.0 (/workspace/scratch/b38cadb31b5d/review-ui-apps/pr68-fix/snapshot/sdk/document-session)
+    Checking nieuw-os-materiaal v0.1.0 (/workspace/scratch/b38cadb31b5d/review-ui-apps/pr68-fix/snapshot/ui/native)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.50s
