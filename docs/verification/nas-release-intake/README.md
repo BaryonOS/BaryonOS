@@ -189,3 +189,65 @@ niet een werkelijk in boot 1 uitgegeven token. Dit bewijst dus geen
 echte cross-boot-tokenreplay; die verticale keten blijft apart open.
 Scoreadvies ongewijzigd **34% naar 34%; R01-R03 0/5**. De manager houdt
 de centrale assessment, queue en PROJECT-STATE bij.
+
+## Nieuwe native pair op provenancefix 1219dcd
+
+Exacte codebron `1219dcdc8b7fcc6826ab64d440249f41fa2edf49`, v3
+`9c4af2f8838bd87c7c9646ebd93f3efe2e4dd552599dc3aa9a053235d2591492`.
+Werkboom schoon vóór en na uitvoering. Deze sectie vervangt uitsluitend
+de hierboven nog open nieuwe normal/cold-gate, niet onafhankelijke review
+of de ontbrekende integrale productacceptatie.
+
+Werkelijk uitgevoerd, exit **0**, log `/tmp/nieuw-os-nas-1219dcd-native.log`
+en identieke archiefkopie `1219dcd/native-command.txt`:
+
+```sh
+HOST_TOOLS=/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-didactic-spork/.tools/nieuw-os/host-tools
+QEMU_TOOLS=/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os/qemu
+export PATH="$QEMU_TOOLS/usr/bin:$HOST_TOOLS/usr/bin:$PATH"
+export LD_LIBRARY_PATH="$QEMU_TOOLS/usr/lib/x86_64-linux-gnu:$HOST_TOOLS/usr/lib/x86_64-linux-gnu:$HOST_TOOLS/lib/x86_64-linux-gnu"
+export OS_OVMF_CODE="$HOST_TOOLS/usr/share/OVMF/OVMF_CODE_4M.fd"
+export OS_OVMF_VARS="$HOST_TOOLS/usr/share/OVMF/OVMF_VARS_4M.fd"
+export NOS_BUILD_DIR="$PWD/build/nas-release-1219dcd"
+export NOS_TARGET_DIR="$PWD/target/nas-release-profile"
+python3 -B tools/dev.py python3 -B -u tools/test_nas.py
+```
+
+Rechtstreeks bestaande QEMU 10.2.1-ELF, geen wrapper, executablehash
+`fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb`.
+Beide stages hebben exact gelijke `platform`-velden:
+pc-q35-10.0, firmware CODE
+`874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7`
+en oorspronkelijke VARS-template
+`5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e`.
+CPU/TCG/geheugen/netwerk en kernel-/loaderhashes zijn gelijk aan de
+begrensde 808-proef. Nieuwe bronbinding en platform-/postexitcontroles
+zijn werkelijk uitgevoerd, niet alleen via een cache geclaimd.
+
+| Proef | Raw exit / duur | Block READ / WRITE / FLUSH | Entropy |
+|---|---|---|---|
+| Normaal | 33 / 4,494 s | 272 / 578 / 18 | 96 B |
+| Koud, verse VM en vars | 33 / 3,491 s | 816 / 0 / 0 | 32 B |
+
+Alle rol-/stack-/cleanupasserties en de onafhankelijke diskoracle
+slaagden opnieuw. Disk na normale run en vóór/na koude run:
+`2970ee1518bc129cc374669b4382dbc0a4880f149b69c0850cd5b92b7ef20d95`.
+De hash verschilt terecht van de oudere, afzonderlijk gemaakte schijf;
+deze proef gebruikt nieuwe gastentropy. Volledige rapporten, ongewijzigde
+serial/stderr, zelfstandige oracle-CLI-uitvoer en `SHA256SUMS` staan
+onder `1219dcd/`. De bestaande 808-map is niet overschreven.
+
+Ook afzonderlijk daadwerkelijk uitgevoerd, beide exit **0**:
+
+```sh
+python3 -B services/nas/native-probe/disk_oracle.py build/nas-release-1219dcd/run/nas-normal-48934263a7ac4f01a07946f0497de294/volume.img --admin-pid 1 --guest-pid 4
+python3 -B services/nas/native-probe/disk_oracle.py build/nas-release-1219dcd/run/nas-recover-0ce1555ee75c48719cf4a2a2cc6c4b77/volume.img --admin-pid 1 --guest-pid 4 --normal-sha256 2970ee1518bc129cc374669b4382dbc0a4880f149b69c0850cd5b92b7ef20d95
+```
+
+**Open:** B72 herlezing van de twee reviewpunten, verdere native regressies
+en definitieve mainintegratie door e8. De hosttoolsuite (435 tests) is
+wel uitgevoerd; zij vervangt die native regressies niet. Dit is nog
+geen VM-FR-/Windowsproductimage of werkelijk boot1-tokenreplay.
+R01-R03 blijven **0/5**, totaaladvies **34% naar 34%**; honderd koude
+productstarts, 24 uur productgebruik, fysieke en menselijke acceptatie
+blijven open. Geen actieve tweede ABI-/BootInfoimplementatie.
