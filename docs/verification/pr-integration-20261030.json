@@ -175,7 +175,7 @@
     },
     {
       "pr": 92,
-      "head": "1490b77ac4afe64b87a36a77c29ec50b8d8f301e",
+      "head": "57967d6a73b444c7c388a35b5cd42faa96733fe4",
       "base_branch": "main",
       "source_url": "https://github.com/simonvanieperen/nieuw-os/pull/92",
       "included": true,
@@ -318,7 +318,7 @@
     "Historical DEV1 failure and later build-only freeze are retained without a native success claim"
   ],
   "review_tools": {
-    "github_coderabbit": "Existing review threads inspected and concrete fixes applied; fresh integration review to be checked",
+    "github_coderabbit": "Bestaande bronreviews verwerkt. Integratie96 geweigerd: 1001 bestanden overschrijden de limiet van300. Historische bewijsbestanden en actieve bron worden daarom apart aangeboden voor inhoudelijke bronreview.",
     "cli": "Agent authentication unavailable: environment_unsupported; no CLI review claimed"
   },
   "checks_at_creation": "Local component tests are source-bound. Full combined GitHub Actions and merge approval are still pending.",
@@ -331,5 +331,23 @@
     "guest_execution": false,
     "lock_change": "alleen zeroize 1.9.1 plus runtime-afhankelijkheid; overige pakketrecords gelijk"
   },
-  "implementation_commit": "77ee763c1c91139f9153280fea84f8645daa80ad"
+  "implementation_commit": "3fedd03eecff62d6bffae038ec959c56734e2137",
+  "network_followup": {
+    "source": "57967d6a73b444c7c388a35b5cd42faa96733fe4",
+    "upstream_preserved": "DHCPDECLINE, leasegebonden TCP en apply_pending-conflictcontrole volledig behouden",
+    "integration_fix": "Stack withdrawal en beide blijvende regressietests",
+    "host_tests": {
+      "net-config": 31,
+      "net-stack": 25,
+      "net-protocol": 61
+    },
+    "clippy_fmt_scalar_builds_exit": 0,
+    "guest_dhcp_execution": false
+  },
+  "first_candidate_native_nas": {
+    "head": "fedf5edc8d462782e48295f662cd3580a7d63f48",
+    "job": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41113385741/job/124261588223",
+    "conclusion": "success",
+    "scope": "Alleen eerste kandidaat; laatste integratiehead moet de gate opnieuw halen"
+  }
 }

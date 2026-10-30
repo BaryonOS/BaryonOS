@@ -11,7 +11,7 @@ management en laatste overgenomen queue: PR #75 op
 `c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6`.
 [Bronindex en volledige historie](history/integration-2026-10-30/README.md)
 scheiden deze basis van oudere branchhandoffs. De gecombineerde implementatiebron is
-[`77ee763c`](https://github.com/simonvanieperen/nieuw-os/commit/77ee763c1c91139f9153280fea84f8645daa80ad).
+[`3fedd03e`](https://github.com/simonvanieperen/nieuw-os/commit/3fedd03eecff62d6bffae038ec959c56734e2137).
 Gerichte SDK- en netwerkregressies zijn groen; volledige kandidaat-CI
 en de native NAS normal/cold-gate blijven vereist vóór merge.
 
