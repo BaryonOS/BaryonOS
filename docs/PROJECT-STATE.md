@@ -59,6 +59,12 @@ slechts een ontbrekend toegestaan recht (`EACCESS`). Dit volgt uit de
 ongewijzigde `Engine::require`; de proef eist nu exact EINVAL. Alle vijf
 legacy-VM's slaagden opnieuw. Rode run:
 `wait-lifecycle/run/supervisor-wait-b0dfc7215f`; hertoets volgt.
+Op `1414ca0` passeert de proef die exacte negatieve checks en de eerste
+Waiting-kill, maar faalt vervolgens raw35/step47: de nieuwe caller sloot de
+Process-handle zowel in `kill_and_confirm` als in `drop_worker_caps`.
+Zij gebruikt nu de bestaande `kill_and_confirm_keep`; alleen de bestaande
+eigenaar `drop_worker_caps` sluit de handle. Geen productie- of
+orakelversoepeling; rode run `supervisor-wait-26d9a193e9`, hertoets volgt.
 Open: overige native/productmatrix,
 fysieke en menselijke acceptatie. Testfixtureplaintext is geen persoonlijke
 opslag-/encryptie-/releaseclaim. Nieuwe concept-PR is niet geopend omdat de

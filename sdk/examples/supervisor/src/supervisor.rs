@@ -574,7 +574,7 @@ impl Supervisor {
         {
             fail(105);
         }
-        self.kill_and_confirm(old, 107);
+        self.kill_and_confirm_keep(old, 107);
         self.drop_worker_caps();
         self.start_worker(WORKER_WAIT_LONG);
         if self.worker_pid == old_pid
@@ -589,7 +589,7 @@ impl Supervisor {
         // Beyond the first lifetime's latest possible deadline, but well
         // before the fresh lifetime's own 500-tick deadline.
         self.wait_ticks(80);
-        self.kill_and_confirm(self.worker.unwrap_or_else(|| fail(109)), 110);
+        self.kill_and_confirm_keep(self.worker.unwrap_or_else(|| fail(109)), 110);
         self.drop_worker_caps();
     }
 

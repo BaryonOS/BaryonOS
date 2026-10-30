@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`d4b6ebcb`](https://github.com/simonvanieperen/nieuw-os/commit/d4b6ebcb431c85b2ff9f9cb4ef3f43c7162ae1bf) ·
+**Bron:** [`1414ca02`](https://github.com/simonvanieperen/nieuw-os/commit/1414ca0218c27a8411ba91af51a7af28ef1c3da9) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: vijf K05-baselines opnieuw groen; waitfixture vereist exacte EINVAL voor Process-derive.
-34% blijft 34%; minstens50% is niet bereikt. Vijf bestaande K05-cases slagen opnieuw op d4b6ebc. De nieuwe waitcase blijft terecht rood op step104: Process-derive wordt als ongeldige objectrechtklasse geweigerd met EINVAL, niet EACCESS. De proef eist nu de precieze bestaande foutcode; geen Engine-, rechten-, scheduler- of cleanupwijziging. ETYPE-endpointkill en beide stale-handleweigeringen blijven vereist; native hertoets volgt. Eerdere GUI/IPC/system/RTC/FPU-bewijzen blijven aan hun eigen bron gebonden en lokale proefversie bewaard. Geen extra punten; volledige productcriteria en menselijke/hardwareacceptatie blijven open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: exacte Process-weigering passeert; dubbele close in nieuwe waitfixture hersteld.
+34% blijft 34%; minstens50% niet bereikt. Op1414ca0 slagen de vijf bestaande K05-cases opnieuw. De nieuwe waitcase passeert de exacte Process-/endpointweigering en eerste Waiting-kill, maar faalt raw35/step47 op een dubbele handleclose in de nieuwe caller. De caller gebruikt nu de bestaande kill_and_confirm_keep; drop_worker_caps blijft de ene eigenaar die sluit. Geen productie-, rechten- of orakelwijziging; hertoets volgt. Eerdere bewijzen blijven aan hun echte bron gebonden, lokale proefversie bewaard. Geen nieuwe punten; volledige product-/menselijke-/hardwareacceptatie open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
