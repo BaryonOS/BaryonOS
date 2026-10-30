@@ -23,7 +23,8 @@ De afzonderlijke zesde case `wait` (`test-supervisor-wait`, ABI1.10)
 combineert ditzelfde procesmechanisme met IPC-wachten. Workermodi4/5
 registreren een echte lege-ingresswait met een deadline40/500 ticks.
 De supervisor laat beide werkelijk parkeren, controleert dat een
-OBSERVE-only-proceshandle niet mag killen, beëindigt de eerste met KILL,
+Process-handle zonder DERIVE niet mag worden afgeleid naar OBSERVE en dat
+een endpoint geen Process-killrecht is, beëindigt de eerste met KILL,
 sluit diens handles en start een verse PID in hetzelfde slot. Oude status/
 killhandles moeten dan `EBADHANDLE` geven. Na80 ticks, voorbij de oude
 deadline maar vóór de nieuwe, moet ook de opvolger nog echt Waiting zijn
@@ -41,6 +42,12 @@ IRQ's binnen de monotone tickteller. De vijf legacycases blijven verplicht;
 Uitvoeringsstatus en brongebonden bewijs staan in
 `docs/verification/native-test-version/`; deze beschrijving is geen native
 acceptatie op zichzelf.
+
+De eerste native wait-case faalde terecht op een onjuiste proefaanname:
+K05 geeft Process uitsluitend `OBSERVE|KILL`, zonder `DERIVE`. De proef maakt
+daarom geen OBSERVE-only-handle en verruimt geen rechten om dat mogelijk te
+maken. Zij verwacht juist `EACCESS` voor die afleidingspoging en `ETYPE` voor
+de endpoint-kill, naast beide stale-handleweigeringen.
 
 ```sh
 python3 -B sdk/examples/supervisor/build.py

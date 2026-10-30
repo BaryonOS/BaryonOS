@@ -35,7 +35,8 @@ Schrijfbestanden: kernel-feature/supervisor-fixture, SDK-supervisorprotocol/
 worker/supervisor, buildkeuze, bestaande K05-runner/gate/hosttest,
 `process-management.yml` en bewijsdocs. Geen wijziging aan kill-afdwinging,
 scheduler, cleanup of publieke ABI. Eén eigenaar, geen achtergrondtaak.
-De nieuwe case vereist twee echte Waiting-kills, OBSERVE-zonder-KILL-weigering,
+De nieuwe case vereist twee echte Waiting-kills, Process-derive zonder DERIVE
+en endpoint-killweigering,
 stale status/kill na vers PID/slothergebruik, geen overgenomen oude wake,
 lege Engine en volledig frameherstel. Acceptatie: protocol-/harnastests,
 scalarbuild en alle zes echte K05-cases; score blijft zonder nieuw criterium34%.
@@ -43,6 +44,15 @@ De nieuwe scalarbuild/ELF-inspectie, 8 K05-harnastests, 1 protocolhosttest,
 root-formatcheck en diffcheck slagen, exit0. De echte nieuwe lifecycle-VM
 is bij dit codecheckpoint **nog niet uitgevoerd**. Buildlog:
 `/tmp/nieuw-os-native-wait-lifecycle-build.log`.
+De zes-casesrun op `dcb6b12` geeft vijf echte groene legacy-VM's, maar de
+nieuwe case faalt raw35/step104: de proef nam ten onrechte aan dat een
+Process-rootcap DERIVE bezat. Het bestaande contract geeft alleen
+`OBSERVE|KILL`. De proef verwacht nu juist EACCESS op die derivepoging en
+ETYPE op een endpoint-kill; beide stale-handleweigeringen blijven.
+Geen rechten verruimd. Hertoets volgt; rode run:
+`wait-lifecycle/run/supervisor-wait-208a0949b3`.
+De bestaande ongebruikte `Incoming::Denied`-payloadwaarschuwing is niet
+onderdrukt of als groene Clippy-controle voorgesteld.
 Open: overige native/productmatrix,
 fysieke en menselijke acceptatie. Testfixtureplaintext is geen persoonlijke
 opslag-/encryptie-/releaseclaim. Nieuwe concept-PR is niet geopend omdat de

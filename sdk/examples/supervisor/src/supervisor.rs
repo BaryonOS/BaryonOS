@@ -567,14 +567,12 @@ impl Supervisor {
         let old = self.worker.unwrap_or_else(|| fail(103));
         let old_pid = self.worker_pid;
         self.wait_ticks(4);
-        let observe = native::derive(old.handle(), Rights::OBSERVE)
-            .map(ChildProcess::from_handle)
-            .unwrap_or_else(|_| fail(104));
-        if native::kill(observe) != Err(Error::Kernel(EACCESS)) {
-            fail(105);
+        if kernel_code(native::derive(old.handle(), Rights::OBSERVE)) != EACCESS {
+            fail(104);
         }
-        if native::close(observe.handle()).is_err() {
-            fail(106);
+        if native::kill(ChildProcess::from_handle(self.registry_root)) != Err(Error::Kernel(ETYPE))
+        {
+            fail(105);
         }
         self.kill_and_confirm(old, 107);
         self.drop_worker_caps();
@@ -585,8 +583,8 @@ impl Supervisor {
         {
             fail(108);
         }
-        support::put(EV_DENIED_MATCHED, 3);
-        support::put(EV_DENIED_TOTAL, 3);
+        support::put(EV_DENIED_MATCHED, 4);
+        support::put(EV_DENIED_TOTAL, 4);
         bump(EV_RESTARTS);
         // Beyond the first lifetime's latest possible deadline, but well
         // before the fresh lifetime's own 500-tick deadline.

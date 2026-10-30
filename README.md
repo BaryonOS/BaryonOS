@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`686e8478`](https://github.com/simonvanieperen/nieuw-os/commit/686e84788256fa2c1c433145b06f7c490a099325) ·
+**Bron:** [`dcb6b121`](https://github.com/simonvanieperen/nieuw-os/commit/dcb6b12190f3438404ddd2fbbe12290bd204e1d4) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: afzonderlijke Waiting-kill/slothergebruikcase geïmplementeerd; native K05-hertoets volgt.
-34% blijft 34%; minstens50% is niet bereikt. Normale/koude GUI, IPC/system/RTC en beide FPU-profielen blijven aan hun eerder geslaagde bron gebonden; lokale eigen-kernel/UEFI-proefversie bewaard. Nieuwe afzonderlijke test-supervisor-wait-case gebruikt bestaande K05-rechten voor twee echte Waiting-kills, OBSERVE-weigering, stale handles en schoon PID/slothergebruik voorbij de oude deadline. Geen kill-, scheduler-, cleanup- of publieke ABI-wijziging. Scalarbuild/ELF-inspectie,8 strikte K05-harnas- en1 protocolhosttest slagen; de nieuwe lifecycle-VM en volledige zes-cases native K05-gate zijn nog niet uitgevoerd. Geen extra punten of nieuwe native acceptatie; volledige productcriteria en menselijke/hardwareacceptatie blijven open.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-TEST-VERSION: vijf native K05-baselines groen; onjuiste DERIVE-aanname in nieuwe waitfixture gecorrigeerd.
+34% blijft 34%; minstens50% is niet bereikt. De bestaande vijf K05-cases slagen opnieuw native op dcb6b12. De zesde Waiting-lifecyclecase faalt raw35/step104 door een onjuiste proefaanname: Process heeft OBSERVE en KILL, geen DERIVE. De proef verwacht nu juist de bestaande EACCESS-deriveweigering plus ETYPE-endpointkill en beide stale-handleweigeringen; geen rechten verruimd. Native hertoets volgt. Eerdere normale/koude GUI-, IPC/system/RTC- en FPU-bewijzen blijven aan hun eigen bron gebonden; lokale proefversie bewaard.8 strikte K05-harnas- en1 protocolhosttest slagen. Geen extra punten; volledige productcriteria en menselijke/hardwareacceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

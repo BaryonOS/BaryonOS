@@ -623,7 +623,7 @@ fn finish(s: &mut State) -> ! {
                 b"WAIT_FRESH_REUSE",
             );
             require(
-                denied_matched == 3 && denied_total == 3 && ev.kill_errors == 2,
+                denied_matched == 4 && denied_total == 4 && ev.kill_errors == 2,
                 b"WAIT_DENIALS",
             );
             require(

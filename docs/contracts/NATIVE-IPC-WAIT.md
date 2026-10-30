@@ -164,7 +164,8 @@ performanceacceptatie open, met nul zelfstandige releasepunten.
 
 De aparte lifecyclecase `test-supervisor-wait` gebruikt uitsluitend de
 bestaande K05 Launch/Process/SEND/KILL/OBSERVE-rechten. Zij moet twee echte
-Waiting-kinderen beëindigen, een OBSERVE-only-kill weigeren en na schoon
+Waiting-kinderen beëindigen, Process-derive zonder DERIVE en een endpoint-kill
+weigeren en na schoon
 PID/slothergebruik de oude status-/killhandle weigeren. De nieuwe wacht
 moet voorbij de bovengrens van de oude deadline intact blijven. De observer
 verandert geen processtatus of wake: hij controleert de gewone spawn/kill/
