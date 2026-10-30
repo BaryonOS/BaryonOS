@@ -15,6 +15,15 @@ impl MouseButtons {
     pub const fn bits(self) -> u8 {
         self.0
     }
+    /// Validate decoded protocol bits without silently masking malformed data.
+    /// Constructing button state grants no input authority.
+    pub const fn checked(bits: u8) -> Option<Self> {
+        if bits & !7 == 0 {
+            Some(Self(bits))
+        } else {
+            None
+        }
+    }
     pub(crate) const fn from_bits(bits: u8) -> Self {
         Self(bits & 7)
     }
@@ -65,8 +74,10 @@ impl Ps2Mouse {
         }
         self.received = 0;
         let [flags, x, y] = self.packet;
-        let buttons = MouseButtons::from_bits(flags);
-        let changed = MouseButtons::from_bits(buttons.0 ^ self.buttons.0);
+        // The PS/2 header also carries sign/overflow/header flags. Its three
+        // button bits are deliberately extracted before constructing state.
+        let buttons = MouseButtons(flags & 7);
+        let changed = MouseButtons(buttons.0 ^ self.buttons.0);
         self.buttons = buttons;
         Ok(Some(MouseEvent {
             dx: if flags & 0x40 != 0 {
@@ -121,6 +132,19 @@ impl Cursor {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn decoded_button_bits_reject_reserved_flags_instead_of_masking_them() {
+        for bits in 0..=u8::MAX {
+            match MouseButtons::checked(bits) {
+                Some(buttons) => {
+                    assert!(bits <= 7);
+                    assert_eq!(buttons.bits(), bits);
+                }
+                None => assert!(bits > 7),
+            }
+        }
+        assert_eq!(MouseButtons::checked(0x80), None);
+    }
     fn packet(mouse: &mut Ps2Mouse, bytes: [u8; 3]) -> MouseEvent {
         assert_eq!(mouse.feed(bytes[0]), Ok(None));
         assert_eq!(mouse.feed(bytes[1]), Ok(None));
