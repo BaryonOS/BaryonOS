@@ -25,6 +25,7 @@ struct Disk {
     writes: usize,
     fail_at: Option<usize>,
     commit_on_failure: bool,
+    fail_error: Option<Error>,
 }
 
 #[derive(Clone, Default)]
@@ -49,7 +50,7 @@ impl Storage for Memory {
             if disk.commit_on_failure {
                 disk.bytes = Some(bytes.to_vec());
             }
-            return Err(Error::Unknown);
+            return Err(disk.fail_error.unwrap_or(Error::Unknown));
         }
         disk.bytes = Some(bytes.to_vec());
         Ok(())
@@ -614,4 +615,109 @@ fn optimized_core_fits_the_existing_64_kib_native_stack() {
         .unwrap()
         .join()
         .unwrap();
+}
+
+#[test]
+fn all_replace_failure_codes_are_unknown_before_or_after_durable_commit() {
+    let mut work = Box::new(Workspace::new());
+    for error in [
+        Error::Io,
+        Error::Denied,
+        Error::Invalid,
+        Error::Full,
+        Error::Quota,
+        Error::Conflict,
+        Error::Expired,
+        Error::NotFound,
+        Error::Stale,
+        Error::Entropy,
+        Error::Corrupt,
+        Error::Unknown,
+        Error::ReopenRequired,
+    ] {
+        for committed in [false, true] {
+            let (mut service, disk, mut entropy) = fixture(&mut work);
+            let invite = pair(&mut service, &mut entropy, ALICE);
+            fail_next(&disk, 1, committed);
+            disk.0.borrow_mut().fail_error = Some(error);
+            assert_eq!(
+                service.revoke(ADMIN, &invite.namespace),
+                Err(Error::Unknown)
+            );
+            assert_eq!(service.last_storage_error(), Some(error));
+            assert!(service.is_poisoned());
+            let writes = disk.0.borrow().writes;
+            assert_eq!(
+                service.revoke(ADMIN, &invite.namespace),
+                Err(Error::ReopenRequired)
+            );
+            assert_eq!(disk.0.borrow().writes, writes);
+            let service =
+                Service::recover(service.into_storage(), &mut entropy, &mut work).unwrap();
+            assert_eq!(service.last_storage_error(), None);
+            assert_eq!(
+                service.usage(ADMIN, &invite.namespace).unwrap().status,
+                if committed {
+                    NamespaceStatus::Revoked
+                } else {
+                    NamespaceStatus::Active
+                }
+            );
+            assert_eq!(disk.0.borrow().writes, writes);
+        }
+    }
+}
+
+#[test]
+fn initialization_failure_never_implies_uncommitted_or_replays_the_write() {
+    let mut work = Box::new(Workspace::new());
+    for error in [Error::Io, Error::Denied, Error::Corrupt, Error::Unknown] {
+        for committed in [false, true] {
+            let disk = Memory::default();
+            fail_next(&disk, 1, committed);
+            disk.0.borrow_mut().fail_error = Some(error);
+            let mut entropy = TestEntropy(10);
+            assert!(matches!(
+                Service::initialize(disk.clone(), ADMIN, &mut entropy, &mut work),
+                Err(Error::Unknown)
+            ));
+            assert_eq!(work.last_storage_error(), Some(error));
+            assert_eq!(disk.0.borrow().writes, 1);
+            let recovery = Service::recover(disk.clone(), &mut entropy, &mut work);
+            if committed {
+                assert!(recovery.is_ok());
+            } else {
+                assert!(matches!(recovery, Err(Error::Corrupt)));
+            }
+            assert_eq!(disk.0.borrow().writes, 1);
+        }
+    }
+}
+
+#[test]
+fn opaque_token_decoding_and_admin_enumeration_never_grant_authority() {
+    let mut work = Box::new(Workspace::new());
+    let (mut service, _, mut entropy) = fixture(&mut work);
+    let invite = pair(&mut service, &mut entropy, ALICE);
+    let session = service.open(ALICE, &invite.namespace).unwrap();
+    let decoded = nieuw_os_nas_core::Session::from_bytes(&session.to_bytes()).unwrap();
+    assert_eq!(service.read(BOB, decoded, 0, 0, &mut []), Err(Error::Stale));
+    assert!(matches!(service.usage_at(ALICE, 0), Err(Error::Denied)));
+    assert_eq!(
+        service.usage_at(ADMIN, 0).unwrap().namespace,
+        invite.namespace
+    );
+    assert!(matches!(service.usage_at(ADMIN, 1), Err(Error::NotFound)));
+    assert!(matches!(
+        service.usage_at(ADMIN, usize::MAX),
+        Err(Error::Invalid)
+    ));
+    assert!(matches!(
+        nieuw_os_nas_core::Session::from_bytes(&[0; 40]),
+        Err(Error::Invalid)
+    ));
+    let mut wrong = session.to_bytes();
+    wrong[32] ^= 0x40;
+    let wrong = nieuw_os_nas_core::Session::from_bytes(&wrong).unwrap();
+    assert_eq!(service.close(ALICE, wrong), Err(Error::Stale));
 }

@@ -14,6 +14,12 @@ Rust-volumeclient en ruimt ook diens herstelbare versiegeschiedenis op vóór
 succes. De tijdelijke Rust-capaciteitsgrenzen staan bij de crate; de
 N01-grenzen hieronder horen uitsluitend bij het Node-hostprototype.
 
+[NAS-IPC-PROBE-1](native-probe/CONTRACT.md) levert nu de lokale 256-byte
+IPC-adapter en drie afzonderlijk te starten procesrollen als freestanding
+ELF. Het contract legt startupwords, endpoints, geheugen en normale/koude
+proefassertions vast. Dit pakket configureert zelf geen kernelmanifest en
+heeft nog geen QEMU-uitvoerbewijs.
+
 De Rust-hostproeven en bare-metalbuild zijn **geen draaiende native NAS**.
 Transportidentiteit, kernel-IPC, clientencryptie, automatische sync en
 multidevice-key-lifecycle blijven open. [Controlebewijs](native-volume/verification/README.md):

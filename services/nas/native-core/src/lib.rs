@@ -65,6 +65,8 @@ pub trait Entropy {
 /// atomically retain either the previous snapshot or all of `snapshot`, and
 /// return success only after durable commit. An empty store is `None`, never a
 /// fallback for unreadable/corrupt data. No content keys belong in this store.
+/// Any replacement error may follow a commit; the core reports `Unknown` and
+/// retains the original error for diagnostics. No error code authorizes replay.
 pub trait Storage {
     fn load(&mut self, out: &mut [u8; SNAPSHOT_BYTES]) -> Result<Option<usize>, Error>;
     fn replace(&mut self, snapshot: &[u8; SNAPSHOT_BYTES]) -> Result<(), Error>;
@@ -151,6 +153,48 @@ pub struct Upload {
     serial: u64,
 }
 
+pub const TOKEN_BYTES: usize = 40;
+
+fn encode_token(boot: [u8; 32], serial: u64) -> [u8; TOKEN_BYTES] {
+    let mut bytes = [0; TOKEN_BYTES];
+    bytes[..32].copy_from_slice(&boot);
+    bytes[32..].copy_from_slice(&serial.to_le_bytes());
+    bytes
+}
+
+fn decode_token(bytes: &[u8; TOKEN_BYTES]) -> Result<([u8; 32], u64), Error> {
+    let boot = bytes[..32].try_into().unwrap();
+    let serial = u64::from_le_bytes(bytes[32..].try_into().unwrap());
+    if boot == [0; 32] || serial == 0 {
+        return Err(Error::Invalid);
+    }
+    Ok((boot, serial))
+}
+
+impl Session {
+    pub fn to_bytes(self) -> [u8; TOKEN_BYTES] {
+        encode_token(self.boot, self.serial)
+    }
+
+    /// Canonical decoding is not authorization; every use checks caller,
+    /// live session membership and namespace epoch again.
+    pub fn from_bytes(bytes: &[u8; TOKEN_BYTES]) -> Result<Self, Error> {
+        let (boot, serial) = decode_token(bytes)?;
+        Ok(Self { boot, serial })
+    }
+}
+
+impl Upload {
+    pub fn to_bytes(self) -> [u8; TOKEN_BYTES] {
+        encode_token(self.boot, self.serial)
+    }
+
+    pub fn from_bytes(bytes: &[u8; TOKEN_BYTES]) -> Result<Self, Error> {
+        let (boot, serial) = decode_token(bytes)?;
+        Ok(Self { boot, serial })
+    }
+}
+
 #[derive(Clone, Copy)]
 struct SessionState {
     token: Session,
@@ -193,6 +237,7 @@ pub struct Workspace {
     sessions: [Option<SessionState>; SESSIONS],
     uploads: [Option<UploadState>; UPLOADS],
     poisoned: bool,
+    storage_error: Option<Error>,
 }
 
 impl Workspace {
@@ -206,7 +251,12 @@ impl Workspace {
             sessions: [None; SESSIONS],
             uploads: [None; UPLOADS],
             poisoned: false,
+            storage_error: None,
         }
+    }
+
+    pub fn last_storage_error(&self) -> Option<Error> {
+        self.storage_error
     }
 }
 
@@ -232,6 +282,7 @@ impl<'a, S: Storage> Service<'a, S> {
         if !admin.valid() {
             return Err(Error::Invalid);
         }
+        work.storage_error = None;
         if storage.load(&mut work.snapshot)?.is_some() {
             return Err(Error::Conflict);
         }
@@ -242,7 +293,10 @@ impl<'a, S: Storage> Service<'a, S> {
             namespaces: [None; NAMESPACES],
         };
         snapshot::encode(&work.state, &mut work.snapshot);
-        storage.replace(&work.snapshot)?;
+        if let Err(error) = storage.replace(&work.snapshot) {
+            work.storage_error = Some(error);
+            return Err(Error::Unknown);
+        }
         Ok(Self::new(storage, work, boot))
     }
 
@@ -265,6 +319,7 @@ impl<'a, S: Storage> Service<'a, S> {
         work.sessions.fill(None);
         work.uploads.fill(None);
         work.poisoned = false;
+        work.storage_error = None;
         Self { storage, work }
     }
 
@@ -274,6 +329,10 @@ impl<'a, S: Storage> Service<'a, S> {
 
     pub fn is_poisoned(&self) -> bool {
         self.work.poisoned
+    }
+
+    pub fn last_storage_error(&self) -> Option<Error> {
+        self.work.last_storage_error()
     }
 
     fn ready(&self) -> Result<(), Error> {
@@ -317,7 +376,8 @@ impl<'a, S: Storage> Service<'a, S> {
         snapshot::encode(&self.work.next, &mut self.work.snapshot);
         if let Err(error) = self.storage.replace(&self.work.snapshot) {
             self.work.poisoned = true;
-            return Err(error);
+            self.work.storage_error = Some(error);
+            return Err(Error::Unknown);
         }
         core::mem::swap(&mut self.work.state, &mut self.work.next);
         Ok(())
@@ -612,9 +672,19 @@ impl<'a, S: Storage> Service<'a, S> {
     pub fn usage(&self, caller: Principal, namespace: &[u8; 32]) -> Result<Usage, Error> {
         self.admin(caller)?;
         let index = self.namespace(namespace)?;
-        let ns = self.work.state.namespaces[index]
-            .as_ref()
-            .ok_or(Error::NotFound)?;
+        self.usage_at(caller, index)
+    }
+
+    /// Bounded administrator enumeration; exposes no object IDs or content.
+    pub fn usage_at(&self, caller: Principal, index: usize) -> Result<Usage, Error> {
+        self.admin(caller)?;
+        let slot = self
+            .work
+            .state
+            .namespaces
+            .get(index)
+            .ok_or(Error::Invalid)?;
+        let ns = slot.as_ref().ok_or(Error::NotFound)?;
         Ok(Usage {
             namespace: ns.id,
             status: ns.status,

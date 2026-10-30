@@ -47,8 +47,12 @@ uitvoerbuffer op.
 een oude of een volledige nieuwe snapshot zijn de enige toegestane
 crashuitkomsten. De adapter moet exclusief één schrijver garanderen. Succes
 vóór flush of alleen een RAM-kopie voldoen niet. Iedere fout bij vervangen
-blokkeert de instantie; zij herhaalt geen mutatie. `Unknown` betekent dat
-commit mogelijk wel plaatsvond. De aanroeper moet opnieuw openen en de
+blokkeert de instantie; zij herhaalt geen mutatie. Elke fout uit `replace`
+wordt voor initialisatie en publicatie `Unknown`: het opslagcontract geeft
+ook bij bijvoorbeeld `Io` geen garantie dat commit niet plaatsvond.
+`last_storage_error` bewaart de oorspronkelijke oorzaak voor lokale
+diagnostiek, zonder daarin inhoud of tokens op te nemen.
+De aanroeper moet opnieuw openen en de
 duurzame toestand inspecteren, niet opnieuw succes veronderstellen.
 
 Intrekken legt eerst `Revoked` met een hogere epoch vast en verwijdert daarna
