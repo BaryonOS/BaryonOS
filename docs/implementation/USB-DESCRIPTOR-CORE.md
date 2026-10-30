@@ -1,0 +1,54 @@
+# USB descriptor framing core
+
+## Taakcontract
+
+Doel van deze eerste USB-stap: een kleine dependencyvrije `no_std`-parser die
+de grenzen van achtereenvolgende USB-descriptors controleert. De bytes komen
+later van een begrensde control-transfer; deze core voert zelf geen apparaat-
+I/O uit.
+
+De USB 2.0-descriptorstructuur begint met `bLength` en `bDescriptorType`.
+`bLength` omvat de descriptorheader zelf. De parser accepteert alleen lengtes
+vanaf twee bytes die volledig binnen de aangeleverde slice vallen. Een
+onvolledige header, te kleine lengte of afgekapt descriptor levert één expliciete
+fout op; daarna stopt de iterator en probeert hij niet in onbetrouwbare bytes te
+resynchroniseren. Onbekende descriptor-types blijven ongewijzigd beschikbaar
+voor een latere policylaag.
+
+## Grenzen en invarianten
+
+- De caller valideert control-transferstatus en begrenst de ontvangen bytes
+  voordat deze core de slice krijgt. De core kent geen devicepointer, DMA-buffer,
+  controllerstatus of capability.
+- De core alloceert niet, houdt geen globale toestand bij en gebruikt geen
+  `unsafe`. Descriptors lenen hun ruwe bytes uit de input-slice.
+- Alleen generieke framing wordt gecontroleerd. Dit is geen USB-enumeratie,
+  configuratie-/interfacevalidatie, HID-driver, USB-hostcontroller of xHCI-
+  driver. Descriptorvolgorde, typevelden en apparaatbeleid blijven voor latere
+  afzonderlijke lagen.
+- Een framingfout beëindigt de iteratie; gedeeltelijk gevalideerde opvolgende
+  descriptors worden niet gepubliceerd.
+- Het verwijderen van dit standalone component verandert geen kernel-, IPC-,
+  capability- of bestaande driverinterface.
+
+## Acceptatie en bewijsgrens
+
+Hosttests bestrijken lege input, geldige en onbekende types, descriptorgrenzen,
+lengtes 0/1/2/255, ontbrekende headerbytes, afgekorte descriptors en terminale
+foutafhandeling. Controleer daarnaast formattering, Clippy en een
+`x86_64-unknown-none`-librarybuild met de vastgezette Rust 1.90.0-toolchain.
+
+Deze bouwsteen levert geen H02-punt op: er is nog geen USB-hostcontroller die
+een apparaat enumereert of gebeurtenissen aan een proces levert. xHCI-ringen,
+MMIO-/DMA-beleid, time-outs/reset, hotplug, rechten, QEMU-apparaten en fysieke
+referentiehardware blijven afzonderlijke vervolgstappen.
+
+## Primaire bron
+
+- USB Implementers Forum, *USB 2.0 Specification*, descriptorbeschrijving
+  §9.5. De officiële documentpagina is bijgewerkt op 3 juni 2025 en koppelt de
+  specificatie met bijbehorende errata/ECN's:
+  <https://www.usb.org/document-library/usb-20-specification>.
+  De pagina linkt het officiële archief
+  <https://www.usb.org/sites/default/files/usb_20_20250603.zip>.
+  Geen specificatietekst of implementatiecode is overgenomen.
