@@ -1,0 +1,174 @@
+{
+  "task": "NATIVE-CALCULATOR-1",
+  "base_commit": "5e126b74bba2452bfc68b42caa400c61d471378c",
+  "scope": "Implemented component, host models/differential reference and scalar ELF build ONLY. No calculator VM execution/native acceptance; root owns grants/launcher/multiapp/compositor/QMP.",
+  "source_sha256": {
+    "sdk/examples/calculator/Cargo.toml": "8a58a79f27fbe6e43c76b696532a82aba08212e9fe026d9e0ba24499592ec10c",
+    "sdk/examples/calculator/build.py": "13bc43253c5ac552db4d2e3a21e2e4e566831a29bf5b1b1b414ebf5a59fb29d8",
+    "sdk/examples/calculator/linker.ld": "d675f0c262e19ae3efa56c9283460417f9c3063d37d5bc6dba73fa03d6ab9a85",
+    "sdk/examples/calculator/Cargo.lock": "78707857e1b88521806f828af813650c998e4271b135998c82ccc316e69a098c",
+    "sdk/examples/calculator/tests/model_render.rs": "d73ebbeab8f1eb501fb8c6d09790e9a7abdbbc89ae6db0d26438616046671d7a",
+    "sdk/examples/calculator/tests/decimal.rs": "c3ece2ec64e1d9eb049a250863f4bc48a31e05039021c15ebfc9da88d89ae06b",
+    "sdk/examples/calculator/tests/decimal_oracle.py": "8843551733c9e4fa596abd767067e5d4885bf90948aa60b010c9ec233ffb74ca",
+    "sdk/examples/calculator/tests/chain.rs": "60ee616d19062142cf8e52b0adc50156883c8c5129bbafc98507497cefdbf98a",
+    "sdk/examples/calculator/src/model.rs": "037d7a8a5464b1ecaa511c779f3d0431a8aab00346744bf3409a47bbd3b24de2",
+    "sdk/examples/calculator/src/render.rs": "27df19ea0314e82325c240a3d6f2e71e6df4ea3b99d37fa2a0821dd84f6ab727",
+    "sdk/examples/calculator/src/lib.rs": "6d145d3b82f0c9cb7b21b8998ee94736b9918012d302d672a5738bfee0434bd9",
+    "sdk/examples/calculator/src/app.rs": "cdba83100ae8f674d154b5cfcd61e880ff801edc119a14c700168cbb3fd394d6",
+    "sdk/examples/calculator/src/decimal.rs": "acafe4526892bb25de3d60400093bf776874103dea559460b0ea17210833adb2",
+    "sdk/examples/calculator/src/bootstrap.rs": "b288d7b0a377f52aea913ae25885af5ab99c8a3e8db926dfb0e302a179a1a24c",
+    "sdk/examples/calculator/src/main.rs": "d57d0fff9b67b4d09ca17b72a991bf74002261f4f9d216396347b9ccab19f27c",
+    "sdk/examples/calculator/src/bin/oracle.rs": "c7a5a5589ccb9a0da3a001805dd4ec34eaa6541f90469abbaaf9e697fadf0efc",
+    "docs/contracts/NATIVE-CALCULATOR.md": "802c204423ef2c19f4c7c28159e2190154a815adccb71536ff2242f9983cc110"
+  },
+  "source_drift": false,
+  "checks": [
+    {
+      "name": "host-tests",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/workspace/nieuw-os-worktrees/native-calculator/sdk/examples/calculator/Cargo.toml"
+      ],
+      "target": "/tmp/nieuw-os-calculator-host-target",
+      "exit": 0,
+      "seconds": 1.445,
+      "log": "/tmp/nieuw-os-calculator-review/host-tests.log",
+      "log_sha256": "dbe1fd7466995482bcb76211b3ba93a2baba4ffb2571336c40760bdccbb985d8"
+    },
+    {
+      "name": "host-clippy",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/workspace/nieuw-os-worktrees/native-calculator/sdk/examples/calculator/Cargo.toml",
+        "--all-targets",
+        "--features",
+        "host-oracle",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "target": "/tmp/nieuw-os-calculator-host-target",
+      "exit": 0,
+      "seconds": 0.468,
+      "log": "/tmp/nieuw-os-calculator-review/host-clippy.log",
+      "log_sha256": "0cfa6fba03a670cdb2e3080e170d8d64305b767ca3d2a8247eedafe6a59bd178"
+    },
+    {
+      "name": "oracle-build",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "build",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/workspace/nieuw-os-worktrees/native-calculator/sdk/examples/calculator/Cargo.toml",
+        "--features",
+        "host-oracle",
+        "--bin",
+        "calculator-oracle"
+      ],
+      "target": "/tmp/nieuw-os-calculator-host-target",
+      "exit": 0,
+      "seconds": 0.374,
+      "log": "/tmp/nieuw-os-calculator-review/oracle-build.log",
+      "log_sha256": "8f45cc5b48135656483859cc77fb13df558939aeedd380da474ee83dd96e6a25"
+    },
+    {
+      "name": "decimal-oracle",
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os-worktrees/native-calculator/sdk/examples/calculator/tests/decimal_oracle.py",
+        "--binary",
+        "/tmp/nieuw-os-calculator-host-target/debug/calculator-oracle"
+      ],
+      "target": "/tmp/nieuw-os-calculator-host-target",
+      "exit": 0,
+      "seconds": 0.142,
+      "log": "/tmp/nieuw-os-calculator-review/decimal-oracle.log",
+      "log_sha256": "425053c99e47cae23b3a9317114256909020464341a1a395f94a567bbac83430"
+    },
+    {
+      "name": "native-build",
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os-worktrees/native-calculator/sdk/examples/calculator/build.py"
+      ],
+      "target": "/tmp/nieuw-os-calculator-none-target",
+      "exit": 0,
+      "seconds": 1.294,
+      "log": "/tmp/nieuw-os-calculator-review/native-build.log",
+      "log_sha256": "0020e800e458523c32d77636f28a0352bc674970deb99b4a1bdcc9f1584a4ec0"
+    },
+    {
+      "name": "native-clippy",
+      "command": [
+        "python3",
+        "-B",
+        "/workspace/nieuw-os-worktrees/native-calculator/sdk/examples/calculator/build.py",
+        "clippy"
+      ],
+      "target": "/tmp/nieuw-os-calculator-none-target",
+      "exit": 0,
+      "seconds": 0.618,
+      "log": "/tmp/nieuw-os-calculator-review/native-clippy.log",
+      "log_sha256": "38edf80502c623e4a8fe3ca860b54eab21e86d155ee987e03408d296423275bf"
+    }
+  ],
+  "rust_host_tests": 17,
+  "decimal_oracle": {
+    "scope": "host differential reference ONLY; native Rust library computes every result",
+    "cases": 1262,
+    "passed": true,
+    "driver_sha256": "1df4e2ad2a2932074269f40f88193f561bc21b12ca1905ec99856627bca98ef0",
+    "input_sha256": "3cd6f095b2c24859e7b35bc1879b276fc035874a4259c0107481aa224ba4d6fc"
+  },
+  "native_elf": {
+    "path": "/tmp/nieuw-os-calculator-none-target/x86_64-unknown-none/release/calculator-app",
+    "sha256": "f045c031f20c740810f983bc9302f1910e5c72a055ac015e3f5463d24a25c3bc",
+    "fp_simd_register_matches": 0,
+    "undefined_symbols": [],
+    "disassembly_sha256": "82e465a4ff75f072e7c6efba5e450e7efb1bea986c030311bd4a882d61838795"
+  },
+  "host_previews": {
+    "1": {
+      "scope": "host RAM renderer preview only, NOT native GUI execution",
+      "path": "/tmp/nieuw-os-calculator-review/host-preview-100.ppm",
+      "sha256": "145fde7b112e0001a37b51cd3f292fbe251c9c4cd371715807af3dfb5cf4dd51"
+    },
+    "2": {
+      "scope": "host RAM renderer preview only, NOT native GUI execution",
+      "path": "/tmp/nieuw-os-calculator-review/host-preview-200.ppm",
+      "sha256": "0a33cb54199b6bfade794ea44703b349d09ba82d7fb1043307ad206d1305f009"
+    }
+  },
+  "native_tree_sha256": "df0c6bda329d044b9e2225adf0f9fd3da98f94312c341d9d9a46f2a4129bd6a3",
+  "registry_dependencies": [
+    {
+      "name": "noto-sans-mono-bitmap",
+      "version": "0.3.2",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "f102c477fd4ec864c149803bf606ecc23bc9329602ec0f99073a728abf454abc"
+    }
+  ],
+  "fmt_exit": 0,
+  "native_executed": false,
+  "independent_review": "not yet performed",
+  "open": [
+    "Root native grants/startup/Init/launcher/multiapp/compositor integration",
+    "Actual QMP keyboard/mouse/scale100200/focus/STOP and failure gates on the final integrated ELF/image",
+    "Whole FR-A08 and full testrelease acceptance"
+  ]
+}

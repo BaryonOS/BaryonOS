@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`2992ba76`](https://github.com/simonvanieperen/nieuw-os/commit/2992ba76f655f9dffc234f76d9ef2c314666f1a3) ·
+**Bron:** [`8365f14e`](https://github.com/simonvanieperen/nieuw-os/commit/8365f14e1c3fae90a781b836405836906ee785ab) ·
 **Ontwikkelbranch:** `codex/native-materiaal-integration`.
-Deze opdracht: **32% → 34% (+2 procentpunt)**. **Opdracht:** PR #58: conflictintegratie van Materiaal met de B03-updates op main.
-32% → 34% door de bestaande B03-acceptatie van main; deze conflictintegratie voegt geen nieuwe acceptatie toe. Materiaal, digestbenchmark, RNG-/imageproeven en ondertekende updates blijven behouden. Historisch bewijs en eerdere controles blijven aan hun oorspronkelijke bron gebonden; de samengevoegde bron is in deze integratie niet getest. Alle 62 volledige productcriteria blijven open; geen volledige GUI-keten, Secure Boot, releasesleutels, fysieke hardware of menselijke audit geclaimd.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR #58: conflictintegratie met main 970c7713 met behoud van beide reparatiesporen.
+34% blijft 34%; deze conflictintegratie verdient geen nieuwe punten. De productintegratie, oorspronkelijke productiedigest, manifestguards en benchmarkbronbinding van main blijven behouden naast de PR-reparaties voor surface-isolatie, pointerannulering, gebalanceerde meetvolgorde en afgeleide hostscenarioaantallen. B03 en eerder rood GUI-bewijs blijven brongebonden. Actuele integratiecontroles en beperkingen staan in PROJECT-STATE.md; alle 62 volledige productcriteria blijven open. Geen volledige GUI-, multiapp-, veilige opslag-, fysieke hardware- of menselijke auditacceptatie geclaimd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

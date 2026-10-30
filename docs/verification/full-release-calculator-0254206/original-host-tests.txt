@@ -1,0 +1,58 @@
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os-worktrees/native-calculator/sdk/runtime)
+   Compiling catalog-core v0.1.0 (/workspace/nieuw-os-worktrees/native-calculator/services/catalog)
+   Compiling ui-core v0.1.0 (/workspace/nieuw-os-worktrees/native-calculator/crates/ui-core)
+   Compiling noto-sans-mono-bitmap v0.3.2
+   Compiling nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os-worktrees/native-calculator/sdk/catalog-client)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/nieuw-os-worktrees/native-calculator/services/input-core)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os-worktrees/native-calculator/ui/surface-protocol)
+   Compiling capability-core v0.1.0 (/workspace/nieuw-os-worktrees/native-calculator/crates/capability-core)
+   Compiling nieuw-os-input-client v0.1.0 (/workspace/nieuw-os-worktrees/native-calculator/sdk/input-client)
+   Compiling nieuw-os-calculator v0.1.0 (/workspace/nieuw-os-worktrees/native-calculator/sdk/examples/calculator)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.28s
+     Running unittests src/lib.rs (/tmp/nieuw-os-calculator-integration-review/target/debug/deps/nieuw_os_calculator-a59c59a9b7346d96)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/chain.rs (/tmp/nieuw-os-calculator-integration-review/target/debug/deps/chain-e587551e3d29b428)
+
+running 6 tests
+test bootstrap_rejects_aliases_hidden_document_metadata_and_unbound_principals ... ok
+test input_failure_is_visible_but_cannot_be_a_fake_ready_and_stop_attempts_every_owner ... ok
+test lost_or_failed_real_surface_reply_never_certifies_rendered_state ... ok
+test startup_stop_closes_only_the_four_untransferred_service_leaves_even_on_failure ... ok
+test actual_outside_mouse_cancel_and_focus_generation_cannot_activate_a_captured_button ... ok
+test actual_typed_service_chain_computes_from_real_scan_bytes_and_commits_only_current_frames ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.65s
+
+     Running tests/decimal.rs (/tmp/nieuw-os-calculator-integration-review/target/debug/deps/decimal-56576cc279baed60)
+
+running 5 tests
+test full_raw_products_fit_i128_and_do_not_reject_small_valid_results ... ok
+test decimal_formatter_is_exact_localized_and_canonical_at_every_bound ... ok
+test signed_halftoeven_applies_to_literals_products_and_divisions ... ok
+test precedence_parentheses_unary_comma_and_exact_integer_math ... ok
+test input_nesting_syntax_and_zero_division_are_bounded_without_panics ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/model_render.rs (/tmp/nieuw-os-calculator-integration-review/target/debug/deps/model_render-ead07b36454fea96)
+
+running 6 tests
+test error_keeps_expression_caret_and_previous_result_until_explicit_reset ... ok
+test pointer_capture_does_not_activate_after_outside_cancel_or_focus_loss ... ok
+test every_control_is_inside_both_scales_and_hit_testing_never_clamps ... ok
+test real_keyboard_semantics_include_modifiers_keypad_focus_and_press_only_actions ... ok
+test long_input_selection_and_editing_are_atomic_and_recoverable ... ok
+test renderer_is_bounded_tracks_real_state_and_scrolls_long_input_at_both_scales ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+   Doc-tests nieuw_os_calculator
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

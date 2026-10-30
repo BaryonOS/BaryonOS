@@ -23,6 +23,8 @@ De compositor controleert de werkelijk ontvangen kernelafzender, tag en nul
 caps vóór SUR1 of control wordt verwerkt. Onverwachte ontvangen caps worden
 op alle paden eenmaal gesloten. Replybestemmingen zijn vast gebootstrapt.
 Een verkeerde app of een request kan geen eigen replycap kiezen.
+De twee sluitbare surfacehandles mogen elkaar noch de display-, focus- of
+controlroutes aliasen; bootstrap weigert zo'n overlap.
 
 NativeDisplayEpoch komt uitsluitend uit de echte DisplayClient geometrycall
 en blijft intern. SUR1 INFO toont publieke GOP-breedte/hoogte, SurfaceEpoch en
@@ -43,6 +45,9 @@ Blit-status en wordt niet als succesvolle pixels/frame geteld.
 Er is maximaal één pending surfacereply. IPC-EAGAIN bewaart exact dat antwoord
 en stopt nieuwe SurfaceRECV, maar niet control/focusverwerking. Iedere ronde
 expireert staging vóór accept; een timeoutreply krijgt dezelfde bewaarplicht.
+Als de replydeadline verstrijkt of de replyroute gesloten is, wordt alleen
+de betreffende surface ingetrokken. Control/focus blijven beschikbaar; een
+displayfout blijft wel terminaal.
 Commit start alleen na een verse echte monotone tickcheck; geen token wordt
 over wachtrondes of willekeurige callbacks bewaard. Eerdere bevestigde tiles
 zijn zichtbare writes, geen atomische pageflip/vsync of rollbackgarantie.
@@ -85,15 +90,24 @@ zoals de bestaande inputcore ondersteunt. PolicyEpoch verschilt van de
 surface-/native-displayepoch. Een Focused/Inactive/Retired-succes volgt pas na
 een echte canonieke INP1-bevestiging van het gebonden policy-PID.
 
-Na focus-sendOk wordt alleen op de reply gewacht; nooit automatisch opnieuw
-publiceren. Verkeerde afzender/binding of time-out is onzeker en beëindigt de
-epoch zonder rollback- of succesclaim. Retire wist staging, verwerpt een nog
-wachtende surfacereply en blokkeert verdere surfaces. Na Focus0ACK wordt de
-gehele apprect met werkelijke begrensde achtergrondblits gewist. Alleen na
-voltooiing kan de retirecontrol positief worden bevestigd; een blitfout is
-terminaal. De bestaande200-tick-replydeadline wordt niet verruimd. Maximale
-wistijd is nog niet native gemeten en blijft een integratiecriterium. Reeds eerder geldig gequeue'de
-antwoorden kunnen niet uit andermans kernelqueue worden teruggehaald.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:ede901fc3478f02c5afd36e48c878a21f2183f6326e58f58567b7934d737c8dd -->
+
+Na een geslaagde focuspublicatie wacht de compositor op antwoord zonder het
+verzoek opnieuw te versturen. Een onjuist gebonden antwoord of een verlopen
+deadline beëindigt de epoch als onzeker, zonder terugdraai- of succesclaim.
+Retire verwijdert staging, wijst een wachtende surfacereply af en sluit nieuwe
+surfaces. Na de Focus0-bevestiging wist de compositor de volledige toegewezen
+apprechthoek met begrensde achtergrondblits. Pas na voltooiing mag hij Retire
+bevestigen; een blitfout is terminaal. De replydeadline van 200 ticks begint na
+voltooiing van het wissen. De periode tussen Focus0ACK en reply kan daardoor
+langer dan 200 ticks zijn; init bewaakt de volledige compositoroperatie met een
+afzonderlijke deadline van 500 ticks. De maximale wistijd is nog niet native
+gemeten. Eerder geldig gepubliceerde antwoorden kunnen niet worden teruggehaald
+uit de kernelqueue van een ander proces.
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## Uitvoering en bewijsgrens
 

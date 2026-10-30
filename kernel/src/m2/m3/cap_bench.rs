@@ -91,7 +91,7 @@ pub(super) fn run(engine: &Engine) -> ! {
     let variants: [Digest; 3] = [
         Engine::diagnostic_reference_digest,
         Engine::diagnostic_direct_digest,
-        Engine::state_digest,
+        Engine::diagnostic_zero_digest,
     ];
     let expected = before.state_digest;
     for digest in variants {

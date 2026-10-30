@@ -60,6 +60,7 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_document_session_*.py'
           python3 -m unittest discover -s tests -p 'test_volume_*.py'
           python3 -m unittest discover -s tests -p 'test_system_*.py'
+          python3 -m unittest discover -s tools/tests -p 'test_*.py'
           python3 .agents/skills/os-dev/scripts/validate_skill.py
           python3 -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py'
       - name: Root Rust host tests
@@ -70,6 +71,9 @@ jobs:
       - name: SDK tests and lint
         run: |
           cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked
+          for manifest in sdk/examples/calculator/Cargo.toml sdk/examples/materiaal/Cargo.toml sdk/examples/compositor/Cargo.toml sdk/examples/desktop-init/Cargo.toml sdk/input-client/Cargo.toml; do
+            cargo +1.90.0 test --manifest-path "$manifest" --locked --target-dir "$PWD/target"
+          done
           cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings
           cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check
           python3 -B sdk/examples/catalog-read/build.py

@@ -61,6 +61,9 @@ decimaal3582576242485175387; het programma berekent de werkelijke waarde.
 De vaste drie varianten zijn REF, DIRECT en ZERO. Voor iedere variant:
 één prehashcontrole,4 warmupcalls,144 gemeten calls enéén posthashcontrole.
 Gemeten wordt9 rondes×16 calls; de volgorde roteert ABC/BCA/CAB enzovoort.
+Elke variant staat daardoor even vaak op iedere meetpositie. De gast bewaart
+de werkelijke variantvolgorde per ronde als `CAPBENCH:ROUND_VARIANT`; de
+runner controleert die volgorde naast de gemeten tijden en afgeleide totalen.
 Iedere aanroep gebruikt `black_box` voor de functiepointer, Engine-ref en
 het resultaat. Iedere uitkomst telt mee in een verschilaccumulator en wordt
 na de batch met de verwachte hash vergeleken. Er staat geen Stats- of serial-

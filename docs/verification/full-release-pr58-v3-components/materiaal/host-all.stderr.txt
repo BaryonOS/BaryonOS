@@ -1,0 +1,19 @@
+   Compiling catalog-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/services/catalog)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/runtime)
+   Compiling ui-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/crates/ui-core)
+   Compiling nieuw-os-catalog-client v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/catalog-client)
+   Compiling nieuw-os-input-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/services/input-core)
+   Compiling volume-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/services/volume)
+   Compiling noto-sans-mono-bitmap v0.3.2
+   Compiling nieuw-os-document-session v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/document-session)
+   Compiling nieuw-os-input-client v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/input-client)
+   Compiling nieuw-os-surface-protocol v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/ui/surface-protocol)
+   Compiling capability-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/crates/capability-core)
+   Compiling kernel-core v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/crates/kernel-core)
+   Compiling nieuw-os-materiaal v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/ui/native)
+   Compiling nieuw-os-materiaal-app v0.1.0 (/home/runner/work/nieuw-os/nieuw-os/sdk/examples/materiaal)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.49s
+     Running unittests src/lib.rs (build/materiaal-app-host/debug/deps/nieuw_os_materiaal_app-806d2c67b6085e3e)
+     Running tests/chain.rs (build/materiaal-app-host/debug/deps/chain-b78c529c8de29d6e)
+     Running tests/elf.rs (build/materiaal-app-host/debug/deps/elf-49e61e2e1dbdc6ee)
+   Doc-tests nieuw_os_materiaal_app

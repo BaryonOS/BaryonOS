@@ -24,6 +24,26 @@ def chain_scenario_count(log: str) -> int:
         raise RuntimeError("host chain log must contain exactly one successful, unfiltered test result")
     return int(result[1])
 
+EXPECTED_HOST_SCENARIOS = 20
+
+def host_scenario_count(path: Path) -> int:
+    output = path.read_text(encoding="utf-8")
+    runs = re.findall(r"^running (\d+) tests?$", output, re.MULTILINE)
+    lines = [line for line in output.splitlines() if line.startswith("test result:")]
+    results = [re.fullmatch(
+        r"test result: ok\. (\d+) passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in \d+(?:\.\d+)?s",
+        line,
+    ) for line in lines]
+    if not runs or len(runs) != len(results) or any(result is None for result in results):
+        raise RuntimeError("invalid or incomplete Materiaal host test output")
+    counts = [result[1] for result in results if result is not None]
+    if runs != counts:
+        raise RuntimeError("Materiaal host test counts do not match the executed suites")
+    count = sum(map(int, counts))
+    if count != EXPECTED_HOST_SCENARIOS:
+        raise RuntimeError(f"expected {EXPECTED_HOST_SCENARIOS} Materiaal host scenarios, got {count}")
+    return count
+
 def main() -> int:
     # A successful old ABI build is insufficient: check_abi would reject the
     # actual desktop kernel. Never silently patch shared SDK sources here.
@@ -48,6 +68,7 @@ def main() -> int:
         run_logged(args, f"materiaal-app/{name}", extra_env=selected if name != "native-elf" else None)
         logs.append(name)
     host_scenarios = chain_scenario_count((BUILD / "logs/materiaal-app/host.stdout.txt").read_text())
+    full_host_scenarios = host_scenario_count(BUILD / "logs/materiaal-app/host-all.stdout.txt")
     native_target = Path(os.environ.get("CARGO_TARGET_DIR", ROOT / "build/sdk-materiaal"))
     binary = native_target / "x86_64-unknown-none/release/materiaal-app"
     run_logged(["cargo", "test", "--offline", "--locked", "--manifest-path", manifest,
@@ -107,7 +128,8 @@ def main() -> int:
         "actual_shared_sdk_diff_sha256": hashlib.sha256(sdk_diff).hexdigest() if sdk_diff else None,
         "artifact": {"path": str(binary), "bytes": binary.stat().st_size, "sha256": digest(binary),
                      "scalar_instructions": instructions, "simd_fpu": forbidden, "host_backends": host},
-        "host_scenarios": host_scenarios, "actual_ELF_loader_policy_tests": 1,
+        "host_scenarios": host_scenarios, "full_host_scenarios": full_host_scenarios,
+        "actual_ELF_loader_policy_tests": 1,
         "build_claim": "actual x86_64-unknown-none executable; not execution, pixels, hardware input or durable encrypted storage",
     }
     (output / "pre-native.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")

@@ -1,0 +1,125 @@
+{
+  "task": "GUI-BENCH-REVIEW-1",
+  "scope": "Independent read-only review of exact48b. No reviewer VM and no root source changes. Existing native artifact rechecked; host-only spies are verifier counterexamples, not native evidence.",
+  "source_and_artifacts": {
+    "source_commit": "48b51878c03b5b73449f563735c7854b24926fc4",
+    "source_sha256": "d54262733b9e2aca9b6ec1385d2c4ba7f0087d91cabab96d3f2a722edffca60d",
+    "reviewed_files": {
+      "tools/run_cap_bench.py": "2104b3eb7f1354406f74a6cd2e924d18e3b719ad509d29e5d4d36c1d4c93b11b",
+      "tools/tests/test_cap_bench.py": "8ead171fcd4d0d2d028f3bc00d32d2ae6cf0327a4acbc516f280d144219604f6",
+      "kernel/src/m2/m3/cap_bench.rs": "d81ab0b7d724b4bf27e6a68f229b319a23ba2a6bf49cdf0c837cb199356fe85d",
+      "kernel/src/m2/m3.rs": "bc3dfeb3785115923c477c38ee1bb9181468f5db2da41678d1cb3806b995acad",
+      "kernel/Cargo.toml": "95b9694ed57c44dd4b250d595c981da6ec068726c08c83d5849e00a124b03002",
+      "kernel/build.rs": "ad4cc1eccb6ae5121984c6edeb0fcf1db472f79d53c9512d0c5c950f75eb3bd5",
+      "tools/build.py": "9a146569c21f95af1299b3d687465ca92f7ad1df5bbae2e434e1ca1e01a63511",
+      "crates/capability-core/src/lib.rs": "a7ea469b6acf76d4fe5ba9f7ad896254564b26752caeb707038cc4f23da8b3ab",
+      "crates/capability-core/Cargo.toml": "e25dba4430b82587dcb9e65f209155238c9f9721d9f3114df890c370119017b6",
+      "docs/contracts/CAP-DIAGNOSTIC-DIGEST.md": "d9f028f359b88babb6789d3e698289c274a46b69b92a57b9f08cbda0d024a63e"
+    },
+    "host_command": [
+      "python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/tests",
+      "-p",
+      "test_cap_bench.py"
+    ],
+    "host_exit": 0,
+    "host_tests": 3,
+    "existing_native_report_sha256": "8b3619dd4c33c652eb59ef338b68bd64b4f80984acf05d36c82dcbf7d0ad6b3f",
+    "existing_run": "/workspace/nieuw-os-worktrees/root-materiaal/build/cap-bench/run/cap-bench-a7629f96c97d43c3abb555497df34bba",
+    "existing_artifact_hashes_recomputed": 15,
+    "existing_serial_and_round_totals_recomputed": true,
+    "existing_native_raw_exit": 33,
+    "reviewer_started_vm": false,
+    "source_drift": false
+  },
+  "compiled_batch": {
+    "indirect_calls": 16,
+    "rdtsc": 2,
+    "each_result_compared": true,
+    "rotations": 8,
+    "timed_calls_per_variant": 128,
+    "warmups_per_variant": 4,
+    "before_after_stats_and_invariants": true
+  },
+  "limited_kernel_measurement": "No concrete measurement-mechanism blocker found for the explicit CPL0/TCG/four-process-manifest scope. Does not establish GUI, app, boot-latency, physical CPU cycles, production speedup or release acceptance.",
+  "findings": [
+    {
+      "id": "CB-01",
+      "severity": "P2",
+      "file": "tools/run_cap_bench.py",
+      "lines": "70-75",
+      "issue": "Timeout/TARGET validation precedes current False publication. Invalid timeout or TARGET link guard leaves previous safe index passed=true, despite rejected new attempt. CLI itself fails.",
+      "counterexamples": [
+        {
+          "case": "invalid-timeout",
+          "host_only": true,
+          "error": "Unbounded timeout",
+          "subprocess_calls": 0,
+          "old_top_pass_remains": true
+        },
+        {
+          "case": "bad-target",
+          "host_only": true,
+          "error": "Symlink in FPU artifact path",
+          "subprocess_calls": 0,
+          "old_top_pass_remains": true
+        }
+      ]
+    },
+    {
+      "id": "CB-02",
+      "severity": "P2",
+      "file": "tools/run_cap_bench.py",
+      "lines": "94-132",
+      "issue": "Copied firmware/archived ELF inputs are only hashed after execution; no immutable expected prelaunch map is checked afterwards. Controlled snapshot drift can yield passed=true and internally contradictory manifest/input-ELF hashes.",
+      "counterexamples": [
+        {
+          "case": "changed-fw-snapshot",
+          "host_only": true,
+          "real_vm_started": false,
+          "response_spy_calls": 1,
+          "runner_false_accept": true,
+          "changed": [
+            {
+              "path": "OVMF_CODE.fd",
+              "before": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+              "after": "cfce7d1f738bf1059846295de0c502d514658630e1a70aee391b78333b65f63d"
+            }
+          ],
+          "selected_firmware_sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+          "reported_firmware_sha256": "cfce7d1f738bf1059846295de0c502d514658630e1a70aee391b78333b65f63d",
+          "expected_app_elf_sha256": "530163710c2ae12894afda264b6aa507a15ca3d995fcc58c738bbad446cf400a",
+          "reported_input_app_sha256": "530163710c2ae12894afda264b6aa507a15ca3d995fcc58c738bbad446cf400a"
+        },
+        {
+          "case": "changed-elf-input",
+          "host_only": true,
+          "real_vm_started": false,
+          "response_spy_calls": 1,
+          "runner_false_accept": true,
+          "changed": [
+            {
+              "path": "inputs/system_app.elf",
+              "before": "530163710c2ae12894afda264b6aa507a15ca3d995fcc58c738bbad446cf400a",
+              "after": "e0ca2b5380748377cd8dfa841e77eb7df19e1cf911b518e48ae9a01b8688b0bb"
+            }
+          ],
+          "selected_firmware_sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+          "reported_firmware_sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+          "expected_app_elf_sha256": "530163710c2ae12894afda264b6aa507a15ca3d995fcc58c738bbad446cf400a",
+          "reported_input_app_sha256": "e0ca2b5380748377cd8dfa841e77eb7df19e1cf911b518e48ae9a01b8688b0bb"
+        }
+      ]
+    }
+  ],
+  "existing_native_artifact_showed_drift": false,
+  "source_unchanged_after_environment_recovery": true,
+  "pending_sessions": [],
+  "reviewer_started_vm": false,
+  "verdict": "Bounded native measurement supported by the rechecked existing artifact; harness needs CB-01/CB-02 fixes before full evidence-gate approval."
+}

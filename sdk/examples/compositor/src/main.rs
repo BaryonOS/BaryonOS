@@ -176,12 +176,16 @@ fn run() -> ! {
                 }
             } else {
                 wiping = None;
+                control.finish_retire_wipe(tick(&boot));
                 break;
             }
         }
-        if wiping.is_none() && control.flush(tick(&boot), boot.registry, &mut io).is_err() {
-            surface.retire(&mut io);
-            fail(19, Some(&boot));
+        if wiping.is_none() {
+            let now = tick(&boot);
+            if control.flush(now, boot.registry, &mut io).is_err() {
+                surface.retire(&mut io);
+                fail(19, Some(&boot));
+            }
         }
         if surface
             .step(now, &mut io, || {
