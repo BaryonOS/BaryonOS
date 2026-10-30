@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`3fedd03e`](https://github.com/simonvanieperen/nieuw-os/commit/3fedd03eecff62d6bffae038ec959c56734e2137) ·
-**Ontwikkelbranch:** `chatgpt/review-integration-20261030`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Gezamenlijke integratie en herstel van pull requests en reviewbevindingen.
-De productscore blijft 34/100. De vaste rubric, geaccepteerde criteria en bewijsverwijzingen zijn behouden. De gezamenlijke bron combineert componentwerk en concrete reviewfixes. De samengevoegde SDK heeft 26 geslaagde hosttests; twee gereproduceerde netwerkfouten hebben blijvende regressietests, met 31 net-configtests, 25 net-stacktests en 61 protocoltests geslaagd. Gerichte Clippy-, formatting- en freestanding controles zijn geslaagd. App-management omvat pakketvalidatie, catalogus, protocol en transactiebewaking met een testbackend; duurzame journal- en native launch-acceptatie blijven open. De volledige gecombineerde GitHub-CI en native NAS normal/cold-gate moeten op de kandidaathead slagen vóór merge. PR #93 blijft uitgesloten totdat de echte vorige-boot-handoff bestaat. Hosttests en crosscompilatie geven geen extra native productpunten. De volledige FR-acceptatie, 100 cold-starts, 24 uur, fysieke hardware en menselijke acceptatie blijven open.
+**Bron:** [`ed63ed25`](https://github.com/simonvanieperen/nieuw-os/commit/ed63ed2597460a0265ee094ebea366cda9ef2a7d) ·
+**Ontwikkelbranch:** `claude/integration-2-20261030`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Afhandeling van alle open pull requests en issues: integratie 1 (#96) en integratie 2 (#113).
+De productscore blijft 34/100. #96 is gesquash-merged na 30 groene checks, inclusief de native NAS normal/cold-gate. #113 neemt de resterende component-delta's op: Materiaal-semantiek en SR05–SR08-regressies, primary hover, app-source-snapshotkern en -contracten, DHCP-retries met expliciete entropiepoort, en documentatie- en bewijsbestanden. Alle opgenomen PR's zijn per commit na hun vastgelegde bron gecontroleerd. Reviewfixes: een net-stack-discardroute voor een ingehouden TX-frame met regressietest, en de Materiaal-chaintest volgt het nieuwe semantische buffercontract. Lokaal zijn host-tests, Clippy en fmt groen; de freestanding-build van app-package-core is lokaal niet uitgevoerd. Dit is host- en componentbewijs, geen native-, FR-, fysieke of menselijke acceptatie; vaste criteria en gewichten zijn ongewijzigd. Open: #109, #110 en de productmilestones #39–#43.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
