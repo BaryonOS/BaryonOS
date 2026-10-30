@@ -52,3 +52,12 @@ referentiehardware blijven afzonderlijke vervolgstappen.
   De pagina linkt het officiële archief
   <https://www.usb.org/sites/default/files/usb_20_20250603.zip>.
   Geen specificatietekst of implementatiecode is overgenomen.
+
+## Uitgevoerde controle — 30 oktober 2026
+
+Op broncommit `f8e7490b1dd8fdeb3cd8e8eb8578535bc49c5cc6` zijn de hosttests
+(7/7), Clippy, formattering en de release-librarybuild voor
+`x86_64-unknown-none` geslaagd. Exacte commando's, logs en de hash van de
+gebouwde library staan in
+[`verification/usb-descriptor-core-f8e7490/`](../verification/usb-descriptor-core-f8e7490/).
+Er is geen native QEMU-USB-run of fysieke hardwaretest uitgevoerd.

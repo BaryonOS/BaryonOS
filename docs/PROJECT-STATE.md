@@ -1,44 +1,37 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — hardware, drivers en energie — 30 oktober 2026
+## NEXT AGENT HANDOFF — USB-descriptorcore — 30 oktober 2026
 
-Bron `bff1ed76a8ace8617dee040770bcea98bb39fe55`, branch
+Bron `f8e7490b1dd8fdeb3cd8e8eb8578535bc49c5cc6`, branch
 `simonvanieperen-friendly-guacamole`; de remote bevat dezelfde commit. De vaste
-voortgang blijft **34% totaal, hardware 1/12**: H01 is het enige geaccepteerde
-hardwarecriterium. H02–H06 blijven open. De taak vroeg om 12/12, maar de
-beschikbare QEMU-installatie bewijst geen USB/xHCI, audio, fysieke netwerk- of
-energiehardware, slaap/wek, thermiek/batterij of meerdere fysieke pc-profielen.
+score blijft **34% totaal, hardware 1/12**. H01 is het enige geaccepteerde
+hardwarecriterium; H02–H06 blijven open.
 
-De bestaande Windows-QEMU-runner is compatibel gemaakt met WSL: QEMU beheert nu
-zelf het seriële logbestand en QMP-screenshots gebruiken relatieve namen.
-Acceptatieproef op exact deze broncommit: eigen UEFI-loader/kernel op
-`pc-q35-8.2`, QEMU 11.1.0, TCG, `qemu64`, 1 vCPU, 256 MiB, VGA en PS/2.
-Eén VM-boot doorliep twee input-/displaygeneraties, echte QMP-toetsenbord- en
-muisinvoer, pixel-/framebufferassertions, geweigerde capability-/displayacties,
-reset en process-slot-hergebruik. Raw QEMU-exit 33, geen timeout; alle
-rapportchecks slaagden. Dit is een beperkte emulatortest, geen fysieke H02/H03-
-aftekening en geen claim over audio of grafische prestaties. De hash van de
-QEMU-ingang komt overeen met de meegeleverde Windows-`.exe`; WSL rapporteert
-`/proc/<pid>/exe` als `/init`, dus die implementatiepad-/hashvelden in het
-rapport zijn niet de QEMU-binary-identiteit.
+Eerste USB-bouwsteen geïmplementeerd: dependencyvrije `no_std`-core in
+`drivers/usb` die descriptorgrenzen in een al begrensde transfer-slice
+controleert. Te kleine/afgeknotte records geven één terminale fout; onbekende
+typen blijven als geleende bytes behouden. Dit doet geen I/O, DMA/MMIO,
+enumeratie, HID of xHCI en levert geen H02-punt op.
 
-Geslaagd: `python3 -B tools/test_display_probe.py` (13 tests);
-`cargo +1.90.0 test --offline --locked --manifest-path drivers/ps2/Cargo.toml`
-(1 unit- en 7 controllertests); de display-fixturehosttest (2 tests);
-`python3 -B tools/build.py --kernel-feature native-display-probe`; en de
-QEMU-run hierboven. De build en run gebruikten aparte, wegwerpbare outputmappen
-op Windows-opslag om de WSL-interoperabele QEMU toegang tot VM-bestanden te
-geven. Rapport, manifest, QMP-trace, logs en SHA-256-lijst:
-[`docs/verification/native-display-input-bff1ed7/`](verification/native-display-input-bff1ed7/).
-QEMU-proefbestanden zijn geen opgenomen productbinary's. Geen fysiek apparaat,
-firmware of hostschijf gebruikt of gewijzigd.
+Op exact broncommit f8e7490 geslaagd: `cargo +1.90.0 test --offline --locked
+--manifest-path drivers/usb/Cargo.toml` (7 tests), Clippy met `-D warnings`,
+fmt-check en release-librarybuild voor `x86_64-unknown-none`. Testlogs en hash
+van de no_std-library: [`docs/verification/usb-descriptor-core-f8e7490/`](verification/usb-descriptor-core-f8e7490/).
+Er is geen USB-apparaat op QEMU of fysieke hardware aangesloten; xHCI-ringen,
+interrupts, DMA/IOMMU, time-outs/reset en hotplug zijn niet geïmplementeerd of
+getest.
 
-Volgende hardwarestap: onderzoek/implementatie van een begrensde USB/xHCI-
-driver en device lifecycle; daarna afzonderlijk audio en ACPI-/energiebeheer.
-H02–H06 blijven open tot hun volledige acceptatiecriteria en vereiste
-fysieke bewijzen beschikbaar zijn.
+Eerder afzonderlijk bewijs: [native PS/2/display-QMP-proef op bff1ed7](verification/native-display-input-bff1ed7/).
+Die beperkte VGA/PS/2-VM-proef sluit geen fysieke acceptatie af. De 12/12-doel-
+score is niet haalbaar uit dit bewijs: USB, audio, netwerkhardware,
+energiebeheer en meerdere fysieke profielen vereisen verdere implementatie en
+fysieke controles.
 
-## NEXT AGENT HANDOFF — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
+Volgende stap: specificeer en implementeer een minimale xHCI-controller-
+enumeratieroute met expliciete MMIO-/DMA-eigendom, ringgrenzen, time-outs,
+reset en hotplug; pas daarna USB-input/hardwareproeven. H03–H06 blijven apart.
+
+## HISTORISCHE CHECKPOINT — B02-PERSIST-1: persistente sleutelstatus en verzegeld record native — 30 oktober 2026
 
 Basis `ad2b981` (`main` na PR #63), branch
 `codex/b02-persistent-keystate-20261030`, worktree

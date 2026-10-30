@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`bff1ed76`](https://github.com/simonvanieperen/nieuw-os/commit/bff1ed76a8ace8617dee040770bcea98bb39fe55) ·
+**Bron:** [`f8e7490b`](https://github.com/simonvanieperen/nieuw-os/commit/f8e7490b1dd8fdeb3cd8e8eb8578535bc49c5cc6) ·
 **Ontwikkelbranch:** `simonvanieperen-friendly-guacamole`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hardware, drivers en energie: herstel WSL/QEMU-runner en voer native PS/2/display-proef uit.
-34% blijft 34%; hardware blijft 1/12 en H01 is het enige geaccepteerde criterium. De WSL/Windows-QEMU runner is hersteld; 13 hostregressies, PS/2 hosttests en de native QEMU-display/PS/2-proef slagen op exact broncommit bff1ed7. QEMU 11.1.0 voerde twee input-/displaygeneraties uit met QMP-toetsenbord/muis, pixel-/framebufferassertions, capabilityweigeringen en slot-hergebruik. Bewijs en hashes staan in `docs/verification/native-display-input-bff1ed7/`. Dit blijft beperkte emulatorvalidatie: USB/xHCI, audio, fysieke netwerk-/energiehardware, slaap/wek, meerdere pc-profielen en fysieke acceptatie ontbreken. H02-H06 blijven open; geen hardwarepunten toegekend.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Hardware, drivers en energie: voeg begrensde USB-descriptorframing toe.
+34% blijft 34%; hardware blijft 1/12 en H01 is het enige geaccepteerde hardwarecriterium. De nieuwe dependencyvrije no_std USB-core begrenst descriptorframing en stopt na malformed lengtes; 7 tests, Clippy, fmt en x86_64-unknown-none releasebuild slagen op broncommit f8e7490. Dit implementeert geen device-I/O, enumeratie, HID of xHCI en levert daarom geen H02-punt op. Bewijs en no_std artifacthash staan in `docs/verification/usb-descriptor-core-f8e7490/`. De eerdere native PS/2/display-proef blijft apart vastgelegd op bff1ed7. USB-controller, audio, fysieke netwerk-/energiehardware, slaap/wek, meerdere pc-profielen en fysieke acceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
