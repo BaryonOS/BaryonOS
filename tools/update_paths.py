@@ -20,6 +20,8 @@ def portable(value):
             return "."
         if path.startswith((root + "/", root + "\\")):
             return path[len(root) + 1:].replace("\\", "/")
+        if match.start() == 0 and match.end() == len(value):
+            return path.replace("\\", "/").rsplit("/", 1)[-1] or "<host-path>"
         return "<host-path>"
     return HOST_PATH.sub(replace, value)
 

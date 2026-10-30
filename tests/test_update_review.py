@@ -42,6 +42,7 @@ class Capture(unittest.TestCase):
             self.assertEqual(captured['stages'][0]['run_directory'], 'build/run/update-example')
             self.assertEqual(stage['run_directory'], 'build/run/update-example')
             self.assertEqual(stage['state_directory'], 'build/run/state')
+            self.assertEqual(stage['command'], ['qemu-system-x86_64'])
             self.assertNotIn(str(root), json.dumps([captured, stage]))
             self.assertNotIn('/usr/bin/', json.dumps([captured, stage]))
             for line in (destination / 'SHA256SUMS').read_text().splitlines():
