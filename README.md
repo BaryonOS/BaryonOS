@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`fc40347b`](https://github.com/simonvanieperen/nieuw-os/commit/fc40347b250c544ab9838cf89a62df16b32a797b) ·
+**Bron:** [`8a401b9d`](https://github.com/simonvanieperen/nieuw-os/commit/8a401b9d68c3f14de46a858a2fbaf1d3a16b4426) ·
 **Ontwikkelbranch:** `simon/native-test-version`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Zevenprocessenbediening native bewezen; CI-formatfix en nieuwe vaste bundelbron volgen.
-34% blijft34%; minstens50% niet bereikt. Op fc40347 slagen echte normale referentie en gewone zevenprocessenbediening met zes volledige bytegelijke native frames, zeven appidentiteiten en onafhankelijk diskorakel na QMP-quit/raw0. Geen maskers/controllerfallback. Vier CI-jobs falen op rustfmt van overgenomen cfg-hooks; herstel en nieuwe same-source native gates volgen. Windows/ZIP en volledige product-, menselijke en hardwareacceptatie open; deze deelketen sluit geen volledig rubriccriterium.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** Concrete rustfmt-CI-fout hersteld; hostgates groen, herhaalde native bron volgt.
+34% blijft34%; minstens50% niet bereikt. Twee overgenomen cfg-attributen volgens rustfmt geformatteerd als herstel voor vier concrete PR-veroorzaakte CI-fouten. Fmt, root-workspace en132 tooltests lokaal groen; nieuwe CI nog niet geclaimd. Echte interactieve native keten op fc40347 blijft brongebonden; vanwege nieuwe v3 volgen beide gates opnieuw voor vrijgave van vaste Windowsbundelbron. Geen nieuw volledig rubriccriterium of menselijke/hardwareacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

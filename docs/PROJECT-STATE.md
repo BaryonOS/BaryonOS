@@ -1,6 +1,27 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Interactieve native keten groen; CI-formatfix volgt
+## NEXT AGENT HANDOFF — CI-formatfix lokaal groen; nieuwe native bron vastzetten
+
+Vanaf bewijscheckpoint `8a401b9`: `cargo +1.90.0 fmt --all` wijzigt alleen
+de twee `cfg(any(...))`-attributen in `kernel/src/m2/m3/{display,ps2}.rs`.
+De derde probe-hook in desktop.rs was al correct geformatteerd.
+Geen gedrag/interface/rechten gewijzigd. Vier concrete CI-fouten waren
+PR-veroorzaakte rustfmt-fouten, geen transient infra of genegeerde gates.
+`LD_LIBRARY_PATH="$PWD/.tools/nieuw-os/host-cc/usr/lib/x86_64-linux-gnu"
+python3 -B tools/dev.py cargo +1.90.0 fmt --all -- --check`: exit0.
+Zelfde omgeving met `CARGO_TARGET_DIR="$PWD/target/native-test-version/interactive-host"`
+en `python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --workspace`:
+exit0; log `/tmp/nieuw-os-interactive-format-workspace.log`.
+`python3 -B -m unittest discover -s tools/tests`: 132 tests, exit0,
+log `/tmp/nieuw-os-interactive-format-tools.log`.
+
+Na push beide native gates opnieuw uitvoeren, met expliciete reguliere
+OVMF CODE/VARS uit `.tools/nieuw-os/qemu/usr/share/OVMF`, de bestaande
+buildroots en dezelfde machine/VGA-ROM. Formatteren wijzigt bronhash v3;
+oud bewijs hieronder blijft geldig voor zijn oude bron, niet voor deze.
+Geen complete CI-succesclaim. **34% blijft34%; Windows/ZIP/50% open.**
+
+## Uitvoeringshistorie — Interactieve native keten groen; CI-formatfix volgt
 
 Op vaste bron `fc40347b250c544ab9838cf89a62df16b32a797b`, runtime v3
 `61f58e2e7c7a64e911883c64de5b2d416f7085af94123699fd206c7448ea2b5e`,
