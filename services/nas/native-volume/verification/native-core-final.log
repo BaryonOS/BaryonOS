@@ -1,0 +1,114 @@
++ cargo test --offline --locked --manifest-path services/nas/native-core/Cargo.toml
+   Compiling nieuw-os-nas-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.33s
+     Running unittests src/lib.rs (target/nas-core/debug/deps/nieuw_os_nas_core-7a91e4c1185bb837)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/authority.rs (target/nas-core/debug/deps/authority-abb66286b6da6070)
+
+running 18 tests
+test absent_truncated_and_oversized_storage_are_not_empty_authority ... ok
+test accepted_invitation_cannot_replay_even_after_recovery ... ok
+test admin_and_guest_authorities_do_not_substitute_for_each_other ... ok
+test close_releases_reservations_and_cannot_be_used_to_close_another_session ... ok
+test entropy_failure_or_repeating_namespace_never_publishes_an_invitation ... ok
+test commit_copies_input_and_rejects_competing_writer_without_losing_winner ... ok
+test explicit_initialization_never_replaces_existing_or_corrupt_storage ... ok
+test invitation_is_bound_to_recipient_and_expires_at_exact_boundary ... ok
+test malformed_snapshot_fields_are_rejected_without_writes_or_panics ... ok
+test eviction_removes_committed_and_pending_bytes_and_preserves_tombstone ... ok
+test quota_counts_all_reservations_and_cancel_releases_only_its_upload ... ok
+test read_errors_never_modify_output_and_revision_is_checked ... ok
+test crash_at_each_eviction_commit_preserves_only_possible_durable_outcome ... ok
+test restart_preserves_ciphertext_but_never_sessions_staging_or_old_uploads ... ok
+test revoke_is_durable_without_guest_consent_and_full_quota_cannot_block_it ... ok
+test sessions_uploads_and_reads_are_bound_to_actual_caller_and_namespace ... ok
+test resource_limits_and_invalid_inputs_leave_durable_state_unchanged ... ok
+test uncertain_publication_never_acks_replays_or_keeps_serving ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_nas_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+real	0m0.367s
+user	0m0.325s
+sys	0m0.193s
++ cargo test --offline --locked --release --manifest-path services/nas/native-core/Cargo.toml -- --nocapture
+   Compiling nieuw-os-nas-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-core)
+    Finished `release` profile [optimized] target(s) in 0.81s
+     Running unittests src/lib.rs (target/nas-core/release/deps/nieuw_os_nas_core-58fb64c8eae93b88)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/authority.rs (target/nas-core/release/deps/authority-c32e5d2911235cb1)
+
+running 19 tests
+caller workspace=62336 bytes; service=16 bytes
+test absent_truncated_and_oversized_storage_are_not_empty_authority ... ok
+test accepted_invitation_cannot_replay_even_after_recovery ... ok
+test admin_and_guest_authorities_do_not_substitute_for_each_other ... ok
+test commit_copies_input_and_rejects_competing_writer_without_losing_winner ... ok
+test close_releases_reservations_and_cannot_be_used_to_close_another_session ... ok
+test entropy_failure_or_repeating_namespace_never_publishes_an_invitation ... ok
+test crash_at_each_eviction_commit_preserves_only_possible_durable_outcome ... ok
+test eviction_removes_committed_and_pending_bytes_and_preserves_tombstone ... ok
+test explicit_initialization_never_replaces_existing_or_corrupt_storage ... ok
+test invitation_is_bound_to_recipient_and_expires_at_exact_boundary ... ok
+test malformed_snapshot_fields_are_rejected_without_writes_or_panics ... ok
+test quota_counts_all_reservations_and_cancel_releases_only_its_upload ... ok
+test optimized_core_fits_the_existing_64_kib_native_stack ... ok
+test resource_limits_and_invalid_inputs_leave_durable_state_unchanged ... ok
+test read_errors_never_modify_output_and_revision_is_checked ... ok
+test restart_preserves_ciphertext_but_never_sessions_staging_or_old_uploads ... ok
+test sessions_uploads_and_reads_are_bound_to_actual_caller_and_namespace ... ok
+test revoke_is_durable_without_guest_consent_and_full_quota_cannot_block_it ... ok
+test uncertain_publication_never_acks_replays_or_keeps_serving ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_nas_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+real	0m0.840s
+user	0m0.747s
+sys	0m0.151s
++ cargo clippy --offline --locked --manifest-path services/nas/native-core/Cargo.toml --all-targets -- -D warnings
+    Checking nieuw-os-nas-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.25s
+
+real	0m0.278s
+user	0m0.274s
+sys	0m0.109s
++ cargo clippy --offline --locked --release --manifest-path services/nas/native-core/Cargo.toml --all-targets -- -D warnings
+    Checking nieuw-os-nas-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-core)
+    Finished `release` profile [optimized] target(s) in 0.18s
+
+real	0m0.205s
+user	0m0.241s
+sys	0m0.110s
++ cargo fmt --manifest-path services/nas/native-core/Cargo.toml --all -- --check
+
+real	0m0.034s
+user	0m0.027s
+sys	0m0.004s
++ cargo build --offline --locked --manifest-path services/nas/native-core/Cargo.toml --release --target x86_64-unknown-none
+   Compiling nieuw-os-nas-core v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-legendary-broccoli/services/nas/native-core)
+    Finished `release` profile [optimized] target(s) in 0.17s
+
+real	0m0.175s
+user	0m0.117s
+sys	0m0.049s

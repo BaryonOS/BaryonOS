@@ -1,0 +1,502 @@
+{
+  "schema_version": 1,
+  "scope": "Exact archival preservation of central documentation; no new runtime or release verification",
+  "recorded_date": "2026-10-30",
+  "repository": "simonvanieperen/nieuw-os",
+  "source_commits": {
+    "main": "9a6703d339f9248fc58d470523644193ec92cd45",
+    "pr75": "c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6",
+    "pr73": "dce3b05aa358f4dbde6f2349b426217779b40052",
+    "pr79": "e79e3b17edb48495d68396620ef0fcb1ed551a04",
+    "pr65": "7960e98a78e054f245ec75a0862f9147bdb53f55",
+    "pr65-ec591dd": "ec591dd8ea01f5b2c50481791789bf5d211ee0ac",
+    "pr65-0e441a9": "0e441a9354fd519ebb5583eb52d2a396f452bbf6",
+    "queue-contract": "b58925f9ce1a9a4d045ba0753f007e7d070be7c2"
+  },
+  "source_metadata": {
+    "main": {
+      "sha": "9a6703d339f9248fc58d470523644193ec92cd45",
+      "author": {
+        "name": "S.W.J.B.M. van Ieperen",
+        "email": "205651656+simonvanieperen@users.noreply.github.com",
+        "date": "2026-10-30T18:38:53Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2026-10-30T18:38:53Z"
+      },
+      "message": "drivers/virtio-snd: bounded output-only PCM_INFO codec (#85)\n\nIntegrate the isolated no_std output codec and its bounded negative tests. No device I/O, capture, DMA authority, production audio or H03 acceptance is claimed.\n\nValidation on PR head 72f6668d313ab39a25f952abd6456d5e5e8db95e against main ca45a7d: all 13 GitHub Actions checks succeeded, including host-quality and qemu-smoke; no unresolved review threads. CodeRabbit check was skipped and is not counted as review approval. Source reviewed independently; rubric remains 34/100."
+    },
+    "pr75": {
+      "sha": "c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6",
+      "author": {
+        "name": "S.W.J.B.M. van Ieperen",
+        "email": "205651656+simonvanieperen@users.noreply.github.com",
+        "date": "2026-10-30T18:45:28Z"
+      },
+      "committer": {
+        "name": "S.W.J.B.M. van Ieperen",
+        "email": "205651656+simonvanieperen@users.noreply.github.com",
+        "date": "2026-10-30T18:45:28Z"
+      },
+      "message": "Take queue owner blob 60ff361c (e6e382cb) into #75\n\nOnly docs/WORK-QUEUE.md; resolves the stale donor-wait rows.\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+    },
+    "pr73": {
+      "sha": "dce3b05aa358f4dbde6f2349b426217779b40052",
+      "author": {
+        "name": "S.W.J.B.M. van Ieperen",
+        "email": "205651656+simonvanieperen@users.noreply.github.com",
+        "date": "2026-10-30T18:25:09Z"
+      },
+      "committer": {
+        "name": "S.W.J.B.M. van Ieperen",
+        "email": "205651656+simonvanieperen@users.noreply.github.com",
+        "date": "2026-10-30T18:25:09Z"
+      },
+      "message": "Reuse canonical app ID validator across package and wire decoding\n\nExpose only the existing syntax validator, remove the SDK copy, and retain exact former acceptance semantics. Add canonical/padding boundary checks and 16384 single-byte identity/core parity cases. No publisher authority, wire layout, dependencies or rights change.\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+    },
+    "pr79": {
+      "sha": "e79e3b17edb48495d68396620ef0fcb1ed551a04",
+      "author": {
+        "name": "S.W.J.B.M. van Ieperen",
+        "email": "205651656+simonvanieperen@users.noreply.github.com",
+        "date": "2026-10-30T17:53:33Z"
+      },
+      "committer": {
+        "name": "S.W.J.B.M. van Ieperen",
+        "email": "205651656+simonvanieperen@users.noreply.github.com",
+        "date": "2026-10-30T17:53:33Z"
+      },
+      "message": "test(acpi): validate actual QEMU firmware table snapshots\n\nRecord firmware-only QMP capture separately from native OS acceptance. Add an explicit external-table host test with truncation, checksum, range, binding and AML-negative mutations. No public API or root integration changes.\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+    },
+    "pr65": {
+      "sha": "7960e98a78e054f245ec75a0862f9147bdb53f55",
+      "author": {
+        "name": "copilot-swe-agent[bot]",
+        "email": "198982749+Copilot@users.noreply.github.com",
+        "date": "2026-10-30T17:49:39Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2026-10-30T17:49:39Z"
+      },
+      "message": "Record main ca45a7d conflict integration\n\nCo-authored-by: simonvanieperen <205651656+simonvanieperen@users.noreply.github.com>"
+    },
+    "pr65-ec591dd": {
+      "sha": "ec591dd8ea01f5b2c50481791789bf5d211ee0ac",
+      "author": {
+        "name": "copilot-swe-agent[bot]",
+        "email": "198982749+Copilot@users.noreply.github.com",
+        "date": "2026-10-30T17:30:56Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2026-10-30T17:30:56Z"
+      },
+      "message": "Document main 94c8908 conflict integration\n\nCo-authored-by: simonvanieperen <205651656+simonvanieperen@users.noreply.github.com>"
+    },
+    "pr65-0e441a9": {
+      "sha": "0e441a9354fd519ebb5583eb52d2a396f452bbf6",
+      "author": {
+        "name": "copilot-swe-agent[bot]",
+        "email": "198982749+Copilot@users.noreply.github.com",
+        "date": "2026-10-30T17:23:04Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2026-10-30T17:23:04Z"
+      },
+      "message": "Record latest main merge verification\n\nCo-authored-by: simonvanieperen <205651656+simonvanieperen@users.noreply.github.com>"
+    },
+    "queue-contract": {
+      "sha": "b58925f9ce1a9a4d045ba0753f007e7d070be7c2",
+      "author": {
+        "name": "S.W.J.B.M. van Ieperen",
+        "email": "205651656+simonvanieperen@users.noreply.github.com",
+        "date": "2026-10-30T18:24:07Z"
+      },
+      "committer": {
+        "name": "S.W.J.B.M. van Ieperen",
+        "email": "205651656+simonvanieperen@users.noreply.github.com",
+        "date": "2026-10-30T18:24:07Z"
+      },
+      "message": "docs: allocate NAS replay payload, TLS CI and hardware host model\n\nKeep runtime, root, profile freeze and security authority gates with existing owners. Preserve exact scopes and host-only evidence boundaries.\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+    }
+  },
+  "current_queue": {
+    "source_commit": "c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6",
+    "owner_commit": "e6e382cb7a02e0f36951842df04993277ee3a6cd",
+    "git_blob": "60ff361c5c4553d37b112fc14fdb19894a9122a3",
+    "content_changes": []
+  },
+  "files": [
+    {
+      "tag": "main",
+      "source_commit": "9a6703d339f9248fc58d470523644193ec92cd45",
+      "source_path": "README.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/9a6703d339f9248fc58d470523644193ec92cd45/README.md",
+      "source_git_blob": "765b9761ff5b9e54cf2f8fbd55a315ae9406c5cd",
+      "expected_bytes": 15176,
+      "archive_path": "docs/history/integration-2026-10-30/main-9a6703d3/README.md"
+    },
+    {
+      "tag": "main",
+      "source_commit": "9a6703d339f9248fc58d470523644193ec92cd45",
+      "source_path": "docs/PROJECT-STATE.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/9a6703d339f9248fc58d470523644193ec92cd45/docs/PROJECT-STATE.md",
+      "source_git_blob": "2156abfd635e453f56f2e25f5f2eeac48f08c7ca",
+      "expected_bytes": 222386,
+      "archive_path": "docs/history/integration-2026-10-30/main-9a6703d3/docs/PROJECT-STATE.md"
+    },
+    {
+      "tag": "main",
+      "source_commit": "9a6703d339f9248fc58d470523644193ec92cd45",
+      "source_path": "docs/WORK-QUEUE.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/9a6703d339f9248fc58d470523644193ec92cd45/docs/WORK-QUEUE.md",
+      "source_git_blob": "4f85767a14bbc141dc1138ec1cac58d361d8d257",
+      "expected_bytes": 28036,
+      "archive_path": "docs/history/integration-2026-10-30/main-9a6703d3/docs/WORK-QUEUE.md"
+    },
+    {
+      "tag": "main",
+      "source_commit": "9a6703d339f9248fc58d470523644193ec92cd45",
+      "source_path": "docs/progress.json",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/9a6703d339f9248fc58d470523644193ec92cd45/docs/progress.json",
+      "source_git_blob": "61a8bc059d08bbfee53c5751cdcc3847584e4584",
+      "expected_bytes": 22422,
+      "archive_path": "docs/history/integration-2026-10-30/main-9a6703d3/docs/progress.json"
+    },
+    {
+      "tag": "main",
+      "source_commit": "9a6703d339f9248fc58d470523644193ec92cd45",
+      "source_path": "docs/PROGRESS.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/9a6703d339f9248fc58d470523644193ec92cd45/docs/PROGRESS.md",
+      "source_git_blob": "7fddfb9c8294e773b011502a53b925a62b9d452f",
+      "expected_bytes": 24509,
+      "archive_path": "docs/history/integration-2026-10-30/main-9a6703d3/docs/PROGRESS.md"
+    },
+    {
+      "tag": "pr75",
+      "source_commit": "c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6",
+      "source_path": "README.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6/README.md",
+      "source_git_blob": "a47172feae98716ec7db7a7b7f3a20f0796a247d",
+      "expected_bytes": 15629,
+      "archive_path": "docs/history/integration-2026-10-30/pr75-c26f57b6/README.md"
+    },
+    {
+      "tag": "pr75",
+      "source_commit": "c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6",
+      "source_path": "docs/PROJECT-STATE.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6/docs/PROJECT-STATE.md",
+      "source_git_blob": "2972c2ebe359bf97e498979f5f327c3d17a8753e",
+      "expected_bytes": 270106,
+      "archive_path": "docs/history/integration-2026-10-30/pr75-c26f57b6/docs/PROJECT-STATE.md"
+    },
+    {
+      "tag": "pr75",
+      "source_commit": "c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6",
+      "source_path": "docs/WORK-QUEUE.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6/docs/WORK-QUEUE.md",
+      "source_git_blob": "60ff361c5c4553d37b112fc14fdb19894a9122a3",
+      "expected_bytes": 35666,
+      "archive_path": "docs/history/integration-2026-10-30/pr75-c26f57b6/docs/WORK-QUEUE.md"
+    },
+    {
+      "tag": "pr75",
+      "source_commit": "c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6",
+      "source_path": "docs/progress.json",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6/docs/progress.json",
+      "source_git_blob": "6dd3a2b8dca6062deefae94aa21fd8beb24fb1fe",
+      "expected_bytes": 22875,
+      "archive_path": "docs/history/integration-2026-10-30/pr75-c26f57b6/docs/progress.json"
+    },
+    {
+      "tag": "pr75",
+      "source_commit": "c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6",
+      "source_path": "docs/PROGRESS.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6/docs/PROGRESS.md",
+      "source_git_blob": "d730a8109d7e74d18c26077dbf157e31efbb8e6c",
+      "expected_bytes": 29807,
+      "archive_path": "docs/history/integration-2026-10-30/pr75-c26f57b6/docs/PROGRESS.md"
+    },
+    {
+      "tag": "pr73",
+      "source_commit": "dce3b05aa358f4dbde6f2349b426217779b40052",
+      "source_path": "README.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/dce3b05aa358f4dbde6f2349b426217779b40052/README.md",
+      "source_git_blob": "93c793489cb3b665f0da9ce6c9a4d43dbc02f566",
+      "expected_bytes": 15286,
+      "archive_path": "docs/history/integration-2026-10-30/pr73-dce3b05a/README.md"
+    },
+    {
+      "tag": "pr73",
+      "source_commit": "dce3b05aa358f4dbde6f2349b426217779b40052",
+      "source_path": "docs/PROJECT-STATE.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/dce3b05aa358f4dbde6f2349b426217779b40052/docs/PROJECT-STATE.md",
+      "source_git_blob": "30adcd46113a006dfc775d0ae6cfbf32c9f2b3a2",
+      "expected_bytes": 158751,
+      "archive_path": "docs/history/integration-2026-10-30/pr73-dce3b05a/docs/PROJECT-STATE.md"
+    },
+    {
+      "tag": "pr73",
+      "source_commit": "dce3b05aa358f4dbde6f2349b426217779b40052",
+      "source_path": "docs/WORK-QUEUE.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/dce3b05aa358f4dbde6f2349b426217779b40052/docs/WORK-QUEUE.md",
+      "source_git_blob": "90a8355d64c4c1abf87dd335c48744b138fb510e",
+      "expected_bytes": 23008,
+      "archive_path": "docs/history/integration-2026-10-30/pr73-dce3b05a/docs/WORK-QUEUE.md"
+    },
+    {
+      "tag": "pr73",
+      "source_commit": "dce3b05aa358f4dbde6f2349b426217779b40052",
+      "source_path": "docs/progress.json",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/dce3b05aa358f4dbde6f2349b426217779b40052/docs/progress.json",
+      "source_git_blob": "66802fb2bd6bcfe7ebb81e12644371e102f0c05d",
+      "expected_bytes": 22532,
+      "archive_path": "docs/history/integration-2026-10-30/pr73-dce3b05a/docs/progress.json"
+    },
+    {
+      "tag": "pr73",
+      "source_commit": "dce3b05aa358f4dbde6f2349b426217779b40052",
+      "source_path": "docs/PROGRESS.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/dce3b05aa358f4dbde6f2349b426217779b40052/docs/PROGRESS.md",
+      "source_git_blob": "931c0598f1fcc29f834f2b43b173edf909d361c9",
+      "expected_bytes": 22492,
+      "archive_path": "docs/history/integration-2026-10-30/pr73-dce3b05a/docs/PROGRESS.md"
+    },
+    {
+      "tag": "pr79",
+      "source_commit": "e79e3b17edb48495d68396620ef0fcb1ed551a04",
+      "source_path": "README.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/e79e3b17edb48495d68396620ef0fcb1ed551a04/README.md",
+      "source_git_blob": "69f387575a8218be746849adebecd3fe5865e7a9",
+      "expected_bytes": 15163,
+      "archive_path": "docs/history/integration-2026-10-30/pr79-e79e3b17/README.md"
+    },
+    {
+      "tag": "pr79",
+      "source_commit": "e79e3b17edb48495d68396620ef0fcb1ed551a04",
+      "source_path": "docs/PROJECT-STATE.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/e79e3b17edb48495d68396620ef0fcb1ed551a04/docs/PROJECT-STATE.md",
+      "source_git_blob": "7bcd43bb7647179070fb8dbe6bd3cb8febfce422",
+      "expected_bytes": 156224,
+      "archive_path": "docs/history/integration-2026-10-30/pr79-e79e3b17/docs/PROJECT-STATE.md"
+    },
+    {
+      "tag": "pr79",
+      "source_commit": "e79e3b17edb48495d68396620ef0fcb1ed551a04",
+      "source_path": "docs/WORK-QUEUE.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/e79e3b17edb48495d68396620ef0fcb1ed551a04/docs/WORK-QUEUE.md",
+      "source_git_blob": "3a747a36adbcbb1f0e24d123d0c88cea2e595e02",
+      "expected_bytes": 22141,
+      "archive_path": "docs/history/integration-2026-10-30/pr79-e79e3b17/docs/WORK-QUEUE.md"
+    },
+    {
+      "tag": "pr79",
+      "source_commit": "e79e3b17edb48495d68396620ef0fcb1ed551a04",
+      "source_path": "docs/progress.json",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/e79e3b17edb48495d68396620ef0fcb1ed551a04/docs/progress.json",
+      "source_git_blob": "43bebda0bf885cfb289409e80b475b0f8b809bab",
+      "expected_bytes": 22409,
+      "archive_path": "docs/history/integration-2026-10-30/pr79-e79e3b17/docs/progress.json"
+    },
+    {
+      "tag": "pr79",
+      "source_commit": "e79e3b17edb48495d68396620ef0fcb1ed551a04",
+      "source_path": "docs/PROGRESS.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/e79e3b17edb48495d68396620ef0fcb1ed551a04/docs/PROGRESS.md",
+      "source_git_blob": "931c0598f1fcc29f834f2b43b173edf909d361c9",
+      "expected_bytes": 22492,
+      "archive_path": "docs/history/integration-2026-10-30/pr79-e79e3b17/docs/PROGRESS.md"
+    },
+    {
+      "tag": "pr65",
+      "source_commit": "7960e98a78e054f245ec75a0862f9147bdb53f55",
+      "source_path": "README.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/7960e98a78e054f245ec75a0862f9147bdb53f55/README.md",
+      "source_git_blob": "1739fa6a70adac0c122d81cf30a5260004fc2e7d",
+      "expected_bytes": 14963,
+      "archive_path": "docs/history/integration-2026-10-30/pr65-current-7960e98a/README.md"
+    },
+    {
+      "tag": "pr65",
+      "source_commit": "7960e98a78e054f245ec75a0862f9147bdb53f55",
+      "source_path": "docs/PROJECT-STATE.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/7960e98a78e054f245ec75a0862f9147bdb53f55/docs/PROJECT-STATE.md",
+      "source_git_blob": "a4780501b6cf294364a7901999bf2e6258cea2a6",
+      "expected_bytes": 224090,
+      "archive_path": "docs/history/integration-2026-10-30/pr65-current-7960e98a/docs/PROJECT-STATE.md"
+    },
+    {
+      "tag": "pr65",
+      "source_commit": "7960e98a78e054f245ec75a0862f9147bdb53f55",
+      "source_path": "docs/WORK-QUEUE.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/7960e98a78e054f245ec75a0862f9147bdb53f55/docs/WORK-QUEUE.md",
+      "source_git_blob": "4f85767a14bbc141dc1138ec1cac58d361d8d257",
+      "expected_bytes": 28036,
+      "archive_path": "docs/history/integration-2026-10-30/pr65-current-7960e98a/docs/WORK-QUEUE.md"
+    },
+    {
+      "tag": "pr65",
+      "source_commit": "7960e98a78e054f245ec75a0862f9147bdb53f55",
+      "source_path": "docs/progress.json",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/7960e98a78e054f245ec75a0862f9147bdb53f55/docs/progress.json",
+      "source_git_blob": "a7c1acec8086de262f5209b4afc3d4e6af562a89",
+      "expected_bytes": 22209,
+      "archive_path": "docs/history/integration-2026-10-30/pr65-current-7960e98a/docs/progress.json"
+    },
+    {
+      "tag": "pr65",
+      "source_commit": "7960e98a78e054f245ec75a0862f9147bdb53f55",
+      "source_path": "docs/PROGRESS.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/7960e98a78e054f245ec75a0862f9147bdb53f55/docs/PROGRESS.md",
+      "source_git_blob": "7fddfb9c8294e773b011502a53b925a62b9d452f",
+      "expected_bytes": 24509,
+      "archive_path": "docs/history/integration-2026-10-30/pr65-current-7960e98a/docs/PROGRESS.md"
+    },
+    {
+      "tag": "pr65-ec591dd",
+      "source_commit": "ec591dd8ea01f5b2c50481791789bf5d211ee0ac",
+      "source_path": "README.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/ec591dd8ea01f5b2c50481791789bf5d211ee0ac/README.md",
+      "source_git_blob": "41d4ce7b9a6f979c7c3a8a2e78ec3d7db70a56b8",
+      "expected_bytes": 14897,
+      "archive_path": "docs/history/integration-2026-10-30/pr65-main94-ec591dd8/README.md"
+    },
+    {
+      "tag": "pr65-ec591dd",
+      "source_commit": "ec591dd8ea01f5b2c50481791789bf5d211ee0ac",
+      "source_path": "docs/PROJECT-STATE.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/ec591dd8ea01f5b2c50481791789bf5d211ee0ac/docs/PROJECT-STATE.md",
+      "source_git_blob": "7880be9072007b73f62b2676249f7750be6119a7",
+      "expected_bytes": 215257,
+      "archive_path": "docs/history/integration-2026-10-30/pr65-main94-ec591dd8/docs/PROJECT-STATE.md"
+    },
+    {
+      "tag": "pr65-ec591dd",
+      "source_commit": "ec591dd8ea01f5b2c50481791789bf5d211ee0ac",
+      "source_path": "docs/progress.json",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/ec591dd8ea01f5b2c50481791789bf5d211ee0ac/docs/progress.json",
+      "source_git_blob": "e13ea997758d4ae92b9858b54fb07bea368584ab",
+      "expected_bytes": 22143,
+      "archive_path": "docs/history/integration-2026-10-30/pr65-main94-ec591dd8/docs/progress.json"
+    },
+    {
+      "tag": "pr65-0e441a9",
+      "source_commit": "0e441a9354fd519ebb5583eb52d2a396f452bbf6",
+      "source_path": "README.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/0e441a9354fd519ebb5583eb52d2a396f452bbf6/README.md",
+      "source_git_blob": "a14e0c1f33abe2d7b5e5f32fbf54ba7c3c78d285",
+      "expected_bytes": 15059,
+      "archive_path": "docs/history/integration-2026-10-30/pr65-main748-0e441a93/README.md"
+    },
+    {
+      "tag": "pr65-0e441a9",
+      "source_commit": "0e441a9354fd519ebb5583eb52d2a396f452bbf6",
+      "source_path": "docs/PROJECT-STATE.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/0e441a9354fd519ebb5583eb52d2a396f452bbf6/docs/PROJECT-STATE.md",
+      "source_git_blob": "01f0717ed507113cd439b53cb1575ccc3bd40cb7",
+      "expected_bytes": 172898,
+      "archive_path": "docs/history/integration-2026-10-30/pr65-main748-0e441a93/docs/PROJECT-STATE.md"
+    },
+    {
+      "tag": "pr65-0e441a9",
+      "source_commit": "0e441a9354fd519ebb5583eb52d2a396f452bbf6",
+      "source_path": "docs/progress.json",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/0e441a9354fd519ebb5583eb52d2a396f452bbf6/docs/progress.json",
+      "source_git_blob": "fec880c25ba1f70f11103e79857bb99c26946f70",
+      "expected_bytes": 22305,
+      "archive_path": "docs/history/integration-2026-10-30/pr65-main748-0e441a93/docs/progress.json"
+    },
+    {
+      "tag": "queue-contract",
+      "source_commit": "b58925f9ce1a9a4d045ba0753f007e7d070be7c2",
+      "source_path": "docs/WORK-QUEUE.md",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/b58925f9ce1a9a4d045ba0753f007e7d070be7c2/docs/WORK-QUEUE.md",
+      "source_git_blob": "2a28bf541488a42810a2dc0c67ca09cc354a65d5",
+      "expected_bytes": 103650,
+      "archive_path": "docs/history/integration-2026-10-30/queue-contract-b58925f9/docs/WORK-QUEUE.md"
+    },
+    {
+      "tag": "pr75",
+      "source_commit": "c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6",
+      "source_path": "docs/verification/teamleader-cold77-host.json",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6/docs/verification/teamleader-cold77-host.json",
+      "source_git_blob": "8990e39ffb935d83badde1ffb31665360ecfca07",
+      "expected_bytes": 3710,
+      "archive_path": "docs/history/integration-2026-10-30/pr75-c26f57b6/docs/verification/teamleader-cold77-host.json"
+    },
+    {
+      "tag": "pr75",
+      "source_commit": "c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6",
+      "source_path": "docs/verification/teamleader-delivery-20261030.json",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6/docs/verification/teamleader-delivery-20261030.json",
+      "source_git_blob": "88ff21f2ec4871d69ab9428472f1f6d33952fc02",
+      "expected_bytes": 2546,
+      "archive_path": "docs/history/integration-2026-10-30/pr75-c26f57b6/docs/verification/teamleader-delivery-20261030.json"
+    },
+    {
+      "tag": "pr75",
+      "source_commit": "c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6",
+      "source_path": "docs/verification/teamleader-management-20261030.json",
+      "source_url": "https://github.com/simonvanieperen/nieuw-os/blob/c26f57b60d4eaffbb57c0eb5114fa00bd7254eb6/docs/verification/teamleader-management-20261030.json",
+      "source_git_blob": "11c8937d9095d2f0ba247bd37160db6724c00bcf",
+      "expected_bytes": 6023,
+      "archive_path": "docs/history/integration-2026-10-30/pr75-c26f57b6/docs/verification/teamleader-management-20261030.json"
+    }
+  ],
+  "current_overrides": [
+    {
+      "path": "docs/verification/teamleader-cold77-host.json",
+      "reason": "PR75 aanvullende review: Nederlandse mensleesbare waarden en geverifieerde primaire bronmetadata; oorspronkelijke archive blijft exact",
+      "translated_value_paths": [
+        "kind",
+        "isolation",
+        "scope",
+        "status_scope",
+        "source_fix_status",
+        "native_repetition_status",
+        "merge_approval_status",
+        "followup_fix_execution.reviewer_followup",
+        "followup_fix_execution.same_source_native_repetition",
+        "separate_review_findings.0.issue",
+        "separate_review_findings.0.status",
+        "separate_review_findings.1.issue",
+        "separate_review_findings.1.status",
+        "limitations.0",
+        "limitations.1",
+        "limitations.2",
+        "limitations.3",
+        "limitations.4"
+      ],
+      "added_field": "source_metadata",
+      "source_metadata": [
+        {
+          "source_commit": "7d66dc2744604d8119b8366a283dc10ea1a76000",
+          "title": "Reject late cold guest failures and changed parent firmware",
+          "author": "S.W.J.B.M. van Ieperen",
+          "source_date": "2026-10-30T17:37:00Z",
+          "url": "https://github.com/simonvanieperen/nieuw-os/commit/7d66dc2744604d8119b8366a283dc10ea1a76000"
+        },
+        {
+          "source_commit": "bffe11fbc8c90d0e43b784c0a4ab580a111c12cc",
+          "title": "Record same-source cold reviewfix native gates and firmware negatives",
+          "author": "S.W.J.B.M. van Ieperen",
+          "source_date": "2026-10-30T17:43:36Z",
+          "url": "https://github.com/simonvanieperen/nieuw-os/commit/bffe11fbc8c90d0e43b784c0a4ab580a111c12cc"
+        }
+      ]
+    },
+    {
+      "path": "docs/PROJECT-STATE.md",
+      "reason": "Compact actueel checkpoint met directe primaire DEV1 failure/freeze links; geen nieuwe guestclaim",
+      "dev1_document_commit": "557b85e26372cf3809c0760d40b430ec5ef7cc6b",
+      "dev1_implementation_commit": "ca45a7dabe6a040921de03bdc2fad3e5045a75ba"
+    }
+  ]
+}
