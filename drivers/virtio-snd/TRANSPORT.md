@@ -143,30 +143,53 @@ qemu-system-x86_64 -machine pc-q35-8.2 -cpu Nehalem-v1 -accel tcg -smp 1 -m 8G \
   -device virtio-sound-pci,addr=08.0,audiodev=snd0,streams=1
 ```
 
-Normaal: de broker speelt een vast, in de gast gegenereerd patroon van
-1 s af; het gastlog meldt feature-bits, config, gekozen stream, aantal
-completions en fence-ACK. Orakel: `out.wav`-payload vergeleken met het patroon
-(exact of met vooraf vastgelegde tolerantie: open besluit B8). Negatief: F1
-(geen device), F13 (broker kill midden in afspelen → fence-ACK, geen verdere
-WAV-groei), F14 (slechte buffer), F10 (dubbele RELEASE wordt vóór verzenden
-geweigerd). Vastleggen: broncommit, `tools/common.py`-fingerprint,
+Normaal: de broker speelt een vast, in de gast gegenereerd patroon af; het
+gastlog meldt feature-bits, config, gekozen stream, aantal completions en
+fence-ACK.
+
+**Orakel (release B8, vóór de gate vastgelegd en achteraf niet te verruimen):**
+
+- Patroon: precies 48 000 frames (1 s), 2 kanalen, S16 little-endian,
+  interleaved L,R. Frame `n` (0 ≤ n < 48 000): `L = n as u16`,
+  `R = (n as u16) ^ 0x8000`, beide als i16 opgeslagen. Frame 0 is daardoor
+  niet stil (`R = 0x8000`).
+- De WAV wordt als container geparsed (RIFF/WAVE, `fmt `: PCM, 2 kanalen,
+  48 000 Hz, 16 bits; `data`-chunk). Headerbytes worden niet als geheel
+  vergeleken; een afwijkend `fmt ` is een fail.
+- De `data`-payload moet bestaan uit: een aanloop van 0 tot en met 4 800
+  geheel stille frames (≤ 100 ms), daarna de 48 000 patroonframes
+  **aaneengesloten en bytegelijk**, daarna 0 tot en met 4 800 stille frames.
+  Elke andere byte, gat, herhaling, ontbrekend frame of overschrijding van
+  een venster is een fail.
+- Aanname die de proef zelf toetst: QEMU 10.2.1 geeft S16/48 kHz/stereo zonder
+  resampler of mixerwijziging door. Faalt exactheid, dan blokkeert dat de
+  pass; de vensters of de tolerantie worden niet achteraf groter gemaakt.
+- Het resultaat telt alleen als N/emulatoruitvoer-deelbewijs, niet als
+  hoorbare of fysieke H03/FR-H02/A06-aftekening.
+
+Negatief: F1 (geen device), F13 (broker beëindigd midden in afspelen →
+fence-ACK; WAV groeit daarna alleen met stille frames binnen het eindvenster),
+F14 (slechte buffer), F10 (dubbele RELEASE wordt vóór verzenden geweigerd).
+Vastleggen: broncommit, `tools/common.py`-fingerprint,
 kernel-/loader-/imagehashes, QEMU/OVMF-hashes, exact commando, wall-clock en
-aantal completions. Een WAV-bestand is emulatorwaarneming, geen hoorbare of
-fysieke audio; H03 en FR-H02/A06 blijven open.
+aantal completions. H03 en FR-H02/A06 blijven open.
 
 ## 8. Open besluiten (gebundeld voor 14/2/4)
 
-| # | Besluit | Voorgestelde eigenaar |
-| --- | --- | --- |
-| B1 | Nieuw manifest-only, niet-delegeerbaar uitvoerrecht in capability-core (waarde/naam) | release/kernel + security |
-| B2 | Syscallnummers en ABI-minor (0x73 is bezet door native-clock) | release |
-| B3 | Transport in de kernel (zoals M5/net) bevestigen; geen user-DMA | kernel + security |
-| B4 | Featureprofiel en BDF `00:08.0` vastleggen in VM-FR-manifest | release |
-| B5 | rxq configureren zonder buffers of uitschakelen; QEMU-gedrag per runtimeproef | TL-HW |
-| B6 | VM-FR `streams=1` (geen invoerstream) in plaats van QEMU-default 2 | release + security |
-| B7 | Periode/slotgrootte en latencybudget (pas meetbaar op hardware) | TL-HW + Materiaal/apps |
-| B8 | WAV-orakel exact of met tolerantie, en of dit als VM-bewijs telt | release/verifier |
-| B9 | IOMMU blijft afwezig: documenteren dat geen DMA-containment wordt geclaimd | security |
+Antwoord release (2ab17599), 30 okt 2026, eenmalig gelezen op `5223214`;
+**geen root-integratievrijgave.** Antwoorden van 14 en security: nog open.
+
+| # | Besluit | Eigenaar | Stand |
+| --- | --- | --- | --- |
+| B1 | Nieuw manifest-only, niet-delegeerbaar uitvoerrecht in capability-core (waarde/naam) | release/kernel + security | Principe akkoord als ontwerpvoorstel (release). Naam/bit, issuer, check, revoke en cleanup nog met kernel + security; **geen gealloceerde capability**. |
+| B2 | Syscallnummers en ABI-minor (0x73 is bezet door native-clock) | release | **Niet vrijgegeven.** 0x73 bezet; ABI-allocatie pas op bevestigde integratiebron. |
+| B3 | Transport in de kernel (zoals M5/net) bevestigen; geen user-DMA | kernel + security | Open (kernel + security). |
+| B4 | Featureprofiel en BDF `00:08.0` vastleggen in VM-FR-manifest | release | `00:08.0` alleen voorlopig voor VM-SND-1; niet gereserveerd in de VM-FR-deviceinventaris. |
+| B5 | rxq configureren zonder buffers of uitschakelen; QEMU-gedrag per runtimeproef | TL-HW | Open (TL-HW, runtimeproef). |
+| B6 | VM-FR `streams=1` (geen invoerstream) in plaats van QEMU-default 2 | release + security | Akkoord voor begrensde output-only VM-SND-1 (release): geen RX-buffers, geen microfoonrecht. Finale VM-FR pas bij integratie. Security open. |
+| B7 | Periode/slotgrootte en latencybudget (pas meetbaar op hardware) | TL-HW + Materiaal/apps | Open. |
+| B8 | WAV-orakel exact of met tolerantie, en of dit als VM-bewijs telt | release/verifier | Besloten (release): exacte PCM, geen tolerantie; vensters in §7. |
+| B9 | IOMMU blijft afwezig: documenteren dat geen DMA-containment wordt geclaimd | security | Open (security). |
 
 ## 9. Bewijsgrens
 
