@@ -64,6 +64,8 @@ pub(super) fn select(slot: usize) {
 #[cfg(feature = "native-fpu")]
 pub(super) mod fixture {
     use super::*;
+    #[cfg(feature = "test-fpu-wait")]
+    use crate::m2::m3::m4;
     use crate::m2::m3::{print_number, read_word, write_word, State, Status, DATA};
     use crate::serial;
 
@@ -122,6 +124,10 @@ pub(super) mod fixture {
                 .sum::<usize>();
         write_word(s.processes[0].physical(DATA + 64), 1);
         write_word(s.processes[1].physical(DATA + 64), 1);
+        #[cfg(feature = "test-fpu-wait")]
+        for p in &s.processes[..2] {
+            require(m4::engine().register(p.pid).is_ok(), b"WAIT_REGISTER");
+        }
         serial::write(b"FPU:MANIFEST:PASS\n");
     }
     pub(in crate::m2::m3) fn entry(slot: usize, vector: u64) {
@@ -202,6 +208,8 @@ pub(super) mod fixture {
             if word(s, 1, 88) > evidence().first_b_loops + 8 {
                 s.spawn_process(0);
                 require(s.processes[0].pid == 3, b"FRESH_PID");
+                #[cfg(feature = "test-fpu-wait")]
+                require(m4::engine().register(3).is_ok(), b"WAIT_REGISTER_REUSE");
                 write_word(s.processes[0].physical(DATA + 64), 2);
                 evidence().reuse = 1;
                 serial::write(b"FPU:SURVIVOR:PASS\nFPU:SLOT_REUSE:PASS\n");
@@ -252,6 +260,16 @@ pub(super) mod fixture {
             #[cfg(feature = "test-fpu-wait")]
             {
                 let m = s.wait_metrics;
+                let stats = m4::engine().stats();
+                require(
+                    stats.processes == 0
+                        && stats.handles == 0
+                        && stats.nodes == 0
+                        && stats.endpoints == 0
+                        && stats.queued_messages == 0
+                        && m4::engine().check_invariants(),
+                    b"WAIT_ENGINE_CLEANUP",
+                );
                 require(
                     m.calls == e.loops
                         && m.blocked >= 3

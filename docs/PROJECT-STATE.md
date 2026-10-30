@@ -49,6 +49,13 @@ format/diff-check slagen; runtime blijft nog open bij dit checkpoint.
 Foutlog: `/tmp/nieuw-os-native-fpu-wait-attempt1.log`;
 buildlog: `/tmp/nieuw-os-native-fpu-wait-build.log`.
 Ook 100 tools- en 414 Python-hosttests zijn opnieuw exit0 geslaagd.
+De eerste daadwerkelijke wait/FPU-run op `a263bef` faalde raw35 na de echte
+AVX-fault: de nieuwe M4-compositie miste PID-registratie voor de algemene
+cleanup. De fixture registreert nu PID1/2 en de verse PID3, zonder rechten
+te geven, en eist na afloop een volledig lege, consistente Engine.
+Geen wijziging aan process-exit of capability-afdwinging. Hertoets volgt;
+de mislukte run blijft onder `fpu-wait/run/test-fpu-wait-e442556248`.
+De gewone IPC-wachtpoort en native RTC-poort slagen wel op `a263bef`, raw33.
 
 Open: native kill/hergebruik en FPU met wachten, overige native regressies,
 volledige product-/menselijke-/hardwareacceptatie. Eerstvolgende commando:
