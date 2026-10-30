@@ -17,6 +17,15 @@ dezelfde canonieke metadata. De caller kiest de uitgeversankers uit de
 expliciet gekozen bron; de bundel kan zelf geen vertrouwde sleutel aanwijzen.
 De verificatie bindt de exacte image-lengte en SHA-256 aan het manifest.
 
+Primaire standaarden: Ed25519 is een EdDSA-variant uit NIST, *Digital
+Signature Standard (DSS)*, FIPS 186-5, gepubliceerd op 2023-02-03,
+https://csrc.nist.gov/pubs/fips/186-5/final. ML-DSA-65 is een parameterisatie
+uit NIST, *Module-Lattice-Based Digital Signature Standard*, FIPS 204,
+gepubliceerd op 2024-08-13,
+https://csrc.nist.gov/pubs/fips/204/final. Beide handtekeningen zijn vereist
+over dezelfde canonieke metadata; dit bewijst herkomst onder de gekozen
+sleutel, niet dat de uitgever of app veilig is.
+
 | Offset | Veld |
 |---|---|
 | 0 | `NOSAPP01` |

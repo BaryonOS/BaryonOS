@@ -11,9 +11,13 @@ betrouwbaarheid. App-ID, ABI-interval, versie en image-digest zijn metadata;
 scripts, dependencies en capabilities ontbreken. Installatie verleent dus
 geen algemene rechten.
 
-De verifier is een zelfstandige `no_std`-crate en weigert niet-canonieke
-padding, onbekend formaat, ABI-mismatch, onbekende ankers, een van beide
-ongeldige handtekeningen, bytes buiten de exact beschreven ELF en digestfouten.
+De packageverificatie is een zelfstandige `no_std`-crate en weigert
+niet-canonieke padding, onbekend formaat, ABI-mismatch, onbekende ankers, een
+van beide ongeldige handtekeningen, trailing pakketbytes, afwijkende
+`image_length`-framing en digestfouten. `verify_package` inspecteert geen
+ELF-structuur. Alleen `verify_executable_package` voert aanvullend
+`kernel_core::user::parse` uit en weigert images die niet aan het bestaande
+user-ELF-beleid voldoen.
 Het pakketformaat hergebruikt geen kernel-update-target of updatebeleid.
 Alternatief: de kernel-update-manifestcode uitbreiden zou applicatiesemantiek
 vermengen met de boot-/slottrustgrens; de bestaande verifier accepteert
