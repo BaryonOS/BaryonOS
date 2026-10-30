@@ -1,5 +1,30 @@
 # Ontwerpbesluiten
 
+## ADR-049 — Exclusieve native CMOS-bootstrap, geen vertrouwde tijd
+
+30 oktober 2026; implementatie RTC-NATIVE-1, basis `5c334f9`.
+De bestaande dependencyvrije RTC-codec wordt alleen voor een opt-in
+`native-rtc`-diagnostiek aan de eigen kernel gekoppeld. Na eigen IDT/paging,
+op een CPU met IF=0, bezit de proef uitsluitend CMOS-index/data 0x70/0x71.
+Een expliciete D/NMI-Enabled-startselectie vervangt geen firmware-shadow;
+de readprocedure herstelt deze eigen selectie. Geen RTC-datawrites,
+register-C-ACK, app-I/O, nieuwe syscall of productiefeature-implicatie.
+Ring-3/framebuffercombinaties worden geweigerd. De kleine privileged codec
+is uitsluitend hardwareacceptatie; een productie-TimeProvider blijft een
+geisoleerde dienst met afzonderlijk minimaal broker-/rechtencontract.
+
+Alternatief: direct een wandkloksyscall of TLS-klok publiceren zou
+niet-geauthenticeerde tijd tot een impliciet vertrouwensanker maken.
+De uitvoer houdt daarom `UnauthenticatedRtc`, callerfloor en vluchtige
+terugloopcontrole expliciet. Vijf onafhankelijke kalender-oracles plus echte
+budget-/floorweigering en device-indexherstel vormen de native poort; de
+bestaande hosttests blijven vereist. Exacte uitvoering: PROJECT-STATE en
+RTC-WALLTIME. Geen fysiek-, persistent antirollback-, TLS- of productbewijs.
+Primair emulatorcontract: QEMU `v10.2.1`, `hw/rtc/mc146818rtc.c`; aanvullend
+OSDev CMOS W001717 (revisie 30263). Geen emulatorcode overgenomen.
+Rollback: opt-in feature/adapter/runner revert; bestaande M2 en alle
+productiediensten blijven ongewijzigd. Herzien bij IRQ/SMP of productgebruik.
+
 ## ADR-031 — Native I/O-onzekerheid zonder observerpanic
 
 **Datum/status/eigenaar:** 28 oktober 2026; geïmplementeerd en geaccepteerd op

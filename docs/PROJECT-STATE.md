@@ -1,6 +1,35 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR #58, integratie met main — 30 oktober 2026
+## NEXT AGENT HANDOFF — RTC-NATIVE-1 — 30 oktober 2026
+
+Basis `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`, branch
+`simonvanieperen-expert-disco`; doelbranch `main`. Schone basis en geen open
+PR bij inventarisatie. De andere zichtbare sessie beheert de onafhankelijke
+workspace-doctestblokkade. RTC-scope en exclusieve bestanden staan in WORK-QUEUE.
+
+Geimplementeerd: opt-in IF0 CMOS-adapter na eigen M2-paging/IDT, echte reads,
+floor-/readbudgetweigering, indexherstel en eigen vijfkalender-QEMU-runner/
+CI-workflow. Contract: `implementation/RTC-WALLTIME.md`. Geen nieuwe apprechten,
+productiekloksyscall, vertrouwde tijd of TLS-integratie. **34% -> 34%**.
+
+Tussencheckpoint, **nog niet native geaccepteerd**: vijf gerichte Python-
+oracletests, elf bestaande RTC-Rusttests en de echte loader/kernelbuild
+slagen (exit 0). De eerste baseline-/buildpogingen faalden door ontbrekende
+hostlinker/runtime; de logs onder `build/rtc-native/logs/` bewaren
+de mislukte pogingen. Pinned Rust 1.90.0, beide targets, QEMU 10.2.1 en een
+matching Ubuntu OVMF-paar zijn zonder sudo/globale PATH-wijziging onder
+`.tools/nieuw-os/` ingericht. De lokale sysroot is aangevuld; geen
+dependencyversie gewijzigd. De rootlockfile voegt uitsluitend de eigen
+dependencyvrije RTC-crate toe.
+
+Open: RTC-/kernellint, vijf echte RTC-boots en relevante
+regressies op bevroren bron, onafhankelijk AI-bronreview en concept-PR.
+Eerstvolgend commando op deze host:
+`. .tools/nieuw-os/rtc-env.sh && python3 -B tools/run_rtc.py --case all`.
+Niet uitgevoerd: QEMU-RTC, fysieke hardware, menselijke audit, volledige CI
+en volledige releaseacceptatie. De 62 productcriteria blijven open.
+
+## Historisch checkpoint — PR #58, integratie met main — 30 oktober 2026
 
 Bronnen: PR-head `8365f14e1c3fae90a781b836405836906ee785ab` en
 `main` `970c7713e0c40adc50b4ae5ac665602b2d44d6c2`, op

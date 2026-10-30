@@ -1,5 +1,15 @@
 # Werkqueue — volledige native testrelease, 30 oktober 2026
 
+Actuele reservering `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
+`5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. Eigenaar van de opt-in
+`native-rtc`-bootstrap, `kernel/src/m2/rtc.rs`, RTC-buildkeuze, eigen
+RTC-runner/hosttests/workflow en `RTC-WALLTIME.md`. FR-N03/FR-S03-afhankelijkheid;
+geen vertrouwde tijd, userspaceklok of nieuwe roadmapacceptatie. De andere
+zichtbare sessie beheert uitsluitend een root-workspace-doctestblokkade.
+De oudere agentnamen hieronder zijn historische toewijzingen, geen actuele
+claim dat hun agents draaien. `main` op deze basis bevat PR #58/#60/#61;
+de actuele gewogen score is 34%, niet de historische 32% hieronder.
+
 Integratie-eigenaar root, branch `codex/full-test-release`; laatste native foundationbron `844ec40`, gezamenlijke bron `9596abc` (negen CI groen, GUI rood) in `codex/native-product-integration`, PR #60.
 [Volledige opdracht/matrix](FULL-TEST-RELEASE.md) → [actuele uitvoering en exacte hervatstap](PROJECT-STATE.md).
 Werkpakketten zijn implementatiestappen; de 62 vaste `FR-*`-criteria blijven open. De gewogen ontwikkelscore blijft 32%.

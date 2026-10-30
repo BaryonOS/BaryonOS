@@ -3,8 +3,10 @@
 `drivers/rtc` is een zelfstandige allocatorvrije `no_std`-crate met
 `forbid(unsafe_code)` en zonder dependencies. Basiscommit:
 `cda42f2d4017e65bd8ba89399cb1633f85a1c2da`. De crate levert alleen de
-CMOS-leesprocedure, datumcodec en expliciete bronkwaliteit. Er is nog geen
-native portbackend, kernelbroker, dienst, kloksyscall of certificaatintegratie.
+CMOS-leesprocedure, datumcodec en expliciete bronkwaliteit. Het opt-in
+`native-rtc`-profiel voegt een native portbackend en bootstrap-acceptatie toe
+(uitvoering/bewijs staat in PROJECT-STATE); er is geen productie-kernelbroker,
+dienst, kloksyscall of certificaatintegratie.
 Sys3 blijft uitsluitend de bestaande boot-monotone deadlineklok; ticks worden
 hier nergens tot een kalenderdatum verheven.
 
@@ -128,7 +130,60 @@ De fabrikantdatasheet kon vanuit deze omgeving niet worden opgehaald (HTTP
 gelezen bronnen zijn met SHA-256 vastgelegd in het verificatierapport. Er
 zijn geen nieuwe libraries, build scripts of externe dependencyversies.
 
-## Uitgevoerd bewijs en volgende native poort
+## Native bootstrap-contract RTC-NATIVE-1
+
+Basis `5c334f9`, branch `simonvanieperen-expert-disco`. Dit is een directe
+technische afhankelijkheid van FR-S03/FR-N03, geen volledige aftekening.
+De uitsluitend diagnostische `native-rtc`-feature draait na eigen GDT/IDT,
+pagetables en M2-geheugencontrole, op de ene CPU met IF=0. Combineren met
+ring 3 of framebuffer wordt bij compilatie geweigerd. Geen productieprofiel
+schakelt de feature impliciet in; geen proces krijgt nieuwe I/O-rechten.
+De kleine codec draait in deze terminale proef in de kernel om de echte
+hardwareadapter te toetsen. Een productie-TimeProvider blijft een afzonderlijke
+geisoleerde dienst met minimaal brokercontract; geen algemene app-I/O toevoegen.
+
+Platformbezit wordt expliciet gevestigd door register D met NMI Enabled te
+selecteren. Dit is een eigen bekende startselectie, **geen reconstructie van
+de firmwareselectie/NMI-policy**. De proef maskeert NMI niet; de eigen
+NMI-handler is terminaal en gebruikt geen CMOS. Er zijn geen firmwarecalls,
+andere CPU's, IRQ-/userspace-CMOS-gebruikers of gedeelde portreferenties.
+De backend heeft alleen `out8(0x70)` en `in8(0x71)`, geen datawrites, algemene
+portargumenten of port-0x80-vertraging. QEMU verwerkt de indexwrite synchroon;
+de begrensde scalar settle-loop is geen timingcontract voor fysieke hardware.
+Register C wordt niet gelezen. De q35-platformconfiguratie kiest eeuw 0x32
+en UTC expliciet; geen FADT-parser of automatische platformdetectie geclaimd.
+
+Acceptatie: twee echte UTC-readings met zichtbare `UnauthenticatedRtc`,
+datum/Unix-gelijkheid en in-memory floor; een werkelijk uitgeput readbudget,
+weigering van een onhaalbare callerfloor, onbekende tijdbasis/ontbrekende eeuw
+zonder I/O, daarna opnieuw succesvol lezen. Na succes en beide I/O-foutpaden
+wordt de startselectie hersteld: software-indexcontrole plus een echte
+dataread **zonder reselectie** moet register D=0x80 opleveren. Dat controleert
+de registerselectie op het device; NMI-policy is een expliciete
+code-/platforminvariant, geen onafhankelijk gemeten hardwaregarantie.
+De pure hosttests behouden de corrupte/offline/UIP-/mode-/poison-tegenproeven;
+de native negatieve gevallen injecteren geen fictieve device-antwoorden.
+
+```sh
+NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/build.py --kernel-feature native-rtc
+NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/run_rtc.py --case all
+```
+
+De runner gebruikt bestaande `run_guest` met een eigen ESP/VARS/CODE-kopie
+per echte VM en `-rtc base=<expliciete UTC>,clock=vm,driftfix=none`. Vijf
+kalenders: epoch 1970, schrikkeldag 2000, 2026, grens na signed-i32-2038
+en niet-schrikkel-eeuw 2100. Python datetime controleert onafhankelijk zowel
+de zes velden als de Unixconversie en het venster base..base+60 seconden;
+dit venster dekt firmware/boot en bewijst geen realtime-nauwkeurigheid.
+Geen hosttijd als OS-fallback, geen netwerk, geen echte disk en geen writes
+naar RTC-data. Raw exit 33, volledige geordende uitvoer, bronfingerprint,
+manifest- en artifacthashes zijn vereist. Timeout/foute datum/duplicaten/
+gewijzigde bron falen; een oude laatste rapportage wordt eerst ingetrokken.
+CI heeft een eigen verplichte uitvoerende workflow `native-rtc.yml`.
+Geen authentieke tijd, persistente antirollback, NTP, TLS, userspacegebruik,
+fysiek apparaat of volledige productacceptatie door deze proef.
+
+## Historisch corebewijs en volgende productiepoort
 
 Met Rust 1.90.0 en aparte targetmappen uitgevoerd:
 
@@ -153,9 +208,8 @@ freestanding librarybuild slagen. `drivers/rtc/verification/` bevat het
 afgebakende bron-/artifacthashbewijs. Dit is hostbewijs en een targetbuild,
 geen native uitvoering van de RTC-driver.
 
-De volgende poort blijft open: een minimaal geautoriseerde native backend,
-de eigenaar van CMOS/NMI, gecontroleerde QEMU `-rtc base=<UTC>,clock=vm`,
-werkelijke reads met normaal/overgang/foutprofiel, een geautoriseerde
-TimeProvider en vervolgens tijdkwaliteit bij certificaatvalidatie. Fysieke
+De volgende productiepoort blijft open: een minimaal geautoriseerde
+broker/TimeProvider, gedeeld CMOS/NMI-bezit bij IRQ/SMP, echte overgangen/
+devicefouten en vervolgens tijdkwaliteit bij certificaatvalidatie. Fysieke
 klok, beveiligde tijd en persistent rollbackanker zijn nog niet bewezen.
 Deze stap verandert de releaseomvang en voortgangspunten niet zelfstandig.

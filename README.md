@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`8365f14e`](https://github.com/simonvanieperen/nieuw-os/commit/8365f14e1c3fae90a781b836405836906ee785ab) ·
-**Ontwikkelbranch:** `codex/native-materiaal-integration`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR #58: conflictintegratie met main 970c7713 met behoud van beide reparatiesporen.
-34% blijft 34%; deze conflictintegratie verdient geen nieuwe punten. De productintegratie, oorspronkelijke productiedigest, manifestguards en benchmarkbronbinding van main blijven behouden naast de PR-reparaties voor surface-isolatie, pointerannulering, gebalanceerde meetvolgorde en afgeleide hostscenarioaantallen. B03 en eerder rood GUI-bewijs blijven brongebonden. Actuele integratiecontroles en beperkingen staan in PROJECT-STATE.md; alle 62 volledige productcriteria blijven open. Geen volledige GUI-, multiapp-, veilige opslag-, fysieke hardware- of menselijke auditacceptatie geclaimd.
+**Bron:** [`5c334f9a`](https://github.com/simonvanieperen/nieuw-os/commit/5c334f9ac3100f1c0e503e4f0ac4353a4a35154e) ·
+**Ontwikkelbranch:** `simonvanieperen-expert-disco`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** RTC-NATIVE-1: native alleen-lezen kalenderklok als directe tijdproviderafhankelijkheid.
+34% blijft 34%. De opt-in RTC-bootstrap is een technische afhankelijkheid van FR-S03/FR-N03, geen productie-TimeProvider of vertrouwde certificaattijd. Native uitvoering en actuele controles worden brongebonden in PROJECT-STATE vastgelegd; geen volledig rubriccriterium wordt door deze beperkte proef gesloten. Alle 62 productcriteria, fysieke hardware en menselijke acceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
