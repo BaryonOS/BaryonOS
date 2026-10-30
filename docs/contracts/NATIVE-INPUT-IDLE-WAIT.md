@@ -83,9 +83,13 @@ en alle overige kernelqueues staan als eligible receiveconditie in het plan.
 Plannen lezen status; zij alloceren geen requestID, wijzigen geen frame,
 token/cancelgeneratie of pendingreply en fabriceren geen input/ACK. Send-EAGAIN
 is niet enqueue; na echte enqueue wordt niet opnieuw gepubliceerd. Wake kan
-weer EAGAIN opleveren. Een wachtfout inABI1.9 gaat naar bestaande cleanup en
-zichtbare failure, zonder stille fallback naar pollsuccess.1.8 krijgt geen
-nieuwe extra waitklokvoorwaarden.
+weer EAGAIN opleveren. Een sourcewachtfout inABI1.9 gaat naar bestaande cleanup
+en zichtbare failure. Policy behoudt de bestaande per-app-isolatie: uitsluitend
+Closed/Revoked/BadHandle uit de waitcall worden eenmaal via de gewone bounded
+IPC-pass hergecontroleerd. Alleen een daadwerkelijk nieuw geretirede app-lane
+verklaart zo'n fout en laat verder wachten toe. Kritieke, onverklaarde, klok-,
+yield-, masker- of andere waitfouten blijven fataal; geen stille fallback naar
+pollsuccess ofABI1.8.1.8 krijgt geen nieuwe extra waitklokvoorwaarden.
 
 Acceptatie per component: echte Engine-envelopes plus Ipc-fouttegenpartijen
 toetsen eligible RECV, volle replyqueue/SEND, nieuw lokaal werk, stale/cancel,
@@ -97,7 +101,7 @@ QMP-keyboard/mouse, ongewijzigde focus/Save/reopen/cleanup, absolute200s-grens
 en poll-/waitbelasting. Geen hosttest of minder syscallclaims vervangt die
 native uitvoering; alle volledige releasecriteria blijven open.
 
-## Componentcontrole, geen native uitvoering
+## Eerste componentcontrole, geen native uitvoering
 
 Bronfreeze `2b286d2837b1a8760865c6c2c39bd2e1ea0389a5`, dependency exact
 `8a8dbe53acf5c8c7882244ddf7f753a8645a1d0a` (lokaal als ongewijzigde
@@ -126,3 +130,18 @@ uitsluitend in `target/input-wait-native`, niet in Git. Twee vroege
 hostpogingen hadden een ongeldige fixture-registratievolgorde (Engine vereist
 monotone PIDs); de fixture is gecorrigeerd, niet de productie-engine.
 Onafhankelijke consumerreview en native wait-/GUI-uitvoering blijven open.
+
+## Gerichte correctie: foutisolatie van appreplies
+
+Eigen bronherlezing van2b286 vond dat een lifetimefout uit de samengestelde
+wait alle policyclients fataal zou maken, terwijl de oude IPC-flush alleen
+een werkelijk defecte appreplylane retireert. De opvolgbron behoudt die
+isolatie met één bounded hercontrole. Klok-, yield- en maskfouten hebben
+afzonderlijke fouttypen en kunnen die herstelroute niet gebruiken.
+
+De hertoets telt23 hostscenario's: de13 bestaande en10 waitplancases. De twee
+nieuwe cases toetsen echte gesloten, revoked en stale-handle appreplyleaves
+en nog werkende tweede-app-IPC; een onverklaarde lifetimefout, ander fouttype
+of kapotte kritieke ingress wordt geen pollsuccess. Host- en beide native-
+target-Clippychecks slagen. Nieuwe executablehashes volgen afzonderlijk;
+de bovenstaande2b286-hashes blijven uitsluitend bij hun oorspronkelijke bron.

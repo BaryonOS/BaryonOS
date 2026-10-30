@@ -6,7 +6,7 @@ mod support;
 use nieuw_os_native_input_service::{
     boot::{self, PolicyBoot},
     policy::Policy,
-    source::wait::{self, Action, Interest, Mode},
+    source::wait::{self, Action, Interest, Mode, ParkError},
     Ipc, NativeIpc,
 };
 use nieuw_os_sdk_runtime::native;
@@ -145,12 +145,18 @@ fn run() -> ! {
             Action::Run
         };
         let result = match action {
-            Action::Run => native::yield_now(),
+            Action::Run => native::yield_now().map_err(ParkError::Yield),
             Action::Park(plan) => wait::park(&plan),
         };
-        if result.is_err() {
-            policy.shutdown();
-            fail(if mode == Mode::Legacy { 7 } else { 10 }, Some(&boot));
+        if let Err(error) = result {
+            let recovered = match error {
+                ParkError::Wait(error) => policy.wait_failed(&mut io, error).is_ok(),
+                _ => false,
+            };
+            if !recovered {
+                policy.shutdown();
+                fail(if mode == Mode::Legacy { 7 } else { 10 }, Some(&boot));
+            }
         }
     }
 }
