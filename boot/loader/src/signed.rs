@@ -298,8 +298,6 @@ extern "efiapi" fn trampoline(context: *mut Context) {
 /// boot: structural firmware errors propagate, missing or invalid stores
 /// end in `BOOT:FAIL:*`.
 pub fn load(fw: &Firmware, file_address: u64) -> Result<usize> {
-    #[cfg(feature = "test-anchors")]
-    serial::write(b"BOOT:ANCHORS:TEST\n");
     let scratch = fw.pages(1, efi::LOADER_DATA, None)?;
     let stack = fw.pages(STACK_PAGES, efi::LOADER_DATA, None)?;
     let mut context = Context {
@@ -334,6 +332,8 @@ pub fn load(fw: &Firmware, file_address: u64) -> Result<usize> {
 
 fn select(fw: &Firmware, scratch: u64, file_address: u64) -> Result<usize> {
     serial::init();
+    #[cfg(feature = "test-anchors")]
+    serial::write(b"BOOT:ANCHORS:TEST\n");
     let Some(store) = locate(fw, scratch)? else {
         // An unsigned ESP kernel is never an alternative for this loader.
         fail(b"NO_STORE");
