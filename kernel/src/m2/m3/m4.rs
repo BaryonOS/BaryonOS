@@ -530,7 +530,8 @@ mod acceptance {
             cleanup_all(state);
             state.round += 1;
             state.setup();
-            return Some(state.select());
+            // The m3 event/select loop alone schedules; idle observers must not recurse.
+            return None;
         }
         serial::write(case_marker());
         serial::write(b"M4:SURVIVOR_PROGRESS:PASS\n");

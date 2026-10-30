@@ -66,6 +66,23 @@ pub fn yield_now() -> Result<(), Error> {
     zero_return(call(1, [0; 6]))
 }
 
+/// ABI 1.9: wait for authorized IPC queue conditions or an absolute PIT tick.
+/// The kernel copies at most sixteen scalar conditions before scheduling; no
+/// pointer is dereferenced on wake. Ready bits reserve/consume nothing. Zero
+/// means the deadline elapsed without a ready condition. Empty conditions are
+/// a timed sleep, not a raw device/IRQ wait. The future horizon is at most
+/// IPC_WAIT_HORIZON_TICKS; callers retain their own protocol deadlines.
+pub fn ipc_wait(conditions: &[crate::WaitCondition], deadline: u64) -> Result<u16, Error> {
+    let bytes = crate::encode_wait(conditions)?;
+    let pointer = if conditions.is_empty() {
+        0
+    } else {
+        bytes.as_ptr() as u64
+    };
+    let mask = call(0x22, [pointer, conditions.len() as u64, deadline, 0, 0, 0])?;
+    crate::decode_wait_mask(mask, conditions.len())
+}
+
 pub fn exit(code: u64) -> ! {
     let _ = call(2, [code, 0, 0, 0, 0, 0]);
     // SAFETY: Exit may not return. An unexpected return terminates this user

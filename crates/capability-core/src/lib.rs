@@ -999,6 +999,30 @@ impl Engine {
         }
         Ok(())
     }
+    /// Read-only queue condition, not a reservation or a promise that the next
+    /// operation succeeds: message validation, transfer quotas and usercopy
+    /// still belong to the unchanged send/receive boundaries.
+    pub fn endpoint_queue_ready(
+        &self,
+        pid: u64,
+        handle: u64,
+        interest: u64,
+    ) -> Result<bool, Error> {
+        if interest != SEND && interest != RECV {
+            return Err(Error::Invalid);
+        }
+        self.check_endpoint(pid, handle, interest)?;
+        // This immutable query cannot interleave an engine mutation. Reuse the
+        // complete existing authority check rather than introducing a second
+        // rights/type/lifetime policy or retaining an unchecked object index.
+        let node = self.resolve(pid, handle)?;
+        let endpoint = &self.endpoints[self.nodes[node].object.index as usize];
+        Ok(if interest == SEND {
+            usize::from(endpoint.len) < QUEUE_CAPACITY
+        } else {
+            endpoint.len != 0
+        })
+    }
     /// Boot-manifest constructor only; no user syscall grants object creation.
     pub fn create_block_device(&mut self, owner: u64, scope: BlockScope) -> Result<u64, Error> {
         self.create_block_device_with_rights(owner, scope, BLOCK_READ_RIGHTS)
@@ -2495,6 +2519,140 @@ fn advance(g: u32) -> (u32, bool) {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod wait_readiness_tests {
+    extern crate std;
+    use super::*;
+
+    fn run(f: impl FnOnce(&mut Engine) + Send + 'static) {
+        std::thread::Builder::new()
+            .stack_size(16 * 1024 * 1024)
+            .spawn(move || {
+                let mut engine = Engine::new();
+                engine.register(1).unwrap();
+                engine.register(2).unwrap();
+                f(&mut engine);
+                assert!(engine.check_invariants());
+            })
+            .unwrap()
+            .join()
+            .unwrap();
+    }
+    fn query(e: &Engine, pid: u64, h: u64, interest: u64) -> Result<bool, Error> {
+        let before = e.clone();
+        let stats = e.stats();
+        let result = e.endpoint_queue_ready(pid, h, interest);
+        assert_eq!(*e, before);
+        assert_eq!(e.stats(), stats);
+        result
+    }
+    #[test]
+    fn queue_empty_full_wrap_queries_are_read_only() {
+        run(|e| {
+            let root = e.create_endpoint(1).unwrap();
+            let sender = e.bootstrap_delegate(1, root, 2, SEND).unwrap();
+            for _ in 0..3 {
+                assert_eq!(query(e, 1, root, RECV), Ok(false));
+                for _ in 0..QUEUE_CAPACITY {
+                    assert_eq!(query(e, 2, sender, SEND), Ok(true));
+                    e.send(2, sender, &Message::new()).unwrap();
+                }
+                assert_eq!(query(e, 2, sender, SEND), Ok(false));
+                for _ in 0..QUEUE_CAPACITY {
+                    assert_eq!(query(e, 1, root, RECV), Ok(true));
+                    e.receive(1, root).unwrap();
+                }
+            }
+            e.close(2, sender).unwrap();
+            assert_eq!(query(e, 1, root, RECV), Ok(false)); // No SEND-close EOF.
+        });
+    }
+    #[test]
+    fn existing_type_rights_and_full_handle_errors_are_preserved() {
+        run(|e| {
+            let root = e.create_endpoint(1).unwrap();
+            let sender = e.bootstrap_delegate(1, root, 2, SEND).unwrap();
+            for interest in [0, SEND | RECV, REVOKE, u64::MAX] {
+                assert_eq!(query(e, 99, 0, interest), Err(Error::Invalid));
+            }
+            assert_eq!(query(e, 99, root, SEND), Err(Error::BadHandle));
+            assert_eq!(query(e, 2, sender, RECV), Err(Error::Access));
+            let entropy = e.create_entropy(1).unwrap();
+            assert_eq!(query(e, 1, entropy, SEND), Err(Error::Type));
+            e.close(2, sender).unwrap();
+            let replacement = e.bootstrap_delegate(1, root, 2, SEND).unwrap();
+            assert_eq!(sender as u32, replacement as u32);
+            assert_ne!(sender, replacement);
+            assert_eq!(query(e, 2, sender, SEND), Err(Error::BadHandle));
+            assert_eq!(query(e, 2, replacement, SEND), Ok(true));
+            e.exit(2).unwrap();
+            assert_eq!(query(e, 2, replacement, SEND), Err(Error::BadHandle));
+        });
+    }
+    #[test]
+    fn revocation_wakes_full_sender_without_queue_progress_and_precedes_closed() {
+        run(|e| {
+            let root = e.create_endpoint(1).unwrap();
+            let sender = e.bootstrap_delegate(1, root, 2, SEND).unwrap();
+            for _ in 0..QUEUE_CAPACITY {
+                e.send(2, sender, &Message::new()).unwrap();
+            }
+            assert_eq!(query(e, 2, sender, SEND), Ok(false));
+            e.revoke(1, root).unwrap();
+            assert_eq!(e.stats().queued_messages, QUEUE_CAPACITY);
+            assert_eq!(query(e, 2, sender, SEND), Err(Error::Revoked));
+            e.close(1, root).unwrap();
+            assert_eq!(query(e, 2, sender, SEND), Err(Error::Revoked));
+            let root = e.create_endpoint(1).unwrap();
+            let sender = e.bootstrap_delegate(1, root, 2, SEND).unwrap();
+            e.close(1, root).unwrap();
+            assert_eq!(query(e, 2, sender, SEND), Err(Error::Closed));
+        });
+    }
+    #[test]
+    fn queued_data_can_be_ready_while_cap_slot_quota_still_refuses_receive() {
+        run(|e| {
+            let destination = e.create_endpoint(2).unwrap();
+            let sender = e.bootstrap_delegate(2, destination, 1, SEND).unwrap();
+            let source = e.create_endpoint(1).unwrap();
+            let mut message = Message::new();
+            message.cap_count = 1;
+            message.caps[0] = Cap {
+                handle: source,
+                rights: SEND,
+            };
+            e.send(1, sender, &message).unwrap();
+            while e.derive(2, destination, SEND).is_ok() {}
+            assert_eq!(query(e, 2, destination, RECV), Ok(true));
+            let before = e.clone();
+            assert_eq!(e.receive(2, destination), Err(Error::Quota));
+            assert_eq!(*e, before);
+        });
+    }
+    #[test]
+    fn revoked_queued_transfers_can_make_send_space_ready() {
+        run(|e| {
+            let destination = e.create_endpoint(2).unwrap();
+            let sender = e.bootstrap_delegate(2, destination, 1, SEND).unwrap();
+            let source = e.create_endpoint(1).unwrap();
+            let mut message = Message::new();
+            message.cap_count = 1;
+            message.caps[0] = Cap {
+                handle: source,
+                rights: SEND,
+            };
+            for _ in 0..QUEUE_CAPACITY {
+                e.send(1, sender, &message).unwrap();
+            }
+            assert_eq!(query(e, 1, sender, SEND), Ok(false));
+            e.revoke(1, source).unwrap();
+            assert_eq!(e.stats().queued_messages, 0);
+            assert_eq!(query(e, 1, sender, SEND), Ok(true));
+            assert_eq!(query(e, 2, destination, RECV), Ok(false));
+        });
+    }
+}
 
 #[cfg(test)]
 mod digest_differential {

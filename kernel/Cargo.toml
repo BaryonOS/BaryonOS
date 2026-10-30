@@ -29,6 +29,8 @@ test-m2-double-fault = ["milestone-m2"]
 milestone-m3 = ["milestone-m2"]
 # Optional 100 Hz boot-monotonic clock; legacy ABI profiles stay unchanged.
 monotonic-clock = ["milestone-m3"]
+# Optional bounded IPC waits; no legacy profile changes its ABI or idle path.
+ipc-wait = ["milestone-m4", "monotonic-clock"]
 # Fallible own-process RW/NX heap suffixes; existing total frame quota.
 process-memory = ["monotonic-clock"]
 # Separate architecture acceptance fixture; no product bootstrap policy.
