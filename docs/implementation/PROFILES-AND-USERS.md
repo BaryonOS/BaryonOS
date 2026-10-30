@@ -1,12 +1,13 @@
 # Profielen en meerdere gebruikers — stappenplan
 
-Datum: 30 oktober 2026. Status: **voorstel**, opgesteld op verzoek van Simon
-na een handmatige proef met de Windows-QEMU-testversie. Er is voor dit plan
-nog geen code geschreven en niets native getest. Het gebruikersmodel in §3
-vraagt eerst een besluit van Simon (stap 1); pas daarna hoort er een ADR in
-[DECISIONS.md](../DECISIONS.md). Bronbasis: main
-`c0b7147b`. Voortgangsvoorstel: **34% → 34%**; dit document sluit geen
-criterium.
+Datum: 30 oktober 2026. Status: **ontwerp; gebruikersmodel besloten**
+(ADR-058 in [DECISIONS.md](../DECISIONS.md)). Simon besliste dat inrichting,
+inloggen en gebruikersbeheer herkenbaar moeten zijn voor consumenten van
+Windows, macOS en Linux en liet de detailkeuzes aan het ontwerp over; §3
+legt die keuzes vast. Er is voor dit plan nog geen code geschreven en niets
+native getest. Het bureaublad zelf staat in [DESKTOP-SHELL.md](DESKTOP-SHELL.md).
+Bronbasis: main `c0b7147b`. Voortgangsvoorstel: **34% → 34%**; dit document
+sluit geen criterium.
 
 ## 1. Aanleiding en gewenst resultaat
 
@@ -68,29 +69,64 @@ gebruikersonderzoek.
 | [TPM-CRB-transport](../contracts/TPM2-CRB.md) | Begrensde transportkern, opt-in fixture | Geen productgrant of sleutelbinding |
 | [NAS-beheermodel](NAS-SHARING-AND-INTERNET.md) | Beheerder mag quota en wissen, niet lezen | Nog niet toegepast op lokale gebruikers |
 
-## 3. Voorgesteld gebruikersmodel (besluit stap 1)
+## 3. Gebruikersmodel en vaste keuzes (ADR-058)
+
+Leidraad: wat Windows, macOS en gangbare Linux-desktops gemeen hebben. Waar
+zij verschillen, staat hieronder de gekozen variant.
 
 | Rol | Mag | Mag niet |
 |---|---|---|
-| Eigenaar | Gebruikers toevoegen/verwijderen, ruimte toewijzen, een gebruiker en diens lokale gegevens wissen, systeemupdates goedkeuren | Inhoud, documentnamen of sleutels van andere gebruikers lezen; een wachtwoord van een ander resetten met behoud van diens gegevens |
-| Gebruiker | Eigen materiaal, instellingen, apps en rechten beheren | Andere gebruikers of systeembeheer wijzigen |
-| Gast (optioneel) | Tijdelijke sessie zonder blijvende opslag | Iets bewaren na afmelden |
+| Beheerder (het eerste account) | Gebruikers toevoegen/verwijderen, ruimte toewijzen, een gebruiker en diens lokale gegevens wissen, systeeminstellingen en updates goedkeuren | Inhoud, documentnamen of sleutels van andere gebruikers lezen; een wachtwoord van een ander resetten met behoud van diens gegevens |
+| Standaardgebruiker | Eigen bestanden, instellingen, apps en rechten beheren | Andere gebruikers of systeembeheer wijzigen zonder beheerderswachtwoord |
+| Gast | Tijdelijke sessie; alles wordt gewist bij afmelden | Iets bewaren of andere gebruikers zien |
 
-Uitgangspunten:
+| Onderwerp | Keuze | Herkenbaar van |
+|---|---|---|
+| Eerste account | Wordt beheerder; mag de enige gebruiker blijven | Alle drie |
+| Beheerdershandelingen | Een standaardgebruiker of app vraagt het beheerderswachtwoord in een vertrouwd systeemvenster (gedimde achtergrond) | UAC, macOS-beheerdersvraag, `sudo`/polkit |
+| Wachtwoord | Verplicht bij inrichting; geen wachtwoordhint | Alle drie |
+| Pincode | Optioneel, minimaal 4 cijfers, met oplopende wachttijd na fouten. Zonder TPM-binding ontgrendelt de pincode alleen een vergrendelde sessie; na opnieuw opstarten is het wachtwoord nodig, met die uitleg op het scherm | Windows Hello-pincode; "wachtwoord vereist na herstart" op macOS/telefoons |
+| Vergrendelen | Sleutels blijven in het geheugen; afmelden, afsluiten en gastafmelding wissen ze | Alle drie |
+| Automatisch vergrendelen | Standaard na 5 minuten inactiviteit, instelbaar | Alle drie |
+| Gastaccount | Beschikbaar, standaard uit; aan te zetten in Instellingen > Accounts | macOS, Linux |
+| Herstel | Herstelsleutel bij inrichting tonen en laten bewaren; later een tweede eigen apparaat. Geen leveranciersaccount, achterdeur of escrow | BitLocker-/FileVault-herstelsleutel |
+| Leveranciersaccount | Nooit verplicht; ook niet stil via netwerk | Lokaal account op alle drie |
+| Sessies | Eerste versie één actieve sessie; wisselen = vergrendelen en andere gebruiker kiezen. Gelijktijdige sessies volgen later | Snelle gebruikerswisseling |
 
-- Geen verplicht leveranciersaccount; alles werkt lokaal.
-- Iedere gebruiker heeft eigen sleutelmateriaal. Verwijderen door de
-  eigenaar is wissen, geen ontsleutelen: dezelfde scheiding als bij de
-  NAS-beheerder.
-- Herstel via een herstelcode en/of later een tweede eigen apparaat. Zonder
-  geldig geheim kan herstel bewust onmogelijk zijn; geen achterdeur of escrow.
-- Eerste versie: één actieve sessie tegelijk; wisselen = vergrendelen en een
-  andere gebruiker laten inloggen. Gelijktijdige sessies zijn een latere stap.
+### Eerste start (OOBE: out-of-box experience)
 
-Open keuzes voor Simon: pincode naast wachtwoord; blijven sleutels in het
-geheugen tijdens vergrendelen (gemak) of worden ze gewist (sterker); is een
-gastsessie gewenst; mag de eigenaar ook de enige gebruiker zijn zonder
-afzonderlijk beheeraccount.
+1. Taal en regio.
+2. Toetsenbordindeling, met een veld om te testen.
+3. Netwerk (wifi/kabel) met een duidelijke knop **Nu overslaan**.
+4. Account maken: volledige naam, accountnaam (voorgesteld uit de naam),
+   wachtwoord en herhaling, optionele profielfoto.
+5. Herstelsleutel tonen; bewaren bevestigen (afdrukken, opslaan op USB of
+   overschrijven); doorgaan pas na bevestiging.
+6. Optioneel een pincode instellen.
+7. Privacy: één scherm dat uitlegt dat Nieuw OS geen telemetrie verstuurt;
+   locatie en vergelijkbare rechten staan standaard uit.
+8. Klaar: het bureaublad verschijnt met een korte, overslaanbare rondleiding.
+
+Terug kan bij iedere stap. Een onderbreking laat geen half account achter;
+na herstart begint de inrichting bij stap 1 of bij de laatste voltooide stap
+zonder half aangemaakte sleutels.
+
+### Inloggen, vergrendelen en afmelden
+
+- **Vergrendelscherm:** achtergrond, klok en datum; geen inhoud van meldingen.
+  Een toets, klik of veeg toont het inlogscherm.
+- **Inlogscherm:** de laatst gebruikte gebruiker staat klaar met wachtwoord-
+  of pincodeveld; andere gebruikers (en gast, indien aan) staan als lijst
+  met naam en foto. **Wachtwoord vergeten?** leidt naar herstel met de
+  herstelsleutel. Aan/uit-knop met afsluiten en opnieuw opstarten.
+- **Aan/uit-menu in het startmenu:** vergrendelen, afmelden, van gebruiker
+  wisselen, slaapstand, opnieuw opstarten, afsluiten.
+- **Sneltoetsen:** OS-toets+L vergrendelt; Ctrl+Alt+Delete opent een
+  vertrouwd systeemscherm met vergrendelen, gebruiker wisselen, afmelden en
+  taakbeheer. Ctrl+Alt+Delete kan geen app onderscheppen.
+- **Instellingen > Accounts:** wachtwoord en pincode wijzigen,
+  profielfoto, automatisch vergrendelen, gebruikers en gast beheren
+  (beheerder).
 
 ## 4. Dreigingsmodel en invarianten
 
@@ -130,7 +166,7 @@ Hosttests, een build of een AI-review zijn geen acceptatie.
 | Stap | Resultaat | Afhankelijk van | Acceptatie (native, met negatieve gevallen) |
 |---|---|---|---|
 | 0. Bediening bruikbaar | Zichtbare muisaanwijzer; toetsenbordactivatie op het startscherm; een frame pas tonen als het compleet is; alleen gewijzigde gebieden hertekenen; invoer via IRQ1/12 i.p.v. alleen polling | Bestaande compositor-, input- en Materiaalcontracten | Gemeten tijd van toets tot zichtbaar pixel in het vaste TCG-profiel, vóór en na; geen half getekend frame zichtbaar; bestaande pixel-, focus- en invoergates blijven groen |
-| 1. Besluit gebruikersmodel | ADR met rollen, herstel, sessiemodel en dreigingsmodel uit §3–4 | Simons keuzes | Review door Simon; securityreview van invarianten |
+| 1. Besluit gebruikersmodel | ADR-058 en §3–4 van dit document | — | **Besloten** 30 oktober 2026; securityreview van de invarianten volgt bij stap 3 |
 | 2. Fundament | B02 koude rollbackankering en write-ahead; Argon2id met gemeten, versieerbare parameters; persistente instellingenopslag | B01, B02, volume | Herstart behoudt key-state en instellingen; oude snapshot, fout wachtwoord en beschadigd record worden geweigerd |
 | 3. Sessiedienst | Ring-3-dienst die gebruikers versleuteld registreert, wachtwoord controleert en per gebruiker capabilities uitgeeft | Stap 2 | Gebruiker A kan B's catalogus/objecten niet openen, ook niet met geraden ID's; begrensde pogingen; geen geheim in logs of serial |
 | 4. Eerste start (FR-S01) | Native inrichting: taal/bediening, naam, wachtwoord of pincode, herstelcode, opslagkeuze | Stap 0 en 3 | Terug/annuleren, stroomonderbreking tijdens inrichting zonder half profiel, daarna lokaal beginnen |
@@ -138,8 +174,10 @@ Hosttests, een build of een AI-review zijn geen acceptatie.
 | 6. Instellingen en beheer (FR-S03) | Instellingen per gebruiker; eigenaar voegt gebruikers toe en verwijdert ze | Stap 2–5 | Instelling overleeft koude herstart; ongeldige waarde, volle opslag en I/O-fout zonder valse bevestiging; wissen door eigenaar zonder leesrecht |
 | Later | TPM-binding op ondersteunde hardware, tweede eigen apparaat, NAS-sync, gelijktijdige sessies, eventueel ouderlijk toezicht | Hardwareprofiel, NAS-dienst | Afzonderlijke contracten |
 
-Stap 0 kan parallel aan stap 1 en 2: die raakt andere bestanden en lost de
+Stap 0 kan parallel aan stap 2: die raakt andere bestanden en lost de
 bruikbaarheidsklachten op die een inlogscherm anders onbruikbaar maken.
+Stap 4 en 5 tekenen in de huisstijl en schermindeling van
+[DESKTOP-SHELL.md](DESKTOP-SHELL.md); het bureaublad verschijnt pas na inloggen.
 
 ## 6. Bewijsgrens
 

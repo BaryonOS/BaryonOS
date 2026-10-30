@@ -1,5 +1,9 @@
 # Productbesluit en bouwspecificatie P2 — Materiaal
 
+## Aanvulling ADR-058 — 30 oktober 2026
+
+Gebruikersbesluit, leidend boven de regels hieronder dat het hoofdscherm geen bestaande desktop nabootst (§2) en dat er geen dock of taakbalk komt (§5). De eindervaring krijgt een herkenbaar bureaublad, taakbalk, startmenu met zoeken, vensterbediening, inrichting en inlogscherm volgens [DESKTOP-SHELL.md](DESKTOP-SHELL.md) en [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md). Materiaal blijft het gegevens-, geschiedenis- en rechtenmodel en verschijnt in de Bestanden-app, recente items en toestemmingsdialogen. P2 hieronder blijft historisch productbewijs. Eigen visuele identiteit blijft verplicht; herkenbaar is de bediening, niet de huisstijl.
+
 ## Aanvulling N01 — 27 oktober 2026
 
 De gebruikerswijziging is leidend boven onderstaande oorspronkelijke scope van één eigen NAS. Apparaten heeft nu drie flows: **Mijn NAS**, **Ruimte ontvangen** en **Ruimte aanbieden**. Internet is afzonderlijk toegestaan voor een bevestigde NAS-identiteit. Ontvangen ruimte kan bij vrienden/familie staan; de ontvanger bevestigt dat de host zijn NAS-kopie kan verwijderen en krijgt het advies een onafhankelijke kopie te bewaren. De beheerder ziet alleen capaciteit/gebruik/status en mag intrekken+wissen zonder gasttoestemming of inhoudssleutel.

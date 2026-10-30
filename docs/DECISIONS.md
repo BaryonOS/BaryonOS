@@ -52,6 +52,46 @@ blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
   `0915828fcd40492f873dc9098ee445306f1f0638`:
   [routeverslag](https://github.com/simonvanieperen/nieuw-os/blob/0915828fcd40492f873dc9098ee445306f1f0638/docs/verification/windows-delivery-21/README.md).
 
+## ADR-058 — Herkenbare consumentenbediening op de eigen kernel
+
+**Datum/status:** 30 oktober 2026; gebruikersbesluit van Simon, vastgelegd
+in PR #114. Leidend boven de eerdere eisen dat het hoofdscherm geen
+bestaande desktop mag nabootsen en dat er geen dock of taakbalk komt
+(PRODUCT-SPEC §2 en §5, DESIGN-AMBITION, PRODUCT-AND-SOVEREIGNTY §2,
+AGENTS.md *Productambitie*).
+
+**Besluit:** consumenten hoeven Nieuw OS niet opnieuw te leren. Inrichting,
+inloggen, vergrendelen, gebruikersbeheer, bureaublad, taakbalk, startmenu met
+zoeken, vensterbediening, bestandsbeheer, instellingen en gangbare
+sneltoetsen volgen de conventies die Windows, macOS en gangbare
+Linux-desktops gemeen hebben. Waar die verschillen, kiest het ontwerp één
+variant en legt die vast. Vernieuwing ("futuristisch") is een aanvulling op
+het bekende pad, nooit een vervanging ervan.
+
+**Gevolgen:**
+
+- De eigen kernel, microkernel-/capabilityarchitectuur, eigen code en de
+  Security Floor blijven ongewijzigd. Herkenbare bediening verleent geen
+  bredere rechten: een app krijgt nog steeds alleen expliciet verleende
+  capabilities, ook als de interface op bekende platforms lijkt.
+- Materiaal blijft het gegevens-, geschiedenis- en rechtenmodel. Het wordt
+  zichtbaar via de Bestanden-app, recente items in het startmenu en
+  toestemmingsdialogen; het is niet langer het verplichte hoofdscherm.
+  P2 blijft historisch productbewijs, geen te bouwen eindlay-out.
+- Eigen visuele identiteit: geen gekopieerde iconen, afbeeldingen, merknamen
+  of trade dress van andere platforms. Herkenbaar is de indeling en
+  bediening, niet de huisstijl.
+- De functies uit FR-U01 blijven verplicht, maar worden bereikt vanuit het
+  bureaublad en startmenu. De tekst van de matrix in FULL-TEST-RELEASE wordt
+  door de integrator in een vervolgwijziging aangepast; dit besluit schrapt
+  geen rij en sluit geen criterium. Score blijft 34%.
+- Uitwerking: [PROFILES-AND-USERS.md](implementation/PROFILES-AND-USERS.md)
+  en [DESKTOP-SHELL.md](implementation/DESKTOP-SHELL.md).
+
+**Herzien** na gebruikersproeven (U06) die aantonen dat een conventie voor de
+doelgroep slechter werkt, of bij een nieuw expliciet besluit van Simon.
+Rollback: dit ADR intrekken en de eerdere teksten weer leidend maken.
+
 # ADR-054 — Gedeeld immutable artifact-storecontract
 
 **Datum/status/eigenaar:** 30 oktober 2026; contractvoorstel van
