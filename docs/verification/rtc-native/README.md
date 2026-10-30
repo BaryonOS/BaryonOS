@@ -168,6 +168,9 @@ authentieke of persistente antirollback-tijd, fysieke hardware en menselijke
 audit. Het archief bevat geen firmware-, disk- of ELF-binaries.
 `SHA256SUMS` bindt alle bewaarde tekstbestanden:
 `sha256sum -c docs/verification/rtc-native/SHA256SUMS` (exit 0 bij checkpoint).
+De afgebakende Git-attributen behouden ook firmware-CRLF bytegetrouw;
+de hashes worden tegen de opgeslagen Git-blobs gecontroleerd, niet alleen
+tegen de lokale werkboom.
 De nieuwe workflow voert de vijfkalenderpoort bij PR-uitvoering opnieuw uit;
 een lokale test vervangt geen verplichte CI-check.
 
