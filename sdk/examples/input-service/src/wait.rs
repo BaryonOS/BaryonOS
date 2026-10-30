@@ -88,6 +88,13 @@ pub enum Action {
     Run,
     Park(Plan),
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ParkError {
+    Clock(nieuw_os_sdk_runtime::Error),
+    Yield(nieuw_os_sdk_runtime::Error),
+    Wait(nieuw_os_sdk_runtime::Error),
+    Mask,
+}
 
 /// Preserve the existing `now - started > limit` admission boundary exactly.
 pub fn expires_after(started: u64, limit: u64) -> Result<u64, Error> {
@@ -98,9 +105,9 @@ pub fn expires_after(started: u64, limit: u64) -> Result<u64, Error> {
 }
 
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]
-pub fn park(plan: &Plan) -> Result<(), nieuw_os_sdk_runtime::Error> {
-    use nieuw_os_sdk_runtime::{native, Error, WaitCondition};
-    let now = native::monotonic_ticks()?;
+pub fn park(plan: &Plan) -> Result<(), ParkError> {
+    use nieuw_os_sdk_runtime::{native, WaitCondition};
+    let now = native::monotonic_ticks().map_err(ParkError::Clock)?;
     if now >= plan.deadline {
         return Ok(());
     }
@@ -113,13 +120,13 @@ pub fn park(plan: &Plan) -> Result<(), nieuw_os_sdk_runtime::Error> {
         for (i, interest) in plan.interests().enumerate() {
             conditions[i] = convert(interest);
         }
-        native::ipc_wait(&conditions[..plan.len], plan.deadline)?
+        native::ipc_wait(&conditions[..plan.len], plan.deadline).map_err(ParkError::Wait)?
     } else {
-        native::ipc_wait(&[], plan.deadline)?
+        native::ipc_wait(&[], plan.deadline).map_err(ParkError::Wait)?
     };
     let allowed = ((1u32 << plan.len) - 1) as u16;
     if mask & !allowed != 0 {
-        return Err(Error::InvalidReturn);
+        return Err(ParkError::Mask);
     }
     Ok(())
 }
@@ -586,5 +593,61 @@ mod tests {
         assert_eq!(m.readiness(p), Err(IpcError::Kernel(-9)));
         m.policy.shutdown();
         assert_eq!(m.policy.wait_plan(11), Err(crate::policy::Fatal::Halted));
+    }
+    #[test]
+    fn lifetime_wait_error_revalidates_and_retires_only_the_actual_bad_app_lane() {
+        for fault in [-9, -10, -4] {
+            let mut m = Model::new(2);
+            m.step();
+            m.fill(3);
+            m.request(3, Operation::Peek, 1, 0);
+            m.step();
+            let plan = m.plan(1);
+            m.request(4, Operation::Peek, 1, 0);
+            match fault {
+                -9 => m.engine.borrow_mut().close(4, m.responses[3]).unwrap(),
+                -10 => m.engine.borrow_mut().revoke(4, m.responses[3]).unwrap(),
+                -4 => m.engine.borrow_mut().close(POLICY, m.replies[3]).unwrap(),
+                _ => unreachable!(),
+            }
+            assert_eq!(m.readiness(plan), Err(IpcError::Kernel(fault)));
+            m.policy
+                .wait_failed(&mut m.io, IpcError::Kernel(fault))
+                .unwrap();
+            assert_eq!(m.policy.counts().retired, 1);
+            assert_eq!(m.policy.counts().handled, 2);
+            assert!(!m
+                .plan(2)
+                .interests()
+                .any(|i| i == Interest::Send(send(m.replies[3]))));
+            let other = m.peers[4].receive(recv(m.responses[4])).unwrap();
+            assert_eq!(other.sender(), POLICY);
+            assert_eq!(other.payload()[24..26], [1, 0]); // Canonical Empty PEEK.
+            assert_eq!(
+                u64::from_le_bytes(other.payload()[32..40].try_into().unwrap()),
+                102
+            );
+        }
+    }
+    #[test]
+    fn critical_unexplained_or_non_lifetime_wait_fault_never_becomes_poll_success() {
+        let mut m = Model::new(1);
+        m.step();
+        let before = m.policy.counts();
+        assert_eq!(
+            m.policy.wait_failed(&mut m.io, IpcError::Kernel(-6)),
+            Err(crate::policy::Fatal::Wait(IpcError::Kernel(-6)))
+        );
+        assert_eq!(m.policy.counts(), before);
+        assert_eq!(
+            m.policy.wait_failed(&mut m.io, IpcError::Kernel(-9)),
+            Err(crate::policy::Fatal::Wait(IpcError::Kernel(-9)))
+        );
+        assert_eq!(m.policy.counts().retired, 0);
+        m.engine.borrow_mut().close(POLICY, m.ingress[0]).unwrap();
+        assert_eq!(
+            m.policy.wait_failed(&mut m.io, IpcError::Kernel(-4)),
+            Err(crate::policy::Fatal::Receive(IpcError::Kernel(-4)))
+        );
     }
 }

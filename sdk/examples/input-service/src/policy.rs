@@ -28,6 +28,7 @@ pub enum Fatal {
     Halted,
     Message,
     Clock,
+    Wait(Error),
 }
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Counts {
@@ -123,6 +124,20 @@ impl Policy {
             }
         }
         Ok(Action::Park(plan))
+    }
+    /// A closed/revoked app reply may wake a multi-condition wait with an
+    /// error. Revalidate once through the existing IPC path so only that app
+    /// retires. A critical or unexplained fault is never a polling fallback.
+    pub fn wait_failed(&mut self, io: &mut impl Ipc, error: Error) -> Result<(), Fatal> {
+        if !matches!(error, Error::Kernel(-4 | -9 | -10)) {
+            return Err(Fatal::Wait(error));
+        }
+        let disabled = self.disabled;
+        self.step(io)?;
+        if disabled == self.disabled {
+            return Err(Fatal::Wait(error));
+        }
+        Ok(())
     }
     fn route(&self, ingress: ReceiveEndpoint, pid: u64) -> Option<usize> {
         for (
