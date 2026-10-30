@@ -1,0 +1,198 @@
+{
+  "source_commit": "f9b59884d7acb6b56537838969a04cd5b5e52b77",
+  "parent": "0962d025fb3638d41b600dfe44ecab00ef8dde72",
+  "source_inputs_v3": "06e06c0a62d0a960cc4f9b23f9aa80d375c869fe3e0f20d363cd22a84935c667",
+  "recorded_at": "2026-10-30T19:22:23.653561+01:00",
+  "broker_unit_tests": 31,
+  "production_compile_fail_tests": 4,
+  "existing_stack_tests": 15,
+  "commands": [
+    {
+      "record": "net-broker-clippy.json",
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "clippy",
+        "--manifest-path",
+        "services/net-broker/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--target-dir",
+        "build/net-broker-worktree/target/net-broker-host",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793384439.6521237,
+      "duration_s": 0.3755793571472168,
+      "returncode": 0
+    },
+    {
+      "record": "net-broker-fmt.json",
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "fmt",
+        "--manifest-path",
+        "services/net-broker/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793384440.0278087,
+      "duration_s": 0.08202385902404785,
+      "returncode": 0
+    },
+    {
+      "record": "net-broker-none.json",
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "build",
+        "--locked",
+        "--offline",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--manifest-path",
+        "services/net-broker/Cargo.toml",
+        "--target-dir",
+        "build/net-broker-worktree/target/net-broker-none"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793384439.4630759,
+      "duration_s": 1.5328762531280518,
+      "returncode": 0
+    },
+    {
+      "record": "net-broker-test.json",
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "test",
+        "--manifest-path",
+        "services/net-broker/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--target-dir",
+        "build/net-broker-worktree/target/net-broker-host"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793384439.5202663,
+      "duration_s": 0.13172554969787598,
+      "returncode": 0
+    },
+    {
+      "record": "net-stack-clippy.json",
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "clippy",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--target-dir",
+        "build/net-broker-worktree/target/net-broker-host",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793384440.1927357,
+      "duration_s": 0.07880425453186035,
+      "returncode": 0
+    },
+    {
+      "record": "net-stack-fmt.json",
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "fmt",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793384440.27165,
+      "duration_s": 0.06081724166870117,
+      "returncode": 0
+    },
+    {
+      "record": "net-stack-test.json",
+      "command": [
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness/.tools/nieuw-os/cargo/bin/cargo",
+        "+1.91.1",
+        "test",
+        "--manifest-path",
+        "services/net-stack/Cargo.toml",
+        "--locked",
+        "--offline",
+        "--target-dir",
+        "build/net-broker-worktree/target/net-broker-host"
+      ],
+      "cwd": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-musical-happiness",
+      "started_unix": 1793384440.1099563,
+      "duration_s": 0.08264875411987305,
+      "returncode": 0
+    }
+  ],
+  "source_blobs": [
+    {
+      "path": "services/net-broker/Cargo.toml",
+      "sha256": "da31db946498be7f52c6feb41c922f215936b2626a2ac87ee284fdab1e72c482"
+    },
+    {
+      "path": "services/net-broker/Cargo.lock",
+      "sha256": "7505d58cdb232403a2d2661c92f61862502321a6536f3de3bfa14fb338d4dc00"
+    },
+    {
+      "path": "services/net-broker/src/lib.rs",
+      "sha256": "4a316525b900d56bf7f7c9fc5f7d66884c1b18d098394732ecb9befef9bcbee3"
+    },
+    {
+      "path": "services/net-broker/tests/rights.rs",
+      "sha256": "b2594df36b481ff7b999207776342765e9380e4b494e011fd94612d5fea10a7b"
+    },
+    {
+      "path": "services/net-broker/README.md",
+      "sha256": "61955a7fdbf21b4cf80a0b29306bf0f3415a63f2a3c194605761980b6eab188f"
+    }
+  ],
+  "registry_graph_identical": true,
+  "baremetal_rlib_sha256": "1688597af5d5ada17892c7c4eccf602f54f8d9c45854c93a4c14d0c51722c9e8",
+  "red_reproduction": {
+    "production_source": "0962d025fb3638d41b600dfe44ecab00ef8dde72",
+    "test_snapshot": "egress-regression-test-before-fix.rs.txt",
+    "test_snapshot_sha256": "42e14bc042602d441d9669312126423f2b1cbcc96b06120b71d8472b6c20e354",
+    "patch": "egress-regression-red.patch",
+    "log": "egress-regression-red.txt",
+    "exit_status": 101,
+    "command": [
+      "cargo",
+      "+1.91.1",
+      "test",
+      "--locked",
+      "--offline",
+      "--manifest-path",
+      "services/net-broker/Cargo.toml",
+      "--target-dir",
+      "build/net-broker-worktree/target/net-broker-host",
+      "unsolicited_arp_cannot_publish_reply_without_destination_authority"
+    ]
+  },
+  "review": "Separate AI read-only code review found generated-control egress gap; no human/native/formal audit",
+  "native_acceptance": false,
+  "old_CI_only": {
+    "head": "0962d025fb3638d41b600dfe44ecab00ef8dde72",
+    "broker_run": 41104644311,
+    "result": "success, not proof for f9b5988"
+  },
+  "score_proposal": "network0/10 and total34 unchanged; manager owns central score"
+}

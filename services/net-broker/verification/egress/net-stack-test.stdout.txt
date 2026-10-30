@@ -1,0 +1,35 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 9 tests
+test bounds_and_invalid_initial_identity_are_rejected ... ok
+test duplicate_tuple_cannot_take_first_clients_replies_and_cancel_closes ... ok
+test actual_syn_is_generated_only_after_arp_and_tx_is_completion_gated ... ok
+test malformed_or_busy_rx_does_not_overwrite_queued_frame ... ok
+test rejected_clock_does_not_mutate_time_and_equal_ticks_do_not_timeout ... ok
+test rx_is_not_consumed_while_tx_cannot_answer ... ok
+test socket_buffers_and_count_remain_bounded_after_rejection ... ok
+test malformed_ethernet_corpus_never_creates_socket_data ... ok
+test tx_backpressure_and_stale_completions_preserve_current_packet ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 6 tests
+test refusal_is_observed_before_timeout ... ok
+test actual_tcp_http_bytes_and_orderly_eof ... ok
+test dropped_syn_retransmits_same_sequence_after_real_model_elapsed_time ... ok
+test lost_final_ack_cannot_turn_http_eof_into_success_via_timeout ... ok
+test reset_after_request_does_not_produce_http_success ... ok
+test unreachable_server_times_out_only_after_model_clock_advances ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
