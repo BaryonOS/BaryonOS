@@ -486,6 +486,46 @@ pub extern "C" fn _start() -> ! {
 #[inline(never)]
 fn main() -> ! {
     check(native::check_abi().is_ok(), 1);
+    #[cfg(feature = "native-clock")]
+    {
+        use nieuw_os_sdk_runtime::clock::WallClockQuality;
+
+        let monotonic_before = native::monotonic_ticks().unwrap_or_else(|_| fail(21));
+        let first = native::wall_clock_utc().unwrap_or_else(|_| fail(22));
+        let second = native::wall_clock_utc().unwrap_or_else(|_| fail(23));
+        let monotonic_after = native::monotonic_ticks().unwrap_or_else(|_| fail(26));
+        check(
+            first.quality == WallClockQuality::UnauthenticatedRtc
+                && second.quality == WallClockQuality::UnauthenticatedRtc
+                && second.unix_seconds >= first.unix_seconds
+                && monotonic_after >= monotonic_before,
+            24,
+        );
+        support::put(488, first.unix_seconds as u64);
+        support::put(496, second.unix_seconds as u64);
+        support::put(512, monotonic_before);
+        support::put(520, monotonic_after);
+
+        let mut number = 0x73u64;
+        let mut secondary = 0u64;
+        // SAFETY: This negative syscall probe supplies only scalar values (no
+        // pointers) to the clock ABI and uses the documented int80 registers.
+        unsafe {
+            core::arch::asm!(
+                "int 0x80",
+                inout("rax") number,
+                in("rdi") 1u64,
+                in("rsi") 0u64,
+                inout("rdx") secondary,
+                in("r10") 0u64,
+                in("r8") 0u64,
+                in("r9") 0u64,
+                options(nostack),
+            );
+        }
+        check(number as i64 == -22 && secondary == 0, 25);
+        support::put(504, 1);
+    }
     let mut keys = KeySession::new(
         NativeKeyTransport,
         support::word(160),

@@ -1,11 +1,33 @@
 # Werkqueue — volledige native testrelease, 30 oktober 2026
 
+Afgeronde deelstap `RTC-NATIVE-1`: `simonvanieperen-expert-disco`, basis
+`5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`. De opt-in `native-rtc`-bootstrap,
+`kernel/src/m2/rtc.rs`, RTC-buildkeuze, RTC-runner/hosttests/workflow en
+`RTC-WALLTIME.md` zijn op die bron bewezen. Uitvoeringsbron `c02675e`: vijf
+RTC-kalenderboots, zeven M2-regressie-VM's, M6c-smoke en hostgates slagen;
+firmware-epoch/2100 blijft expliciet geweigerd.
+
+Afgeronde deelstap `TASK-NATIVE-CLOCK-1`: opt-in ABI 1.9 syscall `0x73`,
+SDK-type met expliciet `UnauthenticatedRtc`, en echte ring-3-positief- en
+negatiefproef in de bestaande systeemapp. De native QEMU-gate slaagde met
+gecontroleerde UTC-basis, twee echte reads, monotone tickcontrole en
+`-22`-argumentweigering; brongebonden bewijs staat onder
+`verification/system-clock/`. Het is een directe FR-N03/FR-S03-afhankelijkheid,
+geen vertrouwde tijd, TLS-klok of gesloten roadmapcriterium.
+[Brongebonden bewijs](verification/rtc-native/README.md); concept-PRreview,
+geen samenvoeging of volledige productrelease geclaimd. De andere
+zichtbare sessie beheert uitsluitend een root-workspace-doctestblokkade.
+De oudere agentnamen hieronder zijn historische toewijzingen, geen actuele
+claim dat hun agents draaien. `main` op deze basis bevat PR #58/#60/#61;
+de actuele gewogen score is 34%, niet de historische 32% hieronder.
+
 Integratie-eigenaar root, branch `codex/full-test-release`; laatste native foundationbron `844ec40`, gezamenlijke bron `9596abc` (negen CI groen, GUI rood) in `codex/native-product-integration`, PR #60.
 [Volledige opdracht/matrix](FULL-TEST-RELEASE.md) → [actuele uitvoering en exacte hervatstap](PROJECT-STATE.md).
 Werkpakketten zijn implementatiestappen; de 62 vaste `FR-*`-criteria blijven open. De gewogen ontwikkelscore blijft 32%.
 
 | Werkpakket | Toestand | Eigenaar / exclusieve writes | Acceptatie | Interface en bewijsgrens |
 |---|---|---|---|---|
+| TASK-NATIVE-CLOCK-1 | implementatie gebouwd; native QEMU-gate volgt | root; RTC-bridge, M3 syscall, SDK, systeem-app en `run_system_clock.py` | FR-S03, FR-N03 | ABI 1.9 syscall 0x73; echte ring-3-reads en foutargument; uitsluitend `UnauthenticatedRtc`, geen TLS-/productklokclaim |
 | TASK-DOC / TASK-CONTEXT | opdracht en aanvullende context vastgelegd | root; FULL/status/queue/rubric | alle | oorspronkelijke scope, stabiele ID's, formats/compatibiliteit en 100 cold/24 uur behouden |
 | TASK-I01 / TASK-INT/GIT | foundation geïntegreerd op 844ec40 | root; gedeelde ABI/build/locks/Git | alle geraakt | negen CI groen op exact die bron; geen volledige productacceptatie |
 | TASK-A03/R1 / TASK-KEYSDK-NATIVE | document-v7 en keyclient geïntegreerd | root | FR-A02, FR-A13, FR-O01–FR-O05, FR-B01 | native deelproeven; lost-BEGIN, owner-death en veilige disk-/sleutelpersistentie open |

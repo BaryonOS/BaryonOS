@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "task": "NATIVE-CLOCK-1",
+  "source_commit": "baeb09aece05a6fb65bfa7178ae1c146d5506b75",
+  "implementation_commit": "652cd5d4c9c68afb0b143c0147197aa7fc6f8220",
+  "feature": "native-system-clock",
+  "source_fingerprint_version": 3,
+  "source_sha256": "cc4227300f8bf1cd214a173837612290c4a78cf83851bd8ebd34b87d17e127ad",
+  "runner": {
+    "passed": true,
+    "timed_out": false,
+    "raw_qemu_exit": 33,
+    "rtc_base_utc": "2026-10-30T12:00:00",
+    "machine": "pc-q35-8.2",
+    "accelerator": "tcg,thread=single",
+    "cpu": "qemu64",
+    "cpus": 1,
+    "memory_mib": 256,
+    "qemu_version": "10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)"
+  },
+  "observed": {
+    "utc_first_unix_seconds": 1793361601,
+    "utc_second_unix_seconds": 1793361601,
+    "monotonic_before": 1,
+    "monotonic_after": 1,
+    "invalid_nonzero_argument": "PASS (-22)"
+  },
+  "quality": "UnauthenticatedRtc",
+  "artifact_sha256": {
+    "loader": "7fe38cf8c04faee27595bde879243ee801c8420a8143cbf6c77c2a8c9917a3de",
+    "kernel": "a6dae9a848be7dd6cf486da0c14e36ada19f33cbb30f1136b8828883bd26dfbd",
+    "system_app": "f0dfa8ff7267d68c571c658a336abef358b8072e0a22f41f7747250f7b7abcd1",
+    "firmware_code": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "firmware_vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "generated_log_sha256": {
+    "runner_report": "a792304e5cd4c0eefff97cfd352e8cedccfae40a0eed3ee97e072ab79d4be638",
+    "build_manifest": "4d058aa4860599d7ec0a4131e6f4c8f1b04269d0df941fff8b109105e866d405",
+    "serial_output": "0dec774718ceeceec993963f6e3568b214fd217dac6dcc4369d744bdb9bf7c9a"
+  },
+  "scope": "Native ring-3 UTC snapshot only; unauthenticated RTC metadata, not trusted time or certificate validation."
+}

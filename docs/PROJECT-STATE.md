@@ -1,6 +1,110 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR #58, integratie met main — 30 oktober 2026
+## NEXT AGENT HANDOFF — NATIVE-CLOCK-1 afgerond; PR blijft draft voor review — 30 oktober 2026
+
+Bronbasis `c057d864e413840644da39b6c8338e883cbe2ff4`, implementatiecheckpoint
+`652cd5d4c9c68afb0b143c0147197aa7fc6f8220`, bewijscheckpoint
+`ff51dc01b36d3200fc6a887b03429748e93eb457`, CI-geteste codehead
+`cd17baed11b3efbab3935697d1e47c0feea517dc`, branch
+`simonvanieperen-expert-disco`; doelbranch `main`. Alle genoemde commits zijn
+gepusht en de remote-head is gecontroleerd.
+De aparte workspace-doctestblokkade blijft buiten deze taak. De bestaande
+RTC-NATIVE-1-proef en concept-PR #63 zijn behouden.
+
+Nieuw werk: opt-in ABI 1.9 `native-system-clock`; syscall `0x73` voert
+alleen-lezen CMOS UTC uit bij IF=0, zonder user pointer of nieuwe capability.
+SDK retourneert `WallClockReading` met vaste kwaliteit `UnauthenticatedRtc`.
+De bestaande ring-3-systeemapp voert twee reads, controleert monotone ticks en
+weigert ongeldige syscallargumenten; de nieuwe runner vergelijkt timestamps
+met expliciete VM-RTC-tijd. Contract: `implementation/RTC-WALLTIME.md`,
+ADR-050. Native QEMU-gate geslaagd; **geen nieuw rubriccriterium gesloten;
+score blijft 34%.**
+
+Geslaagd op broncommit `baeb09aece05a6fb65bfa7178ae1c146d5506b75`:
+
+- `python3 -B -m unittest tools.tests.test_system_clock` — exit 0, 3 hosttests.
+- `PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B tools/dev.py cargo +1.90.0 test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime` — exit 0, 20 tests.
+- `PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B tools/dev.py cargo +1.90.0 fmt --all -- --check` en `PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B tools/dev.py cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check` — beide exit 0.
+- `python3 -B -m py_compile tools/run_system_clock.py tools/tests/test_system_clock.py` en `git diff --check` — beide exit 0.
+- `PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B tools/build.py --kernel-feature native-system-clock` — exit 0; kernel en native systeemimages gebouwd en geïnspecteerd, uiteindelijke build zonder waarschuwingen.
+- Eerste lokale buildpogingen faalden doordat de geïsoleerde `cc`-wrapper niet in `PATH` stond; de expliciete `PATH` hierboven loste dat op. Een waarschuwing over native-only imports is eveneens verholpen en de uiteindelijke build was schoon.
+- Uitvoerlogs voor formattering en gerichte host-/SDK-tests staan tijdelijk in `/tmp/nieuw-os-clock-{root-fmt,sdk-fmt,unit,sdk-tests}.log`; ze bevatten geen native QEMU-resultaat.
+
+Native gate geslaagd:
+`. .tools/nieuw-os/rtc-env.sh && PATH="$PWD/.tools/nieuw-os:$PATH" python3 -B -u tools/run_system_clock.py`
+— exit 0; QEMU raw exit 33, geen timeout. De echte ring-3-app las
+`1793361601` tweemaal bij vaste RTC-basis `2026-10-30T12:00:00` (basis +1 s),
+zag monotone PIT-ticks `1 -> 1` en passeerde de ongeldige-argumentproef
+`-22`. QEMU 10.2.1, q35-8.2/TCG, qemu64, 1 CPU/256 MiB; synthetisch
+wegwerpvolume en virtio-RNG. Rapport en seriële uitvoer staan lokaal onder
+`build/rtc-native/`; hun hashes en de native ELF-/firmware-hashes zijn bewaard
+in `docs/verification/system-clock/evidence.json`.
+
+De brongebonden bewijsnotitie is opgeslagen onder
+`docs/verification/system-clock/README.md`. De native runtimegate liep op
+assessmentcheckpoint `baeb09aece05a6fb65bfa7178ae1c146d5506b75`. De PR is
+bijgewerkt volgens de bestaande template. Op codehead `cd17bae` zijn alle
+12 checks geslaagd, inclusief host-quality, native-system (met de nieuwe
+klokpoort), native-foundation, native-RTC en de bestaande systeemgates. PR #63
+blijft draft: CodeRabbit sloeg hem over en er is geen menselijke review of
+reviewbesluit; die reviewstatus wordt niet als goedkeuring voorgesteld.
+
+Open: RTC blijft niet-geauthenticeerd; onbekende UTC-/eeuwconfiguratie en
+firmwaregedrag zijn niet opgelost door de syscall. Geen persistente
+antirollback, trusted certificate time, NTP, suspend, physical hardware,
+SMP-serialisatie, TLS-integratie of volledige FR-S03/FR-N03-releaseacceptatie.
+
+## Historisch checkpoint — RTC-NATIVE-1 bewezen deelstap — 30 oktober 2026
+
+Basis `5c334f9ac3100f1c0e503e4f0ac4353a4a35154e`, branch
+`simonvanieperen-expert-disco`; doelbranch `main`. Schone basis en geen open
+PR bij inventarisatie. De andere zichtbare sessie beheert de onafhankelijke
+workspace-doctestblokkade. RTC-scope en exclusieve bestanden staan in WORK-QUEUE.
+
+Geimplementeerd: opt-in IF0 CMOS-adapter na eigen M2-paging/IDT, echte reads,
+floor-/readbudgetweigering, indexherstel en eigen vijfkalender-QEMU-runner/
+CI-workflow. Contract: `implementation/RTC-WALLTIME.md`. Geen nieuwe apprechten,
+productiekloksyscall, vertrouwde tijd of TLS-integratie. **34% -> 34%**.
+
+Uitvoeringsbron `c02675e21cbbaf32294298f46ce1cb394b360895`; native artifact-,
+firmware- en v3-bronbinding: [bewijs en exacte commando's](verification/rtc-native/README.md).
+Elf RTC-Rusttests, RTC-clippy, rootfmt, 95 tools-hosttests (negen RTC),
+414 bestaande Python-hosttests en loader/kernelbuild slagen met exit 0.
+Vijf echte kalenderboots slagen met raw33: millennium/schrikkeldag 2000,
+2026, post-i32-2038 en schrikkeldag 2096, inclusief echte budget-/floor-/
+restoregevallen. Onafhankelijke verifier: M2 8/8 groepen, zeven VM's
+(vijf raw33, twee verwachte raw35); hoofdagent: M6c CI-smoke raw33.
+Concept-PR geopend. De echte `native-rtc`-GitHub-job slaagt op `295b4db`
+in 47 s, inclusief alle vijf kalenderboots en artifactupload;
+`verification/rtc-native/ci-native-rtc.json` bewaart de runbinding.
+Overige PR-checks liepen bij deze overdracht nog; geen merge of volledige
+CI-goedkeuring geclaimd. Dit laatste checkpoint verandert geen runtimebron.
+Geen nieuwe externe dependencyversie; rootlockfile voegt alleen de eigen
+dependencyvrije RTC-core toe. Lokale Rust/QEMU/GCC/OVMF-omgeving onder `.tools/`
+hersteld zonder sudo/globale configuratiewijziging. Ontwikkelvariant:
+QEMU 10.2.1, OVMF 2025.11-3ubuntu7.3; geen historische binarygelijkheid.
+
+Een echte firmwarebeperking is gereproduceerd: de epoch-/eeuwproeven lezen
+2070 in plaats van 1970 en 2000 in plaats van 2100. Het onverzwakte
+kalenderorakel weigert beide (exit 1, raw33). EDK2's RTC-eeuwcallback
+verklaart dit; de gast schrijft geen tijddatacorrectie. Deze gevallen blijven
+expliciete fail-closed diagnostiek, geen native range-acceptatie.
+Onbeperkte kernelclippy met `-D warnings` faalt op vier bestaande
+M2/main-waarschuwingen (geen RTC-locatie); niet als geslaagd gemeld en niet
+verstopt met nieuwe lintallows. De nieuwe workflow gebruikt de bestaande
+strikte RTC-crateclippy en echte kernelbuild.
+
+RTC-NATIVE-1 is als beperkte afhankelijkheid gereed voor concept-PRreview,
+niet als volledige release. Bronreview en bewijscontrole afgerond; geen
+open RTC-codeblocker. Alle artefacts blijven aan de uitvoeringsbron gebonden.
+Eerstvolgend lokaal herhaalcommando:
+`. .tools/nieuw-os/rtc-env.sh && python3 -B tools/run_rtc.py --case all`.
+Productvervolg: minimaal geautoriseerde userspace-TimeProvider/trusted-timeketen;
+geen ongecontroleerde uitbreiding naar IRQ/SMP of TLS.
+Niet afgerond/geaccepteerd: fysieke hardware, menselijke audit, volledige CI
+en volledige releaseacceptatie. De 62 productcriteria blijven open.
+
+## Historisch checkpoint — PR #58, integratie met main — 30 oktober 2026
 
 Bronnen: PR-head `8365f14e1c3fae90a781b836405836906ee785ab` en
 `main` `970c7713e0c40adc50b4ae5ac665602b2d44d6c2`, op

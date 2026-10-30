@@ -32,10 +32,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **34** |
 
 **Herbeoordeeld:** 2026-10-30 · **Rubric:** v1 ·
-**Bron:** [`8365f14e`](https://github.com/simonvanieperen/nieuw-os/commit/8365f14e1c3fae90a781b836405836906ee785ab) ·
-**Ontwikkelbranch:** `codex/native-materiaal-integration`.
-Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** PR #58: conflictintegratie met main 970c7713 met behoud van beide reparatiesporen.
-34% blijft 34%; deze conflictintegratie verdient geen nieuwe punten. De productintegratie, oorspronkelijke productiedigest, manifestguards en benchmarkbronbinding van main blijven behouden naast de PR-reparaties voor surface-isolatie, pointerannulering, gebalanceerde meetvolgorde en afgeleide hostscenarioaantallen. B03 en eerder rood GUI-bewijs blijven brongebonden. Actuele integratiecontroles en beperkingen staan in PROJECT-STATE.md; alle 62 volledige productcriteria blijven open. Geen volledige GUI-, multiapp-, veilige opslag-, fysieke hardware- of menselijke auditacceptatie geclaimd.
+**Bron:** [`ff51dc01`](https://github.com/simonvanieperen/nieuw-os/commit/ff51dc01b36d3200fc6a887b03429748e93eb457) ·
+**Ontwikkelbranch:** `simonvanieperen-expert-disco`.
+Deze opdracht: **34% → 34% (+0 procentpunt)**. **Opdracht:** NATIVE-CLOCK-1: opt-in ring-3 UTC-clock-API met expliciet niet-vertrouwde RTC-kwaliteit.
+34% blijft 34%. NATIVE-CLOCK-1 implementeert een opt-in ABI 1.9-ring-3-API en SDK die RTC-tijd steeds als UnauthenticatedRtc labelen; 3 hostverifier-tests, 20 SDK-runtime-tests, formatting, native build en de echte QEMU-ring-3-gate zijn geslaagd. De gast las 1793361601 tweemaal bij vaste RTC-basis 2026-10-30T12:00:00, behield monotone ticks en weigerde ongeldige argumenten met -22; hashgebonden bewijs staat in docs/verification/system-clock. Dit is een beperkte FR-S03/FR-N03-afhankelijkheid en sluit geen volledig rubriccriterium. Geen vertrouwde TimeProvider, certificaattijd, fysieke hardware of volledige releaseacceptatie geclaimd; alle 62 productcriteria en menselijke acceptatie blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

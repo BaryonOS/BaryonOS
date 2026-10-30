@@ -369,6 +369,8 @@ struct State {
     next_pid: u64,
     round: u8,
     ticks: u64,
+    #[cfg(feature = "native-system-clock")]
+    system_clock_calls: u64,
     selections: u64,
     fault: bool,
     exited: bool,
@@ -534,6 +536,8 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
         ptr::addr_of_mut!((*state).next_pid).write(1);
         ptr::addr_of_mut!((*state).round).write(0);
         ptr::addr_of_mut!((*state).ticks).write(0);
+        #[cfg(feature = "native-system-clock")]
+        ptr::addr_of_mut!((*state).system_clock_calls).write(0);
         ptr::addr_of_mut!((*state).selections).write(0);
         ptr::addr_of_mut!((*state).fault).write(false);
         ptr::addr_of_mut!((*state).exited).write(false);
@@ -1388,6 +1392,8 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         #[cfg(feature = "native-system")]
         let supervisor_call = matches!(number, 0x30 | 0x50..=0x52 | 0x60 | 0x61)
             || cfg!(feature = "native-system-net") && matches!(number, 0x70..=0x72);
+        #[cfg(feature = "native-system-clock")]
+        let supervisor_call = supervisor_call || number == 0x73;
         #[cfg(not(any(feature = "native-supervisor", feature = "native-keyring")))]
         #[allow(unused_variables)]
         let supervisor_call = false;
@@ -1396,6 +1402,22 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         #[cfg(feature = "native-supervisor")]
         if matches!(number, 0x30 | 0x50..=0x52) {
             let (rax, rdx) = supervisor::syscall(state, current, number, args);
+            state.processes[current].context[14] = rax as u64;
+            state.processes[current].context[12] = rdx;
+        }
+        #[cfg(feature = "native-system-clock")]
+        if number == 0x73 {
+            let (rax, rdx) = if args.iter().all(|value| *value == 0) {
+                match super::rtc::read_current_utc() {
+                    Ok(seconds) => {
+                        state.system_clock_calls = state.system_clock_calls.saturating_add(1);
+                        (0, seconds as u64)
+                    }
+                    Err(()) => (-5, 0),
+                }
+            } else {
+                (-22, 0)
+            };
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
         }
@@ -1465,7 +1487,9 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
                 match number {
                     0 => {
                         p.context[12] = (1 << 32)
-                            | if cfg!(feature = "display-input") {
+                            | if cfg!(feature = "native-system-clock") {
+                                9
+                            } else if cfg!(feature = "display-input") {
                                 8
                             } else if cfg!(feature = "process-memory") {
                                 7

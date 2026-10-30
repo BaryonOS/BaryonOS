@@ -1,0 +1,219 @@
+{
+  "label": "normal",
+  "case": "normal",
+  "started_utc": "2026-10-30T13:28:42.867550+00:00",
+  "duration_s": 2.373028277000003,
+  "timeout_s": 60,
+  "timed_out": false,
+  "raw_qemu_exit": 33,
+  "expected_exit": 33,
+  "required_markers": [
+    "BOOT:EBS_OK",
+    "KERNEL:ENTRY",
+    "BOOTINFO:OK",
+    "M6C:READY",
+    "M6C:CASE:NORMAL:PASS",
+    "M6C:SURVIVOR_PROGRESS:PASS",
+    "M6C:RESOURCES:PASS",
+    "M6C:PASS",
+    "M1:PASS"
+  ],
+  "forbidden_markers": [
+    "M1:FAIL",
+    "M2:FAIL",
+    "M3:FAIL",
+    "M4:FAIL",
+    "M5:FAIL",
+    "M6A:FAIL",
+    "M6B:FAIL",
+    "M6C:FAIL"
+  ],
+  "passed": true,
+  "command": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/.tools/nieuw-os/qemu/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/rtc-m6c-regression/run/m6c-normal-c3e333759a/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/rtc-m6c-regression/run/m6c-normal-c3e333759a/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/rtc-m6c-regression/run/m6c-normal-c3e333759a/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=m6c-test,format=raw,cache=writeback,readonly=off,file=build/rtc-m6c-regression/run/m6c-volume-normal-1cd283df92/test-disk.img",
+    "-device",
+    "virtio-blk-pci,drive=m6c-test,id=m6cblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-M6C-TEST",
+    "-L",
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/.tools/nieuw-os/qemu/share"
+  ],
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+  "profile": "M6c pc-q35-8.2/qemu64/TCG/1CPU/256MiB; synthetic writeback raw volume",
+  "firmware_source": [
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/.tools/nieuw-os/emulator/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/.tools/nieuw-os/emulator/usr/share/OVMF/OVMF_VARS_4M.fd"
+  ],
+  "base_commit": "c02675e21cbbaf32294298f46ce1cb394b360895",
+  "source_fingerprint_version": 3,
+  "source_sha256": "0ef69cbf5d371a809f16fc1ad0e35e9cc535acfb73de058bdc4f14c88348d8a6",
+  "observed_source_sha256": "0ef69cbf5d371a809f16fc1ad0e35e9cc535acfb73de058bdc4f14c88348d8a6",
+  "source_unchanged": true,
+  "artifact_sha256": {
+    "esp/kernel.elf": "5bbbc8b5a4a745f8d03e244b7b8a4a23e89f81b5851e27966e8dec3fb705921f",
+    "esp/EFI/BOOT/BOOTX64.EFI": "cf302c73d14bb20094494ea3a623299e13d371d7cd6aaf2692a1d4e70f41fef4",
+    "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "OVMF_VARS.fd": "59b41bfae0c0152ef8f936a2eb40a5f5939a64f329d0ad7afea722a92cd8e860",
+    "test-disk.before.img": "cb00efb2eae307368a0fa59b0b4a6a8a4d6aa4925cc5b3f970a7896212dac711",
+    "test-disk.after.img": "9070952d4abc9fe5937892246187423b97c42b9830354a2050083bc50a1d0229",
+    "build-manifest.json": "dd27acdd1ef210c5f46e42f4303793270d4bde6e3e52836d1fec4bd2eedaa381",
+    "volume-manifest.json": "dd3393b74e6b3ce114fe131c8d2f8bafb45ba89c7dff1c6f95d656d52c6919e1"
+  },
+  "volume_path": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/rtc-m6c-regression/run/m6c-volume-normal-1cd283df92/test-disk.img",
+  "disk_oracle": {
+    "scope": "independent Python v2 parser over actual synthetic 64KiB volume",
+    "identity": "1cd283df92a9482a807fc861cfb56ebb",
+    "seed": 10982892757167795231,
+    "variant": "normal",
+    "sha256_initial": "cb00efb2eae307368a0fa59b0b4a6a8a4d6aa4925cc5b3f970a7896212dac711",
+    "sha256_after": "9070952d4abc9fe5937892246187423b97c42b9830354a2050083bc50a1d0229",
+    "state": {
+      "sequence": 10,
+      "objects": [
+        {
+          "revision": 3,
+          "present": true,
+          "length": 128,
+          "digest": "b283dc2e26cecaa5",
+          "name_length": 16,
+          "name_digest": "8b2d238f15d9816a"
+        },
+        {
+          "revision": 2,
+          "present": false,
+          "length": 0,
+          "digest": "cbf29ce484222325",
+          "name_length": 0,
+          "name_digest": "cbf29ce484222325"
+        },
+        {
+          "revision": 3,
+          "present": true,
+          "length": 128,
+          "digest": "7a79c58355bc8925",
+          "name_length": 16,
+          "name_digest": "8b2d228f15d97fb7"
+        },
+        {
+          "revision": 2,
+          "present": false,
+          "length": 0,
+          "digest": "cbf29ce484222325",
+          "name_length": 0,
+          "name_digest": "cbf29ce484222325"
+        }
+      ]
+    },
+    "observed": {
+      "state": {
+        "sequence": 10,
+        "objects": [
+          {
+            "revision": 3,
+            "present": true,
+            "length": 128,
+            "digest": "b283dc2e26cecaa5",
+            "name_length": 16,
+            "name_digest": "8b2d238f15d9816a"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325",
+            "name_length": 0,
+            "name_digest": "cbf29ce484222325"
+          },
+          {
+            "revision": 3,
+            "present": true,
+            "length": 128,
+            "digest": "7a79c58355bc8925",
+            "name_length": 16,
+            "name_digest": "8b2d228f15d97fb7"
+          },
+          {
+            "revision": 2,
+            "present": false,
+            "length": 0,
+            "digest": "cbf29ce484222325",
+            "name_length": 0,
+            "name_digest": "cbf29ce484222325"
+          }
+        ]
+      },
+      "acks": 10,
+      "rejected": 6,
+      "domain_revisions": [
+        5,
+        5
+      ],
+      "catalog_replies": 10
+    },
+    "checks": {
+      "outside_journal_unchanged": true,
+      "case_matches_volume_variant": true,
+      "fresh_mutator_before_image": true,
+      "journal_valid_or_explicit_rejection_case": true,
+      "guest_matches_independent_disk_state": true,
+      "read_only_stage_unchanged": true,
+      "record_payloads_and_names_match_native_scenario": true,
+      "expected_final_state": true,
+      "exact_mutation_ack_count": true,
+      "exact_catalog_reply_count": true,
+      "domain_revisions_exclude_foreign_mutations": true,
+      "all_negative_requests_without_io": true
+    },
+    "passed": true
+  },
+  "host_crash": {
+    "requested_cut": null,
+    "cut_lines": [],
+    "kill_requested": false,
+    "process_id": 42132,
+    "was_running_before_kill": false,
+    "required_live_hold_s": 0.05,
+    "termination_code_expected": -9,
+    "real_process_returncode": 33
+  },
+  "serial_sha256": "61c7cded15fb64e0971d2c9ece2def86df33f7afbb7696d11b82ce5f8b0ad8a4",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "previous_stage": null,
+  "outcome_marker_passed": true,
+  "fault_injection_scope": null,
+  "execution_error": null,
+  "oracle_error": null,
+  "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/rtc-m6c-regression/run/m6c-normal-c3e333759a",
+  "stdout": "\u001b[2J\u001b[001;001H\u001b[=3h\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;056;240t\u001b[2J\u001b[001;001HBdsDxe: loading Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nM2:PASS\nM6C:READY\nM6C:SEQUENCE:10\nM6C:OBJECT0:REVISION:3\nM6C:OBJECT0:PRESENT:1\nM6C:OBJECT0:LENGTH:128\nM6C:OBJECT0:NAME_LENGTH:16\nM6C:OBJECT0:NAME_DIGEST:8b2d238f15d9816a\nM6C:OBJECT0:DIGEST:b283dc2e26cecaa5\nM6C:OBJECT1:REVISION:2\nM6C:OBJECT1:PRESENT:0\nM6C:OBJECT1:LENGTH:0\nM6C:OBJECT1:NAME_LENGTH:0\nM6C:OBJECT1:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT1:DIGEST:cbf29ce484222325\nM6C:OBJECT2:REVISION:3\nM6C:OBJECT2:PRESENT:1\nM6C:OBJECT2:LENGTH:128\nM6C:OBJECT2:NAME_LENGTH:16\nM6C:OBJECT2:NAME_DIGEST:8b2d228f15d97fb7\nM6C:OBJECT2:DIGEST:7a79c58355bc8925\nM6C:OBJECT3:REVISION:2\nM6C:OBJECT3:PRESENT:0\nM6C:OBJECT3:LENGTH:0\nM6C:OBJECT3:NAME_LENGTH:0\nM6C:OBJECT3:NAME_DIGEST:cbf29ce484222325\nM6C:OBJECT3:DIGEST:cbf29ce484222325\nM6C:ACKS:10\nM6C:REJECTED_NO_IO:6\nM6C:CATALOG_REPLIES:10\nM6C:DOMAIN0:REVISION:5\nM6C:DOMAIN1:REVISION:5\nM6C:CASE:NORMAL:PASS\nM6C:SURVIVOR_PROGRESS:PASS\nM6C:BROKER:MAX_COMPLETION_TICKS:1\nM6C:BROKER:TIMEOUTS:0\nM6C:RESOURCES:PASS\nM6C:PASS\nM1:PASS\n",
+  "stderr": ""
+}

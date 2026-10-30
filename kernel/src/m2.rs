@@ -4,6 +4,8 @@ mod arch;
 #[cfg(feature = "milestone-m3")]
 mod m3;
 pub(crate) mod paging;
+#[cfg(any(feature = "native-rtc", feature = "native-system-clock"))]
+mod rtc;
 use crate::serial;
 use boot_protocol::{BootInfo, MemoryMap, MAP_LIMIT};
 use core::{arch::asm, mem::MaybeUninit, ptr};
@@ -139,6 +141,8 @@ extern "C" fn run() -> ! {
         assert_eq!(paging.leaf(guard), 0);
     }
     serial::write(b"KS-03:PASS\n");
+    #[cfg(feature = "native-rtc")]
+    rtc::run();
     if cfg!(feature = "test-m2-ro") {
         // SAFETY: Deliberate fault probe through an integer address; no Rust
         // reference is created to immutable text. Hardware WP must reject store.

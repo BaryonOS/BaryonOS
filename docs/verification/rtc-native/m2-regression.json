@@ -1,0 +1,82 @@
+{
+  "phase": "M2",
+  "status": "completed",
+  "passed": true,
+  "started_utc": "2026-10-30T13:28:46.370225+00:00",
+  "results": [
+    {
+      "name": "frame-map-protocol-host-tests",
+      "passed": true,
+      "requirements": [
+        "KS-01",
+        "KS-02",
+        "KS-03"
+      ],
+      "evidence": "build/logs/m2-host-tests.stdout.txt"
+    },
+    {
+      "name": "own-cr3-frame-ownership-wx",
+      "passed": true,
+      "requirements": [
+        "KS-01",
+        "KS-02",
+        "KS-03",
+        "OWN_GDT_TSS_IDT_CR3"
+      ],
+      "evidence": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/rtc-m2-verifier/run/m2-d9f9de744c"
+    },
+    {
+      "name": "test-m2-ro",
+      "passed": true,
+      "requirements": [
+        "KS-03",
+        "REAL_PAGE_FAULT"
+      ],
+      "evidence": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/rtc-m2-verifier/run/test-m2-ro-4e0153e6a3"
+    },
+    {
+      "name": "test-m2-nx",
+      "passed": true,
+      "requirements": [
+        "KS-03",
+        "REAL_PAGE_FAULT"
+      ],
+      "evidence": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/rtc-m2-verifier/run/test-m2-nx-720e941082"
+    },
+    {
+      "name": "test-m2-absent",
+      "passed": true,
+      "requirements": [
+        "KS-03",
+        "REAL_PAGE_FAULT"
+      ],
+      "evidence": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/rtc-m2-verifier/run/test-m2-absent-1c2ba721b4"
+    },
+    {
+      "name": "kernel-fault-stops-controlled",
+      "passed": true,
+      "requirements": [
+        "KERNEL_FAULT_FAIL_CLOSED"
+      ],
+      "evidence": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/rtc-m2-verifier/run/m2-kernel-fault-a0fedf0caa"
+    },
+    {
+      "name": "unusable-main-stack-double-fault-ist",
+      "passed": true,
+      "requirements": [
+        "DOUBLE_FAULT_IST1",
+        "KERNEL_STACK_GUARDS"
+      ],
+      "evidence": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/rtc-m2-verifier/run/m2-double-fault-7f4b842aaf"
+    },
+    {
+      "name": "m1-regression",
+      "passed": true,
+      "requirements": [
+        "M1"
+      ],
+      "evidence": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/rtc-m2-verifier/run/m1-after-m2-3ffb7fc34f"
+    }
+  ],
+  "finished_utc": "2026-10-30T13:29:03.782650+00:00"
+}

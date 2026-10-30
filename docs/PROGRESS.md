@@ -85,6 +85,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+RTC-NATIVE-1 (30 oktober 2026), basis `5c334f9`: **34% -> 34%**.
+De expliciet opt-in CMOS-bootstrap is een technische tijdproviderafhankelijkheid,
+geen productieklok of vertrouwde TLS-tijd. Geen rubricpunt of productcriterium
+wordt door deze beperkte proef gesloten. PROJECT-STATE en het RTC-contract
+scheiden werkelijk native bewijs, hostcodec en firmwarebeperkingen.
+De echte RTC-CI-run op `295b4db` is groen; ook dat sluit geen productcriterium.
+
 Conflictintegratie PR #61 (30 oktober 2026): **34% → 34%**. B03 en de
 foundationwijzigingen van main blijven behouden zonder nieuwe punten; de
 integratiecontroles staan in PROJECT-STATE.md. Bestaand brongebonden bewijs

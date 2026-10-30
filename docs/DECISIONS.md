@@ -1,5 +1,54 @@
 # Ontwerpbesluiten
 
+## ADR-050 — Opt-in wall-clock syscall blijft zichtbaar niet-vertrouwd
+
+30 oktober 2026; uitvoering NATIVE-CLOCK-1, boven op RTC-NATIVE-1.
+`native-system-clock` voegt ABI 1.9 syscall `0x73` toe voor een directe,
+read-only UTC-snapshot uit CMOS. De gebruikers-SDK retourneert een expliciet
+`UnauthenticatedRtc`-type. De klok is openbare procesmetadata; er worden geen
+CMOS-poorten, capabilities, pointers, opslag- of netwerkrechten aan apps
+gegeven. Ongeldige niet-nulargumenten geven `-22`, mislukte of onbruikbare
+hardware geeft `-5`, zonder fallback of verzonnen tijd.
+
+Deze scope kiest voor een werkende, testbare systeemfunctie in het bestaande
+single-CPU IF0-profiel, niet voor een vertrouwde productie-TimeProvider. De
+adapter verifieert de native RTC-invarianten en indexherstel per aanroep.
+Unix-tijd en boot-monotone PIT-ticks blijven gescheiden. Geen
+certificaatvalidatie, persistente antirollback, synchronisatie, slaap-/wekcorrectie,
+fysiek hardwarebewijs of nieuwe voortgangspunten. De echte ring-3-app en
+onafhankelijke QEMU-basistijd-orakel zijn de acceptatiepoort.
+
+Herzien vóór SMP, andere firmware/hardware of TLS-gebruik: dan zijn
+geserialiseerd apparaatbezit, geautoriseerde TimeProvider, versheid,
+onzekerheidsmarge en rollbackanker nodig. Rollback: verwijder uitsluitend de
+opt-in feature, syscall, SDK-bindings en acceptatie; ABI 1.9 blijft als
+documenteerde compatibiliteitsrevisie, zonder invloed op oude profielen.
+
+## ADR-049 — Exclusieve native CMOS-bootstrap, geen vertrouwde tijd
+
+30 oktober 2026; implementatie RTC-NATIVE-1, basis `5c334f9`.
+De bestaande dependencyvrije RTC-codec wordt alleen voor een opt-in
+`native-rtc`-diagnostiek aan de eigen kernel gekoppeld. Na eigen IDT/paging,
+op een CPU met IF=0, bezit de proef uitsluitend CMOS-index/data 0x70/0x71.
+Een expliciete D/NMI-Enabled-startselectie vervangt geen firmware-shadow;
+de readprocedure herstelt deze eigen selectie. Geen RTC-datawrites,
+register-C-ACK, app-I/O, nieuwe syscall of productiefeature-implicatie.
+Ring-3/framebuffercombinaties worden geweigerd. De kleine privileged codec
+is uitsluitend hardwareacceptatie; een productie-TimeProvider blijft een
+geisoleerde dienst met afzonderlijk minimaal broker-/rechtencontract.
+
+Alternatief: direct een wandkloksyscall of TLS-klok publiceren zou
+niet-geauthenticeerde tijd tot een impliciet vertrouwensanker maken.
+De uitvoer houdt daarom `UnauthenticatedRtc`, callerfloor en vluchtige
+terugloopcontrole expliciet. Vijf onafhankelijke kalender-oracles plus echte
+budget-/floorweigering en device-indexherstel vormen de native poort; de
+bestaande hosttests blijven vereist. Exacte uitvoering: PROJECT-STATE en
+RTC-WALLTIME. Geen fysiek-, persistent antirollback-, TLS- of productbewijs.
+Primair emulatorcontract: QEMU `v10.2.1`, `hw/rtc/mc146818rtc.c`; aanvullend
+OSDev CMOS W001717 (revisie 30263). Geen emulatorcode overgenomen.
+Rollback: opt-in feature/adapter/runner revert; bestaande M2 en alle
+productiediensten blijven ongewijzigd. Herzien bij IRQ/SMP of productgebruik.
+
 ## ADR-031 — Native I/O-onzekerheid zonder observerpanic
 
 **Datum/status/eigenaar:** 28 oktober 2026; geïmplementeerd en geaccepteerd op

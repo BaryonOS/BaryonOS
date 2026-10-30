@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "passed": false,
+  "source_sha256": "0ef69cbf5d371a809f16fc1ad0e35e9cc535acfb73de058bdc4f14c88348d8a6",
+  "source_fingerprint_version": 3,
+  "manifest_sha256": "beff5452a4626783f974818ee0bc2d4816c0b4100578a7dbbb3aaddbaf5efd61",
+  "scope": "IF0 own-kernel CMOS reads; not a userspace TimeProvider or authenticated time",
+  "cases": [
+    {
+      "case": "epoch",
+      "guest": {
+        "label": "rtc-epoch",
+        "started_utc": "2026-10-30T13:30:14.751409+00:00",
+        "duration_s": 1.80252254800007,
+        "timeout_s": 60,
+        "timed_out": false,
+        "raw_qemu_exit": 33,
+        "expected_exit": 33,
+        "required_markers": [
+          "BOOT:EBS_OK",
+          "KERNEL:ENTRY",
+          "BOOTINFO:OK",
+          "KS-01:PASS",
+          "KS-02:PASS",
+          "KS-03:PASS",
+          "RTC:QUALITY:UNAUTHENTICATED",
+          "RTC:NEGATIVE:PASS",
+          "RTC:RESTORE:PASS",
+          "RTC:PASS",
+          "M2:PASS",
+          "M1:PASS"
+        ],
+        "forbidden_markers": [
+          "FAIL",
+          "PANIC"
+        ],
+        "passed": true,
+        "command": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/.tools/nieuw-os/qemu/qemu-system-x86_64",
+          "-machine",
+          "pc-q35-8.2",
+          "-accel",
+          "tcg,thread=single",
+          "-cpu",
+          "qemu64",
+          "-smp",
+          "1",
+          "-m",
+          "256M",
+          "-nodefaults",
+          "-display",
+          "none",
+          "-monitor",
+          "none",
+          "-serial",
+          "stdio",
+          "-nic",
+          "none",
+          "-no-reboot",
+          "-drive",
+          "if=pflash,unit=0,format=raw,readonly=on,file=build/rtc-native/run/rtc-epoch-f9b1d756b4/OVMF_CODE.fd",
+          "-drive",
+          "if=pflash,unit=1,format=raw,file=build/rtc-native/run/rtc-epoch-f9b1d756b4/OVMF_VARS.fd",
+          "-drive",
+          "if=virtio,index=0,format=raw,readonly=on,file=fat:build/rtc-native/run/rtc-epoch-f9b1d756b4/esp",
+          "-device",
+          "isa-debug-exit,iobase=0xf4,iosize=0x04",
+          "-rtc",
+          "base=1970-01-01T00:00:00,clock=vm,driftfix=none",
+          "-L",
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/.tools/nieuw-os/qemu/share"
+        ],
+        "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+        "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+        "base_commit": "c02675e21cbbaf32294298f46ce1cb394b360895",
+        "source_fingerprint_version": 3,
+        "source_sha256": "0ef69cbf5d371a809f16fc1ad0e35e9cc535acfb73de058bdc4f14c88348d8a6",
+        "artifact_sha256": {
+          "esp/kernel.elf": "f37880e68bed5e27f9056e7b58899ee1a530c5cf7ab20d9157b1c0373c2af921",
+          "esp/EFI/BOOT/BOOTX64.EFI": "7fe38cf8c04faee27595bde879243ee801c8420a8143cbf6c77c2a8c9917a3de",
+          "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+          "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+        },
+        "firmware_source": [
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/.tools/nieuw-os/emulator/usr/share/OVMF/OVMF_CODE_4M.fd",
+          "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/.tools/nieuw-os/emulator/usr/share/OVMF/OVMF_VARS_4M.fd"
+        ],
+        "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-expert-disco/build/rtc-native/run/rtc-epoch-f9b1d756b4",
+        "stdout": "\u001b[2J\u001b[001;001H\u001b[=3h\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;056;240t\u001b[2J\u001b[001;001HBdsDxe: loading Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nKS-03:PASS\nRTC:UTC:3155760001\nRTC:DATE:2070,1,1,0,0,1\nRTC:QUALITY:UNAUTHENTICATED\nRTC:NEGATIVE:PASS\nRTC:RESTORE:PASS\nRTC:PASS\nM2:PASS\nM1:PASS\n",
+        "stderr": "",
+        "expected_artifact_sha256": {
+          "esp/kernel.elf": "f37880e68bed5e27f9056e7b58899ee1a530c5cf7ab20d9157b1c0373c2af921",
+          "esp/EFI/BOOT/BOOTX64.EFI": "7fe38cf8c04faee27595bde879243ee801c8420a8143cbf6c77c2a8c9917a3de"
+        },
+        "artifact_binding_passed": true
+      },
+      "passed": false
+    }
+  ]
+}
