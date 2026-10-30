@@ -1,0 +1,185 @@
+name: Native RANDOM and image foundation acceptance
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-foundation-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  native-foundation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/foundation-ci
+      # All five VM steps run sequentially, with separate build/run images.
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/foundation-ci-native
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/foundation-ci-host
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Rust, lint tools and real targets
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup component add --toolchain 1.90.0 rustfmt clippy
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Cache Cargo downloads only
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+          key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Disposable QEMU and matching OVMF package
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+          test -f "$OS_OVMF_CODE"
+          test -f "$OS_OVMF_VARS"
+          mkdir -p "$NOS_BUILD_DIR/logs"
+          dpkg-query -W qemu-system-x86 ovmf > "$NOS_BUILD_DIR/logs/ci-packages.txt"
+          git rev-parse HEAD > "$NOS_BUILD_DIR/logs/source-commit.txt"
+      - name: Strict preflight
+        run: python3 -B tools/preflight.py --strict | tee "$NOS_BUILD_DIR/logs/preflight.json"
+      - name: Fetch every locked dependency closure before offline checks
+        run: |
+          cargo +1.90.0 fetch --locked
+          for manifest in \
+            sdk/Cargo.toml \
+            sdk/keyring-client/Cargo.toml \
+            sdk/examples/random-probe/Cargo.toml \
+            sdk/examples/image-probe/Cargo.toml \
+            services/image-codec/Cargo.toml
+          do
+            cargo +1.90.0 fetch --locked --manifest-path "$manifest"
+          done
+      - name: Real keyring cores, SDK sessions and capability-engine probe tests
+        run: |
+          cargo +1.90.0 test --offline --locked -p keyring-core 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-host.txt"
+          cargo +1.90.0 clippy --offline --locked -p keyring-core --all-targets -- -D warnings 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-clippy.txt"
+          cargo +1.90.0 test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-host.txt"
+          cargo +1.90.0 clippy --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client --all-targets -- -D warnings 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-clippy.txt"
+          for manifest in \
+            sdk/keyring-client/Cargo.toml \
+            sdk/examples/random-probe/Cargo.toml \
+            services/image-codec/Cargo.toml
+          do
+            cargo +1.90.0 test --offline --locked --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/component-host.txt"
+            cargo +1.90.0 clippy --offline --locked --manifest-path "$manifest" --all-targets -- -D warnings 2>&1 | tee -a "$NOS_BUILD_DIR/logs/component-clippy.txt"
+          done
+      - name: Formatting and scalar freestanding libraries
+        env:
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/foundation-ci-scalar
+          # Match the portable crypto backends selected by the existing
+          # system/keyring builders; disabling SSE alone is insufficient.
+          RUSTFLAGS: >-
+            -C no-redzone=yes
+            -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2
+            --cfg chacha20_force_soft --cfg chacha20_backend="soft"
+            --cfg poly1305_force_soft --cfg sha2_backend="soft"
+        run: |
+          cargo +1.90.0 fmt --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/root-format.txt"
+          cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/sdk-format.txt"
+          cargo +1.90.0 build --offline --locked --release --lib --target x86_64-unknown-none -p keyring-core 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-scalar.txt"
+          cargo +1.90.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-scalar.txt"
+          for manifest in \
+            sdk/keyring-client/Cargo.toml \
+            sdk/examples/random-probe/Cargo.toml \
+            services/image-codec/Cargo.toml
+          do
+            # Check owned workspace sources, preserving hash-pinned upstream
+            # JPEG formatting. --all would also traverse path dependencies.
+            cargo +1.90.0 fmt --manifest-path "$manifest" -- --check 2>&1 | tee -a "$NOS_BUILD_DIR/logs/component-format.txt"
+            cargo +1.90.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path "$manifest" 2>&1 | tee -a "$NOS_BUILD_DIR/logs/component-scalar.txt"
+          done
+          cargo +1.90.0 fmt --manifest-path sdk/examples/image-probe/Cargo.toml -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/image-probe-format.txt"
+      - name: Pinned native fixture lint
+        env:
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/foundation-ci-probe-lint
+        run: |
+          python3 -B sdk/examples/random-probe/build.py clippy 2>&1 | tee "$NOS_BUILD_DIR/logs/random-probe-clippy.txt"
+          cargo +1.90.0 clippy --offline --locked --release --target x86_64-unknown-none --manifest-path sdk/examples/image-probe/Cargo.toml --features native --bin image-probe -- -D warnings 2>&1 | tee "$NOS_BUILD_DIR/logs/image-probe-clippy.txt"
+      - name: Explicit gate discovery and hostile vendor-source checks
+        id: quality
+        run: |
+          # tools/tests is not recursively discovered by the existing tests/ job.
+          python3 -B -m unittest discover -s tools/tests -p test_random.py -v 2>&1 | tee "$NOS_BUILD_DIR/logs/random-gate-host.txt"
+          python3 -B -m unittest discover -s tools/tests -p test_images.py -v 2>&1 | tee "$NOS_BUILD_DIR/logs/image-gate-host.txt"
+          python3 -B services/image-codec/verify_vendor.py 2>&1 | tee "$NOS_BUILD_DIR/logs/jpeg-vendor-verification.json"
+          python3 -B -m unittest discover -s services/image-codec/tests -p test_vendor.py -v 2>&1 | tee "$NOS_BUILD_DIR/logs/jpeg-vendor-negative.txt"
+      # Each native step is mandatory. After host prerequisites succeed, a
+      # failure in one case must not silently suppress any of the other cases.
+      # No continue-on-error, cached images, host decoder or fabricated PASS.
+      - name: Native RANDOM raw validation, quota, rebind and revoke
+        if: ${{ !cancelled() && steps.quality.outcome == 'success' }}
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/foundation-ci/random-raw
+          CARGO_NET_OFFLINE: 'true'
+        run: |
+          python3 -B -u tools/build.py --kernel-feature native-system-random 2>&1 | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/random-raw-build.txt"
+          python3 -B -u tools/run_random.py --case raw 2>&1 | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/random-raw-native.txt"
+      - name: Native RANDOM SDK delivery and actual cancellation
+        if: ${{ !cancelled() && steps.quality.outcome == 'success' }}
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/foundation-ci/random-sdk
+          CARGO_NET_OFFLINE: 'true'
+        run: |
+          python3 -B -u tools/build.py --kernel-feature test-system-random-sdk 2>&1 | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/random-sdk-build.txt"
+          python3 -B -u tools/run_random.py --case sdk 2>&1 | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/random-sdk-native.txt"
+      - name: Native RANDOM uncertain delivery without automatic replay
+        if: ${{ !cancelled() && steps.quality.outcome == 'success' }}
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/foundation-ci/random-unknown
+          CARGO_NET_OFFLINE: 'true'
+        run: |
+          python3 -B -u tools/build.py --kernel-feature test-system-random-unknown 2>&1 | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/random-unknown-build.txt"
+          python3 -B -u tools/run_random.py --case unknown 2>&1 | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/random-unknown-native.txt"
+      - name: Native RANDOM real caller rejection and fresh legacy STATUS
+        if: ${{ !cancelled() && steps.quality.outcome == 'success' }}
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/foundation-ci/random-wrong-caller
+          CARGO_NET_OFFLINE: 'true'
+        run: |
+          python3 -B -u tools/build.py --kernel-feature test-system-random-wrong-caller 2>&1 | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/random-wrong-caller-build.txt"
+          python3 -B -u tools/run_random.py --case wrong-caller 2>&1 | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/random-wrong-caller-native.txt"
+      - name: Native PNG JPEG pixels, bounded heap, stack and hostile inputs
+        if: ${{ !cancelled() && steps.quality.outcome == 'success' }}
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/foundation-ci/images
+          CARGO_NET_OFFLINE: 'true'
+        # This remains a hard failing gate while the native decoder is broken.
+        # Keep all image assertions and the existing 64 KiB process stack.
+        run: |
+          python3 -B -u tools/build.py --kernel-feature native-system-images 2>&1 | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/images-build.txt"
+          python3 -B -u tools/run_images.py --case normal 2>&1 | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/images-native.txt"
+      - name: Preserve clean tracked sources and generated output paths
+        if: ${{ always() }}
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/build/foundation-ci/logs"
+          git diff --exit-code 2>&1 | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/tracked-diff.txt"
+          git status --porcelain | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/git-status.txt"
+          test -z "$(git status --porcelain)"
+      - name: Preserve complete bound builds, raw runs and failure reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-foundation-evidence
+          path: build/foundation-ci/
+          if-no-files-found: error
+          retention-days: 14
