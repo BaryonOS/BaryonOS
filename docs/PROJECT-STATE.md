@@ -1,13 +1,13 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — NATIVE-CLOCK-1 native gate geslaagd; PR-CI volgt — 30 oktober 2026
+## NEXT AGENT HANDOFF — NATIVE-CLOCK-1 afgerond; PR blijft draft voor review — 30 oktober 2026
 
 Bronbasis `c057d864e413840644da39b6c8338e883cbe2ff4`, implementatiecheckpoint
 `652cd5d4c9c68afb0b143c0147197aa7fc6f8220`, bewijscheckpoint
-`ff51dc01b36d3200fc6a887b03429748e93eb457`, branch
-`simonvanieperen-expert-disco`; doelbranch `main`. Het nieuwe bewijscheckpoint
-en eindassessment zijn lokaal en worden samen gepusht; de eerdere implementatie-
-en assessmentcommits staan al op de remote.
+`ff51dc01b36d3200fc6a887b03429748e93eb457`, CI-geteste codehead
+`cd17baed11b3efbab3935697d1e47c0feea517dc`, branch
+`simonvanieperen-expert-disco`; doelbranch `main`. Alle genoemde commits zijn
+gepusht en de remote-head is gecontroleerd.
 De aparte workspace-doctestblokkade blijft buiten deze taak. De bestaande
 RTC-NATIVE-1-proef en concept-PR #63 zijn behouden.
 
@@ -42,9 +42,12 @@ in `docs/verification/system-clock/evidence.json`.
 
 De brongebonden bewijsnotitie is opgeslagen onder
 `docs/verification/system-clock/README.md`. De native runtimegate liep op
-assessmentcheckpoint `baeb09aece05a6fb65bfa7178ae1c146d5506b75`; evidence-
-en eindassessmentcheckpoint worden nu gepusht. Daarna PR-template bijwerken en
-de actuele GitHub CI controleren.
+assessmentcheckpoint `baeb09aece05a6fb65bfa7178ae1c146d5506b75`. De PR is
+bijgewerkt volgens de bestaande template. Op codehead `cd17bae` zijn alle
+12 checks geslaagd, inclusief host-quality, native-system (met de nieuwe
+klokpoort), native-foundation, native-RTC en de bestaande systeemgates. PR #63
+blijft draft: CodeRabbit sloeg hem over en er is geen menselijke review of
+reviewbesluit; die reviewstatus wordt niet als goedkeuring voorgesteld.
 
 Open: RTC blijft niet-geauthenticeerd; onbekende UTC-/eeuwconfiguratie en
 firmwaregedrag zijn niet opgelost door de syscall. Geen persistente
